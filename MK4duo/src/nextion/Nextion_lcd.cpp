@@ -45,7 +45,7 @@
 
   #include "Nextion_lcd.h"
   #include "Nextion_gfx.h"
-  #include "Nextion.h"
+  #include "nextion_lib/Nextion.h"
 
   bool NextionON        = false;
   uint8_t NextionPage   = 0;

@@ -19,7 +19,7 @@
   #define NEXTION_GFX_H
 
   #if ENABLED(NEXTION_GFX)
-    #include "Nextion.h"
+    #include "nextion_lib/Nextion.h"
 
     #define VC_AXIS         0
     #define VC_MOVE         3

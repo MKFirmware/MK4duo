@@ -13,7 +13,7 @@
  * the License, or (at your option) any later version.
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if ENABLED(SDSUPPORT) && ENABLED(NEXTION)
 

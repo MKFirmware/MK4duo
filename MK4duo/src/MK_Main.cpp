@@ -3989,6 +3989,10 @@ inline void gcode_G28() {
         homeZ = code_seen('Z'),
         homeE = code_seen('E');
 
+  #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
+    if (homeZ) homeX = homeY = true;
+  #endif
+
   home_all_axis = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
 
   #if ENABLED(NPR2)
