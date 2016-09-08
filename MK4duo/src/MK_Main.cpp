@@ -8778,34 +8778,34 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         // This function resets the max/min values - the current position may be overwritten below.
         set_axis_is_at_home(X_AXIS);
 
-        if (DEBUGGING(INFO)) DEBUG__INFO_POS("New Extruder", current_position);
+        if (DEBUGGING(INFO)) DEBUG_INFO_POS("New Extruder", current_position);
 
         switch (dual_x_carriage_mode) {
           case DXC_FULL_CONTROL_MODE:
-            current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_extruder_x_pos);
-            inactive_extruder_x_pos = RAW_X_POSITION(destination[X_AXIS]);
+            current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_hotend_x_pos);
+            inactive_hotend_x_pos = RAW_X_POSITION(destination[X_AXIS]);
             break;
           case DXC_DUPLICATION_MODE:
-            active_extruder_parked = (active_extruder == 0); // this triggers the second extruder to move into the duplication position
-            if (active_extruder_parked)
-              current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_extruder_x_pos);
+            active_hotend_parked = (active_extruder == 0); // this triggers the second extruder to move into the duplication position
+            if (active_hotend_parked)
+              current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_hotend_x_pos);
             else
-              current_position[X_AXIS] = destination[X_AXIS] + duplicate_extruder_x_offset;
-            inactive_extruder_x_pos = RAW_X_POSITION(destination[X_AXIS]);
-            extruder_duplication_enabled = false;
+              current_position[X_AXIS] = destination[X_AXIS] + duplicate_hotend_x_offset;
+            inactive_hotend_x_pos = RAW_X_POSITION(destination[X_AXIS]);
+            hotend_duplication_enabled = false;
             break;
           default:
             // record raised toolhead position for use by unpark
             memcpy(raised_parked_position, current_position, sizeof(raised_parked_position));
             raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
-            active_extruder_parked = true;
+            active_hotend_parked = true;
             delayed_move_time = 0;
             break;
         }
 
         if (DEBUGGING(INFO)) {
-          SERIAL_LMV(INFO, "Active extruder parked: ", active_extruder_parked ? "yes" : "no");
-          DEBUG_INFO_POS("New extruder (parked)", current_position);
+          SERIAL_LMV(INFO, "Active hotend parked: ", active_hotend_parked ? "yes" : "no");
+          DEBUG_INFO_POS("New hotend (parked)", current_position);
         }
 
         // No extra case for AUTO_BED_LEVELING_FEATURE in DUAL_X_CARRIAGE. Does that mean they don't work together?
@@ -9839,7 +9839,7 @@ static void report_current_position() {
         // move duplicate extruder into correct duplication position.
         planner.set_position_mm(inactive_hotend_x_pos, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
         planner.buffer_line(current_position[X_AXIS] + duplicate_hotend_x_offset, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], planner.max_feedrate_mm_s[X_AXIS], 1, active_driver);
-        sync_plan_position();
+        SYNC_PLAN_POSITION_KINEMATIC();
         stepper.synchronize();
         hotend_duplication_enabled = true;
         active_hotend_parked = false;
