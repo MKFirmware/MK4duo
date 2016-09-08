@@ -76,5 +76,5 @@ More features have been added by:
 
 ## License
 
-Marlin is published under the [GPL license](/Documentation/COPYING.md) because I believe in open development.
+MK4duo is published under the [GPL license](/Documentation/COPYING.md) because I believe in open development.
 Do not use this code in products (3D printers, CNC etc) that are closed source or are crippled by a patent.
