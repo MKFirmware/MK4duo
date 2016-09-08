@@ -51,6 +51,7 @@
  * - Ahead slowdown
  * - Quick home
  * - Home Y before X
+ * - Force Home XY before Home Z
  * - Babystepping
  * - Firmware retract
  * - Dual X-carriage
@@ -569,10 +570,6 @@
  * This feature is not compatible with delta printer.                  *
  * This feature is enabled by default for scara printer.               *
  *                                                                     *
- *                                                                     *
- * Uncomment QUICK_HOME to enable this feature                         *
- *                                                                     *
- *                                                                     *
  ***********************************************************************/
 //#define QUICK_HOME
 /***********************************************************************/
@@ -584,12 +581,23 @@
  *                                                                     *
  * When G28 is called, this option will make Y home before X           *
  *                                                                     *
- * Uncomment HOME_Y_BEFORE_X to enable this feature                    *
- *                                                                     *
  * This feature is not compatible with delta and scara printer.        *
  *                                                                     *
  ***********************************************************************/
 //#define HOME_Y_BEFORE_X
+/***********************************************************************/
+
+
+/***********************************************************************
+ *********************** Force Home XY before Z ************************
+ ***********************************************************************
+ *                                                                     *
+ * When G28 is called, this option force XY home before Z              *
+ *                                                                     *
+ * This feature is not compatible with delta and scara printer.        *
+ *                                                                     *
+ ***********************************************************************/
+//#define FORCE_HOME_XY_BEFORE_Z
 /***********************************************************************/
 
 
@@ -602,8 +610,6 @@
  * It can e.g. be used to change z-positions in the print startup         *
  * phase in real-time.                                                    *
  * Does not respect endstops!                                             *
- *                                                                        *
- * Uncomment BABYSTEPPING to enable this feature                          *
  *                                                                        *
  **************************************************************************/
 //#define BABYSTEPPING
@@ -624,8 +630,6 @@
  * until then, intended retractions can be detected by moves that only    *
  * extrude and the direction.                                             *
  * the moves are than replaced by the firmware controlled ones.           *
- *                                                                        *
- * Uncomment FWRETRACT to enable this feature                             *
  *                                                                        *
  **************************************************************************/
 //#define FWRETRACT                     //ONLY PARTIALLY TESTED
@@ -648,8 +652,6 @@
  * A dual x-carriage design has the advantage that the inactive extruder can be parked   *
  * which prevents hot-end ooze contaminating the print. It also reduces the weight of    *
  * each x-carriage allowing faster printing speeds.                                      *
- *                                                                                       *
- * Uncomment DUAL_X_CARRIAGE to enable this feature                                      *
  *                                                                                       *
  *****************************************************************************************/
 //#define DUAL_X_CARRIAGE
@@ -699,8 +701,6 @@
  * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
  * to using 1 extruder.                                                                  *
  *                                                                                       *
- * Uncomment X DUAL STEPPER DRIVERS to enable this feature                               *
- *                                                                                       *
  *****************************************************************************************/
 //#define X_DUAL_STEPPER_DRIVERS
 
@@ -722,8 +722,6 @@
  * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
  * to using 1 extruder.                                                                  *
  *                                                                                       *
- * Uncomment Y_DUAL_STEPPER_DRIVERS to enable this feature                               *
- *                                                                                       *
  *****************************************************************************************/
 //#define Y_DUAL_STEPPER_DRIVERS
 
@@ -744,8 +742,6 @@
  * The pins are currently only defined for a RAMPS motherboards.                         *
  * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
  * to using 1 extruder.                                                                  *
- *                                                                                       *
- * Uncomment Z_DUAL_STEPPER_DRIVERS to enable this feature                               *
  *                                                                                       *
  *****************************************************************************************/
 //#define Z_DUAL_STEPPER_DRIVERS
@@ -769,8 +765,6 @@
  * See nophead's blog for more info.                                                     *
  * Not working O                                                                         *
  *                                                                                       *
- * Uncomment XY_FREQUENCY_LIMIT to enable this feature                                   *
- *                                                                                       *
  *****************************************************************************************/
 //#define XY_FREQUENCY_LIMIT  15
 /*****************************************************************************************/
@@ -781,8 +775,6 @@
  *****************************************************************************************
  *                                                                                       *
  * SF send wrong arc g-codes when using Arc Point as fillet procedure.                   *
- *                                                                                       *
- * Uncomment SF_ARC_FIX to enable this feature                                           *
  *                                                                                       *
  *****************************************************************************************/
 //#define SF_ARC_FIX
@@ -801,7 +793,6 @@
  * Also allows adjustment of diameter at print time (vs  at slicing)              *
  * Single extruder only at this point (extruder 0)                                *
  *                                                                                *
- * Uncomment FILAMENT_SENSOR to enable this feature                               *
  * You also need to set FILWIDTH_PIN in Configuration_pins.h                      *
  *                                                                                *
  **********************************************************************************/
@@ -831,7 +822,6 @@
  * low = filament run out                                                         *
  * Single extruder only at this point (extruder 0)                                *
  *                                                                                *
- * Uncomment FILAMENT_RUNOUT_SENSOR to enable this feature                        *
  * You also need to set FILRUNOUT_PIN in Configuration_pins.h                     *
  *                                                                                *
  **********************************************************************************/
@@ -887,7 +877,6 @@
  *                                                                        *
  * Now you AC712 it should be calibrated.                                 *
  *                                                                        *
- * Uncomment POWER_CONSUMPTION to enable this feature                     *
  * You also need to set POWER_CONSUMPTION_PIN in pins.h                   *
  *                                                                        *
  **************************************************************************/
@@ -912,7 +901,6 @@
  * Flow sensors for water circulators, usefull in case of coolers using   *
  * water or other liquid as heat vector                                   *
  *                                                                        *
- * Uncomment FLOWMETER SENSOR to enable this feature                      *
  * You also need to set FLOWMETER PIN in Configurations_pins.h            *
  *                                                                        *
  **************************************************************************/
@@ -1163,7 +1151,6 @@
  * M240 Triggers a camera by emulating a Canon RC-1 Remote                *
  * Data from: http://www.doc-diy.net/photo/rc-1_hacked/                   *
  *                                                                        *
- * Uncomment PHOTOGRAPH to enable this feature                            *
  * You also need to set PHOTOGRAPH_PIN in Configuration_pins.h            *
  *                                                                        *
  **************************************************************************/
@@ -1178,7 +1165,6 @@
  * M240 Triggering CHDK to take a picture see how to use it here:         *
  * http://captain-slow.dk/2014/03/09/3d-printing-timelapses/              *
  *                                                                        *
- * Uncomment CHDK to enable this feature                                  *
  * You also need to set CHDK_PIN in Configuration_pins.h                  *
  *                                                                        *
  **************************************************************************/
@@ -1253,8 +1239,6 @@
  *                                                                     *
  * Use it if you have low speed stepper driver                         *
  *                                                                     *
- * Uncomment STEPPER_HIGH_LOW to enable this feature                   *
- *                                                                     *
  ***********************************************************************/
 //#define STEPPER_HIGH_LOW
 
@@ -1312,8 +1296,6 @@
  *                                                                     *
  * I2C based DIGIPOT like on the Azteeg X3 Pro                         *
  *                                                                     *
- * Uncomment DIGIPOT_I2C to enable this feature                        *
- *                                                                     *
  ***********************************************************************/
 //#define DIGIPOT_I2C
 // Number of channels available for I2C digipot, For Azteeg X3 Pro we have 8
@@ -1329,8 +1311,6 @@
  *                                                                     *
  * Support for Toshiba steppers                                        *
  *                                                                     *
- * Uncomment CONFIG_STEPPERS_TOSHIBA to enable this feature            *
- *                                                                     *
  ***********************************************************************/
 //#define CONFIG_STEPPERS_TOSHIBA
 /***********************************************************************/
@@ -1341,8 +1321,6 @@
  ***********************************************************************
  *                                                                     *
  * Support for TMC26X motor drivers                                    *
- *                                                                     *
- * Uncomment HAVE_TMCDRIVER to enable this feature                     *
  *                                                                     *
  ***********************************************************************/
 //#define HAVE_TMCDRIVER
@@ -1404,8 +1382,6 @@
  **********************************************************************************
  *                                                                                *
  * Support for L6470 motor drivers                                                *
- *                                                                                *
- * Uncomment HAVE_L6470DRIVER to enable this feature.                             *
  * You need to import the L6470 library into the arduino IDE for this.            *
  *                                                                                *
  **********************************************************************************/
