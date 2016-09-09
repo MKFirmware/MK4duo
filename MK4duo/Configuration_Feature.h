@@ -1101,7 +1101,7 @@
 
 // Nextion HMI panel Serial
 //#define NEXTION
-#define NEXTION_PORT 1
+#define NEXTION_SERIAL 1
 // For GFX Visualization enable Nextion GFX
 //#define NEXTION_GFX
 
