@@ -665,8 +665,10 @@ void Planner::check_axes_activity() {
 
   // Enable extruder(s)
   if (block->steps[E_AXIS]) {
+
     #if DISABLED(MKR4) && DISABLED(MKR6) && DISABLED(NPR2)
-      if (DISABLE_INACTIVE_EXTRUDER) { // enable only selected extruder
+
+      #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
         for (int i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
@@ -674,6 +676,12 @@ void Planner::check_axes_activity() {
         switch(extruder) {
           case 0:
             enable_e0();
+            #if ENABLED(DUAL_X_CARRIAGE)
+              if (extruder_duplication_enabled) {
+                enable_e1();
+                g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
+              }
+            #endif
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if EXTRUDERS > 1
               if (g_uc_extruder_last_move[1] == 0) disable_e1();
@@ -767,15 +775,14 @@ void Planner::check_axes_activity() {
             #endif // EXTRUDERS > 2
           #endif // EXTRUDERS > 1
         }
-      }
-      else { // enable all
+      #else // enable all
         enable_e0();
         enable_e1();
         enable_e2();
         enable_e3();
         enable_e4();
         enable_e5();
-      }
+      #endif
     #elif ENABLED(MKR6)
       switch(extruder) {
         case 0:

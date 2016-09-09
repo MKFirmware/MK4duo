@@ -1264,7 +1264,7 @@ XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR);
 
   static float x_home_pos(int extruder) {
     if (extruder == 0)
-      return base_home_pos(X_AXIS) + home_offset[X_AXIS];
+      return LOGICAL_X_POSITION(base_home_pos(X_AXIS));
     else
       // In dual carriage mode the extruder offset provides an override of the
       // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
@@ -1277,15 +1277,15 @@ XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR);
     return (extruder == 0) ? X_HOME_DIR : X2_HOME_DIR;
   }
 
-  static float inactive_hotend_x_pos = X2_MAX_POS; // used in mode 0 & 1
-  static bool active_hotend_parked = false; // used in mode 1 & 2
-  static float raised_parked_position[NUM_AXIS]; // used in mode 1
-  static millis_t delayed_move_time = 0; // used in mode 1
+  static float inactive_hotend_x_pos = X2_MAX_POS;  // used in mode 0 & 1
+  static bool active_hotend_parked = false;         // used in mode 1 & 2
+  static float raised_parked_position[NUM_AXIS];    // used in mode 1
+  static millis_t delayed_move_time = 0;            // used in mode 1
   static float duplicate_hotend_x_offset = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
-  static float duplicate_hotend_temp_offset = 0; // used in mode 2
-  bool hotend_duplication_enabled = false; // used in mode 2
+  static float duplicate_hotend_temp_offset = 0;    // used in mode 2
+  bool hotend_duplication_enabled = false;          // used in mode 2
 
-#endif //DUAL_X_CARRIAGE
+#endif // DUAL_X_CARRIAGE
 
 
 /**
@@ -1369,7 +1369,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
       if (active_extruder != 0)
         current_position[X_AXIS] = x_home_pos(active_extruder);
       else
-        current_position[X_AXIS] = base_home_pos(X_AXIS) + home_offset[X_AXIS];
+        current_position[X_AXIS] = LOGICAL_X_POSITION(base_home_pos(X_AXIS));
       update_software_endstops(X_AXIS);
       return;
     }
@@ -3519,7 +3519,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
     #if ENABLED(DUAL_X_CARRIAGE)
       int x_axis_home_dir = x_home_dir(active_extruder);
-      extruder_duplication_enabled = false;
+      hotend_duplication_enabled = false;
     #else
       int x_axis_home_dir = home_dir(X_AXIS);
     #endif
@@ -8773,7 +8773,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         // apply Y & Z extruder offset (x offset is already used in determining home pos)
         current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder];
         current_position[Z_AXIS] -= hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
-        active_extruder = tmp_extruder;
+        active_extruder = active_driver = tmp_extruder;
 
         // This function resets the max/min values - the current position may be overwritten below.
         set_axis_is_at_home(X_AXIS);
@@ -9838,7 +9838,7 @@ static void report_current_position() {
       if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && active_extruder == 0) {
         // move duplicate extruder into correct duplication position.
         planner.set_position_mm(inactive_hotend_x_pos, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-        planner.buffer_line(current_position[X_AXIS] + duplicate_hotend_x_offset, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], planner.max_feedrate_mm_s[X_AXIS], 1, active_driver);
+        planner.buffer_line(current_position[X_AXIS] + duplicate_hotend_x_offset, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], planner.max_feedrate_mm_s[X_AXIS], 1, 1);
         SYNC_PLAN_POSITION_KINEMATIC();
         stepper.synchronize();
         hotend_duplication_enabled = true;
@@ -10416,7 +10416,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (delayed_move_time && ms > delayed_move_time + 1000 && IsRunning()) {
+    if (delayed_move_time && ELAPSED(ms, delayed_move_time + 1000UL) && IsRunning()) {
       // travel moves have been received so enact them
       delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
       set_destination_to_current();

@@ -351,7 +351,7 @@
 #define DISABLE_Z false
 #define DISABLE_E false      // For all extruder
 // Disable only inactive extruder and keep active extruder enabled
-#define DISABLE_INACTIVE_EXTRUDER false
+//#define DISABLE_INACTIVE_EXTRUDER
 /*****************************************************************************************/
 
 

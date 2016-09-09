@@ -1254,9 +1254,6 @@
   #if DISABLED(DISABLE_E)
     #error DEPENDENCY ERROR: Missing setting DISABLE_E
   #endif
-  #if DISABLED(DISABLE_INACTIVE_EXTRUDER)
-    #error DEPENDENCY ERROR: Missing setting DISABLE_INACTIVE_EXTRUDER
-  #endif
   #if DISABLED(X_MAX_POS)
     #error DEPENDENCY ERROR: Missing setting X_MAX_POS
   #endif
