@@ -139,7 +139,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
       X2_DIR_WRITE(v); \
     } \
     else { \
-      if (TOOL_E_INDEX) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
+      if (TOOL_E_INDEX != 0) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
     }
   #define X_APPLY_STEP(v,ALWAYS) \
     if (hotend_duplication_enabled || ALWAYS) { \
