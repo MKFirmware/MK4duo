@@ -7847,7 +7847,7 @@ inline void gcode_M503() {
    * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
    */
   inline void gcode_M540() {
-    if (code_seen('S')) abort_on_endstop_hit = code_value_bool();
+    if (code_seen('S')) stepper.abort_on_endstop_hit = code_value_bool();
   }
 
 #endif // ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
