@@ -1824,10 +1824,6 @@ void do_blocking_move_to_z(const float &z, const float &fr_mm_s/*=0.0*/) {
 
     #else
 
-      #if ENABLED(AUTO_BED_LEVELING_FEATURE)
-        planner.bed_level_matrix.set_to_identity();
-      #endif
-
       // Do a first probe at the fast speed
       do_probe_move(-(Z_MAX_LENGTH) - 10, HOMING_FEEDRATE_Z);
 
