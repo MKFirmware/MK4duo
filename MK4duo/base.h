@@ -60,10 +60,6 @@
 #include "src/communication/communication.h"
 #include "src/enum.h"
 
-#if ENABLED(MESH_BED_LEVELING)
-  #include "src/mbl/mesh_bed_leveling.h"
-#endif
-
 #include "Configuration_Store.h"
 
 #include "src/language/language.h"

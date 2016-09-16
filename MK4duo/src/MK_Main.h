@@ -43,23 +43,34 @@ void manage_inactivity(bool ignore_stepper_queue = false);
 void FlushSerialRequestResend();
 void ok_to_send();
 
-#if MECH(DELTA)
-  void set_delta_constants();
-  void inverse_kinematics(const float in_cartesian[ABC]);
-  extern float delta[ABC];
-  extern float endstop_adj[ABC];
-  extern float diagrod_adj[ABC];
-  extern float tower_adj[6];
-  extern float delta_radius;
-  extern float delta_diagonal_rod;
-  extern float delta_segments_per_second;
+#if ENABLED(FAST_SQRT)
+  extern float Q_rsqrt(float number);
+  #define _SQRT(n) (1.0f / Q_rsqrt(n))
+#else
+  #define _SQRT(n) sqrt(n)
 #endif
 
-#if MECH(SCARA)
+#if IS_KINEMATIC
   extern float delta[ABC];
+  void inverse_kinematics(const float logical[XYZ]);
+#endif
+
+#if MECH(DELTA)
+  extern float  endstop_adj[ABC],
+                diagrod_adj[ABC],
+                tower_adj[6],
+                delta_radius,
+                delta_diagonal_rod,
+                delta_segments_per_second;
+  void set_delta_constants();
+#elif MECH(SCARA)
   extern float axis_scaling[ABC];  // Build size scaling
-  void inverse_kinematics(const float in_cartesian[ABC]);
-  void forward_kinematics_SCARA(float f_scara[ABC]);
+  void forward_kinematics_SCARA(const float &a, const float &b);
+#endif
+
+#if ENABLED(AUTO_BED_LEVELING_NONLINEAR)
+  extern int nonlinear_grid_spacing[2];
+  float nonlinear_z_offset(float logical[XYZ]);
 #endif
 
 void kill(const char *);
@@ -182,14 +193,12 @@ extern int fanSpeed;
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
-  extern float filament_width_nominal;    // holds the theoretical filament diameter ie., 3.00 or 1.75
-  extern bool filament_sensor;            // indicates that filament sensor readings should control extrusion
-  extern float filament_width_meas;       // holds the filament diameter as accurately measured
-  extern int8_t measurement_delay[];      // ring buffer to delay measurement
-  extern int  filwidth_delay_index1,
-              filwidth_delay_index2;      // ring buffer index. used by planner, temperature, and main code
-  extern float delay_dist;                // delay distance counter
-  extern int meas_delay_cm;               // delay distance
+  extern bool filament_sensor;          // Flag that filament sensor readings should control extrusion
+  extern float  filament_width_nominal, // Theoretical filament diameter i.e., 3.00 or 1.75
+                filament_width_meas;    // Measured filament diameter
+  extern int8_t measurement_delay[];    // Ring buffer to delay measurement
+  extern int  filwidth_delay_index[2];  // Ring buffer indexes. Used by planner, temperature, and main code
+  extern int meas_delay_cm;             // Delay distance
 #endif
 
 #if ENABLED(FILAMENT_CHANGE_FEATURE)

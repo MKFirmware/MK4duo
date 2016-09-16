@@ -489,7 +489,8 @@
    * DELTA
    */
   #if MECH(DELTA)
-    #undef SLOWDOWN //DELTA not needs SLOWDOWN
+    #undef SLOWDOWN       // DELTA not needs SLOWDOWN
+    #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
 
     // DELTA must have same valour for 3 axis endstop hits
     #define X_HOME_BUMP_MM XYZ_HOME_BUMP_MM
@@ -500,17 +501,27 @@
     // Effective horizontal distance bridged by diagonal push rods.
     #define DEFAULT_DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
 
-    #define AUTOLEVEL_GRID_MULTI 1/AUTOLEVEL_GRID
+    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      #define AUTO_BED_LEVELING_GRID
+      #define MIN_PROBE_EDGE 10
+    #endif
 
-    // Radius for probe
-    #define DELTA_PROBEABLE_RADIUS DELTA_PRINTABLE_RADIUS - 5
+    #define ABL_GRID_POINTS_X   AUTO_BED_LEVELING_GRID_POINTS
+    #define ABL_GRID_POINTS_Y   AUTO_BED_LEVELING_GRID_POINTS
+    #define Z_PROBE_SPEED_FAST  Z_PROBE_SPEED
+    #define Z_PROBE_SPEED_SLOW  Z_PROBE_SPEED
 
-    #define LEFT_PROBE_BED_POSITION -DELTA_PROBEABLE_RADIUS
-    #define RIGHT_PROBE_BED_POSITION DELTA_PROBEABLE_RADIUS
-    #define FRONT_PROBE_BED_POSITION -DELTA_PROBEABLE_RADIUS
-    #define BACK_PROBE_BED_POSITION DELTA_PROBEABLE_RADIUS
+    // Set the rectangle in which to probe
+    #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - 10)
+    #define LEFT_PROBE_BED_POSITION   -(DELTA_PROBEABLE_RADIUS)
+    #define RIGHT_PROBE_BED_POSITION  (DELTA_PROBEABLE_RADIUS)
+    #define FRONT_PROBE_BED_POSITION  -(DELTA_PROBEABLE_RADIUS)
+    #define BACK_PROBE_BED_POSITION   (DELTA_PROBEABLE_RADIUS)
 
   #endif
+
+  #define IS_KINEMATIC (MECH(DELTA) || MECH(SCARA))
+  #define IS_CARTESIAN !IS_KINEMATIC
 
   /**
    * Set the home position based on settings or manual overrides
@@ -530,10 +541,37 @@
     #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
   #endif // !MANUAL_HOME_POSITIONS
 
+
+  /**
+   * Specify the exact style of auto bed leveling
+   *
+   *  3POINT    - 3 Point Probing with the least-squares solution.
+   *  LINEAR    - Grid Probing with the least-squares solution.
+   *  NONLINEAR - Grid Probing with a mesh solution. Best for large beds.
+   */
+  #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+    #if DISABLED(AUTO_BED_LEVELING_GRID)
+      #define AUTO_BED_LEVELING_LINEAR
+      #define AUTO_BED_LEVELING_3POINT
+    #elif IS_KINEMATIC
+      #define AUTO_BED_LEVELING_NONLINEAR
+    #else
+      #define AUTO_BED_LEVELING_LINEAR
+    #endif
+  #endif
+
+  #define PLANNER_LEVELING (ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_FEATURE))
+
   /**
    * Auto Bed Leveling
    */
-  #if ENABLED(AUTO_BED_LEVELING_FEATURE) && NOMECH(DELTA)
+  #if IS_KINEMATIC
+    // Check for this in the code instead
+    #define MIN_PROBE_X X_MIN_POS
+    #define MAX_PROBE_X X_MAX_POS
+    #define MIN_PROBE_Y Y_MIN_POS
+    #define MAX_PROBE_Y Y_MAX_POS
+  #else
     // Boundaries for probing based on set limits
     #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + X_PROBE_OFFSET_FROM_NOZZLE))
     #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + X_PROBE_OFFSET_FROM_NOZZLE))
@@ -546,6 +584,23 @@
    */
   #if ENABLED(Z_PROBE_SLED)
     #define Z_SAFE_HOMING
+  #endif
+
+  /**
+   * Safe Homing Options
+   */
+  #if ENABLED(Z_SAFE_HOMING)
+    #ifndef Z_SAFE_HOMING_X_POINT
+      #define Z_SAFE_HOMING_X_POINT ((X_MIN_POS + X_MAX_POS) / 2)
+    #endif
+    #ifndef Z_SAFE_HOMING_Y_POINT
+      #define Z_SAFE_HOMING_Y_POINT ((Y_MIN_POS + Y_MAX_POS) / 2)
+    #endif
+    #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
+    #define Y_TILT_FULCRUM Z_SAFE_HOMING_Y_POINT
+  #else
+    #define X_TILT_FULCRUM X_HOME_POS
+    #define Y_TILT_FULCRUM Y_HOME_POS
   #endif
 
   /**
@@ -903,16 +958,16 @@
   #define HAS_BUZZER (PIN_EXISTS(BEEPER) || ENABLED(LCD_USE_I2C_BUZZER))
 
   /**
-   * MIN_Z_HEIGHT_FOR_HOMING / Z_RAISE_BETWEEN_PROBINGS
+   * MIN_Z_HEIGHT_FOR_HOMING / Z_PROBE_TRAVEL_HEIGHT
    */
   #if DISABLED(MIN_Z_HEIGHT_FOR_HOMING)
-    #if DISABLED(Z_RAISE_BETWEEN_PROBINGS)
+    #if DISABLED(Z_PROBE_TRAVEL_HEIGHT)
       #define MIN_Z_HEIGHT_FOR_HOMING 0
     #else
-      #define MIN_Z_HEIGHT_FOR_HOMING Z_RAISE_BETWEEN_PROBINGS
+      #define MIN_Z_HEIGHT_FOR_HOMING Z_PROBE_TRAVEL_HEIGHT
     #endif
   #endif
-  #if DISABLED(Z_RAISE_BETWEEN_PROBINGS)
+  #if DISABLED(Z_PROBE_TRAVEL_HEIGHT)
     #define Z_RAISE_BETWEEN_PROBING MIN_Z_HEIGHT_FOR_HOMING
   #endif
 
@@ -946,6 +1001,7 @@
   #define PROBE_SELECTED (ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_ENDSTOP)
   #define PROBE_PIN_CONFIGURED (HAS_Z_PROBE_PIN || HAS_Z_MIN)
   #define HAS_BED_PROBE (PROBE_SELECTED && PROBE_PIN_CONFIGURED)
+  #define HOMING_Z_WITH_PROBE (HAS(BED_PROBE) && Z_HOME_DIR < 0 && HAS(Z_PROBE_PIN))
 
   #if ENABLED(Z_PROBE_ALLEN_KEY)
     #define PROBE_IS_TRIGGERED_WHEN_STOWED_TEST
@@ -977,10 +1033,10 @@
         #define XY_PROBE_SPEED 4000
       #endif
     #endif
-    #if Z_RAISE_BETWEEN_PROBINGS > Z_RAISE_PROBE_DEPLOY_STOW
-      #define _Z_RAISE_PROBE_DEPLOY_STOW Z_RAISE_BETWEEN_PROBINGS
+    #if Z_PROBE_TRAVEL_HEIGHT > Z_PROBE_DEPLOY_HEIGHT
+      #define _Z_PROBE_DEPLOY_HEIGHT Z_PROBE_TRAVEL_HEIGHT
     #else
-      #define _Z_RAISE_PROBE_DEPLOY_STOW Z_RAISE_PROBE_DEPLOY_STOW
+      #define _Z_PROBE_DEPLOY_HEIGHT Z_PROBE_DEPLOY_HEIGHT
     #endif
   #endif
 

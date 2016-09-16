@@ -1,3 +1,7 @@
+### Version 4.3.02_dev
+* Clear code
+* Add Fast inverse sqrt from Quake III Arena see https://en.wikipedia.org/wiki/Fast_inverse_square_root
+
 ### Version 4.3.01_dev
 * Add Nozzle Clean Feature
 * Add Nozzle Park Feature

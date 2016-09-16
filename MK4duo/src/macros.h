@@ -56,7 +56,8 @@
   #endif
   #define RADIANS(d)  ((d)*M_PI/180.0)
   #define DEGREES(r)  ((r)*180.0/M_PI)
-  #define HYPOT(x,y)  sqrt(sq(x)+sq(y))
+  #define HYPOT2(x,y) (sq(x)+sq(y))
+  #define HYPOT(x,y)  sqrt(HYPOT2(x,y))
   #define SQUARE(x)   ((x)*(x))
   #define SIN_60 0.8660254037844386
   #define COS_60 0.5
@@ -145,6 +146,10 @@
   #define MAX3(a, b, c)     max(max(a, b), c)
   #define MAX4(a, b, c, d)  max(max(max(a, b), c), d)
   #define MIN3(a, b, c)     min(min(a, b), c)
+
+  #define UNEAR_ZERO(x)     ((x) < 0.000001)
+  #define NEAR_ZERO(x)      ((x) > -0.000001 && (x) < 0.000001)
+  #define NEAR(x,y)         NEAR_ZERO((x)-(y))
 
   #define _AXIS(AXIS) AXIS ##_AXIS
 

@@ -39,6 +39,7 @@
  * - Travel limits
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
+ * - Auto Calibration
  * - Axis steps per unit
  * - Axis feedrate
  * - Axis accelleration
@@ -256,15 +257,15 @@
 #define Z_PROBE_OFFSET_FROM_NOZZLE -1     // Z offset: -below [of the nozzle] (always negative!)
 
 // X and Y axis travel speed between probes, in mm/min
-#define XY_PROBE_SPEED    10000
+#define XY_PROBE_SPEED  10000
 // Z probe speed, in mm/min
-#define Z_PROBE_SPEED      3000
+#define Z_PROBE_SPEED   3000
 
 //
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 //
-#define Z_RAISE_PROBE_DEPLOY_STOW 30  // Raise to make room for the probe to deploy / stow
-#define Z_RAISE_BETWEEN_PROBINGS  10  // Raise between probing points.
+#define Z_PROBE_DEPLOY_HEIGHT 30  // Z position for the probe to deploy/stow
+#define Z_PROBE_TRAVEL_HEIGHT 10  // Z position for travel between points
 
 //
 // For M666 give a range for adjusting the Z probe offset
@@ -397,8 +398,7 @@
  ******************************* Auto Bed Leveling (ABL) *********************************
  *****************************************************************************************
  *                                                                                       *
- * If you enabled Auto Bed Leveling (ABL) this add the support for auto bed level and    *
- * Autocalibration Delta system                                                          *
+ * If you enabled Auto Bed Leveling (ABL) this add the support for auto bed level        *
  * To use ABL you must have a PROBE, please define you type probe.                       *
  *                                                                                       *
  *****************************************************************************************/
@@ -407,11 +407,23 @@
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_PROBE_REPEATABILITY_TEST
 
-// Precision for G30 delta autocalibration function
-#define AUTOCALIBRATION_PRECISION 0.1 // mm
-
 // Define the grid for bed level AUTO BED LEVELING GRID POINTS X AUTO BED LEVELING GRID POINTS.
 #define AUTO_BED_LEVELING_GRID_POINTS 9
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ********************************* Auto Calibration **************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Autocalibration Delta system                                                          *
+ * To use this you must have a PROBE, please define you type probe.                      *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define AUTO_CALIBRATION_FEATURE
+
+// Precision for G30 delta autocalibration function
+#define AUTOCALIBRATION_PRECISION 0.1 // mm
 /*****************************************************************************************/
 
 

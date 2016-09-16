@@ -206,13 +206,19 @@
 #define Z_PROBE_OFFSET_FROM_NOZZLE -1     // Z offset: -below [of the nozzle] (always negative!)
 
 // X and Y axis travel speed between probes, in mm/min
-#define XY_PROBE_SPEED            10000
+#define XY_PROBE_SPEED  10000
+// Speed for the first approach when double-probing (with PROBE_DOUBLE_TOUCH)
+#define Z_PROBE_SPEED_FAST HOMING_FEEDRATE_Z
+// Speed for the "accurate" probe of each point
+#define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 2)
+// Use double touch for probing
+//#define PROBE_DOUBLE_TOUCH
 
 //
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 //
-#define Z_RAISE_PROBE_DEPLOY_STOW 15  // Raise to make room for the probe to deploy / stow
-#define Z_RAISE_BETWEEN_PROBINGS   5  // Raise between probing points.
+#define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
+#define Z_PROBE_TRAVEL_HEIGHT  5  // Z position for travel between points
 
 //
 // For M666 give a range for adjusting the Z probe offset
@@ -416,7 +422,8 @@
 
 // Set the number of grid points per dimension
 // You probably don't need more than 3 (squared=9)
-#define AUTO_BED_LEVELING_GRID_POINTS 3
+#define ABL_GRID_POINTS_X 3
+#define ABL_GRID_POINTS_Y ABL_GRID_POINTS_X
 /** END yes AUTO BED LEVELING GRID **/
 
 
