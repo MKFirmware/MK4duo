@@ -3679,6 +3679,8 @@ inline void gcode_G28() {
     // Deploy the probe. Probe will raise if needed.
     if (DEPLOY_PROBE()) return;
 
+    float xProbe, yProbe, measured_z = 0;
+
     #if ENABLED(AUTO_BED_LEVELING_GRID)
 
       // probe at the points of a lattice grid
@@ -3716,8 +3718,8 @@ inline void gcode_G28() {
       bool zig = abl_grid_points_y & 1; // always end at [RIGHT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION]
 
       for (uint8_t yCount = 0; yCount < abl_grid_points_y; yCount++) {
-        float yBase = front_probe_bed_position + yGridSpacing * yCount,
-              yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
+        float yBase = front_probe_bed_position + yGridSpacing * yCount;
+        yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
         int8_t xStart, xStop, xInc;
 
         if (zig) {
@@ -3734,16 +3736,16 @@ inline void gcode_G28() {
         zig = !zig;
 
         for (int8_t xCount = xStart; xCount != xStop; xCount += xInc) {
-          float xBase = left_probe_bed_position + xGridSpacing * xCount,
-                xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
+          float xBase = left_probe_bed_position + xGridSpacing * xCount;
+          xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
 
-          #if ENABLED(DELTA)
+          #if MECH(DELTA)
             // Avoid probing outside the round or hexagonal area of a delta printer
-            float pos[XYZ] = { xProbe + X_PROBE_OFFSET_FROM_EXTRUDER, yProbe + Y_PROBE_OFFSET_FROM_EXTRUDER, 0 };
+            float pos[XYZ] = { xProbe + X_PROBE_OFFSET_FROM_NOZZLE, yProbe + Y_PROBE_OFFSET_FROM_NOZZLE, 0 };
             if (!position_is_reachable(pos)) continue;
           #endif
 
-          float measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
+          measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
             mean += measured_z;
@@ -3900,36 +3902,45 @@ inline void gcode_G28() {
         // Correct the current XYZ position based on the tilted plane.
         //
 
-        // Get the distance from the reference point to the current position
-        // The current XY is in sync with the planner/steppers at this point
-        // but the current Z is only known to the steppers.
+        // 1. Get the distance from the current position to the reference point.
         float x_dist = RAW_CURRENT_POSITION(X_AXIS) - X_TILT_FULCRUM,
               y_dist = RAW_CURRENT_POSITION(Y_AXIS) - Y_TILT_FULCRUM,
-              z_real = RAW_Z_POSITION(stepper.get_axis_position_mm(Z_AXIS));
+              z_real = RAW_CURRENT_POSITION(Z_AXIS),
+              z_zero = 0;
 
-        if (DEBUGGING(INFO)) {
-          SERIAL_SMV(INFO, "BEFORE ROTATION ... x_dist:", x_dist);
-          SERIAL_MV(" y_dist:", y_dist);
-          SERIAL_EMV(" z_real:", z_real);
+        if (DEBUGGING(INFO)) DEBUG_INFO_POS("G29 uncorrected XYZ", current_position);
+
+        matrix_3x3 inverse = matrix_3x3::transpose(planner.bed_level_matrix);
+
+        // 2. Apply the inverse matrix to the distance
+        //    from the reference point to X, Y, and zero.
+        apply_rotation_xyz(inverse, x_dist, y_dist, z_zero);
+
+        // 3. Get the matrix-based corrected Z.
+        //    (Even if not used, get it for comparison.)
+        float new_z = z_real + z_zero;
+
+        // 4. Use the last measured distance to the bed, if possible
+        if ( NEAR(current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
+          && NEAR(current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
+        ) {
+          float simple_z = z_real - (measured_z - (-zprobe_zoffset));
+          if (DEBUGGING(INFO)) {
+            SERIAL_SMV(INFO, "Z from Probe:", simple_z);
+            SERIAL_MV("  Matrix:", new_z);
+            SERIAL_EMV("  Discrepancy:", simple_z - new_z);
+          }
+          new_z = simple_z;
         }
 
-        // Apply the correction sending the Z probe offset
-        apply_rotation_xyz(planner.bed_level_matrix, x_dist, y_dist, z_real);
-
-        if (DEBUGGING(INFO)) {
-          SERIAL_SMV(INFO, "AFTER ROTATION ... x_dist:", x_dist);
-          SERIAL_MV(" y_dist:", y_dist);
-          SERIAL_EMV(" z_real:", z_real);
-        }
-
-        // Apply the rotated distance and Z to the current position
-        current_position[X_AXIS] = LOGICAL_X_POSITION(X_TILT_FULCRUM + x_dist);
-        current_position[Y_AXIS] = LOGICAL_Y_POSITION(Y_TILT_FULCRUM + y_dist);
-        current_position[Z_AXIS] = LOGICAL_Z_POSITION(z_real);
+        // 5. The rotated XY and corrected Z are now current_position
+        current_position[X_AXIS] = LOGICAL_X_POSITION(x_dist) + X_TILT_FULCRUM;
+        current_position[Y_AXIS] = LOGICAL_Y_POSITION(y_dist) + Y_TILT_FULCRUM;
+        current_position[Z_AXIS] = LOGICAL_Z_POSITION(new_z);
 
         SYNC_PLAN_POSITION_KINEMATIC();
 
-        if (DEBUGGING(INFO)) DEBUG_INFO_POS("corrected XYZ in G29", current_position);
+        if (DEBUGGING(INFO)) DEBUG_INFO_POS("G29 corrected XYZ", current_position);
       }
     #endif // AUTO_BED_LEVELING_LINEAR
 
