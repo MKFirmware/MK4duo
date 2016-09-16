@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE) && ENABLED(AUTO_BED_LEVELING_GRID)
+#if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
 #include "qr_solve.h"
 #include <stdlib.h>

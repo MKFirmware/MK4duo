@@ -41,7 +41,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE) && NOMECH(DELTA)
+#if ENABLED(AUTO_BED_LEVELING_FEATURE)
 #include <math.h>
 #include "vector_3.h"
 
@@ -144,9 +144,9 @@ void matrix_3x3::debug(const char title[]) {
   int count = 0;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      if (matrix[count] >= 0.0) Com::print('+');
+      if (matrix[count] >= 0.0) SERIAL_C('+');
       SERIAL_V(matrix[count], 6);
-      Com::print(' ');
+      SERIAL_C(' ');
       count++;
     }
     SERIAL_E;

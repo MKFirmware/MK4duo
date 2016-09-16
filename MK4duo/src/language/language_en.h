@@ -182,6 +182,7 @@
 #define MSG_ERR_MINTEMP                     "MINTEMP ERROR"
 #define MSG_ERR_MAXTEMP_BED                 "MAXTEMP BED ERROR"
 #define MSG_ERR_MINTEMP_BED                 "MINTEMP BED ERROR"
+#define MSG_ERR_Z_HOMING                    "G28 Z Error"
 #define MSG_ERR_MAXTEMP_CHAMBER             "MAXTEMP CHAMBER ERROR"
 #define MSG_ERR_MINTEMP_CHAMBER             "MINTEMP CHAMBER ERROR"
 #define MSG_ERR_MAXTEMP_COOLER              "MAXTEMP COOLER ERROR"

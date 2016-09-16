@@ -66,6 +66,11 @@ class Stepper {
       static bool performing_homing;
     #endif
 
+    //
+    // Positions of stepper motors, in step units
+    //
+    static volatile long count_position[NUM_AXIS];
+
   private:
 
     static unsigned char last_direction_bits;        // The next stepping-bits to be output
@@ -118,11 +123,6 @@ class Stepper {
       #endif
       static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
     #endif
-
-    //
-    // Positions of stepper motors, in step units
-    //
-    static volatile long count_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)
@@ -196,6 +196,13 @@ class Stepper {
     static float get_axis_position_mm(AxisEnum axis);
 
     //
+    // SCARA AB axes are in degrees, not mm
+    //
+    #if MECH(SCARA)
+      static FORCE_INLINE float get_axis_position_degrees(AxisEnum axis) { return get_axis_position_mm(axis); }
+    #endif
+
+    //
     // The stepper subsystem goes to sleep when it runs out of things to execute. Call this
     // to notify the subsystem that it is time to go to work.
     //
@@ -253,6 +260,11 @@ class Stepper {
       return endstops_trigsteps[axis] * planner.steps_to_mm[axis];
     }
 
+    #if ENABLED(LIN_ADVANCE)
+      void advance_M905(const float &k);
+      FORCE_INLINE int get_advance_k() { return extruder_advance_k; }
+    #endif
+
     #if ENABLED(NPR2) // Multiextruder
       static void colorstep(long csteps, const bool direction);
     #endif
@@ -273,7 +285,7 @@ class Stepper {
 
         NOMORE(step_rate, MAX_STEP_FREQUENCY);
 
-        #ifndef __SAM3X8E__ || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
+        #if DISABLED(__SAM3X8E__) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
           if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
             step_rate >>= 2;
             step_loops = 4;

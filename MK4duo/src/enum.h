@@ -30,23 +30,21 @@
  *  A_AXIS and B_AXIS are used by COREXY or COREYX printers
  *  A_AXIS and C_AXIS are used by COREXZ or COREZX printers
  *  X_HEAD and Y_HEAD and Z_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
- *  TOWER_1 and TOWER_2 and TOWER_3 is used for DELTA system.
+ *  A_AXIS and B_AXIS and C_AXIS is used for DELTA system.
  */
 enum AxisEnum {
   NO_AXIS = -1,
   X_AXIS  = 0,
   A_AXIS  = 0,
-  TOWER_1 = 0,
   Y_AXIS  = 1,
   B_AXIS  = 1,
-  TOWER_2 = 1,
   Z_AXIS  = 2,
   C_AXIS  = 2,
-  TOWER_3 = 2,
   E_AXIS  = 3,
   X_HEAD  = 4,
   Y_HEAD  = 5,
-  Z_HEAD  = 5
+  Z_HEAD  = 6,
+  ALL_AXES = 100
 };
 
 typedef enum {

@@ -606,8 +606,11 @@
       #if DISABLED(MIN_PROBE_EDGE)
         #error DEPENDENCY ERROR: Missing setting MIN_PROBE_EDGE
       #endif
-      #if DISABLED(AUTO_BED_LEVELING_GRID_POINTS)
-        #error DEPENDENCY ERROR: Missing setting AUTO_BED_LEVELING_GRID_POINTS
+      #if DISABLED(ABL_GRID_POINTS_X)
+        #error DEPENDENCY ERROR: Missing setting ABL_GRID_POINTS_X
+      #endif
+      #if DISABLED(ABL_GRID_POINTS_Y)
+        #error DEPENDENCY ERROR: Missing setting ABL_GRID_POINTS_Y
       #endif
     #else
       #if DISABLED(ABL_PROBE_PT_1_X)
@@ -1320,11 +1323,7 @@
   #if DISABLED(HOMING_BUMP_DIVISOR)
     #error DEPENDENCY ERROR: Missing setting HOMING_BUMP_DIVISOR
   #endif
-  #if !MECH(DELTA)
-    #if DISABLED(XY_PROBE_SPEED)
-      #error DEPENDENCY ERROR: Missing setting XY_PROBE_SPEED
-    #endif
-  #endif
+
   #if ENABLED(MANUAL_HOME_POSITIONS)
     #if DISABLED(MANUAL_X_HOME_POS)
       #error DEPENDENCY ERROR: Missing setting MANUAL_X_HOME_POS
@@ -1336,11 +1335,13 @@
       #error DEPENDENCY ERROR: Missing setting MANUAL_Z_HOME_POS
     #endif
   #endif
+
   #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
     #if DISABLED(COREX_YZ_FACTOR)
       #error DEPENDENCY ERROR: Missing setting COREX_YZ_FACTOR
     #endif
   #endif
+
   #if MECH(SCARA)
     #if DISABLED(LINKAGE_1)
       #error DEPENDENCY ERROR: Missing setting LINKAGE_1
@@ -1448,8 +1449,8 @@
       #if DISABLED(Z_PROBE_RETRACT_END_LOCATION)
         #error DEPENDENCY ERROR: Missing setting Z_PROBE_RETRACT_END_LOCATION
       #endif
-      #if DISABLED(Z_RAISE_BETWEEN_PROBINGS)
-        #error DEPENDENCY ERROR: Missing setting Z_RAISE_BETWEEN_PROBINGS
+      #if DISABLED(Z_PROBE_TRAVEL_HEIGHT)
+        #error DEPENDENCY ERROR: Missing setting Z_PROBE_TRAVEL_HEIGHT
       #endif
       #if DISABLED(AUTO_BED_LEVELING_GRID_POINTS)
         #error DEPENDENCY ERROR: Missing setting AUTO_BED_LEVELING_GRID_POINTS

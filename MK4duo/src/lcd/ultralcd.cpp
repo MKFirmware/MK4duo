@@ -1510,7 +1510,7 @@ void kill_screen(const char* lcd_msg) {
     if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
       #if MECH(DELTA)
         inverse_kinematics(current_position);
-        planner.buffer_line(delta[TOWER_1], delta[TOWER_2], delta[TOWER_3], current_position[E_AXIS], manual_feedrate[manual_move_axis]/60, manual_move_e_index, active_driver);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], manual_feedrate[manual_move_axis]/60, manual_move_e_index, active_driver);
       #else
         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], manual_feedrate[manual_move_axis]/60, manual_move_e_index, active_driver);
       #endif

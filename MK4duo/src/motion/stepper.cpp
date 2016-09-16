@@ -418,7 +418,7 @@ void Stepper::isr() {
         }
     #endif
 
-    #ifndef __SAM3X8E__ || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
+    #if DISABLED(__SAM3X8E__) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
       // Take multiple steps per interrupt (For high speed moves)
       bool all_steps_done = false;
       for (int8_t i = 0; i < step_loops; i++) {
@@ -916,7 +916,7 @@ void Stepper::isr() {
       step_loops = step_loops_nominal;
     }
 
-    #ifdef __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+    #if ENABLED(__SAM3X8E__) && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
 
       #if HAS(X_STEP)
         PULSE_STOP(X);
@@ -1050,7 +1050,7 @@ void Stepper::isr() {
       #if MINIMUM_STEPPER_PULSE > 0
         #define CYCLES_EATEN_BY_E 10
         while ((uint32_t)(TCNT0 - pulse_start) < (MINIMUM_STEPPER_PULSE * (F_CPU / 1000000UL)) - CYCLES_EATEN_BY_E) { /* nada */ }
-      #elif defined __SAM3X8E__
+      #elif ENABLED(__SAM3X8E__)
         HAL::delayMicroseconds(2U);
       #endif
       
@@ -1746,3 +1746,12 @@ void Stepper::microstep_readings() {
     SERIAL_EV(digitalRead(E1_MS2_PIN));
   #endif
 }
+
+#if ENABLED(LIN_ADVANCE)
+
+  void Stepper::advance_M905(const float &k) {
+    if (k >= 0) extruder_advance_k = k;
+    SERIAL_LMV(ECHO, "Advance factor = ", extruder_advance_k);
+  }
+
+#endif // LIN_ADVANCE
