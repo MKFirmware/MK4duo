@@ -228,7 +228,7 @@
     #endif
 
     #if ENABLED(ULTIPANEL)
-      #define NEWPANEL  //enable this if you have a click-encoder panel
+      #define NEWPANEL  // enable this if you have a click-encoder panel
       #define ULTRA_LCD
       #if DISABLED(LCD_WIDTH)
         #define LCD_WIDTH 20

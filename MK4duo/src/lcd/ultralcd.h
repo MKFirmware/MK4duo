@@ -107,6 +107,11 @@
     #if BUTTON_EXISTS(BACK)
       #define BLEN_D 3
       #define EN_D (_BV(BLEN_D))
+      #if ENABLED(INVERT_BACK_BUTTON)
+        #define LCD_BACK_CLICKED !(buttons&EN_D)
+      #else
+        #define LCD_BACK_CLICKED (buttons&EN_D)
+      #endif
     #endif
     #define EN_A (_BV(BLEN_A))
     #define EN_B (_BV(BLEN_B))
@@ -152,10 +157,17 @@
                                               EN_REPRAPWORLD_KEYPAD_UP | \
                                               EN_REPRAPWORLD_KEYPAD_LEFT) \
                                             )
-
-    #define LCD_CLICKED ((buttons & EN_C) || (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F1))
+    #if ENABLED(INVERT_CLICK_BUTTON)
+      #define LCD_CLICKED !((buttons & EN_C) || (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F1))
+    #else
+      #define LCD_CLICKED ((buttons & EN_C) || (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_F1))
+    #endif
   #elif ENABLED(NEWPANEL)
-    #define LCD_CLICKED (buttons & EN_C)
+    #if ENABLED(INVERT_CLICK_BUTTON)
+      #define LCD_CLICKED !(buttons & EN_C)
+    #else
+      #define LCD_CLICKED (buttons & EN_C)
+    #endif
   #endif
 
 #elif DISABLED(NEXTION)

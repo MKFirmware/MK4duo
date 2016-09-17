@@ -7357,10 +7357,10 @@ inline void gcode_M503() {
       SERIAL_LMV(CFG, "U (Tower A Diagonal Rod Correction): ", diagrod_adj[0], 3);
       SERIAL_LMV(CFG, "V (Tower B Diagonal Rod Correction): ", diagrod_adj[1], 3);
       SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", diagrod_adj[2], 3);
-      SERIAL_LMV(CFG, "R (Delta Radius): ", delta_radius);
-      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", delta_diagonal_rod);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ", delta_segments_per_second);
-      SERIAL_LMV(CFG, "H (Z-Height): ", soft_endstop_max[Z_AXIS]);
+      SERIAL_LMV(CFG, "R (Delta Radius): ", delta_radius, 4);
+      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", delta_diagonal_rod, 4);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ", delta_segments_per_second, 1);
+      SERIAL_LMV(CFG, "H (Z-Height): ", soft_endstop_max[Z_AXIS], 3);
     }
   }
 #endif // MECH DELTA
