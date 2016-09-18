@@ -294,4 +294,8 @@ void updatePID();
 void checkExtruderAutoFans();
 extern void autotempShutdown();
 
+#if ENABLED(BABYSTEPPING)
+  extern void babystep_axis(AxisEnum axis, int distance)
+#endif // BABYSTEPPING
+
 #endif // TEMPERATURE_H

@@ -914,7 +914,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
     block->millimeters = fabs(delta_mm[E_AXIS]);
   }
   else {
-    block->millimeters = _SQRT(
+    block->millimeters = sqrt(
       #if MECH(COREXY) || MECH(COREYX)
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
       #elif MECH(COREXZ) || MECH(COREZX)
@@ -1151,9 +1151,9 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
         // Skip and avoid divide by zero for straight junctions at 180 degrees. Limit to min() of nominal speeds.
         if (cos_theta > -0.95) {
           // Compute maximum junction velocity based on maximum acceleration and junction deviation
-          double sin_theta_d2 = _SQRT(0.5 * (1.0 - cos_theta)); // Trig half angle identity. Always positive.
+          double sin_theta_d2 = sqrt(0.5 * (1.0 - cos_theta)); // Trig half angle identity. Always positive.
           vmax_junction = min(vmax_junction,
-                              _SQRT(block->acceleration * junction_deviation * sin_theta_d2 / (1.0 - sin_theta_d2)));
+                              sqrt(block->acceleration * junction_deviation * sin_theta_d2 / (1.0 - sin_theta_d2)));
         }
       }
     }

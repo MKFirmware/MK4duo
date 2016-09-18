@@ -2711,3 +2711,35 @@ static void set_current_temp_raw() {
   float scalePID_d(float d)   { return d / PID_dT; }
   float unscalePID_d(float d) { return d * PID_dT; }
 #endif // ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
+
+#if ENABLED(BABYSTEPPING)
+
+  void babystep_axis(AxisEnum axis, int distance) {
+    #if MECH(COREXY) || MECH(COREYX)|| MECH(COREXZ) || MECH(COREZX)
+      #if ENABLED(BABYSTEP_XY)
+        switch (axis) {
+          case CORE_AXIS_1: // X on CoreXY and CoreXZ
+            babystepsTodo[CORE_AXIS_1] += distance * 2;
+            babystepsTodo[CORE_AXIS_2] += distance * 2;
+            break;
+          case CORE_AXIS_2: // Y on CoreXY, Z on CoreXZ
+            babystepsTodo[CORE_AXIS_1] += distance * 2;
+            babystepsTodo[CORE_AXIS_2] -= distance * 2;
+            break;
+          case NORMAL_AXIS: // Z on CoreXY, Y on CoreXZ
+            babystepsTodo[NORMAL_AXIS] += distance;
+            break;
+        }
+      #elif MECH(COREXZ) || MECH(COREZX)
+        // Only Z stepping needs to be handled here
+        babystepsTodo[CORE_AXIS_1] += distance * 2;
+        babystepsTodo[CORE_AXIS_2] -= distance * 2;
+      #else
+        babystepsTodo[Z_AXIS] += distance;
+      #endif
+    #else
+      babystepsTodo[axis] += distance;
+    #endif
+  }
+
+#endif // BABYSTEPPING

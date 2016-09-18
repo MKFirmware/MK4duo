@@ -53,18 +53,21 @@
 #define MSG_SET_HOME_OFFSETS                "Set home offsets"
 #define MSG_SET_ORIGIN                      "Set origin"
 #define MSG_PREHEAT                         "Preheat"
-#define MSG_PREHEAT_PLA                     MSG_PREHEAT " PLA"
-#define MSG_PREHEAT_PLA_ALL                 MSG_PREHEAT_PLA " All"
-#define MSG_PREHEAT_PLA_BEDONLY             MSG_PREHEAT_PLA " Bed"
-#define MSG_PREHEAT_PLA_SETTINGS            "PLA conf."
-#define MSG_PREHEAT_ABS                     MSG_PREHEAT " ABS"
-#define MSG_PREHEAT_ABS_ALL                 MSG_PREHEAT_ABS " All"
-#define MSG_PREHEAT_ABS_BEDONLY             MSG_PREHEAT_ABS " Bed"
-#define MSG_PREHEAT_ABS_SETTINGS            "ABS conf."
-#define MSG_PREHEAT_GUM                     MSG_PREHEAT " GUM"
-#define MSG_PREHEAT_GUM_ALL                 MSG_PREHEAT_GUM " All"
-#define MSG_PREHEAT_GUM_BEDONLY             MSG_PREHEAT_GUM " Bed"
-#define MSG_PREHEAT_GUM_SETTINGS            "GUM conf."
+#define MSG_PREHEAT_1                       MSG_PREHEAT " PLA"
+#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 " "
+#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 " All"
+#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 " Bed"
+#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 " conf"
+#define MSG_PREHEAT_2                       MSG_PREHEAT " ABS"
+#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 " "
+#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 " All"
+#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 " Bed"
+#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 " conf"
+#define MSG_PREHEAT_3                       MSG_PREHEAT " GUM"
+#define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 " "
+#define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3 " All"
+#define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 " Bed"
+#define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3 " conf"
 #define MSG_TOO_COLD_FOR_FILAMENTCHANGE     "Hotend too cold to change filament"
 #define MSG_COOLDOWN                        "Cooldown"
 #define MSG_SWITCH_PS_ON                    "Switch power on"
@@ -207,13 +210,11 @@
 #define MSG_ENDSTOP_ES                      MSG_E
 
 // Calibrate Delta
-#if MECH(DELTA)
-  #define MSG_DELTA_CALIBRATE               "Delta Calibration"
-  #define MSG_DELTA_CALIBRATE_X             "Calibrate " MSG_X
-  #define MSG_DELTA_CALIBRATE_Y             "Calibrate " MSG_Y
-  #define MSG_DELTA_CALIBRATE_Z             "Calibrate " MSG_Z
-  #define MSG_DELTA_CALIBRATE_CENTER        "Calibrate Center"
-#endif
+#define MSG_DELTA_CALIBRATE                 "Delta Calibration"
+#define MSG_DELTA_CALIBRATE_X               "Calibrate " MSG_X
+#define MSG_DELTA_CALIBRATE_Y               "Calibrate " MSG_Y
+#define MSG_DELTA_CALIBRATE_Z               "Calibrate " MSG_Z
+#define MSG_DELTA_CALIBRATE_CENTER          "Calibrate Center"
 
 // Info printers
 #define MSG_INFO_MENU                       "About Printer"
@@ -261,11 +262,6 @@
 #define MSG_FILAMENT_CHANGE_RESUME_1        "Wait for print"
 #define MSG_FILAMENT_CHANGE_RESUME_2        "resume"
 #define MSG_FILAMENT_CHANGE_RESUME_3        ""
-
-// Scara
-#define MSG_SCALE                           "Scale"
-#define MSG_XSCALE                          MSG_X " " MSG_SCALE
-#define MSG_YSCALE                          MSG_Y " " MSG_SCALE
 
 // Heater
 #define MSG_HEATING                         "Heating..."

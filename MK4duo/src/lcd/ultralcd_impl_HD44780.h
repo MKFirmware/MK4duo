@@ -77,16 +77,7 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
 
   #elif ENABLED(LCD_I2C_PANELOLU2)
 
-    #if BUTTON_EXISTS(ENC)
-
-      #undef LCD_CLICKED
-      #if ENABLED(INVERT_CLICK_BUTTON)
-        #define LCD_CLICKED !(buttons&EN_C)
-      #else
-        #define LCD_CLICKED (buttons&EN_C)
-      #endif
-
-    #else // Read through I2C if not directly connected to a pin
+    #if !BUTTON_EXISTS(ENC) // Use I2C if not directly connected to a pin
 
       #define B_I2C_BTN_OFFSET 3 // (the first three bit positions reserved for EN_A, EN_B, EN_C)
 
@@ -94,9 +85,9 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
 
       #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
-        #define LCD_CLICKED !(buttons&B_MI)
+        #define LCD_CLICKED !(buttons & B_MI)
       #else
-        #define LCD_CLICKED (buttons&B_MI)
+        #define LCD_CLICKED (buttons & B_MI)
       #endif
 
       // I2C buttons take too long to read inside an interrupt context and so we read them during lcd_update
@@ -104,35 +95,14 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
 
     #endif
 
-  #elif ENABLED(REPRAPWORLD_KEYPAD)
-
-    // REPRAPWORLD_KEYPAD defined in ultralcd.h
-
-  #elif ENABLED(NEWPANEL)
-    #if ENABLED(INVERT_CLICK_BUTTON)
-      #define LCD_CLICKED !(buttons&EN_C)
-    #else
-      #define LCD_CLICKED (buttons&EN_C)
-    #endif
-    #if HAS(BTN_BACK)
-      #if ENABLED(INVERT_BACK_BUTTON)
-        #define LCD_BACK_CLICKED !(buttons&EN_D)
-      #else
-        #define LCD_BACK_CLICKED (buttons&EN_D)
-      #endif
-    #endif
-
-  #else // old style ULTIPANEL
-    //bits in the shift register that carry the buttons for:
-    // left up center down right red(stop)
-    #define BL_LE 7
-    #define BL_UP 6
-    #define BL_MI 5
-    #define BL_DW 4
-    #define BL_RI 3
-    #define BL_ST 2
-
-    //automatic, do not change
+  #elif DISABLED(NEWPANEL) // old style ULTIPANEL
+    // Shift register bits correspond to buttons:
+    #define BL_LE 7   // Left
+    #define BL_UP 6   // Up
+    #define BL_MI 5   // Middle
+    #define BL_DW 4   // Down
+    #define BL_RI 3   // Right
+    #define BL_ST 2   // Red Button
     #define B_LE (_BV(BL_LE))
     #define B_UP (_BV(BL_UP))
     #define B_MI (_BV(BL_MI))
@@ -141,9 +111,9 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
     #define B_ST (_BV(BL_ST))
 
     #if ENABLED(INVERT_CLICK_BUTTON)
-      #define LCD_CLICKED !(buttons&(B_MI|B_ST))
+      #define LCD_CLICKED !((buttons & B_MI) || (buttons & B_ST))
     #else
-      #define LCD_CLICKED (buttons&(B_MI|B_ST))
+      #define LCD_CLICKED ((buttons & B_MI) || (buttons & B_ST))
     #endif
   #endif
 
@@ -240,7 +210,7 @@ static void lcd_set_custom_characters(
     bool info_screen_charset = true
   #endif
 ) {
-  byte bedTemp[8] = {
+  static byte bedTemp[8] = {
     B00000,
     B11111,
     B10101,
@@ -250,7 +220,7 @@ static void lcd_set_custom_characters(
     B00000,
     B00000
   }; //thanks Sonny Mounicou
-  byte degree[8] = {
+  static byte degree[8] = {
     B01100,
     B10010,
     B10010,
@@ -260,7 +230,7 @@ static void lcd_set_custom_characters(
     B00000,
     B00000
   };
-  byte thermometer[8] = {
+  static byte thermometer[8] = {
     B00100,
     B01010,
     B01010,
@@ -270,7 +240,7 @@ static void lcd_set_custom_characters(
     B11111,
     B01110
   };
-  byte feedrate[8] = {
+  static byte feedrate[8] = {
     B11100,
     B10000,
     B11000,
@@ -280,7 +250,7 @@ static void lcd_set_custom_characters(
     B00101,
     B00000
   }; //thanks Sonny Mounicou
-  byte clock[8] = {
+  static byte clock[8] = {
     B00000,
     B01110,
     B10011,
@@ -330,7 +300,7 @@ static void lcd_set_custom_characters(
     }; //thanks joris
 
     #if ENABLED(LCD_PROGRESS_BAR)
-      byte progress[3][8] = { {
+      static byte progress[3][8] = { {
         B00000,
         B10000,
         B10000,
@@ -387,7 +357,7 @@ static void lcd_implementation_init(
 
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     lcd.begin(LCD_WIDTH, LCD_HEIGHT);
-    #if ENABLED(LCD_I2C_PIN_BL)
+    #ifdef LCD_I2C_PIN_BL
       lcd.setBacklightPin(LCD_I2C_PIN_BL, POSITIVE);
       lcd.setBacklight(HIGH);
     #endif
