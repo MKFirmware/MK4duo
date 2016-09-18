@@ -43,13 +43,6 @@ void manage_inactivity(bool ignore_stepper_queue = false);
 void FlushSerialRequestResend();
 void ok_to_send();
 
-#if ENABLED(FAST_SQRT)
-  extern float Q_rsqrt(float number);
-  #define _SQRT(n) (1.0f / Q_rsqrt(n))
-#else
-  #define _SQRT(n) sqrt(n)
-#endif
-
 #if IS_KINEMATIC
   extern float delta[ABC];
   void inverse_kinematics(const float logical[XYZ]);
@@ -64,7 +57,6 @@ void ok_to_send();
                 delta_segments_per_second;
   void set_delta_constants();
 #elif MECH(SCARA)
-  extern float axis_scaling[ABC];  // Build size scaling
   void forward_kinematics_SCARA(const float &a, const float &b);
 #endif
 

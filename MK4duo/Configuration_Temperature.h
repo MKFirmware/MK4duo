@@ -174,17 +174,17 @@
 #define COOLER_MINTEMP  10 // (degC) 
 
 //Preheat Constants
-#define PLA_PREHEAT_HOTEND_TEMP 190
-#define PLA_PREHEAT_HPB_TEMP     60
-#define PLA_PREHEAT_FAN_SPEED   255   // Insert Value between 0 and 255
+#define PREHEAT_1_TEMP_HOTEND 190
+#define PREHEAT_1_TEMP_BED     60
+#define PREHEAT_1_FAN_SPEED   255   // Insert Value between 0 and 255
 
-#define ABS_PREHEAT_HOTEND_TEMP 240
-#define ABS_PREHEAT_HPB_TEMP    100
-#define ABS_PREHEAT_FAN_SPEED   255   // Insert Value between 0 and 255
+#define PREHEAT_2_TEMP_HOTEND 240
+#define PREHEAT_2_TEMP_BED    100
+#define PREHEAT_2_FAN_SPEED   255   // Insert Value between 0 and 255
 
-#define GUM_PREHEAT_HOTEND_TEMP 230
-#define GUM_PREHEAT_HPB_TEMP     60
-#define GUM_PREHEAT_FAN_SPEED   255   // Insert Value between 0 and 255
+#define PREHEAT_3_TEMP_HOTEND 230
+#define PREHEAT_3_TEMP_BED     60
+#define PREHEAT_3_FAN_SPEED   255   // Insert Value between 0 and 255
 /*****************************************************************************************/
 
 

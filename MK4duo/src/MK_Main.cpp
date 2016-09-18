@@ -289,9 +289,8 @@ PrintCounter print_job_counter = PrintCounter();
               L1_2 = sq(float(L1)), L1_2_2 = 2.0 * L1_2,
               L2_2 = sq(float(L2));
 
-  float delta_segments_per_second,
-        delta[ABC],
-        axis_scaling[ABC] = { 1, 1, 1 };    // Build size scaling, default to 1
+  float delta_segments_per_second = SCARA_SEGMENTS_PER_SECOND,
+        delta[ABC];
 #endif
 
 float cartes[XYZ] = { 0 };
@@ -379,26 +378,6 @@ static bool send_ok[BUFSIZE];
   #define host_keepalive() ;
   #define KEEPALIVE_STATE(n) ;
 #endif // HOST_KEEPALIVE_FEATURE
-
-#if ENABLED(FAST_SQRT)
-  /**
-   * Fast inverse sqrt from Quake III Arena
-   * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-   */
-  float Q_rsqrt(float number) {
-    long i;
-    float x2, y;
-    const float threehalfs = 1.5f;
-    x2 = number * 0.5f;
-    y  = number;
-    i  = * ( long * ) &y;         // evil floating point bit level hacking
-    i  = 0x5f3759df - ( i >> 1 ); // what the fuck? 
-    y  = * ( float * ) &i;
-    y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-    // y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
-    return y;
-  }
-#endif
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
   // top_of_stack() returns the location of a variable on its stack frame.  The value returned is above
@@ -1736,7 +1715,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
   //   - Raise to the BETWEEN height
   // - Return the probed Z position
   //
-  static float probe_pt(float x, float y, bool stow = true, int verbose_level = 1) {
+  static float probe_pt(const float &x, const float &y, bool stow = true, int verbose_level = 1) {
     if (DEBUGGING(INFO)) {
       SERIAL_SMV(INFO, ">>> probe_pt(", x);
       SERIAL_MV(", ", y);
@@ -5571,60 +5550,48 @@ inline void gcode_M122() {
         case 0:
           if (code_seen('H')) {
             v = code_value_int();
-            #if ENABLED(PREVENT_COLD_EXTRUSION)
-              plaPreheatHotendTemp = constrain(v, EXTRUDE_MINTEMP, HEATER_0_MAXTEMP);
-            #else
-              plaPreheatHotendTemp = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-            #endif
+            preheatHotendTemp1 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
           }
           if (code_seen('F')) {
             v = code_value_int();
-            plaPreheatFanSpeed = constrain(v, 0, 255);
+            preheatFanSpeed1 = constrain(v, 0, 255);
           }
           #if TEMP_SENSOR_BED != 0
             if (code_seen('B')) {
               v = code_value_int();
-              plaPreheatHPBTemp = constrain(v, BED_MINTEMP, BED_MAXTEMP);
+              preheatBedTemp1 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
             }
           #endif
           break;
         case 1:
           if (code_seen('H')) {
             v = code_value_int();
-            #if ENABLED(PREVENT_COLD_EXTRUSION)
-              absPreheatHotendTemp = constrain(v, EXTRUDE_MINTEMP, HEATER_0_MAXTEMP);
-            #else
-              absPreheatHotendTemp = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-            #endif
+            preheatHotendTemp2 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
           }
           if (code_seen('F')) {
             v = code_value_int();
-            absPreheatFanSpeed = constrain(v, 0, 255);
+            preheatFanSpeed2 = constrain(v, 0, 255);
           }
           #if TEMP_SENSOR_BED != 0
             if (code_seen('B')) {
               v = code_value_int();
-              absPreheatHPBTemp = constrain(v, BED_MINTEMP, BED_MAXTEMP);
+              preheatBedTemp2 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
             }
           #endif
           break;
         case 2:
           if (code_seen('H')) {
             v = code_value_int();
-            #if ENABLED(PREVENT_COLD_EXTRUSION)
-              gumPreheatHotendTemp = constrain(v, EXTRUDE_MINTEMP, HEATER_0_MAXTEMP);
-            #else
-              gumPreheatHotendTemp = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-            #endif
+            preheatHotendTemp3 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
           }
           if (code_seen('F')) {
             v = code_value_int();
-            gumPreheatFanSpeed = constrain(v, 0, 255);
+            preheatFanSpeed3 = constrain(v, 0, 255);
           }
           #if TEMP_SENSOR_BED != 0
             if (code_seen('B')) {
               v = code_value_int();
-              gumPreheatHPBTemp = constrain(v, BED_MINTEMP, BED_MAXTEMP);
+              preheatBedTemp3 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
             }
           #endif
           break;
@@ -6342,16 +6309,15 @@ inline void gcode_M226() {
 #endif // HAS(MICROSTEPS)
 
 #if MECH(SCARA)
-  bool SCARA_move_to_cal(uint8_t delta_x, uint8_t delta_y) {
+  bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     //SoftEndsEnabled = false;              // Ignore soft endstops during calibration
     //SERIAL_EM(" Soft endstops disabled ");
     if (IsRunning()) {
       //gcode_get_destination(); // For X Y Z E F
-      delta[X_AXIS] = delta_x;
-      delta[Y_AXIS] = delta_y;
-      forward_kinematics_SCARA(delta);
-      destination[X_AXIS] = delta[X_AXIS]/axis_scaling[X_AXIS];
-      destination[Y_AXIS] = delta[Y_AXIS]/axis_scaling[Y_AXIS];
+      forward_kinematics_SCARA(delta_a, delta_b);
+      destination[X_AXIS] = cartes[X_AXIS];
+      destination[Y_AXIS] = cartes[Y_AXIS];
+      destination[Z_AXIS] = current_position[Z_AXIS];
       prepare_move_to_destination();
       //ok_to_send();
       return true;
@@ -6363,7 +6329,7 @@ inline void gcode_M226() {
    * M360: SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
    */
   inline bool gcode_M360() {
-    SERIAL_EM("Cal: Theta 0 ");
+    SERIAL_LM(ECHO, " Cal: Theta 0");
     return SCARA_move_to_cal(0, 120);
   }
 
@@ -6371,7 +6337,7 @@ inline void gcode_M226() {
    * M361: SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
    */
   inline bool gcode_M361() {
-    SERIAL_EM("Cal: Theta 90 ");
+    SERIAL_LM(ECHO, " Cal: Theta 90");
     return SCARA_move_to_cal(90, 130);
   }
 
@@ -6379,7 +6345,7 @@ inline void gcode_M226() {
    * M362: SCARA calibration: Move to cal-position PsiA (0 deg calibration)
    */
   inline bool gcode_M362() {
-    SERIAL_EM("Cal: Psi 0 ");
+    SERIAL_LM(ECHO, " Cal: Psi 0");
     return SCARA_move_to_cal(60, 180);
   }
 
@@ -6387,7 +6353,7 @@ inline void gcode_M226() {
    * M363: SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
    */
   inline bool gcode_M363() {
-    SERIAL_EM("Cal: Psi 90 ");
+    SERIAL_LM(ECHO, " Cal: Psi 90");
     return SCARA_move_to_cal(50, 90);
   }
 
@@ -6395,20 +6361,10 @@ inline void gcode_M226() {
    * M364: SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
    */
   inline bool gcode_M364() {
-    SERIAL_EM("Cal: Theta-Psi 90 ");
+    SERIAL_LM(ECHO, " Cal: Theta-Psi 90");
     return SCARA_move_to_cal(45, 135);
   }
 
-  /**
-   * M365: SCARA calibration: Scaling factor, X, Y, Z axis
-   */
-  inline void gcode_M365() {
-    LOOP_XYZ(i) {
-      if (code_seen(axis_codes[i])) {
-        axis_scaling[i] = code_value_float();
-      }
-    }
-  }
 #endif // SCARA
 
 #if ENABLED(EXT_SOLENOID)
@@ -6792,7 +6748,7 @@ inline void gcode_M410() { quickstop_stepper(); }
   /**
    * M420: Enable/Disable Mesh Bed Leveling
    */
-  inline void gcode_M420() { if (code_seen('S') && code_has_value()) mbl.set_has_mesh(code_value_bool()); }
+  inline void gcode_M420() { if (code_seen('S')) mbl.set_has_mesh(code_value_bool()); }
 
   /**
    * M421: Set a single Mesh Bed Leveling Z coordinate
@@ -8574,8 +8530,6 @@ void process_next_command() {
           if (gcode_M363()) return; break;
         case 364:  // M364 SCARA Psi pos3 (90 deg to Theta)
           if (gcode_M364()) return; break;
-        case 365: // M365 Set SCARA scaling for X Y Z
-          gcode_M365(); break;
       #endif // SCARA
 
       case 400: // M400 finish all moves
@@ -8787,6 +8741,33 @@ void ok_to_send() {
     delta_tower3_y = (delta_radius + tower_adj[5]) * sin((90 + tower_adj[2]) * M_PI/180); 
   }
 
+  #if ENABLED(DELTA_FAST_SQRT)
+    /**
+     * Fast inverse sqrt from Quake III Arena
+     * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
+     */
+    float Q_rsqrt(float number) {
+      long i;
+      float x2, y;
+      const float threehalfs = 1.5f;
+      x2 = number * 0.5f;
+      y  = number;
+      i  = * ( long * ) &y;                       // evil floating point bit level hacking
+      i  = 0x5f3759df - ( i >> 1 );               // what the f***?
+      y  = * ( float * ) &i;
+      y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+      // y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+      return y;
+    }
+
+    #define _SQRT(n) (1.0f / Q_rsqrt(n))
+
+  #else
+
+    #define _SQRT(n) sqrt(n)
+
+  #endif
+
   /**
    * Delta Inverse Kinematics
    *
@@ -8796,14 +8777,6 @@ void ok_to_send() {
    * This is an expensive calculation, requiring 3 square
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
-   *
-   * Suggested optimizations include:
-   *
-   * - Disable the home_offset (M206) and/or position_shift (G92)
-   *   features to remove up to 12 float additions.
-   *
-   * - Use a fast-inverse-sqrt function and add the reciprocal.
-   *   (see above)
    */
   void inverse_kinematics(const float logical[XYZ]) {
 
@@ -8814,7 +8787,7 @@ void ok_to_send() {
     };
 
     // Macro to obtain the Z position of an individual tower
-    #define DELTA_Z(T) sqrt(delta_diagonal_rod_2_tower_##T \
+    #define DELTA_Z(T) _SQRT(delta_diagonal_rod_2_tower_##T \
                           - sq(delta_tower##T##_x - cartesian[X_AXIS]) \
                           - sq(delta_tower##T##_y - cartesian[Y_AXIS]) \
                           ) + cartesian[Z_AXIS]
@@ -10009,8 +9982,8 @@ static void report_current_position() {
 
     static float C2, S2, SK1, SK2, THETA, PSI; 
 
-    float sx = RAW_X_POSITION(logical[X_AXIS]) * axis_scaling[X_AXIS] - SCARA_offset_x,  // Translate SCARA to standard X Y
-          sy = RAW_Y_POSITION(logical[Y_AXIS]) * axis_scaling[Y_AXIS] - SCARA_offset_y;  // With scaling factor.
+    float sx = RAW_X_POSITION(logical[X_AXIS]) - SCARA_offset_x,  // Translate SCARA to standard X Y
+          sy = RAW_Y_POSITION(logical[Y_AXIS]) - SCARA_offset_y;  // With scaling factor.
 
     if (L1 == L2)
       C2 = HYPOT2(sx, sy) / L1_2_2 - 1;

@@ -82,6 +82,9 @@
   #elif ENABLED(DISPLAY_CHARSET_ISO10646_KANA)
     #include "dogm_font_data_ISO10646_Kana.h"
     #define FONT_MENU_NAME ISO10646_Kana_5x7
+  #elif ENABLED(DISPLAY_CHARSET_ISO10646_GREEK)
+    #include "dogm_font_data_ISO10646_Greek.h"
+    #define FONT_MENU_NAME ISO10646_Greek_5x7
   #elif ENABLED(DISPLAY_CHARSET_ISO10646_CN)
     #include "dogm_font_data_ISO10646_CN.h"
     #define FONT_MENU_NAME ISO10646_CN
@@ -140,6 +143,14 @@
 #elif ENABLED(U8GLIB_ST7920)
   //U8GLIB_ST7920_128X64_RRD u8g(0,0,0);
   U8GLIB_ST7920_128X64_RRD u8g(0);
+#elif ENABLED(CARTESIO_UI)
+  // The CartesioUI display
+  #if DOGLCD_MOSI != -1 && DOGLCD_SCK != -1
+    // using SW-SPI
+    U8GLIB_DOGM128 u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);
+  #else
+    U8GLIB_DOGM128 u8g(DOGLCD_CS, DOGLCD_A0);
+  #endif
 #elif ENABLED(U8GLIB_LM6059_AF)
   // Based on the Adafruit ST7565 (http://www.adafruit.com/products/250)
   U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);
@@ -168,20 +179,6 @@
 #endif
 
 #include "utf_mapper.h"
-
-#if ENABLED(ULTIPANEL)
-  #define BLEN_A 0
-  #define BLEN_B 1
-  #define BLEN_C 2
-  #define EN_A (_BV(BLEN_A))
-  #define EN_B (_BV(BLEN_B))
-  #define EN_C (_BV(BLEN_C))
-  #if ENABLED(INVERT_CLICK_BUTTON)
-    #define LCD_CLICKED !(buttons&EN_C)
-  #else
-    #define LCD_CLICKED (buttons&EN_C)
-  #endif
-#endif
 
 int lcd_contrast;
 static char currentfont = 0;
@@ -224,15 +221,15 @@ void lcd_printPGM(const char* str) {
   for (; char c = pgm_read_byte(str); ++str) lcd_print(c);
 }
 
-/* Warning: This function is called from interrupt context */
+// Initialize or re-initializw the LCD
 static void lcd_implementation_init() {
 
-  #if ENABLED(LCD_PIN_BL) && LCD_PIN_BL > -1 // Enable LCD backlight
+  #if defined(LCD_PIN_BL) && LCD_PIN_BL > -1 // Enable LCD backlight
     pinMode(LCD_PIN_BL, OUTPUT);
     digitalWrite(LCD_PIN_BL, HIGH);
   #endif
 
-  #if ENABLED(LCD_PIN_RESET) && LCD_PIN_RESET > -1
+  #if defined(LCD_PIN_RESET) && LCD_PIN_RESET > -1
     pinMode(LCD_PIN_RESET, OUTPUT);
     digitalWrite(LCD_PIN_RESET, HIGH);
   #endif
@@ -535,7 +532,7 @@ static void lcd_implementation_status_screen() {
   lcd_setFont(FONT_STATUSMENU);
   u8g.setPrintPos(12, 49);
   lcd_print(itostr3(feedrate_percentage));
-  lcd_print('%');
+  u8g.print('%');
 
   // Status line
   #if ENABLED(USE_SMALL_INFOFONT)
@@ -566,7 +563,7 @@ static void lcd_implementation_status_screen() {
         lcd_print(ftostr12ns(filament_width_meas));
         lcd_printPGM(PSTR(" factor:"));
         lcd_print(itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
-        lcd_print('%');
+        u8g.print('%');
       }
     #endif
   #else
@@ -576,6 +573,7 @@ static void lcd_implementation_status_screen() {
 
 #if ENABLED(ULTIPANEL)
 
+  // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(uint8_t row, bool isSelected) {
     if (isSelected) {
       u8g.setColorIndex(1);  // black on white
@@ -590,6 +588,7 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LCD_INFO_MENU) || ENABLED(FILAMENT_CHANGE_FEATURE)
 
+    // Draw a static line of text in the same idiom as a menu item
     static void lcd_implementation_drawmenu_static(uint8_t row, const char* pstr, bool center=true, bool invert=false, const char* valstr=NULL) {
 
       lcd_implementation_mark_as_selected(row, invert);
@@ -614,6 +613,7 @@ static void lcd_implementation_status_screen() {
 
   #endif // LCD_INFO_MENU || FILAMENT_CHANGE_FEATURE
 
+  // Draw a generic menu item
   static void lcd_implementation_drawmenu_generic(bool isSelected, uint8_t row, const char* pstr, char pre_char, char post_char) {
     UNUSED(pre_char);
 
@@ -638,6 +638,7 @@ static void lcd_implementation_status_screen() {
   #define lcd_implementation_drawmenu_gcode(sel, row, pstr, gcode) lcd_implementation_drawmenu_generic(sel, row, pstr, '>', ' ')
   #define lcd_implementation_drawmenu_function(sel, row, pstr, data) lcd_implementation_drawmenu_generic(sel, row, pstr, '>', ' ')
 
+  // Draw a menu item with an editable value
   static void _drawmenu_setting_edit_generic(bool isSelected, uint8_t row, const char* pstr, const char* data, bool pgm) {
     char c;
     uint8_t vallen = (pgm ? lcd_strlen_P(data) : (lcd_strlen((char*)data)));
@@ -711,6 +712,7 @@ static void lcd_implementation_status_screen() {
   }
 
   #if ENABLED(SDSUPPORT)
+
     static void _drawmenu_sd(bool isSelected, uint8_t row, const char* pstr, const char* longFilename, bool isDir) {
       UNUSED(pstr);
       char c;

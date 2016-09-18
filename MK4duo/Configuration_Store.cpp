@@ -115,9 +115,6 @@
  * DOGLCD:
  *  M250  C               lcd_contrast (int)
  *
- * SCARA:
- *  M365  XYZ             axis_scaling (float x3)
- *
  * FWRETRACT:
  *  M209  S               autoretract_enabled (bool)
  *  M207  S               retract_length (float)
@@ -317,10 +314,6 @@ void Config_StoreSettings() {
   #endif
   EEPROM_WRITE(lcd_contrast);
 
-  #if MECH(SCARA)
-    EEPROM_WRITE(axis_scaling); // 3 floats
-  #endif
-
   #if ENABLED(FWRETRACT)
     EEPROM_WRITE(autoretract_enabled);
     EEPROM_WRITE(retract_length);
@@ -494,10 +487,6 @@ void Config_RetrieveSettings() {
     #endif
     EEPROM_READ(lcd_contrast);
 
-    #if MECH(SCARA)
-      EEPROM_READ(axis_scaling);  // 3 floats
-    #endif
-
     #if ENABLED(FWRETRACT)
       EEPROM_READ(autoretract_enabled);
       EEPROM_READ(retract_length);
@@ -598,13 +587,6 @@ void Config_ResetDefault() {
     #endif
   }
 
-  #if MECH(SCARA)
-    LOOP_XYZE(i) {
-      if (i < COUNT(axis_scaling))
-        axis_scaling[i] = 1;
-    }
-  #endif
-
   planner.acceleration = DEFAULT_ACCELERATION;
   planner.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
   planner.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
@@ -644,15 +626,15 @@ void Config_ResetDefault() {
   #endif
 
   #if ENABLED(ULTIPANEL)
-    plaPreheatHotendTemp = PLA_PREHEAT_HOTEND_TEMP;
-    plaPreheatHPBTemp = PLA_PREHEAT_HPB_TEMP;
-    plaPreheatFanSpeed = PLA_PREHEAT_FAN_SPEED;
-    absPreheatHotendTemp = ABS_PREHEAT_HOTEND_TEMP;
-    absPreheatHPBTemp = ABS_PREHEAT_HPB_TEMP;
-    absPreheatFanSpeed = ABS_PREHEAT_FAN_SPEED;
-    gumPreheatHotendTemp = GUM_PREHEAT_HOTEND_TEMP;
-    gumPreheatHPBTemp = GUM_PREHEAT_HPB_TEMP;
-    gumPreheatFanSpeed = GUM_PREHEAT_FAN_SPEED;
+    preheatHotendTemp1 = PREHEAT_1_TEMP_HOTEND;
+    preheatBedTemp1 = PREHEAT_1_TEMP_BED;
+    preheatFanSpeed1 = PREHEAT_1_FAN_SPEED;
+    preheatHotendTemp2 = PREHEAT_2_TEMP_HOTEND;
+    preheatBedTemp2 = PREHEAT_2_TEMP_BED;
+    preheatFanSpeed2 = PREHEAT_2_FAN_SPEED;
+    preheatHotendTemp3 = PREHEAT_3_TEMP_HOTEND;
+    preheatBedTemp3 = PREHEAT_3_TEMP_BED;
+    preheatFanSpeed3 = PREHEAT_3_FAN_SPEED;
   #endif
 
   #if HAS(LCD_CONTRAST)
@@ -736,13 +718,6 @@ void Config_PrintSettings(bool forReplay) {
       SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS + i]);
     }
   #endif //EXTRUDERS > 1
-
-  #if MECH(SCARA)
-    CONFIG_MSG_START("Scaling factors:");
-    SERIAL_SMV(CFG, "  M365 X", axis_scaling[X_AXIS]);
-    SERIAL_MV(" Y", axis_scaling[Y_AXIS]);
-    SERIAL_EMV(" Z", axis_scaling[Z_AXIS]);
-  #endif // SCARA
 
   CONFIG_MSG_START("Maximum feedrates (mm/s):");
   SERIAL_SMV(CFG, "  M203 X", planner.max_feedrate_mm_s[X_AXIS]);
@@ -870,17 +845,17 @@ void Config_PrintSettings(bool forReplay) {
 
   #if ENABLED(ULTIPANEL)
     CONFIG_MSG_START("Material heatup parameters:");
-    SERIAL_SMV(CFG, "  M145 S0 H", plaPreheatHotendTemp);
-    SERIAL_MV(" B", plaPreheatHPBTemp);
-    SERIAL_MV(" F", plaPreheatFanSpeed);
+    SERIAL_SMV(CFG, "  M145 S0 H", preheatHotendTemp1);
+    SERIAL_MV(" B", preheatBedTemp1);
+    SERIAL_MV(" F", preheatFanSpeed1);
     SERIAL_EM(" (Material PLA)");
-    SERIAL_SMV(CFG, "  M145 S1 H", absPreheatHotendTemp);
-    SERIAL_MV(" B", absPreheatHPBTemp);
-    SERIAL_MV(" F", absPreheatFanSpeed);
+    SERIAL_SMV(CFG, "  M145 S1 H", preheatHotendTemp2);
+    SERIAL_MV(" B", preheatBedTemp2);
+    SERIAL_MV(" F", preheatFanSpeed2);
     SERIAL_EM(" (Material ABS)");
-    SERIAL_SMV(CFG, "  M145 S2 H", gumPreheatHotendTemp);
-    SERIAL_MV(" B", gumPreheatHPBTemp);
-    SERIAL_MV(" F", gumPreheatFanSpeed);
+    SERIAL_SMV(CFG, "  M145 S2 H", preheatHotendTemp3);
+    SERIAL_MV(" B", preheatBedTemp3);
+    SERIAL_MV(" F", preheatFanSpeed3);
     SERIAL_EM(" (Material GUM)");
   #endif // ULTIPANEL
 

@@ -330,7 +330,7 @@ class Planner {
      * 'distance'.
      */
     static float max_allowable_speed(float accel, float target_velocity, float distance) {
-      return _SQRT(sq(target_velocity) - 2 * accel * distance);
+      return sqrt(sq(target_velocity) - 2 * accel * distance);
     }
 
     static void calculate_trapezoid_for_block(block_t* block, float entry_factor, float exit_factor);
