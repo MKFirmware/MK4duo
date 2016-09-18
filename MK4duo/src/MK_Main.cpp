@@ -30,16 +30,6 @@
 
 #include "../base.h"
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
-  #include "planner/vector_3.h"
-#endif
-
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
-  #include "planner/qr_solve.h"
-#elif ENABLED(MESH_BED_LEVELING)
-  #include "mbl/mesh_bed_leveling.h"
-#endif
-
 #if ENABLED(RFID_MODULE)
   MFRC522 RFID522;
 #endif
