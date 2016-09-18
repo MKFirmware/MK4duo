@@ -32,10 +32,6 @@
 #ifndef PLANNER_H
 #define PLANNER_H
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
-  #include "vector_3.h"
-#endif
-
 class Planner;
 extern Planner planner;
 

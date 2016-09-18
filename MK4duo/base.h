@@ -60,6 +60,16 @@
 #include "src/communication/communication.h"
 #include "src/enum.h"
 
+#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+  #include "src/planner/vector_3.h"
+#endif
+
+#if ENABLED(AUTO_BED_LEVELING_LINEAR)
+  #include "src/planner/qr_solve.h"
+#elif ENABLED(MESH_BED_LEVELING)
+  #include "src/mbl/mesh_bed_leveling.h"
+#endif
+
 #include "Configuration_Store.h"
 
 #include "src/language/language.h"

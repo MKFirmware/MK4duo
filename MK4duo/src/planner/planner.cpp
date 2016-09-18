@@ -60,10 +60,6 @@
 
 #include "../../base.h"
 
-#if ENABLED(MESH_BED_LEVELING)
-  #include "src/mbl/mesh_bed_leveling.h"
-#endif
-
 Planner planner;
 
 // public:

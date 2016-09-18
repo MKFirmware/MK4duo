@@ -42,14 +42,23 @@
 /***********************************************************************
  ********************** Serial comunication type ***********************
  ***********************************************************************/
-// SERIAL PORT selects which serial port should be used for communication with the host.
-// This allows the connection of wireless adapters (for instance) to non-default port pins.
-// Serial port 0 is still used by the Arduino bootloader regardless of this setting.
-// Valid values are 0-3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
+/**
+ * Select which serial port on the board will be used for communication with the host.
+ * This allows the connection of wireless adapters (for instance) to non-default port pins.
+ * Serial port 0 is always used by the Arduino bootloader regardless of this setting.
+ *
+ * Valid values are 0-3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
+ */
 #define SERIAL_PORT 0
 
-// This determines the communication speed of the printer
-// 2400,9600,19200,38400,57600,115200,250000
+/**
+ * This setting determines the communication speed of the printer.
+ *
+ * 250000 works in most cases, but you might try a lower speed if
+ * you commonly experience drop-outs during host printing.
+ *
+ * 2400,9600,19200,38400,57600,115200,250000
+ */
 #define BAUDRATE 115200
 
 // Enable the Bluetooth serial interface
@@ -146,9 +155,11 @@
  ************************** Extruders number ***************************
  ***********************************************************************/
 // This defines the number of extruder real or virtual
+// 1,2,3,4,5,6
 #define EXTRUDERS 1
 
 // This defines the number of Driver extruder you have and use
+// 1,2,3,4,5,6
 #define DRIVER_EXTRUDERS 1
 /***********************************************************************/
 
