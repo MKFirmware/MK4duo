@@ -169,6 +169,7 @@
 #define MSG_INIT_SDCARD                     "Iniz. SD-Card"
 #define MSG_CNG_SDCARD                      "Cambia SD-Card"
 #define MSG_ZPROBE_OUT                      "Z probe out. bed"
+#define MSG_RESET_BLTOUCH                   "Reset BLTouch"
 #define MSG_HOME                            "Home"
 #define MSG_FIRST                           "prima"
 #define MSG_ZPROBE_ZOFFSET                  "Zprobe ZOffset"

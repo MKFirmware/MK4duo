@@ -329,7 +329,6 @@
    *
    *  EXTRUDERS         - Number of Selectable Tools
    *  HOTENDS           - Number of hotends, whether connected or separate
-   *  E_STEPPERS        - Number of actual E stepper motors
    *  DRIVER_EXTRUDERS  - Number of driver extruders
    *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
    *
@@ -338,37 +337,29 @@
     #undef SINGLENOZZLE
     #undef ADVANCE
     #undef EXTRUDERS
-    #undef E_STEPPERS
     #undef DRIVER_EXTRUDERS
     #define EXTRUDERS         2
-    #define E_STEPPERS        1
-    #define E_MANUAL          1
     #define DRIVER_EXTRUDERS  1
+    #define E_MANUAL          1
     #define TOOL_E_INDEX      0
   #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
     #undef SINGLENOZZLE
     #undef ADVANCE
     #undef EXTRUDERS
-    #undef E_STEPPERS
     #undef DRIVER_EXTRUDERS
     #define EXTRUDERS         2
-    #define E_STEPPERS        2
-    #define E_MANUAL          1
     #define DRIVER_EXTRUDERS  2
+    #define E_MANUAL          1
     #define TOOL_E_INDEX      current_block->active_extruder
   #elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
     #define SINGLENOZZLE
     #undef EXTRUDERS
-    #undef E_STEPPERS
     #undef DRIVER_EXTRUDERS
-    #define EXTRUDERS         MIXING_STEPPERS
-    #define E_STEPPERS        MIXING_STEPPERS
+    #define EXTRUDERS         1
     #define DRIVER_EXTRUDERS  MIXING_STEPPERS
     #define E_MANUAL          1
     #define TOOL_E_INDEX      0
   #else
-    #undef E_STEPPERS
-    #define E_STEPPERS        EXTRUDERS
     #define E_MANUAL          EXTRUDERS
     #define TOOL_E_INDEX      current_block->active_extruder
   #endif
@@ -482,6 +473,9 @@
     #define NORMAL_AXIS Y_AXIS
   #endif
 
+  #define IS_KINEMATIC (MECH(DELTA) || MECH(SCARA))
+  #define IS_CARTESIAN !IS_KINEMATIC
+
   /**
    * SCARA
    */
@@ -525,9 +519,6 @@
 
   #endif
 
-  #define IS_KINEMATIC (MECH(DELTA) || MECH(SCARA))
-  #define IS_CARTESIAN !IS_KINEMATIC
-
   /**
    * Set the home position based on settings or manual overrides
    */
@@ -546,6 +537,25 @@
     #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
   #endif // !MANUAL_HOME_POSITIONS
 
+  /**
+   * The BLTouch Probe emulates a servo probe
+   */
+  #if ENABLED(BLTOUCH)
+    #if DISABLED(ENABLE_SERVOS)
+      #define ENABLE_SERVOS
+    #endif
+    #if Z_ENDSTOP_SERVO_NR < 0
+      #undef Z_ENDSTOP_SERVO_NR
+      #define Z_ENDSTOP_SERVO_NR 0
+    #endif
+    #if NUM_SERVOS < 1
+      #undef NUM_SERVOS
+      #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
+    #endif
+    #undef Z_SERVO_ANGLES
+    #define Z_ENDSTOP_SERVO_ANGLES {10,90} // For BLTouch 10=deploy, 90=retract
+    #undef DEACTIVATE_SERVOS_AFTER_MOVE
+  #endif
 
   /**
    * Specify the exact style of auto bed leveling
@@ -562,6 +572,7 @@
       #define AUTO_BED_LEVELING_NONLINEAR
     #else
       #define AUTO_BED_LEVELING_LINEAR
+      #define AUTO_BED_LEVELING_LINEAR_GRID
     #endif
   #endif
 
@@ -986,17 +997,6 @@
     #ifndef SERVO_DEACTIVATION_DELAY
       #define SERVO_DEACTIVATION_DELAY 300
     #endif
-  #endif
-
-  /**
-   * The BLTouch Probe emulates a servo probe
-   */
-  #if ENABLED(BLTOUCH)
-    #undef Z_ENDSTOP_SERVO_NR
-    #undef Z_ENDSTOP_SERVO_ANGLES
-    #define Z_ENDSTOP_SERVO_NR 0
-    #define Z_ENDSTOP_SERVO_ANGLES {10,90} // For BLTouch 10=deploy, 90=retract
-    #undef DEACTIVATE_SERVOS_AFTER_MOVE
   #endif
 
   /**

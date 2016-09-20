@@ -25,9 +25,11 @@
 
   // The axis order in all axis related arrays is X, Y, Z, E
   #define NUM_AXIS 4
-  #define XYZE 4
-  #define ABC  3
-  #define XYZ  3
+  #define XYZEn 3 + EXTRUDERS
+  #define XYZE  4
+  #define ABCE  4
+  #define ABC   3
+  #define XYZ   3
 
   // Compiler warning on unused varable.
   #define UNUSED(x) (void) (x)

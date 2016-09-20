@@ -64,7 +64,7 @@
   #include "src/planner/vector_3.h"
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
+#if ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
   #include "src/planner/qr_solve.h"
 #elif ENABLED(MESH_BED_LEVELING)
   #include "src/mbl/mesh_bed_leveling.h"

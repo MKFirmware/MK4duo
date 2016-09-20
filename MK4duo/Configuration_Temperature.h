@@ -300,8 +300,8 @@
 //#define PIDTEMPBED
 
 //#define BED_LIMIT_SWITCHING
-#define BED_HYSTERESIS 2 //only disable heating if T>target+BED_HYSTERESIS and enable heating if T>target-BED_HYSTERESIS (works only if BED_LIMIT_SWITCHING is enabled)
-#define BED_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
+#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T>target-BED_HYSTERESIS (works only if BED_LIMIT_SWITCHING is enabled)
+#define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // This sets the max power delivered to the bed.
 // all forms of bed control obey this (PID, bang-bang, bang-bang with hysteresis)

@@ -1480,7 +1480,7 @@
 #define N_ARC_CORRECTION 25
 
 // Moves with fewer segments than this will be ignored and joined with the next movement
-#define MIN_SEGMENTS_FOR_MOVE 6
+#define MIN_STEPS_PER_SEGMENT 6
 
 // Uncomment to add the M100 Free Memory Watcher for debug purpose
 //#define M100_FREE_MEMORY_WATCHER

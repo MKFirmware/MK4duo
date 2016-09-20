@@ -317,9 +317,9 @@ float cartes[XYZ] = { 0 };
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  float mixing_factor[E_STEPPERS];
+  float mixing_factor[MIXING_STEPPERS];
   #if MIXING_VIRTUAL_TOOLS  > 1
-    float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][E_STEPPERS];
+    float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
   #endif
 #endif
 
@@ -516,14 +516,19 @@ inline void sync_plan_position() {
 inline void sync_plan_position_e() { planner.set_e_position_mm(current_position[E_AXIS]); }
 
 #if IS_KINEMATIC
+
   inline void sync_plan_position_kinematic() {
     if (DEBUGGING(INFO)) DEBUG_INFO_POS("sync_plan_position_kinematic", current_position);
     inverse_kinematics(current_position);
     planner.set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS]);
   }
+
   #define SYNC_PLAN_POSITION_KINEMATIC() sync_plan_position_kinematic()
+
 #else
+
   #define SYNC_PLAN_POSITION_KINEMATIC() sync_plan_position()
+
 #endif
 
 /**
@@ -1604,6 +1609,11 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
     // Make room for probe
     do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
 
+    // Check BLTOUCH probe status for an error
+    #if ENABLED(BLTOUCH)
+      if (servo[Z_ENDSTOP_SERVO_NR].read() == BLTouchState_Error) { stop(); return true; }
+    #endif
+
     #if ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
@@ -1965,7 +1975,7 @@ static void homeaxis(AxisEnum axis) {
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   void normalize_mix() {
     float mix_total = 0.0;
-    for (uint8_t i = 0; i < E_STEPPERS; i++) {
+    for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
       float v = mixing_factor[i];
       if (v < 0) v = mixing_factor[i] = 0;
       mix_total += v;
@@ -1975,7 +1985,7 @@ static void homeaxis(AxisEnum axis) {
     if (mix_total < 0.9999 || mix_total > 1.0001) {
       SERIAL_EM("Warning: Mix factors must add up to 1.0. Scaling.");
       float mix_scale = 1.0 / mix_total;
-      for (uint8_t i = 0; i < E_STEPPERS; i++) {
+      for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
         mixing_factor[i] *= mix_scale;
       }
     }
@@ -1986,7 +1996,7 @@ static void homeaxis(AxisEnum axis) {
   // The total "must" be 1.0 (but it will be normalized)
   void gcode_get_mix() {
     const char* mixing_codes = "ABCDHI";
-    for (uint8_t i = 0; i < E_STEPPERS; i++) {
+    for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
       mixing_factor[i] = code_seen(mixing_codes[i]) ? code_value_float() : 0;
     }
     normalize_mix();
@@ -3663,7 +3673,7 @@ inline void gcode_G28() {
         float zoffset = zprobe_zoffset;
         if (code_seen('Z')) zoffset += code_value_axis_units(Z_AXIS);
 
-      #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
+      #elif ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
 
         /**
          * solve the plane equation ax + by + d = z
@@ -3681,7 +3691,7 @@ inline void gcode_G28() {
                mean = 0.0;
         int indexIntoAB[abl_grid_points_x][abl_grid_points_y];
 
-      #endif // AUTO_BED_LEVELING_LINEAR
+      #endif // AUTO_BED_LEVELING_LINEAR_GRID
 
       int probePointCounter = 0;
       bool zig = abl_grid_points_y & 1; // always end at [RIGHT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION]
@@ -3716,15 +3726,19 @@ inline void gcode_G28() {
 
           measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
-          #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+          #if ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
+
             mean += measured_z;
             eqnBVector[probePointCounter] = measured_z;
             eqnAMatrix[probePointCounter + 0 * abl2] = xProbe;
             eqnAMatrix[probePointCounter + 1 * abl2] = yProbe;
             eqnAMatrix[probePointCounter + 2 * abl2] = 1;
             indexIntoAB[xCount][yCount] = probePointCounter;
-          #else
+
+          #elif ENABLED(AUTO_BED_LEVELING_NONLINEAR)
+
             bed_level_grid[xCount][yCount] = measured_z + zoffset;
+
           #endif
 
           probePointCounter++;
@@ -3777,7 +3791,9 @@ inline void gcode_G28() {
       if (!dryrun) extrapolate_unprobed_bed_level();
       print_bed_level();
 
-    #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
+    #elif ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
+
+      // For LINEAR leveling calculate matrix, print reports, correct the position
 
       // solve lsq problem
       double plane_equation_coefficients[3];
@@ -3831,7 +3847,7 @@ inline void gcode_G28() {
             if (diff >= 0.0)
               SERIAL_M(" +");   // Include + for column alignment
             else
-              SERIAL_M(" ");
+              SERIAL_C(' ');
             SERIAL_V(diff, 5);
           } // xx
           SERIAL_E;
@@ -3854,7 +3870,7 @@ inline void gcode_G28() {
               if (diff >= 0.0)
                 SERIAL_M(" +");   // Include + for column alignment
               else
-                SERIAL_M(" ");
+                SERIAL_C(' ');
               SERIAL_V(diff, 5);
             } // xx
             SERIAL_E;
@@ -3862,6 +3878,12 @@ inline void gcode_G28() {
           SERIAL_E;
         }
       } // do_topography_map
+
+    #endif // AUTO_BED_LEVELING_LINEAR_GRID
+
+    #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+
+      // For LINEAR and 3POINT leveling correct the current position
 
       if (verbose_level > 0)
         planner.bed_level_matrix.debug("\n\nBed Level Correction Matrix:");
@@ -5640,7 +5662,7 @@ inline void gcode_M122() {
   inline void gcode_M163() {
     int mix_index = code_seen('S') ? code_value_int() : 0;
     float mix_value = code_seen('P') ? code_value_float() : 0.0;
-    if (mix_index < E_STEPPERS) mixing_factor[mix_index] = mix_value;
+    if (mix_index < MIXING_STEPPERS) mixing_factor[mix_index] = mix_value;
   }
 
   #if MIXING_VIRTUAL_TOOLS  > 1
@@ -5654,7 +5676,7 @@ inline void gcode_M122() {
       int tool_index = code_seen('S') ? code_value_int() : 0;
       if (tool_index < MIXING_VIRTUAL_TOOLS) {
         normalize_mix();
-        for (uint8_t i = 0; i < E_STEPPERS; i++) {
+        for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
           mixing_virtual_tool_mix[tool_index][i] = mixing_factor[i];
         }
       }
@@ -5772,9 +5794,14 @@ inline void gcode_M200() {
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  */
 inline void gcode_M201() {
+  if (get_target_extruder_from_command(201)) return;
+
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
-      planner.max_acceleration_mm_per_s2[i] = code_value_axis_units(i);
+      if (i == E_AXIS)
+        planner.max_acceleration_mm_per_s2[i + target_extruder] = code_value_axis_units(i + target_extruder);
+      else
+        planner.max_acceleration_mm_per_s2[i] = code_value_axis_units(i);
     }
   }
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
@@ -6959,12 +6986,13 @@ inline void gcode_M503() {
     float lastpos[NUM_AXIS];
 
     // Save current position of all axes
-    for (int i = 0; i < NUM_AXIS; i++)
+    LOOP_XYZE(i)
       lastpos[i] = destination[i] = current_position[i];
 
-    #if MECH(DELTA)
+    // Define runplan for move axes
+    #if IS_KINEMATIC
 			#define RUNPLAN(RATE_MM_S)  inverse_kinematics(destination); \
-                                  planner.buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], destination[E_AXIS], RATE_MM_S, active_extruder, active_driver);
+                                  planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], RATE_MM_S, active_extruder, active_driver);
     #else
       #define RUNPLAN(RATE_MM_S) line_to_destination(RATE_MM_S);
     #endif
@@ -6981,7 +7009,7 @@ inline void gcode_M503() {
 
     // Lift Z axis
     float z_lift = code_seen('Z') ? code_value_axis_units(Z_AXIS) :
-      #if ENABLED(FILAMENT_CHANGE_Z_ADD)
+      #if ENABLED(FILAMENT_CHANGE_Z_ADD) && FILAMENT_CHANGE_Z_ADD > 0
         FILAMENT_CHANGE_Z_ADD
       #else
         0
@@ -7010,9 +7038,10 @@ inline void gcode_M503() {
     stepper.synchronize();
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_UNLOAD);
 
+    // Unload filament
     if (code_seen('L')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_UNLOAD_LENGTH)
-      else destination[E_AXIS] += FILAMENT_CHANGE_UNLOAD_LENGTH;
+    #if ENABLED(FILAMENT_CHANGE_UNLOAD_LENGTH) && FILAMENT_CHANGE_UNLOAD_LENGTH > 0
+      else destination[E_AXIS] -= FILAMENT_CHANGE_UNLOAD_LENGTH;
     #endif
 
     RUNPLAN(FILAMENT_CHANGE_UNLOAD_FEEDRATE);
@@ -7111,7 +7140,7 @@ inline void gcode_M503() {
     destination[E_AXIS] = lastpos[E_AXIS];
     planner.set_e_position_mm(current_position[E_AXIS]);
 
-    #if MECH(DELTA)
+    #if IS_KINEMATIC
       // Move XYZ to starting position, then E
       inverse_kinematics(lastpos);
       planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], FILAMENT_CHANGE_XY_FEEDRATE, active_extruder, active_driver);
@@ -8778,23 +8807,38 @@ void ok_to_send() {
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
+
+  // Macro to obtain the Z position of an individual tower
+  #define DELTA_Z(T) raw[Z_AXIS] + _SQRT(    \
+    delta_diagonal_rod_2_tower_##T - HYPOT2( \
+        delta_tower##T##_x - raw[X_AXIS],    \
+        delta_tower##T##_y - raw[Y_AXIS]     \
+      )                                      \
+    )
+
+  #define DELTA_LOGICAL_IK() do {      \
+    const float raw[XYZ] = {           \
+      RAW_X_POSITION(logical[X_AXIS]), \
+      RAW_Y_POSITION(logical[Y_AXIS]), \
+      RAW_Z_POSITION(logical[Z_AXIS])  \
+    };                                 \
+    delta[A_AXIS] = DELTA_Z(1);        \
+    delta[B_AXIS] = DELTA_Z(2);        \
+    delta[C_AXIS] = DELTA_Z(3);        \
+  } while(0)
+
+  #define DELTA_DEBUG() do { \
+      SERIAL_MV("cartesian X:", raw[X_AXIS]); \
+      SERIAL_MV(" Y:", raw[Y_AXIS]);          \
+      SERIAL_EMV(" Z:", raw[Z_AXIS]);        \
+      SERIAL_MV("delta A:", delta[A_AXIS]);   \
+      SERIAL_MV(" B:", delta[B_AXIS]);        \
+      SERIAL_EMV(" C:", delta[C_AXIS]);      \
+    } while(0)
+
   void inverse_kinematics(const float logical[XYZ]) {
-
-    const float cartesian[XYZ] = {
-      RAW_X_POSITION(logical[X_AXIS]),
-      RAW_Y_POSITION(logical[Y_AXIS]),
-      RAW_Z_POSITION(logical[Z_AXIS])
-    };
-
-    // Macro to obtain the Z position of an individual tower
-    #define DELTA_Z(T) _SQRT(delta_diagonal_rod_2_tower_##T \
-                          - sq(delta_tower##T##_x - cartesian[X_AXIS]) \
-                          - sq(delta_tower##T##_y - cartesian[Y_AXIS]) \
-                          ) + cartesian[Z_AXIS]
-
-    delta[A_AXIS] = DELTA_Z(1);
-    delta[B_AXIS] = DELTA_Z(2);
-    delta[C_AXIS] = DELTA_Z(3);
+    DELTA_LOGICAL_IK();
+    // DELTA_DEBUG();
   }
 
   float delta_safe_distance_from_top() {
@@ -8874,9 +8918,9 @@ void ok_to_send() {
 
     // We now have the d, i and j values defined in Wikipedia.
     // Plug them into the equations defined in Wikipedia for Xnew, Ynew and Znew
-    float Xnew = (delta_diagonal_rod_2_tower_1 - delta_diagonal_rod_2_tower_2 + sq(d)) / (d * 2);
-    float Ynew = ((delta_diagonal_rod_2_tower_1 - delta_diagonal_rod_2_tower_3 + HYPOT2(i, j)) / 2 - i * Xnew) / j;
-    float Znew = sqrt(delta_diagonal_rod_2_tower_1 - HYPOT2(Xnew, Ynew));
+    float Xnew = (delta_diagonal_rod_2_tower_1 - delta_diagonal_rod_2_tower_2 + sq(d)) / (d * 2),
+          Ynew = ((delta_diagonal_rod_2_tower_1 - delta_diagonal_rod_2_tower_3 + HYPOT2(i, j)) / 2 - i * Xnew) / j,
+          Znew = sqrt(delta_diagonal_rod_2_tower_1 - HYPOT2(Xnew, Ynew));
 
     // Start from the origin of the old coordinates and add vectors in the
     // old coords that represent the Xnew, Ynew and Znew to find the point
@@ -9746,14 +9790,14 @@ static void report_current_position() {
 
   #if MECH(SCARA)
     // MESSAGE for Host
-    SERIAL_SMV(OK, " SCARA Theta:", delta[X_AXIS]);
-    SERIAL_EMV("   Psi+Theta:", delta[Y_AXIS]);
+    SERIAL_MV("SCARA Theta:", delta[A_AXIS]);
+    SERIAL_EMV("   Psi+Theta:", delta[B_AXIS]);
 
-    SERIAL_MV("SCARA Cal - Theta:", delta[X_AXIS] + home_offset[X_AXIS]);
-    SERIAL_EMV("   Psi+Theta (90):", delta[Y_AXIS]-delta[X_AXIS] - 90 + home_offset[Y_AXIS]);
+    SERIAL_MV("SCARA Cal - Theta:", delta[A_AXIS];
+    SERIAL_EMV("   Psi+Theta (90):", delta[B_AXIS] - delta[A_AXIS] - 90);
 
-    SERIAL_MV("SCARA step Cal - Theta:", delta[X_AXIS] / 90 * planner.axis_steps_per_mm[X_AXIS]);
-    SERIAL_EMV("   Psi+Theta:", (delta[Y_AXIS]-delta[X_AXIS]) / 90 * planner.axis_steps_per_mm[Y_AXIS]);
+    SERIAL_MV("SCARA step Cal - Theta:", delta[A_AXIS] / 90 * planner.axis_steps_per_mm[A_AXIS]);
+    SERIAL_EMV("   Psi+Theta:", (delta[B_AXIS] - delta[A_AXIS]) / 90 * planner.axis_steps_per_mm[Y_AXIS]);
     SERIAL_E;
   #endif
 }
@@ -10251,63 +10295,93 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    if (ELAPSED(ms, previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)) {
-      if (degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP) {
-        bool oldstatus;
+    if (ELAPSED(ms, previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
+      && degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP) {
+      bool oldstatus;
+      #if ENABLED(DONDOLO_SINGLE_MOTOR)
+        oldstatus = E0_ENABLE_READ;
+        enable_e0();
+      #else // !DONDOLO_SINGLE_MOTOR
         switch(active_extruder) {
           case 0:
             oldstatus = E0_ENABLE_READ;
             enable_e0();
             break;
-          #if EXTRUDERS > 1
+          #if DRIVER_EXTRUDERS > 1
             case 1:
               oldstatus = E1_ENABLE_READ;
               enable_e1();
               break;
-            #if EXTRUDERS > 2
+            #if DRIVER_EXTRUDERS > 2
               case 2:
                 oldstatus = E2_ENABLE_READ;
                 enable_e2();
                 break;
-              #if EXTRUDERS > 3
+              #if DRIVER_EXTRUDERS > 3
                 case 3:
                   oldstatus = E3_ENABLE_READ;
                   enable_e3();
                   break;
+                #if DRIVER_EXTRUDERS > 4
+                  case 4:
+                    oldstatus = E4_ENABLE_READ;
+                    enable_e4();
+                    break;
+                  #if DRIVER_EXTRUDERS > 5
+                    case 5:
+                      oldstatus = E5_ENABLE_READ;
+                      enable_e5();
+                      break;
+                  #endif
+                #endif
               #endif
             #endif
           #endif
         }
-        float oldepos = current_position[E_AXIS], oldedes = destination[E_AXIS];
-        planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS],
-                        destination[E_AXIS] + (EXTRUDER_RUNOUT_EXTRUDE) * (EXTRUDER_RUNOUT_ESTEPS) / planner.axis_steps_per_mm[E_AXIS + active_extruder],
-                        MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED) * (EXTRUDER_RUNOUT_ESTEPS) * planner.axis_steps_per_mm[E_AXIS + active_extruder], active_extruder, active_driver);
-        current_position[E_AXIS] = oldepos;
-        destination[E_AXIS] = oldedes;
-        planner.set_e_position_mm(oldepos);
-        previous_cmd_ms = ms; // refresh_cmd_timeout()
-        stepper.synchronize();
+      #endif // !DONDOLO_SINGLE_MOTOR
+
+      previous_cmd_ms = ms; // refresh_cmd_timeout()
+      planner.buffer_line(
+        current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],
+        current_position[E_AXIS] + EXTRUDER_RUNOUT_EXTRUDE,
+        MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), active_extruder, active_driver
+      );
+      stepper.synchronize();
+      planner.set_e_position_mm(current_position[E_AXIS]);
+      #if ENABLED(DONDOLO_SINGLE_MOTOR)
+        E0_ENABLE_WRITE(oldstatus);
+      #else
         switch(active_extruder) {
           case 0:
             E0_ENABLE_WRITE(oldstatus);
             break;
-          #if EXTRUDERS > 1
+          #if DRIVER_EXTRUDERS > 1
             case 1:
               E1_ENABLE_WRITE(oldstatus);
               break;
-            #if EXTRUDERS > 2
+            #if DRIVER_EXTRUDERS > 2
               case 2:
                 E2_ENABLE_WRITE(oldstatus);
                 break;
-              #if EXTRUDERS > 3
+              #if DRIVER_EXTRUDERS > 3
                 case 3:
                   E3_ENABLE_WRITE(oldstatus);
                   break;
+                #if DRIVER_EXTRUDERS > 4
+                  case 4:
+                    E4_ENABLE_WRITE(oldstatus);
+                    break;
+                  #if DRIVER_EXTRUDERS > 5
+                    case 5:
+                      E5_ENABLE_WRITE(oldstatus);
+                      break;
+                  #endif
+                #endif
               #endif
             #endif
           #endif
         }
-      }
+      #endif // !DONDOLO_SINGLE_MOTOR
     }
   #endif
 
@@ -10597,11 +10671,11 @@ void setup() {
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     // Initialize mixing to 100% color 1
-    for (uint8_t i = 0; i < E_STEPPERS; i++) {
+    for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
       mixing_factor[i] = (i == 0) ? 1 : 0;
     }
     for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; t++) {
-      for (uint8_t i = 0; i < E_STEPPERS; i++) {
+      for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
         mixing_virtual_tool_mix[t][i] = mixing_factor[i];
       }
     }
