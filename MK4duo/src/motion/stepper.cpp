@@ -94,13 +94,13 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
   unsigned char Stepper::old_OCR0A;
   volatile unsigned char Stepper::eISR_Rate = 200; // Keep the ISR at a low rate until needed
   #if ENABLED(LIN_ADVANCE)
-    volatile int Stepper::e_steps[EXTRUDERS];
+    volatile long Stepper::e_steps[DRIVER_EXTRUDERS];
     int Stepper::extruder_advance_k = LIN_ADVANCE_K,
         Stepper::final_estep_rate,
-        Stepper::current_estep_rate[EXTRUDERS];
-        Stepper::current_adv_steps[EXTRUDERS];
+        Stepper::current_estep_rate[DRIVER_EXTRUDERS];
+        Stepper::current_adv_steps[DRIVER_EXTRUDERS];
   #else
-    long  Stepper::e_steps[EXTRUDERS],
+    long  Stepper::e_steps[DRIVER_EXTRUDERS],
           Stepper::final_advance = 0,
           Stepper::old_advance = 0,
           Stepper::advance_rate,
@@ -249,16 +249,14 @@ void Stepper::set_directions() {
     SET_STEP_DIR(Z); // C
   #endif
 
-  #if DISABLED(ADVANCE)
-    if (motor_direction(E_AXIS)) {
-      REV_E_DIR();
-      count_direction[E_AXIS] = -1;
-    }
-    else {
-      NORM_E_DIR();
-      count_direction[E_AXIS] = 1;
-    }
-  #endif // !ADVANCE
+  if (motor_direction(E_AXIS)) {
+    REV_E_DIR();
+    count_direction[E_AXIS] = -1;
+  }
+  else {
+    NORM_E_DIR();
+    count_direction[E_AXIS] = 1;
+  }
 }
 
 // "The Stepper Driver Interrupt" - This timer interrupt is the workhorse.
@@ -992,34 +990,14 @@ void Stepper::isr() {
       OCR0A = old_OCR0A;
     #endif
 
-    #define SET_E_STEP_DIR(INDEX) \
-      E## INDEX ##_DIR_WRITE(e_steps[INDEX] <= 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR)
-
     #define START_E_PULSE(INDEX) \
-      if (e_steps[INDEX]) E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN)
+      if (e_steps[INDEX]) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN)
 
     #define STOP_E_PULSE(INDEX) \
       if (e_steps[INDEX]) { \
         e_steps[INDEX] <= 0 ? ++e_steps[INDEX] : --e_steps[INDEX]; \
-        E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN); \
+        E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); \
       }
-
-    SET_E_STEP_DIR(0);
-    #if E_STEPPERS > 1
-      SET_E_STEP_DIR(1);
-      #if E_STEPPERS > 2
-        SET_E_STEP_DIR(2);
-        #if E_STEPPERS > 3
-          SET_E_STEP_DIR(3);
-          #if E_STEPPERS > 4
-            SET_E_STEP_DIR(4);
-            #if E_STEPPERS > 5
-              SET_E_STEP_DIR(5);
-            #endif
-          #endif
-        #endif
-      #endif
-    #endif
 
     // Step all E steppers that have steps
     for (uint8_t i = 0; i < step_loops; i++) {
@@ -1030,15 +1008,15 @@ void Stepper::isr() {
       #endif
 
       START_E_PULSE(0);
-      #if E_STEPPERS > 1
+      #if DRIVER_EXTRUDERS > 1
         START_E_PULSE(1);
-        #if E_STEPPERS > 2
+        #if DRIVER_EXTRUDERS > 2
           START_E_PULSE(2);
-          #if E_STEPPERS > 3
+          #if DRIVER_EXTRUDERS > 3
             START_E_PULSE(3);
-            #if E_STEPPERS > 4
+            #if DRIVER_EXTRUDERS > 4
               START_E_PULSE(4);
-              #if E_STEPPERS > 5
+              #if DRIVER_EXTRUDERS > 5
                 START_E_PULSE(5);
               #endif
             #endif
@@ -1047,23 +1025,23 @@ void Stepper::isr() {
       #endif
       
       // For a minimum pulse time wait before stopping pulses
-      #if MINIMUM_STEPPER_PULSE > 0
+      #if ENABLED(STEPPER_HIGH_LOW) && STEPPER_HIGH_LOW_DELAY > 0
         #define CYCLES_EATEN_BY_E 10
-        while ((uint32_t)(TCNT0 - pulse_start) < (MINIMUM_STEPPER_PULSE * (F_CPU / 1000000UL)) - CYCLES_EATEN_BY_E) { /* nada */ }
+        while ((uint32_t)(TCNT0 - pulse_start) < (STEPPER_HIGH_LOW_DELAY * (F_CPU / 1000000UL)) - CYCLES_EATEN_BY_E) { /* nada */ }
       #elif ENABLED(__SAM3X8E__)
         HAL::delayMicroseconds(2U);
       #endif
       
       STOP_E_PULSE(0);
-      #if E_STEPPERS > 1
+      #if DRIVER_EXTRUDERS > 1
         STOP_E_PULSE(1);
-        #if E_STEPPERS > 2
+        #if DRIVER_EXTRUDERS > 2
           STOP_E_PULSE(2);
-          #if E_STEPPERS > 3
+          #if DRIVER_EXTRUDERS > 3
             STOP_E_PULSE(3);
-            #if E_STEPPERS > 4
+            #if DRIVER_EXTRUDERS > 4
               STOP_E_PULSE(4);
-              #if E_STEPPERS > 5
+              #if DRIVER_EXTRUDERS > 5
                 STOP_E_PULSE(5);
               #endif
             #endif
@@ -1285,7 +1263,7 @@ void Stepper::init() {
   ENABLE_STEPPER_DRIVER_INTERRUPT();
 
   #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-    for (uint8_t i = 0; i < E_STEPPERS; i++) {
+    for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
       e_steps[i] = 0;
       #if ENABLED(LIN_ADVANCE)
         current_adv_steps[i] = 0;
@@ -1638,7 +1616,7 @@ void Stepper::digipot_init() {
 #if MB(ALLIGATOR)
   void Stepper::set_driver_current() {
     uint8_t digipot_motor = 0;
-    for (uint8_t i = 0; i < 3 + E_STEPPERS; i++) {
+    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
       digipot_motor = 255 * motor_current[i] / 3.3;
       ExternalDac::setValue(i, digipot_motor);
     }

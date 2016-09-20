@@ -71,12 +71,12 @@ block_t Planner::block_buffer[BLOCK_BUFFER_SIZE];
 volatile uint8_t Planner::block_buffer_head = 0;           // Index of the next block to be pushed
 volatile uint8_t Planner::block_buffer_tail = 0;
 
-float Planner::max_feedrate_mm_s[3 + EXTRUDERS], // Max speeds in mm per second
-      Planner::axis_steps_per_mm[3 + EXTRUDERS],
-      Planner::steps_to_mm[3 + EXTRUDERS];
+float Planner::max_feedrate_mm_s[XYZEn], // Max speeds in mm per second
+      Planner::axis_steps_per_mm[XYZEn],
+      Planner::steps_to_mm[XYZEn];
 
-unsigned long Planner::max_acceleration_steps_per_s2[3 + EXTRUDERS],
-              Planner::max_acceleration_mm_per_s2[3 + EXTRUDERS]; // Use M201 to override by software
+unsigned long Planner::max_acceleration_steps_per_s2[XYZEn],
+              Planner::max_acceleration_mm_per_s2[XYZEn]; // Use M201 to override by software
 
 millis_t Planner::min_segment_time;
 float Planner::min_feedrate_mm_s,
@@ -106,7 +106,7 @@ long Planner::position[NUM_AXIS] = { 0 };
 float Planner::previous_speed[NUM_AXIS],
       Planner::previous_nominal_speed;
 
-uint8_t Planner::last_extruder;
+uint8_t Planner::last_extruder = 0;
 
 #if ENABLED(DISABLE_INACTIVE_EXTRUDER)
   uint8_t Planner::g_uc_extruder_last_move[EXTRUDERS] = { 0 };
@@ -658,7 +658,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
 
   #if DISABLED(LASERBEAM)
     // Bail if this is a zero-length block
-    if (block->step_event_count <= MIN_SEGMENTS_FOR_MOVE) return;
+    if (block->step_event_count <= MIN_STEPS_PER_SEGMENT) return;
   #endif
 
   block->fan_speed = fanSpeed;
@@ -670,8 +670,8 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
 
   // For a mixing extruder, get steps for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    for (uint8_t i = 0; i < E_STEPPERS; i++)
-      block->mix_event_count[i] = block->steps[E_AXIS] * mixing_factor[i];
+    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+      block->mix_event_count[i] = UNEAR_ZERO(mixing_factor[i]) ? 0 : block->step_event_count / mixing_factor[i];
   #endif
 
   // Compute direction bits for this block 
@@ -910,7 +910,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
   #endif
   delta_mm[E_AXIS] = 0.01 * (de * steps_to_mm[E_AXIS + extruder]) * volumetric_multiplier[extruder] * flow_percentage[extruder];
 
-  if (block->steps[X_AXIS] <= MIN_SEGMENTS_FOR_MOVE && block->steps[Y_AXIS] <= MIN_SEGMENTS_FOR_MOVE && block->steps[Z_AXIS] <= MIN_SEGMENTS_FOR_MOVE) {
+  if (block->steps[X_AXIS] <= MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] <= MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] <= MIN_STEPS_PER_SEGMENT) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
   }
   else {
@@ -1291,17 +1291,17 @@ void Planner::set_e_position_mm(const float& e) {
 
 // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
 void Planner::reset_acceleration_rates() {
-  for (uint8_t i = 0; i < 3 + EXTRUDERS; i++)
+  for (uint8_t i = 0; i < XYZEn; i++)
     max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
 }
 
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
 void Planner::refresh_positioning() {
-  for (uint8_t i = 0; i < 3 + EXTRUDERS; i++)
+  for (uint8_t i = 0; i < XYZEn; i++)
     steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
   #if IS_KINEMATIC
     inverse_kinematics(current_position);
-    set_position_mm(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS]);
+    set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS]);
   #else
     set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
   #endif

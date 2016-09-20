@@ -88,16 +88,16 @@ class Stepper {
       static unsigned char old_OCR0A;
       static volatile unsigned char eISR_Rate;
       #if ENABLED(LIN_ADVANCE)
-        static volatile int e_steps[E_STEPPERS];
+        static volatile long e_steps[DRIVER_EXTRUDERS];
         static int extruder_advance_k = LIN_ADVANCE_K;
         static int final_estep_rate;
-        static int current_estep_rate[E_STEPPERS];  // Actual extruder speed [steps/s]
-        static int current_adv_steps[E_STEPPERS];   // The amount of current added esteps due to advance.
-                                                    // i.e., the current amount of pressure applied
-                                                    // to the spring (=filament).
+        static int current_estep_rate[DRIVER_EXTRUDERS];  // Actual extruder speed [steps/s]
+        static int current_adv_steps[DRIVER_EXTRUDERS];   // The amount of current added esteps due to advance.
+                                                          // i.e., the current amount of pressure applied
+                                                          // to the spring (=filament).
 
       #else
-        static long e_steps[E_STEPPERS];
+        static long e_steps[DRIVER_EXTRUDERS];
         static long advance_rate, advance, final_advance, old_advance;
       #endif
     #endif // ADVANCE or LIN_ADVANCE

@@ -405,8 +405,8 @@
     #if EXTRUDERS > 1
       #error COLOR_MIXING_EXTRUDER supports plus one extruder.
     #endif
-    #if E_STEPPERS < 2
-      #error You must set E_STEPPERS >= 2 for a mixing extruder.
+    #if MIXING_STEPPERS < 2
+      #error You must set MIXING_STEPPERS >= 2 for a mixing extruder.
     #endif
     #if ENABLED(FILAMENT_SENSOR)
       #error COLOR_MIXING_EXTRUDER is incompatible with FILAMENT_SENSOR. Comment out this line to use it anyway.
@@ -587,14 +587,14 @@
     #if (ENABLED(Z_PROBE_FIX_MOUNTED) && (ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_ENDSTOP || ENABLED(Z_PROBE_SLED))) \
          || (ENABLED(Z_PROBE_ALLEN_KEY) && (HAS_Z_SERVO_ENDSTOP || ENABLED(Z_PROBE_SLED))) \
          || (HAS_Z_SERVO_ENDSTOP && ENABLED(Z_PROBE_SLED))
-      #error "Please define only one type of probe: Z Servo, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+      #error "Please define only one type of probe: Z Servo/BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
     #endif
   #else
     /**
      * Require some kind of probe for bed leveling
      */
     #if ENABLED(AUTO_BED_LEVELING_FEATURE)
-      #error "AUTO_BED_LEVELING_FEATURE requires a probe! Define a Z Servo, Z_PROBE_FIX_MOUNTED, Z_PROBE_SLED, or Z_PROBE_ALLEN_KEY."
+      #error "AUTO_BED_LEVELING_FEATURE requires a probe! Define a Z Servo/BLTOUCH, Z_PROBE_FIX_MOUNTED, Z_PROBE_SLED, or Z_PROBE_ALLEN_KEY."
     #endif
   #endif
 
@@ -1144,8 +1144,8 @@
   #if DISABLED(NUM_POSITON_SLOTS)
     #error DEPENDENCY ERROR: Missing setting NUM_POSITON_SLOTS
   #endif
-  #if DISABLED(MIN_SEGMENTS_FOR_MOVE)
-    #error DEPENDENCY ERROR: Missing setting MIN_SEGMENTS_FOR_MOVE
+  #if DISABLED(MIN_STEPS_PER_SEGMENT)
+    #error DEPENDENCY ERROR: Missing setting MIN_STEPS_PER_SEGMENT
   #endif
   #if DISABLED(DEFAULT_MINSEGMENTTIME)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_MINSEGMENTTIME
@@ -1561,7 +1561,7 @@
    * Limited number of servos
    */
   #if NUM_SERVOS > 4
-    #error CONFLICT ERROR: The maximum number of SERVOS in Marlin is 4.
+    #error CONFLICT ERROR: The maximum number of SERVOS in MKduo is 4.
   #endif
   #if ENABLED(ENABLE_SERVOS)
     #if NUM_SERVOS < 1

@@ -24,6 +24,10 @@
 
 #if ENABLED(ULTRA_LCD)
 
+#if ENABLED(BLTOUCH)
+  extern Servo servo[NUM_SERVOS];
+#endif
+
 int preheatHotendTemp1, preheatBedTemp1, preheatFanSpeed1;
 int preheatHotendTemp2, preheatBedTemp2, preheatFanSpeed2;
 int preheatHotendTemp3, preheatBedTemp3, preheatFanSpeed3;
@@ -619,6 +623,11 @@ void kill_screen(const char* lcd_msg) {
      if (!(planner.movesplanned() || IS_SD_PRINTING)) {
        MENU_ITEM(submenu, "Laser Functions", lcd_laser_menu);
      }
+    #endif
+
+    #if ENABLED(BLTOUCH)
+      if (servo[Z_ENDSTOP_SERVO_NR].read() == BLTouchState_Error)
+        MENU_ITEM(gcode, MSG_RESET_BLTOUCH, "M280 S90 P" STRINGIFY(Z_ENDSTOP_SERVO_NR));
     #endif
 
     if (planner.movesplanned() || IS_SD_PRINTING) {

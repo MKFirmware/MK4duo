@@ -564,7 +564,7 @@ void Config_ResetDefault() {
       motor_current[i] = tmp13[i];
   #endif
 
-  for (int8_t i = 0; i < 3 + EXTRUDERS; i++) {
+  for (int8_t i = 0; i < XYZEn; i++) {
     planner.axis_steps_per_mm[i] = tmp1[i];
     planner.max_feedrate_mm_s[i] = tmp2[i];
     planner.max_acceleration_mm_per_s2[i] = tmp3[i];

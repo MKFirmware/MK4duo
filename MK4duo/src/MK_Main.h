@@ -265,7 +265,7 @@ extern uint8_t active_driver;
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  extern float mixing_factor[E_STEPPERS];
+  extern float mixing_factor[MIXING_STEPPERS];
 #endif
 
 void calculate_volumetric_multipliers();

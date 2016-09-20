@@ -61,18 +61,21 @@
   #define MISO_PIN            12
   #define SCK_PIN             10
 #elif defined (__SAM3X8E__)
-  #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 77)
+  #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
     #if (SDSS == 4)
       #define SPI_PIN         87
       #define SPI_CHAN        1
     #elif (SDSS == 10)
       #define SPI_PIN         77
       #define SPI_CHAN        0
-    #elif (SDSS == 52) 
+    #elif (SDSS == 52)
       #define SPI_PIN         86
       #define SPI_CHAN        2
-    #elif (SDSS == 59) 
+    #elif (SDSS == 59)
       #define SPI_PIN         59
+      #define SPI_CHAN        1
+    #elif (SDSS == 60)
+      #define SPI_PIN         60
       #define SPI_CHAN        1
     #else
       #define SPI_PIN         77
