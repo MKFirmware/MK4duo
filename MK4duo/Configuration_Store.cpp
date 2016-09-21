@@ -88,15 +88,15 @@
  *  M666  P               zprobe_zoffset (float)
  *
  * ULTIPANEL:
- *  M145  S0  H           plaPreheatHotendTemp (int)
- *  M145  S0  B           plaPreheatHPBTemp (int)
- *  M145  S0  F           plaPreheatFanSpeed (int)
- *  M145  S1  H           absPreheatHotendTemp (int)
- *  M145  S1  B           absPreheatHPBTemp (int)
- *  M145  S1  F           absPreheatFanSpeed (int)
- *  M145  S2  H           gumPreheatHotendTemp (int)
- *  M145  S2  B           gumPreheatHPBTemp (int)
- *  M145  S2  F           gumPreheatFanSpeed (int)
+ *  M145  S0  H           preheatHotendTemp1 (int)
+ *  M145  S0  B           preheatBedTemp1 (int)
+ *  M145  S0  F           preheatFanSpeed1 (int)
+ *  M145  S1  H           preheatHotendTemp2 (int)
+ *  M145  S1  B           preheatBedTemp2 (int)
+ *  M145  S1  F           preheatFanSpeed2 (int)
+ *  M145  S2  H           preheatHotendTemp3 (int)
+ *  M145  S2  B           preheatBedTemp3 (int)
+ *  M145  S2  F           preheatFanSpeed3 (int)
  *
  * PIDTEMP:
  *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0] (float x4)
@@ -262,20 +262,20 @@ void Config_StoreSettings() {
   EEPROM_WRITE(zprobe_zoffset);
 
   #if DISABLED(ULTIPANEL)
-    int plaPreheatHotendTemp = PLA_PREHEAT_HOTEND_TEMP, plaPreheatHPBTemp = PLA_PREHEAT_HPB_TEMP, plaPreheatFanSpeed = PLA_PREHEAT_FAN_SPEED,
-        absPreheatHotendTemp = ABS_PREHEAT_HOTEND_TEMP, absPreheatHPBTemp = ABS_PREHEAT_HPB_TEMP, absPreheatFanSpeed = ABS_PREHEAT_FAN_SPEED,
-        gumPreheatHotendTemp = GUM_PREHEAT_HOTEND_TEMP, gumPreheatHPBTemp = GUM_PREHEAT_HPB_TEMP, gumPreheatFanSpeed = GUM_PREHEAT_FAN_SPEED;
+    int preheatHotendTemp1 = PLA_PREHEAT_HOTEND_TEMP, preheatBedTemp1 = PLA_PREHEAT_HPB_TEMP, preheatFanSpeed1 = PLA_PREHEAT_FAN_SPEED,
+        preheatHotendTemp2 = ABS_PREHEAT_HOTEND_TEMP, preheatBedTemp2 = ABS_PREHEAT_HPB_TEMP, preheatFanSpeed2 = ABS_PREHEAT_FAN_SPEED,
+        preheatHotendTemp3 = GUM_PREHEAT_HOTEND_TEMP, preheatBedTemp3 = GUM_PREHEAT_HPB_TEMP, preheatFanSpeed3 = GUM_PREHEAT_FAN_SPEED;
   #endif
 
-  EEPROM_WRITE(plaPreheatHotendTemp);
-  EEPROM_WRITE(plaPreheatHPBTemp);
-  EEPROM_WRITE(plaPreheatFanSpeed);
-  EEPROM_WRITE(absPreheatHotendTemp);
-  EEPROM_WRITE(absPreheatHPBTemp);
-  EEPROM_WRITE(absPreheatFanSpeed);
-  EEPROM_WRITE(gumPreheatHotendTemp);
-  EEPROM_WRITE(gumPreheatHPBTemp);
-  EEPROM_WRITE(gumPreheatFanSpeed);
+  EEPROM_WRITE(preheatHotendTemp1);
+  EEPROM_WRITE(preheatBedTemp1);
+  EEPROM_WRITE(preheatFanSpeed1);
+  EEPROM_WRITE(preheatHotendTemp2);
+  EEPROM_WRITE(preheatBedTemp2);
+  EEPROM_WRITE(preheatFanSpeed2);
+  EEPROM_WRITE(preheatHotendTemp3);
+  EEPROM_WRITE(preheatBedTemp3);
+  EEPROM_WRITE(preheatFanSpeed3);
 
   #if ENABLED(PIDTEMP)
     for (int h = 0; h < HOTENDS; h++) {
@@ -435,20 +435,20 @@ void Config_RetrieveSettings() {
     EEPROM_READ(zprobe_zoffset);
 
     #if DISABLED(ULTIPANEL)
-      int plaPreheatHotendTemp, plaPreheatHPBTemp, plaPreheatFanSpeed,
-          absPreheatHotendTemp, absPreheatHPBTemp, absPreheatFanSpeed,
-          gumPreheatHotendTemp, gumPreheatHPBTemp, gumPreheatFanSpeed;
+      int preheatHotendTemp1, preheatBedTemp1, preheatFanSpeed1,
+          preheatHotendTemp2, preheatBedTemp2, preheatFanSpeed2,
+          preheatHotendTemp3, preheatBedTemp3, preheatFanSpeed3;
     #endif
 
-    EEPROM_READ(plaPreheatHotendTemp);
-    EEPROM_READ(plaPreheatHPBTemp);
-    EEPROM_READ(plaPreheatFanSpeed);
-    EEPROM_READ(absPreheatHotendTemp);
-    EEPROM_READ(absPreheatHPBTemp);
-    EEPROM_READ(absPreheatFanSpeed);
-    EEPROM_READ(gumPreheatHotendTemp);
-    EEPROM_READ(gumPreheatHPBTemp);
-    EEPROM_READ(gumPreheatFanSpeed);
+    EEPROM_READ(preheatHotendTemp1);
+    EEPROM_READ(preheatBedTemp1);
+    EEPROM_READ(preheatFanSpeed1);
+    EEPROM_READ(preheatHotendTemp2);
+    EEPROM_READ(preheatBedTemp2);
+    EEPROM_READ(preheatFanSpeed2);
+    EEPROM_READ(preheatHotendTemp3);
+    EEPROM_READ(preheatBedTemp3);
+    EEPROM_READ(preheatFanSpeed3);
 
     #if ENABLED(PIDTEMP)
       for (int8_t h = 0; h < HOTENDS; h++) {
