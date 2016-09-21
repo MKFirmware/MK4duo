@@ -118,9 +118,9 @@
 #define MSG_M119_REPORT                      "Reporting endstop status"
 #define MSG_ENDSTOP_HIT                      "TRIGGERED"
 #define MSG_ENDSTOP_OPEN                     "NOT TRIGGERED"
-#define MSG_SOFT_ENDSTOPS                    "Soft endstops"
-#define MSG_SOFT_MIN                         "Min"
-#define MSG_SOFT_MAX                         "Max"
+#define MSG_SOFT_ENDSTOPS                    "Soft endstops: "
+#define MSG_SOFT_MIN                         "  Min:"
+#define MSG_SOFT_MAX                         "  Max:"
 #define MSG_HOTEND_OFFSET                    "Hotend offsets:"
 #define MSG_FILRUNOUT_PIN                    "filament_runout_pin: "
 

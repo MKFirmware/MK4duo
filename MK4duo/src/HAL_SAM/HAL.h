@@ -60,7 +60,9 @@
 
 // do not use program space memory with Due
 #define PROGMEM
-#define PGM_P const char*
+#ifndef PGM_P
+  #define PGM_P const char*
+#endif
 #undef PSTR
 #define PSTR(s) s
 #undef pgm_read_byte_near

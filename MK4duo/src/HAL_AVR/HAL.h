@@ -53,24 +53,7 @@
 #ifndef HAL_H
 #define HAL_H
 
-#if CPU_ARCH == ARCH_AVR
-  #include <avr/io.h>
-#else
-  #define PROGMEM
-  #define PGM_P const char *
-  #define PSTR(s) s
-  #define pgm_read_byte_near(x) (*(uint8_t*)x)
-  #define pgm_read_byte(x) (*(uint8_t*)x)
-#endif
-
-#if CPU_ARCH == ARCH_AVR
-  #include "fastio.h"
-#else
-  #define	READ(IO)  digitalRead(IO)
-  #define	WRITE(IO, v)  digitalWrite(IO, v)
-  #define	SET_INPUT(IO)  pinMode(IO, INPUT)
-  #define	SET_OUTPUT(IO)  pinMode(IO, OUTPUT)
-#endif
+#include "fastio.h"
 
 // Arduino < 1.0.0 does not define this, so we need to do it ourselves
 #ifndef analogInputToDigitalPin
@@ -82,8 +65,13 @@
   #define CRITICAL_SECTION_END    SREG = _sreg;
 #endif
 
-#include <inttypes.h>
-#include "Print.h"
+//#define EXTERNALSERIAL  // Force using arduino serial
+#ifndef EXTERNALSERIAL
+  #include "HardwareSerial.h"
+  #define MKSERIAL MKSerial
+#else
+  #define MKSERIAL Serial
+#endif
 
 #define PACK
 
@@ -177,101 +165,6 @@
 // Some useful constants
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()  SBI(TIMSK1, OCIE1A)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT() CBI(TIMSK1, OCIE1A)
-
-
-//#define EXTERNALSERIAL  // Force using arduino serial
-#ifndef EXTERNALSERIAL
-  /**
-   * HardwareSerial.h - Hardware serial library for Wiring
-   * Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
-   *
-   * This library is free software; you can redistribute it and/or
-   * modify it under the terms of the GNU Lesser General Public
-   * License as published by the Free Software Foundation; either
-   * version 2.1 of the License, or (at your option) any later version.
-   *
-   * This library is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   * Lesser General Public License for more details.
-   *
-   * You should have received a copy of the GNU Lesser General Public
-   * License along with this library; if not, write to the Free Software
-   * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-   *
-   * Modified 28 September 2010 by Mark Sproul
-   * Modified  3 March 2015 by MagoKimbra
-   */
-
-  #define SERIAL_BUFFER_SIZE 128
-  #define SERIAL_BUFFER_MASK 127
-  #undef SERIAL_TX_BUFFER_SIZE
-  #undef SERIAL_TX_BUFFER_MASK
-
-  #ifdef BIG_OUTPUT_BUFFER
-    #define SERIAL_TX_BUFFER_SIZE 128
-    #define SERIAL_TX_BUFFER_MASK 127
-  #else
-    #define SERIAL_TX_BUFFER_SIZE 32
-    #define SERIAL_TX_BUFFER_MASK 31
-  #endif
-
-  struct ring_buffer_r {
-    uint8_t buffer[SERIAL_BUFFER_SIZE];
-    volatile uint8_t head;
-    volatile uint8_t tail;
-  };
-  struct ring_buffer_t {
-    uint8_t buffer[SERIAL_TX_BUFFER_SIZE];
-    volatile uint8_t head;
-    volatile uint8_t tail;
-  };
-
-  class MKHardwareSerial : public Print {
-    public:
-      ring_buffer_r *_rx_buffer;
-      ring_buffer_t *_tx_buffer;
-      volatile uint8_t *_ubrrh;
-      volatile uint8_t *_ubrrl;
-      volatile uint8_t *_ucsra;
-      volatile uint8_t *_ucsrb;
-      volatile uint8_t *_udr;
-      uint8_t _rxen;
-      uint8_t _txen;
-      uint8_t _rxcie;
-      uint8_t _udrie;
-      uint8_t _u2x;
-    public:
-      MKHardwareSerial(ring_buffer_r *rx_buffer, ring_buffer_t *tx_buffer,
-                       volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
-                       volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
-                       volatile uint8_t *udr,
-                       uint8_t rxen, uint8_t txen, uint8_t rxcie, uint8_t udrie, uint8_t u2x);
-      void begin(unsigned long);
-      void end();
-      virtual uint8_t available(void);
-      virtual int peek(void);
-      virtual int read(void);
-      virtual void flush(void);
-
-      #ifdef COMPAT_PRE1
-        virtual void write(uint8_t);
-      #else
-        virtual size_t write(uint8_t);
-      #endif
-
-      using Print::write; // pull in write(str) and write(buf, size) from Print
-      operator bool();
-      int outputUnused(void); // Used for output in interrupts
-  };
-
-  extern MKHardwareSerial MKSerial;
-
-  #define MKSERIAL MKSerial
-  #define WAIT_OUT_EMPTY while(tx_buffer.head != tx_buffer.tail) {}
-#else
-  #define MKSERIAL Serial
-#endif
 
 /**
  * Types
@@ -407,9 +300,6 @@ class HAL {
       return millis();
     }
 
-    static inline char readFlashByte(PGM_P ptr) {
-      return pgm_read_byte(ptr);
-    }
     static inline void serialSetBaudrate(long baud) {
       MKSERIAL.begin(baud);
     }

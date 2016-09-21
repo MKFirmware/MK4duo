@@ -170,7 +170,7 @@
 #define MSG_CNG_SDCARD                      "Change " MSG_SD
 #define MSG_ZPROBE_OUT                      "Z probe out. bed"
 #define MSG_BLTOUCH_SELFTEST                "BLTouch Self-Test"
-#define MSG_RESET_BLTOUCH                   "Reset BLTouch"
+#define MSG_BLTOUCH_RESET                   "Reset BLTouch"
 #define MSG_HOME                            "Home"
 #define MSG_FIRST                           "first"
 #define MSG_ZPROBE_ZOFFSET                  "ZProbe ZOffset"
