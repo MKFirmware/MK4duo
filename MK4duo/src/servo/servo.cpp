@@ -416,8 +416,8 @@
   void Servo::move(int value) {
     if (this->attach(0) >= 0) {
       this->write(value);
+      HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
       #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
-        HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
         this->detach();
       #endif
     }
