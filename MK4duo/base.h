@@ -53,11 +53,12 @@
 
 #ifdef __SAM3X8E__
   #include "src/HAL_SAM/HAL.h"
+  #include "src/HAL_SAM/communication.h"
 #else
   #include "src/HAL_AVR/HAL.h"
+  #include "src/HAL_AVR/communication.h"
 #endif
 
-#include "src/communication/communication.h"
 #include "src/enum.h"
 
 #if ENABLED(AUTO_BED_LEVELING_FEATURE)

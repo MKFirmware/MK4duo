@@ -22,6 +22,8 @@
 
 #include "../../base.h"
 
+#ifdef __SAM3X8E__
+
 FSTRINGVALUE(Com::tStart,"start")
 FSTRINGVALUE(Com::tOk,"ok")
 FSTRINGVALUE(Com::tOkSpace,"ok ")
@@ -122,3 +124,5 @@ void Com::print(long value) {
   }
   printNumber(value);
 }
+
+#endif // __SAM3X8E__

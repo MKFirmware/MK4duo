@@ -744,7 +744,8 @@ void setup_powerhold() {
 #endif
 
 void gcode_line_error(const char* err, bool doFlush = true) {
-  SERIAL_ST(ER, err);
+  SERIAL_S(ER);
+  SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
   //Serial.println(gcode_N);
   if (doFlush) FlushSerialRequestResend();
@@ -3525,7 +3526,8 @@ inline void gcode_G28() {
 #elif ENABLED(AUTO_BED_LEVELING_FEATURE)
 
   void out_of_range_error(const char* p_edge) {
-    SERIAL_SMV(ER, "?Probe ", p_edge);
+    SERIAL_M("?Probe ");
+    SERIAL_PS(p_edge);
     SERIAL_EM(" position out of range.");
   }
 
@@ -5508,16 +5510,17 @@ inline void gcode_M121() { endstops.enable_globally(false); }
 inline void gcode_M122() {
   #if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
     if (code_seen('S')) soft_endstops_enabled = code_value_bool();
-    SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS ":");
-    SERIAL_T(soft_endstops_enabled ? MSG_ON : MSG_OFF);
+    SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
+    SERIAL_PS(soft_endstops_enabled ? PSTR(MSG_ON) : PSTR(MSG_OFF));
   #else
-    SERIAL_M(MSG_SOFT_ENDSTOPS ":" MSG_OFF);
+    SERIAL_M(MSG_SOFT_ENDSTOPS);
+    SERIAL_M(MSG_OFF);
   #endif
-  SERIAL_M("  " MSG_SOFT_MIN ": ");
+  SERIAL_M(MSG_SOFT_MIN);
   SERIAL_MV(    MSG_X, soft_endstop_min[X_AXIS]);
   SERIAL_MV(" " MSG_Y, soft_endstop_min[Y_AXIS]);
   SERIAL_MV(" " MSG_Z, soft_endstop_min[Z_AXIS]);
-  SERIAL_M("  " MSG_SOFT_MAX ": ");
+  SERIAL_M(MSG_SOFT_MAX);
   SERIAL_MV(    MSG_X, soft_endstop_max[X_AXIS]);
   SERIAL_MV(" " MSG_Y, soft_endstop_max[Y_AXIS]);
   SERIAL_MV(" " MSG_Z, soft_endstop_max[Z_AXIS]);
@@ -8834,12 +8837,11 @@ void ok_to_send() {
    */
 
   // Macro to obtain the Z position of an individual tower
-  #define DELTA_Z(T) raw[Z_AXIS] + _SQRT(    \
-    delta_diagonal_rod_2_tower_##T - HYPOT2( \
-        delta_tower##T##_x - raw[X_AXIS],    \
-        delta_tower##T##_y - raw[Y_AXIS]     \
-      )                                      \
-    )
+  #define DELTA_Z(T) raw[Z_AXIS] + _SQRT(     \
+        delta_diagonal_rod_2_tower_##T        \
+        -sq(delta_tower##T##_x - raw[X_AXIS]) \
+        -sq(delta_tower##T##_y - raw[Y_AXIS]) \
+      )
 
   #define DELTA_LOGICAL_IK() do {      \
     const float raw[XYZ] = {           \
@@ -9647,13 +9649,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     NOLESS(segments, 1);
 
     // Each segment produces this much of the move
-    float inv_segments = 1.0 / segments,
-          segment_distance[XYZE] = {
-            difference[X_AXIS] * inv_segments,
-            difference[Y_AXIS] * inv_segments,
-            difference[Z_AXIS] * inv_segments,
-            difference[E_AXIS] * inv_segments
-          };
+    float inv_segments = 1.0 / segments;
 
     if (DEBUGGING(ALL)) {
       SERIAL_SMV(DEB, "mm=", cartesian_mm);
@@ -9661,12 +9657,10 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       SERIAL_EMV(" segments=", segments);
     }
 
-    // Set the target to the current position to start
-    LOOP_XYZE(i) logical[i] = current_position[i];
-
     // Send all the segments to the planner
     for (uint16_t s = 1; s <= segments; s++) {
-      LOOP_XYZE(i) logical[i] += segment_distance[i];
+      float fraction = float(s) * inv_segments;
+      LOOP_XYZE(i) logical[i] = current_position[i] + difference[i] * fraction;
       inverse_kinematics(logical);
 
       /*
