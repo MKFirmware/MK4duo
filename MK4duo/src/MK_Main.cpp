@@ -78,7 +78,7 @@ static uint8_t  cmd_queue_index_r = 0,
  * Feed rates are often configured with mm/m
  * but the planner and stepper like mm/s units.
  */
-const float homing_feedrate_mm_s[] = {
+float constexpr homing_feedrate_mm_s[] = {
   #if MECH(DELTA)
     MMM_TO_MMS(HOMING_FEEDRATE_XYZ), MMM_TO_MMS(HOMING_FEEDRATE_XYZ), MMM_TO_MMS(HOMING_FEEDRATE_XYZ)
   #else
@@ -1241,6 +1241,10 @@ static void set_axis_is_at_home(AxisEnum axis) {
   #endif
 
   #if MECH(SCARA)
+
+    /**
+     * Morgan SCARA homes XY at the same time
+     */
     if (axis == X_AXIS || axis == Y_AXIS) {
 
       float homeposition[XYZ];
@@ -1276,29 +1280,30 @@ static void set_axis_is_at_home(AxisEnum axis) {
     #else
       current_position[axis] = LOGICAL_POSITION(base_home_pos(axis), axis);
     #endif
+  }
 
+  /**
+   * Z Probe Z Homing? Account for the probe's Z offset.
+   */
+  #if HAS(BED_PROBE) && (Z_HOME_DIR < 0)
     if (axis == Z_AXIS) {
-      #if HAS(BED_PROBE) && (Z_HOME_DIR < 0)
-        #if HOMING_Z_WITH_PROBE
-          current_position[Z_AXIS] -= zprobe_zoffset;
-          if (DEBUGGING(INFO)) {
-            SERIAL_LM(INFO, "*** Z HOMED WITH PROBE ***");
-            SERIAL_LMV(INFO, "zprobe_zoffset = ", zprobe_zoffset);
-          }
-        #endif
+      #if HOMING_Z_WITH_PROBE
+        current_position[Z_AXIS] -= zprobe_zoffset;
+        if (DEBUGGING(INFO)) {
+          SERIAL_LM(INFO, "*** Z HOMED WITH PROBE ***");
+          SERIAL_LMV(INFO, "zprobe_zoffset = ", zprobe_zoffset);
+        }
+      #else
         if (DEBUGGING(INFO))
           SERIAL_LM(INFO, "*** Z HOMED TO ENDSTOP ***");
       #endif
     }
-
-    if (DEBUGGING(INFO)) {
-      SERIAL_SMV(INFO, "home_offset[", axis_codes[axis]);
-      SERIAL_EMV("] = ", home_offset[axis]);
-      DEBUG_INFO_POS("", current_position);
-    }
-  }
+  #endif
 
   if (DEBUGGING(INFO)) {
+    SERIAL_SMV(INFO, "home_offset[", axis_codes[axis]);
+    SERIAL_EMV("] = ", home_offset[axis]);
+    DEBUG_INFO_POS("", current_position);
     SERIAL_SMV(INFO, "<<< set_axis_is_at_home(", axis_codes[axis]);
     SERIAL_EM(")");
   }
@@ -1308,7 +1313,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
  * Some planner shorthand inline functions
  */
 inline float get_homing_bump_feedrate(AxisEnum axis) {
-  const int homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+  int constexpr homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
   int hbd = homing_bump_divisor[axis];
   if (hbd < 1) {
     hbd = 10;
@@ -1346,12 +1351,12 @@ inline void set_destination_to_current() { memcpy(destination, current_position,
   /**
    * Calculate delta, start a line, and set current_position to destination
    */
-  void prepare_uninterpolated_move_to_destination() {
+  void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
     if (DEBUGGING(INFO)) DEBUG_INFO_POS("prepare_uninterpolated_move_to_destination", destination);
 
     refresh_cmd_timeout();
     inverse_kinematics(destination);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], MMS_SCALED(feedrate_mm_s), active_extruder, active_driver);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder, active_driver);
     set_current_to_destination();
   }
 #endif
@@ -1370,7 +1375,7 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 
   #if MECH(DELTA)
 
-    feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+    feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
     set_destination_to_current();          // sync destination at the start
 
@@ -1418,41 +1423,37 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 
     // If Z needs to raise, do it before moving XY
     if (current_position[Z_AXIS] < z) {
-      feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
       destination[Z_AXIS] = z;
-      prepare_uninterpolated_move_to_destination();
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
-
-    feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
     destination[X_AXIS] = x;
     destination[Y_AXIS] = y;
-    prepare_uninterpolated_move_to_destination();
+    prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S);
 
     // If Z needs to lower, do it after moving XY
     if (current_position[Z_AXIS] > z) {
-      feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
       destination[Z_AXIS] = z;
-      prepare_uninterpolated_move_to_destination();
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
   #else
 
     // If Z needs to raise, do it before moving XY
     if (current_position[Z_AXIS] < z) {
-      feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
+      feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
       current_position[Z_AXIS] = z;
       line_to_current_position();
     }
 
-    feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+    feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
     current_position[X_AXIS] = x;
     current_position[Y_AXIS] = y;
     line_to_current_position();
 
     // If Z needs to lower, do it after moving XY
     if (current_position[Z_AXIS] > z) {
-      feedrate_mm_s = (fr_mm_s != 0.0) ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
+      feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
       current_position[Z_AXIS] = z;
       line_to_current_position();
     }
@@ -1533,7 +1534,10 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
       SERIAL_SMV(INFO, "do_probe_raise(", z_raise);
       SERIAL_EM(")");
     }
+
     float z_dest = LOGICAL_Z_POSITION(z_raise);
+    if (zprobe_zoffset < 0) z_dest -= zprobe_zoffset;
+
     if (z_dest > current_position[Z_AXIS])
       do_blocking_move_to_z(z_dest);
   }
@@ -1761,22 +1765,20 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
       SERIAL_MV(", ", y - (Y_PROBE_OFFSET_FROM_NOZZLE));
       SERIAL_EM(")");
     }
+
     feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+    // Move the probe to the given XY
     do_blocking_move_to_xy(x - (X_PROBE_OFFSET_FROM_NOZZLE), y - (Y_PROBE_OFFSET_FROM_NOZZLE));
 
-    if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
     if (DEPLOY_PROBE()) return NAN;
 
     float measured_z = run_z_probe();
 
-    if (stow) {
-      if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
-      if (STOW_PROBE()) return NAN;
-    }
-    else {
-      if (DEBUGGING(INFO)) SERIAL_LM(INFO, "> do_probe_raise");
+    if (!stow)
       do_probe_raise(Z_PROBE_TRAVEL_HEIGHT);
-    }
+    else
+      if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
       SERIAL_M(MSG_BED_LEVELLING_BED);
@@ -1814,7 +1816,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
 #if ENABLED(AUTO_BED_LEVELING_NONLINEAR)
 
   /**
-   * All DELTA leveling in the Marlin uses NONLINEAR_BED_LEVELING
+   * Extrapolate a single point from its neighbors
    */
   static void extrapolate_one_point(uint8_t x, uint8_t y, int8_t xdir, int8_t ydir) {
     if (bed_level_grid[x][y] != 0.0) return;  // Don't overwrite good values.
@@ -1866,28 +1868,45 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
 static void do_homing_move(AxisEnum axis, float where, float fr_mm_s = 0.0) {
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    if (axis == Z_AXIS) set_bltouch_deployed(true);
+    bool deploy_bltouch = (axis == Z_AXIS && where < 0);
+    if (deploy_bltouch) set_bltouch_deployed(true);
   #endif
 
   current_position[axis] = 0;
   sync_plan_position();
   current_position[axis] = where;
-  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], (fr_mm_s != 0.0) ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
   stepper.synchronize();
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    if (axis == Z_AXIS) set_bltouch_deployed(false);
+    if (deploy_bltouch) set_bltouch_deployed(false);
   #endif
 
   endstops.hit_on_purpose();
 }
 
+/**
+ * Home an individual "raw axis" to its endstop.
+ * This applies to XYZ on Cartesian and Core robots, and
+ * to the individual ABC steppers on DELTA and SCARA.
+ *
+ * At the end of the procedure the axis is marked as
+ * homed and the current position of that axis is updated.
+ * Kinematic robots should wait till all axes are homed
+ * before updating the current position.
+ */
 #define HOMEAXIS(LETTER) homeaxis(LETTER##_AXIS)
-static void homeaxis(AxisEnum axis) {
-  #define HOMEAXIS_DO(LETTER) \
-    ((LETTER##_MIN_PIN > -1 && LETTER##_HOME_DIR==-1) || (LETTER##_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
 
-  if (!(axis == X_AXIS ? HOMEAXIS_DO(X) : axis == Y_AXIS ? HOMEAXIS_DO(Y) : axis == Z_AXIS ? HOMEAXIS_DO(Z) : false)) return;
+static void homeaxis(AxisEnum axis) {
+
+  #if MECH(SCARA)
+    // Only Z homing (with probe) is permitted
+    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+  #else
+    #define CAN_HOME(A) \
+      (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
+    if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
+  #endif
 
   if (DEBUGGING(INFO)) {
     SERIAL_SMV(INFO, ">>> homeaxis(", axis_codes[axis]);
@@ -1905,11 +1924,8 @@ static void homeaxis(AxisEnum axis) {
   #endif
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
-  #if HAS(BED_PROBE) 
-    if (axis == Z_AXIS && axis_home_dir < 0) {
-      if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
-      if (DEPLOY_PROBE()) return;
-    }
+  #if HOMING_Z_WITH_PROBE
+    if (axis == Z_AXIS && DEPLOY_PROBE()) return;
   #endif
 
   // Set a flag for Z motor locking
@@ -1917,22 +1933,24 @@ static void homeaxis(AxisEnum axis) {
     if (axis == Z_AXIS) stepper.set_homing_flag(true);
   #endif
 
-  // Move towards the endstop until an endstop is triggered
+  // When homing Z with probe respect probe clearance
+  const float bump = axis_home_dir * (
+    #if HOMING_Z_WITH_PROBE
+      (axis == Z_AXIS) ? max(Z_PROBE_TRAVEL_HEIGHT, home_bump_mm(Z_AXIS)) :
+    #endif
+    home_bump_mm(axis)
+  );
+
+  // 1. Fast move towards endstop until triggered
+  // 2. Move away from the endstop by the axis HOME_BUMP_MM
+  // 3. Slow move towards endstop until triggered
   #if MECH(DELTA)
     do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
   #else
     do_homing_move(axis, 1.5 * max_length(axis) * axis_home_dir);
   #endif
-
-  if (DEBUGGING(INFO)) SERIAL_LMV(INFO, "> 1st Home ", current_position[axis]);
-
-  // Move away from the endstop by the axis HOME_BUMP_MM
-  do_homing_move(axis, -home_bump_mm(axis) * axis_home_dir);
-
-  // Move slowly towards the endstop until triggered
-  do_homing_move(axis, 2 * home_bump_mm(axis) * axis_home_dir, get_homing_bump_feedrate(axis));
-
-  if (DEBUGGING(INFO)) SERIAL_LMV(INFO, "> 2nd Home ", current_position[axis]);
+  do_homing_move(axis, -bump);
+  do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
   #if ENABLED(Z_DUAL_ENDSTOPS)
     if (axis == Z_AXIS) {
@@ -1955,10 +1973,16 @@ static void homeaxis(AxisEnum axis) {
     } // Z_AXIS
   #endif
 
-  // Delta has already moved all three towers up in G28
-  // so here it re-homes each tower in turn.
-  // Delta homing treats the axes as normal linear axes.
-  #if MECH(DELTA)
+  #if MECH(SCARA)
+
+    set_axis_is_at_home(axis);
+    SYNC_PLAN_POSITION_KINEMATIC();
+
+  #elif MECH(DELTA)
+    // Delta has already moved all three towers up in G28
+    // so here it re-homes each tower in turn.
+    // Delta homing treats the axes as normal linear axes.
+
     // retrace by the amount specified in endstop_adj
     if (endstop_adj[axis] * Z_HOME_DIR < 0) {
       if (DEBUGGING(INFO)) {
@@ -1970,7 +1994,8 @@ static void homeaxis(AxisEnum axis) {
 
   #else
 
-    // Set the axis position to its home position (plus home offsets)
+    // For cartesian/core machines,
+    // set the axis to its home position
     set_axis_is_at_home(axis);
     sync_plan_position();
 
@@ -1980,12 +2005,9 @@ static void homeaxis(AxisEnum axis) {
 
   #endif
 
-  // Put away the Z probe with a function
-  #if HAS(BED_PROBE)
-    if (axis == Z_AXIS && axis_home_dir < 0) {
-      if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
-      if (STOW_PROBE()) return;
-    }
+  // Put away the Z probe
+  #if HOMING_Z_WITH_PROBE
+    if (axis == Z_AXIS && STOW_PROBE()) return;
   #endif
 
   #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
@@ -2621,28 +2643,36 @@ void unknown_command_error() {
 
 #endif //HOST_KEEPALIVE_FEATURE
 
-bool position_is_reachable(float target[XYZ]) {
+bool position_is_reachable(float target[XYZ]
+  #if HAS(BED_PROBE)
+    , bool by_probe=false
+  #endif
+) {
   float dx = RAW_X_POSITION(target[X_AXIS]),
         dy = RAW_Y_POSITION(target[Y_AXIS]),
         dz = RAW_Z_POSITION(target[Z_AXIS]);
 
-  bool good;
+  #if HAS(BED_PROBE)
+    if (by_probe) {
+      dx -= X_PROBE_OFFSET_FROM_NOZZLE;
+      dy -= Y_PROBE_OFFSET_FROM_NOZZLE;
+    }
+  #endif
+
   #if MECH(SCARA)
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y);
-      good = (R2 >= sq(float(MIDDLE_DEAD_ZONE_R))) && (R2 <= sq(L1 + L2));
+      return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
     #else
-      good = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y) <= sq(L1 + L2);
+      return HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    good = HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
+    return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
   #else
-    good = true;
+    return dx >= X_MIN_POS - 0.0001 && dx <= X_MAX_POS + 0.0001
+        && dy >= Y_MIN_POS - 0.0001 && dy <= Y_MAX_POS + 0.0001
+        && dz >= Z_MIN_POS - 0.0001 && dz <= Z_MAX_POS + 0.0001;
   #endif
-
-  return good && dx >= X_MIN_POS - 0.0001 && dx <= X_MAX_POS + 0.0001
-              && dy >= Y_MIN_POS - 0.0001 && dy <= Y_MAX_POS + 0.0001
-              && dz >= Z_MIN_POS - 0.0001 && dz <= Z_MAX_POS + 0.0001;
 }
 
 /**************************************************
@@ -3027,12 +3057,6 @@ void log_machine_info() {
 
     if (DEBUGGING(INFO)) SERIAL_LM(INFO, "> Z_SAFE_HOMING >>>");
 
-    /**
-     * At this point we already have Z at MIN_Z_HEIGHT_FOR_HOMING height
-     * No need to move Z any more as this height should already be safe
-     * enough to reach Z_SAFE_HOMING XY positions.
-     * Just make sure the planner is in sync.
-     */
     SYNC_PLAN_POSITION_KINEMATIC();
 
     /**
@@ -3049,7 +3073,13 @@ void log_machine_info() {
 
     if (DEBUGGING(INFO)) DEBUG_INFO_POS("Z_SAFE_HOMING", destination);
 
-    if (position_is_reachable(destination)) {
+    if (position_is_reachable(
+          destination
+          #if HAS(BED_PROBE)
+            , true
+          #endif
+        )
+    ) {
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
       HOMEAXIS(Z);
     }
@@ -3711,21 +3741,23 @@ inline void gcode_G28() {
          * so Vx = -a Vy = -b Vz = 1 (we want the vector facing towards positive Z
          */
 
-        int abl2 = sq(abl_grid_points_y);
+        int abl2 = abl_grid_points_x * abl_grid_points_y,
+            indexIntoAB[abl_grid_points_x][abl_grid_points_y],
+            probePointCounter = -1;
 
-        double eqnAMatrix[abl2 * 3], // "A" matrix of the linear system of equations
-               eqnBVector[abl2],     // "B" vector of Z points
-               mean = 0.0;
+        float eqnAMatrix[abl2 * 3], // "A" matrix of the linear system of equations
+              eqnBVector[abl2],     // "B" vector of Z points
+              mean = 0.0;
         int indexIntoAB[abl_grid_points_x][abl_grid_points_y];
 
       #endif // AUTO_BED_LEVELING_LINEAR_GRID
 
-      int probePointCounter = 0;
       bool zig = abl_grid_points_y & 1; // always end at [RIGHT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION]
 
       for (uint8_t yCount = 0; yCount < abl_grid_points_y; yCount++) {
         float yBase = front_probe_bed_position + yGridSpacing * yCount;
         yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
+
         int8_t xStart, xStop, xInc;
 
         if (zig) {
@@ -3745,10 +3777,14 @@ inline void gcode_G28() {
           float xBase = left_probe_bed_position + xGridSpacing * xCount;
           xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
 
+          #if ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
+            indexIntoAB[xCount][yCount] = ++probePointCounter;
+          #endif
+
           #if MECH(DELTA)
             // Avoid probing outside the round or hexagonal area of a delta printer
-            float pos[XYZ] = { xProbe + X_PROBE_OFFSET_FROM_NOZZLE, yProbe + Y_PROBE_OFFSET_FROM_NOZZLE, 0 };
-            if (!position_is_reachable(pos)) continue;
+            float pos[XYZ] = { xProbe, yProbe, 0 };
+            if (!position_is_reachable(pos, true)) continue;
           #endif
 
           measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
@@ -3760,7 +3796,6 @@ inline void gcode_G28() {
             eqnAMatrix[probePointCounter + 0 * abl2] = xProbe;
             eqnAMatrix[probePointCounter + 1 * abl2] = yProbe;
             eqnAMatrix[probePointCounter + 2 * abl2] = 1;
-            indexIntoAB[xCount][yCount] = probePointCounter;
 
           #elif ENABLED(AUTO_BED_LEVELING_NONLINEAR)
 
@@ -3768,13 +3803,12 @@ inline void gcode_G28() {
 
           #endif
 
-          probePointCounter++;
-
           idle();
+
         } // xProbe
       } // yProbe
 
-    #else // !AUTO_BED_LEVELING_GRID
+    #elif ENABLED(AUTO_BED_LEVELING_3POINT)
 
       if (DEBUGGING(INFO)) SERIAL_LM(INFO, "3-point Leveling");
 
@@ -3785,12 +3819,12 @@ inline void gcode_G28() {
         vector_3(ABL_PROBE_PT_3_X, ABL_PROBE_PT_3_Y, 0)
       };
 
-      for (uint8_t i = 0; i < 3; ++i)
-        points[i].z = probe_pt(
-          LOGICAL_X_POSITION(points[i].x),
-          LOGICAL_Y_POSITION(points[i].y),
-          stow_probe_after_each, verbose_level
-        );
+      for (uint8_t i = 0; i < 3; ++i) {
+        // Retain the last probe position
+        xProbe = LOGICAL_X_POSITION(points[i].x);
+        yProbe = LOGICAL_Y_POSITION(points[i].y);
+        measured_z = points[i].z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
+      }
 
       if (!dryrun) {
         vector_3 planeNormal = vector_3::cross(points[0] - points[1], points[2] - points[1]).get_normal();
@@ -3823,7 +3857,7 @@ inline void gcode_G28() {
       // For LINEAR leveling calculate matrix, print reports, correct the position
 
       // solve lsq problem
-      double plane_equation_coefficients[3];
+      float plane_equation_coefficients[3];
       qr_solve(plane_equation_coefficients, abl2, 3, eqnAMatrix, eqnBVector);
 
       mean /= abl2;
@@ -4724,7 +4758,7 @@ inline void gcode_M42() {
       }
     #else
       float pos[XYZ] = { X_probe_location, Y_probe_location, 0 };
-      if (!position_is_reachable(pos)) {
+      if (!position_is_reachable(pos, true)) {
         SERIAL_LM(ER, "? (X,Y) location outside of probeable radius.");
         return;
       }
