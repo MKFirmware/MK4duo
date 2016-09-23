@@ -1765,22 +1765,20 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
       SERIAL_MV(", ", y - (Y_PROBE_OFFSET_FROM_NOZZLE));
       SERIAL_EM(")");
     }
+
     feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+    // Move the probe to the given XY
     do_blocking_move_to_xy(x - (X_PROBE_OFFSET_FROM_NOZZLE), y - (Y_PROBE_OFFSET_FROM_NOZZLE));
 
-    if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
     if (DEPLOY_PROBE()) return NAN;
 
     float measured_z = run_z_probe();
 
-    if (stow) {
-      if (DEBUGGING(INFO)) SERIAL_SM(INFO, "> ");
-      if (STOW_PROBE()) return NAN;
-    }
-    else {
-      if (DEBUGGING(INFO)) SERIAL_LM(INFO, "> do_probe_raise");
+    if (!stow)
       do_probe_raise(Z_PROBE_TRAVEL_HEIGHT);
-    }
+    else
+      if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
       SERIAL_M(MSG_BED_LEVELLING_BED);
@@ -1870,7 +1868,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
 static void do_homing_move(AxisEnum axis, float where, float fr_mm_s = 0.0) {
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    bool deploy_bltouch = (axis == Z_AXIS && where > 0);
+    bool deploy_bltouch = (axis == Z_AXIS && where < 0);
     if (deploy_bltouch) set_bltouch_deployed(true);
   #endif
 
