@@ -262,9 +262,9 @@ void Config_StoreSettings() {
   EEPROM_WRITE(zprobe_zoffset);
 
   #if DISABLED(ULTIPANEL)
-    int preheatHotendTemp1 = PLA_PREHEAT_HOTEND_TEMP, preheatBedTemp1 = PLA_PREHEAT_HPB_TEMP, preheatFanSpeed1 = PLA_PREHEAT_FAN_SPEED,
-        preheatHotendTemp2 = ABS_PREHEAT_HOTEND_TEMP, preheatBedTemp2 = ABS_PREHEAT_HPB_TEMP, preheatFanSpeed2 = ABS_PREHEAT_FAN_SPEED,
-        preheatHotendTemp3 = GUM_PREHEAT_HOTEND_TEMP, preheatBedTemp3 = GUM_PREHEAT_HPB_TEMP, preheatFanSpeed3 = GUM_PREHEAT_FAN_SPEED;
+    int preheatHotendTemp1 = PREHEAT_1_TEMP_HOTEND, preheatBedTemp1 = PREHEAT_1_TEMP_BED, preheatFanSpeed1 = PREHEAT_1_FAN_SPEED,
+        preheatHotendTemp2 = PREHEAT_2_TEMP_HOTEND, preheatBedTemp2 = PREHEAT_2_TEMP_BED, preheatFanSpeed2 = PREHEAT_2_FAN_SPEED,
+        preheatHotendTemp3 = PREHEAT_3_TEMP_HOTEND, preheatBedTemp3 = PREHEAT_3_TEMP_BED, preheatFanSpeed3 = PREHEAT_3_FAN_SPEED;
   #endif
 
   EEPROM_WRITE(preheatHotendTemp1);
