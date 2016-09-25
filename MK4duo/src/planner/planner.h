@@ -141,17 +141,18 @@ class Planner {
                   max_z_jerk,
                   max_e_jerk[EXTRUDERS];
 
+    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      static bool abl_enabled;            // Flag that bed leveling is enabled
+      static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
+    #endif
+
+  private:
+
     /**
      * The current position of the tool in absolute steps
      * Recalculated if any axis_steps_per_mm are changed by gcode
      */
     static long position[NUM_AXIS];
-
-    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
-      static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
-    #endif
-
-  private:
 
     /**
      * Speed of previous path line segment
@@ -228,7 +229,7 @@ class Planner {
        * as it will be given to the planner and steppers.
        */
       static void apply_leveling(float &lx, float &ly, float &lz);
-      static void unapply_leveling(float &lx, float &ly, float &lz);
+      static void unapply_leveling(float logical[XYZ]);
 
     #endif
 
@@ -256,6 +257,11 @@ class Planner {
      * Set the E position (mm) of the planner (and the E stepper)
      */
     static void set_e_position_mm(const float& e);
+
+    /**
+     * Sync from the stepper positions. (e.g., after an interrupted move)
+     */
+    static void sync_from_steppers();
 
     /**
      * Does the buffer have any blocks queued?

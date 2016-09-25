@@ -104,7 +104,7 @@ extern float current_temperature_cooler;
 #endif
 
 #if HAS(CONTROLLERFAN)
-  extern unsigned char soft_pwm_bed;
+  extern uint8_t soft_pwm_bed;
 #endif
 
 #if ENABLED(PIDTEMP)
@@ -281,7 +281,7 @@ int getHeaterPower(int heater);
 int getBedPower();
 int getChamberPower();
 int getCoolerPower();
-unsigned char getPwmCooler(bool soft);
+uint8_t getPwmCooler(bool soft);
 
 void disable_all_heaters();
 void disable_all_coolers();

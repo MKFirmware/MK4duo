@@ -88,6 +88,10 @@ float Planner::min_feedrate_mm_s,
       Planner::max_z_jerk,
       Planner::max_e_jerk[EXTRUDERS];
 
+#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+  bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
+#endif
+
 #if ENABLED(AUTO_BED_LEVELING_LINEAR)
   matrix_3x3 Planner::bed_level_matrix; // Transform to compensate for bed level
 #endif
@@ -127,8 +131,8 @@ Planner::Planner() { init(); }
 
 void Planner::init() {
   block_buffer_head = block_buffer_tail = 0;
-  memset(position, 0, sizeof(position)); // clear position
-  LOOP_XYZE(i) previous_speed[i] = 0.0;
+  memset(position, 0, sizeof(position));
+  memset(previous_speed, 0, sizeof(previous_speed));
   previous_nominal_speed = 0.0;
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
     bed_level_matrix.set_to_identity();
@@ -394,19 +398,25 @@ void Planner::check_axes_activity() {
       LOOP_XYZE(i) if (block->steps[i]) axis_active[i]++;
     }
   }
-  if (DISABLE_X && !axis_active[X_AXIS]) disable_x();
-  if (DISABLE_Y && !axis_active[Y_AXIS]) disable_y();
-
-  #if DISABLED(LASERBEAM)
-    if (DISABLE_Z && !axis_active[Z_AXIS]) disable_z();
+  #if DISABLE_X
+    if (!axis_active[X_AXIS]) disable_x();
   #endif
-
-  if (DISABLE_E && !axis_active[E_AXIS]) {
-    disable_e0();
-    disable_e1();
-    disable_e2();
-    disable_e3();
-  }
+  #if DISABLE_Y
+    if (!axis_active[Y_AXIS]) disable_y();
+  #endif
+  #if DISABLED(LASERBEAM) && DISABLE_Z
+    if (!axis_active[Z_AXIS]) disable_z();
+  #endif
+  #if DISABLE_E
+    if (!axis_active[E_AXIS]) {
+      disable_e0();
+      disable_e1();
+      disable_e2();
+      disable_e3();
+      disable_e4();
+      disable_e5();
+    }
+  #endif
 
   #if HAS(FAN)
     #if ENABLED(FAN_KICKSTART_TIME)
@@ -497,28 +507,34 @@ void Planner::check_axes_activity() {
     #endif
   }
 
-  void Planner::unapply_leveling(float &lx, float &ly, float &lz) {
+  void Planner::unapply_leveling(float logical[XYZ]) {
+
+    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+      if (!abl_enabled) return;
+    #endif
+
     #if ENABLED(MESH_BED_LEVELING)
 
       if (mbl.active())
-        lz -= mbl.get_z(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
+        lz -= mbl.get_z(RAW_X_POSITION(logical[X_AXIS]), RAW_Y_POSITION(logical[Y_AXIS]));
 
     #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
 
       matrix_3x3 inverse = matrix_3x3::transpose(bed_level_matrix);
 
-      float dx = lx - (X_TILT_FULCRUM), dy = ly - (Y_TILT_FULCRUM), dz = lz;
+      float dx = RAW_X_POSITION(logical[X_AXIS]) - (X_TILT_FULCRUM),
+            dy = RAW_Y_POSITION(logical[Y_AXIS]) - (Y_TILT_FULCRUM),
+            dz = RAW_Z_POSITION(logical[Z_AXIS]);
 
       apply_rotation_xyz(inverse, dx, dy, dz);
 
-      lx = LOGICAL_X_POSITION(dx + X_TILT_FULCRUM);
-      ly = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
-      lz = LOGICAL_Z_POSITION(dz);
+      logical[X_AXIS] = LOGICAL_X_POSITION(dx + X_TILT_FULCRUM);
+      logical[Y_AXIS] = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
+      logical[Z_AXIS] = LOGICAL_Z_POSITION(dz);
 
     #elif ENABLED(AUTO_BED_LEVELING_NONLINEAR)
 
-      float tmp[XYZ] = { lx, ly, 0 };
-      lz -= nonlinear_z_offset(tmp);
+      logical[Z_AXIS] -= nonlinear_z_offset(logical);
 
     #endif
   }
@@ -1205,7 +1221,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
   block->recalculate_flag = true; // Always calculate trapezoid for new block
 
   // Update previous path unit_vector and nominal speed
-  LOOP_XYZE(i) previous_speed[i] = current_speed[i];
+  memcpy(previous_speed, current_speed, sizeof(previous_speed));
   previous_nominal_speed = block->nominal_speed;
 
   #if ENABLED(LIN_ADVANCE)
@@ -1248,8 +1264,8 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
   // Move buffer head
   block_buffer_head = next_buffer_head;
 
-  // Update position
-  LOOP_XYZE(i) position[i] = target[i];
+  // Update the position (only when a move was queued)
+  memcpy(position, target, sizeof(position));
 
   recalculate();
 
@@ -1276,7 +1292,7 @@ void Planner::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
   stepper.set_position(nx, ny, nz, ne);
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
 
-  LOOP_XYZE(i) previous_speed[i] = 0.0;
+  memset(previous_speed, 0, sizeof(previous_speed));
 }
 
 /**
@@ -1287,6 +1303,13 @@ void Planner::set_e_position_mm(const float& e) {
   last_extruder = active_extruder;
   stepper.set_e_position(position[E_AXIS]);
   previous_speed[E_AXIS] = 0.0;
+}
+
+/**
+ * Sync from the stepper positions. (e.g., after an interrupted move)
+ */
+void Planner::sync_from_steppers() {
+  LOOP_XYZE(i) position[i] = stepper.position((AxisEnum)i);
 }
 
 // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2

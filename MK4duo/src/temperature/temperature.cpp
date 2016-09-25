@@ -95,24 +95,24 @@ float current_temperature_cooler = 0.0;
 #endif
 
 #if ENABLED(FAN_SOFT_PWM)
-  unsigned char fanSpeedSoftPwm = 0;
+  uint8_t fanSpeedSoftPwm = 0;
   #if HAS(AUTO_FAN)
-    unsigned char fanSpeedSoftPwm_auto = EXTRUDER_AUTO_FAN_MIN_SPEED;
+    uint8_t fanSpeedSoftPwm_auto = EXTRUDER_AUTO_FAN_MIN_SPEED;
   #endif
   #if HAS(CONTROLLERFAN)
-    unsigned char fanSpeedSoftPwm_controller = CONTROLLERFAN_MIN_SPEED;
+    uint8_t fanSpeedSoftPwm_controller = CONTROLLERFAN_MIN_SPEED;
   #endif
 #endif
 
-unsigned char soft_pwm_bed;
-unsigned char soft_pwm_chamber;
-unsigned char soft_pwm_cooler;
+uint8_t soft_pwm_bed;
+uint8_t soft_pwm_chamber;
+uint8_t soft_pwm_cooler;
 
 #if ENABLED(FAST_PWM_COOLER)
-  unsigned char fast_pwm_cooler;
+  uint8_t fast_pwm_cooler;
 #endif
 
-void setPwmCooler(unsigned char pwm);
+void setPwmCooler(uint8_t pwm);
 
 #if ENABLED(BABYSTEPPING)
   volatile int babystepsTodo[3] = { 0 };
@@ -213,10 +213,10 @@ static volatile bool temp_meas_ready = false;
   static millis_t next_cooler_check_ms;
 #endif // !PIDTEMPCOOLER
 
-static unsigned char soft_pwm[HOTENDS];
+static uint8_t soft_pwm[HOTENDS];
 
 #if ENABLED(FAN_SOFT_PWM)
-  static unsigned char soft_pwm_fan;
+  static uint8_t soft_pwm_fan;
 #endif
 
 #if HAS(AUTO_FAN)
@@ -329,7 +329,7 @@ static void updateTemperaturesFromRawValues();
 //================================ Functions ================================
 //===========================================================================
 
-void setPwmCooler(unsigned char pwm) {
+void setPwmCooler(uint8_t pwm) {
   soft_pwm_cooler = pwm >> 1;
   #if ENABLED(FAST_PWM_COOLER)
     fast_pwm_cooler = pwm;
@@ -337,7 +337,7 @@ void setPwmCooler(unsigned char pwm) {
   #endif
 }
 
-unsigned char getPwmCooler(bool soft = true) {
+uint8_t getPwmCooler(bool soft = true) {
   if(soft)
     return soft_pwm_cooler;
   #if ENABLED(FAST_PWM_COOLER)
@@ -673,7 +673,7 @@ int getCoolerPower() {
     for (int8_t f = 0; f < COUNT(fanPin); f++) {
       int8_t pin = fanPin[f];
       if (pin >= 0 && !TEST(fanDone, fanBit[f])) {
-        unsigned char newFanSpeed = TEST(fanState, fanBit[f]) ? EXTRUDER_AUTO_FAN_SPEED : 0;
+        uint8_t newFanSpeed = TEST(fanState, fanBit[f]) ? EXTRUDER_AUTO_FAN_SPEED : 0;
         // this idiom allows both digital and PWM fan outputs (see M42 handling).
         digitalWrite(pin, newFanSpeed);
         analogWrite(pin, newFanSpeed);
@@ -2085,10 +2085,10 @@ static void set_current_temp_raw() {
 #else
   ISR(TIMER0_COMPB_vect) {
 #endif
-  //these variables are only accesible from the ISR, but static, so they don't lose their value
-  static unsigned char temp_count = 0;
+  // these variables are only accesible from the ISR, but static, so they don't lose their value
+  static uint8_t temp_count = 0;
   static TempState temp_state = StartupDelay;
-  static unsigned char pwm_count = _BV(SOFT_PWM_SCALE);
+  static uint8_t pwm_count = _BV(SOFT_PWM_SCALE);
   #ifdef __SAM3X8E__
     static int temp_read = 0;
     static bool first_start = true;
@@ -2096,18 +2096,18 @@ static void set_current_temp_raw() {
 
   // Static members for each heater
   #if ENABLED(SLOW_PWM_HEATERS)
-    static unsigned char slow_pwm_count = 0;
+    static uint8_t slow_pwm_count = 0;
     #define ISR_STATICS(n) \
-      static unsigned char soft_pwm_ ## n; \
-      static unsigned char state_heater_ ## n = 0; \
-      static unsigned char state_timer_heater_ ## n = 0
+      static uint8_t soft_pwm_ ## n; \
+      static uint8_t state_heater_ ## n = 0; \
+      static uint8_t state_timer_heater_ ## n = 0
   #else
-    #define ISR_STATICS(n) static unsigned char soft_pwm_ ## n
+    #define ISR_STATICS(n) static uint8_t soft_pwm_ ## n
   #endif
 
   // Statics per heater
   ISR_STATICS(0);
-  #if (HOTENDS > 1) || ENABLED(HEATERS_PARALLEL)
+  #if HOTENDS > 1
     ISR_STATICS(1);
     #if HOTENDS > 2
       ISR_STATICS(2);
@@ -2147,15 +2147,11 @@ static void set_current_temp_raw() {
 
   #if DISABLED(SLOW_PWM_HEATERS)
     /**
-     * standard PWM modulation
+     * Standard PWM modulation
      */
     if (pwm_count == 0) {
       soft_pwm_0 = soft_pwm[0];
-      if (soft_pwm_0 > 0) {
-        WRITE_HEATER_0(1);
-      }
-      else WRITE_HEATER_0P(0); // If HEATERS_PARALLEL should apply, change to WRITE_HEATER_0
-
+      WRITE_HEATER_0(soft_pwm_0 > 0 ? 1 : 0);
       #if HOTENDS > 1
         soft_pwm_1 = soft_pwm[1];
         WRITE_HEATER_1(soft_pwm_1 > 0 ? 1 : 0);
@@ -2232,7 +2228,7 @@ static void set_current_temp_raw() {
       #define MIN_STATE_TIME 16 // MIN_STATE_TIME * 65.5 = time in milliseconds
     #endif
 
-    // Macros for Slow PWM timer logic - HEATERS_PARALLEL applies
+    // Macros for Slow PWM timer logic
     #define _SLOW_PWM_ROUTINE(NR, src) \
       soft_pwm_ ## NR = src; \
       if (soft_pwm_ ## NR > 0) { \
