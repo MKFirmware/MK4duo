@@ -1227,9 +1227,10 @@
  ***********************************************************************
  *                                                                     *
  * Default stepper release if idle. Set to 0 to deactivate.            *
+ * Time can be set by M18 and M84.                                     *
  *                                                                     *
  ***********************************************************************/
-#define DEFAULT_STEPPER_DEACTIVE_TIME 60
+#define DEFAULT_STEPPER_DEACTIVE_TIME 120
 /***********************************************************************/
 
 

@@ -361,262 +361,69 @@ void Stepper::isr() {
       #else
         OCR1A = 2000; // 1kHz.
       #endif
+      return;
     }
   }
 
-  if (current_block) {
-
-    // Continuous firing of the laser during a move happens here, PPM and raster happen further down
-    #if ENABLED(LASERBEAM)
-      if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
-        laser_fire(current_block->laser_intensity);
-
-      #if DISABLED(LASER_PULSE_METHOD)
-        if (current_block->laser_status == LASER_OFF) {
-          if (laser.diagnostics)
-            SERIAL_EM("Laser status set to off, in interrupt handler");
-          laser_extinguish();
-        }
-      #endif
+  // Update endstops state, if enabled
+  if (endstops.enabled
+    #if HAS(BED_PROBE)
+      || endstops.z_probe_enabled
     #endif
+  ) endstops.update();
 
-    // Update endstops state, if enabled
-    if (endstops.enabled
-      #if HAS(BED_PROBE)
-        || endstops.z_probe_enabled
-      #endif
-    ) endstops.update();
+  // Continuous firing of the laser during a move happens here, PPM and raster happen further down
+  #if ENABLED(LASERBEAM)
+    if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
+      laser_fire(current_block->laser_intensity);
 
-    #define _COUNTER(AXIS) counter_## AXIS
-    #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
-    #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
-
-    #ifdef __SAM3X8E__
-      #define PULSE_START(AXIS) \
-        _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
-        if (_COUNTER(AXIS) > 0) { \
-          _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
-          _COUNTER(AXIS) -= current_block->step_event_count; \
-          count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
-        }
-    #else
-      #define PULSE_START(AXIS) \
-        _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
-        if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
-    #endif
-
-    #ifdef __SAM3X8E__
-      #define PULSE_STOP(AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
-    #else
-      #define PULSE_STOP(AXIS) \
-        if (_COUNTER(AXIS) > 0) { \
-          _COUNTER(AXIS) -= current_block->step_event_count; \
-          count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
-          _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
-        }
-    #endif
-
-    #if DISABLED(__SAM3X8E__) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
-      // Take multiple steps per interrupt (For high speed moves)
-      bool all_steps_done = false;
-      for (int8_t i = 0; i < step_loops; i++) {
-        /*
-        #ifndef __SAM3X8E__
-          #ifndef USBCON
-            MKSERIAL.checkRx(); // Check for serial chars.
-          #endif
-        #endif
-        */
-
-        #if ENABLED(LIN_ADVANCE) // LIN_ADVANCE
-
-          counter_E += current_block->steps[E_AXIS];
-          if (counter_E > 0) {
-            counter_E -= current_block->step_event_count;
-            #if DISABLED(COLOR_MIXING_EXTRUDER)
-              // Don't step E here for mixing extruder
-              count_position[E_AXIS] += count_direction[E_AXIS];
-              motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
-            #endif
-          }
-
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            // Step mixing steppers proportionally
-            bool dir = motor_direction(E_AXIS);
-            MIXING_STEPPERS_LOOP(j) {
-              counter_m[j] += current_block->steps[E_AXIS];
-              if (counter_m[j] > 0) {
-                counter_m[j] -= current_block->mix_event_count[j];
-                dir ? --e_steps[j] : ++e_steps[j];
-              }
-            }
-          #endif
-
-          if (current_block->use_advance_lead) {
-            int delta_adv_steps = (((long)extruder_advance_k * current_estep_rate[TOOL_E_INDEX]) >> 9) - current_adv_steps[TOOL_E_INDEX];
-            #if ENABLED(COLOR_MIXING_EXTRUDER)
-              // Mixing extruders apply advance lead proportionally
-              MIXING_STEPPERS_LOOP(j) {
-                int steps = delta_adv_steps * current_block->step_event_count / current_block->mix_event_count[j];
-                e_steps[j] += steps;
-                current_adv_steps[j] += steps;
-              }
-            #else
-              // For most extruders, advance the single E stepper
-              e_steps[TOOL_E_INDEX] += delta_adv_steps;
-              current_adv_steps[TOOL_E_INDEX] += delta_adv_steps;
-            #endif
-          }
-
-        #elif ENABLED(ADVANCE)
-
-          counter_E += current_block->steps[E_AXIS];
-          if (counter_E > 0) {
-            counter_E -= current_block->step_event_count;
-            #if DISABLED(COLOR_MIXING_EXTRUDER)
-              // Don't step E for mixing extruder
-              motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
-            #endif
-          }
-
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            // Step mixing steppers proportionally
-            bool dir = motor_direction(E_AXIS);
-            MIXING_STEPPERS_LOOP(j) {
-              counter_m[j] += current_block->steps[E_AXIS];
-              if (counter_m[j] > 0) {
-                counter_m[j] -= current_block->mix_event_count[j];
-                dir ? --e_steps[j] : ++e_steps[j];
-              }
-            }
-          #endif
-
-        #endif // ADVANCE or LIN_ADVANCE
-
-        #if ENABLED(STEPPER_HIGH_LOW) && STEPPER_HIGH_LOW_DELAY > 0
-          static uint32_t pulse_start;
-          pulse_start = TCNT0;
-        #endif
-
-        #if HAS(X_STEP)
-          PULSE_START(X);
-        #endif
-        #if HAS(Y_STEP)
-          PULSE_START(Y);
-        #endif
-        #if HAS(Z_STEP)
-          PULSE_START(Z);
-        #endif
-
-        // For non-advance use linear interpolation for E also
-        #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            // Keep updating the single E axis
-            counter_E += current_block->steps[E_AXIS];
-            // Tick the counters used for this mix
-            MIXING_STEPPERS_LOOP(j) {
-              // Step mixing steppers (proportionally)
-              counter_m[j] += current_block->steps[E_AXIS];
-              // Step when the counter goes over zero
-              if (counter_m[j] > 0) En_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-            }
-          #else // !COLOR_MIXING_EXTRUDER
-            PULSE_START(E);
-          #endif
-        #endif // !ADVANCE && !LIN_ADVANCE
-
-        #if ENABLED(STEPPER_HIGH_LOW) && STEPPER_HIGH_LOW_DELAY > 0
-          #define CYCLES_EATEN_BY_CODE 10
-          while ((uint32_t)(TCNT0 - pulse_start) < (STEPPER_HIGH_LOW_DELAY * (F_CPU / 1000000UL)) - CYCLES_EATEN_BY_CODE) { /* nada */ }
-        #endif
-
-        #if HAS(X_STEP)
-          PULSE_STOP(X);
-        #endif
-        #if HAS(Y_STEP)
-          PULSE_STOP(Y);
-        #endif
-        #if HAS(Z_STEP)
-          PULSE_STOP(Z);
-        #endif
-
-        #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            // Always step the single E axis
-            if (counter_E > 0) {
-              counter_E -= current_block->step_event_count;
-              count_position[E_AXIS] += count_direction[E_AXIS];
-            }
-            MIXING_STEPPERS_LOOP(j) {
-              if (counter_m[j] > 0) {
-                counter_m[j] -= current_block->mix_event_count[j];
-                En_STEP_WRITE(j, INVERT_E_STEP_PIN);
-              }
-            }
-          #else // !COLOR_MIXING_EXTRUDER
-            PULSE_STOP(E);
-          #endif
-        #endif // !ADVANCE && !LIN_ADVANCE
-
-        #if ENABLED(LASERBEAM)
-          counter_L += current_block->steps_l;
-          if (counter_L > 0) {
-            if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-              #if ENABLED(LASER_PULSE_METHOD)
-                uint32_t ulValue = current_block->laser_raster_intensity_factor * 255;
-                laser_pulse(ulValue, current_block->laser_duration);
-                laser.time += current_block->laser_duration / 1000; 
-              #else
-                laser_fire(current_block->laser_intensity);
-              #endif
-              if (laser.diagnostics) {
-                SERIAL_MV("X: ", counter_X);
-                SERIAL_MV("Y: ", counter_Y);
-                SERIAL_MV("L: ", counter_L);
-              }
-            }
-            #if ENABLED(LASER_RASTER)
-              if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-                #if ENABLED(LASER_PULSE_METHOD)
-                  uint32_t ulValue = current_block->laser_raster_intensity_factor * 
-                                     current_block->laser_raster_data[counter_raster];
-                  laser_pulse(ulValue, current_block->laser_duration);
-                  counter_raster++;
-                  laser.time += current_block->laser_duration/1000; 
-                #else
-                  // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
-                  // going from darkened paper to burning through paper.
-                  laser_fire(current_block->laser_raster_data[counter_raster]); 
-                #endif
-                if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
-                counter_raster++;
-              }
-            #endif // LASER_RASTER
-            
-            #ifdef __SAM3X8E__
-              counter_L -= 1000 * current_block->step_event_count;
-            #else
-              counter_L -= current_block->step_event_count;
-            #endif
-          }
-          #if DISABLED(LASER_PULSE_METHOD)
-            if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
-              if (laser.diagnostics)
-                SERIAL_EM("Laser firing duration elapsed, in interrupt fast loop");
-              laser_extinguish();
-            }
-          #endif // DISABLED(LASER_PULSE_METHOD)
-        #endif // LASERBEAM
-
-        if (++step_events_completed >= current_block->step_event_count) {
-          all_steps_done = true;
-          break;
-        }
+    #if DISABLED(LASER_PULSE_METHOD)
+      if (current_block->laser_status == LASER_OFF) {
+        if (laser.diagnostics)
+          SERIAL_EM("Laser status set to off, in interrupt handler");
+        laser_extinguish();
       }
+    #endif
+  #endif
 
-    #else // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+  #define _COUNTER(AXIS) counter_## AXIS
+  #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
+  #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
 
-      bool all_steps_done = false;
+  #ifdef __SAM3X8E__
+    #define PULSE_START(AXIS) \
+      _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+      if (_COUNTER(AXIS) > 0) { \
+        _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
+        _COUNTER(AXIS) -= current_block->step_event_count; \
+        count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+      }
+  #else
+    #define PULSE_START(AXIS) \
+      _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+      if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
+  #endif
+
+  #ifdef __SAM3X8E__
+    #define PULSE_STOP(AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
+  #else
+    #define PULSE_STOP(AXIS) \
+      if (_COUNTER(AXIS) > 0) { \
+        _COUNTER(AXIS) -= current_block->step_event_count; \
+        count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+        _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
+      }
+  #endif
+
+  #if DISABLED(__SAM3X8E__) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
+    // Take multiple steps per interrupt (For high speed moves)
+    bool all_steps_done = false;
+    for (int8_t i = 0; i < step_loops; i++) {
+      #ifndef __SAM3X8E__
+        #ifndef USBCON
+          MKSERIAL.checkRx(); // Check for serial chars.
+        #endif
+      #endif
 
       #if ENABLED(LIN_ADVANCE) // LIN_ADVANCE
 
@@ -660,7 +467,6 @@ void Stepper::isr() {
 
       #elif ENABLED(ADVANCE)
 
-        // Always count the unified E axis
         counter_E += current_block->steps[E_AXIS];
         if (counter_E > 0) {
           counter_E -= current_block->step_event_count;
@@ -671,9 +477,8 @@ void Stepper::isr() {
         }
 
         #if ENABLED(COLOR_MIXING_EXTRUDER)
-
           // Step mixing steppers proportionally
-          bool dir = motor_direction(E_AXIS) ? -1 : 1;
+          bool dir = motor_direction(E_AXIS);
           MIXING_STEPPERS_LOOP(j) {
             counter_m[j] += current_block->steps[E_AXIS];
             if (counter_m[j] > 0) {
@@ -685,6 +490,11 @@ void Stepper::isr() {
 
       #endif // ADVANCE or LIN_ADVANCE
 
+      #if ENABLED(STEPPER_HIGH_LOW) && STEPPER_HIGH_LOW_DELAY > 0
+        static uint32_t pulse_start;
+        pulse_start = TCNT0;
+      #endif
+
       #if HAS(X_STEP)
         PULSE_START(X);
       #endif
@@ -695,6 +505,7 @@ void Stepper::isr() {
         PULSE_START(Z);
       #endif
 
+      // For non-advance use linear interpolation for E also
       #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
         #if ENABLED(COLOR_MIXING_EXTRUDER)
           // Keep updating the single E axis
@@ -708,6 +519,39 @@ void Stepper::isr() {
           }
         #else // !COLOR_MIXING_EXTRUDER
           PULSE_START(E);
+        #endif
+      #endif // !ADVANCE && !LIN_ADVANCE
+
+      #if ENABLED(STEPPER_HIGH_LOW) && STEPPER_HIGH_LOW_DELAY > 0
+        #define CYCLES_EATEN_BY_CODE 10
+        while ((uint32_t)(TCNT0 - pulse_start) < (STEPPER_HIGH_LOW_DELAY * (F_CPU / 1000000UL)) - CYCLES_EATEN_BY_CODE) { /* nada */ }
+      #endif
+
+      #if HAS(X_STEP)
+        PULSE_STOP(X);
+      #endif
+      #if HAS(Y_STEP)
+        PULSE_STOP(Y);
+      #endif
+      #if HAS(Z_STEP)
+        PULSE_STOP(Z);
+      #endif
+
+      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+        #if ENABLED(COLOR_MIXING_EXTRUDER)
+          // Always step the single E axis
+          if (counter_E > 0) {
+            counter_E -= current_block->step_event_count;
+            count_position[E_AXIS] += count_direction[E_AXIS];
+          }
+          MIXING_STEPPERS_LOOP(j) {
+            if (counter_m[j] > 0) {
+              counter_m[j] -= current_block->mix_event_count[j];
+              En_STEP_WRITE(j, INVERT_E_STEP_PIN);
+            }
+          }
+        #else // !COLOR_MIXING_EXTRUDER
+          PULSE_STOP(E);
         #endif
       #endif // !ADVANCE && !LIN_ADVANCE
 
@@ -763,211 +607,363 @@ void Stepper::isr() {
 
       if (++step_events_completed >= current_block->step_event_count) {
         all_steps_done = true;
+        break;
       }
-
-    #endif // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
-
-    #ifndef __SAM3X8E__
-      #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-        // If we have esteps to execute, fire the next ISR "now"
-        if (e_steps[TOOL_E_INDEX]) OCR0A = TCNT0 + 2;
-      #endif
-    #endif
-
-    // Calculate new timer value
-    #ifdef __SAM3X8E__
-      uint32_t timer, step_rate;
-    #else
-      uint16_t timer, step_rate;
-    #endif
-
-    if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
-
-      #ifdef __SAM3X8E__
-        MultiU32X32toH32(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-      #else
-        MultiU24X32toH16(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-      #endif
-      acc_step_rate += current_block->initial_rate;
-
-      // upper limit
-      NOMORE(acc_step_rate, current_block->nominal_rate);
-
-      // step_rate to timer interval
-      timer = calc_timer(acc_step_rate);
-      #ifndef __SAM3X8E__
-        OCR1A = timer;
-      #endif
-      acceleration_time += timer;
-
-      #if ENABLED(LIN_ADVANCE)
-
-        if (current_block->use_advance_lead) {
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            MIXING_STEPPERS_LOOP(j)
-              current_estep_rate[j] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
-          #else
-            current_estep_rate[TOOL_E_INDEX] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8) >> 8;
-          #endif
-        }
-
-      #elif ENABLED(ADVANCE)
-
-        advance += advance_rate * step_loops;
-        //NOLESS(advance, current_block->advance);
-
-        long advance_whole = advance >> 8,
-             advance_factor = advance_whole - old_advance;
-
-        // Do E steps + advance steps
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // ...for mixing steppers proportionally
-          MIXING_STEPPERS_LOOP(j)
-            e_steps[j] += advance_factor * current_block->step_event_count / current_block->mix_event_count[j];
-        #else
-          // ...for the active extruder
-          e_steps[TOOL_E_INDEX] += advance_factor;
-        #endif
-
-        old_advance = advance_whole;
-
-      #endif // ADVANCE or LIN_ADVANCE
-
-      #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-        eISR_Rate = (timer >> 2) * step_loops / abs(e_steps[TOOL_E_INDEX]);
-      #endif
     }
-    else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
-      #ifdef __SAM3X8E__
-        MultiU32X32toH32(step_rate, deceleration_time, current_block->acceleration_rate);
-      #else
-        MultiU24X32toH16(step_rate, deceleration_time, current_block->acceleration_rate);
-      #endif
 
-      if (step_rate < acc_step_rate) {
-        step_rate = acc_step_rate - step_rate; // Decelerate from acceleration end point.
-        NOLESS(step_rate, current_block->final_rate);
-      }
-      else {
-        step_rate = current_block->final_rate;
-      }
+  #else // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
 
-      // step_rate to timer interval
-      timer = calc_timer(step_rate);
-      #ifndef __SAM3X8E__
-        OCR1A = timer;
-      #endif
-      deceleration_time += timer;
+    bool all_steps_done = false;
 
-      #if ENABLED(LIN_ADVANCE)
+    #if ENABLED(LIN_ADVANCE) // LIN_ADVANCE
 
-        if (current_block->use_advance_lead) {
-          #if ENABLED(MIXING_EXTRUDER_FEATURE)
-            MIXING_STEPPERS_LOOP(j)
-              current_estep_rate[j] 0= ((uint32_t)step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
-          #else
-            current_estep_rate[TOOL_E_INDEX] = ((uint32_t)step_rate * current_block->e_speed_multiplier8) >> 8;
-          #endif
-        }
-
-      #elif ENABLED(ADVANCE)
-
-        advance -= advance_rate * step_loops;
-        NOLESS(advance, final_advance);
-
-        // Do E steps + advance steps
-        long advance_whole = advance >> 8,
-             advance_factor = advance_whole - old_advance;
-
-        #if ENABLED(MIXING_EXTRUDER_FEATURE)
-          MIXING_STEPPERS_LOOP(j)
-            e_steps[j] += advance_factor * current_block->step_event_count / current_block->mix_event_count[j];
-        #else
-          e_steps[TOOL_E_INDEX] += advance_factor;
+      counter_E += current_block->steps[E_AXIS];
+      if (counter_E > 0) {
+        counter_E -= current_block->step_event_count;
+        #if DISABLED(COLOR_MIXING_EXTRUDER)
+          // Don't step E here for mixing extruder
+          count_position[E_AXIS] += count_direction[E_AXIS];
+          motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
         #endif
+      }
 
-        old_advance = advance_whole;
-
-      #endif // ADVANCE or LIN_ADVANCE
-      
-      #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-        eISR_Rate = (timer >> 2) * step_loops / abs(e_steps[TOOL_E_INDEX]);
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        // Step mixing steppers proportionally
+        bool dir = motor_direction(E_AXIS);
+        MIXING_STEPPERS_LOOP(j) {
+          counter_m[j] += current_block->steps[E_AXIS];
+          if (counter_m[j] > 0) {
+            counter_m[j] -= current_block->mix_event_count[j];
+            dir ? --e_steps[j] : ++e_steps[j];
+          }
+        }
       #endif
+
+      if (current_block->use_advance_lead) {
+        int delta_adv_steps = (((long)extruder_advance_k * current_estep_rate[TOOL_E_INDEX]) >> 9) - current_adv_steps[TOOL_E_INDEX];
+        #if ENABLED(COLOR_MIXING_EXTRUDER)
+          // Mixing extruders apply advance lead proportionally
+          MIXING_STEPPERS_LOOP(j) {
+            int steps = delta_adv_steps * current_block->step_event_count / current_block->mix_event_count[j];
+            e_steps[j] += steps;
+            current_adv_steps[j] += steps;
+          }
+        #else
+          // For most extruders, advance the single E stepper
+          e_steps[TOOL_E_INDEX] += delta_adv_steps;
+          current_adv_steps[TOOL_E_INDEX] += delta_adv_steps;
+        #endif
+      }
+
+    #elif ENABLED(ADVANCE)
+
+      // Always count the unified E axis
+      counter_E += current_block->steps[E_AXIS];
+      if (counter_E > 0) {
+        counter_E -= current_block->step_event_count;
+        #if DISABLED(COLOR_MIXING_EXTRUDER)
+          // Don't step E for mixing extruder
+          motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
+        #endif
+      }
+
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+
+        // Step mixing steppers proportionally
+        bool dir = motor_direction(E_AXIS) ? -1 : 1;
+        MIXING_STEPPERS_LOOP(j) {
+          counter_m[j] += current_block->steps[E_AXIS];
+          if (counter_m[j] > 0) {
+            counter_m[j] -= current_block->mix_event_count[j];
+            dir ? --e_steps[j] : ++e_steps[j];
+          }
+        }
+      #endif
+
+    #endif // ADVANCE or LIN_ADVANCE
+
+    #if HAS(X_STEP)
+      PULSE_START(X);
+    #endif
+    #if HAS(Y_STEP)
+      PULSE_START(Y);
+    #endif
+    #if HAS(Z_STEP)
+      PULSE_START(Z);
+    #endif
+
+    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        // Keep updating the single E axis
+        counter_E += current_block->steps[E_AXIS];
+        // Tick the counters used for this mix
+        MIXING_STEPPERS_LOOP(j) {
+          // Step mixing steppers (proportionally)
+          counter_m[j] += current_block->steps[E_AXIS];
+          // Step when the counter goes over zero
+          if (counter_m[j] > 0) En_STEP_WRITE(j, !INVERT_E_STEP_PIN);
+        }
+      #else // !COLOR_MIXING_EXTRUDER
+        PULSE_START(E);
+      #endif
+    #endif // !ADVANCE && !LIN_ADVANCE
+
+    #if ENABLED(LASERBEAM)
+      counter_L += current_block->steps_l;
+      if (counter_L > 0) {
+        if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+          #if ENABLED(LASER_PULSE_METHOD)
+            uint32_t ulValue = current_block->laser_raster_intensity_factor * 255;
+            laser_pulse(ulValue, current_block->laser_duration);
+            laser.time += current_block->laser_duration / 1000; 
+          #else
+            laser_fire(current_block->laser_intensity);
+          #endif
+          if (laser.diagnostics) {
+            SERIAL_MV("X: ", counter_X);
+            SERIAL_MV("Y: ", counter_Y);
+            SERIAL_MV("L: ", counter_L);
+          }
+        }
+        #if ENABLED(LASER_RASTER)
+          if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
+            #if ENABLED(LASER_PULSE_METHOD)
+              uint32_t ulValue = current_block->laser_raster_intensity_factor * 
+                                 current_block->laser_raster_data[counter_raster];
+              laser_pulse(ulValue, current_block->laser_duration);
+              counter_raster++;
+              laser.time += current_block->laser_duration/1000; 
+            #else
+              // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
+              // going from darkened paper to burning through paper.
+              laser_fire(current_block->laser_raster_data[counter_raster]); 
+            #endif
+            if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
+            counter_raster++;
+          }
+        #endif // LASER_RASTER
+        
+        #ifdef __SAM3X8E__
+          counter_L -= 1000 * current_block->step_event_count;
+        #else
+          counter_L -= current_block->step_event_count;
+        #endif
+      }
+      #if DISABLED(LASER_PULSE_METHOD)
+        if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
+          if (laser.diagnostics)
+            SERIAL_EM("Laser firing duration elapsed, in interrupt fast loop");
+          laser_extinguish();
+        }
+      #endif // DISABLED(LASER_PULSE_METHOD)
+    #endif // LASERBEAM
+
+    if (++step_events_completed >= current_block->step_event_count) {
+      all_steps_done = true;
+    }
+
+  #endif // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+
+  #ifndef __SAM3X8E__
+    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+      // If we have esteps to execute, fire the next ISR "now"
+      if (e_steps[TOOL_E_INDEX]) OCR0A = TCNT0 + 2;
+    #endif
+  #endif
+
+  // Calculate new timer value
+  #ifdef __SAM3X8E__
+    uint32_t timer, step_rate;
+  #else
+    uint16_t timer, step_rate;
+  #endif
+
+  if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
+
+    #ifdef __SAM3X8E__
+      MultiU32X32toH32(acc_step_rate, acceleration_time, current_block->acceleration_rate);
+    #else
+      MultiU24X32toH16(acc_step_rate, acceleration_time, current_block->acceleration_rate);
+    #endif
+    acc_step_rate += current_block->initial_rate;
+
+    // upper limit
+    NOMORE(acc_step_rate, current_block->nominal_rate);
+
+    // step_rate to timer interval
+    timer = calc_timer(acc_step_rate);
+    #ifndef __SAM3X8E__
+      OCR1A = timer;
+    #endif
+    acceleration_time += timer;
+
+    #if ENABLED(LIN_ADVANCE)
+
+      if (current_block->use_advance_lead) {
+        #if ENABLED(COLOR_MIXING_EXTRUDER)
+          MIXING_STEPPERS_LOOP(j)
+            current_estep_rate[j] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
+        #else
+          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8) >> 8;
+        #endif
+      }
+
+    #elif ENABLED(ADVANCE)
+
+      advance += advance_rate * step_loops;
+      //NOLESS(advance, current_block->advance);
+
+      long advance_whole = advance >> 8,
+           advance_factor = advance_whole - old_advance;
+
+      // Do E steps + advance steps
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        // ...for mixing steppers proportionally
+        MIXING_STEPPERS_LOOP(j)
+          e_steps[j] += advance_factor * current_block->step_event_count / current_block->mix_event_count[j];
+      #else
+        // ...for the active extruder
+        e_steps[TOOL_E_INDEX] += advance_factor;
+      #endif
+
+      old_advance = advance_whole;
+
+    #endif // ADVANCE or LIN_ADVANCE
+
+    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+      eISR_Rate = (timer >> 2) * step_loops / abs(e_steps[TOOL_E_INDEX]);
+    #endif
+  }
+  else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
+    #ifdef __SAM3X8E__
+      MultiU32X32toH32(step_rate, deceleration_time, current_block->acceleration_rate);
+    #else
+      MultiU24X32toH16(step_rate, deceleration_time, current_block->acceleration_rate);
+    #endif
+
+    if (step_rate < acc_step_rate) {
+      step_rate = acc_step_rate - step_rate; // Decelerate from acceleration end point.
+      NOLESS(step_rate, current_block->final_rate);
     }
     else {
-
-      #if ENABLED(LIN_ADVANCE)
-
-        if (current_block->use_advance_lead)
-          current_estep_rate[TOOL_E_INDEX] = final_estep_rate;
-        
-        eISR_Rate = (OCR1A_nominal >> 2) * step_loops_nominal / abs(e_steps[TOOL_E_INDEX]);
-
-      #endif
-
-      #ifdef __SAM3X8E__
-        timer = OCR1A_nominal;
-      #else
-        OCR1A = OCR1A_nominal;
-      #endif
-      // ensure we're running at the correct step rate, even if we just came off an acceleration
-      step_loops = step_loops_nominal;
+      step_rate = current_block->final_rate;
     }
 
-    #if ENABLED(__SAM3X8E__) && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+    // step_rate to timer interval
+    timer = calc_timer(step_rate);
+    #ifndef __SAM3X8E__
+      OCR1A = timer;
+    #endif
+    deceleration_time += timer;
 
-      #if HAS(X_STEP)
-        PULSE_STOP(X);
-      #endif
-      #if HAS(Y_STEP)
-        PULSE_STOP(Y);
-      #endif
-      #if HAS(Z_STEP)
-        PULSE_STOP(Z);
-      #endif
+    #if ENABLED(LIN_ADVANCE)
 
-      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // Always step the single E axis
-          if (counter_E > 0) {
-            counter_E -= current_block->step_event_count;
-            count_position[E_AXIS] += count_direction[E_AXIS];
-          }
-          MIXING_STEPPERS_LOOP(j) {
-            if (counter_m[j] > 0) {
-              counter_m[j] -= current_block->mix_event_count[j];
-              En_STEP_WRITE(j, INVERT_E_STEP_PIN);
-            }
-          }
-        #else // !COLOR_MIXING_EXTRUDER
-          PULSE_STOP(E);
+      if (current_block->use_advance_lead) {
+        #if ENABLED(MIXING_EXTRUDER_FEATURE)
+          MIXING_STEPPERS_LOOP(j)
+            current_estep_rate[j] 0= ((uint32_t)step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
+        #else
+          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)step_rate * current_block->e_speed_multiplier8) >> 8;
         #endif
-      #endif // !ADVANCE && !LIN_ADVANCE
+      }
 
-    #endif // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+    #elif ENABLED(ADVANCE)
 
-    #ifdef __SAM3X8E__
-      HAL_timer_stepper_count(timer);
-    #else
-      NOLESS(OCR1A, TCNT1 + 16);
+      advance -= advance_rate * step_loops;
+      NOLESS(advance, final_advance);
+
+      // Do E steps + advance steps
+      long advance_whole = advance >> 8,
+           advance_factor = advance_whole - old_advance;
+
+      #if ENABLED(MIXING_EXTRUDER_FEATURE)
+        MIXING_STEPPERS_LOOP(j)
+          e_steps[j] += advance_factor * current_block->step_event_count / current_block->mix_event_count[j];
+      #else
+        e_steps[TOOL_E_INDEX] += advance_factor;
+      #endif
+
+      old_advance = advance_whole;
+
+    #endif // ADVANCE or LIN_ADVANCE
+    
+    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+      eISR_Rate = (timer >> 2) * step_loops / abs(e_steps[TOOL_E_INDEX]);
+    #endif
+  }
+  else {
+
+    #if ENABLED(LIN_ADVANCE)
+
+      if (current_block->use_advance_lead)
+        current_estep_rate[TOOL_E_INDEX] = final_estep_rate;
+      
+      eISR_Rate = (OCR1A_nominal >> 2) * step_loops_nominal / abs(e_steps[TOOL_E_INDEX]);
+
     #endif
 
-    // If current block is finished, reset pointer
-    if (all_steps_done) {
-      current_block = NULL;
-      planner.discard_current_block();
+    #ifdef __SAM3X8E__
+      timer = OCR1A_nominal;
+    #else
+      OCR1A = OCR1A_nominal;
+    #endif
+    // ensure we're running at the correct step rate, even if we just came off an acceleration
+    step_loops = step_loops_nominal;
+  }
 
-      #ifdef __SAM3X8E__
-        #if ENABLED(LASERBEAM)
-          laser_extinguish();
-        #endif
-      #else
-        #if ENABLED(LASERBEAM) && ENABLED(LASER_PULSE_METHOD)
-          if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
-            laser_extinguish();
-        #endif
+  #if ENABLED(__SAM3X8E__) && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+
+    #if HAS(X_STEP)
+      PULSE_STOP(X);
+    #endif
+    #if HAS(Y_STEP)
+      PULSE_STOP(Y);
+    #endif
+    #if HAS(Z_STEP)
+      PULSE_STOP(Z);
+    #endif
+
+    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        // Always step the single E axis
+        if (counter_E > 0) {
+          counter_E -= current_block->step_event_count;
+          count_position[E_AXIS] += count_direction[E_AXIS];
+        }
+        MIXING_STEPPERS_LOOP(j) {
+          if (counter_m[j] > 0) {
+            counter_m[j] -= current_block->mix_event_count[j];
+            En_STEP_WRITE(j, INVERT_E_STEP_PIN);
+          }
+        }
+      #else // !COLOR_MIXING_EXTRUDER
+        PULSE_STOP(E);
       #endif
-    }
+    #endif // !ADVANCE && !LIN_ADVANCE
+
+  #endif // __SAM3X8E__ && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+
+  #ifdef __SAM3X8E__
+    HAL_timer_stepper_count(timer);
+  #else
+    NOLESS(OCR1A, TCNT1 + 16);
+  #endif
+
+  // If current block is finished, reset pointer
+  if (all_steps_done) {
+    current_block = NULL;
+    planner.discard_current_block();
+
+    #ifdef __SAM3X8E__
+      #if ENABLED(LASERBEAM)
+        laser_extinguish();
+      #endif
+    #else
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_PULSE_METHOD)
+        if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
+          laser_extinguish();
+      #endif
+    #endif
   }
 }
 
@@ -1305,6 +1301,9 @@ void Stepper::synchronize() { while (planner.blocks_queued()) idle(); }
  * derive the current XYZ position later on.
  */
 void Stepper::set_position(const long& x, const long& y, const long& z, const long& e) {
+
+  synchronize(); // Bad to set stepper counts in the middle of a move
+
   CRITICAL_SECTION_START;
 
   #if MECH(COREXY)
