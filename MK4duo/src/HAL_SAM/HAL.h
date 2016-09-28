@@ -246,7 +246,7 @@ class HAL {
       HAL::delayMilliseconds(1);
     }
     static inline bool serialByteAvailable() {
-      return MKSERIAL.available();
+      return MKSERIAL.available() > 0;
     }
     static inline uint8_t serialReadByte() {
       return MKSERIAL.read();

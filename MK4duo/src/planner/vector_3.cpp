@@ -41,7 +41,8 @@
 
 #include "../../base.h"
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+#if HAS(ABL)
+
 #include <math.h>
 #include "vector_3.h"
 
@@ -153,4 +154,4 @@ void matrix_3x3::debug(const char title[]) {
   }
 }
 
-#endif // AUTO_BED_LEVELING_FEATURE
+#endif // HAS_ABL

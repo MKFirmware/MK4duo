@@ -1,3 +1,7 @@
+### Version 4.3.03_dev
+* Clear Code
+* ABL revision (ABL 3 point, ABL Linear, ABL Bilinear)
+
 ### Version 4.3.02_dev
 * Clear code
 * Add Fast inverse sqrt from Quake III Arena see https://en.wikipedia.org/wiki/Fast_inverse_square_root

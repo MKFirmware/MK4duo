@@ -211,11 +211,14 @@
 // Use double touch for probing
 //#define PROBE_DOUBLE_TOUCH
 
+// Enable Z Probe Repeatability test to see how accurate your probe is
+//#define Z_MIN_PROBE_REPEATABILITY_TEST
+
 //
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 //
 #define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
-#define Z_PROBE_TRAVEL_HEIGHT  5  // Z position for travel between points
+#define Z_PROBE_BETWEEN_HEIGHT 5  // Z position for travel between points
 
 //
 // For M666 give a range for adjusting the Z probe offset
@@ -386,58 +389,68 @@
  ******************************* Auto Bed Leveling ***************************************
  *****************************************************************************************
  *                                                                                       *
- * There are 2 different ways to specify probing locations                               *
+ * Select one form of Auto Bed Leveling below.                                           *
  *                                                                                       *
- * - "grid" mode                                                                         *
- *   Probe several points in a rectangular grid.                                         *
- *   You specify the rectangle and the density of sample points.                         *
- *   This mode is preferred because there are more measurements.                         *
+ *  If you're also using the Probe for Z Homing, it's                                    *
+ *  highly recommended to enable Z SAFE HOMING also!                                     *
  *                                                                                       *
- * - "3-point" mode                                                                      *
- *   Probe 3 arbitrary points on the bed (that aren't colinear)                          *
+ * - 3POINT                                                                              *
+ *   Probe 3 arbitrary points on the bed (that aren't collinear)                         *
  *   You specify the XY coordinates of all 3 points.                                     *
+ *   The result is a single tilted plane. Best for a flat bed.                           *
  *                                                                                       *
- * Remember you must define type of probe                                                *
- * Uncomment AUTO BED LEVELING FEATURE to enable                                         *
+ * - LINEAR                                                                              *
+ *   Probe several points in a grid.                                                     *
+ *   You specify the rectangle and the density of sample points.                         *
+ *   The result is a single tilted plane. Best for a flat bed.                           *
+ *                                                                                       *
+ * - BILINEAR                                                                            *
+ *   Probe several points in a grid.                                                     *
+ *   You specify the rectangle and the density of sample points.                         *
+ *   The result is a mesh, best for large or uneven beds.                                *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_BED_LEVELING_FEATURE
-//#define Z_PROBE_REPEATABILITY_TEST  // If not commented out, Z-Probe Repeatability test will be included if Auto Bed Leveling is Enabled.
+//#define AUTO_BED_LEVELING_3POINT
+//#define AUTO_BED_LEVELING_LINEAR
+//#define AUTO_BED_LEVELING_BILINEAR
 
-// Enable this to sample the bed in a grid (least squares solution)
-// Note: this feature generates 10KB extra code size
-#define AUTO_BED_LEVELING_GRID
+/**
+ * Enable detailed logging of G28, G29, G30, M48, etc.
+ * Turn on with the command 'M111 S8'.
+ * NOTE: Requires a lot of PROGMEM!
+ */
+//#define DEBUG_LEVELING_FEATURE
 
+/** if ENABLED(AUTO_BED_LEVELING_LINEAR) or ENABLED(AUTO_BED_LEVELING_BILINEAR) **/
+// Set the number of grid points per dimension
+#define ABL_GRID_POINTS_X 3
+#define ABL_GRID_POINTS_Y 3
 
-/** START yes AUTO BED LEVELING GRID **/
+// Set the boundaries for probing (where the probe can reach).
 #define LEFT_PROBE_BED_POSITION 20
 #define RIGHT_PROBE_BED_POSITION 180
 #define FRONT_PROBE_BED_POSITION 20
 #define BACK_PROBE_BED_POSITION 180
 
-// The Z probe minimum square sides can be no smaller than this.
+// The Z probe minimum outer margin (to validate G29 parameters).
 #define MIN_PROBE_EDGE 10
+/** END **/
 
-// Set the number of grid points per dimension
-// You probably don't need more than 3 (squared=9)
-#define ABL_GRID_POINTS_X 3
-#define ABL_GRID_POINTS_Y ABL_GRID_POINTS_X
-/** END yes AUTO BED LEVELING GRID **/
-
-
-/** START no AUTO BED LEVELING GRID **/
-// Arbitrary points to probe. A simple cross-product
-// is used to estimate the plane of the bed.
+/** if ENABLED(AUTO_BED_LEVELING_3POINT) **/
+// 3 arbitrary points to probe.
+// A simple cross-product is used to estimate the plane of the bed.
 #define ABL_PROBE_PT_1_X 15
 #define ABL_PROBE_PT_1_Y 180
 #define ABL_PROBE_PT_2_X 15
 #define ABL_PROBE_PT_2_Y 15
 #define ABL_PROBE_PT_3_X 180
 #define ABL_PROBE_PT_3_Y 15
-/** END no AUTO BED LEVELING GRID **/
+/** END **/
 
-// These commands will be executed in the end of G29 routine.
-// Useful to retract a deployable Z probe.
+/**
+ * Commands to execute at the end of G29 probing.
+ * Useful to retract or move the Z probe out of the way.
+ */
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
 /*****************************************************************************************/
 

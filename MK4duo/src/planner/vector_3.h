@@ -42,7 +42,7 @@
 #ifndef VECTOR_3_H
 #define VECTOR_3_H
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+#if HAS(ABL)
 class matrix_3x3;
 
 struct vector_3 {
@@ -78,6 +78,6 @@ struct matrix_3x3 {
 
 
 void apply_rotation_xyz(matrix_3x3 rotationMatrix, float& x, float& y, float& z);
-#endif // AUTO_BED_LEVELING_FEATURE
+#endif // HAS_ABL
 
 #endif // VECTOR_3_H

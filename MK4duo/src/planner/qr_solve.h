@@ -25,7 +25,7 @@
 #ifndef QR_SOLVE_H
 #define QR_SOLVE_H
 
-#if ENABLED(AUTO_BED_LEVELING_GRID)
+#if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
 void daxpy(int n, float da, float dx[], int incx, float dy[], int incy);
 float ddot(int n, float dx[], int incx, float dy[], int incy);

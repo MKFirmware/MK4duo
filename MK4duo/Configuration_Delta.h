@@ -274,11 +274,14 @@
 // Z probe speed, in mm/min
 #define Z_PROBE_SPEED   3000
 
+// Enable Z Probe Repeatability test to see how accurate your probe is
+//#define Z_MIN_PROBE_REPEATABILITY_TEST
+
 //
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 //
-#define Z_PROBE_DEPLOY_HEIGHT 30  // Z position for the probe to deploy/stow
-#define Z_PROBE_TRAVEL_HEIGHT 10  // Z position for travel between points
+#define Z_PROBE_DEPLOY_HEIGHT  30  // Z position for the probe to deploy/stow
+#define Z_PROBE_BETWEEN_HEIGHT 10  // Z position for travel between points
 
 //
 // For M666 give a range for adjusting the Z probe offset
@@ -417,11 +420,22 @@
  *****************************************************************************************/
 //#define AUTO_BED_LEVELING_FEATURE
 
-// Enable Z Probe Repeatability test to see how accurate your probe is
-//#define Z_PROBE_REPEATABILITY_TEST
+/**
+ * Enable detailed logging of G28, G29, G30, M48, etc.
+ * Turn on with the command 'M111 S8'.
+ * NOTE: Requires a lot of PROGMEM!
+ */
+//#define DEBUG_LEVELING_FEATURE
 
-// Define the grid for bed level AUTO BED LEVELING GRID POINTS X AUTO BED LEVELING GRID POINTS.
+// Set the number of grid points per dimension
+// Works best with 5 or more points in each dimension.
 #define AUTO_BED_LEVELING_GRID_POINTS 9
+
+/**
+ * Commands to execute at the end of G29 probing.
+ * Useful to retract or move the Z probe out of the way.
+ */
+//#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
 /*****************************************************************************************/
 
 
