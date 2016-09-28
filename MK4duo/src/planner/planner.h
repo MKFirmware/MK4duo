@@ -141,7 +141,7 @@ class Planner {
                   max_z_jerk,
                   max_e_jerk[EXTRUDERS];
 
-    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+    #if HAS(ABL)
       static bool abl_enabled;            // Flag that bed leveling is enabled
       static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
     #endif
@@ -212,7 +212,7 @@ class Planner {
 
     static bool is_full() { return (block_buffer_tail == BLOCK_MOD(block_buffer_head + 1)); }
 
-    #if ENABLED(AUTO_BED_LEVELING_FEATURE) || ENABLED(MESH_BED_LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+    #if HAS(ABL) || ENABLED(MESH_BED_LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
       #define ARG_X float lx
       #define ARG_Y float ly
       #define ARG_Z float lz

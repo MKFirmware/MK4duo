@@ -88,11 +88,11 @@ float Planner::min_feedrate_mm_s,
       Planner::max_z_jerk,
       Planner::max_e_jerk[EXTRUDERS];
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+#if HAS(ABL)
   bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
+#if ABL_PLANAR
   matrix_3x3 Planner::bed_level_matrix; // Transform to compensate for bed level
 #endif
 
@@ -134,7 +134,7 @@ void Planner::init() {
   memset(position, 0, sizeof(position));
   memset(previous_speed, 0, sizeof(previous_speed));
   previous_nominal_speed = 0.0;
-  #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+  #if ABL_PLANAR
     bed_level_matrix.set_to_identity();
   #endif
 }
@@ -470,12 +470,17 @@ void Planner::check_axes_activity() {
 #if PLANNER_LEVELING
 
   void Planner::apply_leveling(float &lx, float &ly, float &lz) {
+
+    #if HAS(ABL)
+      if (!abl_enabled) return;
+    #endif
+
     #if ENABLED(MESH_BED_LEVELING)
 
       if (mbl.active())
         lz += mbl.get_z(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 
-    #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
+    #elif ABL_PLANAR
 
       float dx = RAW_X_POSITION(lx) - (X_TILT_FULCRUM),
             dy = RAW_Y_POSITION(ly) - (Y_TILT_FULCRUM),
@@ -487,20 +492,20 @@ void Planner::check_axes_activity() {
       ly = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
       lz = LOGICAL_Z_POSITION(dz);
 
-    #elif ENABLED(AUTO_BED_LEVELING_NONLINEAR)
+    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       float tmp[XYZ] = { lx, ly, 0 };
 
       #if MECH(DELTA)
 
-        float offset = nonlinear_z_offset(tmp);
+        float offset = bilinear_z_offset(tmp);
         lx += offset;
         ly += offset;
         lz += offset;
 
       #else
 
-        lz += nonlinear_z_offset(tmp);
+        lz += bilinear_z_offset(tmp);
 
       #endif
 
@@ -509,16 +514,16 @@ void Planner::check_axes_activity() {
 
   void Planner::unapply_leveling(float logical[XYZ]) {
 
-    #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+    #if HAS(ABL)
       if (!abl_enabled) return;
     #endif
 
     #if ENABLED(MESH_BED_LEVELING)
 
       if (mbl.active())
-        lz -= mbl.get_z(RAW_X_POSITION(logical[X_AXIS]), RAW_Y_POSITION(logical[Y_AXIS]));
+        logical[Z_AXIS] -= mbl.get_z(RAW_X_POSITION(logical[X_AXIS]), RAW_Y_POSITION(logical[Y_AXIS]));
 
-    #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
+    #elif ABL_PLANAR
 
       matrix_3x3 inverse = matrix_3x3::transpose(bed_level_matrix);
 
@@ -532,9 +537,9 @@ void Planner::check_axes_activity() {
       logical[Y_AXIS] = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
       logical[Z_AXIS] = LOGICAL_Z_POSITION(dz);
 
-    #elif ENABLED(AUTO_BED_LEVELING_NONLINEAR)
+    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-      logical[Z_AXIS] -= nonlinear_z_offset(logical);
+      logical[Z_AXIS] -= bilinear_z_offset(logical);
 
     #endif
   }

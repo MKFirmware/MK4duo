@@ -17,28 +17,34 @@
 #include "src/mechanics.h"
 
 #include "Configuration_Version.h"
-#include "Configuration_Basic.h"
-#include "Configuration_Overall.h"
 
-#if MECH(CARTESIAN)
-  #include "Configuration_Cartesian.h"
-#elif MECH(COREXY)
-  #include "Configuration_Core.h"
-#elif MECH(COREYX)
-  #include "Configuration_Core.h"
-#elif MECH(COREXZ)
-  #include "Configuration_Core.h"
-#elif MECH(COREZX)
-  #include "Configuration_Core.h"
-#elif MECH(DELTA)
-  #include "Configuration_Delta.h"
-#elif MECH(SCARA)
-  #include "Configuration_Scara.h"
+#ifndef CONFIGURATION_OVERALL
+  #include "Configuration_Basic.h"
 #endif
 
-#include "Configuration_Temperature.h"
-#include "Configuration_Feature.h"
 #include "Configuration_Overall.h"
+
+#ifndef CONFIGURATION_OVERALL
+  #if MECH(CARTESIAN)
+    #include "Configuration_Cartesian.h"
+  #elif MECH(COREXY)
+    #include "Configuration_Core.h"
+  #elif MECH(COREYX)
+    #include "Configuration_Core.h"
+  #elif MECH(COREXZ)
+    #include "Configuration_Core.h"
+  #elif MECH(COREZX)
+    #include "Configuration_Core.h"
+  #elif MECH(DELTA)
+    #include "Configuration_Delta.h"
+  #elif MECH(SCARA)
+    #include "Configuration_Scara.h"
+  #endif
+
+  #include "Configuration_Temperature.h"
+  #include "Configuration_Feature.h"
+  #include "Configuration_Overall.h"
+#endif
 
 #if ENABLED(LASERBEAM)
   #include "Configuration_Laser.h"
@@ -48,7 +54,10 @@
   #include "src/laser/laser.h"
 #endif
 
-#include "src/conditionals.h"
+#include "src/conditionals_pre.h"
+#include "src/pins.h"
+#include "src/conditionals_post.h"
+
 #include "src/sanitycheck.h"
 
 #ifdef __SAM3X8E__
@@ -61,11 +70,11 @@
 
 #include "src/enum.h"
 
-#if ENABLED(AUTO_BED_LEVELING_FEATURE)
+#if HAS(ABL)
   #include "src/planner/vector_3.h"
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_LINEAR_GRID)
+#if ENABLED(AUTO_BED_LEVELING_LINEAR)
   #include "src/planner/qr_solve.h"
 #elif ENABLED(MESH_BED_LEVELING)
   #include "src/mbl/mesh_bed_leveling.h"

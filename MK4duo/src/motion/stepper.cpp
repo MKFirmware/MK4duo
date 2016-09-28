@@ -130,8 +130,8 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 volatile long Stepper::endstops_trigsteps[XYZ];
 
 #if ENABLED(X_DUAL_STEPPER_DRIVERS)
-  #define X_APPLY_DIR(v,Q) do{ X_DIR_WRITE(v); X2_DIR_WRITE((v) != INVERT_X2_VS_X_DIR); }while(0)
-  #define X_APPLY_STEP(v,Q) do{ X_STEP_WRITE(v); X2_STEP_WRITE(v); }while(0)
+  #define X_APPLY_DIR(v,Q)  { X_DIR_WRITE(v); X2_DIR_WRITE((v) != INVERT_X2_VS_X_DIR); }
+  #define X_APPLY_STEP(v,Q) { X_STEP_WRITE(v); X2_STEP_WRITE(v); }
 #elif ENABLED(DUAL_X_CARRIAGE)
   #define X_APPLY_DIR(v,ALWAYS) \
     if (hotend_duplication_enabled || ALWAYS) { \
@@ -155,7 +155,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
 #endif
 
 #if ENABLED(Y_DUAL_STEPPER_DRIVERS)
-  #define Y_APPLY_DIR(v,Q) { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
+  #define Y_APPLY_DIR(v,Q)  { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
   #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
 #else
   #define Y_APPLY_DIR(v,Q) Y_DIR_WRITE(v)
@@ -1049,8 +1049,20 @@ void Stepper::isr() {
 #endif // ADVANCE or LIN_ADVANCE
 
 void Stepper::init() {
-  digipot_init();   // Initialize Digipot Motor Current
-  microstep_init(); // Initialize Microstepping Pins
+
+  // Init Digipot Motor Current
+  #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
+    digipot_init();
+  #endif
+
+  #if MB(ALLIGATOR)
+    set_driver_current();
+  #endif // MB(ALLIGATOR)
+
+  // Init Microstepping Pins
+  #if HAS(MICROSTEPS)
+    microstep_init();
+  #endif
 
   // initialise TMC Steppers
   #if ENABLED(HAVE_TMCDRIVER)
@@ -1173,9 +1185,7 @@ void Stepper::init() {
     #endif
   #endif
 
-  //
   // Init endstops and pullups here
-  //
   endstops.init();
 
   #define _STEP_INIT(AXIS) AXIS ##_STEP_INIT
@@ -1189,7 +1199,7 @@ void Stepper::init() {
 
   #define E_AXIS_INIT(NUM) AXIS_INIT(e## NUM, E## NUM, E)
 
-  // Initialize Step Pins
+  // Init Step Pins
   #if HAS(X_STEP)
     #if ENABLED(X_DUAL_STEPPER_DRIVERS) || ENABLED(DUAL_X_CARRIAGE)
       X2_STEP_INIT;
@@ -1570,47 +1580,69 @@ void Stepper::report_positions() {
  * Software-controlled Stepper Motor Current
  */
 #if HAS(DIGIPOTSS)
+
+  // From Arduino DigitalPotControl example
   void Stepper::digitalPotWrite(int address, int value) {
-    digitalWrite(DIGIPOTSS_PIN, LOW); // take the SS pin low to select the chip
+    WRITE(DIGIPOTSS_PIN, LOW); // take the SS pin low to select the chip
     SPI.transfer(address); //  send in the address and value via SPI:
     SPI.transfer(value);
-    digitalWrite(DIGIPOTSS_PIN, HIGH); // take the SS pin high to de-select the chip:
+    WRITE(DIGIPOTSS_PIN, HIGH); // take the SS pin high to de-select the chip:
     //HAL::delayMilliseconds(10);
   }
+
 #endif
 
-void Stepper::digipot_init() {
-  #if HAS(DIGIPOTSS)
-    const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
+#if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
 
-    SPI.begin();
-    pinMode(DIGIPOTSS_PIN, OUTPUT);
-    for (uint8_t i = 0; i < COUNT(digipot_motor_current); i++) {
-      //digitalPotWrite(digipot_ch[i], digipot_motor_current[i]);
-      digipot_current(i, digipot_motor_current[i]);
-    }
-  #endif
-  #if HAS(MOTOR_CURRENT_PWM_XY)
-    #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
-      pinMode(MOTOR_CURRENT_PWM_XY_PIN, OUTPUT);
-      digipot_current(0, motor_current_setting[0]);
-    #endif
-    #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
-      pinMode(MOTOR_CURRENT_PWM_Z_PIN, OUTPUT);
-      digipot_current(1, motor_current_setting[1]);
-    #endif
-    #if PIN_EXISTS(MOTOR_CURRENT_PWM_E)
-      pinMode(MOTOR_CURRENT_PWM_E_PIN, OUTPUT);
-      digipot_current(2, motor_current_setting[2]);
-    #endif
-    //Set timer5 to 31khz so the PWM of the motor power is as constant as possible. (removes a buzzing noise)
-    TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
-  #endif
+  void Stepper::digipot_init() {
+    #if HAS(DIGIPOTSS)
+      const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
 
-  #if MB(ALLIGATOR)
-    set_driver_current();
-  #endif // MB(ALLIGATOR)
-}
+      SPI.begin();
+      SET_OUTPUT(DIGIPOTSS_PIN);
+      for (uint8_t i = 0; i < COUNT(digipot_motor_current); i++) {
+        //digitalPotWrite(digipot_ch[i], digipot_motor_current[i]);
+        digipot_current(i, digipot_motor_current[i]);
+      }
+    #elif HAS_MOTOR_CURRENT_PWM
+      #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
+        SET_OUTPUT(MOTOR_CURRENT_PWM_XY_PIN);
+        digipot_current(0, motor_current_setting[0]);
+      #endif
+      #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
+        SET_OUTPUT(MOTOR_CURRENT_PWM_Z_PIN);
+        digipot_current(1, motor_current_setting[1]);
+      #endif
+      #if PIN_EXISTS(MOTOR_CURRENT_PWM_E)
+        SET_OUTPUT(MOTOR_CURRENT_PWM_E_PIN);
+        digipot_current(2, motor_current_setting[2]);
+      #endif
+      //Set timer5 to 31khz so the PWM of the motor power is as constant as possible. (removes a buzzing noise)
+      TCCR5B = (TCCR5B & ~(_BV(CS50) | _BV(CS51) | _BV(CS52))) | _BV(CS50);
+    #endif
+  }
+
+  void Stepper::digipot_current(uint8_t driver, int current) {
+    #if HAS(DIGIPOTSS)
+      const uint8_t digipot_ch[] = DIGIPOT_CHANNELS;
+      digitalPotWrite(digipot_ch[driver], current);
+    #elif HAS(MOTOR_CURRENT_PWM)
+      #define _WRITE_CURRENT_PWM(P) analogWrite(P, 255L * current / (MOTOR_CURRENT_PWM_RANGE))
+      switch (driver) {
+        #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
+          case 0: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_XY_PIN); break;
+        #endif
+        #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
+          case 1: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_Z_PIN); break;
+        #endif
+        #if PIN_EXISTS(MOTOR_CURRENT_PWM_E)
+          case 2: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_E_PIN); break;
+        #endif
+      }
+    #endif
+  }
+
+#endif
 
 #if MB(ALLIGATOR)
   void Stepper::set_driver_current() {
@@ -1621,29 +1653,6 @@ void Stepper::digipot_init() {
     }
   }
 #endif
-
-void Stepper::digipot_current(uint8_t driver, int current) {
-  #if HAS(DIGIPOTSS)
-    const uint8_t digipot_ch[] = DIGIPOT_CHANNELS;
-    digitalPotWrite(digipot_ch[driver], current);
-  #elif HAS(MOTOR_CURRENT_PWM_XY)
-    #define _WRITE_CURRENT_PWM(P) analogWrite(P, 255L * current / (MOTOR_CURRENT_PWM_RANGE))
-    switch (driver) {
-      #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
-        case 0: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_XY_PIN); break;
-      #endif
-      #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
-        case 1: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_Z_PIN); break;
-      #endif
-      #if PIN_EXISTS(MOTOR_CURRENT_PWM_E)
-        case 2: _WRITE_CURRENT_PWM(MOTOR_CURRENT_PWM_E_PIN); break;
-      #endif
-    }
-  #else
-    UNUSED(driver);
-    UNUSED(current);
-  #endif
-}
 
 void Stepper::microstep_init() {
   #if HAS(MICROSTEPS_E1)

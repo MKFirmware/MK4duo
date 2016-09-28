@@ -822,12 +822,12 @@
  * low = filament run out                                                         *
  * Single extruder only at this point (extruder 0)                                *
  *                                                                                *
- * You also need to set FILRUNOUT_PIN in Configuration_pins.h                     *
+ * You also need to set FIL_RUNOUT_PIN in Configuration_pins.h                    *
  *                                                                                *
  **********************************************************************************/
 //#define FILAMENT_RUNOUT_SENSOR
 
-#define FILRUNOUT_PIN_INVERTING true  // Should be uncommented and true or false should assigned
+#define FIL_RUNOUT_PIN_INVERTING true // Should be uncommented and true or false should assigned
 #define ENDSTOPPULLUP_FIL_RUNOUT      // Uncomment to use internal pullup for filament runout pins if the sensor is defined.
 #define FILAMENT_RUNOUT_SCRIPT "M600" // Script execute when filament run out
 /**********************************************************************************/
