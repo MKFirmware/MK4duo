@@ -52,8 +52,8 @@
 #define ORIG_E3_ENABLE_PIN    40
 
 #define SDPOWER               -1
-#define SDSS                  59
-#define SD_DETECT_PIN         60
+#define SDSS                  60
+#define SD_DETECT_PIN         59
 #define LED_PIN               -1
 
 #define ORIG_FAN_PIN           6

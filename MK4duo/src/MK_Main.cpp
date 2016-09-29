@@ -1714,6 +1714,7 @@ static void clean_up_after_endstop_or_probe_move() {
   // Do a single Z probe and return with current_position[Z_AXIS]
   // at the height where the probe triggered.
   static float run_z_probe() {
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
     #endif
@@ -1725,6 +1726,12 @@ static void clean_up_after_endstop_or_probe_move() {
 
       // Do a first probe at the fast speed
       do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_FAST);
+
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        float first_probe_z = current_position[Z_AXIS];
+        if (DEBUGGING(LEVELING))
+          SERIAL_MV("1st Probe Z:", first_probe_z);
+      #endif
 
       // move up by the bump distance
       do_blocking_move_to_z(current_position[Z_AXIS] + home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
@@ -1744,6 +1751,14 @@ static void clean_up_after_endstop_or_probe_move() {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
+    #endif
+
+    // Debug: compare probe heights
+    #if ENABLED(PROBE_DOUBLE_TOUCH) && ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("2nd Probe Z:", current_position[Z_AXIS]);
+        SERIAL_EMV(" Discrepancy:", first_probe_z - current_position[Z_AXIS]);
+      }
     #endif
 
     return current_position[Z_AXIS];
@@ -1815,30 +1830,69 @@ static void clean_up_after_endstop_or_probe_move() {
 
 #endif // HAS(BED_PROBE)
 
-#if HAS(ABL)
-
+#if PLANNER_LEVELING
   /**
-   * Reset calibration results to zero.
+   * Turn bed leveling on or off, fixing the current
+   * position as-needed.
    *
-   * TODO: Proper functions to disable / enable
-   *       bed leveling via a flag, correcting the
-   *       current position in each case.
+   * Disable: Current position = physical position
+   *  Enable: Current position = "unleveled" physical position
    */
-  void reset_bed_level() {
-    planner.abl_enabled = false;
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("reset_bed_level");
-    #endif
-    #if ABL_PLANAR
-      planner.bed_level_matrix.set_to_identity();
-    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-        for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-          bed_level_grid[x][y] = 1000.0;
+  void set_bed_leveling_enabled(bool enable=true) {
+
+    #if ENABLED(MESH_BED_LEVELING)
+
+      if (!enable && mbl.active())
+        current_position[Z_AXIS] +=
+          mbl.get_z(RAW_CURRENT_POSITION(X_AXIS), RAW_CURRENT_POSITION(Y_AXIS)) - (MESH_HOME_SEARCH_Z);
+
+      mbl.set_active(enable && mbl.has_mesh()); // was set_has_mesh(). Is this not correct?
+
+    #elif HAS(ABL)
+
+      if (enable != planner.abl_enabled) {
+        planner.abl_enabled = !planner.abl_enabled;
+        if (!planner.abl_enabled)
+          set_current_from_steppers_for_axis(
+            #if ABL_PLANAR
+              ALL_AXES
+            #else
+              Z_AXIS
+            #endif
+          );
+        else
+          planner.unapply_leveling(current_position);
+      }
+
     #endif
   }
 
-#endif // AUTO_BED_LEVELING_FEATURE
+  /**
+   * Reset calibration results to zero.
+   */
+  void reset_bed_level() {
+    #if ENABLED(MESH_BED_LEVELING)
+      if (mbl.has_mesh()) {
+        set_bed_leveling_enabled(false);
+        mbl.reset();
+        mbl.set_has_mesh(false);
+      }
+    #else
+      planner.abl_enabled = false;
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("reset_bed_level");
+      #endif
+      #if ABL_PLANAR
+        planner.bed_level_matrix.set_to_identity();
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+            bed_level_grid[x][y] = 1000.0;
+      #endif
+    #endif
+  }
+
+#endif // PLANNER_LEVELING
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
@@ -1857,6 +1911,7 @@ static void clean_up_after_endstop_or_probe_move() {
         SERIAL_V((int)y);
         SERIAL_C(ydir ? (ydir > 0 ? '+' : '-') : ' ');
         SERIAL_C(']');
+        SERIAL_E;
       }
     #endif
     if (bed_level_grid[x][y] < 999.0) {
@@ -1864,11 +1919,6 @@ static void clean_up_after_endstop_or_probe_move() {
         if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
       #endif
       return;  // Don't overwrite good values.
-    }
-    else {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_E;
-      #endif
     }
 
     // Get X neighbors, Y neighbors, and XY neighbors
@@ -1947,29 +1997,33 @@ static void clean_up_after_endstop_or_probe_move() {
    * Print calibration results for plotting or manual frame adjustment.
    */
   static void print_bed_level() {
-    SERIAL_M("Bilinear Leveling Grid:\n ");
-    for (uint8_t x = 1; x < ABL_GRID_POINTS_X + 1; x++) {
-      SERIAL_M("    ");
-      if (x < 10) SERIAL_C(' ');
-      SERIAL_V((int)x);
-    }
-    SERIAL_E;
-    for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
-      if (y < 9) SERIAL_C(' ');
-      SERIAL_V(y + 1);
+    if (DEBUGGING(INFO)) {
+      SERIAL_LM(INFO, "Bilinear Leveling Grid:");
+      SERIAL_S(INFO);
       for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
-        SERIAL_C(' ');
-        float offset = bed_level_grid[x][y];
-        if (offset < 999.0) {
-          if (offset >= 0) SERIAL_C('+');
-          SERIAL_V(offset, 2);
+        SERIAL_M("    ");
+        if (x < 10) SERIAL_C(' ');
+        SERIAL_V((int)x);
+      }
+      SERIAL_E;
+      for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
+        SERIAL_S(INFO);
+        if (y < 10) SERIAL_C(' ');
+        SERIAL_V((int)y);
+        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
+          SERIAL_C(' ');
+          float offset = bed_level_grid[x][y];
+          if (offset < 999.0) {
+            if (offset >= 0) SERIAL_C('+');
+            SERIAL_V(offset, 2);
+          }
+          else
+            SERIAL_M(" ====");
         }
-        else
-          SERIAL_M(" ====");
+        SERIAL_E;
       }
       SERIAL_E;
     }
-    SERIAL_E;
   }
 
 #endif // AUTO_BED_LEVELING_BILINEAR
@@ -3824,7 +3878,7 @@ inline void gcode_G28() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       bool query = code_seen('Q');
       uint8_t old_debug_flags = mk_debug_flags;
-      if (query) mk_debug_flags |= DEBUG_INFO;
+      if (query) mk_debug_flags |= DEBUG_LEVELING;
       if (DEBUGGING(LEVELING)) {
         DEBUG_POS(">>> gcode_G29", current_position);
         log_machine_info();
@@ -3853,24 +3907,31 @@ inline void gcode_G28() {
 
     #if ABL_GRID
 
-      #if ABL_PLANAR
-        bool do_topography_map = verbose_level > 2 || code_seen('T');
-      #endif
-
       if (verbose_level > 0) {
         SERIAL_EM("G29 Auto Bed Leveling");
         if (dryrun) SERIAL_EM("Running in DRY-RUN mode");
       }
 
-      int abl_grid_points_x = ABL_GRID_POINTS_X,
-          abl_grid_points_y = ABL_GRID_POINTS_Y;
-
       #if ABL_PLANAR
+
+        bool do_topography_map = verbose_level > 2 || code_seen('T');
+
+        // X and Y specify points in each direction, overriding the default
+        // These values may be saved with the completed mesh
+        int abl_grid_points_x = code_seen('X') ? code_value_int() : ABL_GRID_POINTS_X,
+            abl_grid_points_y = code_seen('Y') ? code_value_int() : ABL_GRID_POINTS_Y;
+
         if (code_seen('P')) abl_grid_points_x = abl_grid_points_y = code_value_int();
-        if (abl_grid_points_x < 2) {
+
+        if (abl_grid_points_x < 2 || abl_grid_points_y < 2) {
           SERIAL_LM(ER, "?Number of probed (P)oints is implausible (2 minimum).\n");
           return;
         }
+
+      #else
+
+        const int abl_grid_points_x = ABL_GRID_POINTS_X, abl_grid_points_y = ABL_GRID_POINTS_Y;
+
       #endif
 
       xy_probe_feedrate_mm_s = MMM_TO_MMS(code_seen('S') ? code_value_linear_units() : XY_PROBE_SPEED);
@@ -3921,11 +3982,10 @@ inline void gcode_G28() {
     if (!dryrun) {
       // Re-orient the current position without leveling
       // based on where the steppers are positioned.
-      get_cartesian_from_steppers();
-      memcpy(current_position, cartes, sizeof(cartes));
+      set_current_from_steppers_for_axis(ALL_AXES);
 
-      // Inform the planner about the new coordinates
-      SYNC_PLAN_POSITION_KINEMATIC();
+      // Sync the planner to where the steppers stopped
+      planner.sync_from_steppers();
     }
 
     setup_for_endstop_or_probe_move();
@@ -3983,30 +4043,44 @@ inline void gcode_G28() {
 
       #endif // AUTO_BED_LEVELING_LINEAR
 
-      bool zig = abl_grid_points_y & 1; // always end at [RIGHT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION]
+      #if ENABLED(PROBE_Y_FIRST)
+        #define PR_OUTER_VAR xCount
+        #define PR_OUTER_END abl_grid_points_x
+        #define PR_INNER_VAR yCount
+        #define PR_INNER_END abl_grid_points_y
+      #else
+        #define PR_OUTER_VAR yCount
+        #define PR_OUTER_END abl_grid_points_y
+        #define PR_INNER_VAR xCount
+        #define PR_INNER_END abl_grid_points_x
+      #endif
 
-      for (uint8_t yCount = 0; yCount < abl_grid_points_y; yCount++) {
-        float yBase = front_probe_bed_position + yGridSpacing * yCount;
-        yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
+      bool zig = PR_OUTER_END & 1; // always end at [RIGHT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION]
 
-        int8_t xStart, xStop, xInc;
+      for (uint8_t PR_OUTER_VAR = 0; PR_OUTER_VAR < PR_OUTER_END; PR_OUTER_VAR++) {
+
+        int8_t inStart, inStop, inInc;
 
         if (zig) {
-          xStart = 0;
-          xStop = abl_grid_points_x;
-          xInc = 1;
+          inStart = 0;
+          inStop = PR_INNER_END;
+          inInc = 1;
         }
         else {
-          xStart = abl_grid_points_x - 1;
-          xStop = -1;
-          xInc = -1;
+          inStart = PR_INNER_END - 1;
+          inStop = -1;
+          inInc = -1;
         }
 
         zig = !zig;
 
-        for (int8_t xCount = xStart; xCount != xStop; xCount += xInc) {
-          float xBase = left_probe_bed_position + xGridSpacing * xCount;
+        for (int8_t PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
+
+          float xBase = left_probe_bed_position + xGridSpacing * xCount,
+                yBase = front_probe_bed_position + yGridSpacing * yCount;
+
           xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
+          yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
 
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
             indexIntoAB[xCount][yCount] = ++probePointCounter;
@@ -4167,7 +4241,7 @@ inline void gcode_G28() {
         SERIAL_E;
 
         if (verbose_level > 3) {
-          SERIAL_EM("Corrected Bed Height vs. Bed Topology:");
+          SERIAL_EM("\nCorrected Bed Height vs. Bed Topology:");
 
           for (int8_t yy = abl_grid_points_y - 1; yy >= 0; yy--) {
             for (uint8_t xx = 0; xx < abl_grid_points_x; xx++) {
@@ -4248,9 +4322,6 @@ inline void gcode_G28() {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("G29 corrected XYZ", current_position);
         #endif
-
-        SYNC_PLAN_POSITION_KINEMATIC();
-        abl_should_enable = true;
       }
 
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -4265,9 +4336,6 @@ inline void gcode_G28() {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) SERIAL_EMV(" corrected Z:", current_position[Z_AXIS]);
         #endif
-
-        SYNC_PLAN_POSITION_KINEMATIC();
-        abl_should_enable = true;
       }
 
     #endif // ABL_PLANAR
@@ -4293,6 +4361,8 @@ inline void gcode_G28() {
 
     // Auto Bed Leveling is complete! Enable if possible.
     planner.abl_enabled = dryrun ? abl_should_enable : true;
+
+    if (planner.abl_enabled) SYNC_PLAN_POSITION_KINEMATIC();
   }
 
 #endif // HAS_ABL
@@ -4304,15 +4374,9 @@ inline void gcode_G28() {
    */
   inline void gcode_G30() {
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_EM(">>> gcode_G30");
-        log_machine_info();
-      }
-    #endif
-
-    #if HAS(ABL)
-      reset_bed_level();
+    // Disable leveling so the planner won't mess with us
+    #if PLANNER_LEVELING
+      set_bed_leveling_enabled(false);
     #endif
 
     setup_for_endstop_or_probe_move();
@@ -4331,10 +4395,6 @@ inline void gcode_G28() {
     clean_up_after_endstop_or_probe_move();
 
     report_current_position();
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G30");
-    #endif
   }
 
   #if ENABLED(Z_PROBE_SLED)
@@ -7146,12 +7206,14 @@ inline void gcode_M400() { stepper.synchronize(); }
  */
 inline void gcode_M410() { quickstop_stepper(); }
 
-#if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
+#if PLANNER_LEVELING
   /**
-   * M420: Enable/Disable Mesh Bed Leveling
+   * M420: Enable/Disable Bed Leveling
    */
-  inline void gcode_M420() { if (code_seen('S')) mbl.set_has_mesh(code_value_bool()); }
+  inline void gcode_M420() { if (code_seen('S')) set_bed_leveling_enabled(code_value_bool()); }
+#endif
 
+#if ENABLED(MESH_BED_LEVELING)
   /**
    * M421: Set a single Mesh Bed Leveling Z coordinate
    * Use either 'M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>'
@@ -7185,7 +7247,7 @@ inline void gcode_M410() { quickstop_stepper(); }
       SERIAL_LM(ER, MSG_ERR_M421_PARAMETERS);
     }
   }
-#endif // MESH_BED_LEVELING && NO DELTA
+#endif // MESH_BED_LEVELING
 
 /**
  * M428: Set home_offset based on the distance between the
@@ -8566,10 +8628,10 @@ void process_next_command() {
       case 28: //G28: Home all axes, one at a time
         gcode_G28(); break;
 
-      #if HAS(ABL) || ENABLED(MESH_BED_LEVELING)
+      #if PLANNER_LEVELING
         case 29: // G29 Detailed Z probe, probes the bed at 3 or more points.
           gcode_G29(); break;
-      #endif // HAS_ABL
+      #endif // PLANNER_LEVELING
 
       #if HAS(BED_PROBE) && NOMECH(DELTA)
         case 30: // G30 Single Z Probe
@@ -9153,38 +9215,52 @@ void ok_to_send() {
           ratio_y = y / bilinear_grid_spacing[Y_AXIS];
 
     // Whole unit is the grid box index
-    int gridx = constrain(int(ratio_x), 0, ABL_GRID_POINTS_X - 2),
-        gridy = constrain(int(ratio_y), 0, ABL_GRID_POINTS_Y - 2);
+    const int gridx = constrain(int(ratio_x), 0, ABL_GRID_POINTS_X - 2),
+              gridy = constrain(int(ratio_y), 0, ABL_GRID_POINTS_Y - 2),
+              nextx = gridx + (x < PROBE_BED_WIDTH ? 1 : 0),
+              nexty = gridy + (y < PROBE_BED_HEIGHT ? 1 : 0);
 
     // Subtract whole to get the ratio within the grid box
-    ratio_x -= gridx, ratio_y -= gridy;
+    ratio_x = constrain(ratio_x - gridx, 0.0, 1.0);
+    ratio_y = constrain(ratio_y - gridy, 0.0, 1.0);
 
-          // Z at the box corners
+    // Z at the box corners
     const float z1 = bed_level_grid[gridx][gridy],         // left-front
                 z2 = bed_level_grid[gridx][gridy + 1],     // left-back
                 z3 = bed_level_grid[gridx + 1][gridy],     // right-front
                 z4 = bed_level_grid[gridx + 1][gridy + 1], // right-back
 
+                // Bilinear interpolate
                 L = z1 + (z2 - z1) * ratio_y,   // Linear interp. LF -> LB
-                R = z3 + (z4 - z3) * ratio_y;   // Linear interp. RF -> RB
+                R = z3 + (z4 - z3) * ratio_y,   // Linear interp. RF -> RB
+                offset = L + ratio_x * (R - L);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
-        SERIAL_MV("gridx=", gridx);
-        SERIAL_MV(" gridy=", gridy);
-        SERIAL_MV(" ratio_x=", ratio_x);
-        SERIAL_MV(" ratio_y=", ratio_y);
-        SERIAL_MV(" z1=", z1);
-        SERIAL_MV(" z2=", z2);
-        SERIAL_MV(" z3=", z3);
-        SERIAL_MV(" z4=", z4);
-        SERIAL_MV(" L=", L);
-        SERIAL_MV(" R=", R);
-        SERIAL_EMV(" offset=", L + ratio_x * (R - L));
+        static float last_offset = 0;
+        if (fabs(last_offset - offset) > 0.2) {
+          SERIAL_M("Sudden Shift at ");
+          SERIAL_MV("x=", x);
+          SERIAL_MV(" / ", bilinear_grid_spacing[X_AXIS]);
+          SERIAL_EMV(" -> gridx=", gridx);
+          SERIAL_MV(" y=", y);
+          SERIAL_MV(" / ", bilinear_grid_spacing[Y_AXIS]);
+          SERIAL_EMV(" -> gridy=", gridy);
+          SERIAL_MV(" ratio_x=", ratio_x);
+          SERIAL_EMV(" ratio_y=", ratio_y);
+          SERIAL_MV(" z1=", z1);
+          SERIAL_MV(" z2=", z2);
+          SERIAL_MV(" z3=", z3);
+          SERIAL_EMV(" z4=", z4);
+          SERIAL_MV(" L=", L);
+          SERIAL_MV(" R=", R);
+          SERIAL_EMV(" offset=", offset);
+        }
+        last_offset = offset;
       }
     #endif
 
-    return L + ratio_x * (R - L);
+    return offset;
   }
 
 #endif // AUTO_BED_LEVELING_BILINEAR
@@ -10189,16 +10265,8 @@ static void report_current_position() {
   stepper.report_positions();
 
   #if MECH(SCARA)
-    // MESSAGE for Host
-    SERIAL_MV("SCARA Theta:", delta[A_AXIS]);
-    SERIAL_EMV("   Psi+Theta:", delta[B_AXIS]);
-
-    SERIAL_MV("SCARA Cal - Theta:", delta[A_AXIS];
-    SERIAL_EMV("   Psi+Theta (90):", delta[B_AXIS] - delta[A_AXIS] - 90);
-
-    SERIAL_MV("SCARA step Cal - Theta:", delta[A_AXIS] / 90 * planner.axis_steps_per_mm[A_AXIS]);
-    SERIAL_EMV("   Psi+Theta:", (delta[B_AXIS] - delta[A_AXIS]) / 90 * planner.axis_steps_per_mm[Y_AXIS]);
-    SERIAL_E;
+    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
+    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
   #endif
 }
 

@@ -431,6 +431,9 @@
 // Works best with 5 or more points in each dimension.
 #define AUTO_BED_LEVELING_GRID_POINTS 9
 
+// Probe along the Y axis, advancing X after each column
+//#define PROBE_Y_FIRST
+
 /**
  * Commands to execute at the end of G29 probing.
  * Useful to retract or move the Z probe out of the way.
