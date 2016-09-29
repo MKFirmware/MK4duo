@@ -31,7 +31,6 @@ class Com {
     FSTRINGVAR(tError)                    // error for host
     FSTRINGVAR(tWait)                     // wait for host
     FSTRINGVAR(tEcho)                     // message for user
-    FSTRINGVAR(tDebug)                    // message for debug
     FSTRINGVAR(tConfig)                   // config for host
     FSTRINGVAR(tInfo)                     // info for host
     FSTRINGVAR(tBusy)                     // buys for host
@@ -75,7 +74,6 @@ class Com {
 #define ER          Com::tError
 #define WT          Com::tWait
 #define ECHO        Com::tEcho
-#define DEB         Com::tDebug
 #define CFG         Com::tConfig
 #define INFO        Com::tInfo
 #define BUSY        Com::tBusy
