@@ -29,7 +29,6 @@
 #define ER              "Error:"              // error for host
 #define WT              "wait"                // wait for host
 #define ECHO            "Echo:"               // message for user
-#define DEB             "Debug:"              // message for debug
 #define CFG             "Config:"             // config for host
 #define INFO            "Info:"               // info for host
 #define BUSY            "busy:"               // buys for host

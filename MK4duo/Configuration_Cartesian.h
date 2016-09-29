@@ -394,7 +394,7 @@
 
 /**
  * Enable detailed logging of G28, G29, G30, M48, etc.
- * Turn on with the command 'M111 S8'.
+ * Turn on with the command 'M111 S32'.
  * NOTE: Requires a lot of PROGMEM!
  */
 //#define DEBUG_LEVELING_FEATURE

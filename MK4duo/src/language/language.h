@@ -212,13 +212,14 @@
 #define MSG_ENDSTOP_PROBE                    " PROBE="
 
 // Debug
+#define MSG_DEBUG_PREFIX                     "DEBUG:"
 #define MSG_DEBUG_OFF                        "off"
 #define MSG_DEBUG_ECHO                       "ECHO"
 #define MSG_DEBUG_INFO                       "INFO"
 #define MSG_DEBUG_ERRORS                     "ERRORS"
 #define MSG_DEBUG_DRYRUN                     "DRYRUN"
 #define MSG_DEBUG_COMMUNICATION              "COMMUNICATION"
-#define MSG_DEBUG_ALL                        "ALL"
+#define MSG_DEBUG_LEVELING                   "LEVELING"
 
 //other
 #define MSG_BED_LEVELLING_BED                "Bed"

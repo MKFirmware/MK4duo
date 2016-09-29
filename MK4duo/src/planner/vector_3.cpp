@@ -141,7 +141,7 @@ matrix_3x3 matrix_3x3::transpose(matrix_3x3 original) {
 }
 
 void matrix_3x3::debug(const char title[]) {
-  SERIAL_LV(DEB, title);
+  SERIAL_T(title);
   int count = 0;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
