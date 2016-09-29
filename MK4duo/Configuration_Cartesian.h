@@ -412,6 +412,9 @@
 
 // The Z probe minimum outer margin (to validate G29 parameters).
 #define MIN_PROBE_EDGE 10
+
+// Probe along the Y axis, advancing X after each column
+//#define PROBE_Y_FIRST
 /** END **/
 
 /** if ENABLED(AUTO_BED_LEVELING_3POINT) **/

@@ -1347,6 +1347,12 @@ void Stepper::set_position(const long& x, const long& y, const long& z, const lo
   CRITICAL_SECTION_END;
 }
 
+void Stepper::set_position(const AxisEnum &axis, const long& v) {
+  CRITICAL_SECTION_START;
+  count_position[axis] = v;
+  CRITICAL_SECTION_END;
+}
+
 void Stepper::set_e_position(const long& e) {
   CRITICAL_SECTION_START;
   count_position[E_AXIS] = e;
@@ -1368,7 +1374,7 @@ long Stepper::position(AxisEnum axis) {
  * For CORE machines apply translation from ABC to XYZ.
  */
 float Stepper::get_axis_position_mm(AxisEnum axis) {
-  float axis_pos;
+  float axis_steps;
   #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
     if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
       CRITICAL_SECTION_START;
@@ -1377,15 +1383,15 @@ float Stepper::get_axis_position_mm(AxisEnum axis) {
       CRITICAL_SECTION_END;
       // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
       // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-      axis_pos = (pos1 + ((axis == CORE_AXIS_1) ? pos2 : -pos2)) * 0.5f;
+      axis_steps = (pos1 + ((axis == CORE_AXIS_1) ? pos2 : -pos2)) * 0.5f;
     }
     else
-      axis_pos = position(axis);
+      axis_steps = position(axis);
   #else
-    axis_pos = position(axis);
+    axis_steps = position(axis);
   #endif
 
-  return axis_pos * planner.steps_to_mm[axis];
+  return axis_steps * planner.steps_to_mm[axis];
 }
 
 void Stepper::enable_all_steppers() {

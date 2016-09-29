@@ -1279,7 +1279,8 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, float fr_mm_s, co
 } // buffer_line()
 
 /**
- * Directly set the planner XYZ position (hence the stepper positions).
+ * Directly set the planner XYZ position (and stepper positions)
+ * converting mm (or angles for SCARA) into steps.
  *
  * On CORE machines stepper ABC will be translated from the given XYZ.
  */
@@ -1301,13 +1302,20 @@ void Planner::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
 }
 
 /**
- * Directly set the planner E position (hence the stepper E position).
+ * Setters for planner position (also setting stepper position).
  */
-void Planner::set_e_position_mm(const float& e) {
-  position[E_AXIS] = lround(e * axis_steps_per_mm[E_AXIS + active_extruder]);
-  last_extruder = active_extruder;
-  stepper.set_e_position(position[E_AXIS]);
-  previous_speed[E_AXIS] = 0.0;
+void Planner::set_position_mm(const AxisEnum axis, const float& v) {
+
+  if (axis == E_AXIS) {
+    position[E_AXIS] = lround(v * axis_steps_per_mm[E_AXIS + active_extruder]);
+    last_extruder = active_extruder;
+  }
+  else {
+    position[axis] = lround(v * axis_steps_per_mm[axis]);
+  }
+
+  stepper.set_position(axis, v);
+  previous_speed[axis] = 0.0;
 }
 
 /**
