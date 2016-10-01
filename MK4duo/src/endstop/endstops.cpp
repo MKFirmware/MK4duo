@@ -320,7 +320,7 @@ void Endstops::update() {
 
           #if ENABLED(Z_DUAL_ENDSTOPS)
             UPDATE_ENDSTOP_BIT(Z, MIN);
-            #if HAS_Z2_MIN
+            #if HAS(Z2_MIN)
               UPDATE_ENDSTOP_BIT(Z2, MIN);
             #else
               COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
@@ -352,7 +352,7 @@ void Endstops::update() {
           #if ENABLED(Z_DUAL_ENDSTOPS)
 
             UPDATE_ENDSTOP_BIT(Z, MAX);
-            #if HAS_Z2_MAX
+            #if HAS(Z2_MAX)
               UPDATE_ENDSTOP_BIT(Z2, MAX);
             #else
               COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);

@@ -267,7 +267,6 @@
 // If the temperature difference between the target temperature and the actual temperature
 // is more then PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
 #define PID_FUNCTIONAL_RANGE 10         // degC
-#define PID_INTEGRAL_DRIVE_MAX PID_MAX  // Limit for the integral term
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
 // if Kc is chosen well, the additional required power due to increased melting should be compensated.
 //#define PID_ADD_EXTRUSION_RATE
@@ -309,7 +308,6 @@
 // so you shouldn't use it unless you are OK with PWM on your bed.  (see the comment on enabling PIDTEMPBED)
 #define MAX_BED_POWER 255 // limits duty cycle to bed; 255=full current
 
-#define PID_BED_INTEGRAL_DRIVE_MAX MAX_BED_POWER // limit for the integral term
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
 #define DEFAULT_bedKp   10.00
@@ -350,7 +348,6 @@
 // so you shouldn't use it unless you are OK with PWM on your chamber.  (see the comment on enabling PIDTEMPCHAMBER)
 #define MAX_CHAMBER_POWER 255 // limits duty cycle to chamber; 255=full current
 
-#define PID_CHAMBER_INTEGRAL_DRIVE_MAX MAX_CHAMBER_POWER // limit for the integral term
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
 #define DEFAULT_chamberKp   10.00
@@ -395,7 +392,6 @@
 // so you shouldn't use it unless you are OK with PWM on your cooler.  (see the comment on enabling PIDTEMPCOOLER)
 #define MAX_COOLER_POWER 255 // limits duty cycle to cooler; 255=full current
 
-#define PID_COOLER_INTEGRAL_DRIVE_MAX MAX_COOLER_POWER // limit for the integral term
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
 #define DEFAULT_coolerKp 10.00

@@ -2843,8 +2843,7 @@ bool position_is_reachable(float target[XYZ]
   #endif
 ) {
   float dx = RAW_X_POSITION(target[X_AXIS]),
-        dy = RAW_Y_POSITION(target[Y_AXIS]),
-        dz = RAW_Z_POSITION(target[Z_AXIS]);
+        dy = RAW_Y_POSITION(target[Y_AXIS]);
 
   #if HAS(BED_PROBE)
     if (by_probe) {
@@ -2863,6 +2862,7 @@ bool position_is_reachable(float target[XYZ]
   #elif MECH(DELTA)
     return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
   #else
+    const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return dx >= X_MIN_POS - 0.0001 && dx <= X_MAX_POS + 0.0001
         && dy >= Y_MIN_POS - 0.0001 && dy <= Y_MAX_POS + 0.0001
         && dz >= Z_MIN_POS - 0.0001 && dz <= Z_MAX_POS + 0.0001;
@@ -4087,7 +4087,7 @@ inline void gcode_G28() {
           #endif
 
           #if IS_KINEMATIC
-            // Avoid probing outside the round or hexagonal area of a delta printer
+            // Avoid probing outside the round or hexagonal area
             float pos[XYZ] = { xProbe, yProbe, 0 };
             if (!position_is_reachable(pos, true)) continue;
           #endif

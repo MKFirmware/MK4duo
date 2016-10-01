@@ -166,8 +166,6 @@ static volatile bool temp_meas_ready = false;
   #endif
   //int output;
   static float pid_error[HOTENDS];
-  static float temp_iState_min[HOTENDS];
-  static float temp_iState_max[HOTENDS];
   static bool pid_reset[HOTENDS];
 #endif //PIDTEMP
 #if ENABLED(PIDTEMPBED)
@@ -179,8 +177,6 @@ static volatile bool temp_meas_ready = false;
   static float dTerm_bed;
   //int output;
   static float pid_error_bed;
-  static float temp_iState_min_bed;
-  static float temp_iState_max_bed;
 #else // PIDTEMPBED
   static millis_t next_bed_check_ms;
 #endif // !PIDTEMPBED
@@ -193,8 +189,6 @@ static volatile bool temp_meas_ready = false;
   static float dTerm_chamber;
   //int output;
   static float pid_error_chamber;
-  static float temp_iState_min_chamber;
-  static float temp_iState_max_chamber;
 #else // PIDTEMPCHAMBER
   static millis_t next_chamber_check_ms;
 #endif // !PIDTEMPCHAMBER
@@ -207,8 +201,6 @@ static volatile bool temp_meas_ready = false;
   static float dTerm_cooler;
   //int output;
   static float pid_error_cooler;
-  static float temp_iState_min_cooler;
-  static float temp_iState_max_cooler;
 #else // PIDTEMPCOOLER
   static millis_t next_cooler_check_ms;
 #endif // !PIDTEMPCOOLER
@@ -618,17 +610,6 @@ void updatePID() {
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       last_e_position = 0;
     #endif
-    for (uint8_t h = 0; h < HOTENDS; h++)
-      temp_iState_max[h] = PID_INTEGRAL_DRIVE_MAX / PID_PARAM(Ki, h);
-  #endif
-  #if ENABLED(PIDTEMPBED)
-    temp_iState_max_bed = PID_BED_INTEGRAL_DRIVE_MAX / bedKi;
-  #endif
-  #if ENABLED(PIDTEMPCHAMBER)
-	 temp_iState_max_chamber = PID_CHAMBER_INTEGRAL_DRIVE_MAX / chamberKi;
-  #endif
-  #if ENABLED(PIDTEMPCOOLER)
-	 temp_iState_max_cooler = PID_COOLER_INTEGRAL_DRIVE_MAX / coolerKi;
   #endif
 }
 
@@ -756,8 +737,6 @@ float get_pid_output(int h) {
           pid_reset[HOTEND_INDEX] = false;
         }
         pTerm[HOTEND_INDEX] = PID_PARAM(Kp, HOTEND_INDEX) * pid_error[HOTEND_INDEX];
-        temp_iState[HOTEND_INDEX] += pid_error[HOTEND_INDEX];
-        temp_iState[HOTEND_INDEX] = constrain(temp_iState[HOTEND_INDEX], temp_iState_min[HOTEND_INDEX], temp_iState_max[HOTEND_INDEX]);
         iTerm[HOTEND_INDEX] = PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX];
 
         pid_output = pTerm[HOTEND_INDEX] + iTerm[HOTEND_INDEX] - dTerm[HOTEND_INDEX];
@@ -822,7 +801,6 @@ float get_pid_output(int h) {
       pid_error_bed = target_temperature_bed - current_temperature_bed;
       pTerm_bed = bedKp * pid_error_bed;
       temp_iState_bed += pid_error_bed;
-      temp_iState_bed = constrain(temp_iState_bed, temp_iState_min_bed, temp_iState_max_bed);
       iTerm_bed = bedKi * temp_iState_bed;
 
       dTerm_bed = K2 * bedKd * (current_temperature_bed - temp_dState_bed) + K1 * dTerm_bed;
@@ -862,7 +840,6 @@ float get_pid_output(int h) {
       pid_error_chamber = target_temperature_chamber - current_temperature_chamber;
       pTerm_chamber = chamberKp * pid_error_chamber;
       temp_iState_chamber += pid_error_chamber;
-      temp_iState_chamber = constrain(temp_iState_chamber, temp_iState_min_chamber, temp_iState_max_chamber);
       iTerm_chamber = chamberKi * temp_iState_chamber;
 
       dTerm_chamber = K2 * chamberKd * (current_temperature_chamber - temp_dState_chamber) + K1 * dTerm_chamber;
@@ -907,7 +884,6 @@ float get_pid_output(int h) {
       pid_error_cooler = current_temperature_cooler - target_temperature_cooler;
       pTerm_cooler = coolerKp * pid_error_cooler;
       temp_iState_cooler += pid_error_cooler;
-      temp_iState_cooler = constrain(temp_iState_cooler, temp_iState_min_cooler, temp_iState_max_cooler);
       iTerm_cooler = coolerKi * temp_iState_cooler;
 
       //dTerm_cooler = K2 * coolerKd * (current_temperature_cooler - temp_dState_cooler) + K1 * dTerm_cooler;
@@ -1429,26 +1405,7 @@ void tp_init() {
   for (uint8_t h = 0; h < HOTENDS; h++) {
     // populate with the first value
     maxttemp[h] = maxttemp[0];
-    #if ENABLED(PIDTEMP)
-      temp_iState_min[h] = 0.0;
-      temp_iState_max[h] = PID_INTEGRAL_DRIVE_MAX / PID_PARAM(Ki, h);
-    #endif //PIDTEMP
   }
-
-  #if ENABLED(PIDTEMPBED)
-    temp_iState_min_bed = 0.0;
-    temp_iState_max_bed = PID_BED_INTEGRAL_DRIVE_MAX / bedKi;
-  #endif // PIDTEMPBED
-
-  #if ENABLED(PIDTEMPCHAMBER)
-    temp_iState_min_chamber = 0.0;
-    temp_iState_max_chamber = PID_CHAMBER_INTEGRAL_DRIVE_MAX / chamberKi;
-  #endif
-
-  #if ENABLED(PIDTEMPCOOLER)
-    temp_iState_min_cooler = 0.0;
-    temp_iState_max_cooler = PID_COOLER_INTEGRAL_DRIVE_MAX / coolerKi;
-  #endif
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
