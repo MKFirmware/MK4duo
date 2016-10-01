@@ -237,9 +237,6 @@
   #if DISABLED(PID_OPENLOOP) && DISABLED(PID_FUNCTIONAL_RANGE) 
     #error DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE
   #endif
-  #if DISABLED(PID_INTEGRAL_DRIVE_MAX)
-    #error DEPENDENCY ERROR: Missing setting PID_INTEGRAL_DRIVE_MAX
-  #endif
   #if DISABLED(DEFAULT_Kp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_Kp
   #endif
@@ -251,9 +248,6 @@
   #endif
 #endif
 #if ENABLED(PIDTEMPBED)
-  #if DISABLED(PID_BED_INTEGRAL_DRIVE_MAX)
-    #error DEPENDENCY ERROR: Missing setting PID_BED_INTEGRAL_DRIVE_MAX
-  #endif
   #if DISABLED(DEFAULT_bedKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKp
   #endif
@@ -265,9 +259,6 @@
   #endif
 #endif
 #if ENABLED(PIDTEMPCHAMBER)
-  #if DISABLED(PID_CHAMBER_INTEGRAL_DRIVE_MAX)
-     #error DEPENDENCY ERROR: Missing setting PID_CHAMBER_INTEGRAL_DRIVE_MAX
-  #endif
   #if DISABLED(DEFAULT_chamberKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_chamberKp
   #endif
@@ -280,9 +271,6 @@
 
 #endif
 #if ENABLED(PIDTEMPCOOLER)
-  #if DISABLED(PID_COOLER_INTEGRAL_DRIVE_MAX)
-     #error DEPENDENCY ERROR: Missing setting PID_COOLER_INTEGRAL_DRIVE_MAX
-  #endif
   #if DISABLED(DEFAULT_coolerKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_coolerKp
   #endif
