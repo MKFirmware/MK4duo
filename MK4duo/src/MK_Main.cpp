@@ -618,6 +618,45 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   }
 #endif
 
+#if MB(ULTRATRONICS)
+  void setup_ultratronics_board() {
+    /* avoid floating pins */
+    SET_OUTPUT(ORIG_FAN_PIN);
+    WRITE(ORIG_FAN_PIN,LOW);
+    SET_OUTPUT(ORIG_FAN2_PIN);
+    WRITE(ORIG_FAN2_PIN,LOW);
+    SET_OUTPUT(ORIG_TEMP_BED_PIN);
+    WRITE(ORIG_TEMP_BED_PIN,LOW);
+    SET_OUTPUT(ORIG_HEATER_0_PIN);
+    WRITE(ORIG_HEATER_0_PIN,LOW);
+    SET_OUTPUT(ORIG_HEATER_1_PIN);
+    WRITE(ORIG_HEATER_1_PIN,LOW);
+    SET_OUTPUT(ORIG_HEATER_2_PIN);
+    WRITE(ORIG_HEATER_2_PIN,LOW);
+    SET_OUTPUT(ORIG_HEATER_3_PIN);
+    WRITE(ORIG_HEATER_3_PIN,LOW);
+    
+    /* setup CS pins */
+    SET_OUTPUT(MAX31855_SS0);
+    WRITE(MAX31855_SS0,HIGH);
+    SET_OUTPUT(MAX31855_SS1);
+    WRITE(MAX31855_SS1,HIGH);
+    SET_OUTPUT(MAX31855_SS2);
+    WRITE(MAX31855_SS2,HIGH);
+    SET_OUTPUT(MAX31855_SS3);
+    WRITE(MAX31855_SS3,HIGH);
+    
+    SET_OUTPUT(ENC424_SS);
+    WRITE(ENC424_SS,HIGH);
+    SET_OUTPUT(SDSS);
+    WRITE(SDSS,HIGH);
+    
+    SET_INPUT(MISO);
+    SET_OUTPUT(MOSI);
+    SET_OUTPUT(SS);
+  }
+#endif // ULTRATRONICS
+
 void setup_killpin() {
   #if HAS(KILL)
     SET_INPUT(KILL_PIN);
@@ -11047,7 +11086,11 @@ void setup() {
   #if MB(ALLIGATOR)
     setup_alligator_board(); // Initialize Alligator Board
   #endif
-
+  
+  #if MB(ULTRATRONICS)
+    setup_ultratronics_board(); // Initialize Alligator Board
+  #endif
+  
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     setup_filrunoutpin();
   #endif
