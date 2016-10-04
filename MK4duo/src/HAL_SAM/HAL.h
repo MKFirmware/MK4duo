@@ -146,15 +146,15 @@ volatile static uint32_t debug_counter;
 /**
  * Setting Serial
  */
-#if MSG_PORT == -1
+#if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
-#elif MSG_PORT == 0
+#elif SERIAL_PORT == 0
   #define MKSERIAL Serial
-#elif MSG_PORT == 1
+#elif SERIAL_PORT == 1
   #define MKSERIAL Serial1
-#elif MSG_PORT == 2
+#elif SERIAL_PORT == 2
   #define MKSERIAL Serial2
-#elif MSG_PORT == 3
+#elif SERIAL_PORT == 3
   #define MKSERIAL Serial3
 #endif
 
