@@ -314,7 +314,7 @@ static void updateTemperaturesFromRawValues();
 #endif
 
 #if ENABLED(HEATER_0_USES_MAX6675)
-  static int16_t read_max6675();
+  static int read_max6675();
 #endif
 
 //===========================================================================
@@ -1897,7 +1897,7 @@ void disable_all_coolers() {
 
     // ensure 100ns delay - a bit extra is fine
     #ifdef __SAM3X8E__
-      HAL_delayMicroseconds(1);
+      HAL::delayMicroseconds(1);
     #else
       asm("nop");//50ns on 20Mhz, 62.5ns on 16Mhz
       asm("nop");//50ns on 20Mhz, 62.5ns on 16Mhz
@@ -1907,7 +1907,7 @@ void disable_all_coolers() {
     max6675_temp = 0;
     for (uint8_t i = sizeof(max6675_temp); i--;) {
       #ifdef __SAM3X8E__
-        max6675_temp = HAL::spiReceive();
+        max6675_temp |= HAL::spiReceive();
       #else
         SPDR = 0;
         for (;!TEST(SPSR, SPIF););
