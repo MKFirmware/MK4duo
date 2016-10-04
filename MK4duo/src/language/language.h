@@ -114,6 +114,7 @@
 #define MSG_ERR_MATERIAL_INDEX               "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS              "M421 requires XYZ or IJZ parameters"
 #define MSG_ERR_MESH_XY                      "Mesh XY or IJ cannot be resolved"
+#define MSG_ERR_ARC_ARGS                     "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN                "Protected Pin"
 #define MSG_ERR_M428_TOO_FAR                 "Too far from reference point"
 #define MSG_M119_REPORT                      "Reporting endstop status"

@@ -134,12 +134,10 @@ class Planner {
     static millis_t min_segment_time;
     static float  min_feedrate_mm_s,
                   min_travel_feedrate_mm_s,
-                  acceleration,                    // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
-                  retract_acceleration[EXTRUDERS], // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
-                  travel_acceleration,             // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-                  max_xy_jerk,                     // The largest speed change requiring no acceleration
-                  max_z_jerk,
-                  max_e_jerk[EXTRUDERS];
+                  acceleration,                     // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
+                  retract_acceleration[EXTRUDERS],  // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+                  travel_acceleration,              // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
+                  max_jerk[XYZEn];                  // The largest speed change requiring no acceleration
 
     #if HAS(ABL)
       static bool abl_enabled;            // Flag that bed leveling is enabled

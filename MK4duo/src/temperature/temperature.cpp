@@ -427,8 +427,8 @@ void autotempShutdown() {
         else  
           input = current_temperature[temp_controller];
 
-        max = max(max, input);
-        min = min(min, input);
+        NOLESS(max, input);
+        NOMORE(min, input);
 
         #if HAS(AUTO_FAN)
           if (ELAPSED(ms, next_auto_fan_check_ms)) {

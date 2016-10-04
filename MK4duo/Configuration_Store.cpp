@@ -38,11 +38,11 @@
 
 #include "base.h"
 
-#define EEPROM_VERSION "MKV28"
+#define EEPROM_VERSION "MKV29"
 #define EEPROM_OFFSET 100
 
 /**
- * MKV428 EEPROM Layout:
+ * MKV429 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -56,7 +56,8 @@
  *  M205  S               planner.min_feedrate_mm_s (float)
  *  M205  T               planner.min_travel_feedrate_mm_s (float)
  *  M205  B               planner.min_segment_time (ulong)
- *  M205  X               planner.max_xy_jerk (float)
+ *  M205  X               planner.max_x_jerk (float)
+ *  M205  Y               planner.max_y_jerk (float)
  *  M205  Z               planner.max_z_jerk (float)
  *  M205  E   E0 ...      planner.max_e_jerk (float x6)
  *  M206  XYZ             home_offset (float x3)
@@ -220,9 +221,7 @@ void Config_StoreSettings() {
   EEPROM_WRITE(planner.min_feedrate_mm_s);
   EEPROM_WRITE(planner.min_travel_feedrate_mm_s);
   EEPROM_WRITE(planner.min_segment_time);
-  EEPROM_WRITE(planner.max_xy_jerk);
-  EEPROM_WRITE(planner.max_z_jerk);
-  EEPROM_WRITE(planner.max_e_jerk);
+  EEPROM_WRITE(planner.max_jerk);
   EEPROM_WRITE(home_offset);
   EEPROM_WRITE(hotend_offset);
 
@@ -397,9 +396,7 @@ void Config_RetrieveSettings() {
     EEPROM_READ(planner.min_feedrate_mm_s);
     EEPROM_READ(planner.min_travel_feedrate_mm_s);
     EEPROM_READ(planner.min_segment_time);
-    EEPROM_READ(planner.max_xy_jerk);
-    EEPROM_READ(planner.max_z_jerk);
-    EEPROM_READ(planner.max_e_jerk);
+    EEPROM_READ(planner.max_jerk);
     EEPROM_READ(home_offset);
     EEPROM_READ(hotend_offset);
 
@@ -572,7 +569,7 @@ void Config_ResetDefault() {
 
   for (int8_t i = 0; i < EXTRUDERS; i++) {
     planner.retract_acceleration[i] = tmp4[i];
-    planner.max_e_jerk[i] = tmp5[i];
+    planner.max_jerk[E_AXIS + i] = tmp5[i];
   }
 
   for (int8_t i = 0; i < HOTENDS; i++) {
@@ -592,8 +589,9 @@ void Config_ResetDefault() {
   planner.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
   planner.min_segment_time = DEFAULT_MINSEGMENTTIME;
   planner.min_travel_feedrate_mm_s = DEFAULT_MINTRAVELFEEDRATE;
-  planner.max_xy_jerk = DEFAULT_XYJERK;
-  planner.max_z_jerk = DEFAULT_ZJERK;
+  planner.max_jerk[X_AXIS] = DEFAULT_XJERK;
+  planner.max_jerk[Y_AXIS] = DEFAULT_YJERK;
+  planner.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
   home_offset[X_AXIS] = home_offset[Y_AXIS] = home_offset[Z_AXIS] = 0;
 
   #if ENABLED(MESH_BED_LEVELING)
@@ -713,7 +711,7 @@ void Config_PrintSettings(bool forReplay) {
   SERIAL_MV(" Z", planner.axis_steps_per_mm[Z_AXIS]);
   SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS]);
   #if EXTRUDERS > 1
-    for (short i = 1; i < EXTRUDERS; i++) {
+    for (int8_t i = 1; i < EXTRUDERS; i++) {
       SERIAL_SMV(CFG, "  M92 T", i);
       SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS + i]);
     }
@@ -725,7 +723,7 @@ void Config_PrintSettings(bool forReplay) {
   SERIAL_MV(" Z", planner.max_feedrate_mm_s[Z_AXIS] );
   SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS]);
   #if EXTRUDERS > 1
-    for (short i = 1; i < EXTRUDERS; i++) {
+    for (int8_t i = 1; i < EXTRUDERS; i++) {
       SERIAL_SMV(CFG, "  M203 T", i);
       SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i]);
     }
@@ -753,17 +751,18 @@ void Config_PrintSettings(bool forReplay) {
     }
   #endif
 
-  CONFIG_MSG_START("Advanced variables: S=Min feedrate (mm/s), V=Min travel feedrate (mm/s), B=minimum segment time (ms), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)");
+  CONFIG_MSG_START("Advanced variables: S=Min feedrate (mm/s), V=Min travel feedrate (mm/s), B=minimum segment time (ms), X=maximum X jerk (mm/s), Y=maximum Y jerk (mm/s), Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)");
   SERIAL_SMV(CFG, "  M205 S", planner.min_feedrate_mm_s );
   SERIAL_MV(" V", planner.min_travel_feedrate_mm_s );
   SERIAL_MV(" B", planner.min_segment_time );
-  SERIAL_MV(" X", planner.max_xy_jerk );
-  SERIAL_MV(" Z", planner.max_z_jerk);
-  SERIAL_EMV(" E", planner.max_e_jerk[0]);
+  SERIAL_MV(" X", planner.max_jerk[X_AXIS]);
+  SERIAL_MV(" Y", planner.max_jerk[Y_AXIS]);
+  SERIAL_MV(" Z", planner.max_jerk[Z_AXIS]);
+  SERIAL_EMV(" E", planner.max_jerk[E_AXIS]);
   #if (EXTRUDERS > 1)
     for(int8_t i = 1; i < EXTRUDERS; i++) {
       SERIAL_SMV(CFG, "  M205 T", i);
-      SERIAL_EMV(" E" , planner.max_e_jerk[i]);
+      SERIAL_EMV(" E" , planner.max_jerk[E_AXIS + i]);
     }
   #endif
 
