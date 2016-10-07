@@ -21,24 +21,8 @@
  */
 
 /**
-  temperature.cpp - temperature control
-  Part of Marlin
-
- Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * temperature.cpp - temperature control
+ */
 
 #include "../../base.h"
 
@@ -737,6 +721,7 @@ float get_pid_output(int h) {
           pid_reset[HOTEND_INDEX] = false;
         }
         pTerm[HOTEND_INDEX] = PID_PARAM(Kp, HOTEND_INDEX) * pid_error[HOTEND_INDEX];
+        temp_iState[HOTEND_INDEX] += pid_error[HOTEND_INDEX];
         iTerm[HOTEND_INDEX] = PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX];
 
         pid_output = pTerm[HOTEND_INDEX] + iTerm[HOTEND_INDEX] - dTerm[HOTEND_INDEX];
@@ -954,7 +939,7 @@ void manage_temp_controller() {
     #if ENABLED(THERMAL_PROTECTION_HOTENDS)
 
       // Is it time to check this extruder's heater?
-      if (watch_heater_next_ms[h] && ms > watch_heater_next_ms[h]) {
+      if (watch_heater_next_ms[h] && ELAPSED(ms, watch_heater_next_ms[h])) {
         // Has it failed to increase enough?
         if (degHotend(h) < watch_target_temp[h]) {
           // Stop!
@@ -1017,17 +1002,17 @@ void manage_temp_controller() {
   #endif // FILAMENT_SENSOR
 
   #if HAS(TEMP_BED) && DISABLED(PIDTEMPBED)
-    if (ms < next_bed_check_ms) return;
+    if (PENDING(ms, next_bed_check_ms)) return;
     next_bed_check_ms = ms + BED_CHECK_INTERVAL;
   #endif
 
   #if HAS(TEMP_CHAMBER) && DISABLED(PIDTEMPCHAMBER)
-    if (ms < next_chamber_check_ms) return;
+    if (PENDING(ms, next_chamber_check_ms)) return;
     next_chamber_check_ms = ms + CHAMBER_CHECK_INTERVAL;
   #endif
 
   #if HAS(TEMP_COOLER) && DISABLED(PIDTEMPCOOLER)
-    if (ms < next_cooler_check_ms) return;
+    if (PENDING(ms, next_cooler_check_ms)) return;
     next_cooler_check_ms = ms + COOLER_CHECK_INTERVAL;
   #endif
 
@@ -1749,37 +1734,26 @@ void tp_init() {
       temp_controller_index = HOTENDS + 2; // COOLER
 
     // If the target temperature changes, restart
-    if (tr_target_temperature[temp_controller_index] != target_temperature)
+    if (tr_target_temperature[temp_controller_index] != target_temperature) {
       tr_target_temperature[temp_controller_index] = target_temperature;
-
-    *state = target_temperature > 0 ? TRFirstRunning : TRInactive;
+      *state = target_temperature > 0 ? TRFirstRunning : TRInactive;
+    }
 
     switch (*state) {
       // Inactive state waits for a target temperature to be set
       case TRInactive: break;
       // When first heating/cooling, wait for the temperature to be reached then go to Stable state
       case TRFirstRunning:
-        if (temperature < tr_target_temperature[temp_controller_index] && temp_controller_index > HOTENDS) break;
-        else if ((temperature > tr_target_temperature[temp_controller_index] && temp_controller_index <= HOTENDS)) break;
+        if (temperature < tr_target_temperature[temp_controller_index] break;
         *state = TRStable;
       // While the temperature is stable watch for a bad temperature
       case TRStable:
-        if (temp_controller_index <= HOTENDS) { // HOTENDS
-          if (temperature < tr_target_temperature[temp_controller_index] - hysteresis_degc && ELAPSED(millis(), *timer))
-            *state = TRRunaway;
-          else {
-            *timer = millis() + period_seconds * 1000UL;
-            break;
-          }
+        if (temperature >= tr_target_temperature[temp_controller_index] - hysteresis_degc) {
+          *timer = millis() + period_seconds * 1000UL;
+          break;
         }
-        else { // COOLERS
-          if (temperature > tr_target_temperature[temp_controller_index] + hysteresis_degc && ELAPSED(millis(), *timer))
-            *state = TRRunaway;
-          else {
-            *timer = millis() + period_seconds * 1000UL;
-            break;
-          }
-        }
+        else if (PENDING(millis(), *timer)) break;
+        *state = TRRunaway;
       case TRRunaway:
         _temp_error(temp_controller_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
     }
