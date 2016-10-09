@@ -7995,7 +7995,7 @@ inline void gcode_T(uint8_t tmp_extruder) {
   }
 #endif
 
-#if ENABLED(DONDOLO)
+#if HAS(DONDOLO)
   inline void move_extruder_servo(uint8_t e) {
     const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
     MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
