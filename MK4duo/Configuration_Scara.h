@@ -499,13 +499,17 @@
  ************************************* Axis jerk *****************************************
  *****************************************************************************************
  *                                                                                       *
- * The speed change that does not require acceleration.                                  *
- * (i.e. the software might assume it can be done instantaneously)                       *
+ * Defult Jerk (mm/s)                                                                    *
+ *                                                                                       *
+ * "Jerk" specifies the minimum speed change that requires acceleration.                 *
+ * When changing speed and direction, if the difference is less than the                 *
+ * value set here, it may happen instantaneously.                                        *
  *                                                                                       *
  *****************************************************************************************/
-#define DEFAULT_XYJERK 10.0                 // (mm/sec)
-#define DEFAULT_ZJERK   0.4                 // (mm/sec)
-//  max initial speed for retract moves   E0... (mm/sec) per extruder
+#define DEFAULT_XJERK 10.0
+#define DEFAULT_YJERK 10.0
+#define DEFAULT_ZJERK  0.4
+// E0... (mm/sec) per extruder
 #define DEFAULT_EJERK                   {5.0, 5.0, 5.0, 5.0}
 /*****************************************************************************************/
 

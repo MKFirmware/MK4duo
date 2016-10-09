@@ -498,7 +498,7 @@ static void report_current_position();
   #endif
 
   #define DEBUG_POS(SUFFIX,VAR)       do{ \
-    print_xyz(PSTR(STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+    print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
 #endif
 
 /**
@@ -617,6 +617,32 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
     #endif
   }
 #endif
+
+#if MB(ULTRATRONICS)
+  void setup_ultratronics_board() {
+    /* avoid floating pins */
+    OUT_WRITE(ORIG_FAN_PIN, LOW);
+    OUT_WRITE(ORIG_FAN2_PIN, LOW);
+    OUT_WRITE(ORIG_TEMP_BED_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
+
+    /* setup CS pins */
+    OUT_WRITE(MAX31855_SS0, HIGH);
+    OUT_WRITE(MAX31855_SS1, HIGH);
+    OUT_WRITE(MAX31855_SS2, HIGH);
+    OUT_WRITE(MAX31855_SS3, HIGH);
+
+    OUT_WRITE(ENC424_SS, HIGH);
+    OUT_WRITE(SDSS, HIGH);
+
+    SET_INPUT(MISO);
+    SET_OUTPUT(MOSI);
+    SET_OUTPUT(SS);
+  }
+#endif // ULTRATRONICS
 
 void setup_killpin() {
   #if HAS(KILL)
@@ -1198,7 +1224,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_EM(")");
+      SERIAL_C(')'); SERIAL_E;
     }
   #endif
 
@@ -1290,7 +1316,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
       SERIAL_EMV("] = ", home_offset[axis]);
       DEBUG_POS("", current_position);
       SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_EM(")");
+      SERIAL_C(')'); SERIAL_E;
     }
   #endif
 }
@@ -1513,7 +1539,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("do_probe_raise(", z_raise);
-        SERIAL_EM(")");
+        SERIAL_C(')'); SERIAL_E;
       }
     #endif
 
@@ -1568,7 +1594,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("dock_sled(", stow);
-        SERIAL_EM(")");
+        SERIAL_C(')'); SERIAL_E;
       }
     #endif
 
@@ -1619,6 +1645,12 @@ static void clean_up_after_endstop_or_probe_move() {
   #if ENABLED(BLTOUCH)
     FORCE_INLINE void set_bltouch_deployed(const bool &deploy) {
       servo[Z_ENDSTOP_SERVO_NR].move(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) {
+          SERIAL_MV("set_bltouch_deployed(", deploy);
+          SERIAL_C(')'); SERIAL_E;
+        }
+      #endif
     }
   #endif
 
@@ -1729,8 +1761,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         float first_probe_z = current_position[Z_AXIS];
-        if (DEBUGGING(LEVELING))
-          SERIAL_MV("1st Probe Z:", first_probe_z);
+        if (DEBUGGING(LEVELING)) SERIAL_MV("1st Probe Z:", first_probe_z);
       #endif
 
       // move up by the bump distance
@@ -1741,6 +1772,7 @@ static void clean_up_after_endstop_or_probe_move() {
       // If the nozzle is above the travel height then
       // move down quickly before doing the slow probe
       float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
+      if (zprobe_zoffset < 0) z -= zprobe_zoffset;
       if (z < current_position[Z_AXIS])
         do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
@@ -1779,7 +1811,7 @@ static void clean_up_after_endstop_or_probe_move() {
         SERIAL_MV(">>> probe_pt(", x);
         SERIAL_MV(", ", y);
         SERIAL_MV(", ", stow ? "stow" : "no stow");
-        SERIAL_EM(")");
+        SERIAL_C(')'); SERIAL_E;
         DEBUG_POS("", current_position);
       }
     #endif
@@ -1788,15 +1820,6 @@ static void clean_up_after_endstop_or_probe_move() {
 
     // Ensure a minimum height before moving the probe
     do_probe_raise(Z_PROBE_BETWEEN_HEIGHT);
-
-    // Move to the XY where we shall probe
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_MV("> do_blocking_move_to_xy(", x - (X_PROBE_OFFSET_FROM_NOZZLE));
-        SERIAL_MV(", ", y - (Y_PROBE_OFFSET_FROM_NOZZLE));
-        SERIAL_EM(")");
-      }
-    #endif
 
     feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
@@ -1997,33 +2020,31 @@ static void clean_up_after_endstop_or_probe_move() {
    * Print calibration results for plotting or manual frame adjustment.
    */
   static void print_bed_level() {
-    if (DEBUGGING(INFO)) {
-      SERIAL_LM(INFO, "Bilinear Leveling Grid:");
-      SERIAL_S(INFO);
+    SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
+    SERIAL_S(ECHO);
+    for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
+      SERIAL_M("    ");
+      if (x < 10) SERIAL_C(' ');
+      SERIAL_V((int)x);
+    }
+    SERIAL_E;
+    for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
+      SERIAL_S(ECHO);
+      if (y < 10) SERIAL_C(' ');
+      SERIAL_V((int)y);
       for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
-        SERIAL_M("    ");
-        if (x < 10) SERIAL_C(' ');
-        SERIAL_V((int)x);
-      }
-      SERIAL_E;
-      for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
-        SERIAL_S(INFO);
-        if (y < 10) SERIAL_C(' ');
-        SERIAL_V((int)y);
-        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
-          SERIAL_C(' ');
-          float offset = bed_level_grid[x][y];
-          if (offset < 999.0) {
-            if (offset >= 0) SERIAL_C('+');
-            SERIAL_V(offset, 2);
-          }
-          else
-            SERIAL_M(" ====");
+        SERIAL_C(' ');
+        float offset = bed_level_grid[x][y];
+        if (offset < 999.0) {
+          if (offset >= 0) SERIAL_C('+');
+          SERIAL_V(offset, 2);
         }
-        SERIAL_E;
+        else
+          SERIAL_M(" ====");
       }
       SERIAL_E;
     }
+    SERIAL_E;
   }
 
 #endif // AUTO_BED_LEVELING_BILINEAR
@@ -2032,6 +2053,15 @@ static void clean_up_after_endstop_or_probe_move() {
  * Home an individual linear axis
  */
 static void do_homing_move(AxisEnum axis, float distance, float fr_mm_s=0.0) {
+
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+    if (DEBUGGING(LEVELING)) {
+      SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
+      SERIAL_MV(", ", distance);
+      SERIAL_MV(", ", fr_mm_s);
+      SERIAL_C(')'); SERIAL_E;
+    }
+  #endif
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
     bool deploy_bltouch = (axis == Z_AXIS && distance < 0);
@@ -2059,6 +2089,13 @@ static void do_homing_move(AxisEnum axis, float distance, float fr_mm_s=0.0) {
   #endif
 
   endstops.hit_on_purpose();
+
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+    if (DEBUGGING(LEVELING)) {
+      SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
+      SERIAL_C(')'); SERIAL_E;
+    }
+  #endif
 }
 
 /**
@@ -2087,7 +2124,7 @@ static void homeaxis(AxisEnum axis) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-      SERIAL_EM(")");
+      SERIAL_C(')'); SERIAL_E;
     }
   #endif
 
@@ -2129,8 +2166,14 @@ static void homeaxis(AxisEnum axis) {
   // If a second homing move is configured...
   if (bump) {
     // Move away from the endstop by the axis HOME_BUMP_MM
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("Move Away:");
+    #endif
     do_homing_move(axis, -bump);
     // Slow move towards endstop until triggered
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("Home 2 Slow:");
+    #endif
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
   }
 
@@ -2168,10 +2211,7 @@ static void homeaxis(AxisEnum axis) {
     // retrace by the amount specified in endstop_adj
     if (endstop_adj[axis] * Z_HOME_DIR < 0) {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) {
-          SERIAL_MV("> endstop_adj = ", endstop_adj[axis] * Z_HOME_DIR);
-          DEBUG_POS("", current_position);
-        }
+        if (DEBUGGING(LEVELING)) SERIAL_EM("endstop_adj:");
       #endif
       do_homing_move(axis, endstop_adj[axis]);
     }
@@ -2203,7 +2243,7 @@ static void homeaxis(AxisEnum axis) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-      SERIAL_EM(")");
+      SERIAL_C(')'); SERIAL_E;
     }
   #endif
 } // homeaxis()
@@ -2955,21 +2995,37 @@ inline void gcode_G0_G1(
         relative_mode = relative_mode_backup;
       #endif
 
-      // Center of arc as offset from current_position
-      float arc_offset[2] = {
-        code_seen('I') ? code_value_axis_units(X_AXIS) : 0,
-        code_seen('J') ? code_value_axis_units(Y_AXIS) : 0
-      };
+      float arc_offset[2] = { 0.0, 0.0 };
+      if (code_seen('R')) {
+        const float r = code_value_axis_units(X_AXIS),
+                    x1 = current_position[X_AXIS], y1 = current_position[Y_AXIS],
+                    x2 = destination[X_AXIS], y2 = destination[Y_AXIS];
+        if (r && (x2 != x1 || y2 != y1)) {
+          const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
+                      dx = x2 - x1, dy = y2 - y1,                 // X and Y differences
+                      d = HYPOT(dx, dy),                          // Linear distance between the points
+                      h = sqrt(sq(r) - sq(d * 0.5)),              // Distance to the arc pivot-point
+                      mx = (x1 + x2) * 0.5, my = (y1 + y2) * 0.5, // Point between the two points
+                      sx = -dy / d, sy = dx / d,                  // Slope of the perpendicular bisector
+                      cx = mx + e * h * sx, cy = my + e * h * sy; // Pivot-point of the arc
+          arc_offset[X_AXIS] = cx - x1;
+          arc_offset[Y_AXIS] = cy - y1;
+        }
+      }
+      else {
+        if (code_seen('I')) arc_offset[X_AXIS] = code_value_axis_units(X_AXIS);
+        if (code_seen('J')) arc_offset[Y_AXIS] = code_value_axis_units(Y_AXIS);
+      }
 
-      // Send an arc to the planner
-      plan_arc(destination, arc_offset, clockwise);
-
-      refresh_cmd_timeout();
-
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
-        laser.status = LASER_OFF;
-      #endif
-
+      if (arc_offset[0] || arc_offset[1]) {
+        // Send an arc to the planner
+        plan_arc(destination, arc_offset, clockwise);
+        refresh_cmd_timeout();
+      }
+      else {
+        // Bad arguments
+        SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+      }
     }
   }
 #endif // ARC_SUPPORT
@@ -3251,7 +3307,12 @@ inline void gcode_G4() {
    * A delta can only safely home all axes at the same time
    * This is like quick_home_xy() but for 3 towers.
    */
-  void home_delta() {
+  inline void home_delta() {
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) DEBUG_POS(">>> home_delta", current_position);
+    #endif
+
     // Init the current position of all carriages to 0,0,0
     memset(current_position, 0, sizeof(current_position));
     sync_plan_position();
@@ -3263,10 +3324,10 @@ inline void gcode_G4() {
     stepper.synchronize();
     endstops.hit_on_purpose(); // clear endstop hit flags
 
-    memset(current_position, 0, sizeof(current_position));
+    //memset(current_position, 0, sizeof(current_position));
 
     // At least one carriage has reached the top.
-    // Now back off and re-home each carriage separately.
+    // Now re-home each carriage separately.
     HOMEAXIS(A);
     HOMEAXIS(B);
     HOMEAXIS(C);
@@ -3280,7 +3341,7 @@ inline void gcode_G4() {
     SYNC_PLAN_POSITION_KINEMATIC();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("(DELTA)", current_position);
+      if (DEBUGGING(LEVELING)) DEBUG_POS("<<< home_delta", current_position);
     #endif
 
     // move to a height where we can use the full xy-area
@@ -5833,7 +5894,7 @@ inline void gcode_M111() {
     #endif
   };
 
-  SERIAL_M(MSG_DEBUG_PREFIX);
+  SERIAL_SM(ECHO, MSG_DEBUG_PREFIX);
   if (mk_debug_flags) {
     uint8_t comma = 0;
     for (uint8_t i = 0; i < COUNT(debug_strings); i++) {
@@ -6307,7 +6368,8 @@ inline void gcode_M204() {
  *    S = Min Feed Rate (units/s)
  *    V = Min Travel Feed Rate (units/s)
  *    B = Min Segment Time (µs)
- *    X = Max XY Jerk (units/sec^2)
+ *    X = Max X Jerk (units/sec^2)
+ *    Y = Max Y Jerk (units/sec^2)
  *    Z = Max Z Jerk (units/sec^2)
  *    E = Max E Jerk (units/sec^2)
  */
@@ -6317,9 +6379,10 @@ inline void gcode_M205() {
   if (code_seen('S')) planner.min_feedrate_mm_s = code_value_linear_units();
   if (code_seen('V')) planner.min_travel_feedrate_mm_s = code_value_linear_units();
   if (code_seen('B')) planner.min_segment_time = code_value_millis();
-  if (code_seen('X')) planner.max_xy_jerk = code_value_linear_units();
-  if (code_seen('Z')) planner.max_z_jerk = code_value_axis_units(Z_AXIS);
-  if (code_seen('E')) planner.max_e_jerk[target_extruder] = code_value_axis_units(E_AXIS + target_extruder);
+  if (code_seen('X')) planner.max_jerk[X_AXIS] = code_value_axis_units(X_AXIS);
+  if (code_seen('Y')) planner.max_jerk[Y_AXIS] = code_value_axis_units(Y_AXIS);
+  if (code_seen('Z')) planner.max_jerk[Z_AXIS] = code_value_axis_units(Z_AXIS);
+  if (code_seen('E')) planner.max_jerk[E_AXIS + target_extruder] = code_value_axis_units(E_AXIS + target_extruder);
 }
 
 /**
@@ -7890,7 +7953,7 @@ inline void gcode_T(uint8_t tmp_extruder) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV(">>> gcode_T(", tmp_extruder);
-      SERIAL_EM(")");
+      SERIAL_C(')'); SERIAL_E;
       DEBUG_POS("BEFORE", current_position);
     }
   #endif
@@ -7932,7 +7995,7 @@ inline void gcode_T(uint8_t tmp_extruder) {
   }
 #endif
 
-#if ENABLED(DONDOLO)
+#if HAS(DONDOLO)
   inline void move_extruder_servo(uint8_t e) {
     const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
     MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
@@ -9508,7 +9571,7 @@ void ok_to_send() {
         SERIAL_MV(" (adj:", endstop_adj[1], 4);
         SERIAL_MV(") z:", bed_level_z, 4);
         SERIAL_MV(" (adj:", endstop_adj[2], 4);
-        SERIAL_EM(")");
+        SERIAL_C(')'); SERIAL_E;
 
         if ((bed_level_x >= -ac_prec) and (bed_level_x <= ac_prec)) {
           x_done = true;
@@ -11045,7 +11108,9 @@ void stop() {
  */
 void setup() {
   #if MB(ALLIGATOR)
-    setup_alligator_board(); // Initialize Alligator Board
+    setup_alligator_board();    // Initialize Alligator Board
+  #elif MB(ULTRATRONICS)
+    setup_ultratronics_board(); // Initialize Ultratronics Board
   #endif
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
