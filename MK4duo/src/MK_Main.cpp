@@ -640,7 +640,6 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 
     SET_INPUT(MISO);
     SET_OUTPUT(MOSI);
-    SET_OUTPUT(SS);
   }
 #endif // ULTRATRONICS
 

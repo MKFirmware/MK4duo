@@ -80,9 +80,6 @@
 #define MAX31855_SS2          50
 #define MAX31855_SS3          51
 
-// SPI for Max6675 or Max31855 Thermocouple
-#define MAX6675_SS            65 
-
 #define ENC424_SS             61 
 
 #define ORIG_BEEPER_PIN       27
