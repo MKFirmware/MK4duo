@@ -72,8 +72,12 @@
       #define SPI_PIN         86
       #define SPI_CHAN        2
     #elif (SDSS == 59)
-      #define SPI_PIN         59
-      #define SPI_CHAN        1
+      #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
+        #define DUE_SOFTWARE_SPI
+      #else
+        #define SPI_PIN         59
+        #define SPI_CHAN        1
+      #endif
     #elif (SDSS == 60)
       #define SPI_PIN         60
       #define SPI_CHAN        1
