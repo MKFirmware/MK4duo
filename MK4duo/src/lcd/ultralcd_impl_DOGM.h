@@ -140,9 +140,15 @@
 // LCD selection
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
   #if MB(ULTRATRONICS)
+<<<<<<< HEAD
     U8GLIB_ST7920_128X64_4X u8g(SCK,MOSI,LCD_PINS_RS);//Software SPI
   #else
     U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS);//Hardware SPI
+=======
+    U8GLIB_ST7920_128X64_4X u8g(SCK,MOSI,LCD_PINS_RS); // Software SPI
+  #else
+    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // Hardware SPI
+>>>>>>> refs/remotes/origin/master
   #endif 
 #elif ENABLED(U8GLIB_ST7920)
   //U8GLIB_ST7920_128X64_RRD u8g(0,0,0);

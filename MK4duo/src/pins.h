@@ -75,8 +75,13 @@
       #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
         #define DUE_SOFTWARE_SPI
       #else
+<<<<<<< HEAD
         #define SPI_PIN         59
         #define SPI_CHAN        1
+=======
+        #define SPI_PIN       59
+        #define SPI_CHAN      1
+>>>>>>> refs/remotes/origin/master
       #endif
     #elif (SDSS == 60)
       #define SPI_PIN         60

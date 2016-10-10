@@ -52,6 +52,11 @@
 #define ORIG_E3_ENABLE_PIN    40
 
 #define SDPOWER               -1
+<<<<<<< HEAD
+=======
+#define SDSS                  59
+#define SD_DETECT_PIN         60
+>>>>>>> refs/remotes/origin/master
 #define LED_PIN               -1
 #define SDSS                  59
 #define SD_DETECT_PIN         60
