@@ -943,7 +943,7 @@ void kill_screen(const char* lcd_msg) {
   void _lcd_preheat(int endnum, const float temph, const float tempb, const int fan) {
     if (temph > 0) thermalManager.setTargetHotend(temph, endnum);
     #if TEMP_SENSOR_BED != 0
-      setTargetBed(tempb);
+      thermalManager.setTargetBed(tempb);
     #else
       UNUSED(tempb);
     #endif
