@@ -88,29 +88,29 @@
 #define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))
 
 // Macros for initializing arrays
-#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, args...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
-#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, args...)      { v1, v2, v3, v4, v5, v6, v7, v8 }
-#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, args...)          { v1, v2, v3, v4, v5, v6, v7 }
-#define ARRAY_6(v1, v2, v3, v4, v5, v6, args...)              { v1, v2, v3, v4, v5, v6 }
-#define ARRAY_5(v1, v2, v3, v4, v5, args...)                  { v1, v2, v3, v4, v5 }
-#define ARRAY_4(v1, v2, v3, v4, args...)                      { v1, v2, v3, v4 }
-#define ARRAY_3(v1, v2, v3, args...)                          { v1, v2, v3 }
-#define ARRAY_2(v1, v2, args...)                              { v1, v2 }
-#define ARRAY_1(v1, args...)                                  { v1 }
+#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
+#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, ...)      { v1, v2, v3, v4, v5, v6, v7, v8 }
+#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, ...)          { v1, v2, v3, v4, v5, v6, v7 }
+#define ARRAY_6(v1, v2, v3, v4, v5, v6, ...)              { v1, v2, v3, v4, v5, v6 }
+#define ARRAY_5(v1, v2, v3, v4, v5, ...)                  { v1, v2, v3, v4, v5 }
+#define ARRAY_4(v1, v2, v3, v4, ...)                      { v1, v2, v3, v4 }
+#define ARRAY_3(v1, v2, v3, ...)                          { v1, v2, v3 }
+#define ARRAY_2(v1, v2, ...)                              { v1, v2 }
+#define ARRAY_1(v1, ...)                                  { v1 }
 
-#define _ARRAY_N(N, args...) ARRAY_ ##N(args)
-#define ARRAY_N(N, args...) _ARRAY_N(N, args)
+#define _ARRAY_N(N, ...) ARRAY_ ##N(__VA_ARGS__)
+#define ARRAY_N(N, ...) _ARRAY_N(N, __VA_ARGS__)
 
 // ARRAY_BY_N based
-#define ARRAY_BY_N_N(N, args...) ARRAY_N(N, args)
+#define ARRAY_BY_N_N(N, ...) ARRAY_N(N, __VA_ARGS__)
 #define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_EXTRUDERS based on EXTRUDERS
-#define ARRAY_BY_EXTRUDERS_N(args...) ARRAY_N(EXTRUDERS, args)
+#define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
 #define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_HOTENDS based on HOTENDS
-#define ARRAY_BY_HOTENDS_N(args...) ARRAY_N(HOTENDS, args)
+#define ARRAY_BY_HOTENDS_N(...) ARRAY_N(HOTENDS, __VA_ARGS__)
 #define ARRAY_BY_HOTENDS(v1) ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
 
 // Macros for adding

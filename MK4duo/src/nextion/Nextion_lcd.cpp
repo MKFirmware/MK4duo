@@ -84,12 +84,12 @@
   // Page 1 Menu
 
   // Page 2 Printer
-  NexText LedStatus     = NexText       (2,   1,  "status");
-  NexText LedCoord1     = NexText       (2,   2,  "icoord");
-  NexText Hotend0       = NexText       (2,   14, "t0");
-  NexText Hotend1       = NexText       (2,   15, "t1");
-  NexText Hotend2       = NexText       (2,   16, "t2");
-  NexText Fanspeed      = NexText       (2,   18, "fanspeed");
+  NexText LedStatus     = NexText       (2,   1,  "t0");
+  NexText LedCoord1     = NexText       (2,   2,  "t1");
+  NexText Hotend0       = NexText       (2,   14, "t2");
+  NexText Hotend1       = NexText       (2,   15, "t3");
+  NexText Hotend2       = NexText       (2,   16, "t4");
+  NexText Fanspeed      = NexText       (2,   18, "t5");
   NexPicture Fanpic     = NexPicture    (2,   4,  "p1");
   NexPicture NStop      = NexPicture    (2,   19, "p2");
   NexPicture NPlay      = NexPicture    (2,   20, "p3");
@@ -111,7 +111,7 @@
   NexText sdrow3        = NexText       (3,   5,  "t3");
   NexText sdrow4        = NexText       (3,   6,  "t4");
   NexText sdrow5        = NexText       (3,   7,  "t5");
-  NexText sdfolder      = NexText       (3,   16, "sdfolder");
+  NexText sdfolder      = NexText       (3,   16, "t6");
   NexPicture Folder0    = NexPicture    (3,   8,  "p0");
   NexPicture Folder1    = NexPicture    (3,   9,  "p1");
   NexPicture Folder2    = NexPicture    (3,   10, "p2");
@@ -136,7 +136,7 @@
   NexPicture ZUp        = NexPicture    (5,   8,  "p10");
   NexPicture ZDown      = NexPicture    (5,   9,  "p11");
   NexVariable movecmd   = NexVariable   (5,   11, "vacmd");
-  NexText LedCoord5     = NexText       (5,   12, "mcoord");
+  NexText LedCoord5     = NexText       (5,   12, "t0");
 
   // Page 6 Speed
   NexSlider Speed       = NexSlider     (6,   7,  "h0");
@@ -645,6 +645,7 @@
 
   static void temptoLCD(int h, int T1, int T2) {
     char valuetemp[25] = {0};
+    uint32_t color = 1023;
     memset(buffer, 0, sizeof(buffer));
     itoa(T1, valuetemp, 10);
     strcat(buffer, valuetemp);
@@ -652,15 +653,19 @@
     itoa(T2, valuetemp, 10);
     strcat(buffer, valuetemp);
     strcat(buffer, "  ");
-    uint32_t color = 1023;
-    uint32_t prc = (T1/(T2 + 0.01)) * 100;
 
-    if (prc >= 50 && prc < 75)
-      color = 65519;
-    else if (prc >= 75 && prc < 95)
-      color = 64487;
-    else if (prc >= 95)
-      color = 63488;
+    if (T2 > 0) {
+      uint32_t prc = (T1/(T2)) * 100;
+
+      if (prc >= 50 && prc < 75)
+        color = 65519;
+      else if (prc >= 75 && prc < 95)
+        color = 64487;
+      else if (prc >= 95)
+        color = 63488;
+    }
+    else
+      color = 65535;
 
     hotend_list[h]->setText(buffer);
     hotend_list[h]->Set_font_color_pco(color);

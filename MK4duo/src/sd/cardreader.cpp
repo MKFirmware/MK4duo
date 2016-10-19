@@ -323,6 +323,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     char bufferCoord1[50];
     char bufferCoord2[50];
     char bufferSdpos[11];
+    char temp[30];
     char restart_name_File[] = "restart.gcode";
 
     sdprinting = false;
@@ -396,6 +397,9 @@ void CardReader::closeFile(bool store_location /*=false*/) {
         fileRestart.write(Hotendtemp);
       }
     }
+
+    strcpy(temp, "G92 E0\nG1 E10 F300");
+    fileRestart.write(temp);
 
     #if MECH(DELTA)
       fileRestart.write(bufferCoord1);

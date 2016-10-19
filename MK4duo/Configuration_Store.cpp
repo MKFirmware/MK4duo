@@ -319,7 +319,6 @@ void Config_StoreSettings() {
     #if EXTRUDERS > 1
       EEPROM_WRITE(retract_length_swap);
     #else
-      dummy = 0.0f;
       EEPROM_WRITE(dummy);
     #endif
     EEPROM_WRITE(retract_feedrate);
@@ -328,7 +327,6 @@ void Config_StoreSettings() {
     #if EXTRUDERS > 1
       EEPROM_WRITE(retract_recover_length_swap);
     #else
-      dummy = 0.0f;
       EEPROM_WRITE(dummy);
     #endif
     EEPROM_WRITE(retract_recover_feedrate);
@@ -949,11 +947,11 @@ void Config_PrintSettings(bool forReplay) {
     #endif // DRIVER_EXTRUDERS > 1
   #endif // ALLIGATOR
 
-  ConfigSD_PrintSettings(forReplay);
+  ConfigSD_PrintSettings();
 
 }
 
-void ConfigSD_PrintSettings(bool forReplay) {
+void ConfigSD_PrintSettings() {
   // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
   #if HAS(POWER_CONSUMPTION_SENSOR)

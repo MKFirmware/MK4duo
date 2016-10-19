@@ -246,7 +246,7 @@
   #if DISABLED(DEFAULT_bedKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKp
   #endif
-  #if DISABLED(DEFAULT_thermalManager.bedKi)
+  #if DISABLED(DEFAULT_bedKi)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKi
   #endif
   #if DISABLED(DEFAULT_bedKd)
