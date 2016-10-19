@@ -243,11 +243,11 @@
   #endif
 #endif
 #if ENABLED(PIDTEMPBED)
-  #if DISABLED(DEFAULT_bedKp)
-    #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKp
+  #if DISABLED(DEFAULT_thermalManager.bedKp)
+    #error DEPENDENCY ERROR: Missing setting DEFAULT_thermalManager.bedKp
   #endif
-  #if DISABLED(DEFAULT_bedKi)
-    #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKi
+  #if DISABLED(DEFAULT_thermalManager.bedKi)
+    #error DEPENDENCY ERROR: Missing setting DEFAULT_thermalManager.bedKi
   #endif
   #if DISABLED(DEFAULT_bedKd)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKd

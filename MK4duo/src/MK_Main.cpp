@@ -6137,7 +6137,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M140() {
     if (DEBUGGING(DRYRUN)) return;
-    if (code_seen('S')) setTargetBed(code_value_temp_abs());
+    if (code_seen('S')) thermalManager.setTargetBed(code_value_temp_abs());
   }
 #endif
 
@@ -6318,7 +6318,7 @@ inline void gcode_M122() {
     LCD_MESSAGEPGM(MSG_BED_HEATING);
     bool no_wait_for_cooling = code_seen('S');
     if (no_wait_for_cooling || code_seen('R'))
-      setTargetBed(code_value_temp_abs());
+      thermalManager.setTargetBed(code_value_temp_abs());
 
     wait_bed(no_wait_for_cooling);
   }
@@ -6843,42 +6843,42 @@ inline void gcode_M226() {
 #if ENABLED(PIDTEMPBED)
   // M304: Set bed PID parameters P I and D
   inline void gcode_M304() {
-    if (code_seen('P')) bedKp = code_value_float();
-    if (code_seen('I')) bedKi = scalePID_i(code_value_float());
-    if (code_seen('D')) bedKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.bedKp = code_value_float();
+    if (code_seen('I')) thermalManager.bedKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.bedKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(ECHO, " p:", bedKp);
-    SERIAL_MV(" i:", unscalePID_i(bedKi));
-    SERIAL_EMV(" d:", unscalePID_d(bedKd));
+    SERIAL_SMV(ECHO, " p:", thermalManager.bedKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.bedKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.bedKd));
   }
 #endif // PIDTEMPBED
 
 #if ENABLED(PIDTEMPCHAMBER)
   // M305: Set chamber PID parameters P I and D
   inline void gcode_M305() {
-    if (code_seen('P')) chamberKp = code_value_float();
-    if (code_seen('I')) chamberKi = scalePID_i(code_value_float());
-    if (code_seen('D')) chamberKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.chamberKp = code_value_float();
+    if (code_seen('I')) thermalManager.chamberKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.chamberKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", chamberKp);
-    SERIAL_MV(" i:", unscalePID_i(chamberKi));
-    SERIAL_EMV(" d:", unscalePID_d(chamberKd));
+    SERIAL_SMV(OK, " p:", thermalManager.chamberKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.chamberKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.chamberKd));
   }
 #endif // PIDTEMPCHAMBER
 
 #if ENABLED(PIDTEMPCOOLER)
   // M306: Set cooler PID parameters P I and D
   inline void gcode_M306() {
-    if (code_seen('P')) coolerKp = code_value_float();
-    if (code_seen('I')) coolerKi = scalePID_i(code_value_float());
-    if (code_seen('D')) coolerKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.coolerKp = code_value_float();
+    if (code_seen('I')) thermalManager.coolerKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.coolerKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", coolerKp);
-    SERIAL_MV(" i:", unscalePID_i(coolerKi));
-    SERIAL_EMV(" d:", unscalePID_d(coolerKd));
+    SERIAL_SMV(OK, " p:", thermalManager.coolerKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.coolerKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.coolerKd));
   }
 #endif // PIDTEMPCOOLER
 
@@ -7551,7 +7551,7 @@ inline void gcode_M503() {
    */
   inline void gcode_M600() {
 
-    if (thermalManager.thermalManager.tooColdToExtrude(active_extruder)) {
+    if (thermalManager.tooColdToExtrude(active_extruder)) {
       SERIAL_LM(ER, MSG_TOO_COLD_FOR_FILAMENTCHANGE);
       return;
     }
@@ -7675,7 +7675,7 @@ inline void gcode_M503() {
         wait_heater();
       }
       #if HAS(TEMP_BED)
-        setTargetBed(old_target_temperature_bed);
+        thermalManager.setTargetBed(old_target_temperature_bed);
         wait_bed();
       #endif
     }
