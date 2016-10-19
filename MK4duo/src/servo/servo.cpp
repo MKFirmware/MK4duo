@@ -69,7 +69,7 @@
 
   /************ static functions common to all instances ***********************/
 
-  #ifdef __SAM3X8E__
+  #if ENABLED(__SAM3X8E__)
     //------------------------------------------------------------------------------
     /// Interrupt handler for the TC0 channel 1.
     //------------------------------------------------------------------------------
@@ -173,6 +173,7 @@
     }
 
     static void finISR(timer16_Sequence_t timer) {
+      UNUSED(timer);
       #if defined (_useTimer1)
         TC_Stop(TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
       #endif
@@ -414,13 +415,11 @@
   bool Servo::attached() { return servo_info[this->servoIndex].Pin.isActive; }
 
   void Servo::move(int value) {
-    if (this->attach(0) >= 0) {
-      this->write(value);
-      HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
-      #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
-        this->detach();
-      #endif
-    }
+    this->write(value);
+    HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
+    #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
+      this->detach();
+    #endif
   }
 
 #endif

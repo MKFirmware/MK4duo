@@ -382,10 +382,6 @@ float cartes[XYZ] = { 0 };
   #endif
 #endif
 
-#if ENABLED(SDSUPPORT)
-  static bool fromsd[BUFSIZE];
-#endif
-
 #if ENABLED(IDLE_OOZING_PREVENT)
   unsigned long axis_last_activity = 0;
   bool IDLE_OOZING_enabled = true;
@@ -485,8 +481,8 @@ static bool send_ok[BUFSIZE];
   static inline type pgm_read_any(const type *p)  \
   { return pgm_read_##reader##_near(p); }
 
-DEFINE_PGM_READ_ANY(float,       float);
-DEFINE_PGM_READ_ANY(signed char, byte);
+DEFINE_PGM_READ_ANY(float,       float)
+DEFINE_PGM_READ_ANY(signed char, byte)
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
   static const PROGMEM type array##_P[XYZ] =        \
@@ -495,13 +491,13 @@ DEFINE_PGM_READ_ANY(signed char, byte);
   { return pgm_read_any(&array##_P[axis]); }
 
 #if NOMECH(DELTA)
-  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,  MAX_POS);
-  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos, HOME_POS);
-  XYZ_CONSTS_FROM_CONFIG(float, max_length,    MAX_LENGTH);
+  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,  MAX_POS)
+  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos, HOME_POS)
+  XYZ_CONSTS_FROM_CONFIG(float, max_length,    MAX_LENGTH)
 #endif
-XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,    MIN_POS);
-XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,    HOME_BUMP_MM);
-XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR);
+XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,    MIN_POS)
+XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,    HOME_BUMP_MM)
+XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR)
 
 /**
  * ***************************************************************************
@@ -4765,7 +4761,7 @@ inline void gcode_G60() {
   uint8_t slot = 0;
   if (code_seen('S')) slot = code_value_byte();
 
-  if (slot < 0 || slot >= NUM_POSITON_SLOTS) {
+  if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
@@ -4792,7 +4788,7 @@ inline void gcode_G61() {
   uint8_t slot = 0;
   if (code_seen('S')) slot = code_value_byte();
 
-  if (slot < 0 || slot >= NUM_POSITON_SLOTS) {
+  if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   }
@@ -6137,7 +6133,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M140() {
     if (DEBUGGING(DRYRUN)) return;
-    if (code_seen('S')) setTargetBed(code_value_temp_abs());
+    if (code_seen('S')) thermalManager.setTargetBed(code_value_temp_abs());
   }
 #endif
 
@@ -6318,7 +6314,7 @@ inline void gcode_M122() {
     LCD_MESSAGEPGM(MSG_BED_HEATING);
     bool no_wait_for_cooling = code_seen('S');
     if (no_wait_for_cooling || code_seen('R'))
-      setTargetBed(code_value_temp_abs());
+      thermalManager.setTargetBed(code_value_temp_abs());
 
     wait_bed(no_wait_for_cooling);
   }
@@ -6683,8 +6679,9 @@ inline void gcode_M226() {
   inline void gcode_M280() {
     if (!code_seen('P')) return;
     int servo_index = code_value_int();
-    int servo_position = 0;
+
     #if HAS(DONDOLO)
+      int servo_position = 0;
       if (code_seen('S')) {
         servo_position = code_value_int();
         if (servo_index >= 0 && servo_index < NUM_SERVOS && servo_index != DONDOLO_SERVO_INDEX) {
@@ -6843,42 +6840,42 @@ inline void gcode_M226() {
 #if ENABLED(PIDTEMPBED)
   // M304: Set bed PID parameters P I and D
   inline void gcode_M304() {
-    if (code_seen('P')) bedKp = code_value_float();
-    if (code_seen('I')) bedKi = scalePID_i(code_value_float());
-    if (code_seen('D')) bedKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.bedKp = code_value_float();
+    if (code_seen('I')) thermalManager.bedKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.bedKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(ECHO, " p:", bedKp);
-    SERIAL_MV(" i:", unscalePID_i(bedKi));
-    SERIAL_EMV(" d:", unscalePID_d(bedKd));
+    SERIAL_SMV(ECHO, " p:", thermalManager.bedKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.bedKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.bedKd));
   }
 #endif // PIDTEMPBED
 
 #if ENABLED(PIDTEMPCHAMBER)
   // M305: Set chamber PID parameters P I and D
   inline void gcode_M305() {
-    if (code_seen('P')) chamberKp = code_value_float();
-    if (code_seen('I')) chamberKi = scalePID_i(code_value_float());
-    if (code_seen('D')) chamberKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.chamberKp = code_value_float();
+    if (code_seen('I')) thermalManager.chamberKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.chamberKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", chamberKp);
-    SERIAL_MV(" i:", unscalePID_i(chamberKi));
-    SERIAL_EMV(" d:", unscalePID_d(chamberKd));
+    SERIAL_SMV(OK, " p:", thermalManager.chamberKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.chamberKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.chamberKd));
   }
 #endif // PIDTEMPCHAMBER
 
 #if ENABLED(PIDTEMPCOOLER)
   // M306: Set cooler PID parameters P I and D
   inline void gcode_M306() {
-    if (code_seen('P')) coolerKp = code_value_float();
-    if (code_seen('I')) coolerKi = scalePID_i(code_value_float());
-    if (code_seen('D')) coolerKd = scalePID_d(code_value_float());
+    if (code_seen('P')) thermalManager.coolerKp = code_value_float();
+    if (code_seen('I')) thermalManager.coolerKi = scalePID_i(code_value_float());
+    if (code_seen('D')) thermalManager.coolerKd = scalePID_d(code_value_float());
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", coolerKp);
-    SERIAL_MV(" i:", unscalePID_i(coolerKi));
-    SERIAL_EMV(" d:", unscalePID_d(coolerKd));
+    SERIAL_SMV(OK, " p:", thermalManager.coolerKp);
+    SERIAL_MV(" i:", unscalePID_i(thermalManager.coolerKi));
+    SERIAL_EMV(" d:", unscalePID_d(thermalManager.coolerKd));
   }
 #endif // PIDTEMPCOOLER
 
@@ -7551,7 +7548,7 @@ inline void gcode_M503() {
    */
   inline void gcode_M600() {
 
-    if (thermalManager.thermalManager.tooColdToExtrude(active_extruder)) {
+    if (thermalManager.tooColdToExtrude(active_extruder)) {
       SERIAL_LM(ER, MSG_TOO_COLD_FOR_FILAMENTCHANGE);
       return;
     }
@@ -7675,7 +7672,7 @@ inline void gcode_M503() {
         wait_heater();
       }
       #if HAS(TEMP_BED)
-        setTargetBed(old_target_temperature_bed);
+        thermalManager.setTargetBed(old_target_temperature_bed);
         wait_bed();
       #endif
     }
@@ -9350,10 +9347,10 @@ void ok_to_send() {
     ratio_y = constrain(ratio_y - gridy, 0.0, 1.0);
 
     // Z at the box corners
-    const float z1 = bed_level_grid[gridx][gridy],         // left-front
-                z2 = bed_level_grid[gridx][gridy + 1],     // left-back
-                z3 = bed_level_grid[gridx + 1][gridy],     // right-front
-                z4 = bed_level_grid[gridx + 1][gridy + 1], // right-back
+    const float z1 = bed_level_grid[gridx][gridy],  // left-front
+                z2 = bed_level_grid[gridx][nexty],  // left-back
+                z3 = bed_level_grid[nextx][gridy],  // right-front
+                z4 = bed_level_grid[nextx][nexty],  // right-back
 
                 // Bilinear interpolate
                 L = z1 + (z2 - z1) * ratio_y,   // Linear interp. LF -> LB
@@ -9584,7 +9581,7 @@ void ok_to_send() {
     cartes[X_AXIS] = delta_tower1_x + ex[0] * Xnew + ey[0] * Ynew - ez[0] * Znew;
     cartes[Y_AXIS] = delta_tower1_y + ex[1] * Xnew + ey[1] * Ynew - ez[1] * Znew;
     cartes[Z_AXIS] =             z1 + ex[2] * Xnew + ey[2] * Ynew - ez[2] * Znew;
-  };
+  }
 
   void forward_kinematics_DELTA(float point[ABC]) {
     forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS]);
@@ -9628,7 +9625,6 @@ void ok_to_send() {
       boolean x_done = false;
       boolean y_done = false;
       boolean z_done = false;
-      float prv_bed_level_x, prv_bed_level_y, prv_bed_level_z;
 
       do {
         bed_level_z = probe_bed(0.0, bed_radius);
@@ -9703,9 +9699,8 @@ void ok_to_send() {
               xy_equal, xz_equal, yz_equal;
       float saved_tower_adj[6];
       uint8_t err_tower = 0;
-      float low_diff, high_diff,
+      float high_diff,
             x_diff, y_diff, z_diff,
-            xy_diff, yz_diff, xz_diff,
             low_opp, high_opp;
 
       for (uint8_t i = 0; i < 6; i++) saved_tower_adj[i] = tower_adj[i];
@@ -9881,7 +9876,9 @@ void ok_to_send() {
 
     void adj_tower_radius(uint8_t tower) {
       boolean adj_done;
-      float adj_tRadius = 0.0, bed_level, bed_level_o;
+      float adj_tRadius = 0.0,
+            bed_level   = 0.0,
+            bed_level_o = 0.0;
 
       do {
         tower_adj[tower + 2] += adj_tRadius;

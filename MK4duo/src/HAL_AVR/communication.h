@@ -47,7 +47,7 @@
 
 #define SERIAL_INIT(baud)                   MKSERIAL.begin(baud), HAL::delayMilliseconds(1)
 #define SERIAL_WRITE(x)                     MKSERIAL.write(x)
-#define SERIAL_PRINT(msg, args...)          MKSERIAL.print(msg, ##args)
+#define SERIAL_PRINT(msg, ...)              MKSERIAL.print(msg, ## __VA_ARGS__)
 #define SERIAL_EOL                          MKSERIAL.println()
 
 // Things to write to serial from Program memory. Saves 400 to 2k of RAM.
@@ -61,30 +61,30 @@ FORCE_INLINE void serialprintPGM(const char* str) {
 #define SERIAL_S(srt)                       SERIAL_PGM(srt)
 #define SERIAL_M(msg)                       SERIAL_PGM(msg)
 #define SERIAL_T(txt)                       SERIAL_PRINT(txt)
-#define SERIAL_V(val, args...)              SERIAL_PRINT(val, ##args)
+#define SERIAL_V(val, ...)                  SERIAL_PRINT(val, ## __VA_ARGS__)
 #define SERIAL_C(c)                         SERIAL_WRITE(c)
 #define SERIAL_E                            SERIAL_EOL
 
-#define SERIAL_MV(msg, val, args...)        SERIAL_M(msg),SERIAL_V(val, ##args)
+#define SERIAL_MV(msg, val, ...)            SERIAL_M(msg),SERIAL_V(val, ## __VA_ARGS__)
 #define SERIAL_MT(msg, txt)                 SERIAL_M(msg),SERIAL_T(txt)
 
 #define SERIAL_SM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg)
-#define SERIAL_SV(srt, val, args...)        SERIAL_S(srt),SERIAL_V(val, ##args)
+#define SERIAL_SV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__)
 #define SERIAL_ST(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt)
 #define SERIAL_SMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt)
-#define SERIAL_SMV(srt, msg, val, args...)  SERIAL_S(srt),SERIAL_MV(msg, val, ##args)
+#define SERIAL_SMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__)
 
 #define SERIAL_EM(msg)                      SERIAL_M(msg),SERIAL_E
-#define SERIAL_EV(val, args...)             SERIAL_V(val, ##args),SERIAL_E
+#define SERIAL_EV(val, ...)                 SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
 #define SERIAL_ET(txt)                      SERIAL_T(txt),SERIAL_E
 #define SERIAL_EMT(msg, txt)                SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_EMV(msg, val, args...)       SERIAL_MV(msg, val, ##args),SERIAL_E
+#define SERIAL_EMV(msg, val, ...)           SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
 
 #define SERIAL_L(srt)                       SERIAL_S(srt),SERIAL_E
 #define SERIAL_LM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg),SERIAL_E
 #define SERIAL_LT(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt),SERIAL_E
 #define SERIAL_LMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_LV(srt, val, args...)        SERIAL_S(srt),SERIAL_V(val, ##args),SERIAL_E
-#define SERIAL_LMV(srt, msg, val, args...)  SERIAL_S(srt),SERIAL_MV(msg, val, ##args),SERIAL_E
+#define SERIAL_LV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
+#define SERIAL_LMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
 
 #endif

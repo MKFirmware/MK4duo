@@ -291,21 +291,21 @@ void Config_StoreSettings() {
   EEPROM_WRITE(lpq_len);
   
   #if ENABLED(PIDTEMPBED)
-    EEPROM_WRITE(bedKp);
-    EEPROM_WRITE(bedKi);
-    EEPROM_WRITE(bedKd);
+    EEPROM_WRITE(thermalManager.bedKp);
+    EEPROM_WRITE(thermalManager.bedKi);
+    EEPROM_WRITE(thermalManager.bedKd);
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
-    EEPROM_WRITE(chamberKp);
-    EEPROM_WRITE(chamberKi);
-    EEPROM_WRITE(chamberKd);
+    EEPROM_WRITE(thermalManager.chamberKp);
+    EEPROM_WRITE(thermalManager.chamberKi);
+    EEPROM_WRITE(thermalManager.chamberKd);
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
-    EEPROM_WRITE(coolerKp);
-    EEPROM_WRITE(coolerKi);
-    EEPROM_WRITE(coolerKd);
+    EEPROM_WRITE(thermalManager.coolerKp);
+    EEPROM_WRITE(thermalManager.coolerKi);
+    EEPROM_WRITE(thermalManager.coolerKd);
   #endif
 
   #if HASNT(LCD_CONTRAST)
@@ -319,7 +319,6 @@ void Config_StoreSettings() {
     #if EXTRUDERS > 1
       EEPROM_WRITE(retract_length_swap);
     #else
-      dummy = 0.0f;
       EEPROM_WRITE(dummy);
     #endif
     EEPROM_WRITE(retract_feedrate);
@@ -328,7 +327,6 @@ void Config_StoreSettings() {
     #if EXTRUDERS > 1
       EEPROM_WRITE(retract_recover_length_swap);
     #else
-      dummy = 0.0f;
       EEPROM_WRITE(dummy);
     #endif
     EEPROM_WRITE(retract_recover_feedrate);
@@ -462,21 +460,21 @@ void Config_RetrieveSettings() {
     EEPROM_READ(lpq_len);
 
     #if ENABLED(PIDTEMPBED)
-      EEPROM_READ(bedKp);
-      EEPROM_READ(bedKi);
-      EEPROM_READ(bedKd);
+      EEPROM_READ(thermalManager.bedKp);
+      EEPROM_READ(thermalManager.bedKi);
+      EEPROM_READ(thermalManager.bedKd);
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      EEPROM_READ(chamberKp);
-      EEPROM_READ(chamberKi);
-      EEPROM_READ(chamberKd);
+      EEPROM_READ(thermalManager.chamberKp);
+      EEPROM_READ(thermalManager.chamberKi);
+      EEPROM_READ(thermalManager.chamberKd);
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      EEPROM_READ(coolerKp);
-      EEPROM_READ(coolerKi);
-      EEPROM_READ(coolerKd);
+      EEPROM_READ(thermalManager.coolerKp);
+      EEPROM_READ(thermalManager.coolerKi);
+      EEPROM_READ(thermalManager.coolerKd);
     #endif
 
     #if HASNT(LCD_CONTRAST)
@@ -881,19 +879,19 @@ void Config_PrintSettings(bool forReplay) {
       #endif
     #endif
     #if ENABLED(PIDTEMPBED)
-      SERIAL_SMV(CFG, "  M304 P", bedKp);
-      SERIAL_MV(" I", unscalePID_i(bedKi));
-      SERIAL_EMV(" D", unscalePID_d(bedKd));
+      SERIAL_SMV(CFG, "  M304 P", thermalManager.bedKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.bedKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.bedKd));
     #endif
     #if ENABLED(PIDTEMPCHAMBER)
-      SERIAL_SMV(CFG, "  M305 P", chamberKp);
-      SERIAL_MV(" I", unscalePID_i(chamberKi));
-      SERIAL_EMV(" D", unscalePID_d(chamberKd));
+      SERIAL_SMV(CFG, "  M305 P", thermalManager.chamberKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.chamberKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.chamberKd));
     #endif
     #if ENABLED(PIDTEMPCOOLER)
-      SERIAL_SMV(CFG, "  M306 P", coolerKp);
-      SERIAL_MV(" I", unscalePID_i(coolerKi));
-      SERIAL_EMV(" D", unscalePID_d(coolerKd));
+      SERIAL_SMV(CFG, "  M306 P", thermalManager.coolerKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.coolerKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.coolerKd));
     #endif
   #endif
 
@@ -949,11 +947,11 @@ void Config_PrintSettings(bool forReplay) {
     #endif // DRIVER_EXTRUDERS > 1
   #endif // ALLIGATOR
 
-  ConfigSD_PrintSettings(forReplay);
+  ConfigSD_PrintSettings();
 
 }
 
-void ConfigSD_PrintSettings(bool forReplay) {
+void ConfigSD_PrintSettings() {
   // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
   #if HAS(POWER_CONSUMPTION_SENSOR)

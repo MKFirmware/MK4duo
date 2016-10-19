@@ -28,10 +28,10 @@
 
   #if DISABLED(DISABLE_M503)
     void Config_PrintSettings(bool forReplay = false);
-    void ConfigSD_PrintSettings(bool forReplay = false);
+    void ConfigSD_PrintSettings();
   #else
     FORCE_INLINE void Config_PrintSettings(bool forReplay = false) {}
-    FORCE_INLINE void ConfigSD_PrintSettings(bool forReplay = false) {}
+    FORCE_INLINE void ConfigSD_PrintSettings() {}
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)

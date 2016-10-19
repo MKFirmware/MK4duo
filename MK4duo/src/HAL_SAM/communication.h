@@ -86,7 +86,7 @@ class Com {
 #define DISCONNECT  Com::tDisconnectCommunication
 
 #define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
-#define SERIAL_PRINT(val, args...)          Com::print(val, ##args)
+#define SERIAL_PRINT(val, ...)              Com::print(val, ## __VA_ARGS__)
 #define SERIAL_EOL                          Com::println()
 
 #define SERIAL_PS(message)                  Com::PS_PGM(message)
@@ -95,30 +95,30 @@ class Com {
 #define SERIAL_S(srt)                       Com::PS_PGM(srt)
 #define SERIAL_M(msg)                       Com::PS_PGM(PSTR(msg))
 #define SERIAL_T(txt)                       Com::print(txt)
-#define SERIAL_V(val, args...)              Com::print(val, ##args)
+#define SERIAL_V(val, ...)                  Com::print(val, ## __VA_ARGS__)
 #define SERIAL_C(c)                         Com::print(c)
 #define SERIAL_E                            Com::println()
 
-#define SERIAL_MV(msg, val, args...)        SERIAL_M(msg),SERIAL_V(val, ##args)
+#define SERIAL_MV(msg, val, ...)            SERIAL_M(msg),SERIAL_V(val, ## __VA_ARGS__)
 #define SERIAL_MT(msg, txt)                 SERIAL_M(msg),SERIAL_T(txt)
 
 #define SERIAL_SM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg)
-#define SERIAL_SV(srt, val, args...)        SERIAL_S(srt),SERIAL_V(val, ##args)
+#define SERIAL_SV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__)
 #define SERIAL_ST(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt)
 #define SERIAL_SMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt)
-#define SERIAL_SMV(srt, msg, val, args...)  SERIAL_S(srt),SERIAL_MV(msg, val, ##args)
+#define SERIAL_SMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__)
 
 #define SERIAL_EM(msg)                      SERIAL_M(msg),SERIAL_E
-#define SERIAL_EV(val, args...)             SERIAL_V(val, ##args),SERIAL_E
+#define SERIAL_EV(val, ...)                 SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
 #define SERIAL_ET(txt)                      SERIAL_T(txt),SERIAL_E
 #define SERIAL_EMT(msg, txt)                SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_EMV(msg, val, args...)       SERIAL_MV(msg, val, ##args),SERIAL_E
+#define SERIAL_EMV(msg, val, ...)           SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
 
 #define SERIAL_L(srt)                       SERIAL_S(srt),SERIAL_E
 #define SERIAL_LM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg),SERIAL_E
 #define SERIAL_LT(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt),SERIAL_E
 #define SERIAL_LMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_LV(srt, val, args...)        SERIAL_S(srt),SERIAL_V(val, ##args),SERIAL_E
-#define SERIAL_LMV(srt, msg, val, args...)  SERIAL_S(srt),SERIAL_MV(msg, val, ##args),SERIAL_E
+#define SERIAL_LV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
+#define SERIAL_LMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
 
 #endif

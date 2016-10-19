@@ -18,6 +18,8 @@
 
 #include "Configuration_Version.h"
 
+#include "Configuration_Overall.h"
+
 #ifndef CONFIGURATION_OVERALL
   #include "Configuration_Basic.h"
 #endif

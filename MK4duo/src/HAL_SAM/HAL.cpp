@@ -322,7 +322,6 @@ void HAL::resetHardware() {
   }
 
   void HAL::spiSend(uint32_t chan, byte b) {
-    uint8_t dummy_read = 0;
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     // write byte with address and end transmission flag
@@ -331,18 +330,17 @@ void HAL::resetHardware() {
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
     // clear status
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-      dummy_read = SPI0->SPI_RDR;
+      SPI0->SPI_RDR;
   }
 
   void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
-    uint8_t dummy_read = 0;
     if (n == 0) return;
-    for (int i = 0; i < n - 1; i++) {
+    for (uint8_t i = 0; i < n - 1; i++) {
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       SPI0->SPI_TDR = (uint32_t)buf[i] | SPI_PCS(chan);
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-        dummy_read = SPI0->SPI_RDR;
+        SPI0->SPI_RDR;
     }
     spiSend(chan, buf[n - 1]);
   }
@@ -362,11 +360,10 @@ void HAL::resetHardware() {
   }
 
   uint8_t HAL::spiReceive(uint32_t chan) {
-    uint8_t spirec_tmp;
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-      spirec_tmp =  SPI0->SPI_RDR;
+      SPI0->SPI_RDR;
 
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(chan) | SPI_TDR_LASTXFER;
@@ -427,20 +424,20 @@ static void eeprom_init(void) {
 }
 
 #if MB(ALLIGATOR)
-  static void eprBurnValue(unsigned int pos, int size, unsigned char * newvalue) {
+  static void eprBurnValue(unsigned int pos, unsigned char * newvalue) {
     uint8_t eeprom_temp[3];
 
     /*write enable*/
-    eeprom_temp[0] = 6;//WREN
+    eeprom_temp[0] = 6; // WREN
     digitalWrite( SPI_EEPROM1_CS, LOW );
     HAL::spiSend(SPI_CHAN_EEPROM1, eeprom_temp , 1);
     digitalWrite(SPI_EEPROM1_CS, HIGH);
     HAL::delayMilliseconds(1);
 
     /*write addr*/
-    eeprom_temp[0] = 2;//WRITE
-    eeprom_temp[1] = ((pos>>8) & 0xFF);//addrH
-    eeprom_temp[2] = (pos& 0xFF);//addrL
+    eeprom_temp[0] = 2;                 // WRITE
+    eeprom_temp[1] = ((pos>>8) & 0xFF); // addrH
+    eeprom_temp[2] = (pos& 0xFF);       // addrL
     digitalWrite(SPI_EEPROM1_CS, LOW);
     HAL::spiSend(SPI_CHAN_EEPROM1, eeprom_temp, 3);        
 
@@ -451,15 +448,14 @@ static void eeprom_init(void) {
 
   // Read any data type from EEPROM that was previously written by eprBurnValue
   static uint8_t eprGetValue(unsigned int pos) {
-    int i = 0;
     uint8_t v;
     uint8_t eeprom_temp[3];
     // set read location
     // begin transmission from device
 
-    eeprom_temp[0] = 3;//READ
-    eeprom_temp[1] = ((pos>>8) & 0xFF);//addrH
-    eeprom_temp[2] = (pos& 0xFF);//addrL
+    eeprom_temp[0] = 3;                 // READ
+    eeprom_temp[1] = ((pos>>8) & 0xFF); // addrH
+    eeprom_temp[2] = (pos& 0xFF);       // addrL
     digitalWrite(SPI_EEPROM1_CS, HIGH);
     digitalWrite(SPI_EEPROM1_CS, LOW);
     HAL::spiSend(SPI_CHAN_EEPROM1, eeprom_temp, 3);
@@ -472,7 +468,7 @@ static void eeprom_init(void) {
 
 void eeprom_write_byte(unsigned char *pos, unsigned char value) {
   #if MB(ALLIGATOR)
-    eprBurnValue((unsigned) pos, 1, &value);
+    eprBurnValue((unsigned) pos, &value);
   #else
 
     unsigned eeprom_address = (unsigned) pos;
@@ -498,7 +494,7 @@ unsigned char eeprom_read_byte(unsigned char *pos) {
     byte data = 0xFF;
     unsigned eeprom_address = (unsigned) pos;
 
-    eeprom_init ();
+    eeprom_init();
 
     Wire.beginTransmission(eeprom_device_address);
     Wire.write((int)(eeprom_address >> 8));   // MSB
