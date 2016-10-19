@@ -107,11 +107,11 @@
  *  M301  L               lpq_len
  *
  * PIDTEMPBED:
- *  M304      PID         bedKp, bedKi, bedKd (float x3)
+ *  M304      PID         thermalManager.bedKp, thermalManager.bedKi, thermalManager.bedKd (float x3)
  * PIDTEMPCHAMBER
- *  M305      PID         chamberKp, chamberKi, chamberKd (float x3)
+ *  M305      PID         thermalManager.chamberKp, thermalManager.chamberKi, thermalManager.chamberKd (float x3)
  * PIDTEMPCOOLER
- *  M306      PID         coolerKp, coolerKi, coolerKd (float x3)
+ *  M306      PID         thermalManager.coolerKp, thermalManager.coolerKi, thermalManager.coolerKd (float x3)
  *
  * DOGLCD:
  *  M250  C               lcd_contrast (int)
@@ -291,21 +291,21 @@ void Config_StoreSettings() {
   EEPROM_WRITE(lpq_len);
   
   #if ENABLED(PIDTEMPBED)
-    EEPROM_WRITE(bedKp);
-    EEPROM_WRITE(bedKi);
-    EEPROM_WRITE(bedKd);
+    EEPROM_WRITE(thermalManager.bedKp);
+    EEPROM_WRITE(thermalManager.bedKi);
+    EEPROM_WRITE(thermalManager.bedKd);
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
-    EEPROM_WRITE(chamberKp);
-    EEPROM_WRITE(chamberKi);
-    EEPROM_WRITE(chamberKd);
+    EEPROM_WRITE(thermalManager.chamberKp);
+    EEPROM_WRITE(thermalManager.chamberKi);
+    EEPROM_WRITE(thermalManager.chamberKd);
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
-    EEPROM_WRITE(coolerKp);
-    EEPROM_WRITE(coolerKi);
-    EEPROM_WRITE(coolerKd);
+    EEPROM_WRITE(thermalManager.coolerKp);
+    EEPROM_WRITE(thermalManager.coolerKi);
+    EEPROM_WRITE(thermalManager.coolerKd);
   #endif
 
   #if HASNT(LCD_CONTRAST)
@@ -462,21 +462,21 @@ void Config_RetrieveSettings() {
     EEPROM_READ(lpq_len);
 
     #if ENABLED(PIDTEMPBED)
-      EEPROM_READ(bedKp);
-      EEPROM_READ(bedKi);
-      EEPROM_READ(bedKd);
+      EEPROM_READ(thermalManager.bedKp);
+      EEPROM_READ(thermalManager.bedKi);
+      EEPROM_READ(thermalManager.bedKd);
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      EEPROM_READ(chamberKp);
-      EEPROM_READ(chamberKi);
-      EEPROM_READ(chamberKd);
+      EEPROM_READ(thermalManager.chamberKp);
+      EEPROM_READ(thermalManager.chamberKi);
+      EEPROM_READ(thermalManager.chamberKd);
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      EEPROM_READ(coolerKp);
-      EEPROM_READ(coolerKi);
-      EEPROM_READ(coolerKd);
+      EEPROM_READ(thermalManager.coolerKp);
+      EEPROM_READ(thermalManager.coolerKi);
+      EEPROM_READ(thermalManager.coolerKd);
     #endif
 
     #if HASNT(LCD_CONTRAST)
@@ -657,21 +657,21 @@ void Config_ResetDefault() {
   #endif // PIDTEMP
 
   #if ENABLED(PIDTEMPBED)
-    thermalManager.bedKp = DEFAULT_bedKp;
-    thermalManager.bedKi = scalePID_i(DEFAULT_bedKi);
-    thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
+    thermalManager.thermalManager.bedKp = DEFAULT_thermalManager.bedKp;
+    thermalManager.thermalManager.bedKi = scalePID_i(DEFAULT_thermalManager.bedKi);
+    thermalManager.thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
-    thermalManager.chamberKp = DEFAULT_chamberKp;
-    thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
-    thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
+    thermalManager.thermalManager.chamberKp = DEFAULT_chamberKp;
+    thermalManager.thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
+    thermalManager.thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
-    thermalManager.coolerKp = DEFAULT_coolerKp;
-    thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
-    thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
+    thermalManager.thermalManager.coolerKp = DEFAULT_coolerKp;
+    thermalManager.thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
+    thermalManager.thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -881,19 +881,19 @@ void Config_PrintSettings(bool forReplay) {
       #endif
     #endif
     #if ENABLED(PIDTEMPBED)
-      SERIAL_SMV(CFG, "  M304 P", bedKp);
-      SERIAL_MV(" I", unscalePID_i(bedKi));
-      SERIAL_EMV(" D", unscalePID_d(bedKd));
+      SERIAL_SMV(CFG, "  M304 P", thermalManager.bedKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.bedKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.bedKd));
     #endif
     #if ENABLED(PIDTEMPCHAMBER)
-      SERIAL_SMV(CFG, "  M305 P", chamberKp);
-      SERIAL_MV(" I", unscalePID_i(chamberKi));
-      SERIAL_EMV(" D", unscalePID_d(chamberKd));
+      SERIAL_SMV(CFG, "  M305 P", thermalManager.chamberKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.chamberKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.chamberKd));
     #endif
     #if ENABLED(PIDTEMPCOOLER)
-      SERIAL_SMV(CFG, "  M306 P", coolerKp);
-      SERIAL_MV(" I", unscalePID_i(coolerKi));
-      SERIAL_EMV(" D", unscalePID_d(coolerKd));
+      SERIAL_SMV(CFG, "  M306 P", thermalManager.coolerKp);
+      SERIAL_MV(" I", unscalePID_i(thermalManager.coolerKi));
+      SERIAL_EMV(" D", unscalePID_d(thermalManager.coolerKd));
     #endif
   #endif
 
