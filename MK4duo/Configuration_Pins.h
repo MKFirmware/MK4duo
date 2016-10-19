@@ -144,7 +144,7 @@
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FILRUNOUT_PIN -1
+  #define FIL_RUNOUT_PIN -1
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)

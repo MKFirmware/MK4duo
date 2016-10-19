@@ -65,24 +65,15 @@ bool recvRetNumber(uint32_t *number, uint32_t timeout)
         && temp[7] == 0xFF
         )
     {
-        *number = ((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | ((uint32_t)temp[2] << 8) | ((uint32_t)temp[1]);
+        *number = (temp[4] << 24) | (temp[3] << 16) | (temp[2] << 8) | (temp[1]);
         ret = true;
     }
 
 __return:
 
-    if (ret) 
-    {
-        dbSerialPrint("recvRetNumber :");
-        dbSerialPrintln(*number);
-    }
-    else
-    {
-        dbSerialPrintln("recvRetNumber err");
-    }
-    
     return ret;
 }
+
 
 /*
  * Receive string data. 
@@ -147,12 +138,6 @@ uint16_t recvRetString(char *buffer, uint16_t len, uint32_t timeout)
     
 __return:
 
-    dbSerialPrint("recvRetString[");
-    dbSerialPrint(temp.length());
-    dbSerialPrint(",");
-    dbSerialPrint(temp);
-    dbSerialPrintln("]");
-
     return ret;
 }
 
@@ -167,7 +152,7 @@ void sendCommand(const char* cmd)
     {
         nexSerial.read();
     }
-    
+
     nexSerial.print(cmd);
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);
@@ -202,15 +187,6 @@ bool recvRetCommandFinished(uint32_t timeout)
         )
     {
         ret = true;
-    }
-
-    if (ret) 
-    {
-        dbSerialPrintln("recvRetCommandFinished ok");
-    }
-    else
-    {
-        dbSerialPrintln("recvRetCommandFinished err");
     }
     
     return ret;
@@ -263,7 +239,7 @@ void nexLoop(NexTouch *nex_listen_list[])
     
     while (nexSerial.available() > 0)
     {   
-        HAL::delayMilliseconds(10);
+        HAL::delayMilliseconds(5);
         c = nexSerial.read();
         
         if (NEX_RET_EVENT_TOUCH_HEAD == c)
@@ -306,7 +282,7 @@ bool sendCurrentPageId(uint8_t* pageId)
         goto __return;
     }
     sendCommand("sendme");
-    HAL::delayMilliseconds(50);
+    HAL::delayMilliseconds(10);
     nexSerial.setTimeout(100);
     if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
     {
@@ -324,16 +300,6 @@ bool sendCurrentPageId(uint8_t* pageId)
     }
 
     __return:
-
-    if (ret) 
-    {
-        dbSerialPrint("recvPageId :");
-        dbSerialPrintln(*pageId);
-    }
-    else
-    {
-        dbSerialPrintln("recvPageId err");
-    }
 
     return ret;
 
@@ -358,18 +324,7 @@ bool setCurrentBrightness(uint8_t dimValue)
     sendCommand(cmd.c_str());
     HAL::delayMilliseconds(10);
 
-    if(recvRetCommandFinished())
-    {   
-        dbSerialPrint("setCurrentBrightness[ ");
-        dbSerialPrint(dimValue);
-        dbSerialPrintln("]ok ");
-      
-        ret = true; 
-    }
-    else 
-    {
-        dbSerialPrintln("setCurrentBrightness err ");
-    }
+    if(recvRetCommandFinished()) ret = true; 
 
     return ret;    
 }
@@ -393,15 +348,7 @@ bool setDefaultBaudrate(uint32_t defaultBaudrate)
     sendCommand(cmd.c_str());
     HAL::delayMilliseconds(10);
 
-    if(recvRetCommandFinished())
-    {
-        dbSerialPrintln("setDefaultBaudrate ok ");
-        ret = true; 
-    }
-    else 
-    {
-        dbSerialPrintln("setDefaultBaudrate err ");
-    }
+    if(recvRetCommandFinished()) ret = true; 
 
     return ret; 
 }

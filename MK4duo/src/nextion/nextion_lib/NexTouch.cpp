@@ -78,7 +78,6 @@ void NexTouch::iterate(NexTouch **list, uint8_t pid, uint8_t cid, int32_t event)
     {
         if (e->getObjPid() == pid && e->getObjCid() == cid)
         {
-            e->printObjInfo();
             if (NEX_EVENT_PUSH == event)
             {
                 e->push();
@@ -92,3 +91,4 @@ void NexTouch::iterate(NexTouch **list, uint8_t pid, uint8_t cid, int32_t event)
         }
     }
 }
+

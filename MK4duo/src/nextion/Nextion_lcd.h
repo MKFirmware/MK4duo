@@ -48,7 +48,6 @@
     #define LCD_UPDATE_INTERVAL 4000
     #define NEXTION_FIRMWARE_FILE "mk4duo.tft"
 
-    void ExitPopCallback(void *ptr);
     void hotPopCallback(void *ptr);
     void sethotPopCallback(void *ptr);
     void settempPopCallback(void *ptr);
@@ -61,6 +60,7 @@
     void lcd_setstatuspgm(const char* message, const uint8_t level = 0);
     void lcd_setalertstatuspgm(const char* message);
     void lcd_reset_alert_level();
+    void lcd_scrollinfo(const char* titolo, const char* message);
 
     #if ENABLED(NEXTION_GFX)
       void gfx_clear(float x, float y, float z);
@@ -69,13 +69,14 @@
     #endif
 
     #if ENABLED(SDSUPPORT)
-      void setpageSDPopCallback(void *ptr);
       void sdlistPopCallback(void *ptr);
       void sdfilePopCallback(void *ptr);
       void sdfolderPopCallback(void *ptr);
       void sdfolderUpPopCallback(void *ptr);
       void PlayPausePopCallback(void *ptr);
       void StopPopCallback(void *ptr);
+      void DFirmwareCallback(void *ptr);
+      void setpageSD();
       void UploadNewFirmware();
     #endif
 

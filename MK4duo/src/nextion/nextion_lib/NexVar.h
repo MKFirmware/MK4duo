@@ -70,7 +70,7 @@ public: /* methods */
      * @retval true - success. 
      * @retval false - failed. 
      */
-    bool setValue(uint32_t number);
+    bool setValue(uint32_t number, const char *pname = "");
 };
 
 /**

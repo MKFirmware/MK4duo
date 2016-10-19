@@ -336,13 +336,13 @@ FORCE_INLINE void _draw_heater_status(int x, int heater) {
   #ifdef COLOR_MIXING_EXTRUDER
     if (isBed) {
       u8g.setPrintPos(x, 7);
-      lcd_print(itostr3(int(degTargetBed()) + 0.5));
+      lcd_print(itostr3(int(thermalManager.degTargetBed()) + 0.5));
       lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
       u8g.setPrintPos(x, 28);
-      lcd_print(itostr3(int(degBed()) + 0.5));
+      lcd_print(itostr3(int(thermalManager.degBed()) + 0.5));
 
       lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
-		  if (!isHeatingBed()) {
+		  if (!thermalManager.isHeatingBed()) {
         u8g.drawBox(x + 7, y, 2, 2);
 		  }
 		  else {
@@ -356,19 +356,19 @@ FORCE_INLINE void _draw_heater_status(int x, int heater) {
       lcd_print('T');
       lcd_printPGM(PSTR(LCD_STR_DEGREE));
       lcd_print(':');
-      lcd_print(itostr3(int(degHotend(heater)) + 0.5));
+      lcd_print(itostr3(int(thermalManager.degHotend(heater)) + 0.5));
       lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
       u8g.setPrintPos(44, 7);
       lcd_print('/');
-      lcd_print(itostr3(int(degTargetHotend(heater)) + 0.5));
+      lcd_print(itostr3(int(thermalManager.degTargetHotend(heater)) + 0.5));
       lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
     }
   #else
-    _draw_centered_temp((isBed ? degTargetBed() : degTargetHotend(heater)) + 0.5, x, 7);
+    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7);
 
-    _draw_centered_temp((isBed ? degBed() : degHotend(heater)) + 0.5, x, 28);
+    _draw_centered_temp((isBed ? thermalManager.degBed() : thermalManager.degHotend(heater)) + 0.5, x, 28);
 
-    if (isBed ? isHeatingBed() : isHeatingHotend(heater)) {
+    if (isBed ? thermalManager.isHeatingBed() : thermalManager.isHeatingHotend(heater)) {
       u8g.setColorIndex(0); // white on black
       u8g.drawBox(x + h, y, 2, 2);
       u8g.setColorIndex(1); // black on white

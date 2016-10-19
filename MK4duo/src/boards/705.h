@@ -75,6 +75,7 @@
 #define ORIG_TEMP_2_PIN        3  // ANALOG NUMBERING
 #define ORIG_TEMP_3_PIN        4  // ANALOG NUMBERING
 
+// SPI for Max6675 or Max31855 Thermocouple
 #define MAX31855_SS0          65
 #define MAX31855_SS1          52
 #define MAX31855_SS2          50

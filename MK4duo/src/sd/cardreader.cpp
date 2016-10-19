@@ -32,12 +32,9 @@ char tempLongFilename[LONG_FILENAME_LENGTH + 1];
 char fullName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1];
 
 CardReader::CardReader() {
+  sdprinting = cardOK = saving = false;
   fileSize = 0;
   sdpos = 0;
-  sdprinting = false;
-  cardOK = false;
-  saving = false;
-
   workDirDepth = 0;
   memset(workDirParents, 0, sizeof(workDirParents));
 
@@ -144,19 +141,13 @@ void CardReader::unmount() {
   sdprinting = false;
 }
 
-void CardReader::startPrint() {
+void CardReader::startFileprint() {
   if (cardOK) sdprinting = true;
 }
 
-void CardReader::pausePrint() {
-  if (sdprinting) sdprinting = false;
-}
-
-void CardReader::continuePrint(bool intern) {}
-
-void CardReader::stopPrint() {
+void CardReader::stopSDPrint(bool store_location /*=false*/) {
   sdprinting = false;
-  closeFile();
+  if (isFileOpen()) closeFile(store_location);
 }
 
 void CardReader::write_command(char* buf) {
@@ -184,11 +175,6 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
   if(!cardOK) return false;
 
   file.close();
-
-  if (!file.exists("restart.gcode")) {
-    file.createContiguous(&workDir, "restart.gcode", 1);
-    file.close();
-  }
 
   if (file.open(curDir, filename, O_READ)) {
     if ((oldP = strrchr(filename, '/')) != NULL)
@@ -337,33 +323,32 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     char bufferCoord1[50];
     char bufferCoord2[50];
     char bufferSdpos[11];
-    char nameFile[] = "restart.gcode";
+    char restart_name_File[] = "restart.gcode";
 
     sdprinting = false;
     stepper.synchronize();
 
     snprintf(bufferSdpos, sizeof bufferSdpos, "%lu", (unsigned long)sdpos);
 
-    if (!fileRestart.exists(nameFile)) {
-      fileRestart.createContiguous(&workDir, nameFile, 1);
-      fileRestart.close();
-    }
+    for (int8_t i = 0; i < (int8_t)strlen(fullName); i++)
+      fullName[i] = tolower(fullName[i]);
 
-    fileRestart.open(&workDir, nameFile, O_WRITE);
-    fileRestart.truncate(0);
+    strcpy(bufferFilerestart, "M34 S");
+    strcat(bufferFilerestart, bufferSdpos);
+    strcat(bufferFilerestart, " @");
+    strcat(bufferFilerestart, fullName);
 
     dtostrf(current_position[X_AXIS], 1, 3, bufferX);
     dtostrf(current_position[Y_AXIS], 1, 3, bufferY);
-    dtostrf(current_position[Z_AXIS], 1, 3, bufferZ);
     dtostrf(current_position[E_AXIS], 1, 3, bufferE);
 
     #if MECH(DELTA)
-      strcpy(bufferCoord1, "G1 Z");
-      strcat(bufferCoord1, bufferZ);
-      strcat(bufferCoord1, " F8000");
+      dtostrf(current_position[Z_AXIS], 1, 3, bufferZ);
     #else
+      dtostrf(current_position[Z_AXIS] + 5, 1, 3, bufferZ);
       strcpy(bufferCoord1, "G92 Z");
       strcat(bufferCoord1, bufferZ);
+      dtostrf(current_position[Z_AXIS], 1, 3, bufferZ);
     #endif
 
     strcpy(bufferCoord, "G1 X");
@@ -376,13 +361,13 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     strcpy(bufferCoord2, "G92 E");
     strcat(bufferCoord2, bufferE);
 
-    for (int8_t i = 0; i < (int8_t)strlen(fullName); i++)
-      fullName[i] = tolower(fullName[i]);
+    if (!fileRestart.exists(restart_name_File)) {
+      fileRestart.createContiguous(&root, restart_name_File, 1);
+      fileRestart.close();
+    }
 
-    strcpy(bufferFilerestart, "M34 S");
-    strcat(bufferFilerestart, bufferSdpos);
-    strcat(bufferFilerestart, " @");
-    strcat(bufferFilerestart, fullName);
+    fileRestart.open(&root, restart_name_File, O_WRITE);
+    fileRestart.truncate(0);
 
     #if MECH(DELTA)
       fileRestart.write("G28\n");
@@ -392,20 +377,22 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       fileRestart.write("G28 X Y\n");
     #endif
 
-    if (degTargetBed() > 0) {
-      char Bedtemp[15];
-      sprintf(Bedtemp, "M190 S%i\n", (int)degTargetBed());
-      fileRestart.write(Bedtemp);
-    }
+    #if HAS(TEMP_BED)
+      if (thermalManager.degTargetBed() > 0) {
+        char Bedtemp[15];
+        sprintf(Bedtemp, "M190 S%i\n", (int)thermalManager.degTargetBed());
+        fileRestart.write(Bedtemp);
+      }
+    #endif
 
     char CurrHotend[10];
     sprintf(CurrHotend, "T%i\n", active_extruder);
     fileRestart.write(CurrHotend);
 
     for (uint8_t h = 0; h < HOTENDS; h++) {
-      if (degTargetHotend(h) > 0) {
+      if (thermalManager.degTargetHotend(h) > 0) {
         char Hotendtemp[15];
-        sprintf(Hotendtemp, "M109 T%i S%i\n", h, (int)degTargetHotend(h));
+        sprintf(Hotendtemp, "M109 T%i S%i\n", h, (int)thermalManager.degTargetHotend(h));
         fileRestart.write(Hotendtemp);
       }
     }
@@ -432,18 +419,10 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     fileRestart.sync();
     fileRestart.close();
 
-    HAL::delayMilliseconds(200);
+    do_blocking_move_to_z(current_position[Z_AXIS] + 5);
 
-    clear_command_queue();
-
-    #if MECH(DELTA)
-      enqueue_and_echo_commands_P(PSTR("G28"));
-    #else
-      enqueue_and_echo_commands_P(PSTR("G28 X Y"));
-    #endif
-
-    disable_all_heaters();
-    disable_all_coolers();
+    thermalManager.disable_all_heaters();
+    thermalManager.disable_all_coolers();
     fanSpeed = 0;
   }
 }
@@ -460,7 +439,7 @@ void CardReader::checkautostart(bool force) {
   }
 
   fat.chdir(true);
-  if(selectFile("init.g", true)) startPrint();
+  if(selectFile("init.g", true)) startFileprint();
 }
 
 void CardReader::printingHasFinished() {

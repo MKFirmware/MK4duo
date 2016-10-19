@@ -253,20 +253,22 @@
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  *                                                                     *
  ***********************************************************************/
-#define BANG_MAX 255       // limits current to nozzle while in bang-bang mode; 255=full current
-#define PID_MAX BANG_MAX   // limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
-#define K1 0.95            // Smoothing factor within the PID
-#define MAX_OVERSHOOT_PID_AUTOTUNE 20   // Max valor for overshoot autotune
-
 // Comment the following line to disable PID and enable bang-bang.
 #define PIDTEMP
+
+#define BANG_MAX 255        // limits current to nozzle while in bang-bang mode; 255=full current
+#define PID_MAX BANG_MAX    // limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
 //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 //#define PID_DEBUG         // Sends debug data to the serial port.
 //#define PID_OPENLOOP 1    // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
 //#define SLOW_PWM_HEATERS  // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
+
 // If the temperature difference between the target temperature and the actual temperature
-// is more then PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
-#define PID_FUNCTIONAL_RANGE 10         // degC
+// is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
+#define PID_FUNCTIONAL_RANGE 10
+// Smoothing factor within the PID
+#define K1 0.95
+
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
 // if Kc is chosen well, the additional required power due to increased melting should be compensated.
 //#define PID_ADD_EXTRUSION_RATE

@@ -182,7 +182,7 @@ void Config_Postprocess() {
   planner.refresh_positioning();
 
   #if ENABLED(PIDTEMP)
-    updatePID();
+    thermalManager.updatePID();
   #endif
 
   calculate_volumetric_multipliers();
@@ -606,21 +606,21 @@ void Config_ResetDefault() {
     delta_radius = DEFAULT_DELTA_RADIUS;
     delta_diagonal_rod = DELTA_DIAGONAL_ROD;
     delta_segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
-    soft_endstop_max[0] = X_MAX_POS;
-    soft_endstop_max[1] = Y_MAX_POS;
-    soft_endstop_max[2] = Z_MAX_POS;
-    endstop_adj[0] = TOWER_A_ENDSTOP_ADJ;
-    endstop_adj[1] = TOWER_B_ENDSTOP_ADJ;
-    endstop_adj[2] = TOWER_C_ENDSTOP_ADJ;
+    soft_endstop_max[X_AXIS] = X_MAX_POS;
+    soft_endstop_max[Y_AXIS] = Y_MAX_POS;
+    soft_endstop_max[Z_AXIS] = Z_MAX_POS;
+    endstop_adj[A_AXIS] = TOWER_A_ENDSTOP_ADJ;
+    endstop_adj[B_AXIS] = TOWER_B_ENDSTOP_ADJ;
+    endstop_adj[C_AXIS] = TOWER_C_ENDSTOP_ADJ;
     tower_adj[0] = TOWER_A_POSITION_ADJ;
     tower_adj[1] = TOWER_B_POSITION_ADJ;
     tower_adj[2] = TOWER_C_POSITION_ADJ;
     tower_adj[3] = TOWER_A_RADIUS_ADJ;
     tower_adj[4] = TOWER_B_RADIUS_ADJ;
     tower_adj[5] = TOWER_C_RADIUS_ADJ;
-    diagrod_adj[0] = TOWER_A_DIAGROD_ADJ;
-    diagrod_adj[1] = TOWER_B_DIAGROD_ADJ;
-    diagrod_adj[2] = TOWER_C_DIAGROD_ADJ;
+    diagrod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
+    diagrod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
+    diagrod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -640,11 +640,16 @@ void Config_ResetDefault() {
   #endif
 
   #if ENABLED(PIDTEMP)
-    for (int8_t h = 0; h < HOTENDS; h++) {
-      Kp[h] = tmp6[h];
-      Ki[h] = scalePID_i(tmp7[h]);
-      Kd[h] = scalePID_d(tmp8[h]);
-      Kc[h] = tmp9[h];
+    #if HOTENDS > 1
+      HOTEND_LOOP()
+    #else
+      int h = 0; UNUSED(h); // only need to write once
+    #endif
+    {
+      PID_PARAM(Kp, h) = tmp6[h];
+      PID_PARAM(Ki, h) = scalePID_i(tmp7[h]);
+      PID_PARAM(Kd, h) = scalePID_d(tmp8[h]);
+      PID_PARAM(Kc, h) = tmp9[h];
     }
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       lpq_len = 20; // default last-position-queue size
@@ -652,21 +657,21 @@ void Config_ResetDefault() {
   #endif // PIDTEMP
 
   #if ENABLED(PIDTEMPBED)
-    bedKp = DEFAULT_bedKp;
-    bedKi = scalePID_i(DEFAULT_bedKi);
-    bedKd = scalePID_d(DEFAULT_bedKd);
+    thermalManager.bedKp = DEFAULT_bedKp;
+    thermalManager.bedKi = scalePID_i(DEFAULT_bedKi);
+    thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
-    chamberKp = DEFAULT_chamberKp;
-    chamberKi = scalePID_i(DEFAULT_chamberKi);
-    chamberKd = scalePID_d(DEFAULT_chamberKd);
+    thermalManager.chamberKp = DEFAULT_chamberKp;
+    thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
+    thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
-    coolerKp = DEFAULT_coolerKp;
-    coolerKi = scalePID_i(DEFAULT_coolerKi);
-    coolerKd = scalePID_d(DEFAULT_coolerKd);
+    thermalManager.coolerKp = DEFAULT_coolerKp;
+    thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
+    thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
   #endif
 
   #if ENABLED(FWRETRACT)

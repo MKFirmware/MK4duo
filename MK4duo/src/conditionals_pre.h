@@ -334,4 +334,63 @@
   #define _TEST_BLTOUCH(P) (READ(P##_PIN) != P##_ENDSTOP_INVERTING)
 #endif
 
+/**
+ * Extruders have some combination of stepper motors and hotends
+ * so we separate these concepts into the defines:
+ *
+ *  EXTRUDERS         - Number of Selectable Tools
+ *  HOTENDS           - Number of hotends, whether connected or separate
+ *  DRIVER_EXTRUDERS  - Number of driver extruders
+ *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
+ *
+ */
+#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends 
+  #undef SINGLENOZZLE
+  #undef ADVANCE
+  #undef EXTRUDERS
+  #undef DRIVER_EXTRUDERS
+  #define EXTRUDERS         2
+  #define DRIVER_EXTRUDERS  1
+  #define E_MANUAL          1
+  #define TOOL_E_INDEX      0
+#elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
+  #undef SINGLENOZZLE
+  #undef ADVANCE
+  #undef EXTRUDERS
+  #undef DRIVER_EXTRUDERS
+  #define EXTRUDERS         2
+  #define DRIVER_EXTRUDERS  2
+  #define E_MANUAL          1
+  #define TOOL_E_INDEX      current_block->active_extruder
+#elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
+  #define SINGLENOZZLE
+  #undef EXTRUDERS
+  #undef DRIVER_EXTRUDERS
+  #define EXTRUDERS         1
+  #define DRIVER_EXTRUDERS  MIXING_STEPPERS
+  #define E_MANUAL          1
+  #define TOOL_E_INDEX      0
+#else
+  #define E_MANUAL          EXTRUDERS
+  #define TOOL_E_INDEX      current_block->active_extruder
+#endif
+
+#define TOOL_DE_INDEX       current_block->active_driver
+
+#if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
+  #undef HOTENDS
+  #define HOTENDS           1
+  #define E_MANUAL          1
+  #undef TEMP_SENSOR_1_AS_REDUNDANT
+  #undef HOTEND_OFFSET_X
+  #undef HOTEND_OFFSET_Y
+  #undef HOTEND_OFFSET_Z
+  #define HOTEND_OFFSET_X   { 0 }
+  #define HOTEND_OFFSET_Y   { 0 }
+  #define HOTEND_OFFSET_Z   { 0 }
+#else
+  #undef HOTENDS
+  #define HOTENDS           EXTRUDERS
+#endif
+
 #endif // CONDITIONALS_PRE_H
