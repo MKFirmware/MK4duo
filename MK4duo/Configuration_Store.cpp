@@ -107,11 +107,11 @@
  *  M301  L               lpq_len
  *
  * PIDTEMPBED:
- *  M304      PID         thermalManager.bedKp, thermalManager.bedKi, thermalManager.bedKd (float x3)
+ *  M304      PID         bedKp, bedKi, bedKd (float x3)
  * PIDTEMPCHAMBER
- *  M305      PID         thermalManager.chamberKp, thermalManager.chamberKi, thermalManager.chamberKd (float x3)
+ *  M305      PID         chamberKp, chamberKi, chamberKd (float x3)
  * PIDTEMPCOOLER
- *  M306      PID         thermalManager.coolerKp, thermalManager.coolerKi, thermalManager.coolerKd (float x3)
+ *  M306      PID         coolerKp, coolerKi, coolerKd (float x3)
  *
  * DOGLCD:
  *  M250  C               lcd_contrast (int)
@@ -657,21 +657,21 @@ void Config_ResetDefault() {
   #endif // PIDTEMP
 
   #if ENABLED(PIDTEMPBED)
-    thermalManager.thermalManager.bedKp = DEFAULT_thermalManager.bedKp;
-    thermalManager.thermalManager.bedKi = scalePID_i(DEFAULT_thermalManager.bedKi);
-    thermalManager.thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
+    thermalManager.bedKp = DEFAULT_bedKp;
+    thermalManager.bedKi = scalePID_i(DEFAULT_bedKi);
+    thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
-    thermalManager.thermalManager.chamberKp = DEFAULT_chamberKp;
-    thermalManager.thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
-    thermalManager.thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
+    thermalManager.chamberKp = DEFAULT_chamberKp;
+    thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
+    thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
-    thermalManager.thermalManager.coolerKp = DEFAULT_coolerKp;
-    thermalManager.thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
-    thermalManager.thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
+    thermalManager.coolerKp = DEFAULT_coolerKp;
+    thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
+    thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
   #endif
 
   #if ENABLED(FWRETRACT)
