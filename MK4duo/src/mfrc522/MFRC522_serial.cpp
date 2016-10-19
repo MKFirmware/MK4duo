@@ -88,7 +88,7 @@
     }
   }
 
-  bool MFRC522::getID(int8_t e) {
+  bool MFRC522::getID(uint8_t e) {
     if (communicate(0x02, COMMAND_READ_ID)) {
       for (int i = 0; i < 4; i++)
         RfidDataID[e].RfidPacketID[i] = MFRC522Data[i];
@@ -97,7 +97,7 @@
     return false;
   }
 
-  bool MFRC522::readBlock(int8_t e) {
+  bool MFRC522::readBlock(uint8_t e) {
 
     int8_t Packetdata = 0;
     byte sendData[8] = {
@@ -125,7 +125,7 @@
     return true;
   }
 
-  bool MFRC522::writeBlock(int8_t e) {
+  bool MFRC522::writeBlock(uint8_t e) {
 
     int8_t Packetdata = 0;
     byte sendData[24] = {
@@ -193,13 +193,13 @@
 
     return STATUS_OK;
   }
-  void MFRC522::printInfo(int8_t e) {
+  void MFRC522::printInfo(uint8_t e) {
     char lung[30];
     SERIAL_EMV(MSG_RFID_SPOOL, e);
     SERIAL_EMT(MSG_RFID_BRAND, RfidData[e].data.brand);
     SERIAL_EMT(MSG_RFID_TYPE, RfidData[e].data.type);
     SERIAL_EMT(MSG_RFID_COLOR, RfidData[e].data.color);
-    SERIAL_EMV(MSG_RFID_SIZE, RfidData[e].data.size);
+    SERIAL_EMV(MSG_RFID_SIZE, RfidData[e].data.size, 2);
     SERIAL_MV(MSG_RFID_TEMP_HOTEND, RfidData[e].data.temphotendmin);
     SERIAL_EMV(" - ", RfidData[e].data.temphotendmax);
     SERIAL_MV(MSG_RFID_TEMP_BED, RfidData[e].data.tempbedmin);
@@ -213,6 +213,61 @@
                   millimeter = ((long)RfidData[e].data.lenght) % 10;
     sprintf_P(lung, PSTR("%i Km %i m %i cm %i mm"), kmeter, meter, centimeter, millimeter);
     SERIAL_EMT(MSG_RFID_SPOOL_LENGHT, lung);
+    
+    #if ENABLED(NEXTION)
+      char titolo[30], message[250];
+      char* temp;
+      memset(titolo, 0, sizeof(titolo));
+      memset(message, 0, sizeof(message));
+
+      strcat(titolo, MSG_RFID_SPOOL);
+      temp = itostr3(e);
+      strcat(titolo, temp);
+      strcat(message, PSTR(MSG_RFID_BRAND));
+      strcat(message, RfidData[e].data.brand);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_TYPE);
+      strcat(message, RfidData[e].data.type);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_COLOR);
+      strcat(message, RfidData[e].data.color);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_SIZE);
+      temp = ftostr12ns(RfidData[e].data.size);
+      strcat(message, temp);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_TEMP_HOTEND);
+      itoa(RfidData[e].data.temphotendmin, temp, 10);
+      strcat(message, temp);
+      strcat(message, " - ");
+      itoa(RfidData[e].data.temphotendmax, temp, 10);
+      strcat(message, temp);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_TEMP_BED);
+      itoa(RfidData[e].data.tempbedmin, temp, 10);
+      strcat(message, temp);
+      strcat(message, " - ");
+      itoa(RfidData[e].data.tempbedmax, temp, 10);
+      strcat(message, temp);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_TEMP_USER_HOTEND);
+      itoa(RfidData[e].data.temphotend, temp, 10);
+      strcat(message, temp);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_TEMP_USER_BED);
+      itoa(RfidData[e].data.tempbed, temp, 10);
+      strcat(message, temp);
+      strcat(message, "\r\n");
+      strcat(message, MSG_RFID_DENSITY);
+      itoa(RfidData[e].data.density, temp, 10);
+      strcat(message, temp);
+      strcat(message, "%\r\n");
+      strcat(message, MSG_RFID_SPOOL_LENGHT);
+      strcat(message, "\r\n");
+      strcat(message, lung);
+
+      lcd_scrollinfo(titolo, message);
+    #endif
   }
 
   // Private

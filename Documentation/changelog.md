@@ -1,3 +1,9 @@
+### Version 4.3.04_dev
+* Fix Code
+* Fix JERK
+* Fix Save Stop Restart
+* Update Nextion Graphic made Mr. Goblins
+
 ### Version 4.3.03_dev
 * Clear Code
 * ABL revision (ABL 3 point, ABL Linear, ABL Bilinear)

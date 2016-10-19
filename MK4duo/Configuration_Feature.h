@@ -1238,13 +1238,12 @@
  ************************* Low speed stepper ***************************
  ***********************************************************************
  *                                                                     *
- * Use it if you have low speed stepper driver                         *
+ * Set this if you find stepping unreliable,                           *
+ * or if using a very fast CPU.                                        *
  *                                                                     *
  ***********************************************************************/
-//#define STEPPER_HIGH_LOW
-
-// Delay in microseconds
-#define STEPPER_HIGH_LOW_DELAY 1u
+// (µs) The smallest stepper pulse allowed
+#define MINIMUM_STEPPER_PULSE 0
 /***********************************************************************/
 
 

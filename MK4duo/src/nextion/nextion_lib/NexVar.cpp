@@ -49,12 +49,17 @@ bool NexVar::getValue(uint32_t *number)
     return recvRetNumber(number);
 }
 
-bool NexVar::setValue(uint32_t number)
+bool NexVar::setValue(uint32_t number, const char *pname)
 {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
+    
+    if (pname != "") {
+      cmd += pname;
+      cmd += ".";
+    }
     cmd += getObjName();
     cmd += ".val=";
     cmd += buf;

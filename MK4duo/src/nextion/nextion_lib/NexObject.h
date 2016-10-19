@@ -15,10 +15,8 @@
  */
 #ifndef __NEXOBJECT_H__
 #define __NEXOBJECT_H__
-
 #include <Arduino.h>
 #include "NexConfig.h"
-
 /**
  * @addtogroup CoreAPI 
  * @{ 
@@ -44,37 +42,30 @@ public: /* methods */
      */
     NexObject(uint8_t pid, uint8_t cid, const char *name);
 
-    /**
-     * Print current object'address, page id, component id and name. 
-     *
-     * @warning this method does nothing, unless debug message enabled. 
-     */
-    void printObjInfo(void);
-
 protected: /* methods */
 
     /*
      * Get page id.
      *
-     * @return the id of page.
+     * @return the id of page.  
      */
-    uint8_t getObjPid(void);
+    uint8_t getObjPid(void);    
 
     /*
      * Get component id.
      *
-     * @return the id of component.
+     * @return the id of component.  
      */
     uint8_t getObjCid(void);
 
     /*
      * Get component name.
      *
-     * @return the name of component.
+     * @return the name of component. 
      */
-    const char *getObjName(void);
-
-private: /* data */
+    const char *getObjName(void);    
+    
+private: /* data */ 
     uint8_t __pid; /* Page ID */
     uint8_t __cid; /* Component ID */
     const char *__name; /* An unique name */

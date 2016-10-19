@@ -52,10 +52,8 @@ public:
   void unmount();
   void ls();
   void getfilename(uint16_t nr, const char* const match = NULL);
-  void startPrint();
-  void pausePrint();
-  void continuePrint(bool intern = false);
-  void stopPrint();
+  void startFileprint();
+  void stopSDPrint(bool store_location = false);
   void write_command(char* buf);
   bool selectFile(const char *filename, bool silent = false);
   void printStatus();
@@ -76,6 +74,7 @@ public:
   void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
   void unparseKeyLine(const char* key, char* value);
 
+  FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
   FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; file.seekSet(sdpos); }
   FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
   FORCE_INLINE bool eof() { return sdpos >= fileSize; }

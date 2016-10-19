@@ -31,7 +31,7 @@
 /**
  * SAM3X8E
  */
-#ifdef __SAM3X8E__
+#if ENABLED(__SAM3X8E__)
   #ifdef FAST_PWM_FAN
     #undef FAST_PWM_FAN
   #endif
@@ -119,65 +119,6 @@
  * Auto Bed Leveling and Z Probe Repeatability Test
  */
 #define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0 && !HAS_Z_PROBE_PIN)
-
-/**
- * Extruders have some combination of stepper motors and hotends
- * so we separate these concepts into the defines:
- *
- *  EXTRUDERS         - Number of Selectable Tools
- *  HOTENDS           - Number of hotends, whether connected or separate
- *  DRIVER_EXTRUDERS  - Number of driver extruders
- *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
- *
- */
-#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends 
-  #undef SINGLENOZZLE
-  #undef ADVANCE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
-  #define EXTRUDERS         2
-  #define DRIVER_EXTRUDERS  1
-  #define E_MANUAL          1
-  #define TOOL_E_INDEX      0
-#elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
-  #undef SINGLENOZZLE
-  #undef ADVANCE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
-  #define EXTRUDERS         2
-  #define DRIVER_EXTRUDERS  2
-  #define E_MANUAL          1
-  #define TOOL_E_INDEX      current_block->active_extruder
-#elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
-  #define SINGLENOZZLE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
-  #define EXTRUDERS         1
-  #define DRIVER_EXTRUDERS  MIXING_STEPPERS
-  #define E_MANUAL          1
-  #define TOOL_E_INDEX      0
-#else
-  #define E_MANUAL          EXTRUDERS
-  #define TOOL_E_INDEX      current_block->active_extruder
-#endif
-
-#define TOOL_DE_INDEX       current_block->active_driver
-
-#if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
-  #undef HOTENDS
-  #define HOTENDS           1
-  #define E_MANUAL          1
-  #undef TEMP_SENSOR_1_AS_REDUNDANT
-  #undef HOTEND_OFFSET_X
-  #undef HOTEND_OFFSET_Y
-  #undef HOTEND_OFFSET_Z
-  #define HOTEND_OFFSET_X   { 0 }
-  #define HOTEND_OFFSET_Y   { 0 }
-  #define HOTEND_OFFSET_Z   { 0 }
-#else
-  #undef HOTENDS
-  #define HOTENDS           EXTRUDERS
-#endif
 
 /**
  * Hardware Serial
@@ -507,7 +448,7 @@
 /**
  * MAX_STEP_FREQUENCY differs for TOSHIBA OR ARDUINO DUE OR ARDUINO MEGA
  */
-#ifdef __SAM3X8E__
+#if ENABLED(__SAM3X8E__)
   #if ENABLED(CONFIG_STEPPERS_TOSHIBA)
     #define MAX_STEP_FREQUENCY 150000 // Max step frequency for Toshiba Stepper Controllers
     #define DOUBLE_STEP_FREQUENCY MAX_STEP_FREQUENCY
@@ -796,5 +737,8 @@
     #define _Z_PROBE_DEPLOY_HEIGHT Z_PROBE_DEPLOY_HEIGHT
   #endif
 #endif
+
+// Stepper pulse duration, in cycles
+#define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_MICROSECOND)
 
 #endif //CONDITIONALS_H

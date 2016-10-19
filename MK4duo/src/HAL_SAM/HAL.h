@@ -88,8 +88,11 @@
  */
 #define analogInputToDigitalPin(IO) IO
 
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
-#define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
+// Bracket code that shouldn't be interrupted
+#if DISABLED(CRITICAL_SECTION_START)
+  #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+  #define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
+#endif
 
 #define SPR0    0
 #define SPR1    1

@@ -44,7 +44,6 @@
      * Constructor. 
      * 
      * @param file_name - tft file name. 
-     * @param SD_chip_select - sd chip select pin.
      * @upload_baudrate - set upload baudrate.
      */
     NexUpload(const String file_Name, uint32_t upload_baudrate); 

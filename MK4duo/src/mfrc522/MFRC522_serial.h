@@ -62,10 +62,10 @@
     public:
       MFRC522();
       bool init();
-      bool getID(int8_t e);
-      bool readBlock(int8_t e);
-      bool writeBlock(int8_t e);
-      void printInfo(int8_t e);
+      bool getID(uint8_t e);
+      bool readBlock(uint8_t e);
+      bool writeBlock(uint8_t e);
+      void printInfo(uint8_t e);
 
       typedef struct {
         char brand[16];           // 16 byte Block 5
