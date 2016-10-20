@@ -645,7 +645,7 @@
 
   static void temptoLCD(int h, int T1, int T2) {
     char valuetemp[25] = {0};
-    uint32_t color = 1023;
+    uint32_t color;
     memset(buffer, 0, sizeof(buffer));
     itoa(T1, valuetemp, 10);
     strcat(buffer, valuetemp);
@@ -655,13 +655,15 @@
     strcat(buffer, "  ");
 
     if (T2 > 0) {
-      uint32_t prc = (T1/(T2)) * 100;
+      uint32_t prc = T1 / T2 * 100;
 
-      if (prc >= 50 && prc < 75)
-        color = 65519;
-      else if (prc >= 75 && prc < 95)
-        color = 64487;
-      else if (prc >= 95)
+      if (prc <= 50)
+        color = 1023;
+      else if (prc <= 75)
+        color = 65504;
+      else if (prc <= 95)
+        color = 64512;
+      else
         color = 63488;
     }
     else

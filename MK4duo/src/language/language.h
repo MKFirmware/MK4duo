@@ -124,7 +124,7 @@
 #define MSG_SOFT_MIN                         "  Min:"
 #define MSG_SOFT_MAX                         "  Max:"
 #define MSG_HOTEND_OFFSET                    "Hotend offsets:"
-#define MSG_FILRUNOUT_PIN                    "filament_runout_pin: "
+#define MSG_FIL_RUNOUT_PIN                   "filament_runout_pin: "
 
 // SD Card
 #define MSG_SD_ERRORCODE                     "SD errorCode:"
