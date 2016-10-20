@@ -643,7 +643,7 @@
     }
   }
 
-  static void temptoLCD(int h, int T1, int T2) {
+  static void temptoLCD(int h, float T1, float T2) {
     char valuetemp[25] = {0};
     uint32_t color;
     memset(buffer, 0, sizeof(buffer));
