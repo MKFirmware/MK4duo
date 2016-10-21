@@ -64,7 +64,11 @@
     GFX gfx = GFX(200, 154, 20, 27);
   #endif
 
-  // Page
+  /**
+   *******************************************************************
+   * Nextion component all page
+   *******************************************************************
+   */
   NexPage Pstart        = NexPage       (0,   0,  "start");
   NexPage Pmenu         = NexPage       (1,   0,  "menu");
   NexPage Pprinter      = NexPage       (2,   0,  "printer");
@@ -78,12 +82,24 @@
   NexPage Ptemp         = NexPage       (10,  0,  "temp");
   NexPage Pinfo         = NexPage       (11,  0,  "info");
 
-  // Page 0 Start
+  /**
+   *******************************************************************
+   * Nextion component for page:start
+   *******************************************************************
+   */
   NexTimer startimer    = NexTimer      (0,   1,  "tm0");
 
-  // Page 1 Menu
+  /**
+   *******************************************************************
+   * Nextion component for page:menu
+   *******************************************************************
+   */
 
-  // Page 2 Printer
+  /**
+   *******************************************************************
+   * Nextion component for page:printer
+   *******************************************************************
+   */
   NexText LedStatus     = NexText       (2,   1,  "t0");
   NexText LedCoord1     = NexText       (2,   2,  "t1");
   NexText Hotend0       = NexText       (2,   14, "t2");
@@ -104,7 +120,11 @@
   NexTimer Fantimer     = NexTimer      (2,   8,  "tm0");
   NexProgressBar sdbar  = NexProgressBar(2,   9,  "j0");
 
-  // Page 3 SDCard
+  /**
+   *******************************************************************
+   * Nextion component for page:SDCard
+   *******************************************************************
+   */
   NexText sdrow0        = NexText       (3,   2,  "t0");
   NexText sdrow1        = NexText       (3,   3,  "t1");
   NexText sdrow2        = NexText       (3,   4,  "t2");
@@ -123,10 +143,18 @@
   NexPicture ScrollDown = NexPicture    (3,   19, "p8");
   NexSlider sdlist      = NexSlider     (3,   1,  "h0");
 
-  // Page 4 Setup
+  /**
+   *******************************************************************
+   * Nextion component for page:Setup
+   *******************************************************************
+   */
   NexPicture DFirmware  = NexPicture    (4,   4,  "p0");
 
-  // Page 5 Move
+  /**
+   *******************************************************************
+   * Nextion component for page:Move
+   *******************************************************************
+   */
   NexPicture XYHome     = NexPicture    (5,   2,  "p4");
   NexPicture XYUp       = NexPicture    (5,   3,  "p5");
   NexPicture XYRight    = NexPicture    (5,   4,  "p6");
@@ -138,14 +166,26 @@
   NexVariable movecmd   = NexVariable   (5,   11, "vacmd");
   NexText LedCoord5     = NexText       (5,   12, "t0");
 
-  // Page 6 Speed
+  /**
+   *******************************************************************
+   * Nextion component for page:Speed
+   *******************************************************************
+   */
   NexSlider Speed       = NexSlider     (6,   7,  "h0");
 
-  // Page 7 Gcode
+  /**
+   *******************************************************************
+   * Nextion component for page:GCode
+   *******************************************************************
+   */
   NexText Tgcode        = NexText       (7,   1,  "tgcode");
   NexButton Benter      = NexButton     (7,   41, "benter");
 
-  // Page 8 Rfid
+  /**
+   *******************************************************************
+   * Nextion component for page:Rfid
+   *******************************************************************
+   */
   NexText RfidText      = NexText       (8,   8,  "t0");
   NexButton Rfid0       = NexButton     (8,   2,  "b0");
   NexButton Rfid1       = NexButton     (8,   3,  "b1");
@@ -155,66 +195,57 @@
   NexButton Rfid5       = NexButton     (8,   7,  "b5");
   NexDSButton RfidR     = NexDSButton   (8,   9,  "bt0");
 
-  // Page 9 Brightness
+  /**
+   *******************************************************************
+   * Nextion component for page:Brightness
+   *******************************************************************
+   */
 
-  // Page 10 Temp
+  /**
+   *******************************************************************
+   * Nextion component for page:Temp
+   *******************************************************************
+   */
   NexText tset0         = NexText       (10,  1,  "set0");
   NexVariable tset1     = NexVariable   (10,  2,  "set1");
   NexPicture tset       = NexPicture    (10,  3,  "p5");
   NexPicture tup        = NexPicture    (10,  6,  "p8");
   NexPicture tdown      = NexPicture    (10,  7,  "p9");
 
-  // Page 11 Info
+  /**
+   *******************************************************************
+   * Nextion component for page:Info
+   *******************************************************************
+   */
   NexText InfoText          = NexText       (11,   2,  "t0");
   NexScrolltext ScrollText  = NexScrolltext (11,   3,  "g0");
 
   NexTouch *nex_listen_list[] =
   {
     // Page 2 touch listen
-    &Hotend0,
-    &Hotend1,
-    &Hotend2,
-    &Fanpic,
-    &NPlay,
-    &NStop,
-    &Logo,
+    &Hotend0, &Hotend1, &Hotend2, &Fanpic, &NPlay, &NStop, &Logo,
+
     // Page 3 touch listen
-    &sdlist,
-    &ScrollUp,
-    &ScrollDown,
-    &sdrow0,
-    &sdrow1,
-    &sdrow2,
-    &sdrow3,
-    &sdrow4,
-    &sdrow5,
-    &Folderup,
+    &sdlist, &ScrollUp, &ScrollDown, &sdrow0, &sdrow1, &sdrow2,
+    &sdrow3, &sdrow4, &sdrow5, &Folderup,
+
     // Page 4 touch listen
     &DFirmware,
+
     // Page 5 touch listen
-    &XYHome,
-    &XYUp,
-    &XYRight,
-    &XYDown,
-    &XYLeft,
-    &ZHome,
-    &ZUp,
-    &ZDown,
+    &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft, &ZHome, &ZUp, &ZDown,
+
     // Page 6 touch listen
     &Speed,
+
     // Page 7 touch listen
     &Benter,
+
     // Page 8 touch listen
-    &Rfid0,
-    &Rfid1,
-    &Rfid2,
-    &Rfid3,
-    &Rfid4,
-    &Rfid5,
+    &Rfid0, &Rfid1, &Rfid2, &Rfid3, &Rfid4, &Rfid5,
+
     // Page 10 touch listen
-    &tset,
-    &tup,
-    &tdown,
+    &tset, &tup, &tdown,
     NULL
   };
 
@@ -821,11 +852,12 @@
               NStop.setPic(30);
             }
           #endif
-          //nexSerial.flush();
           break;
-        case 3:
-          if (PreviousPage != 3) setpageSD();
-          break;
+        #if ENABLED(SDSUPPORT)
+          case 3:
+            if (PreviousPage != 3) setpageSD();
+            break;
+        #endif
         case 5:
           coordtoLCD();
           break;
