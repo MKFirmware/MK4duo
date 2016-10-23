@@ -217,8 +217,8 @@
     #if ENABLED(NEXTION)
       char titolo[30], message[250];
       char* temp;
-      memset(titolo, 0, sizeof(titolo));
-      memset(message, 0, sizeof(message));
+      ZERO(titolo);
+      ZERO(message);
 
       strcat(titolo, MSG_RFID_SPOOL);
       temp = itostr3(e);

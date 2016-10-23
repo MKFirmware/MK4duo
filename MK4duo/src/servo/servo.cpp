@@ -415,11 +415,13 @@
   bool Servo::attached() { return servo_info[this->servoIndex].Pin.isActive; }
 
   void Servo::move(int value) {
-    this->write(value);
-    HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
-    #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
-      this->detach();
-    #endif
+    if (this->attach(0) >= 0) {
+      this->write(value);
+      HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
+      #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
+        this->detach();
+      #endif
+    }
   }
 
 #endif

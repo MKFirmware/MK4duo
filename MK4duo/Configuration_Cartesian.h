@@ -225,7 +225,7 @@
  *****************************************************************************************
  *                                                                                       *
  * (in mm) Minimal z height before homing (G28) for Z clearance above the bed, clamps,   *
- * Be sure you have this distance over your Z_MAX_POS in case.                           *
+ * Be sure you have this distance over your Z MAX POS in case.                           *
  *                                                                                       *
  *****************************************************************************************/
 #define MIN_Z_HEIGHT_FOR_HOMING   0

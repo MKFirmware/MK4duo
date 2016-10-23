@@ -36,7 +36,7 @@ CardReader::CardReader() {
   fileSize = 0;
   sdpos = 0;
   workDirDepth = 0;
-  memset(workDirParents, 0, sizeof(workDirParents));
+  ZERO(workDirParents);
 
   autostart_stilltocheck = true; //the SD start is delayed, because otherwise the serial cannot answer fast enough to make contact with the host software.
 

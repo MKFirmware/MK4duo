@@ -1027,16 +1027,25 @@
 
 //#define INVERT_CLICK_BUTTON           // Option for invert encoder button logic
 //#define INVERT_BACK_BUTTON            // Option for invert back button logic if avaible
-//#define INVERT_ROTARY_SWITCH          // Option for reverses the encoder direction for navigating LCD menus.
+
+// This option reverses the encoder direction everywhere
+//  Set this option if CLOCKWISE causes values to DECREASE
+//#define REVERSE_ENCODER_DIRECTION
+
+// This option reverses the encoder direction for navigating LCD menus.
+//  If CLOCKWISE normally moves DOWN this makes it go UP.
+//  If CLOCKWISE normally moves UP this makes it go DOWN.
+//#define REVERSE_MENU_DIRECTION
+
 #define ENCODER_RATE_MULTIPLIER         // If defined, certain menu edit operations automatically multiply the steps when the encoder is moved quickly
 #define ENCODER_10X_STEPS_PER_SEC   75  // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value
 #define ENCODER_100X_STEPS_PER_SEC 160  // If the encoder steps per sec exceeds this value, multiply steps moved x100 to really quickly advance the value
 #define ULTIPANEL_FEEDMULTIPLY          // Comment to disable setting feedrate multiplier via encoder
+//#define ENCODER_PULSES_PER_STEP 1     // Increase if you have a high resolution encoder
+//#define ENCODER_STEPS_PER_MENU_ITEM 5 // Set according to ENCODER_PULSES_PER_STEP or your liking
 
 //#define ULTRA_LCD                              // general LCD support, also 16x2
 //#define DOGLCD                                 // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
-//#define ENCODER_PULSES_PER_STEP 1              // Increase if you have a high resolution encoder
-//#define ENCODER_STEPS_PER_MENU_ITEM 5          // Set according to ENCODER_PULSES_PER_STEP or your liking
 //#define ULTIMAKERCONTROLLER                    // As available from the Ultimaker online store.
 //#define ULTIPANEL                              // The UltiPanel as on Thingiverse
 //#define SPEAKER                                // The sound device is a speaker - not a buzzer. A buzzer resonates with his own frequency.

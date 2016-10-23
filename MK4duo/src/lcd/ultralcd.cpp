@@ -81,7 +81,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
   float raw_Ki, raw_Kd;
 
   /**
-   * INVERT_ROTARY_SWITCH
+   * REVERSE_MENU_DIRECTION
    *
    * To reverse the menu direction we need a general way to reverse
    * the direction of the encoder everywhere. So encoderDirection is
@@ -90,7 +90,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
    * This behavior is limited to scrolling Menus and SD card listings,
    * and is disabled in other contexts.
    */
-  #if ENABLED(INVERT_ROTARY_SWITCH)
+  #if ENABLED(REVERSE_MENU_DIRECTION)
     int8_t encoderDirection = 1;
     #define ENCODER_DIRECTION_NORMAL() (encoderDirection = 1)
     #define ENCODER_DIRECTION_MENUS() (encoderDirection = -1)
@@ -693,13 +693,13 @@ void kill_screen(const char* lcd_msg) {
     long babysteps_done = 0;
 
     static void _lcd_babystep(const AxisEnum axis, const char* msg) {
-      if (LCD_CLICKED) { lcd_goto_previous_menu(true); return; }
+      if (LCD_CLICKED) { defer_return_to_status = false; lcd_goto_previous_menu(true); return; }
       ENCODER_DIRECTION_NORMAL();
       if (encoderPosition) {
         int babystep_increment = (int32_t)encoderPosition * BABYSTEP_MULTIPLICATOR;
         encoderPosition = 0;
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-        babystep_axis(axis, babystep_increment);
+        thermalManager.babystep_axis(axis, babystep_increment);
         babysteps_done += babystep_increment;
       }
       if (lcdDrawUpdate)
@@ -3161,53 +3161,69 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
    * Warning: This function is called from interrupt context!
    */
   void lcd_buttons_update() {
-    #if ENABLED(NEWPANEL)
-      uint8_t newbutton = 0;
-      #if BUTTON_EXISTS(EN1)
-        if (BUTTON_PRESSED(EN1)) newbutton |= EN_A;
-      #endif
-      #if BUTTON_EXISTS(EN2)
-        if (BUTTON_PRESSED(EN2)) newbutton |= EN_B;
-      #endif
-      #if LCD_HAS_DIRECTIONAL_BUTTONS || BUTTON_EXISTS(ENC)
-        millis_t now = millis();
-      #endif
+    millis_t now = millis();
+    if (ELAPSED(now, next_button_update_ms)) {
 
-      #if LCD_HAS_DIRECTIONAL_BUTTONS
-        if (ELAPSED(now, next_button_update_ms)) {
+      #if ENABLED(NEWPANEL)
+        uint8_t newbutton = 0;
+
+        #if BUTTON_EXISTS(EN1)
+          if (BUTTON_PRESSED(EN1)) newbutton |= EN_A;
+        #endif
+
+        #if BUTTON_EXISTS(EN2)
+          if (BUTTON_PRESSED(EN2)) newbutton |= EN_B;
+        #endif
+
+        #if BUTTON_EXISTS(ENC)
+          if (BUTTON_PRESSED(ENC)) newbutton |= EN_C;
+        #endif
+
+        #if LCD_HAS_DIRECTIONAL_BUTTONS
+
+          // Manage directional buttons
+          #if ENABLED(REVERSE_MENU_DIRECTION)
+            #define _ENCODER_UD_STEPS (ENCODER_STEPS_PER_MENU_ITEM * encoderDirection)
+          #else
+            #define _ENCODER_UD_STEPS ENCODER_STEPS_PER_MENU_ITEM
+          #endif
+          #if ENABLED(REVERSE_ENCODER_DIRECTION)
+            #define ENCODER_UD_STEPS _ENCODER_UD_STEPS
+            #define ENCODER_LR_PULSES ENCODER_PULSES_PER_STEP
+          #else
+            #define ENCODER_UD_STEPS -(_ENCODER_UD_STEPS)
+            #define ENCODER_LR_PULSES -(ENCODER_PULSES_PER_STEP)
+          #endif
+
           if (false) {
             // for the else-ifs below
           }
           #if BUTTON_EXISTS(UP)
             else if (BUTTON_PRESSED(UP)) {
-              encoderDiff = -(ENCODER_STEPS_PER_MENU_ITEM);
+              encoderDiff = -(ENCODER_UD_STEPS);
               next_button_update_ms = now + 300;
             }
           #endif
           #if BUTTON_EXISTS(DWN)
             else if (BUTTON_PRESSED(DWN)) {
-              encoderDiff = ENCODER_STEPS_PER_MENU_ITEM;
+              encoderDiff = ENCODER_UD_STEPS;
               next_button_update_ms = now + 300;
             }
           #endif
           #if BUTTON_EXISTS(LFT)
             else if (BUTTON_PRESSED(LFT)) {
-              encoderDiff = -(ENCODER_PULSES_PER_STEP);
+              encoderDiff = -(ENCODER_LR_PULSES);
               next_button_update_ms = now + 300;
             }
           #endif
           #if BUTTON_EXISTS(RT)
             else if (BUTTON_PRESSED(RT)) {
-              encoderDiff = ENCODER_PULSES_PER_STEP;
+              encoderDiff = ENCODER_LR_PULSES;
               next_button_update_ms = now + 300;
             }
           #endif
-        }
-      #endif
 
-      #if BUTTON_EXISTS(ENC)
-        if (ELAPSED(now, next_button_update_ms) && BUTTON_PRESSED(ENC)) newbutton |= EN_C;
-      #endif
+      #endif // LCD_HAS_DIRECTIONAL_BUTTONS
 
       buttons = newbutton;
       #if ENABLED(LCD_HAS_SLOW_BUTTONS)
@@ -3220,10 +3236,18 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
       GET_BUTTON_STATES(buttons);
     #endif // !NEWPANEL
 
+    } // next_button_update_ms
+
     // Manage encoder rotation
-    #if ENABLED(INVERT_ROTARY_SWITCH)
+    #if ENABLED(REVERSE_MENU_DIRECTION) && ENABLED(REVERSE_ENCODER_DIRECTION)
+      #define ENCODER_DIFF_CW  (encoderDiff -= encoderDirection)
+      #define ENCODER_DIFF_CCW (encoderDiff += encoderDirection)
+    #elif ENABLED(REVERSE_MENU_DIRECTION)
       #define ENCODER_DIFF_CW  (encoderDiff += encoderDirection)
       #define ENCODER_DIFF_CCW (encoderDiff -= encoderDirection)
+    #elif ENABLED(REVERSE_ENCODER_DIRECTION)
+      #define ENCODER_DIFF_CW  (encoderDiff--)
+      #define ENCODER_DIFF_CCW (encoderDiff++)
     #else
       #define ENCODER_DIFF_CW  (encoderDiff++)
       #define ENCODER_DIFF_CCW (encoderDiff--)

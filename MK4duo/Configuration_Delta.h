@@ -35,11 +35,11 @@
  * - Stepper step logic
  * - Stepper direction
  * - Disables axis
+ * - Manual home positions
  * - Travel limits
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
  * - Auto Calibration
- * - Manual home positions
  * - Axis steps per unit
  * - Axis feedrate
  * - Axis accelleration
@@ -374,6 +374,20 @@
 
 
 /*****************************************************************************************
+ ******************************** Manual home positions **********************************
+ *****************************************************************************************/
+// The position of the homing switches
+#define MANUAL_HOME_POSITIONS   // If defined, MANUAL_*_HOME_POS below will be used
+#define BED_CENTER_AT_0_0       // If defined, the center of the bed is at (X=0, Y=0)
+
+// Manual homing switch locations:
+#define MANUAL_X_HOME_POS 0
+#define MANUAL_Y_HOME_POS 0
+#define MANUAL_Z_HOME_POS 200      // Distance between nozzle and print surface after homing.
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
  ************************************ Travel limits **************************************
  *****************************************************************************************
  *                                                                                       *
@@ -394,20 +408,6 @@
  ********************************** Axis relative mode ***********************************
  *****************************************************************************************/
 #define AXIS_RELATIVE_MODES {false, false, false, false}
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- ******************************** Manual home positions **********************************
- *****************************************************************************************/
-// The position of the homing switches
-#define MANUAL_HOME_POSITIONS   // If defined, MANUAL_*_HOME_POS below will be used
-#define BED_CENTER_AT_0_0       // If defined, the center of the bed is at (X=0, Y=0)
-
-//Manual homing switch locations:
-#define MANUAL_X_HOME_POS 0
-#define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 200      // Distance between nozzle and print surface after homing.
 /*****************************************************************************************/
 
 
