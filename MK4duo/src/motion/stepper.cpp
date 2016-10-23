@@ -63,9 +63,9 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
   #if ENABLED(ABORT_ON_ENDSTOP_HIT_INIT)
-    bool Stepper:abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_INIT;
+    bool Stepper::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_INIT;
   #else
-    bool Stepper:abort_on_endstop_hit = false;
+    bool Stepper::abort_on_endstop_hit = false;
   #endif
 #endif
 

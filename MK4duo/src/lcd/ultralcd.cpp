@@ -2031,7 +2031,7 @@ void kill_screen(const char* lcd_msg) {
     #endif // EXTRUDERS > 0
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
-      MENU_ITEM_EDIT(bool, MSG_ENDSTOP_ABORT, &abort_on_endstop_hit);
+      MENU_ITEM_EDIT(bool, MSG_ENDSTOP_ABORT, &stepper.abort_on_endstop_hit);
     #endif
     END_MENU();
   }
