@@ -140,16 +140,16 @@
 #define CONTROLLERFAN_SPEED     255   // 255 = full speed
 #define CONTROLLERFAN_MIN_SPEED   0
 
-// Extruder cooling fans
+// Hotend cooling fans
 // Configure fan pin outputs to automatically turn on/off when the associated
-// extruder temperature is above/below EXTRUDER AUTO FAN TEMPERATURE.
-// Multiple extruders can be assigned to the same pin in which case
-// the fan will turn on when any selected extruder is above the threshold.
-// You need to set _AUTO_FAN_PIN in Configuration_pins.h
-//#define EXTRUDER_AUTO_FAN
-#define EXTRUDER_AUTO_FAN_TEMPERATURE  50
-#define EXTRUDER_AUTO_FAN_SPEED       255  // 255 = full speed
-#define EXTRUDER_AUTO_FAN_MIN_SPEED     0
+// hotend temperature is above/below HOTEND AUTO FAN TEMPERATURE.
+// Multiple hotends can be assigned to the same pin in which case
+// the fan will turn on when any selected hotend is above the threshold.
+// You need to set HOTEND AUTO FAN PIN in Configuration_pins.h
+//#define HOTEND_AUTO_FAN
+#define HOTEND_AUTO_FAN_TEMPERATURE  50
+#define HOTEND_AUTO_FAN_SPEED       255  // 255 = full speed
+#define HOTEND_AUTO_FAN_MIN_SPEED     0
 /**************************************************************************/
 
 
@@ -409,7 +409,15 @@
  *****************************************************************************************
  *                                                                                       *
  * Assumption: advance = k * (delta velocity)                                            *
- * K=0 means advance disabled. A good value for a gregs wade extruder will be around K=75*
+ * K=0 means advance disabled.                                                           *
+ * To get a rough start value for calibration, measure your "free filament length"       *
+ * between the hobbed bolt and the nozzle (in cm). Use the formula below that fits       *
+ * your setup, where L is the "free filament length":                                    *
+ *                                                                                       *
+ * Filament diameter           |   1.75mm  |    3.0mm   |                                *
+ * ----------------------------|-----------|------------|                                *
+ * Stiff filament (PLA)        | K=47*L/10 | K=139*L/10 |                                *
+ * Softer filament (ABS, nGen) | K=88*L/10 | K=260*L/10 |                                *
  *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE

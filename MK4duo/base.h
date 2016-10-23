@@ -1,3 +1,25 @@
+/**
+ * MK4duo 3D Printer Firmware
+ *
+ * Based on Marlin, Sprinter and grbl
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 #ifndef BASE_H
 #define BASE_H
 
@@ -8,25 +30,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include <avr/pgmspace.h>
-#include <avr/interrupt.h>
+
+#ifndef __SAM3X8E__
+  #include <avr/pgmspace.h>
+  #include <avr/interrupt.h>
+#endif
 
 #include "src/macros.h"
 #include "src/types.h"
 #include "Boards.h"
 #include "src/mechanics.h"
 
-#include "Configuration_Version.h"
-
 #include "Configuration_Overall.h"
+#include "Configuration_Version.h"
 
 #ifndef CONFIGURATION_OVERALL
   #include "Configuration_Basic.h"
-#endif
+  #include "Configuration_Overall.h"
 
-#include "Configuration_Overall.h"
-
-#ifndef CONFIGURATION_OVERALL
   #if MECH(CARTESIAN)
     #include "Configuration_Cartesian.h"
   #elif MECH(COREXY)
@@ -39,7 +60,7 @@
     #include "Configuration_Core.h"
   #elif MECH(DELTA)
     #include "Configuration_Delta.h"
-  #elif MECH(SCARA)
+  #elif MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA)
     #include "Configuration_Scara.h"
   #endif
 

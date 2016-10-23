@@ -35,11 +35,11 @@
  * - Stepper step logic
  * - Stepper direction
  * - Disables axis
- * - Manual home positions
  * - Travel limits
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
  * - Auto Calibration
+ * - Manual home positions
  * - Axis steps per unit
  * - Axis feedrate
  * - Axis accelleration
@@ -47,6 +47,7 @@
  * - Hotend offset
  *
  * Basic-settings can be found in Configuration_Basic.h
+ * Temperature-settings can be found in Configuration_Temperature.h
  * Feature-settings can be found in Configuration_Feature.h
  * Pins-settings can be found in "Configuration_Pins.h"
  */
@@ -373,20 +374,6 @@
 
 
 /*****************************************************************************************
- ******************************** Manual home positions **********************************
- *****************************************************************************************/
-// The position of the homing switches
-#define MANUAL_HOME_POSITIONS   // If defined, MANUAL_*_HOME_POS below will be used
-#define BED_CENTER_AT_0_0       // If defined, the center of the bed is at (X=0, Y=0)
-
-//Manual homing switch locations:
-#define MANUAL_X_HOME_POS 0
-#define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 200      // Distance between nozzle and print surface after homing.
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
  ************************************ Travel limits **************************************
  *****************************************************************************************
  *                                                                                       *
@@ -407,6 +394,20 @@
  ********************************** Axis relative mode ***********************************
  *****************************************************************************************/
 #define AXIS_RELATIVE_MODES {false, false, false, false}
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ******************************** Manual home positions **********************************
+ *****************************************************************************************/
+// The position of the homing switches
+#define MANUAL_HOME_POSITIONS   // If defined, MANUAL_*_HOME_POS below will be used
+#define BED_CENTER_AT_0_0       // If defined, the center of the bed is at (X=0, Y=0)
+
+//Manual homing switch locations:
+#define MANUAL_X_HOME_POS 0
+#define MANUAL_Y_HOME_POS 0
+#define MANUAL_Z_HOME_POS 200      // Distance between nozzle and print surface after homing.
 /*****************************************************************************************/
 
 
@@ -458,7 +459,25 @@
 
 
 /*****************************************************************************************
+ ********************************* Movement Settings *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Default Settings                                                                      *
+ *                                                                                       *
+ * These settings can be reset by M502                                                   *
+ *                                                                                       *
+ * Note that if EEPROM is enabled, saved values will override these.                     *
+ *                                                                                       *
+ *****************************************************************************************/
+ 
+ 
+/*****************************************************************************************
  ******************************* Axis steps per unit *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Default Axis Steps Per Unit (steps/mm)                                                *
+ * Override with M92                                                                     *
+ *                                                                                       *
  *****************************************************************************************/
 // Default steps per unit               X,  Y,  Z,  E0...(per extruder)
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 80, 625, 625, 625, 625}
