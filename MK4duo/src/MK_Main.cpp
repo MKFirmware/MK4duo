@@ -2387,7 +2387,9 @@ static void homeaxis(AxisEnum axis) {
     if (axis == Z_AXIS && STOW_PROBE()) return;
   #endif
 
-AvoidLaserFocus:
+  #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
+    AvoidLaserFocus:
+  #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -3488,8 +3490,6 @@ inline void gcode_G4() {
     line_to_current_position();
     stepper.synchronize();
     endstops.hit_on_purpose(); // clear endstop hit flags
-
-    //memset(current_position, 0, sizeof(current_position));
 
     // At least one carriage has reached the top.
     // Now re-home each carriage separately.
