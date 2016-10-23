@@ -555,7 +555,7 @@
   #if DISABLED(ULTRA_LCD)
     #error "BABYSTEPPING requires an LCD controller."
   #endif
-  #if MECH(SCARA)
+  #if IS_SCARA
     #error "BABYSTEPPING is not implemented for SCARA yet."
   #endif
   #if MECH(DELTA) && ENABLED(BABYSTEP_XY)
@@ -732,7 +732,7 @@
   #if DISABLED(AUTO_BED_LEVELING_BILINEAR)
     #if MECH(DELTA)
       #error "Only AUTO_BED_LEVELING_BILINEAR is supported for DELTA bed leveling."
-    #elif MECH(SCARA)
+    #elif IS_SCARA
       #error "Only AUTO_BED_LEVELING_BILINEAR is supported for SCARA bed leveling."
     #endif
   #endif
@@ -1450,7 +1450,7 @@
   #endif
 #endif
 
-#if MECH(SCARA)
+#if IS_SCARA
   #if DISABLED(LINKAGE_1)
     #error DEPENDENCY ERROR: Missing setting LINKAGE_1
   #endif
