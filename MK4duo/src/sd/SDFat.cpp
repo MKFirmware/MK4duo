@@ -1229,7 +1229,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
     uint8_t n;
 
     n = (iBlk - 1) * 13;
-    memset(p, 0, sizeof(dir_t));
+    ZERO(p);
     p->attributes = DIR_ATT_LONG_NAME;
     VFAT->sequenceNumber = iBlk | (iBlk == cVFATNeeded ? 0x40 : 0);
 
@@ -1254,7 +1254,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
 
   // Start 8.3 file init
   // initialize as empty file
-  memset(p, 0, sizeof(dir_t));
+  ZERO(p);
 
   make83Name(newName, (uint8_t *)p->name, &tempPtr);
 
@@ -1270,7 +1270,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
     goto fail;
   dirFile->sync();
 
-  memset(p, 0, sizeof(dir_t));
+  ZERO(p);
 
   if (emptyFound)
     p->name[0] = DIR_NAME_DELETED;

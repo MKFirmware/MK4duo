@@ -80,6 +80,7 @@
 #define NOLESS(v,n) do{ if (v < n) v = n; }while(0)
 #define NOMORE(v,n) do{ if (v > n) v = n; }while(0)
 #define COUNT(a) (sizeof(a)/sizeof(*a))
+#define ZERO(a) memset(a,0,sizeof(a))
 
 // Function macro
 #define FORCE_INLINE __attribute__((always_inline)) inline

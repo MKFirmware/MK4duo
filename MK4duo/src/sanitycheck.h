@@ -1673,6 +1673,9 @@
 #if ENABLED(ULTIPANEL) && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
   #error DEPENDENCY ERROR: ULTIPANEL requires some kind of encoder.
 #endif
+#if ENCODER_PULSES_PER_STEP < 0
+  #error "ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
+#endif
 
 /**
  * Dual X Carriage requirements

@@ -392,7 +392,7 @@
     }
 
     void sdfilePopCallback(void *ptr) {
-      memset(buffer, 0, sizeof(buffer));
+      ZERO(buffer);
 
       if (ptr == &sdrow0)
         sdrow0.getText(buffer, sizeof(buffer));
@@ -411,7 +411,7 @@
     }
 
     void sdfolderPopCallback(void *ptr) {
-      memset(buffer, 0, sizeof(buffer));
+      ZERO(buffer);
 
       if (ptr == &sdrow0)
         sdrow0.getText(buffer, sizeof(buffer));
@@ -445,8 +445,8 @@
 
   #if ENABLED(RFID_MODULE)
     void rfidPopCallback(void *ptr) {
+      ZERO(buffer);
 
-      memset(buffer, 0, sizeof(buffer));
       String temp = "M522 ";
       uint32_t Rfid_read = 0;
       RfidR.getValue(&Rfid_read);
@@ -483,7 +483,7 @@
 
   void hotPopCallback(void *ptr) {
     Ptemp.show();
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     if (ptr == &Hotend0) {
       if (thermalManager.degTargetHotend(0) != 0) {
         itoa(thermalManager.degTargetHotend(0), buffer, 10);
@@ -519,7 +519,7 @@
   void settempPopCallback(void *ptr) {
     uint16_t number;
 
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     tset0.getText(buffer, sizeof(buffer));
 
     number = atoi(buffer);
@@ -527,7 +527,7 @@
     if (ptr == &tup) number += 1;
     if (ptr == &tdown) number -= 1;
 
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     itoa(number, buffer, 10);
 
     tset0.setText(buffer);
@@ -535,7 +535,7 @@
 
   void sethotPopCallback(void *ptr) {
     char temp[5] = { 0 };
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     tset0.getText(temp, sizeof(temp));
     tset1.getText(buffer, sizeof(buffer));
     strcat(buffer, temp);
@@ -544,7 +544,7 @@
   }
 
   void setgcodePopCallback(void *ptr) {
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
     enqueue_and_echo_commands_P(buffer);
     Pmenu.show();
@@ -562,7 +562,7 @@
   }
 
   void setmovePopCallback(void *ptr) {
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     movecmd.getText(buffer, sizeof(buffer));
     enqueue_and_echo_commands_P(PSTR("G91"));
     enqueue_and_echo_commands_P(buffer);
@@ -677,7 +677,7 @@
   static void temptoLCD(int h, float T1, float T2) {
     char valuetemp[25] = {0};
     uint32_t color;
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
     itoa(T1, valuetemp, 10);
     strcat(buffer, valuetemp);
     strcat(buffer, "/");
@@ -706,7 +706,7 @@
 
   static void coordtoLCD() {
     char* valuetemp;
-    memset(buffer, 0, sizeof(buffer));
+    ZERO(buffer);
 
     #if NOMECH(DELTA)
       strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
@@ -765,7 +765,7 @@
           if (PreviousfanSpeed != fanSpeed) {
             if (fanSpeed > 0) {
               Fantimer.enable();
-              memset(buffer, 0, sizeof(buffer));
+              ZERO(buffer);
               temp = itostr3(((float)fanSpeed / 255) * 100);
               strcat(buffer, temp);
               strcat(buffer, "%");
