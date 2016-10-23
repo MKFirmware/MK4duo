@@ -7630,9 +7630,9 @@ inline void gcode_M503() {
 
     int old_target_temperature[HOTENDS] = { 0 };
     for (int8_t h = 0; h < HOTENDS; h++) {
-      old_target_temperature[h] = target_temperature[h];
+      old_target_temperature[h] = thermalManager.target_temperature[h];
     }
-    int old_target_temperature_bed = target_temperature_bed;
+    int old_target_temperature_bed = thermalManager.target_temperature_bed;
     millis_t last_set = millis();
 
     // Wait for filament insert by user and press button
