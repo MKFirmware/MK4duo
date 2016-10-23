@@ -386,7 +386,7 @@
 
 
 /*****************************************************************************************
- ******************************* Auto Bed Leveling ***************************************
+ ******************************* Auto Bed Leveling (ABL) *********************************
  *****************************************************************************************
  *                                                                                       *
  * Select one form of Auto Bed Leveling below.                                           *
@@ -421,7 +421,7 @@
  */
 //#define DEBUG_LEVELING_FEATURE
 
-/** if ENABLED(AUTO_BED_LEVELING_LINEAR) or ENABLED(AUTO_BED_LEVELING_BILINEAR) **/
+/** START AUTO_BED_LEVELING_LINEAR AUTO_BED_LEVELING_BILINEAR **/
 // Set the number of grid points per dimension
 #define ABL_GRID_POINTS_X 3
 #define ABL_GRID_POINTS_Y 3
@@ -437,9 +437,9 @@
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
-/** END **/
+/** END AUTO_BED_LEVELING_LINEAR AUTO_BED_LEVELING_BILINEAR **/
 
-/** if ENABLED(AUTO_BED_LEVELING_3POINT) **/
+/** START AUTO_BED_LEVELING_3POINT **/
 // 3 arbitrary points to probe.
 // A simple cross-product is used to estimate the plane of the bed.
 #define ABL_PROBE_PT_1_X 15
@@ -448,7 +448,7 @@
 #define ABL_PROBE_PT_2_Y 15
 #define ABL_PROBE_PT_3_X 180
 #define ABL_PROBE_PT_3_Y 15
-/** END **/
+/** END AUTO_BED_LEVELING_3POINT **/
 
 /**
  * Commands to execute at the end of G29 probing.
@@ -473,7 +473,25 @@
 
 
 /*****************************************************************************************
+ ********************************* Movement Settings *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Default Settings                                                                      *
+ *                                                                                       *
+ * These settings can be reset by M502                                                   *
+ *                                                                                       *
+ * Note that if EEPROM is enabled, saved values will override these.                     *
+ *                                                                                       *
+ *****************************************************************************************/
+ 
+ 
+/*****************************************************************************************
  ******************************* Axis steps per unit *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Default Axis Steps Per Unit (steps/mm)                                                *
+ * Override with M92                                                                     *
+ *                                                                                       *
  *****************************************************************************************/
 // Default steps per unit               X,  Y,    Z,  E0...(per extruder)
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 3200, 625, 625, 625, 625}

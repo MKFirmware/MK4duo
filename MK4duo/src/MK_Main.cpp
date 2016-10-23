@@ -342,7 +342,7 @@ PrintCounter print_job_counter = PrintCounter();
   float bed_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
 #endif
 
-#if MECH(SCARA)
+#if IS_SCARA
   // Float constants for SCARA calculations
   const float L1 = SCARA_LINKAGE_1, L2 = SCARA_LINKAGE_2,
               L1_2 = sq(float(L1)), L1_2_2 = 2.0 * L1_2,
@@ -350,9 +350,40 @@ PrintCounter print_job_counter = PrintCounter();
 
   float delta_segments_per_second = SCARA_SEGMENTS_PER_SECOND,
         delta[ABC];
+  static void plan_direct_stepper_move(const float target[XYZE]);
 #endif
 
 float cartes[XYZ] = { 0 };
+
+#if MECH(MAKERARM_SCARA)
+
+  #define LEFT_ARM false
+  #define RIGHT_ARM true
+
+  bool arm_orientation = LEFT_ARM;
+
+  bool set_head_index = true;
+  float head_offsets[4] = { 0.0 };
+  int quadrant_limit = 1;
+
+  float dest_fin[3] = { 0.0 },
+        previous_extruder_pos = 0,
+        final_extruder_pos,
+        layer_height = 0.0;
+
+  bool z_layer_height_check = true;
+
+  float z_offset_for_eq = 0,
+        z_for_bed_eq[3] = { 0 },
+        z_points_qd1[3] = { 0 },
+        z_points_qd2[3] = { 0 },
+        read_z = 0.0;
+
+  bool G92_called = false,
+       offset_toggle_x = true,
+       offset_toggle_y = true;
+
+#endif
 
 #if ENABLED(FILAMENT_SENSOR)
   bool filament_sensor = false;                                 // M405 turns on filament_sensor control, M406 turns it off 
@@ -1307,7 +1338,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
     }
   #endif
 
-  #if MECH(SCARA)
+  #if MECH(MORGAN_SCARA)
 
     /**
      * Morgan SCARA homes XY at the same time
@@ -1325,7 +1356,6 @@ static void set_axis_is_at_home(AxisEnum axis) {
        * and calculates homing offset using forward kinematics
        */
       inverse_kinematics(homeposition);
-      forward_kinematics_SCARA(delta[A_AXIS], delta[B_AXIS]);
 
       // SERIAL_MV("base Theta= ", delta[X_AXIS]);
       // SERIAL_EMV(" base Psi+Theta=", delta[Y_AXIS]);
@@ -1504,7 +1534,7 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
       #endif
     }
 
-  #elif MECH(SCARA)
+  #elif IS_SCARA
 
     set_destination_to_current();
 
@@ -1858,6 +1888,55 @@ static void clean_up_after_endstop_or_probe_move() {
     return current_position[Z_AXIS];
   }
 
+  #if MECH(MAKERARM_SCARA)
+
+    /**
+     * Get the arm-end position based on the probe position
+     * If the position is unreachable return vector_3 0,0,0
+     */
+    vector_3 probe_point_to_end_point(const float &x, const float &y) {
+
+      // Simply can't reach the given point
+      if (HYPOT2(x, y) > sq(L1 + L2 + Y_PROBE_OFFSET_FROM_NOZZLE))
+        return vector_3();
+
+      float pos[XYZ] = { x, y, 0 };
+
+      // Get the angles for placing the probe at x, y
+      inverse_kinematics(pos, Y_PROBE_OFFSET_FROM_NOZZLE);
+
+      // Get the arm-end XY based on the given angles
+      forward_kinematics_SCARA(delta[A_AXIS], delta[B_AXIS]);
+      float tx = LOGICAL_X_POSITION(cartes[X_AXIS]),
+            ty = LOGICAL_Y_POSITION(cartes[Y_AXIS]);
+
+      return vector_3(tx, ty, 0);
+    }
+
+    /**
+     * Get the probe position based on the arm-end position
+     * If the position is unreachable return vector_3 0,0,0
+     */
+    vector_3 end_point_to_probe_point(const float logical[XYZ]) {
+
+      // Simply can't reach the given point
+      if (HYPOT2(logical[X_AXIS], logical[Y_AXIS]) > sq(L1 + L2))
+        return vector_3();
+
+      // Get the angles for placing the arm-end at x, y
+      inverse_kinematics(logical);
+
+      // Get the probe XY based on the sum of the angles
+      float ab = RADIANS(delta[A_AXIS] + delta[B_AXIS] + 90.0);
+      return vector_3(
+        logical[X_AXIS] + sin(ab) * X_PROBE_OFFSET_FROM_NOZZLE,
+        logical[Y_AXIS] - cos(ab) * Y_PROBE_OFFSET_FROM_NOZZLE,
+        0
+      );
+    }
+
+  #endif // MAKERARM_SCARA
+
   //
   // - Move to the given XY
   // - Deploy the probe, if not already deployed
@@ -1880,13 +1959,20 @@ static void clean_up_after_endstop_or_probe_move() {
 
     float old_feedrate_mm_s = feedrate_mm_s;
 
+    #if MECH(MAKERARM_SCARA)
+      vector_3 point = probe_point_to_end_point(x, y);
+      float dx = point.x, dy = point.y;
+      if (dx == 0.0 && dy == 0.0) { BUZZ(100, 220); return 0.0; }
+    #else
+      float dx = x - X_PROBE_OFFSET_FROM_NOZZLE,
+            dy = y - Y_PROBE_OFFSET_FROM_NOZZLE;
+    #endif
+
     // Ensure a minimum height before moving the probe
     do_probe_raise(Z_PROBE_BETWEEN_HEIGHT);
 
-    feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
-
     // Move the probe to the given XY
-    do_blocking_move_to_xy(x - (X_PROBE_OFFSET_FROM_NOZZLE), y - (Y_PROBE_OFFSET_FROM_NOZZLE));
+    do_blocking_move_to_xy(dx, dy, XY_PROBE_FEEDRATE_MM_S);
 
     if (DEPLOY_PROBE()) return NAN;
 
@@ -1901,7 +1987,7 @@ static void clean_up_after_endstop_or_probe_move() {
       SERIAL_M(MSG_BED_LEVELLING_BED);
       SERIAL_MV(MSG_BED_LEVELLING_X, x, 3);
       SERIAL_MV(MSG_BED_LEVELLING_Y, y, 3);
-      SERIAL_EMV(MSG_BED_LEVELLING_Z, measured_z, 3);
+      SERIAL_EMV(MSG_BED_LEVELLING_Z, measured_z - -zprobe_zoffset + 0.0001, 3);
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -2132,11 +2218,11 @@ static void do_homing_move(AxisEnum axis, float distance, float fr_mm_s=0.0) {
   // Tell the planner we're at Z=0
   current_position[axis] = 0;
 
-  #if MECH(SCARA)
+  #if IS_SCARA
     SYNC_PLAN_POSITION_KINEMATIC();
     current_position[axis] = distance;
     inverse_kinematics(current_position);
-    planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
   #else
     sync_plan_position();
     current_position[axis] = distance;
@@ -2173,7 +2259,7 @@ static void do_homing_move(AxisEnum axis, float distance, float fr_mm_s=0.0) {
 
 static void homeaxis(AxisEnum axis) {
 
-  #if MECH(SCARA)
+  #if IS_SCARA
     // Only Z homing (with probe) is permitted
     if (axis != Z_AXIS) { BUZZ(100, 880); return; }
   #else
@@ -2210,6 +2296,9 @@ static void homeaxis(AxisEnum axis) {
   #endif
 
   // Fast move towards endstop until triggered
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+    if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
+  #endif
   #if MECH(DELTA)
     do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
   #else
@@ -2231,6 +2320,7 @@ static void homeaxis(AxisEnum axis) {
       if (DEBUGGING(LEVELING)) SERIAL_EM("Move Away:");
     #endif
     do_homing_move(axis, -bump);
+
     // Slow move towards endstop until triggered
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) SERIAL_EM("Home 2 Slow:");
@@ -2259,7 +2349,7 @@ static void homeaxis(AxisEnum axis) {
     } // Z_AXIS
   #endif
 
-  #if MECH(SCARA)
+  #if IS_SCARA
 
     set_axis_is_at_home(axis);
     SYNC_PLAN_POSITION_KINEMATIC();
@@ -2297,9 +2387,7 @@ static void homeaxis(AxisEnum axis) {
     if (axis == Z_AXIS && STOW_PROBE()) return;
   #endif
 
-  #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
-    AvoidLaserFocus:
-  #endif
+AvoidLaserFocus:
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -2939,30 +3027,50 @@ bool position_is_reachable(float target[XYZ]
     , bool by_probe=false
   #endif
 ) {
-  float dx = RAW_X_POSITION(target[X_AXIS]),
-        dy = RAW_Y_POSITION(target[Y_AXIS]);
+  float dx = target[X_AXIS], dy = target[Y_AXIS];
 
-  #if HAS(BED_PROBE)
+  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
+  #define WITHINZ(z) ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
+
+  #if MECH(MAKERARM_SCARA)
+    if (by_probe) {
+      // If the returned point is 0,0,0 the radius test will fail
+      vector_3 point = probe_point_to_end_point(dx, dy);
+      // Is the tool point outside the rectangular bounds?
+      if (!WITHINXY(point.x, point.y)) {
+        // Try the opposite arm orientation
+        arm_orientation = !arm_orientation;
+        point = probe_point_to_end_point(dx, dy);
+        // If still unreachable keep the old arm orientation
+        if (!WITHINXY(point.x, point.y)) arm_orientation = !arm_orientation;
+      }
+      dx = point.x;
+      dy = point.y;
+    }
+  #elif HAS(BED_PROBE)
     if (by_probe) {
       dx -= X_PROBE_OFFSET_FROM_NOZZLE;
       dy -= Y_PROBE_OFFSET_FROM_NOZZLE;
     }
   #endif
 
-  #if MECH(SCARA)
+  dx -= LOGICAL_X_POSITION(0);
+  dy -= LOGICAL_Y_POSITION(0);
+
+  const float dz = RAW_Z_POSITION(target[Z_AXIS]);
+
+  #if IS_SCARA
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y);
-      return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
+      bool good = WITHINZ(dz) && (R2 >= sq(float(MIDDLE_DEAD_ZONE_R))) && (R2 <= sq(L1 + L2));
+      return good;
     #else
-      return HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y) <= sq(L1 + L2);
+      return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
+    return WITHINZ(dz) && HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
   #else
-    const float dz = RAW_Z_POSITION(target[Z_AXIS]);
-    return dx >= X_MIN_POS - 0.0001 && dx <= X_MAX_POS + 0.0001
-        && dy >= Y_MIN_POS - 0.0001 && dy <= Y_MAX_POS + 0.0001
-        && dz >= Z_MIN_POS - 0.0001 && dz <= Z_MAX_POS + 0.0001;
+    return WITHINZ(dz) && WITHINXY(dx, dy);
   #endif
 }
 
@@ -2974,7 +3082,7 @@ bool position_is_reachable(float target[XYZ]
  * G0, G1: Coordinated movement of X Y Z E axes
  */
 inline void gcode_G0_G1(
-  #if MECH(SCARA)
+  #if IS_SCARA
     bool fast_move = false
   #elif ENABLED(LASERBEAM)
     bool lfire = false
@@ -3009,7 +3117,7 @@ inline void gcode_G0_G1(
       }
     #endif
 
-    #if MECH(SCARA)
+    #if IS_SCARA
       fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
     #else
       prepare_move_to_destination();
@@ -3262,7 +3370,7 @@ inline void gcode_G4() {
     SERIAL_M("Machine Type: ");
     #if MECH(DELTA)
       SERIAL_EM("Delta");
-    #elif MECH(SCARA)
+    #elif IS_SCARA
       SERIAL_EM("SCARA");
     #elif MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
       SERIAL_EM("Core");
@@ -3905,7 +4013,7 @@ inline void gcode_G28() {
           }
         }
         else {
-          SERIAL_EM("X not entered.");
+          SERIAL_C('X'); SERIAL_EM(" not entered.");
           return;
         }
         if (code_seen('Y')) {
@@ -3916,14 +4024,14 @@ inline void gcode_G28() {
           }
         }
         else {
-          SERIAL_EM("Y not entered.");
+          SERIAL_C('Y'); SERIAL_EM(" not entered.");
           return;
         }
         if (code_seen('Z')) {
           mbl.z_values[py][px] = code_value_axis_units(Z_AXIS);
         }
         else {
-          SERIAL_EM("Z not entered.");
+          SERIAL_C('Z'); SERIAL_EM(" not entered.");
           return;
         }
         break;
@@ -3933,7 +4041,7 @@ inline void gcode_G28() {
           mbl.z_offset = code_value_axis_units(Z_AXIS);
         }
         else {
-          SERIAL_EM("Z not entered.");
+          SERIAL_C('Z'); SERIAL_EM(" not entered.");
           return;
         }
         break;
@@ -4830,7 +4938,7 @@ inline void gcode_G92() {
 
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
-      #if MECH(SCARA)
+      #if IS_SCARA
         current_position[i] = code_value_axis_units(i);
         if (i != E_AXIS) didXYZ = true;
       #else
@@ -6490,7 +6598,7 @@ inline void gcode_M206() {
       set_home_offset((AxisEnum)i, code_value_axis_units(i));
     }
   }
-  #if MECH(SCARA)
+  #if MECH(MORGAN_SCARA)
     if (code_seen('T')) set_home_offset(X_AXIS, code_value_axis_units(X_AXIS)); // Theta
     if (code_seen('P')) set_home_offset(Y_AXIS, code_value_axis_units(Y_AXIS)); // Psi
   #endif
@@ -6907,18 +7015,15 @@ inline void gcode_M226() {
   }
 #endif // HAS(MICROSTEPS)
 
-#if MECH(SCARA)
+#if MECH(MORGAN_SCARA)
+
   bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
-    //SoftEndsEnabled = false;              // Ignore soft endstops during calibration
-    //SERIAL_EM(" Soft endstops disabled ");
     if (IsRunning()) {
-      //gcode_get_destination(); // For X Y Z E F
       forward_kinematics_SCARA(delta_a, delta_b);
-      destination[X_AXIS] = cartes[X_AXIS];
-      destination[Y_AXIS] = cartes[Y_AXIS];
+      destination[X_AXIS] = LOGICAL_X_POSITION(cartes[X_AXIS]);
+      destination[Y_AXIS] = LOGICAL_Y_POSITION(cartes[Y_AXIS]);
       destination[Z_AXIS] = current_position[Z_AXIS];
       prepare_move_to_destination();
-      //ok_to_send();
       return true;
     }
     return false;
@@ -6964,7 +7069,7 @@ inline void gcode_M226() {
     return SCARA_move_to_cal(45, 135);
   }
 
-#endif // SCARA
+#endif // MORGAN_SCARA
 
 #if ENABLED(EXT_SOLENOID)
   void enable_solenoid(uint8_t num) {
@@ -7166,7 +7271,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_M(",");
-      SERIAL_M(thermalManager.degTargetHotend(h) > EXTRUDER_AUTO_FAN_TEMPERATURE ? "2" : "1");
+      SERIAL_M(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? "2" : "1");
       firstOccurrence = false;
     }
 
@@ -7630,9 +7735,9 @@ inline void gcode_M503() {
 
     int old_target_temperature[HOTENDS] = { 0 };
     for (int8_t h = 0; h < HOTENDS; h++) {
-      old_target_temperature[h] = target_temperature[h];
+      old_target_temperature[h] = thermalManager.target_temperature[h];
     }
-    int old_target_temperature_bed = target_temperature_bed;
+    int old_target_temperature_bed = thermalManager.target_temperature_bed;
     millis_t last_set = millis();
 
     // Wait for filament insert by user and press button
@@ -8692,7 +8797,7 @@ void process_next_command() {
       // G0, G1
       case 0:
       case 1:
-        #if MECH(SCARA)
+        #if IS_SCARA
           gcode_G0_G1(codenum == 0); break;
         #elif ENABLED(LASERBEAM)
           gcode_G0_G1(codenum == 1); break;
@@ -9124,16 +9229,16 @@ void process_next_command() {
           gcode_M351(); break;
       #endif // HAS(MICROSTEPS)
 
-      #if MECH(SCARA)
-        case 360:  // M360 SCARA Theta pos1
+      #if MECH(MORGAN_SCARA)
+        case 360:  // M360: SCARA Theta pos1
           if (gcode_M360()) return; break;
-        case 361:  // M361 SCARA Theta pos2
+        case 361:  // M361: SCARA Theta pos2
           if (gcode_M361()) return; break;
-        case 362:  // M362 SCARA Psi pos1
+        case 362:  // M362: SCARA Psi pos1
           if (gcode_M362()) return; break;
-        case 363:  // M363 SCARA Psi pos2
+        case 363:  // M363: SCARA Psi pos2
           if (gcode_M363()) return; break;
-        case 364:  // M364 SCARA Psi pos3 (90 deg to Theta)
+        case 364:  // M364: SCARA Psi pos3 (90 deg to Theta)
           if (gcode_M364()) return; break;
       #endif // SCARA
 
@@ -10098,7 +10203,7 @@ void get_cartesian_from_steppers() {
     cartes[X_AXIS] += LOGICAL_X_POSITION(0);
     cartes[Y_AXIS] += LOGICAL_Y_POSITION(0);
     cartes[Z_AXIS] += LOGICAL_Z_POSITION(0);
-  #elif MECH(SCARA)
+  #elif IS_SCARA
     forward_kinematics_SCARA(
       stepper.get_axis_position_degrees(A_AXIS),
       stepper.get_axis_position_degrees(B_AXIS)
@@ -10319,7 +10424,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && active_extruder == 0) {
         // move duplicate extruder into correct duplication position.
         planner.set_position_mm(
-          LOGICAL_X_POSITION(inactive_extruder_x_pos),
+          LOGICAL_X_POSITION(inactive_hotend_x_pos),
           current_position[Y_AXIS],
           current_position[Z_AXIS],
           current_position[E_AXIS]
@@ -10409,7 +10514,7 @@ static void report_current_position() {
 
   stepper.report_positions();
 
-  #if MECH(SCARA)
+  #if IS_SCARA
     SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
     SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
   #endif
@@ -10591,7 +10696,7 @@ static void report_current_position() {
 
 #endif // HAS(CONTROLLERFAN)
 
-#if MECH(SCARA)
+#if MECH(MORGAN_SCARA)
 
   /**
    * Morgan SCARA Forward Kinematics. Results in cartes[].
@@ -10662,7 +10767,7 @@ static void report_current_position() {
     */
   }
 
-#endif // SCARA
+#endif // MORGAN_SCARA
 
 #if ENABLED(TEMP_STAT_LEDS)
 

@@ -598,7 +598,7 @@ void Temperature::updatePID() {
 #if HAS(AUTO_FAN)
 
   void Temperature::checkExtruderAutoFans() {
-    const int8_t fanPin[] = { EXTRUDER_0_AUTO_FAN_PIN, EXTRUDER_1_AUTO_FAN_PIN, EXTRUDER_2_AUTO_FAN_PIN, EXTRUDER_3_AUTO_FAN_PIN };
+    const int8_t fanPin[] = { HOTEND_0_AUTO_FAN_PIN, HOTEND_1_AUTO_FAN_PIN, HOTEND_2_AUTO_FAN_PIN, HOTEND_3_AUTO_FAN_PIN };
     const int fanBit[] = {
                     0,
       AUTO_1_IS_0 ? 0 :               1,
@@ -608,7 +608,7 @@ void Temperature::updatePID() {
     uint8_t fanState = 0;
  
     HOTEND_LOOP() {
-      if (current_temperature[h] > EXTRUDER_AUTO_FAN_TEMPERATURE)
+      if (current_temperature[h] > HOTEND_AUTO_FAN_TEMPERATURE)
         SBI(fanState, fanBit[h]);
     }
  
@@ -616,7 +616,7 @@ void Temperature::updatePID() {
     for (uint8_t f = 0; f < COUNT(fanPin); f++) {
       int8_t pin = fanPin[f];
       if (pin >= 0 && !TEST(fanDone, fanBit[f])) {
-        uint8_t newFanSpeed = TEST(fanState, fanBit[f]) ? EXTRUDER_AUTO_FAN_SPEED : 0;
+        uint8_t newFanSpeed = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : 0;
         // this idiom allows both digital and PWM fan outputs (see M42 handling).
         digitalWrite(pin, newFanSpeed);
         analogWrite(pin, newFanSpeed);
@@ -1499,27 +1499,27 @@ void Temperature::init() {
   #endif
 
   #if HAS(AUTO_FAN_0)
-    SET_OUTPUT(EXTRUDER_0_AUTO_FAN_PIN);
+    SET_OUTPUT(HOTEND_0_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(EXTRUDER_0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(HOTEND_0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_1) && !AUTO_1_IS_0
-    SET_OUTPUT(EXTRUDER_1_AUTO_FAN_PIN);
+    SET_OUTPUT(HOTEND_1_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(EXTRUDER_1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(HOTEND_1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_2) && !AUTO_2_IS_0 && !AUTO_2_IS_1
-    SET_OUTPUT(EXTRUDER_2_AUTO_FAN_PIN);
+    SET_OUTPUT(HOTEND_2_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(EXTRUDER_2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(HOTEND_2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_3) && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
-    SET_OUTPUT(EXTRUDER_3_AUTO_FAN_PIN);
+    SET_OUTPUT(HOTEND_3_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(EXTRUDER_3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(HOTEND_3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 

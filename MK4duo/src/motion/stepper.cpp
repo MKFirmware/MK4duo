@@ -1488,7 +1488,7 @@ void Stepper::report_positions() {
        zpos = count_position[Z_AXIS];
   CRITICAL_SECTION_END;
 
-  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
+  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX) || IS_SCARA
     SERIAL_M(MSG_COUNT_A);
   #elif MECH(DELTA)
     SERIAL_M(MSG_COUNT_ALPHA);
@@ -1497,7 +1497,7 @@ void Stepper::report_positions() {
   #endif
   SERIAL_V(xpos);
 
-  #if MECH(COREXY) || MECH(COREYX)
+  #if MECH(COREXY) || MECH(COREYX) || IS_SCARA
     SERIAL_M(" B:");
   #elif MECH(DELTA)
     SERIAL_M(" Beta:");

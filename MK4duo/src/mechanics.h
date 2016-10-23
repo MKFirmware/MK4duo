@@ -31,7 +31,8 @@
   #define MECH_COREXZ      8
   #define MECH_COREZX      9
   #define MECH_DELTA       3
-  #define MECH_SCARA       4
+  #define MORGAN_SCARA     4
+  #define MAKERARM_SCARA   5
 
   #define MECH(mech)    (MECHANISM == MECH_##mech)
   #define NOMECH(mech)  (MECHANISM != MECH_##mech)
