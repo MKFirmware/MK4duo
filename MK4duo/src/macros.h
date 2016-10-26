@@ -159,8 +159,8 @@
 
 #define _AXIS(AXIS) AXIS ##_AXIS
 
-#define LOOP_XYZ(VAR)  for (uint8_t VAR=X_AXIS; VAR<=Z_AXIS; VAR++)
-#define LOOP_XYZE(VAR) for (uint8_t VAR=X_AXIS; VAR<=E_AXIS; VAR++)
+#define LOOP_XYZ(VAR)   for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
+#define LOOP_XYZE(VAR)  for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)

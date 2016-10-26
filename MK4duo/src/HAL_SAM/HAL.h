@@ -100,12 +100,12 @@
 #define PACK    __attribute__ ((packed))
 
 #define READ_VAR(pin) (g_APinDescription[pin].pPort->PIO_PDSR & g_APinDescription[pin].ulPin ? 1 : 0) // does return 0 or pin value
-#define _READ(pin) (DIO ##  pin ## _PORT->PIO_PDSR & DIO ##  pin ## _PIN ? 1 : 0) // does return 0 or pin value
-#define READ(pin) _READ(pin)
+#define _READ(pin)    (DIO ##  pin ## _PORT->PIO_PDSR & DIO ##  pin ## _PIN ? 1 : 0) // does return 0 or pin value
+#define READ(pin)     _READ(pin)
 
 #define	WRITE_VAR(pin, v) do{if(v) {g_APinDescription[pin].pPort->PIO_SODR = g_APinDescription[pin].ulPin;} else {g_APinDescription[pin].pPort->PIO_CODR = g_APinDescription[pin].ulPin; }}while(0)
-#define		_WRITE(port, v)			do { if (v) {DIO ##  port ## _PORT -> PIO_SODR = DIO ## port ## _PIN; } else {DIO ##  port ## _PORT->PIO_CODR = DIO ## port ## _PIN; }; } while (0)
-#define WRITE(pin,v) _WRITE(pin,v)
+#define	_WRITE(port, v)   do { if (v) {DIO ##  port ## _PORT -> PIO_SODR = DIO ## port ## _PIN; } else {DIO ##  port ## _PORT->PIO_CODR = DIO ## port ## _PIN; }; } while (0)
+#define WRITE(pin,v)      _WRITE(pin,v)
 
 #define	SET_INPUT(pin)  pmc_enable_periph_clk(g_APinDescription[pin].ulPeripheralId); \
                         PIO_Configure(g_APinDescription[pin].pPort, PIO_INPUT, g_APinDescription[pin].ulPin, 0)
@@ -119,7 +119,7 @@
 #define OUT_WRITE(IO, v)  { SET_OUTPUT(IO); WRITE(IO, v); }
 
 // Write doesn't work for pullups
-#define   PULLUP(IO, v)   { pinMode(IO, (v!=LOW ? INPUT_PULLUP : INPUT)); }
+#define   PULLUP(IO)      { pinMode(IO, INPUT_PULLUP); }
 
 #undef LOW
 #define LOW         0

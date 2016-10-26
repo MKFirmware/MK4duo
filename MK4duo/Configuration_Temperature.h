@@ -123,6 +123,17 @@
 //Show Temperature ADC value
 //The M105 command return, besides traditional information, the ADC value read from temperature sensors.
 //#define SHOW_TEMP_ADC_VALUES
+
+// The number of consecutive low temperature errors that can occur
+// before a min_temp_error is triggered. (Shouldn't be more than 10.)
+//#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 0
+
+// The number of milliseconds a hotend will preheat before starting to check
+// the temperature. This value should NOT be set to the time it takes the
+// hot end to reach the target temperature, but the time it takes to reach
+// the minimum temperature your thermistor can read. The lower the better/safer.
+// This shouldn't need to be more than 30 seconds (30000)
+//#define MILLISECONDS_PREHEAT_TIME 0
 /*****************************************************************************************/
 
 

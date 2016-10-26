@@ -741,7 +741,7 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 void setup_killpin() {
   #if HAS(KILL)
     SET_INPUT(KILL_PIN);
-    PULLUP(KILL_PIN, HIGH);
+    PULLUP(KILL_PIN);
   #endif
   }
 
@@ -749,7 +749,7 @@ void setup_killpin() {
   void setup_filrunoutpin() {
     SET_INPUT(FIL_RUNOUT_PIN);
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      PULLUP(FIL_RUNOUT_PIN, HIGH);
+      PULLUP(FIL_RUNOUT_PIN);
     #endif
   }
 #endif
@@ -758,7 +758,7 @@ void setup_killpin() {
 void setup_homepin(void) {
   #if HAS(HOME)
     SET_INPUT(HOME_PIN);
-    PULLUP(HOME_PIN, HIGH);
+    PULLUP(HOME_PIN);
   #endif
 }
 
@@ -856,7 +856,7 @@ inline void get_serial_commands() {
   #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
     static millis_t last_command_time = 0;
     millis_t ms = millis();
-    if (!HAL::serialByteAvailable() && commands_in_queue == 0 && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
+    if (commands_in_queue == 0 && !HAL::serialByteAvailable() && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
       SERIAL_L(WT);
       last_command_time = ms;
     }
@@ -865,7 +865,7 @@ inline void get_serial_commands() {
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
-  while (HAL::serialByteAvailable() && commands_in_queue < BUFSIZE) {
+  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable() > 0) {
 
     char serial_char = HAL::serialReadByte();
 
@@ -1790,7 +1790,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #elif ENABLED(BLTOUCH)
       set_bltouch_deployed(deploy);
     #elif HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
-      servo[Z_ENDSTOP_SERVO_NR].move(z_servo_angle[((deploy) ? 0 : 1)]);
+      servo[Z_ENDSTOP_SERVO_NR].move(z_servo_angle[deploy ? 0 : 1]);
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
       deploy ? run_deploy_moves_script() : run_stow_moves_script();
     #endif
@@ -1824,11 +1824,11 @@ static void clean_up_after_endstop_or_probe_move() {
     // Clear endstop flags
     endstops.hit_on_purpose();
 
-    // Tell the planner where we actually are
-    planner.sync_from_steppers();
-
     // Get Z where the steppers were interrupted
     set_current_from_steppers_for_axis(Z_AXIS);
+
+    // Tell the planner where we actually are
+    SYNC_PLAN_POSITION_KINEMATIC();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< do_probe_move", current_position);
@@ -4211,7 +4211,7 @@ inline void gcode_G28() {
       set_current_from_steppers_for_axis(ALL_AXES);
 
       // Sync the planner to where the steppers stopped
-      planner.sync_from_steppers();
+      SYNC_PLAN_POSITION_KINEMATIC();
     }
 
     setup_for_endstop_or_probe_move();
@@ -4993,27 +4993,26 @@ inline void gcode_G92() {
     }
 
     lcd_ignore_click();
+
+    KEEPALIVE_STATE(PAUSED_FOR_USER);
+
     stepper.synchronize();
     refresh_cmd_timeout();
     if (codenum > 0) {
       codenum += previous_cmd_ms;  // wait until this time for a click
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
       while (PENDING(millis(), codenum) && !lcd_clicked()) idle();
-      KEEPALIVE_STATE(IN_HANDLER);
       lcd_ignore_click(false);
     }
     else {
       if (!lcd_detected()) return;
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
       while (!lcd_clicked()) idle();
-      KEEPALIVE_STATE(IN_HANDLER);
     }
-    if (IS_SD_PRINTING)
-      LCD_MESSAGEPGM(MSG_RESUMING);
-    else
-      LCD_MESSAGEPGM(WELCOME_MSG);
+
+    IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
+
+    KEEPALIVE_STATE(IN_HANDLER);
   }
-#endif //ULTIPANEL
+#endif // ULTIPANEL
 
 #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
   /**
@@ -8896,7 +8895,7 @@ void process_next_command() {
         case 0: // M0: Unconditional stop - Wait for user button press on LCD
         case 1: // M1: Conditional stop - Wait for user button press on LCD
           gcode_M0_M1(); break;
-      #endif //ULTIPANEL
+      #endif // ULTIPANEL
 
       #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
         case 3: // M03: Setting laser beam
@@ -9444,8 +9443,8 @@ void ok_to_send() {
     // Whole unit is the grid box index
     const int gridx = constrain(int(ratio_x), 0, ABL_GRID_POINTS_X - 2),
               gridy = constrain(int(ratio_y), 0, ABL_GRID_POINTS_Y - 2),
-              nextx = gridx + (x < PROBE_BED_WIDTH ? 1 : 0),
-              nexty = gridy + (y < PROBE_BED_HEIGHT ? 1 : 0);
+              nextx = min(gridx + 1, ABL_GRID_POINTS_X - 2),
+              nexty = min(gridy + 1, ABL_GRID_POINTS_Y - 2);
 
     // Subtract whole to get the ratio within the grid box
     ratio_x = constrain(ratio_x - gridx, 0.0, 1.0);

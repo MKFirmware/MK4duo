@@ -69,6 +69,8 @@
   #include "Configuration_Overall.h"
 #endif
 
+#include "src/language/language.h"
+
 #if ENABLED(LASERBEAM)
   #include "Configuration_Laser.h"
   #if ENABLED(LASER_RASTER)
@@ -105,7 +107,6 @@
 
 #include "Configuration_Store.h"
 
-#include "src/language/language.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
 #include "src/MK_Main.h"
