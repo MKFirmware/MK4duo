@@ -33,16 +33,15 @@
  * License: http://opensource.org/licenses/BSD-3-Clause
  */
 
-#include "../../base.h"
-
 #ifndef ULTRALCD_IMPL_DOGM_H
 #define ULTRALCD_IMPL_DOGM_H
+
+#include "../../base.h"
 
 /**
  * Implementation of the LCD display routines for a DOGM128 graphic display.
  * These are common LCD 128x64 pixel graphic displays.
  */
-
 #include "ultralcd.h"
 #include "ultralcd_st7920_u8glib_rrd.h"
 #include "dogm_bitmaps.h"
@@ -229,13 +228,11 @@ void lcd_printPGM(const char* str) {
 static void lcd_implementation_init() {
 
   #if defined(LCD_PIN_BL) && LCD_PIN_BL > -1 // Enable LCD backlight
-    pinMode(LCD_PIN_BL, OUTPUT);
-    digitalWrite(LCD_PIN_BL, HIGH);
+    OUT_WRITE(LCD_BACKLIGHT_PIN, HIGH);
   #endif
 
   #if defined(LCD_PIN_RESET) && LCD_PIN_RESET > -1
-    pinMode(LCD_PIN_RESET, OUTPUT);
-    digitalWrite(LCD_PIN_RESET, HIGH);
+    OUT_WRITE(LCD_RESET_PIN, HIGH);
   #endif
 
   #if DISABLED(MINIPANEL) // setContrast not working for Mini Panel
@@ -480,7 +477,7 @@ static void lcd_implementation_status_screen() {
 
   #if DISABLED(LASERBEAM)
     // Hotends
-    for (int i = 0; i < HOTENDS; i++) _draw_heater_status(5 + i * 25, i);
+    for (int h = 0; h < HOTENDS; h++) _draw_heater_status(5 + h * 25, h);
 
     // Heated bed
     #if HOTENDS < 4 && HAS(TEMP_BED)

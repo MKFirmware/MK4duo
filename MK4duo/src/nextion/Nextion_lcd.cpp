@@ -81,6 +81,8 @@
   NexPage Pbrightness   = NexPage       (9,   0,  "brightness");
   NexPage Ptemp         = NexPage       (10,  0,  "temp");
   NexPage Pinfo         = NexPage       (11,  0,  "info");
+  NexPage Pyesno        = NexPage       (12,  0,  "yesno");
+  NexPage Pfilament     = NexPage       (13,  0,  "filament");
 
   /**
    *******************************************************************
@@ -109,7 +111,6 @@
   NexPicture Fanpic     = NexPicture    (2,   4,  "p1");
   NexPicture NStop      = NexPicture    (2,   19, "p2");
   NexPicture NPlay      = NexPicture    (2,   20, "p3");
-  NexPicture Logo       = NexPicture    (2,   17, "p4");
   NexVariable Hotend    = NexVariable   (2,   5,  "he");
   NexVariable Bed       = NexVariable   (2,   6,  "bed");
   NexVariable Fan       = NexVariable   (2,   7,  "fan");
@@ -148,13 +149,13 @@
    * Nextion component for page:Setup
    *******************************************************************
    */
-  NexPicture DFirmware  = NexPicture    (4,   4,  "p0");
 
   /**
    *******************************************************************
    * Nextion component for page:Move
    *******************************************************************
    */
+  NexPicture MotorOff   = NexPicture    (5,  17,  "p0");
   NexPicture XYHome     = NexPicture    (5,   2,  "p4");
   NexPicture XYUp       = NexPicture    (5,   3,  "p5");
   NexPicture XYRight    = NexPicture    (5,   4,  "p6");
@@ -163,8 +164,11 @@
   NexPicture ZHome      = NexPicture    (5,   7,  "p9");
   NexPicture ZUp        = NexPicture    (5,   8,  "p10");
   NexPicture ZDown      = NexPicture    (5,   9,  "p11");
-  NexVariable movecmd   = NexVariable   (5,   11, "vacmd");
-  NexText LedCoord5     = NexText       (5,   12, "t0");
+  NexPicture Extrude    = NexPicture    (5,  20,  "p12");
+  NexPicture Retract    = NexPicture    (5,  22,  "p14");
+  NexVariable movecmd   = NexVariable   (5,  11,  "vacmd");
+  NexVariable ext       = NexVariable   (5,  19,  "va0");
+  NexText LedCoord5     = NexText       (5,  12,  "t0");
 
   /**
    *******************************************************************
@@ -179,7 +183,7 @@
    *******************************************************************
    */
   NexText Tgcode        = NexText       (7,   1,  "tgcode");
-  NexButton Benter      = NexButton     (7,   41, "benter");
+  NexButton Send        = NexButton     (7,   44, "b39");
 
   /**
    *******************************************************************
@@ -220,32 +224,45 @@
   NexText InfoText          = NexText       (11,   2,  "t0");
   NexScrolltext ScrollText  = NexScrolltext (11,   3,  "g0");
 
+  /**
+   *******************************************************************
+   * Nextion component for page:Yesno
+   *******************************************************************
+   */
+  NexHotspot YesNo          = NexHotspot    (12,  2,  "m0");
+  NexVariable Vyes          = NexVariable   (12,  4,  "va0");
+
   NexTouch *nex_listen_list[] =
   {
     // Page 2 touch listen
-    &Hotend0, &Hotend1, &Hotend2, &Fanpic, &NPlay, &NStop, &Logo,
+    &Hotend0, &Hotend1, &Hotend2, &Fanpic, &NPlay,
 
     // Page 3 touch listen
     &sdlist, &ScrollUp, &ScrollDown, &sdrow0, &sdrow1, &sdrow2,
     &sdrow3, &sdrow4, &sdrow5, &Folderup,
 
     // Page 4 touch listen
-    &DFirmware,
 
     // Page 5 touch listen
-    &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft, &ZHome, &ZUp, &ZDown,
+    &MotorOff, &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft,
+    &ZHome, &ZUp, &ZDown,
+    &Extrude, &Retract,
 
     // Page 6 touch listen
     &Speed,
 
     // Page 7 touch listen
-    &Benter,
+    &Send,
 
     // Page 8 touch listen
     &Rfid0, &Rfid1, &Rfid2, &Rfid3, &Rfid4, &Rfid5,
 
     // Page 10 touch listen
     &tset, &tup, &tdown,
+
+    // Page 12 touch listen
+    &YesNo,
+
     NULL
   };
 
@@ -309,6 +326,15 @@
   }
 
   #if ENABLED(SDSUPPORT)
+
+    void UploadNewFirmware() {
+      if(IS_SD_INSERTED || card.cardOK) {
+        Firmware.startUpload();
+        nexSerial.end();
+        lcd_init();
+      }
+    }
+
     void printrowsd(uint8_t row, const bool folder, const char* filename) {
       if (folder) {
         folder_list[row]->setShow();
@@ -433,14 +459,34 @@
       card.updir();
       setpageSD();
     }
-    
-    void UploadNewFirmware() {
-      if(IS_SD_INSERTED || card.cardOK) {
-        Firmware.startUpload();
-        nexSerial.end();
-        lcd_init();
+
+    void PlayPausePopCallback(void *ptr) {
+      if (card.cardOK && card.isFileOpen()) {
+        if (IS_SD_PRINTING) {
+          card.pauseSDPrint();
+          print_job_counter.pause();
+        }
+        else {
+          card.startFileprint();
+          print_job_counter.start();
+        }
       }
     }
+
+    void StopPrint(const bool ssr = false) {
+      if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
+        card.stopSDPrint(ssr);
+        clear_command_queue();
+        quickstop_stepper();
+        print_job_counter.stop();
+        #if ENABLED(AUTOTEMP)
+          thermalManager.autotempShutdown();
+        #endif
+        wait_for_heatup = false;
+        lcd_setstatus(MSG_PRINT_ABORTED, true);
+      }
+    }
+
   #endif
 
   #if ENABLED(RFID_MODULE)
@@ -547,7 +593,6 @@
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
     enqueue_and_echo_commands_P(buffer);
-    Pmenu.show();
   }
 
   void setfanPopCallback(void *ptr) {
@@ -562,45 +607,52 @@
   }
 
   void setmovePopCallback(void *ptr) {
+
+    #if EXTRUDERS > 1
+      const uint8_t temp_extruder = active_extruder;
+      uint32_t new_extruder;
+      char temp[5] = {0};
+
+      ZERO(buffer);
+      ext.getValue(&new_extruder);
+      itoa(new_extruder, temp, 2);
+      strcat(buffer, "T");
+      strcat(buffer, temp);
+      enqueue_and_echo_commands_P(buffer);
+    #endif
+
     ZERO(buffer);
     movecmd.getText(buffer, sizeof(buffer));
     enqueue_and_echo_commands_P(PSTR("G91"));
     enqueue_and_echo_commands_P(buffer);
     enqueue_and_echo_commands_P(PSTR("G90"));
+
+    #if EXTRUDERS > 1
+      ZERO(buffer);
+      itoa(temp_extruder, temp, 2);
+      strcat(buffer, "T");
+      strcat(buffer, temp);
+      enqueue_and_echo_commands_P(buffer);
+    #endif
   }
 
-  #if ENABLED(SDSUPPORT)
-    void PlayPausePopCallback(void *ptr) {
-      if (card.cardOK && card.isFileOpen()) {
-        if (IS_SD_PRINTING) {
-          card.pauseSDPrint();
-          print_job_counter.pause();
-        }
-        else {
-          card.startFileprint();
-          print_job_counter.start();
-        }
-      }
-    }
+  void motoroffPopCallback(void *ptr) {
+    enqueue_and_echo_commands_P(PSTR("M84"));
+  }
 
-    void StopPopCallback(void *ptr) {
-      if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
-        card.stopSDPrint(ptr == &Logo);
-        clear_command_queue();
-        quickstop_stepper();
-        print_job_counter.stop();
-        #if ENABLED(AUTOTEMP)
-          thermalManager.autotempShutdown();
-        #endif
-        wait_for_heatup = false;
-        lcd_setstatus(MSG_PRINT_ABORTED, true);
-      }
+  void YesNoPopCallback(void *ptr) {
+    static uint32_t icon = 0;
+    Vyes.getValue(&icon);
+    switch(icon) {
+      #if ENABLED(SDSUPPORT)
+        case 1:
+        case 2:
+          StopPrint(icon == 2); Pprinter.show(); break;
+        case 3:
+          UploadNewFirmware(); break;
+      #endif
     }
-    
-    void DFirmwareCallback(void *ptr) {
-      UploadNewFirmware();
-    }
-  #endif
+  }
 
   void lcd_init() {
     HAL::delayMilliseconds(2000);
@@ -631,9 +683,6 @@
         ScrollUp.attachPop(sdlistPopCallback);
         ScrollDown.attachPop(sdlistPopCallback);
         NPlay.attachPop(PlayPausePopCallback);
-        NStop.attachPop(StopPopCallback, &NStop);
-        Logo.attachPop(StopPopCallback, &Logo);
-        DFirmware.attachPop(DFirmwareCallback);
       #endif
 
       #if ENABLED(RFID_MODULE)
@@ -667,7 +716,11 @@
       ZHome.attachPop(setmovePopCallback);
       ZUp.attachPop(setmovePopCallback);
       ZDown.attachPop(setmovePopCallback);
-      Benter.attachPop(setgcodePopCallback);
+      Extrude.attachPop(setmovePopCallback);
+      Retract.attachPop(setmovePopCallback);
+      MotorOff.attachPop(motoroffPopCallback);
+      Send.attachPop(setgcodePopCallback);
+      YesNo.attachPop(YesNoPopCallback);
 
       setpagePrinter();
       startimer.enable();

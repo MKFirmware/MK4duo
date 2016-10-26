@@ -240,6 +240,16 @@ static void lcd_set_custom_characters(
     B11111,
     B01110
   };
+  static byte uplevel[8] = {
+    B00100,
+    B01110,
+    B11111,
+    B00100,
+    B11100,
+    B00000,
+    B00000,
+    B00000
+  }; //thanks joris
   static byte feedrate[8] = {
     B11100,
     B10000,
@@ -268,16 +278,6 @@ static void lcd_set_custom_characters(
   lcd.createChar(LCD_STR_CLOCK[0], clock);
 
   #if ENABLED(SDSUPPORT)
-    static byte uplevel[8] = {
-      B00100,
-      B01110,
-      B11111,
-      B00100,
-      B11100,
-      B00000,
-      B00000,
-      B00000
-    }; //thanks joris
     static byte refresh[8] = {
       B00000,
       B00110,
@@ -346,6 +346,8 @@ static void lcd_set_custom_characters(
       lcd.createChar(LCD_STR_FOLDER[0], folder);
     #endif
 
+  #else
+    lcd.createChar(LCD_STR_UPLEVEL[0], uplevel);
   #endif
 }
 
@@ -781,7 +783,7 @@ static void lcd_implementation_status_screen() {
       // or if there is no message set.
       if (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0]) {
         int tix = (int)(card.percentDone() * (LCD_WIDTH) * 3) / 100,
-            cel = tix / 3, rem = tix % 3, i = LCD_WIDTH;
+          cel = tix / 3, rem = tix % 3, i = LCD_WIDTH;
         char msg[LCD_WIDTH + 1], b = ' ';
         msg[i] = '\0';
         while (i--) {

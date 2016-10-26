@@ -74,7 +74,7 @@
 
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       void lcd_filament_change_show_message(FilamentChangeMessage message);
-    #endif
+    #endif // FILAMENT_CHANGE_FEATURE
 
   #else
     FORCE_INLINE void lcd_buttons_update() {}
@@ -109,6 +109,7 @@
     #endif
     #define EN_A (_BV(BLEN_A))
     #define EN_B (_BV(BLEN_B))
+    #define EN_C (_BV(BLEN_C))
   #endif
 
   #if ENABLED(REPRAPWORLD_KEYPAD) // is also ULTIPANEL and NEWPANEL

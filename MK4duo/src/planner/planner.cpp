@@ -105,6 +105,8 @@ float Planner::min_feedrate_mm_s,
 
 long Planner::position[NUM_AXIS] = { 0 };
 
+uint32_t Planner::cutoff_long;
+
 float Planner::previous_speed[NUM_AXIS],
       Planner::previous_nominal_speed;
 
@@ -186,7 +188,6 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 // The kernel called by recalculate() when scanning the plan from last to first entry.
 void Planner::reverse_pass_kernel(block_t* const current, const block_t *next) {
   if (!current || !next) return;
-
   // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
   // If not, block in state of acceleration or deceleration. Reset entry speed to maximum and
   // check for maximum allowable speed reductions to ensure maximum possible planned speed.
@@ -353,6 +354,7 @@ void Planner::recalculate() {
     oldt = t;
     thermalManager.setTargetHotend(t, 0);
   }
+
 #endif //AUTOTEMP
 
 /**
@@ -454,7 +456,6 @@ void Planner::check_axes_activity() {
 }
 
 #if PLANNER_LEVELING
-
   /**
    * lx, ly, lz - Logical (cartesian, not delta) positions in mm
    */
@@ -536,7 +537,6 @@ void Planner::check_axes_activity() {
  *  driver      - target driver
  */
 void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-
   // Calculate the buffer head after we push this byte
   int next_buffer_head = next_block_index(block_buffer_head);
 
@@ -571,6 +571,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   // DRYRUN ignores all temperature constraints and assures that the extruder is instantly satisfied
   if (DEBUGGING(DRYRUN)) position[E_AXIS] = target[E_AXIS];
+
   long de = target[E_AXIS] - position[E_AXIS];
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
@@ -646,7 +647,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   #if DISABLED(LASERBEAM)
     // Bail if this is a zero-length block
-    if (block->step_event_count <= MIN_STEPS_PER_SEGMENT) return;
+    if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
   #endif
 
   // Clear the block flags
@@ -902,7 +903,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
   delta_mm[E_AXIS] = 0.01 * (de * steps_to_mm[E_AXIS + extruder]) * volumetric_multiplier[extruder] * flow_percentage[extruder];
 
-  if (block->steps[X_AXIS] <= MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] <= MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] <= MIN_STEPS_PER_SEGMENT) {
+  if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = fabs(delta_mm[E_AXIS]);
   }
   else {
@@ -1010,7 +1011,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         // If the index has changed (must have gone forward)...
         if (filwidth_delay_index[0] != filwidth_delay_index[1]) {
           filwidth_e_count = 0; // Reset the E movement counter
-          int8_t meas_sample = widthFil_to_size_ratio() - 100; // Subtract 100 to reduce magnitude - to store in a signed char
+          int8_t meas_sample = thermalManager.widthFil_to_size_ratio() - 100; // Subtract 100 to reduce magnitude - to store in a signed char
           do {
             filwidth_delay_index[1] = (filwidth_delay_index[1] + 1) % MMD_CM; // The next unused slot
             measurement_delay[filwidth_delay_index[1]] = meas_sample;         // Store the measurement
@@ -1021,7 +1022,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   // Calculate and limit speed in mm/sec for each axis
-  float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <=1 do decrease speed
+  float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
   LOOP_XYZE(i) {
     float cs = fabs(current_speed[i] = delta_mm[i] * inverse_mm_s);
     if (cs > max_feedrate_mm_s[i]) NOMORE(speed_factor, max_feedrate_mm_s[i] / cs);
@@ -1073,31 +1074,57 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   }
 
   // Compute and limit the acceleration rate for the trapezoid generator.
-  float steps_per_mm = block->step_event_count / block->millimeters;
+  float steps_per_mm = block->step_event_count * inverse_millimeters;
   uint32_t accel;
   if (!block->steps[X_AXIS] && !block->steps[Y_AXIS] && !block->steps[Z_AXIS]) {
     // convert to: acceleration steps/sec^2
     accel = ceil(retract_acceleration[extruder] * steps_per_mm);
   }
   else {
-    #define LIMIT_ACCEL(AXIS) do{ \
-      if (max_acceleration_steps_per_s2[AXIS] < (accel * block->steps[AXIS]) / block->step_event_count) \
-      accel = (max_acceleration_steps_per_s2[AXIS] * block->step_event_count) / block->steps[AXIS]; \
+    #define LIMIT_ACCEL_LONG(AXIS) do{ \
+      if (block->steps[AXIS] && max_acceleration_steps_per_s2[AXIS] < accel) { \
+        const uint32_t comp = max_acceleration_steps_per_s2[AXIS] * block->step_event_count; \
+        if (accel * block->steps[AXIS] > comp) accel = comp / block->steps[AXIS]; \
+      } \
     }while(0)
 
-    #define LIMIT_ACCEL_E(AXIS) do{ \
-      if (max_acceleration_steps_per_s2[AXIS + extruder] < (accel * block->steps[AXIS]) / block->step_event_count) \
-      accel = (max_acceleration_steps_per_s2[AXIS + extruder] * block->step_event_count) / block->steps[AXIS]; \
+    #define LIMIT_ACCEL_FLOAT(AXIS) do{ \
+      if (block->steps[AXIS] && max_acceleration_steps_per_s2[AXIS] < accel) { \
+        const float comp = (float)max_acceleration_steps_per_s2[AXIS] * (float)block->step_event_count; \
+        if ((float)accel * (float)block->steps[AXIS] > comp) accel = comp / (float)block->steps[AXIS]; \
+      } \
+    }while(0)
+
+    #define LIMIT_ACCEL_LONG_E() do{ \
+      if (block->steps[E_AXIS] && max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) { \
+        const uint32_t comp = max_acceleration_steps_per_s2[E_AXIS + extruder] * block->step_event_count; \
+        if (accel * block->steps[E_AXIS] > comp) accel = comp / block->steps[E_AXIS]; \
+      } \
+    }while(0)
+
+    #define LIMIT_ACCEL_FLOAT_E() do{ \
+      if (block->steps[E_AXIS] && max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) { \
+        const float comp = (float)max_acceleration_steps_per_s2[E_AXIS + extruder] * (float)block->step_event_count; \
+        if ((float)accel * (float)block->steps[E_AXIS] > comp) accel = comp / (float)block->steps[E_AXIS]; \
+      } \
     }while(0)
 
     // Start with print or travel acceleration
     accel = ceil((block->steps[E_AXIS] ? acceleration : travel_acceleration) * steps_per_mm);
 
     // Limit acceleration per axis
-    LIMIT_ACCEL(X_AXIS);
-    LIMIT_ACCEL(Y_AXIS);
-    LIMIT_ACCEL(Z_AXIS);
-    LIMIT_ACCEL_E(E_AXIS);
+    if (block->step_event_count <= cutoff_long){
+      LIMIT_ACCEL_LONG(X_AXIS);
+      LIMIT_ACCEL_LONG(Y_AXIS);
+      LIMIT_ACCEL_LONG(Z_AXIS);
+      LIMIT_ACCEL_LONG_E();
+    }
+    else {
+      LIMIT_ACCEL_FLOAT(X_AXIS);
+      LIMIT_ACCEL_FLOAT(Y_AXIS);
+      LIMIT_ACCEL_FLOAT(Z_AXIS);
+      LIMIT_ACCEL_FLOAT_E();
+    }
   }
   block->acceleration_steps_per_s2 = accel;
   block->acceleration = accel / steps_per_mm;
@@ -1353,6 +1380,13 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 }
 
 /**
+ * Sync from the stepper positions. (e.g., after an interrupted move)
+ */
+void Planner::sync_from_steppers() {
+  LOOP_XYZE(i) position[i] = stepper.position((AxisEnum)i);
+}
+
+/**
  * Setters for planner position (also setting stepper position).
  */
 void Planner::set_position_mm(const AxisEnum axis, const float &v) {
@@ -1369,17 +1403,14 @@ void Planner::set_position_mm(const AxisEnum axis, const float &v) {
   previous_speed[axis] = 0.0;
 }
 
-/**
- * Sync from the stepper positions. (e.g., after an interrupted move)
- */
-void Planner::sync_from_steppers() {
-  LOOP_XYZE(i) position[i] = stepper.position((AxisEnum)i);
-}
-
 // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
 void Planner::reset_acceleration_rates() {
-  for (uint8_t i = 0; i < XYZEn; i++)
+  uint32_t highest_rate = 1;
+  for (uint8_t i = 0; i < XYZEn; i++) {
     max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
+    NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
+  }
+  cutoff_long = 4294967295UL / highest_rate;
 }
 
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!

@@ -711,11 +711,11 @@ void kill_screen(const char* lcd_msg) {
     #if ENABLED(BABYSTEP_XY)
       static void _lcd_babystep_x() { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEPPING_X)); }
       static void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEPPING_Y)); }
-      static void lcd_babystep_x() { babysteps_done = 0; lcd_goto_screen(_lcd_babystep_x); }
-      static void lcd_babystep_y() { babysteps_done = 0; lcd_goto_screen(_lcd_babystep_y); }
+      static void lcd_babystep_x() { lcd_goto_screen(_lcd_babystep_x); babysteps_done = 0; defer_return_to_status = true; }
+      static void lcd_babystep_y() { lcd_goto_screen(_lcd_babystep_y); babysteps_done = 0; defer_return_to_status = true; }
     #endif
     static void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEPPING_Z)); }
-    static void lcd_babystep_z() { babysteps_done = 0; lcd_goto_screen(_lcd_babystep_z); }
+    static void lcd_babystep_z() { lcd_goto_screen(_lcd_babystep_z); babysteps_done = 0; defer_return_to_status = true; }
 
   #endif // BABYSTEPPING
 
@@ -732,16 +732,16 @@ void kill_screen(const char* lcd_msg) {
    */
   #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
     #if TEMP_SENSOR_0 != 0
-      void watch_temp_callback_E0() { start_watching_heater(0); }
+      void watch_temp_callback_E0() { thermalManager.start_watching_heater(0); }
     #endif
     #if HOTENDS > 1 && TEMP_SENSOR_1 != 0
-      void watch_temp_callback_E1() { start_watching_heater(1); }
+      void watch_temp_callback_E1() { thermalManager.start_watching_heater(1); }
     #endif // HOTENDS > 1
     #if HOTENDS > 2 && TEMP_SENSOR_2 != 0
-      void watch_temp_callback_E2() { start_watching_heater(2); }
+      void watch_temp_callback_E2() { thermalManager.start_watching_heater(2); }
     #endif // HOTENDS > 2
     #if HOTENDS > 3 && TEMP_SENSOR_3 != 0
-      void watch_temp_callback_E3() { start_watching_heater(3); }
+      void watch_temp_callback_E3() { thermalManager.start_watching_heater(3); }
     #endif // HOTENDS > 3
   #else
     #if TEMP_SENSOR_0 != 0
@@ -760,7 +760,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
     #if TEMP_SENSOR_BED != 0
-      void watch_temp_callback_bed() { start_watching_bed(); }
+      void watch_temp_callback_bed() { thermalManager.start_watching_bed(); }
     #endif
   #else
     #if TEMP_SENSOR_BED != 0
@@ -770,7 +770,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
     #if TEMP_SENSOR_CHAMBER != 0
-      void watch_temp_callback_chamber() { start_watching_chamber(); }
+      void watch_temp_callback_chamber() { thermalManager.start_watching_chamber(); }
     #endif
   #else
     #if TEMP_SENSOR_CHAMBER != 0
@@ -780,7 +780,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_TEMP_COOLER_PERIOD > 0
     #if TEMP_SENSOR_COOLER != 0
-      void watch_temp_callback_cooler() { start_watching_cooler(); }
+      void watch_temp_callback_cooler() { thermalManager.start_watching_cooler(); }
     #endif
   #else
     #if TEMP_SENSOR_COOLER != 0
@@ -1120,13 +1120,13 @@ void kill_screen(const char* lcd_msg) {
     // Note: During Manual Bed Leveling the homed Z position is MESH_HOME_SEARCH_Z
     // Z position will be restored with the final action, a G28
     inline void _mbl_goto_xy(float x, float y) {
-      current_position[Z_AXIS] = MESH_HOME_SEARCH_Z + MIN_Z_HEIGHT_FOR_HOMING;
+      current_position[Z_AXIS] = LOGICAL_Z_POSITION(MESH_HOME_SEARCH_Z + MIN_Z_HEIGHT_FOR_HOMING);
       line_to_current(Z_AXIS);
-      current_position[X_AXIS] = x + home_offset[X_AXIS];
-      current_position[Y_AXIS] = y + home_offset[Y_AXIS];
+      current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+      current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
       line_to_current(manual_feedrate_mm_m[X_AXIS] <= manual_feedrate_mm_m[Y_AXIS] ? X_AXIS : Y_AXIS);
       #if MIN_Z_HEIGHT_FOR_HOMING > 0
-        current_position[Z_AXIS] = MESH_HOME_SEARCH_Z; // How do condition and action match?
+        current_position[Z_AXIS] = LOGICAL_Z_POSITION(MESH_HOME_SEARCH_Z);
         line_to_current(Z_AXIS);
       #endif
       stepper.synchronize();
@@ -1692,7 +1692,13 @@ void kill_screen(const char* lcd_msg) {
     static void _lcd_autotune(int h) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h,
-        h < 0 ? autotune_temp_bed : autotune_temp[h]
+        #if HAS_PID_FOR_BOTH
+          h < 0 ? autotune_temp_bed : autotune_temp[h]
+        #elif ENABLED(PIDTEMPBED)
+          autotune_temp_bed
+        #else
+          autotune_temp[h]
+        #endif
       );
       enqueue_and_echo_command(cmd);
     }
@@ -2105,6 +2111,7 @@ void kill_screen(const char* lcd_msg) {
    *
    */
   #if ENABLED(FWRETRACT)
+
     static void lcd_control_retract_menu() {
       START_MENU();
       MENU_BACK(MSG_CONTROL);
@@ -2113,15 +2120,16 @@ void kill_screen(const char* lcd_msg) {
       #if EXTRUDERS > 1
         MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT_SWAP, &retract_length_swap, 0, 100);
       #endif
-      MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACTF, &retract_feedrate, 1, 999);
+      MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACTF, &retract_feedrate_mm_s, 1, 999);
       MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT_ZLIFT, &retract_zlift, 0, 999);
       MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT_RECOVER, &retract_recover_length, 0, 100);
       #if EXTRUDERS > 1
         MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT_RECOVER_SWAP, &retract_recover_length_swap, 0, 100);
       #endif
-      MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACT_RECOVERF, &retract_recover_feedrate, 1, 999);
+      MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACT_RECOVERF, &retract_recover_feedrate_mm_s, 1, 999);
       END_MENU();
     }
+
   #endif // FWRETRACT
 
   #if ENABLED(LASERBEAM)
@@ -2324,44 +2332,44 @@ void kill_screen(const char* lcd_msg) {
       START_SCREEN();
       #define THERMISTOR_ID TEMP_SENSOR_0
       #include "../temperature/thermistornames.h"
-      STATIC_ITEM("T0: " THERMISTOR_NAME);
-      STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP));
-      STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP));
+      STATIC_ITEM("T0: " THERMISTOR_NAME, false, true);
+      STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP), false);
+      STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP), false);
 
       #if TEMP_SENSOR_1 != 0
         #undef THERMISTOR_ID
         #define THERMISTOR_ID TEMP_SENSOR_1
         #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T1: " THERMISTOR_NAME);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP));
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP));
+        STATIC_ITEM("T1: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP), false);
       #endif
 
       #if TEMP_SENSOR_2 != 0
         #undef THERMISTOR_ID
         #define THERMISTOR_ID TEMP_SENSOR_2
         #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T2: " THERMISTOR_NAME);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP));
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP));
+        STATIC_ITEM("T2: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP), false);
       #endif
 
       #if TEMP_SENSOR_3 != 0
         #undef THERMISTOR_ID
         #define THERMISTOR_ID TEMP_SENSOR_3
         #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T3: " THERMISTOR_NAME);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP));
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP));
+        STATIC_ITEM("T3: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP), false);
       #endif
 
       #if TEMP_SENSOR_BED != 0
         #undef THERMISTOR_ID
         #define THERMISTOR_ID TEMP_SENSOR_BED
         #include "../temperature/thermistornames.h"
-        STATIC_ITEM("TBed:" THERMISTOR_NAME);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(BED_MINTEMP));
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(BED_MAXTEMP));
+        STATIC_ITEM("TBed:" THERMISTOR_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(BED_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(BED_MAXTEMP), false);
       #endif
       END_SCREEN();
     }
@@ -2425,7 +2433,6 @@ void kill_screen(const char* lcd_msg) {
 
     static void lcd_filament_change_resume_print() {
       filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_RESUME_PRINT;
-      lcdDrawUpdate = 2;
       lcd_goto_screen(lcd_status_screen);
     }
 
@@ -2520,7 +2527,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
       END_SCREEN();
     }
-  
+
     void lcd_filament_change_show_message(FilamentChangeMessage message) {
       switch (message) {
         case FILAMENT_CHANGE_MESSAGE_INIT:
@@ -2616,6 +2623,7 @@ void kill_screen(const char* lcd_msg) {
       currentScreen = menu_edit_callback_ ## _name; \
       callbackFunc = callback; \
     }
+
   menu_edit_type(int, int3, itostr3, 1)
   menu_edit_type(float, float3, ftostr3, 1)
   menu_edit_type(float, float32, ftostr32, 100)
@@ -2650,7 +2658,6 @@ void kill_screen(const char* lcd_msg) {
     static void reprapworld_keypad_move_menu()    { lcd_goto_screen(lcd_move_menu); }
   #endif // REPRAPWORLD_KEYPAD
 
-
   /**
    *
    * Audio feedback for controller clicks
@@ -2665,6 +2672,7 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_quick_feedback() {
     lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
+    buttons = 0;
     next_button_update_ms = millis() + 500;
 
     #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -2728,33 +2736,34 @@ void kill_screen(const char* lcd_msg) {
 
 #endif // ULTIPANEL
 
-/** LCD API **/
 void lcd_init() {
 
-  lcd_implementation_init();
+  lcd_implementation_init(
+    #if ENABLED(LCD_PROGRESS_BAR)
+      true
+    #endif
+  );
 
   #if ENABLED(NEWPANEL)
     #if BUTTON_EXISTS(EN1)
       SET_INPUT(BTN_EN1);
-      PULLUP(BTN_EN1, HIGH);
+      PULLUP(BTN_EN1);
     #endif
 
     #if BUTTON_EXISTS(EN2)
       SET_INPUT(BTN_EN2);
-      PULLUP(BTN_EN2, HIGH);
+      PULLUP(BTN_EN2);
     #endif
 
     #if BUTTON_EXISTS(ENC)
       SET_INPUT(BTN_ENC);
-      PULLUP(BTN_ENC, HIGH);
+      PULLUP(BTN_ENC);
     #endif
 
     #if ENABLED(REPRAPWORLD_KEYPAD)
-      pinMode(SHIFT_CLK, OUTPUT);
-      pinMode(SHIFT_LD, OUTPUT);
-      pinMode(SHIFT_OUT, INPUT);
-      PULLUP(SHIFT_OUT, HIGH);
-      WRITE(SHIFT_LD, HIGH);
+      SET_OUTPUT(SHIFT_CLK);
+      OUT_WRITE(SHIFT_LD, HIGH);
+      PULLUP(SHIFT_OUT);
     #endif
 
     #if BUTTON_EXISTS(UP)
@@ -2773,23 +2782,20 @@ void lcd_init() {
   #else  // Not NEWPANEL
 
     #if ENABLED(SR_LCD_2W_NL) // Non latching 2 wire shift register
-      pinMode(SR_DATA_PIN, OUTPUT);
-      pinMode(SR_CLK_PIN, OUTPUT);
+      SET_OUTPUT(SR_DATA_PIN);
+      SET_OUTPUT(SR_CLK_PIN);
     #elif ENABLED(SHIFT_CLK)
-      pinMode(SHIFT_CLK, OUTPUT);
-      pinMode(SHIFT_LD, OUTPUT);
-      pinMode(SHIFT_EN, OUTPUT);
-      pinMode(SHIFT_OUT, INPUT);
-      PULLUP(SHIFT_OUT, HIGH);
-      WRITE(SHIFT_LD, HIGH);
-      WRITE(SHIFT_EN, LOW);
+      SET_OUTPUT(SHIFT_CLK);
+      OUT_WRITE(SHIFT_LD, HIGH);
+      OUT_WRITE(SHIFT_EN, LOW);
+      PULLUP(SHIFT_OUT);
     #endif // SR_LCD_2W_NL
 
   #endif // !NEWPANEL
 
   #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
     SET_INPUT(SD_DETECT_PIN);
-    PULLUP(SD_DETECT_PIN, HIGH);
+    PULLUP(SD_DETECT_PIN);
     lcd_sd_status = 2; // UNKNOWN
   #endif
 
@@ -2878,12 +2884,6 @@ void lcd_update() {
 
     bool sd_status = IS_SD_INSERTED;
     if (sd_status != lcd_sd_status && lcd_detected()) {
-      lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
-      lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
-        #if ENABLED(LCD_PROGRESS_BAR) && ENABLED(ULTIPANEL)
-          currentScreen == lcd_status_screen
-        #endif
-      );
 
       if (sd_status) {
         card.mount();
@@ -2895,6 +2895,12 @@ void lcd_update() {
       }
 
       lcd_sd_status = sd_status;
+      lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
+      lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
+        #if ENABLED(LCD_PROGRESS_BAR)
+          currentScreen == lcd_status_screen
+        #endif
+      );
     }
 
   #endif // SDSUPPORT && SD_DETECT_PIN
@@ -3100,17 +3106,14 @@ bool lcd_hasstatus() { return (lcd_status_message[0] != '\0'); }
 void lcd_setstatus(const char* message, bool persist) {
   if (lcd_status_message_level > 0) return;
   strncpy(lcd_status_message, message, 3 * (LCD_WIDTH));
-  set_utf_strlen(lcd_status_message, LCD_WIDTH);
   lcd_finishstatus(persist);
 }
 
 void lcd_setstatuspgm(const char* message, uint8_t level) {
-  if (level >= lcd_status_message_level) {
-    strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
-    set_utf_strlen(lcd_status_message, LCD_WIDTH);
-    lcd_status_message_level = level;
-    lcd_finishstatus(level > 0);
-  }
+  if (level < lcd_status_message_level) return;
+  lcd_status_message_level = level;
+  strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
+  lcd_finishstatus(level > 0);
 }
 
 void lcd_setalertstatuspgm(const char* message) {
@@ -3223,18 +3226,18 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
             }
           #endif
 
-      #endif // LCD_HAS_DIRECTIONAL_BUTTONS
+        #endif // LCD_HAS_DIRECTIONAL_BUTTONS
 
-      buttons = newbutton;
-      #if ENABLED(LCD_HAS_SLOW_BUTTONS)
-        buttons |= slow_buttons;
-      #endif
-      #if ENABLED(REPRAPWORLD_KEYPAD)
-        GET_BUTTON_STATES(buttons_reprapworld_keypad);
-      #endif
-    #else
-      GET_BUTTON_STATES(buttons);
-    #endif // !NEWPANEL
+        buttons = newbutton;
+        #if ENABLED(LCD_HAS_SLOW_BUTTONS)
+          buttons |= slow_buttons;
+        #endif
+        #if ENABLED(REPRAPWORLD_KEYPAD)
+          GET_BUTTON_STATES(buttons_reprapworld_keypad);
+        #endif
+      #else
+        GET_BUTTON_STATES(buttons);
+      #endif // !NEWPANEL
 
     } // next_button_update_ms
 
