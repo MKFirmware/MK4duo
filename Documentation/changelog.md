@@ -3,6 +3,7 @@
 * Fix JERK
 * Fix Save Stop Restart
 * Update Nextion Graphic made Mr. Goblins
+* Add M43 Pins test and debugs
 
 ### Version 4.3.03_dev
 * Clear Code
