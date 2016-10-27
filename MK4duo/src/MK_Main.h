@@ -117,6 +117,10 @@ extern float position_shift[XYZ];
 extern float home_offset[XYZ];
 extern float hotend_offset[XYZ][HOTENDS];
 
+#if ENABLED(ULTIPANEL)
+  extern volatile bool wait_for_user;
+#endif
+
 // Software Endstops
 void update_software_endstops(AxisEnum axis);
 #if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)

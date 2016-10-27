@@ -227,11 +227,11 @@ void lcd_printPGM(const char* str) {
 // Initialize or re-initializw the LCD
 static void lcd_implementation_init() {
 
-  #if defined(LCD_PIN_BL) && LCD_PIN_BL > -1 // Enable LCD backlight
+  #if PIN_EXISTS(LCD_BACKLIGHT) // Enable LCD backlight
     OUT_WRITE(LCD_BACKLIGHT_PIN, HIGH);
   #endif
 
-  #if defined(LCD_PIN_RESET) && LCD_PIN_RESET > -1
+  #if PIN_EXISTS(LCD_RESET)
     OUT_WRITE(LCD_RESET_PIN, HIGH);
   #endif
 

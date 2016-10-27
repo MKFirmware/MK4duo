@@ -177,6 +177,11 @@ static bool relative_mode = false;
 // For M109 and M190, this flag may be cleared (by M108) to exit the wait loop
 volatile bool wait_for_heatup = true;
 
+// For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
+#if ENABLED(ULTIPANEL)
+  volatile bool wait_for_user = false;
+#endif
+
 const char axis_codes[NUM_AXIS] = {'X', 'Y', 'Z', 'E'};
 
 static bool home_all_axis = true;
@@ -5330,6 +5335,10 @@ inline void gcode_M42() {
           pin_state[pin - first_pin] = digitalRead(pin);
       }
 
+      #if ENABLED(ULTIPANEL)
+        wait_for_user = true;
+      #endif
+
       for(;;) {
         for (int8_t pin = first_pin; pin <= last_pin; pin++) {
           if (pin_is_protected(pin)) continue;
@@ -5343,6 +5352,10 @@ inline void gcode_M42() {
             pin_state[pin - first_pin] = val;
           }
         }
+
+        #if ENABLED(ULTIPANEL)
+          if (!wait_for_user) break;
+        #endif
 
         safe_delay(500);
       }
@@ -9440,15 +9453,17 @@ void ok_to_send() {
     float ratio_x = x / bilinear_grid_spacing[X_AXIS],
           ratio_y = y / bilinear_grid_spacing[Y_AXIS];
 
-    // Whole unit is the grid box index
-    const int gridx = constrain(int(ratio_x), 0, ABL_GRID_POINTS_X - 2),
-              gridy = constrain(int(ratio_y), 0, ABL_GRID_POINTS_Y - 2),
-              nextx = min(gridx + 1, ABL_GRID_POINTS_X - 2),
-              nexty = min(gridy + 1, ABL_GRID_POINTS_Y - 2);
+    // Whole units for the grid line indices. Constrained within bounds.
+    const int gridx = constrain(floor(ratio_x), 0, ABL_GRID_POINTS_X - 1),
+              gridy = constrain(floor(ratio_y), 0, ABL_GRID_POINTS_Y - 1),
+              nextx = min(gridx + 1, ABL_GRID_POINTS_X - 1),
+              nexty = min(gridy + 1, ABL_GRID_POINTS_Y - 1);
 
     // Subtract whole to get the ratio within the grid box
-    ratio_x = constrain(ratio_x - gridx, 0.0, 1.0);
-    ratio_y = constrain(ratio_y - gridy, 0.0, 1.0);
+    ratio_x -= gridx; ratio_y -= gridy;
+
+    // Never less than 0.0. (Over 1.0 is fine due to previous contraints.)
+    NOLESS(ratio_x, 0); NOLESS(ratio_y, 0);
 
     // Z at the box corners
     const float z1 = bed_level_grid[gridx][gridy],  // left-front

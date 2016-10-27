@@ -136,7 +136,7 @@
         #define ORIG_BEEPER_PIN   23
         #define DOGLCD_CS         29
         #define DOGLCD_A0         27
-        #define LCD_PIN_BL        33
+        #define LCD_BACKLIGHT_PIN 33
       #else
         // arduino pin which triggers an piezzo beeper
         #define ORIG_BEEPER_PIN   33  // Beeper on AUX-4
