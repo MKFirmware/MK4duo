@@ -172,10 +172,10 @@
 #endif
 
 #if ENABLED(HOTEND_AUTO_FAN)
-  #define HOTEND_0_AUTO_FAN_PIN -1
-  #define HOTEND_1_AUTO_FAN_PIN -1
-  #define HOTEND_2_AUTO_FAN_PIN -1
-  #define HOTEND_3_AUTO_FAN_PIN -1
+  #define H0_AUTO_FAN_PIN -1
+  #define H1_AUTO_FAN_PIN -1
+  #define H2_AUTO_FAN_PIN -1
+  #define H3_AUTO_FAN_PIN -1
 #endif
 
 #if ENABLED(DUAL_X_CARRIAGE)

@@ -1,3 +1,7 @@
+### Version 4.3.05_dev
+* Add register in EEPROM Bilinear Bed Level
+* Fix Error width 8bit and 2 or more Hotends
+
 ### Version 4.3.04_dev
 * Fix Code
 * Fix JERK
