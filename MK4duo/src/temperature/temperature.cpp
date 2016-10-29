@@ -598,7 +598,7 @@ void Temperature::updatePID() {
 #if HAS(AUTO_FAN)
 
   void Temperature::checkExtruderAutoFans() {
-    const int8_t fanPin[] = { HOTEND_0_AUTO_FAN_PIN, HOTEND_1_AUTO_FAN_PIN, HOTEND_2_AUTO_FAN_PIN, HOTEND_3_AUTO_FAN_PIN };
+    const int8_t fanPin[] = { H0_AUTO_FAN_PIN, H1_AUTO_FAN_PIN, H2_AUTO_FAN_PIN, H3_AUTO_FAN_PIN };
     const int fanBit[] = {
                     0,
       AUTO_1_IS_0 ? 0 :               1,
@@ -687,15 +687,33 @@ void Temperature::min_temp_error(int8_t h) {
 float Temperature::get_pid_output(int h) {
   #if HOTENDS <= 1
     UNUSED(h);
-    #define _HOTEND_TEST     true
+    #define _HOTEND_TEST  true
   #else
-    #define _HOTEND_TEST     h == active_extruder
+    #define _HOTEND_TEST  h == active_extruder
   #endif
 
-  float pid_output;
+  float pid_output, current_temp;
+
+  switch (HOTEND_INDEX) {
+    case 0:
+      current_temp = current_temperature[0]; break;
+    #if HOTENDS > 1
+      case 1:
+        current_temp = current_temperature[1]; break;
+      #if HOTENDS > 2
+        case 2:
+          current_temp = current_temperature[2]; break;
+        #if HOTENDS > 3
+          case 3:
+            current_temp = current_temperature[3]; break;
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+  }
+
   #if ENABLED(PIDTEMP)
     #if DISABLED(PID_OPENLOOP)
-      pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
+      pid_error[HOTEND_INDEX] = target_temperature[HOTEND_INDEX] - current_temp;
       dTerm[HOTEND_INDEX] = K2 * PID_PARAM(Kd, HOTEND_INDEX) * (current_temperature[HOTEND_INDEX] - temp_dState[HOTEND_INDEX]) + K1 * dTerm[HOTEND_INDEX];
       temp_dState[HOTEND_INDEX] = current_temperature[HOTEND_INDEX];
       if (pid_error[HOTEND_INDEX] > PID_FUNCTIONAL_RANGE) {
@@ -1499,27 +1517,27 @@ void Temperature::init() {
   #endif
 
   #if HAS(AUTO_FAN_0)
-    SET_OUTPUT(HOTEND_0_AUTO_FAN_PIN);
+    SET_OUTPUT(H0_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(HOTEND_0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(H0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_1) && !AUTO_1_IS_0
-    SET_OUTPUT(HOTEND_1_AUTO_FAN_PIN);
+    SET_OUTPUT(H1_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(HOTEND_1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(H1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_2) && !AUTO_2_IS_0 && !AUTO_2_IS_1
-    SET_OUTPUT(HOTEND_2_AUTO_FAN_PIN);
+    SET_OUTPUT(H2_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(HOTEND_2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(H2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_3) && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
-    SET_OUTPUT(HOTEND_3_AUTO_FAN_PIN);
+    SET_OUTPUT(H3_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(HOTEND_3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      setPwmFrequency(H3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 

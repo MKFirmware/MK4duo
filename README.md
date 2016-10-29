@@ -1,6 +1,6 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
 # MK4duo 3D Printer Firmware for Arduino and Arduino due
-## Version 4.3.04_dev
+## Version 4.3.05_dev
 
 ### Special thanks
 * Wurstnase

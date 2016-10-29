@@ -278,8 +278,6 @@
   #define DIO21_DDR   DDRC
   #define DIO21_PWM   NULL
 
-
-
   #undef PB0
   #define PB0_PIN     PINB0
   #define PB0_RPORT   PINB
@@ -839,7 +837,6 @@
   #define PB7_DDR     DDRB
   #define PB7_PWM     NULL
 
-
   #undef PC0
   #define PC0_PIN     PINC0
   #define PC0_RPORT   PINC
@@ -895,7 +892,6 @@
   #define PC7_WPORT   PORTC
   #define PC7_DDR     DDRC
   #define PC7_PWM     NULL
-
 
   #undef PD0
   #define PD0_PIN     PIND0
