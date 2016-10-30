@@ -64,7 +64,7 @@ public: /* methods */
      * @param number - buffer storing data retur
      * @return the length of the data 
      */
-    uint32_t getValue(uint32_t *number);
+    uint32_t getValue(uint32_t *number, const char *pname = "");
 	
     /**
      * Set val attribute of component
