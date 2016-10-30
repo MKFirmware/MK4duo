@@ -21,8 +21,8 @@
  */
 
 // How many DIO pins are defined?
-#if defined(DIO100_PIN)
-  #define DIO_COUNT 101
+#if defined(DIO110_PIN)
+  #define DIO_COUNT 111
 #elif defined(DIO85_PIN)
   #define DIO_COUNT 86
 #elif defined(DIO53_PIN)

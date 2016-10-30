@@ -33,9 +33,6 @@
 #define SHORT_FILENAME_LENGTH 14
 #define GENBY_SIZE 16
 
-extern char tempLongFilename[LONG_FILENAME_LENGTH + 1];
-extern char fullName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1];
-
 enum LsAction { LS_Count, LS_GetFilename };
 
 #include "SDFat.h"
@@ -80,7 +77,7 @@ public:
   FORCE_INLINE bool eof() { return sdpos >= fileSize; }
   FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }
   FORCE_INLINE uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
-  FORCE_INLINE char* getWorkDirName() { workDir.getFilename(fullName); return fullName; }
+  FORCE_INLINE char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
 
   //files init.g on the sd card are performed in a row
   //this is to delay autostart and hence the initialisaiton of the sd card to some seconds after the normal init, so the device is available quick after a reset
@@ -89,6 +86,8 @@ public:
   bool saving, sdprinting, cardOK, filenameIsDir;
   uint32_t fileSize, sdpos;
   float objectHeight, firstlayerHeight, layerHeight, filamentNeeded;
+  char fileName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1];
+  char tempLongFilename[LONG_FILENAME_LENGTH + 1];
   char generatedBy[GENBY_SIZE];
 
   static void printEscapeChars(const char* s);

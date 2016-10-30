@@ -270,7 +270,7 @@ class Stepper {
       static void colorstep(long csteps, const bool direction);
     #endif
 
-    #if MB(ALLIGATOR)
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       static void set_driver_current();
     #endif
 

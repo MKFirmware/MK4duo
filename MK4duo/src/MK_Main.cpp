@@ -407,7 +407,7 @@ float cartes[XYZ] = { 0 };
   FilamentChangeMenuResponse filament_change_menu_response;
 #endif
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   float motor_current[XYZ + DRIVER_EXTRUDERS];
 #endif
 
@@ -706,16 +706,27 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   return false;
 }
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
   void setup_alligator_board() {
-    // Init Expansion Port Voltage logic Selector
-    SET_OUTPUT(EXP_VOLTAGE_LEVEL_PIN);
-    WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
-    ExternalDac::begin(); // Initialize ExternalDac
+    ExternalDac::begin();
+    SET_INPUT(MOTOR_FAULT_PIN);
+    #if MB(ALLIGATOR_V3)
+      SET_INPUT(MOTOR_FAULT_PIGGY_PIN);
+      SET_INPUT(FTDI_COM_RESET_PIN);
+      SET_INPUT(ESP_WIFI_MODULE_RESET_PIN);
+      SET_OUTPUT(EXP1_VOLTAGE_SELECT);
+      OUT_WRITE(EXP1_OUT_ENABLE_PIN, HIGH);
+    #elif MB(ALLIGATOR)
+      // Init Expansion Port Voltage logic Selector
+      OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
+    #endif
+
     #if HAS(BUZZER)
       buzz(10,10);
     #endif
   }
+
 #endif
 
 #if MB(ULTRATRONICS)
@@ -949,7 +960,12 @@ inline void get_serial_commands() {
       }
 
       // If command was e-stop process now
-      if (strcmp(command, "M108") == 0) wait_for_heatup = false;
+      if (strcmp(command, "M108") == 0) {
+        wait_for_heatup = false;
+        #if ENABLED(ULTIPANEL)
+          wait_for_user = false;
+        #endif
+      }
       if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
       if (strcmp(command, "M410") == 0) { quickstop_stepper(); }
 
@@ -980,6 +996,7 @@ inline void get_serial_commands() {
 }
 
 #if ENABLED(SDSUPPORT)
+
   inline void get_sdcard_commands() {
     static bool stop_buffering = false,
                 sd_comment_mode = false;
@@ -1036,6 +1053,7 @@ inline void get_serial_commands() {
       }
     }
   }
+
 #endif // SDSUPPORT
 
 /**
@@ -4992,24 +5010,24 @@ inline void gcode_G92() {
       #endif
     }
 
-    lcd_ignore_click();
-
+    wait_for_user = true;
     KEEPALIVE_STATE(PAUSED_FOR_USER);
 
     stepper.synchronize();
     refresh_cmd_timeout();
+
     if (codenum > 0) {
       codenum += previous_cmd_ms;  // wait until this time for a click
-      while (PENDING(millis(), codenum) && !lcd_clicked()) idle();
-      lcd_ignore_click(false);
+      while (PENDING(millis(), codenum) && wait_for_user) idle();
     }
     else {
-      if (!lcd_detected()) return;
-      while (!lcd_clicked()) idle();
+      if (lcd_detected()) {
+        while (wait_for_user) idle();
+        IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
+      }
     }
 
-    IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
-
+    wait_for_user = false;
     KEEPALIVE_STATE(IN_HANDLER);
   }
 #endif // ULTIPANEL
@@ -6273,6 +6291,7 @@ inline void gcode_M122() {
 #endif
 
 #if ENABLED(ULTIPANEL) && TEMP_SENSOR_0 != 0
+
   /**
    * M145: Set the heatup state for a material in the LCD menu
    *   S<material> (0=PLA, 1=ABS, 2=GUM)
@@ -6282,63 +6301,28 @@ inline void gcode_M122() {
    */
   inline void gcode_M145() {
     uint8_t material = code_seen('S') ? (uint8_t)code_value_int() : 0;
-    if (material < 0 || material > 2) {
-      SERIAL_SM(ER, MSG_ERR_MATERIAL_INDEX);
+    if (material >= COUNT(lcd_preheat_hotend_temp)) {
+      SERIAL_LM(ER, MSG_ERR_MATERIAL_INDEX);
     }
     else {
       int v;
-      switch (material) {
-        case 0:
-          if (code_seen('H')) {
-            v = code_value_int();
-            preheatHotendTemp1 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-          }
-          if (code_seen('F')) {
-            v = code_value_int();
-            preheatFanSpeed1 = constrain(v, 0, 255);
-          }
-          #if TEMP_SENSOR_BED != 0
-            if (code_seen('B')) {
-              v = code_value_int();
-              preheatBedTemp1 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
-            }
-          #endif
-          break;
-        case 1:
-          if (code_seen('H')) {
-            v = code_value_int();
-            preheatHotendTemp2 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-          }
-          if (code_seen('F')) {
-            v = code_value_int();
-            preheatFanSpeed2 = constrain(v, 0, 255);
-          }
-          #if TEMP_SENSOR_BED != 0
-            if (code_seen('B')) {
-              v = code_value_int();
-              preheatBedTemp2 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
-            }
-          #endif
-          break;
-        case 2:
-          if (code_seen('H')) {
-            v = code_value_int();
-            preheatHotendTemp3 = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP);
-          }
-          if (code_seen('F')) {
-            v = code_value_int();
-            preheatFanSpeed3 = constrain(v, 0, 255);
-          }
-          #if TEMP_SENSOR_BED != 0
-            if (code_seen('B')) {
-              v = code_value_int();
-              preheatBedTemp3 = constrain(v, BED_MINTEMP, BED_MAXTEMP);
-            }
-          #endif
-          break;
+      if (code_seen('H')) {
+        v = code_value_int();
+        lcd_preheat_hotend_temp[material] = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP - 15);
       }
+      if (code_seen('F')) {
+        v = code_value_int();
+        lcd_preheat_fan_speed[material] = constrain(v, 0, 255);
+      }
+      #if TEMP_SENSOR_BED != 0
+        if (code_seen('B')) {
+          v = code_value_int();
+          lcd_preheat_bed_temp[material] = constrain(v, BED_MINTEMP, BED_MAXTEMP - 15);
+        }
+      #endif
     }
   }
+
 #endif
 
 #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
@@ -6346,12 +6330,9 @@ inline void gcode_M122() {
    * M149: Set temperature units
    */
   inline void gcode_M149() {
-    if (code_seen('C'))
-      set_input_temp_units(TEMPUNIT_C);
-    else if (code_seen('K'))
-      set_input_temp_units(TEMPUNIT_K);
-    else if (code_seen('F'))
-      set_input_temp_units(TEMPUNIT_F);
+         if (code_seen('C')) set_input_temp_units(TEMPUNIT_C);
+    else if (code_seen('K')) set_input_temp_units(TEMPUNIT_K);
+    else if (code_seen('F')) set_input_temp_units(TEMPUNIT_F);
   }
 #endif
 
@@ -7393,7 +7374,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         }
         SERIAL_M("],");
 
-        #if MB(ALLIGATOR)
+        #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
           SERIAL_M("\"currents\":[");
           SERIAL_V(motor_current[X_AXIS]);
           SERIAL_M(",");
@@ -7412,6 +7393,8 @@ inline void gcode_M400() { stepper.synchronize(); }
           SERIAL_M("RAMPS");
         #elif MB(ALLIGATOR)
           SERIAL_M("ALLIGATOR");
+        #elif MB(ALLIGATOR_V3)
+          SERIAL_M("ALLIGATOR_V3");
         #elif MB(RADDS) || MB(RAMPS_FD_V1) || MB(RAMPS_FD_V2) || MB(SMART_RAMPS) || MB(RAMPS4DUE)
           SERIAL_M("Arduino due");
         #elif MB(ULTRATRONICS)
@@ -7646,6 +7629,7 @@ inline void gcode_M503() {
 #endif // HEATER_USES_AD595
 
 #if ENABLED(FILAMENT_CHANGE_FEATURE)
+
   /**
    * M600: Pause for filament change
    *
@@ -7686,8 +7670,8 @@ inline void gcode_M503() {
 
     // Initial retract before move to filament change position
     if (code_seen('E')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_RETRACT_LENGTH)
-      else destination[E_AXIS] += FILAMENT_CHANGE_RETRACT_LENGTH;
+    #if ENABLED(FILAMENT_CHANGE_RETRACT_LENGTH) && FILAMENT_CHANGE_RETRACT_LENGTH > 0
+      else destination[E_AXIS] -= FILAMENT_CHANGE_RETRACT_LENGTH;
     #endif
 
     RUNPLAN(FILAMENT_CHANGE_RETRACT_FEEDRATE);
@@ -7750,7 +7734,10 @@ inline void gcode_M503() {
     // Wait for filament insert by user and press button
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INSERT);
 
-    while (!lcd_clicked()) {
+    // LCD click or M108 will clear this
+    wait_for_user = true;
+
+    while (wait_for_user) {
       if ((millis() - last_set > 60000) && cnt <= FILAMENT_CHANGE_PRINTER_OFF) beep = true;
       if (cnt >= FILAMENT_CHANGE_PRINTER_OFF && !sleep) {
         thermalManager.disable_all_heaters();
@@ -7768,19 +7755,15 @@ inline void gcode_M503() {
         ++cnt;
       }
       idle(true);
-    } // while(!lcd_clicked)
-
-    delay(100);
-    while (lcd_clicked()) idle(true);
-    delay(100);
+    } // while(wait_for_user)
 
     // Reset LCD alert message
     lcd_reset_alert_level();
 
     if (sleep) {
       stepper.enable_all_steppers(); // Enable all stepper
-      for(uint8_t e = 0; e < HOTENDS; e++) {
-        thermalManager.setTargetHotend(old_target_temperature[e], e);
+      HOTEND_LOOP {
+        thermalManager.setTargetHotend(old_target_temperature[h], h);
         wait_heater();
       }
       #if HAS(TEMP_BED)
@@ -7794,14 +7777,14 @@ inline void gcode_M503() {
 
     // Load filament
     if (code_seen('L')) destination[E_AXIS] -= code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_LOAD_LENGTH)
+    #if ENABLED(FILAMENT_CHANGE_LOAD_LENGTH) && FILAMENT_CHANGE_LOAD_LENGTH > 0
       else destination[E_AXIS] -= FILAMENT_CHANGE_LOAD_LENGTH;
     #endif
 
     RUNPLAN(FILAMENT_CHANGE_LOAD_FEEDRATE);
     stepper.synchronize();
 
-    #if ENABLED(FILAMENT_CHANGE_EXTRUDE_LENGTH)
+    #if ENABLED(FILAMENT_CHANGE_EXTRUDE_LENGTH) && FILAMENT_CHANGE_EXTRUDE_LENGTH > 0
       do {
         // Extrude filament to get into hotend
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_EXTRUDE);
@@ -7844,6 +7827,7 @@ inline void gcode_M503() {
     // Show status screen
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_STATUS);
   }
+
 #endif // FILAMENT_CHANGE_FEATURE
 
 #if ENABLED(DUAL_X_CARRIAGE)
@@ -8032,7 +8016,7 @@ inline void gcode_M503() {
   }
 #endif
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   /**
    * M906: Set motor currents
    */
@@ -9340,7 +9324,7 @@ void process_next_command() {
           gcode_M905(); break;
       #endif
 
-      #if MB(ALLIGATOR)
+      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
         case 906: // M906 Set motor currents XYZ T0-4 E
           gcode_M906(); break;
       #endif
@@ -11304,7 +11288,8 @@ void stop() {
  *    • status LEDs
  */
 void setup() {
-  #if MB(ALLIGATOR)
+
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     setup_alligator_board();    // Initialize Alligator Board
   #elif MB(ULTRATRONICS)
     setup_ultratronics_board(); // Initialize Ultratronics Board

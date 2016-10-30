@@ -125,7 +125,7 @@
 #include "src/watchdog/watchdog.h"
 #include "src/blinkm/blinkm.h"
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   #include "src/alligator/external_dac.h"
 #endif
 

@@ -1078,7 +1078,7 @@ void Stepper::init() {
     digipot_init();
   #endif
 
-  #if MB(ALLIGATOR)
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     set_driver_current();
   #endif // MB(ALLIGATOR)
 
@@ -1675,7 +1675,7 @@ void Stepper::report_positions() {
 
 #endif
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   void Stepper::set_driver_current() {
     uint8_t digipot_motor = 0;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
@@ -1737,7 +1737,7 @@ void Stepper::microstep_mode(uint8_t driver, uint8_t stepping_mode) {
     case 4: microstep_ms(driver,  MICROSTEP4); break;
     case 8: microstep_ms(driver,  MICROSTEP8); break;
     case 16: microstep_ms(driver, MICROSTEP16); break;
-    #if MB(ALLIGATOR)
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       case 32: microstep_ms(driver, MICROSTEP32); break;
     #endif
   }

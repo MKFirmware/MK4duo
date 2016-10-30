@@ -94,15 +94,9 @@
  *  M666  Z               z_endstop_adj (float)
  *
  * ULTIPANEL:
- *  M145  S0  H           preheatHotendTemp1 (int)
- *  M145  S0  B           preheatBedTemp1 (int)
- *  M145  S0  F           preheatFanSpeed1 (int)
- *  M145  S1  H           preheatHotendTemp2 (int)
- *  M145  S1  B           preheatBedTemp2 (int)
- *  M145  S1  F           preheatFanSpeed2 (int)
- *  M145  S2  H           preheatHotendTemp3 (int)
- *  M145  S2  B           preheatBedTemp3 (int)
- *  M145  S2  F           preheatFanSpeed3 (int)
+ *  M145  S0  H           lcd_preheat_hotend_temp (int x3)
+ *  M145  S0  B           lcd_preheat_bed_temp (int x3)
+ *  M145  S0  F           lcd_preheat_fan_speed (int x3)
  *
  * PIDTEMP:
  *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0] (float x4)
@@ -276,20 +270,14 @@ void Config_Postprocess() {
     #endif
 
     #if DISABLED(ULTIPANEL)
-      int preheatHotendTemp1 = PREHEAT_1_TEMP_HOTEND, preheatBedTemp1 = PREHEAT_1_TEMP_BED, preheatFanSpeed1 = PREHEAT_1_FAN_SPEED,
-          preheatHotendTemp2 = PREHEAT_2_TEMP_HOTEND, preheatBedTemp2 = PREHEAT_2_TEMP_BED, preheatFanSpeed2 = PREHEAT_2_FAN_SPEED,
-          preheatHotendTemp3 = PREHEAT_3_TEMP_HOTEND, preheatBedTemp3 = PREHEAT_3_TEMP_BED, preheatFanSpeed3 = PREHEAT_3_FAN_SPEED;
+      const int lcd_preheat_hotend_temp[3] = { PREHEAT_1_TEMP_HOTEND, PREHEAT_2_TEMP_HOTEND, PREHEAT_3_TEMP_HOTEND },
+                lcd_preheat_bed_temp[3] = { PREHEAT_1_TEMP_BED, PREHEAT_2_TEMP_BED, PREHEAT_3_TEMP_BED },
+                lcd_preheat_fan_speed[3] = { PREHEAT_1_FAN_SPEED, PREHEAT_2_FAN_SPEED, PREHEAT_3_FAN_SPEED };
     #endif
 
-    EEPROM_WRITE(preheatHotendTemp1);
-    EEPROM_WRITE(preheatBedTemp1);
-    EEPROM_WRITE(preheatFanSpeed1);
-    EEPROM_WRITE(preheatHotendTemp2);
-    EEPROM_WRITE(preheatBedTemp2);
-    EEPROM_WRITE(preheatFanSpeed2);
-    EEPROM_WRITE(preheatHotendTemp3);
-    EEPROM_WRITE(preheatBedTemp3);
-    EEPROM_WRITE(preheatFanSpeed3);
+    EEPROM_WRITE(lcd_preheat_hotend_temp);
+    EEPROM_WRITE(lcd_preheat_bed_temp);
+    EEPROM_WRITE(lcd_preheat_fan_speed);
 
     #if ENABLED(PIDTEMP)
       for (uint8_t h = 0; h < HOTENDS; h++) {
@@ -357,7 +345,7 @@ void Config_Postprocess() {
       EEPROM_WRITE(IDLE_OOZING_enabled);
     #endif
 
-    #if MB(ALLIGATOR)
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       EEPROM_WRITE(motor_current);
     #endif
 
@@ -457,20 +445,12 @@ void Config_Postprocess() {
       #endif //DELTA
 
       #if DISABLED(ULTIPANEL)
-        int preheatHotendTemp1, preheatBedTemp1, preheatFanSpeed1,
-            preheatHotendTemp2, preheatBedTemp2, preheatFanSpeed2,
-            preheatHotendTemp3, preheatBedTemp3, preheatFanSpeed3;
+        int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
       #endif
 
-      EEPROM_READ(preheatHotendTemp1);
-      EEPROM_READ(preheatBedTemp1);
-      EEPROM_READ(preheatFanSpeed1);
-      EEPROM_READ(preheatHotendTemp2);
-      EEPROM_READ(preheatBedTemp2);
-      EEPROM_READ(preheatFanSpeed2);
-      EEPROM_READ(preheatHotendTemp3);
-      EEPROM_READ(preheatBedTemp3);
-      EEPROM_READ(preheatFanSpeed3);
+      EEPROM_READ(lcd_preheat_hotend_temp);
+      EEPROM_READ(lcd_preheat_bed_temp);
+      EEPROM_READ(lcd_preheat_fan_speed);
 
       #if ENABLED(PIDTEMP)
         for (int8_t h = 0; h < HOTENDS; h++) {
@@ -537,7 +517,7 @@ void Config_Postprocess() {
         EEPROM_READ(IDLE_OOZING_enabled);
       #endif
 
-      #if MB(ALLIGATOR)
+      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
         EEPROM_READ(motor_current);
       #endif
 
@@ -584,7 +564,7 @@ void Config_ResetDefault() {
     float tmp12[] = HOTEND_OFFSET_Z;
   #endif
 
-  #if MB(ALLIGATOR)
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     float tmp13[] = MOTOR_CURRENT;
     for (int8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       motor_current[i] = tmp13[i];
@@ -653,15 +633,15 @@ void Config_ResetDefault() {
   #endif
 
   #if ENABLED(ULTIPANEL)
-    preheatHotendTemp1 = PREHEAT_1_TEMP_HOTEND;
-    preheatBedTemp1 = PREHEAT_1_TEMP_BED;
-    preheatFanSpeed1 = PREHEAT_1_FAN_SPEED;
-    preheatHotendTemp2 = PREHEAT_2_TEMP_HOTEND;
-    preheatBedTemp2 = PREHEAT_2_TEMP_BED;
-    preheatFanSpeed2 = PREHEAT_2_FAN_SPEED;
-    preheatHotendTemp3 = PREHEAT_3_TEMP_HOTEND;
-    preheatBedTemp3 = PREHEAT_3_TEMP_BED;
-    preheatFanSpeed3 = PREHEAT_3_FAN_SPEED;
+    lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
+    lcd_preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
+    lcd_preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
+    lcd_preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
+    lcd_preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
+    lcd_preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
+    lcd_preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
+    lcd_preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
+    lcd_preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
   #endif
 
   #if HAS(LCD_CONTRAST)
@@ -885,18 +865,13 @@ void Config_ResetDefault() {
 
     #if ENABLED(ULTIPANEL)
       CONFIG_MSG_START("Material heatup parameters:");
-      SERIAL_SMV(CFG, "  M145 S0 H", preheatHotendTemp1);
-      SERIAL_MV(" B", preheatBedTemp1);
-      SERIAL_MV(" F", preheatFanSpeed1);
-      SERIAL_EM(" (Material PLA)");
-      SERIAL_SMV(CFG, "  M145 S1 H", preheatHotendTemp2);
-      SERIAL_MV(" B", preheatBedTemp2);
-      SERIAL_MV(" F", preheatFanSpeed2);
-      SERIAL_EM(" (Material ABS)");
-      SERIAL_SMV(CFG, "  M145 S2 H", preheatHotendTemp3);
-      SERIAL_MV(" B", preheatBedTemp3);
-      SERIAL_MV(" F", preheatFanSpeed3);
-      SERIAL_EM(" (Material GUM)");
+      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+        SERIAL_SMV(CFG, "  M145 S", (int)i);
+        SERIAL_MV(" H", lcd_preheat_hotend_temp[i]);
+        SERIAL_MV(" B", lcd_preheat_bed_temp[i]);
+        SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
+        SERIAL_E;
+      }
     #endif // ULTIPANEL
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
@@ -971,7 +946,7 @@ void Config_ResetDefault() {
     else
       CONFIG_MSG_START("  M200 D0");
 
-    #if MB(ALLIGATOR)
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       CONFIG_MSG_START("Motor current:");
       SERIAL_SMV(CFG, "  M906 X", motor_current[X_AXIS], 2);
       SERIAL_MV(" Y", motor_current[Y_AXIS], 2);
