@@ -787,6 +787,7 @@
 
   void lcd_update() {
     static uint8_t  PreviousPage = 0,
+                    Previousfeedrate = 0,
                     PreviousfanSpeed = 0,
                     PreviouspercentDone = 0,
                     PreviousdegHotend[3] = { 0 };
@@ -831,9 +832,10 @@
             PreviousfanSpeed = fanSpeed;
           }
 
-          static uint32_t temp_feedrate = 0;
-          VSpeed.getValue(&temp_feedrate);
-          feedrate_percentage = (int)temp_feedrate;
+          if (Previousfeedrate != feedrate_percentage) {
+            VSpeed.setValue(feedrate_percentage);
+            Previousfeedrate = feedrate_percentage;
+          }
 
           #if HAS(TEMP_0)
             if (PreviousdegHotend[0] != thermalManager.degHotend(0)) {
@@ -914,6 +916,11 @@
         case 5:
           coordtoLCD();
           break;
+        case 6:
+          static uint32_t temp_feedrate = 0;
+          VSpeed.getValue(&temp_feedrate, "printer");
+          Previousfeedrate = feedrate_percentage = (int)temp_feedrate;
+          break;
       }
 
       next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
@@ -924,14 +931,14 @@
   void lcd_setstatus(const char* message, bool persist) {
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
-    LedStatus.setText(lcd_status_message);
+    if (NextionPage == 2) LedStatus.setText(lcd_status_message);
   }
 
   void lcd_setstatuspgm(const char* message, uint8_t level) {
     if (level >= lcd_status_message_level && NextionON) {
       strncpy_P(lcd_status_message, message, 30);
       lcd_status_message_level = level;
-      LedStatus.setText(lcd_status_message);
+      if (NextionPage == 2) LedStatus.setText(lcd_status_message);
     }
   }
 

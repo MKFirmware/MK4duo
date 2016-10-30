@@ -19,9 +19,13 @@ NexVariable::NexVariable(uint8_t pid, uint8_t cid, const char *name)
 {
 }
 
-uint32_t NexVariable::getValue(uint32_t *number)
+uint32_t NexVariable::getValue(uint32_t *number, const char *pname)
 {
     String cmd = String("get ");
+    if (pname != "") {
+      cmd += pname;
+      cmd += ".";
+    }
     cmd += getObjName();
     cmd += ".val";
     sendCommand(cmd.c_str());
