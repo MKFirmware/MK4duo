@@ -1892,7 +1892,7 @@ void kill_screen(const char* lcd_msg) {
      * "Temperature" > "Preheat GUM conf" submenu
      *
      */
-    static void lcd_control_temperature_preheat_abs_settings_menu() { _lcd_control_temperature_preheat_settings_menu(2); }
+    static void lcd_control_temperature_preheat_gum_settings_menu() { _lcd_control_temperature_preheat_settings_menu(2); }
 
   #endif // !LASERBEAM
 
