@@ -688,41 +688,41 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
 
   parent->rewind();
 
-  while ((p = parent->getLongFilename(p, tempLongFilename, 0, NULL))) {
+  while ((p = parent->getLongFilename(p, card.tempLongFilename, 0, NULL))) {
     //HAL::pingWatchdog();
     if (! (DIR_IS_FILE(p) || DIR_IS_SUBDIR(p))) continue;
-    if (strcmp(tempLongFilename, "..") == 0) continue;
-    if (tempLongFilename[0] == '.') continue; // MAC CRAP
+    if (strcmp(card.tempLongFilename, "..") == 0) continue;
+    if (card.tempLongFilename[0] == '.') continue; // MAC CRAP
     if (DIR_IS_SUBDIR(p)) {
       if (level >= SD_MAX_FOLDER_DEPTH) continue; // can't go deeper
       if (level < SD_MAX_FOLDER_DEPTH && findFilename == NULL) {
         if (level && !isJson) {
-          SERIAL_T(fullName);
+          SERIAL_T(card.fileName);
           SERIAL_C('/');
         }
         #ifdef JSON_OUTPUT
           if (isJson) {
             if (!firstFile) SERIAL_C(',');
             SERIAL_C('"'); SERIAL_C('*');
-            CardReader::printEscapeChars(tempLongFilename);
+            CardReader::printEscapeChars(card.tempLongFilename);
             SERIAL_C('"');
             firstFile = false;
           }
           else {
-            SERIAL_T(tempLongFilename);
+            SERIAL_T(card.tempLongFilename);
             SERIAL_C('/'); SERIAL_E; // End with / to mark it as directory entry, so we can see empty directories.
           }
         #else
-          SERIAL_T(tempLongFilename);
+          SERIAL_T(card.tempLongFilename);
           SERIAL_C('/'); SERIAL_E;// End with / to mark it as directory entry, so we can see empty directories.
         #endif
       }
       SdBaseFile next;
       char *tmp;
 
-      if(level) strcat(fullName, "/");
+      if(level) strcat(card.fileName, "/");
 
-      strcat(fullName, tempLongFilename);
+      strcat(card.fileName, card.tempLongFilename);
       uint16_t index = (parent->curPosition()-31) >> 5;
 
       if(!isJson && next.open(parent, index, O_READ)) {
@@ -730,19 +730,19 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
           return true;
       }
       parent->seekSet(32 * (index + 1));
-      if ((tmp = strrchr(fullName, '/')) != NULL)
+      if ((tmp = strrchr(card.fileName, '/')) != NULL)
         *tmp = 0;
       else
-        *fullName = 0;
+        *card.fileName = 0;
     }
     else {
       if (findFilename != NULL) {
         int8_t cFullname;
-        cFullname = strlen(fullName);
-        if (RFstrnicmp(fullName, findFilename, cFullname) == 0) {
+        cFullname = strlen(card.fileName);
+        if (RFstrnicmp(card.fileName, findFilename, cFullname) == 0) {
           if (cFullname > 0)
             cFullname++;
-          if (RFstricmp(tempLongFilename, findFilename + cFullname) == 0) {
+          if (RFstricmp(card.tempLongFilename, findFilename + cFullname) == 0) {
             if (pParentFound != NULL)
               *pParentFound = *parent;
             return true;
@@ -751,21 +751,21 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
       }
       else {
         if(level && !isJson) {
-          SERIAL_T(fullName);
+          SERIAL_T(card.fileName);
           SERIAL_C('/');
         }
         #ifdef JSON_OUTPUT
           if (isJson) {
             if (!firstFile) SERIAL_C(',');
             SERIAL_C('"');
-            CardReader::printEscapeChars(tempLongFilename);
+            CardReader::printEscapeChars(card.tempLongFilename);
             SERIAL_C('"');
             firstFile = false;
           }
           else
         #endif
         {
-          SERIAL_T(tempLongFilename);
+          SERIAL_T(card.tempLongFilename);
           #ifdef SD_EXTENDED_DIR
             SERIAL_MV(" ", (long) p->fileSize);
           #endif
@@ -796,8 +796,8 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
 void SdBaseFile::ls(uint8_t flags, uint8_t indent) {
   SdBaseFile parent;
   rewind();
-  *fullName = 0;
-  pathend = fullName;
+  *card.fileName = 0;
+  pathend = card.fileName;
   parent = *this;
   lsRecursive(&parent, 0, NULL, NULL, false);
 }
@@ -806,7 +806,7 @@ void SdBaseFile::ls(uint8_t flags, uint8_t indent) {
 void SdBaseFile::lsJSON() {
   SdBaseFile parent;
   rewind();
-  *fullName = 0;
+  *card.fileName = 0;
   parent = *this;
   lsRecursive(&parent, 0, NULL, NULL, true);
 }
@@ -1155,10 +1155,10 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
     cVFATNeeded = (cb / 13) + (cb % 13 == 0 ? 0 : 1);
   }
 
-  while ((p = dirFile->getLongFilename(p, tempLongFilename, cVFATNeeded, &wIndexPos))) {
+  while ((p = dirFile->getLongFilename(p, card.tempLongFilename, cVFATNeeded, &wIndexPos))) {
     //HAL::pingWatchdog();
     index = (0XF & ((dirFile->curPosition_ - 31) >> 5));
-    if (RFstricmp(tempLongFilename, (char *)dname) == 0) {
+    if (RFstricmp(card.tempLongFilename, (char *)dname) == 0) {
       if (oflag & O_EXCL) {
         DBG_FAIL_MACRO;
         goto fail;

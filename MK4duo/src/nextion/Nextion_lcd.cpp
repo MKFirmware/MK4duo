@@ -354,10 +354,10 @@
       uint32_t i = 0;
       card.getWorkDirName();
 
-      if (fullName[0] != '/') {
+      if (card.fileName[0] != '/') {
         Folderup.setShow();
         Folderup.attachPop(sdfolderUpPopCallback);
-        sdfolder.setText(fullName);
+        sdfolder.setText(card.fileName);
       } else {
         Folderup.detachPop();
         Folderup.setHide();
@@ -368,7 +368,7 @@
         i = row + number;
         if (i < fileCnt) {
           card.getfilename(i);
-          printrowsd(row, card.filenameIsDir, fullName);
+          printrowsd(row, card.filenameIsDir, card.fileName);
         } else {
           printrowsd(row, false, "");
         }

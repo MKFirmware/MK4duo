@@ -234,7 +234,7 @@ extern uint8_t active_extruder;
 extern uint8_t previous_extruder;
 extern uint8_t active_driver;
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   extern float motor_current[3 + DRIVER_EXTRUDERS];
 #endif
 

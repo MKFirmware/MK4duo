@@ -28,9 +28,6 @@
   #include <avr/dtostrf.h>
 #endif
 
-char tempLongFilename[LONG_FILENAME_LENGTH + 1];
-char fullName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1];
-
 CardReader::CardReader() {
   sdprinting = cardOK = saving = false;
   fileSize = 0;
@@ -69,11 +66,11 @@ void CardReader::lsDive(SdBaseFile parent, const char* const match/*=NULL*/) {
   uint8_t cnt = 0;
   
   // Read the next entry from a directory
-  while ((p = parent.getLongFilename(p, fullName, 0, NULL)) != NULL) {
+  while ((p = parent.getLongFilename(p, fileName, 0, NULL)) != NULL) {
     char pn0 = p->name[0];
     if (pn0 == DIR_NAME_FREE) break;
     if (pn0 == DIR_NAME_DELETED || pn0 == '.') continue;
-    if (fullName[0] == '.') continue;
+    if (fileName[0] == '.') continue;
 
     if (!DIR_IS_FILE_OR_SUBDIR(p)) continue;
 
@@ -86,7 +83,7 @@ void CardReader::lsDive(SdBaseFile parent, const char* const match/*=NULL*/) {
         break;
       case LS_GetFilename:
         if (match != NULL) {
-          if (strcasecmp(match, fullName) == 0) return;
+          if (strcasecmp(match, fileName) == 0) return;
         }
         else if (cnt == nrFiles) return;
         cnt++;
@@ -186,9 +183,9 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
       SERIAL_EMT(MSG_SD_SIZE, file.fileSize());
     }
 
-    for (int c = 0; c < sizeof(fullName); c++)
-  		const_cast<char&>(fullName[c]) = '\0';
-    strncpy(fullName, filename, strlen(filename));
+    for (int c = 0; c < sizeof(fileName); c++)
+  		const_cast<char&>(fileName[c]) = '\0';
+    strncpy(fileName, filename, strlen(filename));
 
     #if ENABLED(JSON_OUTPUT)
       parsejson(file);
@@ -331,13 +328,13 @@ void CardReader::closeFile(bool store_location /*=false*/) {
 
     snprintf(bufferSdpos, sizeof bufferSdpos, "%lu", (unsigned long)sdpos);
 
-    for (int8_t i = 0; i < (int8_t)strlen(fullName); i++)
-      fullName[i] = tolower(fullName[i]);
+    for (int8_t i = 0; i < (int8_t)strlen(fileName); i++)
+      fileName[i] = tolower(fileName[i]);
 
     strcpy(bufferFilerestart, "M34 S");
     strcat(bufferFilerestart, bufferSdpos);
     strcat(bufferFilerestart, " @");
-    strcat(bufferFilerestart, fullName);
+    strcat(bufferFilerestart, fileName);
 
     dtostrf(current_position[X_AXIS], 1, 3, bufferX);
     dtostrf(current_position[Y_AXIS], 1, 3, bufferY);

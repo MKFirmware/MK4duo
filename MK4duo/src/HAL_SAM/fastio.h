@@ -301,36 +301,66 @@
 #define DIO91_PORT PIOB
 #define DIO91_PIN PIO_PB15A_CANRX1|PIO_PB14A_CANTX1
 
-#if MB(ALLIGATOR)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   // Additional Pins for Alligator board
-  //92
+  // 92
   #define DIO92_PORT PIOA
   #define DIO92_PIN PIO_PA5
-  //93
+  // 93
   #define DIO93_PORT PIOB
   #define DIO93_PIN PIO_PB12X1_AD8
-  //94
+  // 94
   #define DIO94_PORT PIOB
   #define DIO94_PIN PIO_PB22
-  //95
+  // 95
   #define DIO95_PORT PIOB
   #define DIO95_PIN PIO_PB23
-  //96
+  // 96
   #define DIO96_PORT PIOB
   #define DIO96_PIN PIO_PB24
-  //97
+  // 97
   #define DIO97_PORT PIOC
   #define DIO97_PIN PIO_PC20
-  //98
+  // 98
   #define DIO98_PORT PIOC
   #define DIO98_PIN PIO_PC27
-  //99
+  // 99
   #define DIO99_PORT PIOC
   #define DIO99_PIN PIO_PC10
-  //100
+  // 100
   #define DIO100_PORT PIOC
   #define DIO100_PIN PIO_PC11
-#endif
+  // 101
+  #define DIO101_PORT PIOB
+  #define DIO101_PIN PIO_PB0
+  // 102
+  #define DIO102_PORT PIOB
+  #define DIO102_PIN PIO_PB1
+  // 103
+  #define DIO103_PORT PIOB
+  #define DIO103_PIN PIO_PB2
+  // 104
+  #define DIO104_PORT PIOB
+  #define DIO104_PIN PIO_PB3
+  // 105
+  #define DIO105_PORT PIOB
+  #define DIO105_PIN PIO_PB4
+  // 106
+  #define DIO106_PORT PIOB
+  #define DIO106_PIN PIO_PB5
+  // 107
+  #define DIO107_PORT PIOB
+  #define DIO107_PIN PIO_PB6
+  // 108
+  #define DIO108_PORT PIOB
+  #define DIO108_PIN PIO_PB7
+  // 109
+  #define DIO109_PORT PIOB
+  #define DIO109_PIN PIO_PB8
+  // 110
+  #define DIO110_PORT PIOB
+  #define DIO110_PIN PIO_PB11
+#endif //MB(ALLIGATOR) || MB(ALLIGATOR_3)
 
 
 #ifndef	DIO0_PIN
