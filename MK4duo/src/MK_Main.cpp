@@ -2189,10 +2189,9 @@ static void clean_up_after_endstop_or_probe_move() {
   /**
    * Print calibration results for plotting or manual frame adjustment.
    */
-  void print_bed_level(const char* prefix) {
-    SERIAL_S(prefix);
-    SERIAL_EM("Bilinear Leveling Grid:");
-    SERIAL_S(prefix);
+  void print_bed_level() {
+    SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
+    SERIAL_S(ECHO);
     for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
       SERIAL_M("    ");
       if (x < 10) SERIAL_C(' ');
@@ -2200,7 +2199,7 @@ static void clean_up_after_endstop_or_probe_move() {
     }
     SERIAL_E;
     for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
-      SERIAL_S(prefix);
+      SERIAL_S(ECHO);
       if (y < 10) SERIAL_C(' ');
       SERIAL_V((int)y);
       for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
