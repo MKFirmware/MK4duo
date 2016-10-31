@@ -966,7 +966,7 @@ void Config_ResetDefault() {
       SERIAL_EMV(" Y", bilinear_grid_spacing[Y_AXIS]);
       SERIAL_SMV(CFG, "  Start X", bilinear_start[X_AXIS]);
       SERIAL_EMV(" Y", bilinear_start[Y_AXIS]);
-      print_bed_level(CFG);
+      print_bed_level();
     #endif
 
     ConfigSD_PrintSettings();
