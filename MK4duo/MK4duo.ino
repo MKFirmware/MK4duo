@@ -90,7 +90,7 @@
  * M34  - Open file and start print
  * M35  - Upload Firmware to Nextion from SD
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
- * M43  - Pins test and debug
+ * M43  - Monitor pins & report changes - report active pins
  * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
  * M70  - Power consumption sensor calibration
  * M75  - Start the print job timer
@@ -173,6 +173,7 @@
  * M306 - Set cooler PID parameters P I and D
  * M350 - Set microstepping mode.
  * M351 - Toggle MS1 MS2 pins directly.
+ * M355 - Turn case lights on/off
  * M380 - Activate solenoid on active extruder
  * M381 - Disable all solenoids
  * M400 - Finish all moves

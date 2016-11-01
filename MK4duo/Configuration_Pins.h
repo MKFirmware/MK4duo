@@ -167,6 +167,10 @@
   #define CHDK_PIN -1
 #endif
 
+#if ENABLED(CASE_LIGHT)
+  #define CASE_LIGHT_PIN -1
+#endif
+
 #if ENABLED(CONTROLLERFAN)
   #define CONTROLLERFAN_PIN -1
 #endif

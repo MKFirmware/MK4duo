@@ -376,8 +376,8 @@ class Stepper {
 
       #if ENABLED(LIN_ADVANCE)
         if (current_block->use_advance_lead) {
-          current_estep_rate[current_block->active_extruder] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8) >> 8;
-          final_estep_rate = (current_block->nominal_rate * current_block->e_speed_multiplier8) >> 8;
+          current_estep_rate[current_block->active_extruder] = ((unsigned long)acc_step_rate * current_block->abs_adv_steps_multiplier8) >> 17;
+          final_estep_rate = (current_block->nominal_rate * current_block->abs_adv_steps_multiplier8) >> 17;
         }
       #endif
     }

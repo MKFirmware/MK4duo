@@ -6,6 +6,7 @@
 
 #define KNOWN_BOARD
 #define BOARD_NAME "Alligator R3"
+#define NUM_DIGITAL_PINS 110
 
 #ifndef __SAM3X8E__
   #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.

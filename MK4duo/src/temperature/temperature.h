@@ -516,14 +516,14 @@ class Temperature {
     #if HAS(TEMP_COOLER)
       static void disable_all_coolers();
     #else
-      FORCE_INLINE void disable_all_coolers() {}
+      inline void disable_all_coolers() {}
     #endif
 
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
     #if HAS(PID_HEATING) || HAS(PID_COOLING)
-      static void PID_autotune(float temp, int temp_controller, int ncycles, bool set_result=false);
+      static void PID_autotune(float temp, int temp_controller, int ncycles, bool storeValues=false);
     #endif
 
     /**

@@ -97,8 +97,7 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
   #if ENABLED(LIN_ADVANCE)
     volatile int Stepper::e_steps[DRIVER_EXTRUDERS];
-    int Stepper::extruder_advance_k = LIN_ADVANCE_K,
-        Stepper::final_estep_rate,
+    int Stepper::final_estep_rate,
         Stepper::current_estep_rate[DRIVER_EXTRUDERS];
         Stepper::current_adv_steps[DRIVER_EXTRUDERS];
   #else
@@ -325,7 +324,7 @@ void Stepper::isr() {
     // Anything in the buffer?
     current_block = planner.get_current_block();
     if (current_block) {
-      current_block->busy = true;
+      SBI(current_block->flag, BLOCK_BIT_BUSY);
       trapezoid_generator_reset();
 
       // Initialize Bresenham counters to 1/2 the ceiling
@@ -752,7 +751,7 @@ void Stepper::isr() {
 
   #if ENABLED(LIN_ADVANCE)
     if (current_block->use_advance_lead) {
-      int delta_adv_steps = (((long)extruder_advance_k * current_estep_rate[TOOL_E_INDEX]) >> 9) - current_adv_steps[TOOL_E_INDEX];
+      int delta_adv_steps = current_estep_rate[TOOL_E_INDEX] - current_adv_steps[TOOL_E_INDEX];
       current_adv_steps[TOOL_E_INDEX] += delta_adv_steps;
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Mixing extruders apply advance lead proportionally
@@ -803,9 +802,9 @@ void Stepper::isr() {
       if (current_block->use_advance_lead) {
         #if ENABLED(COLOR_MIXING_EXTRUDER)
           MIXING_STEPPERS_LOOP(j)
-            current_estep_rate[j] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
+            current_estep_rate[j] = ((uint32_t)acc_step_rate * current_block->abs_adv_steps_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 17;
         #else
-          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)acc_step_rate * current_block->e_speed_multiplier8) >> 8;
+          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)acc_step_rate * current_block->abs_adv_steps_multiplier8) >> 17;
         #endif
       }
 
@@ -862,9 +861,9 @@ void Stepper::isr() {
       if (current_block->use_advance_lead) {
         #if ENABLED(MIXING_EXTRUDER_FEATURE)
           MIXING_STEPPERS_LOOP(j)
-            current_estep_rate[j] 0= ((uint32_t)step_rate * current_block->e_speed_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 8;
+            current_estep_rate[j] = ((uint32_t)step_rate * current_block->abs_adv_steps_multiplier8 * current_block->step_event_count / current_block->mix_event_count[j]) >> 17;
         #else
-          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)step_rate * current_block->e_speed_multiplier8) >> 8;
+          current_estep_rate[TOOL_E_INDEX] = ((uint32_t)step_rate * current_block->abs_adv_steps_multiplier8) >> 17;
         #endif
       }
 
@@ -1763,12 +1762,3 @@ void Stepper::microstep_readings() {
     SERIAL_EV(digitalRead(E1_MS2_PIN));
   #endif
 }
-
-#if ENABLED(LIN_ADVANCE)
-
-  void Stepper::advance_M905(const float &k) {
-    if (k >= 0) extruder_advance_k = k;
-    SERIAL_LMV(ECHO, "Advance factor = ", extruder_advance_k);
-  }
-
-#endif // LIN_ADVANCE

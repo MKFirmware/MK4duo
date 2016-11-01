@@ -56,7 +56,7 @@ public: /* methods */
      * @param buffer - text buffer terminated with '\0'. 
      * @return true if success, false for failure. 
      */
-    bool setText(const char *buffer);    
+    bool setText(const char *buffer, const char *pname = "");    
 	
     /**
      * Get val attribute of component
