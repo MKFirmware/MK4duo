@@ -133,7 +133,7 @@ enum TempState {
     FILAMENT_CHANGE_RESPONSE_RESUME_PRINT
   };
   
-  #if ENABLED(ULTIPANEL)
+  #if HAS(LCD)
     enum FilamentChangeMessage {
       FILAMENT_CHANGE_MESSAGE_INIT,
       FILAMENT_CHANGE_MESSAGE_UNLOAD,

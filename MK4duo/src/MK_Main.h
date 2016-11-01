@@ -36,6 +36,10 @@ void idle(
 
 void manage_inactivity(bool ignore_stepper_queue = false);
 
+#if ENABLED(PINS_DEBUGGING)
+  extern bool endstop_monitor_flag;
+#endif
+
 #if ENABLED(DUAL_X_CARRIAGE)
   extern bool hotend_duplication_enabled;
 #endif
@@ -119,7 +123,7 @@ extern float position_shift[XYZ];
 extern float home_offset[XYZ];
 extern float hotend_offset[XYZ][HOTENDS];
 
-#if ENABLED(ULTIPANEL)
+#if HAS(LCD)
   extern volatile bool wait_for_user;
 #endif
 

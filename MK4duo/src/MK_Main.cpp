@@ -46,6 +46,10 @@
   bool flow_firstread = false;
 #endif
 
+#if ENABLED(PINS_DEBUGGING)
+  bool endstop_monitor_flag = false;
+#endif
+
 bool Running = true;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
@@ -178,7 +182,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if ENABLED(ULTIPANEL)
+#if HAS(LCD)
   volatile bool wait_for_user = false;
 #endif
 
@@ -783,6 +787,16 @@ void setup_photpin() {
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 }
+
+#if HAS(CASE_LIGHT)
+  void setup_case_light() {
+    #if ENABLED(CASE_LIGHT_DEFAULT_ON)
+      OUT_WRITE(CASE_LIGHT_PIN, HIGH);
+    #else
+      OUT_WRITE(CASE_LIGHT_PIN, LOW);
+    #endif
+  }
+#endif
 
 void setup_powerhold() {
   #if HAS(SUICIDE)
@@ -5326,20 +5340,43 @@ inline void gcode_M42() {
   /**
    * M43: Pin report and debug
    *
-   *      P<pin> Will read/watch a single pin
-   *      W      Watch pins for changes until reboot
+   *      E<bool> Enable / disable background endstop monitoring
+   *               - Machine continues to operate
+   *               - Reports changes to endstops
+   *               - Toggles LED when an endstop changes
+   *
+   *   or
+   *
+   *      P<pin>  Pin to read or watch. If omitted, read/watch all pins.
+   *      W<bool> Watch pins -reporting changes- until reset, click, or M108.
+   *      I<bool> Flag to ignore Marlin's pin protection.
+   *
    */
   inline void gcode_M43() {
-    int first_pin = 0, last_pin = DIO_COUNT - 1;
-    if (code_seen('P')) {
-      first_pin = last_pin = code_value_byte();
-      if (first_pin > DIO_COUNT - 1) return;
+
+    // Enable or disable endstop monitoring
+    if (code_seen('E')) {
+      endstop_monitor_flag = code_value_bool();
+      SERIAL_M("endstop monitor ");
+      SERIAL_T(endstop_monitor_flag ? "en" : "dis");
+      SERIAL_EM("abled");
+      return;
     }
 
+    // Get the range of pins to test or watch
+    int first_pin = 0, last_pin = NUM_DIGITAL_PINS - 1;
+    if (code_seen('P')) {
+      first_pin = last_pin = code_value_byte();
+      if (first_pin > NUM_DIGITAL_PINS - 1) return;
+    }
+
+    bool ignore_protection = code_seen('I') ? code_value_bool() : false;
+
+    // Watch until click, M108, or reset
     if (code_seen('W') && code_value_bool()) { // watch digital pins
       byte pin_state[last_pin - first_pin + 1];
       for (int8_t pin = first_pin; pin <= last_pin; pin++) {
-        if (pin_is_protected(pin)) continue;
+        if (pin_is_protected(pin) && !ignore_protection) continue;
         pinMode(pin, INPUT_PULLUP);
         // if (IS_ANALOG(pin))
         //   pin_state[pin - first_pin] = analogRead(pin - analogInputToDigitalPin(0)); // int16_t pin_state[...]
@@ -5371,10 +5408,12 @@ inline void gcode_M42() {
 
         safe_delay(500);
       }
+      return;
     }
-    else // single pins report
-      for (int8_t pin = first_pin; pin <= last_pin; pin++)
-        report_pin_state(pin);
+
+    // Report current state of selected pin(s)
+    for (uint8_t pin = first_pin; pin <= last_pin; pin++)
+      report_pin_state_extended(pin, ignore_protection);
   }
 
 #endif // PINS_DEBUGGING
@@ -5676,7 +5715,7 @@ inline void gcode_M78() {
 
     powersupply = true;
 
-    #if ENABLED(ULTIPANEL) || ENABLED(NEXTION)
+    #if HAS(LCD)
       LCD_MESSAGEPGM(WELCOME_MSG);
       lcd_update();
     #endif
@@ -7002,6 +7041,36 @@ inline void gcode_M226() {
   }
 #endif // HAS(MICROSTEPS)
 
+#if HAS_CASE_LIGHT
+  /**
+   * M355: Turn case lights on/off
+   *
+   *   S<int>   change state on/off or sets PWM
+   *
+   */
+  inline void gcode_M355() {
+    if (code_seen('S')) {
+      SERIAL_SM(ECHO, "Case lights ");
+      byte light_pwm = code_value_byte();
+      switch (light_pwm) {
+        case 0: // Disable lights
+          SERIAL_M("off");
+          break;
+        case 1: // Enable lights
+          light_pwm = 255;
+          SERIAL_M("on");
+          break;
+        default: // Enable lights PWM
+          SERIAL_MV("set to: ", (int)map(light_pwm, 0, 255, 0, 100));
+          SERIAL_C('%');
+          break;
+      }
+      analogWrite(CASE_LIGHT_PIN, light_pwm);
+      SERIAL_E;
+    }
+  }
+#endif // HAS_CASE_LIGHT
+
 #if MECH(MORGAN_SCARA)
 
   bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
@@ -7761,7 +7830,7 @@ inline void gcode_M503() {
 
     if (sleep) {
       stepper.enable_all_steppers(); // Enable all stepper
-      HOTEND_LOOP {
+      HOTEND_LOOP() {
         thermalManager.setTargetHotend(old_target_temperature[h], h);
         wait_heater();
       }
@@ -7777,7 +7846,7 @@ inline void gcode_M503() {
     // Load filament
     if (code_seen('L')) destination[E_AXIS] -= code_value_axis_units(E_AXIS);
     #if ENABLED(FILAMENT_CHANGE_LOAD_LENGTH) && FILAMENT_CHANGE_LOAD_LENGTH > 0
-      else destination[E_AXIS] -= FILAMENT_CHANGE_LOAD_LENGTH;
+      else destination[E_AXIS] += FILAMENT_CHANGE_LOAD_LENGTH;
     #endif
 
     RUNPLAN(FILAMENT_CHANGE_LOAD_FEEDRATE);
@@ -8011,7 +8080,7 @@ inline void gcode_M503() {
    */
   inline void gcode_M905() {
     stepper.synchronize();
-    stepper.advance_M905(code_seen('K') ? code_value_float() : -1.0);
+    planner.advance_M905(code_seen('K') ? code_value_float() : -1.0);
   }
 #endif
 
@@ -9149,75 +9218,80 @@ void process_next_command() {
           gcode_M208(); break;
         case 209: // M209 - Turn Automatic Retract Detection on/off: S<bool> (For slicers that don't support G10/11). Every normal extrude-only move will be classified as retract depending on the direction.
           gcode_M209(); break;
-      #endif // FWRETRACT
+      #endif
 
-      case 218: // M218 - Set a tool offset: T<index> X<offset> Y<offset> Z<offset>
+      case 218: // M218: Set a tool offset: T<index> X<offset> Y<offset> Z<offset>
         gcode_M218(); break;
-      case 220: // M220 - Set Feedrate Percentage: S<percent> ("FR" on your LCD)
+      case 220: // M220: Set Feedrate Percentage: S<percent> ("FR" on your LCD)
         gcode_M220(); break;
-      case 221: // M221 Set Flow Percentage: T<extruder> S<percent>
+      case 221: // M221: Set Flow Percentage: T<extruder> S<percent>
         gcode_M221(); break;
-      case 222: // M222 Set Purge Percentage: T<extruder> S<percent>
+      case 222: // M222: Set Purge Percentage: T<extruder> S<percent>
         gcode_M222(); break;
-      case 226: // M226 P<pin number> S<pin state>- Wait until the specified pin reaches the state required
+      case 226: // M226: P<pin number> S<pin state>- Wait until the specified pin reaches the state required
         gcode_M226(); break;
 
       #if HAS(CHDK) || HAS(PHOTOGRAPH)
-        case 240: // M240  Triggers a camera by emulating a Canon RC-1 : http://www.doc-diy.net/photo/rc-1_hacked/
+        case 240: // M240: Triggers a camera by emulating a Canon RC-1 : http://www.doc-diy.net/photo/rc-1_hacked/
           gcode_M240(); break;
-      #endif // HAS(CHDK) || HAS(PHOTOGRAPH)
+      #endif
 
       #if ENABLED(DOGLCD) && LCD_CONTRAST >= 0
-        case 250: // M250  Set LCD contrast value: C<value> (value 0..63)
+        case 250: // M250: Set LCD contrast value: C<value> (value 0..63)
           gcode_M250(); break;
-      #endif // DOGLCD
+      #endif
 
       #if HAS(SERVOS)
-        case 280: // M280 - set servo position absolute. P: servo index, S: angle or microseconds
+        case 280: // M280: Set servo position absolute
           gcode_M280(); break;
-      #endif // NUM_SERVOS > 0
+      #endif
 
       #if HAS(BUZZER)
-        case 300: // M300 - Play beep tone
+        case 300: // M300: Play beep tone
           gcode_M300(); break;
-      #endif // HAS(BUZZER)
+      #endif
 
       #if ENABLED(PIDTEMP)
-        case 301: // M301
+        case 301: // M301: Set hotend PID parameters
           gcode_M301(); break;
-      #endif // PIDTEMP
+      #endif
 
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        case 302: // allow cold extrudes, or set the minimum extrude temperature
+        case 302: // M302: Allow cold extrudes (set the minimum extrude temperature)
           gcode_M302(); break;
-      #endif // PREVENT_COLD_EXTRUSION
+      #endif
 
       #if HAS(PID_HEATING)
-        case 303: // M303 PID autotune
+        case 303: // M303: PID autotune
           gcode_M303(); break;
       #endif
 
       #if ENABLED(PIDTEMPBED)
-        case 304: // M304 - Set Bed PID
+        case 304: // M304: Set Bed PID
           gcode_M304(); break;
-      #endif // PIDTEMPBED
+      #endif
 
       #if ENABLED(PIDTEMPCHAMBER)
-        case 305: // M305 - Set Chamber PID
+        case 305: // M305: Set Chamber PID
           gcode_M305(); break;
-      #endif // PIDTEMPCHAMBER
+      #endif
 
       #if ENABLED(PIDTEMPCOOLER)
-        case 306: // M306 - Set Cooler PID
+        case 306: // M306: Set Cooler PID
           gcode_M306(); break;
-      #endif // PIDTEMPCOOLER
+      #endif
 
       #if HAS(MICROSTEPS)
-        case 350: // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
+        case 350: // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
           gcode_M350(); break;
-        case 351: // M351 Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
+        case 351: // M351: Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
           gcode_M351(); break;
-      #endif // HAS(MICROSTEPS)
+      #endif
+
+      #if HAS_CASE_LIGHT
+        case 355: // M355: Turn case lights on/off
+          gcode_M355(); break;
+      #endif
 
       #if MECH(MORGAN_SCARA)
         case 360:  // M360: SCARA Theta pos1
@@ -9230,7 +9304,7 @@ void process_next_command() {
           if (gcode_M363()) return; break;
         case 364:  // M364: SCARA Psi pos3 (90 deg to Theta)
           if (gcode_M364()) return; break;
-      #endif // SCARA
+      #endif
 
       case 400: // M400 finish all moves
         gcode_M400(); break;
@@ -9251,7 +9325,7 @@ void process_next_command() {
           gcode_M406(); break;
         case 407:   //M407 Display measured filament diameter
           gcode_M407(); break;
-      #endif // FILAMENT_SENSOR
+      #endif
 
       #if ENABLED(JSON_OUTPUT)
         case 408: // M408 JSON STATUS OUTPUT
@@ -11343,8 +11417,15 @@ void setup() {
   #endif
 
   stepper.init();    // Initialize stepper, this enables interrupts!
-  setup_photpin();
   servo_init();
+
+  #if HAS_PHOTOGRAPH
+    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
+  #endif
+
+  #if HAS_CASE_LIGHT
+    setup_case_light();
+  #endif
 
   #if HAS(BED_PROBE)
     endstops.enable_z_probe(false);

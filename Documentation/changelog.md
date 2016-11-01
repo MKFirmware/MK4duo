@@ -1,6 +1,9 @@
 ### Version 4.3.05_dev
 * Add register in EEPROM Bilinear Bed Level
+* Add M355 Turn case lights on/off
 * Fix Error width 8bit and 2 or more Hotends
+* Upgrade Nextion width Filament Change
+* New Fix
 
 ### Version 4.3.04_dev
 * Fix Code

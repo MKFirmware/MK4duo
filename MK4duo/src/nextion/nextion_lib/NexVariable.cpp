@@ -61,9 +61,13 @@ uint32_t NexVariable::getText(char *buffer, uint32_t len)
     return recvRetString(buffer,len);
 }
 
-bool NexVariable::setText(const char *buffer)
+bool NexVariable::setText(const char *buffer, const char *pname)
 {
     String cmd;
+    if (pname != "") {
+      cmd += pname;
+      cmd += ".";
+    }
     cmd += getObjName();
     cmd += ".txt=\"";
     cmd += buffer;

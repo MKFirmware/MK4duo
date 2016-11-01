@@ -118,6 +118,8 @@
   NexVariable RFID      = NexVariable   (2,   11, "rfid");
   NexVariable VSpeed    = NexVariable   (2,   12, "vspeed");
   NexVariable Extruder  = NexVariable   (2,   13, "extruder");
+  NexVariable Chamber   = NexVariable   (2,   21, "chamber");
+  NexVariable Language  = NexVariable   (2,   22, "lang");
   NexTimer Fantimer     = NexTimer      (2,   8,  "tm0");
   NexProgressBar sdbar  = NexProgressBar(2,   9,  "j0");
 
@@ -229,8 +231,13 @@
    * Nextion component for page:Yesno
    *******************************************************************
    */
-  NexHotspot YesNo          = NexHotspot    (12,  2,  "m0");
-  NexVariable Vyes          = NexVariable   (12,  4,  "va0");
+  NexVariable Vyes          = NexVariable   (12,  2,  "va0");
+  NexText Riga0             = NexText       (12,  4,  "t0");
+  NexText Riga1             = NexText       (12,  5,  "t1");
+  NexText Riga2             = NexText       (12,  6,  "t2");
+  NexText Riga3             = NexText       (12,  7,  "t3");
+  NexPicture Yes            = NexPicture    (12,  8,  "p1");
+  NexPicture No             = NexPicture    (12,  9,  "p2");
 
   NexTouch *nex_listen_list[] =
   {
@@ -261,7 +268,7 @@
     &tset, &tup, &tdown,
 
     // Page 12 touch listen
-    &YesNo,
+    &Yes,
 
     NULL
   };
@@ -305,6 +312,10 @@
       Bed.setValue(1, "printer");
     #endif
 
+    #if HAS(TEMP_CHAMBER)
+      Chamber.setValue(1, "printer");
+    #endif
+
     #if ENABLED(SDSUPPORT)
       card.mount();
       if (card.cardOK) {
@@ -323,6 +334,10 @@
       RFID.setValue(1, "printer");
     #endif
 
+    #define LANGUAGE_STRING_(M) STRINGIFY_(M)
+    #define LANGUAGE_STRING(M) LANGUAGE_STRING_(M)
+    #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
+    Language.setText(NEXTION_LANGUAGE, "printer");
   }
 
   #if ENABLED(SDSUPPORT)
@@ -489,6 +504,160 @@
 
   #endif
 
+  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+
+    static void lcd_filament_change_resume_print() {
+      filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_RESUME_PRINT;
+      Pprinter.show();
+    }
+
+    static void lcd_filament_change_extrude_more() {
+      filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_EXTRUDE_MORE;
+    }
+
+    static void lcd_filament_change_option_menu() {
+      Vyes.setValue(5, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_OPTION_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_OPTION_RESUME);
+      Riga2.setText("");
+      Riga3.setText("");
+    }
+
+    static void lcd_filament_change_init_message() {
+      Vyes.setValue(0, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_INIT_1);
+      #ifdef MSG_FILAMENT_CHANGE_INIT_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_INIT_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_INIT_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_INIT_3);
+      #else
+        Riga3.setText("");
+      #endif
+    }
+
+    static void lcd_filament_change_unload_message() {
+      Vyes.setValue(0, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_UNLOAD_1);
+      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_UNLOAD_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_UNLOAD_3);
+      #else
+        Riga3.setText("");
+      #endif
+    }
+
+    static void lcd_filament_change_insert_message() {
+      Vyes.setValue(4, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_INSERT_1);
+      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_INSERT_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_INSERT_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_INSERT_3);
+      #else
+        Riga3.setText("");
+      #endif
+    }
+
+    static void lcd_filament_change_load_message() {
+      Vyes.setValue(0, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_LOAD_1);
+      #ifdef MSG_FILAMENT_CHANGE_LOAD_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_LOAD_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_LOAD_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_LOAD_3);
+      #else
+        Riga3.setText("");
+      #endif
+    }
+
+    static void lcd_filament_change_extrude_message() {
+      Vyes.setValue(0, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_EXTRUDE_1);
+      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_EXTRUDE_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_EXTRUDE_3);
+      #else
+        Riga3.setText("");
+      #endif
+    }
+
+    static void lcd_filament_change_resume_message() {
+      Vyes.setValue(0, "yesno");
+      Pyesno.show();
+      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
+      Riga1.setText(MSG_FILAMENT_CHANGE_RESUME_1);
+      #ifdef MSG_FILAMENT_CHANGE_RESUME_2
+        Riga2.setText(MSG_FILAMENT_CHANGE_RESUME_2);
+      #else
+        Riga2.setText("");
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_RESUME_3
+        Riga3.setText(MSG_FILAMENT_CHANGE_RESUME_3);
+      #else
+        Riga2.setText("");
+      #endif
+    }
+
+    void lcd_filament_change_show_message(FilamentChangeMessage message) {
+      switch (message) {
+        case FILAMENT_CHANGE_MESSAGE_INIT:
+          lcd_filament_change_init_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_UNLOAD:
+          lcd_filament_change_unload_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_INSERT:
+          lcd_filament_change_insert_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_LOAD:
+          lcd_filament_change_load_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_EXTRUDE:
+          lcd_filament_change_extrude_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_OPTION:
+          filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_WAIT_FOR;
+          lcd_filament_change_option_menu();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_RESUME:
+          lcd_filament_change_resume_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_STATUS:
+          Pprinter.show();
+          break;
+      }
+    }
+
+  #endif // FILAMENT_CHANGE_FEATURE
+
   #if ENABLED(RFID_MODULE)
     void rfidPopCallback(void *ptr) {
       ZERO(buffer);
@@ -640,16 +809,22 @@
     enqueue_and_echo_commands_P(PSTR("M84"));
   }
 
-  void YesNoPopCallback(void *ptr) {
+  void YesPopCallback(void *ptr) {
     static uint32_t icon = 0;
     Vyes.getValue(&icon);
     switch(icon) {
       #if ENABLED(SDSUPPORT)
         case 1:
-        case 2:
+        case 2: // StopPrint
           StopPrint(icon == 2); Pprinter.show(); break;
-        case 3:
+        case 3: // Stop & Save
           UploadNewFirmware(); break;
+      #endif
+      #if ENABLED(FILAMENT_CHANGE_FEATURE)
+        case 4: // Filament click
+          wait_for_user = false; break;
+        case 5: // Filament resume print
+          lcd_filament_change_resume_print(); break;
       #endif
     }
   }
@@ -720,7 +895,7 @@
       Retract.attachPop(setmovePopCallback);
       MotorOff.attachPop(motoroffPopCallback);
       Send.attachPop(setgcodePopCallback);
-      YesNo.attachPop(YesNoPopCallback);
+      Yes.attachPop(YesPopCallback);
 
       setpagePrinter();
       startimer.enable();

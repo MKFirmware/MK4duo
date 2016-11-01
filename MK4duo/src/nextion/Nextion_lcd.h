@@ -80,6 +80,10 @@
       void UploadNewFirmware();
     #endif
 
+    #if ENABLED(FILAMENT_CHANGE_FEATURE)
+      void lcd_filament_change_show_message(FilamentChangeMessage message);
+    #endif // FILAMENT_CHANGE_FEATURE
+
     #if ENABLED(RFID_MODULE)
       void rfidPopCallback(void *ptr);
       void rfid_setText(const char* message, uint32_t color = 65535);
