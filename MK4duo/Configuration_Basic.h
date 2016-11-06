@@ -117,9 +117,11 @@
  *                                                                     *
  * CARTESIAN      - Prusa, Mendel, etc                                 *
  * COREXY         - H-Bot/Core XY (x_motor = x+y, y_motor = x-y)       *
- * COREYX         - H-Bot/Core XY (x_motor = y+x, y_motor = y-x)       *
+ * COREYX         - H-Bot/Core YX (x_motor = y+x, y_motor = y-x)       *
  * COREXZ         - H-Bot/Core XZ (x_motor = x+z, z_motor = x-z)       *
- * COREZX         - H-Bot/Core XZ (x_motor = z+x, z_motor = z-x)       *
+ * COREZX         - H-Bot/Core ZX (x_motor = z+x, z_motor = z-x)       *
+ * COREYZ         - H-Bot/Core YZ (y_motor = y+z, z_motor = y-z)       *
+ * COREZY         - H-Bot/Core ZY (y_motor = z+y, z_motor = z-y)       *
  * DELTA          - Rostock, Kossel, RostockMax, Cerberus, etc         *
  * MORGAN_SCARA   - SCARA classic                                      *
  * MAKERARM_SCARA - SCARA Makerfarm                                    *
@@ -130,6 +132,8 @@
 //#define MECHANISM MECH_COREYX
 //#define MECHANISM MECH_COREXZ
 //#define MECHANISM MECH_COREZX
+//#define MECHANISM MECH_COREYZ
+//#define MECHANISM MECH_COREZY
 //#define MECHANISM MECH_DELTA
 //#define MECHANISM MECH_MORGAN_SCARA
 //#define MECHANISM MECH_MAKERARM_SCARA

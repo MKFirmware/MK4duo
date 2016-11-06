@@ -1341,26 +1341,21 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
 
   CRITICAL_SECTION_START;
 
-  #if MECH(COREXY)
+  #if CORE_IS_XY
     // corexy positioning
-    count_position[A_AXIS] = a + COREX_YZ_FACTOR * b;
-    count_position[B_AXIS] = a - COREX_YZ_FACTOR * b;
+    count_position[A_AXIS] = a + CORE_FACTOR * b;
+    count_position[B_AXIS] = CORESIGN(a - CORE_FACTOR * b);
     count_position[Z_AXIS] = c;
-  #elif MECH(COREYX)
-    // coreyx positioning
-    count_position[A_AXIS] = b + COREX_YZ_FACTOR * a;
-    count_position[B_AXIS] = b - COREX_YZ_FACTOR * a;
-    count_position[Z_AXIS] = c;
-  #elif MECH(COREXZ)
+  #elif CORE_IS_XZ
     // corexz planning
-    count_position[A_AXIS] = a + COREX_YZ_FACTOR * c;
+    count_position[A_AXIS] = a + CORE_FACTOR * c;
     count_position[Y_AXIS] = b;
-    count_position[C_AXIS] = a - COREX_YZ_FACTOR * c;
-  #elif MECH(COREZX)
-    // corezx planning
-    count_position[A_AXIS] = c + COREX_YZ_FACTOR * a;
-    count_position[Y_AXIS] = b;
-    count_position[C_AXIS] = c - COREX_YZ_FACTOR * a;
+    count_position[C_AXIS] = CORESIGN(a - CORE_FACTOR * c);
+  #elif CORE_IS_YZ
+    // coreyz planning
+    count_position[X_AXIS] = a;
+    count_position[B_AXIS] = b + CORE_FACTOR * c;
+    count_position[C_AXIS] = CORESIGN(b - CORE_FACTOR * c);
   #else
     // default non-h-bot planning
     count_position[X_AXIS] = a;
@@ -1400,15 +1395,17 @@ long Stepper::position(AxisEnum axis) {
  */
 float Stepper::get_axis_position_mm(AxisEnum axis) {
   float axis_steps;
-  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
+  #if IS_CORE
+    // Requesting one of the "core" axes?
     if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
       CRITICAL_SECTION_START;
-      long  pos1 = count_position[CORE_AXIS_1],
-            pos2 = count_position[CORE_AXIS_2];
-      CRITICAL_SECTION_END;
       // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
       // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-      axis_steps = (pos1 + ((axis == CORE_AXIS_1) ? pos2 : -pos2)) * 0.5f;
+      axis_steps = 0.5f * (
+        axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
+                            : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
+      );
+      CRITICAL_SECTION_END;
     }
     else
       axis_steps = position(axis);
@@ -1462,20 +1459,18 @@ void Stepper::quick_stop() {
 
 void Stepper::endstop_triggered(AxisEnum axis) {
 
-  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
+  #if IS_CORE
 
-    float axis_pos = count_position[axis];
-    if (axis == CORE_AXIS_1)
-      axis_pos = (axis_pos + count_position[CORE_AXIS_2]) * 0.5;
-    else if (axis == CORE_AXIS_2)
-      axis_pos = (count_position[CORE_AXIS_1] - axis_pos) * 0.5;
-    endstops_trigsteps[axis] = axis_pos;
+    endstops_trigsteps[axis] = 0.5f * (
+      axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
+                          : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
+    );
 
-  #else // ! COREXY || COREYX || COREXZ || COREZX
+  #else // !COREXY && !COREXZ && !COREYZ
 
     endstops_trigsteps[axis] = count_position[axis];
 
-  #endif // ! COREXY || COREYX || COREXZ || COREZX
+  #endif // !COREXY && !COREXZ && !COREYZ
 
   kill_current_block();
 }
@@ -1487,7 +1482,7 @@ void Stepper::report_positions() {
        zpos = count_position[Z_AXIS];
   CRITICAL_SECTION_END;
 
-  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX) || IS_SCARA
+  #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
     SERIAL_M(MSG_COUNT_A);
   #elif MECH(DELTA)
     SERIAL_M(MSG_COUNT_ALPHA);
@@ -1496,7 +1491,7 @@ void Stepper::report_positions() {
   #endif
   SERIAL_V(xpos);
 
-  #if MECH(COREXY) || MECH(COREYX) || IS_SCARA
+  #if CORE_IS_XY || CORE_IS_YZ || IS_SCARA
     SERIAL_M(" B:");
   #elif MECH(DELTA)
     SERIAL_M(" Beta:");
@@ -1505,7 +1500,7 @@ void Stepper::report_positions() {
   #endif
   SERIAL_V(ypos);
 
-  #if MECH(COREXZ) || MECH(COREZX)
+  #if CORE_IS_XZ || CORE_IS_YZ
     SERIAL_M(" C:");
   #elif MECH(DELTA)
     SERIAL_M(" Teta:");
@@ -1534,24 +1529,24 @@ void Stepper::report_positions() {
 
 #if ENABLED(BABYSTEPPING)
 
+  #define _ENABLE(axis) enable_## axis()
+  #define _READ_DIR(AXIS) AXIS ##_DIR_READ
+  #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
+  #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
+
+  #define BABYSTEP_AXIS(axis, AXIS, INVERT) { \
+      _ENABLE(axis); \
+      uint8_t old_pin = _READ_DIR(AXIS); \
+      _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
+      _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
+      HAL::delayMicroseconds(2U); \
+      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true); \
+      _APPLY_DIR(AXIS, old_pin); \
+    }
+
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
-  void Stepper::babystep(const uint8_t axis, const bool direction) {
-
-    #define _ENABLE(axis) enable_## axis()
-    #define _READ_DIR(AXIS) AXIS ##_DIR_READ
-    #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
-    #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
-
-    #define BABYSTEP_AXIS(axis, AXIS, INVERT) { \
-        _ENABLE(axis); \
-        uint8_t old_pin = _READ_DIR(AXIS); \
-        _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
-        _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
-        HAL::delayMicroseconds(2U); \
-        _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true); \
-        _APPLY_DIR(AXIS, old_pin); \
-      }
+  void Stepper::babystep(const AxisEnum axis, const bool direction) {
 
     switch (axis) {
 
@@ -1565,7 +1560,7 @@ void Stepper::report_positions() {
 
       case Z_AXIS: {
 
-        #if !MECH(DELTA)
+        #if NOMECH(DELTA)
 
           BABYSTEP_AXIS(z, Z, BABYSTEP_INVERT_Z);
 
@@ -1684,81 +1679,138 @@ void Stepper::report_positions() {
   }
 #endif
 
-void Stepper::microstep_init() {
-  #if HAS(MICROSTEPS_E1)
-    pinMode(E1_MS1_PIN, OUTPUT);
-    pinMode(E1_MS2_PIN, OUTPUT);
-  #endif
+#if HAS(MICROSTEPS)
 
-  #if HAS(MICROSTEPS)
-    pinMode(X_MS1_PIN, OUTPUT);
-    pinMode(X_MS2_PIN, OUTPUT);
-    pinMode(Y_MS1_PIN, OUTPUT);
-    pinMode(Y_MS2_PIN, OUTPUT);
-    pinMode(Z_MS1_PIN, OUTPUT);
-    pinMode(Z_MS2_PIN, OUTPUT);
-    pinMode(E0_MS1_PIN, OUTPUT);
-    pinMode(E0_MS2_PIN, OUTPUT);
-    const uint8_t microstep_modes[] = MICROSTEP_MODES;
+  /**
+   * Software-controlled Microstepping
+   */
+  void Stepper::microstep_init() {
+
+    #if HAS(MICROSTEPS_X)
+      SET_OUTPUT(X_MS1_PIN);
+      SET_OUTPUT(X_MS2_PIN);
+    #endif
+    #if HAS(MICROSTEPS_Y)
+      SET_OUTPUT(Y_MS1_PIN);
+      SET_OUTPUT(Y_MS2_PIN);
+    #endif
+    #if HAS(MICROSTEPS_Z)
+      SET_OUTPUT(Z_MS1_PIN);
+      SET_OUTPUT(Z_MS2_PIN);
+    #endif
+    #if HAS(MICROSTEPS_E0)
+      SET_OUTPUT(E0_MS1_PIN);
+      SET_OUTPUT(E0_MS2_PIN);
+    #endif
+    #if HAS(MICROSTEPS_E1)
+      SET_OUTPUT(E1_MS1_PIN);
+      SET_OUTPUT(E1_MS2_PIN);
+    #endif
+
+    static const uint8_t microstep_modes[] = MICROSTEP_MODES;
     for (uint16_t i = 0; i < COUNT(microstep_modes); i++)
       microstep_mode(i, microstep_modes[i]);
-  #endif
-}
+  }
 
-/**
- * Software-controlled Microstepping
- */
-void Stepper::microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2) {
-  if (ms1 >= 0) switch (driver) {
-    case 0: digitalWrite(X_MS1_PIN, ms1); break;
-    case 1: digitalWrite(Y_MS1_PIN, ms1); break;
-    case 2: digitalWrite(Z_MS1_PIN, ms1); break;
-    case 3: digitalWrite(E0_MS1_PIN, ms1); break;
+  void Stepper::microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2) {
+    if (ms1 >= 0) switch (driver) {
+      #if HAS(MICROSTEPS_X)
+        case 0: WRITE(X_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(MICROSTEPS_Y)
+        case 1: WRITE(Y_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(MICROSTEPS_Z)
+        case 2: WRITE(Z_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(MICROSTEPS_E0)
+        case 3: WRITE(E0_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(MICROSTEPS_E1)
+        case 4: WRITE(E1_MS1_PIN, ms1); break;
+      #endif
+    }
+    #if !MB(ALLIGATOR) && !MB(ALLIGATOR_V3)
+      if (ms2 >= 0) switch (driver) {
+        #if HAS(MICROSTEPS_X)
+          case 0: WRITE(X_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(MICROSTEPS_Y)
+          case 1: WRITE(Y_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(MICROSTEPS_Z)
+          case 2: WRITE(Z_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(MICROSTEPS_E0)
+          case 3: WRITE(E0_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(MICROSTEPS_E1)
+          case 4: WRITE(E1_MS2_PIN, ms2); break;
+        #endif
+      }
+    #endif
+  }
+
+  void Stepper::microstep_mode(uint8_t driver, uint8_t stepping_mode) {
+    switch (stepping_mode) {
+      case 1: microstep_ms(driver,  MICROSTEP1); break;
+      case 2: microstep_ms(driver,  MICROSTEP2); break;
+      case 4: microstep_ms(driver,  MICROSTEP4); break;
+      case 8: microstep_ms(driver,  MICROSTEP8); break;
+      case 16: microstep_ms(driver, MICROSTEP16); break;
+      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+        case 32: microstep_ms(driver, MICROSTEP32); break;
+      #endif
+    }
+  }
+
+  void Stepper::microstep_readings() {
+    SERIAL_M(MSG_MICROSTEP_MS1_MS2);
+    #if HAS(MICROSTEPS_X)
+      SERIAL_M(MSG_MICROSTEP_X);
+      SERIAL_V(READ(X_MS1_PIN));
+      #if PIN_EXISTS(X_MS2)
+        SERIAL_EV(READ(X_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(MICROSTEPS_Y)
+      SERIAL_M(MSG_MICROSTEP_Y);
+      SERIAL_V(READ(Y_MS1_PIN));
+      #if PIN_EXISTS(Y_MS2)
+        SERIAL_EV(READ(Y_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(MICROSTEPS_Z)
+      SERIAL_M(MSG_MICROSTEP_Z);
+      SERIAL_V(READ(Z_MS1_PIN));
+      #if PIN_EXISTS(Z_MS2)
+        SERIAL_EV(READ(Z_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(MICROSTEPS_E0)
+      SERIAL_M(MSG_MICROSTEP_E0);
+      SERIAL_V(READ(E0_MS1_PIN));
+      #if PIN_EXISTS(E0_MS2)
+        SERIAL_EV(READ(E0_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
     #if HAS(MICROSTEPS_E1)
-      case 4: digitalWrite(E1_MS1_PIN, ms1); break;
+      SERIAL_M(MSG_MICROSTEP_E1);
+      SERIAL_V(READ(E1_MS1_PIN));
+      #if PIN_EXISTS(E1_MS2)
+        SERIAL_EV(READ(E1_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
     #endif
   }
-  if (ms2 >= 0) switch (driver) {
-    case 0: digitalWrite(X_MS2_PIN, ms2); break;
-    case 1: digitalWrite(Y_MS2_PIN, ms2); break;
-    case 2: digitalWrite(Z_MS2_PIN, ms2); break;
-    case 3: digitalWrite(E0_MS2_PIN, ms2); break;
-    #if PIN_EXISTS(E1_MS2)
-      case 4: digitalWrite(E1_MS2_PIN, ms2); break;
-    #endif
-  }
-}
 
-void Stepper::microstep_mode(uint8_t driver, uint8_t stepping_mode) {
-  switch (stepping_mode) {
-    case 1: microstep_ms(driver,  MICROSTEP1); break;
-    case 2: microstep_ms(driver,  MICROSTEP2); break;
-    case 4: microstep_ms(driver,  MICROSTEP4); break;
-    case 8: microstep_ms(driver,  MICROSTEP8); break;
-    case 16: microstep_ms(driver, MICROSTEP16); break;
-    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      case 32: microstep_ms(driver, MICROSTEP32); break;
-    #endif
-  }
-}
-
-void Stepper::microstep_readings() {
-  SERIAL_M(MSG_MICROSTEP_MS1_MS2);
-  SERIAL_M(MSG_MICROSTEP_X);
-  SERIAL_V(digitalRead(X_MS1_PIN));
-  SERIAL_EV(digitalRead(X_MS2_PIN));
-  SERIAL_M(MSG_MICROSTEP_Y);
-  SERIAL_V(digitalRead(Y_MS1_PIN));
-  SERIAL_EV(digitalRead(Y_MS2_PIN));
-  SERIAL_M(MSG_MICROSTEP_Z);
-  SERIAL_V(digitalRead(Z_MS1_PIN));
-  SERIAL_EV(digitalRead(Z_MS2_PIN));
-  SERIAL_M(MSG_MICROSTEP_E0);
-  SERIAL_V(digitalRead(E0_MS1_PIN));
-  SERIAL_EV(digitalRead(E0_MS2_PIN));
-  #if HAS(MICROSTEPS_E1)
-    SERIAL_M(MSG_MICROSTEP_E1);
-    SERIAL_V(digitalRead(E1_MS1_PIN));
-    SERIAL_EV(digitalRead(E1_MS2_PIN));
-  #endif
-}
+#endif // HAS_MICROSTEPS

@@ -614,34 +614,37 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     }
   #endif // PREVENT_COLD_EXTRUSION
 
-  #if MECH(COREXY)
-    long da = dx + COREX_YZ_FACTOR * dy;
-    long db = dx - COREX_YZ_FACTOR * dy;
-  #elif MECH(COREYX)
-    long da = dy + COREX_YZ_FACTOR * dx;
-    long db = dy - COREX_YZ_FACTOR * dx;
-  #elif MECH(COREXZ)
-    long da = dx + COREX_YZ_FACTOR * dz;
-    long dc = dx - COREX_YZ_FACTOR * dz;
-  #elif MECH(COREZX)
-    long da = dz + COREX_YZ_FACTOR * dx;
-    long dc = dz - COREX_YZ_FACTOR * dx;
+  #if CORE_IS_XY
+    long da = dx + CORE_FACTOR * dy;
+    long db = dx - CORE_FACTOR * dy;
+  #elif CORE_IS_XZ
+    long da = dx + CORE_FACTOR * dz;
+    long dc = dx - CORE_FACTOR * dz;
+  #elif CORE_IS_YZ
+    long db = dy + CORE_FACTOR * dz;
+    long dc = dy - CORE_FACTOR * dz;
   #endif
 
   // Compute direction bit for this block
   uint8_t dirb = 0;
-  #if MECH(COREXY) || MECH(COREYX)
-    if (dx < 0) SBI(dirb, X_HEAD); // Save the real Extruder (head) direction in X Axis
-    if (dy < 0) SBI(dirb, Y_HEAD); // ...and Y
+  #if CORE_IS_XY
+    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Extruder (head) direction in X Axis
+    if (dy < 0) SBI(dirb, Y_HEAD);            // ...and Y
     if (dz < 0) SBI(dirb, Z_AXIS);
-    if (da < 0) SBI(dirb, A_AXIS); // Motor A direction
-    if (db < 0) SBI(dirb, B_AXIS); // Motor B direction
-  #elif MECH(COREXZ) || MECH(COREZX)
-    if (dx < 0) SBI(dirb, X_HEAD); // Save the real Extruder (head) direction in X Axis
+    if (da < 0) SBI(dirb, A_AXIS);            // Motor A direction
+    if (CORESIGN(db) < 0) SBI(dirb, B_AXIS);  // Motor B direction
+  #elif CORE_IS_XZ
+    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Extruder (head) direction in X Axis
     if (dy < 0) SBI(dirb, Y_AXIS);
-    if (dz < 0) SBI(dirb, Z_HEAD); // ...and Z
-    if (da < 0) SBI(dirb, A_AXIS); // Motor A direction
-    if (dc < 0) SBI(dirb, C_AXIS); // Motor B direction
+    if (dz < 0) SBI(dirb, Z_HEAD);            // ...and Z
+    if (da < 0) SBI(dirb, A_AXIS);            // Motor A direction
+    if (CORESIGN(dc) < 0) SBI(dirb, C_AXIS);  // Motor C direction
+  #elif CORE_IS_YZ
+    if (dx < 0) SBI(dirb, X_AXIS);
+    if (dy < 0) SBI(dirb, Y_HEAD);            // Save the real Extruder (head) direction in Y Axis
+    if (dz < 0) SBI(dirb, Z_HEAD);            // ...and Z
+    if (db < 0) SBI(dirb, B_AXIS);            // Motor B direction
+    if (CORESIGN(dc) < 0) SBI(dirb, C_AXIS);  // Motor C direction
   #else
     if (dx < 0) SBI(dirb, X_AXIS);
     if (dy < 0) SBI(dirb, Y_AXIS);
@@ -668,15 +671,20 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->direction_bits = dirb;
 
   // Number of steps for each axis
-  #if MECH(COREXY) || MECH(COREYX)
+  #if CORE_IS_XY
     // corexy planning
     block->steps[A_AXIS] = labs(da);
     block->steps[B_AXIS] = labs(db);
     block->steps[Z_AXIS] = labs(dz);
-  #elif MECH(COREXZ) || MECH(COREZX)
+  #elif CORE_IS_XZ
     // corexz planning
     block->steps[A_AXIS] = labs(da);
     block->steps[Y_AXIS] = labs(dy);
+    block->steps[C_AXIS] = labs(dc);
+  #elif CORE_IS_YZ
+    // coreyz planning
+    block->steps[X_AXIS] = labs(dx);
+    block->steps[B_AXIS] = labs(db);
     block->steps[C_AXIS] = labs(dc);
   #else
     // default non-h-bot planning
@@ -710,7 +718,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->active_driver = driver;
 
   // Enable active axes
-  #if MECH(COREXY) || MECH(COREYX)
+  #if CORE_IS_XY
     if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
       enable_x();
       enable_y();
@@ -718,12 +726,18 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     #if DISABLED(Z_LATE_ENABLE)
       if (block->steps[Z_AXIS]) enable_z();
     #endif
-  #elif MECH(COREXZ) || MECH(COREZX)
+  #elif CORE_IS_XZ
     if (block->steps[A_AXIS] || block->steps[C_AXIS]) {
       enable_x();
       enable_z();
     }
     if (block->steps[Y_AXIS]) enable_y();
+  #elif CORE_IS_YZ
+    if (block->steps[B_AXIS] || block->steps[C_AXIS]) {
+      enable_y();
+      enable_z();
+    }
+    if (block->steps[X_AXIS]) enable_x();
   #else
     if (block->steps[X_AXIS]) enable_x();
     if (block->steps[Y_AXIS]) enable_y();
@@ -898,20 +912,26 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
    * So we need to create other 2 "AXIS", named X_HEAD and Y_HEAD, meaning the real displacement of the Head.
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
-  #if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
+  #if IS_CORE
     float delta_mm[7];
-    #if MECH(COREXY) || MECH(COREYX)
+    #if CORE_IS_XY
       delta_mm[X_HEAD] = dx * steps_to_mm[A_AXIS];
       delta_mm[Y_HEAD] = dy * steps_to_mm[B_AXIS];
       delta_mm[Z_AXIS] = dz * steps_to_mm[Z_AXIS];
       delta_mm[A_AXIS] = da * steps_to_mm[A_AXIS];
-      delta_mm[B_AXIS] = db * steps_to_mm[B_AXIS];
-    #elif MECH(COREXZ) || MECH(COREZX)
+      delta_mm[B_AXIS] = CORESIGN(db) * steps_to_mm[B_AXIS];
+    #elif CORE_IS_XZ
       delta_mm[X_HEAD] = dx * steps_to_mm[A_AXIS];
       delta_mm[Y_AXIS] = dy * steps_to_mm[Y_AXIS];
       delta_mm[Z_HEAD] = dz * steps_to_mm[C_AXIS];
       delta_mm[A_AXIS] = da * steps_to_mm[A_AXIS];
-      delta_mm[C_AXIS] = dc * steps_to_mm[C_AXIS];
+      delta_mm[C_AXIS] = CORESIGN(dc) * steps_to_mm[C_AXIS];
+    #elif CORE_IS_YZ
+      delta_mm[X_AXIS] = dx * steps_to_mm[X_AXIS];
+      delta_mm[Y_HEAD] = dy * steps_to_mm[B_AXIS];
+      delta_mm[Z_HEAD] = dz * steps_to_mm[C_AXIS];
+      delta_mm[B_AXIS] = db * steps_to_mm[B_AXIS];
+      delta_mm[C_AXIS] = CORESIGN(dc) * steps_to_mm[C_AXIS];
     #endif
   #else
     float delta_mm[4];
@@ -926,10 +946,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   }
   else {
     block->millimeters = sqrt(
-      #if MECH(COREXY) || MECH(COREYX)
+      #if CORE_IS_XY
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
-      #elif MECH(COREXZ) || MECH(COREZX)
+      #elif CORE_IS_XZ
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_HEAD])
+      #elif CORE_IS_YZ
+        sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_HEAD])
       #else
         sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_AXIS])
       #endif
@@ -982,24 +1004,18 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   int moves_queued = movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
-  #if ENABLED(OLD_SLOWDOWN) || ENABLED(SLOWDOWN)
-    bool mq = moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2;
-    #if ENABLED(OLD_SLOWDOWN)
-      if (mq) fr_mm_s *= 2.0 * moves_queued / (BLOCK_BUFFER_SIZE);
-    #endif
-    #if ENABLED(SLOWDOWN)
-      //  segment time im micro seconds
-      unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
-      if (mq) {
-        if (segment_time < min_segment_time) {
-          // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
-          inverse_mm_s = 1000000.0 / (segment_time + lround(2 * (min_segment_time - segment_time) / moves_queued));
-          #if ENABLED(XY_FREQUENCY_LIMIT)
-            segment_time = lround(1000000.0 / inverse_mm_s);
-          #endif
-        }
+  #if ENABLED(SLOWDOWN)
+    // Segment time im micro seconds
+    unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
+    if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
+      if (segment_time < min_segment_time) {
+        // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
+        inverse_mm_s = 1000000.0 / (segment_time + lround(2 * (min_segment_time - segment_time) / moves_queued));
+        #if ENABLED(XY_FREQUENCY_LIMIT)
+          segment_time = lround(1000000.0 / inverse_mm_s);
+        #endif
       }
-    #endif
+    }
   #endif
 
   block->nominal_speed = block->millimeters * inverse_mm_s; // (mm/sec) Always > 0

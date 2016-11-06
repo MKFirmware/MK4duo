@@ -1383,7 +1383,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
     if (axis == X_AXIS || axis == Y_AXIS) {
 
       float homeposition[XYZ];
-      LOOP_XYZ(i) homeposition[i] = LOGICAL_POSITION(base_home_pos(i), i);
+      LOOP_XYZ(i) homeposition[i] = LOGICAL_POSITION(base_home_pos((AxisEnum)i), i);
 
       // SERIAL_MV("homeposition X:", homeposition[X_AXIS]);
       // SERIAL_EMV(" Y:", homeposition[Y_AXIS]);
@@ -1393,6 +1393,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
        * and calculates homing offset using forward kinematics
        */
       inverse_kinematics(homeposition);
+      forward_kinematics_SCARA(delta[A_AXIS], delta[B_AXIS]);
 
       // SERIAL_MV("base Theta= ", delta[X_AXIS]);
       // SERIAL_EMV(" base Psi+Theta=", delta[Y_AXIS]);
@@ -3411,7 +3412,7 @@ inline void gcode_G4() {
       SERIAL_EM("Delta");
     #elif IS_SCARA
       SERIAL_EM("SCARA");
-    #elif MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
+    #elif IS_CORE
       SERIAL_EM("Core");
     #else
       SERIAL_EM("Cartesian");
@@ -4682,6 +4683,7 @@ inline void gcode_G28() {
    * I:             Adjust Tower
    * D:             Adjust Diagonal Rod
    * T:             Adjust Tower Radius
+   * U:             U<bool> with a non-zero value will apply the result to current zprobe_zoffset
    */
   inline void gcode_G30() {
 
@@ -4708,14 +4710,18 @@ inline void gcode_G28() {
 
     if (code_seen('X') and code_seen('Y')) {
       // Probe specified X, Y point
-      float x = code_seen('X') ? (int)code_value_axis_units(X_AXIS) : 0.00;
-      float y = code_seen('Y') ? (int)code_value_axis_units(Y_AXIS) : 0.00;
-      float probe_value;
+      float x = code_seen('X') ? (int)code_value_axis_units(X_AXIS) : 0.00,
+            y = code_seen('Y') ? (int)code_value_axis_units(Y_AXIS) : 0.00,
+            probe_value = probe_pt(x, y, false, 1),
+            new_Z_offest = soft_endstop_min[Z_AXIS] - probe_value;
 
-      probe_value = probe_bed(x, y);
       SERIAL_MV("Bed Z-Height at X:", x);
       SERIAL_MV(" Y:", y);
-      SERIAL_EMV(" = ", probe_value, 4);
+      SERIAL_MV(" = ", probe_value + zprobe_zoffset, 4);
+      SERIAL_EMV("  New Z probe offset = ", new_Z_offest, 4);
+
+      if (code_seen('U') && code_value_bool() != 0)
+        zprobe_zoffset = new_Z_offest;
 
       STOW_PROBE();
       return;
@@ -7014,10 +7020,11 @@ inline void gcode_M226() {
 #endif // PIDTEMPCOOLER
 
 #if HAS(MICROSTEPS)
+
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
   inline void gcode_M350() {
     if(code_seen('S')) for(int i = 0; i <= 4; i++) stepper.microstep_mode(i, code_value_byte());
-    for(int i = 0; i < NUM_AXIS; i++) if(code_seen(axis_codes[i])) stepper.microstep_mode(i, code_value_byte());
+    LOOP_XYZE(i) if(code_seen(axis_codes[i])) stepper.microstep_mode(i, code_value_byte());
     if(code_seen('B')) stepper.microstep_mode(4, code_value_byte());
     stepper.microstep_readings();
   }
@@ -7029,16 +7036,17 @@ inline void gcode_M226() {
   inline void gcode_M351() {
     if (code_seen('S')) switch(code_value_byte()) {
       case 1:
-        for(int i = 0; i < NUM_AXIS; i++) if (code_seen(axis_codes[i])) stepper.microstep_ms(i, code_value_byte(), -1);
+        LOOP_XYZE(i) if (code_seen(axis_codes[i])) stepper.microstep_ms(i, code_value_byte(), -1);
         if (code_seen('B')) stepper.microstep_ms(4, code_value_byte(), -1);
         break;
       case 2:
-        for(int i = 0; i < NUM_AXIS; i++) if (code_seen(axis_codes[i])) stepper.microstep_ms(i, -1, code_value_byte());
+        LOOP_XYZE(i) if (code_seen(axis_codes[i])) stepper.microstep_ms(i, -1, code_value_byte());
         if (code_seen('B')) stepper.microstep_ms(4, -1, code_value_byte());
         break;
     }
     stepper.microstep_readings();
   }
+
 #endif // HAS(MICROSTEPS)
 
 #if HAS_CASE_LIGHT
@@ -10328,7 +10336,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 
     #define MBL_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
 
-    float normalized_dist, end[NUM_AXIS];
+    float normalized_dist, end[XYZE];
 
     // Split at the left/front border of the right/top square
     int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
@@ -10363,7 +10371,71 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     memcpy(destination, end, sizeof(end));
     mesh_line_to_destination(fr_mm_s, x_splits, y_splits);  
   }
-#endif  // MESH_BED_LEVELING
+
+#elif ENABLED(AUTO_BED_LEVELING_BILINEAR) && !IS_KINEMATIC
+
+  #define CELL_INDEX(A,V) ((RAW_##A##_POSITION(V) - bilinear_start[A##_AXIS]) / bilinear_grid_spacing[A##_AXIS])
+
+  /**
+   * Prepare a bilinear-leveled linear move on Cartesian,
+   * splitting the move where it crosses mesh borders.
+   */
+  void bilinear_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xff, uint8_t y_splits = 0xff) {
+    int cx1 = CELL_INDEX(X, current_position[X_AXIS]),
+        cy1 = CELL_INDEX(Y, current_position[Y_AXIS]),
+        cx2 = CELL_INDEX(X, destination[X_AXIS]),
+        cy2 = CELL_INDEX(Y, destination[Y_AXIS]);
+    cx1 = constrain(cx1, 0, ABL_GRID_POINTS_X - 2);
+    cy1 = constrain(cy1, 0, ABL_GRID_POINTS_Y - 2);
+    cx2 = constrain(cx2, 0, ABL_GRID_POINTS_X - 2);
+    cy2 = constrain(cy2, 0, ABL_GRID_POINTS_Y - 2);
+
+    if (cx1 == cx2 && cy1 == cy2) {
+      // Start and end on same mesh square
+      line_to_destination(fr_mm_s);
+      set_current_to_destination();
+      return;
+    }
+
+    #define LINE_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
+
+    float normalized_dist, end[XYZE];
+
+    // Split at the left/front border of the right/top square
+    int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+    if (cx2 != cx1 && TEST(x_splits, gcx)) {
+      memcpy(end, destination, sizeof(end));
+      destination[X_AXIS] = LOGICAL_X_POSITION(bilinear_start[X_AXIS] + bilinear_grid_spacing[X_AXIS] * gcx);
+      normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
+      destination[Y_AXIS] = LINE_SEGMENT_END(Y);
+      CBI(x_splits, gcx);
+    }
+    else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+      memcpy(end, destination, sizeof(end));
+      destination[Y_AXIS] = LOGICAL_Y_POSITION(bilinear_start[Y_AXIS] + bilinear_grid_spacing[Y_AXIS] * gcy);
+      normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
+      destination[X_AXIS] = LINE_SEGMENT_END(X);
+      CBI(y_splits, gcy);
+    }
+    else {
+      // Already split on a border
+      line_to_destination(fr_mm_s);
+      set_current_to_destination();
+      return;
+    }
+
+    destination[Z_AXIS] = LINE_SEGMENT_END(Z);
+    destination[E_AXIS] = LINE_SEGMENT_END(E);
+
+    // Do the split and look for more borders
+    bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+
+    // Restore destination from stack
+    memcpy(destination, end, sizeof(end));
+    bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+  }
+
+#endif // AUTO_BED_LEVELING_BILINEAR
 
 #if IS_KINEMATIC
 
@@ -10451,7 +10523,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     return true;
   }
 
-#else // NOMECH(DELTA) && NOMECH(SCARA)
+#else // !IS_KINEMATIC
 
   /**
    * Prepare a linear move in a Cartesian setup.
@@ -10478,13 +10550,19 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
           return false;
         }
         else
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        if (planner.abl_enabled) {
+          bilinear_line_to_destination(MMS_SCALED(feedrate_mm_s));
+          return false;
+        }
+        else
       #endif
           line_to_destination(MMS_SCALED(feedrate_mm_s));
     }
     return true;
   }
 
-#endif // CARTESIAN || COREXY || COREYX || COREXZ || COREZX
+#endif // !IS_KINEMATIC
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
