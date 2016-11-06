@@ -1444,9 +1444,9 @@
   #endif
 #endif
 
-#if MECH(COREXY) || MECH(COREYX) || MECH(COREXZ) || MECH(COREZX)
-  #if DISABLED(COREX_YZ_FACTOR)
-    #error DEPENDENCY ERROR: Missing setting COREX_YZ_FACTOR
+#if IS_CORE
+  #if DISABLED(CORE_FACTOR)
+    #error DEPENDENCY ERROR: Missing setting CORE_FACTOR
   #endif
 #endif
 

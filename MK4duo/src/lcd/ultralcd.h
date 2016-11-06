@@ -173,7 +173,7 @@
   inline void lcd_setstatuspgm(const char* message, const uint8_t level=0) {UNUSED(message); UNUSED(level);}
   inline void lcd_buttons_update() {}
   inline void lcd_reset_alert_level() {}
-  inline bool lcd_detected(void) { return true; }
+  inline bool lcd_detected() { return true; }
 
   #define LCD_MESSAGEPGM(x) NOOP
   #define LCD_ALERTMESSAGEPGM(x) NOOP

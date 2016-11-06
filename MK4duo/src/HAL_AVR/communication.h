@@ -58,7 +58,7 @@ FORCE_INLINE void serialprintPGM(const char* str) {
 #define SERIAL_PS(message)                  serialprintPGM(message)
 #define SERIAL_PGM(message)                 serialprintPGM(PSTR(message))
 
-#define SERIAL_S(srt)                       SERIAL_PS(srt)
+#define SERIAL_S(srt)                       SERIAL_PGM(srt)
 #define SERIAL_M(msg)                       SERIAL_PGM(msg)
 #define SERIAL_T(txt)                       SERIAL_PRINT(txt)
 #define SERIAL_V(val, ...)                  SERIAL_PRINT(val, ## __VA_ARGS__)

@@ -38,7 +38,7 @@ http://marlinkimbra.it
 This version of Marlin was made to accommodate some requests made by the community RepRap Italy http://forums.reprap.org/index.php?349
 
 The new features are:
-* A single Firmware for all types of printers; Cartesian, Delta, SCARA, CoreXY & CoreXZ.
+* A single Firmware for all types of printers; Cartesian, Delta, MORGAN SCARA, MAKERARM SCARA, CoreXY, CoreXZ & CoreYZ and their reverse.
 * The possibility of having only one hotend independently from the extruders that you have.
 * The addition of the 6th extruder.
 * Management Color Mixing Extruder

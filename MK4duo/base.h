@@ -50,17 +50,11 @@
 
   #if MECH(CARTESIAN)
     #include "Configuration_Cartesian.h"
-  #elif MECH(COREXY)
-    #include "Configuration_Core.h"
-  #elif MECH(COREYX)
-    #include "Configuration_Core.h"
-  #elif MECH(COREXZ)
-    #include "Configuration_Core.h"
-  #elif MECH(COREZX)
+  #elif IS_CORE
     #include "Configuration_Core.h"
   #elif MECH(DELTA)
     #include "Configuration_Delta.h"
-  #elif MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA)
+  #elif IS_SCARA
     #include "Configuration_Scara.h"
   #endif
 

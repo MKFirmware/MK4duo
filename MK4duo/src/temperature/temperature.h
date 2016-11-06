@@ -543,8 +543,8 @@ class Temperature {
 
     #if ENABLED(BABYSTEPPING)
 
-      static void babystep_axis(AxisEnum axis, int distance) {
-        #if MECH(COREXY) || MECH(COREYX)|| MECH(COREXZ) || MECH(COREZX)
+      static void babystep_axis(const AxisEnum axis, const int distance) {
+        #if IS_CORE
           #if ENABLED(BABYSTEP_XY)
             switch (axis) {
               case CORE_AXIS_1: // X on CoreXY and CoreXZ, Y on CoreYZ
@@ -552,17 +552,17 @@ class Temperature {
                 babystepsTodo[CORE_AXIS_2] += distance * 2;
                 break;
               case CORE_AXIS_2: // Y on CoreXY, Z on CoreXZ and CoreYZ
-                babystepsTodo[CORE_AXIS_1] += distance * 2;
-                babystepsTodo[CORE_AXIS_2] -= distance * 2;
+                babystepsTodo[CORE_AXIS_1] += CORESIGN(distance * 2);
+                babystepsTodo[CORE_AXIS_2] -= CORESIGN(distance * 2);
                 break;
               case NORMAL_AXIS: // Z on CoreXY, Y on CoreXZ, X on CoreYZ
                 babystepsTodo[NORMAL_AXIS] += distance;
                 break;
             }
-          #elif MECH(COREXZ) || MECH(COREZX)
+          #elif CORE_IS_XZ || CORE_IS_YZ
             // Only Z stepping needs to be handled here
-            babystepsTodo[CORE_AXIS_1] += distance * 2;
-            babystepsTodo[CORE_AXIS_2] -= distance * 2;
+            babystepsTodo[CORE_AXIS_1] += CORESIGN(distance * 2);
+            babystepsTodo[CORE_AXIS_2] -= CORESIGN(distance * 2);
           #else
             babystepsTodo[Z_AXIS] += distance;
           #endif
