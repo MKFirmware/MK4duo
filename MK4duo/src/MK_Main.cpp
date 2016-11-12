@@ -3649,8 +3649,8 @@ inline void gcode_G28() {
   stepper.synchronize();
 
   #if HAS(ABL)
-    // For auto bed leveling, clear the level matrix
-    //reset_bed_level();
+    // For auto bed leveling, disable abl
+    set_bed_leveling_enabled(false);
   #endif
 
   // Always home with tool 0 active
