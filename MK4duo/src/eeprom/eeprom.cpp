@@ -21,7 +21,7 @@
  */
 
 /**
- * configuration_store.cpp
+ * eeprom.cpp
  *
  * Configuration and EEPROM storage
  *
@@ -36,7 +36,7 @@
  *
  */
 
-#include "base.h"
+#include "../../base.h"
 
 #define EEPROM_VERSION "MKV30"
 #define EEPROM_OFFSET 10
@@ -136,10 +136,12 @@
  *
  */
 
-uint16_t eeprom_checksum;
-const char version[6] = EEPROM_VERSION;
+EEPROM eeprom;
 
-void _EEPROM_writeData(int& pos, uint8_t* value, uint8_t size) {
+uint16_t EEPROM::eeprom_checksum;
+char EEPROM::version[6] = EEPROM_VERSION;
+
+void EEPROM::writeData(int& pos, uint8_t* value, uint8_t size) {
   uint8_t c;
   while(size--) {
     eeprom_write_byte((unsigned char*)pos, *value);
@@ -153,7 +155,7 @@ void _EEPROM_writeData(int& pos, uint8_t* value, uint8_t size) {
   };
 }
 
-void _EEPROM_readData(int& pos, uint8_t* value, uint8_t size) {
+void EEPROM::readData(int& pos, uint8_t* value, uint8_t size) {
   do {
     byte c = eeprom_read_byte((unsigned char*)pos);
     *value = c;
@@ -166,7 +168,7 @@ void _EEPROM_readData(int& pos, uint8_t* value, uint8_t size) {
 /**
  * Post-process after Retrieve or Reset
  */
-void Config_Postprocess() {
+void EEPROM::Postprocess() {
   // steps per s2 needs to be updated to agree with units per s2
   planner.reset_acceleration_rates();
 
@@ -194,13 +196,13 @@ void Config_Postprocess() {
 
   #define EEPROM_START() int eeprom_index = EEPROM_OFFSET
   #define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR) _EEPROM_writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
-  #define EEPROM_READ(VAR) _EEPROM_readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
+  #define EEPROM_WRITE(VAR) writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
+  #define EEPROM_READ(VAR)  readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
 
   /**
    * M500 - Store Configuration
    */
-  void Config_StoreSettings() {
+  void EEPROM::StoreSettings() {
     float dummy = 0.0f;
     char ver[6] = "00000";
 
@@ -364,7 +366,7 @@ void Config_Postprocess() {
   /**
    * M501 - Retrieve Configuration
    */
-  void Config_RetrieveSettings() {
+  void EEPROM::RetrieveSettings() {
 
     EEPROM_START();
 
@@ -381,7 +383,7 @@ void Config_Postprocess() {
     }
 
     if (strncmp(version, stored_ver, 5) != 0) {
-      Config_ResetDefault();
+      ResetDefault();
     }
     else {
       float dummy = 0;
@@ -522,14 +524,14 @@ void Config_Postprocess() {
       #endif
 
       if (eeprom_checksum == stored_checksum) {
-        Config_Postprocess();
+        Postprocess();
         SERIAL_V(version);
         SERIAL_MV(" stored settings retrieved (", eeprom_index);
         SERIAL_EM(" bytes)");
       }
       else {
         SERIAL_LM(ER, "EEPROM checksum mismatch");
-        Config_ResetDefault();
+        ResetDefault();
       }
     }
 
@@ -540,14 +542,14 @@ void Config_Postprocess() {
 
 #else // !EEPROM_SETTINGS
 
-  void Config_StoreSettings() { SERIAL_LM(ER, "EEPROM disabled"); }
+  void EEPROM::StoreSettings() { SERIAL_LM(ER, "EEPROM disabled"); }
 
 #endif // EEPROM_SETTINGS
 
 /**
  * M502 - Reset Configuration
  */
-void Config_ResetDefault() {
+void EEPROM::ResetDefault() {
   float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
   float tmp2[] = DEFAULT_MAX_FEEDRATE;
   float tmp3[] = DEFAULT_MAX_ACCELERATION;
@@ -711,7 +713,7 @@ void Config_ResetDefault() {
     IDLE_OOZING_enabled = true;
   #endif
 
-  Config_Postprocess();
+  Postprocess();
 
   SERIAL_EM("Hardcoded Default Settings Loaded");
 }
@@ -723,7 +725,7 @@ void Config_ResetDefault() {
   /**
    * M503 - Print Configuration
    */
-  void Config_PrintSettings(bool forReplay) {
+  void EEPROM::PrintSettings(bool forReplay) {
     // Always have this function, even with EEPROM_SETTINGS disabled, the current values will be shown
 
     CONFIG_MSG_START("Steps per unit:");
@@ -969,151 +971,8 @@ void Config_ResetDefault() {
       print_bed_level();
     #endif
 
-    ConfigSD_PrintSettings();
+    card.PrintSettings();
 
-  }
-
-  void ConfigSD_PrintSettings() {
-    // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
-
-    #if HAS(POWER_CONSUMPTION_SENSOR)
-      CONFIG_MSG_START("Watt/h consumed:");
-      SERIAL_LMV(INFO, power_consumption_hour," Wh");
-    #endif
-
-    print_job_counter.showStats();
   }
 
 #endif // !DISABLE_M503
-
-/**
-* Configuration on SD card
-*
-* Author: Simone Primarosa
-*
-*/
-void ConfigSD_ResetDefault() {
-  #if HAS(POWER_CONSUMPTION_SENSOR)
-    power_consumption_hour = 0;
-  #endif
-  print_job_counter.initStats();
-  SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
-}
-
-#if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
-
-  static const char *cfgSD_KEY[] = { // Keep this in lexicographical order for better search performance(O(Nlog2(N)) insted of O(N*N)) (if you don't keep this sorted, the algorithm for find the key index won't work, keep attention.)
-    "CPR",  // Number of complete prints
-    "FIL",  // Filament Usage
-    "NPR",  // Number of prints
-  #if HAS(POWER_CONSUMPTION_SENSOR)
-    "PWR",  // Power Consumption
-  #endif
-    "TME",  // Longest print job
-    "TPR"   // Total printing time
-  };
-
-  void ConfigSD_StoreSettings() {
-    if(!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) return;
-
-    set_sd_dot();
-    card.setroot(true);
-    card.startWrite((char *)CFG_SD_FILE, false);
-    char buff[CFG_SD_MAX_VALUE_LEN];
-    ltoa(print_job_counter.data.finishedPrints, buff, 10);
-    card.unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
-    ltoa(print_job_counter.data.filamentUsed, buff, 10);
-    card.unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
-    ltoa(print_job_counter.data.totalPrints, buff, 10);
-    card.unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
-    #if HAS(POWER_CONSUMPTION_SENSOR)
-      ltoa(power_consumption_hour, buff, 10);
-      card.unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
-    #endif
-    ltoa(print_job_counter.data.printer_usage, buff, 10);
-    card.unparseKeyLine(cfgSD_KEY[SD_CFG_TME], buff);
-    ltoa(print_job_counter.data.printTime, buff, 10);
-    card.unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
-
-    card.closeFile();
-    card.setlast();
-    unset_sd_dot();
-  }
-
-  void ConfigSD_RetrieveSettings(bool addValue) {
-    if(!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting || !card.cardOK) return;
-
-    set_sd_dot();
-    char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];
-    int k_idx;
-    int k_len, v_len;
-    card.setroot(true);
-    card.selectFile((char *)CFG_SD_FILE);
-
-    while(true) {
-      k_len = CFG_SD_MAX_KEY_LEN;
-      v_len = CFG_SD_MAX_VALUE_LEN;
-      card.parseKeyLine(key, value, k_len, v_len);
-
-      if(k_len == 0 || v_len == 0) break; // no valid key or value founded
-
-      k_idx = ConfigSD_KeyIndex(key);
-      if(k_idx == -1) continue;    // unknow key ignore it
-
-      switch(k_idx) {
-        case SD_CFG_CPR: {
-          if(addValue) print_job_counter.data.finishedPrints += (unsigned long)atol(value);
-          else print_job_counter.data.finishedPrints = (unsigned long)atol(value);
-        }
-        break;
-        case SD_CFG_FIL: {
-          if(addValue) print_job_counter.data.filamentUsed += (unsigned long)atol(value);
-          else print_job_counter.data.filamentUsed = (unsigned long)atol(value);
-        }
-        break;
-        case SD_CFG_NPR: {
-          if(addValue) print_job_counter.data.totalPrints += (unsigned long)atol(value);
-          else print_job_counter.data.totalPrints = (unsigned long)atol(value);
-        }
-        break;
-      #if HAS(POWER_CONSUMPTION_SENSOR)
-        case SD_CFG_PWR: {
-          if(addValue) power_consumption_hour += (unsigned long)atol(value);
-          else power_consumption_hour = (unsigned long)atol(value);
-        }
-        break;
-      #endif
-        case SD_CFG_TME: {
-          if(addValue) print_job_counter.data.printer_usage += (unsigned long)atol(value);
-          else print_job_counter.data.printer_usage = (unsigned long)atol(value);
-        }
-        break;
-        case SD_CFG_TPR: {
-          if(addValue) print_job_counter.data.printTime += (unsigned long)atol(value);
-          else print_job_counter.data.printTime = (unsigned long)atol(value);
-        }
-        break;
-      }
-    }
-
-    print_job_counter.loaded = true;
-    card.closeFile();
-    card.setlast();
-    unset_sd_dot();
-  }
-
-  int ConfigSD_KeyIndex(char *key) {  // At the moment a binary search algorithm is used for simplicity, if it will be necessary (Eg. tons of key), an hash search algorithm will be implemented.
-    int begin = 0, end = SD_CFG_END - 1, middle, cond;
-
-    while(begin <= end) {
-      middle = (begin + end) / 2;
-      cond = strcmp(cfgSD_KEY[middle], key);
-      if(!cond) return middle;
-      else if(cond < 0) begin = middle + 1;
-      else end = middle - 1;
-    }
-
-    return -1;
-  }
-
-#endif

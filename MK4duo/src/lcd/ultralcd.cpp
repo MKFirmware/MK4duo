@@ -759,6 +759,13 @@ void kill_screen(const char* lcd_msg) {
     #endif
   #endif
 
+  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+    static void lcd_enqueue_filament_change() {
+      lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INIT);
+      enqueue_and_echo_commands_P(PSTR("M600"));
+    }
+  #endif
+
   /**
    *
    * "Tune" submenu
@@ -881,7 +888,7 @@ void kill_screen(const char* lcd_msg) {
     // Change filament
     //
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
-       MENU_ITEM(gcode, MSG_FILAMENT_CHANGE, PSTR("M600"));
+      MENU_ITEM(function, MSG_FILAMENT_CHANGE, lcd_enqueue_filament_change);
     #endif
 
     END_MENU();
@@ -1636,10 +1643,10 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EPROM, Config_StoreSettings);
-      MENU_ITEM(function, MSG_LOAD_EPROM, Config_RetrieveSettings);
+      MENU_ITEM(function, MSG_STORE_EPROM, eeprom.StoreSettings);
+      MENU_ITEM(function, MSG_LOAD_EPROM, eeprom.RetrieveSettings);
     #endif
-    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, Config_ResetDefault);
+    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, eeprom.ResetDefault);
     END_MENU();
   }
 
@@ -1868,7 +1875,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM_EDIT(int3, MSG_BED, &lcd_preheat_bed_temp[material], BED_MINTEMP, BED_MAXTEMP - 15);
       #endif
       #if ENABLED(EEPROM_SETTINGS)
-        MENU_ITEM(function, MSG_STORE_EPROM, Config_StoreSettings);
+        MENU_ITEM(function, MSG_STORE_EPROM, eeprom.StoreSettings);
       #endif
       END_MENU();
     }

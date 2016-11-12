@@ -80,12 +80,9 @@
 // 1 - Reset controller. Will not reset separate communication chips!
 #define KILL_METHOD 0
 
-// If you want test the firmware uncomment below. Use Serial arduino monitor...
-// ONLY BAUDRATE 115200
-//#define FIRMWARE_TEST
-
 // Some particular clients re-start sending commands only after receiving a 'wait' when there is a bad serial-connection.
-//#define NO_TIMEOUTS 1000 // Milliseconds
+// Milliseconds
+#define NO_TIMEOUTS 1000
 // Uncomment to include more info in ok command
 //#define ADVANCED_OK
 
@@ -94,8 +91,10 @@
 //
 // When enabled MK4duo will send a busy status message to the host
 // every couple of seconds when it can't accept commands.
-#define HOST_KEEPALIVE_FEATURE        // Disable this if your host doesn't like keepalive messages
-#define DEFAULT_KEEPALIVE_INTERVAL 2  // Number of seconds between "busy" messages. Set with M113.
+// Disable this if your host doesn't like keepalive messages
+//#define HOST_KEEPALIVE_FEATURE
+// Number of seconds between "busy" messages. Set with M113.
+#define DEFAULT_KEEPALIVE_INTERVAL 2
 /***********************************************************************/
 
 

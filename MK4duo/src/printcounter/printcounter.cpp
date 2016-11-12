@@ -52,7 +52,7 @@ void PrintCounter::loadStats() {
   #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
     // Checks if the SDCARD is inserted
     if(IS_SD_INSERTED && !IS_SD_PRINTING) {
-      ConfigSD_RetrieveSettings(true);
+      card.RetrieveSettings(true);
     }
   #endif
 }
@@ -66,7 +66,7 @@ void PrintCounter::saveStats() {
   if (!this->loaded) return;
 
   #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
-    ConfigSD_StoreSettings();
+    card.StoreSettings();
   #endif
 }
 

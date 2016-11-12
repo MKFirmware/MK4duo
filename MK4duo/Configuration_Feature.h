@@ -93,6 +93,8 @@
  * - G20/G21 Inch mode support
  * - Report JSON-style response
  * - M43 command for pins info and testing
+ * - M115 Auto report temperatures
+ * - Extend capabilities report
  * - Whatchdog
  * - Start / Stop Gcode
  *
@@ -423,6 +425,7 @@
  *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE
+
 #define LIN_ADVANCE_K 75
 /*****************************************************************************************/
 
@@ -500,6 +503,7 @@
  *                                                                        *
  **************************************************************************/
 //#define ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
+
 #define ABORT_ON_ENDSTOP_HIT_INIT true
 /**************************************************************************/
 
@@ -623,6 +627,7 @@
  *                                                                        *
  **************************************************************************/
 //#define BABYSTEPPING
+
 #define BABYSTEP_XY  // not only z, but also XY in the menu. more clutter, more functions
                      // not implemented for CoreXY and deltabots!
 #define BABYSTEP_INVERT_Z false   // true for inverse movements in Z
@@ -665,6 +670,7 @@
  *                                                                                       *
  *****************************************************************************************/
 //#define DUAL_X_CARRIAGE
+
 // Configuration for second X-carriage
 // Note: the first x-carriage is defined as the x-carriage which homes to the minimum endstop;
 // the second x-carriage always homes to the maximum endstop.
@@ -950,7 +956,8 @@
 /*****************************************************************************************
  *************************************** SDCARD *******************************************
  ****************************************************************************************/
-//#define SDSUPPORT           // Enable SD Card Support in Hardware Console
+//#define SDSUPPORT
+
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SD_CHECK_AND_RETRY  // Use CRC checks and retries on the SD communication
@@ -1630,13 +1637,35 @@
 
 
 /*****************************************************************************************
- **********************************  M43 pins info ***************************************
+ *********************************** M43 pins info ***************************************
  *****************************************************************************************
  *                                                                                       *
  * M43 Pins info and testing                                                             *
  *                                                                                       *
  *****************************************************************************************/
 //#define PINS_DEBUGGING
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ****************************** Auto report temperatures *********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Auto-report temperatures with M155 S<seconds>                                         *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define AUTO_REPORT_TEMPERATURES
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ****************************** Extend capabilities report *******************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Include capabilities in M115 output                                                   *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define EXTENDED_CAPABILITIES_REPORT
 /*****************************************************************************************/
 
 

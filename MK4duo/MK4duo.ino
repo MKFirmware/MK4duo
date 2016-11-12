@@ -50,7 +50,8 @@
  * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
    G29   Fyyy Lxxx Rxxx Byyy for customer grid.
- * G30 - Single Z Probe, probes bed at current XY location. - Bed Probe and Delta geometry Autocalibration
+ * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
+         and Delta geometry Autocalibration
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
  * G60 - Save current position coordinates (all axes, for active extruder).
@@ -67,10 +68,9 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
- * M3   - Put S<value> in laser beam control
- * M4   - Turn on laser beam
- * M5   - Turn off laser beam
- * M11  - Start/Stop printing serial mode
+ * M3   - Put S<value> in laser beam control. (Requires LASERBEAM)
+ * M4   - Turn on laser beam. (Requires LASERBEAM)
+ * M5   - Turn off laser beam. (Requires LASERBEAM)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -137,6 +137,7 @@
  * M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
  * M149 - Set temperature units
  * M150 - Set BlinkM Color Output R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+ * M155 - Set temperature auto-report interval
  * M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
  * M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.
  * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. Requires COLOR_MIXING_EXTRUDER.
@@ -171,6 +172,9 @@
  * M304 - Set hot bed PID parameters P I and D
  * M305 - Set hot chamber PID parameters P I and D
  * M306 - Set cooler PID parameters P I and D
+ * M320 - Activate autolevel
+ * M321 - Deactivate autoleveling
+ * M322 - Reset auto leveling matrix
  * M350 - Set microstepping mode.
  * M351 - Toggle MS1 MS2 pins directly.
  * M355 - Turn case lights on/off
@@ -185,7 +189,7 @@
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response
  * M410 - Quickstop. Abort all the planned moves
- * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
+ * M420 - Enable/Disable Mesh Bed Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
  * M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
  * M428 - Set the home_offset logically based on the current_position
  * M500 - Store parameters in EEPROM
@@ -193,6 +197,9 @@
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
  * M522 - Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
+ * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+ * M531 - filename - Define filename being printed
+ * M532 - X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M595 - Set hotend AD595 O<offset> and S<gain>
  * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]

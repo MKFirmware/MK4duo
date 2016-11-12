@@ -30,6 +30,7 @@
 #define WT              "wait"                // wait for host
 #define ECHO            "Echo:"               // message for user
 #define CFG             "Config:"             // config for host
+#define CAP             "Cap:"                // capabilities for host
 #define INFO            "Info:"               // info for host
 #define BUSY            "busy:"               // buys for host
 #define RESEND          "Resend:"             // resend for host
