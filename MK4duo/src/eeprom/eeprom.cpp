@@ -536,7 +536,7 @@ void EEPROM::Postprocess() {
     }
 
     #if ENABLED(EEPROM_CHITCHAT)
-      Config_PrintSettings();
+      PrintSettings();
     #endif
   }
 
