@@ -1,3 +1,15 @@
+### Version 4.3.06_dev
+* Add Auto report temp width M155
+* Add new capabilities string width M115
+* Add M155 Set temperature auto-report interval
+* Add M320 Activate autolevel
+* Add M321 Deactivate autoleveling
+* Add M322 Reset auto leveling matrix
+* Change M11 in M530
+* Add M530 Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+* Add M531 Define filename being printed
+* Add M532 update current print state progress (X=0..100) and layer L
+
 ### Version 4.3.05_dev
 * Add register in EEPROM Bilinear Bed Level
 * Add M355 Turn case lights on/off

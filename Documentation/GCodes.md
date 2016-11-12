@@ -37,7 +37,6 @@
 *  M3   - S[0-255] Put output in laser beam control
 *  M4   - Turn on laser beam
 *  M5   - Turn off laser beam
-*  M11  - Start/Stop printing serial mode
 *  M17  - Enable/Power all stepper motors
 *  M18  - Disable all stepper motors; same as M84
 *  M20  - List SD card
@@ -57,6 +56,7 @@
 *  M34  - Open file and start print
 *  M35  - Upload Firmware to Nextion from SD
 *  M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
+*  M43  - Monitor pins & report changes - report active pins
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -101,6 +101,7 @@
 *  M142 - Set cooler target temp
 *  M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
 *  M150 - Set BlinkM Color Output R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+*  M155 - Set temperature auto-report interval
 *  M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
 *  M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.
 *  M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. Requires COLOR_MIXING_EXTRUDER.
@@ -132,8 +133,14 @@
 *  M304 - Set hot bed PID parameters P I and D
 *  M305 - Set hot chamber PID parameters P I and D
 *  M306 - Set cooler PID parameters P I and D
+*  M320 - Activate autolevel
+*  M321 - Deactivate autoleveling
+*  M322 - Reset auto leveling matrix
 *  M350 - Set microstepping mode.
 *  M351 - Toggle MS1 MS2 pins directly.
+*  M355 - Turn case lights on/off
+*  M380 - Activate solenoid on active extruder
+*  M381 - Disable all solenoids
 *  M400 - Finish all moves
 *  M401 - Lower z-probe if present
 *  M402 - Raise z-probe if present
@@ -143,7 +150,7 @@
 *  M407 - Displays measured filament diameter
 *  M408 - Report JSON-style response
 *  M410 - Quickstop. Abort all the planned moves
-*  M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
+*  M420 - Enable/Disable Mesh Bed Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
 *  M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
 *  M428 - Set the home_offset logically based on the current_position
 *  M500 - stores paramters in EEPROM
@@ -151,7 +158,10 @@
 *  M502 - reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
 *  M503 - print the current settings (from memory not from EEPROM)
 *  M522 - Use for reader o writer tag width MFRC522. M522 T<extruder> R(read) W(write) L(print list data on tag)
-*  M540 - Use S[0|1] to enable or disable the stop SD card print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+*  M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+*  M531 - filename - Define filename being printed
+*  M532 - X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
+*  M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
 *  M595 - Set hotend AD595 offset and gain
 *  M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
 *  M605 - Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]

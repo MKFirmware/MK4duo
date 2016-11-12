@@ -32,6 +32,7 @@ class Com {
     FSTRINGVAR(tWait)                     // wait for host
     FSTRINGVAR(tEcho)                     // message for user
     FSTRINGVAR(tConfig)                   // config for host
+    FSTRINGVAR(tCap)                      // capabilities for host
     FSTRINGVAR(tInfo)                     // info for host
     FSTRINGVAR(tBusy)                     // buys for host
     FSTRINGVAR(tResend)                   // resend for host
@@ -75,6 +76,7 @@ class Com {
 #define WT          Com::tWait
 #define ECHO        Com::tEcho
 #define CFG         Com::tConfig
+#define CAP         Com::tCap
 #define INFO        Com::tInfo
 #define BUSY        Com::tBusy
 #define RESEND      Com::tResend

@@ -84,7 +84,12 @@ extern uint8_t mk_debug_flags;
 extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
-extern bool Printing;
+
+// Print status related
+extern long   currentLayer,
+              maxLayer; // -1 = unknown
+extern char   printName[21]; // max. 20 chars + 0
+extern float  progress;
 
 bool enqueue_and_echo_command(const char* cmd, bool say_ok = false); // put a single ASCII command at the end of the current buffer or return false when it is full
 void enqueue_and_echo_command_now(const char* cmd); // enqueue now, only return when the command has been enqueued

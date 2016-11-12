@@ -99,8 +99,7 @@
   #include "src/mbl/mesh_bed_leveling.h"
 #endif
 
-#include "Configuration_Store.h"
-
+#include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
 #include "src/MK_Main.h"
@@ -117,7 +116,7 @@
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
 #include "src/watchdog/watchdog.h"
-#include "src/blinkm/blinkm.h"
+#include "src/utility/blinkm.h"
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   #include "src/alligator/external_dac.h"
@@ -125,10 +124,6 @@
 
 #if HAS(DIGIPOTSS)
   #include <SPI.h>
-#endif
-
-#if ENABLED(FIRMWARE_TEST)
-  #include "src/fwtest/firmware_test.h"
 #endif
 
 #if ENABLED(RFID_MODULE)

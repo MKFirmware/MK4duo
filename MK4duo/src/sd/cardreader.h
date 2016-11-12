@@ -66,6 +66,20 @@ public:
   void setroot(bool temporary = false);
   void setlast();
 
+  void ResetDefault();
+  void PrintSettings();
+  #if ENABLED(SD_SETTINGS)
+    #define CFG_SD_MAX_KEY_LEN    3+1         // icrease this if you add key name longer than the actual value.
+    #define CFG_SD_MAX_VALUE_LEN  10+1        // this should be enought for int, long and float if you need to retrive strings increase this carefully
+    //(11 = strlen("4294967295")+1) (4294967295 = (2^32)-1) (32 = the num of bits of the bigger basic data scructor used)
+    //If yuou need to save string increase this to strlen("YOUR LONGER STRING")+1
+    void StoreSettings();
+    void RetrieveSettings(bool addValue = false);
+    int  KeyIndex(char *key);
+  #else
+    inline void RetrieveSettings() { ResetDefault(); }
+  #endif
+
   uint16_t getnrfilenames();
 
   void parseKeyLine(char* key, char* value, int &len_k, int &len_v);

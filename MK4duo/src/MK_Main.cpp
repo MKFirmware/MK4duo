@@ -52,6 +52,12 @@
 
 bool Running = true;
 
+// Print status related
+long  currentLayer = 0,
+      maxLayer = -1; // -1 = unknown
+char  printName[21] = ""; // max. 20 chars + 0
+float progress = 0.0;
+
 uint8_t mk_debug_flags = DEBUG_NONE;
 
 /**
@@ -790,11 +796,20 @@ void setup_photpin() {
 
 #if HAS(CASE_LIGHT)
   void setup_case_light() {
-    #if ENABLED(CASE_LIGHT_DEFAULT_ON)
-      OUT_WRITE(CASE_LIGHT_PIN, HIGH);
-    #else
-      OUT_WRITE(CASE_LIGHT_PIN, LOW);
-    #endif
+    digitalWrite(CASE_LIGHT_PIN,
+      #if ENABLED(CASE_LIGHT_DEFAULT_ON)
+        255
+      #else
+        0
+      #endif
+    );
+    analogWrite(CASE_LIGHT_PIN,
+      #if ENABLED(CASE_LIGHT_DEFAULT_ON)
+        255
+      #else
+        0
+      #endif
+    );
   }
 #endif
 
@@ -3618,6 +3633,7 @@ inline void gcode_G4() {
  *  X   Home to the X endstop
  *  Y   Home to the Y endstop
  *  Z   Home to the Z endstop
+ *  B   Return to back point
  *
  */
 inline void gcode_G28() {
@@ -3853,24 +3869,24 @@ inline void gcode_G28() {
     }
   #endif
 
-  if(come_back) {
+  if (come_back) {
     #if MECH(DELTA)
       feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
       memcpy(destination, lastpos, sizeof(destination));
       prepare_move_to_destination();
       feedrate_mm_s = old_feedrate_mm_s;
     #else
-      if(homeX) {
+      if (homeX) {
         feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
         destination[X_AXIS] = lastpos[X_AXIS];
         prepare_move_to_destination();
       }
-      if(homeY) {
+      if (homeY) {
         feedrate_mm_s = homing_feedrate_mm_s[Y_AXIS];
         destination[Y_AXIS] = lastpos[Y_AXIS];
         prepare_move_to_destination();
       }
-      if(homeZ) {
+      if (homeZ) {
         feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
         destination[Z_AXIS] = lastpos[Z_AXIS];
         prepare_move_to_destination();
@@ -4630,8 +4646,17 @@ inline void gcode_G28() {
 
   /**
    * G30: Do a single Z probe at the current XY
+   * Usage:
+   *   G30 <X#> <Y#> <S#>
+   *     X = Probe X position (default=current probe position)
+   *     Y = Probe Y position (default=current probe position)
+   *     S = Stows the probe if 1 (default=1)
    */
   inline void gcode_G30() {
+
+    float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE;
+    float Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
+    bool stow = code_seen('S') ? code_value_bool() : true;
 
     // Disable leveling so the planner won't mess with us
     #if PLANNER_LEVELING
@@ -4641,12 +4666,9 @@ inline void gcode_G28() {
     setup_for_endstop_or_probe_move();
 
     // TODO: clear the leveling matrix or the planner will be set incorrectly
-    float measured_z = probe_pt(current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-                                current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE,
-                                true, 1);
+    float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1);
 
-    SERIAL_M("Bed");
-    SERIAL_MV(" X: ", current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE + 0.0001);
+    SERIAL_MV(" Bed X: ", current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE + 0.0001);
     SERIAL_MV(" Y: ", current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE + 0.0001);
     SERIAL_MV(" Z: ", measured_z + 0.0001);
     SERIAL_E;
@@ -4674,56 +4696,54 @@ inline void gcode_G28() {
 
   /**
    * G30: Delta AutoCalibration
-   *
-   * Parameters:
-   * X Y:           Probe specified X,Y point
-   * A<precision>:  Autocalibration +/- precision
-   * E:             Adjust Endstop
-   * R:             Adjust Endstop & Delta Radius
-   * I:             Adjust Tower
-   * D:             Adjust Diagonal Rod
-   * T:             Adjust Tower Radius
-   * U:             U<bool> with a non-zero value will apply the result to current zprobe_zoffset
+   * Usage:
+   *    G30 <X#> <Y#> <A#> <E> <R> <I> <D> <T> <S#> <U#>
+   *      X = Probe X position (default=current probe position)
+   *      Y = Probe Y position (default=current probe position)
+   *      A = Autocalibration +/- precision
+   *      E = Adjust Endstop
+   *      R = Adjust Endstop & Delta Radius
+   *      I = Adjust Tower
+   *      D = Adjust Diagonal Rod
+   *      T = Adjust Tower Radius
+   *      S = Stows the probe if 1 (default=1)
+   *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset
    */
   inline void gcode_G30() {
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_EM(">>> gcode_G30");
-        log_machine_info();
-      }
-    #endif
-
     #if HAS(ABL)
-      reset_bed_level();
+      set_bed_leveling_enabled(false);
     #endif
-
-    setup_for_endstop_or_probe_move();
 
     // Homing and deploy z probe
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       home_delta();
 
-    if (DEPLOY_PROBE()) return;
+    setup_for_endstop_or_probe_move();
 
     bed_safe_z = current_position[Z_AXIS];
 
-    if (code_seen('X') and code_seen('Y')) {
+    if (code_seen('X') || code_seen('Y')) {
       // Probe specified X, Y point
-      float x = code_seen('X') ? (int)code_value_axis_units(X_AXIS) : 0.00,
-            y = code_seen('Y') ? (int)code_value_axis_units(Y_AXIS) : 0.00,
-            probe_value = probe_pt(x, y, false, 1),
-            new_Z_offest = soft_endstop_min[Z_AXIS] - probe_value;
+      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
+            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
+      bool stow = code_seen('S') ? code_value_bool() : true;
+      
+      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
+            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
 
-      SERIAL_MV("Bed Z-Height at X:", x);
-      SERIAL_MV(" Y:", y);
-      SERIAL_MV(" = ", probe_value + zprobe_zoffset, 4);
-      SERIAL_EMV("  New Z probe offset = ", new_Z_offest, 4);
+      SERIAL_MV(" Bed X:", current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE + 0.0001);
+      SERIAL_MV(" Y: ", current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE + 0.0001);
+      SERIAL_MV(" Z: ", measured_z + zprobe_zoffset, 4);
+      SERIAL_EMV("  New Z probe offset = ", new_zprobe_zoffset, 4);
 
       if (code_seen('U') && code_value_bool() != 0)
-        zprobe_zoffset = new_Z_offest;
+        zprobe_zoffset = new_zprobe_zoffset;
 
-      STOW_PROBE();
+      clean_up_after_endstop_or_probe_move();
+
+      report_current_position();
+
       return;
     }
 
@@ -5090,39 +5110,6 @@ inline void gcode_G92() {
 #endif // LASERBEAM
 
 /**
- * M11: Start/Stop printing serial mode
- */
-inline void gcode_M11() {
-  if (print_job_counter.isRunning() && !IS_SD_PRINTING) {
-    print_job_counter.stop();
-    SERIAL_EM("Stop Printing");
-    #if ENABLED(STOP_GCODE)
-      enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
-    #endif
-    #if HAS(FIL_RUNOUT)
-      filament_ran_out = false;
-      SERIAL_EM("Filament runout deactivated.");
-    #endif
-  }
-  else if (!print_job_counter.isRunning() && !IS_SD_PRINTING) {
-    print_job_counter.start();
-    SERIAL_EM("Start Printing");
-    #if ENABLED(START_GCODE)
-      enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
-    #endif
-    #if HAS(FIL_RUNOUT)
-      filament_ran_out = false;
-      SERIAL_EM("Filament runout activated.");
-      SERIAL_S(RESUME);
-      SERIAL_E;
-    #endif
-    #if HAS(POWER_CONSUMPTION_SENSOR)
-      startpower = power_consumption_hour;
-    #endif
-  }
-}
-
-/**
  * M17: Enable power on all stepper motors
  */
 inline void gcode_M17() {
@@ -5276,9 +5263,9 @@ inline void gcode_M31() {
     if (card.sdprinting)
       stepper.synchronize();
 
-    if( card.cardOK ) {
+    if (card.cardOK) {
       char* namestartpos = (strchr(current_command_args, '@'));
-      if(namestartpos == NULL) {
+      if (namestartpos == NULL) {
         namestartpos = current_command_args ; // default name position
       }
       else
@@ -5287,7 +5274,7 @@ inline void gcode_M31() {
       SERIAL_MV("Open file: ", namestartpos);
       SERIAL_EM(" and start print.");
       card.selectFile(namestartpos);
-      if(code_seen('S')) card.setIndex(code_value_long());
+      if (code_seen('S')) card.setIndex(code_value_long());
 
       feedrate_mm_s       = 20.0; // 20 units/sec
       feedrate_percentage = 100;  // 100% feedrate_mm_s
@@ -5355,7 +5342,7 @@ inline void gcode_M42() {
    *
    *      P<pin>  Pin to read or watch. If omitted, read/watch all pins.
    *      W<bool> Watch pins -reporting changes- until reset, click, or M108.
-   *      I<bool> Flag to ignore Marlin's pin protection.
+   *      I<bool> Flag to ignore MK4duo pin protection.
    *
    */
   inline void gcode_M43() {
@@ -6231,6 +6218,62 @@ inline void gcode_M114() { report_current_position(); }
  */
 inline void gcode_M115() {
   SERIAL_M(MSG_M115_REPORT);
+
+  #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
+
+    // EEPROM (M500, M501)
+    #if ENABLED(EEPROM_SETTINGS)
+      SERIAL_LM(CAP, "EEPROM:1");
+    #else
+      SERIAL_LM(CAP, "EEPROM:0");
+    #endif
+
+    // AUTOREPORT_TEMP (M155)
+    #if ENABLED(AUTO_REPORT_TEMPERATURES)
+      SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
+    #else
+      SERIAL_LM(CAP, "AUTOREPORT_TEMP:0");
+    #endif
+
+    // PROGRESS (M530 S L, M531 <file>, M532 X L)
+    SERIAL_LM(CAP, "PROGRESS:1");
+
+    // AUTOLEVEL (G29)
+    #if HAS(ABL)
+      SERIAL_LM(CAP, "AUTOLEVEL:1");
+    #else
+      SERIAL_LM(CAP, "AUTOLEVEL:0");
+    #endif
+
+    // Z_PROBE (G30)
+    #if HAS(BED_PROBE)
+      SERIAL_LM(CAP, "Z_PROBE:1");
+    #else
+      SERIAL_LM(CAP, "Z_PROBE:0");
+    #endif
+
+    // SOFTWARE_POWER (G30)
+    #if HAS(POWER_SWITCH)
+      SERIAL_LM(CAP, "SOFTWARE_POWER:1");
+    #else
+      SERIAL_LM(CAP, "SOFTWARE_POWER:0");
+    #endif
+
+    // TOGGLE_LIGHTS (M355)
+    #if HAS(CASE_LIGHT)
+      SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
+    #else
+      SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
+    #endif
+
+    // EMERGENCY_PARSER (M108, M112, M410)
+    #if ENABLED(EMERGENCY_PARSER)
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:1");
+    #else
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:0");
+    #endif
+
+  #endif // EXTENDED_CAPABILITIES_REPORT
 }
 
 /**
@@ -6393,6 +6436,32 @@ inline void gcode_M122() {
   }
 
 #endif // BLINKM
+
+#if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+
+  static uint8_t auto_report_temp_interval;
+  static millis_t next_temp_report_ms;
+
+  /**
+   * M155: Set temperature auto-report interval. M155 S<seconds>
+   */
+  inline void gcode_M155() {
+    if (code_seen('S')) {
+      auto_report_temp_interval = code_value_byte();
+      NOMORE(auto_report_temp_interval, 60);
+      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
+    }
+  }
+
+  inline void auto_report_temperatures() {
+    if (auto_report_temp_interval && ELAPSED(millis(), next_temp_report_ms)) {
+      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
+      print_heaterstates();
+      SERIAL_E;
+    }
+  }
+
+#endif // AUTO_REPORT_TEMPERATURES
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   /**
@@ -7019,13 +7088,30 @@ inline void gcode_M226() {
   }
 #endif // PIDTEMPCOOLER
 
+#if HAS(ABL)
+
+  // M320 Activate autolevel
+  inline void gcode_M320() { set_bed_leveling_enabled(true); }
+
+  // M321 Deactivate autoleveling
+  inline void gcode_M321() { set_bed_leveling_enabled(false); }
+
+  // M322 Reset auto leveling matrix
+  inline void gcode_M322() {
+    reset_bed_level();
+    if (code_seen('S') && code_value_bool())
+      eeprom.StoreSettings();
+  }
+
+#endif
+
 #if HAS(MICROSTEPS)
 
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
   inline void gcode_M350() {
-    if(code_seen('S')) for(int i = 0; i <= 4; i++) stepper.microstep_mode(i, code_value_byte());
-    LOOP_XYZE(i) if(code_seen(axis_codes[i])) stepper.microstep_mode(i, code_value_byte());
-    if(code_seen('B')) stepper.microstep_mode(4, code_value_byte());
+    if (code_seen('S')) for (int i = 0; i <= 4; i++) stepper.microstep_mode(i, code_value_byte());
+    LOOP_XYZE(i) if (code_seen(axis_codes[i])) stepper.microstep_mode(i, code_value_byte());
+    if (code_seen('B')) stepper.microstep_mode(4, code_value_byte());
     stepper.microstep_readings();
   }
 
@@ -7053,29 +7139,26 @@ inline void gcode_M226() {
   /**
    * M355: Turn case lights on/off
    *
-   *   S<int>   change state on/off or sets PWM
+   *   S<bool>  Turn case light on or off
+   *   P<byte>  Set case light brightness (PWM pin required)
    *
    */
   inline void gcode_M355() {
+    static bool case_light_on
+      #if ENABLED(CASE_LIGHT_DEFAULT_ON)
+        = true;
+      #else
+        ;
+      #endif
+    static uint8_t case_light_brightness = 255;
+    if (code_seen('P')) case_light_brightness = code_value_byte();
     if (code_seen('S')) {
-      SERIAL_SM(ECHO, "Case lights ");
-      byte light_pwm = code_value_byte();
-      switch (light_pwm) {
-        case 0: // Disable lights
-          SERIAL_M("off");
-          break;
-        case 1: // Enable lights
-          light_pwm = 255;
-          SERIAL_M("on");
-          break;
-        default: // Enable lights PWM
-          SERIAL_MV("set to: ", (int)map(light_pwm, 0, 255, 0, 100));
-          SERIAL_C('%');
-          break;
-      }
-      analogWrite(CASE_LIGHT_PIN, light_pwm);
-      SERIAL_E;
+      case_light_on = code_value_bool();
+      digitalWrite(CASE_LIGHT_PIN, case_light_on ? HIGH : LOW);
+      analogWrite(CASE_LIGHT_PIN, case_light_on ? case_light_brightness : 0);
     }
+    SERIAL_SM(ECHO, "Case lights ");
+    case_light_on ? SERIAL_EM("on") : SERIAL_EM("off");
   }
 #endif // HAS_CASE_LIGHT
 
@@ -7514,14 +7597,12 @@ inline void gcode_M400() { stepper.synchronize(); }
  */
 inline void gcode_M410() { quickstop_stepper(); }
 
-#if PLANNER_LEVELING
+#if ENABLED(MESH_BED_LEVELING)
   /**
-   * M420: Enable/Disable Bed Leveling
+   * M420: Enable/Disable Mesh Bed Leveling
    */
   inline void gcode_M420() { if (code_seen('S')) set_bed_leveling_enabled(code_value_bool()); }
-#endif
 
-#if ENABLED(MESH_BED_LEVELING)
   /**
    * M421: Set a single Mesh Bed Leveling Z coordinate
    * Use either 'M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>'
@@ -7610,28 +7691,28 @@ inline void gcode_M428() {
  * M500: Store settings in EEPROM
  */
 inline void gcode_M500() {
-  Config_StoreSettings();
+  eeprom.StoreSettings();
 }
 
 /**
  * M501: Read settings from EEPROM
  */
 inline void gcode_M501() {
-  Config_RetrieveSettings();
+  eeprom.RetrieveSettings();
 }
 
 /**
  * M502: Revert to default settings
  */
 inline void gcode_M502() {
-  Config_ResetDefault();
+  eeprom.ResetDefault();
 }
 
 /**
  * M503: print settings currently in memory
  */
 inline void gcode_M503() {
-  Config_PrintSettings(code_seen('S') && !code_value_bool());
+  eeprom.PrintSettings(code_seen('S') && !code_value_bool());
 }
 
 #if ENABLED(RFID_MODULE)
@@ -7668,6 +7749,69 @@ inline void gcode_M503() {
     if (code_seen('L')) RFID522.printInfo(target_extruder);
   }
 #endif // RFID_MODULE
+
+/**
+ * M530: S<printing> L<layer> - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+ */
+inline void gcode_M530() {
+
+  if (code_seen('L')) maxLayer = code_value_long();
+  
+  if (code_seen('S') && code_value_bool()) {
+    print_job_counter.start();
+
+    SERIAL_M("Start Printing");
+    if (maxLayer > 0) SERIAL_EMV(" - MaxLayer:", maxLayer);
+    else SERIAL_E;
+
+    #if ENABLED(START_GCODE)
+      enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
+    #endif
+    #if HAS(FIL_RUNOUT)
+      filament_ran_out = false;
+      SERIAL_EM("Filament runout activated.");
+      SERIAL_S(RESUME);
+      SERIAL_E;
+    #endif
+    #if HAS(POWER_CONSUMPTION_SENSOR)
+      startpower = power_consumption_hour;
+    #endif
+  }
+  else {
+    print_job_counter.stop();
+    SERIAL_EM("Stop Printing");
+    #if ENABLED(STOP_GCODE)
+      enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
+    #endif
+    #if HAS(FIL_RUNOUT)
+      filament_ran_out = false;
+      SERIAL_EM("Filament runout deactivated.");
+    #endif
+  }
+}
+
+/**
+ * M531: filename - Define filename being printed
+ */
+inline void gcode_M531() {
+  strncpy(printName, current_command_args, 20);
+  printName[20] = 0;
+}
+
+/**
+ * M532: X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
+ */
+inline void gcode_M532() {
+  if (code_seen('X'))
+    progress = code_value_float();
+  if (progress > 100.0)
+    progress = 100.0;
+  else if (progress < 0)
+    progress = 0;
+
+  if (code_seen('L'))
+    currentLayer = code_value_long();
+}
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
 
@@ -8973,8 +9117,6 @@ void process_next_command() {
           gcode_M5(); break;
       #endif // LASERBEAM
 
-      case 11: // M11: Start/Stop printing serial mode
-        gcode_M11(); break;
       case 17: // M17: Enable/Power all stepper motors
         gcode_M17(); break;
 
@@ -9175,6 +9317,11 @@ void process_next_command() {
           gcode_M150(); break;
       #endif //BLINKM
 
+      #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+        case 155: // M155: Set temperature auto-report interval
+          gcode_M155(); break;
+      #endif
+
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         case 163: // M163 S<int> P<float> set weight for a mixing extruder
           gcode_M163(); break;
@@ -9289,6 +9436,15 @@ void process_next_command() {
           gcode_M306(); break;
       #endif
 
+      #if HAS(ABL)
+        case 320: // M320: Activate autolevel
+          gcode_M320(); break;
+        case 321: // M321: Deactivate autoleveling
+          gcode_M321(); break;
+        case 322: // M322: Reset auto leveling matrix
+          gcode_M322(); break;
+      #endif
+
       #if HAS(MICROSTEPS)
         case 350: // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
           gcode_M350(); break;
@@ -9343,12 +9499,9 @@ void process_next_command() {
       case 410: // M410 quickstop - Abort all the planned moves.
         gcode_M410(); break;
 
-      #if PLANNER_LEVELING
-        case 420: // M420 Enable/Disable Bed Leveling
-          gcode_M420(); break;
-      #endif
-
       #if ENABLED(MESH_BED_LEVELING)
+        case 420: // M420 Enable/Disable Mesh Bed Leveling
+          gcode_M420(); break;
         case 421: // M421 Set a Mesh Bed Leveling Z coordinate
           gcode_M421(); break;
       #endif
@@ -9356,19 +9509,26 @@ void process_next_command() {
       case 428: // M428 Apply current_position to home_offset
         gcode_M428(); break;
 
-      case 500: // M500 Store settings in EEPROM
+      case 500: // M500: Store settings in EEPROM
         gcode_M500(); break;
-      case 501: // M501 Read settings from EEPROM
+      case 501: // M501: Read settings from EEPROM
         gcode_M501(); break;
-      case 502: // M502 Revert to default settings
+      case 502: // M502: Revert to default settings
         gcode_M502(); break;
-      case 503: // M503 print settings currently in memory
+      case 503: // M503: print settings currently in memory
         gcode_M503(); break;
 
       #if ENABLED(RFID_MODULE)
-        case 522: // M422 Read or Write on card. M522 T<extruders> R<read> or W<write>
+        case 522: // M422: Read or Write on card. M522 T<extruders> R<read> or W<write>
           gcode_M522(); break;
       #endif
+
+      case 530: // M530: S<printing> L<layer> - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+        gcode_M530(); break;
+      case 531: // M531: filename - Define filename being printed
+        gcode_M531(); break;
+      case 532: // M532: X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
+        gcode_M532(); break;
 
       #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
         case 540:
@@ -11089,7 +11249,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
-        Config_StoreSettings();
+        eeprom.StoreSettings();
       }
       laser_init();
       #if ENABLED(LASER_PERIPHERALS)
@@ -11323,7 +11483,12 @@ void idle(
   #endif
 ) {
   lcd_update();
+
   host_keepalive();
+
+  #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+    auto_report_temperatures();
+  #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
     flowrate_manage();
@@ -11336,6 +11501,7 @@ void idle(
   );
 
   thermalManager.manage_temp_controller();
+
   print_job_counter.tick();
 }
 
@@ -11460,14 +11626,13 @@ void setup() {
 
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
-  SERIAL_S(ECHO);
   HAL::showStartReason();
 
-  SERIAL_EM(BUILD_VERSION);
+  SERIAL_LM(ECHO, BUILD_VERSION);
 
   #if ENABLED(STRING_DISTRIBUTION_DATE) && ENABLED(STRING_CONFIG_H_AUTHOR)
     SERIAL_LM(ECHO, MSG_CONFIGURATION_VER STRING_DISTRIBUTION_DATE MSG_AUTHOR STRING_CONFIG_H_AUTHOR);
-    SERIAL_EM(MSG_COMPILED __DATE__);
+    SERIAL_LM(ECHO, MSG_COMPILED __DATE__);
   #endif // STRING_DISTRIBUTION_DATE
 
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
@@ -11477,10 +11642,10 @@ void setup() {
   for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true;
 
   // loads custom configuration from SDCARD if available else uses defaults
-  ConfigSD_RetrieveSettings();
+  card.RetrieveSettings();
 
   // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  Config_RetrieveSettings();
+  eeprom.RetrieveSettings();
 
   // Initialize current position based on home_offset
   memcpy(current_position, home_offset, sizeof(home_offset));
