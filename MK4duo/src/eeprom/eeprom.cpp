@@ -971,7 +971,9 @@ void EEPROM::ResetDefault() {
       print_bed_level();
     #endif
 
-    card.PrintSettings();
+    #if ENABLED(SDSUPPORT)
+      card.PrintSettings();
+    #endif
 
   }
 

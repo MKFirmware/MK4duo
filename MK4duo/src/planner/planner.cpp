@@ -704,7 +704,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // For a mixing extruder, get steps for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      block->mix_event_count[i] = UNEAR_ZERO(mixing_factor[i]) ? 0 : block->step_event_count / mixing_factor[i];
+      block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
   #endif
 
   block->fan_speed = fanSpeed;
