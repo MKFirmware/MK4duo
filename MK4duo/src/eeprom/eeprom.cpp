@@ -748,14 +748,14 @@ void EEPROM::ResetDefault() {
     #if EXTRUDERS > 1
       for (int8_t i = 1; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
-        SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i], 3);
+        SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS + i], 3);
       }
     #endif //EXTRUDERS > 1
 
     CONFIG_MSG_START("Maximum Acceleration (mm/s2):");
-    SERIAL_SMV(CFG, "  M201 X", planner.max_acceleration_mm_per_s2[X_AXIS] );
-    SERIAL_MV(" Y", planner.max_acceleration_mm_per_s2[Y_AXIS] );
-    SERIAL_MV(" Z", planner.max_acceleration_mm_per_s2[Z_AXIS] );
+    SERIAL_SMV(CFG, "  M201 X", planner.max_acceleration_mm_per_s2[X_AXIS]);
+    SERIAL_MV(" Y", planner.max_acceleration_mm_per_s2[Y_AXIS]);
+    SERIAL_MV(" Z", planner.max_acceleration_mm_per_s2[Z_AXIS]);
     SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS]);
     #if EXTRUDERS > 1
       for (int8_t i = 1; i < EXTRUDERS; i++) {
