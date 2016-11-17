@@ -109,7 +109,7 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  uint32_t fan_speed;
+  uint16_t fan_speed;
 
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
@@ -392,7 +392,7 @@ class Planner {
       static float autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();
-      static void autotemp_M109();
+      static void autotemp_M104_M109();
     #endif
 
   private:
