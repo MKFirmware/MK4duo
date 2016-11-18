@@ -85,8 +85,8 @@ class Stepper {
     static volatile uint32_t step_events_completed; // The number of step events executed in the current block
 
     #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-      static unsigned char old_OCR0A;
-      static volatile unsigned char eISR_Rate;
+      static uint8_t old_OCR0A;
+      static volatile uint8_t eISR_Rate;
       #if ENABLED(LIN_ADVANCE)
         static volatile int e_steps[DRIVER_EXTRUDERS];
         static int extruder_advance_k = LIN_ADVANCE_K;
