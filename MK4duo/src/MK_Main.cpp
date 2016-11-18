@@ -1817,9 +1817,7 @@ static void clean_up_after_endstop_or_probe_move() {
     // When deploying make sure BLTOUCH is not already triggered
     #if ENABLED(BLTOUCH)
       if (deploy && TEST_BLTOUCH()) { stop(); return true; }
-    #endif
-
-    #if ENABLED(Z_PROBE_SLED)
+    #elif ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
       if (axis_unhomed_error(true, true,  true )) { stop(); return true; }
@@ -7159,10 +7157,10 @@ inline void gcode_M226() {
   inline void gcode_M355() {
     static bool case_light_on
       #if ENABLED(CASE_LIGHT_DEFAULT_ON)
-        = true;
-      #else
-        ;
+        = true
       #endif
+      ;
+
     static uint8_t case_light_brightness = 255;
     if (code_seen('P')) case_light_brightness = code_value_byte();
     if (code_seen('S')) {

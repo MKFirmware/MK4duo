@@ -1766,7 +1766,7 @@ void Temperature::init() {
 
     /*
         SERIAL_M("Thermal Thermal Runaway Running. Heater ID: ");
-        if (heater_id < 0) SERIAL_M("bed"); else SERIAL_V(heater_id);
+        if (temp_controller_id < 0) SERIAL_M("bed"); else SERIAL_V(temp_controller_id);
         SERIAL_MV(" ;  State:", *state);
         SERIAL_MV(" ;  Timer:", *timer);
         SERIAL_MV(" ;  Temperature:", temperature);
@@ -1806,7 +1806,7 @@ void Temperature::init() {
         else if (PENDING(millis(), *timer)) break;
         *state = TRRunaway;
       case TRRunaway:
-        _temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+        _temp_error(temp_controller_id, PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
     }
   }
 

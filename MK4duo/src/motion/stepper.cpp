@@ -92,8 +92,8 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
 
-  unsigned char Stepper::old_OCR0A;
-  volatile unsigned char Stepper::eISR_Rate = 200; // Keep the ISR at a low rate until needed
+  uint8_t Stepper::old_OCR0A;
+  volatile uint8_t Stepper::eISR_Rate = 200; // Keep the ISR at a low rate until needed
 
   #if ENABLED(LIN_ADVANCE)
     volatile int Stepper::e_steps[DRIVER_EXTRUDERS];
@@ -287,12 +287,12 @@ void Stepper::isr() {
   #endif
 
   if (cleaning_buffer_counter) {
+    --cleaning_buffer_counter;
     current_block = NULL;
     planner.discard_current_block();
     #if ENABLED(SD_FINISHED_RELEASECOMMAND)
-      if ((cleaning_buffer_counter == 1) && (SD_FINISHED_STEPPERRELEASE)) enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+      if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
-    cleaning_buffer_counter--;
     #if ENABLED(__SAM3X8E__)
       HAL_timer_stepper_count(HAL_TIMER_RATE / 200); // 5ms wait
     #else
@@ -896,7 +896,7 @@ void Stepper::isr() {
 
       if (current_block->use_advance_lead)
         current_estep_rate[TOOL_E_INDEX] = final_estep_rate;
-      
+
       eISR_Rate = (OCR1A_nominal >> 3) * step_loops_nominal / abs(e_steps[TOOL_E_INDEX]);
 
     #endif
