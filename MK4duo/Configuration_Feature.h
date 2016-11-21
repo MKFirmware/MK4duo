@@ -53,6 +53,7 @@
  * - Home Y before X
  * - Force Home XY before Home Z
  * - Babystepping
+ * - Ensure Smooth Moves
  * - Firmware retract
  * - Dual X-carriage
  * - X-axis dual driver
@@ -639,6 +640,45 @@
 /**************************************************************************/
 
 
+/************************************************************************************
+ ******************************** Ensure Smooth Moves *******************************
+ ************************************************************************************
+ *                                                                                  *
+ * Enable this option to prevent the machine from stuttering when printing multiple *
+ * short segments.                                                                  *
+ * This feature uses two strategies to eliminate stuttering:                        *
+ *                                                                                  *
+ * 1. During short segments a Graphical LCD update may take so much time that the   *
+ *    planner buffer gets completely drained. When this happens pauses are          *
+ *    introduced between short segments, and print moves will become jerky until a  *
+ *    longer segment provides enough time for the buffer to be filled again.        *
+ *    This jerkiness negatively affects print quality. The ENSURE SMOOTH MOVES      *
+ *    option addresses the issue by pausing the LCD until there's enough time to    *
+ *    safely update.                                                                *
+ *                                                                                  *
+ *    NOTE: This will cause the Info Screen to lag and controller buttons may       *
+ *           become unresponsive. Enable ALWAYS ALLOW MENU to keep the controller   *
+ *          responsive.                                                             *
+ *                                                                                  *
+ * 2. No block is allowed to take less time than MIN_BLOCK_TIME. That's the time it *
+ *    takes in the main loop to add a new block to the buffer, check temperatures,  *
+ *    etc., including all blocked time due to interrupts (without LCD update).      *
+ *    By enforcing a minimum time-per-move, the buffer is prevented from draining.  *
+ ************************************************************************************/
+//#define ENSURE_SMOOTH_MOVES
+
+// If enabled, the menu will always be responsive.
+// WARNING: Menu navigation during short moves may cause stuttering!
+//#define ALWAYS_ALLOW_MENU
+
+// (ms) Minimum duration for the current segment to allow an LCD update.
+#define LCD_UPDATE_THRESHOLD 170
+// Default value is good for graphical LCDs (e.g., REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER).
+// (ms) Minimum duration of a single block. You shouldn't need to modify this.
+#define MIN_BLOCK_TIME 6
+/*************************************************************************************/
+
+
 /**************************************************************************
  *************************** Firmware retract *****************************
  **************************************************************************
@@ -997,15 +1037,15 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *    en, an, bg, ca, cn, cz, de, es, eu, fi, fr, gl, hr, it, kana, kana_utf8, nl, pl,   *
- *    pt, pt_utf8, pt-br, pt-br_utf8, ru                                                 *
+ *    en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr, gl, hr, it,                 *
+ *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr                    *                                                 *
  *                                                                                       *
- * 'en':'English',        'an':'Aragonese',   'bg':'Bulgarian',   'ca':'Catalan',        *
- * 'cn':'Chinese',        'cz':'Czech',       'de':'German',      'es':'Spanish',        *
- * 'eu':'Basque-Euskera', 'fi':'Finnish',     'fr':'French',      'gl':'Galician',       *
- * 'hr':'Croatian',       'it':'Italian',     'kana':'Japanese',  'nl':'Dutch',          *
- * 'pl':'Polish',         'pt':'Portuguese',  'ru':'Russian',                            *
- * 'kana_utf8':'Japanese (UTF8)',                                                        *
+ * 'en':'English',          'an':'Aragonese',   'bg':'Bulgarian',       'ca':'Catalan',  *
+ * 'cn':'Chinese',          'cz':'Czech',       'de':'German',          'el':'Greek',    *
+ * 'el-gr':'Greek (Greece)' 'es':'Spanish',     'eu':'Basque-Euskera',  'fi':'Finnish',  *
+ * 'fr':'French',           'gl':'Galician',    'hr':'Croatian',        'it':'Italian',  *
+ * 'kana':'Japanese',       'kana_utf8':'Japanese (UTF8)'               'nl':'Dutch',    *
+ * 'pl':'Polish',           'pt':'Portuguese',  'ru':'Russian',         'tr':'Turkish',  *
  * 'pt_utf8':'Portuguese (UTF8)',                                                        *
  * 'pt-br':'Portuguese (Brazilian)',                                                     *
  * 'pt-br_utf8':'Portuguese (Brazilian UTF8)',                                           *
@@ -1019,20 +1059,60 @@
  ******************************* LCD ***********************************
  ***********************************************************************/
 
-//Charset type
-//Choose ONE of these 3 charsets. This has to match your hardware.
-//Ignored for full graphic display.
-//To find out what type you have - compile with (test) - upload - click to get the menu.
-//See: https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/LCDLanguageFont.md
-#define DISPLAY_CHARSET_HD44780_JAPAN        // this is the most common hardware
-//#define DISPLAY_CHARSET_HD44780_WESTERN
-//#define DISPLAY_CHARSET_HD44780_CYRILLIC
+//
+// LCD Character Set
+//
+// Note: This option is NOT applicable to Graphical Displays.
+//
+// All character-based LCD's provide ASCII plus one of these
+// language extensions:
+//
+//  - JAPANESE ... the most common
+//  - WESTERN  ... with more accented characters
+//  - CYRILLIC ... for the Russian language
+//
+// To determine the language extension installed on your controller:
+//
+//  - Compile and upload with LCD_LANGUAGE set to 'test'
+//  - Click the controller to view the LCD menu
+//  - The LCD will display Japanese, Western, or Cyrillic text
+//
+// :['JAPANESE', 'WESTERN', 'CYRILLIC']
+//
+#define DISPLAY_CHARSET_HD44780 JAPANESE
  
 #define SHOW_BOOTSCREEN
 //#define SHOW_CUSTOM_BOOTSCREEN
 #define STRING_SPLASH_LINE1 "v" SHORT_BUILD_VERSION       // will be shown during bootup in line 1
 #define STRING_SPLASH_LINE2 STRING_DISTRIBUTION_DATE      // will be shown during bootup in line 2
 #define SPLASH_SCREEN_DURATION 5000                       // SPLASH SCREEN duration in millisecond
+
+//
+// LCD TYPE
+//
+// You may choose ULTRA_LCD if you have character based LCD with 16x2, 16x4, 20x2,
+// 20x4 char/lines or DOGLCD for the full graphics display with 128x64 pixels
+// (ST7565R family). (This option will be set automatically for certain displays.)
+//
+// IMPORTANT NOTE: The U8glib library is required for Full Graphic Display!
+//                 https://github.com/olikraus/U8glib_Arduino
+//
+//#define ULTRA_LCD   // Character based
+//#define DOGLCD      // Full graphics display
+
+//
+// ENCODER SETTINGS
+//
+// This option overrides the default number of encoder pulses needed to
+// produce one step. Should be increased for high-resolution encoders.
+//
+//#define ENCODER_PULSES_PER_STEP 1
+
+//
+// Use this option to override the number of step signals required to
+// move between next/prev menu items.
+//
+//#define ENCODER_STEPS_PER_MENU_ITEM 5
 
 //#define LCD_SCREEN_ROT_90    // Rotate screen orientation for graphics display by 90 degree clockwise
 //#define LCD_SCREEN_ROT_180   // Rotate screen orientation for graphics display by 180 degree clockwise
@@ -1041,30 +1121,48 @@
 //#define INVERT_CLICK_BUTTON           // Option for invert encoder button logic
 //#define INVERT_BACK_BUTTON            // Option for invert back button logic if avaible
 
+/**
+ * Encoder Direction Options
+ *
+ * Test your encoder's behavior first with both options disabled.
+ *
+ *  Reversed Value Edit and Menu Nav? Enable REVERSE_ENCODER_DIRECTION.
+ *  Reversed Menu Navigation only?    Enable REVERSE_MENU_DIRECTION.
+ *  Reversed Value Editing only?      Enable BOTH options.
+ */
+
+//
 // This option reverses the encoder direction everywhere
+//
 //  Set this option if CLOCKWISE causes values to DECREASE
+//
 //#define REVERSE_ENCODER_DIRECTION
 
+//
 // This option reverses the encoder direction for navigating LCD menus.
+//
 //  If CLOCKWISE normally moves DOWN this makes it go UP.
 //  If CLOCKWISE normally moves UP this makes it go DOWN.
+//
 //#define REVERSE_MENU_DIRECTION
 
-#define ENCODER_RATE_MULTIPLIER         // If defined, certain menu edit operations automatically multiply the steps when the encoder is moved quickly
-#define ENCODER_10X_STEPS_PER_SEC   75  // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value
-#define ENCODER_100X_STEPS_PER_SEC 160  // If the encoder steps per sec exceeds this value, multiply steps moved x100 to really quickly advance the value
-#define ULTIPANEL_FEEDMULTIPLY          // Comment to disable setting feedrate multiplier via encoder
-//#define ENCODER_PULSES_PER_STEP 1     // Increase if you have a high resolution encoder
-//#define ENCODER_STEPS_PER_MENU_ITEM 5 // Set according to ENCODER_PULSES_PER_STEP or your liking
+//
+// SPEAKER/BUZZER
+//
+// If you have a speaker that can produce tones, enable it here.
+// By default Marlin assumes you have a buzzer with a fixed frequency.
+//
+//#define SPEAKER
 
-//#define ULTRA_LCD                              // general LCD support, also 16x2
-//#define DOGLCD                                 // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
-//#define ULTIMAKERCONTROLLER                    // As available from the Ultimaker online store.
-//#define ULTIPANEL                              // The UltiPanel as on Thingiverse
-//#define SPEAKER                                // The sound device is a speaker - not a buzzer. A buzzer resonates with his own frequency.
-//#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100 // the duration the buzzer plays the UI feedback sound. ie Screen Click
-//#define LCD_FEEDBACK_FREQUENCY_HZ 1000         // this is the tone frequency the buzzer plays when on UI feedback. ie Screen Click
-                                                 // 0 to disable buzzer feedback. Test with M300 S<frequency Hz> P<duration ms>
+//
+// The duration and frequency for the UI feedback sound.
+// Set these to 0 to disable audio feedback in the LCD menus.
+//
+// Note: Test audio output with the G-Code:
+//  M300 S<frequency Hz> P<duration ms>
+//
+//#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
+//#define LCD_FEEDBACK_FREQUENCY_HZ 1000
 
 //Display Voltage Logic Selector on Alligator Board
 //#define UI_VOLTAGE_LEVEL 0 // 3.3 V
@@ -1073,97 +1171,187 @@
 // Include a page of printer information in the LCD Main Menu
 #define LCD_INFO_MENU
 
+//
+// CONTROLLER TYPE: Standard
+//
+// Marlin supports a wide variety of controllers.
+// Enable one of the following options to specify your controller.
+//
+
+//
+// ULTIMAKER Controller.
+//
+//#define ULTIMAKERCONTROLLER
+
+//
+// ULTIPANEL as seen on Thingiverse.
+//
+//#define ULTIPANEL
+
+//
+// Cartesio UI
+// http://mauk.cc/webshop/cartesio-shop/electronics/user-interface
+//
+//#define CARTESIO_UI
+
 // Original RADDS Display from Willy
 // http://max3dshop.org/index.php/default/elektronik/radds-lcd-sd-display-with-reset-and-back-buttom.html
 //#define RADDS_DISPLAY
 
+//
 // PanelOne from T3P3 (via RAMPS 1.4 AUX2/AUX3)
 // http://reprap.org/wiki/PanelOne
+//
 //#define PANEL_ONE
 
-// The MaKr3d Makr-Panel with graphic controller and SD support
+//
+// MaKr3d Makr-Panel with graphic controller and SD support.
 // http://reprap.org/wiki/MaKr3d_MaKrPanel
+//
 //#define MAKRPANEL
 
-// The Panucatt Devices Viki 2.0 and mini Viki with Graphic LCD
+//
+// ReprapWorld Graphical LCD
+// https://reprapworld.com/?products_details&products_id/1218
+//
+//#define REPRAPWORLD_GRAPHICAL_LCD
+
+//
+// Activate one of these if you have a Panucatt Devices
+// Viki 2.0 or mini Viki with Graphic LCD
 // http://panucatt.com
-// REMEMBER TO INSTALL U8glib to your ARDUINO library folder: https://github.com/olikraus/U8glib_Arduino
+//
 //#define VIKI2
 //#define miniVIKI
 
-// This is a new controller currently under development.  https://github.com/eboston/Adafruit-ST7565-Full-Graphic-Controller/
 //
-// REMEMBER TO INSTALL U8glib to your ARDUINO library folder: https://github.com/olikraus/U8glib_Arduino
+// Adafruit ST7565 Full Graphic Controller.
+// https://github.com/eboston/Adafruit-ST7565-Full-Graphic-Controller/
+//
 //#define ELB_FULL_GRAPHIC_CONTROLLER
-//#define SD_DETECT_INVERTED
 
-// The RepRapWorld Graphical LCD
-// https://reprapworld.com/?products_details&products_id/1218
-//#define REPRAPWORLD_GRAPHICAL_LCD
-
-// The RepRapDiscount Smart Controller (white PCB)
+//
+// RepRapDiscount Smart Controller.
 // http://reprap.org/wiki/RepRapDiscount_Smart_Controller
+//
+// Note: Usually sold with a white PCB.
+//
 //#define REPRAP_DISCOUNT_SMART_CONTROLLER
 
-// The GADGETS3D G3D LCD/SD Controller (blue PCB)
+//
+// GADGETS3D G3D LCD/SD Controller
 // http://reprap.org/wiki/RAMPS_1.3/1.4_GADGETS3D_Shield_with_Panel
+//
+// Note: Usually sold with a blue PCB.
+//
 //#define G3D_PANEL
 
-// The RepRapDiscount FULL GRAPHIC Smart Controller (quadratic white PCB)
+//
+// RepRapDiscount FULL GRAPHIC Smart Controller
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
-// REMEMBER TO INSTALL U8glib to your ARDUINO library folder: https://github.com/olikraus/U8glib_Arduino
 //#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
-// The RepRapWorld REPRAPWORLD_KEYPAD v1.1
-// http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626
-//#define REPRAPWORLD_KEYPAD
-//#define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0 // how much should be moved when a key is pressed, eg 10.0 means 10mm per click
-
-// The Elefu RA Board Control Panel
-// http://www.elefu.com/index.php?route=product/product&product_id=53
-// REMEMBER TO INSTALL LiquidCrystal_I2C.h in your ARDUINO library folder: https://github.com/kiyoshigawa/LiquidCrystal_I2C
-//#define RA_CONTROL_PANEL
-
-// The MakerLab Mini Panel with graphic controller and SD support
-// http://reprap.org/wiki/Mini_panel
+//
+// MakerLab Mini Panel with graphic
+// controller and SD support - http://reprap.org/wiki/Mini_panel
+//
 //#define MINIPANEL
 
+//
+// RepRapWorld REPRAPWORLD_KEYPAD v1.1
+// http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626
+//
+// REPRAPWORLD_KEYPAD_MOVE_STEP sets how much should the robot move when a key
+// is pressed, a value of 10.0 means 10mm per click.
+//
+//#define REPRAPWORLD_KEYPAD
+//#define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
+
+//
+// RigidBot Panel V1.0
+// http://www.inventapart.com/
+//
+//#define RIGIDBOT_PANEL
+
+//
+// BQ LCD Smart Controller shipped by
+// default with the BQ Hephestos 2 and Witbox 2.
+//
+//#define BQ_LCD_SMART_CONTROLLER
+
+//
+// CONTROLLER TYPE: I2C
+//
+// Note: These controllers require the installation of Arduino's LiquidCrystal_I2C
+// library. For more info: https://github.com/kiyoshigawa/LiquidCrystal_I2C
+//
+
+//
+// Elefu RA Board Control Panel
+// http://www.elefu.com/index.php?route=product/product&product_id=53
+//
+//#define RA_CONTROL_PANEL
+
+//
+// Sainsmart YW Robot (LCM1602) LCD Display
+//
+//#define LCD_I2C_SAINSMART_YWROBOT
+
+//
+// Generic LCM1602 LCD adapter
+//
+//#define LCM1602
+
+//
+// PANELOLU2 LCD with status LEDs,
+// separate encoder and click inputs.
+//
+// Note: This controller requires Arduino's LiquidTWI2 library v1.2.3 or later.
+// For more info: https://github.com/lincomatic/LiquidTWI2
+//
+// Note: The PANELOLU2 encoder click input can either be directly connected to
+// a pin (if BTN_ENC defined to != -1) or read through I2C (when BTN_ENC == -1).
+//
+//#define LCD_I2C_PANELOLU2
+
+//
+// Panucatt VIKI LCD with status LEDs,
+// integrated click & L/R/U/D buttons, separate encoder inputs.
+//
+//#define LCD_I2C_VIKI
+
+//
+// SSD1306 OLED full graphics generic display
+//
+//#define U8GLIB_SSD1306
+
+//
+// SAV OLEd LCD module support using either SSD1306 or SH1106 based LCD modules
+//
+//#define SAV_3DGLCD
+#if ENABLED(SAV_3DGLCD)
+  //#define U8GLIB_SSD1306
+  #define U8GLIB_SH1106
+#endif
+
+//
+// CONTROLLER TYPE: Shift register panels
+//
+// 2 wire Non-latching LCD SR from https://goo.gl/aJJ4sH
+// LCD configuration: http://reprap.org/wiki/SAV_3D_LCD
+//
+//#define SAV_3DLCD
+
+//
+// CONTROLLER TYPE: Serial display
+//
 // Nextion HMI panel Serial
 //#define NEXTION
 #define NEXTION_SERIAL 1
 // For GFX Visualization enable Nextion GFX
 //#define NEXTION_GFX
 
-// I2C Panels
-//#define LCD_I2C_SAINSMART_YWROBOT
-
-// PANELOLU2 LCD with status LEDs, separate encoder and click inputs
-//
-// This uses the LiquidTWI2 library v1.2.3 or later ( https://github.com/lincomatic/LiquidTWI2 )
-// Make sure the LiquidTWI2 directory is placed in the Arduino or Sketchbook libraries subdirectory.
-// (v1.2.3 no longer requires you to define PANELOLU in the LiquidTWI2.h library header file)
-// Note: The PANELOLU2 encoder click input can either be directly connected to a pin
-//       (if BTN_ENC defined to != -1) or read through I2C (when BTN_ENC == -1).
-//#define LCD_I2C_PANELOLU2
-
-// Panucatt VIKI LCD with status LEDs, integrated click & L/R/U/P buttons, separate encoder inputs
-//#define LCD_I2C_VIKI
-  
-// SSD1306 OLED generic display support
-// REMEMBER TO INSTALL U8glib to your ARDUINO library folder: https://github.com/olikraus/U8glib_Arduino
-//#define U8GLIB_SSD1306
-
-// Shift register panels
-// ---------------------
-// 2 wire Non-latching LCD SR from:
-// https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/schematics#!shiftregister-connection
-// LCD configuration: http://reprap.org/wiki/SAV_3D_LCD
-//#define SAV_3DLCD
-
-// For dogm lcd displays you can choose some additional fonts:
-//#define USE_BIG_EDIT_FONT //We don't have a big font for Cyrillic, Kana (Needs 3120 bytes of PROGMEM)
-//#define USE_SMALL_INFOFONT //Smaller font on the Info-screen (Needs 2300 bytes of PROGMEM)
 
 // Show a progress bar on HD44780 LCDs for SD printing
 //#define LCD_PROGRESS_BAR
@@ -1369,55 +1557,61 @@
  ***********************************************************************/
 //#define HAVE_TMCDRIVER
 
-//#define X_IS_TMC
-#define X_MAX_CURRENT 1000  //in mA
-#define X_SENSE_RESISTOR 91 //in mOhms
-#define X_MICROSTEPS 16     //number of microsteps
+//#define HAVE_TMCDRIVER
+#if ENABLED(HAVE_TMCDRIVER)
 
-//#define X2_IS_TMC
-#define X2_MAX_CURRENT 1000  //in mA
-#define X2_SENSE_RESISTOR 91 //in mOhms
-#define X2_MICROSTEPS 16     //number of microsteps
+  //#define X_IS_TMC
+  //#define X2_IS_TMC
+  //#define Y_IS_TMC
+  //#define Y2_IS_TMC
+  //#define Z_IS_TMC
+  //#define Z2_IS_TMC
+  //#define E0_IS_TMC
+  //#define E1_IS_TMC
+  //#define E2_IS_TMC
+  //#define E3_IS_TMC
 
-//#define Y_IS_TMC
-#define Y_MAX_CURRENT 1000  //in mA
-#define Y_SENSE_RESISTOR 91 //in mOhms
-#define Y_MICROSTEPS 16     //number of microsteps
+  #define X_MAX_CURRENT     1000 // in mA
+  #define X_SENSE_RESISTOR    91 // in mOhms
+  #define X_MICROSTEPS        16 // number of microsteps
 
-//#define Y2_IS_TMC
-#define Y2_MAX_CURRENT 1000  //in mA
-#define Y2_SENSE_RESISTOR 91 //in mOhms
-#define Y2_MICROSTEPS 16     //number of microsteps 
+  #define X2_MAX_CURRENT    1000
+  #define X2_SENSE_RESISTOR   91
+  #define X2_MICROSTEPS       16
 
-//#define Z_IS_TMC
-#define Z_MAX_CURRENT 1000  //in mA
-#define Z_SENSE_RESISTOR 91 //in mOhms
-#define Z_MICROSTEPS 16     //number of microsteps
+  #define Y_MAX_CURRENT     1000
+  #define Y_SENSE_RESISTOR    91
+  #define Y_MICROSTEPS        16
 
-//#define Z2_IS_TMC
-#define Z2_MAX_CURRENT 1000  //in mA
-#define Z2_SENSE_RESISTOR 91 //in mOhms
-#define Z2_MICROSTEPS 16     //number of microsteps
+  #define Y2_MAX_CURRENT    1000
+  #define Y2_SENSE_RESISTOR   91
+  #define Y2_MICROSTEPS       16
 
-//#define E0_IS_TMC
-#define E0_MAX_CURRENT 1000  //in mA
-#define E0_SENSE_RESISTOR 91 //in mOhms
-#define E0_MICROSTEPS 16     //number of microsteps
+  #define Z_MAX_CURRENT     1000
+  #define Z_SENSE_RESISTOR    91
+  #define Z_MICROSTEPS        16
 
-//#define E1_IS_TMC
-#define E1_MAX_CURRENT 1000  //in mA
-#define E1_SENSE_RESISTOR 91 //in mOhms
-#define E1_MICROSTEPS 16     //number of microsteps 
+  #define Z2_MAX_CURRENT    1000
+  #define Z2_SENSE_RESISTOR   91
+  #define Z2_MICROSTEPS       16
 
-//#define E2_IS_TMC
-#define E2_MAX_CURRENT 1000  //in mA
-#define E2_SENSE_RESISTOR 91 //in mOhms
-#define E2_MICROSTEPS 16     //number of microsteps 
+  #define E0_MAX_CURRENT    1000
+  #define E0_SENSE_RESISTOR   91
+  #define E0_MICROSTEPS       16
 
-//#define E3_IS_TMC
-#define E3_MAX_CURRENT 1000  //in mA
-#define E3_SENSE_RESISTOR 91 //in mOhms
-#define E3_MICROSTEPS 16     //number of microsteps   
+  #define E1_MAX_CURRENT    1000
+  #define E1_SENSE_RESISTOR   91
+  #define E1_MICROSTEPS       16
+
+  #define E2_MAX_CURRENT    1000
+  #define E2_SENSE_RESISTOR   91
+  #define E2_MICROSTEPS       16
+
+  #define E3_MAX_CURRENT    1000
+  #define E3_SENSE_RESISTOR   91
+  #define E3_MICROSTEPS       16
+
+#endif
 /***********************************************************************/
 
 
@@ -1431,65 +1625,70 @@
  **********************************************************************************/
 //#define HAVE_L6470DRIVER
 
-//#define X_IS_L6470
-#define X_MICROSTEPS 16     //number of microsteps
-#define X_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define X_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define X_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+#if ENABLED(HAVE_L6470DRIVER)
 
-//#define X2_IS_L6470
-#define X2_MICROSTEPS 16     //number of microsteps
-#define X2_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define X2_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define X2_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  //#define X_IS_L6470
+  //#define X2_IS_L6470
+  //#define Y_IS_L6470
+  //#define Y2_IS_L6470
+  //#define Z_IS_L6470
+  //#define Z2_IS_L6470
+  //#define E0_IS_L6470
+  //#define E1_IS_L6470
+  //#define E2_IS_L6470
+  //#define E3_IS_L6470
 
-//#define Y_IS_L6470
-#define Y_MICROSTEPS 16     //number of microsteps
-#define Y_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define Y_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define Y_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define X_MICROSTEPS      16 // number of microsteps
+  #define X_K_VAL           50 // 0 - 255, Higher values, are higher power. Be careful not to go too high
+  #define X_OVERCURRENT   2000 // maxc current in mA. If the current goes over this value, the driver will switch off
+  #define X_STALLCURRENT  1500 // current in mA where the driver will detect a stall
 
-//#define Y2_IS_L6470
-#define Y2_MICROSTEPS 16     //number of microsteps 
-#define Y2_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define Y2_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define Y2_STALLCURRENT 1500 //current in mA where the driver will detect a stall 
+  #define X2_MICROSTEPS     16
+  #define X2_K_VAL          50
+  #define X2_OVERCURRENT  2000
+  #define X2_STALLCURRENT 1500
 
-//#define Z_IS_L6470
-#define Z_MICROSTEPS 16     //number of microsteps
-#define Z_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define Z_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define Z_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define Y_MICROSTEPS      16
+  #define Y_K_VAL           50
+  #define Y_OVERCURRENT   2000
+  #define Y_STALLCURRENT  1500
 
-//#define Z2_IS_L6470
-#define Z2_MICROSTEPS 16     //number of microsteps
-#define Z2_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define Z2_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define Z2_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define Y2_MICROSTEPS     16
+  #define Y2_K_VAL          50
+  #define Y2_OVERCURRENT  2000
+  #define Y2_STALLCURRENT 1500
 
-//#define E0_IS_L6470
-#define E0_MICROSTEPS 16     //number of microsteps
-#define E0_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define E0_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define E0_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define Z_MICROSTEPS      16
+  #define Z_K_VAL           50
+  #define Z_OVERCURRENT   2000
+  #define Z_STALLCURRENT  1500
 
-//#define E1_IS_L6470
-#define E1_MICROSTEPS 16     //number of microsteps
-#define E1_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define E1_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define E1_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define Z2_MICROSTEPS     16
+  #define Z2_K_VAL          50
+  #define Z2_OVERCURRENT  2000
+  #define Z2_STALLCURRENT 1500
 
-//#define E2_IS_L6470
-#define E2_MICROSTEPS 16     //number of microsteps
-#define E2_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define E2_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define E2_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define E0_MICROSTEPS     16
+  #define E0_K_VAL          50
+  #define E0_OVERCURRENT  2000
+  #define E0_STALLCURRENT 1500
 
-//#define E3_IS_L6470
-#define E3_MICROSTEPS 16     //number of microsteps
-#define E3_K_VAL 50          // 0 - 255, Higher values, are higher power. Be carefull not to go too high    
-#define E3_OVERCURRENT 2000  //maxc current in mA. If the current goes over this value, the driver will switch off
-#define E3_STALLCURRENT 1500 //current in mA where the driver will detect a stall
+  #define E1_MICROSTEPS     16
+  #define E1_K_VAL          50
+  #define E1_OVERCURRENT  2000
+  #define E1_STALLCURRENT 1500
+
+  #define E2_MICROSTEPS     16
+  #define E2_K_VAL          50
+  #define E2_OVERCURRENT  2000
+  #define E2_STALLCURRENT 1500
+
+  #define E3_MICROSTEPS     16
+  #define E3_K_VAL          50
+  #define E3_OVERCURRENT  2000
+  #define E3_STALLCURRENT 1500
+
+#endif
 /**********************************************************************************/  
 
 

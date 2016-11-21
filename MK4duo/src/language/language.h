@@ -23,11 +23,20 @@
 #ifndef LANGUAGE_H
 #define LANGUAGE_H
 
+// Define SIMULATE_ROMFONT to see what is seen on the character based display defined in Configuration.h
+//#define SIMULATE_ROMFONT
+
+// Fallback if no language is set. DON'T CHANGE
 #ifndef LCD_LANGUAGE
   #define LCD_LANGUAGE en
 #endif
 
 #define PROTOCOL_VERSION "2.0"
+
+// For character-based LCD controllers (DISPLAY_CHARSET_HD44780)
+#define JAPANESE 1
+#define WESTERN  2
+#define CYRILLIC 3
 
 #if MB(ULTIMAKER)|| MB(ULTIMAKER_OLD)|| MB(ULTIMAIN_2)
   #define MACHINE_NAME "Ultimaker"
@@ -227,6 +236,14 @@
 #define MSG_BED_LEVELLING_X                  " X: "
 #define MSG_BED_LEVELLING_Y                  " Y: "
 #define MSG_BED_LEVELLING_Z                  " Z: "
+
+// LCD Menu Messages
+
+#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
+#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
+#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
+
+// Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"
 #define MSG_Z "Z"
@@ -260,12 +277,12 @@
 #define MSG_DIAM_E5 " 5"
 #define MSG_DIAM_E6 " 6"
 
-// LCD Menu Messages
-#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
-#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
-#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
-
 #include "language_en.h"
 #include INCLUDE_LANGUAGE
+
+#if DISABLED(SIMULATE_ROMFONT) && DISABLED(DISPLAY_CHARSET_ISO10646_1) && DISABLED(DISPLAY_CHARSET_ISO10646_5) && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) && DISABLED(DISPLAY_CHARSET_ISO10646_CN)
+  #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
+#endif
+
 
 #endif //__LANGUAGE_H

@@ -7692,8 +7692,8 @@ inline void gcode_M428() {
   if (!err) {
     SYNC_PLAN_POSITION_KINEMATIC();
     report_current_position();
-    SERIAL_EM("Offset applied.");
-    LCD_MESSAGEPGM("Offset applied.");
+    SERIAL_EM(MSG_HOME_OFFSETS_APPLIED);
+    LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
     #if HAS(BUZZER)
       buzz(200, 659);
       buzz(200, 698);

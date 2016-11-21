@@ -115,6 +115,10 @@ typedef struct {
     uint32_t valve_pressure, e_to_p_pressure;
   #endif
 
+  #if ENABLED(ENSURE_SMOOTH_MOVES)
+    uint32_t segment_time;
+  #endif
+
   #if ENABLED(LASERBEAM)
     uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
     bool laser_status; // LASER_OFF, LASER_ON
@@ -385,6 +389,17 @@ class Planner {
       else
         return NULL;
     }
+
+    #if ENABLED(ENSURE_SMOOTH_MOVES)
+      static bool long_move() {
+        if (blocks_queued()) {
+          block_t* block = &block_buffer[block_buffer_tail];
+          return block->segment_time > (LCD_UPDATE_THRESHOLD) * 1000UL;
+        }
+        else
+          return true;
+      }
+    #endif
 
     #if ENABLED(AUTOTEMP)
       static float autotemp_max;

@@ -30,10 +30,6 @@
 #ifndef LANGUAGE_EN_H
 #define LANGUAGE_EN_H
 
-#define MAPPER_NON                  // For direct asci codes
-#define DISPLAY_CHARSET_ISO10646_1  // use the better font on full graphic displays.
-
-
 #define WELCOME_MSG                         MACHINE_NAME " ready."
 #define MSG_SD                              "SD"
 #define MSG_SD_INSERTED                     MSG_SD " inserted"
@@ -51,6 +47,7 @@
 #define MSG_LEVEL_BED_DONE                  "Leveling Done!"
 #define MSG_LEVEL_BED_CANCEL                "Cancel"
 #define MSG_SET_HOME_OFFSETS                "Set home offsets"
+#define MSG_HOME_OFFSETS_APPLIED            "Offsets applied"
 #define MSG_SET_ORIGIN                      "Set origin"
 #define MSG_PREHEAT                         "Preheat"
 #define MSG_PREHEAT_1                       MSG_PREHEAT " PLA"
@@ -161,7 +158,7 @@
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    "Swap UnRet +mm"
 #define MSG_CONTROL_RETRACT_RECOVERF        "UnRet  F"
 #define MSG_AUTORETRACT                     "AutoRetr."
-#define MSG_FILAMENT_CHANGE                 "Change filament"
+#define MSG_FILAMENTCHANGE                  "Change filament"
 #define MSG_INIT_SDCARD                     "Init. " MSG_SD
 #define MSG_CNG_SDCARD                      "Change " MSG_SD
 #define MSG_ZPROBE_OUT                      "Z probe out. bed"
@@ -295,25 +292,5 @@
 #define MSG_RFID_DENSITY                    "Density: "
 #define MSG_RFID_SPOOL_LENGHT               "Spool Lenght: "
 
-// Firmware Test
-#define MSG_FWTEST_YES                      "Put the Y command to go next"
-#define MSG_FWTEST_NO                       "Put the N command to go next"
-#define MSG_FWTEST_YES_NO                   "Put the Y or N command to go next"
-#define MSG_FWTEST_ENDSTOP_ERR              "ENDSTOP ERROR! Check wire and connection"
-#define MSG_FWTEST_PRESS                    "Press and hold the endstop "
-#define MSG_FWTEST_INVERT                   "Reverse value of "
-#define MSG_FWTEST_XAXIS                    "Has the nozzle moved to the right?"
-#define MSG_FWTEST_YAXIS                    "Has the nozzle moved forward?"
-#define MSG_FWTEST_ZAXIS                    "Has the nozzle moved up?"
-#define MSG_FWTEST_01                       "Manually move the axes X, Y and Z away from the endstop"
-#define MSG_FWTEST_02                       "Do you want check ENDSTOP?"
-#define MSG_FWTEST_03                       "Start check ENDSTOP"
-#define MSG_FWTEST_04                       "Start check MOTOR"
-#define MSG_FWTEST_ATTENTION                "ATTENTION! Check that the three axes are more than 5 mm from the endstop!"
-#define MSG_FWTEST_END                      "Finish Test. Disable FIRMWARE_TEST and recompile."
-#define MSG_FWTEST_INTO                     "into "
-#define MSG_FWTEST_ERROR                    "ERROR"
-#define MSG_FWTEST_OK                       "OK"
-#define MSG_FWTEST_NDEF                     "not defined"
 
 #endif // LANGUAGE_EN_H

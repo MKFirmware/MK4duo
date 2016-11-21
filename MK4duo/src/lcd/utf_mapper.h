@@ -23,6 +23,8 @@
 #ifndef UTF_MAPPER_H
 #define UTF_MAPPER_H
 
+#include  "../language/language.h"
+
 #if ENABLED(DOGLCD)
   #define HARDWARE_CHAR_OUT u8g.print
 #else
@@ -40,7 +42,7 @@
     #define MAPPER_ONE_TO_ONE
   #endif
 #else // SIMULATE_ROMFONT
-  #if ENABLED(DISPLAY_CHARSET_HD44780_JAPAN)
+  #if DISPLAY_CHARSET_HD44780 == JAPANESE
     #if ENABLED(MAPPER_C2C3)
       const PROGMEM uint8_t utf_recode[] =
            { // 0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f          This is fair for symbols
@@ -77,7 +79,7 @@
       #error "Cyrillic on a JAPANESE display makes no sense. There are no matching symbols."
     #endif
 
-  #elif ENABLED(DISPLAY_CHARSET_HD44780_WESTERN)
+  #elif DISPLAY_CHARSET_HD44780 == WESTERN
     #if ENABLED(MAPPER_C2C3)
       const PROGMEM uint8_t utf_recode[] =
            { // 0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f   This is relative complete.
@@ -111,7 +113,7 @@
       #error "Katakana on a WESTERN display makes no sense. There are no matching symbols."
     #endif
 
-  #elif ENABLED(DISPLAY_CHARSET_HD44780_CYRILLIC)
+  #elif DISPLAY_CHARSET_HD44780 == CYRILLIC
     #if ENABLED(MAPPER_D0D1)
       #define MAPPER_D0D1_MOD
       // it is a Russian alphabet translation
