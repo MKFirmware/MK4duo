@@ -3564,8 +3564,10 @@ inline void gcode_G4() {
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< home_delta", current_position);
     #endif
 
-    // move to a height where we can use the full xy-area
-    do_blocking_move_to_z(delta_clip_start_height);
+    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+      // move to a height where we can use the full xy-area
+      do_blocking_move_to_z(delta_clip_start_height);
+    #endif
 
   }
 #endif // DELTA

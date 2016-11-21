@@ -628,10 +628,14 @@
  **************************************************************************/
 //#define BABYSTEPPING
 
-#define BABYSTEP_XY  // not only z, but also XY in the menu. more clutter, more functions
-                     // not implemented for CoreXY and deltabots!
-#define BABYSTEP_INVERT_Z false   // true for inverse movements in Z
-#define BABYSTEP_MULTIPLICATOR 2  // faster z movements
+// not only z, but also XY in the menu. more clutter, more functions
+// not implemented for CoreXY and deltabots!
+#define BABYSTEP_XY  
+
+// true for inverse movements in Z
+#define BABYSTEP_INVERT_Z false
+// faster z movements
+#define BABYSTEP_MULTIPLICATOR 2
 /**************************************************************************/
 
 
