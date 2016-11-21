@@ -88,18 +88,21 @@
     #include "dogm_font_data_ISO10646_CN.h"
     #define FONT_MENU_NAME ISO10646_CN
     #define TALL_FONT_CORRECTION 1
+  #elif ENABLED(DISPLAY_CHARSET_ISO10646_TR)
+    #include "dogm_font_data_ISO10646_1_tr.h"
+    #define FONT_MENU_NAME ISO10646_TR
   #else // fall-back
     #include "dogm_font_data_ISO10646_1.h"
     #define FONT_MENU_NAME ISO10646_1_5x7
   #endif
 #else // SIMULATE_ROMFONT
-  #if ENABLED(DISPLAY_CHARSET_HD44780_JAPAN)
+  #if DISPLAY_CHARSET_HD44780 == JAPANESE
     #include "dogm_font_data_HD44780_J.h"
     #define FONT_MENU_NAME HD44780_J_5x7
-  #elif ENABLED(DISPLAY_CHARSET_HD44780_WESTERN)
+  #elif DISPLAY_CHARSET_HD44780 == WESTERN
     #include "dogm_font_data_HD44780_W.h"
     #define FONT_MENU_NAME HD44780_W_5x7
-  #elif ENABLED(DISPLAY_CHARSET_HD44780_CYRILLIC)
+  #elif DISPLAY_CHARSET_HD44780 == CYRILLIC
     #include "dogm_font_data_HD44780_C.h"
     #define FONT_MENU_NAME HD44780_C_5x7
   #else // fall-back
