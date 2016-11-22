@@ -4973,10 +4973,8 @@ inline void gcode_G61() {
   SERIAL_MV(" S", slot);
   SERIAL_M("->");
 
-  if (code_seen('F')) {
-    float next_feedrate = code_value_linear_units();
-    if (next_feedrate > 0.0) feedrate_mm_s = next_feedrate;
-  }
+  if (code_seen('F') && code_value_linear_units() > 0.0)
+    feedrate_mm_s = MMM_TO_MMS(code_value_linear_units());
 
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
