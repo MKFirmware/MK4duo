@@ -19,7 +19,7 @@
 
 // Y AXIS
 #define ORIG_Y_STEP_PIN       22
-#define ORIG_Y_DIR_PIN        23
+#define ORIG_Y_DIR_PIN         9
 #define ORIG_Y_ENABLE_PIN     33
 #define ORIG_Y_MIN_PIN        12
 #define ORIG_Y_MAX_PIN        11
@@ -66,14 +66,14 @@
 #define ORIG_HEATER_BED_PIN    2
 #define ORIG_HEATER_0_PIN      3
 #define ORIG_HEATER_1_PIN      8
-#define ORIG_HEATER_2_PIN      7
+#define ORIG_HEATER_2_PIN      6
 #define ORIG_HEATER_3_PIN      9
 
-#define ORIG_TEMP_BED_PIN      0  // ANALOG NUMBERING
-#define ORIG_TEMP_0_PIN        1  // ANALOG NUMBERING
-#define ORIG_TEMP_1_PIN        2  // ANALOG NUMBERING
-#define ORIG_TEMP_2_PIN        3  // ANALOG NUMBERING
-#define ORIG_TEMP_3_PIN        4  // ANALOG NUMBERING
+#define ORIG_TEMP_BED_PIN      6  // ANALOG NUMBERING
+#define ORIG_TEMP_0_PIN        7  // ANALOG NUMBERING
+#define ORIG_TEMP_1_PIN        5  // ANALOG NUMBERING
+#define ORIG_TEMP_2_PIN        4  // ANALOG NUMBERING
+#define ORIG_TEMP_3_PIN        3  // ANALOG NUMBERING
 
 // SPI for Max6675 or Max31855 Thermocouple
 #define MAX31855_SS0          65
