@@ -335,7 +335,7 @@
  * the actual temperature is greater than IDLE_OOZING_MINTEMP.         *
  *                                                                     *
  * PS: Always remember to set your extruder target temperature to 0°C  *
- * before shoudown the printer if you enable this feature.             *
+ * before shutdown the printer if you enable this feature.             *
  *                                                                     *
  * Uncomment IDLE_OOZING_PREVENT to enable this feature                *
  *                                                                     *
@@ -1322,9 +1322,10 @@
 //#define LCD_I2C_VIKI
 
 //
-// SSD1306 OLED full graphics generic display
+// SSD1306 or SH1106 OLED full graphics generic display
 //
 //#define U8GLIB_SSD1306
+//#define U8GLIB_SH1106
 
 //
 // SAV OLEd LCD module support using either SSD1306 or SH1106 based LCD modules
