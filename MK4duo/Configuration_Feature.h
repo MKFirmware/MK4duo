@@ -335,7 +335,7 @@
  * the actual temperature is greater than IDLE_OOZING_MINTEMP.         *
  *                                                                     *
  * PS: Always remember to set your extruder target temperature to 0°C  *
- * before shoudown the printer if you enable this feature.             *
+ * before shutdown the printer if you enable this feature.             *
  *                                                                     *
  * Uncomment IDLE_OOZING_PREVENT to enable this feature                *
  *                                                                     *
