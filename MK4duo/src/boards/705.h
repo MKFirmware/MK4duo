@@ -19,7 +19,7 @@
 
 // Y AXIS
 #define ORIG_Y_STEP_PIN       22
-#define ORIG_Y_DIR_PIN         9
+#define ORIG_Y_DIR_PIN        23
 #define ORIG_Y_ENABLE_PIN     33
 #define ORIG_Y_MIN_PIN        12
 #define ORIG_Y_MAX_PIN        11
@@ -66,7 +66,7 @@
 #define ORIG_HEATER_BED_PIN    2
 #define ORIG_HEATER_0_PIN      3
 #define ORIG_HEATER_1_PIN      8
-#define ORIG_HEATER_2_PIN      6
+#define ORIG_HEATER_2_PIN      7
 #define ORIG_HEATER_3_PIN      9
 
 #define ORIG_TEMP_BED_PIN      6  // ANALOG NUMBERING
