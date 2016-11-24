@@ -291,6 +291,16 @@ PrintCounter print_job_counter = PrintCounter();
   ;
 #endif
 
+#if HAS(CASE_LIGHT)
+  bool case_light_on =
+    #if ENABLED(CASE_LIGHT_DEFAULT_ON)
+      true
+    #else
+      false
+    #endif
+  ;
+#endif
+
 #if MECH(DELTA)
   float delta[ABC],
         endstop_adj[ABC] = { 0 };
@@ -3624,6 +3634,64 @@ inline void gcode_G4() {
   }
 #endif // Z_SAFE_HOMING
 
+#if ENABLED(DOUBLE_Z_HOMING)
+
+  inline void double_home_z() {
+    // Disallow Z homing if X or Y are unknown
+    if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
+      LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
+      return;
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("DOUBLE_Z_HOMING >>>");
+    #endif
+
+    SYNC_PLAN_POSITION_KINEMATIC();
+
+    /**
+     * Move the Z probe (or just the nozzle) to the safe homing point
+     */
+    destination[X_AXIS] = LOGICAL_X_POSITION(DOUBLE_Z_HOMING_X_POINT);
+    destination[Y_AXIS] = LOGICAL_Y_POSITION(DOUBLE_Z_HOMING_Y_POINT);
+    destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
+
+    if (position_is_reachable(
+          destination
+          #if HAS(BED_PROBE)
+            , true
+          #endif
+        )
+    ) {
+      #if HAS(BED_PROBE)
+        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
+        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+      #endif
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
+      #endif
+
+      const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS]) - zprobe_zoffset;
+      current_position[Z_AXIS] -= newzero;
+      destination[Z_AXIS] = current_position[Z_AXIS];
+      soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
+
+      SYNC_PLAN_POSITION_KINEMATIC();
+      do_blocking_move_to_z(MIN_Z_HEIGHT_FOR_HOMING);
+    }
+    else {
+      LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
+      SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< DOUBLE_Z_HOMING");
+    #endif
+  }
+
+#endif
+
 /**
  * G28: Home all axes according to settings
  *
@@ -3821,7 +3889,10 @@ inline void gcode_G28() {
           if (DEBUGGING(LEVELING)) DEBUG_POS("> (home_all_axis || homeZ) > final", current_position);
         #endif
       }
-    #endif // Z_HOME_DIR < 0
+    #elif ENABLED(DOUBLE_Z_HOMING)
+      if (home_all_axis || homeZ)
+        double_home_z();
+    #endif
 
     SYNC_PLAN_POSITION_KINEMATIC();
 
@@ -3935,7 +4006,7 @@ inline void gcode_G28() {
 
   inline void _mbl_goto_xy(float x, float y) {
     float old_feedrate_mm_s = feedrate_mm_s;
-    feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
+    feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
 
     current_position[Z_AXIS] = MESH_HOME_SEARCH_Z
       #if Z_PROBE_BETWEEN_HEIGHT > MIN_Z_HEIGHT_FOR_HOMING
@@ -3946,11 +4017,13 @@ inline void gcode_G28() {
     ;
     line_to_current_position();
 
+    feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
     current_position[X_AXIS] = LOGICAL_X_POSITION(x);
     current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
     line_to_current_position();
 
     #if Z_PROBE_BETWEEN_HEIGHT > 0 || MIN_Z_HEIGHT_FOR_HOMING > 0
+      feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
       current_position[Z_AXIS] = LOGICAL_Z_POSITION(MESH_HOME_SEARCH_Z);
       line_to_current_position();
     #endif
@@ -7155,12 +7228,6 @@ inline void gcode_M226() {
    *
    */
   inline void gcode_M355() {
-    static bool case_light_on
-      #if ENABLED(CASE_LIGHT_DEFAULT_ON)
-        = true
-      #endif
-      ;
-
     static uint8_t case_light_brightness = 255;
     if (code_seen('P')) case_light_brightness = code_value_byte();
     if (code_seen('S')) {

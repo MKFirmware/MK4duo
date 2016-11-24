@@ -463,41 +463,37 @@
   #endif
 #endif // DRIVER_EXTRUDERS
 
-#if ENABLED(DUAL_X_CARRIAGE) && HAS(X_ENABLE) && HAS(X2_ENABLE)
-  #define  enable_x() do { X_ENABLE_WRITE( X_ENABLE_ON); X2_ENABLE_WRITE( X_ENABLE_ON); } while (0)
-  #define disable_x() do { X_ENABLE_WRITE(!X_ENABLE_ON); X2_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; } while (0)
+#if HAS(X2_ENABLE)
+  #define  enable_x() do{ X_ENABLE_WRITE( X_ENABLE_ON); X2_ENABLE_WRITE( X_ENABLE_ON); }while(0)
+  #define disable_x() do{ X_ENABLE_WRITE(!X_ENABLE_ON); X2_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }while(0)
 #elif HAS(X_ENABLE)
   #define  enable_x() X_ENABLE_WRITE( X_ENABLE_ON)
-  #define disable_x() { X_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
+  #define disable_x() do{ X_ENABLE_WRITE(!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }while(0)
 #else
-  #define  enable_x() ;
-  #define disable_x() ;
+  #define  enable_x() NOOP
+  #define disable_x() NOOP
 #endif
 
-#if HAS(Y_ENABLE)
-  #if ENABLED(Y_DUAL_STEPPER_DRIVERS)
-    #define  enable_y() { Y_ENABLE_WRITE( Y_ENABLE_ON); Y2_ENABLE_WRITE(Y_ENABLE_ON); }
-    #define disable_y() { Y_ENABLE_WRITE(!Y_ENABLE_ON); Y2_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
-  #else
-    #define  enable_y() Y_ENABLE_WRITE( Y_ENABLE_ON)
-    #define disable_y() { Y_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
-  #endif
+#if HAS(Y2_ENABLE)
+  #define  enable_y() do{ Y_ENABLE_WRITE( Y_ENABLE_ON); Y2_ENABLE_WRITE(Y_ENABLE_ON); }while(0)
+  #define disable_y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); Y2_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }while(0)
+#elif HAS(Y_ENABLE)
+  #define  enable_y() Y_ENABLE_WRITE( Y_ENABLE_ON)
+  #define disable_y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }while(0)
 #else
-  #define  enable_y() ;
-  #define disable_y() ;
+  #define  enable_y() NOOP
+  #define disable_y() NOOP
 #endif
 
-#if HAS(Z_ENABLE)
-  #if ENABLED(Z_DUAL_STEPPER_DRIVERS)
-    #define  enable_z() { Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON); }
-    #define disable_z() { Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
-  #else
-    #define  enable_z() Z_ENABLE_WRITE( Z_ENABLE_ON)
-    #define disable_z() { Z_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
-  #endif
+#if HAS(Z2_ENABLE)
+  #define  enable_z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
+  #define disable_z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }while(0)
+#elif HAS(Z_ENABLE)
+  #define  enable_z() Z_ENABLE_WRITE( Z_ENABLE_ON)
+  #define disable_z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }while(0)
 #else
-  #define  enable_z() ;
-  #define disable_z() ;
+  #define  enable_z() NOOP
+  #define disable_z() NOOP
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
