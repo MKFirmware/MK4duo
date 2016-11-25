@@ -21,19 +21,11 @@
 #define ORIG_Y_MIN_PIN          35
 #define ORIG_Y_MAX_PIN          34
 
-#define Y2_STEP_PIN             26
-#define Y2_DIR_PIN              25
-#define Y2_ENABLE_PIN           27
-
 #define ORIG_Z_STEP_PIN         57
 #define ORIG_Z_DIR_PIN          56
 #define ORIG_Z_ENABLE_PIN       62
 #define ORIG_Z_MIN_PIN          33
 #define ORIG_Z_MAX_PIN          32
-
-#define Z2_STEP_PIN             26
-#define Z2_DIR_PIN              25
-#define Z2_ENABLE_PIN           27
 
 #define ORIG_E0_STEP_PIN        23
 #define ORIG_E0_DIR_PIN         22

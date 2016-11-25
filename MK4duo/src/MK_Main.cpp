@@ -1848,7 +1848,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
     #if ENABLED(Z_PROBE_SLED)
       dock_sled(!deploy);
-    #elif ENABLED(BLTOUCH)
+    #elif ENABLED(BLTOUCH) && MECH(DELTA)
       set_bltouch_deployed(deploy);
     #elif HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
       servo[Z_ENDSTOP_SERVO_NR].move(z_servo_angle[deploy ? 0 : 1]);
@@ -1879,8 +1879,18 @@ static void clean_up_after_endstop_or_probe_move() {
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> do_probe_move", current_position);
     #endif
 
+    // Deploy BLTouch at the start of any probe
+    #if ENABLED(BLTOUCH) && NOMECH(DELTA)
+      set_bltouch_deployed(true);
+    #endif
+
     // Move down until probe triggered
     do_blocking_move_to_z(LOGICAL_Z_POSITION(z), MMM_TO_MMS(fr_mm_m));
+
+    // Retract BLTouch immediately after a probe
+    #if ENABLED(BLTOUCH) && NOMECH(DELTA)
+      set_bltouch_deployed(false);
+    #endif
 
     // Clear endstop flags
     endstops.hit_on_purpose();
@@ -2025,15 +2035,17 @@ static void clean_up_after_endstop_or_probe_move() {
       float dx = point.x, dy = point.y;
       if (dx == 0.0 && dy == 0.0) { BUZZ(100, 220); return 0.0; }
     #else
-      float dx = x - X_PROBE_OFFSET_FROM_NOZZLE,
-            dy = y - Y_PROBE_OFFSET_FROM_NOZZLE;
+      float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
+            dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
     #endif
 
     // Ensure a minimum height before moving the probe
     do_probe_raise(Z_PROBE_BETWEEN_HEIGHT);
 
+    feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
     // Move the probe to the given XY
-    do_blocking_move_to_xy(dx, dy, XY_PROBE_FEEDRATE_MM_S);
+    do_blocking_move_to_xy(dx, dy);
 
     if (DEPLOY_PROBE()) return NAN;
 

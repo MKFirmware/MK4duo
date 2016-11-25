@@ -37,15 +37,36 @@
 #define X_DIR_PIN           ORIG_X_DIR_PIN
 #define X_ENABLE_PIN        ORIG_X_ENABLE_PIN
 
+// X2 axis pins
+#if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_DUAL_STEPPER_DRIVERS)
+  #define X2_STEP_PIN       ORIG_E1_STEP_PIN
+  #define X2_DIR_PIN        ORIG_E1_DIR_PIN
+  #define X2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+#endif
+
 // Y axis pins
 #define Y_STEP_PIN          ORIG_Y_STEP_PIN
 #define Y_DIR_PIN           ORIG_Y_DIR_PIN
 #define Y_ENABLE_PIN        ORIG_Y_ENABLE_PIN
 
+// Y2 axis pins
+#if ENABLED(Y_DUAL_STEPPER_DRIVERS)
+  #define Y2_STEP_PIN       ORIG_E1_STEP_PIN
+  #define Y2_DIR_PIN        ORIG_E1_DIR_PIN
+  #define Y2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+#endif
+
 // Z axis pins
 #define Z_STEP_PIN          ORIG_Z_STEP_PIN
 #define Z_DIR_PIN           ORIG_Z_DIR_PIN
 #define Z_ENABLE_PIN        ORIG_Z_ENABLE_PIN
+
+// Z2 axis pins
+#if ENABLED(Z_DUAL_STEPPER_DRIVERS)
+  #define Z2_STEP_PIN       ORIG_E1_STEP_PIN
+  #define Z2_DIR_PIN        ORIG_E1_DIR_PIN
+  #define Z2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+#endif
 
 // E axis pins
 #if DRIVER_EXTRUDERS > 0
@@ -180,12 +201,6 @@
   #define H1_AUTO_FAN_PIN -1
   #define H2_AUTO_FAN_PIN -1
   #define H3_AUTO_FAN_PIN -1
-#endif
-
-#if ENABLED(DUAL_X_CARRIAGE)
-  #define X2_ENABLE_PIN -1
-  #define X2_STEP_PIN   -1
-  #define X2_DIR_PIN    -1
 #endif
 
 #if ENABLED(Z_PROBE_SLED)

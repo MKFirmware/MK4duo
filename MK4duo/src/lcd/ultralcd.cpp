@@ -2624,21 +2624,17 @@ void kill_screen(const char* lcd_msg) {
    *
    */
 
-  #if ENABLED(LCD_USE_I2C_BUZZER)
-    void lcd_buzz(long duration, uint16_t freq) { // called from buzz() in Marlin_main.cpp where lcd is unknown
-      lcd.buzz(duration, freq);
-    }
-  #endif
-
   void lcd_quick_feedback() {
     lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
     buttons = 0;
     next_button_update_ms = millis() + 500;
 
-    // Buzz and wait. The delay is needed for buttons to settle!
-    lcd_buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
-    #if ENABLED(LCD_USE_I2C_BUZZER)
-      HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
+    #if HAS(BUZZER)
+      // Buzz and wait. The delay is needed for buttons to settle!
+      buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+      #if ENABLED(LCD_USE_I2C_BUZZER)
+        HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
+      #endif
     #endif
   }
 
