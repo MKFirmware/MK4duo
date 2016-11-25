@@ -26,20 +26,12 @@
 #define ORIG_Y_MIN_PIN          14
 #define ORIG_Y_MAX_PIN          15
 
-#define Y2_STEP_PIN             36
-#define Y2_DIR_PIN              34
-#define Y2_ENABLE_PIN           30
-
 // Z axis pins
 #define ORIG_Z_STEP_PIN         46
 #define ORIG_Z_DIR_PIN          48
 #define ORIG_Z_ENABLE_PIN       62
 #define ORIG_Z_MIN_PIN          18
 #define ORIG_Z_MAX_PIN          19
-
-#define Z2_STEP_PIN             36
-#define Z2_DIR_PIN              34
-#define Z2_ENABLE_PIN           30
 
 // E axis pins
 #define ORIG_E0_STEP_PIN        26

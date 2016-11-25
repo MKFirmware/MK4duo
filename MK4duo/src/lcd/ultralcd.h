@@ -52,10 +52,6 @@
     inline bool lcd_detected() { return true; }
   #endif
 
-  #if HAS(BUZZER)
-    void lcd_buzz(long duration, uint16_t freq);
-  #endif
-
   #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
     void dontExpireStatus();
   #endif
