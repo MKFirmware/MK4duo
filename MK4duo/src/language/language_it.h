@@ -225,6 +225,10 @@
 #define MSG_INFO_MAX_TEMP                   "Max Temp"
 #define MSG_INFO_PSU                        "Alimentatore"
 
+// CASE LIGHT
+#define MSG_LIGHTS_ON                       "Luce case on"
+#define MSG_LIGHTS_OFF                      "Luce case off"
+
 // FILAMENT_CHANGE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          "CAMBIO FILO"
 #define MSG_FILAMENT_CHANGE_INIT_1          "Attendere"
