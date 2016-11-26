@@ -1,3 +1,11 @@
+### Version 4.3.07_dev
+* Add ENSURE_SMOOTH_MOVES - Enable this option to prevent the machine from stuttering when printing multiple short segments.
+* Add USE_BIG_EDIT_FONT   - A bigger font is available for edit items in graphical displays. Costs 3120 bytes of PROGMEM.
+* Add USE_SMALL_INFOFONT  - A smaller font may be used on the Info Screen in graphical displays. Costs 2300 bytes of PROGMEM. 
+* Add Waveform temperature for Nextion.
+* Add option for refresh Nextion
+* Add option for name firmware file Nextion
+
 ### Version 4.3.06_dev
 * Add Auto report temp width M155
 * Add new capabilities string width M115

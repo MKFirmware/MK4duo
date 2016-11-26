@@ -1100,6 +1100,19 @@
 //#define ULTRA_LCD   // Character based
 //#define DOGLCD      // Full graphics display
 
+// Some additional options are available for graphical displays:
+// A bigger font is available for edit items. Costs 3120 bytes of PROGMEM.
+// Western only. Not available for Cyrillic, Kana, Turkish, Greek, or Chinese.
+//#define USE_BIG_EDIT_FONT
+
+// A smaller font may be used on the Info Screen. Costs 2300 bytes of PROGMEM.
+// Western only. Not available for Cyrillic, Kana, Turkish, Greek, or Chinese.
+//#define USE_SMALL_INFOFONT
+
+// Enable this option and reduce the value to optimize screen updates.
+// The normal delay is 10µs. Use the lowest value that still gives a reliable display.
+//#define DOGM_SPI_DELAY_US 5
+
 //
 // ENCODER SETTINGS
 //
@@ -1342,12 +1355,17 @@
 //
 // CONTROLLER TYPE: Serial display
 //
-// Nextion HMI panel Serial
+
+// Nextion 4.3" HMI panel model NX4827T043_11
 //#define NEXTION
+// Define Serial it use
 #define NEXTION_SERIAL 1
+// Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
+#define NEXTION_UPDATE_INTERVAL 3000
 // For GFX Visualization enable Nextion GFX
 //#define NEXTION_GFX
-
+// Define name firmware file for Nextion on SD
+#define NEXTION_FIRMWARE_FILE "mk4duo.tft"
 
 // Show a progress bar on HD44780 LCDs for SD printing
 //#define LCD_PROGRESS_BAR

@@ -45,9 +45,6 @@
   #include "../utility/utility.h"
 
   #if ENABLED(NEXTION)
-    #define LCD_UPDATE_INTERVAL 4000
-    #define NEXTION_FIRMWARE_FILE "mk4duo.tft"
-
     void hotPopCallback(void *ptr);
     void sethotPopCallback(void *ptr);
     void settempPopCallback(void *ptr);
