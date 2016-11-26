@@ -122,6 +122,7 @@
   NexVariable Language  = NexVariable   (2,   22, "lang");
   NexTimer Fantimer     = NexTimer      (2,   8,  "tm0");
   NexProgressBar sdbar  = NexProgressBar(2,   9,  "j0");
+  NexWaveform Wavetemp  = NexWaveform   (2,   23, "s0");
 
   /**
    *******************************************************************
@@ -902,9 +903,21 @@
     }
   }
 
-  static void temptoLCD(int h, float T1, float T2) {
+  static void temptoLCD(uint8_t h, float T1, float T2) {
+    static const uint16_t maxTemp =
+      #if HOTENDS == 1
+        HEATER_0_MAXTEMP;
+      #elif HOTENDS == 2
+        max(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP);
+      #elif HOTENDS > 2
+        MAX3(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP);
+      #else
+        1;
+      #endif
+
     char valuetemp[25] = {0};
     uint32_t color;
+
     ZERO(buffer);
     itoa(T1, valuetemp, 10);
     strcat(buffer, valuetemp);
@@ -930,6 +943,14 @@
 
     hotend_list[h]->setText(buffer);
     hotend_list[h]->Set_font_color_pco(color);
+
+    #if ENABLED(NEXTION_GFX)
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING))
+    #endif
+    {
+      uint8_t wavetemp = (T1 / maxTemp) * 150;
+      Wavetemp.addValue(h, wavetemp);
+    }
   }
 
   static void coordtoLCD() {
@@ -1098,7 +1119,7 @@
           break;
       }
 
-      next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
+      next_lcd_update_ms = ms + NEXTION_UPDATE_INTERVAL;
       PreviousPage = NextionPage;
     }
   }
