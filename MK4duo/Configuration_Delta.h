@@ -40,6 +40,7 @@
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
  * - Auto Calibration
+ * - Auto Calibration 7 points
  * - Delta Home Safe Zone
  * - Axis steps per unit
  * - Axis feedrate
@@ -453,6 +454,18 @@
 
 // Precision for G30 delta autocalibration function
 #define AUTOCALIBRATION_PRECISION 0.1 // mm
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ **************************** Auto Calibration 7 points **********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Autocalibration Delta system 7 points                                                  *
+ * To use this you must have a PROBE, please define you type probe.                      *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define AUTO_CALIBRATION_FEATURE_7_POINT
 /*****************************************************************************************/
 
 
