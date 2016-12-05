@@ -1,3 +1,11 @@
+### Version 4.3.08_dev
+* Add ABL or MBL leveling fade height M320 Z<zzz> (ABL) or M420 Z<zzz> (MBL)
+* Add RGB LED M150: Set Status LED Color - Use R-U-B for R-G-B
+* Add Case Light M355 S<bool> P<byte>
+* Add M995 X Y Z set origin for graphic in NEXTION
+* Add M996 S<scale> scale graphic in NEXTION
+* Add Autocalibration 7 points for DELTA (Similar RepRapFirmware)
+
 ### Version 4.3.07_dev
 * Add ENSURE_SMOOTH_MOVES - Enable this option to prevent the machine from stuttering when printing multiple short segments.
 * Add USE_BIG_EDIT_FONT   - A bigger font is available for edit items in graphical displays. Costs 3120 bytes of PROGMEM.

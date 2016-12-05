@@ -310,12 +310,14 @@ uint8_t eeprom_read_byte(uint8_t* pos);
 #define HAL_TIMER_RATE 		     (F_CPU/2)
 #define TICKS_PER_NANOSECOND   (HAL_TIMER_RATE)/1000
 
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_enable_interrupt (STEP_TIMER_NUM)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_disable_interrupt (STEP_TIMER_NUM)
+#define ENABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_enable_interrupt(STEP_TIMER_NUM)
+#define DISABLE_STEPPER_DRIVER_INTERRUPT()	HAL_timer_disable_interrupt(STEP_TIMER_NUM)
+#define ENABLE_TEMPERATURE_INTERRUPT() HAL_timer_enable_interrupt(TEMP_TIMER_NUM)
+#define DISABLE_TEMPERATURE_INTERRUPT() HAL_timer_disable_interrupt(TEMP_TIMER_NUM)
 
 #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define ENABLE_ADVANCE_EXTRUDER_INTERRUPT()	HAL_timer_enable_interrupt (ADVANCE_EXTRUDER_TIMER_NUM)
-  #define DISABLE_ADVANCE_EXTRUDER_INTERRUPT()	HAL_timer_disable_interrupt (ADVANCE_EXTRUDER_TIMER_NUM)
+  #define ENABLE_ADVANCE_EXTRUDER_INTERRUPT()	HAL_timer_enable_interrupt(ADVANCE_EXTRUDER_TIMER_NUM)
+  #define DISABLE_ADVANCE_EXTRUDER_INTERRUPT()	HAL_timer_disable_interrupt(ADVANCE_EXTRUDER_TIMER_NUM)
   void HAL_advance_extruder_timer_start(void);
   extern  TcChannel *extruderChannel;
 #endif

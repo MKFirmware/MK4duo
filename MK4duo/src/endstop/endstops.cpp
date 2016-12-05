@@ -285,7 +285,7 @@ void Endstops::update() {
   #endif
 
   #if CORE_IS_XY || CORE_IS_YZ
-    // Head direction in -Y axis for CoreXY bots.
+    // Head direction in -Y axis for CoreXY / CoreYZ bots.
     // If DeltaA == DeltaB, the movement is only in X axis
     if ((stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]) || (stepper.motor_direction(CORE_AXIS_1) != stepper.motor_direction(CORE_AXIS_2))) {
       if (stepper.motor_direction(Y_HEAD))
@@ -307,14 +307,14 @@ void Endstops::update() {
   #endif
 
   #if CORE_IS_XZ || CORE_IS_YZ
-    // Head direction in -Z axis for CoreXZ bots.
+    // Head direction in -Z axis for CoreXZ or CoreYZ bots.
     // If DeltaA == DeltaB, the movement is only in X axis
     if ((stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]) || (stepper.motor_direction(CORE_AXIS_1) !) != stepper.motor_direction(CORE_AXIS_2))) {
       if (stepper.motor_direction(Z_HEAD))
   #else
       if (stepper.motor_direction(Z_AXIS))
   #endif
-      { // z -direction
+      { // Z -direction. Gantry down, bed up.
         #if HAS(Z_MIN)
 
           #if ENABLED(Z_DUAL_ENDSTOPS)
@@ -338,6 +338,7 @@ void Endstops::update() {
           #endif // !Z_DUAL_ENDSTOPS
         #endif // HAS_Z_MIN
 
+        // When closing the gap check the enabled probe
         #if HAS(BED_PROBE) && HAS(Z_PROBE_PIN)
           if (z_probe_enabled) {
             UPDATE_ENDSTOP(Z, PROBE);
@@ -345,9 +346,10 @@ void Endstops::update() {
           }
         #endif
       }
-      else { // z +direction
+      else { // Z +direction. Gantry up, bed down.
         #if HAS(Z_MAX)
 
+          // Check both Z dual endstops
           #if ENABLED(Z_DUAL_ENDSTOPS)
 
             UPDATE_ENDSTOP_BIT(Z, MAX);

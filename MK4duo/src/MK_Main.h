@@ -36,10 +36,6 @@ void idle(
 
 void manage_inactivity(bool ignore_stepper_queue = false);
 
-#if ENABLED(PINS_DEBUGGING)
-  extern bool endstop_monitor_flag;
-#endif
-
 #if ENABLED(DUAL_X_CARRIAGE)
   extern bool hotend_duplication_enabled;
 #endif
@@ -49,19 +45,11 @@ void ok_to_send();
 
 #if IS_KINEMATIC
   extern float delta[ABC];
-  void inverse_kinematics(const float logical[XYZ]);
 #endif
 
-#if MECH(DELTA)
-  extern float  endstop_adj[ABC],
-                diagrod_adj[ABC],
-                tower_adj[6],
-                delta_radius,
-                delta_diagonal_rod,
-                delta_segments_per_second;
-  void set_delta_constants();
-#elif MECH(SCARA)
+#if IS_SCARA
   void forward_kinematics_SCARA(const float &a, const float &b);
+  void inverse_kinematics(const float logical[XYZ]);
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)

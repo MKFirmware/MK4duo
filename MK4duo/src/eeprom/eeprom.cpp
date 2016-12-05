@@ -83,10 +83,10 @@
  *
  * DELTA:
  *  M666  XYZ             endstop_adj (float x3)
- *  M666  R               delta_radius (float)
- *  M666  D               delta_diagonal_rod (float)
+ *  M666  R               deltaParams.delta_radius (float)
+ *  M666  D               deltaParams.delta_diagonal_rod (float)
  *  M666  S               delta_segments_per_second (float)
- *  M666  H               Z soft_endstop_max (float)
+ *  M666  H               Z base_max_pos (float)
  *  M666  ABCIJK          tower_adj (float x6)
  *  M666  UVW             diagrod_adj (float x3)
  *
@@ -175,7 +175,7 @@ void EEPROM::Postprocess() {
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
-    set_delta_constants();
+    deltaParams.Recalc_delta_constants();
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
@@ -260,13 +260,13 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MECH(DELTA)
-      EEPROM_WRITE(endstop_adj);
-      EEPROM_WRITE(delta_radius);
-      EEPROM_WRITE(delta_diagonal_rod);
-      EEPROM_WRITE(delta_segments_per_second);
-      EEPROM_WRITE(soft_endstop_max);
-      EEPROM_WRITE(tower_adj);
-      EEPROM_WRITE(diagrod_adj);
+      EEPROM_WRITE(deltaParams.endstop_adj);
+      EEPROM_WRITE(deltaParams.delta_radius);
+      EEPROM_WRITE(deltaParams.delta_diagonal_rod);
+      EEPROM_WRITE(deltaParams.delta_segments_per_second);
+      EEPROM_WRITE(deltaParams.base_max_pos);
+      EEPROM_WRITE(deltaParams.tower_adj);
+      EEPROM_WRITE(deltaParams.diagrod_adj);
     #elif ENABLED(Z_DUAL_ENDSTOPS)
       EEPROM_WRITE(z_endstop_adj);
     #endif
@@ -437,13 +437,13 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MECH(DELTA)
-        EEPROM_READ(endstop_adj);
-        EEPROM_READ(delta_radius);
-        EEPROM_READ(delta_diagonal_rod);
-        EEPROM_READ(delta_segments_per_second);
-        EEPROM_READ(soft_endstop_max);
-        EEPROM_READ(tower_adj);
-        EEPROM_READ(diagrod_adj);
+        EEPROM_READ(deltaParams.endstop_adj);
+        EEPROM_READ(deltaParams.delta_radius);
+        EEPROM_READ(deltaParams.delta_diagonal_rod);
+        EEPROM_READ(deltaParams.delta_segments_per_second);
+        EEPROM_READ(deltaParams.base_max_pos);
+        EEPROM_READ(deltaParams.tower_adj);
+        EEPROM_READ(deltaParams.diagrod_adj);
       #endif //DELTA
 
       #if DISABLED(ULTIPANEL)
@@ -550,49 +550,51 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::ResetDefault() {
-  float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-  float tmp2[] = DEFAULT_MAX_FEEDRATE;
-  float tmp3[] = DEFAULT_MAX_ACCELERATION;
-  float tmp4[] = DEFAULT_RETRACT_ACCELERATION;
-  float tmp5[] = DEFAULT_EJERK;
-  float tmp6[] = DEFAULT_Kp;
-  float tmp7[] = DEFAULT_Ki;
-  float tmp8[] = DEFAULT_Kd;
-  float tmp9[] = DEFAULT_Kc;
+  const float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+  const float tmp2[] = DEFAULT_MAX_FEEDRATE;
+  const long tmp3[] = DEFAULT_MAX_ACCELERATION;
+  const long tmp4[] = DEFAULT_RETRACT_ACCELERATION;
+  const float tmp5[] = DEFAULT_EJERK;
+  const float tmp6[] = DEFAULT_Kp;
+  const float tmp7[] = DEFAULT_Ki;
+  const float tmp8[] = DEFAULT_Kd;
+  const float tmp9[] = DEFAULT_Kc;
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    float tmp10[] = HOTEND_OFFSET_X;
-    float tmp11[] = HOTEND_OFFSET_Y;
-    float tmp12[] = HOTEND_OFFSET_Z;
+    constexpr float tmp10[XYZ][4] = {
+      HOTEND_OFFSET_X,
+      HOTEND_OFFSET_Y,
+      HOTEND_OFFSET_Z
+    };
+  #else
+    constexpr float tmp10[XYZ][HOTENDS] = { 0.0 };
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    float tmp13[] = MOTOR_CURRENT;
+    float tmp11[] = MOTOR_CURRENT;
     for (int8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      motor_current[i] = tmp13[i];
+      motor_current[i] = tmp11[i];
   #endif
 
-  for (int8_t i = 0; i < XYZEn; i++) {
-    planner.axis_steps_per_mm[i] = tmp1[i];
-    planner.max_feedrate_mm_s[i] = tmp2[i];
-    planner.max_acceleration_mm_per_s2[i] = tmp3[i];
+  LOOP_XYZE_N(i) {
+    planner.axis_steps_per_mm[i]          = tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1];
+    planner.max_feedrate_mm_s[i]          = tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1];
+    planner.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
   }
 
   for (int8_t i = 0; i < EXTRUDERS; i++) {
-    planner.retract_acceleration[i] = tmp4[i];
-    planner.max_jerk[E_AXIS + i] = tmp5[i];
+    planner.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
+    planner.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
   }
 
-  for (int8_t i = 0; i < HOTENDS; i++) {
-    #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-      hotend_offset[X_AXIS][i] = tmp10[i];
-      hotend_offset[Y_AXIS][i] = tmp11[i];
-      hotend_offset[Z_AXIS][i] = tmp12[i];
-    #else
-      hotend_offset[X_AXIS][i] = 0;
-      hotend_offset[Y_AXIS][i] = 0;
-      hotend_offset[Z_AXIS][i] = 0;
-    #endif
+  static_assert(
+    tmp10[X_AXIS][0] == 0 && tmp10[Y_AXIS][0] == 0 && tmp10[Z_AXIS][0] == 0,
+    "Offsets for the first hotend must be 0.0."
+  );
+  LOOP_XYZ(i) {
+    HOTEND_LOOP() {
+      hotend_offset[i][h] = tmp10[i][h];
+    }
   }
 
   planner.acceleration = DEFAULT_ACCELERATION;
@@ -614,24 +616,24 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if MECH(DELTA)
-    delta_radius = DEFAULT_DELTA_RADIUS;
-    delta_diagonal_rod = DELTA_DIAGONAL_ROD;
-    delta_segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
-    soft_endstop_max[X_AXIS] = X_MAX_POS;
-    soft_endstop_max[Y_AXIS] = Y_MAX_POS;
-    soft_endstop_max[Z_AXIS] = Z_MAX_POS;
-    endstop_adj[A_AXIS] = TOWER_A_ENDSTOP_ADJ;
-    endstop_adj[B_AXIS] = TOWER_B_ENDSTOP_ADJ;
-    endstop_adj[C_AXIS] = TOWER_C_ENDSTOP_ADJ;
-    tower_adj[0] = TOWER_A_POSITION_ADJ;
-    tower_adj[1] = TOWER_B_POSITION_ADJ;
-    tower_adj[2] = TOWER_C_POSITION_ADJ;
-    tower_adj[3] = TOWER_A_RADIUS_ADJ;
-    tower_adj[4] = TOWER_B_RADIUS_ADJ;
-    tower_adj[5] = TOWER_C_RADIUS_ADJ;
-    diagrod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
-    diagrod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
-    diagrod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
+    deltaParams.delta_radius = DEFAULT_DELTA_RADIUS;
+    deltaParams.delta_diagonal_rod = DELTA_DIAGONAL_ROD;
+    deltaParams.delta_segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
+    deltaParams.base_max_pos[A_AXIS] = X_MAX_POS;
+    deltaParams.base_max_pos[B_AXIS] = Y_MAX_POS;
+    deltaParams.base_max_pos[C_AXIS] = Z_MAX_POS;
+    deltaParams.endstop_adj[A_AXIS] = TOWER_A_ENDSTOP_ADJ;
+    deltaParams.endstop_adj[B_AXIS] = TOWER_B_ENDSTOP_ADJ;
+    deltaParams.endstop_adj[C_AXIS] = TOWER_C_ENDSTOP_ADJ;
+    deltaParams.tower_adj[0] = TOWER_A_RADIUS_ADJ;
+    deltaParams.tower_adj[1] = TOWER_B_RADIUS_ADJ;
+    deltaParams.tower_adj[2] = TOWER_C_RADIUS_ADJ;
+    deltaParams.tower_adj[3] = TOWER_A_POSITION_ADJ;
+    deltaParams.tower_adj[4] = TOWER_B_POSITION_ADJ;
+    deltaParams.tower_adj[5] = TOWER_C_POSITION_ADJ;
+    deltaParams.diagrod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
+    deltaParams.diagrod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
+    deltaParams.diagrod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -734,7 +736,7 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" Z", planner.axis_steps_per_mm[Z_AXIS], 3);
     SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS], 3);
     #if EXTRUDERS > 1
-      for (int8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 1; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
         SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS + i], 3);
       }
@@ -746,7 +748,7 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" Z", planner.max_feedrate_mm_s[Z_AXIS], 3);
     SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS], 3);
     #if EXTRUDERS > 1
-      for (int8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 1; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
         SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS + i], 3);
       }
@@ -758,7 +760,7 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" Z", planner.max_acceleration_mm_per_s2[Z_AXIS]);
     SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS]);
     #if EXTRUDERS > 1
-      for (int8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 1; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
         SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i]);
       }
@@ -768,7 +770,7 @@ void EEPROM::ResetDefault() {
     SERIAL_SMV(CFG,"  M204 P", planner.acceleration, 3);
     SERIAL_EMV(" V", planner.travel_acceleration, 3);
     #if EXTRUDERS > 0
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
         SERIAL_EMV(" R", planner.retract_acceleration[i], 3);
       }
@@ -783,7 +785,7 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" Z", planner.max_jerk[Z_AXIS], 3);
     SERIAL_EMV(" E", planner.max_jerk[E_AXIS], 3);
     #if (EXTRUDERS > 1)
-      for(int8_t i = 1; i < EXTRUDERS; i++) {
+      for(uint8_t i = 1; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
         SERIAL_EMV(" E" , planner.max_jerk[E_AXIS + i], 3);
       }
@@ -825,7 +827,7 @@ void EEPROM::ResetDefault() {
 
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      for (int8_t h = 0; h < HOTENDS; h++) {
+      for (uint8_t h = 0; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M595 T", h);
         SERIAL_MV(" O", ad595_offset[h]);
         SERIAL_EMV(", S", ad595_gain[h]);
@@ -834,23 +836,23 @@ void EEPROM::ResetDefault() {
 
     #if MECH(DELTA)
       CONFIG_MSG_START("Delta Geometry adjustment:");
-      SERIAL_SMV(CFG, "  M666 A", tower_adj[0], 3);
-      SERIAL_MV(" B", tower_adj[1], 3);
-      SERIAL_MV(" C", tower_adj[2], 3);
-      SERIAL_MV(" I", tower_adj[3], 3);
-      SERIAL_MV(" J", tower_adj[4], 3);
-      SERIAL_MV(" K", tower_adj[5], 3);
-      SERIAL_MV(" U", diagrod_adj[0], 3);
-      SERIAL_MV(" V", diagrod_adj[1], 3);
-      SERIAL_MV(" W", diagrod_adj[2], 3);
-      SERIAL_MV(" R", delta_radius);
-      SERIAL_MV(" D", delta_diagonal_rod);
-      SERIAL_EMV(" H", soft_endstop_max[2]);
+      SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
+      SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
+      SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
+      SERIAL_MV(" I", deltaParams.tower_adj[3], 3);
+      SERIAL_MV(" J", deltaParams.tower_adj[4], 3);
+      SERIAL_MV(" K", deltaParams.tower_adj[5], 3);
+      SERIAL_MV(" U", deltaParams.diagrod_adj[0], 3);
+      SERIAL_MV(" V", deltaParams.diagrod_adj[1], 3);
+      SERIAL_MV(" W", deltaParams.diagrod_adj[2], 3);
+      SERIAL_MV(" R", deltaParams.delta_radius);
+      SERIAL_MV(" D", deltaParams.delta_diagonal_rod);
+      SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS]);
 
       CONFIG_MSG_START("Endstop Offsets:");
-      SERIAL_SMV(CFG, "  M666 X", endstop_adj[X_AXIS]);
-      SERIAL_MV(" Y", endstop_adj[Y_AXIS]);
-      SERIAL_EMV(" Z", endstop_adj[Z_AXIS]);
+      SERIAL_SMV(CFG, "  M666 X", deltaParams.endstop_adj[A_AXIS]);
+      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
+      SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
 
     #elif ENABLED(Z_DUAL_ENDSTOPS)
       CONFIG_MSG_START("Z2 Endstop adjustement (mm):");
@@ -879,7 +881,7 @@ void EEPROM::ResetDefault() {
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
       CONFIG_MSG_START("PID settings:");
       #if ENABLED(PIDTEMP)
-        for (int8_t h = 0; h < HOTENDS; h++) {
+        for (uint8_t h = 0; h < HOTENDS; h++) {
           SERIAL_SMV(CFG, "  M301 H", h);
           SERIAL_MV(" P", PID_PARAM(Kp, h));
           SERIAL_MV(" I", unscalePID_i(PID_PARAM(Ki, h)));

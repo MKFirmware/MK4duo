@@ -279,15 +279,11 @@
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
 
-//
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
-//
 #define Z_PROBE_DEPLOY_HEIGHT  30  // Z position for the probe to deploy/stow
 #define Z_PROBE_BETWEEN_HEIGHT 10  // Z position for travel between points
 
-//
 // For M666 give a range for adjusting the Z probe offset
-//
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
 /*****************************************************************************************/
@@ -422,11 +418,9 @@
  *****************************************************************************************/
 //#define AUTO_BED_LEVELING_FEATURE
 
-/**
- * Enable detailed logging of G28, G29, G30, M48, etc.
- * Turn on with the command 'M111 S32'.
- * NOTE: Requires a lot of PROGMEM!
- */
+// Enable detailed logging of G28, G29, G30, M48, etc.
+// Turn on with the command 'M111 S32'.
+// NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
 // Set the number of grid points per dimension
@@ -436,10 +430,13 @@
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
 
-/**
- * Commands to execute at the end of G29 probing.
- * Useful to retract or move the Z probe out of the way.
- */
+// Gradually reduce leveling correction until a set height is reached,
+// at which point movement will be level to the machine's XY plane.
+// The height can be set with M320 Z<height>
+//#define ENABLE_LEVELING_FADE_HEIGHT
+
+// Commands to execute at the end of G29 probing.
+// Useful to retract or move the Z probe out of the way.
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
 /*****************************************************************************************/
 

@@ -327,6 +327,11 @@
   #undef SLOWDOWN       // DELTA not needs SLOWDOWN
   #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
 
+  #if ENABLED(ENSURE_SMOOTH_MOVES) && (1000000 / DELTA_SEGMENTS_PER_SECOND) < MIN_BLOCK_TIME
+    #undef MIN_BLOCK_TIME
+    #define MIN_BLOCK_TIME (1000000UL / DELTA_SEGMENTS_PER_SECOND)
+  #endif
+
   // DELTA must have same valour for 3 axis endstop hits
   #define X_HOME_BUMP_MM XYZ_HOME_BUMP_MM
   #define Y_HOME_BUMP_MM XYZ_HOME_BUMP_MM

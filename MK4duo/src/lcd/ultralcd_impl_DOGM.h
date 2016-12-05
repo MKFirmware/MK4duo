@@ -146,37 +146,48 @@
   #if MB(ULTRATRONICS)
     U8GLIB_ST7920_128X64_4X u8g(SCK,MOSI,LCD_PINS_RS); // Software SPI
   #else
-    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // Hardware SPI
+    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // 2 stripes
+    // U8GLIB_ST7920_128X64 u8g(LCD_PINS_RS); // 8 stripes
   #endif 
 #elif ENABLED(U8GLIB_ST7920)
-  //U8GLIB_ST7920_128X64_RRD u8g(0,0,0);
-  U8GLIB_ST7920_128X64_RRD u8g(0);
+  //U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes
+                                                                            // No 4 stripe device available from u8glib.
+  //U8GLIB_ST7920_128X64 u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS);    // Original u8glib device. 8 stripes
+  U8GLIB_ST7920_128X64_RRD u8g(0); // Number of stripes can be adjusted in ultralcd_st7920_u8glib_rrd.h with PAGE_HEIGHT
 #elif ENABLED(CARTESIO_UI)
   // The CartesioUI display
   #if DOGLCD_MOSI != -1 && DOGLCD_SCK != -1
     // using SW-SPI
-    U8GLIB_DOGM128 u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);
+    //U8GLIB_DOGM128 u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);  // 8 stripes
+    U8GLIB_DOGM128_2X u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0); // 4 stripes
   #else
-    U8GLIB_DOGM128 u8g(DOGLCD_CS, DOGLCD_A0);
+    //U8GLIB_DOGM128 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
+    U8GLIB_DOGM128_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
   #endif
 #elif ENABLED(U8GLIB_LM6059_AF)
   // Based on the Adafruit ST7565 (http://www.adafruit.com/products/250)
-  U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);
+  //U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
+  U8GLIB_LM6059_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
 #elif ENABLED(MAKRPANEL) || ENABLED(VIKI2) || ENABLED(miniVIKI)
   // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller as well
-  U8GLIB_NHD_C12864 u8g(DOGLCD_CS, DOGLCD_A0);
+  //U8GLIB_NHD_C12864 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
+  U8GLIB_NHD_C12864_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
 #elif ENABLED(U8GLIB_SSD1306)
   // Generic support for SSD1306 OLED I2C LCDs
-  U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);
+  //U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
+  U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST); // 4 stripes
 #elif ENABLED(U8GLIB_SH1106)
   // Generic support for SH1106 OLED I2C LCDs
-  U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);
+  //U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
+  U8GLIB_SH1106_128X64_2X u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST); // 4 stripes
 #elif ENABLED(MINIPANEL)
   // The MINIPanel display
-  U8GLIB_MINI12864 u8g(DOGLCD_CS, DOGLCD_A0);
+  //U8GLIB_MINI12864 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
+  U8GLIB_MINI12864_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
 #else
   // for regular DOGM128 display with HW-SPI
-  U8GLIB_DOGM128 u8g(DOGLCD_CS, DOGLCD_A0);  // HW-SPI Com: CS, A0
+  //U8GLIB_DOGM128 u8g(DOGLCD_CS, DOGLCD_A0);  // HW-SPI Com: CS, A0  // 8 stripes
+  U8GLIB_DOGM128_2X u8g(DOGLCD_CS, DOGLCD_A0);  // HW-SPI Com: CS, A0 // 4 stripes
 #endif
 
 #ifndef LCD_PIXEL_WIDTH
@@ -471,8 +482,14 @@ static void lcd_implementation_status_screen() {
     // Progress bar frame
     //
 
-    if (PAGE_CONTAINS(49, 52 - (TALL_FONT_CORRECTION)))
-      u8g.drawFrame(54, 49, 73, 4 - (TALL_FONT_CORRECTION));  // 49-52 (or 49-51)
+    #define PROGRESS_BAR_X 54
+    #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
+
+    if (PAGE_CONTAINS(49, 52 - (TALL_FONT_CORRECTION)))       // 49-52 (or 49-51)
+      u8g.drawFrame(
+        PROGRESS_BAR_X, 49,
+        PROGRESS_BAR_WIDTH, 4 - (TALL_FONT_CORRECTION)
+      );
 
     if (IS_SD_PRINTING) {
 
@@ -480,8 +497,11 @@ static void lcd_implementation_status_screen() {
       // Progress bar solid part
       //
 
-      if (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION)))
-        u8g.drawBox(55, 50, (unsigned int)(71 * card.percentDone() * 0.01), 2 - (TALL_FONT_CORRECTION));
+      if (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION)))     // 50-51 (or just 50)
+        u8g.drawBox(
+          PROGRESS_BAR_X + 1, 50,
+          (unsigned int)((PROGRESS_BAR_WIDTH - 2) * card.percentDone() * 0.01), 2 - (TALL_FONT_CORRECTION)
+        );
 
       //
       // SD Percent Complete
@@ -501,20 +521,22 @@ static void lcd_implementation_status_screen() {
     // Elapsed Time
     //
 
-    if (PAGE_CONTAINS(53, 47)) {
+    if (PAGE_CONTAINS(PROGRESS_BAR_X, 48)) {
 
       char buffer1[10];
       char buffer2[10];
       duration_t elapsed  = print_job_counter.duration();
       duration_t finished = (print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
-      elapsed.toDigital(buffer1, false);
-      finished.toDigital(buffer2, false);
+      uint8_t len1 = elapsed.toDigital(buffer1, false),
+              len2 = finished.toDigital(buffer2, false);
+
       #if HAS(LCD_POWER_SENSOR)
         if (millis() < print_millis + 1000) {
+          u8g.setPrintPos(PROGRESS_BAR_X, 48);
           lcd_print('S');
           lcd_print(buffer1);
 
-          u8g.setPrintPos(90,47);
+          u8g.setPrintPos(92, 48);
           u8g.print('E');
           lcd_print(buffer2);
         }
@@ -523,10 +545,11 @@ static void lcd_implementation_status_screen() {
           lcd_print((char*)"Wh");
         }
       #else
+        u8g.setPrintPos(PROGRESS_BAR_X, 48);
         lcd_print('S');
         lcd_print(buffer1);
 
-        u8g.setPrintPos(90, 47);
+        u8g.setPrintPos(92, 48);
         u8g.print('E');
         lcd_print(buffer2);
       #endif
@@ -553,13 +576,14 @@ static void lcd_implementation_status_screen() {
 
   // Enable to save many cycles by drawing a hollow frame
   #define XYZ_HOLLOW_FRAME
+  #define MENU_HOLLOW_FRAME
 
   #if ENABLED(XYZ_HOLLOW_FRAME)
     #define XYZ_FRAME_TOP 29
     #define XYZ_FRAME_HEIGHT INFO_FONT_HEIGHT + 3
   #else
     #define XYZ_FRAME_TOP 30
-    #define XYZ_FRAME_HEIGHT INFO_FONT_HEIGHT + 2
+    #define XYZ_FRAME_HEIGHT INFO_FONT_HEIGHT + 1
   #endif
 
   // Before homing the axis letters are blinking 'X' <-> '?'.
@@ -614,13 +638,13 @@ static void lcd_implementation_status_screen() {
   // Feedrate
   //
 
-  if (PAGE_CONTAINS(50 - INFO_FONT_HEIGHT, 49)) {
+  if (PAGE_CONTAINS(51 - INFO_FONT_HEIGHT, 49)) {
     lcd_setFont(FONT_MENU);
-    u8g.setPrintPos(3, 49);
+    u8g.setPrintPos(3, 50);
     lcd_print(LCD_STR_FEEDRATE[0]);
 
     lcd_setFont(FONT_STATUSMENU);
-    u8g.setPrintPos(12, 49);
+    u8g.setPrintPos(12, 50);
     lcd_print(itostr3(feedrate_percentage));
     u8g.print('%');
   }
@@ -629,7 +653,7 @@ static void lcd_implementation_status_screen() {
   // Status line
   //
 
-  #define STATUS_BASELINE (54 + INFO_FONT_HEIGHT)
+  #define STATUS_BASELINE (55 + INFO_FONT_HEIGHT)
 
   if (PAGE_CONTAINS(STATUS_BASELINE + 1 - INFO_FONT_HEIGHT, STATUS_BASELINE)) {
     u8g.setPrintPos(0, STATUS_BASELINE);
@@ -673,19 +697,26 @@ static void lcd_implementation_status_screen() {
   // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
 
-    row_y1 = row * (DOG_CHAR_HEIGHT) + 1;
-    row_y2 = row_y1 + (DOG_CHAR_HEIGHT) - 1;
+    row_y1 = row * (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) + 1;
+    row_y2 = row_y1 + (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) - 1;
 
-    if (!PAGE_CONTAINS(row_y1 + 2 - (TALL_FONT_CORRECTION), row_y2 + 2 - (TALL_FONT_CORRECTION))) return;
+    if (!PAGE_CONTAINS(row_y1 + 1, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION))) return;
 
     if (isSelected) {
-      u8g.setColorIndex(1);  // black on white
-      u8g.drawBox(0, row_y1 + 2 - (TALL_FONT_CORRECTION), LCD_PIXEL_WIDTH, DOG_CHAR_HEIGHT);
-      u8g.setColorIndex(0);  // following text must be white on black
+      #if ENABLED(MENU_HOLLOW_FRAME)
+        u8g.drawHLine(0, row_y1 + 1, LCD_PIXEL_WIDTH);
+        u8g.drawHLine(0, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION), LCD_PIXEL_WIDTH);
+      #else
+        u8g.setColorIndex(1); // black on white
+        u8g.drawBox(0, row_y1 + 2, LCD_PIXEL_WIDTH, DOG_CHAR_HEIGHT - 1 + 2 * (TALL_FONT_CORRECTION));
+        u8g.setColorIndex(0); // white on black
+      #endif
     }
-    else {
-      u8g.setColorIndex(1); // unmarked text is black on white
-    }
+    #if DISABLED(MENU_HOLLOW_FRAME)
+      else {
+        u8g.setColorIndex(1); // unmarked text is black on white
+      }
+    #endif
     u8g.setPrintPos((START_COL) * (DOG_CHAR_WIDTH), row_y2);
   }
 
@@ -790,11 +821,13 @@ static void lcd_implementation_status_screen() {
   #define lcd_implementation_drawmenu_setting_edit_callback_bool(sel, row, pstr, pstr2, data, callback) lcd_implementation_drawmenu_setting_edit_generic_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
   void lcd_implementation_drawedit(const char* const pstr, const char* const value=NULL) {
-    const uint8_t labellen = lcd_strlen_P(pstr), vallen = lcd_strlen(value);
-    uint8_t lcd_width, char_width,
-            rows = (labellen > LCD_WIDTH - 2 - vallen) ? 2 : 1;
+    const uint8_t labellen = lcd_strlen_P(pstr),
+                  vallen = lcd_strlen(value);
+
+    uint8_t rows = (labellen > LCD_WIDTH - 2 - vallen) ? 2 : 1;
 
     #if ENABLED(USE_BIG_EDIT_FONT)
+      uint8_t lcd_width, char_width;
       if (labellen <= LCD_WIDTH_EDIT - 1) {
         if (labellen >= LCD_WIDTH_EDIT - vallen) rows = 2;
         lcd_width = LCD_WIDTH_EDIT + 1;
@@ -807,8 +840,8 @@ static void lcd_implementation_status_screen() {
         lcd_setFont(FONT_MENU);
       }
     #else
-      lcd_width = LCD_WIDTH - (START_COL);
-      char_width = DOG_CHAR_WIDTH;
+     constexpr uint8_t lcd_width = LCD_WIDTH - (START_COL),
+                       char_width = DOG_CHAR_WIDTH;
     #endif
 
     // Center either one or two rows

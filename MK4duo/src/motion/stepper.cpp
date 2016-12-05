@@ -286,6 +286,13 @@ void Stepper::isr() {
     stepperChannel->TC_SR;
   #endif
 
+  #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+    DISABLE_ADVANCE_EXTRUDER_INTERRUPT();
+  #endif
+  DISABLE_TEMPERATURE_INTERRUPT();
+  DISABLE_STEPPER_DRIVER_INTERRUPT();
+  sei();
+
   if (cleaning_buffer_counter) {
     --cleaning_buffer_counter;
     current_block = NULL;
@@ -298,6 +305,12 @@ void Stepper::isr() {
     #else
       OCR1A = 200; // Run at max speed - 10 KHz
     #endif
+    // re-enable ISRs
+    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+      ENABLE_ADVANCE_EXTRUDER_INTERRUPT();
+    #endif
+    ENABLE_TEMPERATURE_INTERRUPT();
+    ENABLE_STEPPER_DRIVER_INTERRUPT();
     return;
   }
 
@@ -355,6 +368,11 @@ void Stepper::isr() {
           #else
             OCR1A = 2000; // Run at slow speed - 1 KHz
           #endif
+          #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+            ENABLE_ADVANCE_EXTRUDER_INTERRUPT();
+          #endif
+          ENABLE_TEMPERATURE_INTERRUPT();
+          ENABLE_STEPPER_DRIVER_INTERRUPT();
           return;
         }
       #endif
@@ -373,6 +391,11 @@ void Stepper::isr() {
       #else
         OCR1A = 2000; // Run at slow speed - 1 KHz
       #endif
+      #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+        ENABLE_ADVANCE_EXTRUDER_INTERRUPT();
+      #endif
+      ENABLE_TEMPERATURE_INTERRUPT();
+      ENABLE_STEPPER_DRIVER_INTERRUPT();
       return;
     }
   }
@@ -431,13 +454,7 @@ void Stepper::isr() {
     // Take multiple steps per interrupt (For high speed moves)
     bool all_steps_done = false;
     for (int8_t i = 0; i < step_loops; i++) {
-      #if DISABLED(__SAM3X8E__)
-        #ifndef USBCON
-          MKSERIAL.checkRx(); // Check for serial chars.
-        #endif
-      #endif
-
-      #if ENABLED(LIN_ADVANCE) // LIN_ADVANCE
+      #if ENABLED(LIN_ADVANCE)
 
         counter_E += current_block->steps[E_AXIS];
         if (counter_E > 0) {
@@ -964,6 +981,12 @@ void Stepper::isr() {
       #endif
     #endif
   }
+
+  #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+    ENABLE_ADVANCE_EXTRUDER_INTERRUPT();
+  #endif
+  ENABLE_TEMPERATURE_INTERRUPT();
+  ENABLE_STEPPER_DRIVER_INTERRUPT();
 }
 
 #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
@@ -1342,19 +1365,19 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
 
   #if CORE_IS_XY
     // corexy positioning
-    count_position[A_AXIS] = a + CORE_FACTOR * b;
-    count_position[B_AXIS] = CORESIGN(a - CORE_FACTOR * b);
+    count_position[A_AXIS] = a + (CORE_FACTOR) * b;
+    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b;
     count_position[Z_AXIS] = c;
   #elif CORE_IS_XZ
     // corexz planning
-    count_position[A_AXIS] = a + CORE_FACTOR * c;
+    count_position[A_AXIS] = a + (CORE_FACTOR) * c;
     count_position[Y_AXIS] = b;
-    count_position[C_AXIS] = CORESIGN(a - CORE_FACTOR * c);
+    count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
   #elif CORE_IS_YZ
     // coreyz planning
     count_position[X_AXIS] = a;
-    count_position[B_AXIS] = b + CORE_FACTOR * c;
-    count_position[C_AXIS] = CORESIGN(b - CORE_FACTOR * c);
+    count_position[B_AXIS] = b + (CORE_FACTOR) * c;
+    count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
   #else
     // default non-h-bot planning
     count_position[X_AXIS] = a;
@@ -1445,6 +1468,9 @@ void Stepper::finish_and_disable() {
 
 void Stepper::quick_stop() {
   cleaning_buffer_counter = 5000;
+  #if ENABLED(ENSURE_SMOOTH_MOVES)
+    planner.clear_block_buffer_runtime();
+  #endif
   DISABLE_STEPPER_DRIVER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
