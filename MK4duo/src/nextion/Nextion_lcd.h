@@ -60,9 +60,11 @@
     void lcd_scrollinfo(const char* titolo, const char* message);
 
     #if ENABLED(NEXTION_GFX)
-      void gfx_clear(float x, float y, float z);
-      void gfx_cursor_to(float x, float y, float z);
-      void gfx_line_to(float x, float y, float z);
+      void gfx_origin(const float x, const float y, const float z);
+      void gfx_scale(const float scale);
+      void gfx_clear(const float x, const float y, const float z);
+      void gfx_cursor_to(const float x, const float y, const float z);
+      void gfx_line_to(const float x, const float y, const float z);
     #endif
 
     #if ENABLED(SDSUPPORT)

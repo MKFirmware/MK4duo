@@ -207,6 +207,12 @@
   #define SLED_PIN -1
 #endif
 
+#if ENABLED(RGB_LED)
+  #define RGB_LED_R_PIN -1
+  #define RGB_LED_G_PIN -1
+  #define RGB_LED_B_PIN -1
+#endif
+
 //============================================================================
 
 #endif

@@ -61,7 +61,14 @@
   #endif
 
   #if ENABLED(NEXTION_GFX)
-    GFX gfx = GFX(200, 154, 20, 27);
+    //GFX gfx = GFX(20, 27, 200, 154);
+    GFX gfx = GFX(1, 24, 250, 155);
+  #endif
+
+  #if ENABLED(ENSURE_SMOOTH_MOVES)
+    #define STATUS_UPDATE_CONDITION planner.long_move()
+  #else
+    #define STATUS_UPDATE_CONDITION true
   #endif
 
   /**
@@ -847,11 +854,11 @@
       SERIAL_EM("Nextion LCD connected!");
 
       #if ENABLED(NEXTION_GFX)
-        gfx.color_set(VC_AXIS + X_AXIS, 63488);
-        gfx.color_set(VC_AXIS + Y_AXIS, 2016);
-        gfx.color_set(VC_AXIS + Z_AXIS, 31);
-        gfx.color_set(VC_MOVE, 2047);
-        gfx.color_set(VC_TOOL, 65535);
+        gfx.color_set(NX_AXIS + X_AXIS, 63488);
+        gfx.color_set(NX_AXIS + Y_AXIS, 2016);
+        gfx.color_set(NX_AXIS + Z_AXIS, 31);
+        gfx.color_set(NX_MOVE, 2047);
+        gfx.color_set(NX_TOOL, 65535);
       #endif
 
       #if ENABLED(SDSUPPORT)
@@ -945,12 +952,13 @@
     hotend_list[h]->Set_font_color_pco(color);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING))
-    #endif
-    {
-      uint8_t wavetemp = (T1 / maxTemp) * 150;
-      Wavetemp.addValue(h, wavetemp);
-    }
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus()) {
+        Wavetemp.setShow();
+      }
+    #endif */
+
+    uint8_t wavetemp = (T1 / maxTemp) * 150;
+    Wavetemp.addValue(h, wavetemp);
   }
 
   static void coordtoLCD() {
@@ -995,7 +1003,7 @@
 
     millis_t ms = millis();
 
-    if (ms > next_lcd_update_ms) {
+    if (ms > next_lcd_update_ms && STATUS_UPDATE_CONDITION) {
 
       sendCurrentPageId(&NextionPage);
 
@@ -1151,19 +1159,30 @@
   }
 
   #if ENABLED(NEXTION_GFX)
-    void gfx_clear(float x, float y, float z) {
-      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
-        gfx.clear(x, y, z);
+    void gfx_origin(const float x, const float y, const float z) {
+      gfx.origin(x, y, z);
     }
 
-    void gfx_cursor_to(float x, float y, float z) {
+    void gfx_scale(const float scale) {
+      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+        gfx.clear(scale);
+    }
+
+    void gfx_clear(const float x, const float y, const float z) {
+      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
+        Wavetemp.setHide();
+        gfx.clear(x, y, z);
+      }
+    }
+
+    void gfx_cursor_to(const float x, const float y, const float z) {
       if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.cursor_to(x, y, z);
     }
 
-    void gfx_line_to(float x, float y, float z){
+    void gfx_line_to(const float x, const float y, const float z) {
       if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
-        gfx.line_to(VC_TOOL, x, y, z);
+        gfx.line_to(NX_TOOL, x, y, z);
     }
   #endif
 

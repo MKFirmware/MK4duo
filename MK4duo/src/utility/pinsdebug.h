@@ -483,10 +483,10 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(SS)
     PIN_SAY(SS_PIN);
   #endif
-  #if PIN_EXISTS(STAT_LED_BLUE)
+  #if PIN_EXISTS(STAT_LED_BLUE_PIN)
     PIN_SAY(STAT_LED_BLUE_PIN);
   #endif
-  #if PIN_EXISTS(STAT_LED_RED)
+  #if PIN_EXISTS(STAT_LED_RED_PIN)
     PIN_SAY(STAT_LED_RED_PIN);
   #endif
   #if PIN_EXISTS(STEPPER_RESET)
@@ -743,23 +743,17 @@ static bool PWM_status(uint8_t pin) {
 #define WGM_TEST2 (WGM == 0 || WGM == 4 || WGM == 12 || WGM == 13)
 
 static void err_is_counter() {
-  SERIAL_M("   Can't ");
-  SERIAL_M("be used as a PWM because ");
-  SERIAL_M("of counter mode");
+  SERIAL_EM("   Can't be used as a PWM because of counter mode");
 }
 static void err_is_interrupt() {
-  SERIAL_M("   Can't ");
-  SERIAL_M("be used as a PWM because ");
-  SERIAL_M("it's ");
-  SERIAL_M("being used as an interrupt");
+  SERIAL_EM("   Can't be used as a PWM because it's being used as an interrupt");
 }
 static void err_prob_interrupt() {
-  SERIAL_M("   Probably can't ");
-  SERIAL_M("be used as a PWM because ");
-  SERIAL_M("counter/timer is ");
-  SERIAL_M("being used as an interrupt");
+  SERIAL_EM("   Probably can't be used as a PWM because counter/timer is being used as an interrupt");
 }
-static void can_be_used() { SERIAL_M("   can be used as PWM   "); }
+static void can_be_used() {
+  SERIAL_M("   can be used as PWM   ");
+}
 
 static void PWM_details(uint8_t pin) {
 

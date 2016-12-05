@@ -143,15 +143,15 @@ class Planner {
      * A ring buffer of moves described in steps
      */
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
-    static volatile uint8_t block_buffer_head;           // Index of the next block to be pushed
-    static volatile uint8_t block_buffer_tail;
+    static volatile uint8_t block_buffer_head,  // Index of the next block to be pushed
+                            block_buffer_tail;
 
-    static float  max_feedrate_mm_s[XYZEn], // Max speeds in mm per second
-                  axis_steps_per_mm[XYZEn],
-                  steps_to_mm[XYZEn];
+    static float  max_feedrate_mm_s[XYZE_N],    // Max speeds in mm per second
+                  axis_steps_per_mm[XYZE_N],
+                  steps_to_mm[XYZE_N];
 
-    static unsigned long  max_acceleration_steps_per_s2[XYZEn],
-                          max_acceleration_mm_per_s2[XYZEn]; // Use M201 to override by software
+    static unsigned long  max_acceleration_steps_per_s2[XYZE_N],
+                          max_acceleration_mm_per_s2[XYZE_N]; // Use M201 to override by software
 
     static millis_t min_segment_time;
     static float  min_feedrate_mm_s,
@@ -159,11 +159,15 @@ class Planner {
                   acceleration,                     // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
                   retract_acceleration[EXTRUDERS],  // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
                   travel_acceleration,              // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-                  max_jerk[XYZEn];                  // The largest speed change requiring no acceleration
+                  max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
 
     #if HAS(ABL)
       static bool abl_enabled;            // Flag that bed leveling is enabled
       static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
+    #endif
+
+    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+      static float z_fade_height, inverse_z_fade_height;
     #endif
 
   private:
@@ -208,6 +212,10 @@ class Planner {
     #if ENABLED(LIN_ADVANCE)
       static float position_float[NUM_AXIS];
       static float extruder_advance_k;
+    #endif
+
+    #if ENABLED(ENSURE_SMOOTH_MOVES)
+      static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
 
     /**
@@ -313,27 +321,31 @@ class Planner {
      */
     static FORCE_INLINE void buffer_line_kinematic(const float target[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
       #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-        float pos[XYZ]={ target[X_AXIS], target[Y_AXIS], target[Z_AXIS] };
+        float machinePos[XYZ]={ target[X_AXIS], target[Y_AXIS], target[Z_AXIS] };
         #if PLANNER_LEVELING
-          apply_leveling(pos);
+          apply_leveling(machinePos);
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          zwobble.InsertCorrection(pos[Z_AXIS]);
+          zwobble.InsertCorrection(machinePos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          hysteresis.InsertCorrection(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], target[E_AXIS]);
+          hysteresis.InsertCorrection(machinePos[X_AXIS], machinePos[Y_AXIS], machinePos[Z_AXIS], target[E_AXIS]);
         #endif
       #else
-        const float * const pos = target;
+        const float * const machinePos = target;
       #endif
 
       #if IS_KINEMATIC
-        inverse_kinematics(pos);
+        #if MECH(DELTA)
+          deltaParams.inverse_kinematics_DELTA(machinePos);
+        #else
+            inverse_kinematics(machinePos);
+        #endif
         _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], target[E_AXIS], fr_mm_s, extruder, driver);
       #else
-        _buffer_line(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], target[E_AXIS], fr_mm_s, extruder, driver);
+        _buffer_line(machinePos[X_AXIS], machinePos[Y_AXIS], machinePos[Z_AXIS], target[E_AXIS], fr_mm_s, extruder, driver);
       #endif
     }
 
@@ -355,7 +367,7 @@ class Planner {
     static void set_position_mm_kinematic(const float position[NUM_AXIS]);
     static void set_position_mm(const AxisEnum axis, const float &v);
     static FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(Z_AXIS, z); }
-    static FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(E_AXIS, e); }
+    static FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(_EINDEX, e); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)
@@ -383,6 +395,9 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t* block = &block_buffer[block_buffer_tail];
+        #if ENABLED(ENSURE_SMOOTH_MOVES)
+          block_buffer_runtime_us -= block->segment_time; // We can't be sure how long an active block will take, so don't count it.
+        #endif
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;
       }
@@ -393,11 +408,14 @@ class Planner {
     #if ENABLED(ENSURE_SMOOTH_MOVES)
       static bool long_move() {
         if (blocks_queued()) {
-          block_t* block = &block_buffer[block_buffer_tail];
-          return block->segment_time > (LCD_UPDATE_THRESHOLD) * 1000UL;
+          return block_buffer_runtime_us > (LCD_UPDATE_THRESHOLD) * 1000UL + (MIN_BLOCK_TIME) * 3000UL;
         }
         else
           return true;
+      }
+
+      static void clear_block_buffer_runtime() {
+        block_buffer_runtime_us = 0;
       }
     #endif
 

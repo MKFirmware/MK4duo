@@ -99,6 +99,10 @@
   #include "src/mbl/mesh_bed_leveling.h"
 #endif
 
+#if MECH(DELTA)
+  #include "src/motion/delta_parameters.h"
+#endif
+
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
@@ -117,6 +121,7 @@
 #include "src/servo/servo.h"
 #include "src/watchdog/watchdog.h"
 #include "src/utility/blinkm.h"
+#include "src/utility/matrix.h"
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   #include "src/alligator/external_dac.h"

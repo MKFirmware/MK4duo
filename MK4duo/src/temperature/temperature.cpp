@@ -1556,11 +1556,11 @@ void Temperature::init() {
   // Interleave temperature interrupt with millies interrupt
   #if ENABLED(__SAM3X8E__)
     HAL_temp_timer_start(TEMP_TIMER_NUM);
-    HAL_timer_enable_interrupt (TEMP_TIMER_NUM);
   #else
     OCR0B = 128;
-    SBI(TIMSK0, OCIE0B);
   #endif
+
+  ENABLE_TEMPERATURE_INTERRUPT();
 
   // Wait for temperature measurement to settle
   HAL::delayMilliseconds(250);
@@ -2200,6 +2200,9 @@ void Temperature::set_current_temp_raw() {
 #endif
 
 void Temperature::isr() {
+  // Allow UART and stepper ISRs
+  DISABLE_TEMPERATURE_INTERRUPT(); // Disable Temperature ISR
+  sei();
 
   static uint8_t temp_count = 0;
   static TempState temp_state = StartupDelay;
@@ -2842,6 +2845,7 @@ void Temperature::isr() {
   #endif //BABYSTEPPING
 
   #if ENABLED(PINS_DEBUGGING)
+    extern bool endstop_monitor_flag;
     // run the endstop monitor at 15Hz
     static uint8_t endstop_monitor_count = 16;  // offset this check from the others
     if (endstop_monitor_flag) {
@@ -2850,4 +2854,6 @@ void Temperature::isr() {
       if (!endstop_monitor_count) endstop_monitor();  // report changes in endstop status
     }
   #endif
+  
+  ENABLE_TEMPERATURE_INTERRUPT(); // re-enable Temperature ISR
 }

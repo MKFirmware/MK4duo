@@ -382,6 +382,11 @@
 //#define MANUAL_BED_LEVELING
 // Step size while manually probing Z axis.
 #define MBL_Z_STEP 0.025
+
+// Gradually reduce leveling correction until a set height is reached,
+// at which point movement will be level to the machine's XY plane.
+// The height can be set with M420 Z<height>
+//#define ENABLE_LEVELING_FADE_HEIGHT
 /*****************************************************************************************/
 
 
@@ -414,14 +419,12 @@
 //#define AUTO_BED_LEVELING_LINEAR
 //#define AUTO_BED_LEVELING_BILINEAR
 
-/**
- * Enable detailed logging of G28, G29, G30, M48, etc.
- * Turn on with the command 'M111 S32'.
- * NOTE: Requires a lot of PROGMEM!
- */
+// Enable detailed logging of G28, G29, G30, M48, etc.
+// Turn on with the command 'M111 S32'.
+// NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
-/** START AUTO_BED_LEVELING_LINEAR AUTO_BED_LEVELING_BILINEAR **/
+/** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 // Set the number of grid points per dimension
 #define ABL_GRID_POINTS_X 3
 #define ABL_GRID_POINTS_Y 3
@@ -437,7 +440,13 @@
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
-/** END AUTO_BED_LEVELING_LINEAR AUTO_BED_LEVELING_BILINEAR **/
+
+// Only AUTO BED LEVELING BILINEAR
+// Gradually reduce leveling correction until a set height is reached,
+// at which point movement will be level to the machine's XY plane.
+// The height can be set with M320 Z<height>
+//#define ENABLE_LEVELING_FADE_HEIGHT
+/** END AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 
 /** START AUTO_BED_LEVELING_3POINT **/
 // 3 arbitrary points to probe.
@@ -450,10 +459,8 @@
 #define ABL_PROBE_PT_3_Y 15
 /** END AUTO_BED_LEVELING_3POINT **/
 
-/**
- * Commands to execute at the end of G29 probing.
- * Useful to retract or move the Z probe out of the way.
- */
+// Commands to execute at the end of G29 probing.
+// Useful to retract or move the Z probe out of the way.
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
 /*****************************************************************************************/
 

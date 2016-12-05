@@ -75,6 +75,7 @@
  * - Camera trigger
  * - RFID card reader
  * - BLINKM
+ * - RGB LED
  * - Laser beam
  * - Case Light
  * ADVANCED MOTION FEATURES:
@@ -672,10 +673,10 @@
 //#define ALWAYS_ALLOW_MENU
 
 // (ms) Minimum duration for the current segment to allow an LCD update.
-#define LCD_UPDATE_THRESHOLD 170
+#define LCD_UPDATE_THRESHOLD 135
 // Default value is good for graphical LCDs (e.g., REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER).
-// (ms) Minimum duration of a single block. You shouldn't need to modify this.
-#define MIN_BLOCK_TIME 6
+// (µs) Minimum duration of a single block. You shouldn't need to modify this.
+#define MIN_BLOCK_TIME 5000UL
 /*************************************************************************************/
 
 
@@ -1439,6 +1440,17 @@
 
 
 /**************************************************************************
+ ******************************** RGB LED *********************************
+ **************************************************************************
+ *                                                                        *
+ * Support for an RGB LED using 3 separate pins with optional PWM         *
+ *                                                                        *
+ **************************************************************************/
+//#define RGB_LED
+/**************************************************************************/
+
+
+/**************************************************************************
  ******************************* Laser beam *******************************
  **************************************************************************
  *                                                                        *
@@ -1459,6 +1471,8 @@
  **************************************************************************/
 //#define CASE_LIGHT
 
+// Set to true if HIGH is the OFF state (active low)
+#define INVERT_CASE_LIGHT false
 // Uncomment to set default state to on
 //#define CASE_LIGHT_DEFAULT_ON
 /**************************************************************************/

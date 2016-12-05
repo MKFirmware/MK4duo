@@ -121,7 +121,7 @@
  * M111 - Set debug flags with S<mask>.
  * M112 - Emergency stop
  * M114 - Output current position to serial port
- * M115 - Capabilities string
+ * M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
  * M117 - Display a message on the controller screen
  * M119 - Output Endstop status to serial port
  * M120 - Enable endstop detection
@@ -136,11 +136,11 @@
  * M142 - Set cooler target temp
  * M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
  * M149 - Set temperature units
- * M150 - Set BlinkM Color Output R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
- * M155 - Set temperature auto-report interval
- * M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
- * M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.
- * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. Requires COLOR_MIXING_EXTRUDER.
+ * M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+ * M155 - Auto-report temperatures with interval of S<seconds>. (Requires AUTO_REPORT_TEMPERATURES)
+ * M163 - Set a single proportion for a mixing extruder. (Requires MIXING_EXTRUDER)
+ * M164 - Save the mix as a virtual extruder. (Requires MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS)
+ * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. (Requires MIXING_EXTRUDER)
  * M190 - Sxxx Wait for bed current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
  * M191 - Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
@@ -172,7 +172,7 @@
  * M304 - Set hot bed PID parameters P I and D
  * M305 - Set hot chamber PID parameters P I and D
  * M306 - Set cooler PID parameters P I and D
- * M320 - Activate autolevel
+ * M320 - Activate autolevel - Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M321 - Deactivate autoleveling
  * M322 - Reset auto leveling matrix
  * M350 - Set microstepping mode.
@@ -189,7 +189,8 @@
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response
  * M410 - Quickstop. Abort all the planned moves
- * M420 - Enable/Disable Mesh Bed Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
+ * M420 - Enable/Disable Mesh Bed Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING)
+ *        Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
  * M428 - Set the home_offset logically based on the current_position
  * M500 - Store parameters in EEPROM
@@ -219,6 +220,8 @@
  * ************* SCARA End ***************
  *
  * M928 - Start SD logging (M928 filename.g) - ended by M29
+ * M995 - X Y Z Set origin for graphic in NEXTION
+ * M996 - S<scale> Set scale for graphic in NEXTION
  * M997 - NPR2 Color rotate
  * M999 - Restart after being stopped by error
  *

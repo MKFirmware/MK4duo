@@ -24,12 +24,11 @@
 #define MACROS_H
 
 // The axis order in all axis related arrays is X, Y, Z, E
-#define NUM_AXIS 4
-#define XYZEn 3 + EXTRUDERS
-#define XYZE  4
-#define ABCE  4
-#define ABC   3
-#define XYZ   3
+#define NUM_AXIS  4
+#define XYZE      4
+#define ABCE      4
+#define ABC       3
+#define XYZ       3
 
 // Clock speed factor
 #define CYCLES_PER_MICROSECOND (F_CPU / 1000000UL) // 16 or 20
@@ -149,9 +148,10 @@
 
 #define CEILING(x,y) (((x) + (y) - 1) / (y))
 
-#define MAX3(a, b, c)     max(max(a, b), c)
-#define MAX4(a, b, c, d)  max(max(max(a, b), c), d)
 #define MIN3(a, b, c)     min(min(a, b), c)
+#define MIN4(a, b, c, d)  min(min(a, b), min(c, d))
+#define MAX3(a, b, c)     max(max(a, b), c)
+#define MAX4(a, b, c, d)  max(max(a, b), max(c, d))
 
 #define UNEAR_ZERO(x)     ((x) < 0.000001)
 #define NEAR_ZERO(x)      ((x) > -0.000001 && (x) < 0.000001)
@@ -161,8 +161,9 @@
 
 #define _AXIS(AXIS) AXIS ##_AXIS
 
-#define LOOP_XYZ(VAR)   for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
-#define LOOP_XYZE(VAR)  for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
+#define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
+#define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
+#define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)

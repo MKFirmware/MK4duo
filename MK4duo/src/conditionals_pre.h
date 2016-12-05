@@ -381,4 +381,30 @@
   #define HOTENDS           EXTRUDERS
 #endif
 
+/**
+ * Multi-extruders support
+ */
+#if EXTRUDERS > 1
+  #define XYZE_N    3 + EXTRUDERS
+  #define E_AXIS_N  (E_AXIS + extruder)
+  #define _EINDEX   (E_AXIS + active_extruder)
+  #define GET_TARGET_EXTRUDER(CMD) if (get_target_extruder_from_command(CMD)) return
+  #define TARGET_EXTRUDER target_extruder
+#else
+  #define XYZE_N    XYZE
+  #define E_AXIS_N  E_AXIS
+  #define _EINDEX   E_AXIS
+  #define GET_TARGET_EXTRUDER(CMD) NOOP
+  #define TARGET_EXTRUDER 0
+#endif
+
+/**
+ * Multi-hotends support
+ */
+#if HOTENDS > 1
+  #define GET_TARGET_HOTEND(CMD) if (get_target_hotend_from_command(CMD)) return
+#else
+  #define GET_TARGET_HOTEND(CMD) NOOP
+#endif
+
 #endif // CONDITIONALS_PRE_H

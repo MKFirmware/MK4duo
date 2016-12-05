@@ -153,8 +153,8 @@
 #define MSG_INIT_SDCARD                     "Iniz. SD-Card"
 #define MSG_CNG_SDCARD                      "Cambia SD-Card"
 #define MSG_ZPROBE_OUT                      "Z probe out. bed"
-#define MSG_BLTOUCH_SELFTEST                "BLTouch Self-Test"
-#define MSG_BLTOUCH_RESET                   "Reset BLTouch"
+#define MSG_BLTOUCH_SELFTEST                "Autotest BLTouch"
+#define MSG_BLTOUCH_RESET                   "Resetta BLTouch"
 #define MSG_HOME                            "Home"
 #define MSG_FIRST                           "prima"
 #define MSG_ZPROBE_ZOFFSET                  "Zprobe ZOffset"
@@ -226,8 +226,8 @@
 #define MSG_INFO_PSU                        "Alimentatore"
 
 // CASE LIGHT
-#define MSG_LIGHTS_ON                       "Luce case on"
-#define MSG_LIGHTS_OFF                      "Luce case off"
+#define MSG_LIGHTS_ON                       "Luci Case on"
+#define MSG_LIGHTS_OFF                      "Luci Case off"
 
 // FILAMENT_CHANGE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          "CAMBIO FILO"

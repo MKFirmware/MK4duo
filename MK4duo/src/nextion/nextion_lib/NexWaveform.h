@@ -13,11 +13,13 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+
 #ifndef __NEXWAVEFORM_H__
 #define __NEXWAVEFORM_H__
 
 #include "NexTouch.h"
 #include "NexHardware.h"
+
 /**
  * @addtogroup Component 
  * @{ 
@@ -26,33 +28,34 @@
 /**
  * NexWaveform component.
  */
-class NexWaveform: public NexObject
-{
-public: /* methods */
+class NexWaveform: public NexObject {
+
+  public: /* methods */
+
     /**
      * @copydoc NexObject::NexObject(uint8_t pid, uint8_t cid, const char *name);
      */
     NexWaveform(uint8_t pid, uint8_t cid, const char *name);
-    
+
     /**
-     * Add value to show. 
+     * Add value to show.
      *
-     * @param ch - channel of waveform(0-3). 
-     * @param number - the value of waveform.  
+     * @param ch - channel of waveform(0-3).
+     * @param number - the value of waveform.
      *
-     * @retval true - success. 
-     * @retval false - failed. 
+     * @retval true - success.
+     * @retval false - failed.
      */
     bool addValue(uint8_t ch, uint8_t number);
-	
+
     /**
      * Get bco attribute of component
      *
-     * @param number - buffer storing data retur
-     * @return the length of the data 
+     * @param number - buffer storing data return
+     * @return the length of the data
      */
     uint32_t Get_background_color_bco(uint32_t *number);
-	
+
     /**
      * Set bco attribute of component
      *
@@ -60,14 +63,14 @@ public: /* methods */
      * @return true if success, false for failure
      */
     bool Set_background_color_bco(uint32_t number);
-	
+
     /**
      * Get gdc attribute of component
      *
-     * @param number - buffer storing data retur
-     * @return the length of the data 
+     * @param number - buffer storing data return
+     * @return the length of the data
      */
-    uint32_t Get_grid_color_gdc(uint32_t *number);	
+    uint32_t Get_grid_color_gdc(uint32_t *number);
 
     /**
      * Set gdc attribute of component
@@ -75,15 +78,15 @@ public: /* methods */
      * @param number - To set up the data
      * @return true if success, false for failure
      */
-    bool Set_grid_color_gdc(uint32_t number);			
-	
+    bool Set_grid_color_gdc(uint32_t number);
+
     /**
      * Get gdw attribute of component
      *
-     * @param number - buffer storing data retur
-     * @return the length of the data 
+     * @param number - buffer storing data return
+     * @return the length of the data
      */
-    uint32_t Get_grid_width_gdw(uint32_t *number);	
+    uint32_t Get_grid_width_gdw(uint32_t *number);
 
     /**
      * Set gdw attribute of component
@@ -91,13 +94,13 @@ public: /* methods */
      * @param number - To set up the data
      * @return true if success, false for failure
      */
-    bool Set_grid_width_gdw(uint32_t number);			
-	
+    bool Set_grid_width_gdw(uint32_t number);
+
     /**
      * Get gdh attribute of component
      *
-     * @param number - buffer storing data retur
-     * @return the length of the data 
+     * @param number - buffer storing data return
+     * @return the length of the data
      */
     uint32_t Get_grid_height_gdh(uint32_t *number);
 
@@ -108,14 +111,14 @@ public: /* methods */
      * @return true if success, false for failure
      */
     bool Set_grid_height_gdh(uint32_t number);			
-	
+
     /**
      * Get pco0 attribute of component
      *
-     * @param number - buffer storing data retur
-     * @return the length of the data 
+     * @param number - buffer storing data return
+     * @return the length of the data
      */
-    uint32_t Get_channel_0_color_pco0(uint32_t *number);	
+    uint32_t Get_channel_0_color_pco0(uint32_t *number);
 
     /**
      * Set pco0 attribute of component
@@ -123,7 +126,25 @@ public: /* methods */
      * @param number - To set up the data
      * @return true if success, false for failure
      */
-    bool Set_channel_0_color_pco0(uint32_t number);			
+    bool Set_channel_0_color_pco0(uint32_t number);
+
+    /**
+     * Set Hide / Show component
+     *
+     * @return true if success, false for failure.
+     */
+    bool setHide();
+    bool setShow();
+
+    /**
+     *
+     * @return true if status show, false if status hide
+     */
+    inline bool GetSatus() { return ObjShow; };
+
+  private:
+
+    bool ObjShow = true;
 };
 
 /**

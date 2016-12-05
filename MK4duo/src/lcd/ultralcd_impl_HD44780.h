@@ -736,7 +736,7 @@ static void lcd_implementation_status_screen() {
     lcd.print(itostr3(feedrate_percentage));
     lcd.print('%');
 
-    #if LCD_WIDTH > 19 && ENABLED(SDSUPPORT)
+    #if LCD_WIDTH >= 20 && ENABLED(SDSUPPORT)
 
       lcd.setCursor(7, 2);
       lcd_printPGM(PSTR("SD"));
@@ -746,13 +746,13 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("---"));
       lcd.print('%');
 
-    #endif // LCD_WIDTH > 19 && SDSUPPORT
+    #endif // LCD_WIDTH >= 20 && SDSUPPORT
 
-    lcd.setCursor(LCD_WIDTH - 6, 2);
     char buffer[10];
     duration_t elapsed = print_job_counter.duration();
-    elapsed.toDigital(buffer);
+    uint8_t len = elapsed.toDigital(buffer);
 
+    lcd.setCursor(LCD_WIDTH - len - 1, 2);
     #if HAS(LCD_POWER_SENSOR)
       if (millis() < print_millis + 1000) {
         lcd.print(LCD_STR_CLOCK[0]);
