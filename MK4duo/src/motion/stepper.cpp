@@ -1366,7 +1366,7 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
   #if CORE_IS_XY
     // corexy positioning
     count_position[A_AXIS] = a + (CORE_FACTOR) * b;
-    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b;
+    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
     count_position[Z_AXIS] = c;
   #elif CORE_IS_XZ
     // corexz planning
