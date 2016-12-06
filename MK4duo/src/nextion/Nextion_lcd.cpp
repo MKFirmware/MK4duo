@@ -400,12 +400,7 @@
     }
 
     static void menu_action_sdfile(const char* filename) {
-      char cmd[30];
-      char* c;
-      sprintf_P(cmd, PSTR("M23 %s"), filename);
-      for(c = &cmd[4]; *c; c++) *c = tolower(*c);
-      enqueue_and_echo_command(cmd);
-      enqueue_and_echo_commands_P(PSTR("M24"));
+      card.openAndPrintFile(filename);
       Pprinter.show();
     }
 
