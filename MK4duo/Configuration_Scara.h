@@ -40,6 +40,7 @@
  * - Axis relative mode
  * - Mesh Bed Leveling (MBL)
  * - Auto Bed Leveling (ABL)
+ * - Leveling Fade Height (MBL or ABL)
  * - Safe Z homing
  * - Manual home positions
  * - Axis steps per unit
@@ -224,15 +225,11 @@
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
 
-//
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
-//
 #define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
 #define Z_PROBE_BETWEEN_HEIGHT 5  // Z position for travel between points
 
-//
 // For M666 give a range for adjusting the Z probe offset
-//
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
 /*****************************************************************************************/
@@ -276,7 +273,7 @@
 #define X_ENABLE_ON 0
 #define Y_ENABLE_ON 0
 #define Z_ENABLE_ON 0
-#define E_ENABLE_ON 0      // For all extruder
+#define E_ENABLE_ON 0
 /*****************************************************************************************/
 
 
@@ -325,7 +322,7 @@
 #define DISABLE_X false
 #define DISABLE_Y false
 #define DISABLE_Z false
-#define DISABLE_E false      // For all extruder
+#define DISABLE_E false
 // Disable only inactive extruder and keep active extruder enabled
 //#define DISABLE_INACTIVE_EXTRUDER
 /*****************************************************************************************/
@@ -392,11 +389,6 @@
 //#define MANUAL_BED_LEVELING
 // Step size while manually probing Z axis.
 #define MBL_Z_STEP 0.025
-
-// Gradually reduce leveling correction until a set height is reached,
-// at which point movement will be level to the machine's XY plane.
-// The height can be set with M420 Z<height>
-//#define ENABLE_LEVELING_FADE_HEIGHT
 /*****************************************************************************************/
 
 
@@ -427,7 +419,7 @@
  *****************************************************************************************/
 //#define AUTO_BED_LEVELING_3POINT
 //#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
+//#define AUTO_BED_LEVELING_BILINEAR
 
 // Enable detailed logging of G28, G29, G30, M48, etc.
 // Turn on with the command 'M111 S32'.
@@ -451,11 +443,11 @@
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
 
-// Only AUTO BED LEVELING BILINEAR
-// Gradually reduce leveling correction until a set height is reached,
-// at which point movement will be level to the machine's XY plane.
-// The height can be set with M320 Z<height>
-//#define ENABLE_LEVELING_FADE_HEIGHT
+// Experimental Subdivision of the grid by Catmull-Rom method.
+// Synthesizes intermediate points to produce a more detailed mesh.
+//#define ABL_BILINEAR_SUBDIVISION
+// Number of subdivisions between probe points
+#define BILINEAR_SUBDIVISIONS 3
 /** END AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 
 /** START AUTO_BED_LEVELING_3POINT **/
@@ -472,6 +464,20 @@
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ************************** Leveling Fade Height (MBL or ABL) ****************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Gradually reduce leveling correction until a set height is reached,                   *
+ * at which point movement will be level to the machine's XY plane.                      *
+ * The height can be set with M420 Z<height> for MBL or M320 Z<height> for ABL           *
+ * ONLY FOR LEVELING BILINEAR OR MESH BED LEVELING                                       *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define ENABLE_LEVELING_FADE_HEIGHT
 /*****************************************************************************************/
 
 

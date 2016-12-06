@@ -142,6 +142,14 @@ void CardReader::startFileprint() {
   if (cardOK) sdprinting = true;
 }
 
+void CardReader::openAndPrintFile(const char *name) {
+  char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
+  sprintf_P(cmd, PSTR("M23 %s"), name);
+  for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
+  enqueue_and_echo_command(cmd);
+  enqueue_and_echo_commands_P(PSTR("M24"));
+}
+
 void CardReader::stopSDPrint(bool store_location /*=false*/) {
   sdprinting = false;
   if (isFileOpen()) closeFile(store_location);

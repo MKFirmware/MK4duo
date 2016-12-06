@@ -436,6 +436,12 @@
 // The height can be set with M320 Z<height>
 //#define ENABLE_LEVELING_FADE_HEIGHT
 
+// Experimental Subdivision of the grid by Catmull-Rom method.
+// Synthesizes intermediate points to produce a more detailed mesh.
+//#define ABL_BILINEAR_SUBDIVISION
+// Number of subdivisions between probe points
+#define BILINEAR_SUBDIVISIONS 3
+
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
@@ -465,7 +471,7 @@
  * To use this you must have a PROBE, please define you type probe.                      *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_CALIBRATION_FEATURE_7_POINT
+//#define AUTO_CALIBRATION_7_POINT
 /*****************************************************************************************/
 
 

@@ -73,6 +73,10 @@ millis_t next_lcd_update_ms;
 
 uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to draw, decrements after every draw. Set to 2 in LCD routines so the LCD gets at least 1 full redraw (first redraw is partial)
 
+#if ENABLED(DOGLCD)
+  bool drawing_screen = false;
+#endif
+
 #if ENABLED(ULTIPANEL)
 
   // place-holders for Ki and Kd edits
@@ -252,6 +256,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
 
   #define START_MENU() \
     START_SCREEN_OR_MENU(1); \
+    screen_changed = false; \
     NOMORE(encoderTopLine, encoderLine); \
     if (encoderLine >= encoderTopLine + LCD_HEIGHT - TALL_FONT_CORRECTION) { \
       encoderTopLine = encoderLine - (LCD_HEIGHT - TALL_FONT_CORRECTION - 1); \
@@ -290,7 +295,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
 
   #define _MENU_ITEM_PART_2(TYPE, ...) \
         menu_action_ ## TYPE(__VA_ARGS__); \
-        return; \
+        if (screen_changed) return; \
       } \
     } \
     ++_thisItemNr
@@ -377,6 +382,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
 
   menuPosition screen_history[10];
   uint8_t screen_history_depth = 0;
+  bool screen_changed;
 
   // LCD and menu clicks
   bool lcd_clicked, wait_for_unclick, defer_return_to_status;
@@ -404,6 +410,10 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
         lcd_set_custom_characters(screen == lcd_status_screen);
       #endif
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
+      screen_changed = true;
+      #if ENABLED(DOGLCD)
+        drawing_screen = false;
+      #endif
     }
   }
 
@@ -2215,6 +2225,8 @@ void kill_screen(const char* lcd_msg) {
     void lcd_sd_updir() {
       card.updir();
       encoderTopLine = 0;
+      screen_changed = true;
+      lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
     }
 
     /**
@@ -2681,18 +2693,15 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(SDSUPPORT)
 
     void menu_action_sdfile(const char* longFilename) {
-      char cmd[30];
-      char* c;
-      sprintf_P(cmd, PSTR("M23 %s"), longFilename);
-      for (c = &cmd[4]; *c; c++) *c = tolower(*c);
-      enqueue_and_echo_command(cmd);
-      enqueue_and_echo_commands_P(PSTR("M24"));
+      card.openAndPrintFile(longFilename);
       lcd_return_to_status();
     }
 
     void menu_action_sddirectory(const char* longFilename) {
       card.chdir(longFilename);
       encoderPosition = 0;
+      screen_changed = true;
+      lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
     }
 
   #endif // SDSUPPORT
@@ -2964,6 +2973,9 @@ void lcd_update() {
 
           encoderPosition += (encoderDiff * encoderMultiplier) / ENCODER_PULSES_PER_STEP;
           encoderDiff = 0;
+          #if ENABLED(DOGLCD)
+            drawing_screen = false;  // refresh the complete screen for a encoder change (different menu-item/value)
+          #endif
         }
         return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
@@ -2996,20 +3008,28 @@ void lcd_update() {
 
     if (LCD_HANDLER_CONDITION) {
 
-      if (lcdDrawUpdate) {
-
-        switch (lcdDrawUpdate) {
-          case LCDVIEW_CALL_NO_REDRAW:
-            lcdDrawUpdate = LCDVIEW_NONE;
-            break;
-          case LCDVIEW_CLEAR_CALL_REDRAW: // set by handlers, then altered after (rarely occurs here)
-          case LCDVIEW_CALL_REDRAW_NEXT:  // set by handlers, then altered after (never occurs here?)
-            lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-          case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
-          case LCDVIEW_NONE:
-            break;
-        } // switch
-
+      #if ENABLED(DOGLCD)
+        if (lcdDrawUpdate || drawing_screen)
+      #else
+        if (lcdDrawUpdate)
+      #endif
+      {
+        #if ENABLED(DOGLCD)
+          if (!drawing_screen)
+        #endif
+          {
+            switch (lcdDrawUpdate) {
+              case LCDVIEW_CALL_NO_REDRAW:
+                lcdDrawUpdate = LCDVIEW_NONE;
+                break;
+              case LCDVIEW_CLEAR_CALL_REDRAW: // set by handlers, then altered after (rarely occurs here)
+              case LCDVIEW_CALL_REDRAW_NEXT:  // set by handlers, then altered after (never occurs here?)
+                lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+              case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
+              case LCDVIEW_NONE:
+                break;
+            } // switch
+          }
         #if ENABLED(ULTIPANEL)
           #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
         #else
@@ -3017,17 +3037,13 @@ void lcd_update() {
         #endif
 
         #if ENABLED(DOGLCD)  // Changes due to different driver architecture of the DOGM display
-          static int8_t dot_color = 0;
-          dot_color = 1 - dot_color;
-          u8g.firstPage();
-          do {
-            lcd_setFont(FONT_MENU);
-            u8g.setPrintPos(125, 0);
-            u8g.setColorIndex(dot_color); // Set color for the alive dot
-            u8g.drawPixel(127, 63); // draw alive dot
-            u8g.setColorIndex(1); // black on white
-            CURRENTSCREEN();
-          } while (u8g.nextPage());
+          if (!drawing_screen) {
+            u8g.firstPage();
+            drawing_screen = 1;
+          }
+          lcd_setFont(FONT_MENU);
+          CURRENTSCREEN();
+          if (drawing_screen && (drawing_screen = u8g.nextPage())) return;
         #else
           CURRENTSCREEN();
         #endif
@@ -3043,20 +3059,25 @@ void lcd_update() {
 
       #endif // ULTIPANEL
 
-      switch (lcdDrawUpdate) {
-        case LCDVIEW_CLEAR_CALL_REDRAW:
-          lcd_implementation_clear();
-        case LCDVIEW_CALL_REDRAW_NEXT:
-          lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-          break;
-        case LCDVIEW_REDRAW_NOW:
-          lcdDrawUpdate = LCDVIEW_NONE;
-          break;
-        case LCDVIEW_NONE:
-          break;
-      } // switch
+      #if ENABLED(DOGLCD)
+        if (!drawing_screen)
+      #endif
+        {
+          switch (lcdDrawUpdate) {
+            case LCDVIEW_CLEAR_CALL_REDRAW:
+              lcd_implementation_clear();
+            case LCDVIEW_CALL_REDRAW_NEXT:
+              lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+              break;
+            case LCDVIEW_REDRAW_NOW:
+              lcdDrawUpdate = LCDVIEW_NONE;
+              break;
+            case LCDVIEW_NONE:
+              break;
+          } // switch
+        }
     } // LCD_HANDLER_CONDITION
-  }
+  } // ELAPSED(ms, next_lcd_update_ms)
 }
 
 void set_utf_strlen(char* s, uint8_t n) {
