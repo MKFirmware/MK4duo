@@ -529,13 +529,13 @@ DEFINE_PGM_READ_ANY(signed char, byte)
   { return pgm_read_any(&array##_P[axis]); }
 
 #if NOMECH(DELTA)
-  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,  MAX_POS)
-  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos, HOME_POS)
-  XYZ_CONSTS_FROM_CONFIG(float, max_length,    MAX_LENGTH)
+  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS)
+  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos,  HOME_POS)
+  XYZ_CONSTS_FROM_CONFIG(float, max_length,     MAX_LENGTH)
+  XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,   MIN_POS)
 #endif
-XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,    MIN_POS)
-XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,    HOME_BUMP_MM)
-XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,  HOME_DIR)
+XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,     HOME_BUMP_MM)
+XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,   HOME_DIR)
 
 /**
  * ***************************************************************************
@@ -1267,29 +1267,34 @@ void update_software_endstops(AxisEnum axis) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     if (axis == X_AXIS) {
+
+      // In Dual X mode hotend_offset[X] is T1's home position
       float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+
       if (active_extruder != 0) {
+        // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
         soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
         soft_endstop_max[X_AXIS] = dual_max_x + offs;
-        return;
       }
       else if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+        // In Duplication Mode, T0 can move as far left as X_MIN_POS
+        // but not so far to the right that T1 would move past the end
         soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS) + offs;
         soft_endstop_max[X_AXIS] = min(base_max_pos(X_AXIS), dual_max_x - duplicate_hotend_x_offset) + offs;
-        return;
+      }
+      else {
+        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
+        soft_endstop_min[axis] = base_min_pos(axis) + offs;
+        soft_endstop_max[axis] = base_max_pos(axis) + offs;
       }
     }
-    else
+  #elif MECH(DELTA)
+    soft_endstop_min[axis] = deltaParams.base_min_pos[axis] + offs;
+    soft_endstop_max[axis] = deltaParams.base_max_pos[axis] + offs;
+  #else
+    soft_endstop_min[axis] = base_min_pos(axis) + offs;
+    soft_endstop_max[axis] = base_max_pos(axis) + offs;
   #endif
-  {
-    #if MECH(DELTA)
-      soft_endstop_min[axis] = base_min_pos(axis) + offs;
-      soft_endstop_max[axis] = deltaParams.base_max_pos[axis] + offs;
-    #else
-      soft_endstop_min[axis] = base_min_pos(axis) + offs;
-      soft_endstop_max[axis] = base_max_pos(axis) + offs;
-    #endif
-  }
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -1518,7 +1523,7 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 
     // when in the danger zone
     if (current_position[Z_AXIS] > delta_clip_start_height) {
-      if (z > delta_clip_start_height) {   // staying in the danger zone
+      if (z <= delta_clip_start_height) {   // staying in the danger zone
         destination[X_AXIS] = x;           // move directly (uninterpolated)
         destination[Y_AXIS] = y;
         destination[Z_AXIS] = z;
@@ -1998,8 +2003,8 @@ static void clean_up_after_endstop_or_probe_move() {
       float dx = point.x, dy = point.y;
       if (dx == 0.0 && dy == 0.0) { BUZZ(100, 220); return 0.0; }
     #else
-      float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
-            dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
+      const float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
+                  dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
     #endif
 
     // Ensure a minimum height before moving the probe
@@ -3245,9 +3250,9 @@ bool position_is_reachable(float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return WITHINZ(dz) && HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
+    return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
   #else
-    return WITHINZ(dz) && WITHINXY(dx, dy);
+    return WITHINXY(dx, dy) && WITHINZ(dz);
   #endif
 }
 
@@ -3483,7 +3488,7 @@ inline void gcode_G4() {
 
     uint8_t const pattern = code_seen('P') ? code_value_ushort() : 0;
     uint8_t const strokes = code_seen('S') ? code_value_ushort() : NOZZLE_CLEAN_STROKES;
-    uint8_t const objects = code_seen('T') ? code_value_ushort() : 3;
+    uint8_t const objects = code_seen('T') ? code_value_ushort() : NOZZLE_CLEAN_TRIANGLES;
 
     Nozzle::clean(pattern, strokes, objects);
   }
@@ -4366,6 +4371,7 @@ inline void gcode_G28() {
       // Homing and deploy z probe
       if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
         home_delta();
+      //do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
     #else
       // Don't allow auto-levelling without homing first
       if (axis_unhomed_error(true, true, true)) return;
@@ -5323,7 +5329,7 @@ inline void gcode_G28() {
       deltaParams.Recalc_delta_constants();
 
       sprintf_P(rply, PSTR("Endstops X%.3f Y%.3f Z%.3f height %.3f diagonal rod %.3f delta radius %.3f Towers radius correction A%.2f B%.2f C%.2f"),
-          deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS], soft_endstop_max[C_AXIS], deltaParams.delta_diagonal_rod, deltaParams.delta_radius,
+          deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS], soft_endstop_max[C_AXIS], deltaParams.diagonal_rod, deltaParams.radius,
           deltaParams.tower_adj[A_AXIS], deltaParams.tower_adj[B_AXIS], deltaParams.tower_adj[C_AXIS]);
       SERIAL_ET(rply);
 
@@ -8641,23 +8647,23 @@ inline void gcode_M532() {
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('U')) {
-      deltaParams.diagrod_adj[0] = code_value_linear_units();
+      deltaParams.diagonal_rod_adj[0] = code_value_linear_units();
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('V')) {
-      deltaParams.diagrod_adj[1] = code_value_linear_units();
+      deltaParams.diagonal_rod_adj[1] = code_value_linear_units();
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('W')) {
-      deltaParams.diagrod_adj[2] = code_value_linear_units();
+      deltaParams.diagonal_rod_adj[2] = code_value_linear_units();
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('R')) {
-      deltaParams.delta_radius = code_value_linear_units();
+      deltaParams.radius = code_value_linear_units();
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('D')) {
-      deltaParams.delta_diagonal_rod = code_value_linear_units();
+      deltaParams.diagonal_rod = code_value_linear_units();
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('H')) {
@@ -8665,7 +8671,7 @@ inline void gcode_M532() {
       deltaParams.Recalc_delta_constants();
     }
     if (code_seen('S')) {
-      deltaParams.delta_segments_per_second = code_value_float();
+      deltaParams.segments_per_second = code_value_float();
     }
 
     #if HAS(BED_PROBE)
@@ -8698,12 +8704,12 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "I (Tower A Position Correction): ", deltaParams.tower_adj[3], 3);
       SERIAL_LMV(CFG, "J (Tower B Position Correction): ", deltaParams.tower_adj[4], 3);
       SERIAL_LMV(CFG, "K (Tower C Position Correction): ", deltaParams.tower_adj[5], 3);
-      SERIAL_LMV(CFG, "U (Tower A Diagonal Rod Correction): ", deltaParams.diagrod_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Diagonal Rod Correction): ", deltaParams.diagrod_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", deltaParams.diagrod_adj[2], 3);
-      SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.delta_radius, 4);
-      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.delta_diagonal_rod, 4);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.delta_segments_per_second, 1);
+      SERIAL_LMV(CFG, "U (Tower A Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.radius, 4);
+      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second, 1);
       SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.base_max_pos[Z_AXIS], 3);
     }
   }
@@ -10516,7 +10522,7 @@ void ok_to_send() {
         adjdone_vector = 0.01; 
 
         do {
-          deltaParams.delta_radius += adj_dRadius;
+          deltaParams.radius += adj_dRadius;
           deltaParams.Recalc_delta_constants();
           adj_done = false;
 
@@ -10545,7 +10551,7 @@ void ok_to_send() {
 
           // Show progress
           SERIAL_MV(" c:", bed_level_c, 4);
-          SERIAL_MV(" delta radius:", deltaParams.delta_radius, 4);
+          SERIAL_MV(" delta radius:", deltaParams.radius, 4);
           SERIAL_MV(" prec:", adjdone_vector, 3);
           SERIAL_MV(" tries:", adj_attempts);
           SERIAL_M(" done:");
@@ -10681,10 +10687,10 @@ void ok_to_send() {
       float adj_val = 0;
       float adj_mag = 0.2;
       float adj_prv, target;
-      float prev_diag_rod = deltaParams.delta_diagonal_rod;
+      float prev_diag_rod = deltaParams.diagonal_rod;
 
       do {
-        deltaParams.delta_diagonal_rod += adj_val;
+        deltaParams.diagonal_rod += adj_val;
         deltaParams.Recalc_delta_constants();
 
         bed_level_oy = probe_bed(-SIN_60 * probe_radius, COS_60 * probe_radius);
@@ -10714,7 +10720,7 @@ void ok_to_send() {
         SERIAL_EMV(" adj:", adj_val, 5);
       } while(adj_val != 0);
 
-      return (deltaParams.delta_diagonal_rod - prev_diag_rod);
+      return (deltaParams.diagonal_rod - prev_diag_rod);
     }
 
     void calibration_report() {
@@ -10756,9 +10762,9 @@ void ok_to_send() {
       SERIAL_M("| \t");
       if (bed_level_oz >= 0) SERIAL_M(" ");
       SERIAL_MV("", bed_level_oz, 4);
-      SERIAL_EMV("\t\t\tDelta Radius: ", deltaParams.delta_radius, 4);
+      SERIAL_EMV("\t\t\tDelta Radius: ", deltaParams.radius, 4);
 
-      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", deltaParams.delta_diagonal_rod, 4);
+      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", deltaParams.diagonal_rod, 4);
       SERIAL_E;
     }
 
@@ -10983,7 +10989,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // The number of segments-per-second times the duration
     // gives the number of segments we should produce
     #if MECH (DELTA)
-      uint16_t segments = deltaParams.delta_segments_per_second * seconds;
+      uint16_t segments = deltaParams.segments_per_second * seconds;
     #else
       uint16_t segments = scara_segments_per_second * seconds;
       NOMORE(segments, cartesian_mm * 2);

@@ -146,7 +146,7 @@
 #define Y_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
-#define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the endstop.
+#define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the probe.
 #define E_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 /*****************************************************************************************/
 
@@ -582,7 +582,8 @@
  ************************************* Axis jerk *****************************************
  *****************************************************************************************
  *                                                                                       *
- * Defult Jerk (mm/s)                                                                    *
+ * Default Jerk (mm/s)                                                                   *
+ * Override with M205 X Y Z E                                                            *
  *                                                                                       *
  * "Jerk" specifies the minimum speed change that requires acceleration.                 *
  * When changing speed and direction, if the difference is less than the                 *

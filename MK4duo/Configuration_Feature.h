@@ -90,7 +90,7 @@
  * - L6470 motor drivers
  * ADVANCED FEATURES:
  * - Buffer stuff
- * - Clean Nozzle Feature
+ * - Nozzle Clean Feature
  * - Nozzle Park
  * - G20/G21 Inch mode support
  * - Report JSON-style response
@@ -1764,19 +1764,19 @@
 
 
 /****************************************************************************************
- ********************************* Clean Nozzle Feature *********************************
+ ********************************* Nozzle Clean Feature *********************************
  ****************************************************************************************
  *                                                                                      *
  * When enabled allows the user to send G12 to start the nozzle cleaning                *
  * process, the G-Code accepts two parameters:                                          *
  *   "P" for pattern selection                                                          *
  *   "S" for defining the number of strokes/repetitions                                 *
+ *   "T" for defining the number of triangles                                           *
  *                                                                                      *
  * Available list of patterns:                                                          *
  *   P0: This is the default pattern, this process requires a sponge type               *
- *       material at a fixed bed location, the cleaning process is based on             *
- *       "strokes" i.e. back-and-forth movements between the starting and end           *
- *       points.                                                                        *
+ *       material at a fixed bed location. S defines "strokes" i.e.                     *
+ *       back-and-forth movements between the starting and end points.                  *
  *                                                                                      *
  *   P1: This starts a zig-zag pattern between (X0, Y0) and (X1, Y1), "T"               *
  *       defines the number of zig-zag triangles to be done. "S" defines the            *
@@ -1801,8 +1801,11 @@
  ****************************************************************************************/
 //#define NOZZLE_CLEAN_FEATURE
 
-// Number of pattern repetitions
-#define NOZZLE_CLEAN_STROKES  12
+// Default number of pattern repetitions
+#define NOZZLE_CLEAN_STROKES 12
+
+// Default number of triangles
+#define NOZZLE_CLEAN_TRIANGLES 3
 
 // Specify positions as { X, Y, Z }
 #define NOZZLE_CLEAN_START_POINT { 30, 30, (Z_MIN_POS + 1)}

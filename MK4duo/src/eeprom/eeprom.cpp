@@ -82,13 +82,13 @@
  *  M595  H OS            Hotend AD595 Offset & Gain
  *
  * DELTA:
- *  M666  XYZ             endstop_adj (float x3)
- *  M666  R               deltaParams.delta_radius (float)
- *  M666  D               deltaParams.delta_diagonal_rod (float)
- *  M666  S               delta_segments_per_second (float)
- *  M666  H               Z base_max_pos (float)
- *  M666  ABCIJK          tower_adj (float x6)
- *  M666  UVW             diagrod_adj (float x3)
+ *  M666  XYZ             deltaParams.endstop_adj (float x3)
+ *  M666  R               deltaParams.radius (float)
+ *  M666  D               deltaParams.diagonal_rod (float)
+ *  M666  S               deltaParams.segments_per_second (float)
+ *  M666  H               deltaParams.base_max_pos (float)
+ *  M666  ABCIJK          deltaParams.tower_adj (float x6)
+ *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
  *
  * Z_DUAL_ENDSTOPS:
  *  M666  Z               z_endstop_adj (float)
@@ -261,12 +261,12 @@ void EEPROM::Postprocess() {
 
     #if MECH(DELTA)
       EEPROM_WRITE(deltaParams.endstop_adj);
-      EEPROM_WRITE(deltaParams.delta_radius);
-      EEPROM_WRITE(deltaParams.delta_diagonal_rod);
-      EEPROM_WRITE(deltaParams.delta_segments_per_second);
+      EEPROM_WRITE(deltaParams.radius);
+      EEPROM_WRITE(deltaParams.diagonal_rod);
+      EEPROM_WRITE(deltaParams.segments_per_second);
       EEPROM_WRITE(deltaParams.base_max_pos);
       EEPROM_WRITE(deltaParams.tower_adj);
-      EEPROM_WRITE(deltaParams.diagrod_adj);
+      EEPROM_WRITE(deltaParams.diagonal_rod_adj);
     #elif ENABLED(Z_DUAL_ENDSTOPS)
       EEPROM_WRITE(z_endstop_adj);
     #endif
@@ -438,12 +438,12 @@ void EEPROM::Postprocess() {
 
       #if MECH(DELTA)
         EEPROM_READ(deltaParams.endstop_adj);
-        EEPROM_READ(deltaParams.delta_radius);
-        EEPROM_READ(deltaParams.delta_diagonal_rod);
-        EEPROM_READ(deltaParams.delta_segments_per_second);
+        EEPROM_READ(deltaParams.radius);
+        EEPROM_READ(deltaParams.diagonal_rod);
+        EEPROM_READ(deltaParams.segments_per_second);
         EEPROM_READ(deltaParams.base_max_pos);
         EEPROM_READ(deltaParams.tower_adj);
-        EEPROM_READ(deltaParams.diagrod_adj);
+        EEPROM_READ(deltaParams.diagonal_rod_adj);
       #endif //DELTA
 
       #if DISABLED(ULTIPANEL)
@@ -616,9 +616,9 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if MECH(DELTA)
-    deltaParams.delta_radius = DEFAULT_DELTA_RADIUS;
-    deltaParams.delta_diagonal_rod = DELTA_DIAGONAL_ROD;
-    deltaParams.delta_segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
+    deltaParams.radius = DEFAULT_DELTA_RADIUS;
+    deltaParams.diagonal_rod = DELTA_DIAGONAL_ROD;
+    deltaParams.segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
     deltaParams.base_max_pos[A_AXIS] = X_MAX_POS;
     deltaParams.base_max_pos[B_AXIS] = Y_MAX_POS;
     deltaParams.base_max_pos[C_AXIS] = Z_MAX_POS;
@@ -631,9 +631,9 @@ void EEPROM::ResetDefault() {
     deltaParams.tower_adj[3] = TOWER_A_POSITION_ADJ;
     deltaParams.tower_adj[4] = TOWER_B_POSITION_ADJ;
     deltaParams.tower_adj[5] = TOWER_C_POSITION_ADJ;
-    deltaParams.diagrod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
-    deltaParams.diagrod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
-    deltaParams.diagrod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
+    deltaParams.diagonal_rod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
+    deltaParams.diagonal_rod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
+    deltaParams.diagonal_rod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -842,11 +842,11 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" I", deltaParams.tower_adj[3], 3);
       SERIAL_MV(" J", deltaParams.tower_adj[4], 3);
       SERIAL_MV(" K", deltaParams.tower_adj[5], 3);
-      SERIAL_MV(" U", deltaParams.diagrod_adj[0], 3);
-      SERIAL_MV(" V", deltaParams.diagrod_adj[1], 3);
-      SERIAL_MV(" W", deltaParams.diagrod_adj[2], 3);
-      SERIAL_MV(" R", deltaParams.delta_radius);
-      SERIAL_MV(" D", deltaParams.delta_diagonal_rod);
+      SERIAL_MV(" U", deltaParams.diagonal_rod_adj[0], 3);
+      SERIAL_MV(" V", deltaParams.diagonal_rod_adj[1], 3);
+      SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_MV(" R", deltaParams.radius);
+      SERIAL_MV(" D", deltaParams.diagonal_rod);
       SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS]);
 
       CONFIG_MSG_START("Endstop Offsets:");
