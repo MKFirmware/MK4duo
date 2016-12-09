@@ -48,7 +48,7 @@
   #include "nextion_lib/Nextion.h"
 
   bool NextionON                    = false;
-  uint8_t NextionPage               = 0,
+  uint8_t PageID                    = 0,
           lcd_status_message_level  = 0;
   uint16_t slidermaxval             = 20;
   char buffer[100]                  = { 0 };
@@ -109,27 +109,32 @@
    * Nextion component for page:printer
    *******************************************************************
    */
-  NexText LedStatus     = NexText       (2,   1,  "t0");
-  NexText LedCoord1     = NexText       (2,   2,  "t1");
-  NexText Hotend0       = NexText       (2,   14, "t2");
-  NexText Hotend1       = NexText       (2,   15, "t3");
-  NexText Hotend2       = NexText       (2,   16, "t4");
-  NexText Fanspeed      = NexText       (2,   18, "t5");
-  NexPicture Fanpic     = NexPicture    (2,   4,  "p1");
-  NexPicture NStop      = NexPicture    (2,   19, "p2");
-  NexPicture NPlay      = NexPicture    (2,   20, "p3");
-  NexVariable Hotend    = NexVariable   (2,   5,  "he");
-  NexVariable Bed       = NexVariable   (2,   6,  "bed");
-  NexVariable Fan       = NexVariable   (2,   7,  "fan");
-  NexVariable SD        = NexVariable   (2,   10, "sd");
-  NexVariable RFID      = NexVariable   (2,   11, "rfid");
-  NexVariable VSpeed    = NexVariable   (2,   12, "vspeed");
-  NexVariable Extruder  = NexVariable   (2,   13, "extruder");
-  NexVariable Chamber   = NexVariable   (2,   21, "chamber");
-  NexVariable Language  = NexVariable   (2,   22, "lang");
-  NexTimer Fantimer     = NexTimer      (2,   8,  "tm0");
-  NexProgressBar sdbar  = NexProgressBar(2,   9,  "j0");
-  NexWaveform Wavetemp  = NexWaveform   (2,   23, "s0");
+  NexVariable Hotend00  = NexVariable   (2,   2,  "he00");
+  NexVariable Hotend01  = NexVariable   (2,   3,  "he01");
+  NexVariable Hotend10  = NexVariable   (2,   4,  "he10");
+  NexVariable Hotend11  = NexVariable   (2,   5,  "he11");
+  NexVariable Bed0      = NexVariable   (2,   6,  "bed0");
+  NexVariable Bed1      = NexVariable   (2,   7,  "bed1");
+  NexVariable Chamber0  = NexVariable   (2,   8,  "cha0");
+  NexVariable Chamber1  = NexVariable   (2,   9,  "cha1");
+  NexVariable Extruder  = NexVariable   (2,   10, "extruder");
+  NexVariable Fan       = NexVariable   (2,   11, "fan");
+  NexVariable SD        = NexVariable   (2,   12, "sd");
+  NexVariable RFID      = NexVariable   (2,   13, "rfid");
+  NexVariable Language  = NexVariable   (2,   14, "lang");
+  NexVariable VSpeed    = NexVariable   (2,   15, "vspeed");
+  NexTimer Fantimer     = NexTimer      (2,   16, "tm0");
+  NexPicture Fanpic     = NexPicture    (2,   19, "p1");
+  NexPicture NStop      = NexPicture    (2,   20, "p2");
+  NexPicture NPlay      = NexPicture    (2,   21, "p3");
+  NexText LedStatus     = NexText       (2,   24, "t0");
+  NexText LedCoord1     = NexText       (2,   25, "t1");
+  NexText Hotend0       = NexText       (2,   26, "t2");
+  NexText Hotend1       = NexText       (2,   27, "t3");
+  NexText Hotend2       = NexText       (2,   28, "t4");
+  NexText Fanspeed      = NexText       (2,   29, "t5");
+  NexWaveform Wavetemp  = NexWaveform   (2,   30, "s0");
+  NexProgressBar sdbar  = NexProgressBar(2,   31, "j0");
 
   /**
    *******************************************************************
@@ -281,11 +286,21 @@
     NULL
   };
 
-  NexText *hotend_list[] =
+  NexVariable *heater_list0[] =
   {
-    &Hotend0,
-    &Hotend1,
-    &Hotend2,
+    &Hotend00,
+    &Hotend10,
+    &Bed0,
+    &Chamber0,
+    NULL
+  };
+
+  NexVariable *heater_list1[] =
+  {
+    &Hotend01,
+    &Hotend11,
+    &Bed1,
+    &Chamber1,
     NULL
   };
 
@@ -313,16 +328,18 @@
 
   void setpagePrinter() {
 
-    Hotend.setValue(HOTENDS, "printer");
-    Extruder.setValue(EXTRUDERS, "printer");
+    #if HOTENDS > 0
+      Hotend00.setValue(1, "printer");
+      #if HOTENDS > 1
+        Hotend10.setValue(1, "printer");
+      #endif
+    #endif
 
     #if HAS(TEMP_BED)
-      Bed.setValue(1, "printer");
+      Bed0.setValue(1, "printer");
     #endif
 
-    #if HAS(TEMP_CHAMBER)
-      Chamber.setValue(1, "printer");
-    #endif
+    Extruder.setValue(EXTRUDERS, "printer");
 
     #if ENABLED(SDSUPPORT)
       card.mount();
@@ -905,55 +922,30 @@
     }
   }
 
-  static void temptoLCD(uint8_t h, float T1, float T2) {
+  static void degtoLCD(const uint8_t h, const float temp) {
     static const uint16_t maxTemp =
       #if HOTENDS == 1
         HEATER_0_MAXTEMP;
-      #elif HOTENDS == 2
-        max(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP);
-      #elif HOTENDS > 2
-        MAX3(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP);
       #else
-        1;
+        200;
       #endif
 
-    char valuetemp[25] = {0};
-    uint32_t color;
-
-    ZERO(buffer);
-    itoa(T1, valuetemp, 10);
-    strcat(buffer, valuetemp);
-    strcat(buffer, "/");
-    itoa(T2, valuetemp, 10);
-    strcat(buffer, valuetemp);
-    strcat(buffer, "  ");
-
-    if (T2 > 0) {
-      uint32_t prc = T1 / T2 * 100;
-
-      if (prc <= 50)
-        color = 1023;
-      else if (prc <= 75)
-        color = 65504;
-      else if (prc <= 95)
-        color = 64512;
-      else
-        color = 63488;
-    }
-    else
-      color = 65535;
-
-    hotend_list[h]->setText(buffer);
-    hotend_list[h]->Set_font_color_pco(color);
+    heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
       if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus()) {
         Wavetemp.setShow();
       }
-    #endif */
+    #endif
 
-    uint8_t wavetemp = (T1 / maxTemp) * 150;
-    Wavetemp.addValue(h, wavetemp);
+    if (h == 0) {
+      uint8_t wavetemp = (temp / maxTemp) * 150;
+      Wavetemp.addValue(0, wavetemp);
+    }
+  }
+
+  static void targetdegtoLCD(const uint8_t h, const float temp) {
+    heater_list1[h]->setValue(temp);
   }
 
   static void coordtoLCD() {
@@ -980,7 +972,7 @@
       strcat(buffer, valuetemp);
     }
 
-    if (NextionPage == 2) LedCoord1.setText(buffer);
+    if (PageID == 2) LedCoord1.setText(buffer);
     else LedCoord5.setText(buffer);
   }
 
@@ -988,8 +980,9 @@
     static uint8_t  PreviousPage = 0,
                     Previousfeedrate = 0,
                     PreviousfanSpeed = 0,
-                    PreviouspercentDone = 0,
-                    PreviousdegHotend[3] = { 0 };
+                    PreviouspercentDone = 0;
+    static float    PreviousdegHeater[3] = { 0.0 },
+                    PrevioustargetdegHeater[3] = { 0.0 };
     char* temp;
 
     if (!NextionON) return;
@@ -1000,9 +993,9 @@
 
     if (ms > next_lcd_update_ms && STATUS_UPDATE_CONDITION) {
 
-      sendCurrentPageId(&NextionPage);
+      PageID = Nextion_PageID();
 
-      switch (NextionPage) {
+      switch (PageID) {
         case 2:
           if (PreviousPage != 2) {
             lcd_setstatus(lcd_status_message);
@@ -1037,26 +1030,33 @@
           }
 
           #if HAS(TEMP_0)
-            if (PreviousdegHotend[0] != thermalManager.degHotend(0)) {
-              temptoLCD(0, thermalManager.degHotend(0), thermalManager.degTargetHotend(0));
-              PreviousdegHotend[0] = thermalManager.degHotend(0);
+            if (PreviousdegHeater[0] != thermalManager.degHotend(0)) {
+              PreviousdegHeater[0] = thermalManager.degHotend(0);
+              degtoLCD(0, PreviousdegHeater[0]);
+            }
+            if (PrevioustargetdegHeater[0] != thermalManager.degTargetHotend(0)) {
+              PrevioustargetdegHeater[0] = thermalManager.degTargetHotend(0);
+              targetdegtoLCD(0, PrevioustargetdegHeater[0]);
             }
           #endif
           #if HAS(TEMP_1)
-            if (PreviousdegHotend[1] != thermalManager.degHotend(1)) {
-              temptoLCD(1, thermalManager.degHotend(1), thermalManager.degTargetHotend(1));
-              PreviousdegHotend[1] = thermalManager.degHotend(1);
+            if (PreviousdegHeater[1] != thermalManager.degHotend(1)) {
+              PreviousdegHeater[1] = thermalManager.degHotend(1);
+              degtoLCD(1, PreviousdegHeater[1]);
+            }
+            if (PrevioustargetdegHeater[1] != thermalManager.degTargetHotend(1)) {
+              PrevioustargetdegHeater[1] = thermalManager.degTargetHotend(1);
+              targetdegtoLCD(1, PrevioustargetdegHeater[1]);
             }
           #endif
-          #if HAS(TEMP_2)
-            if (PreviousdegHotend[2] != thermalManager.degHotend(2)) {
-              temptoLCD(2, thermalManager.degHotend(2), thermalManager.degTargetHotend(2));
-              PreviousdegHotend[2] = thermalManager.degHotend(2);
+          #if HAS(TEMP_BED)
+            if (PreviousdegHeater[2] != thermalManager.degBed()) {
+              PreviousdegHeater[2] = thermalManager.degBed();
+              degtoLCD(2, PreviousdegHeater[2]);
             }
-          #elif HAS(TEMP_BED)
-            if (PreviousdegHotend[2] != thermalManager.degBed()) {
-              temptoLCD(2, thermalManager.degBed(), thermalManager.degTargetBed());
-              PreviousdegHotend[2] = thermalManager.degBed();
+            if (PrevioustargetdegHeater[2] != thermalManager.degTargetBed()) {
+              PrevioustargetdegHeater[2] = thermalManager.degTargetBed();
+              targetdegtoLCD(2, PrevioustargetdegHeater[2]);
             }
           #endif
 
@@ -1123,21 +1123,21 @@
       }
 
       next_lcd_update_ms = ms + NEXTION_UPDATE_INTERVAL;
-      PreviousPage = NextionPage;
+      PreviousPage = PageID;
     }
   }
 
   void lcd_setstatus(const char* message, bool persist) {
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
-    if (NextionPage == 2) LedStatus.setText(lcd_status_message);
+    if (PageID == 2) LedStatus.setText(lcd_status_message);
   }
 
   void lcd_setstatuspgm(const char* message, uint8_t level) {
     if (level >= lcd_status_message_level && NextionON) {
       strncpy_P(lcd_status_message, message, 30);
       lcd_status_message_level = level;
-      if (NextionPage == 2) LedStatus.setText(lcd_status_message);
+      if (PageID == 2) LedStatus.setText(lcd_status_message);
     }
   }
 
@@ -1159,24 +1159,24 @@
     }
 
     void gfx_scale(const float scale) {
-      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.clear(scale);
     }
 
     void gfx_clear(const float x, const float y, const float z) {
-      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
+      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
         Wavetemp.setHide();
         gfx.clear(x, y, z);
       }
     }
 
     void gfx_cursor_to(const float x, const float y, const float z) {
-      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if ((NextionPage == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.line_to(NX_TOOL, x, y, z);
     }
   #endif

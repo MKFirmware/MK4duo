@@ -264,45 +264,19 @@ void nexLoop(NexTouch *nex_listen_list[])
 }
 
 /**
- * Return current page id.   
- *  
- * @param pageId - output parameter,to save page id.  
- * 
- * @retval true - success. 
- * @retval false - failed. 
+ * Return current page id.
+ *
+ * @retval pageID
  */
-bool sendCurrentPageId(uint8_t* pageId)
-{
+uint8_t Nextion_PageID() {
 
-    bool ret = false;
-    uint8_t temp[5] = {0};
+  uint32_t val;
+  sendCommand("get dp");
 
-    if (!pageId)
-    {
-        goto __return;
-    }
-    sendCommand("sendme");
-    HAL::delayMilliseconds(10);
-    nexSerial.setTimeout(100);
-    if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    {
-        goto __return;
-    }
-
-    if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD
-    && temp[2] == 0xFF
-    && temp[3] == 0xFF
-    && temp[4] == 0xFF
-    )
-    {
-        *pageId = temp[1];
-        ret = true;
-    }
-
-    __return:
-
-    return ret;
-
+  if (recvRetNumber(&val))
+    return val;
+  else
+    return 0;
 }
 
 /**

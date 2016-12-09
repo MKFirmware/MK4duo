@@ -28,8 +28,8 @@
 
   void DeltaParameters::Init() {
 
-    delta_diagonal_rod = 0.0;
-    delta_radius = 0.0;
+    diagonal_rod = 0.0;
+    radius = 0.0;
     base_max_pos[Z_AXIS] = Z_MAX_POS;
 
     for (uint8_t i = 0; i < 6; i++)
@@ -38,7 +38,7 @@
     for (uint8_t axis = 0; axis < ABC; axis++) {
       endstop_adj[axis] = 0.0;
       towerX[axis] = towerY[axis] = 0.0;
-      diagrod_adj[axis] = 0.0;
+      diagonal_rod_adj[axis] = 0.0;
     }
   }
 
@@ -48,17 +48,17 @@
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
     base_home_pos[Z_AXIS]     = base_max_pos[Z_AXIS];
 
-    delta_diagonal_rod_2[A_AXIS] = sq(delta_diagonal_rod + diagrod_adj[A_AXIS]);
-    delta_diagonal_rod_2[B_AXIS] = sq(delta_diagonal_rod + diagrod_adj[B_AXIS]);
-    delta_diagonal_rod_2[C_AXIS] = sq(delta_diagonal_rod + diagrod_adj[C_AXIS]);
+    delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
+    delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);
+    delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = (delta_radius + tower_adj[3]) * cos((210 + tower_adj[0]) * degreesToRadians); // front left tower
-    towerY[A_AXIS] = (delta_radius + tower_adj[3]) * sin((210 + tower_adj[0]) * degreesToRadians); 
-    towerX[B_AXIS] = (delta_radius + tower_adj[4]) * cos((330 + tower_adj[1]) * degreesToRadians); // front right tower
-    towerY[B_AXIS] = (delta_radius + tower_adj[4]) * sin((330 + tower_adj[1]) * degreesToRadians); 
-    towerX[C_AXIS] = (delta_radius + tower_adj[5]) * cos((90 + tower_adj[2]) * degreesToRadians);  // back middle tower
-    towerY[C_AXIS] = (delta_radius + tower_adj[5]) * sin((90 + tower_adj[2]) * degreesToRadians); 
+    towerX[A_AXIS] = (radius + tower_adj[3]) * cos((210 + tower_adj[0]) * degreesToRadians); // front left tower
+    towerY[A_AXIS] = (radius + tower_adj[3]) * sin((210 + tower_adj[0]) * degreesToRadians); 
+    towerX[B_AXIS] = (radius + tower_adj[4]) * cos((330 + tower_adj[1]) * degreesToRadians); // front right tower
+    towerY[B_AXIS] = (radius + tower_adj[4]) * sin((330 + tower_adj[1]) * degreesToRadians); 
+    towerX[C_AXIS] = (radius + tower_adj[5]) * cos((90 + tower_adj[2]) * degreesToRadians);  // back middle tower
+    towerY[C_AXIS] = (radius + tower_adj[5]) * sin((90 + tower_adj[2]) * degreesToRadians); 
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
@@ -71,10 +71,10 @@
     coreFc = sq(towerX[C_AXIS]) + sq(towerY[C_AXIS]);
     Q = 2 * (Xca * Yab - Xab * Yca);
     Q2 = sq(Q);
-    D2 = sq(delta_diagonal_rod);
+    D2 = sq(diagonal_rod);
 
     // Calculate the base carriage height when the printer is homed, i.e. the carriages are at the endstops less the corrections
-    const float tempHeight = delta_diagonal_rod;		// any sensible height will do here
+    const float tempHeight = diagonal_rod;		// any sensible height will do here
     float machinePos[ABC];
     forward_kinematics_DELTA(tempHeight, tempHeight, tempHeight, machinePos);
     homedCarriageHeight = base_max_pos[Z_AXIS] + tempHeight - machinePos[C_AXIS];
@@ -94,11 +94,11 @@
   // Compute the derivative of height with respect to a parameter at the specified motor endpoints.
   // 'deriv' indicates the parameter as follows:
   // 0, 1, 2 = X, Y, Z tower endstop adjustments
-  // 3 = delta delta_radius
+  // 3 = delta radius
   // 4 = X tower correction
   // 5 = Y tower correction
-  // 6 = delta_diagonal_rod rod length
-  // 7, 8 = X tilt, Y tilt. We scale these by the printable delta_radius to get sensible values in the range -1..1
+  // 6 = diagonal_rod rod length
+  // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
   float DeltaParameters::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
     const float perturb = 0.2;			// perturbation amount in mm or degrees
     DeltaParameters hiParams(*this), loParams(*this);
@@ -111,8 +111,8 @@
         break;
 
       case 3:
-        hiParams.delta_radius += perturb;
-        loParams.delta_radius -= perturb;
+        hiParams.radius += perturb;
+        loParams.radius -= perturb;
         hiParams.Recalc_delta_constants();
         loParams.Recalc_delta_constants();
         break;
@@ -132,8 +132,8 @@
         break;
 
       case 6:
-        hiParams.delta_diagonal_rod += perturb;
-        loParams.delta_diagonal_rod -= perturb;
+        hiParams.diagonal_rod += perturb;
+        loParams.diagonal_rod -= perturb;
         hiParams.Recalc_delta_constants();
         loParams.Recalc_delta_constants();
         break;
@@ -152,7 +152,7 @@
   // Perform 3, 4, 6, 7-factor adjustment.
   // The input vector contains the following parameters in this order:
   //  X, Y and Z endstop adjustments
-  //  Delta delta_radius
+  //  Delta radius
   //  X tower position adjustment
   //  Y tower position adjustment
   //  Diagonal rod length adjustment
@@ -167,19 +167,19 @@
     NormaliseEndstopAdjustments();
 
     if (numFactors >= 4) {
-      delta_radius += v[3];
+      radius += v[3];
 
       if (numFactors >= 6) {
         tower_adj[A_AXIS] += v[4];
         tower_adj[B_AXIS] += v[5];
 
-        if (numFactors == 7) delta_diagonal_rod += v[6];
+        if (numFactors == 7) diagonal_rod += v[6];
       }
 
       Recalc_delta_constants();
     }
 
-    // Adjusting the delta_diagonal_rod and the tower positions affects the homed carriage height.
+    // Adjusting the diagonal_rod and the tower positions affects the homed carriage height.
     // We need to adjust base_max_pos[Z_AXIS] to allow for this, to get the change that was requested in the endstop corrections.
     const float heightError = GetHomedCarriageHeight(A_AXIS) + endstop_adj[A_AXIS] - oldCarriageHeightA - v[0];
     base_max_pos[Z_AXIS] -= heightError;
