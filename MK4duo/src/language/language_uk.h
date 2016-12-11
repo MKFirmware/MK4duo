@@ -109,6 +109,10 @@
 #define MSG_YSTEPS                          "Yкроків/мм"
 #define MSG_ZSTEPS                          "Zкроків/мм"
 #define MSG_ESTEPS                          "Eкроків/мм"
+#define MSG_E1STEPS                         "E1кроків/мм"
+#define MSG_E2STEPS                         "E2кроків/мм"
+#define MSG_E3STEPS                         "E3кроків/мм"
+#define MSG_E4STEPS                         "E4кроків/мм"
 #define MSG_TEMPERATURE                     "Температура"
 #define MSG_MOTION                          "Рух"
 #define MSG_VOLUMETRIC                      "Волокно"
@@ -197,24 +201,24 @@
 #define MSG_DRIVE_STRENGTH                  "Сила мотору"
 #define MSG_DAC_PERCENT                     "% мотору"
 #define MSG_DAC_EEPROM_WRITE                "Запис ЦАП на ПЗП"
+
 #define MSG_FILAMENT_CHANGE_HEADER          "ЗАМІНА ВОЛОКНА"
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   "НАЛАШТ. ЗАМІНИ:"
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  "Екструдувати"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   "Відновити друк"
 
 #if LCD_HEIGHT >= 4
+  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Зачекайте на"
   #define MSG_FILAMENT_CHANGE_INIT_2          "початок заміни"
   #define MSG_FILAMENT_CHANGE_INIT_3          "волокна"
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Зачекайте на"
   #define MSG_FILAMENT_CHANGE_UNLOAD_2        "вивід волокна"
-  #define MSG_FILAMENT_CHANGE_UNLOAD_3        ""
   #define MSG_FILAMENT_CHANGE_INSERT_1        "Вставте волокно"
   #define MSG_FILAMENT_CHANGE_INSERT_2        "та натисніть для"
   #define MSG_FILAMENT_CHANGE_INSERT_3        "продовження..."
   #define MSG_FILAMENT_CHANGE_LOAD_1          "Зачекайте на"
   #define MSG_FILAMENT_CHANGE_LOAD_2          "ввід волокна"
-  #define MSG_FILAMENT_CHANGE_LOAD_3          ""
   #define MSG_FILAMENT_CHANGE_EXTRUDE_1       "Зачекайте на"
   #define MSG_FILAMENT_CHANGE_EXTRUDE_2       "екструзію"
   #define MSG_FILAMENT_CHANGE_EXTRUDE_3       "волокна"
@@ -222,6 +226,7 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        "відновлення"
   #define MSG_FILAMENT_CHANGE_RESUME_3        "друку"
 #else // LCD_HEIGHT < 4
+  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Зачекайте..."
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Вивід..."
   #define MSG_FILAMENT_CHANGE_INSERT_1        "Вставте і нат."

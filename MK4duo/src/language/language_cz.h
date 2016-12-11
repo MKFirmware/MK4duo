@@ -112,6 +112,10 @@
 #define MSG_YSTEPS                          "Ykroku/mm"
 #define MSG_ZSTEPS                          "Zkroku/mm"
 #define MSG_ESTEPS                          "Ekroku/mm"
+#define MSG_E1STEPS                         "E1kroku/mm"
+#define MSG_E2STEPS                         "E2kroku/mm"
+#define MSG_E3STEPS                         "E3kroku/mm"
+#define MSG_E4STEPS                         "E4kroku/mm"
 #define MSG_TEMPERATURE                     "Teplota"
 #define MSG_MOTION                          "Pohyb"
 #define MSG_VOLUMETRIC                      "Filament"
@@ -214,7 +218,9 @@
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   "CO DAL?"
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  "Jeste vytlacit"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   "Obnovit tisk"
+
 #if LCD_HEIGHT >= 4
+  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Cekejte prosim"
   #define MSG_FILAMENT_CHANGE_INIT_2          "na zahajeni"
   #define MSG_FILAMENT_CHANGE_INIT_3          "vymeny filamentu"
@@ -234,6 +240,7 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        "na pokracovani"
   #define MSG_FILAMENT_CHANGE_RESUME_3        "tisku"
 #else // LCD_HEIGHT < 4
+  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Cekejte..."
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Vysouvani..."
   #define MSG_FILAMENT_CHANGE_INSERT_1        "Vlozte, kliknete"
