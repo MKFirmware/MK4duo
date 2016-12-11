@@ -76,8 +76,6 @@ struct point_t {
   }
 };
 
-
-
 /**
  * @brief Nozzle class
  *
@@ -124,8 +122,7 @@ class Nozzle {
 
         #if ENABLED(NOZZLE_CLEAN_GOBACK)
           // Move the nozzle to the initial point
-          do_blocking_move_to_z(initial.z);
-          do_blocking_move_to_xy(initial.x, initial.y);
+          do_blocking_move_to(initial.x, initial.y, initial.z);
         #endif // NOZZLE_CLEAN_GOBACK
 
       #endif // NOZZLE_CLEAN_FEATURE
@@ -209,6 +206,10 @@ class Nozzle {
       __attribute__((unused)) uint8_t const &objects = 0
     ) __attribute__((optimize ("Os"))) {
       #if ENABLED(NOZZLE_CLEAN_FEATURE)
+        #if MECH(DELTA)
+          if (current_position[Z_AXIS] > delta_clip_start_height)
+            do_blocking_move_to_z(delta_clip_start_height);
+        #endif
         switch (pattern) {
           case 1:
             Nozzle::zigzag(

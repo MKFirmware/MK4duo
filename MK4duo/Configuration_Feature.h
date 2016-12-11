@@ -1039,7 +1039,7 @@
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
  *    en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr, gl, hr, it,                 *
- *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr                    *                                                 *
+ *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr                    *
  *                                                                                       *
  * 'en':'English',          'an':'Aragonese',   'bg':'Bulgarian',       'ca':'Catalan',  *
  * 'cn':'Chinese',          'cz':'Czech',       'de':'German',          'el':'Greek',    *
@@ -1047,7 +1047,7 @@
  * 'fr':'French',           'gl':'Galician',    'hr':'Croatian',        'it':'Italian',  *
  * 'kana':'Japanese',       'kana_utf8':'Japanese (UTF8)'               'nl':'Dutch',    *
  * 'pl':'Polish',           'pt':'Portuguese',  'ru':'Russian',         'tr':'Turkish',  *
- * 'pt_utf8':'Portuguese (UTF8)',                                                        *
+ * 'uk':'Ukrainian',        'pt_utf8':'Portuguese (UTF8)',                               *
  * 'pt-br':'Portuguese (Brazilian)',                                                     *
  * 'pt-br_utf8':'Portuguese (Brazilian UTF8)',                                           *
  *                                                                                       *

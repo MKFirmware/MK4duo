@@ -192,18 +192,6 @@
 #define MSG_END_MINUTE                      "minutes"
 #define MSG_PRINT_TIME                      "Print time "
 
-#define MSG_ENDSTOPS_HIT                    "endstops hit: "
-#define MSG_BABYSTEPPING                    "Babystepping"
-#define MSG_BABYSTEPPING_X                  MSG_BABYSTEPPING " " MSG_X
-#define MSG_BABYSTEPPING_Y                  MSG_BABYSTEPPING " " MSG_Y
-#define MSG_BABYSTEPPING_Z                  MSG_BABYSTEPPING " " MSG_Z
-
-#define MSG_ENDSTOP_XS                      MSG_X
-#define MSG_ENDSTOP_YS                      MSG_Y
-#define MSG_ENDSTOP_ZS                      MSG_Z
-#define MSG_ENDSTOP_ZPS                     MSG_Z "P"
-#define MSG_ENDSTOP_ES                      MSG_E
-
 // Calibrate Delta
 #define MSG_DELTA_CALIBRATE                 "Delta Calibration"
 #define MSG_DELTA_CALIBRATE_X               "Calibrate " MSG_X

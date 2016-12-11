@@ -49,7 +49,9 @@ class EEPROM {
     static void Postprocess();
 
     static uint16_t eeprom_checksum;
+    static bool eeprom_write_error;
     static char version[6];
+
 };
 
 extern EEPROM eeprom;

@@ -109,6 +109,10 @@
 #define MSG_YSTEPS                          "Y Steps/mm"
 #define MSG_ZSTEPS                          "Z Steps/mm"
 #define MSG_ESTEPS                          "E Steps/mm"
+#define MSG_E1STEPS                         "E1 Steps/mm"
+#define MSG_E2STEPS                         "E2 Steps/mm"
+#define MSG_E3STEPS                         "E3 Steps/mm"
+#define MSG_E4STEPS                         "E4 Steps/mm"
 #define MSG_TEMPERATURE                     "Temperatur"
 #define MSG_MOTION                          "Bewegung"
 #define MSG_VOLUMETRIC                      "Filament"
@@ -154,7 +158,7 @@
 #define MSG_BABYSTEP_X                      "Babystep X"
 #define MSG_BABYSTEP_Y                      "Babystep Y"
 #define MSG_BABYSTEP_Z                      "Babystep Z"
-#define MSG_ENDSTOP_ABORT                   "Endstopp-Abbr. ein"
+#define MSG_ENDSTOP_ABORT                   "Endstopp-Abbr."
 #define MSG_HEATING_FAILED_LCD              "HEIZEN FEHLGESCHLAGEN"
 #define MSG_ERR_REDUNDANT_TEMP              "REDUND. TEMPERATURABWEICHUNG"
 #define MSG_THERMAL_RUNAWAY                 LCD_STR_THERMOMETER " NICHT ERREICHT"
@@ -216,6 +220,7 @@
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   "Drucke weiter"
 
 #if LCD_HEIGHT >= 4
+  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Warte auf den"
   #define MSG_FILAMENT_CHANGE_INIT_2          "Start des "
   #define MSG_FILAMENT_CHANGE_INIT_3          "Filamentwechsels"
@@ -235,6 +240,7 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        "Fortsetzung des"
   #define MSG_FILAMENT_CHANGE_RESUME_3        "Druckes"
 #else // LCD_HEIGHT < 4
+  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Bitte warten..."
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Auswerfen..."
   #define MSG_FILAMENT_CHANGE_INSERT_1        "Laden und Klick"
