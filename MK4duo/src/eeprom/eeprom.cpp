@@ -1011,8 +1011,9 @@ void EEPROM::ResetDefault() {
     SERIAL_E;
     #if EXTRUDERS > 1
       for(uint8_t i = 0; i < EXTRUDERS; i++) {
-      SERIAL_SMV(CFG, "  M200 T", i);
-      SERIAL_EMV(" D", filament_size[1]);
+        SERIAL_SMV(CFG, "  M200 T", i);
+        SERIAL_EMV(" D", filament_size[i]);
+      }
     #endif
 
     /**
