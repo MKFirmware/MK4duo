@@ -1465,7 +1465,7 @@ void Temperature::init() {
     OUT_WRITE(MOSI_PIN, HIGH);
     SET_INPUT(MISO_PIN);
     WRITE(MISO_PIN,1);
-    OUT_WRITE(SS_PIN, HIGH);
+    OUT_WRITE(SDSS, HIGH);
 
     OUT_WRITE(MAX6675_SS, HIGH);
 

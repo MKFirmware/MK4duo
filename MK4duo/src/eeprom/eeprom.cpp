@@ -775,42 +775,55 @@ void EEPROM::ResetDefault() {
     SERIAL_SMV(CFG, "  M92 X", planner.axis_steps_per_mm[X_AXIS], 3);
     SERIAL_MV(" Y", planner.axis_steps_per_mm[Y_AXIS], 3);
     SERIAL_MV(" Z", planner.axis_steps_per_mm[Z_AXIS], 3);
-    SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS], 3);
+    #if EXTRUDERS == 1
+      SERIAL_MV(" E", planner.axis_steps_per_mm[E_AXIS], 3);
+    #endif
+    SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
         SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS + i], 3);
       }
-    #endif //EXTRUDERS > 1
+    #endif // EXTRUDERS > 1
 
     CONFIG_MSG_START("Maximum feedrates (mm/s):");
     SERIAL_SMV(CFG, "  M203 X", planner.max_feedrate_mm_s[X_AXIS], 3);
     SERIAL_MV(" Y", planner.max_feedrate_mm_s[Y_AXIS], 3);
     SERIAL_MV(" Z", planner.max_feedrate_mm_s[Z_AXIS], 3);
-    SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS], 3);
+    #if EXTRUDERS == 1
+      SERIAL_MV(" E", planner.max_feedrate_mm_s[E_AXIS], 3);
+    #endif
+    SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
         SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS + i], 3);
       }
-    #endif //EXTRUDERS > 1
+    #endif // EXTRUDERS > 1
 
     CONFIG_MSG_START("Maximum Acceleration (mm/s2):");
     SERIAL_SMV(CFG, "  M201 X", planner.max_acceleration_mm_per_s2[X_AXIS]);
     SERIAL_MV(" Y", planner.max_acceleration_mm_per_s2[Y_AXIS]);
     SERIAL_MV(" Z", planner.max_acceleration_mm_per_s2[Z_AXIS]);
-    SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS]);
+    #if EXTRUDERS == 1
+      SERIAL_MV(" E", planner.max_acceleration_mm_per_s2[E_AXIS]);
+    #endif
+    SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 1; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
         SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i]);
       }
-    #endif //EXTRUDERS > 1
+    #endif // EXTRUDERS > 1
     
     CONFIG_MSG_START("Accelerations: P=printing, V=travel and T* R=retract");
     SERIAL_SMV(CFG,"  M204 P", planner.acceleration, 3);
-    SERIAL_EMV(" V", planner.travel_acceleration, 3);
-    #if EXTRUDERS > 0
+    SERIAL_MV(" V", planner.travel_acceleration, 3);
+    #if EXTRUDERS == 1
+      SERIAL_MV(" R", planner.retract_acceleration[0], 3);
+    #endif
+    SERIAL_E;
+    #if EXTRUDERS > 1
       for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
         SERIAL_EMV(" R", planner.retract_acceleration[i], 3);
@@ -824,9 +837,12 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" X", planner.max_jerk[X_AXIS], 3);
     SERIAL_MV(" Y", planner.max_jerk[Y_AXIS], 3);
     SERIAL_MV(" Z", planner.max_jerk[Z_AXIS], 3);
-    SERIAL_EMV(" E", planner.max_jerk[E_AXIS], 3);
+    #if EXTRUDERS == 1
+      SERIAL_MV(" E", planner.max_jerk[E_AXIS], 3);
+    #endif
+    SERIAL_E;
     #if (EXTRUDERS > 1)
-      for(uint8_t i = 1; i < EXTRUDERS; i++) {
+      for(uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
         SERIAL_EMV(" E" , planner.max_jerk[E_AXIS + i], 3);
       }
@@ -837,13 +853,15 @@ void EEPROM::ResetDefault() {
     SERIAL_MV(" Y", home_offset[Y_AXIS], 3);
     SERIAL_EMV(" Z", home_offset[Z_AXIS], 3);
 
-    CONFIG_MSG_START("Hotend offset (mm):");
-    for (uint8_t h = 0; h < HOTENDS; h++) {
-      SERIAL_SMV(CFG, "  M218 T", h);
-      SERIAL_MV(" X", hotend_offset[X_AXIS][h], 3);
-      SERIAL_MV(" Y", hotend_offset[Y_AXIS][h], 3);
-      SERIAL_EMV(" Z", hotend_offset[Z_AXIS][h], 3);
-    }
+    #if HOTENDS > 1
+      CONFIG_MSG_START("Hotend offset (mm):");
+      for (uint8_t h = 1; h < HOTENDS; h++) {
+        SERIAL_SMV(CFG, "  M218 T", h);
+        SERIAL_MV(" X", hotend_offset[X_AXIS][h], 3);
+        SERIAL_MV(" Y", hotend_offset[Y_AXIS][h], 3);
+        SERIAL_EMV(" Z", hotend_offset[Z_AXIS][h], 3);
+      }
+    #endif
 
     #if HAS(LCD_CONTRAST)
       CONFIG_MSG_START("LCD Contrast:");
@@ -876,7 +894,13 @@ void EEPROM::ResetDefault() {
     #endif // HEATER_USES_AD595
 
     #if MECH(DELTA)
-      CONFIG_MSG_START("Delta Geometry adjustment:");
+
+      CONFIG_MSG_START("Endstop adjustment (mm):");
+      SERIAL_SMV(CFG, "  M666 X", deltaParams.endstop_adj[A_AXIS]);
+      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
+      SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
+
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, H=Z Height");
       SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
       SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
       SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
@@ -888,16 +912,14 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);
       SERIAL_MV(" R", deltaParams.radius);
       SERIAL_MV(" D", deltaParams.diagonal_rod);
-      SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS]);
-
-      CONFIG_MSG_START("Endstop Offsets:");
-      SERIAL_SMV(CFG, "  M666 X", deltaParams.endstop_adj[A_AXIS]);
-      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
-      SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
+      SERIAL_MV(" S", deltaParams.segments_per_second, 3);
+      SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
 
     #elif ENABLED(Z_DUAL_ENDSTOPS)
+
       CONFIG_MSG_START("Z2 Endstop adjustement (mm):");
       SERIAL_LMV(CFG, "  M666 Z", z_endstop_adj );
+
     #endif // DELTA
     
     /**
@@ -973,32 +995,40 @@ void EEPROM::ResetDefault() {
       SERIAL_LMV(CFG, "  M209 S", autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
-    if (volumetric_enabled) {
-      CONFIG_MSG_START("Filament settings:");
-      SERIAL_LMV(CFG, "  M200 D", filament_size[0]);
-
-      #if EXTRUDERS > 1
-        SERIAL_LMV(CFG, "  M200 T1 D", filament_size[1]);
-        #if EXTRUDERS > 2
-          SERIAL_LMV(CFG, "  M200 T2 D", filament_size[2]);
-          #if EXTRUDERS > 3
-            SERIAL_LMV(CFG, "  M200 T3 D", filament_size[3]);
-          #endif
-        #endif
-      #endif
-
+    /**
+     * Volumetric extrusion M200
+     */
+    if (!forReplay) {
+      SERIAL_SM(CFG, "Filament settings:");
+      if (volumetric_enabled)
+        SERIAL_E;
+      else
+        SERIAL_EM(" Disabled");
     }
-    else
-      CONFIG_MSG_START("  M200 D0");
+    #if EXTRUDERS == 1
+      SERIAL_SMV(CFG, "  M200 D", filament_size[0]);
+    #endif
+    SERIAL_E;
+    #if EXTRUDERS > 1
+      for(uint8_t i = 0; i < EXTRUDERS; i++) {
+      SERIAL_SMV(CFG, "  M200 T", i);
+      SERIAL_EMV(" D", filament_size[1]);
+    #endif
 
+    /**
+     * Alligator current drivers M906
+     */
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       CONFIG_MSG_START("Motor current:");
       SERIAL_SMV(CFG, "  M906 X", motor_current[X_AXIS], 2);
       SERIAL_MV(" Y", motor_current[Y_AXIS], 2);
       SERIAL_MV(" Z", motor_current[Z_AXIS], 2);
-      SERIAL_EMV(" E", motor_current[E_AXIS], 2);
+      #if EXTRUDERS == 1
+        SERIAL_MV(" E", motor_current[E_AXIS], 2);
+      #endif
+      SERIAL_E;
       #if DRIVER_EXTRUDERS > 1
-        for (uint8_t i = 1; i < DRIVER_EXTRUDERS; i++) {
+        for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
           SERIAL_SMV(CFG, "  M906 T", i);
           SERIAL_EMV(" E", motor_current[E_AXIS + i], 2);
         }
