@@ -494,8 +494,6 @@ void Planner::check_axes_activity() {
       }
       else
         z_fade_factor = 1.0;
-    #else
-        constexpr float z_fade_factor = 1.0;
     #endif
 
     #if ENABLED(MESH_BED_LEVELING)
@@ -522,7 +520,11 @@ void Planner::check_axes_activity() {
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       float tmp[XYZ] = { lx, ly, 0 };
-      lz += bilinear_z_offset(tmp) * z_fade_factor;
+      lz += bilinear_z_offset(tmp)
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          * z_fade_factor
+        #endif
+      ;
 
     #endif
   }
