@@ -125,24 +125,24 @@
 #define DELTA_PRINTABLE_RADIUS 75.0         // mm
 
 //Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
-#define TOWER_A_ENDSTOP_ADJ 0 // Front Left Tower
-#define TOWER_B_ENDSTOP_ADJ 0 // Front Right Tower
-#define TOWER_C_ENDSTOP_ADJ 0 // Rear Tower
+#define TOWER_A_ENDSTOP_ADJ 0   // Front Left Tower
+#define TOWER_B_ENDSTOP_ADJ 0   // Front Right Tower
+#define TOWER_C_ENDSTOP_ADJ 0   // Rear Tower
 
 //Tower Position Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
-#define TOWER_A_POSITION_ADJ 0 //Front Left Tower
-#define TOWER_B_POSITION_ADJ 0 //Front Right Tower
-#define TOWER_C_POSITION_ADJ 0 //Rear Tower
+#define TOWER_A_RADIUS_ADJ 0    // Front Left Tower
+#define TOWER_B_RADIUS_ADJ 0    // Front Right Tower
+#define TOWER_C_RADIUS_ADJ 0    // Rear Tower
 
 //Tower Radius Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
-#define TOWER_A_RADIUS_ADJ 0 //Front Left Tower
-#define TOWER_B_RADIUS_ADJ 0 //Front Right Tower
-#define TOWER_C_RADIUS_ADJ 0 //Rear Tower
+#define TOWER_A_POSITION_ADJ 0  // Front Left Tower
+#define TOWER_B_POSITION_ADJ 0  // Front Right Tower
+#define TOWER_C_POSITION_ADJ 0  // Rear Tower
 
 //Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
-#define TOWER_A_DIAGROD_ADJ 0 //Front Left Tower
-#define TOWER_B_DIAGROD_ADJ 0 //Front Right Tower
-#define TOWER_C_DIAGROD_ADJ 0 //Rear Tower
+#define TOWER_A_DIAGROD_ADJ 0   // Front Left Tower
+#define TOWER_B_DIAGROD_ADJ 0   // Front Right Tower
+#define TOWER_C_DIAGROD_ADJ 0   // Rear Tower
 /*****************************************************************************************/
 
 
@@ -201,7 +201,7 @@
 #define Y_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
-#define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the endstop.
+#define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the probe.
 #define E_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 /*****************************************************************************************/
 
@@ -436,6 +436,12 @@
 // The height can be set with M320 Z<height>
 //#define ENABLE_LEVELING_FADE_HEIGHT
 
+// Experimental Subdivision of the grid by Catmull-Rom method.
+// Synthesizes intermediate points to produce a more detailed mesh.
+//#define ABL_BILINEAR_SUBDIVISION
+// Number of subdivisions between probe points
+#define BILINEAR_SUBDIVISIONS 3
+
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.
 //#define Z_PROBE_END_SCRIPT "G1 Z10 F8000\nG1 X10 Y10\nG1 Z0.5"
@@ -465,7 +471,7 @@
  * To use this you must have a PROBE, please define you type probe.                      *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_CALIBRATION_FEATURE_7_POINT
+//#define AUTO_CALIBRATION_7_POINT
 /*****************************************************************************************/
 
 
@@ -540,7 +546,8 @@
  ************************************* Axis jerk *****************************************
  *****************************************************************************************
  *                                                                                       *
- * Defult Jerk (mm/s)                                                                    *
+ * Default Jerk (mm/s)                                                                   *
+ * Override with M205 X Y Z E                                                            *
  *                                                                                       *
  * "Jerk" specifies the minimum speed change that requires acceleration.                 *
  * When changing speed and direction, if the difference is less than the                 *

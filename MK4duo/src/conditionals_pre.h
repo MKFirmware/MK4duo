@@ -387,13 +387,13 @@
 #if EXTRUDERS > 1
   #define XYZE_N    3 + EXTRUDERS
   #define E_AXIS_N  (E_AXIS + extruder)
-  #define _EINDEX   (E_AXIS + active_extruder)
+  #define E_INDEX   (E_AXIS + active_extruder)
   #define GET_TARGET_EXTRUDER(CMD) if (get_target_extruder_from_command(CMD)) return
   #define TARGET_EXTRUDER target_extruder
 #else
   #define XYZE_N    XYZE
   #define E_AXIS_N  E_AXIS
-  #define _EINDEX   E_AXIS
+  #define E_INDEX   E_AXIS
   #define GET_TARGET_EXTRUDER(CMD) NOOP
   #define TARGET_EXTRUDER 0
 #endif

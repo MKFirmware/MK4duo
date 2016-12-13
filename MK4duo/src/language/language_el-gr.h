@@ -30,8 +30,8 @@
 #ifndef LANGUAGE_EL_GR_H
 #define LANGUAGE_EL_GR_H
 
-//#define MAPPER_CECF
-//#define DISPLAY_CHARSET_ISO10646_GREEK
+#define MAPPER_CECF
+#define DISPLAY_CHARSET_ISO10646_GREEK
 
 #define WELCOME_MSG                         MACHINE_NAME " έτοιμο."
 #define MSG_SD_INSERTED                     "Εισαγωγή κάρτας"
@@ -108,6 +108,10 @@
 #define MSG_YSTEPS                          "Bήματα Υ ανά μμ"
 #define MSG_ZSTEPS                          "Bήματα Ζ ανά μμ"
 #define MSG_ESTEPS                          "Bήματα Ε ανά μμ"
+#define MSG_E1STEPS                         "Bήματα Ε1 ανά μμ"
+#define MSG_E2STEPS                         "Bήματα Ε2 ανά μμ"
+#define MSG_E3STEPS                         "Bήματα Ε3 ανά μμ"
+#define MSG_E4STEPS                         "Bήματα Ε4 ανά μμ"
 #define MSG_TEMPERATURE                     "Θερμοκρασία"
 #define MSG_MOTION                          "Κίνηση"
 #define MSG_VOLUMETRIC                      "Νήμα"

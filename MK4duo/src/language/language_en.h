@@ -192,18 +192,6 @@
 #define MSG_END_MINUTE                      "minutes"
 #define MSG_PRINT_TIME                      "Print time "
 
-#define MSG_ENDSTOPS_HIT                    "endstops hit: "
-#define MSG_BABYSTEPPING                    "Babystepping"
-#define MSG_BABYSTEPPING_X                  MSG_BABYSTEPPING " " MSG_X
-#define MSG_BABYSTEPPING_Y                  MSG_BABYSTEPPING " " MSG_Y
-#define MSG_BABYSTEPPING_Z                  MSG_BABYSTEPPING " " MSG_Z
-
-#define MSG_ENDSTOP_XS                      MSG_X
-#define MSG_ENDSTOP_YS                      MSG_Y
-#define MSG_ENDSTOP_ZS                      MSG_Z
-#define MSG_ENDSTOP_ZPS                     MSG_Z "P"
-#define MSG_ENDSTOP_ES                      MSG_E
-
 // Calibrate Delta
 #define MSG_DELTA_CALIBRATE                 "Delta Calibration"
 #define MSG_DELTA_CALIBRATE_X               "Calibrate " MSG_X
@@ -240,27 +228,36 @@
 
 // FILAMENT_CHANGE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          "CHANGE FILAMENT"
-#define MSG_FILAMENT_CHANGE_INIT_1          "Wait for start"
-#define MSG_FILAMENT_CHANGE_INIT_2          "of the filament"
-#define MSG_FILAMENT_CHANGE_INIT_3          "change"
-#define MSG_FILAMENT_CHANGE_UNLOAD_1        "Wait for"
-#define MSG_FILAMENT_CHANGE_UNLOAD_2        "filament unload"
-#define MSG_FILAMENT_CHANGE_UNLOAD_3        ""
-#define MSG_FILAMENT_CHANGE_INSERT_1        "Insert filament"
-#define MSG_FILAMENT_CHANGE_INSERT_2        "and press button"
-#define MSG_FILAMENT_CHANGE_INSERT_3        "to continue..."
-#define MSG_FILAMENT_CHANGE_LOAD_1          "Wait for"
-#define MSG_FILAMENT_CHANGE_LOAD_2          "filament load"
-#define MSG_FILAMENT_CHANGE_LOAD_3          ""
-#define MSG_FILAMENT_CHANGE_EXTRUDE_1       "Wait for"
-#define MSG_FILAMENT_CHANGE_EXTRUDE_2       "filament extrude"
-#define MSG_FILAMENT_CHANGE_EXTRUDE_3       ""
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   "WHAT NEXT?"
+#define MSG_FILAMENT_CHANGE_OPTION_HEADER   "CHANGE OPTIONS:"
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  "Extrude more"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   "Resume print"
-#define MSG_FILAMENT_CHANGE_RESUME_1        "Wait for print"
-#define MSG_FILAMENT_CHANGE_RESUME_2        "resume"
-#define MSG_FILAMENT_CHANGE_RESUME_3        ""
+#if LCD_HEIGHT >= 4
+  #define MSG_FILAMENT_CHANGE_INIT_1          "Wait for start"
+  #define MSG_FILAMENT_CHANGE_INIT_2          "of the filament"
+  #define MSG_FILAMENT_CHANGE_INIT_3          "change"
+  #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Wait for"
+  #define MSG_FILAMENT_CHANGE_UNLOAD_2        "filament unload"
+  #define MSG_FILAMENT_CHANGE_UNLOAD_3        ""
+  #define MSG_FILAMENT_CHANGE_INSERT_1        "Insert filament"
+  #define MSG_FILAMENT_CHANGE_INSERT_2        "and press button"
+  #define MSG_FILAMENT_CHANGE_INSERT_3        "to continue..."
+  #define MSG_FILAMENT_CHANGE_LOAD_1          "Wait for"
+  #define MSG_FILAMENT_CHANGE_LOAD_2          "filament load"
+  #define MSG_FILAMENT_CHANGE_LOAD_3          ""
+  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       "Wait for"
+  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       "filament extrude"
+  #define MSG_FILAMENT_CHANGE_EXTRUDE_3       ""
+  #define MSG_FILAMENT_CHANGE_RESUME_1        "Wait for print"
+  #define MSG_FILAMENT_CHANGE_RESUME_2        "resume"
+  #define MSG_FILAMENT_CHANGE_RESUME_3        ""
+#else // LCD_HEIGHT < 4
+  #define MSG_FILAMENT_CHANGE_INIT_1          "Please wait..."
+  #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Ejecting..."
+  #define MSG_FILAMENT_CHANGE_INSERT_1        "Insert and Click"
+  #define MSG_FILAMENT_CHANGE_LOAD_1          "Loading..."
+  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       "Extruding..."
+  #define MSG_FILAMENT_CHANGE_RESUME_1        "Resuming..."
+#endif // LCD_HEIGHT < 4
 
 // Heater
 #define MSG_HEATING                         "Heating..."

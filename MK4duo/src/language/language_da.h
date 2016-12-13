@@ -110,6 +110,10 @@
 #define MSG_YSTEPS                          "Ysteps/mm"
 #define MSG_ZSTEPS                          "Zsteps/mm"
 #define MSG_ESTEPS                          "Esteps/mm"
+#define MSG_E1STEPS                         "E1steps/mm"
+#define MSG_E2STEPS                         "E2steps/mm"
+#define MSG_E3STEPS                         "E3steps/mm"
+#define MSG_E4STEPS                         "E4steps/mm"
 #define MSG_TEMPERATURE                     "Temperatur"
 #define MSG_MOTION                          "Bevægelse"
 #define MSG_VOLUMETRIC                      "Filament"
@@ -209,6 +213,7 @@
 #define MSG_DRIVE_STRENGTH                  "Driv Styrke"
 #define MSG_DAC_PERCENT                     "Driv %"
 #define MSG_DAC_EEPROM_WRITE                "DAC EEPROM Skriv"
+
 #define MSG_FILAMENT_CHANGE_HEADER          "SKIFT FILAMENT"
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   "Skift muligheder:"
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  "Extruder mere"

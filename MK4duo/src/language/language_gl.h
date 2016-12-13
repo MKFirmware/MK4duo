@@ -109,6 +109,10 @@
 #define MSG_YSTEPS                          "Ypasos/mm"
 #define MSG_ZSTEPS                          "Zpasos/mm"
 #define MSG_ESTEPS                          "Epasos/mm"
+#define MSG_E1STEPS                         "E1pasos/mm"
+#define MSG_E2STEPS                         "E2pasos/mm"
+#define MSG_E3STEPS                         "E3pasos/mm"
+#define MSG_E4STEPS                         "E4pasos/mm"
 #define MSG_TEMPERATURE                     "Temperatura"
 #define MSG_MOTION                          "Movemento"
 #define MSG_VOLUMETRIC                      "Filamento"
@@ -147,6 +151,8 @@
 #define MSG_CNG_SDCARD                      "Cambiar SD"
 #define MSG_ZPROBE_OUT                      "Sonda-Z sen cama"
 #define MSG_HOME                            "Home"  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
+#define MSG_BLTOUCH_SELFTEST                "Comprobar BLTouch"
+#define MSG_BLTOUCH_RESET                   "Iniciar BLTouch"
 #define MSG_FIRST                           "first"
 #define MSG_ZPROBE_ZOFFSET                  "Offset Z"
 #define MSG_BABYSTEP_X                      "Micropaso X"
@@ -160,6 +166,7 @@
 #define MSG_ERR_MINTEMP                     "Err: temp. min."
 #define MSG_ERR_MAXTEMP_BED                 "Err: MAXTEMP BED"
 #define MSG_ERR_MINTEMP_BED                 "Err: MINTEMP BED"
+#define MSG_ERR_Z_HOMING                    "G28 Z impedido"
 #define MSG_HALTED                          "SISTEMA MORTO"
 #define MSG_PLEASE_RESET                    "Debe reiniciar!"
 #define MSG_SHORT_DAY                       "d" // One character only
@@ -182,6 +189,8 @@
 #define MSG_INFO_EXTRUDERS                  "Extrusores"
 #define MSG_INFO_BAUDRATE                   "Baudios"
 #define MSG_INFO_PROTOCOL                   "Protocolo"
+#define MSG_LIGHTS_ON                       "Acender a luz"
+#define MSG_LIGHTS_OFF                      "Apagar a luz"
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              "Total traballos"
   #define MSG_INFO_COMPLETED_PRINTS         "Total completos"
@@ -198,11 +207,17 @@
 #define MSG_INFO_MIN_TEMP                   "Min Temp"
 #define MSG_INFO_MAX_TEMP                   "Max Temp"
 #define MSG_INFO_PSU                        "Fonte alime."
+#define MSG_DRIVE_STRENGTH                  "Potencia motor"
+#define MSG_DAC_PERCENT                     "Motor %"
+#define MSG_DAC_EEPROM_WRITE                "Garda DAC EEPROM"
+
 #define MSG_FILAMENT_CHANGE_HEADER          "TROCO FILAMENTO"
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   "OPCIONS TROCO:"
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  "Extruir mais"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   "Segue traballo"
+
 #if LCD_HEIGHT >= 4
+  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Agarde para"
   #define MSG_FILAMENT_CHANGE_INIT_2          "iniciar troco"
   #define MSG_FILAMENT_CHANGE_INIT_3          "de filamento"
@@ -222,6 +237,7 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        "seguir co"
   #define MSG_FILAMENT_CHANGE_RESUME_3        "traballo"
 #else // LCD_HEIGHT < 4
+  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          "Agarde..."
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        "Descargando..."
   #define MSG_FILAMENT_CHANGE_INSERT_1        "Introduza e click"
