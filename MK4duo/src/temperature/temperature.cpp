@@ -2113,7 +2113,6 @@ void Temperature::set_current_temp_raw() {
    */
   void endstop_monitor() {
     static uint16_t old_endstop_bits_local = 0;
-    static uint8_t local_LED_status = 0;
     uint16_t current_endstop_bits_local = 0;
     #if HAS_X_MIN
       if (READ(X_MIN_PIN)) SBI(current_endstop_bits_local, X_MIN);
@@ -2174,8 +2173,6 @@ void Temperature::set_current_temp_raw() {
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", !!TEST(current_endstop_bits_local, Z2_MAX));
       #endif
       SERIAL_M("\n\n");
-      analogWrite(LED_PIN, local_LED_status);
-      local_LED_status ^= 255;
       old_endstop_bits_local = current_endstop_bits_local;
     }
   }
