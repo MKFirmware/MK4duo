@@ -11064,12 +11064,16 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // For non-interpolated delta calculate every segment
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) logical[i] += segment_distance[i];
-      planner.buffer_line_kinematic(logical, _feedrate_mm_s, active_extruder, active_driver);
+      deltaParams.inverse_kinematics_DELTA(logical);
+      ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
     }
 
     // Since segment_distance is only approximate,
     // the final move must be to the exact destination.
-    planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
+    deltaParams.inverse_kinematics_DELTA(ltarget);
+    ADJUST_DELTA(ltarget); // Adjust Z if bed leveling is enabled
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
     return true;
   }
 
@@ -12101,6 +12105,12 @@ void setup() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
+  #if ENABLED(RGB_LED)
+    pinMode(RGB_LED_R_PIN, OUTPUT);
+    pinMode(RGB_LED_G_PIN, OUTPUT);
+    pinMode(RGB_LED_B_PIN, OUTPUT);
+  #endif
+
   #if ENABLED(LASERBEAM)
     laser_init();
   #endif
@@ -12112,23 +12122,10 @@ void setup() {
     flow_init();
   #endif
 
-  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-    // Initialize mixing to 100% color 1
-    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      mixing_factor[i] = (i == 0) ? 1.0 : 0.0;
-    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; t++)
-      for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-        mixing_virtual_tool_mix[t][i] = mixing_factor[i];
-  #endif
-
   #if ENABLED(RFID_MODULE)
     RFID_ON = RFID522.init();
     if (RFID_ON)
       SERIAL_EM("RFID CONNECT");
-  #endif
-
-  #if ENABLED(FIRMWARE_TEST)
-    FirmwareTest();
   #endif
 
   lcd_init();
@@ -12142,6 +12139,16 @@ void setup() {
       #endif
     #endif
   #endif
+
+  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+    // Initialize mixing to 100% color 1
+    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+      mixing_factor[i] = (i == 0) ? 1.0 : 0.0;
+    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; t++)
+      for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+        mixing_virtual_tool_mix[t][i] = mixing_factor[i];
+  #endif
+
 }
 
 /**
