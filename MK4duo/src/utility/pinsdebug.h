@@ -22,6 +22,8 @@
 
 #include "pins_arduino.h"
 
+bool endstop_monitor_flag = false;
+
 #define  NAME_FORMAT "%-28s"   // one place to specify the format of all the sources of names
                                // "-" left justify, "28" minimum width of name, pad with blanks
 
@@ -31,19 +33,23 @@
 #define _ANALOG_PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_T(buffer); pin_is_analog = true; return true; }
 #define ANALOG_PIN_SAY(NAME) if (pin == analogInputToDigitalPin(NAME)) _ANALOG_PIN_SAY(#NAME);
 
-#define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(5)))
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #define IS_ANALOG(P) ((uint8_t)(P) >= analogInputToDigitalPin(0) && (uint8_t)(P) <= analogInputToDigitalPin(MAX_ANALOG_PIN_NUMBER))
+#else
+  #define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(5)))
+#endif
 
-#if defined(__AVR__)
-  #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
-  #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
-  #define IO_REG_TYPE uint8_t
-  #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
-#elif defined(__SAM3X8E__)
+#if ENABLED(ARDUINO_ARCH_SAM)
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
   #define digitalPinToTimer(pin)          digitalPinHasPWM(pin)
+#else
+  #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
+  #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
+  #define IO_REG_TYPE uint8_t
+  #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
 #endif
 
 IO_REG_TYPE rBit;   // receive pin's ports and bitmask
