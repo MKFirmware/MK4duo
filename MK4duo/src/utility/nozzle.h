@@ -144,12 +144,11 @@ class Nozzle {
       __attribute__((unused)) uint8_t const &objects
     ) __attribute__((optimize ("Os"))) {
 
-      constexpr float nozzle_start_point[3] = NOZZLE_CLEAN_START_POINT,
-                      nozzle_end_point[3] = NOZZLE_CLEAN_END_POINT;
-      constexpr bool  NOZZLE_CLEAN_HORIZONTAL = fabs(nozzle_start_point[X_AXIS] - nozzle_end_point[X_AXIS])
-                                              < fabs(nozzle_start_point[Y_AXIS] - nozzle_end_point[Y_AXIS]);
-
       #if ENABLED(NOZZLE_CLEAN_FEATURE)
+        constexpr float nozzle_start_point[3] = NOZZLE_CLEAN_START_POINT,
+                        nozzle_end_point[3] = NOZZLE_CLEAN_END_POINT;
+        constexpr bool  NOZZLE_CLEAN_HORIZONTAL = fabs(nozzle_start_point[X_AXIS] - nozzle_end_point[X_AXIS])
+                                                < fabs(nozzle_start_point[Y_AXIS] - nozzle_end_point[Y_AXIS]);
         const float A = fabs( NOZZLE_CLEAN_HORIZONTAL ? end.y - start.y : end.x - start.x), // [twice the] Amplitude
                     P = fabs(!NOZZLE_CLEAN_HORIZONTAL ? end.y - start.y : end.x - start.x) / (objects << 1); // Period
 
