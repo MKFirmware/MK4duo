@@ -4,3 +4,13 @@ applet/
 *.orig
 *.rej
 *.bak
+MK4duo/platformio.ini
+MK4duo/lib/readme.txt
+*.a
+MK4duo/.pioenvs/megaatmega2560/firmware.hex
+*.hash
+MK4duo/.pioenvs/do-not-modify-files-here.url
+*.clang_complete
+MK4duo/.gcc-flags.json
+*.dblite
+MK4duo/.pioenvs/megaatmega2560/firmware.elf
