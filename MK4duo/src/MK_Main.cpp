@@ -30,6 +30,10 @@
 
 #include "../base.h"
 
+#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+  #include "endstop/endstop_interrupts.h"
+#endif
+
 #if ENABLED(RFID_MODULE)
   MFRC522 RFID522;
 #endif
@@ -219,6 +223,19 @@ PrintCounter print_job_counter = PrintCounter();
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+  #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+    #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
+    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
+    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
+    #define ABL_BG_GRID(X,Y)  bilinear_level_grid_virt[X][Y]
+  #else
+    #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
+    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_X
+    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_Y
+    #define ABL_BG_GRID(X,Y)  bilinear_level_grid[X][Y]
+  #endif
+
   #if MECH(DELTA)
     #define ADJUST_DELTA(V) \
       if (planner.abl_enabled) { \
@@ -230,6 +247,8 @@ PrintCounter print_job_counter = PrintCounter();
   #else
     #define ADJUST_DELTA(V) if (planner.abl_enabled) { delta[C_AXIS] += bilinear_z_offset(V); }
   #endif
+#elif IS_KINEMATIC
+  #define ADJUST_DELTA(V) NOOP
 #endif
 
 #if ENABLED(Z_DUAL_ENDSTOPS)
@@ -301,15 +320,10 @@ PrintCounter print_job_counter = PrintCounter();
 
   float delta[ABC];
 
-  // these are the default values, can be overriden with M666
-  float delta_clip_start_height = Z_MAX_POS;
-
   const float z_probe_deploy_start_location[] = Z_PROBE_DEPLOY_START_LOCATION,
               z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION,
               z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
               z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
-
-  float delta_safe_distance_from_top();
 
   void  home_delta();
 
@@ -345,6 +359,7 @@ PrintCounter print_job_counter = PrintCounter();
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+  #define UNPROBED 9999.0f
   int bilinear_grid_spacing[2], bilinear_start[2];
   float bilinear_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
 #endif
@@ -749,7 +764,7 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
     OUT_WRITE(MAX31855_SS3, HIGH);
 
     OUT_WRITE(ENC424_SS, HIGH);
-    OUT_WRITE(SDSS, HIGH);
+    OUT_WRITE(SS_PIN, HIGH);
 
     SET_INPUT(MISO);
     SET_OUTPUT(MOSI);
@@ -1307,9 +1322,7 @@ void update_software_endstops(AxisEnum axis) {
   #endif
 
   #if MECH(DELTA)
-    if (axis == Z_AXIS) {
-      delta_clip_start_height = soft_endstop_max[axis] - delta_safe_distance_from_top();
-    }
+    if (axis == Z_AXIS) deltaParams.Set_clip_start_height();
   #endif
 }
 
@@ -1522,8 +1535,8 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
     #endif
 
     // when in the danger zone
-    if (current_position[Z_AXIS] > delta_clip_start_height) {
-      if (z > delta_clip_start_height) {   // staying in the danger zone
+    if (current_position[Z_AXIS] > deltaParams.clip_start_height) {
+      if (z > deltaParams.clip_start_height) {   // staying in the danger zone
         destination[X_AXIS] = x;           // move directly (uninterpolated)
         destination[Y_AXIS] = y;
         destination[Z_AXIS] = z;
@@ -1534,7 +1547,7 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
         return;
       }
       else {
-        destination[Z_AXIS] = delta_clip_start_height;
+        destination[Z_AXIS] = deltaParams.clip_start_height;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("zone border move", current_position);
@@ -1999,8 +2012,8 @@ static void clean_up_after_endstop_or_probe_move() {
     float old_feedrate_mm_s = feedrate_mm_s;
 
     #if MECH(DELTA)
-      if (current_position[Z_AXIS] > delta_clip_start_height)
-        do_blocking_move_to_z(delta_clip_start_height);
+      if (current_position[Z_AXIS] > deltaParams.clip_start_height)
+        do_blocking_move_to_z(deltaParams.clip_start_height);
     #endif
 
     #if MECH(MAKERARM_SCARA)
@@ -2139,7 +2152,7 @@ static void clean_up_after_endstop_or_probe_move() {
         bilinear_grid_spacing[X_AXIS] = bilinear_grid_spacing[Y_AXIS] = 0;
         for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
           for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-            bilinear_level_grid[x][y] = 1000.0;
+            bilinear_level_grid[x][y] = UNPROBED;
       #endif
     #endif
   }
@@ -2165,7 +2178,7 @@ static void clean_up_after_endstop_or_probe_move() {
         SERIAL_C(']');
       }
     #endif
-    if (bilinear_level_grid[x][y] < 999.0) {
+    if (bilinear_level_grid[x][y] != UNPROBED) {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
       #endif
@@ -2179,13 +2192,13 @@ static void clean_up_after_endstop_or_probe_move() {
           c1 = bilinear_level_grid[x + xdir][y + ydir], c2 = bilinear_level_grid[x + xdir * 2][y + ydir * 2];
 
     // Treat far unprobed points as zero, near as equal to far
-    if (a2 > 999.0) a2 = 0.0; if (a1 > 999.0) a1 = a2;
-    if (b2 > 999.0) b2 = 0.0; if (b1 > 999.0) b1 = b2;
-    if (c2 > 999.0) c2 = 0.0; if (c1 > 999.0) c1 = c2;
+    if (a2 == UNPROBED) a2 = 0.0; if (a1 == UNPROBED) a1 = a2;
+    if (b2 == UNPROBED) b2 = 0.0; if (b1 == UNPROBED) b1 = b2;
+    if (c2 == UNPROBED) c2 = 0.0; if (c1 == UNPROBED) c1 = c2;
 
     float a = 2 * a1 - a2, b = 2 * b1 - b2, c = 2 * c1 - c2;
 
-    // Take the average intstead of the median
+    // Take the average instead of the median
     bilinear_level_grid[x][y] = (a + b + c) / 3.0;
 
     // Median is robust (ignores outliers).
@@ -2264,7 +2277,7 @@ static void clean_up_after_endstop_or_probe_move() {
       for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
         SERIAL_C(' ');
         float offset = bilinear_level_grid[x][y];
-        if (offset < 999.0) {
+        if (offset != UNPROBED) {
           if (offset >= 0) SERIAL_C('+');
           SERIAL_V(offset, 2);
         }
@@ -2298,7 +2311,7 @@ static void clean_up_after_endstop_or_probe_move() {
         for (uint8_t x = 0; x < ABL_GRID_POINTS_VIRT_X; x++) {
           SERIAL_C(' ');
           float offset = bilinear_level_grid_virt[x][y];
-          if (offset < 999.0) {
+          if (offset != UNPROBED) {
             if (offset > 0) SERIAL_C('+');
             SERIAL_V(offset, 5);
           }
@@ -3706,7 +3719,7 @@ inline void gcode_G4() {
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(delta_clip_start_height);
+      do_blocking_move_to_z(deltaParams.clip_start_height);
     #endif
 
   }
@@ -3850,7 +3863,8 @@ inline void gcode_G28() {
   // Wait for planner moves to finish!
   stepper.synchronize();
 
-  #if HAS(ABL)
+  // Disable the leveling matrix before homing
+  #if PLANNER_LEVELING
     // For auto bed leveling, disable abl
     set_bed_leveling_enabled(false);
   #endif
@@ -4512,7 +4526,11 @@ inline void gcode_G28() {
           || left_probe_bed_position != new_bilinear_start[X_AXIS]
           || front_probe_bed_position != new_bilinear_start[Y_AXIS]
         ) ) {
+          // Before reset bed level, re-enable to correct the position
+          planner.abl_enabled = abl_should_enable;
+          // Reset grid to 0.0 or "not probed". (Also disables ABL)
           reset_bed_level();
+
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
             bilinear_grid_spacing_virt[X_AXIS] = xGridSpacing / (BILINEAR_SUBDIVISIONS);
             bilinear_grid_spacing_virt[Y_AXIS] = yGridSpacing / (BILINEAR_SUBDIVISIONS);
@@ -4521,6 +4539,7 @@ inline void gcode_G28() {
           new_bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
           new_bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
           new_bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
+
           // Can't re-enable (on error) until the new grid is written
           abl_should_enable = false;
         }
@@ -4779,45 +4798,34 @@ inline void gcode_G28() {
         // Correct the current XYZ position based on the tilted plane.
         //
 
-        // 1. Get the distance from the current position to the reference point.
-        float x_dist = RAW_CURRENT_POSITION(X_AXIS) - X_TILT_FULCRUM,
-              y_dist = RAW_CURRENT_POSITION(Y_AXIS) - Y_TILT_FULCRUM,
-              z_real = RAW_CURRENT_POSITION(Z_AXIS),
-              z_zero = 0;
-
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("G29 uncorrected XYZ", current_position);
         #endif
 
-        matrix_3x3 inverse = matrix_3x3::transpose(planner.bed_level_matrix);
+        float converted[XYZ];
+        memcpy(converted, current_position, sizeof(converted));
 
-        // 2. Apply the inverse matrix to the distance
-        //    from the reference point to X, Y, and zero.
-        apply_rotation_xyz(inverse, x_dist, y_dist, z_zero);
-
-        // 3. Get the matrix-based corrected Z.
-        //    (Even if not used, get it for comparison.)
-        float new_z = z_real + z_zero;
-
-        // 4. Use the last measured distance to the bed, if possible
+        planner.abl_enabled = true;
+        planner.unapply_leveling(converted); // use conversion machinery
+        planner.abl_enabled = false;
+ 
+        // Use the last measured distance to the bed, if possible
         if ( NEAR(current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
           && NEAR(current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
         ) {
-          float simple_z = z_real - (measured_z - (-zprobe_zoffset));
+          float simple_z = current_position[Z_AXIS] - (measured_z - (-zprobe_zoffset));
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
               SERIAL_MV("Z from Probe:", simple_z);
-              SERIAL_MV("  Matrix:", new_z);
-              SERIAL_EMV("  Discrepancy:", simple_z - new_z);
+              SERIAL_MV("  Matrix:", converted[Z_AXIS]);
+              SERIAL_EMV("  Discrepancy:", simple_z - converted[Z_AXIS]);
             }
           #endif
-          new_z = simple_z;
+          converted[Z_AXIS] = simple_z;
         }
 
-        // 5. The rotated XY and corrected Z are now current_position
-        current_position[X_AXIS] = LOGICAL_X_POSITION(x_dist) + X_TILT_FULCRUM;
-        current_position[Y_AXIS] = LOGICAL_Y_POSITION(y_dist) + Y_TILT_FULCRUM;
-        current_position[Z_AXIS] = new_z;
+        // The rotated XY and corrected Z are now current_position
+        memcpy(current_position, converted, sizeof(converted));
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("G29 corrected XYZ", current_position);
@@ -7596,7 +7604,7 @@ inline void gcode_M226() {
 
 #if HAS(ABL)
 
-  // M320 Activate autolevel
+  // M320: Activate autolevel
   inline void gcode_M320() {
 
     set_bed_leveling_enabled(true);
@@ -7606,17 +7614,73 @@ inline void gcode_M226() {
       SERIAL_EMV("ABL Fade Height = ", code_value_linear_units(), 2);
     #endif
 
-    if (!planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_FAILED);
+    if (!planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
   }
 
-  // M321 Deactivate autoleveling
+  // M321: Deactivate autoleveling
   inline void gcode_M321() { set_bed_leveling_enabled(false); }
 
-  // M322 Reset auto leveling matrix
+  // M322: Reset auto leveling matrix
   inline void gcode_M322() {
     reset_bed_level();
     if (code_seen('S') && code_value_bool())
       eeprom.StoreSettings();
+  }
+
+#endif
+
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+  /**
+   * M323: Set Level bilinear manual
+   *       X<x grid value>
+   *       Y<y grid value>
+   *       Z<level value> Set the exact value in bilinear_level[x][y]
+   *       S<value> Add value to bilinear_level[x][y] or current position if not set X & Y
+   */
+  inline void gcode_M323() {
+    uint8_t px = 0, py = 0;
+    float val = 0.0;
+    bool hasX, hasY, hasZ, hasS;
+    const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / ABL_BG_SPACING(X_AXIS),
+                ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / ABL_BG_SPACING(Y_AXIS);
+    const int gridx = constrain(floor(ratio_x), 0, ABL_BG_POINTS_X - 1),
+              gridy = constrain(floor(ratio_y), 0, ABL_BG_POINTS_Y - 1);
+
+    if ((hasX = code_seen('X'))) px = code_value_int();
+    if ((hasY = code_seen('Y'))) py = code_value_int();
+
+    if ((hasZ = code_seen('Z')))
+      val = code_value_float();
+    else if ((hasS = code_seen('S')))
+      val = code_value_float();
+
+    if (px >= ABL_GRID_POINTS_X || py >= ABL_GRID_POINTS_Y) {
+      SERIAL_LM(ECHO, " X Y error");
+      return;
+    }
+
+    if (hasX && hasY) {
+      if (hasZ) {
+        ABL_BG_GRID(px, py) = val;
+      }
+      else if (hasS) {
+        ABL_BG_GRID(px, py) += val;
+      }
+      SERIAL_MV("Level value in X", px);
+      SERIAL_MV(" Y", py);
+      SERIAL_EMV(" Z", ABL_BG_GRID(px, py));
+      return;
+    }
+    else if (hasS) {
+      ABL_BG_GRID(gridx, gridy) += val;
+    }
+
+    SERIAL_MV("Level value in gridx=", gridx);
+    SERIAL_MV(" gridy=", gridy);
+    SERIAL_MV(" X", current_position[X_AXIS]);
+    SERIAL_MV(" Y", current_position[Y_AXIS]);
+    SERIAL_EMV(" Z", ABL_BG_GRID(gridx, gridy));
   }
 
 #endif
@@ -8132,7 +8196,7 @@ inline void gcode_M410() { quickstop_stepper(); }
     #endif
 
     if (to_enable && !(mbl.active())) {
-      SERIAL_LM(ER, MSG_ERR_M420_FAILED);
+      SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
     }
   }
 
@@ -10005,6 +10069,11 @@ void process_next_command() {
           gcode_M322(); break;
       #endif
 
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        case 323: // M323: Set Bilinear grid value
+          gcode_M323(); break;
+      #endif
+
       #if HAS(MICROSTEPS)
         case 350: // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
           gcode_M350(); break;
@@ -10232,18 +10301,6 @@ void ok_to_send() {
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-  #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-    #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
-    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
-    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
-    #define ABL_BG_GRID(X,Y)  bilinear_level_grid_virt[X][Y]
-  #else
-    #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
-    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_X
-    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_Y
-    #define ABL_BG_GRID(X,Y)  bilinear_level_grid[X][Y]
-  #endif
-
   // Get the Z adjustment for non-linear bed leveling
   float bilinear_z_offset(float cartesian[XYZ]) {
 
@@ -10312,19 +10369,6 @@ void ok_to_send() {
  * Function for DELTA
  */
 #if MECH(DELTA)
-
-  float delta_safe_distance_from_top() {
-    float cartesian[XYZ] = {
-      LOGICAL_X_POSITION(0),
-      LOGICAL_Y_POSITION(0),
-      LOGICAL_Z_POSITION(0)
-    };
-    deltaParams.inverse_kinematics_DELTA(cartesian);
-    float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(DELTA_PRINTABLE_RADIUS);
-    deltaParams.inverse_kinematics_DELTA(cartesian);
-    return abs(distance - delta[A_AXIS]);
-  }
 
   #if ENABLED(AUTO_CALIBRATION_FEATURE)
     /**
@@ -12149,6 +12193,9 @@ void setup() {
         mixing_virtual_tool_mix[t][i] = mixing_factor[i];
   #endif
 
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    setup_endstop_interrupts();
+  #endif
 }
 
 /**

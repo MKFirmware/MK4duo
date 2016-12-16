@@ -6,7 +6,7 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "Ultratronics v1.0"
 
-#ifndef __SAM3X8E__
+#ifndef ARDUINO_ARCH_SAM
   #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
 #endif
 

@@ -43,7 +43,7 @@
 #ifndef STEPPER_H
 #define STEPPER_H
 
-#ifndef __SAM3X8E__
+#ifndef ARDUINO_ARCH_SAM
   #include "speed_lookuptable.h"
 #endif
 
@@ -85,8 +85,13 @@ class Stepper {
     static volatile uint32_t step_events_completed; // The number of step events executed in the current block
 
     #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-      static uint8_t old_OCR0A;
-      static volatile uint8_t eISR_Rate;
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        static uint32_t old_OCR0A;
+        static volatile uint32_t eISR_Rate;
+      #else
+        static uint8_t old_OCR0A;
+        static volatile uint8_t eISR_Rate;
+      #endif
       #if ENABLED(LIN_ADVANCE)
         static volatile int e_steps[DRIVER_EXTRUDERS];
         static int extruder_advance_k = LIN_ADVANCE_K;
@@ -104,13 +109,8 @@ class Stepper {
 
     static long acceleration_time, deceleration_time;
     // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
-    #ifdef __SAM3X8E__
-      static uint32_t acc_step_rate; // needed for deceleration start point
-      static uint32_t OCR1A_nominal;
-    #else
-      static uint16_t acc_step_rate; // needed for deceleration start point
-      static uint16_t OCR1A_nominal;
-    #endif
+    static HAL_TIMER_TYPE acc_step_rate, // needed for deceleration start point
+                          OCR1A_nominal;
 
     static uint8_t step_loops, step_loops_nominal;
 
@@ -278,59 +278,55 @@ class Stepper {
     #endif
 
   private:
-    
-    #ifdef __SAM3X8E__
-      static FORCE_INLINE uint32_t calc_timer(uint32_t step_rate) {
-        uint32_t timer;
-    #else
-      static FORCE_INLINE uint16_t calc_timer(uint16_t step_rate) {
-        uint16_t timer;
-    #endif
 
-        NOMORE(step_rate, MAX_STEP_FREQUENCY);
+    static FORCE_INLINE HAL_TIMER_TYPE calc_timer(HAL_TIMER_TYPE step_rate) {
+      HAL_TIMER_TYPE timer;
 
-        #if DISABLED(__SAM3X8E__) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
-          if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
-            step_rate >>= 2;
-            step_loops = 4;
-          }
-          else if(step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
-            step_rate >>= 1;
-            step_loops = 2;
-          }
-          else
-        #endif
-        {
-          step_loops = 1;
+      NOMORE(step_rate, MAX_STEP_FREQUENCY);
+
+      if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
+        step_rate >>= 2;
+        step_loops = 4;
+      }
+      else if(step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+        step_rate >>= 1;
+        step_loops = 2;
+      }
+      else {
+        step_loops = 1;
+      }
+
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        timer = HAL_STEPPER_TIMER_RATE / step_rate;
+        if (timer < (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2))) {
+          timer = (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2));
+          SERIAL_EMT(MSG_STEPPER_TOO_HIGH, step_rate);
+        }
+      #else
+        NOLESS(step_rate, F_CPU / 500000);
+        step_rate -= F_CPU / 500000; // Correct for minimal speed
+        if (step_rate >= (8 * 256)) { // higher step rate
+          uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(unsigned char)(step_rate >> 8)][0];
+          unsigned char tmp_step_rate = (step_rate & 0x00ff);
+          uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
+          MultiU16X8toH16(timer, tmp_step_rate, gain);
+          timer = (uint16_t)pgm_read_word_near(table_address) - timer;
+        }
+        else { // lower step rates
+          uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
+          table_address += ((step_rate) >> 1) & 0xfffc;
+          timer = (uint16_t)pgm_read_word_near(table_address);
+          timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (unsigned char)(step_rate & 0x0007)) >> 3);
         }
 
-        #ifdef __SAM3X8E__
-          timer = HAL_TIMER_RATE / step_rate;
-        #else
-          NOLESS(step_rate, F_CPU / 500000);
-          step_rate -= F_CPU / 500000; // Correct for minimal speed
-          if (step_rate >= (8 * 256)) { // higher step rate
-            uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(unsigned char)(step_rate >> 8)][0];
-            unsigned char tmp_step_rate = (step_rate & 0x00ff);
-            uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
-            MultiU16X8toH16(timer, tmp_step_rate, gain);
-            timer = (uint16_t)pgm_read_word_near(table_address) - timer;
-          }
-          else { // lower step rates
-            uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
-            table_address += ((step_rate) >> 1) & 0xfffc;
-            timer = (uint16_t)pgm_read_word_near(table_address);
-            timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (unsigned char)(step_rate & 0x0007)) >> 3);
-          }
-
-          if (timer < 100) { // (20kHz this should never happen)
-            timer = 100;
-            SERIAL_EMT(MSG_STEPPER_TOO_HIGH, step_rate);
-          }
-        #endif
+        if (timer < 100) { // (20kHz this should never happen)
+          timer = 100;
+          SERIAL_EMT(MSG_STEPPER_TOO_HIGH, step_rate);
+        }
+      #endif
       return timer;
     }
-    
+
     // Initializes the trapezoid generator from the current block. Called whenever a new
     // block begins.
     static FORCE_INLINE void trapezoid_generator_reset() {
@@ -370,12 +366,7 @@ class Stepper {
       step_loops_nominal = step_loops;
       acc_step_rate = current_block->initial_rate;
       acceleration_time = calc_timer(acc_step_rate);
-
-      #ifdef __SAM3X8E__
-        //HAL_timer_stepper_count(acceleration_time);
-      #else
-        OCR1A = acceleration_time;
-      #endif
+      HAL_TIMER_SET_STEPPER_COUNT(acceleration_time);
 
       #if ENABLED(LIN_ADVANCE)
         if (current_block->use_advance_lead) {

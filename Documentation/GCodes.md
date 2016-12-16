@@ -100,7 +100,7 @@
 *  M141 - Set hot chamber target temp
 *  M142 - Set cooler target temp
 *  M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
-*  M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+*  M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U: Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
 *  M155 - Set temperature auto-report interval
 *  M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
 *  M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.
@@ -136,6 +136,7 @@
 *  M320 - Activate autolevel - Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
 *  M321 - Deactivate autoleveling
 *  M322 - Reset auto leveling matrix
+*  M323 - Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
 *  M350 - Set microstepping mode.
 *  M351 - Toggle MS1 MS2 pins directly.
 *  M355 - Turn case lights on/off

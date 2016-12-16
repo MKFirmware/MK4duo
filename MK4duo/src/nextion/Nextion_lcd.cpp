@@ -65,12 +65,6 @@
     GFX gfx = GFX(1, 24, 250, 155);
   #endif
 
-  #if ENABLED(ENSURE_SMOOTH_MOVES)
-    #define STATUS_UPDATE_CONDITION planner.long_move()
-  #else
-    #define STATUS_UPDATE_CONDITION true
-  #endif
-
   /**
    *******************************************************************
    * Nextion component all page
@@ -991,7 +985,9 @@
 
     millis_t ms = millis();
 
-    if (ms > next_lcd_update_ms && STATUS_UPDATE_CONDITION) {
+    if (ELAPSED(ms, next_lcd_update_ms)) {
+
+      next_lcd_update_ms = ms + NEXTION_UPDATE_INTERVAL;
 
       PageID = Nextion_PageID();
 
@@ -1063,6 +1059,7 @@
           coordtoLCD();
 
           #if ENABLED(SDSUPPORT)
+
             if (card.isFileOpen()) {
               if (SDstatus != 2) {
                 SDstatus = 2;
@@ -1105,7 +1102,9 @@
               NPlay.setPic(27);
               NStop.setPic(30);
             }
-          #endif
+
+          #endif // SDSUPPORT
+
           break;
         #if ENABLED(SDSUPPORT)
           case 3:
@@ -1122,7 +1121,6 @@
           break;
       }
 
-      next_lcd_update_ms = ms + NEXTION_UPDATE_INTERVAL;
       PreviousPage = PageID;
     }
   }

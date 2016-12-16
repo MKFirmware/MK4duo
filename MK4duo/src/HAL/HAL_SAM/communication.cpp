@@ -20,9 +20,9 @@
  *
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
-#ifdef __SAM3X8E__
+#if ENABLED(ARDUINO_ARCH_SAM)
 
 FSTRINGVALUE(Com::tStart,"start")
 FSTRINGVALUE(Com::tOk,"ok")
@@ -125,4 +125,4 @@ void Com::print(long value) {
   printNumber(value);
 }
 
-#endif // __SAM3X8E__
+#endif // ARDUINO_ARCH_SAM

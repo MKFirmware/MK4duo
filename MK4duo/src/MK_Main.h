@@ -60,6 +60,11 @@ void ok_to_send();
   void print_bed_level();
 #endif
 
+#if ENABLED(ABL_BILINEAR_SUBDIVISION)
+  extern void bed_level_virt_prepare();
+  extern void bed_level_virt_interpolate();
+#endif
+
 #if PLANNER_LEVELING
   void reset_bed_level();
 #endif

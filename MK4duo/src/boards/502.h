@@ -8,7 +8,7 @@
 #define BOARD_NAME "Alligator R2"
 #define NUM_DIGITAL_PINS 100
 
-#ifndef __SAM3X8E__
+#ifndef ARDUINO_ARCH_SAM
   #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
 #endif
 
@@ -97,6 +97,7 @@
 #define DAC1_SYNC              6 // PC24
 
 //64K SPI EEPROM
+#define SPI_EEPROM
 #define SPI_CHAN_EEPROM1       2
 #define SPI_EEPROM1_CS        25 // PD0
 

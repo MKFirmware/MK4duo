@@ -23,7 +23,7 @@
 #ifndef WATCHDOG_H
   #define WATCHDOG_H
 
-  #ifdef __SAM3X8E__
+  #ifdef ARDUINO_ARCH_SAM
     #if ENABLED(USE_WATCHDOG)
       // Initialize watchdog with a 4 second interrupt time
       void watchdog_init();

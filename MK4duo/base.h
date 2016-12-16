@@ -31,13 +31,12 @@
 #include <string.h>
 #include <inttypes.h>
 
-#ifndef __SAM3X8E__
+#ifndef ARDUINO_ARCH_SAM
   #include <avr/pgmspace.h>
   #include <avr/interrupt.h>
 #endif
 
 #include "src/macros.h"
-#include "src/types.h"
 #include "Boards.h"
 #include "src/mechanics.h"
 
@@ -76,17 +75,8 @@
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"
-
 #include "src/sanitycheck.h"
-
-#ifdef __SAM3X8E__
-  #include "src/HAL_SAM/HAL.h"
-  #include "src/HAL_SAM/communication.h"
-#else
-  #include "src/HAL_AVR/HAL.h"
-  #include "src/HAL_AVR/communication.h"
-#endif
-
+#include "src/HAL/HAL.h"
 #include "src/enum.h"
 
 #if HAS(ABL)

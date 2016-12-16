@@ -50,8 +50,8 @@
  * ARDUINO_ARCH_ARM
  */
 
-#ifndef HAL_H
-#define HAL_H
+#ifndef HAL_AVR_H
+#define HAL_AVR_H
 
 #include "fastio.h"
 
@@ -162,20 +162,46 @@
                  "r26" , "r27" \
                )
 
-// Some useful constants
+/**
+ * Timers
+ */
+#define STEPPER_TIMER OCR1A
+#define TEMP_TIMER 0
+#define EXTRUDER_TIMER OCR0A
+
+#define TEMP_TIMER_FREQUENCY REFERENCE_TEMP_TIMER_FREQUENCY
+
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
 #define ENABLE_TEMPERATURE_INTERRUPT()      SBI(TIMSK0, OCIE0B);
 #define DISABLE_TEMPERATURE_INTERRUPT()     CBI(TIMSK0, OCIE0B);
 
 #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define ENABLE_ADVANCE_EXTRUDER_INTERRUPT()   SBI(TIMSK0, OCIE0A);
-  #define DISABLE_ADVANCE_EXTRUDER_INTERRUPT()	CBI(TIMSK0, OCIE0A);
+  #define ENABLE_EXTRUDER_INTERRUPT()       SBI(TIMSK0, OCIE0A);
+  #define DISABLE_EXTRUDER_INTERRUPT()	    CBI(TIMSK0, OCIE0A);
 #endif
 
-/**
- * Types
- */
+#define HAL_timer_start (timer_num, frequency)
+#define HAL_timer_set_count(timer, count) timer = (count)
+#define HAL_timer_isr_prologue(timer_num)
+
+#define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
+#define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
+#define HAL_TIMER_SET_EXTRUDER_COUNT(n) HAL_timer_set_count(EXTRUDER_TIMER, n)
+
+#define HAL_STEP_TIMER_ISR      ISR(TIMER1_COMPA_vect)
+#define HAL_TEMP_TIMER_ISR      ISR(TIMER0_COMPB_vect)
+#define HAL_EXTRUDER_TIMER_ISR  ISR(TIMER0_COMPA_vect)
+
+// Delays
+#define CYCLES_EATEN_BY_CODE 240
+#define CYCLES_EATEN_BY_E     60
+
+// Voltage for Pin
+#define HAL_VOLTAGE_PIN 5.0
+
+// Types
+#define HAL_TIMER_TYPE uint16_t
 typedef uint32_t millis_t;
 
 class InterruptProtectedBlock {
@@ -212,22 +238,22 @@ class HAL {
 
     // SPI related functions
     static void spiBegin() {
-      #if SDSS >= 0
+      #if SS_PIN >= 0
         SET_INPUT(MISO_PIN);
         SET_OUTPUT(MOSI_PIN);
         SET_OUTPUT(SCK_PIN);
         // SS must be in output mode even it is not chip select
-        SET_OUTPUT(SDSS);
+        SET_OUTPUT(SS_PIN);
         // set SS high - may be chip select for another SPI device
-        WRITE(SDSS, HIGH);
+        WRITE(SS_PIN, HIGH);
       #endif
     }
     static inline void spiInit(uint8_t spiRate) {
       uint8_t r = 0;
       for (uint8_t b = 2; spiRate > b && r < 6; b <<= 1, r++);
 
-      SET_OUTPUT(SDSS);
-      WRITE(SDSS, HIGH);
+      SET_OUTPUT(SS_PIN);
+      WRITE(SS_PIN, HIGH);
       SET_OUTPUT(SCK_PIN);
       SET_OUTPUT(MOSI_PIN);
       SET_INPUT(MISO_PIN);
@@ -327,4 +353,4 @@ class HAL {
   private:
 };
 
-#endif // HAL_H
+#endif // HAL_AVR_H

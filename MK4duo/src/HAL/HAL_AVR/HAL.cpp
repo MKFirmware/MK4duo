@@ -54,9 +54,9 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include "../../base.h"
+#include "../../../base.h"
 
-#ifdef __AVR__
+#if ENABLED(ARDUINO_ARCH_AVR)
 
 HAL::HAL() {
   // ctor
@@ -92,4 +92,4 @@ int HAL::getFreeRam() {
 // Reset peripherals and cpu
 void HAL::resetHardware() {}
 
-#endif // __AVR__
+#endif // ARDUINO_ARCH_AVR

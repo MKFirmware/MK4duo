@@ -20,9 +20,27 @@
  *
  */
 
-#ifndef __TYPES_H__
-  #define __TYPES_H__
+#ifndef _ENDSTOP_INTERRUPTS_H_
+  #define _ENDSTOP_INTERRUPTS_H_
 
-  typedef unsigned long millis_t;
+  volatile uint8_t e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
+                              // Must be reset to 0 by the test function when the tests are finished.
 
-#endif // __TYPES_H__
+  // This is what is really done inside the interrupts.
+  FORCE_INLINE void endstop_ISR_worker( void ) {
+    e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
+  }
+
+  // Use one Routine to handle each group
+  // One ISR for all EXT-Interrupts
+  void endstop_ISR(void) { endstop_ISR_worker(); }
+
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    #include "endstop_interrupts_sam.h"
+  #elif defined(ARDUINO_ARCH_AVR)
+    #include "endstop_interrupts_avr.h"
+  #else
+    #error "Unsupported Platform!"
+  #endif
+
+#endif //_ENDSTOP_INTERRUPTS_H_
