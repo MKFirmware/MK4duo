@@ -335,4 +335,17 @@
       endstop_adj[i] *= -1;
   }
 
+  void DeltaParameters::Set_clip_start_height() {
+    float cartesian[XYZ] = {
+      LOGICAL_X_POSITION(0),
+      LOGICAL_Y_POSITION(0),
+      LOGICAL_Z_POSITION(0)
+    };
+    inverse_kinematics_DELTA(cartesian);
+    float distance = delta[A_AXIS];
+    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(DELTA_PRINTABLE_RADIUS);
+    inverse_kinematics_DELTA(cartesian);
+    clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
+  }
+
 #endif

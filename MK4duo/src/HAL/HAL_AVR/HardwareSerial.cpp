@@ -42,9 +42,9 @@
  * Modified  3 March 2015 by MagoKimbra
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
-#ifdef __AVR__
+#if ENABLED(ARDUINO_ARCH_AVR)
 
 #include "HardwareSerial.h"
 
@@ -437,4 +437,4 @@ MKHardwareSerial MKSerial;
 
 #endif // whole file
 #endif // !USBCON
-#endif // __AVR__
+#endif // ARDUINO_ARCH_AVR

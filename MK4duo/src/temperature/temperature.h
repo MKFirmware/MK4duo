@@ -73,10 +73,10 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
-      #if ENABLED(__SAM3X8E__)
-        #define PID_dT (((OVERSAMPLENR + 2) * 14.0)/ TEMP_FREQUENCY)
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        #define PID_dT (((OVERSAMPLENR + 2) * 14.0) / TEMP_TIMER_FREQUENCY)
       #else
-        #define PID_dT ((OVERSAMPLENR * 12.0)/(F_CPU / 64.0 / 256.0))
+        #define PID_dT ((OVERSAMPLENR * 12.0) / TEMP_TIMER_FREQUENCY)
       #endif
     #endif
 
@@ -244,7 +244,7 @@ class Temperature {
       static int cooler_maxttemp_raw;
     #endif
 
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       // MEDIAN COUNT
       // For Smoother temperature
       // ONLY FOR DUE
@@ -287,7 +287,7 @@ class Temperature {
     /**
      * Static (class) methods
      */
-    static float analog2temp(int raw, uint8_t e);
+    static float analog2temp(int raw, uint8_t h);
     static float analog2tempBed(int raw);
     #if HAS(TEMP_CHAMBER)
       static float analog2tempChamber(int raw);
@@ -575,7 +575,7 @@ class Temperature {
 
   private:
 
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       static int calc_raw_temp_value(uint8_t temp_id);
       #if HAS(TEMP_BED)
         static int calc_raw_temp_bed_value();

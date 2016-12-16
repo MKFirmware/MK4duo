@@ -63,14 +63,17 @@
  *  M206  XYZ             home_offset (float x3)
  *  M218  T   XY          hotend_offset (float x6)
  *
- *  Mesh bed leveling (or placeholder):
- *  M420  S               status (uint8)
- *                        z_offset (float)
- *                        mesh_num_x (uint8 as set in firmware)
- *                        mesh_num_y (uint8 as set in firmware)
- *  G29   S3  XYZ         z_values[][] (float x9, by default, up to float x 81)
+ * Mesh bed leveling:
+ *  M420  S               from mbl.status (bool)
+ *                        mbl.z_offset (float)
+ *                        MESH_NUM_X_POINTS (uint8 as set in firmware)
+ *                        MESH_NUM_Y_POINTS (uint8 as set in firmware)
+ *  G29   S3  XYZ         z_values[][] (float x9, by default, up to float x 81) +288
  *
- *  AUTO_BED_LEVELING_BILINEAR (or placeholder):
+ * ABL_PLANAR:
+ *                        planner.bed_level_matrix        (matrix_3x3 = float x9)
+ *
+ * AUTO_BED_LEVELING_BILINEAR:
  *                        ABL_GRID_MAX_POINTS_X           (uint8_t)
  *                        ABL_GRID_MAX_POINTS_Y           (uint8_t)
  *                        bilinear_grid_spacing           (int x2)   from G29: (B-F)/X, (R-L)/Y
@@ -171,10 +174,13 @@ void EEPROM::Postprocess() {
 
   uint16_t EEPROM::eeprom_checksum;
   char EEPROM::version[6] = EEPROM_VERSION;
-  bool EEPROM::eeprom_write_error = false;
 
-  void EEPROM::writeData(int& pos, uint8_t* value, uint8_t size) {
+  bool  eeprom_write_error,
+        eeprom_read_error;
+
+  void EEPROM::writeData(int& pos, uint8_t* value, uint16_t size) {
     if (eeprom_write_error) return;
+
     while(size--) {
       uint8_t * const p = (uint8_t * const)pos;
       const uint8_t v = *value;
@@ -194,10 +200,10 @@ void EEPROM::Postprocess() {
     };
   }
 
-  void EEPROM::readData(int& pos, uint8_t* value, uint8_t size) {
+  void EEPROM::readData(int& pos, uint8_t* value, uint16_t size) {
     do {
       uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      *value = c;
+      if (!eeprom_read_error) *value = c;
       eeprom_checksum += c;
       pos++;
       value++;
@@ -208,6 +214,7 @@ void EEPROM::Postprocess() {
   #define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR) writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
   #define EEPROM_READ(VAR)  readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
+  #define EEPROM_ASSERT(TST,ERR) if () do{ SERIAL_LT(ER, ERR); eeprom_read_error |= true; }while(0)
 
   /**
    * M500 - Store Configuration
@@ -244,15 +251,21 @@ void EEPROM::Postprocess() {
     #if ENABLED(MESH_BED_LEVELING)
       // Compile time test that sizeof(mbl.z_values) is as expected
       typedef char c_assert[(sizeof(mbl.z_values) == (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS) * sizeof(dummy)) ? 1 : -1];
-      uint8_t mesh_num_x  = MESH_NUM_X_POINTS,
-              mesh_num_y  = MESH_NUM_Y_POINTS,
-              dummy_uint8 = mbl.status & _BV(MBL_STATUS_HAS_MESH_BIT);
-      EEPROM_WRITE(dummy_uint8);
+      const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
+      const uint8_t mesh_num_x = MESH_NUM_X_POINTS, mesh_num_y = MESH_NUM_Y_POINTS;
+      EEPROM_WRITE(leveling_is_on);
       EEPROM_WRITE(mbl.z_offset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
       EEPROM_WRITE(mbl.z_values);
     #endif // MESH_BED_LEVELING
+
+    //
+    // Planar Bed Leveling matrix
+    //
+    #if ABL_PLANAR
+      EEPROM_WRITE(planner.bed_level_matrix);
+    #endif
 
     //
     // Bilinear Auto Bed Leveling
@@ -261,13 +274,11 @@ void EEPROM::Postprocess() {
       // Compile time test that sizeof(mbl.z_values) is as expected
       typedef char c_assert[(sizeof(bilinear_level_grid) == (ABL_GRID_POINTS_X) * (ABL_GRID_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
       uint8_t grid_max_x = ABL_GRID_POINTS_X, grid_max_y = ABL_GRID_POINTS_Y;
-      EEPROM_WRITE(grid_max_x);                     // 1 byte
-      EEPROM_WRITE(grid_max_y);                     // 1 byte
-      EEPROM_WRITE(bilinear_grid_spacing);          // 2 ints
-      EEPROM_WRITE(bilinear_start);                 // 2 ints
-      for (uint8_t y = 0; y < grid_max_y; y++)
-        for (uint8_t x = 0; x < grid_max_x; x++)
-          EEPROM_WRITE(bilinear_level_grid[x][y]);  // 36-256 floats
+      EEPROM_WRITE(grid_max_x);             // 1 byte
+      EEPROM_WRITE(grid_max_y);             // 1 byte
+      EEPROM_WRITE(bilinear_grid_spacing);  // 2 ints
+      EEPROM_WRITE(bilinear_start);         // 2 ints
+      EEPROM_WRITE(bilinear_level_grid);    // 9-256 floats
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if HASNT(BED_PROBE)
@@ -380,7 +391,7 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(final_checksum);
 
     // Report storage size
-    SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size);
+    SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
     SERIAL_EM(" bytes)");
   }
 
@@ -390,6 +401,7 @@ void EEPROM::Postprocess() {
   void EEPROM::RetrieveSettings() {
 
     EEPROM_START();
+    eeprom_read_error = false; // If set EEPROM_READ won't write into RAM
 
     char stored_ver[6];
     EEPROM_READ(stored_ver);
@@ -427,15 +439,16 @@ void EEPROM::Postprocess() {
       EEPROM_READ(hotend_offset);
 
       //
-      // Mesh Bed Leveling
+      // Mesh (Manual) Bed Leveling
       //
       #if ENABLED(MESH_BED_LEVELING)
-        uint8_t dummy_uint8 = 0, mesh_num_x = 0, mesh_num_y = 0;
-        EEPROM_READ(dummy_uint8);
+        bool leveling_is_on;
+        uint8_t mesh_num_x = 0, mesh_num_y = 0;
+        EEPROM_READ(leveling_is_on);
         EEPROM_READ(dummy);
         EEPROM_READ(mesh_num_x);
         EEPROM_READ(mesh_num_y);
-        mbl.status = dummy_uint8;
+        mbl.status = leveling_is_on ? _BV(MBL_STATUS_HAS_MESH_BIT) : 0;
         mbl.z_offset = dummy;
         if (mesh_num_x == MESH_NUM_X_POINTS && mesh_num_y == MESH_NUM_Y_POINTS) {
           // EEPROM data fits the current mesh
@@ -449,19 +462,28 @@ void EEPROM::Postprocess() {
       #endif // MESH_BED_LEVELING
 
       //
+      // Planar Bed Leveling matrix
+      //
+      #if ABL_PLANAR
+        EEPROM_READ(planner.bed_level_matrix);
+      #endif
+
+      //
       // Bilinear Auto Bed Leveling
       //
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        uint8_t grid_max_x = 11, grid_max_y = 11;
-        EEPROM_READ(grid_max_x);                      // 1 byte
-        EEPROM_READ(grid_max_y);                      // 1 byte
+        uint8_t grid_max_x, grid_max_y;
+        EEPROM_READ(grid_max_x);              // 1 byte
+        EEPROM_READ(grid_max_y);              // 1 byte
         if (grid_max_x == ABL_GRID_POINTS_X && grid_max_y == ABL_GRID_POINTS_Y) {
           set_bed_leveling_enabled(false);
-          EEPROM_READ(bilinear_grid_spacing);         // 2 ints
-          EEPROM_READ(bilinear_start);                // 2 ints
-          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-            for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-              EEPROM_READ(bilinear_level_grid[x][y]); // 9 to 256 floats
+          EEPROM_READ(bilinear_grid_spacing); // 2 ints
+          EEPROM_READ(bilinear_start);        // 2 ints
+          EEPROM_READ(bilinear_level_grid);   // 9 to 256 floats
+          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            bed_level_virt_prepare();
+            bed_level_virt_interpolate();
+          #endif
         }
         else { // EEPROM data is stale
           // Skip past disabled (or stale) Bilinear Grid data
@@ -572,10 +594,14 @@ void EEPROM::Postprocess() {
       #endif
 
       if (eeprom_checksum == stored_checksum) {
-        Postprocess();
-        SERIAL_V(version);
-        SERIAL_MV(" stored settings retrieved (", eeprom_index);
-        SERIAL_EM(" bytes)");
+        if (eeprom_read_error)
+          ResetDefault();
+        else {
+          Postprocess();
+          SERIAL_V(version);
+          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+          SERIAL_EM(" bytes)");
+        }
       }
       else {
         SERIAL_LM(ER, "EEPROM checksum mismatch");
@@ -598,15 +624,15 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::ResetDefault() {
-  const float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-  const float tmp2[] = DEFAULT_MAX_FEEDRATE;
-  const long tmp3[] = DEFAULT_MAX_ACCELERATION;
-  const long tmp4[] = DEFAULT_RETRACT_ACCELERATION;
-  const float tmp5[] = DEFAULT_EJERK;
-  const float tmp6[] = DEFAULT_Kp;
-  const float tmp7[] = DEFAULT_Ki;
-  const float tmp8[] = DEFAULT_Kd;
-  const float tmp9[] = DEFAULT_Kc;
+  const float     tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+  const float     tmp2[] = DEFAULT_MAX_FEEDRATE;
+  const uint32_t  tmp3[] = DEFAULT_MAX_ACCELERATION;
+  const uint32_t  tmp4[] = DEFAULT_RETRACT_ACCELERATION;
+  const float     tmp5[] = DEFAULT_EJERK;
+  const float     tmp6[] = DEFAULT_Kp;
+  const float     tmp7[] = DEFAULT_Ki;
+  const float     tmp8[] = DEFAULT_Kd;
+  const float     tmp9[] = DEFAULT_Kc;
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
     constexpr float tmp10[XYZ][4] = {
@@ -751,6 +777,16 @@ void EEPROM::ResetDefault() {
   #endif
 
   volumetric_enabled = false;
+  for (uint8_t q = 0; q < COUNT(filament_size); q++)
+    filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
+
+  endstops.enable_globally(
+    #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
+      (false)
+    #else
+      (true)
+    #endif
+  );
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     IDLE_OOZING_enabled = true;
@@ -815,7 +851,7 @@ void EEPROM::ResetDefault() {
         SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i]);
       }
     #endif // EXTRUDERS > 1
-    
+
     CONFIG_MSG_START("Accelerations: P=printing, V=travel and T* R=retract");
     SERIAL_SMV(CFG,"  M204 P", planner.acceleration, 3);
     SERIAL_MV(" V", planner.travel_acceleration, 3);
@@ -1005,14 +1041,13 @@ void EEPROM::ResetDefault() {
       else
         SERIAL_EM(" Disabled");
     }
-    #if EXTRUDERS == 1
-      SERIAL_SMV(CFG, "  M200 D", filament_size[0]);
+    #if EXTRUDERS > 0
+      SERIAL_LMV(CFG, "  M200 D", filament_size[0], 3);
     #endif
-    SERIAL_E;
     #if EXTRUDERS > 1
       for(uint8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M200 T", i);
-        SERIAL_EMV(" D", filament_size[i]);
+        SERIAL_SMV(CFG, "  M200 T", (int)i);
+        SERIAL_EMV(" D", filament_size[i], 3);
       }
     #endif
 

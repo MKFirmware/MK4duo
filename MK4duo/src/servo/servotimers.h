@@ -46,7 +46,7 @@
  * _Nbr_16timers indicates how many 16 bit timers are available.
  */
 
-#ifdef __SAM3X8E__
+#ifdef ARDUINO_ARCH_SAM
   /**
    * SAM Only definitions
    * --------------------
@@ -109,7 +109,7 @@
 
   typedef enum { _timer3, _timer5, _Nbr_16timers } timer16_Sequence_t ;
 
-#else // !__SAM3X8E__
+#else // !ARDUINO_ARCH_SAM
 
   /**
    * AVR Only definitions

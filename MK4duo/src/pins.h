@@ -40,33 +40,57 @@
   #define MOSI_PIN            51
   #define MISO_PIN            50
   #define SCK_PIN             52
-  #define SS_PIN              53
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN            53
+  #endif
 #elif defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega1284P__)
   #define MOSI_PIN             5
   #define MISO_PIN             6
   #define SCK_PIN              7
-  #define SS_PIN               4
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN             4
+  #endif
 #elif defined(__AVR_ATmega32U4__)
   #define MOSI_PIN             2
   #define MISO_PIN             3
   #define SCK_PIN              1
-  #define SS_PIN               4
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN             4
+  #endif
 #elif defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB1286__)
   #define MOSI_PIN            22
   #define MISO_PIN            23
   #define SCK_PIN             21
-  #define SS_PIN              20
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN            20
+  #endif
 #elif defined(__AVR_ATmega168__) ||defined(__AVR_ATmega168P__) ||defined(__AVR_ATmega328P__)
   #define MOSI_PIN            11
   #define MISO_PIN            12
   #define SCK_PIN             13
-  #define SS_PIN              10
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN            10
+  #endif
 #elif defined(__AVR_ATmega1281__)
   #define MOSI_PIN            11
   #define MISO_PIN            12
   #define SCK_PIN             10
-  #define SS_PIN              16
-#elif defined (__SAM3X8E__)
+  #ifdef SDSS
+    #define SS_PIN            SDSS
+  #else
+    #define SS_PIN            16
+  #endif
+#elif defined (ARDUINO_ARCH_SAM)
   #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
     #if (SDSS == 4)
       #define SPI_PIN         87
@@ -91,8 +115,8 @@
       #define SPI_PIN         77
       #define SPI_CHAN        0
     #endif
-    #define MOSI_PIN          75
     #define MISO_PIN          74
+    #define MOSI_PIN          75
     #define SCK_PIN           76
   #else
     #define DUE_SOFTWARE_SPI
@@ -100,6 +124,8 @@
     #define MISO_PIN		      50
     #define SCK_PIN 		      52
   #endif
+
+  #define SS_PIN              SDSS
 #endif
 /****************************************************************************************/
 

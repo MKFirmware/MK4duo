@@ -175,6 +175,7 @@
  * M320 - Activate autolevel - Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M321 - Deactivate autoleveling
  * M322 - Reset auto leveling matrix
+ * M323 - Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
  * M350 - Set microstepping mode.
  * M351 - Toggle MS1 MS2 pins directly.
  * M355 - Turn case lights on/off

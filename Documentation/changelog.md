@@ -1,3 +1,8 @@
+### Version 4.3.09_dev
+* Add Save in EEPROM ABL (Linear or Bilinear) or MBL
+* Add M323 Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
+* Fix HAL
+
 ### Version 4.3.08_dev
 * Add ABL or MBL leveling fade height M320 Z<zzz> (ABL) or M420 Z<zzz> (MBL)
 * Add RGB LED M150: Set Status LED Color - Use R-U-B for R-G-B

@@ -23,6 +23,8 @@
 #ifndef LANGUAGE_H
 #define LANGUAGE_H
 
+#define _UxGT(a) a
+
 // Define SIMULATE_ROMFONT to see what is seen on the character based display defined in Configuration.h
 //#define SIMULATE_ROMFONT
 
@@ -122,12 +124,11 @@
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
-#define MSG_ERR_M421_PARAMETERS             "M421 requires XYZ or IJZ parameters"
-#define MSG_ERR_MESH_XY                     "Mesh XY or IJ cannot be resolved"
+#define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
+#define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
 #define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
-#define MSG_ERR_M320_FAILED                 "Failed to enable Auto Bed Leveling"
-#define MSG_ERR_M420_FAILED                 "Failed to enable Mesh Bed Leveling"
+#define MSG_ERR_M320_M420_FAILED            "Failed to enable Bed Leveling"
 #define MSG_ERR_M428_TOO_FAR                "Too far from reference point"
 #define MSG_ERR_M303_DISABLED               "PIDTEMP disabled"
 #define MSG_M119_REPORT                     "Reporting endstop status"

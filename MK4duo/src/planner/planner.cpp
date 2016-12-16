@@ -133,7 +133,7 @@ uint8_t Planner::last_extruder = 0;
         Planner::position_float[NUM_AXIS] = { 0 };
 #endif
 
-#if ENABLED(ENSURE_SMOOTH_MOVES)
+#if HAS(LCD)
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
 
@@ -1049,30 +1049,21 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   const uint8_t moves_queued = movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
+  unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
   #if ENABLED(SLOWDOWN)
     // Segment time im micro seconds
-    unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
     if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
       if (segment_time < min_segment_time) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
         inverse_mm_s = 1000000.0 / (segment_time + lround(2 * (min_segment_time - segment_time) / moves_queued));
-        #if ENABLED(XY_FREQUENCY_LIMIT) || ENABLED(ENSURE_SMOOTH_MOVES)
+        #if ENABLED(XY_FREQUENCY_LIMIT) || HAS_LCD
           segment_time = lround(1000000.0 / inverse_mm_s);
         #endif
       }
     }
   #endif
 
-  #if ENABLED(ENSURE_SMOOTH_MOVES)
-    #if DISABLED(SLOWDOWN)
-      unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
-    #endif
-    if (segment_time < MIN_BLOCK_TIME) {
-      // buffer will be draining, set to MIN_BLOCK_TIME.
-      inverse_mm_s = 1000000.0 / MIN_BLOCK_TIME;
-      segment_time = MIN_BLOCK_TIME;
-    }
-    block->segment_time = segment_time;
+  #if HAS(LCD)
     CRITICAL_SECTION_START
       block_buffer_runtime_us += segment_time;
     CRITICAL_SECTION_END
@@ -1209,8 +1200,8 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->acceleration_steps_per_s2 = accel;
   block->acceleration = accel / steps_per_mm;
 
-  #if ENABLED(__SAM3X8E__)
-    block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_TIMER_RATE)));
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_STEPPER_TIMER_RATE)));
   #else
     block->acceleration_rate = (long)(accel * 16777216.0 / ((F_CPU) * 0.125));
   #endif
@@ -1444,21 +1435,21 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
 
 void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
   #if PLANNER_LEVELING
-    float machinePos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
-    apply_leveling(machinePos);
+    float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
+    apply_leveling(lpos);
   #else
-    const float * const machinePos = position;
+    const float * const lpos = position;
   #endif
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      deltaParams.inverse_kinematics_DELTA(machinePos);
+      deltaParams.inverse_kinematics_DELTA(lpos);
     #else
-        inverse_kinematics(machinePos);
+        inverse_kinematics(lpos);
     #endif
     _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   #else
-    _set_position_mm(machinePos[X_AXIS], machinePos[Y_AXIS], machinePos[Z_AXIS], position[E_AXIS]);
+    _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
   #endif
 }
 
