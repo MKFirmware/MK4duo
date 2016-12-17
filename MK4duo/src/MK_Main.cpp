@@ -2261,7 +2261,7 @@ static void clean_up_after_endstop_or_probe_move() {
   /**
    * Print calibration results for plotting or manual frame adjustment.
    */
-  void print_bed_level() {
+  void print_bilinear_leveling_grid() {
     SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
     SERIAL_S(ECHO);
     for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
@@ -2324,7 +2324,7 @@ static void clean_up_after_endstop_or_probe_move() {
     }
 
     #define LINEAR_EXTRAPOLATION(E, I) (E * 2 - I)
-    static void bed_level_virt_prepare() {
+    void bed_level_virt_prepare() {
       for (uint8_t y = 1; y <= ABL_GRID_POINTS_Y; y++) {
 
         for (uint8_t x = 1; x <= ABL_GRID_POINTS_X; x++)
@@ -2373,7 +2373,7 @@ static void clean_up_after_endstop_or_probe_move() {
       return bed_level_virt_cmr(row, 1, tx);
     }
 
-    static void bed_level_virt_interpolate() {
+    void bed_level_virt_interpolate() {
       for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
         for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
           for (uint8_t ty = 0; ty < BILINEAR_SUBDIVISIONS; ty++) {
@@ -4510,22 +4510,14 @@ inline void gcode_G28() {
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        int new_bilinear_grid_spacing[2] = { bilinear_grid_spacing[X_AXIS], bilinear_grid_spacing[Y_AXIS] },
-            new_bilinear_start[2] = { bilinear_start[X_AXIS], bilinear_start[Y_AXIS] };
-
-        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          int new_bilinear_grid_spacing_virt[2] = { bilinear_grid_spacing_virt[X_AXIS], bilinear_grid_spacing_virt[Y_AXIS] };
-        #endif
-
         float zoffset = zprobe_zoffset;
         if (code_seen('Z')) zoffset += code_value_axis_units(Z_AXIS);
 
-        if ( !dryrun && (
-             xGridSpacing != new_bilinear_grid_spacing[X_AXIS]
-          || yGridSpacing != new_bilinear_grid_spacing[Y_AXIS]
-          || left_probe_bed_position != new_bilinear_start[X_AXIS]
-          || front_probe_bed_position != new_bilinear_start[Y_AXIS]
-        ) ) {
+        if ( xGridSpacing != bilinear_grid_spacing[X_AXIS]
+          || yGridSpacing != bilinear_grid_spacing[Y_AXIS]
+          || left_probe_bed_position != bilinear_start[X_AXIS]
+          || front_probe_bed_position != bilinear_start[Y_AXIS]
+        ) {
           // Before reset bed level, re-enable to correct the position
           planner.abl_enabled = abl_should_enable;
           // Reset grid to 0.0 or "not probed". (Also disables ABL)
@@ -4535,10 +4527,10 @@ inline void gcode_G28() {
             bilinear_grid_spacing_virt[X_AXIS] = xGridSpacing / (BILINEAR_SUBDIVISIONS);
             bilinear_grid_spacing_virt[Y_AXIS] = yGridSpacing / (BILINEAR_SUBDIVISIONS);
           #endif
-          new_bilinear_grid_spacing[X_AXIS] = xGridSpacing;
-          new_bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
-          new_bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
-          new_bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
+          bilinear_grid_spacing[X_AXIS] = xGridSpacing;
+          bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
+          bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
+          bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
 
           // Can't re-enable (on error) until the new grid is written
           abl_should_enable = false;
@@ -4688,7 +4680,7 @@ inline void gcode_G28() {
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (!dryrun) extrapolate_unprobed_bed_level();
-      print_bed_level();
+      print_bilinear_leveling_grid();
 
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
         bed_level_virt_prepare();
@@ -4869,27 +4861,11 @@ inline void gcode_G28() {
 
     KEEPALIVE_STATE(IN_HANDLER);
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      if (!dryrun) {
-        bilinear_grid_spacing[X_AXIS] = new_bilinear_grid_spacing[X_AXIS];
-        bilinear_grid_spacing[Y_AXIS] = new_bilinear_grid_spacing[Y_AXIS];
-        bilinear_start[X_AXIS] = new_bilinear_start[X_AXIS];
-        bilinear_start[Y_AXIS] = new_bilinear_start[Y_AXIS];
-        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          bilinear_grid_spacing_virt[X_AXIS] = new_bilinear_grid_spacing_virt[X_AXIS];
-          bilinear_grid_spacing_virt[Y_AXIS] = new_bilinear_grid_spacing_virt[Y_AXIS];
-        #endif
-      }
-    #endif
-
     // Auto Bed Leveling is complete! Enable if possible.
     planner.abl_enabled = dryrun ? abl_should_enable : true;
 
-    // Always apply current_position to steppers when done,
-    // so there will be no precision errors.
-    SYNC_PLAN_POSITION_KINEMATIC();
-
-    report_current_position();
+    if (planner.abl_enabled)
+      SYNC_PLAN_POSITION_KINEMATIC();
   }
 
 #endif // HAS_ABL
@@ -7604,7 +7580,12 @@ inline void gcode_M226() {
 
 #if HAS(ABL)
 
-  // M320: Activate autolevel
+  /**
+   * M320: Enable Bed Leveling and/or set the Z fade height.
+   *
+   *       Z[height] Sets the Z fade height (0 or none to disable)
+   *       V[bool]   Verbose - Print the levelng grid
+   */
   inline void gcode_M320() {
 
     set_bed_leveling_enabled(true);
@@ -7615,9 +7596,23 @@ inline void gcode_M226() {
     #endif
 
     if (!planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+
+    // V to print the matrix or mesh
+    if (code_seen('V')) {
+      #if ABL_PLANAR
+        planner.bed_level_matrix.debug("Bed Level Correction Matrix:");
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        if (bilinear_grid_spacing[X_AXIS]) {
+          print_bilinear_leveling_grid();
+          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            bed_level_virt_print();
+          #endif
+        }
+      #endif
+    }
   }
 
-  // M321: Deactivate autoleveling
+  // M321: Deactivate ABL
   inline void gcode_M321() { set_bed_leveling_enabled(false); }
 
   // M322: Reset auto leveling matrix
@@ -7675,6 +7670,11 @@ inline void gcode_M226() {
     else if (hasS) {
       ABL_BG_GRID(gridx, gridy) += val;
     }
+
+    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+      bed_level_virt_prepare();
+      bed_level_virt_interpolate();
+    #endif
 
     SERIAL_MV("Level value in gridx=", gridx);
     SERIAL_MV(" gridy=", gridy);
@@ -10061,9 +10061,9 @@ void process_next_command() {
       #endif
 
       #if HAS(ABL)
-        case 320: // M320: Activate autolevel
+        case 320: // M320: Activate ABL
           gcode_M320(); break;
-        case 321: // M321: Deactivate autoleveling
+        case 321: // M321: Deactivate ABL
           gcode_M321(); break;
         case 322: // M322: Reset auto leveling matrix
           gcode_M322(); break;

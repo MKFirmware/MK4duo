@@ -1077,7 +1077,7 @@ void EEPROM::ResetDefault() {
       SERIAL_EMV(" Y", bilinear_grid_spacing[Y_AXIS]);
       SERIAL_SMV(CFG, "  Start X", bilinear_start[X_AXIS]);
       SERIAL_EMV(" Y", bilinear_start[Y_AXIS]);
-      print_bed_level();
+      print_bilinear_leveling_grid();
     #endif
 
     #if ENABLED(SDSUPPORT)
