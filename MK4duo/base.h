@@ -26,13 +26,15 @@
 #include "Arduino.h"
 #include "pins_arduino.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#ifndef ARDUINO_ARCH_SAM
+#ifdef ARDUINO_ARCH_AVR
   #include <avr/pgmspace.h>
+  #include <avr/eeprom.h>
   #include <avr/interrupt.h>
 #endif
 
