@@ -106,7 +106,7 @@
  * See: https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/Hardware.md *
  *                                                                                       *
  *****************************************************************************************/
-#define MOTHERBOARD BOARD_SMART_RAMPS
+#define MOTHERBOARD BOARD_RAMPS_13_HFB
 /*****************************************************************************************/
 
 
@@ -126,14 +126,14 @@
  * MAKERARM_SCARA - SCARA Makerfarm                                    *
  *                                                                     *
  ***********************************************************************/
-//#define MECHANISM MECH_CARTESIAN
+#define MECHANISM MECH_CARTESIAN
 //#define MECHANISM MECH_COREXY
 //#define MECHANISM MECH_COREYX
 //#define MECHANISM MECH_COREXZ
 //#define MECHANISM MECH_COREZX
 //#define MECHANISM MECH_COREYZ
 //#define MECHANISM MECH_COREZY
-#define MECHANISM MECH_DELTA
+//#define MECHANISM MECH_DELTA
 //#define MECHANISM MECH_MORGAN_SCARA
 //#define MECHANISM MECH_MAKERARM_SCARA
 /***********************************************************************/
