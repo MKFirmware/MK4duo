@@ -123,6 +123,13 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
   long Stepper::counter_m[MIXING_STEPPERS];
 #endif
 
+#if ENABLED(LASERBEAM)
+  long Stepper::counter_L;
+  #if ENABLED(LASER_RASTER)
+    int Stepper::counter_raster;
+  #endif // LASER_RASTER
+#endif // LASERBEAM
+
 HAL_TIMER_TYPE  Stepper::acc_step_rate, // needed for deceleration start point
                 Stepper::OCR1A_nominal;
 uint8_t Stepper::step_loops, Stepper::step_loops_nominal;
