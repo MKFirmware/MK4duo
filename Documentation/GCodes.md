@@ -133,10 +133,9 @@
 *  M304 - Set hot bed PID parameters P I and D
 *  M305 - Set hot chamber PID parameters P I and D
 *  M306 - Set cooler PID parameters P I and D
-*  M320 - Activate autolevel - Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
-*  M321 - Deactivate autoleveling
-*  M322 - Reset auto leveling matrix
-*  M323 - Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
+*  M320 - Enable/Disable S1=enable S0=disable, V[bool] Print the leveling grid, Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
+*  M321 - Set a single Auto Bed Leveling Z coordinate - X<gridx> Y<gridy> Z<level val> S<level add>
+*  M322 - Reset Auto Bed Leveling matrix
 *  M350 - Set microstepping mode.
 *  M351 - Toggle MS1 MS2 pins directly.
 *  M355 - Turn case lights on/off
