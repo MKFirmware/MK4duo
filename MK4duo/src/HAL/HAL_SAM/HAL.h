@@ -426,7 +426,6 @@ inline void HAL_timer_isr_status(Tc* tc, uint32_t channel) {
 void tone(uint8_t pin, int frequency, unsigned long duration);
 void noTone(uint8_t pin);
 
-
 #if ENABLED(LASERBEAM)
   #define LASER_PWM_MAX_DUTY 255
   void HAL_laser_init_pwm(uint8_t pin, uint16_t freq);

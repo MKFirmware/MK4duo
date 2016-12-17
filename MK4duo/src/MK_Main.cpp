@@ -2471,7 +2471,7 @@ static void homeaxis(AxisEnum axis) {
     home_dir(axis);
 
   #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
-    if (axis == Z_AXIS) goto AvoidLaserFocus;
+    if (axis == Z_AXIS) return;
   #endif
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
@@ -2574,10 +2574,6 @@ static void homeaxis(AxisEnum axis) {
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS && STOW_PROBE()) return;
-  #endif
-
-  #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
-    AvoidLaserFocus:
   #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -7592,7 +7588,7 @@ inline void gcode_M226() {
 
     if (to_enable && !planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
-    // V to print the matrix or mesh
+    // V to print the matrix
     if (code_seen('V')) {
       #if ABL_PLANAR
         planner.bed_level_matrix.debug("Bed Level Correction Matrix:");

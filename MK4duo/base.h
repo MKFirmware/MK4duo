@@ -68,10 +68,6 @@
 
 #if ENABLED(LASERBEAM)
   #include "Configuration_Laser.h"
-  #if ENABLED(LASER_RASTER)
-    #include "src/laser/base64/base64.h"
-  #endif
-  #include "src/laser/laser.h"
 #endif
 
 #include "src/conditionals_pre.h"
@@ -95,6 +91,13 @@
   #include "src/motion/delta_parameters.h"
 #endif
 
+#if ENABLED(LASERBEAM)
+  #if ENABLED(LASER_RASTER)
+    #include "src/laser/base64/base64.h"
+  #endif
+  #include "src/laser/laser.h"
+#endif
+  
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"

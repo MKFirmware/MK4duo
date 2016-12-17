@@ -47,6 +47,10 @@
 #include "dogm_bitmaps.h"
 #include "../utility/utility.h"
 
+#if ENABLED(LASERBEAM)
+  #include "laserbitmaps.h"
+#endif
+
 #include <U8glib.h>
 
 #if ENABLED(SHOW_BOOTSCREEN) && ENABLED(SHOW_CUSTOM_BOOTSCREEN)
@@ -64,10 +68,6 @@
   #define FONT_STATUSMENU_NAME u8g_font_6x9
 #else
   #define FONT_STATUSMENU_NAME FONT_MENU_NAME
-#endif
-
-#if ENABLED(LASERBEAM)
-  #include "../laser/laserbitmaps.h"
 #endif
 
 #include "dogm_font_data_Marlin_symbols.h"   // The Marlin special symbols
@@ -404,9 +404,9 @@ static void lcd_implementation_status_screen() {
     #endif
 
     u8g.setPrintPos(3,6);
-    if (current_block->laser_status == LASER_ON) {
+    if (stepper.current_block->laser_status == LASER_ON) {
       u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-      u8g.print(itostr3(current_block->laser_intensity));
+      u8g.print(itostr3(stepper.current_block->laser_intensity));
       lcd_printPGM(PSTR("%"));
     } else {
       u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
