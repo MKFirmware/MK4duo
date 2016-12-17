@@ -64,7 +64,8 @@
  * This is a normal value, if you use a 1k pullup thermistor see below                               *
  * Please choose the one that matches your setup and set to TEMP_SENSOR_.                            *
  *                                                                                                   *
- * Temperature sensor settings (4.7kohm PULLUP):                                                     *
+ * Temperature sensor settings (4.7kohm PULLUP):
+ *  -3 is thermocouple with MAX31855 (only for sensor 0)                                               *
  *  -2 is thermocouple with MAX6675 (only for sensor 0)                                              *
  *  -1 is thermocouple with AD595 or AD597                                                           *
  *   0 is not used                                                                                   *
@@ -81,7 +82,7 @@
  *  10 is 100k RS thermistor 198-961 (4.7k pullup)                                                   *
  *  11 is 100k beta 3950 1% thermistor (4.7k pullup)                                                 *
  *  12 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)       *
- *  13 is 100k Hisens 3950  1% up to 300°C for hotend "Simple ONE " & "Hotend "All In ONE"          *
+ *  13 is 100k Hisens 3950  1% up to 300ï¿½C for hotend "Simple ONE " & "Hotend "All In ONE"          *
  *  20 is the PT100 circuit found in the Ultimainboard V2.x                                          *
  *  40 is the 10k Carel NTC015WH01 or ELIWELL SN8T6A1502 (4.7k pullup)                               *
  *  60 is 100k Maker's Tool Works Kapton Bed Thermistor beta=3950                                    *
@@ -100,14 +101,14 @@
  *  1010 is Pt1000 with 1k pullup (non standard)                                                     *
  *  147 is Pt100 with 4k7 pullup                                                                     *
  *  110 is Pt100 with 1k pullup (non standard)                                                       *
- *  998 and 999 are Dummy Tables. ALWAYS read 25°C or DUMMY_THERMISTOR_998_VALUE temperature        *
+ *  998 and 999 are Dummy Tables. ALWAYS read 25ï¿½C or DUMMY_THERMISTOR_998_VALUE temperature        *
  *                                                                                                   *
  *****************************************************************************************************/
-#define TEMP_SENSOR_0 1
+#define TEMP_SENSOR_0 -2
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
-#define TEMP_SENSOR_BED 0
+#define TEMP_SENSOR_BED 5
 #define TEMP_SENSOR_CHAMBER 0
 #define TEMP_SENSOR_COOLER 0
 
