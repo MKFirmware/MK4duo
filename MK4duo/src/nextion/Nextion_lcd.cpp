@@ -699,7 +699,7 @@
         temp += "W";
 
       temp.toCharArray(buffer, sizeof(buffer));
-      enqueue_and_echo_commands_P(buffer);
+      enqueue_and_echo_command(buffer);
     }
 
     void rfid_setText(const char* message, uint32_t color /* = 65535 */) {
@@ -768,14 +768,14 @@
     tset0.getText(temp, sizeof(temp));
     tset1.getText(buffer, sizeof(buffer));
     strcat(buffer, temp);
-    enqueue_and_echo_commands_P(buffer);
+    enqueue_and_echo_command(buffer);
     Pprinter.show();
   }
 
   void setgcodePopCallback(void *ptr) {
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
-    enqueue_and_echo_commands_P(buffer);
+    enqueue_and_echo_command(buffer);
   }
 
   void setfanPopCallback(void *ptr) {
@@ -801,13 +801,13 @@
       itoa(new_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      enqueue_and_echo_commands_P(buffer);
+      enqueue_and_echo_command(buffer);
     #endif
 
     ZERO(buffer);
     movecmd.getText(buffer, sizeof(buffer));
     enqueue_and_echo_commands_P(PSTR("G91"));
-    enqueue_and_echo_commands_P(buffer);
+    enqueue_and_echo_command(buffer);
     enqueue_and_echo_commands_P(PSTR("G90"));
 
     #if EXTRUDERS > 1
@@ -815,7 +815,7 @@
       itoa(temp_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      enqueue_and_echo_commands_P(buffer);
+      enqueue_and_echo_command(buffer);
     #endif
   }
 
