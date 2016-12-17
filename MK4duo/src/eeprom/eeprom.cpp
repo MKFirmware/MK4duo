@@ -1071,15 +1071,6 @@ void EEPROM::ResetDefault() {
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      CONFIG_MSG_START("Bed Leveling Bilinear:");
-      SERIAL_SMV(CFG, "  Space X", bilinear_grid_spacing[X_AXIS]);
-      SERIAL_EMV(" Y", bilinear_grid_spacing[Y_AXIS]);
-      SERIAL_SMV(CFG, "  Start X", bilinear_start[X_AXIS]);
-      SERIAL_EMV(" Y", bilinear_start[Y_AXIS]);
-      print_bilinear_leveling_grid();
-    #endif
-
     #if ENABLED(SDSUPPORT)
       card.PrintSettings();
     #endif

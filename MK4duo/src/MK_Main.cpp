@@ -7569,21 +7569,28 @@ inline void gcode_M226() {
 #if HAS(ABL)
 
   /**
-   * M320: Enable Bed Leveling and/or set the Z fade height.
+   * M320: Enable/Disable Bed Leveling and/or set the Z fade height.
    *
+   *       S[bool]   Turns leveling on or off
    *       Z[height] Sets the Z fade height (0 or none to disable)
-   *       V[bool]   Verbose - Print the levelng grid
+   *       V[bool]   Verbose - Print the leveling grid
    */
   inline void gcode_M320() {
+    bool to_enable = false;
 
-    set_bed_leveling_enabled(true);
+    if (code_seen('S')) {
+      to_enable = code_value_bool();
+      set_bed_leveling_enabled(to_enable);
+    }
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      if (code_seen('Z')) set_z_fade_height(code_value_linear_units());
-      SERIAL_EMV("ABL Fade Height = ", code_value_linear_units(), 2);
+      if (code_seen('Z')) {
+        set_z_fade_height(code_value_linear_units());
+        SERIAL_EMV("ABL Fade Height = ", code_value_linear_units(), 2);
+      }
     #endif
 
-    if (!planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+    if (to_enable && !planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
     // V to print the matrix or mesh
     if (code_seen('V')) {
@@ -7600,75 +7607,72 @@ inline void gcode_M226() {
     }
   }
 
-  // M321: Deactivate ABL
-  inline void gcode_M321() { set_bed_leveling_enabled(false); }
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+    /**
+     * M321: Set Level bilinear manual
+     *       X<x grid value>
+     *       Y<y grid value>
+     *       Z<level value> Set the exact value in bilinear_level[x][y]
+     *       S<value> Add value to bilinear_level[x][y] or current position if not set X & Y
+     */
+    inline void gcode_M321() {
+      uint8_t px = 0, py = 0;
+      float val = 0.0;
+      bool hasX, hasY, hasZ, hasS;
+      const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
+                  ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
+      const int gridx = constrain(floor(ratio_x), 0, ABL_GRID_POINTS_X - 1),
+                gridy = constrain(floor(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
+
+      if ((hasX = code_seen('X'))) px = code_value_int();
+      if ((hasY = code_seen('Y'))) py = code_value_int();
+
+      if ((hasZ = code_seen('Z')))
+        val = code_value_float();
+      else if ((hasS = code_seen('S')))
+        val = code_value_float();
+
+      if (px >= ABL_GRID_POINTS_X || py >= ABL_GRID_POINTS_Y) {
+        SERIAL_LM(ECHO, " X Y error");
+        return;
+      }
+
+      if (hasX && hasY) {
+        if (hasZ) {
+          bilinear_level_grid[px][py] = val;
+        }
+        else if (hasS) {
+          bilinear_level_grid[px][py] += val;
+        }
+        SERIAL_MV("Level value in X", px);
+        SERIAL_MV(" Y", py);
+        SERIAL_EMV(" Z", bilinear_level_grid[px][py]);
+        return;
+      }
+      else if (hasS) {
+        bilinear_level_grid[gridx][gridy] += val;
+      }
+
+      #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+        bed_level_virt_prepare();
+        bed_level_virt_interpolate();
+      #endif
+
+      SERIAL_MV("Level value in gridx=", gridx);
+      SERIAL_MV(" gridy=", gridy);
+      SERIAL_MV(" X", current_position[X_AXIS]);
+      SERIAL_MV(" Y", current_position[Y_AXIS]);
+      SERIAL_EMV(" Z", bilinear_level_grid[gridx][gridy]);
+    }
+
+  #endif
 
   // M322: Reset auto leveling matrix
   inline void gcode_M322() {
     reset_bed_level();
     if (code_seen('S') && code_value_bool())
       eeprom.StoreSettings();
-  }
-
-#endif
-
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-  /**
-   * M323: Set Level bilinear manual
-   *       X<x grid value>
-   *       Y<y grid value>
-   *       Z<level value> Set the exact value in bilinear_level[x][y]
-   *       S<value> Add value to bilinear_level[x][y] or current position if not set X & Y
-   */
-  inline void gcode_M323() {
-    uint8_t px = 0, py = 0;
-    float val = 0.0;
-    bool hasX, hasY, hasZ, hasS;
-    const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
-                ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
-    const int gridx = constrain(floor(ratio_x), 0, ABL_GRID_POINTS_X - 1),
-              gridy = constrain(floor(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
-
-    if ((hasX = code_seen('X'))) px = code_value_int();
-    if ((hasY = code_seen('Y'))) py = code_value_int();
-
-    if ((hasZ = code_seen('Z')))
-      val = code_value_float();
-    else if ((hasS = code_seen('S')))
-      val = code_value_float();
-
-    if (px >= ABL_GRID_POINTS_X || py >= ABL_GRID_POINTS_Y) {
-      SERIAL_LM(ECHO, " X Y error");
-      return;
-    }
-
-    if (hasX && hasY) {
-      if (hasZ) {
-        bilinear_level_grid[px][py] = val;
-      }
-      else if (hasS) {
-        bilinear_level_grid[px][py] += val;
-      }
-      SERIAL_MV("Level value in X", px);
-      SERIAL_MV(" Y", py);
-      SERIAL_EMV(" Z", bilinear_level_grid[px][py]);
-      return;
-    }
-    else if (hasS) {
-      bilinear_level_grid[gridx][gridy] += val;
-    }
-
-    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      bed_level_virt_prepare();
-      bed_level_virt_interpolate();
-    #endif
-
-    SERIAL_MV("Level value in gridx=", gridx);
-    SERIAL_MV(" gridy=", gridy);
-    SERIAL_MV(" X", current_position[X_AXIS]);
-    SERIAL_MV(" Y", current_position[Y_AXIS]);
-    SERIAL_EMV(" Z", bilinear_level_grid[gridx][gridy]);
   }
 
 #endif
@@ -10051,15 +10055,12 @@ void process_next_command() {
       #if HAS(ABL)
         case 320: // M320: Activate ABL
           gcode_M320(); break;
-        case 321: // M321: Deactivate ABL
-          gcode_M321(); break;
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          case 321: // M321: Set a Auto Bed Leveling Z coordinate
+            gcode_M321(); break;
+        #endif
         case 322: // M322: Reset auto leveling matrix
           gcode_M322(); break;
-      #endif
-
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        case 323: // M323: Set Bilinear grid value
-          gcode_M323(); break;
       #endif
 
       #if HAS(MICROSTEPS)
