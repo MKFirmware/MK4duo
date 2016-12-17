@@ -224,18 +224,6 @@ PrintCounter print_job_counter = PrintCounter();
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-  #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-    #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
-    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
-    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
-    #define ABL_BG_GRID(X,Y)  bilinear_level_grid_virt[X][Y]
-  #else
-    #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
-    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_X
-    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_Y
-    #define ABL_BG_GRID(X,Y)  bilinear_level_grid[X][Y]
-  #endif
-
   #if MECH(DELTA)
     #define ADJUST_DELTA(V) \
       if (planner.abl_enabled) { \
@@ -4862,7 +4850,7 @@ inline void gcode_G28() {
     KEEPALIVE_STATE(IN_HANDLER);
 
     // Auto Bed Leveling is complete! Enable if possible.
-    planner.abl_enabled = dryrun ? abl_should_enable : true;
+    set_bed_leveling_enabled(dryrun ? abl_should_enable : true);
 
     if (planner.abl_enabled)
       SYNC_PLAN_POSITION_KINEMATIC();
@@ -7637,10 +7625,10 @@ inline void gcode_M226() {
     uint8_t px = 0, py = 0;
     float val = 0.0;
     bool hasX, hasY, hasZ, hasS;
-    const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / ABL_BG_SPACING(X_AXIS),
-                ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / ABL_BG_SPACING(Y_AXIS);
-    const int gridx = constrain(floor(ratio_x), 0, ABL_BG_POINTS_X - 1),
-              gridy = constrain(floor(ratio_y), 0, ABL_BG_POINTS_Y - 1);
+    const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
+                ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
+    const int gridx = constrain(floor(ratio_x), 0, ABL_GRID_POINTS_X - 1),
+              gridy = constrain(floor(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
 
     if ((hasX = code_seen('X'))) px = code_value_int();
     if ((hasY = code_seen('Y'))) py = code_value_int();
@@ -7657,18 +7645,18 @@ inline void gcode_M226() {
 
     if (hasX && hasY) {
       if (hasZ) {
-        ABL_BG_GRID(px, py) = val;
+        bilinear_level_grid[px][py] = val;
       }
       else if (hasS) {
-        ABL_BG_GRID(px, py) += val;
+        bilinear_level_grid[px][py] += val;
       }
       SERIAL_MV("Level value in X", px);
       SERIAL_MV(" Y", py);
-      SERIAL_EMV(" Z", ABL_BG_GRID(px, py));
+      SERIAL_EMV(" Z", bilinear_level_grid[px][py]);
       return;
     }
     else if (hasS) {
-      ABL_BG_GRID(gridx, gridy) += val;
+      bilinear_level_grid[gridx][gridy] += val;
     }
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -7680,7 +7668,7 @@ inline void gcode_M226() {
     SERIAL_MV(" gridy=", gridy);
     SERIAL_MV(" X", current_position[X_AXIS]);
     SERIAL_MV(" Y", current_position[Y_AXIS]);
-    SERIAL_EMV(" Z", ABL_BG_GRID(gridx, gridy));
+    SERIAL_EMV(" Z", bilinear_level_grid[gridx][gridy]);
   }
 
 #endif
@@ -10300,6 +10288,18 @@ void ok_to_send() {
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+  #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+    #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
+    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
+    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
+    #define ABL_BG_GRID(X,Y)  bilinear_level_grid_virt[X][Y]
+  #else
+    #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
+    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_X
+    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_Y
+    #define ABL_BG_GRID(X,Y)  bilinear_level_grid[X][Y]
+  #endif
 
   // Get the Z adjustment for non-linear bed leveling
   float bilinear_z_offset(float cartesian[XYZ]) {
