@@ -68,7 +68,7 @@
  * Displayed in the LCD "Ready" message.                                                 *
  *                                                                                       *
  *****************************************************************************************/
-#define CUSTOM_MACHINE_NAME "Delta"
+#define CUSTOM_MACHINE_NAME "Drakebot Mini"
 /*****************************************************************************************/
 
 
@@ -80,50 +80,53 @@
 // and processor overload (too many expensive sqrt calls).
 // The new function do not use segments per second but segments per mm
 // if you want use new function comment this (using // at the start of the line)
-#define DELTA_SEGMENTS_PER_SECOND 200
+#define DELTA_SEGMENTS_PER_SECOND 160
 
-// NOTE: All following values for DELTA_* MUST be floating point,
-// so always have a decimal point in them.
-//
-// Towers and rod nomenclature for the following defines:
-//
-//                     C, Y-axis
-//                     |
-// DELTA_ALPHA_CA=120° |  DELTA_ALPHA_CB=120°
-//                     |
-//                     |______ X-axis
-//                    / \
-//                   /   \
-//                  /     \
-//                 /       \
-//                A         B
-//
-//    |___| DELTA CARRIAGE OFFSET
-//    |   \
-//    |    \
-//    |     \  DELTA DIAGONAL ROD
-//    |      \
-//    |       \   | Effector is at printer center!
-//    |        \__|__/
-//    |        |--| DELTA EFFECTOR OFFSET
-//        |----|    DELTA RADIUS Calculated in fw (DELTA SMOOTH ROD OFFSET - DELTA EFFECTOR OFFSET - DELTA CARRIAGE OFFSET)
-//      |---------| DELTA PRINTABLE RADIUS
-//    |-----------| DELTA SMOOTH ROD OFFSET
+
+/* NOTE: All following values for DELTA_* MUST be floating point,
+   so always have a decimal point in them.
+
+   Towers and rod nomenclature for the following defines:
+
+                       C, Y-axis
+                       |
+   DELTA_ALPHA_CA=120° |  DELTA_ALPHA_CB=120°
+                       |
+                       |______ X-axis
+                      / \
+                     /   \
+                    /     \
+                   /       \
+                  A         B
   
+      |___| DELTA CARRIAGE OFFSET
+      |   \
+      |    \
+      |     \  DELTA DIAGONAL ROD
+      |      \
+      |       \   | Effector is at printer center!
+      |        \__|__/
+      |        |--| DELTA EFFECTOR OFFSET
+          |----|    DELTA RADIUS Calculated in fw (DELTA SMOOTH ROD OFFSET - DELTA EFFECTOR OFFSET - DELTA CARRIAGE OFFSET)
+        |---------| DELTA PRINTABLE RADIUS
+      |-----------| DELTA SMOOTH ROD OFFSET
+*/
+
+
 // Center-to-center distance of the holes in the diagonal push rods.
-#define DELTA_DIAGONAL_ROD 220.0            // mm
+#define DELTA_DIAGONAL_ROD 216.2            // mm
 
 // Horizontal offset from middle of printer to smooth rod center.
-#define DELTA_SMOOTH_ROD_OFFSET 150.0       // mm
+#define DELTA_SMOOTH_ROD_OFFSET 145.0       // mm
 
 // Horizontal offset of the universal joints on the end effector.
-#define DELTA_EFFECTOR_OFFSET 20.0          // mm
+#define DELTA_EFFECTOR_OFFSET 19.9          // mm
 
 // Horizontal offset of the universal joints on the carriages.
-#define DELTA_CARRIAGE_OFFSET 20.0          // mm
+#define DELTA_CARRIAGE_OFFSET 19.5          // mm
 
 // Delta Printable radius
-#define DELTA_PRINTABLE_RADIUS 75.0         // mm
+#define DELTA_PRINTABLE_RADIUS 80.0         // mm
 
 //Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
 #define TOWER_A_ENDSTOP_ADJ 0   // Front Left Tower
@@ -393,8 +396,9 @@
 // Manually set the home position. Leave these undefined for automatic settings.
 // For DELTA this is the top-center of the Cartesian print volume.
 #define MANUAL_X_HOME_POS 0
-#define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 200 // Distance between the nozzle to printbed after homing
+#define MANUAL_Y_HOME_POS 0 
+#define MANUAL_Z_HOME_POS 220      // Distance between nozzle and print surface after homing.
+ 
 /*****************************************************************************************/
 
 
@@ -520,8 +524,8 @@
  * Override with M92                                                                     *
  *                                                                                       *
  *****************************************************************************************/
-// Default steps per unit               X,  Y,  Z,  E0...(per extruder)
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 80, 625, 625, 625, 625}
+// Default steps per unit               X,   Y,   Z,   E0...(per extruder)
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {200, 200, 200, 760*1.1, 625, 625, 625}
 /*****************************************************************************************/
 
 
@@ -567,7 +571,7 @@
  * value set here, it may happen instantaneously.                                        *
  *                                                                                       *
  *****************************************************************************************/
-#define DEFAULT_XJERK 20.0
+#define DEFAULT_XJERK 25.0
 #define DEFAULT_YJERK 20.0
 #define DEFAULT_ZJERK 20.0
 // E0... (mm/sec) per extruder
@@ -579,7 +583,7 @@
  ************************************ Homing feedrate ************************************
  *****************************************************************************************/
 // delta homing speeds must be the same on xyz. Homing speeds (mm/m)
-#define HOMING_FEEDRATE_XYZ (100*60)
+#define HOMING_FEEDRATE_XYZ (60*60)
 // homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
 #define XYZ_HOME_BUMP_MM 5
 // Re-Bump Speed Divisor (Divides the Homing Feedrate)

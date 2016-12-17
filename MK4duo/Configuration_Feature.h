@@ -952,17 +952,16 @@
  * Uncomment EEPROM CHITCHAT to enable EEPROM Serial responses.                                                         *
  *                                                                                                                      *
  ************************************************************************************************************************/
-//#define EEPROM_SETTINGS
-//#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+#define EEPROM_SETTINGS
+#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define DISABLE_M503
 /************************************************************************************************************************/
 
 
 /*****************************************************************************************
  *************************************** SDCARD *******************************************
- ****************************************************************************************/
-//#define SDSUPPORT
-
+ ****************************************************************************************/ 
+#define SDSUPPORT             // Enable SD Card Support in Hardware Console 
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SD_CHECK_AND_RETRY  // Use CRC checks and retries on the SD communication
@@ -1231,8 +1230,9 @@
 // BQ LCD Smart Controller shipped by
 // default with the BQ Hephestos 2 and Witbox 2.
 //
-//#define BQ_LCD_SMART_CONTROLLER
-
+//#define BQ_LCD_SMART_CONTROLLER 
+//
+ 
 // CONTROLLER TYPE: I2C
 //
 // Note: These controllers require the installation of Arduino's LiquidCrystal_I2C
@@ -1242,7 +1242,14 @@
 // http://www.elefu.com/index.php?route=product/product&product_id=53
 //
 //#define RA_CONTROL_PANEL
-
+ 
+// Nextion HMI panel Serial
+#define NEXTION
+#define NEXTION_SERIAL 1
+// For GFX Visualization enable Nextion GFX
+//#define NEXTION_GFX 
+//
+ 
 // Sainsmart YW Robot (LCM1602) LCD Display
 //
 //#define LCD_I2C_SAINSMART_YWROBOT
