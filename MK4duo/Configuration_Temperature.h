@@ -82,7 +82,7 @@
  *  10 is 100k RS thermistor 198-961 (4.7k pullup)                                                   *
  *  11 is 100k beta 3950 1% thermistor (4.7k pullup)                                                 *
  *  12 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)       *
- *  13 is 100k Hisens 3950  1% up to 300°C for hotend "Simple ONE " & "Hotend "All In ONE"          *
+ *  13 is 100k Hisens 3950  1% up to 300Â°C for hotend "Simple ONE " & "Hotend "All In ONE"          *
  *  20 is the PT100 circuit found in the Ultimainboard V2.x                                          *
  *  40 is the 10k Carel NTC015WH01 or ELIWELL SN8T6A1502 (4.7k pullup)                               *
  *  60 is 100k Maker's Tool Works Kapton Bed Thermistor beta=3950                                    *
@@ -101,7 +101,7 @@
  *  1010 is Pt1000 with 1k pullup (non standard)                                                     *
  *  147 is Pt100 with 4k7 pullup                                                                     *
  *  110 is Pt100 with 1k pullup (non standard)                                                       *
- *  998 and 999 are Dummy Tables. ALWAYS read 25°C or DUMMY_THERMISTOR_998_VALUE temperature        *
+ *  998 and 999 are Dummy Tables. ALWAYS read 25Â°C or DUMMY_THERMISTOR_998_VALUE temperature        *
  *                                                                                                   *
  *****************************************************************************************************/
 #define TEMP_SENSOR_0 1
