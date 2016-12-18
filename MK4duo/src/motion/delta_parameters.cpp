@@ -215,7 +215,7 @@
    *
    * The result is stored in the cartes[] array.
    */
-  void DeltaParameters::forward_kinematics_DELTA(float Ha, float Hb, float Hc, float machinePos[ABC]) {
+  void DeltaParameters::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
 
     // Create a vector in old coordinates along x axis of new coordinate
     float p12[3] = { towerX[B_AXIS] - towerX[A_AXIS], towerY[B_AXIS] - towerY[A_AXIS], Hb - Ha };

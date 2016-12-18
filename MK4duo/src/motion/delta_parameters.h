@@ -51,8 +51,8 @@
       float GetHomedCarriageHeight(AxisEnum axis) const { return homedCarriageHeight + endstop_adj[axis]; }
       float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       void Adjust(const uint8_t numFactors, const float v[]);
-      void forward_kinematics_DELTA(float Ha, float Hb, float Hc, float machinePos[ABC]);
-      void forward_kinematics_DELTA(float point[ABC], float machinePos[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], machinePos); }
+      void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]);
+      void forward_kinematics_DELTA(const float point[ABC], float machinePos[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], machinePos); }
       void inverse_kinematics_DELTA(const float logical[XYZ]);
       void Recalc_delta_constants();
 

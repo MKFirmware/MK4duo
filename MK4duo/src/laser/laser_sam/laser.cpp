@@ -55,16 +55,12 @@
     #endif
 
     #if ENABLED(LASER_PERIPHERALS)
-      digitalWrite(LASER_PERIPHERALS_PIN, HIGH);  // Laser peripherals are active LOW, so preset the pin
-      pinMode(LASER_PERIPHERALS_PIN, OUTPUT);
-
-      digitalWrite(LASER_PERIPHERALS_STATUS_PIN, HIGH);  // Set the peripherals status pin to pull-up.
-      pinMode(LASER_PERIPHERALS_STATUS_PIN, INPUT);
+      OUT_WRITE(LASER_PERIPHERALS_PIN, HIGH); // Laser peripherals are active LOW, so preset the pin
+      PULLUP(LASER_PERIPHERALS_STATUS_PIN);   // Set the peripherals status pin to pull-up.
     #endif // LASER_PERIPHERALS
 
     #if LASER_CONTROL == 2
-      pinMode(LASER_PWR_PIN, OUTPUT);
-      digitalWrite(LASER_PWR_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
+      OUT_WRITE(LASER_PWR_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
     #endif
 
     // initialize state to some sane defaults
@@ -84,7 +80,9 @@
       laser.raster_direction = 1;
     #endif // LASER_RASTER
     
-    laser_extinguish();
+    #if DISABLED(LASER_PULSE_METHOD)
+      laser_extinguish();
+    #endif
   }
 
   void laser_fire(float intensity = 100.0) { // Fire with range 0-100
