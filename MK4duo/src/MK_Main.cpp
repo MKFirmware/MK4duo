@@ -5318,7 +5318,12 @@ inline void gcode_G28() {
       SERIAL_ET(rply);
 
       deltaParams.convertOutgoingEndstops();
+      deltaParams.Recalc_delta_constants();
 
+      // Recalibrate Height
+      SERIAL_EM("Calibrate Height");
+      home_delta();
+      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) + zprobe_zoffset;
       deltaParams.Recalc_delta_constants();
 
       sprintf_P(rply, PSTR("Endstops X%.3f Y%.3f Z%.3f height %.3f diagonal rod %.3f delta radius %.3f Towers radius correction A%.2f B%.2f C%.2f"),

@@ -219,9 +219,9 @@
    * Nextion component for page:Temp
    *******************************************************************
    */
-  NexText tset0         = NexText       (10,  1,  "set0");
-  NexVariable tset1     = NexVariable   (10,  2,  "set1");
-  NexPicture tset       = NexPicture    (10,  3,  "p5");
+  NexText tset          = NexText       (10,  1,  "t0");
+  NexVariable theater   = NexVariable   (10,  2,  "va0");
+  NexPicture tenter     = NexPicture    (10,  3,  "p5");
   NexPicture tup        = NexPicture    (10,  6,  "p8");
   NexPicture tdown      = NexPicture    (10,  7,  "p9");
 
@@ -272,7 +272,7 @@
     &Rfid0, &Rfid1, &Rfid2, &Rfid3, &Rfid4, &Rfid5,
 
     // Page 10 touch listen
-    &tset, &tup, &tdown,
+    &tenter, &tup, &tdown,
 
     // Page 12 touch listen
     &Yes,
@@ -717,13 +717,13 @@
       if (thermalManager.degTargetHotend(0) != 0) {
         itoa(thermalManager.degTargetHotend(0), buffer, 10);
       }
-      tset1.setText("M104 T0 S");
+      theater.setValue(0);
     }
     if (ptr == &Hotend1) {
       if (thermalManager.degTargetHotend(1) != 0) {
         itoa(thermalManager.degTargetHotend(1), buffer, 10);
       }
-      tset1.setText("M104 T1 S");
+      theater.setValue(1);
     }
 
     #if HAS_TEMP_2
@@ -731,27 +731,26 @@
         if (thermalManager.degTargetHotend(2) != 0) {
           itoa(thermalManager.degTargetHotend(2), buffer, 10);
         }
-        tset1.setText("M104 T2 S");
+        theater.setValue(2);
       }
     #elif HAS_TEMP_BED
       if (ptr == &Hotend2) {
         if (thermalManager.degTargetBed() != 0) {
           itoa(thermalManager.degTargetBed(), buffer, 10);
         }
-        tset1.setText("M140 S");
+        theater.setValue(4);
       }
     #endif
 
-    tset0.setText(buffer);
+    tset.setText(buffer);
   }
 
   void settempPopCallback(void *ptr) {
-    uint16_t number;
 
     ZERO(buffer);
-    tset0.getText(buffer, sizeof(buffer));
+    tset.getText(buffer, sizeof(buffer));
 
-    number = atoi(buffer);
+    uint16_t number = atoi(buffer);
 
     if (ptr == &tup) number += 1;
     if (ptr == &tdown) number -= 1;
@@ -759,16 +758,23 @@
     ZERO(buffer);
     itoa(number, buffer, 10);
 
-    tset0.setText(buffer);
+    tset.setText(buffer);
   }
 
   void sethotPopCallback(void *ptr) {
+    uint32_t Heater;
     char temp[5] = { 0 };
-    ZERO(buffer);
-    tset0.getText(temp, sizeof(temp));
-    tset1.getText(buffer, sizeof(buffer));
-    strcat(buffer, temp);
-    enqueue_and_echo_command(buffer);
+
+    tset.getText(temp, sizeof(temp));
+    uint16_t temperature = atoi(temp);
+
+    theater.getValue(&Heater);
+
+    if (Heater == 4)
+      thermalManager.setTargetBed(temperature);
+    else
+      thermalManager.setTargetHotend(temperature, (uint8_t)Heater);
+
     Pprinter.show();
   }
 
@@ -894,7 +900,7 @@
       #endif
 
       Fanpic.attachPop(setfanPopCallback,   &Fanpic);
-      tset.attachPop(sethotPopCallback,     &tset);
+      tenter.attachPop(sethotPopCallback,   &tenter);
       tup.attachPop(settempPopCallback,     &tup);
       tdown.attachPop(settempPopCallback,   &tdown);
       XYHome.attachPop(setmovePopCallback);
