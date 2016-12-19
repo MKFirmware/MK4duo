@@ -449,7 +449,7 @@ static void lcd_implementation_status_screen() {
       if (PAGE_CONTAINS(20, 27)) {
         // Fan
         u8g.setPrintPos(104, 27);
-        #if HAS_FAN0
+        #if HAS_FAN
           int per = ((fanSpeed + 1) * 100) / 256;
           if (per) {
             lcd_print(itostr3(per));
