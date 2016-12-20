@@ -383,8 +383,6 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
-//#define DOGM_SD_PERCENT
-
 static void lcd_implementation_status_screen() {
 
   bool blink = lcd_blink();
@@ -502,26 +500,13 @@ static void lcd_implementation_status_screen() {
           PROGRESS_BAR_X + 1, 50,
           (unsigned int)((PROGRESS_BAR_WIDTH - 2) * card.percentDone() * 0.01), 2 - (TALL_FONT_CORRECTION)
         );
-
-      //
-      // SD Percent Complete
-      //
-
-      #if ENABLED(DOGM_SD_PERCENT)
-        if (PAGE_CONTAINS(41, 48)) {
-          // Percent complete
-          u8g.setPrintPos(55, 48);
-          u8g.print(itostr3(card.percentDone()));
-          u8g.print('%');
-        }
-      #endif
     }
 
     //
     // Elapsed Time
     //
 
-    if (PAGE_CONTAINS(PROGRESS_BAR_X, 48)) {
+    if (PAGE_CONTAINS(41, 48)) {
 
       char buffer1[10];
       char buffer2[10];
@@ -532,7 +517,7 @@ static void lcd_implementation_status_screen() {
 
       #if HAS(LCD_POWER_SENSOR)
         if (millis() < print_millis + 1000) {
-          u8g.setPrintPos(PROGRESS_BAR_X, 48);
+          u8g.setPrintPos(54, 48);
           lcd_print('S');
           lcd_print(buffer1);
 
@@ -545,7 +530,7 @@ static void lcd_implementation_status_screen() {
           lcd_print((char*)"Wh");
         }
       #else
-        u8g.setPrintPos(PROGRESS_BAR_X, 48);
+        u8g.setPrintPos(54, 48);
         lcd_print('S');
         lcd_print(buffer1);
 

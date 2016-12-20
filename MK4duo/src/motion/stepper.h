@@ -43,7 +43,7 @@
 #ifndef STEPPER_H
 #define STEPPER_H
 
-#ifndef ARDUINO_ARCH_SAM
+#if ENABLED(ARDUINO_ARCH_AVR)
   #include "speed_lookuptable.h"
 #endif
 

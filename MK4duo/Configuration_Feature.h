@@ -689,16 +689,16 @@
 // Remember: you should set the second extruder x-offset to 0 in your slicer.
 
 // There are a few selectable movement modes for dual x-carriages using M605 S<mode>
-//    Mode 0: Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
-//                           as long as it supports dual x-carriages. (M605 S0)
-//    Mode 1: Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
-//                           that additional slicer support is not required. (M605 S1)
-//    Mode 2: Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
-//                           actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
-//                           once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
+//    Mode 0 (DXC_FULL_CONTROL_MODE): Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
+//                                    as long as it supports dual x-carriages. (M605 S0)
+//    Mode 1 (DXC_AUTO_PARK_MODE)   : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
+//                                    that additional slicer support is not required. (M605 S1)
+//    Mode 2 (DXC_DUPLICATION_MODE) : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
+//                                    actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
+//                                    once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
 
 // This is the default power-up mode which can be later using M605.
-#define DEFAULT_DUAL_X_CARRIAGE_MODE 0
+#define DEFAULT_DUAL_X_CARRIAGE_MODE DXC_FULL_CONTROL_MODE
 
 // Default settings in "Auto-park Mode"
 #define TOOLCHANGE_PARK_ZLIFT   0.2      // the distance to raise Z axis when parking an extruder
@@ -1297,10 +1297,16 @@
 
 // Show a progress bar on HD44780 LCDs for SD printing
 //#define LCD_PROGRESS_BAR
-#define PROGRESS_BAR_BAR_TIME 5000 // Amount of time (ms) to show the bar
-#define PROGRESS_BAR_MSG_TIME 1500 // Amount of time (ms) to show the status message
-#define PROGRESS_MSG_EXPIRE   0    // Amount of time (ms) to retain the status message (0=forever)
-//#define PROGRESS_MSG_ONCE        // Uncomment this to show messages for MSG_TIME then hide them
+// Amount of time (ms) to show the bar
+#define PROGRESS_BAR_BAR_TIME 5000
+// Amount of time (ms) to show the status message
+#define PROGRESS_BAR_MSG_TIME 1500
+// Amount of time (ms) to retain the status message (0=forever)
+#define PROGRESS_MSG_EXPIRE 0
+// Uncomment this to show messages for MSG_TIME then hide them
+//#define PROGRESS_MSG_ONCE
+// Add a menu item to test the progress bar:
+//#define LCD_PROGRESS_BAR_TEST
 /************************************************************************************************/
 
 
