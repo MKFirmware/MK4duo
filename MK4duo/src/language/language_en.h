@@ -37,6 +37,8 @@
 #define MSG_MAIN                            _UxGT("Main")
 #define MSG_AUTOSTART                       _UxGT("Autostart")
 #define MSG_DISABLE_STEPPERS                _UxGT("Disable steppers")
+#define MSG_DEBUG_MENU                      _UxGT("Debug Menu")
+#define MSG_PROGRESS_BAR_TEST               _UxGT("Progress Bar Test")
 #define MSG_AUTO_HOME                       _UxGT("Auto home")
 #define MSG_AUTO_HOME_X                     _UxGT("Home X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Home Y")

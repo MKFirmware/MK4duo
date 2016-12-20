@@ -173,12 +173,12 @@ void EEPROM::Postprocess() {
 #if ENABLED(EEPROM_SETTINGS)
 
   uint16_t EEPROM::eeprom_checksum;
-  char EEPROM::version[6] = EEPROM_VERSION;
+  const char EEPROM::version[6] = EEPROM_VERSION;
 
   bool  eeprom_write_error,
         eeprom_read_error;
 
-  void EEPROM::writeData(int& pos, uint8_t* value, uint16_t size) {
+  void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
     if (eeprom_write_error) return;
 
     while(size--) {
@@ -200,7 +200,7 @@ void EEPROM::Postprocess() {
     };
   }
 
-  void EEPROM::readData(int& pos, uint8_t* value, uint16_t size) {
+  void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
     do {
       uint8_t c = eeprom_read_byte((unsigned char*)pos);
       if (!eeprom_read_error) *value = c;

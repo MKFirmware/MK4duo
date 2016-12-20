@@ -408,6 +408,7 @@ class Planner {
     }
 
     #if HAS(LCD)
+
       static uint16_t block_buffer_runtime() {
         CRITICAL_SECTION_START
           millis_t bbru = block_buffer_runtime_us;
@@ -426,6 +427,7 @@ class Planner {
           block_buffer_runtime_us = 0;
         CRITICAL_SECTION_END
       }
+
     #endif
 
     #if ENABLED(AUTOTEMP)

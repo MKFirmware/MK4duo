@@ -2069,6 +2069,8 @@ static void clean_up_after_endstop_or_probe_move() {
         if (enable) planner.unapply_leveling(current_position);
       }
 
+      SERIAL_LMT(ECHO, "MBL: ", mbl.active() ? MSG_ON : MSG_OFF);
+
     #elif HAS(ABL)
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -2091,7 +2093,7 @@ static void clean_up_after_endstop_or_probe_move() {
           planner.unapply_leveling(current_position);
       }
 
-      SERIAL_EMV("ABL: ", enable ? MSG_ON : MSG_OFF);
+      SERIAL_LMV(ECHO, "ABL: ", planner.abl_enabled ? MSG_ON : MSG_OFF);
 
     #endif
   }
@@ -4165,6 +4167,19 @@ inline void gcode_G28() {
   // Save 130 bytes with non-duplication of PSTR
   void say_not_entered() { SERIAL_EM(" not entered."); }
 
+  void mbl_mesh_report() {
+    SERIAL_EM("Num X,Y: " STRINGIFY(MESH_NUM_X_POINTS) "," STRINGIFY(MESH_NUM_Y_POINTS));
+    SERIAL_EM("Z search height: " STRINGIFY(MESH_HOME_SEARCH_Z));
+    SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
+    SERIAL_EM("Measured points:");
+    for (uint8_t py = 0; py < MESH_NUM_Y_POINTS; py++) {
+      for (uint8_t px = 0; px < MESH_NUM_X_POINTS; px++) {
+        SERIAL_MV("  ", mbl.z_values[py][px], 5);
+      }
+      SERIAL_E;
+    }
+  }
+
   /**
    * G29: Mesh-based Z probe, probes a grid and produces a
    *      mesh to compensate for variable bed height
@@ -4201,16 +4216,7 @@ inline void gcode_G28() {
       case MeshReport:
         if (mbl.has_mesh()) {
           SERIAL_EMT("State: ", mbl.active() ? MSG_ON : MSG_OFF);
-          SERIAL_EM("Num X,Y: " STRINGIFY(MESH_NUM_X_POINTS) "," STRINGIFY(MESH_NUM_Y_POINTS));
-          SERIAL_EM("Z search height: " STRINGIFY(MESH_HOME_SEARCH_Z));
-          SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
-          SERIAL_EM("Measured points:");
-          for (py = 0; py < MESH_NUM_Y_POINTS; py++) {
-            for (px = 0; px < MESH_NUM_X_POINTS; px++) {
-              SERIAL_MV("  ", mbl.z_values[py][px], 5);
-            }
-            SERIAL_E;
-          }
+          mbl_mesh_report();
         }
         else
           SERIAL_EM("Mesh bed leveling not active.");
@@ -7587,7 +7593,7 @@ inline void gcode_M226() {
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       if (code_seen('Z')) {
         set_z_fade_height(code_value_linear_units());
-        SERIAL_EMV("ABL Fade Height = ", code_value_linear_units(), 2);
+        SERIAL_LMV(ECHO, "ABL Fade Height = ", code_value_linear_units(), 2);
       }
     #endif
 
@@ -8190,6 +8196,12 @@ inline void gcode_M410() { quickstop_stepper(); }
 
     if (to_enable && !(mbl.active())) {
       SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+    }
+
+    // V to print the matrix or mesh
+    if (code_seen('V') && mbl.has_mesh()) {
+      SERIAL_EM("Mesh Bed Level data:");
+      mbl_mesh_report();
     }
   }
 

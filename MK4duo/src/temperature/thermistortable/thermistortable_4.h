@@ -20,39 +20,26 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
-
-class EEPROM {
-
-  public:
-
-    static void ResetDefault();
-    static void StoreSettings();
-
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
-
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
-
-  private:
-
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
+// 10k thermistor
+const short temptable_4[][2] PROGMEM = {
+  {    1 * OVERSAMPLENR, 430 },
+  {   54 * OVERSAMPLENR, 137 },
+  {  107 * OVERSAMPLENR, 107 },
+  {  160 * OVERSAMPLENR,  91 },
+  {  213 * OVERSAMPLENR,  80 },
+  {  266 * OVERSAMPLENR,  71 },
+  {  319 * OVERSAMPLENR,  64 },
+  {  372 * OVERSAMPLENR,  57 },
+  {  425 * OVERSAMPLENR,  51 },
+  {  478 * OVERSAMPLENR,  46 },
+  {  531 * OVERSAMPLENR,  41 },
+  {  584 * OVERSAMPLENR,  35 },
+  {  637 * OVERSAMPLENR,  30 },
+  {  690 * OVERSAMPLENR,  25 },
+  {  743 * OVERSAMPLENR,  20 },
+  {  796 * OVERSAMPLENR,  14 },
+  {  849 * OVERSAMPLENR,   7 },
+  {  902 * OVERSAMPLENR,   0 },
+  {  955 * OVERSAMPLENR, -11 },
+  { 1008 * OVERSAMPLENR, -35 }
 };
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H

@@ -20,39 +20,26 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
-
-class EEPROM {
-
-  public:
-
-    static void ResetDefault();
-    static void StoreSettings();
-
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
-
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
-
-  private:
-
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
+// 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)
+const short temptable_8[][2] PROGMEM = {
+  {    1 * OVERSAMPLENR, 704 },
+  {   54 * OVERSAMPLENR, 216 },
+  {  107 * OVERSAMPLENR, 175 },
+  {  160 * OVERSAMPLENR, 152 },
+  {  213 * OVERSAMPLENR, 137 },
+  {  266 * OVERSAMPLENR, 125 },
+  {  319 * OVERSAMPLENR, 115 },
+  {  372 * OVERSAMPLENR, 106 },
+  {  425 * OVERSAMPLENR,  99 },
+  {  478 * OVERSAMPLENR,  91 },
+  {  531 * OVERSAMPLENR,  85 },
+  {  584 * OVERSAMPLENR,  78 },
+  {  637 * OVERSAMPLENR,  71 },
+  {  690 * OVERSAMPLENR,  65 },
+  {  743 * OVERSAMPLENR,  58 },
+  {  796 * OVERSAMPLENR,  50 },
+  {  849 * OVERSAMPLENR,  42 },
+  {  902 * OVERSAMPLENR,  31 },
+  {  955 * OVERSAMPLENR,  17 },
+  { 1008 * OVERSAMPLENR,   0 }
 };
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H

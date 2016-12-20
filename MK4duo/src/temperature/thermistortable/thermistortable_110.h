@@ -20,39 +20,14 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
-
-class EEPROM {
-
-  public:
-
-    static void ResetDefault();
-    static void StoreSettings();
-
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
-
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
-
-  private:
-
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
+// Pt100 with 1k0 pullup
+const short temptable_110[][2] PROGMEM = {
+  // only a few values are needed as the curve is very flat
+  PtLine(  0, 100, 1000)
+  PtLine( 50, 100, 1000)
+  PtLine(100, 100, 1000)
+  PtLine(150, 100, 1000)
+  PtLine(200, 100, 1000)
+  PtLine(250, 100, 1000)
+  PtLine(300, 100, 1000)
 };
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H
