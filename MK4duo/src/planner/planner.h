@@ -115,9 +115,7 @@ typedef struct {
     uint32_t valve_pressure, e_to_p_pressure;
   #endif
 
-  #if ENABLED(ENSURE_SMOOTH_MOVES)
-    uint32_t segment_time;
-  #endif
+  uint32_t segment_time;
 
   #if ENABLED(LASERBEAM)
     uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
@@ -150,8 +148,8 @@ class Planner {
                   axis_steps_per_mm[XYZE_N],
                   steps_to_mm[XYZE_N];
 
-    static unsigned long  max_acceleration_steps_per_s2[XYZE_N],
-                          max_acceleration_mm_per_s2[XYZE_N]; // Use M201 to override by software
+    static uint32_t max_acceleration_steps_per_s2[XYZE_N],
+                    max_acceleration_mm_per_s2[XYZE_N]; // Use M201 to override by software
 
     static millis_t min_segment_time;
     static float  min_feedrate_mm_s,
@@ -214,7 +212,7 @@ class Planner {
       static float extruder_advance_k;
     #endif
 
-    #if ENABLED(ENSURE_SMOOTH_MOVES)
+    #if HAS(LCD)
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
 
@@ -314,38 +312,38 @@ class Planner {
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  target   - x,y,z,e CARTESIAN target in mm
+     *  ltarget  - x,y,z,e CARTESIAN target in mm
      *  fr_mm_s  - (target) speed of the move (mm/s)
      *  extruder - target extruder
-     *  driver    - target driver
+     *  driver   - target driver
      */
-    static FORCE_INLINE void buffer_line_kinematic(const float target[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
+    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
       #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-        float machinePos[XYZ]={ target[X_AXIS], target[Y_AXIS], target[Z_AXIS] };
+        float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
         #if PLANNER_LEVELING
-          apply_leveling(machinePos);
+          apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          zwobble.InsertCorrection(machinePos[Z_AXIS]);
+          zwobble.InsertCorrection(lpos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          hysteresis.InsertCorrection(machinePos[X_AXIS], machinePos[Y_AXIS], machinePos[Z_AXIS], target[E_AXIS]);
+          hysteresis.InsertCorrection(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
         #endif
       #else
-        const float * const machinePos = target;
+        const float * const lpos = ltarget;
       #endif
 
       #if IS_KINEMATIC
         #if MECH(DELTA)
-          deltaParams.inverse_kinematics_DELTA(machinePos);
+          deltaParams.inverse_kinematics_DELTA(lpos);
         #else
-            inverse_kinematics(machinePos);
+            inverse_kinematics(lpos);
         #endif
-        _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], target[E_AXIS], fr_mm_s, extruder, driver);
+        _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #else
-        _buffer_line(machinePos[X_AXIS], machinePos[Y_AXIS], machinePos[Z_AXIS], target[E_AXIS], fr_mm_s, extruder, driver);
+        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #endif
     }
 
@@ -395,26 +393,33 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t* block = &block_buffer[block_buffer_tail];
-        #if ENABLED(ENSURE_SMOOTH_MOVES)
+        #if HAS(LCD)
           block_buffer_runtime_us -= block->segment_time; // We can't be sure how long an active block will take, so don't count it.
         #endif
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;
       }
       else {
-        #if ENABLED(ENSURE_SMOOTH_MOVES)
+        #if HAS(LCD)
           clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
         #endif
         return NULL;
       }
     }
 
-    #if ENABLED(ENSURE_SMOOTH_MOVES)
-      static bool long_move() {
+    #if HAS(LCD)
+
+      static uint16_t block_buffer_runtime() {
         CRITICAL_SECTION_START
-          uint32_t bbru = block_buffer_runtime_us;
+          millis_t bbru = block_buffer_runtime_us;
         CRITICAL_SECTION_END
-        return !bbru || bbru > (LCD_UPDATE_THRESHOLD) * 1000UL + (MIN_BLOCK_TIME) * 3000UL;
+        // To translate µs to ms a division by 1000 would be required.
+        // We introduce 2.4% error her by dividing by 1024.
+        // Does not matter because block_buffer_runtime_us is already an, too small, estimation.
+        bbru >>= 10;
+        // limit to about a minute.
+        NOMORE(bbru, 0xfffful);
+        return bbru;
       }
 
       static void clear_block_buffer_runtime() {
@@ -422,6 +427,7 @@ class Planner {
           block_buffer_runtime_us = 0;
         CRITICAL_SECTION_END
       }
+
     #endif
 
     #if ENABLED(AUTOTEMP)

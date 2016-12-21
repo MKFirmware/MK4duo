@@ -20,7 +20,7 @@
  *
  */
 
-#include "pins_arduino.h"
+bool endstop_monitor_flag = false;
 
 #define  NAME_FORMAT "%-28s"   // one place to specify the format of all the sources of names
                                // "-" left justify, "28" minimum width of name, pad with blanks
@@ -31,19 +31,23 @@
 #define _ANALOG_PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_T(buffer); pin_is_analog = true; return true; }
 #define ANALOG_PIN_SAY(NAME) if (pin == analogInputToDigitalPin(NAME)) _ANALOG_PIN_SAY(#NAME);
 
-#define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(5)))
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #define IS_ANALOG(P) ((uint8_t)(P) >= analogInputToDigitalPin(0) && (uint8_t)(P) <= analogInputToDigitalPin(MAX_ANALOG_PIN_NUMBER))
+#else
+  #define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(5)))
+#endif
 
-#if defined(__AVR__)
-  #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
-  #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
-  #define IO_REG_TYPE uint8_t
-  #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
-#elif defined(__SAM3X8E__)
+#if ENABLED(ARDUINO_ARCH_SAM)
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
   #define digitalPinToTimer(pin)          digitalPinHasPWM(pin)
+#else
+  #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
+  #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
+  #define IO_REG_TYPE uint8_t
+  #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
 #endif
 
 IO_REG_TYPE rBit;   // receive pin's ports and bitmask
@@ -67,25 +71,25 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   }
   else SERIAL_M("       ");
 
-  #if defined(RXD) && RXD >= 0
+  #if ENABLED(RXD) && RXD >= 0
     if (pin == 0) { sprintf(buffer, NAME_FORMAT, "RXD"); SERIAL_T(buffer); return true; }
   #endif
 
-  #if defined(TXD) && TXD >= 0
+  #if ENABLED(TXD) && TXD >= 0
     if (pin == 1) { sprintf(buffer, NAME_FORMAT, "TXD"); SERIAL_T(buffer); return true; }
   #endif
 
   // Pin list updated from 7 OCT RCBugfix branch
-  #if defined(__FD) && __FD >= 0
+  #if ENABLED(__FD) && __FD >= 0
     PIN_SAY(__FD)
   #endif
-  #if defined(__FS) && __FS >= 0
+  #if ENABLED(__FS) && __FS >= 0
     PIN_SAY(__FS)
   #endif
-  #if defined(__GD) && __GD >= 0
+  #if ENABLED(__GD) && __GD >= 0
     PIN_SAY(__GD)
   #endif
-  #if defined(__GS) && __GS >= 0
+  #if ENABLED(__GS) && __GS >= 0
     PIN_SAY(__GS)
   #endif
 
@@ -104,40 +108,40 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(BEEPER)
     PIN_SAY(BEEPER_PIN);
   #endif
-  #if defined(BTN_CENTER) && BTN_CENTER >= 0
+  #if ENABLED(BTN_CENTER) && BTN_CENTER >= 0
     PIN_SAY(BTN_CENTER);
   #endif
-  #if defined(BTN_DOWN) && BTN_DOWN >= 0
+  #if ENABLED(BTN_DOWN) && BTN_DOWN >= 0
     PIN_SAY(BTN_DOWN);
   #endif
-  #if defined(BTN_DWN) && BTN_DWN >= 0
+  #if ENABLED(BTN_DWN) && BTN_DWN >= 0
     PIN_SAY(BTN_DWN);
   #endif
-  #if defined(BTN_EN1) && BTN_EN1 >= 0
+  #if ENABLED(BTN_EN1) && BTN_EN1 >= 0
     PIN_SAY(BTN_EN1);
   #endif
-  #if defined(BTN_EN2) && BTN_EN2 >= 0
+  #if ENABLED(BTN_EN2) && BTN_EN2 >= 0
     PIN_SAY(BTN_EN2);
   #endif
-  #if defined(BTN_ENC) && BTN_ENC >= 0
+  #if ENABLED(BTN_ENC) && BTN_ENC >= 0
     PIN_SAY(BTN_ENC);
   #endif
-  #if defined(BTN_HOME) && BTN_HOME >= 0
+  #if ENABLED(BTN_HOME) && BTN_HOME >= 0
     PIN_SAY(BTN_HOME);
   #endif
-  #if defined(BTN_LEFT) && BTN_LEFT >= 0
+  #if ENABLED(BTN_LEFT) && BTN_LEFT >= 0
     PIN_SAY(BTN_LEFT);
   #endif
-  #if defined(BTN_LFT) && BTN_LFT >= 0
+  #if ENABLED(BTN_LFT) && BTN_LFT >= 0
     PIN_SAY(BTN_LFT);
   #endif
-  #if defined(BTN_RIGHT) && BTN_RIGHT >= 0
+  #if ENABLED(BTN_RIGHT) && BTN_RIGHT >= 0
     PIN_SAY(BTN_RIGHT);
   #endif
-  #if defined(BTN_RT) && BTN_RT >= 0
+  #if ENABLED(BTN_RT) && BTN_RT >= 0
     PIN_SAY(BTN_RT);
   #endif
-  #if defined(BTN_UP) && BTN_UP >= 0
+  #if ENABLED(BTN_UP) && BTN_UP >= 0
     PIN_SAY(BTN_UP);
   #endif
   #if PIN_EXISTS(CONTROLLERFAN)
@@ -146,10 +150,10 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(DAC_DISABLE)
     PIN_SAY(DAC_DISABLE_PIN);
   #endif
-  #if defined(DAC_STEPPER_GAIN) && DAC_STEPPER_GAIN >= 0
+  #if ENABLED(DAC_STEPPER_GAIN) && DAC_STEPPER_GAIN >= 0
     PIN_SAY(DAC_STEPPER_GAIN);
   #endif
-  #if defined(DAC_STEPPER_VREF) && DAC_STEPPER_VREF >= 0
+  #if ENABLED(DAC_STEPPER_VREF) && DAC_STEPPER_VREF >= 0
     PIN_SAY(DAC_STEPPER_VREF);
   #endif
   #if PIN_EXISTS(DEBUG)
@@ -158,16 +162,16 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(DIGIPOTSS)
     PIN_SAY(DIGIPOTSS_PIN);
   #endif
-  #if defined(DOGLCD_A0) && DOGLCD_A0 >= 0
+  #if ENABLED(DOGLCD_A0) && DOGLCD_A0 >= 0
     PIN_SAY(DOGLCD_A0);
   #endif
-  #if defined(DOGLCD_CS) && DOGLCD_CS >= 0
+  #if ENABLED(DOGLCD_CS) && DOGLCD_CS >= 0
     PIN_SAY(DOGLCD_CS);
   #endif
-  #if defined(DOGLCD_MOSI) && DOGLCD_MOSI >= 0
+  #if ENABLED(DOGLCD_MOSI) && DOGLCD_MOSI >= 0
     PIN_SAY(DOGLCD_MOSI);
   #endif
-  #if defined(DOGLCD_SCK) && DOGLCD_SCK >= 0
+  #if ENABLED(DOGLCD_SCK) && DOGLCD_SCK >= 0
     PIN_SAY(DOGLCD_SCK);
   #endif
   #if PIN_EXISTS(E0_ATT)
@@ -242,52 +246,52 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E4_STEP)
     PIN_SAY(E4_STEP_PIN);
   #endif
-  #if defined(encrot1) && encrot1 >= 0
+  #if ENABLED(encrot1) && encrot1 >= 0
     PIN_SAY(encrot1);
   #endif
-  #if defined(encrot2) && encrot2 >= 0
+  #if ENABLED(encrot2) && encrot2 >= 0
     PIN_SAY(encrot2);
   #endif
-  #if defined(encrot3) && encrot3 >= 0
+  #if ENABLED(encrot3) && encrot3 >= 0
     PIN_SAY(encrot3);
   #endif
-  #if defined(EXT_AUX_A0_IO) && EXT_AUX_A0_IO >= 0
+  #if ENABLED(EXT_AUX_A0_IO) && EXT_AUX_A0_IO >= 0
     PIN_SAY(EXT_AUX_A0_IO);
   #endif
-  #if defined(EXT_AUX_A1) && EXT_AUX_A1 >= 0
+  #if ENABLED(EXT_AUX_A1) && EXT_AUX_A1 >= 0
     PIN_SAY(EXT_AUX_A1);
   #endif
-  #if defined(EXT_AUX_A1_IO) && EXT_AUX_A1_IO >= 0
+  #if ENABLED(EXT_AUX_A1_IO) && EXT_AUX_A1_IO >= 0
     PIN_SAY(EXT_AUX_A1_IO);
   #endif
-  #if defined(EXT_AUX_A2) && EXT_AUX_A2 >= 0
+  #if ENABLED(EXT_AUX_A2) && EXT_AUX_A2 >= 0
     PIN_SAY(EXT_AUX_A2);
   #endif
-  #if defined(EXT_AUX_A2_IO) && EXT_AUX_A2_IO >= 0
+  #if ENABLED(EXT_AUX_A2_IO) && EXT_AUX_A2_IO >= 0
     PIN_SAY(EXT_AUX_A2_IO);
   #endif
-  #if defined(EXT_AUX_A3) && EXT_AUX_A3 >= 0
+  #if ENABLED(EXT_AUX_A3) && EXT_AUX_A3 >= 0
     PIN_SAY(EXT_AUX_A3);
   #endif
-  #if defined(EXT_AUX_A3_IO) && EXT_AUX_A3_IO >= 0
+  #if ENABLED(EXT_AUX_A3_IO) && EXT_AUX_A3_IO >= 0
     PIN_SAY(EXT_AUX_A3_IO);
   #endif
-  #if defined(EXT_AUX_A4) && EXT_AUX_A4 >= 0
+  #if ENABLED(EXT_AUX_A4) && EXT_AUX_A4 >= 0
     PIN_SAY(EXT_AUX_A4);
   #endif
-  #if defined(EXT_AUX_A4_IO) && EXT_AUX_A4_IO >= 0
+  #if ENABLED(EXT_AUX_A4_IO) && EXT_AUX_A4_IO >= 0
     PIN_SAY(EXT_AUX_A4_IO);
   #endif
-  #if defined(EXT_AUX_PWM_D24) && EXT_AUX_PWM_D24 >= 0
+  #if ENABLED(EXT_AUX_PWM_D24) && EXT_AUX_PWM_D24 >= 0
     PIN_SAY(EXT_AUX_PWM_D24);
   #endif
-  #if defined(EXT_AUX_RX1_D2) && EXT_AUX_RX1_D2 >= 0
+  #if ENABLED(EXT_AUX_RX1_D2) && EXT_AUX_RX1_D2 >= 0
     PIN_SAY(EXT_AUX_RX1_D2);
   #endif
-  #if defined(EXT_AUX_SDA_D1) && EXT_AUX_SDA_D1 >= 0
+  #if ENABLED(EXT_AUX_SDA_D1) && EXT_AUX_SDA_D1 >= 0
     PIN_SAY(EXT_AUX_SDA_D1);
   #endif
-  #if defined(EXT_AUX_TX1_D3) && EXT_AUX_TX1_D3 >= 0
+  #if ENABLED(EXT_AUX_TX1_D3) && EXT_AUX_TX1_D3 >= 0
     PIN_SAY(EXT_AUX_TX1_D3);
   #endif
 
@@ -306,7 +310,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(FILWIDTH)
     ANALOG_PIN_SAY(FILWIDTH_PIN);
   #endif
-  #if defined(GEN7_VERSION) && GEN7_VERSION >= 0
+  #if ENABLED(GEN7_VERSION) && GEN7_VERSION >= 0
     PIN_SAY(GEN7_VERSION);
   #endif
   #if PIN_EXISTS(HEATER_0)
@@ -336,10 +340,10 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(HEATER_BED)
     PIN_SAY(HEATER_BED_PIN);
   #endif
-  #if defined(I2C_SCL) && I2C_SCL >= 0
+  #if ENABLED(I2C_SCL) && I2C_SCL >= 0
     PIN_SAY(I2C_SCL);
   #endif
-  #if defined(I2C_SDA) && I2C_SDA >= 0
+  #if ENABLED(I2C_SDA) && I2C_SDA >= 0
     PIN_SAY(I2C_SDA);
   #endif
   #if PIN_EXISTS(KILL)
@@ -348,28 +352,28 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(LCD_BACKLIGHT)
     PIN_SAY(LCD_BACKLIGHT_PIN);
   #endif
-  #if defined(LCD_CONTRAST) && LCD_CONTRAST >= 0
+  #if ENABLED(LCD_CONTRAST) && LCD_CONTRAST >= 0
     PIN_SAY(LCD_CONTRAST);
   #endif
-  #if defined(LCD_PINS_D4) && LCD_PINS_D4 >= 0
+  #if ENABLED(LCD_PINS_D4) && LCD_PINS_D4 >= 0
     PIN_SAY(LCD_PINS_D4);
   #endif
-  #if defined(LCD_PINS_D5) && LCD_PINS_D5 >= 0
+  #if ENABLED(LCD_PINS_D5) && LCD_PINS_D5 >= 0
     PIN_SAY(LCD_PINS_D5);
   #endif
-  #if defined(LCD_PINS_D6) && LCD_PINS_D6 >= 0
+  #if ENABLED(LCD_PINS_D6) && LCD_PINS_D6 >= 0
     PIN_SAY(LCD_PINS_D6);
   #endif
-  #if defined(LCD_PINS_D7) && LCD_PINS_D7 >= 0
+  #if ENABLED(LCD_PINS_D7) && LCD_PINS_D7 >= 0
     PIN_SAY(LCD_PINS_D7);
   #endif
-  #if defined(LCD_PINS_ENABLE) && LCD_PINS_ENABLE >= 0
+  #if ENABLED(LCD_PINS_ENABLE) && LCD_PINS_ENABLE >= 0
     PIN_SAY(LCD_PINS_ENABLE);
   #endif
-  #if defined(LCD_PINS_RS) && LCD_PINS_RS >= 0
+  #if ENABLED(LCD_PINS_RS) && LCD_PINS_RS >= 0
     PIN_SAY(LCD_PINS_RS);
   #endif
-  #if defined(LCD_SDSS) && LCD_SDSS >= 0
+  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
     PIN_SAY(LCD_SDSS);
   #endif
   #if PIN_EXISTS(LED)
@@ -381,7 +385,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(MAIN_VOLTAGE_MEASURE)
     PIN_SAY(MAIN_VOLTAGE_MEASURE_PIN);
   #endif
-  #if defined(MAX6675_SS) && MAX6675_SS >= 0
+  #if ENABLED(MAX6675_SS) && MAX6675_SS >= 0
     PIN_SAY(MAX6675_SS);
   #endif
   #if PIN_EXISTS(MISO)
@@ -402,7 +406,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
     PIN_SAY(MOTOR_CURRENT_PWM_Z_PIN);
   #endif
-  #if defined(NUM_TLCS) && NUM_TLCS >= 0
+  #if ENABLED(NUM_TLCS) && NUM_TLCS >= 0
     PIN_SAY(NUM_TLCS);
   #endif
   #if PIN_EXISTS(PHOTOGRAPH)
@@ -432,11 +436,11 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(SD_DETECT)
     PIN_SAY(SD_DETECT_PIN);
   #endif
-  #if defined(SDPOWER) && SDPOWER >= 0
+  #if ENABLED(SDPOWER) && SDPOWER >= 0
     PIN_SAY(SDPOWER);
   #endif
-  #if defined(SDSS) && SDSS >= 0
-    PIN_SAY(SDSS);
+  #if PIN_EXISTS(SS_PIN)
+    PIN_SAY(SS_PIN);
   #endif
   #if PIN_EXISTS(SERVO0)
     PIN_SAY(SERVO0_PIN);
@@ -450,16 +454,16 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(SERVO3)
     PIN_SAY(SERVO3_PIN);
   #endif
-  #if defined(SHIFT_CLK) && SHIFT_CLK >= 0
+  #if ENABLED(SHIFT_CLK) && SHIFT_CLK >= 0
     PIN_SAY(SHIFT_CLK);
   #endif
-  #if defined(SHIFT_EN) && SHIFT_EN >= 0
+  #if ENABLED(SHIFT_EN) && SHIFT_EN >= 0
     PIN_SAY(SHIFT_EN);
   #endif
-  #if defined(SHIFT_LD) && SHIFT_LD >= 0
+  #if ENABLED(SHIFT_LD) && SHIFT_LD >= 0
     PIN_SAY(SHIFT_LD);
   #endif
-  #if defined(SHIFT_OUT) && SHIFT_OUT >= 0
+  #if ENABLED(SHIFT_OUT) && SHIFT_OUT >= 0
     PIN_SAY(SHIFT_OUT);
   #endif
   #if PIN_EXISTS(SLED)
@@ -496,11 +500,11 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
     PIN_SAY(SUICIDE_PIN);
   #endif
 
-  #if defined(__AVR__)
-    #if defined(TC1) && TC1 >= 0
+  #if ENABLED(ARDUINO_ARCH_AVR)
+    #if ENABLED(TC1) && TC1 >= 0
       ANALOG_PIN_SAY(TC1);
     #endif
-    #if defined(TC2) && TC2 >= 0
+    #if ENABLED(TC2) && TC2 >= 0
       ANALOG_PIN_SAY(TC2);
     #endif
   #endif
@@ -526,19 +530,19 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(TEMP_X)
     ANALOG_PIN_SAY(TEMP_X_PIN);
   #endif
-  #if defined(TLC_BLANK_BIT) && TLC_BLANK_BIT >= 0
+  #if ENABLED(TLC_BLANK_BIT) && TLC_BLANK_BIT >= 0
     PIN_SAY(TLC_BLANK_BIT);
   #endif
   #if PIN_EXISTS(TLC_BLANK)
     PIN_SAY(TLC_BLANK_PIN);
   #endif
-  #if defined(TLC_CLOCK_BIT) && TLC_CLOCK_BIT >= 0
+  #if ENABLED(TLC_CLOCK_BIT) && TLC_CLOCK_BIT >= 0
     PIN_SAY(TLC_CLOCK_BIT);
   #endif
   #if PIN_EXISTS(TLC_CLOCK)
     PIN_SAY(TLC_CLOCK_PIN);
   #endif
-  #if defined(TLC_DATA_BIT) && TLC_DATA_BIT >= 0
+  #if ENABLED(TLC_DATA_BIT) && TLC_DATA_BIT >= 0
     PIN_SAY(TLC_DATA_BIT);
   #endif
   #if PIN_EXISTS(TLC_DATA)
@@ -550,7 +554,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(TX_ENABLE)
     PIN_SAY(TX_ENABLE_PIN);
   #endif
-  #if defined(UNUSED_PWM) && UNUSED_PWM >= 0
+  #if ENABLED(UNUSED_PWM) && UNUSED_PWM >= 0
     PIN_SAY(UNUSED_PWM);
   #endif
   #if PIN_EXISTS(X_ATT)
@@ -683,28 +687,28 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
  * Print a pin's PWM status.
  * Return true if it's currently a PWM pin.
  */
-static bool PWM_status(uint8_t pin) {
+static bool pwm_status(uint8_t pin) {
   char buffer[20];   // for the sprintf statements
 
   switch(digitalPinToTimer(pin)) {
 
-    #if defined(TCCR0A) && defined(COM0A1)
+    #if ENABLED(TCCR0A) && ENABLED(COM0A1)
       PWM_CASE(0A);
       PWM_CASE(0B);
     #endif
 
-    #if defined(TCCR1A) && defined(COM1A1)
+    #if ENABLED(TCCR1A) && ENABLED(COM1A1)
       PWM_CASE(1A);
       PWM_CASE(1B);
       PWM_CASE(1C);
     #endif
 
-    #if defined(TCCR2A) && defined(COM2A1)
+    #if ENABLED(TCCR2A) && ENABLED(COM2A1)
       PWM_CASE(2A);
       PWM_CASE(2B);
     #endif
 
-    #if defined(TCCR3A) && defined(COM3A1)
+    #if ENABLED(TCCR3A) && ENABLED(COM3A1)
       PWM_CASE(3A);
       PWM_CASE(3B);
       PWM_CASE(3C);
@@ -716,7 +720,7 @@ static bool PWM_status(uint8_t pin) {
       PWM_CASE(4C);
     #endif
 
-    #if defined(TCCR5A) && defined(COM5A1)
+    #if ENABLED(TCCR5A) && ENABLED(COM5A1)
       PWM_CASE(5A);
       PWM_CASE(5B);
       PWM_CASE(5C);
@@ -727,175 +731,179 @@ static bool PWM_status(uint8_t pin) {
       return false;
   }
   SERIAL_M("  ");
-} // PWM_status
+} // pwm_status
 
-#define WGM_MAKE3(N) ((TEST(TCCR##N##B, WGM##N##2) >> 1) | (TCCR##N##A & (_BV(WGM##N##0) | _BV(WGM##N##1))))
-#define WGM_MAKE4(N) (WGM_MAKE3(N) | (TEST(TCCR##N##B, WGM##N##3) >> 1))
-#define TIMER_PREFIX(T,L,N) do{ \
-    WGM = WGM_MAKE##N(T); \
-    SERIAL_M("    TIMER"); \
-    SERIAL_M(STRINGIFY(T) STRINGIFY(L)); \
-    SERIAL_MV("    WGM: ", WGM); \
-    SERIAL_MV("    TIMSK" STRINGIFY(T) ": ", TIMSK##T); \
-  }while(0)
+#if DISABLED(ARDUINO_ARCH_SAM)
 
-#define WGM_TEST1 (WGM == 0 || WGM == 2 || WGM == 4 || WGM == 6)
-#define WGM_TEST2 (WGM == 0 || WGM == 4 || WGM == 12 || WGM == 13)
+  #define WGM_MAKE3(N) ((TEST(TCCR##N##B, WGM##N##2) >> 1) | (TCCR##N##A & (_BV(WGM##N##0) | _BV(WGM##N##1))))
+  #define WGM_MAKE4(N) (WGM_MAKE3(N) | (TEST(TCCR##N##B, WGM##N##3) >> 1))
+  #define TIMER_PREFIX(T,L,N) do{ \
+      WGM = WGM_MAKE##N(T); \
+      SERIAL_M("    TIMER"); \
+      SERIAL_M(STRINGIFY(T) STRINGIFY(L)); \
+      SERIAL_MV("    WGM: ", WGM); \
+      SERIAL_MV("    TIMSK" STRINGIFY(T) ": ", TIMSK##T); \
+    }while(0)
 
-static void err_is_counter() {
-  SERIAL_EM("   Can't be used as a PWM because of counter mode");
-}
-static void err_is_interrupt() {
-  SERIAL_EM("   Can't be used as a PWM because it's being used as an interrupt");
-}
-static void err_prob_interrupt() {
-  SERIAL_EM("   Probably can't be used as a PWM because counter/timer is being used as an interrupt");
-}
-static void can_be_used() {
-  SERIAL_M("   can be used as PWM   ");
-}
+  #define WGM_TEST1 (WGM == 0 || WGM == 2 || WGM == 4 || WGM == 6)
+  #define WGM_TEST2 (WGM == 0 || WGM == 4 || WGM == 12 || WGM == 13)
 
-static void PWM_details(uint8_t pin) {
+  static void err_is_counter() {
+    SERIAL_EM("   Can't be used as a PWM because of counter mode");
+  }
+  static void err_is_interrupt() {
+    SERIAL_EM("   Can't be used as a PWM because it's being used as an interrupt");
+  }
+  static void err_prob_interrupt() {
+    SERIAL_EM("   Probably can't be used as a PWM because counter/timer is being used as an interrupt");
+  }
+  static void can_be_used() {
+    SERIAL_M("   can be used as PWM   ");
+  }
 
-  uint8_t WGM;
+  static void pwm_details(uint8_t pin) {
 
-  switch(digitalPinToTimer(pin)) {
+    uint8_t WGM;
 
-  	#if defined(TCCR0A) && defined(COM0A1)
-      case TIMER0A:
-        TIMER_PREFIX(0,A,3);
-        if (WGM_TEST1) err_is_counter();
-        else if (TEST(TIMSK0, OCIE0A)) err_is_interrupt();
-        else if (TEST(TIMSK0, TOIE0)) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER0B:
-        TIMER_PREFIX(0,B,3);
-        if (WGM_TEST1) err_is_counter();
-        else if (TEST(TIMSK0, OCIE0B)) err_is_interrupt();
-        else if (TEST(TIMSK0, TOIE0)) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+    switch(digitalPinToTimer(pin)) {
 
-    #if defined(TCCR1A) && defined(COM1A1)
-      case TIMER1A:
-        TIMER_PREFIX(1,A,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK1, OCIE1A)) err_is_interrupt();
-        else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER1B:
-        TIMER_PREFIX(1,B,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK1, OCIE1B)) err_is_interrupt();
-        else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER1C:
-        TIMER_PREFIX(1,C,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK1, OCIE1C)) err_is_interrupt();
-        else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+      #if ENABLED(TCCR0A) && ENABLED(COM0A1)
+        case TIMER0A:
+          TIMER_PREFIX(0,A,3);
+          if (WGM_TEST1) err_is_counter();
+          else if (TEST(TIMSK0, OCIE0A)) err_is_interrupt();
+          else if (TEST(TIMSK0, TOIE0)) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER0B:
+          TIMER_PREFIX(0,B,3);
+          if (WGM_TEST1) err_is_counter();
+          else if (TEST(TIMSK0, OCIE0B)) err_is_interrupt();
+          else if (TEST(TIMSK0, TOIE0)) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-    #if defined(TCCR2A) && defined(COM2A1)
-      case TIMER2A:
-        TIMER_PREFIX(2,A,3);
-        if (WGM_TEST1) err_is_counter();
-        else if (TIMSK2 & (_BV(TOIE2) | _BV(OCIE2A))) err_is_interrupt();
-        else if (TEST(TIMSK2, TOIE2)) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER2B:
-        TIMER_PREFIX(2,B,3);
-        if (WGM_TEST1) err_is_counter();
-        else if (TEST(TIMSK2, OCIE2B)) err_is_interrupt();
-        else if (TEST(TIMSK2, TOIE2)) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+      #if ENABLED(TCCR1A) && ENABLED(COM1A1)
+        case TIMER1A:
+          TIMER_PREFIX(1,A,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK1, OCIE1A)) err_is_interrupt();
+          else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER1B:
+          TIMER_PREFIX(1,B,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK1, OCIE1B)) err_is_interrupt();
+          else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER1C:
+          TIMER_PREFIX(1,C,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK1, OCIE1C)) err_is_interrupt();
+          else if (TIMSK1 & (_BV(TOIE1) | _BV(ICIE1))) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-    #if defined(TCCR3A) && defined(COM3A1)
-      case TIMER3A:
-        TIMER_PREFIX(3,A,3);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK3, OCIE3A)) err_is_interrupt();
-        else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER3B:
-        TIMER_PREFIX(3,B,3);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK3, OCIE3B)) err_is_interrupt();
-        else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER3C:
-        TIMER_PREFIX(3,C,3);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK3, OCIE3C)) err_is_interrupt();
-        else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+      #if ENABLED(TCCR2A) && ENABLED(COM2A1)
+        case TIMER2A:
+          TIMER_PREFIX(2,A,3);
+          if (WGM_TEST1) err_is_counter();
+          else if (TIMSK2 & (_BV(TOIE2) | _BV(OCIE2A))) err_is_interrupt();
+          else if (TEST(TIMSK2, TOIE2)) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER2B:
+          TIMER_PREFIX(2,B,3);
+          if (WGM_TEST1) err_is_counter();
+          else if (TEST(TIMSK2, OCIE2B)) err_is_interrupt();
+          else if (TEST(TIMSK2, TOIE2)) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-    #ifdef TCCR4A
-      case TIMER4A:
-        TIMER_PREFIX(4,A,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK4, OCIE4A)) err_is_interrupt();
-        else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER4B:
-        TIMER_PREFIX(4,B,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK4, OCIE4B)) err_is_interrupt();
-        else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER4C:
-        TIMER_PREFIX(4,C,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK4, OCIE4C)) err_is_interrupt();
-        else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+      #if ENABLED(TCCR3A) && ENABLED(COM3A1)
+        case TIMER3A:
+          TIMER_PREFIX(3,A,3);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK3, OCIE3A)) err_is_interrupt();
+          else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER3B:
+          TIMER_PREFIX(3,B,3);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK3, OCIE3B)) err_is_interrupt();
+          else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER3C:
+          TIMER_PREFIX(3,C,3);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK3, OCIE3C)) err_is_interrupt();
+          else if (TIMSK3 & (_BV(TOIE3) | _BV(ICIE3))) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-    #if defined(TCCR5A) && defined(COM5A1)
-      case TIMER5A:
-        TIMER_PREFIX(5,A,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK5, OCIE5A)) err_is_interrupt();
-        else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER5B:
-        TIMER_PREFIX(5,B,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK5, OCIE5B)) err_is_interrupt();
-        else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
-        else can_be_used();
-        break;
-      case TIMER5C:
-        TIMER_PREFIX(5,C,4);
-        if (WGM_TEST2) err_is_counter();
-        else if (TEST(TIMSK5, OCIE5C)) err_is_interrupt();
-        else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
-        else can_be_used();
-        break;
-    #endif
+      #ifdef TCCR4A
+        case TIMER4A:
+          TIMER_PREFIX(4,A,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK4, OCIE4A)) err_is_interrupt();
+          else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER4B:
+          TIMER_PREFIX(4,B,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK4, OCIE4B)) err_is_interrupt();
+          else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER4C:
+          TIMER_PREFIX(4,C,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK4, OCIE4C)) err_is_interrupt();
+          else if (TIMSK4 & (_BV(TOIE4) | _BV(ICIE4))) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-  	case NOT_ON_TIMER: break;
+      #if ENABLED(TCCR5A) && ENABLED(COM5A1)
+        case TIMER5A:
+          TIMER_PREFIX(5,A,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK5, OCIE5A)) err_is_interrupt();
+          else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER5B:
+          TIMER_PREFIX(5,B,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK5, OCIE5B)) err_is_interrupt();
+          else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
+          else can_be_used();
+          break;
+        case TIMER5C:
+          TIMER_PREFIX(5,C,4);
+          if (WGM_TEST2) err_is_counter();
+          else if (TEST(TIMSK5, OCIE5C)) err_is_interrupt();
+          else if (TIMSK5 & (_BV(TOIE5) | _BV(ICIE5))) err_prob_interrupt();
+          else can_be_used();
+          break;
+      #endif
 
-	}
-  SERIAL_M("  ");
-}  // PWM_details
+      case NOT_ON_TIMER: break;
+
+    }
+    SERIAL_M("  ");
+  }  // pwm_details
+
+#endif
 
 inline void report_pin_state(int8_t pin) {
   SERIAL_V((int)pin);
@@ -946,22 +954,27 @@ inline void report_pin_state_extended(int8_t pin, bool ignore) {
     SERIAL_M("protected ");
   else {
     if (analog_pin) {
-      sprintf(buffer, "Analog in =% 5d", analogRead(pin - analogInputToDigitalPin(0)));
-      SERIAL_T(buffer);
+      #if DISABLED(ARDUINO_ARCH_SAM)
+        sprintf(buffer, "Analog in =% 5d", analogRead(pin - analogInputToDigitalPin(0)));
+        SERIAL_T(buffer);
+      #endif
     }
     else {
       if (!get_pinMode(pin)) {
         pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
         SERIAL_MT("Input  = ", digitalRead_mod(pin));
       }
-      else if (PWM_status(pin)) {
+      else if (pwm_status(pin)) {
         // do nothing
       }
       else SERIAL_MT("Output = ", digitalRead_mod(pin));
     }
   }
 
-  // report PWM capabilities
-  PWM_details(pin);
+  #if DISABLED(ARDUINO_ARCH_SAM)
+    // report PWM capabilities
+    pwm_details(pin);
+  #endif
+
   SERIAL_E;
 }

@@ -2022,7 +2022,7 @@ class SdFile : public SdBaseFile {
   SdFile() {}
   SdFile(const char* name, uint8_t oflag);
 
-  #ifdef __SAM3X8E__
+  #ifdef ARDUINO_ARCH_SAM
     #if DESTRUCTOR_CLOSES_FILE
       ~SdFile() {}
     #endif  // DESTRUCTOR_CLOSES_FILE

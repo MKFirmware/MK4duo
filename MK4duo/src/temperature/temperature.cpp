@@ -236,7 +236,7 @@ int Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_TEMP
   int Temperature::cooler_maxttemp_raw = COOLER_RAW_HI_TEMP;
 #endif
 
-#if ENABLED(__SAM3X8E__)
+#if ENABLED(ARDUINO_ARCH_SAM)
   #define CORRECTION_FOR_RAW_TEMP 4
   #define RAW_MIN_TEMP_DEFAULT 123000
   #define RAW_MEDIAN_TEMP_DEFAULT 3600 * OVERSAMPLENR
@@ -1182,11 +1182,7 @@ float Temperature::analog2temp(int raw, uint8_t h) {
   }
 
   #if HEATER_USES_AD595
-    #if ENABLED(__SAM3X8E__)
-      return ((raw * ((3.3 * 100.0) / 1024.0) / OVERSAMPLENR) * ad595_gain[h]) + ad595_offset[h];
-    #else
-      return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * ad595_gain[h]) + ad595_offset[h];
-    #endif
+    return ((raw * (((HAL_VOLTAGE_PIN) * 100.0 / 1024.0) / OVERSAMPLENR) * ad595_gain[h]) + ad595_offset[h];
   #else
     return 0;
   #endif
@@ -1215,11 +1211,7 @@ float Temperature::analog2tempBed(int raw) {
     return celsius;
 
   #elif ENABLED(BED_USES_AD595)
-    #if ENABLED(__SAM3X8E__)
-      return ((raw * ((3.3 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-    #else
-      return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-    #endif
+    return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
   #else
     UNUSED(raw);
     return 0;
@@ -1248,11 +1240,7 @@ float Temperature::analog2tempBed(int raw) {
       return celsius;
 
     #elif ENABLED(CHAMBER_USES_AD595)
-      #if ENABLED(__SAM3X8E__)
-        return ((raw * ((3.3 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-      #else
-        return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-      #endif
+      return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
     #else
       UNUSED(raw);
       return 0;
@@ -1282,11 +1270,7 @@ float Temperature::analog2tempBed(int raw) {
       return celsius;
 
     #elif ENABLED(COOLER_USES_AD595)
-      #if ENABLED(__SAM3X8E__)
-        return ((raw * ((3.3 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-      #else
-        return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
-      #endif
+      return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
     #else
       UNUSED(raw);
       return 0;
@@ -1371,13 +1355,13 @@ void Temperature::updateTemperaturesFromRawValues() {
 #if HAS(POWER_CONSUMPTION_SENSOR)
   // Convert raw Power Consumption to watt
   float Temperature::raw_analog2voltage() {
-    return (5.0 * current_raw_powconsumption) / (1023.0 * OVERSAMPLENR);
+    return ((HAL_VOLTAGE_PIN) * current_raw_powconsumption) / (1023.0 * OVERSAMPLENR);
   }
 
   float Temperature::analog2voltage() {
     float power_zero_raw = (POWER_ZERO * 1023.0 * OVERSAMPLENR) / 5.0;
     float rel_raw_power = (current_raw_powconsumption < power_zero_raw) ? (2 * power_zero_raw - current_raw_powconsumption) : (current_raw_powconsumption);
-    return ((5.0 * rel_raw_power) / (1023.0 * OVERSAMPLENR)) - POWER_ZERO;
+    return (((HAL_VOLTAGE_PIN) * rel_raw_power) / (1023.0 * OVERSAMPLENR)) - POWER_ZERO;
   }
 
   float Temperature::analog2current() {
@@ -1465,14 +1449,14 @@ void Temperature::init() {
     OUT_WRITE(MOSI_PIN, HIGH);
     SET_INPUT(MISO_PIN);
     WRITE(MISO_PIN,1);
-    OUT_WRITE(SDSS, HIGH);
+    OUT_WRITE(SS_PIN, HIGH);
 
     OUT_WRITE(MAX6675_SS, HIGH);
 
   #endif // HEATER_0_USES_MAX6675
 
   // Set analog inputs
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     #define ANALOG_SELECT(pin) startAdcConversion(pinToAdcChannel(pin))
   #else
     #ifdef DIDR2
@@ -1483,9 +1467,9 @@ void Temperature::init() {
   #endif
 
   // Setup channels
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     // ADC_MR_FREERUN_ON: Free Run Mode. It never waits for any trigger.
-    ADC->ADC_MR |= ADC_MR_FREERUN_ON | ADC_MR_LOWRES_BITS_12;
+    setAdcFreerun();
   #else
     ADCSRA = _BV(ADEN) | _BV(ADSC) | _BV(ADIF) | 0x07;
     DIDR0 = 0;
@@ -1554,8 +1538,9 @@ void Temperature::init() {
 
   // Use timer0 for temperature measurement
   // Interleave temperature interrupt with millies interrupt
-  #if ENABLED(__SAM3X8E__)
-    HAL_temp_timer_start(TEMP_TIMER_NUM);
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    HAL_TIMER_START(TEMP_TIMER);
+    HAL_TIMER_SET_TEMP_COUNT(128 * TEMP_TIMER_FACTOR);
   #else
     OCR0B = 128;
   #endif
@@ -1912,7 +1897,7 @@ void Temperature::disable_all_heaters() {
 
     next_max6675_ms = ms + MAX6675_HEAT_INTERVAL;
 
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL::spiBegin();
       HAL::spiInit(2);
     #else
@@ -1929,7 +1914,7 @@ void Temperature::disable_all_heaters() {
     HAL::digitalWrite(MAX6675_SS, 0);  // enable TT_MAX6675
 
     // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL::delayMicroseconds(1);
     #else
       asm("nop");//50ns on 20Mhz, 62.5ns on 16Mhz
@@ -1939,7 +1924,7 @@ void Temperature::disable_all_heaters() {
     // Read a big-endian temperature value
     max6675_temp = 0;
     for (uint8_t i = sizeof(max6675_temp); i--;) {
-      #if ENABLED(__SAM3X8E__)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         max6675_temp |= HAL::spiReceive();
       #else
         SPDR = 0;
@@ -1982,11 +1967,11 @@ void Temperature::disable_all_heaters() {
 /**
  * Get raw temperatures
  */
-#if ENABLED(__SAM3X8E__)
+#if ENABLED(ARDUINO_ARCH_SAM)
   int Temperature::calc_raw_temp_value(uint8_t temp_id) {
     raw_median_temp[temp_id][median_counter] = (raw_temp_value[temp_id] - (min_temp[temp_id] + max_temp[temp_id]));
     sum = 0;
-    for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i];
+    for(uint8_t i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[temp_id][i];
     return (sum / MEDIAN_COUNT + CORRECTION_FOR_RAW_TEMP) >> 2;
   }
 
@@ -1994,7 +1979,7 @@ void Temperature::disable_all_heaters() {
     int Temperature::calc_raw_temp_bed_value() {
       raw_median_temp[4][median_counter] = (raw_temp_bed_value - (min_temp[4] + max_temp[4]));
       sum = 0;
-      for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[4][i];
+      for(uint8_t i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[4][i];
       return (sum / MEDIAN_COUNT + CORRECTION_FOR_RAW_TEMP) >> 2;
     }
   #endif
@@ -2003,7 +1988,7 @@ void Temperature::disable_all_heaters() {
     int Temperature::calc_raw_temp_chamber_value() {
       raw_median_temp[5][median_counter] = (raw_temp_chamber_value - (min_temp[5] + max_temp[5]));
       sum = 0;
-      for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[5][i];
+      for(uint8_t i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[5][i];
       return (sum / MEDIAN_COUNT + CORRECTION_FOR_RAW_TEMP) >> 2;
     }
   #endif
@@ -2012,7 +1997,7 @@ void Temperature::disable_all_heaters() {
     int Temperature::calc_raw_temp_cooler_value() {
       raw_median_temp[6][median_counter] = (raw_temp_cooler_value - (min_temp[6] + max_temp[6]));
       sum = 0;
-      for(int i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[6][i];
+      for(uint8_t i = 0; i < MEDIAN_COUNT; i++) sum += raw_median_temp[6][i];
       return (sum / MEDIAN_COUNT + CORRECTION_FOR_RAW_TEMP) >> 2;
     }
   #endif
@@ -2020,7 +2005,7 @@ void Temperature::disable_all_heaters() {
 
 void Temperature::set_current_temp_raw() {
   #if HAS(TEMP_0) && DISABLED(HEATER_0_USES_MAX6675)
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       current_temperature_raw[0] = calc_raw_temp_value(0);
     #else
       current_temperature_raw[0] = raw_temp_value[0];
@@ -2028,26 +2013,26 @@ void Temperature::set_current_temp_raw() {
   #endif
   #if HAS(TEMP_1)
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-      #if ENABLED(__SAM3X8E__)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         redundant_temperature_raw = calc_raw_temp_value(1);
       #else
         redundant_temperature_raw = raw_temp_value[1];
       #endif
     #else
-      #if ENABLED(__SAM3X8E__)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         current_temperature_raw[1] = calc_raw_temp_value(1);
       #else
         current_temperature_raw[1] = raw_temp_value[1];
       #endif
     #endif
     #if HAS(TEMP_2)
-      #if ENABLED(__SAM3X8E__)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         current_temperature_raw[2] = calc_raw_temp_value(2);
       #else
         current_temperature_raw[2] = raw_temp_value[2];
       #endif
       #if HAS(TEMP_3)
-        #if ENABLED(__SAM3X8E__)
+        #if ENABLED(ARDUINO_ARCH_SAM)
           current_temperature_raw[3] = calc_raw_temp_value(3);
         #else
           current_temperature_raw[3] = raw_temp_value[3];
@@ -2056,7 +2041,7 @@ void Temperature::set_current_temp_raw() {
     #endif
   #endif
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     #if HAS(TEMP_BED)
       current_temperature_bed_raw = calc_raw_temp_bed_value();
     #endif
@@ -2079,14 +2064,14 @@ void Temperature::set_current_temp_raw() {
   #endif
 
   #if HAS(POWER_CONSUMPTION_SENSOR)
-    #if ENABLED(__SAM3X8E__)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       current_raw_powconsumption = calc_raw_powconsumption_value();
     #else
       current_raw_powconsumption = raw_powconsumption_value;
     #endif
   #endif
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     // Reset min/max-holder
     for (uint8_t i = 0; i < 7; i++) {
       min_temp[i] = RAW_MIN_TEMP_DEFAULT;
@@ -2113,7 +2098,6 @@ void Temperature::set_current_temp_raw() {
    */
   void endstop_monitor() {
     static uint16_t old_endstop_bits_local = 0;
-    static uint8_t local_LED_status = 0;
     uint16_t current_endstop_bits_local = 0;
     #if HAS_X_MIN
       if (READ(X_MIN_PIN)) SBI(current_endstop_bits_local, X_MIN);
@@ -2174,8 +2158,6 @@ void Temperature::set_current_temp_raw() {
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", !!TEST(current_endstop_bits_local, Z2_MAX));
       #endif
       SERIAL_M("\n\n");
-      analogWrite(LED_PIN, local_LED_status);
-      local_LED_status ^= 255;
       old_endstop_bits_local = current_endstop_bits_local;
     }
   }
@@ -2193,11 +2175,10 @@ void Temperature::set_current_temp_raw() {
  *  - Check new temperature values for MIN/MAX errors
  *  - Step the babysteps value for each axis towards 0
  */
-#if ENABLED(__SAM3X8E__)
-  HAL_TEMP_TIMER_ISR { Temperature::isr(); }
-#else
-  ISR(TIMER0_COMPB_vect) { Temperature::isr(); }
-#endif
+HAL_TEMP_TIMER_ISR {
+  HAL_timer_isr_prologue(TEMP_TIMER);
+  Temperature::isr();
+}
 
 void Temperature::isr() {
   // Allow UART and stepper ISRs
@@ -2208,7 +2189,7 @@ void Temperature::isr() {
   static TempState temp_state = StartupDelay;
   static uint8_t pwm_count = _BV(SOFT_PWM_SCALE);
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     static int temp_read = 0;
     static bool first_start = true;
   #endif
@@ -2249,7 +2230,7 @@ void Temperature::isr() {
     static unsigned long raw_filwidth_value = 0;
   #endif
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     // Initialize some variables only at start!
     if (first_start) {
  	    for (uint8_t i = 0; i < 7; i++) {
@@ -2260,8 +2241,6 @@ void Temperature::isr() {
       first_start = false;
       SERIAL_EM("First start for temperature finished.");
     }
-
-    HAL_timer_isr_status (TEMP_TIMER_COUNTER, TEMP_TIMER_CHANNEL);
   #endif
 
   #if DISABLED(SLOW_PWM_HEATERS)
@@ -2483,7 +2462,7 @@ void Temperature::isr() {
 
   #endif // SLOW_PWM_HEATERS
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     #define SET_RAW_TEMP_VALUE(temp_id) temp_read = getAdcFreerun(pinToAdcChannel(TEMP_## temp_id ##_PIN)); \
       raw_temp_value[temp_id] += temp_read; \
       max_temp[temp_id] = max(max_temp[temp_id], temp_read); \
@@ -2503,178 +2482,127 @@ void Temperature::isr() {
       raw_temp_cooler_value += temp_read; \
       max_temp[6] = max(max_temp[6], temp_read); \
       min_temp[6] = min(min_temp[6], temp_read)
+
+    #define START_ADC(pin) // nothing todo for Due
+
   #else
+
     #define SET_ADMUX_ADCSRA(pin) ADMUX = _BV(REFS0) | (pin & 0x07); SBI(ADCSRA, ADSC)
     #ifdef MUX5
       #define START_ADC(pin) if (pin > 7) ADCSRB = _BV(MUX5); else ADCSRB = 0; SET_ADMUX_ADCSRA(pin)
     #else
       #define START_ADC(pin) ADCSRB = 0; SET_ADMUX_ADCSRA(pin)
     #endif
+
+    #define SET_RAW_TEMP_VALUE(temp_id)   raw_temp_value[temp_id] += ADC
+    #define SET_RAW_TEMP_BED_VALUE()      raw_temp_bed_value += ADC
+    #define SET_RAW_TEMP_CHAMBER_VALUE()  raw_temp_chamber_value += ADC
+    #define SET_RAW_TEMP_COOLER_VALUE()   raw_temp_cooler_value += ADC
   #endif
 
   // Prepare or measure a sensor, each one every 14th frame
   switch (temp_state) {
     case PrepareTemp_0:
       #if HAS(TEMP_0)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_0_PIN);
-        #endif
+        START_ADC(TEMP_0_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_0;
       break;
     case MeasureTemp_0:
       #if HAS(TEMP_0)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_VALUE(0);
-        #else
-          raw_temp_value[0] += ADC;
-        #endif
+        SET_RAW_TEMP_VALUE(0);
       #endif
       temp_state = PrepareTemp_BED;
       break;
 
     case PrepareTemp_BED:
       #if HAS(TEMP_BED)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_BED_PIN);
-        #endif
+        START_ADC(TEMP_BED_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_BED;
       break;
     case MeasureTemp_BED:
       #if HAS(TEMP_BED)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_BED_VALUE();
-        #else
-          raw_temp_bed_value += ADC;
-        #endif
+        SET_RAW_TEMP_BED_VALUE();
       #endif
       temp_state = PrepareTemp_1;
       break;
 
     case PrepareTemp_1:
       #if HAS(TEMP_1)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_1_PIN);
-        #endif
+        START_ADC(TEMP_1_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_1;
       break;
     case MeasureTemp_1:
       #if HAS(TEMP_1)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_VALUE(1);
-        #else
-          raw_temp_value[1] += ADC;
-        #endif
+        SET_RAW_TEMP_VALUE(1);
       #endif
       temp_state = PrepareTemp_2;
       break;
 
     case PrepareTemp_2:
       #if HAS(TEMP_2)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_2_PIN);
-        #endif
+        START_ADC(TEMP_2_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_2;
       break;
     case MeasureTemp_2:
       #if HAS(TEMP_2)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_VALUE(2);
-        #else
-          raw_temp_value[2] += ADC;
-        #endif
+        SET_RAW_TEMP_VALUE(2);
       #endif
       temp_state = PrepareTemp_3;
       break;
 
     case PrepareTemp_3:
       #if HAS(TEMP_3)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_3_PIN);
-        #endif
+        START_ADC(TEMP_3_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_3;
       break;
     case MeasureTemp_3:
       #if HAS(TEMP_3)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_VALUE(3);
-        #else
-          raw_temp_value[3] += ADC;
-        #endif
+        SET_RAW_TEMP_VALUE(3);
       #endif
       temp_state = PrepareTemp_CHAMBER;
       break;
 
     case PrepareTemp_CHAMBER:
       #if HAS(TEMP_CHAMBER)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_CHAMBER_PIN);
-        #endif
+        START_ADC(TEMP_CHAMBER_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_CHAMBER;
       break;
     case MeasureTemp_CHAMBER:
       #if HAS(TEMP_CHAMBER)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_CHAMBER_VALUE();
-        #else
-          raw_temp_chamber_value += ADC;
-        #endif
+        SET_RAW_TEMP_CHAMBER_VALUE();
       #endif
       temp_state = PrepareTemp_COOLER;
       break;
 
     case PrepareTemp_COOLER:
       #if HAS(TEMP_COOLER)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(TEMP_COOLER_PIN);
-        #endif
+        START_ADC(TEMP_COOLER_PIN);
       #endif
       lcd_buttons_update();
       temp_state = MeasureTemp_COOLER;
       break;
     case MeasureTemp_COOLER:
       #if HAS(TEMP_COOLER)
-        #if ENABLED(__SAM3X8E__)
-          SET_RAW_TEMP_COOLER_VALUE();
-        #else
-          raw_temp_cooler_value += ADC;
-        #endif
+        SET_RAW_TEMP_COOLER_VALUE();
       #endif
       temp_state = Prepare_FILWIDTH;
       break;
 
     case Prepare_FILWIDTH:
       #if HAS(FILAMENT_SENSOR)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(FILWIDTH_PIN);
-        #endif
+        START_ADC(FILWIDTH_PIN);
       #endif
       lcd_buttons_update();
       temp_state = Measure_FILWIDTH;
@@ -2692,18 +2620,14 @@ void Temperature::isr() {
 
     case Prepare_POWCONSUMPTION:
       #if HAS(POWER_CONSUMPTION_SENSOR)
-        #if ENABLED(__SAM3X8E__)
-          // nothing todo for Due
-        #else
-          START_ADC(POWER_CONSUMPTION_PIN);
-        #endif
+        START_ADC(POWER_CONSUMPTION_PIN);
       #endif
       lcd_buttons_update();
       temp_state = Measure_POWCONSUMPTION;
       break;
     case Measure_POWCONSUMPTION:
       #if HAS(POWER_CONSUMPTION_SENSOR)
-        #if ENABLED(__SAM3X8E__)
+        #if ENABLED(ARDUINO_ARCH_SAM)
           raw_powconsumption_value = analogRead(POWER_CONSUMPTION_PIN);
         #else
           raw_powconsumption_value += ADC;
@@ -2722,7 +2646,7 @@ void Temperature::isr() {
     //  break;
   } // switch(temp_state)
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     if (temp_count >= OVERSAMPLENR + 2) { // 14 * 16 * 1/(16000000/64/256)  = 164ms.
   #else
     if (temp_count >= OVERSAMPLENR) { // 10 * 16 * 1/(16000000/64/256)  = 164ms.

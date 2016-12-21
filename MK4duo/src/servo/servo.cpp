@@ -43,7 +43,7 @@
 #if HAS(SERVOS)
   #include "servo.h"
 
-  #ifdef __SAM3X8E__
+  #ifdef ARDUINO_ARCH_SAM
     #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / 32)     // converts microseconds to tick
     #define ticksToUs(_ticks) (( (unsigned)_ticks * 32) / clockCyclesPerMicrosecond() ) // converts from ticks back to microseconds
   #else
@@ -69,7 +69,7 @@
 
   /************ static functions common to all instances ***********************/
 
-  #if ENABLED(__SAM3X8E__)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     //------------------------------------------------------------------------------
     /// Interrupt handler for the TC0 channel 1.
     //------------------------------------------------------------------------------
@@ -191,7 +191,7 @@
       #endif
     }
 
-  #else // !__SAM3X8E__
+  #else // !ARDUINO_ARCH_SAM
 
     static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t *TCNTn, volatile uint16_t* OCRnA) {
       if( Channel[timer] < 0 )

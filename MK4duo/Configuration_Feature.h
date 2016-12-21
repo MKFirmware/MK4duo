@@ -53,7 +53,6 @@
  * - Home Y before X
  * - Force Home XY before Home Z
  * - Babystepping
- * - Ensure Smooth Moves
  * - Firmware retract
  * - Dual X-carriage
  * - X-axis dual driver
@@ -641,45 +640,6 @@
 /**************************************************************************/
 
 
-/************************************************************************************
- ******************************** Ensure Smooth Moves *******************************
- ************************************************************************************
- *                                                                                  *
- * Enable this option to prevent the machine from stuttering when printing multiple *
- * short segments.                                                                  *
- * This feature uses two strategies to eliminate stuttering:                        *
- *                                                                                  *
- * 1. During short segments a Graphical LCD update may take so much time that the   *
- *    planner buffer gets completely drained. When this happens pauses are          *
- *    introduced between short segments, and print moves will become jerky until a  *
- *    longer segment provides enough time for the buffer to be filled again.        *
- *    This jerkiness negatively affects print quality. The ENSURE SMOOTH MOVES      *
- *    option addresses the issue by pausing the LCD until there's enough time to    *
- *    safely update.                                                                *
- *                                                                                  *
- *    NOTE: This will cause the Info Screen to lag and controller buttons may       *
- *           become unresponsive. Enable ALWAYS ALLOW MENU to keep the controller   *
- *          responsive.                                                             *
- *                                                                                  *
- * 2. No block is allowed to take less time than MIN_BLOCK_TIME. That's the time it *
- *    takes in the main loop to add a new block to the buffer, check temperatures,  *
- *    etc., including all blocked time due to interrupts (without LCD update).      *
- *    By enforcing a minimum time-per-move, the buffer is prevented from draining.  *
- ************************************************************************************/
-//#define ENSURE_SMOOTH_MOVES
-
-// If enabled, the menu will always be responsive.
-// WARNING: Menu navigation during short moves may cause stuttering!
-//#define ALWAYS_ALLOW_MENU
-
-// (ms) Minimum duration for the current segment to allow an LCD update.
-#define LCD_UPDATE_THRESHOLD 135
-// Default value is good for graphical LCDs (e.g., REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER).
-// (µs) Minimum duration of a single block. You shouldn't need to modify this.
-#define MIN_BLOCK_TIME 5000UL
-/*************************************************************************************/
-
-
 /**************************************************************************
  *************************** Firmware retract *****************************
  **************************************************************************
@@ -729,16 +689,16 @@
 // Remember: you should set the second extruder x-offset to 0 in your slicer.
 
 // There are a few selectable movement modes for dual x-carriages using M605 S<mode>
-//    Mode 0: Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
-//                           as long as it supports dual x-carriages. (M605 S0)
-//    Mode 1: Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
-//                           that additional slicer support is not required. (M605 S1)
-//    Mode 2: Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
-//                           actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
-//                           once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
+//    Mode 0 (DXC_FULL_CONTROL_MODE): Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
+//                                    as long as it supports dual x-carriages. (M605 S0)
+//    Mode 1 (DXC_AUTO_PARK_MODE)   : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
+//                                    that additional slicer support is not required. (M605 S1)
+//    Mode 2 (DXC_DUPLICATION_MODE) : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
+//                                    actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
+//                                    once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
 
 // This is the default power-up mode which can be later using M605.
-#define DEFAULT_DUAL_X_CARRIAGE_MODE 0
+#define DEFAULT_DUAL_X_CARRIAGE_MODE DXC_FULL_CONTROL_MODE
 
 // Default settings in "Auto-park Mode"
 #define TOOLCHANGE_PARK_ZLIFT   0.2      // the distance to raise Z axis when parking an extruder
@@ -1060,7 +1020,6 @@
  ******************************* LCD ***********************************
  ***********************************************************************/
 
-//
 // LCD Character Set
 //
 // Note: This option is NOT applicable to Graphical Displays.
@@ -1088,7 +1047,6 @@
 #define STRING_SPLASH_LINE2 STRING_DISTRIBUTION_DATE      // will be shown during bootup in line 2
 #define SPLASH_SCREEN_DURATION 5000                       // SPLASH SCREEN duration in millisecond
 
-//
 // LCD TYPE
 //
 // You may choose ULTRA_LCD if you have character based LCD with 16x2, 16x4, 20x2,
@@ -1101,7 +1059,24 @@
 //#define ULTRA_LCD   // Character based
 //#define DOGLCD      // Full graphics display
 
-// Some additional options are available for graphical displays:
+
+// Additional options for Graphical Displays
+// 
+// Use the optimizations here to improve printing performance,
+// which can be adversely affected by graphical display drawing,
+// especially when doing several short moves, and when printing
+// on DELTA and SCARA machines.
+// 
+// Some of these options may result in the display lagging behind
+// controller events, as there is a trade-off between reliable
+// printing performance versus fast display updates.
+
+// Enable to save many cycles by drawing a hollow frame on the Info Screen
+#define XYZ_HOLLOW_FRAME
+
+// Enable to save many cycles by drawing a hollow frame on Menu Screens
+#define MENU_HOLLOW_FRAME
+
 // A bigger font is available for edit items. Costs 3120 bytes of PROGMEM.
 // Western only. Not available for Cyrillic, Kana, Turkish, Greek, or Chinese.
 //#define USE_BIG_EDIT_FONT
@@ -1114,18 +1089,14 @@
 // The normal delay is 10µs. Use the lowest value that still gives a reliable display.
 //#define DOGM_SPI_DELAY_US 5
 
-//
 // ENCODER SETTINGS
-//
+
 // This option overrides the default number of encoder pulses needed to
 // produce one step. Should be increased for high-resolution encoders.
-//
 //#define ENCODER_PULSES_PER_STEP 1
 
-//
 // Use this option to override the number of step signals required to
 // move between next/prev menu items.
-//
 //#define ENCODER_STEPS_PER_MENU_ITEM 5
 
 //#define LCD_SCREEN_ROT_90    // Rotate screen orientation for graphics display by 90 degree clockwise
@@ -1135,46 +1106,33 @@
 //#define INVERT_CLICK_BUTTON           // Option for invert encoder button logic
 //#define INVERT_BACK_BUTTON            // Option for invert back button logic if avaible
 
-/**
- * Encoder Direction Options
- *
- * Test your encoder's behavior first with both options disabled.
- *
- *  Reversed Value Edit and Menu Nav? Enable REVERSE_ENCODER_DIRECTION.
- *  Reversed Menu Navigation only?    Enable REVERSE_MENU_DIRECTION.
- *  Reversed Value Editing only?      Enable BOTH options.
- */
+// Encoder Direction Options
 
+// Test your encoder's behavior first with both options disabled.
 //
+//  Reversed Value Edit and Menu Nav? Enable REVERSE_ENCODER_DIRECTION.
+//  Reversed Menu Navigation only?    Enable REVERSE_MENU_DIRECTION.
+//  Reversed Value Editing only?      Enable BOTH options.
+
 // This option reverses the encoder direction everywhere
-//
 //  Set this option if CLOCKWISE causes values to DECREASE
-//
 //#define REVERSE_ENCODER_DIRECTION
 
-//
 // This option reverses the encoder direction for navigating LCD menus.
-//
 //  If CLOCKWISE normally moves DOWN this makes it go UP.
 //  If CLOCKWISE normally moves UP this makes it go DOWN.
-//
 //#define REVERSE_MENU_DIRECTION
 
-//
 // SPEAKER/BUZZER
-//
 // If you have a speaker that can produce tones, enable it here.
 // By default Marlin assumes you have a buzzer with a fixed frequency.
-//
 //#define SPEAKER
 
-//
 // The duration and frequency for the UI feedback sound.
 // Set these to 0 to disable audio feedback in the LCD menus.
-//
+
 // Note: Test audio output with the G-Code:
 //  M300 S<frequency Hz> P<duration ms>
-//
 //#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
 //#define LCD_FEEDBACK_FREQUENCY_HZ 1000
 
@@ -1185,24 +1143,17 @@
 // Include a page of printer information in the LCD Main Menu
 #define LCD_INFO_MENU
 
-//
 // CONTROLLER TYPE: Standard
-//
-// Marlin supports a wide variety of controllers.
-// Enable one of the following options to specify your controller.
-//
 
-//
+// MK4duo supports a wide variety of controllers.
+// Enable one of the following options to specify your controller.
+
 // ULTIMAKER Controller.
-//
 //#define ULTIMAKERCONTROLLER
 
-//
 // ULTIPANEL as seen on Thingiverse.
-//
 //#define ULTIPANEL
 
-//
 // Cartesio UI
 // http://mauk.cc/webshop/cartesio-shop/electronics/user-interface
 //
@@ -1212,25 +1163,21 @@
 // http://max3dshop.org/index.php/default/elektronik/radds-lcd-sd-display-with-reset-and-back-buttom.html
 //#define RADDS_DISPLAY
 
-//
 // PanelOne from T3P3 (via RAMPS 1.4 AUX2/AUX3)
 // http://reprap.org/wiki/PanelOne
 //
 //#define PANEL_ONE
 
-//
 // MaKr3d Makr-Panel with graphic controller and SD support.
 // http://reprap.org/wiki/MaKr3d_MaKrPanel
 //
 //#define MAKRPANEL
 
-//
 // ReprapWorld Graphical LCD
 // https://reprapworld.com/?products_details&products_id/1218
 //
 //#define REPRAPWORLD_GRAPHICAL_LCD
 
-//
 // Activate one of these if you have a Panucatt Devices
 // Viki 2.0 or mini Viki with Graphic LCD
 // http://panucatt.com
@@ -1238,13 +1185,11 @@
 //#define VIKI2
 //#define miniVIKI
 
-//
 // Adafruit ST7565 Full Graphic Controller.
 // https://github.com/eboston/Adafruit-ST7565-Full-Graphic-Controller/
 //
 //#define ELB_FULL_GRAPHIC_CONTROLLER
 
-//
 // RepRapDiscount Smart Controller.
 // http://reprap.org/wiki/RepRapDiscount_Smart_Controller
 //
@@ -1252,7 +1197,6 @@
 //
 //#define REPRAP_DISCOUNT_SMART_CONTROLLER
 
-//
 // GADGETS3D G3D LCD/SD Controller
 // http://reprap.org/wiki/RAMPS_1.3/1.4_GADGETS3D_Shield_with_Panel
 //
@@ -1260,19 +1204,16 @@
 //
 //#define G3D_PANEL
 
-//
 // RepRapDiscount FULL GRAPHIC Smart Controller
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
 //#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
-//
 // MakerLab Mini Panel with graphic
 // controller and SD support - http://reprap.org/wiki/Mini_panel
 //
 //#define MINIPANEL
 
-//
 // RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626
 //
@@ -1282,42 +1223,34 @@
 //#define REPRAPWORLD_KEYPAD
 //#define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
 
-//
 // RigidBot Panel V1.0
 // http://www.inventapart.com/
 //
 //#define RIGIDBOT_PANEL
 
-//
 // BQ LCD Smart Controller shipped by
 // default with the BQ Hephestos 2 and Witbox 2.
 //
 //#define BQ_LCD_SMART_CONTROLLER
 
-//
 // CONTROLLER TYPE: I2C
 //
 // Note: These controllers require the installation of Arduino's LiquidCrystal_I2C
 // library. For more info: https://github.com/kiyoshigawa/LiquidCrystal_I2C
-//
 
-//
 // Elefu RA Board Control Panel
 // http://www.elefu.com/index.php?route=product/product&product_id=53
 //
 //#define RA_CONTROL_PANEL
 
-//
 // Sainsmart YW Robot (LCM1602) LCD Display
 //
 //#define LCD_I2C_SAINSMART_YWROBOT
 
-//
 // Generic LCM1602 LCD adapter
 //
 //#define LCM1602
 
-//
 // PANELOLU2 LCD with status LEDs,
 // separate encoder and click inputs.
 //
@@ -1329,23 +1262,19 @@
 //
 //#define LCD_I2C_PANELOLU2
 
-//
 // Panucatt VIKI LCD with status LEDs,
 // integrated click & L/R/U/D buttons, separate encoder inputs.
 //
 //#define LCD_I2C_VIKI
 
-//
 // SSD1306 OLED full graphics generic display
 //
 //#define U8GLIB_SSD1306
 
-//
 // SAV OLEd LCD module support using either SSD1306 or SH1106 based LCD modules
 //
 //#define SAV_3DGLCD
 
-//
 // CONTROLLER TYPE: Shift register panels
 //
 // 2 wire Non-latching LCD SR from https://goo.gl/aJJ4sH
@@ -1353,9 +1282,7 @@
 //
 //#define SAV_3DLCD
 
-//
 // CONTROLLER TYPE: Serial display
-//
 
 // Nextion 4.3" HMI panel model NX4827T043_11
 //#define NEXTION
@@ -1370,10 +1297,16 @@
 
 // Show a progress bar on HD44780 LCDs for SD printing
 //#define LCD_PROGRESS_BAR
-#define PROGRESS_BAR_BAR_TIME 5000 // Amount of time (ms) to show the bar
-#define PROGRESS_BAR_MSG_TIME 1500 // Amount of time (ms) to show the status message
-#define PROGRESS_MSG_EXPIRE   0    // Amount of time (ms) to retain the status message (0=forever)
-//#define PROGRESS_MSG_ONCE        // Uncomment this to show messages for MSG_TIME then hide them
+// Amount of time (ms) to show the bar
+#define PROGRESS_BAR_BAR_TIME 5000
+// Amount of time (ms) to show the status message
+#define PROGRESS_BAR_MSG_TIME 1500
+// Amount of time (ms) to retain the status message (0=forever)
+#define PROGRESS_MSG_EXPIRE 0
+// Uncomment this to show messages for MSG_TIME then hide them
+//#define PROGRESS_MSG_ONCE
+// Add a menu item to test the progress bar:
+//#define LCD_PROGRESS_BAR_TEST
 /************************************************************************************************/
 
 

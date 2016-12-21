@@ -215,7 +215,7 @@
    *
    * The result is stored in the cartes[] array.
    */
-  void DeltaParameters::forward_kinematics_DELTA(float Ha, float Hb, float Hc, float machinePos[ABC]) {
+  void DeltaParameters::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
 
     // Create a vector in old coordinates along x axis of new coordinate
     float p12[3] = { towerX[B_AXIS] - towerX[A_AXIS], towerY[B_AXIS] - towerY[A_AXIS], Hb - Ha };
@@ -333,6 +333,19 @@
   void DeltaParameters::convertOutgoingEndstops() {
     for (uint8_t i = 0; i < ABC; i++)
       endstop_adj[i] *= -1;
+  }
+
+  void DeltaParameters::Set_clip_start_height() {
+    float cartesian[XYZ] = {
+      LOGICAL_X_POSITION(0),
+      LOGICAL_Y_POSITION(0),
+      LOGICAL_Z_POSITION(0)
+    };
+    inverse_kinematics_DELTA(cartesian);
+    float distance = delta[A_AXIS];
+    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(DELTA_PRINTABLE_RADIUS);
+    inverse_kinematics_DELTA(cartesian);
+    clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }
 
 #endif

@@ -25,7 +25,7 @@
 #if ENABLED(USE_WATCHDOG)
   #include "watchdog.h"
 
-  #ifdef __SAM3X8E__
+  #ifdef ARDUINO_ARCH_SAM
     // Initialize watchdog with a 4 sec interrupt time
     void watchdog_init() {
       const uint32_t wdtTicks = 256;	// number of watchdog ticks @ 32768Hz/128 before the watchdog times out (max 4095)

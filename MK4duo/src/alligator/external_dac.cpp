@@ -49,7 +49,7 @@
     digitalWrite(SPI_EEPROM1_CS, HIGH);
     digitalWrite(SPI_EEPROM2_CS, HIGH);
     digitalWrite(SPI_FLASH_CS, HIGH);
-    digitalWrite(SDSS, HIGH);
+    digitalWrite(SS_PIN, HIGH);
     HAL::spiBegin();
 
     //init onboard DAC
@@ -102,7 +102,7 @@
     digitalWrite(SPI_EEPROM1_CS, HIGH);
     digitalWrite(SPI_EEPROM2_CS, HIGH);
     digitalWrite(SPI_FLASH_CS, HIGH);
-    digitalWrite(SDSS, HIGH);
+    digitalWrite(SS_PIN, HIGH);
 
     if(channel > 3) { // DAC Piggy E1,E2,E3
       digitalWrite(DAC1_SYNC, LOW);

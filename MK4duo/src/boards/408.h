@@ -7,7 +7,7 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "SMART RAMPS"
 
-#ifndef __SAM3X8E__
+#ifndef ARDUINO_ARCH_SAM
   #error Oops! Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
 #endif
 
@@ -53,8 +53,5 @@
 #define KILL_PIN              -1
 #define SUICIDE_PIN           -1  // PIN that has to be turned on right after start, to keep power flowing
 
-
-
-
-
-
+// SPI for Max6675 or Max31855 Thermocouple
+#define MAX6675_SS            66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present

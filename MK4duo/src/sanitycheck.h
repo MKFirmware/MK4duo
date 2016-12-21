@@ -27,13 +27,10 @@
  */
 
 /**
- * Due to the high number of issues related with old versions of Arduino IDE
- * we are now warning our users to update their toolkits. In a future Marlin
- * release we will stop supporting old IDE versions and will require user
- * action to proceed with compilation in such environments.
+ * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
  */
-#if !defined(ARDUINO) || ARDUINO < 10609
-  #error "Versions of Arduino IDE prior to 1.6.9 are no longer supported, please update your toolkit."
+#if __cplusplus < 201103L
+  #error "Marlin requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
 #endif
 
 // Start check
@@ -570,7 +567,7 @@
 /**
  * Allow only one bed leveling option to be defined
  */
-#if HAS_ABL
+#if HAS(ABL)
   #define COUNT_LEV_1 0
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
     #define COUNT_LEV_2 INCREMENT(COUNT_LEV_1)
@@ -728,7 +725,7 @@
 /**
  * Auto Bed Leveling
  */
-#if HAS_ABL
+#if HAS(ABL)
 
   /**
    * Delta and SCARA have limited bed leveling options
@@ -746,7 +743,7 @@
    */
   #if ABL_GRID
 
-    #ifndef DELTA_PROBEABLE_RADIUS
+    #if DISABLED(DELTA_PROBEABLE_RADIUS)
       // Be sure points are in the right order
       #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
         #error "LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."

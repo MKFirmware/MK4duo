@@ -44,13 +44,12 @@ class EEPROM {
 
   private:
 
-    static void writeData(int& pos, uint8_t* value, uint8_t size);
-    static void readData(int& pos, uint8_t* value, uint8_t size);
+    static void writeData(int &pos, const uint8_t* value, uint16_t size);
+    static void readData(int &pos, uint8_t* value, uint16_t size);
     static void Postprocess();
 
     static uint16_t eeprom_checksum;
-    static bool eeprom_write_error;
-    static char version[6];
+    static const char version[6];
 
 };
 

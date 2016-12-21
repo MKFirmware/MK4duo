@@ -26,18 +26,19 @@
 #include "Arduino.h"
 #include "pins_arduino.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#ifndef __SAM3X8E__
+#ifdef ARDUINO_ARCH_AVR
   #include <avr/pgmspace.h>
+  #include <avr/eeprom.h>
   #include <avr/interrupt.h>
 #endif
 
 #include "src/macros.h"
-#include "src/types.h"
 #include "Boards.h"
 #include "src/mechanics.h"
 
@@ -67,26 +68,13 @@
 
 #if ENABLED(LASERBEAM)
   #include "Configuration_Laser.h"
-  #if ENABLED(LASER_RASTER)
-    #include "src/laser/base64/base64.h"
-  #endif
-  #include "src/laser/laser.h"
 #endif
 
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"
-
 #include "src/sanitycheck.h"
-
-#ifdef __SAM3X8E__
-  #include "src/HAL_SAM/HAL.h"
-  #include "src/HAL_SAM/communication.h"
-#else
-  #include "src/HAL_AVR/HAL.h"
-  #include "src/HAL_AVR/communication.h"
-#endif
-
+#include "src/HAL/HAL.h"
 #include "src/enum.h"
 
 #if HAS(ABL)
@@ -103,6 +91,13 @@
   #include "src/motion/delta_parameters.h"
 #endif
 
+#if ENABLED(LASERBEAM)
+  #if ENABLED(LASER_RASTER)
+    #include "src/laser/base64/base64.h"
+  #endif
+  #include "src/laser/laser.h"
+#endif
+  
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"

@@ -87,7 +87,7 @@
   #define ST7920_DELAY_3 CPU_ST7920_DELAY_3
 #endif
 
-#ifdef __SAM3X8E__
+#ifdef ARDUINO_ARCH_SAM
   #define ST7920_SND_BIT \
     digitalWrite(ST7920_CLK_PIN, LOW);        ST7920_DELAY_1; \
     digitalWrite(ST7920_DAT_PIN, val & 0x80); ST7920_DELAY_2; \

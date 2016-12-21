@@ -292,6 +292,8 @@
     #define HAS_LCD_CONTRAST false
   #endif
 
+  #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
+
 #endif // CONFIGURATION_LCD
 
 /**
