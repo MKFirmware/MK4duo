@@ -5074,7 +5074,6 @@ inline void gcode_G28() {
             }
           #endif
 
-          //idle();
         } while ((bed_level_c < -ac_prec) or (bed_level_c > ac_prec)
               or (bed_level_x < -ac_prec) or (bed_level_x > ac_prec)
               or (bed_level_y < -ac_prec) or (bed_level_y > ac_prec)
@@ -11417,9 +11416,9 @@ static void report_current_position() {
     static millis_t lastMotor = 0;      // Last time a motor was turned on
     static millis_t lastMotorCheck = 0; // Last time the state was checked
     millis_t ms = millis();
-    if (ms >= lastMotorCheck + 2500) { // Not a time critical function, so we only check every 2500ms
-      lastMotorCheck = ms;
-      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON || soft_pwm_bed > 0
+    if (ELAPSED(ms, nextMotorCheck)) {
+      nextMotorCheck = ms + 2500UL; // Not a time critical function, so only check every 2.5s
+      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON || thermalManager.soft_pwm_bed > 0
         || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
         #if EXTRUDERS > 1
           || E1_ENABLE_READ == E_ENABLE_ON
