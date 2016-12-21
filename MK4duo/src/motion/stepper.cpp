@@ -1513,7 +1513,7 @@ void Stepper::quick_stop() {
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
   ENABLE_STEPPER_DRIVER_INTERRUPT();
-  #if HAS(LCD)
+  #if ENABLED(ULTRA_LCD)
     planner.clear_block_buffer_runtime();
   #endif
 }

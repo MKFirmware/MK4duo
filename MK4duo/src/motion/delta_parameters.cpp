@@ -73,22 +73,6 @@
     Q2 = sq(Q);
     D2 = sq(diagonal_rod);
 
-    // Calculate the base carriage height when the printer is homed, i.e. the carriages are at the endstops less the corrections
-    const float tempHeight = diagonal_rod;		// any sensible height will do here
-    float machinePos[ABC];
-    forward_kinematics_DELTA(tempHeight, tempHeight, tempHeight, machinePos);
-    homedCarriageHeight = base_max_pos[Z_AXIS] + tempHeight - machinePos[C_AXIS];
-
-  }
-
-  // Make the average of the endstop adjustments zero, without changing the individual homed carriage heights
-  void DeltaParameters::NormaliseEndstopAdjustments() {
-    const float eav = MIN3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    endstop_adj[A_AXIS] -= eav;
-    endstop_adj[B_AXIS] -= eav;
-    endstop_adj[C_AXIS] -= eav;
-    base_max_pos[Z_AXIS] += eav;
-    homedCarriageHeight += eav;				// no need for a full recalc, this is sufficient
   }
 
   // Compute the derivative of height with respect to a parameter at the specified motor endpoints.
@@ -113,31 +97,26 @@
       case 3:
         hiParams.radius += perturb;
         loParams.radius -= perturb;
-        hiParams.Recalc_delta_constants();
-        loParams.Recalc_delta_constants();
         break;
 
       case 4:
         hiParams.tower_adj[A_AXIS] += perturb;
         loParams.tower_adj[A_AXIS] -= perturb;
-        hiParams.Recalc_delta_constants();
-        loParams.Recalc_delta_constants();
         break;
 
       case 5:
         hiParams.tower_adj[B_AXIS] += perturb;
         loParams.tower_adj[B_AXIS] -= perturb;
-        hiParams.Recalc_delta_constants();
-        loParams.Recalc_delta_constants();
         break;
 
       case 6:
         hiParams.diagonal_rod += perturb;
         loParams.diagonal_rod -= perturb;
-        hiParams.Recalc_delta_constants();
-        loParams.Recalc_delta_constants();
         break;
     }
+
+    hiParams.Recalc_delta_constants();
+    loParams.Recalc_delta_constants();
 
     float newPos[ABC];
     hiParams.forward_kinematics_DELTA((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
@@ -157,14 +136,17 @@
   //  Y tower position adjustment
   //  Diagonal rod length adjustment
   void DeltaParameters::Adjust(const uint8_t numFactors, const float v[]) {
-    const float oldCarriageHeightA = GetHomedCarriageHeight(A_AXIS);	// save for later
 
     // Update endstop adjustments
-    endstop_adj[A_AXIS] += v[0];
-    endstop_adj[B_AXIS] += v[1];
-    endstop_adj[C_AXIS] += v[2];
+    endstop_adj[A_AXIS] -= v[0];
+    endstop_adj[B_AXIS] -= v[1];
+    endstop_adj[C_AXIS] -= v[2];
 
-    NormaliseEndstopAdjustments();
+    // Normalize Endstop
+    const float eav = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
+    endstop_adj[A_AXIS] -= eav;
+    endstop_adj[B_AXIS] -= eav;
+    endstop_adj[C_AXIS] -= eav;
 
     if (numFactors >= 4) {
       radius += v[3];
@@ -178,16 +160,6 @@
 
       Recalc_delta_constants();
     }
-
-    // Adjusting the diagonal_rod and the tower positions affects the homed carriage height.
-    // We need to adjust base_max_pos[Z_AXIS] to allow for this, to get the change that was requested in the endstop corrections.
-    const float heightError = GetHomedCarriageHeight(A_AXIS) + endstop_adj[A_AXIS] - oldCarriageHeightA - v[0];
-    base_max_pos[Z_AXIS] -= heightError;
-    homedCarriageHeight -= heightError;
-
-    // Note: if we adjusted the X and Y tilts, and there are any endstop adjustments, then the homed position won't be exactly in the centre
-    // and changing the tilt will therefore affect the homed height. We ignore this for now. If it is ever significant, a second sutocalibration
-    // run will correct it.
   }
 
   /**
@@ -323,16 +295,6 @@
     SERIAL_MV(" B:", delta[B_AXIS]);
     SERIAL_EMV(" C:", delta[C_AXIS]);
     */
-  }
-
-  void DeltaParameters::convertIncomingEndstops() {
-    for (uint8_t i = 0; i < ABC; i++)
-      endstop_adj[i] *= -1;
-  }
-
-  void DeltaParameters::convertOutgoingEndstops() {
-    for (uint8_t i = 0; i < ABC; i++)
-      endstop_adj[i] *= -1;
   }
 
   void DeltaParameters::Set_clip_start_height() {

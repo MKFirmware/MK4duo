@@ -5208,8 +5208,6 @@ inline void gcode_G28() {
             zBedProbePoints[MaxCalibrationPoints];
       char rply[50];
 
-      deltaParams.convertIncomingEndstops();
-
       SERIAL_MV("Starting Auto Calibration ", numPoints);
       SERIAL_EM(" points");
       LCD_MESSAGEPGM("Auto Calibration...");
@@ -5265,7 +5263,9 @@ inline void gcode_G28() {
       // Do 1 or more Newton-Raphson iterations
       uint8_t iteration = 0;
       float expectedRmsError;
-      for (;;) {
+
+      do {
+        iteration++;
 
         MathMatrix<float, MaxCalibrationPoints, numFactors> derivativeMatrix;
         for (uint8_t i = 0; i < numPoints; i++) {
@@ -5299,10 +5299,9 @@ inline void gcode_G28() {
         // Calculate the expected probe heights using the new parameters
         float expectedResiduals[MaxCalibrationPoints];
         float sumOfSquares = 0.0;
+
         for (uint8_t i = 0; i < numPoints; i++) {
-          for (uint8_t axis = 0; axis < ABC; axis++) {
-            probeMotorPositions(i, axis) += solution[axis];
-          }
+          LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
           float newPosition[ABC];
           deltaParams.forward_kinematics_DELTA(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
           corrections[i] = newPosition[Z_AXIS];
@@ -5312,17 +5311,12 @@ inline void gcode_G28() {
 
         expectedRmsError = sqrt(sumOfSquares / numPoints);
 
-        // Decide whether to do another iteration Two is slightly better than one, but three doesn't improve things.
-        // Alternatively, we could stop when the expected RMS error is only slightly worse than the RMS of the residuals.
-        iteration++;
-        if (iteration == 2) { break; }
-      }
+      } while (iteration < 2);
 
-      sprintf_P(rply, PSTR("Calibrated %d factors using %d points, deviation before %.3f after %.3f"),
+      sprintf_P(rply, PSTR("Calibrated %d factors using %d points, deviation before %.4f after %.4f"),
           numFactors, numPoints, sqrt(initialSumOfSquares / numPoints), expectedRmsError);
       SERIAL_ET(rply);
 
-      deltaParams.convertOutgoingEndstops();
       deltaParams.Recalc_delta_constants();
 
       // Recalibrate Height
@@ -10405,15 +10399,13 @@ void ok_to_send() {
       bed_level_c = probe_bed(0.0, 0.0);
     }
 
-    void apply_endstop_adjustment(float x_endstop, float y_endstop, float z_endstop) {
-      float saved_endstop_adj[ABC] = { 0 };
-      memcpy(saved_endstop_adj, deltaParams.endstop_adj, sizeof(saved_endstop_adj));
+    void apply_endstop_adjustment(const float x_endstop, const float y_endstop, const float z_endstop) {
       deltaParams.endstop_adj[X_AXIS] += x_endstop;
       deltaParams.endstop_adj[Y_AXIS] += y_endstop;
       deltaParams.endstop_adj[Z_AXIS] += z_endstop;
 
       deltaParams.inverse_kinematics_DELTA(current_position);
-      planner.set_position_mm(delta[A_AXIS] - (deltaParams.endstop_adj[A_AXIS] - saved_endstop_adj[A_AXIS]) , delta[B_AXIS] - (deltaParams.endstop_adj[B_AXIS] - saved_endstop_adj[B_AXIS]), delta[C_AXIS] - (deltaParams.endstop_adj[C_AXIS] - saved_endstop_adj[C_AXIS]), current_position[E_AXIS]);  
+      planner.set_position_mm(delta[A_AXIS] - x_endstop , delta[B_AXIS] - y_endstop, delta[C_AXIS] - z_endstop, current_position[E_AXIS]);  
       stepper.synchronize();
     }
 
@@ -10471,21 +10463,9 @@ void ok_to_send() {
 
       if (high_endstop > 0) {
         SERIAL_EMV("Reducing Build height by ", high_endstop);
-        for (uint8_t i = 0; i < ABC; i++) {
-          deltaParams.endstop_adj[i] -= high_endstop;
-        }
-        soft_endstop_max[Z_AXIS] -= high_endstop;
+        LOOP_XYZ(i) deltaParams.endstop_adj[i] -= high_endstop;
+        deltaParams.base_max_pos[Z_AXIS] -= high_endstop;
       }
-
-      /*
-      else if (high_endstop < 0) {
-        SERIAL_EMV("Increment Build height by ", abs(high_endstop));
-        for(uint8_t i = 0; i < 3; i++) {
-          deltaParams.endstop_adj[i] -= high_endstop;
-        }
-        soft_endstop_max[Z_AXIS] -= high_endstop;
-      }
-      */
 
       deltaParams.Recalc_delta_constants();
     }

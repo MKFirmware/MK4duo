@@ -57,12 +57,12 @@
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offset Tamam")                                       // Offset Tamam
 #define MSG_SET_ORIGIN                      _UxGT("Sifir Belirle")                                      // Sifir Belirle
 #define MSG_PREHEAT_1                       _UxGT("Ön Isinma PLA")                                      // Ön Isinma PLA
-#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")                                    //  
+#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")                                    //
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Tüm")                                 //  Tüm
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Tabla")                               //  Tabla
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" Ayar")                                //  Ayar
 #define MSG_PREHEAT_2                       _UxGT("Ön Isinma ABS")                                      // Ön Isinma ABS
-#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")                                    //  
+#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")                                    //
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tüm")                                 //  Tüm
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Tabla")                               //  Tabla
 #define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" Ayar")                                //  Ayar
@@ -91,7 +91,7 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")                //  Max
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Çarpan")             //  Çarpan
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")                                           //  Autotemp
-#define MSG_ON                              _UxGT("On ")                                                // On 
+#define MSG_ON                              _UxGT("On ")                                                // On
 #define MSG_OFF                             _UxGT("Off")                                                // Off
 #define MSG_PID_P                           _UxGT("PID-P")                                              // PID-P
 #define MSG_PID_I                           _UxGT("PID-I")                                              // PID-I
@@ -146,8 +146,8 @@
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Swap Re.mm")                                         // Swap Re.mm
 #define MSG_CONTROL_RETRACTF                _UxGT("Geri Çekme  V")                                      // Geri Çekme V
 #define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Hop mm")                                             // Hop mm
-#define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet +mm")                                          // UnRet +mm
-#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("S UnRet+mm")                                         // S UnRet+mm
+#define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")                                           // UnRet mm
+#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("S UnRet mm")                                         // S UnRetmm
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  V")                                           // UnRet V
 #define MSG_AUTORETRACT                     _UxGT("AutoRetr.")                                          // AutoRetr.
 #define MSG_FILAMENTCHANGE                  _UxGT("Filaman Degistir")                                   // Filaman Degistir

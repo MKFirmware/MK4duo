@@ -212,7 +212,7 @@ class Planner {
       static float extruder_advance_k;
     #endif
 
-    #if HAS(LCD)
+    #if ENABLED(ULTRA_LCD)
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
 
@@ -393,21 +393,21 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t* block = &block_buffer[block_buffer_tail];
-        #if HAS(LCD)
+        #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time; // We can't be sure how long an active block will take, so don't count it.
         #endif
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;
       }
       else {
-        #if HAS(LCD)
+        #if ENABLED(ULTRA_LCD)
           clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
         #endif
         return NULL;
       }
     }
 
-    #if HAS(LCD)
+    #if ENABLED(ULTRA_LCD)
 
       static uint16_t block_buffer_runtime() {
         CRITICAL_SECTION_START

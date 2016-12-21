@@ -938,10 +938,12 @@
       }
     #endif
 
-    if (h == 0) {
-      uint8_t wavetemp = (temp / maxTemp) * 150;
-      Wavetemp.addValue(0, wavetemp);
-    }
+    #if ENABLED(NEXTION_WAVETEMP)
+      if (h == 0) {
+        uint8_t wavetemp = (temp / maxTemp) * 150;
+        Wavetemp.addValue(0, wavetemp);
+      }
+    #endif
   }
 
   static void targetdegtoLCD(const uint8_t h, const float temp) {
