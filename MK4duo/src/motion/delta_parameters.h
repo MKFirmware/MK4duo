@@ -48,7 +48,6 @@
 
       // Function
       void Init();
-      float GetHomedCarriageHeight(AxisEnum axis) const { return homedCarriageHeight + endstop_adj[axis]; }
       float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       void Adjust(const uint8_t numFactors, const float v[]);
       void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]);
@@ -56,13 +55,9 @@
       void inverse_kinematics_DELTA(const float logical[XYZ]);
       void Recalc_delta_constants();
 
-      void convertIncomingEndstops();
-      void convertOutgoingEndstops();
       void Set_clip_start_height();
 
     private:
-
-      void NormaliseEndstopAdjustments();												// Make the average of the endstop adjustments zero
 
       const float degreesToRadians = M_PI / 180.0;
       const float radiansToDegrees = 180.0 / M_PI;
@@ -75,7 +70,6 @@
       float delta_diagonal_rod_2[ABC]; // Diagonal rod 2
       float towerX[ABC];      // The X coordinate of each tower
       float towerY[ABC];      // The Y coordinate of each tower
-      float homedCarriageHeight;
       float Xbc, Xca, Xab, Ybc, Yca, Yab;
       float coreFa, coreFb, coreFc;
       float Q, Q2, D2;

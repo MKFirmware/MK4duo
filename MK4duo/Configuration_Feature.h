@@ -1290,8 +1290,10 @@
 #define NEXTION_SERIAL 1
 // Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
 #define NEXTION_UPDATE_INTERVAL 3000
-// For GFX Visualization enable Nextion GFX
+// For GFX visualization enable NEXTION GFX
 //#define NEXTION_GFX
+// For visualization wave temp enable NEXTION WAVETEMP
+//#define NEXTION_WAVETEMP
 // Define name firmware file for Nextion on SD
 #define NEXTION_FIRMWARE_FILE "mk4duo.tft"
 

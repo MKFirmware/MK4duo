@@ -133,7 +133,7 @@ uint8_t Planner::last_extruder = 0;
         Planner::position_float[NUM_AXIS] = { 0 };
 #endif
 
-#if HAS(LCD)
+#if ENABLED(ULTRA_LCD)
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
 
@@ -1049,7 +1049,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   const uint8_t moves_queued = movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
-  unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
+  #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
+    unsigned long segment_time = lround(1000000.0 / inverse_mm_s);
+  #endif
   #if ENABLED(SLOWDOWN)
     // Segment time im micro seconds
     if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
@@ -1063,7 +1065,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     }
   #endif
 
-  #if HAS(LCD)
+  #if ENABLED(ULTRA_LCD)
     CRITICAL_SECTION_START
       block_buffer_runtime_us += segment_time;
     CRITICAL_SECTION_END
