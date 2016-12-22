@@ -2069,8 +2069,6 @@ static void clean_up_after_endstop_or_probe_move() {
         if (enable) planner.unapply_leveling(current_position);
       }
 
-      SERIAL_LMT(ECHO, "MBL: ", mbl.active() ? MSG_ON : MSG_OFF);
-
     #elif HAS(ABL)
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -2092,8 +2090,6 @@ static void clean_up_after_endstop_or_probe_move() {
         else
           planner.unapply_leveling(current_position);
       }
-
-      SERIAL_LMV(ECHO, "ABL: ", planner.abl_enabled ? MSG_ON : MSG_OFF);
 
     #endif
   }
@@ -4385,6 +4381,10 @@ inline void gcode_G28() {
     #endif
 
     #if MECH(DELTA)
+      // Disable auto bed leveling during G29
+      bool abl_should_enable = planner.abl_enabled;
+      planner.abl_enabled = false;
+
       // Homing
       if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
         home_delta();
@@ -4471,10 +4471,12 @@ inline void gcode_G28() {
 
     stepper.synchronize();
 
-    // Disable auto bed leveling during G29
-    bool abl_should_enable = planner.abl_enabled;
+    #if NOMECH(DELTA)
+      // Disable auto bed leveling during G29
+      bool abl_should_enable = planner.abl_enabled;
 
-    set_bed_leveling_enabled(false);
+      planner.abl_enabled = false;
+    #endif
 
     if (!dryrun) {
       // Re-orient the current position without leveling
@@ -4488,7 +4490,10 @@ inline void gcode_G28() {
     setup_for_endstop_or_probe_move();
 
     // Deploy the probe. Probe will raise if needed.
-    if (DEPLOY_PROBE()) return;
+    if (DEPLOY_PROBE()) {
+      planner.abl_enabled = abl_should_enable;
+      return;
+    }
 
     float xProbe = 0, yProbe = 0, measured_z = 0;
 
@@ -4598,7 +4603,10 @@ inline void gcode_G28() {
 
           measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
-          if (measured_z == NAN) return;
+          if (measured_z == NAN) {
+            planner.abl_enabled = abl_should_enable;
+            return;
+          }
 
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
@@ -4639,7 +4647,10 @@ inline void gcode_G28() {
         measured_z = points[i].z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
       }
 
-      if (measured_z == NAN) return;
+      if (measured_z == NAN) {
+        planner.abl_enabled = abl_should_enable;
+        return;
+      }
 
       if (!dryrun) {
         vector_3 planeNormal = vector_3::cross(points[0] - points[1], points[2] - points[1]).get_normal();
@@ -4657,7 +4668,10 @@ inline void gcode_G28() {
     #endif // !AUTO_BED_LEVELING_3POINT
 
     // Raise to _Z_PROBE_DEPLOY_HEIGHT. Stow the probe.
-    if (STOW_PROBE()) return;
+    if (STOW_PROBE()) {
+      planner.abl_enabled = abl_should_enable;
+      return;
+    }
 
     // Restore state after probing
     clean_up_after_endstop_or_probe_move();
@@ -4852,7 +4866,7 @@ inline void gcode_G28() {
     KEEPALIVE_STATE(IN_HANDLER);
 
     // Auto Bed Leveling is complete! Enable if possible.
-    set_bed_leveling_enabled(dryrun ? abl_should_enable : true);
+    planner.abl_enabled = dryrun ? abl_should_enable : true;
 
     if (planner.abl_enabled)
       SYNC_PLAN_POSITION_KINEMATIC();
@@ -4932,7 +4946,7 @@ inline void gcode_G28() {
    */
   inline void gcode_G30() {
 
-    #if HAS(ABL)
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       set_bed_leveling_enabled(false);
     #endif
 
@@ -5154,7 +5168,7 @@ inline void gcode_G28() {
    */
   inline void gcode_G30() {
 
-    #if HAS(ABL)
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       set_bed_leveling_enabled(false);
     #endif
 
@@ -7592,6 +7606,8 @@ inline void gcode_M226() {
 
     if (to_enable && !planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
+    SERIAL_LMV(ECHO, "ABL: ", planner.abl_enabled ? MSG_ON : MSG_OFF);
+
     // V to print the matrix
     if (code_seen('V')) {
       #if ABL_PLANAR
@@ -8187,9 +8203,9 @@ inline void gcode_M410() { quickstop_stepper(); }
       if (code_seen('Z')) set_z_fade_height(code_value_linear_units());
     #endif
 
-    if (to_enable && !(mbl.active())) {
-      SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
-    }
+    if (to_enable && !(mbl.active())) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+
+    SERIAL_LMV(ECHO, "MBL: ", mbl.active() ? MSG_ON : MSG_OFF);
 
     // V to print the matrix or mesh
     if (code_seen('V') && mbl.has_mesh()) {
