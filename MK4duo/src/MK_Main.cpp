@@ -8477,7 +8477,7 @@ inline void gcode_M532() {
    */
   inline void gcode_M600() {
 
-    if (thermalManager.tooColdToExtrude(active_extruder)) {
+    if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(active_extruder)) {
       SERIAL_LM(ER, MSG_TOO_COLD_FOR_FILAMENTCHANGE);
       return;
     }
