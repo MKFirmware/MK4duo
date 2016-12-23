@@ -122,7 +122,7 @@
 
     #else
 
-      SET_OUTPUT(pin);
+      pinMode(pin, OUTPUT);
       analogWrite(pin, 1);  // let Arduino setup do it's thing to the PWM pin
 
       TCCR3B = 0x00;  // stop Timer4 clock for register updates
@@ -162,7 +162,7 @@
   #else // LASER_PULSE_METHOD
 
     void timer4_init(int pin) {
-      SET_OUTPUT(pin);
+      pinMode(pin, OUTPUT);
       analogWrite(pin, 1);  // let Arduino setup do it's thing to the PWM pin
 
       TCCR4B = 0x00;  // stop Timer4 clock for register updates
@@ -200,12 +200,15 @@
     #endif // LASER_PULSE_METHOD
 
     #if ENABLED(LASER_PERIPHERALS)
-      OUT_WRITE(LASER_PERIPHERALS_PIN, HIGH); // Laser peripherals are active LOW, so preset the pin
-      PULLUP(LASER_PERIPHERALS_STATUS_PIN);   // Set the peripherals status pin to pull-up.
+      pinMode(LASER_PERIPHERALS_PIN, OUTPUT);
+      digitalWrite(LASER_PERIPHERALS_PIN, HIGH);        // Laser peripherals are active LOW, so preset the pin
+      pinMode(LASER_PERIPHERALS_STATUS_PIN, INPUT);
+      digitalWrite(LASER_PERIPHERALS_STATUS_PIN, HIGH); // Set the peripherals status pin to pull-up.
     #endif // LASER_PERIPHERALS
 
     #if LASER_CONTROL == 2
-      OUT_WRITE(LASER_PWR_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
+      pinMode(LASER_PWR_PIN, OUTPUT);
+      digitalWrite(LASER_PWR_PIN, LASER_UNARM);         // Laser FIRING is active LOW, so preset the pin
     #endif
 
     // initialize state to some sane defaults
@@ -250,7 +253,7 @@
     #endif
 
     #if (!ENABLED(LASER_PULSE_METHOD))
-      SET_OUTPUT(LASER_PWR_PIN);
+      pinMode(LASER_PWR_PIN, OUTPUT);
     #endif
 
     #if LASER_CONTROL == 1
