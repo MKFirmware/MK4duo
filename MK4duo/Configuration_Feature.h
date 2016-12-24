@@ -40,12 +40,11 @@
  * - Extruder run-out prevention
  * - Bowden Filament management
  * - Extruder advance constant
- * - Filament exchange
+ * - Filament Change
  * MOTION FEATURES:
  * - Software endstops
  * - Endstops only for homing
  * - Abort on endstop hit feature
- * - Door open Endstop
  * - Mesh Level Area
  * - R/C Servo
  * - Late Z axis
@@ -66,6 +65,7 @@
  * - Filament Runout sensor
  * - Power consumption sensor
  * - Flow sensor
+ * - Door open sensor
  * ADDON FEATURES:
  * - EEPROM
  * - SDCARD
@@ -338,7 +338,7 @@
  * PS: Always remember to set your extruder target temperature to 0°C  *
  * before shutdown the printer if you enable this feature.             *
  *                                                                     *
- * Uncomment IDLE_OOZING_PREVENT to enable this feature                *
+ * Uncomment IDLE OOZING PREVENT to enable this feature                *
  *                                                                     *
  ***********************************************************************/
 //#define IDLE_OOZING_PREVENT
@@ -358,15 +358,14 @@
  * If the machine is idle, and the temperature over MINTEMP, every couple of SECONDS     *
  * some filament is extruded                                                             *
  *                                                                                       *
- * Uncomment EXTRUDER_RUNOUT_PREVENT to enable this feature                              *
+ * Uncomment EXTRUDER RUNOUT PREVENT to enable this feature                              *
  *                                                                                       *
  *****************************************************************************************/
 //#define EXTRUDER_RUNOUT_PREVENT
 #define EXTRUDER_RUNOUT_MINTEMP 190
 #define EXTRUDER_RUNOUT_SECONDS  30
-#define EXTRUDER_RUNOUT_ESTEPS   14  //mm filament
-#define EXTRUDER_RUNOUT_SPEED  1500  //extrusion speed
-#define EXTRUDER_RUNOUT_EXTRUDE 100
+#define EXTRUDER_RUNOUT_SPEED  1500 // mm/m
+#define EXTRUDER_RUNOUT_EXTRUDE   5 // mm
 /*****************************************************************************************/
 
 
@@ -433,13 +432,14 @@
 
 
 /**************************************************************************
- *************************** Filament exchange ****************************
+ *************************** Filament Change ******************************
  **************************************************************************
  *                                                                        *
- * Add support for filament exchange support M600                         *
+ * Add the GCode M600 for initiating filament change.                     *
  *                                                                        *
  * Uncomment FILAMENT CHANGE FEATURE to enable this feature               *
- * Requires display                                                       *
+ * Requires an LCD display.                                               *
+ * This feature is required for the default FILAMENT_RUNOUT_SCRIPT.       *
  *                                                                        *
  **************************************************************************/
 //#define FILAMENT_CHANGE_FEATURE
@@ -507,21 +507,6 @@
 //#define ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 
 #define ABORT_ON_ENDSTOP_HIT_INIT true
-/**************************************************************************/
-
-
-/**************************************************************************
- ************************* Door open endstop ******************************
- **************************************************************************
- *                                                                        *
- * A triggered door will prevent new commands from serial or sd card.     *
- * Setting pin in Configuration_Pins.h                                    *
- *                                                                        *
- **************************************************************************/
-//#define DOOR_OPEN
-
-//#define DOOR_OPEN_PULLUP
-#define DOOR_OPEN_LOGIC false
 /**************************************************************************/
 
 
@@ -855,18 +840,22 @@
  *                                                                                *
  * Filament runout sensor such as a mechanical or opto endstop to check the       *
  * existence of filament                                                          *
- * It is assumed that when logic high = filament available and when logic         *
+ * By default the firmware assumes                                                *
+ * logic high = filament available                                                *
  * low = filament run out                                                         *
  * Single extruder only at this point (extruder 0)                                *
  *                                                                                *
- * You also need to set FIL_RUNOUT_PIN in Configuration_pins.h                    *
+ * You also need to set FIL RUNOUT PIN in Configuration_pins.h                    *
  *                                                                                *
  **********************************************************************************/
 //#define FILAMENT_RUNOUT_SENSOR
 
-#define FIL_RUNOUT_PIN_INVERTING true // Should be uncommented and true or false should assigned
-#define ENDSTOPPULLUP_FIL_RUNOUT      // Uncomment to use internal pullup for filament runout pins if the sensor is defined.
-#define FILAMENT_RUNOUT_SCRIPT "M600" // Script execute when filament run out
+// Set true or false should assigned
+#define FIL_RUNOUT_PIN_INVERTING true
+// Uncomment to use internal pullup for pin if the sensor is defined.
+//#define ENDSTOPPULLUP_FIL_RUNOUT
+// Script execute when filament run out
+#define FILAMENT_RUNOUT_SCRIPT "M600"
 /**********************************************************************************/
 
 
@@ -948,6 +937,23 @@
 
 // uncomment this to kill print job under the min flow rate, in liters/minute
 //#define MINFLOW_PROTECTION 4      
+/**************************************************************************/
+
+
+/**************************************************************************
+ ************************** Door open sensor ******************************
+ **************************************************************************
+ *                                                                        *
+ * A triggered door will prevent new commands from serial or sd card.     *
+ * Setting DOOR PIN in Configuration_Pins.h                               *
+ *                                                                        *
+ **************************************************************************/
+//#define DOOR_OPEN
+
+// Set true or false should assigned
+#define DOOR_OPEN_LOGIC false
+// Uncomment to use internal pullup for pin if the sensor is defined.
+//#define DOOR_OPEN_PULLUP
 /**************************************************************************/
 
 
