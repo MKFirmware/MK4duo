@@ -192,6 +192,10 @@
   #define CASE_LIGHT_PIN -1
 #endif
 
+#if ENABLED(DOOR_OPEN)
+  #define DOOR_PIN -1
+#endif
+
 #if ENABLED(CONTROLLERFAN)
   #define CONTROLLERFAN_PIN -1
 #endif

@@ -245,6 +245,7 @@
 #define HAS_THERMALLY_PROTECTED_BED (HAS_TEMP_BED && HAS_HEATER_BED && ENABLED(THERMAL_PROTECTION_BED))
 #define HAS_DONDOLO (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR))
 #define HAS_CASE_LIGHT (ENABLED(CASE_LIGHT) && PIN_EXISTS(CASE_LIGHT))
+#define HAS_DOOR (ENABLED(DOOR_OPEN) && PIN_EXISTS(DOOR))
 
 /**
  * Shorthand for filament sensor and power sensor for ultralcd.cpp, dogm_lcd_implementation.h, ultralcd_implementation_hitachi_HD44780.h

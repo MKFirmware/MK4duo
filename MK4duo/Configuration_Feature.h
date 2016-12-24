@@ -45,6 +45,7 @@
  * - Software endstops
  * - Endstops only for homing
  * - Abort on endstop hit feature
+ * - Door open Endstop
  * - Mesh Level Area
  * - R/C Servo
  * - Late Z axis
@@ -506,6 +507,21 @@
 //#define ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 
 #define ABORT_ON_ENDSTOP_HIT_INIT true
+/**************************************************************************/
+
+
+/**************************************************************************
+ ************************* Door open endstop ******************************
+ **************************************************************************
+ *                                                                        *
+ * A triggered door will prevent new commands from serial or sd card.     *
+ * Setting pin in Configuration_Pins.h                                    *
+ *                                                                        *
+ **************************************************************************/
+//#define DOOR_OPEN
+
+//#define DOOR_OPEN_PULLUP
+#define DOOR_OPEN_LOGIC false
 /**************************************************************************/
 
 
