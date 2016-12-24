@@ -117,10 +117,12 @@ enum TempState {
  * MK4duo sends messages if blocked or busy
  */
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  enum MKBusyState {
+  enum FirmwareState {
     NOT_BUSY,           // Not in a handler
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)
+    WAIT_HEATER,        // Wait heater
+    DOOR_OPEN,          // Door open
     PAUSED_FOR_USER,    // Blocking pending any input
     PAUSED_FOR_INPUT    // Blocking pending text input (concept)
   };

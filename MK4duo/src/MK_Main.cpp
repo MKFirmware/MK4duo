@@ -466,9 +466,9 @@ static bool send_ok[BUFSIZE];
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   // States for managing MK and host communication
   // MK sends messages if blocked or busy
-  static MKBusyState busy_state = NOT_BUSY;
+  static FirmwareState busy_state = NOT_BUSY;
   static millis_t next_busy_signal_ms = 0;
-  uint8_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
+  uint32_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL * 1000UL;
   #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
 #else
   #define host_keepalive() ;
@@ -872,6 +872,13 @@ inline void get_serial_commands() {
   static char serial_line_buffer[MAX_CMD_SIZE];
   static boolean serial_comment_mode = false;
 
+  #if HAS(DOOR)
+    if (READ(DOOR_PIN) != DOOR_OPEN_LOGIC) {
+      KEEPALIVE_STATE(DOOR_OPEN);
+      return;  // do nothing while door is open
+    }
+  #endif
+
   // If the command buffer is empty for too long,
   // send "wait" to indicate Marlin is still waiting.
   #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
@@ -1007,6 +1014,13 @@ inline void get_serial_commands() {
                 sd_comment_mode = false;
 
     if (!card.sdprinting) return;
+
+    #if HAS(DOOR)
+      if (READ(DOOR_PIN) != DOOR_OPEN_LOGIC) {
+        KEEPALIVE_STATE(DOOR_OPEN);
+        return;  // do nothing while door is open
+      }
+    #endif
 
     /**
      * '#' stops reading from SD to the buffer prematurely, so procedural
@@ -2809,7 +2823,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
   wait_for_heatup = true;
   millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
-  KEEPALIVE_STATE(NOT_BUSY);
+  KEEPALIVE_STATE(WAIT_HEATER);
 
   do {
     // Target temperature might be changed during the loop
@@ -2902,7 +2916,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
-    KEEPALIVE_STATE(NOT_BUSY);
+    KEEPALIVE_STATE(WAIT_HEATER);
 
     target_extruder = active_extruder; // for print_heaterstates
 
@@ -2990,7 +3004,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0;
 
-    KEEPALIVE_STATE(NOT_BUSY);
+    KEEPALIVE_STATE(WAIT_HEATER);
 
     // Wait for temperature to come close enough
     do {
@@ -3061,7 +3075,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0;
 
-    KEEPALIVE_STATE(NOT_BUSY);
+    KEEPALIVE_STATE(WAIT_HEATER);
 
     // Wait for temperature to come close enough
     do {
@@ -3189,13 +3203,19 @@ void unknown_command_error() {
    * while the machine is not accepting commands.
    */
   void host_keepalive() {
-    millis_t ms = millis();
+    millis_t now = millis();
     if (host_keepalive_interval && busy_state != NOT_BUSY) {
-      if (PENDING(ms, next_busy_signal_ms)) return;
+      if (PENDING(now, next_busy_signal_ms)) return;
       switch (busy_state) {
         case IN_HANDLER:
         case IN_PROCESS:
           SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
+          break;
+        case WAIT_HEATER:
+          SERIAL_LM(BUSY, MSG_BUSY_WAIT_HEATER);
+          break;
+        case DOOR_OPEN:
+          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
           break;
         case PAUSED_FOR_USER:
           SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
@@ -3207,7 +3227,7 @@ void unknown_command_error() {
           break;
       }
     }
-    next_busy_signal_ms = ms + host_keepalive_interval * 1000UL;
+    next_busy_signal_ms = now + host_keepalive_interval;
   }
 
 #endif //HOST_KEEPALIVE_FEATURE
@@ -6660,11 +6680,11 @@ inline void gcode_M112() { kill(PSTR(MSG_KILLED)); }
    */
   inline void gcode_M113() {
     if (code_seen('S')) {
-      host_keepalive_interval = code_value_byte();
-      NOMORE(host_keepalive_interval, 60);
+      host_keepalive_interval = code_value_byte() * 1000UL;
+      NOMORE(host_keepalive_interval, 60000);
     }
     else {
-      SERIAL_EMV("M113 S", (unsigned long)host_keepalive_interval);
+      SERIAL_EMV("M113 S", (unsigned long)host_keepalive_interval / 1000UL);
     }
   }
 #endif
@@ -7530,7 +7550,7 @@ inline void gcode_M226() {
 
     if (h >= 0 && h < HOTENDS) target_extruder = h;
 
-    KEEPALIVE_STATE(NOT_BUSY); // don't send "busy: processing" messages during autotune output
+    KEEPALIVE_STATE(WAIT_HEATER); // don't send "busy: processing" messages during autotune output
 
     thermalManager.PID_autotune(temp, h, c, u);
 
@@ -12124,12 +12144,19 @@ void setup() {
   stepper.init();    // Initialize stepper, this enables interrupts!
   servo_init();
 
-  #if HAS_PHOTOGRAPH
+  #if HAS(PHOTOGRAPH)
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 
-  #if HAS_CASE_LIGHT
+  #if HAS(CASE_LIGHT)
     update_case_light();
+  #endif
+
+  #if HAS(DOOR)
+    SET_INPUT(DOOR_PIN);
+    #if ENABLED(DOOR_OPEN_PULLUP)
+      PULLUP(DOOR_PIN);
+    #endif
   #endif
 
   #if HAS(BED_PROBE)

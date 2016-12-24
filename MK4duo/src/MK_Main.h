@@ -179,7 +179,7 @@ float code_value_temp_diff();
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  extern uint8_t host_keepalive_interval;
+  extern uint32_t host_keepalive_interval;
 #endif
 
 extern int fanSpeed;
