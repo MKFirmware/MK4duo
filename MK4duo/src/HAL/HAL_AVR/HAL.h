@@ -167,7 +167,6 @@
  */
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
-#define EXTRUDER_TIMER OCR0A
 
 #define TEMP_TIMER_FREQUENCY REFERENCE_TEMP_TIMER_FREQUENCY
 
@@ -176,22 +175,20 @@
 #define ENABLE_TEMPERATURE_INTERRUPT()      SBI(TIMSK0, OCIE0B);
 #define DISABLE_TEMPERATURE_INTERRUPT()     CBI(TIMSK0, OCIE0B);
 
-#if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define ENABLE_EXTRUDER_INTERRUPT()       SBI(TIMSK0, OCIE0A);
-  #define DISABLE_EXTRUDER_INTERRUPT()	    CBI(TIMSK0, OCIE0A);
-#endif
-
 #define HAL_timer_start (timer_num, frequency)
 #define HAL_timer_set_count(timer, count) timer = (count)
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
 #define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
-#define HAL_TIMER_SET_EXTRUDER_COUNT(n) HAL_timer_set_count(EXTRUDER_TIMER, n)
 
 #define HAL_STEP_TIMER_ISR      ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR      ISR(TIMER0_COMPB_vect)
-#define HAL_EXTRUDER_TIMER_ISR  ISR(TIMER0_COMPA_vect)
+
+#define ENABLE_ISRs() \
+          cli(); \
+          ENABLE_TEMPERATURE_INTERRUPT(); \
+          ENABLE_STEPPER_DRIVER_INTERRUPT()
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 240
@@ -202,6 +199,7 @@
 
 // Types
 #define HAL_TIMER_TYPE uint16_t
+constexpr HAL_TIMER_TYPE ADV_NEVER = 65535;
 typedef uint32_t millis_t;
 
 class InterruptProtectedBlock {
