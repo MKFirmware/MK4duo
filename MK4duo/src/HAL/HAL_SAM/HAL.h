@@ -319,18 +319,6 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 	Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-#if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define EXTRUDER_TIMER 1
-  #define EXTRUDER_TIMER_PRIORITY 6
-  #define EXTRUDER_TIMER_FREQUENCY REFERENCE_EXTRUDER_TIMER_FREQUENCY
-  #define EXTRUDER_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK1 // TIMER_CLOCK1 -> 2 divisor
-  #define EXTRUDER_TIMER_PRESCALE 2
-  #define HAL_EXTRUDER_TIMER_RATE (F_CPU / EXTRUDER_TIMER_PRESCALE) // = 42MHz
-  #define EXTRUDER_TIMER_FACTOR (HAL_EXTRUDER_TIMER_RATE / HAL_REFERENCE_EXTRUDER_TIMER_RATE)
-  #define EXTRUDER_TIMER_TICKS_PER_MILLISECOND (HAL_EXTRUDER_TIMER_RATE / 1000)
-  #define HAL_EXTRUDER_TIMER_ISR  void TC1_Handler()
-#endif
-
 #define STEPPER_TIMER 2
 #define STEPPER_TIMER_PRIORITY 2
 #define STEPPER_TIMER_FREQUENCY REFERENCE_STEPPER_TIMER_FREQUENCY
@@ -358,12 +346,6 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 
 #define HAL_TIMER_START(n) HAL_timer_start(n, n ## _PRIORITY, n ## _FREQUENCY, n ## _CLOCK, n ## _PRESCALE)
 
-#if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define ENABLE_EXTRUDER_INTERRUPT()       HAL_timer_enable_interrupt(EXTRUDER_TIMER)
-  #define DISABLE_EXTRUDER_INTERRUPT()      HAL_timer_disable_interrupt(EXTRUDER_TIMER)
-  #define HAL_TIMER_SET_EXTRUDER_COUNT(n)   HAL_timer_set_count(EXTRUDER_TIMER, n)
-#endif
-
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   HAL_timer_enable_interrupt(STEPPER_TIMER)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  HAL_timer_disable_interrupt(STEPPER_TIMER)
 #define HAL_TIMER_SET_STEPPER_COUNT(n)      HAL_timer_set_count(STEPPER_TIMER, n)
@@ -371,6 +353,10 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 #define ENABLE_TEMPERATURE_INTERRUPT()      HAL_timer_enable_interrupt(TEMP_TIMER)
 #define DISABLE_TEMPERATURE_INTERRUPT()     HAL_timer_disable_interrupt(TEMP_TIMER)
 #define HAL_TIMER_SET_TEMP_COUNT(n)         HAL_timer_set_count(TEMP_TIMER, n)
+
+#define ENABLE_ISRs() \
+          ENABLE_TEMPERATURE_INTERRUPT(); \
+          ENABLE_STEPPER_DRIVER_INTERRUPT()
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 12
@@ -381,6 +367,7 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 
 // Types
 #define HAL_TIMER_TYPE uint32_t
+constexpr HAL_TIMER_TYPE ADV_NEVER = UINT32_MAX;
 typedef uint32_t millis_t;
 
 // Timers

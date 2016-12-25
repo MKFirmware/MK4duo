@@ -66,11 +66,6 @@ class Stepper {
       static bool performing_homing;
     #endif
 
-    //
-    // Positions of stepper motors, in step units
-    //
-    static volatile long count_position[NUM_AXIS];
-
   private:
 
     static unsigned char last_direction_bits;        // The next stepping-bits to be output
@@ -85,16 +80,11 @@ class Stepper {
     static volatile uint32_t step_events_completed; // The number of step events executed in the current block
 
     #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        static uint32_t old_OCR0A;
-        static volatile uint32_t eISR_Rate;
-      #else
-        static uint8_t old_OCR0A;
-        static volatile uint8_t eISR_Rate;
-      #endif
+      static HAL_TIMER_TYPE nextMainISR, nextAdvanceISR, eISR_Rate;
+      #define _NEXT_ISR(T) nextMainISR = T
+
       #if ENABLED(LIN_ADVANCE)
         static volatile int e_steps[DRIVER_EXTRUDERS];
-        static int extruder_advance_k = LIN_ADVANCE_K;
         static int final_estep_rate;
         static int current_estep_rate[DRIVER_EXTRUDERS];  // Actual extruder speed [steps/s]
         static int current_adv_steps[DRIVER_EXTRUDERS];   // The amount of current added esteps due to advance.
@@ -105,6 +95,8 @@ class Stepper {
         static long e_steps[DRIVER_EXTRUDERS];
         static long advance_rate, advance, final_advance, old_advance;
       #endif
+    #else
+      #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);
     #endif // ADVANCE or LIN_ADVANCE
 
     static long acceleration_time, deceleration_time;
@@ -123,6 +115,11 @@ class Stepper {
       #endif
       static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
     #endif
+
+    //
+    // Positions of stepper motors, in step units
+    //
+    static volatile long count_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)
@@ -162,6 +159,7 @@ class Stepper {
 
     #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
       static void advance_isr();
+      static void advance_isr_scheduler();
     #endif
 
     //
@@ -284,17 +282,20 @@ class Stepper {
 
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
 
-      if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
-        step_rate >>= 2;
-        step_loops = 4;
-      }
-      else if(step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
-        step_rate >>= 1;
-        step_loops = 2;
-      }
-      else {
-        step_loops = 1;
-      }
+      #if ENABLED(ARDUINO_ARCH_AVR)
+        if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
+          step_rate >>= 2;
+          step_loops = 4;
+        }
+        else if(step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+          step_rate >>= 1;
+          step_loops = 2;
+        }
+        else
+      #endif
+        {
+          step_loops = 1;
+        }
 
       #if ENABLED(ARDUINO_ARCH_SAM)
         timer = HAL_STEPPER_TIMER_RATE / step_rate;
@@ -366,7 +367,7 @@ class Stepper {
       step_loops_nominal = step_loops;
       acc_step_rate = current_block->initial_rate;
       acceleration_time = calc_timer(acc_step_rate);
-      HAL_TIMER_SET_STEPPER_COUNT(acceleration_time);
+      _NEXT_ISR(acceleration_time);
 
       #if ENABLED(LIN_ADVANCE)
         if (current_block->use_advance_lead) {

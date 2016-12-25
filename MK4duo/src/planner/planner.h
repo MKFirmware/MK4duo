@@ -270,6 +270,10 @@ class Planner {
 
     #endif
 
+    #if ENABLED(LIN_ADVANCE)
+      void advance_M905(const float &k);
+    #endif
+
     /**
      * Planner::_buffer_line
      *
