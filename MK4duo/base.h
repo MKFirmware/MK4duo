@@ -57,6 +57,8 @@
     #include "Configuration_Delta.h"
   #elif IS_SCARA
     #include "Configuration_Scara.h"
+  #elif MECH(MUVE3D)
+    #include "Configuration_Muve3D.h"
   #endif
 
   #include "Configuration_Temperature.h"

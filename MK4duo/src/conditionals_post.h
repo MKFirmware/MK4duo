@@ -766,4 +766,34 @@
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_MICROSECOND)
 
+// NEXTION
+#if ENABLED(NEXTION)
+  #if NEXTION_SERIAL == 1
+    #define nexSerial Serial1
+  #elif NEXTION_SERIAL == 2
+    #define nexSerial Serial2
+  #elif NEXTION_SERIAL == 3
+    #define nexSerial Serial3
+  #else
+    #define nexSerial Serial1
+  #endif
+
+  #define dbSerialPrint(a)    {}
+  #define dbSerialPrintln(a)  {}
+  #define dbSerialBegin(a)    {}
+#endif // NEXTION
+
+// MUVE 3D
+#if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
+  #if PROJECTOR_PORT == 1
+    #define DLPSerial Serial1
+  #elif PROJECTOR_PORT == 2
+    #define DLPSerial Serial2
+  #elif PROJECTOR_PORT == 3
+    #define DLPSerial Serial3
+  #else
+    #define DLPSerial Serial2
+  #endif
+#endif
+
 #endif //CONDITIONALS_H

@@ -136,6 +136,7 @@
 //#define MECHANISM MECH_DELTA
 //#define MECHANISM MECH_MORGAN_SCARA
 //#define MECHANISM MECH_MAKERARM_SCARA
+//#define MECHANISM MECH_MUVE3D
 /***********************************************************************/
 
 

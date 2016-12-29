@@ -13,10 +13,12 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+
 #ifndef __NEXOBJECT_H__
 #define __NEXOBJECT_H__
+
 #include <Arduino.h>
-#include "NexConfig.h"
+
 /**
  * @addtogroup CoreAPI 
  * @{ 
