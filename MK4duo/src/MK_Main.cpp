@@ -395,6 +395,16 @@ float cartes[XYZ] = { 0 };
 
 #endif
 
+#if MECH(MUVE3D)
+  static float  peel_distance = 0,
+                peel_speed = 0,
+                peel_pause = 0,
+                retract_speed = 0,
+                tilt_distance = 0,
+                layer_thickness = 0;
+  static bool   tilted = false;
+#endif
+
 #if ENABLED(FILAMENT_SENSOR)
   bool filament_sensor = false;                                 // M405 turns on filament_sensor control, M406 turns it off 
   float filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
@@ -1486,9 +1496,16 @@ inline void line_to_current_position() {
  * line_to_destination
  * Move the planner, not necessarily synced with current_position
  */
-inline void line_to_destination(float fr_mm_s) {
-  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
-}
+#if MECH(MUVE3D)
+  inline void line_to_destination(float fr_mm_s) {
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], fr_mm_s, active_extruder, active_driver);
+    current_position[E_AXIS] = current_position[Z_AXIS];
+  }
+#else
+  inline void line_to_destination(float fr_mm_s) {
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
+  }
+#endif
 inline void line_to_destination() { line_to_destination(feedrate_mm_s); }
 
 inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
@@ -8748,7 +8765,169 @@ inline void gcode_M532() {
   }
 #endif // LASERBEAM
 
+#if MECH(MUVE3D)
+  
+  // M650: Set peel distance
+  inline void gcode_M650() {
+
+    stepper.synchronize();
+
+    peel_distance   = (code_seen('D') ? code_value_float() : 2.0);
+    peel_speed      = (code_seen('S') ? code_value_float() : 2.0);
+    retract_speed   = (code_seen('R') ? code_value_float() : 2.0);
+    peel_pause      = (code_seen('P') ? code_value_float() : 0.0);
+    tilt_distance   = (code_seen('T') ? code_value_float() : 20.0);
+    layer_thickness = (code_seen('H') ? code_value_float() : 0.0);
+
+    // Initialize tilted to false. The intent here is that you would send this command at the start of a print job, and
+    // the platform would be level when you do. As such, we assume that you either hand-cranked it to level, or executed 
+    // an M654 command via manual GCode before running a new print job. If not, then the platform is currently tilted, and
+    // your print job is going to go poorly.
+    tilted = false;
+  }
+
+  // M651: Run peel move and return back to start.
+  inline void gcode_M651() {
+
+    if (peel_distance > 0) {
+      planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS], peel_speed, active_extruder, active_driver);
+      planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + peel_distance, destination[Z_AXIS] + peel_distance, peel_speed, active_extruder, active_driver);
+      stepper.synchronize();
+      if (peel_pause > 0) safe_delay(peel_pause);
+    }
+
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+    stepper.synchronize();
+  }
+
+  // M653: Execute tilt move
+  inline void gcode_M653() {
+    // Double tilts are not allowed.
+    if (!tilted) {
+      planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS] + tilt_distance, destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+      stepper.synchronize();
+    }
+  }
+
+  // M654 - execute untilt move
+  inline void gcode_M654() {
+    // Can only untilt if tilted
+    if (tilted) {
+       // To prevent subsequent commands from not knowing our
+       // actual position, update the Z axis, then move to it.
+       destination[Z_AXIS] += tilt_distance;
+       planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+       // And save it away as our current position, because we're there.
+       set_current_to_destination();
+       stepper.synchronize();
+       tilted = false;
+    }
+  }
+
+  // M655: Send projector control commands via serial
+  inline void gcode_M655() {
+
+    // Viewsonic commands
+    if (code_seen('V')) {
+      int tempVal = code_value_int();
+
+      switch(tempVal) {
+        // Power Off
+        case 0: {
+          // 0614000400341101005E
+          const byte off[] = {0x06, 0x14, 0x00, 0x04, 0x00, 
+                              0x34, 0x11, 0x01, 0x00, 0x5E};
+          DLPSerial.write(off, sizeof(off));
+        }
+        break;
+        // Power On
+        case 1: {
+          // 0614000400341100005D
+          const byte on[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                             0x34, 0x11, 0x00, 0x00, 0x5D};
+          DLPSerial.write(on, sizeof(on));
+        }
+        break;
+        // Factory Reset
+        case 2: {
+          // 0614000400341102005F
+          const byte reset[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                0x34, 0x11, 0x02, 0x00, 0x5F};
+          DLPSerial.write(reset, sizeof(reset));
+        }
+        break;
+        // Splash Screen Black
+        case 3: {
+          // 061400040034110A0067
+          const byte blackScreen[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                      0x34, 0x11, 0x0A, 0x00, 0x67};
+          DLPSerial.write(blackScreen, sizeof(blackScreen));
+        }
+        break;
+        // High Altitude On
+        case 4: {
+          // 061400040034110C016A
+          const byte HAOn[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                               0x34, 0x11, 0x0C, 0x01, 0x6A};
+          DLPSerial.write(HAOn, sizeof(HAOn));
+        }
+        break;
+        // High Altitude Off
+        case 5: {
+          // 061400040034110C0069
+          const byte HAOff[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                0x34, 0x11, 0x0C, 0x00, 0x69};
+          DLPSerial.write(HAOff, sizeof(HAOff));
+        }
+        break;
+        // Lamp Mode Normal
+        case 6: {
+          // 0614000400341110006D
+          const byte lampNormal[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                     0x34, 0x11, 0x10, 0x00, 0x6D};
+          DLPSerial.write(lampNormal, sizeof(lampNormal));
+        }
+        break;
+        // Contrast Decrease
+        case 7: {
+          // 06140004003412020060
+          const byte contDec[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                  0x34, 0x12, 0x02, 0x00, 0x60};
+          DLPSerial.write(contDec, sizeof(contDec));
+        }
+        break;
+        // Contrast Increase
+        case 8: {
+          // 06140004003412020161
+          const byte contInc[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                  0x34, 0x12, 0x02, 0x01, 0x61};
+          DLPSerial.write(contInc, sizeof(contInc));
+        }
+        break;
+        // Brightness Decrease
+        case 9: {
+          // 06140004003412030061
+          const byte brightDec[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                    0x34, 0x12, 0x03, 0x00, 0x61};
+          DLPSerial.write(brightDec, sizeof(brightDec));
+        }
+        break;
+        // Brightness Increase
+        case 10: {
+          // 06140004003412030162
+          const byte brightInc[] = {0x06, 0x14, 0x00, 0x04, 0x00,
+                                    0x34, 0x12, 0x03, 0x01, 0x62};
+          DLPSerial.write(brightInc, sizeof(brightInc));
+        }
+        break;
+      }
+    }
+  }
+
+#endif // MECH(MUVE3D)
+
 #if HAS(BED_PROBE) && NOMECH(DELTA)
+
   // M666: Set Z probe offset
   inline void gcode_M666() {
     if (code_seen('P')) {
@@ -10214,6 +10393,19 @@ void process_next_command() {
         case 649: // M649 set laser options
           gcode_M649(); break;
       #endif 
+
+      #if MECH(MUVE3D)
+        case 650: // M650: Set peel distance
+          gcode_M650(); break;
+        case 651: // M651: Run peel move and return back to start.
+          gcode_M651(); break;
+        case 653: // M653: Execute tilt move
+          gcode_M653(); break;
+        case 654: // M654 - execute untilt move
+          gcode_M654(); break;
+        case 655: // M655: Send projector control commands via serial
+          gcode_M655(); break;
+      #endif
 
       #if HAS(ABL) || MECH(DELTA)
         case 666: // M666 Set Z probe offset or set delta endstop and geometry adjustment
@@ -12116,6 +12308,10 @@ void setup() {
 
   // Send "ok" after commands by default
   for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true;
+
+  #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
+    DLPSerial.begin(PROJECTOR_BAUDRATE);
+  #endif
 
   #if MECH(DELTA)
     deltaParams.Init();

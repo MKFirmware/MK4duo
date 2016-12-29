@@ -14,15 +14,13 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+
 #ifndef __NEXTION_H__
 #define __NEXTION_H__
 
-#include "Arduino.h"
-#include "NexConfig.h"
 #include "NexTouch.h"
 #include "NexHardware.h"
 #include "NexUpload.h"
-
 #include "NexButton.h"
 #include "NexCrop.h"
 #include "NexGauge.h"
@@ -41,5 +39,4 @@
 #include "NexRadio.h"
 #include "NexScrolltext.h"
 
-
-#endif /* #ifndef __NEXTION_H__ */
+#endif // __NEXTION_H__

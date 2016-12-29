@@ -61,7 +61,6 @@
   #endif
 #endif
 
-
 FORCE_INLINE void store_char(unsigned char c) {
   CRITICAL_SECTION_START;
     uint8_t h = rx_buffer.head;

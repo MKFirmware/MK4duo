@@ -12,11 +12,10 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+
 #ifndef __NEXHARDWARE_H__
 #define __NEXHARDWARE_H__
 
-#include <Arduino.h>
-#include "NexConfig.h"
 #include "NexTouch.h"
 
 /**

@@ -35,6 +35,7 @@
 #define MECH_COREZX          9
 #define MECH_COREYZ         10
 #define MECH_COREZY         11
+#define MECH_MUVE3D         21
 
 #define MECH(mech)    (MECHANISM == MECH_##mech)
 #define NOMECH(mech)  (MECHANISM != MECH_##mech)
@@ -47,4 +48,4 @@
 #define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
 #define IS_CARTESIAN  !IS_KINEMATIC
 
-#endif
+#endif // MECHANICS_H
