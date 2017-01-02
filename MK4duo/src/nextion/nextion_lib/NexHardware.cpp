@@ -15,6 +15,8 @@
 
 #include "../../../base.h"
 
+#if ENABLED(NEXTION)
+
 #include "NexHardware.h"
 
 #define NEX_RET_CMD_FINISHED                (0x01)
@@ -334,3 +336,5 @@ void sendRefreshAll(void)
 {
     sendCommand("ref 0");
 }
+
+#endif
