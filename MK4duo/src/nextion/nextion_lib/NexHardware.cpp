@@ -13,10 +13,6 @@
  * the License, or (at your option) any later version.
  */
 
-#include "../../../base.h"
-
-#if ENABLED(NEXTION)
-
 #include "NexHardware.h"
 
 #define NEX_RET_CMD_FINISHED                (0x01)
@@ -336,5 +332,3 @@ void sendRefreshAll(void)
 {
     sendCommand("ref 0");
 }
-
-#endif

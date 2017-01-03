@@ -16,6 +16,7 @@
 #ifndef __NEXHARDWARE_H__
 #define __NEXHARDWARE_H__
 
+#include "NexConfig.h"
 #include "NexTouch.h"
 
 /**
