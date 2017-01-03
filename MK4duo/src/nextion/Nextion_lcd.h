@@ -68,6 +68,7 @@
     #endif
 
     #if ENABLED(SDSUPPORT)
+      void sdmountdismountPopCallback(void *ptr);
       void sdlistPopCallback(void *ptr);
       void sdfilePopCallback(void *ptr);
       void sdfolderPopCallback(void *ptr);

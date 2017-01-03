@@ -438,24 +438,25 @@
 #endif
 
 /**
- * MAX_STEP_FREQUENCY differs for TOSHIBA OR ARDUINO DUE OR ARDUINO MEGA
+ * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
  */
 #if ENABLED(ARDUINO_ARCH_SAM)
-  #if ENABLED(CONFIG_STEPPERS_TOSHIBA)
-    #define MAX_STEP_FREQUENCY 150000 // Max step frequency for Toshiba Stepper Controllers
-    #define DOUBLE_STEP_FREQUENCY MAX_STEP_FREQUENCY
+  #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+    #define DOUBLE_STEP_FREQUENCY 60000 // 60KHz
   #else
-    #define MAX_STEP_FREQUENCY 320000     // Max step frequency for the Due is approx. 330kHz
-    #define DOUBLE_STEP_FREQUENCY 90000  // 96kHz is close to maximum for an Arduino Due
+    #define DOUBLE_STEP_FREQUENCY 80000 // 80Khz
   #endif
 #else
-  #if ENABLED(CONFIG_STEPPERS_TOSHIBA)
-    #define MAX_STEP_FREQUENCY 10000 // Max step frequency for Toshiba Stepper Controllers
-    #define DOUBLE_STEP_FREQUENCY MAX_STEP_FREQUENCY
-  #else
-    #define MAX_STEP_FREQUENCY 40000 // Max step frequency for Arduino mega
-    #define DOUBLE_STEP_FREQUENCY 10000
-  #endif
+  #define DOUBLE_STEP_FREQUENCY 10000
+#endif
+
+/**
+ * MAX_STEP_FREQUENCY differs for TOSHIBA
+ */
+#if ENABLED(CONFIG_STEPPERS_TOSHIBA)
+  #define MAX_STEP_FREQUENCY DOUBLE_STEP_FREQUENCY // Max step frequency for Toshiba Stepper Controllers, 96kHz is close to maximum for an Arduino Due
+#else
+  #define MAX_STEP_FREQUENCY (DOUBLE_STEP_FREQUENCY * 4) // Max step frequency for the Due is approx. 330kHz
 #endif
 
 // MS1 MS2 Stepper Driver Microstepping mode table
@@ -765,23 +766,6 @@
 
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_MICROSECOND)
-
-// NEXTION
-#if ENABLED(NEXTION)
-  #if NEXTION_SERIAL == 1
-    #define nexSerial Serial1
-  #elif NEXTION_SERIAL == 2
-    #define nexSerial Serial2
-  #elif NEXTION_SERIAL == 3
-    #define nexSerial Serial3
-  #else
-    #define nexSerial Serial1
-  #endif
-
-  #define dbSerialPrint(a)    {}
-  #define dbSerialPrintln(a)  {}
-  #define dbSerialBegin(a)    {}
-#endif // NEXTION
 
 // MUVE 3D
 #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)

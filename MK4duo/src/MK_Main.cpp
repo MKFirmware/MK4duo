@@ -2254,7 +2254,7 @@ static void clean_up_after_endstop_or_probe_move() {
                     ylen = ctry1;
     #endif
 
-    for (uint8_t xo = 0; xo <= xlen; xo++)
+    for (uint8_t xo = 0; xo <= xlen; xo++) {
       for (uint8_t yo = 0; yo <= ylen; yo++) {
         uint8_t x2 = ctrx2 + xo, y2 = ctry2 + yo;
         #if DISABLED(HALF_IN_X)
@@ -2272,7 +2272,7 @@ static void clean_up_after_endstop_or_probe_move() {
         #endif
         extrapolate_one_point(x2, y2, -1, -1);       // right-above - -
       }
-
+    }
   }
 
   /**

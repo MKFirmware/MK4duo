@@ -56,12 +56,11 @@
   static millis_t next_lcd_update_ms;
 
   #if ENABLED(SDSUPPORT)
-    uint8_t SDstatus    = 0; // 0 SD not insert, 1 SD insert, 2 SD printing
+    uint8_t SDstatus    = 0; // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
 
   #if ENABLED(NEXTION_GFX)
-    //GFX gfx = GFX(20, 27, 200, 154);
     GFX gfx = GFX(1, 24, 250, 155);
   #endif
 
@@ -151,6 +150,8 @@
   NexPicture Folderup   = NexPicture    (3,   14, "p6");
   NexPicture ScrollUp   = NexPicture    (3,   18, "p7");
   NexPicture ScrollDown = NexPicture    (3,   19, "p8");
+  NexPicture sd_mount   = NexPicture    (3,   22, "p12");
+  NexPicture sd_dismount= NexPicture    (3,   23, "p13");
   NexSlider sdlist      = NexSlider     (3,   1,  "h0");
 
   /**
@@ -253,7 +254,7 @@
 
     // Page 3 touch listen
     &sdlist, &ScrollUp, &ScrollDown, &sdrow0, &sdrow1, &sdrow2,
-    &sdrow3, &sdrow4, &sdrow5, &Folderup,
+    &sdrow3, &sdrow4, &sdrow5, &Folderup, &sd_mount, &sd_dismount,
 
     // Page 4 touch listen
 
@@ -337,10 +338,11 @@
 
     #if ENABLED(SDSUPPORT)
       card.mount();
-      if (card.cardOK) {
+      if (card.cardOK)
+        SDstatus = 2;
+      else
         SDstatus = 1;
-        SD.setValue(1, "printer");
-      }
+      SD.setValue(SDstatus, "printer");
     #endif
 
     VSpeed.setValue(100, "printer");
@@ -437,6 +439,23 @@
       sendCommand("ref 0");
 
       setrowsdcard();
+    }
+
+    void sdmountdismountPopCallback(void *ptr) {
+      if (ptr == &sd_mount) {
+        card.mount();
+        if (card.cardOK)
+          SDstatus = 2;
+        else
+          SDstatus = 1;
+        SD.setValue(SDstatus, "printer");
+      }
+      else {
+        card.unmount();
+        SDstatus = 1;
+        SD.setValue(SDstatus, "printer");
+      }
+      setpageSD();
     }
 
     void sdlistPopCallback(void *ptr) {
@@ -874,6 +893,8 @@
       #endif
 
       #if ENABLED(SDSUPPORT)
+        sd_mount.attachPop(sdmountdismountPopCallback, &sd_mount);
+        sd_dismount.attachPop(sdmountdismountPopCallback, &sd_dismount);
         sdlist.attachPop(sdlistPopCallback);
         ScrollUp.attachPop(sdlistPopCallback);
         ScrollDown.attachPop(sdlistPopCallback);
@@ -1069,9 +1090,9 @@
           #if ENABLED(SDSUPPORT)
 
             if (card.isFileOpen()) {
-              if (SDstatus != 2) {
-                SDstatus = 2;
-                SD.setValue(2);
+              if (SDstatus != 3) {
+                SDstatus = 3;
+                SD.setValue(SDstatus);
                 NPlay.setPic(28);
                 NStop.setPic(29);
               }
@@ -1098,15 +1119,15 @@
                 NStop.setPic(29);
               }
             }
-            else if (card.cardOK && SDstatus != 1) {
-              SDstatus = 1;
-              SD.setValue(1);
+            else if (card.cardOK && SDstatus != 2) {
+              SDstatus = 2;
+              SD.setValue(SDstatus);
               NPlay.setPic(27);
               NStop.setPic(30);
             }
-            else if (!card.cardOK && SDstatus != 0) {
-              SDstatus = 0;
-              SD.setValue(0);
+            else if (!card.cardOK && SDstatus != 1) {
+              SDstatus = 1;
+              SD.setValue(SDstatus);
               NPlay.setPic(27);
               NStop.setPic(30);
             }
