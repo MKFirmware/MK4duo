@@ -41,11 +41,6 @@ FSTRINGVALUE(Com::tINF,"INF")
 FSTRINGVALUE(Com::tPauseCommunication,"// action:pause")
 FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
 FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
-FSTRINGVALUE(Com::tPowerUp,"PowerUp")
-FSTRINGVALUE(Com::tBrownOut,"Brown out Reset")
-FSTRINGVALUE(Com::tWatchdog,"Watchdog Reset")
-FSTRINGVALUE(Com::tSoftwareReset,"Software Reset")
-FSTRINGVALUE(Com::tExternalReset,"External Reset")
 
 void Com::printInfoLN(FSTRINGPARAM(text)) {
   PS_PGM(tInfo);

@@ -193,7 +193,7 @@
     float p12[3] = { towerX[B_AXIS] - towerX[A_AXIS], towerY[B_AXIS] - towerY[A_AXIS], Hb - Ha };
 
     // Get the Magnitude of vector.
-    float d = sqrt( sq(p12[0]) + sq(p12[1]) + sq(p12[2]) );
+    float d = SQRT( sq(p12[0]) + sq(p12[1]) + sq(p12[2]) );
 
     // Create unit vector by dividing by magnitude.
     float ex[3] = { p12[0] / d, p12[1] / d, p12[2] / d };
@@ -212,7 +212,7 @@
     float ey[3] = { p13[0] - iex[0], p13[1] - iex[1], p13[2] - iex[2]};
 
     // The magnitude of Y component
-    float j = sqrt( sq(ey[0]) + sq(ey[1]) + sq(ey[2]) );
+    float j = SQRT( sq(ey[0]) + sq(ey[1]) + sq(ey[2]) );
 
     // Convert to a unit vector
     ey[0] /= j; ey[1] /= j;  ey[2] /= j;
@@ -229,7 +229,7 @@
     // Plug them into the equations defined in Wikipedia for Xnew, Ynew and Znew
     float Xnew = (delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[B_AXIS] + sq(d)) / (d * 2),
           Ynew = ((delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[C_AXIS] + HYPOT2(i, j)) / 2 - i * Xnew) / j,
-          Znew = sqrt(delta_diagonal_rod_2[A_AXIS] - HYPOT2(Xnew, Ynew));
+          Znew = SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(Xnew, Ynew));
 
     // Start from the origin of the old coordinates and add vectors in the
     // old coords that represent the Xnew, Ynew and Znew to find the point
@@ -239,9 +239,9 @@
     machinePos[Z_AXIS] =             Ha + ex[2] * Xnew + ey[2] * Ynew - ez[2] * Znew;
   }
 
-  #if ENABLED(DELTA_FAST_SQRT)
+  #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
     /**
-     * Fast inverse sqrt from Quake III Arena
+     * Fast inverse SQRT from Quake III Arena
      * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
     float DeltaParameters::Q_rsqrt(float number) {
@@ -262,7 +262,7 @@
 
   #else
 
-    #define _SQRT(n) sqrt(n)
+    #define _SQRT(n) SQRT(n)
 
   #endif
 

@@ -43,15 +43,8 @@
 #if HAS(SERVOS)
   #include "servo.h"
 
-  #ifdef ARDUINO_ARCH_SAM
-    #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / 32)     // converts microseconds to tick
-    #define ticksToUs(_ticks) (( (unsigned)_ticks * 32) / clockCyclesPerMicrosecond() ) // converts from ticks back to microseconds
-  #else
-    #define usToTicks(_us)    (( clockCyclesPerMicrosecond()* _us) / 8)     // converts microseconds to tick (assumes prescale of 8)  // 12 Aug 2009
-    #define ticksToUs(_ticks) (( (unsigned)_ticks * 8)/ clockCyclesPerMicrosecond() ) // converts from ticks back to microseconds
-  #endif
-
-  #define TRIM_DURATION       2                               // compensation ticks to trim adjust for digitalWrite delays
+  #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)
+  #define ticksToUs(_ticks) (((unsigned)_ticks * SERVO_TIMER_PRESCALER) / clockCyclesPerMicrosecond())  // converts from ticks back to microseconds
 
   static ServoInfo_t servo_info[MAX_SERVOS];                  // static array of servo structures
   static volatile int8_t Channel[_Nbr_16timers ];             // counter for the servo being pulsed for each timer (or -1 if refresh interval)
@@ -76,27 +69,27 @@
     void Servo_Handler(timer16_Sequence_t timer, Tc *pTc, uint8_t channel);
     #if defined (_useTimer1)
       void HANDLER_FOR_TIMER1(void) {
-          Servo_Handler(_timer1, TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
+        Servo_Handler(_timer1, TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
       }
     #endif
     #if defined (_useTimer2)
       void HANDLER_FOR_TIMER2(void) {
-          Servo_Handler(_timer2, TC_FOR_TIMER2, CHANNEL_FOR_TIMER2);
+        Servo_Handler(_timer2, TC_FOR_TIMER2, CHANNEL_FOR_TIMER2);
       }
     #endif
     #if defined (_useTimer3)
       void HANDLER_FOR_TIMER3(void) {
-          Servo_Handler(_timer3, TC_FOR_TIMER3, CHANNEL_FOR_TIMER3);
+        Servo_Handler(_timer3, TC_FOR_TIMER3, CHANNEL_FOR_TIMER3);
       }
     #endif
     #if defined (_useTimer4)
       void HANDLER_FOR_TIMER4(void) {
-          Servo_Handler(_timer4, TC_FOR_TIMER4, CHANNEL_FOR_TIMER4);
+        Servo_Handler(_timer4, TC_FOR_TIMER4, CHANNEL_FOR_TIMER4);
       }
     #endif
     #if defined (_useTimer5)
       void HANDLER_FOR_TIMER5(void) {
-          Servo_Handler(_timer5, TC_FOR_TIMER5, CHANNEL_FOR_TIMER5);
+        Servo_Handler(_timer5, TC_FOR_TIMER5, CHANNEL_FOR_TIMER5);
       }
     #endif
 
@@ -105,9 +98,10 @@
       tc->TC_CHANNEL[channel].TC_SR;
       if (Channel[timer] < 0) {
         tc->TC_CHANNEL[channel].TC_CCR |= TC_CCR_SWTRG; // channel set to -1 indicated that refresh interval completed so reset the timer
-      } else {
+      }
+      else {
         if (SERVO_INDEX(timer,Channel[timer]) < ServoCount && SERVO(timer,Channel[timer]).Pin.isActive == true) {
-            digitalWrite(SERVO(timer,Channel[timer]).Pin.nbr, LOW); // pulse this channel low if activated
+          digitalWrite(SERVO(timer,Channel[timer]).Pin.nbr, LOW); // pulse this channel low if activated
         }
       }
 
@@ -194,22 +188,22 @@
   #else // !ARDUINO_ARCH_SAM
 
     static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t *TCNTn, volatile uint16_t* OCRnA) {
-      if( Channel[timer] < 0 )
+      if (Channel[timer] < 0)
         *TCNTn = 0; // channel set to -1 indicated that refresh interval completed so reset the timer
       else {
-        if( SERVO_INDEX(timer,Channel[timer]) < ServoCount && SERVO(timer,Channel[timer]).Pin.isActive == true )
-          digitalWrite(SERVO(timer,Channel[timer]).Pin.nbr,LOW); // pulse this channel low if activated
+        if (SERVO_INDEX(timer,Channel[timer]) < ServoCount && SERVO(timer,Channel[timer]).Pin.isActive == true)
+          digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr, LOW); // pulse this channel low if activated
       }
 
       Channel[timer]++;    // increment to the next channel
-      if( SERVO_INDEX(timer,Channel[timer]) < ServoCount && Channel[timer] < SERVOS_PER_TIMER) {
-        *OCRnA = *TCNTn + SERVO(timer,Channel[timer]).ticks;
-        if(SERVO(timer,Channel[timer]).Pin.isActive == true)     // check if activated
-          digitalWrite(SERVO(timer,Channel[timer]).Pin.nbr,HIGH); // its an active channel so pulse it high
+      if (SERVO_INDEX(timer, Channel[timer]) < ServoCount && Channel[timer] < SERVOS_PER_TIMER) {
+        *OCRnA = *TCNTn + SERVO(timer, Channel[timer]).ticks;
+        if (SERVO(timer, Channel[timer]).Pin.isActive == true)     // check if activated
+          digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr,HIGH); // its an active channel so pulse it high
       }
       else {
         // finished all channels so wait for the refresh period to expire before starting over
-        if( ((unsigned)*TCNTn) + 4 < usToTicks(REFRESH_INTERVAL) )  // allow a few ticks to ensure the next OCR1A not missed
+        if (((unsigned)*TCNTn) + 4 < usToTicks(REFRESH_INTERVAL))  // allow a few ticks to ensure the next OCR1A not missed
           *OCRnA = (unsigned int)usToTicks(REFRESH_INTERVAL);
         else
           *OCRnA = *TCNTn + 4;  // at least REFRESH_INTERVAL has elapsed
@@ -255,17 +249,17 @@
           TCCR1A = 0;             // normal counting mode
           TCCR1B = _BV(CS11);     // set prescaler of 8
           TCNT1 = 0;              // clear the timer count
-      #if defined(__AVR_ATmega8__)|| defined(__AVR_ATmega128__)
-          TIFR |= _BV(OCF1A);      // clear any pending interrupts;
-          TIMSK |=  _BV(OCIE1A) ;  // enable the output compare interrupt
-      #else
+        #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
+          TIFR  |=  _BV(OCF1A);   // clear any pending interrupts;
+          TIMSK |=  _BV(OCIE1A);  // enable the output compare interrupt
+        #else
           // here if not ATmega8 or ATmega128
-          TIFR1 |= _BV(OCF1A);     // clear any pending interrupts;
-          TIMSK1 |=  _BV(OCIE1A) ; // enable the output compare interrupt
-      #endif
-      #if defined(WIRING)
+          TIFR1  |=  _BV(OCF1A);  // clear any pending interrupts;
+          TIMSK1 |=  _BV(OCIE1A); // enable the output compare interrupt
+        #endif
+        #if defined(WIRING)
           timerAttach(TIMER1OUTCOMPAREA_INT, Timer1Service);
-      #endif
+        #endif
         }
       #endif
 
@@ -293,7 +287,7 @@
           TCCR4B = _BV(CS41);     // set prescaler of 8
           TCNT4 = 0;              // clear the timer count
           TIFR4 = _BV(OCF4A);     // clear any pending interrupts;
-          TIMSK4 = _BV(OCIE4A) ;  // enable the output compare interrupt
+          TIMSK4 = _BV(OCIE4A);   // enable the output compare interrupt
         }
       #endif
 
@@ -303,7 +297,7 @@
           TCCR5B = _BV(CS51);     // set prescaler of 8
           TCNT5 = 0;              // clear the timer count
           TIFR5 = _BV(OCF5A);     // clear any pending interrupts;
-          TIMSK5 = _BV(OCIE5A) ;  // enable the output compare interrupt
+          TIMSK5 = _BV(OCIE5A);   // enable the output compare interrupt
         }
       #endif
     }
@@ -312,15 +306,15 @@
       //disable use of the given timer
       #ifdef WIRING
         if (timer == _timer1) {
-          #if defined(__AVR_ATmega1281__)||defined(__AVR_ATmega2561__)
-            TIMSK1 &=  ~_BV(OCIE1A) ;  // disable timer 1 output compare interrupt
+          #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+            TIMSK1 &=  ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
           #else
-            TIMSK &=  ~_BV(OCIE1A) ;  // disable timer 1 output compare interrupt
+            TIMSK  &=  ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
           #endif
           timerDetach(TIMER1OUTCOMPAREA_INT);
         }
         else if (timer == _timer3) {
-          #if defined(__AVR_ATmega1281__)||defined(__AVR_ATmega2561__)
+          #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
             TIMSK3 &= ~_BV(OCIE3A);    // disable the timer3 output compare A interrupt
           #else
             ETIMSK &= ~_BV(OCIE3A);    // disable the timer3 output compare A interrupt
@@ -336,7 +330,7 @@
 
   static boolean isTimerActive(timer16_Sequence_t timer) {
     // returns true if any servo is active on this timer
-    for (uint8_t channel=0; channel < SERVOS_PER_TIMER; channel++) {
+    for (uint8_t channel = 0; channel < SERVOS_PER_TIMER; channel++) {
       if (SERVO(timer, channel).Pin.isActive == true)
         return true;
     }

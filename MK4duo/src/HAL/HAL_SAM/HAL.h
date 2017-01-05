@@ -39,7 +39,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * Description:          *** HAL for Arduino Due ***
+ * Description: HAL for Arduino Due and compatible (SAM3X8E)
  *
  * Contributors:
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
@@ -54,9 +54,8 @@
 #define HAL_SAM_H
 
 #include <stdint.h>
-#include "Arduino.h"
-#include "Print.h"
-#include "fastio.h"
+#include <Arduino.h>
+#include "HAL_fastio_due.h"
 
 // do not use program space memory with Due
 #define PROGMEM
@@ -88,43 +87,44 @@
 #endif
 
 /**
+ * Public Variables
+ */
+
+constexpr uint8_t MAX_ANALOG_PIN_NUMBER = 11;
+
+// Delays
+constexpr uint8_t CYCLES_EATEN_BY_CODE = 12;
+constexpr uint8_t CYCLES_EATEN_BY_E = 12;
+
+// Voltage
+constexpr float HAL_VOLTAGE_PIN = 3.3;
+
+// reset reason
+constexpr uint8_t RST_POWER_ON = 1;
+constexpr uint8_t RST_EXTERNAL = 2;
+constexpr uint8_t RST_BROWN_OUT = 4;
+constexpr uint8_t RST_WATCHDOG = 8;
+constexpr uint8_t RST_JTAG = 16;
+constexpr uint8_t RST_SOFTWARE = 32;
+constexpr uint8_t RST_BACKUP = 64;
+
+/**
  * Defines & Macros
  */
-#define MAX_ANALOG_PIN_NUMBER 11
-#define analogInputToDigitalPin(IO) IO
 
-// Bracket code that shouldn't be interrupted
-#if DISABLED(CRITICAL_SECTION_START)
-  #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
-  #define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
-#endif
+#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+#define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
 
 #define SPR0    0
 #define SPR1    1
 
+// Variant files of Alligator Board is old
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #define strncpy_P(s1, s2, n) strncpy((s1), (s2), (n))
+  #define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
+#endif
+
 #define PACK    __attribute__ ((packed))
-
-#define READ_VAR(pin) (g_APinDescription[pin].pPort->PIO_PDSR & g_APinDescription[pin].ulPin ? 1 : 0) // does return 0 or pin value
-#define _READ(pin)    (DIO ##  pin ## _PORT->PIO_PDSR & DIO ##  pin ## _PIN ? 1 : 0) // does return 0 or pin value
-#define READ(pin)     _READ(pin)
-
-#define	WRITE_VAR(pin, v) do{if(v) {g_APinDescription[pin].pPort->PIO_SODR = g_APinDescription[pin].ulPin;} else {g_APinDescription[pin].pPort->PIO_CODR = g_APinDescription[pin].ulPin; }}while(0)
-#define	_WRITE(port, v)   do { if (v) {DIO ##  port ## _PORT -> PIO_SODR = DIO ## port ## _PIN; } else {DIO ##  port ## _PORT->PIO_CODR = DIO ## port ## _PIN; }; } while (0)
-#define WRITE(pin,v)      _WRITE(pin,v)
-
-#define	SET_INPUT(pin)  pmc_enable_periph_clk(g_APinDescription[pin].ulPeripheralId); \
-                        PIO_Configure(g_APinDescription[pin].pPort, PIO_INPUT, g_APinDescription[pin].ulPin, 0)
-#define	SET_OUTPUT(pin) PIO_Configure(g_APinDescription[pin].pPort, PIO_OUTPUT_1, \
-                                      g_APinDescription[pin].ulPin, g_APinDescription[pin].ulPinConfiguration)
-
-#define TOGGLE(pin) WRITE(pin,!READ(pin))
-#define TOGGLE_VAR(pin) HAL::digitalWrite(pin,!HAL::digitalRead(pin))
-
-// Shorthand
-#define OUT_WRITE(IO, v)  { SET_OUTPUT(IO); WRITE(IO, v); }
-
-// Write doesn't work for pullups
-#define   PULLUP(IO)      { pinMode(IO, INPUT_PULLUP); }
 
 #undef LOW
 #define LOW         0
@@ -134,6 +134,7 @@
 /**
  * Stepper Definition
  */
+
 // intRes = intIn1 * intIn2 >> 16
 #define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
 // intRes = longIn1 * longIn2 >> 24
@@ -266,7 +267,9 @@ class HAL {
       MKSERIAL.flush();
     }
 
-    static void showStartReason();
+    static inline void clear_reset_source() {}
+
+    static uint8_t get_reset_source();
     static int getFreeRam();
     static void resetHardware();
 
@@ -325,10 +328,11 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 #define STEPPER_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK1 // TIMER_CLOCK1 -> 2 divisor
 #define STEPPER_TIMER_PRESCALE 2
 #define HAL_STEPPER_TIMER_RATE (F_CPU / STEPPER_TIMER_PRESCALE) // = 42MHz
-#define STEPPER_TIMER_FACTOR (HAL_STEPPER_TIMER_RATE / HAL_REFERENCE_STEPPER_TIMER_RATE)
+#define STEPPER_TIMER_FREQUENCY_FACTOR (STEPPER_TIMER_FREQUENCY / REFERENCE_STEPPER_TIMER_FREQUENCY)
+#define STEPPER_TIMER_FACTOR (HAL_STEPPER_TIMER_RATE / HAL_REFERENCE_STEPPER_TIMER_RATE / STEPPER_TIMER_FREQUENCY_FACTOR)
 #define STEPPER_TIMER_TICKS_PER_MILLISECOND (HAL_STEPPER_TIMER_RATE / 1000)
 #define HAL_STEP_TIMER_ISR  void TC2_Handler()
-
+/*
 #define TEMP_TIMER 3
 #define TEMP_TIMER_PRIORITY 15
 #define TEMP_TIMER_FREQUENCY (REFERENCE_TEMP_TIMER_FREQUENCY * 4)
@@ -336,6 +340,18 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 #define TEMP_TIMER_PRESCALE 128
 #define HAL_TEMP_TIMER_RATE (F_CPU / TEMP_TIMER_PRESCALE) // = 656.25kHz
 #define TEMP_TIMER_FACTOR (HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE)
+#define TEMP_TIMER_TICKS_PER_MILLISECOND (HAL_TEMP_TIMER_RATE / 1000)
+#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
+*/
+
+#define TEMP_TIMER 3
+#define TEMP_TIMER_PRIORITY 15
+#define TEMP_TIMER_FREQUENCY REFERENCE_TEMP_TIMER_FREQUENCY
+#define TEMP_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK2 // TIMER_CLOCK2 -> 8 divisor
+#define TEMP_TIMER_PRESCALE 8
+#define HAL_TEMP_TIMER_RATE (F_CPU / TEMP_TIMER_PRESCALE) // = 10.5MHz
+#define TEMP_TIMER_FREQUENCY_FACTOR (TEMP_TIMER_FREQUENCY / REFERENCE_TEMP_TIMER_FREQUENCY)
+#define TEMP_TIMER_FACTOR (HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE / TEMP_TIMER_FREQUENCY_FACTOR)
 #define TEMP_TIMER_TICKS_PER_MILLISECOND (HAL_TEMP_TIMER_RATE / 1000)
 #define HAL_TEMP_TIMER_ISR  void TC3_Handler()
 
@@ -357,13 +373,6 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 #define ENABLE_ISRs() \
           ENABLE_TEMPERATURE_INTERRUPT(); \
           ENABLE_STEPPER_DRIVER_INTERRUPT()
-
-// Delays
-#define CYCLES_EATEN_BY_CODE 12
-#define CYCLES_EATEN_BY_E 12
-
-// Voltage for PIN
-#define HAL_VOLTAGE_PIN 3.3
 
 // Types
 #define HAL_TIMER_TYPE uint32_t
@@ -418,5 +427,43 @@ void noTone(uint8_t pin);
   void HAL_laser_init_pwm(uint8_t pin, uint16_t freq);
   void HAL_laser_intensity(uint8_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
 #endif
+
+/**
+ * math function
+ */
+
+#define MATH_USE_HAL
+
+static FORCE_INLINE float ATAN2(float y, float x) {
+  return atan2f(y, x);
+}
+
+static FORCE_INLINE float FABS(float x) {
+  return fabsf(x);
+}
+
+static FORCE_INLINE float POW(float x, float y) {
+  return powf(x, y);
+}
+
+static FORCE_INLINE float SQRT(float x) {
+  return sqrtf(x);
+}
+
+static FORCE_INLINE float CEIL(float x) {
+  return ceilf(x);
+}
+
+static FORCE_INLINE float FLOOR(float x) {
+  return floorf(x);
+}
+
+static FORCE_INLINE long LROUND(float x) {
+  return lroundf(x);
+}
+
+static FORCE_INLINE float FMOD(float x, float y) {
+  return fmodf(x, y);
+}
 
 #endif // HAL_SAM_H

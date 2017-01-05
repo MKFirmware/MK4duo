@@ -281,6 +281,11 @@
 // Smoothing factor within the PID
 #define K1 0.95
 
+// Emergency measure for suppress PID vibration when PID autotune is useless
+// When you set this to 2, sampling period of the PID routine will be 1/2
+// And if you change this value, you need to clear your EEPROM by M502 and M500
+#define PID_dT_FACTOR 1
+
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
 // if Kc is chosen well, the additional required power due to increased melting should be compensated.
 //#define PID_ADD_EXTRUSION_RATE

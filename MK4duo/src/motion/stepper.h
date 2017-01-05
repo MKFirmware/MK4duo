@@ -225,7 +225,7 @@ class Stepper {
     static void enable_all_steppers();
     static void disable_all_steppers();
 
-    #if HAS(DIGIPOTSS)
+    #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
       static void digitalPotWrite(int address, int value);
       static void digipot_current(uint8_t driver, int current);
     #endif

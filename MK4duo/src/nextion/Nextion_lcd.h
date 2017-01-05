@@ -62,9 +62,10 @@
     #if ENABLED(NEXTION_GFX)
       void gfx_origin(const float x, const float y, const float z);
       void gfx_scale(const float scale);
-      void gfx_clear(const float x, const float y, const float z);
-      void gfx_cursor_to(const float x, const float y, const float z);
+      void gfx_clear(const float x, const float y, const float z, bool force_clear=false);
+      void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor=false);
       void gfx_line_to(const float x, const float y, const float z);
+      void gfx_plane_to(const float x, const float y, const float z);
     #endif
 
     #if ENABLED(SDSUPPORT)

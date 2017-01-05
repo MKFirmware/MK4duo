@@ -40,11 +40,6 @@
 #define PAUSE           "//action:pause"      // command for host that support action
 #define RESUME          "//action:resume"     // command for host that support action
 #define DISCONNECT      "//action:disconnect" // command for host that support action
-#define POWER_UP        "PowerUp"
-#define BROWN_OUT       "Brown out Reset"
-#define WATCHDOG        "Watchdog Reset"
-#define SOFTWARE_RESET  "Software Reset"
-#define EXTERNAL_RESET  "External Reset"
 
 #define SERIAL_INIT(baud)                   MKSERIAL.begin(baud), HAL::delayMilliseconds(1)
 #define SERIAL_WRITE(x)                     MKSERIAL.write(x)

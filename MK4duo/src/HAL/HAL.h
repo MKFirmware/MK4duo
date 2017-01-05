@@ -21,35 +21,32 @@
  */
 
 /**
- *
  * Description:
  *
- * Supports platforms :
- *     ARDUINO CPU SAM
- *     ARDUINO CPU AVR
+ * Supports platforms:
+ *    ARDUINO_ARCH_SAM : For Arduino Due and other boards based on Atmel SAM3X8E
+ *    ARDUINO_ARCH_AVR : For all Atmel AVR boards
  */
 
 #ifndef _HAL_H
 #define _HAL_H
 
-#define REFERENCE_F_CPU 16000000 // 16MHz MEGA2560
+/**
+ * Public Variables
+ */
+
+constexpr uint32_t REFERENCE_F_CPU = 16000000; // 16MHz MEGA2560
 
 /**
  * Timers
  */
-#if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-  #define REFERENCE_EXTRUDER_TIMER_PRESCALE 64
-  #define HAL_REFERENCE_EXTRUDER_TIMER_RATE (REFERENCE_F_CPU / REFERENCE_EXTRUDER_TIMER_PRESCALE) // 250KHz
-  #define REFERENCE_EXTRUDER_TIMER_FREQUENCY (HAL_REFERENCE_EXTRUDER_TIMER_RATE / 200)            // 1.25KHz for start
-#endif
+constexpr uint32_t REFERENCE_STEPPER_TIMER_PRESCALE = 8;
+constexpr uint32_t HAL_REFERENCE_STEPPER_TIMER_RATE = REFERENCE_F_CPU / REFERENCE_STEPPER_TIMER_PRESCALE; // timer1 of MEGA2560: 16000000 / 8 = 2MHz
+constexpr uint32_t REFERENCE_STEPPER_TIMER_FREQUENCY = HAL_REFERENCE_STEPPER_TIMER_RATE / 2000; // note: timer0 is in mode2 (CTC), 1KHz at start
 
-#define REFERENCE_STEPPER_TIMER_PRESCALE 8
-#define HAL_REFERENCE_STEPPER_TIMER_RATE (REFERENCE_F_CPU / REFERENCE_STEPPER_TIMER_PRESCALE)     // 2MHz
-#define REFERENCE_STEPPER_TIMER_FREQUENCY (HAL_REFERENCE_STEPPER_TIMER_RATE / 2000)               // 1KHz for start
-
-#define REFERENCE_TEMP_TIMER_PRESCALE 64
-#define HAL_REFERENCE_TEMP_TIMER_RATE (REFERENCE_F_CPU / REFERENCE_TEMP_TIMER_PRESCALE)           // 250KHz
-#define REFERENCE_TEMP_TIMER_FREQUENCY (HAL_REFERENCE_TEMP_TIMER_RATE / 256)                      // 976.5625Hz
+constexpr uint32_t REFERENCE_TEMP_TIMER_PRESCALE = 64;
+constexpr uint32_t HAL_REFERENCE_TEMP_TIMER_RATE = REFERENCE_F_CPU / REFERENCE_TEMP_TIMER_PRESCALE; // timer0 of MEGA2560: 16000000 / 64 = 250KHz (sharing with advanced extruder)
+constexpr uint32_t REFERENCE_TEMP_TIMER_FREQUENCY = HAL_REFERENCE_TEMP_TIMER_RATE / 256; // note: timer0 is in mode3 (8bit fast PWM), 976.5625Hz always
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include "HAL_SAM/HAL.h"
@@ -58,7 +55,7 @@
   #include "HAL_AVR/HAL.h"
   #include "HAL_AVR/communication.h"
 #else
-  #error "error:Unsupported CPU"
+  #error "Unsupported Platform!"
 #endif
 
 #endif // _HAL_H

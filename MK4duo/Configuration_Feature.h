@@ -1504,6 +1504,9 @@
 // ref pins are connected to a digital trimpot on supported boards)
 // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
 #define DIGIPOT_MOTOR_CURRENT {135, 135, 135, 135, 135}
+
+// Motor Current for XY, Z, E in mA
+#define PWM_MOTOR_CURRENT {1200, 1000, 1000}
 /***********************************************************************/
 
 

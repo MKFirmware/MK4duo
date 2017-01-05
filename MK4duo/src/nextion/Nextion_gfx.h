@@ -25,7 +25,9 @@
   #define NX_MOVE         3
   #define NX_TOOL         4
   #define NX_BACKGROUND   5
-  #define NX_MAX          6
+  #define NX_LOW          6
+  #define NX_HIGH         7
+  #define NX_MAX          8
   #define NX_SCALE        4.0
 
   struct point {
@@ -40,7 +42,7 @@
       uint16_t _top, _left, _width, _height;
       float _scale, _max[3], _origin[3];
 
-      uint16_t _color[NX_MAX];
+      uint16_t color_tool[NX_MAX];
 
       struct {
         struct point point;
@@ -60,26 +62,25 @@
           _max[i] = 1000.0;
 
         for (uint8_t i = 0; i < NX_MAX; i++)
-          _color[i] = 65535;
-        _color[NX_BACKGROUND] = 0;
+          color_tool[i] = 65535;
+        color_tool[NX_BACKGROUND] = 0;
       }
 
       void clear() {
         const float zero[3] = { 0, 0, 0 };
-        fill(_left, _top, _width, _height, _color[NX_BACKGROUND]);
+        fill(_left, _top, _width, _height, color_tool[NX_BACKGROUND]);
 
         for (uint8_t i = 0; i < 3; i++) {
-          float pos[3] = {};
+          float pos[3] = { 0, 0, 0 };
           pos[i] = _max[i];
           cursor_to(zero);
-          line_to(NX_AXIS + i, pos);
+          line_to(NX_AXIS + i, pos, true);
         }
         cursor_to(zero);
       }
 
-      void clear(const float scale) {
+      void set_scale(const float scale) {
         _scale = scale;
-        clear();
       }
 
       void clear(const float x_mm, const float y_mm, const float z_mm) {
@@ -91,7 +92,8 @@
         _max[Y_AXIS] = y_mm;
         _max[Z_AXIS] = z_mm;
 
-        clear(scale_x > scale_y ? scale_y : scale_x);
+        set_scale(scale_x > scale_y ? scale_y : scale_x);
+        clear();
       }
 
       void origin(const float x, const float y, const float z) {
@@ -100,32 +102,35 @@
         _origin[Z_AXIS] = z;
       }
 
-      void color_set(const int color_ndx, uint16_t color) {
-        _color[color_ndx] = color;
+      void color_set(const uint8_t color_index, uint16_t color) {
+        color_tool[color_index] = color;
       }
 
       void cursor_to(const float *pos) {
-        for (uint8_t i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
           _cursor.position[i] = pos[i];
-
         _flatten(_cursor.position, &_cursor.point);
       }
-
-      void line_to(const int color_ndx, const float *pos);
 
       void cursor_to(float x, float y, float z) {
         const float pos[3] = { x, y, z };
         cursor_to(pos);
       }
-      
-      void line_to(const int color_ndx, float x, float y, float z) {
+
+      void line_to(const uint8_t color_index, const float *pos, bool shade=false);
+
+      void line_to(const uint8_t color_index, float x, float y, float z, bool shade=false) {
         float pos[3] = { x, y, z };
-        line_to(color_ndx, pos);
+        line_to(color_index, pos, shade);
       }
 
     private:
 
-      static int ComputeOutCode(int x, int y, int w, int h);
+      static int ComputeOutCode(const int x, const int y, const int w, const int h);
+
+      static uint16_t r5g6b5(const float* color_a, const float* cinc, const int pixel);
+
+      static void fcolor(float* c, uint16_t r5g6b5, float y, float max_y);
 
       void _flatten(const float* pos, struct point* pt) {
         pt->x = ((pos[X_AXIS] - _origin[X_AXIS]) +
@@ -135,10 +140,9 @@
                  (pos[Y_AXIS] - _origin[Y_AXIS]) / NX_SCALE) * _scale - 1;
       }
 
-      void _line2d_clipped(const float* a_color, const struct point* a,
-                           const float* b_color, const struct point* b);
-
-      void _line2d(const int color_ndx, const struct point* a, const struct point* b);
+      void nextion_line2d_shade(const float* a_color, const struct point* a,
+                                const float* b_color, const struct point* b,
+                                bool shade=false);
 
       bool fill(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
         char buf0[10], buf1[10], buf2[10], buf3[10], buf4[10] = {0};
@@ -180,6 +184,26 @@
         cmd += bufy1;
         cmd += ",";
         cmd += bufc;
+        sendCommand(cmd.c_str());
+        return recvRetCommandFinished();
+      }
+
+      bool drawPixel(const int x, const int y, uint16_t color) {
+        char buf0[10], buf1[10], buf2[10] = {0};
+        String cmd;
+        utoa(x, buf0, 10);
+        utoa(y, buf1, 10);
+        utoa(color, buf2,10);
+        cmd += "line ";
+        cmd += buf0;
+        cmd += ",";
+        cmd += buf1;
+        cmd += ",";
+        cmd += buf0;
+        cmd += ",";
+        cmd += buf1;
+        cmd += ",";
+        cmd += buf2;
         sendCommand(cmd.c_str());
         return recvRetCommandFinished();
       }

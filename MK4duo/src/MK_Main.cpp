@@ -1148,7 +1148,7 @@ inline bool code_value_bool() { return !code_has_value() || code_value_byte() > 
         linear_unit_factor = 1.0;
         break;
     }
-    volumetric_unit_factor = pow(linear_unit_factor, 3.0);
+    volumetric_unit_factor = POW(linear_unit_factor, 3.0);
   }
 
   inline float axis_unit_factor(int axis) {
@@ -2278,32 +2278,70 @@ static void clean_up_after_endstop_or_probe_move() {
   /**
    * Print calibration results for plotting or manual frame adjustment.
    */
-  void print_bilinear_leveling_grid() {
-    SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
+  static void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
     SERIAL_S(ECHO);
-    for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
-      SERIAL_M("    ");
-      if (x < 10) SERIAL_C(' ');
+    for (uint8_t x = 0; x < sx; x++) {
+      for (uint8_t i = 0; i < precision + 2 + (x < 10 ? 1 : 0); i++)
+        SERIAL_C(' ');
       SERIAL_V(x);
     }
     SERIAL_E;
-    for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
+    for (uint8_t y = 0; y < sy; y++) {
       SERIAL_S(ECHO);
       if (y < 10) SERIAL_C(' ');
       SERIAL_V(y);
-      for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
+      for (uint8_t x = 0; x < sx; x++) {
         SERIAL_C(' ');
-        float offset = bilinear_level_grid[x][y];
+        float offset = fn(x, y);
         if (offset != UNPROBED) {
           if (offset >= 0) SERIAL_C('+');
-          SERIAL_V(offset, 2);
+          SERIAL_V(offset, precision);
         }
         else
-          SERIAL_M(" ====");
+          for (uint8_t i = 0; i < precision + 3; i++)
+            SERIAL_C(i ? '=' : ' ');
       }
       SERIAL_E;
     }
     SERIAL_E;
+
+    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+
+      float plane[XYZ];
+
+      #if MECH(DELTA)
+        gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS, true);
+      #else
+        gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS, true);
+      #endif
+
+      gfx_scale(1.4);
+
+      #if MECH(DELTA)
+        gfx_cursor_to(LEFT_PROBE_BED_POSITION + (X_MAX_POS), FRONT_PROBE_BED_POSITION + (Y_MAX_POS), 10);
+      #else
+        gfx_cursor_to(LEFT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION, 10);
+      #endif
+
+      for (plane[Y_AXIS] = FRONT_PROBE_BED_POSITION; plane[Y_AXIS] < BACK_PROBE_BED_POSITION; plane[Y_AXIS] += 5) {
+        for (plane[X_AXIS] = LEFT_PROBE_BED_POSITION; plane[X_AXIS] < RIGHT_PROBE_BED_POSITION; plane[X_AXIS] += 5) {
+          plane[Z_AXIS] = 10 + (bilinear_z_offset(plane) * 10);
+          #if MECH(DELTA)
+            gfx_plane_to(plane[X_AXIS] + (X_MAX_POS), plane[Y_AXIS] + (Y_MAX_POS), plane[Z_AXIS]);
+          #else
+            gfx_plane_to(plane[X_AXIS], plane[Y_AXIS], plane[Z_AXIS]);
+          #endif
+        }
+      }
+
+    #endif
+  }
+
+  static void print_bilinear_leveling_grid() {
+    SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
+    print_2d_array(ABL_GRID_POINTS_X, ABL_GRID_POINTS_Y, 3,
+      [](const uint8_t x, const uint8_t y){ return bilinear_level_grid[x][y]; }
+    );
   }
 
   #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -2311,64 +2349,41 @@ static void clean_up_after_endstop_or_probe_move() {
     #define ABL_GRID_POINTS_VIRT_X (ABL_GRID_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
     #define ABL_GRID_POINTS_VIRT_Y (ABL_GRID_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
     float bilinear_level_grid_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-    float bed_level_grid_virt_temp[ABL_GRID_POINTS_X + 2][ABL_GRID_POINTS_Y + 2]; // temporary for calculation (maybe dynamical?)
+    float bilinear_level_grid_virt_temp[ABL_GRID_POINTS_X + 2][ABL_GRID_POINTS_Y + 2]; // temporary for calculation (maybe dynamical?)
     int bilinear_grid_spacing_virt[2] = { 0 };
 
     static void bed_level_virt_print() {
-      SERIAL_EM("Subdivided with CATMULL ROM Leveling Grid:");
-      for (uint8_t x = 0; x < ABL_GRID_POINTS_VIRT_X; x++) {
-        SERIAL_M("       ");
-        if (x < 10) SERIAL_C(' ');
-        SERIAL_V(x);
-      }
-      SERIAL_E;
-      for (uint8_t y = 0; y < ABL_GRID_POINTS_VIRT_Y; y++) {
-        if (y < 10) SERIAL_C(' ');
-        SERIAL_V(y);
-        for (uint8_t x = 0; x < ABL_GRID_POINTS_VIRT_X; x++) {
-          SERIAL_C(' ');
-          float offset = bilinear_level_grid_virt[x][y];
-          if (offset != UNPROBED) {
-            if (offset > 0) SERIAL_C('+');
-            SERIAL_V(offset, 5);
-          }
-          else
-            SERIAL_M(" ====");
-        }
-        SERIAL_E;
-      }
-      SERIAL_E;
+      SERIAL_LM(ECHO, "Subdivided with CATMULL ROM Leveling Grid:");
+      print_2d_array(ABL_GRID_POINTS_VIRT_X, ABL_GRID_POINTS_VIRT_Y, 5,
+        [](const uint8_t x, const uint8_t y){ return bilinear_level_grid_virt[x][y]; }
+      );
     }
 
     #define LINEAR_EXTRAPOLATION(E, I) (E * 2 - I)
-    void bed_level_virt_prepare() {
-      for (uint8_t y = 1; y <= ABL_GRID_POINTS_Y; y++) {
+    float bed_level_virt_coord(const uint8_t x, const uint8_t y) {
+      uint8_t ep = 0, ip = 1;
 
-        for (uint8_t x = 1; x <= ABL_GRID_POINTS_X; x++)
-          bed_level_grid_virt_temp[x][y] = bilinear_level_grid[x - 1][y - 1];
-
-        bed_level_grid_virt_temp[0][y] = LINEAR_EXTRAPOLATION(
-          bed_level_grid_virt_temp[1][y],
-          bed_level_grid_virt_temp[2][y]
-        );
-
-        bed_level_grid_virt_temp[(ABL_GRID_POINTS_X + 2) - 1][y] =
-          LINEAR_EXTRAPOLATION(
-            bed_level_grid_virt_temp[(ABL_GRID_POINTS_X + 2) - 2][y],
-            bed_level_grid_virt_temp[(ABL_GRID_POINTS_X + 2) - 3][y]
-          );
+      if (x == 0 || x == ABL_GRID_POINTS_X + 2 - 1) {
+        if (x) {
+          ep = ABL_GRID_POINTS_X - 1;
+          ip = ABL_GRID_POINTS_X - 2;
+        }
+        if (y > 0 && y < ABL_GRID_POINTS_Y + 2 - 1)
+          return LINEAR_EXTRAPOLATION(bilinear_level_grid[ep][y - 1], bilinear_level_grid[ip][y - 1]);
+        else
+          return LINEAR_EXTRAPOLATION(bed_level_virt_coord(ep + 1, y), bed_level_virt_coord(ip + 1, y));
       }
-      for (uint8_t x = 0; x < ABL_GRID_POINTS_X + 2; x++) {
-        bed_level_grid_virt_temp[x][0] = LINEAR_EXTRAPOLATION(
-          bed_level_grid_virt_temp[x][1],
-          bed_level_grid_virt_temp[x][2]
-        );
-        bed_level_grid_virt_temp[x][(ABL_GRID_POINTS_Y + 2) - 1] =
-          LINEAR_EXTRAPOLATION(
-            bed_level_grid_virt_temp[x][(ABL_GRID_POINTS_Y + 2) - 2],
-            bed_level_grid_virt_temp[x][(ABL_GRID_POINTS_Y + 2) - 3]
-          );
+      if (y == 0 || y == ABL_GRID_POINTS_Y + 2 - 1) {
+        if (y) {
+          ep = ABL_GRID_POINTS_Y - 1;
+          ip = ABL_GRID_POINTS_Y - 2;
+        }
+        if (x > 0 && x < ABL_GRID_POINTS_X + 2 - 1 )
+          return LINEAR_EXTRAPOLATION(bilinear_level_grid[x - 1][ep], bilinear_level_grid[x - 1][ip]);
+        else
+          return LINEAR_EXTRAPOLATION(bed_level_virt_coord(x, ep + 1), bed_level_virt_coord(x, ip + 1));
       }
+      return bilinear_level_grid[x - 1][y - 1];
     }
 
     static float bed_level_virt_cmr(const float p[4], const uint8_t i, const float t) {
@@ -2384,7 +2399,7 @@ static void clean_up_after_endstop_or_probe_move() {
       float row[4], column[4];
       for (uint8_t i = 0; i < 4; i++) {
         for (uint8_t j = 0; j < 4; j++) // can be memcopy or through memory access
-          column[j] = bed_level_grid_virt_temp[i + x - 1][j + y - 1];
+          column[j] = bed_level_virt_coord(i + x - 1, j + y - 1);
         row[i] = bed_level_virt_cmr(column, 1, ty);
       }
       return bed_level_virt_cmr(row, 1, tx);
@@ -2548,7 +2563,7 @@ static void homeaxis(AxisEnum axis) {
 
   #if ENABLED(Z_DUAL_ENDSTOPS)
     if (axis == Z_AXIS) {
-      float adj = fabs(z_endstop_adj);
+      float adj = FABS(z_endstop_adj);
       bool lockZ1;
       if (axis_home_dir > 0) {
         adj = -adj;
@@ -2877,7 +2892,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
     #if TEMP_RESIDENCY_TIME > 0
 
-      float temp_diff = fabs(theTarget - temp);
+      float temp_diff = FABS(theTarget - temp);
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -2973,7 +2988,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
       #if TEMP_BED_RESIDENCY_TIME > 0
 
-        float temp_diff = fabs(theTarget - temp);
+        float temp_diff = FABS(theTarget - temp);
 
         if (!residency_start_ms) {
           // Start the TEMP_BED_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -3057,7 +3072,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 	
       #if TEMP_CHAMBER_RESIDENCY_TIME > 0
 
-        float temp_diff = fabs(theTarget - degTargetChamber());
+        float temp_diff = FABS(theTarget - degTargetChamber());
 
         if (!residency_start_ms) {
           // Start the TEMP_CHAMBER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -3132,7 +3147,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 	
       #if TEMP_COOLER_RESIDENCY_TIME > 0
 
-        float temp_diff = fabs(theTarget - degTargetCooler());
+        float temp_diff = FABS(theTarget - degTargetCooler());
 
         if (!residency_start_ms) {
           // Start the TEMP_COOLER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -3396,7 +3411,7 @@ inline void gcode_G0_G1(
           const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
                       dx = x2 - x1, dy = y2 - y1,                 // X and Y differences
                       d = HYPOT(dx, dy),                          // Linear distance between the points
-                      h = sqrt(sq(r) - sq(d * 0.5)),              // Distance to the arc pivot-point
+                      h = SQRT(sq(r) - sq(d * 0.5)),              // Distance to the arc pivot-point
                       mx = (x1 + x2) * 0.5, my = (y1 + y2) * 0.5, // Point between the two points
                       sx = -dy / d, sy = dx / d,                  // Slope of the perpendicular bisector
                       cx = mx + e * h * sx, cy = my + e * h * sy; // Pivot-point of the arc
@@ -3583,7 +3598,7 @@ inline void gcode_G4() {
     float mlx = max_length(X_AXIS),
           mly = max_length(Y_AXIS),
           mlratio = mlx > mly ? mly / mlx : mlx / mly,
-          fr_mm_s = min(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * sqrt(sq(mlratio) + 1.0);
+          fr_mm_s = min(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
     do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * home_dir(Y_AXIS), fr_mm_s);
     endstops.hit_on_purpose(); // clear endstop hit flags
@@ -4625,8 +4640,8 @@ inline void gcode_G28() {
           float xBase = left_probe_bed_position + xGridSpacing * xCount,
                 yBase = front_probe_bed_position + yGridSpacing * yCount;
 
-          xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
-          yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
+          xProbe = FLOOR(xBase + (xBase < 0 ? 0 : 0.5));
+          yProbe = FLOOR(yBase + (yBase < 0 ? 0 : 0.5));
 
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
             indexIntoAB[xCount][yCount] = ++probePointCounter;
@@ -4724,7 +4739,6 @@ inline void gcode_G28() {
       print_bilinear_leveling_grid();
 
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bed_level_virt_prepare();
         bed_level_virt_interpolate();
         bed_level_virt_print();
       #endif
@@ -5360,12 +5374,12 @@ inline void gcode_G28() {
           sumOfSquares += sq(expectedResiduals[i]);
         }
 
-        expectedRmsError = sqrt(sumOfSquares / numPoints);
+        expectedRmsError = SQRT(sumOfSquares / numPoints);
 
       } while (iteration < 2);
 
       sprintf_P(rply, PSTR("Calibrated %d factors using %d points, deviation before %.4f after %.4f"),
-          numFactors, numPoints, sqrt(initialSumOfSquares / numPoints), expectedRmsError);
+          numFactors, numPoints, SQRT(initialSumOfSquares / numPoints), expectedRmsError);
       SERIAL_ET(rply);
 
       deltaParams.Recalc_delta_constants();
@@ -6070,7 +6084,7 @@ inline void gcode_M42() {
       for (uint8_t j = 0; j <= n; j++)
         sum += sq(sample_set[j] - mean);
 
-      sigma = sqrt(sum / (n + 1));
+      sigma = SQRT(sum / (n + 1));
       if (verbose_level > 0) {
         if (verbose_level > 1) {
           SERIAL_V(n + 1);
@@ -7675,8 +7689,8 @@ inline void gcode_M226() {
       bool hasX, hasY, hasZ, hasS;
       const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
                   ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
-      const int gridx = constrain(floor(ratio_x), 0, ABL_GRID_POINTS_X - 1),
-                gridy = constrain(floor(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
+      const int gridx = constrain(FLOOR(ratio_x), 0, ABL_GRID_POINTS_X - 1),
+                gridy = constrain(FLOOR(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
 
       if ((hasX = code_seen('X'))) px = code_value_int();
       if ((hasY = code_seen('Y'))) py = code_value_int();
@@ -7708,7 +7722,6 @@ inline void gcode_M226() {
       }
 
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bed_level_virt_prepare();
         bed_level_virt_interpolate();
       #endif
 
@@ -10548,8 +10561,8 @@ void ok_to_send() {
           ratio_y = y / ABL_BG_SPACING(Y_AXIS);
 
     // Whole units for the grid line indices. Constrained within bounds.
-    const int gridx = constrain(floor(ratio_x), 0, ABL_BG_POINTS_X - 1),
-              gridy = constrain(floor(ratio_y), 0, ABL_BG_POINTS_Y - 1),
+    const int gridx = constrain(FLOOR(ratio_x), 0, ABL_BG_POINTS_X - 1),
+              gridy = constrain(FLOOR(ratio_y), 0, ABL_BG_POINTS_Y - 1),
               nextx = min(gridx + 1, ABL_BG_POINTS_X - 1),
               nexty = min(gridy + 1, ABL_BG_POINTS_Y - 1);
 
@@ -10573,7 +10586,7 @@ void ok_to_send() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         static float last_offset = 0;
-        if (fabs(last_offset - offset) > 0.2) {
+        if (FABS(last_offset - offset) > 0.2) {
           SERIAL_M("Sudden Shift at ");
           SERIAL_MV("x=", x);
           SERIAL_MV(" / ", ABL_BG_SPACING(X_AXIS));
@@ -11284,7 +11297,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     LOOP_XYZE(i) difference[i] = ltarget[i] - current_position[i];
 
     // Get the linear distance in XYZ
-    float cartesian_mm = sqrt(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
+    float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
     // If the move is very short, check the E move distance
     if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
@@ -11513,7 +11526,7 @@ static void report_current_position() {
           rt_Y = logical[Y_AXIS] - center_Y;
 
     // CCW angle of rotation between position and logical from the circle center. Only one atan2() trig computation required.
-    float angular_travel = atan2(r_X * rt_Y - r_Y * rt_X, r_X * rt_X + r_Y * rt_Y);
+    float angular_travel = ATAN2(r_X * rt_Y - r_Y * rt_X, r_X * rt_X + r_Y * rt_Y);
     if (angular_travel < 0) angular_travel += RADIANS(360);
     if (clockwise) angular_travel -= RADIANS(360);
 
@@ -11521,10 +11534,10 @@ static void report_current_position() {
     if (angular_travel == 0 && current_position[X_AXIS] == logical[X_AXIS] && current_position[Y_AXIS] == logical[Y_AXIS])
       angular_travel += RADIANS(360);
 
-    float mm_of_travel = HYPOT(angular_travel * radius, fabs(linear_travel));
+    float mm_of_travel = HYPOT(angular_travel * radius, FABS(linear_travel));
     if (mm_of_travel < 0.001) return;
 
-    uint16_t segments = floor(mm_of_travel / (MM_PER_ARC_SEGMENT));
+    uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
     if (segments == 0) segments = 1;
     
     /**
@@ -11712,10 +11725,10 @@ static void report_current_position() {
     SK2 = L2 * S2;
 
     // Angle of Arm1 is the difference between Center-to-End angle and the Center-to-Elbow
-    THETA = atan2(SK1, SK2) - atan2(sx, sy);
+    THETA = ATAN2(SK1, SK2) - ATAN2(sx, sy);
 
     // Angle of Arm2
-    PSI = atan2(S2, C2);
+    PSI = ATAN2(S2, C2);
 
     delta[A_AXIS] = DEGREES(THETA);        // theta is support arm angle
     delta[B_AXIS] = DEGREES(THETA + PSI);  // equal to sub arm angle (inverted motor)
@@ -12294,7 +12307,16 @@ void setup() {
 
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
-  HAL::showStartReason();
+
+  // Check startup
+  SERIAL_S(ECHO);
+  const byte mcu = HAL::get_reset_source();
+  if (mcu & 1) SERIAL_EM(MSG_POWERUP);
+  if (mcu & 2) SERIAL_EM(MSG_EXTERNAL_RESET);
+  if (mcu & 4) SERIAL_EM(MSG_BROWNOUT_RESET);
+  if (mcu & 8) SERIAL_EM(MSG_WATCHDOG_RESET);
+  if (mcu & 32) SERIAL_EM(MSG_SOFTWARE_RESET);
+  HAL::clear_reset_source();
 
   SERIAL_LM(ECHO, BUILD_VERSION);
 

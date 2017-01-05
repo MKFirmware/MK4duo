@@ -47,11 +47,11 @@
 
 // Macros for bit masks
 #ifndef _BV
-  #define _BV(b) (1<<(b))
+  #define _BV(b) (1 << (b))
 #endif
-#define TEST(n,b) (((n)&_BV(b))!=0)
-#define SBI(n,b) (n |= _BV(b))
-#define CBI(n,b) (n &= ~_BV(b))
+#define TEST(n,b)   (((n)&_BV(b))!=0)
+#define SBI(n,b)    (n |= _BV(b))
+#define CBI(n,b)    (n &= ~_BV(b))
 #define SET_BIT(n,b,value) (n) ^= ((-value)^(n)) & (_BV(b))
 
 // Macros for maths shortcuts
@@ -61,7 +61,7 @@
 #define RADIANS(d)  ((d)*M_PI/180.0)
 #define DEGREES(r)  ((r)*180.0/M_PI)
 #define HYPOT2(x,y) (sq(x)+sq(y))
-#define HYPOT(x,y)  sqrt(HYPOT2(x,y))
+#define HYPOT(x,y)  SQRT(HYPOT2(x,y))
 #define SQUARE(x)   ((x)*(x))
 #define SIN_60 0.8660254037844386
 #define COS_60 0.5

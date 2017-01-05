@@ -47,7 +47,8 @@
   #include "Nextion_gfx.h"
   #include "nextion_lib/Nextion.h"
 
-  bool NextionON                    = false;
+  bool  NextionON                   = false,
+        show_Wave                   = true;
   uint8_t PageID                    = 0,
           lcd_status_message_level  = 0;
   uint16_t slidermaxval             = 20;
@@ -890,6 +891,8 @@
         gfx.color_set(NX_AXIS + Z_AXIS, 31);
         gfx.color_set(NX_MOVE, 2047);
         gfx.color_set(NX_TOOL, 65535);
+        gfx.color_set(NX_LOW, 2047);
+        gfx.color_set(NX_HIGH, 63488);
       #endif
 
       #if ENABLED(SDSUPPORT)
@@ -953,8 +956,8 @@
 
     heater_list0[h]->setValue(temp);
 
-    #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus()) {
+    #if ENABLED(NEXTION_GFX) && ENABLED(NEXTION_WAVETEMP)
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus() && show_Wave) {
         Wavetemp.setShow();
       }
     #endif
@@ -1186,25 +1189,34 @@
     }
 
     void gfx_scale(const float scale) {
-      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
-        gfx.clear(scale);
+      gfx.set_scale(scale);
     }
 
-    void gfx_clear(const float x, const float y, const float z) {
-      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
+    void gfx_clear(const float x, const float y, const float z, bool force_clear) {
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
         Wavetemp.setHide();
+        show_Wave = !force_clear;
         gfx.clear(x, y, z);
       }
     }
 
-    void gfx_cursor_to(const float x, const float y, const float z) {
-      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+    void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if ((PageID == 2) && (print_job_counter.isRunning() || IS_SD_PRINTING))
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.line_to(NX_TOOL, x, y, z);
+    }
+
+    void gfx_plane_to(const float x, const float y, const float z) {
+      uint8_t color;
+      if (PageID == 2) {
+        if (z < 10) color = NX_LOW;
+        else color = NX_HIGH;
+        gfx.line_to(color, x, y, z, true);
+      }
     }
   #endif
 

@@ -492,7 +492,7 @@
       SERIAL_MV(" Target Rod: ", targetZRod);
 
     // difference in steps between the correct movement (originZRod->targetZRod) and the planned movement
-    long stepDiff = lround((targetZRod - originZRod) * planner.axis_steps_per_mm[Z_AXIS]) - (lround(targetZ * planner.axis_steps_per_mm[Z_AXIS]) - planner.position[Z_AXIS]);
+    long stepDiff = LROUND((targetZRod - originZRod) * planner.axis_steps_per_mm[Z_AXIS]) - (LROUND(targetZ * planner.axis_steps_per_mm[Z_AXIS]) - planner.position[Z_AXIS]);
 
     if (DEBUGGING(ALL))
       SERIAL_EMV(" stepDiff: ", stepDiff);

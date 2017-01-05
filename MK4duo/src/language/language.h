@@ -86,6 +86,11 @@
 #endif  
 
 #define MSG_ENQUEUEING                      "enqueueing \""
+#define MSG_POWERUP                         "PowerUp"
+#define MSG_EXTERNAL_RESET                  " External Reset"
+#define MSG_BROWNOUT_RESET                  " Brown out Reset"
+#define MSG_WATCHDOG_RESET                  " Watchdog Reset"
+#define MSG_SOFTWARE_RESET                  " Software Reset"
 #define MSG_AUTHOR                          " | Author: "
 #define MSG_CONFIGURATION_VER               "Last Updated: "
 #define MSG_COMPILED                        "Compiled: "
