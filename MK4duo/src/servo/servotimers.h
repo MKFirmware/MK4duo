@@ -109,6 +109,9 @@
 
   typedef enum { _timer3, _timer5, _Nbr_16timers } timer16_Sequence_t ;
 
+  #define TRIM_DURATION          2 // compensation ticks to trim adjust for digitalWrite delays
+  #define SERVO_TIMER_PRESCALER 32 // timer prescaler
+
 #else // !ARDUINO_ARCH_SAM
 
   /**
@@ -138,5 +141,8 @@
   #else  // everything else
     typedef enum { _Nbr_16timers } timer16_Sequence_t;
   #endif
+
+  #define TRIM_DURATION         2 // compensation ticks to trim adjust for digitalWrite delays
+  #define SERVO_TIMER_PRESCALER 8 // timer prescaler
 
 #endif

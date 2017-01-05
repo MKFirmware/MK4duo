@@ -42,12 +42,6 @@ class Com {
     FSTRINGVAR(tPauseCommunication)       // command for host that support action
     FSTRINGVAR(tContinueCommunication)    // command for host that support action
     FSTRINGVAR(tDisconnectCommunication)  // command for host that support action
-    FSTRINGVAR(tPowerUp)
-    FSTRINGVAR(tBrownOut)
-    FSTRINGVAR(tWatchdog)
-    FSTRINGVAR(tSoftwareReset)
-    FSTRINGVAR(tExternalReset)
-
 
     static void printInfoLN(FSTRINGPARAM(text));
     static void PS_PGM(FSTRINGPARAM(text));

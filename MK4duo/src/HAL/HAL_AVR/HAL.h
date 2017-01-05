@@ -53,17 +53,16 @@
 #ifndef HAL_AVR_H
 #define HAL_AVR_H
 
-#include "fastio.h"
+#include "HAL_fastio.h"
 
-// Arduino < 1.0.0 does not define this, so we need to do it ourselves
-#ifndef analogInputToDigitalPin
-  #define analogInputToDigitalPin(p) ((p) + 0xA0)
-#endif
+/**
+ * Defines & Macros
+ */
 
-#if DISABLED(CRITICAL_SECTION_START)
-  #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
-  #define CRITICAL_SECTION_END    SREG = _sreg;
-#endif
+#define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
+#define CRITICAL_SECTION_END    SREG = _sreg;
+
+#define analogInputToDigitalPin(p) ((p) + 0xA0)
 
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
@@ -80,6 +79,15 @@
 #else
   #include "WProgram.h"
 #endif
+
+#undef LOW
+#define LOW         0
+#undef HIGH
+#define HIGH        1
+
+/**
+ * Stepper Definition
+ */
 
 // intRes = intIn1 * intIn2 >> 16
 // uses:
@@ -165,6 +173,7 @@
 /**
  * Timers
  */
+
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
 
@@ -190,12 +199,16 @@
           ENABLE_TEMPERATURE_INTERRUPT(); \
           ENABLE_STEPPER_DRIVER_INTERRUPT()
 
+/**
+ * Public Variables
+ */
+
 // Delays
-#define CYCLES_EATEN_BY_CODE 240
-#define CYCLES_EATEN_BY_E     60
+constexpr uint8_t CYCLES_EATEN_BY_CODE = 240;
+constexpr uint8_t CYCLES_EATEN_BY_E = 60;
 
 // Voltage for Pin
-#define HAL_VOLTAGE_PIN 5.0
+constexpr float HAL_VOLTAGE_PIN = 5.0;
 
 // Types
 #define HAL_TIMER_TYPE uint16_t
@@ -230,7 +243,9 @@ class HAL {
 
     virtual ~HAL();
 
-    static void showStartReason();
+    static inline void clear_reset_source() { MCUSR = 0; }
+    static inline uint8_t get_reset_source() { return MCUSR; }
+
     static int getFreeRam();
     static void resetHardware();
 
@@ -255,10 +270,10 @@ class HAL {
       SET_OUTPUT(SCK_PIN);
       SET_OUTPUT(MOSI_PIN);
       SET_INPUT(MISO_PIN);
-      #ifdef	PRR
-        PRR &= ~(1<<PRSPI);
+      #ifdef PRR
+        PRR &= ~(1 << PRSPI);
       #elif defined PRR0
-        PRR0 &= ~(1<<PRSPI);
+        PRR0 &= ~(1 << PRSPI);
       #endif
       // See avr processor documentation
       SPCR = (1 << SPE) | (1 << MSTR) | (r >> 1);
@@ -312,13 +327,13 @@ class HAL {
     }
 
     static inline void digitalWrite(uint8_t pin,uint8_t value) {
-      ::digitalWrite(pin,value);
+      ::digitalWrite(pin, value);
     }
     static inline uint8_t digitalRead(uint8_t pin) {
       return ::digitalRead(pin);
     }
     static inline void pinMode(uint8_t pin,uint8_t mode) {
-      ::pinMode(pin,mode);
+      ::pinMode(pin, mode);
     }
 
     static inline void delayMicroseconds(unsigned int delayUs) {
@@ -350,5 +365,41 @@ class HAL {
   protected:
   private:
 };
+
+/**
+ * math function
+ */
+
+static FORCE_INLINE float ATAN2(float y, float x) {
+  return atan2(y, x);
+}
+
+static FORCE_INLINE float FABS(float x) {
+  return fabs(x);
+}
+
+static FORCE_INLINE float POW(float x, float y) {
+  return pow(x, y);
+}
+
+static FORCE_INLINE float SQRT(float x) {
+  return sqrt(x);
+}
+
+static FORCE_INLINE float CEIL(float x) {
+  return ceil(x);
+}
+
+static FORCE_INLINE float FLOOR(float x) {
+  return floor(x);
+}
+
+static FORCE_INLINE long LROUND(float x) {
+  return lround(x);
+}
+
+static FORCE_INLINE float FMOD(float x, float y) {
+  return fmod(x, y);
+}
 
 #endif // HAL_AVR_H

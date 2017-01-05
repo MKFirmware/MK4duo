@@ -2934,7 +2934,7 @@ static void spiBegin() {
 //------------------------------------------------------------------------------
 /**
  * Initialize hardware SPI
- * Set SCK rate to F_CPU/pow(2, 1 + spiRate) for spiRate [0,6]
+ * Set SCK rate to F_CPU/POW(2, 1 + spiRate) for spiRate [0,6]
  */
 static void spiInit(uint8_t spiRate) {
   HAL::spiInit(spiRate);

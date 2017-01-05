@@ -62,7 +62,7 @@
       const float degreesToRadians = M_PI / 180.0;
       const float radiansToDegrees = 180.0 / M_PI;
 
-      #if ENABLED(DELTA_FAST_SQRT)
+      #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);
       #endif
 

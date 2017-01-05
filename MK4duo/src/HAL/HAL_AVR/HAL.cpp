@@ -39,7 +39,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * Description:          *** HAL for Arduino ***
+ * Description: HAL for Arduino and compatible
  *
  * Contributors:
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
@@ -64,17 +64,6 @@ HAL::HAL() {
 
 HAL::~HAL() {
   // dtor
-}
-
-// Print apparent cause of start/restart
-void HAL::showStartReason() {
-  byte mcu = MCUSR;
-  if (mcu & 1) SERIAL_EM(POWER_UP);
-  if (mcu & 2) SERIAL_EM(EXTERNAL_RESET);
-  if (mcu & 4) SERIAL_EM(BROWN_OUT);
-  if (mcu & 8) SERIAL_EM(WATCHDOG);
-  if (mcu & 32) SERIAL_EM(SOFTWARE_RESET);
-  MCUSR = 0;
 }
 
 // Return available memory

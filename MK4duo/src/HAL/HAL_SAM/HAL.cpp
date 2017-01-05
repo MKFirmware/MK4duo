@@ -39,7 +39,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * Description:          *** HAL for Arduino Due ***
+ * Description: HAL for Arduino Due and compatible (SAM3X8E)
  *
  * Contributors:
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
@@ -91,24 +91,15 @@ HAL::~HAL() {
   // dtor
 }
 
-// Print apparent cause of start/restart
-void HAL::showStartReason() {
-  int mcu = (RSTC->RSTC_SR & RSTC_SR_RSTTYP_Msk) >> RSTC_SR_RSTTYP_Pos;
-  switch (mcu) {
-    case 0:
-      Com::printInfoLN(Com::tPowerUp);
-      break;
-    case 1:
-      // this is return from backup mode on SAM
-      Com::printInfoLN(Com::tBrownOut);
-    case 2:
-      Com::printInfoLN(Com::tWatchdog);
-      break;
-    case 3:
-      Com::printInfoLN(Com::tSoftwareReset);
-      break;
-    case 4:
-      Com::printInfoLN(Com::tExternalReset);
+uint8_t HAL::get_reset_source() {
+  switch ((RSTC->RSTC_SR >> 8) & 7) {
+    case 0: return RST_POWER_ON; break;
+    case 1: return RST_BACKUP; break;
+    case 2: return RST_WATCHDOG; break;
+    case 3: return RST_SOFTWARE; break;
+    case 4: return RST_EXTERNAL; break;
+    default:
+      return 0;
   }
 }
 

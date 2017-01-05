@@ -481,7 +481,6 @@ void EEPROM::Postprocess() {
           EEPROM_READ(bilinear_start);        // 2 ints
           EEPROM_READ(bilinear_level_grid);   // 9 to 256 floats
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bed_level_virt_prepare();
             bed_level_virt_interpolate();
           #endif
         }

@@ -968,8 +968,8 @@ void Stepper::isr() {
   #endif // ARDUINO_ARCH_SAM && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
 
   #if ENABLED(ARDUINO_ARCH_SAM)
-    uint32_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-             stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+    HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+                    stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
     HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
   #else
     NOLESS(OCR1A, TCNT1 + 16);
@@ -1133,8 +1133,8 @@ void Stepper::isr() {
   
     // Don't run the ISR faster than possible
     #ifdef ARDUINO_ARCH_SAM
-      uint32_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-               stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+      HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
