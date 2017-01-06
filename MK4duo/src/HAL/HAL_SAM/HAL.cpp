@@ -582,7 +582,7 @@ void HAL::resetHardware() {
 
 #endif // I2C_EEPROM
 
-void HAL_timer_start(uint8_t timer_num, uint8_t priority, uint32_t frequency, uint32_t clock, uint8_t prescale) {
+void HAL_timer_start(const uint8_t timer_num, const uint8_t priority, const uint32_t frequency, const uint32_t clock, const uint8_t prescale) {
   // Get the ISR from table
   Tc *tc = TimerConfig[timer_num].pTimerRegs;
   uint32_t channel = TimerConfig[timer_num].channel;
@@ -602,13 +602,13 @@ void HAL_timer_start(uint8_t timer_num, uint8_t priority, uint32_t frequency, ui
   NVIC_EnableIRQ(irq);
 }
 
-void HAL_timer_enable_interrupt(uint8_t timer_num) {
+void HAL_timer_enable_interrupt(const uint8_t timer_num) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IER = TC_IER_CPCS; // enable interrupt on timer match with register C
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IDR = ~TC_IER_CPCS; // remove disable interrupt
 }
 
-void HAL_timer_disable_interrupt (uint8_t timer_num) {
+void HAL_timer_disable_interrupt (const uint8_t timer_num) {
 	const tTimerConfig *pConfig = &TimerConfig [timer_num];
 	pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IDR = TC_IER_CPCS; //disable interrupt
 }

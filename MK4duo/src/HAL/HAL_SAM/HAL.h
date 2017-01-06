@@ -291,16 +291,71 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
 
+
+/******************************************
+ * HAL Timers for stepper and temperature *
+ ******************************************/
+
 /**
- * Timers
+ * Defines
  */
+
+#define STEPPER_TIMER 2
+#define STEPPER_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK1 // TIMER_CLOCK1 -> 2 divisor
+#define HAL_STEP_TIMER_ISR  void TC2_Handler()
+
+#define TEMP_TIMER 3
+#define TEMP_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK2 // TIMER_CLOCK2 -> 8 divisor
+#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
+
+#define BEEPER_TIMER 4
+#define BEEPER_TIMER_COUNTER TC1
+#define BEEPER_TIMER_CHANNEL 1
+#define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
+
+#define HAL_TIMER_START(n) HAL_timer_start(n, n ## _PRIORITY, n ## _FREQUENCY, n ## _CLOCK, n ## _PRESCALE)
+
+#define ENABLE_ISRs() \
+          ENABLE_TEMP_INTERRUPT(); \
+          ENABLE_STEPPER_DRIVER_INTERRUPT()
+
+// Types
+typedef uint32_t millis_t;
+typedef uint32_t HAL_TIMER_TYPE;
+
 typedef struct {
   Tc          *pTimerRegs;
   uint16_t    channel;
   IRQn_Type   IRQ_Id;
 } tTimerConfig;
 
-#define  NUM_HARDWARE_TIMERS 9
+/**
+ * Public Variables
+ */
+
+constexpr uint8_t NUM_HARDWARE_TIMERS = 9;
+
+constexpr uint32_t STEPPER_TIMER_PRIORITY = 2;
+constexpr uint32_t STEPPER_TIMER_FREQUENCY = REFERENCE_STEPPER_TIMER_FREQUENCY;
+constexpr uint32_t STEPPER_TIMER_PRESCALE = 2;
+constexpr uint32_t HAL_STEPPER_TIMER_RATE = F_CPU / STEPPER_TIMER_PRESCALE; // = 42MHz
+constexpr uint32_t STEPPER_TIMER_FREQUENCY_FACTOR = STEPPER_TIMER_FREQUENCY / REFERENCE_STEPPER_TIMER_FREQUENCY;
+constexpr uint32_t STEPPER_TIMER_FACTOR = HAL_STEPPER_TIMER_RATE / HAL_REFERENCE_STEPPER_TIMER_RATE / STEPPER_TIMER_FREQUENCY_FACTOR;
+constexpr uint32_t STEPPER_TIMER_TICKS_PER_MILLISECOND = HAL_STEPPER_TIMER_RATE / 1000;
+
+constexpr uint32_t TEMP_TIMER_PRIORITY = 15;
+constexpr uint32_t TEMP_TIMER_FREQUENCY = REFERENCE_TEMP_TIMER_FREQUENCY;
+constexpr uint32_t TEMP_TIMER_PRESCALE = 8;
+constexpr uint32_t HAL_TEMP_TIMER_RATE = F_CPU / TEMP_TIMER_PRESCALE; // = 10.5MHz
+constexpr uint32_t TEMP_TIMER_FREQUENCY_FACTOR = TEMP_TIMER_FREQUENCY / REFERENCE_TEMP_TIMER_FREQUENCY;
+constexpr uint32_t TEMP_TIMER_FACTOR = HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE / TEMP_TIMER_FREQUENCY_FACTOR;
+constexpr uint32_t TEMP_TIMER_TICKS_PER_MILLISECOND = HAL_TEMP_TIMER_RATE / 1000;
+
+constexpr HAL_TIMER_TYPE ADV_NEVER = UINT32_MAX;
+
+/**
+ * Private Variables
+ */
 
 static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 {
@@ -322,16 +377,6 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 	Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-#define STEPPER_TIMER 2
-#define STEPPER_TIMER_PRIORITY 2
-#define STEPPER_TIMER_FREQUENCY REFERENCE_STEPPER_TIMER_FREQUENCY
-#define STEPPER_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK1 // TIMER_CLOCK1 -> 2 divisor
-#define STEPPER_TIMER_PRESCALE 2
-#define HAL_STEPPER_TIMER_RATE (F_CPU / STEPPER_TIMER_PRESCALE) // = 42MHz
-#define STEPPER_TIMER_FREQUENCY_FACTOR (STEPPER_TIMER_FREQUENCY / REFERENCE_STEPPER_TIMER_FREQUENCY)
-#define STEPPER_TIMER_FACTOR (HAL_STEPPER_TIMER_RATE / HAL_REFERENCE_STEPPER_TIMER_RATE / STEPPER_TIMER_FREQUENCY_FACTOR)
-#define STEPPER_TIMER_TICKS_PER_MILLISECOND (HAL_STEPPER_TIMER_RATE / 1000)
-#define HAL_STEP_TIMER_ISR  void TC2_Handler()
 /*
 #define TEMP_TIMER 3
 #define TEMP_TIMER_PRIORITY 15
@@ -344,64 +389,57 @@ static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
 #define HAL_TEMP_TIMER_ISR  void TC3_Handler()
 */
 
-#define TEMP_TIMER 3
-#define TEMP_TIMER_PRIORITY 15
-#define TEMP_TIMER_FREQUENCY REFERENCE_TEMP_TIMER_FREQUENCY
-#define TEMP_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK2 // TIMER_CLOCK2 -> 8 divisor
-#define TEMP_TIMER_PRESCALE 8
-#define HAL_TEMP_TIMER_RATE (F_CPU / TEMP_TIMER_PRESCALE) // = 10.5MHz
-#define TEMP_TIMER_FREQUENCY_FACTOR (TEMP_TIMER_FREQUENCY / REFERENCE_TEMP_TIMER_FREQUENCY)
-#define TEMP_TIMER_FACTOR (HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE / TEMP_TIMER_FREQUENCY_FACTOR)
-#define TEMP_TIMER_TICKS_PER_MILLISECOND (HAL_TEMP_TIMER_RATE / 1000)
-#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
-
-#define BEEPER_TIMER 4
-#define BEEPER_TIMER_COUNTER TC1
-#define BEEPER_TIMER_CHANNEL 1
-#define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
-
-#define HAL_TIMER_START(n) HAL_timer_start(n, n ## _PRIORITY, n ## _FREQUENCY, n ## _CLOCK, n ## _PRESCALE)
-
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()   HAL_timer_enable_interrupt(STEPPER_TIMER)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT()  HAL_timer_disable_interrupt(STEPPER_TIMER)
-#define HAL_TIMER_SET_STEPPER_COUNT(n)      HAL_timer_set_count(STEPPER_TIMER, n)
-
-#define ENABLE_TEMPERATURE_INTERRUPT()      HAL_timer_enable_interrupt(TEMP_TIMER)
-#define DISABLE_TEMPERATURE_INTERRUPT()     HAL_timer_disable_interrupt(TEMP_TIMER)
-#define HAL_TIMER_SET_TEMP_COUNT(n)         HAL_timer_set_count(TEMP_TIMER, n)
-
-#define ENABLE_ISRs() \
-          ENABLE_TEMPERATURE_INTERRUPT(); \
-          ENABLE_STEPPER_DRIVER_INTERRUPT()
-
-// Types
-#define HAL_TIMER_TYPE uint32_t
-constexpr HAL_TIMER_TYPE ADV_NEVER = UINT32_MAX;
-typedef uint32_t millis_t;
+/**
+ * Public functions
+ */
 
 // Timers
-void HAL_timer_start(uint8_t timer_num, uint8_t priority, uint32_t frequency, uint32_t clock, uint8_t prescale);
-void HAL_timer_enable_interrupt(uint8_t timer_num);
-void HAL_timer_disable_interrupt(uint8_t timer_num);
+void HAL_timer_start(const uint8_t timer_num, const uint8_t priority, const uint32_t frequency, const uint32_t clock, const uint8_t prescale);
+void HAL_timer_enable_interrupt(const uint8_t timer_num);
+void HAL_timer_disable_interrupt(const uint8_t timer_num);
 
-static FORCE_INLINE void HAL_timer_isr_prologue(uint8_t timer_num) {
+static FORCE_INLINE void HAL_timer_isr_prologue(const uint8_t timer_num) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
   TC_GetStatus(pConfig->pTimerRegs, pConfig->channel); // clear status register
 }
 
-static FORCE_INLINE uint32_t HAL_timer_get_count(uint8_t timer_num) {
+static FORCE_INLINE uint32_t HAL_timer_get_count(const uint8_t timer_num) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
 }
 
-static FORCE_INLINE uint32_t HAL_timer_get_current_count(uint8_t timer_num) {
+static FORCE_INLINE uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
   return TC_ReadCV(pConfig->pTimerRegs, pConfig->channel);
 }
 
-static FORCE_INLINE void HAL_timer_set_count(uint8_t timer_num, uint32_t count) {
+static FORCE_INLINE void HAL_timer_set_count(const uint8_t timer_num, uint32_t count) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
   TC_SetRC(pConfig->pTimerRegs, pConfig->channel, count);
+}
+
+static FORCE_INLINE void ENABLE_STEPPER_DRIVER_INTERRUPT(void) {
+  HAL_timer_enable_interrupt(STEPPER_TIMER);
+}
+
+static FORCE_INLINE void DISABLE_STEPPER_DRIVER_INTERRUPT(void) {
+  HAL_timer_disable_interrupt(STEPPER_TIMER);
+}
+
+static FORCE_INLINE void HAL_TIMER_SET_STEPPER_COUNT(uint32_t count) {
+  HAL_timer_set_count(STEPPER_TIMER, count);
+}
+
+static FORCE_INLINE void ENABLE_TEMP_INTERRUPT(void) {
+  HAL_timer_enable_interrupt(TEMP_TIMER);
+}
+
+static FORCE_INLINE void DISABLE_TEMP_INTERRUPT(void) {
+  HAL_timer_disable_interrupt(TEMP_TIMER);
+}
+
+static FORCE_INLINE void HAL_TIMER_SET_TEMP_COUNT(uint32_t count) {
+  HAL_timer_set_count(TEMP_TIMER, count);
 }
 
 // ADC

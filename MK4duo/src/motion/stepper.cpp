@@ -254,14 +254,16 @@ void Stepper::set_directions() {
     SET_STEP_DIR(Z); // C
   #endif
 
-  if (motor_direction(E_AXIS)) {
-    REV_E_DIR();
-    count_direction[E_AXIS] = -1;
-  }
-  else {
-    NORM_E_DIR();
-    count_direction[E_AXIS] = 1;
-  }
+  #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    if (motor_direction(E_AXIS)) {
+      REV_E_DIR();
+      count_direction[E_AXIS] = -1;
+    }
+    else {
+      NORM_E_DIR();
+      count_direction[E_AXIS] = 1;
+    }
+  #endif // !ADVANCE && !LIN_ADVANCE
 }
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
@@ -295,7 +297,7 @@ void Stepper::isr() {
 
   #if DISABLED(ADVANCE) || DISABLED(LIN_ADVANCE)
     // Disable Timer0 ISRs and enable global ISR again to capture UART events (incoming chars)
-    DISABLE_TEMPERATURE_INTERRUPT();
+    DISABLE_TEMP_INTERRUPT();
     DISABLE_STEPPER_DRIVER_INTERRUPT();
     sei();
   #endif
@@ -437,30 +439,18 @@ void Stepper::isr() {
   #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
   #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    #define PULSE_START(AXIS) \
-      _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
-      if (_COUNTER(AXIS) > 0) { \
-        _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); \
-        _COUNTER(AXIS) -= current_block->step_event_count; \
-        count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
-      }
-  #else
-    #define PULSE_START(AXIS) \
-      _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
-      if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
-  #endif
+  // Advance the Bresenham counter; start a pulse if the axis needs a step
+  #define PULSE_START(AXIS) \
+    _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+    if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    #define PULSE_STOP(AXIS) _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0)
-  #else
-    #define PULSE_STOP(AXIS) \
-      if (_COUNTER(AXIS) > 0) { \
-        _COUNTER(AXIS) -= current_block->step_event_count; \
-        count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
-        _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
-      }
-  #endif
+  // Stop an active pulse, reset the Bresenham counter, update the position
+  #define PULSE_STOP(AXIS) \
+    if (_COUNTER(AXIS) > 0) { \
+      _COUNTER(AXIS) -= current_block->step_event_count; \
+      count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
+    }
 
   #if DISABLED(ARDUINO_ARCH_SAM) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
     // Take multiple steps per interrupt (For high speed moves)
@@ -655,7 +645,7 @@ void Stepper::isr() {
 
     bool all_steps_done = false;
 
-    #if ENABLED(LIN_ADVANCE) // LIN_ADVANCE
+    #if ENABLED(LIN_ADVANCE)
 
       counter_E += current_block->steps[E_AXIS];
       if (counter_E > 0) {
@@ -716,6 +706,7 @@ void Stepper::isr() {
       PULSE_START(Z);
     #endif
 
+    // For non-advance use linear interpolation for E also
     #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Keep updating the single E axis
@@ -967,12 +958,14 @@ void Stepper::isr() {
 
   #endif // ARDUINO_ARCH_SAM && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                    stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
-    HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
-  #else
-    NOLESS(OCR1A, TCNT1 + 16);
+  #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    #if ENABLED(ARDUINO_ARCH_SAM)
+      HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+      HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
+    #else
+      NOLESS(OCR1A, TCNT1 + 16);
+    #endif
   #endif
 
   // If current block is finished, reset pointer
@@ -1062,14 +1055,13 @@ void Stepper::isr() {
           #endif
         #endif
       #endif
-      
+
       // For a minimum pulse time wait before stopping pulses
-     // For a minimum pulse time wait before stopping pulses
       #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E
         #if ENABLED(ARDUINO_ARCH_SAM)
           // ADVANCE: MINIMUM_STEPPER_PULSE = 0... pulse width = 40ns, 1... 1.34μs, 2... 2.3μs, 3... 3.27μs, 4... 4.24μs, 5... 5.2μs
           // LIN_ADVANCE: MINIMUM_STEPPER_PULSE = 0... pulse width = 300ns, 1... 1.12μs, 2... 2.38μs, 3... 3.21μs, 4... 4.04μs, 5... 5.3μs
-          while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / EXTRUDER_TIMER_PRESCALE) { /* nada */ }
+          while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* nada */ }
           pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
         #else
           while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) { /* nada */ }
@@ -1095,14 +1087,14 @@ void Stepper::isr() {
 
       #if ENABLED(ARDUINO_ARCH_SAM) && (STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E)
         // For a minimum pulse time wait before stopping low pulses
-        if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / EXTRUDER_TIMER_PRESCALE) { /* nada */ }
+        if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* nada */ }
       #endif
     }
   }
 
   void Stepper::advance_isr_scheduler() {
     // Disable Timer0 ISRs and enable global ISR again to capture UART events (incoming chars)
-    DISABLE_TEMPERATURE_INTERRUPT();
+    DISABLE_TEMP_INTERRUPT();
     DISABLE_STEPPER_DRIVER_INTERRUPT();
     sei();
 
