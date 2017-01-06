@@ -1545,7 +1545,7 @@ void Temperature::init() {
     OCR0B = 128;
   #endif
 
-  ENABLE_TEMPERATURE_INTERRUPT();
+  ENABLE_TEMP_INTERRUPT();
 
   // Wait for temperature measurement to settle
   HAL::delayMilliseconds(250);
@@ -2182,7 +2182,7 @@ HAL_TEMP_TIMER_ISR {
 
 void Temperature::isr() {
   // Allow UART and stepper ISRs
-  DISABLE_TEMPERATURE_INTERRUPT(); // Disable Temperature ISR
+  DISABLE_TEMP_INTERRUPT(); // Disable Temperature ISR
   sei();
 
   static uint8_t temp_count = 0;
@@ -2779,5 +2779,5 @@ void Temperature::isr() {
     }
   #endif
   
-  ENABLE_TEMPERATURE_INTERRUPT(); // re-enable Temperature ISR
+  ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
 }

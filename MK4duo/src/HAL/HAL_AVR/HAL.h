@@ -181,8 +181,8 @@
 
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
-#define ENABLE_TEMPERATURE_INTERRUPT()      SBI(TIMSK0, OCIE0B);
-#define DISABLE_TEMPERATURE_INTERRUPT()     CBI(TIMSK0, OCIE0B);
+#define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B);
+#define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B);
 
 #define HAL_timer_start (timer_num, frequency)
 #define HAL_timer_set_count(timer, count) timer = (count)
@@ -196,7 +196,7 @@
 
 #define ENABLE_ISRs() \
           cli(); \
-          ENABLE_TEMPERATURE_INTERRUPT(); \
+          ENABLE_TEMP_INTERRUPT(); \
           ENABLE_STEPPER_DRIVER_INTERRUPT()
 
 /**
