@@ -120,8 +120,9 @@ constexpr uint8_t RST_BACKUP = 64;
 
 // Variant files of Alligator Board is old
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  #define strncpy_P(s1, s2, n) strncpy((s1), (s2), (n))
   #define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
+#else
+  #define analogInputToDigitalPin(p) p
 #endif
 
 #define PACK    __attribute__ ((packed))
@@ -357,17 +358,16 @@ constexpr HAL_TIMER_TYPE ADV_NEVER = UINT32_MAX;
  * Private Variables
  */
 
-static const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] =
-{
-  { TC0, 0, TC0_IRQn},
-  { TC0, 1, TC1_IRQn},
-  { TC0, 2, TC2_IRQn},
-  { TC1, 0, TC3_IRQn},
-  { TC1, 1, TC4_IRQn},
-  { TC1, 2, TC5_IRQn},
-  { TC2, 0, TC6_IRQn},
-  { TC2, 1, TC7_IRQn},
-  { TC2, 2, TC8_IRQn},
+static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
+  { TC0, 0, TC0_IRQn },
+  { TC0, 1, TC1_IRQn },
+  { TC0, 2, TC2_IRQn },
+  { TC1, 0, TC3_IRQn },
+  { TC1, 1, TC4_IRQn },
+  { TC1, 2, TC5_IRQn },
+  { TC2, 0, TC6_IRQn },
+  { TC2, 1, TC7_IRQn },
+  { TC2, 2, TC8_IRQn },
 };
 
 /*
