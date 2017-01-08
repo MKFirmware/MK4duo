@@ -2942,24 +2942,21 @@ void lcd_init() {
 
   #if ENABLED(NEWPANEL)
     #if BUTTON_EXISTS(EN1)
-      SET_INPUT(BTN_EN1);
-      PULLUP(BTN_EN1);
+      SET_INPUT_PULLUP(BTN_EN1);
     #endif
 
     #if BUTTON_EXISTS(EN2)
-      SET_INPUT(BTN_EN2);
-      PULLUP(BTN_EN2);
+      SET_INPUT_PULLUP(BTN_EN2);
     #endif
 
     #if BUTTON_EXISTS(ENC)
-      SET_INPUT(BTN_ENC);
-      PULLUP(BTN_ENC);
+      SET_INPUT_PULLUP(BTN_ENC);
     #endif
 
     #if ENABLED(REPRAPWORLD_KEYPAD)
       SET_OUTPUT(SHIFT_CLK);
       OUT_WRITE(SHIFT_LD, HIGH);
-      PULLUP(SHIFT_OUT);
+      SET_INPUT_PULLUP(SHIFT_OUT);
     #endif
 
     #if BUTTON_EXISTS(UP)
@@ -2984,14 +2981,13 @@ void lcd_init() {
       SET_OUTPUT(SHIFT_CLK);
       OUT_WRITE(SHIFT_LD, HIGH);
       OUT_WRITE(SHIFT_EN, LOW);
-      PULLUP(SHIFT_OUT);
+      SET_INPUT_PULLUP(SHIFT_OUT);
     #endif // SR_LCD_2W_NL
 
   #endif // !NEWPANEL
 
   #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
-    SET_INPUT(SD_DETECT_PIN);
-    PULLUP(SD_DETECT_PIN);
+    SET_INPUT_PULLUP(SD_DETECT_PIN);
     lcd_sd_status = 2; // UNKNOWN
   #endif
 

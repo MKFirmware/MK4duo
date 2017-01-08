@@ -612,10 +612,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(LIN_ADVANCE)
-    const float target_float[XYZE] = {a, b, c, e},
+    const float target_float[XYZE] = { a, b, c, e },
                 de_float = target_float[E_AXIS] - position_float[E_AXIS],
-                mm_D_float = SQRT(sq(target_float[X_AXIS] - position_float[X_AXIS]) + sq(target_float[Y_AXIS] - position_float[Y_AXIS]));
-    
+                mm_D_float = sqrt(sq(target_float[X_AXIS] - position_float[X_AXIS]) + sq(target_float[Y_AXIS] - position_float[Y_AXIS]));
+
     memcpy(position_float, target_float, sizeof(position_float));
   #endif
 
@@ -1382,7 +1382,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
                             && (uint32_t)esteps != block->step_event_count
                             && de_float > 0.0;
     if (block->use_advance_lead)
-      block->abs_adv_steps_multiplier8 = LROUND(extruder_advance_k * (de_float / mm_D_float) * block->nominal_speed / (float)block->nominal_rate * axis_steps_per_mm[E_AXIS_N] * 256.0);
+      block->abs_adv_steps_multiplier8 = lround(extruder_advance_k * (de_float / mm_D_float) * block->nominal_speed / (float)block->nominal_rate * axis_steps_per_mm[E_AXIS_N] * 256.0);
 
   #elif ENABLED(ADVANCE)
 
@@ -1397,7 +1397,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       block->advance_rate = block->advance = 0;
 
     /**
-    SERIAL_SMV(OK, "advance :", block->advance/256);
+    SERIAL_SMV(ECHO, "advance :", block->advance/256);
     SERIAL_EMV("advance rate :", block->advance_rate/256);
     */
 
