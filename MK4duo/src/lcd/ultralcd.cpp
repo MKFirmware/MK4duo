@@ -1012,7 +1012,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_extrude(float length, float feedrate) {
       current_position[E_AXIS] += length;
       #if MECH(DELTA)
-        inverse_kinematics(current_position);
+        deltaParams.inverse_kinematics_DELTA(current_position);
         planner.buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], feedrate, active_extruder, active_driver);
       #else
         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate, active_extruder, active_driver);
