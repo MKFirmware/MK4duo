@@ -771,8 +771,7 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 
 void setup_killpin() {
   #if HAS(KILL)
-    SET_INPUT(KILL_PIN);
-    PULLUP(KILL_PIN);
+    SET_INPUT_PULLUP(KILL_PIN);
   #endif
   }
 
@@ -780,7 +779,7 @@ void setup_killpin() {
   void setup_filrunoutpin() {
     SET_INPUT(FIL_RUNOUT_PIN);
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      PULLUP(FIL_RUNOUT_PIN);
+      PULLUP(FIL_RUNOUT_PIN, HIGH);
     #endif
   }
 #endif
@@ -788,8 +787,7 @@ void setup_killpin() {
 // Set home pin
 void setup_homepin(void) {
   #if HAS(HOME)
-    SET_INPUT(HOME_PIN);
-    PULLUP(HOME_PIN);
+    SET_INPUT_PULLUP(HOME_PIN);
   #endif
 }
 
@@ -12373,7 +12371,7 @@ void setup() {
   #if HAS(DOOR)
     SET_INPUT(DOOR_PIN);
     #if ENABLED(DOOR_OPEN_PULLUP)
-      PULLUP(DOOR_PIN);
+      PULLUP(DOOR_PIN, HIGH);
     #endif
   #endif
 
