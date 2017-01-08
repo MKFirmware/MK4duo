@@ -161,8 +161,8 @@ static FORCE_INLINE void _SET_OUTPUT(const uint32_t pin) {
 }
 
 // Write doesn't work for pullups
-static FORCE_INLINE void PULLUP(const uint32_t pin, uint8_t flag) {
-  pinMode(pin, (flag != LOW ? INPUT_PULLUP : INPUT));
+static FORCE_INLINE void PULLUP(const uint32_t pin) {
+  pinMode(pin, INPUT_PULLUP);
 }
 
 /*
@@ -179,7 +179,7 @@ static FORCE_INLINE void PULLUP(const uint32_t pin, uint8_t flag) {
 // set pin as input with pullup wrapper
 static FORCE_INLINE void SET_INPUT_PULLUP(const uint32_t pin) {
   SET_INPUT(pin);
-  PULLUP(pin, HIGH);
+  PULLUP(pin);
 }
 
 // Shorthand
