@@ -111,7 +111,7 @@
 #define OUT_WRITE(IO, v)  { SET_OUTPUT(IO); WRITE(IO, v); }
 
 // Pullup
-#define PULLUP(IO, v)     WRITE(IO, v)
+#define PULLUP(IO)        _WRITE(IO, HIGH)
 #define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
 
 /**

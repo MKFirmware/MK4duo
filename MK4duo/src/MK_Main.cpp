@@ -779,7 +779,7 @@ void setup_killpin() {
   void setup_filrunoutpin() {
     SET_INPUT(FIL_RUNOUT_PIN);
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      PULLUP(FIL_RUNOUT_PIN, HIGH);
+      PULLUP(FIL_RUNOUT_PIN);
     #endif
   }
 #endif
@@ -5852,7 +5852,7 @@ inline void gcode_M42() {
       byte pin_state[last_pin - first_pin + 1];
       for (int8_t pin = first_pin; pin <= last_pin; pin++) {
         if (pin_is_protected(pin) && !ignore_protection) continue;
-        pinMode(pin, INPUT_PULLUP);
+        PULLUP(pin);
         // if (IS_ANALOG(pin))
         //   pin_state[pin - first_pin] = analogRead(pin - analogInputToDigitalPin(0)); // int16_t pin_state[...]
         // else
@@ -12371,7 +12371,7 @@ void setup() {
   #if HAS(DOOR)
     SET_INPUT(DOOR_PIN);
     #if ENABLED(DOOR_OPEN_PULLUP)
-      PULLUP(DOOR_PIN, HIGH);
+      PULLUP(DOOR_PIN);
     #endif
   #endif
 
