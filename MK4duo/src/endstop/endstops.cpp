@@ -64,70 +64,70 @@ void Endstops::init() {
   #if HAS(X_MIN)
     SET_INPUT(X_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMIN)
-      PULLUP(X_MIN_PIN);
+      PULLUP(X_MIN_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Y_MIN)
     SET_INPUT(Y_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMIN)
-      PULLUP(Y_MIN_PIN);
+      PULLUP(Y_MIN_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Z_MIN)
     SET_INPUT(Z_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMIN)
-      PULLUP(Z_MIN_PIN);
+      PULLUP(Z_MIN_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Z2_MIN)
     SET_INPUT(Z2_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z2MIN)
-      PULLUP(Z2_MIN_PIN);
+      PULLUP(Z2_MIN_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(E_MIN)
     SET_INPUT(E_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_EMIN)
-      PULLUP(E_MIN_PIN);
+      PULLUP(E_MIN_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(X_MAX)
     SET_INPUT(X_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMAX)
-      PULLUP(X_MAX_PIN);
+      PULLUP(X_MAX_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Y_MAX)
     SET_INPUT(Y_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMAX)
-      PULLUP(Y_MAX_PIN);
+      PULLUP(Y_MAX_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Z_MAX)
     SET_INPUT(Z_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMAX)
-      PULLUP(Z_MAX_PIN);
+      PULLUP(Z_MAX_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Z2_MAX)
     SET_INPUT(Z2_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z2MAX)
-      PULLUP(Z2_MAX_PIN);
+      PULLUP(Z2_MAX_PIN, HIGH);
     #endif
   #endif
 
   #if HAS(Z_PROBE_PIN) // Check for Z_PROBE_ENDSTOP so we don't pull a pin high unless it's to be used.
     SET_INPUT(Z_PROBE_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZPROBE)
-      PULLUP(Z_PROBE_PIN);
+      PULLUP(Z_PROBE_PIN, HIGH);
     #endif
   #endif
 

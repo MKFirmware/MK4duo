@@ -174,6 +174,10 @@
  * Timers
  */
 
+// Delays
+#define CYCLES_EATEN_BY_CODE 240
+#define CYCLES_EATEN_BY_E     60
+
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
 
@@ -202,10 +206,6 @@
 /**
  * Public Variables
  */
-
-// Delays
-constexpr uint8_t CYCLES_EATEN_BY_CODE = 240;
-constexpr uint8_t CYCLES_EATEN_BY_E = 60;
 
 // Voltage for Pin
 constexpr float HAL_VOLTAGE_PIN = 5.0;
