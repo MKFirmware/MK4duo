@@ -62,7 +62,7 @@ class Stepper {
       static bool abort_on_endstop_hit;
     #endif
 
-    #if ENABLED(Z_DUAL_ENDSTOPS)
+    #if ENABLED(Z_TWO_ENDSTOPS)
       static bool performing_homing;
     #endif
 
@@ -71,7 +71,11 @@ class Stepper {
     static unsigned char last_direction_bits;        // The next stepping-bits to be output
     static unsigned int cleaning_buffer_counter;
 
-    #if ENABLED(Z_DUAL_ENDSTOPS)
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      static bool locked_z_motor, locked_z2_motor, locked_z3_motor, locked_z4_motor;
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      static bool locked_z_motor, locked_z2_motor, locked_z3_motor;
+    #elif ENABLED(Z_TWO_ENDSTOPS)
       static bool locked_z_motor, locked_z2_motor;
     #endif
 
@@ -236,7 +240,18 @@ class Stepper {
       static void microstep_readings();
     #endif
 
-    #if ENABLED(Z_DUAL_ENDSTOPS)
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
+      static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
+      static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }
+      static FORCE_INLINE void set_z3_lock(bool state) { locked_z3_motor = state; }
+      static FORCE_INLINE void set_z4_lock(bool state) { locked_z4_motor = state; }
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
+      static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
+      static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }
+      static FORCE_INLINE void set_z3_lock(bool state) { locked_z3_motor = state; }
+    #elif ENABLED(Z_TWO_ENDSTOPS)
       static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
       static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
       static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }

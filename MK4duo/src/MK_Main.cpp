@@ -239,8 +239,15 @@ PrintCounter print_job_counter = PrintCounter();
   #define ADJUST_DELTA(V) NOOP
 #endif
 
-#if ENABLED(Z_DUAL_ENDSTOPS)
-  float z_endstop_adj = 0;
+#if ENABLED(Z_FOUR_ENDSTOPS)
+  float z2_endstop_adj = 0;
+  float z3_endstop_adj = 0;
+  float z4_endstop_adj = 0;
+#elif ENABLED(Z_FOUR_ENDSTOPS)
+  float z2_endstop_adj = 0;
+  float z3_endstop_adj = 0;
+#elif ENABLED(Z_TWO_ENDSTOPS)
+  float z2_endstop_adj = 0;
 #endif
 
 #if HEATER_USES_AD595
@@ -308,10 +315,12 @@ PrintCounter print_job_counter = PrintCounter();
 
   float delta[ABC];
 
-  const float z_probe_deploy_start_location[] = Z_PROBE_DEPLOY_START_LOCATION,
-              z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION,
-              z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
-              z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
+  #if ENABLED(Z_PROBE_ALLEN_KEY)
+    const float z_probe_deploy_start_location[] = Z_PROBE_DEPLOY_START_LOCATION,
+                z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION,
+                z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
+                z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
+  #endif
 
   void  home_delta();
 
@@ -989,7 +998,7 @@ inline void get_serial_commands() {
       if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
       if (strcmp(command, "M410") == 0) { quickstop_stepper(); }
 
-      #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0
+      #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
         last_command_time = ms;
       #endif
 
@@ -1759,6 +1768,7 @@ static void clean_up_after_endstop_or_probe_move() {
 #endif // Z_PROBE_SLED
   
 #if ENABLED(Z_PROBE_ALLEN_KEY)
+
   void run_deploy_moves_script() {
     // Move to the start position to initiate deployment
     do_blocking_move_to(z_probe_deploy_start_location[X_AXIS], z_probe_deploy_start_location[Y_AXIS], z_probe_deploy_start_location[Z_AXIS], homing_feedrate_mm_s[Z_AXIS]);
@@ -1779,6 +1789,7 @@ static void clean_up_after_endstop_or_probe_move() {
     // Move up for safety
     do_blocking_move_to(z_probe_retract_start_location[X_AXIS], z_probe_retract_start_location[Y_AXIS], z_probe_retract_start_location[Z_AXIS], homing_feedrate_mm_s[Z_AXIS]);
   }
+
 #endif
 
 #if HAS(BED_PROBE)
@@ -2522,7 +2533,7 @@ static void homeaxis(AxisEnum axis) {
   #endif
 
   // Set a flag for Z motor locking
-  #if ENABLED(Z_DUAL_ENDSTOPS)
+  #if ENABLED(Z_TWO_ENDSTOPS)
     if (axis == Z_AXIS) stepper.set_homing_flag(true);
   #endif
 
@@ -2559,16 +2570,16 @@ static void homeaxis(AxisEnum axis) {
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
   }
 
-  #if ENABLED(Z_DUAL_ENDSTOPS)
+  #if ENABLED(Z_TWO_ENDSTOPS)
     if (axis == Z_AXIS) {
-      float adj = FABS(z_endstop_adj);
+      float adj = FABS(z2_endstop_adj);
       bool lockZ1;
       if (axis_home_dir > 0) {
         adj = -adj;
-        lockZ1 = (z_endstop_adj > 0);
+        lockZ1 = (z2_endstop_adj > 0);
       }
       else
-        lockZ1 = (z_endstop_adj < 0);
+        lockZ1 = (z2_endstop_adj < 0);
 
       if (lockZ1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
 

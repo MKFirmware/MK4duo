@@ -34,7 +34,7 @@ class Endstops {
     static bool enabled, enabled_globally;
     static volatile char endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
-    #if ENABLED(Z_DUAL_ENDSTOPS)
+    #if ENABLED(Z_TWO_ENDSTOPS)
       static uint16_t
     #else
       static byte
@@ -83,8 +83,12 @@ class Endstops {
 
   private:
 
-    #if ENABLED(Z_DUAL_ENDSTOPS)
-      static void test_dual_z_endstops(EndstopEnum es1, EndstopEnum es2);
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      static void test_four_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3, EndstopEnum es4);
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      static void test_three_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3);
+    #elif ENABLED(Z_TWO_ENDSTOPS)
+      static void test_two_z_endstops(EndstopEnum es1, EndstopEnum es2);
     #endif
 };
 

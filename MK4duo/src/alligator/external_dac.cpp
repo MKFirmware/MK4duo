@@ -82,18 +82,17 @@
   void ExternalDac::setValue(uint8_t channel, uint8_t value) {
     if(channel >= 7) // max channel (X,Y,Z,E0,E1,E2,E3)
       return;
-    if(value > 255) value = 255;
 
     uint8_t externalDac_buf[2] = {0x10, 0x00};
 
-    if(channel > 3)
+    if (channel > 3)
       externalDac_buf[0] |= ((7 - channel) << 6);
     else
       externalDac_buf[0] |= ((3 - channel) << 6);
 
-    externalDac_buf[0] |= (value>>4);
-    externalDac_buf[1] |= (value<<4);
-    
+    externalDac_buf[0] |= (value >> 4);
+    externalDac_buf[1] |= (value << 4);
+
     // All SPI chip-select HIGH
     digitalWrite(DAC0_SYNC, HIGH);
     #if DRIVER_EXTRUDERS > 1
@@ -104,7 +103,7 @@
     digitalWrite(SPI_FLASH_CS, HIGH);
     digitalWrite(SS_PIN, HIGH);
 
-    if(channel > 3) { // DAC Piggy E1,E2,E3
+    if (channel > 3) { // DAC Piggy E1,E2,E3
       digitalWrite(DAC1_SYNC, LOW);
       HAL::delayMicroseconds(2U);
       digitalWrite(DAC1_SYNC, HIGH);

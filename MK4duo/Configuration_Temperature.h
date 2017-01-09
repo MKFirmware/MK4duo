@@ -221,7 +221,7 @@
 
 
 /***********************************************************************
- ************************* Parallel heaters ******************************
+ ************************* Parallel heaters ****************************
  ***********************************************************************
  *                                                                     *
  * Control heater 0 and heater 1 in parallel.                          *
@@ -340,12 +340,12 @@
 
 
 /***********************************************************************
- ************************ PID Settings - CHAMBER ***************************
+ ************************ PID Settings - CHAMBER ***********************
  ***********************************************************************
  *                                                                     *
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
- * Select PID or bang-bang with PIDTEMPCHAMBER.                            *
- * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis            *
+ * Select PID or bang-bang with PIDTEMPCHAMBER.                        *
+ * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis        *
  *                                                                     *
  ***********************************************************************/
 // Uncomment this to enable PID on the chamber. It uses the same frequency PWM as the extruder.

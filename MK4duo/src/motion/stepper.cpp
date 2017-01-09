@@ -69,7 +69,7 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
   #endif
 #endif
 
-#if ENABLED(Z_DUAL_ENDSTOPS)
+#if ENABLED(Z_TWO_ENDSTOPS)
   bool Stepper::performing_homing = false;
 #endif
 
@@ -78,7 +78,16 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 unsigned char Stepper::last_direction_bits = 0;        // The next stepping-bits to be output
 unsigned int Stepper::cleaning_buffer_counter = 0;
 
-#if ENABLED(Z_DUAL_ENDSTOPS)
+#if ENABLED(Z_FOUR_ENDSTOPS)
+  bool Stepper::locked_z_motor = false;
+  bool Stepper::locked_z2_motor = false;
+  bool Stepper::locked_z3_motor = false;
+  bool Stepper::locked_z4_motor = false;
+#elif ENABLED(Z_THREE_ENDSTOPS)
+  bool Stepper::locked_z_motor = false;
+  bool Stepper::locked_z2_motor = false;
+  bool Stepper::locked_z3_motor = false;
+#elif ENABLED(Z_TWO_ENDSTOPS)
   bool Stepper::locked_z_motor = false;
   bool Stepper::locked_z2_motor = false;
 #endif
@@ -135,7 +144,7 @@ uint8_t Stepper::step_loops, Stepper::step_loops_nominal;
 
 volatile long Stepper::endstops_trigsteps[XYZ];
 
-#if ENABLED(X_DUAL_STEPPER_DRIVERS)
+#if ENABLED(X_TWO_STEPPER)
   #define X_APPLY_DIR(v,Q)  { X_DIR_WRITE(v); X2_DIR_WRITE((v) != INVERT_X2_VS_X_DIR); }
   #define X_APPLY_STEP(v,Q) { X_STEP_WRITE(v); X2_STEP_WRITE(v); }
 #elif ENABLED(DUAL_X_CARRIAGE)
@@ -160,7 +169,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
   #define X_APPLY_STEP(v,Q) X_STEP_WRITE(v)
 #endif
 
-#if ENABLED(Y_DUAL_STEPPER_DRIVERS)
+#if ENABLED(Y_TWO_STEPPER)
   #define Y_APPLY_DIR(v,Q)  { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
   #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
 #else
@@ -168,9 +177,60 @@ volatile long Stepper::endstops_trigsteps[XYZ];
   #define Y_APPLY_STEP(v,Q) Y_STEP_WRITE(v)
 #endif
 
-#if ENABLED(Z_DUAL_STEPPER_DRIVERS)
+#if ENABLED(Z_FOUR_STEPPER)
+  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); Z3_DIR_WRITE(v); Z4_DIR_WRITE(v); }
+  #if ENABLED(Z_FOUR_ENDSTOPS)
+    #define Z_APPLY_STEP(v,Q) \
+    if (performing_homing) { \
+      if (Z_HOME_DIR > 0) {\
+        if (!(TEST(endstops.old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z4_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
+      } \
+      else { \
+        if (!(TEST(endstops.old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z4_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
+      } \
+    } \
+    else { \
+      Z_STEP_WRITE(v); \
+      Z2_STEP_WRITE(v); \
+      Z3_STEP_WRITE(v); \
+      Z4_STEP_WRITE(v); \
+    }
+  #else
+    #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); Z3_STEP_WRITE(v); Z4_STEP_WRITE(v); }while(0)
+  #endif
+#elif ENABLED(Z_THREE_STEPPER)
+  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); Z3_DIR_WRITE(v); }
+  #if ENABLED(Z_THREE_ENDSTOPS)
+    #define Z_APPLY_STEP(v,Q) \
+    if (performing_homing) { \
+      if (Z_HOME_DIR > 0) {\
+        if (!(TEST(endstops.old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+      } \
+      else { \
+        if (!(TEST(endstops.old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_endstop_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+      } \
+    } \
+    else { \
+      Z_STEP_WRITE(v); \
+      Z2_STEP_WRITE(v); \
+      Z3_STEP_WRITE(v); \
+    }
+  #else
+    #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); Z3_STEP_WRITE(v); }while(0)
+  #endif
+#elif ENABLED(Z_TWO_STEPPER)
   #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); }
-  #if ENABLED(Z_DUAL_ENDSTOPS)
+  #if ENABLED(Z_TWO_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \
       if (Z_HOME_DIR > 0) {\
@@ -1173,13 +1233,13 @@ void Stepper::init() {
   #endif
   #if HAS(Y_DIR)
     Y_DIR_INIT;
-    #if ENABLED(Y_DUAL_STEPPER_DRIVERS) && HAS(Y2_DIR)
+    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_DIR)
       Y2_DIR_INIT;
     #endif
   #endif
   #if HAS(Z_DIR)
     Z_DIR_INIT;
-    #if ENABLED(Z_DUAL_STEPPER_DRIVERS) && HAS(Z2_DIR)
+    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_DIR)
       Z2_DIR_INIT;
     #endif
   #endif
@@ -1207,7 +1267,7 @@ void Stepper::init() {
   #if HAS(X_ENABLE)
     X_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
-    #if (ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_DUAL_STEPPER_DRIVERS)) && HAS(X2_ENABLE)
+    #if (ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER)) && HAS(X2_ENABLE)
       X2_ENABLE_INIT;
       if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
     #endif
@@ -1217,7 +1277,7 @@ void Stepper::init() {
     Y_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
 
-    #if ENABLED(Y_DUAL_STEPPER_DRIVERS) && HAS(Y2_ENABLE)
+    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_ENABLE)
       Y2_ENABLE_INIT;
       if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
     #endif
@@ -1226,7 +1286,7 @@ void Stepper::init() {
   #if HAS(Z_ENABLE)
     Z_ENABLE_INIT;
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
-    #if ENABLED(Z_DUAL_STEPPER_DRIVERS) && HAS(Z2_ENABLE)
+    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_ENABLE)
       Z2_ENABLE_INIT;
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
@@ -1292,7 +1352,7 @@ void Stepper::init() {
 
   // Init Step Pins
   #if HAS(X_STEP)
-    #if ENABLED(X_DUAL_STEPPER_DRIVERS) || ENABLED(DUAL_X_CARRIAGE)
+    #if ENABLED(X_TWO_STEPPER) || ENABLED(DUAL_X_CARRIAGE)
       X2_STEP_INIT;
       X2_STEP_WRITE(INVERT_X_STEP_PIN);
     #endif
@@ -1300,7 +1360,7 @@ void Stepper::init() {
   #endif
 
   #if HAS(Y_STEP)
-    #if ENABLED(Y_DUAL_STEPPER_DRIVERS) && HAS(Y2_STEP)
+    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_STEP)
       Y2_STEP_INIT;
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
@@ -1308,7 +1368,7 @@ void Stepper::init() {
   #endif
 
   #if HAS(Z_STEP)
-    #if ENABLED(Z_DUAL_STEPPER_DRIVERS) && HAS(Z2_STEP)
+    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_STEP)
       Z2_STEP_INIT;
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif

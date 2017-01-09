@@ -38,7 +38,7 @@
 #define X_ENABLE_PIN        ORIG_X_ENABLE_PIN
 
 // X2 axis pins
-#if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_DUAL_STEPPER_DRIVERS)
+#if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER)
   #define X2_STEP_PIN       ORIG_E1_STEP_PIN
   #define X2_DIR_PIN        ORIG_E1_DIR_PIN
   #define X2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
@@ -50,7 +50,7 @@
 #define Y_ENABLE_PIN        ORIG_Y_ENABLE_PIN
 
 // Y2 axis pins
-#if ENABLED(Y_DUAL_STEPPER_DRIVERS)
+#if ENABLED(Y_TWO_STEPPER)
   #define Y2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Y2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Y2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
@@ -62,10 +62,24 @@
 #define Z_ENABLE_PIN        ORIG_Z_ENABLE_PIN
 
 // Z2 axis pins
-#if ENABLED(Z_DUAL_STEPPER_DRIVERS)
+#if ENABLED(Z_TWO_STEPPER)
   #define Z2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Z2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Z2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+#endif
+
+// Z3 axis pins
+#if ENABLED(Z_THREE_STEPPER)
+  #define Z3_STEP_PIN       ORIG_E2_STEP_PIN
+  #define Z3_DIR_PIN        ORIG_E2_DIR_PIN
+  #define Z3_ENABLE_PIN     ORIG_E2_ENABLE_PIN
+#endif
+
+// Z4 axis pins
+#if ENABLED(Z_FOUR_STEPPER)
+  #define Z4_STEP_PIN       ORIG_E3_STEP_PIN
+  #define Z4_DIR_PIN        ORIG_E3_DIR_PIN
+  #define Z4_ENABLE_PIN     ORIG_E3_ENABLE_PIN
 #endif
 
 // E axis pins
@@ -112,6 +126,12 @@
 #define Y_MAX_PIN           ORIG_Y_MAX_PIN
 #define Z_MIN_PIN           ORIG_Z_MIN_PIN
 #define Z_MAX_PIN           ORIG_Z_MAX_PIN
+#define Z2_MIN_PIN          -1
+#define Z2_MAX_PIN          -1
+#define Z3_MIN_PIN          -1
+#define Z3_MAX_PIN          -1
+#define Z4_MIN_PIN          -1
+#define Z4_MAX_PIN          -1
 #define E_MIN_PIN           -1
 #define Z_PROBE_PIN         -1
 

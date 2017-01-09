@@ -22,7 +22,7 @@
 
 #ifndef _EXTERNAL_DAC_H
   #define _EXTERNAL_DAC_H
-  
+
   class ExternalDac {
     public:
       ExternalDac();

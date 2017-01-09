@@ -83,6 +83,10 @@ enum EndstopEnum {
   Z_MAX,
   Z2_MIN,
   Z2_MAX,
+  Z3_MIN,
+  Z3_MAX,
+  Z4_MIN,
+  Z4_MAX,
   E_MIN
 };
 

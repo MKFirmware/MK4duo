@@ -170,8 +170,15 @@ float code_value_temp_diff();
   extern uint8_t old_color; // old color for system NPR2
 #endif
 
-#if ENABLED(Z_DUAL_ENDSTOPS)
-  extern float z_endstop_adj;
+#if ENABLED(Z_FOUR_ENDSTOPS)
+  extern float z2_endstop_adj;
+  extern float z3_endstop_adj;
+  extern float z4_endstop_adj;
+#elif ENABLED(Z_THREE_ENDSTOPS)
+  extern float z2_endstop_adj;
+  extern float z3_endstop_adj;
+#elif ENABLED(Z_TWO_ENDSTOPS)
+  extern float z2_endstop_adj;
 #endif
 
 #if HAS(BED_PROBE)
