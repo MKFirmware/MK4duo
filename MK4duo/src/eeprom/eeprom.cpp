@@ -95,8 +95,8 @@
  *  M666  ABCIJK          deltaParams.tower_adj (float x6)
  *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
  *
- * Z_DUAL_ENDSTOPS:
- *  M666  Z               z_endstop_adj (float)
+ * Z_TWO_ENDSTOPS:
+ *  M666  Z               z2_endstop_adj (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp (int x3)
@@ -299,8 +299,8 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(deltaParams.base_max_pos);
       EEPROM_WRITE(deltaParams.tower_adj);
       EEPROM_WRITE(deltaParams.diagonal_rod_adj);
-    #elif ENABLED(Z_DUAL_ENDSTOPS)
-      EEPROM_WRITE(z_endstop_adj);
+    #elif ENABLED(Z_TWO_ENDSTOPS)
+      EEPROM_WRITE(z2_endstop_adj);
     #endif
 
     #if DISABLED(ULTIPANEL)
@@ -513,7 +513,9 @@ void EEPROM::Postprocess() {
         EEPROM_READ(deltaParams.base_max_pos);
         EEPROM_READ(deltaParams.tower_adj);
         EEPROM_READ(deltaParams.diagonal_rod_adj);
-      #endif //DELTA
+      #elif ENABLED(Z_TWO_ENDSTOPS)
+        EEPROM_READ(z2_endstop_adj);
+      #endif
 
       #if DISABLED(ULTIPANEL)
         int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
@@ -950,13 +952,13 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" S", deltaParams.segments_per_second, 3);
       SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
 
-    #elif ENABLED(Z_DUAL_ENDSTOPS)
+    #elif ENABLED(Z_TWO_ENDSTOPS)
 
       CONFIG_MSG_START("Z2 Endstop adjustement (mm):");
-      SERIAL_LMV(CFG, "  M666 Z", z_endstop_adj );
+      SERIAL_LMV(CFG, "  M666 Z", z2_endstop_adj );
 
     #endif // DELTA
-    
+
     /**
      * Auto Bed Leveling
      */

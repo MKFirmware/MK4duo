@@ -55,9 +55,9 @@
  * - Babystepping
  * - Firmware retract
  * - Dual X-carriage
- * - X-axis dual driver
- * - Y-axis dual driver
- * - Z-axis dual driver
+ * - X-axis two driver
+ * - Y-axis two driver
+ * - Z-axis two - three - four driver
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
@@ -711,20 +711,14 @@
 
 
 /*****************************************************************************************
- ********************************** X-axis dual driver ***********************************
+ ********************************** X-axis two driver ************************************
  *****************************************************************************************
  *                                                                                       *
  * A single X stepper driver is usually used to drive 2 stepper motors.                  *
  * Uncomment this define to utilize a separate stepper driver for each X axis motor.     *
- * Only a few motherboards support this, like RAMPS,                                     *
- * which have dual extruder support (the 2nd, often unused, extruder driver is used      *
- * to control the 2nd X axis stepper motor).                                             *
- * The pins are currently only defined for a RAMPS motherboards.                         *
- * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
- * to using 1 extruder.                                                                  *
  *                                                                                       *
  *****************************************************************************************/
-//#define X_DUAL_STEPPER_DRIVERS
+//#define X_TWO_STEPPER
 
 // Define if the two X drives need to rotate in opposite directions
 #define INVERT_X2_VS_X_DIR false
@@ -732,20 +726,14 @@
 
 
 /*****************************************************************************************
- ********************************** Y-axis dual driver ***********************************
+ ********************************** Y-axis two driver ************************************
  *****************************************************************************************
  *                                                                                       *
  * A single Y stepper driver is usually used to drive 2 stepper motors.                  *
  * Uncomment this define to utilize a separate stepper driver for each Y axis motor.     *
- * Only a few motherboards support this, like RAMPS,                                     *
- * which have dual extruder support (the 2nd, often unused, extruder driver is used      *
- * to control the 2nd Y axis stepper motor).                                             *
- * The pins are currently only defined for a RAMPS motherboards.                         *
- * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
- * to using 1 extruder.                                                                  *
  *                                                                                       *
  *****************************************************************************************/
-//#define Y_DUAL_STEPPER_DRIVERS
+//#define Y_TWO_STEPPER
 
 // Define if the two Y drives need to rotate in opposite directions
 #define INVERT_Y2_VS_Y_DIR false
@@ -753,30 +741,23 @@
 
 
 /*****************************************************************************************
- ********************************** Z-axis dual driver ***********************************
+ ************************** Z-axis two - three - four  driver ****************************
  *****************************************************************************************
  *                                                                                       *
  * A single Z stepper driver is usually used to drive 2 stepper motors.                  *
  * Uncomment this define to utilize a separate stepper driver for each Z axis motor.     *
- * Only a few motherboards support this, like RAMPS,                                     *
- * which have dual extruder support (the 2nd, often unused, extruder driver is used      *
- * to control the 2nd Z axis stepper motor).                                             *
- * The pins are currently only defined for a RAMPS motherboards.                         *
- * On a RAMPS (or other 5 driver) motherboard, using this feature will limit you         *
- * to using 1 extruder.                                                                  *
  *                                                                                       *
  *****************************************************************************************/
-//#define Z_DUAL_STEPPER_DRIVERS
+//#define Z_TWO_STEPPER
+//#define Z_THREE_STEPPER
+//#define Z_FOUR_STEPPER
 
-// Z DUAL ENDSTOPS is a feature to enable the use of 2 endstops for both Z steppers - Let's call them Z stepper and Z2 stepper.
-// That way the machine is capable to align the bed during home, since both Z steppers are homed. 
-// There is also an implementation of M666 (software endstops adjustment) to this feature.
-// After Z homing, this adjustment is applied to just one of the steppers in order to align the bed.
-// One just need to home the Z axis and measure the distance difference between both Z axis and apply the math: Z adjust = Z - Z2.
-// If the Z stepper axis is closer to the bed, the measure Z > Z2 (yes, it is.. think about it) and the Z adjust would be positive.
-// Play a little bit with small adjustments (0.5mm) and check the behaviour.
-// The M119 (endstops report) will start reporting the Z2 Endstop as well.
-//#define Z_DUAL_ENDSTOPS
+// Z TWO ENDSTOPS is a feature to enable the use of 2 endstops for both Z steppers
+//#define Z_TWO_ENDSTOPS
+// Z THREE ENDSTOPS is a feature to enable the use of 3 endstops for three Z steppers
+//#define Z_THREE_ENDSTOPS
+// Z FOUR ENDSTOPS is a feature to enable the use of 4 endstops for four Z steppers
+//#define Z_FOUR_ENDSTOPS
 /*****************************************************************************************/
 
 

@@ -232,6 +232,66 @@
   #define Z2_STEP_READ READ(Z2_STEP_PIN)
 #endif
 
+// Z3 Stepper
+#if HAS_Z3_ENABLE
+  #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z2_IS_L6470)
+    extern L6470 stepperZ3;
+    #define Z3_ENABLE_INIT NOOP
+    #define Z3_ENABLE_WRITE(STATE) do{if(STATE) stepperZ3.Step_Clock(stepperZ3.getStatus() & STATUS_HIZ); else stepperZ3.softFree();}while(0)
+    #define Z3_ENABLE_READ (stepperZ3.getStatus() & STATUS_HIZ)
+    #define Z3_DIR_INIT NOOP
+    #define Z3_DIR_WRITE(STATE) stepperZ3.Step_Clock(STATE)
+    #define Z3_DIR_READ (stepperZ3.getStatus() & STATUS_DIR)
+  #else
+    #if ENABLED(HAVE_TMCDRIVER) && ENABLED(Z3_IS_TMC)
+      extern TMC26XStepper stepperZ3;
+      #define Z3_ENABLE_INIT NOOP
+      #define Z3_ENABLE_WRITE(STATE) stepperZ3.setEnabled(STATE)
+      #define Z3_ENABLE_READ stepperZ3.isEnabled()
+    #else
+      #define Z3_ENABLE_INIT SET_OUTPUT(Z3_ENABLE_PIN)
+      #define Z3_ENABLE_WRITE(STATE) WRITE(Z3_ENABLE_PIN,STATE)
+      #define Z3_ENABLE_READ READ(Z3_ENABLE_PIN)
+    #endif
+    #define Z3_DIR_INIT SET_OUTPUT(Z3_DIR_PIN)
+    #define Z3_DIR_WRITE(STATE) WRITE(Z3_DIR_PIN,STATE)
+    #define Z3_DIR_READ READ(Z3_DIR_PIN)
+  #endif
+  #define Z3_STEP_INIT SET_OUTPUT(Z3_STEP_PIN)
+  #define Z3_STEP_WRITE(STATE) WRITE(Z3_STEP_PIN,STATE)
+  #define Z3_STEP_READ READ(Z3_STEP_PIN)
+#endif
+
+// Z4 Stepper
+#if HAS_Z4_ENABLE
+  #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z4_IS_L6470)
+    extern L6470 stepperZ4;
+    #define Z4_ENABLE_INIT NOOP
+    #define Z4_ENABLE_WRITE(STATE) do{if(STATE) stepperZ4.Step_Clock(stepperZ4.getStatus() & STATUS_HIZ); else stepperZ4.softFree();}while(0)
+    #define Z4_ENABLE_READ (stepperZ4.getStatus() & STATUS_HIZ)
+    #define Z4_DIR_INIT NOOP
+    #define Z4_DIR_WRITE(STATE) stepperZ4.Step_Clock(STATE)
+    #define Z4_DIR_READ (stepperZ4.getStatus() & STATUS_DIR)
+  #else
+    #if ENABLED(HAVE_TMCDRIVER) && ENABLED(Z4_IS_TMC)
+      extern TMC26XStepper stepperZ4;
+      #define Z4_ENABLE_INIT NOOP
+      #define Z4_ENABLE_WRITE(STATE) stepperZ4.setEnabled(STATE)
+      #define Z4_ENABLE_READ stepperZ4.isEnabled()
+    #else
+      #define Z4_ENABLE_INIT SET_OUTPUT(Z4_ENABLE_PIN)
+      #define Z4_ENABLE_WRITE(STATE) WRITE(Z4_ENABLE_PIN,STATE)
+      #define Z4_ENABLE_READ READ(Z4_ENABLE_PIN)
+    #endif
+    #define Z4_DIR_INIT SET_OUTPUT(Z4_DIR_PIN)
+    #define Z4_DIR_WRITE(STATE) WRITE(Z4_DIR_PIN,STATE)
+    #define Z4_DIR_READ READ(Z4_DIR_PIN)
+  #endif
+  #define Z4_STEP_INIT SET_OUTPUT(Z4_STEP_PIN)
+  #define Z4_STEP_WRITE(STATE) WRITE(Z4_STEP_PIN,STATE)
+  #define Z4_STEP_READ READ(Z4_STEP_PIN)
+#endif
+
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(E0_IS_L6470)
   extern L6470 stepperE0;
   #define E0_ENABLE_INIT NOOP
@@ -485,7 +545,13 @@
   #define disable_y() NOOP
 #endif
 
-#if HAS(Z2_ENABLE)
+#if HAS(Z4_ENABLE)
+  #define  enable_z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON);   Z3_ENABLE_WRITE(Z_ENABLE_ON);   Z4_ENABLE_WRITE(Z_ENABLE_ON);}while(0)
+  #define disable_z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON);  Z4_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }while(0)
+#elif HAS(Z3_ENABLE)
+  #define  enable_z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON);   Z3_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
+  #define disable_z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }while(0)
+#elif HAS(Z2_ENABLE)
   #define  enable_z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
   #define disable_z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }while(0)
 #elif HAS(Z_ENABLE)

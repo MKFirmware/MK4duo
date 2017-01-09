@@ -833,7 +833,7 @@
     #error DEPENDENCY ERROR: Missing setting DEFAULT_DUPLICATION_X_OFFSET
   #endif
 #endif
-#if ENABLED(Y_DUAL_STEPPER_DRIVERS)
+#if ENABLED(Y_TWO_STEPPER)
   #if DISABLED(INVERT_Y2_VS_Y_DIR)
     #error DEPENDENCY ERROR: Missing setting INVERT_Y2_VS_Y_DIR
   #endif
@@ -1596,10 +1596,14 @@
 #endif
 
 /**
- * Dual Stepper Drivers
+ * Two or plus Z Stepper
  */
-#if ENABLED(Z_DUAL_STEPPER_DRIVERS) && ENABLED(Y_DUAL_STEPPER_DRIVERS)
-  #error CONFLICT ERROR: You cannot have dual stepper drivers for both Y and Z.
+#if ENABLED(Z_TWO_STEPPER)
+  #if ENABLED(Z_THREE_STEPPER) || ENABLED(Z_FOUR_STEPPER)
+    #error "CONFLICT ERROR: You cannot have two Z stepper and three or four drivers".
+  #endif
+#elif ENABLED(Z_THREE_STEPPER) && ENABLED(Z_FOUR_STEPPER)
+  #error "CONFLICT ERROR: You cannot have three Z stepper and four drivers".
 #endif
 
 /**
