@@ -111,5 +111,3 @@
 #define BTN_EN1            11
 #define BTN_EN2            12
 #define BTN_ENC            43
-
-
