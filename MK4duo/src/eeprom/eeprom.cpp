@@ -481,6 +481,8 @@ void EEPROM::Postprocess() {
           EEPROM_READ(bilinear_start);        // 2 ints
           EEPROM_READ(bilinear_level_grid);   // 9 to 256 floats
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
+            bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
             bed_level_virt_interpolate();
           #endif
         }
