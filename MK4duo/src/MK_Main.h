@@ -60,6 +60,7 @@ void ok_to_send();
 #endif
 
 #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+  extern int bilinear_grid_spacing_virt[2];
   extern void bed_level_virt_prepare();
   extern void bed_level_virt_interpolate();
 #endif
