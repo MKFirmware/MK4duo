@@ -5863,7 +5863,7 @@ inline void gcode_M42() {
       byte pin_state[last_pin - first_pin + 1];
       for (int8_t pin = first_pin; pin <= last_pin; pin++) {
         if (pin_is_protected(pin) && !ignore_protection) continue;
-        PULLUP(pin);
+        pinMode(pin, INPUT_PULLUP);
         // if (IS_ANALOG(pin))
         //   pin_state[pin - first_pin] = analogRead(pin - analogInputToDigitalPin(0)); // int16_t pin_state[...]
         // else

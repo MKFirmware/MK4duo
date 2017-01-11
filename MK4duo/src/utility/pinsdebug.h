@@ -914,7 +914,7 @@ inline void report_pin_state(int8_t pin) {
       SERIAL_M(" (protected)");
     else {
       SERIAL_M(" = ");
-      PULLUP(pin);
+      pinMode(pin, INPUT_PULLUP);
       SERIAL_V(digitalRead(pin));
       if (IS_ANALOG(pin)) {
         SERIAL_C(' '); SERIAL_C('(');
@@ -961,7 +961,7 @@ inline void report_pin_state_extended(int8_t pin, bool ignore) {
     }
     else {
       if (!get_pinMode(pin)) {
-        PULLUP(pin);
+        pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
         SERIAL_MT("Input  = ", digitalRead_mod(pin));
       }
       else if (pwm_status(pin)) {
