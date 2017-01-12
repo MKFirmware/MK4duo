@@ -2,13 +2,12 @@
  * MKS MINI 1.0 – Arduino Mega2560 
  */
 
-
-#define KNOWN_BOARD
-#define BOARD_NAME "MKS MINI 1.0"
-
 #if !defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)
   #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
+
+#define KNOWN_BOARD
+#define BOARD_NAME "MKS MINI 1.0"
 
 #define LARGE_FLASH true
 
@@ -39,8 +38,8 @@
 #define ORIG_E1_ENABLE_PIN      -1 // 30
 
 #define SDPOWER                 -1
+#define LED_PIN                 13
 #define SDSS                    53
-#define LED_PIN                 -1 // 13
 
 #define ORIG_FAN_PIN             9
 #define ORIG_PS_ON_PIN          12
@@ -49,7 +48,6 @@
 #define ORIG_HEATER_1_PIN       -1   // EXTRUDER 2  ( Not supported on MKS Mini )
 #define ORIG_HEATER_2_PIN       -1   // EXTRUDER 3  ( Not supported on MKS Mini )
 #define ORIG_HEATER_3_PIN       -1   // EXTRUDER 4  ( Not supported on MKS Mini )
-
 
 #define ORIG_TEMP_0_PIN         13  // ANALOG NUMBERING
 #define ORIG_TEMP_1_PIN         -1  // ANALOG NUMBERING
@@ -62,25 +60,25 @@
 #if ENABLED(ULTRA_LCD)
 
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-    #define LCD_PINS_RS       49 //CS chip select /SS chip slave select
-    #define LCD_PINS_ENABLE   51 //SID (MOSI)
-    #define LCD_PINS_D4       52 //SCK (CLK) clock
+    #define LCD_PINS_RS         49  // CS chip select /SS chip slave select
+    #define LCD_PINS_ENABLE     51  // SID (MOSI)
+    #define LCD_PINS_D4         52  // SCK (CLK) clock
   #elif ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
-    #define LCD_PINS_RS       40
-    #define LCD_PINS_ENABLE   42
-    #define LCD_PINS_D4       65
-    #define LCD_PINS_D5       66
-    #define LCD_PINS_D6       44
-    #define LCD_PINS_D7       64
+    #define LCD_PINS_RS         40
+    #define LCD_PINS_ENABLE     42
+    #define LCD_PINS_D4         65
+    #define LCD_PINS_D5         66
+    #define LCD_PINS_D6         44
+    #define LCD_PINS_D7         64
   #else
-    #define LCD_PINS_RS       16
-    #define LCD_PINS_ENABLE   17
-    #define LCD_PINS_D4       23
-    #define LCD_PINS_D5       25
-    #define LCD_PINS_D6       27
-    #define LCD_PINS_D7       29
+    #define LCD_PINS_RS         16
+    #define LCD_PINS_ENABLE     17
+    #define LCD_PINS_D4         23
+    #define LCD_PINS_D5         25
+    #define LCD_PINS_D6         27
+    #define LCD_PINS_D7         29
     #if DISABLED(NEWPANEL)
-      #define ORIG_BEEPER_PIN 33
+      #define ORIG_BEEPER_PIN   33
       // Buttons are attached to a shift register
       // Not wired yet
       //#define SHIFT_CLK 38
@@ -213,11 +211,5 @@
 
 #endif // ULTRA_LCD
 
-
 // SPI for Max6675 or Max31855 Thermocouple
-#if DISABLED(SDSUPPORT)
-  #define MAX6675_SS            58 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
-#else
-  #define MAX6675_SS            58 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
-#endif
-
+#define MAX6675_SS            58 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
