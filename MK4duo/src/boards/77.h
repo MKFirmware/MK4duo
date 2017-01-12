@@ -38,10 +38,9 @@
 #define ORIG_E1_ENABLE_PIN      30
 
 #define SDPOWER                 -1
-#define SD_DETECT_PIN           53
+#define SD_DETECT_PIN           -1 // 53
 #define SDSS                    25
 #define LED_PIN                 13
-
 
 #define ORIG_FAN_PIN             8 // IO pin. Buffer needed
 
@@ -54,7 +53,7 @@
 #endif
 
 #define ORIG_HEATER_0_PIN        10  // HOTEND 1
-#define ORIG_HEATER_1_PIN        12  // HOTEND 2
+#define ORIG_HEATER_1_PIN        11  // HOTEND 2
 #define ORIG_HEATER_2_PIN         6  // HOTEND 3
 #define ORIG_HEATER_3_PIN        -1
 
