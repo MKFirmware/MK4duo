@@ -33,7 +33,7 @@
 #define ORIG_E0_DIR_PIN         28
 #define ORIG_E0_ENABLE_PIN      24
 
-#define ORIG_E1_STEP_PIN        36
+#define ORIG_E1_STEP_PIN        32
 #define ORIG_E1_DIR_PIN         34
 #define ORIG_E1_ENABLE_PIN      30
 

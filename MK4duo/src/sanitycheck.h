@@ -534,10 +534,10 @@
  */
 #if MECH(DELTA)
   #if ABL_GRID
-    #if (ABL_GRID_POINTS_X & 1) == 0 || (ABL_GRID_POINTS_Y & 1) == 0
-      #error "DELTA requires ABL_GRID_POINTS_X and ABL_GRID_POINTS_Y to be odd numbers."
+    #if (AUTO_BED_LEVELING_GRID_POINTS & 1) == 0
+      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be odd numbers."
     #elif ABL_GRID_POINTS_X < 3
-      #error "DELTA requires ABL_GRID_POINTS_X and ABL_GRID_POINTS_Y to be 3 or higher."
+      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be 3 or higher."
     #endif
   #endif
 

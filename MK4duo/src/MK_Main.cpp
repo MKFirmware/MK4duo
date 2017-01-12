@@ -1120,15 +1120,11 @@ inline bool code_has_value() {
 }
 
 inline float code_value_float() {
-  float ret;
   char* e = strchr(seen_pointer, 'E');
-  if (e) {
-    *e = 0;
-    ret = strtod(seen_pointer + 1, NULL);
-    *e = 'E';
-  }
-  else
-    ret = strtod(seen_pointer + 1, NULL);
+  if (!e) return strtod(seen_pointer + 1, NULL);
+  *e = 0;
+  float ret = strtod(seen_pointer + 1, NULL);
+  *e = 'E';
   return ret;
 }
 
@@ -8612,8 +8608,8 @@ inline void gcode_M532() {
     //disable extruder steppers so filament can be removed
     disable_e();
     safe_delay(100);
-    boolean beep = true;
-    boolean sleep = false;
+    bool beep = true;
+    bool sleep = false;
     uint8_t cnt = 0;
 
     int old_target_temperature[HOTENDS] = { 0 };
