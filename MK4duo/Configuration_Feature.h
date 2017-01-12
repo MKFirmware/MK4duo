@@ -541,7 +541,7 @@
 // With this option servos are powered only during movement, then turned off to prevent jitter.
 //#define DEACTIVATE_SERVOS_AFTER_MOVE
 
-// Delay (in microseconds) before turning the servo off. This depends on the servo speed.
+// Delay (in milliseconds) before turning the servo off. This depends on the servo speed.
 // 300ms is a good value but you can try less delay.
 // If the servo can't reach the requested position, increase it.
 #define SERVO_DEACTIVATION_DELAY 300
