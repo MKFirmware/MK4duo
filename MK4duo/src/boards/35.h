@@ -48,6 +48,7 @@
 #define LED_PIN                 13
 
 #define ORIG_FAN_PIN            9
+#define ORIG_FAN2_PIN           8
 #define ORIG_PS_ON_PIN          12
 
 #define ORIG_HEATER_0_PIN       10  // HOTEND 1
