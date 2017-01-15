@@ -90,7 +90,7 @@ bool axis_homed[XYZ] = { false }, axis_known_position[XYZ] = { false };
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
  * sending commands to Marlin, and lines will be checked for sequentiality.
- * M110 S<int> sets the current line number.
+ * M110 N<int> sets the current line number.
  */
 static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
 
@@ -151,7 +151,11 @@ int feedrate_percentage = 100, saved_feedrate_percentage,
     density_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100);
 
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES,
-     volumetric_enabled = false;
+     #if ENABLED(VOLUMETRIC_DEFAULT_ON)
+       volumetric_enabled = true;
+     #else
+       volumetric_enabled = false;
+     #endif
 
 float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
       volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
@@ -475,7 +479,7 @@ static bool send_ok[BUFSIZE];
 
 #if HAS(CHDK)
   millis_t chdkHigh = 0;
-  boolean chdkActive = false;
+  bool chdkActive = false;
 #endif
 
 #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -887,7 +891,7 @@ void gcode_line_error(const char* err, bool doFlush = true) {
 
 inline void get_serial_commands() {
   static char serial_line_buffer[MAX_CMD_SIZE];
-  static boolean serial_comment_mode = false;
+  static bool serial_comment_mode = false;
 
   #if HAS(DOOR)
     if (READ(DOOR_PIN) != DOOR_OPEN_LOGIC) {
@@ -934,7 +938,7 @@ inline void get_serial_commands() {
 
       if (npos) {
 
-        boolean M110 = strstr_P(command, PSTR("M110")) != NULL;
+        bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
         if (M110) {
           char* n2pos = strchr(command + 4, 'N');
@@ -5115,7 +5119,7 @@ inline void gcode_G28() {
 
     if (code_seen('A')) {
       int iteration = 0;
-      boolean dr_adjusted;
+      bool dr_adjusted;
 
       do {
         do {
@@ -6662,7 +6666,7 @@ inline void gcode_M109() {
  * M110: Set Current Line Number
  */
 inline void gcode_M110() {
-  if (code_seen('N')) gcode_N = code_value_long();
+  if (code_seen('N')) gcode_LastN = code_value_long();
 }
 
 /**
@@ -10656,9 +10660,9 @@ void ok_to_send() {
     }
 
     void adj_endstops() {
-      boolean x_done = false;
-      boolean y_done = false;
-      boolean z_done = false;
+      bool x_done = false;
+      bool y_done = false;
+      bool z_done = false;
 
       do {
         bed_level_z = probe_bed(0.0, probe_radius);
@@ -10717,7 +10721,7 @@ void ok_to_send() {
     }
 
     int fix_tower_errors() {
-      boolean t1_err, t2_err, t3_err,
+      bool t1_err, t2_err, t3_err,
               xy_equal, xz_equal, yz_equal;
       float saved_tower_adj[6];
       uint8_t err_tower = 0;
@@ -10831,7 +10835,7 @@ void ok_to_send() {
     }
 
     bool adj_deltaradius() {
-      boolean adj_done;
+      bool adj_done;
       int adj_attempts;
       float adj_dRadius, adjdone_vector;
 
@@ -10897,7 +10901,7 @@ void ok_to_send() {
     }
 
     void adj_tower_radius(uint8_t tower) {
-      boolean adj_done;
+      bool adj_done;
       float adj_tRadius = 0.0,
             bed_level   = 0.0,
             bed_level_o = 0.0;

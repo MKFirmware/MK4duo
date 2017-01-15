@@ -1738,7 +1738,7 @@ class SdBaseFile {
   uint32_t firstCluster() const {return firstCluster_;}
   bool getFilename(char* name);
   uint8_t lfn_checksum(const unsigned char *pFCBName);
-  bool openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, boolean bMakeDirs);
+  bool openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs);
 
   /** \return True if this is a directory else false. */
   bool isDir() const {return type_ >= FAT_FILE_TYPE_MIN_DIR;}

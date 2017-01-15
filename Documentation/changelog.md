@@ -1,3 +1,6 @@
+### Version 4.3.1 Stable
+* Fix and clear code.
+
 ### Version 4.3.09_dev
 * Add Save in EEPROM ABL (Linear or Bilinear) or MBL
 * Add M323 Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
