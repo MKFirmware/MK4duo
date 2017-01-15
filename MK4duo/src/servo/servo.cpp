@@ -328,7 +328,7 @@
 
   #endif
 
-  static boolean isTimerActive(timer16_Sequence_t timer) {
+  static bool isTimerActive(timer16_Sequence_t timer) {
     // returns true if any servo is active on this timer
     for (uint8_t channel = 0; channel < SERVOS_PER_TIMER; channel++) {
       if (SERVO(timer, channel).Pin.isActive == true)

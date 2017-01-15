@@ -27,6 +27,7 @@
  *
  * EXTRUDER FEATURES:
  * - Fan configuration
+ * - Volumetric extrusion
  * - Default nominal filament diameter
  * - Single nozzle
  * - BariCUDA paste extruder
@@ -157,6 +158,21 @@
 #define HOTEND_AUTO_FAN_SPEED       255  // 255 = full speed
 #define HOTEND_AUTO_FAN_MIN_SPEED     0
 /**************************************************************************/
+
+
+/***********************************************************************
+ ************************ Volumetric extrusion *************************
+ ***********************************************************************
+ *                                                                     *
+ * Volumetric extrusion default state                                  *
+ * Activate to make volumetric extrusion the default method,           *
+ * with DEFAULT NOMINAL FILAMENT DIA as the default diameter.          *
+ *                                                                     *
+ * M200 D0 to disable, M200 Dn to set a new diameter.                  *
+ *                                                                     *
+ ***********************************************************************/
+//#define VOLUMETRIC_DEFAULT_ON
+/***********************************************************************/
 
 
 /***********************************************************************

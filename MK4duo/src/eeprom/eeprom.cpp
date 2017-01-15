@@ -779,7 +779,12 @@ void EEPROM::ResetDefault() {
     retract_recover_feedrate = RETRACT_RECOVER_FEEDRATE;
   #endif
 
-  volumetric_enabled = false;
+  #if ENABLED(VOLUMETRIC_DEFAULT_ON)
+    volumetric_enabled = true;
+  #else
+    volumetric_enabled = false;
+  #endif
+
   for (uint8_t q = 0; q < COUNT(filament_size); q++)
     filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
 

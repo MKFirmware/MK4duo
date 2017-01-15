@@ -1044,13 +1044,13 @@ bool SdBaseFile::open(const char* path, uint8_t oflag) {
  * or can't be opened in the access mode specified by oflag.
  */
 
- bool SdBaseFile::openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, boolean bMakeDirs) {
+ bool SdBaseFile::openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs) {
   SdBaseFile dir1, dir2;
   SdBaseFile *parent = dirFile;
   //dir_t *pEntry;
   SdBaseFile *sub = &dir1;
   char *p;
-  //boolean bFound;
+  //bool bFound;
 
   *dname = 0;
 
@@ -1139,7 +1139,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
   dir_t tempDir, *p = NULL;
   const char *tempPtr;
   char newName[SHORT_FILENAME_LENGTH + 2];
-  boolean bShortName = false;
+  bool bShortName = false;
   int8_t cVFATNeeded = -1, cVFATFoundCur;
   uint32_t wIndexPos = 0;
   uint8_t cbFilename;
