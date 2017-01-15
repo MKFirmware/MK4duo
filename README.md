@@ -1,14 +1,17 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
-# MK4duo 3D Printer Firmware for all Atmel AVR boards and for Arduino Due or other boards based on Atmel SAM3X8E
+# MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 ## Version 4.3.1x dev
 
 ### Special thanks
-* Wurstnase
-* thinkyhead @Scott Lahteine
-* all Marlin developers.
+ - [Scott Lahteine](https://github.com/thinkyhead)
+ - [Wurstnase](https://github.com/Wurstnase)
+ - [esenapaj](https://github.com/esenapaj)
+ - [bobc](https://github.com/bobc)
+ - [repetier](https://github.com/repetier)
+ - [developers of original Marlin](https://github.com/MarlinFirmware)
 
 ### New features are:
-* One version for Arduino and Arduino DUE. All board 8 bit are supportated.
+* One version for all Atmel AVR boards and for Arduino Due or other boards based on Atmel SAM3X8E
 * Stepping-algorithm optmized now for DRV8825 and A4988 (no need for double or quadstepping; no delays)
 * High speed stepping of approx. 295.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
 
@@ -68,17 +71,18 @@ The new features are:
 * Added Case Light
 * Added ABL or MBL leveling fade height
 * Added save in EEPROM ABL or MBL
+* Added Door switch
 
 ## Credits
 
 The current MarlinKimbra dev team consists of:
  - MagoKimbra - Alberto Cotronei (https://github.com/MagoKimbra)
- - simonepri  - Simone Primarosa (https://github.com/simonepri)
 
 More features have been added by:
   - Nico [@wurstnase]
   - Giutrec
   - Drakelive
+  - MrGoblins
   - Franco (nextime) Lanza (https://git.nexlab.net/u/nextime)
 
 ## License
