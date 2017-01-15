@@ -3,9 +3,12 @@
 ## Version 4.3.1x dev
 
 ### Special thanks
-* Wurstnase
-* thinkyhead @Scott Lahteine
-* all Marlin developers.
+ - [Scott Lahteine](https://github.com/thinkyhead)
+ - [Wurstnase](https://github.com/Wurstnase)
+ - [esenapaj](https://github.com/esenapaj)
+ - [bobc](https://github.com/bobc)
+ - [repetier](https://github.com/repetier)
+ - [developers of original Marlin](https://github.com/MarlinFirmware)
 
 ### New features are:
 * One version for Arduino and Arduino DUE. All board 8 bit are supportated.
