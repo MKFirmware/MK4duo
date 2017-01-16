@@ -382,8 +382,6 @@
   #if HAS(Z_PROBE_PIN)
     #define TEST_BLTOUCH() _TEST_BLTOUCH(Z_PROBE)
   #else
-    #undef Z_MIN_ENDSTOP_INVERTING
-    #define Z_MIN_ENDSTOP_INVERTING false
     #define TEST_BLTOUCH() _TEST_BLTOUCH(Z_MIN)
   #endif
 #endif
