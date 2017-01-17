@@ -233,7 +233,7 @@ bool nexInit(void)
 
 void nexLoop(NexTouch *nex_listen_list[])
 {
-    static uint8_t __buffer[20];
+    static uint8_t __buffer[10];
     
     uint16_t i;
     uint8_t c;  

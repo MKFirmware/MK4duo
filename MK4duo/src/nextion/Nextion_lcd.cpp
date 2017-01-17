@@ -374,13 +374,13 @@
 
     void printrowsd(uint8_t row, const bool folder, const char* filename) {
       if (folder) {
-        folder_list[row]->setShow();
+        folder_list[row]->SetVisibility(true);
         row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
       } else if (filename == "") {
-        folder_list[row]->setHide();
+        folder_list[row]->SetVisibility(false);
         row_list[row]->detachPop();
       } else {
-        folder_list[row]->setHide();
+        folder_list[row]->SetVisibility(false);
         row_list[row]->attachPop(sdfilePopCallback, row_list[row]);
       }
       row_list[row]->setText(filename);
@@ -392,12 +392,12 @@
       card.getWorkDirName();
 
       if (card.fileName[0] != '/') {
-        Folderup.setShow();
+        Folderup.SetVisibility(true);
         Folderup.attachPop(sdfolderUpPopCallback);
         sdfolder.setText(card.fileName);
       } else {
         Folderup.detachPop();
-        Folderup.setHide();
+        Folderup.SetVisibility(false);
         sdfolder.setText("");
       }
 
@@ -958,7 +958,7 @@
 
     #if ENABLED(NEXTION_GFX) && ENABLED(NEXTION_WAVETEMP)
       if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus() && show_Wave) {
-        Wavetemp.setShow();
+        Wavetemp.SetVisibility(true);
       }
     #endif
 
@@ -1194,7 +1194,7 @@
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
       if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
-        Wavetemp.setHide();
+        Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
       }

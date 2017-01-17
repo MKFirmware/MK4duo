@@ -28,15 +28,14 @@
 /**
  * NexWaveform component.
  */
-class NexWaveform: public NexObject {
-
-  public: /* methods */
-
+class NexWaveform: public NexObject
+{
+public: /* methods */
     /**
      * @copydoc NexObject::NexObject(uint8_t pid, uint8_t cid, const char *name);
      */
     NexWaveform(uint8_t pid, uint8_t cid, const char *name);
-
+    
     /**
      * Add value to show.
      *
@@ -129,22 +128,12 @@ class NexWaveform: public NexObject {
     bool Set_channel_0_color_pco0(uint32_t number);
 
     /**
-     * Set Hide / Show component
+     * Set visibility attribute of component
      *
-     * @return true if success, false for failure.
+     * @param visible - To set visible or invisible
+     * @return true if success, false for failure
      */
-    bool setHide();
-    bool setShow();
-
-    /**
-     *
-     * @return true if status show, false if status hide
-     */
-    inline bool GetSatus() { return ObjShow; };
-
-  private:
-
-    bool ObjShow = true;
+    bool SetVisibility(bool visible);
 };
 
 /**

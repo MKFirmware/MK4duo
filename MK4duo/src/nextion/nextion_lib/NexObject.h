@@ -26,24 +26,31 @@
  */
 
 /**
- * Root class of all Nextion components. 
+ * Root class of all Nextion components.
  *
  * Provides the essential attributes of a Nextion component and the methods accessing
  * them. At least, Page ID(pid), Component ID(pid) and an unique name are needed for
- * creating a component in Nexiton library. 
+ * creating a component in Nexiton library.
  */
 class NexObject 
 {
 public: /* methods */
 
     /**
-     * Constructor. 
+     * Constructor.
      *
-     * @param pid - page id. 
-     * @param cid - component id.    
-     * @param name - pointer to an unique name in range of all components. 
+     * @param pid - page id.
+     * @param cid - component id.
+     * @param name - pointer to an unique name in range of all components.
      */
     NexObject(uint8_t pid, uint8_t cid, const char *name);
+
+    /**
+     * Print current object'address, page id, component id and name.
+     *
+     * @warning this method does nothing, unless debug message enabled.
+     */
+    void printObjInfo(void);
 
 protected: /* methods */
 

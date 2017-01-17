@@ -76,12 +76,12 @@ public: /* methods */
     bool setPic(uint32_t number);
 
     /**
-     * Set Hide / Show component
+     * Set visibility attribute of component
      *
-     * @return true if success, false for failure.
+     * @param visible - To set visible or invisible
+     * @return true if success, false for failure
      */
-    bool setHide();
-    bool setShow();
+    bool SetVisibility(bool visible);
 };
 
 /**
