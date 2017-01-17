@@ -171,6 +171,11 @@ float code_value_temp_diff();
   extern uint8_t old_color; // old color for system NPR2
 #endif
 
+#if ENABLED(G38_PROBE_TARGET)
+  extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
+              G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
+#endif
+
 #if ENABLED(Z_FOUR_ENDSTOPS)
   extern float z2_endstop_adj;
   extern float z3_endstop_adj;

@@ -231,22 +231,17 @@ bool NexText::Set_background_image_pic(uint32_t number)
     return recvRetCommandFinished();
 }
 
-bool NexText::setHide()
+bool NexText::SetVisibility(bool visible)
 {
     String cmd;
     cmd += "vis ";
     cmd += getObjName();
-    cmd += ",0";
-    sendCommand(cmd.c_str());
-    return recvRetCommandFinished();
-}
+    cmd += ',';
+    if(visible)
+        cmd += '1';
+    else
+        cmd += '0';
 
-bool NexText::setShow()
-{
-    String cmd;
-    cmd += "vis ";
-    cmd += getObjName();
-    cmd += ",1";
     sendCommand(cmd.c_str());
     return recvRetCommandFinished();
 }

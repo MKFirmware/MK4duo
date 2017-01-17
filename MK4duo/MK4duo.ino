@@ -54,6 +54,7 @@
          and Delta geometry Autocalibration
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
+ * G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60 - Save current position coordinates (all axes, for active extruder).
  *        S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
  * G61 - Apply/restore saved coordinates to the active extruder.

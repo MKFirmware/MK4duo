@@ -46,6 +46,7 @@
  * - Software endstops
  * - Endstops only for homing
  * - Abort on endstop hit feature
+ * - G38.2 and G38.3 Probe Target
  * - Mesh Level Area
  * - R/C Servo
  * - Late Z axis
@@ -523,6 +524,22 @@
 //#define ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 
 #define ABORT_ON_ENDSTOP_HIT_INIT true
+/**************************************************************************/
+
+
+/**************************************************************************
+ ********************* G38.2 and G38.3 Probe Target ***********************
+ **************************************************************************
+ *                                                                        *
+ * Probe target - similar to G28 except it uses the Z_MIN endstop         *
+ * for all three axes                                                     *
+ *                                                                        *
+ **************************************************************************/
+//#define G38_PROBE_TARGET
+
+// minimum distance in mm that will produce a move
+// (determined using the print statement in check_move)
+#define G38_MINIMUM_MOVE 0.0275
 /**************************************************************************/
 
 

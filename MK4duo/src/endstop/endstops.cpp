@@ -303,13 +303,27 @@ void Endstops::update() {
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
   #define COPY_BIT(DST, SRC_BIT, DST_BIT) SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
 
-  #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
+  #define _UPDATE_ENDSTOP(AXIS,MINMAX,CODE) do { \
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
       if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[_AXIS(AXIS)] > 0) { \
         _ENDSTOP_HIT(AXIS); \
         stepper.endstop_triggered(_AXIS(AXIS)); \
+        CODE; \
       } \
     } while(0)
+
+  #if ENABLED(G38_PROBE_TARGET) && PIN_EXISTS(Z_MIN)  // If G38 command then check Z_MIN for every axis and every direction
+
+    #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
+        _UPDATE_ENDSTOP(AXIS,MINMAX,NOOP); \
+        if (G38_move) _UPDATE_ENDSTOP(Z, MIN, G38_endstop_hit = true); \
+      } while(0)
+
+  #else
+
+    #define UPDATE_ENDSTOP(AXIS,MINMAX) _UPDATE_ENDSTOP(AXIS,MINMAX,NOOP)
+
+  #endif
 
   #if CORE_IS_XY || CORE_IS_XZ
     // Head direction in -X axis for CoreXY and CoreXZ bots.

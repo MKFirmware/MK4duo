@@ -2007,3 +2007,14 @@
 #if ENABLED(Z_PROBE_SLED) && !PIN_EXISTS(SLED)
   #error DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable Z_PROBE_SLED
 #endif
+
+/**
+ * G38 Probe Target
+ */
+#if ENABLED(G38_PROBE_TARGET)
+  #if !HAS_BED_PROBE
+    #error "G38_PROBE_TARGET requires a bed probe."
+  #elif !IS_CARTESIAN
+    #error "G38_PROBE_TARGET requires a Cartesian machine."
+  #endif
+#endif
