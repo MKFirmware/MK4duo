@@ -12012,7 +12012,7 @@ void calculate_volumetric_multipliers() {
  */
 void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
-  #if HAS(FIL_RUNOUT) && FILAMENT_CHANGE_DOUBLE_CHECK > 0
+  #if HAS(FIL_RUNOUT) && FILAMENT_RUNOUT_DOUBLE_CHECK > 0
     static bool filament_double_check = false;
     static millis_t filament_switch_time = 0;
     if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING) {
@@ -12024,7 +12024,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       }
       else {
         filament_double_check = true;
-        filament_switch_time = millis() + FILAMENT_CHANGE_DOUBLE_CHECK;
+        filament_switch_time = millis() + FILAMENT_RUNOUT_DOUBLE_CHECK;
       }
     }
   #elif HAS(FIL_RUNOUT)

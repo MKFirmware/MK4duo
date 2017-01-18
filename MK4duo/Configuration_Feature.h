@@ -483,7 +483,6 @@
                                             // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
                                             // or until outcoming filament color is not clear for filament color change
 #define FILAMENT_CHANGE_EXTRUDE_FEEDRATE 5  // Extrude filament feedrate in mm/s - must be slower than load feedrate
-#define FILAMENT_CHANGE_DOUBLE_CHECK 0      // In millisecond - Time for double check. Set 0 for disabled
 #define FILAMENT_CHANGE_PRINTER_OFF 5       // Minutes
 /**************************************************************************/
 
@@ -869,6 +868,8 @@
 #define FIL_RUNOUT_PIN_INVERTING true
 // Uncomment to use internal pullup for pin if the sensor is defined.
 //#define ENDSTOPPULLUP_FIL_RUNOUT
+// Time for double check switch in millisecond. Set 0 for disabled
+#define FILAMENT_RUNOUT_DOUBLE_CHECK 0
 // Script execute when filament run out
 #define FILAMENT_RUNOUT_SCRIPT "M600"
 /**********************************************************************************/
