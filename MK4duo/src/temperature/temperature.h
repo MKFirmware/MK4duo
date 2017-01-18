@@ -97,11 +97,11 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      extern float chamberKp, chamberKi, chamberKd;
+      static float chamberKp, chamberKi, chamberKd;
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      extern float coolerKp, coolerKi, coolerKd;
+      static float coolerKp, coolerKi, coolerKd;
     #endif
 
     #if ENABLED(BABYSTEPPING)
@@ -267,11 +267,11 @@ class Temperature {
     static uint8_t soft_pwm[HOTENDS];
 
     #if HAS(TEMP_CHAMBER)
-      static uint8_t Temperature::soft_pwm_chamber;
+      static uint8_t soft_pwm_chamber;
     #endif
 
     #if HAS(TEMP_COOLER)
-      static uint8_t Temperature::soft_pwm_cooler;
+      static uint8_t soft_pwm_cooler;
     #endif
 
     #if ENABLED(FAN_SOFT_PWM)
@@ -612,11 +612,11 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      float get_pid_output_chamber();
+      static float get_pid_output_chamber();
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      float get_pid_output_cooler();
+      static float get_pid_output_cooler();
     #endif
 
     static void _temp_error(int tc, const char* serial_msg, const char* lcd_msg);

@@ -348,7 +348,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
     #if HAS(TEMP_COOLER)
       if (temp_controller == -3) {
         bias = d = (MAX_COOLER_POWER) >> 1;
-        setPwmCooler(MAX_COOLER_POWER);
+        soft_pwm_cooler = (MAX_COOLER_POWER);
       }
     #endif
 
@@ -406,7 +406,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
             #endif
             #if HAS(TEMP_COOLER)
               if (temp_controller == -3)
-                setPwmCooler(bias - d);
+                soft_pwm_cooler = (bias - d);
             #endif
             if (temp_controller >= 0)
               soft_pwm[temp_controller] = (bias - d);
@@ -487,7 +487,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
 
             #if ENABLED(PIDTEMPCOOLER)
               if (temp_controller == -3)
-                setPwmCooler((bias + d));
+                soft_pwm_cooler = (bias + d);
             #endif
 
             cycles++;
@@ -1076,9 +1076,9 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      float pid_output = get_pid_output_chamber();
+      float pid_output_chamber = get_pid_output_chamber();
 
-      soft_pwm_chamber = current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP ? (int)pid_output >> 1 : 0;
+      soft_pwm_chamber = current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP ? (int)pid_output_chamber >> 1 : 0;
 
     #elif ENABLED(CHAMBER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
@@ -1110,29 +1110,29 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      float pid_output = get_pid_output_cooler();
+      float pid_output_cooler = get_pid_output_cooler();
 
-      setPwmCooler(current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP ? (int)pid_output : 0);
+      soft_pwm_cooler = current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP ? (int)pid_output_cooler >> 1 : 0;
 
     #elif ENABLED(COOLER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
       if (current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP) {
         if (current_temperature_cooler >= target_temperature_cooler + COOLER_HYSTERESIS)
-          setPwmCooler(MAX_COOLER_POWER);
+          soft_pwm_cooler = MAX_COOLER_POWER >> 1;
         else if (current_temperature_cooler <= target_temperature_cooler - COOLER_HYSTERESIS)
-          setPwmCooler(0);
+          soft_pwm_cooler = 0;
       }
       else { 
-        setPwmCooler(0);
+        soft_pwm_cooler = 0;
         WRITE_COOLER(LOW);
       }
     #else // COOLER_LIMIT_SWITCHING
       // Check if temperature is within the correct range
       if (current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP) {
-        setPwmCooler(current_temperature_cooler > target_temperature_cooler ? MAX_COOLER_POWER  : 0);
+        soft_pwm_cooler = current_temperature_cooler > target_temperature_cooler ? MAX_COOLER_POWER >> 1 : 0;
       }
       else {
-        setPwmCooler(0);
+        soft_pwm_cooler = 0;
         WRITE_COOLER(LOW);
       }
     #endif
@@ -1219,7 +1219,7 @@ float Temperature::analog2tempBed(int raw) {
 }
 
 #if HAS(TEMP_CHAMBER)
-  static float Temperature::analog2tempChamber(int raw) { 
+  float Temperature::analog2tempChamber(int raw) { 
     #if ENABLED(CHAMBER_USES_THERMISTOR)
       float celsius = 0;
       byte i;
@@ -1249,7 +1249,7 @@ float Temperature::analog2tempBed(int raw) {
 #endif
 
 #if HAS(TEMP_COOLER)
-  static float Temperature::analog2tempCooler(int raw) { 
+  float Temperature::analog2tempCooler(int raw) { 
     #if ENABLED(COOLER_USES_THERMISTOR)
       float celsius = 0;
       byte i;
@@ -1863,7 +1863,7 @@ void Temperature::disable_all_heaters() {
 
     #if HAS(TEMP_COOLER)
       target_temperature_cooler = 0;
-      setPwmCooler(0);
+      soft_pwm_chamber = 0;
       #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER)
         WRITE_COOLER(LOW);
       #endif
