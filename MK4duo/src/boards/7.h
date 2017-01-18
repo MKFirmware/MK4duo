@@ -14,7 +14,7 @@
 
 #define LARGE_FLASH true
 
-#define SERVO0_PIN            13 // untested
+#define SERVO0_PIN            32 // untested
 
 #define ORIG_X_STEP_PIN       25
 #define ORIG_X_DIR_PIN        23
