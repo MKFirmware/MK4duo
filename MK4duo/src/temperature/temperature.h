@@ -51,15 +51,15 @@ class Temperature {
                  target_temperature_bed;
 
     #if HAS(TEMP_CHAMBER)
-      static float current_temperature_chamber = 0.0;
-      static int   target_temperature_chamber = 0,
-                   current_temperature_chamber_raw = 0;
+      static float current_temperature_chamber;
+      static int   target_temperature_chamber,
+                   current_temperature_chamber_raw;
     #endif
 
     #if HAS(TEMP_COOLER)
-      static float current_temperature_cooler = 0.0;
-      static int   target_temperature_cooler = 0,
-                   current_temperature_cooler_raw = 0;
+      static float current_temperature_cooler;
+      static int   target_temperature_cooler,
+                   current_temperature_cooler_raw;
     #endif
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -265,6 +265,14 @@ class Temperature {
     #endif
 
     static uint8_t soft_pwm[HOTENDS];
+
+    #if HAS(TEMP_CHAMBER)
+      static uint8_t Temperature::soft_pwm_chamber;
+    #endif
+
+    #if HAS(TEMP_COOLER)
+      static uint8_t Temperature::soft_pwm_cooler;
+    #endif
 
     #if ENABLED(FAN_SOFT_PWM)
       static uint8_t soft_pwm_fan;

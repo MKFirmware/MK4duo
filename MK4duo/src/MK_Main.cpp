@@ -2797,8 +2797,8 @@ static void homeaxis(AxisEnum axis) {
 #if HAS(TEMP_CHAMBER)
   void print_chamberstate() {
     SERIAL_M(" CHAMBER: ");
-    SERIAL_MV(MSG_C, degChamber(), 1);
-    SERIAL_MV(" /", degTargetChamber(), 1);
+    SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
+    SERIAL_MV(" /", thermalManager.degTargetChamber(), 1);
     SERIAL_M(MSG_CAT);
     #if ENABLED(CHAMBER_WATTS)
       SERIAL_V(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
@@ -2807,7 +2807,7 @@ static void homeaxis(AxisEnum axis) {
       SERIAL_V(thermalManager.getChamberPower());
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV("    ADC C:", degChamber(), 1);
+      SERIAL_MV("    ADC C:", thermalManager.degChamber(), 1);
       SERIAL_MV("C->", thermalManager.rawChamberTemp() / OVERSAMPLENR, 1);
     #endif
   }
@@ -2816,8 +2816,8 @@ static void homeaxis(AxisEnum axis) {
 #if HAS(TEMP_COOLER)
   void print_coolerstate() {
     SERIAL_M(" COOL: ");
-    SERIAL_MV(MSG_C, degCooler(), 1);
-    SERIAL_MV(" /", degTargetCooler(), 1);
+    SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
+    SERIAL_MV(" /", thermalManager.degTargetCooler(), 1);
     SERIAL_M(MSG_CAT);
     #if ENABLED(COOLER_WATTS)
       SERIAL_V(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
@@ -2826,7 +2826,7 @@ static void homeaxis(AxisEnum axis) {
       SERIAL_V(thermalManager.getCoolerPower());
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV("    ADC C:", degCooler(), 1);
+      SERIAL_MV("    ADC C:", thermalManager.degCooler(), 1);
       SERIAL_MV("C->", thermalManager.rawCoolerTemp() / OVERSAMPLENR, 0);
     #endif
   }
@@ -3055,8 +3055,8 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != degTargetChamber())
-        theTarget = degTargetChamber();
+      if (theTarget != thermalManager.degTargetChamber())
+        theTarget = thermalManager.degTargetChamber();
 
       wants_to_heat = thermalManager.isHeatingChamber();
 
@@ -3086,7 +3086,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 	
       #if TEMP_CHAMBER_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - degTargetChamber());
+        float temp_diff = FABS(theTarget - thermalManager.degTargetChamber());
 
         if (!residency_start_ms) {
           // Start the TEMP_CHAMBER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -3126,8 +3126,8 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != degTargetCooler())
-        theTarget = degTargetCooler();
+      if (theTarget != thermalManager.degTargetCooler())
+        theTarget = thermalManager.degTargetCooler();
 
       wants_to_heat = thermalManager.isHeatingCooler();
 
@@ -3161,7 +3161,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 	
       #if TEMP_COOLER_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - degTargetCooler());
+        float temp_diff = FABS(theTarget - thermalManager.degTargetCooler());
 
         if (!residency_start_ms) {
           // Start the TEMP_COOLER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -6969,7 +6969,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M141() {
     if (DEBUGGING(DRYRUN)) return;
-    if (code_seen('S')) setTargetChamber(code_value_temp_abs());
+    if (code_seen('S')) thermalManager.setTargetChamber(code_value_temp_abs());
   }
 #endif
 
@@ -6979,7 +6979,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M142() {
     if (DEBUGGING(DRYRUN)) return;
-    if (code_seen('S')) setTargetCooler(code_value_temp_abs());
+    if (code_seen('S')) thermalManager.setTargetCooler(code_value_temp_abs());
   }
 #endif
 
@@ -7180,7 +7180,7 @@ inline void gcode_M122() {
 
     LCD_MESSAGEPGM(MSG_CHAMBER_HEATING);
     bool no_wait_for_cooling = code_seen('S');
-    if (no_wait_for_cooling || code_seen('R')) setTargetChamber(code_value_temp_abs());
+    if (no_wait_for_cooling || code_seen('R')) thermalManager.setTargetChamber(code_value_temp_abs());
 
     wait_chamber(no_wait_for_cooling);
   }
@@ -7196,7 +7196,7 @@ inline void gcode_M122() {
 
     LCD_MESSAGEPGM(MSG_COOLER_COOLING);
     bool no_wait_for_heating = code_seen('S');
-    if (no_wait_for_heating || code_seen('R')) setTargetCooler(code_value_temp_abs());
+    if (no_wait_for_heating || code_seen('R')) thermalManager.setTargetCooler(code_value_temp_abs());
 
     wait_cooler(no_wait_for_heating);
   }
