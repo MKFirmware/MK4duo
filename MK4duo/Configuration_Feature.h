@@ -483,6 +483,7 @@
                                             // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
                                             // or until outcoming filament color is not clear for filament color change
 #define FILAMENT_CHANGE_EXTRUDE_FEEDRATE 5  // Extrude filament feedrate in mm/s - must be slower than load feedrate
+#define FILAMENT_CHANGE_DOUBLE_CHECK 0      // In millisecond - Time for double check. Set 0 for disabled
 #define FILAMENT_CHANGE_PRINTER_OFF 5       // Minutes
 /**************************************************************************/
 
