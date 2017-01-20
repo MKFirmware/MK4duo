@@ -1314,6 +1314,10 @@
 //
 //#define U8GLIB_SSD1306
 
+// WANHAO D6 SSD1309 OLED full graphics
+//
+//#define WANHAO_D6_OLED
+
 // SAV OLEd LCD module support using either SSD1306 or SH1106 based LCD modules
 //
 //#define SAV_3DGLCD

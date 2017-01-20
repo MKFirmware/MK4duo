@@ -92,7 +92,17 @@
   #if ENABLED(U8GLIB_SSD1306) || ENABLED(U8GLIB_SH1106)
     #define ULTRA_LCD  //general LCD support, also 16x2
     #define DOGLCD  // Support for I2C LCD 128x64 (Controller SSD1306 / SH1106 graphic Display Family)
-    #define BLEN_C 2
+  #endif
+
+  // WANHAO D6 OLED LCD
+  #if ENABLED(WANHAO_D6_OLED)
+    #define U8GLIB_SSD1309
+    #define LCD_CONTRAST_MIN 10
+    #define LCD_CONTRAST_MAX 255
+    #define DEFAULT_LCD_CONTRAST 100
+    #define ULTRA_LCD  // general LCD support, also 16x2
+    #define DOGLCD // Support for I2C LCD 128x64
+    #define ULTIPANEL
   #endif
 
   #if ENABLED(PANEL_ONE) || ENABLED(U8GLIB_SH1106)
@@ -275,6 +285,7 @@
      || ENABLED(VIKI2) \
      || ENABLED(miniVIKI) \
      || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
+     || ENABLED(WANHAO_D6_OLED) \
     )
 
     #if HAS_LCD_CONTRAST

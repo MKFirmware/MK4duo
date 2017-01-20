@@ -787,6 +787,15 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   }
 #endif // ULTRATRONICS
 
+#if ENABLED(WANHAO_D6_OLED)
+  void setup_wanhao_d6_oled() {
+    OUT_WRITE(LCD_RESET_PIN, LOW);
+    HAL::delayMilliseconds(1);
+    OUT_WRITE(LCD_RESET_PIN, HIGH);
+    HAL::delayMilliseconds(1);
+  }
+#endif
+
 void setup_killpin() {
   #if HAS(KILL)
     SET_INPUT_PULLUP(KILL_PIN);
@@ -7519,7 +7528,7 @@ inline void gcode_M226() {
    * M250: Read and optionally set the LCD contrast
    */
   inline void gcode_M250() {
-    if (code_seen('C')) lcd_setcontrast(code_value_int() & 0x3F);
+    if (code_seen('C')) set_lcd_contrast(code_value_int());
     SERIAL_EMV("lcd contrast value: ", lcd_contrast);
   }
 
@@ -10363,7 +10372,7 @@ void process_next_command() {
           gcode_M240(); break;
       #endif
 
-      #if ENABLED(DOGLCD) && LCD_CONTRAST >= 0
+      #if HAS(LCD_CONTRAST)
         case 250: // M250: Set LCD contrast value: C<value> (value 0..63)
           gcode_M250(); break;
       #endif
@@ -12405,6 +12414,7 @@ void stop() {
 /**
  * Marlin entry-point: Set up before the program loop
  *  - Set up Alligator Board
+ *  - Set up WANHAO D6 OLED
  *  - Set up the kill pin, filament runout, power hold
  *  - Start the serial port
  *  - Print startup messages and diagnostics
@@ -12428,6 +12438,10 @@ void setup() {
     setup_alligator_board();    // Initialize Alligator Board
   #elif MB(ULTRATRONICS)
     setup_ultratronics_board(); // Initialize Ultratronics Board
+  #endif
+
+  #if ENABLED(WANHAO_D6_OLED)
+    setup_wanhao_d6_oled();
   #endif
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)

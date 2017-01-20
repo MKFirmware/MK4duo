@@ -62,6 +62,10 @@
 #define MOTOR_CURRENT_PWM_RANGE 2782
 #define DEFAULT_PWM_MOTOR_CURRENT  {1300, 1300, 1250}
 
+#ifdef WANHAO_D6_OLED
+  #define LCD_RESET_PIN            5
+#endif
+
 //arduino pin witch triggers an piezzo beeper
 #define ORIG_BEEPER_PIN           18
 
