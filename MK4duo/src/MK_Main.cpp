@@ -767,7 +767,7 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
     /* avoid floating pins */
     OUT_WRITE(ORIG_FAN_PIN, LOW);
     OUT_WRITE(ORIG_FAN2_PIN, LOW);
-    OUT_WRITE(ORIG_TEMP_BED_PIN, LOW);
+
     OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
     OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
     OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
