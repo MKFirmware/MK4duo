@@ -465,21 +465,14 @@ void Stepper::isr() {
   }
 
   // Update endstops state, if enabled
-  if ((endstops.enabled
-    #if HAS(BED_PROBE)
-      || endstops.z_probe_enabled
-    #endif
-    )
-    #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-      && e_hit
-    #endif
-  ) {
-    endstops.update();
-
-    #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    if (ENDSTOPS_ENABLED && e_hit) {
+      endstops.update();
       e_hit--;
-    #endif
-  }
+    }
+  #else
+    if (ENDSTOPS_ENABLED) endstops.update();
+  #endif
 
   // Continuous firing of the laser during a move happens here, PPM and raster happen further down
   #if ENABLED(LASERBEAM)
