@@ -54,7 +54,7 @@
 #define SDPOWER               -1
 #define SDSS                  59
 #define SD_DETECT_PIN         60
-#define LED_PIN               -1
+#define LED_PIN               13
 
 #define ORIG_FAN_PIN           6
 #define ORIG_FAN2_PIN          5
@@ -69,11 +69,11 @@
 #define ORIG_HEATER_2_PIN      7
 #define ORIG_HEATER_3_PIN      9
 
-#define ORIG_TEMP_BED_PIN      6  // ANALOG NUMBERING
-#define ORIG_TEMP_0_PIN        7  // ANALOG NUMBERING
-#define ORIG_TEMP_1_PIN        5  // ANALOG NUMBERING
-#define ORIG_TEMP_2_PIN        4  // ANALOG NUMBERING
-#define ORIG_TEMP_3_PIN        3  // ANALOG NUMBERING
+#define ORIG_TEMP_BED_PIN      1  // ANALOG NUMBERING
+#define ORIG_TEMP_0_PIN        0  // ANALOG NUMBERING
+#define ORIG_TEMP_1_PIN        2  // ANALOG NUMBERING
+#define ORIG_TEMP_2_PIN        3  // ANALOG NUMBERING
+#define ORIG_TEMP_3_PIN        4  // ANALOG NUMBERING
 
 // SPI for Max6675 or Max31855 Thermocouple
 #define MAX31855_SS0          65
