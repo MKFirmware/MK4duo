@@ -125,7 +125,11 @@
     #define SCK_PIN 		      52
   #endif
 
-  #define SS_PIN              SDSS
+  #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
+    #define SS_PIN              4
+  #else
+    #define SS_PIN              SDSS
+  #endif
 #endif
 /****************************************************************************************/
 
