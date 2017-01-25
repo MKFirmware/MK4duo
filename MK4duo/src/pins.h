@@ -126,10 +126,11 @@
   #endif
 
   #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-    #define SS_PIN              4
+    #define SS_PIN            4
   #else
-    #define SS_PIN              SDSS
+    #define SS_PIN            SDSS
   #endif
+
 #endif
 /****************************************************************************************/
 
