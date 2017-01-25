@@ -112,8 +112,8 @@ void CardReader::initsd() {
     #define SPI_SPEED SPI_FULL_SPEED
   #endif
 
-  if(!fat.begin(SS_PIN, SPI_SPEED)
-    #if defined(LCD_SDSS) && (LCD_SDSS != SS_PIN)
+  if(!fat.begin(SDSS, SPI_SPEED)
+    #if defined(LCD_SDSS) && (LCD_SDSS != SDSS)
       && !fat.begin(LCD_SDSS, SPI_SPEED)
     #endif
   ) {

@@ -105,7 +105,7 @@
       #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
         #define DUE_SOFTWARE_SPI
       #else
-        #define SPI_PIN       59
+        #define SPI_PIN       4
         #define SPI_CHAN      1
       #endif
     #elif (SDSS == 60)
@@ -125,7 +125,12 @@
     #define SCK_PIN 		      52
   #endif
 
-  #define SS_PIN              SDSS
+  #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
+    #define SS_PIN            4
+  #else
+    #define SS_PIN            SDSS
+  #endif
+
 #endif
 /****************************************************************************************/
 
