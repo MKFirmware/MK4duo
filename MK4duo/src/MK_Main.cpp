@@ -8056,7 +8056,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
 
     if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
-      int temp_ratio = widthFil_to_size_ratio();
+      int temp_ratio = thermalManager.widthFil_to_size_ratio();
 
       for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
         measurement_delay[i] = temp_ratio - 100;  // Subtract 100 to scale within a signed byte
