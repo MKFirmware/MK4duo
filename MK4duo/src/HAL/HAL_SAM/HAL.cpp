@@ -209,12 +209,12 @@ void HAL::resetHardware() {
   // --------------------------------------------------------------------------
   // hardware SPI
   // --------------------------------------------------------------------------
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)|| MB(ULTRATRONICS)
     bool spiInitMaded = false;
   #endif
 
   void HAL::spiBegin() {
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3) || MB(ULTRATRONICS)
     if(spiInitMaded == false) {
 #endif
       // Configre SPI pins
@@ -259,14 +259,14 @@ void HAL::resetHardware() {
         g_APinDescription[SPI_PIN].ulPin,
         g_APinDescription[SPI_PIN].ulPinConfiguration);
       spiInit(1);
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)|| MB(ULTRATRONICS)
       spiInitMaded = true;
     }
 #endif
   }
 
   void HAL::spiInit(uint8_t spiClock) {
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)|| MB(ULTRATRONICS)
     if(spiInitMaded == false) {
 #endif
       if(spiClock > 4) spiClock = 1;
@@ -286,7 +286,7 @@ void HAL::resetHardware() {
                         SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiClock]) |
                         SPI_CSR_DLYBCT(1));
       SPI_Enable(SPI0);
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)|| MB(ULTRATRONICS)
       spiInitMaded = true;
     }
 #endif
