@@ -921,8 +921,8 @@ void EEPROM::ResetDefault() {
 
       for (uint8_t py = 1; py <= MESH_NUM_Y_POINTS; py++) {
         for (uint8_t px = 1; px <= MESH_NUM_X_POINTS; px++) {
-          SERIAL_SMV(CFG, "  G29 S3 X", px);
-          SERIAL_MV(" Y", py);
+          SERIAL_SMV(CFG, "  G29 S3 X", (int)px);
+          SERIAL_MV(" Y", (int)py);
           SERIAL_EMV(" Z", mbl.z_values[py-1][px-1], 5);
         }
       }
