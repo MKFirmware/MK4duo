@@ -1182,7 +1182,7 @@ float Temperature::analog2temp(int raw, uint8_t h) {
   }
 
   #if HEATER_USES_AD595
-    return ((raw * (((HAL_VOLTAGE_PIN) * 100.0 / 1024.0) / OVERSAMPLENR) * ad595_gain[h]) + ad595_offset[h];
+    return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0) / OVERSAMPLENR) * ad595_gain[h]) + ad595_offset[h];
   #else
     return 0;
   #endif
