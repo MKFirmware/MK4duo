@@ -6,8 +6,15 @@
 #define KNOWN_BOARD 1
 
 #ifndef __AVR_ATmega2560__
-#error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
+
+#define BOARD_NAME              "Rumba"
+
+//
+// Servos
+//
+#define SERVO0_PIN               5
 
 #define ORIG_X_STEP_PIN         17
 #define ORIG_X_DIR_PIN          16
@@ -42,7 +49,7 @@
 #define LED_PIN                 13
 
 #define ORIG_FAN_PIN            7
-//additional FAN1 PIN (e.g. useful for electronics fan or light on/off) on PIN 8
+#define ORIG_FAN2_PIN           8
 
 #define ORIG_PS_ON_PIN          45
 #define KILL_PIN                46
