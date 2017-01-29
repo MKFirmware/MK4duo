@@ -930,7 +930,7 @@ void EEPROM::ResetDefault() {
 
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      for (uint8_t h = 0; h < HOTENDS; h++) {
+      for (int8_t h = 0; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M595 T", h);
         SERIAL_MV(" O", ad595_offset[h]);
         SERIAL_EMV(", S", ad595_gain[h]);
@@ -976,8 +976,8 @@ void EEPROM::ResetDefault() {
 
     #if ENABLED(ULTIPANEL)
       CONFIG_MSG_START("Material heatup parameters:");
-      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
-        SERIAL_SMV(CFG, "  M145 S", (int)i);
+      for (int8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+        SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", lcd_preheat_hotend_temp[i]);
         SERIAL_MV(" B", lcd_preheat_bed_temp[i]);
         SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
@@ -988,7 +988,7 @@ void EEPROM::ResetDefault() {
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
       CONFIG_MSG_START("PID settings:");
       #if ENABLED(PIDTEMP)
-        for (uint8_t h = 0; h < HOTENDS; h++) {
+        for (int8_t h = 0; h < HOTENDS; h++) {
           SERIAL_SMV(CFG, "  M301 H", h);
           SERIAL_MV(" P", PID_PARAM(Kp, h));
           SERIAL_MV(" I", unscalePID_i(PID_PARAM(Ki, h)));
