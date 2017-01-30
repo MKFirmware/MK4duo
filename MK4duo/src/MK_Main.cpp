@@ -5288,9 +5288,9 @@ inline void gcode_G28() {
 
     if (code_seen('A')) {
 
-      const uint8_t numPoints = code_value_int() <= 7 ? 7 : 10;
-      const uint8_t MaxCalibrationPoints = 10;
-      const uint8_t numFactors = 7;
+      const int8_t numPoints = code_value_int() <= 7 ? 7 : 10;
+      const int8_t MaxCalibrationPoints = 10;
+      const int8_t numFactors = 7;
       float xBedProbePoints[MaxCalibrationPoints],
             yBedProbePoints[MaxCalibrationPoints],
             zBedProbePoints[MaxCalibrationPoints];
@@ -5388,7 +5388,7 @@ inline void gcode_G28() {
         float expectedResiduals[MaxCalibrationPoints];
         float sumOfSquares = 0.0;
 
-        for (uint8_t i = 0; i < numPoints; i++) {
+        for (int8_t i = 0; i < numPoints; i++) {
           LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
           float newPosition[ABC];
           deltaParams.forward_kinematics_DELTA(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
@@ -5401,9 +5401,11 @@ inline void gcode_G28() {
 
       } while (iteration < 2);
 
-      sprintf_P(rply, PSTR("Calibrated %d factors using %d points, deviation before %.4f after %.4f"),
-          numFactors, numPoints, SQRT(initialSumOfSquares / numPoints), expectedRmsError);
-      SERIAL_ET(rply);
+      SERIAL_MV("Calibrated ", numFactors);
+      SERIAL_MV(" factors using ", numPoints);
+      SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
+      SERIAL_MV(" after ", expectedRmsError, 4);
+      SERIAL_E;
 
       deltaParams.Recalc_delta_constants();
 
@@ -5413,10 +5415,16 @@ inline void gcode_G28() {
       deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) + zprobe_zoffset;
       deltaParams.Recalc_delta_constants();
 
-      sprintf_P(rply, PSTR("Endstops X%.3f Y%.3f Z%.3f height %.3f diagonal rod %.3f delta radius %.3f Towers radius correction A%.2f B%.2f C%.2f"),
-          deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS], soft_endstop_max[C_AXIS], deltaParams.diagonal_rod, deltaParams.radius,
-          deltaParams.tower_adj[A_AXIS], deltaParams.tower_adj[B_AXIS], deltaParams.tower_adj[C_AXIS]);
-      SERIAL_ET(rply);
+      SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
+      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
+      SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS], 3);
+      SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
+      SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
+      SERIAL_MV(" delta radius ", deltaParams.radius, 3);
+      SERIAL_MV(" Towers radius correction A", deltaParams.tower_adj[A_AXIS], 2);
+      SERIAL_MV(" B", deltaParams.tower_adj[B_AXIS], 2);
+      SERIAL_MV(" C", deltaParams.tower_adj[C_AXIS], 2);
+      SERIAL_E;
 
       home_delta();
       endstops.not_homing();
