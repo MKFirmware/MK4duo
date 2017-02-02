@@ -787,15 +787,6 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   }
 #endif // ULTRATRONICS
 
-#if ENABLED(WANHAO_D6_OLED)
-  void setup_wanhao_d6_oled() {
-    OUT_WRITE(LCD_RESET_PIN, LOW);
-    HAL::delayMilliseconds(1);
-    OUT_WRITE(LCD_RESET_PIN, HIGH);
-    HAL::delayMilliseconds(1);
-  }
-#endif
-
 void setup_killpin() {
   #if HAS(KILL)
     SET_INPUT_PULLUP(KILL_PIN);
@@ -3398,6 +3389,25 @@ inline void gcode_G0_G1(
 /**
  * G2: Clockwise Arc
  * G3: Counterclockwise Arc
+ *
+ * This command has two forms: IJ-form and R-form.
+ *
+ *  - I specifies an X offset. J specifies a Y offset.
+ *    At least one of the IJ parameters is required.
+ *    X and Y can be omitted to do a complete circle.
+ *    The given XY is not error-checked. The arc ends
+ *     based on the angle of the destination.
+ *    Mixing I or J with R will throw an error.
+ *
+ *  - R specifies the radius. X or Y is required.
+ *    Omitting both X and Y will throw an error.
+ *    X or Y must differ from the current XY.
+ *    Mixing R with I or J will throw an error.
+ *
+ *  Examples:
+ *
+ *    G2 I10           ; CW circle centered at X+10
+ *    G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
  */
 #if ENABLED(ARC_SUPPORT)
   inline void gcode_G2_G3(bool clockwise) {
@@ -9999,7 +10009,7 @@ void process_next_command() {
         #endif
 
       // G2, G3
-      #if ENABLED(ARC_SUPPORT) && NOMECH(SCARA)
+      #if ENABLED(ARC_SUPPORT)
         case 2: // G2  - CW ARC
         case 3: // G3  - CCW ARC
           gcode_G2_G3(codenum == 2); break;
@@ -12446,10 +12456,6 @@ void setup() {
     setup_alligator_board();    // Initialize Alligator Board
   #elif MB(ULTRATRONICS)
     setup_ultratronics_board(); // Initialize Ultratronics Board
-  #endif
-
-  #if ENABLED(WANHAO_D6_OLED)
-    setup_wanhao_d6_oled();
   #endif
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
