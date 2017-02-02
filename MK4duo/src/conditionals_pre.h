@@ -96,7 +96,9 @@
 
   // WANHAO D6 OLED LCD
   #if ENABLED(WANHAO_D6_OLED)
-    #define U8GLIB_SSD1309
+    #define U8GLIB_SSD1306
+    #define LCD_WIDTH 22
+    #define LCD_HEIGHT 5
     #define LCD_CONTRAST_MIN 10
     #define LCD_CONTRAST_MAX 255
     #define DEFAULT_LCD_CONTRAST 100
