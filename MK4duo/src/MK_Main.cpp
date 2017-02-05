@@ -596,7 +596,6 @@ void safe_delay(millis_t ms) {
   void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
 #endif
 
-void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
 static void report_current_position();
 
 /**

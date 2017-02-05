@@ -278,15 +278,13 @@ extern uint8_t active_driver;
   void print_flowratestate();
 #endif
 
-#if ENABLED(FIRMWARE_TEST)
-  void FirmwareTest();
-#endif
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   extern float mixing_factor[MIXING_STEPPERS];
 #endif
 
 void calculate_volumetric_multipliers();
+
+void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
 
 /**
  * Blocking movement and shorthand functions
