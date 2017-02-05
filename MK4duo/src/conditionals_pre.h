@@ -354,7 +354,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  1
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
   #undef SINGLENOZZLE
@@ -363,7 +362,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  2
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      current_block->active_extruder
 #elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
   #define SINGLENOZZLE
@@ -371,10 +369,8 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         1
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #else
-  #define E_MANUAL          EXTRUDERS
   #define TOOL_E_INDEX      current_block->active_extruder
 #endif
 
@@ -383,7 +379,6 @@
 #if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
   #undef HOTENDS
   #define HOTENDS           1
-  #define E_MANUAL          1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
   #undef HOTEND_OFFSET_X
   #undef HOTEND_OFFSET_Y
