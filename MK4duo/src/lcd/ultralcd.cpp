@@ -1673,7 +1673,8 @@ KeepDrawing:
       #if EXTRUDERS > 1
         tool_change(old_extruder, 0.0, true);
       #endif
-      return lcd_goto_previous_menu(); }
+      return lcd_goto_previous_menu();
+    }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition) {
       current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
@@ -2503,7 +2504,7 @@ KeepDrawing:
 
       #if HAS(POWER_CONSUMPTION_SENSOR)
         char Power[10];
-        sprintf(Power, "%uWh"), power_consumption_hour);
+        sprintf(Power, "%uWh", power_consumption_hour);
       #endif
 
       START_SCREEN();

@@ -134,7 +134,7 @@
 #define MSG_Z2_MAX                          "z2_max: "
 #define MSG_Z3_MAX                          "z3_max: "
 #define MSG_Z4_MAX                          "z4_max: "
-#define MSG_Z_PROBE                         "z_probe: "
+#define MSG_Z_PROBE                         "Z-probe:"
 #define MSG_E_MIN                           "e_min: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
@@ -252,10 +252,10 @@
 #define MSG_DEBUG_LEVELING                  "LEVELING"
 
 //other
-#define MSG_BED_LEVELLING_BED               "Bed"
-#define MSG_BED_LEVELLING_X                 " X: "
-#define MSG_BED_LEVELLING_Y                 " Y: "
-#define MSG_BED_LEVELLING_Z                 " Z: "
+#define MSG_BED_LEVELING_BED                "Bed"
+#define MSG_BED_LEVELING_X                  " X:"
+#define MSG_BED_LEVELING_Y                  " Y:"
+#define MSG_BED_LEVELING_Z                  " Z:"
 
 // LCD Menu Messages
 
