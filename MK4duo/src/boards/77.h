@@ -9,6 +9,10 @@
   #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
 
+#ifndef BOARD_NAME
+  #define BOARD_NAME 			"3Drag"
+#endif
+
 #define LARGE_FLASH true
 
 #define ORIG_X_STEP_PIN         54
@@ -66,16 +70,7 @@
 #define ORIG_TEMP_BED_PIN       14   // ANALOG NUMBERING
 
 #if NUM_SERVOS > 0
-  #define SERVO0_PIN            11
-  #if NUM_SERVOS > 1
-    #define SERVO1_PIN           6
-    #if NUM_SERVOS > 2
-      #define SERVO2_PIN         5
-      #if NUM_SERVOS > 3
-        #define SERVO3_PIN       4
-      #endif
-    #endif
-  #endif
+  #define SERVO0_PIN            53
 #endif
 
 #define ORIG_BEEPER_PIN         33

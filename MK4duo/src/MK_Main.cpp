@@ -2075,10 +2075,10 @@ static void clean_up_after_endstop_or_probe_move() {
       if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
-      SERIAL_M(MSG_BED_LEVELLING_BED);
-      SERIAL_MV(MSG_BED_LEVELLING_X, x, 3);
-      SERIAL_MV(MSG_BED_LEVELLING_Y, y, 3);
-      SERIAL_EMV(MSG_BED_LEVELLING_Z, measured_z + zprobe_zoffset, 3);
+      SERIAL_M(MSG_BED_LEVELING_BED);
+      SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
+      SERIAL_EMV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -5269,32 +5269,6 @@ inline void gcode_G28() {
 
     bool stow = code_seen('S') ? code_value_bool() : true;
 
-    if (code_seen('X') || code_seen('Y')) {
-      // Probe specified X, Y point
-      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-      float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
-      if (!position_is_reachable(pos, true)) return;
-
-      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
-            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
-
-      SERIAL_MV(" Bed X:", X_probe_location + 0.0001);
-      SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-      SERIAL_MV(" Z: ", measured_z + zprobe_zoffset, 4);
-      SERIAL_EMV("  New Z probe offset = ", new_zprobe_zoffset, 4);
-
-      if (code_seen('U') && code_value_bool() != 0)
-        zprobe_zoffset = new_zprobe_zoffset;
-
-      clean_up_after_endstop_or_probe_move();
-
-      report_current_position();
-
-      return;
-    }
-
     if (code_seen('A')) {
 
       const int8_t numPoints = code_value_int() <= 7 ? 7 : 10;
@@ -5439,6 +5413,30 @@ inline void gcode_G28() {
       endstops.not_homing();
       clean_up_after_endstop_or_probe_move();
       report_current_position();
+    }
+    else {
+      // Probe specified X, Y point
+      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
+            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
+
+      float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
+      if (!position_is_reachable(pos, true)) return;
+
+      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
+            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
+
+      SERIAL_MV(MSG_Z_PROBE, measured_z + zprobe_zoffset, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, current_position[X_AXIS], 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, current_position[Y_AXIS], 3);
+      SERIAL_E;
+
+      if (code_seen('U') && code_value_bool() != 0) {
+        zprobe_zoffset = new_zprobe_zoffset;
+        SERIAL_EMV("  New Z probe offset = ", zprobe_zoffset, 4);
+      }
+
+      clean_up_after_endstop_or_probe_move();
+
     }
   }
 
