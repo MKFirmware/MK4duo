@@ -67,7 +67,6 @@ void ok_to_send();
 
 #if PLANNER_LEVELING
   void reset_bed_level();
-  extern bool probe_process;
 #endif
 
 void kill(const char *);
@@ -190,6 +189,7 @@ float code_value_temp_diff();
 
 #if HAS(BED_PROBE)
   extern float zprobe_zoffset;
+  extern bool probe_process;
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
