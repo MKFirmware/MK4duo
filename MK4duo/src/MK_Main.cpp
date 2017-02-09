@@ -218,9 +218,6 @@ PrintCounter print_job_counter = PrintCounter();
 
 #if HAS(BED_PROBE)
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
-#endif
-
-#if PLANNER_LEVELING
   bool probe_process = false;
 #endif
 
@@ -1939,8 +1936,6 @@ static void clean_up_after_endstop_or_probe_move() {
     refresh_cmd_timeout();
 
     #if ENABLED(PROBE_DOUBLE_TOUCH)
-
-      #define Z_PROBE_REPETITIONS 1
 
       // Do a first probe at the fast speed
       do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_FAST);

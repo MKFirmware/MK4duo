@@ -419,6 +419,13 @@
 #endif
 
 /**
+ * Z probe repetitions
+ */
+#if DISABLED(Z_PROBE_REPETITIONS)
+  #define Z_PROBE_REPETITIONS 1
+#endif
+
+/**
  * Sled Options
  */
 #if ENABLED(Z_PROBE_SLED)
