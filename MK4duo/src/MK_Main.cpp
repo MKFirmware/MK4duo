@@ -220,6 +220,10 @@ PrintCounter print_job_counter = PrintCounter();
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
 #endif
 
+#if PLANNER_LEVELING
+  bool probe_process = false;
+#endif
+
 #define PLANNER_XY_FEEDRATE() (min(planner.max_feedrate_mm_s[X_AXIS], planner.max_feedrate_mm_s[Y_AXIS]))
 
 #if HAS(ABL)
@@ -1922,15 +1926,21 @@ static void clean_up_after_endstop_or_probe_move() {
   // Do a single Z probe and return with current_position[Z_AXIS]
   // at the height where the probe triggered.
   static float run_z_probe() {
+    float median  = 0.0;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
     #endif
 
+    // Set probe_process to true for not refresh LCD during probing
+    probe_process = true;
+
     // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
     refresh_cmd_timeout();
 
     #if ENABLED(PROBE_DOUBLE_TOUCH)
+
+      #define Z_PROBE_REPETITIONS 1
 
       // Do a first probe at the fast speed
       do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_FAST);
@@ -1954,8 +1964,20 @@ static void clean_up_after_endstop_or_probe_move() {
 
     #endif
 
-    // move down slowly to find bed
-    do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+    for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
+
+      // move down slowly to find bed
+      do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+
+      median += current_position[Z_AXIS];
+
+      if (r + 1 < Z_PROBE_REPETITIONS) {
+        // move up by the bump distance
+        do_blocking_move_to_z(current_position[Z_AXIS] + home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      }
+    }
+
+    median /= Z_PROBE_REPETITIONS;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
@@ -1969,7 +1991,10 @@ static void clean_up_after_endstop_or_probe_move() {
       }
     #endif
 
-    return current_position[Z_AXIS];
+    // Set probe_process to false
+    probe_process = false;
+
+    return median;
   }
 
   #if MECH(MAKERARM_SCARA)
@@ -2075,10 +2100,10 @@ static void clean_up_after_endstop_or_probe_move() {
       if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
-      SERIAL_M(MSG_BED_LEVELING_BED);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
       SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
-      SERIAL_EMV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
+      SERIAL_E;
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -4953,6 +4978,7 @@ inline void gcode_G28() {
 
     if (planner.abl_enabled)
       SYNC_PLAN_POSITION_KINEMATIC();
+
   }
 
 #endif // HAS_ABL
@@ -5411,10 +5437,11 @@ inline void gcode_G28() {
 
       home_delta();
       endstops.not_homing();
-      clean_up_after_endstop_or_probe_move();
       report_current_position();
+
     }
     else {
+
       // Probe specified X, Y point
       float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
             Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
@@ -5425,7 +5452,7 @@ inline void gcode_G28() {
       float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
             new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
 
-      SERIAL_MV(MSG_Z_PROBE, measured_z + zprobe_zoffset, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
       SERIAL_MV(MSG_BED_LEVELING_X, current_position[X_AXIS], 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, current_position[Y_AXIS], 3);
       SERIAL_E;
@@ -5435,9 +5462,10 @@ inline void gcode_G28() {
         SERIAL_EMV("  New Z probe offset = ", zprobe_zoffset, 4);
       }
 
-      clean_up_after_endstop_or_probe_move();
-
     }
+
+    clean_up_after_endstop_or_probe_move();
+
   }
 
 #endif // AUTO_CALIBRATION_7_POINT
@@ -12611,6 +12639,10 @@ void setup() {
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     setup_endstop_interrupts();
+  #endif
+
+  #if ENABLED(DELTA_HOME_ON_POWER)
+    home_delta();
   #endif
 }
 
