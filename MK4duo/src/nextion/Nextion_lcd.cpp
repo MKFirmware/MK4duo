@@ -1011,7 +1011,11 @@
                     PrevioustargetdegHeater[3] = { 0.0 };
     char* temp;
 
-    if (!NextionON) return;
+    if (!NextionON
+      #if PLANNER_LEVELING
+        || probe_process
+      #endif
+    ) return;
 
     nexLoop(nex_listen_list);
 

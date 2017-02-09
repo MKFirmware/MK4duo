@@ -67,6 +67,7 @@ void ok_to_send();
 
 #if PLANNER_LEVELING
   void reset_bed_level();
+  extern bool probe_process;
 #endif
 
 void kill(const char *);
