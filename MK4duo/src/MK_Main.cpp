@@ -10331,7 +10331,7 @@ void process_next_command() {
           gcode_M142(); break;
       #endif
 
-      #if ENABLED(BLINKM)
+      #if ENABLED(BLINKM) || ENABLED(RGB_LED)
         case 150: // M150
           gcode_M150(); break;
       #endif //BLINKM
