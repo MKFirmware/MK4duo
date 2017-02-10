@@ -6416,6 +6416,11 @@ inline void gcode_M81() {
     #endif
   #endif
 
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+  #endif
+
+
   safe_delay(1000); // Wait 1 second before switching off
 
   #if HAS(SUICIDE)
@@ -8551,6 +8556,17 @@ inline void gcode_M450() {
         SERIAL_M("FFF\n");
    }
 }
+
+inline void gcode_M451_M452_M453(int mode) {
+   if(IsRunning()) SERIAL_EM("Cannot change printer mode while running");
+   else
+   {
+      stop();
+      printer_mode = mode;
+      gcode_M450();
+   }
+}
+
 #endif
 
 
@@ -10613,13 +10629,13 @@ void process_next_command() {
         gcode_M450(); break; // report printer mode
 
       case 451:
-        printer_mode = PRINTER_MODE_FFF; break; // set printer mode printer
+        gcode_M451_M452_M453(PRINTER_MODE_FFF); break; // set printer mode printer
 
       case 452:
-        printer_mode = PRINTER_MODE_LASER; break; // set printer mode laser
+        gcode_M451_M452_M453(PRINTER_MODE_LASER); break; // set printer mode laser
 
       case 453:
-        printer_mode = PRINTER_MODE_CNC; break; // set printer mode CNC router
+        gcode_M451_M452_M453(PRINTER_MODE_CNC); break; // set printer mode router
       #endif
 
       case 500: // M500: Store settings in EEPROM
@@ -12209,6 +12225,10 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser_peripherals_off();
       #endif
     #endif
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+  #endif
+
   }
 
   #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH
@@ -12500,6 +12520,10 @@ void kill(const char* lcd_msg) {
     #endif
   #endif
 
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+  #endif
+
   #if HAS(POWER_SWITCH)
     SET_INPUT(PS_ON_PIN);
   #endif
@@ -12533,6 +12557,10 @@ void stop() {
     #if ENABLED(LASER_PERIPHERALS)
       laser_peripherals_off();
     #endif
+  #endif
+
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
   #endif
 
   if (IsRunning()) {
