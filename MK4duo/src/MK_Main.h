@@ -101,9 +101,16 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
   void setPwmFrequency(uint8_t pin, uint8_t val);
 #endif
+
+#if ENABLED(LASERBEAM) && ENABLED(CNCROUTER)
+  #define PRINTER_MODE_FFF 0
+  #define PRINTER_MODE_LASER 1
+  #define PRINTER_MODE_CNCROUTER 2
+#endif
+
 
 /**
  * Feedrate scaling and conversion
@@ -277,6 +284,10 @@ extern uint8_t active_driver;
 
 #if ENABLED(FLOWMETER_SENSOR)
   void print_flowratestate();
+#endif
+
+#if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+  void print_cncspeed();
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
