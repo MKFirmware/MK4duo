@@ -5716,7 +5716,7 @@ inline void gcode_G92() {
   /**
    * M3: S - Setting laser beam or fire laser 
    */
-  inline void gcode_M3_M4() {
+  inline void gcode_M3_M4(bool clockwise) {
     #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
     if (printer_mode == PRINTER_MODE_LASER) {
     #endif

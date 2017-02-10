@@ -56,9 +56,20 @@ void cnc_init() {
 
 #if ENABLED(CNCROUTER)
 
+
 #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
 unsigned long rpm_target;
 static millis_t next_speed_step = 0; 
+
+void cncrouter_speed_step();
+
+#endif
+
+#if ENABLED(FAST_PWM_CNCROUTER)
+unsigned char cncrouter_calcPWM(unsigned long rpm);
+unsigned long rpm_instant = 0;
+void setPwmCNCRouter(unsigned char pwm); // XXX pwm level or cnc router speed?
+
 #endif
 
 
@@ -75,9 +86,6 @@ void cnc_manage() {
 }
 
 #if ENABLED(FAST_PWM_CNCROUTER)
-
-unsigned long rpm_instant = 0;
-void setPwmCNCRouter(unsigned char pwm); // XXX pwm level or cnc router speed?
 
 void setPwmCNCRouter(unsigned char pwm) {
   analogWrite(CNCROUTER_PIN, pwm);
@@ -105,7 +113,6 @@ void disable_cncrouter() {
 }
 
 #if ENABLED(FAST_PWM_CNCROUTER)
-unsigned char cncrouter_calcPWM(unsigned long rpm);
 
 unsigned char cncrouter_calcPWM(unsigned long rpm) {
 	unsigned char pwm;
@@ -116,7 +123,6 @@ unsigned char cncrouter_calcPWM(unsigned long rpm) {
 #endif
 
 #if ENABLED(FAST_PWM_CNCROUTER) && ENABLED(CNCROUTER_SLOWSTART)
-void cncrouter_speed_step();
 
 void cncrouter_speed_step() {
 	if(rpm_target < rpm_instant) {
