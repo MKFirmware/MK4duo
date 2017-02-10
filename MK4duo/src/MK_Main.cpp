@@ -3386,11 +3386,13 @@ inline void gcode_G0_G1(
 
     #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
-        if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-        if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-        if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-        if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-        if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+        if(IsRunning) {
+         if (code_seen('S')) laser.intensity = code_value_float();
+         if (code_seen('L')) laser.duration = code_value_ulong();
+         if (code_seen('P')) laser.ppm = code_value_float();
+         if (code_seen('D')) laser.diagnostics = code_value_bool();
+         if (code_seen('B')) laser_set_mode(code_value_int());
+        }
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -3445,11 +3447,13 @@ inline void gcode_G0_G1(
       gcode_get_destination();
 
       #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
-        if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-        if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-        if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-        if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-        if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+        if(IsRunning()) {
+         if (code_seen('S')) laser.intensity = code_value_float();
+         if (code_seen('L')) laser.duration = code_value_ulong();
+         if (code_seen('P')) laser.ppm = code_value_float();
+         if (code_seen('D')) laser.diagnostics = code_value_bool();
+         if (code_seen('B')) laser_set_mode(code_value_int());
+        }
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -8988,10 +8992,12 @@ inline void gcode_M532() {
       laser.rasterlaserpower =  laser.intensity;
     }
 
-    if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-    if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-    if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
-    if (code_seen('R') && IsRunning()) laser.raster_mm_per_pulse = (code_value_float());
+    if(IsRunning()) {
+      if (code_seen('L')) laser.duration = code_value_ulong();
+      if (code_seen('P')) laser.ppm = code_value_float();
+      if (code_seen('B')) laser_set_mode(code_value_int());
+      if (code_seen('R')) laser.raster_mm_per_pulse = (code_value_float());
+    }
 
     if (code_seen('F')) {
       float next_feedrate = code_value_linear_units();
