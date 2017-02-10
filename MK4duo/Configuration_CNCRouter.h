@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /**
- * cncrouter.h - CNC Router control for MK4duo  Version 1
+ * Configuration_CNCRouter.h - CNC Router control for MK4duo  Version 1
  * Copyright (c) 2017 Franco (nextime) Lanza
  *
  * This library is free software; you can redistribute it and/or
@@ -38,22 +37,40 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+/**
+ * Configuration_Laser.h
+ *
+ * This configuration file contains all laser functions.
+ *
+ */
 
+#ifndef CONFIGURATION_CNCROUTER
+#define CONFIGURATION_CNCROUTER
 
-#ifndef CNCROUTER_H
-#define CNCROUTER_H
+//===========================================================================
+//=========================== CNCRouter Settings ============================
+//===========================================================================
 
-void cnc_init(); // initialize cnc router
+// Enable speed control by PWM
+#define FAST_PWM_CNCROUTER 
 
-#if ENABLED(CNCROUTER)
-void cnc_manage(); // management loop for CNC
+// router speed settings in rpm
+#define MAX_CNCROUTER_SPEED 32000
+#define MIN_CNCROUTER_SPEED 300
 
-#if ENABLED(FAST_PWM_CNCROUTER)
-unsigned long getCNCSpeed();
-#endif // FAST_PWM_CNCROUTER
+// Work around for bad PWM drivers for spindles
+#define MAX_CNCROUTER_PWM_VAL 245
 
-void setCNCRouterSpeed(unsigned long rpm, bool clockwise);
-#endif // CNCROUTER
-void disable_cncrouter();
+// Some routers power supply have issues with motor starting current,
+// enable slowstart to avoid that
+#define CNCROUTER_SLOWSTART
+#define CNCROUTER_SLOWSTART_STEP 5000     // rpm of every step of the slow start accelleration
+#define CNCROUTER_SLOWSTART_INTERVAL 0.5  // seconds between change of speed 
+
+// Router have inverted rotation support (not yet supported)
+//#define CNCROUTER_ANTICLOCKWISE
+
+// Router enable pin is inverted polarity
+//#define INVERTED_CNCROUTER_PIN
 
 #endif

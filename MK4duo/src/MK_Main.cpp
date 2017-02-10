@@ -12451,6 +12451,10 @@ void idle(
     flowrate_manage();
   #endif
 
+  #if ENABLED(CNCROUTER)
+    cnc_manage();
+  #endif
+
   manage_inactivity(
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       no_stepper_sleep

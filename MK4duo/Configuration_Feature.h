@@ -1449,13 +1449,10 @@
  **************************************************************************
  *                                                                        *
  * Support for CNC Router                                                 *
+ * Check also Configuration_CNCRouter.h
  *                                                                        *
  **************************************************************************/
 //#define CNCROUTER
-
-#define FAST_PWM_CNCROUTER // PWM speed controlled router 
-#define MAX_CNCROUTER_SPEED 32000
-//#define INVERTED_CNCROUTER_PIN
 /**************************************************************************/
 
 
