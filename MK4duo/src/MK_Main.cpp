@@ -2095,7 +2095,7 @@ static void clean_up_after_endstop_or_probe_move() {
       if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
       SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
       SERIAL_E;
@@ -5007,9 +5007,9 @@ inline void gcode_G28() {
 
     float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1);
 
-    SERIAL_MV(" Bed X: ", X_probe_location + 0.0001);
-    SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-    SERIAL_MV(" Z: ", measured_z + 0.0001);
+    SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+    SERIAL_MV(MSG_BED_LEVELING_X, X_probe_location + 0.0001, 3);
+    SERIAL_MV(MSG_BED_LEVELING_Y, Y_probe_location + 0.0001, 3);
     SERIAL_E;
 
     clean_up_after_endstop_or_probe_move();
@@ -5075,10 +5075,10 @@ inline void gcode_G28() {
       float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
             new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
 
-      SERIAL_MV(" Bed X:", X_probe_location + 0.0001);
-      SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-      SERIAL_MV(" Z: ", measured_z + zprobe_zoffset, 4);
-      SERIAL_EMV("  New Z probe offset = ", new_zprobe_zoffset, 4);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, X_probe_location + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, Y_probe_location + 0.0001, 3);
+      SERIAL_E;
 
       if (code_seen('U') && code_value_bool() != 0)
         zprobe_zoffset = new_zprobe_zoffset;
@@ -5308,23 +5308,23 @@ inline void gcode_G28() {
         for (uint8_t i = 0; i < 6; i++) {
           xBedProbePoints[i] = deltaParams.probe_Radius * sin((2 * M_PI * i) / 6);
           yBedProbePoints[i] = deltaParams.probe_Radius * cos((2 * M_PI * i) / 6);
-          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) + zprobe_zoffset;
+          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) - (-zprobe_zoffset);
         }
       }
       if (numPoints >= 10) {
         for (uint8_t i = 6; i < 9; i++) {
           xBedProbePoints[i] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (i - 6)) / 3);
           yBedProbePoints[i] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (i - 6)) / 3);
-          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) + zprobe_zoffset;
+          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) - (-zprobe_zoffset);
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4) + zprobe_zoffset;
+        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4) - (-zprobe_zoffset);
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4) + zprobe_zoffset;
+        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4) - (-zprobe_zoffset);
       }
 
       using namespace mm;
@@ -5416,7 +5416,7 @@ inline void gcode_G28() {
       // Recalibrate Height
       SERIAL_EM("Calibrate Height");
       home_delta();
-      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) + zprobe_zoffset;
+      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) - (-zprobe_zoffset);
       deltaParams.Recalc_delta_constants();
 
       SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
@@ -5447,16 +5447,16 @@ inline void gcode_G28() {
       float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
             new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
 
-      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z + zprobe_zoffset, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
       SERIAL_MV(MSG_BED_LEVELING_X, current_position[X_AXIS], 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, current_position[Y_AXIS], 3);
-      SERIAL_E;
 
       if (code_seen('U') && code_value_bool() != 0) {
         zprobe_zoffset = new_zprobe_zoffset;
-        SERIAL_EMV("  New Z probe offset = ", zprobe_zoffset, 4);
+        SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 4);
       }
 
+      SERIAL_E;
     }
 
     clean_up_after_endstop_or_probe_move();
@@ -10792,7 +10792,7 @@ void ok_to_send() {
      * Probe bed height at position (x,y), returns the measured z value
      */
     float probe_bed(float x, float y) {
-      return probe_pt(x, y, false, 1) + zprobe_zoffset;
+      return probe_pt(x, y, false, 1) - (-zprobe_zoffset);
     }
 
     void bed_probe_all() {
