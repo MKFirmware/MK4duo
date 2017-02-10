@@ -12243,9 +12243,6 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser_peripherals_off();
       #endif
     #endif
-  #if ENABLED(CNCROUTER)
-     disable_cncrouter();
-  #endif
 
   }
 
