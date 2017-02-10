@@ -286,6 +286,10 @@ extern uint8_t active_driver;
   void print_flowratestate();
 #endif
 
+#if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+  void print_cncspeed();
+#endif
+
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   extern float mixing_factor[MIXING_STEPPERS];
 #endif

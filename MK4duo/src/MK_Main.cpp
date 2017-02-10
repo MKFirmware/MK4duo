@@ -2870,6 +2870,15 @@ static void homeaxis(AxisEnum axis) {
   }
 #endif
 
+#if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+ void print_cncspeed() {
+   unsigned long speed = getCNCSpeed();
+   SERIAL_MV(" CNC_SPEED: ", speed);
+   SERIAL_M(" rpm ");
+
+ }
+#endif
+
 #ifndef MIN_COOLING_SLOPE_DEG
   #define MIN_COOLING_SLOPE_DEG 1.50
 #endif
@@ -6772,7 +6781,7 @@ inline void gcode_M105() {
 
   GET_TARGET_HOTEND(105);
 
-  #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675) || HAS(TEMP_COOLER) || ENABLED(FLOWMETER_SENSOR)
+  #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675) || HAS(TEMP_COOLER) || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
     SERIAL_S(OK);
     #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
       print_heaterstates();
@@ -6785,6 +6794,9 @@ inline void gcode_M105() {
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
       print_flowratestate();
+    #endif
+    #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+      print_cncspeed();
     #endif
   #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
