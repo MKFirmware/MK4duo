@@ -65,6 +65,11 @@ float progress = 0.0;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
 
+#if ENABLED(LASERBEAM) && ENABLED(CNCROUTER)
+uint8_t printer_mode = PRINTER_MODE_FFF;
+#endif
+
+
 /**
  * Cartesian Current Position
  *   Used to track the logical position as moves are queued.
@@ -5703,22 +5708,38 @@ inline void gcode_G92() {
   }
 #endif // ULTIPANEL
 
-#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
   /**
    * M3: S - Setting laser beam or fire laser 
    */
   inline void gcode_M3_M4() {
-    if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-    if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-    if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-    if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-    if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+    if (printer_mode == PRINTER_MODE_LASER) {
+    #endif
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+      if(IsRunning()) {
+        if (code_seen('S')) laser.intensity = code_value_float();
+        if (code_seen('L')) laser.duration = code_value_ulong();
+        if (code_seen('P')) laser.ppm = code_value_float();
+        if (code_seen('D')) laser.diagnostics = code_value_bool();
+        if (code_seen('B')) laser_set_mode(code_value_int());
+      }
+  
+      laser.status = LASER_ON;
+      laser.fired = LASER_FIRE_SPINDLE;
 
-    laser.status = LASER_ON;
-    laser.fired = LASER_FIRE_SPINDLE;
-
-    lcd_update();
-
+      lcd_update();
+      #endif
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER) 
+    }
+    else if(printer_mode == PRINTER_MODE_CNCROUTER) {
+    #endif
+      #if ENABLED(CNCROUTER)
+		if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
+      #endif
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+    }
+    #endif
     prepare_move_to_destination();
   }
 
@@ -5726,19 +5747,36 @@ inline void gcode_G92() {
    * M5: Turn off laser beam
    */
   inline void gcode_M5() {
-    if (laser.status != LASER_OFF) {
-      laser.status = LASER_OFF;
-      laser.mode = CONTINUOUS;
-      laser.duration = 0;
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+  if (printer_mode == PRINTER_MODE_LASER) {
+  #endif
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+     if (laser.status != LASER_OFF) {
+     laser.status = LASER_OFF;
+        laser.mode = CONTINUOUS;
+        laser.duration = 0;
 
-      lcd_update();
+         lcd_update();
 
-      prepare_move_to_destination();
+         prepare_move_to_destination();
 
-      if (laser.diagnostics)
-        SERIAL_EM("Laser M5 called and laser OFF");
-    }
+         if (laser.diagnostics)
+           SERIAL_EM("Laser M5 called and laser OFF");
+     }
+  #endif
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
   }
+  else if(printer_mode == PRINTER_MODE_CNC) {
+  #endif
+   #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+   prepare_move_to_destination();
+   #endif
+   #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+  }
+  #endif
+}
+
 #endif // LASERBEAM
 
 /**
@@ -8496,6 +8534,26 @@ inline void gcode_M428() {
   }
 }
 
+#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+/**
+ * M450: Report printer mode
+ */
+inline void gcode_M450() {
+   SERIAL_M("PrinterMode:");
+   switch(printer_mode) {
+      case PRINTER_MODE_LASER:
+        SERIAL_M("Laser\n");
+        break;
+      case PRINTER_MODE_CNC:
+        SERIAL_M("CNC\n");
+        break;
+      default:
+        SERIAL_M("FFF\n");
+   }
+}
+#endif
+
+
 /**
  * M500: Store settings in EEPROM
  */
@@ -10056,6 +10114,10 @@ void process_next_command() {
         case 11: // G11: retract_recover
           gcode_G10_G11(codenum == 10); break;
       #endif // FWRETRACT
+      // G17 - G19: XXX CNC plane selection
+      // G17 -> XY (default)
+      // G18 -> ZX 
+      // G19 -> YZ
 
       #if ENABLED(NOZZLE_CLEAN_FEATURE)
         case 12: // G12: Nozzle Clean
@@ -10107,17 +10169,26 @@ void process_next_command() {
             gcode_G38(subcode == 2);
           break;
       #endif
+      // G40 Compensation Off XXX CNC
+      // G54-G59 Coordinate system selection (CNC XXX)      
 
       case 60: // G60 Saved Coordinates
         gcode_G60(); break;
       case 61: // G61 Restore Coordinates
         gcode_G61(); break;
+   
+      // G80: Cancel Canned Cycle (XXX CNC)
+
       case 90: // G90
         relative_mode = false; break;
       case 91: // G91
         relative_mode = true; break;
       case 92: // G92
         gcode_G92(); break;
+      // G92.x Reset Coordinate System Offset (CNC XXX)
+      // G93: Feed Rate Mode (Inverse Time Mode) (CNC XXX)
+      // G94: Feed Rate Mode (Units per Minute) (CNC XXX)
+
     }
     break;
 
@@ -10128,12 +10199,19 @@ void process_next_command() {
           gcode_M0_M1(); break;
       #endif // ULTIPANEL
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
-        case 3: // M03: Setting laser beam
-        case 4: // M04: Turn on laser beam
-          gcode_M3_M4(); break;
-        case 5: // M05: Turn off laser beam
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE) || ENABLED(CNCROUTER)
+        case 3: // M03: Setting laser beam or CNC clockwise speed
+        case 4: // M04: Turn on laser beam or CNC counter clockwise speed
+          gcode_M3_M4(codenum == 3); break;
+        case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
+        // case 6: // M06 - Tool change CNC XXX
+        // case 7: // M07 - Mist coolant CNC XXX
+        // case 8: // M08 - Flood coolant CNC XXX
+        // case 9: // M09 - Coolant off CNC XXX
+        // case 10: // M10 - Vacuum on CNC XXX
+		  // case 11: // M11 - Vacuum off CNC XXX
+
       #endif // LASERBEAM
 
       case 17: // M17: Enable/Power all stepper motors
@@ -10529,6 +10607,20 @@ void process_next_command() {
 
       case 428: // M428 Apply current_position to home_offset
         gcode_M428(); break;
+
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+      case 450:
+        gcode_M450(); break; // report printer mode
+
+      case 451:
+        printer_mode = PRINTER_MODE_FFF; break; // set printer mode printer
+
+      case 452:
+        printer_mode = PRINTER_MODE_LASER; break; // set printer mode laser
+
+      case 453:
+        printer_mode = PRINTER_MODE_CNC; break; // set printer mode CNC router
+      #endif
 
       case 500: // M500: Store settings in EEPROM
         gcode_M500(); break;
@@ -11957,7 +12049,7 @@ static void report_current_position() {
   }
 #endif
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
 
   void setPwmFrequency(uint8_t pin, uint8_t val) {
     val &= 0x07;
@@ -12539,6 +12631,10 @@ void setup() {
   SYNC_PLAN_POSITION_KINEMATIC();
 
   thermalManager.init();    // Initialize temperature loop
+
+  #if ENABLED(CNCROUTER)
+    cnc_init();
+  #endif
 
   #if ENABLED(USE_WATCHDOG)
     watchdog_init();
