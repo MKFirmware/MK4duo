@@ -41,118 +41,101 @@
 
 #include "../../base.h"
 
-
-void cnc_init() {
-
-   #if ENABLED(CNCROUTER)
-      SET_OUTPUT(CNCROUTER_PIN);
-      #if ENABLED(FAST_PWM_CNCROUTER)
-         setPwmFrequency(CNCROUTER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
-      #endif
-   #endif
-
-}
-
-
 #if ENABLED(CNCROUTER)
+  void cnc_init() {
+    SET_OUTPUT(CNCROUTER_PIN);
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      setPwmFrequency(CNCROUTER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
+    #endif
+  }
 
+  #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+    unsigned long rpm_target;
+    static millis_t next_speed_step = 0; 
+    void cncrouter_speed_step();
+  #endif
 
-#if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-unsigned long rpm_target;
-static millis_t next_speed_step = 0; 
+  #if ENABLED(FAST_PWM_CNCROUTER)
+    unsigned char cncrouter_calcPWM(unsigned long rpm);
+    unsigned long rpm_instant = 0;
+    void setPwmCNCRouter(unsigned char pwm); // XXX pwm level or cnc router speed?
+  #endif
 
-void cncrouter_speed_step();
+  void cnc_manage() {
+    #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+      if (rpm_target != rpm_instant) {
+        millis_t ms = millis();
+        if (ELAPSED(ms, next_speed_step)) {
+          next_speed_step = ms + (CNCROUTER_SLOWSTART_INTERVAL * 1000L);
+          cncrouter_speed_step();   
+        }
+      }
+    #endif
+  }
 
-#endif
+  #if ENABLED(FAST_PWM_CNCROUTER)
 
-#if ENABLED(FAST_PWM_CNCROUTER)
-unsigned char cncrouter_calcPWM(unsigned long rpm);
-unsigned long rpm_instant = 0;
-void setPwmCNCRouter(unsigned char pwm); // XXX pwm level or cnc router speed?
+    void setPwmCNCRouter(unsigned char pwm) {
+      analogWrite(CNCROUTER_PIN, pwm);
+    }
 
-#endif
+    unsigned long getCNCSpeed() {
+      return rpm_instant;
+    }
 
+  #endif
 
-void cnc_manage() {
-   #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-   if(rpm_target != rpm_instant) {
-      millis_t ms = millis();
-      if (ELAPSED(ms, next_speed_step)) {
-      	next_speed_step = ms + (CNCROUTER_SLOWSTART_INTERVAL * 1000L);
-      	cncrouter_speed_step();   
-		}
-   }
-   #endif
-}
-
-#if ENABLED(FAST_PWM_CNCROUTER)
-
-void setPwmCNCRouter(unsigned char pwm) {
-  analogWrite(CNCROUTER_PIN, pwm);
-}
-
-
-
-unsigned long getCNCSpeed() {
-   return rpm_instant;
-}
-
-
-#endif
-
-void disable_cncrouter() {
-   #if ENABLED(FAST_PWM_CNCROUTER)
-		#if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-		  rpm_target = 0;
-		#endif
+  void disable_cncrouter() {
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      #if ENABLED(CNCROUTER_SLOWSTART)
+        rpm_target = 0;
+      #endif
       rpm_instant = 0;
       setPwmCNCRouter(0);
-   #else
+    #else
       WRITE_CNCROUTER(LOW);
-   #endif
-}
+    #endif
+  }
 
-#if ENABLED(FAST_PWM_CNCROUTER)
+  #if ENABLED(FAST_PWM_CNCROUTER)
+    unsigned char cncrouter_calcPWM(unsigned long rpm) {
+      unsigned char pwm;
+      pwm = rpm * 255 / MAX_CNCROUTER_SPEED;
+      if (pwm > MAX_CNCROUTER_PWM_VAL) pwm = MAX_CNCROUTER_PWM_VAL;
+      return pwm;
+    }
+  #endif
 
-unsigned char cncrouter_calcPWM(unsigned long rpm) {
-	unsigned char pwm;
-   pwm = rpm*255/MAX_CNCROUTER_SPEED;
-   if (pwm > MAX_CNCROUTER_PWM_VAL) pwm = MAX_CNCROUTER_PWM_VAL;
-	return pwm;
-}
-#endif
+  #if ENABLED(FAST_PWM_CNCROUTER) && ENABLED(CNCROUTER_SLOWSTART)
 
-#if ENABLED(FAST_PWM_CNCROUTER) && ENABLED(CNCROUTER_SLOWSTART)
+    void cncrouter_speed_step() {
+      if (rpm_target < rpm_instant) {
+        rpm_instant = rpm_target;
+        setPwmCNCRouter(cncrouter_calcPWM(rpm_instant));
+      }
+      else if (rpm_target > rpm_instant) {
+        rpm_instant = ((rpm_target - rpm_instant) > CNCROUTER_SLOWSTART_STEP) ?  rpm_instant + CNCROUTER_SLOWSTART_STEP : rpm_target;  
+        setPwmCNCRouter(cncrouter_calcPWM(rpm_instant));
+      }
+    }
 
-void cncrouter_speed_step() {
-	if(rpm_target < rpm_instant) {
-		rpm_instant = rpm_target;
-		setPwmCNCRouter(cncrouter_calcPWM(rpm_instant));
-   }
-   else if(rpm_target > rpm_instant) {
-		rpm_instant = ((rpm_target - rpm_instant) > CNCROUTER_SLOWSTART_STEP) ?  rpm_instant + CNCROUTER_SLOWSTART_STEP : rpm_target;  
-		setPwmCNCRouter(cncrouter_calcPWM(rpm_instant));
-   }
-}
-#endif
+  #endif
 
-// XXX TODO: support for CNCROUTER_ANTICLOCKWISE 
-void setCNCRouterSpeed(unsigned long rpm, bool clockwise) {
-   #if ENABLED(FAST_PWM_CNCROUTER)
-     if(rpm > MAX_CNCROUTER_SPEED) rpm = MAX_CNCROUTER_SPEED;
-     if((rpm < MIN_CNCROUTER_SPEED) && (rpm > 0)) rpm = MIN_CNCROUTER_SPEED;
-	  #if ENABLED(CNCROUTER_SLOWSTART)
-		  rpm_target = rpm;
+  // XXX TODO: support for CNCROUTER_ANTICLOCKWISE 
+  void setCNCRouterSpeed(unsigned long rpm, bool clockwise) {
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      if (rpm > MAX_CNCROUTER_SPEED) rpm = MAX_CNCROUTER_SPEED;
+      if ((rpm < MIN_CNCROUTER_SPEED) && (rpm > 0)) rpm = MIN_CNCROUTER_SPEED;
+      #if ENABLED(CNCROUTER_SLOWSTART)
+        rpm_target = rpm;
         cncrouter_speed_step();
-	  #else
-		  rpm_instant = rpm;
+      #else
+        rpm_instant = rpm;
         setPwmCNCRouter(cncrouter_calcPWM(rpm));
-	  #endif
-   #else
-     WRITE_CNCROUTER((rpm) ? 1 : 0);  
-   #endif
-
-}
-
+      #endif
+    #else
+      WRITE_CNCROUTER((rpm) ? 1 : 0);  
+    #endif
+  }
 
 #endif // CNCROUTER

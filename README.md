@@ -63,6 +63,7 @@ The new features are:
 * Added support NEXTION lcd touch
 * Added Cooler and Hot Chamber
 * Added Laser beam and raster base64
+* Added CNC Router
 * Addes Mesh Bed Level (MBL)
 * Added Stop and Save for Restart (SSR)
 * Added Nozzle Clean Features

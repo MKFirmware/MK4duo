@@ -19,8 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /**
- * Configuration_CNCRouter.h - CNC Router control for MK4duo  Version 1
+ * Configuration_CNCRouter.h - CNC Router control for MK4duo Version 1
  * Copyright (c) 2017 Franco (nextime) Lanza
  *
  * This library is free software; you can redistribute it and/or
@@ -35,13 +36,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-/**
- * Configuration_Laser.h
- *
- * This configuration file contains all laser functions.
- *
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 #ifndef CONFIGURATION_CNCROUTER
@@ -52,7 +47,7 @@
 //===========================================================================
 
 // Enable speed control by PWM
-#define FAST_PWM_CNCROUTER 
+//#define FAST_PWM_CNCROUTER 
 
 // router speed settings in rpm
 #define MAX_CNCROUTER_SPEED 32000

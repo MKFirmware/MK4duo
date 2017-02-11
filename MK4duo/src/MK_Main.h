@@ -105,13 +105,6 @@ extern void safe_delay(millis_t ms);
   void setPwmFrequency(uint8_t pin, uint8_t val);
 #endif
 
-#if ENABLED(LASERBEAM) && ENABLED(CNCROUTER)
-  #define PRINTER_MODE_FFF 0
-  #define PRINTER_MODE_LASER 1
-  #define PRINTER_MODE_CNCROUTER 2
-#endif
-
-
 /**
  * Feedrate scaling and conversion
  */
@@ -284,10 +277,6 @@ extern uint8_t active_driver;
 
 #if ENABLED(FLOWMETER_SENSOR)
   void print_flowratestate();
-#endif
-
-#if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
-  void print_cncspeed();
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)

@@ -39,21 +39,19 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 #ifndef CNCROUTER_H
-#define CNCROUTER_H
+  #define CNCROUTER_H
 
-void cnc_init(); // initialize cnc router
+  #if ENABLED(CNCROUTER)
+    void cnc_init();    // initialize cnc router
+    void cnc_manage();  // management loop for CNC
 
-#if ENABLED(CNCROUTER)
-void cnc_manage(); // management loop for CNC
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      unsigned long getCNCSpeed();
+    #endif // FAST_PWM_CNCROUTER
 
-#if ENABLED(FAST_PWM_CNCROUTER)
-unsigned long getCNCSpeed();
-#endif // FAST_PWM_CNCROUTER
-
-void setCNCRouterSpeed(unsigned long rpm, bool clockwise);
-#endif // CNCROUTER
-void disable_cncrouter();
+    void setCNCRouterSpeed(unsigned long rpm, bool clockwise);
+    void disable_cncrouter();
+  #endif // CNCROUTER
 
 #endif

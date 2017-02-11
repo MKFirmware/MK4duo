@@ -76,7 +76,6 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
-
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"
@@ -108,7 +107,6 @@
 #if ENABLED(CNCROUTER)
   #include "src/cncrouter/cncrouter.h"
 #endif
-
 
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
