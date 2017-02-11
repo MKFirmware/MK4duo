@@ -69,9 +69,10 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
- * M3   - Put S<value> in laser beam control. (Requires LASERBEAM)
- * M4   - Turn on laser beam. (Requires LASERBEAM)
- * M5   - Turn off laser beam. (Requires LASERBEAM)
+ * M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASERBEAM)
+ *        S<value> CNC clockwise speed. (Requires CNCROUTERS)
+ * M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
+ * M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -195,6 +196,10 @@
  *        Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
  * M428 - Set the home_offset logically based on the current_position
+ * M450 - Report Printer Mode
+ * M451 - Select FFF Printer Mode
+ * M452 - Select Laser Printer Mode
+ * M453 - Select CNC Printer Mode
  * M500 - Store parameters in EEPROM
  * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.

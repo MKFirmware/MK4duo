@@ -101,7 +101,7 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
   void setPwmFrequency(uint8_t pin, uint8_t val);
 #endif
 
