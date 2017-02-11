@@ -101,7 +101,7 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
   void setPwmFrequency(uint8_t pin, uint8_t val);
 #endif
 
@@ -189,6 +189,7 @@ float code_value_temp_diff();
 
 #if HAS(BED_PROBE)
   extern float zprobe_zoffset;
+  extern bool probe_process;
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -278,15 +279,13 @@ extern uint8_t active_driver;
   void print_flowratestate();
 #endif
 
-#if ENABLED(FIRMWARE_TEST)
-  void FirmwareTest();
-#endif
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   extern float mixing_factor[MIXING_STEPPERS];
 #endif
 
 void calculate_volumetric_multipliers();
+
+void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
 
 /**
  * Blocking movement and shorthand functions

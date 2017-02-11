@@ -106,11 +106,6 @@ uint16_t max_display_update_time = 0;
 
   millis_t manual_move_start_time = 0;
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  #if EXTRUDERS > 1
-    int8_t manual_move_e_index = 0;
-  #else
-    #define manual_move_e_index 0
-  #endif
 
   bool encoderRateMultiplierEnabled;
   int32_t lastEncoderMovementMillis;
@@ -1608,7 +1603,7 @@ KeepDrawing:
    */
   inline void manage_manual_move() {
     if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), manual_move_e_index, active_driver);
+      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), active_extruder, active_driver);
       manual_move_axis = (int8_t)NO_AXIS;
     }
   }
@@ -1617,14 +1612,7 @@ KeepDrawing:
    * Set a flag that lcd_update() should start a move
    * to "current_position" after a short delay.
    */
-  inline void manual_move_to_current(AxisEnum axis
-    #if E_MANUAL > 1
-      , int8_t eindex=-1
-    #endif
-  ) {
-    #if E_MANUAL > 1
-      if (axis == E_AXIS) manual_move_e_index = eindex >= 0 ? eindex : active_extruder;
-    #endif
+  inline void manual_move_to_current(AxisEnum axis) {
     manual_move_start_time = millis() + (move_menu_scale < 0.99 ? 0UL : 250UL); // delay for bigger moves
     manual_move_axis = (int8_t)axis;
   }
@@ -1672,34 +1660,46 @@ KeepDrawing:
   void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
   void lcd_move_z() { _lcd_move_xyz(PSTR(MSG_MOVE_Z), Z_AXIS); }
   void _lcd_move_e(
-    #if E_MANUAL > 1
+    #if EXTRUDERS > 1
       int8_t eindex=-1
     #endif
   ) {
-    if (lcd_clicked) { return lcd_goto_previous_menu(); }
+    #if EXTRUDERS > 1
+      static uint8_t old_extruder = 0;
+      old_extruder = active_extruder;
+      tool_change(eindex, 0.0, true);
+    #endif
+    if (lcd_clicked) {
+      #if EXTRUDERS > 1
+        tool_change(old_extruder, 0.0, true);
+      #endif
+      return lcd_goto_previous_menu();
+    }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition) {
       current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
       encoderPosition = 0;
-      manual_move_to_current(E_AXIS
-        #if E_MANUAL > 1
-          , eindex
-        #endif
-      );
+      manual_move_to_current(E_AXIS);
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
     if (lcdDrawUpdate) {
       PGM_P pos_label;
-      #if E_MANUAL == 1
+      #if EXTRUDERS == 1
         pos_label = PSTR(MSG_MOVE_E);
       #else
         switch (eindex) {
           default: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E1); break;
           case 1: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E2); break;
-          #if E_MANUAL > 2
+          #if EXTRUDERS > 2
             case 2: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E3); break;
-            #if E_MANUAL > 3
+            #if EXTRUDERS > 3
               case 3: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E4); break;
+              #if EXTRUDERS > 4
+                case 4: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E5); break;
+                #if EXTRUDERS > 5
+                  case 5: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E6); break;
+                #endif
+              #endif
             #endif
           #endif
         }
@@ -1709,13 +1709,19 @@ KeepDrawing:
   }
 
   void lcd_move_e() { _lcd_move_e(); }
-  #if E_MANUAL > 1
+  #if EXTRUDERS > 1
     void lcd_move_e0() { _lcd_move_e(0); }
     void lcd_move_e1() { _lcd_move_e(1); }
-    #if E_MANUAL > 2
+    #if EXTRUDERS > 2
       void lcd_move_e2() { _lcd_move_e(2); }
-      #if E_MANUAL > 3
+      #if EXTRUDERS > 3
         void lcd_move_e3() { _lcd_move_e(3); }
+        #if EXTRUDERS > 4
+          void lcd_move_e4() { _lcd_move_e(4); }
+          #if EXTRUDERS > 5
+            void lcd_move_e5() { _lcd_move_e(5); }
+          #endif
+        #endif
       #endif
     #endif
   #endif
@@ -1754,17 +1760,23 @@ KeepDrawing:
     MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
     END_MENU();
   }
-  void lcd_move_get_x_amount()        { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
-  void lcd_move_get_y_amount()        { _lcd_move_distance_menu(Y_AXIS, lcd_move_y); }
-  void lcd_move_get_z_amount()        { _lcd_move_distance_menu(Z_AXIS, lcd_move_z); }
-  void lcd_move_get_e_amount()        { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
-  #if E_MANUAL > 1
-    void lcd_move_get_e0_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e0); }
-    void lcd_move_get_e1_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e1); }
-    #if E_MANUAL > 2
-      void lcd_move_get_e2_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e2); }
-      #if E_MANUAL > 3
-        void lcd_move_get_e3_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e3); }
+  void lcd_move_get_x_amount()            { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
+  void lcd_move_get_y_amount()            { _lcd_move_distance_menu(Y_AXIS, lcd_move_y); }
+  void lcd_move_get_z_amount()            { _lcd_move_distance_menu(Z_AXIS, lcd_move_z); }
+  void lcd_move_get_e_amount()            { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
+  #if EXTRUDERS > 1
+    void lcd_move_get_e0_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e0); }
+    void lcd_move_get_e1_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e1); }
+    #if EXTRUDERS > 2
+      void lcd_move_get_e2_amount()       { _lcd_move_distance_menu(E_AXIS, lcd_move_e2); }
+      #if EXTRUDERS > 3
+        void lcd_move_get_e3_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e3); }
+        #if EXTRUDERS > 4
+          void lcd_move_get_e4_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e4); }
+          #if EXTRUDERS > 5
+            void lcd_move_get_e5_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e5); }
+          #endif
+        #endif
       #endif
     #endif
   #endif
@@ -1821,13 +1833,19 @@ KeepDrawing:
     #endif
 
     MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_get_e_amount);
-    #if E_MANUAL > 1
+    #if EXTRUDERS > 1
       MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
       MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
-      #if E_MANUAL > 2
+      #if EXTRUDERS > 2
         MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E3, lcd_move_get_e2_amount);
-        #if E_MANUAL > 3
+        #if EXTRUDERS > 3
           MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E4, lcd_move_get_e3_amount);
+          #if EXTRUDERS > 4
+            MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E5, lcd_move_get_e4_amount);
+            #if EXTRUDERS > 5
+              MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E6, lcd_move_get_e5_amount);
+            #endif
+          #endif
         #endif
       #endif
     #endif
@@ -2486,7 +2504,7 @@ KeepDrawing:
 
       #if HAS(POWER_CONSUMPTION_SENSOR)
         char Power[10];
-        sprintf(Power, "%uWh"), power_consumption_hour);
+        sprintf(Power, "%uWh", power_consumption_hour);
       #endif
 
       START_SCREEN();

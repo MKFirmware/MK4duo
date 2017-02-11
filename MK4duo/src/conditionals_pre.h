@@ -96,7 +96,9 @@
 
   // WANHAO D6 OLED LCD
   #if ENABLED(WANHAO_D6_OLED)
-    #define U8GLIB_SSD1309
+    #define U8GLIB_SSD1306
+    #define LCD_WIDTH 22
+    #define LCD_HEIGHT 5
     #define LCD_CONTRAST_MIN 10
     #define LCD_CONTRAST_MAX 255
     #define DEFAULT_LCD_CONTRAST 100
@@ -352,7 +354,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  1
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
   #undef SINGLENOZZLE
@@ -361,7 +362,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  2
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      current_block->active_extruder
 #elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
   #define SINGLENOZZLE
@@ -369,10 +369,8 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         1
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #else
-  #define E_MANUAL          EXTRUDERS
   #define TOOL_E_INDEX      current_block->active_extruder
 #endif
 
@@ -381,7 +379,6 @@
 #if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
   #undef HOTENDS
   #define HOTENDS           1
-  #define E_MANUAL          1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
   #undef HOTEND_OFFSET_X
   #undef HOTEND_OFFSET_Y

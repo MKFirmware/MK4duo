@@ -46,6 +46,7 @@
 
 #define SDPOWER                   -1
 #define SDSS                      53
+#define SD_DETECT_PIN             39
 #define MAX6675_SS                13
 #define LED_PIN                    8
 #define ORIG_FAN_PIN               7
@@ -84,5 +85,3 @@
 #define BLEN_C 2
 #define BLEN_B 1
 #define BLEN_A 0
-
-#define SD_DETECT_PIN             39

@@ -65,6 +65,11 @@ float progress = 0.0;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
 
+#if ENABLED(LASERBEAM) && ENABLED(CNCROUTER)
+uint8_t printer_mode = PRINTER_MODE_FFF;
+#endif
+
+
 /**
  * Cartesian Current Position
  *   Used to track the logical position as moves are queued.
@@ -218,6 +223,7 @@ PrintCounter print_job_counter = PrintCounter();
 
 #if HAS(BED_PROBE)
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
+  bool probe_process = false;
 #endif
 
 #define PLANNER_XY_FEEDRATE() (min(planner.max_feedrate_mm_s[X_AXIS], planner.max_feedrate_mm_s[Y_AXIS]))
@@ -344,7 +350,6 @@ PrintCounter print_job_counter = PrintCounter();
           bed_level_ox,
           bed_level_oy,
           bed_level_oz,
-          bed_safe_z,
           adj_t1_Radius = 0,
           adj_t2_Radius = 0,
           adj_t3_Radius = 0,
@@ -596,7 +601,6 @@ void safe_delay(millis_t ms) {
   void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
 #endif
 
-void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
 static void report_current_position();
 
 /**
@@ -786,15 +790,6 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
     SET_OUTPUT(MOSI);
   }
 #endif // ULTRATRONICS
-
-#if ENABLED(WANHAO_D6_OLED)
-  void setup_wanhao_d6_oled() {
-    OUT_WRITE(LCD_RESET_PIN, LOW);
-    HAL::delayMilliseconds(1);
-    OUT_WRITE(LCD_RESET_PIN, HIGH);
-    HAL::delayMilliseconds(1);
-  }
-#endif
 
 void setup_killpin() {
   #if HAS(KILL)
@@ -1932,10 +1927,14 @@ static void clean_up_after_endstop_or_probe_move() {
   // Do a single Z probe and return with current_position[Z_AXIS]
   // at the height where the probe triggered.
   static float run_z_probe() {
+    float median  = 0.0;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
     #endif
+
+    // Set probe_process to true for not refresh LCD during probing
+    probe_process = true;
 
     // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
     refresh_cmd_timeout();
@@ -1964,8 +1963,20 @@ static void clean_up_after_endstop_or_probe_move() {
 
     #endif
 
-    // move down slowly to find bed
-    do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+    for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
+
+      // move down slowly to find bed
+      do_probe_move(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+
+      median += current_position[Z_AXIS];
+
+      if (r + 1 < Z_PROBE_REPETITIONS) {
+        // move up by the bump distance
+        do_blocking_move_to_z(current_position[Z_AXIS] + home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      }
+    }
+
+    median /= Z_PROBE_REPETITIONS;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
@@ -1979,7 +1990,10 @@ static void clean_up_after_endstop_or_probe_move() {
       }
     #endif
 
-    return current_position[Z_AXIS];
+    // Set probe_process to false
+    probe_process = false;
+
+    return median;
   }
 
   #if MECH(MAKERARM_SCARA)
@@ -2085,10 +2099,10 @@ static void clean_up_after_endstop_or_probe_move() {
       if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
-      SERIAL_M(MSG_BED_LEVELLING_BED);
-      SERIAL_MV(MSG_BED_LEVELLING_X, x, 3);
-      SERIAL_MV(MSG_BED_LEVELLING_Y, y, 3);
-      SERIAL_EMV(MSG_BED_LEVELLING_Z, measured_z + zprobe_zoffset, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
+      SERIAL_E;
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -2855,6 +2869,15 @@ static void homeaxis(AxisEnum axis) {
   }
 #endif
 
+#if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+ void print_cncspeed() {
+   unsigned long speed = getCNCSpeed();
+   SERIAL_MV(" CNC_SPEED: ", speed);
+   SERIAL_M(" rpm ");
+
+ }
+#endif
+
 #ifndef MIN_COOLING_SLOPE_DEG
   #define MIN_COOLING_SLOPE_DEG 1.50
 #endif
@@ -3371,11 +3394,13 @@ inline void gcode_G0_G1(
 
     #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
-        if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-        if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-        if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-        if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-        if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+        if(IsRunning) {
+         if (code_seen('S')) laser.intensity = code_value_float();
+         if (code_seen('L')) laser.duration = code_value_ulong();
+         if (code_seen('P')) laser.ppm = code_value_float();
+         if (code_seen('D')) laser.diagnostics = code_value_bool();
+         if (code_seen('B')) laser_set_mode(code_value_int());
+        }
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -3398,6 +3423,25 @@ inline void gcode_G0_G1(
 /**
  * G2: Clockwise Arc
  * G3: Counterclockwise Arc
+ *
+ * This command has two forms: IJ-form and R-form.
+ *
+ *  - I specifies an X offset. J specifies a Y offset.
+ *    At least one of the IJ parameters is required.
+ *    X and Y can be omitted to do a complete circle.
+ *    The given XY is not error-checked. The arc ends
+ *     based on the angle of the destination.
+ *    Mixing I or J with R will throw an error.
+ *
+ *  - R specifies the radius. X or Y is required.
+ *    Omitting both X and Y will throw an error.
+ *    X or Y must differ from the current XY.
+ *    Mixing R with I or J will throw an error.
+ *
+ *  Examples:
+ *
+ *    G2 I10           ; CW circle centered at X+10
+ *    G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
  */
 #if ENABLED(ARC_SUPPORT)
   inline void gcode_G2_G3(bool clockwise) {
@@ -3411,11 +3455,13 @@ inline void gcode_G0_G1(
       gcode_get_destination();
 
       #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
-        if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-        if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-        if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-        if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-        if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+        if(IsRunning()) {
+         if (code_seen('S')) laser.intensity = code_value_float();
+         if (code_seen('L')) laser.duration = code_value_ulong();
+         if (code_seen('P')) laser.ppm = code_value_float();
+         if (code_seen('D')) laser.diagnostics = code_value_bool();
+         if (code_seen('B')) laser_set_mode(code_value_int());
+        }
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -4944,6 +4990,7 @@ inline void gcode_G28() {
 
     if (planner.abl_enabled)
       SYNC_PLAN_POSITION_KINEMATIC();
+
   }
 
 #endif // HAS_ABL
@@ -4977,9 +5024,9 @@ inline void gcode_G28() {
 
     float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1);
 
-    SERIAL_MV(" Bed X: ", X_probe_location + 0.0001);
-    SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-    SERIAL_MV(" Z: ", measured_z + 0.0001);
+    SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+    SERIAL_MV(MSG_BED_LEVELING_X, X_probe_location + 0.0001, 3);
+    SERIAL_MV(MSG_BED_LEVELING_Y, Y_probe_location + 0.0001, 3);
     SERIAL_E;
 
     clean_up_after_endstop_or_probe_move();
@@ -5030,8 +5077,6 @@ inline void gcode_G28() {
 
     setup_for_endstop_or_probe_move();
 
-    bed_safe_z = current_position[Z_AXIS];
-
     if (code_seen('X') || code_seen('Y')) {
       // Probe specified X, Y point
       float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
@@ -5045,10 +5090,10 @@ inline void gcode_G28() {
       float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
             new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
 
-      SERIAL_MV(" Bed X:", X_probe_location + 0.0001);
-      SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-      SERIAL_MV(" Z: ", measured_z + zprobe_zoffset, 4);
-      SERIAL_EMV("  New Z probe offset = ", new_zprobe_zoffset, 4);
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, X_probe_location + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, Y_probe_location + 0.0001, 3);
+      SERIAL_E;
 
       if (code_seen('U') && code_value_bool() != 0)
         zprobe_zoffset = new_zprobe_zoffset;
@@ -5256,41 +5301,15 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       home_delta();
 
-    float bed_safe_z = current_position[Z_AXIS];
+    stepper.synchronize();  // wait until the machine is idle
 
     bool stow = code_seen('S') ? code_value_bool() : true;
 
-    if (code_seen('X') || code_seen('Y')) {
-      // Probe specified X, Y point
-      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-      float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
-      if (!position_is_reachable(pos, true)) return;
-
-      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
-            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
-
-      SERIAL_MV(" Bed X:", X_probe_location + 0.0001);
-      SERIAL_MV(" Y: ", Y_probe_location + 0.0001);
-      SERIAL_MV(" Z: ", measured_z + zprobe_zoffset, 4);
-      SERIAL_EMV("  New Z probe offset = ", new_zprobe_zoffset, 4);
-
-      if (code_seen('U') && code_value_bool() != 0)
-        zprobe_zoffset = new_zprobe_zoffset;
-
-      clean_up_after_endstop_or_probe_move();
-
-      report_current_position();
-
-      return;
-    }
-
     if (code_seen('A')) {
 
-      const uint8_t numPoints = code_value_int() <= 7 ? 7 : 10;
-      const uint8_t MaxCalibrationPoints = 10;
-      const uint8_t numFactors = 7;
+      const int8_t numPoints = code_value_int() <= 7 ? 7 : 10;
+      const int8_t MaxCalibrationPoints = 10;
+      const int8_t numFactors = 7;
       float xBedProbePoints[MaxCalibrationPoints],
             yBedProbePoints[MaxCalibrationPoints],
             zBedProbePoints[MaxCalibrationPoints];
@@ -5304,23 +5323,23 @@ inline void gcode_G28() {
         for (uint8_t i = 0; i < 6; i++) {
           xBedProbePoints[i] = deltaParams.probe_Radius * sin((2 * M_PI * i) / 6);
           yBedProbePoints[i] = deltaParams.probe_Radius * cos((2 * M_PI * i) / 6);
-          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) + zprobe_zoffset;
+          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) - (-zprobe_zoffset);
         }
       }
       if (numPoints >= 10) {
         for (uint8_t i = 6; i < 9; i++) {
           xBedProbePoints[i] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (i - 6)) / 3);
           yBedProbePoints[i] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (i - 6)) / 3);
-          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) + zprobe_zoffset;
+          zBedProbePoints[i] = probe_pt(xBedProbePoints[i], yBedProbePoints[i], false, 4) - (-zprobe_zoffset);
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4) + zprobe_zoffset;
+        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4) - (-zprobe_zoffset);
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4) + zprobe_zoffset;
+        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4) - (-zprobe_zoffset);
       }
 
       using namespace mm;
@@ -5388,7 +5407,7 @@ inline void gcode_G28() {
         float expectedResiduals[MaxCalibrationPoints];
         float sumOfSquares = 0.0;
 
-        for (uint8_t i = 0; i < numPoints; i++) {
+        for (int8_t i = 0; i < numPoints; i++) {
           LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
           float newPosition[ABC];
           deltaParams.forward_kinematics_DELTA(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
@@ -5401,28 +5420,62 @@ inline void gcode_G28() {
 
       } while (iteration < 2);
 
-      sprintf_P(rply, PSTR("Calibrated %d factors using %d points, deviation before %.4f after %.4f"),
-          numFactors, numPoints, SQRT(initialSumOfSquares / numPoints), expectedRmsError);
-      SERIAL_ET(rply);
+      SERIAL_MV("Calibrated ", numFactors);
+      SERIAL_MV(" factors using ", numPoints);
+      SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
+      SERIAL_MV(" after ", expectedRmsError, 4);
+      SERIAL_E;
 
       deltaParams.Recalc_delta_constants();
 
       // Recalibrate Height
       SERIAL_EM("Calibrate Height");
       home_delta();
-      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) + zprobe_zoffset;
+      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) - (-zprobe_zoffset);
       deltaParams.Recalc_delta_constants();
 
-      sprintf_P(rply, PSTR("Endstops X%.3f Y%.3f Z%.3f height %.3f diagonal rod %.3f delta radius %.3f Towers radius correction A%.2f B%.2f C%.2f"),
-          deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS], soft_endstop_max[C_AXIS], deltaParams.diagonal_rod, deltaParams.radius,
-          deltaParams.tower_adj[A_AXIS], deltaParams.tower_adj[B_AXIS], deltaParams.tower_adj[C_AXIS]);
-      SERIAL_ET(rply);
+      SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
+      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
+      SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS], 3);
+      SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
+      SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
+      SERIAL_MV(" delta radius ", deltaParams.radius, 3);
+      SERIAL_MV(" Towers radius correction A", deltaParams.tower_adj[A_AXIS], 2);
+      SERIAL_MV(" B", deltaParams.tower_adj[B_AXIS], 2);
+      SERIAL_MV(" C", deltaParams.tower_adj[C_AXIS], 2);
+      SERIAL_E;
 
       home_delta();
       endstops.not_homing();
-      clean_up_after_endstop_or_probe_move();
       report_current_position();
+
     }
+    else {
+
+      // Probe specified X, Y point
+      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
+            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
+
+      float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
+      if (!position_is_reachable(pos, true)) return;
+
+      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
+            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z;
+
+      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, current_position[X_AXIS], 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, current_position[Y_AXIS], 3);
+
+      if (code_seen('U') && code_value_bool() != 0) {
+        zprobe_zoffset = new_zprobe_zoffset;
+        SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 4);
+      }
+
+      SERIAL_E;
+    }
+
+    clean_up_after_endstop_or_probe_move();
+
   }
 
 #endif // AUTO_CALIBRATION_7_POINT
@@ -5665,22 +5718,38 @@ inline void gcode_G92() {
   }
 #endif // ULTIPANEL
 
-#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
   /**
    * M3: S - Setting laser beam or fire laser 
    */
-  inline void gcode_M3_M4() {
-    if (code_seen('S') && IsRunning()) laser.intensity = code_value_float();
-    if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-    if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-    if (code_seen('D') && IsRunning()) laser.diagnostics = code_value_bool();
-    if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
+  inline void gcode_M3_M4(bool clockwise) {
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+    if (printer_mode == PRINTER_MODE_LASER) {
+    #endif
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+      if(IsRunning()) {
+        if (code_seen('S')) laser.intensity = code_value_float();
+        if (code_seen('L')) laser.duration = code_value_ulong();
+        if (code_seen('P')) laser.ppm = code_value_float();
+        if (code_seen('D')) laser.diagnostics = code_value_bool();
+        if (code_seen('B')) laser_set_mode(code_value_int());
+      }
+  
+      laser.status = LASER_ON;
+      laser.fired = LASER_FIRE_SPINDLE;
 
-    laser.status = LASER_ON;
-    laser.fired = LASER_FIRE_SPINDLE;
-
-    lcd_update();
-
+      lcd_update();
+      #endif
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER) 
+    }
+    else if(printer_mode == PRINTER_MODE_CNCROUTER) {
+    #endif
+      #if ENABLED(CNCROUTER)
+		if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
+      #endif
+    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+    }
+    #endif
     prepare_move_to_destination();
   }
 
@@ -5688,19 +5757,36 @@ inline void gcode_G92() {
    * M5: Turn off laser beam
    */
   inline void gcode_M5() {
-    if (laser.status != LASER_OFF) {
-      laser.status = LASER_OFF;
-      laser.mode = CONTINUOUS;
-      laser.duration = 0;
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+  if (printer_mode == PRINTER_MODE_LASER) {
+  #endif
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
+     if (laser.status != LASER_OFF) {
+     laser.status = LASER_OFF;
+        laser.mode = CONTINUOUS;
+        laser.duration = 0;
 
-      lcd_update();
+         lcd_update();
 
-      prepare_move_to_destination();
+         prepare_move_to_destination();
 
-      if (laser.diagnostics)
-        SERIAL_EM("Laser M5 called and laser OFF");
-    }
+         if (laser.diagnostics)
+           SERIAL_EM("Laser M5 called and laser OFF");
+     }
+  #endif
+  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
   }
+  else if(printer_mode == PRINTER_MODE_CNC) {
+  #endif
+   #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+   prepare_move_to_destination();
+   #endif
+   #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+  }
+  #endif
+}
+
 #endif // LASERBEAM
 
 /**
@@ -6340,6 +6426,11 @@ inline void gcode_M81() {
     #endif
   #endif
 
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+  #endif
+
+
   safe_delay(1000); // Wait 1 second before switching off
 
   #if HAS(SUICIDE)
@@ -6687,7 +6778,7 @@ inline void gcode_M105() {
 
   GET_TARGET_HOTEND(105);
 
-  #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675) || HAS(TEMP_COOLER) || ENABLED(FLOWMETER_SENSOR)
+  #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675) || HAS(TEMP_COOLER) || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
     SERIAL_S(OK);
     #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
       print_heaterstates();
@@ -6700,6 +6791,9 @@ inline void gcode_M105() {
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
       print_flowratestate();
+    #endif
+    #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+      print_cncspeed();
     #endif
   #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
@@ -8458,6 +8552,37 @@ inline void gcode_M428() {
   }
 }
 
+#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+/**
+ * M450: Report printer mode
+ */
+inline void gcode_M450() {
+   SERIAL_M("PrinterMode:");
+   switch(printer_mode) {
+      case PRINTER_MODE_LASER:
+        SERIAL_M("Laser\n");
+        break;
+      case PRINTER_MODE_CNC:
+        SERIAL_M("CNC\n");
+        break;
+      default:
+        SERIAL_M("FFF\n");
+   }
+}
+
+inline void gcode_M451_M452_M453(int mode) {
+   if(IsRunning()) SERIAL_EM("Cannot change printer mode while running");
+   else
+   {
+      stop();
+      printer_mode = mode;
+      gcode_M450();
+   }
+}
+
+#endif
+
+
 /**
  * M500: Store settings in EEPROM
  */
@@ -8876,10 +9001,12 @@ inline void gcode_M532() {
       laser.rasterlaserpower =  laser.intensity;
     }
 
-    if (code_seen('L') && IsRunning()) laser.duration = code_value_ulong();
-    if (code_seen('P') && IsRunning()) laser.ppm = code_value_float();
-    if (code_seen('B') && IsRunning()) laser_set_mode(code_value_int());
-    if (code_seen('R') && IsRunning()) laser.raster_mm_per_pulse = (code_value_float());
+    if(IsRunning()) {
+      if (code_seen('L')) laser.duration = code_value_ulong();
+      if (code_seen('P')) laser.ppm = code_value_float();
+      if (code_seen('B')) laser_set_mode(code_value_int());
+      if (code_seen('R')) laser.raster_mm_per_pulse = (code_value_float());
+    }
 
     if (code_seen('F')) {
       float next_feedrate = code_value_linear_units();
@@ -9991,7 +10118,7 @@ void process_next_command() {
         #endif
 
       // G2, G3
-      #if ENABLED(ARC_SUPPORT) && NOMECH(SCARA)
+      #if ENABLED(ARC_SUPPORT)
         case 2: // G2  - CW ARC
         case 3: // G3  - CCW ARC
           gcode_G2_G3(codenum == 2); break;
@@ -10018,6 +10145,10 @@ void process_next_command() {
         case 11: // G11: retract_recover
           gcode_G10_G11(codenum == 10); break;
       #endif // FWRETRACT
+      // G17 - G19: XXX CNC plane selection
+      // G17 -> XY (default)
+      // G18 -> ZX 
+      // G19 -> YZ
 
       #if ENABLED(NOZZLE_CLEAN_FEATURE)
         case 12: // G12: Nozzle Clean
@@ -10069,17 +10200,26 @@ void process_next_command() {
             gcode_G38(subcode == 2);
           break;
       #endif
+      // G40 Compensation Off XXX CNC
+      // G54-G59 Coordinate system selection (CNC XXX)      
 
       case 60: // G60 Saved Coordinates
         gcode_G60(); break;
       case 61: // G61 Restore Coordinates
         gcode_G61(); break;
+   
+      // G80: Cancel Canned Cycle (XXX CNC)
+
       case 90: // G90
         relative_mode = false; break;
       case 91: // G91
         relative_mode = true; break;
       case 92: // G92
         gcode_G92(); break;
+      // G92.x Reset Coordinate System Offset (CNC XXX)
+      // G93: Feed Rate Mode (Inverse Time Mode) (CNC XXX)
+      // G94: Feed Rate Mode (Units per Minute) (CNC XXX)
+
     }
     break;
 
@@ -10090,12 +10230,19 @@ void process_next_command() {
           gcode_M0_M1(); break;
       #endif // ULTIPANEL
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
-        case 3: // M03: Setting laser beam
-        case 4: // M04: Turn on laser beam
-          gcode_M3_M4(); break;
-        case 5: // M05: Turn off laser beam
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE) || ENABLED(CNCROUTER)
+        case 3: // M03: Setting laser beam or CNC clockwise speed
+        case 4: // M04: Turn on laser beam or CNC counter clockwise speed
+          gcode_M3_M4(codenum == 3); break;
+        case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
+        // case 6: // M06 - Tool change CNC XXX
+        // case 7: // M07 - Mist coolant CNC XXX
+        // case 8: // M08 - Flood coolant CNC XXX
+        // case 9: // M09 - Coolant off CNC XXX
+        // case 10: // M10 - Vacuum on CNC XXX
+		  // case 11: // M11 - Vacuum off CNC XXX
+
       #endif // LASERBEAM
 
       case 17: // M17: Enable/Power all stepper motors
@@ -10492,6 +10639,20 @@ void process_next_command() {
       case 428: // M428 Apply current_position to home_offset
         gcode_M428(); break;
 
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+      case 450:
+        gcode_M450(); break; // report printer mode
+
+      case 451:
+        gcode_M451_M452_M453(PRINTER_MODE_FFF); break; // set printer mode printer
+
+      case 452:
+        gcode_M451_M452_M453(PRINTER_MODE_LASER); break; // set printer mode laser
+
+      case 453:
+        gcode_M451_M452_M453(PRINTER_MODE_CNC); break; // set printer mode router
+      #endif
+
       case 500: // M500: Store settings in EEPROM
         gcode_M500(); break;
       case 501: // M501: Read settings from EEPROM
@@ -10754,7 +10915,7 @@ void ok_to_send() {
      * Probe bed height at position (x,y), returns the measured z value
      */
     float probe_bed(float x, float y) {
-      return probe_pt(x, y, false, 1) + zprobe_zoffset;
+      return probe_pt(x, y, false, 1) - (-zprobe_zoffset);
     }
 
     void bed_probe_all() {
@@ -11919,7 +12080,7 @@ static void report_current_position() {
   }
 #endif
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
 
   void setPwmFrequency(uint8_t pin, uint8_t val) {
     val &= 0x07;
@@ -12079,6 +12240,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser_peripherals_off();
       #endif
     #endif
+
   }
 
   #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH
@@ -12321,6 +12483,10 @@ void idle(
     flowrate_manage();
   #endif
 
+  #if ENABLED(CNCROUTER)
+    cnc_manage();
+  #endif
+
   manage_inactivity(
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       no_stepper_sleep
@@ -12366,6 +12532,10 @@ void kill(const char* lcd_msg) {
     #endif
   #endif
 
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
+  #endif
+
   #if HAS(POWER_SWITCH)
     SET_INPUT(PS_ON_PIN);
   #endif
@@ -12399,6 +12569,10 @@ void stop() {
     #if ENABLED(LASER_PERIPHERALS)
       laser_peripherals_off();
     #endif
+  #endif
+
+  #if ENABLED(CNCROUTER)
+     disable_cncrouter();
   #endif
 
   if (IsRunning()) {
@@ -12438,10 +12612,6 @@ void setup() {
     setup_alligator_board();    // Initialize Alligator Board
   #elif MB(ULTRATRONICS)
     setup_ultratronics_board(); // Initialize Ultratronics Board
-  #endif
-
-  #if ENABLED(WANHAO_D6_OLED)
-    setup_wanhao_d6_oled();
   #endif
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
@@ -12505,6 +12675,10 @@ void setup() {
   SYNC_PLAN_POSITION_KINEMATIC();
 
   thermalManager.init();    // Initialize temperature loop
+
+  #if ENABLED(CNCROUTER)
+    cnc_init();
+  #endif
 
   #if ENABLED(USE_WATCHDOG)
     watchdog_init();
@@ -12600,6 +12774,10 @@ void setup() {
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     setup_endstop_interrupts();
+  #endif
+
+  #if ENABLED(DELTA_HOME_ON_POWER)
+    home_delta();
   #endif
 }
 

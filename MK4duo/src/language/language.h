@@ -251,14 +251,12 @@
 #define MSG_DEBUG_COMMUNICATION             "COMMUNICATION"
 #define MSG_DEBUG_LEVELING                  "LEVELING"
 
-//other
-#define MSG_BED_LEVELLING_BED               "Bed"
-#define MSG_BED_LEVELLING_X                 " X: "
-#define MSG_BED_LEVELLING_Y                 " Y: "
-#define MSG_BED_LEVELLING_Z                 " Z: "
+// other
+#define MSG_BED_LEVELING_X                  " X:"
+#define MSG_BED_LEVELING_Y                  " Y:"
+#define MSG_BED_LEVELING_Z                  "Z-probe:"
 
 // LCD Menu Messages
-
 #define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
 #define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
 #define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
