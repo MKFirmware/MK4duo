@@ -350,7 +350,6 @@ PrintCounter print_job_counter = PrintCounter();
           bed_level_ox,
           bed_level_oy,
           bed_level_oz,
-          bed_safe_z,
           adj_t1_Radius = 0,
           adj_t2_Radius = 0,
           adj_t3_Radius = 0,
@@ -5078,8 +5077,6 @@ inline void gcode_G28() {
 
     setup_for_endstop_or_probe_move();
 
-    bed_safe_z = current_position[Z_AXIS];
-
     if (code_seen('X') || code_seen('Y')) {
       // Probe specified X, Y point
       float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
@@ -5304,7 +5301,7 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       home_delta();
 
-    float bed_safe_z = current_position[Z_AXIS];
+    stepper.synchronize();  // wait until the machine is idle
 
     bool stow = code_seen('S') ? code_value_bool() : true;
 
