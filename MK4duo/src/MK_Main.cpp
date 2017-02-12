@@ -2385,8 +2385,9 @@ static void clean_up_after_endstop_or_probe_move() {
 
     #define ABL_GRID_POINTS_VIRT_X (ABL_GRID_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
     #define ABL_GRID_POINTS_VIRT_Y (ABL_GRID_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
+    #define ABL_TEMP_POINTS_X (ABL_GRID_POINTS_X + 2)
+    #define ABL_TEMP_POINTS_Y (ABL_GRID_POINTS_Y + 2)
     float bilinear_level_grid_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-    float bilinear_level_grid_virt_temp[ABL_GRID_POINTS_X + 2][ABL_GRID_POINTS_Y + 2]; // temporary for calculation (maybe dynamical?)
     int bilinear_grid_spacing_virt[2] = { 0 };
 
     static void bed_level_virt_print() {
@@ -2396,26 +2397,26 @@ static void clean_up_after_endstop_or_probe_move() {
       );
     }
 
-    #define LINEAR_EXTRAPOLATION(E, I) (E * 2 - I)
+    #define LINEAR_EXTRAPOLATION(E, I) ((E) * 2 - (I))
     float bed_level_virt_coord(const uint8_t x, const uint8_t y) {
       uint8_t ep = 0, ip = 1;
 
-      if (x == 0 || x == ABL_GRID_POINTS_X + 2 - 1) {
+      if (!x || x == ABL_TEMP_POINTS_X - 1) {
         if (x) {
           ep = ABL_GRID_POINTS_X - 1;
           ip = ABL_GRID_POINTS_X - 2;
         }
-        if (y > 0 && y < ABL_GRID_POINTS_Y + 2 - 1)
+        if (y > 0 && y < ABL_TEMP_POINTS_Y - 1)
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[ep][y - 1], bilinear_level_grid[ip][y - 1]);
         else
           return LINEAR_EXTRAPOLATION(bed_level_virt_coord(ep + 1, y), bed_level_virt_coord(ip + 1, y));
       }
-      if (y == 0 || y == ABL_GRID_POINTS_Y + 2 - 1) {
+      if (!y || y == ABL_TEMP_POINTS_Y - 1) {
         if (y) {
           ep = ABL_GRID_POINTS_Y - 1;
           ip = ABL_GRID_POINTS_Y - 2;
         }
-        if (x > 0 && x < ABL_GRID_POINTS_X + 2 - 1 )
+        if (x > 0 && x < ABL_TEMP_POINTS_X - 1)
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[x - 1][ep], bilinear_level_grid[x - 1][ip]);
         else
           return LINEAR_EXTRAPOLATION(bed_level_virt_coord(x, ep + 1), bed_level_virt_coord(x, ip + 1));
@@ -2435,7 +2436,7 @@ static void clean_up_after_endstop_or_probe_move() {
     static float bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty) {
       float row[4], column[4];
       for (uint8_t i = 0; i < 4; i++) {
-        for (uint8_t j = 0; j < 4; j++) // can be memcopy or through memory access
+        for (uint8_t j = 0; j < 4; j++)
           column[j] = bed_level_virt_coord(i + x - 1, j + y - 1);
         row[i] = bed_level_virt_cmr(column, 1, ty);
       }
@@ -2463,7 +2464,6 @@ static void clean_up_after_endstop_or_probe_move() {
     }
 
   #endif // ABL_BILINEAR_SUBDIVISION
-
 #endif // AUTO_BED_LEVELING_BILINEAR
 
 /**
@@ -7869,9 +7869,10 @@ inline void gcode_M226() {
         planner.bed_level_matrix.debug("Bed Level Correction Matrix:");
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         if (bilinear_grid_spacing[X_AXIS]) {
-          print_bilinear_leveling_grid();
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
             bed_level_virt_print();
+          #else
+            print_bilinear_leveling_grid();
           #endif
         }
       #endif
