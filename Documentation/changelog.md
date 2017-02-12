@@ -4,6 +4,9 @@
 * Add M451 - Select FFF Printer Mode
 * Add M452 - Select Laser Printer Mode
 * Add M453 - Select CNC Printer Mode
+* Update Nextion V0_9_8
+* Fix BLTOUCH
+* Fix endstop interrupts
 * Fix and clear code.
 
 ### Version 4.3.11 dev
