@@ -1101,7 +1101,7 @@
     char* temp;
 
     if (!NextionON
-      #if PLANNER_LEVELING
+      #if HAS(BED_PROBE)
         || probe_process
       #endif
     ) return;
