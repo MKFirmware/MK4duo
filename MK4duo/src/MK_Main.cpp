@@ -1815,8 +1815,13 @@ static void clean_up_after_endstop_or_probe_move() {
   #define STOW_PROBE() set_probe_deployed(false)
 
   #if ENABLED(BLTOUCH)
+    void bltouch_command(int angle) {
+      servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
+      safe_delay(375);
+    }
+
     FORCE_INLINE void set_bltouch_deployed(const bool &deploy) {
-      servo[Z_ENDSTOP_SERVO_NR].move(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
+      bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
           SERIAL_MV("set_bltouch_deployed(", deploy);
@@ -1843,7 +1848,15 @@ static void clean_up_after_endstop_or_probe_move() {
 
     // When deploying make sure BLTOUCH is not already triggered
     #if ENABLED(BLTOUCH)
-      //if (deploy && TEST_BLTOUCH()) { stop(); return true; }
+      if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
+        bltouch_command(BLTOUCH_RESET);    // try to reset it.
+        set_bltouch_deployed(true);        // Also needs to deploy and stow to
+        set_bltouch_deployed(false);       // clear the triggered condition.
+        if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
+          stop();                          // punt!
+          return true;
+        }
+      }
     #elif ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
@@ -1975,7 +1988,7 @@ static void clean_up_after_endstop_or_probe_move() {
       }
     }
 
-    median /= Z_PROBE_REPETITIONS;
+    median /= (float)Z_PROBE_REPETITIONS;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
@@ -3312,10 +3325,12 @@ bool position_is_reachable(float target[XYZ]
     , bool by_probe=false
   #endif
 ) {
-  float dx = target[X_AXIS], dy = target[Y_AXIS];
+  float dx = RAW_X_POSITION(target[X_AXIS]),
+        dy = RAW_Y_POSITION(target[Y_AXIS]);
 
-  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
-  #define WITHINZ(z) ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
+  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 \
+                        && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
+  #define WITHINZ(z)    ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
 
   #if MECH(MAKERARM_SCARA)
     if (by_probe) {
@@ -3339,11 +3354,6 @@ bool position_is_reachable(float target[XYZ]
     }
   #endif
 
-  dx -= LOGICAL_X_POSITION(0);
-  dy -= LOGICAL_Y_POSITION(0);
-
-  const float dz = RAW_Z_POSITION(target[Z_AXIS]);
-
   #if IS_SCARA
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y);
@@ -3353,8 +3363,9 @@ bool position_is_reachable(float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
+    return HYPOT2(dx, dy) <= sq((float)(DELTA_PRINTABLE_RADIUS));
   #else
+    const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return WITHINXY(dx, dy) && WITHINZ(dz);
   #endif
 }
@@ -4452,7 +4463,7 @@ inline void gcode_G28() {
    *      Will fail if the printer has not been homed with G28.
    *
    * Enhanced G29 Auto Bed Levelling Probe Routine
-   * 
+   *
    * Parameters With AUTO_BED_LEVELING_GRID:
    *
    *  P  Set the size of the grid that will be probed (P x P points).
@@ -4467,13 +4478,18 @@ inline void gcode_G28() {
    *  V  Set the verbose level (0-4). Example: "G29 V3"
    *
    *  T  Generate a Bed Topology Report. Example: "G29 P5 T" for a detailed report.
-   *     This is useful for manual bed levelling and finding flaws in the bed (to
+   *     This is useful for manual bed leveling and finding flaws in the bed (to
    *     assist with part placement).
+   *     Not supported by non-linear delta printer bed leveling.
    *
    *  F  Set the Front limit of the probing grid
    *  B  Set the Back limit of the probing grid
    *  L  Set the Left limit of the probing grid
    *  R  Set the Right limit of the probing grid
+   *
+   * Parameters with BILINEAR only:
+   *
+   *  Z  Supply an additional Z probe offset
    *
    * Global Parameters:
    *
@@ -5298,6 +5314,8 @@ inline void gcode_G28() {
       home_delta();
 
     stepper.synchronize();  // wait until the machine is idle
+
+    do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
 
     bool stow = code_seen('S') ? code_value_bool() : true;
 
@@ -12779,6 +12797,13 @@ void setup() {
   #if ENABLED(DELTA_HOME_ON_POWER)
     home_delta();
   #endif
+
+  #if ENABLED(BLTOUCH)
+    bltouch_command(BLTOUCH_RESET);    // Just in case the BLTouch is in the error state, try to
+    set_bltouch_deployed(true);        // reset it. Also needs to deploy and stow to clear the
+    set_bltouch_deployed(false);       // error condition.
+  #endif
+
 }
 
 /**
