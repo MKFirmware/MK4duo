@@ -355,11 +355,56 @@ HAL_STEP_TIMER_ISR {
 
 void Stepper::isr() {
 
+  HAL_TIMER_TYPE timer, remainder, ocr_val;
+
+  static uint32_t step_remaining = 0;
+
+  #define ENDSTOP_NOMINAL_OCR_VAL 3000    // check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
+  #define OCR_VAL_TOLERANCE 1000          // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
+
   #if DISABLED(ADVANCE) || DISABLED(LIN_ADVANCE)
     // Disable Timer0 ISRs and enable global ISR again to capture UART events (incoming chars)
     DISABLE_TEMP_INTERRUPT();
     DISABLE_STEPPER_DRIVER_INTERRUPT();
     sei();
+  #endif
+
+  #define _SPLIT(L) (ocr_val = (HAL_TIMER_TYPE)L)
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    #define SPLIT(L) _SPLIT(L)
+  #else                 // sample endstops in between step pulses
+    #define SPLIT(L) do { \
+      _SPLIT(L); \
+      if (ENDSTOPS_ENABLED && L > ENDSTOP_NOMINAL_OCR_VAL) { \
+        remainder = (HAL_TIMER_TYPE)L % (ENDSTOP_NOMINAL_OCR_VAL); \
+        ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
+        step_remaining = (HAL_TIMER_TYPE)L - ocr_val; \
+      } \
+    } while(0)
+
+    if (step_remaining && ENDSTOPS_ENABLED) {   // just doing a check of the endstops - not yet time for a step
+      endstops.update();
+      ocr_val = step_remaining;
+      if (step_remaining > ENDSTOP_NOMINAL_OCR_VAL) {
+        step_remaining = step_remaining - ENDSTOP_NOMINAL_OCR_VAL;
+        ocr_val = ENDSTOP_NOMINAL_OCR_VAL;
+      }
+      else step_remaining = 0;  //  last one before the ISR that does the step
+      _NEXT_ISR(ocr_val);
+
+      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+        #if ENABLED(ARDUINO_ARCH_SAM)
+          HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+          HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
+        #else
+          NOLESS(OCR1A, TCNT1 + 16);
+        #endif
+      #endif
+
+      ENABLE_ISRs(); // re-enable ISRs
+      return;
+    }
   #endif
 
   if (cleaning_buffer_counter) {
@@ -852,7 +897,7 @@ void Stepper::isr() {
     if (e_steps[TOOL_E_INDEX]) nextAdvanceISR = 0;
   #endif
 
-  HAL_TIMER_TYPE timer, step_rate;
+  HAL_TIMER_TYPE step_rate;
 
   if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
 
@@ -868,7 +913,10 @@ void Stepper::isr() {
 
     // step_rate to timer interval
     timer = calc_timer(acc_step_rate);
-    _NEXT_ISR(timer);
+
+    SPLIT(timer);  // split step into multiple ISRs if larger than  ENDSTOP_NOMINAL_OCR_VAL
+    _NEXT_ISR(ocr_val);
+
     acceleration_time += timer;
 
     #if ENABLED(LIN_ADVANCE)
@@ -925,7 +973,10 @@ void Stepper::isr() {
 
     // step_rate to timer interval
     timer = calc_timer(step_rate);
-    _NEXT_ISR(timer);
+
+    SPLIT(timer); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
+    _NEXT_ISR(ocr_val);
+
     deceleration_time += timer;
 
     #if ENABLED(LIN_ADVANCE)
@@ -974,7 +1025,9 @@ void Stepper::isr() {
 
     #endif
 
-    _NEXT_ISR(OCR1A_nominal);
+    SPLIT(OCR1A_nominal); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
+    _NEXT_ISR(ocr_val);
+
     // ensure we're running at the correct step rate, even if we just came off an acceleration
     step_loops = step_loops_nominal;
   }

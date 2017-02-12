@@ -3007,7 +3007,8 @@ static void spiSendBlock(uint8_t token, const uint8_t* buf) {
 
 #endif  // SOFTWARE_SPI
 //==============================================================================
-#if USE_SD_CRC
+
+#if ENABLED(SD_CHECK_AND_RETRY)
 // CRC functions
 //------------------------------------------------------------------------------
 static uint8_t CRC7(const uint8_t* data, uint8_t n) {
@@ -3023,21 +3024,7 @@ static uint8_t CRC7(const uint8_t* data, uint8_t n) {
   return (crc << 1) | 1;
 }
 //------------------------------------------------------------------------------
-#if USE_SD_CRC == 1
-// slower CRC-CCITT
-// uses the x^16,x^12,x^5,x^1 polynomial.
-static uint16_t CRC_CCITT(const uint8_t *data, size_t n) {
-  uint16_t crc = 0;
-  for (size_t i = 0; i < n; i++) {
-    crc = (uint8_t)(crc >> 8) | (crc << 8);
-    crc ^= data[i];
-    crc ^= (uint8_t)(crc & 0xff) >> 4;
-    crc ^= crc << 12;
-    crc ^= (crc & 0xff) << 5;
-  }
-  return crc;
-}
-#elif USE_SD_CRC > 1  // CRC_CCITT
+
 //------------------------------------------------------------------------------
 // faster CRC-CCITT
 // uses the x^16,x^12,x^5,x^1 polynomial.
@@ -3082,8 +3069,8 @@ static uint16_t CRC_CCITT(const uint8_t* data, size_t n) {
   }
   return crc;
 }
-#endif  //  CRC_CCITT
-#endif  // USE_SD_CRC
+#endif  // SD_CHECK_AND_RETRY
+
 //==============================================================================
 // Sd2Card member functions
 //------------------------------------------------------------------------------
@@ -3097,7 +3084,7 @@ uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg) {
 
   uint8_t *pa = reinterpret_cast<uint8_t *>(&arg);
 
-#if USE_SD_CRC
+#if ENABLED(SD_CHECK_AND_RETRY)
   // form message
   uint8_t d[6] = {static_cast<uint8_t>(cmd | static_cast<uint8_t>(0X40)), pa[3], pa[2], pa[1], pa[0]};
 
@@ -3106,7 +3093,7 @@ uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg) {
 
   // send message
   for (uint8_t k = 0; k < 6; k++) spiSend(d[k]);
-#else  // USE_SD_CRC
+#else  // SD_CHECK_AND_RETRY
   // send command
   spiSend(cmd | 0x40);
 
@@ -3115,7 +3102,7 @@ uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg) {
 
   // send CRC - correct for CMD0 with arg zero or CMD8 with arg 0X1AA
   spiSend(cmd == CMD0 ? 0X95 : 0X87);
-#endif  // USE_SD_CRC
+#endif  // SD_CHECK_AND_RETRY
   // additional delay for CMD0
   if (cmd == CMD0) HAL::delayMilliseconds(100);
   // skip stuff byte for stop read
@@ -3298,12 +3285,12 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
     // discard rest of ocr - contains allowed voltage range
     for (uint8_t i = 0; i < 3; i++) spiRec();
   }
-  #if USE_SD_CRC
+  #if ENABLED(SD_CHECK_AND_RETRY)
     if (cardCommand(CMD59, 1) > 1) {
       error(SD_CARD_ERROR_CMD59);
       goto fail;
     }
-  #endif  // USE_SD_CRC
+  #endif  // SD_CHECK_AND_RETRY
   chipSelectHigh();
 
   #ifndef SOFTWARE_SPI
@@ -3329,13 +3316,29 @@ bool Sd2Card::readBlock(uint32_t blockNumber, uint8_t* dst) {
   SD_TRACE("RB", blockNumber);
   // use address if not SDHC card
   if (type()!= SD_CARD_TYPE_SDHC) blockNumber <<= 9;
-  if (cardCommand(CMD17, blockNumber)) {
-    error(SD_CARD_ERROR_CMD17);
-    goto fail;
-  }
-  return readData(dst, 512);
 
-fail:
+  #if ENABLED(SD_CHECK_AND_RETRY)
+    uint8_t retryCnt = 3;
+    do {
+      if (!cardCommand(CMD17, blockNumber)) {
+        if (readData(dst, 512)) return true;
+      }
+      else
+        error(SD_CARD_ERROR_CMD17);
+
+      if (!--retryCnt) break;
+
+      chipSelectHigh();
+      cardCommand(CMD12, 0); // Try sending a stop command, ignore the result.
+      errorCode_ = 0;
+    } while (true);
+  #else
+    if (cardCommand(CMD17, blockNumber))
+      error(SD_CARD_ERROR_CMD17);
+    else
+      return readData(dst, 512);
+  #endif
+
   chipSelectHigh();
   return false;
 }
@@ -3373,12 +3376,12 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
   }
   // get crc
   crc = (spiRec() << 8) | spiRec();
-  #if USE_SD_CRC
+  #if ENABLED(SD_CHECK_AND_RETRY)
     if (crc != CRC_CCITT(dst, count)) {
       error(SD_CARD_ERROR_READ_CRC);
       goto fail;
     }
-  #endif  // USE_SD_CRC
+  #endif  // SD_CHECK_AND_RETRY
 
   chipSelectHigh();
   return true;
@@ -3540,11 +3543,11 @@ fail:
 //------------------------------------------------------------------------------
 // send one block of data for write block or write multiple blocks
 bool Sd2Card::writeData(uint8_t token, const uint8_t* src) {
-  #if USE_SD_CRC
+  #if ENABLED(SD_CHECK_AND_RETRY)
     uint16_t crc = CRC_CCITT(src, 512);
-  #else  // USE_SD_CRC
+  #else  // SD_CHECK_AND_RETRY
     uint16_t crc = 0XFFFF;
-  #endif  // USE_SD_CRC
+  #endif  // SD_CHECK_AND_RETRY
 
   spiSend(token);
   spiSend(src, 512);

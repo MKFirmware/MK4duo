@@ -2778,6 +2778,16 @@ void Temperature::isr() {
       if (!endstop_monitor_count) endstop_monitor();  // report changes in endstop status
     }
   #endif
-  
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+
+    extern volatile uint8_t e_hit;
+
+    if (e_hit && ENDSTOPS_ENABLED) {
+      endstops.update();  // call endstop update routine
+      e_hit--;
+    }
+  #endif
+
   ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
 }

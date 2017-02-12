@@ -42,6 +42,8 @@
 #ifndef NEXTIONLCD_H
   #define NEXTIONLCD_H
 
+  #define LCD_DECIMAL_SMALL_XY
+
   #include "../utility/utility.h"
 
   #if ENABLED(NEXTION)
@@ -51,6 +53,7 @@
     void setfanPopCallback(void *ptr);
     void setmovePopCallback(void *ptr);
     void setgcodePopCallback(void *ptr);
+    void sendPopCallback(void *ptr);
     void lcd_update();
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist = false);
@@ -92,7 +95,6 @@
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
     FORCE_INLINE void lcd_buttons_update() {}
-    FORCE_INLINE bool lcd_detected(void) { return true; }
 
     #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
     #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
