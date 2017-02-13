@@ -19,8 +19,7 @@
 		 #include "src/printer/Conf_Materia101_Pins.h"
 	#endif
 
-	#ifdef DRAKE_MKS_TEST
-		 #include "src/printer/Conf_MKS_Base_Pins.h"
+   	#ifdef FABLAB_MAKERBOT
+		 #include "src/printer/Overall_Fablab_Makerbot_Pins.h"
 	#endif
-
 #endif

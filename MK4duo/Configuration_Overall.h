@@ -7,11 +7,11 @@
 
 #define MULTI_CONFIGURATION_OVERALL
 
-#define DRAKE_KOSSEL_MINI
+  //#define DRAKE_KOSSEL_MINI
  //#define ADELCHI_KOSSEL_MINI
  //#define FABLAB_MATERIA_101
  //#define DRAKE_MKS_TEST
-
+#define FABLAB_MAKERBOT
 
 #ifdef MULTI_CONFIGURATION_OVERALL
 
@@ -27,8 +27,11 @@
 		 #include "src/printer/Conf_Materia101_Overall.h"
 	#endif
 
-	#ifdef DRAKE_MKS_TEST
-		 #include "src/printer/Conf_MKS_Base_Overall.h"
+    #ifdef FABLAB_MAKERBOT
+		 #include "src/printer/Overall_Fablab_Makerbot_basic.h"
+         #include "src/printer/Overall_Fablab_Makerbot_Cartesian.h"
+         #include "src/printer/Overall_Fablab_Makerbot_Feature.h"
+         #include "src/printer/Overall_Fablab_Makerbot_Temperature.h"
 	#endif
 
 #endif
