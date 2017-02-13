@@ -8590,8 +8590,11 @@ inline void gcode_M428() {
   }
 
   inline void gcode_M451_M452_M453(const PrinterMode mode) {
-    printer_mode = mode;
-    gcode_M450();
+    if (if (IS_SD_PRINTING || print_job_counter.isRunning()) SERIAL_EM("Cannot change printer mode while running");
+    else {
+      printer_mode = mode;
+      gcode_M450();
+    }
   }
 
 #endif // LASERBEAM || CNCROUTER
