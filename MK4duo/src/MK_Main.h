@@ -79,6 +79,9 @@ void quickstop_stepper();
 
 extern uint8_t mk_debug_flags;
 
+// Printer Mode
+extern PrinterMode printer_mode;
+
 extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
