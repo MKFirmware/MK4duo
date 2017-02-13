@@ -65,8 +65,14 @@ float progress = 0.0;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
 
-#if ENABLED(LASERBEAM) || ENABLED(CNCROUTER)
-  static PrinterMode printer_mode = PRINTER_MODE_FFF;
+// Printer mode
+PrinterMode printer_mode =
+#if EXTRUDERS > 0
+  PRINTER_MODE_FFF;
+#elif ENABLED(LASERBEAM)
+  PRINTER_MODE_LASER;
+#elif ENABLED(CNCROUTER)
+  PRINTER_MODE_CNC;
 #endif
 
 /**
@@ -1851,11 +1857,11 @@ static void clean_up_after_endstop_or_probe_move() {
       if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
         bltouch_command(BLTOUCH_RESET);    // try to reset it.
         set_bltouch_deployed(true);        // Also needs to deploy and stow to
-        set_bltouch_deployed(false);       // clear the triggered condition.
         if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
           stop();                          // punt!
           return true;
         }
+        set_bltouch_deployed(false);       // clear the triggered condition.
       }
     #elif ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
@@ -2563,9 +2569,7 @@ static void homeaxis(AxisEnum axis) {
     #endif
     home_dir(axis);
 
-  #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
-    if (axis == Z_AXIS) return;
-  #endif
+  if (axis == Z_AXIS) return;
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
@@ -5747,7 +5751,7 @@ inline void gcode_G92() {
 
     #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
       if (printer_mode == PRINTER_MODE_LASER) {
-        if(IsRunning()) {
+        if (IsRunning()) {
           if (code_seen('S')) laser.intensity = code_value_float();
           if (code_seen('L')) laser.duration = code_value_ulong();
           if (code_seen('P')) laser.ppm = code_value_float();
@@ -8586,12 +8590,8 @@ inline void gcode_M428() {
   }
 
   inline void gcode_M451_M452_M453(const PrinterMode mode) {
-    if (IsRunning()) SERIAL_EM("Cannot change printer mode while running");
-    else {
-      stop();
-      printer_mode = mode;
-      gcode_M450();
-    }
+    printer_mode = mode;
+    gcode_M450();
   }
 
 #endif // LASERBEAM || CNCROUTER
@@ -10830,17 +10830,13 @@ void ok_to_send() {
     if (SOFTWARE_MIN_ENDSTOPS && soft_endstops_enabled) {
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
       NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
-      #if !ENABLED(LASERBEAM)
-        NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
-      #endif
+      NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
     }
 
     if (SOFTWARE_MAX_ENDSTOPS && soft_endstops_enabled) {
       NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
       NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
-      #if !ENABLED(LASERBEAM)
-        NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
-      #endif
+      NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
     }
   }
 #endif

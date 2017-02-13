@@ -153,13 +153,11 @@ enum TempState {
   #endif
 #endif
 
-#if ENABLED(LASERBEAM) || ENABLED(CNCROUTER)
-  enum PrinterMode {
-    PRINTER_MODE_FFF,
-    PRINTER_MODE_LASER,
-    PRINTER_MODE_CNC
-  };
-#endif
+enum PrinterMode {
+  PRINTER_MODE_FFF,
+  PRINTER_MODE_LASER,
+  PRINTER_MODE_CNC
+};
 
 #if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
   enum MeshLevelingState {
