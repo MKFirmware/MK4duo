@@ -65,10 +65,15 @@ float progress = 0.0;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
 
-#if ENABLED(LASERBEAM) && ENABLED(CNCROUTER)
-uint8_t printer_mode = PRINTER_MODE_FFF;
+// Printer mode
+PrinterMode printer_mode =
+#if EXTRUDERS > 0
+  PRINTER_MODE_FFF;
+#elif ENABLED(LASERBEAM)
+  PRINTER_MODE_LASER;
+#elif ENABLED(CNCROUTER)
+  PRINTER_MODE_CNC;
 #endif
-
 
 /**
  * Cartesian Current Position
@@ -1816,8 +1821,13 @@ static void clean_up_after_endstop_or_probe_move() {
   #define STOW_PROBE() set_probe_deployed(false)
 
   #if ENABLED(BLTOUCH)
+    void bltouch_command(int angle) {
+      servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
+      safe_delay(375);
+    }
+
     FORCE_INLINE void set_bltouch_deployed(const bool &deploy) {
-      servo[Z_ENDSTOP_SERVO_NR].move(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
+      bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
           SERIAL_MV("set_bltouch_deployed(", deploy);
@@ -1844,7 +1854,15 @@ static void clean_up_after_endstop_or_probe_move() {
 
     // When deploying make sure BLTOUCH is not already triggered
     #if ENABLED(BLTOUCH)
-      if (deploy && TEST_BLTOUCH()) { stop(); return true; }
+      if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
+        bltouch_command(BLTOUCH_RESET);    // try to reset it.
+        set_bltouch_deployed(true);        // Also needs to deploy and stow to
+        if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
+          stop();                          // punt!
+          return true;
+        }
+        set_bltouch_deployed(false);       // clear the triggered condition.
+      }
     #elif ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
@@ -1976,7 +1994,7 @@ static void clean_up_after_endstop_or_probe_move() {
       }
     }
 
-    median /= Z_PROBE_REPETITIONS;
+    median /= (float)Z_PROBE_REPETITIONS;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< run_z_probe", current_position);
@@ -2551,9 +2569,7 @@ static void homeaxis(AxisEnum axis) {
     #endif
     home_dir(axis);
 
-  #if ENABLED(LASERBEAM) && (LASER_HAS_FOCUS == false)
-    if (axis == Z_AXIS) return;
-  #endif
+  if (axis == Z_AXIS) return;
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
@@ -2870,12 +2886,10 @@ static void homeaxis(AxisEnum axis) {
 #endif
 
 #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
- void print_cncspeed() {
-   unsigned long speed = getCNCSpeed();
-   SERIAL_MV(" CNC_SPEED: ", speed);
-   SERIAL_M(" rpm ");
-
- }
+  void print_cncspeed() {
+    SERIAL_MV(" CNC speed: ", getCNCSpeed());
+    SERIAL_M(" rpm ");
+  }
 #endif
 
 #ifndef MIN_COOLING_SLOPE_DEG
@@ -3315,10 +3329,12 @@ bool position_is_reachable(float target[XYZ]
     , bool by_probe=false
   #endif
 ) {
-  float dx = target[X_AXIS], dy = target[Y_AXIS];
+  float dx = RAW_X_POSITION(target[X_AXIS]),
+        dy = RAW_Y_POSITION(target[Y_AXIS]);
 
-  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
-  #define WITHINZ(z) ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
+  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 \
+                        && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
+  #define WITHINZ(z)    ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
 
   #if MECH(MAKERARM_SCARA)
     if (by_probe) {
@@ -3342,11 +3358,6 @@ bool position_is_reachable(float target[XYZ]
     }
   #endif
 
-  dx -= LOGICAL_X_POSITION(0);
-  dy -= LOGICAL_Y_POSITION(0);
-
-  const float dz = RAW_Z_POSITION(target[Z_AXIS]);
-
   #if IS_SCARA
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y);
@@ -3356,8 +3367,9 @@ bool position_is_reachable(float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq(DELTA_PRINTABLE_RADIUS);
+    return HYPOT2(dx, dy) <= sq((float)(DELTA_PRINTABLE_RADIUS));
   #else
+    const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return WITHINXY(dx, dy) && WITHINZ(dz);
   #endif
 }
@@ -3394,13 +3406,11 @@ inline void gcode_G0_G1(
 
     #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
-        if(IsRunning) {
-         if (code_seen('S')) laser.intensity = code_value_float();
-         if (code_seen('L')) laser.duration = code_value_ulong();
-         if (code_seen('P')) laser.ppm = code_value_float();
-         if (code_seen('D')) laser.diagnostics = code_value_bool();
-         if (code_seen('B')) laser_set_mode(code_value_int());
-        }
+        if (code_seen('S')) laser.intensity = code_value_float();
+        if (code_seen('L')) laser.duration = code_value_ulong();
+        if (code_seen('P')) laser.ppm = code_value_float();
+        if (code_seen('D')) laser.diagnostics = code_value_bool();
+        if (code_seen('B')) laser_set_mode(code_value_int());
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -3444,7 +3454,9 @@ inline void gcode_G0_G1(
  *    G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
  */
 #if ENABLED(ARC_SUPPORT)
+
   inline void gcode_G2_G3(bool clockwise) {
+
     if (IsRunning()) {
 
       #if ENABLED(SF_ARC_FIX)
@@ -3455,13 +3467,11 @@ inline void gcode_G0_G1(
       gcode_get_destination();
 
       #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
-        if(IsRunning()) {
-         if (code_seen('S')) laser.intensity = code_value_float();
-         if (code_seen('L')) laser.duration = code_value_ulong();
-         if (code_seen('P')) laser.ppm = code_value_float();
-         if (code_seen('D')) laser.diagnostics = code_value_bool();
-         if (code_seen('B')) laser_set_mode(code_value_int());
-        }
+        if (code_seen('S')) laser.intensity = code_value_float();
+        if (code_seen('L')) laser.duration = code_value_ulong();
+        if (code_seen('P')) laser.ppm = code_value_float();
+        if (code_seen('D')) laser.diagnostics = code_value_bool();
+        if (code_seen('B')) laser_set_mode(code_value_int());
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -3504,6 +3514,7 @@ inline void gcode_G0_G1(
       }
     }
   }
+
 #endif // ARC_SUPPORT
 
 /**
@@ -4456,7 +4467,7 @@ inline void gcode_G28() {
    *      Will fail if the printer has not been homed with G28.
    *
    * Enhanced G29 Auto Bed Levelling Probe Routine
-   * 
+   *
    * Parameters With AUTO_BED_LEVELING_GRID:
    *
    *  P  Set the size of the grid that will be probed (P x P points).
@@ -4471,13 +4482,18 @@ inline void gcode_G28() {
    *  V  Set the verbose level (0-4). Example: "G29 V3"
    *
    *  T  Generate a Bed Topology Report. Example: "G29 P5 T" for a detailed report.
-   *     This is useful for manual bed levelling and finding flaws in the bed (to
+   *     This is useful for manual bed leveling and finding flaws in the bed (to
    *     assist with part placement).
+   *     Not supported by non-linear delta printer bed leveling.
    *
    *  F  Set the Front limit of the probing grid
    *  B  Set the Back limit of the probing grid
    *  L  Set the Left limit of the probing grid
    *  R  Set the Right limit of the probing grid
+   *
+   * Parameters with BILINEAR only:
+   *
+   *  Z  Supply an additional Z probe offset
    *
    * Global Parameters:
    *
@@ -5303,6 +5319,8 @@ inline void gcode_G28() {
 
     stepper.synchronize();  // wait until the machine is idle
 
+    do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
+
     bool stow = code_seen('S') ? code_value_bool() : true;
 
     if (code_seen('A')) {
@@ -5719,75 +5737,74 @@ inline void gcode_G92() {
 #endif // ULTIPANEL
 
 #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+
   /**
-   * M3: S - Setting laser beam or fire laser 
+   * M3: Setting laser beam or fire laser - CNC clockwise speed
+   * M4: Turn on laser beam or CNC counter clockwise speed
+   *      S - Laser intensity or CNC speed
+   *      L - Laser Duration
+   *      P - PPM
+   *      D - Diagnostic
+   *      B - Set mode
    */
   inline void gcode_M3_M4(bool clockwise) {
-    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-    if (printer_mode == PRINTER_MODE_LASER) {
-    #endif
-      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
-      if(IsRunning()) {
-        if (code_seen('S')) laser.intensity = code_value_float();
-        if (code_seen('L')) laser.duration = code_value_ulong();
-        if (code_seen('P')) laser.ppm = code_value_float();
-        if (code_seen('D')) laser.diagnostics = code_value_bool();
-        if (code_seen('B')) laser_set_mode(code_value_int());
-      }
-  
-      laser.status = LASER_ON;
-      laser.fired = LASER_FIRE_SPINDLE;
 
-      lcd_update();
-      #endif
-    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER) 
-    }
-    else if(printer_mode == PRINTER_MODE_CNCROUTER) {
+    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+      if (printer_mode == PRINTER_MODE_LASER) {
+        if (IsRunning()) {
+          if (code_seen('S')) laser.intensity = code_value_float();
+          if (code_seen('L')) laser.duration = code_value_ulong();
+          if (code_seen('P')) laser.ppm = code_value_float();
+          if (code_seen('D')) laser.diagnostics = code_value_bool();
+          if (code_seen('B')) laser_set_mode(code_value_int());
+        }
+
+        laser.status = LASER_ON;
+        laser.fired = LASER_FIRE_SPINDLE;
+
+        lcd_update();
+      }
     #endif
-      #if ENABLED(CNCROUTER)
-		if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
-      #endif
-    #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-    }
+
+    #if ENABLED(CNCROUTER)
+      if (printer_mode == PRINTER_MODE_CNC)
+        if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
     #endif
+
     prepare_move_to_destination();
   }
 
   /**
-   * M5: Turn off laser beam
+   * M5: Turn off laser beam - CNC off
    */
   inline void gcode_M5() {
-  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-  if (printer_mode == PRINTER_MODE_LASER) {
-  #endif
-  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE))
-     if (laser.status != LASER_OFF) {
-     laser.status = LASER_OFF;
-        laser.mode = CONTINUOUS;
-        laser.duration = 0;
 
-         lcd_update();
+    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+      if (printer_mode == PRINTER_MODE_LASER) {
+        if (laser.status != LASER_OFF) {
+          laser.status = LASER_OFF;
+          laser.mode = CONTINUOUS;
+          laser.duration = 0;
 
-         prepare_move_to_destination();
+          lcd_update();
 
-         if (laser.diagnostics)
-           SERIAL_EM("Laser M5 called and laser OFF");
-     }
-  #endif
-  #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
+          prepare_move_to_destination();
+
+          if (laser.diagnostics)
+            SERIAL_EM("Laser M5 called and laser OFF");
+        }
+      }
+    #endif
+
+    #if ENABLED(CNCROUTER)
+      if (printer_mode == PRINTER_MODE_CNC) {
+        disable_cncrouter();
+        prepare_move_to_destination();
+      }
+    #endif
   }
-  else if(printer_mode == PRINTER_MODE_CNC) {
-  #endif
-   #if ENABLED(CNCROUTER)
-     disable_cncrouter();
-   prepare_move_to_destination();
-   #endif
-   #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-  }
-  #endif
-}
 
-#endif // LASERBEAM
+#endif // LASERBEAM || CNCROUTER
 
 /**
  * M17: Enable power on all stepper motors
@@ -6427,9 +6444,8 @@ inline void gcode_M81() {
   #endif
 
   #if ENABLED(CNCROUTER)
-     disable_cncrouter();
+    disable_cncrouter();
   #endif
-
 
   safe_delay(1000); // Wait 1 second before switching off
 
@@ -8553,36 +8569,35 @@ inline void gcode_M428() {
   }
 }
 
-#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-/**
- * M450: Report printer mode
- */
-inline void gcode_M450() {
-   SERIAL_M("PrinterMode:");
-   switch(printer_mode) {
-      case PRINTER_MODE_LASER:
-        SERIAL_M("Laser\n");
-        break;
-      case PRINTER_MODE_CNC:
-        SERIAL_M("CNC\n");
-        break;
-      default:
-        SERIAL_M("FFF\n");
-   }
-}
+#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
 
-inline void gcode_M451_M452_M453(int mode) {
-   if(IsRunning()) SERIAL_EM("Cannot change printer mode while running");
-   else
-   {
-      stop();
+  /**
+   * M450: Report printer mode
+   */
+  inline void gcode_M450() {
+    SERIAL_M("PrinterMode:");
+    switch(printer_mode) {
+      case PRINTER_MODE_LASER:
+        SERIAL_M("Laser");
+      break;
+      case PRINTER_MODE_CNC:
+        SERIAL_M("CNC");
+      break;
+      default:
+        SERIAL_M("FFF");
+    }
+    SERIAL_E;
+  }
+
+  inline void gcode_M451_M452_M453(const PrinterMode mode) {
+    if (if (IS_SD_PRINTING || print_job_counter.isRunning()) SERIAL_EM("Cannot change printer mode while running");
+    else {
       printer_mode = mode;
       gcode_M450();
-   }
-}
+    }
+  }
 
-#endif
-
+#endif // LASERBEAM || CNCROUTER
 
 /**
  * M500: Store settings in EEPROM
@@ -9014,6 +9029,7 @@ inline void gcode_M532() {
       if(next_feedrate > 0.0) feedrate_mm_s = next_feedrate;
     }
   }
+
 #endif // LASERBEAM
 
 #if MECH(MUVE3D)
@@ -10146,6 +10162,7 @@ void process_next_command() {
         case 11: // G11: retract_recover
           gcode_G10_G11(codenum == 10); break;
       #endif // FWRETRACT
+
       // G17 - G19: XXX CNC plane selection
       // G17 -> XY (default)
       // G18 -> ZX 
@@ -10201,6 +10218,7 @@ void process_next_command() {
             gcode_G38(subcode == 2);
           break;
       #endif
+
       // G40 Compensation Off XXX CNC
       // G54-G59 Coordinate system selection (CNC XXX)      
 
@@ -10217,6 +10235,7 @@ void process_next_command() {
         relative_mode = true; break;
       case 92: // G92
         gcode_G92(); break;
+
       // G92.x Reset Coordinate System Offset (CNC XXX)
       // G93: Feed Rate Mode (Inverse Time Mode) (CNC XXX)
       // G94: Feed Rate Mode (Units per Minute) (CNC XXX)
@@ -10242,7 +10261,7 @@ void process_next_command() {
         // case 8: // M08 - Flood coolant CNC XXX
         // case 9: // M09 - Coolant off CNC XXX
         // case 10: // M10 - Vacuum on CNC XXX
-		  // case 11: // M11 - Vacuum off CNC XXX
+        // case 11: // M11 - Vacuum off CNC XXX
 
       #endif // LASERBEAM
 
@@ -10441,7 +10460,7 @@ void process_next_command() {
           gcode_M142(); break;
       #endif
 
-      #if ENABLED(BLINKM)
+      #if ENABLED(BLINKM) || ENABLED(RGB_LED)
         case 150: // M150
           gcode_M150(); break;
       #endif //BLINKM
@@ -10640,18 +10659,19 @@ void process_next_command() {
       case 428: // M428 Apply current_position to home_offset
         gcode_M428(); break;
 
-      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) && ENABLED(CNCROUTER)
-      case 450:
-        gcode_M450(); break; // report printer mode
-
-      case 451:
-        gcode_M451_M452_M453(PRINTER_MODE_FFF); break; // set printer mode printer
-
-      case 452:
-        gcode_M451_M452_M453(PRINTER_MODE_LASER); break; // set printer mode laser
-
-      case 453:
-        gcode_M451_M452_M453(PRINTER_MODE_CNC); break; // set printer mode router
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+        case 450:
+          gcode_M450(); break; // report printer mode
+        case 451:
+          gcode_M451_M452_M453(PRINTER_MODE_FFF); break;    // set printer mode printer
+        #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+          case 452:
+            gcode_M451_M452_M453(PRINTER_MODE_LASER); break;  // set printer mode laser
+        #endif
+        #if ENABLED(CNCROUTER)
+          case 453:
+            gcode_M451_M452_M453(PRINTER_MODE_CNC); break;    // set printer mode router
+        #endif
       #endif
 
       case 500: // M500: Store settings in EEPROM
@@ -10813,17 +10833,13 @@ void ok_to_send() {
     if (SOFTWARE_MIN_ENDSTOPS && soft_endstops_enabled) {
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
       NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
-      #if !ENABLED(LASERBEAM)
-        NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
-      #endif
+      NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
     }
 
     if (SOFTWARE_MAX_ENDSTOPS && soft_endstops_enabled) {
       NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
       NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
-      #if !ENABLED(LASERBEAM)
-        NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
-      #endif
+      NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
     }
   }
 #endif
@@ -12147,6 +12163,7 @@ static void report_current_position() {
       #endif
     }
   }
+
 #endif // FAST_PWM_FAN
 
 void quickstop_stepper() {
@@ -12589,13 +12606,13 @@ void stop() {
 /**
  * Marlin entry-point: Set up before the program loop
  *  - Set up Alligator Board
- *  - Set up WANHAO D6 OLED
  *  - Set up the kill pin, filament runout, power hold
  *  - Start the serial port
  *  - Print startup messages and diagnostics
  *  - Get EEPROM or default settings
  *  - Initialize managers for:
  *    • temperature
+ *    • CNCROUTER
  *    • planner
  *    • watchdog
  *    • stepper
@@ -12780,6 +12797,13 @@ void setup() {
   #if ENABLED(DELTA_HOME_ON_POWER)
     home_delta();
   #endif
+
+  #if ENABLED(BLTOUCH)
+    bltouch_command(BLTOUCH_RESET);    // Just in case the BLTouch is in the error state, try to
+    set_bltouch_deployed(true);        // reset it. Also needs to deploy and stow to clear the
+    set_bltouch_deployed(false);       // error condition.
+  #endif
+
 }
 
 /**
