@@ -1857,11 +1857,11 @@ static void clean_up_after_endstop_or_probe_move() {
       if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
         bltouch_command(BLTOUCH_RESET);    // try to reset it.
         set_bltouch_deployed(true);        // Also needs to deploy and stow to
+        set_bltouch_deployed(false);       // clear the triggered condition.
         if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
           stop();                          // punt!
           return true;
         }
-        set_bltouch_deployed(false);       // clear the triggered condition.
       }
     #elif ENABLED(Z_PROBE_SLED)
       if (axis_unhomed_error(true, false, false)) { stop(); return true; }
