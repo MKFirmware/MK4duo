@@ -2569,8 +2569,6 @@ static void homeaxis(AxisEnum axis) {
     #endif
     home_dir(axis);
 
-  if (axis == Z_AXIS) return;
-
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS && DEPLOY_PROBE()) return;
