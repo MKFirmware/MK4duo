@@ -11942,7 +11942,7 @@ static void report_current_position() {
 
   void controllerFan() {
     static millis_t lastMotor = 0;      // Last time a motor was turned on
-    static millis_t lastMotorCheck = 0; // Last time the state was checked
+    static millis_t nextMotorCheck = 0; // Last time the state was checked
     millis_t ms = millis();
     if (ELAPSED(ms, nextMotorCheck)) {
       nextMotorCheck = ms + 2500UL; // Not a time critical function, so only check every 2.5s
