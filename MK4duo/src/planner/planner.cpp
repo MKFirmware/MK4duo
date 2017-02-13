@@ -409,7 +409,7 @@ void Planner::check_axes_activity() {
   #if DISABLE_Y
     if (!axis_active[Y_AXIS]) disable_y();
   #endif
-  #if DISABLED(LASERBEAM) && DISABLE_Z
+  #if DISABLE_Z
     if (!axis_active[Z_AXIS]) disable_z();
   #endif
   #if DISABLE_E
@@ -741,10 +741,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->steps[E_AXIS] = esteps;
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
-   #if DISABLED(LASERBEAM)
+  if (printer_mode != PRINTER_MODE_LASER)
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
-  #endif
 
   // For a mixing extruder, get steps for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)

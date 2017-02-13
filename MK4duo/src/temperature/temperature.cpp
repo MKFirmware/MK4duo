@@ -997,7 +997,7 @@ void Temperature::manage_temp_controller() {
       }
     #endif
 
-  } // Hotends Loop
+  } // HOTEND_LOOP
 
   #if HAS(AUTO_FAN)
     if (ELAPSED(ms, next_auto_fan_check_ms)) { // only need to check fan state very infrequently
@@ -1288,9 +1288,8 @@ void Temperature::updateTemperaturesFromRawValues() {
   #if ENABLED(HEATER_0_USES_MAX6675)
     current_temperature_raw[0] = read_max6675();
   #endif
-  HOTEND_LOOP() {
+  HOTEND_LOOP()
     current_temperature[h] = analog2temp(current_temperature_raw[h], h);
-  }
   current_temperature_bed = analog2tempBed(current_temperature_bed_raw);
   #if HAS(TEMP_CHAMBER)
     current_temperature_chamber = analog2tempChamber(current_temperature_chamber_raw);
@@ -1400,10 +1399,7 @@ void Temperature::init() {
   #endif
 
   // Finish init of mult hotend arrays
-  HOTEND_LOOP() {
-    // populate with the first value
-    maxttemp[h] = maxttemp[0];
-  }
+  HOTEND_LOOP() maxttemp[h] = maxttemp[0];
 
   #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
@@ -2778,6 +2774,16 @@ void Temperature::isr() {
       if (!endstop_monitor_count) endstop_monitor();  // report changes in endstop status
     }
   #endif
-  
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+
+    extern volatile uint8_t e_hit;
+
+    if (e_hit && ENDSTOPS_ENABLED) {
+      endstops.update();  // call endstop update routine
+      e_hit--;
+    }
+  #endif
+
   ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
 }

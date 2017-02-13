@@ -392,41 +392,43 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LASERBEAM)
 
-    #if ENABLED(LASER_PERIPHERALS)
-      if (laser_peripherals_ok()) {
-        u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
+    if (printer_mode == PRINTER_MODE_LASER) {
+      #if ENABLED(LASER_PERIPHERALS)
+        if (laser_peripherals_ok()) {
+          u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
+        }
+      #endif
+
+      u8g.setPrintPos(3,6);
+      if (stepper.current_block->laser_status == LASER_ON) {
+        u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
+        u8g.print(itostr3(stepper.current_block->laser_intensity));
+        lcd_printPGM(PSTR("%"));
+      } else {
+        u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
+        lcd_printPGM(PSTR("---%"));
       }
-    #endif
-
-    u8g.setPrintPos(3,6);
-    if (stepper.current_block->laser_status == LASER_ON) {
-      u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-      u8g.print(itostr3(stepper.current_block->laser_intensity));
-      lcd_printPGM(PSTR("%"));
-    } else {
-      u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
-      lcd_printPGM(PSTR("---%"));
     }
-
-  #else
-
-    //
-    // Fan Animation
-    //
-    if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
-      u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-        #if HAS(FAN)
-          blink && fanSpeed ? status_screen0_bmp : status_screen1_bmp
-        #else
-          status_screen0_bmp
-        #endif
-      );
-    }
+    else
 
   #endif
 
+    {
+      //
+      // Fan Animation
+      //
+      if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
+        u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
+          #if HAS(FAN)
+            blink && fanSpeed ? status_screen0_bmp : status_screen1_bmp
+          #else
+            status_screen0_bmp
+          #endif
+        );
+      }
+    }
 
-  #if DISABLED(LASERBEAM)
+  if (printer_mode == PRINTER_MODE_FFF) {
 
     //
     // Temperature Graphics and Info
@@ -453,8 +455,7 @@ static void lcd_implementation_status_screen() {
         #endif
       }
     }
-
-  #endif
+  }
 
   #if ENABLED(SDSUPPORT)
 

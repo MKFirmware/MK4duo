@@ -669,9 +669,7 @@ void EEPROM::ResetDefault() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    HOTEND_LOOP() {
-      hotend_offset[i][h] = tmp10[i][h];
-    }
+    HOTEND_LOOP() hotend_offset[i][h] = tmp10[i][h];
   }
 
   planner.acceleration = DEFAULT_ACCELERATION;
@@ -730,12 +728,7 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if ENABLED(PIDTEMP)
-    #if HOTENDS > 1
-      HOTEND_LOOP()
-    #else
-      int h = 0; UNUSED(h); // only need to write once
-    #endif
-    {
+    HOTEND_LOOP() {
       PID_PARAM(Kp, h) = tmp6[h];
       PID_PARAM(Ki, h) = scalePID_i(tmp7[h]);
       PID_PARAM(Kd, h) = scalePID_d(tmp8[h]);
