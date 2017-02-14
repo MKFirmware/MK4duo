@@ -9465,7 +9465,7 @@ inline void gcode_T(uint8_t tool_id) {
   if(printer_mode == PRINTER_MODE_CNC) {
   #endif
      #if ENABLED(CNCROUTER)
-     tool_change_cnc(tool_id)
+     tool_change_cnc(tool_id);
      #endif
   #if ENABLED(CNCROUTER) && (ENABLED(LASERBEAM) || EXTRUDERS > 0)
   } 
