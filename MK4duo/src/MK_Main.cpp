@@ -1013,7 +1013,7 @@ inline void get_serial_commands() {
       // If command was e-stop process now
       if (strcmp(command, "M108") == 0) {
         wait_for_heatup = false;
-        #if ENABLED(ULTIPANEL)
+        #if ENABLED(ULTIPANEL) || ENABLED(CNCROUTER)
           wait_for_user = false;
         #endif
       }
