@@ -9462,7 +9462,7 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 
   #if ENABLED(CNCROUTER) && (ENABLED(LASERBEAM) || EXTRUDERS > 0)
-  if(PrinterMode == PRINTER_MODE_CNC) {
+  if(printer_mode == PRINTER_MODE_CNC) {
   #endif
      #if ENABLED(CNCROUTER)
      tool_change_cnc(tool_id)
@@ -9476,7 +9476,7 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 
   #if (ENABLED(CNCROUTER) || ENABLED(LASERBEAM)) && EXTRUDERS > 0
-  if(PrinterMode == PRINTER_MODE_FFF) {
+  if(printer_mode == PRINTER_MODE_FFF) {
   #endif
   #if EXTRUDERS > 0
     #if HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
