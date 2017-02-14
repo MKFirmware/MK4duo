@@ -9476,7 +9476,7 @@ inline void gcode_T(uint8_t tool_id) {
     #elif HOTENDS > 1
 
     tool_change(
-      tmp_tool_id,
+      tool_id,
       code_seen('F') ? MMM_TO_MMS(code_value_axis_units(X_AXIS)) : 0.0,
       (tool_id == active_extruder) || (code_seen('S') && code_value_bool())
     );
