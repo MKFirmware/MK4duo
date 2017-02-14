@@ -12558,7 +12558,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
  * Standard idle routine keeps the machine alive
  */
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
@@ -12579,7 +12579,7 @@ void idle(
   #endif
 
   manage_inactivity(
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
+    #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
       no_stepper_sleep
     #endif
   );

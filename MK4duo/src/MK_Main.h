@@ -29,7 +29,7 @@
 void get_command();
 
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep=false  // pass true to keep steppers from disabling on timeout
   #endif
 );
