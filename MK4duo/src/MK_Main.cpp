@@ -198,6 +198,10 @@ uint8_t active_extruder = 0;
 uint8_t previous_extruder = 0;
 uint8_t active_driver = 0;
 
+#if ENABLED(CNCROUTER)
+uint8_t active_cnc_tool = 0;
+#endif
+
 static uint8_t target_extruder;
 
 // Relative Mode. Enable with G91, disable with G90.
@@ -207,7 +211,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if HAS(LCD)
+#if HAS(LCD) || ENABLED(CNCROUTER)
   volatile bool wait_for_user = false;
 #endif
 
@@ -9428,35 +9432,60 @@ inline void gcode_M999() {
 }
 
 /**
- * T0-T5: Switch tool, usually switching extruders
+ * T0-TN: Switch tool, usually switching extruders or CNC tools
  *
+ * For Extruders:
  *   F[units/min] Set the movement feedrate
  *   S1           Don't move the tool in XY after change
+ *
+ * For CNC no other parameters are expected
+ *
  */
-inline void gcode_T(uint8_t tmp_extruder) {
+inline void gcode_T(uint8_t tool_id) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
-      SERIAL_MV(">>> gcode_T(", tmp_extruder);
+      SERIAL_MV(">>> gcode_T(", tool_id);
       SERIAL_C(')'); SERIAL_E;
       DEBUG_POS("BEFORE", current_position);
     }
   #endif
 
-  #if HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
-
-    tool_change(tmp_extruder);
-
-  #elif HOTENDS > 1
-
-    tool_change(
-      tmp_extruder,
-      code_seen('F') ? MMM_TO_MMS(code_value_axis_units(X_AXIS)) : 0.0,
-      (tmp_extruder == active_extruder) || (code_seen('S') && code_value_bool())
-    );
-
+  #if ENABLED(CNCROUTER) && (ENABLED(LASERBEAM) || EXTRUDERS > 0)
+  if(PrinterMode == PRINTER_MODE_CNC) {
+  #endif
+     #if ENABLED(CNCROUTER)
+     tool_change_cnc(tool_id)
+     #endif
+  #if ENABLED(CNCROUTER) && (ENABLED(LASERBEAM) || EXTRUDERS > 0)
+  } 
   #endif
 
+  #if ENABLED(CNCROUTER) &&  EXTRUDERS > 0
+  else
+  #endif
+
+  #if (ENABLED(CNCROUTER) || ENABLED(LASERBEAM)) && EXTRUDERS > 0
+  if(PrinterMode == PRINTER_MODE_FFF) {
+  #endif
+  #if EXTRUDERS > 0
+    #if HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
+
+    tool_change(tool_id);
+
+    #elif HOTENDS > 1
+
+    tool_change(
+      tmp_tool_id,
+      code_seen('F') ? MMM_TO_MMS(code_value_axis_units(X_AXIS)) : 0.0,
+      (tool_id == active_extruder) || (code_seen('S') && code_value_bool())
+    );
+
+    #endif
+  #endif // EXTRUDERS > 0
+  #if (ENABLED(CNCROUTER) || ENABLED(LASERBEAM)) && EXTRUDERS > 0
+  } // PRINTER_MODE_FFF
+  #endif
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       DEBUG_POS("AFTER", current_position);
@@ -10051,6 +10080,39 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
   SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 }
   
+
+#if ENABLED(CNCROUTER)
+void tool_change_cnc(uint8_t tool_id) {
+
+   millis_t last_set = millis();  
+   bool beep = true;
+
+   if (tool_id != active_cnc_tool) {
+      stepper.synchronize();
+      disable_cncrouter();
+      safe_delay(300); 
+      // LCD click or M108 will clear this
+      wait_for_user = true;
+      
+      while (wait_for_user) {
+         if (millis() - last_set > 60000)  beep = true;
+         if (beep) {
+            #if HAS(BUZZER)
+               for(uint8_t i = 0; i < 3; i++) buzz(300, 1000);
+            #endif
+            last_set = millis();
+            beep = false;
+
+         }
+         idle(true);
+      } // while (wait_for_user)
+
+      stepper.synchronize();
+   }
+}
+#endif
+
+
 /**
  * Process a single command and dispatch it to its handler
  * This is called from the main loop()
