@@ -199,7 +199,8 @@ uint8_t previous_extruder = 0;
 uint8_t active_driver = 0;
 
 #if ENABLED(CNCROUTER)
-uint8_t active_cnc_tool = 0;
+   uint8_t active_cnc_tool = 0;
+   #define CNC_M6_TOOL_ID 255
 #endif
 
 static uint8_t target_extruder;
@@ -5806,6 +5807,15 @@ inline void gcode_G92() {
     #endif
   }
 
+  #if ENABLED(CNCROUTER)
+  /*
+   * M5: CNC tool change
+   */
+  inline void gcode_M6() {
+    tool_change_cnc(CNC_M6_TOOL_ID);
+  }
+  #endif
+
 #endif // LASERBEAM || CNCROUTER
 
 /**
@@ -10106,6 +10116,8 @@ void tool_change_cnc(uint8_t tool_id) {
          }
          idle(true);
       } // while (wait_for_user)
+  
+      if(tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
 
       stepper.synchronize();
    }
@@ -10316,7 +10328,8 @@ void process_next_command() {
           gcode_M3_M4(codenum == 3); break;
         case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
-        // case 6: // M06 - Tool change CNC XXX
+        case 6: // M06 - Tool change CNC 
+          gcode_M6(); break;
         // case 7: // M07 - Mist coolant CNC XXX
         // case 8: // M08 - Flood coolant CNC XXX
         // case 9: // M09 - Coolant off CNC XXX
