@@ -38,6 +38,7 @@
 *         S<value> CNC clockwise speed. (Requires CNCROUTERS)
 *  M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
 *  M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
+*  M6   - Tool change CNC. (Requires CNCROUTERS)
 *  M17  - Enable/Power all stepper motors
 *  M18  - Disable all stepper motors; same as M84
 *  M20  - List SD card
