@@ -29,7 +29,7 @@
 void get_command();
 
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep=false  // pass true to keep steppers from disabling on timeout
   #endif
 );
@@ -289,6 +289,10 @@ extern uint8_t active_driver;
 void calculate_volumetric_multipliers();
 
 void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
+
+#if ENABLED(CNCROUTER)
+void tool_change_cnc(const uint8_t tool_id);
+#endif
 
 /**
  * Blocking movement and shorthand functions
