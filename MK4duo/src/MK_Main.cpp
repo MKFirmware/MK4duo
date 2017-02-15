@@ -198,6 +198,11 @@ uint8_t active_extruder = 0;
 uint8_t previous_extruder = 0;
 uint8_t active_driver = 0;
 
+#if ENABLED(CNCROUTER)
+  uint8_t active_cnc_tool = 0;
+  #define CNC_M6_TOOL_ID 255
+#endif
+
 static uint8_t target_extruder;
 
 // Relative Mode. Enable with G91, disable with G90.
@@ -207,7 +212,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if HAS(LCD)
+#if HAS(LCD) || ENABLED(CNCROUTER)
   volatile bool wait_for_user = false;
 #endif
 
@@ -1009,7 +1014,7 @@ inline void get_serial_commands() {
       // If command was e-stop process now
       if (strcmp(command, "M108") == 0) {
         wait_for_heatup = false;
-        #if ENABLED(ULTIPANEL)
+        #if ENABLED(ULTIPANEL) || ENABLED(CNCROUTER)
           wait_for_user = false;
         #endif
       }
@@ -2454,8 +2459,9 @@ static void clean_up_after_endstop_or_probe_move() {
     static float bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty) {
       float row[4], column[4];
       for (uint8_t i = 0; i < 4; i++) {
-        for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t j = 0; j < 4; j++) {
           column[j] = bed_level_virt_coord(i + x - 1, j + y - 1);
+        }
         row[i] = bed_level_virt_cmr(column, 1, ty);
       }
       return bed_level_virt_cmr(row, 1, tx);
@@ -5801,6 +5807,13 @@ inline void gcode_G92() {
       }
     #endif
   }
+
+  #if ENABLED(CNCROUTER)
+    /*
+     * M6: CNC tool change
+     */
+    inline void gcode_M6() { tool_change_cnc(CNC_M6_TOOL_ID); }
+  #endif
 
 #endif // LASERBEAM || CNCROUTER
 
@@ -9428,31 +9441,41 @@ inline void gcode_M999() {
 }
 
 /**
- * T0-T5: Switch tool, usually switching extruders
+ * T0-TN: Switch tool, usually switching extruders or CNC tools
  *
+ * For Extruders:
  *   F[units/min] Set the movement feedrate
  *   S1           Don't move the tool in XY after change
+ *
+ * For CNC no other parameters are expected
+ *
  */
-inline void gcode_T(uint8_t tmp_extruder) {
+inline void gcode_T(uint8_t tool_id) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
-      SERIAL_MV(">>> gcode_T(", tmp_extruder);
+      SERIAL_MV(">>> gcode_T(", tool_id);
       SERIAL_C(')'); SERIAL_E;
       DEBUG_POS("BEFORE", current_position);
     }
   #endif
 
-  #if HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
+  #if ENABLED(CNCROUTER)
 
-    tool_change(tmp_extruder);
+    if (printer_mode == PRINTER_MODE_CNC) tool_change_cnc(tool_id);
 
-  #elif HOTENDS > 1
+  #endif
 
-    tool_change(
-      tmp_extruder,
+  #if EXTRUDERS > 0 && (HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1))
+
+    if (printer_mode == PRINTER_MODE_FFF) tool_change(tool_id);
+
+  #elif EXTRUDERS > 0 && HOTENDS > 1
+
+    if (printer_mode == PRINTER_MODE_FFF) tool_change(
+      tool_id,
       code_seen('F') ? MMM_TO_MMS(code_value_axis_units(X_AXIS)) : 0.0,
-      (tmp_extruder == active_extruder) || (code_seen('S') && code_value_bool())
+      (tool_id == active_extruder) || (code_seen('S') && code_value_bool())
     );
 
   #endif
@@ -10051,6 +10074,46 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
   SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 }
   
+#if ENABLED(CNCROUTER)
+
+  void tool_change_cnc(uint8_t tool_id) {
+
+    if (tool_id != active_cnc_tool) {
+
+      stepper.synchronize();
+      disable_cncrouter();
+      safe_delay(300);
+
+      // LCD click or M108 will clear this
+      wait_for_user = true;
+
+      KEEPALIVE_STATE(PAUSED_FOR_USER);
+
+      #if HAS(BUZZER)
+        millis_t next_buzz = millis();
+      #endif
+
+      while (wait_for_user) {
+        #if HAS(BUZZER)
+          if (millis() - next_buzz > 60000) {
+            for (uint8_t i = 0; i < 3; i++) buzz(300, 1000);
+            next_buzz = millis();
+          }
+        #endif
+        idle(true);
+      } // while (wait_for_user)
+
+      if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
+
+      stepper.synchronize();
+
+      KEEPALIVE_STATE(IN_HANDLER);
+
+    }
+  }
+
+#endif
+
 /**
  * Process a single command and dispatch it to its handler
  * This is called from the main loop()
@@ -10254,14 +10317,15 @@ void process_next_command() {
           gcode_M3_M4(codenum == 3); break;
         case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
-        // case 6: // M06 - Tool change CNC XXX
+        case 6: // M06: Tool change CNC
+          gcode_M6(); break;
         // case 7: // M07 - Mist coolant CNC XXX
         // case 8: // M08 - Flood coolant CNC XXX
         // case 9: // M09 - Coolant off CNC XXX
         // case 10: // M10 - Vacuum on CNC XXX
         // case 11: // M11 - Vacuum off CNC XXX
 
-      #endif // LASERBEAM
+      #endif // LASERBEAM || CNCROUTER
 
       case 17: // M17: Enable/Power all stepper motors
         gcode_M17(); break;
@@ -12483,7 +12547,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
  * Standard idle routine keeps the machine alive
  */
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
@@ -12504,7 +12568,7 @@ void idle(
   #endif
 
   manage_inactivity(
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
+    #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
       no_stepper_sleep
     #endif
   );

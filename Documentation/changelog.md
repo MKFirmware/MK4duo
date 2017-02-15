@@ -1,5 +1,6 @@
 ### Version 4.3.12 dev
 * Add CNC Router
+* Add M6   - Tool change CNC. (Requires CNCROUTERS)
 * Add M450 - Report Printer Mode
 * Add M451 - Select FFF Printer Mode
 * Add M452 - Select Laser Printer Mode
@@ -7,7 +8,7 @@
 * Update Nextion V0_9_8
 * Fix BLTOUCH
 * Fix endstop interrupts
-* Fix and clear code.
+* Fix and clear code
 
 ### Version 4.3.11 dev
 * Add G38.2 and G38.3 Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
