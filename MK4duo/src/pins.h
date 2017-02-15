@@ -251,7 +251,15 @@
 #endif
 
 /****************************************************************************************/
-#include "../Configuration_Pins.h"
+
+
+#ifdef MULTI_CONFIGURATION_OVERALL
+   #include "../Configuration_Overall_Pins.h"
+#else
+    #include "../Configuration_Pins.h"
+#endif
+
+
 /****************************************************************************************/
 
 #if DISABLED(DUAL_X_CARRIAGE)
