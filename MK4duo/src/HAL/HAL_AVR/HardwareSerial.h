@@ -129,6 +129,10 @@ struct ring_buffer_r {
   #endif
 #endif
 
+#if ENABLED(EMERGENCY_PARSER)
+  void emergency_parser(unsigned char c);
+#endif
+
 class MKHardwareSerial { //: public Stream
 
   public:
