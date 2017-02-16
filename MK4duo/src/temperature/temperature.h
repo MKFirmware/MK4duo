@@ -62,6 +62,8 @@ class Temperature {
                    current_temperature_cooler_raw;
     #endif
 
+    static volatile bool in_temp_isr;
+
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
       static float redundant_temperature;
     #endif

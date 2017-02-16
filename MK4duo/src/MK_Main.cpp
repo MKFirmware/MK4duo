@@ -2098,7 +2098,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #if MECH(MAKERARM_SCARA)
       vector_3 point = probe_point_to_end_point(x, y);
       float dx = point.x, dy = point.y;
-      if (dx == 0.0 && dy == 0.0) { BUZZ(100, 220); return 0.0; }
+      if (dx == 0.0 && dy == 0.0) { buzz(100, 220); return 0.0; }
     #else
       const float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
                   dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
@@ -2555,7 +2555,7 @@ static void homeaxis(AxisEnum axis) {
 
   #if IS_SCARA
     // Only Z homing (with probe) is permitted
-    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+    if (axis != Z_AXIS) { buzz(100, 880); return; }
   #else
     #define CAN_HOME(A) \
       (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
@@ -8775,6 +8775,24 @@ inline void gcode_M532() {
 
 #if ENABLED(FILAMENT_CHANGE_FEATURE)
 
+  millis_t next_buzz = 0;
+  unsigned long int runout_beep = 0;
+
+  #if HAS(BUZZER)
+    void filament_change_beep() {
+      const millis_t ms = millis();
+      if (ELAPSED(ms, next_buzz)) {
+        if (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS + 5) { // Only beep as long as we're supposed to
+          next_buzz = ms + (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS ? 2500 : 400);
+          buzz(300, 2000);
+          runout_beep++;
+        }
+      }
+    }
+  #endif
+
+  static bool busy_doing_M600 = false;
+
   /**
    * M600: Pause for filament change
    *
@@ -8794,6 +8812,12 @@ inline void gcode_M532() {
       return;
     }
 
+    busy_doing_M600 = true;  // Stepper Motors can't timeout when this is set
+
+    // Pause the print job counter
+    bool job_running = print_job_counter.isRunning();
+    print_job_counter.pause();
+
     // Show initial message and wait for synchronize steppers
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INIT);
     stepper.synchronize();
@@ -8810,8 +8834,6 @@ inline void gcode_M532() {
     #else
       #define RUNPLAN(RATE_MM_S) line_to_destination(RATE_MM_S);
     #endif
-
-    KEEPALIVE_STATE(IN_HANDLER);
 
     // Initial retract before move to filament change position
     if (code_seen('E')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
@@ -8851,6 +8873,7 @@ inline void gcode_M532() {
 
     stepper.synchronize();
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_UNLOAD);
+    idle();
 
     // Unload filament
     if (code_seen('L')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
@@ -8865,39 +8888,39 @@ inline void gcode_M532() {
     //disable extruder steppers so filament can be removed
     disable_e();
     safe_delay(100);
-    bool beep = true;
-    bool sleep = false;
-    uint8_t cnt = 0;
 
-    int old_target_temperature[HOTENDS] = { 0 };
-    for (int8_t h = 0; h < HOTENDS; h++) {
-      old_target_temperature[h] = thermalManager.target_temperature[h];
-    }
-    int old_target_temperature_bed = thermalManager.target_temperature_bed;
-    millis_t last_set = millis();
+    millis_t nozzle_timeout = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
+    bool nozzle_timed_out = false;
+    float old_target_temperature[HOTENDS];
 
     // Wait for filament insert by user and press button
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INSERT);
 
     // LCD click or M108 will clear this
     wait_for_user = true;
+    next_buzz = 0;
+    runout_beep = 0;
+    HOTEND_LOOP() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
+    #if HAS(TEMP_BED)
+      float old_target_temperature_bed = thermalManager.target_temperature_bed;     // Save bed temp
+    #endif
 
     while (wait_for_user) {
-      if ((millis() - last_set > 60000) && cnt <= FILAMENT_CHANGE_PRINTER_OFF) beep = true;
-      if (cnt >= FILAMENT_CHANGE_PRINTER_OFF && !sleep) {
-        thermalManager.disable_all_heaters();
-        thermalManager.disable_all_coolers();
-        sleep = true;
-        lcd_reset_alert_level();
-        LCD_ALERTMESSAGEPGM("Zzzz Zzzz Zzzz");
-      }
-      if (beep) {
-        #if HAS(BUZZER)
-          for(uint8_t i = 0; i < 3; i++) buzz(300, 1000);
-        #endif
-        last_set = millis();
-        beep = false;
-        ++cnt;
+      millis_t current_ms = millis();
+      if (nozzle_timed_out)
+        lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
+
+      #if HAS(BUZZER)
+        filament_change_beep();
+      #endif
+
+      if (current_ms >= nozzle_timeout) {
+        if (!nozzle_timed_out) {
+          nozzle_timed_out = true; // on nozzle timeout remember the nozzles need to be reheated
+          thermalManager.disable_all_heaters();
+          thermalManager.disable_all_coolers();
+          lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
+        }
       }
       idle(true);
     } // while(wait_for_user)
@@ -8905,16 +8928,33 @@ inline void gcode_M532() {
     // Reset LCD alert message
     lcd_reset_alert_level();
 
-    if (sleep) {
-      stepper.enable_all_steppers(); // Enable all stepper
+    if (nozzle_timed_out) {     // Turn nozzles and bed back on if they were turned off
+      // Show "wait for heating"
+      lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
+
       HOTEND_LOOP() {
         thermalManager.setTargetHotend(old_target_temperature[h], h);
         wait_heater();
       }
+
       #if HAS(TEMP_BED)
         thermalManager.setTargetBed(old_target_temperature_bed);
         wait_bed();
       #endif
+    }
+
+    // Show "insert filament"
+    if (nozzle_timed_out)
+      lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INSERT);
+
+    wait_for_user = true;    // LCD click or M108 will clear this
+    next_buzz = 0;
+    runout_beep = 0;
+    while (wait_for_user && nozzle_timed_out) {
+      #if HAS(BUZZER)
+        filament_change_beep();
+      #endif
+      idle(true);
     }
 
     // Show load message
@@ -8946,8 +8986,6 @@ inline void gcode_M532() {
 
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_RESUME);
 
-    KEEPALIVE_STATE(IN_HANDLER);
-
     // Set extruder to saved position
     destination[E_AXIS] = current_position[E_AXIS] = lastpos[E_AXIS];
     planner.set_e_position_mm(current_position[E_AXIS]);
@@ -8971,6 +9009,11 @@ inline void gcode_M532() {
 
     // Show status screen
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_STATUS);
+
+    // Resume the print job timer if it was running
+    if (job_running) print_job_counter.start();
+
+    busy_doing_M600 = false;  // Allow Stepper Motors to be turned off during inactivity
   }
 
 #endif // FILAMENT_CHANGE_FEATURE
@@ -12288,6 +12331,13 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   if (max_inactive_time && ELAPSED(ms, previous_cmd_ms + max_inactive_time)) kill(PSTR(MSG_KILLED));
 
+  // Prevent steppers timing-out in the middle of M600
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) && ENABLED(FILAMENT_CHANGE_NO_STEPPER_TIMEOUT)
+    #define M600_TEST !busy_doing_M600
+  #else
+    #define M600_TEST true
+  #endif
+
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
     if (flow_firstread && print_job_counter.isRunning() && (get_flowrate() < (float)MINFLOW_PROTECTION)) {
       flow_firstread = false;
@@ -12295,7 +12345,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  if (stepper_inactive_time && ELAPSED(ms, previous_cmd_ms + stepper_inactive_time)
+  if (M600_TEST && stepper_inactive_time && ELAPSED(ms, previous_cmd_ms + stepper_inactive_time)
       && !ignore_stepper_queue && !planner.blocks_queued()) {
     #if DISABLE_X == true
       disable_x();
@@ -12320,7 +12370,6 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser_peripherals_off();
       #endif
     #endif
-
   }
 
   #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH

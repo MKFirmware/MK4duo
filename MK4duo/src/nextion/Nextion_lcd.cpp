@@ -67,16 +67,6 @@
     GFX gfx = GFX(1, 24, 250, 155);
   #endif
 
-  // Function pointer to menu functions.
-  typedef void (*screenFunc_t)();
-
-  /**
-   *
-   * Menu actions
-   *
-   */
-  void menu_action_function(screenFunc_t func) { (*func)(); }
-
   /**
    *******************************************************************
    * Nextion component all page
@@ -375,6 +365,17 @@
     NULL
   };
 
+  // Function pointer to menu functions.
+  typedef void (*screenFunc_t)();
+
+  /**
+   *
+   * Menu actions
+   *
+   */
+  void menu_action_back() { Pprinter.show(); }
+  void menu_action_function(screenFunc_t func) { (*func)(); }
+
   void setpagePrinter() {
 
     #if HOTENDS > 0
@@ -455,6 +456,8 @@
         return; \
       } \
       ++_lcdLineNr
+
+  #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL)
 
   #define STATIC_ITEM(LABEL) \
       if (lcdDrawUpdate) { \
@@ -650,6 +653,15 @@
 
   #if ENABLED(FILAMENT_CHANGE_FEATURE)
 
+    void lcd_filament_change_toocold_menu() {
+      START_MENU();
+      STATIC_ITEM(MSG_HEATING_FAILED_LCD);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_MINTEMP STRINGIFY(EXTRUDE_MINTEMP) ".");
+      MENU_BACK(MSG_BACK);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE);
+      END_MENU();
+    }
+
     static void lcd_filament_change_resume_print() {
       filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
@@ -671,12 +683,8 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_1);
-      #ifdef MSG_FILAMENT_CHANGE_INIT_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_INIT_3
-        STATIC_ITEMt(MSG_FILAMENT_CHANGE_INIT_3);
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_3);
       END_SCREEN();
     }
 
@@ -684,12 +692,23 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
-      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
-        STATIC_ITEM("");
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
+      STATIC_ITEM("");
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_wait_for_nozzles_to_heat() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_2);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_heat_nozzle() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_1);
       END_SCREEN();
     }
 
@@ -697,12 +716,8 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_1);
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_3
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_3);
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_3);
       END_SCREEN();
     }
 
@@ -710,12 +725,8 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_1);
-      #ifdef MSG_FILAMENT_CHANGE_LOAD_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_LOAD_3
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_3);
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_3);
       END_SCREEN();
     }
 
@@ -723,12 +734,8 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_1);
-      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_3
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_3);
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_3);
       END_SCREEN();
     }
 
@@ -736,12 +743,8 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_1);
-      #ifdef MSG_FILAMENT_CHANGE_RESUME_2
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_2);
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_RESUME_3
-        STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_3);
-      #endif
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_3);
       END_SCREEN();
     }
 
@@ -761,6 +764,12 @@
           break;
         case FILAMENT_CHANGE_MESSAGE_EXTRUDE:
           lcd_filament_change_extrude_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
+          lcd_filament_change_heat_nozzle();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
+          lcd_filament_change_wait_for_nozzles_to_heat();
           break;
         case FILAMENT_CHANGE_MESSAGE_OPTION:
           filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_WAIT_FOR;

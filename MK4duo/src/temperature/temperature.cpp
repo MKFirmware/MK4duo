@@ -2176,7 +2176,14 @@ HAL_TEMP_TIMER_ISR {
   Temperature::isr();
 }
 
+volatile bool Temperature::in_temp_isr = false;
+
 void Temperature::isr() {
+  // The stepper ISR can interrupt this ISR. When it does it re-enables this ISR
+  // at the end of its run, potentially causing re-entry. This flag prevents it.
+  if (in_temp_isr) return;
+  in_temp_isr = true;
+
   // Allow UART and stepper ISRs
   DISABLE_TEMP_INTERRUPT(); // Disable Temperature ISR
   sei();
@@ -2785,5 +2792,5 @@ void Temperature::isr() {
     }
   #endif
 
-  ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
+  CLI_ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
 }

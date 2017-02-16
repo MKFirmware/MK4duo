@@ -31,9 +31,9 @@
 #define LANGUAGE_EN_H
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" ready.")
-#define MSG_SD                              _UxGT("SD")
-#define MSG_SD_INSERTED                     MSG_SD _UxGT(" inserted")
-#define MSG_SD_REMOVED                      MSG_SD _UxGT(" removed")
+#define MSG_BACK                            _UxGT("Back")
+#define MSG_SD_INSERTED                     _UxGT("Card inserted")
+#define MSG_SD_REMOVED                      _UxGT("Card removed")
 #define MSG_MAIN                            _UxGT("Main")
 #define MSG_AUTOSTART                       _UxGT("Autostart")
 #define MSG_DISABLE_STEPPERS                _UxGT("Disable steppers")
@@ -145,8 +145,8 @@
 #define MSG_RESUME_PRINT                    _UxGT("Resume print")
 #define MSG_STOP_PRINT                      _UxGT("Stop print")
 #define MSG_STOP_SAVE_PRINT                 _UxGT("Stop and Save")
-#define MSG_CARD_MENU                       _UxGT("Print from ") MSG_SD
-#define MSG_NO_CARD                         _UxGT("No ") MSG_SD
+#define MSG_CARD_MENU                       _UxGT("Print from SD")
+#define MSG_NO_CARD                         _UxGT("No SD card")
 #define MSG_DWELL                           _UxGT("Sleep...")
 #define MSG_USERWAIT                        _UxGT("Wait for user...")
 #define MSG_RESUMING                        _UxGT("Resuming print")
@@ -163,8 +163,8 @@
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  F")
 #define MSG_AUTORETRACT                     _UxGT("AutoRetr.")
 #define MSG_FILAMENTCHANGE                  _UxGT("Change filament")
-#define MSG_INIT_SDCARD                     _UxGT("Init. ") MSG_SD
-#define MSG_CNG_SDCARD                      _UxGT("Change _") MSG_SD
+#define MSG_INIT_SDCARD                     _UxGT("Init. SD card")
+#define MSG_CNG_SDCARD                      _UxGT("Change SD card")
 #define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Self-Test")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
@@ -235,6 +235,13 @@
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CHANGE OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrude more")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Resume print")
+#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Minimum Temp is ")
+#define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozzle: ")
+
+//
+// Filament Change screens show up to 3 lines on a 4-line display
+//                        ...or up to 2 lines on a 3-line display
+//
 #if LCD_HEIGHT >= 4
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Wait for start")
   #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("of the filament")
@@ -245,6 +252,10 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insert filament")
   #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("and press button")
   #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("to continue...")
+  #define MSG_FILAMENT_CHANGE_HEAT_1          _UxGT("Press button to")
+  #define MSG_FILAMENT_CHANGE_HEAT_2          _UxGT("heat nozzle.")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Heating nozzle")
+  #define MSG_FILAMENT_CHANGE_HEATING_2       _UxGT("Please wait...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Wait for")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("filament load")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("")
@@ -258,6 +269,7 @@
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Please wait...")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Ejecting...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insert and Click")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Heating...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Loading...")
   #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Extruding...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Resuming...")

@@ -185,8 +185,8 @@
 
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
-#define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B);
-#define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B);
+#define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B)
+#define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B)
 
 #define HAL_timer_start (timer_num, frequency)
 #define HAL_timer_set_count(timer, count) timer = (count)
@@ -198,10 +198,18 @@
 #define HAL_STEP_TIMER_ISR      ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR      ISR(TIMER0_COMPB_vect)
 
-#define ENABLE_ISRs() \
-          cli(); \
-          ENABLE_TEMP_INTERRUPT(); \
-          ENABLE_STEPPER_DRIVER_INTERRUPT()
+#define _ENABLE_ISRs() \
+    do { \
+      cli(); \
+      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
+      else ENABLE_TEMP_INTERRUPT(); \
+      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
+    } while(0)
+
+#define CLI_ENABLE_TEMP_INTERRUPT() \
+    cli(); \
+    in_temp_isr = false; \
+    ENABLE_TEMP_INTERRUPT();
 
 /**
  * Public Variables
