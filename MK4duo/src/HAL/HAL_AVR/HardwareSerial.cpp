@@ -75,6 +75,10 @@ FORCE_INLINE void store_char(unsigned char c) {
       rx_buffer.head = i;
     }
   CRITICAL_SECTION_END;
+
+  #if ENABLED(EMERGENCY_PARSER)
+    emergency_parser(c);
+  #endif
 }
 
 #if TX_BUFFER_SIZE > 0
@@ -433,6 +437,95 @@ void MKHardwareSerial::printFloat(double number, uint8_t digits) {
 
 
 MKHardwareSerial MKSerial;
+
+#if ENABLED(EMERGENCY_PARSER)
+
+  // Currently looking for: M108, M112, M410
+  // If you alter the parser please don't forget to update the capabilities in Conditionals_post.h
+
+  FORCE_INLINE void emergency_parser(unsigned char c) {
+
+    static e_parser_state state = state_RESET;
+
+    switch (state) {
+      case state_RESET:
+        switch (c) {
+          case ' ': break;
+          case 'N': state = state_N;      break;
+          case 'M': state = state_M;      break;
+          default: state = state_IGNORE;
+        }
+        break;
+
+      case state_N:
+        switch (c) {
+          case '0': case '1': case '2':
+          case '3': case '4': case '5':
+          case '6': case '7': case '8':
+          case '9': case '-': case ' ':   break;
+          case 'M': state = state_M;      break;
+          default:  state = state_IGNORE;
+        }
+        break;
+
+      case state_M:
+        switch (c) {
+          case ' ': break;
+          case '1': state = state_M1;     break;
+          case '4': state = state_M4;     break;
+          default: state = state_IGNORE;
+        }
+        break;
+
+      case state_M1:
+        switch (c) {
+          case '0': state = state_M10;    break;
+          case '1': state = state_M11;    break;
+          default: state = state_IGNORE;
+        }
+        break;
+
+      case state_M10:
+        state = (c == '8') ? state_M108 : state_IGNORE;
+        break;
+
+      case state_M11:
+        state = (c == '2') ? state_M112 : state_IGNORE;
+        break;
+
+      case state_M4:
+        state = (c == '1') ? state_M41 : state_IGNORE;
+        break;
+
+      case state_M41:
+        state = (c == '0') ? state_M410 : state_IGNORE;
+        break;
+
+      case state_IGNORE:
+        if (c == '\n') state = state_RESET;
+        break;
+
+      default:
+        if (c == '\n') {
+          switch (state) {
+            case state_M108:
+              wait_for_user = wait_for_heatup = false;
+              break;
+            case state_M112:
+              kill(PSTR(MSG_KILLED));
+              break;
+            case state_M410:
+              quickstop_stepper();
+              break;
+            default:
+              break;
+          }
+          state = state_RESET;
+        }
+    }
+  }
+
+#endif
 
 #endif // whole file
 #endif // !USBCON

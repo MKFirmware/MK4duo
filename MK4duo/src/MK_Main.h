@@ -129,7 +129,7 @@ extern float position_shift[XYZ];
 extern float home_offset[XYZ];
 extern float hotend_offset[XYZ][HOTENDS];
 
-#if HAS(LCD)
+#if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
   extern volatile bool wait_for_user;
 #endif
 

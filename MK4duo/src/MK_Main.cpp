@@ -212,7 +212,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if HAS(LCD) || ENABLED(CNCROUTER)
+#if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
   volatile bool wait_for_user = false;
 #endif
 
@@ -1011,15 +1011,17 @@ inline void get_serial_commands() {
         }
       }
 
-      // If command was e-stop process now
-      if (strcmp(command, "M108") == 0) {
-        wait_for_heatup = false;
-        #if ENABLED(ULTIPANEL) || ENABLED(CNCROUTER)
-          wait_for_user = false;
-        #endif
-      }
-      if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
-      if (strcmp(command, "M410") == 0) { quickstop_stepper(); }
+      #if DISABLED(EMERGENCY_PARSER)
+        // If command was e-stop process now
+        if (strcmp(command, "M108") == 0) {
+          wait_for_heatup = false;
+          #if ENABLED(ULTIPANEL)
+            wait_for_user = false;
+          #endif
+        }
+        if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
+        if (strcmp(command, "M410") == 0) { quickstop_stepper(); }
+      #endif
 
       #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
         last_command_time = ms;
@@ -5689,7 +5691,7 @@ inline void gcode_G92() {
   report_current_position();
 }
 
-#if ENABLED(ULTIPANEL)
+#if ENABLED(EMERGENCY_PARSER) || ENABLED(ULTIPANEL)
 
   /**
    * M0: Unconditional stop - Wait for user button press on LCD
@@ -5738,7 +5740,7 @@ inline void gcode_G92() {
     wait_for_user = false;
     KEEPALIVE_STATE(IN_HANDLER);
   }
-#endif // ULTIPANEL
+#endif // EMERGENCY_PARSER || ULTIPANEL
 
 #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
 
@@ -6085,7 +6087,7 @@ inline void gcode_M42() {
           pin_state[pin - first_pin] = digitalRead(pin);
       }
 
-      #if ENABLED(ULTIPANEL)
+      #if ENABLED(EMERGENCY_PARSER) || ENABLED(ULTIPANEL)
         wait_for_user = true;
       #endif
 
@@ -6103,7 +6105,7 @@ inline void gcode_M42() {
           }
         }
 
-        #if ENABLED(ULTIPANEL)
+        #if ENABLED(EMERGENCY_PARSER) || ENABLED(ULTIPANEL)
           if (!wait_for_user) break;
         #endif
 
@@ -6848,10 +6850,12 @@ inline void gcode_M105() {
 
 #endif // HAS(FAN)
 
-/**
- * M108: Cancel heatup and wait for the hotend and bed, this G-code is asynchronously handled in the get_serial_commands() parser
- */
-inline void gcode_M108() { wait_for_heatup = false; }
+#if DISABLED(EMERGENCY_PARSER)
+  /**
+   * M108: Cancel heatup and wait for the hotend and bed, this G-code is asynchronously handled in the get_serial_commands() parser
+   */
+  inline void gcode_M108() { wait_for_heatup = false; }
+#endif
 
 /**
  * M109: Sxxx Wait for hotend(s) to reach temperature. Waits only when heating.
@@ -6929,10 +6933,12 @@ inline void gcode_M111() {
   SERIAL_E;
 }
 
-/**
- * M112: Emergency Stop
- */
-inline void gcode_M112() { kill(PSTR(MSG_KILLED)); }
+#if DISABLED(EMERGENCY_PARSER)
+  /**
+   * M112: Emergency Stop
+   */
+  inline void gcode_M112() { kill(PSTR(MSG_KILLED)); }
+#endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   /**
@@ -7007,6 +7013,13 @@ inline void gcode_M115() {
       SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
     #else
       SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
+    #endif
+
+    // EMERGENCY_PARSER (M108, M112, M410)
+    #if ENABLED(EMERGENCY_PARSER)
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:1");
+    #else
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:0");
     #endif
 
   #endif // EXTENDED_CAPABILITIES_REPORT
@@ -8458,13 +8471,15 @@ inline void gcode_M400() { stepper.synchronize(); }
   }
 #endif // JSON_OUTPUT
 
-/**
- * M410: Quickstop - Abort all planned moves
- *
- * This will stop the carriages mid-move, so most likely they
- * will be out of sync with the stepper position after this.
- */
-inline void gcode_M410() { quickstop_stepper(); }
+#if DISABLED(EMERGENCY_PARSER)
+  /**
+   * M410: Quickstop - Abort all planned moves
+   *
+   * This will stop the carriages mid-move, so most likely they
+   * will be out of sync with the stepper position after this.
+   */
+  inline void gcode_M410() { quickstop_stepper(); }
+#endif
 
 #if ENABLED(MESH_BED_LEVELING)
   /**
@@ -10348,11 +10363,11 @@ void process_next_command() {
     break;
 
     case 'M': switch (codenum) {
-      #if ENABLED(ULTIPANEL)
+      #if ENABLED(ULTIPANEL) || ENABLED(EMERGENCY_PARSER)
         case 0: // M0: Unconditional stop - Wait for user button press on LCD
         case 1: // M1: Conditional stop - Wait for user button press on LCD
           gcode_M0_M1(); break;
-      #endif // ULTIPANEL
+      #endif // ULTIPANEL || EMERGENCY_PARSER
 
       #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE) || ENABLED(CNCROUTER)
         case 3: // M03: Setting laser beam or CNC clockwise speed
@@ -10494,8 +10509,10 @@ void process_next_command() {
           gcode_M107(); break;
       #endif // HAS(FAN)
 
-      case 108: // M108: Cancel heatup
-        gcode_M108(); break;
+      #if DISABLED(EMERGENCY_PARSER)
+        case 108: // M108: Cancel heatup
+          gcode_M108(); break;
+      #endif
 
       case 109: // M109: Wait for hotend temperature to reach target
         gcode_M109(); break;
@@ -10506,8 +10523,10 @@ void process_next_command() {
       case 111: // M111: Set debug level
         gcode_M111(); break;
 
-      case 112: //  M112: Emergency Stop
-        gcode_M112(); break;
+      #if DISABLED(EMERGENCY_PARSER)
+        case 112: //  M112: Emergency Stop
+          gcode_M112(); break;
+      #endif
 
       #if ENABLED(HOST_KEEPALIVE_FEATURE)
         case 113: // M113: Set Host Keepalive interval
@@ -10751,8 +10770,10 @@ void process_next_command() {
           gcode_M408(); break;
       #endif // JSON_OUTPUT
 
-      case 410: // M410 quickstop - Abort all the planned moves.
-        gcode_M410(); break;
+      #if DISABLED(EMERGENCY_PARSER)
+        case 410: // M410 quickstop - Abort all the planned moves.
+          gcode_M410(); break;
+      #endif
 
       #if ENABLED(MESH_BED_LEVELING)
         case 420: // M420 Enable/Disable Mesh Bed Leveling

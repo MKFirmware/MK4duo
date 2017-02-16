@@ -86,6 +86,12 @@
 // Uncomment to include more info in ok command
 //#define ADVANCED_OK
 
+// Enable an emergency-command parser to intercept certain commands as they
+// enter the serial receive buffer, so they cannot be blocked.
+// Currently handles M108, M112, M410
+// Does not work on boards using Arduino DUE processors!
+//#define EMERGENCY_PARSER
+
 //
 // Host Keepalive
 //
