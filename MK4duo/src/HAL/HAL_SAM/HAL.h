@@ -316,9 +316,16 @@ void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
 
 #define HAL_TIMER_START(n) HAL_timer_start(n, n ## _PRIORITY, n ## _FREQUENCY, n ## _CLOCK, n ## _PRESCALE)
 
-#define ENABLE_ISRs() \
-          ENABLE_TEMP_INTERRUPT(); \
-          ENABLE_STEPPER_DRIVER_INTERRUPT()
+#define _ENABLE_ISRs() \
+    do { \
+      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
+      else ENABLE_TEMP_INTERRUPT(); \
+      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
+    } while(0)
+
+#define CLI_ENABLE_TEMP_INTERRUPT() \
+    in_temp_isr = false; \
+    ENABLE_TEMP_INTERRUPT();
 
 // Types
 typedef uint32_t millis_t;

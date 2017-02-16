@@ -38,6 +38,9 @@
   #ifdef M100_FREE_MEMORY_WATCHER
     #undef M100_FREE_MEMORY_WATCHER
   #endif
+  #if ENABLED(EMERGENCY_PARSER)
+    #undef EMERGENCY_PARSER
+  #endif
 #endif
 
 /**

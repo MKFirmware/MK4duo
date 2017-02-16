@@ -68,4 +68,7 @@
 // Router enable pin is inverted polarity
 //#define INVERTED_CNCROUTER_PIN
 
+// CNC ROUTERS must have EMERGENCY_PARSER
+#define EMERGENCY_PARSER
+
 #endif

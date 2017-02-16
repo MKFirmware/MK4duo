@@ -241,9 +241,14 @@
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CAMBIA OPZIONI:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Estrusione")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Riprendi stampa")
+#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp minima è ")
+#define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozzle: ")
 
+//
+// Filament Change screens show up to 3 lines on a 4-line display
+//                        ...or up to 2 lines on a 3-line display
+//
 #if LCD_HEIGHT >= 4
-  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Attendere avvio")
   #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("del cambio")
   #define MSG_FILAMENT_CHANGE_INIT_3          _UxGT("di filamento")
@@ -253,6 +258,10 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserisci il")
   #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("filamento e")
   #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("premi per cont")
+  #define MSG_FILAMENT_CHANGE_HEAT_1          _UxGT("Premi per")
+  #define MSG_FILAMENT_CHANGE_HEAT_2          _UxGT("riscaldare nozzle.")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Riscaldamento Nozzle")
+  #define MSG_FILAMENT_CHANGE_HEATING_2       _UxGT("attendere...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Attendere")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("il caricamento")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("del filamento")
@@ -263,10 +272,10 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("la ripresa")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("della stampa")
 #else // LCD_HEIGHT < 4
-  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Attendere...")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Espulsione...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserisci e premi")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Riscaldamento...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Caricamento...")
   #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Estrusione...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Ripresa...")
