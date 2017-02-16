@@ -5,6 +5,7 @@
 * Add M451 - Select FFF Printer Mode
 * Add M452 - Select Laser Printer Mode
 * Add M453 - Select CNC Printer Mode
+* Add EMERGENCY_PARSER (Only for AVR)
 * Update Nextion V0_9_8
 * Fix BLTOUCH
 * Fix endstop interrupts
