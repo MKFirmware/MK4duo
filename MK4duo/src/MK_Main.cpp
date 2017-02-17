@@ -10142,23 +10142,22 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
     // NEXTIME
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
     unsigned long saved_speed;
-    float saved_Z;
+    float saved_z;
     #endif
 
     if (tool_id != active_cnc_tool) {
+      
+      SERIAL_S(PAUSE);
 
       stepper.synchronize();
 		#if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
 	     saved_speed = getCNCSpeed();
+        saved_z = current_position[Z_AXIS];
+        do_blocking_move_to_z(CNCROUTER_SAFE_Z);
 		#endif		
 
       disable_cncrouter();
       safe_delay(300);
-
-      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-		  save_Z = current_position[Z_AXIS];
-        do_blocking_move_to_z(CNCROUTER_SAFE_Z); 
-      #endif
 
       // LCD click or M108 will clear this
       wait_for_user = true;
@@ -10188,6 +10187,8 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       stepper.synchronize();
 
       KEEPALIVE_STATE(IN_HANDLER);
+
+      SERIAL_S(RESUME);
 
     }
   }
