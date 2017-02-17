@@ -10139,7 +10139,6 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 #if ENABLED(CNCROUTER)
 
   void tool_change_cnc(uint8_t tool_id) {
-    // NEXTIME
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
     unsigned long saved_speed;
     float saved_z;
@@ -10190,7 +10189,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       KEEPALIVE_STATE(IN_HANDLER);
 
       SERIAL_S(RESUME);
-      SERIAL_E
+      SERIAL_E;
 
     }
   }
