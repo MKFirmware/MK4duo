@@ -64,6 +64,8 @@
 
 #ifdef analogInputToDigitalPin
 #undef analogInputToDigitalPin
+#endif
+
 #define analogInputToDigitalPin(p) ((p) + 0xA0)
 
 //#define EXTERNALSERIAL  // Force using arduino serial
