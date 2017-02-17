@@ -5786,8 +5786,10 @@ inline void gcode_G92() {
     #endif
 
     #if ENABLED(CNCROUTER)
-      if (printer_mode == PRINTER_MODE_CNC)
+      if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
+      }
     #endif
 
     prepare_move_to_destination();
@@ -5817,6 +5819,7 @@ inline void gcode_G92() {
 
     #if ENABLED(CNCROUTER)
       if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         disable_cncrouter();
         prepare_move_to_destination();
       }
