@@ -10148,6 +10148,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
     if (tool_id != active_cnc_tool) {
       
       SERIAL_S(PAUSE);
+      SERIAL_E;
 
       stepper.synchronize();
 		#if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
@@ -10189,6 +10190,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       KEEPALIVE_STATE(IN_HANDLER);
 
       SERIAL_S(RESUME);
+      SERIAL_E
 
     }
   }
