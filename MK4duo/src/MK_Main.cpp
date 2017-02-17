@@ -5711,14 +5711,23 @@ inline void gcode_G92() {
       hasS = codenum > 0;
     }
 
-    if (!hasP && !hasS && *args != '\0')
-      lcd_setstatus(args, true);
-    else {
-      LCD_MESSAGEPGM(MSG_USERWAIT);
-      #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-        dontExpireStatus();
-      #endif
-    }
+    #if ENABLED(ULTIPANEL)
+
+      if (!hasP && !hasS && *args != '\0')
+        lcd_setstatus(args, true);
+      else {
+        LCD_MESSAGEPGM(MSG_USERWAIT);
+        #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
+          dontExpireStatus();
+        #endif
+      }
+
+    #else
+
+      if (!hasP && !hasS && *args != '\0')
+        SERIAL_LV(ECHO, args);
+
+    #endif
 
     wait_for_user = true;
     KEEPALIVE_STATE(PAUSED_FOR_USER);
@@ -8801,8 +8810,8 @@ inline void gcode_M532() {
     void filament_change_beep() {
       const millis_t ms = millis();
       if (ELAPSED(ms, next_buzz)) {
-        if (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS + 5) { // Only beep as long as we're supposed to
-          next_buzz = ms + (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS ? 2500 : 400);
+        if (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_BEEPS + 5) { // Only beep as long as we're supposed to
+          next_buzz = ms + (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_BEEPS ? 2500 : 400);
           buzz(300, 2000);
           runout_beep++;
         }
@@ -8908,8 +8917,11 @@ inline void gcode_M532() {
     disable_e();
     safe_delay(100);
 
-    millis_t nozzle_timeout = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
-    bool nozzle_timed_out = false;
+    millis_t nozzle_timeout   = millis() + FILAMENT_CHANGE_NOZZLE_TIMEOUT * 1000L;
+    millis_t printer_timeout  = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
+    NOMORE(nozzle_timeout, printer_timeout);
+    bool  nozzle_timed_out  = false,
+          printer_timed_out = false;
     float old_target_temperature[HOTENDS];
 
     // Wait for filament insert by user and press button
@@ -8926,8 +8938,10 @@ inline void gcode_M532() {
 
     while (wait_for_user) {
       millis_t current_ms = millis();
-      if (nozzle_timed_out)
+      if (nozzle_timed_out && !printer_timed_out)
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
+      else if (printer_timed_out)
+        lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_PRINTER_OFF);
 
       #if HAS(BUZZER)
         filament_change_beep();
@@ -8936,11 +8950,20 @@ inline void gcode_M532() {
       if (current_ms >= nozzle_timeout) {
         if (!nozzle_timed_out) {
           nozzle_timed_out = true; // on nozzle timeout remember the nozzles need to be reheated
-          thermalManager.disable_all_heaters();
-          thermalManager.disable_all_coolers();
+          HOTEND_LOOP() thermalManager.setTargetHotend(0, h); // Turn off all the nozzles
           lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
         }
       }
+
+      if (current_ms >= printer_timeout) {
+        if (!printer_timed_out) {
+          printer_timed_out = true;
+          thermalManager.disable_all_heaters();
+          thermalManager.disable_all_coolers();
+          lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_PRINTER_OFF);
+        }
+      }
+
       idle(true);
     } // while(wait_for_user)
 
