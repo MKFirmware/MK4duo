@@ -5730,12 +5730,14 @@ inline void gcode_G92() {
       codenum += previous_cmd_ms;  // wait until this time for a click
       while (PENDING(millis(), codenum) && wait_for_user) idle();
     }
-    else {
-      if (lcd_detected()) {
-        while (wait_for_user) idle();
-        IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
+    #if ENABLED(ULTIPANEL)
+      else {
+        if (lcd_detected()) {
+          while (wait_for_user) idle();
+          IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
+        }
       }
-    }
+    #endif
 
     wait_for_user = false;
     KEEPALIVE_STATE(IN_HANDLER);
