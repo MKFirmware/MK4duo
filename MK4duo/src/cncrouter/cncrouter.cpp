@@ -122,7 +122,7 @@
   #endif
 
   // XXX TODO: support for CNCROUTER_ANTICLOCKWISE 
-  void setCNCRouterSpeed(unsigned long rpm, bool clockwise) {
+  void setCNCRouterSpeed(unsigned long rpm, bool clockwise/*=false*/) {
     #if ENABLED(FAST_PWM_CNCROUTER)
       if (rpm > MAX_CNCROUTER_SPEED) rpm = MAX_CNCROUTER_SPEED;
       if ((rpm < MIN_CNCROUTER_SPEED) && (rpm > 0)) rpm = MIN_CNCROUTER_SPEED;

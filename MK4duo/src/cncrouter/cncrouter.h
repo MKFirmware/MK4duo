@@ -56,7 +56,7 @@
       #endif // INVERTED_CNCROUTER_PIN
     #endif // FAST_PWM_CNCROUTER
 
-    void setCNCRouterSpeed(unsigned long rpm, bool clockwise);
+    void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
     void disable_cncrouter();
   #endif // CNCROUTER
 
