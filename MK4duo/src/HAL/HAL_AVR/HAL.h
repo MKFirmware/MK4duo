@@ -63,7 +63,7 @@
 #define CRITICAL_SECTION_END    SREG = _sreg;
 
 #ifdef analogInputToDigitalPin
-#undef analogInputToDigitalPin
+  #undef analogInputToDigitalPin
 #endif
 
 #define analogInputToDigitalPin(p) ((p) + 0xA0)

@@ -5603,7 +5603,7 @@ inline void gcode_G60() {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
-  memcpy(stored_position[slot], current_position, sizeof(*stored_position));
+  memcpy(stored_position[slot], current_position, sizeof(current_position));
   pos_saved = true;
 
   SERIAL_M(MSG_SAVED_POS);
@@ -6645,7 +6645,7 @@ inline void gcode_M92() {
       if (code_seen('D')) {
         ptr = (unsigned char*) __brkval;
 
-        // We want to start and end the dump on a nice 16 byte boundry even though
+        // We want to start and end the dump on a nice 16 byte boundary even though
         // the values we are using are not 16 byte aligned.
         //
         SERIAL_M("\n__brkval : ");
@@ -9549,7 +9549,7 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 
   #if ENABLED(CNCROUTER)
-
+    
     bool wait = true;
     bool raise_z = false;
 
