@@ -8867,10 +8867,11 @@ inline void gcode_M532() {
     #endif
 
     // Initial retract before move to filament change position
-    if (code_seen('E')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_RETRACT_LENGTH) && FILAMENT_CHANGE_RETRACT_LENGTH > 0
-      else destination[E_AXIS] -= FILAMENT_CHANGE_RETRACT_LENGTH;
-    #endif
+    destination[E_AXIS] += code_seen('E') ? code_value_axis_units(E_AXIS) : 0
+      #if ENABLED(FILAMENT_CHANGE_RETRACT_LENGTH) && FILAMENT_CHANGE_RETRACT_LENGTH > 0
+        - (FILAMENT_CHANGE_RETRACT_LENGTH)
+      #endif
+    ;
 
     RUNPLAN(FILAMENT_CHANGE_RETRACT_FEEDRATE);
 
@@ -8907,10 +8908,11 @@ inline void gcode_M532() {
     idle();
 
     // Unload filament
-    if (code_seen('L')) destination[E_AXIS] += code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_UNLOAD_LENGTH) && FILAMENT_CHANGE_UNLOAD_LENGTH > 0
-      else destination[E_AXIS] -= FILAMENT_CHANGE_UNLOAD_LENGTH;
-    #endif
+    destination[E_AXIS] += code_seen('L') ? code_value_axis_units(E_AXIS) : 0
+      #if ENABLED(FILAMENT_CHANGE_UNLOAD_LENGTH) && FILAMENT_CHANGE_UNLOAD_LENGTH > 0
+        - (FILAMENT_CHANGE_UNLOAD_LENGTH)
+      #endif
+    ;
 
     RUNPLAN(FILAMENT_CHANGE_UNLOAD_FEEDRATE);
 
@@ -8929,6 +8931,8 @@ inline void gcode_M532() {
 
     // Wait for filament insert by user and press button
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INSERT);
+
+    idle();
 
     // LCD click or M108 will clear this
     wait_for_user = true;
@@ -8977,15 +8981,15 @@ inline void gcode_M532() {
       // Show "wait for heating"
       lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
 
-      HOTEND_LOOP() {
-        thermalManager.setTargetHotend(old_target_temperature[h], h);
-        wait_heater();
-      }
-
       #if HAS(TEMP_BED)
         thermalManager.setTargetBed(old_target_temperature_bed);
         wait_bed();
       #endif
+
+      HOTEND_LOOP() {
+        thermalManager.setTargetHotend(old_target_temperature[h], h);
+        wait_heater();
+      }
     }
 
     // Show "insert filament"
@@ -9006,29 +9010,37 @@ inline void gcode_M532() {
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_LOAD);
 
     // Load filament
-    if (code_seen('L')) destination[E_AXIS] -= code_value_axis_units(E_AXIS);
-    #if ENABLED(FILAMENT_CHANGE_LOAD_LENGTH) && FILAMENT_CHANGE_LOAD_LENGTH > 0
-      else destination[E_AXIS] += FILAMENT_CHANGE_LOAD_LENGTH;
-    #endif
+    destination[E_AXIS] += code_seen('L') ? -code_value_axis_units(E_AXIS) : 0
+      #if ENABLED(FILAMENT_CHANGE_LOAD_LENGTH) && FILAMENT_CHANGE_LOAD_LENGTH > 0
+        + FILAMENT_CHANGE_LOAD_LENGTH
+      #endif
+    ;
 
     RUNPLAN(FILAMENT_CHANGE_LOAD_FEEDRATE);
     stepper.synchronize();
 
     #if ENABLED(FILAMENT_CHANGE_EXTRUDE_LENGTH) && FILAMENT_CHANGE_EXTRUDE_LENGTH > 0
       do {
-        // Extrude filament to get into hotend
+        // "Wait for filament extrude"
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_EXTRUDE);
+
+        // Extrude filament to get into hotend
         destination[E_AXIS] += FILAMENT_CHANGE_EXTRUDE_LENGTH;
         RUNPLAN(FILAMENT_CHANGE_EXTRUDE_FEEDRATE);
         stepper.synchronize();
-        // Ask user if more filament should be extruded
+
+        // Show "Extrude More" / "Resume" menu and wait for reply
         KEEPALIVE_STATE(PAUSED_FOR_USER);
+        wait_for_user = false;
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_OPTION);
         while (filament_change_menu_response == FILAMENT_CHANGE_RESPONSE_WAIT_FOR) idle(true);
         KEEPALIVE_STATE(IN_HANDLER);
+
+        // Keep looping if "Extrude More" was selected
       } while (filament_change_menu_response != FILAMENT_CHANGE_RESPONSE_RESUME_PRINT);
     #endif
 
+    // "Wait for print to resume"
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_RESUME);
 
     // Set extruder to saved position
@@ -9549,8 +9561,18 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 
   #if ENABLED(CNCROUTER)
+    
+    bool wait = true;
+    bool raise_z = false;
 
-    if (printer_mode == PRINTER_MODE_CNC) tool_change_cnc(tool_id);
+    if (printer_mode == PRINTER_MODE_CNC) {
+      // Host manage wait on change, don't block
+      if (code_seen('W')) wait=false;
+      // Host manage position, don't raise Z
+      if (code_seen('Z')) raise_z=false;
+
+      tool_change_cnc(tool_id, wait, raise_z);
+    }
 
   #endif
 
@@ -10164,7 +10186,8 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
   
 #if ENABLED(CNCROUTER)
 
-  void tool_change_cnc(uint8_t tool_id) {
+  // TODO: manage auto tool change 
+  void tool_change_cnc(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=true*/) {
 
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
       unsigned long saved_speed;
@@ -10173,51 +10196,60 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
     if (tool_id != active_cnc_tool) {
 
-      SERIAL_S(PAUSE);
-      SERIAL_E;
+      if (wait) {
+        SERIAL_S(PAUSE);
+        SERIAL_E;
+      }
 
       stepper.synchronize();
+
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-        saved_speed = getCNCSpeed();
-        saved_z = current_position[Z_AXIS];
-        do_blocking_move_to_z(CNCROUTER_SAFE_Z);
-      #endif		
+        if (raise_z) {
+          saved_speed = getCNCSpeed();
+          saved_z = current_position[Z_AXIS];
+          do_blocking_move_to_z(CNCROUTER_SAFE_Z);
+        }
+      #endif
 
       disable_cncrouter();
       safe_delay(300);
 
-      // LCD click or M108 will clear this
-      wait_for_user = true;
+      if (wait) {
+        // LCD click or M108 will clear this
+        wait_for_user = true;
 
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
+        KEEPALIVE_STATE(PAUSED_FOR_USER);
 
-      #if HAS(BUZZER)
-        millis_t next_buzz = millis();
-      #endif
-
-      while (wait_for_user) {
         #if HAS(BUZZER)
-          if (millis() - next_buzz > 60000) {
-            for (uint8_t i = 0; i < 3; i++) buzz(300, 1000);
-            next_buzz = millis();
-          }
+          millis_t next_buzz = millis();
         #endif
-        idle(true);
-      } // while (wait_for_user)
+
+        while (wait_for_user) {
+          #if HAS(BUZZER)
+            if (millis() - next_buzz > 60000) {
+              for (uint8_t i = 0; i < 3; i++) buzz(300, 1000);
+              next_buzz = millis();
+            }
+          #endif
+          idle(true);
+        } // while (wait_for_user)
+      } // if (wait)
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         else setCNCRouterSpeed(saved_speed);
-        do_blocking_move_to_z(saved_z);
+        if (raise_z)
+          do_blocking_move_to_z(saved_z);
       #endif
 
       stepper.synchronize();
 
-      KEEPALIVE_STATE(IN_HANDLER);
+      if (wait) {
+        KEEPALIVE_STATE(IN_HANDLER);
 
-      SERIAL_S(RESUME);
-      SERIAL_E;
-
+        SERIAL_S(RESUME);
+        SERIAL_E;
+      }
     }
   }
 
