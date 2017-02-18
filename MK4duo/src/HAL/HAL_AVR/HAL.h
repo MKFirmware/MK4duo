@@ -62,6 +62,10 @@
 #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
 #define CRITICAL_SECTION_END    SREG = _sreg;
 
+#ifdef analogInputToDigitalPin
+#undef analogInputToDigitalPin
+#endif
+
 #define analogInputToDigitalPin(p) ((p) + 0xA0)
 
 //#define EXTERNALSERIAL  // Force using arduino serial

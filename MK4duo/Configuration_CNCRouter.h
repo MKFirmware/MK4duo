@@ -53,6 +53,9 @@
 #define MAX_CNCROUTER_SPEED 32000
 #define MIN_CNCROUTER_SPEED 300
 
+// router safe Z position
+#define CNCROUTER_SAFE_Z 25.0
+
 // Work around for bad PWM drivers for spindles
 #define MAX_CNCROUTER_PWM_VAL 245
 
@@ -67,6 +70,9 @@
 
 // Router enable pin is inverted polarity
 //#define INVERTED_CNCROUTER_PIN
+
+// Automatic tool change (not yet supported)
+//#define CNCROUTER_AUTO_TOOL_CHANGE
 
 // CNC ROUTERS must have EMERGENCY_PARSER
 #define EMERGENCY_PARSER
