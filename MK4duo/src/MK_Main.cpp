@@ -5603,7 +5603,7 @@ inline void gcode_G60() {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
-  memcpy(stored_position[slot], current_position, sizeof(*stored_position));
+  memcpy(stored_position[slot], current_position, sizeof(current_position));
   pos_saved = true;
 
   SERIAL_M(MSG_SAVED_POS);
@@ -6645,7 +6645,7 @@ inline void gcode_M92() {
       if (code_seen('D')) {
         ptr = (unsigned char*) __brkval;
 
-        // We want to start and end the dump on a nice 16 byte boundry even though
+        // We want to start and end the dump on a nice 16 byte boundary even though
         // the values we are using are not 16 byte aligned.
         //
         SERIAL_M("\n__brkval : ");
@@ -10165,23 +10165,10 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 #if ENABLED(CNCROUTER)
 
   void tool_change_cnc(uint8_t tool_id) {
-    #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-    unsigned long saved_speed;
-    float saved_z;
-    #endif
 
     if (tool_id != active_cnc_tool) {
-      
-      SERIAL_S(PAUSE);
-      SERIAL_E;
 
       stepper.synchronize();
-		#if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-	     saved_speed = getCNCSpeed();
-        saved_z = current_position[Z_AXIS];
-        do_blocking_move_to_z(CNCROUTER_SAFE_Z);
-		#endif		
-
       disable_cncrouter();
       safe_delay(300);
 
@@ -10206,7 +10193,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-		  else setCNCRouterSpeed(saved_speed);
+        else setCNCRouterSpeed(saved_speed);
         do_blocking_move_to_z(saved_z);
       #endif
 

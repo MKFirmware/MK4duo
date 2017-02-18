@@ -191,7 +191,7 @@ class HAL {
       static void spiBegin();
       static void spiInit(uint8_t spiClock);
       static uint8_t spiReceive();
-      static void spiReadBlock(uint8_t*buf, uint16_t nbyte);
+      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
       static void spiSend(uint8_t b);
       static void spiSend(const uint8_t* buf , size_t n) ;
       static void spiSendBlock(uint8_t token, const uint8_t* buf);
@@ -202,13 +202,16 @@ class HAL {
       // Write single byte to SPI
       static void spiSend(byte b);
       static void spiSend(const uint8_t* buf, size_t n);
-      static void spiSend(uint32_t chan, byte b);
-      static void spiSend(uint32_t chan , const uint8_t* buf , size_t n);
+      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+        static void spiSend(uint32_t chan, byte b);
+        static void spiSend(uint32_t chan , const uint8_t* buf , size_t n);
+        static uint8_t spiReceive(uint32_t chan);
+      #endif
       // Read single byte from SPI
       static uint8_t spiReceive();
-      static uint8_t spiReceive(uint32_t chan);
       // Read from SPI into buffer
       static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+
       // Write from buffer to SPI
       static void spiSendBlock(uint8_t token, const uint8_t* buf);
     #endif
@@ -291,7 +294,6 @@ uint8_t eeprom_read_byte(uint8_t* pos);
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
-
 
 /******************************************
  * HAL Timers for stepper and temperature *
