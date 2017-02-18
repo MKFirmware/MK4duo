@@ -472,7 +472,7 @@
 #define FILAMENT_CHANGE_RETRACT_FEEDRATE 50 // Initial retract feedrate in mm/s
 #define FILAMENT_CHANGE_UNLOAD_LENGTH 100   // Unload filament length from hotend in mm
                                             // Longer length for bowden printers to unload filament from whole bowden tube,
-                                            // shorter lenght for printers without bowden to unload filament from extruder only,
+                                            // shorter length for printers without bowden to unload filament from extruder only,
                                             // 0 to disable unloading for manual unloading
 #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 100 // Unload filament feedrate in mm/s - filament unloading can be fast
 #define FILAMENT_CHANGE_LOAD_LENGTH 100     // Load filament length over hotend in mm
@@ -1050,7 +1050,7 @@
  * 'fr':'French',           'gl':'Galician',    'hr':'Croatian',        'it':'Italian',  *
  * 'kana':'Japanese',       'kana_utf8':'Japanese (UTF8)'               'nl':'Dutch',    *
  * 'pl':'Polish',           'pt':'Portuguese',  'ru':'Russian',         'tr':'Turkish',  *
- * 'uk':'Ukrainian',        'pt_utf8':'Portuguese (UTF8)',                               *
+ * 'uk':'Ukrainian',        'pt_utf8':'Portuguese (UTF8)',              'hu':'Hungarian',*
  * 'pt-br':'Portuguese (Brazilian)',                                                     *
  * 'pt-br_utf8':'Portuguese (Brazilian UTF8)',                                           *
  *                                                                                       *
@@ -1454,7 +1454,7 @@
  **************************************************************************
  *                                                                        *
  * Support for CNC Router                                                 *
- * Check also Configuration_CNCRouter.h
+ * Check also Configuration_CNCRouter.h                                   *
  *                                                                        *
  **************************************************************************/
 //#define CNCROUTER

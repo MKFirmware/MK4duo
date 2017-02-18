@@ -53,7 +53,7 @@
 #define MAX_CNCROUTER_SPEED 32000
 #define MIN_CNCROUTER_SPEED 300
 
-// router safe Z position
+// Router safe Z position
 #define CNCROUTER_SAFE_Z 25.0
 
 // Work around for bad PWM drivers for spindles
