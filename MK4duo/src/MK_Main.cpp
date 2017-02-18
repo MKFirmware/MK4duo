@@ -5603,7 +5603,7 @@ inline void gcode_G60() {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
-  memcpy(stored_position[slot], current_position, sizeof(*stored_position));
+  memcpy(stored_position[slot], current_position, sizeof(current_position));
   pos_saved = true;
 
   SERIAL_M(MSG_SAVED_POS);
@@ -5711,14 +5711,23 @@ inline void gcode_G92() {
       hasS = codenum > 0;
     }
 
-    if (!hasP && !hasS && *args != '\0')
-      lcd_setstatus(args, true);
-    else {
-      LCD_MESSAGEPGM(MSG_USERWAIT);
-      #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-        dontExpireStatus();
-      #endif
-    }
+    #if ENABLED(ULTIPANEL)
+
+      if (!hasP && !hasS && *args != '\0')
+        lcd_setstatus(args, true);
+      else {
+        LCD_MESSAGEPGM(MSG_USERWAIT);
+        #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
+          dontExpireStatus();
+        #endif
+      }
+
+    #else
+
+      if (!hasP && !hasS && *args != '\0')
+        SERIAL_LV(ECHO, args);
+
+    #endif
 
     wait_for_user = true;
     KEEPALIVE_STATE(PAUSED_FOR_USER);
@@ -5731,10 +5740,14 @@ inline void gcode_G92() {
       while (PENDING(millis(), codenum) && wait_for_user) idle();
     }
     else {
-      if (lcd_detected()) {
+      #if ENABLED(ULTIPANEL)
+        if (lcd_detected()) {
+          while (wait_for_user) idle();
+          IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
+        }
+      #else
         while (wait_for_user) idle();
-        IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
-      }
+      #endif
     }
 
     wait_for_user = false;
@@ -5773,8 +5786,10 @@ inline void gcode_G92() {
     #endif
 
     #if ENABLED(CNCROUTER)
-      if (printer_mode == PRINTER_MODE_CNC)
+      if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
+      }
     #endif
 
     prepare_move_to_destination();
@@ -5804,6 +5819,7 @@ inline void gcode_G92() {
 
     #if ENABLED(CNCROUTER)
       if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         disable_cncrouter();
         prepare_move_to_destination();
       }
@@ -6629,7 +6645,7 @@ inline void gcode_M92() {
       if (code_seen('D')) {
         ptr = (unsigned char*) __brkval;
 
-        // We want to start and end the dump on a nice 16 byte boundry even though
+        // We want to start and end the dump on a nice 16 byte boundary even though
         // the values we are using are not 16 byte aligned.
         //
         SERIAL_M("\n__brkval : ");
@@ -8797,8 +8813,8 @@ inline void gcode_M532() {
     void filament_change_beep() {
       const millis_t ms = millis();
       if (ELAPSED(ms, next_buzz)) {
-        if (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS + 5) { // Only beep as long as we're supposed to
-          next_buzz = ms + (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_ALERT_BEEPS ? 2500 : 400);
+        if (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_BEEPS + 5) { // Only beep as long as we're supposed to
+          next_buzz = ms + (runout_beep <= FILAMENT_CHANGE_NUMBER_OF_BEEPS ? 2500 : 400);
           buzz(300, 2000);
           runout_beep++;
         }
@@ -8904,8 +8920,11 @@ inline void gcode_M532() {
     disable_e();
     safe_delay(100);
 
-    millis_t nozzle_timeout = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
-    bool nozzle_timed_out = false;
+    millis_t nozzle_timeout   = millis() + FILAMENT_CHANGE_NOZZLE_TIMEOUT * 1000L;
+    millis_t printer_timeout  = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
+    NOMORE(nozzle_timeout, printer_timeout);
+    bool  nozzle_timed_out  = false,
+          printer_timed_out = false;
     float old_target_temperature[HOTENDS];
 
     // Wait for filament insert by user and press button
@@ -8922,8 +8941,10 @@ inline void gcode_M532() {
 
     while (wait_for_user) {
       millis_t current_ms = millis();
-      if (nozzle_timed_out)
+      if (nozzle_timed_out && !printer_timed_out)
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
+      else if (printer_timed_out)
+        lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_PRINTER_OFF);
 
       #if HAS(BUZZER)
         filament_change_beep();
@@ -8932,11 +8953,20 @@ inline void gcode_M532() {
       if (current_ms >= nozzle_timeout) {
         if (!nozzle_timed_out) {
           nozzle_timed_out = true; // on nozzle timeout remember the nozzles need to be reheated
-          thermalManager.disable_all_heaters();
-          thermalManager.disable_all_coolers();
+          HOTEND_LOOP() thermalManager.setTargetHotend(0, h); // Turn off all the nozzles
           lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
         }
       }
+
+      if (current_ms >= printer_timeout) {
+        if (!printer_timed_out) {
+          printer_timed_out = true;
+          thermalManager.disable_all_heaters();
+          thermalManager.disable_all_coolers();
+          lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_PRINTER_OFF);
+        }
+      }
+
       idle(true);
     } // while(wait_for_user)
 
@@ -10136,9 +10166,23 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
   void tool_change_cnc(uint8_t tool_id) {
 
+    #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+      unsigned long saved_speed;
+      float saved_z;
+    #endif
+
     if (tool_id != active_cnc_tool) {
 
+      SERIAL_S(PAUSE);
+      SERIAL_E;
+
       stepper.synchronize();
+      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+        saved_speed = getCNCSpeed();
+        saved_z = current_position[Z_AXIS];
+        do_blocking_move_to_z(CNCROUTER_SAFE_Z);
+      #endif		
+
       disable_cncrouter();
       safe_delay(300);
 
@@ -10162,10 +10206,17 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       } // while (wait_for_user)
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
+      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+        else setCNCRouterSpeed(saved_speed);
+        do_blocking_move_to_z(saved_z);
+      #endif
 
       stepper.synchronize();
 
       KEEPALIVE_STATE(IN_HANDLER);
+
+      SERIAL_S(RESUME);
+      SERIAL_E;
 
     }
   }

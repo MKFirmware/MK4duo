@@ -79,8 +79,8 @@
 #define MAX6675_SS            65
 #define MAX31855_SS0          65
 #define MAX31855_SS1          52
-#define MAX31855_SS2          50
-#define MAX31855_SS3          51
+#define MAX31855_SS2          51
+#define MAX31855_SS3          50
 
 #define ENC424_SS             61 
 

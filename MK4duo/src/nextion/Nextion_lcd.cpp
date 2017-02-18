@@ -709,6 +709,15 @@
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_2);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_printer_off() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_2);
       END_SCREEN();
     }
 
@@ -767,6 +776,9 @@
           break;
         case FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
           lcd_filament_change_heat_nozzle();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_PRINTER_OFF:
+          lcd_filament_change_printer_off();
           break;
         case FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
           lcd_filament_change_wait_for_nozzles_to_heat();

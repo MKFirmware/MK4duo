@@ -143,6 +143,7 @@ uint16_t max_display_update_time = 0;
     void lcd_filament_change_insert_message();
     void lcd_filament_change_load_message();
     void lcd_filament_change_heat_nozzle();
+    void lcd_filament_change_printer_off();
     void lcd_filament_change_extrude_message();
     void lcd_filament_change_resume_message();
   #endif
@@ -2708,6 +2709,19 @@ KeepDrawing:
       END_SCREEN();
     }
 
+    void lcd_filament_change_printer_off() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_1);
+      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
+        STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_2);
+      #endif
+      STATIC_ITEM(" ");
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
+      lcd_implementation_hotend_status();
+      END_SCREEN();
+    }
+
     void lcd_filament_change_insert_message() {
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
@@ -2788,6 +2802,9 @@ KeepDrawing:
           break;
         case FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
           lcd_goto_screen(lcd_filament_change_heat_nozzle);
+          break;
+        case FILAMENT_CHANGE_MESSAGE_PRINTER_OFF:
+          lcd_goto_screen(lcd_filament_change_printer_off);
           break;
         case FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
           lcd_goto_screen(lcd_filament_change_wait_for_nozzles_to_heat);
@@ -3143,7 +3160,7 @@ void lcd_update() {
     // If the action button is pressed...
     if (LCD_CLICKED) {
       if (!wait_for_unclick) {           // If not waiting for a debounce release:
-        wait_for_unclick = true;         //  Set debounce flag to ignore continous clicks
+        wait_for_unclick = true;         //  Set debounce flag to ignore continuous clicks
         lcd_clicked = !wait_for_user;    //  Keep the click if not waiting for a user-click
         wait_for_user = false;           //  Any click clears wait for user
         lcd_quick_feedback();            //  Always make a click sound

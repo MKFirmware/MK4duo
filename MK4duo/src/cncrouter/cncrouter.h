@@ -48,9 +48,15 @@
 
     #if ENABLED(FAST_PWM_CNCROUTER)
       unsigned long getCNCSpeed();
+    #else
+      #if ENABLED(INVERTED_CNCROUTER_PIN)
+        #define getCNCSpeed() READ(CNCROUTER_PIN)
+      #else
+        #define getCNCSpeed() !READ(CNCROUTER_PIN)
+      #endif // INVERTED_CNCROUTER_PIN
     #endif // FAST_PWM_CNCROUTER
 
-    void setCNCRouterSpeed(unsigned long rpm, bool clockwise);
+    void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
     void disable_cncrouter();
   #endif // CNCROUTER
 
