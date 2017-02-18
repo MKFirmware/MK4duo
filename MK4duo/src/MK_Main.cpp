@@ -10224,12 +10224,12 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-		  else setCNCRouterSpeed(saved_speed);
+        else setCNCRouterSpeed(saved_speed);
         if (raise_z)
           do_blocking_move_to_z(saved_z);
         }
       #endif
-    
+
       stepper.synchronize();
       
       if (wait)
