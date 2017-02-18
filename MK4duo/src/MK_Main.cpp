@@ -10177,8 +10177,8 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
   // TODO: manage auto tool change 
   void tool_change_cnc(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=true*/) {
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-    unsigned long saved_speed;
-    float saved_z;
+      unsigned long saved_speed;
+      float saved_z;
     #endif
 
     if (tool_id != active_cnc_tool) {
@@ -10192,7 +10192,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         if (raise_z)
-	       saved_speed = getCNCSpeed();
+          saved_speed = getCNCSpeed();
           saved_z = current_position[Z_AXIS];
           do_blocking_move_to_z(CNCROUTER_SAFE_Z);
         }
