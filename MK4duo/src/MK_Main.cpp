@@ -5786,8 +5786,10 @@ inline void gcode_G92() {
     #endif
 
     #if ENABLED(CNCROUTER)
-      if (printer_mode == PRINTER_MODE_CNC)
+      if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         if (code_seen('S')) setCNCRouterSpeed(code_value_ulong(), clockwise);
+      }
     #endif
 
     prepare_move_to_destination();
@@ -5817,6 +5819,7 @@ inline void gcode_G92() {
 
     #if ENABLED(CNCROUTER)
       if (printer_mode == PRINTER_MODE_CNC) {
+        stepper.synchronize();
         disable_cncrouter();
         prepare_move_to_destination();
       }
@@ -10162,10 +10165,23 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 #if ENABLED(CNCROUTER)
 
   void tool_change_cnc(uint8_t tool_id) {
+    #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+    unsigned long saved_speed;
+    float saved_z;
+    #endif
 
     if (tool_id != active_cnc_tool) {
+      
+      SERIAL_S(PAUSE);
+      SERIAL_E;
 
       stepper.synchronize();
+		#if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+	     saved_speed = getCNCSpeed();
+        saved_z = current_position[Z_AXIS];
+        do_blocking_move_to_z(CNCROUTER_SAFE_Z);
+		#endif		
+
       disable_cncrouter();
       safe_delay(300);
 
@@ -10189,10 +10205,17 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       } // while (wait_for_user)
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
+      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+		  else setCNCRouterSpeed(saved_speed);
+        do_blocking_move_to_z(saved_z);
+      #endif
 
       stepper.synchronize();
 
       KEEPALIVE_STATE(IN_HANDLER);
+
+      SERIAL_S(RESUME);
+      SERIAL_E;
 
     }
   }
