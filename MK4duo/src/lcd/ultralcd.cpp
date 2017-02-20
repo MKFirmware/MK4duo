@@ -1512,60 +1512,68 @@ KeepDrawing:
 
   #if MECH(DELTA)
 
-    void lcd_move_z();
-    void lcd_delta_calibrate_menu();
+    #if ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
 
-    void _lcd_calibrate_homing() {
-      if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
-      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
-      if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
-        lcd_goto_previous_menu();
-    }
-
-    void _lcd_delta_calibrate_home() {
-      enqueue_and_echo_commands_P(PSTR("G28"));
-      lcd_goto_screen(_lcd_calibrate_homing);
-    }
-
-    // Move directly to the tower position with uninterpolated moves
-    // If we used interpolated moves it would cause this to become re-entrant
-    void _goto_tower_pos(const float &a) {
-      if (no_reentrance) return;
-
-      current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (DELTA_PRINTABLE_RADIUS) / 5;
-      line_to_current(Z_AXIS);
-
-      current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(DELTA_PRINTABLE_RADIUS);
-      current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (DELTA_PRINTABLE_RADIUS);
-      line_to_current(Z_AXIS);
-
-      current_position[Z_AXIS] = 4.0;
-      line_to_current(Z_AXIS);
-
-      lcd_synchronize();
-
-      move_menu_scale = 0.1;
-      lcd_goto_screen(lcd_move_z);
-    }
-
-    void _goto_tower_x() { _goto_tower_pos(RADIANS(120)); }
-    void _goto_tower_y() { _goto_tower_pos(RADIANS(240)); }
-    void _goto_tower_z() { _goto_tower_pos(0); }
-    void _goto_center()  { _goto_tower_pos(-1); }
-
-    void lcd_delta_calibrate_menu() {
-      START_MENU();
-      MENU_BACK(MSG_MAIN);
-      MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
-      if (axis_homed[Z_AXIS]) {
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_CENTER, _goto_center);
+      void lcd_delta_calibrate_menu() {
+        enqueue_and_echo_commands_P(PSTR("G30 A"));
       }
-      END_MENU();
-    }
 
+    #else
+
+      void lcd_move_z();
+
+      void _lcd_calibrate_homing() {
+        if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
+        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
+        if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
+          lcd_goto_previous_menu();
+      }
+
+      void _lcd_delta_calibrate_home() {
+        enqueue_and_echo_commands_P(PSTR("G28"));
+        lcd_goto_screen(_lcd_calibrate_homing);
+      }
+
+      // Move directly to the tower position with uninterpolated moves
+      // If we used interpolated moves it would cause this to become re-entrant
+      void _goto_tower_pos(const float &a) {
+        if (no_reentrance) return;
+
+        current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (DELTA_PRINTABLE_RADIUS) / 5;
+        line_to_current(Z_AXIS);
+
+        current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(DELTA_PRINTABLE_RADIUS);
+        current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (DELTA_PRINTABLE_RADIUS);
+        line_to_current(Z_AXIS);
+
+        current_position[Z_AXIS] = 4.0;
+        line_to_current(Z_AXIS);
+
+        lcd_synchronize();
+
+        move_menu_scale = 0.1;
+        lcd_goto_screen(lcd_move_z);
+      }
+
+      void _goto_tower_x() { _goto_tower_pos(RADIANS(120)); }
+      void _goto_tower_y() { _goto_tower_pos(RADIANS(240)); }
+      void _goto_tower_z() { _goto_tower_pos(0); }
+      void _goto_center()  { _goto_tower_pos(-1); }
+
+      void lcd_delta_calibrate_menu() {
+        START_MENU();
+        MENU_BACK(MSG_MAIN);
+        MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
+        if (axis_homed[Z_AXIS]) {
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_CENTER, _goto_center);
+        }
+        END_MENU();
+      }
+
+    #endif // !AUTO_CALIBRATION_FEATURE || !AUTO_CALIBRATION_7_POINT
   #endif // DELTA
 
   /**
