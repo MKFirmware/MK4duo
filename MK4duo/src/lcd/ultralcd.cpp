@@ -2452,32 +2452,32 @@ KeepDrawing:
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
-      sprintf(lifeTime, "%ud %uh %um", day, hours, minutes);
+      sprintf_P(lifeTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
       t       = print_job_counter.data.printTime / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
-      sprintf(printTime, "%ud %uh %um", day, hours, minutes);
+      sprintf_P(printTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
       kmeter      = (long)print_job_counter.data.filamentUsed / 1000 / 1000;
       meter       = ((long)print_job_counter.data.filamentUsed / 1000) % 1000;
       centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
-      sprintf(Filamentlung, "%uKm %um %ucm", kmeter, meter, centimeter);
+      sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
 
       #if HAS(POWER_CONSUMPTION_SENSOR)
         char Power[10];
-        sprintf(Power, "%uWh", power_consumption_hour);
+        sprintf_P(Power, PSTR("%uWh"), power_consumption_hour);
       #endif
 
       START_SCREEN();
-      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", itostr3left(print_job_counter.data.totalPrints));
-      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ", itostr3left(print_job_counter.data.finishedPrints));
-      STATIC_ITEM(MSG_INFO_ON_TIME ": ", lifeTime);
-      STATIC_ITEM(MSG_INFO_PRINT_TIME ": ", printTime);
-      STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ", Filamentlung);
+      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(print_job_counter.data.totalPrints));
+      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(print_job_counter.data.finishedPrints));
+      STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
+      STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
+      STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
       #if HAS(POWER_CONSUMPTION_SENSOR)
-        STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ", Power);
+        STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ",  false, false, Power);
       #endif
       END_SCREEN();
     }

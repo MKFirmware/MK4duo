@@ -457,7 +457,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
     }
 
     /**
@@ -470,7 +470,7 @@ class Planner {
      */
     static float intersection_distance(const float &initial_rate, const float &final_rate, const float &accel, const float &distance) {
       if (accel == 0) return 0; // accel was 0, set intersection distance to 0
-      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4);
+      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4.0);
     }
 
     /**
