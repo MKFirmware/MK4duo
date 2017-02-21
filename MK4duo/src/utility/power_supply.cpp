@@ -38,8 +38,8 @@
     millis_t ms = millis();
 
     if (ELAPSED(ms, nextPowerCheck)) {
-      nextPowerCheck = ms + 2500UL;
-      if (!powersupply && is_power_needed()) power_on();
+      nextPowerCheck = ms + 2000UL;
+      if (is_power_needed()) power_on();
     }
   }
 

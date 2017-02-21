@@ -12526,7 +12526,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if HAS(POWER_SWITCH)
-    powerManager.check(); // Check Power
+    if (!powersupply) powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
