@@ -3248,8 +3248,9 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
  *  - Set the feedrate_mm_s, if included
  */
 void gcode_get_destination() {
+
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if(code_seen('E') IDLE_OOZING_retract(false);
+    if (code_seen('E')) IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {
