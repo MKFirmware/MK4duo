@@ -55,6 +55,10 @@
   bool flow_firstread = false;
 #endif
 
+#if HAS(POWER_SWITCH)
+  Power powerManager;
+#endif
+
 bool Running = true;
 
 // Print status related
@@ -191,6 +195,14 @@ float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
 
 int fanSpeed = 0;
 
+#if HAS(CONTROLLERFAN)
+  uint8_t controllerFanSpeed;
+#endif
+
+#if HAS(AUTO_FAN)
+  uint8_t autoFanSpeeds[HOTENDS];
+#endif
+
 float hotend_offset[XYZ][HOTENDS];
 
 // The active extruder (tool). Set with T<extruder> command.
@@ -315,16 +327,6 @@ PrintCounter print_job_counter = PrintCounter();
   float retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
 
 #endif // FWRETRACT
-
-#if HAS(POWER_SWITCH)
-  bool powersupply = 
-    #if ENABLED(PS_DEFAULT_OFF)
-      false
-    #else
-      true
-    #endif
-  ;
-#endif
 
 #if HAS(CASE_LIGHT)
   bool case_light_on =
@@ -835,9 +837,9 @@ void setup_powerhold() {
   #endif
   #if HAS(POWER_SWITCH)
     #if ENABLED(PS_DEFAULT_OFF)
-      OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+      powerManager.power_off();
     #else
-      OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+      powerManager.power_on();
     #endif
   #endif
 }
@@ -6429,7 +6431,7 @@ inline void gcode_M78() {
    * M80: Turn on Power Supply
    */
   inline void gcode_M80() {
-    OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE); // GND
+    powerManager.power_on();
 
     // If you have a switch on suicide pin, this is useful
     // if you want to start another print with suicide feature after
@@ -6437,8 +6439,6 @@ inline void gcode_M78() {
     #if HAS(SUICIDE)
       OUT_WRITE(SUICIDE_PIN, HIGH);
     #endif
-
-    powersupply = true;
 
     #if HAS(LCD)
       LCD_MESSAGEPGM(WELCOME_MSG);
@@ -6482,8 +6482,7 @@ inline void gcode_M81() {
     stepper.synchronize();
     suicide();
   #elif HAS(POWER_SWITCH)
-    OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-    powersupply = false;
+    powerManager.power_off();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -6807,7 +6806,7 @@ inline void gcode_M104() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) LCD_MESSAGEPGM(MSG_HEATING);
+    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER + 1, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -6894,7 +6893,7 @@ inline void gcode_M109() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) LCD_MESSAGEPGM(MSG_HEATING);
+    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER + 1, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -8271,7 +8270,7 @@ inline void gcode_M400() { stepper.synchronize(); }
 
     #if HAS(POWER_SWITCH)
       SERIAL_M(",\"params\": {\"atxPower\":");
-      SERIAL_M(powersupply ? "1" : "0");
+      SERIAL_M(powerManager.powersupply ? "1" : "0");
     #else
       SERIAL_M(",\"params\": {\"NormPower\":");
     #endif
@@ -12168,25 +12167,28 @@ static void report_current_position() {
             || E2_ENABLE_READ == E_ENABLE_ON
             #if EXTRUDERS > 3
               || E3_ENABLE_READ == E_ENABLE_ON
+              #if EXTRUDERS > 4
+                || E4_ENABLE_READ == E_ENABLE_ON
+                #if EXTRUDERS > 5
+                  || E5_ENABLE_READ == E_ENABLE_ON
+                #endif
+              #endif
             #endif
           #endif
         #endif
       ) {
         lastMotor = ms; //... set time to NOW so the fan will turn on
       }
-      
-  #if ENABLED(INVERTED_HEATER_PINS)
-      uint8_t speed = (lastMotor == 0 || ms >= lastMotor + (CONTROLLERFAN_SECS * 1000UL)) ? 255 - CONTROLLERFAN_MIN_SPEED : (255 - CONTROLLERFAN_SPEED);
-  #else
-      uint8_t speed = (lastMotor == 0 || ms >= lastMotor + (CONTROLLERFAN_SECS * 1000UL)) ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
-  #endif
+
+      // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
+      controllerFanSpeed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
 
       // allows digital or PWM fan output to be used (see M42 handling)
       #if ENABLED(FAN_SOFT_PWM)
-        fanSpeedSoftPwm_controller = speed;
+        fanSpeedSoftPwm_controller = controllerFanSpeed;
       #else
-        digitalWrite(CONTROLLERFAN_PIN, speed);
-        analogWrite(CONTROLLERFAN_PIN, speed);
+        digitalWrite(CONTROLLERFAN_PIN, controllerFanSpeed);
+        analogWrite(CONTROLLERFAN_PIN, controllerFanSpeed);
       #endif
     }
   }
@@ -12520,6 +12522,10 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     
   #if HAS(CONTROLLERFAN)
     controllerFan(); // Check if fan should be turned on to cool stepper drivers down
+  #endif
+
+  #if HAS(POWER_SWITCH)
+    powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)

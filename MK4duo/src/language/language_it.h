@@ -209,7 +209,7 @@
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibra Centro")
 
 // Info printers
-#define MSG_INFO_MENU                       _UxGT("Riguardo stampante")
+#define MSG_INFO_MENU                       _UxGT("Info. stampante")
 #define MSG_INFO_FIRMWARE_MENU              _UxGT("Info. Firmware")
 #define MSG_INFO_STATS_MENU                 _UxGT("Statistiche")
 #define MSG_INFO_BOARD_MENU                 _UxGT("Info. scheda")

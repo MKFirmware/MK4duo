@@ -201,6 +201,14 @@ float code_value_temp_diff();
 
 extern int fanSpeed;
 
+#if HAS(CONTROLLERFAN)
+  extern uint8_t controllerFanSpeed;
+#endif
+
+#if HAS(AUTO_FAN)
+  extern uint8_t autoFanSpeeds[HOTENDS];
+#endif
+
 #if ENABLED(BARICUDA)
   extern int baricuda_valve_pressure;
   extern int baricuda_e_to_p_pressure;

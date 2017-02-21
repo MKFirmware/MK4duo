@@ -113,10 +113,6 @@ uint16_t max_display_update_time = 0;
   bool encoderRateMultiplierEnabled;
   int32_t lastEncoderMovementMillis;
 
-  #if HAS(POWER_SWITCH)
-    extern bool powersupply;
-  #endif
-
   const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
   void lcd_main_menu();
   void lcd_tune_menu();
@@ -1492,7 +1488,7 @@ KeepDrawing:
     // Switch power on/off
     //
     #if HAS(POWER_SWITCH)
-      if (powersupply)
+      if (powerManager.powersupply)
         MENU_ITEM(gcode, MSG_SWITCH_PS_OFF, PSTR("M81"));
       else
         MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));
@@ -3448,6 +3444,16 @@ void lcd_setstatuspgm(const char* const message, uint8_t level) {
   if (level < lcd_status_message_level) return;
   lcd_status_message_level = level;
   strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
+  lcd_finishstatus(level > 0);
+}
+
+void status_printf(uint8_t level, const char *status, ...) {
+  if (level < lcd_status_message_level) return;
+  lcd_status_message_level = level;
+  va_list args;
+  va_start(args, status);
+  vsnprintf(lcd_status_message, 3 * (LCD_WIDTH), status, args);
+  va_end(args);
   lcd_finishstatus(level > 0);
 }
 

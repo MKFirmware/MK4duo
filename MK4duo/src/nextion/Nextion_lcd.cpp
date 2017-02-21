@@ -1287,11 +1287,21 @@
   }
 
   void lcd_setstatuspgm(const char* message, uint8_t level) {
-    if (level >= lcd_status_message_level && NextionON) {
+    if (level < lcd_status_message_level && NextionON) {
       strncpy_P(lcd_status_message, message, 30);
       lcd_status_message_level = level;
       if (PageID == 2) LcdStatus.setText(lcd_status_message);
     }
+  }
+
+  void status_printf(uint8_t level, const char *status, ...) {
+    if (level < lcd_status_message_level) return;
+    lcd_status_message_level = level;
+    va_list args;
+    va_start(args, status);
+    vsnprintf(lcd_status_message, 30, status, args);
+    va_end(args);
+    if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
   void lcd_setalertstatuspgm(const char* message) {
