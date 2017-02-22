@@ -45,6 +45,7 @@
 
   void Power::power_on() {
     OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+    HAL::delayMilliseconds(5000L);
     powersupply = true;
   }
 
