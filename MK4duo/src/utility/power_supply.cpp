@@ -63,7 +63,7 @@
     #endif
 
     #if HAS(AUTO_FAN)
-      HOTEND_LOOP() if (autoFanSpeeds[i] > 0) return true;
+      HOTEND_LOOP() if (autoFanSpeeds[h] > 0) return true;
     #endif
 
     if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON || thermalManager.soft_pwm_bed > 0
