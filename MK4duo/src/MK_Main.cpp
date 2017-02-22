@@ -3983,6 +3983,10 @@ inline void gcode_G28() {
     }
   #endif
 
+  #if HAS(POWER_SWITCH)
+    if (!powerManager.powersupply) powerManager.power_on(); // Power On if power is off
+  #endif
+
   // Wait for planner moves to finish!
   stepper.synchronize();
 
