@@ -10471,7 +10471,7 @@ void process_next_command() {
           gcode_M0_M1(); break;
       #endif // ULTIPANEL || EMERGENCY_PARSER
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE) || ENABLED(CNCROUTER)
+      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
         case 3: // M03: Setting laser beam or CNC clockwise speed
         case 4: // M04: Turn on laser beam or CNC counter clockwise speed
           gcode_M3_M4(codenum == 3); break;
