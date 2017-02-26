@@ -79,8 +79,8 @@
 *  M100 - Watch Free Memory (For Debugging Only)
 *  M104 - Set hotend target temp
 *  M105 - Read current temp
-*  M106 - Fan on
-*  M107 - Fan off
+*  M106 - S<speed> P<fan> Fan on
+*  M107 - P<fan> Fan off
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating
           R[xxx] Wait for hotend current temp to reach target temp. Waits when heating and cooling
           IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
