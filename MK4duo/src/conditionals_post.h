@@ -165,7 +165,10 @@
 #define AUTO_3_IS_1 (H3_AUTO_FAN_PIN == H1_AUTO_FAN_PIN)
 #define AUTO_3_IS_2 (H3_AUTO_FAN_PIN == H2_AUTO_FAN_PIN)
 #define HAS_AUTO_FAN (HAS_AUTO_FAN_0 || HAS_AUTO_FAN_1 || HAS_AUTO_FAN_2 || HAS_AUTO_FAN_3)
-#define HAS_FAN (PIN_EXISTS(FAN))
+#define HAS_FAN0 (PIN_EXISTS(FAN))
+#define HAS_FAN1 (PIN_EXISTS(FAN1) && CONTROLLERFAN_PIN != FAN1_PIN && H0_AUTO_FAN_PIN != FAN1_PIN && H1_AUTO_FAN_PIN != FAN1_PIN && H2_AUTO_FAN_PIN != FAN1_PIN && H3_AUTO_FAN_PIN != FAN1_PIN)
+#define HAS_FAN2 (PIN_EXISTS(FAN2) && CONTROLLERFAN_PIN != FAN2_PIN && H0_AUTO_FAN_PIN != FAN2_PIN && H1_AUTO_FAN_PIN != FAN2_PIN && H2_AUTO_FAN_PIN != FAN2_PIN && H3_AUTO_FAN_PIN != FAN2_PIN)
+#define HAS_FAN3 (PIN_EXISTS(FAN3) && CONTROLLERFAN_PIN != FAN3_PIN && H0_AUTO_FAN_PIN != FAN3_PIN && H1_AUTO_FAN_PIN != FAN3_PIN && H2_AUTO_FAN_PIN != FAN3_PIN && H3_AUTO_FAN_PIN != FAN3_PIN)
 #define HAS_CONTROLLERFAN (ENABLED(CONTROLLERFAN) && PIN_EXISTS(CONTROLLERFAN))
 #define HAS_SERVO_0 (PIN_EXISTS(SERVO0))
 #define HAS_SERVO_1 (PIN_EXISTS(SERVO1))
@@ -678,13 +681,55 @@
     #define WRITE_COOLER(v) WRITE(COOLER_PIN,v)
   #endif
 #endif
-#if HAS(FAN)
+
+/**
+ * Up to 4 PWM fans
+ */
+#if HAS(FAN3)
+  #define FAN_COUNT 4
+#elif HAS(FAN2)
+  #define FAN_COUNT 3
+#elif HAS(FAN1)
+  #define FAN_COUNT 2
+#elif HAS(FAN0)
+  #define FAN_COUNT 1
+#else
+  #define FAN_COUNT 0
+#endif
+#define FAN_LOOP() for (uint8_t f = 0; f < FAN_COUNT; f++)
+
+#if HAS(FAN0)
   #if ENABLED(INVERTED_HEATER_PINS)
     #define WRITE_FAN(v) WRITE(FAN_PIN, !v)
+    #define WRITE_FAN0(v) WRITE_FAN(v)
   #else
     #define WRITE_FAN(v) WRITE(FAN_PIN, v)
+    #define WRITE_FAN0(v) WRITE_FAN(v)
   #endif
 #endif
+#if HAS(FAN1)
+  #if ENABLED(INVERTED_HEATER_PINS)
+    #define WRITE_FAN1(v) WRITE(FAN1_PIN, !v)
+  #else
+    #define WRITE_FAN1(v) WRITE(FAN1_PIN, v)
+  #endif
+#endif
+#if HAS(FAN2)
+  #if ENABLED(INVERTED_HEATER_PINS)
+    #define WRITE_FAN2(v) WRITE(FAN2_PIN, !v)
+  #else
+    #define WRITE_FAN2(v) WRITE(FAN2_PIN, v)
+  #endif
+#endif
+#if HAS(FAN3)
+  #if ENABLED(INVERTED_HEATER_PINS)
+    #define WRITE_FAN3(v) WRITE(FAN3_PIN, !v)
+  #else
+    #define WRITE_FAN3(v) WRITE(FAN3_PIN, v)
+  #endif
+#endif
+#define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
+
 #if HAS(CNCROUTER)
   #if ENABLED(INVERTED_CNCROUTER_PIN)
     #define WRITE_CNCROUTER(v) WRITE(CNCROUTER_PIN, !v)

@@ -402,7 +402,7 @@
 
     VSpeed.setValue(100, "printer");
 
-    #if HAS(FAN)
+    #if FAN_COUNT > 0
       Fan.setValue(1, "printer");
     #endif
 
@@ -910,16 +910,18 @@
     enqueue_and_echo_command(buffer);
   }
 
-  void setfanPopCallback(void *ptr) {
-    if (fanSpeed) {
-      fanSpeed = 0;
-      Fantimer.disable();
+  #if FAN_COUNT > 0
+    void setfanPopCallback(void *ptr) {
+      if (fanSpeeds[0]) {
+        fanSpeeds[0] = 0;
+        Fantimer.disable();
+      }
+      else {
+        fanSpeeds[0] = 255;
+        Fantimer.enable();
+      }
     }
-    else {
-      fanSpeed = 255;
-      Fantimer.enable();
-    }
-  }
+  #endif
 
   void setmovePopCallback(void *ptr) {
 
@@ -1028,7 +1030,10 @@
         Hotend2.attachPop(hotPopCallback, &Hotend2);
       #endif
 
-      Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #if FAN_COUNT > 0
+        Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #endif
+
       tenter.attachPop(sethotPopCallback,   &tenter);
       tup.attachPop(settempPopCallback,     &tup);
       tdown.attachPop(settempPopCallback,   &tdown);
@@ -1150,21 +1155,23 @@
             #endif
           }
 
-          if (PreviousfanSpeed != fanSpeed) {
-            if (fanSpeed > 0) {
-              Fantimer.enable();
-              ZERO(buffer);
-              temp = itostr3(((float)fanSpeed / 255) * 100);
-              strcat(buffer, temp);
-              strcat(buffer, "%");
-              Fanspeed.setText(buffer);
+          #if FAN_COUNT > 0
+            if (PreviousfanSpeed != fanSpeeds[0]) {
+              if (fanSpeeds[0] > 0) {
+                Fantimer.enable();
+                ZERO(buffer);
+                temp = itostr3(((float)fanSpeeds[0] / 255) * 100);
+                strcat(buffer, temp);
+                strcat(buffer, "%");
+                Fanspeed.setText(buffer);
+              }
+              else {
+                Fantimer.disable();
+                Fanspeed.setText("");
+              }
+              PreviousfanSpeed = fanSpeeds[0];
             }
-            else {
-              Fantimer.disable();
-              Fanspeed.setText("");
-            }
-            PreviousfanSpeed = fanSpeed;
-          }
+          #endif
 
           if (Previousfeedrate != feedrate_percentage) {
             VSpeed.setValue(feedrate_percentage);

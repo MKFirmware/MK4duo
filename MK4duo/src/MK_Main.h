@@ -199,7 +199,9 @@ float code_value_temp_diff();
   extern uint32_t host_keepalive_interval;
 #endif
 
-extern int fanSpeed;
+#if FAN_COUNT > 0
+  extern int fanSpeeds[FAN_COUNT];
+#endif
 
 #if HAS(CONTROLLERFAN)
   extern uint8_t controllerFanSpeed;

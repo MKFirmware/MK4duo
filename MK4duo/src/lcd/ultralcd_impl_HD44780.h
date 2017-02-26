@@ -1017,7 +1017,22 @@ static void lcd_implementation_status_screen() {
 
     if (thermalManager.degTargetHotend(0) > 0) leds |= LED_B;
 
-    if (fanSpeed) leds |= LED_C;
+    #if FAN_COUNT > 0
+      if (0
+        #if HAS(FAN0)
+          || fanSpeeds[0]
+        #endif
+        #if HAS(FAN1)
+          || fanSpeeds[1]
+        #endif
+        #if HAS(FAN2)
+          || fanSpeeds[2]
+        #endif
+        #if HAS(FAN3)
+          || fanSpeeds[3]
+        #endif
+      ) leds |= LED_C;
+    #endif // FAN_COUNT > 0
 
     #if HOTENDS > 1
       if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;

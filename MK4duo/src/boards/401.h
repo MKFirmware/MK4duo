@@ -60,7 +60,7 @@
 #define ORIG_BEEPER_PIN         41
 
 #define ORIG_FAN_PIN 	           9
-#define ORIG_FAN2_PIN            8
+#define ORIG_FAN1_PIN            8
 
 #define ORIG_PS_ON_PIN          40
 

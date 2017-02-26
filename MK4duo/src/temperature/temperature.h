@@ -71,7 +71,7 @@ class Temperature {
     static uint8_t soft_pwm_bed;
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t fanSpeedSoftPwm;
+      static uint8_t fanSpeedSoftPwm[FAN_COUNT];
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
@@ -277,7 +277,7 @@ class Temperature {
     #endif
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t soft_pwm_fan;
+      static uint8_t soft_pwm_fan[FAN_COUNT];
     #endif
 
     #if ENABLED(FILAMENT_SENSOR)

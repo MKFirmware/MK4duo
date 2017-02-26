@@ -942,7 +942,25 @@ void kill_screen(const char* lcd_msg) {
     //
     // Fan Speed:
     //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED, &fanSpeed, 0, 255);
+    #if FAN_COUNT > 0
+      #if HAS(FAN0)
+        #if FAN_COUNT > 1
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 0"
+        #else
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
+        #endif
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+      #endif
+      #if HAS(FAN1)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fanSpeeds[1], 0, 255);
+      #endif
+      #if HAS(FAN2)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[2], 0, 255);
+      #endif
+      #if HAS(FAN3)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[3], 0, 255);
+      #endif
+    #endif // FAN_COUNT > 0
 
     //
     // Flow:
@@ -1035,7 +1053,15 @@ void kill_screen(const char* lcd_msg) {
     #else
       UNUSED(tempb);
     #endif
-    fanSpeed = fan;
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
+      #else
+        fanSpeeds[0] = fan;
+      #endif
+    #else
+      UNUSED(fan);
+    #endif
     lcd_return_to_status();
   }
 
@@ -1176,7 +1202,13 @@ void kill_screen(const char* lcd_msg) {
   #endif // TEMP_SENSOR_0 && (TEMP_SENSOR_1 || TEMP_SENSOR_2 || TEMP_SENSOR_3 || TEMP_SENSOR_BED)
 
   void lcd_cooldown() {
-    fanSpeed = 0;
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        FAN_LOOP() fanSpeeds[f] = 0;
+      #else
+        fanSpeeds[0] = 0;
+      #endif
+    #endif
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
     lcd_return_to_status();
@@ -1990,7 +2022,22 @@ KeepDrawing:
     //
     // Fan Speed:
     //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED, &fanSpeed, 0, 255);
+    #if FAN_COUNT > 0
+      #if HAS(FAN0)
+        #if FAN_COUNT > 1
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 1"
+        #else
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
+        #endif
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+      #endif
+      #if HAS_FAN1
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 255);
+      #endif
+      #if HAS_FAN2
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[2], 0, 255);
+      #endif
+    #endif // FAN_COUNT > 0
 
     //
     // Autotemp, Min, Max, Fact
@@ -3452,7 +3499,7 @@ void status_printf(uint8_t level, const char *status, ...) {
   lcd_status_message_level = level;
   va_list args;
   va_start(args, status);
-  vsnprintf_P(lcd_status_message, 3 * (LCD_WIDTH), status, args);
+  vsnprintf(lcd_status_message, 3 * (LCD_WIDTH), status, args);
   va_end(args);
   lcd_finishstatus(level > 0);
 }

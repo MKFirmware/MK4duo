@@ -193,7 +193,9 @@ float home_offset[XYZ] = { 0 };
 float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
       soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
-int fanSpeed = 0;
+#if FAN_COUNT > 0
+  int fanSpeeds[FAN_COUNT] = { 0 };
+#endif
 
 #if HAS(CONTROLLERFAN)
   uint8_t controllerFanSpeed;
@@ -516,8 +518,8 @@ static bool send_ok[BUFSIZE];
   uint32_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL * 1000UL;
   #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
 #else
-  #define host_keepalive() ;
-  #define KEEPALIVE_STATE(n) ;
+  #define host_keepalive() NOOP
+  #define KEEPALIVE_STATE(n) NOOP
 #endif // HOST_KEEPALIVE_FEATURE
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
@@ -563,18 +565,12 @@ static bool send_ok[BUFSIZE];
   }
 #endif
 
-#define DEFINE_PGM_READ_ANY(type, reader)       \
-  static inline type pgm_read_any(const type *p)  \
-  { return pgm_read_##reader##_near(p); }
-
-DEFINE_PGM_READ_ANY(float,       float)
-DEFINE_PGM_READ_ANY(signed char, byte)
+static inline float pgm_read_any(const float *p) { return pgm_read_float_near(p); }
+static inline signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
-  static const PROGMEM type array##_P[XYZ] =        \
-      { X_##CONFIG, Y_##CONFIG, Z_##CONFIG };     \
-  static inline type array(int axis)          \
-  { return pgm_read_any(&array##_P[axis]); }
+  static const PROGMEM type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
+  static inline type array(AxisEnum axis) { return pgm_read_any(&array##_P[axis]); }
 
 #if NOMECH(DELTA)
   XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS)
@@ -694,12 +690,8 @@ static bool drain_injected_commands_P() {
     cmd[sizeof(cmd) - 1] = '\0';
     while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
     cmd[i] = '\0';
-    if (enqueue_and_echo_command(cmd)) {   // success?
-      if (c)                               // newline char?
-        injected_commands_P += i + 1;        // advance to the next command
-      else
-        injected_commands_P = NULL;          // nul char? no more commands
-    }
+    if (enqueue_and_echo_command(cmd))     // success?
+      injected_commands_P = c ? injected_commands_P + i + 1 : NULL; // next command or done
   }
   return (injected_commands_P != NULL);      // return whether any more remain
 }
@@ -782,7 +774,7 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   void setup_ultratronics_board() {
     /* avoid floating pins */
     OUT_WRITE(ORIG_FAN_PIN, LOW);
-    OUT_WRITE(ORIG_FAN2_PIN, LOW);
+    OUT_WRITE(ORIG_FAN1_PIN, LOW);
 
     OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
     OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
@@ -6054,8 +6046,21 @@ inline void gcode_M42() {
   digitalWrite(pin_number, pin_status);
   analogWrite(pin_number, pin_status);
 
-  #if HAS(FAN)
-    if (pin_number == FAN_PIN) fanSpeed = pin_status;
+  #if FAN_COUNT > 0
+    switch (pin_number) {
+      #if HAS(FAN0)
+        case FAN_PIN: fanSpeeds[0] = pin_status; break;
+      #endif
+      #if HAS(FAN1)
+        case FAN1_PIN: fanSpeeds[1] = pin_status; break;
+      #endif
+      #if HAS(FAN2)
+        case FAN2_PIN: fanSpeeds[2] = pin_status; break;
+      #endif
+      #if HAS(FAN3)
+        case FAN3_PIN: fanSpeeds[3] = pin_status; break;
+      #endif
+    }
   #endif
 }
 
@@ -6465,10 +6470,14 @@ inline void gcode_M78() {
 inline void gcode_M81() {
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
-  stepper.synchronize();
-  disable_e();
   stepper.finish_and_disable();
-  fanSpeed = 0;
+  #if FAN_COUNT > 0
+    #if FAN_COUNT > 1
+      FAN_LOOP() fanSpeeds[f] = 0;
+    #else
+      fanSpeeds[0] = 0;
+    #endif
+  #endif
 
   #if ENABLED(LASERBEAM)
     laser_extinguish();
@@ -6481,7 +6490,7 @@ inline void gcode_M81() {
     disable_cncrouter();
   #endif
 
-  safe_delay(1000); // Wait 1 second before switching off
+  HAL::delayMilliseconds(1000); // Wait 1 second before switching off
 
   #if HAS(SUICIDE)
     stepper.synchronize();
@@ -6811,7 +6820,7 @@ inline void gcode_M104() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER + 1, PSTR(MSG_HEATING));
+    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -6851,24 +6860,30 @@ inline void gcode_M105() {
   SERIAL_E;
 }
 
-#if HAS(FAN)
+#if FAN_COUNT > 0
+
   /**
    * M106: Set Fan Speed
    *
    *  S<int>   Speed between 0-255
+   *  P<index> Fan index, if more than one fan
    */
   inline void gcode_M106() {
-    uint16_t s = code_seen('S') ? code_value_ushort() : 255;
+    uint16_t s = code_seen('S') ? code_value_ushort() : 255,
+             p = code_seen('P') ? code_value_ushort() : 0;
     NOMORE(s, 255);
-    fanSpeed = s;
+    if (p < FAN_COUNT) fanSpeeds[p] = s;
   }
 
   /**
    * M107: Fan Off
    */
-  inline void gcode_M107() { fanSpeed = 0; }
+  inline void gcode_M107() { 
+    uint16_t p = code_seen('P') ? code_value_ushort() : 0;
+    if (p < FAN_COUNT) fanSpeeds[p] = 0;
+  }
 
-#endif // HAS(FAN)
+#endif // FAN_COUNT > 0
 
 #if DISABLED(EMERGENCY_PARSER)
   /**
@@ -6898,7 +6913,7 @@ inline void gcode_M109() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER + 1, PSTR(MSG_HEATING));
+    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -8281,7 +8296,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     #endif
 
     SERIAL_M(",\"fanPercent\":[");
-    SERIAL_V(fanSpeed);
+    SERIAL_V(fanSpeeds[0]);
 
     SERIAL_MV("],\"speedFactor\":", feedrate_percentage);
 
@@ -10589,12 +10604,12 @@ void process_next_command() {
         KEEPALIVE_STATE(NOT_BUSY);
         return; // "ok" already printed
 
-      #if HAS(FAN)
+      #if FAN_COUNT > 0
         case 106: // M106: Fan On
           gcode_M106(); break;
         case 107: // M107: Fan Off
           gcode_M107(); break;
-      #endif // HAS(FAN)
+      #endif // FAN_COUNT > 0
 
       #if DISABLED(EMERGENCY_PARSER)
         case 108: // M108: Cancel heatup

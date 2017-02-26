@@ -304,6 +304,9 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(FAN2)
     PIN_SAY(FAN2_PIN);
   #endif
+  #if PIN_EXISTS(FAN3)
+    PIN_SAY(FAN3_PIN);
+  #endif
   #if PIN_EXISTS(FIL_RUNOUT)
     PIN_SAY(FIL_RUNOUT_PIN);
   #endif
