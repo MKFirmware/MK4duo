@@ -50,7 +50,9 @@
     void hotPopCallback(void *ptr);
     void sethotPopCallback(void *ptr);
     void settempPopCallback(void *ptr);
-    void setfanPopCallback(void *ptr);
+    #if FAN_COUNT > 0
+      void setfanPopCallback(void *ptr);
+    #endif
     void setmovePopCallback(void *ptr);
     void setgcodePopCallback(void *ptr);
     void sendPopCallback(void *ptr);

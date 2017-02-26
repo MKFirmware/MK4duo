@@ -81,6 +81,7 @@
 #include "src/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
+#include "src/utility/point_t.h"
 
 #if HAS(ABL)
   #include "src/planner/vector_3.h"

@@ -57,7 +57,7 @@
 #define LED_PIN               13
 
 #define ORIG_FAN_PIN           6
-#define ORIG_FAN2_PIN          5
+#define ORIG_FAN1_PIN          5
 
 #define ORIG_PS_ON_PIN        32
 #define KILL_PIN              -1

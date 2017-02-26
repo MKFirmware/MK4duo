@@ -414,11 +414,15 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     fileRestart.write(bufferCoord);
     fileRestart.write("\n");
 
-   	if (fanSpeed > 0) {
-      char fanSp[15];
-      sprintf(fanSp, "M106 S%i\n", fanSpeed);
-      fileRestart.write(fanSp);
-    }
+    #if FAN_COUNT > 0
+      FAN_LOOP() {
+        if (fanSpeeds[f] > 0) {
+          char fanSp[20];
+          sprintf(fanSp, "M106 S%i P%i\n", fanSpeeds[f], (int)f);
+          fileRestart.write(fanSp);
+        }
+      }
+    #endif
 
     fileRestart.write(bufferCoord2);
     fileRestart.write("\n");
@@ -432,7 +436,13 @@ void CardReader::closeFile(bool store_location /*=false*/) {
 
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
-    fanSpeed = 0;
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        FAN_LOOP() fanSpeeds[f] = 0;
+      #else
+        fanSpeeds[0] = 0;
+      #endif
+    #endif
   }
 }
 

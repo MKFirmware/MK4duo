@@ -418,9 +418,10 @@ static void lcd_implementation_status_screen() {
       // Fan Animation
       //
       if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
+
         u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-          #if HAS(FAN)
-            blink && fanSpeed ? status_screen0_bmp : status_screen1_bmp
+          #if HAS(FAN0)
+            blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
           #else
             status_screen0_bmp
           #endif
@@ -446,8 +447,8 @@ static void lcd_implementation_status_screen() {
       if (PAGE_CONTAINS(20, 27)) {
         // Fan
         u8g.setPrintPos(104, 27);
-        #if HAS_FAN
-          int per = ((fanSpeed + 1) * 100) / 256;
+        #if HAS(FAN0)
+          int per = ((fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
             lcd_print(itostr3(per));
             u8g.print('%');

@@ -56,7 +56,10 @@
 
   bool Power::is_power_needed() {
 
-    if (fanSpeed > 0) return true;
+    #if FAN_COUNT > 0
+      for (uint8_t i = 0; i < FAN_COUNT; i++)
+        if (fanSpeeds[i] > 0) return true;
+    #endif
 
     #if HAS(CONTROLLERFAN)
       if (controllerFanSpeed > 0) return true;

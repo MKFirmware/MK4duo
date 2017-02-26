@@ -30,7 +30,7 @@
 #ifndef LANGUAGE_IT_H
 #define LANGUAGE_IT_H
 
-#define DISPLAY_CHARSET_ISO10646_1  // use the better font on full graphic displays.
+#define DISPLAY_CHARSET_ISO10646_1
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronta.")
 #define MSG_SD_INSERTED                     _UxGT("SD Card inserita")
@@ -61,7 +61,7 @@
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tutto")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Piatto")
 #define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
-#define MSG_PREHEAT_3                       _UxGT("Preriscalda GOMMA")
+#define MSG_PREHEAT_3                       _UxGT("Preriscalda GUM")
 #define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
 #define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3 _UxGT(" Tutto")
 #define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Piatto")
@@ -92,11 +92,7 @@
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
 #define MSG_COOLER                          _UxGT("Raffreddamento")
-#if ENABLED(DOGLCD)
-  #define MSG_FAN_SPEED                     _UxGT("Velocità ventola")
-#else
-  #define MSG_FAN_SPEED                     _UxGT("Velocita ventola")
-#endif
+#define MSG_FAN_SPEED                       _UxGT("Vel. ventola")
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
 #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")
@@ -312,7 +308,11 @@
 #define MSG_RFID_TEMP_BED                   _UxGT("Temperatura Bed: ")
 #define MSG_RFID_TEMP_USER_HOTEND           _UxGT("Temperatura utente Hotend: ")
 #define MSG_RFID_TEMP_USER_BED              _UxGT("Temperatura utente Bed: ")
-#define MSG_RFID_DENSITY                    _UxGT("Densita': ")
+#if ENABLED(DOGLCD)
+  #define MSG_RFID_DENSITY                  _UxGT("Densità: ")
+#else
+  #define MSG_RFID_DENSITY                  _UxGT("Densita: ")
+#endif
 #define MSG_RFID_SPOOL_LENGHT               _UxGT("Lunghezza bobina: ")
 
 #endif // LANGUAGE_IT_H
