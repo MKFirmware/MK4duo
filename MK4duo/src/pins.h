@@ -242,8 +242,14 @@
 #ifndef ORIG_FAN_PIN
   #define ORIG_FAN_PIN  -1
 #endif
+#ifndef ORIG_FAN1_PIN
+  #define ORIG_FAN1_PIN -1
+#endif
 #ifndef ORIG_FAN2_PIN
   #define ORIG_FAN2_PIN -1
+#endif
+#ifndef ORIG_FAN3_PIN
+  #define ORIG_FAN3_PIN -1
 #endif
 
 #ifndef ORIG_BEEPER_PIN

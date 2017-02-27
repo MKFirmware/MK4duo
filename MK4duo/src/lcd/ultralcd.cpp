@@ -76,6 +76,9 @@ uint16_t max_display_update_time = 0;
 
 #if ENABLED(DOGLCD)
   bool drawing_screen = false;
+  #define LCDVIEW_KEEP_REDRAWING LCDVIEW_CALL_REDRAW_NEXT
+#else
+  #define LCDVIEW_KEEP_REDRAWING LCDVIEW_REDRAW_NOW
 #endif
 
 #if ENABLED(ULTIPANEL)
@@ -110,10 +113,6 @@ uint16_t max_display_update_time = 0;
   bool encoderRateMultiplierEnabled;
   int32_t lastEncoderMovementMillis;
 
-  #if HAS(POWER_SWITCH)
-    extern bool powersupply;
-  #endif
-
   const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
   void lcd_main_menu();
   void lcd_tune_menu();
@@ -139,6 +138,7 @@ uint16_t max_display_update_time = 0;
     void lcd_filament_change_toocold_menu();
     void lcd_filament_change_option_menu();
     void lcd_filament_change_init_message();
+    void lcd_filament_change_cool_message();
     void lcd_filament_change_unload_message();
     void lcd_filament_change_insert_message();
     void lcd_filament_change_load_message();
@@ -943,7 +943,25 @@ void kill_screen(const char* lcd_msg) {
     //
     // Fan Speed:
     //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED, &fanSpeed, 0, 255);
+    #if FAN_COUNT > 0
+      #if HAS(FAN0)
+        #if FAN_COUNT > 1
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 0"
+        #else
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
+        #endif
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+      #endif
+      #if HAS(FAN1)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fanSpeeds[1], 0, 255);
+      #endif
+      #if HAS(FAN2)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[2], 0, 255);
+      #endif
+      #if HAS(FAN3)
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[3], 0, 255);
+      #endif
+    #endif // FAN_COUNT > 0
 
     //
     // Flow:
@@ -1036,7 +1054,15 @@ void kill_screen(const char* lcd_msg) {
     #else
       UNUSED(tempb);
     #endif
-    fanSpeed = fan;
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
+      #else
+        fanSpeeds[0] = fan;
+      #endif
+    #else
+      UNUSED(fan);
+    #endif
     lcd_return_to_status();
   }
 
@@ -1177,7 +1203,13 @@ void kill_screen(const char* lcd_msg) {
   #endif // TEMP_SENSOR_0 && (TEMP_SENSOR_1 || TEMP_SENSOR_2 || TEMP_SENSOR_3 || TEMP_SENSOR_BED)
 
   void lcd_cooldown() {
-    fanSpeed = 0;
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        FAN_LOOP() fanSpeeds[f] = 0;
+      #else
+        fanSpeeds[0] = 0;
+      #endif
+    #endif
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
     lcd_return_to_status();
@@ -1223,13 +1255,7 @@ void kill_screen(const char* lcd_msg) {
 
     void _lcd_level_bed_done() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_DONE));
-      lcdDrawUpdate =
-        #if ENABLED(DOGLCD)
-          LCDVIEW_CALL_REDRAW_NEXT
-        #else
-          LCDVIEW_CALL_NO_REDRAW
-        #endif
-      ;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
 
     /**
@@ -1247,13 +1273,7 @@ void kill_screen(const char* lcd_msg) {
         NOLESS(current_position[Z_AXIS], 0);
         NOMORE(current_position[Z_AXIS], MESH_HOME_SEARCH_Z * 2);
         line_to_current(Z_AXIS);
-        lcdDrawUpdate =
-          #if ENABLED(DOGLCD)
-            LCDVIEW_CALL_REDRAW_NEXT
-          #else
-            LCDVIEW_REDRAW_NOW
-          #endif
-        ;
+        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
         encoderPosition = 0;
       }
 
@@ -1307,13 +1327,7 @@ KeepDrawing:
         lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
       }
 
-      lcdDrawUpdate =
-        #if ENABLED(DOGLCD)
-          LCDVIEW_CALL_REDRAW_NEXT
-        #else
-          LCDVIEW_CALL_NO_REDRAW
-        #endif
-      ;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
 
     /**
@@ -1355,13 +1369,7 @@ KeepDrawing:
      */
     void _lcd_level_bed_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_HOMING), NULL);
-      lcdDrawUpdate =
-        #if ENABLED(DOGLCD)
-          LCDVIEW_CALL_REDRAW_NEXT
-        #else
-          LCDVIEW_CALL_NO_REDRAW
-        #endif
-      ;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
       if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
         lcd_goto_screen(_lcd_level_bed_homing_done);
     }
@@ -1471,7 +1479,7 @@ KeepDrawing:
           if (!thermalManager.tooColdToExtrude(active_extruder))
             MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
         #endif
-      #endif
+      #endif // TEMP_SENSOR_0 != 0
 
       //
       // Easy Load
@@ -1513,7 +1521,7 @@ KeepDrawing:
     // Switch power on/off
     //
     #if HAS(POWER_SWITCH)
-      if (powersupply)
+      if (powerManager.powersupply)
         MENU_ITEM(gcode, MSG_SWITCH_PS_OFF, PSTR("M81"));
       else
         MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));
@@ -1533,66 +1541,68 @@ KeepDrawing:
 
   #if MECH(DELTA)
 
-    void lcd_move_z();
-    void lcd_delta_calibrate_menu();
+    #if ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
 
-    void _lcd_calibrate_homing() {
-      if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
-      lcdDrawUpdate =
-        #if ENABLED(DOGLCD)
-          LCDVIEW_CALL_REDRAW_NEXT
-        #else
-          LCDVIEW_CALL_NO_REDRAW
-        #endif
-      ;
-      if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
-        lcd_goto_previous_menu();
-    }
-
-    void _lcd_delta_calibrate_home() {
-      enqueue_and_echo_commands_P(PSTR("G28"));
-      lcd_goto_screen(_lcd_calibrate_homing);
-    }
-
-    // Move directly to the tower position with uninterpolated moves
-    // If we used interpolated moves it would cause this to become re-entrant
-    void _goto_tower_pos(const float &a) {
-      if (no_reentrance) return;
-
-      current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (DELTA_PRINTABLE_RADIUS) / 5;
-      line_to_current(Z_AXIS);
-
-      current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(DELTA_PRINTABLE_RADIUS);
-      current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (DELTA_PRINTABLE_RADIUS);
-      line_to_current(Z_AXIS);
-
-      current_position[Z_AXIS] = 4.0;
-      line_to_current(Z_AXIS);
-
-      lcd_synchronize();
-
-      move_menu_scale = 0.1;
-      lcd_goto_screen(lcd_move_z);
-    }
-
-    void _goto_tower_x() { _goto_tower_pos(RADIANS(120)); }
-    void _goto_tower_y() { _goto_tower_pos(RADIANS(240)); }
-    void _goto_tower_z() { _goto_tower_pos(0); }
-    void _goto_center()  { _goto_tower_pos(-1); }
-
-    void lcd_delta_calibrate_menu() {
-      START_MENU();
-      MENU_BACK(MSG_MAIN);
-      MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
-      if (axis_homed[Z_AXIS]) {
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
-        MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_CENTER, _goto_center);
+      void lcd_delta_calibrate_menu() {
+        enqueue_and_echo_commands_P(PSTR("G30 A"));
       }
-      END_MENU();
-    }
 
+    #else
+
+      void lcd_move_z();
+
+      void _lcd_calibrate_homing() {
+        if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
+        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
+        if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
+          lcd_goto_previous_menu();
+      }
+
+      void _lcd_delta_calibrate_home() {
+        enqueue_and_echo_commands_P(PSTR("G28"));
+        lcd_goto_screen(_lcd_calibrate_homing);
+      }
+
+      // Move directly to the tower position with uninterpolated moves
+      // If we used interpolated moves it would cause this to become re-entrant
+      void _goto_tower_pos(const float &a) {
+        if (no_reentrance) return;
+
+        current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (DELTA_PRINTABLE_RADIUS) / 5;
+        line_to_current(Z_AXIS);
+
+        current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(DELTA_PRINTABLE_RADIUS);
+        current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (DELTA_PRINTABLE_RADIUS);
+        line_to_current(Z_AXIS);
+
+        current_position[Z_AXIS] = 4.0;
+        line_to_current(Z_AXIS);
+
+        lcd_synchronize();
+
+        move_menu_scale = 0.1;
+        lcd_goto_screen(lcd_move_z);
+      }
+
+      void _goto_tower_x() { _goto_tower_pos(RADIANS(120)); }
+      void _goto_tower_y() { _goto_tower_pos(RADIANS(240)); }
+      void _goto_tower_z() { _goto_tower_pos(0); }
+      void _goto_center()  { _goto_tower_pos(-1); }
+
+      void lcd_delta_calibrate_menu() {
+        START_MENU();
+        MENU_BACK(MSG_MAIN);
+        MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
+        if (axis_homed[Z_AXIS]) {
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
+          MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_CENTER, _goto_center);
+        }
+        END_MENU();
+      }
+
+    #endif // !AUTO_CALIBRATION_FEATURE || !AUTO_CALIBRATION_7_POINT
   #endif // DELTA
 
   /**
@@ -2013,7 +2023,22 @@ KeepDrawing:
     //
     // Fan Speed:
     //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED, &fanSpeed, 0, 255);
+    #if FAN_COUNT > 0
+      #if HAS(FAN0)
+        #if FAN_COUNT > 1
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 1"
+        #else
+          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
+        #endif
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+      #endif
+      #if HAS_FAN1
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[1], 0, 255);
+      #endif
+      #if HAS_FAN2
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[2], 0, 255);
+      #endif
+    #endif // FAN_COUNT > 0
 
     //
     // Autotemp, Min, Max, Fact
@@ -2479,32 +2504,32 @@ KeepDrawing:
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
-      sprintf(lifeTime, "%ud %uh %um", day, hours, minutes);
+      sprintf_P(lifeTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
       t       = print_job_counter.data.printTime / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
-      sprintf(printTime, "%ud %uh %um", day, hours, minutes);
+      sprintf_P(printTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
       kmeter      = (long)print_job_counter.data.filamentUsed / 1000 / 1000;
       meter       = ((long)print_job_counter.data.filamentUsed / 1000) % 1000;
       centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
-      sprintf(Filamentlung, "%uKm %um %ucm", kmeter, meter, centimeter);
+      sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
 
       #if HAS(POWER_CONSUMPTION_SENSOR)
         char Power[10];
-        sprintf(Power, "%uWh", power_consumption_hour);
+        sprintf_P(Power, PSTR("%uWh"), power_consumption_hour);
       #endif
 
       START_SCREEN();
-      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", itostr3left(print_job_counter.data.totalPrints));
-      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ", itostr3left(print_job_counter.data.finishedPrints));
-      STATIC_ITEM(MSG_INFO_ON_TIME ": ", lifeTime);
-      STATIC_ITEM(MSG_INFO_PRINT_TIME ": ", printTime);
-      STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ", Filamentlung);
+      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(print_job_counter.data.totalPrints));
+      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(print_job_counter.data.finishedPrints));
+      STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
+      STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
+      STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
       #if HAS(POWER_CONSUMPTION_SENSOR)
-        STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ", Power);
+        STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ",  false, false, Power);
       #endif
       END_SCREEN();
     }
@@ -2622,20 +2647,37 @@ KeepDrawing:
    *
    */
   #if ENABLED(FILAMENT_CHANGE_FEATURE)
+
+    // Portions from STATIC_ITEM...
+    #define HOTEND_STATUS_ITEM() do { \
+      if (_menuLineNr == _thisItemNr) { \
+        if (lcdDrawUpdate) \
+          lcd_implementation_drawmenu_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), false, true); \
+        lcd_implementation_hotend_status(_lcdLineNr); \
+        if (_skipStatic && encoderLine <= _thisItemNr) { \
+          encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
+          lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT; \
+        } \
+        else \
+          lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW; \
+      } \
+      ++_thisItemNr; \
+    } while(0)
+
     void lcd_filament_change_toocold_menu() {
       START_MENU();
       STATIC_ITEM(MSG_HEATING_FAILED_LCD, true, true);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_MINTEMP STRINGIFY(EXTRUDE_MINTEMP) ".", false, false);
       MENU_BACK(MSG_BACK);
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > 4
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_MENU();
     }
 
     void lcd_filament_change_resume_print() {
       filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_RESUME_PRINT;
-      lcd_goto_screen(lcd_status_screen);
     }
 
     void lcd_filament_change_extrude_more() {
@@ -2658,12 +2700,43 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_1);
       #ifdef MSG_FILAMENT_CHANGE_INIT_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_2);
+        #define __FC_LINES_A 3
+      #else
+        #define __FC_LINES_A 2
       #endif
       #ifdef MSG_FILAMENT_CHANGE_INIT_3
         STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_3);
+        #define _FC_LINES_A (__FC_LINES_A + 1)
+      #else
+        #define _FC_LINES_A __FC_LINES_A
       #endif
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_A + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
+      END_SCREEN();
+    }
+
+    void lcd_filament_change_cool_message() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
+      #ifdef MSG_FILAMENT_CHANGE_COOL_2
+        STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
+        #define __FC_LINES_A 3
+      #else
+        #define __FC_LINES_A 2
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_COOL_3
+        STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
+        #define _FC_LINES_A (__FC_LINES_A + 1)
+      #else
+        #define _FC_LINES_A __FC_LINES_A
+      #endif
+      #if LCD_HEIGHT > _FC_LINES_A + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2673,13 +2746,20 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
       #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
+        #define __FC_LINES_B 3
+      #else
+        #define __FC_LINES_B 2
       #endif
       #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
         STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_3);
+        #define _FC_LINES_B (__FC_LINES_B + 1)
+      #else
+        #define _FC_LINES_B __FC_LINES_B
       #endif
-      STATIC_ITEM (" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_B + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2689,10 +2769,14 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
       #ifdef MSG_FILAMENT_CHANGE_HEATING_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_2);
+        #define _FC_LINES_C 3
+      #else
+        #define _FC_LINES_C 2
       #endif
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_C + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2700,12 +2784,16 @@ KeepDrawing:
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_1);
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
+      #ifdef MSG_FILAMENT_CHANGE_HEAT_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_2);
+        #define _FC_LINES_D 3
+      #else
+        #define _FC_LINES_D 2
       #endif
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_D + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2713,12 +2801,16 @@ KeepDrawing:
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_1);
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
+      #ifdef MSG_FILAMENT_CHANGE_ZZZ_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_2);
+        #define _FC_LINES_D 3
+      #else
+        #define _FC_LINES_D 2
       #endif
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_D + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2728,12 +2820,20 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_1);
       #ifdef MSG_FILAMENT_CHANGE_INSERT_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_2);
+        #define __FC_LINES_E 3
+      #else
+        #define __FC_LINES_E 2
       #endif
       #ifdef MSG_FILAMENT_CHANGE_INSERT_3
         STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_3);
+        #define _FC_LINES_E (__FC_LINES_E + 1)
+      #else
+        #define _FC_LINES_E __FC_LINES_E
       #endif
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_E + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2743,13 +2843,20 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_1);
       #ifdef MSG_FILAMENT_CHANGE_LOAD_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_2);
+        #define __FC_LINES_F 3
+      #else
+        #define __FC_LINES_F 2
       #endif
       #ifdef MSG_FILAMENT_CHANGE_LOAD_3
         STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_3);
+        #define _FC_LINES_F (__FC_LINES_F + 1)
+      #else
+        #define _FC_LINES_F __FC_LINES_F
       #endif
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_F + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2759,13 +2866,20 @@ KeepDrawing:
       STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_1);
       #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_2
         STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_2);
+        #define __FC_LINES_G 3
+      #else
+        #define __FC_LINES_G 2
       #endif
       #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_3
         STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_3);
+        #define _FC_LINES_G (__FC_LINES_G + 1)
+      #else
+        #define _FC_LINES_G __FC_LINES_G
       #endif
-      STATIC_ITEM(" ");
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE, false, true);
-      lcd_implementation_hotend_status();
+      #if LCD_HEIGHT > _FC_LINES_G + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
       END_SCREEN();
     }
 
@@ -2787,6 +2901,9 @@ KeepDrawing:
         case FILAMENT_CHANGE_MESSAGE_INIT:
           defer_return_to_status = true;
           lcd_goto_screen(lcd_filament_change_init_message);
+          break;
+        case FILAMENT_CHANGE_MESSAGE_COOLDOWN:
+          lcd_goto_screen(lcd_filament_change_cool_message);
           break;
         case FILAMENT_CHANGE_MESSAGE_UNLOAD:
           lcd_goto_screen(lcd_filament_change_unload_message);
@@ -3137,7 +3254,7 @@ bool lcd_blink() {
  *     - if (lcdDrawUpdate) { redraw }
  *     - Before exiting the handler set lcdDrawUpdate to:
  *       - LCDVIEW_CLEAR_CALL_REDRAW to clear screen and set LCDVIEW_CALL_REDRAW_NEXT.
- *       - LCDVIEW_REDRAW_NOW or LCDVIEW_NONE to keep drawingm but only in this loop.
+ *       - LCDVIEW_REDRAW_NOW or LCDVIEW_NONE to keep drawing, but only in this loop.
  *       - LCDVIEW_CALL_REDRAW_NEXT to keep drawing and draw on the next loop also.
  *       - LCDVIEW_CALL_NO_REDRAW to keep drawing (or start drawing) with no redraw on the next loop.
  *     - NOTE: For graphical displays menu handlers may be called 2 or more times per loop,
@@ -3251,13 +3368,7 @@ void lcd_update() {
           encoderDiff = 0;
         }
         return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
-        lcdDrawUpdate =
-          #if ENABLED(DOGLCD)
-            LCDVIEW_CALL_REDRAW_NEXT
-          #else
-            LCDVIEW_REDRAW_NOW
-          #endif
-        ;
+        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
       }
     #endif // ULTIPANEL
 
@@ -3407,6 +3518,16 @@ void lcd_setstatuspgm(const char* const message, uint8_t level) {
   if (level < lcd_status_message_level) return;
   lcd_status_message_level = level;
   strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
+  lcd_finishstatus(level > 0);
+}
+
+void status_printf(uint8_t level, const char *status, ...) {
+  if (level < lcd_status_message_level) return;
+  lcd_status_message_level = level;
+  va_list args;
+  va_start(args, status);
+  vsnprintf(lcd_status_message, 3 * (LCD_WIDTH), status, args);
+  va_end(args);
   lcd_finishstatus(level > 0);
 }
 

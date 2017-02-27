@@ -53,20 +53,18 @@
 #ifndef HAL_AVR_H
 #define HAL_AVR_H
 
-#include "HAL_fastio.h"
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 
-/**
- * Defines & Macros
- */
+#include <stdint.h>
+#include <util/delay.h>
+#include <avr/eeprom.h>
+#include <avr/pgmspace.h>
+#include <avr/interrupt.h>
 
-#define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
-#define CRITICAL_SECTION_END    SREG = _sreg;
-
-#ifdef analogInputToDigitalPin
-  #undef analogInputToDigitalPin
-#endif
-
-#define analogInputToDigitalPin(p) ((p) + 0xA0)
+#include "fastio.h"
+#include "watchdog_AVR.h"
 
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
@@ -75,6 +73,21 @@
 #else
   #define MKSERIAL Serial
 #endif
+
+// --------------------------------------------------------------------------
+// Defines
+// --------------------------------------------------------------------------
+
+#ifndef CRITICAL_SECTION_START
+  #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
+  #define CRITICAL_SECTION_END    SREG = _sreg;
+#endif
+
+#ifdef analogInputToDigitalPin
+  #undef analogInputToDigitalPin
+#endif
+
+#define analogInputToDigitalPin(p) ((p) + 0xA0)
 
 #define PACK
 
@@ -89,8 +102,13 @@
 #undef HIGH
 #define HIGH        1
 
+// Voltage for Pin
+#define HAL_VOLTAGE_PIN 5.0
+
+#define ADV_NEVER 65535
+
 /**
- * Stepper Definition
+ * Optimized math functions for AVR
  */
 
 // intRes = intIn1 * intIn2 >> 16
@@ -174,9 +192,19 @@
                  "r26" , "r27" \
                )
 
-/**
- * Timers
- */
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+
+typedef uint16_t HAL_TIMER_TYPE;
+typedef uint32_t millis_t;
+
+// --------------------------------------------------------------------------
+// Timer
+// --------------------------------------------------------------------------
+
+#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0)
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 240
@@ -185,10 +213,9 @@
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
 
-#define TEMP_TIMER_FREQUENCY REFERENCE_TEMP_TIMER_FREQUENCY
-
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
+
 #define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B)
 #define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B)
 
@@ -215,17 +242,10 @@
     in_temp_isr = false; \
     ENABLE_TEMP_INTERRUPT();
 
-/**
- * Public Variables
- */
-
-// Voltage for Pin
-constexpr float HAL_VOLTAGE_PIN = 5.0;
-
-// Types
-#define HAL_TIMER_TYPE uint16_t
-constexpr HAL_TIMER_TYPE ADV_NEVER = 65535;
-typedef uint32_t millis_t;
+// Clock speed factor
+#define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
+// Stepper pulse duration, in cycles
+#define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -382,36 +402,21 @@ class HAL {
  * math function
  */
 
-static FORCE_INLINE float ATAN2(float y, float x) {
-  return atan2(y, x);
-}
-
-static FORCE_INLINE float FABS(float x) {
-  return fabs(x);
-}
-
-static FORCE_INLINE float POW(float x, float y) {
-  return pow(x, y);
-}
-
-static FORCE_INLINE float SQRT(float x) {
-  return sqrt(x);
-}
-
-static FORCE_INLINE float CEIL(float x) {
-  return ceil(x);
-}
-
-static FORCE_INLINE float FLOOR(float x) {
-  return floor(x);
-}
-
-static FORCE_INLINE long LROUND(float x) {
-  return lround(x);
-}
-
-static FORCE_INLINE float FMOD(float x, float y) {
-  return fmod(x, y);
-}
+#undef ATAN2
+#undef FABS
+#undef POW
+#undef SQRT
+#undef CEIL
+#undef FLOOR
+#undef LROUND
+#undef FMOD
+#define ATAN2(y, x) atan2(y, x)
+#define FABS(x) fabs(x)
+#define POW(x, y) pow(x, y)
+#define SQRT(x) sqrt(x)
+#define CEIL(x) ceil(x)
+#define FLOOR(x) floor(x)
+#define LROUND(x) lround(x)
+#define FMOD(x, y) fmod(x, y)
 
 #endif // HAL_AVR_H

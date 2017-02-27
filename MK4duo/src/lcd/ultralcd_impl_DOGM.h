@@ -383,16 +383,6 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
-static void lcd_implementation_hotend_status() {
-  u8g.setPrintPos(58, 60);
-  lcd_print((char)('0' + active_extruder));
-  lcd_print(' ');
-  lcd_print(' ');
-  lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
-  lcd_print('/');
-  lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
-}
-
 static void lcd_implementation_status_screen() {
 
   bool blink = lcd_blink();
@@ -428,9 +418,10 @@ static void lcd_implementation_status_screen() {
       // Fan Animation
       //
       if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
+
         u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-          #if HAS(FAN)
-            blink && fanSpeed ? status_screen0_bmp : status_screen1_bmp
+          #if HAS(FAN0)
+            blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
           #else
             status_screen0_bmp
           #endif
@@ -456,8 +447,8 @@ static void lcd_implementation_status_screen() {
       if (PAGE_CONTAINS(20, 27)) {
         // Fan
         u8g.setPrintPos(104, 27);
-        #if HAS_FAN
-          int per = ((fanSpeed + 1) * 100) / 256;
+        #if HAS(FAN0)
+          int per = ((fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
             lcd_print(itostr3(per));
             u8g.print('%');
@@ -682,22 +673,42 @@ static void lcd_implementation_status_screen() {
 #if ENABLED(ULTIPANEL)
 
   uint8_t row_y1, row_y2;
+  uint8_t constexpr row_height = DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION);
+
+  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+
+    static void lcd_implementation_hotend_status(const uint8_t row) {
+      row_y1 = row * row_height + 1;
+      row_y2 = row_y1 + row_height - 1;
+
+      if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
+
+      u8g.setPrintPos(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
+      lcd_print('E');
+      lcd_print((char)('0' + active_extruder));
+      lcd_print(' ');
+      lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
+      lcd_print('/');
+      lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+    }
+
+  #endif // FILAMENT_CHANGE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
 
-    row_y1 = row * (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) + 1;
-    row_y2 = row_y1 + (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) - 1;
+    row_y1 = row * row_height + 1;
+    row_y2 = row_y1 + row_height - 1;
 
-    if (!PAGE_CONTAINS(row_y1 + 1, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION))) return;
+    if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
 
     if (isSelected) {
       #if ENABLED(MENU_HOLLOW_FRAME)
         u8g.drawHLine(0, row_y1 + 1, LCD_PIXEL_WIDTH);
-        u8g.drawHLine(0, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION), LCD_PIXEL_WIDTH);
+        u8g.drawHLine(0, row_y2 + 2, LCD_PIXEL_WIDTH);
       #else
         u8g.setColorIndex(1); // black on white
-        u8g.drawBox(0, row_y1 + 2, LCD_PIXEL_WIDTH, DOG_CHAR_HEIGHT - 1 + 2 * (TALL_FONT_CORRECTION));
+        u8g.drawBox(0, row_y1 + 2, LCD_PIXEL_WIDTH, row_height - 1);
         u8g.setColorIndex(0); // white on black
       #endif
     }

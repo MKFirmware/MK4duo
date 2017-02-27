@@ -81,6 +81,7 @@
 #include "src/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
+#include "src/utility/point_t.h"
 
 #if HAS(ABL)
   #include "src/planner/vector_3.h"
@@ -110,6 +111,7 @@
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
+#include "src/utility/power_supply.h"
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
@@ -122,7 +124,6 @@
 #include "src/nextion/Nextion_lcd.h"
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
-#include "src/watchdog/watchdog.h"
 #include "src/utility/nozzle.h"
 #include "src/utility/blinkm.h"
 #include "src/utility/matrix.h"

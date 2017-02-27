@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV30"
+#define EEPROM_VERSION "MKV31"
 #define EEPROM_OFFSET 10
 
 /**
@@ -94,6 +94,7 @@
  *  M666  H               deltaParams.base_max_pos (float)
  *  M666  ABCIJK          deltaParams.tower_adj (float x6)
  *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
+ *  M666  L               deltaParams.print_Radius (ulong)
  *
  * Z_TWO_ENDSTOPS:
  *  M666  Z               z2_endstop_adj (float)
@@ -299,6 +300,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(deltaParams.base_max_pos);
       EEPROM_WRITE(deltaParams.tower_adj);
       EEPROM_WRITE(deltaParams.diagonal_rod_adj);
+      EEPROM_WRITE(deltaParams.print_Radius);
     #elif ENABLED(Z_TWO_ENDSTOPS)
       EEPROM_WRITE(z2_endstop_adj);
     #endif
@@ -515,6 +517,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(deltaParams.base_max_pos);
         EEPROM_READ(deltaParams.tower_adj);
         EEPROM_READ(deltaParams.diagonal_rod_adj);
+        EEPROM_READ(deltaParams.print_Radius);
       #elif ENABLED(Z_TWO_ENDSTOPS)
         EEPROM_READ(z2_endstop_adj);
       #endif
@@ -617,6 +620,26 @@ void EEPROM::Postprocess() {
     #endif
   }
 
+  /**
+   * Version Check
+   */
+  void EEPROM::VersionCheck() {
+
+    EEPROM_START();
+
+    char stored_ver[6];
+    EEPROM_READ(stored_ver);
+
+    if (strncmp(version, stored_ver, 5) != 0) {
+      SERIAL_SM(ER, " WARNING - configuration NOT restored from EEPROM because EEPROM version has changed.");
+      SERIAL_MV(" New Version: ", version);
+      SERIAL_MV(" - Stored version: ", stored_ver);
+      SERIAL_EM(". Use M500 command to save configuration to EEPROM to restore auto load from EEPROM.");
+      SERIAL_SM(ER, " OPTIONAL: go back to previous software, use M501 to read values from EEPROM & then");
+      SERIAL_EM(" update configuration files accordingly.");
+    }
+  }
+
 #else // !EEPROM_SETTINGS
 
   void EEPROM::StoreSettings() { SERIAL_LM(ER, "EEPROM disabled"); }
@@ -691,24 +714,22 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if MECH(DELTA)
-    deltaParams.radius = DEFAULT_DELTA_RADIUS;
-    deltaParams.diagonal_rod = DELTA_DIAGONAL_ROD;
-    deltaParams.segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
-    deltaParams.base_max_pos[A_AXIS] = X_MAX_POS;
-    deltaParams.base_max_pos[B_AXIS] = Y_MAX_POS;
-    deltaParams.base_max_pos[C_AXIS] = Z_MAX_POS;
-    deltaParams.endstop_adj[A_AXIS] = TOWER_A_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[B_AXIS] = TOWER_B_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[C_AXIS] = TOWER_C_ENDSTOP_ADJ;
-    deltaParams.tower_adj[0] = TOWER_A_RADIUS_ADJ;
-    deltaParams.tower_adj[1] = TOWER_B_RADIUS_ADJ;
-    deltaParams.tower_adj[2] = TOWER_C_RADIUS_ADJ;
-    deltaParams.tower_adj[3] = TOWER_A_POSITION_ADJ;
-    deltaParams.tower_adj[4] = TOWER_B_POSITION_ADJ;
-    deltaParams.tower_adj[5] = TOWER_C_POSITION_ADJ;
-    deltaParams.diagonal_rod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
+    deltaParams.radius                    = DEFAULT_DELTA_RADIUS;
+    deltaParams.diagonal_rod              = DELTA_DIAGONAL_ROD;
+    deltaParams.segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
+    deltaParams.print_Radius              = DELTA_PRINTABLE_RADIUS;
+    deltaParams.endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
+    deltaParams.endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
+    deltaParams.endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
+    deltaParams.tower_adj[0]              = TOWER_A_RADIUS_ADJ;
+    deltaParams.tower_adj[1]              = TOWER_B_RADIUS_ADJ;
+    deltaParams.tower_adj[2]              = TOWER_C_RADIUS_ADJ;
+    deltaParams.tower_adj[3]              = TOWER_A_POSITION_ADJ;
+    deltaParams.tower_adj[4]              = TOWER_B_POSITION_ADJ;
+    deltaParams.tower_adj[5]              = TOWER_C_POSITION_ADJ;
+    deltaParams.diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
+    deltaParams.diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
+    deltaParams.diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -795,7 +816,7 @@ void EEPROM::ResetDefault() {
 
   Postprocess();
 
-  SERIAL_EM("Hardcoded Default Settings Loaded");
+  SERIAL_LM(ECHO, "Hardcoded Default Settings Loaded");
 }
 
 #if DISABLED(DISABLE_M503)
@@ -937,7 +958,7 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
       SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, H=Z Height");
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
       SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
       SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
       SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
@@ -949,7 +970,8 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);
       SERIAL_MV(" R", deltaParams.radius);
       SERIAL_MV(" D", deltaParams.diagonal_rod);
-      SERIAL_MV(" S", deltaParams.segments_per_second, 3);
+      SERIAL_MV(" S", deltaParams.segments_per_second);
+      SERIAL_MV(" O", deltaParams.print_Radius);
       SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
 
     #elif ENABLED(Z_TWO_ENDSTOPS)

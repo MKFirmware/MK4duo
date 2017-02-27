@@ -48,7 +48,7 @@
 #define SD_DETECT_PIN           40
 
 #define ORIG_FAN_PIN             6
-#define ORIG_FAN2_PIN            7
+#define ORIG_FAN1_PIN            7
 #define ORIG_PS_ON_PIN          17
 
 #define ORIG_HEATER_0_PIN        5

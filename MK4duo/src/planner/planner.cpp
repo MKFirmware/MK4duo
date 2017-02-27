@@ -84,7 +84,7 @@ float Planner::min_feedrate_mm_s,
       Planner::acceleration,                    // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
       Planner::retract_acceleration[EXTRUDERS], // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
       Planner::travel_acceleration,             // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-      Planner::max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
+      Planner::max_jerk[XYZE_N];                // The largest speed change requiring no acceleration
 
 #if HAS(ABL)
   bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
@@ -379,23 +379,37 @@ void Planner::recalculate() {
  */
 void Planner::check_axes_activity() {
   unsigned char axis_active[NUM_AXIS] = { 0 },
-                tail_fan_speed = fanSpeed;
+                tail_fan_speed[FAN_COUNT];
+
+  #if FAN_COUNT > 0
+    FAN_LOOP() tail_fan_speed[f] = fanSpeeds[f];
+  #endif
 
   #if ENABLED(BARICUDA)
-    unsigned char tail_valve_pressure = ValvePressure,
-                  tail_e_to_p_pressure = EtoPPressure;
+    #if HAS_HEATER_1
+      unsigned char tail_valve_pressure = ValvePressure;
+    #endif
+    #if HAS_HEATER_2
+      unsigned char tail_e_to_p_pressure = EtoPPressure;
+    #endif
   #endif
 
   if (blocks_queued()) {
 
-    tail_fan_speed = block_buffer[block_buffer_tail].fan_speed;
+    #if FAN_COUNT > 0
+      FAN_LOOP() tail_fan_speed[f] = block_buffer[block_buffer_tail].fan_speed[f];
+    #endif
 
     block_t* block;
 
     #if ENABLED(BARICUDA)
       block = &block_buffer[block_buffer_tail];
-      tail_valve_pressure = block->valve_pressure;
-      tail_e_to_p_pressure = block->e_to_p_pressure;
+      #if HAS_HEATER_1
+        tail_valve_pressure = block->valve_pressure;
+      #endif
+      #if HAS_HEATER_2
+        tail_e_to_p_pressure = block->e_to_p_pressure;
+      #endif
     #endif
 
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -423,40 +437,77 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  #if HAS(FAN)
-    #if ENABLED(FAN_KICKSTART_TIME)
-      static millis_t fan_kick_end;
-      if (tail_fan_speed) {
-        millis_t ms = millis();
-        if (fan_kick_end == 0) {
-          // Just starting up fan - run at full power.
-          fan_kick_end = ms + FAN_KICKSTART_TIME;
-          tail_fan_speed = 255;
-        }
-        else {
-          if (PENDING(ms, fan_kick_end)) {
-            // Fan still spinning up.
-            tail_fan_speed = 255;
-          }
-        }
-      }
-      else {
-        fan_kick_end = 0;
-      }
-    #endif //FAN_KICKSTART_TIME
+  #if FAN_COUNT > 0
 
     #if ENABLED(FAN_MIN_PWM)
-      #define CALC_FAN_SPEED (tail_fan_speed ? ( FAN_MIN_PWM + (tail_fan_speed * (255 - (FAN_MIN_PWM))) / 255 ) : 0)
+      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ? ( FAN_MIN_PWM + (tail_fan_speed[f] * (255 - FAN_MIN_PWM)) / 255 ) : 0)
     #else
-      #define CALC_FAN_SPEED tail_fan_speed
-    #endif // FAN_MIN_PWM
+      #define CALC_FAN_SPEED(f) tail_fan_speed[f]
+    #endif
+
+    #if ENABLED(FAN_KICKSTART_TIME)
+
+      static millis_t fan_kick_end[FAN_COUNT] = { 0 };
+
+      #define KICKSTART_FAN(f) \
+        if (tail_fan_speed[f]) { \
+          millis_t ms = millis(); \
+          if (fan_kick_end[f] == 0) { \
+            fan_kick_end[f] = ms + FAN_KICKSTART_TIME; \
+            tail_fan_speed[f] = 255; \
+          } else { \
+            if (PENDING(ms, fan_kick_end[f])) { \
+              tail_fan_speed[f] = 255; \
+            } \
+          } \
+        } else { \
+          fan_kick_end[f] = 0; \
+        }
+
+      #if HAS(FAN0)
+        KICKSTART_FAN(0);
+      #endif
+      #if HAS(FAN1)
+        KICKSTART_FAN(1);
+      #endif
+      #if HAS(FAN2)
+        KICKSTART_FAN(2);
+      #endif
+      #if HAS(FAN3)
+        KICKSTART_FAN(3);
+      #endif
+
+    #endif // FAN_KICKSTART_TIME
 
     #if ENABLED(FAN_SOFT_PWM)
-      thermalManager.fanSpeedSoftPwm = CALC_FAN_SPEED;
+      #if HAS(FAN0)
+        thermalManager.fanSpeedSoftPwm[0] = CALC_FAN_SPEED(0);
+      #endif
+      #if HAS(FAN1)
+        thermalManager.fanSpeedSoftPwm[1] = CALC_FAN_SPEED(1);
+      #endif
+      #if HAS(FAN2)
+        thermalManager.fanSpeedSoftPwm[2] = CALC_FAN_SPEED(2);
+      #endif
+      #if HAS(FAN3)
+        thermalManager.fanSpeedSoftPwm[3] = CALC_FAN_SPEED(3);
+      #endif
     #else
-      analogWrite(FAN_PIN, CALC_FAN_SPEED);
-    #endif // FAN_SOFT_PWM
-  #endif // HAS(FAN)
+      #if HAS(FAN0)
+        analogWrite(FAN_PIN, CALC_FAN_SPEED(0));
+      #endif
+      #if HAS(FAN1)
+        analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
+      #endif
+      #if HAS(FAN2)
+        analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));
+      #endif
+      #if HAS(FAN3)
+        analogWrite(FAN3_PIN, CALC_FAN_SPEED(3));
+      #endif
+    #endif
+
+  #endif // FAN_COUNT > 0
 
   #if ENABLED(AUTOTEMP)
     getHighESpeed();
@@ -764,7 +815,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
   #endif
 
-  block->fan_speed = fanSpeed;
+  #if FAN_COUNT > 0
+    FAN_LOOP() block->fan_speed[f] = fanSpeeds[f];
+  #endif
 
   #if ENABLED(BARICUDA)
     block->valve_pressure = baricuda_valve_pressure;
@@ -970,7 +1023,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
   #if IS_CORE
-    float delta_mm[7];
+    float delta_mm[Z_HEAD + 1];
     #if CORE_IS_XY
       delta_mm[X_HEAD] = dx * steps_to_mm[A_AXIS];
       delta_mm[Y_HEAD] = dy * steps_to_mm[B_AXIS];
@@ -991,7 +1044,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       delta_mm[C_AXIS] = CORESIGN(dc) * steps_to_mm[C_AXIS];
     #endif
   #else
-    float delta_mm[4];
+    float delta_mm[E_AXIS + 1];
     delta_mm[X_AXIS] = dx * steps_to_mm[X_AXIS];
     delta_mm[Y_AXIS] = dy * steps_to_mm[Y_AXIS];
     delta_mm[Z_AXIS] = dz * steps_to_mm[Z_AXIS];
@@ -1062,15 +1115,16 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
+    // Segment time im micro seconds
     unsigned long segment_time = LROUND(1000000.0 / inverse_mm_s);
   #endif
+
   #if ENABLED(SLOWDOWN)
-    // Segment time im micro seconds
     if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
       if (segment_time < min_segment_time) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
         inverse_mm_s = 1000000.0 / (segment_time + LROUND(2 * (min_segment_time - segment_time) / moves_queued));
-        #if ENABLED(XY_FREQUENCY_LIMIT) || HAS_LCD
+        #if ENABLED(XY_FREQUENCY_LIMIT)
           segment_time = LROUND(1000000.0 / inverse_mm_s);
         #endif
       }

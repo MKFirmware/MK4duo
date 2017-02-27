@@ -158,8 +158,12 @@
  *                                                                                   *
  *************************************************************************************/
 #define POWER_SUPPLY 0
-// Define this to have the electronics keep the power supply off on startup. If you don't know what this is leave it.
+
+// Define this to have the electronics keep the power supply off on startup.
+// If you don't know what this is leave it.
 //#define PS_DEFAULT_OFF
+// Define delay after power on in seconds
+#define DELAY_AFTER_POWER_ON 5
 /*************************************************************************************/
 
 

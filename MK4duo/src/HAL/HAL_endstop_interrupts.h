@@ -20,40 +20,26 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
+#ifndef HAL_ENDSTOP_INTERRUPTS_H_
+#define HAL_ENDSTOP_INTERRUPTS_H_
 
-class EEPROM {
+volatile uint8_t e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
+                            // Must be reset to 0 by the test function when the tests are finished.
 
-  public:
+// This is what is really done inside the interrupts.
+FORCE_INLINE void endstop_ISR_worker( void ) {
+  e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
+}
 
-    static void ResetDefault();
-    static void StoreSettings();
-    static void VersionCheck();
+// One ISR for all EXT-Interrupts
+void endstop_ISR(void) { endstop_ISR_worker(); }
 
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #include "HAL_DUE/endstop_interrupts.h"
+#elif defined(ARDUINO_ARCH_AVR)
+  #include "HAL_AVR/endstop_interrupts.h"
+#else
+  #error "Unsupported Platform!"
+#endif
 
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
-
-  private:
-
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
-};
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H
+#endif // HAL_ENDSTOP_INTERRUPTS_H_

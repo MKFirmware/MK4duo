@@ -402,7 +402,7 @@
 
     VSpeed.setValue(100, "printer");
 
-    #if HAS(FAN)
+    #if FAN_COUNT > 0
       Fan.setValue(1, "printer");
     #endif
 
@@ -688,12 +688,21 @@
       END_SCREEN();
     }
 
+    static void lcd_filament_change_cool_message() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
+      END_SCREEN();
+    }
+
     static void lcd_filament_change_unload_message() {
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
-      STATIC_ITEM("");
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_3);
       END_SCREEN();
     }
 
@@ -761,6 +770,9 @@
       switch (message) {
         case FILAMENT_CHANGE_MESSAGE_INIT:
           lcd_filament_change_init_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_COOLDOWN:
+          lcd_filament_change_cool_message();
           break;
         case FILAMENT_CHANGE_MESSAGE_UNLOAD:
           lcd_filament_change_unload_message();
@@ -910,16 +922,18 @@
     enqueue_and_echo_command(buffer);
   }
 
-  void setfanPopCallback(void *ptr) {
-    if (fanSpeed) {
-      fanSpeed = 0;
-      Fantimer.disable();
+  #if FAN_COUNT > 0
+    void setfanPopCallback(void *ptr) {
+      if (fanSpeeds[0]) {
+        fanSpeeds[0] = 0;
+        Fantimer.disable();
+      }
+      else {
+        fanSpeeds[0] = 255;
+        Fantimer.enable();
+      }
     }
-    else {
-      fanSpeed = 255;
-      Fantimer.enable();
-    }
-  }
+  #endif
 
   void setmovePopCallback(void *ptr) {
 
@@ -1028,7 +1042,10 @@
         Hotend2.attachPop(hotPopCallback, &Hotend2);
       #endif
 
-      Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #if FAN_COUNT > 0
+        Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #endif
+
       tenter.attachPop(sethotPopCallback,   &tenter);
       tup.attachPop(settempPopCallback,     &tup);
       tdown.attachPop(settempPopCallback,   &tdown);
@@ -1150,21 +1167,23 @@
             #endif
           }
 
-          if (PreviousfanSpeed != fanSpeed) {
-            if (fanSpeed > 0) {
-              Fantimer.enable();
-              ZERO(buffer);
-              temp = itostr3(((float)fanSpeed / 255) * 100);
-              strcat(buffer, temp);
-              strcat(buffer, "%");
-              Fanspeed.setText(buffer);
+          #if FAN_COUNT > 0
+            if (PreviousfanSpeed != fanSpeeds[0]) {
+              if (fanSpeeds[0] > 0) {
+                Fantimer.enable();
+                ZERO(buffer);
+                temp = itostr3(((float)fanSpeeds[0] / 255) * 100);
+                strcat(buffer, temp);
+                strcat(buffer, "%");
+                Fanspeed.setText(buffer);
+              }
+              else {
+                Fantimer.disable();
+                Fanspeed.setText("");
+              }
+              PreviousfanSpeed = fanSpeeds[0];
             }
-            else {
-              Fantimer.disable();
-              Fanspeed.setText("");
-            }
-            PreviousfanSpeed = fanSpeed;
-          }
+          #endif
 
           if (Previousfeedrate != feedrate_percentage) {
             VSpeed.setValue(feedrate_percentage);
@@ -1287,11 +1306,21 @@
   }
 
   void lcd_setstatuspgm(const char* message, uint8_t level) {
-    if (level >= lcd_status_message_level && NextionON) {
+    if (level < lcd_status_message_level && NextionON) {
       strncpy_P(lcd_status_message, message, 30);
       lcd_status_message_level = level;
       if (PageID == 2) LcdStatus.setText(lcd_status_message);
     }
+  }
+
+  void status_printf(uint8_t level, const char *status, ...) {
+    if (level < lcd_status_message_level) return;
+    lcd_status_message_level = level;
+    va_list args;
+    va_start(args, status);
+    vsnprintf(lcd_status_message, 30, status, args);
+    va_end(args);
+    if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
   void lcd_setalertstatuspgm(const char* message) {

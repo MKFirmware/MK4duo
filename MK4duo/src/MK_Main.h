@@ -199,7 +199,17 @@ float code_value_temp_diff();
   extern uint32_t host_keepalive_interval;
 #endif
 
-extern int fanSpeed;
+#if FAN_COUNT > 0
+  extern int fanSpeeds[FAN_COUNT];
+#endif
+
+#if HAS(CONTROLLERFAN)
+  extern uint8_t controllerFanSpeed;
+#endif
+
+#if HAS(AUTO_FAN)
+  extern uint8_t autoFanSpeeds[HOTENDS];
+#endif
 
 #if ENABLED(BARICUDA)
   extern int baricuda_valve_pressure;
@@ -291,7 +301,7 @@ void calculate_volumetric_multipliers();
 void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
 
 #if ENABLED(CNCROUTER)
-  void tool_change_cnc(const uint8_t tool_id);
+  void tool_change_cnc(const uint8_t tool_id, bool wait = true, bool raise_z = true);
 #endif
 
 /**

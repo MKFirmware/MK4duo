@@ -54,17 +54,17 @@
 #if defined(UBRRH) || defined(UBRR0H) || defined(UBRR1H) || defined(UBRR2H) || defined(UBRR3H)
 
 #if UART_PRESENT(SERIAL_PORT)
-  ring_buffer_r rx_buffer  =  { { 0 }, 0, 0 };
+  ring_buffer_r rx_buffer = { { 0 }, 0, 0 };
   #if TX_BUFFER_SIZE > 0
-    ring_buffer_t tx_buffer  =  { { 0 }, 0, 0 };
+    ring_buffer_t tx_buffer = { { 0 }, 0, 0 };
     static bool _written;
   #endif
 #endif
 
 FORCE_INLINE void store_char(unsigned char c) {
   CRITICAL_SECTION_START;
-    uint8_t h = rx_buffer.head;
-    uint8_t i = (uint8_t)(h + 1)  & (RX_BUFFER_SIZE - 1);
+    const uint8_t h = rx_buffer.head,
+                  i = (uint8_t)(h + 1)  & (RX_BUFFER_SIZE - 1);
 
     // if we should be storing the received character into the location
     // just before the tail (meaning that the head would advance to the
@@ -86,8 +86,8 @@ FORCE_INLINE void store_char(unsigned char c) {
   FORCE_INLINE void _tx_udr_empty_irq(void) {
     // If interrupts are enabled, there must be more data in the output
     // buffer. Send the next byte
-    uint8_t t = tx_buffer.tail;
-    uint8_t c = tx_buffer.buffer[t];
+    const uint8_t t = tx_buffer.tail,
+                  c = tx_buffer.buffer[t];
     tx_buffer.tail = (t + 1) & (TX_BUFFER_SIZE - 1);
 
     M_UDRx = c;
@@ -113,7 +113,7 @@ FORCE_INLINE void store_char(unsigned char c) {
 
 #if defined(M_USARTx_RX_vect)
   ISR(M_USARTx_RX_vect) {
-    unsigned char c  =  M_UDRx;
+    const unsigned char c = M_UDRx;
     store_char(c);
   }
 #endif
@@ -123,14 +123,12 @@ MKHardwareSerial::MKHardwareSerial() { }
 
 // Public Methods
 
-void MKHardwareSerial::begin(long baud) {
+void MKHardwareSerial::begin(const long baud) {
   uint16_t baud_setting;
   bool useU2X = true;
 
   #if F_CPU == 16000000UL && SERIAL_PORT == 0
-    if (baud == 57600) {
-      useU2X = false;
-    }
+    if (baud == 57600) useU2X = false;
   #endif
 
   if (useU2X) {
@@ -163,7 +161,7 @@ void MKHardwareSerial::end() {
 
 void MKHardwareSerial::checkRx(void) {
   if (TEST(M_UCSRxA, M_RXCx)) {
-    uint8_t c  =  M_UDRx;
+    const uint8_t c = M_UDRx;
     store_char(c);
   }
 }
@@ -178,10 +176,9 @@ int MKHardwareSerial::peek(void) {
 int MKHardwareSerial::read(void) {
   int v;
   CRITICAL_SECTION_START;
-    uint8_t t = rx_buffer.tail;
-    if (rx_buffer.head == t) {
+    const uint8_t t = rx_buffer.tail;
+    if (rx_buffer.head == t)
       v = -1;
-    }
     else {
       v = rx_buffer.buffer[t];
       rx_buffer.tail = (uint8_t)(t + 1) & (RX_BUFFER_SIZE - 1);
@@ -192,8 +189,8 @@ int MKHardwareSerial::read(void) {
 
 uint8_t MKHardwareSerial::available(void) {
   CRITICAL_SECTION_START;
-    uint8_t h = rx_buffer.head,
-            t = rx_buffer.tail;
+    const uint8_t h = rx_buffer.head,
+                  t = rx_buffer.tail;
   CRITICAL_SECTION_END;
   return (uint8_t)(RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
 }
@@ -219,7 +216,7 @@ void MKHardwareSerial::flush() {
     return (uint8_t)(TX_BUFFER_SIZE + h - t) & (TX_BUFFER_SIZE - 1);
   }
 
-  void MKHardwareSerial::write(uint8_t c) {
+  void MKHardwareSerial::write(const uint8_t c) {
     _written = true;
     CRITICAL_SECTION_START;
       bool emty = (tx_buffer.head == tx_buffer.tail);
@@ -235,7 +232,7 @@ void MKHardwareSerial::flush() {
       CRITICAL_SECTION_END;
       return;
     }
-    uint8_t i = (tx_buffer.head + 1) & (TX_BUFFER_SIZE - 1);
+    const uint8_t i = (tx_buffer.head + 1) & (TX_BUFFER_SIZE - 1);
 
     // If the output buffer is full, there's nothing for it other than to
     // wait for the interrupt handler to empty it a bit
@@ -295,25 +292,24 @@ void MKHardwareSerial::flush() {
 
 
 void MKHardwareSerial::print(char c, int base) {
-  print((long) c, base);
+  print((long)c, base);
 }
 
 void MKHardwareSerial::print(unsigned char b, int base) {
-  print((unsigned long) b, base);
+  print((unsigned long)b, base);
 }
 
 void MKHardwareSerial::print(int n, int base) {
-  print((long) n, base);
+  print((long)n, base);
 }
 
 void MKHardwareSerial::print(unsigned int n, int base) {
-  print((unsigned long) n, base);
+  print((unsigned long)n, base);
 }
 
 void MKHardwareSerial::print(long n, int base) {
-  if (base == 0) {
+  if (base == 0)
     write(n);
-  }
   else if (base == 10) {
     if (n < 0) {
       print('-');
@@ -321,9 +317,8 @@ void MKHardwareSerial::print(long n, int base) {
     }
     printNumber(n, 10);
   }
-  else {
+  else
     printNumber(n, base);
-  }
 }
 
 void MKHardwareSerial::print(unsigned long n, int base) {
@@ -443,7 +438,7 @@ MKHardwareSerial MKSerial;
   // Currently looking for: M108, M112, M410
   // If you alter the parser please don't forget to update the capabilities in Conditionals_post.h
 
-  FORCE_INLINE void emergency_parser(unsigned char c) {
+  FORCE_INLINE void emergency_parser(const unsigned char c) {
 
     static e_parser_state state = state_RESET;
 

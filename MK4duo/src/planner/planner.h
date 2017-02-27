@@ -109,7 +109,9 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  uint16_t fan_speed;
+  #if FAN_COUNT > 0
+    uint16_t fan_speed[FAN_COUNT];
+  #endif
 
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
@@ -435,9 +437,7 @@ class Planner {
     #endif
 
     #if ENABLED(AUTOTEMP)
-      static float autotemp_max;
-      static float autotemp_min;
-      static float autotemp_factor;
+      static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();
       static void autotemp_M104_M109();
@@ -457,7 +457,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
     }
 
     /**
@@ -470,7 +470,7 @@ class Planner {
      */
     static float intersection_distance(const float &initial_rate, const float &final_rate, const float &accel, const float &distance) {
       if (accel == 0) return 0; // accel was 0, set intersection distance to 0
-      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4);
+      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4.0);
     }
 
     /**

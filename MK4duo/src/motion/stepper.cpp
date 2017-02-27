@@ -399,7 +399,7 @@ void Stepper::isr() {
       #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
         #if ENABLED(ARDUINO_ARCH_SAM)
           HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
           HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
         #else
           NOLESS(OCR1A, TCNT1 + 16);
@@ -418,13 +418,8 @@ void Stepper::isr() {
     #if ENABLED(SD_FINISHED_RELEASECOMMAND)
       if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      _NEXT_ISR(200 * STEPPER_TIMER_FACTOR); // Run at max speed - 10 KHz
-    #else
-      _NEXT_ISR(200); // Run at max speed - 10 KHz
-    #endif
-    // re-enable ISRs
-    _ENABLE_ISRs();
+    _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000); // Run at max speed - 10 KHz
+    _ENABLE_ISRs(); // re-enable ISRs
     return;
   }
 
@@ -452,6 +447,10 @@ void Stepper::isr() {
     current_block = planner.get_current_block();
     if (current_block) {
       trapezoid_generator_reset();
+
+      #if STEPPER_DIRECTION_DELAY > 0
+        HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
+      #endif
 
       // Initialize Bresenham counters to 1/2 the ceiling
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
@@ -482,13 +481,8 @@ void Stepper::isr() {
       #if ENABLED(Z_LATE_ENABLE)
         if (current_block->steps[Z_AXIS] > 0) {
           enable_z();
-          #if ENABLED(ARDUINO_ARCH_SAM)
-            _NEXT_ISR(2000 * STEPPER_TIMER_FACTOR); // Run at slow speed - 1 KHz
-          #else
-            _NEXT_ISR(2000); // Run at slow speed - 1 KHz
-          #endif
-          // re-enable ISRs
-          _ENABLE_ISRs();
+          _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+          _ENABLE_ISRs(); // re-enable ISRs
           return;
         }
       #endif
@@ -502,13 +496,8 @@ void Stepper::isr() {
       // #endif
     }
     else {
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        _NEXT_ISR(2000 * STEPPER_TIMER_FACTOR); // Run at slow speed - 1 KHz
-      #else
-        _NEXT_ISR(2000); // Run at slow speed - 1 KHz
-      #endif
-      // re-enable ISRs
-      _ENABLE_ISRs();
+      _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+      _ENABLE_ISRs(); // re-enable ISRs
       return;
     }
   }
@@ -554,199 +543,9 @@ void Stepper::isr() {
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
     }
 
-  #if DISABLED(ARDUINO_ARCH_SAM) || ENABLED(ENABLE_HIGH_SPEED_STEPPING)
-    // Take multiple steps per interrupt (For high speed moves)
-    bool all_steps_done = false;
-    for (int8_t i = 0; i < step_loops; i++) {
-      #if ENABLED(LIN_ADVANCE)
-
-        counter_E += current_block->steps[E_AXIS];
-        if (counter_E > 0) {
-          counter_E -= current_block->step_event_count;
-          #if DISABLED(COLOR_MIXING_EXTRUDER)
-            // Don't step E here for mixing extruder
-            count_position[E_AXIS] += count_direction[E_AXIS];
-            motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
-          #endif
-        }
-
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // Step mixing steppers proportionally
-          const bool dir = motor_direction(E_AXIS);
-          MIXING_STEPPERS_LOOP(j) {
-            counter_m[j] += current_block->steps[E_AXIS];
-            if (counter_m[j] > 0) {
-              counter_m[j] -= current_block->mix_event_count[j];
-              dir ? --e_steps[j] : ++e_steps[j];
-            }
-          }
-        #endif
-
-      #elif ENABLED(ADVANCE)
-
-        // Always count the unified E axis
-        counter_E += current_block->steps[E_AXIS];
-        if (counter_E > 0) {
-          counter_E -= current_block->step_event_count;
-          #if DISABLED(COLOR_MIXING_EXTRUDER)
-            // Don't step E for mixing extruder
-            motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
-          #endif
-        }
-
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // Step mixing steppers proportionally
-          const bool dir = motor_direction(E_AXIS);
-          MIXING_STEPPERS_LOOP(j) {
-            counter_m[j] += current_block->steps[E_AXIS];
-            if (counter_m[j] > 0) {
-              counter_m[j] -= current_block->mix_event_count[j];
-              dir ? --e_steps[j] : ++e_steps[j];
-            }
-          }
-        #endif
-
-      #endif // ADVANCE or LIN_ADVANCE
-
-      // If a minimum pulse time was specified get the CPU clock
-      #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
-        static uint32_t pulse_start;
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
-        #else
-          pulse_start = TCNT0;
-        #endif
-      #endif
-
-      #if HAS(X_STEP)
-        PULSE_START(X);
-      #endif
-      #if HAS(Y_STEP)
-        PULSE_START(Y);
-      #endif
-      #if HAS(Z_STEP)
-        PULSE_START(Z);
-      #endif
-
-      // For non-advance use linear interpolation for E also
-      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // Keep updating the single E axis
-          counter_E += current_block->steps[E_AXIS];
-          // Tick the counters used for this mix
-          MIXING_STEPPERS_LOOP(j) {
-            // Step mixing steppers (proportionally)
-            counter_m[j] += current_block->steps[E_AXIS];
-            // Step when the counter goes over zero
-            if (counter_m[j] > 0) En_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-          }
-        #else // !COLOR_MIXING_EXTRUDER
-          PULSE_START(E);
-        #endif
-      #endif // !ADVANCE && !LIN_ADVANCE
-
-      // For a minimum pulse time wait before stopping pulses
-      #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
-          pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
-        #else
-          while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) { /* nada */ }
-        #endif
-      #endif
-
-      #if HAS(X_STEP)
-        PULSE_STOP(X);
-      #endif
-      #if HAS(Y_STEP)
-        PULSE_STOP(Y);
-      #endif
-      #if HAS(Z_STEP)
-        PULSE_STOP(Z);
-      #endif
-
-      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
-          // Always step the single E axis
-          if (counter_E > 0) {
-            counter_E -= current_block->step_event_count;
-            count_position[E_AXIS] += count_direction[E_AXIS];
-          }
-          MIXING_STEPPERS_LOOP(j) {
-            if (counter_m[j] > 0) {
-              counter_m[j] -= current_block->mix_event_count[j];
-              En_STEP_WRITE(j, INVERT_E_STEP_PIN);
-            }
-          }
-        #else // !COLOR_MIXING_EXTRUDER
-          PULSE_STOP(E);
-        #endif
-      #endif // !ADVANCE && !LIN_ADVANCE
-
-      #if ENABLED(LASERBEAM)
-        counter_L += current_block->steps_l;
-        if (counter_L > 0) {
-          if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
-            #if ENABLED(LASER_PULSE_METHOD)
-              uint32_t ulValue = current_block->laser_raster_intensity_factor * 255;
-              laser_pulse(ulValue, current_block->laser_duration);
-              laser.time += current_block->laser_duration / 1000; 
-            #else
-              laser_fire(current_block->laser_intensity);
-            #endif
-            if (laser.diagnostics) {
-              SERIAL_MV("X: ", counter_X);
-              SERIAL_MV("Y: ", counter_Y);
-              SERIAL_MV("L: ", counter_L);
-            }
-          }
-          #if ENABLED(LASER_RASTER)
-            if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
-              #if ENABLED(LASER_PULSE_METHOD)
-                uint32_t ulValue = current_block->laser_raster_intensity_factor * 
-                                   current_block->laser_raster_data[counter_raster];
-                laser_pulse(ulValue, current_block->laser_duration);
-                counter_raster++;
-                laser.time += current_block->laser_duration / 1000; 
-              #else
-                // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
-                // going from darkened paper to burning through paper.
-                laser_fire(current_block->laser_raster_data[counter_raster]); 
-              #endif
-              if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
-              counter_raster++;
-            }
-          #endif // LASER_RASTER
-          
-          #if ENABLED(ARDUINO_ARCH_SAM)
-            counter_L -= 1000 * current_block->step_event_count;
-          #else
-            counter_L -= current_block->step_event_count;
-          #endif
-        }
-        #if DISABLED(LASER_PULSE_METHOD)
-          if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
-            if (laser.diagnostics)
-              SERIAL_EM("Laser firing duration elapsed, in interrupt fast loop");
-            laser_extinguish();
-          }
-        #endif // DISABLED(LASER_PULSE_METHOD)
-      #endif // LASERBEAM
-
-      if (++step_events_completed >= current_block->step_event_count) {
-        all_steps_done = true;
-        break;
-      }
-      #if ENABLED(ARDUINO_ARCH_SAM) && STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
-        // For a minimum pulse time wait before stopping low pulses
-        if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
-      #endif
-    }
-
-  #else // ARDUINO_ARCH_SAM && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
-
-    bool all_steps_done = false;
-
+  // Take multiple steps per interrupt (For high speed moves)
+  bool all_steps_done = false;
+  for (int8_t i = 0; i < step_loops; i++) {
     #if ENABLED(LIN_ADVANCE)
 
       counter_E += current_block->steps[E_AXIS];
@@ -761,7 +560,7 @@ void Stepper::isr() {
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Step mixing steppers proportionally
-        bool dir = motor_direction(E_AXIS);
+        const bool dir = motor_direction(E_AXIS);
         MIXING_STEPPERS_LOOP(j) {
           counter_m[j] += current_block->steps[E_AXIS];
           if (counter_m[j] > 0) {
@@ -784,9 +583,8 @@ void Stepper::isr() {
       }
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-
         // Step mixing steppers proportionally
-        bool dir = motor_direction(E_AXIS) ? -1 : 1;
+        const bool dir = motor_direction(E_AXIS);
         MIXING_STEPPERS_LOOP(j) {
           counter_m[j] += current_block->steps[E_AXIS];
           if (counter_m[j] > 0) {
@@ -797,6 +595,16 @@ void Stepper::isr() {
       #endif
 
     #endif // ADVANCE or LIN_ADVANCE
+
+    // If a minimum pulse time was specified get the CPU clock
+    #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
+      static uint32_t pulse_start;
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+      #else
+        pulse_start = TCNT0;
+      #endif
+    #endif
 
     #if HAS(X_STEP)
       PULSE_START(X);
@@ -825,6 +633,44 @@ void Stepper::isr() {
       #endif
     #endif // !ADVANCE && !LIN_ADVANCE
 
+    // For a minimum pulse time wait before stopping pulses
+    #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+        pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+      #else
+        while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) { /* nada */ }
+      #endif
+    #endif
+
+    #if HAS(X_STEP)
+      PULSE_STOP(X);
+    #endif
+    #if HAS(Y_STEP)
+      PULSE_STOP(Y);
+    #endif
+    #if HAS(Z_STEP)
+      PULSE_STOP(Z);
+    #endif
+
+    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        // Always step the single E axis
+        if (counter_E > 0) {
+          counter_E -= current_block->step_event_count;
+          count_position[E_AXIS] += count_direction[E_AXIS];
+        }
+        MIXING_STEPPERS_LOOP(j) {
+          if (counter_m[j] > 0) {
+            counter_m[j] -= current_block->mix_event_count[j];
+            En_STEP_WRITE(j, INVERT_E_STEP_PIN);
+          }
+        }
+      #else // !COLOR_MIXING_EXTRUDER
+        PULSE_STOP(E);
+      #endif
+    #endif // !ADVANCE && !LIN_ADVANCE
+
     #if ENABLED(LASERBEAM)
       counter_L += current_block->steps_l;
       if (counter_L > 0) {
@@ -849,7 +695,7 @@ void Stepper::isr() {
                                  current_block->laser_raster_data[counter_raster];
               laser_pulse(ulValue, current_block->laser_duration);
               counter_raster++;
-              laser.time += current_block->laser_duration/1000; 
+              laser.time += current_block->laser_duration / 1000; 
             #else
               // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
               // going from darkened paper to burning through paper.
@@ -877,9 +723,13 @@ void Stepper::isr() {
 
     if (++step_events_completed >= current_block->step_event_count) {
       all_steps_done = true;
+      break;
     }
-
-  #endif // ARDUINO_ARCH_SAM && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
+    #if ENABLED(ARDUINO_ARCH_SAM) && STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
+      // For a minimum pulse time wait before stopping low pulses
+      if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+    #endif
+  }
 
   #if ENABLED(LIN_ADVANCE)
     if (current_block->use_advance_lead) {
@@ -1036,42 +886,10 @@ void Stepper::isr() {
     step_loops = step_loops_nominal;
   }
 
-  #if ENABLED(ARDUINO_ARCH_SAM) && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
-
-    #if HAS(X_STEP)
-      PULSE_STOP(X);
-    #endif
-    #if HAS(Y_STEP)
-      PULSE_STOP(Y);
-    #endif
-    #if HAS(Z_STEP)
-      PULSE_STOP(Z);
-    #endif
-
-    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-      #if ENABLED(COLOR_MIXING_EXTRUDER)
-        // Always step the single E axis
-        if (counter_E > 0) {
-          counter_E -= current_block->step_event_count;
-          count_position[E_AXIS] += count_direction[E_AXIS];
-        }
-        MIXING_STEPPERS_LOOP(j) {
-          if (counter_m[j] > 0) {
-            counter_m[j] -= current_block->mix_event_count[j];
-            En_STEP_WRITE(j, INVERT_E_STEP_PIN);
-          }
-        }
-      #else // !COLOR_MIXING_EXTRUDER
-        PULSE_STOP(E);
-      #endif
-    #endif // !ADVANCE && !LIN_ADVANCE
-
-  #endif // ARDUINO_ARCH_SAM && DISABLED(ENABLE_HIGH_SPEED_STEPPING)
-
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
     #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
@@ -1234,9 +1052,9 @@ void Stepper::isr() {
     }
   
     // Don't run the ISR faster than possible
-    #ifdef ARDUINO_ARCH_SAM
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
@@ -1445,9 +1263,8 @@ void Stepper::init() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM)
-    HAL_TIMER_START(STEPPER_TIMER);
     // Init Stepper ISR to 122 Hz for quick starting
-    HAL_TIMER_SET_STEPPER_COUNT(0x4000 * STEPPER_TIMER_FACTOR);
+    HAL_timer_start(STEPPER_TIMER, 122);
   #else
     // waveform generation = 0100 = CTC
     CBI(TCCR1B, WGM13);

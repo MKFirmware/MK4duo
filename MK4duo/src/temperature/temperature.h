@@ -71,18 +71,12 @@ class Temperature {
     static uint8_t soft_pwm_bed;
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t fanSpeedSoftPwm;
+      static uint8_t fanSpeedSoftPwm[FAN_COUNT];
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        #define PID_dT (((OVERSAMPLENR + 2) * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
-      #else
-        #define PID_dT ((OVERSAMPLENR * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
-      #endif
-    #endif
+      #define PID_dT ((OVERSAMPLENR * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
-    #if ENABLED(PIDTEMP)
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
       #define PID_PARAM(param, h) Temperature::param[h]
 
@@ -277,7 +271,7 @@ class Temperature {
     #endif
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t soft_pwm_fan;
+      static uint8_t soft_pwm_fan[FAN_COUNT];
     #endif
 
     #if ENABLED(FILAMENT_SENSOR)

@@ -32,19 +32,19 @@
       DeltaParameters() { Init(); }
 
       // Core parameters
-      float diagonal_rod,             // Original Diagonl Rod lenght
-            diagonal_rod_adj[ABC],    // Diagonal Rod adjustments
-            radius,                   // Original Delta radius
-            endstop_adj[ABC],         // Endstop adjustments
-            tower_adj[6],             // Tower adjustments
-            segments_per_second       = DELTA_SEGMENTS_PER_SECOND,
-            print_Radius              = DELTA_PRINTABLE_RADIUS,
-            probe_Radius              = DELTA_PROBEABLE_RADIUS,
-            base_min_pos[ABC]         = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-            base_max_pos[ABC]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
-            base_home_pos[ABC]        = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
-            max_length[ABC]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
-            clip_start_height         = Z_MAX_POS;
+      float     diagonal_rod,         // Original Diagonl Rod lenght
+                diagonal_rod_adj[ABC],// Diagonal Rod adjustments
+                radius,               // Original Delta radius
+                endstop_adj[ABC],     // Endstop adjustments
+                tower_adj[6],         // Tower adjustments
+                base_min_pos[ABC]     = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+                base_max_pos[ABC]     = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+                base_home_pos[ABC]    = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
+                max_length[ABC]       = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
+                clip_start_height     = Z_MAX_POS;
+      uint16_t  segments_per_second   = DELTA_SEGMENTS_PER_SECOND,
+                print_Radius          = DELTA_PRINTABLE_RADIUS,
+                probe_Radius          = DELTA_PROBEABLE_RADIUS;
 
       // Function
       void Init();

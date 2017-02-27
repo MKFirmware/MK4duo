@@ -1,3 +1,8 @@
+### Version 4.3.13 dev
+* Add Delta print radius editable with M666 and save in eeprom
+* Rewrite HAL_DUE
+* Rewrite Temperature Timer please update PID
+
 ### Version 4.3.12 dev
 * Add CNC Router
 * Add M6   - Tool change CNC. (Requires CNCROUTERS)
@@ -5,6 +10,7 @@
 * Add M451 - Select FFF Printer Mode
 * Add M452 - Select Laser Printer Mode
 * Add M453 - Select CNC Printer Mode
+* Add up 4 Fan
 * Add EMERGENCY_PARSER (Only for AVR)
 * Update Nextion V0_9_8
 * Fix BLTOUCH
