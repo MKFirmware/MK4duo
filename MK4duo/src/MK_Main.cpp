@@ -31,7 +31,7 @@
 #include "../base.h"
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-  #include "endstop/endstop_interrupts.h"
+  #include "HAL/HAL_endstop_interrupts.h"
 #endif
 
 #if ENABLED(RFID_MODULE)
@@ -355,7 +355,6 @@ PrintCounter print_job_counter = PrintCounter();
 
   #if ENABLED(AUTO_CALIBRATION_FEATURE)
 
-    const float probe_radius = DELTA_PROBEABLE_RADIUS;
     float ac_prec = AUTOCALIBRATION_PRECISION,
           bed_level_c,
           bed_level_x,
@@ -2366,7 +2365,7 @@ static void clean_up_after_endstop_or_probe_move() {
       float plane[XYZ];
 
       #if MECH(DELTA)
-        gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS, true);
+        gfx_clear((soft_endstop_max[X_AXIS]) * 2, (soft_endstop_max[Y_AXIS]) * 2, soft_endstop_max[Z_AXIS], true);
       #else
         gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS, true);
       #endif
@@ -2374,7 +2373,7 @@ static void clean_up_after_endstop_or_probe_move() {
       gfx_scale(1.4);
 
       #if MECH(DELTA)
-        gfx_cursor_to(LEFT_PROBE_BED_POSITION + (X_MAX_POS), FRONT_PROBE_BED_POSITION + (Y_MAX_POS), 10);
+        gfx_cursor_to(LEFT_PROBE_BED_POSITION + (soft_endstop_max[X_AXIS]), FRONT_PROBE_BED_POSITION + (soft_endstop_max[Y_AXIS]), 10);
       #else
         gfx_cursor_to(LEFT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION, 10);
       #endif
@@ -2383,7 +2382,7 @@ static void clean_up_after_endstop_or_probe_move() {
         for (plane[X_AXIS] = LEFT_PROBE_BED_POSITION; plane[X_AXIS] < RIGHT_PROBE_BED_POSITION; plane[X_AXIS] += 5) {
           plane[Z_AXIS] = 10 + (bilinear_z_offset(plane) * 10);
           #if MECH(DELTA)
-            gfx_plane_to(plane[X_AXIS] + (X_MAX_POS), plane[Y_AXIS] + (Y_MAX_POS), plane[Z_AXIS]);
+            gfx_plane_to(plane[X_AXIS] + (soft_endstop_max[X_AXIS]), plane[Y_AXIS] + (soft_endstop_max[Y_AXIS]), plane[Z_AXIS]);
           #else
             gfx_plane_to(plane[X_AXIS], plane[Y_AXIS], plane[Z_AXIS]);
           #endif
@@ -3368,7 +3367,7 @@ bool position_is_reachable(float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq((float)(DELTA_PRINTABLE_RADIUS));
+    return HYPOT2(dx, dy) <= sq((float)(deltaParams.print_Radius));
   #else
     const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return WITHINXY(dx, dy) && WITHINZ(dz);
@@ -6255,7 +6254,7 @@ inline void gcode_M42() {
         float angle = random(0.0, 360.0),
               radius = random(
                 #if MECH(DELTA)
-                  DELTA_PROBEABLE_RADIUS / 8, DELTA_PROBEABLE_RADIUS / 3
+                  deltaParams.probe_Radius / 8, deltaParams.probe_Radius / 3
                 #else
                   5, X_MAX_LENGTH / 8
                 #endif
@@ -6295,7 +6294,7 @@ inline void gcode_M42() {
           #if MECH(DELTA)
             // If we have gone out too far, we can do a simple fix and scale the numbers
             // back in closer to the origin.
-            while (HYPOT(X_current, Y_current) > DELTA_PROBEABLE_RADIUS) {
+            while (HYPOT(X_current, Y_current) > deltaParams.probe_Radius) {
               X_current /= 1.25;
               Y_current /= 1.25;
               if (verbose_level > 3) {
@@ -9342,57 +9341,35 @@ inline void gcode_M532() {
 
   // M666: Set delta endstop and geometry adjustment
   inline void gcode_M666() {
-    if (code_seen('A')) {
-      deltaParams.tower_adj[0] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('B')) {
-      deltaParams.tower_adj[1] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('C')) {
-      deltaParams.tower_adj[2] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('I')) {
-      deltaParams.tower_adj[3] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('J')) {
-      deltaParams.tower_adj[4] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('K')) {
-      deltaParams.tower_adj[5] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('U')) {
-      deltaParams.diagonal_rod_adj[0] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('V')) {
-      deltaParams.diagonal_rod_adj[1] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('W')) {
-      deltaParams.diagonal_rod_adj[2] = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('R')) {
-      deltaParams.radius = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('D')) {
-      deltaParams.diagonal_rod = code_value_linear_units();
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('H')) {
-      deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
-      deltaParams.Recalc_delta_constants();
-    }
-    if (code_seen('S')) {
-      deltaParams.segments_per_second = code_value_float();
-    }
+    if (code_seen('A')) deltaParams.tower_adj[0] = code_value_linear_units();
+
+    if (code_seen('B')) deltaParams.tower_adj[1] = code_value_linear_units();
+
+    if (code_seen('C')) deltaParams.tower_adj[2] = code_value_linear_units();
+
+    if (code_seen('I')) deltaParams.tower_adj[3] = code_value_linear_units();
+
+    if (code_seen('J')) deltaParams.tower_adj[4] = code_value_linear_units();
+
+    if (code_seen('K')) deltaParams.tower_adj[5] = code_value_linear_units();
+
+    if (code_seen('U')) deltaParams.diagonal_rod_adj[0] = code_value_linear_units();
+
+    if (code_seen('V')) deltaParams.diagonal_rod_adj[1] = code_value_linear_units();
+
+    if (code_seen('W')) deltaParams.diagonal_rod_adj[2] = code_value_linear_units();
+
+    if (code_seen('R')) deltaParams.radius = code_value_linear_units();
+
+    if (code_seen('D')) deltaParams.diagonal_rod = code_value_linear_units();
+
+    if (code_seen('H')) deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
+
+    if (code_seen('S')) deltaParams.segments_per_second = code_value_float();
+
+    if (code_seen('L')) deltaParams.print_Radius = code_value_linear_units();
+
+    deltaParams.Recalc_delta_constants();
 
     #if HAS(BED_PROBE)
       if (code_seen('P')) {
@@ -9429,7 +9406,8 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[2], 3);
       SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.radius, 4);
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second, 1);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second);
+      SERIAL_LMV(CFG, "L (Delta Print Radius): ", deltaParams.print_Radius);
       SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.base_max_pos[Z_AXIS], 3);
     }
   }
@@ -11168,12 +11146,12 @@ void ok_to_send() {
       bed_level_c = probe_bed(0.0, 0.0);
 
       // Probe all bed positions & store carriage positions
-      bed_level_z = probe_bed(0.0, probe_radius);
-      bed_level_oy = probe_bed(-SIN_60 * probe_radius, COS_60 * probe_radius);
-      bed_level_x = probe_bed(-SIN_60 * probe_radius, -COS_60 * probe_radius);
-      bed_level_oz = probe_bed(0.0, -probe_radius);
-      bed_level_y = probe_bed(SIN_60 * probe_radius, -COS_60 * probe_radius);
-      bed_level_ox = probe_bed(SIN_60 * probe_radius, COS_60 * probe_radius);
+      bed_level_z = probe_bed(0.0, deltaParams.probe_Radius);
+      bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+      bed_level_x = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+      bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
+      bed_level_y = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+      bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
       bed_level_c = probe_bed(0.0, 0.0);
     }
 
@@ -11193,9 +11171,9 @@ void ok_to_send() {
       bool z_done = false;
 
       do {
-        bed_level_z = probe_bed(0.0, probe_radius);
-        bed_level_x = probe_bed(-SIN_60 * probe_radius, -COS_60 * probe_radius);
-        bed_level_y = probe_bed(SIN_60 * probe_radius, -COS_60 * probe_radius);
+        bed_level_z = probe_bed(0.0, deltaParams.probe_Radius);
+        bed_level_x = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+        bed_level_y = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
 
         apply_endstop_adjustment(bed_level_x, bed_level_y, bed_level_z);
 
@@ -11441,21 +11419,21 @@ void ok_to_send() {
 
         if (tower == 1) {
           // Bedlevel_x
-          bed_level = probe_bed(-SIN_60 * probe_radius, -COS_60 * probe_radius);
+          bed_level = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
           // Bedlevel_ox
-          bed_level_o = probe_bed(SIN_60 * probe_radius, COS_60 * probe_radius);
+          bed_level_o = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
         }
         if (tower == 2) {
           // Bedlevel_y
-          bed_level = probe_bed(SIN_60 * probe_radius, -COS_60 * probe_radius);
+          bed_level = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
           // Bedlevel_oy
-          bed_level_o = probe_bed(-SIN_60 * probe_radius, COS_60 * probe_radius);
+          bed_level_o = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
         }
         if (tower == 3) {
           // Bedlevel_z
-          bed_level = probe_bed(0.0, probe_radius);
+          bed_level = probe_bed(0.0, deltaParams.probe_Radius);
           // Bedlevel_oz
-          bed_level_o = probe_bed(0.0, -probe_radius);
+          bed_level_o = probe_bed(0.0, -deltaParams.probe_Radius);
         }
 
         // Set inital adjustment value if it is currently 0
@@ -11492,9 +11470,9 @@ void ok_to_send() {
         deltaParams.tower_adj[tower - 1] += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_bed(-SIN_60 * probe_radius, COS_60 * probe_radius);
-        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_bed(0.0, -probe_radius);
-        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_bed(SIN_60 * probe_radius, COS_60 * probe_radius);
+        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
+        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
 
         adj_prv = adj_val;
         adj_val = 0;
@@ -11554,9 +11532,9 @@ void ok_to_send() {
         deltaParams.diagonal_rod += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        bed_level_oy = probe_bed(-SIN_60 * probe_radius, COS_60 * probe_radius);
-        bed_level_oz = probe_bed(0.0, -probe_radius);
-        bed_level_ox = probe_bed(SIN_60 * probe_radius, COS_60 * probe_radius);
+        bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
+        bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
         bed_level_c = probe_bed(0.0, 0.0);
 
         target = (bed_level_ox + bed_level_oy + bed_level_oz) / 3;
@@ -13058,7 +13036,23 @@ void setup() {
  *  - Call LCD update
  */
 void loop() {
+
   if (commands_in_queue < BUFSIZE) get_available_commands();
+
+  #if ENABLED(EEPROM_SETTINGS)
+
+    static uint8_t wait_for_host_init_string_to_finish = 1;
+
+    if (wait_for_host_init_string_to_finish) {
+      if (commands_in_queue != 0 && wait_for_host_init_string_to_finish == 1) wait_for_host_init_string_to_finish = 2;
+      if (commands_in_queue == 0 && wait_for_host_init_string_to_finish >= 2) wait_for_host_init_string_to_finish++;
+      if (wait_for_host_init_string_to_finish >= 250) {
+        wait_for_host_init_string_to_finish = 0;
+        eeprom.VersionCheck();
+      }
+    }
+
+  #endif
 
   #if ENABLED(SDSUPPORT)
     card.checkautostart(false);

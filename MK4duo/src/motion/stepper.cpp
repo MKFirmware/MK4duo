@@ -399,7 +399,7 @@ void Stepper::isr() {
       #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
         #if ENABLED(ARDUINO_ARCH_SAM)
           HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
           HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
         #else
           NOLESS(OCR1A, TCNT1 + 16);
@@ -418,13 +418,8 @@ void Stepper::isr() {
     #if ENABLED(SD_FINISHED_RELEASECOMMAND)
       if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      _NEXT_ISR(200 * STEPPER_TIMER_FACTOR); // Run at max speed - 10 KHz
-    #else
-      _NEXT_ISR(200); // Run at max speed - 10 KHz
-    #endif
-    // re-enable ISRs
-    _ENABLE_ISRs();
+    _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000); // Run at max speed - 10 KHz
+    _ENABLE_ISRs(); // re-enable ISRs
     return;
   }
 
@@ -452,6 +447,10 @@ void Stepper::isr() {
     current_block = planner.get_current_block();
     if (current_block) {
       trapezoid_generator_reset();
+
+      #if STEPPER_DIRECTION_DELAY > 0
+        HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
+      #endif
 
       // Initialize Bresenham counters to 1/2 the ceiling
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
@@ -482,13 +481,8 @@ void Stepper::isr() {
       #if ENABLED(Z_LATE_ENABLE)
         if (current_block->steps[Z_AXIS] > 0) {
           enable_z();
-          #if ENABLED(ARDUINO_ARCH_SAM)
-            _NEXT_ISR(2000 * STEPPER_TIMER_FACTOR); // Run at slow speed - 1 KHz
-          #else
-            _NEXT_ISR(2000); // Run at slow speed - 1 KHz
-          #endif
-          // re-enable ISRs
-          _ENABLE_ISRs();
+          _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+          _ENABLE_ISRs(); // re-enable ISRs
           return;
         }
       #endif
@@ -502,13 +496,8 @@ void Stepper::isr() {
       // #endif
     }
     else {
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        _NEXT_ISR(2000 * STEPPER_TIMER_FACTOR); // Run at slow speed - 1 KHz
-      #else
-        _NEXT_ISR(2000); // Run at slow speed - 1 KHz
-      #endif
-      // re-enable ISRs
-      _ENABLE_ISRs();
+      _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+      _ENABLE_ISRs(); // re-enable ISRs
       return;
     }
   }
@@ -900,7 +889,7 @@ void Stepper::isr() {
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
     #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
@@ -1063,9 +1052,9 @@ void Stepper::isr() {
     }
   
     // Don't run the ISR faster than possible
-    #ifdef ARDUINO_ARCH_SAM
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 16 * REFERENCE_STEPPER_TIMER_PRESCALE / STEPPER_TIMER_PRESCALE;
+                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
@@ -1274,9 +1263,8 @@ void Stepper::init() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM)
-    HAL_TIMER_START(STEPPER_TIMER);
     // Init Stepper ISR to 122 Hz for quick starting
-    HAL_TIMER_SET_STEPPER_COUNT(0x4000 * STEPPER_TIMER_FACTOR);
+    HAL_timer_start(STEPPER_TIMER, 122);
   #else
     // waveform generation = 0100 = CTC
     CBI(TCCR1B, WGM13);

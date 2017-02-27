@@ -280,7 +280,7 @@
 #define HAS_PID_FOR_BOTH (ENABLED(PIDTEMP) && ENABLED(PIDTEMPBED))
 #define HAS_PID_COOLING (ENABLED(PIDTEMPCOOLER))
 
-#if ENABLED(ARDUINO_ARCH_SAM) && (DISABLED(PID_dT_FACTOR) || PID_dT_FACTOR <= 0)
+#if DISABLED(PID_dT_FACTOR) || PID_dT_FACTOR <= 0
   #define PID_dT_FACTOR 1
 #endif
 
@@ -698,35 +698,24 @@
 #endif
 #define FAN_LOOP() for (uint8_t f = 0; f < FAN_COUNT; f++)
 
+#if ENABLED(INVERTED_FAN_PINS)
+  #define _WRITE_FAN(pin, v) WRITE(pin, !v)
+#else
+ #define _WRITE_FAN(pin, v) WRITE(pin, v)
+#endif
+
 #if HAS(FAN0)
-  #if ENABLED(INVERTED_HEATER_PINS)
-    #define WRITE_FAN(v) WRITE(FAN_PIN, !v)
-    #define WRITE_FAN0(v) WRITE_FAN(v)
-  #else
-    #define WRITE_FAN(v) WRITE(FAN_PIN, v)
-    #define WRITE_FAN0(v) WRITE_FAN(v)
-  #endif
+  #define WRITE_FAN(v) _WRITE_FAN(FAN_PIN, v)
+  #define WRITE_FAN0(v) WRITE_FAN(v)
 #endif
 #if HAS(FAN1)
-  #if ENABLED(INVERTED_HEATER_PINS)
-    #define WRITE_FAN1(v) WRITE(FAN1_PIN, !v)
-  #else
-    #define WRITE_FAN1(v) WRITE(FAN1_PIN, v)
-  #endif
+  #define WRITE_FAN1(v) _WRITE_FAN(FAN1_PIN, v)
 #endif
 #if HAS(FAN2)
-  #if ENABLED(INVERTED_HEATER_PINS)
-    #define WRITE_FAN2(v) WRITE(FAN2_PIN, !v)
-  #else
-    #define WRITE_FAN2(v) WRITE(FAN2_PIN, v)
-  #endif
+  #define WRITE_FAN2(v) _WRITE_FAN(FAN2_PIN, v)
 #endif
 #if HAS(FAN3)
-  #if ENABLED(INVERTED_HEATER_PINS)
-    #define WRITE_FAN3(v) WRITE(FAN3_PIN, !v)
-  #else
-    #define WRITE_FAN3(v) WRITE(FAN3_PIN, v)
-  #endif
+  #define WRITE_FAN3(v) _WRITE_FAN(FAN3_PIN, v)
 #endif
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
@@ -846,8 +835,12 @@
   #define Z_PROBE_OFFSET_FROM_NOZZLE 0
 #endif
 
-// Stepper pulse duration, in cycles
-#define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_MICROSECOND)
+#ifdef __SAM3X8E__
+  // Add additional delay for between direction signal and pulse signal of stepper
+  #ifndef STEPPER_DIRECTION_DELAY
+    #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
+  #endif
+#endif
 
 // MUVE 3D
 #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)

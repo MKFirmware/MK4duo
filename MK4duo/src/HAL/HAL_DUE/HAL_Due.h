@@ -50,12 +50,22 @@
  * ARDUINO_ARCH_SAM
  */
 
-#ifndef HAL_SAM_H
-#define HAL_SAM_H
+#ifndef _HAL_DUE_H
+#define _HAL_DUE_H
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 
 #include <stdint.h>
 #include <Arduino.h>
-#include "HAL_fastio_due.h"
+#include "fastio_Due.h"
+#include "watchdog_Due.h"
+#include "HAL_timers_Due.h"
+
+// --------------------------------------------------------------------------
+// Defines
+// --------------------------------------------------------------------------
 
 // do not use program space memory with Due
 #define PROGMEM
@@ -79,83 +89,13 @@
 #define pgm_read_dword(addr) (*(addr))
 //#define pgm_read_dword(addr) (*(const unsigned long *)(addr))
 #undef pgm_read_dword_near
+#define pgm_read_dword_near(addr) pgm_read_dword(addr)
 #undef pgm_read_ptr
 #define pgm_read_ptr(addr) (*(addr))
-#define pgm_read_dword_near(addr) pgm_read_dword(addr)
 #ifndef strncpy_P
   #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
 #endif
 
-/**
- * Public Variables
- */
-
-constexpr uint8_t MAX_ANALOG_PIN_NUMBER = 11;
-
-// Voltage
-constexpr float HAL_VOLTAGE_PIN = 3.3;
-
-// reset reason
-constexpr uint8_t RST_POWER_ON = 1;
-constexpr uint8_t RST_EXTERNAL = 2;
-constexpr uint8_t RST_BROWN_OUT = 4;
-constexpr uint8_t RST_WATCHDOG = 8;
-constexpr uint8_t RST_JTAG = 16;
-constexpr uint8_t RST_SOFTWARE = 32;
-constexpr uint8_t RST_BACKUP = 64;
-
-/**
- * Defines & Macros
- */
-
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
-#define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
-
-#define SPR0    0
-#define SPR1    1
-
-// Delays
-#define CYCLES_EATEN_BY_CODE  12
-#define CYCLES_EATEN_BY_E     12
-
-// Variant files of Alligator Board is old
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  #define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
-#else
-  #define analogInputToDigitalPin(p) p
-#endif
-
-#define PACK    __attribute__ ((packed))
-
-#undef LOW
-#define LOW         0
-#undef HIGH
-#define HIGH        1
-
-/**
- * Stepper Definition
- */
-
-// intRes = intIn1 * intIn2 >> 16
-#define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
-// intRes = longIn1 * longIn2 >> 24
-#define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
-
-/**
- * Public Variables
- */
-
-#ifndef DUE_SOFTWARE_SPI
-  extern int spiDueDividors[];
-#endif
-
-// reset reason set by bootloader
-extern uint8_t MCUSR;
-volatile static uint32_t debug_counter;
-
-/**
- * Setting Serial
- */
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
@@ -178,6 +118,83 @@ volatile static uint32_t debug_counter;
     #define MKSERIAL Serial3
   #endif
 #endif
+
+#define MATH_USE_HAL
+#undef ATAN2
+#undef FABS
+#undef POW
+#undef SQRT
+#undef CEIL
+#undef FLOOR
+#undef LROUND
+#undef FMOD
+#define ATAN2(y, x) atan2f(y, x)
+#define FABS(x) fabsf(x)
+#define POW(x, y) powf(x, y)
+#define SQRT(x) sqrtf(x)
+#define CEIL(x) ceilf(x)
+#define FLOOR(x) floorf(x)
+#define LROUND(x) lroundf(x)
+#define FMOD(x, y) fmodf(x, y)
+
+#undef analogInputToDigitalPin
+#define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
+
+#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+#define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
+
+#define MAX_ANALOG_PIN_NUMBER 11
+
+// Voltage
+#define HAL_VOLTAGE_PIN 3.3
+
+// reset reason
+#define RST_POWER_ON   1
+#define RST_EXTERNAL   2
+#define RST_BROWN_OUT  4
+#define RST_WATCHDOG   8
+#define RST_JTAG       16
+#define RST_SOFTWARE   32
+#define RST_BACKUP     64
+
+#define SPR0    0
+#define SPR1    1
+
+// Delays
+#define CYCLES_EATEN_BY_CODE  12
+#define CYCLES_EATEN_BY_E     12
+
+#define PACK    __attribute__ ((packed))
+
+#undef LOW
+#define LOW         0
+#undef HIGH
+#define HIGH        1
+
+// intRes = intIn1 * intIn2 >> 16
+#define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
+// intRes = longIn1 * longIn2 >> 24
+#define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
+
+#define ADV_NEVER 0xFFFFFFFF
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+
+typedef uint32_t millis_t;
+
+// --------------------------------------------------------------------------
+// Public Variables
+// --------------------------------------------------------------------------
+
+#ifndef DUE_SOFTWARE_SPI
+  extern int spiDueDividors[];
+#endif
+
+// reset reason set by bootloader
+extern uint8_t MCUSR;
+volatile static uint32_t debug_counter;
 
 class HAL {
   public:
@@ -271,15 +288,19 @@ class HAL {
       MKSERIAL.flush();
     }
 
-    static inline void clear_reset_source() {}
-
+    static void clear_reset_source();
     static uint8_t get_reset_source();
+
     static int getFreeRam();
     static void resetHardware();
 
   protected:
   private:
 };
+
+/**
+ * Public functions
+ */
 
 // Disable interrupts
 void cli(void);
@@ -295,162 +316,6 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
 
-/******************************************
- * HAL Timers for stepper and temperature *
- ******************************************/
-
-/**
- * Defines
- */
-
-#define STEPPER_TIMER 2
-#define STEPPER_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK1 // TIMER_CLOCK1 -> 2 divisor
-#define HAL_STEP_TIMER_ISR  void TC2_Handler()
-
-#define TEMP_TIMER 3
-#define TEMP_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK2 // TIMER_CLOCK2 -> 8 divisor
-#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
-
-#define BEEPER_TIMER 4
-#define BEEPER_TIMER_COUNTER TC1
-#define BEEPER_TIMER_CHANNEL 1
-#define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
-
-#define HAL_TIMER_START(n) HAL_timer_start(n, n ## _PRIORITY, n ## _FREQUENCY, n ## _CLOCK, n ## _PRESCALE)
-
-#define _ENABLE_ISRs() \
-    do { \
-      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
-      else ENABLE_TEMP_INTERRUPT(); \
-      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
-    } while(0)
-
-#define CLI_ENABLE_TEMP_INTERRUPT() \
-    in_temp_isr = false; \
-    ENABLE_TEMP_INTERRUPT();
-
-// Types
-typedef uint32_t millis_t;
-typedef uint32_t HAL_TIMER_TYPE;
-
-typedef struct {
-  Tc          *pTimerRegs;
-  uint16_t    channel;
-  IRQn_Type   IRQ_Id;
-} tTimerConfig;
-
-/**
- * Public Variables
- */
-
-constexpr uint8_t NUM_HARDWARE_TIMERS = 9;
-
-constexpr uint32_t STEPPER_TIMER_PRIORITY = 2;
-constexpr double STEPPER_TIMER_FREQUENCY = REFERENCE_STEPPER_TIMER_FREQUENCY;
-constexpr uint32_t STEPPER_TIMER_PRESCALE = 2;
-constexpr double HAL_STEPPER_TIMER_RATE = F_CPU / STEPPER_TIMER_PRESCALE; // = 42MHz
-constexpr double STEPPER_TIMER_FREQUENCY_FACTOR = STEPPER_TIMER_FREQUENCY / REFERENCE_STEPPER_TIMER_FREQUENCY;
-constexpr double STEPPER_TIMER_FACTOR = HAL_STEPPER_TIMER_RATE / HAL_REFERENCE_STEPPER_TIMER_RATE / STEPPER_TIMER_FREQUENCY_FACTOR;
-constexpr double STEPPER_TIMER_TICKS_PER_MILLISECOND = HAL_STEPPER_TIMER_RATE / 1000;
-
-constexpr uint32_t TEMP_TIMER_PRIORITY = 15;
-constexpr double TEMP_TIMER_FREQUENCY = REFERENCE_TEMP_TIMER_FREQUENCY;
-constexpr uint32_t TEMP_TIMER_PRESCALE = 8;
-constexpr double HAL_TEMP_TIMER_RATE = F_CPU / TEMP_TIMER_PRESCALE; // = 10.5MHz
-constexpr double TEMP_TIMER_FREQUENCY_FACTOR = TEMP_TIMER_FREQUENCY / REFERENCE_TEMP_TIMER_FREQUENCY;
-constexpr double TEMP_TIMER_FACTOR = HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE / TEMP_TIMER_FREQUENCY_FACTOR;
-constexpr double TEMP_TIMER_TICKS_PER_MILLISECOND = HAL_TEMP_TIMER_RATE / 1000;
-
-constexpr HAL_TIMER_TYPE ADV_NEVER = UINT32_MAX;
-
-/**
- * Private Variables
- */
-
-static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
-  { TC0, 0, TC0_IRQn },
-  { TC0, 1, TC1_IRQn },
-  { TC0, 2, TC2_IRQn },
-  { TC1, 0, TC3_IRQn },
-  { TC1, 1, TC4_IRQn },
-  { TC1, 2, TC5_IRQn },
-  { TC2, 0, TC6_IRQn },
-  { TC2, 1, TC7_IRQn },
-  { TC2, 2, TC8_IRQn },
-};
-
-/*
-	Timer_clock1: Prescaler 2 -> 42MHz
-	Timer_clock2: Prescaler 8 -> 10.5MHz
-	Timer_clock3: Prescaler 32 -> 2.625MHz
-	Timer_clock4: Prescaler 128 -> 656.25kHz
-*/
-
-/*
-#define TEMP_TIMER 3
-#define TEMP_TIMER_PRIORITY 15
-#define TEMP_TIMER_FREQUENCY (REFERENCE_TEMP_TIMER_FREQUENCY * 4)
-#define TEMP_TIMER_CLOCK TC_CMR_TCCLKS_TIMER_CLOCK4 // TIMER_CLOCK4 -> 128 divisor
-#define TEMP_TIMER_PRESCALE 128
-#define HAL_TEMP_TIMER_RATE (F_CPU / TEMP_TIMER_PRESCALE) // = 656.25kHz
-#define TEMP_TIMER_FACTOR (HAL_TEMP_TIMER_RATE / HAL_REFERENCE_TEMP_TIMER_RATE)
-#define TEMP_TIMER_TICKS_PER_MILLISECOND (HAL_TEMP_TIMER_RATE / 1000)
-#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
-*/
-
-/**
- * Public functions
- */
-
-// Timers
-void HAL_timer_start(const uint8_t timer_num, const uint8_t priority, const uint32_t frequency, const uint32_t clock, const uint8_t prescale);
-void HAL_timer_enable_interrupt(const uint8_t timer_num);
-void HAL_timer_disable_interrupt(const uint8_t timer_num);
-
-static FORCE_INLINE void HAL_timer_isr_prologue(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
-  TC_GetStatus(pConfig->pTimerRegs, pConfig->channel); // clear status register
-}
-
-static FORCE_INLINE uint32_t HAL_timer_get_count(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
-  return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
-}
-
-static FORCE_INLINE uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
-  return TC_ReadCV(pConfig->pTimerRegs, pConfig->channel);
-}
-
-static FORCE_INLINE void HAL_timer_set_count(const uint8_t timer_num, uint32_t count) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
-  TC_SetRC(pConfig->pTimerRegs, pConfig->channel, count);
-}
-
-static FORCE_INLINE void ENABLE_STEPPER_DRIVER_INTERRUPT(void) {
-  HAL_timer_enable_interrupt(STEPPER_TIMER);
-}
-
-static FORCE_INLINE void DISABLE_STEPPER_DRIVER_INTERRUPT(void) {
-  HAL_timer_disable_interrupt(STEPPER_TIMER);
-}
-
-static FORCE_INLINE void HAL_TIMER_SET_STEPPER_COUNT(uint32_t count) {
-  HAL_timer_set_count(STEPPER_TIMER, count);
-}
-
-static FORCE_INLINE void ENABLE_TEMP_INTERRUPT(void) {
-  HAL_timer_enable_interrupt(TEMP_TIMER);
-}
-
-static FORCE_INLINE void DISABLE_TEMP_INTERRUPT(void) {
-  HAL_timer_disable_interrupt(TEMP_TIMER);
-}
-
-static FORCE_INLINE void HAL_TIMER_SET_TEMP_COUNT(uint32_t count) {
-  HAL_timer_set_count(TEMP_TIMER, count);
-}
-
 // ADC
 uint16_t getAdcReading(adc_channel_num_t chan);
 void startAdcConversion(adc_channel_num_t chan);
@@ -461,56 +326,10 @@ uint16_t getAdcSuperSample(adc_channel_num_t chan);
 void setAdcFreerun(void);
 void stopAdcFreerun(adc_channel_num_t chan);
 
-// Tone
-inline void HAL_timer_isr_status(Tc* tc, uint32_t channel) {
-  tc->TC_CHANNEL[channel].TC_SR; // clear status register
-}
-
-void tone(uint8_t pin, int frequency, unsigned long duration);
-void noTone(uint8_t pin);
-
 #if ENABLED(LASERBEAM)
   #define LASER_PWM_MAX_DUTY 255
   void HAL_laser_init_pwm(uint8_t pin, uint16_t freq);
   void HAL_laser_intensity(uint8_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
 #endif
-
-/**
- * math function
- */
-
-#define MATH_USE_HAL
-
-static FORCE_INLINE float ATAN2(float y, float x) {
-  return atan2f(y, x);
-}
-
-static FORCE_INLINE float FABS(float x) {
-  return fabsf(x);
-}
-
-static FORCE_INLINE float POW(float x, float y) {
-  return powf(x, y);
-}
-
-static FORCE_INLINE float SQRT(float x) {
-  return sqrtf(x);
-}
-
-static FORCE_INLINE float CEIL(float x) {
-  return ceilf(x);
-}
-
-static FORCE_INLINE float FLOOR(float x) {
-  return floorf(x);
-}
-
-static FORCE_INLINE long LROUND(float x) {
-  return lroundf(x);
-}
-
-static FORCE_INLINE float FMOD(float x, float y) {
-  return fmodf(x, y);
-}
 
 #endif // HAL_SAM_H
