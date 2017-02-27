@@ -9367,7 +9367,7 @@ inline void gcode_M532() {
 
     if (code_seen('S')) deltaParams.segments_per_second = code_value_float();
 
-    if (code_seen('L')) deltaParams.print_Radius = code_value_linear_units();
+    if (code_seen('O')) deltaParams.print_Radius = code_value_linear_units();
 
     deltaParams.Recalc_delta_constants();
 
@@ -9407,7 +9407,7 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.radius, 4);
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second);
-      SERIAL_LMV(CFG, "L (Delta Print Radius): ", deltaParams.print_Radius);
+      SERIAL_LMV(CFG, "O (Delta Print Radius): ", deltaParams.print_Radius);
       SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.base_max_pos[Z_AXIS], 3);
     }
   }

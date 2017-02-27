@@ -958,7 +958,7 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
       SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, L=Print Radius, H=Z Height");
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
       SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
       SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
       SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
@@ -971,7 +971,7 @@ void EEPROM::ResetDefault() {
       SERIAL_MV(" R", deltaParams.radius);
       SERIAL_MV(" D", deltaParams.diagonal_rod);
       SERIAL_MV(" S", deltaParams.segments_per_second);
-      SERIAL_MV(" L", deltaParams.print_Radius);
+      SERIAL_MV(" O", deltaParams.print_Radius);
       SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
 
     #elif ENABLED(Z_TWO_ENDSTOPS)
