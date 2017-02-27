@@ -35,8 +35,8 @@
  * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
- #ifndef _ENDSTOP_INTERRUPTS_AVR_H_
- #define _ENDSTOP_INTERRUPTS_AVR_H_
+#ifndef _ENDSTOP_INTERRUPTS_H_
+#define _ENDSTOP_INTERRUPTS_H_
 
 /**
  * Patch for pins_arduino.h (...\Arduino\hardware\arduino\avr\variants\mega\pins_arduino.h)
@@ -191,4 +191,4 @@ void setup_endstop_interrupts( void ) {
   // If we arrive here without raising an assertion, each pin has either an EXT-interrupt or a PCI.
 }
 
-#endif //_ENDSTOP_INTERRUPTS_AVR_H_
+#endif //_ENDSTOP_INTERRUPTS_H_

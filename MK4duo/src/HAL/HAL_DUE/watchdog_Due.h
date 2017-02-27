@@ -20,40 +20,13 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
+#ifndef WATCHDOG_DUE_H
+#define WATCHDOG_DUE_H
 
-class EEPROM {
+// Arduino Due core now has watchdog support
 
-  public:
+void watchdog_init();
 
-    static void ResetDefault();
-    static void StoreSettings();
-    static void VersionCheck();
+inline void watchdog_reset() { watchdogReset(); }
 
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
-
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
-
-  private:
-
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
-};
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H
+#endif // WATCHDOG_DUE_H

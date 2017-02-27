@@ -1554,8 +1554,7 @@ void Temperature::init() {
   // Use timer0 for temperature measurement
   // Interleave temperature interrupt with millies interrupt
   #if ENABLED(ARDUINO_ARCH_SAM)
-    HAL_TIMER_START(TEMP_TIMER);
-    HAL_TIMER_SET_TEMP_COUNT(128 * TEMP_TIMER_FACTOR);
+    HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY);
   #else
     OCR0B = 128;
   #endif

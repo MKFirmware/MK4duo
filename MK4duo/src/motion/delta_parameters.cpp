@@ -44,9 +44,15 @@
 
   void DeltaParameters::Recalc_delta_constants() {
 
+    LOOP_XY(i) {
+      base_min_pos[(AxisEnum)i] = -print_Radius;
+      base_max_pos[(AxisEnum)i] = print_Radius;
+      max_length[(AxisEnum)i]   = base_max_pos[(AxisEnum)i] - base_min_pos[(AxisEnum)i];
+    }
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
     base_home_pos[Z_AXIS]     = base_max_pos[Z_AXIS];
+    probe_Radius              = print_Radius - 5;
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);
@@ -305,7 +311,7 @@
     };
     inverse_kinematics_DELTA(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(DELTA_PRINTABLE_RADIUS);
+    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(print_Radius);
     inverse_kinematics_DELTA(cartesian);
     clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }

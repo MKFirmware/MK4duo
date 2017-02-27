@@ -31,28 +31,14 @@
 #ifndef _HAL_H
 #define _HAL_H
 
-/**
- * Public Variables
- */
-
-constexpr uint32_t REFERENCE_F_CPU = 16000000; // 16MHz MEGA2560
-
-/**
- * Timers
- */
-constexpr uint32_t REFERENCE_STEPPER_TIMER_PRESCALE = 8;
-constexpr double HAL_REFERENCE_STEPPER_TIMER_RATE = REFERENCE_F_CPU / REFERENCE_STEPPER_TIMER_PRESCALE; // timer1 of MEGA2560: 16000000 / 8 = 2MHz
-constexpr double REFERENCE_STEPPER_TIMER_FREQUENCY = HAL_REFERENCE_STEPPER_TIMER_RATE / 2000; // note: timer0 is in mode2 (CTC), 1KHz at start
-
-constexpr uint32_t REFERENCE_TEMP_TIMER_PRESCALE = 64;
-constexpr double HAL_REFERENCE_TEMP_TIMER_RATE = REFERENCE_F_CPU / REFERENCE_TEMP_TIMER_PRESCALE; // timer0 of MEGA2560: 16000000 / 64 = 250KHz (sharing with advanced extruder)
-constexpr double REFERENCE_TEMP_TIMER_FREQUENCY = HAL_REFERENCE_TEMP_TIMER_RATE / 256; // note: timer0 is in mode3 (8bit fast PWM), 976.5625Hz always
+#include <stdint.h>
 
 #if ENABLED(ARDUINO_ARCH_SAM)
-  #include "HAL_SAM/HAL.h"
-  #include "HAL_SAM/communication.h"
+  #define CPU_32_BIT
+  #include "HAL_DUE/HAL_Due.h"
+  #include "HAL_DUE/communication.h"
 #elif ENABLED(ARDUINO_ARCH_AVR)
-  #include "HAL_AVR/HAL.h"
+  #include "HAL_AVR/HAL_AVR.h"
   #include "HAL_AVR/communication.h"
 #else
   #error "Unsupported Platform!"

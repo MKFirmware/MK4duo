@@ -1,3 +1,8 @@
+### Version 4.3.13 dev
+* Add Delta print radius modificable with M666 and save in eeprom
+* Rewrite HAL_DUE
+* Rewrite Temperature Timer please update PID
+
 ### Version 4.3.12 dev
 * Add CNC Router
 * Add M6   - Tool change CNC. (Requires CNCROUTERS)

@@ -20,40 +20,22 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
+#include "../../../base.h"
 
-class EEPROM {
+#if ENABLED(ARDUINO_ARCH_SAM)
 
-  public:
+  #if ENABLED(USE_WATCHDOG)
 
-    static void ResetDefault();
-    static void StoreSettings();
-    static void VersionCheck();
+    #include "watchdog_Due.h"
 
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
+    // Initialize watchdog with a 4 second interrupt time
+    void watchdogSetup(void) { watchdogEnable(4000); }
 
-    #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
-    #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
-    #endif
+    // TODO: implement for Due
+    void watchdog_init() {
+      // this is a stub
+    }
 
-  private:
+  #endif // USE_WATCHDOG
 
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
-    static void Postprocess();
-
-    static uint16_t eeprom_checksum;
-    static const char version[6];
-
-};
-
-extern EEPROM eeprom;
-
-#endif //CONFIGURATION_STORE_H
+#endif

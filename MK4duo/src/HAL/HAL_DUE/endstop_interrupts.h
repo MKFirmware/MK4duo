@@ -34,8 +34,8 @@
  * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
-#ifndef _ENDSTOP_INTERRUPTS_SAM_H
-#define _ENDSTOP_INTERRUPTS_SAM_H
+#ifndef _ENDSTOP_INTERRUPTS_H
+#define _ENDSTOP_INTERRUPTS_H
 
 /**
  *  Endstop interrupts for Due based targets.

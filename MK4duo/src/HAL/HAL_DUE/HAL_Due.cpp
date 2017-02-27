@@ -91,7 +91,9 @@ HAL::~HAL() {
   // dtor
 }
 
-uint8_t HAL::get_reset_source() {
+void HAL::clear_reset_source(void) { }
+
+uint8_t HAL::get_reset_source(void) {
   switch ((RSTC->RSTC_SR >> 8) & 7) {
     case 0: return RST_POWER_ON; break;
     case 1: return RST_BACKUP; break;
@@ -603,85 +605,6 @@ void HAL::resetHardware() {
   }
 
 #endif // I2C_EEPROM
-
-void HAL_timer_start(const uint8_t timer_num, const uint8_t priority, const uint32_t frequency, const uint32_t clock, const uint8_t prescale) {
-  // Get the ISR from table
-  Tc *tc = TimerConfig[timer_num].pTimerRegs;
-  uint32_t channel = TimerConfig[timer_num].channel;
-  IRQn_Type irq = TimerConfig[timer_num].IRQ_Id;
-
-  pmc_set_writeprotect(false);
-  pmc_enable_periph_clk((uint32_t)irq);
-  NVIC_SetPriority(irq, priority);
-
-  TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | clock);
-
-  TC_SetRC(tc, channel, VARIANT_MCK / prescale / frequency);
-  TC_Start(tc, channel);
-
-  tc->TC_CHANNEL[channel].TC_IDR = TC_IER_CPCS; // disable interrupt
-
-  NVIC_EnableIRQ(irq);
-}
-
-void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
-  pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IER = TC_IER_CPCS; // enable interrupt on timer match with register C
-  pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IDR = ~TC_IER_CPCS; // remove disable interrupt
-}
-
-void HAL_timer_disable_interrupt (const uint8_t timer_num) {
-	const tTimerConfig *pConfig = &TimerConfig [timer_num];
-	pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IDR = TC_IER_CPCS; //disable interrupt
-}
-
-// Due have no tone, this is from Repetier 0.92.3
-static uint32_t tone_pin;
-unsigned long _nt_time; // Time note should end.
-
-void tone(uint8_t pin, int frequency, unsigned long duration) {
-  // set up timer counter 1 channel 0 to generate interrupts for
-  // toggling output pin.  
-  Tc *tc = TimerConfig [BEEPER_TIMER].pTimerRegs;
-  IRQn_Type irq = TimerConfig [BEEPER_TIMER].IRQ_Id;
-	uint32_t channel = TimerConfig [BEEPER_TIMER].channel;
-
-  if (duration > 0) _nt_time = millis() + duration; else _nt_time = 0xFFFFFFFF; // Set when the note should end, or play "forever".
-
-  SET_OUTPUT(pin);
-  tone_pin = pin;
-  pmc_set_writeprotect(false);
-  pmc_enable_periph_clk((uint32_t)irq);
-
-  TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC |
-               TC_CMR_TCCLKS_TIMER_CLOCK4);  // TIMER_CLOCK4 -> 128 divisor
-  uint32_t rc = VARIANT_MCK / 128 / frequency;
-  TC_SetRA(tc, channel, rc/2);                     // 50% duty cycle
-  TC_SetRC(tc, channel, rc);
-  TC_Start(tc, channel);
-  tc->TC_CHANNEL[channel].TC_IER=TC_IER_CPCS;
-  tc->TC_CHANNEL[channel].TC_IDR=~TC_IER_CPCS;
-  NVIC_EnableIRQ((IRQn_Type)irq);
-}
-
-void noTone(uint8_t pin) {
-  Tc *tc = TimerConfig [BEEPER_TIMER].pTimerRegs;
-  uint32_t channel = TimerConfig [BEEPER_TIMER].channel;
-
-  TC_Stop(tc, channel);
-  WRITE_VAR(pin, LOW);
-}
-
-// IRQ handler for tone generator
-HAL_BEEPER_TIMER_ISR {
-  static bool toggle;
-
-  if (millis() >= _nt_time) noTone(tone_pin); // Check to see if it's time for the note to end.
-
-  HAL_timer_isr_status(BEEPER_TIMER_COUNTER, BEEPER_TIMER_CHANNEL);
-  WRITE_VAR(tone_pin, toggle);
-  toggle = !toggle;
-}
 
 // A/D converter
 uint16_t getAdcReading(adc_channel_num_t chan) {

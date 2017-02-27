@@ -30,9 +30,6 @@
 #define ABC       3
 #define XYZ       3
 
-// Clock speed factor
-#define CYCLES_PER_MICROSECOND (F_CPU / 1000000UL) // 16 or 20
-
 // Compiler warning on unused varable.
 #define UNUSED(x) (void) (x)
 
@@ -161,6 +158,7 @@
 
 #define _AXIS(AXIS) AXIS ##_AXIS
 
+#define LOOP_XY(VAR)      for (uint8_t VAR = X_AXIS; VAR <= Y_AXIS; VAR++)
 #define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
 #define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
 #define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)
