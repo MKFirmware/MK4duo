@@ -1,5 +1,4 @@
 ### Version 4.3.13 dev
-* Add Delta print radius modificable with M666 and save in eeprom
 * Rewrite HAL_DUE
 * Rewrite Temperature Timer please update PID
 
