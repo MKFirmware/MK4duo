@@ -8863,6 +8863,11 @@ inline void gcode_M532() {
 
     busy_doing_M600 = true;  // Stepper Motors can't timeout when this is set
 
+    bool  nozzle_timed_out  = false,
+          nozzle_cool_down  = false,
+          printer_timed_out = false;
+    float old_target_temperature[HOTENDS];
+
     // Pause the print job counter
     bool job_running = print_job_counter.isRunning();
     print_job_counter.pause();
@@ -8922,6 +8927,26 @@ inline void gcode_M532() {
     RUNPLAN(FILAMENT_CHANGE_XY_FEEDRATE);
 
     stepper.synchronize();
+
+    // Store in old temperature the target temperature for hotend and bed
+    HOTEND_LOOP() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
+    #if HAS(TEMP_BED)
+      float old_target_temperature_bed = thermalManager.target_temperature_bed;     // Save bed temp
+    #endif
+
+    // Cool Down hotend
+    #if FILAMENT_CHANGE_COOLDOWN_TEMP > 0
+      lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_COOLDOWN);
+      thermalManager.setTargetHotend(FILAMENT_CHANGE_COOLDOWN_TEMP, active_extruder);
+      wait_heater(false);
+      nozzle_cool_down = true;
+    #endif
+
+    // Second retract filament
+    destination[E_AXIS] -= FILAMENT_CHANGE_RETRACT_2_LENGTH;
+    RUNPLAN(FILAMENT_CHANGE_RETRACT_2_FEEDRATE);
+
+    stepper.synchronize();
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_UNLOAD);
     idle();
 
@@ -8943,9 +8968,6 @@ inline void gcode_M532() {
     millis_t nozzle_timeout   = millis() + FILAMENT_CHANGE_NOZZLE_TIMEOUT * 1000L;
     millis_t printer_timeout  = millis() + FILAMENT_CHANGE_PRINTER_OFF * 60000L;
     NOMORE(nozzle_timeout, printer_timeout);
-    bool  nozzle_timed_out  = false,
-          printer_timed_out = false;
-    float old_target_temperature[HOTENDS];
 
     // Wait for filament insert by user and press button
     lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_INSERT);
@@ -8956,10 +8978,6 @@ inline void gcode_M532() {
     wait_for_user = true;
     next_buzz = 0;
     runout_beep = 0;
-    HOTEND_LOOP() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
-    #if HAS(TEMP_BED)
-      float old_target_temperature_bed = thermalManager.target_temperature_bed;     // Save bed temp
-    #endif
 
     while (wait_for_user) {
       millis_t current_ms = millis();
@@ -8995,7 +9013,7 @@ inline void gcode_M532() {
     // Reset LCD alert message
     lcd_reset_alert_level();
 
-    if (nozzle_timed_out) {     // Turn nozzles and bed back on if they were turned off
+    if (nozzle_timed_out || nozzle_cool_down) {     // Turn nozzles and bed back on if they were turned off
       // Show "wait for heating"
       lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
 
