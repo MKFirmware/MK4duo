@@ -246,6 +246,9 @@
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Wait for start")
   #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("of the filament")
   #define MSG_FILAMENT_CHANGE_INIT_3          _UxGT("change")
+  #define MSG_FILAMENT_CHANGE_COOL_1          _UxGT("Wait")
+  #define MSG_FILAMENT_CHANGE_COOL_2          _UxGT("Cool Down")
+  #define MSG_FILAMENT_CHANGE_COOL_3          _UxGT("Nozzle")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Wait for")
   #define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("filament unload")
   #define MSG_FILAMENT_CHANGE_UNLOAD_3        _UxGT("")
@@ -269,6 +272,7 @@
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("")
 #else // LCD_HEIGHT < 4
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Please wait...")
+  #define MSG_FILAMENT_CHANGE_COOL_1          _UxGT("Cool Down...")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Ejecting...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insert and Click")
   #define MSG_FILAMENT_CHANGE_HEAT_1          _UxGT("Press button...")

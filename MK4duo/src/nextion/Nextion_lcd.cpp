@@ -688,12 +688,21 @@
       END_SCREEN();
     }
 
+    static void lcd_filament_change_cool_message() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
+      END_SCREEN();
+    }
+
     static void lcd_filament_change_unload_message() {
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
-      STATIC_ITEM("");
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_3);
       END_SCREEN();
     }
 
@@ -761,6 +770,9 @@
       switch (message) {
         case FILAMENT_CHANGE_MESSAGE_INIT:
           lcd_filament_change_init_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_COOLDOWN:
+          lcd_filament_change_cool_message();
           break;
         case FILAMENT_CHANGE_MESSAGE_UNLOAD:
           lcd_filament_change_unload_message();

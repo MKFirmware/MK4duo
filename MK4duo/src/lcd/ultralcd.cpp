@@ -138,6 +138,7 @@ uint16_t max_display_update_time = 0;
     void lcd_filament_change_toocold_menu();
     void lcd_filament_change_option_menu();
     void lcd_filament_change_init_message();
+    void lcd_filament_change_cool_message();
     void lcd_filament_change_unload_message();
     void lcd_filament_change_insert_message();
     void lcd_filament_change_load_message();
@@ -2716,6 +2717,29 @@ KeepDrawing:
       END_SCREEN();
     }
 
+    void lcd_filament_change_cool_message() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
+      #ifdef MSG_FILAMENT_CHANGE_COOL_2
+        STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
+        #define __FC_LINES_A 3
+      #else
+        #define __FC_LINES_A 2
+      #endif
+      #ifdef MSG_FILAMENT_CHANGE_COOL_3
+        STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
+        #define _FC_LINES_A (__FC_LINES_A + 1)
+      #else
+        #define _FC_LINES_A __FC_LINES_A
+      #endif
+      #if LCD_HEIGHT > _FC_LINES_A + 1
+        STATIC_ITEM(" ");
+      #endif
+      HOTEND_STATUS_ITEM();
+      END_SCREEN();
+    }
+
     void lcd_filament_change_unload_message() {
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
@@ -2877,6 +2901,9 @@ KeepDrawing:
         case FILAMENT_CHANGE_MESSAGE_INIT:
           defer_return_to_status = true;
           lcd_goto_screen(lcd_filament_change_init_message);
+          break;
+        case FILAMENT_CHANGE_MESSAGE_COOLDOWN:
+          lcd_goto_screen(lcd_filament_change_cool_message);
           break;
         case FILAMENT_CHANGE_MESSAGE_UNLOAD:
           lcd_goto_screen(lcd_filament_change_unload_message);
