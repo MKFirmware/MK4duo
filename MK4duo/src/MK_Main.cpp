@@ -10473,6 +10473,9 @@ void process_next_command() {
           gcode_M3_M4(codenum == 3); break;
         case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
+      #endif // LASERBEAM || CNCROUTER
+
+      #if ENABLED(CNCROUTER)
         case 6: // M06: Tool change CNC
           gcode_M6(); break;
         // case 7: // M07 - Mist coolant CNC XXX
@@ -10480,8 +10483,7 @@ void process_next_command() {
         // case 9: // M09 - Coolant off CNC XXX
         // case 10: // M10 - Vacuum on CNC XXX
         // case 11: // M11 - Vacuum off CNC XXX
-
-      #endif // LASERBEAM || CNCROUTER
+      #endif // CNCROUTER
 
       case 17: // M17: Enable/Power all stepper motors
         gcode_M17(); break;
