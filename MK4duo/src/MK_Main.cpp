@@ -8596,10 +8596,10 @@ inline void gcode_M428() {
   LOOP_XYZ(i) {
     if (axis_homed[i]) {
       #if MECH(DELTA)
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) / 2) ? deltaParams.base_home_pos[i] : 0,
+        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? deltaParams.base_home_pos[i] : 0,
               diff = current_position[i] - LOGICAL_POSITION(base, i);
       #else
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) / 2) ? base_home_pos(i) : 0,
+        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
               diff = current_position[i] - LOGICAL_POSITION(base, i);
       #endif
       if (diff > -20 && diff < 20) {
