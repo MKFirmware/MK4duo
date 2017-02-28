@@ -80,11 +80,11 @@ typedef struct {
 
 #define STEPPER_TIMER 2
 #define STEPPER_TIMER_PRESCALE 2.0
-#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE) // = 42MHz
-#define STEPPER_TIMER_TICKS_PER_US (HAL_STEPPER_TIMER_RATE / 1000000)
+#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE)    // 42 MHz
+#define STEPPER_TIMER_TICKS_PER_US (HAL_STEPPER_TIMER_RATE / 1000000) // 42
 
 #define TEMP_TIMER 3
-#define TEMP_TIMER_FREQUENCY 1000
+#define TEMP_TIMER_FREQUENCY 2000
 
 #define BEEPER_TIMER 4
 #define BEEPER_TIMER_COUNTER TC1
@@ -93,14 +93,14 @@ typedef struct {
 #define ENABLE_STEPPER_DRIVER_INTERRUPT()   HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_DRIVER_INTERRUPT()  HAL_timer_disable_interrupt (STEPPER_TIMER)
 
-#define ENABLE_TEMP_INTERRUPT()   HAL_timer_enable_interrupt (TEMP_TIMER)
-#define DISABLE_TEMP_INTERRUPT()  HAL_timer_disable_interrupt (TEMP_TIMER)
+#define ENABLE_TEMP_INTERRUPT()             HAL_timer_enable_interrupt (TEMP_TIMER)
+#define DISABLE_TEMP_INTERRUPT()            HAL_timer_disable_interrupt (TEMP_TIMER)
 
 #define HAL_TIMER_SET_STEPPER_COUNT(count)  HAL_timer_set_count(STEPPER_TIMER, count);
 #define HAL_TIMER_SET_TEMP_COUNT(count)     HAL_timer_set_count(TEMP_TIMER, count);
 
-#define HAL_STEP_TIMER_ISR  void TC2_Handler()
-#define HAL_TEMP_TIMER_ISR  void TC3_Handler()
+#define HAL_STEP_TIMER_ISR    void TC2_Handler()
+#define HAL_TEMP_TIMER_ISR    void TC3_Handler()
 #define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
 #define _ENABLE_ISRs() \
