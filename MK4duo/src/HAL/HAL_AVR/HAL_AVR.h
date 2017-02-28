@@ -204,7 +204,7 @@ typedef uint32_t millis_t;
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 256.0)
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 240
