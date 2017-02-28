@@ -514,7 +514,7 @@ static bool send_ok[BUFSIZE];
   // MK sends messages if blocked or busy
   static FirmwareState busy_state = NOT_BUSY;
   static millis_t next_busy_signal_ms = 0;
-  uint32_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL * 1000UL;
+  uint32_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
   #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
 #else
   #define host_keepalive() NOOP
@@ -564,12 +564,18 @@ static bool send_ok[BUFSIZE];
   }
 #endif
 
-static inline float pgm_read_any(const float *p) { return pgm_read_float_near(p); }
-static inline signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
+#define DEFINE_PGM_READ_ANY(type, reader)       \
+  static inline type pgm_read_any(const type *p)  \
+  { return pgm_read_##reader##_near(p); }
+
+DEFINE_PGM_READ_ANY(float,       float)
+DEFINE_PGM_READ_ANY(signed char, byte)
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
-  static const PROGMEM type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
-  static inline type array(AxisEnum axis) { return pgm_read_any(&array##_P[axis]); }
+  static const PROGMEM type array##_P[XYZ] =        \
+      { X_##CONFIG, Y_##CONFIG, Z_##CONFIG };     \
+  static inline type array(int axis)          \
+  { return pgm_read_any(&array##_P[axis]); }
 
 #if NOMECH(DELTA)
   XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS)
@@ -3319,7 +3325,7 @@ void unknown_command_error() {
           break;
       }
     }
-    next_busy_signal_ms = now + host_keepalive_interval;
+    next_busy_signal_ms = now + host_keepalive_interval * 1000UL;
   }
 
 #endif //HOST_KEEPALIVE_FEATURE
@@ -6982,11 +6988,11 @@ inline void gcode_M111() {
    */
   inline void gcode_M113() {
     if (code_seen('S')) {
-      host_keepalive_interval = code_value_byte() * 1000UL;
-      NOMORE(host_keepalive_interval, 60000);
+      host_keepalive_interval = code_value_byte();
+      NOMORE(host_keepalive_interval, 60);
     }
     else {
-      SERIAL_EMV("M113 S", (unsigned long)host_keepalive_interval / 1000UL);
+      SERIAL_EMV("M113 S", (unsigned long)host_keepalive_interval);
     }
   }
 #endif
