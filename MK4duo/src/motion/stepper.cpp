@@ -767,7 +767,7 @@ void Stepper::isr() {
     // step_rate to timer interval
     HAL_TIMER_TYPE timer = calc_timer(acc_step_rate);
 
-    SPLIT(timer);  // split step into multiple ISRs if larger than  ENDSTOP_NOMINAL_OCR_VAL
+    SPLIT(timer);  // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
 
     acceleration_time += timer;

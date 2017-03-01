@@ -718,6 +718,9 @@ void EEPROM::ResetDefault() {
     deltaParams.diagonal_rod              = DELTA_DIAGONAL_ROD;
     deltaParams.segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     deltaParams.print_Radius              = DELTA_PRINTABLE_RADIUS;
+    deltaParams.base_max_pos[A_AXIS]      = X_MAX_POS;
+    deltaParams.base_max_pos[B_AXIS]      = Y_MAX_POS;
+    deltaParams.base_max_pos[C_AXIS]      = Z_MAX_POS;
     deltaParams.endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     deltaParams.endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
     deltaParams.endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
@@ -1014,7 +1017,7 @@ void EEPROM::ResetDefault() {
           SERIAL_E;
         }
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          SERIAL_SMV(CFG, "  M301 L", lpq_len);
+          SERIAL_LMV(CFG, "  M301 L", lpq_len);
         #endif
       #endif
       #if ENABLED(PIDTEMPBED)
