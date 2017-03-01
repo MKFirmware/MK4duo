@@ -564,18 +564,12 @@ static bool send_ok[BUFSIZE];
   }
 #endif
 
-#define DEFINE_PGM_READ_ANY(type, reader)       \
-  static inline type pgm_read_any(const type *p)  \
-  { return pgm_read_##reader##_near(p); }
-
-DEFINE_PGM_READ_ANY(float,       float)
-DEFINE_PGM_READ_ANY(signed char, byte)
+static inline float pgm_read_any(const float *p) { return pgm_read_float_near(p); }
+static inline signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
-  static const PROGMEM type array##_P[XYZ] =        \
-      { X_##CONFIG, Y_##CONFIG, Z_##CONFIG };     \
-  static inline type array(int axis)          \
-  { return pgm_read_any(&array##_P[axis]); }
+  static const PROGMEM type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
+  static inline type array(AxisEnum axis) { return pgm_read_any(&array##_P[axis]); }
 
 #if NOMECH(DELTA)
   XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS)
