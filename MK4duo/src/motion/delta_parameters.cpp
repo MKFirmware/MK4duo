@@ -45,9 +45,9 @@
   void DeltaParameters::Recalc_delta_constants() {
 
     LOOP_XY(i) {
-      base_min_pos[(AxisEnum)i] = -print_Radius;
-      base_max_pos[(AxisEnum)i] = print_Radius;
-      max_length[(AxisEnum)i]   = base_max_pos[(AxisEnum)i] - base_min_pos[(AxisEnum)i];
+      base_min_pos[i] = -print_Radius;
+      base_max_pos[i] = print_Radius;
+      max_length[i]   = base_max_pos[i] - base_min_pos[i];
     }
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
