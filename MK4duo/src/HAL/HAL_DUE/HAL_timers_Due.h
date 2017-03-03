@@ -78,6 +78,12 @@ typedef struct {
 
 #define NUM_HARDWARE_TIMERS 9
 
+#define DELAY_TIMER             TC1
+#define DELAY_TIMER_CHANNEL     1
+#define DELAY_TIMER_IRQ         ID_TC4  // IRQ not really used, needed for pmc id
+#define DELAY_TIMER_CLOCK       TC_CMR_TCCLKS_TIMER_CLOCK2
+#define DELAY_TIMER_PRESCALE    8
+
 #define STEPPER_TIMER 2
 #define STEPPER_TIMER_PRESCALE 2.0
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE)    // 42 MHz
@@ -109,10 +115,6 @@ typedef struct {
       else ENABLE_TEMP_INTERRUPT(); \
       ENABLE_STEPPER_DRIVER_INTERRUPT(); \
     } while(0)
-
-#define CLI_ENABLE_TEMP_INTERRUPT() \
-    in_temp_isr = false; \
-    ENABLE_TEMP_INTERRUPT();
 
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 84

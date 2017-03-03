@@ -58,25 +58,23 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
+#include <malloc.h>
 #include <Wire.h>
 
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
+extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
 // disable interrupts
 void cli(void) {
-  noInterrupts();
+  //noInterrupts();
 }
 
 // enable interrupts
 void sei(void) {
-  interrupts();
-}
-
-extern "C" {
-  extern unsigned int _ebss; // end of bss section
+  //interrupts();
 }
 
 #ifndef DUE_SOFTWARE_SPI
@@ -107,15 +105,11 @@ uint8_t HAL::get_reset_source(void) {
 
 // Return available memory
 int HAL::getFreeRam() {
-  int free_memory;
-  int heap_end = (int)_sbrk(0);
+  struct mallinfo memstruct = mallinfo();
+  register char * stack_ptr asm ("sp");
 
-  if (heap_end == 0)
-    free_memory = ((int)&free_memory) - ((int)&_ebss);
-  else
-    free_memory = ((int)&free_memory) - heap_end;
-
-  return free_memory;
+  // avail mem in heap + (bottom of stack addr - end of heap addr)
+  return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
 }
 
 // Reset peripherals and cpu

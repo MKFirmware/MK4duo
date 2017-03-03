@@ -92,9 +92,10 @@
  *  M666  D               deltaParams.diagonal_rod (float)
  *  M666  S               deltaParams.segments_per_second (float)
  *  M666  H               deltaParams.base_max_pos (float)
- *  M666  ABCIJK          deltaParams.tower_adj (float x6)
+ *  M666  ABC             deltaParams.tower_radius_adj (float x3)
+ *  M666  IJK             deltaParams.tower_pos_adj (float x3)
  *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
- *  M666  L               deltaParams.print_Radius (ulong)
+ *  M666  O               deltaParams.print_Radius (float)
  *
  * Z_TWO_ENDSTOPS:
  *  M666  Z               z2_endstop_adj (float)
@@ -298,7 +299,8 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(deltaParams.diagonal_rod);
       EEPROM_WRITE(deltaParams.segments_per_second);
       EEPROM_WRITE(deltaParams.base_max_pos);
-      EEPROM_WRITE(deltaParams.tower_adj);
+      EEPROM_WRITE(deltaParams.tower_radius_adj);
+      EEPROM_WRITE(deltaParams.tower_pos_adj);
       EEPROM_WRITE(deltaParams.diagonal_rod_adj);
       EEPROM_WRITE(deltaParams.print_Radius);
     #elif ENABLED(Z_TWO_ENDSTOPS)
@@ -515,7 +517,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(deltaParams.diagonal_rod);
         EEPROM_READ(deltaParams.segments_per_second);
         EEPROM_READ(deltaParams.base_max_pos);
-        EEPROM_READ(deltaParams.tower_adj);
+        EEPROM_READ(deltaParams.tower_radius_adj);
+        EEPROM_READ(deltaParams.tower_pos_adj);
         EEPROM_READ(deltaParams.diagonal_rod_adj);
         EEPROM_READ(deltaParams.print_Radius);
       #elif ENABLED(Z_TWO_ENDSTOPS)
@@ -714,25 +717,7 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if MECH(DELTA)
-    deltaParams.radius                    = DEFAULT_DELTA_RADIUS;
-    deltaParams.diagonal_rod              = DELTA_DIAGONAL_ROD;
-    deltaParams.segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
-    deltaParams.print_Radius              = DELTA_PRINTABLE_RADIUS;
-    deltaParams.base_max_pos[A_AXIS]      = X_MAX_POS;
-    deltaParams.base_max_pos[B_AXIS]      = Y_MAX_POS;
-    deltaParams.base_max_pos[C_AXIS]      = Z_MAX_POS;
-    deltaParams.endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
-    deltaParams.tower_adj[0]              = TOWER_A_RADIUS_ADJ;
-    deltaParams.tower_adj[1]              = TOWER_B_RADIUS_ADJ;
-    deltaParams.tower_adj[2]              = TOWER_C_RADIUS_ADJ;
-    deltaParams.tower_adj[3]              = TOWER_A_POSITION_ADJ;
-    deltaParams.tower_adj[4]              = TOWER_B_POSITION_ADJ;
-    deltaParams.tower_adj[5]              = TOWER_C_POSITION_ADJ;
-    deltaParams.diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
+    deltaParams.Init();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -962,12 +947,12 @@ void EEPROM::ResetDefault() {
       SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
-      SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
-      SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
-      SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
-      SERIAL_MV(" I", deltaParams.tower_adj[3], 3);
-      SERIAL_MV(" J", deltaParams.tower_adj[4], 3);
-      SERIAL_MV(" K", deltaParams.tower_adj[5], 3);
+      SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_MV(" B", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_MV(" C", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_MV(" I", deltaParams.tower_pos_adj[0], 3);
+      SERIAL_MV(" J", deltaParams.tower_pos_adj[1], 3);
+      SERIAL_MV(" K", deltaParams.tower_pos_adj[2], 3);
       SERIAL_MV(" U", deltaParams.diagonal_rod_adj[0], 3);
       SERIAL_MV(" V", deltaParams.diagonal_rod_adj[1], 3);
       SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);

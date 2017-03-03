@@ -30,6 +30,11 @@ int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3
   millis_t previous_lcd_status_ms = 0;
 #endif
 
+#if ENABLED(BABYSTEPPING)
+  long babysteps_done = 0;
+  static void lcd_babystep_z();
+#endif
+
 #if HAS(LCD_POWER_SENSOR)
   millis_t print_millis = 0;
 #endif
@@ -396,6 +401,19 @@ uint16_t max_display_update_time = 0;
    */
   void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder = 0) {
     if (currentScreen != screen) {
+
+      #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
+        static millis_t doubleclick_expire_ms = 0;
+        // Going to lcd_main_menu from status screen? Remember first click time.
+        // Going back to status screen within a very short time? Go to Z babystepping.
+        if (screen == lcd_main_menu) {
+          if (currentScreen == lcd_status_screen)
+            doubleclick_expire_ms = millis() + DOUBLECLICK_MAX_INTERVAL;
+        }
+        else if (screen == lcd_status_screen && currentScreen == lcd_main_menu && PENDING(millis(), doubleclick_expire_ms))
+          screen = lcd_babystep_z;
+      #endif
+
       currentScreen = screen;
       encoderPosition = encoder;
       if (screen == lcd_status_screen) {
@@ -759,8 +777,6 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(BABYSTEPPING)
 
-    long babysteps_done = 0;
-
     void _lcd_babystep(const AxisEnum axis, const char* msg) {
       if (lcd_clicked) { defer_return_to_status = false; return lcd_goto_previous_menu(); }
       ENCODER_DIRECTION_NORMAL();
@@ -772,9 +788,7 @@ void kill_screen(const char* lcd_msg) {
         babysteps_done += babystep_increment;
       }
       if (lcdDrawUpdate)
-        lcd_implementation_drawedit(msg, ftostr43sign(
-          ((1000 * babysteps_done) * planner.steps_to_mm[axis]) * 0.001f
-        ));
+        lcd_implementation_drawedit(msg, ftostr43sign(planner.steps_to_mm[axis] * babysteps_done));
     }
 
     #if ENABLED(BABYSTEP_XY)

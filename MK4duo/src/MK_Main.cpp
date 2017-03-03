@@ -5462,9 +5462,9 @@ inline void gcode_G28() {
       SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
       SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
       SERIAL_MV(" delta radius ", deltaParams.radius, 3);
-      SERIAL_MV(" Towers radius correction A", deltaParams.tower_adj[A_AXIS], 2);
-      SERIAL_MV(" B", deltaParams.tower_adj[B_AXIS], 2);
-      SERIAL_MV(" C", deltaParams.tower_adj[C_AXIS], 2);
+      SERIAL_MV(" Towers radius correction A", deltaParams.tower_radius_adj[A_AXIS], 2);
+      SERIAL_MV(" B", deltaParams.tower_radius_adj[B_AXIS], 2);
+      SERIAL_MV(" C", deltaParams.tower_radius_adj[C_AXIS], 2);
       SERIAL_E;
 
       home_delta();
@@ -6067,6 +6067,91 @@ inline void gcode_M42() {
 
   #include "utility/pinsdebug.h"
 
+  inline void servo_probe_test(){
+
+    #if HAS(SERVO)
+      SERIAL_LM(ER, "SERVO not setup");
+    #else
+
+      uint8_t probe_index = code_seen('P') ? code_value_byte() : 0;
+      SERIAL_SM(ECHO, "Servo probe test.");
+      SERIAL_MV(" Using index:", probe_index);
+      SERIAL_MV(" deploy angle:", z_servo_angle[0]);
+      SERIAL_MV(" stow angle:", z_servo_angle[1]);
+
+      #if (!HAS_Z_PROBE_PIN)
+
+        #define PROBE_TEST_PIN Z_MIN_PIN
+        SERIAL_MV(" probe uses Z_MIN pin: ", PROBE_TEST_PIN);
+        SERIAL_EMV(" uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC):", Z_MIN_ENDSTOP_LOGIC);
+        const bool probe_inverting = Z_MIN_ENDSTOP_LOGIC;
+
+      #elif (HAS_Z_PROBE_PIN)
+
+        #define PROBE_TEST_PIN Z_PROBE_PIN
+        SERIAL_MV(" probe uses Z_PROBE_PIN: ", PROBE_TEST_PIN);
+        SERIAL_EMV(" uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC):", Z_PROBE_ENDSTOP_LOGIC);
+        const bool probe_inverting = Z_PROBE_ENDSTOP_LOGIC;
+
+      #else
+        #error "ERROR - probe pin not defined - strange, SANITY_CHECK should have caught this"
+      #endif
+
+      SERIAL_LM(ECHO, "Deploy & stow 4 times");
+      bool deploy_state, stow_state;
+
+      for (uint8_t i = 0; i < 4; i++) {
+        bltouch_command(BLTOUCH_DEPLOY);
+        safe_delay(500);
+        deploy_state = digitalRead(PROBE_TEST_PIN);
+        bltouch_command(BLTOUCH_STOW);
+        safe_delay(500);
+        stow_state = digitalRead(PROBE_TEST_PIN);
+      }
+
+      if (probe_inverting == deploy_state) SERIAL_LM(ECHO, "WARNING - INVERTING setting probably backwards");
+
+      refresh_cmd_timeout();
+
+      if (deploy_state != stow_state) {
+        SERIAL_SM(ECHO, "CLONE detected.");         // BLTouch clone?
+        if (deploy_state) {
+          SERIAL_M(" DEPLOYED state: HIGH (logic 1)");
+          SERIAL_EM(" STOWED (triggered) state: LOW (logic 0)");
+        }
+        else {
+          SERIAL_M(" DEPLOYED state: LOW (logic 0)");
+          SERIAL_EM(" STOWED (triggered) state: HIGH (logic 1)");
+        }
+      }
+      else {
+        bltouch_command(BLTOUCH_DEPLOY); // deploy
+        safe_delay(500);
+        SERIAL_LM(ECHO, "Please trigger probe");
+        uint16_t probe_counter = 0;
+
+        for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
+          safe_delay(2);
+          if (deploy_state != digitalRead(PROBE_TEST_PIN)) {
+            for (probe_counter = 1; probe_counter < 50 && (deploy_state != digitalRead(PROBE_TEST_PIN)); probe_counter ++)
+              safe_delay(2);
+            if (probe_counter == 50)
+              SERIAL_LM(ECHO, "Z Servo Probe detected");   // >= 100mS active time
+            else if (probe_counter >= 2 )
+              SERIAL_LMV(ECHO, "BLTouch compatible probe detected - pulse width (+/- 4mS):", probe_counter);   // allow 4 - 100mS pulse
+            else
+              SERIAL_LM(ECHO, "Noise detected - please re-run test");   // less than 2mS pulse
+          }
+        } // for loop waiting for trigger
+
+        bltouch_command(BLTOUCH_STOW);
+
+        if (probe_counter == 0) SERIAL_EM("trigger not detected");
+
+      }      // measure active signal length
+    #endif
+  }
+
   /**
    * M43: Pin report and debug
    *
@@ -6083,6 +6168,12 @@ inline void gcode_M42() {
    *
    */
   inline void gcode_M43() {
+
+    // Enable or disable endstop monitoring
+    if (code_seen('S') && code_value_bool()) {
+      servo_probe_test();
+      return;
+    }
 
     // Enable or disable endstop monitoring
     if (code_seen('E')) {
@@ -6819,7 +6910,7 @@ inline void gcode_M104() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -6912,7 +7003,7 @@ inline void gcode_M109() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -9359,23 +9450,23 @@ inline void gcode_M532() {
 
   // M666: Set delta endstop and geometry adjustment
   inline void gcode_M666() {
-    if (code_seen('A')) deltaParams.tower_adj[0] = code_value_linear_units();
+    if (code_seen('A')) deltaParams.tower_radius_adj[A_AXIS] = code_value_linear_units();
 
-    if (code_seen('B')) deltaParams.tower_adj[1] = code_value_linear_units();
+    if (code_seen('B')) deltaParams.tower_radius_adj[B_AXIS] = code_value_linear_units();
 
-    if (code_seen('C')) deltaParams.tower_adj[2] = code_value_linear_units();
+    if (code_seen('C')) deltaParams.tower_radius_adj[C_AXIS] = code_value_linear_units();
 
-    if (code_seen('I')) deltaParams.tower_adj[3] = code_value_linear_units();
+    if (code_seen('I')) deltaParams.tower_pos_adj[A_AXIS] = code_value_linear_units();
 
-    if (code_seen('J')) deltaParams.tower_adj[4] = code_value_linear_units();
+    if (code_seen('J')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
 
-    if (code_seen('K')) deltaParams.tower_adj[5] = code_value_linear_units();
+    if (code_seen('K')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
 
-    if (code_seen('U')) deltaParams.diagonal_rod_adj[0] = code_value_linear_units();
+    if (code_seen('U')) deltaParams.diagonal_rod_adj[A_AXIS] = code_value_linear_units();
 
-    if (code_seen('V')) deltaParams.diagonal_rod_adj[1] = code_value_linear_units();
+    if (code_seen('V')) deltaParams.diagonal_rod_adj[B_AXIS] = code_value_linear_units();
 
-    if (code_seen('W')) deltaParams.diagonal_rod_adj[2] = code_value_linear_units();
+    if (code_seen('W')) deltaParams.diagonal_rod_adj[C_AXIS] = code_value_linear_units();
 
     if (code_seen('R')) deltaParams.radius = code_value_linear_units();
 
@@ -9413,12 +9504,12 @@ inline void gcode_M532() {
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", zprobe_zoffset, 3);
       #endif
 
-      SERIAL_LMV(CFG, "A (Tower A Radius Correction): ", deltaParams.tower_adj[0], 3);
-      SERIAL_LMV(CFG, "B (Tower B Radius Correction): ", deltaParams.tower_adj[1], 3);
-      SERIAL_LMV(CFG, "C (Tower C Radius Correction): ", deltaParams.tower_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Position Correction): ", deltaParams.tower_adj[3], 3);
-      SERIAL_LMV(CFG, "J (Tower B Position Correction): ", deltaParams.tower_adj[4], 3);
-      SERIAL_LMV(CFG, "K (Tower C Position Correction): ", deltaParams.tower_adj[5], 3);
+      SERIAL_LMV(CFG, "A (Tower A Radius Correction): ", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "B (Tower B Radius Correction): ", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "C (Tower C Radius Correction): ", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Position Correction): ", deltaParams.tower_pos_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Position Correction): ", deltaParams.tower_pos_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Position Correction): ", deltaParams.tower_pos_adj[2], 3);
       SERIAL_LMV(CFG, "U (Tower A Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[0], 3);
       SERIAL_LMV(CFG, "V (Tower B Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[1], 3);
       SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[2], 3);
@@ -9437,7 +9528,23 @@ inline void gcode_M532() {
    */
   inline void gcode_M905() {
     stepper.synchronize();
-    planner.advance_M905(code_seen('K') ? code_value_float() : -1.0);
+
+    const float newK = code_seen('K') ? code_value_float() : -1,
+                newD = code_seen('D') ? code_value_float() : -1,
+                newW = code_seen('W') ? code_value_float() : -1,
+                newH = code_seen('H') ? code_value_float() : -1;
+
+    if (newK >= 0.0) planner.set_extruder_advance_k(newK);
+
+    SERIAL_LMV(ECHO, "Advance factor: ", planner.get_extruder_advance_k());
+
+    if (newD >= 0 || newW >= 0 || newH >= 0) {
+      const float ratio = (!newD || !newW || !newH) ? 0 : (newW * newH) / (sq(newD * 0.5) * M_PI);
+      planner.set_advance_ed_ratio(ratio);
+      SERIAL_SM(ECHO, "E/D ratio: ");
+      if (ratio) SERIAL_EV(ratio);
+      else SERIAL_EM("Automatic");
+    }
   }
 #endif
 
@@ -11249,13 +11356,13 @@ void ok_to_send() {
     int fix_tower_errors() {
       bool t1_err, t2_err, t3_err,
               xy_equal, xz_equal, yz_equal;
-      float saved_tower_adj[6];
-      uint8_t err_tower = 0;
-      float high_diff,
+      float saved_tower_radius_adj[ABC],
+            high_diff,
             x_diff, y_diff, z_diff,
             low_opp, high_opp;
+      uint8_t err_tower = 0;
 
-      for (uint8_t i = 0; i < 6; i++) saved_tower_adj[i] = deltaParams.tower_adj[i];
+      memcpy(saved_tower_radius_adj, deltaParams.tower_radius_adj, sizeof(saved_tower_radius_adj));
 
       x_diff = abs(bed_level_x - bed_level_ox);
       y_diff = abs(bed_level_y - bed_level_oy);
@@ -11345,9 +11452,8 @@ void ok_to_send() {
       if (t3_err == true) SERIAL_M("Err"); else SERIAL_M("OK");
       SERIAL_E;
 
-      if (err_tower == 0) {
+      if (err_tower == 0)
         SERIAL_EM("Tower geometry OK");
-      }
       else {
         SERIAL_MV("Tower", int(err_tower));
         SERIAL_EM(" Error: Adjusting");
@@ -11356,7 +11462,7 @@ void ok_to_send() {
 
       // Set return value to indicate if anything has been changed (0 = no change)
       int retval = 0;
-      for (uint8_t i = 0; i < 6; i++) if (saved_tower_adj[i] != deltaParams.tower_adj[i]) retval++;
+      LOOP_XYZ(i) if (saved_tower_radius_adj[i] != deltaParams.tower_radius_adj[i]) retval++;
       return retval;
     }
 
@@ -11433,7 +11539,7 @@ void ok_to_send() {
             bed_level_o = 0.0;
 
       do {
-        deltaParams.tower_adj[tower + 2] += adj_tRadius;
+        deltaParams.tower_radius_adj[tower - 1] += adj_tRadius;
         deltaParams.Recalc_delta_constants();
         adj_done = false;
 
@@ -11471,7 +11577,7 @@ void ok_to_send() {
         // Show progress
         SERIAL_MV("tower:", bed_level, 4);
         SERIAL_MV(" opptower:", bed_level_o, 4);
-        SERIAL_MV(" tower radius adj:", deltaParams.tower_adj[tower + 2], 4);
+        SERIAL_MV(" tower radius adj:", deltaParams.tower_radius_adj[tower - 1], 4);
         SERIAL_M(" done:");
         if (adj_done == true) SERIAL_EM("true");
         else SERIAL_EM("false");
@@ -11487,7 +11593,7 @@ void ok_to_send() {
       float adj_prv;
 
       do {
-        deltaParams.tower_adj[tower - 1] += adj_val;
+        deltaParams.tower_pos_adj[tower - 1] += adj_val;
         deltaParams.Recalc_delta_constants();
 
         if ((tower == 1) or (tower == 3)) bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
@@ -11604,9 +11710,9 @@ void ok_to_send() {
       SERIAL_M("| \t");
       if (bed_level_c >= 0) SERIAL_M(" ");
       SERIAL_MV("", bed_level_c, 4);
-      SERIAL_MV("\t\t\tA:", deltaParams.tower_adj[0]);
-      SERIAL_MV(" B:", deltaParams.tower_adj[1]);
-      SERIAL_EMV(" C:", deltaParams.tower_adj[2]);
+      SERIAL_MV("\t\t\tA:", deltaParams.tower_radius_adj[0]);
+      SERIAL_MV(" B:", deltaParams.tower_radius_adj[1]);
+      SERIAL_EMV(" C:", deltaParams.tower_radius_adj[2]);
 
       SERIAL_M("| ");
       if (bed_level_x >= 0) SERIAL_M(" ");
@@ -11614,9 +11720,9 @@ void ok_to_send() {
       SERIAL_M("\t");
       if (bed_level_y >= 0) SERIAL_M(" ");
       SERIAL_MV("", bed_level_y, 4);
-      SERIAL_MV("\t\tI:", deltaParams.tower_adj[3]);
-      SERIAL_MV(" J:", deltaParams.tower_adj[4]);
-      SERIAL_EMV(" K:", deltaParams.tower_adj[5]);
+      SERIAL_MV("\t\tI:", deltaParams.tower_pos_adj[0]);
+      SERIAL_MV(" J:", deltaParams.tower_pos_adj[1]);
+      SERIAL_EMV(" K:", deltaParams.tower_pos_adj[2]);
 
       SERIAL_M("| \t");
       if (bed_level_oz >= 0) SERIAL_M(" ");
@@ -12762,7 +12868,7 @@ void idle(
 void kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
-  #if ENABLED(KILL_METHOD) && KILL_METHOD == 1
+  #if ENABLED(KILL_METHOD) && (KILL_METHOD==1)
     HAL::resetHardware();
   #endif
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
@@ -12775,9 +12881,8 @@ void kill(const char* lcd_msg) {
     UNUSED(lcd_msg);
   #endif
 
-  HAL::delayMilliseconds(500); // Wait a short time
-
   cli(); // Stop interrupts
+
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
   stepper.disable_all_steppers();
@@ -12864,6 +12969,8 @@ void stop() {
  *    • status LEDs
  */
 void setup() {
+
+  HAL::hwSetup();
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     setup_alligator_board();    // Initialize Alligator Board

@@ -2860,5 +2860,7 @@ void Temperature::isr() {
     }
   #endif
 
-  CLI_ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
+  cli();
+  in_temp_isr = false;
+  ENABLE_TEMP_INTERRUPT(); // re-enable Temperature ISR
 }
