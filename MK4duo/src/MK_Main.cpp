@@ -6819,7 +6819,7 @@ inline void gcode_M104() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -6912,7 +6912,7 @@ inline void gcode_M109() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -12762,7 +12762,7 @@ void idle(
 void kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
-  #if ENABLED(KILL_METHOD) && KILL_METHOD == 1
+  #if ENABLED(KILL_METHOD) && (KILL_METHOD==1)
     HAL::resetHardware();
   #endif
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
@@ -12775,9 +12775,8 @@ void kill(const char* lcd_msg) {
     UNUSED(lcd_msg);
   #endif
 
-  HAL::delayMilliseconds(500); // Wait a short time
-
   cli(); // Stop interrupts
+
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
   stepper.disable_all_steppers();

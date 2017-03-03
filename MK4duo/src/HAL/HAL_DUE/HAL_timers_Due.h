@@ -110,10 +110,6 @@ typedef struct {
       ENABLE_STEPPER_DRIVER_INTERRUPT(); \
     } while(0)
 
-#define CLI_ENABLE_TEMP_INTERRUPT() \
-    in_temp_isr = false; \
-    ENABLE_TEMP_INTERRUPT();
-
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 84
 // Stepper pulse duration, in cycles

@@ -237,11 +237,6 @@ typedef uint32_t millis_t;
       ENABLE_STEPPER_DRIVER_INTERRUPT(); \
     } while(0)
 
-#define CLI_ENABLE_TEMP_INTERRUPT() \
-    cli(); \
-    in_temp_isr = false; \
-    ENABLE_TEMP_INTERRUPT();
-
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
 // Stepper pulse duration, in cycles
