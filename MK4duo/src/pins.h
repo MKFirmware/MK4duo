@@ -116,25 +116,39 @@
 ********************************* END MOTHERBOARD ***************************************
 ****************************************************************************************/
 
+#ifndef ORIG_X_CS_PIN
+  #define ORIG_X_CS_PIN       -1
+#endif
+#ifndef ORIG_Y_CS_PIN
+  #define ORIG_Y_CS_PIN       -1
+#endif
+#ifndef ORIG_Z_CS_PIN
+  #define ORIG_Z_CS_PIN       -1
+#endif
+
 #ifndef ORIG_E0_DIR_PIN
   #define ORIG_E0_DIR_PIN     -1
   #define ORIG_E0_ENABLE_PIN  -1
   #define ORIG_E0_STEP_PIN    -1
+  #define ORIG_E0_CS_PIN      -1
 #endif
 #ifndef ORIG_E1_DIR_PIN
   #define ORIG_E1_DIR_PIN     -1
   #define ORIG_E1_ENABLE_PIN  -1
   #define ORIG_E1_STEP_PIN    -1
+  #define ORIG_E1_CS_PIN      -1
 #endif
 #ifndef ORIG_E2_DIR_PIN
   #define ORIG_E2_DIR_PIN     -1
   #define ORIG_E2_ENABLE_PIN  -1
   #define ORIG_E2_STEP_PIN    -1
+  #define ORIG_E2_CS_PIN      -1
 #endif
 #ifndef ORIG_E3_DIR_PIN
   #define ORIG_E3_DIR_PIN     -1
   #define ORIG_E3_ENABLE_PIN  -1
   #define ORIG_E3_STEP_PIN    -1
+  #define ORIG_E3_CS_PIN      -1
 #endif
 #ifndef ORIG_E4_DIR_PIN
   #define ORIG_E4_DIR_PIN     -1

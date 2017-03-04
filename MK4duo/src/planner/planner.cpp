@@ -1272,7 +1272,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(ARDUINO_ARCH_SAM)
     block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_STEPPER_TIMER_RATE)));
   #else
-    block->acceleration_rate = (long)(accel * 16777216.0 / ((F_CPU) * 0.125));
+    block->acceleration_rate = (long)(accel * 16777216.0 / (HAL_STEPPER_TIMER_RATE));
   #endif
 
   // Initial limit on the segment entry velocity

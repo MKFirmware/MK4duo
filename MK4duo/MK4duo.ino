@@ -130,6 +130,7 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S<1=true/0=false> Enable or disable check software endstop
+ * M123 - Output Trinamic TMC2130 status to serial output. (Requires HAVE_TMC2130DRIVER)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
@@ -241,9 +242,6 @@
  
 #include "base.h"
 
-#if ENABLED(DIGIPOT_I2C) || ENABLED(BLINKM)
-  #include <Wire.h>
-#endif
 #if ENABLED(ULTRA_LCD)
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>
@@ -251,12 +249,36 @@
   #elif ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)
     #include <Wire.h>
     #include <LiquidTWI2.h>
+  #elif ENABLED(LCM1602)
+    #include <Wire.h>
+    #include <LCD.h>
+    #include <LiquidCrystal_I2C.h>
   #elif ENABLED(DOGLCD)
     #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
   #else
     #include <LiquidCrystal.h> // library for character LCD
   #endif
 #endif
+
 #if HAS(DIGIPOTSS)
   #include <SPI.h>
+#endif
+
+#if ENABLED(DIGIPOT_I2C)
+  #include <Wire.h>
+#endif
+
+#if ENABLED(HAVE_TMCDRIVER)
+  #include <SPI.h>
+  #include <TMC26XStepper.h>
+#endif
+
+#if ENABLED(HAVE_TMC2130DRIVER)
+  #include <SPI.h>
+  #include <Trinamic_TMC2130.h>
+#endif
+
+#if ENABLED(HAVE_L6470DRIVER)
+  #include <SPI.h>
+  #include <L6470.h>
 #endif

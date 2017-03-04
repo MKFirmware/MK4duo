@@ -47,7 +47,7 @@
 
 #include "../../base.h"
 
-#if DISABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(ARDUINO_ARCH_AVR)
   #include "speed_lookuptable.h"
 #endif
 
@@ -276,7 +276,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
  *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
 void Stepper::wake_up() {
-  #if ENABLED(ARDUINO_ARCH_SAM)
+  #if ENABLED(CPU_32_BIT)
     //
   #else
     //  TCNT1 = 0;
@@ -397,7 +397,7 @@ void Stepper::isr() {
       _NEXT_ISR(ocr_val);
 
       #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                           stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
           HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
@@ -423,7 +423,7 @@ void Stepper::isr() {
     return;
   }
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
+  #if ENABLED(CPU_32_BIT)
     #if ENABLED(LASERBEAM)
       if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
@@ -456,7 +456,7 @@ void Stepper::isr() {
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
 
       #if ENABLED(LASERBEAM)
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           counter_L = 1000 * counter_X;
         #else
           counter_L = counter_X;
@@ -599,7 +599,7 @@ void Stepper::isr() {
     // If a minimum pulse time was specified get the CPU clock
     #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
       static uint32_t pulse_start;
-      #if ENABLED(ARDUINO_ARCH_SAM)
+      #if ENABLED(CPU_32_BIT)
         pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
       #else
         pulse_start = TCNT0;
@@ -635,11 +635,11 @@ void Stepper::isr() {
 
     // For a minimum pulse time wait before stopping pulses
     #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+      #if ENABLED(CPU_32_BIT)
+        while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* noop */ }
         pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
       #else
-        while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) { /* nada */ }
+        while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) { /* noop */ }
       #endif
     #endif
 
@@ -706,7 +706,7 @@ void Stepper::isr() {
           }
         #endif // LASER_RASTER
         
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           counter_L -= 1000 * current_block->step_event_count;
         #else
           counter_L -= current_block->step_event_count;
@@ -725,9 +725,9 @@ void Stepper::isr() {
       all_steps_done = true;
       break;
     }
-    #if ENABLED(ARDUINO_ARCH_SAM) && STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
+    #if ENABLED(CPU_32_BIT) && STEP_PULSE_CYCLES > CYCLES_EATEN_BY_CODE
       // For a minimum pulse time wait before stopping low pulses
-      if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+      if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_CODE) / STEPPER_TIMER_PRESCALE) { /* noop */ }
     #endif
   }
 
@@ -754,7 +754,7 @@ void Stepper::isr() {
   // Calculate new timer value
   if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
 
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       MultiU32X32toH32(acc_step_rate, acceleration_time, current_block->acceleration_rate);
     #else
       MultiU24X32toH16(acc_step_rate, acceleration_time, current_block->acceleration_rate);
@@ -811,7 +811,7 @@ void Stepper::isr() {
   }
   else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
     HAL_TIMER_TYPE step_rate;
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       MultiU32X32toH32(step_rate, deceleration_time, current_block->acceleration_rate);
     #else
       MultiU24X32toH16(step_rate, deceleration_time, current_block->acceleration_rate);
@@ -887,7 +887,7 @@ void Stepper::isr() {
   }
 
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                       stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
@@ -901,7 +901,7 @@ void Stepper::isr() {
     current_block = NULL;
     planner.discard_current_block();
 
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       #if ENABLED(LASERBEAM)
         laser_extinguish();
       #endif
@@ -960,7 +960,7 @@ void Stepper::isr() {
 
       #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E
         static uint32_t pulse_start;
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
         #else
           pulse_start = TCNT0;
@@ -986,13 +986,13 @@ void Stepper::isr() {
 
       // For a minimum pulse time wait before stopping pulses
       #if STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           // ADVANCE: MINIMUM_STEPPER_PULSE = 0... pulse width = 40ns, 1... 1.34μs, 2... 2.3μs, 3... 3.27μs, 4... 4.24μs, 5... 5.2μs
           // LIN_ADVANCE: MINIMUM_STEPPER_PULSE = 0... pulse width = 300ns, 1... 1.12μs, 2... 2.38μs, 3... 3.21μs, 4... 4.04μs, 5... 5.3μs
-          while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+          while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* noop */ }
           pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
         #else
-          while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) { /* nada */ }
+          while ((uint32_t)(TCNT0 - pulse_start) < STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) { /* noop */ }
         #endif
       #endif
       
@@ -1013,9 +1013,9 @@ void Stepper::isr() {
         #endif
       #endif
 
-      #if ENABLED(ARDUINO_ARCH_SAM) && (STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E)
+      #if ENABLED(CPU_32_BIT) && (STEP_PULSE_CYCLES > CYCLES_EATEN_BY_E)
         // For a minimum pulse time wait before stopping low pulses
-        if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* nada */ }
+        if (i < step_loops - 1) while (HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start < (STEP_PULSE_CYCLES - CYCLES_EATEN_BY_E) / STEPPER_TIMER_PRESCALE) { /* noop */ }
       #endif
     }
   }
@@ -1052,7 +1052,7 @@ void Stepper::isr() {
     }
   
     // Don't run the ISR faster than possible
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                       stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
@@ -1085,6 +1085,11 @@ void Stepper::init() {
   // initialise TMC Steppers
   #if ENABLED(HAVE_TMCDRIVER)
     tmc_init();
+  #endif
+
+  // Init TMC2130 Steppers
+  #if ENABLED(HAVE_TMC2130DRIVER)
+    tmc2130_init();
   #endif
 
   // initialise L6470 Steppers
@@ -1262,7 +1267,7 @@ void Stepper::init() {
     E_AXIS_INIT(5);
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
+  #if ENABLED(CPU_32_BIT)
     // Init Stepper ISR to 122 Hz for quick starting
     HAL_timer_start(STEPPER_TIMER, 122);
   #else

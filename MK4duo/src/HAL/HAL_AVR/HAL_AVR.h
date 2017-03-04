@@ -270,6 +270,9 @@ class HAL {
 
     virtual ~HAL();
 
+    // do any hardware-specific initialization here
+    static inline void hwSetup(void) { /* noop */ }
+
     static inline void clear_reset_source() { MCUSR = 0; }
     static inline uint8_t get_reset_source() { return MCUSR; }
 
