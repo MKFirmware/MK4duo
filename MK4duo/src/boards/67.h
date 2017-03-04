@@ -161,26 +161,27 @@
     #define LCD_PINS_D7 29
   #endif
 
-#endif //ULTRA_LCD
+#endif // ULTRA_LCD
 
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-// LCD      | AZTEEG_X3
-//------cable1---------
-// (UT)     | (EXP3) :
-// 2 SDA    | 2 SDA
-// 4 SCL    | 1 SCL
-// 5 Switch | 3 D22
-// 6 kill   | 5 D7
-//------cable2---------
-// (SPI)    | (ICSP) :
-// 1 VCC    | 2 VCC (5v)
-// 2 CS_LCD | (EXP2) 5 D31 - pin out of ICSP
-// 3 MISO   | 1 MISO
-// 4 MOSI   | 4 MOSI
-// 5 SCK    | 3 SCK
-// 6 CS_CD  | (CS_CD) D53 - pin out of ICSP
-// 7 GND    | 6 GND
-// 8 SD_Detect | (EXP2) 6 D32 - pin out of ICSP
+
+  // LCD      | AZTEEG_X3
+  //------cable1---------
+  // (UT)     | (EXP3) :
+  // 2 SDA    | 2 SDA
+  // 4 SCL    | 1 SCL
+  // 5 Switch | 3 D22
+  // 6 kill   | 5 D7
+  //------cable2---------
+  // (SPI)    | (ICSP) :
+  // 1 VCC    | 2 VCC (5v)
+  // 2 CS_LCD | (EXP2) 5 D31 - pin out of ICSP
+  // 3 MISO   | 1 MISO
+  // 4 MOSI   | 4 MOSI
+  // 5 SCK    | 3 SCK
+  // 6 CS_CD  | (CS_CD) D53 - pin out of ICSP
+  // 7 GND    | 6 GND
+  // 8 SD_Detect | (EXP2) 6 D32 - pin out of ICSP
 
   #define LCD_PINS_RS         31  // LCD_CS
   #define LCD_PINS_ENABLE     51  // MOSI
@@ -191,12 +192,10 @@
   #define KILL_PIN            7   // Switch (ENC_SW)
   #define BTN_ENC             22  // kill (ENC_SW_BACK)
 
-  #define SDSS                  53
-  #define SD_DETECT_PIN         32
+  #define SDSS                53
+  #define SD_DETECT_PIN       32
 
 #endif //REPRAPWORLD_GRAPHICAL_LCD
 
 // SPI for Max6675 Thermocouple
-#define MAX6675_SS       66 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
-
-
+#define MAX6675_SS            66 // Do not use pin 53 if there is even the remote possibility of using Display/SD card

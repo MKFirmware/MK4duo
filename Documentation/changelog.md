@@ -1,3 +1,7 @@
+### Version 4.3.14 dev
+* Add TMC2130 motor driver
+* Fix and clear code
+
 ### Version 4.3.13 dev
 * Add Delta print radius editable with M666 and save in eeprom
 * Rewrite HAL_DUE
