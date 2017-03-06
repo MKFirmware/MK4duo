@@ -29,9 +29,9 @@
 #define CONDITIONALS_POST_H
 
 /**
- * SAM3X8E
+ * CPU 32 BIT
  */
-#if ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(CPU_32_BIT)
   #if ENABLED(FAST_PWM_FAN)
     #undef FAST_PWM_FAN
   #endif
@@ -339,14 +339,6 @@
 #endif
 
 /**
- * Firmware Test
- */
-#if ENABLED(FIRMWARE_TEST)
-  #undef BAUDRATE
-  #define BAUDRATE 115200  // Baudrate setting to 115200 because serial monitor arduino function at max 115200 baudrate.
-#endif
-
-/**
  * DELTA
  */
 #if MECH(DELTA)
@@ -470,7 +462,7 @@
 /**
  * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
  */
-#if ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(CPU_32_BIT)
   #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
     #define DOUBLE_STEP_FREQUENCY 60000 // 60KHz
   #else
@@ -836,7 +828,7 @@
   #define Z_PROBE_OFFSET_FROM_NOZZLE 0
 #endif
 
-#ifdef __SAM3X8E__
+#if ENABLED(CPU_32_BIT)
   // Add additional delay for between direction signal and pulse signal of stepper
   #ifndef STEPPER_DIRECTION_DELAY
     #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
