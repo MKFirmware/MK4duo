@@ -162,7 +162,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
       X2_STEP_WRITE(v); \
     } \
     else { \
-      if (TOOL_E_INDEX != 0) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
+      if (TOOL_E_INDEX) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
     }
 #else
   #define X_APPLY_DIR(v,Q) X_DIR_WRITE(v)
@@ -281,7 +281,7 @@ void Stepper::wake_up() {
   #else
     //  TCNT1 = 0;
   #endif
-  ENABLE_STEPPER_DRIVER_INTERRUPT();
+  ENABLE_STEPPER_INTERRUPT();
 }
 
 /**
@@ -363,10 +363,8 @@ void Stepper::isr() {
   #define OCR_VAL_TOLERANCE 1000          // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
 
   #if DISABLED(ADVANCE) || DISABLED(LIN_ADVANCE)
-    // Disable Timer0 ISRs and enable global ISR again to capture UART events (incoming chars)
-    DISABLE_TEMP_INTERRUPT();
-    DISABLE_STEPPER_DRIVER_INTERRUPT();
-    sei();
+    // Allow UART ISRs
+    _DISABLE_ISRs();
   #endif
 
   #define _SPLIT(L) (ocr_val = (HAL_TIMER_TYPE)L)
@@ -504,7 +502,7 @@ void Stepper::isr() {
 
   // Update endstops state, if enabled
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (ENDSTOPS_ENABLED && e_hit) {
+    if (e_hit && ENDSTOPS_ENABLED) {
       endstops.update();
       e_hit--;
     }
@@ -914,8 +912,7 @@ void Stepper::isr() {
   }
 
   #if DISABLED(ADVANCE) || DISABLED(LIN_ADVANCE)
-    // re-enable ISRs
-    _ENABLE_ISRs();
+    _ENABLE_ISRs(); // re-enable ISRs
   #endif
 }
 
@@ -1021,10 +1018,9 @@ void Stepper::isr() {
   }
 
   void Stepper::advance_isr_scheduler() {
-    // Disable Timer0 ISRs and enable global ISR again to capture UART events (incoming chars)
-    DISABLE_TEMP_INTERRUPT();
-    DISABLE_STEPPER_DRIVER_INTERRUPT();
-    sei();
+
+    // Allow UART ISRs
+    _DISABLE_ISRs();
 
     // Run main stepping ISR if flagged
     if (!nextMainISR) isr();
@@ -1060,8 +1056,7 @@ void Stepper::isr() {
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
 
-    // Restore original ISR settings
-    _ENABLE_ISRs();
+    _ENABLE_ISRs(); // re-enable ISRs
   }
 
 #endif // ADVANCE or LIN_ADVANCE
@@ -1293,7 +1288,7 @@ void Stepper::init() {
     TCNT1 = 0;
   #endif
 
-  ENABLE_STEPPER_DRIVER_INTERRUPT();
+  ENABLE_STEPPER_INTERRUPT();
 
   #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
     for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
@@ -1310,7 +1305,6 @@ void Stepper::init() {
 
   set_directions(); // Init directions to last_direction_bits = 0
 }
-
 
 /**
  * Block until all buffered steps are executed
@@ -1437,10 +1431,10 @@ void Stepper::finish_and_disable() {
 
 void Stepper::quick_stop() {
   cleaning_buffer_counter = 5000;
-  DISABLE_STEPPER_DRIVER_INTERRUPT();
+  DISABLE_STEPPER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
-  ENABLE_STEPPER_DRIVER_INTERRUPT();
+  ENABLE_STEPPER_INTERRUPT();
   #if ENABLED(ULTRA_LCD)
     planner.clear_block_buffer_runtime();
   #endif

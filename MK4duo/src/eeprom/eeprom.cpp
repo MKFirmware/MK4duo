@@ -168,8 +168,10 @@ void EEPROM::Postprocess() {
 
   calculate_volumetric_multipliers();
 
-  // Software endstops depend on home_offset
-  LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
+  #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+    // Software endstops depend on home_offset
+    LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
+  #endif
 }
 
 #if ENABLED(EEPROM_SETTINGS)
@@ -180,43 +182,76 @@ void EEPROM::Postprocess() {
   bool  eeprom_write_error,
         eeprom_read_error;
 
-  void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
-    if (eeprom_write_error) return;
+  #if HAS(EEPROM_SD)
 
-    while(size--) {
-      uint8_t * const p = (uint8_t * const)pos;
-      const uint8_t v = *value;
-      // EEPROM has only ~100,000 write cycles,
-      // so only write bytes that have changed!
-      if (v != eeprom_read_byte(p)) {
-        eeprom_write_byte(p, v);
-        if (eeprom_read_byte(p) != v) {
+    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+      if (eeprom_write_error) return;
+
+      while(size--) {
+        const uint8_t v = *value;
+        if (!card.write_data(v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           eeprom_write_error = true;
           return;
         }
-      }
-      eeprom_checksum += v;
-      pos++;
-      value++;
-    };
-  }
+        eeprom_checksum += v;
+        pos++;
+        value++;
+      };
+    }
 
-  void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
-    do {
-      uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      if (!eeprom_read_error) *value = c;
-      eeprom_checksum += c;
-      pos++;
-      value++;
-    } while (--size);
-  }
+    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+      if (eeprom_read_error) return;
 
-  #define EEPROM_START() int eeprom_index = EEPROM_OFFSET
-  #define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
+      do {
+        uint8_t c = card.read_data();
+        *value = c;
+        eeprom_checksum += c;
+        pos++;
+        value++;
+      } while (--size);
+    }
+
+  #else
+
+    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+      if (eeprom_write_error) return;
+
+      while(size--) {
+        uint8_t * const p = (uint8_t * const)pos;
+        const uint8_t v = *value;
+        // EEPROM has only ~100,000 write cycles,
+        // so only write bytes that have changed!
+        if (v != eeprom_read_byte(p)) {
+          eeprom_write_byte(p, v);
+          if (eeprom_read_byte(p) != v) {
+            SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
+            eeprom_write_error = true;
+            return;
+          }
+        }
+        eeprom_checksum += v;
+        pos++;
+        value++;
+      };
+    }
+
+    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+      do {
+        uint8_t c = eeprom_read_byte((unsigned char*)pos);
+        if (!eeprom_read_error) *value = c;
+        eeprom_checksum += c;
+        pos++;
+        value++;
+      } while (--size);
+    }
+
+  #endif
+
+  #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
+  #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR) writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
   #define EEPROM_READ(VAR)  readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
-  #define EEPROM_ASSERT(TST,ERR) if () do{ SERIAL_LT(ER, ERR); eeprom_read_error |= true; }while(0)
 
   /**
    * M500 - Store Configuration
@@ -229,10 +264,20 @@ void EEPROM::Postprocess() {
 
     eeprom_write_error = false;
 
-    EEPROM_WRITE(ver);     // invalidate data first
-    EEPROM_SKIP(eeprom_checksum); // Skip the checksum slot
-
-    eeprom_checksum = 0; // clear before first "real data"
+    #if HAS(EEPROM_SD)
+      // EEPROM on SDCARD
+      if (!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) return;
+      set_sd_dot();
+      card.setroot(true);
+      card.startWrite((char *)"EEPROM.bin", false);
+      EEPROM_WRITE(version);
+      eeprom_checksum = 0; // clear before first "real data"
+    #else
+      // EEPROM on SPI or IC2
+      EEPROM_WRITE(ver);     // invalidate data first
+      EEPROM_SKIP(eeprom_checksum); // Skip the checksum slot
+      eeprom_checksum = 0; // clear before first "real data"
+    #endif
 
     EEPROM_WRITE(planner.axis_steps_per_mm);
     EEPROM_WRITE(planner.max_feedrate_mm_s);
@@ -244,6 +289,9 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(planner.min_travel_feedrate_mm_s);
     EEPROM_WRITE(planner.min_segment_time);
     EEPROM_WRITE(planner.max_jerk);
+    #if DISABLED(WORKSPACE_OFFSETS)
+      float home_offset[XYZ] = { 0 };
+    #endif
     EEPROM_WRITE(home_offset);
     EEPROM_WRITE(hotend_offset);
 
@@ -387,16 +435,24 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(motor_current);
     #endif
 
-    uint16_t  final_checksum = eeprom_checksum,
-              eeprom_size = eeprom_index;
+    if (!eeprom_write_error) {
 
-    eeprom_index = EEPROM_OFFSET;
-    EEPROM_WRITE(version);
-    EEPROM_WRITE(final_checksum);
+      uint16_t  final_checksum = eeprom_checksum,
+                eeprom_size = eeprom_index;
 
-    // Report storage size
-    SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
-    SERIAL_EM(" bytes)");
+      eeprom_index = EEPROM_OFFSET;
+      EEPROM_WRITE(version);
+      EEPROM_WRITE(final_checksum);
+
+      // Report storage size
+      SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
+      SERIAL_EM(" bytes)");
+    }
+
+    #if HAS(EEPROM_SD)
+      card.finishWrite();
+      unset_sd_dot();
+    #endif
   }
 
   /**
@@ -408,18 +464,29 @@ void EEPROM::Postprocess() {
     eeprom_read_error = false; // If set EEPROM_READ won't write into RAM
 
     char stored_ver[6];
-    EEPROM_READ(stored_ver);
-
     uint16_t stored_checksum;
-    EEPROM_READ(stored_checksum);
 
-    if (DEBUGGING(INFO)) {
-      SERIAL_SMV(INFO, "Version: [", version);
-      SERIAL_MV("] Stored version: [", stored_ver);
-      SERIAL_EM("]");
-    }
+    #if HAS(EEPROM_SD)
+      if (IS_SD_INSERTED || !card.isFileOpen() || !card.sdprinting || card.cardOK) {
+        set_sd_dot();
+        card.setroot(true);
+        card.selectFile((char *)"EEPROM.bin");
+        EEPROM_READ(stored_ver);
+      }
+    #else
+      EEPROM_READ(stored_ver);
+      EEPROM_READ(stored_checksum);
+    #endif
 
     if (strncmp(version, stored_ver, 5) != 0) {
+      if (stored_ver[0] != 'M') {
+        stored_ver[0] = '?';
+        stored_ver[1] = '?';
+        stored_ver[2] = '\0';
+      }
+      SERIAL_SM(ECHO, "EEPROM version mismatch ");
+      SERIAL_MT("(EEPROM=", stored_ver);
+      SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
       ResetDefault();
     }
     else {
@@ -439,6 +506,9 @@ void EEPROM::Postprocess() {
       EEPROM_READ(planner.min_travel_feedrate_mm_s);
       EEPROM_READ(planner.min_segment_time);
       EEPROM_READ(planner.max_jerk);
+      #if DISABLED(WORKSPACE_OFFSETS)
+        float home_offset[XYZ];
+      #endif
       EEPROM_READ(home_offset);
       EEPROM_READ(hotend_offset);
 
@@ -602,7 +672,10 @@ void EEPROM::Postprocess() {
         EEPROM_READ(motor_current);
       #endif
 
-      if (eeprom_checksum == stored_checksum) {
+      #if HAS(EEPROM_SD)
+
+        card.closeFile();
+        unset_sd_dot();
         if (eeprom_read_error)
           ResetDefault();
         else {
@@ -611,36 +684,30 @@ void EEPROM::Postprocess() {
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_EM(" bytes)");
         }
-      }
-      else {
-        SERIAL_LM(ER, "EEPROM checksum mismatch");
-        ResetDefault();
-      }
+
+      #else
+
+        if (eeprom_checksum == stored_checksum) {
+          if (eeprom_read_error)
+            ResetDefault();
+          else {
+            Postprocess();
+            SERIAL_V(version);
+            SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+            SERIAL_EM(" bytes)");
+          }
+        }
+        else {
+          SERIAL_LM(ER, "EEPROM checksum mismatch");
+          ResetDefault();
+        }
+
+      #endif
     }
 
     #if ENABLED(EEPROM_CHITCHAT)
       PrintSettings();
     #endif
-  }
-
-  /**
-   * Version Check
-   */
-  void EEPROM::VersionCheck() {
-
-    EEPROM_START();
-
-    char stored_ver[6];
-    EEPROM_READ(stored_ver);
-
-    if (strncmp(version, stored_ver, 5) != 0) {
-      SERIAL_SM(ER, " WARNING - configuration NOT restored from EEPROM because EEPROM version has changed.");
-      SERIAL_MV(" New Version: ", version);
-      SERIAL_MV(" - Stored version: ", stored_ver);
-      SERIAL_EM(". Use M500 command to save configuration to EEPROM to restore auto load from EEPROM.");
-      SERIAL_SM(ER, " OPTIONAL: go back to previous software, use M501 to read values from EEPROM & then");
-      SERIAL_EM(" update configuration files accordingly.");
-    }
   }
 
 #else // !EEPROM_SETTINGS
@@ -706,7 +773,9 @@ void EEPROM::ResetDefault() {
   planner.max_jerk[X_AXIS] = DEFAULT_XJERK;
   planner.max_jerk[Y_AXIS] = DEFAULT_YJERK;
   planner.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
-  home_offset[X_AXIS] = home_offset[Y_AXIS] = home_offset[Z_AXIS] = 0;
+  #if ENABLED(WORKSPACE_OFFSETS)
+    ZERO(home_offset);
+  #endif
 
   #if PLANNER_LEVELING
     reset_bed_level();
@@ -894,10 +963,12 @@ void EEPROM::ResetDefault() {
       }
     #endif
 
-    CONFIG_MSG_START("Home offset (mm):");
-    SERIAL_SMV(CFG, "  M206 X", home_offset[X_AXIS], 3);
-    SERIAL_MV(" Y", home_offset[Y_AXIS], 3);
-    SERIAL_EMV(" Z", home_offset[Z_AXIS], 3);
+    #if ENABLED(WORKSPACE_OFFSETS)
+      CONFIG_MSG_START("Home offset (mm):");
+      SERIAL_SMV(CFG, "  M206 X", home_offset[X_AXIS], 3);
+      SERIAL_MV(" Y", home_offset[Y_AXIS], 3);
+      SERIAL_EMV(" Z", home_offset[Z_AXIS], 3);
+    #endif
 
     #if HOTENDS > 1
       CONFIG_MSG_START("Hotend offset (mm):");

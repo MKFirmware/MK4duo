@@ -62,8 +62,6 @@ class Temperature {
                    current_temperature_cooler_raw;
     #endif
 
-    static volatile bool in_temp_isr;
-
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
       static float redundant_temperature;
     #endif
@@ -75,7 +73,6 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
-      #define PID_dT ((OVERSAMPLENR * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
       #define PID_PARAM(param, h) Temperature::param[h]
@@ -147,11 +144,12 @@ class Temperature {
     static volatile bool temp_meas_ready;
 
     #if ENABLED(PIDTEMP)
-      static float temp_iState[HOTENDS],
-                   temp_dState[HOTENDS],
-                   pTerm[HOTENDS],
-                   iTerm[HOTENDS],
-                   dTerm[HOTENDS];
+      static float  temp_iState[HOTENDS],
+                    temp_dState[HOTENDS],
+                    temp_iState_max[HOTENDS],
+                    pTerm[HOTENDS],
+                    iTerm[HOTENDS],
+                    dTerm[HOTENDS];
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         static float cTerm[HOTENDS];
@@ -165,34 +163,37 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMPBED)
-      static float temp_iState_bed,
-                   temp_dState_bed,
-                   pTerm_bed,
-                   iTerm_bed,
-                   dTerm_bed,
-                   pid_error_bed;
+      static float  temp_iState_bed,
+                    temp_dState_bed,
+                    temp_iState_bed_max,
+                    pTerm_bed,
+                    iTerm_bed,
+                    dTerm_bed,
+                    pid_error_bed;
     #else
       static millis_t next_bed_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      static float temp_iState_chamber,
-                   temp_dState_chamber,
-                   pTerm_chamber,
-                   iTerm_chamber,
-                   dTerm_chamber,
-                   pid_error_chamber;
+      static float  temp_iState_chamber,
+                    temp_dState_chamber,
+                    temp_iState_chamber_max,
+                    pTerm_chamber,
+                    iTerm_chamber,
+                    dTerm_chamber,
+                    pid_error_chamber;
     #else
       static millis_t next_chamber_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      static float temp_iState_cooler,
-                   temp_dState_cooler,
-                   pTerm_cooler,
-                   iTerm_cooler,
-                   dTerm_cooler,
-                   pid_error_cooler;
+      static float  temp_iState_cooler,
+                    temp_dState_cooler,
+                    temp_iState_cooler_max,
+                    pTerm_cooler,
+                    iTerm_cooler,
+                    dTerm_cooler,
+                    pid_error_cooler;
     #else
       static millis_t next_cooler_check_ms;
     #endif

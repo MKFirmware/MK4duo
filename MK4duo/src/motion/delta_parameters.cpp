@@ -58,9 +58,11 @@
   void DeltaParameters::Recalc_delta_constants() {
 
     LOOP_XY(i) {
-      base_min_pos[i] = -print_Radius;
-      base_max_pos[i] = print_Radius;
-      max_length[i]   = base_max_pos[i] - base_min_pos[i];
+      base_min_pos[i]     = -print_Radius;
+      base_max_pos[i]     = print_Radius;
+      soft_endstop_min[i] = base_min_pos[i];
+      soft_endstop_max[i] = base_max_pos[i];
+      max_length[i]       = base_max_pos[i] - base_min_pos[i];
     }
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
@@ -91,6 +93,8 @@
     Q = 2 * (Xca * Yab - Xab * Yca);
     Q2 = sq(Q);
     D2 = sq(diagonal_rod);
+
+    Set_clip_start_height();
 
   }
 

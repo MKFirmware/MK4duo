@@ -69,12 +69,12 @@ uint8_t MCUSR;
 
 // disable interrupts
 void cli(void) {
-  //noInterrupts();
+  noInterrupts();
 }
 
 // enable interrupts
 void sei(void) {
-  //interrupts();
+  interrupts();
 }
 
 #ifndef DUE_SOFTWARE_SPI

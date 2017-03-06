@@ -53,6 +53,8 @@ public:
   void openAndPrintFile(const char *name);
   void stopSDPrint(bool store_location = false);
   void write_command(char* buf);
+  bool write_data(const uint8_t value);
+  uint8_t read_data();
   bool selectFile(const char *filename, bool silent = false);
   void printStatus();
   void startWrite(char* filename, bool lcd_status = true);
@@ -76,15 +78,14 @@ public:
     //If yuou need to save string increase this to strlen("YOUR LONGER STRING")+1
     void StoreSettings();
     void RetrieveSettings(bool addValue = false);
+    void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
+    void unparseKeyLine(const char* key, char* value);
     int  KeyIndex(char *key);
   #else
     inline void RetrieveSettings() { ResetDefault(); }
   #endif
 
   uint16_t getnrfilenames();
-
-  void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
-  void unparseKeyLine(const char* key, char* value);
 
   FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
   FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; file.seekSet(sdpos); }

@@ -107,6 +107,8 @@
 
 #define ADV_NEVER 65535
 
+#define OVERSAMPLENR 16
+
 /**
  * Optimized math functions for AVR
  */
@@ -213,11 +215,11 @@ typedef uint32_t millis_t;
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
 
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
+#define ENABLE_STEPPER_INTERRUPT()    SBI(TIMSK1, OCIE1A)
+#define DISABLE_STEPPER_INTERRUPT()   CBI(TIMSK1, OCIE1A)
 
-#define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B)
-#define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B)
+#define ENABLE_TEMP_INTERRUPT()       SBI(TIMSK0, OCIE0B)
+#define DISABLE_TEMP_INTERRUPT()      CBI(TIMSK0, OCIE0B)
 
 #define HAL_timer_start (timer_num, frequency)
 #define HAL_timer_set_count(timer, count) timer = (count)
@@ -226,21 +228,29 @@ typedef uint32_t millis_t;
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
 #define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
 
-#define HAL_STEP_TIMER_ISR      ISR(TIMER1_COMPA_vect)
-#define HAL_TEMP_TIMER_ISR      ISR(TIMER0_COMPB_vect)
+#define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
+#define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)
 
 #define _ENABLE_ISRs() \
-    do { \
-      cli(); \
-      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
-      else ENABLE_TEMP_INTERRUPT(); \
-      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
-    } while(0)
+        do { \
+          cli(); \
+          ENABLE_TEMP_INTERRUPT(); \
+          ENABLE_STEPPER_INTERRUPT(); \
+        } while(0)
+
+#define _DISABLE_ISRs() \
+        do { \
+          DISABLE_TEMP_INTERRUPT(); \
+          DISABLE_STEPPER_INTERRUPT(); \
+          sei(); \
+        } while(0)
 
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
+// Temperature PID_dT
+#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 class InterruptProtectedBlock {
   uint8_t sreg;

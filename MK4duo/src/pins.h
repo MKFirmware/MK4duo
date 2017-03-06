@@ -23,6 +23,11 @@
 #ifndef PINS_H
 #define PINS_H
 
+#define EEPROM_NONE 0
+#define EEPROM_I2C  1
+#define EEPROM_SPI_ALLIGATOR 2
+#define EEPROM_SDCARD 3
+
 #define AS_QUOTED_STRING(S) #S
 #define INCLUDE_BY_MB(M)    AS_QUOTED_STRING(boards/M.h)
 #include INCLUDE_BY_MB(MOTHERBOARD)

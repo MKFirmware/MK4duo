@@ -1179,6 +1179,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
   LOOP_XYZE(i) {
     const float cs = FABS(current_speed[i] = delta_mm[i] * inverse_mm_s);
+    if (i == E_AXIS) i += extruder;
     if (cs > max_feedrate_mm_s[i]) NOMORE(speed_factor, max_feedrate_mm_s[i] / cs);
   }
 
@@ -1422,7 +1423,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->flag |= BLOCK_FLAG_RECALCULATE | (block->nominal_speed <= v_allowable ? BLOCK_FLAG_NOMINAL_LENGTH : 0);
 
   // Update previous path unit_vector and nominal speed
-  memcpy(previous_speed, current_speed, sizeof(previous_speed));
+  COPY_ARRAY(previous_speed, current_speed);
   previous_nominal_speed = block->nominal_speed;
   previous_safe_speed = safe_speed;
 
@@ -1481,7 +1482,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block_buffer_head = next_buffer_head;
 
   // Update the position (only when a move was queued)
-  memcpy(position, target, sizeof(position));
+  COPY_ARRAY(position, target);
   #if ENABLED(LIN_ADVANCE)
     position_float[X_AXIS] = a;
     position_float[Y_AXIS] = b;

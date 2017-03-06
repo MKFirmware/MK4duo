@@ -527,10 +527,27 @@
 //===========================================================================
 
 /**************************************************************************
+ *************************** Workspace offsets ****************************
+ **************************************************************************
+ *                                                                        *
+ * Enable this option for a leaner build of MK4duo that enable all        *
+ * workspace offsets, simplifying coordinate transformations,             *
+ * leveling, etc.                                                         *
+ *                                                                        *
+ *  - G92                                                                 *
+ *  - M206 and M428 are enabled.                                          *
+ **************************************************************************/
+//#define WORKSPACE_OFFSETS
+/**************************************************************************/
+
+
+/**************************************************************************
  *************************** Software endstops ****************************
  **************************************************************************/
-#define SOFTWARE_MIN_ENDSTOPS true  // If true, axis won't move to coordinates less than HOME_POS.
-#define SOFTWARE_MAX_ENDSTOPS true  // If true, axis won't move to coordinates greater than the defined lengths below.
+// If true, axis won't move to coordinates less than MIN POS.
+#define SOFTWARE_MIN_ENDSTOPS true
+// If true, axis won't move to coordinates greater than MAX POS.
+#define SOFTWARE_MAX_ENDSTOPS true
 /**************************************************************************/
 
 
@@ -2006,6 +2023,7 @@
  *   "P" for pattern selection                                                          *
  *   "S" for defining the number of strokes/repetitions                                 *
  *   "T" for defining the number of triangles                                           *
+ *   "R" for defining the center of circle                                              *
  *                                                                                      *
  * Available list of patterns:                                                          *
  *   P0: This is the default pattern, this process requires a sponge type               *
@@ -2027,6 +2045,10 @@
  *                       |________|_________|_________|                                 *
  *                           T1        T2        T3                                     *
  *                                                                                      *
+ *   P2: This starts a circular pattern with circle with middle in                      *
+ *       NOZZLE CLEAN CIRCLE MIDDLE radius of R and stroke count of S.                  *
+ *       Before starting the circle nozzle goes to NOZZLE CLEAN START POINT.            *
+ *                                                                                      *
  * Caveats: End point Z should use the same value as Start point Z.                     *
  *                                                                                      *
  * Attention: This is an EXPERIMENTAL feature, in the future the G-code arguments       *
@@ -2044,6 +2066,13 @@
 // Specify positions as { X, Y, Z }
 #define NOZZLE_CLEAN_START_POINT { 30, 30, (Z_MIN_POS + 1)}
 #define NOZZLE_CLEAN_END_POINT   {100, 60, (Z_MIN_POS + 1)}
+
+// Circular pattern radius
+#define NOZZLE_CLEAN_CIRCLE_RADIUS 6.5
+// Circular pattern circle fragments number
+#define NOZZLE_CLEAN_CIRCLE_FN 10
+// Middle point of circle
+#define NOZZLE_CLEAN_CIRCLE_MIDDLE NOZZLE_CLEAN_START_POINT
 
 // Moves the nozzle to the initial position
 #define NOZZLE_CLEAN_GOBACK

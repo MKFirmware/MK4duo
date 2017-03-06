@@ -179,12 +179,19 @@ bool axis_relative_modes[] = AXIS_RELATIVE_MODES,
 float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
       volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
 
-// The distance that XYZ has been offset by G92. Reset by G28.
-float position_shift[XYZ] = { 0 };
+#if ENABLED(WORKSPACE_OFFSETS)
 
-// This offset is added to the configured home position.
-// Set by M206, M428, or menu item. Saved to EEPROM.
-float home_offset[XYZ] = { 0 };
+  // The distance that XYZ has been offset by G92. Reset by G28.
+  float position_shift[XYZ] = { 0 };
+
+  // This offset is added to the configured home position.
+  // Set by M206, M428, or menu item. Saved to EEPROM.
+  float home_offset[XYZ] = { 0 };
+
+  // The above two are combined to save on computes
+  float workspace_offset[XYZ] = { 0 };
+
+#endif
 
 // Software Endstops. Default to configured limits.
 #if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
@@ -1299,77 +1306,87 @@ bool get_target_hotend_from_command(int code) {
 
 #endif // DUAL_X_CARRIAGE
 
-/**
- * Software endstops can be used to monitor the open end of
- * an axis that has a hardware endstop on the other end. Or
- * they can prevent axes from moving past endstops and grinding.
- *
- * To keep doing their job as the coordinate system changes,
- * the software endstop positions must be refreshed to remain
- * at the same positions relative to the machine.
- */
-void update_software_endstops(AxisEnum axis) {
-  float offs = LOGICAL_POSITION(0, axis);
+#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
 
-  #if ENABLED(DUAL_X_CARRIAGE)
-    if (axis == X_AXIS) {
+  /**
+   * Software endstops can be used to monitor the open end of
+   * an axis that has a hardware endstop on the other end. Or
+   * they can prevent axes from moving past endstops and grinding.
+   *
+   * To keep doing their job as the coordinate system changes,
+   * the software endstop positions must be refreshed to remain
+   * at the same positions relative to the machine.
+   */
+  void update_software_endstops(const AxisEnum axis) {
+    const float offs = workspace_offset[axis] = LOGICAL_POSITION(0, axis);
 
-      // In Dual X mode hotend_offset[X] is T1's home position
-      float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+    #if ENABLED(DUAL_X_CARRIAGE)
+      if (axis == X_AXIS) {
 
-      if (active_extruder != 0) {
-        // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-        soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
-        soft_endstop_max[X_AXIS] = dual_max_x + offs;
+        // In Dual X mode hotend_offset[X] is T1's home position
+        float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+
+        if (active_extruder != 0) {
+          // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
+          soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
+          soft_endstop_max[X_AXIS] = dual_max_x + offs;
+        }
+        else if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+          // In Duplication Mode, T0 can move as far left as X_MIN_POS
+          // but not so far to the right that T1 would move past the end
+          soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS) + offs;
+          soft_endstop_max[X_AXIS] = min(base_max_pos(X_AXIS), dual_max_x - duplicate_hotend_x_offset) + offs;
+        }
+        else {
+          // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
+          soft_endstop_min[axis] = base_min_pos(axis) + offs;
+          soft_endstop_max[axis] = base_max_pos(axis) + offs;
+        }
       }
-      else if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
-        // In Duplication Mode, T0 can move as far left as X_MIN_POS
-        // but not so far to the right that T1 would move past the end
-        soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS) + offs;
-        soft_endstop_max[X_AXIS] = min(base_max_pos(X_AXIS), dual_max_x - duplicate_hotend_x_offset) + offs;
+    #elif MECH(DELTA)
+      soft_endstop_min[axis] = deltaParams.base_min_pos[axis] + offs;
+      soft_endstop_max[axis] = deltaParams.base_max_pos[axis] + offs;
+    #else
+      soft_endstop_min[axis] = base_min_pos(axis) + offs;
+      soft_endstop_max[axis] = base_max_pos(axis) + offs;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("For ", axis_codes[axis]);
+        #if ENABLED(WORKSPACE_OFFSETS)
+          SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
+          SERIAL_MV("\n position_shift = ", position_shift[axis]);
+        #endif
+        SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
+        SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
       }
-      else {
-        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-        soft_endstop_min[axis] = base_min_pos(axis) + offs;
-        soft_endstop_max[axis] = base_max_pos(axis) + offs;
-      }
-    }
-  #elif MECH(DELTA)
-    soft_endstop_min[axis] = deltaParams.base_min_pos[axis] + offs;
-    soft_endstop_max[axis] = deltaParams.base_max_pos[axis] + offs;
-  #else
-    soft_endstop_min[axis] = base_min_pos(axis) + offs;
-    soft_endstop_max[axis] = base_max_pos(axis) + offs;
-  #endif
+    #endif
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) {
-      SERIAL_MV("For ", axis_codes[axis]);
-      SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
-      SERIAL_MV("\n position_shift = ", position_shift[axis]);
-      SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
-      SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
-    }
-  #endif
+    #if MECH(DELTA)
+      if (axis == Z_AXIS) deltaParams.Set_clip_start_height();
+    #endif
+  }
 
-  #if MECH(DELTA)
-    if (axis == Z_AXIS) deltaParams.Set_clip_start_height();
-  #endif
-}
+#endif // WORKSPACE_OFFSETS
 
-/**
- * Change the home offset for an axis, update the current
- * position and the software endstops to retain the same
- * relative distance to the new home.
- *
- * Since this changes the current_position, code should
- * call sync_plan_position soon after this.
- */
-static void set_home_offset(AxisEnum axis, float v) {
-  current_position[axis] += v - home_offset[axis];
-  home_offset[axis] = v;
-  update_software_endstops(axis);
-}
+#if ENABLED(WORKSPACE_OFFSETS)
+
+  /**
+   * Change the home offset for an axis, update the current
+   * position and the software endstops to retain the same
+   * relative distance to the new home.
+   *
+   * Since this changes the current_position, code should
+   * call sync_plan_position soon after this.
+   */
+  static void set_home_offset(AxisEnum axis, float v) {
+    current_position[axis] += v - home_offset[axis];
+    home_offset[axis] = v;
+    update_software_endstops(axis);
+  }
+
+#endif // WORKSPACE_OFFSETS
 
 /**
  * Set an axis' current position to its home position (after homing).
@@ -1398,16 +1415,14 @@ static void set_axis_is_at_home(AxisEnum axis) {
 
   axis_known_position[axis] = axis_homed[axis] = true;
 
-  position_shift[axis] = 0;
-  update_software_endstops(axis);
+  #if ENABLED(WORKSPACE_OFFSETS)
+    position_shift[axis] = 0;
+    update_software_endstops(axis);
+  #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    if (axis == X_AXIS && (active_extruder != 0 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
-      if (active_extruder != 0)
-        current_position[X_AXIS] = x_home_pos(active_extruder);
-      else
-        current_position[X_AXIS] = LOGICAL_X_POSITION(base_home_pos(X_AXIS));
-      update_software_endstops(X_AXIS);
+    if (axis == X_AXIS && (active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
+      current_position[X_AXIS] = x_home_pos(active_extruder);
       return;
     }
   #endif
@@ -1480,8 +1495,10 @@ static void set_axis_is_at_home(AxisEnum axis) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
-      SERIAL_MV("> home_offset[", axis_codes[axis]);
-      SERIAL_EMV("] = ", home_offset[axis]);
+      #if ENABLED(WORKSPACE_OFFSETS)
+        SERIAL_MV("> home_offset[", axis_codes[axis]);
+        SERIAL_EMV("] = ", home_offset[axis]);
+      #endif
       DEBUG_POS("", current_position);
       SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
       SERIAL_C(')'); SERIAL_E;
@@ -1527,8 +1544,8 @@ inline void line_to_current_position() {
 #endif
 inline void line_to_destination() { line_to_destination(feedrate_mm_s); }
 
-inline void set_current_to_destination() { memcpy(current_position, destination, sizeof(current_position)); }
-inline void set_destination_to_current() { memcpy(destination, current_position, sizeof(destination)); }
+inline void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
+inline void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
 
 #if IS_KINEMATIC
   /**
@@ -3636,8 +3653,9 @@ inline void gcode_G4() {
     const uint8_t pattern = code_seen('P') ? code_value_ushort() : 0,
                   strokes = code_seen('S') ? code_value_ushort() : NOZZLE_CLEAN_STROKES,
                   objects = code_seen('T') ? code_value_ushort() : NOZZLE_CLEAN_TRIANGLES;
+    const float   radius  = code_seen('R') ? code_value_float()  : NOZZLE_CLEAN_CIRCLE_RADIUS;
 
-    Nozzle::clean(pattern, strokes, objects);
+    Nozzle::clean(pattern, strokes, radius, objects);
   }
 #endif
 
@@ -4034,7 +4052,7 @@ inline void gcode_G28() {
   float old_feedrate_mm_s;
   if (come_back) {
     old_feedrate_mm_s = feedrate_mm_s;
-    memcpy(lastpos, current_position, sizeof(lastpos));
+    COPY_ARRAY(lastpos, current_position);
   }
 
   const bool  homeX = code_seen('X'),
@@ -4124,7 +4142,7 @@ inline void gcode_G28() {
         HOMEAXIS(X);
 
         // Consider the active extruder to be parked
-        memcpy(raised_parked_position, current_position, sizeof(raised_parked_position));
+        COPY_ARRAY(raised_parked_position, current_position);
         delayed_move_time = 0;
         active_hotend_parked = true;
       #else
@@ -4215,7 +4233,7 @@ inline void gcode_G28() {
   if (come_back) {
     #if MECH(DELTA)
       feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-      memcpy(destination, lastpos, sizeof(destination));
+      COPY_ARRAY(destination, lastpos);
       prepare_move_to_destination();
       feedrate_mm_s = old_feedrate_mm_s;
     #else
@@ -4947,7 +4965,7 @@ inline void gcode_G28() {
         #endif
 
         float converted[XYZ];
-        memcpy(converted, current_position, sizeof(converted));
+        COPY_ARRAY(converted, current_position);
 
         planner.abl_enabled = true;
         planner.unapply_leveling(converted); // use conversion machinery
@@ -4969,7 +4987,7 @@ inline void gcode_G28() {
         }
 
         // The rotated XY and corrected Z are now current_position
-        memcpy(current_position, converted, sizeof(converted));
+        COPY_ARRAY(current_position, converted);
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("G29 corrected XYZ", current_position);
@@ -5609,7 +5627,7 @@ inline void gcode_G60() {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
-  memcpy(stored_position[slot], current_position, sizeof(current_position));
+  COPY_ARRAY(stored_position[slot], current_position);
   pos_saved = true;
 
   SERIAL_M(MSG_SAVED_POS);
@@ -5682,9 +5700,11 @@ inline void gcode_G92() {
         current_position[i] = v;
 
         if (i != E_AXIS) {
-          position_shift[i] += v - p; // Offset the coordinate space
-          update_software_endstops((AxisEnum)i);
           didXYZ = true;
+          #if ENABLED(WORKSPACE_OFFSETS)
+            position_shift[i] += v - p; // Offset the coordinate space
+            update_software_endstops((AxisEnum)i);
+          #endif
         }
       #endif
     }
@@ -6449,8 +6469,8 @@ inline void gcode_M42() {
             SERIAL_MV(" max: ", max, 3);
             SERIAL_MV(" range: ", max - min, 3);
           }
+          SERIAL_E;
         }
-        SERIAL_E;
       }
 
     }  // End of probe loop
@@ -7660,23 +7680,27 @@ inline void gcode_M205() {
   if (code_seen('E')) planner.max_jerk[E_AXIS + TARGET_EXTRUDER] = code_value_axis_units(E_AXIS + TARGET_EXTRUDER);
 }
 
-/**
- * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
- */
-inline void gcode_M206() {
-  LOOP_XYZ(i) {
-    if (code_seen(axis_codes[i])) {
-      set_home_offset((AxisEnum)i, code_value_axis_units(i));
-    }
-  }
-  #if MECH(MORGAN_SCARA)
-    if (code_seen('T')) set_home_offset(X_AXIS, code_value_axis_units(X_AXIS)); // Theta
-    if (code_seen('P')) set_home_offset(Y_AXIS, code_value_axis_units(Y_AXIS)); // Psi
-  #endif
+#if ENABLED(WORKSPACE_OFFSETS)
 
-  sync_plan_position();
-  report_current_position();
-}
+  /**
+   * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
+   */
+  inline void gcode_M206() {
+    LOOP_XYZ(i) {
+      if (code_seen(axis_codes[i])) {
+        set_home_offset((AxisEnum)i, code_value_axis_units(i));
+      }
+    }
+    #if MECH(MORGAN_SCARA)
+      if (code_seen('T')) set_home_offset(X_AXIS, code_value_axis_units(X_AXIS)); // Theta
+      if (code_seen('P')) set_home_offset(Y_AXIS, code_value_axis_units(Y_AXIS)); // Psi
+    #endif
+
+    sync_plan_position();
+    report_current_position();
+  }
+
+#endif // WORKSPACE_OFFSETS
 
 #if ENABLED(FWRETRACT)
   /**
@@ -8732,54 +8756,58 @@ inline void gcode_M400() { stepper.synchronize(); }
   }
 #endif // MESH_BED_LEVELING
 
-/**
- * M428: Set home_offset based on the distance between the
- *       current_position and the nearest "reference point."
- *       If an axis is past center its Endstop position
- *       is the reference-point. Otherwise it uses 0. This allows
- *       the Z offset to be set near the bed when using a max Endstop.
- *
- *       M428 can't be used more than 2cm away from 0 or an Endstop.
- *
- *       Use M206 to set these values directly.
- */
-inline void gcode_M428() {
-  bool err = false;
-  LOOP_XYZ(i) {
-    if (axis_homed[i]) {
-      #if MECH(DELTA)
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? deltaParams.base_home_pos[i] : 0,
-              diff = current_position[i] - LOGICAL_POSITION(base, i);
-      #else
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
-              diff = current_position[i] - LOGICAL_POSITION(base, i);
-      #endif
-      if (diff > -20 && diff < 20) {
-        set_home_offset((AxisEnum)i, home_offset[i] - diff);
-      }
-      else {
-        SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
-        LCD_ALERTMESSAGEPGM("Err: Too far!");
-        #if HAS(BUZZER)
-          buzz(200, 40);
+#if ENABLED(WORKSPACE_OFFSETS)
+
+  /**
+   * M428: Set home_offset based on the distance between the
+   *       current_position and the nearest "reference point."
+   *       If an axis is past center its Endstop position
+   *       is the reference-point. Otherwise it uses 0. This allows
+   *       the Z offset to be set near the bed when using a max Endstop.
+   *
+   *       M428 can't be used more than 2cm away from 0 or an Endstop.
+   *
+   *       Use M206 to set these values directly.
+   */
+  inline void gcode_M428() {
+    bool err = false;
+    LOOP_XYZ(i) {
+      if (axis_homed[i]) {
+        #if MECH(DELTA)
+          float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? deltaParams.base_home_pos[i] : 0,
+                diff = current_position[i] - LOGICAL_POSITION(base, i);
+        #else
+          float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
+                diff = current_position[i] - LOGICAL_POSITION(base, i);
         #endif
-        err = true;
-        break;
+        if (diff > -20 && diff < 20) {
+          set_home_offset((AxisEnum)i, home_offset[i] - diff);
+        }
+        else {
+          SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
+          LCD_ALERTMESSAGEPGM("Err: Too far!");
+          #if HAS(BUZZER)
+            buzz(200, 40);
+          #endif
+          err = true;
+          break;
+        }
       }
+    }
+
+    if (!err) {
+      SYNC_PLAN_POSITION_KINEMATIC();
+      report_current_position();
+      SERIAL_EM(MSG_HOME_OFFSETS_APPLIED);
+      LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
+      #if HAS(BUZZER)
+        buzz(200, 659);
+        buzz(200, 698);
+      #endif
     }
   }
 
-  if (!err) {
-    SYNC_PLAN_POSITION_KINEMATIC();
-    report_current_position();
-    SERIAL_EM(MSG_HOME_OFFSETS_APPLIED);
-    LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-    #if HAS(BUZZER)
-      buzz(200, 659);
-      buzz(200, 698);
-    #endif
-  }
-}
+#endif // WORKSPACE_OFFSETS
 
 #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
 
@@ -10176,7 +10204,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             break;
           case DXC_AUTO_PARK_MODE:
             // record raised toolhead position for use by unpark
-            memcpy(raised_parked_position, current_position, sizeof(raised_parked_position));
+            COPY_ARRAY(raised_parked_position, current_position);
             raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
             #if ENABLED(SOFTWARE_MAX_ENDSTOPS)
               NOMORE(raised_parked_position[Z_AXIS], soft_endstop_max[Z_AXIS]);
@@ -10322,13 +10350,16 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         // The newly-selected extruder XY is actually at...
         current_position[X_AXIS] += xydiff[X_AXIS];
         current_position[Y_AXIS] += xydiff[Y_AXIS];
-        for (uint8_t i = X_AXIS; i <= Y_AXIS; i++) {
-          position_shift[i] += xydiff[i];
-          update_software_endstops((AxisEnum)i);
-        }
+        #if ENABLED(WORKSPACE_OFFSETS)
+          LOOP_XY(i) {
+            position_shift[i] += xydiff[i];
+            update_software_endstops((AxisEnum)i);
+          }
+        #endif
 
         // Set the new active extruder
         previous_extruder = active_extruder;
+
         #if ENABLED(DONDOLO_SINGLE_MOTOR)
           active_extruder = tmp_extruder;
           active_driver = 0;
@@ -10911,8 +10942,11 @@ void process_next_command() {
         gcode_M204(); break;
       case 205: //M205 advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk
         gcode_M205(); break;
-      case 206: // M206 additional homing offset
-        gcode_M206(); break;
+
+      #if ENABLED(WORKSPACE_OFFSETS)
+        case 206: // M206 additional homing offset
+          gcode_M206(); break;
+      #endif
 
       #if ENABLED(FWRETRACT)
         case 207: //M207 - M207 - Set Retract Length: S<length>, Feedrate: F<units/min>, and Z lift: Z<distance>1
@@ -11058,8 +11092,10 @@ void process_next_command() {
           gcode_M421(); break;
       #endif
 
-      case 428: // M428 Apply current_position to home_offset
-        gcode_M428(); break;
+      #if ENABLED(WORKSPACE_OFFSETS)
+        case 428: // M428 Apply current_position to home_offset
+          gcode_M428(); break;
+      #endif
 
       #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
         case 450:
@@ -11431,7 +11467,7 @@ void ok_to_send() {
             low_opp, high_opp;
       uint8_t err_tower = 0;
 
-      memcpy(saved_tower_radius_adj, deltaParams.tower_radius_adj, sizeof(saved_tower_radius_adj));
+      COPY_ARRAY(saved_tower_radius_adj, deltaParams.tower_radius_adj);
 
       x_diff = abs(bed_level_x - bed_level_ox);
       y_diff = abs(bed_level_y - bed_level_oy);
@@ -11852,7 +11888,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     planner.unapply_leveling(cartes);
   #endif
   if (axis == ALL_AXES)
-    memcpy(current_position, cartes, sizeof(cartes));
+    COPY_ARRAY(current_position, cartes);
   else
     current_position[axis] = cartes[axis];
 }
@@ -11887,14 +11923,14 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // Split at the left/front border of the right/top square
     int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
     if (cx2 != cx1 && TEST(x_splits, gcx)) {
-      memcpy(end, destination, sizeof(end));
+      COPY_ARRAY(end, destination);
       destination[X_AXIS] = LOGICAL_X_POSITION(mbl.get_probe_x(gcx));
       normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
       destination[Y_AXIS] = MBL_SEGMENT_END(Y);
       CBI(x_splits, gcx);
     }
     else if (cy2 != cy1 && TEST(y_splits, gcy)) {
-      memcpy(end, destination, sizeof(end));
+      COPY_ARRAY(end, destination);
       destination[Y_AXIS] = LOGICAL_Y_POSITION(mbl.get_probe_y(gcy));
       normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
       destination[X_AXIS] = MBL_SEGMENT_END(X);
@@ -11914,7 +11950,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     mesh_line_to_destination(fr_mm_s, x_splits, y_splits);
 
     // Restore destination from stack
-    memcpy(destination, end, sizeof(end));
+    COPY_ARRAY(destination, end);
     mesh_line_to_destination(fr_mm_s, x_splits, y_splits);  
   }
 
@@ -11950,14 +11986,14 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // Split at the left/front border of the right/top square
     int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
     if (cx2 != cx1 && TEST(x_splits, gcx)) {
-      memcpy(end, destination, sizeof(end));
+      COPY_ARRAY(end, destination);
       destination[X_AXIS] = LOGICAL_X_POSITION(bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx);
       normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
       destination[Y_AXIS] = LINE_SEGMENT_END(Y);
       CBI(x_splits, gcx);
     }
     else if (cy2 != cy1 && TEST(y_splits, gcy)) {
-      memcpy(end, destination, sizeof(end));
+      COPY_ARRAY(end, destination);
       destination[Y_AXIS] = LOGICAL_Y_POSITION(bilinear_start[Y_AXIS] + ABL_BG_SPACING(Y_AXIS) * gcy);
       normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
       destination[X_AXIS] = LINE_SEGMENT_END(X);
@@ -11977,7 +12013,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
 
     // Restore destination from stack
-    memcpy(destination, end, sizeof(end));
+    COPY_ARRAY(destination, end);
     bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
   }
 
@@ -12047,7 +12083,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 
     // Get the logical current position as starting point
     float logical[XYZE];
-    memcpy(logical, current_position, sizeof(logical));
+    COPY_ARRAY(logical, current_position);
 
     // For non-interpolated delta calculate every segment
     for (uint16_t s = segments + 1; --s;) {
@@ -13096,13 +13132,18 @@ void setup() {
   #if ENABLED(SDSUPPORT)
     // loads custom configuration from SDCARD if available else uses defaults
     card.RetrieveSettings();
+    HAL::delayMilliseconds(300);
   #endif
 
   // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
   eeprom.RetrieveSettings();
 
-  // Initialize current position based on home_offset
-  memcpy(current_position, home_offset, sizeof(home_offset));
+  #if ENABLED(WORKSPACE_OFFSETS)
+    // Initialize current position based on home_offset
+    COPY_ARRAY(current_position, home_offset);
+  #else
+    ZERO(current_position);
+  #endif
 
   // Vital to init stepper/planner equivalent for current_position
   SYNC_PLAN_POSITION_KINEMATIC();
@@ -13235,19 +13276,17 @@ void loop() {
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
-  #if ENABLED(EEPROM_SETTINGS)
-
+  #if HAS(EEPROM_SD)
     static uint8_t wait_for_host_init_string_to_finish = 1;
-
     if (wait_for_host_init_string_to_finish) {
       if (commands_in_queue != 0 && wait_for_host_init_string_to_finish == 1) wait_for_host_init_string_to_finish = 2;
       if (commands_in_queue == 0 && wait_for_host_init_string_to_finish >= 2) wait_for_host_init_string_to_finish++;
       if (wait_for_host_init_string_to_finish >= 250) {
         wait_for_host_init_string_to_finish = 0;
-        eeprom.VersionCheck();
+        // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
+        eeprom.RetrieveSettings();
       }
     }
-
   #endif
 
   #if ENABLED(SDSUPPORT)
