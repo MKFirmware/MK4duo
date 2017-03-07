@@ -6938,7 +6938,7 @@ inline void gcode_M104() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
@@ -7031,7 +7031,7 @@ inline void gcode_M109() {
         thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, "H%i %s", TARGET_EXTRUDER, MSG_HEATING);
+    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER)) status_printf(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
   #if ENABLED(AUTOTEMP)
