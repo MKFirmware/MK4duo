@@ -20,11 +20,8 @@
  *
  */
 
-#ifndef MK_H
-#define MK_H
-
-#include <math.h>
-#include <stdint.h>
+#ifndef _MK_MAIN_H
+#define _MK_MAIN_H
 
 void get_command();
 
@@ -342,4 +339,4 @@ void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s
 
 #endif
 
-#endif // MK_H
+#endif // _MK_MAIN_H

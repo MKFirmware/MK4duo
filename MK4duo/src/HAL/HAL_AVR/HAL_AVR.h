@@ -57,10 +57,15 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+
 #include <util/delay.h>
-#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 
 #include "fastio.h"
