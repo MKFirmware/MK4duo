@@ -178,7 +178,7 @@
 
 #endif // ULTRA_LCD
 
-#if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+#if ENABLED(SDSUPPORT)
   extern void set_sd_dot();
   extern void unset_sd_dot();
 #endif

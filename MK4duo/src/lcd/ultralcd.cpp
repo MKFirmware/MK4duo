@@ -3815,7 +3815,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
 #endif // ULTRA_LCD
 
-#if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+#if ENABLED(SDSUPPORT)
   void set_sd_dot() {
     #if ENABLED(DOGLCD)
       u8g.firstPage();
