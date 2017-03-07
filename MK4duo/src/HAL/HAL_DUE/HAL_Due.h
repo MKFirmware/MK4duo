@@ -95,6 +95,9 @@
 #ifndef strncpy_P
   #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
 #endif
+#ifndef vsnprintf_P
+  #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
+#endif
 
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
