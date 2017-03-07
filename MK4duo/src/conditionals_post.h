@@ -29,9 +29,9 @@
 #define CONDITIONALS_POST_H
 
 /**
- * CPU 32 BIT
+ * SAM3X8E
  */
-#if ENABLED(CPU_32_BIT)
+#if ENABLED(ARDUINO_ARCH_SAM)
   #if ENABLED(FAST_PWM_FAN)
     #undef FAST_PWM_FAN
   #endif
@@ -462,7 +462,7 @@
 /**
  * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
  */
-#if ENABLED(CPU_32_BIT)
+#if ENABLED(ARDUINO_ARCH_SAM)
   #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
     #define DOUBLE_STEP_FREQUENCY 60000 // 60KHz
   #else
@@ -498,7 +498,7 @@
  */
 #if ENABLED(ADVANCE)
   #define EXTRUSION_AREA (0.25 * (D_FILAMENT) * (D_FILAMENT) * M_PI)
-  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS_N] / (EXTRUSION_AREA))
+  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + active_extruder] / (EXTRUSION_AREA))
 #endif
 
 /**
