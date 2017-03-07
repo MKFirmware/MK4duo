@@ -6350,8 +6350,8 @@ inline void gcode_M42() {
             SERIAL_MV(" max: ", max, 3);
             SERIAL_MV(" range: ", max - min, 3);
           }
+          SERIAL_E;
         }
-        SERIAL_E;
       }
 
     }  // End of probe loop

@@ -186,9 +186,14 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
       oldP++;
     else
       oldP = filename;
+
+    fileSize = file.fileSize();
+    sdpos = 0;
+
     if(!silent) {
       SERIAL_MT(MSG_SD_FILE_OPENED, oldP);
-      SERIAL_EMT(MSG_SD_SIZE, file.fileSize());
+      SERIAL_EMV(MSG_SD_SIZE, fileSize);
+      SERIAL_EM(MSG_SD_FILE_SELECTED);
     }
 
     for (int c = 0; c < sizeof(fileName); c++)
@@ -198,9 +203,7 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
     #if ENABLED(JSON_OUTPUT)
       parsejson(file);
     #endif
-    sdpos = 0;
-    fileSize = file.fileSize();
-    SERIAL_EM(MSG_SD_FILE_SELECTED);
+
     return true;
   }
   else {
@@ -227,8 +230,10 @@ void CardReader::startWrite(char *filename, bool lcd_status/*=true*/) {
   }
   else {
     saving = true;
-    SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
-    if (lcd_status) lcd_setstatus(filename);
+    if (lcd_status) {
+      SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
+      lcd_setstatus(filename);
+    }
   }
 }
 
@@ -884,7 +889,7 @@ void CardReader::ResetDefault() {
     ltoa(print_job_counter.data.printTime, buff, 10);
     unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
 
-    closeFile();
+    finishWrite();
     setlast();
     unset_sd_dot();
   }
@@ -897,7 +902,7 @@ void CardReader::ResetDefault() {
     int k_idx;
     int k_len, v_len;
     setroot(true);
-    selectFile((char *)CFG_SD_FILE);
+    selectFile((char *)CFG_SD_FILE, true);
 
     while (true) {
       k_len = CFG_SD_MAX_KEY_LEN;
