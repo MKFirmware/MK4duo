@@ -470,7 +470,7 @@ void EEPROM::Postprocess() {
       if (IS_SD_INSERTED || !card.isFileOpen() || !card.sdprinting || card.cardOK) {
         set_sd_dot();
         card.setroot(true);
-        card.selectFile((char *)"EEPROM.bin", false);
+        card.selectFile((char *)"EEPROM.bin", true);
         EEPROM_READ(stored_ver);
       }
     #else
