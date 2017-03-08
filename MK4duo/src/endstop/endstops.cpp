@@ -62,100 +62,114 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
 void Endstops::init() {
 
   #if HAS(X_MIN)
-    SET_INPUT(X_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMIN)
-      PULLUP(X_MIN_PIN);
+      SET_INPUT_PULLUP(X_MIN_PIN);
+    #else
+      SET_INPUT(X_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Y_MIN)
-    SET_INPUT(Y_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMIN)
-      PULLUP(Y_MIN_PIN);
+      SET_INPUT_PULLUP(Y_MIN_PIN);
+    #else
+      SET_INPUT(Y_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z_MIN)
-    SET_INPUT(Z_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMIN)
-      PULLUP(Z_MIN_PIN);
+      SET_INPUT_PULLUP(Z_MIN_PIN);
+    #else
+      SET_INPUT(Z_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z2_MIN)
-    SET_INPUT(Z2_MIN_PIN);
-    #if ENABLED(ENDSTOPPULLUP_Z2MIN)
-      PULLUP(Z2_MIN_PIN);
+    #if ENABLED(ENDSTOPPULLUP_ZMIN)
+      SET_INPUT_PULLUP(Z2_MIN_PIN);
+    #else
+      SET_INPUT(Z2_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z3_MIN)
-    SET_INPUT(Z3_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z3MIN)
-      PULLUP(Z3_MIN_PIN);
+      SET_INPUT_PULLUP(Z3_MIN_PIN);
+    #else
+      SET_INPUT(Z3_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z4_MIN)
-    SET_INPUT(Z4_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z4MIN)
-      PULLUP(Z4_MIN_PIN);
+      SET_INPUT_PULLUP(Z4_MIN_PIN);
+    #else
+      SET_INPUT(Z4_MIN_PIN);
     #endif
   #endif
 
   #if HAS(E_MIN)
-    SET_INPUT(E_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_EMIN)
-      PULLUP(E_MIN_PIN);
+      SET_INPUT_PULLUP(E_MIN_PIN);
+    #else
+      SET_INPUT(E_MIN_PIN);
     #endif
   #endif
 
   #if HAS(X_MAX)
-    SET_INPUT(X_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMAX)
-      PULLUP(X_MAX_PIN);
+      SET_INPUT_PULLUP(X_MAX_PIN);
+    #else
+      SET_INPUT(X_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Y_MAX)
-    SET_INPUT(Y_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMAX)
-      PULLUP(Y_MAX_PIN);
+      SET_INPUT_PULLUP(Y_MAX_PIN);
+    #else
+      SET_INPUT(Y_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z_MAX)
-    SET_INPUT(Z_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMAX)
-      PULLUP(Z_MAX_PIN);
+      SET_INPUT_PULLUP(Z_MAX_PIN);
+    #else
+      SET_INPUT(Z_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z2_MAX)
-    SET_INPUT(Z2_MAX_PIN);
-    #if ENABLED(ENDSTOPPULLUP_Z2MAX)
-      PULLUP(Z2_MAX_PIN);
+    #if ENABLED(ENDSTOPPULLUP_ZMAX)
+      SET_INPUT_PULLUP(Z2_MAX_PIN);
+    #else
+      SET_INPUT(Z2_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z3_MAX)
-    SET_INPUT(Z3_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z3MAX)
-      PULLUP(Z3_MAX_PIN);
+      SET_INPUT_PULLUP(Z3_MAX_PIN);
+    #else
+      SET_INPUT(Z3_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z4_MAX)
-    SET_INPUT(Z4_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z4MAX)
-      PULLUP(Z4_MAX_PIN);
+      SET_INPUT_PULLUP(Z4_MAX_PIN);
+    #else
+      SET_INPUT(Z4_MAX_PIN);
     #endif
   #endif
 
-  #if HAS(Z_PROBE_PIN) // Check for Z_PROBE_ENDSTOP so we don't pull a pin high unless it's to be used.
-    SET_INPUT(Z_PROBE_PIN);
+  #if HAS(Z_PROBE_PIN)
     #if ENABLED(ENDSTOPPULLUP_ZPROBE)
-      PULLUP(Z_PROBE_PIN);
+      SET_INPUT_PULLUP(Z_PROBE_PIN);
+    #else
+      SET_INPUT(Z_PROBE_PIN);
     #endif
   #endif
 

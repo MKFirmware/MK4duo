@@ -807,9 +807,10 @@ void setup_killpin() {
 
 #if HAS(FIL_RUNOUT)
   void setup_filrunoutpin() {
-    SET_INPUT(FIL_RUNOUT_PIN);
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      PULLUP(FIL_RUNOUT_PIN);
+      SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
+    #else
+      SET_INPUT(FIL_RUNOUT_PIN);
     #endif
   }
 #endif
@@ -5479,6 +5480,7 @@ inline void gcode_G28() {
       // Recalibrate Height
       SERIAL_EM("Calibrate Height");
       home_delta();
+      do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
       deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0) - (-zprobe_zoffset);
       deltaParams.Recalc_delta_constants();
 
@@ -9537,34 +9539,42 @@ inline void gcode_M532() {
 
 #elif MECH(DELTA)
 
-  // M666: Set delta endstop and geometry adjustment
+  /**
+   * M666: Set delta endstop and geometry adjustment
+   *
+   *    D = Diagonal Rod
+   *    R = Delta Radius
+   *    S = Segments per Second
+   *    A = Alpha (Tower 1) Diagonal Rod Adjust
+   *    B = Beta  (Tower 2) Diagonal Rod Adjust
+   *    C = Gamma (Tower 3) Diagonal Rod Adjust
+   *    I = Alpha (Tower 1) Tower Radius Adjust
+   *    J = Beta  (Tower 2) Tower Radius Adjust
+   *    K = Gamma (Tower 3) Tower Radius Adjust
+   *    U = Alpha (Tower 1) Tower Position Adjust
+   *    V = Beta  (Tower 2) Tower Position Adjust
+   *    W = Gamma (Tower 3) Tower Position Adjust
+   *    X = Alpha (Tower 1) Endstop Adjust
+   *    Y = Beta  (Tower 2) Endstop Adjust
+   *    Z = Gamma (Tower 3) Endstop Adjust
+   *    O = Print radius
+   *    H = Z Height
+   */
   inline void gcode_M666() {
-    if (code_seen('A')) deltaParams.tower_radius_adj[A_AXIS] = code_value_linear_units();
-
-    if (code_seen('B')) deltaParams.tower_radius_adj[B_AXIS] = code_value_linear_units();
-
-    if (code_seen('C')) deltaParams.tower_radius_adj[C_AXIS] = code_value_linear_units();
-
-    if (code_seen('I')) deltaParams.tower_pos_adj[A_AXIS] = code_value_linear_units();
-
-    if (code_seen('J')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
-
-    if (code_seen('K')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
-
-    if (code_seen('U')) deltaParams.diagonal_rod_adj[A_AXIS] = code_value_linear_units();
-
-    if (code_seen('V')) deltaParams.diagonal_rod_adj[B_AXIS] = code_value_linear_units();
-
-    if (code_seen('W')) deltaParams.diagonal_rod_adj[C_AXIS] = code_value_linear_units();
-
-    if (code_seen('R')) deltaParams.radius = code_value_linear_units();
 
     if (code_seen('D')) deltaParams.diagonal_rod = code_value_linear_units();
-
-    if (code_seen('H')) deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
-
+    if (code_seen('R')) deltaParams.radius = code_value_linear_units();
     if (code_seen('S')) deltaParams.segments_per_second = code_value_float();
-
+    if (code_seen('A')) deltaParams.diagonal_rod_adj[A_AXIS] = code_value_linear_units();
+    if (code_seen('B')) deltaParams.diagonal_rod_adj[B_AXIS] = code_value_linear_units();
+    if (code_seen('C')) deltaParams.diagonal_rod_adj[C_AXIS] = code_value_linear_units();
+    if (code_seen('I')) deltaParams.tower_radius_adj[A_AXIS] = code_value_linear_units();
+    if (code_seen('J')) deltaParams.tower_radius_adj[B_AXIS] = code_value_linear_units();
+    if (code_seen('K')) deltaParams.tower_radius_adj[C_AXIS] = code_value_linear_units();
+    if (code_seen('U')) deltaParams.tower_pos_adj[A_AXIS] = code_value_linear_units();
+    if (code_seen('V')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
+    if (code_seen('W')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
+    if (code_seen('H')) deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
     if (code_seen('O')) deltaParams.print_Radius = code_value_linear_units();
 
     deltaParams.Recalc_delta_constants();
@@ -9593,15 +9603,15 @@ inline void gcode_M532() {
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", zprobe_zoffset, 3);
       #endif
 
-      SERIAL_LMV(CFG, "A (Tower A Radius Correction): ", deltaParams.tower_radius_adj[0], 3);
-      SERIAL_LMV(CFG, "B (Tower B Radius Correction): ", deltaParams.tower_radius_adj[1], 3);
-      SERIAL_LMV(CFG, "C (Tower C Radius Correction): ", deltaParams.tower_radius_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Position Correction): ", deltaParams.tower_pos_adj[0], 3);
-      SERIAL_LMV(CFG, "J (Tower B Position Correction): ", deltaParams.tower_pos_adj[1], 3);
-      SERIAL_LMV(CFG, "K (Tower C Position Correction): ", deltaParams.tower_pos_adj[2], 3);
-      SERIAL_LMV(CFG, "U (Tower A Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[0], 3);
+      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[1], 3);
+      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_LMV(CFG, "U (Tower A Position Correction): ", deltaParams.tower_pos_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Position Correction): ", deltaParams.tower_pos_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Position Correction): ", deltaParams.tower_pos_adj[2], 3);
       SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.radius, 4);
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second);

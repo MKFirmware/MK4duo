@@ -1020,25 +1020,29 @@ void EEPROM::ResetDefault() {
     #if MECH(DELTA)
 
       CONFIG_MSG_START("Endstop adjustment (mm):");
-      SERIAL_SMV(CFG, "  M666 X", deltaParams.endstop_adj[A_AXIS]);
+      SERIAL_SM(CFG, "  M666");
+      SERIAL_MV(" X", deltaParams.endstop_adj[A_AXIS]);
       SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
-      SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
+      SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS]);
+      SERIAL_E;
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
-      SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_radius_adj[0], 3);
-      SERIAL_MV(" B", deltaParams.tower_radius_adj[1], 3);
-      SERIAL_MV(" C", deltaParams.tower_radius_adj[2], 3);
-      SERIAL_MV(" I", deltaParams.tower_pos_adj[0], 3);
-      SERIAL_MV(" J", deltaParams.tower_pos_adj[1], 3);
-      SERIAL_MV(" K", deltaParams.tower_pos_adj[2], 3);
-      SERIAL_MV(" U", deltaParams.diagonal_rod_adj[0], 3);
-      SERIAL_MV(" V", deltaParams.diagonal_rod_adj[1], 3);
-      SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
+      SERIAL_SM(CFG, "  M666");
+      SERIAL_MV(" A", deltaParams.diagonal_rod_adj[0], 3);
+      SERIAL_MV(" B", deltaParams.diagonal_rod_adj[1], 3);
+      SERIAL_MV(" C", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_MV(" I", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_MV(" J", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_MV(" K", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_MV(" U", deltaParams.tower_pos_adj[0], 3);
+      SERIAL_MV(" V", deltaParams.tower_pos_adj[1], 3);
+      SERIAL_MV(" W", deltaParams.tower_pos_adj[2], 3);
       SERIAL_MV(" R", deltaParams.radius);
       SERIAL_MV(" D", deltaParams.diagonal_rod);
       SERIAL_MV(" S", deltaParams.segments_per_second);
       SERIAL_MV(" O", deltaParams.print_Radius);
-      SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
+      SERIAL_MV(" H", deltaParams.base_max_pos[C_AXIS], 3);
+      SERIAL_E;
 
     #elif ENABLED(Z_TWO_ENDSTOPS)
 

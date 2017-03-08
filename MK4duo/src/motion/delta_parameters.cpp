@@ -74,12 +74,12 @@
     delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = (radius + tower_pos_adj[A_AXIS]) * cos((210 + tower_radius_adj[A_AXIS]) * degreesToRadians); // front left tower
-    towerY[A_AXIS] = (radius + tower_pos_adj[A_AXIS]) * sin((210 + tower_radius_adj[A_AXIS]) * degreesToRadians); 
-    towerX[B_AXIS] = (radius + tower_pos_adj[B_AXIS]) * cos((330 + tower_radius_adj[B_AXIS]) * degreesToRadians); // front right tower
-    towerY[B_AXIS] = (radius + tower_pos_adj[B_AXIS]) * sin((330 + tower_radius_adj[B_AXIS]) * degreesToRadians); 
-    towerX[C_AXIS] = (radius + tower_pos_adj[C_AXIS]) * cos((90 + tower_radius_adj[C_AXIS]) * degreesToRadians);  // back middle tower
-    towerY[C_AXIS] = (radius + tower_pos_adj[C_AXIS]) * sin((90 + tower_radius_adj[C_AXIS]) * degreesToRadians); 
+    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(60 - tower_radius_adj[A_AXIS]))); // front left tower
+    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(60 - tower_radius_adj[A_AXIS]))); 
+    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(60 + tower_radius_adj[B_AXIS]))); // front right tower
+    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(60 + tower_radius_adj[B_AXIS]))); 
+    towerX[C_AXIS] = -((radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
+    towerY[C_AXIS] = +((radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
