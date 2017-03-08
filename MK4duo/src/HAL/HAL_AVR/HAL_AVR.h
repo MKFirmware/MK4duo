@@ -57,10 +57,15 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include <stdint.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+
 #include <util/delay.h>
-#include <avr/eeprom.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 
 #include "fastio.h"
@@ -106,6 +111,8 @@
 #define HAL_VOLTAGE_PIN 5.0
 
 #define ADV_NEVER 65535
+
+#define OVERSAMPLENR 16
 
 /**
  * Optimized math functions for AVR
@@ -204,7 +211,7 @@ typedef uint32_t millis_t;
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 256.0)
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 240
@@ -213,11 +220,11 @@ typedef uint32_t millis_t;
 #define STEPPER_TIMER OCR1A
 #define TEMP_TIMER 0
 
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()   SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT()  CBI(TIMSK1, OCIE1A)
+#define ENABLE_STEPPER_INTERRUPT()    SBI(TIMSK1, OCIE1A)
+#define DISABLE_STEPPER_INTERRUPT()   CBI(TIMSK1, OCIE1A)
 
-#define ENABLE_TEMP_INTERRUPT()             SBI(TIMSK0, OCIE0B)
-#define DISABLE_TEMP_INTERRUPT()            CBI(TIMSK0, OCIE0B)
+#define ENABLE_TEMP_INTERRUPT()       SBI(TIMSK0, OCIE0B)
+#define DISABLE_TEMP_INTERRUPT()      CBI(TIMSK0, OCIE0B)
 
 #define HAL_timer_start (timer_num, frequency)
 #define HAL_timer_set_count(timer, count) timer = (count)
@@ -226,26 +233,29 @@ typedef uint32_t millis_t;
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
 #define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
 
-#define HAL_STEP_TIMER_ISR      ISR(TIMER1_COMPA_vect)
-#define HAL_TEMP_TIMER_ISR      ISR(TIMER0_COMPB_vect)
+#define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
+#define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)
 
 #define _ENABLE_ISRs() \
-    do { \
-      cli(); \
-      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
-      else ENABLE_TEMP_INTERRUPT(); \
-      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
-    } while(0)
+        do { \
+          cli(); \
+          ENABLE_TEMP_INTERRUPT(); \
+          ENABLE_STEPPER_INTERRUPT(); \
+        } while(0)
 
-#define CLI_ENABLE_TEMP_INTERRUPT() \
-    cli(); \
-    in_temp_isr = false; \
-    ENABLE_TEMP_INTERRUPT();
+#define _DISABLE_ISRs() \
+        do { \
+          DISABLE_TEMP_INTERRUPT(); \
+          DISABLE_STEPPER_INTERRUPT(); \
+          sei(); \
+        } while(0)
 
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
+// Temperature PID_dT
+#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -274,6 +284,9 @@ class HAL {
     HAL();
 
     virtual ~HAL();
+
+    // do any hardware-specific initialization here
+    static inline void hwSetup(void) { /* noop */ }
 
     static inline void clear_reset_source() { MCUSR = 0; }
     static inline uint8_t get_reset_source() { return MCUSR; }

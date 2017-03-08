@@ -41,6 +41,7 @@
  * - Extruder run-out prevention
  * - Bowden Filament management
  * - Extruder advance constant
+ * - Extruder Advance Linear Pressure Control
  * - Filament Change
  * MOTION FEATURES:
  * - Software endstops
@@ -90,6 +91,7 @@
  * - I2C DIGIPOT
  * - Toshiba steppers
  * - TMC26X motor drivers
+ * - Trinamic TMC2130 motor drivers
  * - L6470 motor drivers
  * ADVANCED FEATURES:
  * - Buffer stuff
@@ -442,10 +444,35 @@
  * Stiff filament (PLA)        | K=47*L/10 | K=139*L/10 |                                *
  * Softer filament (ABS, nGen) | K=88*L/10 | K=260*L/10 |                                *
  *                                                                                       *
+ * Some Slicers produce Gcode with randomly jumping extrusion widths occasionally.       *
+ * For example within a 0.4mm perimeter it may produce a single segment of 0.05mm width. *
+ * While this is harmless for normal printing (the fluid nature of the filament will     *
+ * close this very, very tiny gap), it throws off the LIN ADVANCE pressure adaption.     *
+ *                                                                                       *
+ * For this case LIN ADVANCE E D RATIO can be used to set the extrusion:distance ratio   *
+ * to a fixed value. Note that using a fixed ratio will lead to wrong nozzle pressures   *
+ * if the slicer is using variable widths or layer heights within one print!             *
+ *                                                                                       *
+ * This option sets the default E:D ratio at startup. Use `M905` to override this value. *
+ *                                                                                       *
+ * Example: `M905 W0.4 H0.2 D1.75`, where:                                               *
+ *   - W is the extrusion width in mm                                                    *
+ *   - H is the layer height in mm                                                       *
+ *   - D is the filament diameter in mm                                                  *
+ *                                                                                       *
+ * Set to 0 to auto-detect the ratio based on given Gcode G1 print moves.                *
+ *                                                                                       *
+ * Slic3r (including Prusa Slic3r) produces Gcode compatible with the automatic mode.    *
+ * Cura (as of this writing) may produce Gcode incompatible with the automatic mode.     *
+ *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE
 
 #define LIN_ADVANCE_K 75
+
+// The calculated ratio (or 0) according to the formula W * H / ((D / 2) ^ 2 * PI)
+// Example: 0.4 * 0.2 / ((1.75 / 2) ^ 2 * PI) = 0.033260135
+#define LIN_ADVANCE_E_D_RATIO 0
 /*****************************************************************************************/
 
 
@@ -500,10 +527,27 @@
 //===========================================================================
 
 /**************************************************************************
+ *************************** Workspace offsets ****************************
+ **************************************************************************
+ *                                                                        *
+ * Enable this option for a leaner build of MK4duo that enable all        *
+ * workspace offsets, simplifying coordinate transformations,             *
+ * leveling, etc.                                                         *
+ *                                                                        *
+ *  - G92                                                                 *
+ *  - M206 and M428 are enabled.                                          *
+ **************************************************************************/
+//#define WORKSPACE_OFFSETS
+/**************************************************************************/
+
+
+/**************************************************************************
  *************************** Software endstops ****************************
  **************************************************************************/
-#define SOFTWARE_MIN_ENDSTOPS true  // If true, axis won't move to coordinates less than HOME_POS.
-#define SOFTWARE_MAX_ENDSTOPS true  // If true, axis won't move to coordinates greater than the defined lengths below.
+// If true, axis won't move to coordinates less than MIN POS.
+#define SOFTWARE_MIN_ENDSTOPS true
+// If true, axis won't move to coordinates greater than MAX POS.
+#define SOFTWARE_MAX_ENDSTOPS true
 /**************************************************************************/
 
 
@@ -1172,7 +1216,14 @@
 #define ENCODER_10X_STEPS_PER_SEC 75    // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value
 #define ENCODER_100X_STEPS_PER_SEC 160  // If the encoder steps per sec exceeds this value, multiply steps moved x100 to really quickly advance the value
 
-#define ULTIPANEL_FEEDMULTIPLY          // Comment to disable setting feedrate multiplier via encoder
+// Double-click the Encoder button on the Status Screen for Z Babystepping.
+//#define DOUBLECLICK_FOR_Z_BABYSTEPPING
+// Maximum interval between clicks, in milliseconds.
+// Note: You may need to add extra time to mitigate controller latency.
+#define DOUBLECLICK_MAX_INTERVAL 1250
+
+// Comment to disable setting feedrate multiplier via encoder
+#define ULTIPANEL_FEEDMULTIPLY
 
 // SPEAKER/BUZZER
 // If you have a speaker that can produce tones, enable it here.
@@ -1578,7 +1629,6 @@
  ***********************************************************************/
 //#define HAVE_TMCDRIVER
 
-//#define HAVE_TMCDRIVER
 #if ENABLED(HAVE_TMCDRIVER)
 
   //#define X_IS_TMC
@@ -1591,49 +1641,257 @@
   //#define E1_IS_TMC
   //#define E2_IS_TMC
   //#define E3_IS_TMC
-
+  
   #define X_MAX_CURRENT     1000 // in mA
   #define X_SENSE_RESISTOR    91 // in mOhms
   #define X_MICROSTEPS        16 // number of microsteps
-
+  
   #define X2_MAX_CURRENT    1000
   #define X2_SENSE_RESISTOR   91
   #define X2_MICROSTEPS       16
-
+  
   #define Y_MAX_CURRENT     1000
   #define Y_SENSE_RESISTOR    91
   #define Y_MICROSTEPS        16
-
+  
   #define Y2_MAX_CURRENT    1000
   #define Y2_SENSE_RESISTOR   91
   #define Y2_MICROSTEPS       16
-
+  
   #define Z_MAX_CURRENT     1000
   #define Z_SENSE_RESISTOR    91
   #define Z_MICROSTEPS        16
-
+  
   #define Z2_MAX_CURRENT    1000
   #define Z2_SENSE_RESISTOR   91
   #define Z2_MICROSTEPS       16
-
+  
   #define E0_MAX_CURRENT    1000
   #define E0_SENSE_RESISTOR   91
   #define E0_MICROSTEPS       16
-
+  
   #define E1_MAX_CURRENT    1000
   #define E1_SENSE_RESISTOR   91
   #define E1_MICROSTEPS       16
-
+  
   #define E2_MAX_CURRENT    1000
   #define E2_SENSE_RESISTOR   91
   #define E2_MICROSTEPS       16
-
+  
   #define E3_MAX_CURRENT    1000
   #define E3_SENSE_RESISTOR   91
   #define E3_MICROSTEPS       16
 
 #endif
 /***********************************************************************/
+
+
+/*************************************************************************************
+ ***********************  Trinamic TMC2130 motor drivers *****************************
+ *************************************************************************************
+ *                                                                                   *
+ * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper drivers.*
+ *                                                                                   *
+ * To use TMC2130 drivers in SPI mode, you'll also need the TMC2130 Arduino library  *
+ * (https://github.com/makertum/Trinamic_TMC2130).                                   *
+ *                                                                                   *
+ * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to           *
+ * the hardware SPI interface on your board and define the required CS pins          *
+ * in your `pins_MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,     *
+ * Y_CS_PIN 49`, etc.).                                                              *
+ *                                                                                   *
+ *************************************************************************************/
+//#define HAVE_TMC2130DRIVER
+
+#if ENABLED(HAVE_TMC2130DRIVER)
+
+  //#define TMC2130_ADVANCED_CONFIGURATION
+
+  // CHOOSE YOUR MOTORS HERE, THIS IS MANDATORY
+  //#define X_IS_TMC2130
+  //#define X2_IS_TMC2130
+  //#define Y_IS_TMC2130
+  //#define Y2_IS_TMC2130
+  //#define Z_IS_TMC2130
+  //#define Z2_IS_TMC2130
+  //#define E0_IS_TMC2130
+  //#define E1_IS_TMC2130
+  //#define E2_IS_TMC2130
+  //#define E3_IS_TMC2130
+
+  #if ENABLED(TMC2130_ADVANCED_CONFIGURATION)
+
+    // If you've enabled TMC2130_ADVANCED_CONFIGURATION, define global settings below.
+    // Enabled settings will be automatically applied to all axes specified above.
+    //
+    // Please read the TMC2130 datasheet:
+    // http://www.trinamic.com/_articles/products/integrated-circuits/tmc2130/_datasheet/TMC2130_datasheet.pdf
+    // All settings here have the same (sometimes cryptic) names as in the datasheet.
+    //
+    // The following, uncommented settings are only suggestion.
+
+    /* GENERAL CONFIGURATION */
+
+    //#define GLOBAL_EN_PWM_MODE        0
+    #define GLOBAL_I_SCALE_ANALOG     1 // [0,1] 0: Normal, 1: AIN
+    //#define GLOBAL_INTERNAL_RSENSE    0 // [0,1] 0: Normal, 1: Internal
+    #define GLOBAL_EN_PWM_MODE        0 // [0,1] 0: Normal, 1: stealthChop with velocity threshold
+    //#define GLOBAL_ENC_COMMUTATION    0 // [0,1]
+    #define GLOBAL_SHAFT              0 // [0,1] 0: normal, 1: invert
+    //#define GLOBAL_DIAG0_ERROR        0 // [0,1]
+    //#define GLOBAL_DIAG0_OTPW         0 // [0,1]
+    //#define GLOBAL_DIAG0_STALL        0 // [0,1]
+    //#define GLOBAL_DIAG1_STALL        0 // [0,1]
+    //#define GLOBAL_DIAG1_INDEX        0 // [0,1]
+    //#define GLOBAL_DIAG1_ONSTATE      0 // [0,1]
+    //#define GLOBAL_DIAG1_ONSTATE      0 // [0,1]
+    //#define GLOBAL_DIAG0_INT_PUSHPULL 0 // [0,1]
+    //#define GLOBAL_DIAG1_INT_PUSHPULL 0 // [0,1]
+    //#define GLOBAL_SMALL_HYSTERESIS   0 // [0,1]
+    //#define GLOBAL_STOP_ENABLE        0 // [0,1]
+    //#define GLOBAL_DIRECT_MODE        0 // [0,1]
+
+    /* VELOCITY-DEPENDENT DRIVE FEATURES */
+
+    #define GLOBAL_IHOLD             22 // [0-31] 0: min, 31: max
+    #define GLOBAL_IRUN              31 // [0-31] 0: min, 31: max
+    #define GLOBAL_IHOLDDELAY        15 // [0-15] 0: min, 15: about 4 seconds
+    //#define GLOBAL_TPOWERDOWN         0 // [0-255] 0: min, 255: about 4 seconds
+    //#define GLOBAL_TPWMTHRS           0 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
+    //#define GLOBAL_TCOOLTHRS          0 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
+    #define GLOBAL_THIGH             10 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
+
+    /* SPI MODE CONFIGURATION */
+
+    //#define GLOBAL_XDIRECT            0
+
+    /* DCSTEP MINIMUM VELOCITY */
+
+    //#define GLOBAL_VDCMIN             0
+
+    /* MOTOR DRIVER CONFIGURATION*/
+
+    //#define GLOBAL_DEDGE              0
+    //#define GLOBAL_DISS2G             0
+    #define GLOBAL_INTPOL             1 // 0: off 1: 256 microstep interpolation
+    #define GLOBAL_MRES              16 // number of microsteps
+    #define GLOBAL_SYNC               1 // [0-15]
+    #define GLOBAL_VHIGHCHM           1 // [0,1] 0: normal, 1: high velocity stepper mode
+    #define GLOBAL_VHIGHFS            0 // [0,1] 0: normal, 1: switch to full steps for high velocities
+    // #define GLOBAL_VSENSE            0 // [0,1] 0: normal, 1: high sensitivity (not recommended)
+    #define GLOBAL_TBL                1 // 0-3: set comparator blank time to 16, 24, 36 or 54 clocks, 1 or 2 is recommended
+    #define GLOBAL_CHM                0 // [0,1] 0: spreadCycle, 1: Constant off time with fast decay time.
+    //#define GLOBAL_RNDTF              0
+    //#define GLOBAL_DISFDCC            0
+    //#define GLOBAL_FD                 0
+    //#define GLOBAL_HEND               0
+    //#define GLOBAL_HSTRT              0
+    #define GLOBAL_TOFF              10 // 0: driver disable, 1: use only with TBL>2, 2-15: off time setting during slow decay phase
+
+    //#define GLOBAL_SFILT              0
+    //#define GLOBAL_SGT                0
+    //#define GLOBAL_SEIMIN             0
+    //#define GLOBAL_SEDN               0
+    //#define GLOBAL_SEMAX              0
+    //#define GLOBAL_SEUP               0
+    //#define GLOBAL_SEMIN              0
+
+    //#define GLOBAL_DC_TIME            0
+    //#define GLOBAL_DC_SG              0
+
+    //#define GLOBAL_FREEWHEEL          0
+    //#define GLOBAL_PWM_SYMMETRIC      0
+    //#define GLOBAL_PWM_AUTOSCALE      0
+    //#define GLOBAL_PWM_FREQ           0
+    //#define GLOBAL_PWM_GRAD           0
+    //#define GLOBAL_PWM_AMPL           0
+
+    //#define GLOBAL_ENCM_CTRL          0
+
+  #else
+
+    #define X_IHOLD          31 // [0-31] 0: min, 31: max
+    #define X_IRUN           31 // [0-31] 0: min, 31: max
+    #define X_IHOLDDELAY     15 // [0-15] 0: min, 15: about 4 seconds
+    #define X_I_SCALE_ANALOG  1 // 0: Normal, 1: AIN
+    #define X_MRES           16 // number of microsteps
+    #define X_TBL             1 // 0-3: set comparator blank time to 16, 24, 36 or 54 clocks, 1 or 2 is recommended
+    #define X_TOFF            8 // 0: driver disable, 1: use only with TBL>2, 2-15: off time setting during slow decay phase
+
+    #define X2_IHOLD         31
+    #define X2_IRUN          31
+    #define X2_IHOLDDELAY    15
+    #define X2_I_SCALE_ANALOG 1
+    #define X2_MRES          16
+    #define X2_TBL            1
+    #define X2_TOFF           8
+
+    #define Y_IHOLD          31
+    #define Y_IRUN           31
+    #define Y_IHOLDDELAY     15
+    #define Y_I_SCALE_ANALOG  1
+    #define Y_MRES           16
+    #define Y_TBL             1
+    #define Y_TOFF            8
+
+    #define Y2_IHOLD         31
+    #define Y2_IRUN          31
+    #define Y2_IHOLDDELAY    15
+    #define Y2_I_SCALE_ANALOG 1
+    #define Y2_MRES          16
+    #define Y2_TBL            1
+    #define Y2_TOFF           8
+
+    #define Z_IHOLD          31
+    #define Z_IRUN           31
+    #define Z_IHOLDDELAY     15
+    #define Z_I_SCALE_ANALOG  1
+    #define Z_MRES           16
+    #define Z_TBL             1
+    #define Z_TOFF            8
+
+    #define Z2_IHOLD         31
+    #define Z2_IRUN          31
+    #define Z2_IHOLDDELAY    15
+    #define Z2_I_SCALE_ANALOG 1
+    #define Z2_MRES          16
+    #define Z2_TBL            1
+    #define Z2_TOFF           8
+
+    #define E0_IHOLD         31
+    #define E0_IRUN          31
+    #define E0_IHOLDDELAY    15
+    #define E0_I_SCALE_ANALOG 1
+    #define E0_MRES          16
+    #define E0_TBL            1
+    #define E0_TOFF           8
+
+    #define E1_IHOLD         31
+    #define E1_IRUN          31
+    #define E1_IHOLDDELAY    15
+    #define E1_I_SCALE_ANALOG 1
+    #define E1_MRES          16
+    #define E1_TBL            1
+    #define E1_TOFF           8
+
+    #define E2_IHOLD         31
+    #define E2_IRUN          31
+    #define E2_IHOLDDELAY    15
+    #define E2_I_SCALE_ANALOG 1
+    #define E2_MRES          16
+    #define E2_TBL            1
+    #define E2_TOFF           8
+
+    #define E3_IHOLD         31
+    #define E3_IRUN          31
+    #define E3_IHOLDDELAY    15
+    #define E3_I_SCALE_ANALOG 1
+    #define E3_MRES          16
+    #define E3_TBL            1
+    #define E3_TOFF           8
+
+  #endif // TMC2130_ADVANCED_CONFIGURATION
+#endif // HAVE_TMC2130DRIVER
 
 
 /**********************************************************************************
@@ -1765,6 +2023,7 @@
  *   "P" for pattern selection                                                          *
  *   "S" for defining the number of strokes/repetitions                                 *
  *   "T" for defining the number of triangles                                           *
+ *   "R" for defining the center of circle                                              *
  *                                                                                      *
  * Available list of patterns:                                                          *
  *   P0: This is the default pattern, this process requires a sponge type               *
@@ -1786,6 +2045,10 @@
  *                       |________|_________|_________|                                 *
  *                           T1        T2        T3                                     *
  *                                                                                      *
+ *   P2: This starts a circular pattern with circle with middle in                      *
+ *       NOZZLE CLEAN CIRCLE MIDDLE radius of R and stroke count of S.                  *
+ *       Before starting the circle nozzle goes to NOZZLE CLEAN START POINT.            *
+ *                                                                                      *
  * Caveats: End point Z should use the same value as Start point Z.                     *
  *                                                                                      *
  * Attention: This is an EXPERIMENTAL feature, in the future the G-code arguments       *
@@ -1803,6 +2066,13 @@
 // Specify positions as { X, Y, Z }
 #define NOZZLE_CLEAN_START_POINT { 30, 30, (Z_MIN_POS + 1)}
 #define NOZZLE_CLEAN_END_POINT   {100, 60, (Z_MIN_POS + 1)}
+
+// Circular pattern radius
+#define NOZZLE_CLEAN_CIRCLE_RADIUS 6.5
+// Circular pattern circle fragments number
+#define NOZZLE_CLEAN_CIRCLE_FN 10
+// Middle point of circle
+#define NOZZLE_CLEAN_CIRCLE_MIDDLE NOZZLE_CLEAN_START_POINT
 
 // Moves the nozzle to the initial position
 #define NOZZLE_CLEAN_GOBACK

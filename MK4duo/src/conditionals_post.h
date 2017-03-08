@@ -259,6 +259,7 @@
 #define HAS_BTN_BACK (PIN_EXISTS(BTN_BACK))
 #define HAS_LCD (ENABLED(ULTRA_LCD) || ENABLED(NEXTION))
 #define HAS_SDSUPPORT (ENABLED(SDSUPPORT))
+#define HAS_EEPROM_SD (ENABLED(SDCARD_EEPROM) && HAS_SDSUPPORT)
 #define HAS_DIGIPOTSS (PIN_EXISTS(DIGIPOTSS))
 #define HAS_MOTOR_CURRENT_PWM_XY (PIN_EXISTS(MOTOR_CURRENT_PWM_XY))
 #define HAS_MOTOR_CURRENT_PWM (PIN_EXISTS(MOTOR_CURRENT_PWM_XY) || PIN_EXISTS(MOTOR_CURRENT_PWM_Z) || PIN_EXISTS(MOTOR_CURRENT_PWM_E))
@@ -335,14 +336,6 @@
   #define Z_MAX_ENDSTOP_INVERTING   Z_MAX_ENDSTOP_LOGIC
   #define Z2_MAX_ENDSTOP_INVERTING  Z2_MAX_ENDSTOP_LOGIC
   #define Z_PROBE_ENDSTOP_INVERTING Z_PROBE_ENDSTOP_LOGIC
-#endif
-
-/**
- * Firmware Test
- */
-#if ENABLED(FIRMWARE_TEST)
-  #undef BAUDRATE
-  #define BAUDRATE 115200  // Baudrate setting to 115200 because serial monitor arduino function at max 115200 baudrate.
 #endif
 
 /**
@@ -835,7 +828,7 @@
   #define Z_PROBE_OFFSET_FROM_NOZZLE 0
 #endif
 
-#ifdef __SAM3X8E__
+#if ENABLED(CPU_32_BIT)
   // Add additional delay for between direction signal and pulse signal of stepper
   #ifndef STEPPER_DIRECTION_DELAY
     #define STEPPER_DIRECTION_DELAY 0 // time in microseconds

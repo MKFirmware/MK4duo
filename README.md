@@ -73,6 +73,7 @@ The new features are:
 * Added ABL or MBL leveling fade height
 * Added save in EEPROM ABL or MBL
 * Added Door switch
+* Added TMC2130 motor driver
 
 ## Credits
 

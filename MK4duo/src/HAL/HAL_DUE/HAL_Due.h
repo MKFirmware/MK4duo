@@ -95,6 +95,9 @@
 #ifndef strncpy_P
   #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
 #endif
+#ifndef vsnprintf_P
+  #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
+#endif
 
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
@@ -178,6 +181,8 @@
 
 #define ADV_NEVER 0xFFFFFFFF
 
+#define OVERSAMPLENR 16
+
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
@@ -202,6 +207,22 @@ class HAL {
     HAL();
 
     virtual ~HAL();
+
+    // do any hardware-specific initialization here
+    static FORCE_INLINE void hwSetup(void) {
+      #if DISABLED(USE_WATCHDOG)
+        // Disable watchdog
+        WDT_Disable(WDT);
+      #endif
+  
+      TimeTick_Configure(F_CPU);
+
+      // setup microsecond delay timer
+      pmc_enable_periph_clk(DELAY_TIMER_IRQ);
+      TC_Configure(DELAY_TIMER, DELAY_TIMER_CHANNEL, TC_CMR_WAVSEL_UP |
+                   TC_CMR_WAVE | DELAY_TIMER_CLOCK);
+      TC_Start(DELAY_TIMER, DELAY_TIMER_CHANNEL);
+    }
 
     #ifdef DUE_SOFTWARE_SPI
       static uint8_t spiTransfer(uint8_t b); // using Mode 0

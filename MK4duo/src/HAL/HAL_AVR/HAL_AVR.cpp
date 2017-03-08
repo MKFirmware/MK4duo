@@ -78,7 +78,9 @@ int HAL::getFreeRam() {
   return freeram;
 }
 
+void(* resetFunc) (void) = 0; // declare reset function @ address 0
+
 // Reset peripherals and cpu
-void HAL::resetHardware() {}
+void HAL::resetHardware() { resetFunc(); }
 
 #endif // ARDUINO_ARCH_AVR

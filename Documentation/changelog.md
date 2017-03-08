@@ -1,3 +1,11 @@
+### Version 4.3.14 dev
+* Add TMC2130 motor driver
+* Add EEPROM on SDCARD (Ultratronics)
+* Add Workspace for home offset
+* Add BLtouch on M43 command
+* Add circular clean on NOZZLE CLEAN FEATURE
+* Fix and clear code
+
 ### Version 4.3.13 dev
 * Add Delta print radius editable with M666 and save in eeprom
 * Rewrite HAL_DUE
