@@ -141,6 +141,18 @@
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current (float x7)
  *
+ * TMC2130 Stepper Current:
+ *  M906  X               stepperX current  (uint16_t)
+ *  M906  Y               stepperY current  (uint16_t)
+ *  M906  Z               stepperZ current  (uint16_t)
+ *  M906  X2              stepperX2 current (uint16_t)
+ *  M906  Y2              stepperY2 current (uint16_t)
+ *  M906  Z2              stepperZ2 current (uint16_t)
+ *  M906  E0              stepperE0 current (uint16_t)
+ *  M906  E1              stepperE1 current (uint16_t)
+ *  M906  E2              stepperE2 current (uint16_t)
+ *  M906  E3              stepperE3 current (uint16_t)
+ *
  */
 
 EEPROM eeprom;
@@ -438,6 +450,71 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(motor_current);
     #endif
 
+    // Save TCM2130 Configuration, and placeholder values
+    #if ENABLED(HAVE_TMC2130)
+      uint16_t val;
+      #if ENABLED(X_IS_TMC2130)
+        val = stepperX.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Y_IS_TMC2130)
+        val = stepperY.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Z_IS_TMC2130)
+        val = stepperZ.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(X2_IS_TMC2130)
+        val = stepperX2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Y2_IS_TMC2130)
+        val = stepperY2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Z2_IS_TMC2130)
+        val = stepperZ2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E0_IS_TMC2130)
+        val = stepperE0.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E1_IS_TMC2130)
+        val = stepperE1.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E2_IS_TMC2130)
+        val = stepperE2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E3_IS_TMC2130)
+        val = stepperE3.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+    #endif
+
     if (!eeprom_write_error) {
 
       uint16_t  final_checksum = eeprom_checksum,
@@ -679,6 +756,50 @@ void EEPROM::Postprocess() {
         EEPROM_READ(motor_current);
       #endif
 
+      #if ENABLED(HAVE_TMC2130)
+        uint16_t val;
+        EEPROM_READ(val);
+        #if ENABLED(X_IS_TMC2130)
+          stepperX.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Y_IS_TMC2130)
+          stepperY.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Z_IS_TMC2130)
+          stepperZ.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(X2_IS_TMC2130)
+          stepperX2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Y2_IS_TMC2130)
+          stepperY2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Z2_IS_TMC2130)
+          stepperZ2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E0_IS_TMC2130)
+          stepperE0.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E1_IS_TMC2130)
+          stepperE1.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E2_IS_TMC2130)
+          stepperE2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E3_IS_TMC2130)
+          stepperE3.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+      #endif
+
       #if HAS(EEPROM_SD)
 
         card.closeFile();
@@ -876,6 +997,39 @@ void EEPROM::ResetDefault() {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     IDLE_OOZING_enabled = true;
+  #endif
+
+  #if ENABLED(HAVE_TMC2130)
+    #if ENABLED(X_IS_TMC2130)
+      stepperX.setCurrent(X_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Y_IS_TMC2130)
+      stepperY.setCurrent(Y_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Z_IS_TMC2130)
+      stepperZ.setCurrent(Z_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(X2_IS_TMC2130)
+      stepperX2.setCurrent(X2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Y2_IS_TMC2130)
+      stepperY2.setCurrent(Y2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Z2_IS_TMC2130)
+      stepperZ2.setCurrent(Z2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E0_IS_TMC2130)
+      stepperE0.setCurrent(E0_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E1_IS_TMC2130)
+      stepperE1.setCurrent(E1_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E2_IS_TMC2130)
+      stepperE2.setCurrent(E2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E3_IS_TMC2130)
+      stepperE3.setCurrent(E3_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
   #endif
 
   Postprocess();
@@ -1163,6 +1317,45 @@ void EEPROM::ResetDefault() {
         }
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR
+
+    /**
+     * TMC2130 stepper driver current
+     */
+    #if ENABLED(HAVE_TMC2130)
+      CONFIG_MSG_START("Stepper driver current:");
+      SERIAL_SM(CFG, "  M906");
+      #if ENABLED(X_IS_TMC2130)
+        SERIAL_MV(" X", stepperX.getCurrent());
+      #endif
+      #if ENABLED(Y_IS_TMC2130)
+        SERIAL_MV(" Y", stepperY.getCurrent());
+      #endif
+      #if ENABLED(Z_IS_TMC2130)
+        SERIAL_MV(" Z", stepperZ.getCurrent());
+      #endif
+      #if ENABLED(X2_IS_TMC2130)
+        SERIAL_MV(" X2", stepperX2.getCurrent());
+      #endif
+      #if ENABLED(Y2_IS_TMC2130)
+        SERIAL_MV(" Y2", stepperY2.getCurrent());
+      #endif
+      #if ENABLED(Z2_IS_TMC2130)
+        SERIAL_MV(" Z2", stepperZ2.getCurrent());
+      #endif
+      #if ENABLED(E0_IS_TMC2130)
+        SERIAL_MV(" E0", stepperE0.getCurrent());
+      #endif
+      #if ENABLED(E1_IS_TMC2130)
+        SERIAL_MV(" E1", stepperE1.getCurrent());
+      #endif
+      #if ENABLED(E2_IS_TMC2130)
+        SERIAL_MV(" E2", stepperE2.getCurrent());
+      #endif
+      #if ENABLED(E3_IS_TMC2130)
+        SERIAL_MV(" E3", stepperE3.getCurrent());
+      #endif
+      SERIAL_E;
+    #endif
 
     #if ENABLED(SDSUPPORT)
       card.PrintSettings();

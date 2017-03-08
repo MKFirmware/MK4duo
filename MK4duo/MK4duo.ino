@@ -130,7 +130,6 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S<1=true/0=false> Enable or disable check software endstop
- * M123 - Output Trinamic TMC2130 status to serial output. (Requires HAVE_TMC2130DRIVER)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
@@ -216,9 +215,12 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
- * M906 - Set motor currents XYZ T0-4 E
+ * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+ *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
  * M907 - Set digital trimpot motor current using axis codes.
  * M908 - Control digital trimpot directly.
+ * M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+ * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
@@ -275,7 +277,7 @@
 
 #if ENABLED(HAVE_TMC2130DRIVER)
   #include <SPI.h>
-  #include <Trinamic_TMC2130.h>
+  #include <TMC2130Stepper.h>
 #endif
 
 #if ENABLED(HAVE_L6470DRIVER)

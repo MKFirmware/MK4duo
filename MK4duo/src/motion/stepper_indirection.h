@@ -52,9 +52,8 @@
 #endif
 
 // TMC130 drivers have STEP/DIR/ENABLE on normal pins
-#if ENABLED(HAVE_TMC2130DRIVER)
-  #include <SPI.h>
-  #include <Trinamic_TMC2130.h>
+#if ENABLED(HAVE_TMC2130)
+  #include <TMC2130Stepper.h>
   void tmc2130_init();
 #endif
 
@@ -81,8 +80,8 @@
     #define X_ENABLE_WRITE(STATE) stepperX.setEnabled(STATE)
     #define X_ENABLE_READ stepperX.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(X_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperX;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(X_IS_TMC2130)
+      extern TMC2130Stepper stepperX;
     #endif
     #define X_ENABLE_INIT SET_OUTPUT(X_ENABLE_PIN)
     #define X_ENABLE_WRITE(STATE) WRITE(X_ENABLE_PIN,STATE)
@@ -112,8 +111,8 @@
     #define Y_ENABLE_WRITE(STATE) stepperY.setEnabled(STATE)
     #define Y_ENABLE_READ stepperY.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(Y_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperY;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(Y_IS_TMC2130)
+      extern TMC2130Stepper stepperY;
     #endif
     #define Y_ENABLE_INIT SET_OUTPUT(Y_ENABLE_PIN)
     #define Y_ENABLE_WRITE(STATE) WRITE(Y_ENABLE_PIN,STATE)
@@ -143,8 +142,8 @@
     #define Z_ENABLE_WRITE(STATE) stepperZ.setEnabled(STATE)
     #define Z_ENABLE_READ stepperZ.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(Z_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperZ;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(Z_IS_TMC2130)
+      extern TMC2130Stepper stepperZ;
     #endif
     #define Z_ENABLE_INIT SET_OUTPUT(Z_ENABLE_PIN)
     #define Z_ENABLE_WRITE(STATE) WRITE(Z_ENABLE_PIN,STATE)
@@ -175,8 +174,8 @@
       #define X2_ENABLE_WRITE(STATE) stepperX2.setEnabled(STATE)
       #define X2_ENABLE_READ stepperX2.isEnabled()
     #else
-      #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(X2_IS_TMC2130)
-        extern Trinamic_TMC2130 stepperX2;
+      #if ENABLED(HAVE_TMC2130) && ENABLED(X2_IS_TMC2130)
+        extern TMC2130Stepper stepperX2;
       #endif
       #define X2_ENABLE_INIT SET_OUTPUT(X2_ENABLE_PIN)
       #define X2_ENABLE_WRITE(STATE) WRITE(X2_ENABLE_PIN,STATE)
@@ -208,8 +207,8 @@
       #define Y2_ENABLE_WRITE(STATE) stepperY2.setEnabled(STATE)
       #define Y2_ENABLE_READ stepperY2.isEnabled()
     #else
-      #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(Y2_IS_TMC2130)
-        extern Trinamic_TMC2130 stepperY2;
+      #if ENABLED(HAVE_TMC2130) && ENABLED(Y2_IS_TMC2130)
+        extern TMC2130Stepper stepperY2;
       #endif
       #define Y2_ENABLE_INIT SET_OUTPUT(Y2_ENABLE_PIN)
       #define Y2_ENABLE_WRITE(STATE) WRITE(Y2_ENABLE_PIN,STATE)
@@ -241,8 +240,8 @@
       #define Z2_ENABLE_WRITE(STATE) stepperZ2.setEnabled(STATE)
       #define Z2_ENABLE_READ stepperZ2.isEnabled()
     #else
-      #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(Z2_IS_TMC2130)
-        extern Trinamic_TMC2130 stepperZ2;
+      #if ENABLED(HAVE_TMC2130) && ENABLED(Z2_IS_TMC2130)
+        extern TMC2130Stepper stepperZ2;
       #endif
       #define Z2_ENABLE_INIT SET_OUTPUT(Z2_ENABLE_PIN)
       #define Z2_ENABLE_WRITE(STATE) WRITE(Z2_ENABLE_PIN,STATE)
@@ -332,8 +331,8 @@
     #define E0_ENABLE_WRITE(STATE) stepperE0.setEnabled(STATE)
     #define E0_ENABLE_READ stepperE0.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E0_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE0;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E0_IS_TMC2130)
+      extern TMC2130Stepper stepperE0;
     #endif
     #define E0_ENABLE_INIT SET_OUTPUT(E0_ENABLE_PIN)
     #define E0_ENABLE_WRITE(STATE) WRITE(E0_ENABLE_PIN,STATE)
@@ -363,8 +362,8 @@
     #define E1_ENABLE_WRITE(STATE) stepperE1.setEnabled(STATE)
     #define E1_ENABLE_READ stepperE1.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E1_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE1;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E1_IS_TMC2130)
+      extern TMC2130Stepper stepperE1;
     #endif
     #define E1_ENABLE_INIT SET_OUTPUT(E1_ENABLE_PIN)
     #define E1_ENABLE_WRITE(STATE) WRITE(E1_ENABLE_PIN,STATE)
@@ -394,8 +393,8 @@
     #define E2_ENABLE_WRITE(STATE) stepperE2.setEnabled(STATE)
     #define E2_ENABLE_READ stepperE2.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E2_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE2;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E2_IS_TMC2130)
+      extern TMC2130Stepper stepperE2;
     #endif
     #define E2_ENABLE_INIT SET_OUTPUT(E2_ENABLE_PIN)
     #define E2_ENABLE_WRITE(STATE) WRITE(E2_ENABLE_PIN,STATE)
@@ -425,8 +424,8 @@
     #define E3_ENABLE_WRITE(STATE) stepperE3.setEnabled(STATE)
     #define E3_ENABLE_READ stepperE3.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E3_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE3;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E3_IS_TMC2130)
+      extern TMC2130Stepper stepperE3;
     #endif
     #define E3_ENABLE_INIT SET_OUTPUT(E3_ENABLE_PIN)
     #define E3_ENABLE_WRITE(STATE) WRITE(E3_ENABLE_PIN,STATE)
@@ -456,8 +455,8 @@
     #define E4_ENABLE_WRITE(STATE) stepperE4.setEnabled(STATE)
     #define E4_ENABLE_READ stepperE4.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E4_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE4;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E4_IS_TMC2130)
+      extern TMC2130Stepper stepperE4;
     #endif
     #define E4_ENABLE_INIT SET_OUTPUT(E4_ENABLE_PIN)
     #define E4_ENABLE_WRITE(STATE) WRITE(E4_ENABLE_PIN,STATE)
@@ -487,8 +486,8 @@
     #define E5_ENABLE_WRITE(STATE) stepperE5.setEnabled(STATE)
     #define E5_ENABLE_READ stepperE5.isEnabled()
   #else
-    #if ENABLED(HAVE_TMC2130DRIVER) && ENABLED(E5_IS_TMC2130)
-      extern Trinamic_TMC2130 stepperE5;
+    #if ENABLED(HAVE_TMC2130) && ENABLED(E5_IS_TMC2130)
+      extern TMC2130Stepper stepperE5;
     #endif
     #define E5_ENABLE_INIT SET_OUTPUT(E5_ENABLE_PIN)
     #define E5_ENABLE_WRITE(STATE) WRITE(E5_ENABLE_PIN,STATE)
