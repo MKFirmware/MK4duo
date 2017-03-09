@@ -1625,7 +1625,7 @@
  **********************************************************************************
  *                                                                                *
  * Support for TMC26X motor drivers                                               *
- * See Configuration_Stepper_TMC26X.h for configuration stepper driver            *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
  *                                                                                *
  **********************************************************************************/
 //#define HAVE_TMCDRIVER
@@ -1647,7 +1647,7 @@
  * in your `MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,       *
  * Y_CS_PIN 49`, etc.).                                                           *
  *                                                                                *
- * See Configuration_Stepper_TMC2130.h for configuration stepper driver           *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
  *                                                                                *
  **********************************************************************************/
 //#define HAVE_TMC2130
@@ -1661,7 +1661,7 @@
  * Support for L6470 motor drivers                                                *
  * You need to import the L6470 library into the arduino IDE for this.            *
  *                                                                                *
- * See Configuration_Stepper_L6470.h for configuration stepper driver             *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
  *                                                                                *
  **********************************************************************************/
 //#define HAVE_L6470DRIVER

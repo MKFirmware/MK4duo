@@ -74,12 +74,8 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
-#if ENABLED(HAVE_TMCDRIVER)
-  #include "Configuration_Stepper_TMC26X.h"
-#elif ENABLED(HAVE_TMC2130)
-  #include "Configuration_Stepper_TMC2130.h"
-#elif ENABLED(HAVE_L6470DRIVER)
-  #include "Configuration_Stepper_L6470.h"
+#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_L6470DRIVER)
+  #include "Configuration_Motor_Driver.h"
 #endif
 
 #include "src/conditionals_pre.h"
