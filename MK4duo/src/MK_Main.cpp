@@ -2943,13 +2943,13 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
   do {
     // Target temperature might be changed during the loop
-    if (theTarget != thermalManager.degTargetHotend(target_extruder)) {
-      wants_to_cool = thermalManager.isCoolingHotend(target_extruder);
+    if (theTarget != thermalManager.degTargetHotend(target_extruder))
       theTarget = thermalManager.degTargetHotend(target_extruder);
 
-      // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
-      if (no_wait_for_cooling && wants_to_cool) break;
-    }
+    wants_to_cool = thermalManager.isCoolingHotend(target_extruder);
+
+    // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
+    if (no_wait_for_cooling && wants_to_cool) break;
 
     now = millis();
     if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
