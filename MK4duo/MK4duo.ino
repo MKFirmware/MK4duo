@@ -215,9 +215,12 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
- * M906 - Set motor currents XYZ T0-4 E
+ * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+ *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
  * M907 - Set digital trimpot motor current using axis codes.
  * M908 - Control digital trimpot directly.
+ * M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+ * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
@@ -241,9 +244,6 @@
  
 #include "base.h"
 
-#if ENABLED(DIGIPOT_I2C) || ENABLED(BLINKM)
-  #include <Wire.h>
-#endif
 #if ENABLED(ULTRA_LCD)
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>
@@ -251,12 +251,36 @@
   #elif ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)
     #include <Wire.h>
     #include <LiquidTWI2.h>
+  #elif ENABLED(LCM1602)
+    #include <Wire.h>
+    #include <LCD.h>
+    #include <LiquidCrystal_I2C.h>
   #elif ENABLED(DOGLCD)
     #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
   #else
     #include <LiquidCrystal.h> // library for character LCD
   #endif
 #endif
+
 #if HAS(DIGIPOTSS)
   #include <SPI.h>
+#endif
+
+#if ENABLED(DIGIPOT_I2C)
+  #include <Wire.h>
+#endif
+
+#if ENABLED(HAVE_TMCDRIVER)
+  #include <SPI.h>
+  #include <TMC26XStepper.h>
+#endif
+
+#if ENABLED(HAVE_TMC2130DRIVER)
+  #include <SPI.h>
+  #include <TMC2130Stepper.h>
+#endif
+
+#if ENABLED(HAVE_L6470DRIVER)
+  #include <SPI.h>
+  #include <L6470.h>
 #endif

@@ -130,6 +130,7 @@ uint8_t Planner::last_extruder = 0;
 
 #if ENABLED(LIN_ADVANCE)
   float Planner::extruder_advance_k = LIN_ADVANCE_K,
+        Planner::advance_ed_ratio = LIN_ADVANCE_E_D_RATIO,
         Planner::position_float[NUM_AXIS] = { 0 };
 #endif
 
@@ -1178,6 +1179,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
   LOOP_XYZE(i) {
     const float cs = FABS(current_speed[i] = delta_mm[i] * inverse_mm_s);
+    if (i == E_AXIS) i += extruder;
     if (cs > max_feedrate_mm_s[i]) NOMORE(speed_factor, max_feedrate_mm_s[i] / cs);
   }
 
@@ -1271,7 +1273,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(ARDUINO_ARCH_SAM)
     block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_STEPPER_TIMER_RATE)));
   #else
-    block->acceleration_rate = (long)(accel * 16777216.0 / ((F_CPU) * 0.125));
+    block->acceleration_rate = (long)(accel * 16777216.0 / (HAL_STEPPER_TIMER_RATE));
   #endif
 
   // Initial limit on the segment entry velocity
@@ -1421,7 +1423,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->flag |= BLOCK_FLAG_RECALCULATE | (block->nominal_speed <= v_allowable ? BLOCK_FLAG_NOMINAL_LENGTH : 0);
 
   // Update previous path unit_vector and nominal speed
-  memcpy(previous_speed, current_speed, sizeof(previous_speed));
+  COPY_ARRAY(previous_speed, current_speed);
   previous_nominal_speed = block->nominal_speed;
   previous_safe_speed = safe_speed;
 
@@ -1448,7 +1450,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
                             && (uint32_t)esteps != block->step_event_count
                             && de_float > 0.0;
     if (block->use_advance_lead)
-      block->abs_adv_steps_multiplier8 = LROUND(extruder_advance_k * (de_float / mm_D_float) * block->nominal_speed / (float)block->nominal_rate * axis_steps_per_mm[E_AXIS_N] * 256.0);
+      block->abs_adv_steps_multiplier8 = lround(
+        extruder_advance_k
+        * (UNEAR_ZERO(advance_ed_ratio) ? de_float / mm_D_float : advance_ed_ratio) // Use the fixed ratio, if set
+        * (block->nominal_speed / (float)block->nominal_rate)
+        * axis_steps_per_mm[E_AXIS_N] * 256.0
+      );
 
   #elif ENABLED(ADVANCE)
 
@@ -1475,7 +1482,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block_buffer_head = next_buffer_head;
 
   // Update the position (only when a move was queued)
-  memcpy(position, target, sizeof(position));
+  COPY_ARRAY(position, target);
   #if ENABLED(LIN_ADVANCE)
     position_float[X_AXIS] = a;
     position_float[Y_AXIS] = b;
@@ -1590,15 +1597,6 @@ void Planner::refresh_positioning() {
     if (autotemp_enabled) autotemp_factor = code_value_temp_diff();
     if (code_seen('S')) autotemp_min = code_value_temp_abs();
     if (code_seen('B')) autotemp_max = code_value_temp_abs();
-  }
-
-#endif
-
-#if ENABLED(LIN_ADVANCE)
-
-  void Planner::advance_M905(const float &k) {
-    if (k >= 0.0) extruder_advance_k = k;
-    SERIAL_LMV(ECHO, "Advance factor: ", extruder_advance_k);
   }
 
 #endif

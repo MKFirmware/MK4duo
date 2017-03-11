@@ -29,7 +29,6 @@ class EEPROM {
 
     static void ResetDefault();
     static void StoreSettings();
-    static void VersionCheck();
 
     #if DISABLED(DISABLE_M503)
       static void PrintSettings(bool forReplay = false);

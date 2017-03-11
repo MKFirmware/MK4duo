@@ -27,27 +27,42 @@
   DeltaParameters deltaParams;
 
   void DeltaParameters::Init() {
-
-    diagonal_rod = 0.0;
-    radius = 0.0;
-    base_max_pos[Z_AXIS] = Z_MAX_POS;
-
-    for (uint8_t i = 0; i < 6; i++)
-      tower_adj[i] = 0.0;
-
-    for (uint8_t axis = 0; axis < ABC; axis++) {
-      endstop_adj[axis] = 0.0;
-      towerX[axis] = towerY[axis] = 0.0;
-      diagonal_rod_adj[axis] = 0.0;
-    }
+    radius                    = DEFAULT_DELTA_RADIUS;
+    diagonal_rod              = DELTA_DIAGONAL_ROD;
+    segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
+    print_Radius              = DELTA_PRINTABLE_RADIUS;
+    base_min_pos[A_AXIS]      = X_MIN_POS;
+    base_min_pos[B_AXIS]      = Y_MIN_POS;
+    base_min_pos[C_AXIS]      = Z_MIN_POS;
+    base_max_pos[A_AXIS]      = X_MAX_POS;
+    base_max_pos[B_AXIS]      = Y_MAX_POS;
+    base_max_pos[C_AXIS]      = Z_MAX_POS;
+    max_length[A_AXIS]        = X_MAX_LENGTH;
+    max_length[B_AXIS]        = Y_MAX_LENGTH;
+    max_length[C_AXIS]        = Z_MAX_LENGTH;
+    endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
+    endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
+    endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
+    tower_radius_adj[A_AXIS]  = TOWER_A_RADIUS_ADJ;
+    tower_radius_adj[B_AXIS]  = TOWER_B_RADIUS_ADJ;
+    tower_radius_adj[C_AXIS]  = TOWER_C_RADIUS_ADJ;
+    tower_pos_adj[A_AXIS]     = TOWER_A_POSITION_ADJ;
+    tower_pos_adj[B_AXIS]     = TOWER_B_POSITION_ADJ;
+    tower_pos_adj[C_AXIS]     = TOWER_C_POSITION_ADJ;
+    diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
+    diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
+    diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
+    clip_start_height         = Z_MAX_POS;
   }
 
   void DeltaParameters::Recalc_delta_constants() {
 
     LOOP_XY(i) {
-      base_min_pos[i] = -print_Radius;
-      base_max_pos[i] = print_Radius;
-      max_length[i]   = base_max_pos[i] - base_min_pos[i];
+      base_min_pos[i]     = -print_Radius;
+      base_max_pos[i]     = print_Radius;
+      soft_endstop_min[i] = base_min_pos[i];
+      soft_endstop_max[i] = base_max_pos[i];
+      max_length[i]       = base_max_pos[i] - base_min_pos[i];
     }
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
@@ -59,12 +74,12 @@
     delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = (radius + tower_adj[3]) * cos((210 + tower_adj[0]) * degreesToRadians); // front left tower
-    towerY[A_AXIS] = (radius + tower_adj[3]) * sin((210 + tower_adj[0]) * degreesToRadians); 
-    towerX[B_AXIS] = (radius + tower_adj[4]) * cos((330 + tower_adj[1]) * degreesToRadians); // front right tower
-    towerY[B_AXIS] = (radius + tower_adj[4]) * sin((330 + tower_adj[1]) * degreesToRadians); 
-    towerX[C_AXIS] = (radius + tower_adj[5]) * cos((90 + tower_adj[2]) * degreesToRadians);  // back middle tower
-    towerY[C_AXIS] = (radius + tower_adj[5]) * sin((90 + tower_adj[2]) * degreesToRadians); 
+    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(60 - tower_radius_adj[A_AXIS]))); // front left tower
+    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(60 - tower_radius_adj[A_AXIS]))); 
+    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(60 + tower_radius_adj[B_AXIS]))); // front right tower
+    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(60 + tower_radius_adj[B_AXIS]))); 
+    towerX[C_AXIS] = -((radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
+    towerY[C_AXIS] = +((radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
@@ -78,6 +93,8 @@
     Q = 2 * (Xca * Yab - Xab * Yca);
     Q2 = sq(Q);
     D2 = sq(diagonal_rod);
+
+    Set_clip_start_height();
 
   }
 
@@ -106,13 +123,13 @@
         break;
 
       case 4:
-        hiParams.tower_adj[A_AXIS] += perturb;
-        loParams.tower_adj[A_AXIS] -= perturb;
+        hiParams.tower_radius_adj[A_AXIS] += perturb;
+        loParams.tower_radius_adj[A_AXIS] -= perturb;
         break;
 
       case 5:
-        hiParams.tower_adj[B_AXIS] += perturb;
-        loParams.tower_adj[B_AXIS] -= perturb;
+        hiParams.tower_radius_adj[B_AXIS] += perturb;
+        loParams.tower_radius_adj[B_AXIS] -= perturb;
         break;
 
       case 6:
@@ -158,8 +175,8 @@
       radius += v[3];
 
       if (numFactors >= 6) {
-        tower_adj[A_AXIS] += v[4];
-        tower_adj[B_AXIS] += v[5];
+        tower_radius_adj[A_AXIS] += v[4];
+        tower_radius_adj[B_AXIS] += v[5];
 
         if (numFactors == 7) diagonal_rod += v[6];
       }

@@ -78,6 +78,12 @@ typedef struct {
 
 #define NUM_HARDWARE_TIMERS 9
 
+#define DELAY_TIMER             TC1
+#define DELAY_TIMER_CHANNEL     1
+#define DELAY_TIMER_IRQ         ID_TC4  // IRQ not really used, needed for pmc id
+#define DELAY_TIMER_CLOCK       TC_CMR_TCCLKS_TIMER_CLOCK2
+#define DELAY_TIMER_PRESCALE    8
+
 #define STEPPER_TIMER 2
 #define STEPPER_TIMER_PRESCALE 2.0
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE)    // 42 MHz
@@ -90,8 +96,8 @@ typedef struct {
 #define BEEPER_TIMER_COUNTER TC1
 #define BEEPER_TIMER_CHANNEL 1
 
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()   HAL_timer_enable_interrupt (STEPPER_TIMER)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT()  HAL_timer_disable_interrupt (STEPPER_TIMER)
+#define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
+#define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 
 #define ENABLE_TEMP_INTERRUPT()             HAL_timer_enable_interrupt (TEMP_TIMER)
 #define DISABLE_TEMP_INTERRUPT()            HAL_timer_disable_interrupt (TEMP_TIMER)
@@ -104,16 +110,24 @@ typedef struct {
 #define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
 #define _ENABLE_ISRs() \
-    do { \
-      if (thermalManager.in_temp_isr) DISABLE_TEMP_INTERRUPT(); \
-      else ENABLE_TEMP_INTERRUPT(); \
-      ENABLE_STEPPER_DRIVER_INTERRUPT(); \
-    } while(0)
+        do { \
+          ENABLE_TEMP_INTERRUPT(); \
+          ENABLE_STEPPER_INTERRUPT(); \
+        } while(0)
+
+#define _DISABLE_ISRs() \
+        do { \
+          DISABLE_TEMP_INTERRUPT(); \
+          DISABLE_STEPPER_INTERRUPT(); \
+          sei(); \
+        } while(0)
 
 // Clock speed factor
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 84
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
+// Temperature PID_dT
+#define PID_dT (((OVERSAMPLENR + 2) * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 // --------------------------------------------------------------------------
 // Public Variables

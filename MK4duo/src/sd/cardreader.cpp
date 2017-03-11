@@ -174,6 +174,22 @@ void CardReader::write_command(char* buf) {
   }
 }
 
+bool CardReader::write_data(const uint8_t value) {
+  if (!cardOK || !isFileOpen()) return false;
+  file.writeError = false;
+  file.write(value);
+  if (file.writeError) {
+    SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+    return false;
+  }
+  return true;
+}
+
+uint8_t CardReader::read_data() {
+  if (!cardOK || !isFileOpen()) return NULL;
+  return (char)get();
+}
+    
 bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
   const char *oldP = filename;
 
@@ -732,108 +748,6 @@ bool CardReader::findTotalHeight(char* buf, float& height) {
   return false;
 }
 
-/**
- * File parser for KEY->VALUE format from files
- *
- * Author: Simone Primarosa
- *
- */
-void CardReader::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
-  if (!cardOK || !isFileOpen()) {
-    key[0] = value[0] = '\0';
-    len_k = len_v = 0;
-    return;
-  }
-  int ln_buf = 0;
-  char ln_char;
-  bool ln_space = false, ln_ignore = false, key_found = false;
-  while(!eof()) {   //READ KEY
-    ln_char = (char)get();
-    if(ln_char == '\n') {
-      ln_buf = 0;
-      ln_ignore = false;  //We've reached a new line try to find a key again
-      continue;
-    }
-    if(ln_ignore) continue;
-    if(ln_char == ' ') {
-      ln_space = true;
-      continue;
-    }
-    if(ln_char == '=') {
-      key[ln_buf] = '\0';
-      len_k = ln_buf;
-      key_found = true;
-      break; //key finded and buffered
-    }
-    if(ln_char == ';' || ln_buf+1 >= len_k || ln_space && ln_buf > 0) { //comments on key is not allowd. Also key len can't be longer than len_k or contain spaces. Stop buffering and try the next line
-      ln_ignore = true;
-      continue;
-    }
-    ln_space = false;
-    key[ln_buf] = ln_char;
-    ln_buf++;
-  }
-  if(!key_found) { //definitly there isn't no more key that can be readed in the file
-    key[0] = value[0] = '\0';
-    len_k = len_v = 0;
-    return;
-  }
-  ln_buf = 0;
-  ln_ignore = false;
-  while(!eof()) {   //READ VALUE
-    ln_char = (char)get();
-    if(ln_char == '\n') {
-      value[ln_buf] = '\0';
-      len_v = ln_buf;
-      break;  //new line reached, we can stop
-    }
-    if(ln_ignore|| ln_char == ' ' && ln_buf == 0) continue; //ignore also initial spaces of the value
-    if(ln_char == ';' || ln_buf+1 >= len_v) { //comments reached or value len longer than len_v. Stop buffering and go to the next line.
-      ln_ignore = true;
-      continue;
-    }
-    value[ln_buf] = ln_char;
-    ln_buf++;
-  }
-}
-
-void CardReader::unparseKeyLine(const char* key, char* value) {
-  if (!cardOK || !isFileOpen()) return;
-  file.writeError = false;
-  file.write(key);
-  if (file.writeError) {
-    SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
-    return;
-  }
-  
-  file.writeError = false;
-  file.write("=");
-  if (file.writeError) {
-    SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
-    return;
-  }
-  
-  file.writeError = false;
-  file.write(value);
-  if (file.writeError) {
-    SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
-    return;
-  }
-
-  file.writeError = false;
-  file.write("\n");
-  if (file.writeError) {
-    SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
-    return;
-  }
-}
-
-/**
-* Configuration on SD card
-*
-* Author: Simone Primarosa
-*
-*/
 void CardReader::PrintSettings() {
   // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
@@ -855,6 +769,102 @@ void CardReader::ResetDefault() {
 }
 
 #if ENABLED(SD_SETTINGS)
+
+  /**
+   * File parser for KEY->VALUE format from files
+   *
+   * Author: Simone Primarosa
+   *
+   */
+  void CardReader::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
+    if (!cardOK || !isFileOpen()) {
+      key[0] = value[0] = '\0';
+      len_k = len_v = 0;
+      return;
+    }
+    int ln_buf = 0;
+    char ln_char;
+    bool ln_space = false, ln_ignore = false, key_found = false;
+    while (!eof()) {   //READ KEY
+      ln_char = (char)get();
+      if (ln_char == '\n') {
+        ln_buf = 0;
+        ln_ignore = false;  //We've reached a new line try to find a key again
+        continue;
+      }
+      if (ln_ignore) continue;
+      if (ln_char == ' ') {
+        ln_space = true;
+        continue;
+      }
+      if (ln_char == '=') {
+        key[ln_buf] = '\0';
+        len_k = ln_buf;
+        key_found = true;
+        break; //key finded and buffered
+      }
+      if (ln_char == ';' || ln_buf+1 >= len_k || ln_space && ln_buf > 0) { //comments on key is not allowd. Also key len can't be longer than len_k or contain spaces. Stop buffering and try the next line
+        ln_ignore = true;
+        continue;
+      }
+      ln_space = false;
+      key[ln_buf] = ln_char;
+      ln_buf++;
+    }
+    if (!key_found) { //definitly there isn't no more key that can be readed in the file
+      key[0] = value[0] = '\0';
+      len_k = len_v = 0;
+      return;
+    }
+    ln_buf = 0;
+    ln_ignore = false;
+    while (!eof()) {   //READ VALUE
+      ln_char = (char)get();
+      if (ln_char == '\n') {
+        value[ln_buf] = '\0';
+        len_v = ln_buf;
+        break;  //new line reached, we can stop
+      }
+      if (ln_ignore|| ln_char == ' ' && ln_buf == 0) continue; //ignore also initial spaces of the value
+      if (ln_char == ';' || ln_buf+1 >= len_v) { //comments reached or value len longer than len_v. Stop buffering and go to the next line.
+        ln_ignore = true;
+        continue;
+      }
+      value[ln_buf] = ln_char;
+      ln_buf++;
+    }
+  }
+
+  void CardReader::unparseKeyLine(const char* key, char* value) {
+    if (!cardOK || !isFileOpen()) return;
+    file.writeError = false;
+    file.write(key);
+    if (file.writeError) {
+      SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+      return;
+    }
+
+    file.writeError = false;
+    file.write("=");
+    if (file.writeError) {
+      SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+      return;
+    }
+
+    file.writeError = false;
+    file.write(value);
+    if (file.writeError) {
+      SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+      return;
+    }
+
+    file.writeError = false;
+    file.write("\n");
+    if (file.writeError) {
+      SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+      return;
+    }
+  }
 
   static const char *cfgSD_KEY[] = { // Keep this in lexicographical order for better search performance(O(Nlog2(N)) insted of O(N*N)) (if you don't keep this sorted, the algorithm for find the key index won't work, keep attention.)
     "CPR",  // Number of complete prints

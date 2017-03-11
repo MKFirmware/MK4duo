@@ -74,6 +74,10 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
+#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_L6470DRIVER)
+  #include "Configuration_Motor_Driver.h"
+#endif
+
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"

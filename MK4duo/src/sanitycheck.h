@@ -1757,8 +1757,13 @@
   #endif
 #endif
 
-#if DISABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
-  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+#if DISABLED(SDSUPPORT)
+  #if ENABLED(SD_SETTINGS)
+    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+  #endif
+  #if ENABLED(EEPROM_SETTINGS) && ENABLED(SDCARD_EEPROM)
+    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
+  #endif
 #endif
 
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
