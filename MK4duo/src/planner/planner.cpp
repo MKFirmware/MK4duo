@@ -992,7 +992,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_e0();
-    #else // MKR4 or NPr2
+    #elif ENABLED(MKR4)
       switch(extruder) {
         case 0:
           enable_e0();
@@ -1007,7 +1007,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           enable_e1();
         break;
       }
-    #endif // MKR4 && NPR2
+    #elif ENABLED(NPR2)
+      enable_e0();
+    #endif
   }
 
   if (esteps)

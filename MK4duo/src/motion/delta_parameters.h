@@ -65,12 +65,12 @@
       #endif
 
       // Derived values
-      float delta_diagonal_rod_2[ABC]; // Diagonal rod 2
-      float towerX[ABC];      // The X coordinate of each tower
-      float towerY[ABC];      // The Y coordinate of each tower
-      float Xbc, Xca, Xab, Ybc, Yca, Yab;
-      float coreFa, coreFb, coreFc;
-      float Q, Q2, D2;
+      float delta_diagonal_rod_2[ABC],  // Diagonal rod 2
+            towerX[ABC],                // The X coordinate of each tower
+            towerY[ABC],                // The Y coordinate of each tower
+            Xbc, Xca, Xab, Ybc, Yca, Yab,
+            coreFa, coreFb, coreFc,
+            Q, Q2, D2;
 
   };
 
