@@ -144,7 +144,7 @@
                                 const float* b_color, const struct point* b,
                                 bool shade=false);
 
-      bool fill(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
+      void fill(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
         char buf0[10], buf1[10], buf2[10], buf3[10], buf4[10] = {0};
         String cmd;
         utoa(x0, buf0, 10);
@@ -163,10 +163,10 @@
         cmd += ",";
         cmd += buf4;
         sendCommand(cmd.c_str());
-        return recvRetCommandFinished();
+        recvRetCommandFinished();
       }
 
-      bool drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
+      void drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
         char bufx0[10], bufy0[10], bufx1[10], bufy1[10], bufc[10] = {0};
         String cmd;
         utoa(x0, bufx0, 10);
@@ -185,10 +185,10 @@
         cmd += ",";
         cmd += bufc;
         sendCommand(cmd.c_str());
-        return recvRetCommandFinished();
+        recvRetCommandFinished();
       }
 
-      bool drawPixel(const int x, const int y, uint16_t color) {
+      void drawPixel(const int x, const int y, uint16_t color) {
         char buf0[10], buf1[10], buf2[10] = {0};
         String cmd;
         utoa(x, buf0, 10);
@@ -205,7 +205,7 @@
         cmd += ",";
         cmd += buf2;
         sendCommand(cmd.c_str());
-        return recvRetCommandFinished();
+        recvRetCommandFinished();
       }
   };
 

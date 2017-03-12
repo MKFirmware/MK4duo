@@ -919,19 +919,14 @@
   void setgcodePopCallback(void *ptr) {
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
+    Tgcode.setText("");
     enqueue_and_echo_command(buffer);
   }
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr) {
-      if (fanSpeeds[0]) {
-        fanSpeeds[0] = 0;
-        Fantimer.disable();
-      }
-      else {
-        fanSpeeds[0] = 255;
-        Fantimer.enable();
-      }
+      fanSpeeds[0] = fanSpeeds[0] ? 0 : 255;
+      Fantimer.enable(fanSpeeds[0] ? false : true);
     }
   #endif
 
@@ -1178,7 +1173,7 @@
                 Fanspeed.setText(buffer);
               }
               else {
-                Fantimer.disable();
+                Fantimer.enable(false);
                 Fanspeed.setText("");
               }
               PreviousfanSpeed = fanSpeeds[0];

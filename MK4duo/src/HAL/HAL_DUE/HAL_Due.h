@@ -131,14 +131,18 @@
 #undef FLOOR
 #undef LROUND
 #undef FMOD
+#undef COS
+#undef SIN
 #define ATAN2(y, x) atan2f(y, x)
-#define FABS(x) fabsf(x)
-#define POW(x, y) powf(x, y)
-#define SQRT(x) sqrtf(x)
-#define CEIL(x) ceilf(x)
-#define FLOOR(x) floorf(x)
-#define LROUND(x) lroundf(x)
-#define FMOD(x, y) fmodf(x, y)
+#define FABS(x)     fabsf(x)
+#define POW(x, y)   powf(x, y)
+#define SQRT(x)     sqrtf(x)
+#define CEIL(x)     ceilf(x)
+#define FLOOR(x)    floorf(x)
+#define LROUND(x)   lroundf(x)
+#define FMOD(x, y)  fmodf(x, y)
+#define COS(x)      cosf(x)
+#define SIN(x)      sinf(x)
 
 #undef analogInputToDigitalPin
 #define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)

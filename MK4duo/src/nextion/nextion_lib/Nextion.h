@@ -35,10 +35,6 @@
   #define nexSerial Serial1
 #endif
 
-#define dbSerialPrint(a)    {}
-#define dbSerialPrintln(a)  {}
-#define dbSerialBegin(a)    {}
-
 #define NEX_RET_CMD_FINISHED                (0x01)
 #define NEX_RET_EVENT_LAUNCHED              (0x88)
 #define NEX_RET_EVENT_UPGRADED              (0x89)
@@ -57,6 +53,8 @@
 #define NEX_RET_INVALID_BAUD                (0x11)
 #define NEX_RET_INVALID_VARIABLE            (0x1A)
 #define NEX_RET_INVALID_OPERATION           (0x1B)
+
+#define NEX_TIMEOUT                         20
 
 /**
  * Push touch event occuring when your finger or pen coming to Nextion touch pannel. 
@@ -134,17 +132,12 @@ class NexObject {
     /**
      * Show itself.
      */
-    void show(void);
+    void show();
 
     /**
      * contorl timer enable.
      */
-    void enable(void);
-
-    /**
-     * contorl timer disable.
-     */
-    void disable(void);
+    void enable(const bool en=true);
 
     /**
      * Get text attribute of component.
@@ -495,7 +488,7 @@ class NexObject {
  * 
  * @return true if success, false for failure. 
  */
-bool nexInit(void);
+bool nexInit();
 
 /**
  * Listen touch event and calling callbacks attached before.
@@ -509,14 +502,13 @@ bool nexInit(void);
  */
 void nexLoop(NexObject *nex_listen_list[]);
 
-void recvRetNumber(uint32_t *number, uint32_t timeout = 100);
-void recvRetString(char *buffer, uint16_t len, uint32_t timeout = 100);
+void recvRetNumber(uint32_t *number);
+void recvRetString(char *buffer, uint16_t len);
 void sendCommand(const char* cmd);
-bool recvRetCommandFinished(uint32_t timeout = 100);
+void recvRetCommandFinished();
 
 uint8_t Nextion_PageID();
 void setCurrentBrightness(uint8_t dimValue);
-void setDefaultBaudrate(uint32_t baudrate);
 void sendRefreshAll(void);
 
 #endif //__NEXTION_H__

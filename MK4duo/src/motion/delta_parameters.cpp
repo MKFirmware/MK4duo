@@ -74,10 +74,10 @@
     delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(60 - tower_radius_adj[A_AXIS]))); // front left tower
-    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(60 - tower_radius_adj[A_AXIS]))); 
-    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(60 + tower_radius_adj[B_AXIS]))); // front right tower
-    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(60 + tower_radius_adj[B_AXIS]))); 
+    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(30 + tower_radius_adj[A_AXIS]))); // front left tower
+    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(30 + tower_radius_adj[A_AXIS]))); 
+    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(30 - tower_radius_adj[B_AXIS]))); // front right tower
+    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(30 - tower_radius_adj[B_AXIS]))); 
     towerX[C_AXIS] = -((radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
     towerY[C_AXIS] = +((radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
 
@@ -179,6 +179,7 @@
         tower_radius_adj[B_AXIS] += v[5];
 
         if (numFactors == 7) diagonal_rod += v[6];
+
       }
 
       Recalc_delta_constants();
@@ -212,54 +213,28 @@
    */
   void DeltaParameters::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
 
-    // Create a vector in old coordinates along x axis of new coordinate
-    float p12[3] = { towerX[B_AXIS] - towerX[A_AXIS], towerY[B_AXIS] - towerY[A_AXIS], Hb - Ha };
+    const float Fa = coreFa + sq(Ha);
+    const float Fb = coreFb + sq(Hb);
+    const float Fc = coreFc + sq(Hc);
 
-    // Get the Magnitude of vector.
-    float d = SQRT( sq(p12[0]) + sq(p12[1]) + sq(p12[2]) );
+    // Setup PQRSU such that x = -(S - uz)/P, y = (P - Rz)/Q
+    const float P = (Xbc * Fa) + (Xca * Fb) + (Xab * Fc);
+    const float S = (Ybc * Fa) + (Yca * Fb) + (Yab * Fc);
 
-    // Create unit vector by dividing by magnitude.
-    float ex[3] = { p12[0] / d, p12[1] / d, p12[2] / d };
+    const float R = 2 * ((Xbc * Ha) + (Xca * Hb) + (Xab * Hc));
+    const float U = 2 * ((Ybc * Ha) + (Yca * Hb) + (Yab * Hc));
 
-    // Get the vector from the origin of the new system to the third point.
-    float p13[3] = { towerX[C_AXIS] - towerX[A_AXIS], towerY[C_AXIS] - towerY[A_AXIS], Hc - Ha };
+    const float R2 = sq(R), U2 = sq(U);
 
-    // Use dot product to find the component of this vector on the X axis.
-    float i = ex[0] * p13[0] + ex[1] * p13[1] + ex[2] * p13[2];
+    const float A = U2 + R2 + Q2;
+    const float minusHalfB = S * U + P * R + Ha * Q2 + towerX[A_AXIS] * U * Q - towerY[A_AXIS] * R * Q;
+    const float C = sq(S + towerX[A_AXIS] * Q) + sq(P - towerY[A_AXIS] * Q) + (sq(Ha) - D2) * Q2;
 
-    // Create a vector along the x axis that represents the x component of p13.
-    float iex[3] = { ex[0] * i, ex[1] * i, ex[2] * i };
+    const float z = (minusHalfB - sqrtf(sq(minusHalfB) - A * C)) / A;
 
-    // Subtract the X component away from the original vector leaving only the Y component. We use the
-    // variable that will be the unit vector after we scale it.
-    float ey[3] = { p13[0] - iex[0], p13[1] - iex[1], p13[2] - iex[2]};
-
-    // The magnitude of Y component
-    float j = SQRT( sq(ey[0]) + sq(ey[1]) + sq(ey[2]) );
-
-    // Convert to a unit vector
-    ey[0] /= j; ey[1] /= j;  ey[2] /= j;
-
-    // The cross product of the unit x and y is the unit z
-    // float[] ez = vectorCrossProd(ex, ey);
-    float ez[3] = {
-      ex[1] * ey[2] - ex[2] * ey[1],
-      ex[2] * ey[0] - ex[0] * ey[2],
-      ex[0] * ey[1] - ex[1] * ey[0]
-    };
-
-    // We now have the d, i and j values defined in Wikipedia.
-    // Plug them into the equations defined in Wikipedia for Xnew, Ynew and Znew
-    float Xnew = (delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[B_AXIS] + sq(d)) / (d * 2),
-          Ynew = ((delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[C_AXIS] + HYPOT2(i, j)) / 2 - i * Xnew) / j,
-          Znew = SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(Xnew, Ynew));
-
-    // Start from the origin of the old coordinates and add vectors in the
-    // old coords that represent the Xnew, Ynew and Znew to find the point
-    // in the old system.
-    machinePos[X_AXIS] = towerX[A_AXIS] + ex[0] * Xnew + ey[0] * Ynew - ez[0] * Znew;
-    machinePos[Y_AXIS] = towerY[A_AXIS] + ex[1] * Xnew + ey[1] * Ynew - ez[1] * Znew;
-    machinePos[Z_AXIS] =             Ha + ex[2] * Xnew + ey[2] * Ynew - ez[2] * Znew;
+    machinePos[X_AXIS] = (U * z - S) / Q;
+    machinePos[Y_AXIS] = (P - R * z) / Q;
+    machinePos[Z_AXIS] = z;
   }
 
   #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
