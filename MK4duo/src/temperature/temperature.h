@@ -211,6 +211,9 @@ class Temperature {
 
     #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       static int consecutive_low_temperature_error[HOTENDS];
+      #if HAS(TEMP_BED)
+        static int consecutive_bed_low_temperature_error;
+      #endif
     #endif
 
     #if ENABLED(MILLISECONDS_PREHEAT_TIME)
