@@ -26,40 +26,36 @@
  * @brief Stroke clean pattern
  * @details Wipes the nozzle back and forth in a linear movement
  *
- * @param start point_t defining the starting point
- * @param end point_t defining the ending point
+ * @param start defining the starting point
+ * @param end defining the ending point
  * @param strokes number of strokes to execute
  */
-void Nozzle::stroke(
-  __attribute__((unused)) point_t const &start,
-  __attribute__((unused)) point_t const &end,
-  __attribute__((unused)) uint8_t const &strokes) {
+void Nozzle::stroke(const float *start, const float *end, const uint8_t &strokes) {
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      point_t const initial = {
+      const float initial[XYZ] = {
         current_position[X_AXIS],
         current_position[Y_AXIS],
-        current_position[Z_AXIS],
-        current_position[E_AXIS]
+        current_position[Z_AXIS]
       };
     #endif // NOZZLE_CLEAN_GOBACK
 
     // Move to the starting point
-    do_blocking_move_to_xy(start.x, start.y);
-    do_blocking_move_to_z(start.z);
+    do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
+    do_blocking_move_to_z(start[Z_AXIS]);
 
     // Start the stroke pattern
     for (uint8_t i = 0; i < (strokes >>1); i++) {
-      do_blocking_move_to_xy(end.x, end.y);
-      do_blocking_move_to_xy(start.x, start.y);
+      do_blocking_move_to_xy(end[X_AXIS], end[Y_AXIS]);
+      do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
     }
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      do_blocking_move_to(initial.x, initial.y, initial.z);
+      do_blocking_move_to(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
     #endif // NOZZLE_CLEAN_GOBACK
 
   #endif // NOZZLE_CLEAN_FEATURE
@@ -69,18 +65,15 @@ void Nozzle::stroke(
  * @brief Zig-zag clean pattern
  * @details Apply a zig-zag cleanning pattern
  *
- * @param start point_t defining the starting point
- * @param end point_t defining the ending point
+ * @param start defining the starting point
+ * @param end defining the ending point
  * @param strokes number of strokes to execute
  * @param objects number of objects to create
  */
-void Nozzle::zigzag(
-  __attribute__((unused)) point_t const &start,
-  __attribute__((unused)) point_t const &end,
-  __attribute__((unused)) uint8_t const &strokes,
-  __attribute__((unused)) uint8_t const &objects) {
+void Nozzle::zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects) {
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
+
     const float A = nozzle_clean_horizontal ? nozzle_clean_height : nozzle_clean_length, // [twice the] Amplitude
                 P = (nozzle_clean_horizontal ? nozzle_clean_length : nozzle_clean_height) / (objects << 1); // Period
 
@@ -89,26 +82,25 @@ void Nozzle::zigzag(
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      point_t const initial = {
+      const float initial[XYZ] = {
         current_position[X_AXIS],
         current_position[Y_AXIS],
-        current_position[Z_AXIS],
-        current_position[E_AXIS]
+        current_position[Z_AXIS]
       };
     #endif // NOZZLE_CLEAN_GOBACK
 
     for (uint8_t j = 0; j < strokes; j++) {
       for (uint8_t i = 0; i < (objects << 1); i++) {
-        const float x = start.x + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) ),
-                    y = start.y + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) );
+        const float x = start[X_AXIS] + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) ),
+                    y = start[Y_AXIS] + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) );
 
         do_blocking_move_to_xy(x, y);
-        if (i == 0) do_blocking_move_to_z(start.z);
+        if (i == 0) do_blocking_move_to_z(start[Z_AXIS]);
       }
 
       for (int i = (objects << 1); i > -1; i--) {
-        const float x = start.x + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) ),
-                    y = start.y + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) );
+        const float x = start[X_AXIS] + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) ),
+                    y = start[Y_AXIS] + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - fabs(fmod((i * P), (2 * P)) - P)) );
 
         do_blocking_move_to_xy(x, y);
       }
@@ -116,8 +108,8 @@ void Nozzle::zigzag(
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      do_blocking_move_to_z(initial.z);
-      do_blocking_move_to_xy(initial.x, initial.y);
+      do_blocking_move_to_z(initial[Z_AXIS]);
+      do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
     #endif // NOZZLE_CLEAN_GOBACK
 
   #endif // NOZZLE_CLEAN_FEATURE
@@ -127,62 +119,59 @@ void Nozzle::zigzag(
  * @brief Circular clean pattern
  * @details Apply a circular cleaning pattern
  *
- * @param start point_t defining the middle of circle
+ * @param start defining the starting point
+ * @param middle defining the middle of circle
  * @param strokes number of strokes to execute
  * @param radius radius of circle
  */
-void Nozzle::circle(
-  __attribute__((unused)) point_t const &start,
-  __attribute__((unused)) point_t const &middle,
-  __attribute__((unused)) uint8_t const &strokes,
-  __attribute__((unused)) float const &radius) {
+void Nozzle::circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius) {
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
+
     if (strokes == 0) return;
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      point_t const initial = {
+      const float initial[XYZ] = {
         current_position[X_AXIS],
         current_position[Y_AXIS],
-        current_position[Z_AXIS],
-        current_position[E_AXIS]
+        current_position[Z_AXIS]
       };
     #endif // NOZZLE_CLEAN_GOBACK
 
-    if (start.z <= current_position[Z_AXIS]) {
+    if (start[Z_AXIS] <= current_position[Z_AXIS]) {
       // Order of movement is pretty darn important here
-      do_blocking_move_to_xy(start.x, start.y);
-      do_blocking_move_to_z(start.z);
+      do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
+      do_blocking_move_to_z(start[Z_AXIS]);
     }
     else {
-      do_blocking_move_to_z(start.z);
-      do_blocking_move_to_xy(start.x, start.y);
+      do_blocking_move_to_z(start[Z_AXIS]);
+      do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
     }
 
     float x, y;
     for (uint8_t s = 0; s < strokes; s++) {
       for (uint8_t i = 0; i < NOZZLE_CLEAN_CIRCLE_FN; i++) {
-        x = middle.x + sin((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
-        y = middle.y + cos((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
+        x = middle[X_AXIS] + sin((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
+        y = middle[Y_AXIS] + cos((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
 
         do_blocking_move_to_xy(x, y);
       }
     }
 
     // Let's be safe
-    do_blocking_move_to_xy(start.x, start.y);
+    do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      if (start.z <= initial.z) {
+      if (start[Z_AXIS] <= initial[Z_AXIS]) {
         // As above order is important
-        do_blocking_move_to_z(initial.z);
-        do_blocking_move_to_xy(initial.x, initial.y);
+        do_blocking_move_to_z(initial[Z_AXIS]);
+        do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
       }
       else {
-        do_blocking_move_to_xy(initial.x, initial.y);
-        do_blocking_move_to_z(initial.z);
+        do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
+        do_blocking_move_to_z(initial[Z_AXIS]);
       }
     #endif // NOZZLE_CLEAN_GOBACK
 
@@ -196,60 +185,56 @@ void Nozzle::circle(
  * @param pattern one of the available patterns
  * @param argument depends on the cleaning pattern
  */
-void Nozzle::clean(
-  __attribute__((unused)) uint8_t const &pattern,
-  __attribute__((unused)) uint8_t const &strokes,
-  __attribute__((unused)) float const &radius,
-  __attribute__((unused)) uint8_t const &objects) {
+void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects) {
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
+
+    const float start[] = NOZZLE_CLEAN_START_POINT,
+                end[]   = NOZZLE_CLEAN_END_POINT,
+                middle[]= NOZZLE_CLEAN_CIRCLE_MIDDLE;
+
     #if MECH(DELTA)
       if (current_position[Z_AXIS] > deltaParams.clip_start_height)
         do_blocking_move_to_z(deltaParams.clip_start_height);
     #endif
+
     switch (pattern) {
       case 1:
-        Nozzle::zigzag(
-          NOZZLE_CLEAN_START_POINT,
-          NOZZLE_CLEAN_END_POINT, strokes, objects);
+        Nozzle::zigzag(start, end, strokes, objects);
         break;
 
       case 2:
-        Nozzle::circle(
-          NOZZLE_CLEAN_START_POINT,
-          NOZZLE_CLEAN_CIRCLE_MIDDLE, strokes, radius);
+        Nozzle::circle(start, middle, strokes, radius);
         break;
 
       default:
-        Nozzle::stroke(
-          NOZZLE_CLEAN_START_POINT,
-          NOZZLE_CLEAN_END_POINT, strokes);
+        Nozzle::stroke(start, end, strokes);
     }
   #endif // NOZZLE_CLEAN_FEATURE
 }
 
-void Nozzle::park(__attribute__((unused)) uint8_t const &z_action) {
+void Nozzle::park(const uint8_t &z_action) {
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
-    float const z = current_position[Z_AXIS];
-    point_t const park = NOZZLE_PARK_POINT;
+    const float z       = current_position[Z_AXIS],
+                park[]  = NOZZLE_PARK_POINT;
 
     switch(z_action) {
       case 1: // force Z-park height
-        do_blocking_move_to_z(park.z);
+        do_blocking_move_to_z(park[Z_AXIS]);
         break;
 
       case 2: // Raise by Z-park height
         do_blocking_move_to_z(
-          (z + park.z > Z_MAX_POS) ? Z_MAX_POS : z + park.z);
+          (z + park[Z_AXIS] > Z_MAX_POS) ? Z_MAX_POS : z + park[Z_AXIS]);
         break;
 
       default: // Raise to Z-park height if lower
-        if (current_position[Z_AXIS] < park.z)
-          do_blocking_move_to_z(park.z);
+        if (current_position[Z_AXIS] < park[Z_AXIS])
+          do_blocking_move_to_z(park[Z_AXIS]);
     }
 
-    do_blocking_move_to_xy(park.x, park.y);
+    do_blocking_move_to_xy(park[X_AXIS], park[Y_AXIS]);
 
   #endif // NOZZLE_PARK_FEATURE
 }
