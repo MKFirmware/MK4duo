@@ -81,7 +81,7 @@ void Nozzle::zigzag(
   __attribute__((unused)) uint8_t const &objects) {
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
-    const float A = nozzle_clean_horizontal ? nozzle_clean_height : nozzle_clean_length; // [twice the] Amplitude
+    const float A = nozzle_clean_horizontal ? nozzle_clean_height : nozzle_clean_length, // [twice the] Amplitude
                 P = (nozzle_clean_horizontal ? nozzle_clean_length : nozzle_clean_height) / (objects << 1); // Period
 
     // Don't allow impossible triangles
