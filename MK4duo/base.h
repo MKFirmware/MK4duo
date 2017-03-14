@@ -66,16 +66,23 @@
   #include "Configuration_Overall.h"
 #endif
 
-#include "src/language/language.h"
-
 #if ENABLED(LASERBEAM)
   #include "Configuration_Laser.h"
+#endif
+
+#if ENABLED(CNCROUTER)
+  #include "Configuration_CNCRouter.h"
+#endif
+
+#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_L6470DRIVER)
+  #include "Configuration_Motor_Driver.h"
 #endif
 
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"
 #include "src/sanitycheck.h"
+#include "src/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
@@ -99,10 +106,15 @@
   #endif
   #include "src/laser/laser.h"
 #endif
-  
+
+#if ENABLED(CNCROUTER)
+  #include "src/cncrouter/cncrouter.h"
+#endif
+
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
+#include "src/utility/power_supply.h"
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
@@ -115,7 +127,6 @@
 #include "src/nextion/Nextion_lcd.h"
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
-#include "src/watchdog/watchdog.h"
 #include "src/utility/nozzle.h"
 #include "src/utility/blinkm.h"
 #include "src/utility/matrix.h"

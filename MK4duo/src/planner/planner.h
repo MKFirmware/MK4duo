@@ -91,8 +91,7 @@ typedef struct {
     uint32_t abs_adv_steps_multiplier8;     // Factorised by 2^8 to avoid float
   #elif ENABLED(ADVANCE)
     int32_t advance_rate;
-    volatile int32_t  initial_advance,
-                      final_advance;
+    volatile int32_t initial_advance, final_advance;
     float advance;
   #endif
 
@@ -109,7 +108,9 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  uint16_t fan_speed;
+  #if FAN_COUNT > 0
+    uint16_t fan_speed[FAN_COUNT];
+  #endif
 
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
@@ -208,8 +209,9 @@ class Planner {
     #endif
 
     #if ENABLED(LIN_ADVANCE)
-      static float position_float[NUM_AXIS];
-      static float extruder_advance_k;
+      static float  position_float[NUM_AXIS],
+                    extruder_advance_k,
+                    advance_ed_ratio;
     #endif
 
     #if ENABLED(ULTRA_LCD)
@@ -271,7 +273,9 @@ class Planner {
     #endif
 
     #if ENABLED(LIN_ADVANCE)
-      void advance_M905(const float &k);
+      static void set_extruder_advance_k(const float &k) { extruder_advance_k = k; };
+      static float get_extruder_advance_k() { return extruder_advance_k; };
+      static void set_advance_ed_ratio(const float &ratio) { advance_ed_ratio = ratio; };
     #endif
 
     /**
@@ -369,7 +373,7 @@ class Planner {
     static void set_position_mm_kinematic(const float position[NUM_AXIS]);
     static void set_position_mm(const AxisEnum axis, const float &v);
     static FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(Z_AXIS, z); }
-    static FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_INDEX), e); }
+    static FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)
@@ -435,9 +439,7 @@ class Planner {
     #endif
 
     #if ENABLED(AUTOTEMP)
-      static float autotemp_max;
-      static float autotemp_min;
-      static float autotemp_factor;
+      static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();
       static void autotemp_M104_M109();
@@ -457,7 +459,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
     }
 
     /**
@@ -470,7 +472,7 @@ class Planner {
      */
     static float intersection_distance(const float &initial_rate, const float &final_rate, const float &accel, const float &distance) {
       if (accel == 0) return 0; // accel was 0, set intersection distance to 0
-      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4);
+      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4.0);
     }
 
     /**

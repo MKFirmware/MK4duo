@@ -68,21 +68,25 @@
 
 // Serial Console Messages (do not translate those!)
 #if MECH(CARTESIAN)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:Cartesian EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "Cartesian"
 #elif MECH(COREXY)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:CoreXY EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "CoreXY"
 #elif MECH(COREYX)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:CoreYX EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "CoreYX"
 #elif MECH(COREXZ)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:CoreXZ EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "CoreXZ"
 #elif MECH(COREZX)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:CoreZX EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "CoreZX"
+#elif MECH(COREYZ)
+  #define MACHINE_TYPE                      "CoreYZ"
+#elif MECH(COREZY)
+  #define MACHINE_TYPE                      "CoreZY"
 #elif MECH(DELTA)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:Delta EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "Delta"
 #elif MECH(SCARA)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:Scara EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "Scara"
 #elif MECH(MUVE3D)
-  #define MSG_M115_REPORT                   "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:MUVE3D UUID:" MACHINE_UUID "\n"
+  #define MACHINE_TYPE                      "Muve3D"
 #endif  
 
 #define MSG_ENQUEUEING                      "enqueueing \""
@@ -108,6 +112,7 @@
 #define MSG_INVALID_HOTEND                  "Invalid hotend"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"
 #define MSG_ERR_NO_THERMISTORS              "No thermistors - no temperature"
+#define MSG_M115_REPORT                     "FIRMWARE_NAME:MK4duo " SHORT_BUILD_VERSION " FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_TYPE " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
 #define MSG_COUNT_X                         " Count X:"
 #define MSG_COUNT_A                         " Count A:"
 #define MSG_COUNT_ALPHA                     " Count Alpha:"
@@ -116,7 +121,7 @@
 #define MSG_BUSY_PROCESSING                 "processing"
 #define MSG_BUSY_WAIT_HEATER                "heating"
 #define MSG_BUSY_DOOR_OPEN                  "door open"
-#define MSG_BUSY_PAUSED_FOR_USER            "paused for user interaction"
+#define MSG_BUSY_PAUSED_FOR_USER            "paused for user"
 #define MSG_BUSY_PAUSED_FOR_INPUT           "paused for input"
 #define MSG_UNKNOWN_COMMAND                 "Unknown command: \""
 #define MSG_ACTIVE_DRIVER                   "Active Driver: "
@@ -136,6 +141,7 @@
 #define MSG_Z4_MAX                          "z4_max: "
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
+#define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
@@ -152,8 +158,6 @@
 #define MSG_SOFT_ENDSTOPS                   "Soft endstops: "
 #define MSG_SOFT_MIN                        "  Min:"
 #define MSG_SOFT_MAX                        "  Max:"
-
-#define MSG_FIL_RUNOUT_PIN                  "filament_runout_pin: "
 
 // SD Card
 #define MSG_SD_CANT_OPEN_SUBDIR             "Cannot open subdir "
@@ -232,9 +236,9 @@
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
 #define MSG_STOPPED_HEATER                  ", system stopped! Heater_ID: "
-#define MSG_STOPPED_BED                     ", system stopped! Bed"
-#define MSG_STOPPED_CHAMBER                 ", system stopped! Chamber"
-#define MSG_STOPPED_COOLER                  ", system stopped! Cooler"
+#define MSG_HEATER_BED                      "Bed"
+#define MSG_HEATER_CHAMBER                  "Chamber"
+#define MSG_HEATER_COOLER                   "Cooler"
 #define MSG_REDUNDANCY                      "Heater switched off. Temperature difference between temp sensors is too high !"
 #define MSG_T_HEATING_FAILED                "Heating failed"
 #define MSG_T_THERMAL_RUNAWAY               "Thermal Runaway"
@@ -251,14 +255,12 @@
 #define MSG_DEBUG_COMMUNICATION             "COMMUNICATION"
 #define MSG_DEBUG_LEVELING                  "LEVELING"
 
-//other
-#define MSG_BED_LEVELLING_BED               "Bed"
-#define MSG_BED_LEVELLING_X                 " X: "
-#define MSG_BED_LEVELLING_Y                 " Y: "
-#define MSG_BED_LEVELLING_Z                 " Z: "
+// other
+#define MSG_BED_LEVELING_X                  " X:"
+#define MSG_BED_LEVELING_Y                  " Y:"
+#define MSG_BED_LEVELING_Z                  "Z-probe:"
 
 // LCD Menu Messages
-
 #define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
 #define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
 #define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)

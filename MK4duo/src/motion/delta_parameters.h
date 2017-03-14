@@ -32,19 +32,20 @@
       DeltaParameters() { Init(); }
 
       // Core parameters
-      float diagonal_rod,             // Original Diagonl Rod lenght
-            diagonal_rod_adj[ABC],    // Diagonal Rod adjustments
-            radius,                   // Original Delta radius
-            endstop_adj[ABC],         // Endstop adjustments
-            tower_adj[6],             // Tower adjustments
-            segments_per_second       = DELTA_SEGMENTS_PER_SECOND,
-            print_Radius              = DELTA_PRINTABLE_RADIUS,
-            probe_Radius              = DELTA_PROBEABLE_RADIUS,
-            base_min_pos[ABC]         = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-            base_max_pos[ABC]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
-            base_home_pos[ABC]        = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
-            max_length[ABC]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
-            clip_start_height         = Z_MAX_POS;
+      float diagonal_rod          = DELTA_DIAGONAL_ROD,
+            radius                = DEFAULT_DELTA_RADIUS,
+            segments_per_second   = DELTA_SEGMENTS_PER_SECOND,
+            print_Radius          = DELTA_PRINTABLE_RADIUS,
+            probe_Radius          = DELTA_PROBEABLE_RADIUS,
+            clip_start_height     = Z_MAX_POS,
+            diagonal_rod_adj[ABC] = { TOWER_A_DIAGROD_ADJ, TOWER_B_DIAGROD_ADJ, TOWER_C_DIAGROD_ADJ },
+            endstop_adj[ABC]      = { TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ },
+            tower_radius_adj[ABC] = { TOWER_A_RADIUS_ADJ, TOWER_B_RADIUS_ADJ, TOWER_C_RADIUS_ADJ },
+            tower_pos_adj[ABC]    = { TOWER_A_POSITION_ADJ, TOWER_B_POSITION_ADJ, TOWER_C_POSITION_ADJ },
+            base_min_pos[ABC]     = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+            base_max_pos[ABC]     = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+            base_home_pos[ABC]    = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
+            max_length[ABC]       = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
       // Function
       void Init();
@@ -59,20 +60,17 @@
 
     private:
 
-      const float degreesToRadians = M_PI / 180.0;
-      const float radiansToDegrees = 180.0 / M_PI;
-
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);
       #endif
 
       // Derived values
-      float delta_diagonal_rod_2[ABC]; // Diagonal rod 2
-      float towerX[ABC];      // The X coordinate of each tower
-      float towerY[ABC];      // The Y coordinate of each tower
-      float Xbc, Xca, Xab, Ybc, Yca, Yab;
-      float coreFa, coreFb, coreFc;
-      float Q, Q2, D2;
+      float delta_diagonal_rod_2[ABC],  // Diagonal rod 2
+            towerX[ABC],                // The X coordinate of each tower
+            towerY[ABC],                // The Y coordinate of each tower
+            Xbc, Xca, Xab, Ybc, Yca, Yab,
+            coreFa, coreFb, coreFc,
+            Q, Q2, D2;
 
   };
 

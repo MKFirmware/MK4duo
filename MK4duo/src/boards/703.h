@@ -75,7 +75,7 @@
 #define ORIG_HEATER_BED_PIN     10
 
 #define ORIG_FAN_PIN             6
-#define ORIG_FAN2_PIN            7
+#define ORIG_FAN1_PIN            7
 
 //
 // Temperature Sensors

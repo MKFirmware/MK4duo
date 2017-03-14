@@ -1,3 +1,30 @@
+### Version 4.3.14 dev
+* Add TMC2130 motor driver
+* Add EEPROM on SDCARD (Ultratronics)
+* Add Workspace for home offset
+* Add BLtouch on M43 command
+* Add circular clean on NOZZLE CLEAN FEATURE
+* Fix and clear code
+
+### Version 4.3.13 dev
+* Add Delta print radius editable with M666 and save in eeprom
+* Rewrite HAL_DUE
+* Rewrite Temperature Timer please update PID
+
+### Version 4.3.12 dev
+* Add CNC Router
+* Add M6   - Tool change CNC. (Requires CNCROUTERS)
+* Add M450 - Report Printer Mode
+* Add M451 - Select FFF Printer Mode
+* Add M452 - Select Laser Printer Mode
+* Add M453 - Select CNC Printer Mode
+* Add up 4 Fan
+* Add EMERGENCY_PARSER (Only for AVR)
+* Update Nextion V0_9_8
+* Fix BLTOUCH
+* Fix endstop interrupts
+* Fix and clear code
+
 ### Version 4.3.11 dev
 * Add G38.2 and G38.3 Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
 * Fix and clear code.

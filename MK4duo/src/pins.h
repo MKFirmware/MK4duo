@@ -23,6 +23,11 @@
 #ifndef PINS_H
 #define PINS_H
 
+#define EEPROM_NONE 0
+#define EEPROM_I2C  1
+#define EEPROM_SPI_ALLIGATOR 2
+#define EEPROM_SDCARD 3
+
 #define AS_QUOTED_STRING(S) #S
 #define INCLUDE_BY_MB(M)    AS_QUOTED_STRING(boards/M.h)
 #include INCLUDE_BY_MB(MOTHERBOARD)
@@ -40,56 +45,32 @@
   #define MOSI_PIN            51
   #define MISO_PIN            50
   #define SCK_PIN             52
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN            53
-  #endif
+  #define SS_PIN              53
 #elif defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega1284P__)
   #define MOSI_PIN             5
   #define MISO_PIN             6
   #define SCK_PIN              7
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN             4
-  #endif
+  #define SS_PIN               4
 #elif defined(__AVR_ATmega32U4__)
   #define MOSI_PIN             2
   #define MISO_PIN             3
   #define SCK_PIN              1
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN             4
-  #endif
+  #define SS_PIN               4
 #elif defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB1286__)
   #define MOSI_PIN            22
   #define MISO_PIN            23
   #define SCK_PIN             21
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN            20
-  #endif
+  #define SS_PIN              20
 #elif defined(__AVR_ATmega168__) ||defined(__AVR_ATmega168P__) ||defined(__AVR_ATmega328P__)
   #define MOSI_PIN            11
   #define MISO_PIN            12
   #define SCK_PIN             13
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN            10
-  #endif
+  #define SS_PIN              10
 #elif defined(__AVR_ATmega1281__)
   #define MOSI_PIN            11
   #define MISO_PIN            12
   #define SCK_PIN             10
-  #ifdef SDSS
-    #define SS_PIN            SDSS
-  #else
-    #define SS_PIN            16
-  #endif
+  #define SS_PIN              16
 #elif defined (ARDUINO_ARCH_SAM)
   #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
     #if (SDSS == 4)
@@ -126,10 +107,11 @@
   #endif
 
   #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-    #define SS_PIN              4
+    #define SS_PIN            4
   #else
-    #define SS_PIN              SDSS
+    #define SS_PIN            SDSS
   #endif
+
 #endif
 /****************************************************************************************/
 
@@ -138,6 +120,34 @@
 /****************************************************************************************
 ********************************* END MOTHERBOARD ***************************************
 ****************************************************************************************/
+
+#ifndef ORIG_X_CS_PIN
+  #define ORIG_X_CS_PIN       -1
+#endif
+#ifndef ORIG_Y_CS_PIN
+  #define ORIG_Y_CS_PIN       -1
+#endif
+#ifndef ORIG_Z_CS_PIN
+  #define ORIG_Z_CS_PIN       -1
+#endif
+#ifndef ORIG_E0_CS_PIN
+  #define ORIG_E0_CS_PIN      -1
+#endif
+#ifndef ORIG_E1_CS_PIN
+  #define ORIG_E1_CS_PIN      -1
+#endif
+#ifndef ORIG_E2_CS_PIN
+  #define ORIG_E2_CS_PIN      -1
+#endif
+#ifndef ORIG_E3_CS_PIN
+  #define ORIG_E3_CS_PIN      -1
+#endif
+#ifndef ORIG_E4_CS_PIN
+  #define ORIG_E4_CS_PIN      -1
+#endif
+#ifndef ORIG_E5_CS_PIN
+  #define ORIG_E5_CS_PIN      -1
+#endif
 
 #ifndef ORIG_E0_DIR_PIN
   #define ORIG_E0_DIR_PIN     -1
@@ -265,8 +275,14 @@
 #ifndef ORIG_FAN_PIN
   #define ORIG_FAN_PIN  -1
 #endif
+#ifndef ORIG_FAN1_PIN
+  #define ORIG_FAN1_PIN -1
+#endif
 #ifndef ORIG_FAN2_PIN
   #define ORIG_FAN2_PIN -1
+#endif
+#ifndef ORIG_FAN3_PIN
+  #define ORIG_FAN3_PIN -1
 #endif
 
 #ifndef ORIG_BEEPER_PIN
@@ -407,6 +423,10 @@
 
 #ifndef FLOWMETER_PIN
   #define FLOWMETER_PIN -1
+#endif
+
+#ifndef CNCROUTER_PIN
+  #define CNCROUTER_PIN -1
 #endif
 
 #define SENSITIVE_PINS { 0, 1, \

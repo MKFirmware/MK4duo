@@ -36,36 +36,42 @@
 #define X_STEP_PIN          ORIG_X_STEP_PIN
 #define X_DIR_PIN           ORIG_X_DIR_PIN
 #define X_ENABLE_PIN        ORIG_X_ENABLE_PIN
+#define X_CS_PIN            ORIG_X_CS_PIN
 
 // X2 axis pins
 #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER)
   #define X2_STEP_PIN       ORIG_E1_STEP_PIN
   #define X2_DIR_PIN        ORIG_E1_DIR_PIN
   #define X2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+  #define X2_CS_PIN         ORIG_E1_CS_PIN
 #endif
 
 // Y axis pins
 #define Y_STEP_PIN          ORIG_Y_STEP_PIN
 #define Y_DIR_PIN           ORIG_Y_DIR_PIN
 #define Y_ENABLE_PIN        ORIG_Y_ENABLE_PIN
+#define Y_CS_PIN            ORIG_Y_CS_PIN
 
 // Y2 axis pins
 #if ENABLED(Y_TWO_STEPPER)
   #define Y2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Y2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Y2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+  #define Y2_CS_PIN         ORIG_E1_CS_PIN
 #endif
 
 // Z axis pins
 #define Z_STEP_PIN          ORIG_Z_STEP_PIN
 #define Z_DIR_PIN           ORIG_Z_DIR_PIN
 #define Z_ENABLE_PIN        ORIG_Z_ENABLE_PIN
+#define Z_CS_PIN            ORIG_Z_CS_PIN
 
 // Z2 axis pins
 #if ENABLED(Z_TWO_STEPPER)
   #define Z2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Z2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Z2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+  #define Z2_CS_PIN         ORIG_E1_CS_PIN
 #endif
 
 // Z3 axis pins
@@ -87,36 +93,42 @@
   #define E0_STEP_PIN       ORIG_E0_STEP_PIN
   #define E0_DIR_PIN        ORIG_E0_DIR_PIN
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
+  #define E0_CS_PIN         ORIG_E0_CS_PIN
 #endif
 
 #if DRIVER_EXTRUDERS > 1
   #define E1_STEP_PIN       ORIG_E1_STEP_PIN
   #define E1_DIR_PIN        ORIG_E1_DIR_PIN
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
+  #define E1_CS_PIN         ORIG_E1_CS_PIN
 #endif
 
 #if DRIVER_EXTRUDERS > 2
   #define E2_STEP_PIN       ORIG_E2_STEP_PIN
   #define E2_DIR_PIN        ORIG_E2_DIR_PIN
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
+  #define E2_CS_PIN         ORIG_E2_CS_PIN
 #endif
 
 #if DRIVER_EXTRUDERS > 3
   #define E3_STEP_PIN       ORIG_E3_STEP_PIN
   #define E3_DIR_PIN        ORIG_E3_DIR_PIN
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
+  #define E3_CS_PIN         ORIG_E3_CS_PIN
 #endif
 
 #if DRIVER_EXTRUDERS > 4
   #define E4_STEP_PIN       ORIG_E4_STEP_PIN
   #define E4_DIR_PIN        ORIG_E4_DIR_PIN
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
+  #define E4_CS_PIN         ORIG_E4_CS_PIN
 #endif
 
 #if DRIVER_EXTRUDERS > 5
   #define E5_STEP_PIN       ORIG_E5_STEP_PIN
   #define E5_DIR_PIN        ORIG_E5_DIR_PIN
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
+  #define E5_CS_PIN         ORIG_E5_CS_PIN
 #endif
 
 // ENDSTOP pin
@@ -155,6 +167,9 @@
 
 // FAN pin
 #define FAN_PIN             ORIG_FAN_PIN
+#define FAN1_PIN            ORIG_FAN1_PIN
+#define FAN2_PIN            ORIG_FAN2_PIN
+#define FAN3_PIN            ORIG_FAN3_PIN
 
 // PS ON pin
 #define PS_ON_PIN           ORIG_PS_ON_PIN
@@ -182,6 +197,10 @@
     #define LASER_PERIPHERALS_PIN         -1
     #define LASER_PERIPHERALS_STATUS_PIN  -1
   #endif
+#endif
+
+#if ENABLED(CNCROUTER)
+  #define CNCROUTER_PIN -1
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)

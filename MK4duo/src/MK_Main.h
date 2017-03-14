@@ -20,16 +20,13 @@
  *
  */
 
-#ifndef MK_H
-#define MK_H
-
-#include <math.h>
-#include <stdint.h>
+#ifndef _MK_MAIN_H
+#define _MK_MAIN_H
 
 void get_command();
 
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep=false  // pass true to keep steppers from disabling on timeout
   #endif
 );
@@ -79,6 +76,9 @@ void quickstop_stepper();
 
 extern uint8_t mk_debug_flags;
 
+// Printer Mode
+extern PrinterMode printer_mode;
+
 extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
@@ -101,7 +101,7 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER)
+#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
   void setPwmFrequency(uint8_t pin, uint8_t val);
 #endif
 
@@ -120,30 +120,26 @@ extern bool axis_known_position[XYZ];           // axis[n].is_known
 extern bool axis_homed[XYZ];                    // axis[n].is_homed
 extern volatile bool wait_for_heatup;
 
-extern float current_position[NUM_AXIS];
-extern float destination[NUM_AXIS];
-extern float position_shift[XYZ];
-extern float home_offset[XYZ];
-extern float hotend_offset[XYZ][HOTENDS];
-
-#if HAS(LCD)
+#if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
   extern volatile bool wait_for_user;
 #endif
 
-// Software Endstops
-void update_software_endstops(AxisEnum axis);
-#if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
-  extern bool soft_endstops_enabled;
-  void clamp_to_software_endstops(float target[XYZ]);
-#else
-  #define soft_endstops_enabled false
-  #define clamp_to_software_endstops(x) NOOP
-#endif
-extern float soft_endstop_min[XYZ];
-extern float soft_endstop_max[XYZ];
+extern float current_position[NUM_AXIS];
+extern float destination[NUM_AXIS];
 
-#define LOGICAL_POSITION(POS, AXIS) (POS + home_offset[AXIS] + position_shift[AXIS])
-#define RAW_POSITION(POS, AXIS)     (POS - home_offset[AXIS] - position_shift[AXIS])
+// Workspace offsets
+#if ENABLED(WORKSPACE_OFFSETS)
+  extern float  position_shift[XYZ],
+                home_offset[XYZ],
+                workspace_offset[XYZ];
+
+  #define LOGICAL_POSITION(POS, AXIS) ((POS) + home_offset[AXIS] + position_shift[AXIS])
+  #define RAW_POSITION(POS, AXIS)     ((POS) - home_offset[AXIS] - position_shift[AXIS])
+#else
+  #define LOGICAL_POSITION(POS, AXIS) (POS)
+  #define RAW_POSITION(POS, AXIS)     (POS)
+#endif
+
 #define LOGICAL_X_POSITION(POS)     LOGICAL_POSITION(POS, X_AXIS)
 #define LOGICAL_Y_POSITION(POS)     LOGICAL_POSITION(POS, Y_AXIS)
 #define LOGICAL_Z_POSITION(POS)     LOGICAL_POSITION(POS, Z_AXIS)
@@ -151,6 +147,25 @@ extern float soft_endstop_max[XYZ];
 #define RAW_Y_POSITION(POS)         RAW_POSITION(POS, Y_AXIS)
 #define RAW_Z_POSITION(POS)         RAW_POSITION(POS, Z_AXIS)
 #define RAW_CURRENT_POSITION(AXIS)  RAW_POSITION(current_position[AXIS], AXIS)
+
+// Hotend offset
+extern float hotend_offset[XYZ][HOTENDS];
+
+// Software Endstops
+extern float soft_endstop_min[XYZ];
+extern float soft_endstop_max[XYZ];
+
+#if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
+  extern bool soft_endstops_enabled;
+  void clamp_to_software_endstops(float target[XYZ]);
+#else
+  #define soft_endstops_enabled false
+  #define clamp_to_software_endstops(x) NOOP
+#endif
+
+#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+  void update_software_endstops(const AxisEnum axis);
+#endif
 
 // GCode support for external objects
 bool code_seen(char);
@@ -189,13 +204,24 @@ float code_value_temp_diff();
 
 #if HAS(BED_PROBE)
   extern float zprobe_zoffset;
+  extern bool probe_process;
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   extern uint32_t host_keepalive_interval;
 #endif
 
-extern int fanSpeed;
+#if FAN_COUNT > 0
+  extern int fanSpeeds[FAN_COUNT];
+#endif
+
+#if HAS(CONTROLLERFAN)
+  extern uint8_t controllerFanSpeed;
+#endif
+
+#if HAS(AUTO_FAN)
+  extern uint8_t autoFanSpeeds[HOTENDS];
+#endif
 
 #if ENABLED(BARICUDA)
   extern int baricuda_valve_pressure;
@@ -278,15 +304,17 @@ extern uint8_t active_driver;
   void print_flowratestate();
 #endif
 
-#if ENABLED(FIRMWARE_TEST)
-  void FirmwareTest();
-#endif
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   extern float mixing_factor[MIXING_STEPPERS];
 #endif
 
 void calculate_volumetric_multipliers();
+
+void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_move = false);
+
+#if ENABLED(CNCROUTER)
+  void tool_change_cnc(const uint8_t tool_id, bool wait = true, bool raise_z = true);
+#endif
 
 /**
  * Blocking movement and shorthand functions
@@ -311,4 +339,4 @@ void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s
 
 #endif
 
-#endif // MK_H
+#endif // _MK_MAIN_H

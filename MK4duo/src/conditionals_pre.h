@@ -33,6 +33,10 @@
 
   #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
+  #if ENABLED(NEXTION)
+    #define LCD_HEIGHT 4
+  #endif
+
   #if ENABLED(SAV_3DGLCD)
     //#define U8GLIB_SSD1306
     #define U8GLIB_SH1106
@@ -80,12 +84,6 @@
       #define SD_DETECT_INVERTED
     #endif
 
-    #ifndef ENCODER_PULSES_PER_STEP
-      #define ENCODER_PULSES_PER_STEP 4
-    #endif
-    #ifndef ENCODER_STEPS_PER_MENU_ITEM
-      #define ENCODER_STEPS_PER_MENU_ITEM 1
-    #endif
   #endif
 
   // Generic support for SSD1306 / SH1106 OLED based LCDs.
@@ -96,7 +94,9 @@
 
   // WANHAO D6 OLED LCD
   #if ENABLED(WANHAO_D6_OLED)
-    #define U8GLIB_SSD1309
+    #define U8GLIB_SSD1306
+    #define LCD_WIDTH 22
+    #define LCD_HEIGHT 5
     #define LCD_CONTRAST_MIN 10
     #define LCD_CONTRAST_MAX 255
     #define DEFAULT_LCD_CONTRAST 100
@@ -111,15 +111,6 @@
 
   #if ENABLED(BQ_LCD_SMART_CONTROLLER)
     #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
-
-    #if DISABLED(ENCODER_PULSES_PER_STEP)
-      #define ENCODER_PULSES_PER_STEP 4
-    #endif
-
-    #if DISABLED(ENCODER_STEPS_PER_MENU_ITEM)
-      #define ENCODER_STEPS_PER_MENU_ITEM 1
-    #endif
-
     #if DISABLED(LONG_FILENAME_HOST_SUPPORT)
       #define LONG_FILENAME_HOST_SUPPORT
     #endif
@@ -171,14 +162,6 @@
     #define LCD_I2C_TYPE_MCP23017
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
     #define LCD_USE_I2C_BUZZER //comment out to disable buzzer on LCD
-
-    #if DISABLED(ENCODER_PULSES_PER_STEP)
-      #define ENCODER_PULSES_PER_STEP 4
-    #endif
-    #if DISABLED(ENCODER_STEPS_PER_MENU_ITEM)
-      #define ENCODER_STEPS_PER_MENU_ITEM 1
-    #endif
-
     #define ULTIPANEL
     #define NEWPANEL
   #endif
@@ -202,6 +185,17 @@
     #endif
     #ifndef ENCODER_STEPS_PER_MENU_ITEM
       #define ENCODER_STEPS_PER_MENU_ITEM 2
+    #endif
+  #endif
+
+  // Set encoder detents for well-known controllers
+  #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
+   || ENABLED(BQ_LCD_SMART_CONTROLLER) || ENABLED(LCD_I2C_PANELOLU2) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
+    #ifndef ENCODER_PULSES_PER_STEP
+      #define ENCODER_PULSES_PER_STEP 4
+    #endif
+    #ifndef ENCODER_STEPS_PER_MENU_ITEM
+      #define ENCODER_STEPS_PER_MENU_ITEM 1
     #endif
   #endif
 
@@ -352,7 +346,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  1
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
   #undef SINGLENOZZLE
@@ -361,7 +354,6 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  2
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      current_block->active_extruder
 #elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
   #define SINGLENOZZLE
@@ -369,10 +361,8 @@
   #undef DRIVER_EXTRUDERS
   #define EXTRUDERS         1
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
-  #define E_MANUAL          1
   #define TOOL_E_INDEX      0
 #else
-  #define E_MANUAL          EXTRUDERS
   #define TOOL_E_INDEX      current_block->active_extruder
 #endif
 
@@ -381,7 +371,6 @@
 #if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
   #undef HOTENDS
   #define HOTENDS           1
-  #define E_MANUAL          1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
   #undef HOTEND_OFFSET_X
   #undef HOTEND_OFFSET_Y

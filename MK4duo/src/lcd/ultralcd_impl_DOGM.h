@@ -176,9 +176,6 @@
   // Generic support for SSD1306 OLED I2C LCDs
   //U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
   U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST); // 4 stripes
-#elif ENABLED(U8GLIB_SSD1309)
-  // Generic support for SSD1309 OLED I2C LCDs
-  U8GLIB_SSD1309_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
 #elif ENABLED(U8GLIB_SH1106)
   // Generic support for SH1106 OLED I2C LCDs
   //U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
@@ -395,41 +392,44 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LASERBEAM)
 
-    #if ENABLED(LASER_PERIPHERALS)
-      if (laser_peripherals_ok()) {
-        u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
+    if (printer_mode == PRINTER_MODE_LASER) {
+      #if ENABLED(LASER_PERIPHERALS)
+        if (laser_peripherals_ok()) {
+          u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
+        }
+      #endif
+
+      u8g.setPrintPos(3,6);
+      if (stepper.current_block->laser_status == LASER_ON) {
+        u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
+        u8g.print(itostr3(stepper.current_block->laser_intensity));
+        lcd_printPGM(PSTR("%"));
+      } else {
+        u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
+        lcd_printPGM(PSTR("---%"));
       }
-    #endif
-
-    u8g.setPrintPos(3,6);
-    if (stepper.current_block->laser_status == LASER_ON) {
-      u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-      u8g.print(itostr3(stepper.current_block->laser_intensity));
-      lcd_printPGM(PSTR("%"));
-    } else {
-      u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
-      lcd_printPGM(PSTR("---%"));
     }
-
-  #else
-
-    //
-    // Fan Animation
-    //
-    if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
-      u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-        #if HAS(FAN)
-          blink && fanSpeed ? status_screen0_bmp : status_screen1_bmp
-        #else
-          status_screen0_bmp
-        #endif
-      );
-    }
+    else
 
   #endif
 
+    {
+      //
+      // Fan Animation
+      //
+      if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
-  #if DISABLED(LASERBEAM)
+        u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
+          #if HAS(FAN0)
+            blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
+          #else
+            status_screen0_bmp
+          #endif
+        );
+      }
+    }
+
+  if (printer_mode == PRINTER_MODE_FFF) {
 
     //
     // Temperature Graphics and Info
@@ -447,8 +447,8 @@ static void lcd_implementation_status_screen() {
       if (PAGE_CONTAINS(20, 27)) {
         // Fan
         u8g.setPrintPos(104, 27);
-        #if HAS_FAN
-          int per = ((fanSpeed + 1) * 100) / 256;
+        #if HAS(FAN0)
+          int per = ((fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
             lcd_print(itostr3(per));
             u8g.print('%');
@@ -456,8 +456,7 @@ static void lcd_implementation_status_screen() {
         #endif
       }
     }
-
-  #endif
+  }
 
   #if ENABLED(SDSUPPORT)
 
@@ -674,22 +673,42 @@ static void lcd_implementation_status_screen() {
 #if ENABLED(ULTIPANEL)
 
   uint8_t row_y1, row_y2;
+  uint8_t constexpr row_height = DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION);
+
+  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+
+    static void lcd_implementation_hotend_status(const uint8_t row) {
+      row_y1 = row * row_height + 1;
+      row_y2 = row_y1 + row_height - 1;
+
+      if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
+
+      u8g.setPrintPos(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
+      lcd_print('E');
+      lcd_print((char)('0' + active_extruder));
+      lcd_print(' ');
+      lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
+      lcd_print('/');
+      lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+    }
+
+  #endif // FILAMENT_CHANGE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
 
-    row_y1 = row * (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) + 1;
-    row_y2 = row_y1 + (DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION)) - 1;
+    row_y1 = row * row_height + 1;
+    row_y2 = row_y1 + row_height - 1;
 
-    if (!PAGE_CONTAINS(row_y1 + 1, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION))) return;
+    if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
 
     if (isSelected) {
       #if ENABLED(MENU_HOLLOW_FRAME)
         u8g.drawHLine(0, row_y1 + 1, LCD_PIXEL_WIDTH);
-        u8g.drawHLine(0, row_y1 + 1 + DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION), LCD_PIXEL_WIDTH);
+        u8g.drawHLine(0, row_y2 + 2, LCD_PIXEL_WIDTH);
       #else
         u8g.setColorIndex(1); // black on white
-        u8g.drawBox(0, row_y1 + 2, LCD_PIXEL_WIDTH, DOG_CHAR_HEIGHT - 1 + 2 * (TALL_FONT_CORRECTION));
+        u8g.drawBox(0, row_y1 + 2, LCD_PIXEL_WIDTH, row_height - 1);
         u8g.setColorIndex(0); // white on black
       #endif
     }

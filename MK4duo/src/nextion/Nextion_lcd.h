@@ -42,19 +42,25 @@
 #ifndef NEXTIONLCD_H
   #define NEXTIONLCD_H
 
+  #define LCD_DECIMAL_SMALL_XY
+
   #include "../utility/utility.h"
 
   #if ENABLED(NEXTION)
     void hotPopCallback(void *ptr);
     void sethotPopCallback(void *ptr);
     void settempPopCallback(void *ptr);
-    void setfanPopCallback(void *ptr);
+    #if FAN_COUNT > 0
+      void setfanPopCallback(void *ptr);
+    #endif
     void setmovePopCallback(void *ptr);
     void setgcodePopCallback(void *ptr);
+    void sendPopCallback(void *ptr);
     void lcd_update();
     void lcd_init();
-    void lcd_setstatus(const char* message, const bool persist = false);
-    void lcd_setstatuspgm(const char* message, const uint8_t level = 0);
+    void lcd_setstatus(const char* message, const bool persist=false);
+    void status_printf(uint8_t level, const char *Status, ...);
+    void lcd_setstatuspgm(const char* message, const uint8_t level=0);
     void lcd_setalertstatuspgm(const char* message);
     void lcd_reset_alert_level();
     void lcd_scrollinfo(const char* titolo, const char* message);
@@ -92,7 +98,6 @@
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
     FORCE_INLINE void lcd_buttons_update() {}
-    FORCE_INLINE bool lcd_detected(void) { return true; }
 
     #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
     #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))

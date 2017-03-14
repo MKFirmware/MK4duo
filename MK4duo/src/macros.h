@@ -30,8 +30,8 @@
 #define ABC       3
 #define XYZ       3
 
-// Clock speed factor
-#define CYCLES_PER_MICROSECOND (F_CPU / 1000000UL) // 16 or 20
+// Function macro
+#define FORCE_INLINE __attribute__((always_inline)) inline
 
 // Compiler warning on unused varable.
 #define UNUSED(x) (void) (x)
@@ -78,11 +78,9 @@
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-')
 #define NOLESS(v,n) do{ if (v < n) v = n; }while(0)
 #define NOMORE(v,n) do{ if (v > n) v = n; }while(0)
-#define COUNT(a) (sizeof(a)/sizeof(*a))
-#define ZERO(a) memset(a,0,sizeof(a))
-
-// Function macro
-#define FORCE_INLINE __attribute__((always_inline)) inline
+#define COUNT(a) (sizeof(a) / sizeof(*a))
+#define ZERO(a) memset(a, 0, sizeof(a))
+#define COPY_ARRAY(a,b) memcpy(a, b, min(sizeof(a), sizeof(b)))
 
 // Macro for debugging
 #define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))
@@ -161,6 +159,7 @@
 
 #define _AXIS(AXIS) AXIS ##_AXIS
 
+#define LOOP_XY(VAR)      for (uint8_t VAR = X_AXIS; VAR <= Y_AXIS; VAR++)
 #define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
 #define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
 #define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)

@@ -108,7 +108,7 @@ struct duration_t {
 
   /**
    * @brief Formats the duration as a string
-   * @details String will be formated using a "full" representation of duration
+   * @details String will be formatted using a "full" representation of duration
    *
    * @param buffer The array pointed to must be able to accommodate 21 bytes
    *
@@ -136,7 +136,7 @@ struct duration_t {
 
   /**
    * @brief Formats the duration as a string
-   * @details String will be formated using a "digital" representation of duration
+   * @details String will be formatted using a "digital" representation of duration
    *
    * @param buffer The array pointed to must be able to accommodate 10 bytes
    *
@@ -150,7 +150,7 @@ struct duration_t {
              m = uint16_t(this->minute() % 60UL);
     if (with_days) {
       uint16_t d = this->day();
-      sprintf_P(buffer, PSTR("%ud %02u:%02u"), d, h, m);
+      sprintf_P(buffer, PSTR("%ud %02u:%02u"), d, h % 24, m);
       return d >= 10 ? 8 : 7;
     }
     else if (h < 100) {

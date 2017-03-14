@@ -280,6 +280,9 @@
 // Z probe speed, in mm/min
 #define Z_PROBE_SPEED 3000
 
+// Z Probe repetitions, median for best result
+#define Z_PROBE_REPETITIONS 1
+
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
 
@@ -384,7 +387,7 @@
 // For DELTA this is the top-center of the Cartesian print volume.
 #define MANUAL_X_HOME_POS 0
 #define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 200 // Distance between the nozzle to printbed after homing
+#define MANUAL_Z_HOME_POS 200
 /*****************************************************************************************/
 
 
@@ -486,6 +489,17 @@
  *                                                                                       *
  *****************************************************************************************/
 //#define DELTA_HOME_TO_SAFE_ZONE
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ********************************* Delta Home On Power ***********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Home printer on power on.                                                             *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define DELTA_HOME_ON_POWER
 /*****************************************************************************************/
 
 

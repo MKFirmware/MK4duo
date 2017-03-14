@@ -116,6 +116,23 @@ enum TempState {
   StartupDelay // Startup, delay initial temp reading a tiny bit so the hardware can settle
 };
 
+#if ENABLED(EMERGENCY_PARSER)
+  enum e_parser_state {
+    state_RESET,
+    state_N,
+    state_M,
+    state_M1,
+    state_M10,
+    state_M108,
+    state_M11,
+    state_M112,
+    state_M4,
+    state_M41,
+    state_M410,
+    state_IGNORE // to '\n'
+  };
+#endif
+
 /**
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
@@ -126,9 +143,9 @@ enum TempState {
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)
     WAIT_HEATER,        // Wait heater
-    DOOR_OPEN,          // Door open
     PAUSED_FOR_USER,    // Blocking pending any input
-    PAUSED_FOR_INPUT    // Blocking pending text input (concept)
+    PAUSED_FOR_INPUT,   // Blocking pending text input (concept)
+    DOOR_OPEN           // Door open
   };
 #endif
 
@@ -142,16 +159,26 @@ enum TempState {
   #if HAS(LCD)
     enum FilamentChangeMessage {
       FILAMENT_CHANGE_MESSAGE_INIT,
+      FILAMENT_CHANGE_MESSAGE_COOLDOWN,
       FILAMENT_CHANGE_MESSAGE_UNLOAD,
       FILAMENT_CHANGE_MESSAGE_INSERT,
       FILAMENT_CHANGE_MESSAGE_LOAD,
       FILAMENT_CHANGE_MESSAGE_EXTRUDE,
       FILAMENT_CHANGE_MESSAGE_OPTION,
       FILAMENT_CHANGE_MESSAGE_RESUME,
-      FILAMENT_CHANGE_MESSAGE_STATUS
+      FILAMENT_CHANGE_MESSAGE_STATUS,
+      FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+      FILAMENT_CHANGE_MESSAGE_PRINTER_OFF,
+      FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
     };
   #endif
 #endif
+
+enum PrinterMode {
+  PRINTER_MODE_FFF,
+  PRINTER_MODE_LASER,
+  PRINTER_MODE_CNC
+};
 
 #if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
   enum MeshLevelingState {

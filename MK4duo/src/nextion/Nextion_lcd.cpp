@@ -48,7 +48,9 @@
   #include "nextion_lib/Nextion.h"
 
   bool  NextionON                   = false,
-        show_Wave                   = true;
+        show_Wave                   = true,
+        lcdDrawUpdate               = false,
+        lcd_clicked                 = false;
   uint8_t PageID                    = 0,
           lcd_status_message_level  = 0;
   uint16_t slidermaxval             = 20;
@@ -70,27 +72,28 @@
    * Nextion component all page
    *******************************************************************
    */
-  NexPage Pstart        = NexPage       (0,   0,  "start");
-  NexPage Pmenu         = NexPage       (1,   0,  "menu");
-  NexPage Pprinter      = NexPage       (2,   0,  "printer");
-  NexPage Psdcard       = NexPage       (3,   0,  "sdcard");
-  NexPage Psetup        = NexPage       (4,   0,  "setup");
-  NexPage Pmove         = NexPage       (5,   0,  "move");
-  NexPage Pspeed        = NexPage       (6,   0,  "speed");
-  NexPage Pgcode        = NexPage       (7,   0,  "gcode");
-  NexPage Prfid         = NexPage       (8,   0,  "rfid");
-  NexPage Pbrightness   = NexPage       (9,   0,  "brightness");
-  NexPage Ptemp         = NexPage       (10,  0,  "temp");
-  NexPage Pinfo         = NexPage       (11,  0,  "info");
-  NexPage Pyesno        = NexPage       (12,  0,  "yesno");
-  NexPage Pfilament     = NexPage       (13,  0,  "filament");
+  NexObject Pstart        = NexObject       (0,   0,  "start");
+  NexObject Pmenu         = NexObject       (1,   0,  "menu");
+  NexObject Pprinter      = NexObject       (2,   0,  "printer");
+  NexObject Psdcard       = NexObject       (3,   0,  "sdcard");
+  NexObject Psetup        = NexObject       (4,   0,  "setup");
+  NexObject Pmove         = NexObject       (5,   0,  "move");
+  NexObject Pspeed        = NexObject       (6,   0,  "speed");
+  NexObject Pgcode        = NexObject       (7,   0,  "gcode");
+  NexObject Prfid         = NexObject       (8,   0,  "rfid");
+  NexObject Pbrightness   = NexObject       (9,   0,  "brightness");
+  NexObject Ptemp         = NexObject       (10,  0,  "temp");
+  NexObject Pinfo         = NexObject       (11,  0,  "info");
+  NexObject Pyesno        = NexObject       (12,  0,  "yesno");
+  NexObject Pfilament     = NexObject       (13,  0,  "filament");
+  NexObject Pselect       = NexObject       (14,  0,  "select");
 
   /**
    *******************************************************************
    * Nextion component for page:start
    *******************************************************************
    */
-  NexTimer startimer    = NexTimer      (0,   1,  "tm0");
+  NexObject startimer     = NexObject      (0,   1,  "tm0");
 
   /**
    *******************************************************************
@@ -103,57 +106,62 @@
    * Nextion component for page:printer
    *******************************************************************
    */
-  NexVariable Hotend00  = NexVariable   (2,   2,  "he00");
-  NexVariable Hotend01  = NexVariable   (2,   3,  "he01");
-  NexVariable Hotend10  = NexVariable   (2,   4,  "he10");
-  NexVariable Hotend11  = NexVariable   (2,   5,  "he11");
-  NexVariable Bed0      = NexVariable   (2,   6,  "bed0");
-  NexVariable Bed1      = NexVariable   (2,   7,  "bed1");
-  NexVariable Chamber0  = NexVariable   (2,   8,  "cha0");
-  NexVariable Chamber1  = NexVariable   (2,   9,  "cha1");
-  NexVariable Extruder  = NexVariable   (2,   10, "extruder");
-  NexVariable Fan       = NexVariable   (2,   11, "fan");
-  NexVariable SD        = NexVariable   (2,   12, "sd");
-  NexVariable RFID      = NexVariable   (2,   13, "rfid");
-  NexVariable Language  = NexVariable   (2,   14, "lang");
-  NexVariable VSpeed    = NexVariable   (2,   15, "vspeed");
-  NexTimer Fantimer     = NexTimer      (2,   16, "tm0");
-  NexPicture Fanpic     = NexPicture    (2,   19, "p1");
-  NexPicture NStop      = NexPicture    (2,   20, "p2");
-  NexPicture NPlay      = NexPicture    (2,   21, "p3");
-  NexText LedStatus     = NexText       (2,   24, "t0");
-  NexText LedCoord1     = NexText       (2,   25, "t1");
-  NexText Hotend0       = NexText       (2,   26, "t2");
-  NexText Hotend1       = NexText       (2,   27, "t3");
-  NexText Hotend2       = NexText       (2,   28, "t4");
-  NexText Fanspeed      = NexText       (2,   29, "t5");
-  NexWaveform Wavetemp  = NexWaveform   (2,   30, "s0");
-  NexProgressBar sdbar  = NexProgressBar(2,   31, "j0");
+  NexObject Hotend00    = NexObject   (2,   2,  "he00");
+  NexObject Hotend01    = NexObject   (2,   3,  "he01");
+  NexObject Hotend10    = NexObject   (2,   4,  "he10");
+  NexObject Hotend11    = NexObject   (2,   5,  "he11");
+  NexObject Bed0        = NexObject   (2,   6,  "bed0");
+  NexObject Bed1        = NexObject   (2,   7,  "bed1");
+  NexObject Chamber0    = NexObject   (2,   8,  "cha0");
+  NexObject Chamber1    = NexObject   (2,   9,  "cha1");
+  NexObject Extruder    = NexObject   (2,   10, "extruder");
+  NexObject Fan         = NexObject   (2,   11, "fan");
+  NexObject SD          = NexObject   (2,   12, "sd");
+  NexObject RFID        = NexObject   (2,   13, "rfid");
+  NexObject Language    = NexObject   (2,   14, "lang");
+  NexObject VSpeed      = NexObject   (2,   15, "vspeed");
+  NexObject Fantimer    = NexObject   (2,   16, "tm0");
+  NexObject Fanpic      = NexObject   (2,   19, "p0");
+  NexObject NStop       = NexObject   (2,   20, "p1");
+  NexObject NPlay       = NexObject   (2,   21, "p2");
+  NexObject NSStop      = NexObject   (2,   22, "p3");
+  NexObject LcdStatus   = NexObject   (2,   24, "t0");
+  NexObject LcdCommand  = NexObject   (2,   25, "t1");
+  NexObject Hotend0     = NexObject   (2,   26, "t2");
+  NexObject Hotend1     = NexObject   (2,   27, "t3");
+  NexObject Hotend2     = NexObject   (2,   28, "t4");
+  NexObject Fanspeed    = NexObject   (2,   29, "t5");
+  NexObject LcdX        = NexObject   (2,   32, "t6");
+  NexObject LcdY        = NexObject   (2,   33, "t7");
+  NexObject LcdZ        = NexObject   (2,   34, "t8");
+  NexObject LcdTime     = NexObject   (2,   35, "t9");
+  NexObject Wavetemp    = NexObject   (2,   30, "s0");
+  NexObject sdbar       = NexObject   (2,   31, "j0");
 
   /**
    *******************************************************************
    * Nextion component for page:SDCard
    *******************************************************************
    */
-  NexText sdrow0        = NexText       (3,   2,  "t0");
-  NexText sdrow1        = NexText       (3,   3,  "t1");
-  NexText sdrow2        = NexText       (3,   4,  "t2");
-  NexText sdrow3        = NexText       (3,   5,  "t3");
-  NexText sdrow4        = NexText       (3,   6,  "t4");
-  NexText sdrow5        = NexText       (3,   7,  "t5");
-  NexText sdfolder      = NexText       (3,   16, "t6");
-  NexPicture Folder0    = NexPicture    (3,   8,  "p0");
-  NexPicture Folder1    = NexPicture    (3,   9,  "p1");
-  NexPicture Folder2    = NexPicture    (3,   10, "p2");
-  NexPicture Folder3    = NexPicture    (3,   11, "p3");
-  NexPicture Folder4    = NexPicture    (3,   12, "p4");
-  NexPicture Folder5    = NexPicture    (3,   13, "p5");
-  NexPicture Folderup   = NexPicture    (3,   14, "p6");
-  NexPicture ScrollUp   = NexPicture    (3,   18, "p7");
-  NexPicture ScrollDown = NexPicture    (3,   19, "p8");
-  NexPicture sd_mount   = NexPicture    (3,   22, "p12");
-  NexPicture sd_dismount= NexPicture    (3,   23, "p13");
-  NexSlider sdlist      = NexSlider     (3,   1,  "h0");
+  NexObject sdrow0      = NexObject   (3,   2,  "t0");
+  NexObject sdrow1      = NexObject   (3,   3,  "t1");
+  NexObject sdrow2      = NexObject   (3,   4,  "t2");
+  NexObject sdrow3      = NexObject   (3,   5,  "t3");
+  NexObject sdrow4      = NexObject   (3,   6,  "t4");
+  NexObject sdrow5      = NexObject   (3,   7,  "t5");
+  NexObject sdfolder    = NexObject   (3,   16, "t6");
+  NexObject Folder0     = NexObject   (3,   8,  "p0");
+  NexObject Folder1     = NexObject   (3,   9,  "p1");
+  NexObject Folder2     = NexObject   (3,   10, "p2");
+  NexObject Folder3     = NexObject   (3,   11, "p3");
+  NexObject Folder4     = NexObject   (3,   12, "p4");
+  NexObject Folder5     = NexObject   (3,   13, "p5");
+  NexObject Folderup    = NexObject   (3,   14, "p6");
+  NexObject ScrollUp    = NexObject   (3,   18, "p7");
+  NexObject ScrollDown  = NexObject   (3,   19, "p8");
+  NexObject sd_mount    = NexObject   (3,   22, "p12");
+  NexObject sd_dismount = NexObject   (3,   23, "p13");
+  NexObject sdlist      = NexObject   (3,   1,  "h0");
 
   /**
    *******************************************************************
@@ -166,49 +174,49 @@
    * Nextion component for page:Move
    *******************************************************************
    */
-  NexPicture MotorOff   = NexPicture    (5,  17,  "p0");
-  NexPicture XYHome     = NexPicture    (5,   2,  "p4");
-  NexPicture XYUp       = NexPicture    (5,   3,  "p5");
-  NexPicture XYRight    = NexPicture    (5,   4,  "p6");
-  NexPicture XYDown     = NexPicture    (5,   5,  "p7");
-  NexPicture XYLeft     = NexPicture    (5,   6,  "p8");
-  NexPicture ZHome      = NexPicture    (5,   7,  "p9");
-  NexPicture ZUp        = NexPicture    (5,   8,  "p10");
-  NexPicture ZDown      = NexPicture    (5,   9,  "p11");
-  NexPicture Extrude    = NexPicture    (5,  20,  "p12");
-  NexPicture Retract    = NexPicture    (5,  22,  "p14");
-  NexVariable movecmd   = NexVariable   (5,  11,  "vacmd");
-  NexVariable ext       = NexVariable   (5,  19,  "va0");
-  NexText LedCoord5     = NexText       (5,  12,  "t0");
+  NexObject MotorOff    = NexObject    (5,  17,  "p0");
+  NexObject XYHome      = NexObject    (5,   2,  "p4");
+  NexObject XYUp        = NexObject    (5,   3,  "p5");
+  NexObject XYRight     = NexObject    (5,   4,  "p6");
+  NexObject XYDown      = NexObject    (5,   5,  "p7");
+  NexObject XYLeft      = NexObject    (5,   6,  "p8");
+  NexObject ZHome       = NexObject    (5,   7,  "p9");
+  NexObject ZUp         = NexObject    (5,   8,  "p10");
+  NexObject ZDown       = NexObject    (5,   9,  "p11");
+  NexObject Extrude     = NexObject    (5,  20,  "p12");
+  NexObject Retract     = NexObject    (5,  22,  "p14");
+  NexObject movecmd     = NexObject   (5,  11,  "vacmd");
+  NexObject ext         = NexObject   (5,  19,  "va0");
+  NexObject LedCoord5   = NexObject       (5,  12,  "t0");
 
   /**
    *******************************************************************
    * Nextion component for page:Speed
    *******************************************************************
    */
-  NexSlider Speed       = NexSlider     (6,   7,  "h0");
+  NexObject Speed       = NexObject     (6,   7,  "h0");
 
   /**
    *******************************************************************
    * Nextion component for page:GCode
    *******************************************************************
    */
-  NexText Tgcode        = NexText       (7,   1,  "tgcode");
-  NexButton Send        = NexButton     (7,   44, "b39");
+  NexObject Tgcode      = NexObject     (7,   1,  "tgcode");
+  NexObject Send        = NexObject     (7,   44, "b39");
 
   /**
    *******************************************************************
    * Nextion component for page:Rfid
    *******************************************************************
    */
-  NexText RfidText      = NexText       (8,   8,  "t0");
-  NexButton Rfid0       = NexButton     (8,   2,  "b0");
-  NexButton Rfid1       = NexButton     (8,   3,  "b1");
-  NexButton Rfid2       = NexButton     (8,   4,  "b2");
-  NexButton Rfid3       = NexButton     (8,   5,  "b3");
-  NexButton Rfid4       = NexButton     (8,   6,  "b4");
-  NexButton Rfid5       = NexButton     (8,   7,  "b5");
-  NexDSButton RfidR     = NexDSButton   (8,   9,  "bt0");
+  NexObject RfidText    = NexObject     (8,   8,  "t0");
+  NexObject Rfid0       = NexObject     (8,   2,  "b0");
+  NexObject Rfid1       = NexObject     (8,   3,  "b1");
+  NexObject Rfid2       = NexObject     (8,   4,  "b2");
+  NexObject Rfid3       = NexObject     (8,   5,  "b3");
+  NexObject Rfid4       = NexObject     (8,   6,  "b4");
+  NexObject Rfid5       = NexObject     (8,   7,  "b5");
+  NexObject RfidR       = NexObject     (8,   9,  "bt0");
 
   /**
    *******************************************************************
@@ -221,34 +229,57 @@
    * Nextion component for page:Temp
    *******************************************************************
    */
-  NexText tset          = NexText       (10,  1,  "t0");
-  NexVariable theater   = NexVariable   (10,  2,  "va0");
-  NexPicture tenter     = NexPicture    (10,  3,  "p5");
-  NexPicture tup        = NexPicture    (10,  6,  "p8");
-  NexPicture tdown      = NexPicture    (10,  7,  "p9");
+  NexObject tset        = NexObject     (10,  1,  "t0");
+  NexObject theater     = NexObject     (10,  2,  "va0");
+  NexObject tenter      = NexObject     (10,  3,  "p5");
+  NexObject tup         = NexObject     (10,  6,  "p8");
+  NexObject tdown       = NexObject     (10,  7,  "p9");
 
   /**
    *******************************************************************
    * Nextion component for page:Info
    *******************************************************************
    */
-  NexText InfoText          = NexText       (11,   2,  "t0");
-  NexScrolltext ScrollText  = NexScrolltext (11,   3,  "g0");
+  NexObject InfoText    = NexObject     (11,   2,  "t0");
+  NexObject ScrollText  = NexObject     (11,   3,  "g0");
 
   /**
    *******************************************************************
    * Nextion component for page:Yesno
    *******************************************************************
    */
-  NexVariable Vyes          = NexVariable   (12,  2,  "va0");
-  NexText Riga0             = NexText       (12,  4,  "t0");
-  NexText Riga1             = NexText       (12,  5,  "t1");
-  NexText Riga2             = NexText       (12,  6,  "t2");
-  NexText Riga3             = NexText       (12,  7,  "t3");
-  NexPicture Yes            = NexPicture    (12,  8,  "p1");
-  NexPicture No             = NexPicture    (12,  9,  "p2");
+  NexObject Vyes        = NexObject     (12,  2,  "va0");
+  NexObject Riga0       = NexObject     (12,  4,  "t0");
+  NexObject Riga1       = NexObject     (12,  5,  "t1");
+  NexObject Riga2       = NexObject     (12,  6,  "t2");
+  NexObject Riga3       = NexObject     (12,  7,  "t3");
+  NexObject Yes         = NexObject     (12,  8,  "p1");
+  NexObject No          = NexObject     (12,  9,  "p2");
 
-  NexTouch *nex_listen_list[] =
+  /**
+   *******************************************************************
+   * Nextion component for page:Filament
+   *******************************************************************
+   */
+
+  /**
+   *******************************************************************
+   * Nextion component for page:Select
+   *******************************************************************
+   */
+  NexObject LcdRiga1    = NexObject     (14,  1,  "t0");
+  NexObject LcdRiga2    = NexObject     (14,  2,  "t1");
+  NexObject LcdRiga3    = NexObject     (14,  3,  "t2");
+  NexObject LcdRiga4    = NexObject     (14,  4,  "t3");
+  NexObject LcdValor    = NexObject     (14,  5,  "t4");
+  NexObject LcdUp       = NexObject     (14,  6,  "p0");
+  NexObject LcdSend     = NexObject     (14,  7,  "p1");
+  NexObject LcdDown     = NexObject     (14,  8,  "p2");
+  NexObject LcdMin      = NexObject     (14,  9,  "max");
+  NexObject LcdMax      = NexObject     (14, 10,  "max");
+  NexObject LcdPos      = NexObject     (14, 11,  "pos");
+
+  NexObject *nex_listen_list[] =
   {
     // Page 2 touch listen
     &Hotend0, &Hotend1, &Hotend2, &Fanpic, &NPlay,
@@ -279,10 +310,22 @@
     // Page 12 touch listen
     &Yes,
 
+    // Page 14 touch listen
+    &LcdSend,
+
     NULL
   };
 
-  NexVariable *heater_list0[] =
+  NexObject *lcd_row_list[] =
+  {
+    &LcdRiga1,
+    &LcdRiga2,
+    &LcdRiga3,
+    &LcdRiga4,
+    NULL
+  };
+
+  NexObject *heater_list0[] =
   {
     &Hotend00,
     &Hotend10,
@@ -291,7 +334,7 @@
     NULL
   };
 
-  NexVariable *heater_list1[] =
+  NexObject *heater_list1[] =
   {
     &Hotend01,
     &Hotend11,
@@ -300,7 +343,7 @@
     NULL
   };
 
-  NexText *row_list[] =
+  NexObject *row_list[] =
   {
     &sdrow0,
     &sdrow1,
@@ -311,7 +354,7 @@
     NULL
   };
 
-  NexPicture *folder_list[] =
+  NexObject *folder_list[] =
   {
     &Folder0,
     &Folder1,
@@ -321,6 +364,17 @@
     &Folder5,
     NULL
   };
+
+  // Function pointer to menu functions.
+  typedef void (*screenFunc_t)();
+
+  /**
+   *
+   * Menu actions
+   *
+   */
+  void menu_action_back() { Pprinter.show(); }
+  void menu_action_function(screenFunc_t func) { (*func)(); }
 
   void setpagePrinter() {
 
@@ -348,7 +402,7 @@
 
     VSpeed.setValue(100, "printer");
 
-    #if HAS(FAN)
+    #if FAN_COUNT > 0
       Fan.setValue(1, "printer");
     #endif
 
@@ -361,6 +415,65 @@
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
     Language.setText(NEXTION_LANGUAGE, "printer");
   }
+
+  void start_menu(const bool encoder=false, const bool push=false) {
+    Pselect.show();
+    LcdUp.SetVisibility(encoder);
+    LcdDown.SetVisibility(encoder);
+    LcdSend.SetVisibility(push);
+    lcdDrawUpdate = true;
+    lcd_clicked = !push;
+  }
+
+  /**
+   * START_SCREEN  Opening code for a screen having only static items.
+   *               Do simplified scrolling of the entire screen.
+   *
+   * START_MENU    Opening code for a screen with menu items.
+   *               Scroll as-needed to keep the selected line in view.
+   */
+  #define START_SCREEN() \
+    start_menu(false, true); \
+    do { \
+      uint8_t _lcdLineNr = 0; \
+
+  #define START_MENU() \
+    start_menu(true, true); \
+    uint32_t encoderLine; \
+    uint8_t _lcdLineNr = 0; \
+    do { \
+      _lcdLineNr = 0; \
+      LcdPos.getValue(&encoderLine); \
+      HAL::delayMilliseconds(200)
+
+  #define MENU_ITEM(TYPE, LABEL, ...) \
+      if (lcdDrawUpdate) { \
+        lcd_row_list[_lcdLineNr]->setText(PSTR(LABEL)); \
+        LcdMax.setValue(_lcdLineNr); \
+      } \
+      if (lcd_clicked && encoderLine == _lcdLineNr) { \
+        menu_action_ ## TYPE(__VA_ARGS__); \
+        return; \
+      } \
+      ++_lcdLineNr
+
+  #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL)
+
+  #define STATIC_ITEM(LABEL) \
+      if (lcdDrawUpdate) { \
+        lcd_row_list[_lcdLineNr]->setText(PSTR(LABEL)); \
+        LcdMin.setValue(_lcdLineNr + 1); \
+      } \
+      ++_lcdLineNr \
+
+  #define END_MENU() \
+      idle(); \
+      lcdDrawUpdate = false; \
+    } while(1)
+
+  #define END_SCREEN() \
+      lcdDrawUpdate = false; \
+    } while(0)
 
   #if ENABLED(SDSUPPORT)
 
@@ -540,6 +653,15 @@
 
   #if ENABLED(FILAMENT_CHANGE_FEATURE)
 
+    void lcd_filament_change_toocold_menu() {
+      START_MENU();
+      STATIC_ITEM(MSG_HEATING_FAILED_LCD);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_MINTEMP STRINGIFY(EXTRUDE_MINTEMP) ".");
+      MENU_BACK(MSG_BACK);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE);
+      END_MENU();
+    }
+
     static void lcd_filament_change_resume_print() {
       filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
@@ -550,120 +672,107 @@
     }
 
     static void lcd_filament_change_option_menu() {
-      Vyes.setValue(5, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_OPTION_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_OPTION_RESUME);
-      Riga2.setText("");
-      Riga3.setText("");
+      START_MENU();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_OPTION_HEADER);
+      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_filament_change_resume_print);
+      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_EXTRUDE, lcd_filament_change_extrude_more);
+      END_MENU();
     }
 
     static void lcd_filament_change_init_message() {
-      Vyes.setValue(0, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_INIT_1);
-      #ifdef MSG_FILAMENT_CHANGE_INIT_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_INIT_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_INIT_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_INIT_3);
-      #else
-        Riga3.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_3);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_cool_message() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
+      END_SCREEN();
     }
 
     static void lcd_filament_change_unload_message() {
-      Vyes.setValue(0, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_UNLOAD_1);
-      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_UNLOAD_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_UNLOAD_3);
-      #else
-        Riga3.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_3);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_wait_for_nozzles_to_heat() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_2);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_heat_nozzle() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_2);
+      END_SCREEN();
+    }
+
+    static void lcd_filament_change_printer_off() {
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_2);
+      END_SCREEN();
     }
 
     static void lcd_filament_change_insert_message() {
-      Vyes.setValue(4, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_INSERT_1);
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_INSERT_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_INSERT_3);
-      #else
-        Riga3.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_3);
+      END_SCREEN();
     }
 
     static void lcd_filament_change_load_message() {
-      Vyes.setValue(0, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_LOAD_1);
-      #ifdef MSG_FILAMENT_CHANGE_LOAD_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_LOAD_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_LOAD_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_LOAD_3);
-      #else
-        Riga3.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_3);
+      END_SCREEN();
     }
 
     static void lcd_filament_change_extrude_message() {
-      Vyes.setValue(0, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_EXTRUDE_1);
-      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_EXTRUDE_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_EXTRUDE_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_EXTRUDE_3);
-      #else
-        Riga3.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_3);
+      END_SCREEN();
     }
 
     static void lcd_filament_change_resume_message() {
-      Vyes.setValue(0, "yesno");
-      Pyesno.show();
-      Riga0.setText(MSG_FILAMENT_CHANGE_HEADER);
-      Riga1.setText(MSG_FILAMENT_CHANGE_RESUME_1);
-      #ifdef MSG_FILAMENT_CHANGE_RESUME_2
-        Riga2.setText(MSG_FILAMENT_CHANGE_RESUME_2);
-      #else
-        Riga2.setText("");
-      #endif
-      #ifdef MSG_FILAMENT_CHANGE_RESUME_3
-        Riga3.setText(MSG_FILAMENT_CHANGE_RESUME_3);
-      #else
-        Riga2.setText("");
-      #endif
+      START_SCREEN();
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_3);
+      END_SCREEN();
     }
 
     void lcd_filament_change_show_message(FilamentChangeMessage message) {
       switch (message) {
         case FILAMENT_CHANGE_MESSAGE_INIT:
           lcd_filament_change_init_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_COOLDOWN:
+          lcd_filament_change_cool_message();
           break;
         case FILAMENT_CHANGE_MESSAGE_UNLOAD:
           lcd_filament_change_unload_message();
@@ -676,6 +785,15 @@
           break;
         case FILAMENT_CHANGE_MESSAGE_EXTRUDE:
           lcd_filament_change_extrude_message();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
+          lcd_filament_change_heat_nozzle();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_PRINTER_OFF:
+          lcd_filament_change_printer_off();
+          break;
+        case FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
+          lcd_filament_change_wait_for_nozzles_to_heat();
           break;
         case FILAMENT_CHANGE_MESSAGE_OPTION:
           filament_change_menu_response = FILAMENT_CHANGE_RESPONSE_WAIT_FOR;
@@ -801,19 +919,16 @@
   void setgcodePopCallback(void *ptr) {
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
+    Tgcode.setText("");
     enqueue_and_echo_command(buffer);
   }
 
-  void setfanPopCallback(void *ptr) {
-    if (fanSpeed) {
-      fanSpeed = 0;
-      Fantimer.disable();
+  #if FAN_COUNT > 0
+    void setfanPopCallback(void *ptr) {
+      fanSpeeds[0] = fanSpeeds[0] ? 0 : 255;
+      Fantimer.enable(fanSpeeds[0] ? false : true);
     }
-    else {
-      fanSpeed = 255;
-      Fantimer.enable();
-    }
-  }
+  #endif
 
   void setmovePopCallback(void *ptr) {
 
@@ -849,6 +964,11 @@
     enqueue_and_echo_commands_P(PSTR("M84"));
   }
 
+  void sendPopCallback(void *ptr) {
+    lcd_clicked = true;
+    wait_for_user = false;
+  }
+
   void YesPopCallback(void *ptr) {
     static uint32_t icon = 0;
     Vyes.getValue(&icon);
@@ -859,12 +979,6 @@
           StopPrint(icon == 2); Pprinter.show(); break;
         case 3: // Stop & Save
           UploadNewFirmware(); break;
-      #endif
-      #if ENABLED(FILAMENT_CHANGE_FEATURE)
-        case 4: // Filament click
-          wait_for_user = false; break;
-        case 5: // Filament resume print
-          lcd_filament_change_resume_print(); break;
       #endif
     }
   }
@@ -923,7 +1037,10 @@
         Hotend2.attachPop(hotPopCallback, &Hotend2);
       #endif
 
-      Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #if FAN_COUNT > 0
+        Fanpic.attachPop(setfanPopCallback,   &Fanpic);
+      #endif
+
       tenter.attachPop(sethotPopCallback,   &tenter);
       tup.attachPop(settempPopCallback,     &tup);
       tdown.attachPop(settempPopCallback,   &tdown);
@@ -940,6 +1057,7 @@
       MotorOff.attachPop(motoroffPopCallback);
       Send.attachPop(setgcodePopCallback);
       Yes.attachPop(YesPopCallback);
+      LcdSend.attachPop(sendPopCallback);
 
       setpagePrinter();
       startimer.enable();
@@ -957,7 +1075,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX) && ENABLED(NEXTION_WAVETEMP)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetSatus() && show_Wave) {
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetVisibility() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -978,7 +1096,12 @@
     char* valuetemp;
     ZERO(buffer);
 
-    #if NOMECH(DELTA)
+    if (PageID == 2) {
+      LcdX.setText(ftostr4sign(current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
+      LcdZ.setText(ftostr4sign(current_position[Z_AXIS] + 0.00001));
+    }
+    else {
       strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
       if (axis_homed[X_AXIS]) {
         valuetemp = ftostr4sign(current_position[X_AXIS]);
@@ -990,16 +1113,15 @@
         valuetemp = ftostr4sign(current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
-    #endif
 
-    strcat(buffer, (axis_homed[Z_AXIS] ? " Z " : " ? "));
-    if (axis_homed[Z_AXIS]) {
-      valuetemp = ftostr52sp(current_position[Z_AXIS] + 0.00001);
-      strcat(buffer, valuetemp);
+      strcat(buffer, (axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(current_position[Z_AXIS] + 0.00001);
+        strcat(buffer, valuetemp);
+      }
+
+      LedCoord5.setText(buffer);
     }
-
-    if (PageID == 2) LedCoord1.setText(buffer);
-    else LedCoord5.setText(buffer);
   }
 
   void lcd_update() {
@@ -1011,7 +1133,11 @@
                     PrevioustargetdegHeater[3] = { 0.0 };
     char* temp;
 
-    if (!NextionON) return;
+    if (!NextionON
+      #if HAS(BED_PROBE)
+        || probe_process
+      #endif
+    ) return;
 
     nexLoop(nex_listen_list);
 
@@ -1036,21 +1162,23 @@
             #endif
           }
 
-          if (PreviousfanSpeed != fanSpeed) {
-            if (fanSpeed > 0) {
-              Fantimer.enable();
-              ZERO(buffer);
-              temp = itostr3(((float)fanSpeed / 255) * 100);
-              strcat(buffer, temp);
-              strcat(buffer, "%");
-              Fanspeed.setText(buffer);
+          #if FAN_COUNT > 0
+            if (PreviousfanSpeed != fanSpeeds[0]) {
+              if (fanSpeeds[0] > 0) {
+                Fantimer.enable();
+                ZERO(buffer);
+                temp = itostr3(((float)fanSpeeds[0] / 255) * 100);
+                strcat(buffer, temp);
+                strcat(buffer, "%");
+                Fanspeed.setText(buffer);
+              }
+              else {
+                Fantimer.enable(false);
+                Fanspeed.setText("");
+              }
+              PreviousfanSpeed = fanSpeeds[0];
             }
-            else {
-              Fantimer.disable();
-              Fanspeed.setText("");
-            }
-            PreviousfanSpeed = fanSpeed;
-          }
+          #endif
 
           if (Previousfeedrate != feedrate_percentage) {
             VSpeed.setValue(feedrate_percentage);
@@ -1098,6 +1226,7 @@
                 SD.setValue(SDstatus);
                 NPlay.setPic(28);
                 NStop.setPic(29);
+                NSStop.setPic(177);
               }
               if (IS_SD_PRINTING) {
                 if (PreviouspercentDone != card.percentDone()) {
@@ -1107,12 +1236,17 @@
                   uint16_t time = print_job_counter.duration() / 60;
                   uint16_t end_time = (time * (100 - card.percentDone())) / card.percentDone();
                   if (end_time > (60 * 23) || end_time == 0) {
-                    lcd_setstatus("End --:--");
+                    LcdTime.setText("S--:-- E--:--");
                   }
                   else {
-                    char temp[30];
-                    sprintf_P(temp, PSTR("End %i:%i"), end_time / 60, end_time%60);
-                    lcd_setstatus(temp);
+                    char temp1[10], temp2[10];
+                    sprintf_P(temp1, PSTR("S%i:%i"), time / 60, time%60);
+                    sprintf_P(temp2, PSTR("E%i:%i"), end_time / 60, end_time%60);
+                    ZERO(buffer);
+                    strcat(buffer, temp1);
+                    strcat(buffer, " ");
+                    strcat(buffer, temp2);
+                    LcdTime.setText(buffer);
                   }
                   PreviouspercentDone = card.percentDone();
                 }
@@ -1120,6 +1254,7 @@
               else {
                 NPlay.setPic(26);
                 NStop.setPic(29);
+                NSStop.setPic(177);
               }
             }
             else if (card.cardOK && SDstatus != 2) {
@@ -1127,12 +1262,14 @@
               SD.setValue(SDstatus);
               NPlay.setPic(27);
               NStop.setPic(30);
+              NSStop.setPic(178);
             }
             else if (!card.cardOK && SDstatus != 1) {
               SDstatus = 1;
               SD.setValue(SDstatus);
               NPlay.setPic(27);
               NStop.setPic(30);
+              NSStop.setPic(178);
             }
 
           #endif // SDSUPPORT
@@ -1160,15 +1297,25 @@
   void lcd_setstatus(const char* message, bool persist) {
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
-    if (PageID == 2) LedStatus.setText(lcd_status_message);
+    if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
   void lcd_setstatuspgm(const char* message, uint8_t level) {
-    if (level >= lcd_status_message_level && NextionON) {
+    if (level < lcd_status_message_level && NextionON) {
       strncpy_P(lcd_status_message, message, 30);
       lcd_status_message_level = level;
-      if (PageID == 2) LedStatus.setText(lcd_status_message);
+      if (PageID == 2) LcdStatus.setText(lcd_status_message);
     }
+  }
+
+  void status_printf(uint8_t level, const char *status, ...) {
+    if (level < lcd_status_message_level) return;
+    lcd_status_message_level = level;
+    va_list args;
+    va_start(args, status);
+    vsnprintf(lcd_status_message, 30, status, args);
+    va_end(args);
+    if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
   void lcd_setalertstatuspgm(const char* message) {

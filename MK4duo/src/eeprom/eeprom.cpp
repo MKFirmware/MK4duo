@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV30"
+#define EEPROM_VERSION "MKV31"
 #define EEPROM_OFFSET 10
 
 /**
@@ -92,8 +92,10 @@
  *  M666  D               deltaParams.diagonal_rod (float)
  *  M666  S               deltaParams.segments_per_second (float)
  *  M666  H               deltaParams.base_max_pos (float)
- *  M666  ABCIJK          deltaParams.tower_adj (float x6)
+ *  M666  ABC             deltaParams.tower_radius_adj (float x3)
+ *  M666  IJK             deltaParams.tower_pos_adj (float x3)
  *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
+ *  M666  O               deltaParams.print_Radius (float)
  *
  * Z_TWO_ENDSTOPS:
  *  M666  Z               z2_endstop_adj (float)
@@ -139,6 +141,18 @@
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current (float x7)
  *
+ * TMC2130 Stepper Current:
+ *  M906  X               stepperX current  (uint16_t)
+ *  M906  Y               stepperY current  (uint16_t)
+ *  M906  Z               stepperZ current  (uint16_t)
+ *  M906  X2              stepperX2 current (uint16_t)
+ *  M906  Y2              stepperY2 current (uint16_t)
+ *  M906  Z2              stepperZ2 current (uint16_t)
+ *  M906  E0              stepperE0 current (uint16_t)
+ *  M906  E1              stepperE1 current (uint16_t)
+ *  M906  E2              stepperE2 current (uint16_t)
+ *  M906  E3              stepperE3 current (uint16_t)
+ *
  */
 
 EEPROM eeprom;
@@ -166,8 +180,10 @@ void EEPROM::Postprocess() {
 
   calculate_volumetric_multipliers();
 
-  // Software endstops depend on home_offset
-  LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
+  #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+    // Software endstops depend on home_offset
+    LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
+  #endif
 }
 
 #if ENABLED(EEPROM_SETTINGS)
@@ -178,43 +194,76 @@ void EEPROM::Postprocess() {
   bool  eeprom_write_error,
         eeprom_read_error;
 
-  void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
-    if (eeprom_write_error) return;
+  #if HAS(EEPROM_SD)
 
-    while(size--) {
-      uint8_t * const p = (uint8_t * const)pos;
-      const uint8_t v = *value;
-      // EEPROM has only ~100,000 write cycles,
-      // so only write bytes that have changed!
-      if (v != eeprom_read_byte(p)) {
-        eeprom_write_byte(p, v);
-        if (eeprom_read_byte(p) != v) {
+    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+      if (eeprom_write_error) return;
+
+      while(size--) {
+        const uint8_t v = *value;
+        if (!card.write_data(v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           eeprom_write_error = true;
           return;
         }
-      }
-      eeprom_checksum += v;
-      pos++;
-      value++;
-    };
-  }
+        eeprom_checksum += v;
+        pos++;
+        value++;
+      };
+    }
 
-  void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
-    do {
-      uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      if (!eeprom_read_error) *value = c;
-      eeprom_checksum += c;
-      pos++;
-      value++;
-    } while (--size);
-  }
+    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+      if (eeprom_read_error) return;
 
-  #define EEPROM_START() int eeprom_index = EEPROM_OFFSET
-  #define EEPROM_SKIP(VAR) eeprom_index += sizeof(VAR)
+      do {
+        uint8_t c = card.read_data();
+        *value = c;
+        eeprom_checksum += c;
+        pos++;
+        value++;
+      } while (--size);
+    }
+
+  #else
+
+    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+      if (eeprom_write_error) return;
+
+      while(size--) {
+        uint8_t * const p = (uint8_t * const)pos;
+        const uint8_t v = *value;
+        // EEPROM has only ~100,000 write cycles,
+        // so only write bytes that have changed!
+        if (v != eeprom_read_byte(p)) {
+          eeprom_write_byte(p, v);
+          if (eeprom_read_byte(p) != v) {
+            SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
+            eeprom_write_error = true;
+            return;
+          }
+        }
+        eeprom_checksum += v;
+        pos++;
+        value++;
+      };
+    }
+
+    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+      do {
+        uint8_t c = eeprom_read_byte((unsigned char*)pos);
+        if (!eeprom_read_error) *value = c;
+        eeprom_checksum += c;
+        pos++;
+        value++;
+      } while (--size);
+    }
+
+  #endif
+
+  #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
+  #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR) writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
   #define EEPROM_READ(VAR)  readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
-  #define EEPROM_ASSERT(TST,ERR) if () do{ SERIAL_LT(ER, ERR); eeprom_read_error |= true; }while(0)
 
   /**
    * M500 - Store Configuration
@@ -227,10 +276,23 @@ void EEPROM::Postprocess() {
 
     eeprom_write_error = false;
 
-    EEPROM_WRITE(ver);     // invalidate data first
-    EEPROM_SKIP(eeprom_checksum); // Skip the checksum slot
-
-    eeprom_checksum = 0; // clear before first "real data"
+    #if HAS(EEPROM_SD)
+      // EEPROM on SDCARD
+      if (!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) {
+        SERIAL_LM(ER, MSG_NO_CARD);
+        return;
+      }
+      set_sd_dot();
+      card.setroot(true);
+      card.startWrite((char *)"EEPROM.bin", false);
+      EEPROM_WRITE(version);
+      eeprom_checksum = 0; // clear before first "real data"
+    #else
+      // EEPROM on SPI or IC2
+      EEPROM_WRITE(ver);     // invalidate data first
+      EEPROM_SKIP(eeprom_checksum); // Skip the checksum slot
+      eeprom_checksum = 0; // clear before first "real data"
+    #endif
 
     EEPROM_WRITE(planner.axis_steps_per_mm);
     EEPROM_WRITE(planner.max_feedrate_mm_s);
@@ -242,6 +304,9 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(planner.min_travel_feedrate_mm_s);
     EEPROM_WRITE(planner.min_segment_time);
     EEPROM_WRITE(planner.max_jerk);
+    #if DISABLED(WORKSPACE_OFFSETS)
+      float home_offset[XYZ] = { 0 };
+    #endif
     EEPROM_WRITE(home_offset);
     EEPROM_WRITE(hotend_offset);
 
@@ -297,8 +362,10 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(deltaParams.diagonal_rod);
       EEPROM_WRITE(deltaParams.segments_per_second);
       EEPROM_WRITE(deltaParams.base_max_pos);
-      EEPROM_WRITE(deltaParams.tower_adj);
+      EEPROM_WRITE(deltaParams.tower_radius_adj);
+      EEPROM_WRITE(deltaParams.tower_pos_adj);
       EEPROM_WRITE(deltaParams.diagonal_rod_adj);
+      EEPROM_WRITE(deltaParams.print_Radius);
     #elif ENABLED(Z_TWO_ENDSTOPS)
       EEPROM_WRITE(z2_endstop_adj);
     #endif
@@ -383,16 +450,89 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(motor_current);
     #endif
 
-    uint16_t  final_checksum = eeprom_checksum,
-              eeprom_size = eeprom_index;
+    // Save TCM2130 Configuration, and placeholder values
+    #if ENABLED(HAVE_TMC2130)
+      uint16_t val;
+      #if ENABLED(X_IS_TMC2130)
+        val = stepperX.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Y_IS_TMC2130)
+        val = stepperY.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Z_IS_TMC2130)
+        val = stepperZ.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(X2_IS_TMC2130)
+        val = stepperX2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Y2_IS_TMC2130)
+        val = stepperY2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(Z2_IS_TMC2130)
+        val = stepperZ2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E0_IS_TMC2130)
+        val = stepperE0.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E1_IS_TMC2130)
+        val = stepperE1.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E2_IS_TMC2130)
+        val = stepperE2.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+      #if ENABLED(E3_IS_TMC2130)
+        val = stepperE3.getCurrent();
+      #else
+        val = 0;
+      #endif
+      EEPROM_WRITE(val);
+    #endif
 
-    eeprom_index = EEPROM_OFFSET;
-    EEPROM_WRITE(version);
-    EEPROM_WRITE(final_checksum);
+    if (!eeprom_write_error) {
 
-    // Report storage size
-    SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
-    SERIAL_EM(" bytes)");
+      uint16_t  final_checksum = eeprom_checksum,
+                eeprom_size = eeprom_index;
+
+      eeprom_index = EEPROM_OFFSET;
+      EEPROM_WRITE(version);
+      EEPROM_WRITE(final_checksum);
+
+      // Report storage size
+      SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
+      SERIAL_EM(" bytes)");
+    }
+
+    #if HAS(EEPROM_SD)
+      card.finishWrite();
+      unset_sd_dot();
+    #endif
   }
 
   /**
@@ -404,18 +544,33 @@ void EEPROM::Postprocess() {
     eeprom_read_error = false; // If set EEPROM_READ won't write into RAM
 
     char stored_ver[6];
-    EEPROM_READ(stored_ver);
-
     uint16_t stored_checksum;
-    EEPROM_READ(stored_checksum);
 
-    if (DEBUGGING(INFO)) {
-      SERIAL_SMV(INFO, "Version: [", version);
-      SERIAL_MV("] Stored version: [", stored_ver);
-      SERIAL_EM("]");
-    }
+    #if HAS(EEPROM_SD)
+      if (IS_SD_INSERTED || !card.isFileOpen() || !card.sdprinting || card.cardOK) {
+        set_sd_dot();
+        card.setroot(true);
+        card.selectFile((char *)"EEPROM.bin", true);
+        EEPROM_READ(stored_ver);
+      }
+      else {
+        SERIAL_LM(ER, MSG_NO_CARD);
+        return;
+      }
+    #else
+      EEPROM_READ(stored_ver);
+      EEPROM_READ(stored_checksum);
+    #endif
 
     if (strncmp(version, stored_ver, 5) != 0) {
+      if (stored_ver[0] != 'M') {
+        stored_ver[0] = '?';
+        stored_ver[1] = '?';
+        stored_ver[2] = '\0';
+      }
+      SERIAL_SM(ECHO, "EEPROM version mismatch ");
+      SERIAL_MT("(EEPROM=", stored_ver);
+      SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
       ResetDefault();
     }
     else {
@@ -435,6 +590,9 @@ void EEPROM::Postprocess() {
       EEPROM_READ(planner.min_travel_feedrate_mm_s);
       EEPROM_READ(planner.min_segment_time);
       EEPROM_READ(planner.max_jerk);
+      #if DISABLED(WORKSPACE_OFFSETS)
+        float home_offset[XYZ];
+      #endif
       EEPROM_READ(home_offset);
       EEPROM_READ(hotend_offset);
 
@@ -513,8 +671,10 @@ void EEPROM::Postprocess() {
         EEPROM_READ(deltaParams.diagonal_rod);
         EEPROM_READ(deltaParams.segments_per_second);
         EEPROM_READ(deltaParams.base_max_pos);
-        EEPROM_READ(deltaParams.tower_adj);
+        EEPROM_READ(deltaParams.tower_radius_adj);
+        EEPROM_READ(deltaParams.tower_pos_adj);
         EEPROM_READ(deltaParams.diagonal_rod_adj);
+        EEPROM_READ(deltaParams.print_Radius);
       #elif ENABLED(Z_TWO_ENDSTOPS)
         EEPROM_READ(z2_endstop_adj);
       #endif
@@ -596,7 +756,54 @@ void EEPROM::Postprocess() {
         EEPROM_READ(motor_current);
       #endif
 
-      if (eeprom_checksum == stored_checksum) {
+      #if ENABLED(HAVE_TMC2130)
+        uint16_t val;
+        EEPROM_READ(val);
+        #if ENABLED(X_IS_TMC2130)
+          stepperX.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Y_IS_TMC2130)
+          stepperY.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Z_IS_TMC2130)
+          stepperZ.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(X2_IS_TMC2130)
+          stepperX2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Y2_IS_TMC2130)
+          stepperY2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(Z2_IS_TMC2130)
+          stepperZ2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E0_IS_TMC2130)
+          stepperE0.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E1_IS_TMC2130)
+          stepperE1.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E2_IS_TMC2130)
+          stepperE2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+        EEPROM_READ(val);
+        #if ENABLED(E3_IS_TMC2130)
+          stepperE3.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+        #endif
+      #endif
+
+      #if HAS(EEPROM_SD)
+
+        card.closeFile();
+        unset_sd_dot();
         if (eeprom_read_error)
           ResetDefault();
         else {
@@ -605,11 +812,25 @@ void EEPROM::Postprocess() {
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_EM(" bytes)");
         }
-      }
-      else {
-        SERIAL_LM(ER, "EEPROM checksum mismatch");
-        ResetDefault();
-      }
+
+      #else
+
+        if (eeprom_checksum == stored_checksum) {
+          if (eeprom_read_error)
+            ResetDefault();
+          else {
+            Postprocess();
+            SERIAL_V(version);
+            SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+            SERIAL_EM(" bytes)");
+          }
+        }
+        else {
+          SERIAL_LM(ER, "EEPROM checksum mismatch");
+          ResetDefault();
+        }
+
+      #endif
     }
 
     #if ENABLED(EEPROM_CHITCHAT)
@@ -669,9 +890,7 @@ void EEPROM::ResetDefault() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    HOTEND_LOOP() {
-      hotend_offset[i][h] = tmp10[i][h];
-    }
+    HOTEND_LOOP() hotend_offset[i][h] = tmp10[i][h];
   }
 
   planner.acceleration = DEFAULT_ACCELERATION;
@@ -682,7 +901,9 @@ void EEPROM::ResetDefault() {
   planner.max_jerk[X_AXIS] = DEFAULT_XJERK;
   planner.max_jerk[Y_AXIS] = DEFAULT_YJERK;
   planner.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
-  home_offset[X_AXIS] = home_offset[Y_AXIS] = home_offset[Z_AXIS] = 0;
+  #if ENABLED(WORKSPACE_OFFSETS)
+    ZERO(home_offset);
+  #endif
 
   #if PLANNER_LEVELING
     reset_bed_level();
@@ -693,24 +914,7 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if MECH(DELTA)
-    deltaParams.radius = DEFAULT_DELTA_RADIUS;
-    deltaParams.diagonal_rod = DELTA_DIAGONAL_ROD;
-    deltaParams.segments_per_second =  DELTA_SEGMENTS_PER_SECOND;
-    deltaParams.base_max_pos[A_AXIS] = X_MAX_POS;
-    deltaParams.base_max_pos[B_AXIS] = Y_MAX_POS;
-    deltaParams.base_max_pos[C_AXIS] = Z_MAX_POS;
-    deltaParams.endstop_adj[A_AXIS] = TOWER_A_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[B_AXIS] = TOWER_B_ENDSTOP_ADJ;
-    deltaParams.endstop_adj[C_AXIS] = TOWER_C_ENDSTOP_ADJ;
-    deltaParams.tower_adj[0] = TOWER_A_RADIUS_ADJ;
-    deltaParams.tower_adj[1] = TOWER_B_RADIUS_ADJ;
-    deltaParams.tower_adj[2] = TOWER_C_RADIUS_ADJ;
-    deltaParams.tower_adj[3] = TOWER_A_POSITION_ADJ;
-    deltaParams.tower_adj[4] = TOWER_B_POSITION_ADJ;
-    deltaParams.tower_adj[5] = TOWER_C_POSITION_ADJ;
-    deltaParams.diagonal_rod_adj[A_AXIS] = TOWER_A_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[B_AXIS] = TOWER_B_DIAGROD_ADJ;
-    deltaParams.diagonal_rod_adj[C_AXIS] = TOWER_C_DIAGROD_ADJ;
+    deltaParams.Init();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -730,12 +934,7 @@ void EEPROM::ResetDefault() {
   #endif
 
   #if ENABLED(PIDTEMP)
-    #if HOTENDS > 1
-      HOTEND_LOOP()
-    #else
-      int h = 0; UNUSED(h); // only need to write once
-    #endif
-    {
+    HOTEND_LOOP() {
       PID_PARAM(Kp, h) = tmp6[h];
       PID_PARAM(Ki, h) = scalePID_i(tmp7[h]);
       PID_PARAM(Kd, h) = scalePID_d(tmp8[h]);
@@ -800,9 +999,42 @@ void EEPROM::ResetDefault() {
     IDLE_OOZING_enabled = true;
   #endif
 
+  #if ENABLED(HAVE_TMC2130)
+    #if ENABLED(X_IS_TMC2130)
+      stepperX.setCurrent(X_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Y_IS_TMC2130)
+      stepperY.setCurrent(Y_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Z_IS_TMC2130)
+      stepperZ.setCurrent(Z_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(X2_IS_TMC2130)
+      stepperX2.setCurrent(X2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Y2_IS_TMC2130)
+      stepperY2.setCurrent(Y2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(Z2_IS_TMC2130)
+      stepperZ2.setCurrent(Z2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E0_IS_TMC2130)
+      stepperE0.setCurrent(E0_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E1_IS_TMC2130)
+      stepperE1.setCurrent(E1_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E2_IS_TMC2130)
+      stepperE2.setCurrent(E2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+    #if ENABLED(E3_IS_TMC2130)
+      stepperE3.setCurrent(E3_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+    #endif
+  #endif
+
   Postprocess();
 
-  SERIAL_EM("Hardcoded Default Settings Loaded");
+  SERIAL_LM(ECHO, "Hardcoded Default Settings Loaded");
 }
 
 #if DISABLED(DISABLE_M503)
@@ -824,7 +1056,7 @@ void EEPROM::ResetDefault() {
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 0; i < EXTRUDERS; i++) {
+      for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
         SERIAL_EMV(" E", planner.axis_steps_per_mm[E_AXIS + i], 3);
       }
@@ -839,7 +1071,7 @@ void EEPROM::ResetDefault() {
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 0; i < EXTRUDERS; i++) {
+      for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
         SERIAL_EMV(" E", planner.max_feedrate_mm_s[E_AXIS + i], 3);
       }
@@ -854,7 +1086,7 @@ void EEPROM::ResetDefault() {
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 0; i < EXTRUDERS; i++) {
+      for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
         SERIAL_EMV(" E", planner.max_acceleration_mm_per_s2[E_AXIS + i]);
       }
@@ -868,7 +1100,7 @@ void EEPROM::ResetDefault() {
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
-      for (uint8_t i = 0; i < EXTRUDERS; i++) {
+      for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
         SERIAL_EMV(" R", planner.retract_acceleration[i], 3);
       }
@@ -886,21 +1118,23 @@ void EEPROM::ResetDefault() {
     #endif
     SERIAL_E;
     #if (EXTRUDERS > 1)
-      for(uint8_t i = 0; i < EXTRUDERS; i++) {
+      for(int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
         SERIAL_EMV(" E" , planner.max_jerk[E_AXIS + i], 3);
       }
     #endif
 
-    CONFIG_MSG_START("Home offset (mm):");
-    SERIAL_SMV(CFG, "  M206 X", home_offset[X_AXIS], 3);
-    SERIAL_MV(" Y", home_offset[Y_AXIS], 3);
-    SERIAL_EMV(" Z", home_offset[Z_AXIS], 3);
+    #if ENABLED(WORKSPACE_OFFSETS)
+      CONFIG_MSG_START("Home offset (mm):");
+      SERIAL_SMV(CFG, "  M206 X", home_offset[X_AXIS], 3);
+      SERIAL_MV(" Y", home_offset[Y_AXIS], 3);
+      SERIAL_EMV(" Z", home_offset[Z_AXIS], 3);
+    #endif
 
     #if HOTENDS > 1
       CONFIG_MSG_START("Hotend offset (mm):");
-      for (uint8_t h = 1; h < HOTENDS; h++) {
-        SERIAL_SMV(CFG, "  M218 T", h);
+      for (int8_t h = 1; h < HOTENDS; h++) {
+        SERIAL_SMV(CFG, "  M218 H", h);
         SERIAL_MV(" X", hotend_offset[X_AXIS][h], 3);
         SERIAL_MV(" Y", hotend_offset[Y_AXIS][h], 3);
         SERIAL_EMV(" Z", hotend_offset[Z_AXIS][h], 3);
@@ -921,8 +1155,8 @@ void EEPROM::ResetDefault() {
 
       for (uint8_t py = 1; py <= MESH_NUM_Y_POINTS; py++) {
         for (uint8_t px = 1; px <= MESH_NUM_X_POINTS; px++) {
-          SERIAL_SMV(CFG, "  G29 S3 X", px);
-          SERIAL_MV(" Y", py);
+          SERIAL_SMV(CFG, "  G29 S3 X", (int)px);
+          SERIAL_MV(" Y", (int)py);
           SERIAL_EMV(" Z", mbl.z_values[py-1][px-1], 5);
         }
       }
@@ -930,8 +1164,8 @@ void EEPROM::ResetDefault() {
 
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      for (uint8_t h = 0; h < HOTENDS; h++) {
-        SERIAL_SMV(CFG, "  M595 T", h);
+      for (int8_t h = 0; h < HOTENDS; h++) {
+        SERIAL_SMV(CFG, "  M595 H", h);
         SERIAL_MV(" O", ad595_offset[h]);
         SERIAL_EMV(", S", ad595_gain[h]);
       }
@@ -940,24 +1174,29 @@ void EEPROM::ResetDefault() {
     #if MECH(DELTA)
 
       CONFIG_MSG_START("Endstop adjustment (mm):");
-      SERIAL_SMV(CFG, "  M666 X", deltaParams.endstop_adj[A_AXIS]);
+      SERIAL_SM(CFG, "  M666");
+      SERIAL_MV(" X", deltaParams.endstop_adj[A_AXIS]);
       SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS]);
-      SERIAL_EMV(" Z", deltaParams.endstop_adj[C_AXIS]);
+      SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS]);
+      SERIAL_E;
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_RADIUS_ADJ, IJK=TOWER_POSITION_ADJ, UVW=TOWER_DIAGROD_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, H=Z Height");
-      SERIAL_SMV(CFG, "  M666 A", deltaParams.tower_adj[0], 3);
-      SERIAL_MV(" B", deltaParams.tower_adj[1], 3);
-      SERIAL_MV(" C", deltaParams.tower_adj[2], 3);
-      SERIAL_MV(" I", deltaParams.tower_adj[3], 3);
-      SERIAL_MV(" J", deltaParams.tower_adj[4], 3);
-      SERIAL_MV(" K", deltaParams.tower_adj[5], 3);
-      SERIAL_MV(" U", deltaParams.diagonal_rod_adj[0], 3);
-      SERIAL_MV(" V", deltaParams.diagonal_rod_adj[1], 3);
-      SERIAL_MV(" W", deltaParams.diagonal_rod_adj[2], 3);
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
+      SERIAL_SM(CFG, "  M666");
+      SERIAL_MV(" A", deltaParams.diagonal_rod_adj[0], 3);
+      SERIAL_MV(" B", deltaParams.diagonal_rod_adj[1], 3);
+      SERIAL_MV(" C", deltaParams.diagonal_rod_adj[2], 3);
+      SERIAL_MV(" I", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_MV(" J", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_MV(" K", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_MV(" U", deltaParams.tower_pos_adj[0], 3);
+      SERIAL_MV(" V", deltaParams.tower_pos_adj[1], 3);
+      SERIAL_MV(" W", deltaParams.tower_pos_adj[2], 3);
       SERIAL_MV(" R", deltaParams.radius);
       SERIAL_MV(" D", deltaParams.diagonal_rod);
-      SERIAL_MV(" S", deltaParams.segments_per_second, 3);
-      SERIAL_EMV(" H", deltaParams.base_max_pos[C_AXIS], 3);
+      SERIAL_MV(" S", deltaParams.segments_per_second);
+      SERIAL_MV(" O", deltaParams.print_Radius);
+      SERIAL_MV(" H", deltaParams.base_max_pos[C_AXIS], 3);
+      SERIAL_E;
 
     #elif ENABLED(Z_TWO_ENDSTOPS)
 
@@ -976,8 +1215,8 @@ void EEPROM::ResetDefault() {
 
     #if ENABLED(ULTIPANEL)
       CONFIG_MSG_START("Material heatup parameters:");
-      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
-        SERIAL_SMV(CFG, "  M145 S", (int)i);
+      for (int8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+        SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", lcd_preheat_hotend_temp[i]);
         SERIAL_MV(" B", lcd_preheat_bed_temp[i]);
         SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
@@ -988,7 +1227,7 @@ void EEPROM::ResetDefault() {
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
       CONFIG_MSG_START("PID settings:");
       #if ENABLED(PIDTEMP)
-        for (uint8_t h = 0; h < HOTENDS; h++) {
+        for (int8_t h = 0; h < HOTENDS; h++) {
           SERIAL_SMV(CFG, "  M301 H", h);
           SERIAL_MV(" P", PID_PARAM(Kp, h));
           SERIAL_MV(" I", unscalePID_i(PID_PARAM(Ki, h)));
@@ -999,7 +1238,7 @@ void EEPROM::ResetDefault() {
           SERIAL_E;
         }
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          SERIAL_SMV(CFG, "  M301 L", lpq_len);
+          SERIAL_LMV(CFG, "  M301 L", lpq_len);
         #endif
       #endif
       #if ENABLED(PIDTEMPBED)
@@ -1078,6 +1317,45 @@ void EEPROM::ResetDefault() {
         }
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR
+
+    /**
+     * TMC2130 stepper driver current
+     */
+    #if ENABLED(HAVE_TMC2130)
+      CONFIG_MSG_START("Stepper driver current:");
+      SERIAL_SM(CFG, "  M906");
+      #if ENABLED(X_IS_TMC2130)
+        SERIAL_MV(" X", stepperX.getCurrent());
+      #endif
+      #if ENABLED(Y_IS_TMC2130)
+        SERIAL_MV(" Y", stepperY.getCurrent());
+      #endif
+      #if ENABLED(Z_IS_TMC2130)
+        SERIAL_MV(" Z", stepperZ.getCurrent());
+      #endif
+      #if ENABLED(X2_IS_TMC2130)
+        SERIAL_MV(" X2", stepperX2.getCurrent());
+      #endif
+      #if ENABLED(Y2_IS_TMC2130)
+        SERIAL_MV(" Y2", stepperY2.getCurrent());
+      #endif
+      #if ENABLED(Z2_IS_TMC2130)
+        SERIAL_MV(" Z2", stepperZ2.getCurrent());
+      #endif
+      #if ENABLED(E0_IS_TMC2130)
+        SERIAL_MV(" E0", stepperE0.getCurrent());
+      #endif
+      #if ENABLED(E1_IS_TMC2130)
+        SERIAL_MV(" E1", stepperE1.getCurrent());
+      #endif
+      #if ENABLED(E2_IS_TMC2130)
+        SERIAL_MV(" E2", stepperE2.getCurrent());
+      #endif
+      #if ENABLED(E3_IS_TMC2130)
+        SERIAL_MV(" E3", stepperE3.getCurrent());
+      #endif
+      SERIAL_E;
+    #endif
 
     #if ENABLED(SDSUPPORT)
       card.PrintSettings();

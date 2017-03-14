@@ -84,7 +84,7 @@ float Planner::min_feedrate_mm_s,
       Planner::acceleration,                    // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
       Planner::retract_acceleration[EXTRUDERS], // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
       Planner::travel_acceleration,             // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-      Planner::max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
+      Planner::max_jerk[XYZE_N];                // The largest speed change requiring no acceleration
 
 #if HAS(ABL)
   bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
@@ -130,6 +130,7 @@ uint8_t Planner::last_extruder = 0;
 
 #if ENABLED(LIN_ADVANCE)
   float Planner::extruder_advance_k = LIN_ADVANCE_K,
+        Planner::advance_ed_ratio = LIN_ADVANCE_E_D_RATIO,
         Planner::position_float[NUM_AXIS] = { 0 };
 #endif
 
@@ -379,23 +380,37 @@ void Planner::recalculate() {
  */
 void Planner::check_axes_activity() {
   unsigned char axis_active[NUM_AXIS] = { 0 },
-                tail_fan_speed = fanSpeed;
+                tail_fan_speed[FAN_COUNT];
+
+  #if FAN_COUNT > 0
+    FAN_LOOP() tail_fan_speed[f] = fanSpeeds[f];
+  #endif
 
   #if ENABLED(BARICUDA)
-    unsigned char tail_valve_pressure = ValvePressure,
-                  tail_e_to_p_pressure = EtoPPressure;
+    #if HAS_HEATER_1
+      unsigned char tail_valve_pressure = ValvePressure;
+    #endif
+    #if HAS_HEATER_2
+      unsigned char tail_e_to_p_pressure = EtoPPressure;
+    #endif
   #endif
 
   if (blocks_queued()) {
 
-    tail_fan_speed = block_buffer[block_buffer_tail].fan_speed;
+    #if FAN_COUNT > 0
+      FAN_LOOP() tail_fan_speed[f] = block_buffer[block_buffer_tail].fan_speed[f];
+    #endif
 
     block_t* block;
 
     #if ENABLED(BARICUDA)
       block = &block_buffer[block_buffer_tail];
-      tail_valve_pressure = block->valve_pressure;
-      tail_e_to_p_pressure = block->e_to_p_pressure;
+      #if HAS_HEATER_1
+        tail_valve_pressure = block->valve_pressure;
+      #endif
+      #if HAS_HEATER_2
+        tail_e_to_p_pressure = block->e_to_p_pressure;
+      #endif
     #endif
 
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -409,7 +424,7 @@ void Planner::check_axes_activity() {
   #if DISABLE_Y
     if (!axis_active[Y_AXIS]) disable_y();
   #endif
-  #if DISABLED(LASERBEAM) && DISABLE_Z
+  #if DISABLE_Z
     if (!axis_active[Z_AXIS]) disable_z();
   #endif
   #if DISABLE_E
@@ -423,40 +438,77 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  #if HAS(FAN)
-    #if ENABLED(FAN_KICKSTART_TIME)
-      static millis_t fan_kick_end;
-      if (tail_fan_speed) {
-        millis_t ms = millis();
-        if (fan_kick_end == 0) {
-          // Just starting up fan - run at full power.
-          fan_kick_end = ms + FAN_KICKSTART_TIME;
-          tail_fan_speed = 255;
-        }
-        else {
-          if (PENDING(ms, fan_kick_end)) {
-            // Fan still spinning up.
-            tail_fan_speed = 255;
-          }
-        }
-      }
-      else {
-        fan_kick_end = 0;
-      }
-    #endif //FAN_KICKSTART_TIME
+  #if FAN_COUNT > 0
 
     #if ENABLED(FAN_MIN_PWM)
-      #define CALC_FAN_SPEED (tail_fan_speed ? ( FAN_MIN_PWM + (tail_fan_speed * (255 - (FAN_MIN_PWM))) / 255 ) : 0)
+      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ? ( FAN_MIN_PWM + (tail_fan_speed[f] * (255 - FAN_MIN_PWM)) / 255 ) : 0)
     #else
-      #define CALC_FAN_SPEED tail_fan_speed
-    #endif // FAN_MIN_PWM
+      #define CALC_FAN_SPEED(f) tail_fan_speed[f]
+    #endif
+
+    #if ENABLED(FAN_KICKSTART_TIME)
+
+      static millis_t fan_kick_end[FAN_COUNT] = { 0 };
+
+      #define KICKSTART_FAN(f) \
+        if (tail_fan_speed[f]) { \
+          millis_t ms = millis(); \
+          if (fan_kick_end[f] == 0) { \
+            fan_kick_end[f] = ms + FAN_KICKSTART_TIME; \
+            tail_fan_speed[f] = 255; \
+          } else { \
+            if (PENDING(ms, fan_kick_end[f])) { \
+              tail_fan_speed[f] = 255; \
+            } \
+          } \
+        } else { \
+          fan_kick_end[f] = 0; \
+        }
+
+      #if HAS(FAN0)
+        KICKSTART_FAN(0);
+      #endif
+      #if HAS(FAN1)
+        KICKSTART_FAN(1);
+      #endif
+      #if HAS(FAN2)
+        KICKSTART_FAN(2);
+      #endif
+      #if HAS(FAN3)
+        KICKSTART_FAN(3);
+      #endif
+
+    #endif // FAN_KICKSTART_TIME
 
     #if ENABLED(FAN_SOFT_PWM)
-      thermalManager.fanSpeedSoftPwm = CALC_FAN_SPEED;
+      #if HAS(FAN0)
+        thermalManager.fanSpeedSoftPwm[0] = CALC_FAN_SPEED(0);
+      #endif
+      #if HAS(FAN1)
+        thermalManager.fanSpeedSoftPwm[1] = CALC_FAN_SPEED(1);
+      #endif
+      #if HAS(FAN2)
+        thermalManager.fanSpeedSoftPwm[2] = CALC_FAN_SPEED(2);
+      #endif
+      #if HAS(FAN3)
+        thermalManager.fanSpeedSoftPwm[3] = CALC_FAN_SPEED(3);
+      #endif
     #else
-      analogWrite(FAN_PIN, CALC_FAN_SPEED);
-    #endif // FAN_SOFT_PWM
-  #endif // HAS(FAN)
+      #if HAS(FAN0)
+        analogWrite(FAN_PIN, CALC_FAN_SPEED(0));
+      #endif
+      #if HAS(FAN1)
+        analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
+      #endif
+      #if HAS(FAN2)
+        analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));
+      #endif
+      #if HAS(FAN3)
+        analogWrite(FAN3_PIN, CALC_FAN_SPEED(3));
+      #endif
+    #endif
+
+  #endif // FAN_COUNT > 0
 
   #if ENABLED(AUTOTEMP)
     getHighESpeed();
@@ -612,11 +664,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(LIN_ADVANCE)
-    const float target_float[XYZE] = { a, b, c, e },
-                de_float = target_float[E_AXIS] - position_float[E_AXIS],
-                mm_D_float = SQRT(sq(target_float[X_AXIS] - position_float[X_AXIS]) + sq(target_float[Y_AXIS] - position_float[Y_AXIS]));
-
-    memcpy(position_float, target_float, sizeof(position_float));
+    const float mm_D_float = SQRT(sq(a - position_float[X_AXIS]) + sq(b - position_float[Y_AXIS]));
   #endif
 
   const long  dx = target[X_AXIS] - position[X_AXIS],
@@ -624,9 +672,18 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
               dz = target[Z_AXIS] - position[Z_AXIS];
 
   // DRYRUN ignores all temperature constraints and assures that the extruder is instantly satisfied
-  if (DEBUGGING(DRYRUN)) position[E_AXIS] = target[E_AXIS];
+  if (DEBUGGING(DRYRUN)) {
+    position[E_AXIS] = target[E_AXIS];
+    #if ENABLED(LIN_ADVANCE)
+      position_float[E_AXIS] = e;
+    #endif
+  }
 
   long de = target[E_AXIS] - position[E_AXIS];
+
+  #if ENABLED(LIN_ADVANCE)
+    float de_float = e - position_float[E_AXIS];
+  #endif
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
     if (de) {
@@ -637,6 +694,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           if (thermalManager.tooColdToExtrude(extruder)) {
             position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
             de = 0; // no difference
+            #if ENABLED(LIN_ADVANCE)
+              position_float[E_AXIS] = e;
+              de_float = 0;
+            #endif
             SERIAL_LM(ER, MSG_ERR_COLD_EXTRUDE_STOP);
           }
         }
@@ -648,6 +709,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           #endif
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
+          #if ENABLED(LIN_ADVANCE)
+            position_float[E_AXIS] = e;
+            de_float = 0;
+          #endif
           SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
           #if ENABLED(EASY_LOAD)
             }
@@ -741,10 +806,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->steps[E_AXIS] = esteps;
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
-   #if DISABLED(LASERBEAM)
+  if (printer_mode != PRINTER_MODE_LASER)
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
-  #endif
 
   // For a mixing extruder, get steps for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -752,7 +816,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
   #endif
 
-  block->fan_speed = fanSpeed;
+  #if FAN_COUNT > 0
+    FAN_LOOP() block->fan_speed[f] = fanSpeeds[f];
+  #endif
 
   #if ENABLED(BARICUDA)
     block->valve_pressure = baricuda_valve_pressure;
@@ -926,7 +992,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_e0();
-    #else // MKR4 or NPr2
+    #elif ENABLED(MKR4)
       switch(extruder) {
         case 0:
           enable_e0();
@@ -941,7 +1007,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           enable_e1();
         break;
       }
-    #endif // MKR4 && NPR2
+    #elif ENABLED(NPR2)
+      enable_e0();
+    #endif
   }
 
   if (esteps)
@@ -958,7 +1026,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
   #if IS_CORE
-    float delta_mm[7];
+    float delta_mm[Z_HEAD + 1];
     #if CORE_IS_XY
       delta_mm[X_HEAD] = dx * steps_to_mm[A_AXIS];
       delta_mm[Y_HEAD] = dy * steps_to_mm[B_AXIS];
@@ -979,7 +1047,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       delta_mm[C_AXIS] = CORESIGN(dc) * steps_to_mm[C_AXIS];
     #endif
   #else
-    float delta_mm[4];
+    float delta_mm[E_AXIS + 1];
     delta_mm[X_AXIS] = dx * steps_to_mm[X_AXIS];
     delta_mm[Y_AXIS] = dy * steps_to_mm[Y_AXIS];
     delta_mm[Z_AXIS] = dz * steps_to_mm[Z_AXIS];
@@ -1050,15 +1118,16 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
+    // Segment time im micro seconds
     unsigned long segment_time = LROUND(1000000.0 / inverse_mm_s);
   #endif
+
   #if ENABLED(SLOWDOWN)
-    // Segment time im micro seconds
     if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
       if (segment_time < min_segment_time) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
         inverse_mm_s = 1000000.0 / (segment_time + LROUND(2 * (min_segment_time - segment_time) / moves_queued));
-        #if ENABLED(XY_FREQUENCY_LIMIT) || HAS_LCD
+        #if ENABLED(XY_FREQUENCY_LIMIT)
           segment_time = LROUND(1000000.0 / inverse_mm_s);
         #endif
       }
@@ -1112,6 +1181,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
   LOOP_XYZE(i) {
     const float cs = FABS(current_speed[i] = delta_mm[i] * inverse_mm_s);
+    if (i == E_AXIS) i += extruder;
     if (cs > max_feedrate_mm_s[i]) NOMORE(speed_factor, max_feedrate_mm_s[i] / cs);
   }
 
@@ -1205,7 +1275,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(ARDUINO_ARCH_SAM)
     block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_STEPPER_TIMER_RATE)));
   #else
-    block->acceleration_rate = (long)(accel * 16777216.0 / ((F_CPU) * 0.125));
+    block->acceleration_rate = (long)(accel * 16777216.0 / (HAL_STEPPER_TIMER_RATE));
   #endif
 
   // Initial limit on the segment entry velocity
@@ -1355,7 +1425,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->flag |= BLOCK_FLAG_RECALCULATE | (block->nominal_speed <= v_allowable ? BLOCK_FLAG_NOMINAL_LENGTH : 0);
 
   // Update previous path unit_vector and nominal speed
-  memcpy(previous_speed, current_speed, sizeof(previous_speed));
+  COPY_ARRAY(previous_speed, current_speed);
   previous_nominal_speed = block->nominal_speed;
   previous_safe_speed = safe_speed;
 
@@ -1382,7 +1452,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
                             && (uint32_t)esteps != block->step_event_count
                             && de_float > 0.0;
     if (block->use_advance_lead)
-      block->abs_adv_steps_multiplier8 = LROUND(extruder_advance_k * (de_float / mm_D_float) * block->nominal_speed / (float)block->nominal_rate * axis_steps_per_mm[E_AXIS_N] * 256.0);
+      block->abs_adv_steps_multiplier8 = lround(
+        extruder_advance_k
+        * (UNEAR_ZERO(advance_ed_ratio) ? de_float / mm_D_float : advance_ed_ratio) // Use the fixed ratio, if set
+        * (block->nominal_speed / (float)block->nominal_rate)
+        * axis_steps_per_mm[E_AXIS_N] * 256.0
+      );
 
   #elif ENABLED(ADVANCE)
 
@@ -1409,7 +1484,13 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block_buffer_head = next_buffer_head;
 
   // Update the position (only when a move was queued)
-  memcpy(position, target, sizeof(position));
+  COPY_ARRAY(position, target);
+  #if ENABLED(LIN_ADVANCE)
+    position_float[X_AXIS] = a;
+    position_float[Y_AXIS] = b;
+    position_float[Z_AXIS] = c;
+    position_float[E_AXIS] = e;
+  #endif
 
   recalculate();
 
@@ -1429,6 +1510,12 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
        nc = position[Z_AXIS] = LROUND(c * axis_steps_per_mm[Z_AXIS]),
        ne = position[E_AXIS] = LROUND(e * axis_steps_per_mm[E_INDEX]);
   last_extruder = active_extruder;
+  #if ENABLED(LIN_ADVANCE)
+    position_float[X_AXIS] = a;
+    position_float[Y_AXIS] = b;
+    position_float[Z_AXIS] = c;
+    position_float[E_AXIS] = e;
+  #endif
   stepper.set_position(na, nb, nc, ne);
   previous_nominal_speed = 0.0; // Resets planner junction speeds. Assumes start from rest.
 
@@ -1460,6 +1547,9 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
  */
 void Planner::sync_from_steppers() {
   LOOP_XYZE(i) position[i] = stepper.position((AxisEnum)i);
+  #if ENABLED(LIN_ADVANCE)
+    LOOP_XYZE(i) position_float[i] = stepper.position((AxisEnum)i) * (i == E_AXIS ? steps_to_mm[E_INDEX] : steps_to_mm[i]);
+  #endif
 }
 
 /**
@@ -1473,6 +1563,9 @@ void Planner::set_position_mm(const AxisEnum axis, const float &v) {
     const uint8_t axis_index = axis;
   #endif
   position[axis] = LROUND(v * axis_steps_per_mm[axis_index]);
+  #if ENABLED(LIN_ADVANCE)
+    position_float[axis] = v;
+  #endif
   stepper.set_position(axis, v);
   previous_speed[axis] = 0.0;
 }
@@ -1506,15 +1599,6 @@ void Planner::refresh_positioning() {
     if (autotemp_enabled) autotemp_factor = code_value_temp_diff();
     if (code_seen('S')) autotemp_min = code_value_temp_abs();
     if (code_seen('B')) autotemp_max = code_value_temp_abs();
-  }
-
-#endif
-
-#if ENABLED(LIN_ADVANCE)
-
-  void Planner::advance_M905(const float &k) {
-    if (k >= 0.0) extruder_advance_k = k;
-    SERIAL_LMV(ECHO, "Advance factor: ", extruder_advance_k);
   }
 
 #endif

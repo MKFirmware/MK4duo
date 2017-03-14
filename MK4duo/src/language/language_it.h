@@ -30,7 +30,7 @@
 #ifndef LANGUAGE_IT_H
 #define LANGUAGE_IT_H
 
-#define DISPLAY_CHARSET_ISO10646_1  // use the better font on full graphic displays.
+#define DISPLAY_CHARSET_ISO10646_1
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronta.")
 #define MSG_SD_INSERTED                     _UxGT("SD Card inserita")
@@ -61,7 +61,7 @@
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tutto")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Piatto")
 #define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
-#define MSG_PREHEAT_3                       _UxGT("Preriscalda GOMMA")
+#define MSG_PREHEAT_3                       _UxGT("Preriscalda GUM")
 #define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
 #define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3 _UxGT(" Tutto")
 #define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Piatto")
@@ -92,11 +92,7 @@
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
 #define MSG_COOLER                          _UxGT("Raffreddamento")
-#if ENABLED(DOGLCD)
-  #define MSG_FAN_SPEED                     _UxGT("Velocità ventola")
-#else
-  #define MSG_FAN_SPEED                     _UxGT("Velocita ventola")
-#endif
+#define MSG_FAN_SPEED                       _UxGT("Vel. ventola")
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
 #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")
@@ -189,11 +185,11 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Err: TEMP MINIMA")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: TEMP MASSIMA PIATTO")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: TEMP MINIMA PIATTO")
+#define MSG_ERR_MAXTEMP_CHAMBER             _UxGT("Err: TEMP MASSIMA CAMERA")
+#define MSG_ERR_MINTEMP_CHAMBER             _UxGT("Err: TEMP MINIMA CAMERA")
+#define MSG_ERR_MAXTEMP_COOLER              _UxGT("Err: TEMP MASSIMA COOLER")
+#define MSG_ERR_MINTEMP_COOLER              _UxGT("Err: TEMP MINIMA COOLER")
 #define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Vietato")
-#define MSG_ERR_MAXTEMP_CHAMBER             _UxGT("MAXTEMP CHAMBER ERROR")
-#define MSG_ERR_MINTEMP_CHAMBER             _UxGT("MINTEMP CHAMBER ERROR")
-#define MSG_ERR_MAXTEMP_COOLER              _UxGT("MAXTEMP COOLER ERROR")
-#define MSG_ERR_MINTEMP_COOLER              _UxGT("MINTEMP COOLER ERROR")
 #define MSG_HALTED                          _UxGT("STAMPANTE FERMATA")
 #define MSG_PLEASE_RESET                    _UxGT("Riavviare prego")
 #define MSG_END_DAY                         _UxGT("giorni")
@@ -209,7 +205,7 @@
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibra Centro")
 
 // Info printers
-#define MSG_INFO_MENU                       _UxGT("Riguardo stampante")
+#define MSG_INFO_MENU                       _UxGT("Info. stampante")
 #define MSG_INFO_FIRMWARE_MENU              _UxGT("Info. Firmware")
 #define MSG_INFO_STATS_MENU                 _UxGT("Statistiche")
 #define MSG_INFO_BOARD_MENU                 _UxGT("Info. scheda")
@@ -241,18 +237,32 @@
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CAMBIA OPZIONI:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Estrusione")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Riprendi stampa")
+#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp minima è ")
+#define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozzle: ")
 
+//
+// Filament Change screens show up to 3 lines on a 4-line display
+//                        ...or up to 2 lines on a 3-line display
+//
 #if LCD_HEIGHT >= 4
-  // Up to 3 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Attendere avvio")
   #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("del cambio")
   #define MSG_FILAMENT_CHANGE_INIT_3          _UxGT("di filamento")
+  #define MSG_FILAMENT_CHANGE_COOL_1          _UxGT("Attendere")
+  #define MSG_FILAMENT_CHANGE_COOL_2          _UxGT("Raffreddamento")
+  #define MSG_FILAMENT_CHANGE_COOL_3          _UxGT("Nozzle")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Attendere")
   #define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("l'espulsione")
   #define MSG_FILAMENT_CHANGE_UNLOAD_3        _UxGT("del filamento")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserisci il")
   #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("filamento e")
   #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("premi per cont")
+  #define MSG_FILAMENT_CHANGE_HEAT_1          _UxGT("Premi per")
+  #define MSG_FILAMENT_CHANGE_HEAT_2          _UxGT("riscaldare nozzle.")
+  #define MSG_FILAMENT_CHANGE_ZZZ_1           _UxGT(" z   z   z")
+  #define MSG_FILAMENT_CHANGE_ZZZ_2           _UxGT("Z   Z   Z")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Riscaldamento Nozzle")
+  #define MSG_FILAMENT_CHANGE_HEATING_2       _UxGT("attendere...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Attendere")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("il caricamento")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("del filamento")
@@ -263,10 +273,12 @@
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("la ripresa")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("della stampa")
 #else // LCD_HEIGHT < 4
-  // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Attendere...")
+  #define MSG_FILAMENT_CHANGE_COOL_1          _UxGT("Raffreddamento...")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Espulsione...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserisci e premi")
+  #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Riscaldamento...")
+  #define MSG_FILAMENT_CHANGE_ZZZ_1           _UxGT(" Zz   Zz   Zz")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Caricamento...")
   #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Estrusione...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Ripresa...")
@@ -303,7 +315,11 @@
 #define MSG_RFID_TEMP_BED                   _UxGT("Temperatura Bed: ")
 #define MSG_RFID_TEMP_USER_HOTEND           _UxGT("Temperatura utente Hotend: ")
 #define MSG_RFID_TEMP_USER_BED              _UxGT("Temperatura utente Bed: ")
-#define MSG_RFID_DENSITY                    _UxGT("Densita': ")
+#if ENABLED(DOGLCD)
+  #define MSG_RFID_DENSITY                  _UxGT("Densità: ")
+#else
+  #define MSG_RFID_DENSITY                  _UxGT("Densita: ")
+#endif
 #define MSG_RFID_SPOOL_LENGHT               _UxGT("Lunghezza bobina: ")
 
 #endif // LANGUAGE_IT_H

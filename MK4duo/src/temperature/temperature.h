@@ -29,12 +29,12 @@
 
 #include "thermistortables.h"
 
+#define HOTEND_LOOP() for (int8_t h = 0; h < HOTENDS; h++)
+
 #if HOTENDS <= 1
-  #define HOTEND_LOOP() const int8_t h = 0;
   #define HOTEND_INDEX  0
   #define EXTRUDER_IDX  0
 #else
-  #define HOTEND_LOOP() for (int8_t h = 0; h < HOTENDS; h++)
   #define HOTEND_INDEX  h
   #define EXTRUDER_IDX  active_extruder
 #endif
@@ -69,18 +69,11 @@ class Temperature {
     static uint8_t soft_pwm_bed;
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t fanSpeedSoftPwm;
+      static uint8_t fanSpeedSoftPwm[FAN_COUNT];
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        #define PID_dT (((OVERSAMPLENR + 2) * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
-      #else
-        #define PID_dT ((OVERSAMPLENR * 12.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
-      #endif
-    #endif
 
-    #if ENABLED(PIDTEMP)
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
       #define PID_PARAM(param, h) Temperature::param[h]
 
@@ -151,11 +144,12 @@ class Temperature {
     static volatile bool temp_meas_ready;
 
     #if ENABLED(PIDTEMP)
-      static float temp_iState[HOTENDS],
-                   temp_dState[HOTENDS],
-                   pTerm[HOTENDS],
-                   iTerm[HOTENDS],
-                   dTerm[HOTENDS];
+      static float  temp_iState[HOTENDS],
+                    temp_dState[HOTENDS],
+                    temp_iState_max[HOTENDS],
+                    pTerm[HOTENDS],
+                    iTerm[HOTENDS],
+                    dTerm[HOTENDS];
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         static float cTerm[HOTENDS];
@@ -169,34 +163,37 @@ class Temperature {
     #endif
 
     #if ENABLED(PIDTEMPBED)
-      static float temp_iState_bed,
-                   temp_dState_bed,
-                   pTerm_bed,
-                   iTerm_bed,
-                   dTerm_bed,
-                   pid_error_bed;
+      static float  temp_iState_bed,
+                    temp_dState_bed,
+                    temp_iState_bed_max,
+                    pTerm_bed,
+                    iTerm_bed,
+                    dTerm_bed,
+                    pid_error_bed;
     #else
       static millis_t next_bed_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      static float temp_iState_chamber,
-                   temp_dState_chamber,
-                   pTerm_chamber,
-                   iTerm_chamber,
-                   dTerm_chamber,
-                   pid_error_chamber;
+      static float  temp_iState_chamber,
+                    temp_dState_chamber,
+                    temp_iState_chamber_max,
+                    pTerm_chamber,
+                    iTerm_chamber,
+                    dTerm_chamber,
+                    pid_error_chamber;
     #else
       static millis_t next_chamber_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      static float temp_iState_cooler,
-                   temp_dState_cooler,
-                   pTerm_cooler,
-                   iTerm_cooler,
-                   dTerm_cooler,
-                   pid_error_cooler;
+      static float  temp_iState_cooler,
+                    temp_dState_cooler,
+                    temp_iState_cooler_max,
+                    pTerm_cooler,
+                    iTerm_cooler,
+                    dTerm_cooler,
+                    pid_error_cooler;
     #else
       static millis_t next_cooler_check_ms;
     #endif
@@ -214,6 +211,9 @@ class Temperature {
 
     #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       static int consecutive_low_temperature_error[HOTENDS];
+      #if HAS(TEMP_BED)
+        static int consecutive_bed_low_temperature_error;
+      #endif
     #endif
 
     #if ENABLED(MILLISECONDS_PREHEAT_TIME)
@@ -275,7 +275,7 @@ class Temperature {
     #endif
 
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t soft_pwm_fan;
+      static uint8_t soft_pwm_fan[FAN_COUNT];
     #endif
 
     #if ENABLED(FILAMENT_SENSOR)

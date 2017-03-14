@@ -27,38 +27,59 @@
   DeltaParameters deltaParams;
 
   void DeltaParameters::Init() {
-
-    diagonal_rod = 0.0;
-    radius = 0.0;
-    base_max_pos[Z_AXIS] = Z_MAX_POS;
-
-    for (uint8_t i = 0; i < 6; i++)
-      tower_adj[i] = 0.0;
-
-    for (uint8_t axis = 0; axis < ABC; axis++) {
-      endstop_adj[axis] = 0.0;
-      towerX[axis] = towerY[axis] = 0.0;
-      diagonal_rod_adj[axis] = 0.0;
-    }
+    radius                    = DEFAULT_DELTA_RADIUS;
+    diagonal_rod              = DELTA_DIAGONAL_ROD;
+    segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
+    print_Radius              = DELTA_PRINTABLE_RADIUS;
+    base_min_pos[A_AXIS]      = X_MIN_POS;
+    base_min_pos[B_AXIS]      = Y_MIN_POS;
+    base_min_pos[C_AXIS]      = Z_MIN_POS;
+    base_max_pos[A_AXIS]      = X_MAX_POS;
+    base_max_pos[B_AXIS]      = Y_MAX_POS;
+    base_max_pos[C_AXIS]      = Z_MAX_POS;
+    max_length[A_AXIS]        = X_MAX_LENGTH;
+    max_length[B_AXIS]        = Y_MAX_LENGTH;
+    max_length[C_AXIS]        = Z_MAX_LENGTH;
+    endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
+    endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
+    endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
+    tower_radius_adj[A_AXIS]  = TOWER_A_RADIUS_ADJ;
+    tower_radius_adj[B_AXIS]  = TOWER_B_RADIUS_ADJ;
+    tower_radius_adj[C_AXIS]  = TOWER_C_RADIUS_ADJ;
+    tower_pos_adj[A_AXIS]     = TOWER_A_POSITION_ADJ;
+    tower_pos_adj[B_AXIS]     = TOWER_B_POSITION_ADJ;
+    tower_pos_adj[C_AXIS]     = TOWER_C_POSITION_ADJ;
+    diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
+    diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
+    diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
+    clip_start_height         = Z_MAX_POS;
   }
 
   void DeltaParameters::Recalc_delta_constants() {
 
+    LOOP_XY(i) {
+      base_min_pos[i]     = -print_Radius;
+      base_max_pos[i]     = print_Radius;
+      soft_endstop_min[i] = base_min_pos[i];
+      soft_endstop_max[i] = base_max_pos[i];
+      max_length[i]       = base_max_pos[i] - base_min_pos[i];
+    }
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
     base_home_pos[Z_AXIS]     = base_max_pos[Z_AXIS];
+    probe_Radius              = print_Radius - 5;
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);
     delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = (radius + tower_adj[3]) * cos((210 + tower_adj[0]) * degreesToRadians); // front left tower
-    towerY[A_AXIS] = (radius + tower_adj[3]) * sin((210 + tower_adj[0]) * degreesToRadians); 
-    towerX[B_AXIS] = (radius + tower_adj[4]) * cos((330 + tower_adj[1]) * degreesToRadians); // front right tower
-    towerY[B_AXIS] = (radius + tower_adj[4]) * sin((330 + tower_adj[1]) * degreesToRadians); 
-    towerX[C_AXIS] = (radius + tower_adj[5]) * cos((90 + tower_adj[2]) * degreesToRadians);  // back middle tower
-    towerY[C_AXIS] = (radius + tower_adj[5]) * sin((90 + tower_adj[2]) * degreesToRadians); 
+    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(30 + tower_radius_adj[A_AXIS]))); // front left tower
+    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(30 + tower_radius_adj[A_AXIS]))); 
+    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(30 - tower_radius_adj[B_AXIS]))); // front right tower
+    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(30 - tower_radius_adj[B_AXIS]))); 
+    towerX[C_AXIS] = -((radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
+    towerY[C_AXIS] = +((radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
@@ -72,6 +93,8 @@
     Q = 2 * (Xca * Yab - Xab * Yca);
     Q2 = sq(Q);
     D2 = sq(diagonal_rod);
+
+    Set_clip_start_height();
 
   }
 
@@ -100,13 +123,13 @@
         break;
 
       case 4:
-        hiParams.tower_adj[A_AXIS] += perturb;
-        loParams.tower_adj[A_AXIS] -= perturb;
+        hiParams.tower_radius_adj[A_AXIS] += perturb;
+        loParams.tower_radius_adj[A_AXIS] -= perturb;
         break;
 
       case 5:
-        hiParams.tower_adj[B_AXIS] += perturb;
-        loParams.tower_adj[B_AXIS] -= perturb;
+        hiParams.tower_radius_adj[B_AXIS] += perturb;
+        loParams.tower_radius_adj[B_AXIS] -= perturb;
         break;
 
       case 6:
@@ -152,10 +175,11 @@
       radius += v[3];
 
       if (numFactors >= 6) {
-        tower_adj[A_AXIS] += v[4];
-        tower_adj[B_AXIS] += v[5];
+        tower_radius_adj[A_AXIS] += v[4];
+        tower_radius_adj[B_AXIS] += v[5];
 
         if (numFactors == 7) diagonal_rod += v[6];
+
       }
 
       Recalc_delta_constants();
@@ -189,54 +213,28 @@
    */
   void DeltaParameters::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
 
-    // Create a vector in old coordinates along x axis of new coordinate
-    float p12[3] = { towerX[B_AXIS] - towerX[A_AXIS], towerY[B_AXIS] - towerY[A_AXIS], Hb - Ha };
+    const float Fa = coreFa + sq(Ha);
+    const float Fb = coreFb + sq(Hb);
+    const float Fc = coreFc + sq(Hc);
 
-    // Get the Magnitude of vector.
-    float d = SQRT( sq(p12[0]) + sq(p12[1]) + sq(p12[2]) );
+    // Setup PQRSU such that x = -(S - uz)/P, y = (P - Rz)/Q
+    const float P = (Xbc * Fa) + (Xca * Fb) + (Xab * Fc);
+    const float S = (Ybc * Fa) + (Yca * Fb) + (Yab * Fc);
 
-    // Create unit vector by dividing by magnitude.
-    float ex[3] = { p12[0] / d, p12[1] / d, p12[2] / d };
+    const float R = 2 * ((Xbc * Ha) + (Xca * Hb) + (Xab * Hc));
+    const float U = 2 * ((Ybc * Ha) + (Yca * Hb) + (Yab * Hc));
 
-    // Get the vector from the origin of the new system to the third point.
-    float p13[3] = { towerX[C_AXIS] - towerX[A_AXIS], towerY[C_AXIS] - towerY[A_AXIS], Hc - Ha };
+    const float R2 = sq(R), U2 = sq(U);
 
-    // Use dot product to find the component of this vector on the X axis.
-    float i = ex[0] * p13[0] + ex[1] * p13[1] + ex[2] * p13[2];
+    const float A = U2 + R2 + Q2;
+    const float minusHalfB = S * U + P * R + Ha * Q2 + towerX[A_AXIS] * U * Q - towerY[A_AXIS] * R * Q;
+    const float C = sq(S + towerX[A_AXIS] * Q) + sq(P - towerY[A_AXIS] * Q) + (sq(Ha) - D2) * Q2;
 
-    // Create a vector along the x axis that represents the x component of p13.
-    float iex[3] = { ex[0] * i, ex[1] * i, ex[2] * i };
+    const float z = (minusHalfB - sqrtf(sq(minusHalfB) - A * C)) / A;
 
-    // Subtract the X component away from the original vector leaving only the Y component. We use the
-    // variable that will be the unit vector after we scale it.
-    float ey[3] = { p13[0] - iex[0], p13[1] - iex[1], p13[2] - iex[2]};
-
-    // The magnitude of Y component
-    float j = SQRT( sq(ey[0]) + sq(ey[1]) + sq(ey[2]) );
-
-    // Convert to a unit vector
-    ey[0] /= j; ey[1] /= j;  ey[2] /= j;
-
-    // The cross product of the unit x and y is the unit z
-    // float[] ez = vectorCrossProd(ex, ey);
-    float ez[3] = {
-      ex[1] * ey[2] - ex[2] * ey[1],
-      ex[2] * ey[0] - ex[0] * ey[2],
-      ex[0] * ey[1] - ex[1] * ey[0]
-    };
-
-    // We now have the d, i and j values defined in Wikipedia.
-    // Plug them into the equations defined in Wikipedia for Xnew, Ynew and Znew
-    float Xnew = (delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[B_AXIS] + sq(d)) / (d * 2),
-          Ynew = ((delta_diagonal_rod_2[A_AXIS] - delta_diagonal_rod_2[C_AXIS] + HYPOT2(i, j)) / 2 - i * Xnew) / j,
-          Znew = SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(Xnew, Ynew));
-
-    // Start from the origin of the old coordinates and add vectors in the
-    // old coords that represent the Xnew, Ynew and Znew to find the point
-    // in the old system.
-    machinePos[X_AXIS] = towerX[A_AXIS] + ex[0] * Xnew + ey[0] * Ynew - ez[0] * Znew;
-    machinePos[Y_AXIS] = towerY[A_AXIS] + ex[1] * Xnew + ey[1] * Ynew - ez[1] * Znew;
-    machinePos[Z_AXIS] =             Ha + ex[2] * Xnew + ey[2] * Ynew - ez[2] * Znew;
+    machinePos[X_AXIS] = (U * z - S) / Q;
+    machinePos[Y_AXIS] = (P - R * z) / Q;
+    machinePos[Z_AXIS] = z;
   }
 
   #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
@@ -305,7 +303,7 @@
     };
     inverse_kinematics_DELTA(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(DELTA_PRINTABLE_RADIUS);
+    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(print_Radius);
     inverse_kinematics_DELTA(cartesian);
     clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }

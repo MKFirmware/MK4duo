@@ -34,7 +34,7 @@ class Endstops {
     static bool enabled, enabled_globally;
     static volatile char endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
-    #if ENABLED(Z_TWO_ENDSTOPS)
+    #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
       static uint16_t
     #else
       static byte
@@ -93,5 +93,11 @@ class Endstops {
 };
 
 extern Endstops endstops;
+
+#if HAS(BED_PROBE)
+  #define ENDSTOPS_ENABLED  (endstops.enabled || endstops.z_probe_enabled)
+#else
+  #define ENDSTOPS_ENABLED  endstops.enabled
+#endif
 
 #endif // ENDSTOPS_H

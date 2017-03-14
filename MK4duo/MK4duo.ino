@@ -69,9 +69,11 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
- * M3   - Put S<value> in laser beam control. (Requires LASERBEAM)
- * M4   - Turn on laser beam. (Requires LASERBEAM)
- * M5   - Turn off laser beam. (Requires LASERBEAM)
+ * M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASERBEAM)
+ *        S<value> CNC clockwise speed. (Requires CNCROUTERS)
+ * M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
+ * M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
+ * M6   - Tool change CNC. (Requires CNCROUTERS)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
@@ -113,8 +115,8 @@
  * M100 - Watch Free Memory (For Debugging Only)
  * M104 - Set hotend target temp
  * M105 - Read current temp
- * M106 - Fan on
- * M107 - Fan off
+ * M106 - S<speed> P<fan> Fan on
+ * M107 - P<fan> Fan off
  * M109 - Sxxx Wait for hotend current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for hotend current temp to reach target temp. Waits when heating and cooling
  *        IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
@@ -195,6 +197,10 @@
  *        Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
  * M428 - Set the home_offset logically based on the current_position
+ * M450 - Report Printer Mode
+ * M451 - Select FFF Printer Mode
+ * M452 - Select Laser Printer Mode
+ * M453 - Select CNC Printer Mode
  * M500 - Store parameters in EEPROM
  * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
@@ -209,9 +215,12 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
- * M906 - Set motor currents XYZ T0-4 E
+ * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+ *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
  * M907 - Set digital trimpot motor current using axis codes.
  * M908 - Control digital trimpot directly.
+ * M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+ * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
@@ -235,9 +244,6 @@
  
 #include "base.h"
 
-#if ENABLED(DIGIPOT_I2C) || ENABLED(BLINKM)
-  #include <Wire.h>
-#endif
 #if ENABLED(ULTRA_LCD)
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>
@@ -245,12 +251,36 @@
   #elif ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)
     #include <Wire.h>
     #include <LiquidTWI2.h>
+  #elif ENABLED(LCM1602)
+    #include <Wire.h>
+    #include <LCD.h>
+    #include <LiquidCrystal_I2C.h>
   #elif ENABLED(DOGLCD)
     #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
   #else
     #include <LiquidCrystal.h> // library for character LCD
   #endif
 #endif
+
 #if HAS(DIGIPOTSS)
   #include <SPI.h>
+#endif
+
+#if ENABLED(DIGIPOT_I2C)
+  #include <Wire.h>
+#endif
+
+#if ENABLED(HAVE_TMCDRIVER)
+  #include <SPI.h>
+  #include <TMC26XStepper.h>
+#endif
+
+#if ENABLED(HAVE_TMC2130DRIVER)
+  #include <SPI.h>
+  #include <TMC2130Stepper.h>
+#endif
+
+#if ENABLED(HAVE_L6470DRIVER)
+  #include <SPI.h>
+  #include <L6470.h>
 #endif

@@ -23,8 +23,6 @@
 #ifndef THERMISTORTABLES_H_
 #define THERMISTORTABLES_H_
 
-#define OVERSAMPLENR 16
-
 #define ANY_THERMISTOR_IS(n) (THERMISTORHEATER_0 == n) || (THERMISTORHEATER_1 == n) || (THERMISTORHEATER_2 == n) || (THERMISTORHEATER_3 == n) || (THERMISTORBED == n) || (THERMISTORCHAMBER == n) || (THERMISTORCOOLER == n)
 
 // Pt1000 and Pt100 handling
@@ -86,7 +84,7 @@
   #include "thermistortable/thermistortable_52.h"
 #endif
 #if ANY_THERMISTOR_IS(55) // 100k ATC Semitec 104GT-2 (Used on ParCan) (WITH 1kohm RESISTOR FOR PULLUP, R9 ON SANGUINOLOLU! NOT FOR 4.7kohm PULLUP! THIS IS NOT NORMAL!)
-  #include "thermistortable/thermistortable_53.h"
+  #include "thermistortable/thermistortable_55.h"
 #endif
 #if ANY_THERMISTOR_IS(60) // Maker's Tool Works Kapton Bed Thermistor
   #include "thermistortable/thermistortable_60.h"

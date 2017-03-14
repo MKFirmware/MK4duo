@@ -43,7 +43,7 @@ bool  Endstops::enabled = true,
       ;
 volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
-#if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS)
+#if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
   uint16_t
 #else
   byte
@@ -62,100 +62,114 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
 void Endstops::init() {
 
   #if HAS(X_MIN)
-    SET_INPUT(X_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMIN)
-      PULLUP(X_MIN_PIN);
+      SET_INPUT_PULLUP(X_MIN_PIN);
+    #else
+      SET_INPUT(X_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Y_MIN)
-    SET_INPUT(Y_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMIN)
-      PULLUP(Y_MIN_PIN);
+      SET_INPUT_PULLUP(Y_MIN_PIN);
+    #else
+      SET_INPUT(Y_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z_MIN)
-    SET_INPUT(Z_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMIN)
-      PULLUP(Z_MIN_PIN);
+      SET_INPUT_PULLUP(Z_MIN_PIN);
+    #else
+      SET_INPUT(Z_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z2_MIN)
-    SET_INPUT(Z2_MIN_PIN);
-    #if ENABLED(ENDSTOPPULLUP_Z2MIN)
-      PULLUP(Z2_MIN_PIN);
+    #if ENABLED(ENDSTOPPULLUP_ZMIN)
+      SET_INPUT_PULLUP(Z2_MIN_PIN);
+    #else
+      SET_INPUT(Z2_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z3_MIN)
-    SET_INPUT(Z3_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z3MIN)
-      PULLUP(Z3_MIN_PIN);
+      SET_INPUT_PULLUP(Z3_MIN_PIN);
+    #else
+      SET_INPUT(Z3_MIN_PIN);
     #endif
   #endif
 
   #if HAS(Z4_MIN)
-    SET_INPUT(Z4_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z4MIN)
-      PULLUP(Z4_MIN_PIN);
+      SET_INPUT_PULLUP(Z4_MIN_PIN);
+    #else
+      SET_INPUT(Z4_MIN_PIN);
     #endif
   #endif
 
   #if HAS(E_MIN)
-    SET_INPUT(E_MIN_PIN);
     #if ENABLED(ENDSTOPPULLUP_EMIN)
-      PULLUP(E_MIN_PIN);
+      SET_INPUT_PULLUP(E_MIN_PIN);
+    #else
+      SET_INPUT(E_MIN_PIN);
     #endif
   #endif
 
   #if HAS(X_MAX)
-    SET_INPUT(X_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_XMAX)
-      PULLUP(X_MAX_PIN);
+      SET_INPUT_PULLUP(X_MAX_PIN);
+    #else
+      SET_INPUT(X_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Y_MAX)
-    SET_INPUT(Y_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_YMAX)
-      PULLUP(Y_MAX_PIN);
+      SET_INPUT_PULLUP(Y_MAX_PIN);
+    #else
+      SET_INPUT(Y_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z_MAX)
-    SET_INPUT(Z_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_ZMAX)
-      PULLUP(Z_MAX_PIN);
+      SET_INPUT_PULLUP(Z_MAX_PIN);
+    #else
+      SET_INPUT(Z_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z2_MAX)
-    SET_INPUT(Z2_MAX_PIN);
-    #if ENABLED(ENDSTOPPULLUP_Z2MAX)
-      PULLUP(Z2_MAX_PIN);
+    #if ENABLED(ENDSTOPPULLUP_ZMAX)
+      SET_INPUT_PULLUP(Z2_MAX_PIN);
+    #else
+      SET_INPUT(Z2_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z3_MAX)
-    SET_INPUT(Z3_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z3MAX)
-      PULLUP(Z3_MAX_PIN);
+      SET_INPUT_PULLUP(Z3_MAX_PIN);
+    #else
+      SET_INPUT(Z3_MAX_PIN);
     #endif
   #endif
 
   #if HAS(Z4_MAX)
-    SET_INPUT(Z4_MAX_PIN);
     #if ENABLED(ENDSTOPPULLUP_Z4MAX)
-      PULLUP(Z4_MAX_PIN);
+      SET_INPUT_PULLUP(Z4_MAX_PIN);
+    #else
+      SET_INPUT(Z4_MAX_PIN);
     #endif
   #endif
 
-  #if HAS(Z_PROBE_PIN) // Check for Z_PROBE_ENDSTOP so we don't pull a pin high unless it's to be used.
-    SET_INPUT(Z_PROBE_PIN);
+  #if HAS(Z_PROBE_PIN)
     #if ENABLED(ENDSTOPPULLUP_ZPROBE)
-      PULLUP(Z_PROBE_PIN);
+      SET_INPUT_PULLUP(Z_PROBE_PIN);
+    #else
+      SET_INPUT(Z_PROBE_PIN);
     #endif
   #endif
 
@@ -178,7 +192,7 @@ void Endstops::report_state() {
       if (TEST(endstop_hit_bits, A ##_MIN) || TEST(endstop_hit_bits, A ##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
-    SERIAL_SM(ER, MSG_ENDSTOPS_HIT);
+    SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
     _ENDSTOP_HIT_TEST(X, 'X');
     _ENDSTOP_HIT_TEST(Y, 'Y');
     _ENDSTOP_HIT_TEST(Z, 'Z');
@@ -212,49 +226,49 @@ void Endstops::report_state() {
 void Endstops::M119() {
   SERIAL_EM(MSG_M119_REPORT);
   #if HAS(X_MIN)
-    SERIAL_EMT(MSG_X_MIN, ((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_X_MIN, ((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(X_MAX)
-    SERIAL_EMT(MSG_X_MAX, ((READ(X_MAX_PIN)^X_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_X_MAX, ((READ(X_MAX_PIN)^X_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Y_MIN)
-    SERIAL_EMT(MSG_Y_MIN, ((READ(Y_MIN_PIN)^Y_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Y_MIN, ((READ(Y_MIN_PIN)^Y_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Y_MAX)
-    SERIAL_EMT(MSG_Y_MAX, ((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Y_MAX, ((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z_MIN)
-    SERIAL_EMT(MSG_Z_MIN, ((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z_MIN, ((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z2_MIN)
-    SERIAL_EMT(MSG_Z2_MIN, ((READ(Z2_MIN_PIN)^Z2_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z2_MIN, ((READ(Z2_MIN_PIN)^Z2_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z3_MIN)
-    SERIAL_EMT(MSG_Z3_MIN, ((READ(Z3_MIN_PIN)^Z3_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z3_MIN, ((READ(Z3_MIN_PIN)^Z3_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z4_MIN)
-    SERIAL_EMT(MSG_Z4_MIN, ((READ(Z4_MIN_PIN)^Z4_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z4_MIN, ((READ(Z4_MIN_PIN)^Z4_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z_MAX)
-    SERIAL_EMT(MSG_Z_MAX, ((READ(Z_MAX_PIN)^Z_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z_MAX, ((READ(Z_MAX_PIN)^Z_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z2_MAX)
-    SERIAL_EMT(MSG_Z2_MAX, ((READ(Z2_MAX_PIN)^Z2_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z2_MAX, ((READ(Z2_MAX_PIN)^Z2_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z3_MAX)
-    SERIAL_EMT(MSG_Z3_MAX, ((READ(Z3_MAX_PIN)^Z3_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z3_MAX, ((READ(Z3_MAX_PIN)^Z3_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z4_MAX)
-    SERIAL_EMT(MSG_Z4_MAX, ((READ(Z4_MAX_PIN)^Z4_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z4_MAX, ((READ(Z4_MAX_PIN)^Z4_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z_PROBE_PIN)
-    SERIAL_EMT(MSG_Z_PROBE, ((READ(Z_PROBE_PIN)^Z_PROBE_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_Z_PROBE, ((READ(Z_PROBE_PIN)^Z_PROBE_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(E_MIN)
-    SERIAL_EMT(MSG_E_MIN, ((READ(E_MIN_PIN)^E_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_E_MIN, ((READ(E_MIN_PIN)^E_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(FIL_RUNOUT)
-    SERIAL_EMT(MSG_FIL_RUNOUT_PIN, ((READ(FIL_RUNOUT_PIN)^FIL_RUNOUT_PIN_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+    SERIAL_EMT(MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT_PIN)^FIL_RUNOUT_PIN_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
 } // Endstops::M119
 
@@ -326,17 +340,26 @@ void Endstops::update() {
   #endif
 
   #if CORE_IS_XY || CORE_IS_XZ
+    #if MECH(COREYX) || MECH(COREZX)
+      #define CORE_X_CMP !=
+      #define CORE_X_NOT !
+    #else
+      #define CORE_X_CMP ==
+      #define CORE_X_NOT
+    #endif
     // Head direction in -X axis for CoreXY and CoreXZ bots.
-    // If DeltaA == -DeltaB, the movement is only in Y or Z axis
-    if ((stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]) || (stepper.motor_direction(CORE_AXIS_1) == stepper.motor_direction(CORE_AXIS_2))) {
-      if (stepper.motor_direction(X_HEAD))
+    // If steps differ, both axes are moving.
+    // If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z, handled below)
+    // If DeltaA ==  DeltaB, the movement is only in the 1st axis (X)
+    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2] || stepper.motor_direction(CORE_AXIS_1) CORE_X_CMP stepper.motor_direction(CORE_AXIS_2)) {
+      if (CORE_X_NOT stepper.motor_direction(X_HEAD))
   #else
     if (stepper.motor_direction(X_AXIS))   // stepping along -X axis (regular Cartesian bot)
   #endif
       { // -direction
         #if ENABLED(DUAL_X_CARRIAGE)
           // with 2 x-carriages, endstops are only checked in the homing direction for the active extruder
-          if ((stepper.TOOL_E_INDEX == 0 && X_HOME_DIR == -1) || (stepper.TOOL_E_INDEX != 0 && X2_HOME_DIR == -1))
+          if ((stepper.TOOL_E_INDEX == 0 && X_HOME_DIR < 0) || (stepper.TOOL_E_INDEX != 0 && X2_HOME_DIR < 0))
         #endif
           {
             #if HAS(X_MIN)
@@ -347,7 +370,7 @@ void Endstops::update() {
       else { // +direction
         #if ENABLED(DUAL_X_CARRIAGE)
           // with 2 x-carriages, endstops are only checked in the homing direction for the active extruder
-          if ((stepper.TOOL_E_INDEX == 0 && X_HOME_DIR == 1) || (stepper.TOOL_E_INDEX != 0 && X2_HOME_DIR == 1))
+          if ((stepper.TOOL_E_INDEX == 0 && X_HOME_DIR > 0) || (stepper.TOOL_E_INDEX != 0 && X2_HOME_DIR > 0))
         #endif
           {
             #if HAS(X_MAX)
@@ -359,11 +382,22 @@ void Endstops::update() {
     }
   #endif
 
+  // Handle swapped vs. typical Core axis order
+  #if MECH(COREYX) || MECH(COREZY) || MECH(COREZX)
+    #define CORE_YZ_CMP ==
+    #define CORE_YZ_NOT !
+  #elif CORE_IS_XY || CORE_IS_YZ || CORE_IS_XZ
+    #define CORE_YZ_CMP !=
+    #define CORE_YZ_NOT
+  #endif
+
   #if CORE_IS_XY || CORE_IS_YZ
     // Head direction in -Y axis for CoreXY / CoreYZ bots.
-    // If DeltaA == DeltaB, the movement is only in X axis
-    if ((stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]) || (stepper.motor_direction(CORE_AXIS_1) != stepper.motor_direction(CORE_AXIS_2))) {
-      if (stepper.motor_direction(Y_HEAD))
+    // If steps differ, both axes are moving
+    // If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y)
+    // If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z)
+    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2] || stepper.motor_direction(CORE_AXIS_1) CORE_YZ_CMP stepper.motor_direction(CORE_AXIS_2)) {
+      if (CORE_YZ_NOT stepper.motor_direction(Y_HEAD))
   #else
       if (stepper.motor_direction(Y_AXIS))   // -direction
   #endif
@@ -383,9 +417,11 @@ void Endstops::update() {
 
   #if CORE_IS_XZ || CORE_IS_YZ
     // Head direction in -Z axis for CoreXZ or CoreYZ bots.
-    // If DeltaA == DeltaB, the movement is only in X axis
-    if ((stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]) || (stepper.motor_direction(CORE_AXIS_1) != stepper.motor_direction(CORE_AXIS_2))) {
-      if (stepper.motor_direction(Z_HEAD))
+    // If steps differ, both axes are moving
+    // If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y, already handled above)
+    // If DeltaA == -DeltaB, the movement is only in the 2nd axis (Z)
+    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2] || stepper.motor_direction(CORE_AXIS_1) CORE_YZ_CMP stepper.motor_direction(CORE_AXIS_2)) {
+      if (CORE_YZ_NOT stepper.motor_direction(Z_HEAD))
   #else
       if (stepper.motor_direction(Z_AXIS))
   #endif
