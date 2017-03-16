@@ -58,6 +58,16 @@
 
 #if ENABLED(ARDUINO_ARCH_AVR)
 
+#if ANALOG_INPUTS > 0
+  int32_t HAL::AnalogInputRead[ANALOG_INPUTS];
+  uint8_t HAL::adcCounter[ANALOG_INPUTS],
+          HAL::adcSamplePos = 0;
+  bool    HAL::Analog_is_ready = false;
+#endif
+
+const uint8_t HAL::AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
+unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+
 HAL::HAL() {
   // ctor
 }
@@ -82,5 +92,62 @@ void(* resetFunc) (void) = 0; // declare reset function @ address 0
 
 // Reset peripherals and cpu
 void HAL::resetHardware() { resetFunc(); }
+
+void HAL::analogStart() {
+
+  #if ANALOG_INPUTS > 0
+
+    ADMUX = ANALOG_REF; // refernce voltage
+    for (uint8_t i = 0; i < ANALOG_INPUTS; i++) {
+      adcCounter[i] = 0;
+      AnalogInputRead[i] = 0;
+    }
+
+    ADCSRA = _BV(ADEN)|_BV(ADSC)|ANALOG_PRESCALER;
+
+    while (ADCSRA & _BV(ADSC) ) {} // wait for conversion
+
+    uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+
+    #if defined(ADCSRB) && defined(MUX5)
+      if (channel & 8)  // Reading channel 0-7 or 8-15?
+        ADCSRB |= _BV(MUX5);
+      else
+        ADCSRB &= ~_BV(MUX5);
+    #endif
+
+    ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
+    ADCSRA |= _BV(ADSC); // start conversion without interrupt!
+
+  #endif
+}
+
+void HAL::analogRead() {
+  // read analog values
+  #if ANALOG_INPUTS > 0
+    if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
+      AnalogInputRead[adcSamplePos] += ADCW;
+      if (++adcCounter[adcSamplePos] >= OVERSAMPLENR) {
+        AnalogInputValues[adcSamplePos] = AnalogInputRead[adcSamplePos] / adcCounter[adcSamplePos];
+        AnalogInputRead[adcSamplePos] = 0;
+        adcCounter[adcSamplePos] = 0;
+        // Start next conversion
+        if (++adcSamplePos >= ANALOG_INPUTS) {
+          adcSamplePos = 0;
+          Analog_is_ready = true;
+        }
+        uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+        #if defined(ADCSRB) && defined(MUX5)
+          if (channel & 8)  // Reading channel 0-7 or 8-15?
+            ADCSRB |= _BV(MUX5);
+          else
+            ADCSRB &= ~_BV(MUX5);
+        #endif
+        ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
+      }
+      ADCSRA |= _BV(ADSC);  // start next conversion
+    }
+  #endif
+}
 
 #endif // ARDUINO_ARCH_AVR

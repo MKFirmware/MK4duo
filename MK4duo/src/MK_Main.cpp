@@ -7982,7 +7982,7 @@ inline void gcode_M226() {
     int c = code_seen('C') ? code_value_int() : 5;
     bool u = code_seen('U') && code_value_bool() != 0;
 
-    float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 150.0);
+    float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 200.0);
 
     if (h >= 0 && h < HOTENDS) target_extruder = h;
 
@@ -9187,6 +9187,7 @@ inline void gcode_M532() {
     stepper.synchronize();
 
     #if ENABLED(FILAMENT_CHANGE_EXTRUDE_LENGTH) && FILAMENT_CHANGE_EXTRUDE_LENGTH > 0
+
       do {
         // "Wait for filament extrude"
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_EXTRUDE);
@@ -9205,6 +9206,7 @@ inline void gcode_M532() {
 
         // Keep looping if "Extrude More" was selected
       } while (filament_change_menu_response != FILAMENT_CHANGE_RESPONSE_RESUME_PRINT);
+
     #endif
 
     // "Wait for print to resume"
@@ -10184,7 +10186,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       // Save current position to destination, for use later
       set_destination_to_current();
-      
+
       #if ENABLED(DUAL_X_CARRIAGE)
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -10291,8 +10293,6 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
           float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
                 z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0);
 
-          set_destination_to_current();
-
           // Always raise by some amount (destination copied from current_position earlier)
           destination[Z_AXIS] += z_raise;
           planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
@@ -10301,12 +10301,10 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
           move_extruder_servo(tmp_extruder);
           HAL::delayMilliseconds(500);
 
-          // Move back down, if needed
-          if (z_raise != z_diff) {
-            destination[Z_AXIS] = current_position[Z_AXIS] + z_diff;
-            planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
-            stepper.synchronize();
-          }
+          // Move back down
+          destination[Z_AXIS] = current_position[Z_AXIS] - 0.3;
+          planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
+          stepper.synchronize();
         #endif
         
         /**

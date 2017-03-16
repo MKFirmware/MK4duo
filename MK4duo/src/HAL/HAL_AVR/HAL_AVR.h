@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,8 +112,6 @@
 #define HAL_VOLTAGE_PIN 5.0
 
 #define ADV_NEVER 65535
-
-#define OVERSAMPLENR 16
 
 /**
  * Optimized math functions for AVR
@@ -199,6 +198,126 @@
                  "r26" , "r27" \
                )
 
+// TEMPERATURE
+#if EXTRUDERS > 0 && HAS(TEMP_0)
+  #define EXT0_ANALOG_INPUTS 1
+  #define EXT0_SENSOR_INDEX 0
+  #define EXT0_ANALOG_CHANNEL TEMP_0_PIN
+  #define ACCOMMA0 ,
+#else
+  #define EXT0_ANALOG_INPUTS 0
+  #define EXT0_SENSOR_INDEX TEMP_0_PIN
+  #define EXT0_ANALOG_CHANNEL
+  #define ACCOMMA0
+#endif
+
+#if EXTRUDERS > 1 && HAS(TEMP_1)
+  #define EXT1_ANALOG_INPUTS 1
+  #define EXT1_SENSOR_INDEX EXT0_ANALOG_INPUTS
+  #define EXT1_ANALOG_CHANNEL ACCOMMA0 TEMP_1_PIN
+  #define ACCOMMA1 ,
+#else
+  #define EXT1_ANALOG_INPUTS 0
+  #define EXT1_SENSOR_INDEX TEMP_1_PIN
+  #define EXT1_ANALOG_CHANNEL
+  #define ACCOMMA1 ACCOMMA0
+#endif
+
+#if EXTRUDERS > 2 && HAS(TEMP_2)
+  #define EXT2_ANALOG_INPUTS 1
+  #define EXT2_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS
+  #define EXT2_ANALOG_CHANNEL ACCOMMA1 TEMP_2_PIN
+  #define ACCOMMA2 ,
+#else
+  #define ACCOMMA2 ACCOMMA1
+  #define EXT2_ANALOG_INPUTS 0
+  #define EXT2_SENSOR_INDEX TEMP_2_PIN
+  #define EXT2_ANALOG_CHANNEL
+#endif
+
+#if EXTRUDERS > 3 && HAS(TEMP_3)
+  #define EXT3_ANALOG_INPUTS 1
+  #define EXT3_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS
+  #define EXT3_ANALOG_CHANNEL ACCOMMA2 TEMP_3_PIN
+  #define ACCOMMA3 ,
+#else
+  #define ACCOMMA3 ACCOMMA2
+  #define EXT3_ANALOG_INPUTS 0
+  #define EXT3_SENSOR_INDEX TEMP_3_PIN
+  #define EXT3_ANALOG_CHANNEL
+#endif
+
+#if HAS(TEMP_BED)
+  #define BED_ANALOG_INPUTS 1
+  #define BED_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS
+  #define BED_ANALOG_CHANNEL ACCOMMA3 TEMP_BED_PIN
+  #define BED_KOMMA ,
+#else
+  #define BED_ANALOG_INPUTS 0
+  #define BED_SENSOR_INDEX TEMP_BED_PIN
+  #define BED_ANALOG_CHANNEL
+  #define BED_KOMMA ACCOMMA3
+#endif
+
+#if HAS(TEMP_CHAMBER)
+  #define CHAMBER_ANALOG_INPUTS 1
+  #define CHAMBER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS
+  #define CHAMBER_ANALOG_CHANNEL BED_KOMMA TEMP_CHAMBER_PIN
+  #define CHAMBER_KOMMA ,
+#else
+  #define CHAMBER_ANALOG_INPUTS 0
+  #define CHAMBER_SENSOR_INDEX TEMP_CHAMBER_PIN
+  #define CHAMBER_ANALOG_CHANNEL
+  #define CHAMBER_KOMMA BED_KOMMA
+#endif
+
+#if HAS(TEMP_COOLER)
+  #define COOLER_ANALOG_INPUTS 1
+  #define COOLER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS
+  #define COOLER_ANALOG_CHANNEL CHAMBER_KOMMA TEMP_COOLER_PIN
+  #define COOLER_KOMMA ,
+#else
+  #define COOLER_ANALOG_INPUTS 0
+  #define COOLER_SENSOR_INDEX TEMP_COOLER_PIN
+  #define COOLER_ANALOG_CHANNEL
+  #define COOLER_KOMMA CHAMBER_KOMMA
+#endif
+
+#if HAS(FILAMENT_SENSOR)
+  #define FILAMENT_ANALOG_INPUTS 1
+  #define FILAMENT_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS
+  #define FILAMENT_ANALOG_CHANNEL COOLER_KOMMA FILWIDTH_PIN
+  #define FILAMENT_KOMMA ,
+#else
+  #define FILAMENT_ANALOG_INPUTS 0
+  #define FILAMENT_SENSOR_INDEX FILWIDTH_PIN
+  #define FILAMENT_ANALOG_CHANNEL
+  #define FILAMENT_KOMMA COOLER_KOMMA
+#endif
+
+#if HAS(POWER_CONSUMPTION_SENSOR)
+  #define POWER_ANALOG_INPUTS 1
+  #define POWER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS+FILAMENT_ANALOG_INPUTS
+  #define POWER_ANALOG_CHANNEL FILAMENT_KOMMA POWER_CONSUMPTION_PIN
+#else
+  #define POWER_ANALOG_INPUTS 0
+  #define POWER_ANALOG_CHANNEL
+#endif
+
+#define ANALOG_INPUTS (EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS+FILAMENT_ANALOG_INPUTS+POWER_ANALOG_INPUTS)
+#if ANALOG_INPUTS > 0
+  /** Channels are the MUX-part of ADMUX register */
+  #define ANALOG_INPUT_CHANNELS {EXT0_ANALOG_CHANNEL EXT1_ANALOG_CHANNEL EXT2_ANALOG_CHANNEL EXT3_ANALOG_CHANNEL BED_ANALOG_CHANNEL CHAMBER_ANALOG_CHANNEL COOLER_ANALOG_CHANNEL FILAMENT_ANALOG_CHANNEL POWER_ANALOG_CHANNEL}
+#endif
+
+#define ANALOG_REF_AREF 0
+#define ANALOG_REF_AVCC _BV(REFS0)
+#define ANALOG_REF ANALOG_REF_AVCC
+#define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define OVERSAMPLENR 16
+// Temperature PID_dT
+#define PID_dT ((OVERSAMPLENR * 10) / (float)(TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
+
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
@@ -254,8 +373,6 @@ typedef uint32_t millis_t;
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -285,6 +402,9 @@ class HAL {
 
     virtual ~HAL();
 
+    static unsigned long AnalogInputValues[ANALOG_INPUTS];
+    static bool Analog_is_ready;
+
     // do any hardware-specific initialization here
     static inline void hwSetup(void) { /* noop */ }
 
@@ -293,6 +413,9 @@ class HAL {
 
     static int getFreeRam();
     static void resetHardware();
+
+    static void analogStart();
+    static void analogRead();
 
     // SPI related functions
     static void spiBegin() {
@@ -409,6 +532,11 @@ class HAL {
 
   protected:
   private:
+
+    static int32_t  AnalogInputRead[ANALOG_INPUTS];
+    static uint8_t  adcCounter[ANALOG_INPUTS],
+                    adcSamplePos;
+    static const uint8_t AnalogInputChannels[] PROGMEM;
 };
 
 /**

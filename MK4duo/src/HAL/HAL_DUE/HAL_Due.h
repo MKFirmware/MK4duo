@@ -150,8 +150,6 @@
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
 
-#define MAX_ANALOG_PIN_NUMBER 11
-
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3
 
@@ -185,7 +183,130 @@
 
 #define ADV_NEVER 0xFFFFFFFF
 
-#define OVERSAMPLENR 16
+
+// TEMPERATURE
+#if EXTRUDERS > 0 && HAS(TEMP_0)
+  #define EXT0_ANALOG_INPUTS 1
+  #define EXT0_SENSOR_INDEX 0
+  #define EXT0_ANALOG_CHANNEL TEMP_0_PIN
+  #define ACCOMMA0 ,
+#else
+  #define EXT0_ANALOG_INPUTS 0
+  #define EXT0_SENSOR_INDEX TEMP_0_PIN
+  #define EXT0_ANALOG_CHANNEL
+  #define ACCOMMA0
+#endif
+
+#if EXTRUDERS > 1 && HAS(TEMP_1)
+  #define EXT1_ANALOG_INPUTS 1
+  #define EXT1_SENSOR_INDEX EXT0_ANALOG_INPUTS
+  #define EXT1_ANALOG_CHANNEL ACCOMMA0 TEMP_1_PIN
+  #define ACCOMMA1 ,
+#else
+  #define EXT1_ANALOG_INPUTS 0
+  #define EXT1_SENSOR_INDEX TEMP_1_PIN
+  #define EXT1_ANALOG_CHANNEL
+  #define ACCOMMA1 ACCOMMA0
+#endif
+
+#if EXTRUDERS > 2 && HAS(TEMP_2)
+  #define EXT2_ANALOG_INPUTS 1
+  #define EXT2_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS
+  #define EXT2_ANALOG_CHANNEL ACCOMMA1 TEMP_2_PIN
+  #define ACCOMMA2 ,
+#else
+  #define ACCOMMA2 ACCOMMA1
+  #define EXT2_ANALOG_INPUTS 0
+  #define EXT2_SENSOR_INDEX TEMP_2_PIN
+  #define EXT2_ANALOG_CHANNEL
+#endif
+
+#if EXTRUDERS > 3 && HAS(TEMP_3)
+  #define EXT3_ANALOG_INPUTS 1
+  #define EXT3_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS
+  #define EXT3_ANALOG_CHANNEL ACCOMMA2 TEMP_3_PIN
+  #define ACCOMMA3 ,
+#else
+  #define ACCOMMA3 ACCOMMA2
+  #define EXT3_ANALOG_INPUTS 0
+  #define EXT3_SENSOR_INDEX TEMP_3_PIN
+  #define EXT3_ANALOG_CHANNEL
+#endif
+
+#if HAS(TEMP_BED)
+  #define BED_ANALOG_INPUTS 1
+  #define BED_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS
+  #define BED_ANALOG_CHANNEL ACCOMMA3 TEMP_BED_PIN
+  #define BED_KOMMA ,
+#else
+  #define BED_ANALOG_INPUTS 0
+  #define BED_SENSOR_INDEX TEMP_BED_PIN
+  #define BED_ANALOG_CHANNEL
+  #define BED_KOMMA ACCOMMA3
+#endif
+
+#if HAS(TEMP_CHAMBER)
+  #define CHAMBER_ANALOG_INPUTS 1
+  #define CHAMBER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS
+  #define CHAMBER_ANALOG_CHANNEL BED_KOMMA TEMP_CHAMBER_PIN
+  #define CHAMBER_KOMMA ,
+#else
+  #define CHAMBER_ANALOG_INPUTS 0
+  #define CHAMBER_SENSOR_INDEX TEMP_CHAMBER_PIN
+  #define CHAMBER_ANALOG_CHANNEL
+  #define CHAMBER_KOMMA BED_KOMMA
+#endif
+
+#if HAS(TEMP_COOLER)
+  #define COOLER_ANALOG_INPUTS 1
+  #define COOLER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS
+  #define COOLER_ANALOG_CHANNEL CHAMBER_KOMMA TEMP_COOLER_PIN
+  #define COOLER_KOMMA ,
+#else
+  #define COOLER_ANALOG_INPUTS 0
+  #define COOLER_SENSOR_INDEX TEMP_COOLER_PIN
+  #define COOLER_ANALOG_CHANNEL
+  #define COOLER_KOMMA CHAMBER_KOMMA
+#endif
+
+#if HAS(FILAMENT_SENSOR)
+  #define FILAMENT_ANALOG_INPUTS 1
+  #define FILAMENT_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS
+  #define FILAMENT_ANALOG_CHANNEL COOLER_KOMMA FILWIDTH_PIN
+  #define FILAMENT_KOMMA ,
+#else
+  #define FILAMENT_ANALOG_INPUTS 0
+  #define FILAMENT_SENSOR_INDEX FILWIDTH_PIN
+  #define FILAMENT_ANALOG_CHANNEL
+  #define FILAMENT_KOMMA COOLER_KOMMA
+#endif
+
+#if HAS(POWER_CONSUMPTION_SENSOR)
+  #define POWER_ANALOG_INPUTS 1
+  #define POWER_SENSOR_INDEX EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS+FILAMENT_ANALOG_INPUTS
+  #define POWER_ANALOG_CHANNEL FILAMENT_KOMMA POWER_CONSUMPTION_PIN
+#else
+  #define POWER_ANALOG_INPUTS 0
+  #define POWER_ANALOG_CHANNEL
+#endif
+
+#define ANALOG_INPUTS (EXT0_ANALOG_INPUTS+EXT1_ANALOG_INPUTS+EXT2_ANALOG_INPUTS+EXT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS+FILAMENT_ANALOG_INPUTS+POWER_ANALOG_INPUTS)
+#if ANALOG_INPUTS > 0
+  /** Channels are the MUX-part of ADMUX register */
+  #define ANALOG_INPUT_CHANNELS {EXT0_ANALOG_CHANNEL EXT1_ANALOG_CHANNEL EXT2_ANALOG_CHANNEL EXT3_ANALOG_CHANNEL BED_ANALOG_CHANNEL CHAMBER_ANALOG_CHANNEL COOLER_ANALOG_CHANNEL FILAMENT_ANALOG_CHANNEL POWER_ANALOG_CHANNEL}
+#endif
+
+// Bits of the ADC converter
+#define ANALOG_INPUT_BITS 12
+#define ANALOG_REDUCE_BITS 0
+#define ANALOG_REDUCE_FACTOR 1
+
+#define MAX_ANALOG_PIN_NUMBER 11
+#define OVERSAMPLENR 6
+#define MEDIAN_COUNT 10 // MEDIAN COUNT for Smoother temperature
+#define NUM_ADC_SAMPLES (2 + (1 << OVERSAMPLENR))
+// Temperature PID_dT
+#define PID_dT (((NUM_ADC_SAMPLES) * (MEDIAN_COUNT)) / (float)(TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 // --------------------------------------------------------------------------
 // Types
@@ -211,6 +332,9 @@ class HAL {
     HAL();
 
     virtual ~HAL();
+
+    static volatile uint AnalogInputValues[ANALOG_INPUTS];
+    static bool Analog_is_ready;
 
     // do any hardware-specific initialization here
     static FORCE_INLINE void hwSetup(void) {
@@ -319,8 +443,21 @@ class HAL {
     static int getFreeRam();
     static void resetHardware();
 
+    static void analogStart();
+    static void analogRead();
+
   protected:
   private:
+
+    static int32_t  AnalogInputRead[ANALOG_INPUTS],
+                    AnalogSamples[ANALOG_INPUTS][MEDIAN_COUNT],
+                    AnalogSamplesSum[ANALOG_INPUTS],
+                    adcSamplesMin[ANALOG_INPUTS],
+                    adcSamplesMax[ANALOG_INPUTS];
+    static int      adcCounter, adcSamplePos;
+    static uint32_t adcEnable;
+    static const uint8_t AnalogInputChannels[] PROGMEM;
+    static adc_channel_num_t pinToAdcChannel(int pin);
 };
 
 /**
@@ -340,16 +477,6 @@ uint8_t eeprom_read_byte(uint8_t* pos);
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
-
-// ADC
-uint16_t getAdcReading(adc_channel_num_t chan);
-void startAdcConversion(adc_channel_num_t chan);
-adc_channel_num_t pinToAdcChannel(int pin);
-
-uint16_t getAdcFreerun(adc_channel_num_t chan, bool wait_for_conversion = false);
-uint16_t getAdcSuperSample(adc_channel_num_t chan);
-void setAdcFreerun(void);
-void stopAdcFreerun(adc_channel_num_t chan);
 
 #if ENABLED(LASERBEAM)
   #define LASER_PWM_MAX_DUTY 255

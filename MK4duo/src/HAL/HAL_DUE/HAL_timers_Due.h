@@ -85,16 +85,22 @@ typedef struct {
 #define DELAY_TIMER_PRESCALE    8
 
 #define STEPPER_TIMER 2
-#define STEPPER_TIMER_PRESCALE 2.0
-#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE)    // 42 MHz
-#define STEPPER_TIMER_TICKS_PER_US (HAL_STEPPER_TIMER_RATE / 1000000) // 42
+#define STEPPER_TIMER_PRESCALE  2.0
+#define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
 
 #define TEMP_TIMER 3
-#define TEMP_TIMER_FREQUENCY 2000
+#define TEMP_TIMER_FREQUENCY 3096
 
 #define BEEPER_TIMER 4
 #define BEEPER_TIMER_COUNTER TC1
 #define BEEPER_TIMER_CHANNEL 1
+
+#define AD_PRESCALE_FACTOR      84  // 500 kHz ADC clock 
+#define AD_TRACKING_CYCLES      4   // 0 - 15     + 1 adc clock cycles
+#define AD_TRANSFER_CYCLES      1   // 0 - 3      * 2 + 3 adc clock cycles
+
+#define ADC_ISR_EOC(channel)    (0x1u << channel)
 
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
@@ -126,8 +132,6 @@ typedef struct {
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 84
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT (((OVERSAMPLENR + 2) * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 // --------------------------------------------------------------------------
 // Public Variables
