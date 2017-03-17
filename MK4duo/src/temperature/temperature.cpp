@@ -1925,18 +1925,18 @@ void Temperature::disable_all_heaters() {
 
 void Temperature::set_current_temp_raw() {
   #if HAS(TEMP_0) && DISABLED(HEATER_0_USES_MAX6675)
-    current_temperature_raw[0] = HAL::AnalogInputValues[EXT0_SENSOR_INDEX];
+    current_temperature_raw[0] = HAL::AnalogInputValues[HOT0_SENSOR_INDEX];
   #endif
   #if HAS(TEMP_1)
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-      redundant_temperature_raw = HAL::AnalogInputValues[EXT1_SENSOR_INDEX];
+      redundant_temperature_raw = HAL::AnalogInputValues[HOT1_SENSOR_INDEX];
     #else
-      current_temperature_raw[1] = HAL::AnalogInputValues[EXT1_SENSOR_INDEX];
+      current_temperature_raw[1] = HAL::AnalogInputValues[HOT1_SENSOR_INDEX];
     #endif
     #if HAS(TEMP_2)
-      current_temperature_raw[2] = HAL::AnalogInputValues[EXT2_SENSOR_INDEX];
+      current_temperature_raw[2] = HAL::AnalogInputValues[HOT2_SENSOR_INDEX];
       #if HAS(TEMP_3)
-        current_temperature_raw[3] = HAL::AnalogInputValues[EXT3_SENSOR_INDEX];
+        current_temperature_raw[3] = HAL::AnalogInputValues[HOT3_SENSOR_INDEX];
       #endif
     #endif
   #endif
@@ -2342,13 +2342,13 @@ void Temperature::isr() {
       slow_pwm_count++;
       slow_pwm_count &= 0x7f;
 
-      // EXTRUDER 0
+      // HOTEND 0
       if (state_timer_heater_0 > 0) state_timer_heater_0--;
-      #if HOTENDS > 1    // EXTRUDER 1
+      #if HOTENDS > 1    // HOTEND 1
         if (state_timer_heater_1 > 0) state_timer_heater_1--;
-        #if HOTENDS > 2    // EXTRUDER 2
+        #if HOTENDS > 2    // HOTEND 2
           if (state_timer_heater_2 > 0) state_timer_heater_2--;
-          #if HOTENDS > 3    // EXTRUDER 3
+          #if HOTENDS > 3    // HOTEND 3
             if (state_timer_heater_3 > 0) state_timer_heater_3--;
           #endif
         #endif

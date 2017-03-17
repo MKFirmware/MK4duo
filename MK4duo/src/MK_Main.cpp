@@ -7117,7 +7117,7 @@ inline void gcode_M111() {
 /**
  * M114: Output current position to serial port
  */
-inline void gcode_M114() { report_current_position(); }
+inline void gcode_M114() { stepper.synchronize(); report_current_position(); }
 
 /**
  * M115: Capabilities string
@@ -10291,7 +10291,8 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         #if HAS(DONDOLO)
           // <0 if the new nozzle is higher, >0 if lower. A bigger raise when lower.
           float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
-                z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0);
+                z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
+                z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
 
           // Always raise by some amount (destination copied from current_position earlier)
           destination[Z_AXIS] += z_raise;
@@ -10302,11 +10303,11 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
           HAL::delayMilliseconds(500);
 
           // Move back down
-          destination[Z_AXIS] = current_position[Z_AXIS] - 0.3;
+          destination[Z_AXIS] = current_position[Z_AXIS] - z_back;
           planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
           stepper.synchronize();
         #endif
-        
+
         /**
          * Set current_position to the position of the new nozzle.
          * Offsets are based on linear distance, so we need to get
@@ -12824,14 +12825,14 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   }
 
   #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH
-    if (chdkActive && PENDING(ms, chdkHigh + CHDK_DELAY)) {
+    if (chdkActive && ELAPSED(ms, chdkHigh + CHDK_DELAY)) {
       chdkActive = false;
       WRITE(CHDK_PIN, LOW);
     }
   #endif
 
   #if HAS(KILL)
-    
+
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press
     // -------------------------------------------------------------------------------
@@ -12864,7 +12865,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         homeDebounceCount = 0;
     }
   #endif
-    
+
   #if HAS(CONTROLLERFAN)
     controllerFan(); // Check if fan should be turned on to cool stepper drivers down
   #endif
