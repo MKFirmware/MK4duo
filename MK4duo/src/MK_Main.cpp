@@ -7117,7 +7117,7 @@ inline void gcode_M111() {
 /**
  * M114: Output current position to serial port
  */
-inline void gcode_M114() { report_current_position(); }
+inline void gcode_M114() { stepper.synchronize(); report_current_position(); }
 
 /**
  * M115: Capabilities string
@@ -7982,7 +7982,7 @@ inline void gcode_M226() {
     int c = code_seen('C') ? code_value_int() : 5;
     bool u = code_seen('U') && code_value_bool() != 0;
 
-    float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 150.0);
+    float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 200.0);
 
     if (h >= 0 && h < HOTENDS) target_extruder = h;
 
@@ -9187,6 +9187,7 @@ inline void gcode_M532() {
     stepper.synchronize();
 
     #if ENABLED(FILAMENT_CHANGE_EXTRUDE_LENGTH) && FILAMENT_CHANGE_EXTRUDE_LENGTH > 0
+
       do {
         // "Wait for filament extrude"
         lcd_filament_change_show_message(FILAMENT_CHANGE_MESSAGE_EXTRUDE);
@@ -9205,6 +9206,7 @@ inline void gcode_M532() {
 
         // Keep looping if "Extrude More" was selected
       } while (filament_change_menu_response != FILAMENT_CHANGE_RESPONSE_RESUME_PRINT);
+
     #endif
 
     // "Wait for print to resume"
@@ -10184,7 +10186,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       // Save current position to destination, for use later
       set_destination_to_current();
-      
+
       #if ENABLED(DUAL_X_CARRIAGE)
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -10289,9 +10291,8 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         #if HAS(DONDOLO)
           // <0 if the new nozzle is higher, >0 if lower. A bigger raise when lower.
           float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
-                z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0);
-
-          set_destination_to_current();
+                z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
+                z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
 
           // Always raise by some amount (destination copied from current_position earlier)
           destination[Z_AXIS] += z_raise;
@@ -10301,14 +10302,12 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
           move_extruder_servo(tmp_extruder);
           HAL::delayMilliseconds(500);
 
-          // Move back down, if needed
-          if (z_raise != z_diff) {
-            destination[Z_AXIS] = current_position[Z_AXIS] + z_diff;
-            planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
-            stepper.synchronize();
-          }
+          // Move back down
+          destination[Z_AXIS] = current_position[Z_AXIS] - z_back;
+          planner.buffer_line_kinematic(destination, planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
+          stepper.synchronize();
         #endif
-        
+
         /**
          * Set current_position to the position of the new nozzle.
          * Offsets are based on linear distance, so we need to get
@@ -12119,9 +12118,11 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       uint16_t segments = deltaParams.segments_per_second * seconds;
     #else
       uint16_t segments = scara_segments_per_second * seconds;
+      // For SCARA minimum segment size is 0.5mm
       NOMORE(segments, cartesian_mm * 2);
     #endif
 
+    // At least one segment is required
     NOLESS(segments, 1);
 
     // The approximate length of each segment
@@ -12147,16 +12148,18 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // For non-interpolated delta calculate every segment
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) logical[i] += segment_distance[i];
-      deltaParams.inverse_kinematics_DELTA(logical);
+      #if MECH(DELTA)
+        deltaParams.inverse_kinematics_DELTA(logical);
+      #else
+        inverse_kinematics(logical);
+      #endif
       ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
       planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
     }
 
     // Since segment_distance is only approximate,
     // the final move must be to the exact destination.
-    deltaParams.inverse_kinematics_DELTA(ltarget);
-    ADJUST_DELTA(ltarget); // Adjust Z if bed leveling is enabled
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+    planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
     return true;
   }
 
@@ -12826,14 +12829,14 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   }
 
   #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH
-    if (chdkActive && PENDING(ms, chdkHigh + CHDK_DELAY)) {
+    if (chdkActive && ELAPSED(ms, chdkHigh + CHDK_DELAY)) {
       chdkActive = false;
       WRITE(CHDK_PIN, LOW);
     }
   #endif
 
   #if HAS(KILL)
-    
+
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press
     // -------------------------------------------------------------------------------
@@ -12866,7 +12869,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         homeDebounceCount = 0;
     }
   #endif
-    
+
   #if HAS(CONTROLLERFAN)
     controllerFan(); // Check if fan should be turned on to cool stepper drivers down
   #endif

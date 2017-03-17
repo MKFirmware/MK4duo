@@ -25,8 +25,8 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#ifndef CONDITIONALS_POST_H
-#define CONDITIONALS_POST_H
+#ifndef _CONDITIONALS_POST_H
+#define _CONDITIONALS_POST_H
 
 /**
  * SAM3X8E
@@ -848,4 +848,4 @@
   #endif
 #endif
 
-#endif //CONDITIONALS_H
+#endif // _CONDITIONALS_POST_H

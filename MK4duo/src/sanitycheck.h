@@ -30,7 +30,7 @@
  * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
  */
 #if __cplusplus < 201103L
-  #error "Marlin requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
+  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
 #endif
 
 // Start check
@@ -539,6 +539,10 @@
     #elif ABL_GRID_POINTS_X < 3
       #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be 3 or higher."
     #endif
+  #endif
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    #error "DELTA is incompatible with ENABLE_LEVELING_FADE_HEIGHT. Please disable it."
   #endif
 
   #if ENABLED(AUTO_CALIBRATION_FEATURE) && ENABLED(AUTO_CALIBRATION_7_POINT)
