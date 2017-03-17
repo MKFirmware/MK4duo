@@ -12118,9 +12118,11 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       uint16_t segments = deltaParams.segments_per_second * seconds;
     #else
       uint16_t segments = scara_segments_per_second * seconds;
+      // For SCARA minimum segment size is 0.5mm
       NOMORE(segments, cartesian_mm * 2);
     #endif
 
+    // At least one segment is required
     NOLESS(segments, 1);
 
     // The approximate length of each segment
@@ -12146,16 +12148,18 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // For non-interpolated delta calculate every segment
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) logical[i] += segment_distance[i];
-      deltaParams.inverse_kinematics_DELTA(logical);
+      #if MECH(DELTA)
+        deltaParams.inverse_kinematics_DELTA(logical);
+      #else
+        inverse_kinematics(logical);
+      #endif
       ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
       planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
     }
 
     // Since segment_distance is only approximate,
     // the final move must be to the exact destination.
-    deltaParams.inverse_kinematics_DELTA(ltarget);
-    ADJUST_DELTA(ltarget); // Adjust Z if bed leveling is enabled
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+    planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
     return true;
   }
 

@@ -437,11 +437,6 @@
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
 
-// Gradually reduce leveling correction until a set height is reached,
-// at which point movement will be level to the machine's XY plane.
-// The height can be set with M320 Z<height>
-//#define ENABLE_LEVELING_FADE_HEIGHT
-
 // Experimental Subdivision of the grid by Catmull-Rom method.
 // Synthesizes intermediate points to produce a more detailed mesh.
 //#define ABL_BILINEAR_SUBDIVISION

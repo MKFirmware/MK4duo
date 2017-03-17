@@ -541,6 +541,10 @@
     #endif
   #endif
 
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    #error "DELTA is incompatible with ENABLE_LEVELING_FADE_HEIGHT. Please disable it."
+  #endif
+
   #if ENABLED(AUTO_CALIBRATION_FEATURE) && ENABLED(AUTO_CALIBRATION_7_POINT)
     #error "Only one system Autocalibration must is defined."
   #endif
