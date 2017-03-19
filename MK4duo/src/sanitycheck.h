@@ -507,16 +507,6 @@
 #endif
 
 /**
- * Motion
- */
-#if DISABLED(SOFTWARE_MIN_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MIN_ENDSTOPS
-#endif
-#if DISABLED(SOFTWARE_MAX_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MAX_ENDSTOPS
-#endif
-
-/**
  * Progress Bar
  */
 #if ENABLED(LCD_PROGRESS_BAR)
@@ -568,32 +558,21 @@
 /**
  * Allow only one bed leveling option to be defined
  */
-#if HAS(ABL)
-  #define COUNT_LEV_1 0
+static_assert(1 >= 0
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-    #define COUNT_LEV_2 INCREMENT(COUNT_LEV_1)
-  #else
-    #define COUNT_LEV_2 COUNT_LEV_1
+    + 1
   #endif
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
-    #define COUNT_LEV_3 INCREMENT(COUNT_LEV_2)
-  #else
-    #define COUNT_LEV_3 COUNT_LEV_2
+    + 1
   #endif
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define COUNT_LEV_4 INCREMENT(COUNT_LEV_3)
-  #else
-    #define COUNT_LEV_4 COUNT_LEV_3
+    + 1
   #endif
   #if ENABLED(MESH_BED_LEVELING)
-    #define COUNT_LEV_5 INCREMENT(COUNT_LEV_4)
-  #else
-    #define COUNT_LEV_5 COUNT_LEV_4
+    + 1
   #endif
-  #if COUNT_LEV_5 > 1
-    #error "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, or AUTO_BED_LEVELING_BILINEAR."
-  #endif
-#endif
+  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, or AUTO_BED_LEVELING_BILINEAR."
+);
 
 /**
  * Mesh Bed Leveling
@@ -616,35 +595,24 @@
   /**
    * Allow only one probe option to be defined
    */
-  #define COUNT_PROBE_1 0
-  #if ENABLED(Z_PROBE_FIX_MOUNTED)
-    #define COUNT_PROBE_2 INCREMENT(COUNT_PROBE_1)
-  #else
-    #define COUNT_PROBE_2 COUNT_PROBE_1
-  #endif
-  #if HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
-    #define COUNT_PROBE_3 INCREMENT(COUNT_PROBE_2)
-  #else
-    #define COUNT_PROBE_3 COUNT_PROBE_2
-  #endif
-  #if ENABLED(BLTOUCH)
-    #define COUNT_PROBE_4 INCREMENT(COUNT_PROBE_3)
-  #else
-    #define COUNT_PROBE_4 COUNT_PROBE_3
-  #endif
-  #if ENABLED(Z_PROBE_ALLEN_KEY)
-    #define COUNT_PROBE_5 INCREMENT(COUNT_PROBE_4)
-  #else
-    #define COUNT_PROBE_5 COUNT_PROBE_4
-  #endif
-  #if ENABLED(Z_PROBE_SLED)
-    #define COUNT_PROBE_6 INCREMENT(COUNT_PROBE_5)
-  #else
-    #define COUNT_PROBE_6 COUNT_PROBE_5
-  #endif
-  #if COUNT_PROBE_6 > 1
-    #error "Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
-  #endif
+  static_assert(1 >= 0
+    #if ENABLED(FIX_MOUNTED_PROBE)
+      + 1
+    #endif
+    #if HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
+      + 1
+    #endif
+    #if ENABLED(BLTOUCH)
+      + 1
+    #endif
+    #if ENABLED(Z_PROBE_ALLEN_KEY)
+      + 1
+    #endif
+    #if ENABLED(Z_PROBE_SLED)
+      + 1
+    #endif
+    , "Please enable only one probe: FIX_MOUNTED_PROBE, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
+  );
 
   /**
    * Z_PROBE_SLED is incompatible with DELTA
@@ -2024,3 +1992,92 @@
     #error "G38_PROBE_TARGET requires a Cartesian machine."
   #endif
 #endif
+
+/**
+ * Make sure only one display is enabled
+ *
+ * Note: BQ_LCD_SMART_CONTROLLER => REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+ *       REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER => REPRAP_DISCOUNT_SMART_CONTROLLER
+ *       SAV_3DGLCD => U8GLIB_SH1106 => ULTIMAKERCONTROLLER
+ *       miniVIKI => ULTIMAKERCONTROLLER
+ *       VIKI2 => ULTIMAKERCONTROLLER
+ *       ELB_FULL_GRAPHIC_CONTROLLER => ULTIMAKERCONTROLLER
+ *       PANEL_ONE => ULTIMAKERCONTROLLER
+ */
+static_assert(1 >= 0
+  #if ENABLED(ULTIMAKERCONTROLLER) \
+      && DISABLED(SAV_3DGLCD) && DISABLED(miniVIKI) && DISABLED(VIKI2) \
+      && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER) && DISABLED(PANEL_ONE)
+    + 1
+  #endif
+  #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) && DISABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) && DISABLED(BQ_LCD_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(CARTESIO_UI)
+    + 1
+  #endif
+  #if ENABLED(PANEL_ONE)
+    + 1
+  #endif
+  #if ENABLED(MAKRPANEL)
+    + 1
+  #endif
+  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+    + 1
+  #endif
+  #if ENABLED(VIKI2)
+    + 1
+  #endif
+  #if ENABLED(miniVIKI)
+    + 1
+  #endif
+  #if ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(G3D_PANEL)
+    + 1
+  #endif
+  #if ENABLED(MINIPANEL)
+    + 1
+  #endif
+  #if ENABLED(REPRAPWORLD_KEYPAD) && DISABLED(CARTESIO_UI)
+    + 1
+  #endif
+  #if ENABLED(RIGIDBOT_PANEL)
+    + 1
+  #endif
+  #if ENABLED(RA_CONTROL_PANEL)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_SAINSMART_YWROBOT)
+    + 1
+  #endif
+  #if ENABLED(LCM1602)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_PANELOLU2)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_VIKI)
+    + 1
+  #endif
+  #if ENABLED(U8GLIB_SSD1306)
+    + 1
+  #endif
+  #if ENABLED(SAV_3DLCD)
+    + 1
+  #endif
+  #if ENABLED(BQ_LCD_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(SAV_3DGLCD)
+    + 1
+  #endif
+  #if ENABLED(NEXTION)
+    + 1
+  #endif
+  , "Please select no more than one LCD controller option."
+);

@@ -67,6 +67,21 @@
 extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
+#if ANALOG_INPUTS > 0
+  int32_t   HAL::AnalogInputRead[ANALOG_INPUTS],
+            HAL::AnalogSamples[ANALOG_INPUTS][MEDIAN_COUNT],
+            HAL::AnalogSamplesSum[ANALOG_INPUTS],
+            HAL::adcSamplesMin[ANALOG_INPUTS],
+            HAL::adcSamplesMax[ANALOG_INPUTS];
+  int       HAL::adcCounter = 0,
+            HAL::adcSamplePos = 0;
+  uint32_t  HAL::adcEnable = 0;
+  bool      HAL::Analog_is_ready = false;
+#endif
+
+const uint8_t HAL::AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
+volatile uint HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+
 // disable interrupts
 void cli(void) {
   noInterrupts();
@@ -111,6 +126,106 @@ int HAL::getFreeRam() {
   // avail mem in heap + (bottom of stack addr - end of heap addr)
   return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
 }
+
+#if ANALOG_INPUTS > 0
+
+  // Convert an Arduino Due pin number to the corresponding ADC channel number
+  adc_channel_num_t HAL::pinToAdcChannel(int pin) {
+    if (pin < A0) pin += A0;
+    return (adc_channel_num_t) (int)g_APinDescription[pin].ulADCChannelNumber;
+  }
+
+  // Initialize ADC channels
+  void HAL::analogStart(void) {
+
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+      PIO_Configure(
+        g_APinDescription[58].pPort,
+        g_APinDescription[58].ulPinType,
+        g_APinDescription[58].ulPin,
+        g_APinDescription[58].ulPinConfiguration);
+      PIO_Configure(
+        g_APinDescription[59].pPort,
+        g_APinDescription[59].ulPinType,
+        g_APinDescription[59].ulPin,
+        g_APinDescription[59].ulPinConfiguration);
+    #endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
+    // ensure we can write to ADC registers
+    ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
+    pmc_enable_periph_clk(ID_ADC);  // enable adc clock
+
+    for (int i = 0; i < ANALOG_INPUTS; i++) {
+      AnalogInputValues[i] = 0;
+      adcSamplesMin[i] = 100000;
+      adcSamplesMax[i] = 0;
+      adcEnable |= (0x1u << pinToAdcChannel(AnalogInputChannels[i]));
+      AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
+      for (int j = 0; j < MEDIAN_COUNT; j++)
+        AnalogSamples[i][j] = 2048;
+    }
+    // enable channels
+    ADC->ADC_CHER = adcEnable;
+    ADC->ADC_CHDR = !adcEnable;
+
+    // Initialize ADC mode register (some of the following params are not used here)
+    // HW trigger disabled, use external Trigger, 12 bit resolution
+    // core and ref voltage stays on, normal sleep mode, normal not free-run mode
+    // startup time 16 clocks, settling time 17 clocks, no changes on channel switch
+    // convert channels in numeric order
+    // set prescaler rate  MCK/((PRESCALE+1) * 2)
+    // set tracking time  (TRACKTIM+1) * clock periods
+    // set transfer period  (TRANSFER * 2 + 3)
+    ADC->ADC_MR = ADC_MR_TRGEN_DIS | ADC_MR_TRGSEL_ADC_TRIG0 | ADC_MR_LOWRES_BITS_12 |
+                  ADC_MR_SLEEP_NORMAL | ADC_MR_FWUP_OFF | ADC_MR_FREERUN_OFF |
+                  ADC_MR_STARTUP_SUT64 | ADC_MR_SETTLING_AST17 | ADC_MR_ANACH_NONE |
+                  ADC_MR_USEQ_NUM_ORDER |
+                  ADC_MR_PRESCAL(AD_PRESCALE_FACTOR) |
+                  ADC_MR_TRACKTIM(AD_TRACKING_CYCLES) |
+                  ADC_MR_TRANSFER(AD_TRANSFER_CYCLES);
+
+    ADC->ADC_IER = 0;             // no ADC interrupts
+    ADC->ADC_CGR = 0;             // Gain = 1
+    ADC->ADC_COR = 0;             // Single-ended, no offset
+
+    // start first conversion
+    ADC->ADC_CR = ADC_CR_START;
+  }
+
+  void HAL::analogRead() {
+
+    // conversion finished?
+    if ((ADC->ADC_ISR & adcEnable) == adcEnable) {
+      adcCounter++;
+      for (int i = 0; i < ANALOG_INPUTS; i++) {
+        int32_t cur = ADC->ADC_CDR[pinToAdcChannel(AnalogInputChannels[i])];
+        cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
+        AnalogInputRead[i] += cur;
+        adcSamplesMin[i] = min(adcSamplesMin[i], cur);
+        adcSamplesMax[i] = max(adcSamplesMax[i], cur);
+        if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
+          AnalogInputRead[i] = AnalogInputRead[i] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[i] + adcSamplesMax[i]);
+          adcSamplesMin[i] = 100000;
+          adcSamplesMax[i] = 0;
+          AnalogSamplesSum[i] -= AnalogSamples[i][adcSamplePos];
+          AnalogSamplesSum[i] += (AnalogSamples[i][adcSamplePos] = AnalogInputRead[i] >> OVERSAMPLENR);
+          AnalogInputValues[i] = AnalogSamplesSum[i] / MEDIAN_COUNT;
+          AnalogInputRead[i] = 0;
+        } // adcCounter >= NUM_ADC_SAMPLES
+      } // for i
+      if (adcCounter >= NUM_ADC_SAMPLES) {
+        adcCounter = 0;
+        adcSamplePos++;
+        if (adcSamplePos >= MEDIAN_COUNT) {
+          adcSamplePos = 0;
+          Analog_is_ready = true;
+        }
+      }
+      ADC->ADC_CR = ADC_CR_START; // reread values
+    }
+  }
+
+#endif
 
 // Reset peripherals and cpu
 void HAL::resetHardware() {
@@ -599,56 +714,6 @@ void HAL::resetHardware() {
   }
 
 #endif // I2C_EEPROM
-
-// A/D converter
-uint16_t getAdcReading(adc_channel_num_t chan) {
-  if ((ADC->ADC_ISR & _BV(chan)) == (uint32_t)_BV(chan)) {
-    uint16_t rslt = ADC->ADC_CDR[chan];
-    SBI(ADC->ADC_CHDR, chan);
-    return rslt;
-  }
-  else {
-    SERIAL_LM(ER, "error getAdcReading");
-    return 0;
-  }
-}
-
-void startAdcConversion(adc_channel_num_t chan) {
-  SBI(ADC->ADC_CHER, chan);
-}
-
-// Convert an Arduino Due pin number to the corresponding ADC channel number
-adc_channel_num_t pinToAdcChannel(int pin) {
-  if (pin < A0) pin += A0;
-  return (adc_channel_num_t) (int)g_APinDescription[pin].ulADCChannelNumber;
-}
-
-uint16_t getAdcFreerun(adc_channel_num_t chan, bool wait_for_conversion) {
-  if (wait_for_conversion) while (!((ADC->ADC_ISR & _BV(chan)) == (uint32_t)_BV(chan)));
-  if ((ADC->ADC_ISR & _BV(chan)) == (uint32_t)_BV(chan)) {
-    uint16_t rslt = ADC->ADC_CDR[chan];
-    return rslt;
-  }
-  else {
-    SERIAL_LM(ER, "wait freerun");
-    return 0;
-  }
-}
-
-uint16_t getAdcSuperSample(adc_channel_num_t chan) {
-  uint16_t rslt = 0;
-  for (int i = 0; i < 8; i++) rslt += getAdcFreerun(chan, true);
-  return rslt / 4;
-}
-
-void setAdcFreerun(void) {
-  // ADC_MR_FREERUN_ON: Free Run Mode. It never waits for any trigger.
-  ADC->ADC_MR |= ADC_MR_FREERUN_ON | ADC_MR_LOWRES_BITS_12;
-}
-
-void stopAdcFreerun(adc_channel_num_t chan) {
-  SBI(ADC->ADC_CHDR, chan);
-}
 
 // LASER
 #if ENABLED(LASERBEAM)

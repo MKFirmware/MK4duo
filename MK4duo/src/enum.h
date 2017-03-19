@@ -181,6 +181,7 @@ enum PrinterMode {
 };
 
 #if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
+
   enum MeshLevelingState {
     MeshReport,
     MeshStart,
@@ -193,8 +194,10 @@ enum PrinterMode {
   enum MBLStatus {
     MBL_STATUS_NONE = 0,
     MBL_STATUS_HAS_MESH_BIT = 0,
-    MBL_STATUS_ACTIVE_BIT = 1
+    MBL_STATUS_ACTIVE_BIT = 1,
+    MBL_STATUS_REACTIVATE_BIT = 2
   };
+
 #endif
 
 /**

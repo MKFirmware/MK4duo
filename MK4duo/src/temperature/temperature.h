@@ -198,11 +198,6 @@ class Temperature {
       static millis_t next_cooler_check_ms;
     #endif
 
-    static unsigned long raw_temp_value[4],
-                         raw_temp_bed_value,
-                         raw_temp_chamber_value,
-                         raw_temp_cooler_value;
-
     // Init min and max temp with extreme values to prevent false errors during startup
     static int minttemp_raw[HOTENDS],
                maxttemp_raw[HOTENDS],
@@ -244,18 +239,6 @@ class Temperature {
       static int cooler_maxttemp_raw;
     #endif
 
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      // MEDIAN COUNT
-      // For Smoother temperature
-      // ONLY FOR DUE
-      #define MEDIAN_COUNT 10
-
-      static int max_temp[7],
-                 min_temp[7];
-      static uint8_t median_counter;
-      static unsigned long raw_median_temp[7][MEDIAN_COUNT], sum;
-    #endif
-
     #if ENABLED(FILAMENT_SENSOR)
       static int meas_shift_index;  // Index of a delayed sample in buffer
     #endif
@@ -295,7 +278,7 @@ class Temperature {
     /**
      * Static (class) methods
      */
-    static float analog2temp(int raw, uint8_t h);
+    static float analog2temp(const int raw, uint8_t h);
     static float analog2tempBed(int raw);
     #if HAS(TEMP_CHAMBER)
       static float analog2tempChamber(int raw);
@@ -583,18 +566,6 @@ class Temperature {
 
   private:
 
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      static int calc_raw_temp_value(uint8_t temp_id);
-      #if HAS(TEMP_BED)
-        static int calc_raw_temp_bed_value();
-      #endif
-      #if HAS(TEMP_CHAMBER)
-        static int calc_raw_temp_chamber_value();
-      #endif
-      #if HAS(TEMP_COOLER)
-        static int calc_raw_temp_cooler_value();
-      #endif
-    #endif
     static void set_current_temp_raw();
 
     static void updateTemperaturesFromRawValues();

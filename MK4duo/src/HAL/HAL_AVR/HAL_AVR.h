@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,8 +112,6 @@
 #define HAL_VOLTAGE_PIN 5.0
 
 #define ADV_NEVER 65535
-
-#define OVERSAMPLENR 16
 
 /**
  * Optimized math functions for AVR
@@ -199,6 +198,15 @@
                  "r26" , "r27" \
                )
 
+// TEMPERATURE
+#define ANALOG_REF_AREF 0
+#define ANALOG_REF_AVCC _BV(REFS0)
+#define ANALOG_REF ANALOG_REF_AVCC
+#define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define OVERSAMPLENR 16
+// Temperature PID_dT
+#define PID_dT ((OVERSAMPLENR * 10) / (float)(TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
+
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
@@ -254,8 +262,6 @@ typedef uint32_t millis_t;
 #define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -285,6 +291,9 @@ class HAL {
 
     virtual ~HAL();
 
+    static unsigned long AnalogInputValues[ANALOG_INPUTS];
+    static bool Analog_is_ready;
+
     // do any hardware-specific initialization here
     static inline void hwSetup(void) { /* noop */ }
 
@@ -293,6 +302,9 @@ class HAL {
 
     static int getFreeRam();
     static void resetHardware();
+
+    static void analogStart();
+    static void analogRead();
 
     // SPI related functions
     static void spiBegin() {
@@ -409,6 +421,11 @@ class HAL {
 
   protected:
   private:
+
+    static int32_t  AnalogInputRead[ANALOG_INPUTS];
+    static uint8_t  adcCounter[ANALOG_INPUTS],
+                    adcSamplePos;
+    static const uint8_t AnalogInputChannels[] PROGMEM;
 };
 
 /**

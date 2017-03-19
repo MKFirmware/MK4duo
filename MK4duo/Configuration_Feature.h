@@ -544,10 +544,10 @@
 /**************************************************************************
  *************************** Software endstops ****************************
  **************************************************************************/
-// If true, axis won't move to coordinates less than MIN POS.
-#define SOFTWARE_MIN_ENDSTOPS true
-// If true, axis won't move to coordinates greater than MAX POS.
-#define SOFTWARE_MAX_ENDSTOPS true
+// If enabled, axis won't move to coordinates less than MIN POS.
+#define MIN_SOFTWARE_ENDSTOPS
+// If enabled, axis won't move to coordinates greater than MAX POS.
+#define MAX_SOFTWARE_ENDSTOPS
 /**************************************************************************/
 
 
