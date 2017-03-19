@@ -155,7 +155,7 @@ extern float hotend_offset[XYZ][HOTENDS];
 extern float soft_endstop_min[XYZ];
 extern float soft_endstop_max[XYZ];
 
-#if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
+#if HAS(SOFTWARE_ENDSTOPS)
   extern bool soft_endstops_enabled;
   void clamp_to_software_endstops(float target[XYZ]);
 #else

@@ -507,16 +507,6 @@
 #endif
 
 /**
- * Motion
- */
-#if DISABLED(SOFTWARE_MIN_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MIN_ENDSTOPS
-#endif
-#if DISABLED(SOFTWARE_MAX_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MAX_ENDSTOPS
-#endif
-
-/**
  * Progress Bar
  */
 #if ENABLED(LCD_PROGRESS_BAR)
@@ -2075,9 +2065,6 @@ static_assert(1 >= 0
     + 1
   #endif
   #if ENABLED(U8GLIB_SSD1306)
-    + 1
-  #endif
-  #if ENABLED(WANHAO_D6_OLED)
     + 1
   #endif
   #if ENABLED(SAV_3DLCD)

@@ -388,12 +388,12 @@
  *****************************************************************************************/
 //#define MESH_BED_LEVELING
 
-#define MESH_INSET         10   // Mesh inset margin on print area
-#define MESH_NUM_X_POINTS   3   // Don't use more than 7 points per axis, implementation limited.
-#define MESH_NUM_Y_POINTS   3
-#define MESH_HOME_SEARCH_Z  5   // Z after Home, bed somewhere below but above 0.0.
+#define MANUAL_PROBE_Z_RANGE 4  // Z Range centered on Z MIN POS for LCD Z adjustment
+#define MESH_INSET          10  // Mesh inset margin on print area
+#define MESH_NUM_X_POINTS    3  // Don't use more than 7 points per axis, implementation limited.
+#define MESH_NUM_Y_POINTS    3
 
-// After homing all axes ('G28' or 'G28 XYZ') rest at origin [0,0,0]
+// After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
 
 // Add display menu option for bed leveling.
