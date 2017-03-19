@@ -1,3 +1,9 @@
+### Version 4.3.15 dev
+* Rewrite HAL ADC for 8 and 32 bit
+* Fix SOFTWARE ENDSTOP
+* Fix MBL
+* Clear code
+
 ### Version 4.3.14 dev
 * Add TMC2130 motor driver
 * Add EEPROM on SDCARD (Ultratronics)
