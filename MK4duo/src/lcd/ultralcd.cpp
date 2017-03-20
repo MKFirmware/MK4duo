@@ -583,6 +583,32 @@ void kill_screen(const char* lcd_msg) {
 
 #if ENABLED(ULTIPANEL)
 
+  /**
+   *
+   * Audio feedback for controller clicks
+   *
+   */
+
+  void lcd_quick_feedback() {
+    lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
+    buttons = 0;
+    next_button_update_ms = millis() + 500;
+
+    // Buzz and wait. The delay is needed for buttons to settle!
+    buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+    #if ENABLED(LCD_USE_I2C_BUZZER)
+      HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
+    #endif
+  }
+
+  void lcd_completion_feedback(const bool good/*=true*/) {
+    if (good) {
+      buzz(100, 659);
+      buzz(100, 698);
+    }
+    else buzz(20, 440);
+  }
+
   inline void line_to_current(AxisEnum axis) {
     planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
   }
@@ -1402,10 +1428,7 @@ void kill_screen(const char* lcd_msg) {
           enqueue_and_echo_commands_P(PSTR("G28"));
           lcd_return_to_status();
           //LCD_MESSAGEPGM(MSG_LEVEL_BED_DONE);
-          #if HAS(BUZZER)
-            buzz(200, 659);
-            buzz(200, 698);
-          #endif
+          lcd_completion_feedback();
         }
         else {
           lcd_goto_screen(_lcd_level_goto_next_point);
@@ -1990,6 +2013,15 @@ KeepDrawing:
    *
    */
 
+  #if ENABLED(EEPROM_SETTINGS)
+    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
+    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
+    static void lcd_factory_settings() {
+      eeprom.Factory_Settings();
+      lcd_completion_feedback();
+    }
+  #endif
+
   void lcd_control_menu() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
@@ -2007,10 +2039,10 @@ KeepDrawing:
       MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EPROM, eeprom.StoreSettings);
-      MENU_ITEM(function, MSG_LOAD_EPROM, eeprom.RetrieveSettings);
+      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
     #endif
-    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, eeprom.ResetDefault);
+    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, lcd_factory_settings);
     END_MENU();
   }
 
@@ -2264,7 +2296,7 @@ KeepDrawing:
       MENU_ITEM_EDIT(int3, MSG_BED, &lcd_preheat_bed_temp[material], BED_MINTEMP, BED_MAXTEMP - 15);
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EPROM, eeprom.StoreSettings);
+      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
     #endif
     END_MENU();
   }
@@ -3195,26 +3227,6 @@ KeepDrawing:
     }
 
   #endif // REPRAPWORLD_KEYPAD
-
-  /**
-   *
-   * Audio feedback for controller clicks
-   *
-   */
-
-  void lcd_quick_feedback() {
-    lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
-    buttons = 0;
-    next_button_update_ms = millis() + 500;
-
-    #if HAS(BUZZER)
-      // Buzz and wait. The delay is needed for buttons to settle!
-      buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
-      #if ENABLED(LCD_USE_I2C_BUZZER)
-        HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
-      #endif
-    #endif
-  }
 
   /**
    *

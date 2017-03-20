@@ -39,7 +39,6 @@
 #include "../../base.h"
 
 #define EEPROM_VERSION "MKV31"
-#define EEPROM_OFFSET 10
 
 /**
  * MKV430 EEPROM Layout:
@@ -268,7 +267,7 @@ void EEPROM::Postprocess() {
   /**
    * M500 - Store Configuration
    */
-  void EEPROM::StoreSettings() {
+  bool EEPROM::Store_Settings() {
     float dummy = 0.0f;
     char ver[6] = "00000";
 
@@ -533,12 +532,14 @@ void EEPROM::Postprocess() {
       card.finishWrite();
       unset_sd_dot();
     #endif
+
+    return !eeprom_write_error;
   }
 
   /**
    * M501 - Retrieve Configuration
    */
-  void EEPROM::RetrieveSettings() {
+  bool EEPROM::Load_Settings() {
 
     EEPROM_START();
     eeprom_read_error = false; // If set EEPROM_READ won't write into RAM
@@ -571,7 +572,7 @@ void EEPROM::Postprocess() {
       SERIAL_SM(ECHO, "EEPROM version mismatch ");
       SERIAL_MT("(EEPROM=", stored_ver);
       SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
-      ResetDefault();
+      Factory_Settings();
     }
     else {
       float dummy = 0;
@@ -805,7 +806,7 @@ void EEPROM::Postprocess() {
         card.closeFile();
         unset_sd_dot();
         if (eeprom_read_error)
-          ResetDefault();
+          Factory_Settings();
         else {
           Postprocess();
           SERIAL_V(version);
@@ -817,7 +818,7 @@ void EEPROM::Postprocess() {
 
         if (eeprom_checksum == stored_checksum) {
           if (eeprom_read_error)
-            ResetDefault();
+            Factory_Settings();
           else {
             Postprocess();
             SERIAL_V(version);
@@ -827,27 +828,29 @@ void EEPROM::Postprocess() {
         }
         else {
           SERIAL_LM(ER, "EEPROM checksum mismatch");
-          ResetDefault();
+          Factory_Settings();
         }
 
       #endif
     }
 
     #if ENABLED(EEPROM_CHITCHAT)
-      PrintSettings();
+      Print_Settings();
     #endif
+
+    return !eeprom_read_error;
   }
 
 #else // !EEPROM_SETTINGS
 
-  void EEPROM::StoreSettings() { SERIAL_LM(ER, "EEPROM disabled"); }
+  bool EEPROM::Store_Settings() { SERIAL_LM(ER, "EEPROM disabled"); return false; }
 
 #endif // EEPROM_SETTINGS
 
 /**
  * M502 - Reset Configuration
  */
-void EEPROM::ResetDefault() {
+void EEPROM::Factory_Settings() {
   const float     tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
   const float     tmp2[] = DEFAULT_MAX_FEEDRATE;
   const uint32_t  tmp3[] = DEFAULT_MAX_ACCELERATION;
@@ -1044,7 +1047,7 @@ void EEPROM::ResetDefault() {
   /**
    * M503 - Print Configuration
    */
-  void EEPROM::PrintSettings(bool forReplay) {
+  void EEPROM::Print_Settings(bool forReplay) {
     // Always have this function, even with EEPROM_SETTINGS disabled, the current values will be shown
 
     CONFIG_MSG_START("Steps per unit:");

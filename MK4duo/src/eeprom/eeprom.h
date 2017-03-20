@@ -27,19 +27,19 @@ class EEPROM {
 
   public:
 
-    static void ResetDefault();
-    static void StoreSettings();
+    static void Factory_Settings();
+    static bool Store_Settings();
 
     #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
+      static void Print_Settings(bool forReplay = false);
     #else
-      static inline void PrintSettings(bool forReplay = false) {}
+      static inline void Print_Settings(bool forReplay = false) {}
     #endif
 
     #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
+      static bool Load_Settings();
     #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
+      static inline bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
     #endif
 
   private:
