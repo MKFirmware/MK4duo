@@ -2169,7 +2169,12 @@ static void clean_up_after_endstop_or_probe_move() {
     #if MECH(MAKERARM_SCARA)
       vector_3 point = probe_point_to_end_point(x, y);
       float dx = point.x, dy = point.y;
-      if (dx == 0.0 && dy == 0.0) { buzz(100, 220); return 0.0; }
+      if (dx == 0.0 && dy == 0.0) {
+        #if HAS(BUZZER)
+          buzz(100, 220);
+        #endif
+        return 0.0;
+      }
     #else
       const float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
                   dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
@@ -2626,7 +2631,12 @@ static void homeaxis(const AxisEnum axis) {
 
   #if IS_SCARA
     // Only Z homing (with probe) is permitted
-    if (axis != Z_AXIS) { buzz(100, 880); return; }
+    if (axis != Z_AXIS) {
+      #if HAS(BUZZER)
+        buzz(100, 880);
+      #endif
+      return;
+    }
   #else
     #define CAN_HOME(A) \
       (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))

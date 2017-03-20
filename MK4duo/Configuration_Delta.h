@@ -27,6 +27,7 @@
  *
  * - Machine name
  * - Delta settings
+ * - Delta Fast SQRT (only for 8 bit)
  * - Endstop pullup resistors
  * - Endstops logic
  * - Endstop Interrupts Feature
@@ -145,7 +146,6 @@
 #define TOWER_B_DIAGROD_ADJ 0   // Front Right Tower
 #define TOWER_C_DIAGROD_ADJ 0   // Rear Tower
 /*****************************************************************************************/
-
 
 
 /*****************************************************************************************

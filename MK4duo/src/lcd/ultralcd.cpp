@@ -594,19 +594,24 @@ void kill_screen(const char* lcd_msg) {
     buttons = 0;
     next_button_update_ms = millis() + 500;
 
-    // Buzz and wait. The delay is needed for buttons to settle!
-    buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
-    #if ENABLED(LCD_USE_I2C_BUZZER)
-      HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
+    #if HAS(BUZZER)
+      // Buzz and wait. The delay is needed for buttons to settle!
+      buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+      #if ENABLED(LCD_USE_I2C_BUZZER)
+        HAL::delayMilliseconds(LCD_FEEDBACK_FREQUENCY_DURATION_MS);
+      #endif
     #endif
   }
 
   void lcd_completion_feedback(const bool good/*=true*/) {
-    if (good) {
-      buzz(100, 659);
-      buzz(100, 698);
-    }
-    else buzz(20, 440);
+    #if HAS(BUZZER)
+      if (good) {
+        buzz(100, 659);
+        buzz(100, 698);
+      }
+      else
+        buzz(20, 440);
+    #endif
   }
 
   inline void line_to_current(AxisEnum axis) {
