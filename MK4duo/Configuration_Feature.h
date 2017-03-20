@@ -484,7 +484,7 @@
  *                                                                        *
  * Uncomment FILAMENT CHANGE FEATURE to enable this feature               *
  * Requires an LCD display.                                               *
- * This feature is required for the default FILAMENT_RUNOUT_SCRIPT.       *
+ * This feature is required for the default FILAMENT RUNOUT SCRIPT.       *
  *                                                                        *
  **************************************************************************/
 //#define FILAMENT_CHANGE_FEATURE
