@@ -123,8 +123,8 @@
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm3")                                           // E in mm3
 #define MSG_FILAMENT_DIAM                   _UxGT("Fil. Çap")                                           // Fil. Çap
 #define MSG_CONTRAST                        _UxGT("LCD Kontrast")                                       // LCD Kontrast
-#define MSG_STORE_EPROM                     _UxGT("Hafizaya Al")                                        // Hafizaya Al
-#define MSG_LOAD_EPROM                      _UxGT("Hafizadan Yükle")                                    // Hafizadan Yükle
+#define MSG_STORE_EEPROM                    _UxGT("Hafizaya Al")                                        // Hafizaya Al
+#define MSG_LOAD_EEPROM                     _UxGT("Hafizadan Yükle")                                    // Hafizadan Yükle
 #define MSG_RESTORE_FAILSAFE                _UxGT("Fabrika Ayarlari")                                   // Fabrika Ayarlari
 #define MSG_REFRESH                         _UxGT("Yenile")                                             // Yenile
 #define MSG_WATCH                           _UxGT("Bilgi Ekrani")                                       // Bilgi Ekrani

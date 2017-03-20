@@ -99,6 +99,7 @@
   #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
 #endif
 
+// SERIAL
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
@@ -122,6 +123,10 @@
   #endif
 #endif
 
+// EEPROM START
+#define EEPROM_OFFSET 10
+
+// MATH
 #define MATH_USE_HAL
 #undef ATAN2
 #undef FABS
@@ -143,9 +148,6 @@
 #define FMOD(x, y)  fmodf(x, y)
 #define COS(x)      cosf(x)
 #define SIN(x)      sinf(x)
-
-#undef analogInputToDigitalPin
-#define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
 
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
@@ -184,6 +186,8 @@
 #define ADV_NEVER 0xFFFFFFFF
 
 // TEMPERATURE
+#undef analogInputToDigitalPin
+#define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
 #define ANALOG_REDUCE_BITS 0

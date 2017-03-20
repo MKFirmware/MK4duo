@@ -108,6 +108,9 @@
 #undef HIGH
 #define HIGH        1
 
+// EEPROM START
+#define EEPROM_OFFSET 100
+
 // Voltage for Pin
 #define HAL_VOLTAGE_PIN 5.0
 

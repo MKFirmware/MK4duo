@@ -4436,8 +4436,8 @@ inline void gcode_G28() {
           mbl.set_reactivate(true);
           enqueue_and_echo_commands_P(PSTR("G28"));
           #if HAS(BUZZER)
-            buzz(200, 659);
-            buzz(200, 698);
+            buzz(100, 659);
+            buzz(100, 698);
           #endif
         }
         break;
@@ -8150,7 +8150,7 @@ inline void gcode_M226() {
   inline void gcode_M322() {
     reset_bed_level();
     if (code_seen('S') && code_value_bool())
-      eeprom.StoreSettings();
+      eeprom.Store_Settings();
   }
 
 #endif
@@ -8758,8 +8758,8 @@ inline void gcode_M400() { stepper.synchronize(); }
       SERIAL_EM(MSG_HOME_OFFSETS_APPLIED);
       LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
       #if HAS(BUZZER)
-        buzz(200, 659);
-        buzz(200, 698);
+        buzz(100, 659);
+        buzz(100, 698);
       #endif
     }
   }
@@ -8800,28 +8800,28 @@ inline void gcode_M400() { stepper.synchronize(); }
  * M500: Store settings in EEPROM
  */
 inline void gcode_M500() {
-  eeprom.StoreSettings();
+  (void)eeprom.Store_Settings();
 }
 
 /**
  * M501: Read settings from EEPROM
  */
 inline void gcode_M501() {
-  eeprom.RetrieveSettings();
+  (void)eeprom.Load_Settings();
 }
 
 /**
  * M502: Revert to default settings
  */
 inline void gcode_M502() {
-  eeprom.ResetDefault();
+  (void)eeprom.Factory_Settings();
 }
 
 /**
  * M503: print settings currently in memory
  */
 inline void gcode_M503() {
-  eeprom.PrintSettings(code_seen('S') && !code_value_bool());
+  (void)eeprom.Print_Settings(code_seen('S') && !code_value_bool());
 }
 
 #if ENABLED(RFID_MODULE)
@@ -12833,7 +12833,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
-        eeprom.StoreSettings();
+        eeprom.Store_Settings();
       }
       laser_init();
       #if ENABLED(LASER_PERIPHERALS)
@@ -13277,8 +13277,8 @@ void setup() {
     HAL::delayMilliseconds(300);
   #endif
 
-  // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  eeprom.RetrieveSettings();
+  // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
+  (void)eeprom.Load_Settings();
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
@@ -13426,7 +13426,7 @@ void loop() {
       if (wait_for_host_init_string_to_finish >= 250) {
         wait_for_host_init_string_to_finish = 0;
         // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-        eeprom.RetrieveSettings();
+        eeprom.Load_Settings();
       }
     }
   #endif
