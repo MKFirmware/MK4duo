@@ -2021,11 +2021,11 @@ KeepDrawing:
   #if ENABLED(EEPROM_SETTINGS)
     static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
     static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
-    static void lcd_factory_settings() {
-      eeprom.Factory_Settings();
-      lcd_completion_feedback();
-    }
   #endif
+  static void lcd_factory_settings() {
+    eeprom.Factory_Settings();
+    lcd_completion_feedback();
+  }
 
   void lcd_control_menu() {
     START_MENU();
