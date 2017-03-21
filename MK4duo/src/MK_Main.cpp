@@ -2148,7 +2148,7 @@ static void clean_up_after_endstop_or_probe_move() {
   //   - Raise to the BETWEEN height
   // - Return the probed Z position
   //
-  static float probe_pt(const float &x, const float &y, const bool stow = true, const int verbose_level = 1) {
+  float probe_pt(const float x, const float y, const bool stow, const int verbose_level) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> probe_pt(", x);
@@ -4020,7 +4020,7 @@ inline void gcode_G4() {
         if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
       #endif
 
-      const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS]) - zprobe_zoffset;
+      const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - zprobe_zoffset;
       current_position[Z_AXIS] -= newzero;
       destination[Z_AXIS] = current_position[Z_AXIS];
       soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
@@ -4570,6 +4570,8 @@ inline void gcode_G28() {
       // Homing
       if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
         home_delta();
+
+      do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
     #else
       // Don't allow auto-levelling without homing first
       if (axis_unhomed_error(true, true, true)) return;
@@ -5140,6 +5142,10 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       home_delta();
 
+    do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+
+    stepper.synchronize();  // wait until the machine is idle
+
     setup_for_endstop_or_probe_move();
 
     if (code_seen('X') || code_seen('Y')) {
@@ -5366,9 +5372,9 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       home_delta();
 
-    stepper.synchronize();  // wait until the machine is idle
+    do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
 
-    do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
+    stepper.synchronize();  // wait until the machine is idle
 
     bool stow = code_seen('S') ? code_value_bool() : true;
 
