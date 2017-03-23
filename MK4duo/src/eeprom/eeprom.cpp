@@ -279,7 +279,7 @@ void EEPROM::Postprocess() {
       // EEPROM on SDCARD
       if (!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) {
         SERIAL_LM(ER, MSG_NO_CARD);
-        return;
+        return false;
       }
       set_sd_dot();
       card.setroot(true);
@@ -556,7 +556,7 @@ void EEPROM::Postprocess() {
       }
       else {
         SERIAL_LM(ER, MSG_NO_CARD);
-        return;
+        return false;
       }
     #else
       EEPROM_READ(stored_ver);
