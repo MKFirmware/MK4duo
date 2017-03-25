@@ -993,7 +993,7 @@ void Temperature::manage_temp_controller() {
     #if ENABLED(PIDTEMPBED)
       uint8_t pid_output = get_pid_output_bed();
 
-      soft_pwm_bed = current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP ? (int)pid_output >> 1 : 0;
+      soft_pwm_bed = current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP ? (int)pid_output : 0;
 
     #elif ENABLED(BED_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
@@ -1010,7 +1010,7 @@ void Temperature::manage_temp_controller() {
     #else // !PIDTEMPBED && !BED_LIMIT_SWITCHING
       // Check if temperature is within the correct range
       if (current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP) {
-        soft_pwm_bed = current_temperature_bed < target_temperature_bed ? MAX_BED_POWER >> 1 : 0;
+        soft_pwm_bed = current_temperature_bed < target_temperature_bed ? MAX_BED_POWER : 0;
       }
       else {
         soft_pwm_bed = 0;
@@ -1027,7 +1027,7 @@ void Temperature::manage_temp_controller() {
     #if ENABLED(PIDTEMPCHAMBER)
       uint8_t pid_output_chamber = get_pid_output_chamber();
 
-      soft_pwm_chamber = current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP ? (int)pid_output_chamber >> 1 : 0;
+      soft_pwm_chamber = current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP ? (int)pid_output_chamber : 0;
 
     #elif ENABLED(CHAMBER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
@@ -1044,7 +1044,7 @@ void Temperature::manage_temp_controller() {
     #else // !PIDTEMPCHAMBER && !CHAMBER_LIMIT_SWITCHING
       // Check if temperature is within the correct range
       if (current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP) {
-        soft_pwm_chamber = current_temperature_chamber < target_temperature_chamber ? MAX_CHAMBER_POWER >> 1 : 0;
+        soft_pwm_chamber = current_temperature_chamber < target_temperature_chamber ? MAX_CHAMBER_POWER : 0;
       }
       else {
         soft_pwm_chamber = 0;
@@ -1061,7 +1061,7 @@ void Temperature::manage_temp_controller() {
     #if ENABLED(PIDTEMPCOOLER)
       uint8_t pid_output_cooler = get_pid_output_cooler();
 
-      soft_pwm_cooler = current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP ? (int)pid_output_cooler >> 1 : 0;
+      soft_pwm_cooler = current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP ? (int)pid_output_cooler : 0;
 
     #elif ENABLED(COOLER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
@@ -1078,7 +1078,7 @@ void Temperature::manage_temp_controller() {
     #else // COOLER_LIMIT_SWITCHING
       // Check if temperature is within the correct range
       if (current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP) {
-        soft_pwm_cooler = current_temperature_cooler > target_temperature_cooler ? MAX_COOLER_POWER >> 1 : 0;
+        soft_pwm_cooler = current_temperature_cooler > target_temperature_cooler ? MAX_COOLER_POWER : 0;
       }
       else {
         soft_pwm_cooler = 0;
