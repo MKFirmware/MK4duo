@@ -1009,6 +1009,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       }
     #elif ENABLED(NPR2)
       enable_e0();
+      enable_e1();
     #endif
   }
 
