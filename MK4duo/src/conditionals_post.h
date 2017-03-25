@@ -853,6 +853,49 @@
   #endif
 #endif
 
+// PWM SPEED and MASK
+#if DISABLED(HEATER_PWM_SPEED)
+  #define HEATER_PWM_SPEED 0
+#endif
+#if HEATER_PWM_SPEED < 0
+  #define HEATER_PWM_SPEED 0
+#endif
+#if HEATER_PWM_SPEED > 2
+  #define HEATER_PWM_SPEED 2
+#endif
+
+#if HEATER_PWM_SPEED == 0
+  #define HEATER_PWM_STEP 1
+  #define HEATER_PWM_MASK 255
+#elif HEATER_PWM_SPEED == 1
+  #define HEATER_PWM_STEP 2
+  #define HEATER_PWM_MASK 254
+#else
+  #define HEATER_PWM_STEP 4
+  #define HEATER_PWM_MASK 252
+#endif
+
+#if DISABLED(FAN_PWM_SPEED)
+  #define FAN_PWM_SPEED 0
+#endif
+#if FAN_PWM_SPEED < 0
+  #define FAN_PWM_SPEED 0
+#endif
+#if FAN_PWM_SPEED > 2
+  #define FAN_PWM_SPEED 2
+#endif
+
+#if FAN_PWM_SPEED == 0
+  #define FAN_PWM_STEP 1
+  #define FAN_PWM_MASK 255
+#elif FAN_PWM_SPEED == 1
+  #define FAN_PWM_STEP 2
+  #define FAN_PWM_MASK 254
+#else
+  #define FAN_PWM_STEP 4
+  #define FAN_PWM_MASK 252
+#endif
+
 // TEMPERATURE
 #if HOTENDS > 0 && HAS(TEMP_0)
   #define HOT0_ANALOG_INPUTS 1

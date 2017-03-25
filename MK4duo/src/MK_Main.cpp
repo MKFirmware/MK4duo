@@ -692,9 +692,9 @@ inline void echo_command(const char* cmd) {
  * Push a command in RAM to the front of the main command queue.
  * Return true if the command is successfully added.
  */
-inline bool _pushcommand(const char* cmd, bool say_ok=false) {
+inline bool _pushcommand(const char* cmd, bool say_ok = false) {
   if (*cmd == ';' || commands_in_queue >= BUFSIZE) return false;
-  cmd_queue_index_r = (cmd_queue_index_r + BUFSIZE - 1) % BUFSIZE; // Index of the previous slot
+  cmd_queue_index_r = (cmd_queue_index_r + BUFSIZE - 1) % BUFSIZE;
   commands_in_queue++;
   strcpy(command_queue[cmd_queue_index_r], cmd);
   send_ok[cmd_queue_index_r] = say_ok;
@@ -705,7 +705,7 @@ inline bool _pushcommand(const char* cmd, bool say_ok=false) {
  * Push a command to the front of the queue with Serial Echo
  * Return true if the command is successfully added.
  */
-bool push_and_echo_command(const char* cmd, bool say_ok=false) {
+bool push_and_echo_command(const char* cmd, bool say_ok = false) {
   if (_pushcommand(cmd, say_ok)) {
     echo_command(cmd);
     return true;
@@ -792,54 +792,6 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 void enqueue_and_echo_command_now(const char* cmd) {
   while (!enqueue_and_echo_command(cmd)) idle();
 }
-
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-
-  void setup_alligator_board() {
-    ExternalDac::begin();
-    SET_INPUT(MOTOR_FAULT_PIN);
-    #if MB(ALLIGATOR_V3)
-      SET_INPUT(MOTOR_FAULT_PIGGY_PIN);
-      SET_INPUT(FTDI_COM_RESET_PIN);
-      SET_INPUT(ESP_WIFI_MODULE_RESET_PIN);
-      SET_OUTPUT(EXP1_VOLTAGE_SELECT);
-      OUT_WRITE(EXP1_OUT_ENABLE_PIN, HIGH);
-    #elif MB(ALLIGATOR)
-      // Init Expansion Port Voltage logic Selector
-      OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
-    #endif
-
-    #if HAS(BUZZER)
-      buzz(10,10);
-    #endif
-  }
-
-#endif
-
-#if MB(ULTRATRONICS)
-  void setup_ultratronics_board() {
-    /* avoid floating pins */
-    OUT_WRITE(ORIG_FAN_PIN, LOW);
-    OUT_WRITE(ORIG_FAN1_PIN, LOW);
-
-    OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
-
-    /* setup CS pins */
-    OUT_WRITE(MAX31855_SS0, HIGH);
-    OUT_WRITE(MAX31855_SS1, HIGH);
-    OUT_WRITE(MAX31855_SS2, HIGH);
-    OUT_WRITE(MAX31855_SS3, HIGH);
-
-    OUT_WRITE(ENC424_SS, HIGH);
-    OUT_WRITE(SS_PIN, HIGH);
-
-    SET_INPUT(MISO);
-    SET_OUTPUT(MOSI);
-  }
-#endif // ULTRATRONICS
 
 void setup_killpin() {
   #if HAS(KILL)
@@ -7933,8 +7885,8 @@ inline void gcode_M226() {
 
     if (h < HOTENDS) { // catch bad input value
       if (code_seen('P')) PID_PARAM(Kp, h) = code_value_float();
-      if (code_seen('I')) PID_PARAM(Ki, h) = scalePID_i(code_value_float());
-      if (code_seen('D')) PID_PARAM(Kd, h) = scalePID_d(code_value_float());
+      if (code_seen('I')) PID_PARAM(Ki, h) = code_value_float();
+      if (code_seen('D')) PID_PARAM(Kd, h) = code_value_float();
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         if (code_seen('C')) PID_PARAM(Kc, h) = code_value_float();
         if (code_seen('L')) lpq_len = code_value_float();
@@ -7944,8 +7896,8 @@ inline void gcode_M226() {
       thermalManager.updatePID();
       SERIAL_SMV(ECHO, "H", h);
       SERIAL_MV(" P:", PID_PARAM(Kp, h));
-      SERIAL_MV(" I:", unscalePID_i(PID_PARAM(Ki, h)));
-      SERIAL_MV(" D:", unscalePID_d(PID_PARAM(Kd, h)));
+      SERIAL_MV(" I:", PID_PARAM(Ki, h));
+      SERIAL_MV(" D:", PID_PARAM(Kd, h));
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         SERIAL_MV(" C:", PID_PARAM(Kc, h));
       #endif
@@ -8020,13 +7972,13 @@ inline void gcode_M226() {
   // M304: Set bed PID parameters P I and D
   inline void gcode_M304() {
     if (code_seen('P')) thermalManager.bedKp = code_value_float();
-    if (code_seen('I')) thermalManager.bedKi = scalePID_i(code_value_float());
-    if (code_seen('D')) thermalManager.bedKd = scalePID_d(code_value_float());
+    if (code_seen('I')) thermalManager.bedKi = code_value_float();
+    if (code_seen('D')) thermalManager.bedKd = code_value_float();
 
     thermalManager.updatePID();
     SERIAL_SMV(ECHO, " p:", thermalManager.bedKp);
-    SERIAL_MV(" i:", unscalePID_i(thermalManager.bedKi));
-    SERIAL_EMV(" d:", unscalePID_d(thermalManager.bedKd));
+    SERIAL_MV(" i:", thermalManager.bedKi);
+    SERIAL_EMV(" d:", thermalManager.bedKd);
   }
 #endif // PIDTEMPBED
 
@@ -8034,13 +7986,13 @@ inline void gcode_M226() {
   // M305: Set chamber PID parameters P I and D
   inline void gcode_M305() {
     if (code_seen('P')) thermalManager.chamberKp = code_value_float();
-    if (code_seen('I')) thermalManager.chamberKi = scalePID_i(code_value_float());
-    if (code_seen('D')) thermalManager.chamberKd = scalePID_d(code_value_float());
+    if (code_seen('I')) thermalManager.chamberKi = code_value_float();
+    if (code_seen('D')) thermalManager.chamberKd = code_value_float();
 
     thermalManager.updatePID();
     SERIAL_SMV(OK, " p:", thermalManager.chamberKp);
-    SERIAL_MV(" i:", unscalePID_i(thermalManager.chamberKi));
-    SERIAL_EMV(" d:", unscalePID_d(thermalManager.chamberKd));
+    SERIAL_MV(" i:", thermalManager.chamberKi);
+    SERIAL_EMV(" d:", thermalManager.chamberKd);
   }
 #endif // PIDTEMPCHAMBER
 
@@ -8048,13 +8000,13 @@ inline void gcode_M226() {
   // M306: Set cooler PID parameters P I and D
   inline void gcode_M306() {
     if (code_seen('P')) thermalManager.coolerKp = code_value_float();
-    if (code_seen('I')) thermalManager.coolerKi = scalePID_i(code_value_float());
-    if (code_seen('D')) thermalManager.coolerKd = scalePID_d(code_value_float());
+    if (code_seen('I')) thermalManager.coolerKi = code_value_float();
+    if (code_seen('D')) thermalManager.coolerKd = code_value_float();
 
     thermalManager.updatePID();
     SERIAL_SMV(OK, " p:", thermalManager.coolerKp);
-    SERIAL_MV(" i:", unscalePID_i(thermalManager.coolerKi));
-    SERIAL_EMV(" d:", unscalePID_d(thermalManager.coolerKd));
+    SERIAL_MV(" i:", thermalManager.coolerKi);
+    SERIAL_EMV(" d:", thermalManager.coolerKd);
   }
 #endif // PIDTEMPCOOLER
 
@@ -9499,15 +9451,41 @@ inline void gcode_M532() {
 
   // M666: Set Z probe offset
   inline void gcode_M666() {
+
+    SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
+    SERIAL_C(' ');
+
     if (code_seen('P')) {
       float p_val = code_value_axis_units(Z_AXIS);
       if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
+
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          // Correct bilinear grid for new probe offset
+          const float diff = p_val - zprobe_zoffset;
+          if (diff) {
+            for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+              for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+                bilinear_level_grid[x][y] += diff;
+          }
+          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            bed_level_virt_interpolate();
+          #endif
+        #endif
+
         zprobe_zoffset = p_val;
+        SERIAL_V(zprobe_zoffset);
+      }
+      else {
+        SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
+        SERIAL_C(' ');
+        SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
       }
     }
-    if (code_seen('L')) {
-      SERIAL_EMV("P (ZProbe ZOffset): ", zprobe_zoffset, 3);
+    else {
+      SERIAL_MV(": ", zprobe_zoffset, 3);
     }
+
+    SERIAL_E;
   }
 
 #elif MECH(DELTA)
@@ -9531,6 +9509,7 @@ inline void gcode_M532() {
    *    Y = Beta  (Tower 2) Endstop Adjust
    *    Z = Gamma (Tower 3) Endstop Adjust
    *    O = Print radius
+   *    P = Z probe offset
    *    H = Z Height
    */
   inline void gcode_M666() {
@@ -9553,13 +9532,39 @@ inline void gcode_M532() {
     deltaParams.Recalc_delta_constants();
 
     #if HAS(BED_PROBE)
+
       if (code_seen('P')) {
+
+        SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
+        SERIAL_C(' ');
+
         float p_val = code_value_axis_units(Z_AXIS);
         if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
+
+          #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+            // Correct bilinear grid for new probe offset
+            const float diff = p_val - zprobe_zoffset;
+            if (diff) {
+              for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
+                for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+                  bilinear_level_grid[x][y] += diff;
+            }
+            #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+              bed_level_virt_interpolate();
+            #endif
+          #endif
+
           zprobe_zoffset = p_val;
+          SERIAL_V(zprobe_zoffset);
+        }
+        else {
+          SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
+          SERIAL_C(' ');
+          SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
         }
       }
-    #endif
+
+    #endif // HAS(BED_PROBE)
 
     LOOP_XYZ(i) {
       if (code_seen(axis_codes[i])) deltaParams.endstop_adj[i] = code_value_axis_units(i);
@@ -13131,6 +13136,10 @@ void idle(
 void kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
+  thermalManager.disable_all_heaters();
+  thermalManager.disable_all_coolers();
+  stepper.disable_all_steppers();
+
   #if ENABLED(KILL_METHOD) && (KILL_METHOD==1)
     HAL::resetHardware();
   #endif
@@ -13144,11 +13153,11 @@ void kill(const char* lcd_msg) {
     UNUSED(lcd_msg);
   #endif
 
+  HAL::delayMilliseconds(250);  // Wait a short time
   cli(); // Stop interrupts
 
-  thermalManager.disable_all_heaters();
-  thermalManager.disable_all_coolers();
-  stepper.disable_all_steppers();
+  HAL::delayMilliseconds(250);  // Wait to ensure all interrupts routines stopped
+  thermalManager.disable_all_heaters(); // Turn off heaters again
 
   #if ENABLED(LASERBEAM)
     laser_init();
@@ -13234,12 +13243,6 @@ void stop() {
 void setup() {
 
   HAL::hwSetup();
-
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    setup_alligator_board();    // Initialize Alligator Board
-  #elif MB(ULTRATRONICS)
-    setup_ultratronics_board(); // Initialize Ultratronics Board
-  #endif
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     setup_filrunoutpin();

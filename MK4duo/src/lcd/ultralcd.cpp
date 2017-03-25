@@ -2087,17 +2087,17 @@ KeepDrawing:
 
     // Helpers for editing PID Ki & Kd values
     // grab the PID value out of the temp variable; scale it; then update the PID driver
-    void copy_and_scalePID_i(int h) {
-      PID_PARAM(Ki, h) = scalePID_i(raw_Ki);
+    void copy_PID_i(int h) {
+      PID_PARAM(Ki, h) = raw_Ki;
       thermalManager.updatePID();
     }
-    void copy_and_scalePID_d(int h) {
-      PID_PARAM(Kd, h) = scalePID_d(raw_Kd);
+    void copy_PID_d(int h) {
+      PID_PARAM(Kd, h) = raw_Kd;
       thermalManager.updatePID();
     }
     #define _PIDTEMP_BASE_FUNCTIONS(hindex) \
-      void copy_and_scalePID_i_H ## hindex() { copy_and_scalePID_i(hindex); } \
-      void copy_and_scalePID_d_H ## hindex() { copy_and_scalePID_d(hindex); }
+      void copy_PID_i_H ## hindex() { copy_PID_i(hindex); } \
+      void copy_PID_d_H ## hindex() { copy_PID_d(hindex); }
 
     #if ENABLED(PID_AUTOTUNE_MENU)
       #define _PIDTEMP_FUNCTIONS(hindex) \
@@ -2219,11 +2219,11 @@ KeepDrawing:
     //
     #if ENABLED(PIDTEMP)
       #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-        raw_Ki = unscalePID_i(PID_PARAM(Ki, hindex)); \
-        raw_Kd = unscalePID_d(PID_PARAM(Kd, hindex)); \
+        raw_Ki = PID_PARAM(Ki, hindex); \
+        raw_Kd = PID_PARAM(Kd, hindex); \
         MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &PID_PARAM(Kp, hindex), 1, 9990); \
-        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &raw_Ki, 0.01, 9990, copy_and_scalePID_i_H ## hindex); \
-        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_D HLABEL, &raw_Kd, 1, 9990, copy_and_scalePID_d_H ## hindex)
+        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &raw_Ki, 0.01, 9990, copy_PID_i_H ## hindex); \
+        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_D HLABEL, &raw_Kd, 1, 9990, copy_PID_d_H ## hindex)
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         #define _PID_MENU_ITEMS(HLABEL, hindex) \

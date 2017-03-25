@@ -59,14 +59,13 @@
 #if ENABLED(ARDUINO_ARCH_AVR)
 
 #if ANALOG_INPUTS > 0
-  int32_t HAL::AnalogInputRead[ANALOG_INPUTS];
-  uint8_t HAL::adcCounter[ANALOG_INPUTS],
-          HAL::adcSamplePos = 0;
-  bool    HAL::Analog_is_ready = false;
+  int32_t AnalogInputRead[ANALOG_INPUTS];
+  uint8_t adcCounter[ANALOG_INPUTS],
+          adcSamplePos = 0;
+  bool    Analog_is_ready = false;
 #endif
 
-const uint8_t HAL::AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
-unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
 
 HAL::HAL() {
   // ctor
@@ -75,6 +74,8 @@ HAL::HAL() {
 HAL::~HAL() {
   // dtor
 }
+
+unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 
 // Return available memory
 int HAL::getFreeRam() {
@@ -122,13 +123,161 @@ void HAL::analogStart() {
   #endif
 }
 
-void HAL::analogRead() {
+/**
+ * Timer 0 is is called 3906 timer per second.
+ * It is used to update pwm values for heater and some other frequent jobs.
+ *
+ *  - Manage PWM to all the heaters and fan
+ *  - Prepare or Measure one of the raw ADC sensor values
+ *  - Step the babysteps value for each axis towards 0
+ *  - For PINS_DEBUGGING, monitor and report endstop pins
+ *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
+ */
+HAL_TEMP_TIMER_ISR {
+
+  // Allow UART ISRs
+  _DISABLE_ISRs();
+
+  TEMP_OCR += 64;
+
+  static uint8_t  pwm_count_heater  = 0,
+                  pwm_count_fan     = 0;
+
+  #define ISR_STATICS(n) static uint8_t soft_pwm_ ##n = 0
+
+  // Statics per heater
+  ISR_STATICS(0);
+  #if HOTENDS > 1
+    ISR_STATICS(1);
+    #if HOTENDS > 2
+      ISR_STATICS(2);
+      #if HOTENDS > 3
+        ISR_STATICS(3);
+      #endif
+    #endif
+  #endif
+  #if HAS_HEATER_BED
+    ISR_STATICS(BED);
+  #endif
+  #if HAS(HEATER_CHAMBER)
+    ISR_STATICS(CHAMBER);
+  #endif
+  #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER)
+    ISR_STATICS(COOLER);
+  #endif
+
+  #if ENABLED(FILAMENT_SENSOR)
+    static unsigned long raw_filwidth_value = 0;
+  #endif
+
+  /**
+   * Standard PWM modulation
+   */
+  if (pwm_count_heater == 0) {
+    soft_pwm_0 = thermalManager.soft_pwm[0];
+    WRITE_HEATER_0(soft_pwm_0 > 0 ? HIGH : LOW);
+    #if HOTENDS > 1
+      soft_pwm_1 = thermalManager.soft_pwm[1];
+      WRITE_HEATER_1(soft_pwm_1 > 0 ? HIGH : LOW);
+      #if HOTENDS > 2
+        soft_pwm_2 = thermalManager.soft_pwm[2];
+        WRITE_HEATER_2(soft_pwm_2 > 0 ? HIGH : LOW);
+        #if HOTENDS > 3
+          soft_pwm_3 = thermalManager.soft_pwm[3];
+          WRITE_HEATER_3(soft_pwm_3 > 0 ? HIGH : LOW);
+        #endif
+      #endif
+    #endif
+
+    #if HAS_HEATER_BED
+      soft_pwm_BED = thermalManager.soft_pwm_bed;
+      WRITE_HEATER_BED(soft_pwm_BED > 0 ? HIGH : LOW);
+    #endif
+
+    #if HAS(HEATER_CHAMBER) && HAS(TEMP_CHAMBER)
+      soft_pwm_CHAMBER = thermalManager.soft_pwm_chamber;
+      WRITE_HEATER_CHAMBER(soft_pwm_CHAMBER > 0 ? HIGH : LOW);
+    #endif
+
+    #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER) && HAS(TEMP_COOLER)
+      soft_pwm_COOLER = thermalManager.soft_pwm_cooler;
+      WRITE_COOLER(soft_pwm_COOLER > 0 ? HIGH : LOW);
+    #endif
+
+  }
+
+  #if ENABLED(FAN_SOFT_PWM)
+    if (pwm_count_fan == 0) {
+      #if HAS(FAN0)
+        thermalManager.soft_pwm_fan[0] = thermalManager.fanSpeedSoftPwm[0] >> 1;
+        WRITE_FAN(thermalManager.soft_pwm_fan[0] > 0 ? HIGH : LOW);
+      #endif
+      #if HAS(FAN1)
+        thermalManager.soft_pwm_fan[1] = thermalManager.fanSpeedSoftPwm[1] >> 1;
+        WRITE_FAN1(thermalManager.soft_pwm_fan[1] > 0 ? HIGH : LOW);
+      #endif
+      #if HAS(FAN2)
+        thermalManager.soft_pwm_fan[2] = thermalManager.fanSpeedSoftPwm[2] >> 1;
+        WRITE_FAN2(thermalManager.soft_pwm_fan[2] > 0 ? HIGH : LOW);
+      #endif
+      #if HAS(FAN3)
+        thermalManager.soft_pwm_fan[3] = thermalManager.fanSpeedSoftPwm[3] >> 1;
+        WRITE_FAN3(thermalManager.soft_pwm_fan[3] > 0 ? HIGH : LOW);
+      #endif
+    }
+  #endif
+
+  if (soft_pwm_0 == pwm_count_heater && soft_pwm_0 != HEATER_PWM_MASK) WRITE_HEATER_0(LOW);
+  #if HOTENDS > 1
+    if (soft_pwm_1 == pwm_count_heater && soft_pwm_1 != HEATER_PWM_MASK) WRITE_HEATER_1(LOW);
+    #if HOTENDS > 2
+      if (soft_pwm_2 == pwm_count_heater && soft_pwm_2 != HEATER_PWM_MASK) WRITE_HEATER_2(LOW);
+      #if HOTENDS > 3
+        if (soft_pwm_3 == pwm_count_heater && soft_pwm_3 != HEATER_PWM_MASK) WRITE_HEATER_3(LOW);
+      #endif
+    #endif
+  #endif
+
+  #if HAS_HEATER_BED
+    if (soft_pwm_BED == pwm_count_heater && soft_pwm_BED != HEATER_PWM_MASK) WRITE_HEATER_BED(LOW);
+  #endif
+
+  #if HAS(HEATER_CHAMBER) && HAS(TEMP_CHAMBER)
+    if (soft_pwm_CHAMBER == pwm_count_heater && soft_pwm_CHAMBER != HEATER_PWM_MASK) WRITE_HEATER_CHAMBER(LOW);
+  #endif
+
+  #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER) && HAS(TEMP_COOLER)
+    if (soft_pwm_COOLER == pwm_count_heater && soft_pwm_COOLER != HEATER_PWM_MASK) WRITE_COOLER(LOW);
+  #endif
+
+  #if ENABLED(FAN_SOFT_PWM)
+    #if HAS(FAN0)
+      if (thermalManager.soft_pwm_fan[0] == pwm_count_fan && thermalManager.soft_pwm_fan[0] != FAN_PWM_MASK)
+        WRITE_FAN(LOW);
+    #endif
+    #if HAS(FAN1)
+      if (thermalManager.soft_pwm_fan[1] == pwm_count_fan && thermalManager.soft_pwm_fan[1] != FAN_PWM_MASK)
+        WRITE_FAN1(LOW);
+    #endif
+    #if HAS(FAN2)
+      if (thermalManager.soft_pwm_fan[2] == pwm_count_fan && thermalManager.soft_pwm_fan[2] != FAN_PWM_MASK)
+        WRITE_FAN2(LOW);
+    #endif
+    #if HAS(FAN3)
+      if (thermalManager.soft_pwm_fan[3] == pwm_count_fan && thermalManager.soft_pwm_fan[3] != FAN_PWM_MASK)
+        WRITE_FAN3(LOW);
+    #endif
+  #endif
+
+  pwm_count_heater  += HEATER_PWM_STEP;
+  pwm_count_fan     += FAN_PWM_STEP;
+
   // read analog values
   #if ANALOG_INPUTS > 0
     if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
       AnalogInputRead[adcSamplePos] += ADCW;
       if (++adcCounter[adcSamplePos] >= OVERSAMPLENR) {
-        AnalogInputValues[adcSamplePos] = AnalogInputRead[adcSamplePos] / adcCounter[adcSamplePos];
+        HAL::AnalogInputValues[adcSamplePos] = AnalogInputRead[adcSamplePos] / adcCounter[adcSamplePos];
         AnalogInputRead[adcSamplePos] = 0;
         adcCounter[adcSamplePos] = 0;
         // Start next conversion
@@ -148,6 +297,51 @@ void HAL::analogRead() {
       ADCSRA |= _BV(ADSC);  // start next conversion
     }
   #endif
+
+  if (Analog_is_ready) {
+    Analog_is_ready = false;
+
+    // Update the raw values if they've been read. Else we could be updating them during reading.
+    thermalManager.set_current_temp_raw();
+  }
+
+  #if ENABLED(BABYSTEPPING)
+    LOOP_XYZ(axis) {
+      int curTodo = thermalManager.babystepsTodo[axis]; //get rid of volatile for performance
+
+      if (curTodo > 0) {
+        stepper.babystep((AxisEnum)axis,/*fwd*/true);
+        thermalManager.babystepsTodo[axis]--; //fewer to do next time
+      }
+      else if (curTodo < 0) {
+        stepper.babystep((AxisEnum)axis,/*fwd*/false);
+        thermalManager.babystepsTodo[axis]++; //fewer to do next time
+      }
+    }
+  #endif //BABYSTEPPING
+
+  #if ENABLED(PINS_DEBUGGING)
+    extern bool endstop_monitor_flag;
+    // run the endstop monitor at 15Hz
+    static uint8_t endstop_monitor_count = 16;  // offset this check from the others
+    if (endstop_monitor_flag) {
+      endstop_monitor_count += _BV(1);  //  15 Hz
+      endstop_monitor_count &= 0x7F;
+      if (!endstop_monitor_count) endstops.endstop_monitor();  // report changes in endstop status
+    }
+  #endif
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+
+    extern volatile uint8_t e_hit;
+
+    if (e_hit && ENDSTOPS_ENABLED) {
+      endstops.update();  // call endstop update routine
+      e_hit--;
+    }
+  #endif
+
+  _ENABLE_ISRs(); // re-enable ISRs
 }
 
 #endif // ARDUINO_ARCH_AVR

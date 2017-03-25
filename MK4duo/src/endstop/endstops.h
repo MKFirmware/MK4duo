@@ -81,6 +81,10 @@ class Endstops {
       static void enable_z_probe(bool onoff = true) { z_probe_enabled = onoff; }
     #endif
 
+    #if ENABLED(PINS_DEBUGGING)
+      static void endstop_monitor();
+    #endif
+
   private:
 
     #if ENABLED(Z_FOUR_ENDSTOPS)

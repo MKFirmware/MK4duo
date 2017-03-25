@@ -90,32 +90,6 @@ enum EndstopEnum {
   E_MIN
 };
 
-/**
- * Temperature
- * Stages in the ISR loop
- */
-enum TempState {
-  PrepareTemp_0,
-  MeasureTemp_0,
-  PrepareTemp_BED,
-  MeasureTemp_BED,
-  PrepareTemp_1,
-  MeasureTemp_1,
-  PrepareTemp_2,
-  MeasureTemp_2,
-  PrepareTemp_3,
-  MeasureTemp_3,
-  PrepareTemp_CHAMBER,
-  MeasureTemp_CHAMBER,
-  PrepareTemp_COOLER,
-  MeasureTemp_COOLER,
-  Prepare_FILWIDTH,
-  Measure_FILWIDTH,
-  Prepare_POWCONSUMPTION,
-  Measure_POWCONSUMPTION,
-  StartupDelay // Startup, delay initial temp reading a tiny bit so the hardware can settle
-};
-
 #if ENABLED(EMERGENCY_PARSER)
   enum e_parser_state {
     state_RESET,

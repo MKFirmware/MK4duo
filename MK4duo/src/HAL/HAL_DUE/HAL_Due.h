@@ -197,8 +197,6 @@
 #define OVERSAMPLENR 6
 #define MEDIAN_COUNT 10 // MEDIAN COUNT for Smoother temperature
 #define NUM_ADC_SAMPLES (2 + (1 << OVERSAMPLENR))
-// Temperature PID_dT
-#define PID_dT (((NUM_ADC_SAMPLES) * (MEDIAN_COUNT)) / (float)(TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 // --------------------------------------------------------------------------
 // Types
@@ -228,21 +226,7 @@ class HAL {
     static volatile uint AnalogInputValues[ANALOG_INPUTS];
     static bool Analog_is_ready;
 
-    // do any hardware-specific initialization here
-    static FORCE_INLINE void hwSetup(void) {
-      #if DISABLED(USE_WATCHDOG)
-        // Disable watchdog
-        WDT_Disable(WDT);
-      #endif
-  
-      TimeTick_Configure(F_CPU);
-
-      // setup microsecond delay timer
-      pmc_enable_periph_clk(DELAY_TIMER_IRQ);
-      TC_Configure(DELAY_TIMER, DELAY_TIMER_CHANNEL, TC_CMR_WAVSEL_UP |
-                   TC_CMR_WAVE | DELAY_TIMER_CLOCK);
-      TC_Start(DELAY_TIMER, DELAY_TIMER_CHANNEL);
-    }
+    static void hwSetup(void);
 
     #ifdef DUE_SOFTWARE_SPI
       static uint8_t spiTransfer(uint8_t b); // using Mode 0
@@ -336,20 +320,11 @@ class HAL {
     static void resetHardware();
 
     static void analogStart();
-    static void analogRead();
+    static adc_channel_num_t pinToAdcChannel(int pin);
 
   protected:
   private:
 
-    static int32_t  AnalogInputRead[ANALOG_INPUTS],
-                    AnalogSamples[ANALOG_INPUTS][MEDIAN_COUNT],
-                    AnalogSamplesSum[ANALOG_INPUTS],
-                    adcSamplesMin[ANALOG_INPUTS],
-                    adcSamplesMax[ANALOG_INPUTS];
-    static int      adcCounter, adcSamplePos;
-    static uint32_t adcEnable;
-    static const uint8_t AnalogInputChannels[] PROGMEM;
-    static adc_channel_num_t pinToAdcChannel(int pin);
 };
 
 /**
