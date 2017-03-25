@@ -206,7 +206,7 @@
 #define ANALOG_REF_AVCC _BV(REFS0)
 #define ANALOG_REF ANALOG_REF_AVCC
 #define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
-#define OVERSAMPLENR 16
+#define OVERSAMPLENR 5
 
 // --------------------------------------------------------------------------
 // Types
