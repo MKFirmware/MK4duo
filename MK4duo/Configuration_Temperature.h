@@ -268,23 +268,17 @@
 // Comment the following line to disable PID and enable bang-bang.
 #define PIDTEMP
 
-#define BANG_MAX 255        // limits current to nozzle while in bang-bang mode; 255=full current
-#define PID_MAX BANG_MAX    // limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
+#define BANG_MAX  255       // Limits current to nozzle while in bang-bang mode; 255 = full current
+#define PID_MIN     0       // Limits min current to nozzle while PID is active;   0 = no current
+#define PID_MAX   255       // Limits max current to nozzle while PID is active; 255 = full current
+#define HEATER_PWM_SPEED 0  // PWM speed 0, 1, 2
 //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 //#define PID_DEBUG         // Sends debug data to the serial port.
 //#define PID_OPENLOOP 1    // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
-//#define SLOW_PWM_HEATERS  // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
 
 // If the temperature difference between the target temperature and the actual temperature
 // is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
 #define PID_FUNCTIONAL_RANGE 10
-// Smoothing factor within the PID
-#define K1 0.95
-
-// Emergency measure for suppress PID vibration when PID autotune is useless
-// When you set this to 2, sampling period of the PID routine will be 1/2
-// And if you change this value, you need to clear your EEPROM by M502 and M500
-#define PID_dT_FACTOR 1
 
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
 // if Kc is chosen well, the additional required power due to increased melting should be compensated.
@@ -305,11 +299,10 @@
  *                                                                     *
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  * Select PID or bang-bang with PIDTEMPBED.                            *
- * If bang-bang, BED_LIMIT_SWITCHING will enable hysteresis            *
+ * If bang-bang, BED LIMIT SWITCHING will enable hysteresis            *
  *                                                                     *
  ***********************************************************************/
 // Uncomment this to enable PID on the bed. It uses the same frequency PWM as the extruder.
-// If your PID_dT is the default, and correct for your hardware/configuration, that means 7.689Hz,
 // which is fine for driving a square wave into a resistive load and does not significantly impact you FET heating.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
@@ -324,8 +317,9 @@
 // This sets the max power delivered to the bed.
 // all forms of bed control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the bed,
-// so you shouldn't use it unless you are OK with PWM on your bed.  (see the comment on enabling PIDTEMPBED)
-#define MAX_BED_POWER 255 // limits duty cycle to bed; 255=full current
+// so you shouldn't use it unless you are OK with PWM on your bed. (see the comment on enabling PIDTEMPBED)
+#define MIN_BED_POWER   0 // Limits duty cycle to bed;   0 = no current
+#define MAX_BED_POWER 255 // Limits duty cycle to bed; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -365,7 +359,8 @@
 // all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the chamber,
 // so you shouldn't use it unless you are OK with PWM on your chamber.  (see the comment on enabling PIDTEMPCHAMBER)
-#define MAX_CHAMBER_POWER 255 // limits duty cycle to chamber; 255=full current
+#define MIN_CHAMBER_POWER   0 // Limits duty cycle to chamber;   0 = no current
+#define MAX_CHAMBER_POWER 255 // Limits duty cycle to chamber; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -409,7 +404,8 @@
 // all forms of cooler control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the cooler,
 // so you shouldn't use it unless you are OK with PWM on your cooler.  (see the comment on enabling PIDTEMPCOOLER)
-#define MAX_COOLER_POWER 255 // limits duty cycle to cooler; 255=full current
+#define MIN_COOLER_POWER   0 // Limits duty cycle to cooler;   0 = no current
+#define MAX_COOLER_POWER 255 // Limits duty cycle to cooler; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)

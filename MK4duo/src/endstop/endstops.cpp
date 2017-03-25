@@ -304,6 +304,84 @@ void Endstops::M119() {
   }
 #endif
 
+#if ENABLED(PINS_DEBUGGING)
+  /**
+   * monitors endstops & Z probe for changes
+   *
+   * If a change is detected then the LED is toggled and
+   * a message is sent out the serial port
+   *
+   * Yes, we could miss a rapid back & forth change but
+   * that won't matter because this is all manual.
+   *
+   */
+  void Endstops::endstop_monitor() {
+    static uint16_t old_endstop_bits_local = 0;
+    uint16_t current_endstop_bits_local = 0;
+    #if HAS_X_MIN
+      if (READ(X_MIN_PIN)) SBI(current_endstop_bits_local, X_MIN);
+    #endif
+    #if HAS_X_MAX
+      if (READ(X_MAX_PIN)) SBI(current_endstop_bits_local, X_MAX);
+    #endif
+    #if HAS_Y_MIN
+      if (READ(Y_MIN_PIN)) SBI(current_endstop_bits_local, Y_MIN);
+    #endif
+    #if HAS_Y_MAX
+      if (READ(Y_MAX_PIN)) SBI(current_endstop_bits_local, Y_MAX);
+    #endif
+    #if HAS_Z_MIN
+      if (READ(Z_MIN_PIN)) SBI(current_endstop_bits_local, Z_MIN);
+    #endif
+    #if HAS_Z_MAX
+      if (READ(Z_MAX_PIN)) SBI(current_endstop_bits_local, Z_MAX);
+    #endif
+    #if HAS_Z_PROBE_PIN
+      if (READ(Z_PROBE_PIN)) SBI(current_endstop_bits_local, Z_PROBE);
+    #endif
+    #if HAS_Z2_MIN
+      if (READ(Z2_MIN_PIN)) SBI(current_endstop_bits_local, Z2_MIN);
+    #endif
+    #if HAS_Z2_MAX
+      if (READ(Z2_MAX_PIN)) SBI(current_endstop_bits_local, Z2_MAX);
+    #endif
+
+    uint16_t endstop_change = current_endstop_bits_local ^ old_endstop_bits_local;
+
+    if (endstop_change) {
+      #if HAS_X_MIN
+        if (TEST(endstop_change, X_MIN)) SERIAL_MV("X_MIN:", !!TEST(current_endstop_bits_local, X_MIN));
+      #endif
+      #if HAS_X_MAX
+        if (TEST(endstop_change, X_MAX)) SERIAL_MV("  X_MAX:", !!TEST(current_endstop_bits_local, X_MAX));
+      #endif
+      #if HAS_Y_MIN
+        if (TEST(endstop_change, Y_MIN)) SERIAL_MV("  Y_MIN:", !!TEST(current_endstop_bits_local, Y_MIN));
+      #endif
+      #if HAS_Y_MAX
+        if (TEST(endstop_change, Y_MAX)) SERIAL_MV("  Y_MAX:", !!TEST(current_endstop_bits_local, Y_MAX));
+      #endif
+      #if HAS_Z_MIN
+        if (TEST(endstop_change, Z_MIN)) SERIAL_MV("  Z_MIN:", !!TEST(current_endstop_bits_local, Z_MIN));
+      #endif
+      #if HAS_Z_MAX
+        if (TEST(endstop_change, Z_MAX)) SERIAL_MV("  Z_MAX:", !!TEST(current_endstop_bits_local, Z_MAX));
+      #endif
+      #if HAS_Z_PROBE_PIN
+        if (TEST(endstop_change, Z_PROBE)) SERIAL_MV("  PROBE:", !!TEST(current_endstop_bits_local, Z_PROBE));
+      #endif
+      #if HAS_Z2_MIN
+        if (TEST(endstop_change, Z2_MIN)) SERIAL_MV("  Z2_MIN:", !!TEST(current_endstop_bits_local, Z2_MIN));
+      #endif
+      #if HAS_Z2_MAX
+        if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", !!TEST(current_endstop_bits_local, Z2_MAX));
+      #endif
+      SERIAL_M("\n\n");
+      old_endstop_bits_local = current_endstop_bits_local;
+    }
+  }
+#endif // PINS_DEBUGGING
+
 // Check endstops - Called from ISR!
 void Endstops::update() {
 

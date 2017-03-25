@@ -178,4 +178,3 @@ HAL_BEEPER_TIMER_ISR {
 }
 
 #endif // ARDUINO_ARCH_SAM
-

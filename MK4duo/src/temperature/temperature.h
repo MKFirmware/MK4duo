@@ -43,45 +43,46 @@ class Temperature {
 
   public:
 
-    static float current_temperature[HOTENDS],
-                 current_temperature_bed;
-    static int   current_temperature_raw[HOTENDS],
-                 target_temperature[HOTENDS],
-                 current_temperature_bed_raw,
-                 target_temperature_bed;
+    #if ENABLED(FILAMENT_SENSOR)
+      static int      current_raw_filwidth;  // Holds measured filament diameter - one extruder only
+    #endif
+    static float      current_temperature[HOTENDS],
+                      current_temperature_bed;
+    static int        current_temperature_raw[HOTENDS],
+                      target_temperature[HOTENDS],
+                      current_temperature_bed_raw,
+                      target_temperature_bed;
+
+    static uint8_t    soft_pwm[HOTENDS],
+                      soft_pwm_bed;
 
     #if HAS(TEMP_CHAMBER)
-      static float current_temperature_chamber;
-      static int   target_temperature_chamber,
-                   current_temperature_chamber_raw;
+      static float    current_temperature_chamber;
+      static int      target_temperature_chamber,
+                      current_temperature_chamber_raw;
+      static uint8_t  soft_pwm_chamber;
     #endif
 
     #if HAS(TEMP_COOLER)
-      static float current_temperature_cooler;
-      static int   target_temperature_cooler,
-                   current_temperature_cooler_raw;
+      static float    current_temperature_cooler;
+      static int      target_temperature_cooler,
+                      current_temperature_cooler_raw;
+      static uint8_t  soft_pwm_cooler;
     #endif
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-      static float redundant_temperature;
+      static float    redundant_temperature;
     #endif
 
-    static uint8_t soft_pwm_bed;
-
     #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t fanSpeedSoftPwm[FAN_COUNT];
+      static uint8_t  fanSpeedSoftPwm[FAN_COUNT],
+                      soft_pwm_fan[FAN_COUNT];
     #endif
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
 
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
       #define PID_PARAM(param, h) Temperature::param[h]
-
-      // Apply the scale factors to the PID values
-      #define scalePID_i(i)   ( (i) * PID_dT )
-      #define unscalePID_i(i) ( (i) / PID_dT )
-      #define scalePID_d(d)   ( (d) / PID_dT )
-      #define unscalePID_d(d) ( (d) * PID_dT )
 
     #endif
 
@@ -145,11 +146,10 @@ class Temperature {
 
     #if ENABLED(PIDTEMP)
       static float  temp_iState[HOTENDS],
-                    temp_dState[HOTENDS],
+                    temp_dState[HOTENDS][4],
+                    temp_iState_min[HOTENDS],
                     temp_iState_max[HOTENDS],
-                    pTerm[HOTENDS],
-                    iTerm[HOTENDS],
-                    dTerm[HOTENDS];
+                    pid_error[HOTENDS];
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         static float cTerm[HOTENDS];
@@ -158,42 +158,41 @@ class Temperature {
         static int lpq_ptr;
       #endif
 
-      static float pid_error[HOTENDS];
-      static bool pid_reset[HOTENDS];
+      static uint8_t pid_pointer[HOTENDS];
     #endif
 
     #if ENABLED(PIDTEMPBED)
       static float  temp_iState_bed,
-                    temp_dState_bed,
+                    temp_dState_bed[4],
+                    temp_iState_bed_min,
                     temp_iState_bed_max,
-                    pTerm_bed,
-                    iTerm_bed,
-                    dTerm_bed,
                     pid_error_bed;
+
+      static uint8_t pid_pointer_bed;
     #else
       static millis_t next_bed_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
       static float  temp_iState_chamber,
-                    temp_dState_chamber,
+                    temp_dState_chamber[4],
+                    temp_iState_chamber_min,
                     temp_iState_chamber_max,
-                    pTerm_chamber,
-                    iTerm_chamber,
-                    dTerm_chamber,
                     pid_error_chamber;
+
+      static uint8_t pid_pointer_chamber;
     #else
       static millis_t next_chamber_check_ms;
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
       static float  temp_iState_cooler,
-                    temp_dState_cooler,
+                    temp_dState_cooler[4],
+                    temp_iState_cooler_min,
                     temp_iState_cooler_max,
-                    pTerm_cooler,
-                    iTerm_cooler,
-                    dTerm_cooler,
                     pid_error_cooler;
+
+      static uint8_t pid_pointer_cooler;
     #else
       static millis_t next_cooler_check_ms;
     #endif
@@ -247,24 +246,6 @@ class Temperature {
       static millis_t next_auto_fan_check_ms;
     #endif
 
-    static uint8_t soft_pwm[HOTENDS];
-
-    #if HAS(TEMP_CHAMBER)
-      static uint8_t soft_pwm_chamber;
-    #endif
-
-    #if HAS(TEMP_COOLER)
-      static uint8_t soft_pwm_cooler;
-    #endif
-
-    #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t soft_pwm_fan[FAN_COUNT];
-    #endif
-
-    #if ENABLED(FILAMENT_SENSOR)
-      static int current_raw_filwidth;  //Holds measured filament diameter - one extruder only
-    #endif
-
   public:
 
     /**
@@ -290,7 +271,7 @@ class Temperature {
     /**
      * Called from the Temperature ISR
      */
-    static void isr();
+    static void set_current_temp_raw();
 
     /**
      * Call periodically to manage temp controller
@@ -566,8 +547,6 @@ class Temperature {
 
   private:
 
-    static void set_current_temp_raw();
-
     static void updateTemperaturesFromRawValues();
 
     #if ENABLED(HEATER_0_USES_MAX6675)
@@ -576,18 +555,18 @@ class Temperature {
 
     static void checkExtruderAutoFans();
 
-    static float get_pid_output(int h);
+    static uint8_t get_pid_output(int h);
 
     #if ENABLED(PIDTEMPBED)
-      static float get_pid_output_bed();
+      static uint8_t get_pid_output_bed();
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      static float get_pid_output_chamber();
+      static uint8_t get_pid_output_chamber();
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      static float get_pid_output_cooler();
+      static uint8_t get_pid_output_cooler();
     #endif
 
     static void _temp_error(int tc, const char* serial_msg, const char* lcd_msg);

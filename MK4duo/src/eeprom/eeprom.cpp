@@ -939,8 +939,8 @@ void EEPROM::Factory_Settings() {
   #if ENABLED(PIDTEMP)
     HOTEND_LOOP() {
       PID_PARAM(Kp, h) = tmp6[h];
-      PID_PARAM(Ki, h) = scalePID_i(tmp7[h]);
-      PID_PARAM(Kd, h) = scalePID_d(tmp8[h]);
+      PID_PARAM(Ki, h) = tmp7[h];
+      PID_PARAM(Kd, h) = tmp8[h];
       PID_PARAM(Kc, h) = tmp9[h];
     }
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -950,20 +950,20 @@ void EEPROM::Factory_Settings() {
 
   #if ENABLED(PIDTEMPBED)
     thermalManager.bedKp = DEFAULT_bedKp;
-    thermalManager.bedKi = scalePID_i(DEFAULT_bedKi);
-    thermalManager.bedKd = scalePID_d(DEFAULT_bedKd);
+    thermalManager.bedKi = DEFAULT_bedKi;
+    thermalManager.bedKd = DEFAULT_bedKd;
   #endif
 
   #if ENABLED(PIDTEMPCHAMBER)
     thermalManager.chamberKp = DEFAULT_chamberKp;
-    thermalManager.chamberKi = scalePID_i(DEFAULT_chamberKi);
-    thermalManager.chamberKd = scalePID_d(DEFAULT_chamberKd);
+    thermalManager.chamberKi = DEFAULT_chamberKi;
+    thermalManager.chamberKd = DEFAULT_chamberKd;
   #endif
 
   #if ENABLED(PIDTEMPCOOLER)
     thermalManager.coolerKp = DEFAULT_coolerKp;
-    thermalManager.coolerKi = scalePID_i(DEFAULT_coolerKi);
-    thermalManager.coolerKd = scalePID_d(DEFAULT_coolerKd);
+    thermalManager.coolerKi = DEFAULT_coolerKi;
+    thermalManager.coolerKd = DEFAULT_coolerKd;
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -1233,8 +1233,8 @@ void EEPROM::Factory_Settings() {
         for (int8_t h = 0; h < HOTENDS; h++) {
           SERIAL_SMV(CFG, "  M301 H", h);
           SERIAL_MV(" P", PID_PARAM(Kp, h));
-          SERIAL_MV(" I", unscalePID_i(PID_PARAM(Ki, h)));
-          SERIAL_MV(" D", unscalePID_d(PID_PARAM(Kd, h)));
+          SERIAL_MV(" I", PID_PARAM(Ki, h));
+          SERIAL_MV(" D", PID_PARAM(Kd, h));
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_MV(" C", PID_PARAM(Kc, h));
           #endif
@@ -1246,18 +1246,18 @@ void EEPROM::Factory_Settings() {
       #endif
       #if ENABLED(PIDTEMPBED)
         SERIAL_SMV(CFG, "  M304 P", thermalManager.bedKp);
-        SERIAL_MV(" I", unscalePID_i(thermalManager.bedKi));
-        SERIAL_EMV(" D", unscalePID_d(thermalManager.bedKd));
+        SERIAL_MV(" I", thermalManager.bedKi);
+        SERIAL_EMV(" D", thermalManager.bedKd);
       #endif
       #if ENABLED(PIDTEMPCHAMBER)
         SERIAL_SMV(CFG, "  M305 P", thermalManager.chamberKp);
-        SERIAL_MV(" I", unscalePID_i(thermalManager.chamberKi));
-        SERIAL_EMV(" D", unscalePID_d(thermalManager.chamberKd));
+        SERIAL_MV(" I", thermalManager.chamberKi);
+        SERIAL_EMV(" D", thermalManager.chamberKd);
       #endif
       #if ENABLED(PIDTEMPCOOLER)
         SERIAL_SMV(CFG, "  M306 P", thermalManager.coolerKp);
-        SERIAL_MV(" I", unscalePID_i(thermalManager.coolerKi));
-        SERIAL_EMV(" D", unscalePID_d(thermalManager.coolerKd));
+        SERIAL_MV(" I", thermalManager.coolerKi);
+        SERIAL_EMV(" D", thermalManager.coolerKd);
       #endif
     #endif
 

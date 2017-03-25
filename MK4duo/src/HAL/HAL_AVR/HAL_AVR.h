@@ -207,8 +207,6 @@
 #define ANALOG_REF ANALOG_REF_AVCC
 #define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define OVERSAMPLENR 16
-// Temperature PID_dT
-#define PID_dT ((OVERSAMPLENR * 10) / (float)(TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
 
 // --------------------------------------------------------------------------
 // Types
@@ -222,27 +220,34 @@ typedef uint32_t millis_t;
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 256.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
 // Delays
 #define CYCLES_EATEN_BY_CODE 240
 #define CYCLES_EATEN_BY_E     60
 
 #define STEPPER_TIMER OCR1A
-#define TEMP_TIMER 0
+#define STEPPER_TCCR  TCCR0A
+#define STEPPER_TIMSK TIMSK1
+#define STEPPER_OCIE  OCIE1A
 
-#define ENABLE_STEPPER_INTERRUPT()    SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_INTERRUPT()   CBI(TIMSK1, OCIE1A)
+#define TEMP_OCR      OCR0B
+#define TEMP_TCCR     TCCR0A
+#define TEMP_TIMSK    TIMSK0
+#define TEMP_OCIE     OCIE0B
 
-#define ENABLE_TEMP_INTERRUPT()       SBI(TIMSK0, OCIE0B)
-#define DISABLE_TEMP_INTERRUPT()      CBI(TIMSK0, OCIE0B)
+#define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
 
-#define HAL_timer_start (timer_num, frequency)
+#define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
+#define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
+
+#define HAL_timer_start(timer_num, frequency) { TEMP_TCCR = 0; TEMP_OCR = 64; }
 #define HAL_timer_set_count(timer, count) timer = (count)
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
-#define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
+#define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_OCR, n)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)
@@ -295,10 +300,9 @@ class HAL {
     virtual ~HAL();
 
     static unsigned long AnalogInputValues[ANALOG_INPUTS];
-    static bool Analog_is_ready;
 
     // do any hardware-specific initialization here
-    static inline void hwSetup(void) { /* noop */ }
+    static inline void hwSetup() { /* noop */ }
 
     static inline void clear_reset_source() { MCUSR = 0; }
     static inline uint8_t get_reset_source() { return MCUSR; }
@@ -425,10 +429,6 @@ class HAL {
   protected:
   private:
 
-    static int32_t  AnalogInputRead[ANALOG_INPUTS];
-    static uint8_t  adcCounter[ANALOG_INPUTS],
-                    adcSamplePos;
-    static const uint8_t AnalogInputChannels[] PROGMEM;
 };
 
 /**
