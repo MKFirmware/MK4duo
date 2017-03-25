@@ -878,34 +878,34 @@ HAL_TEMP_TIMER_ISR {
    * Standard PWM modulation
    */
   if (pwm_count_heater == 0) {
-    soft_pwm_0 = thermalManager.soft_pwm[0];
-    WRITE_HEATER_0(soft_pwm_0 > 0 ? HIGH : LOW);
+    if ((soft_pwm_0 = (thermalManager.soft_pwm[0] & HEATER_PWM_MASK)) > 0)
+      WRITE_HEATER_0(HIGH);
     #if HOTENDS > 1
-      soft_pwm_1 = thermalManager.soft_pwm[1];
-      WRITE_HEATER_1(soft_pwm_1 > 0 ? HIGH : LOW);
+      if ((soft_pwm_1 = (thermalManager.soft_pwm[1] & HEATER_PWM_MASK)) > 0)
+        WRITE_HEATER_1(HIGH);
       #if HOTENDS > 2
-        soft_pwm_2 = thermalManager.soft_pwm[2];
-        WRITE_HEATER_2(soft_pwm_2 > 0 ? HIGH : LOW);
+        if ((soft_pwm_2 = (thermalManager.soft_pwm[2] & HEATER_PWM_MASK)) > 0)
+          WRITE_HEATER_2(HIGH);
         #if HOTENDS > 3
-          soft_pwm_3 = thermalManager.soft_pwm[3];
-          WRITE_HEATER_3(soft_pwm_3 > 0 ? HIGH : LOW);
+          if ((soft_pwm_3 = (thermalManager.soft_pwm[3] & HEATER_PWM_MASK)) > 0)
+            WRITE_HEATER_0(HIGH);
         #endif
       #endif
     #endif
 
     #if HAS_HEATER_BED
-      soft_pwm_BED = thermalManager.soft_pwm_bed;
-      WRITE_HEATER_BED(soft_pwm_BED > 0 ? HIGH : LOW);
+      if ((soft_pwm_BED = (thermalManager.soft_pwm_bed & HEATER_PWM_MASK)) > 0)
+        WRITE_HEATER_BED(HIGH);
     #endif
 
     #if HAS(HEATER_CHAMBER) && HAS(TEMP_CHAMBER)
-      soft_pwm_CHAMBER = thermalManager.soft_pwm_chamber;
-      WRITE_HEATER_CHAMBER(soft_pwm_CHAMBER > 0 ? HIGH : LOW);
+      if ((soft_pwm_CHAMBER = (thermalManager.soft_pwm_chamber & HEATER_PWM_MASK)) > 0)
+        WRITE_HEATER_CHAMBER(HIGH);
     #endif
 
     #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER) && HAS(TEMP_COOLER)
-      soft_pwm_COOLER = thermalManager.soft_pwm_cooler;
-      WRITE_COOLER(soft_pwm_COOLER > 0 ? HIGH : LOW);
+      if ((soft_pwm_COOLER = (thermalManager.soft_pwm_cooler & HEATER_PWM_MASK)) > 0)
+        WRITE_COOLER(HIGH);
     #endif
 
   }
@@ -913,20 +913,20 @@ HAL_TEMP_TIMER_ISR {
   #if ENABLED(FAN_SOFT_PWM)
     if (pwm_count_fan == 0) {
       #if HAS(FAN0)
-        thermalManager.soft_pwm_fan[0] = thermalManager.fanSpeedSoftPwm[0] >> 1;
-        WRITE_FAN(thermalManager.soft_pwm_fan[0] > 0 ? HIGH : LOW);
+        if ((thermalManager.soft_pwm_fan[0] = (thermalManager.fanSpeedSoftPwm[0] & FAN_PWM_MASK)) > 0)
+          WRITE_FAN(HIGH);
       #endif
       #if HAS(FAN1)
-        thermalManager.soft_pwm_fan[1] = thermalManager.fanSpeedSoftPwm[1] >> 1;
-        WRITE_FAN1(thermalManager.soft_pwm_fan[1] > 0 ? HIGH : LOW);
+        if ((thermalManager.soft_pwm_fan[1] = (thermalManager.fanSpeedSoftPwm[1] & FAN_PWM_MASK)) > 0)
+          WRITE_FAN1(HIGH);
       #endif
       #if HAS(FAN2)
-        thermalManager.soft_pwm_fan[2] = thermalManager.fanSpeedSoftPwm[2] >> 1;
-        WRITE_FAN2(thermalManager.soft_pwm_fan[2] > 0 ? HIGH : LOW);
+        if ((thermalManager.soft_pwm_fan[2] = (thermalManager.fanSpeedSoftPwm[2] & FAN_PWM_MASK)) > 0)
+          WRITE_FAN2(HIGH);
       #endif
       #if HAS(FAN3)
-        thermalManager.soft_pwm_fan[3] = thermalManager.fanSpeedSoftPwm[3] >> 1;
-        WRITE_FAN3(thermalManager.soft_pwm_fan[3] > 0 ? HIGH : LOW);
+        if ((thermalManager.soft_pwm_fan[3] = (thermalManager.fanSpeedSoftPwm[3] & FAN_PWM_MASK)) > 0)
+          WRITE_FAN3(HIGH);
       #endif
     }
   #endif
