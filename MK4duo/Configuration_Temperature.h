@@ -343,8 +343,6 @@
  *                                                                     *
  ***********************************************************************/
 // Uncomment this to enable PID on the chamber. It uses the same frequency PWM as the extruder.
-// If your PID_dT is the default, and correct for your hardware/configuration, that means 7.689Hz,
-// which is fine for driving a square wave into a resistive load and does not significantly impact you FET heating.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use chamber PID until someone else verifies your hardware works.
@@ -385,8 +383,6 @@
  ***********************************************************************/
 // Uncomment this to enable PID on the cooler. It uses the same frequency PWM as the extruder
 // if you use a software PWM or the frequency you select if using an hardware PWM
-// If your PID_dT is the default, you use a software PWM, and correct for your hardware/configuration, that means 7.689Hz,
-// which is fine for driving a square wave into a resistive load and does not significantly impact you FET heating.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W cooler.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use cooler PID until someone else verifies your hardware works.

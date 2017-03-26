@@ -83,20 +83,20 @@ uint8_t Temperature::soft_pwm_bed;
 
 #if ENABLED(PIDTEMPBED)
   float Temperature::bedKp = DEFAULT_bedKp,
-        Temperature::bedKi = ((DEFAULT_bedKi) * PID_dT),
-        Temperature::bedKd = ((DEFAULT_bedKd) / PID_dT);
+        Temperature::bedKi = DEFAULT_bedKi,
+        Temperature::bedKd = DEFAULT_bedKd;
 #endif
 
 #if ENABLED(PIDTEMPCHAMBER)
   float Temperature::chamberKp = DEFAULT_chamberKp,
-        Temperature::chamberKi = ((DEFAULT_chamberKi) * (PID_dT)),
-        Temperature::chamberKd = ((DEFAULT_chamberKd) / (PID_dT));
+        Temperature::chamberKi = DEFAULT_chamberKi,
+        Temperature::chamberKd = DEFAULT_chamberKd;
 #endif
 
 #if ENABLED(PIDTEMPCOOLER)
   float Temperature::coolerKp = DEFAULT_coolerKp,
-        Temperature::coolerKi = ((DEFAULT_coolerKi) * (PID_dT)),
-        Temperature::coolerKd = ((DEFAULT_coolerKd) / (PID_dT));
+        Temperature::coolerKi = DEFAULT_coolerKi,
+        Temperature::coolerKd = DEFAULT_coolerKd;
 #endif
 
 #if ENABLED(BABYSTEPPING)
