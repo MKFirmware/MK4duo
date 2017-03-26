@@ -254,6 +254,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
 #if HAS(PID_HEATING) || HAS(PID_COOLING)
 
   void Temperature::PID_autotune(float temp, int temp_controller, int ncycles, bool storeValues/*=false*/) {
+
     float currentTemp = 0.0;
     int cycles = 0;
     bool heating = true;
@@ -480,6 +481,7 @@ uint8_t Temperature::soft_pwm[HOTENDS];
 		    SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
 		    return;
 		  }
+
       // Every 1 seconds...
       if (ELAPSED(ms, temp_ms + 1000UL)) {
         #if HAS_TEMP_HOTEND || HAS_TEMP_BED

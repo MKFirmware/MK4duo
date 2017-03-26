@@ -227,12 +227,12 @@ typedef uint32_t millis_t;
 #define CYCLES_EATEN_BY_E     60
 
 #define STEPPER_TIMER OCR1A
-#define STEPPER_TCCR  TCCR0A
+#define STEPPER_TCCR  TCCR1A
 #define STEPPER_TIMSK TIMSK1
 #define STEPPER_OCIE  OCIE1A
 
 #define TEMP_OCR      OCR0B
-#define TEMP_TCCR     TCCR0A
+#define TEMP_TCCR     TCCR0B
 #define TEMP_TIMSK    TIMSK0
 #define TEMP_OCIE     OCIE0B
 
@@ -242,7 +242,7 @@ typedef uint32_t millis_t;
 #define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
 #define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
 
-#define HAL_timer_start(timer_num, frequency) { TEMP_TCCR = 0; TEMP_OCR = 64; }
+#define HAL_timer_start(timer_num, frequency) { }
 #define HAL_timer_set_count(timer, count) timer = (count)
 #define HAL_timer_isr_prologue(timer_num)
 
@@ -302,7 +302,13 @@ class HAL {
     static unsigned long AnalogInputValues[ANALOG_INPUTS];
 
     // do any hardware-specific initialization here
-    static inline void hwSetup() { /* noop */ }
+    static inline void hwSetup() {
+      TCCR0A    =  0; // set entire TCCR2A register to 0
+      TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
+      TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+      // Set CS01 and CS00 bits for 64 prescaler
+      TEMP_TCCR |= (1 << CS01) | (1 << CS00);
+    }
 
     static inline void clear_reset_source() { MCUSR = 0; }
     static inline uint8_t get_reset_source() { return MCUSR; }
