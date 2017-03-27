@@ -142,8 +142,6 @@ class Temperature {
       static float redundant_temperature;
     #endif
 
-    static volatile bool temp_meas_ready;
-
     #if ENABLED(PIDTEMP)
       static float  temp_iState[HOTENDS],
                     temp_dState[HOTENDS][4],

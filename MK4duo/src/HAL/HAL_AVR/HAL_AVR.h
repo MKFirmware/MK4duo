@@ -300,6 +300,7 @@ class HAL {
     virtual ~HAL();
 
     static unsigned long AnalogInputValues[ANALOG_INPUTS];
+    static bool execute_100ms;
 
     // do any hardware-specific initialization here
     static inline void hwSetup() {

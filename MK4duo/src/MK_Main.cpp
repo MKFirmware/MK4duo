@@ -6586,7 +6586,7 @@ inline void gcode_M81() {
     disable_cncrouter();
   #endif
 
-  HAL::delayMilliseconds(1000); // Wait 1 second before switching off
+  safe_delay(1000); // Wait 1 second before switching off
 
   #if HAS(SUICIDE)
     stepper.synchronize();
@@ -6630,7 +6630,7 @@ inline void gcode_M18_M84() {
       if (code_seen('Z')) disable_z();
       #if ((E0_ENABLE_PIN != X_ENABLE_PIN) && (E1_ENABLE_PIN != Y_ENABLE_PIN)) // Only enable on boards that have seperate ENABLE_PINS
         if (code_seen('E')) {
-          disable_e();
+          stepper.disable_e_steppers();
         }
       #endif
     }
@@ -9066,8 +9066,7 @@ inline void gcode_M532() {
 
     // Synchronize steppers and then disable extruders steppers for manual filament changing
     stepper.synchronize();
-    //disable extruder steppers so filament can be removed
-    disable_e();
+    stepper.disable_e_steppers();
     safe_delay(100);
 
     millis_t nozzle_timeout   = millis() + FILAMENT_CHANGE_NOZZLE_TIMEOUT * 1000L;
@@ -9898,7 +9897,7 @@ inline void gcode_T(uint8_t tool_id) {
     MOVE_SERVO(MKSE6_SERVO_INDEX, angles[e]);
 
     #if (MKSE6_SERVO_DELAY > 0)
-      HAL::delayMilliseconds(MKSE6_SERVO_DELAY);
+      safe_delay(MKSE6_SERVO_DELAY);
     #endif
   }
 #endif
@@ -9909,7 +9908,7 @@ inline void gcode_T(uint8_t tool_id) {
     MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
 
     #if (DONDOLO_SERVO_DELAY > 0)
-      HAL::delayMilliseconds(DONDOLO_SERVO_DELAY);
+      safe_delay(DONDOLO_SERVO_DELAY);
     #endif
   }
 #endif
@@ -9987,7 +9986,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #if (EXTRUDERS == 4) && HAS(E0E2) && HAS(E1E3) && (DRIVER_EXTRUDERS == 2)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
@@ -10022,7 +10021,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #elif (EXTRUDERS == 3) && HAS(E0E2) && (DRIVER_EXTRUDERS == 2)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
@@ -10047,7 +10046,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #elif (EXTRUDERS == 2) && HAS(E0E1) && (DRIVER_EXTRUDERS == 1)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
@@ -10080,7 +10079,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #if (EXTRUDERS == 2) && HAS(EX1) && (DRIVER_EXTRUDERS == 1)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
@@ -10099,7 +10098,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #elif (EXTRUDERS == 3) && HAS(EX1) && HAS(EX2) && (DRIVER_EXTRUDERS == 1)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
@@ -10127,7 +10126,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
       #elif (EXTRUDERS > 3) && HAS(EX1) && HAS(EX2) && (DRIVER_EXTRUDERS == 2)
 
         stepper.synchronize(); // Finish all movement
-        disable_e();
+        stepper.disable_e_steppers();
         switch(tmp_extruder) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
@@ -12848,7 +12847,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       disable_z();
     #endif
     #if DISABLE_E == true
-      disable_e();
+      stepper.disable_e_steppers();
     #endif
     #if ENABLED(LASERBEAM)
       if (laser.time / 60000 > 0) {
@@ -13102,6 +13101,13 @@ void idle(
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
+
+  static uint8_t cycle_500ms = 5;
+
+  /**
+   * Start event periodical
+   */
+
   lcd_update();
 
   host_keepalive();
@@ -13124,9 +13130,18 @@ void idle(
     #endif
   );
 
-  thermalManager.manage_temp_controller();
-
   print_job_counter.tick();
+
+  if (HAL::execute_100ms) {
+    // Event 100 Ms
+    HAL::execute_100ms = false;
+    thermalManager.manage_temp_controller();
+    if (--cycle_500ms == 0) {
+      // Event 500 Ms
+      cycle_500ms = 5;
+    }
+  }
+
 }
 
 /**

@@ -66,6 +66,7 @@
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
+static unsigned int cycle_100ms = 0;
 
 HAL::HAL() {
   // ctor
@@ -76,6 +77,7 @@ HAL::~HAL() {
 }
 
 unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+bool HAL::execute_100ms = false;
 
 // Return available memory
 int HAL::getFreeRam() {
@@ -269,8 +271,12 @@ HAL_TEMP_TIMER_ISR {
     #endif
   #endif
 
-  pwm_count_heater  += HEATER_PWM_STEP;
-  pwm_count_fan     += FAN_PWM_STEP;
+  // Calculation cycle approximate a 100ms
+  cycle_100ms++;
+  if (cycle_100ms >= 390) {
+    cycle_100ms = 0;
+    HAL::execute_100ms = true;
+  }
 
   // read analog values
   #if ANALOG_INPUTS > 0
@@ -299,12 +305,11 @@ HAL_TEMP_TIMER_ISR {
     }
   #endif
 
-  if (Analog_is_ready) {
-    Analog_is_ready = false;
+  // Update the raw values if they've been read. Else we could be updating them during reading.
+  if (Analog_is_ready) thermalManager.set_current_temp_raw();
 
-    // Update the raw values if they've been read. Else we could be updating them during reading.
-    thermalManager.set_current_temp_raw();
-  }
+  pwm_count_heater  += HEATER_PWM_STEP;
+  pwm_count_fan     += FAN_PWM_STEP;
 
   #if ENABLED(BABYSTEPPING)
     LOOP_XYZ(axis) {
