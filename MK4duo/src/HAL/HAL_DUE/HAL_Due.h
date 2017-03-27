@@ -224,7 +224,7 @@ class HAL {
     virtual ~HAL();
 
     static volatile uint AnalogInputValues[ANALOG_INPUTS];
-    static bool Analog_is_ready;
+    static bool execute_100ms;
 
     static void hwSetup(void);
 

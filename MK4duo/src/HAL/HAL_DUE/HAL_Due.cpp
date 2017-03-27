@@ -80,6 +80,7 @@ uint8_t MCUSR;
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
+static unsigned int cycle_100ms = 0;
 
 // disable interrupts
 void cli(void) {
@@ -104,6 +105,7 @@ HAL::~HAL() {
 }
 
 volatile uint HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+bool HAL::execute_100ms = false;
 
 // do any hardware-specific initialization here
 void HAL::hwSetup(void) {
@@ -973,8 +975,12 @@ HAL_TEMP_TIMER_ISR {
     #endif
   #endif
 
-  pwm_count_heater  += HEATER_PWM_STEP;
-  pwm_count_fan     += FAN_PWM_STEP;
+  // Calculation cycle approximate a 100ms
+  cycle_100ms++;
+  if (cycle_100ms >= 390) {
+    cycle_100ms = 0;
+    HAL::execute_100ms = true;
+  }
 
   // read analog values
   if ((ADC->ADC_ISR & adcEnable) == adcEnable) { // conversion finished?
@@ -1006,12 +1012,11 @@ HAL_TEMP_TIMER_ISR {
     ADC->ADC_CR = ADC_CR_START; // reread values
   }
 
-  if (Analog_is_ready) {
-    Analog_is_ready = false;
+  // Update the raw values if they've been read. Else we could be updating them during reading.
+  if (Analog_is_ready) thermalManager.set_current_temp_raw();
 
-    // Update the raw values if they've been read. Else we could be updating them during reading.
-    thermalManager.set_current_temp_raw();
-  }
+  pwm_count_heater  += HEATER_PWM_STEP;
+  pwm_count_fan     += FAN_PWM_STEP;
 
   #if ENABLED(BABYSTEPPING)
     LOOP_XYZ(axis) {

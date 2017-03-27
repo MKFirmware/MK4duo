@@ -135,8 +135,6 @@ uint8_t Temperature::soft_pwm_bed;
   float Temperature::redundant_temperature = 0.0;
 #endif
 
-volatile bool Temperature::temp_meas_ready = false;
-
 #if ENABLED(PIDTEMP)
   float Temperature::temp_iState[HOTENDS] = { 0 },
         Temperature::temp_dState[HOTENDS][4] = { 0 },
@@ -349,129 +347,127 @@ uint8_t Temperature::soft_pwm[HOTENDS];
     // PID Tuning loop
     while (wait_for_heatup) {
 
+      updateTemperaturesFromRawValues();
       millis_t ms = millis();
 
-      if (temp_meas_ready) { // temp sample ready
-        updateTemperaturesFromRawValues();
+      #if HAS(TEMP_BED)
+        if (temp_controller == -1)
+          currentTemp = current_temperature_bed;
+      #endif
+      #if HAS(TEMP_CHAMBER)
+        if (temp_controller == -2)
+          currentTemp = current_temperature_chamber;
+      #endif
+      #if HAS(TEMP_COOLER)
+        if (temp_controller == -3)
+        currentTemp = current_temperature_cooler;
+      #endif
+      if (temp_controller >= 0)
+        currentTemp = current_temperature[temp_controller];
 
-        #if HAS(TEMP_BED)
-          if (temp_controller == -1)
-            currentTemp = current_temperature_bed;
-        #endif
-        #if HAS(TEMP_CHAMBER)
-          if (temp_controller == -2)
-            currentTemp = current_temperature_chamber;
-        #endif
-        #if HAS(TEMP_COOLER)
-          if (temp_controller == -3)
-          currentTemp = current_temperature_cooler;
-        #endif
-        if (temp_controller >= 0)
-          currentTemp = current_temperature[temp_controller];
+      NOLESS(maxTemp, currentTemp);
+      NOMORE(minTemp, currentTemp);
 
-        NOLESS(maxTemp, currentTemp);
-        NOMORE(minTemp, currentTemp);
-
-        #if HAS(AUTO_FAN)
-          if (ELAPSED(ms, next_auto_fan_check_ms)) {
-            checkExtruderAutoFans();
-            next_auto_fan_check_ms = ms + 2500UL;
-          }
-        #endif
-
-        if (heating && currentTemp > temp) {
-          if (ELAPSED(ms, t2 + 2500UL)) {
-            heating = false;
-
-            #if HAS(TEMP_BED)
-              if (temp_controller == -1)
-                soft_pwm_bed = (bias - d);
-            #endif
-            #if HAS(TEMP_CHAMBER)
-              if (temp_controller == -2)
-                soft_pwm_chamber = (bias - d);
-            #endif
-            #if HAS(TEMP_COOLER)
-              if (temp_controller == -3)
-                soft_pwm_cooler = (bias - d);
-            #endif
-            if (temp_controller >= 0)
-              soft_pwm[temp_controller] = (bias - d);
-
-            t1 = ms;
-            t_high = t1 - t2;
-
-            #if HAS(TEMP_COOLER)
-              if (temp_controller == -3)
-                minTemp = temp;
-              else
-            #endif
-              maxTemp = temp;
-          }
+      #if HAS(AUTO_FAN)
+        if (ELAPSED(ms, next_auto_fan_check_ms)) {
+          checkExtruderAutoFans();
+          next_auto_fan_check_ms = ms + 2500UL;
         }
+      #endif
 
-        if (!heating && currentTemp < temp) {
-          if (ELAPSED(ms, t1 + 5000UL)) {
-            heating = true;
-            t2 = ms;
-            t_low = t2 - t1;
-            if (cycles > 0) {
+      if (heating && currentTemp > temp) {
+        if (ELAPSED(ms, t2 + 2500UL)) {
+          heating = false;
 
-              bias += (d * (t_high - t_low)) / (t_low + t_high);
-              bias = constrain(bias, 20, pidMax - 20);
-              d = (bias > pidMax / 2) ? pidMax - 1 - bias : bias;
+          #if HAS(TEMP_BED)
+            if (temp_controller == -1)
+              soft_pwm_bed = (bias - d);
+          #endif
+          #if HAS(TEMP_CHAMBER)
+            if (temp_controller == -2)
+              soft_pwm_chamber = (bias - d);
+          #endif
+          #if HAS(TEMP_COOLER)
+            if (temp_controller == -3)
+              soft_pwm_cooler = (bias - d);
+          #endif
+          if (temp_controller >= 0)
+            soft_pwm[temp_controller] = (bias - d);
 
-              SERIAL_MV(MSG_BIAS, bias);
-              SERIAL_MV(MSG_D, d);
-              SERIAL_MV(MSG_T_MIN, minTemp);
-              SERIAL_MV(MSG_T_MAX, maxTemp);
-              if (cycles > 2) {
-                Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
-                Tu = ((float)(t_low + t_high) * 0.001);
-                SERIAL_MV(MSG_KU, Ku);
-                SERIAL_EMV(MSG_TU, Tu);
-                workKp = 0.6 * Ku;
-                workKi = 2 * workKp / Tu;
-                workKd = workKp * Tu * 0.125;
-                
-                SERIAL_EM(MSG_CLASSIC_PID);
-                SERIAL_MV(MSG_KP, workKp);
-                SERIAL_MV(MSG_KI, workKi);
-                SERIAL_EMV(MSG_KD, workKd);
-              }
-            }
+          t1 = ms;
+          t_high = t1 - t2;
 
-            #if ENABLED(PIDTEMP)
-              if (temp_controller >= 0)
-                soft_pwm[temp_controller] = (bias + d);
-            #endif
-
-            #if ENABLED(PIDTEMPBED)
-              if (temp_controller == -1)
-                soft_pwm_bed = (bias + d);
-            #endif
-
-            #if ENABLED(PIDTEMPCHAMBER)
-              if (temp_controller == -2)
-                soft_pwm_chamber = (bias + d);
-            #endif
-
-            #if ENABLED(PIDTEMPCOOLER)
-              if (temp_controller == -3)
-                soft_pwm_cooler = (bias + d);
-            #endif
-
-            cycles++;
-
-            #if HAS(TEMP_COOLER)
-              if (temp_controller == -3)
-                maxTemp = temp;
-              else
-            #endif
+          #if HAS(TEMP_COOLER)
+            if (temp_controller == -3)
               minTemp = temp;
-          }
+            else
+          #endif
+            maxTemp = temp;
         }
       }
+
+      if (!heating && currentTemp < temp) {
+        if (ELAPSED(ms, t1 + 5000UL)) {
+          heating = true;
+          t2 = ms;
+          t_low = t2 - t1;
+          if (cycles > 0) {
+
+            bias += (d * (t_high - t_low)) / (t_low + t_high);
+            bias = constrain(bias, 20, pidMax - 20);
+            d = (bias > pidMax / 2) ? pidMax - 1 - bias : bias;
+
+            SERIAL_MV(MSG_BIAS, bias);
+            SERIAL_MV(MSG_D, d);
+            SERIAL_MV(MSG_T_MIN, minTemp);
+            SERIAL_MV(MSG_T_MAX, maxTemp);
+            if (cycles > 2) {
+              Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
+              Tu = ((float)(t_low + t_high) * 0.001);
+              SERIAL_MV(MSG_KU, Ku);
+              SERIAL_EMV(MSG_TU, Tu);
+              workKp = 0.6 * Ku;
+              workKi = 2 * workKp / Tu;
+              workKd = workKp * Tu * 0.125;
+              
+              SERIAL_EM(MSG_CLASSIC_PID);
+              SERIAL_MV(MSG_KP, workKp);
+              SERIAL_MV(MSG_KI, workKi);
+              SERIAL_EMV(MSG_KD, workKd);
+            }
+          }
+
+          #if ENABLED(PIDTEMP)
+            if (temp_controller >= 0)
+              soft_pwm[temp_controller] = (bias + d);
+          #endif
+
+          #if ENABLED(PIDTEMPBED)
+            if (temp_controller == -1)
+              soft_pwm_bed = (bias + d);
+          #endif
+
+          #if ENABLED(PIDTEMPCHAMBER)
+            if (temp_controller == -2)
+              soft_pwm_chamber = (bias + d);
+          #endif
+
+          #if ENABLED(PIDTEMPCOOLER)
+            if (temp_controller == -3)
+              soft_pwm_cooler = (bias + d);
+          #endif
+
+          cycles++;
+
+          #if HAS(TEMP_COOLER)
+            if (temp_controller == -3)
+              maxTemp = temp;
+            else
+          #endif
+            minTemp = temp;
+        }
+      }
+
       #define MAX_OVERSHOOT_PID_AUTOTUNE 40
       if (currentTemp > temp + MAX_OVERSHOOT_PID_AUTOTUNE && temp_controller >= -2) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
@@ -707,7 +703,7 @@ uint8_t Temperature::get_pid_output(int h) {
       pid_pointer[HOTEND_INDEX] &= 3;
       float error = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
       if (error > PID_FUNCTIONAL_RANGE) {
-        pid_output = BANG_MAX;
+        pid_output = PID_MAX;
       }
       else if (error < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0) {
         pid_output = 0;
@@ -715,7 +711,7 @@ uint8_t Temperature::get_pid_output(int h) {
       else {
         float pidTerm = PID_PARAM(Kp, HOTEND_INDEX) * error;
         temp_iState[HOTEND_INDEX] = constrain(temp_iState[HOTEND_INDEX] + error, temp_iState_min[HOTEND_INDEX], temp_iState_max[HOTEND_INDEX]);
-        pidTerm += PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX] * 0.1;
+        pidTerm += PID_PARAM(Ki, HOTEND_INDEX) * temp_iState[HOTEND_INDEX] * 0.1; // 0.1 = 10Hz
         float dgain = PID_PARAM(Kd, HOTEND_INDEX) * (temp_dState[HOTEND_INDEX][pid_pointer[HOTEND_INDEX]] - current_temperature[HOTEND_INDEX]) * 3.333f;
         pidTerm += dgain;
 
@@ -873,16 +869,15 @@ uint8_t Temperature::get_pid_output(int h) {
 
 /**
  * Manage heating activities for hotends, bed, chamber and cooler
+ *  - Is called every 100ms.
  *  - Acquire updated temperature readings
- *    - Also resets the watchdog timer
+ *  - Also resets the watchdog timer
  *  - Invoke thermal runaway protection
  *  - Manage extruder auto-fan
  *  - Apply filament width to the extrusion rate (may move)
  *  - Update the heated bed PID output value
  */
 void Temperature::manage_temp_controller() {
-
-  if (!temp_meas_ready) return;
 
   updateTemperaturesFromRawValues(); // also resets the watchdog
 
@@ -1279,9 +1274,6 @@ void Temperature::updateTemperaturesFromRawValues() {
     watchdog_reset();
   #endif
 
-  CRITICAL_SECTION_START;
-  temp_meas_ready = false;
-  CRITICAL_SECTION_END;
 }
 
 
@@ -1901,8 +1893,6 @@ void Temperature::set_current_temp_raw() {
   #if HAS(POWER_CONSUMPTION_SENSOR)
     current_raw_powconsumption = HAL::AnalogInputValues[POWER_SENSOR_INDEX];
   #endif
-
-  temp_meas_ready = true;
 
   int constexpr temp_dir[] = {
     #if ENABLED(HEATER_0_USES_MAX6675)
