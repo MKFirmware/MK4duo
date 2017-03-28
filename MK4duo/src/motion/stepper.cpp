@@ -1412,16 +1412,20 @@ void Stepper::enable_all_steppers() {
   enable_e5();
 }
 
-void Stepper::disable_all_steppers() {
-  disable_x();
-  disable_y();
-  disable_z();
+void Stepper::disable_e_steppers() {
   disable_e0();
   disable_e1();
   disable_e2();
   disable_e3();
   disable_e4();
   disable_e5();
+}
+
+void Stepper::disable_all_steppers() {
+  disable_x();
+  disable_y();
+  disable_z();
+  disable_e_steppers();
 }
 
 void Stepper::finish_and_disable() {

@@ -686,6 +686,4 @@
 
 #endif
 
-#define disable_e() { disable_e0(); disable_e1(); disable_e2(); disable_e3(); disable_e4(); disable_e5(); }
-
 #endif // STEPPER_INDIRECTION_H
