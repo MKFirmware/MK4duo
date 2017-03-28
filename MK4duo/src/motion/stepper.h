@@ -227,6 +227,7 @@ class Stepper {
     static FORCE_INLINE bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
     static void enable_all_steppers();
+    static void disable_e_steppers();
     static void disable_all_steppers();
 
     #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
