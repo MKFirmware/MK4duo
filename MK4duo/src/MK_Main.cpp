@@ -567,7 +567,7 @@ static bool send_ok[BUFSIZE];
     }
     return -1;
   }
-#endif
+#endif // M100_FREE_MEMORY_WATCHER
 
 static inline float pgm_read_any(const float *p) { return pgm_read_float_near(p); }
 static inline signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
@@ -6073,91 +6073,6 @@ inline void gcode_M42() {
 
   #include "utility/pinsdebug.h"
 
-  inline void servo_probe_test(){
-
-    #if HAS(SERVO)
-      SERIAL_LM(ER, "SERVO not setup");
-    #else
-
-      uint8_t probe_index = code_seen('P') ? code_value_byte() : 0;
-      SERIAL_SM(ECHO, "Servo probe test.");
-      SERIAL_MV(" Using index:", probe_index);
-      SERIAL_MV(" deploy angle:", z_servo_angle[0]);
-      SERIAL_MV(" stow angle:", z_servo_angle[1]);
-
-      #if (!HAS_Z_PROBE_PIN)
-
-        #define PROBE_TEST_PIN Z_MIN_PIN
-        SERIAL_MV(" probe uses Z_MIN pin: ", PROBE_TEST_PIN);
-        SERIAL_EMV(" uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC):", Z_MIN_ENDSTOP_LOGIC);
-        const bool probe_inverting = Z_MIN_ENDSTOP_LOGIC;
-
-      #elif (HAS_Z_PROBE_PIN)
-
-        #define PROBE_TEST_PIN Z_PROBE_PIN
-        SERIAL_MV(" probe uses Z_PROBE_PIN: ", PROBE_TEST_PIN);
-        SERIAL_EMV(" uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC):", Z_PROBE_ENDSTOP_LOGIC);
-        const bool probe_inverting = Z_PROBE_ENDSTOP_LOGIC;
-
-      #else
-        #error "ERROR - probe pin not defined - strange, SANITY_CHECK should have caught this"
-      #endif
-
-      SERIAL_LM(ECHO, "Deploy & stow 4 times");
-      bool deploy_state, stow_state;
-
-      for (uint8_t i = 0; i < 4; i++) {
-        bltouch_command(BLTOUCH_DEPLOY);
-        safe_delay(500);
-        deploy_state = digitalRead(PROBE_TEST_PIN);
-        bltouch_command(BLTOUCH_STOW);
-        safe_delay(500);
-        stow_state = digitalRead(PROBE_TEST_PIN);
-      }
-
-      if (probe_inverting == deploy_state) SERIAL_LM(ECHO, "WARNING - INVERTING setting probably backwards");
-
-      refresh_cmd_timeout();
-
-      if (deploy_state != stow_state) {
-        SERIAL_SM(ECHO, "CLONE detected.");         // BLTouch clone?
-        if (deploy_state) {
-          SERIAL_M(" DEPLOYED state: HIGH (logic 1)");
-          SERIAL_EM(" STOWED (triggered) state: LOW (logic 0)");
-        }
-        else {
-          SERIAL_M(" DEPLOYED state: LOW (logic 0)");
-          SERIAL_EM(" STOWED (triggered) state: HIGH (logic 1)");
-        }
-      }
-      else {
-        bltouch_command(BLTOUCH_DEPLOY); // deploy
-        safe_delay(500);
-        SERIAL_LM(ECHO, "Please trigger probe");
-        uint16_t probe_counter = 0;
-
-        for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
-          safe_delay(2);
-          if (deploy_state != digitalRead(PROBE_TEST_PIN)) {
-            for (probe_counter = 1; probe_counter < 50 && (deploy_state != digitalRead(PROBE_TEST_PIN)); probe_counter ++)
-              safe_delay(2);
-            if (probe_counter == 50)
-              SERIAL_LM(ECHO, "Z Servo Probe detected");   // >= 100mS active time
-            else if (probe_counter >= 2 )
-              SERIAL_LMV(ECHO, "BLTouch compatible probe detected - pulse width (+/- 4mS):", probe_counter);   // allow 4 - 100mS pulse
-            else
-              SERIAL_LM(ECHO, "Noise detected - please re-run test");   // less than 2mS pulse
-          }
-        } // for loop waiting for trigger
-
-        bltouch_command(BLTOUCH_STOW);
-
-        if (probe_counter == 0) SERIAL_EM("trigger not detected");
-
-      }      // measure active signal length
-    #endif
-  }
-
   /**
    * M43: Pin report and debug
    *
@@ -6174,12 +6089,6 @@ inline void gcode_M42() {
    *
    */
   inline void gcode_M43() {
-
-    // Enable or disable endstop monitoring
-    if (code_seen('S') && code_value_bool()) {
-      servo_probe_test();
-      return;
-    }
 
     // Enable or disable endstop monitoring
     if (code_seen('E')) {
@@ -12145,28 +12054,37 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 
     // The number of segments-per-second times the duration
     // gives the number of segments we should produce
-    #if MECH (DELTA)
-      uint16_t segments = deltaParams.segments_per_second * seconds;
-    #else
+    #if IS_SCARA
       uint16_t segments = scara_segments_per_second * seconds;
-      // For SCARA minimum segment size is 0.5mm
-      NOMORE(segments, cartesian_mm * 2);
+      // For SCARA minimum segment size is 0.25mm
+      NOMORE(segments, cartesian_mm * 4);
+    #else
+      uint16_t segments = deltaParams.segments_per_second * seconds;
     #endif
 
     // At least one segment is required
     NOLESS(segments, 1);
 
     // The approximate length of each segment
-    float segment_distance[XYZE] = {
-      difference[X_AXIS] / segments,
-      difference[Y_AXIS] / segments,
-      difference[Z_AXIS] / segments,
-      difference[E_AXIS] / segments
-    };
+    const float inv_segments = 1.0 / float(segments),
+                segment_distance[XYZE] = {
+                  difference[X_AXIS] * inv_segments,
+                  difference[Y_AXIS] * inv_segments,
+                  difference[Z_AXIS] * inv_segments,
+                  difference[E_AXIS] * inv_segments
+                };
 
     //SERIAL_MV("mm=", cartesian_mm);
     //SERIAL_MV(" seconds=", seconds);
     //SERIAL_EMV(" segments=", segments);
+
+    #if IS_SCARA
+      // SCARA needs to scale the feed rate from mm/s to degrees/s
+      const float inv_segment_length = min(10.0, float(segments) / cartesian_mm), // 1/mm/segs
+                  feed_factor = inv_segment_length * _feedrate_mm_s;
+      float oldA = stepper.get_axis_position_degrees(A_AXIS),
+            oldB = stepper.get_axis_position_degrees(B_AXIS);
+    #endif
 
     // Drop one segment so the last move is to the exact target.
     // If there's only 1 segment, loops will be skipped entirely.
@@ -12179,18 +12097,41 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // For non-interpolated delta calculate every segment
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) logical[i] += segment_distance[i];
-      #if MECH(DELTA)
-        deltaParams.inverse_kinematics_DELTA(logical);
-      #else
+      #if IS_SCARA
         inverse_kinematics(logical);
+      #else
+        deltaParams.inverse_kinematics_DELTA(logical);
       #endif
+
       ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+
+      #if IS_SCARA
+        // For SCARA scale the feed rate from mm/s to degrees/s
+        // Use ratio between the length of the move and the larger angle change
+        const float adiff = abs(delta[A_AXIS] - oldA),
+                    bdiff = abs(delta[B_AXIS] - oldB);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder, active_driver);
+        oldA = delta[A_AXIS];
+        oldB = delta[B_AXIS];
+      #else
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+      #endif
     }
 
     // Since segment_distance is only approximate,
     // the final move must be to the exact destination.
-    planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
+    #if IS_SCARA
+      // For SCARA scale the feed rate from mm/s to degrees/s
+      // With segments > 1 length is 1 segment, otherwise total length
+      inverse_kinematics(ltarget);
+      ADJUST_DELTA(logical);
+      const float adiff = abs(delta[A_AXIS] - oldA),
+                  bdiff = abs(delta[B_AXIS] - oldB);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder, active_driver);
+    #else
+      planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
+    #endif
+
     return true;
   }
 
@@ -13346,9 +13287,10 @@ void setup() {
   #endif
 
   #if HAS(DOOR)
-    SET_INPUT(DOOR_PIN);
     #if ENABLED(DOOR_OPEN_PULLUP)
-      PULLUP(DOOR_PIN);
+      SET_INPUT_PULLUP(DOOR_PIN);
+    #else
+      SET_INPUT(DOOR_PIN);
     #endif
   #endif
 
