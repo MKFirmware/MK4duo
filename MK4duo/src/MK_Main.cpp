@@ -1049,6 +1049,24 @@ inline void get_serial_commands() {
 #if ENABLED(SDSUPPORT)
 
   /**
+   * Function for Stop e save
+   */
+  inline void sd_stop_e_save() {
+    if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
+      SERIAL_EM("Close file and save restart.gcode");
+      card.stopSDPrint(true);
+      clear_command_queue();
+      quickstop_stepper();
+      print_job_counter.stop();
+      #if ENABLED(AUTOTEMP)
+        thermalManager.autotempShutdown();
+      #endif
+      wait_for_heatup = false;
+      lcd_setstatus(MSG_PRINT_ABORTED, true);
+    }
+  }
+
+  /**
    * Get commands from the SD Card until the command buffer is full
    * or until the end of the file is reached. The special character '#'
    * can also interrupt buffering.
@@ -2457,7 +2475,7 @@ static void clean_up_after_endstop_or_probe_move() {
           ep = ABL_GRID_POINTS_X - 1;
           ip = ABL_GRID_POINTS_X - 2;
         }
-        if (y > 0 && y < ABL_TEMP_POINTS_Y - 1)
+        if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[ep][y - 1], bilinear_level_grid[ip][y - 1]);
         else
           return LINEAR_EXTRAPOLATION(bed_level_virt_coord(ep + 1, y), bed_level_virt_coord(ip + 1, y));
@@ -2467,7 +2485,7 @@ static void clean_up_after_endstop_or_probe_move() {
           ep = ABL_GRID_POINTS_Y - 1;
           ip = ABL_GRID_POINTS_Y - 2;
         }
-        if (x > 0 && x < ABL_TEMP_POINTS_X - 1)
+        if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[x - 1][ep], bilinear_level_grid[x - 1][ip]);
         else
           return LINEAR_EXTRAPOLATION(bed_level_virt_coord(x, ep + 1), bed_level_virt_coord(x, ip + 1));
@@ -4330,7 +4348,7 @@ inline void gcode_G28() {
     #endif
 
     const MeshLevelingState state = code_seen('S') ? (MeshLevelingState)code_value_byte() : MeshReport;
-    if (state < 0 || state > 5) {
+    if (!WITHIN(state, 0, 5)) {
       SERIAL_M("S out of range (0-5).");
       return;
     }
@@ -4407,7 +4425,7 @@ inline void gcode_G28() {
       case MeshSet:
         if (code_seen('X')) {
           px = code_value_int() - 1;
-          if (px < 0 || px >= MESH_NUM_X_POINTS) {
+          if (!WITHIN(px, 0, MESH_NUM_X_POINTS - 1)) {
             SERIAL_EM("X out of range (1-" STRINGIFY(MESH_NUM_X_POINTS) ").");
             return;
           }
@@ -4419,7 +4437,7 @@ inline void gcode_G28() {
 
         if (code_seen('Y')) {
           py = code_value_int() - 1;
-          if (py < 0 || py >= MESH_NUM_Y_POINTS) {
+          if (!WITHIN(py, 0, MESH_NUM_Y_POINTS - 1)) {
             SERIAL_EM("Y out of range (1-" STRINGIFY(MESH_NUM_Y_POINTS) ").");
             return;
           }
@@ -4530,7 +4548,7 @@ inline void gcode_G28() {
     #endif
 
     const int verbose_level = code_seen('V') ? code_value_int() : 1;
-    if (verbose_level < 0 || verbose_level > 4) {
+    if (!WITHIN(verbose_level, 0, 4)) {
       SERIAL_LM(ER, "?(V)erbose Level is implausible (0-4).");
       return;
     }
@@ -5672,8 +5690,10 @@ inline void gcode_G92() {
         current_position[i] = code_value_axis_units(i);
         if (i != E_AXIS) didXYZ = true;
       #else
-        float p = current_position[i],
-              v = code_value_axis_units(i);
+        #if ENABLED(WORKSPACE_OFFSETS)
+          float p = current_position[i];
+        #endif
+        float v = code_value_axis_units(i);
 
         current_position[i] = v;
 
@@ -5785,7 +5805,6 @@ inline void gcode_G92() {
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_SPINDLE;
 
-        lcd_update();
       }
     #endif
 
@@ -5810,8 +5829,6 @@ inline void gcode_G92() {
           laser.status = LASER_OFF;
           laser.mode = CONTINUOUS;
           laser.duration = 0;
-
-          lcd_update();
 
           prepare_move_to_destination();
 
@@ -5972,18 +5989,7 @@ inline void gcode_M31() {
    * M33: Close File and save restart.gcode
    */
   inline void gcode_M33() {
-    if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
-      SERIAL_EM("Close file and save restart.gcode");
-      card.stopSDPrint(true);
-      clear_command_queue();
-      quickstop_stepper();
-      print_job_counter.stop();
-      #if ENABLED(AUTOTEMP)
-        thermalManager.autotempShutdown();
-      #endif
-      wait_for_heatup = false;
-      lcd_setstatus(MSG_PRINT_ABORTED, true);
-    }
+    sd_stop_e_save();
   }
 
   /**
@@ -6037,7 +6043,7 @@ inline void gcode_M42() {
   if (!code_seen('S')) return;
 
   int pin_status = code_value_int();
-  if (pin_status < 0 || pin_status > 255) return;
+  if (!WITHIN(pin_status, 0, 255)) return;
 
   int pin_number = code_seen('P') ? code_value_int() : LED_PIN;
   if (pin_number < 0) return;
@@ -6179,7 +6185,7 @@ inline void gcode_M42() {
     if (axis_unhomed_error(true, true, true)) return;
 
     int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
-    if (verbose_level < 0 || verbose_level > 4 ) {
+    if (!WITHIN(verbose_level, 0, 4)) {
       SERIAL_LM(ER, "?Verbose Level not plausible (0-4).");
       return;
     }
@@ -6188,7 +6194,7 @@ inline void gcode_M42() {
       SERIAL_EM("M48 Z-Probe Repeatability Test");
 
     int8_t n_samples = code_seen('P') ? code_value_byte() : 10;
-    if (n_samples < 4 || n_samples > 50) {
+    if (!WITHIN(n_samples, 4, 50)) {
       SERIAL_LM(ER, "?Sample size not plausible (4-50).");
       return;
     }
@@ -6200,7 +6206,7 @@ inline void gcode_M42() {
 
     float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
     #if NOMECH(DELTA)
-      if (X_probe_location < LOGICAL_X_POSITION(MIN_PROBE_X) || X_probe_location > LOGICAL_X_POSITION(MAX_PROBE_X)) {
+      if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
         out_of_range_error(PSTR("X"));
         return;
       }
@@ -6208,7 +6214,7 @@ inline void gcode_M42() {
 
     float Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
     #if NOMECH(DELTA)
-      if (Y_probe_location < LOGICAL_Y_POSITION(MIN_PROBE_Y) || Y_probe_location > LOGICAL_Y_POSITION(MAX_PROBE_Y)) {
+      if (!WITHIN(Y_probe_location, LOGICAL_Y_POSITION(MIN_PROBE_Y), LOGICAL_Y_POSITION(MAX_PROBE_Y))) {
         out_of_range_error(PSTR("Y"));
         return;
       }
@@ -6455,10 +6461,7 @@ inline void gcode_M78() {
       OUT_WRITE(SUICIDE_PIN, HIGH);
     #endif
 
-    #if HAS(LCD)
-      LCD_MESSAGEPGM(WELCOME_MSG);
-      lcd_update();
-    #endif
+    LCD_MESSAGEPGM(WELCOME_MSG);
 
     #if ENABLED(LASERBEAM) && ENABLED(LASER_PERIPHERALS)
       laser_peripherals_on();
@@ -6504,10 +6507,8 @@ inline void gcode_M81() {
     powerManager.power_off();
   #endif
 
-  #if ENABLED(ULTIPANEL)
-    LCD_MESSAGEPGM(MACHINE_NAME " " MSG_OFF ".");
-    lcd_update();
-  #endif
+  LCD_MESSAGEPGM(MACHINE_NAME " " MSG_OFF ".");
+
 }
 
 /**
@@ -7530,7 +7531,7 @@ inline void gcode_M205() {
       if (code_seen('P')) set_home_offset(Y_AXIS, code_value_axis_units(Y_AXIS)); // Psi
     #endif
 
-    sync_plan_position();
+    SYNC_PLAN_POSITION_KINEMATIC();
     report_current_position();
   }
 
@@ -7852,30 +7853,34 @@ inline void gcode_M226() {
   }
 #endif // PREVENT_COLD_EXTRUSION
 
-#if HAS(PID_HEATING) || HAS(PID_COOLING)
-  /**
-   * M303: PID relay autotune
-   *       S<temperature> sets the target temperature. (default target temperature = 150C)
-   *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
-   *       C<cycles>
-   *       U<bool> with a non-zero value will apply the result to current settings
-   */
-  inline void gcode_M303() {
+/**
+ * M303: PID relay autotune
+ *
+ *       S<temperature> sets the target temperature. (default target temperature = 150C)
+ *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
+ *       C<cycles>
+ *       U<bool> with a non-zero value will apply the result to current settings
+ */
+inline void gcode_M303() {
+  #if HAS(PID_HEATING) || HAS(PID_COOLING)
     int h = code_seen('H') ? code_value_int() : 0;
     int c = code_seen('C') ? code_value_int() : 5;
     bool u = code_seen('U') && code_value_bool() != 0;
 
     float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 200.0);
 
-    if (h >= 0 && h < HOTENDS) target_extruder = h;
+    if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
 
-    KEEPALIVE_STATE(WAIT_HEATER); // don't send "busy: processing" messages during autotune output
+    KEEPALIVE_STATE(NOT_BUSY); // don't send "busy: processing" messages during autotune output
 
     thermalManager.PID_autotune(temp, h, c, u);
 
     KEEPALIVE_STATE(IN_HANDLER);
-  }
-#endif
+  #else
+    SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
+  #endif
+}
+
 
 #if ENABLED(PIDTEMPBED)
   // M304: Set bed PID parameters P I and D
@@ -8614,7 +8619,7 @@ inline void gcode_M400() { stepper.synchronize(); }
           float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
                 diff = current_position[i] - LOGICAL_POSITION(base, i);
         #endif
-        if (diff > -20 && diff < 20) {
+        if (WITHIN(diff, -20, 20)) {
           set_home_offset((AxisEnum)i, home_offset[i] - diff);
         }
         else {
@@ -10334,9 +10339,11 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         // The newly-selected extruder XY is actually at...
         current_position[X_AXIS] += xydiff[X_AXIS];
         current_position[Y_AXIS] += xydiff[Y_AXIS];
-        #if ENABLED(WORKSPACE_OFFSETS)
+        #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
           LOOP_XY(i) {
-            position_shift[i] += xydiff[i];
+            #if ENABLED(WORKSPACE_OFFSETS)
+              position_shift[i] += xydiff[i];
+            #endif
             update_software_endstops((AxisEnum)i);
           }
         #endif
@@ -10982,10 +10989,8 @@ void process_next_command() {
           gcode_M302(); break;
       #endif
 
-      #if HAS(PID_HEATING)
-        case 303: // M303: PID autotune
-          gcode_M303(); break;
-      #endif
+      case 303: // M303: PID autotune
+        gcode_M303(); break;
 
       #if ENABLED(PIDTEMPBED)
         case 304: // M304: Set Bed PID
@@ -13043,13 +13048,13 @@ void idle(
   #endif
 ) {
 
-  static uint8_t cycle_500ms = 5;
+  static uint8_t cycle_1500ms = 15;
 
   /**
    * Start event periodical
    */
 
-  lcd_update();
+  lcd_key_touch_update();
 
   host_keepalive();
 
@@ -13077,9 +13082,13 @@ void idle(
     // Event 100 Ms
     HAL::execute_100ms = false;
     thermalManager.manage_temp_controller();
-    if (--cycle_500ms == 0) {
-      // Event 500 Ms
-      cycle_500ms = 5;
+    lcd_draw_update();
+    if (--cycle_1500ms == 0) {
+      // Event 1500 Ms
+      cycle_1500ms = 15;
+      #if ENABLED(NEXTION)
+        nextion_draw_update();
+      #endif
     }
   }
 

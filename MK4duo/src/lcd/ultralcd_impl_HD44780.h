@@ -413,7 +413,7 @@ void lcd_print(char c) { charset_mapper(c); }
   void lcd_erase_line(const int line) {
     lcd.setCursor(0, line);
     for (uint8_t i = 0; i < LCD_WIDTH; i++)
-      lcd_print(' ');
+      lcd.print(' ');
   }
 
   // Scroll the PSTR 'text' in a 'len' wide field for 'time' milliseconds at position col,line
@@ -801,42 +801,32 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LCD_PROGRESS_BAR)
 
-    if (card.isFileOpen()) {
-      // Draw the progress bar if the message has shown long enough
-      // or if there is no message set.
-      if (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])
-        return lcd_draw_progress_bar(card.percentDone());
-    } //card.isFileOpen
+    // Draw the progress bar if the message has shown long enough
+    // or if there is no message set.
+    if (card.isFileOpen() && ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])
+      return lcd_draw_progress_bar(card.percentDone());
 
-  #elif HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
+  #elif (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
 
-    // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
-    // After allowing lcd_status_message to show for 5 seconds
-    if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
-      lcd_print(lcd_status_message);
-    }
-    #if HAS(LCD_POWER_SENSOR)
-      #if HAS(LCD_FILAMENT_SENSOR)
-        else if (millis() < message_millis + 10000UL)
-      #else
-        else
-      #endif
-      {
-        lcd_printPGM(PSTR("P:"));
-        lcd.print(ftostr43sign(power_consumption_meas));
-        lcd_printPGM(PSTR("W C:"));
-        lcd.print(ltostr7(power_consumption_hour));
-        lcd_printPGM(PSTR("Wh"));
-      }
-    #endif
-    #if HAS(LCD_FILAMENT_SENSOR)
-      else {
+    #if HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)
+      // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
+      // After allowing lcd_status_message to show for 5 seconds
+      if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
         lcd_printPGM(PSTR("Dia "));
         lcd.print(ftostr12ns(filament_width_meas));
         lcd_printPGM(PSTR(" V"));
         lcd.print(itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
         lcd.print('%');
         return;
+      }
+    
+    #if HAS(LCD_POWER_SENSOR)
+      else if (ELAPSED(millis(), previous_lcd_status_ms + 10000UL)) {
+        lcd_printPGM(PSTR("P:"));
+        lcd.print(ftostr43sign(power_consumption_meas));
+        lcd_printPGM(PSTR("W C:"));
+        lcd.print(ltostr7(power_consumption_hour));
+        lcd_printPGM(PSTR("Wh"));
       }
     #endif
 

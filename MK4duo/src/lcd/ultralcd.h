@@ -35,7 +35,8 @@
 
   int lcd_strlen(const char* s);
   int lcd_strlen_P(const char* s);
-  void lcd_update();
+  void lcd_key_touch_update();
+  void lcd_draw_update();
   void lcd_init();
   bool lcd_hasstatus();
   void lcd_setstatus(const char* message, const bool persist=false);
@@ -61,7 +62,6 @@
   #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
   #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
 
-  #define LCD_UPDATE_INTERVAL 100
   #define LCD_TIMEOUT_TO_STATUS 15000
 
   #if ENABLED(ULTIPANEL)
@@ -100,7 +100,7 @@
 
   #endif
 
-  #if HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
+  #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
     extern millis_t previous_lcd_status_ms;
   #endif
 
@@ -164,7 +164,8 @@
 
 #elif DISABLED(NEXTION)
 
-  inline void lcd_update() {}
+  inline void lcd_key_touch_update() {}
+  inline void lcd_draw_update() {}
   inline void lcd_init() {}
   inline bool lcd_hasstatus() { return false; }
   inline void lcd_setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
