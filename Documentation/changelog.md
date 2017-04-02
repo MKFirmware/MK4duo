@@ -1,3 +1,7 @@
+### Version 4.3.16 dev
+* Update Nextion firmware
+* Fix and clear code
+
 ### Version 4.3.15 dev
 * Rewrite HAL ADC for 8 and 32 bit
 * Rewrite PID finction for 8 and 32 bit
