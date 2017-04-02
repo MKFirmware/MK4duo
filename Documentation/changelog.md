@@ -1,6 +1,8 @@
 ### Version 4.3.15 dev
 * Rewrite HAL ADC for 8 and 32 bit
+* Rewrite PID finction for 8 and 32 bit
 * Fix SOFTWARE ENDSTOP
+* Add Workspace offset
 * Fix MBL
 * Clear code
 
