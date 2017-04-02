@@ -548,7 +548,6 @@ uint8_t Temperature::soft_pwm[HOTENDS];
 
         return;
       }
-      lcd_update();
     }
 
     disable_all_heaters();

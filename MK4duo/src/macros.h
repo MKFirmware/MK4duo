@@ -74,6 +74,7 @@
 #define HASNT(FE) (!(HAS_##FE))
 
 // Macros to contrain values
+#define WITHIN(V,L,H) ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a) ((a) >= '0' && '9' >= (a))
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-')
 #define NOLESS(v,n) do{ if (v < n) v = n; }while(0)

@@ -26,7 +26,7 @@
 
 int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
 
-#if HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
+#if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
   millis_t previous_lcd_status_ms = 0;
 #endif
 
@@ -506,7 +506,7 @@ void lcd_status_screen() {
               }
             }
             else {
-              expire_status_ms += LCD_UPDATE_INTERVAL;
+              expire_status_ms += 100;
             }
           }
           else {
@@ -524,7 +524,7 @@ void lcd_status_screen() {
   #if ENABLED(ULTIPANEL)
 
     if (lcd_clicked) {
-      #if HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
+      #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
         previous_lcd_status_ms = millis();  // get status message to show up for a while
       #endif
       lcd_implementation_init( // to maybe revive the LCD if static electricity killed it.
@@ -3369,7 +3369,7 @@ bool lcd_blink() {
   millis_t ms = millis();
   if (ELAPSED(ms, next_blink_ms)) {
     blink ^= 0xFF;
-    next_blink_ms = ms + 1000 - LCD_UPDATE_INTERVAL / 2;
+    next_blink_ms = ms + 1000;
   }
   return blink != 0;
 }
@@ -3406,10 +3406,9 @@ bool lcd_blink() {
  *
  * No worries. This function is only called from the main thread.
  */
-void lcd_update() {
+void lcd_key_touch_update() {
 
   #if ENABLED(ULTIPANEL)
-    static millis_t return_to_status_ms = 0;
     manage_manual_move();
 
     lcd_buttons_update();
@@ -3451,162 +3450,158 @@ void lcd_update() {
 
   #endif // SDSUPPORT && SD_DETECT_PIN
 
+}
+void lcd_draw_update() {
+
+  static millis_t return_to_status_ms = 0;
   millis_t ms = millis();
-  if (ELAPSED(ms, next_lcd_update_ms)
-    #if ENABLED(DOGLCD)
-      || drawing_screen
+
+  #if ENABLED(LCD_HAS_STATUS_INDICATORS)
+    lcd_implementation_update_indicators();
+  #endif
+
+  #if ENABLED(ULTIPANEL)
+
+    #if ENABLED(LCD_HAS_SLOW_BUTTONS)
+      slow_buttons = lcd_implementation_read_slow_buttons(); // buttons which take too long to read in interrupt context
     #endif
-    ) {
 
-    next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
-
-    #if ENABLED(LCD_HAS_STATUS_INDICATORS)
-      lcd_implementation_update_indicators();
+    #if ENABLED(REPRAPWORLD_KEYPAD)
+      handle_reprapworld_keypad();
     #endif
 
-    #if ENABLED(ULTIPANEL)
+    bool encoderPastThreshold = (abs(encoderDiff) >= ENCODER_PULSES_PER_STEP);
+    if (encoderPastThreshold || lcd_clicked) {
+      if (encoderPastThreshold) {
+        int32_t encoderMultiplier = 1;
 
-      #if ENABLED(LCD_HAS_SLOW_BUTTONS)
-        slow_buttons = lcd_implementation_read_slow_buttons(); // buttons which take too long to read in interrupt context
-      #endif
+        #if ENABLED(ENCODER_RATE_MULTIPLIER)
 
-      #if ENABLED(REPRAPWORLD_KEYPAD)
-        handle_reprapworld_keypad();
-      #endif
+          if (encoderRateMultiplierEnabled) {
+            int32_t encoderMovementSteps = abs(encoderDiff) / ENCODER_PULSES_PER_STEP;
 
-      bool encoderPastThreshold = (abs(encoderDiff) >= ENCODER_PULSES_PER_STEP);
-      if (encoderPastThreshold || lcd_clicked) {
-        if (encoderPastThreshold) {
-          int32_t encoderMultiplier = 1;
+            if (lastEncoderMovementMillis != 0) {
+              // Note that the rate is always calculated between to passes through the
+              // loop and that the abs of the encoderDiff value is tracked.
+              float encoderStepRate = (float)(encoderMovementSteps) / ((float)(ms - lastEncoderMovementMillis)) * 1000.0;
 
-          #if ENABLED(ENCODER_RATE_MULTIPLIER)
+              if (encoderStepRate >= ENCODER_100X_STEPS_PER_SEC)     encoderMultiplier = 100;
+              else if (encoderStepRate >= ENCODER_10X_STEPS_PER_SEC) encoderMultiplier = 10;
 
-            if (encoderRateMultiplierEnabled) {
-              int32_t encoderMovementSteps = abs(encoderDiff) / ENCODER_PULSES_PER_STEP;
+              #if ENABLED(ENCODER_RATE_MULTIPLIER_DEBUG)
+                SERIAL_SMV(DEB, "Enc Step Rate: ", encoderStepRate);
+                SERIAL_MV("  Multiplier: ", encoderMultiplier);
+                SERIAL_MV("  ENCODER_10X_STEPS_PER_SEC: ", ENCODER_10X_STEPS_PER_SEC);
+                SERIAL_EMV("  ENCODER_100X_STEPS_PER_SEC: ", ENCODER_100X_STEPS_PER_SEC);
+              #endif
+            }
 
-              if (lastEncoderMovementMillis != 0) {
-                // Note that the rate is always calculated between to passes through the
-                // loop and that the abs of the encoderDiff value is tracked.
-                float encoderStepRate = (float)(encoderMovementSteps) / ((float)(ms - lastEncoderMovementMillis)) * 1000.0;
+            lastEncoderMovementMillis = ms;
+          } // encoderRateMultiplierEnabled
+        #endif // ENCODER_RATE_MULTIPLIER
 
-                if (encoderStepRate >= ENCODER_100X_STEPS_PER_SEC)     encoderMultiplier = 100;
-                else if (encoderStepRate >= ENCODER_10X_STEPS_PER_SEC) encoderMultiplier = 10;
-
-                #if ENABLED(ENCODER_RATE_MULTIPLIER_DEBUG)
-                  SERIAL_SMV(DEB, "Enc Step Rate: ", encoderStepRate);
-                  SERIAL_MV("  Multiplier: ", encoderMultiplier);
-                  SERIAL_MV("  ENCODER_10X_STEPS_PER_SEC: ", ENCODER_10X_STEPS_PER_SEC);
-                  SERIAL_EMV("  ENCODER_100X_STEPS_PER_SEC: ", ENCODER_100X_STEPS_PER_SEC);
-                #endif
-              }
-
-              lastEncoderMovementMillis = ms;
-            } // encoderRateMultiplierEnabled
-          #endif // ENCODER_RATE_MULTIPLIER
-
-          encoderPosition += (encoderDiff * encoderMultiplier) / ENCODER_PULSES_PER_STEP;
-          encoderDiff = 0;
-        }
-        return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
-        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
+        encoderPosition += (encoderDiff * encoderMultiplier) / ENCODER_PULSES_PER_STEP;
+        encoderDiff = 0;
       }
-    #endif // ULTIPANEL
-
-    // We arrive here every ~100ms when idling often enough.
-    // Instead of tracking the changes simply redraw the Info Screen ~1 time a second.
-    static int8_t lcd_status_update_delay = 1; // first update one loop delayed
-    if (
-      #if ENABLED(ULTIPANEL)
-        currentScreen == lcd_status_screen &&
-      #endif
-      !lcd_status_update_delay--
-    ) {
-      lcd_status_update_delay = 9
-        #if ENABLED(DOGLCD)
-          + 3
-        #endif
-      ;
-      max_display_update_time--;
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+      return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
+  #endif // ULTIPANEL
 
-    // then we want to use 1/2 of the time only.
-    uint16_t bbr2 = planner.block_buffer_runtime() >> 1;
-
-    #if ENABLED(DOGLCD)
-      if ((lcdDrawUpdate || drawing_screen) && (!bbr2 || (bbr2 > max_display_update_time)))
-    #else
-      if (lcdDrawUpdate && (!bbr2 || (bbr2 > max_display_update_time)))
-    #endif
-    {
-      #if ENABLED(DOGLCD)
-        if (!drawing_screen)
-      #endif
-        {
-          switch (lcdDrawUpdate) {
-            case LCDVIEW_CALL_NO_REDRAW:
-              lcdDrawUpdate = LCDVIEW_NONE;
-              break;
-            case LCDVIEW_CLEAR_CALL_REDRAW: // set by handlers, then altered after (rarely occurs here)
-            case LCDVIEW_CALL_REDRAW_NEXT:  // set by handlers, then altered after (never occurs here?)
-              lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-            case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
-            case LCDVIEW_NONE:
-              break;
-          } // switch
-        }
-      #if ENABLED(ULTIPANEL)
-        #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
-      #else
-        #define CURRENTSCREEN() lcd_status_screen()
-      #endif
-
-      #if ENABLED(DOGLCD)  // Changes due to different driver architecture of the DOGM display
-        if (!drawing_screen) {
-          u8g.firstPage();
-          drawing_screen = 1;
-        }
-        lcd_setFont(FONT_MENU);
-        u8g.setColorIndex(1);
-        CURRENTSCREEN();
-        if (drawing_screen && (drawing_screen = u8g.nextPage())) {
-          NOLESS(max_display_update_time, millis() - ms);
-          return;
-        }
-      #else
-        CURRENTSCREEN();
-      #endif
-      NOLESS(max_display_update_time, millis() - ms);
-    }
-
+  // We arrive here every ~100ms when idling often enough.
+  // Instead of tracking the changes simply redraw the Info Screen ~1 time a second.
+  static int8_t lcd_status_update_delay = 1; // first update one loop delayed
+  if (
     #if ENABLED(ULTIPANEL)
+      currentScreen == lcd_status_screen &&
+    #endif
+    !lcd_status_update_delay--
+  ) {
+    lcd_status_update_delay = 9
+      #if ENABLED(DOGLCD)
+        + 3
+      #endif
+    ;
+    max_display_update_time--;
+    lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+  }
 
-      // Return to Status Screen after a timeout
-      if (currentScreen == lcd_status_screen || defer_return_to_status)
-        return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
-      else if (ELAPSED(ms, return_to_status_ms))
-        lcd_return_to_status();
+  // then we want to use 1/2 of the time only.
+  uint16_t bbr2 = planner.block_buffer_runtime() >> 1;
 
-    #endif // ULTIPANEL
-
+  #if ENABLED(DOGLCD)
+    if ((lcdDrawUpdate || drawing_screen) && (!bbr2 || (bbr2 > max_display_update_time)))
+  #else
+    if (lcdDrawUpdate && (!bbr2 || (bbr2 > max_display_update_time)))
+  #endif
+  {
     #if ENABLED(DOGLCD)
       if (!drawing_screen)
     #endif
       {
         switch (lcdDrawUpdate) {
-          case LCDVIEW_CLEAR_CALL_REDRAW:
-            lcd_implementation_clear();
-          case LCDVIEW_CALL_REDRAW_NEXT:
-            lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-            break;
-          case LCDVIEW_REDRAW_NOW:
+          case LCDVIEW_CALL_NO_REDRAW:
             lcdDrawUpdate = LCDVIEW_NONE;
             break;
+          case LCDVIEW_CLEAR_CALL_REDRAW: // set by handlers, then altered after (rarely occurs here)
+          case LCDVIEW_CALL_REDRAW_NEXT:  // set by handlers, then altered after (never occurs here?)
+            lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+          case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
           case LCDVIEW_NONE:
             break;
         } // switch
       }
-  } // ELAPSED(ms, next_lcd_update_ms)
+    #if ENABLED(ULTIPANEL)
+      #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
+    #else
+      #define CURRENTSCREEN() lcd_status_screen()
+    #endif
+
+    #if ENABLED(DOGLCD)  // Changes due to different driver architecture of the DOGM display
+      if (!drawing_screen) {
+        u8g.firstPage();
+        drawing_screen = 1;
+      }
+      lcd_setFont(FONT_MENU);
+      u8g.setColorIndex(1);
+      CURRENTSCREEN();
+      if (drawing_screen && (drawing_screen = u8g.nextPage())) {
+        NOLESS(max_display_update_time, millis() - ms);
+        return;
+      }
+    #else
+      CURRENTSCREEN();
+    #endif
+    NOLESS(max_display_update_time, millis() - ms);
+  }
+
+  #if ENABLED(ULTIPANEL)
+
+    // Return to Status Screen after a timeout
+    if (currentScreen == lcd_status_screen || defer_return_to_status)
+      return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+    else if (ELAPSED(ms, return_to_status_ms))
+      lcd_return_to_status();
+
+  #endif // ULTIPANEL
+
+  #if ENABLED(DOGLCD)
+    if (!drawing_screen)
+  #endif
+    {
+      switch (lcdDrawUpdate) {
+        case LCDVIEW_CLEAR_CALL_REDRAW:
+          lcd_implementation_clear();
+        case LCDVIEW_CALL_REDRAW_NEXT:
+          lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+          break;
+        case LCDVIEW_REDRAW_NOW:
+          lcdDrawUpdate = LCDVIEW_NONE;
+          break;
+        case LCDVIEW_NONE:
+          break;
+      } // switch
+    }
 }
 
 void set_utf_strlen(char* s, uint8_t n) {
@@ -3637,8 +3632,8 @@ void lcd_finishstatus(bool persist=false) {
   #endif
   lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
 
-  #if HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
-    previous_lcd_status_ms = millis();  //get status message to show up for a while
+  #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
+    previous_lcd_status_ms = millis();  // get status message to show up for a while
   #endif
 }
 

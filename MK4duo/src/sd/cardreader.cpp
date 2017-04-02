@@ -35,7 +35,7 @@ CardReader::CardReader() {
   workDirDepth = 0;
   ZERO(workDirParents);
 
-  autostart_stilltocheck = true; //the SD start is delayed, because otherwise the serial cannot answer fast enough to make contact with the host software.
+  autostart_stilltocheck = true; // the SD start is delayed, because otherwise the serial cannot answer fast enough to make contact with the host software.
 
   //power to SD reader
   #if SDPOWER > -1
