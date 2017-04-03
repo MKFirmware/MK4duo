@@ -1332,12 +1332,12 @@
     }
   }
 
-  void status_printf(uint8_t level, const char *status, ...) {
+  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
     if (level < lcd_status_message_level) return;
     lcd_status_message_level = level;
     va_list args;
-    va_start(args, status);
-    vsnprintf(lcd_status_message, 30, status, args);
+    va_start(args, fmt);
+    vsnprintf(lcd_status_message, 30, fmt, args);
     va_end(args);
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }

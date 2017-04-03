@@ -103,22 +103,22 @@ uint8_t Temperature::soft_pwm_bed;
   volatile int Temperature::babystepsTodo[XYZ] = { 0 };
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+#if WATCH_HOTENDS
   int Temperature::watch_target_temp[HOTENDS] = { 0 };
   millis_t Temperature::watch_heater_next_ms[HOTENDS] = { 0 };
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
+#if WATCH_THE_BED
   int Temperature::watch_target_bed_temp = 0;
   millis_t Temperature::watch_bed_next_ms = 0;
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
+#if WATCH_THE_CHAMBER
   int Temperature::watch_target_temp_chamber = 0;
   millis_t Temperature::watch_chamber_next_ms = 0;
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
+#if WATCH_THE_COOLER
   int Temperature::watch_target_temp_cooler = 0;
   millis_t Temperature::watch_cooler_next_ms = 0;
 #endif
@@ -885,7 +885,7 @@ void Temperature::manage_temp_controller() {
     if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + 0.01)) min_temp_error(0);
   #endif
 
-  #if ENABLED(THERMAL_PROTECTION_HOTENDS) || ENABLED(THERMAL_PROTECTION_BED) || ENABLED(THERMAL_PROTECTION_CHAMBER) || ENABLED(THERMAL_PROTECTION_COOLER) || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS(AUTO_FAN)
+  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS(AUTO_FAN)
     millis_t ms = millis();
   #endif
 
@@ -901,7 +901,7 @@ void Temperature::manage_temp_controller() {
     soft_pwm[h] = (current_temperature[h] > minttemp[h] || is_preheating(h)) && current_temperature[h] < maxttemp[h] ? (int)pid_output : 0;
 
     // Check if the temperature is failing to increase
-    #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+    #if WATCH_HOTENDS
 
       // Is it time to check this extruder's heater?
       if (watch_heater_next_ms[h] && ELAPSED(ms, watch_heater_next_ms[h])) {
@@ -919,7 +919,7 @@ void Temperature::manage_temp_controller() {
     #endif // THERMAL_PROTECTION_HOTENDS
 
     // Check if the temperature is failing to increase
-    #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
+    #if WATCH_THE_BED
 
       // Is it time to check the bed?
       if (watch_bed_next_ms && ELAPSED(ms, watch_bed_next_ms)) {
@@ -1441,7 +1441,7 @@ void Temperature::init() {
 
   // Use timer for temperature measurement
   // Interleave temperature interrupt with millies interrupt
-  HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY);
+  HAL_TEMP_TIMER_START();
   ENABLE_TEMP_INTERRUPT();
 
   // Wait for temperature measurement to settle
@@ -1553,7 +1553,7 @@ void Temperature::init() {
   #endif // COOLER_MAXTEMP
 }
 
-#if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+#if WATCH_HOTENDS
   /**
    * Start Heating Sanity Check for hotends that are below
    * their target temperature by a configurable margin.
@@ -1572,7 +1572,7 @@ void Temperature::init() {
   }
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
+#if WATCH_THE_BED
   /**
    * Start Heating Sanity Check for hotends that are below
    * their target temperature by a configurable margin.
@@ -1588,7 +1588,7 @@ void Temperature::init() {
   }
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
+#if WATCH_THE_CHAMBER
   /**
    * Start Cooling Sanity Check for chamber that are below
    * their target temperature by a configurable margin.
@@ -1604,7 +1604,7 @@ void Temperature::init() {
   }
 #endif
 
-#if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
+#if WATCH_THE_COOLER
   /**
    * Start Cooling Sanity Check for hotends that are below
    * their target temperature by a configurable margin.

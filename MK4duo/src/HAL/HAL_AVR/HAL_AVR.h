@@ -57,17 +57,18 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <inttypes.h>
+//#include <math.h>
+//#include <stdint.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <inttypes.h>
 
-#include <util/delay.h>
+//#include <util/delay.h>
 #include <avr/pgmspace.h>
+#include <avr/io.h>
 #include <avr/eeprom.h>
-#include <avr/interrupt.h>
+//#include <avr/interrupt.h>
 
 #include "fastio.h"
 #include "watchdog_AVR.h"
@@ -236,6 +237,9 @@ typedef uint32_t millis_t;
 #define TEMP_TIMSK    TIMSK0
 #define TEMP_OCIE     OCIE0B
 
+#define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
+#define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
+
 #define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
 
@@ -292,6 +296,9 @@ class InterruptProtectedBlock {
     }
 };
 
+void HAL_stepper_timer_start();
+void HAL_temp_timer_start();
+
 class HAL {
   public:
 
@@ -303,13 +310,7 @@ class HAL {
     static bool execute_100ms;
 
     // do any hardware-specific initialization here
-    static inline void hwSetup() {
-      TCCR0A    =  0; // set entire TCCR2A register to 0
-      TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
-      TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
-      // Set CS01 and CS00 bits for 64 prescaler
-      TEMP_TCCR |= (1 << CS01) | (1 << CS00);
-    }
+    static inline void hwSetup() {}
 
     static inline void clear_reset_source() { MCUSR = 0; }
     static inline uint8_t get_reset_source() { return MCUSR; }

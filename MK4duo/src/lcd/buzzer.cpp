@@ -23,6 +23,7 @@
 #include "../../base.h"
 
 #if HAS(BUZZER)
+
   #include "buzzer.h"
 
   void buzz(long duration, uint16_t freq) {
@@ -53,4 +54,5 @@
       HAL::delayMilliseconds(duration);
     }
   }
+
 #endif

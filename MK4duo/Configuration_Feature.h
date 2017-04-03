@@ -69,6 +69,7 @@
  * - Power consumption sensor
  * - Flow sensor
  * - Door open sensor
+ * - Power check sensor
  * ADDON FEATURES:
  * - EEPROM
  * - SDCARD
@@ -1021,6 +1022,23 @@
 #define DOOR_OPEN_LOGIC false
 // Uncomment to use internal pullup for pin if the sensor is defined.
 //#define DOOR_OPEN_PULLUP
+/**************************************************************************/
+
+
+/**************************************************************************
+ ***************************** Power Check ********************************
+ **************************************************************************
+ *                                                                        *
+ * A triggered when the pin detects lack of voltage                       *
+ * Setting POWER CHECK PIN in Configuration_Pins.h                        *
+ *                                                                        *
+ **************************************************************************/
+//#define POWER_CHECK
+
+// Set true or false should assigned
+#define POWER_CHECK_LOGIC false
+// Uncomment to use internal pullup for pin if the sensor is defined.
+//#define POWER_CHECK_PULLUP
 /**************************************************************************/
 
 

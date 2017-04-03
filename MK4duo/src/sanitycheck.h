@@ -704,7 +704,7 @@ static_assert(1 >= 0
   #endif
 
   /**
-   * Check if Probe_Offset * Grid Points is greater than Probing Range
+   * Check auto bed leveling sub-options, especially probe points
    */
   #if ABL_GRID
 
@@ -747,6 +747,13 @@ static_assert(1 >= 0
   #endif // !ABL_GRID
 
 #endif // HAS_ABL
+
+/**
+ * LCD_BED_LEVELING requirements
+ */
+#if ENABLED(LCD_BED_LEVELING) && DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+  #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+#endif
 
 #if ENABLED(FWRETRACT)
   #if DISABLED(MIN_RETRACT)
