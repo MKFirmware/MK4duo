@@ -74,10 +74,8 @@ class Temperature {
       static float    redundant_temperature;
     #endif
 
-    #if ENABLED(FAN_SOFT_PWM)
-      static uint8_t  fanSpeedSoftPwm[FAN_COUNT],
-                      soft_pwm_fan[FAN_COUNT];
-    #endif
+    static uint8_t  fanSpeedSoftPwm[FAN_COUNT],
+                    soft_pwm_fan[FAN_COUNT];
 
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
 
@@ -102,22 +100,22 @@ class Temperature {
       static volatile int babystepsTodo[3];
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+    #if WATCH_HOTENDS
       static int watch_target_temp[HOTENDS];
       static millis_t watch_heater_next_ms[HOTENDS];
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
+    #if WATCH_THE_BED
       static int watch_target_bed_temp;
       static millis_t watch_bed_next_ms;
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
+    #if WATCH_THE_CHAMBER
       int watch_target_temp_chamber = 0;
       millis_t watch_chamber_next_ms = 0;
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
+    #if WATCH_THE_COOLER
       int watch_target_temp_cooler = 0;
       millis_t watch_cooler_next_ms = 0;
     #endif
@@ -365,19 +363,19 @@ class Temperature {
       static float degTargetCooler() { return target_temperature_cooler; }
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+    #if WATCH_HOTENDS
       static void start_watching_heater(uint8_t h = 0);
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
+    #if WATCH_THE_BED
       static void start_watching_bed();
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
+    #if WATCH_THE_CHAMBER
       void start_watching_chamber();
     #endif
 
-    #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
+    #if WATCH_THE_COOLER
       void start_watching_cooler();
     #endif
 

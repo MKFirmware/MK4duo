@@ -61,7 +61,7 @@
     void nextion_draw_update();
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist=false);
-    void status_printf(uint8_t level, const char *Status, ...);
+    void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
     void lcd_setstatuspgm(const char* message, const uint8_t level=0);
     void lcd_setalertstatuspgm(const char* message);
     void lcd_reset_alert_level();

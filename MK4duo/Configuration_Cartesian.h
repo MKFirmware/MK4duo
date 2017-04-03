@@ -170,6 +170,11 @@
 #define Z_ENDSTOP_SERVO_NR -1
 #define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
+// The "Manual Probe" provides a means to do "Auto" Bed Leveling without a probe.
+// Use G29 repeatedly, adjusting the Z height at each point with movement commands
+// or (with LCD BED LEVELING) the LCD controller.
+//#define PROBE_MANUALLY
+
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
 // An inductive probe must be deactivated to go below
@@ -177,7 +182,9 @@
 //#define Z_PROBE_FIX_MOUNTED
 
 // The BLTouch probe emulates a servo probe.
+// The default connector is SERVO 0.
 //#define BLTOUCH
+//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
@@ -221,6 +228,12 @@
 // For M666 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Use the LCD controller for bed leveling
+// Requires MESH BED LEVELING or PROBE MANUALLY
+//#define LCD_BED_LEVELING
+#define MBL_Z_STEP 0.025    // Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
 /*****************************************************************************************/
 
 
@@ -366,18 +379,12 @@
  *****************************************************************************************/
 //#define MESH_BED_LEVELING
 
-#define MANUAL_PROBE_Z_RANGE 4  // Z Range centered on Z MIN POS for LCD Z adjustment
 #define MESH_INSET          10  // Mesh inset margin on print area
 #define MESH_NUM_X_POINTS    3  // Don't use more than 7 points per axis, implementation limited.
 #define MESH_NUM_Y_POINTS    3
 
 // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
-
-// Add display menu option for bed leveling.
-//#define MANUAL_BED_LEVELING
-// Step size while manually probing Z axis.
-#define MBL_Z_STEP 0.025
 /*****************************************************************************************/
 
 

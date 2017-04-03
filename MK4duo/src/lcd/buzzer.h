@@ -24,7 +24,15 @@
   #define __BUZZER_H__
 
   #if HAS(BUZZER)
+
     void buzz(long duration, uint16_t freq);
+
+    #define BUZZ(duration, freq) buzz(duration, freq)
+  
+  #else
+
+    #define BUZZ(duration, freq) { /* NOOP */ }
+
   #endif
 
 #endif // __BUZZER_H__

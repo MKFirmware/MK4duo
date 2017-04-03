@@ -34,6 +34,7 @@
 #define MSG_BACK                            _UxGT("Back")
 #define MSG_SD_INSERTED                     _UxGT("Card inserted")
 #define MSG_SD_REMOVED                      _UxGT("Card removed")
+#define MSG_LCD_ENDSTOPS                    _UxGT("Endstops")
 #define MSG_MAIN                            _UxGT("Main")
 #define MSG_AUTOSTART                       _UxGT("Autostart")
 #define MSG_DISABLE_STEPPERS                _UxGT("Disable steppers")

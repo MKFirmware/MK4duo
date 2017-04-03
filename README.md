@@ -74,6 +74,9 @@ The new features are:
 * Added save in EEPROM ABL or MBL
 * Added Door switch
 * Added TMC2130 motor driver
+* Added Power Check for Stop and Save
+* Added Probe Manually
+* Added LCD Bed Leveling
 
 ## Credits
 

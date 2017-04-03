@@ -76,6 +76,37 @@ HAL::~HAL() {
   // dtor
 }
 
+void HAL_stepper_timer_start() {
+  // waveform generation = 0100 = CTC
+  CBI(TCCR1B, WGM13);
+  SBI(TCCR1B, WGM12);
+  CBI(TCCR1A, WGM11);
+  CBI(TCCR1A, WGM10);
+
+  // output mode = 00 (disconnected)
+  TCCR1A &= ~(3 << COM1A0);
+  TCCR1A &= ~(3 << COM1B0);
+
+  // Set the timer pre-scaler
+  // Generally we use a divider of 8, resulting in a 2MHz timer
+  // frequency on a 16MHz MCU. If you are going to change this, be
+  // sure to regenerate speed_lookuptable.h with
+  // create_speed_lookuptable.py
+  TCCR1B = (TCCR1B & ~(0x07 << CS10)) | (2 << CS10);
+
+  // Init Stepper ISR to 122 Hz for quick starting
+  OCR1A = 0x4000;
+  TCNT1 = 0;
+}
+
+void HAL_temp_timer_start() {
+  TCCR0A    =  0; // set entire TCCR2A register to 0
+  TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
+  TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+  // Set CS01 and CS00 bits for 64 prescaler
+  TEMP_TCCR |= (1 << CS01) | (1 << CS00);
+}
+
 unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 bool HAL::execute_100ms = false;
 

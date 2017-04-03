@@ -249,7 +249,9 @@
 //#define Z_PROBE_FIX_MOUNTED
 
 // The BLTouch probe emulates a servo probe.
+// The default connector is SERVO 0.
 //#define BLTOUCH
+//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
 // Allen key retractable z-probe as seen on many Kossel delta printers - http://reprap.org/wiki/Kossel#Automatic_bed_leveling_probe
 // Deploys by touching z-axis belt. Retracts by pushing the probe down.

@@ -846,7 +846,7 @@ void kill_screen(const char* lcd_msg) {
   /**
    * Watch temperature callbacks
    */
-  #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+  #if WATCH_HOTENDS
     #if TEMP_SENSOR_0 != 0
       void watch_temp_callback_E0() { thermalManager.start_watching_heater(0); }
     #endif
@@ -874,34 +874,16 @@ void kill_screen(const char* lcd_msg) {
     #endif // HOTENDS > 3
   #endif
 
-  #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
-    #if TEMP_SENSOR_BED != 0
-      void watch_temp_callback_bed() { thermalManager.start_watching_bed(); }
-    #endif
-  #else
-    #if TEMP_SENSOR_BED != 0
-      void watch_temp_callback_bed() {}
-    #endif
+  #if WATCH_THE_BED
+    void watch_temp_callback_bed() { thermalManager.start_watching_bed(); }
   #endif
 
-  #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
-    #if TEMP_SENSOR_CHAMBER != 0
-      void watch_temp_callback_chamber() { thermalManager.start_watching_chamber(); }
-    #endif
-  #else
-    #if TEMP_SENSOR_CHAMBER != 0
-      void watch_temp_callback_chamber() {}
-    #endif
+  #if WATCH_THE_CHAMBER
+    void watch_temp_callback_chamber() { thermalManager.start_watching_chamber(); }
   #endif
 
-  #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_TEMP_COOLER_PERIOD > 0
-    #if TEMP_SENSOR_COOLER != 0
-      void watch_temp_callback_cooler() { thermalManager.start_watching_cooler(); }
-    #endif
-  #else
-    #if TEMP_SENSOR_COOLER != 0
-      void watch_temp_callback_cooler() {}
-    #endif
+  #if WATCH_THE_COOLER
+    void watch_temp_callback_cooler() { thermalManager.start_watching_cooler(); }
   #endif
 
   #if ENABLED(FILAMENT_CHANGE_FEATURE)
@@ -969,21 +951,21 @@ void kill_screen(const char* lcd_msg) {
     //
     // Bed:
     //
-    #if TEMP_SENSOR_BED != 0
+    #if WATCH_THE_BED
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
     //
-    // Chamber
+    // Chamber:
     //
-    #if TEMP_SENSOR_CHAMBER != 0
+    #if WATCH_THE_CHAMBER
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &thermalManager.target_temperature_chamber, 0, CHAMBER_MAXTEMP - 15, watch_temp_callback_chamber);
     #endif
 
     //
-    // Cooler
+    // Cooler:
     //
-    #if TEMP_SENSOR_COOLER != 0
+    #if WATCH_THE_COOLER
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &thermalManager.target_temperature_cooler, 0, COOLER_MAXTEMP - 15, watch_temp_callback_cooler);
     #endif
 
@@ -1364,7 +1346,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif
 
-  #if ENABLED(MANUAL_BED_LEVELING)
+  #if ENABLED(LCD_BED_LEVELING)
 
     /**
      *
@@ -1374,22 +1356,40 @@ void kill_screen(const char* lcd_msg) {
 
     static uint8_t manual_probe_index;
 
-    // Utility to go to the next mesh point
-    inline void _manual_probe_xy(float x, float y) {
-      if (no_reentrance) return;
-      #if MANUAL_PROBE_HEIGHT > 0
-        current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-        line_to_current(Z_AXIS);
+    #if ENABLED(PROBE_MANUALLY)
+      extern bool g29_in_progress;
+    #endif
+
+    // LCD probed points are from defaults
+    constexpr uint8_t total_probe_points =
+      #if ABL_GRID
+        (ABL_GRID_POINTS_X) * (ABL_GRID_POINTS_Y)
+      #elif ENABLED(AUTO_BED_LEVELING_3POINT)
+        int(3)
+      #elif ENABLED(MESH_BED_LEVELING)
+        (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS)
       #endif
-      current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-      current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder, active_driver);
-      #if MANUAL_PROBE_HEIGHT > 0
-        current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 0.2;
-        line_to_current(Z_AXIS);
-      #endif
-      lcd_synchronize();
-    }
+    ;
+
+    #if ENABLED(MESH_BED_LEVELING)
+      // Utility to go to the next mesh point
+      inline void _manual_probe_goto_xy(float x, float y) {
+        if (no_reentrance) return;
+        #if MANUAL_PROBE_HEIGHT > 0
+          current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+          line_to_current(Z_AXIS);
+        #endif
+        current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+        current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+        planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder, active_driver);
+        #if MANUAL_PROBE_HEIGHT > 0
+          current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 0.2;
+          line_to_current(Z_AXIS);
+        #endif
+        lcd_synchronize();
+      }
+
+    #endif // MESH_BED_LEVELING
 
     void _lcd_level_goto_next_point();
 
@@ -1410,37 +1410,66 @@ void kill_screen(const char* lcd_msg) {
       if (encoderPosition) {
         refresh_cmd_timeout();
         current_position[Z_AXIS] += float((int32_t)encoderPosition) * (MBL_Z_STEP);
-        NOLESS(current_position[Z_AXIS], -(MANUAL_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (MANUAL_PROBE_Z_RANGE) * 0.5);
+        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
         lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
         encoderPosition = 0;
       }
 
       if (lcd_clicked) {
-        mbl.set_zigzag_z(manual_probe_index++, current_position[Z_AXIS]);
-        if (manual_probe_index == (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS)) {
+
+        #if ENABLED(PROBE_MANUALLY)
+
+          // G29 helpfully records Z and goes to the next
+          // point (or beeps if done)
+          enqueue_and_echo_commands_P(PSTR("G29"));
+          manual_probe_index++;
+
+        #elif ENABLED(MESH_BED_LEVELING)
+
+          mbl.set_zigzag_z(manual_probe_index++, current_position[Z_AXIS]);
+
+        #endif
+
+        // If done...
+        if (manual_probe_index == total_probe_points) {
+          
+          // Say "Done!"
           lcd_goto_screen(_lcd_level_bed_done);
 
+          // Raise Z to the "manual probe height"
           #if MANUAL_PROBE_HEIGHT > 0
             current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
             line_to_current(Z_AXIS);
             lcd_synchronize();
           #endif
 
-          mbl.set_has_mesh(true);
-          mbl.set_reactivate(true);
-          enqueue_and_echo_commands_P(PSTR("G28"));
+          // Enable leveling, if needed
+          #if ENABLED(MESH_BED_LEVELING)
+
+            mbl.set_has_mesh(true);
+            mbl.set_reactivate(true);
+            enqueue_and_echo_commands_P(PSTR("G28"));
+
+          #elif ENABLED(PROBE_MANUALLY)
+
+            // ABL will be enabled due to "G29".
+
+          #endif
+
           lcd_return_to_status();
           //LCD_MESSAGEPGM(MSG_LEVEL_BED_DONE);
           lcd_completion_feedback();
         }
         else {
-          lcd_goto_screen(_lcd_level_goto_next_point);
+          // Move to the next probe point, if needed
+          _lcd_level_goto_next_point();
         }
       }
 
-KeepDrawing:
+      KeepDrawing:
+
       // Update on first display, then only on updates to Z position
       // Show message above on clicks instead
       if (lcdDrawUpdate) {
@@ -1456,11 +1485,7 @@ KeepDrawing:
     void _lcd_level_bed_moving() {
       if (lcdDrawUpdate) {
         char msg[10];
-        #if ENABLED(MESH_BED_LEVELING)
-          sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS));
-        #elif ENABLED(AUTO_BED_LEVELING_UBL)
-          sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), (UBL_MESH_NUM_X_POINTS) * (UBL_MESH_NUM_Y_POINTS));
-        #endif
+        sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
         lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
       }
 
@@ -1471,13 +1496,27 @@ KeepDrawing:
      * Step 5: Initiate a move to the next point
      */
     void _lcd_level_goto_next_point() {
+
       // Set the menu to display ahead of blocking call
       lcd_goto_screen(_lcd_level_bed_moving);
 
-      // _manual_probe_xy runs the menu loop until the move is done
-      int8_t px, py;
-      mbl.zigzag(manual_probe_index, px, py);
-      _manual_probe_xy(mbl.get_probe_x(px), mbl.get_probe_y(py));
+      #if ENABLED(MESH_BED_LEVELING)
+
+        int8_t px, py;
+        mbl.zigzag(manual_probe_index, px, py);
+
+        // Controls the loop until the move is done
+        _manual_probe_goto_xy(
+          LOGICAL_X_POSITION(mbl.index_to_xpos[px]),
+          LOGICAL_Y_POSITION(mbl.index_to_ypos[py])
+        );
+
+      #elif ENABLED(PROBE_MANUALLY)
+
+        // Just wait for the G29 move to complete
+        lcd_synchronize();
+
+      #endif
 
       // After the blocking function returns, change menus
       lcd_goto_screen(_lcd_level_bed_get_z);
@@ -1491,7 +1530,12 @@ KeepDrawing:
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_WAITING));
       if (lcd_clicked) {
         manual_probe_index = 0;
-        lcd_goto_screen(_lcd_level_goto_next_point);
+        #if ENABLED(MESH_BED_LEVELING)
+          _lcd_level_goto_next_point();
+        #elif ENABLED(PROBE_MANUALLY)
+          enqueue_and_echo_commands_P(PSTR("G29"));
+          _lcd_level_goto_next_point();
+        #endif
       }
     }
 
@@ -1509,11 +1553,13 @@ KeepDrawing:
      * Step 2: Continue Bed Leveling...
      */
     void _lcd_level_bed_continue() {
+      #if PLANNER_LEVELING
+        reset_bed_level();
+      #endif
       defer_return_to_status = true;
       axis_homed[X_AXIS] = axis_homed[Y_AXIS] = axis_homed[Z_AXIS] = false;
-      mbl.reset();
-      enqueue_and_echo_commands_P(PSTR("G28"));
       lcd_goto_screen(_lcd_level_bed_homing);
+      enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
     /**
@@ -1526,7 +1572,7 @@ KeepDrawing:
       END_MENU();
     }
 
-  #endif  // MANUAL_BED_LEVELING
+  #endif  // LCD_BED_LEVELING
 
   /**
    *
@@ -1567,12 +1613,19 @@ KeepDrawing:
     //
     // Level Bed
     //
-    #if HAS(ABL)
+    #if ENABLED(LCD_BED_LEVELING)
+
+      #if ENABLED(PROBE_MANUALLY)
+        if (!g29_in_progress)
+      #endif
+          MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_level_bed);
+
+    #elif HAS_ABL
+
       MENU_ITEM(gcode, MSG_LEVEL_BED,
         axis_homed[X_AXIS] && axis_homed[Y_AXIS] ? PSTR("G29") : PSTR("G28\nG29")
       );
-    #elif ENABLED(MANUAL_BED_LEVELING)
-      MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_level_bed);
+
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)
@@ -2342,7 +2395,7 @@ KeepDrawing:
       MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif
     // Manual bed leveling, Bed Z:
-    #if ENABLED(MANUAL_BED_LEVELING)
+    #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
       MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
     #endif
     MENU_ITEM_EDIT(float5, MSG_ACC, &planner.acceleration, 10, 99000);
@@ -3656,12 +3709,12 @@ void lcd_setstatuspgm(const char* const message, uint8_t level) {
   lcd_finishstatus(level > 0);
 }
 
-void status_printf(uint8_t level, const char *status, ...) {
+void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
   if (level < lcd_status_message_level) return;
   lcd_status_message_level = level;
   va_list args;
-  va_start(args, status);
-  vsnprintf_P(lcd_status_message, 3 * (LCD_WIDTH), status, args);
+  va_start(args, fmt);
+  vsnprintf_P(lcd_status_message, 3 * (LCD_WIDTH), fmt, args);
   va_end(args);
   lcd_finishstatus(level > 0);
 }

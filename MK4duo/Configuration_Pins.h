@@ -235,6 +235,10 @@
   #define DOOR_PIN -1
 #endif
 
+#if ENABLED(POWER_CHECK)
+  #define POWER_CHECK_PIN -1
+#endif
+
 #if ENABLED(CONTROLLERFAN)
   #define CONTROLLERFAN_PIN -1
 #endif

@@ -102,6 +102,9 @@ typedef struct {
 
 #define ADC_ISR_EOC(channel)    (0x1u << channel)
 
+#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, 122)
+#define HAL_TEMP_TIMER_START()              HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY)
+
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 

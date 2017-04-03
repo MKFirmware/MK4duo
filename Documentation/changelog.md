@@ -1,3 +1,9 @@
+### Version 4.3.18 dev
+* Add Power Check pin for Stop & Save
+* Add Probe Manually
+* Add LCD Bed Level (Requires MESH BED LEVELING or PROBE MANUALLY)
+* Clear code
+
 ### Version 4.3.16 dev
 * Update Nextion firmware
 * Fix and clear code

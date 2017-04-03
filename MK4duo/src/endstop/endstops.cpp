@@ -204,9 +204,7 @@ void Endstops::report_state() {
     SERIAL_E;
 
     #if ENABLED(ULTRA_LCD)
-      char msg[3 * strlen(MSG_ENDSTOPS_HIT) + 8 + 1]; // Room for a UTF 8 string
-      sprintf_P(msg, PSTR(MSG_ENDSTOPS_HIT " %c %c %c %c"), chrX, chrY, chrZ, chrP);
-      lcd_setstatus(msg);
+      lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
     hit_on_purpose();
