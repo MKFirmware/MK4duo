@@ -242,6 +242,11 @@
 #define Z_ENDSTOP_SERVO_NR -1
 #define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
+// The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
+// Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
+// or (with LCD BED LEVELING) the LCD controller.
+//#define PROBE_MANUALLY
+
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
 // An inductive probe must be deactivated to go below
@@ -298,6 +303,12 @@
 // For M666 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Use the LCD controller for bed leveling
+// Requires MESH BED LEVELING or PROBE MANUALLY
+//#define LCD_BED_LEVELING
+#define MBL_Z_STEP 0.025    // Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
 /*****************************************************************************************/
 
 
@@ -535,8 +546,9 @@
 //                                       X,   Y,   Z,  E0...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 100, 100, 100, 100}
 // Feedrates for manual moves along        X,     Y,     Z,  E from panel
-#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 60}
-#define DEFAULT_MINIMUMFEEDRATE       0.0                       // minimum feedrate
+#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 10*60}
+// Minimum feedrate
+#define DEFAULT_MINIMUMFEEDRATE       0.0
 #define DEFAULT_MINTRAVELFEEDRATE     0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
