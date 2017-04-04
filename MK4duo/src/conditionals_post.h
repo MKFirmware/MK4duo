@@ -801,6 +801,11 @@
 #endif
 
 /**
+ * Nextion Manual BED leveling
+ */
+#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && ENABLED(NEXTION))
+
+/**
  * Bed Probe dependencies
  */
 #if HAS_BED_PROBE

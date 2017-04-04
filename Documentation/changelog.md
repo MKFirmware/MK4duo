@@ -2,6 +2,9 @@
 * Add Power Check pin for Stop & Save
 * Add Probe Manually
 * Add LCD Bed Level (Requires MESH BED LEVELING or PROBE MANUALLY)
+* Add Probe Manually for DELTA bed level and Calibration 7 points
+* Add LCD_BED_LEVELING for Nextion
+* Upgrade Nextion Firmware
 * Clear code
 
 ### Version 4.3.16 dev

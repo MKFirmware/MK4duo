@@ -47,15 +47,16 @@
   #include "Nextion_gfx.h"
   #include "nextion_lib/Nextion.h"
 
-  bool  NextionON                   = false,
-        show_Wave                   = true,
-        lcdDrawUpdate               = false,
-        lcd_clicked                 = false;
-  uint8_t PageID                    = 0,
-          lcd_status_message_level  = 0;
-  uint16_t slidermaxval             = 20;
-  char buffer[100]                  = { 0 };
-  char lcd_status_message[30]       = WELCOME_MSG;
+  bool  NextionON                     = false,
+        show_Wave                     = true,
+        lcdDrawUpdate                 = false,
+        lcd_clicked                   = false;
+  uint8_t PageID                      = 0,
+          lcd_status_message_level    = 0;
+  uint16_t slidermaxval               = 20;
+  char buffer[100]                    = { 0 };
+  char lcd_status_message[30]         = WELCOME_MSG;
+  const float manual_feedrate_mm_m[]  = MANUAL_FEEDRATE;
   static millis_t next_lcd_update_ms;
 
   #if ENABLED(SDSUPPORT)
@@ -87,6 +88,7 @@
   NexObject Pyesno        = NexObject(12, 0,  "yesno");
   NexObject Pfilament     = NexObject(13, 0,  "filament");
   NexObject Pselect       = NexObject(14, 0,  "select");
+  NexObject PBedLevel     = NexObject(15, 0,  "bedlevel");
 
   /**
    *******************************************************************
@@ -286,6 +288,18 @@
   NexObject LcdMax      = NexObject(14, 10, "max");
   NexObject LcdPos      = NexObject(14, 11, "pos");
 
+  /**
+   *******************************************************************
+   * Nextion component for page:Bedlevel
+   *******************************************************************
+   */
+  NexObject BedUp       = NexObject(15, 1,  "p0");
+  NexObject BedSend     = NexObject(15, 2,  "p1");
+  NexObject BedDown     = NexObject(15, 3,  "p2");
+  NexObject BedMsg      = NexObject(15, 4,  "t0");
+  NexObject BedZ        = NexObject(15, 5,  "t1");
+  NexObject BedLang     = NexObject(15, 6,  "lang");
+
   NexObject *nex_listen_list[] =
   {
     // Page 2 touch listen
@@ -322,6 +336,9 @@
 
     // Page 14 touch listen
     &LcdSend,
+    
+    // Page 15 touch listen
+    &BedUp, &BedDown, &BedSend,
 
     NULL
   };
@@ -397,7 +414,6 @@
 
   void setpagePrinter() {
     char temp[10] = { 0 };
-    const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
     #if HOTENDS > 0
       Hotend00.setValue(1, "printer");
@@ -875,6 +891,52 @@
     }
   #endif
 
+  #if ENABLED(LCD_BED_LEVELING)
+
+    #if ENABLED(PROBE_MANUALLY)
+      extern bool g29_in_progress;
+      #if ENABLED(AUTO_CALIBRATION_7_POINT)
+        extern bool g30_in_progress;
+      #endif
+    #endif
+
+    void line_to_current(AxisEnum axis) {
+      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+    }
+
+    void bedlevelPopCallBack(void *ptr) {
+
+      if (ptr == &BedUp) {
+        current_position[Z_AXIS] += (MBL_Z_STEP);
+        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        line_to_current(Z_AXIS);
+      }
+      else if (ptr == &BedDown) {
+        current_position[Z_AXIS] -= (MBL_Z_STEP);
+        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        line_to_current(Z_AXIS);
+      }
+      else if (ptr == &BedSend) {
+        #if ENABLED(PROBE_MANUALLY)
+          if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
+          #if ENABLED(AUTO_CALIBRATION_7_POINT)
+            else if (g30_in_progress) enqueue_and_echo_commands_P(PSTR("G30 A"));
+          #endif
+        #endif
+      }
+    }
+
+    void LcdBedLevelOn() {
+      PBedLevel.show();
+      BedMsg.setText(PSTR(MSG_MOVE_Z));
+    }
+
+    void LcdBedLevelOff() { Pprinter.show(); }
+
+  #endif
+
   void hotPopCallback(void *ptr) {
     Ptemp.show();
     ZERO(buffer);
@@ -1076,6 +1138,12 @@
         Fanpic.attachPop(setfanPopCallback,   &Fanpic);
       #endif
 
+      #if ENABLED(LCD_BED_LEVELING)
+        BedUp.attachPop(bedlevelPopCallBack, &BedUp);
+        BedSend.attachPop(bedlevelPopCallBack, &BedSend);
+        BedDown.attachPop(bedlevelPopCallBack, &BedDown);
+      #endif
+
       tenter.attachPop(sethotPopCallback,   &tenter);
       tup.attachPop(settempPopCallback,     &tup);
       tdown.attachPop(settempPopCallback,   &tdown);
@@ -1131,6 +1199,9 @@
       LcdX.setText(ftostr4sign(current_position[X_AXIS]));
       LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
       LcdZ.setText(ftostr4sign(current_position[Z_AXIS] + 0.00001));
+    }
+    if (PageID == 15) {
+      BedZ.setText(ftostr43sign(current_position[Z_AXIS] + 0.00001));
     }
     else {
       strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
@@ -1312,6 +1383,9 @@
         static uint32_t temp_feedrate = 0;
         VSpeed.getValue(&temp_feedrate, "printer");
         Previousfeedrate = feedrate_percentage = (int)temp_feedrate;
+        break;
+      case 15:
+        coordtoLCD();
         break;
     }
 
