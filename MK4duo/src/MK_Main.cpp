@@ -4054,6 +4054,9 @@ inline void gcode_G28() {
       // Cancel the active G30 session
       g30_in_progress = false;
     #endif
+    #if HAS(NEXTION_MANUAL_BED)
+      LcdBedLevelOff();
+    #endif
   #endif
 
   // Disable the leveling matrix before homing
@@ -4676,6 +4679,10 @@ inline void gcode_G28() {
 
       abl_probe_index = 0;
       abl_should_enable = planner.abl_enabled;
+
+      #if HAS(NEXTION_MANUAL_BED)
+        LcdBedLevelOn();
+      #endif
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
@@ -5342,6 +5349,10 @@ inline void gcode_G28() {
       stepper.synchronize();
     #endif
 
+    #if HAS(NEXTION_MANUAL_BED)
+      LcdBedLevelOff();
+    #endif
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G29");
     #endif
@@ -5728,6 +5739,9 @@ inline void gcode_G28() {
         if (!g30_in_progress) {
           numPoints = code_value_int() <= 7 ? 7 : 10;
           probe_index = 0;
+          #if HAS(NEXTION_MANUAL_BED)
+            LcdBedLevelOn();
+          #endif
         }
 
         // Query G30 status
@@ -6052,6 +6066,10 @@ inline void gcode_G28() {
         SERIAL_E;
       }
 
+    #endif
+
+    #if HAS(NEXTION_MANUAL_BED)
+      LcdBedLevelOff();
     #endif
 
     clean_up_after_endstop_or_probe_move();

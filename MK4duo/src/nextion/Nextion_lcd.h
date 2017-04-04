@@ -89,6 +89,12 @@
       void UploadNewFirmware();
     #endif
 
+    #if ENABLED(LCD_BED_LEVELING)
+      void bedlevelPopCallBack(void *ptr);
+      void LcdBedLevelOn();
+      void LcdBedLevelOff();
+    #endif
+
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       void lcd_filament_change_show_message(FilamentChangeMessage message);
     #endif // FILAMENT_CHANGE_FEATURE
