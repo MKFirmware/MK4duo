@@ -906,13 +906,13 @@
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        current_position[Z_AXIS] += (MBL_Z_STEP);
+        current_position[Z_AXIS] += (LCD_Z_STEP);
         NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
         NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        current_position[Z_AXIS] -= (MBL_Z_STEP);
+        current_position[Z_AXIS] -= (LCD_Z_STEP);
         NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
         NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
