@@ -132,9 +132,8 @@ extern float destination[NUM_AXIS];
   extern float  position_shift[XYZ],
                 home_offset[XYZ],
                 workspace_offset[XYZ];
-
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + home_offset[AXIS] + position_shift[AXIS])
-  #define RAW_POSITION(POS, AXIS)     ((POS) - home_offset[AXIS] - position_shift[AXIS])
+  #define LOGICAL_POSITION(POS, AXIS) ((POS) + workspace_offset[AXIS])
+  #define RAW_POSITION(POS, AXIS)     ((POS) - workspace_offset[AXIS])
 #else
   #define LOGICAL_POSITION(POS, AXIS) (POS)
   #define RAW_POSITION(POS, AXIS)     (POS)

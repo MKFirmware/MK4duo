@@ -388,7 +388,7 @@
 // Add display menu option for bed leveling.
 //#define MANUAL_BED_LEVELING
 // Step size while manually probing Z axis.
-#define MBL_Z_STEP 0.025
+#define LCD_Z_STEP 0.025
 /*****************************************************************************************/
 
 

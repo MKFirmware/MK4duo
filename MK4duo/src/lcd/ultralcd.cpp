@@ -1409,7 +1409,7 @@ void kill_screen(const char* lcd_msg) {
       // Encoder wheel adjusts the Z position
       if (encoderPosition) {
         refresh_cmd_timeout();
-        current_position[Z_AXIS] += float((int32_t)encoderPosition) * (MBL_Z_STEP);
+        current_position[Z_AXIS] += float((int32_t)encoderPosition) * (LCD_Z_STEP);
         NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
         NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);

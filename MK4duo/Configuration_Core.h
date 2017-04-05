@@ -254,7 +254,7 @@
 // Use the LCD controller for bed leveling
 // Requires MESH BED LEVELING or PROBE MANUALLY
 //#define LCD_BED_LEVELING
-#define MBL_Z_STEP 0.025    // Step size while manually probing Z axis.
+#define LCD_Z_STEP 0.025    // Step size while manually probing Z axis.
 #define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
 /*****************************************************************************************/
 
