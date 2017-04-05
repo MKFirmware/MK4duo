@@ -204,10 +204,6 @@ float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
   int fanSpeeds[FAN_COUNT] = { 0 };
 #endif
 
-#if HAS(CONTROLLERFAN)
-  uint8_t controllerFanSpeed;
-#endif
-
 #if HAS(AUTO_FAN)
   uint8_t autoFanSpeeds[HOTENDS];
 #endif
@@ -12973,8 +12969,8 @@ static void report_current_position() {
 #if HAS(CONTROLLERFAN)
 
   void controllerFan() {
-    static millis_t lastMotor = 0;      // Last time a motor was turned on
-    static millis_t nextMotorCheck = 0; // Last time the state was checked
+    static millis_t lastMotorOn = 0,    // Last time a motor was turned on
+                    nextMotorCheck = 0; // Last time the state was checked
     millis_t ms = millis();
     if (ELAPSED(ms, nextMotorCheck)) {
       nextMotorCheck = ms + 2500UL; // Not a time critical function, so only check every 2.5s
@@ -12999,18 +12995,18 @@ static void report_current_position() {
           #endif
         #endif
       ) {
-        lastMotor = ms; //... set time to NOW so the fan will turn on
+        lastMotorOn = ms; //... set time to NOW so the fan will turn on
       }
 
       // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      controllerFanSpeed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
+      uint8_t speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
 
       // allows digital or PWM fan output to be used (see M42 handling)
       #if ENABLED(FAN_SOFT_PWM)
-        fanSpeedSoftPwm_controller = controllerFanSpeed;
+        fanSpeedSoftPwm_controller = speed;
       #else
-        digitalWrite(CONTROLLERFAN_PIN, controllerFanSpeed);
-        analogWrite(CONTROLLERFAN_PIN, controllerFanSpeed);
+        digitalWrite(CONTROLLERFAN_PIN, speed);
+        analogWrite(CONTROLLERFAN_PIN, speed);
       #endif
     }
   }

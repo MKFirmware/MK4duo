@@ -819,7 +819,8 @@ static void lcd_implementation_status_screen() {
         lcd.print('%');
         return;
       }
-    
+    #endif
+
     #if HAS(LCD_POWER_SENSOR)
       else if (ELAPSED(millis(), previous_lcd_status_ms + 10000UL)) {
         lcd_printPGM(PSTR("P:"));
