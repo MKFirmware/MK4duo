@@ -366,7 +366,6 @@ PrintCounter print_job_counter = PrintCounter();
           adj_t1_Radius = 0,
           adj_t2_Radius = 0,
           adj_t3_Radius = 0,
-          probe_bed(float x, float y),
           adj_diagrod_length();
 
     int fix_tower_errors();
@@ -2108,7 +2107,7 @@ static void clean_up_after_endstop_or_probe_move() {
   //   - Raise to the BETWEEN height
   // - Return the probed Z position
   //
-  float probe_pt(const float x, const float y, const bool stow, const int verbose_level) {
+  float probe_pt(const float x, const float y, const bool stow=false, const int verbose_level=1) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> probe_pt(", x);
@@ -2158,7 +2157,7 @@ static void clean_up_after_endstop_or_probe_move() {
       if (STOW_PROBE()) return NAN;
 
     if (verbose_level > 2) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, measured_z - (-zprobe_zoffset) + 0.0001, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
       SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
       SERIAL_E;
@@ -11916,25 +11915,19 @@ void ok_to_send() {
 #if MECH(DELTA)
 
   #if ENABLED(AUTO_CALIBRATION_FEATURE)
-    /**
-     * Probe bed height at position (x,y), returns the measured z value
-     */
-    float probe_bed(float x, float y) {
-      return probe_pt(x, y, false, 1);
-    }
 
     void bed_probe_all() {
       // Initial throwaway probe.. used to stabilize probe
-      bed_level_c = probe_bed(0.0, 0.0);
+      bed_level_c = probe_pt(0.0, 0.0);
 
       // Probe all bed positions & store carriage positions
-      bed_level_z = probe_bed(0.0, deltaParams.probe_Radius);
-      bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-      bed_level_x = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-      bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
-      bed_level_y = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-      bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-      bed_level_c = probe_bed(0.0, 0.0);
+      bed_level_z = probe_pt(0.0, deltaParams.probe_Radius);
+      bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+      bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+      bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
+      bed_level_y = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+      bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+      bed_level_c = probe_pt(0.0, 0.0);
     }
 
     void apply_endstop_adjustment(const float x_endstop, const float y_endstop, const float z_endstop) {
@@ -11953,9 +11946,9 @@ void ok_to_send() {
       bool z_done = false;
 
       do {
-        bed_level_z = probe_bed(0.0, deltaParams.probe_Radius);
-        bed_level_x = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-        bed_level_y = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+        bed_level_z = probe_pt(0.0, deltaParams.probe_Radius);
+        bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+        bed_level_y = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
 
         apply_endstop_adjustment(bed_level_x, bed_level_y, bed_level_z);
 
@@ -12126,7 +12119,7 @@ void ok_to_send() {
       int adj_attempts;
       float adj_dRadius, adjdone_vector;
 
-      bed_level_c = probe_bed(0.0, 0.0);
+      bed_level_c = probe_pt(0.0, 0.0);
 
       if ((bed_level_c >= -ac_prec) and (bed_level_c <= ac_prec)) {
         SERIAL_EM("Delta Radius OK");
@@ -12147,7 +12140,7 @@ void ok_to_send() {
           adj_done = false;
 
           adj_endstops();
-          bed_level_c = probe_bed(0.0, 0.0);
+          bed_level_c = probe_pt(0.0, 0.0);
 
           // Set inital adjustment value if it is currently 0
           if (adj_dRadius == 0) {
@@ -12200,21 +12193,21 @@ void ok_to_send() {
 
         if (tower == 1) {
           // Bedlevel_x
-          bed_level = probe_bed(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+          bed_level = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
           // Bedlevel_ox
-          bed_level_o = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+          bed_level_o = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
         }
         if (tower == 2) {
           // Bedlevel_y
-          bed_level = probe_bed(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+          bed_level = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
           // Bedlevel_oy
-          bed_level_o = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+          bed_level_o = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
         }
         if (tower == 3) {
           // Bedlevel_z
-          bed_level = probe_bed(0.0, deltaParams.probe_Radius);
+          bed_level = probe_pt(0.0, deltaParams.probe_Radius);
           // Bedlevel_oz
-          bed_level_o = probe_bed(0.0, -deltaParams.probe_Radius);
+          bed_level_o = probe_pt(0.0, -deltaParams.probe_Radius);
         }
 
         // Set inital adjustment value if it is currently 0
@@ -12251,9 +12244,9 @@ void ok_to_send() {
         deltaParams.tower_pos_adj[tower - 1] += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
-        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
+        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
 
         adj_prv = adj_val;
         adj_val = 0;
@@ -12313,10 +12306,10 @@ void ok_to_send() {
         deltaParams.diagonal_rod += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        bed_level_oy = probe_bed(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-        bed_level_oz = probe_bed(0.0, -deltaParams.probe_Radius);
-        bed_level_ox = probe_bed(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-        bed_level_c = probe_bed(0.0, 0.0);
+        bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
+        bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        bed_level_c = probe_pt(0.0, 0.0);
 
         target = (bed_level_ox + bed_level_oy + bed_level_oz) / 3;
         adj_prv = adj_val;
