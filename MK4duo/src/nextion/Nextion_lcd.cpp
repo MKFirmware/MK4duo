@@ -298,7 +298,6 @@
   NexObject BedDown     = NexObject(15, 3,  "p2");
   NexObject BedMsg      = NexObject(15, 4,  "t0");
   NexObject BedZ        = NexObject(15, 5,  "t1");
-  NexObject BedLang     = NexObject(15, 6,  "lang");
 
   NexObject *nex_listen_list[] =
   {
