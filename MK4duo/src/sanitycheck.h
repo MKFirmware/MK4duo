@@ -631,7 +631,7 @@ static_assert(1 >= 0
   /**
    * A probe needs a pin
    */
-  #if !PROBE_PIN_CONFIGURED
+  #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
     #error "A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
   #endif
 
