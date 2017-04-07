@@ -45,7 +45,7 @@ CardReader::CardReader() {
   next_autostart_ms = millis() + SPLASH_SCREEN_DURATION;
 }
 
-char* CardReader::createFilename(char* buffer, const dir_t& p) { //buffer > 12characters
+char* CardReader::createFilename(char* buffer, const dir_t& p) { // buffer > 12characters
   char* pos = buffer, *src = (char*)p.name;
   for (uint8_t i = 0; i < 11; i++, src++) {
     if (*src == ' ') continue;
@@ -340,42 +340,49 @@ void CardReader::closeFile(bool store_location /*=false*/) {
   saving = false;
 
   if (store_location) {
-    char bufferFilerestart[50];
-    char bufferX[11];
-    char bufferY[11];
-    char bufferZ[11];
-    char bufferE[11];
-    char bufferCoord[50];
-    char bufferCoord1[50];
-    char bufferCoord2[50];
-    char bufferSdpos[11];
-    char temp[30];
-    char restart_name_File[] = "restart.gcode";
+    char  bufferFilerestart[100],
+          bufferX[11],
+          bufferY[11],
+          bufferZ[11],
+          bufferE[11],
+          bufferCoord[50],
+          bufferCoord1[50],
+          bufferCoord2[50],
+          bufferSdpos[11],
+          temp[50],
+          old_file_name[50];
+
+    const char restart_name_File[] = "restart.gcode";
 
     sdprinting = false;
     stepper.synchronize();
 
     snprintf(bufferSdpos, sizeof bufferSdpos, "%lu", (unsigned long)sdpos);
 
-    for (int8_t i = 0; i < (int8_t)strlen(fileName); i++)
-      fileName[i] = tolower(fileName[i]);
+    for (int i = 0; i < strlen(fileName); i++) {
+      old_file_name[i] = tolower(fileName[i]);
+    }
+
+    getWorkDirName();
 
     strcpy(bufferFilerestart, "M34 S");
     strcat(bufferFilerestart, bufferSdpos);
     strcat(bufferFilerestart, " @");
     strcat(bufferFilerestart, fileName);
+    strcat(bufferFilerestart, "/");
+    strcat(bufferFilerestart, old_file_name);
 
-    dtostrf(current_position[X_AXIS], 1, 3, bufferX);
-    dtostrf(current_position[Y_AXIS], 1, 3, bufferY);
-    dtostrf(current_position[E_AXIS], 1, 3, bufferE);
+    itoa(current_position[X_AXIS], bufferX, 10);
+    itoa(current_position[Y_AXIS], bufferY, 10);
+    itoa(current_position[E_AXIS], bufferE, 10);
 
     #if MECH(DELTA)
-      dtostrf(current_position[Z_AXIS], 1, 3, bufferZ);
+      itoa(current_position[Z_AXIS], bufferZ, 10);
     #else
-      dtostrf(current_position[Z_AXIS] + 5, 1, 3, bufferZ);
+      itoa(current_position[Z_AXIS] + 5, bufferZ, 10);
       strcpy(bufferCoord1, "G92 Z");
       strcat(bufferCoord1, bufferZ);
-      dtostrf(current_position[Z_AXIS], 1, 3, bufferZ);
+      itoa(current_position[Z_AXIS], bufferZ, 10);
     #endif
 
     strcpy(bufferCoord, "G1 X");
@@ -419,18 +426,13 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     for (uint8_t h = 0; h < HOTENDS; h++) {
       if (thermalManager.degTargetHotend(h) > 0) {
         char Hotendtemp[15];
-        sprintf(Hotendtemp, "M109 T%i S%i\n", h, (int)thermalManager.degTargetHotend(h));
+        sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)thermalManager.degTargetHotend(h));
         fileRestart.write(Hotendtemp);
       }
     }
 
-    strcpy(temp, "G92 E0\nG1 E10 F300");
+    strcpy(temp, "G92 E0\nG1 E10 F300\nG92 E0\n");
     fileRestart.write(temp);
-
-    #if MECH(DELTA)
-      fileRestart.write(bufferCoord1);
-      fileRestart.write("\n");
-    #endif
 
     fileRestart.write(bufferCoord);
     fileRestart.write("\n");
@@ -439,7 +441,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       FAN_LOOP() {
         if (fanSpeeds[f] > 0) {
           char fanSp[20];
-          sprintf(fanSp, "M106 S%i P%i\n", fanSpeeds[f], (int)f);
+          sprintf(fanSp, "M106 S%i P%i\n", (int)fanSpeeds[f], (int)f);
           fileRestart.write(fanSp);
         }
       }
@@ -453,7 +455,8 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     fileRestart.sync();
     fileRestart.close();
 
-    do_blocking_move_to_z(current_position[Z_AXIS] + 5);
+    current_position[Z_AXIS] += 5;
+    do_blocking_move_to_z(current_position[Z_AXIS]);
 
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
@@ -494,7 +497,7 @@ void CardReader::printingHasFinished() {
 }
 
 void CardReader::setroot(bool temporary /*=false*/) {
-  if(temporary) lastDir = workDir;
+  if (temporary) lastDir = workDir;
   workDir = root;
   curDir = &workDir;
 }
