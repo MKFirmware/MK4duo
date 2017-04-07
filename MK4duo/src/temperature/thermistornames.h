@@ -63,6 +63,8 @@
   #define THERMISTOR_NAME "PT100 UltiMB"
 #elif THERMISTOR_ID == 60
   #define THERMISTOR_NAME "Makers Tool"
+#elif THERMISTOR_ID == 66
+  #define THERMISTOR_NAME "DyzeDesign"
 #elif THERMISTOR_ID == 70
   #define THERMISTOR_NAME "Hephestos 2"
 
