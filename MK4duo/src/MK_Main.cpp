@@ -13658,7 +13658,7 @@ void kill(const char* lcd_msg) {
     UNUSED(lcd_msg);
   #endif
 
-  HAL::delayMilliseconds(250);  // Wait a short time
+  HAL::delayMilliseconds(600);  // Wait a short time (allows messages to get out before shutting down.
   cli(); // Stop interrupts
 
   HAL::delayMilliseconds(250);  // Wait to ensure all interrupts routines stopped
