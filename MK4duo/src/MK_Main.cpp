@@ -108,7 +108,7 @@ bool axis_homed[XYZ] = { false }, axis_known_position[XYZ] = { false };
 
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
- * sending commands to Marlin, and lines will be checked for sequentiality.
+ * sending commands to MK4duo, and lines will be checked for sequentiality.
  * M110 N<int> sets the current line number.
  */
 static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
@@ -137,7 +137,7 @@ static char *current_command,      // The command currently being executed
 
 /**
  * Next Injected Command pointer. NULL if no commands are being injected.
- * Used by Marlin internally to ensure that commands initiated from within
+ * Used by MK4duo internally to ensure that commands initiated from within
  * are enqueued ahead of any pending serial or sd card commands.
  */
 static const char *injected_commands_P = NULL;
@@ -382,9 +382,8 @@ PrintCounter print_job_counter = PrintCounter();
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-  #define UNPROBED 9999.0f
   int bilinear_grid_spacing[2], bilinear_start[2];
-  float bilinear_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
+  float bilinear_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 #endif
 
 #if IS_SCARA
@@ -911,7 +910,7 @@ inline void get_serial_commands() {
   #endif
 
   // If the command buffer is empty for too long,
-  // send "wait" to indicate Marlin is still waiting.
+  // send "wait" to indicate MK4duo is still waiting.
   #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
     static millis_t last_command_time = 0;
     millis_t ms = millis();
@@ -1858,7 +1857,19 @@ static void clean_up_after_endstop_or_probe_move() {
       safe_delay(BLTOUCH_DELAY);
     }
 
-    void set_bltouch_deployed(const bool &deploy) {
+    void set_bltouch_deployed(const bool deploy) {
+      if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
+        bltouch_command(BLTOUCH_RESET);    // try to reset it.
+        bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
+        bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
+        safe_delay(1500);                  // wait for internal self test to complete
+                                           //   measured completion time was 0.65 seconds
+                                           //   after reset, deploy & stow sequence
+        if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
+          SERIAL_LM(ER, MSG_STOP_BLTOUCH);
+          stop();                          // punt!
+        }
+      }
       bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
@@ -1888,8 +1899,11 @@ static void clean_up_after_endstop_or_probe_move() {
     #if ENABLED(BLTOUCH)
       if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
         bltouch_command(BLTOUCH_RESET);    // try to reset it.
-        set_bltouch_deployed(true);        // Also needs to deploy and stow to
-        set_bltouch_deployed(false);       // clear the triggered condition.
+        bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
+        bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
+        safe_delay(1500);                  // wait for internal self test to complete
+                                           //   measured completion time was 0.65 seconds
+                                           //   after reset, deploy & stow sequence
         if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
           SERIAL_LM(ER, MSG_STOP_BLTOUCH);
           stop();                          // punt!
@@ -2256,148 +2270,80 @@ static void clean_up_after_endstop_or_probe_move() {
         mbl.set_has_mesh(false);
       }
     #else
-      SERIAL_EM("Reset Bed Level");
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("Reset Bed Level");
+      #endif
       #if ABL_PLANAR
         planner.bed_level_matrix.set_to_identity();
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         bilinear_start[X_AXIS] = bilinear_start[Y_AXIS] =
         bilinear_grid_spacing[X_AXIS] = bilinear_grid_spacing[Y_AXIS] = 0;
-        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-          for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
-            bilinear_level_grid[x][y] = UNPROBED;
+        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+          for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+            bilinear_level_grid[x][y] = NAN;
       #endif
     #endif
   }
 
 #endif // PLANNER_LEVELING
 
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-  /**
-   * Extrapolate a single point from its neighbors
-   */
-  static void extrapolate_one_point(uint8_t x, uint8_t y, int8_t xdir, int8_t ydir) {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_M("Extrapolate [");
-        if (x < 10) SERIAL_C(' ');
-        SERIAL_V((int)x);
-        SERIAL_C(xdir ? (xdir > 0 ? '+' : '-') : ' ');
-        SERIAL_C(' ');
-        if (y < 10) SERIAL_C(' ');
-        SERIAL_V((int)y);
-        SERIAL_C(ydir ? (ydir > 0 ? '+' : '-') : ' ');
-        SERIAL_C(']');
-      }
-    #endif
-    if (bilinear_level_grid[x][y] != UNPROBED) {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
-      #endif
-      return;  // Don't overwrite good values.
-    }
-    SERIAL_E;
-
-    // Get X neighbors, Y neighbors, and XY neighbors
-    float a1 = bilinear_level_grid[x + xdir][y], a2 = bilinear_level_grid[x + xdir * 2][y],
-          b1 = bilinear_level_grid[x][y + ydir], b2 = bilinear_level_grid[x][y + ydir * 2],
-          c1 = bilinear_level_grid[x + xdir][y + ydir], c2 = bilinear_level_grid[x + xdir * 2][y + ydir * 2];
-
-    // Treat far unprobed points as zero, near as equal to far
-    if (a2 == UNPROBED) a2 = 0.0; if (a1 == UNPROBED) a1 = a2;
-    if (b2 == UNPROBED) b2 = 0.0; if (b1 == UNPROBED) b1 = b2;
-    if (c2 == UNPROBED) c2 = 0.0; if (c1 == UNPROBED) c1 = c2;
-
-    const float a = 2 * a1 - a2, b = 2 * b1 - b2, c = 2 * c1 - c2;
-
-    // Take the average instead of the median
-    bilinear_level_grid[x][y] = (a + b + c) / 3.0;
-
-    // Median is robust (ignores outliers).
-    // bilinear_level_grid[x][y] = (a < b) ? ((b < c) ? b : (c < a) ? a : c)
-    //                                : ((c < b) ? b : (a < c) ? a : c);
-  }
-
-  //#define EXTRAPOLATE_FROM_EDGE
-
-  #if ENABLED(EXTRAPOLATE_FROM_EDGE)
-    #if ABL_GRID_POINTS_X < ABL_GRID_POINTS_Y
-      #define HALF_IN_X
-    #elif ABL_GRID_POINTS_Y < ABL_GRID_POINTS_X
-      #define HALF_IN_Y
-    #endif
-  #endif
-
-  /**
-   * Fill in the unprobed points (corners of circular print surface)
-   * using linear extrapolation, away from the center.
-   */
-  static void extrapolate_unprobed_bed_level() {
-    #if ENABLED(HALF_IN_X)
-      const uint8_t ctrx2 = 0, xlen = ABL_GRID_POINTS_X - 1;
-    #else
-      const uint8_t ctrx1 = (ABL_GRID_POINTS_X - 1) * 0.5, // left-of-center
-                    ctrx2 = ABL_GRID_POINTS_X * 0.5,       // right-of-center
-                    xlen = ctrx1;
-    #endif
-
-    #if ENABLED(HALF_IN_Y)
-      const uint8_t ctry2 = 0, ylen = ABL_GRID_POINTS_Y - 1;
-    #else
-      const uint8_t ctry1 = (ABL_GRID_POINTS_Y - 1) * 0.5, // top-of-center
-                    ctry2 = ABL_GRID_POINTS_Y * 0.5,       // bottom-of-center
-                    ylen = ctry1;
-    #endif
-
-    for (uint8_t xo = 0; xo <= xlen; xo++) {
-      for (uint8_t yo = 0; yo <= ylen; yo++) {
-        uint8_t x2 = ctrx2 + xo, y2 = ctry2 + yo;
-        #if DISABLED(HALF_IN_X)
-          const uint8_t x1 = ctrx1 - xo;
-        #endif
-        #if DISABLED(HALF_IN_Y)
-          const uint8_t y1 = ctry1 - yo;
-          #if DISABLED(HALF_IN_X)
-            extrapolate_one_point(x1, y1, +1, +1);   //  left-below + +
-          #endif
-          extrapolate_one_point(x2, y1, -1, +1);     // right-below - +
-        #endif
-        #if DISABLED(HALF_IN_X)
-          extrapolate_one_point(x1, y2, +1, -1);     //  left-above + -
-        #endif
-        extrapolate_one_point(x2, y2, -1, -1);       // right-above - -
-      }
-    }
-  }
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
   /**
    * Print calibration results for plotting or manual frame adjustment.
    */
   static void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
-    SERIAL_S(ECHO);
-    for (uint8_t x = 0; x < sx; x++) {
-      for (uint8_t i = 0; i < precision + 2 + (x < 10 ? 1 : 0); i++)
-        SERIAL_C(' ');
-      SERIAL_V((int)x);
-    }
-    SERIAL_E;
-    for (uint8_t y = 0; y < sy; y++) {
+    #if DISABLED(SCAD_MESH_OUTPUT)
       SERIAL_S(ECHO);
-      if (y < 10) SERIAL_C(' ');
-      SERIAL_V((int)y);
+      for (uint8_t x = 0; x < sx; x++) {
+        for (uint8_t i = 0; i < precision + 2 + (x < 10 ? 1 : 0); i++)
+          SERIAL_C(' ');
+        SERIAL_V((int)x);
+      }
+      SERIAL_EOL;
+    #endif
+    #if ENABLED(SCAD_MESH_OUTPUT)
+      SERIAL_EM("measured_z = [");  // open 2D array
+    #endif
+    for (uint8_t y = 0; y < sy; y++) {
+      #if ENABLED(SCAD_MESH_OUTPUT)
+        SERIAL_M(" [");             // open sub-array
+      #else
+        SERIAL_S(ECHO);
+        if (y < 10) SERIAL_C(' ');
+        SERIAL_V((int)y);
+      #endif
       for (uint8_t x = 0; x < sx; x++) {
         SERIAL_C(' ');
-        float offset = fn(x, y);
-        if (offset != UNPROBED) {
+        const float offset = fn(x, y);
+        if (!isnan(offset)) {
           if (offset >= 0) SERIAL_C('+');
           SERIAL_V(offset, precision);
         }
-        else
-          for (uint8_t i = 0; i < precision + 3; i++)
-            SERIAL_C(i ? '=' : ' ');
+        else {
+          #if ENABLED(SCAD_MESH_OUTPUT)
+            for (uint8_t i = 3; i < precision + 3; i++)
+              SERIAL_C(' ');
+            SERIAL_M("NAN");
+          #else
+            for (uint8_t i = 0; i < precision + 3; i++)
+              SERIAL_C(i ? '=' : ' ');
+          #endif
+        }
+        #if ENABLED(SCAD_MESH_OUTPUT)
+          if (x < sx - 1) SERIAL_C(',');
+        #endif
       }
+      #if ENABLED(SCAD_MESH_OUTPUT)
+        SERIAL_C(' ');
+        SERIAL_C(']');                     // close sub-array
+        if (y < sy - 1) SERIAL_C(',');
+      #endif
       SERIAL_E;
     }
+    #if ENABLED(SCAD_MESH_OUTPUT)
+      SERIAL_M("\n];");                     // close 2D array
+    #endif
     SERIAL_E;
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -2430,21 +2376,123 @@ static void clean_up_after_endstop_or_probe_move() {
       }
 
     #endif
+
+  }
+
+#endif
+
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+  /**
+   * Extrapolate a single point from its neighbors
+   */
+  static void extrapolate_one_point(uint8_t x, uint8_t y, int8_t xdir, int8_t ydir) {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_M("Extrapolate [");
+        if (x < 10) SERIAL_C(' ');
+        SERIAL_V((int)x);
+        SERIAL_C(xdir ? (xdir > 0 ? '+' : '-') : ' ');
+        SERIAL_C(' ');
+        if (y < 10) SERIAL_C(' ');
+        SERIAL_V((int)y);
+        SERIAL_C(ydir ? (ydir > 0 ? '+' : '-') : ' ');
+        SERIAL_C(']');
+      }
+    #endif
+    if (!isnan(bilinear_level_grid[x][y])) {
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
+      #endif
+      return;  // Don't overwrite good values.
+    }
+    SERIAL_E;
+
+    // Get X neighbors, Y neighbors, and XY neighbors
+    float a1 = bilinear_level_grid[x + xdir][y], a2 = bilinear_level_grid[x + xdir * 2][y],
+          b1 = bilinear_level_grid[x][y + ydir], b2 = bilinear_level_grid[x][y + ydir * 2],
+          c1 = bilinear_level_grid[x + xdir][y + ydir], c2 = bilinear_level_grid[x + xdir * 2][y + ydir * 2];
+
+    // Treat far unprobed points as zero, near as equal to far
+    if (isnan(a2)) a2 = 0.0; if (isnan(a1)) a1 = a2;
+    if (isnan(b2)) b2 = 0.0; if (isnan(b1)) b1 = b2;
+    if (isnan(c2)) c2 = 0.0; if (isnan(c1)) c1 = c2;
+
+    const float a = 2 * a1 - a2, b = 2 * b1 - b2, c = 2 * c1 - c2;
+
+    // Take the average instead of the median
+    bilinear_level_grid[x][y] = (a + b + c) / 3.0;
+
+    // Median is robust (ignores outliers).
+    // bilinear_level_grid[x][y] = (a < b) ? ((b < c) ? b : (c < a) ? a : c)
+    //                                : ((c < b) ? b : (a < c) ? a : c);
+  }
+
+  //#define EXTRAPOLATE_FROM_EDGE
+
+  #if ENABLED(EXTRAPOLATE_FROM_EDGE)
+    #if GRID_MAX_POINTS_X < GRID_MAX_POINTS_Y
+      #define HALF_IN_X
+    #elif GRID_MAX_POINTS_Y < GRID_MAX_POINTS_X
+      #define HALF_IN_Y
+    #endif
+  #endif
+
+  /**
+   * Fill in the unprobed points (corners of circular print surface)
+   * using linear extrapolation, away from the center.
+   */
+  static void extrapolate_unprobed_bed_level() {
+    #if ENABLED(HALF_IN_X)
+      const uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
+    #else
+      const uint8_t ctrx1 = (GRID_MAX_POINTS_X - 1) * 0.5, // left-of-center
+                    ctrx2 = GRID_MAX_POINTS_X * 0.5,       // right-of-center
+                    xlen = ctrx1;
+    #endif
+
+    #if ENABLED(HALF_IN_Y)
+      const uint8_t ctry2 = 0, ylen = GRID_MAX_POINTS_Y - 1;
+    #else
+      const uint8_t ctry1 = (GRID_MAX_POINTS_Y - 1) * 0.5, // top-of-center
+                    ctry2 = GRID_MAX_POINTS_Y * 0.5,       // bottom-of-center
+                    ylen = ctry1;
+    #endif
+
+    for (uint8_t xo = 0; xo <= xlen; xo++) {
+      for (uint8_t yo = 0; yo <= ylen; yo++) {
+        uint8_t x2 = ctrx2 + xo, y2 = ctry2 + yo;
+        #if DISABLED(HALF_IN_X)
+          const uint8_t x1 = ctrx1 - xo;
+        #endif
+        #if DISABLED(HALF_IN_Y)
+          const uint8_t y1 = ctry1 - yo;
+          #if DISABLED(HALF_IN_X)
+            extrapolate_one_point(x1, y1, +1, +1);   //  left-below + +
+          #endif
+          extrapolate_one_point(x2, y1, -1, +1);     // right-below - +
+        #endif
+        #if DISABLED(HALF_IN_X)
+          extrapolate_one_point(x1, y2, +1, -1);     //  left-above + -
+        #endif
+        extrapolate_one_point(x2, y2, -1, -1);       // right-above - -
+      }
+    }
   }
 
   static void print_bilinear_leveling_grid() {
     SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
-    print_2d_array(ABL_GRID_POINTS_X, ABL_GRID_POINTS_Y, 3,
-      [](const uint8_t x, const uint8_t y){ return bilinear_level_grid[x][y]; }
+    print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
+      [](const uint8_t ix, const uint8_t iy){ return bilinear_level_grid[ix][iy]; }
     );
   }
 
   #if ENABLED(ABL_BILINEAR_SUBDIVISION)
 
-    #define ABL_GRID_POINTS_VIRT_X (ABL_GRID_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
-    #define ABL_GRID_POINTS_VIRT_Y (ABL_GRID_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
-    #define ABL_TEMP_POINTS_X (ABL_GRID_POINTS_X + 2)
-    #define ABL_TEMP_POINTS_Y (ABL_GRID_POINTS_Y + 2)
+    #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
+    #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
+    #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
+    #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
     float bilinear_level_grid_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
     int bilinear_grid_spacing_virt[2] = { 0 };
 
@@ -2461,8 +2509,8 @@ static void clean_up_after_endstop_or_probe_move() {
 
       if (!x || x == ABL_TEMP_POINTS_X - 1) {
         if (x) {
-          ep = ABL_GRID_POINTS_X - 1;
-          ip = ABL_GRID_POINTS_X - 2;
+          ep = GRID_MAX_POINTS_X - 1;
+          ip = GRID_MAX_POINTS_X - 2;
         }
         if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[ep][y - 1], bilinear_level_grid[ip][y - 1]);
@@ -2471,8 +2519,8 @@ static void clean_up_after_endstop_or_probe_move() {
       }
       if (!y || y == ABL_TEMP_POINTS_Y - 1) {
         if (y) {
-          ep = ABL_GRID_POINTS_Y - 1;
-          ip = ABL_GRID_POINTS_Y - 2;
+          ep = GRID_MAX_POINTS_Y - 1;
+          ip = GRID_MAX_POINTS_Y - 2;
         }
         if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
           return LINEAR_EXTRAPOLATION(bilinear_level_grid[x - 1][ep], bilinear_level_grid[x - 1][ip]);
@@ -2503,11 +2551,13 @@ static void clean_up_after_endstop_or_probe_move() {
     }
 
     void bed_level_virt_interpolate() {
-      for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
-        for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
+      bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
+      bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
           for (uint8_t ty = 0; ty < BILINEAR_SUBDIVISIONS; ty++) {
             for (uint8_t tx = 0; tx < BILINEAR_SUBDIVISIONS; tx++) {
-              if ((ty && y == ABL_GRID_POINTS_Y - 1) || (tx && x == ABL_GRID_POINTS_X - 1))
+              if ((ty && y == GRID_MAX_POINTS_Y - 1) || (tx && x == GRID_MAX_POINTS_X - 1))
                 continue;
               bilinear_level_grid_virt[x * (BILINEAR_SUBDIVISIONS) + tx][y * (BILINEAR_SUBDIVISIONS) + ty] =
                 bed_level_virt_2cmr(
@@ -2945,10 +2995,10 @@ static void homeaxis(const AxisEnum axis) {
   }
 #endif
 
-#ifndef MIN_COOLING_SLOPE_DEG
+#if DISABLED(MIN_COOLING_SLOPE_DEG)
   #define MIN_COOLING_SLOPE_DEG 1.50
 #endif
-#ifndef MIN_COOLING_SLOPE_TIME
+#if DISABLED(MIN_COOLING_SLOPE_TIME)
   #define MIN_COOLING_SLOPE_TIME 60
 #endif
 
@@ -3020,7 +3070,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
     // Prevent a wait-forever situation if R is misused i.e. M109 R0
     if (wants_to_cool) {
-      // break after MIN_COOLING_SLOPE_TIME seconds
+      // Break after MIN_COOLING_SLOPE_TIME seconds
       // if the temperature did not drop at least MIN_COOLING_SLOPE_DEG
       if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
         if (old_temp - temp < MIN_COOLING_SLOPE_DEG) break;
@@ -3038,10 +3088,10 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
 #if HAS(TEMP_BED)
 
-  #ifndef MIN_COOLING_SLOPE_DEG_BED
+  #if DISABLED(MIN_COOLING_SLOPE_DEG_BED)
     #define MIN_COOLING_SLOPE_DEG_BED 1.50
   #endif
-  #ifndef MIN_COOLING_SLOPE_TIME_BED
+  #if DISABLED(MIN_COOLING_SLOPE_TIME_BED)
     #define MIN_COOLING_SLOPE_TIME_BED 60
   #endif
 
@@ -3116,7 +3166,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
       // Prevent a wait-forever situation if R is misused i.e. M190 R0
       if (wants_to_cool) {
-        // break after MIN_COOLING_SLOPE_TIME_BED seconds
+        // Break after MIN_COOLING_SLOPE_TIME_BED seconds
         // if the temperature did not drop at least MIN_COOLING_SLOPE_DEG_BED
         if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
           if (old_temp - temp < MIN_COOLING_SLOPE_DEG_BED) break;
@@ -4083,13 +4133,22 @@ inline void gcode_G28() {
     COPY_ARRAY(lastpos, current_position);
   }
 
-  const bool  homeX = code_seen('X'),
-              homeY = code_seen('Y'),
-              homeZ = code_seen('Z'),
-              homeE = code_seen('E');
-
   #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
+
+    bool  homeX = code_seen('X'),
+          homeY = code_seen('Y'),
+          homeZ = code_seen('Z'),
+          homeE = code_seen('E');
+
     if (homeZ) homeX = homeY = true;
+
+  #else
+
+    const bool  homeX = code_seen('X'),
+                homeY = code_seen('Y'),
+                homeZ = code_seen('Z'),
+                homeE = code_seen('E');
+
   #endif
 
   const bool home_all_axis = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
@@ -4335,16 +4394,12 @@ inline void gcode_G28() {
   void say_not_entered() { SERIAL_EM(" not entered."); }
 
   void mbl_mesh_report() {
-    SERIAL_LM(ECHO, "Num X,Y: " STRINGIFY(MESH_NUM_X_POINTS) "," STRINGIFY(MESH_NUM_Y_POINTS));
+    SERIAL_LM(ECHO, "Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
     SERIAL_LMV(ECHO, "Z offset: ", mbl.z_offset, 5);
     SERIAL_LM(ECHO, "Measured points:");
-    for (uint8_t py = 0; py < MESH_NUM_Y_POINTS; py++) {
-      SERIAL_S(ECHO);
-      for (uint8_t px = 0; px < MESH_NUM_X_POINTS; px++) {
-        SERIAL_MV("  ", mbl.z_values[py][px], 5);
-      }
-      SERIAL_E;
-    }
+    print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
+      [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[ix][iy]; }
+    );
   }
 
   /**
@@ -4419,7 +4474,7 @@ inline void gcode_G28() {
           #endif
         }
         // If there's another point to sample, move there with optional lift.
-        if (mbl_probe_index < (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS)) {
+        if (mbl_probe_index < (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)) {
           mbl.zigzag(mbl_probe_index, px, py);
           _manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
 
@@ -4451,8 +4506,8 @@ inline void gcode_G28() {
       case MeshSet:
         if (code_seen('X')) {
           px = code_value_int() - 1;
-          if (!WITHIN(px, 0, MESH_NUM_X_POINTS - 1)) {
-            SERIAL_EM("X out of range (1-" STRINGIFY(MESH_NUM_X_POINTS) ").");
+          if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
+            SERIAL_EM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
             return;
           }
         }
@@ -4463,8 +4518,8 @@ inline void gcode_G28() {
 
         if (code_seen('Y')) {
           py = code_value_int() - 1;
-          if (!WITHIN(py, 0, MESH_NUM_Y_POINTS - 1)) {
-            SERIAL_EM("Y out of range (1-" STRINGIFY(MESH_NUM_Y_POINTS) ").");
+          if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
+            SERIAL_EM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
             return;
           }
         }
@@ -4629,16 +4684,16 @@ inline void gcode_G28() {
       ABL_VAR int left_probe_bed_position, right_probe_bed_position, front_probe_bed_position, back_probe_bed_position;
       ABL_VAR float xGridSpacing, yGridSpacing;
 
-      #define ABL_GRID_MAX (ABL_GRID_POINTS_X) * (ABL_GRID_POINTS_Y)
+      #define ABL_GRID_MAX (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
 
       #if ABL_PLANAR
-        ABL_VAR uint8_t abl_grid_points_x = ABL_GRID_POINTS_X,
-                        abl_grid_points_y = ABL_GRID_POINTS_Y;
+        ABL_VAR uint8_t abl_grid_points_x = GRID_MAX_POINTS_X,
+                        abl_grid_points_y = GRID_MAX_POINTS_Y;
         ABL_VAR int abl2;
         ABL_VAR bool do_topography_map;
       #else
-        uint8_t constexpr abl_grid_points_x = ABL_GRID_POINTS_X,
-                          abl_grid_points_y = ABL_GRID_POINTS_Y;
+        uint8_t constexpr abl_grid_points_x = GRID_MAX_POINTS_X,
+                          abl_grid_points_y = GRID_MAX_POINTS_Y;
 
         int constexpr abl2 = ABL_GRID_MAX;
       #endif
@@ -4649,7 +4704,7 @@ inline void gcode_G28() {
 
       #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
 
-        ABL_VAR int indexIntoAB[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
+        ABL_VAR int indexIntoAB[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
         ABL_VAR float eqnAMatrix[ABL_GRID_MAX * 3], // "A" matrix of the linear system of equations
                      eqnBVector[ABL_GRID_MAX],     // "B" vector of Z points
@@ -4702,10 +4757,10 @@ inline void gcode_G28() {
             // Get nearest i / j from x / y
             i = (x - LOGICAL_X_POSITION(bilinear_start[X_AXIS]) + 0.5 * xGridSpacing) / xGridSpacing;
             j = (y - LOGICAL_Y_POSITION(bilinear_start[Y_AXIS]) + 0.5 * yGridSpacing) / yGridSpacing;
-            i = constrain(i, 0, ABL_GRID_POINTS_X - 1);
-            j = constrain(j, 0, ABL_GRID_POINTS_Y - 1);
+            i = constrain(i, 0, GRID_MAX_POINTS_X - 1);
+            j = constrain(j, 0, GRID_MAX_POINTS_Y - 1);
           }
-          if (WITHIN(i, 0, ABL_GRID_POINTS_X - 1) && WITHIN(j, 0, ABL_GRID_POINTS_Y)) {
+          if (WITHIN(i, 0, GRID_MAX_POINTS_X - 1) && WITHIN(j, 0, GRID_MAX_POINTS_Y)) {
             set_bed_leveling_enabled(false);
             bilinear_level_grid[i][j] = z;
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -4741,8 +4796,8 @@ inline void gcode_G28() {
 
         // X and Y specify points in each direction, overriding the default
         // These values may be saved with the completed mesh
-        abl_grid_points_x = code_seen('X') ? code_value_int() : ABL_GRID_POINTS_X;
-        abl_grid_points_y = code_seen('Y') ? code_value_int() : ABL_GRID_POINTS_Y;
+        abl_grid_points_x = code_seen('X') ? code_value_int() : GRID_MAX_POINTS_X;
+        abl_grid_points_y = code_seen('Y') ? code_value_int() : GRID_MAX_POINTS_Y;
         if (code_seen('P')) abl_grid_points_x = abl_grid_points_y = code_value_int();
 
         if (abl_grid_points_x < 2 || abl_grid_points_y < 2) {
@@ -4849,11 +4904,6 @@ inline void gcode_G28() {
           bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
           bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
           bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
-
-          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bilinear_grid_spacing_virt[X_AXIS] = xGridSpacing / (BILINEAR_SUBDIVISIONS);
-            bilinear_grid_spacing_virt[Y_AXIS] = yGridSpacing / (BILINEAR_SUBDIVISIONS);
-          #endif
 
           // Can't re-enable (on error) until the new grid is written
           abl_should_enable = false;
@@ -5057,7 +5107,7 @@ inline void gcode_G28() {
             inInc = -1;
           }
 
-          zig = !zig;
+          zig ^= true; // zag
 
           // Inner loop is Y with PROBE_Y_FIRST enabled
           for (int8_t PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
@@ -5080,7 +5130,7 @@ inline void gcode_G28() {
 
             measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
-            if (measured_z == NAN) {
+            if (isnan(measured_z)) {
               planner.abl_enabled = abl_should_enable;
               return;
             }
@@ -5116,7 +5166,7 @@ inline void gcode_G28() {
           measured_z = points[i].z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
         }
 
-        if (measured_z == NAN) {
+        if (isnan(measured_z)) {
           planner.abl_enabled = abl_should_enable;
           return;
         }
@@ -6625,22 +6675,159 @@ inline void gcode_M42() {
 
   #include "utility/pinsdebug.h"
 
+  inline void toggle_pins() {
+    int pin, j;
+
+    bool I_flag = code_seen('I') ? code_value_bool() : false;
+
+    int repeat = code_seen('R') ? code_value_int() : 1,
+        start = code_seen('S') ? code_value_int() : 0,
+        end = code_seen('E') ? code_value_int() : NUM_DIGITAL_PINS - 1,
+        wait = code_seen('W') ? code_value_int() : 500;
+
+    for (pin = start; pin <= end; pin++) {
+        if (!I_flag && pin_is_protected(pin)) {
+          SERIAL_MV("Sensitive Pin: ", pin);
+          SERIAL_EM(" untouched.");
+        }
+        else {
+          SERIAL_MV("Pulsing Pin: ", pin);
+          pinMode(pin, OUTPUT);
+          for(j = 0; j < repeat; j++) {
+            digitalWrite(pin, 0);
+            safe_delay(wait);
+            digitalWrite(pin, 1);
+            safe_delay(wait);
+            digitalWrite(pin, 0);
+            safe_delay(wait);
+          }
+        }
+      SERIAL_E;
+    }
+    SERIAL_EM("Done");
+  } // toggle_pins
+
+  inline void servo_probe_test(){
+    #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
+      SERIAL_LM(ER, "SERVO not setup");
+    #else
+
+      #if !defined(z_servo_angle)
+        const int z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
+      #endif
+      uint8_t probe_index = code_seen('P') ? code_value_byte() : 0;
+      SERIAL_M("Servo probe test");
+      SERIAL_MV(".  Using index:  ", probe_index);
+      SERIAL_MV(".  Deploy angle: ", z_servo_angle[0]);
+      SERIAL_MV(".  Stow angle:   ", z_servo_angle[1]);
+      SERIAL_E;
+      bool probe_logic;
+      #if HAS(Z_PROBE_PIN)
+        #define PROBE_TEST_PIN Z_PROBE_PIN
+        SERIAL_MV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+        SERIAL_M(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
+        SERIAL_M(".  Z_PROBE_ENDSTOP_LOGIC: ");
+        if (Z_PROBE_ENDSTOP_LOGIC) SERIAL_EM("true");
+        else  SERIAL_EM("false");
+        probe_logic = Z_PROBE_ENDSTOP_LOGIC;
+      #elif HAS(Z_MIN)
+        #define PROBE_TEST_PIN Z_MIN_PIN
+        SERIAL_MV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
+        SERIAL_M(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
+        SERIAL_M(".  Z_MIN_ENDSTOP_LOGIC: ");
+        if (Z_MIN_ENDSTOP_LOGIC) SERIAL_EM("true");
+        else  SERIAL_EM("false");
+        probe_logic = Z_MIN_ENDSTOP_LOGIC;
+      #else
+        #error "ERROR - probe pin not defined - strange, SANITY_CHECK should have caught this"
+      #endif
+      SERIAL_EM("Deploy & stow 4 times");
+      bool deploy_state;
+      bool stow_state;
+      for (uint8_t i = 0; i < 4; i++) {
+        servo[probe_index].move(z_servo_angle[0]); // deploy
+        safe_delay(500);
+        deploy_state = digitalRead(PROBE_TEST_PIN);
+        servo[probe_index].move(z_servo_angle[1]); // stow
+        safe_delay(500);
+        stow_state = digitalRead(PROBE_TEST_PIN);
+      }
+      if (probe_logic == deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
+      refresh_cmd_timeout();
+      if (deploy_state != stow_state) {
+        SERIAL_EM("TLTouch detected");         // BLTouch clone?
+        if (deploy_state) {
+          SERIAL_EM("DEPLOYED state: HIGH (logic 1)");
+          SERIAL_EM("STOWED (triggered) state: LOW (logic 0)");
+        }
+        else {
+          SERIAL_EM("DEPLOYED state: LOW (logic 0)");
+          SERIAL_EM("STOWED (triggered) state: HIGH (logic 1)");
+        }
+      }
+      else {                                       // measure active signal length
+        safe_delay(500);
+        servo[probe_index].move(z_servo_angle[0]); // deploy
+        safe_delay(500);
+        SERIAL_EM("please trigger probe");
+        uint16_t probe_counter = 0;
+        for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {   // allow 30 seconds max for operator to trigger probe
+          safe_delay(2);
+          if (0 == j%(500 * 1)) { refresh_cmd_timeout(); watchdog_reset(); }  // beat the dog every 45 seconds
+          if (deploy_state != digitalRead(PROBE_TEST_PIN)) {             // probe triggered
+            for (probe_counter = 1; probe_counter < 50 && (deploy_state != digitalRead(PROBE_TEST_PIN)); probe_counter ++) {
+              safe_delay(2);
+            }
+            if (probe_counter == 50) {
+              SERIAL_EM("Z Servo Probe detected");   // >= 100mS active time
+            }
+            else if (probe_counter >= 2 ) {
+              SERIAL_EMV("BLTouch compatible probe detected - pulse width (+/- 4mS): ", probe_counter * 2 );   // allow 4 - 100mS pulse
+            }
+            else {
+              SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
+            }
+            servo[probe_index].move(z_servo_angle[1]); //stow
+          }  // pulse detected
+        }    // for loop waiting for trigger
+        if (probe_counter == 0) SERIAL_EM("trigger not detected");
+      }      // measure active signal length
+    #endif
+  } // servo_probe_test
+
   /**
-   * M43: Pin report and debug
+   * M43: Pin debug - report pin state, watch pins, toggle pins and servo probe test/report
    *
-   *      E<bool> Enable / disable background endstop monitoring
-   *               - Machine continues to operate
-   *               - Reports changes to endstops
-   *               - Toggles LED when an endstop changes
+   *  M43         - report name and state of pin(s)
+   *                  P<pin>  Pin to read or watch. If omitted, reads all pins.
+   *                  I       Flag to ignore MK4duo's pin protection.
    *
-   *   or
+   *  M43 W       - Watch pins -reporting changes- until reset, click, or M108.
+   *                  P<pin>  Pin to read or watch. If omitted, read/watch all pins.
+   *                  I       Flag to ignore MK4duo's pin protection.
    *
-   *      P<pin>  Pin to read or watch. If omitted, read/watch all pins.
-   *      W<bool> Watch pins -reporting changes- until reset, click, or M108.
-   *      I<bool> Flag to ignore MK4duo pin protection.
+   *  M43 E<bool> - Enable / disable background endstop monitoring
+   *                  - Machine continues to operate
+   *                  - Reports changes to endstops
+   *                  - Toggles LED when an endstop changes
+   *                  - Can not reliably catch the 5mS pulse from BLTouch type probes
    *
+   *  M43 T       - Toggle pin(s) and report which pin is being toggled
+   *                  S<pin>  - Start Pin number.   If not given, will default to 0
+   *                  L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
+   *                  I       - Flag to ignore MK4duo's pin protection.   Use with caution!!!!
+   *                  R       - Repeat pulses on each pin this number of times before continueing to next pin
+   *                  W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
+   *
+   *  M43 S       - Servo probe test
+   *                  P<index> - Probe index (optional - defaults to 0)
    */
   inline void gcode_M43() {
+
+    if (code_seen('T')) {   // must be first ot else it's "S" and "E" parameters will execute endstop or servo test
+      toggle_pins();
+      return;
+    }
 
     // Enable or disable endstop monitoring
     if (code_seen('E')) {
@@ -6648,6 +6835,11 @@ inline void gcode_M42() {
       SERIAL_M("endstop monitor ");
       SERIAL_T(endstop_monitor_flag ? "en" : "dis");
       SERIAL_EM("abled");
+      return;
+    }
+
+    if (code_seen('S')) {
+      servo_probe_test();
       return;
     }
 
@@ -6662,6 +6854,7 @@ inline void gcode_M42() {
 
     // Watch until click, M108, or reset
     if (code_seen('W') && code_value_bool()) { // watch digital pins
+      SERIAL_EM("Watching pins");
       byte pin_state[last_pin - first_pin + 1];
       for (int8_t pin = first_pin; pin <= last_pin; pin++) {
         if (pin_is_protected(pin) && !ignore_protection) continue;
@@ -8529,8 +8722,8 @@ inline void gcode_M303() {
       bool hasX, hasY, hasZ, hasS;
       const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
                   ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
-      const int gridx = constrain(FLOOR(ratio_x), 0, ABL_GRID_POINTS_X - 1),
-                gridy = constrain(FLOOR(ratio_y), 0, ABL_GRID_POINTS_Y - 1);
+      const int gridx = constrain(FLOOR(ratio_x), 0, GRID_MAX_POINTS_X - 1),
+                gridy = constrain(FLOOR(ratio_y), 0, GRID_MAX_POINTS_Y - 1);
 
       if ((hasX = code_seen('X'))) px = code_value_int();
       if ((hasY = code_seen('Y'))) py = code_value_int();
@@ -8540,7 +8733,7 @@ inline void gcode_M303() {
       else if ((hasS = code_seen('S')))
         val = code_value_float();
 
-      if (px >= ABL_GRID_POINTS_X || py >= ABL_GRID_POINTS_Y) {
+      if (px >= GRID_MAX_POINTS_X || py >= GRID_MAX_POINTS_Y) {
         SERIAL_LM(ECHO, " X Y error");
         return;
       }
@@ -9129,7 +9322,7 @@ inline void gcode_M400() { stepper.synchronize(); }
       }
     }
     else if (hasI && hasJ && hasZ) {
-      if (px >= 0 && px < MESH_NUM_X_POINTS && py >= 0 && py < MESH_NUM_Y_POINTS)
+      if (px >= 0 && px < GRID_MAX_POINTS_X && py >= 0 && py < GRID_MAX_POINTS_Y)
         mbl.set_z(px, py, z);
       else {
         SERIAL_LM(ER, MSG_ERR_MESH_XY);
@@ -9922,8 +10115,8 @@ inline void gcode_M532() {
           // Correct bilinear grid for new probe offset
           const float diff = p_val - zprobe_zoffset;
           if (diff) {
-            for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-              for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+            for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+              for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
                 bilinear_level_grid[x][y] += diff;
           }
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -10004,8 +10197,8 @@ inline void gcode_M532() {
             // Correct bilinear grid for new probe offset
             const float diff = p_val - zprobe_zoffset;
             if (diff) {
-              for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++)
-                for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++)
+              for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+                for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
                   bilinear_level_grid[x][y] += diff;
             }
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -11185,9 +11378,9 @@ void process_next_command() {
    
       // G80: Cancel Canned Cycle (XXX CNC)
 
-      case 90: // G90
+      case 90: // G90 - Use Absolute Coordinates
         relative_mode = false; break;
-      case 91: // G91
+      case 91: // G91 - Use Relative Coordinates
         relative_mode = true; break;
       case 92: // G92
         gcode_G92(); break;
@@ -11426,6 +11619,16 @@ void process_next_command() {
       #if HAS(TEMP_COOLER)
         case 142: // M142 - Set cooler temp
           gcode_M142(); break;
+      #endif
+
+      #if ENABLED(ULTIPANEL) && TEMP_SENSOR_0 != 0
+        case 145: // M145: Set material heatup parameters
+          gcode_M145(); break;
+      #endif
+
+      #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
+        case 149: // M149: Set temperature units
+          gcode_M149(); break;
       #endif
 
       #if ENABLED(BLINKM) || ENABLED(RGB_LED)
@@ -11840,8 +12043,8 @@ void ok_to_send() {
     #define ABL_BG_GRID(X,Y)  bilinear_level_grid_virt[X][Y]
   #else
     #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
-    #define ABL_BG_POINTS_X   ABL_GRID_POINTS_X
-    #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_Y
+    #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
+    #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
     #define ABL_BG_GRID(X,Y)  bilinear_level_grid[X][Y]
   #endif
 
@@ -12447,10 +12650,10 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
         cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y_AXIS)),
         cx2 = mbl.cell_index_x(RAW_X_POSITION(destination[X_AXIS])),
         cy2 = mbl.cell_index_y(RAW_Y_POSITION(destination[Y_AXIS]));
-    NOMORE(cx1, MESH_NUM_X_POINTS - 2);
-    NOMORE(cy1, MESH_NUM_Y_POINTS - 2);
-    NOMORE(cx2, MESH_NUM_X_POINTS - 2);
-    NOMORE(cy2, MESH_NUM_Y_POINTS - 2);
+    NOMORE(cx1, GRID_MAX_POINTS_X - 2);
+    NOMORE(cy1, GRID_MAX_POINTS_Y - 2);
+    NOMORE(cx2, GRID_MAX_POINTS_X - 2);
+    NOMORE(cy2, GRID_MAX_POINTS_Y - 2);
 
     if (cx1 == cx2 && cy1 == cy2) {
       // Start and end on same mesh square
@@ -13725,7 +13928,7 @@ void stop() {
 }
 
 /**
- * Marlin entry-point: Set up before the program loop
+ * MK4duo entry-point: Set up before the program loop
  *  - Set up Alligator Board
  *  - Set up the kill pin, filament runout, power hold
  *  - Start the serial port
@@ -13921,6 +14124,12 @@ void setup() {
         mixing_virtual_tool_mix[t][i] = mixing_factor[i];
   #endif
 
+  #if ENABLED(BLTOUCH)
+    bltouch_command(BLTOUCH_RESET);    // Just in case the BLTouch is in the error state, try to
+    set_bltouch_deployed(true);        // reset it. Also needs to deploy and stow to clear the
+    set_bltouch_deployed(false);       // error condition.
+  #endif
+
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     setup_endstop_interrupts();
   #endif
@@ -13928,17 +14137,10 @@ void setup() {
   #if ENABLED(DELTA_HOME_ON_POWER)
     home_delta();
   #endif
-
-  #if ENABLED(BLTOUCH)
-    bltouch_command(BLTOUCH_RESET);    // Just in case the BLTouch is in the error state, try to
-    set_bltouch_deployed(true);        // reset it. Also needs to deploy and stow to clear the
-    set_bltouch_deployed(false);       // error condition.
-  #endif
-
 }
 
 /**
- * The main Marlin program loop
+ * The main MK4duo program loop
  *
  *  - Save or log commands to SD
  *  - Process available commands (if not saving)

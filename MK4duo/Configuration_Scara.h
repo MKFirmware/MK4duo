@@ -378,8 +378,8 @@
 //#define MESH_BED_LEVELING
 
 #define MESH_INSET         10   // Mesh inset margin on print area
-#define MESH_NUM_X_POINTS   3   // Don't use more than 7 points per axis, implementation limited.
-#define MESH_NUM_Y_POINTS   3
+#define GRID_MAX_POINTS_X   3   // Don't use more than 7 points per axis, implementation limited.
+#define GRID_MAX_POINTS_Y   3
 #define MESH_HOME_SEARCH_Z  5   // Z after Home, bed somewhere below but above 0.0.
 
 // After homing all axes ('G28' or 'G28 XYZ') rest at origin [0,0,0]
@@ -428,8 +428,8 @@
 
 /** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 // Set the number of grid points per dimension
-#define ABL_GRID_POINTS_X 7
-#define ABL_GRID_POINTS_Y 7
+#define GRID_MAX_POINTS_X 7
+#define GRID_MAX_POINTS_Y 7
 
 // Set the boundaries for probing (where the probe can reach).
 #define LEFT_PROBE_BED_POSITION   X_MIN_POS + 200

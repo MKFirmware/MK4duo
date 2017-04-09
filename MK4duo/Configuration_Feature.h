@@ -48,7 +48,7 @@
  * - Endstops only for homing
  * - Abort on endstop hit feature
  * - G38.2 and G38.3 Probe Target
- * - Mesh Level Area
+ * - Scad Mesh Output
  * - R/C Servo
  * - Late Z axis
  * - Ahead slowdown
@@ -596,18 +596,20 @@
 
 
 /**************************************************************************
- *************************** Mesh Level Area ******************************
+ ************************* Scad Mesh Output *******************************
  **************************************************************************
  *                                                                        *
- * Default mesh area is an area with an inset margin on the print area.   *
- * Below are the macros that are used to define the borders for the mesh  *
- * area, made available here for specialized needs.                       *
+ * Enable if you prefer your output in JSON format                        *
+ * suitable for SCAD or JavaScript mesh visualizers.                      *
+ *                                                                        *
+ * Visualize meshes in OpenSCAD using the included script.                *
+ *                                                                        *
+ * scad/MK4duoMesh.scad                                                   *
+ *                                                                        *
+ * By Scott Latherine @Thinkyhead                                         *
  *                                                                        *
  **************************************************************************/
-#define MESH_MIN_X (X_MIN_POS + MESH_INSET)
-#define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define MESH_MIN_Y (Y_MIN_POS + MESH_INSET)
-#define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+//#define SCAD_MESH_OUTPUT
 /**************************************************************************/
 
 

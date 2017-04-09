@@ -65,16 +65,16 @@
  * Mesh bed leveling:
  *  M420  S               from mbl.status (bool)
  *                        mbl.z_offset (float)
- *                        MESH_NUM_X_POINTS (uint8 as set in firmware)
- *                        MESH_NUM_Y_POINTS (uint8 as set in firmware)
+ *                        GRID_MAX_POINTS_X (uint8 as set in firmware)
+ *                        GRID_MAX_POINTS_Y (uint8 as set in firmware)
  *  G29   S3  XYZ         z_values[][] (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
  *                        planner.bed_level_matrix        (matrix_3x3 = float x9)
  *
  * AUTO_BED_LEVELING_BILINEAR:
- *                        ABL_GRID_MAX_POINTS_X           (uint8_t)
- *                        ABL_GRID_MAX_POINTS_Y           (uint8_t)
+ *                        GRID_MAX_POINTS_X               (uint8_t)
+ *                        GRID_MAX_POINTS_Y               (uint8_t)
  *                        bilinear_grid_spacing           (int x2)   from G29: (B-F)/X, (R-L)/Y
  *                        bilinear_start                  (int x2)
  *                        bilinear_level_grid[][]         (float x9, up to float x256)
@@ -314,9 +314,9 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(MESH_BED_LEVELING)
       // Compile time test that sizeof(mbl.z_values) is as expected
-      typedef char c_assert[(sizeof(mbl.z_values) == (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS) * sizeof(dummy)) ? 1 : -1];
+      typedef char c_assert[(sizeof(mbl.z_values) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
       const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
-      const uint8_t mesh_num_x = MESH_NUM_X_POINTS, mesh_num_y = MESH_NUM_Y_POINTS;
+      const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(leveling_is_on);
       EEPROM_WRITE(mbl.z_offset);
       EEPROM_WRITE(mesh_num_x);
@@ -336,8 +336,8 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       // Compile time test that sizeof(mbl.z_values) is as expected
-      typedef char c_assert[(sizeof(bilinear_level_grid) == (ABL_GRID_POINTS_X) * (ABL_GRID_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
-      uint8_t grid_max_x = ABL_GRID_POINTS_X, grid_max_y = ABL_GRID_POINTS_Y;
+      typedef char c_assert[(sizeof(bilinear_level_grid) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
+      uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(grid_max_x);             // 1 byte
       EEPROM_WRITE(grid_max_y);             // 1 byte
       EEPROM_WRITE(bilinear_grid_spacing);  // 2 ints
@@ -609,7 +609,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mesh_num_y);
         mbl.status = leveling_is_on ? _BV(MBL_STATUS_HAS_MESH_BIT) : 0;
         mbl.z_offset = dummy;
-        if (mesh_num_x == MESH_NUM_X_POINTS && mesh_num_y == MESH_NUM_Y_POINTS) {
+        if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
           // EEPROM data fits the current mesh
           EEPROM_READ(mbl.z_values);
         }
@@ -634,7 +634,7 @@ void EEPROM::Postprocess() {
         uint8_t grid_max_x, grid_max_y;
         EEPROM_READ(grid_max_x);              // 1 byte
         EEPROM_READ(grid_max_y);              // 1 byte
-        if (grid_max_x == ABL_GRID_POINTS_X && grid_max_y == ABL_GRID_POINTS_Y) {
+        if (grid_max_x == GRID_MAX_POINTS_X && grid_max_y == GRID_MAX_POINTS_Y) {
           set_bed_leveling_enabled(false);
           EEPROM_READ(bilinear_grid_spacing); // 2 ints
           EEPROM_READ(bilinear_start);        // 2 ints
@@ -1152,12 +1152,12 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(MESH_BED_LEVELING)
       CONFIG_MSG_START("Mesh Bed Leveling:");
       SERIAL_SMV(CFG, "  M420 S", mbl.has_mesh() ? 1 : 0);
-      SERIAL_MV(" X", MESH_NUM_X_POINTS);
-      SERIAL_MV(" Y", MESH_NUM_Y_POINTS);
+      SERIAL_MV(" X", GRID_MAX_POINTS_X);
+      SERIAL_MV(" Y", GRID_MAX_POINTS_Y);
       SERIAL_E;
 
-      for (uint8_t py = 1; py <= MESH_NUM_Y_POINTS; py++) {
-        for (uint8_t px = 1; px <= MESH_NUM_X_POINTS; px++) {
+      for (uint8_t py = 1; py <= GRID_MAX_POINTS_Y; py++) {
+        for (uint8_t px = 1; px <= GRID_MAX_POINTS_X; px++) {
           SERIAL_SMV(CFG, "  G29 S3 X", (int)px);
           SERIAL_MV(" Y", (int)py);
           SERIAL_EMV(" Z", mbl.z_values[py-1][px-1], 5);
