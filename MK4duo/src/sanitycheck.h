@@ -520,10 +520,10 @@
  */
 #if MECH(DELTA)
   #if ABL_GRID
-    #if (AUTO_BED_LEVELING_GRID_POINTS & 1) == 0
-      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be odd numbers."
-    #elif ABL_GRID_POINTS_X < 3
-      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be 3 or higher."
+    #if (GRID_MAX_POINTS & 1) == 0
+      #error "DELTA requires GRID_MAX_POINTS to be odd numbers."
+    #elif GRID_MAX_POINTS_X < 3
+      #error "DELTA requires GRID_MAX_POINTS to be 3 or higher."
     #endif
   #endif
 
@@ -576,8 +576,8 @@ static_assert(1 >= 0
 #if ENABLED(MESH_BED_LEVELING)
   #if MECH(DELTA)
     #error "MESH_BED_LEVELING does not yet support DELTA printers."
-  #elif MESH_NUM_X_POINTS > 9 || MESH_NUM_Y_POINTS > 9
-    #error "MESH_NUM_X_POINTS and MESH_NUM_Y_POINTS must be less than 10."
+  #elif GRID_MAX_POINTS_X > 9 || GRID_MAX_POINTS_Y > 9
+    #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
   #endif
 #elif ENABLED(MANUAL_BED_LEVELING)
   #error "MANUAL_BED_LEVELING only applies to MESH_BED_LEVELING."
@@ -1559,8 +1559,8 @@ static_assert(1 >= 0
     #if DISABLED(Z_PROBE_BETWEEN_HEIGHT)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_BETWEEN_HEIGHT
     #endif
-    #if DISABLED(AUTO_BED_LEVELING_GRID_POINTS)
-      #error DEPENDENCY ERROR: Missing setting AUTO_BED_LEVELING_GRID_POINTS
+    #if DISABLED(GRID_MAX_POINTS)
+      #error DEPENDENCY ERROR: Missing setting GRID_MAX_POINTS
     #endif
   #endif
 #endif

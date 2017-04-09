@@ -38,8 +38,7 @@
  * - Disables axis
  * - Travel limits
  * - Axis relative mode
- * - Mesh Bed Leveling (MBL)
- * - Auto Bed Leveling (ABL)
+ * - Bed Leveling
  * - Leveling Fade Height (MBL or ABL)
  * - Safe Z homing
  * - Manual home positions
@@ -375,32 +374,18 @@
 
 
 /*****************************************************************************************
- ******************************* Mesh Bed Leveling ***************************************
- *****************************************************************************************/
-//#define MESH_BED_LEVELING
-
-#define MESH_INSET          10  // Mesh inset margin on print area
-#define MESH_NUM_X_POINTS    3  // Don't use more than 7 points per axis, implementation limited.
-#define MESH_NUM_Y_POINTS    3
-
-// After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
-//#define MESH_G28_REST_ORIGIN
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- ******************************* Auto Bed Leveling (ABL) *********************************
+ ********************************** Bed Leveling *****************************************
  *****************************************************************************************
  *                                                                                       *
- * Select one form of Auto Bed Leveling below.                                           *
+ * Select one from of Bed Leveling below.                                                *
  *                                                                                       *
  *  If you're also using the Probe for Z Homing, it's                                    *
  *  highly recommended to enable Z SAFE HOMING also!                                     *
  *                                                                                       *
- * - 3POINT                                                                              *
- *   Probe 3 arbitrary points on the bed (that aren't collinear)                         *
- *   You specify the XY coordinates of all 3 points.                                     *
- *   The result is a single tilted plane. Best for a flat bed.                           *
+ * - MESH                                                                                *
+ *   Probe several points in a grid.                                                     *
+ *   You specify the rectangle and the density of sample points.                         *
+ *   The result is a mesh.                                                               *
  *                                                                                       *
  * - LINEAR                                                                              *
  *   Probe several points in a grid.                                                     *
@@ -410,23 +395,47 @@
  * - BILINEAR                                                                            *
  *   Probe several points in a grid.                                                     *
  *   You specify the rectangle and the density of sample points.                         *
- *   The result is a mesh, best for large or uneven beds.                                *
+ *   The result is a grid, best for large or uneven beds.                                *
+ *                                                                                       *
+ * - 3POINT                                                                              *
+ *   Probe 3 arbitrary points on the bed (that aren't collinear)                         *
+ *   You specify the XY coordinates of all 3 points.                                     *
+ *   The result is a single tilted plane. Best for a flat bed.                           *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_BED_LEVELING_3POINT
+//#define MESH_BED_LEVELING
 //#define AUTO_BED_LEVELING_LINEAR
 //#define AUTO_BED_LEVELING_BILINEAR
+//#define AUTO_BED_LEVELING_3POINT
 
 // Enable detailed logging of G28, G29, G30, M48, etc.
 // Turn on with the command 'M111 S32'.
 // NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
-/** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
-// Set the number of grid points per dimension
-#define ABL_GRID_POINTS_X 3
-#define ABL_GRID_POINTS_Y 3
+/** START MESH BED LEVELING **/
+// Mesh inset margin on print area
+#define MESH_INSET 10
 
+// Default mesh area is an area with an inset margin on the print area.
+// Below are the macros that are used to define the borders for the mesh
+// area, made available here for specialized needs.
+#define MESH_MIN_X (X_MIN_POS + MESH_INSET)
+#define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
+#define MESH_MIN_Y (Y_MIN_POS + MESH_INSET)
+#define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+
+// After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
+//#define MESH_G28_REST_ORIGIN
+/** END MESH BED LEVELING **/
+
+/** START MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+// Set the number of grid points per dimension
+#define GRID_MAX_POINTS_X 3
+#define GRID_MAX_POINTS_Y 3
+/** END MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+
+/** START AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
 // Set the boundaries for probing (where the probe can reach).
 #define LEFT_PROBE_BED_POSITION 20
 #define RIGHT_PROBE_BED_POSITION 180

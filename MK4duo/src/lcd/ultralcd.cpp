@@ -662,7 +662,7 @@ void kill_screen(const char* lcd_msg) {
     extern void update_case_light();
 
     void toggle_case_light() {
-      case_light_on = !case_light_on;
+      case_light_on ^= true;
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
       update_case_light();
     }
@@ -1363,11 +1363,11 @@ void kill_screen(const char* lcd_msg) {
     // LCD probed points are from defaults
     constexpr uint8_t total_probe_points =
       #if ABL_GRID
-        (ABL_GRID_POINTS_X) * (ABL_GRID_POINTS_Y)
+        (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
       #elif ENABLED(AUTO_BED_LEVELING_3POINT)
         int(3)
       #elif ENABLED(MESH_BED_LEVELING)
-        (MESH_NUM_X_POINTS) * (MESH_NUM_Y_POINTS)
+        (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
       #endif
     ;
 
@@ -3312,7 +3312,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // SDSUPPORT
 
-  void menu_action_setting_edit_bool(const char* pstr, bool* ptr) {UNUSED(pstr); *ptr = !(*ptr); lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
+  void menu_action_setting_edit_bool(const char* pstr, bool* ptr) { UNUSED(pstr); *ptr ^= true; lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
   void menu_action_setting_edit_callback_bool(const char* pstr, bool* ptr, screenFunc_t callback) {
     menu_action_setting_edit_bool(pstr, ptr);
     (*callback)();

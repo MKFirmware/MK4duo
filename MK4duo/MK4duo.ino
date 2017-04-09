@@ -93,7 +93,7 @@
  * M34  - Open file and start print
  * M35  - Upload Firmware to Nextion from SD
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
- * M43  - Monitor pins & report changes - report active pins
+ * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
  * M70  - Power consumption sensor calibration
  * M75  - Start the print job timer

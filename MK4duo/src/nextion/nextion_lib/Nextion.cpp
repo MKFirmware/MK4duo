@@ -445,8 +445,8 @@ void NexObject::SetVisibility(bool visible) {
     _upload_baudrate = upload_baudrate;
   }
 
-  NexUpload::NexUpload(const String file_Name, uint32_t upload_baudrate) {
-    NexUpload(file_Name.c_str(), upload_baudrate);
+  NexUpload::NexUpload(const String file_name, uint32_t upload_baudrate) {
+    NexUpload(file_name.c_str(), upload_baudrate);
   }
 
   void NexUpload::startUpload(void) {

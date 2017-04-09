@@ -448,7 +448,7 @@
 
 // Set the number of grid points per dimension
 // Works best with 5 or more points in each dimension.
-#define AUTO_BED_LEVELING_GRID_POINTS 9
+#define GRID_MAX_POINTS 9
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST

@@ -394,7 +394,7 @@ class NexObject {
        * @param file_name - tft file name.
        * @upload_baudrate - set upload baudrate.
        */
-      NexUpload(const String file_Name, uint32_t upload_baudrate); 
+      NexUpload(const String file_name, uint32_t upload_baudrate); 
 
       /**
        * destructor.
