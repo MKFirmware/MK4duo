@@ -24,10 +24,6 @@
 
 #if ENABLED(SDSUPPORT)
 
-#ifdef ARDUINO_ARCH_SAM
-  #include <avr/dtostrf.h>
-#endif
-
 CardReader::CardReader() {
   sdprinting = cardOK = saving = false;
   fileSize = 0;
@@ -352,16 +348,14 @@ void CardReader::closeFile(bool store_location /*=false*/) {
           temp[50],
           old_file_name[50];
 
-    const char restart_name_File[] = "restart.gcode";
+    const char* restart_name_File = "restart.gcode";
 
     sdprinting = false;
     stepper.synchronize();
 
     snprintf(bufferSdpos, sizeof bufferSdpos, "%lu", (unsigned long)sdpos);
 
-    for (int i = 0; i < strlen(fileName); i++) {
-      old_file_name[i] = tolower(fileName[i]);
-    }
+    strcpy(old_file_name, fileName);
 
     getWorkDirName();
 
