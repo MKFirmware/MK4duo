@@ -579,8 +579,6 @@ static_assert(1 >= 0
   #elif GRID_MAX_POINTS_X > 9 || GRID_MAX_POINTS_Y > 9
     #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
   #endif
-#elif ENABLED(MANUAL_BED_LEVELING)
-  #error "MANUAL_BED_LEVELING only applies to MESH_BED_LEVELING."
 #endif
 
 /**
@@ -753,8 +751,11 @@ static_assert(1 >= 0
  */
 #if ENABLED(LCD_BED_LEVELING) && DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
   #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+#elif ENABLED(LCD_BED_LEVELING) && ENABLED(MESH_BED_LEVELING) && ENABLED(PROBE_MANUALLY)
+  #error "LCD_BED_LEVELING requires one of MESH_BED_LEVELING or PROBE_MANUALLY."
 #endif
 
+// Firmware Retract
 #if ENABLED(FWRETRACT)
   #if DISABLED(MIN_RETRACT)
     #error DEPENDENCY ERROR: Missing setting MIN_RETRACT

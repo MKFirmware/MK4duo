@@ -56,14 +56,16 @@ void ok_to_send();
   void set_bed_leveling_enabled(bool enable=true);
 #endif
 
+#if PLANNER_LEVELING
+  void reset_bed_level();
+#endif
+
 #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-  extern int bilinear_grid_spacing_virt[2];
-  extern void bed_level_virt_prepare();
   extern void bed_level_virt_interpolate();
 #endif
 
-#if PLANNER_LEVELING
-  void reset_bed_level();
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  void set_z_fade_height(const float zfh);
 #endif
 
 void kill(const char *);

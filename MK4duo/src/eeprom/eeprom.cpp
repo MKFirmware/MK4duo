@@ -62,6 +62,9 @@
  *  M206  XYZ             home_offset (float x3)
  *  M218  T   XY          hotend_offset (float x6)
  *
+ * Global Leveling:
+ *                        z_fade_height           (float)
+ *
  * Mesh bed leveling:
  *  M420  S               from mbl.status (bool)
  *                        mbl.z_offset (float)
@@ -183,19 +186,24 @@ void EEPROM::Postprocess() {
     // Software endstops depend on home_offset
     LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
   #endif
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    set_z_fade_height(planner.z_fade_height);
+  #endif
 }
 
 #if ENABLED(EEPROM_SETTINGS)
 
-  uint16_t EEPROM::eeprom_checksum;
-  const char EEPROM::version[6] = EEPROM_VERSION;
+  const char version[6] = EEPROM_VERSION;
 
-  bool  eeprom_write_error,
-        eeprom_read_error;
+  uint16_t EEPROM::eeprom_checksum;
+
+  bool  EEPROM::eeprom_write_error,
+        EEPROM::eeprom_read_error;
 
   #if HAS(EEPROM_SD)
 
-    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+    void EEPROM::write_data(int &pos, const uint8_t* value, uint16_t size) {
       if (eeprom_write_error) return;
 
       while(size--) {
@@ -211,7 +219,7 @@ void EEPROM::Postprocess() {
       };
     }
 
-    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
       if (eeprom_read_error) return;
 
       do {
@@ -225,7 +233,7 @@ void EEPROM::Postprocess() {
 
   #else
 
-    void EEPROM::writeData(int &pos, const uint8_t* value, uint16_t size) {
+    void EEPROM::write_data(int &pos, const uint8_t* value, uint16_t size) {
       if (eeprom_write_error) return;
 
       while(size--) {
@@ -247,7 +255,7 @@ void EEPROM::Postprocess() {
       };
     }
 
-    void EEPROM::readData(int &pos, uint8_t* value, uint16_t size) {
+    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
       do {
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
         if (!eeprom_read_error) *value = c;
@@ -261,8 +269,8 @@ void EEPROM::Postprocess() {
 
   #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
   #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR) writeData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
-  #define EEPROM_READ(VAR)  readData(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
+  #define EEPROM_WRITE(VAR) write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
+  #define EEPROM_READ(VAR)  read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
 
   /**
    * M500 - Store Configuration
@@ -308,6 +316,13 @@ void EEPROM::Postprocess() {
     #endif
     EEPROM_WRITE(home_offset);
     EEPROM_WRITE(hotend_offset);
+
+    //
+    // General Leveling
+    //
+    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+      EEPROM_WRITE(planner.z_fade_height);
+    #endif
 
     //
     // Mesh Bed Leveling
@@ -598,6 +613,13 @@ void EEPROM::Postprocess() {
       EEPROM_READ(hotend_offset);
 
       //
+      // General Leveling
+      //
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        EEPROM_READ(planner.z_fade_height);
+      #endif
+
+      //
       // Mesh (Manual) Bed Leveling
       //
       #if ENABLED(MESH_BED_LEVELING)
@@ -851,15 +873,15 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::Factory_Settings() {
-  const float     tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-  const float     tmp2[] = DEFAULT_MAX_FEEDRATE;
-  const uint32_t  tmp3[] = DEFAULT_MAX_ACCELERATION;
-  const uint32_t  tmp4[] = DEFAULT_RETRACT_ACCELERATION;
-  const float     tmp5[] = DEFAULT_EJERK;
-  const float     tmp6[] = DEFAULT_Kp;
-  const float     tmp7[] = DEFAULT_Ki;
-  const float     tmp8[] = DEFAULT_Kd;
-  const float     tmp9[] = DEFAULT_Kc;
+  const float     tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT,
+                  tmp2[] = DEFAULT_MAX_FEEDRATE;
+  const uint32_t  tmp3[] = DEFAULT_MAX_ACCELERATION,
+                  tmp4[] = DEFAULT_RETRACT_ACCELERATION;
+  const float     tmp5[] = DEFAULT_EJERK,
+                  tmp6[] = DEFAULT_Kp,
+                  tmp7[] = DEFAULT_Ki,
+                  tmp8[] = DEFAULT_Kd,
+                  tmp9[] = DEFAULT_Kc;
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
     constexpr float tmp10[XYZ][4] = {
@@ -904,6 +926,11 @@ void EEPROM::Factory_Settings() {
   planner.max_jerk[X_AXIS] = DEFAULT_XJERK;
   planner.max_jerk[Y_AXIS] = DEFAULT_YJERK;
   planner.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    planner.z_fade_height = 0.0;
+  #endif
+
   #if ENABLED(WORKSPACE_OFFSETS)
     ZERO(home_offset);
   #endif
@@ -1150,19 +1177,31 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(MESH_BED_LEVELING)
+
       CONFIG_MSG_START("Mesh Bed Leveling:");
       SERIAL_SMV(CFG, "  M420 S", mbl.has_mesh() ? 1 : 0);
-      SERIAL_MV(" X", GRID_MAX_POINTS_X);
-      SERIAL_MV(" Y", GRID_MAX_POINTS_Y);
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        SERIAL_MV(" Z", planner.z_fade_height);
+      #endif
       SERIAL_E;
 
       for (uint8_t py = 1; py <= GRID_MAX_POINTS_Y; py++) {
         for (uint8_t px = 1; px <= GRID_MAX_POINTS_X; px++) {
           SERIAL_SMV(CFG, "  G29 S3 X", (int)px);
           SERIAL_MV(" Y", (int)py);
-          SERIAL_EMV(" Z", mbl.z_values[py-1][px-1], 5);
+          SERIAL_EMV(" Z", mbl.z_values[py - 1][px - 1], 5);
         }
       }
+
+    #elif HAS_ABL
+
+      CONFIG_MSG_START("Auto Bed Leveling:");
+      SERIAL_SMV(CFG, "  M320 S", planner.abl_enabled ? 1 : 0);
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        SERIAL_MV(" Z", planner.z_fade_height);
+      #endif
+      SERIAL_EOL;
+
     #endif
 
     #if HEATER_USES_AD595
