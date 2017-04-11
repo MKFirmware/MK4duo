@@ -24,6 +24,8 @@
 
 #if ENABLED(SDSUPPORT)
 
+#include <avr/dtostrf.h>
+
 CardReader::CardReader() {
   sdprinting = cardOK = saving = false;
   fileSize = 0;
@@ -337,14 +339,10 @@ void CardReader::closeFile(bool store_location /*=false*/) {
 
   if (store_location) {
     char  bufferFilerestart[100],
-          bufferX[11],
-          bufferY[11],
-          bufferZ[11],
-          bufferE[11],
-          bufferCoord[50],
-          bufferCoord1[50],
-          bufferCoord2[50],
-          bufferSdpos[11],
+          buffer_G1[50],
+          buffer_G92_Z[50],
+          buffer_G92_E[50],
+          buffer_SDpos[11],
           temp[50],
           old_file_name[50];
 
@@ -353,41 +351,36 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     sdprinting = false;
     stepper.synchronize();
 
-    snprintf(bufferSdpos, sizeof bufferSdpos, "%lu", (unsigned long)sdpos);
+    snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", (unsigned long)sdpos);
 
     strcpy(old_file_name, fileName);
 
     getWorkDirName();
 
     strcpy(bufferFilerestart, "M34 S");
-    strcat(bufferFilerestart, bufferSdpos);
+    strcat(bufferFilerestart, buffer_SDpos);
     strcat(bufferFilerestart, " @");
     strcat(bufferFilerestart, fileName);
     strcat(bufferFilerestart, "/");
     strcat(bufferFilerestart, old_file_name);
 
-    itoa(current_position[X_AXIS], bufferX, 10);
-    itoa(current_position[Y_AXIS], bufferY, 10);
-    itoa(current_position[E_AXIS], bufferE, 10);
+    strcpy(buffer_G1, "G1 X");
+    dtostrf(current_position[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " Y");
+    dtostrf(current_position[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " Z");
+    dtostrf(current_position[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " F3600\n");
 
-    #if MECH(DELTA)
-      itoa(current_position[Z_AXIS], bufferZ, 10);
-    #else
-      itoa(current_position[Z_AXIS] + 5, bufferZ, 10);
-      strcpy(bufferCoord1, "G92 Z");
-      strcat(bufferCoord1, bufferZ);
-      itoa(current_position[Z_AXIS], bufferZ, 10);
+    #if NOMECH(DELTA)
+      strcpy(buffer_G92_Z, "G92 Z");
+      dtostrf(current_position[Z_AXIS] + 5, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+      strcat(buffer_G92_Z, "\n");
     #endif
 
-    strcpy(bufferCoord, "G1 X");
-    strcat(bufferCoord, bufferX);
-    strcat(bufferCoord, " Y");
-    strcat(bufferCoord, bufferY);
-    strcat(bufferCoord, " Z");
-    strcat(bufferCoord, bufferZ);
-    strcat(bufferCoord, " F3600\n");
-    strcpy(bufferCoord2, "G92 E");
-    strcat(bufferCoord2, bufferE);
+    strcpy(buffer_G92_E, "G92 E");
+    dtostrf(current_position[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
+    strcat(buffer_G92_E, "\n");
 
     if (!fileRestart.exists(restart_name_File)) {
       fileRestart.createContiguous(&root, restart_name_File, 1);
@@ -400,8 +393,8 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     #if MECH(DELTA)
       fileRestart.write("G28\n");
     #else
-      fileRestart.write(bufferCoord1);
-      fileRestart.write("\nG28 X Y\n");
+      fileRestart.write(buffer_G92_Z);
+      fileRestart.write("G28 X Y\n");
     #endif
 
     #if ENABLED(MESH_BED_LEVELING)
@@ -432,7 +425,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
 
     fileRestart.write("G92 E0\nG1 E10 F300\nG92 E0\n");
 
-    fileRestart.write(bufferCoord);
+    fileRestart.write(buffer_G1);
 
     #if FAN_COUNT > 0
       FAN_LOOP() {
@@ -444,7 +437,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       }
     #endif
 
-    fileRestart.write(bufferCoord2);
+    fileRestart.write(buffer_G92_E);
     fileRestart.write("\n");
     fileRestart.write(bufferFilerestart);
     fileRestart.write("\n");

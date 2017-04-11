@@ -167,10 +167,6 @@
 #define SPR0    0
 #define SPR1    1
 
-// Delays
-#define CYCLES_EATEN_BY_CODE  12
-#define CYCLES_EATEN_BY_E     12
-
 #define PACK    __attribute__ ((packed))
 
 #undef LOW
