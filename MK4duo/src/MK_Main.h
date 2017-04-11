@@ -91,6 +91,9 @@ extern long   currentLayer,
 extern char   printName[21]; // max. 20 chars + 0
 extern float  progress;
 
+// Count of commands in the queue
+extern uint8_t commands_in_queue;
+
 bool enqueue_and_echo_command(const char* cmd, bool say_ok = false); // put a single ASCII command at the end of the current buffer or return false when it is full
 void enqueue_and_echo_command_now(const char* cmd); // enqueue now, only return when the command has been enqueued
 void enqueue_and_echo_commands_P(const char* cmd);  // put one or many ASCII commands at the end of the current buffer, read from flash

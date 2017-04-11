@@ -385,7 +385,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     strcat(bufferCoord, bufferY);
     strcat(bufferCoord, " Z");
     strcat(bufferCoord, bufferZ);
-    strcat(bufferCoord, " F3600");
+    strcat(bufferCoord, " F3600\n");
     strcpy(bufferCoord2, "G92 E");
     strcat(bufferCoord2, bufferE);
 
@@ -401,8 +401,13 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       fileRestart.write("G28\n");
     #else
       fileRestart.write(bufferCoord1);
-      fileRestart.write("\n");
-      fileRestart.write("G28 X Y\n");
+      fileRestart.write("\nG28 X Y\n");
+    #endif
+
+    #if ENABLED(MESH_BED_LEVELING)
+      if (mbl.active()) fileRestart.write("M420 S1\n");
+    #elif HAS(ABL)
+      if (planner.abl_enabled) fileRestart.write("M320 S1\n");
     #endif
 
     #if HAS(TEMP_BED)
@@ -425,11 +430,9 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       }
     }
 
-    strcpy(temp, "G92 E0\nG1 E10 F300\nG92 E0\n");
-    fileRestart.write(temp);
+    fileRestart.write("G92 E0\nG1 E10 F300\nG92 E0\n");
 
     fileRestart.write(bufferCoord);
-    fileRestart.write("\n");
 
     #if FAN_COUNT > 0
       FAN_LOOP() {
