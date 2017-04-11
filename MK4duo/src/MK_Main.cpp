@@ -122,10 +122,10 @@ static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
  * the main loop. The process_next_command function parses the next
  * command and hands off execution to individual handler functions.
  */
-static char command_queue[BUFSIZE][MAX_CMD_SIZE];
+uint8_t commands_in_queue = 0;          // Count of commands in the queue
 static uint8_t  cmd_queue_index_r = 0,  // Ring buffer read position
-                cmd_queue_index_w = 0,  // Ring buffer write position
-                commands_in_queue = 0;  // Count of commands in the queue
+                cmd_queue_index_w = 0;  // Ring buffer write position
+static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
 /**
  * Current GCode Command
