@@ -3011,7 +3011,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
   #else
     // Loop until the temperature is exactly on target
     #define TEMP_CONDITIONS (wants_to_cool ? thermalManager.isCoolingHotend(target_extruder) : thermalManager.isHeatingHotend(target_extruder))
-  #endif // TEMP_RESIDENCY_TIME
+  #endif
 
   float theTarget = -1.0, old_temp = 9999.0;
   bool wants_to_cool = false;
@@ -3066,7 +3066,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
         residency_start_ms = now;
       }
 
-    #endif // TEMP_RESIDENCY_TIME > 0
+    #endif
 
     // Prevent a wait-forever situation if R is misused i.e. M109 R0
     if (wants_to_cool) {
@@ -3104,7 +3104,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     #else
       // Loop until the temperature is very close target
       #define TEMP_BED_CONDITIONS (wants_to_cool ? thermalManager.isCoolingBed() : thermalManager.isHeatingBed())
-    #endif // TEMP_BED_RESIDENCY_TIME > 0
+    #endif
 
     float theTarget = -1.0, old_temp = 9999.0;
     bool wants_to_cool = false;
@@ -3162,7 +3162,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
           residency_start_ms = now;
         }
 
-      #endif //TEMP_BED_RESIDENCY_TIME > 0
+      #endif
 
       // Prevent a wait-forever situation if R is misused i.e. M190 R0
       if (wants_to_cool) {
@@ -4270,6 +4270,8 @@ inline void gcode_G28() {
       stepper.synchronize();
       old_color = 99;
       active_driver = active_extruder = 0;
+      current_position[E_AXIS] = 0;
+      sync_plan_position_e();
     }
   #endif
 
@@ -7274,9 +7276,9 @@ inline void gcode_M18_M84() {
     }
     else {
       stepper.synchronize();
-      if (code_seen('X')) disable_x();
-      if (code_seen('Y')) disable_y();
-      if (code_seen('Z')) disable_z();
+      if (code_seen('X')) disable_X();
+      if (code_seen('Y')) disable_Y();
+      if (code_seen('Z')) disable_Z();
       #if ((E0_ENABLE_PIN != X_ENABLE_PIN) && (E1_ENABLE_PIN != Y_ENABLE_PIN)) // Only enable on boards that have seperate ENABLE_PINS
         if (code_seen('E')) {
           stepper.disable_e_steppers();
@@ -7651,7 +7653,7 @@ inline void gcode_M109() {
     if (TARGET_EXTRUDER != active_extruder) return;
   #endif
 
-  bool no_wait_for_cooling = code_seen('S');
+  const bool no_wait_for_cooling = code_seen('S');
   if (no_wait_for_cooling || code_seen('R')) {
     thermalManager.setTargetHotend(code_value_temp_abs(), TARGET_EXTRUDER);
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -8087,7 +8089,7 @@ inline void gcode_M122() {
     if (DEBUGGING(DRYRUN)) return;
 
     LCD_MESSAGEPGM(MSG_BED_HEATING);
-    bool no_wait_for_cooling = code_seen('S');
+    const bool no_wait_for_cooling = code_seen('S');
     if (no_wait_for_cooling || code_seen('R'))
       thermalManager.setTargetBed(code_value_temp_abs());
 
@@ -10648,28 +10650,28 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e1();
+            enable_E1();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e2();
+            enable_E2();
             break;
           case 3:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e3();
+            enable_E3();
             break;
         }
 
@@ -10682,19 +10684,19 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e1();
+            enable_E1();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
         }
 
@@ -10707,13 +10709,13 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
         }
 
@@ -10740,13 +10742,13 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
         }
 
@@ -10760,21 +10762,21 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
         }
 
@@ -10788,42 +10790,42 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
             active_driver = 0;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e0();
+            enable_E0();
             break;
           case 3:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e1();
+            enable_E1();
             break;
           case 4:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e1();
+            enable_E1();
             break;
           case 5:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
             active_driver = 1;
             safe_delay(500); // 500 microseconds delay for relay
-            enable_e1();
+            enable_E1();
             break;
         }
 
@@ -13527,13 +13529,13 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   if (M600_TEST && stepper_inactive_time && ELAPSED(ms, previous_cmd_ms + stepper_inactive_time)
       && !ignore_stepper_queue && !planner.blocks_queued()) {
     #if DISABLE_X == true
-      disable_x();
+      disable_X();
     #endif
     #if DISABLE_Y == true
-      disable_y();
+      disable_Y();
     #endif
     #if DISABLE_Z == true
-      disable_z();
+      disable_Z();
     #endif
     #if DISABLE_E == true
       stepper.disable_e_steppers();
@@ -13610,37 +13612,37 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       bool oldstatus;
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         oldstatus = E0_ENABLE_READ;
-        enable_e0();
+        enable_E0();
       #else // !DONDOLO_SINGLE_MOTOR
         switch(active_extruder) {
           case 0:
             oldstatus = E0_ENABLE_READ;
-            enable_e0();
+            enable_E0();
             break;
           #if DRIVER_EXTRUDERS > 1
             case 1:
               oldstatus = E1_ENABLE_READ;
-              enable_e1();
+              enable_E1();
               break;
             #if DRIVER_EXTRUDERS > 2
               case 2:
                 oldstatus = E2_ENABLE_READ;
-                enable_e2();
+                enable_E2();
                 break;
               #if DRIVER_EXTRUDERS > 3
                 case 3:
                   oldstatus = E3_ENABLE_READ;
-                  enable_e3();
+                  enable_E3();
                   break;
                 #if DRIVER_EXTRUDERS > 4
                   case 4:
                     oldstatus = E4_ENABLE_READ;
-                    enable_e4();
+                    enable_E4();
                     break;
                   #if DRIVER_EXTRUDERS > 5
                     case 5:
                       oldstatus = E5_ENABLE_READ;
-                      enable_e5();
+                      enable_E5();
                       break;
                   #endif
                 #endif
@@ -14137,6 +14139,7 @@ void setup() {
   #if ENABLED(DELTA_HOME_ON_POWER)
     home_delta();
   #endif
+
 }
 
 /**

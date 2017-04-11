@@ -419,22 +419,22 @@ void Planner::check_axes_activity() {
     }
   }
   #if DISABLE_X
-    if (!axis_active[X_AXIS]) disable_x();
+    if (!axis_active[X_AXIS]) disable_X();
   #endif
   #if DISABLE_Y
-    if (!axis_active[Y_AXIS]) disable_y();
+    if (!axis_active[Y_AXIS]) disable_Y();
   #endif
   #if DISABLE_Z
-    if (!axis_active[Z_AXIS]) disable_z();
+    if (!axis_active[Z_AXIS]) disable_Z();
   #endif
   #if DISABLE_E
     if (!axis_active[E_AXIS]) {
-      disable_e0();
-      disable_e1();
-      disable_e2();
-      disable_e3();
-      disable_e4();
-      disable_e5();
+      disable_E0();
+      disable_E1();
+      disable_E2();
+      disable_E3();
+      disable_E4();
+      disable_E5();
     }
   #endif
 
@@ -831,29 +831,29 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Enable active axes
   #if CORE_IS_XY
     if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
-      enable_x();
-      enable_y();
+      enable_X();
+      enable_Y();
     }
     #if DISABLED(Z_LATE_ENABLE)
-      if (block->steps[Z_AXIS]) enable_z();
+      if (block->steps[Z_AXIS]) enable_Z();
     #endif
   #elif CORE_IS_XZ
     if (block->steps[A_AXIS] || block->steps[C_AXIS]) {
-      enable_x();
-      enable_z();
+      enable_X();
+      enable_Z();
     }
-    if (block->steps[Y_AXIS]) enable_y();
+    if (block->steps[Y_AXIS]) enable_Y();
   #elif CORE_IS_YZ
     if (block->steps[B_AXIS] || block->steps[C_AXIS]) {
-      enable_y();
-      enable_z();
+      enable_Y();
+      enable_Z();
     }
-    if (block->steps[X_AXIS]) enable_x();
+    if (block->steps[X_AXIS]) enable_X();
   #else
-    if (block->steps[X_AXIS]) enable_x();
-    if (block->steps[Y_AXIS]) enable_y();
+    if (block->steps[X_AXIS]) enable_X();
+    if (block->steps[Y_AXIS]) enable_Y();
     #if DISABLED(Z_LATE_ENABLE)
-      if (block->steps[Z_AXIS]) enable_z();
+      if (block->steps[Z_AXIS]) enable_Z();
     #endif
   #endif
 
@@ -869,24 +869,24 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
         switch(extruder) {
           case 0:
-            enable_e0();
+            enable_E0();
             #if ENABLED(DUAL_X_CARRIAGE)
               if (extruder_duplication_enabled) {
-                enable_e1();
+                enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if EXTRUDERS > 1
-              if (g_uc_extruder_last_move[1] == 0) disable_e1();
+              if (g_uc_extruder_last_move[1] == 0) disable_E1();
               #if EXTRUDERS > 2
-                if (g_uc_extruder_last_move[2] == 0) disable_e2();
+                if (g_uc_extruder_last_move[2] == 0) disable_E2();
                 #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_e3();
+                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_e4();
+                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_e5();
+                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
                     #endif
                   #endif
                 #endif
@@ -895,17 +895,17 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           break;
           #if EXTRUDERS > 1
             case 1:
-              enable_e1();
+              enable_E1();
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
-              if (g_uc_extruder_last_move[0] == 0) disable_e0();
+              if (g_uc_extruder_last_move[0] == 0) disable_E0();
               #if EXTRUDERS > 2
-                if (g_uc_extruder_last_move[2] == 0) disable_e2();
+                if (g_uc_extruder_last_move[2] == 0) disable_E2();
                 #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_e3();
+                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_e4();
+                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_e5();
+                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
                     #endif
                   #endif
                 #endif
@@ -913,55 +913,55 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
             break;
             #if EXTRUDERS > 2
               case 2:
-                enable_e2();
+                enable_E2();
                 g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
-                if (g_uc_extruder_last_move[0] == 0) disable_e0();
-                if (g_uc_extruder_last_move[1] == 0) disable_e1();
+                if (g_uc_extruder_last_move[0] == 0) disable_E0();
+                if (g_uc_extruder_last_move[1] == 0) disable_E1();
                 #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_e3();
+                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_e4();
+                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_e5();
+                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
                     #endif
                   #endif
                 #endif
               break;
               #if EXTRUDERS > 3
                 case 3:
-                  enable_e3();
+                  enable_E3();
                   g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
-                  if (g_uc_extruder_last_move[0] == 0) disable_e0();
-                  if (g_uc_extruder_last_move[1] == 0) disable_e1();
-                  if (g_uc_extruder_last_move[2] == 0) disable_e2();
+                  if (g_uc_extruder_last_move[0] == 0) disable_E0();
+                  if (g_uc_extruder_last_move[1] == 0) disable_E1();
+                  if (g_uc_extruder_last_move[2] == 0) disable_E2();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_e4();
+                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_e5();
+                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
                     #endif
                   #endif
                 break;
                 #if EXTRUDERS > 4
                   case 4:
-                    enable_e4();
+                    enable_E4();
                     g_uc_extruder_last_move[4] = (BLOCK_BUFFER_SIZE) * 2;
-                    if (g_uc_extruder_last_move[0] == 0) disable_e0();
-                    if (g_uc_extruder_last_move[1] == 0) disable_e1();
-                    if (g_uc_extruder_last_move[2] == 0) disable_e2();
-                    if (g_uc_extruder_last_move[3] == 0) disable_e3();
+                    if (g_uc_extruder_last_move[0] == 0) disable_E0();
+                    if (g_uc_extruder_last_move[1] == 0) disable_E1();
+                    if (g_uc_extruder_last_move[2] == 0) disable_E2();
+                    if (g_uc_extruder_last_move[3] == 0) disable_E3();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_e5();
+                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
                     #endif
                   break;
                   #if EXTRUDERS > 5
                     case 4:
-                      enable_e5();
+                      enable_E5();
                       g_uc_extruder_last_move[5] = (BLOCK_BUFFER_SIZE) * 2;
-                      if (g_uc_extruder_last_move[0] == 0) disable_e0();
-                      if (g_uc_extruder_last_move[1] == 0) disable_e1();
-                      if (g_uc_extruder_last_move[2] == 0) disable_e2();
-                      if (g_uc_extruder_last_move[3] == 0) disable_e3();
-                      if (g_uc_extruder_last_move[4] == 0) disable_e4();
+                      if (g_uc_extruder_last_move[0] == 0) disable_E0();
+                      if (g_uc_extruder_last_move[1] == 0) disable_E1();
+                      if (g_uc_extruder_last_move[2] == 0) disable_E2();
+                      if (g_uc_extruder_last_move[3] == 0) disable_E3();
+                      if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     break;
                   #endif // EXTRUDERS > 5
                 #endif // EXTRUDERS > 4
@@ -970,46 +970,46 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           #endif // EXTRUDERS > 1
         }
       #else // enable all
-        enable_e0();
-        enable_e1();
-        enable_e2();
-        enable_e3();
-        enable_e4();
-        enable_e5();
+        enable_E0();
+        enable_E1();
+        enable_E2();
+        enable_E3();
+        enable_E4();
+        enable_E5();
       #endif
     #elif ENABLED(MKR6)
       switch(extruder) {
         case 0:
         case 1:
         case 2:
-          enable_e0();
+          enable_E0();
         break;
         case 3:
         case 4:
         case 5:
-          enable_e1();
+          enable_E1();
         break;
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
-      enable_e0();
+      enable_E0();
     #elif ENABLED(MKR4)
       switch(extruder) {
         case 0:
-          enable_e0();
+          enable_E0();
         break;
         case 1:
-          enable_e1();
+          enable_E1();
         break;
         case 2:
-          enable_e0();
+          enable_E0();
         break;
         case 3:
-          enable_e1();
+          enable_E1();
         break;
       }
     #elif ENABLED(NPR2)
-      enable_e0();
-      enable_e1();
+      enable_E0();
+      enable_E1();
     #endif
   }
 
