@@ -24,7 +24,9 @@
 
 #if ENABLED(SDSUPPORT)
 
-#include <avr/dtostrf.h>
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #include <avr/dtostrf.h>
+#endif
 
 CardReader::CardReader() {
   sdprinting = cardOK = saving = false;
