@@ -2626,7 +2626,7 @@ void kill_screen(const char* lcd_msg) {
       char cmd[20];
 
       sprintf_P(cmd, PSTR("G0 Z%s F150"), ftostr52sign(focus));
-      enqueue_and_echo_command_now(cmd);
+      enqueue_and_echo_commands_P(cmd);
     }
 
   #endif // LASERBEAM

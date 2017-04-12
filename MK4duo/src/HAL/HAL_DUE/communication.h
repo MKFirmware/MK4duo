@@ -51,8 +51,8 @@ class Com {
     static void print(long value);
     static inline void print(char c) { HAL::serialWriteByte(c); }
     static inline void print(uint32_t value) { printNumber(value); }
-    static inline void print(int value) { print((int32_t)value); }
-    static inline void print(uint16_t value) { print((int32_t)value); }
+    static inline void print(int value) { print((long)value); }
+    static inline void print(uint16_t value) { print((long)value); }
     static inline void print(float number) { printFloat(number, 6); }
     static inline void print(float number, uint8_t digits) { printFloat(number, digits); }
     static inline void print(double number) { printFloat(number, 6); }
