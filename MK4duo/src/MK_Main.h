@@ -218,10 +218,6 @@ float code_value_temp_diff();
   extern int fanSpeeds[FAN_COUNT];
 #endif
 
-#if HAS(CONTROLLERFAN)
-  extern uint8_t controllerFanSpeed;
-#endif
-
 #if HAS(AUTO_FAN)
   extern uint8_t autoFanSpeeds[HOTENDS];
 #endif
