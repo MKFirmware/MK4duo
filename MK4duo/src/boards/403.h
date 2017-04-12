@@ -120,7 +120,3 @@
 
 // SPI for Max6675 Thermocouple
 #define MAX6675_SS              53
-
-
-
-
