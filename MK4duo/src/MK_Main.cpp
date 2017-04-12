@@ -519,49 +519,6 @@ static bool send_ok[BUFSIZE];
   #define KEEPALIVE_STATE(n) NOOP
 #endif // HOST_KEEPALIVE_FEATURE
 
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
-  // top_of_stack() returns the location of a variable on its stack frame.  The value returned is above
-  // the stack once the function returns to the caller.
-
-  unsigned char* top_of_stack() {
-    unsigned char x;
-    return &x + 1; // x is pulled on return;
-  }
-
-  //
-  // 3 support routines to print hex numbers.  We can print a nibble, byte and word
-  //
-  void prt_hex_nibble( unsigned int n ) {
-    if ( n <= 9 )
-      SERIAL_V(n);
-    else
-      SERIAL_V((char)('A' + n - 10));
-    HAL::delayMilliseconds(2);
-  }
-
-  void prt_hex_byte(unsigned int b) {
-    prt_hex_nibble(( b & 0xf0) >> 4);
-    prt_hex_nibble(b & 0x0f);
-  }
-
-  void prt_hex_word(unsigned int w) {
-    prt_hex_byte((w & 0xff00) >> 8);
-    prt_hex_byte(w & 0x0ff);
-  }
-
-  // how_many_E5s_are_here() is a utility function to easily find out how many 0xE5's are
-  // at the specified location. Having this logic as a function simplifies the search code.
-  //
-  int how_many_E5s_are_here( unsigned char* p) {
-    int n;
-    for (n = 0; n < 32000; n++) {
-      if (*(p + n) != (unsigned char) 0xe5)
-        return n - 1;
-    }
-    return -1;
-  }
-#endif // M100_FREE_MEMORY_WATCHER
-
 static inline float pgm_read_any(const float *p) { return pgm_read_float_near(p); }
 static inline signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
 
@@ -675,47 +632,8 @@ inline void sync_plan_position_e() { planner.set_e_position_mm(current_position[
 
 #endif
 
-inline void echo_command(const char* cmd) {
-  SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
-  SERIAL_C('"');
-  SERIAL_E;
-}
-
 /**
- * Push a command in RAM to the front of the main command queue.
- * Return true if the command is successfully added.
- */
-inline bool _pushcommand(const char* cmd, bool say_ok = false) {
-  if (*cmd == ';' || commands_in_queue >= BUFSIZE) return false;
-  cmd_queue_index_r = (cmd_queue_index_r + BUFSIZE - 1) % BUFSIZE;
-  commands_in_queue++;
-  strcpy(command_queue[cmd_queue_index_r], cmd);
-  send_ok[cmd_queue_index_r] = say_ok;
-  return true;
-}
-
-/**
- * Push a command to the front of the queue with Serial Echo
- * Return true if the command is successfully added.
- */
-bool push_and_echo_command(const char* cmd, bool say_ok = false) {
-  if (_pushcommand(cmd, say_ok)) {
-    echo_command(cmd);
-    return true;
-  }
-  return false;
-}
-
-/**
- * push a command onto the front of the queue,
- * and don't return until successful.
- */
-void push_and_echo_command_now(const char* cmd) {
-  while (!push_and_echo_command(cmd)) idle();
-}
-
-/**
- * Inject the next "immediate" command, when possible.
+ * Inject the next "immediate" command, when possible, onto the front of the queue.
  * Return true if any immediate commands remain to inject.
  */
 static bool drain_injected_commands_P() {
@@ -726,10 +644,10 @@ static bool drain_injected_commands_P() {
     cmd[sizeof(cmd) - 1] = '\0';
     while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
     cmd[i] = '\0';
-    if (push_and_echo_command(cmd))     // success?
+    if (enqueue_and_echo_command(cmd))     // success?
       injected_commands_P = c ? injected_commands_P + i + 1 : NULL; // next command or done
   }
-  return (injected_commands_P != NULL);      // return whether any more remain
+  return (injected_commands_P != NULL);    // return whether any more remain
 }
 
 /**
@@ -776,14 +694,12 @@ inline bool _enqueuecommand(const char* cmd, bool say_ok = false) {
  */
 bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   if (_enqueuecommand(cmd, say_ok)) {
-    echo_command(cmd);
+    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
+    SERIAL_C('"');
+    SERIAL_E;
     return true;
   }
   return false;
-}
-
-void enqueue_and_echo_command_now(const char* cmd) {
-  while (!enqueue_and_echo_command(cmd)) idle();
 }
 
 void setup_killpin() {
@@ -4447,7 +4363,7 @@ inline void gcode_G28() {
           mbl_mesh_report();
         }
         else
-          SERIAL_EM("Mesh bed leveling not active.");
+          SERIAL_EM("Mesh bed leveling has no data.");
         break;
 
       case MeshStart:
@@ -7369,183 +7285,6 @@ inline void gcode_M92() {
     }
   }
 #endif // HYSTERESIS
-
-/**
- * M100 Free Memory Watcher
- *
- * This code watches the free memory block between the bottom of the heap and the top of the stack.
- * This memory block is initialized and watched via the M100 command.
- *
- * M100 I Initializes the free memory block and prints vitals statistics about the area
- * M100 F Identifies how much of the free memory block remains free and unused. It also
- *        detects and reports any corruption within the free memory block that may have
- *        happened due to errant firmware.
- * M100 D Does a hex display of the free memory block along with a flag for any errant
- *        data that does not match the expected value.
- * M100 C x Corrupts x locations within the free memory block. This is useful to check the
- *        correctness of the M100 F and M100 D commands.
- *
- * Initial version by Roxy-3DPrintBoard
- *
- */
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
-  inline void gcode_M100() {
-    static int m100_not_initialized = 1;
-    unsigned char* sp, *ptr;
-    int i, j, n;
-
-    // M100 D dumps the free memory block from __brkval to the stack pointer.
-    // malloc() eats memory from the start of the block and the stack grows
-    // up from the bottom of the block.    Solid 0xE5's indicate nothing has
-    // used that memory yet.   There should not be anything but 0xE5's within
-    // the block of 0xE5's.  If there is, that would indicate memory corruption
-    // probably caused by bad pointers.  Any unexpected values will be flagged in
-    // the right hand column to help spotting them.
-    #if ENABLED(M100_FREE_MEMORY_DUMPER) // Disable to remove Dump sub-command
-      if (code_seen('D')) {
-        ptr = (unsigned char*) __brkval;
-
-        // We want to start and end the dump on a nice 16 byte boundary even though
-        // the values we are using are not 16 byte aligned.
-        //
-        SERIAL_M("\n__brkval : ");
-        prt_hex_word((unsigned int) ptr);
-        ptr = (unsigned char*)((unsigned long) ptr & 0xfff0);
-        sp = top_of_stack();
-        SERIAL_M("\nStack Pointer : ");
-        prt_hex_word((unsigned int) sp);
-        SERIAL_E;
-        sp = (unsigned char*)((unsigned long) sp | 0x000f);
-        n = sp - ptr;
-        //
-        // This is the main loop of the Dump command.
-        //
-        while (ptr < sp) {
-          prt_hex_word((unsigned int) ptr);  // Print the address
-          SERIAL_C(':');
-          for (i = 0; i < 16; i++) {     // and 16 data bytes
-            prt_hex_byte(*(ptr+i));
-            SERIAL_C(' ');
-            HAL::delayMilliseconds(2);
-          }
-          SERIAL_C('|');        // now show where non 0xE5's are
-          for (i = 0; i < 16; i++) {
-            HAL::delayMilliseconds(2);
-            if (*(ptr + i) == 0xe5)
-              SERIAL_C(' ');
-            else
-              SERIAL_C('?');
-          }
-          SERIAL_E;
-          ptr += 16;
-          HAL::delayMilliseconds(2);
-        }
-        SERIAL_EM("Done.");
-        return;
-      }
-    #endif
-
-    //
-    // M100 F   requests the code to return the number of free bytes in the memory pool along with
-    // other vital statistics that define the memory pool.
-    //
-    if (code_seen('F')) {
-      #if 0
-        int max_addr = (int) __brkval;
-        int max_cnt = 0;
-      #endif
-      int block_cnt = 0;
-      ptr = (unsigned char*) __brkval;
-      sp = top_of_stack();
-      n = sp - ptr;
-      // Scan through the range looking for the biggest block of 0xE5's we can find
-      for (i = 0; i < n; i++) {
-        if (*(ptr + i) == (unsigned char) 0xe5) {
-          j = how_many_E5s_are_here((unsigned char*) ptr + i);
-          if ( j > 8) {
-            SERIAL_MV("Found ", j);
-            SERIAL_M(" bytes free at 0x");
-            prt_hex_word((int) ptr + i);
-            SERIAL_E;
-            i += j;
-            block_cnt++;
-          }
-          #if 0
-            if (j > max_cnt) {  // We don't do anything with this information yet
-              max_cnt  = j;     // but we do know where the biggest free memory block is.
-              max_addr = (int) ptr + i;
-            }
-          #endif
-        }
-      }
-      if (block_cnt > 1)
-          SERIAL_EM("\nMemory Corruption detected in free memory area.\n");
-
-      SERIAL_EM("\nDone.");
-      return;
-    }
-
-    //
-    // M100 C x  Corrupts x locations in the free memory pool and reports the locations of the corruption.
-    // This is useful to check the correctness of the M100 D and the M100 F commands.
-    //
-    #if ENABLED(M100_FREE_MEMORY_CORRUPTOR)
-      if (code_seen('C')) {
-        int x = code_value_int(); // x gets the # of locations to corrupt within the memory pool
-        SERIAL_EM("Corrupting free memory block.\n");
-        ptr = (unsigned char*) __brkval;
-        SERIAL_MV("\n__brkval : ", ptr);
-        ptr += 8;
-        sp = top_of_stack();
-        SERIAL_MV("\nStack Pointer : ", sp);
-        SERIAL_EM("\n");
-        n = sp - ptr - 64;  // -64 just to keep us from finding interrupt activity that
-        // has altered the stack.
-        j = n / (x + 1);
-        for (i = 1; i <= x; i++) {
-          *(ptr + (i * j)) = i;
-          SERIAL_M("\nCorrupting address: 0x");
-          prt_hex_word((unsigned int)(ptr + (i * j)));
-        }
-        SERIAL_EM("\n");
-        return;
-      }
-    #endif
-
-    //
-    // M100 I    Initializes the free memory pool so it can be watched and prints vital
-    // statistics that define the free memory pool.
-    //
-    if (m100_not_initialized || code_seen('I')) {     // If no sub-command is specified, the first time
-      SERIAL_EM("Initializing free memory block.\n");   // this happens, it will Initialize.
-      ptr = (unsigned char*) __brkval;        // Repeated M100 with no sub-command will not destroy the
-      SERIAL_MV("\n__brkval : ",(long) ptr);    // state of the initialized free memory pool.
-      ptr += 8;
-      sp = top_of_stack();
-      SERIAL_MV("\nStack Pointer : ", sp);
-      SERIAL_EM("\n");
-      n = sp - ptr - 64;    // -64 just to keep us from finding interrupt activity that
-      // has altered the stack.
-      SERIAL_V(n);
-      SERIAL_EM(" bytes of memory initialized.\n");
-
-      for (i = 0; i < n; i++)
-        *(ptr+i) = (unsigned char) 0xe5;
-
-      for (i = 0; i < n; i++) {
-        if ( *(ptr + i) != (unsigned char) 0xe5) {
-          SERIAL_MV("? address : ", ptr + i);
-          SERIAL_MV("=", *(ptr + i));
-          SERIAL_EM("\n");
-        }
-      }
-      m100_not_initialized = 0;
-      SERIAL_EM("Done.\n");
-      return;
-    }
-    return;
-  }
-#endif
 
 /**
  * M104: Set hotend temperature

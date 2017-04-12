@@ -65,7 +65,7 @@ void ok_to_send();
 #endif
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  void set_z_fade_height(const float zfh);
+  extern void set_z_fade_height(const float zfh);
 #endif
 
 void kill(const char *);
@@ -94,9 +94,8 @@ extern float  progress;
 // Count of commands in the queue
 extern uint8_t commands_in_queue;
 
-bool enqueue_and_echo_command(const char* cmd, bool say_ok = false); // put a single ASCII command at the end of the current buffer or return false when it is full
-void enqueue_and_echo_command_now(const char* cmd); // enqueue now, only return when the command has been enqueued
-void enqueue_and_echo_commands_P(const char* cmd);  // put one or many ASCII commands at the end of the current buffer, read from flash
+bool enqueue_and_echo_command(const char* cmd, bool say_ok = false);  // Add a single command to the end of the buffer. Return false on failure.
+void enqueue_and_echo_commands_P(const char* cmd);                    // Set one or more commands to be prioritized over the next Serial/SD command.
 void clear_command_queue();
 
 void prepare_arc_move(char isclockwise);
@@ -327,20 +326,5 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
-
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
-  extern void *__brkval;
-  extern size_t  __heap_start, __heap_end, __flp;
-
-  //
-  // Utility functions used by M100 to get its work done.
-  //
-  unsigned char *top_of_stack();
-  void prt_hex_nibble( unsigned int );
-  void prt_hex_byte(unsigned int );
-  void prt_hex_word(unsigned int );
-  int how_many_E5s_are_here( unsigned char *);
-
-#endif
 
 #endif // _MK_MAIN_H
