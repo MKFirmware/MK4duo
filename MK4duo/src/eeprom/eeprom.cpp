@@ -1185,11 +1185,11 @@ void EEPROM::Factory_Settings() {
       #endif
       SERIAL_E;
 
-      for (uint8_t py = 1; py <= GRID_MAX_POINTS_Y; py++) {
-        for (uint8_t px = 1; px <= GRID_MAX_POINTS_X; px++) {
-          SERIAL_SMV(CFG, "  G29 S3 X", (int)px);
-          SERIAL_MV(" Y", (int)py);
-          SERIAL_EMV(" Z", mbl.z_values[py - 1][px - 1], 5);
+      for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
+        for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
+          SERIAL_SMV(CFG, "  G29 S3 X", (int)px + 1);
+          SERIAL_MV(" Y", (int)py + 1);
+          SERIAL_EMV(" Z", mbl.z_values[px][py], 5);
         }
       }
 

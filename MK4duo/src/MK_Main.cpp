@@ -4312,11 +4312,11 @@ inline void gcode_G28() {
   void say_not_entered() { SERIAL_EM(" not entered."); }
 
   void mbl_mesh_report() {
-    SERIAL_LM(ECHO, "Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
-    SERIAL_LMV(ECHO, "Z offset: ", mbl.z_offset, 5);
-    SERIAL_LM(ECHO, "Measured points:");
+    SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
+    SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
+    SERIAL_EM("Measured points:");
     print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
-      [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[iy][ix]; }
+      [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[ix][iy]; }
     );
   }
 
@@ -4447,7 +4447,7 @@ inline void gcode_G28() {
         }
 
         if (code_seen('Z')) {
-          mbl.z_values[py][px] = code_value_axis_units(Z_AXIS);
+          mbl.z_values[px][py] = code_value_axis_units(Z_AXIS);
         }
         else {
           SERIAL_C('Z'); say_not_entered();
@@ -5622,6 +5622,14 @@ inline void gcode_G28() {
    *      X = Probe X position (default=current probe position)
    *      Y = Probe Y position (default=current probe position)
    *      A = Autocalibration
+   *      F = Num Factors 3 or 4 or 6 or 7
+   *        The input vector contains the following parameters in this order:
+   *          X, Y and Z endstop adjustments
+   *          Delta radius
+   *          X tower position adjustment and Y tower position adjustment
+   *          Diagonal rod length adjustment
+   *      P = Num probe points 7 or 10
+   *      Q = Debugging
    *      S = Stows the probe if 1 (default=1)
    *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset
    */
@@ -5642,17 +5650,11 @@ inline void gcode_G28() {
       #endif
     #endif
 
-    #if MECH(DELTA)
-      // Homing
-      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS]) {
-        home_delta();
-        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-      }
-    #else
-      // Don't allow auto-levelling without homing first
-      if (axis_unhomed_error(true, true, true)) return;
-    #endif
-
+    // Homing
+    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS]) {
+      home_delta();
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+    }
     stepper.synchronize();  // wait until the machine is idle
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -5666,10 +5668,10 @@ inline void gcode_G28() {
       #define ABL_VAR
     #endif
 
-    const uint8_t   MaxCalibrationPoints = 10,
-                    numFactors = 7;
-    ABL_VAR uint8_t numPoints,
-                    probe_index;
+    const uint8_t   MaxCalibrationPoints = 10;
+
+    ABL_VAR uint8_t probe_index;
+
     ABL_VAR float   xBedProbePoints[MaxCalibrationPoints],
                     yBedProbePoints[MaxCalibrationPoints],
                     zBedProbePoints[MaxCalibrationPoints],
@@ -5687,7 +5689,10 @@ inline void gcode_G28() {
     #endif
     endstops.enable(true); // Enable endstops for next homing move
 
-    bool stow = code_seen('S') ? code_value_bool() : true;
+    ABL_VAR uint8_t numFactors = code_seen('F') ? constrain(code_value_int(), 3, 7) : 7;
+    ABL_VAR uint8_t numPoints  = code_seen('P') ? constrain(code_value_int(), 7, 10) : 7;
+
+    const bool stow = code_seen('S') ? code_value_bool() : true;
 
     if (code_seen('A')) {
 
@@ -5697,7 +5702,10 @@ inline void gcode_G28() {
          * On the initial G30 fetch command parameters.
          */
         if (!g30_in_progress) {
-          numPoints = code_value_int() <= 7 ? 7 : 10;
+          SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
+          SERIAL_MV(" points and ", numFactors);
+          SERIAL_EM(" Factors");
+          LCD_MESSAGEPGM("Auto Calibration...");
           probe_index = 0;
           #if HAS(NEXTION_MANUAL_BED)
             LcdBedLevelOn();
@@ -5774,100 +5782,19 @@ inline void gcode_G28() {
           #if HAS_SOFTWARE_ENDSTOPS
             soft_endstops_enabled = enable_soft_endstops;
           #endif
-          
-          using namespace mm;
-          MathMatrix<float, MaxCalibrationPoints, ABC> probeMotorPositions;
-          float corrections[numPoints];
-
-          initialSumOfSquares = 0.0;
-
-          // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
-          for (uint8_t i = 0; i < numPoints; ++i) {
-            corrections[i] = 0.0;
-            float machinePos[ABC];
-            float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
-
-            xp -= X_PROBE_OFFSET_FROM_NOZZLE;
-            yp -= Y_PROBE_OFFSET_FROM_NOZZLE;
-            machinePos[A_AXIS] = xp;
-            machinePos[B_AXIS] = yp;
-            machinePos[C_AXIS] = 0.0;
-
-            deltaParams.inverse_kinematics_DELTA(machinePos);
-
-            for(uint8_t axis = 0; axis < ABC; axis++)
-              probeMotorPositions(i, axis) = delta[axis];
-
-            initialSumOfSquares += sq(zBedProbePoints[i]);
-          }
-
-          // Do 1 or more Newton-Raphson iterations
-          uint8_t iteration = 0;
-
-          do {
-            iteration++;
-
-            MathMatrix<float, MaxCalibrationPoints, numFactors> derivativeMatrix;
-            for (uint8_t i = 0; i < numPoints; i++) {
-              for (uint8_t j = 0; j < numFactors; j++) {
-                derivativeMatrix(i, j) =
-                  deltaParams.ComputeDerivative(j, probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS));
-              }
-            }
-
-            MathMatrix<float, numFactors, numFactors + 1> normalMatrix;
-            for (uint8_t i = 0; i < numFactors; i++) {
-              for (uint8_t j = 0; j < numFactors; j++) {
-                float temp = derivativeMatrix(0, i) * derivativeMatrix(0, j);
-                for (uint8_t k = 1; k < numPoints; k++) {
-                  temp += derivativeMatrix(k, i) * derivativeMatrix(k, j);
-                }
-                normalMatrix(i, j) = temp;
-              }
-              float temp = derivativeMatrix(0, i) * -(zBedProbePoints[0] + corrections[0]);
-              for (uint8_t k = 1; k < numPoints; k++) {
-                temp += derivativeMatrix(k, i) * -(zBedProbePoints[k] + corrections[k]);
-              }
-              normalMatrix(i, numFactors) = temp;
-            }
-
-            float solution[numFactors];
-            normalMatrix.GaussJordan(solution, numFactors);
-
-            deltaParams.Adjust(numFactors, solution);
-
-            // Calculate the expected probe heights using the new parameters
-            float expectedResiduals[MaxCalibrationPoints];
-            float sumOfSquares = 0.0;
-
-            for (int8_t i = 0; i < numPoints; i++) {
-              LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
-              float newPosition[ABC];
-              deltaParams.forward_kinematics_DELTA(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
-              corrections[i] = newPosition[Z_AXIS];
-              expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
-              sumOfSquares += sq(expectedResiduals[i]);
-            }
-
-            expectedRmsError = SQRT(sumOfSquares / numPoints);
-
-          } while (iteration < 2);
         }
 
       #else
 
-        numPoints = code_value_int() <= 7 ? 7 : 10;
-
         SERIAL_MV("Starting Auto Calibration ", numPoints);
-        SERIAL_EM(" points");
+        SERIAL_MV(" points and ", numFactors);
+        SERIAL_EM(" Factors");
         LCD_MESSAGEPGM("Auto Calibration...");
 
-        if (numPoints >= 7) {
-          for (probe_index = 0; probe_index < 6; probe_index++) {
-            xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
-            yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
-            zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
-          }
+        for (probe_index = 0; probe_index < 6; probe_index++) {
+          xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
+          yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
+          zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         }
         if (numPoints >= 10) {
           for (probe_index = 6; probe_index < 9; probe_index++) {
@@ -5885,85 +5812,127 @@ inline void gcode_G28() {
           zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4);
         }
 
-        using namespace mm;
-        MathMatrix<float, MaxCalibrationPoints, ABC> probeMotorPositions;
-        float corrections[numPoints],
-              initialSumOfSquares = 0.0;
+      #endif
 
-        // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
-        for (uint8_t i = 0; i < numPoints; ++i) {
-          corrections[i] = 0.0;
-          float machinePos[ABC];
-          float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
+      float probeMotorPositions[MaxCalibrationPoints][ABC],
+            corrections[numPoints];
 
-          xp -= X_PROBE_OFFSET_FROM_NOZZLE;
-          yp -= Y_PROBE_OFFSET_FROM_NOZZLE;
-          machinePos[A_AXIS] = xp;
-          machinePos[B_AXIS] = yp;
-          machinePos[C_AXIS] = 0.0;
+      initialSumOfSquares = 0.0;
 
-          deltaParams.inverse_kinematics_DELTA(machinePos);
+      // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
+      for (uint8_t i = 0; i < numPoints; ++i) {
+        corrections[i] = 0.0;
+        float machinePos[ABC];
+        float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
 
-          for(uint8_t axis = 0; axis < ABC; axis++)
-            probeMotorPositions(i, axis) = delta[axis];
+        xp -= X_PROBE_OFFSET_FROM_NOZZLE;
+        yp -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        machinePos[A_AXIS] = xp;
+        machinePos[B_AXIS] = yp;
+        machinePos[C_AXIS] = 0.0;
 
-          initialSumOfSquares += sq(zBedProbePoints[i]);
+        deltaParams.inverse_kinematics_DELTA(machinePos);
+
+        for(uint8_t axis = 0; axis < ABC; axis++)
+          probeMotorPositions[i][axis] = delta[axis];
+
+        initialSumOfSquares += sq(zBedProbePoints[i]);
+      }
+
+      // Do 1 or more Newton-Raphson iterations
+      uint8_t iteration = 0;
+
+      do {
+        iteration++;
+
+        float derivativeMatrix[MaxCalibrationPoints][numFactors],
+              normalMatrix[numFactors][numFactors + 1];
+
+        for (uint8_t i = 0; i < numPoints; i++) {
+          for (uint8_t j = 0; j < numFactors; j++) {
+            derivativeMatrix[i][j] =
+              deltaParams.ComputeDerivative(j, probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS]);
+          }
         }
 
-        // Do 1 or more Newton-Raphson iterations
-        uint8_t iteration = 0;
-
-        do {
-          iteration++;
-
-          MathMatrix<float, MaxCalibrationPoints, numFactors> derivativeMatrix;
-          for (uint8_t i = 0; i < numPoints; i++) {
-            for (uint8_t j = 0; j < numFactors; j++) {
-              derivativeMatrix(i, j) =
-                deltaParams.ComputeDerivative(j, probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS));
-            }
-          }
-
-          MathMatrix<float, numFactors, numFactors + 1> normalMatrix;
-          for (uint8_t i = 0; i < numFactors; i++) {
-            for (uint8_t j = 0; j < numFactors; j++) {
-              float temp = derivativeMatrix(0, i) * derivativeMatrix(0, j);
-              for (uint8_t k = 1; k < numPoints; k++) {
-                temp += derivativeMatrix(k, i) * derivativeMatrix(k, j);
-              }
-              normalMatrix(i, j) = temp;
-            }
-            float temp = derivativeMatrix(0, i) * -(zBedProbePoints[0] + corrections[0]);
+        for (uint8_t i = 0; i < numFactors; i++) {
+          for (uint8_t j = 0; j < numFactors; j++) {
+            float temp = derivativeMatrix[0][i] * derivativeMatrix[0][j];
             for (uint8_t k = 1; k < numPoints; k++) {
-              temp += derivativeMatrix(k, i) * -(zBedProbePoints[k] + corrections[k]);
+              temp += derivativeMatrix[k][i] * derivativeMatrix[k][j];
             }
-            normalMatrix(i, numFactors) = temp;
+            normalMatrix[i][j] = temp;
+          }
+          float temp = derivativeMatrix[0][i] * -(zBedProbePoints[0] + corrections[0]);
+          for (uint8_t k = 1; k < numPoints; k++) {
+            temp += derivativeMatrix[k][i] * -(zBedProbePoints[k] + corrections[k]);
+          }
+          normalMatrix[i][numFactors] = temp;
+        }
+
+        float solution[numFactors];
+
+        // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
+        // Returns a pointer to the solution vector.
+        for (uint8_t i = 0; i < numFactors; i++) {
+          // Swap the rows around for stable Gauss-Jordan elimination
+          float vmax = abs(normalMatrix[i][i]);
+          for (uint8_t j = i + 1; j < numFactors; j++) {
+            const float rmax = abs(normalMatrix[j][i]);
+            if (rmax > vmax) {
+              // Swap 2 rows of a matrix
+              if (i != j) {
+                for (uint8_t k = 0; k < numFactors + 1; k++) {
+                  const float temp = normalMatrix[i][k];
+                  normalMatrix[i][k] = normalMatrix[j][k];
+                  normalMatrix[j][k] = temp;
+                }
+              }
+              vmax = rmax;
+            }
           }
 
-          float solution[numFactors];
-          normalMatrix.GaussJordan(solution, numFactors);
-
-          deltaParams.Adjust(numFactors, solution);
-
-          // Calculate the expected probe heights using the new parameters
-          float expectedResiduals[MaxCalibrationPoints];
-          float sumOfSquares = 0.0;
-
-          for (int8_t i = 0; i < numPoints; i++) {
-            LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
-            float newPosition[ABC];
-            deltaParams.forward_kinematics_DELTA(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
-            corrections[i] = newPosition[Z_AXIS];
-            expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
-            sumOfSquares += sq(expectedResiduals[i]);
+          // Use row i to eliminate the ith element from previous and subsequent rows
+          float v = normalMatrix[i][i];
+          for (uint8_t j = 0; j < i; j++)	{
+            float factor = normalMatrix[j][i] / v;
+            normalMatrix[j][i] = 0.0;
+            for (uint8_t k = i + 1; k <= numFactors; k++) {
+              normalMatrix[j][k] -= normalMatrix[i][k] * factor;
+            }
           }
 
-          expectedRmsError = SQRT(sumOfSquares / numPoints);
+          for (uint8_t j = i + 1; j < numFactors; j++) {
+            float factor = normalMatrix[j][i] / v;
+            normalMatrix[j][i] = 0.0;
+            for (uint8_t k = i + 1; k <= numFactors; k++) {
+              normalMatrix[j][k] -= normalMatrix[i][k] * factor;
+            }
+          }
+        }
 
-        } while (iteration < 2);
+        for (uint8_t i = 0; i < numFactors; i++)	{
+          solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
+        }
+        deltaParams.Adjust(numFactors, solution);
 
-      #endif
-      
+        // Calculate the expected probe heights using the new parameters
+        float expectedResiduals[MaxCalibrationPoints];
+        float sumOfSquares = 0.0;
+
+        for (int8_t i = 0; i < numPoints; i++) {
+          LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
+          float newPosition[ABC];
+          deltaParams.forward_kinematics_DELTA(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
+          corrections[i] = newPosition[Z_AXIS];
+          expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
+          sumOfSquares += sq(expectedResiduals[i]);
+        }
+
+        expectedRmsError = SQRT(sumOfSquares / numPoints);
+
+      } while (iteration < 2);
+
       SERIAL_MV("Calibrated ", numFactors);
       SERIAL_MV(" factors using ", numPoints);
       SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
@@ -6012,7 +5981,7 @@ inline void gcode_G28() {
         if (!position_is_reachable(pos, true)) return;
 
         float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
-              new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z - zprobe_zoffset;
+              new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - (measured_z - zprobe_zoffset);
 
         SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
         SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(current_position[X_AXIS]), 3);
@@ -9016,8 +8985,9 @@ inline void gcode_M400() { stepper.synchronize(); }
   /**
    * M420: Enable/Disable Bed Leveling and/or set the Z fade height.
    *
-   *       S[bool]   Turns leveling on or off
-   *       Z[height] Sets the Z fade height (0 or none to disable)
+   *    S[bool]   Turns leveling on or off
+   *    Z[height] Sets the Z fade height (0 or none to disable)
+   *    V[bool]   Verbose - Print the leveling grid
    */
   inline void gcode_M420() {
     bool to_enable = false;
@@ -9047,7 +9017,7 @@ inline void gcode_M400() { stepper.synchronize(); }
    * Use either 'M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>'
    */
   inline void gcode_M421() {
-    int8_t px, py;
+    int8_t px = 0, py = 0;
     float z = 0;
     bool hasX, hasY, hasZ, hasI, hasJ;
     if ((hasX = code_seen('X'))) px = mbl.probe_index_x(code_value_axis_units(X_AXIS));
@@ -9065,7 +9035,7 @@ inline void gcode_M400() { stepper.synchronize(); }
       }
     }
     else if (hasI && hasJ && hasZ) {
-      if (px >= 0 && px < GRID_MAX_POINTS_X && py >= 0 && py < GRID_MAX_POINTS_Y)
+      if (WITHIN(px, 0, GRID_MAX_POINTS_X - 1) && WITHIN(py, 0, GRID_MAX_POINTS_Y - 1))
         mbl.set_z(px, py, z);
       else {
         SERIAL_LM(ER, MSG_ERR_MESH_XY);

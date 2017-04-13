@@ -151,7 +151,7 @@
     return ((float)zHi - (float)zLo) / (2 * perturb);
   }
 
-  // Perform 3, 4, 6, 7-factor adjustment.
+  // Perform 3, 4, 6, 7 - factor adjustment.
   // The input vector contains the following parameters in this order:
   //  X, Y and Z endstop adjustments
   //  Delta radius
