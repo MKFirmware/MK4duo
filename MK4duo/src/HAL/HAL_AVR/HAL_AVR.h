@@ -202,6 +202,9 @@
                  "r26" , "r27" \
                )
 
+// Macros for stepper.cpp
+#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU24X32toH16(intRes, longIn1, longIn2)
+
 // TEMPERATURE
 #define ANALOG_REF_AREF 0
 #define ANALOG_REF_AVCC _BV(REFS0)
@@ -230,7 +233,7 @@ typedef uint32_t millis_t;
 #define STEPPER_TIMSK TIMSK1
 #define STEPPER_OCIE  OCIE1A
 
-#define TEMP_OCR      OCR0B
+#define TEMP_TIMER    OCR0B
 #define TEMP_TCCR     TCCR0B
 #define TEMP_TIMSK    TIMSK0
 #define TEMP_OCIE     OCIE0B
@@ -250,7 +253,7 @@ typedef uint32_t millis_t;
 #define HAL_timer_isr_prologue(timer_num)     { }
 
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
-#define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_OCR, n)
+#define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)

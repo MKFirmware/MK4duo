@@ -355,8 +355,6 @@ HAL_STEP_TIMER_ISR {
 
 void Stepper::isr() {
 
-  static uint32_t step_remaining = 0;
-
   HAL_TIMER_TYPE ocr_val;
 
   #define ENDSTOP_NOMINAL_OCR_VAL 3000    // check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
@@ -371,10 +369,11 @@ void Stepper::isr() {
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     #define SPLIT(L) _SPLIT(L)
   #else                 // sample endstops in between step pulses
+    static uint32_t step_remaining = 0;
     #define SPLIT(L) do { \
       _SPLIT(L); \
       if (ENDSTOPS_ENABLED && L > ENDSTOP_NOMINAL_OCR_VAL) { \
-        HAL_TIMER_TYPE remainder = (HAL_TIMER_TYPE)L % (ENDSTOP_NOMINAL_OCR_VAL); \
+        const HAL_TIMER_TYPE remainder = (HAL_TIMER_TYPE)L % (ENDSTOP_NOMINAL_OCR_VAL); \
         ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
         step_remaining = (HAL_TIMER_TYPE)L - ocr_val; \
       } \
@@ -394,14 +393,12 @@ void Stepper::isr() {
 
       _NEXT_ISR(ocr_val);
 
-      #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-        #if ENABLED(CPU_32_BIT)
-          HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                          stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
-          HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
-        #else
-          NOLESS(OCR1A, TCNT1 + 16);
-        #endif
+      #if ENABLED(CPU_32_BIT)
+        HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+                        stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
+        HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
+      #else
+        NOLESS(OCR1A, TCNT1 + 16);
       #endif
 
       _ENABLE_ISRs(); // re-enable ISRs
@@ -753,7 +750,7 @@ void Stepper::isr() {
 
   #if ENABLED(LIN_ADVANCE)
     if (current_block->use_advance_lead) {
-      int delta_adv_steps = current_estep_rate[TOOL_E_INDEX] - current_adv_steps[TOOL_E_INDEX];
+      const int delta_adv_steps = current_estep_rate[TOOL_E_INDEX] - current_adv_steps[TOOL_E_INDEX];
       current_adv_steps[TOOL_E_INDEX] += delta_adv_steps;
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Mixing extruders apply advance lead proportionally
@@ -774,18 +771,14 @@ void Stepper::isr() {
   // Calculate new timer value
   if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
 
-    #if ENABLED(CPU_32_BIT)
-      MultiU32X32toH32(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-    #else
-      MultiU24X32toH16(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-    #endif
+    HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
     acc_step_rate += current_block->initial_rate;
 
     // upper limit
     NOMORE(acc_step_rate, current_block->nominal_rate);
 
     // step_rate to timer interval
-    HAL_TIMER_TYPE timer = calc_timer(acc_step_rate);
+    const HAL_TIMER_TYPE timer = calc_timer(acc_step_rate);
 
     SPLIT(timer);  // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
@@ -808,8 +801,8 @@ void Stepper::isr() {
       advance += advance_rate * step_loops;
       // NOLESS(advance, current_block->advance);
 
-      long advance_whole = advance >> 8,
-           advance_factor = advance_whole - old_advance;
+      const long  advance_whole = advance >> 8,
+                  advance_factor = advance_whole - old_advance;
 
       // Do E steps + advance steps
       #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -831,11 +824,7 @@ void Stepper::isr() {
   }
   else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
     HAL_TIMER_TYPE step_rate;
-    #if ENABLED(CPU_32_BIT)
-      MultiU32X32toH32(step_rate, deceleration_time, current_block->acceleration_rate);
-    #else
-      MultiU24X32toH16(step_rate, deceleration_time, current_block->acceleration_rate);
-    #endif
+    HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
     if (step_rate < acc_step_rate) {
       step_rate = acc_step_rate - step_rate; // Decelerate from acceleration end point.
@@ -846,7 +835,7 @@ void Stepper::isr() {
     }
 
     // step_rate to timer interval
-    HAL_TIMER_TYPE timer = calc_timer(step_rate);
+    const HAL_TIMER_TYPE timer = calc_timer(step_rate);
 
     SPLIT(timer); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
@@ -870,8 +859,8 @@ void Stepper::isr() {
       NOLESS(advance, final_advance);
 
       // Do E steps + advance steps
-      long advance_whole = advance >> 8,
-           advance_factor = advance_whole - old_advance;
+      const long  advance_whole = advance >> 8,
+                  advance_factor = advance_whole - old_advance;
 
       #if ENABLED(MIXING_EXTRUDER_FEATURE)
         MIXING_STEPPERS_LOOP(j)
@@ -1361,7 +1350,7 @@ void Stepper::set_e_position(const long &e) {
  */
 long Stepper::position(AxisEnum axis) {
   CRITICAL_SECTION_START;
-  long count_pos = count_position[axis];
+  const long count_pos = count_position[axis];
   CRITICAL_SECTION_END;
   return count_pos;
 }
@@ -1456,9 +1445,9 @@ void Stepper::endstop_triggered(AxisEnum axis) {
 
 void Stepper::report_positions() {
   CRITICAL_SECTION_START;
-  long xpos = count_position[X_AXIS],
-       ypos = count_position[Y_AXIS],
-       zpos = count_position[Z_AXIS];
+  const long  xpos = count_position[X_AXIS],
+              ypos = count_position[Y_AXIS],
+              zpos = count_position[Z_AXIS];
   CRITICAL_SECTION_END;
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
@@ -1521,7 +1510,7 @@ void Stepper::report_positions() {
   #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
 
   #if EXTRA_CYCLES_BABYSTEP > 20
-    #define _SAVE_START (pulse_start = HAL_timer_get_current_count(STEPPER_TIMER))
+    #define _SAVE_START const uint32_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
     #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
   #else
     #define _SAVE_START NOOP
@@ -1553,10 +1542,6 @@ void Stepper::report_positions() {
     cli();
     uint8_t old_dir;
 
-    #if EXTRA_CYCLES_BABYSTEP > 20
-      uint32_t pulse_start;
-    #endif
-
     switch (axis) {
 
       case X_AXIS:
@@ -1575,7 +1560,7 @@ void Stepper::report_positions() {
 
         #else // DELTA
 
-          bool z_direction = direction ^ BABYSTEP_INVERT_Z;
+          const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
 
           enable_X();
           enable_Y();

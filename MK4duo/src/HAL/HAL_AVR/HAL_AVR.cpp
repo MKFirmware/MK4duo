@@ -100,9 +100,9 @@ void HAL_stepper_timer_start() {
 }
 
 void HAL_temp_timer_start() {
-  TCCR0A    =  0; // set entire TCCR2A register to 0
-  TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
-  TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+  TCCR0A      =  0; // set entire TCCR2A register to 0
+  TEMP_TCCR   =  0; // set entire TEMP_TCCR register to 0
+  TEMP_TIMER  = 64; // Set divisor for 64 3906 Hz
   // Set CS01 and CS00 bits for 64 prescaler
   TEMP_TCCR |= (1 << CS01) | (1 << CS00);
 }
@@ -171,7 +171,7 @@ HAL_TEMP_TIMER_ISR {
   // Allow UART ISRs
   _DISABLE_ISRs();
 
-  TEMP_OCR += 64;
+  TEMP_TIMER += 64;
 
   static uint8_t  pwm_count_heater  = 0,
                   pwm_count_fan     = 0;

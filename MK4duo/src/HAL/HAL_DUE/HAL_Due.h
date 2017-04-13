@@ -178,6 +178,8 @@
 #define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
 // intRes = longIn1 * longIn2 >> 24
 #define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
+// Macros for stepper.cpp
+#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
 
 #define ADV_NEVER 0xFFFFFFFF
 
