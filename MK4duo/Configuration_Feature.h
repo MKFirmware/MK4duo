@@ -31,6 +31,7 @@
  * - Default nominal filament diameter
  * - Single nozzle
  * - BariCUDA paste extruder
+ * - Solenoid extruder
  * - Color Mixing Extruder
  * - Multiextruder old MKR4
  * - Multiextruder new MKR6
@@ -80,6 +81,7 @@
  * - RFID card reader
  * - BLINKM
  * - RGB LED
+ * - Printer Event LEDs
  * - Laser beam
  * - CNC Router
  * - Case Light
@@ -215,6 +217,20 @@
  *                                                                     *
  ***********************************************************************/
 //#define BARICUDA
+/***********************************************************************/
+
+
+/***********************************************************************
+ ************************** Solenoid extruder **************************
+ ***********************************************************************
+ *                                                                     *
+ * Activate a solenoid on the active extruder with M380.               *
+ * Disable all with M381.                                              *
+ * Define SOL0_PIN, SOL1_PIN, etc., for each extruder that             *
+ * has a solenoid.                                                     *
+ *                                                                     *
+ ***********************************************************************/
+//#define EXT_SOLENOID
 /***********************************************************************/
 
 
@@ -1505,7 +1521,25 @@
  *                                                                        *
  **************************************************************************/
 //#define RGB_LED
+//#define RGBW_LED
 /**************************************************************************/
+
+
+/********************************************************************************
+ ***************************** Printer Event LEDs *******************************
+ ********************************************************************************
+ *                                                                              *
+ * During printing, the LEDs will reflect the printer status:                   *
+ *                                                                              *
+ *  - Gradually change from blue to violet as the heated bed gets to target temp*                                                                 *
+ *  - Gradually change from violet to red as the hotend gets to temperature     *
+ *  - Change to white to illuminate work surface                                *
+ *  - Change to green once print has finished                                   *
+ *  - Turn off after the print has finished and the user has pushed a button    *
+ *                                                                              *
+ ********************************************************************************/
+//#define PRINTER_EVENT_LEDS
+/********************************************************************************/
 
 
 /**************************************************************************

@@ -40,23 +40,23 @@
   //#define E2_IS_TMC
   //#define E3_IS_TMC
 
-  #define X_MAX_CURRENT     1000 // in mA
+  #define X_CURRENT         1000 // in mA
   #define X_SENSE_RESISTOR    91 // in mOhms
   #define X_MICROSTEPS        16 // number of microsteps
 
-  #define X2_MAX_CURRENT    1000
+  #define X2_CURRENT        1000
   #define X2_SENSE_RESISTOR   91
   #define X2_MICROSTEPS       16
 
-  #define Y_MAX_CURRENT     1000
+  #define Y_CURRENT         1000
   #define Y_SENSE_RESISTOR    91
   #define Y_MICROSTEPS        16
 
-  #define Y2_MAX_CURRENT    1000
+  #define Y2_CURRENT        1000
   #define Y2_SENSE_RESISTOR   91
   #define Y2_MICROSTEPS       16
 
-  #define Z_MAX_CURRENT     1000
+  #define Z_CURRENT         1000
   #define Z_SENSE_RESISTOR    91
   #define Z_MICROSTEPS        16
 
@@ -64,19 +64,19 @@
   #define Z2_SENSE_RESISTOR   91
   #define Z2_MICROSTEPS       16
 
-  #define E0_MAX_CURRENT    1000
+  #define E0_CURRENT        1000
   #define E0_SENSE_RESISTOR   91
   #define E0_MICROSTEPS       16
 
-  #define E1_MAX_CURRENT    1000
+  #define E1_CURRENT        1000
   #define E1_SENSE_RESISTOR   91
   #define E1_MICROSTEPS       16
 
-  #define E2_MAX_CURRENT    1000
+  #define E2_CURRENT        1000
   #define E2_SENSE_RESISTOR   91
   #define E2_MICROSTEPS       16
 
-  #define E3_MAX_CURRENT    1000
+  #define E3_CURRENT        1000
   #define E3_SENSE_RESISTOR   91
   #define E3_MICROSTEPS       16
 
@@ -134,23 +134,23 @@
   #define HOLD_MULTIPLIER    0.5  // Scales down the holding current from run current
   #define INTERPOLATE          1  // Interpolate X/Y/Z_MICROSTEPS to 256
 
-  #define X_MAX_CURRENT     1000  // rms current in mA
+  #define X_CURRENT     1000  // rms current in mA
   #define X_MICROSTEPS        16  // FULLSTEP..256
   #define X_CHIP_SELECT       40  // Pin
 
-  #define Y_MAX_CURRENT     1000
+  #define Y_CURRENT     1000
   #define Y_MICROSTEPS        16
   #define Y_CHIP_SELECT       42
 
-  #define Z_MAX_CURRENT     1000
+  #define Z_CURRENT     1000
   #define Z_MICROSTEPS        16
   #define Z_CHIP_SELECT       65
 
-  //#define X2_MAX_CURRENT  1000
+  //#define X2_CURRENT  1000
   //#define X2_MICROSTEPS     16
   //#define X2_CHIP_SELECT    -1
 
-  //#define Y2_MAX_CURRENT  1000
+  //#define Y2_CURRENT  1000
   //#define Y2_MICROSTEPS     16
   //#define Y2_CHIP_SELECT    -1
 
@@ -158,19 +158,19 @@
   //#define Z2_MICROSTEPS     16
   //#define Z2_CHIP_SELECT    -1
 
-  //#define E0_MAX_CURRENT  1000
+  //#define E0_CURRENT  1000
   //#define E0_MICROSTEPS     16
   //#define E0_CHIP_SELECT    -1
 
-  //#define E1_MAX_CURRENT  1000
+  //#define E1_CURRENT  1000
   //#define E1_MICROSTEPS     16
   //#define E1_CHIP_SELECT    -1
 
-  //#define E2_MAX_CURRENT  1000
+  //#define E2_CURRENT  1000
   //#define E2_MICROSTEPS     16
   //#define E2_CHIP_SELECT    -1
 
-  //#define E3_MAX_CURRENT  1000
+  //#define E3_CURRENT  1000
   //#define E3_MICROSTEPS     16
   //#define E3_CHIP_SELECT    -1
 

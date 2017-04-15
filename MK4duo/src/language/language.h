@@ -142,6 +142,8 @@
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
 #define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
+#define MSG_DOOR_SENSOR                     "door: "
+#define MSG_POWER_CHECK_SENSOR              "power check: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
