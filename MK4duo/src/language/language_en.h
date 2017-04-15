@@ -220,6 +220,7 @@
 #define MSG_INFO_COOLER                     _UxGT("Cooler")
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocol")
+#define MSG_INFO_COMPLETED_PRINTS           _UxGT("Completed")
 #define MSG_INFO_TOTAL_PRINTS               _UxGT("Total Prints")
 #define MSG_INFO_FINISHED_PRINTS            _UxGT("Fin. Prints")
 #define MSG_INFO_ON_TIME                    _UxGT("On x")

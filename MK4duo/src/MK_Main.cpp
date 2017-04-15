@@ -800,6 +800,41 @@ void servo_init() {
   void enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
 #endif
 
+#if HAS(COLOR_LEDS)
+
+  void set_led_color(
+    const uint8_t r, const uint8_t g, const uint8_t b
+      #if ENABLED(RGBW_LED)
+        , const uint8_t w=0
+      #endif
+  ) {
+
+    #if ENABLED(BLINKM)
+
+      // This variant uses i2c to send the RGB components to the device.
+      SendColors(r, g, b);
+
+    #else
+
+      // This variant uses 3 separate pins for the RGB components.
+      // If the pins can do PWM then their intensity will be set.
+      WRITE(RGB_LED_R_PIN, r ? HIGH : LOW);
+      WRITE(RGB_LED_G_PIN, g ? HIGH : LOW);
+      WRITE(RGB_LED_B_PIN, b ? HIGH : LOW);
+      analogWrite(RGB_LED_R_PIN, r);
+      analogWrite(RGB_LED_G_PIN, g);
+      analogWrite(RGB_LED_B_PIN, b);
+
+      #if ENABLED(RGBW_LED)
+        WRITE(RGB_LED_W_PIN, w ? HIGH : LOW);
+        analogWrite(RGB_LED_W_PIN, w);
+      #endif
+
+    #endif
+  }
+
+#endif
+  
 void gcode_line_error(const char* err, bool doFlush = true) {
   SERIAL_S(ER);
   SERIAL_PS(err);
@@ -819,7 +854,7 @@ inline void get_serial_commands() {
   static bool serial_comment_mode = false;
 
   #if HAS(DOOR)
-    if (READ(DOOR_PIN) != DOOR_OPEN_LOGIC) {
+    if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
       KEEPALIVE_STATE(DOOR_OPEN);
       return;  // do nothing while door is open
     }
@@ -987,14 +1022,14 @@ inline void get_serial_commands() {
     if (!card.sdprinting) return;
 
     #if HAS(DOOR)
-      if (READ(DOOR_PIN) != DOOR_OPEN_LOGIC) {
+      if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
         KEEPALIVE_STATE(DOOR_OPEN);
         return;  // do nothing while door is open
       }
     #endif
 
     #if HAS(POWER_CHECK)
-      if (READ(POWER_CHECK_PIN) != POWER_CHECK_LOGIC) {
+      if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
         sd_stop_e_save();
         return;
       }
@@ -1022,6 +1057,19 @@ inline void get_serial_commands() {
         if (card_eof) {
           SERIAL_EM(MSG_FILE_PRINTED);
           card.printingHasFinished();
+          #if ENABLED(PRINTER_EVENT_LEDS)
+            LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
+            set_led_color(0, 255, 0); // Green
+            #if HAS_RESUME_CONTINUE
+              KEEPALIVE_STATE(PAUSED_FOR_USER);
+              wait_for_user = true;
+              while (wait_for_user) idle();
+              KEEPALIVE_STATE(IN_HANDLER);
+            #else
+              safe_delay(1000);
+            #endif
+            set_led_color(0, 0, 0);   // OFF
+          #endif
           card.checkautostart(true);
         }
         else if (n == -1) {
@@ -1723,7 +1771,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
     // Dock sled a bit closer to ensure proper capturing
     do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
-    digitalWrite(SLED_PIN, !stow); // switch solenoid
+    WRITE(SLED_PIN, !stow); // switch solenoid
   }
 
 #endif // Z_PROBE_SLED
@@ -2936,6 +2984,11 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
   KEEPALIVE_STATE(WAIT_HEATER);
 
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    const float start_temp = thermalManager.degHotend(target_extruder);
+    uint8_t old_blue = 0;
+  #endif
+
   do {
     // Target temperature might be changed during the loop
     if (theTarget != thermalManager.degTargetHotend(target_extruder))
@@ -2967,7 +3020,15 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     idle();
     refresh_cmd_timeout(); // to prevent stepper_inactive_time from running out
 
-    float temp = thermalManager.degHotend(target_extruder);
+    const float temp = thermalManager.degHotend(target_extruder);
+
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      // Gradually change LED strip from violet to red as nozzle heats up
+      if (!wants_to_cool) {
+        const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
+        if (blue != old_blue) set_led_color(255, 0, (old_blue = blue));
+      }
+    #endif
 
     #if TEMP_RESIDENCY_TIME > 0
 
@@ -2997,7 +3058,16 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
   } while (wait_for_heatup && TEMP_CONDITIONS);
 
-  if (wait_for_heatup) LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+  if (wait_for_heatup) {
+    LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      #if ENABLED(RGBW_LED)
+        set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
+      #else
+        set_led_color(255, 255, 255); // Set LEDs All On
+      #endif
+    #endif
+  }
 
   KEEPALIVE_STATE(IN_HANDLER);
 }
@@ -3031,6 +3101,11 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
     target_extruder = active_extruder; // for print_heaterstates
 
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      const float start_temp = thermalManager.degBed();
+      uint8_t old_red = 255;
+    #endif
+
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
@@ -3063,7 +3138,15 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
       idle();
       refresh_cmd_timeout(); // to prevent stepper_inactive_time from running out
 
-      float temp = thermalManager.degBed();
+      const float temp = thermalManager.degBed();
+
+      #if ENABLED(PRINTER_EVENT_LEDS)
+        // Gradually change LED strip from blue to violet as bed heats up
+        if (!wants_to_cool) {
+          const uint8_t red = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 0, 255);
+          if (red != old_red) set_led_color((old_red = red), 0, 255);
+        }
+      #endif
 
       #if TEMP_BED_RESIDENCY_TIME > 0
 
@@ -7664,33 +7747,12 @@ inline void gcode_M122() {
   }
 #endif
 
-#if ENABLED(BLINKM) || ENABLED(RGB_LED)
-
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b) {
-
-    #if ENABLED(BLINKM)
-
-      // This variant uses i2c to send the RGB components to the device.
-      SendColors(r, g, b);
-
-    #else
-
-      // This variant uses 3 separate pins for the RGB components.
-      // If the pins can do PWM then their intensity will be set.
-      digitalWrite(RGB_LED_R_PIN, r ? HIGH : LOW);
-      digitalWrite(RGB_LED_G_PIN, g ? HIGH : LOW);
-      digitalWrite(RGB_LED_B_PIN, b ? HIGH : LOW);
-      analogWrite(RGB_LED_R_PIN, r);
-      analogWrite(RGB_LED_G_PIN, g);
-      analogWrite(RGB_LED_B_PIN, b);
-
-    #endif
-  }
+#if HAS(COLOR_LEDS)
 
   /**
-   * M150: Set Status LED Color - Use R-U-B for R-G-B
+   * M150: Set Status LED Color - Use R-U-B-W for R-G-B-W
    *
-   * Always sets all 3 components. If a component is left out, set to 0.
+   * Always sets all 3 or 4 components. If a component is left out, set to 0.
    *
    * Examples:
    *
@@ -7698,6 +7760,7 @@ inline void gcode_M122() {
    *   M150 R255 U127  ; Turn LED orange (PWM only)
    *   M150            ; Turn LED off
    *   M150 R U B      ; Turn LED white
+   *   M150 W          ; Turn LED white using a white LED
    *
    */
   inline void gcode_M150() {
@@ -7705,6 +7768,9 @@ inline void gcode_M122() {
       code_seen('R') ? (code_has_value() ? code_value_byte() : 255) : 0,
       code_seen('U') ? (code_has_value() ? code_value_byte() : 255) : 0,
       code_seen('B') ? (code_has_value() ? code_value_byte() : 255) : 0
+      #if ENABLED(RGBW_LED)
+        , code_seen('W') ? (code_has_value() ? code_value_byte() : 255) : 0
+      #endif
     );
   }
 
@@ -8523,7 +8589,7 @@ inline void gcode_M303() {
   uint8_t case_light_brightness = 255;
 
   void update_case_light() {
-    digitalWrite(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? HIGH : LOW);
+    WRITE(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? HIGH : LOW);
     analogWrite(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? case_light_brightness : 0);
   }
 
@@ -8601,24 +8667,30 @@ inline void gcode_M303() {
 #endif // MORGAN_SCARA
 
 #if ENABLED(EXT_SOLENOID)
+
   void enable_solenoid(uint8_t num) {
     switch(num) {
       case 0:
         OUT_WRITE(SOL0_PIN, HIGH);
         break;
-        #if HAS(SOLENOID_1)
+        #if HAS(SOLENOID_1) && EXTRUDERS > 1
           case 1:
             OUT_WRITE(SOL1_PIN, HIGH);
             break;
         #endif
-        #if HAS(SOLENOID_2)
+        #if HAS(SOLENOID_2) && EXTRUDERS > 2
           case 2:
             OUT_WRITE(SOL2_PIN, HIGH);
             break;
         #endif
-        #if HAS(SOLENOID_3)
+        #if HAS(SOLENOID_3) && EXTRUDERS > 3
           case 3:
             OUT_WRITE(SOL3_PIN, HIGH);
+            break;
+        #endif
+        #if HAS(SOLENOID_4) && EXTRUDERS > 4
+          case 4:
+            OUT_WRITE(SOL4_PIN, HIGH);
             break;
         #endif
       default:
@@ -8631,9 +8703,18 @@ inline void gcode_M303() {
 
   void disable_all_solenoids() {
     OUT_WRITE(SOL0_PIN, LOW);
-    OUT_WRITE(SOL1_PIN, LOW);
-    OUT_WRITE(SOL2_PIN, LOW);
-    OUT_WRITE(SOL3_PIN, LOW);
+    #if HAS(SOLENOID_1) && EXTRUDERS > 1
+      OUT_WRITE(SOL1_PIN, LOW);
+    #endif
+    #if HAS(SOLENOID_2) && EXTRUDERS > 2
+      OUT_WRITE(SOL2_PIN, LOW);
+    #endif
+    #if HAS(SOLENOID_3) && EXTRUDERS > 3
+      OUT_WRITE(SOL3_PIN, LOW);
+    #endif
+    #if HAS(SOLENOID_4) && EXTRUDERS > 4
+      OUT_WRITE(SOL4_PIN, LOW);
+    #endif
   }
 
   /**
@@ -10667,6 +10748,12 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
               current_position[X_AXIS] = destination[X_AXIS] + duplicate_hotend_x_offset;
             inactive_hotend_x_pos = RAW_X_POSITION(destination[X_AXIS]);
             hotend_duplication_enabled = false;
+            #if ENABLED(DEBUG_LEVELING_FEATURE)
+              if (DEBUGGING(LEVELING)) {
+                SERIAL_EMV("Set inactive_extruder_x_pos=", inactive_extruder_x_pos);
+                SERIAL_EM("Clear extruder_duplication_enabled");
+              }
+            #endif
             break;
         }
 
@@ -12494,7 +12581,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     // If the move is only in Z/E don't split up the move
     if (ltarget[X_AXIS] == current_position[X_AXIS] && ltarget[Y_AXIS] == current_position[Y_AXIS]) {
       planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
-      return true;
+      return false;
     }
 
     // Get the cartesian distances moved in XYZE
@@ -12508,7 +12595,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
     if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
 
     // No E move either? Game over.
-    if (UNEAR_ZERO(cartesian_mm)) return false;
+    if (UNEAR_ZERO(cartesian_mm)) return true;
 
     // Minimum number of seconds to move the given distance
     float seconds = cartesian_mm / _feedrate_mm_s;
@@ -12547,15 +12634,15 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
             oldB = stepper.get_axis_position_degrees(B_AXIS);
     #endif
 
-    // Drop one segment so the last move is to the exact target.
-    // If there's only 1 segment, loops will be skipped entirely.
-    --segments;
-
     // Get the logical current position as starting point
     float logical[XYZE];
     COPY_ARRAY(logical, current_position);
 
-    // For non-interpolated delta calculate every segment
+    // Drop one segment so the last move is to the exact target.
+    // If there's only 1 segment, loops will be skipped entirely.
+    --segments;
+
+    // Calculate and execute the segments
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) logical[i] += segment_distance[i];
       #if IS_SCARA
@@ -12593,7 +12680,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
     #endif
 
-    return true;
+    return false;
   }
 
 #else // !IS_KINEMATIC
@@ -12601,6 +12688,8 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
   /**
    * Prepare a linear move in a Cartesian setup.
    * If Mesh Bed Leveling is enabled, perform a mesh move.
+   *
+   * Returns true if the caller didn't update current_position.
    */
   inline bool prepare_move_to_destination_cartesian() {
     #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_E)
@@ -12620,66 +12709,99 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       #if ENABLED(MESH_BED_LEVELING)
         if (mbl.active()) {
           mesh_line_to_destination(MMS_SCALED(feedrate_mm_s));
-          return false;
+          return true;
         }
         else
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         if (planner.abl_enabled) {
           bilinear_line_to_destination(MMS_SCALED(feedrate_mm_s));
-          return false;
+          return true;
         }
         else
       #endif
           line_to_destination(MMS_SCALED(feedrate_mm_s));
     }
-    return true;
+    return false;
   }
 
 #endif // !IS_KINEMATIC
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
+  /**
+   * Prepare a linear move in a dual X axis setup
+   */
   inline bool prepare_move_to_destination_dualx() {
     if (active_hotend_parked) {
-      if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && active_extruder == 0) {
-        // move duplicate extruder into correct duplication position.
-        planner.set_position_mm(
-          LOGICAL_X_POSITION(inactive_hotend_x_pos),
-          current_position[Y_AXIS],
-          current_position[Z_AXIS],
-          current_position[E_AXIS]
-        );
-        planner.buffer_line(current_position[X_AXIS] + duplicate_hotend_x_offset,
-                            current_position[Y_AXIS],
-                            current_position[Z_AXIS],
-                            current_position[E_AXIS],
-                            planner.max_feedrate_mm_s[X_AXIS], 1, 1);
-        SYNC_PLAN_POSITION_KINEMATIC();
-        stepper.synchronize();
-        hotend_duplication_enabled = true;
-        active_hotend_parked = false;
-      }
-      else if (dual_x_carriage_mode == DXC_AUTO_PARK_MODE) { // handle unparking of head
-        if (current_position[E_AXIS] == destination[E_AXIS]) {
-          // This is a travel move (with no extrusion)
-          // Skip it, but keep track of the current position
-          // (so it can be used as the start of the next non-travel move)
-          if (delayed_move_time != 0xFFFFFFFFUL) {
-            set_current_to_destination();
-            NOLESS(raised_parked_position[Z_AXIS], destination[Z_AXIS]);
-            delayed_move_time = millis();
-            return false;
+      switch (dual_x_carriage_mode) {
+        case DXC_FULL_CONTROL_MODE:
+          break;
+        case DXC_AUTO_PARK_MODE:
+          if (current_position[E_AXIS] == destination[E_AXIS]) {
+            // This is a travel move (with no extrusion)
+            // Skip it, but keep track of the current position
+            // (so it can be used as the start of the next non-travel move)
+            if (delayed_move_time != 0xFFFFFFFFUL) {
+              set_current_to_destination();
+              NOLESS(raised_parked_position[Z_AXIS], destination[Z_AXIS]);
+              delayed_move_time = millis();
+              return true;
+            }
           }
-        }
-        delayed_move_time = 0;
-        // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
-        planner.buffer_line(raised_parked_position[X_AXIS], raised_parked_position[Y_AXIS], raised_parked_position[Z_AXIS], current_position[E_AXIS], planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
-        planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], raised_parked_position[Z_AXIS], current_position[E_AXIS], min(planner.max_feedrate_mm_s[X_AXIS], planner.max_feedrate_mm_s[Y_AXIS]), active_extruder, active_driver);
-        planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], planner.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
-        active_hotend_parked = false;
+          // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
+          for (uint8_t i = 0; i < 3; i++)
+            planner.buffer_line(
+              i == 0 ? raised_parked_position[X_AXIS] : current_position[X_AXIS],
+              i == 0 ? raised_parked_position[Y_AXIS] : current_position[Y_AXIS],
+              i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
+              current_position[E_AXIS],
+              i == 1 ? PLANNER_XY_FEEDRATE() : planner.max_feedrate_mm_s[Z_AXIS],
+              active_extruder,
+              active_driver
+            );
+          delayed_move_time = 0;
+          active_extruder_parked = false;
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) SERIAL_EM("Clear active_extruder_parked");
+          #endif
+          break;
+        case DXC_DUPLICATION_MODE:
+          if (active_extruder == 0) {
+            #if ENABLED(DEBUG_LEVELING_FEATURE)
+              if (DEBUGGING(LEVELING)) {
+                SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_extruder_x_pos));
+                SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_extruder_x_offset);
+              }
+            #endif
+            // move duplicate extruder into correct duplication position.
+            planner.set_position_mm(
+              LOGICAL_X_POSITION(inactive_extruder_x_pos),
+              current_position[Y_AXIS],
+              current_position[Z_AXIS],
+              current_position[E_AXIS]
+            );
+            planner.buffer_line(
+              current_position[X_AXIS] + duplicate_extruder_x_offset,
+              current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
+              planner.max_feedrate_mm_s[X_AXIS], 1, active_driver
+            );
+            SYNC_PLAN_POSITION_KINEMATIC();
+            stepper.synchronize();
+            extruder_duplication_enabled = true;
+            active_extruder_parked = false;
+            #if ENABLED(DEBUG_LEVELING_FEATURE)
+              if (DEBUGGING(LEVELING)) SERIAL_EM("Set extruder_duplication_enabled\nClear active_extruder_parked");
+            #endif
+          }
+          else {
+            #if ENABLED(DEBUG_LEVELING_FEATURE)
+              if (DEBUGGING(LEVELING)) SERIAL_EM("Active extruder not 0");
+            #endif
+          }
+          break;
       }
     }
-    return true;
+    return false;
   }
 
 #endif // DUAL_X_CARRIAGE
@@ -12710,12 +12832,12 @@ void prepare_move_to_destination() {
   #endif
 
   #if IS_KINEMATIC
-    if (!prepare_kinematic_move_to(destination)) return;
+    if (prepare_kinematic_move_to(destination)) return;
   #else
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (!prepare_move_to_destination_dualx()) return;
+      if (prepare_move_to_destination_dualx()) return;
     #endif
-    if (!prepare_move_to_destination_cartesian()) return;
+    if (prepare_move_to_destination_cartesian()) return;
   #endif
 
   set_current_to_destination();
@@ -12909,7 +13031,7 @@ static void report_current_position() {
       #if ENABLED(FAN_SOFT_PWM)
         fanSpeedSoftPwm_controller = speed;
       #else
-        digitalWrite(CONTROLLERFAN_PIN, speed);
+        WRITE(CONTROLLERFAN_PIN, speed);
         analogWrite(CONTROLLERFAN_PIN, speed);
       #endif
     }

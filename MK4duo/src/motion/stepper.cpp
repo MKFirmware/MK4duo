@@ -1687,25 +1687,41 @@ void Stepper::report_positions() {
    */
   void Stepper::microstep_init() {
 
-    #if HAS(MICROSTEPS_X)
+    #if HAS(X_MICROSTEPS)
       SET_OUTPUT(X_MS1_PIN);
       SET_OUTPUT(X_MS2_PIN);
     #endif
-    #if HAS(MICROSTEPS_Y)
+    #if HAS(Y_MICROSTEPS)
       SET_OUTPUT(Y_MS1_PIN);
       SET_OUTPUT(Y_MS2_PIN);
     #endif
-    #if HAS(MICROSTEPS_Z)
+    #if HAS(Z_MICROSTEPS)
       SET_OUTPUT(Z_MS1_PIN);
       SET_OUTPUT(Z_MS2_PIN);
     #endif
-    #if HAS(MICROSTEPS_E0)
+    #if HAS(E0_MICROSTEPS)
       SET_OUTPUT(E0_MS1_PIN);
       SET_OUTPUT(E0_MS2_PIN);
     #endif
-    #if HAS(MICROSTEPS_E1)
+    #if HAS(E1_MICROSTEPS)
       SET_OUTPUT(E1_MS1_PIN);
       SET_OUTPUT(E1_MS2_PIN);
+    #endif
+    #if HAS(E2_MICROSTEPS)
+      SET_OUTPUT(E2_MS1_PIN);
+      SET_OUTPUT(E2_MS2_PIN);
+    #endif
+    #if HAS(E3_MICROSTEPS)
+      SET_OUTPUT(E3_MS1_PIN);
+      SET_OUTPUT(E3_MS2_PIN);
+    #endif
+    #if HAS(E4_MICROSTEPS)
+      SET_OUTPUT(E4_MS1_PIN);
+      SET_OUTPUT(E4_MS2_PIN);
+    #endif
+    #if HAS(E5_MICROSTEPS)
+      SET_OUTPUT(E5_MS1_PIN);
+      SET_OUTPUT(E5_MS2_PIN);
     #endif
 
     static const uint8_t microstep_modes[] = MICROSTEP_MODES;
@@ -1715,38 +1731,62 @@ void Stepper::report_positions() {
 
   void Stepper::microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2) {
     if (ms1 >= 0) switch (driver) {
-      #if HAS(MICROSTEPS_X)
+      #if HAS(X_MICROSTEPS)
         case 0: WRITE(X_MS1_PIN, ms1); break;
       #endif
-      #if HAS(MICROSTEPS_Y)
+      #if HAS(Y_MICROSTEPS)
         case 1: WRITE(Y_MS1_PIN, ms1); break;
       #endif
-      #if HAS(MICROSTEPS_Z)
+      #if HAS(Z_MICROSTEPS)
         case 2: WRITE(Z_MS1_PIN, ms1); break;
       #endif
-      #if HAS(MICROSTEPS_E0)
+      #if HAS(E0_MICROSTEPS)
         case 3: WRITE(E0_MS1_PIN, ms1); break;
       #endif
-      #if HAS(MICROSTEPS_E1)
+      #if HAS(E1_MICROSTEPS)
         case 4: WRITE(E1_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(E2_MICROSTEPS)
+        case 5: WRITE(E2_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(E3_MICROSTEPS)
+        case 6: WRITE(E3_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(E4_MICROSTEPS)
+        case 7: WRITE(E4_MS1_PIN, ms1); break;
+      #endif
+      #if HAS(E5_MICROSTEPS)
+        case 8: WRITE(E5_MS1_PIN, ms1); break;
       #endif
     }
     #if !MB(ALLIGATOR) && !MB(ALLIGATOR_V3)
       if (ms2 >= 0) switch (driver) {
-        #if HAS(MICROSTEPS_X)
+        #if HAS(X_MICROSTEPS)
           case 0: WRITE(X_MS2_PIN, ms2); break;
         #endif
-        #if HAS(MICROSTEPS_Y)
+        #if HAS(Y_MICROSTEPS)
           case 1: WRITE(Y_MS2_PIN, ms2); break;
         #endif
-        #if HAS(MICROSTEPS_Z)
+        #if HAS(Z_MICROSTEPS)
           case 2: WRITE(Z_MS2_PIN, ms2); break;
         #endif
-        #if HAS(MICROSTEPS_E0)
+        #if HAS(E0_MICROSTEPS)
           case 3: WRITE(E0_MS2_PIN, ms2); break;
         #endif
-        #if HAS(MICROSTEPS_E1)
+        #if HAS(E1_MICROSTEPS)
           case 4: WRITE(E1_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(E2_MICROSTEPS)
+          case 5: WRITE(E2_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(E3_MICROSTEPS)
+          case 6: WRITE(E3_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(E4_MICROSTEPS)
+          case 7: WRITE(E4_MS2_PIN, ms2); break;
+        #endif
+        #if HAS(E5_MICROSTEPS)
+          case 8: WRITE(E5_MS2_PIN, ms2); break;
         #endif
       }
     #endif
@@ -1767,7 +1807,7 @@ void Stepper::report_positions() {
 
   void Stepper::microstep_readings() {
     SERIAL_M(MSG_MICROSTEP_MS1_MS2);
-    #if HAS(MICROSTEPS_X)
+    #if HAS(X_MICROSTEPS)
       SERIAL_M(MSG_MICROSTEP_X);
       SERIAL_V(READ(X_MS1_PIN));
       #if PIN_EXISTS(X_MS2)
@@ -1776,7 +1816,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(MICROSTEPS_Y)
+    #if HAS(Y_MICROSTEPS)
       SERIAL_M(MSG_MICROSTEP_Y);
       SERIAL_V(READ(Y_MS1_PIN));
       #if PIN_EXISTS(Y_MS2)
@@ -1785,7 +1825,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(MICROSTEPS_Z)
+    #if HAS(Z_MICROSTEPS)
       SERIAL_M(MSG_MICROSTEP_Z);
       SERIAL_V(READ(Z_MS1_PIN));
       #if PIN_EXISTS(Z_MS2)
@@ -1794,7 +1834,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(MICROSTEPS_E0)
+    #if HAS(E0_MICROSTEPS)
       SERIAL_M(MSG_MICROSTEP_E0);
       SERIAL_V(READ(E0_MS1_PIN));
       #if PIN_EXISTS(E0_MS2)
@@ -1803,11 +1843,47 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(MICROSTEPS_E1)
+    #if HAS(E1_MICROSTEPS)
       SERIAL_M(MSG_MICROSTEP_E1);
       SERIAL_V(READ(E1_MS1_PIN));
       #if PIN_EXISTS(E1_MS2)
         SERIAL_EV(READ(E1_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(E2_MICROSTEPS)
+      SERIAL_M(MSG_MICROSTEP_E2);
+      SERIAL_V(READ(E2_MS1_PIN));
+      #if PIN_EXISTS(E2_MS2)
+        SERIAL_EV(READ(E2_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(E3_MICROSTEPS)
+      SERIAL_M(MSG_MICROSTEP_E3);
+      SERIAL_V(READ(E3_MS1_PIN));
+      #if PIN_EXISTS(E3_MS2)
+        SERIAL_EV(READ(E3_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(E4_MICROSTEPS)
+      SERIAL_M(MSG_MICROSTEP_E4);
+      SERIAL_V(READ(E4_MS1_PIN));
+      #if PIN_EXISTS(E4_MS2)
+        SERIAL_EV(READ(E4_MS2_PIN));
+      #else
+        SERIAL_E;
+      #endif
+    #endif
+    #if HAS(E5_MICROSTEPS)
+      SERIAL_M(MSG_MICROSTEP_E5);
+      SERIAL_V(READ(E5_MS1_PIN));
+      #if PIN_EXISTS(E5_MS2)
+        SERIAL_EV(READ(E5_MS2_PIN));
       #else
         SERIAL_E;
       #endif

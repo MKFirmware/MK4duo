@@ -972,8 +972,8 @@ static_assert(1 >= 0
 #endif
 #if ENABLED(HAVE_TMCDRIVER)
   #if ENABLED(X_IS_TMC)
-    #if DISABLED(X_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting X_MAX_CURRENT
+    #if DISABLED(X_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting X_CURRENT
     #endif
     #if DISABLED(X_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting X_SENSE_RESISTOR
@@ -983,8 +983,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(X2_IS_TMC)
-    #if DISABLED(X2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting X2_MAX_CURRENT
+    #if DISABLED(X2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting X2_CURRENT
     #endif
     #if DISABLED(X2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting X2_SENSE_RESISTOR
@@ -994,8 +994,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(Y_IS_TMC)
-    #if DISABLED(Y_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Y_MAX_CURRENT
+    #if DISABLED(Y_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Y_CURRENT
     #endif
     #if DISABLED(Y_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Y_SENSE_RESISTOR
@@ -1005,8 +1005,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(Y2_IS_TMC)
-    #if DISABLED(Y2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Y2_MAX_CURRENT
+    #if DISABLED(Y2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Y2_CURRENT
     #endif
     #if DISABLED(Y2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Y2_SENSE_RESISTOR
@@ -1016,8 +1016,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(Z_IS_TMC)
-    #if DISABLED(Z_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Z_MAX_CURRENT
+    #if DISABLED(Z_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Z_CURRENT
     #endif
     #if DISABLED(Z_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Z_SENSE_RESISTOR
@@ -1038,8 +1038,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(E0_IS_TMC)
-    #if DISABLED(E0_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E0_MAX_CURRENT
+    #if DISABLED(E0_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E0_CURRENT
     #endif
     #if DISABLED(E0_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E0_SENSE_RESISTOR
@@ -1049,8 +1049,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(E1_IS_TMC)
-    #if DISABLED(E1_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E1_MAX_CURRENT
+    #if DISABLED(E1_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E1_CURRENT
     #endif
     #if DISABLED(E1_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E1_SENSE_RESISTOR
@@ -1060,8 +1060,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(E2_IS_TMC)
-    #if DISABLED(E2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E2_MAX_CURRENT
+    #if DISABLED(E2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E2_CURRENT
     #endif
     #if DISABLED(E2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E2_SENSE_RESISTOR
@@ -1071,8 +1071,8 @@ static_assert(1 >= 0
     #endif
   #endif
   #if ENABLED(E3_IS_TMC)
-    #if DISABLED(E3_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E3_MAX_CURRENT
+    #if DISABLED(E3_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E3_CURRENT
     #endif
     #if DISABLED(E3_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E3_SENSE_RESISTOR

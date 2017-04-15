@@ -218,8 +218,7 @@
 #define MSG_INFO_COOLER                     _UxGT("Raffreddamento")
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocollo")
-#define MSG_LIGHTS_ON                       _UxGT("Luci Case on")
-#define MSG_LIGHTS_OFF                      _UxGT("Luci Case off")
+#define MSG_INFO_COMPLETED_PRINTS           _UxGT("Completata")
 #define MSG_INFO_TOTAL_PRINTS               _UxGT("Stampe totali")
 #define MSG_INFO_FINISHED_PRINTS            _UxGT("Stampe complete")
 #define MSG_INFO_ON_TIME                    _UxGT("On x")
@@ -229,6 +228,10 @@
 #define MSG_INFO_MIN_TEMP                   _UxGT("Temp min")
 #define MSG_INFO_MAX_TEMP                   _UxGT("Temp max")
 #define MSG_INFO_PSU                        _UxGT("Alimentatore")
+
+// CASE LIGHT
+#define MSG_LIGHTS_ON                       _UxGT("Luci Case on")
+#define MSG_LIGHTS_OFF                      _UxGT("Luci Case off")
 
 #define MSG_DRIVE_STRENGTH                  _UxGT("Potenza Drive")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")
