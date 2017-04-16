@@ -130,11 +130,10 @@ static uint8_t  cmd_queue_index_r = 0,  // Ring buffer read position
                 cmd_queue_index_w = 0;  // Ring buffer write position
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
-  #define M100_TYPE
+  char command_queue[BUFSIZE][MAX_CMD_SIZE];
 #else
-  #define M100_TYPE static
+  static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 #endif
-M100_TYPE char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
 /**
  * Current GCode Command
