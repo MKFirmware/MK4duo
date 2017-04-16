@@ -187,7 +187,7 @@ void EEPROM::Postprocess() {
     LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
   #endif
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  #if PLANNER_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     set_z_fade_height(planner.z_fade_height);
   #endif
 }
