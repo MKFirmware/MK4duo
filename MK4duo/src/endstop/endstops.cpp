@@ -420,12 +420,18 @@ void Endstops::update() {
     }
   #endif
 
-  #if MECH(COREYX) || MECH(COREZX)
-    #define CORE_X_CMP ==
-  #elif MECH(COREYX) || MECH(COREZX)
-    #define CORE_X_CMP !=
+  /**
+   * Define conditions for checking endstops
+   */
+
+  #if IS_CORE
+    #define S_(N) stepper.current_block->steps[CORE_AXIS_##N]
+    #define D_(N) stepper.motor_direction(CORE_AXIS_##N)
   #endif
 
+  /**
+   * X AXIS TEST
+   */
   #if CORE_IS_XY || CORE_IS_XZ
     /**
      * Head direction in -X axis for CoreXY and CoreXZ bots.
@@ -434,53 +440,21 @@ void Endstops::update() {
      * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z, handled below)
      * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X)
      */
-    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]
-      || (    stepper.current_block->steps[CORE_AXIS_1] > 0
-           && stepper.motor_direction(CORE_AXIS_1) CORE_X_CMP stepper.motor_direction(CORE_AXIS_2)
-         )
-    ) {
-      if (stepper.motor_direction(X_HEAD))
+    #if MECH(COREXY) || MECH(COREXZ)
+      #define X_CMP ==
+    #else
+      #define X_CMP !=
+    #endif
+    #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
+    #define X_AXIS_HEAD X_HEAD
   #else
-    if (stepper.current_block->steps[X_AXIS] > 0)
-      if (stepper.motor_direction(X_AXIS))   // stepping along -X axis (regular Cartesian bot)
-  #endif
-      { // -direction
-        #if ENABLED(DUAL_X_CARRIAGE)
-          // with 2 x-carriages, endstops are only checked in the homing direction for the active extruder
-          if ( (stepper.current_block->active_extruder == 0 && X_HOME_DIR < 0)
-            || (stepper.current_block->active_extruder != 0 && X2_HOME_DIR < 0)
-          )
-        #endif
-          {
-            #if HAS_X_MIN
-              UPDATE_ENDSTOP(X, MIN);
-            #endif
-          }
-      }
-      else { // +direction
-        #if ENABLED(DUAL_X_CARRIAGE)
-          // with 2 x-carriages, endstops are only checked in the homing direction for the active extruder
-          if ( (stepper.current_block->active_extruder == 0 && X_HOME_DIR > 0)
-            || (stepper.current_block->active_extruder != 0 && X2_HOME_DIR > 0)
-          )
-        #endif
-          {
-            #if HAS_X_MAX
-              UPDATE_ENDSTOP(X, MAX);
-            #endif
-          }
-      }
-  #if CORE_IS_XY || CORE_IS_XZ
-    }
+    #define X_MOVE_TEST stepper.current_block->steps[X_AXIS] > 0
+    #define X_AXIS_HEAD X_AXIS
   #endif
 
-  // Handle swapped vs. typical Core axis order
-  #if MECH(COREYX) || MECH(COREYZ)
-    #define CORE_YZ_CMP ==
-  #elif MECH(COREXY) || MECH(COREZY)
-    #define CORE_YZ_CMP !=
-  #endif
-
+  /**
+   * Y AXIS TEST
+   */
   #if CORE_IS_XY || CORE_IS_YZ
     /**
      * Head direction in -Y axis for CoreXY / CoreYZ bots.
@@ -489,36 +463,21 @@ void Endstops::update() {
      * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y)
      * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z)
      */
-    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]
-      || (    stepper.current_block->steps[CORE_AXIS_1] > 0
-           && stepper.motor_direction(CORE_AXIS_1) CORE_YZ_CMP stepper.motor_direction(CORE_AXIS_2)
-         )
-    ) {
-      if (stepper.motor_direction(Y_HEAD))
+    #if MECH(COREYX) || MECH(COREYZ)
+      #define Y_CMP ==
+    #else
+      #define Y_CMP !=
+    #endif
+    #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
+    #define Y_AXIS_HEAD Y_HEAD
   #else
-    if (stepper.current_block->steps[Y_AXIS] > 0)
-      if (stepper.motor_direction(Y_AXIS))   // -direction
-  #endif
-      { // -direction
-        #if HAS(Y_MIN)
-          UPDATE_ENDSTOP(Y, MIN);
-        #endif
-      }
-      else { // +direction
-        #if HAS(Y_MAX)
-          UPDATE_ENDSTOP(Y, MAX);
-        #endif
-      }
-  #if CORE_IS_XY || CORE_IS_YZ
-    }
+    #define Y_MOVE_TEST stepper.current_block->steps[Y_AXIS] > 0
+    #define Y_AXIS_HEAD Y_AXIS
   #endif
 
-  #if MECH(COREZX) || MECH(COREZY)
-    #define CORE_YZ_CMP ==
-  #elif MECH(COREXZ) || MECH(COREYZ)
-    #define CORE_YZ_CMP !=
-  #endif
-
+  /**
+   * Z AXIS TEST
+   */
   #if CORE_IS_XZ || CORE_IS_YZ
     /**
      * Head direction in -Z axis for CoreXZ or CoreYZ bots.
@@ -527,146 +486,191 @@ void Endstops::update() {
      * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y, already handled above)
      * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Z)
      */
-    if (stepper.current_block->steps[CORE_AXIS_1] != stepper.current_block->steps[CORE_AXIS_2]
-      || (    stepper.current_block->steps[CORE_AXIS_1] > 0
-           && stepper.motor_direction(CORE_AXIS_1) CORE_YZ_CMP stepper.motor_direction(CORE_AXIS_2)
-         )
-    ) {
-      if (stepper.motor_direction(Z_HEAD))
+    #if MECH(COREZX) || MECH(COREZY)
+      #define Z_CMP ==
+    #else
+      #define Z_CMP !=
+    #endif
+    #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
+    #define Z_AXIS_HEAD Z_HEAD
   #else
-    if (stepper.current_block->steps[Z_AXIS] > 0)
-      if (stepper.motor_direction(Z_AXIS))
+    #define Z_MOVE_TEST stepper.current_block->steps[Z_AXIS] > 0
+    #define Z_AXIS_HEAD Z_AXIS
   #endif
-      { // Z -direction. Gantry down, bed up.
-        #if HAS(Z_MIN)
-          #if ENABLED(Z_FOUR_ENDSTOPS)
 
-            UPDATE_ENDSTOP_BIT(Z, MIN);
-            #if HAS(Z2_MIN)
-              UPDATE_ENDSTOP_BIT(Z2, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
-            #endif
-            #if HAS(Z3_MIN)
-              UPDATE_ENDSTOP_BIT(Z3, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z3_MIN);
-            #endif
-            #if HAS(Z4_MIN)
-              UPDATE_ENDSTOP_BIT(Z4, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z4_MIN);
-            #endif
+  // With Dual X, endstops are only checked in the homing direction for the active extruder
+  #if ENABLED(DUAL_X_CARRIAGE)
+    #define E0_ACTIVE stepper.current_block->active_extruder == 0
+    #define X_MIN_TEST ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
+    #define X_MAX_TEST ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
+  #else
+    #define X_MIN_TEST true
+    #define X_MAX_TEST true
+  #endif
 
-            test_four_z_endstops(Z_MIN, Z2_MIN, Z3_MIN, Z4_MIN);
+  /**
+   * Check and update endstops according to conditions
+   */
 
-          #elif ENABLED(Z_THREE_ENDSTOPS)
-
-            UPDATE_ENDSTOP_BIT(Z, MIN);
-            #if HAS(Z2_MIN)
-              UPDATE_ENDSTOP_BIT(Z2, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
-            #endif
-            #if HAS(Z3_MIN)
-              UPDATE_ENDSTOP_BIT(Z3, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z3_MIN);
-            #endif
-
-            test_three_z_endstops(Z_MIN, Z2_MIN, Z3_MIN);
-
-          #elif ENABLED(Z_TWO_ENDSTOPS)
-
-            UPDATE_ENDSTOP_BIT(Z, MIN);
-            #if HAS(Z2_MIN)
-              UPDATE_ENDSTOP_BIT(Z2, MIN);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
-            #endif
-
-            test_two_z_endstops(Z_MIN, Z2_MIN);
-
-          #else
-
-            #if HAS(BED_PROBE) && HASNT(Z_PROBE_PIN)
-              if (z_probe_enabled) UPDATE_ENDSTOP(Z, MIN);
-            #else
-              UPDATE_ENDSTOP(Z, MIN);
-            #endif
-
-          #endif
-        #endif // HAS_Z_MIN
-
-        // When closing the gap check the enabled probe
-        #if HAS(BED_PROBE) && HAS(Z_PROBE_PIN)
-          if (z_probe_enabled) {
-            UPDATE_ENDSTOP(Z, PROBE);
-            if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
-          }
+  if (X_MOVE_TEST) {
+    if (stepper.motor_direction(X_AXIS_HEAD)) {
+      if (X_MIN_TEST) { // -direction
+        #if HAS(X_MIN)
+          UPDATE_ENDSTOP(X, MIN);
         #endif
       }
-      else { // Z +direction. Gantry up, bed down.
-        #if HAS(Z_MAX)
-
-          #if ENABLED(Z_FOUR_ENDSTOPS)
-
-            UPDATE_ENDSTOP_BIT(Z, MAX);
-            #if HAS(Z2_MAX)
-              UPDATE_ENDSTOP_BIT(Z2, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
-            #endif
-            #if HAS(Z3_MAX)
-              UPDATE_ENDSTOP_BIT(Z3, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z3_MAX);
-            #endif
-            #if HAS(Z4_MAX)
-              UPDATE_ENDSTOP_BIT(Z4, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z4_MAX);
-            #endif
-
-            test_four_z_endstops(Z_MAX, Z2_MAX, Z3_MAX, Z4_MAX);
-
-          #elif ENABLED(Z_THREE_ENDSTOPS)
-
-            UPDATE_ENDSTOP_BIT(Z, MAX);
-            #if HAS(Z2_MAX)
-              UPDATE_ENDSTOP_BIT(Z2, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
-            #endif
-            #if HAS(Z3_MAX)
-              UPDATE_ENDSTOP_BIT(Z3, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z3_MAX);
-            #endif
-
-            test_three_z_endstops(Z_MAX, Z2_MAX, Z3_MAX);
-
-          #elif ENABLED(Z_TWO_ENDSTOPS)
-
-            UPDATE_ENDSTOP_BIT(Z, MAX);
-            #if HAS(Z2_MAX)
-              UPDATE_ENDSTOP_BIT(Z2, MAX);
-            #else
-              COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
-            #endif
-
-            test_two_z_endstops(Z_MAX, Z2_MAX);
-
-          #else // !Z_TWO_ENDSTOPS
-
-            UPDATE_ENDSTOP(Z, MAX);
-
-          #endif // !Z_TWO_ENDSTOPS
-        #endif // Z_MAX_PIN
-      }
-  #if CORE_IS_XZ || CORE_IS_YZ
     }
-  #endif
+    else if (X_MAX_TEST) { // +direction
+      #if HAS(X_MAX)
+        UPDATE_ENDSTOP(X, MAX);
+      #endif
+    }
+  }
+
+  if (Y_MOVE_TEST) {
+    if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
+      #if HAS(Y_MIN)
+        UPDATE_ENDSTOP(Y, MIN);
+      #endif
+    }
+    else { // +direction
+      #if HAS(Y_MAX)
+        UPDATE_ENDSTOP(Y, MAX);
+      #endif
+    }
+  }
+
+  if (Z_MOVE_TEST) {
+    if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
+      #if HAS(Z_MIN)
+        #if ENABLED(Z_FOUR_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MIN);
+          #if HAS(Z2_MIN)
+            UPDATE_ENDSTOP_BIT(Z2, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
+          #endif
+          #if HAS(Z3_MIN)
+            UPDATE_ENDSTOP_BIT(Z3, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z3_MIN);
+          #endif
+          #if HAS(Z4_MIN)
+            UPDATE_ENDSTOP_BIT(Z4, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z4_MIN);
+          #endif
+
+          test_four_z_endstops(Z_MIN, Z2_MIN, Z3_MIN, Z4_MIN);
+
+        #elif ENABLED(Z_THREE_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MIN);
+          #if HAS(Z2_MIN)
+            UPDATE_ENDSTOP_BIT(Z2, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
+          #endif
+          #if HAS(Z3_MIN)
+            UPDATE_ENDSTOP_BIT(Z3, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z3_MIN);
+          #endif
+
+          test_three_z_endstops(Z_MIN, Z2_MIN, Z3_MIN);
+
+        #elif ENABLED(Z_TWO_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MIN);
+          #if HAS(Z2_MIN)
+            UPDATE_ENDSTOP_BIT(Z2, MIN);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MIN, Z2_MIN);
+          #endif
+
+          test_two_z_endstops(Z_MIN, Z2_MIN);
+
+        #else
+
+          #if HAS(BED_PROBE) && HASNT(Z_PROBE_PIN)
+            if (z_probe_enabled) UPDATE_ENDSTOP(Z, MIN);
+          #else
+            UPDATE_ENDSTOP(Z, MIN);
+          #endif
+
+        #endif // Z_FOUR_ENDSTOPS
+
+      #endif // HAS(Z_MIN)
+
+      // When closing the gap check the enabled probe
+      #if HAS(BED_PROBE) && HAS(Z_PROBE_PIN)
+        if (z_probe_enabled) {
+          UPDATE_ENDSTOP(Z, PROBE);
+          if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
+        }
+      #endif
+    }
+    else { // Z +direction. Gantry up, bed down.
+      #if HAS(Z_MAX)
+
+        // Check both Z dual endstops
+        #if ENABLED(Z_FOUR_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MAX);
+          #if HAS(Z2_MAX)
+            UPDATE_ENDSTOP_BIT(Z2, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
+          #endif
+          #if HAS(Z3_MAX)
+            UPDATE_ENDSTOP_BIT(Z3, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z3_MAX);
+          #endif
+          #if HAS(Z4_MAX)
+            UPDATE_ENDSTOP_BIT(Z4, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z4_MAX);
+          #endif
+
+          test_four_z_endstops(Z_MAX, Z2_MAX, Z3_MAX, Z4_MAX);
+
+        #elif ENABLED(Z_THREE_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MAX);
+          #if HAS(Z2_MAX)
+            UPDATE_ENDSTOP_BIT(Z2, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
+          #endif
+          #if HAS(Z3_MAX)
+            UPDATE_ENDSTOP_BIT(Z3, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z3_MAX);
+          #endif
+
+          test_three_z_endstops(Z_MAX, Z2_MAX, Z3_MAX);
+
+        #elif ENABLED(Z_TWO_ENDSTOPS)
+
+          UPDATE_ENDSTOP_BIT(Z, MAX);
+          #if HAS(Z2_MAX)
+            UPDATE_ENDSTOP_BIT(Z2, MAX);
+          #else
+            COPY_BIT(current_endstop_bits, Z_MAX, Z2_MAX);
+          #endif
+
+          test_two_z_endstops(Z_MAX, Z2_MAX);
+
+        #else
+
+          UPDATE_ENDSTOP(Z, MAX);
+
+        #endif // Z_FOUR_ENDSTOPS
+      #endif // Z_MAX_PIN
+    }
+  }
 
   #if ENABLED(NPR2)
     UPDATE_ENDSTOP(E, MIN);

@@ -40,6 +40,9 @@
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
   void gcode_M100();
+  #if ENABLED(M100_FREE_MEMORY_DUMPER)
+    void M100_dump_routine( char *title, char *start, char *end);
+  #endif
 #endif
 
 #if ENABLED(SDSUPPORT)
@@ -125,7 +128,13 @@ static long gcode_N, gcode_LastN, Stopped_gcode_LastN = 0;
 uint8_t commands_in_queue = 0;          // Count of commands in the queue
 static uint8_t  cmd_queue_index_r = 0,  // Ring buffer read position
                 cmd_queue_index_w = 0;  // Ring buffer write position
-static char command_queue[BUFSIZE][MAX_CMD_SIZE];
+
+#if ENABLED(M100_FREE_MEMORY_WATCHER)
+  #define M100_TYPE
+#else
+  #define M100_TYPE static
+#endif
+M100_TYPE char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
 /**
  * Current GCode Command
@@ -11011,6 +11020,12 @@ void process_next_command() {
 
   if (DEBUGGING(ECHO)) {
     SERIAL_LV(ECHO, current_command);
+    #if ENABLED(M100_FREE_MEMORY_WATCHER)
+      SERIAL_SMV(ECHO, "slot:", cmd_queue_index_r);
+      #if ENABLED(M100_FREE_MEMORY_DUMPER)
+        M100_dump_routine( "   Command Queue:", &command_queue[0][0], &command_queue[BUFSIZE][MAX_CMD_SIZE] );
+      #endif
+    #endif
   }
 
   // Sanitize the current command:
