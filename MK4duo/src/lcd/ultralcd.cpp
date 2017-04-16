@@ -1376,6 +1376,7 @@ void kill_screen(const char* lcd_msg) {
     ;
 
     #if ENABLED(MESH_BED_LEVELING)
+
       // Utility to go to the next mesh point
       inline void _manual_probe_goto_xy(float x, float y) {
         #if MANUAL_PROBE_HEIGHT > 0
@@ -1398,6 +1399,19 @@ void kill_screen(const char* lcd_msg) {
 
     void _lcd_level_bed_done() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_DONE));
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
+    }
+
+    /**
+     * Step 6: Display "Next point: 1 / 9" while waiting for move to finish
+     */
+    void _lcd_level_bed_moving() {
+      if (lcdDrawUpdate) {
+        char msg[10];
+        sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
+        lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
+      }
+
       lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
 
@@ -1475,20 +1489,6 @@ void kill_screen(const char* lcd_msg) {
         const float v = current_position[Z_AXIS];
         lcd_implementation_drawedit(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001 : 0.0001), '+'));
       }
-
-    }
-
-    /**
-     * Step 6: Display "Next point: 1 / 9" while waiting for move to finish
-     */
-    void _lcd_level_bed_moving() {
-      if (lcdDrawUpdate) {
-        char msg[10];
-        sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
-        lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
-      }
-
-      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
 
     /**
@@ -1548,17 +1548,23 @@ void kill_screen(const char* lcd_msg) {
         lcd_goto_screen(_lcd_level_bed_homing_done);
     }
 
+  #endif // LCD_BED_LEVELING
+
+  #if ENABLED(LCD_BED_LEVELING) || HAS(ABL)
+
     /**
      * Step 2: Continue Bed Leveling...
      */
     void _lcd_level_bed_continue() {
-      #if PLANNER_LEVELING
-        reset_bed_level();
+      #if ENABLED(LCD_BED_LEVELING)
+        defer_return_to_status = true;
+        axis_homed[X_AXIS] = axis_homed[Y_AXIS] = axis_homed[Z_AXIS] = false;
+        lcd_goto_screen(_lcd_level_bed_homing);
+        enqueue_and_echo_commands_P(PSTR("G28"));
+      #else
+        lcd_return_to_status();
+        enqueue_and_echo_commands_P(axis_homed[X_AXIS] && axis_homed[Y_AXIS] ? PSTR("G29") : PSTR("G28\nG29"));
       #endif
-      defer_return_to_status = true;
-      axis_homed[X_AXIS] = axis_homed[Y_AXIS] = axis_homed[Z_AXIS] = false;
-      lcd_goto_screen(_lcd_level_bed_homing);
-      enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
     /**
@@ -1571,7 +1577,7 @@ void kill_screen(const char* lcd_msg) {
       END_MENU();
     }
 
-  #endif  // LCD_BED_LEVELING
+  #endif  // LCD_BED_LEVELING || HAS_ABL
 
   /**
    *
@@ -1612,7 +1618,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Level Bed
     //
-    #if ENABLED(LCD_BED_LEVELING)
+    #if ENABLED(LCD_BED_LEVELING) || HAS(ABL)
 
       #if ENABLED(PROBE_MANUALLY)
         if (!g29_in_progress)
