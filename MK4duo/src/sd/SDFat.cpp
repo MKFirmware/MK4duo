@@ -3475,10 +3475,10 @@ bool Sd2Card::setSckRate(uint8_t sckRateID) {
 
 //------------------------------------------------------------------------------
 // wait for card to go not busy
-bool Sd2Card::waitNotBusy(uint16_t timeoutMillis) {
-  uint16_t t0 = HAL::timeInMilliseconds();
+bool Sd2Card::waitNotBusy(uint32_t timeoutMillis) {
+  uint32_t t0 = HAL::timeInMilliseconds();
   while (spiRec() != 0XFF) {
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) >= timeoutMillis) goto fail;
+    if (((uint32_t)HAL::timeInMilliseconds() - t0) >= timeoutMillis) goto fail;
   }
   return true;
 
