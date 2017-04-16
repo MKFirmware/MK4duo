@@ -590,6 +590,9 @@ static_assert(1 >= 0
    * Allow only one probe option to be defined
    */
   static_assert(1 >= 0
+    #if ENABLED(PROBE_MANUALLY)
+      + 1
+    #endif
     #if ENABLED(FIX_MOUNTED_PROBE)
       + 1
     #endif
@@ -651,12 +654,16 @@ static_assert(1 >= 0
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS(ABL) || ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
-    #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #if HAS(ABL) || ENABLED(AUTO_CALIBRATION_7_POINT)
+    #error "Auto Bed Leveling or Auto Calibration 7 point requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
+#endif
+
+#if ENABLED(AUTO_CALIBRATION_FEATURE) && HASNT(BED_PROBE)
+  #error "Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
 #endif
 
 /**
