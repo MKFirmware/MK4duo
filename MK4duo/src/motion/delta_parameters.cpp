@@ -167,9 +167,8 @@
 
     // Normalize Endstop
     const float eav = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    endstop_adj[A_AXIS] -= eav;
-    endstop_adj[B_AXIS] -= eav;
-    endstop_adj[C_AXIS] -= eav;
+    base_max_pos[C_AXIS] += eav;
+    LOOP_XYZ(i) endstop_adj[i] -= eav;
 
     if (numFactors >= 4) {
       radius += v[3];

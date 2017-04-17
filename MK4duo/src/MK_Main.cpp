@@ -361,9 +361,9 @@ PrintCounter print_job_counter = PrintCounter();
 
   void  home_delta();
 
-  #if ENABLED(AUTO_CALIBRATION_FEATURE)
+  #if ENABLED(DELTA_AUTO_CALIBRATION_3)
 
-    float ac_prec = AUTOCALIBRATION_PRECISION,
+    float ac_prec,
           bed_level_c,
           bed_level_x,
           bed_level_y,
@@ -385,7 +385,7 @@ PrintCounter print_job_counter = PrintCounter();
     void  bed_probe_all();
     void  adj_endstops();
 
-  #endif // AUTO_CALIBRATION_FEATURE
+  #endif // DELTA_AUTO_CALIBRATION_3
 
 #endif
 
@@ -2272,7 +2272,7 @@ static void clean_up_after_endstop_or_probe_move() {
           SERIAL_C(' ');
         SERIAL_V((int)x);
       }
-      SERIAL_EOL;
+      SERIAL_E;
     #endif
     #if ENABLED(SCAD_MESH_OUTPUT)
       SERIAL_EM("measured_z = [");  // open 2D array
@@ -4060,8 +4060,8 @@ inline void gcode_G4() {
 
 #if ENABLED(PROBE_MANUALLY)
   bool g29_in_progress = false;
-  #if ENABLED(AUTO_CALIBRATION_7_POINT)
-    bool g30_in_progress = false;
+  #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+    bool g33_in_progress = false;
   #endif
 #else
   constexpr bool g29_in_progress = false;
@@ -4102,9 +4102,9 @@ inline void gcode_G28() {
   // Cancel the active G29 session
   #if ENABLED(PROBE_MANUALLY)
     g29_in_progress = false;
-    #if ENABLED(AUTO_CALIBRATION_7_POINT)
+    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
       // Cancel the active G30 session
-      g30_in_progress = false;
+      g33_in_progress = false;
     #endif
     #if HAS(NEXTION_MANUAL_BED)
       LcdBedLevelOff();
@@ -4619,6 +4619,11 @@ inline void gcode_G28() {
    *  L  Set the Left limit of the probing grid
    *  R  Set the Right limit of the probing grid
    *
+   * Parameters with DEBUG_LEVELING_FEATURE only:
+   *
+   *  C  Make a totally fake grid with no actual probing.
+   *     For use in testing when no probing is possible.
+   *
    * Parameters with BILINEAR leveling only:
    *
    *  Z  Supply an additional Z probe offset
@@ -4661,12 +4666,21 @@ inline void gcode_G28() {
       #endif
     #endif
 
+    #if ENABLED(DEBUG_LEVELING_FEATURE) && DISABLED(PROBE_MANUALLY)
+      const bool faux = code_seen('C') && code_value_bool();
+    #else
+      bool constexpr faux = false;
+    #endif
+
     #if MECH(DELTA)
       // Homing
-      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS]) {
-        home_delta();
-        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-      }
+      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
+        gcode_G28();
+
+      #if ENABLED(PROBE_MANUALLY)
+        if (!g29_in_progress)
+      #endif
+          do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
     #else
       // Don't allow auto-levelling without homing first
       if (axis_unhomed_error(true, true, true)) return;
@@ -4885,7 +4899,7 @@ inline void gcode_G28() {
         SYNC_PLAN_POSITION_KINEMATIC();
       }
 
-      setup_for_endstop_or_probe_move();
+      if (!faux) setup_for_endstop_or_probe_move();
 
       #if HAS_BED_PROBE
         // Deploy the probe. Probe will raise if needed.
@@ -5068,7 +5082,7 @@ inline void gcode_G28() {
         }
         else {
 
-          SERIAL_PROTOCOLLNPGM("3-point probing done.");
+          SERIAL_EM("3-point probing done.");
           g29_in_progress = false;
 
           // Re-enable software endstops, if needed
@@ -5137,7 +5151,7 @@ inline void gcode_G28() {
               if (!position_is_reachable(pos, true)) continue;
             #endif
 
-            measured_z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
+            measured_z = faux ? 0.001 * random(-100, 101) : probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
             if (isnan(measured_z)) {
               planner.abl_enabled = abl_should_enable;
@@ -5172,7 +5186,7 @@ inline void gcode_G28() {
           // Retain the last probe position
           xProbe = LOGICAL_X_POSITION(points[i].x);
           yProbe = LOGICAL_Y_POSITION(points[i].y);
-          measured_z = points[i].z = probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
+          measured_z = points[i].z = faux ? 0.001 * random(-100, 101) : probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
         }
 
         if (isnan(measured_z)) {
@@ -5211,7 +5225,7 @@ inline void gcode_G28() {
     //
 
     // Restore state after probing
-    clean_up_after_endstop_or_probe_move();
+    if (!faux) clean_up_after_endstop_or_probe_move();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", current_position);
@@ -5422,25 +5436,35 @@ inline void gcode_G28() {
 
 #endif // HAS_ABL
 
-#if HAS(BED_PROBE) && NOMECH(DELTA)
+#if HAS(BED_PROBE)
 
   /**
    * G30: Do a single Z probe at the current XY
    * Usage:
-   *   G30 <X#> <Y#> <S#>
-   *     X = Probe X position (default=current probe position)
-   *     Y = Probe Y position (default=current probe position)
-   *     S = Stows the probe if 1 (default=1)
+   *    G30 <X#> <Y#> <S#> <U#>
+   *      X = Probe X position (default=current probe position)
+   *      Y = Probe Y position (default=current probe position)
+   *      S = Stows the probe if 1 (default=1)
+   *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset (ONLY DELTA)
    */
   inline void gcode_G30() {
 
-    float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-          Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
+    const float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
+                Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
 
     float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
-    if (!position_is_reachable(pos, true)) return;
 
-    bool stow = code_seen('S') ? code_value_bool() : true;
+    #if MECH(DELTA)
+      // Homing and deploy z probe
+      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
+        gcode_G28();
+
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+    #else
+      if (!position_is_reachable(pos, true)) return;
+    #endif
+
+    const bool stow = code_seen('S') ? code_value_bool() : true;
 
     // Disable leveling so the planner won't mess with us
     #if PLANNER_LEVELING
@@ -5449,11 +5473,19 @@ inline void gcode_G28() {
 
     setup_for_endstop_or_probe_move();
 
-    float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1);
+    const float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1);
 
     SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
     SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(X_probe_location), 3);
     SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(Y_probe_location), 3);
+
+    #if MECH(DELTA)
+      if (code_seen('U') && code_value_bool() != 0) {
+        zprobe_zoffset += soft_endstop_min[Z_AXIS] - measured_z;
+        SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 4);
+      }
+    #endif
+
     SERIAL_E;
 
     clean_up_after_endstop_or_probe_move();
@@ -5475,244 +5507,14 @@ inline void gcode_G28() {
 
   #endif // Z_PROBE_SLED
 
-#elif ENABLED(AUTO_CALIBRATION_FEATURE)
+#endif // HAS(BED_PROBE)
+
+#if ENABLED(DELTA_AUTO_CALIBRATION_1)
 
   /**
-   * G30: Delta AutoCalibration
+   * G33: Delta AutoCalibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
    * Usage:
-   *    G30 <X#> <Y#> <A#> <E> <R> <I> <D> <T> <S#> <U#>
-   *      X = Probe X position (default=current probe position)
-   *      Y = Probe Y position (default=current probe position)
-   *      A = Autocalibration +/- precision
-   *      E = Adjust Endstop
-   *      R = Adjust Endstop & Delta Radius
-   *      I = Adjust Tower
-   *      D = Adjust Diagonal Rod
-   *      T = Adjust Tower Radius
-   *      S = Stows the probe if 1 (default=1)
-   *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset
-   */
-  inline void gcode_G30() {
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      set_bed_leveling_enabled(false);
-    #endif
-
-    // Homing and deploy z probe
-    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-      home_delta();
-
-    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
-
-    stepper.synchronize();  // wait until the machine is idle
-
-    setup_for_endstop_or_probe_move();
-
-    if (code_seen('X') || code_seen('Y')) {
-      // Probe specified X, Y point
-      float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-            Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-      float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
-      if (!position_is_reachable(pos, true)) return;
-
-      bool stow = code_seen('S') ? code_value_bool() : true;
-
-      float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
-            new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - measured_z - zprobe_zoffset;
-
-      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(X_probe_location), 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(Y_probe_location), 3);
-      SERIAL_E;
-
-      if (code_seen('U') && code_value_bool() != 0)
-        zprobe_zoffset = new_zprobe_zoffset;
-
-      clean_up_after_endstop_or_probe_move();
-
-      report_current_position();
-
-      return;
-    }
-
-    if (code_seen('A')) {
-      SERIAL_EM("Starting Auto Calibration...");
-      LCD_MESSAGEPGM("Auto Calibration...");
-      if (code_has_value()) ac_prec = code_value_float();
-      SERIAL_MV("Calibration precision: +/-", ac_prec, 2);
-      SERIAL_EM(" mm");
-    }
-
-    // Probe all points
-    bed_probe_all();
-
-    // Show calibration report      
-    calibration_report();
-
-    if (code_seen('E')) {
-      int iteration = 0;
-      do {
-        iteration ++;
-        SERIAL_EMV("Iteration: ", iteration);
-
-        SERIAL_EM("Checking/Adjusting Endstop offsets");
-        adj_endstops();
-
-        bed_probe_all();
-        calibration_report();
-      } while ((bed_level_x < -ac_prec) or (bed_level_x > ac_prec)
-            or (bed_level_y < -ac_prec) or (bed_level_y > ac_prec)
-            or (bed_level_z < -ac_prec) or (bed_level_z > ac_prec));
-
-      SERIAL_EM("Endstop adjustment complete");
-    }
-
-    if (code_seen('R')) {
-      int iteration = 0;
-      do {
-        iteration ++;
-        SERIAL_EMV("Iteration: ", iteration);
-
-        SERIAL_EM("Checking/Adjusting Endstop offsets");
-        adj_endstops();
-
-        bed_probe_all();
-        calibration_report();
-
-        SERIAL_EM("Checking delta radius");
-        adj_deltaradius();
-
-      } while ((bed_level_c < -ac_prec) or (bed_level_c > ac_prec)
-            or (bed_level_x < -ac_prec) or (bed_level_x > ac_prec)
-            or (bed_level_y < -ac_prec) or (bed_level_y > ac_prec)
-            or (bed_level_z < -ac_prec) or (bed_level_z > ac_prec));
-    }
-
-    if (code_seen('I')) {
-      SERIAL_EMV("Adjusting Tower Delta for tower", code_value_byte());
-      adj_tower_delta(code_value_byte());
-      SERIAL_EM("Tower Delta adjustment complete");
-    }
-
-    if (code_seen('D')) {
-      SERIAL_EM("Adjusting Diagonal Rod Length");
-      adj_diagrod_length();
-      SERIAL_EM("Diagonal Rod Length adjustment complete");
-    }
-
-    if (code_seen('T')) {
-      SERIAL_EMV("Adjusting Tower Radius for tower", code_value_byte());
-      adj_tower_radius(code_value_byte());
-      SERIAL_EM("Tower Radius adjustment complete");
-    }
-
-    if (code_seen('A')) {
-      int iteration = 0;
-      bool dr_adjusted;
-
-      do {
-        do {
-          iteration ++;
-          SERIAL_EMV("Iteration: ", iteration);
-
-          SERIAL_EM("Checking/Adjusting endstop offsets");
-          adj_endstops();
-
-          bed_probe_all();
-          calibration_report();
-
-          if ((bed_level_c < -ac_prec) or (bed_level_c > ac_prec)) {
-            SERIAL_EM("Checking delta radius");
-            dr_adjusted = adj_deltaradius();
-          }
-          else
-            dr_adjusted = false;
-
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
-              SERIAL_EMV("bed_level_c = ", bed_level_c, 4);
-              SERIAL_EMV("bed_level_x = ", bed_level_x, 4);
-              SERIAL_EMV("bed_level_y = ", bed_level_y, 4);
-              SERIAL_EMV("bed_level_z = ", bed_level_z, 4);
-            }
-          #endif
-
-        } while ((bed_level_c < -ac_prec) or (bed_level_c > ac_prec)
-              or (bed_level_x < -ac_prec) or (bed_level_x > ac_prec)
-              or (bed_level_y < -ac_prec) or (bed_level_y > ac_prec)
-              or (bed_level_z < -ac_prec) or (bed_level_z > ac_prec)
-              or (dr_adjusted));
-
-        if ((bed_level_ox < -ac_prec) or (bed_level_ox > ac_prec) or
-            (bed_level_oy < -ac_prec) or (bed_level_oy > ac_prec) or
-            (bed_level_oz < -ac_prec) or (bed_level_oz > ac_prec)) {
-          SERIAL_EM("Checking for tower geometry errors..");
-          if (fix_tower_errors() != 0 ) {
-            // Tower positions have been changed .. home to endstops
-            SERIAL_EM("Tower Positions changed .. Homing");
-            home_delta();
-            do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
-          }
-          else {
-            SERIAL_EM("Checking Diagonal Rod Length");
-            if (adj_diagrod_length() != 0) { 
-              // If diagonal rod length has been changed .. home to endstops
-              SERIAL_EM("Diagonal Rod Length changed .. Homing");
-              home_delta();
-              do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
-            }
-          }
-          bed_probe_all();
-          calibration_report();
-        }
-
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) {
-            SERIAL_EMV("bed_level_c = ", bed_level_c, 4);
-            SERIAL_EMV("bed_level_x = ", bed_level_x, 4);
-            SERIAL_EMV("bed_level_y = ", bed_level_y, 4);
-            SERIAL_EMV("bed_level_z = ", bed_level_z, 4);
-            SERIAL_EMV("bed_level_ox = ", bed_level_ox, 4);
-            SERIAL_EMV("bed_level_oy = ", bed_level_oy, 4);
-            SERIAL_EMV("bed_level_oz = ", bed_level_oz, 4);
-          }
-        #endif
-      } while((bed_level_c < -ac_prec) or (bed_level_c > ac_prec)
-           or (bed_level_x < -ac_prec) or (bed_level_x > ac_prec)
-           or (bed_level_y < -ac_prec) or (bed_level_y > ac_prec)
-           or (bed_level_z < -ac_prec) or (bed_level_z > ac_prec)
-           or (bed_level_ox < -ac_prec) or (bed_level_ox > ac_prec)
-           or (bed_level_oy < -ac_prec) or (bed_level_oy > ac_prec)
-           or (bed_level_oz < -ac_prec) or (bed_level_oz > ac_prec));
-
-      SERIAL_EM("Autocalibration Complete");
-    }
-
-    STOW_PROBE();
-
-    // reset LCD alert message
-    lcd_reset_alert_level();
-
-    clean_up_after_endstop_or_probe_move();
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G30");
-    #endif
-
-    report_current_position();
-    KEEPALIVE_STATE(IN_HANDLER);
-  }
-
-#elif ENABLED(AUTO_CALIBRATION_7_POINT)
-
-  /**
-   * G30: Delta AutoCalibration
-   * Usage:
-   *    G30 <X#> <Y#> <A> <S#> <U#>
-   *      X = Probe X position (default=current probe position)
-   *      Y = Probe Y position (default=current probe position)
-   *      A = Autocalibration
+   *    G33 <Fn> <Pn> <Q>
    *      F = Num Factors 3 or 4 or 6 or 7
    *        The input vector contains the following parameters in this order:
    *          X, Y and Z endstop adjustments
@@ -5721,18 +5523,16 @@ inline void gcode_G28() {
    *          Diagonal rod length adjustment
    *      P = Num probe points 7 or 10
    *      Q = Debugging
-   *      S = Stows the probe if 1 (default=1)
-   *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset
    */
-  inline void gcode_G30() {
+  inline void gcode_G33() {
 
-    // G30 Q is also available if debugging
+    // G33 Q is also available if debugging
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       const bool query = code_seen('Q');
       const uint8_t old_debug_flags = mk_debug_flags;
       if (query) mk_debug_flags |= DEBUG_LEVELING;
       if (DEBUGGING(LEVELING)) {
-        DEBUG_POS(">>> gcode_G30", current_position);
+        DEBUG_POS(">>> gcode_G33", current_position);
         log_machine_info();
       }
       mk_debug_flags = old_debug_flags;
@@ -5742,10 +5542,14 @@ inline void gcode_G28() {
     #endif
 
     // Homing
-    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS]) {
-      home_delta();
-      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-    }
+    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
+      gcode_G28();
+
+    #if ENABLED(PROBE_MANUALLY)
+      if (!g33_in_progress)
+    #endif
+        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+
     stepper.synchronize();  // wait until the machine is idle
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -5774,319 +5578,280 @@ inline void gcode_G28() {
       ABL_VAR bool enable_soft_endstops = true;
     #endif
 
-    setup_for_endstop_or_probe_move();
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("> endstops.enable(true)");
-    #endif
-    endstops.enable(true); // Enable endstops for next homing move
-
     ABL_VAR uint8_t numFactors = code_seen('F') ? constrain(code_value_int(), 3, 7) : 7;
     ABL_VAR uint8_t numPoints  = code_seen('P') ? constrain(code_value_int(), 7, 10) : 7;
 
     const bool stow = code_seen('S') ? code_value_bool() : true;
 
-    if (code_seen('A')) {
+    #if ENABLED(PROBE_MANUALLY)
 
-      #if ENABLED(PROBE_MANUALLY)
-
-        /**
-         * On the initial G30 fetch command parameters.
-         */
-        if (!g30_in_progress) {
-          SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
-          SERIAL_MV(" points and ", numFactors);
-          SERIAL_EM(" Factors");
-          LCD_MESSAGEPGM("Auto Calibration...");
-          probe_index = 0;
-          #if HAS(NEXTION_MANUAL_BED)
-            LcdBedLevelOn();
-          #endif
-        }
-
-        // Query G30 status
-        if (code_seen('Q')) {
-          if (!g30_in_progress)
-            SERIAL_EM("Manual G30 idle");
-          else {
-            SERIAL_MV("Manual G30 point ", probe_index + 1);
-            SERIAL_EMV(" of ", numPoints);
-          }
-          return;
-        }
-
-        // Fall through to probe the first point
-        g30_in_progress = true;
-
-        if (probe_index == 0) {
-          // For the initial G30 save software endstop state
-          #if HAS_SOFTWARE_ENDSTOPS
-            enable_soft_endstops = soft_endstops_enabled;
-          #endif
-        }
-        else {
-          // Save the previous Z before going to the next point
-          zBedProbePoints[probe_index - 1] = current_position[Z_AXIS];
-        }
-
-        // Is there a next point to move to?
-        if (probe_index < 6) {
-          xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
-          yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
-        }
-        if (numPoints >= 10) {
-          if (probe_index >= 6 && probe_index < 9) {
-            xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-            yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
-          }
-          else if (probe_index >= 9) {
-            xBedProbePoints[9] = 0.0;
-            yBedProbePoints[9] = 0.0;
-          }
-        }
-        else {
-          if (probe_index >= 6) {
-            xBedProbePoints[6] = 0.0;
-            yBedProbePoints[6] = 0.0;
-          }
-        }
-
-        // Is there a next point to move to?
-        if (probe_index < numPoints) {
-          _manual_goto_xy(xBedProbePoints[probe_index], yBedProbePoints[probe_index]); // Can be used here too!
-          ++probe_index;
-          #if HAS_SOFTWARE_ENDSTOPS
-            // Disable software endstops to allow manual adjustment
-            // If G29 is not completed, they will not be re-enabled
-            soft_endstops_enabled = false;
-          #endif
-          return;
-        }
-        else {
-          // Then calibration is done!
-          // G30 finishing code goes here
-
-          // After recording the last point, activate abl
-          SERIAL_EM("Calibration probing done.");
-          g30_in_progress = false;
-
-          // Re-enable software endstops, if needed
-          #if HAS_SOFTWARE_ENDSTOPS
-            soft_endstops_enabled = enable_soft_endstops;
-          #endif
-        }
-
-      #else
-
-        SERIAL_MV("Starting Auto Calibration ", numPoints);
+      /**
+       * On the initial G30 fetch command parameters.
+       */
+      if (!g33_in_progress) {
+        SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
         SERIAL_MV(" points and ", numFactors);
         SERIAL_EM(" Factors");
         LCD_MESSAGEPGM("Auto Calibration...");
-
-        for (probe_index = 0; probe_index < 6; probe_index++) {
-          xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
-          yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
-          zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
-        }
-        if (numPoints >= 10) {
-          for (probe_index = 6; probe_index < 9; probe_index++) {
-            xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-            yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
-            zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
-          }
-          xBedProbePoints[9] = 0.0;
-          yBedProbePoints[9] = 0.0;
-          zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4);
-        }
-        else {
-          xBedProbePoints[6] = 0.0;
-          yBedProbePoints[6] = 0.0;
-          zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4);
-        }
-
-      #endif
-
-      float probeMotorPositions[MaxCalibrationPoints][ABC],
-            corrections[numPoints];
-
-      initialSumOfSquares = 0.0;
-
-      // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
-      for (uint8_t i = 0; i < numPoints; ++i) {
-        corrections[i] = 0.0;
-        float machinePos[ABC];
-        float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
-
-        xp -= X_PROBE_OFFSET_FROM_NOZZLE;
-        yp -= Y_PROBE_OFFSET_FROM_NOZZLE;
-        machinePos[A_AXIS] = xp;
-        machinePos[B_AXIS] = yp;
-        machinePos[C_AXIS] = 0.0;
-
-        deltaParams.inverse_kinematics_DELTA(machinePos);
-
-        for(uint8_t axis = 0; axis < ABC; axis++)
-          probeMotorPositions[i][axis] = delta[axis];
-
-        initialSumOfSquares += sq(zBedProbePoints[i]);
+        probe_index = 0;
+        #if HAS(NEXTION_MANUAL_BED)
+          LcdBedLevelOn();
+        #endif
       }
 
-      // Do 1 or more Newton-Raphson iterations
-      uint8_t iteration = 0;
-
-      do {
-        iteration++;
-
-        float derivativeMatrix[MaxCalibrationPoints][numFactors],
-              normalMatrix[numFactors][numFactors + 1];
-
-        for (uint8_t i = 0; i < numPoints; i++) {
-          for (uint8_t j = 0; j < numFactors; j++) {
-            derivativeMatrix[i][j] =
-              deltaParams.ComputeDerivative(j, probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS]);
-          }
+      // Query G30 status
+      if (code_seen('Q')) {
+        if (!g33_in_progress)
+          SERIAL_EM("Manual G30 idle");
+        else {
+          SERIAL_MV("Manual G30 point ", probe_index + 1);
+          SERIAL_EMV(" of ", numPoints);
         }
+        return;
+      }
 
-        for (uint8_t i = 0; i < numFactors; i++) {
-          for (uint8_t j = 0; j < numFactors; j++) {
-            float temp = derivativeMatrix[0][i] * derivativeMatrix[0][j];
-            for (uint8_t k = 1; k < numPoints; k++) {
-              temp += derivativeMatrix[k][i] * derivativeMatrix[k][j];
-            }
-            normalMatrix[i][j] = temp;
-          }
-          float temp = derivativeMatrix[0][i] * -(zBedProbePoints[0] + corrections[0]);
-          for (uint8_t k = 1; k < numPoints; k++) {
-            temp += derivativeMatrix[k][i] * -(zBedProbePoints[k] + corrections[k]);
-          }
-          normalMatrix[i][numFactors] = temp;
-        }
+      // Fall through to probe the first point
+      g33_in_progress = true;
 
-        float solution[numFactors];
-
-        // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
-        // Returns a pointer to the solution vector.
-        for (uint8_t i = 0; i < numFactors; i++) {
-          // Swap the rows around for stable Gauss-Jordan elimination
-          float vmax = abs(normalMatrix[i][i]);
-          for (uint8_t j = i + 1; j < numFactors; j++) {
-            const float rmax = abs(normalMatrix[j][i]);
-            if (rmax > vmax) {
-              // Swap 2 rows of a matrix
-              if (i != j) {
-                for (uint8_t k = 0; k < numFactors + 1; k++) {
-                  const float temp = normalMatrix[i][k];
-                  normalMatrix[i][k] = normalMatrix[j][k];
-                  normalMatrix[j][k] = temp;
-                }
-              }
-              vmax = rmax;
-            }
-          }
-
-          // Use row i to eliminate the ith element from previous and subsequent rows
-          float v = normalMatrix[i][i];
-          for (uint8_t j = 0; j < i; j++)	{
-            float factor = normalMatrix[j][i] / v;
-            normalMatrix[j][i] = 0.0;
-            for (uint8_t k = i + 1; k <= numFactors; k++) {
-              normalMatrix[j][k] -= normalMatrix[i][k] * factor;
-            }
-          }
-
-          for (uint8_t j = i + 1; j < numFactors; j++) {
-            float factor = normalMatrix[j][i] / v;
-            normalMatrix[j][i] = 0.0;
-            for (uint8_t k = i + 1; k <= numFactors; k++) {
-              normalMatrix[j][k] -= normalMatrix[i][k] * factor;
-            }
-          }
-        }
-
-        for (uint8_t i = 0; i < numFactors; i++)	{
-          solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
-        }
-        deltaParams.Adjust(numFactors, solution);
-
-        // Calculate the expected probe heights using the new parameters
-        float expectedResiduals[MaxCalibrationPoints];
-        float sumOfSquares = 0.0;
-
-        for (int8_t i = 0; i < numPoints; i++) {
-          LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
-          float newPosition[ABC];
-          deltaParams.forward_kinematics_DELTA(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
-          corrections[i] = newPosition[Z_AXIS];
-          expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
-          sumOfSquares += sq(expectedResiduals[i]);
-        }
-
-        expectedRmsError = SQRT(sumOfSquares / numPoints);
-
-      } while (iteration < 2);
-
-      SERIAL_MV("Calibrated ", numFactors);
-      SERIAL_MV(" factors using ", numPoints);
-      SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
-      SERIAL_MV(" after ", expectedRmsError, 4);
-      SERIAL_E;
-
-      deltaParams.Recalc_delta_constants();
-
-      #if HAS(BED_PROBE)
-
-        // Recalibrate Height
-        SERIAL_EM("Calibrate Height");
-        home_delta();
-        do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
-        deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0);
-        deltaParams.Recalc_delta_constants();
-
-      #endif
-
-      SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
-      SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
-      SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS], 3);
-      SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
-      SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
-      SERIAL_MV(" delta radius ", deltaParams.radius, 3);
-      SERIAL_MV(" Towers radius correction A", deltaParams.tower_radius_adj[A_AXIS], 2);
-      SERIAL_MV(" B", deltaParams.tower_radius_adj[B_AXIS], 2);
-      SERIAL_MV(" C", deltaParams.tower_radius_adj[C_AXIS], 2);
-      SERIAL_E;
-
-      home_delta();
-      endstops.not_homing();
-      report_current_position();
-
-    }
-
-    #if HAS(BED_PROBE)
-
+      if (probe_index == 0) {
+        // For the initial G30 save software endstop state
+        #if HAS_SOFTWARE_ENDSTOPS
+          enable_soft_endstops = soft_endstops_enabled;
+        #endif
+      }
       else {
+        // Save the previous Z before going to the next point
+        zBedProbePoints[probe_index - 1] = current_position[Z_AXIS];
+      }
 
-        // Probe specified X, Y point
-        float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-              Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-        float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
-        if (!position_is_reachable(pos, true)) return;
-
-        float measured_z = probe_pt(X_probe_location, Y_probe_location, stow, 1),
-              new_zprobe_zoffset = soft_endstop_min[Z_AXIS] - (measured_z - zprobe_zoffset);
-
-        SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-        SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(current_position[X_AXIS]), 3);
-        SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(current_position[Y_AXIS]), 3);
-
-        if (code_seen('U') && code_value_bool() != 0) {
-          zprobe_zoffset = new_zprobe_zoffset;
-          SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 4);
+      // Is there a next point to move to?
+      if (probe_index < 6) {
+        xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
+      }
+      if (numPoints >= 10) {
+        if (probe_index >= 6 && probe_index < 9) {
+          xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
         }
+        else if (probe_index >= 9) {
+          xBedProbePoints[9] = 0.0;
+          yBedProbePoints[9] = 0.0;
+        }
+      }
+      else {
+        if (probe_index >= 6) {
+          xBedProbePoints[6] = 0.0;
+          yBedProbePoints[6] = 0.0;
+        }
+      }
 
-        SERIAL_E;
+      // Is there a next point to move to?
+      if (probe_index < numPoints) {
+        _manual_goto_xy(xBedProbePoints[probe_index], yBedProbePoints[probe_index]); // Can be used here too!
+        ++probe_index;
+        #if HAS_SOFTWARE_ENDSTOPS
+          // Disable software endstops to allow manual adjustment
+          // If G29 is not completed, they will not be re-enabled
+          soft_endstops_enabled = false;
+        #endif
+        return;
+      }
+      else {
+        // Then calibration is done!
+        // G30 finishing code goes here
+
+        // After recording the last point, activate abl
+        SERIAL_EM("Calibration probing done.");
+        g33_in_progress = false;
+
+        // Re-enable software endstops, if needed
+        #if HAS_SOFTWARE_ENDSTOPS
+          soft_endstops_enabled = enable_soft_endstops;
+        #endif
+      }
+
+    #else
+
+      SERIAL_MV("Starting Auto Calibration ", numPoints);
+      SERIAL_MV(" points and ", numFactors);
+      SERIAL_EM(" Factors");
+      LCD_MESSAGEPGM("Auto Calibration...");
+
+      for (probe_index = 0; probe_index < 6; probe_index++) {
+        xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
+        zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+      }
+      if (numPoints >= 10) {
+        for (probe_index = 6; probe_index < 9; probe_index++) {
+          xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+        }
+        xBedProbePoints[9] = 0.0;
+        yBedProbePoints[9] = 0.0;
+        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4);
+      }
+      else {
+        xBedProbePoints[6] = 0.0;
+        yBedProbePoints[6] = 0.0;
+        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4);
       }
 
     #endif
+
+    float probeMotorPositions[MaxCalibrationPoints][ABC],
+          corrections[numPoints];
+
+    initialSumOfSquares = 0.0;
+
+    // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
+    for (uint8_t i = 0; i < numPoints; ++i) {
+      corrections[i] = 0.0;
+      float machinePos[ABC];
+      float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
+
+      xp -= X_PROBE_OFFSET_FROM_NOZZLE;
+      yp -= Y_PROBE_OFFSET_FROM_NOZZLE;
+      machinePos[A_AXIS] = xp;
+      machinePos[B_AXIS] = yp;
+      machinePos[C_AXIS] = 0.0;
+
+      deltaParams.inverse_kinematics_DELTA(machinePos);
+
+      for(uint8_t axis = 0; axis < ABC; axis++)
+        probeMotorPositions[i][axis] = delta[axis];
+
+      initialSumOfSquares += sq(zBedProbePoints[i]);
+    }
+
+    // Do 1 or more Newton-Raphson iterations
+    uint8_t iteration = 0;
+
+    do {
+      iteration++;
+
+      float derivativeMatrix[MaxCalibrationPoints][numFactors],
+            normalMatrix[numFactors][numFactors + 1];
+
+      for (uint8_t i = 0; i < numPoints; i++) {
+        for (uint8_t j = 0; j < numFactors; j++) {
+          derivativeMatrix[i][j] =
+            deltaParams.ComputeDerivative(j, probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS]);
+        }
+      }
+
+      for (uint8_t i = 0; i < numFactors; i++) {
+        for (uint8_t j = 0; j < numFactors; j++) {
+          float temp = derivativeMatrix[0][i] * derivativeMatrix[0][j];
+          for (uint8_t k = 1; k < numPoints; k++) {
+            temp += derivativeMatrix[k][i] * derivativeMatrix[k][j];
+          }
+          normalMatrix[i][j] = temp;
+        }
+        float temp = derivativeMatrix[0][i] * -(zBedProbePoints[0] + corrections[0]);
+        for (uint8_t k = 1; k < numPoints; k++) {
+          temp += derivativeMatrix[k][i] * -(zBedProbePoints[k] + corrections[k]);
+        }
+        normalMatrix[i][numFactors] = temp;
+      }
+
+      float solution[numFactors];
+
+      // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
+      // Returns a pointer to the solution vector.
+      for (uint8_t i = 0; i < numFactors; i++) {
+        // Swap the rows around for stable Gauss-Jordan elimination
+        float vmax = abs(normalMatrix[i][i]);
+        for (uint8_t j = i + 1; j < numFactors; j++) {
+          const float rmax = abs(normalMatrix[j][i]);
+          if (rmax > vmax) {
+            // Swap 2 rows of a matrix
+            if (i != j) {
+              for (uint8_t k = 0; k < numFactors + 1; k++) {
+                const float temp = normalMatrix[i][k];
+                normalMatrix[i][k] = normalMatrix[j][k];
+                normalMatrix[j][k] = temp;
+              }
+            }
+            vmax = rmax;
+          }
+        }
+
+        // Use row i to eliminate the ith element from previous and subsequent rows
+        float v = normalMatrix[i][i];
+        for (uint8_t j = 0; j < i; j++)	{
+          float factor = normalMatrix[j][i] / v;
+          normalMatrix[j][i] = 0.0;
+          for (uint8_t k = i + 1; k <= numFactors; k++) {
+            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
+          }
+        }
+
+        for (uint8_t j = i + 1; j < numFactors; j++) {
+          float factor = normalMatrix[j][i] / v;
+          normalMatrix[j][i] = 0.0;
+          for (uint8_t k = i + 1; k <= numFactors; k++) {
+            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
+          }
+        }
+      }
+
+      for (uint8_t i = 0; i < numFactors; i++)	{
+        solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
+      }
+      deltaParams.Adjust(numFactors, solution);
+
+      // Calculate the expected probe heights using the new parameters
+      float expectedResiduals[MaxCalibrationPoints];
+      float sumOfSquares = 0.0;
+
+      for (int8_t i = 0; i < numPoints; i++) {
+        LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
+        float newPosition[ABC];
+        deltaParams.forward_kinematics_DELTA(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
+        corrections[i] = newPosition[Z_AXIS];
+        expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
+        sumOfSquares += sq(expectedResiduals[i]);
+      }
+
+      expectedRmsError = SQRT(sumOfSquares / numPoints);
+
+    } while (iteration < 2);
+
+    SERIAL_MV("Calibrated ", numFactors);
+    SERIAL_MV(" factors using ", numPoints);
+    SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
+    SERIAL_MV(" after ", expectedRmsError, 4);
+    SERIAL_E;
+
+    deltaParams.Recalc_delta_constants();
+
+    #if HAS(BED_PROBE)
+
+      // Recalibrate Height
+      SERIAL_EM("Calibrate Height");
+      gcode_G28();
+      do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
+      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0);
+      deltaParams.Recalc_delta_constants();
+
+    #endif
+
+    SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
+    SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
+    SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS], 3);
+    SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
+    SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
+    SERIAL_MV(" delta radius ", deltaParams.radius, 3);
+    SERIAL_MV(" Towers radius correction A", deltaParams.tower_radius_adj[A_AXIS], 2);
+    SERIAL_MV(" B", deltaParams.tower_radius_adj[B_AXIS], 2);
+    SERIAL_MV(" C", deltaParams.tower_radius_adj[C_AXIS], 2);
+    SERIAL_E;
+
+    gcode_G28();
+    report_current_position();
 
     #if HAS(NEXTION_MANUAL_BED)
       LcdBedLevelOff();
@@ -6096,7 +5861,547 @@ inline void gcode_G28() {
 
   }
 
-#endif // AUTO_CALIBRATION_7_POINT
+#elif ENABLED(DELTA_AUTO_CALIBRATION_2)
+
+  /**
+   * G33: Delta AutoCalibration Algorithm based on Thinkyhead Marlin
+   *
+   * Usage: G33 <Pn> <Vn>
+   *
+   *  P  1-4: n x n probe points, default 4 x 4
+   *
+   *    1: probe center
+   *       set height only - useful when z_offset is changed
+   *    2: probe center and towers
+   *       solve one '4 point' calibration
+   *    3: probe 3 center points, towers and opposite-towers
+   *       averages between 2 '4 point' calibrations
+   *    4: probe 4 center points, towers, opposite-towers and itermediate points
+   *       averages between 4 '4 point' calibrations
+   *
+   *  V  Verbose level (0-3, default 1)
+   *
+   *    0: Dry-run mode: no calibration
+   *    1: Settings
+   *    2: Setting + probe results
+   *    3: Expert mode: setting + iteration factors (see Configuration_adv.h)
+   *       This prematurely stops the iteration process when factors are found
+   */
+  inline void gcode_G33() {
+
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      set_bed_leveling_enabled(false);
+    #endif
+
+    // Homing and deploy z probe
+    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
+      gcode_G28();
+
+    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+
+    stepper.synchronize();  // wait until the machine is idle
+
+    const uint8_t pp = code_seen('P') ? code_value_int() : 4,
+                  probe_points = (WITHIN(pp, 1, 4)) ? pp : 4;
+
+    int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
+
+    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+      #define _MAX_M33_V 3
+      if (verbose_level == 3 && probe_points == 1) verbose_level--; // needs at least 4 points
+    #else
+      #define _MAX_M33_V 2
+    #endif
+
+    if (!WITHIN(verbose_level, 0, _MAX_M33_V)) verbose_level = 1;
+
+    float zero_std_dev = verbose_level ? 999.0 : 0.0; // 0.0 in dry-run mode : forced end
+
+    float e_old[XYZ],
+          dr_old = deltaParams.radius,
+          zh_old = deltaParams.base_max_pos[C_AXIS];
+    COPY_ARRAY(e_old, deltaParams.endstop_adj);
+    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+      // expert variables
+      float h_f_old = 1.00, r_f_old = 0.00,
+            h_diff_min = 1.00, r_diff_max = 0.10;
+    #endif
+
+    // print settings
+
+    SERIAL_EM("G33 Auto Calibrate");
+    SERIAL_M("Checking... AC");
+    if (verbose_level == 0) SERIAL_M(" (DRY-RUN)");
+    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+      if (verbose_level == 3) SERIAL_M(" (EXPERT)");
+    #endif
+    SERIAL_E;
+    LCD_MESSAGEPGM("Checking... AC");
+
+    SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 3);
+    if (probe_points > 1) {
+      SERIAL_M("    Ex:");
+      if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
+      SERIAL_V(deltaParams.endstop_adj[A_AXIS], 2);
+      SERIAL_M("  Ey:");
+      if (deltaParams.endstop_adj[B_AXIS] >= 0) SERIAL_C('+');
+      SERIAL_V(deltaParams.endstop_adj[B_AXIS], 2);
+      SERIAL_M("  Ez:");
+      if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
+      SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
+      SERIAL_MV("    Radius:", deltaParams.radius);
+    }
+    SERIAL_E;
+
+    float test_precision;
+    int8_t iterations = 0;
+
+    do { // start iterations
+
+      setup_for_endstop_or_probe_move();
+
+      test_precision =
+        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+          // Expert mode : forced end at std_dev < 0.1
+          (verbose_level == 3 && zero_std_dev < 0.1) ? 0.0 :
+        #endif
+        zero_std_dev
+      ;
+
+      float z_at_pt[13] = { 0 };
+
+      iterations++;
+
+      // probe the points
+
+      int16_t center_points = 0;
+
+      if (probe_points != 3) {
+        z_at_pt[0] += probe_pt(0.0, 0.0 , true, verbose_level);
+        center_points = 1;
+      }
+
+      int16_t step_axis = 4;
+      if (probe_points >= 3) {
+        for (int8_t axis = 9; axis > 0; axis -= step_axis) { // uint8_t starts endless loop
+          z_at_pt[0] += probe_pt(
+            0.1 * cos(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius,
+            0.1 * sin(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius, true, verbose_level);
+        }
+        center_points += 3;
+        z_at_pt[0] /= center_points;
+      }
+
+      float S1 = z_at_pt[0], S2 = sq(S1);
+
+      int16_t N = 1, start = 1;
+      step_axis = (probe_points == 2) ? 4 : (probe_points == 3) ? 2 : 1;
+
+      if (probe_points != 1) {
+        for (uint8_t axis = start; axis < 13; axis += step_axis)
+          z_at_pt[axis] += probe_pt(
+            cos(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius,
+            sin(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius, true, 1
+          );
+
+        if (probe_points == 4) step_axis = 2;
+      }
+
+      for (uint8_t axis = start; axis < 13; axis += step_axis) {
+        if (probe_points == 4)
+          z_at_pt[axis] = (z_at_pt[axis] + (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 2.0) / 2.0;
+
+        S1 += z_at_pt[axis];
+        S2 += sq(z_at_pt[axis]);
+        N++;
+      }
+      zero_std_dev = round(sqrt(S2 / N) * 1000.0) / 1000.0 + 0.00001; // deviation from zero plane
+
+      // Solve matrices
+
+      if (zero_std_dev < test_precision) {
+        COPY_ARRAY(e_old, deltaParams.endstop_adj);
+        dr_old = deltaParams.radius;
+        zh_old = deltaParams.base_max_pos[C_AXIS];
+
+        float e_delta[XYZ] = { 0.0 }, r_delta = 0.0;
+
+        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+          float h_f_new = 0.0, r_f_new = 0.0 , t_f_new = 0.0,
+                h_diff = 0.00, r_diff = 0.00;
+        #endif
+
+        #define ZP(N,I) ((N) * z_at_pt[I])
+        #define Z1000(I) ZP(1.00, I)
+        #define Z1050(I) ZP(H_FACTOR, I)
+        #define Z0700(I) ZP((H_FACTOR) * 2.0 / 3.00, I)
+        #define Z0350(I) ZP((H_FACTOR) / 3.00, I)
+        #define Z0175(I) ZP((H_FACTOR) / 6.00, I)
+        #define Z2250(I) ZP(R_FACTOR, I)
+        #define Z0750(I) ZP((R_FACTOR) / 3.00, I)
+        #define Z0375(I) ZP((R_FACTOR) / 6.00, I)
+
+        switch (probe_points) {
+          case 1:
+            LOOP_XYZ(i) e_delta[i] = Z1000(0);
+            r_delta = 0.00;
+            break;
+
+          case 2:
+            e_delta[X_AXIS] = Z1050(0) + Z0700(1) - Z0350(5) - Z0350(9);
+            e_delta[Y_AXIS] = Z1050(0) - Z0350(1) + Z0700(5) - Z0350(9);
+            e_delta[Z_AXIS] = Z1050(0) - Z0350(1) - Z0350(5) + Z0700(9);
+            r_delta         = Z2250(0) - Z0750(1) - Z0750(5) - Z0750(9);
+            break;
+
+          default:
+            e_delta[X_AXIS] = Z1050(0) + Z0350(1) - Z0175(5) - Z0175(9) - Z0350(7) + Z0175(11) + Z0175(3);
+            e_delta[Y_AXIS] = Z1050(0) - Z0175(1) + Z0350(5) - Z0175(9) + Z0175(7) - Z0350(11) + Z0175(3);
+            e_delta[Z_AXIS] = Z1050(0) - Z0175(1) - Z0175(5) + Z0350(9) + Z0175(7) + Z0175(11) - Z0350(3);
+            r_delta         = Z2250(0) - Z0375(1) - Z0375(5) - Z0375(9) - Z0375(7) - Z0375(11) - Z0375(3);
+            break;
+        }
+
+        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+          // Calculate h & r factors
+          if (verbose_level == 3) {
+            LOOP_XYZ(axis) h_f_new += e_delta[axis] / 3;
+            r_f_new = r_delta;
+            h_diff = (1.0 / H_FACTOR) * (h_f_old - h_f_new) / h_f_old;
+            if (h_diff < h_diff_min && h_diff > 0.9) h_diff_min = h_diff;
+            if (r_f_old != 0)
+              r_diff = (   0.0301 * sq(R_FACTOR) * R_FACTOR
+                         + 0.311  * sq(R_FACTOR)
+                         + 1.1493 * R_FACTOR
+                         + 1.7952
+                       ) * (r_f_old - r_f_new) / r_f_old;
+            if (r_diff > r_diff_max && r_diff < 0.4444) r_diff_max = r_diff;
+            SERIAL_E;
+
+            h_f_old = h_f_new;
+            r_f_old = r_f_new;
+          }
+        #endif // DELTA_CALIBRATE_EXPERT_MODE
+
+        // Adjust delta_height and endstops by the max amount
+        LOOP_XYZ(axis) deltaParams.endstop_adj[axis] += e_delta[axis];
+        deltaParams.radius += r_delta;
+
+        const float z_temp = MAX3(deltaParams.endstop_adj[0], deltaParams.endstop_adj[1], deltaParams.endstop_adj[2]);
+        deltaParams.base_max_pos[C_AXIS] -= z_temp;
+        LOOP_XYZ(i) deltaParams.endstop_adj[i] -= z_temp;
+
+        deltaParams.Recalc_delta_constants();
+      }
+      else { // !iterate
+        // step one back
+        COPY_ARRAY(deltaParams.endstop_adj, e_old);
+        deltaParams.radius = dr_old;
+        deltaParams.base_max_pos[C_AXIS] = zh_old;
+
+        deltaParams.Recalc_delta_constants();
+      }
+
+      // print report
+
+      #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+        if (verbose_level == 3) {
+          const float r_factor =   22.902 * sq(r_diff_max) * r_diff_max
+                                 - 44.988 * sq(r_diff_max)
+                                 + 31.697 * r_diff_max
+                                 - 9.4439;
+          SERIAL_MV("h_factor:", 1.0 / h_diff_min);
+          SERIAL_MV("              r_factor:", r_factor);
+          SERIAL_E;
+        }
+      #endif
+      if (verbose_level == 2) {
+        SERIAL_M(".     c:");
+        if (z_at_pt[0] > 0) SERIAL_C('+');
+        SERIAL_V(z_at_pt[0], 2);
+        if (probe_points > 1) {
+          SERIAL_M("     x:");
+          if (z_at_pt[1] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[1], 2);
+          SERIAL_M("   y:");
+          if (z_at_pt[5] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[5], 2);
+          SERIAL_M("   z:");
+          if (z_at_pt[9] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[9], 2);
+        }
+        if (probe_points > 0) SERIAL_E;
+        if (probe_points > 2 || probe_points == -2) {
+          if (probe_points > 2) SERIAL_M(".            ");
+          SERIAL_M("    yz:");
+          if (z_at_pt[7] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[7], 2);
+          SERIAL_M("  zx:");
+          if (z_at_pt[11] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[11], 2);
+          SERIAL_M("  xy:");
+          if (z_at_pt[3] >= 0) SERIAL_C('+');
+          SERIAL_V(z_at_pt[3], 2);
+          SERIAL_E;
+        }
+      }
+      if (test_precision != 0.0) {            // !forced end
+        if (zero_std_dev >= test_precision) {
+          SERIAL_M("Calibration OK");
+          SERIAL_EM("                                   rolling back 1");
+          LCD_MESSAGEPGM("Calibration OK");
+          SERIAL_E;
+        }
+        else {                                // !end iterations
+          char mess[15] = "No convergence";
+          if (iterations < 31)
+            sprintf_P(mess, PSTR("Iteration : %02i"), (int)iterations);
+          SERIAL_M(mess);
+          SERIAL_M("                                   std dev:");
+          SERIAL_V(zero_std_dev, 3);
+          SERIAL_E;
+          lcd_setstatus(mess);
+        }
+        SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 3);
+        if (probe_points > 1) {
+          SERIAL_M("    Ex:");
+          if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
+          SERIAL_V(deltaParams.endstop_adj[A_AXIS], 2);
+          SERIAL_M("  Ey:");
+          if (deltaParams.endstop_adj[B_AXIS] >= 0) SERIAL_C('+');
+          SERIAL_V(deltaParams.endstop_adj[B_AXIS], 2);
+          SERIAL_M("  Ez:");
+          if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
+          SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
+          SERIAL_MV("    Radius:", deltaParams.radius);
+        }
+        SERIAL_E;
+        if (zero_std_dev >= test_precision)
+          SERIAL_EM("Save with M500");
+      }
+      else {                                  // forced end
+        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
+          if (verbose_level == 3)
+            SERIAL_EM("Copy to Configuration_delta.h");
+          else
+        #endif
+          {
+            SERIAL_M("End DRY-RUN                                      std dev:");
+            SERIAL_V(zero_std_dev, 3);
+            SERIAL_E;
+          }
+      }
+
+      clean_up_after_endstop_or_probe_move();
+      stepper.synchronize();
+
+      gcode_G28();
+
+    } while (zero_std_dev < test_precision && iterations < 31);
+
+  }
+
+#elif ENABLED(DELTA_AUTO_CALIBRATION_3)
+
+  /**
+   * G33: Delta AutoCalibration Algorithm based on Rich Cattell Marlin
+   * Usage:
+   *    G33 <An> <En> <Rn> <In> <Dn> <Tn>
+   *      A = Autocalibration +- precision
+   *      E = Adjust Endstop +- precision
+   *      R = Adjust Endstop & Delta Radius +- precision
+   *      I = Adjust Tower
+   *      D = Adjust Diagonal Rod
+   *      T = Adjust Tower Radius
+   */
+  inline void gcode_G33() {
+
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      set_bed_leveling_enabled(false);
+    #endif
+
+    // Homing and deploy z probe
+    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
+      gcode_G28();
+
+    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+
+    stepper.synchronize();  // wait until the machine is idle
+
+    SERIAL_EM("Starting Auto Calibration...");
+    LCD_MESSAGEPGM("Auto Calibration...");
+
+    ac_prec = (code_seen('A') || code_seen('E') || code_seen('R')) ? constrain(code_value_float(), 0.01, 1) : AUTOCALIBRATION_PRECISION;
+
+    SERIAL_MV("Calibration precision: +/-", ac_prec, 2);
+    SERIAL_EM(" mm");
+
+    // Probe all points
+    bed_probe_all();
+
+    // Show calibration report      
+    calibration_report();
+
+    if (code_seen('E')) {
+      SERIAL_EM("Calibration Endstop.");
+      int iteration = 0;
+      do {
+        iteration ++;
+        SERIAL_EMV("Iteration: ", iteration);
+
+        SERIAL_EM("Checking/Adjusting Endstop offsets");
+        adj_endstops();
+
+        bed_probe_all();
+        calibration_report();
+      } while (FABS(bed_level_x) > ac_prec
+            or FABS(bed_level_y) > ac_prec
+            or FABS(bed_level_z) > ac_prec);
+
+      SERIAL_EM("Endstop adjustment complete");
+    }
+
+    if (code_seen('R')) {
+      SERIAL_EM("Calibration Endstop & Delta Radius.");
+      int iteration = 0;
+      do {
+        iteration ++;
+        SERIAL_EMV("Iteration: ", iteration);
+
+        SERIAL_EM("Checking/Adjusting Endstop offsets");
+        adj_endstops();
+
+        bed_probe_all();
+        calibration_report();
+
+        SERIAL_EM("Checking delta radius");
+        adj_deltaradius();
+
+      } while (FABS(bed_level_c) > ac_prec
+            or FABS(bed_level_x) > ac_prec
+            or FABS(bed_level_y) > ac_prec
+            or FABS(bed_level_z) > ac_prec);
+
+      SERIAL_EM("Endstop & Delta Radius adjustment complete");
+    }
+
+    if (code_seen('I')) {
+      SERIAL_EMV("Adjusting Tower Delta for tower", code_value_byte());
+      adj_tower_delta(code_value_byte());
+      SERIAL_EM("Tower Delta adjustment complete");
+    }
+
+    if (code_seen('D')) {
+      SERIAL_EM("Adjusting Diagonal Rod Length");
+      adj_diagrod_length();
+      SERIAL_EM("Diagonal Rod Length adjustment complete");
+    }
+
+    if (code_seen('T')) {
+      SERIAL_EMV("Adjusting Tower Radius for tower", code_value_byte());
+      adj_tower_radius(code_value_byte());
+      SERIAL_EM("Tower Radius adjustment complete");
+    }
+
+    if (code_seen('A')) {
+      SERIAL_EM("Calibration All.");
+      int iteration = 0;
+      bool dr_adjusted;
+
+      do {
+        do {
+          iteration ++;
+          SERIAL_EMV("Iteration: ", iteration);
+
+          SERIAL_EM("Checking/Adjusting endstop offsets");
+          adj_endstops();
+
+          bed_probe_all();
+          calibration_report();
+
+          if (FABS(bed_level_c) > ac_prec) {
+            SERIAL_EM("Checking delta radius");
+            dr_adjusted = adj_deltaradius();
+          }
+          else
+            dr_adjusted = false;
+
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) {
+              SERIAL_EMV("bed_level_c = ", bed_level_c, 4);
+              SERIAL_EMV("bed_level_x = ", bed_level_x, 4);
+              SERIAL_EMV("bed_level_y = ", bed_level_y, 4);
+              SERIAL_EMV("bed_level_z = ", bed_level_z, 4);
+            }
+          #endif
+
+        } while (FABS(bed_level_c) > ac_prec
+              or FABS(bed_level_x) > ac_prec
+              or FABS(bed_level_y) > ac_prec
+              or FABS(bed_level_z) > ac_prec
+              or dr_adjusted);
+
+        if  (FABS(bed_level_ox) > ac_prec
+          or FABS(bed_level_oy) > ac_prec
+          or FABS(bed_level_oz) > ac_prec) {
+          SERIAL_EM("Checking for tower geometry errors..");
+          if (fix_tower_errors() != 0 ) {
+            // Tower positions have been changed .. home to endstops
+            SERIAL_EM("Tower Positions changed .. Homing");
+            gcode_G28();
+            do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
+          }
+          else {
+            SERIAL_EM("Checking Diagonal Rod Length");
+            if (adj_diagrod_length() != 0) { 
+              // If diagonal rod length has been changed .. home to endstops
+              SERIAL_EM("Diagonal Rod Length changed .. Homing");
+              gcode_G28();
+              do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
+            }
+          }
+          bed_probe_all();
+          calibration_report();
+        }
+
+        #if ENABLED(DEBUG_LEVELING_FEATURE)
+          if (DEBUGGING(LEVELING)) {
+            SERIAL_EMV("bed_level_c = ", bed_level_c, 4);
+            SERIAL_EMV("bed_level_x = ", bed_level_x, 4);
+            SERIAL_EMV("bed_level_y = ", bed_level_y, 4);
+            SERIAL_EMV("bed_level_z = ", bed_level_z, 4);
+            SERIAL_EMV("bed_level_ox = ", bed_level_ox, 4);
+            SERIAL_EMV("bed_level_oy = ", bed_level_oy, 4);
+            SERIAL_EMV("bed_level_oz = ", bed_level_oz, 4);
+          }
+        #endif
+      } while(FABS(bed_level_c) > ac_prec
+           or FABS(bed_level_x) > ac_prec
+           or FABS(bed_level_y) > ac_prec
+           or FABS(bed_level_z) > ac_prec
+           or FABS(bed_level_ox) > ac_prec
+           or FABS(bed_level_oy) > ac_prec
+           or FABS(bed_level_oz) > ac_prec);
+
+      SERIAL_EM("Autocalibration Complete");
+    }
+
+    STOW_PROBE();
+
+    // reset LCD alert message
+    lcd_reset_alert_level();
+
+    clean_up_after_endstop_or_probe_move();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G33");
+    #endif
+
+    report_current_position();
+    KEEPALIVE_STATE(IN_HANDLER);
+  }
+
+#endif // DELTA_AUTO_CALIBRATION_1, DELTA_AUTO_CALIBRATION_2 or DELTA_AUTO_CALIBRATION_3
 
 #if ENABLED(G38_PROBE_TARGET)
 
@@ -11157,7 +11462,7 @@ void process_next_command() {
           gcode_G29(); break;
       #endif // PLANNER_LEVELING
 
-      #if HAS(BED_PROBE) && NOMECH(DELTA)
+      #if HAS(BED_PROBE)
         case 30: // G30 Single Z Probe
           gcode_G30(); break;
         
@@ -11167,13 +11472,12 @@ void process_next_command() {
           case 32: // G32: undock the sled
             gcode_G32(); break;
         #endif // Z_PROBE_SLED
+      #endif // HAS(BED_PROBE)
 
-      #elif ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
-
-        case 30:  // G30 Delta AutoCalibration
-          gcode_G30(); break;
-
-      #endif // AUTO_BED_LEVELING_FEATURE & DELTA
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3)
+        case 33:  // G33 Delta AutoCalibration
+          gcode_G33(); break;
+      #endif // DELTA_AUTO_CALIBRATION_1 || DELTA_AUTO_CALIBRATION_2 || DELTA_AUTO_CALIBRATION_3
 
       #if ENABLED(G38_PROBE_TARGET)
         case 38: // G38.2 & G38.3
@@ -11931,7 +12235,7 @@ void ok_to_send() {
  */
 #if MECH(DELTA)
 
-  #if ENABLED(AUTO_CALIBRATION_FEATURE)
+  #if ENABLED(DELTA_AUTO_CALIBRATION_3)
 
     void bed_probe_all() {
       // Initial throwaway probe.. used to stabilize probe
@@ -11977,7 +12281,7 @@ void ok_to_send() {
         SERIAL_MV(" (adj:", deltaParams.endstop_adj[2], 4);
         SERIAL_C(')'); SERIAL_E;
 
-        if ((bed_level_x >= -ac_prec) and (bed_level_x <= ac_prec)) {
+        if (FABS(bed_level_x) <= ac_prec) {
           x_done = true;
           SERIAL_M("X=OK ");
         }
@@ -11986,7 +12290,7 @@ void ok_to_send() {
           SERIAL_M("X=ERROR ");
         }
 
-        if ((bed_level_y >= -ac_prec) and (bed_level_y <= ac_prec)) {
+        if (FABS(bed_level_y) <= ac_prec) {
           y_done = true;
           SERIAL_M("Y=OK ");
         }
@@ -11995,7 +12299,7 @@ void ok_to_send() {
           SERIAL_M("Y=ERROR ");
         }
 
-        if ((bed_level_z >= -ac_prec) and (bed_level_z <= ac_prec)) {
+        if (FABS(bed_level_z) <= ac_prec) {
           z_done = true;
           SERIAL_EM("Z=OK");
         }
@@ -12029,9 +12333,9 @@ void ok_to_send() {
 
       COPY_ARRAY(saved_tower_radius_adj, deltaParams.tower_radius_adj);
 
-      x_diff = abs(bed_level_x - bed_level_ox);
-      y_diff = abs(bed_level_y - bed_level_oy);
-      z_diff = abs(bed_level_z - bed_level_oz);
+      x_diff = FABS(bed_level_x - bed_level_ox);
+      y_diff = FABS(bed_level_y - bed_level_oy);
+      z_diff = FABS(bed_level_z - bed_level_oz);
       high_diff = MAX3(x_diff, y_diff, z_diff);
 
       if (x_diff <= ac_prec) t1_err = false; else t1_err = true;
@@ -12047,9 +12351,9 @@ void ok_to_send() {
       xy_equal = false;
       xz_equal = false;
       yz_equal = false;
-      if (abs(x_diff - y_diff) <= ac_prec) xy_equal = true;
-      if (abs(x_diff - z_diff) <= ac_prec) xz_equal = true;
-      if (abs(y_diff - z_diff) <= ac_prec) yz_equal = true;
+      if (FABS(x_diff - y_diff) <= ac_prec) xy_equal = true;
+      if (FABS(x_diff - z_diff) <= ac_prec) xz_equal = true;
+      if (FABS(y_diff - z_diff) <= ac_prec) yz_equal = true;
 
       SERIAL_M("xy_equal = ");
       if (xy_equal == true) SERIAL_EM("true"); else SERIAL_EM("false");
@@ -12138,7 +12442,7 @@ void ok_to_send() {
 
       bed_level_c = probe_pt(0.0, 0.0);
 
-      if ((bed_level_c >= -ac_prec) and (bed_level_c <= ac_prec)) {
+      if (FABS(bed_level_c) <= ac_prec) {
         SERIAL_EM("Delta Radius OK");
         return false;
       }
@@ -12166,9 +12470,9 @@ void ok_to_send() {
           }
 
           // Adjustment complete?
-          if ((bed_level_c >= -ac_prec) and (bed_level_c <= ac_prec)) {
+          if (FABS(bed_level_c) <= ac_prec) {
             //Done to within acprec .. but done within adjdone_vector? 
-            if ((bed_level_c >= -adjdone_vector) and (bed_level_c <= adjdone_vector))
+            if (FABS(bed_level_c) <= adjdone_vector)
               adj_done = true;
             else {
               adj_attempts ++;
@@ -12237,7 +12541,7 @@ void ok_to_send() {
         if (((bed_level_o < bed_level) and (adj_tRadius > 0)) or ((bed_level_o > bed_level) and (adj_tRadius < 0))) adj_tRadius = -(adj_tRadius / 2);
 
         // Adjustment complete?
-        if ((bed_level_o > bed_level - 0.015) and (bed_level_o < bed_level + 0.015)) adj_done = true;
+        if (FABS(bed_level_o) < bed_level + 0.015) adj_done = true;
 
         // Show progress
         SERIAL_MV("tower:", bed_level, 4);
@@ -13982,7 +14286,7 @@ void setup() {
   #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    home_delta();
+    gcode_G28();
   #endif
 
 }

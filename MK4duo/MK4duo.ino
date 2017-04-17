@@ -49,11 +49,14 @@
  * G27 - Nozzle Park
  * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
-   G29   Fyyy Lxxx Rxxx Byyy for customer grid.
+ *        Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
-         and Delta geometry Autocalibration
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
+ * G33 - Delta geometry Autocalibration
+ *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
+ *        P<npoints> V<nverbose> (Requires DELTA_AUTO_CALIBRATION_2)
+ *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
  * G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60 - Save current position coordinates (all axes, for active extruder).
  *        S<SLOT> - specifies memory slot # (0-based) to save into (default 0).

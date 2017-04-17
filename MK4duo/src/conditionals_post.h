@@ -458,7 +458,15 @@
     #define FRONT_PROBE_BED_POSITION  -(DELTA_PROBEABLE_RADIUS)
     #define BACK_PROBE_BED_POSITION   (DELTA_PROBEABLE_RADIUS)
 
-  #endif
+    #if ENABLED(DELTA_AUTO_CALIBRATION_2)
+      #if DISABLED(H_FACTOR)
+        #define H_FACTOR 1.00
+      #endif
+      #if DISABLED(R_FACTOR)
+        #define R_FACTOR -2.25
+      #endif
+    #endif
+  #endif // MECH(DELTA)
 
   /**
    * The BLTouch Probe emulates a servo probe

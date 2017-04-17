@@ -531,9 +531,18 @@
     #error "DELTA is incompatible with ENABLE_LEVELING_FADE_HEIGHT. Please disable it."
   #endif
 
-  #if ENABLED(AUTO_CALIBRATION_FEATURE) && ENABLED(AUTO_CALIBRATION_7_POINT)
-    #error "Only one system Autocalibration must is defined."
-  #endif
+  static_assert(1 >= 0
+    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+      +1
+    #endif
+    #if ENABLED(DELTA_AUTO_CALIBRATION_2)
+      +1
+    #endif
+    #if ENABLED(DELTA_AUTO_CALIBRATION_3)
+      +1
+    #endif
+    , "Select only one of: DELTA_AUTO_CALIBRATION_1, DELTA_AUTO_CALIBRATION_2 or DELTA_AUTO_CALIBRATION_3"
+  );
 #endif
 
 /**
@@ -567,7 +576,7 @@ static_assert(1 >= 0
   #if ENABLED(MESH_BED_LEVELING)
     + 1
   #endif
-  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, or AUTO_BED_LEVELING_BILINEAR."
+  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT or AUTO_BED_LEVELING_BILINEAR."
 );
 
 /**
@@ -654,15 +663,15 @@ static_assert(1 >= 0
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS(ABL) || ENABLED(AUTO_CALIBRATION_7_POINT)
-    #error "Auto Bed Leveling or Auto Calibration 7 point requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #if HAS(ABL) || ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2)
+    #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
 #endif
 
-#if ENABLED(AUTO_CALIBRATION_FEATURE) && HASNT(BED_PROBE)
+#if ENABLED(DELTA_AUTO_CALIBRATION_3) && HASNT(BED_PROBE)
   #error "Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
 #endif
 
