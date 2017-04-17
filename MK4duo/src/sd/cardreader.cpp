@@ -374,10 +374,12 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     dtostrf(current_position[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
     strcat(buffer_G1, " F3600\n");
 
-    #if NOMECH(DELTA)
+    #if MECH(DELTA)
+      strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
+    #else
       strcpy(buffer_G92_Z, "G92 Z");
       dtostrf(current_position[Z_AXIS] + 5, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
-      strcat(buffer_G92_Z, "\n");
+      strcat(buffer_G92_Z, "\n\n");
     #endif
 
     strcpy(buffer_G92_E, "G92 E");
@@ -395,7 +397,6 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     #if MECH(DELTA)
       fileRestart.write("G28\n");
     #else
-      fileRestart.write(buffer_G92_Z);
       fileRestart.write("G28 X Y\n");
     #endif
 
@@ -404,6 +405,8 @@ void CardReader::closeFile(bool store_location /*=false*/) {
     #elif HAS(ABL)
       if (planner.abl_enabled) fileRestart.write("M320 S1\n");
     #endif
+
+    fileRestart.write(buffer_G92_Z);
 
     #if HAS(TEMP_BED)
       if (thermalManager.degTargetBed() > 0) {
