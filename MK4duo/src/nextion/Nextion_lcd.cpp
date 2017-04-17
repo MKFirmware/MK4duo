@@ -894,8 +894,8 @@
 
     #if ENABLED(PROBE_MANUALLY)
       extern bool g29_in_progress;
-      #if ENABLED(AUTO_CALIBRATION_7_POINT)
-        extern bool g30_in_progress;
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+        extern bool g33_in_progress;
       #endif
     #endif
 
@@ -920,8 +920,8 @@
       else if (ptr == &BedSend) {
         #if ENABLED(PROBE_MANUALLY)
           if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
-          #if ENABLED(AUTO_CALIBRATION_7_POINT)
-            else if (g30_in_progress) enqueue_and_echo_commands_P(PSTR("G30 A"));
+          #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+            else if (g33_in_progress) enqueue_and_echo_commands_P(PSTR("G30 A"));
           #endif
         #endif
       }

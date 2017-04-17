@@ -1,3 +1,8 @@
+### Version 4.3.19 dev
+* Algorithm based on Thinkyhead Marlin
+* Change the old command G30 A in G33 for Delta Autocalibration
+* Fix and Clear code
+
 ### Version 4.3.18 dev
 * Add Power Check pin for Stop & Save
 * Add Probe Manually

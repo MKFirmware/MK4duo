@@ -1739,10 +1739,10 @@ void kill_screen(const char* lcd_msg) {
 
   #if MECH(DELTA)
 
-    #if ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
+    #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3)
 
       void lcd_delta_calibrate_menu() {
-        enqueue_and_echo_commands_P(PSTR("G30 A"));
+        enqueue_and_echo_commands_P(PSTR("G33 A"));
       }
 
     #else
@@ -1798,7 +1798,7 @@ void kill_screen(const char* lcd_msg) {
         END_MENU();
       }
 
-    #endif // !AUTO_CALIBRATION_FEATURE || !AUTO_CALIBRATION_7_POINT
+    #endif // !DELTA_AUTO_CALIBRATION_1 || !DELTA_AUTO_CALIBRATION_2 || !DELTA_AUTO_CALIBRATION_3
   #endif // DELTA
 
   /**
