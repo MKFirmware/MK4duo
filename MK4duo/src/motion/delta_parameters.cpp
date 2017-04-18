@@ -27,10 +27,10 @@
   DeltaParameters deltaParams;
 
   void DeltaParameters::Init() {
-    radius                    = DEFAULT_DELTA_RADIUS;
+    delta_radius              = DEFAULT_DELTA_RADIUS;
     diagonal_rod              = DELTA_DIAGONAL_ROD;
     segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
-    print_Radius              = DELTA_PRINTABLE_RADIUS;
+    print_radius              = DELTA_PRINTABLE_RADIUS;
     base_min_pos[A_AXIS]      = X_MIN_POS;
     base_min_pos[B_AXIS]      = Y_MIN_POS;
     base_min_pos[C_AXIS]      = Z_MIN_POS;
@@ -58,8 +58,8 @@
   void DeltaParameters::Recalc_delta_constants() {
 
     LOOP_XY(i) {
-      base_min_pos[i]     = -print_Radius;
-      base_max_pos[i]     = print_Radius;
+      base_min_pos[i]     = -print_radius;
+      base_max_pos[i]     = print_radius;
       soft_endstop_min[i] = base_min_pos[i];
       soft_endstop_max[i] = base_max_pos[i];
       max_length[i]       = base_max_pos[i] - base_min_pos[i];
@@ -67,19 +67,19 @@
     soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
     max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
     base_home_pos[Z_AXIS]     = base_max_pos[Z_AXIS];
-    probe_Radius              = print_Radius - 5;
+    probe_radius              = print_radius - 10;
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);
     delta_diagonal_rod_2[C_AXIS] = sq(diagonal_rod + diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(30 + tower_radius_adj[A_AXIS]))); // front left tower
-    towerY[A_AXIS] = -((radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(30 + tower_radius_adj[A_AXIS]))); 
-    towerX[B_AXIS] = +((radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(30 - tower_radius_adj[B_AXIS]))); // front right tower
-    towerY[B_AXIS] = -((radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(30 - tower_radius_adj[B_AXIS]))); 
-    towerX[C_AXIS] = -((radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
-    towerY[C_AXIS] = +((radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
+    towerX[A_AXIS] = -((delta_radius + tower_pos_adj[A_AXIS]) * cos(RADIANS(30 + tower_radius_adj[A_AXIS]))); // front left tower
+    towerY[A_AXIS] = -((delta_radius + tower_pos_adj[A_AXIS]) * sin(RADIANS(30 + tower_radius_adj[A_AXIS]))); 
+    towerX[B_AXIS] = +((delta_radius + tower_pos_adj[B_AXIS]) * cos(RADIANS(30 - tower_radius_adj[B_AXIS]))); // front right tower
+    towerY[B_AXIS] = -((delta_radius + tower_pos_adj[B_AXIS]) * sin(RADIANS(30 - tower_radius_adj[B_AXIS]))); 
+    towerX[C_AXIS] = -((delta_radius + tower_pos_adj[C_AXIS]) * sin(RADIANS(     tower_radius_adj[C_AXIS]))); // back middle tower
+    towerY[C_AXIS] = +((delta_radius + tower_pos_adj[C_AXIS]) * cos(RADIANS(     tower_radius_adj[C_AXIS]))); 
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
@@ -118,8 +118,8 @@
         break;
 
       case 3:
-        hiParams.radius += perturb;
-        loParams.radius -= perturb;
+        hiParams.delta_radius += perturb;
+        loParams.delta_radius -= perturb;
         break;
 
       case 4:
@@ -166,12 +166,11 @@
     endstop_adj[C_AXIS] -= v[2];
 
     // Normalize Endstop
-    const float eav = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    base_max_pos[C_AXIS] += eav;
-    LOOP_XYZ(i) endstop_adj[i] -= eav;
+    const float z_temp = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
+    LOOP_XYZ(i) endstop_adj[i] -= z_temp;
 
     if (numFactors >= 4) {
-      radius += v[3];
+      delta_radius += v[3];
 
       if (numFactors >= 6) {
         tower_radius_adj[A_AXIS] += v[4];
@@ -201,7 +200,7 @@
    * the original system by moving along those unit vectors
    * by the corresponding values.
    *
-   * Variable names matched to Marlin, c-version, and avoid the
+   * Variable names matched to Mk4duo, c-version, and avoid the
    * use of any vector library.
    *
    * by Andreas Hardtung 2016-06-07
@@ -302,7 +301,7 @@
     };
     inverse_kinematics_DELTA(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(print_Radius);
+    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(print_radius);
     inverse_kinematics_DELTA(cartesian);
     clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }

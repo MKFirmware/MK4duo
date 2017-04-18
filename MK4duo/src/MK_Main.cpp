@@ -359,8 +359,6 @@ PrintCounter print_job_counter = PrintCounter();
                 z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
   #endif
 
-  void  home_delta();
-
   #if ENABLED(DELTA_AUTO_CALIBRATION_3)
 
     float ac_prec,
@@ -3478,7 +3476,7 @@ bool position_is_reachable(float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq((float)(deltaParams.print_Radius));
+    return HYPOT2(dx, dy) <= sq((float)(deltaParams.print_radius));
   #else
     const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return WITHINXY(dx, dy) && WITHINZ(dz);
@@ -3905,7 +3903,7 @@ inline void gcode_G4() {
    * A delta can only safely home all axes at the same time
    * This is like quick_home_xy() but for 3 towers.
    */
-  inline void home_delta() {
+  inline void home_delta(bool safe_home = true) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> home_delta", current_position);
@@ -3942,7 +3940,7 @@ inline void gcode_G4() {
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(deltaParams.clip_start_height);
+      if (safe_home) do_blocking_move_to_z(deltaParams.clip_start_height);
     #endif
 
   }
@@ -4083,7 +4081,11 @@ inline void gcode_G4() {
  *  B   Return to back point
  *
  */
-inline void gcode_G28() {
+inline void gcode_G28(
+    #if MECH(DELTA)
+      bool safe_home = true
+    #endif
+  ) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -4166,7 +4168,7 @@ inline void gcode_G28() {
      * A delta can only safely home all axis at the same time
      */
 
-    home_delta();
+    home_delta(safe_home);
 
   #else // NOT DELTA
 
@@ -4674,8 +4676,7 @@ inline void gcode_G28() {
 
     #if MECH(DELTA)
       // Homing
-      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-        gcode_G28();
+      gcode_G28(false);
 
       #if ENABLED(PROBE_MANUALLY)
         if (!g29_in_progress)
@@ -5455,11 +5456,10 @@ inline void gcode_G28() {
     float pos[XYZ] = { X_probe_location, Y_probe_location, LOGICAL_Z_POSITION(0) };
 
     #if MECH(DELTA)
-      // Homing and deploy z probe
-      if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-        gcode_G28();
+      // Homing
+      gcode_G28(false);
 
-      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
     #else
       if (!position_is_reachable(pos, true)) return;
     #endif
@@ -5542,8 +5542,7 @@ inline void gcode_G28() {
     #endif
 
     // Homing
-    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-      gcode_G28();
+    gcode_G28(false);
 
     #if ENABLED(PROBE_MANUALLY)
       if (!g33_in_progress)
@@ -5626,13 +5625,13 @@ inline void gcode_G28() {
 
       // Is there a next point to move to?
       if (probe_index < 6) {
-        xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
-        yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
+        xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = deltaParams.probe_radius * cos((2 * M_PI * probe_index) / 6);
       }
       if (numPoints >= 10) {
         if (probe_index >= 6 && probe_index < 9) {
-          xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-          yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          xBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
         }
         else if (probe_index >= 9) {
           xBedProbePoints[9] = 0.0;
@@ -5679,14 +5678,14 @@ inline void gcode_G28() {
       LCD_MESSAGEPGM("Auto Calibration...");
 
       for (probe_index = 0; probe_index < 6; probe_index++) {
-        xBedProbePoints[probe_index] = deltaParams.probe_Radius * sin((2 * M_PI * probe_index) / 6);
-        yBedProbePoints[probe_index] = deltaParams.probe_Radius * cos((2 * M_PI * probe_index) / 6);
+        xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = deltaParams.probe_radius * cos((2 * M_PI * probe_index) / 6);
         zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
       }
       if (numPoints >= 10) {
         for (probe_index = 6; probe_index < 9; probe_index++) {
-          xBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-          yBedProbePoints[probe_index] = (deltaParams.probe_Radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          xBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
           zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         }
         xBedProbePoints[9] = 0.0;
@@ -5832,7 +5831,7 @@ inline void gcode_G28() {
 
       // Recalibrate Height
       SERIAL_EM("Calibrate Height");
-      gcode_G28();
+      gcode_G28(false);
       do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
       deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0);
       deltaParams.Recalc_delta_constants();
@@ -5844,7 +5843,7 @@ inline void gcode_G28() {
     SERIAL_MV(" Z", deltaParams.endstop_adj[C_AXIS], 3);
     SERIAL_MV(" height ", soft_endstop_max[C_AXIS], 3);
     SERIAL_MV(" diagonal rod ", deltaParams.diagonal_rod, 3);
-    SERIAL_MV(" delta radius ", deltaParams.radius, 3);
+    SERIAL_MV(" delta radius ", deltaParams.delta_radius, 3);
     SERIAL_MV(" Towers radius correction A", deltaParams.tower_radius_adj[A_AXIS], 2);
     SERIAL_MV(" B", deltaParams.tower_radius_adj[B_AXIS], 2);
     SERIAL_MV(" C", deltaParams.tower_radius_adj[C_AXIS], 2);
@@ -5868,24 +5867,19 @@ inline void gcode_G28() {
    *
    * Usage: G33 <Pn> <Vn>
    *
-   *  P  1-4: n x n probe points, default 4 x 4
+   *  Pn  1-7: n*n probe points, default 4 x 4
    *
-   *    1: probe center
-   *       set height only - useful when z_offset is changed
-   *    2: probe center and towers
-   *       solve one '4 point' calibration
-   *    3: probe 3 center points, towers and opposite-towers
-   *       averages between 2 '4 point' calibrations
-   *    4: probe 4 center points, towers, opposite-towers and itermediate points
-   *       averages between 4 '4 point' calibrations
+   *    n=1 probes center - sets height only - usefull when z_offset is changed
+   *    n=2 probes center and towers
+   *    n=3 probes all points: center, towers and opposite towers
+   *    n>3 probes all points multiple times and averages
    *
-   *  V  Verbose level (0-3, default 1)
+   *  Vn  Verbose level (0-2, default 1)
    *
-   *    0: Dry-run mode: no calibration
-   *    1: Settings
-   *    2: Setting + probe results
-   *    3: Expert mode: setting + iteration factors (see Configuration_adv.h)
-   *       This prematurely stops the iteration process when factors are found
+   *    n=0 Dry-run mode: no calibration
+   *    n=1 Settings
+   *    n=2 Setting + probe results
+   *
    */
   inline void gcode_G33() {
 
@@ -5893,52 +5887,29 @@ inline void gcode_G28() {
       set_bed_leveling_enabled(false);
     #endif
 
-    // Homing and deploy z probe
-    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-      gcode_G28();
-
-    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-
-    stepper.synchronize();  // wait until the machine is idle
-
     const uint8_t pp = code_seen('P') ? code_value_int() : 4,
-                  probe_points = (WITHIN(pp, 1, 4)) ? pp : 4;
+                  probe_points = (WITHIN(pp, 1, 7)) ? pp : 4;
 
     int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
 
-    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-      #define _MAX_M33_V 3
-      if (verbose_level == 3 && probe_points == 1) verbose_level--; // needs at least 4 points
-    #else
-      #define _MAX_M33_V 2
-    #endif
-
-    if (!WITHIN(verbose_level, 0, _MAX_M33_V)) verbose_level = 1;
+    if (!WITHIN(verbose_level, 0, 2)) verbose_level = 1;
 
     float zero_std_dev = verbose_level ? 999.0 : 0.0; // 0.0 in dry-run mode : forced end
 
     float e_old[XYZ],
-          dr_old = deltaParams.radius,
+          dr_old = deltaParams.delta_radius,
           zh_old = deltaParams.base_max_pos[C_AXIS];
     COPY_ARRAY(e_old, deltaParams.endstop_adj);
-    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-      // expert variables
-      float h_f_old = 1.00, r_f_old = 0.00,
-            h_diff_min = 1.00, r_diff_max = 0.10;
-    #endif
 
     // print settings
 
     SERIAL_EM("G33 Auto Calibrate");
     SERIAL_M("Checking... AC");
     if (verbose_level == 0) SERIAL_M(" (DRY-RUN)");
-    #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-      if (verbose_level == 3) SERIAL_M(" (EXPERT)");
-    #endif
     SERIAL_E;
     LCD_MESSAGEPGM("Checking... AC");
 
-    SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 3);
+    SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 2);
     if (probe_points > 1) {
       SERIAL_M("    Ex:");
       if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
@@ -5949,7 +5920,7 @@ inline void gcode_G28() {
       SERIAL_M("  Ez:");
       if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
       SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
-      SERIAL_MV("    Radius:", deltaParams.radius);
+      SERIAL_MV("    Radius:", deltaParams.delta_radius);
     }
     SERIAL_E;
 
@@ -5960,86 +5931,90 @@ inline void gcode_G28() {
 
       setup_for_endstop_or_probe_move();
 
-      test_precision =
-        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-          // Expert mode : forced end at std_dev < 0.1
-          (verbose_level == 3 && zero_std_dev < 0.1) ? 0.0 :
-        #endif
-        zero_std_dev
-      ;
+      // Homing
+      gcode_G28(false);
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+      stepper.synchronize();  // wait until the machine is idle
 
+      test_precision = zero_std_dev;
       float z_at_pt[13] = { 0 };
-
       iterations++;
 
       // probe the points
 
-      int16_t center_points = 0;
+      int16_t center_points = 0,
+              step_axis = (probe_points > 4) ? 2 : 4;
 
-      if (probe_points != 3) {
+      if (probe_points != 3 &&  probe_points != 6) {  // probe centre
         z_at_pt[0] += probe_pt(0.0, 0.0 , true, verbose_level);
         center_points = 1;
       }
 
-      int16_t step_axis = 4;
-      if (probe_points >= 3) {
-        for (int8_t axis = 9; axis > 0; axis -= step_axis) { // uint8_t starts endless loop
+      if (probe_points >= 3) {  // probe extra 3 or 6 centre points
+        for (int8_t axis = (probe_points > 4) ? 11 : 9; axis > 0; axis -= step_axis) {
           z_at_pt[0] += probe_pt(
-            0.1 * cos(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius,
-            0.1 * sin(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius, true, verbose_level);
+            cos(RADIANS(180 + 30 * axis)) * 0.1 * deltaParams.probe_radius,
+            sin(RADIANS(180 + 30 * axis)) * 0.1 * deltaParams.probe_radius);
         }
-        center_points += 3;
+        center_points += (probe_points > 4) ? 6 : 3;
         z_at_pt[0] /= center_points;
       }
 
-      float S1 = z_at_pt[0], S2 = sq(S1);
+      step_axis = (probe_points == 2) ? 4 : (probe_points == 4 || probe_points > 5) ? 1 : 2;
 
-      int16_t N = 1, start = 1;
-      step_axis = (probe_points == 2) ? 4 : (probe_points == 3) ? 2 : 1;
+      int16_t N = 1, start = (probe_points == -2) ? 3 : 1;
+      float S1 = z_at_pt[0], S2 = sq(S1),
+            start_circles = (probe_points > 6) ? -1.5 : (probe_points > 4) ? -1 : 0,  // one or multi radius points
+            end_circles   = (probe_points > 6) ? 1.5 : (probe_points > 4) ? 1 : 0;    // one or multi radius points
+      int8_t zig_zag = 1;
 
       if (probe_points != 1) {
-        for (uint8_t axis = start; axis < 13; axis += step_axis)
+        for (uint8_t axis = start; axis < 13; axis += step_axis) {                    // probes 3, 6 or 12 points on the calibration radius
+          for (float circles = start_circles ; circles <= end_circles; circles++)     // one or multi radius points
           z_at_pt[axis] += probe_pt(
-            cos(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius,
-            sin(RADIANS(180 + 30 * axis)) * deltaParams.probe_Radius, true, 1
-          );
+            cos(RADIANS(180 + 30 * axis)) * (1 + circles * 0.1 * zig_zag) * deltaParams.probe_radius,
+            sin(RADIANS(180 + 30 * axis)) * (1 + circles * 0.1 * zig_zag) * deltaParams.probe_radius);
 
-        if (probe_points == 4) step_axis = 2;
+          if (probe_points > 5) start_circles += (zig_zag == 1) ? +0.5 : -0.5;        // opposite one radius point less
+          if (probe_points > 5) end_circles += (zig_zag == 1) ? -0.5 : +0.5;
+          zig_zag = -zig_zag;
+          if (probe_points > 4) z_at_pt[axis] /= (zig_zag == 1) ? 3.0 : 2.0;          // average between radius points
+        }
       }
 
-      for (uint8_t axis = start; axis < 13; axis += step_axis) {
-        if (probe_points == 4)
+      if (probe_points == 4 || probe_points > 5) step_axis = 2;
+
+      for (uint8_t axis = start; axis < 13; axis += step_axis) {                      // average half intermediates to tower and opposite
+        if (probe_points == 4 || probe_points > 5)
           z_at_pt[axis] = (z_at_pt[axis] + (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 2.0) / 2.0;
 
         S1 += z_at_pt[axis];
         S2 += sq(z_at_pt[axis]);
         N++;
       }
-      zero_std_dev = round(sqrt(S2 / N) * 1000.0) / 1000.0 + 0.00001; // deviation from zero plane
+      zero_std_dev = round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001; // deviation from zero plane
 
       // Solve matrices
-
       if (zero_std_dev < test_precision) {
         COPY_ARRAY(e_old, deltaParams.endstop_adj);
-        dr_old = deltaParams.radius;
+        dr_old = deltaParams.delta_radius;
         zh_old = deltaParams.base_max_pos[C_AXIS];
 
         float e_delta[XYZ] = { 0.0 }, r_delta = 0.0;
 
-        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-          float h_f_new = 0.0, r_f_new = 0.0 , t_f_new = 0.0,
-                h_diff = 0.00, r_diff = 0.00;
-        #endif
+        const float r_diff = deltaParams.delta_radius - deltaParams.probe_radius,
+                    h_factor = 1.00 + r_diff * 0.001,
+                    r_factor = -(1.75 + 0.005 * r_diff + 0.001 * sq(r_diff)); // 2.25 for r_diff = 20mm
 
-        #define ZP(N,I) ((N) * z_at_pt[I])
-        #define Z1000(I) ZP(1.00, I)
-        #define Z1050(I) ZP(H_FACTOR, I)
-        #define Z0700(I) ZP((H_FACTOR) * 2.0 / 3.00, I)
-        #define Z0350(I) ZP((H_FACTOR) / 3.00, I)
-        #define Z0175(I) ZP((H_FACTOR) / 6.00, I)
-        #define Z2250(I) ZP(R_FACTOR, I)
-        #define Z0750(I) ZP((R_FACTOR) / 3.00, I)
-        #define Z0375(I) ZP((R_FACTOR) / 6.00, I)
+        #define ZP(N,I)   ((N) * z_at_pt[I])
+        #define Z1000(I)  ZP(1.00, I)
+        #define Z1050(I)  ZP(h_factor, I)
+        #define Z0700(I)  ZP((h_factor) * 2.0 / 3.00, I)
+        #define Z0350(I)  ZP((h_factor) / 3.00, I)
+        #define Z0175(I)  ZP((h_factor) / 6.00, I)
+        #define Z2250(I)  ZP(r_factor, I)
+        #define Z0750(I)  ZP((r_factor) / 3.00, I)
+        #define Z0375(I)  ZP((r_factor) / 6.00, I)
 
         switch (probe_points) {
           case 1:
@@ -6062,30 +6037,9 @@ inline void gcode_G28() {
             break;
         }
 
-        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-          // Calculate h & r factors
-          if (verbose_level == 3) {
-            LOOP_XYZ(axis) h_f_new += e_delta[axis] / 3;
-            r_f_new = r_delta;
-            h_diff = (1.0 / H_FACTOR) * (h_f_old - h_f_new) / h_f_old;
-            if (h_diff < h_diff_min && h_diff > 0.9) h_diff_min = h_diff;
-            if (r_f_old != 0)
-              r_diff = (   0.0301 * sq(R_FACTOR) * R_FACTOR
-                         + 0.311  * sq(R_FACTOR)
-                         + 1.1493 * R_FACTOR
-                         + 1.7952
-                       ) * (r_f_old - r_f_new) / r_f_old;
-            if (r_diff > r_diff_max && r_diff < 0.4444) r_diff_max = r_diff;
-            SERIAL_E;
-
-            h_f_old = h_f_new;
-            r_f_old = r_f_new;
-          }
-        #endif // DELTA_CALIBRATE_EXPERT_MODE
-
         // Adjust delta_height and endstops by the max amount
         LOOP_XYZ(axis) deltaParams.endstop_adj[axis] += e_delta[axis];
-        deltaParams.radius += r_delta;
+        deltaParams.delta_radius += r_delta;
 
         const float z_temp = MAX3(deltaParams.endstop_adj[0], deltaParams.endstop_adj[1], deltaParams.endstop_adj[2]);
         deltaParams.base_max_pos[C_AXIS] -= z_temp;
@@ -6096,25 +6050,13 @@ inline void gcode_G28() {
       else { // !iterate
         // step one back
         COPY_ARRAY(deltaParams.endstop_adj, e_old);
-        deltaParams.radius = dr_old;
+        deltaParams.delta_radius = dr_old;
         deltaParams.base_max_pos[C_AXIS] = zh_old;
 
         deltaParams.Recalc_delta_constants();
       }
 
       // print report
-
-      #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-        if (verbose_level == 3) {
-          const float r_factor =   22.902 * sq(r_diff_max) * r_diff_max
-                                 - 44.988 * sq(r_diff_max)
-                                 + 31.697 * r_diff_max
-                                 - 9.4439;
-          SERIAL_MV("h_factor:", 1.0 / h_diff_min);
-          SERIAL_MV("              r_factor:", r_factor);
-          SERIAL_E;
-        }
-      #endif
       if (verbose_level == 2) {
         SERIAL_M(".     c:");
         if (z_at_pt[0] > 0) SERIAL_C('+');
@@ -6146,7 +6088,7 @@ inline void gcode_G28() {
         }
       }
       if (test_precision != 0.0) {            // !forced end
-        if (zero_std_dev >= test_precision) {
+        if (zero_std_dev >= test_precision) { // end iterations
           SERIAL_M("Calibration OK");
           SERIAL_EM("                                   rolling back 1");
           LCD_MESSAGEPGM("Calibration OK");
@@ -6155,14 +6097,14 @@ inline void gcode_G28() {
         else {                                // !end iterations
           char mess[15] = "No convergence";
           if (iterations < 31)
-            sprintf_P(mess, PSTR("Iteration : %02i"), (int)iterations);
+            sprintf_P(mess, PSTR("Iteration:%02i"), (int)iterations);
           SERIAL_T(mess);
           SERIAL_M("                                   std dev:");
           SERIAL_V(zero_std_dev, 3);
           SERIAL_E;
           lcd_setstatus(mess);
         }
-        SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 3);
+        SERIAL_MV("Height:", deltaParams.base_max_pos[C_AXIS], 2);
         if (probe_points > 1) {
           SERIAL_M("    Ex:");
           if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
@@ -6173,31 +6115,24 @@ inline void gcode_G28() {
           SERIAL_M("  Ez:");
           if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
           SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
-          SERIAL_MV("    Radius:", deltaParams.radius);
+          SERIAL_MV("    Radius:", deltaParams.delta_radius);
         }
         SERIAL_E;
         if (zero_std_dev >= test_precision)
-          SERIAL_EM("Save with M500");
+          SERIAL_EM("save with M500 and/or copy to configuration_delta.h");
       }
       else {                                  // forced end
-        #if ENABLED(DELTA_CALIBRATE_EXPERT_MODE)
-          if (verbose_level == 3)
-            SERIAL_EM("Copy to Configuration_delta.h");
-          else
-        #endif
-          {
-            SERIAL_M("End DRY-RUN                                      std dev:");
-            SERIAL_V(zero_std_dev, 3);
-            SERIAL_E;
-          }
+        SERIAL_M("End DRY-RUN                                      std dev:");
+        SERIAL_V(zero_std_dev, 3);
+        SERIAL_E;
       }
 
       clean_up_after_endstop_or_probe_move();
-      stepper.synchronize();
-
-      gcode_G28();
 
     } while (zero_std_dev < test_precision && iterations < 31);
+
+    // Homing
+    gcode_G28();
 
   }
 
@@ -6220,9 +6155,8 @@ inline void gcode_G28() {
       set_bed_leveling_enabled(false);
     #endif
 
-    // Homing and deploy z probe
-    if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
-      gcode_G28();
+    // Homing
+    gcode_G28(false);
 
     do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
 
@@ -6348,7 +6282,7 @@ inline void gcode_G28() {
           if (fix_tower_errors() != 0 ) {
             // Tower positions have been changed .. home to endstops
             SERIAL_EM("Tower Positions changed .. Homing");
-            gcode_G28();
+            gcode_G28(false);
             do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
           }
           else {
@@ -6356,7 +6290,7 @@ inline void gcode_G28() {
             if (adj_diagrod_length() != 0) { 
               // If diagonal rod length has been changed .. home to endstops
               SERIAL_EM("Diagonal Rod Length changed .. Homing");
-              gcode_G28();
+              gcode_G28(false);
               do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
             }
           }
@@ -6991,42 +6925,38 @@ inline void gcode_M42() {
   } // toggle_pins
 
   inline void servo_probe_test(){
-    #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
+    #if !(NUM_SERVOS >= 1 && HAS(SERVO_0))
       SERIAL_LM(ER, "SERVO not setup");
+    #elif HASNT(Z_SERVO_ENDSTOP)
+      SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
     #else
-
-      #if !defined(z_servo_angle)
-        const int z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
-      #endif
-      uint8_t probe_index = code_seen('P') ? code_value_byte() : 0;
-      SERIAL_M("Servo probe test");
-      SERIAL_MV(".  Using index:  ", probe_index);
-      SERIAL_MV(".  Deploy angle: ", z_servo_angle[0]);
-      SERIAL_MV(".  Stow angle:   ", z_servo_angle[1]);
-      SERIAL_E;
-      bool probe_logic;
+      uint8_t probe_index = code_seen('P') ? code_value_byte() : Z_ENDSTOP_SERVO_NR;
+      SERIAL_EM("Servo probe test");
+      SERIAL_EMV(".  Using index:  ", probe_index);
+      SERIAL_EMV(".  Deploy angle: ", z_servo_angle[0]);
+      SERIAL_EMV(".  Stow angle:   ", z_servo_angle[1]);
+      bool probe_inverting;
       #if HAS(Z_PROBE_PIN)
         #define PROBE_TEST_PIN Z_PROBE_PIN
-        SERIAL_MV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-        SERIAL_M(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-        SERIAL_M(".  Z_PROBE_ENDSTOP_LOGIC: ");
-        if (Z_PROBE_ENDSTOP_LOGIC) SERIAL_EM("true");
+        SERIAL_EMV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+        SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_INVERTING (ignores Z_MIN_ENDSTOP_INVERTING)");
+        SERIAL_M(".  Z_PROBE_ENDSTOP_INVERTING: ");
+        if (Z_PROBE_ENDSTOP_INVERTING) SERIAL_EM("true");
         else  SERIAL_EM("false");
-        probe_logic = Z_PROBE_ENDSTOP_LOGIC;
+        probe_inverting = Z_PROBE_ENDSTOP_INVERTING;
       #elif HAS(Z_MIN)
         #define PROBE_TEST_PIN Z_MIN_PIN
-        SERIAL_MV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
-        SERIAL_M(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-        SERIAL_M(".  Z_MIN_ENDSTOP_LOGIC: ");
-        if (Z_MIN_ENDSTOP_LOGIC) SERIAL_EM("true");
+        SERIAL_EMV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
+        SERIAL_EM(".  Uses Z_MIN_ENDSTOP_INVERTING (ignores Z_PROBE_ENDSTOP_INVERTING)");
+        SERIAL_M(".  Z_MIN_ENDSTOP_INVERTING: ");
+        if (Z_MIN_ENDSTOP_INVERTING) SERIAL_EM("true");
         else  SERIAL_EM("false");
-        probe_logic = Z_MIN_ENDSTOP_LOGIC;
+        probe_inverting = Z_MIN_ENDSTOP_INVERTING;
       #else
         #error "ERROR - probe pin not defined - strange, SANITY_CHECK should have caught this"
       #endif
       SERIAL_EM("Deploy & stow 4 times");
-      bool deploy_state;
-      bool stow_state;
+      bool deploy_state, stow_state;
       for (uint8_t i = 0; i < 4; i++) {
         servo[probe_index].move(z_servo_angle[0]); // deploy
         safe_delay(500);
@@ -7035,21 +6965,24 @@ inline void gcode_M42() {
         safe_delay(500);
         stow_state = digitalRead(PROBE_TEST_PIN);
       }
-      if (probe_logic == deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
+      if (probe_inverting != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
       refresh_cmd_timeout();
       if (deploy_state != stow_state) {
-        SERIAL_EM("TLTouch detected");         // BLTouch clone?
+        SERIAL_EM("BLTouch clone detected");
         if (deploy_state) {
-          SERIAL_EM("DEPLOYED state: HIGH (logic 1)");
-          SERIAL_EM("STOWED (triggered) state: LOW (logic 0)");
+          SERIAL_EM(".  DEPLOYED state: HIGH (logic 1)");
+          SERIAL_EM(".  STOWED (triggered) state: LOW (logic 0)");
         }
         else {
-          SERIAL_EM("DEPLOYED state: LOW (logic 0)");
-          SERIAL_EM("STOWED (triggered) state: HIGH (logic 1)");
+          SERIAL_EM(".  DEPLOYED state: LOW (logic 0)");
+          SERIAL_EM(".  STOWED (triggered) state: HIGH (logic 1)");
         }
+        #if ENABLED(BLTOUCH)
+          SERIAL_EM("ERROR: BLTOUCH enabled - set this device up as a Z Servo Probe with inverting as true.");
+        #endif
+
       }
       else {                                       // measure active signal length
-        safe_delay(500);
         servo[probe_index].move(z_servo_angle[0]); // deploy
         safe_delay(500);
         SERIAL_EM("please trigger probe");
@@ -7288,7 +7221,7 @@ inline void gcode_M42() {
         float angle = random(0.0, 360.0),
               radius = random(
                 #if MECH(DELTA)
-                  deltaParams.probe_Radius / 8, deltaParams.probe_Radius / 3
+                  deltaParams.probe_radius / 8, deltaParams.probe_radius / 3
                 #else
                   5, X_MAX_LENGTH / 8
                 #endif
@@ -7328,7 +7261,7 @@ inline void gcode_M42() {
           #if MECH(DELTA)
             // If we have gone out too far, we can do a simple fix and scale the numbers
             // back in closer to the origin.
-            while (HYPOT(X_current, Y_current) > deltaParams.probe_Radius) {
+            while (HYPOT(X_current, Y_current) > deltaParams.probe_radius) {
               X_current /= 1.25;
               Y_current /= 1.25;
               if (verbose_level > 3) {
@@ -7481,6 +7414,11 @@ inline void gcode_M78() {
     // a print without suicide...
     #if HAS(SUICIDE)
       OUT_WRITE(SUICIDE_PIN, HIGH);
+    #endif
+
+    #if ENABLED(HAVE_TMC2130)
+      delay(100);
+      tmc2130_init(); // Settings only stick when the driver has power
     #endif
 
     LCD_MESSAGEPGM(WELCOME_MSG);
@@ -10274,7 +10212,7 @@ inline void gcode_M532() {
   inline void gcode_M666() {
 
     if (code_seen('D')) deltaParams.diagonal_rod = code_value_linear_units();
-    if (code_seen('R')) deltaParams.radius = code_value_linear_units();
+    if (code_seen('R')) deltaParams.delta_radius = code_value_linear_units();
     if (code_seen('S')) deltaParams.segments_per_second = code_value_float();
     if (code_seen('A')) deltaParams.diagonal_rod_adj[A_AXIS] = code_value_linear_units();
     if (code_seen('B')) deltaParams.diagonal_rod_adj[B_AXIS] = code_value_linear_units();
@@ -10286,7 +10224,7 @@ inline void gcode_M532() {
     if (code_seen('V')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
     if (code_seen('W')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
     if (code_seen('H')) deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
-    if (code_seen('O')) deltaParams.print_Radius = code_value_linear_units();
+    if (code_seen('O')) deltaParams.print_radius = code_value_linear_units();
 
     deltaParams.Recalc_delta_constants();
 
@@ -10349,10 +10287,10 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "U (Tower A Position Correction): ", deltaParams.tower_pos_adj[0], 3);
       SERIAL_LMV(CFG, "V (Tower B Position Correction): ", deltaParams.tower_pos_adj[1], 3);
       SERIAL_LMV(CFG, "W (Tower C Position Correction): ", deltaParams.tower_pos_adj[2], 3);
-      SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.radius, 4);
+      SERIAL_LMV(CFG, "R (Delta Radius): ", deltaParams.delta_radius, 4);
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second);
-      SERIAL_LMV(CFG, "O (Delta Print Radius): ", deltaParams.print_Radius);
+      SERIAL_LMV(CFG, "O (Delta Print Radius): ", deltaParams.print_radius);
       SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.base_max_pos[Z_AXIS], 3);
     }
   }
@@ -10360,27 +10298,33 @@ inline void gcode_M532() {
 
 #if ENABLED(LIN_ADVANCE)
   /**
-   * M905: Set advance factor
+   * M900: Set and/or Get advance K factor and WH/D ratio
+   *
+   *  K<factor>                  Set advance K factor
+   *  R<ratio>                   Set ratio directly (overrides WH/D)
+   *  W<width> H<height> D<diam> Set ratio from WH/D
    */
-  inline void gcode_M905() {
+  inline void gcode_M900() {
     stepper.synchronize();
 
-    const float newK = code_seen('K') ? code_value_float() : -1,
-                newD = code_seen('D') ? code_value_float() : -1,
-                newW = code_seen('W') ? code_value_float() : -1,
-                newH = code_seen('H') ? code_value_float() : -1;
+    const float newK = code_seen('K') ? code_value_float() : -1;
+    if (newK >= 0) planner.set_extruder_advance_k(newK);
 
-    if (newK >= 0.0) planner.set_extruder_advance_k(newK);
-
-    SERIAL_LMV(ECHO, "Advance factor: ", planner.get_extruder_advance_k());
-
-    if (newD >= 0 || newW >= 0 || newH >= 0) {
-      const float ratio = (!newD || !newW || !newH) ? 0 : (newW * newH) / (sq(newD * 0.5) * M_PI);
-      planner.set_advance_ed_ratio(ratio);
-      SERIAL_SM(ECHO, "E/D ratio: ");
-      if (ratio) SERIAL_EV(ratio);
-      else SERIAL_EM("Automatic");
+    float newR = code_seen('R') ? code_value_float() : -1;
+    if (newR < 0) {
+      const float newD = code_seen('D') ? code_value_float() : -1,
+                  newW = code_seen('W') ? code_value_float() : -1,
+                  newH = code_seen('H') ? code_value_float() : -1;
+      if (newD >= 0 && newW >= 0 && newH >= 0)
+        newR = newD ? (newW * newH) / (sq(newD * 0.5) * M_PI) : 0;
     }
+    if (newR >= 0) planner.set_advance_ed_ratio(newR);
+
+    SERIAL_SMV(ECHO, "Advance K=", planner.get_extruder_advance_k());
+    SERIAL_M(" E/D=");
+    const float ratio = planner.get_advance_ed_ratio();
+    ratio ? SERIAL_V(ratio) : SERIAL_M("Auto");
+    SERIAL_E;
   }
 #endif
 
@@ -10404,21 +10348,21 @@ inline void gcode_M532() {
 
 #elif ENABLED(HAVE_TMC2130)
 
-  static void tmc2130_print_current(const int mA, const char name) {
-    SERIAL_C(name);
-    SERIAL_EM(" axis driver current: ", ma);
-  }
-  static void tmc2130_set_current(const int mA, TMC2130Stepper &st, const char name) {
-    tmc2130_print_current(mA, name);
-    st.setCurrent(mA, 0.11, 0.5);
-  }
   static void tmc2130_get_current(TMC2130Stepper &st, const char name) {
-    tmc2130_print_current(st.getCurrent(), name);
+    SERIAL_C(name);
+    SERIAL_M(" axis driver current: ");
+    SERIAL_EV(st.getCurrent());
   }
+  static void tmc2130_set_current(TMC2130Stepper &st, const char name, const int mA) {
+    st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
+    tmc2130_get_current(st, name);
+  }
+
   static void tmc2130_report_otpw(TMC2130Stepper &st, const char name) {
     SERIAL_C(name);
     SERIAL_M(" axis temperature prewarn triggered: ");
-    SERIAL_ET(st.getOTPW() ? PSTR("true") : PSTR("false"));
+    SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
+    SERIAL_E;
   }
   static void tmc2130_clear_otpw(TMC2130Stepper &st, const char name) {
     st.clear_otpw();
@@ -10426,10 +10370,32 @@ inline void gcode_M532() {
     SERIAL_EM(" prewarn flag cleared");
   }
 
+  static void tmc2130_get_pwmthrs(TMC2130Stepper &st, const char name, const uint16_t spmm) {
+    SERIAL_C(name);
+    SERIAL_M(" stealthChop max speed set to ");
+    SERIAL_EV(12650000UL * st.microsteps() / (256 * st.stealth_max_speed() * spmm));
+  }
+  static void tmc2130_set_pwmthrs(TMC2130Stepper &st, const char name, const int32_t thrs, const uint32_t spmm) {
+    st.stealth_max_speed(12650000UL * st.microsteps() / (256 * thrs * spmm));
+    tmc2130_get_pwmthrs(st, name, spmm);
+  }
+
+  static void tmc2130_get_sgt(TMC2130Stepper &st, const char name) {
+    SERIAL_C(name);
+    SERIAL_M(" driver homing sensitivity set to ");
+    SERIAL_EV(st.sgt());
+  }
+  static void tmc2130_set_sgt(TMC2130Stepper &st, const char name, const int8_t sgt_val) {
+    st.sgt(sgt_val);
+    tmc2130_get_sgt(st, name);
+  }
+
   /**
    * M906: Set motor current in milliamps using axis codes X, Y, Z, E
-   *
    * Report driver currents when no axis specified
+   *
+   * S1: Enable automatic current control
+   * S0: Disable
    */
   inline void gcode_M906() {
     uint16_t values[NUM_AXIS];
@@ -10452,6 +10418,10 @@ inline void gcode_M532() {
       if (values[E_AXIS]) tmc2130_set_current(values[E_AXIS], stepperE0, 'E');
       else tmc2130_get_current(stepperE0, 'E');
     #endif
+
+    #if ENABLED(AUTOMATIC_CURRENT_CONTROL)
+      if (code_seen('S')) auto_current_control = code_value_bool();
+    #endif
   }
 
   /**
@@ -10459,17 +10429,19 @@ inline void gcode_M532() {
    * The flag is held by the library and persist until manually cleared by M912
    */
   inline void gcode_M911() {
+    const bool reportX = code_seen('X'), reportY = code_seen('Y'), reportZ = code_seen('Z'), reportE = code_seen('E'),
+             reportAll = (!reportX && !reportY && !reportZ && !reportE) || (reportX && reportY && reportZ && reportE);
     #if ENABLED(X_IS_TMC2130)
-      tmc2130_report_otpw(stepperX, 'X');
+      if (reportX || reportAll) tmc2130_report_otpw(stepperX, 'X');
     #endif
     #if ENABLED(Y_IS_TMC2130)
-      tmc2130_report_otpw(stepperY, 'Y');
+      if (reportY || reportAll) tmc2130_report_otpw(stepperY, 'Y');
     #endif
     #if ENABLED(Z_IS_TMC2130)
-      tmc2130_report_otpw(stepperZ, 'Z');
+      if (reportZ || reportAll) tmc2130_report_otpw(stepperZ, 'Z');
     #endif
     #if ENABLED(E0_IS_TMC2130)
-      tmc2130_report_otpw(stepperE0, 'E');
+      if (reportE || reportAll) tmc2130_report_otpw(stepperE0, 'E');
     #endif
   }
 
@@ -10477,19 +10449,65 @@ inline void gcode_M532() {
    * M912: Clear TMC2130 stepper driver overtemperature pre-warn flag held by the library
    */
   inline void gcode_M912() {
+    const bool clearX = code_seen('X'), clearY = code_seen('Y'), clearZ = code_seen('Z'), clearE = code_seen('E'),
+             clearAll = (!clearX && !clearY && !clearZ && !clearE) || (clearX && clearY && clearZ && clearE);
     #if ENABLED(X_IS_TMC2130)
-      if (code_seen('X')) tmc2130_clear_otpw(stepperX, 'X');
+      if (clearX || clearAll) tmc2130_clear_otpw(stepperX, 'X');
     #endif
     #if ENABLED(Y_IS_TMC2130)
-      if (code_seen('Y')) tmc2130_clear_otpw(stepperY, 'Y');
+      if (clearY || clearAll) tmc2130_clear_otpw(stepperY, 'Y');
     #endif
     #if ENABLED(Z_IS_TMC2130)
-      if (code_seen('Z')) tmc2130_clear_otpw(stepperZ, 'Z');
+      if (clearZ || clearAll) tmc2130_clear_otpw(stepperZ, 'Z');
     #endif
     #if ENABLED(E0_IS_TMC2130)
-      if (code_seen('E')) tmc2130_clear_otpw(stepperE0, 'E');
+      if (clearE || clearAll) tmc2130_clear_otpw(stepperE0, 'E');
     #endif
   }
+
+  /**
+   * M913: Set HYBRID_THRESHOLD speed.
+   */
+  #if ENABLED(HYBRID_THRESHOLD)
+    inline void gcode_M913() {
+      uint16_t values[XYZE];
+      LOOP_XYZE(i)
+        values[i] = code_seen(axis_codes[i]) ? code_value_int() : 0;
+
+      #if ENABLED(X_IS_TMC2130)
+        if (values[X_AXIS]) tmc2130_set_pwmthrs(stepperX, 'X', values[X_AXIS], planner.axis_steps_per_mm[X_AXIS]);
+        else tmc2130_get_pwmthrs(stepperX, 'X', planner.axis_steps_per_mm[X_AXIS]);
+      #endif
+      #if ENABLED(Y_IS_TMC2130)
+        if (values[Y_AXIS]) tmc2130_set_pwmthrs(stepperY, 'Y', values[Y_AXIS], planner.axis_steps_per_mm[Y_AXIS]);
+        else tmc2130_get_pwmthrs(stepperY, 'Y', planner.axis_steps_per_mm[Y_AXIS]);
+      #endif
+      #if ENABLED(Z_IS_TMC2130)
+        if (values[Z_AXIS]) tmc2130_set_pwmthrs(stepperZ, 'Z', values[Z_AXIS], planner.axis_steps_per_mm[Z_AXIS]);
+        else tmc2130_get_pwmthrs(stepperZ, 'Z', planner.axis_steps_per_mm[Z_AXIS]);
+      #endif
+      #if ENABLED(E0_IS_TMC2130)
+        if (values[E_AXIS]) tmc2130_set_pwmthrs(stepperE0, 'E', values[E_AXIS], planner.axis_steps_per_mm[E_AXIS]);
+        else tmc2130_get_pwmthrs(stepperE0, 'E', planner.axis_steps_per_mm[E_AXIS]);
+      #endif
+    }
+  #endif // HYBRID_THRESHOLD
+
+  /**
+   * M914: Set SENSORLESS_HOMING sensitivity.
+   */
+  #if ENABLED(SENSORLESS_HOMING)
+    inline void gcode_M914() {
+      #if ENABLED(X_IS_TMC2130)
+        if (code_seen(axis_codes[X_AXIS])) tmc2130_set_sgt(stepperX, 'X', code_value_int());
+        else tmc2130_get_sgt(stepperX, 'X');
+      #endif
+      #if ENABLED(Y_IS_TMC2130)
+        if (code_seen(axis_codes[Y_AXIS])) tmc2130_set_sgt(stepperY, 'Y', code_value_int());
+        else tmc2130_get_sgt(stepperY, 'Y');
+      #endif
+    }
+  #endif // SENSORLESS_HOMING
 
 #endif // HAVE_TMC2130
 
@@ -12033,8 +12051,8 @@ void process_next_command() {
       #endif
 
       #if ENABLED(LIN_ADVANCE)
-        case 905: // M905 Set advance factor.
-          gcode_M905(); break;
+        case 900: // M900 Set advance factor.
+          gcode_M900(); break;
       #endif
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3) || ENABLED(HAVE_TMC2130)
@@ -12052,11 +12070,19 @@ void process_next_command() {
 
       #if ENABLED(HAVE_TMC2130)
         case 911: // M911: Report TMC2130 prewarn triggered flags
-          gcode_M911();
-          break;
+          gcode_M911(); break;
         case 912: // M912: Clear TMC2130 prewarn triggered flags
-          gcode_M912();
-          break;
+          gcode_M912(); break;
+
+        #if ENABLED(HYBRID_THRESHOLD)
+          case 913: // M913: Set HYBRID_THRESHOLD speed.
+            gcode_M913(); break;
+        #endif
+
+        #if ENABLED(SENSORLESS_HOMING)
+          case 914: // M914: Set SENSORLESS_HOMING sensitivity.
+            gcode_M914(); break;
+        #endif
       #endif
 
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -12242,12 +12268,12 @@ void ok_to_send() {
       bed_level_c = probe_pt(0.0, 0.0);
 
       // Probe all bed positions & store carriage positions
-      bed_level_z = probe_pt(0.0, deltaParams.probe_Radius);
-      bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-      bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-      bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
-      bed_level_y = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-      bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+      bed_level_z = probe_pt(0.0, deltaParams.probe_radius);
+      bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
+      bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
+      bed_level_oz = probe_pt(0.0, -deltaParams.probe_radius);
+      bed_level_y = probe_pt(SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
+      bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
       bed_level_c = probe_pt(0.0, 0.0);
     }
 
@@ -12267,9 +12293,9 @@ void ok_to_send() {
       bool z_done = false;
 
       do {
-        bed_level_z = probe_pt(0.0, deltaParams.probe_Radius);
-        bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
-        bed_level_y = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+        bed_level_z = probe_pt(0.0, deltaParams.probe_radius);
+        bed_level_x = probe_pt(-SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
+        bed_level_y = probe_pt(SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
 
         apply_endstop_adjustment(bed_level_x, bed_level_y, bed_level_z);
 
@@ -12456,7 +12482,7 @@ void ok_to_send() {
         adjdone_vector = 0.01; 
 
         do {
-          deltaParams.radius += adj_dRadius;
+          deltaParams.delta_radius += adj_dRadius;
           deltaParams.Recalc_delta_constants();
           adj_done = false;
 
@@ -12485,7 +12511,7 @@ void ok_to_send() {
 
           // Show progress
           SERIAL_MV(" c:", bed_level_c, 4);
-          SERIAL_MV(" delta radius:", deltaParams.radius, 4);
+          SERIAL_MV(" delta radius:", deltaParams.delta_radius, 4);
           SERIAL_MV(" prec:", adjdone_vector, 3);
           SERIAL_MV(" tries:", adj_attempts);
           SERIAL_M(" done:");
@@ -12514,21 +12540,21 @@ void ok_to_send() {
 
         if (tower == 1) {
           // Bedlevel_x
-          bed_level = probe_pt(-SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+          bed_level = probe_pt(-SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
           // Bedlevel_ox
-          bed_level_o = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+          bed_level_o = probe_pt(SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
         }
         if (tower == 2) {
           // Bedlevel_y
-          bed_level = probe_pt(SIN_60 * deltaParams.probe_Radius, -COS_60 * deltaParams.probe_Radius);
+          bed_level = probe_pt(SIN_60 * deltaParams.probe_radius, -COS_60 * deltaParams.probe_radius);
           // Bedlevel_oy
-          bed_level_o = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+          bed_level_o = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
         }
         if (tower == 3) {
           // Bedlevel_z
-          bed_level = probe_pt(0.0, deltaParams.probe_Radius);
+          bed_level = probe_pt(0.0, deltaParams.probe_radius);
           // Bedlevel_oz
-          bed_level_o = probe_pt(0.0, -deltaParams.probe_Radius);
+          bed_level_o = probe_pt(0.0, -deltaParams.probe_radius);
         }
 
         // Set inital adjustment value if it is currently 0
@@ -12565,9 +12591,9 @@ void ok_to_send() {
         deltaParams.tower_pos_adj[tower - 1] += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
-        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        if ((tower == 1) or (tower == 3)) bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
+        if ((tower == 1) or (tower == 2)) bed_level_oz = probe_pt(0.0, -deltaParams.probe_radius);
+        if ((tower == 2) or (tower == 3)) bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
 
         adj_prv = adj_val;
         adj_val = 0;
@@ -12627,9 +12653,9 @@ void ok_to_send() {
         deltaParams.diagonal_rod += adj_val;
         deltaParams.Recalc_delta_constants();
 
-        bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
-        bed_level_oz = probe_pt(0.0, -deltaParams.probe_Radius);
-        bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_Radius, COS_60 * deltaParams.probe_Radius);
+        bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
+        bed_level_oz = probe_pt(0.0, -deltaParams.probe_radius);
+        bed_level_ox = probe_pt(SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
         bed_level_c = probe_pt(0.0, 0.0);
 
         target = (bed_level_ox + bed_level_oy + bed_level_oz) / 3;
@@ -12696,7 +12722,7 @@ void ok_to_send() {
       SERIAL_M("| \t");
       if (bed_level_oz >= 0) SERIAL_M(" ");
       SERIAL_MV("", bed_level_oz, 4);
-      SERIAL_EMV("\t\t\tDelta Radius: ", deltaParams.radius, 4);
+      SERIAL_EMV("\t\t\tDelta Radius: ", deltaParams.delta_radius, 4);
 
       SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", deltaParams.diagonal_rod, 4);
       SERIAL_E;
@@ -13557,23 +13583,58 @@ void calculate_volumetric_multipliers() {
     volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
 }
 
-#if ENABLED(AUTOMATIC_CURRENT_CONTROL)
+#if ENABLED(HAVE_TMC2130)
 
-  void automatic_current_control(const TMC2130Stepper &st) {
-    #if CURRENT_STEP > 0
-      const bool is_otpw = st.checkOT(), // Check otpw even if we don't adjust. Allows for flag inspection.
-                 is_otpw_triggered = st.getOTPW();
+  void automatic_current_control(TMC2130Stepper &st, String axisID) {
+    // Check otpw even if we don't use automatic control. Allows for flag inspection.
+    const bool is_otpw = st.checkOT();
 
-      if (!is_otpw && !is_otpw_triggered) {
-        // OTPW bit not triggered yet -> Increase current
-        const uint16_t current = st.getCurrent() + CURRENT_STEP;
-        if (current <= AUTO_ADJUST_MAX) st.SilentStepStick2130(current);
+    // Report if a warning was triggered
+    static bool previous_otpw = false;
+    if (is_otpw && !previous_otpw) {
+      char timestamp[10];
+      duration_t elapsed = print_job_timer.duration();
+      const bool has_days = (elapsed.value > 60*60*24L);
+      (void)elapsed.toDigital(timestamp, has_days);
+      SERIAL_T(timestamp);
+      SERIAL_T(": ");
+      SERIAL_T(axisID);
+      SERIAL_EM(" driver overtemperature warning!");
+    }
+    previous_otpw = is_otpw;
+
+    #if CURRENT_STEP > 0 && ENABLED(AUTOMATIC_CURRENT_CONTROL)
+      // Return if user has not enabled current control start with M906 S1.
+      if (!auto_current_control) return;
+
+      /**
+       * Decrease current if is_otpw is true.
+       * Bail out if driver is disabled.
+       * Increase current if OTPW has not been triggered yet.
+       */
+      uint16_t current = st.getCurrent();
+      if (is_otpw) {
+        st.setCurrent(current - CURRENT_STEP, R_SENSE, HOLD_MULTIPLIER);
+        #if ENABLED(REPORT_CURRENT_CHANGE)
+          SERIAL_T(axisID);
+          SERIAL_MV(" current decreased to ", st.getCurrent());
+        #endif
       }
-      else if (is_otpw && is_otpw_triggered) {
-        // OTPW bit triggered, triggered flag raised -> Decrease current
-        st.SilentStepStick2130((float)st.getCurrent() - CURRENT_STEP);
+
+      else if (!st.isEnabled())
+        return;
+
+      else if (!is_otpw && !st.getOTPW()) {
+        current += CURRENT_STEP;
+        if (current <= AUTO_ADJUST_MAX) {
+          st.setCurrent(current, R_SENSE, HOLD_MULTIPLIER);
+          #if ENABLED(REPORT_CURRENT_CHANGE)
+            SERIAL_T(axisID);
+            SERIAL_MV(" current increased to ", st.getCurrent());
+          #endif
+        }
       }
-      // OTPW bit cleared (we've cooled down), triggered flag still raised until manually cleared -> Do nothing, we're good
+      SERIAL_E;
     #endif
   }
 
@@ -13582,39 +13643,45 @@ void calculate_volumetric_multipliers() {
     if (ELAPSED(millis(), next_cOT)) {
       next_cOT = millis() + 5000;
       #if ENABLED(X_IS_TMC2130)
-        automatic_current_control(stepperX);
+        automatic_current_control(stepperX, "X");
       #endif
       #if ENABLED(Y_IS_TMC2130)
-        automatic_current_control(stepperY);
+        automatic_current_control(stepperY, "Y");
       #endif
       #if ENABLED(Z_IS_TMC2130)
-        automatic_current_control(stepperZ);
+        automatic_current_control(stepperZ, "Z");
       #endif
       #if ENABLED(X2_IS_TMC2130)
-        automatic_current_control(stepperX2);
+        automatic_current_control(stepperX2, "X2");
       #endif
       #if ENABLED(Y2_IS_TMC2130)
-        automatic_current_control(stepperY2);
+        automatic_current_control(stepperY2, "Y2");
       #endif
       #if ENABLED(Z2_IS_TMC2130)
-        automatic_current_control(stepperZ2);
+        automatic_current_control(stepperZ2, "Z2");
       #endif
       #if ENABLED(E0_IS_TMC2130)
-        automatic_current_control(stepperE0);
+        automatic_current_control(stepperE0, "E0");
       #endif
       #if ENABLED(E1_IS_TMC2130)
-        automatic_current_control(stepperE1);
+        automatic_current_control(stepperE1, "E1");
       #endif
       #if ENABLED(E2_IS_TMC2130)
-        automatic_current_control(stepperE2);
+        automatic_current_control(stepperE2, "E2");
       #endif
       #if ENABLED(E3_IS_TMC2130)
-        automatic_current_control(stepperE3);
+        automatic_current_control(stepperE3, "E3");
+      #endif
+      #if ENABLED(E4_IS_TMC2130)
+        automatic_current_control(stepperE4, "E4");
+      #endif
+      #if ENABLED(E5_IS_TMC2130)
+        automatic_current_control(stepperE5, "E5");
       #endif
     }
   }
 
-#endif // AUTOMATIC_CURRENT_CONTROL
+#endif // HAVE_TMC2130
 
 /**
  * Manage several activities:
@@ -13926,7 +13993,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     handle_status_leds();
   #endif
 
-  #if ENABLED(AUTOMATIC_CURRENT_CONTROL)
+  #if ENABLED(HAVE_TMC2130)
     checkOverTemp();
   #endif
 

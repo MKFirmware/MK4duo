@@ -70,7 +70,7 @@ class Nozzle {
      * @param start defining the starting point
      * @param middle defining the middle of circle
      * @param strokes number of strokes to execute
-     * @param radius radius of circle
+     * @param radius of circle
      */
     static void circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius);
 

@@ -33,10 +33,10 @@
 
       // Core parameters
       float diagonal_rod          = DELTA_DIAGONAL_ROD,
-            radius                = DEFAULT_DELTA_RADIUS,
+            delta_radius          = DEFAULT_DELTA_RADIUS,
             segments_per_second   = DELTA_SEGMENTS_PER_SECOND,
-            print_Radius          = DELTA_PRINTABLE_RADIUS,
-            probe_Radius          = DELTA_PROBEABLE_RADIUS,
+            print_radius          = DELTA_PRINTABLE_RADIUS,
+            probe_radius          = DELTA_PROBEABLE_RADIUS,
             clip_start_height     = Z_MAX_POS,
             diagonal_rod_adj[ABC] = { TOWER_A_DIAGROD_ADJ, TOWER_B_DIAGROD_ADJ, TOWER_C_DIAGROD_ADJ },
             endstop_adj[ABC]      = { TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ },

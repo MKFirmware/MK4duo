@@ -1758,11 +1758,11 @@ void kill_screen(const char* lcd_msg) {
       // Move directly to the tower position with uninterpolated moves
       // If we used interpolated moves it would cause this to become re-entrant
       void _goto_tower_pos(const float &a) {
-        current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (deltaParams.print_Radius) / 5;
+        current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (deltaParams.print_radius) / 5;
         line_to_current(Z_AXIS);
 
-        current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(deltaParams.print_Radius);
-        current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (deltaParams.print_Radius);
+        current_position[X_AXIS] = a < 0 ? X_HOME_POS : sin(a) * -(deltaParams.print_radius);
+        current_position[Y_AXIS] = a < 0 ? Y_HOME_POS : cos(a) *  (deltaParams.print_radius);
         line_to_current(Z_AXIS);
 
         current_position[Z_AXIS] = 4.0;
