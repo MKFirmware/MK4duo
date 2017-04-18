@@ -166,9 +166,8 @@
     endstop_adj[C_AXIS] -= v[2];
 
     // Normalize Endstop
-    const float eav = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    base_max_pos[C_AXIS] += eav;
-    LOOP_XYZ(i) endstop_adj[i] -= eav;
+    const float z_temp = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
+    LOOP_XYZ(i) endstop_adj[i] -= z_temp;
 
     if (numFactors >= 4) {
       radius += v[3];
@@ -201,7 +200,7 @@
    * the original system by moving along those unit vectors
    * by the corresponding values.
    *
-   * Variable names matched to Marlin, c-version, and avoid the
+   * Variable names matched to Mk4duo, c-version, and avoid the
    * use of any vector library.
    *
    * by Andreas Hardtung 2016-06-07

@@ -921,7 +921,7 @@
         #if ENABLED(PROBE_MANUALLY)
           if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
           #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-            else if (g33_in_progress) enqueue_and_echo_commands_P(PSTR("G30 A"));
+            else if (g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
           #endif
         #endif
       }
