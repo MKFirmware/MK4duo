@@ -1069,16 +1069,20 @@
  ************************************************************************************************************************
  *                                                                                                                      *
  * The microcontroller can store settings in the EEPROM, e.g. max velocity...                                           *
- * M500 - stores parameters in EEPROM                                                                                   *
- * M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).                     *
- * M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to. *
+ * M500 - Stores parameters in EEPROM                                                                                   *
+ * M501 - Reads parameters from EEPROM (if you need reset them after you changed them temporarily).                     *
+ * M502 - Reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.  *
+ * M503 - Print parameters on host                                                                                      *
  *                                                                                                                      *
  * Uncomment EEPROM SETTINGS to enable this feature.                                                                    *
  * Uncomment EEPROM CHITCHAT to enable EEPROM Serial responses.                                                         *
+ * Uncomment EEPROM SD for use writing EEPROM on SD                                                                     *
  *                                                                                                                      *
  ************************************************************************************************************************/
 //#define EEPROM_SETTINGS
+
 //#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+//#define EEPROM_SD
 //#define DISABLE_M503
 /************************************************************************************************************************/
 
