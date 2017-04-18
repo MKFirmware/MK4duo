@@ -5541,20 +5541,6 @@ inline void gcode_G28(
       #endif
     #endif
 
-    // Homing
-    gcode_G28(false);
-
-    #if ENABLED(PROBE_MANUALLY)
-      if (!g33_in_progress)
-    #endif
-        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-
-    stepper.synchronize();  // wait until the machine is idle
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      set_bed_leveling_enabled(false);
-    #endif
-
     // Define local vars 'static' for manual probing, 'auto' otherwise
     #if ENABLED(PROBE_MANUALLY)
       #define ABL_VAR static
@@ -5588,6 +5574,12 @@ inline void gcode_G28(
        * On the initial G30 fetch command parameters.
        */
       if (!g33_in_progress) {
+
+        // Homing
+        gcode_G28(false);
+        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+        stepper.synchronize();  // wait until the machine is idle
+
         SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
         SERIAL_MV(" points and ", numFactors);
         SERIAL_EM(" Factors");
@@ -5671,6 +5663,11 @@ inline void gcode_G28(
       }
 
     #else
+
+      // Homing
+      gcode_G28(false);
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+      stepper.synchronize();  // wait until the machine is idle
 
       SERIAL_MV("Starting Auto Calibration ", numPoints);
       SERIAL_MV(" points and ", numFactors);
@@ -5882,10 +5879,6 @@ inline void gcode_G28(
    *
    */
   inline void gcode_G33() {
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      set_bed_leveling_enabled(false);
-    #endif
 
     const uint8_t pp = code_seen('P') ? code_value_int() : 4,
                   probe_points = (WITHIN(pp, 1, 7)) ? pp : 4;
@@ -6150,10 +6143,6 @@ inline void gcode_G28(
    *      T = Adjust Tower Radius
    */
   inline void gcode_G33() {
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      set_bed_leveling_enabled(false);
-    #endif
 
     // Homing
     gcode_G28(false);
