@@ -1618,18 +1618,12 @@ void kill_screen(const char* lcd_msg) {
     //
     // Level Bed
     //
-    #if ENABLED(LCD_BED_LEVELING) || HAS(ABL)
+    #if ENABLED(LCD_BED_LEVELING) || HAS_ABL
 
-      #if ENABLED(PROBE_MANUALLY)
+      #if ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY)
         if (!g29_in_progress)
       #endif
           MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_level_bed);
-
-    #elif HAS_ABL
-
-      MENU_ITEM(gcode, MSG_LEVEL_BED,
-        axis_homed[X_AXIS] && axis_homed[Y_AXIS] ? PSTR("G29") : PSTR("G28\nG29")
-      );
 
     #endif
 
