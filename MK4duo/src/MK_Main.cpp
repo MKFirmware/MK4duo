@@ -5897,7 +5897,7 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       gcode_G28();
 
-    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
 
     stepper.synchronize();  // wait until the machine is idle
 
@@ -6224,7 +6224,7 @@ inline void gcode_G28() {
     if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS])
       gcode_G28();
 
-    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT - zprobe_zoffset, homing_feedrate_mm_s[Z_AXIS]);
+    do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
 
     stepper.synchronize();  // wait until the machine is idle
 
