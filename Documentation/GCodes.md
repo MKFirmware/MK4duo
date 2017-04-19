@@ -203,9 +203,24 @@
 *  M605 - Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 *  M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
 *  M666 - Set z probe offset or Endstop and delta geometry adjustment. M666 L for list command
-*  M906 - Set motor currents XYZ T0-4 E
-*  M907 - Set digital trimpot motor current using axis codes.
-*  M908 - Control digital trimpot directly.
+*  M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+*  M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+*         Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
+*  M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
+*  M908 - Control digital trimpot directly. (Requires DIGIPOTSS_PIN)
+*  M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+*  M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
+*  M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
+*  M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+*
+*  ************ SCARA Specific - This can change to suit future G-code regulations
+*  M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
+*  M361 - SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
+*  M362 - SCARA calibration: Move to cal-position PsiA (0 deg calibration)
+*  M363 - SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
+*  M364 - SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
+* ************* SCARA End ***************
+*
 *  M928 - Start SD logging (M928 filename.g) - ended by M29
 *  M995 - X Y Z Set origin for graphic in NEXTION
 *  M996 - S<scale> Set scale for graphic in NEXTION

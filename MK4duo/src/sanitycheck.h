@@ -1753,7 +1753,7 @@ static_assert(1 >= 0
   #if ENABLED(SD_SETTINGS)
     #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
   #endif
-  #if ENABLED(EEPROM_SETTINGS) && ENABLED(SDCARD_EEPROM)
+  #if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
     #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
   #endif
 #endif

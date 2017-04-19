@@ -6154,7 +6154,7 @@ inline void gcode_G28(
     SERIAL_EM("Starting Auto Calibration...");
     LCD_MESSAGEPGM("Auto Calibration...");
 
-    ac_prec = (code_seen('A') || code_seen('E') || code_seen('R')) ? constrain(code_value_float(), 0.01, 1) : AUTOCALIBRATION_PRECISION;
+    ac_prec = ((code_seen('A') || code_seen('E') || code_seen('R')) && code_has_value()) ? constrain(code_value_float(), 0.01, 1) : AUTOCALIBRATION_PRECISION;
 
     SERIAL_MV("Calibration precision: +/-", ac_prec, 2);
     SERIAL_EM(" mm");
