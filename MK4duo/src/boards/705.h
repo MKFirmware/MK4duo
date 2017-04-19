@@ -76,7 +76,7 @@
 #define ORIG_TEMP_3_PIN        4  // ANALOG NUMBERING
 
 // EEPROM on SDCARD
-#define SDCARD_EEPROM
+#define EEPROM_SD
 
 // SPI for Max6675 or Max31855 Thermocouple
 #define MAX6675_SS            65
