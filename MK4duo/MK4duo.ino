@@ -218,12 +218,15 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
+ * M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
  *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
- * M907 - Set digital trimpot motor current using axis codes.
- * M908 - Control digital trimpot directly.
+ * M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
+ * M908 - Control digital trimpot directly. (Requires DIGIPOTSS_PIN)
  * M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
  * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
+ * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
+ * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
