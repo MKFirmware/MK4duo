@@ -41,46 +41,70 @@
 #define RESUME          "//action:resume"     // command for host that support action
 #define DISCONNECT      "//action:disconnect" // command for host that support action
 
-#define SERIAL_INIT(baud)                   MKSERIAL.begin(baud), HAL::delayMilliseconds(1)
-#define SERIAL_WRITE(x)                     MKSERIAL.write(x)
-#define SERIAL_PRINT(msg, ...)              MKSERIAL.print(msg, ## __VA_ARGS__)
-#define SERIAL_EOL                          MKSERIAL.println()
+#define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
+#define SERIAL_WRITE(v)                     (MKSERIAL.write(v))
+#define SERIAL_PRINT(v)                     (MKSERIAL.print(v))
+#define SERIAL_PRINT_F(v,n)                 (MKSERIAL.print(v,n))
 
 // Things to write to serial from Program memory. Saves 400 to 2k of RAM.
 FORCE_INLINE void serialprintPGM(const char* str) {
   while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);
 }
 
-#define SERIAL_PS(message)                  serialprintPGM(message)
-#define SERIAL_PGM(message)                 serialprintPGM(PSTR(message))
+#define SERIAL_PS(message)                  (serialprintPGM(message))
+#define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
 
 #define SERIAL_S(srt)                       SERIAL_PGM(srt)
 #define SERIAL_M(msg)                       SERIAL_PGM(msg)
-#define SERIAL_T(txt)                       SERIAL_PRINT(txt)
-#define SERIAL_V(val, ...)                  SERIAL_PRINT(val, ## __VA_ARGS__)
+#define SERIAL_T(txt)                       (serial_print(txt))
+#define SERIAL_V(val, ...)                  (serial_print(val, ## __VA_ARGS__))
 #define SERIAL_C(c)                         SERIAL_WRITE(c)
-#define SERIAL_E                            SERIAL_EOL
+#define SERIAL_E                            SERIAL_WRITE('\n')
 
-#define SERIAL_MV(msg, val, ...)            SERIAL_M(msg),SERIAL_V(val, ## __VA_ARGS__)
-#define SERIAL_MT(msg, txt)                 SERIAL_M(msg),SERIAL_T(txt)
+#define SERIAL_MT(msg, txt)                 (serial_print_pair(PSTR(msg), txt))
+#define SERIAL_MV(msg, val, ...)            (serial_print_pair(PSTR(msg), val, ## __VA_ARGS__))
 
-#define SERIAL_SM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg)
-#define SERIAL_SV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__)
-#define SERIAL_ST(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt)
-#define SERIAL_SMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt)
-#define SERIAL_SMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__)
+#define SERIAL_SM(srt, msg)                 do{ SERIAL_S(srt); SERIAL_M(msg); }while(0)
+#define SERIAL_ST(srt, txt)                 do{ SERIAL_S(srt); SERIAL_T(txt); }while(0)
+#define SERIAL_SV(srt, val, ...)            do{ SERIAL_S(srt); SERIAL_V(val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SMT(srt, msg, txt)           do{ SERIAL_S(srt); SERIAL_MT(msg, txt); }while(0)
+#define SERIAL_SMV(srt, msg, val, ...)      do{ SERIAL_S(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
 
-#define SERIAL_EM(msg)                      SERIAL_M(msg),SERIAL_E
-#define SERIAL_EV(val, ...)                 SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
-#define SERIAL_ET(txt)                      SERIAL_T(txt),SERIAL_E
-#define SERIAL_EMT(msg, txt)                SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_EMV(msg, val, ...)           SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
+#define SERIAL_EM(msg)                      (serialprintPGM(PSTR(msg "\n")))
+#define SERIAL_ET(txt)                      do{ SERIAL_T(txt); SERIAL_E; }while(0)
+#define SERIAL_EV(val, ...)                 do{ SERIAL_V(val, ## __VA_ARGS__); SERIAL_E; }while(0)
+#define SERIAL_EMT(msg, txt)                do{ SERIAL_MT(msg, txt); SERIAL_E; }while(0)
+#define SERIAL_EMV(msg, val, ...)           do{ SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_E; }while(0)
 
-#define SERIAL_L(srt)                       SERIAL_S(srt),SERIAL_E
-#define SERIAL_LM(srt, msg)                 SERIAL_S(srt),SERIAL_M(msg),SERIAL_E
-#define SERIAL_LT(srt, txt)                 SERIAL_S(srt),SERIAL_T(txt),SERIAL_E
-#define SERIAL_LMT(srt, msg, txt)           SERIAL_S(srt),SERIAL_MT(msg, txt),SERIAL_E
-#define SERIAL_LV(srt, val, ...)            SERIAL_S(srt),SERIAL_V(val, ## __VA_ARGS__),SERIAL_E
-#define SERIAL_LMV(srt, msg, val, ...)      SERIAL_S(srt),SERIAL_MV(msg, val, ## __VA_ARGS__),SERIAL_E
+#define SERIAL_L(srt)                       do{ SERIAL_S(srt); SERIAL_E; }while(0)
+#define SERIAL_LM(srt, msg)                 do{ SERIAL_S(srt); SERIAL_EM(msg); }while(0)
+#define SERIAL_LT(srt, txt)                 do{ SERIAL_S(srt); SERIAL_T(txt); SERIAL_E; }while(0)
+#define SERIAL_LV(srt, val, ...)            do{ SERIAL_S(srt); SERIAL_V(val, ## __VA_ARGS__); SERIAL_E; }while(0)
+#define SERIAL_LMT(srt, msg, txt)           do{ SERIAL_S(srt); SERIAL_MT(msg, txt); SERIAL_E; }while(0)
+#define SERIAL_LMV(srt, msg, val, ...)      do{ SERIAL_S(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_E; }while(0)
+
+FORCE_INLINE void serial_print(const char *v)   { MKSERIAL.print(v); }
+FORCE_INLINE void serial_print(char v)          { MKSERIAL.print(v); }
+FORCE_INLINE void serial_print(int v)           { MKSERIAL.print(v); }
+FORCE_INLINE void serial_print(long v)          { MKSERIAL.print(v); }
+FORCE_INLINE void serial_print(double v)        { MKSERIAL.print(v); }
+FORCE_INLINE void serial_print(float v, int n)  { MKSERIAL.print(v, n); }
+FORCE_INLINE void serial_print(uint8_t v)       { MKSERIAL.print((int)v); }
+FORCE_INLINE void serial_print(uint16_t v)      { MKSERIAL.print((int)v); }
+FORCE_INLINE void serial_print(uint32_t v)      { MKSERIAL.print((long)v); }
+FORCE_INLINE void serial_print(bool v)          { MKSERIAL.print((int)v); }
+FORCE_INLINE void serial_print(void *v)         { MKSERIAL.print((int)v); }
+
+FORCE_INLINE void serial_print_pair(const char* msg, const char *v)   { serialprintPGM(msg); MKSERIAL.print(v); }
+FORCE_INLINE void serial_print_pair(const char* msg, char v)          { serialprintPGM(msg); MKSERIAL.print(v); }
+FORCE_INLINE void serial_print_pair(const char* msg, int v)           { serialprintPGM(msg); MKSERIAL.print(v); }
+FORCE_INLINE void serial_print_pair(const char* msg, long v)          { serialprintPGM(msg); MKSERIAL.print(v); }
+FORCE_INLINE void serial_print_pair(const char* msg, float v, int n)  { serialprintPGM(msg); MKSERIAL.print(v, n); }
+FORCE_INLINE void serial_print_pair(const char* msg, double v)        { serialprintPGM(msg); MKSERIAL.print(v); }
+FORCE_INLINE void serial_print_pair(const char* msg, uint8_t v)       { serial_print_pair(msg, (int)v); }
+FORCE_INLINE void serial_print_pair(const char* msg, uint16_t v)      { serial_print_pair(msg, (int)v); }
+FORCE_INLINE void serial_print_pair(const char* msg, uint32_t v)      { serial_print_pair(msg, (long)v); }
+FORCE_INLINE void serial_print_pair(const char* msg, bool v)          { serial_print_pair(msg, (int)v); }
+FORCE_INLINE void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg, (int)v); }
 
 #endif

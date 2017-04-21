@@ -24,25 +24,30 @@
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
 
-  static char _hex[5] = { 0 };
+static char _hex[7] = "0x0000";
 
-  char* hex_byte(const uint8_t b) {
-    _hex[0] = hex_nybble(b >> 4);
-    _hex[1] = hex_nybble(b);
-    _hex[2] = '\0';
-    return _hex;
-  }
+char* hex_byte(const uint8_t b) {
+  _hex[4] = hex_nybble(b >> 4);
+  _hex[5] = hex_nybble(b);
+  return &_hex[4];
+}
 
-  char* hex_word(const uint16_t w) {
-    _hex[0] = hex_nybble(w >> 12);
-    _hex[1] = hex_nybble(w >> 8);
-    _hex[2] = hex_nybble(w >> 4);
-    _hex[3] = hex_nybble(w);
-    return _hex;
-  }
+char* hex_word(const uint16_t w) {
+  _hex[2] = hex_nybble(w >> 12);
+  _hex[3] = hex_nybble(w >> 8);
+  _hex[4] = hex_nybble(w >> 4);
+  _hex[5] = hex_nybble(w);
+  return &_hex[2];
+}
 
-  void print_hex_nybble(const uint8_t n) { SERIAL_C(hex_nybble(n)); }
-  void print_hex_byte(const uint8_t b)   { SERIAL_V(hex_byte(b)); }
-  void print_hex_word(const uint16_t w)  { SERIAL_V(hex_word(w)); }
+char* hex_address(const void * const w) {
+  (void)hex_word((uint16_t)w);
+  return _hex;
+}
+
+void print_hex_nybble(const uint8_t n)        { SERIAL_C(hex_nybble(n));  }
+void print_hex_byte(const uint8_t b)          { SERIAL_V(hex_byte(b));    }
+void print_hex_word(const uint16_t w)         { SERIAL_V(hex_word(w));    }
+void print_hex_address(const void * const w)  { SERIAL_V(hex_address(w)); }
 
 #endif // M100_FREE_MEMORY_WATCHER

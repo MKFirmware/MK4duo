@@ -198,8 +198,8 @@
       Channel[timer]++;    // increment to the next channel
       if (SERVO_INDEX(timer, Channel[timer]) < ServoCount && Channel[timer] < SERVOS_PER_TIMER) {
         *OCRnA = *TCNTn + SERVO(timer, Channel[timer]).ticks;
-        if (SERVO(timer, Channel[timer]).Pin.isActive == true)     // check if activated
-          digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr,HIGH); // its an active channel so pulse it high
+        if (SERVO(timer, Channel[timer]).Pin.isActive)     // check if activated
+          digitalWrite(SERVO(timer, Channel[timer]).Pin.nbr, HIGH); // its an active channel so pulse it high
       }
       else {
         // finished all channels so wait for the refresh period to expire before starting over
@@ -250,12 +250,12 @@
           TCCR1B = _BV(CS11);     // set prescaler of 8
           TCNT1 = 0;              // clear the timer count
         #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
-          TIFR  |=  _BV(OCF1A);   // clear any pending interrupts;
-          TIMSK |=  _BV(OCIE1A);  // enable the output compare interrupt
+          SBI(TIFR, OCF1A);      // clear any pending interrupts;
+          SBI(TIMSK, OCIE1A);    // enable the output compare interrupt
         #else
           // here if not ATmega8 or ATmega128
-          TIFR1  |=  _BV(OCF1A);  // clear any pending interrupts;
-          TIMSK1 |=  _BV(OCIE1A); // enable the output compare interrupt
+          SBI(TIFR1, OCF1A);     // clear any pending interrupts;
+          SBI(TIMSK1, OCIE1A);   // enable the output compare interrupt
         #endif
         #if defined(WIRING)
           timerAttach(TIMER1OUTCOMPAREA_INT, Timer1Service);
@@ -272,8 +272,8 @@
             SBI(TIFR, OCF3A);     // clear any pending interrupts;
             SBI(ETIMSK, OCIE3A);  // enable the output compare interrupt
           #else
-            TIFR3 = _BV(OCF3A);     // clear any pending interrupts;
-            TIMSK3 = _BV(OCIE3A);   // enable the output compare interrupt
+            SBI(TIFR3, OCF3A);   // clear any pending interrupts;
+            SBI(TIMSK3, OCIE3A); // enable the output compare interrupt
           #endif
           #ifdef WIRING
             timerAttach(TIMER3OUTCOMPAREA_INT, Timer3Service);  // for Wiring platform only
@@ -307,9 +307,9 @@
       #ifdef WIRING
         if (timer == _timer1) {
           #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
-            TIMSK1 &=  ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
+            TIMSK1 &= ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
           #else
-            TIMSK  &=  ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
+            TIMSK  &= ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
           #endif
           timerDetach(TIMER1OUTCOMPAREA_INT);
         }

@@ -51,8 +51,9 @@ void ok_to_send();
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   extern int bilinear_grid_spacing[2], bilinear_start[2];
-  extern float bilinear_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
-  float bilinear_z_offset(float logical[XYZ]);
+  extern float  bilinear_grid_factor[2],
+                bilinear_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+  float bilinear_z_offset(const float logical[XYZ]);
   void set_bed_leveling_enabled(bool enable=true);
 #endif
 
@@ -104,10 +105,6 @@ extern millis_t previous_cmd_ms;
 inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
-
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
-  void setPwmFrequency(uint8_t pin, uint8_t val);
-#endif
 
 /**
  * Feedrate scaling and conversion

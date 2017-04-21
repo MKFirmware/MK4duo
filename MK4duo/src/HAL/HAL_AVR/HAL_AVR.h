@@ -362,6 +362,8 @@ class HAL {
     static void analogStart();
     static void analogRead();
 
+    static void setPwmFrequency(uint8_t pin, uint8_t val);
+
     // SPI related functions
     static void spiBegin() {
       #if SS_PIN >= 0

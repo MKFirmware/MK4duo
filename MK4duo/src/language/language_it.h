@@ -84,7 +84,7 @@
 #define MSG_MOVE_1MM                        _UxGT("Muovi di   1mm")
 #define MSG_MOVE_10MM                       _UxGT("Muovi di  10mm")
 #if ENABLED(DOGLCD)
-  #define MSG_SPEED                         _UxGT("Velocit√†")
+  #define MSG_SPEED                         _UxGT("Velocit‡")
 #else
   #define MSG_SPEED                         _UxGT("Velocita")
 #endif
@@ -93,7 +93,11 @@
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
 #define MSG_COOLER                          _UxGT("Raffreddamento")
-#define MSG_FAN_SPEED                       _UxGT("Vel. ventola")
+#if ENABLED(DOGLCD)
+  #define MSG_FAN_SPEED                     _UxGT("Velocit‡ ventola")
+#else
+  #define MSG_FAN_SPEED                     _UxGT("Velocita ventola")
+#endif
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
 #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")
@@ -132,13 +136,13 @@
 #define MSG_E6STEPS                         _UxGT("E6passi/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatura")
 #define MSG_MOTION                          _UxGT("Movimento")
-#define MSG_VOLUMETRIC                      _UxGT("Filamento")
+#define MSG_FILAMENT                        _UxGT("Filamento")
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm3")
 #define MSG_FILAMENT_DIAM                   _UxGT("Diam. filo")
 #define MSG_CONTRAST                        _UxGT("Contrasto LCD")
-#define MSG_STORE_EEPROM                    _UxGT("Salva in EEPROM")
-#define MSG_LOAD_EEPROM                     _UxGT("Carica da EEPROM")
-#define MSG_RESTORE_FAILSAFE                _UxGT("Impostaz. default")
+#define MSG_STORE_EEPROM                    _UxGT("Salva in memoria")
+#define MSG_LOAD_EEPROM                     _UxGT("Carica da memoria")
+#define MSG_RESTORE_FAILSAFE                _UxGT("Ripristina imp.")
 #define MSG_REFRESH                         _UxGT("Aggiorna")
 #define MSG_WATCH                           _UxGT("Guarda")
 #define MSG_PREPARE                         _UxGT("Prepara")
@@ -147,7 +151,7 @@
 #define MSG_RESUME_PRINT                    _UxGT("Riprendi stampa")
 #define MSG_STOP_PRINT                      _UxGT("Arresta stampa")
 #define MSG_STOP_SAVE_PRINT                 _UxGT("Arresta e Salva")
-#define MSG_CARD_MENU                       _UxGT("SD Card Menu")
+#define MSG_CARD_MENU                       _UxGT("Stampa da SD")
 #define MSG_NO_CARD                         _UxGT("SD non presente")
 #define MSG_DWELL                           _UxGT("Sospensione...")
 #define MSG_USERWAIT                        _UxGT("Attendi Utente..")
@@ -218,6 +222,8 @@
 #define MSG_INFO_COOLER                     _UxGT("Raffreddamento")
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocollo")
+#define MSG_LIGHTS_ON                       _UxGT("Luci Case on")
+#define MSG_LIGHTS_OFF                      _UxGT("Luci Case off")
 #define MSG_INFO_COMPLETED_PRINTS           _UxGT("Completata")
 #define MSG_INFO_TOTAL_PRINTS               _UxGT("Stampe totali")
 #define MSG_INFO_FINISHED_PRINTS            _UxGT("Stampe complete")
@@ -228,10 +234,6 @@
 #define MSG_INFO_MIN_TEMP                   _UxGT("Temp min")
 #define MSG_INFO_MAX_TEMP                   _UxGT("Temp max")
 #define MSG_INFO_PSU                        _UxGT("Alimentatore")
-
-// CASE LIGHT
-#define MSG_LIGHTS_ON                       _UxGT("Luci Case on")
-#define MSG_LIGHTS_OFF                      _UxGT("Luci Case off")
 
 #define MSG_DRIVE_STRENGTH                  _UxGT("Potenza Drive")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")
