@@ -45,7 +45,7 @@
   void cnc_init() {
     SET_OUTPUT(CNCROUTER_PIN);
     #if ENABLED(FAST_PWM_CNCROUTER)
-      setPwmFrequency(CNCROUTER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
+      HAL::setPwmFrequency(CNCROUTER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
     #endif
   }
 

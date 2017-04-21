@@ -196,6 +196,14 @@ void EEPROM::Postprocess() {
   #if PLANNER_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     set_z_fade_height(planner.z_fade_height);
   #endif
+  
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    bilinear_grid_factor[X_AXIS] = RECIPROCAL(bilinear_grid_spacing[X_AXIS]);
+    bilinear_grid_factor[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing[Y_AXIS]);
+    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+      bed_level_virt_interpolate();
+    #endif
+  #endif
 }
 
 #if ENABLED(EEPROM_SETTINGS)
@@ -335,7 +343,10 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(MESH_BED_LEVELING)
       // Compile time test that sizeof(mbl.z_values) is as expected
-      typedef char c_assert[(sizeof(mbl.z_values) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
+      static_assert(
+        sizeof(mbl.z_values) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(mbl.z_values[0][0]),
+        "MBL Z array is the wrong size."
+      );
       const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(leveling_is_on);
@@ -356,9 +367,11 @@ void EEPROM::Postprocess() {
     // Bilinear Auto Bed Leveling
     //
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      // Compile time test that sizeof(mbl.z_values) is as expected
-      typedef char c_assert[(sizeof(bilinear_level_grid) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(dummy)) ? 1 : -1];
-      uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
+      static_assert(
+        sizeof(bilinear_level_grid) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(bilinear_level_grid[0][0]),
+        "Bilinear Z array is the wrong size."
+      );
+      const uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(grid_max_x);             // 1 byte
       EEPROM_WRITE(grid_max_y);             // 1 byte
       EEPROM_WRITE(bilinear_grid_spacing);  // 2 ints
@@ -690,11 +703,6 @@ void EEPROM::Postprocess() {
           EEPROM_READ(bilinear_grid_spacing); // 2 ints
           EEPROM_READ(bilinear_start);        // 2 ints
           EEPROM_READ(bilinear_level_grid);   // 9 to 256 floats
-          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
-            bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
-            bed_level_virt_interpolate();
-          #endif
         }
         else { // EEPROM data is stale
           // Skip past disabled (or stale) Bilinear Grid data
@@ -1275,7 +1283,7 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
-      SERIAL_EOL;
+      SERIAL_E;
 
     #endif
 

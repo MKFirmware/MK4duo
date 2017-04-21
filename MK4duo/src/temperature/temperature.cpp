@@ -1369,35 +1369,35 @@ void Temperature::init() {
   #if HAS(COOLER)
     SET_OUTPUT(COOLER_PIN);
     #if ENABLED(FAST_PWM_COOLER)
-	    setPwmFrequency(COOLER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
+	    HAL::setPwmFrequency(COOLER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
     #endif
   #endif
 
   #if HAS(FAN0)
     SET_OUTPUT(FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 
   #if HAS(FAN1)
     SET_OUTPUT(FAN1_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(FAN1_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(FAN1_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 
   #if HAS(FAN2)
     SET_OUTPUT(FAN2_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(FAN2_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(FAN2_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 
   #if HAS(FAN3)
     SET_OUTPUT(FAN3_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(FAN3_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(FAN3_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 
@@ -1417,25 +1417,25 @@ void Temperature::init() {
   #if HAS(AUTO_FAN_0)
     SET_OUTPUT(H0_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(H0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(H0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_1) && !AUTO_1_IS_0
     SET_OUTPUT(H1_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(H1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(H1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_2) && !AUTO_2_IS_0 && !AUTO_2_IS_1
     SET_OUTPUT(H2_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(H2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(H2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
   #if HAS(AUTO_FAN_3) && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
     SET_OUTPUT(H3_AUTO_FAN_PIN);
     #if ENABLED(FAST_PWM_FAN)
-      setPwmFrequency(H3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
+      HAL::setPwmFrequency(H3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
     #endif
   #endif
 

@@ -926,7 +926,7 @@ inline void report_pin_state(int8_t pin) {
       }
     }
   }
-  SERIAL_EOL;
+  SERIAL_E;
 }
 
 bool get_pinMode(uint8_t pin) {

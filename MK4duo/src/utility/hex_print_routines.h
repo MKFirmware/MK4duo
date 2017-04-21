@@ -25,19 +25,21 @@
 
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
 
-  //
-  // Utility functions to create and print hex strings as nybble, byte, and word.
-  //
+//
+// Utility functions to create and print hex strings as nybble, byte, and word.
+//
 
-  inline char hex_nybble(const uint8_t n) {
-    return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
-  }
-  char* hex_byte(const uint8_t b);
-  char* hex_word(const uint16_t w);
+inline char hex_nybble(const uint8_t n) {
+  return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
+}
+char* hex_byte(const uint8_t b);
+char* hex_word(const uint16_t w);
+char* hex_address(const void * const w);
 
-  void print_hex_nybble(const uint8_t n);
-  void print_hex_byte(const uint8_t b);
-  void print_hex_word(const uint16_t w);
+void print_hex_nybble(const uint8_t n);
+void print_hex_byte(const uint8_t b);
+void print_hex_word(const uint16_t w);
+void print_hex_address(const void * const w);
 
 #endif // M100_FREE_MEMORY_WATCHER
 #endif // HEX_PRINT_ROUTINES_H

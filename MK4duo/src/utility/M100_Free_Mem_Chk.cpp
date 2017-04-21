@@ -40,8 +40,8 @@
  *
  * Also, there are two support functions that can be called from a developer's C code.
  *
- *    uint16_t check_for_free_memory_corruption(char * const ptr);
- *    void M100_dump_routine( char *title, char *start, char *end);
+ *    uint16_t check_for_free_memory_corruption(const char * const ptr);
+ *    void M100_dump_routine(const char * const title, const char *start, const char *end);
  *
  * Initial version by Roxy-3D
  */
@@ -65,7 +65,7 @@ extern char __bss_end;
 //
 
 #define END_OF_HEAP() (__brkval ? __brkval : &__bss_end)
-int check_for_free_memory_corruption(char *title);
+int check_for_free_memory_corruption(const char * const title);
 
 // Location of a variable on its stack frame. Returns a value above
 // the stack (once the function returns to the caller).
@@ -83,7 +83,6 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
   return -1;
 }
 
-
 //
 // M100 sub-commands
 //
@@ -99,7 +98,7 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
    *  the block. If so, it may indicate memory corruption due to a bad pointer.
    *  Unexpected bytes are flagged in the right column.
    */
-  void dump_free_memory(uint8_t *ptr, uint8_t *sp) {
+  void dump_free_memory(const uint8_t *ptr, const uint8_t *sp) {
     //
     // Start and end the dump on a nice 16 byte boundary
     // (even though the values are not 16-byte aligned).
@@ -119,17 +118,13 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
       safe_delay(25);
       SERIAL_C('|');                      // Point out non test bytes
       for (uint8_t i = 0; i < 16; i++) {
-        char ccc;
-        ccc = (char) ptr[i];                     
-        if (&ptr[i] >= &command_queue[0][0] && &ptr[i] < &command_queue[BUFSIZE][MAX_CMD_SIZE]) { // Print out ASCII in the command
-          if (ccc < ' ' || ccc > 0x7e)                                                            // buffer area
-            ccc = ' ';
+        char ccc = (char)ptr[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
+        if (&ptr[i] >= command_queue && &ptr[i] < &command_queue[BUFSIZE][MAX_CMD_SIZE]) { // Print out ASCII in the command buffer area
+          if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
         } 
-        else
-          if (ccc != TEST_BYTE)           // If not display data in the command buffer
-            ccc = '?';                    // area, we flag bytes that don't match the test byte
-          else
-            ccc = ' ';
+        else { // If not in the command buffer area, flag bytes that don't match the test byte
+          ccc = (ccc == TEST_BYTE) ? ' ' : '?';
+        }
         SERIAL_C(ccc);
       }
       SERIAL_E;
@@ -139,18 +134,14 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
     }
   }
 
-  void M100_dump_routine( char *title, char *start, char *end) {
-    unsigned char c;
-    int i;
-
+  void M100_dump_routine(const char * const title, const char *start, const char *end) {
+    SERIAL_ET(title);
     //
     // Round the start and end locations to produce full lines of output
     //
-    start = (char*) ((uint16_t) start & 0xfff0);
-    end   = (char*) ((uint16_t) end   | 0x000f);
-
-    SERIAL_ET(title);
-    dump_free_memory( start, end );
+    start = (char*)((uint16_t) start & 0xfff0);
+    end   = (char*)((uint16_t) end   | 0x000f);
+    dump_free_memory(start, end);
   }
 
 #endif // M100_FREE_MEMORY_DUMPER
@@ -171,7 +162,7 @@ void free_memory_pool_report(const char * const ptr, const uint16_t size) {
       const uint16_t j = count_test_bytes(addr);
       if (j > 8) {
         SERIAL_MV("Found ", j);
-        SERIAL_EMV(" bytes free at 0x", hex_word((uint16_t)addr));
+        SERIAL_EMV(" bytes free at ", hex_address(addr));
         if (j > max_cnt) {
           max_cnt  = j;
           max_addr = addr;
@@ -182,9 +173,9 @@ void free_memory_pool_report(const char * const ptr, const uint16_t size) {
     }
   }
   if (block_cnt > 1) {
-    SERIAL_M("\nMemory Corruption detected in free memory area.");
+    SERIAL_EM("\nMemory Corruption detected in free memory area.");
     SERIAL_MV("\nLargest free block is ", max_cnt);
-    SERIAL_EMV(" bytes at 0x", hex_word((uint16_t)max_addr));
+    SERIAL_EMV(" bytes at ", hex_address(max_addr));
   }
   SERIAL_EMV("check_for_free_memory_corruption() = ", check_for_free_memory_corruption("M100 F "));
 }
@@ -201,11 +192,11 @@ void free_memory_pool_report(const char * const ptr, const uint16_t size) {
       const uint16_t near_top = top_of_stack() - ptr - 250, // -250 to avoid interrupt activity that's altered the stack.
                      j = near_top / (size + 1);
 
-      SERIAL_M("Corrupting free memory block.\n");
+      SERIAL_EM("Corrupting free memory block.\n");
       for (uint16_t i = 1; i <= size; i++) {
         char * const addr = ptr + i * j;
         *addr = i;
-        SERIAL_MV("\nCorrupting address: 0x", hex_word((uint16_t)addr));
+        SERIAL_MV("\nCorrupting address: ", hex_address(addr));
       }
       SERIAL_E;
     }
@@ -217,11 +208,11 @@ void free_memory_pool_report(const char * const ptr, const uint16_t size) {
  *  Init memory for the M100 tests. (Automatically applied on the first M100.)
  */
 void init_free_memory(uint8_t *ptr, int16_t size) {
-  SERIAL_M("Initializing free memory block.\n\n");
+  SERIAL_EM("Initializing free memory block.\n\n");
 
   size -= 250;    // -250 to avoid interrupt activity that's altered the stack.
   if (size < 0) {
-    SERIAL_M("Unable to initialize.\n");
+    SERIAL_EM("Unable to initialize.\n");
     return;
   }
 
@@ -230,11 +221,11 @@ void init_free_memory(uint8_t *ptr, int16_t size) {
   memset(ptr, TEST_BYTE, size);
 
   SERIAL_V(size);
-  SERIAL_M(" bytes of memory initialized.\n");
+  SERIAL_EM(" bytes of memory initialized.\n");
 
   for (uint16_t i = 0; i < size; i++) {
     if (((char) ptr[i]) != TEST_BYTE) {
-      SERIAL_MV("? address : 0x", hex_word((uint16_t)ptr + i));
+      SERIAL_MV("? address : ", hex_address(ptr + i));
       SERIAL_EMV("=", hex_byte(ptr[i]));
     }
   }
@@ -244,13 +235,13 @@ void init_free_memory(uint8_t *ptr, int16_t size) {
  * M100: Free Memory Check
  */
 void gcode_M100() {
-  SERIAL_MV("\n__brkval : 0x", hex_word((uint16_t)__brkval));
-  SERIAL_MV("\n__bss_end : 0x", hex_word((uint16_t)&__bss_end));
+  SERIAL_MV("\n__brkval : ", hex_address(__brkval));
+  SERIAL_MV("\n__bss_end : ", hex_address(&__bss_end));
 
   uint8_t *ptr = END_OF_HEAP(), *sp = top_of_stack();
 
-  SERIAL_MV("\nstart of free space : 0x", hex_word((uint16_t)ptr));
-  SERIAL_EMV("\nStack Pointer : 0x", hex_word((uint16_t)sp));
+  SERIAL_MV("\nstart of free space : ", hex_address(ptr));
+  SERIAL_EMV("\nStack Pointer : ", hex_address(sp));
 
   // Always init on the first invocation of M100
   static bool m100_not_initialized = true;
@@ -273,45 +264,41 @@ void gcode_M100() {
   #endif
 }
 
-int check_for_free_memory_corruption(char *title) {
-  char *sp, *ptr;
-  int block_cnt = 0, i, j, n;
-
+int check_for_free_memory_corruption(const char * const title) {
   SERIAL_T(title);
 
-  ptr = __brkval ? __brkval : &__bss_end;    
-  sp = top_of_stack();
+  char *ptr = END_OF_HEAP(), *sp = top_of_stack();
+  int n = sp - ptr;
 
-  n = sp - ptr;
   SERIAL_MV("\nfmc() n=", n);
-  SERIAL_MV("\n&__brkval: 0x", hex_word((uint16_t)&__brkval));
-  SERIAL_MV("=0x",             hex_word((uint16_t)__brkval));
-  SERIAL_MV("\n__bss_end: 0x", hex_word((uint16_t)&__bss_end));
-  SERIAL_MV(" sp=", hex_word(sp));
+  SERIAL_MV("\n&__brkval: ", hex_address(&__brkval));
+  SERIAL_MV("=",             hex_address(__brkval));
+  SERIAL_MV("\n__bss_end: ", hex_address(&__bss_end));
+  SERIAL_MV(" sp=",          hex_address(sp));
 
-  if (sp < ptr)  {
-      SERIAL_M(" sp < Heap ");
-//      SET_INPUT_PULLUP(63);		// if the developer has a switch wired up to their controller board
-//      safe_delay(5);                  // this code can be enabled to pause the display as soon as the 
-//      while ( READ(63))               // malfunction is detected.   It is currently defaulting to a switch
-//        idle();                       // being on pin-63 which is unassigend and available on most controller 
-//      safe_delay(20);                 // boards.
-//      while ( !READ(63))
-//        idle();
+  if (sp < ptr) {
+    SERIAL_M(" sp < Heap ");
+    // SET_INPUT_PULLUP(63);           // if the developer has a switch wired up to their controller board
+    // safe_delay(5);                  // this code can be enabled to pause the display as soon as the
+    // while ( READ(63))               // malfunction is detected.   It is currently defaulting to a switch
+    //   idle();                       // being on pin-63 which is unassigend and available on most controller
+    // safe_delay(20);                 // boards.
+    // while ( !READ(63))
+    //   idle();
     safe_delay(20);
     #if ENABLED(M100_FREE_MEMORY_DUMPER)
-      M100_dump_routine( "   Memory corruption detected with sp<Heap\n", (char *)0x1b80,  0x21ff );
+      M100_dump_routine("   Memory corruption detected with sp<Heap\n", (char*)0x1B80, 0x21FF);
     #endif
   }
 
   // Scan through the range looking for the biggest block of 0xE5's we can find
-  for (i = 0; i < n; i++) {
-    if (*(ptr + i) == (char)0xe5) {
-      j = count_test_bytes(ptr + i);
+  int block_cnt = 0;
+  for (int i = 0; i < n; i++) {
+    if (ptr[i] == TEST_BYTE) {
+      int16_t j = count_test_bytes(ptr + i);
       if (j > 8) {
-//        SERIAL_MV("Found ", j);
-//        SERIAL_EMV(" bytes free at 0x", hex_word((uint16_t)(ptr + i)));
-
+        // SERIAL_MV("Found ", j);
+        // SERIAL_EMV(" bytes free at ", hex_address(ptr + i));
         i += j;
         block_cnt++;
         SERIAL_MV(" (", block_cnt);
@@ -323,16 +310,18 @@ int check_for_free_memory_corruption(char *title) {
   SERIAL_MV("  block_found=", block_cnt);
 
   if ((block_cnt != 1) || (__brkval != 0x0000)) 
-    SERIAL_M("\nMemory Corruption detected in free memory area.");
+    SERIAL_EM("\nMemory Corruption detected in free memory area.");
 
   if ((block_cnt == 0))		    // Make sure the special case of no free blocks shows up as an
     block_cnt = -1;           // error to the calling code!
 
+  SERIAL_M(" return=");
   if (block_cnt == 1) {              
-    SERIAL_M(" return=0\n");  // if the block_cnt is 1, nothing has broken up the free memory
-    return 0;                 // area and it is appropriate to say 'no corruption'.
+    SERIAL_C('0');       // if the block_cnt is 1, nothing has broken up the free memory
+    SERIAL_E;             // area and it is appropriate to say 'no corruption'.
+    return 0;
   }
-  SERIAL_M(" return=true\n");
+  SERIAL_EM("true");
   return block_cnt;
 }
 
