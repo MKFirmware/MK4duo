@@ -12849,7 +12849,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
    * Prepare a mesh-leveled linear move in a Cartesian setup,
    * splitting the move where it crosses mesh borders.
    */
-  void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xff, uint8_t y_splits = 0xff) {
+  void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF) {
     int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X_AXIS)),
         cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y_AXIS)),
         cx2 = mbl.cell_index_x(RAW_X_POSITION(destination[X_AXIS])),
@@ -14059,7 +14059,7 @@ void kill(const char* lcd_msg) {
   thermalManager.disable_all_coolers();
   stepper.disable_all_steppers();
 
-  #if ENABLED(KILL_METHOD) && (KILL_METHOD==1)
+  #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
   #endif
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
@@ -14175,18 +14175,16 @@ void setup() {
     disableStepperDrivers();
   #endif
 
+  #if ENABLED(USE_WATCHDOG)
+    watchdog_init();
+  #endif
+
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
 
   // Check startup
-  SERIAL_S(ECHO);
-  const byte mcu = HAL::get_reset_source();
-  if (mcu & 1) SERIAL_EM(MSG_POWERUP);
-  if (mcu & 2) SERIAL_EM(MSG_EXTERNAL_RESET);
-  if (mcu & 4) SERIAL_EM(MSG_BROWNOUT_RESET);
-  if (mcu & 8) SERIAL_EM(MSG_WATCHDOG_RESET);
-  if (mcu & 32) SERIAL_EM(MSG_SOFTWARE_RESET);
-  HAL::clear_reset_source();
+  SERIAL_S(INFO);
+  HAL::showStartReason();
 
   SERIAL_LM(ECHO, BUILD_VERSION);
 
@@ -14232,10 +14230,6 @@ void setup() {
 
   #if ENABLED(CNCROUTER)
     cnc_init();
-  #endif
-
-  #if ENABLED(USE_WATCHDOG)
-    watchdog_init();
   #endif
 
   stepper.init();    // Initialize stepper, this enables interrupts!

@@ -91,10 +91,10 @@
 
 #define MSG_ENQUEUEING                      "enqueueing \""
 #define MSG_POWERUP                         "PowerUp"
-#define MSG_EXTERNAL_RESET                  " External Reset"
-#define MSG_BROWNOUT_RESET                  " Brown out Reset"
-#define MSG_WATCHDOG_RESET                  " Watchdog Reset"
-#define MSG_SOFTWARE_RESET                  " Software Reset"
+#define MSG_EXTERNAL_RESET                  "External Reset"
+#define MSG_BROWNOUT_RESET                  "Brown out Reset"
+#define MSG_WATCHDOG_RESET                  "Watchdog Reset"
+#define MSG_SOFTWARE_RESET                  "Software Reset"
 #define MSG_AUTHOR                          " | Author: "
 #define MSG_CONFIGURATION_VER               "Last Updated: "
 #define MSG_COMPILED                        "Compiled: "
@@ -312,7 +312,8 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_CN) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_TR)
+ && DISABLED(DISPLAY_CHARSET_ISO10646_TR) \
+ && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
 

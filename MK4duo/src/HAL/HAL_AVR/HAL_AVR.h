@@ -353,8 +353,7 @@ class HAL {
     // do any hardware-specific initialization here
     static inline void hwSetup() {}
 
-    static inline void clear_reset_source() { MCUSR = 0; }
-    static inline uint8_t get_reset_source() { return MCUSR; }
+    static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();

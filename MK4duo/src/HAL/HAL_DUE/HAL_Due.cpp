@@ -168,17 +168,22 @@ void HAL::hwSetup(void) {
   #endif
 }
 
-void HAL::clear_reset_source(void) { }
+// Print apparent cause of start/restart
+void HAL::showStartReason() {
 
-uint8_t HAL::get_reset_source(void) {
-  switch ((RSTC->RSTC_SR >> 8) & 7) {
-    case 0: return RST_POWER_ON; break;
-    case 1: return RST_BACKUP; break;
-    case 2: return RST_WATCHDOG; break;
-    case 3: return RST_SOFTWARE; break;
-    case 4: return RST_EXTERNAL; break;
-    default:
-      return 0;
+  int mcu = (RSTC->RSTC_SR & RSTC_SR_RSTTYP_Msk) >> RSTC_SR_RSTTYP_Pos;
+  switch (mcu) {
+    case 0:
+      SERIAL_EM(MSG_POWERUP); break;
+    case 1:
+      // this is return from backup mode on SAM
+      SERIAL_EM(MSG_BROWNOUT_RESET); break;
+    case 2:
+      SERIAL_EM(MSG_WATCHDOG_RESET); break;
+    case 3:
+      SERIAL_EM(MSG_SOFTWARE_RESET); break;
+    case 4:
+      SERIAL_EM(MSG_EXTERNAL_RESET); break;
   }
 }
 
