@@ -52,17 +52,14 @@ void ok_to_send();
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   extern int bilinear_grid_spacing[2], bilinear_start[2];
   extern float  bilinear_grid_factor[2],
-                bilinear_level_grid[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+                z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   float bilinear_z_offset(const float logical[XYZ]);
   void set_bed_leveling_enabled(bool enable=true);
+  void refresh_bed_level();
 #endif
 
 #if PLANNER_LEVELING
   void reset_bed_level();
-#endif
-
-#if ENABLED(ABL_BILINEAR_SUBDIVISION)
-  extern void bed_level_virt_interpolate();
 #endif
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

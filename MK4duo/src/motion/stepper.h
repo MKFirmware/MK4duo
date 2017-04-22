@@ -88,16 +88,16 @@ class Stepper {
       #define _NEXT_ISR(T) nextMainISR = T
 
       #if ENABLED(LIN_ADVANCE)
-        static volatile int e_steps[DRIVER_EXTRUDERS];
-        static int final_estep_rate;
-        static int current_estep_rate[DRIVER_EXTRUDERS];  // Actual extruder speed [steps/s]
-        static int current_adv_steps[DRIVER_EXTRUDERS];   // The amount of current added esteps due to advance.
+        static int  e_steps[DRIVER_EXTRUDERS],
+                    final_estep_rate,
+                    current_estep_rate[DRIVER_EXTRUDERS], // Actual extruder speed [steps/s]
+                    current_adv_steps[DRIVER_EXTRUDERS];  // The amount of current added esteps due to advance.
                                                           // i.e., the current amount of pressure applied
                                                           // to the spring (=filament).
 
       #else
-        static long e_steps[DRIVER_EXTRUDERS];
-        static long advance_rate, advance, final_advance, old_advance;
+        static long e_steps[DRIVER_EXTRUDERS],
+                    advance_rate, advance, final_advance, old_advance;
       #endif
     #else
       #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);

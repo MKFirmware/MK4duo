@@ -79,8 +79,8 @@
  *                        GRID_MAX_POINTS_X               (uint8_t)
  *                        GRID_MAX_POINTS_Y               (uint8_t)
  *                        bilinear_grid_spacing           (int x2)   from G29: (B-F)/X, (R-L)/Y
- *                        bilinear_start                  (int x2)
- *                        bilinear_level_grid[][]         (float x9, up to float x256)
+ *  G29   L F             bilinear_start                  (int x2)
+ *                        z_values[][]                    (float x9, up to float x256)
  *
  * HAS_BED_PROBE:
  *  M666  P               zprobe_zoffset (float)
@@ -198,11 +198,7 @@ void EEPROM::Postprocess() {
   #endif
   
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    bilinear_grid_factor[X_AXIS] = RECIPROCAL(bilinear_grid_spacing[X_AXIS]);
-    bilinear_grid_factor[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing[Y_AXIS]);
-    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      bed_level_virt_interpolate();
-    #endif
+    refresh_bed_level();
   #endif
 }
 
@@ -368,7 +364,7 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       static_assert(
-        sizeof(bilinear_level_grid) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(bilinear_level_grid[0][0]),
+        sizeof(z_values) == (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y) * sizeof(z_values[0][0]),
         "Bilinear Z array is the wrong size."
       );
       const uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
@@ -376,7 +372,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(grid_max_y);             // 1 byte
       EEPROM_WRITE(bilinear_grid_spacing);  // 2 ints
       EEPROM_WRITE(bilinear_start);         // 2 ints
-      EEPROM_WRITE(bilinear_level_grid);    // 9-256 floats
+      EEPROM_WRITE(z_values);               // 9-256 floats
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if HASNT(BED_PROBE)
@@ -564,11 +560,8 @@ void EEPROM::Postprocess() {
     // Linear Advance
     //
     #if ENABLED(LIN_ADVANCE)
-      float extruder_advance_k = 0.0f, advance_ed_ratio = 0.0f;
-      extruder_advance_k = planner.get_extruder_advance_k();
-      advance_ed_ratio = planner.get_advance_ed_ratio();
-      EEPROM_WRITE(extruder_advance_k);
-      EEPROM_WRITE(advance_ed_ratio);
+      EEPROM_WRITE(planner.extruder_advance_k);
+      EEPROM_WRITE(planner.advance_ed_ratio);
     #endif
 
     if (!eeprom_write_error) {
@@ -702,7 +695,7 @@ void EEPROM::Postprocess() {
           set_bed_leveling_enabled(false);
           EEPROM_READ(bilinear_grid_spacing); // 2 ints
           EEPROM_READ(bilinear_start);        // 2 ints
-          EEPROM_READ(bilinear_level_grid);   // 9 to 256 floats
+          EEPROM_READ(z_values);              // 9 to 256 floats
         }
         else { // EEPROM data is stale
           // Skip past disabled (or stale) Bilinear Grid data
@@ -872,11 +865,8 @@ void EEPROM::Postprocess() {
       // Linear Advance
       //
       #if ENABLED(LIN_ADVANCE)
-        float extruder_advance_k, advance_ed_ratio;
-        EEPROM_READ(extruder_advance_k);
-        EEPROM_READ(advance_ed_ratio);
-        planner.set_extruder_advance_k(extruder_advance_k);
-        planner.set_advance_ed_ratio(advance_ed_ratio);
+        EEPROM_READ(planner.extruder_advance_k);
+        EEPROM_READ(planner.advance_ed_ratio);
       #endif
 
       #if HAS(EEPROM_SD)
@@ -1125,8 +1115,8 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(LIN_ADVANCE)
-    planner.set_extruder_advance_k(LIN_ADVANCE_K);
-    planner.set_advance_ed_ratio(LIN_ADVANCE_E_D_RATIO);
+    planner.extruder_advance_k = LIN_ADVANCE_K;
+    planner.advance_ed_ratio = LIN_ADVANCE_E_D_RATIO;
   #endif
 
   Postprocess();
@@ -1495,8 +1485,8 @@ void EEPROM::Factory_Settings() {
      */
     #if ENABLED(LIN_ADVANCE)
       CONFIG_MSG_START("Linear Advance:");
-      SERIAL_SMV(CFG, "  M900 K", planner.get_extruder_advance_k());
-      SERIAL_EMV(" R", planner.get_advance_ed_ratio());
+      SERIAL_SMV(CFG, "  M900 K", planner.extruder_advance_k);
+      SERIAL_EMV(" R", planner.advance_ed_ratio);
     #endif
 
     #if ENABLED(SDSUPPORT)
