@@ -121,7 +121,7 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
         char ccc = (char)ptr[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
         if (&ptr[i] >= command_queue && &ptr[i] < &command_queue[BUFSIZE][MAX_CMD_SIZE]) { // Print out ASCII in the command buffer area
           if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
-        } 
+        }
         else { // If not in the command buffer area, flag bytes that don't match the test byte
           ccc = (ccc == TEST_BYTE) ? ' ' : '?';
         }
@@ -139,8 +139,8 @@ int16_t count_test_bytes(const uint8_t * const ptr) {
     //
     // Round the start and end locations to produce full lines of output
     //
-    start = (char*)((uint16_t) start & 0xfff0);
-    end   = (char*)((uint16_t) end   | 0x000f);
+    start = (char*)((uint16_t) start & 0xFFF0);
+    end   = (char*)((uint16_t) end   | 0x000F);
     dump_free_memory(start, end);
   }
 
@@ -309,14 +309,14 @@ int check_for_free_memory_corruption(const char * const title) {
   }
   SERIAL_MV("  block_found=", block_cnt);
 
-  if ((block_cnt != 1) || (__brkval != 0x0000)) 
+  if ((block_cnt != 1) || (__brkval != 0x0000))
     SERIAL_EM("\nMemory Corruption detected in free memory area.");
 
   if ((block_cnt == 0))		    // Make sure the special case of no free blocks shows up as an
     block_cnt = -1;           // error to the calling code!
 
   SERIAL_M(" return=");
-  if (block_cnt == 1) {              
+  if (block_cnt == 1) {
     SERIAL_C('0');       // if the block_cnt is 1, nothing has broken up the free memory
     SERIAL_E;             // area and it is appropriate to say 'no corruption'.
     return 0;

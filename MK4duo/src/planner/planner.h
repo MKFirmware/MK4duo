@@ -426,7 +426,7 @@ class Planner {
         // Does not matter because block_buffer_runtime_us is already an, too small, estimation.
         bbru >>= 10;
         // limit to about a minute.
-        NOMORE(bbru, 0xfffful);
+        NOMORE(bbru, 0xFFFFul);
         return bbru;
       }
 

@@ -28,13 +28,11 @@
 
     #include "watchdog_Due.h"
 
-    // Initialize watchdog with a 4 second interrupt time
-    void watchdogSetup(void) { watchdogEnable(4000); }
-
-    // TODO: implement for Due
-    void watchdog_init() {
-      // this is a stub
+    void watchdogSetup(void) {
+      // do whatever. don't remove this function.
     }
+
+    void watchdog_init(void) { watchdogEnable(4000); }
 
   #endif // USE_WATCHDOG
 

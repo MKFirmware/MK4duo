@@ -1237,7 +1237,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
 
     for(int8_t i = 0; i < 13; i++) {
       if (n+i > cbFilename)
-        *pName++ = 0xffff;
+        *pName++ = 0xFFFF;
       else
         *pName++ = (uint16_t)Filename[n + i];
       if (i == 4)

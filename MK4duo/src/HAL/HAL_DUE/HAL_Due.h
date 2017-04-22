@@ -311,8 +311,7 @@ class HAL {
       MKSERIAL.flush();
     }
 
-    static void clear_reset_source();
-    static uint8_t get_reset_source();
+    static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();
