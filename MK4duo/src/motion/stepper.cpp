@@ -106,16 +106,16 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
                   Stepper::eISR_Rate = ADV_NEVER;
 
   #if ENABLED(LIN_ADVANCE)
-    volatile int Stepper::e_steps[DRIVER_EXTRUDERS];
-    int Stepper::final_estep_rate,
+    int Stepper::e_steps[DRIVER_EXTRUDERS],
+        Stepper::final_estep_rate,
         Stepper::current_estep_rate[DRIVER_EXTRUDERS],
         Stepper::current_adv_steps[DRIVER_EXTRUDERS];
   #else
-    long Stepper::e_steps[DRIVER_EXTRUDERS],
-         Stepper::final_advance = 0,
-         Stepper::old_advance = 0,
-         Stepper::advance_rate,
-         Stepper::advance;
+    long  Stepper::e_steps[DRIVER_EXTRUDERS],
+          Stepper::final_advance = 0,
+          Stepper::old_advance = 0,
+          Stepper::advance_rate,
+          Stepper::advance;
   #endif
 
   #define ADV_RATE(T, L) (e_steps[TOOL_E_INDEX] ? (T) * (L) / abs(e_steps[TOOL_E_INDEX]) : ADV_NEVER)

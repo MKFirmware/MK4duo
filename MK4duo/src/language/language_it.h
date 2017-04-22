@@ -139,6 +139,7 @@
 #define MSG_FILAMENT                        _UxGT("Filamento")
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm3")
 #define MSG_FILAMENT_DIAM                   _UxGT("Diam. filo")
+#define MSG_ADVANCE_K                       _UxGT("K Avanzato")
 #define MSG_CONTRAST                        _UxGT("Contrasto LCD")
 #define MSG_STORE_EEPROM                    _UxGT("Salva in memoria")
 #define MSG_LOAD_EEPROM                     _UxGT("Carica da memoria")
