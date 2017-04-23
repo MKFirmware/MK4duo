@@ -1197,12 +1197,9 @@
     if (PageID == 2) {
       LcdX.setText(ftostr4sign(current_position[X_AXIS]));
       LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
-      LcdZ.setText(ftostr4sign(current_position[Z_AXIS] + 0.00001));
+      LcdZ.setText(ftostr4sign(FIXFLOAT(current_position[Z_AXIS])));
     }
-    if (PageID == 15) {
-      BedZ.setText(ftostr43sign(current_position[Z_AXIS] + 0.00001));
-    }
-    else {
+    else if (PageID == 5) {
       strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
       if (axis_homed[X_AXIS]) {
         valuetemp = ftostr4sign(current_position[X_AXIS]);
@@ -1217,11 +1214,14 @@
 
       strcat(buffer, (axis_homed[Z_AXIS] ? " Z " : " ? "));
       if (axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(current_position[Z_AXIS] + 0.00001);
+        valuetemp = ftostr52sp(FIXFLOAT(current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
+    }
+    else if (PageID == 15) {
+      BedZ.setText(ftostr43sign(FIXFLOAT(current_position[Z_AXIS])));
     }
   }
 

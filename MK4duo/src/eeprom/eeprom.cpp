@@ -1155,7 +1155,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_MV(" Y", LINEAR_UNIT(planner.axis_steps_per_mm[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(planner.axis_steps_per_mm[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" E", VOLUMETRIC_UNIT(planner.axis_steps_per_mm[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.axis_steps_per_mm[E_AXIS]), 3);
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
@@ -1170,7 +1170,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_MV(" Y", LINEAR_UNIT(planner.max_feedrate_mm_s[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(planner.max_feedrate_mm_s[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" E", VOLUMETRIC_UNIT(planner.max_feedrate_mm_s[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_feedrate_mm_s[E_AXIS]), 3);
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
@@ -1185,7 +1185,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_MV(" Y", LINEAR_UNIT(planner.max_acceleration_mm_per_s2[Y_AXIS]));
     SERIAL_MV(" Z", LINEAR_UNIT(planner.max_acceleration_mm_per_s2[Z_AXIS]));
     #if EXTRUDERS == 1
-      SERIAL_MV(" E", VOLUMETRIC_UNIT(planner.max_acceleration_mm_per_s2[E_AXIS]));
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_acceleration_mm_per_s2[E_AXIS]));
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
@@ -1199,7 +1199,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(planner.acceleration), 3);
     SERIAL_MV(" V", LINEAR_UNIT(planner.travel_acceleration), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" R", LINEAR_UNIT(planner.retract_acceleration[0]), 3);
+      SERIAL_MV(" T0 R", LINEAR_UNIT(planner.retract_acceleration[0]), 3);
     #endif
     SERIAL_E;
     #if EXTRUDERS > 1
@@ -1217,7 +1217,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_MV(" Y", LINEAR_UNIT(planner.max_jerk[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(planner.max_jerk[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" E", LINEAR_UNIT(planner.max_jerk[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", LINEAR_UNIT(planner.max_jerk[E_AXIS]), 3);
     #endif
     SERIAL_E;
     #if (EXTRUDERS > 1)
@@ -1403,8 +1403,8 @@ void EEPROM::Factory_Settings() {
       else
         SERIAL_EM(" Disabled");
     }
-    #if EXTRUDERS > 0
-      SERIAL_LMV(CFG, "  M200 D", filament_size[0], 3);
+    #if EXTRUDERS == 1
+      SERIAL_LMV(CFG, "  M200 T0 D", filament_size[0], 3);
     #endif
     #if EXTRUDERS > 1
       for (uint8_t i = 0; i < EXTRUDERS; i++) {
@@ -1422,7 +1422,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" Y", motor_current[Y_AXIS], 2);
       SERIAL_MV(" Z", motor_current[Z_AXIS], 2);
       #if EXTRUDERS == 1
-        SERIAL_MV(" E", motor_current[E_AXIS], 2);
+        SERIAL_MV(" T0 E", motor_current[E_AXIS], 2);
       #endif
       SERIAL_E;
       #if DRIVER_EXTRUDERS > 1

@@ -1014,6 +1014,9 @@ inline void get_serial_commands() {
       #endif
       wait_for_heatup = false;
       lcd_setstatus(MSG_PRINT_ABORTED, true);
+      #if HAS(POWER_SWITCH)
+        powerManager.power_off();
+      #endif
     }
   }
 
@@ -14375,6 +14378,10 @@ void setup() {
  *  - Call LCD update
  */
 void loop() {
+
+  #if ENABLED(USE_WATCHDOG)
+    watchdog_reset();
+  #endif
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
