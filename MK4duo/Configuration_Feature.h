@@ -240,7 +240,7 @@
  *                                                                     *
  * Extends G0/G1 with mixing factors ABCDHI for up to 6 steppers.      *
  * Adds a new code, M165, to set the current mix factors.              *
- * Optional support for Repetier Host M163, M164, and virtual tools.   *
+ * Optional support for Repetier M163, M164, and virtual tools.        *
  * Extends the stepping routines to move multiple steppers in          *
  * proportion to the mix.                                              *
  *                                                                     *

@@ -26,10 +26,10 @@
 #if ENABLED(ULTRA_LCD) || ENABLED(NEXTION)
 
   // Convert unsigned int to string with 12 format
-  char* itostr2(const uint8_t& x);
+  char* itostr2(const uint8_t& xx);
 
   // Convert signed int to rj string with 123 or -12 format
-  char* itostr3(const int& x);
+  char* itostr3(const int& xx);
 
   // Convert unsigned int to lj string with 123 format
   char* itostr3left(const int& xx);
@@ -72,7 +72,7 @@
     char *ftostr4sign(const float& fx);
   #else
     // Convert float to rj string with 1234, _123, -123, __12, _-12, ___1, or __-1 format
-    FORCE_INLINE char *ftostr4sign(const float& x) { return itostr4sign((int)x); }
+    FORCE_INLINE char *ftostr4sign(const float& fx) { return itostr4sign((int)fx); }
   #endif
 
 #endif // ULTRA_LCD || NEXTION

@@ -54,7 +54,7 @@
 #define NEX_RET_INVALID_VARIABLE            (0x1A)
 #define NEX_RET_INVALID_OPERATION           (0x1B)
 
-#define NEX_TIMEOUT                         20
+#define NEX_TIMEOUT                         100
 
 /**
  * Push touch event occuring when your finger or pen coming to Nextion touch pannel. 
@@ -447,15 +447,6 @@ class NexObject {
        * @return none.
        */
       bool _uploadTftFile(void);
-
-      /**
-       * Send command to Nextion.
-       *
-       * @param cmd - the string of command.
-       *
-       * @return none.
-       */
-      void sendCommand(const char* cmd);
 
       /**
        * Receive string data.

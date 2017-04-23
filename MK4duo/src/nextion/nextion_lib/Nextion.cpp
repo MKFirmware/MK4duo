@@ -485,10 +485,10 @@ void NexObject::SetVisibility(bool visible) {
     SERIAL_EMT("Start checkFile ", _file_name);
     if (!card.selectFile(_file_name)) {
       SERIAL_LM(ER, "file is not exit");
-      return 0;
+      return false;
     }
     _unuploadByte = card.fileSize;
-    return 1;
+    return true;
   }
 
   bool NexUpload::_searchBaudrate(uint32_t baudrate) {
@@ -496,24 +496,14 @@ void NexObject::SetVisibility(bool visible) {
     nexSerial.end();
     HAL::delayMilliseconds(100);
     nexSerial.begin(baudrate);
-    this->sendCommand("");
-    this->sendCommand("connect");
+    sendCommand("");
+    sendCommand("connect");
     this->recvRetString(string);
 
     if(string.indexOf("comok") != -1)
-      return 1;
+      return true;
 
-    return 0;
-  }
-
-  void NexUpload::sendCommand(const char* cmd) {
-    while (nexSerial.available())
-      nexSerial.read();
-
-    nexSerial.print(cmd);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
+    return false;
   }
 
   uint16_t NexUpload::recvRetString(String &string, uint32_t timeout,bool recv_flag) {
@@ -548,15 +538,15 @@ void NexObject::SetVisibility(bool visible) {
     String baudrate_str = String(baudrate, 10);
     cmd = "whmi-wri " + filesize_str + "," + baudrate_str + ",0";
 
-    this->sendCommand("");
-    this->sendCommand(cmd.c_str());
+    sendCommand("");
+    sendCommand(cmd.c_str());
     HAL::delayMilliseconds(50);
     nexSerial.begin(baudrate);
     this->recvRetString(string, 500);
     if (string.indexOf(0x05) != -1)
-      return 1;
+      return true;
 
-    return 0;
+    return false;
   }
 
   bool NexUpload::_uploadTftFile(void) {
@@ -589,7 +579,7 @@ void NexObject::SetVisibility(bool visible) {
       if (string.indexOf(0x05) != -1)
         string = "";
       else
-        return 0;
+        return false;
 
       --send_timer;
     }
@@ -697,6 +687,7 @@ void recvRetString(char *buffer, uint16_t len) {
 }
 
 void sendCommand(const char* cmd) {
+  while (nexSerial.available()) nexSerial.read();
   nexSerial.print(cmd);
   nexSerial.write(0xFF);
   nexSerial.write(0xFF);

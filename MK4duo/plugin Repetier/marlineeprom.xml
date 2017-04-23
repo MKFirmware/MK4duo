@@ -1,0 +1,718 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<eeprom>
+  <!-- Axis Resolution -->
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">X axis resolution</descripton>
+    <set>M92 X@</set>
+    <detect>M92.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">Y axis resolution</descripton>
+    <set>M92 Y@</set>
+    <detect>M92.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">Z axis resolution</descripton>
+    <set>M92 Z@</set>
+    <detect>M92.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E0 axis resolution</descripton>
+    <set>M92 T0 E@</set>
+    <detect>M92.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E1 axis resolution</descripton>
+    <set>M92 T1 E@</set>
+    <detect>M92 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E2 axis resolution</descripton>
+    <set>M92 T2 E@</set>
+    <detect>M92 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E3 axis resolution</descripton>
+    <set>M92 T3 E@</set>
+    <detect>M92 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E4 axis resolution</descripton>
+    <set>M92 T4 E@</set>
+    <detect>M92 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[Steps/unit]">E5 axis resolution</descripton>
+    <set>M92 T5 E@</set>
+    <detect>M92 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Axis Feedrate -->
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">X axis max. feedrate</descripton>
+    <set>M203 X@</set>
+    <detect>M203.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Y axis max. feedrate</descripton>
+    <set>M203 Y@</set>
+    <detect>M203.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Z axis max. feedrate</descripton>
+    <set>M203 Z@</set>
+    <detect>M203.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E0 axis max. feedrate</descripton>
+    <set>M203 T0 E@</set>
+    <detect>M203.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E1 axis max. feedrate</descripton>
+    <set>M203 T1 E@</set>
+    <detect>M203 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E2 axis max. feedrate</descripton>
+    <set>M203 T2 E@</set>
+    <detect>M203 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E3 axis max. feedrate</descripton>
+    <set>M203 T3 E@</set>
+    <detect>M203 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E4 axis max. feedrate</descripton>
+    <set>M203 T4 E@</set>
+    <detect>M203 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E5 axis max. feedrate</descripton>
+    <set>M203 T5 E@</set>
+    <detect>M203 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Axis Acceleration -->
+  <entry type="float" min="0">
+    <descripton unit="[unit/s²]">X axis max. acceleration</descripton>
+    <set>M201 X@</set>
+    <detect>M201.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s²]">Y axis max. acceleration</descripton>
+    <set>M201 Y@</set>
+    <detect>M201.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s²]">Z axis max. acceleration</descripton>
+    <set>M201 Z@</set>
+    <detect>M201.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E0 axis max. acceleration</descripton>
+    <set>M201 T0 E@</set>
+    <detect>M201.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E1 axis max. acceleration</descripton>
+    <set>M201 T1 E@</set>
+    <detect>M201 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E2 axis max. acceleration</descripton>
+    <set>M201 T2 E@</set>
+    <detect>M201 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E3 axis max. acceleration</descripton>
+    <set>M201 T3 E@</set>
+    <detect>M201 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E4 axis max. acceleration</descripton>
+    <set>M201 T4 E@</set>
+    <detect>M201 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E5 axis max. acceleration</descripton>
+    <set>M201 T5 E@</set>
+    <detect>M201 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Accleration -->
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">Acceleration printing</descripton>
+    <set>M204 P@</set>
+    <detect>M204.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">Acceleration travel</descripton>
+    <set>M204 V@</set>
+    <detect>M204.*V(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E0 Acceleration retract</descripton>
+    <set>M204 T0 R@</set>
+    <detect>M204.*T0 R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E1 Acceleration retract</descripton>
+    <set>M204 T1 R@</set>
+    <detect>M204 T1.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E2 Acceleration retract</descripton>
+    <set>M204 T2 R@</set>
+    <detect>M204 T2.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E3 Acceleration retract</descripton>
+    <set>M204 T3 R@</set>
+    <detect>M204 T3.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E4 Acceleration retract</descripton>
+    <set>M204 T4 R@</set>
+    <detect>M204 T4.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s²]">E5 Acceleration retract</descripton>
+    <set>M204 T5 R@</set>
+    <detect>M204 T5.*R(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- General Feedrate and Axis Jerk -->
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Minimum feedrate</descripton>
+    <set>M205 S@</set>
+    <detect>M205.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Minimum travel feedrate</descripton>
+    <set>M205 V@</set>
+    <detect>M205.*V(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[ms]">Minimum segment time</descripton>
+    <set>M205 B@</set>
+    <detect>M205.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">X Maximum jerk</descripton>
+    <set>M205 X@</set>
+    <detect>M205.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Y Maximum jerk</descripton>
+    <set>M205 Y@</set>
+    <detect>M205.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit/s]">Z Maximum jerk</descripton>
+    <set>M205 Z@</set>
+    <detect>M205.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E0 Maximum jerk</descripton>
+    <set>M205 T0 E@</set>
+    <detect>M205.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E1 Maximum jerk</descripton>
+    <set>M205 T1 E@</set>
+    <detect>M205 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E2 Maximum jerk</descripton>
+    <set>M205 T2 E@</set>
+    <detect>M205 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E3 Maximum jerk</descripton>
+    <set>M205 T3 E@</set>
+    <detect>M205 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E4 Maximum jerk</descripton>
+    <set>M205 T4 E@</set>
+    <detect>M205 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="1">
+    <descripton unit="[unit/s]">E5 Maximum jerk</descripton>
+    <set>M205 T5 E@</set>
+    <detect>M205 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Home offset -->
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Home offset X</descripton>
+    <set>M206 X@</set>
+    <detect>M206.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Home offset Y</descripton>
+    <set>M206 Y@</set>
+    <detect>M206.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Home offset Z</descripton>
+    <set>M206 Z@</set>
+    <detect>M206.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  
+  <!-- Hotend offset -->
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H1 X offset</descripton>
+    <set>M218 H1 X@</set>
+    <detect>M218 H1.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H1 Y offset</descripton>
+    <set>M218 H1 Y@</set>
+    <detect>M218 H1.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H1 Z offset</descripton>
+    <set>M218 H1 Z@</set>
+    <detect>M218 H1.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H2 X offset</descripton>
+    <set>M218 H2 X@</set>
+    <detect>M218 H2.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H2 Y offset</descripton>
+    <set>M218 H2 Y@</set>
+    <detect>M218 H2.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H2 Z offset</descripton>
+    <set>M218 H2 Z@</set>
+    <detect>M218 H2.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H3 X offset</descripton>
+    <set>M218 H3 X@</set>
+    <detect>M218 H3.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H3 Y offset</descripton>
+    <set>M218 H3 Y@</set>
+    <detect>M218 H3.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">H3 Z offset</descripton>
+    <set>M218 H3 Z@</set>
+    <detect>M218 H3.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Mesh Bed Leveling -->
+  <entry type="float" min="0">
+    <descripton unit="[unit]">MBL Z fade height</descripton>
+    <set>M420 Z@</set>
+    <detect>M420.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Auto Bed Leveling -->
+  <entry type="float" min="0">
+    <descripton unit="[unit]">ABL Z fade height</descripton>
+    <set>M320 Z@</set>
+    <detect>M320.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- AD595 Offset and Gain -->
+  <entry type="float" min="0">
+    <descripton unit="">H0 AD595 Offset</descripton>
+    <set>M595 H0 O@</set>
+    <detect>M595 H0.*O(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H0 AD595 Gain</descripton>
+    <set>M595 H0 S@</set>
+    <detect>M595 H0.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H1 AD595 Offset</descripton>
+    <set>M595 H1 O@</set>
+    <detect>M595 H1.*O(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H1 AD595 Gain</descripton>
+    <set>M595 H1 S@</set>
+    <detect>M595 H1.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H2 AD595 Offset</descripton>
+    <set>M595 H2 O@</set>
+    <detect>M595 H2.*O(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H2 AD595 Gain</descripton>
+    <set>M595 H2 S@</set>
+    <detect>M595 H2.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H3 AD595 Offset</descripton>
+    <set>M595 H3 O@</set>
+    <detect>M595 H3.*O(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">H3 AD595 Gain</descripton>
+    <set>M595 H3 S@</set>
+    <detect>M595 H3.*S(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Preheat Temperature -->
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 1 Hotend temperature</descripton>
+    <set>M145 S0 H@</set>
+    <detect>M145 S0 .*H(\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 1 Bed temperature</descripton>
+    <set>M145 S0 B@</set>
+    <detect>M145 S0 .*B(\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <descripton unit="[0-255]">Preheat 1 Fan speed</descripton>
+    <set>M145 S0 F@</set>
+    <detect>M145 S0 .*F(\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 2 Hotend temperature</descripton>
+    <set>M145 S1 H@</set>
+    <detect>M145 S1 .*H(\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 2 Bed temperature</descripton>
+    <set>M145 S1 B@</set>
+    <detect>M145 S1 .*B(\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <descripton unit="[0-255]">Preheat 2 Fan speed</descripton>
+    <set>M145 S1 F@</set>
+    <detect>M145 S1 .*F(\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 3 Hotend temperature</descripton>
+    <set>M145 S2 H@</set>
+    <detect>M145 S2 .*H(\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <descripton unit="[°C]">Preheat 3 Bed temperature</descripton>
+    <set>M145 S2 B@</set>
+    <detect>M145 S2 .*B(\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <descripton unit="[0-255]">Preheat 3 Fan speed</descripton>
+    <set>M145 S2 F@</set>
+    <detect>M145 S2.*F(\d*)</detect>
+  </entry>
+
+  <!-- Pid Temp -->
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 0 PID P</descripton>
+    <set>M301 H0 P@</set>
+    <detect>M301 H0.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 0 PID I</descripton>
+    <set>M301 H0 I@</set>
+    <detect>M301 H0.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 0 PID D</descripton>
+    <set>M301 H0 D@</set>
+    <detect>M301 H0.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 0 PID C</descripton>
+    <set>M301 H0 C@</set>
+    <detect>M301 H0.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 1 PID P</descripton>
+    <set>M301 H1 P@</set>
+    <detect>M301 H1.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 1 PID I</descripton>
+    <set>M301 H1 I@</set>
+    <detect>M301 H1.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 1 PID D</descripton>
+    <set>M301 H1 D@</set>
+    <detect>M301 H1.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 1 PID C</descripton>
+    <set>M301 H1 C@</set>
+    <detect>M301 H1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 2 PID P</descripton>
+    <set>M301 H2 P@</set>
+    <detect>M301 H2.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 2 PID I</descripton>
+    <set>M301 H2 I@</set>
+    <detect>M301 H2.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 2 PID D</descripton>
+    <set>M301 H2 D@</set>
+    <detect>M301 H2.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 2 PID C</descripton>
+    <set>M301 H2 C@</set>
+    <detect>M301 H2.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 3 PID P</descripton>
+    <set>M301 H3 P@</set>
+    <detect>M301 H3.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 3 PID I</descripton>
+    <set>M301 H3 I@</set>
+    <detect>M301 H3.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 3 PID D</descripton>
+    <set>M301 H3 D@</set>
+    <detect>M301 H3.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="">Hotend 3 PID C</descripton>
+    <set>M301 H3 C@</set>
+    <detect>M301 H3.*C(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Filament Diameter -->
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E0 Filament diameter</descripton>
+    <set>M200 T0 D@</set>
+    <detect>M200 T0.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E1 Filament diameter</descripton>
+    <set>M200 T1 D@</set>
+    <detect>M200 T1.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E2 Filament diameter</descripton>
+    <set>M200 T2 D@</set>
+    <detect>M200 T2.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E3 Filament diameter</descripton>
+    <set>M200 T3 D@</set>
+    <detect>M200 T3.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E4 Filament diameter</descripton>
+    <set>M200 T4 D@</set>
+    <detect>M200 T4.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">E5 Filament diameter</descripton>
+    <set>M200 T5 D@</set>
+    <detect>M200 T5.*D(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Delta Parameter M666 -->
+  <entry type="float">
+    <descripton unit="[unit]">X endstop adjustment</descripton>
+    <set>M666 X@</set>
+    <detect>M666.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Y endstop adjustment</descripton>
+    <set>M666 Y@</set>
+    <detect>M666.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Z endstop adjustment</descripton>
+    <set>M666 Z@</set>
+    <detect>M666.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">X Diagonal Rod Adj.</descripton>
+    <set>M666 A@</set>
+    <detect>M666.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Y Diagonal Rod Adj.</descripton>
+    <set>M666 B@</set>
+    <detect>M666.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Z Diagonal Rod Adj.</descripton>
+    <set>M666 C@</set>
+    <detect>M666.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">X Tower Radius Adj.</descripton>
+    <set>M666 I@</set>
+    <detect>M666.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Y Tower Radius Adj.</descripton>
+    <set>M666 J@</set>
+    <detect>M666.*J(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Z Tower Radius Adj.</descripton>
+    <set>M666 K@</set>
+    <detect>M666.*K(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">X Tower Position Adj.</descripton>
+    <set>M666 U@</set>
+    <detect>M666.*U(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Y Tower Position Adj.</descripton>
+    <set>M666 V@</set>
+    <detect>M666.*V(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Z Tower Position Adj.</descripton>
+    <set>M666 W@</set>
+    <detect>M666.*W(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Delta radius</descripton>
+    <set>M666 R@</set>
+    <detect>M666.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Delta diagonal rod</descripton>
+    <set>M666 D@</set>
+    <detect>M666.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[1/s]">Delta segments per second</descripton>
+    <set>M666 S@</set>
+    <detect>M666.*S(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Print Radius</descripton>
+    <set>M666 O@</set>
+    <detect>M666.*O(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <descripton unit="[unit]">Delta Height</descripton>
+    <set>M666 H@</set>
+    <detect>M666.*H(\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Z Probe offset -->
+  <entry type="float">
+    <descripton unit="[unit]">Z Probe offset</descripton>
+    <set>M666 P@</set>
+    <detect>M666.*P(\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- LCD Contrast -->
+  <entry type="int" min="0" max="255">
+    <descripton unit="[0-255]">LCD contrast</descripton>
+    <set>M250 C@</set>
+    <detect>M250.*C(\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Motor Current -->
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[A]">X motor current</descripton>
+    <set>M906 X@</set>
+    <detect>M906.*X(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[A]">Y motor current</descripton>
+    <set>M906 Y@</set>
+    <detect>M906.*Y(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[A]">Z motor current</descripton>
+    <set>M906 Z@</set>
+    <detect>M906.*Z(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E0 motor current</descripton>
+    <set>M906 T0 E@</set>
+    <detect>M906.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E1 motor current</descripton>
+    <set>M906 T1 E@</set>
+    <detect>M906 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E2 motor current</descripton>
+    <set>M906 T2 E@</set>
+    <detect>M906 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E3 motor current</descripton>
+    <set>M906 T3 E@</set>
+    <detect>M906 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E4 motor current</descripton>
+    <set>M906 T4 E@</set>
+    <detect>M906 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <descripton unit="[Steps/unit]">E5 motor current</descripton>
+    <set>M906 T5 E@</set>
+    <detect>M906 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- Auto retract -->
+  <entry type="bool">
+    <descripton unit="[0/1]">Autoretract enabled</descripton>
+    <set>M209 S@</set>
+    <detect>M209.*S(\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Retract length</descripton>
+    <set>M207 S@</set>
+    <detect>M207.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Retract swap length</descripton>
+    <set>M207 W@</set>
+    <detect>M207.*W(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit/s]">Retract feedrate</descripton>
+    <set>M207 F@</set>
+    <detect>M207.*F(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Retract z lift</descripton>
+    <set>M207 Z@</set>
+    <detect>M207.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Retract recover length</descripton>
+    <set>M208 S@</set>
+    <detect>M208.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit]">Retract recover swap length</descripton>
+    <set>M208 W@</set>
+    <detect>M208.*W(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <descripton unit="[unit/s]">Retract recover feedrate</descripton>
+    <set>M208 F@</set>
+    <detect>M208.*F(-?\d*\.?\d*)</detect>
+  </entry>
+</eeprom>
