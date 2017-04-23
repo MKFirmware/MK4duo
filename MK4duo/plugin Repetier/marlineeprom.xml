@@ -614,10 +614,10 @@
   </entry>
 
   <!-- Z Probe offset -->
-  <entry type="float">
+  <entry type="float" max="0">
     <descripton unit="[unit]">Z Probe offset</descripton>
     <set>M666 P@</set>
-    <detect>M666.*P(\d*\.?\d*)</detect>
+    <detect>M666.*P(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- LCD Contrast -->
