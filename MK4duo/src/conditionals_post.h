@@ -29,6 +29,16 @@
 #define _CONDITIONALS_POST_H
 
   /**
+   * BLUETOOTH
+   */
+  #if ENABLED(BLUETOOTH)
+    #undef SERIAL_PORT
+    #define SERIAL_PORT BLUETOOTH_PORT
+    #undef BAUDRATE
+    #define BAUDRATE BLUETOOTH_BAUD
+  #endif
+
+  /**
    * SAM3X8E
    */
   #if ENABLED(ARDUINO_ARCH_SAM)
