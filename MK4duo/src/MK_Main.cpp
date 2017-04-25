@@ -531,16 +531,17 @@ static inline signed char pgm_read_any(const signed char *p) { return pgm_read_b
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
   static const PROGMEM type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
-  static inline type array(AxisEnum axis) { return pgm_read_any(&array##_P[axis]); }
+  static inline type array(AxisEnum axis) { return pgm_read_any(&array##_P[axis]); } \
+  typedef void __void_##CONFIG##__
 
 #if NOMECH(DELTA)
-  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS)
-  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos,  HOME_POS)
-  XYZ_CONSTS_FROM_CONFIG(float, max_length,     MAX_LENGTH)
-  XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,   MIN_POS)
+  XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,   MIN_POS);
+  XYZ_CONSTS_FROM_CONFIG(float, base_max_pos,   MAX_POS);
+  XYZ_CONSTS_FROM_CONFIG(float, base_home_pos,  HOME_POS);
+  XYZ_CONSTS_FROM_CONFIG(float, max_length,     MAX_LENGTH);
 #endif
-XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,     HOME_BUMP_MM)
-XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,   HOME_DIR)
+XYZ_CONSTS_FROM_CONFIG(float, home_bump_mm,     HOME_BUMP_MM);
+XYZ_CONSTS_FROM_CONFIG(signed char, home_dir,   HOME_DIR);
 
 /**
  * ***************************************************************************
@@ -585,13 +586,13 @@ static bool pin_is_protected(uint8_t pin) {
 #if ENABLED(DEBUG_LEVELING_FEATURE)
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
     SERIAL_PS(prefix);
-    SERIAL_MV("(", x);
+    SERIAL_C('(');
+    SERIAL_V(x);
     SERIAL_MV(", ", y);
     SERIAL_MV(", ", z);
-    SERIAL_M(")");
+    SERIAL_C(")");
 
-    if (suffix) SERIAL_PS(suffix);
-    else SERIAL_E;
+    suffix ? SERIAL_PS(suffix) : SERIAL_E;
   }
 
   void print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
@@ -5862,18 +5863,8 @@ inline void gcode_G28(
     SERIAL_MV(" after ", expectedRmsError, 4);
     SERIAL_E;
 
+    deltaParams.NormaliseEndstopAdjustments();
     deltaParams.Recalc_delta_constants();
-
-    #if HAS(BED_PROBE)
-
-      // Recalibrate Height
-      SERIAL_EM("Calibrate Height");
-      gcode_G28(false);
-      do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
-      deltaParams.base_max_pos[C_AXIS] -= probe_pt(0.0, 0.0, true, 0);
-      deltaParams.Recalc_delta_constants();
-
-    #endif
 
     SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
     SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
@@ -5886,8 +5877,8 @@ inline void gcode_G28(
     SERIAL_MV(" C", deltaParams.tower_radius_adj[C_AXIS], 2);
     SERIAL_E;
 
+    // Homing
     gcode_G28();
-    report_current_position();
 
     #if HAS(NEXTION_MANUAL_BED)
       LcdBedLevelOff();
@@ -10320,6 +10311,8 @@ inline void gcode_M532() {
           SERIAL_C(' ');
           SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
         }
+
+        SERIAL_E;
       }
 
     #endif // HAS(BED_PROBE)
@@ -12417,7 +12410,7 @@ void ok_to_send() {
         }
       } while (((x_done == false) or (y_done == false) or (z_done == false)));
 
-      float high_endstop = MAX3(deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS]);
+      const float high_endstop = MAX3(deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS]);
 
       SERIAL_EMV("High endstop:", high_endstop, 4);
 

@@ -25,11 +25,11 @@
 
 #if MECH(DELTA)
 
-  class DeltaParameters {
+  class DeltaKinematics {
 
     public:
 
-      DeltaParameters() { Init(); }
+      DeltaKinematics() { Init(); }
 
       // Core parameters
       float diagonal_rod          = DELTA_DIAGONAL_ROD,
@@ -54,6 +54,7 @@
       void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]);
       void forward_kinematics_DELTA(const float point[ABC], float machinePos[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], machinePos); }
       void inverse_kinematics_DELTA(const float logical[XYZ]);
+      void NormaliseEndstopAdjustments();
       void Recalc_delta_constants();
 
       void Set_clip_start_height();
@@ -74,7 +75,7 @@
 
   };
 
-  extern DeltaParameters deltaParams;
+  extern DeltaKinematics deltaParams;
 
 #endif
 #endif // _DELTA_PARAMETERS_H_
