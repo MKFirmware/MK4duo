@@ -24,9 +24,9 @@
 
 #if MECH(DELTA)
 
-  DeltaParameters deltaParams;
+  DeltaKinematics deltaParams;
 
-  void DeltaParameters::Init() {
+  void DeltaKinematics::Init() {
     delta_radius              = DEFAULT_DELTA_RADIUS;
     diagonal_rod              = DELTA_DIAGONAL_ROD;
     segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
@@ -55,7 +55,7 @@
     clip_start_height         = Z_MAX_POS;
   }
 
-  void DeltaParameters::Recalc_delta_constants() {
+  void DeltaKinematics::Recalc_delta_constants() {
 
     LOOP_XY(i) {
       base_min_pos[i]     = -print_radius;
@@ -98,6 +98,16 @@
 
   }
 
+  // Normalize Endstop
+  void DeltaKinematics::NormaliseEndstopAdjustments() {
+    const float high_endstop = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
+    if (high_endstop > 0) {
+      SERIAL_EMV("Reducing Build height by ", high_endstop);
+      LOOP_XYZ(i) endstop_adj[i] -= high_endstop;
+      base_max_pos[Z_AXIS] -= high_endstop;
+    }
+  }
+
   // Compute the derivative of height with respect to a parameter at the specified motor endpoints.
   // 'deriv' indicates the parameter as follows:
   // 0, 1, 2 = X, Y, Z tower endstop adjustments
@@ -106,9 +116,9 @@
   // 5 = Y tower correction
   // 6 = diagonal_rod rod length
   // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
-  float DeltaParameters::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
+  float DeltaKinematics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
     const float perturb = 0.2;			// perturbation amount in mm or degrees
-    DeltaParameters hiParams(*this), loParams(*this);
+    DeltaKinematics hiParams(*this), loParams(*this);
 
     switch(deriv) {
       case 0:
@@ -158,16 +168,15 @@
   //  X tower position adjustment
   //  Y tower position adjustment
   //  Diagonal rod length adjustment
-  void DeltaParameters::Adjust(const uint8_t numFactors, const float v[]) {
+  void DeltaKinematics::Adjust(const uint8_t numFactors, const float v[]) {
 
     // Update endstop adjustments
-    endstop_adj[A_AXIS] -= v[0];
-    endstop_adj[B_AXIS] -= v[1];
-    endstop_adj[C_AXIS] -= v[2];
+    endstop_adj[A_AXIS] += v[0];
+    endstop_adj[B_AXIS] += v[1];
+    endstop_adj[C_AXIS] += v[2];
 
-    // Normalize Endstop
-    const float z_temp = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    LOOP_XYZ(i) endstop_adj[i] -= z_temp;
+    const float eav = (endstop_adj[A_AXIS] + endstop_adj[B_AXIS] + endstop_adj[C_AXIS]) / 3.0;
+    LOOP_XYZ(i) endstop_adj[i] -= eav;
 
     if (numFactors >= 4) {
       delta_radius += v[3];
@@ -209,7 +218,7 @@
    *
    * The result is stored in the cartes[] array.
    */
-  void DeltaParameters::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
+  void DeltaKinematics::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
 
     const float Fa = coreFa + sq(Ha);
     const float Fb = coreFb + sq(Hb);
@@ -240,7 +249,7 @@
      * Fast inverse SQRT from Quake III Arena
      * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    float DeltaParameters::Q_rsqrt(float number) {
+    float DeltaKinematics::Q_rsqrt(float number) {
       long i;
       float x2, y;
       const float threehalfs = 1.5f;
@@ -272,7 +281,7 @@
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void DeltaParameters::inverse_kinematics_DELTA(const float logical[XYZ]) {
+  void DeltaKinematics::inverse_kinematics_DELTA(const float logical[XYZ]) {
     const float raw[XYZ] = {
       RAW_X_POSITION(logical[X_AXIS]),
       RAW_Y_POSITION(logical[Y_AXIS]),
@@ -293,7 +302,7 @@
     */
   }
 
-  void DeltaParameters::Set_clip_start_height() {
+  void DeltaKinematics::Set_clip_start_height() {
     float cartesian[XYZ] = {
       LOGICAL_X_POSITION(0),
       LOGICAL_Y_POSITION(0),

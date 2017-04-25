@@ -97,7 +97,7 @@
 #endif
 
 #if MECH(DELTA)
-  #include "src/motion/delta_parameters.h"
+  #include "src/motion/delta_kinematics.h"
 #endif
 
 #if ENABLED(LASERBEAM)
