@@ -5718,28 +5718,31 @@ inline void gcode_G28(
       for (probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
         yBedProbePoints[probe_index] = deltaParams.probe_radius * cos((2 * M_PI * probe_index) / 6);
-        zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+        zBedProbePoints[probe_index] = -probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
       }
       if (numPoints >= 10) {
         for (probe_index = 6; probe_index < 9; probe_index++) {
           xBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
           yBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
-          zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+          zBedProbePoints[probe_index] = -probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4);
+        zBedProbePoints[9] = -probe_pt(0.0, 0.0, true, 4);
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4);
+        zBedProbePoints[6] = -probe_pt(0.0, 0.0, true, 4);
       }
 
     #endif
 
+    // convert endstop_adj;
+    deltaParams.Convert_endstop_adj();
+
     float probeMotorPositions[MaxCalibrationPoints][ABC],
-          corrections[numPoints];
+          corrections[MaxCalibrationPoints];
 
     initialSumOfSquares = 0.0;
 
@@ -5757,7 +5760,7 @@ inline void gcode_G28(
 
       deltaParams.inverse_kinematics_DELTA(machinePos);
 
-      for(uint8_t axis = 0; axis < ABC; axis++)
+      for (uint8_t axis = 0; axis < ABC; axis++)
         probeMotorPositions[i][axis] = delta[axis];
 
       initialSumOfSquares += sq(zBedProbePoints[i]);
@@ -5793,8 +5796,6 @@ inline void gcode_G28(
         }
         normalMatrix[i][numFactors] = temp;
       }
-
-      float solution[numFactors];
 
       // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
       // Returns a pointer to the solution vector.
@@ -5835,9 +5836,9 @@ inline void gcode_G28(
         }
       }
 
-      for (uint8_t i = 0; i < numFactors; i++)	{
+      float solution[numFactors];
+      for (uint8_t i = 0; i < numFactors; i++)
         solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
-      }
       deltaParams.Adjust(numFactors, solution);
 
       // Calculate the expected probe heights using the new parameters
@@ -5857,13 +5858,15 @@ inline void gcode_G28(
 
     } while (iteration < 2);
 
+    // convert endstop_adj;
+    deltaParams.Convert_endstop_adj();
+
     SERIAL_MV("Calibrated ", numFactors);
     SERIAL_MV(" factors using ", numPoints);
     SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
     SERIAL_MV(" after ", expectedRmsError, 4);
     SERIAL_E;
 
-    deltaParams.NormaliseEndstopAdjustments();
     deltaParams.Recalc_delta_constants();
 
     SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);

@@ -87,25 +87,33 @@
     Ybc = towerY[C_AXIS] - towerY[B_AXIS];
     Yca = towerY[A_AXIS] - towerY[C_AXIS];
     Yab = towerY[B_AXIS] - towerY[A_AXIS];
-    coreFa = sq(towerX[A_AXIS]) + sq(towerY[A_AXIS]);
-    coreFb = sq(towerX[B_AXIS]) + sq(towerY[B_AXIS]);
-    coreFc = sq(towerX[C_AXIS]) + sq(towerY[C_AXIS]);
+    coreFa = HYPOT2(towerX[A_AXIS], towerY[A_AXIS]);
+    coreFb = HYPOT2(towerX[B_AXIS], towerY[B_AXIS]);
+    coreFc = HYPOT2(towerX[C_AXIS], towerY[C_AXIS]);
     Q = 2 * (Xca * Yab - Xab * Yca);
     Q2 = sq(Q);
     D2 = sq(diagonal_rod);
+
+    const float tempHeight = diagonal_rod;		// any sensible height will do here, probably even zero
+    float cartesian[ABC];
+    forward_kinematics_DELTA(tempHeight, tempHeight, tempHeight, cartesian);
+    homed_Height = base_max_pos[Z_AXIS] + tempHeight - cartesian[Z_AXIS];
 
     Set_clip_start_height();
 
   }
 
+  // Convert endstop_adj
+  void DeltaKinematics::Convert_endstop_adj() {
+    LOOP_XYZ(i) endstop_adj[i] *= -1;
+  }
+
   // Normalize Endstop
   void DeltaKinematics::NormaliseEndstopAdjustments() {
-    const float high_endstop = MAX3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
-    if (high_endstop > 0) {
-      SERIAL_EMV("Reducing Build height by ", high_endstop);
-      LOOP_XYZ(i) endstop_adj[i] -= high_endstop;
-      base_max_pos[Z_AXIS] -= high_endstop;
-    }
+    const float min_endstop = MIN3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
+    LOOP_XYZ(i) endstop_adj[i] -= min_endstop;
+    base_max_pos[Z_AXIS] += min_endstop;
+    homed_Height += min_endstop;
   }
 
   // Compute the derivative of height with respect to a parameter at the specified motor endpoints.
@@ -152,9 +160,10 @@
     loParams.Recalc_delta_constants();
 
     float newPos[ABC];
-    hiParams.forward_kinematics_DELTA((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
 
+    hiParams.forward_kinematics_DELTA((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
     const float zHi = newPos[C_AXIS];
+
     loParams.forward_kinematics_DELTA((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
     const float zLo = newPos[C_AXIS];
 
@@ -170,13 +179,13 @@
   //  Diagonal rod length adjustment
   void DeltaKinematics::Adjust(const uint8_t numFactors, const float v[]) {
 
+    const float oldHeightA = homed_Height + endstop_adj[A_AXIS];
+
     // Update endstop adjustments
     endstop_adj[A_AXIS] += v[0];
     endstop_adj[B_AXIS] += v[1];
     endstop_adj[C_AXIS] += v[2];
-
-    const float eav = (endstop_adj[A_AXIS] + endstop_adj[B_AXIS] + endstop_adj[C_AXIS]) / 3.0;
-    LOOP_XYZ(i) endstop_adj[i] -= eav;
+    NormaliseEndstopAdjustments();
 
     if (numFactors >= 4) {
       delta_radius += v[3];
@@ -188,9 +197,16 @@
         if (numFactors == 7) diagonal_rod += v[6];
 
       }
-
-      Recalc_delta_constants();
     }
+
+    Recalc_delta_constants();
+
+    const float heightError = homed_Height + endstop_adj[A_AXIS] - oldHeightA - v[0];
+    base_max_pos[Z_AXIS] -= heightError;
+    homed_Height -= heightError;
+
+    Recalc_delta_constants();
+
   }
 
   /**
@@ -216,9 +232,9 @@
    * based on a Java function from "Delta Robot Kinematics V3"
    * by Steve Graves
    *
-   * The result is stored in the cartes[] array.
+   * The result is stored in the cartesian[] array.
    */
-  void DeltaKinematics::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]) {
+  void DeltaKinematics::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
 
     const float Fa = coreFa + sq(Ha);
     const float Fb = coreFb + sq(Hb);
@@ -239,9 +255,9 @@
 
     const float z = (minusHalfB - sqrtf(sq(minusHalfB) - A * C)) / A;
 
-    machinePos[X_AXIS] = (U * z - S) / Q;
-    machinePos[Y_AXIS] = (P - R * z) / Q;
-    machinePos[Z_AXIS] = z;
+    cartesian[X_AXIS] = (U * z - S) / Q;
+    cartesian[Y_AXIS] = (P - R * z) / Q;
+    cartesian[Z_AXIS] = z;
   }
 
   #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
@@ -288,9 +304,9 @@
       RAW_Z_POSITION(logical[Z_AXIS])
     };
 
-    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[A_AXIS], towerY[A_AXIS] - raw[B_AXIS]));
-    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[A_AXIS], towerY[B_AXIS] - raw[B_AXIS]));
-    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[A_AXIS], towerY[C_AXIS] - raw[B_AXIS]));
+    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(raw[A_AXIS] - towerX[A_AXIS]) - sq(raw[B_AXIS] - towerY[A_AXIS]));
+    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(raw[A_AXIS] - towerX[B_AXIS]) - sq(raw[B_AXIS] - towerY[B_AXIS]));
+    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - sq(raw[A_AXIS] - towerX[C_AXIS]) - sq(raw[B_AXIS] - towerY[C_AXIS]));
 
     /*
     SERIAL_MV("cartesian X:", raw[X_AXIS]);

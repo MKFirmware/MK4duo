@@ -51,15 +51,17 @@
       void Init();
       float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       void Adjust(const uint8_t numFactors, const float v[]);
-      void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float machinePos[ABC]);
-      void forward_kinematics_DELTA(const float point[ABC], float machinePos[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], machinePos); }
+      void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
+      void forward_kinematics_DELTA(const float point[ABC], float cartesian[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void inverse_kinematics_DELTA(const float logical[XYZ]);
-      void NormaliseEndstopAdjustments();
       void Recalc_delta_constants();
+      void Convert_endstop_adj();
 
       void Set_clip_start_height();
 
     private:
+
+      void NormaliseEndstopAdjustments();
 
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);
@@ -69,6 +71,7 @@
       float delta_diagonal_rod_2[ABC],  // Diagonal rod 2
             towerX[ABC],                // The X coordinate of each tower
             towerY[ABC],                // The Y coordinate of each tower
+            homed_Height,
             Xbc, Xca, Xab, Ybc, Yca, Yab,
             coreFa, coreFb, coreFc,
             Q, Q2, D2;
