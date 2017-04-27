@@ -20,11 +20,7 @@
  */
 
 /**
- * Look here for descriptions of G-codes:
- *  - http://linuxcnc.org/handbook/gcode/g-code.html
- *  - http://objects.reprap.org/wiki/Mendel_User_Manual:_RepRapGCodes
- *
- * Help us document these G-codes online:
+ * Help to document MK4duo's G-codes online:
  *  - http://reprap.org/wiki/G-code
  *  - https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/GCodes.md
  *
