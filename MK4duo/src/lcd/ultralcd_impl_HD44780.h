@@ -551,7 +551,6 @@ void lcd_print(char c) { charset_mapper(c); }
       safe_delay(SPLASH_SCREEN_DURATION);
     #endif
 
-    /*
     lcd.clear();
 
     lcd_set_custom_characters(
@@ -559,7 +558,6 @@ void lcd_print(char c) { charset_mapper(c); }
         false
       #endif
     );
-    //*/
   }
 
 #endif // SHOW_BOOTSCREEN

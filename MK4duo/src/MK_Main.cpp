@@ -5653,7 +5653,7 @@ inline void gcode_G28(
       }
       else {
         // Save the previous Z before going to the next point
-        zBedProbePoints[probe_index - 1] = current_position[Z_AXIS];
+        zBedProbePoints[probe_index - 1] = -current_position[Z_AXIS];
       }
 
       // Is there a next point to move to?
@@ -9078,10 +9078,10 @@ inline void gcode_M400() { stepper.synchronize(); }
     NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
 
     if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
-      int temp_ratio = thermalManager.widthFil_to_size_ratio();
+      const int temp_ratio = thermalManager.widthFil_to_size_ratio() - 100; // -100 to scale within a signed byte
 
       for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
-        measurement_delay[i] = temp_ratio - 100;  // Subtract 100 to scale within a signed byte
+        measurement_delay[i] = temp_ratio;
 
       filwidth_delay_index[0] = filwidth_delay_index[1] = 0;
     }
