@@ -26,6 +26,7 @@
 *  40 BOARD_MKS_BASE          - Arduino Mega2560 with RAMPS v1.4 pin assignments
 *  41 BOARD_MKS_MINI          - MKS MINI 1.0
 *  47 BOARD_MKS_13            - MKS v1.3 or 1.4 (maybe higher)
+*  49 BOARD_TRIGORILLA        - TRIGORILLA (ANYCUBIC)
 * 401 BOARD_RADDS             - Radds ARM 32 bit board
 * 403 BOARD_RAMPS_FD_V1       - Ramps FD version 1 ARM 32 bit board
 * 404 BOARD_RAMPS_FD_V2       - Ramps FD version 2 ARM 32 bit board
@@ -105,6 +106,7 @@
 #define BOARD_MKS_BASE          40    // MKS BASE 1.0
 #define BOARD_MKS_MINI          41    // MKS MINI 1.0
 #define BOARD_MKS_13            47    // MKS v1.3 or 1.4 (maybe higher)
+#define BOARD_TRIGORILLA        49    // TRIGORILLA (ANYCUBIC)
 #define BOARD_RADDS             401   // RADDS ARM 32 bit board
 #define BOARD_RAMPS_FD_V1       403   // RAMPS-FD V1 ARM 32 bit board
 #define BOARD_RAMPS_FD_V2       404   // RAMPS-FD V2 ARM 32 bit board
