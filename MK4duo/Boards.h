@@ -60,11 +60,6 @@
 *
 *   8 BOARD_TEENSYLU          - Teensylu
 *  80 BOARD_RUMBA             - Rumba
-*  81 BOARD_PRINTRBOARD       - Printrboard (AT90USB1286)
-*  82 BOARD_BRAINWAVE         - Brainwave (AT90USB646)
-*  83 BOARD_SAV_MKI           - SAV Mk-I (AT90USB1286)
-*  84 BOARD_TEENSY2           - Teensy++2.0 (AT90USB1286)
-*  88 BOARD_5DPRINT           - 5DPrint D8 Driver Board
 *
 *   9 BOARD_GEN3_PLUS         - Gen3+
 *  90 BOARD_OMCA_A            - Alpha OMCA board
@@ -140,11 +135,6 @@
 
 #define BOARD_TEENSYLU          8     // Teensylu
 #define BOARD_RUMBA             80    // Rumba
-#define BOARD_PRINTRBOARD       81    // Printrboard (AT90USB1286)
-#define BOARD_BRAINWAVE         82    // Brainwave (AT90USB646)
-#define BOARD_SAV_MKI           83    // SAV Mk-I (AT90USB1286)
-#define BOARD_TEENSY2           84    // Teensy++2.0 (AT90USB1286)
-#define BOARD_5DPRINT           88    // 5DPrint D8 Driver Board
 
 #define BOARD_GEN3_PLUS         9     // Gen3+
 #define BOARD_OMCA_A            90    // Alpha OMCA board
