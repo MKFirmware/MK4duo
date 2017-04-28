@@ -906,7 +906,7 @@ inline void get_serial_commands() {
 
       if (npos) {
 
-        bool M110 = strstr_P(command, PSTR("M110")) != NULL;
+        const bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
         if (M110) {
           char* n2pos = strchr(command + 4, 'N');
@@ -7914,6 +7914,15 @@ inline void gcode_M117() {
 }
 
 /**
+ * M118: Print to Host the message text
+ */
+inline void gcode_M118() {
+  SERIAL_S(ECHO);
+  SERIAL_T(current_command_args);
+  SERIAL_E;
+}
+
+/**
  * M119: Output endstop states to serial output
  */
 inline void gcode_M119() { endstops.M119(); }
@@ -11766,6 +11775,9 @@ void process_next_command() {
 
       case 117: // M117: Set LCD message text, if possible
         gcode_M117(); break;
+
+      case 118: // M118: Print to Host the message text
+        gcode_M118(); break;
 
       case 119: // M119: Report endstop states
         gcode_M119(); break;
