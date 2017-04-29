@@ -62,6 +62,15 @@
     #define DEFAULT_LCD_CONTRAST 17
   #endif
 
+  #if ENABLED(AZSMZ_12864_LCD)
+    #define ULTRA_LCD // general LCD support, also 16x2
+    #define DOGLCD
+    #define ULTIMAKERCONTROLLER // as available from the Ultimaker online store.
+    #define DEFAULT_LCD_CONTRAST 59
+    #define LCD_CONTRAST_MIN  40
+    #define LCD_CONTRAST_MAX  80
+  #endif
+
   #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
     #define ULTRA_LCD // general LCD support, also 16x2
     #define DOGLCD    // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
@@ -277,7 +286,8 @@
     #define HAS_LCD_CONTRAST ( \
         ENABLED(MAKRPANEL) \
      || ENABLED(CARTESIO_UI) \
-     || ENABLED(VIKI2) \
+	 || ENABLED(AZSMZ_12864_LCD) \     
+	 || ENABLED(VIKI2) \
      || ENABLED(miniVIKI) \
      || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
      || ENABLED(WANHAO_D6_OLED) \
