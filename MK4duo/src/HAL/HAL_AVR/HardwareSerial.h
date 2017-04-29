@@ -81,13 +81,11 @@
 #define M_U2Xx SERIAL_REGNAME(U2X,SERIAL_PORT,)
 #define M_USARTx_UDRE_vect SERIAL_REGNAME(USART,SERIAL_PORT,_UDRE_vect)
 
-
 #define DEC 10
 #define HEX 16
 #define OCT 8
 #define BIN 2
 #define BYTE 0
-
 
 #ifndef USBCON
 // Define constants and variables for buffering incoming serial data.  We're
@@ -136,7 +134,7 @@ struct ring_buffer_r {
 class MKHardwareSerial { //: public Stream
 
   public:
-    MKHardwareSerial();
+    MKHardwareSerial() {};
     static void begin(const long);
     static void end();
     static int peek(void);

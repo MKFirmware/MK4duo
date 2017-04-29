@@ -56,10 +56,12 @@
     void setmovePopCallback(void *ptr);
     void setgcodePopCallback(void *ptr);
     void sendPopCallback(void *ptr);
-    void lcd_update();
+    void filamentPopCallback(void *ptr);
+    void lcd_key_touch_update();
+    void nextion_draw_update();
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist=false);
-    void status_printf(uint8_t level, const char *Status, ...);
+    void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
     void lcd_setstatuspgm(const char* message, const uint8_t level=0);
     void lcd_setalertstatuspgm(const char* message);
     void lcd_reset_alert_level();
@@ -87,6 +89,12 @@
       void UploadNewFirmware();
     #endif
 
+    #if ENABLED(LCD_BED_LEVELING)
+      void bedlevelPopCallBack(void *ptr);
+      void LcdBedLevelOn();
+      void LcdBedLevelOff();
+    #endif
+
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       void lcd_filament_change_show_message(FilamentChangeMessage message);
     #endif // FILAMENT_CHANGE_FEATURE
@@ -97,7 +105,7 @@
     #endif
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
-    FORCE_INLINE void lcd_buttons_update() {}
+    FORCE_INLINE void lcd_draw_update() {}
 
     #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
     #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))

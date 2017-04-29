@@ -88,16 +88,16 @@ class Stepper {
       #define _NEXT_ISR(T) nextMainISR = T
 
       #if ENABLED(LIN_ADVANCE)
-        static volatile int e_steps[DRIVER_EXTRUDERS];
-        static int final_estep_rate;
-        static int current_estep_rate[DRIVER_EXTRUDERS];  // Actual extruder speed [steps/s]
-        static int current_adv_steps[DRIVER_EXTRUDERS];   // The amount of current added esteps due to advance.
+        static int  e_steps[DRIVER_EXTRUDERS],
+                    final_estep_rate,
+                    current_estep_rate[DRIVER_EXTRUDERS], // Actual extruder speed [steps/s]
+                    current_adv_steps[DRIVER_EXTRUDERS];  // The amount of current added esteps due to advance.
                                                           // i.e., the current amount of pressure applied
                                                           // to the spring (=filament).
 
       #else
-        static long e_steps[DRIVER_EXTRUDERS];
-        static long advance_rate, advance, final_advance, old_advance;
+        static long e_steps[DRIVER_EXTRUDERS],
+                    advance_rate, advance, final_advance, old_advance;
       #endif
     #else
       #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);
@@ -227,6 +227,7 @@ class Stepper {
     static FORCE_INLINE bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
     static void enable_all_steppers();
+    static void disable_e_steppers();
     static void disable_all_steppers();
 
     #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
@@ -298,11 +299,11 @@ class Stepper {
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
 
       #if ENABLED(ARDUINO_ARCH_AVR)
-        if(step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
+        if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
           step_rate >>= 2;
           step_loops = 4;
         }
-        else if(step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+        else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
           step_rate >>= 1;
           step_loops = 2;
         }
@@ -323,14 +324,14 @@ class Stepper {
         step_rate -= F_CPU / 500000; // Correct for minimal speed
         if (step_rate >= (8 * 256)) { // higher step rate
           uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(unsigned char)(step_rate >> 8)][0];
-          unsigned char tmp_step_rate = (step_rate & 0x00ff);
+          unsigned char tmp_step_rate = (step_rate & 0x00FF);
           uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
           MultiU16X8toH16(timer, tmp_step_rate, gain);
           timer = (uint16_t)pgm_read_word_near(table_address) - timer;
         }
         else { // lower step rates
           uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
-          table_address += ((step_rate) >> 1) & 0xfffc;
+          table_address += ((step_rate) >> 1) & 0xFFFC;
           timer = (uint16_t)pgm_read_word_near(table_address);
           timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (unsigned char)(step_rate & 0x0007)) >> 3);
         }

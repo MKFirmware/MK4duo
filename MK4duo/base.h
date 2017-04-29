@@ -74,6 +74,10 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
+#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_L6470DRIVER)
+  #include "Configuration_Motor_Driver.h"
+#endif
+
 #include "src/conditionals_pre.h"
 #include "src/pins.h"
 #include "src/conditionals_post.h"
@@ -81,7 +85,6 @@
 #include "src/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
-#include "src/utility/point_t.h"
 
 #if HAS(ABL)
   #include "src/planner/vector_3.h"
@@ -94,7 +97,7 @@
 #endif
 
 #if MECH(DELTA)
-  #include "src/motion/delta_parameters.h"
+  #include "src/motion/delta_kinematics.h"
 #endif
 
 #if ENABLED(LASERBEAM)
@@ -126,7 +129,7 @@
 #include "src/servo/servo.h"
 #include "src/utility/nozzle.h"
 #include "src/utility/blinkm.h"
-#include "src/utility/matrix.h"
+#include "src/utility/hex_print_routines.h"
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   #include "src/alligator/external_dac.h"

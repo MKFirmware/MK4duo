@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,6 +66,7 @@
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
+#include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 
@@ -107,12 +109,13 @@
 #undef HIGH
 #define HIGH        1
 
+// EEPROM START
+#define EEPROM_OFFSET 100
+
 // Voltage for Pin
 #define HAL_VOLTAGE_PIN 5.0
 
 #define ADV_NEVER 65535
-
-#define OVERSAMPLENR 16
 
 /**
  * Optimized math functions for AVR
@@ -199,6 +202,16 @@
                  "r26" , "r27" \
                )
 
+// Macros for stepper.cpp
+#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU24X32toH16(intRes, longIn1, longIn2)
+
+// TEMPERATURE
+#define ANALOG_REF_AREF 0
+#define ANALOG_REF_AVCC _BV(REFS0)
+#define ANALOG_REF ANALOG_REF_AVCC
+#define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define OVERSAMPLENR 5
+
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
@@ -211,24 +224,33 @@ typedef uint32_t millis_t;
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 256.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
-// Delays
-#define CYCLES_EATEN_BY_CODE 240
-#define CYCLES_EATEN_BY_E     60
+#define STEPPER_TIMER_PRESCALE  64
 
 #define STEPPER_TIMER OCR1A
-#define TEMP_TIMER 0
+#define STEPPER_TCCR  TCCR1A
+#define STEPPER_TIMSK TIMSK1
+#define STEPPER_OCIE  OCIE1A
 
-#define ENABLE_STEPPER_INTERRUPT()    SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_INTERRUPT()   CBI(TIMSK1, OCIE1A)
+#define TEMP_TIMER    OCR0B
+#define TEMP_TCCR     TCCR0B
+#define TEMP_TIMSK    TIMSK0
+#define TEMP_OCIE     OCIE0B
 
-#define ENABLE_TEMP_INTERRUPT()       SBI(TIMSK0, OCIE0B)
-#define DISABLE_TEMP_INTERRUPT()      CBI(TIMSK0, OCIE0B)
+#define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
+#define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
 
-#define HAL_timer_start (timer_num, frequency)
-#define HAL_timer_set_count(timer, count) timer = (count)
-#define HAL_timer_isr_prologue(timer_num)
+#define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
+
+#define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
+#define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
+
+#define HAL_timer_start(timer_num, frequency) { }
+#define HAL_timer_get_current_count(timer)    TCNT0
+#define HAL_timer_set_count(timer, count)     timer = (count)
+#define HAL_timer_isr_prologue(timer_num)     { }
 
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
 #define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
@@ -251,11 +273,48 @@ typedef uint32_t millis_t;
         } while(0)
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
+#define CYCLES_PER_US ((F_CPU) / 1000000) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
+
+// Highly granular delays for step pulses, etc.
+#define DELAY_0_NOP   NOOP
+#define DELAY_1_NOP   __asm__("nop\n\t")
+#define DELAY_2_NOP   DELAY_1_NOP;  DELAY_1_NOP
+#define DELAY_3_NOP   DELAY_1_NOP;  DELAY_2_NOP
+#define DELAY_4_NOP   DELAY_1_NOP;  DELAY_3_NOP
+#define DELAY_5_NOP   DELAY_1_NOP;  DELAY_4_NOP
+#define DELAY_10_NOP  DELAY_5_NOP;  DELAY_5_NOP
+#define DELAY_20_NOP  DELAY_10_NOP; DELAY_10_NOP
+
+#define DELAY_NOPS(X) \
+  switch (X) { \
+    case 20: DELAY_1_NOP; case 19: DELAY_1_NOP; \
+    case 18: DELAY_1_NOP; case 17: DELAY_1_NOP; \
+    case 16: DELAY_1_NOP; case 15: DELAY_1_NOP; \
+    case 14: DELAY_1_NOP; case 13: DELAY_1_NOP; \
+    case 12: DELAY_1_NOP; case 11: DELAY_1_NOP; \
+    case 10: DELAY_1_NOP; case 9:  DELAY_1_NOP; \
+    case 8:  DELAY_1_NOP; case 7:  DELAY_1_NOP; \
+    case 6:  DELAY_1_NOP; case 5:  DELAY_1_NOP; \
+    case 4:  DELAY_1_NOP; case 3:  DELAY_1_NOP; \
+    case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
+  }
+
+#if CYCLES_PER_MICROSECOND == 16
+  #define DELAY_1US DELAY_10_NOP; DELAY_5_NOP; DELAY_1_NOP
+#else
+  #define DELAY_1US DELAY_20_NOP
+#endif
+#define DELAY_2US  DELAY_1US; DELAY_1US
+#define DELAY_3US  DELAY_1US; DELAY_2US
+#define DELAY_4US  DELAY_1US; DELAY_3US
+#define DELAY_5US  DELAY_1US; DELAY_4US
+#define DELAY_6US  DELAY_1US; DELAY_5US
+#define DELAY_7US  DELAY_1US; DELAY_6US
+#define DELAY_8US  DELAY_1US; DELAY_7US
+#define DELAY_9US  DELAY_1US; DELAY_8US
+#define DELAY_10US DELAY_1US; DELAY_9US
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -278,6 +337,9 @@ class InterruptProtectedBlock {
     }
 };
 
+void HAL_stepper_timer_start();
+void HAL_temp_timer_start();
+
 class HAL {
   public:
 
@@ -285,14 +347,21 @@ class HAL {
 
     virtual ~HAL();
 
-    // do any hardware-specific initialization here
-    static inline void hwSetup(void) { /* noop */ }
+    static unsigned long AnalogInputValues[ANALOG_INPUTS];
+    static bool execute_100ms;
 
-    static inline void clear_reset_source() { MCUSR = 0; }
-    static inline uint8_t get_reset_source() { return MCUSR; }
+    // do any hardware-specific initialization here
+    static inline void hwSetup() {}
+
+    static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();
+
+    static void analogStart();
+    static void analogRead();
+
+    static void setPwmFrequency(uint8_t pin, uint8_t val);
 
     // SPI related functions
     static void spiBegin() {
@@ -409,6 +478,7 @@ class HAL {
 
   protected:
   private:
+
 };
 
 /**

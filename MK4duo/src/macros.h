@@ -74,6 +74,7 @@
 #define HASNT(FE) (!(HAS_##FE))
 
 // Macros to contrain values
+#define WITHIN(V,L,H) ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a) ((a) >= '0' && '9' >= (a))
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-')
 #define NOLESS(v,n) do{ if (v < n) v = n; }while(0)
@@ -156,6 +157,7 @@
 #define NEAR(x,y)         NEAR_ZERO((x)-(y))
 
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
+#define FIXFLOAT(f)       (f + 0.00001)
 
 #define _AXIS(AXIS) AXIS ##_AXIS
 

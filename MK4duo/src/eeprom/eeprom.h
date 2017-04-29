@@ -26,30 +26,34 @@
 class EEPROM {
 
   public:
+  
+    EEPROM() { }
 
-    static void ResetDefault();
-    static void StoreSettings();
-
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
+    static void Factory_Settings();
+    static bool Store_Settings();
 
     #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
+      static bool Load_Settings();
     #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
+      FORCE_INLINE static bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
+    #endif
+
+    #if DISABLED(DISABLE_M503)
+      static void Print_Settings(bool forReplay = false);
+    #else
+      FORCE_INLINE static void Print_Settings(bool forReplay = false) { }
     #endif
 
   private:
 
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
     static void Postprocess();
 
-    static uint16_t eeprom_checksum;
-    static const char version[6];
+    #if ENABLED(EEPROM_SETTINGS)
+      static uint16_t eeprom_checksum;
+      static bool eeprom_read_error, eeprom_write_error;
+      static void write_data(int &pos, const uint8_t* value, uint16_t size);
+      static void read_data(int &pos, uint8_t* value, uint16_t size);
+    #endif
 
 };
 

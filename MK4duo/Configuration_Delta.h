@@ -27,6 +27,7 @@
  *
  * - Machine name
  * - Delta settings
+ * - Delta Fast SQRT (only for 8 bit)
  * - Endstop pullup resistors
  * - Endstops logic
  * - Endstop Interrupts Feature
@@ -41,7 +42,6 @@
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
  * - Auto Calibration
- * - Auto Calibration 7 points
  * - Delta Home Safe Zone
  * - Axis steps per unit
  * - Axis feedrate
@@ -122,6 +122,9 @@
 // Horizontal offset of the universal joints on the carriages.
 #define DELTA_CARRIAGE_OFFSET 20.0          // mm
 
+// height from z=0.00 to home position
+#define DELTA_HEIGHT 200                    // mm
+
 // Delta Printable radius
 #define DELTA_PRINTABLE_RADIUS 75.0         // mm
 
@@ -145,7 +148,6 @@
 #define TOWER_B_DIAGROD_ADJ 0   // Front Right Tower
 #define TOWER_C_DIAGROD_ADJ 0   // Rear Tower
 /*****************************************************************************************/
-
 
 
 /*****************************************************************************************
@@ -239,6 +241,11 @@
 #define Z_ENDSTOP_SERVO_NR -1
 #define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
+// The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
+// Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
+// or (with LCD BED LEVELING) the LCD controller.
+//#define PROBE_MANUALLY
+
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
 // An inductive probe must be deactivated to go below
@@ -246,7 +253,9 @@
 //#define Z_PROBE_FIX_MOUNTED
 
 // The BLTouch probe emulates a servo probe.
+// The default connector is SERVO 0.
 //#define BLTOUCH
+//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
 // Allen key retractable z-probe as seen on many Kossel delta printers - http://reprap.org/wiki/Kossel#Automatic_bed_leveling_probe
 // Deploys by touching z-axis belt. Retracts by pushing the probe down.
@@ -293,6 +302,12 @@
 // For M666 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Use the LCD controller for bed leveling
+// Requires MESH BED LEVELING or PROBE MANUALLY
+//#define LCD_BED_LEVELING
+#define LCD_Z_STEP 0.025    // Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
 /*****************************************************************************************/
 
 
@@ -387,7 +402,7 @@
 // For DELTA this is the top-center of the Cartesian print volume.
 #define MANUAL_X_HOME_POS 0
 #define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 200
+#define MANUAL_Z_HOME_POS DELTA_HEIGHT
 /*****************************************************************************************/
 
 
@@ -402,7 +417,7 @@
 #define X_MIN_POS -DELTA_PRINTABLE_RADIUS
 #define Y_MAX_POS DELTA_PRINTABLE_RADIUS
 #define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
-#define Z_MAX_POS MANUAL_Z_HOME_POS
+#define Z_MAX_POS DELTA_HEIGHT
 #define Z_MIN_POS 0
 #define E_MIN_POS 0
 /*****************************************************************************************/
@@ -432,15 +447,10 @@
 
 // Set the number of grid points per dimension
 // Works best with 5 or more points in each dimension.
-#define AUTO_BED_LEVELING_GRID_POINTS 9
+#define GRID_MAX_POINTS 9
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
-
-// Gradually reduce leveling correction until a set height is reached,
-// at which point movement will be level to the machine's XY plane.
-// The height can be set with M320 Z<height>
-//#define ENABLE_LEVELING_FADE_HEIGHT
 
 // Experimental Subdivision of the grid by Catmull-Rom method.
 // Synthesizes intermediate points to produce a more detailed mesh.
@@ -458,26 +468,21 @@
  ********************************* Auto Calibration **************************************
  *****************************************************************************************
  *                                                                                       *
- * Autocalibration Delta system                                                          *
- * To use this you must have a PROBE, please define you type probe.                      *
+ * Auto Calibration Delta system  G33 command                                            *
+ * Three type of the calibration DELTA                                                   *
+ *  1) Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points           ~3.2Kb *
+ *  2) Algorithm based on Thinkyhead Marlin   4 points + iteration                ~4.5Kb *
+ *  3) Algorithm based on Rich Cattell Marlin 4 points + iteration                ~8.0Kb *
+ *                                                                                       *
+ * To use one of this you must have a PROBE, please define you type probe.               *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_CALIBRATION_FEATURE
+//#define DELTA_AUTO_CALIBRATION_1
+//#define DELTA_AUTO_CALIBRATION_2
+//#define DELTA_AUTO_CALIBRATION_3
 
-// Precision for G30 delta autocalibration function
+// Precision for G33 Delta Auto Calibration function
 #define AUTOCALIBRATION_PRECISION 0.1 // mm
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- **************************** Auto Calibration 7 points **********************************
- *****************************************************************************************
- *                                                                                       *
- * Autocalibration Delta system 7 points                                                  *
- * To use this you must have a PROBE, please define you type probe.                      *
- *                                                                                       *
- *****************************************************************************************/
-//#define AUTO_CALIBRATION_7_POINT
 /*****************************************************************************************/
 
 
@@ -535,8 +540,9 @@
 //                                       X,   Y,   Z,  E0...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 100, 100, 100, 100}
 // Feedrates for manual moves along        X,     Y,     Z,  E from panel
-#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 60}
-#define DEFAULT_MINIMUMFEEDRATE       0.0                       // minimum feedrate
+#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 10*60}
+// Minimum feedrate
+#define DEFAULT_MINIMUMFEEDRATE       0.0
 #define DEFAULT_MINTRAVELFEEDRATE     0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed

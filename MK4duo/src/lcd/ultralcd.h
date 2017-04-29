@@ -35,12 +35,13 @@
 
   int lcd_strlen(const char* s);
   int lcd_strlen_P(const char* s);
-  void lcd_update();
+  void lcd_key_touch_update();
+  void lcd_draw_update();
   void lcd_init();
   bool lcd_hasstatus();
   void lcd_setstatus(const char* message, const bool persist=false);
   void lcd_setstatuspgm(const char* message, const uint8_t level=0);
-  void status_printf(uint8_t level, const char *Status, ...);
+  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
   void lcd_setalertstatuspgm(const char* message);
   void lcd_reset_alert_level();
   void lcd_kill_screen();
@@ -61,7 +62,6 @@
   #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
   #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
 
-  #define LCD_UPDATE_INTERVAL 100
   #define LCD_TIMEOUT_TO_STATUS 15000
 
   #if ENABLED(ULTIPANEL)
@@ -85,9 +85,10 @@
     #define EN_B (_BV(BLEN_B))
     #define EN_C (_BV(BLEN_C))
 
-    extern volatile uint8_t buttons;  // the last checked buttons in a bit array.
+    extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
     void lcd_buttons_update();
-    void lcd_quick_feedback(); // Audible feedback for a button click - could also be visual
+    void lcd_quick_feedback();        // Audible feedback for a button click - could also be visual
+    void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(FILAMENT_CHANGE_FEATURE)
       void lcd_filament_change_show_message(const FilamentChangeMessage message);
@@ -99,7 +100,7 @@
 
   #endif
 
-  #if HAS(LCD_FILAMENT_SENSOR) || HAS(LCD_POWER_SENSOR)
+  #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
     extern millis_t previous_lcd_status_ms;
   #endif
 
@@ -163,12 +164,13 @@
 
 #elif DISABLED(NEXTION)
 
-  inline void lcd_update() {}
+  inline void lcd_key_touch_update() {}
+  inline void lcd_draw_update() {}
   inline void lcd_init() {}
   inline bool lcd_hasstatus() { return false; }
   inline void lcd_setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
   inline void lcd_setstatuspgm(const char* const message, const uint8_t level=0) { UNUSED(message); UNUSED(level); }
-  inline void status_printf(uint8_t level, const char *status, ...) { UNUSED(level); UNUSED(status); }
+  inline void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) { UNUSED(level); UNUSED(fmt); }
   inline void lcd_buttons_update() {}
   inline void lcd_reset_alert_level() {}
   inline bool lcd_detected() { return true; }

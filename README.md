@@ -51,8 +51,9 @@ The new features are:
 * Management Dual Extruder DONDOLO.
 * Adding commands to facilitate purging of hotend. 
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
-* Added Autocalibration for DELTA
-* Added Autocalibration 7 points for DELTA (Similar RepRapFirmware)
+* Added Delta Auto Calibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
+* Added Delta Auto Calibration Algorithm based on Thinkyhead Marlin
+* Added Delta Auto Calibration Algorithm based on Rich Cattell Marlin
 * Adding Debug Dryrun used by repetier.
 * Added total Power on time writed in SD CARD.
 * Added total Power consumption writed in SD CARD.
@@ -74,6 +75,9 @@ The new features are:
 * Added save in EEPROM ABL or MBL
 * Added Door switch
 * Added TMC2130 motor driver
+* Added Power Check for Stop and Save
+* Added Probe Manually
+* Added LCD Bed Leveling
 
 ## Credits
 

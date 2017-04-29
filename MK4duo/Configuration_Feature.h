@@ -31,6 +31,7 @@
  * - Default nominal filament diameter
  * - Single nozzle
  * - BariCUDA paste extruder
+ * - Solenoid extruder
  * - Color Mixing Extruder
  * - Multiextruder old MKR4
  * - Multiextruder new MKR6
@@ -48,7 +49,7 @@
  * - Endstops only for homing
  * - Abort on endstop hit feature
  * - G38.2 and G38.3 Probe Target
- * - Mesh Level Area
+ * - Scad Mesh Output
  * - R/C Servo
  * - Late Z axis
  * - Ahead slowdown
@@ -69,6 +70,7 @@
  * - Power consumption sensor
  * - Flow sensor
  * - Door open sensor
+ * - Power check sensor
  * ADDON FEATURES:
  * - EEPROM
  * - SDCARD
@@ -79,6 +81,7 @@
  * - RFID card reader
  * - BLINKM
  * - RGB LED
+ * - Printer Event LEDs
  * - Laser beam
  * - CNC Router
  * - Case Light
@@ -123,14 +126,13 @@
 
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
-// is too low, you should also increment SOFT PWM SCALE.
+// is too low, you should also increment FAN PWM SPEED.
 //#define FAN_SOFT_PWM
 
-// Incrementing this by 1 will double the software PWM frequency,
-// affecting heaters, and the fan if FAN_SOFT_PWM is enabled.
+// Incrementing this by 1 will double the software PWM frequency.
 // However, control resolution will be halved for each increment;
-// at zero value, there are 128 effective control positions.
-#define SOFT_PWM_SCALE 0
+// at zero value, there are 256 effective control positions.
+#define FAN_PWM_SPEED 0
 
 // When first starting the main fan, run it at full speed for the
 // given number of milliseconds.  This gets the fan spinning reliably
@@ -219,12 +221,26 @@
 
 
 /***********************************************************************
+ ************************** Solenoid extruder **************************
+ ***********************************************************************
+ *                                                                     *
+ * Activate a solenoid on the active extruder with M380.               *
+ * Disable all with M381.                                              *
+ * Define SOL0_PIN, SOL1_PIN, etc., for each extruder that             *
+ * has a solenoid.                                                     *
+ *                                                                     *
+ ***********************************************************************/
+//#define EXT_SOLENOID
+/***********************************************************************/
+
+
+/***********************************************************************
  ********************** COLOR MIXING EXTRUDER **************************
  ***********************************************************************
  *                                                                     *
  * Extends G0/G1 with mixing factors ABCDHI for up to 6 steppers.      *
  * Adds a new code, M165, to set the current mix factors.              *
- * Optional support for Repetier Host M163, M164, and virtual tools.   *
+ * Optional support for Repetier M163, M164, and virtual tools.        *
  * Extends the stepping routines to move multiple steppers in          *
  * proportion to the mix.                                              *
  *                                                                     *
@@ -484,7 +500,7 @@
  *                                                                        *
  * Uncomment FILAMENT CHANGE FEATURE to enable this feature               *
  * Requires an LCD display.                                               *
- * This feature is required for the default FILAMENT_RUNOUT_SCRIPT.       *
+ * This feature is required for the default FILAMENT RUNOUT SCRIPT.       *
  *                                                                        *
  **************************************************************************/
 //#define FILAMENT_CHANGE_FEATURE
@@ -544,10 +560,10 @@
 /**************************************************************************
  *************************** Software endstops ****************************
  **************************************************************************/
-// If true, axis won't move to coordinates less than MIN POS.
-#define SOFTWARE_MIN_ENDSTOPS true
-// If true, axis won't move to coordinates greater than MAX POS.
-#define SOFTWARE_MAX_ENDSTOPS true
+// If enabled, axis won't move to coordinates less than MIN POS.
+#define MIN_SOFTWARE_ENDSTOPS
+// If enabled, axis won't move to coordinates greater than MAX POS.
+#define MAX_SOFTWARE_ENDSTOPS
 /**************************************************************************/
 
 
@@ -596,18 +612,20 @@
 
 
 /**************************************************************************
- *************************** Mesh Level Area ******************************
+ ************************* Scad Mesh Output *******************************
  **************************************************************************
  *                                                                        *
- * Default mesh area is an area with an inset margin on the print area.   *
- * Below are the macros that are used to define the borders for the mesh  *
- * area, made available here for specialized needs.                       *
+ * Enable if you prefer your output in JSON format                        *
+ * suitable for SCAD or JavaScript mesh visualizers.                      *
+ *                                                                        *
+ * Visualize meshes in OpenSCAD using the included script.                *
+ *                                                                        *
+ * scad/MK4duoMesh.scad                                                   *
+ *                                                                        *
+ * By Scott Latherine @Thinkyhead                                         *
  *                                                                        *
  **************************************************************************/
-#define MESH_MIN_X (X_MIN_POS + MESH_INSET)
-#define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define MESH_MIN_Y (Y_MIN_POS + MESH_INSET)
-#define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+//#define SCAD_MESH_OUTPUT
 /**************************************************************************/
 
 
@@ -1025,6 +1043,23 @@
 /**************************************************************************/
 
 
+/**************************************************************************
+ ***************************** Power Check ********************************
+ **************************************************************************
+ *                                                                        *
+ * A triggered when the pin detects lack of voltage                       *
+ * Setting POWER CHECK PIN in Configuration_Pins.h                        *
+ *                                                                        *
+ **************************************************************************/
+//#define POWER_CHECK
+
+// Set true or false should assigned
+#define POWER_CHECK_LOGIC false
+// Uncomment to use internal pullup for pin if the sensor is defined.
+//#define POWER_CHECK_PULLUP
+/**************************************************************************/
+
+
 //===========================================================================
 //============================= ADDON FEATURES ==============================
 //===========================================================================
@@ -1034,16 +1069,20 @@
  ************************************************************************************************************************
  *                                                                                                                      *
  * The microcontroller can store settings in the EEPROM, e.g. max velocity...                                           *
- * M500 - stores parameters in EEPROM                                                                                   *
- * M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).                     *
- * M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to. *
+ * M500 - Stores parameters in EEPROM                                                                                   *
+ * M501 - Reads parameters from EEPROM (if you need reset them after you changed them temporarily).                     *
+ * M502 - Reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.  *
+ * M503 - Print parameters on host                                                                                      *
  *                                                                                                                      *
  * Uncomment EEPROM SETTINGS to enable this feature.                                                                    *
  * Uncomment EEPROM CHITCHAT to enable EEPROM Serial responses.                                                         *
+ * Uncomment EEPROM SD for use writing EEPROM on SD                                                                     *
  *                                                                                                                      *
  ************************************************************************************************************************/
 //#define EEPROM_SETTINGS
+
 //#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+//#define EEPROM_SD
 //#define DISABLE_M503
 /************************************************************************************************************************/
 
@@ -1396,10 +1435,8 @@
 #define NEXTION_SERIAL 1
 // Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
 #define NEXTION_UPDATE_INTERVAL 3000
-// For GFX visualization enable NEXTION GFX
+// For GFX preview visualization enable NEXTION GFX
 //#define NEXTION_GFX
-// For visualization wave temp enable NEXTION WAVETEMP
-//#define NEXTION_WAVETEMP
 // Define name firmware file for Nextion on SD
 #define NEXTION_FIRMWARE_FILE "mk4duo.tft"
 
@@ -1488,7 +1525,25 @@
  *                                                                        *
  **************************************************************************/
 //#define RGB_LED
+//#define RGBW_LED
 /**************************************************************************/
+
+
+/********************************************************************************
+ ***************************** Printer Event LEDs *******************************
+ ********************************************************************************
+ *                                                                              *
+ * During printing, the LEDs will reflect the printer status:                   *
+ *                                                                              *
+ *  - Gradually change from blue to violet as the heated bed gets to target temp*                                                                 *
+ *  - Gradually change from violet to red as the hotend gets to temperature     *
+ *  - Change to white to illuminate work surface                                *
+ *  - Change to green once print has finished                                   *
+ *  - Turn off after the print has finished and the user has pushed a button    *
+ *                                                                              *
+ ********************************************************************************/
+//#define PRINTER_EVENT_LEDS
+/********************************************************************************/
 
 
 /**************************************************************************
@@ -1620,278 +1675,38 @@
 /***********************************************************************/
 
 
-/***********************************************************************
- ************************* TMC26X motor drivers ************************
- ***********************************************************************
- *                                                                     *
- * Support for TMC26X motor drivers                                    *
- *                                                                     *
- ***********************************************************************/
+/**********************************************************************************
+ **************************** TMC26X motor drivers ********************************
+ **********************************************************************************
+ *                                                                                *
+ * Support for TMC26X motor drivers                                               *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
+ *                                                                                *
+ **********************************************************************************/
 //#define HAVE_TMCDRIVER
-
-#if ENABLED(HAVE_TMCDRIVER)
-
-  //#define X_IS_TMC
-  //#define X2_IS_TMC
-  //#define Y_IS_TMC
-  //#define Y2_IS_TMC
-  //#define Z_IS_TMC
-  //#define Z2_IS_TMC
-  //#define E0_IS_TMC
-  //#define E1_IS_TMC
-  //#define E2_IS_TMC
-  //#define E3_IS_TMC
-  
-  #define X_MAX_CURRENT     1000 // in mA
-  #define X_SENSE_RESISTOR    91 // in mOhms
-  #define X_MICROSTEPS        16 // number of microsteps
-  
-  #define X2_MAX_CURRENT    1000
-  #define X2_SENSE_RESISTOR   91
-  #define X2_MICROSTEPS       16
-  
-  #define Y_MAX_CURRENT     1000
-  #define Y_SENSE_RESISTOR    91
-  #define Y_MICROSTEPS        16
-  
-  #define Y2_MAX_CURRENT    1000
-  #define Y2_SENSE_RESISTOR   91
-  #define Y2_MICROSTEPS       16
-  
-  #define Z_MAX_CURRENT     1000
-  #define Z_SENSE_RESISTOR    91
-  #define Z_MICROSTEPS        16
-  
-  #define Z2_MAX_CURRENT    1000
-  #define Z2_SENSE_RESISTOR   91
-  #define Z2_MICROSTEPS       16
-  
-  #define E0_MAX_CURRENT    1000
-  #define E0_SENSE_RESISTOR   91
-  #define E0_MICROSTEPS       16
-  
-  #define E1_MAX_CURRENT    1000
-  #define E1_SENSE_RESISTOR   91
-  #define E1_MICROSTEPS       16
-  
-  #define E2_MAX_CURRENT    1000
-  #define E2_SENSE_RESISTOR   91
-  #define E2_MICROSTEPS       16
-  
-  #define E3_MAX_CURRENT    1000
-  #define E3_SENSE_RESISTOR   91
-  #define E3_MICROSTEPS       16
-
-#endif
-/***********************************************************************/
+/**********************************************************************************/
 
 
-/*************************************************************************************
- ***********************  Trinamic TMC2130 motor drivers *****************************
- *************************************************************************************
- *                                                                                   *
- * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper drivers.*
- *                                                                                   *
- * To use TMC2130 drivers in SPI mode, you'll also need the TMC2130 Arduino library  *
- * (https://github.com/makertum/Trinamic_TMC2130).                                   *
- *                                                                                   *
- * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to           *
- * the hardware SPI interface on your board and define the required CS pins          *
- * in your `pins_MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,     *
- * Y_CS_PIN 49`, etc.).                                                              *
- *                                                                                   *
- *************************************************************************************/
-//#define HAVE_TMC2130DRIVER
-
-#if ENABLED(HAVE_TMC2130DRIVER)
-
-  //#define TMC2130_ADVANCED_CONFIGURATION
-
-  // CHOOSE YOUR MOTORS HERE, THIS IS MANDATORY
-  //#define X_IS_TMC2130
-  //#define X2_IS_TMC2130
-  //#define Y_IS_TMC2130
-  //#define Y2_IS_TMC2130
-  //#define Z_IS_TMC2130
-  //#define Z2_IS_TMC2130
-  //#define E0_IS_TMC2130
-  //#define E1_IS_TMC2130
-  //#define E2_IS_TMC2130
-  //#define E3_IS_TMC2130
-
-  #if ENABLED(TMC2130_ADVANCED_CONFIGURATION)
-
-    // If you've enabled TMC2130_ADVANCED_CONFIGURATION, define global settings below.
-    // Enabled settings will be automatically applied to all axes specified above.
-    //
-    // Please read the TMC2130 datasheet:
-    // http://www.trinamic.com/_articles/products/integrated-circuits/tmc2130/_datasheet/TMC2130_datasheet.pdf
-    // All settings here have the same (sometimes cryptic) names as in the datasheet.
-    //
-    // The following, uncommented settings are only suggestion.
-
-    /* GENERAL CONFIGURATION */
-
-    //#define GLOBAL_EN_PWM_MODE        0
-    #define GLOBAL_I_SCALE_ANALOG     1 // [0,1] 0: Normal, 1: AIN
-    //#define GLOBAL_INTERNAL_RSENSE    0 // [0,1] 0: Normal, 1: Internal
-    #define GLOBAL_EN_PWM_MODE        0 // [0,1] 0: Normal, 1: stealthChop with velocity threshold
-    //#define GLOBAL_ENC_COMMUTATION    0 // [0,1]
-    #define GLOBAL_SHAFT              0 // [0,1] 0: normal, 1: invert
-    //#define GLOBAL_DIAG0_ERROR        0 // [0,1]
-    //#define GLOBAL_DIAG0_OTPW         0 // [0,1]
-    //#define GLOBAL_DIAG0_STALL        0 // [0,1]
-    //#define GLOBAL_DIAG1_STALL        0 // [0,1]
-    //#define GLOBAL_DIAG1_INDEX        0 // [0,1]
-    //#define GLOBAL_DIAG1_ONSTATE      0 // [0,1]
-    //#define GLOBAL_DIAG1_ONSTATE      0 // [0,1]
-    //#define GLOBAL_DIAG0_INT_PUSHPULL 0 // [0,1]
-    //#define GLOBAL_DIAG1_INT_PUSHPULL 0 // [0,1]
-    //#define GLOBAL_SMALL_HYSTERESIS   0 // [0,1]
-    //#define GLOBAL_STOP_ENABLE        0 // [0,1]
-    //#define GLOBAL_DIRECT_MODE        0 // [0,1]
-
-    /* VELOCITY-DEPENDENT DRIVE FEATURES */
-
-    #define GLOBAL_IHOLD             22 // [0-31] 0: min, 31: max
-    #define GLOBAL_IRUN              31 // [0-31] 0: min, 31: max
-    #define GLOBAL_IHOLDDELAY        15 // [0-15] 0: min, 15: about 4 seconds
-    //#define GLOBAL_TPOWERDOWN         0 // [0-255] 0: min, 255: about 4 seconds
-    //#define GLOBAL_TPWMTHRS           0 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
-    //#define GLOBAL_TCOOLTHRS          0 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
-    #define GLOBAL_THIGH             10 // [0-1048576] e.g. 20 corresponds with 2000 steps/s
-
-    /* SPI MODE CONFIGURATION */
-
-    //#define GLOBAL_XDIRECT            0
-
-    /* DCSTEP MINIMUM VELOCITY */
-
-    //#define GLOBAL_VDCMIN             0
-
-    /* MOTOR DRIVER CONFIGURATION*/
-
-    //#define GLOBAL_DEDGE              0
-    //#define GLOBAL_DISS2G             0
-    #define GLOBAL_INTPOL             1 // 0: off 1: 256 microstep interpolation
-    #define GLOBAL_MRES              16 // number of microsteps
-    #define GLOBAL_SYNC               1 // [0-15]
-    #define GLOBAL_VHIGHCHM           1 // [0,1] 0: normal, 1: high velocity stepper mode
-    #define GLOBAL_VHIGHFS            0 // [0,1] 0: normal, 1: switch to full steps for high velocities
-    // #define GLOBAL_VSENSE            0 // [0,1] 0: normal, 1: high sensitivity (not recommended)
-    #define GLOBAL_TBL                1 // 0-3: set comparator blank time to 16, 24, 36 or 54 clocks, 1 or 2 is recommended
-    #define GLOBAL_CHM                0 // [0,1] 0: spreadCycle, 1: Constant off time with fast decay time.
-    //#define GLOBAL_RNDTF              0
-    //#define GLOBAL_DISFDCC            0
-    //#define GLOBAL_FD                 0
-    //#define GLOBAL_HEND               0
-    //#define GLOBAL_HSTRT              0
-    #define GLOBAL_TOFF              10 // 0: driver disable, 1: use only with TBL>2, 2-15: off time setting during slow decay phase
-
-    //#define GLOBAL_SFILT              0
-    //#define GLOBAL_SGT                0
-    //#define GLOBAL_SEIMIN             0
-    //#define GLOBAL_SEDN               0
-    //#define GLOBAL_SEMAX              0
-    //#define GLOBAL_SEUP               0
-    //#define GLOBAL_SEMIN              0
-
-    //#define GLOBAL_DC_TIME            0
-    //#define GLOBAL_DC_SG              0
-
-    //#define GLOBAL_FREEWHEEL          0
-    //#define GLOBAL_PWM_SYMMETRIC      0
-    //#define GLOBAL_PWM_AUTOSCALE      0
-    //#define GLOBAL_PWM_FREQ           0
-    //#define GLOBAL_PWM_GRAD           0
-    //#define GLOBAL_PWM_AMPL           0
-
-    //#define GLOBAL_ENCM_CTRL          0
-
-  #else
-
-    #define X_IHOLD          31 // [0-31] 0: min, 31: max
-    #define X_IRUN           31 // [0-31] 0: min, 31: max
-    #define X_IHOLDDELAY     15 // [0-15] 0: min, 15: about 4 seconds
-    #define X_I_SCALE_ANALOG  1 // 0: Normal, 1: AIN
-    #define X_MRES           16 // number of microsteps
-    #define X_TBL             1 // 0-3: set comparator blank time to 16, 24, 36 or 54 clocks, 1 or 2 is recommended
-    #define X_TOFF            8 // 0: driver disable, 1: use only with TBL>2, 2-15: off time setting during slow decay phase
-
-    #define X2_IHOLD         31
-    #define X2_IRUN          31
-    #define X2_IHOLDDELAY    15
-    #define X2_I_SCALE_ANALOG 1
-    #define X2_MRES          16
-    #define X2_TBL            1
-    #define X2_TOFF           8
-
-    #define Y_IHOLD          31
-    #define Y_IRUN           31
-    #define Y_IHOLDDELAY     15
-    #define Y_I_SCALE_ANALOG  1
-    #define Y_MRES           16
-    #define Y_TBL             1
-    #define Y_TOFF            8
-
-    #define Y2_IHOLD         31
-    #define Y2_IRUN          31
-    #define Y2_IHOLDDELAY    15
-    #define Y2_I_SCALE_ANALOG 1
-    #define Y2_MRES          16
-    #define Y2_TBL            1
-    #define Y2_TOFF           8
-
-    #define Z_IHOLD          31
-    #define Z_IRUN           31
-    #define Z_IHOLDDELAY     15
-    #define Z_I_SCALE_ANALOG  1
-    #define Z_MRES           16
-    #define Z_TBL             1
-    #define Z_TOFF            8
-
-    #define Z2_IHOLD         31
-    #define Z2_IRUN          31
-    #define Z2_IHOLDDELAY    15
-    #define Z2_I_SCALE_ANALOG 1
-    #define Z2_MRES          16
-    #define Z2_TBL            1
-    #define Z2_TOFF           8
-
-    #define E0_IHOLD         31
-    #define E0_IRUN          31
-    #define E0_IHOLDDELAY    15
-    #define E0_I_SCALE_ANALOG 1
-    #define E0_MRES          16
-    #define E0_TBL            1
-    #define E0_TOFF           8
-
-    #define E1_IHOLD         31
-    #define E1_IRUN          31
-    #define E1_IHOLDDELAY    15
-    #define E1_I_SCALE_ANALOG 1
-    #define E1_MRES          16
-    #define E1_TBL            1
-    #define E1_TOFF           8
-
-    #define E2_IHOLD         31
-    #define E2_IRUN          31
-    #define E2_IHOLDDELAY    15
-    #define E2_I_SCALE_ANALOG 1
-    #define E2_MRES          16
-    #define E2_TBL            1
-    #define E2_TOFF           8
-
-    #define E3_IHOLD         31
-    #define E3_IRUN          31
-    #define E3_IHOLDDELAY    15
-    #define E3_I_SCALE_ANALOG 1
-    #define E3_MRES          16
-    #define E3_TBL            1
-    #define E3_TOFF           8
-
-  #endif // TMC2130_ADVANCED_CONFIGURATION
-#endif // HAVE_TMC2130DRIVER
+/**********************************************************************************
+ *********************** Trinamic TMC2130 motor drivers ***************************
+ **********************************************************************************
+ *                                                                                *
+ * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper      *
+ * drivers.                                                                       *
+ *                                                                                *
+ * You'll also need the TMC2130Stepper Arduino library                            *
+ * (https://github.com/teemuatlut/TMC2130Stepper).                                *
+ *                                                                                *
+ * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to        *
+ * the hardware SPI interface on your board and define the required CS pins       *
+ * in your `MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,       *
+ * Y_CS_PIN 49`, etc.).                                                           *
+ *                                                                                *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
+ *                                                                                *
+ **********************************************************************************/
+//#define HAVE_TMC2130
+/**********************************************************************************/
 
 
 /**********************************************************************************
@@ -1901,73 +1716,10 @@
  * Support for L6470 motor drivers                                                *
  * You need to import the L6470 library into the arduino IDE for this.            *
  *                                                                                *
+ * See Configuration_Motor_Driver.h for configuration stepper driver              *
+ *                                                                                *
  **********************************************************************************/
 //#define HAVE_L6470DRIVER
-
-#if ENABLED(HAVE_L6470DRIVER)
-
-  //#define X_IS_L6470
-  //#define X2_IS_L6470
-  //#define Y_IS_L6470
-  //#define Y2_IS_L6470
-  //#define Z_IS_L6470
-  //#define Z2_IS_L6470
-  //#define E0_IS_L6470
-  //#define E1_IS_L6470
-  //#define E2_IS_L6470
-  //#define E3_IS_L6470
-
-  #define X_MICROSTEPS      16 // number of microsteps
-  #define X_K_VAL           50 // 0 - 255, Higher values, are higher power. Be careful not to go too high
-  #define X_OVERCURRENT   2000 // maxc current in mA. If the current goes over this value, the driver will switch off
-  #define X_STALLCURRENT  1500 // current in mA where the driver will detect a stall
-
-  #define X2_MICROSTEPS     16
-  #define X2_K_VAL          50
-  #define X2_OVERCURRENT  2000
-  #define X2_STALLCURRENT 1500
-
-  #define Y_MICROSTEPS      16
-  #define Y_K_VAL           50
-  #define Y_OVERCURRENT   2000
-  #define Y_STALLCURRENT  1500
-
-  #define Y2_MICROSTEPS     16
-  #define Y2_K_VAL          50
-  #define Y2_OVERCURRENT  2000
-  #define Y2_STALLCURRENT 1500
-
-  #define Z_MICROSTEPS      16
-  #define Z_K_VAL           50
-  #define Z_OVERCURRENT   2000
-  #define Z_STALLCURRENT  1500
-
-  #define Z2_MICROSTEPS     16
-  #define Z2_K_VAL          50
-  #define Z2_OVERCURRENT  2000
-  #define Z2_STALLCURRENT 1500
-
-  #define E0_MICROSTEPS     16
-  #define E0_K_VAL          50
-  #define E0_OVERCURRENT  2000
-  #define E0_STALLCURRENT 1500
-
-  #define E1_MICROSTEPS     16
-  #define E1_K_VAL          50
-  #define E1_OVERCURRENT  2000
-  #define E1_STALLCURRENT 1500
-
-  #define E2_MICROSTEPS     16
-  #define E2_K_VAL          50
-  #define E2_OVERCURRENT  2000
-  #define E2_STALLCURRENT 1500
-
-  #define E3_MICROSTEPS     16
-  #define E3_K_VAL          50
-  #define E3_OVERCURRENT  2000
-  #define E3_STALLCURRENT 1500
-
-#endif
 /**********************************************************************************/  
 
 

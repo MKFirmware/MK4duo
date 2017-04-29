@@ -1,3 +1,29 @@
+### Version 4.3.19 dev
+* Algorithm based on Thinkyhead Marlin
+* Change the old command G30 A in G33 for Delta Autocalibration
+* Fix and Clear code
+
+### Version 4.3.18 dev
+* Add Power Check pin for Stop & Save
+* Add Probe Manually
+* Add LCD Bed Level (Requires MESH BED LEVELING or PROBE MANUALLY)
+* Add Probe Manually for DELTA bed level and Calibration 7 points
+* Add LCD_BED_LEVELING for Nextion
+* Upgrade Nextion Firmware
+* Clear code
+
+### Version 4.3.16 dev
+* Update Nextion firmware
+* Fix and clear code
+
+### Version 4.3.15 dev
+* Rewrite HAL ADC for 8 and 32 bit
+* Rewrite PID finction for 8 and 32 bit
+* Fix SOFTWARE ENDSTOP
+* Add Workspace offset
+* Fix MBL
+* Clear code
+
 ### Version 4.3.14 dev
 * Add TMC2130 motor driver
 * Add EEPROM on SDCARD (Ultratronics)

@@ -18,9 +18,14 @@
 *  G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
 *  G29 - Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
           G29   Fyyy Lxxx Rxxx Byyy for customer grid.
-*  G30 - Single Z Probe, probes bed at current XY location. Bed Probe and Delta geometry Autocalibration G30 A
+*  G30 - Single Z Probe, probes bed at current XY location.
 *  G31 - Dock Z Probe sled (if enabled)
 *  G32 - Undock Z Probe sled (if enabled)
+*  G33 - Delta geometry Autocalibration
+*        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
+*        P<npoints> V<nverbose> (Requires DELTA_AUTO_CALIBRATION_2)
+*        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
+*  G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
 *  G60 - Save current position coordinates (all axes, for active extruder).
           S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
 *  G61 - Apply/restore saved coordinates to the active extruder.
@@ -56,9 +61,33 @@
 *  M32  - Make directory
 *  M33  - Stop printing, close file and save restart.gcode
 *  M34  - Open file and start print
-*  M35  - Upload Firmware to Nextion from SD
+*  M35  - Upload Firmware to Nextion from SD (Requires NEXTION)
 *  M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
-*  M43  - Monitor pins & report changes - report active pins
+*  M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
+*
+*  M43         - report name and state of pin(s)
+*                  P<pin>  Pin to read or watch. If omitted, reads all pins.
+*                  I       Flag to ignore Marlin's pin protection.
+*
+*  M43 W       - Watch pins -reporting changes- until reset, click, or M108.
+*                  P<pin>  Pin to read or watch. If omitted, read/watch all pins.
+*                  I       Flag to ignore Marlin's pin protection.
+*
+*  M43 E<bool> - Enable / disable background endstop monitoring
+*                  - Machine continues to operate
+*                  - Reports changes to endstops
+*                  - Toggles LED when an endstop changes
+*                  - Can not reliably catch the 5mS pulse from BLTouch type probes
+*
+*  M43 T       - Toggle pin(s) and report which pin is being toggled
+*                  S<pin>  - Start Pin number.   If not given, will default to 0
+*                  L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
+*                  I       - Flag to ignore Marlin's pin protection.   Use with caution!!!!
+*                  R       - Repeat pulses on each pin this number of times before continueing to next pin
+*                  W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
+*
+*  M43 S       - Servo probe test
+*                  P<index> - Probe index (optional - defaults to 0
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -174,9 +203,24 @@
 *  M605 - Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 *  M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
 *  M666 - Set z probe offset or Endstop and delta geometry adjustment. M666 L for list command
-*  M906 - Set motor currents XYZ T0-4 E
-*  M907 - Set digital trimpot motor current using axis codes.
-*  M908 - Control digital trimpot directly.
+*  M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+*  M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+*         Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
+*  M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
+*  M908 - Control digital trimpot directly. (Requires DIGIPOTSS_PIN)
+*  M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+*  M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
+*  M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
+*  M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+*
+*  ************ SCARA Specific - This can change to suit future G-code regulations
+*  M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
+*  M361 - SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
+*  M362 - SCARA calibration: Move to cal-position PsiA (0 deg calibration)
+*  M363 - SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
+*  M364 - SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
+* ************* SCARA End ***************
+*
 *  M928 - Start SD logging (M928 filename.g) - ended by M29
 *  M995 - X Y Z Set origin for graphic in NEXTION
 *  M996 - S<scale> Set scale for graphic in NEXTION

@@ -91,10 +91,10 @@
 
 #define MSG_ENQUEUEING                      "enqueueing \""
 #define MSG_POWERUP                         "PowerUp"
-#define MSG_EXTERNAL_RESET                  " External Reset"
-#define MSG_BROWNOUT_RESET                  " Brown out Reset"
-#define MSG_WATCHDOG_RESET                  " Watchdog Reset"
-#define MSG_SOFTWARE_RESET                  " Software Reset"
+#define MSG_EXTERNAL_RESET                  "External Reset"
+#define MSG_BROWNOUT_RESET                  "Brown out Reset"
+#define MSG_WATCHDOG_RESET                  "Watchdog Reset"
+#define MSG_SOFTWARE_RESET                  "Software Reset"
 #define MSG_AUTHOR                          " | Author: "
 #define MSG_CONFIGURATION_VER               "Last Updated: "
 #define MSG_COMPILED                        "Compiled: "
@@ -142,6 +142,8 @@
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
 #define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
+#define MSG_DOOR_SENSOR                     "door: "
+#define MSG_POWER_CHECK_SENSOR              "power check: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
@@ -193,6 +195,11 @@
 
 #define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
 
+#define MSG_STOP_BLTOUCH                    "STOP called because of BLTouch error - restart with M999"
+#define MSG_STOP_UNHOMED                    "STOP called because of unhomed error - restart with M999"
+#define MSG_KILL_INACTIVE_TIME              "KILL caused by too much inactive time - current command: "
+#define MSG_KILL_BUTTON                     "KILL caused by KILL button/pin"
+
 #define MSG_MICROSTEP_MS1_MS2               "MS1,MS2 Pins"
 #define MSG_MICROSTEP_X                     "X:"
 #define MSG_MICROSTEP_Y                     "Y:"
@@ -229,16 +236,13 @@
 #define MSG_PID_DEBUG                       " PID_DEBUG "
 #define MSG_PID_DEBUG_INPUT                 ": Input "
 #define MSG_PID_DEBUG_OUTPUT                " Output "
-#define MSG_PID_DEBUG_PTERM                 " pTerm "
-#define MSG_PID_DEBUG_ITERM                 " iTerm "
-#define MSG_PID_DEBUG_DTERM                 " dTerm "
 #define MSG_PID_DEBUG_CTERM                 " cTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
 #define MSG_STOPPED_HEATER                  ", system stopped! Heater_ID: "
-#define MSG_STOPPED_BED                     ", system stopped! Bed"
-#define MSG_STOPPED_CHAMBER                 ", system stopped! Chamber"
-#define MSG_STOPPED_COOLER                  ", system stopped! Cooler"
+#define MSG_HEATER_BED                      "Bed"
+#define MSG_HEATER_CHAMBER                  "Chamber"
+#define MSG_HEATER_COOLER                   "Cooler"
 #define MSG_REDUNDANCY                      "Heater switched off. Temperature difference between temp sensors is too high !"
 #define MSG_T_HEATING_FAILED                "Heating failed"
 #define MSG_T_THERMAL_RUNAWAY               "Thermal Runaway"
@@ -308,7 +312,8 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_CN) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_TR)
+ && DISABLED(DISPLAY_CHARSET_ISO10646_TR) \
+ && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
 

@@ -90,32 +90,6 @@ enum EndstopEnum {
   E_MIN
 };
 
-/**
- * Temperature
- * Stages in the ISR loop
- */
-enum TempState {
-  PrepareTemp_0,
-  MeasureTemp_0,
-  PrepareTemp_BED,
-  MeasureTemp_BED,
-  PrepareTemp_1,
-  MeasureTemp_1,
-  PrepareTemp_2,
-  MeasureTemp_2,
-  PrepareTemp_3,
-  MeasureTemp_3,
-  PrepareTemp_CHAMBER,
-  MeasureTemp_CHAMBER,
-  PrepareTemp_COOLER,
-  MeasureTemp_COOLER,
-  Prepare_FILWIDTH,
-  Measure_FILWIDTH,
-  Prepare_POWCONSUMPTION,
-  Measure_POWCONSUMPTION,
-  StartupDelay // Startup, delay initial temp reading a tiny bit so the hardware can settle
-};
-
 #if ENABLED(EMERGENCY_PARSER)
   enum e_parser_state {
     state_RESET,
@@ -179,23 +153,6 @@ enum PrinterMode {
   PRINTER_MODE_LASER,
   PRINTER_MODE_CNC
 };
-
-#if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
-  enum MeshLevelingState {
-    MeshReport,
-    MeshStart,
-    MeshNext,
-    MeshSet,
-    MeshSetZOffset,
-    MeshReset
-  };
-
-  enum MBLStatus {
-    MBL_STATUS_NONE = 0,
-    MBL_STATUS_HAS_MESH_BIT = 0,
-    MBL_STATUS_ACTIVE_BIT = 1
-  };
-#endif
 
 /**
  * Ultra LCD

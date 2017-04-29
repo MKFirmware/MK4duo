@@ -20,11 +20,7 @@
  */
 
 /**
- * Look here for descriptions of G-codes:
- *  - http://linuxcnc.org/handbook/gcode/g-code.html
- *  - http://objects.reprap.org/wiki/Mendel_User_Manual:_RepRapGCodes
- *
- * Help us document these G-codes online:
+ * Help to document MK4duo's G-codes online:
  *  - http://reprap.org/wiki/G-code
  *  - https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/GCodes.md
  *
@@ -49,11 +45,14 @@
  * G27 - Nozzle Park
  * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
-   G29   Fyyy Lxxx Rxxx Byyy for customer grid.
+ *        Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
-         and Delta geometry Autocalibration
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
+ * G33 - Delta geometry Autocalibration
+ *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
+ *        P<npoints> V<nverbose> (Requires DELTA_AUTO_CALIBRATION_2)
+ *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
  * G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60 - Save current position coordinates (all axes, for active extruder).
  *        S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
@@ -93,7 +92,7 @@
  * M34  - Open file and start print
  * M35  - Upload Firmware to Nextion from SD
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
- * M43  - Monitor pins & report changes - report active pins
+ * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
  * M70  - Power consumption sensor calibration
  * M75  - Start the print job timer
@@ -129,8 +128,7 @@
  * M119 - Output Endstop status to serial port
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
- * M122 - S<1=true/0=false> Enable or disable check software endstop
- * M123 - Output Trinamic TMC2130 status to serial output. (Requires HAVE_TMC2130DRIVER)
+ * M122 - S<1=true|0=false> Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
@@ -216,9 +214,15 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
- * M906 - Set motor currents XYZ T0-4 E
- * M907 - Set digital trimpot motor current using axis codes.
- * M908 - Control digital trimpot directly.
+ * M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+ * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+ *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
+ * M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
+ * M908 - Control digital trimpot directly. (Requires DIGIPOTSS_PIN)
+ * M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+ * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
+ * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
+ * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
@@ -275,7 +279,7 @@
 
 #if ENABLED(HAVE_TMC2130DRIVER)
   #include <SPI.h>
-  #include <Trinamic_TMC2130.h>
+  #include <TMC2130Stepper.h>
 #endif
 
 #if ENABLED(HAVE_L6470DRIVER)

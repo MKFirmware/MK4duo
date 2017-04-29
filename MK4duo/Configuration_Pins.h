@@ -94,6 +94,7 @@
   #define E0_DIR_PIN        ORIG_E0_DIR_PIN
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
   #define E0_CS_PIN         ORIG_E0_CS_PIN
+  #define SOL0_PIN          -1
 #endif
 
 #if DRIVER_EXTRUDERS > 1
@@ -101,6 +102,7 @@
   #define E1_DIR_PIN        ORIG_E1_DIR_PIN
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define E1_CS_PIN         ORIG_E1_CS_PIN
+  #define SOL1_PIN          -1
 #endif
 
 #if DRIVER_EXTRUDERS > 2
@@ -108,6 +110,7 @@
   #define E2_DIR_PIN        ORIG_E2_DIR_PIN
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
   #define E2_CS_PIN         ORIG_E2_CS_PIN
+  #define SOL2_PIN          -1
 #endif
 
 #if DRIVER_EXTRUDERS > 3
@@ -115,6 +118,7 @@
   #define E3_DIR_PIN        ORIG_E3_DIR_PIN
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
   #define E3_CS_PIN         ORIG_E3_CS_PIN
+  #define SOL3_PIN          -1
 #endif
 
 #if DRIVER_EXTRUDERS > 4
@@ -122,6 +126,7 @@
   #define E4_DIR_PIN        ORIG_E4_DIR_PIN
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
   #define E4_CS_PIN         ORIG_E4_CS_PIN
+  #define SOL4_PIN          -1
 #endif
 
 #if DRIVER_EXTRUDERS > 5
@@ -129,6 +134,7 @@
   #define E5_DIR_PIN        ORIG_E5_DIR_PIN
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
   #define E5_CS_PIN         ORIG_E5_CS_PIN
+  #define SOL5_PIN          -1
 #endif
 
 // ENDSTOP pin
@@ -235,6 +241,10 @@
   #define DOOR_PIN -1
 #endif
 
+#if ENABLED(POWER_CHECK)
+  #define POWER_CHECK_PIN -1
+#endif
+
 #if ENABLED(CONTROLLERFAN)
   #define CONTROLLERFAN_PIN -1
 #endif
@@ -250,10 +260,11 @@
   #define SLED_PIN -1
 #endif
 
-#if ENABLED(RGB_LED)
+#if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
   #define RGB_LED_R_PIN -1
   #define RGB_LED_G_PIN -1
   #define RGB_LED_B_PIN -1
+  #define RGB_LED_W_PIN -1
 #endif
 
 //============================================================================

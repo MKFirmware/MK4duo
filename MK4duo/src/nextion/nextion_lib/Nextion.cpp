@@ -88,7 +88,7 @@ void NexObject::iterate(NexObject **list, uint8_t pid, uint8_t cid, int32_t even
  * FUNCTION FOR ALL OBJECT
  */
 
-void NexObject::show(void) {
+void NexObject::show() {
   String cmd;
   cmd += "page ";
   cmd += getObjName();
@@ -96,18 +96,11 @@ void NexObject::show(void) {
   recvRetCommandFinished();
 }
 
-void NexObject::enable(void) {
+void NexObject::enable(const bool en /* true */) {
   String cmd;
   cmd += getObjName();
-  cmd += ".en=1";
-  sendCommand(cmd.c_str());
-  recvRetCommandFinished();
-}
-
-void NexObject::disable(void) {
-  String cmd;
-  cmd += getObjName();
-  cmd += ".en=0";
+  cmd += ".en=";
+  cmd += en ? "1" : "0";
   sendCommand(cmd.c_str());
   recvRetCommandFinished();
 }
@@ -452,8 +445,8 @@ void NexObject::SetVisibility(bool visible) {
     _upload_baudrate = upload_baudrate;
   }
 
-  NexUpload::NexUpload(const String file_Name, uint32_t upload_baudrate) {
-    NexUpload(file_Name.c_str(), upload_baudrate);
+  NexUpload::NexUpload(const String file_name, uint32_t upload_baudrate) {
+    NexUpload(file_name.c_str(), upload_baudrate);
   }
 
   void NexUpload::startUpload(void) {
@@ -492,10 +485,10 @@ void NexObject::SetVisibility(bool visible) {
     SERIAL_EMT("Start checkFile ", _file_name);
     if (!card.selectFile(_file_name)) {
       SERIAL_LM(ER, "file is not exit");
-      return 0;
+      return false;
     }
     _unuploadByte = card.fileSize;
-    return 1;
+    return true;
   }
 
   bool NexUpload::_searchBaudrate(uint32_t baudrate) {
@@ -503,24 +496,14 @@ void NexObject::SetVisibility(bool visible) {
     nexSerial.end();
     HAL::delayMilliseconds(100);
     nexSerial.begin(baudrate);
-    this->sendCommand("");
-    this->sendCommand("connect");
+    sendCommand("");
+    sendCommand("connect");
     this->recvRetString(string);
 
     if(string.indexOf("comok") != -1)
-      return 1;
+      return true;
 
-    return 0;
-  }
-
-  void NexUpload::sendCommand(const char* cmd) {
-    while (nexSerial.available())
-      nexSerial.read();
-
-    nexSerial.print(cmd);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
+    return false;
   }
 
   uint16_t NexUpload::recvRetString(String &string, uint32_t timeout,bool recv_flag) {
@@ -555,15 +538,15 @@ void NexObject::SetVisibility(bool visible) {
     String baudrate_str = String(baudrate, 10);
     cmd = "whmi-wri " + filesize_str + "," + baudrate_str + ",0";
 
-    this->sendCommand("");
-    this->sendCommand(cmd.c_str());
+    sendCommand("");
+    sendCommand(cmd.c_str());
     HAL::delayMilliseconds(50);
     nexSerial.begin(baudrate);
     this->recvRetString(string, 500);
     if (string.indexOf(0x05) != -1)
-      return 1;
+      return true;
 
-    return 0;
+    return false;
   }
 
   bool NexUpload::_uploadTftFile(void) {
@@ -596,7 +579,7 @@ void NexObject::SetVisibility(bool visible) {
       if (string.indexOf(0x05) != -1)
         string = "";
       else
-        return 0;
+        return false;
 
       --send_timer;
     }
@@ -608,38 +591,26 @@ void NexObject::SetVisibility(bool visible) {
 // PUBBLIC FUNCTION
 //
 
-bool nexInit(void) {
-  bool ret1 = false;
-  bool ret2 = false;
+bool nexInit() {
 
   // Try default baudrate
-  dbSerialBegin(9600);
   nexSerial.begin(9600);
-  sendCommand("");
-  sendCommand("bkcmd=1");
-  ret1 = recvRetCommandFinished();
-  sendCommand("page 0");
-  ret2 = recvRetCommandFinished();
 
   // If baudrate is 9600 set to 115200 and reconnect
-  if (ret1 && ret2) {
+  if (nexSerial) {
     sendCommand("baud=115200");
     nexSerial.end();
     HAL::delayMilliseconds(1000);
     nexSerial.begin(115200);
-    return ret1 && ret2;
+    return true;
   }
   else { // Else try to 115200 baudrate
     nexSerial.end();
     HAL::delayMilliseconds(1000);
     nexSerial.begin(115200);
-    sendCommand("");
-    sendCommand("bkcmd=1");
-    ret1 = recvRetCommandFinished();
-    sendCommand("page 0");
-    ret2 = recvRetCommandFinished();
-    return ret1 && ret2;
+    if (nexSerial) return true;
   }
+  return false;
 }
 
 void nexLoop(NexObject *nex_listen_list[]) {
@@ -664,12 +635,12 @@ void nexLoop(NexObject *nex_listen_list[]) {
   }
 }
 
-void recvRetNumber(uint32_t *number, uint32_t timeout) {
+void recvRetNumber(uint32_t *number) {
   uint8_t temp[8] = {0};
 
   if (!number) return;
 
-  nexSerial.setTimeout(timeout);
+  nexSerial.setTimeout(NEX_TIMEOUT);
   if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
     return;
 
@@ -681,7 +652,7 @@ void recvRetNumber(uint32_t *number, uint32_t timeout) {
     *number = ((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]);
 }
 
-void recvRetString(char *buffer, uint16_t len, uint32_t timeout) {
+void recvRetString(char *buffer, uint16_t len) {
   uint16_t ret = 0;
   bool str_start_flag = false;
   uint8_t cnt_0xff = 0;
@@ -692,18 +663,18 @@ void recvRetString(char *buffer, uint16_t len, uint32_t timeout) {
   if (!buffer || len == 0) return;
 
   start = millis();
-  while (millis() - start <= timeout) {
+  while (millis() - start <= NEX_TIMEOUT) {
     while (nexSerial.available()) {
       c = nexSerial.read();
       if (str_start_flag) {
-        if (0xFF == c) {
+        if (c == 0xFF) {
           cnt_0xff++;                    
           if (cnt_0xff >= 3) break;
         }
         else
           temp += (char)c;
       }
-      else if (NEX_RET_STRING_HEAD == c)
+      else if (c == NEX_RET_STRING_HEAD)
         str_start_flag = true;
     }
   
@@ -716,29 +687,15 @@ void recvRetString(char *buffer, uint16_t len, uint32_t timeout) {
 }
 
 void sendCommand(const char* cmd) {
-  //while (nexSerial.available()) nexSerial.read();
-
+  while (nexSerial.available()) nexSerial.read();
   nexSerial.print(cmd);
   nexSerial.write(0xFF);
   nexSerial.write(0xFF);
   nexSerial.write(0xFF);
 }
 
-bool recvRetCommandFinished(uint32_t timeout) {    
-  bool ret = false;
-  uint8_t temp[4] = {0};
-
-  nexSerial.setTimeout(timeout);
-  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    ret = false;
-
-  if (temp[0] == NEX_RET_CMD_FINISHED
-      && temp[1] == 0xFF
-      && temp[2] == 0xFF
-      && temp[3] == 0xFF
-  ) ret = true;
-
-  return ret;
+void recvRetCommandFinished() {    
+  while (nexSerial.available()) nexSerial.read();
 }
 
 uint8_t Nextion_PageID() {
@@ -754,17 +711,6 @@ void setCurrentBrightness(uint8_t dimValue) {
   String cmd;
   utoa(dimValue, buf, 10);
   cmd += "dim=";
-  cmd += buf;
-  sendCommand(cmd.c_str());
-  HAL::delayMilliseconds(10);
-  recvRetCommandFinished();
-}
-
-void setDefaultBaudrate(uint32_t defaultBaudrate) {
-  char buf[10] = {0};
-  String cmd;
-  utoa(defaultBaudrate, buf, 10);
-  cmd += "bauds=";
   cmd += buf;
   sendCommand(cmd.c_str());
   HAL::delayMilliseconds(10);

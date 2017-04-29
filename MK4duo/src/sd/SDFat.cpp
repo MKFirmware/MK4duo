@@ -1237,7 +1237,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
 
     for(int8_t i = 0; i < 13; i++) {
       if (n+i > cbFilename)
-        *pName++ = 0xffff;
+        *pName++ = 0xFFFF;
       else
         *pName++ = (uint16_t)Filename[n + i];
       if (i == 4)
@@ -3475,10 +3475,10 @@ bool Sd2Card::setSckRate(uint8_t sckRateID) {
 
 //------------------------------------------------------------------------------
 // wait for card to go not busy
-bool Sd2Card::waitNotBusy(uint16_t timeoutMillis) {
-  uint16_t t0 = HAL::timeInMilliseconds();
+bool Sd2Card::waitNotBusy(uint32_t timeoutMillis) {
+  uint32_t t0 = HAL::timeInMilliseconds();
   while (spiRec() != 0XFF) {
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) >= timeoutMillis) goto fail;
+    if (((uint32_t)HAL::timeInMilliseconds() - t0) >= timeoutMillis) goto fail;
   }
   return true;
 

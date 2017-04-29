@@ -51,19 +51,19 @@ void ok_to_send();
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   extern int bilinear_grid_spacing[2], bilinear_start[2];
-  extern float bilinear_level_grid[ABL_GRID_POINTS_X][ABL_GRID_POINTS_Y];
-  float bilinear_z_offset(float logical[XYZ]);
+  extern float  bilinear_grid_factor[2],
+                z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+  float bilinear_z_offset(const float logical[XYZ]);
   void set_bed_leveling_enabled(bool enable=true);
-#endif
-
-#if ENABLED(ABL_BILINEAR_SUBDIVISION)
-  extern int bilinear_grid_spacing_virt[2];
-  extern void bed_level_virt_prepare();
-  extern void bed_level_virt_interpolate();
+  void refresh_bed_level();
 #endif
 
 #if PLANNER_LEVELING
   void reset_bed_level();
+#endif
+
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  extern void set_z_fade_height(const float zfh);
 #endif
 
 void kill(const char *);
@@ -89,9 +89,11 @@ extern long   currentLayer,
 extern char   printName[21]; // max. 20 chars + 0
 extern float  progress;
 
-bool enqueue_and_echo_command(const char* cmd, bool say_ok = false); // put a single ASCII command at the end of the current buffer or return false when it is full
-void enqueue_and_echo_command_now(const char* cmd); // enqueue now, only return when the command has been enqueued
-void enqueue_and_echo_commands_P(const char* cmd);  // put one or many ASCII commands at the end of the current buffer, read from flash
+// Count of commands in the queue
+extern uint8_t commands_in_queue;
+
+bool enqueue_and_echo_command(const char* cmd, bool say_ok = false);  // Add a single command to the end of the buffer. Return false on failure.
+void enqueue_and_echo_commands_P(const char* cmd);                    // Set one or more commands to be prioritized over the next Serial/SD command.
 void clear_command_queue();
 
 void prepare_arc_move(char isclockwise);
@@ -100,10 +102,6 @@ extern millis_t previous_cmd_ms;
 inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
-
-#if ENABLED(FAST_PWM_FAN) || ENABLED(FAST_PWM_COOLER) || ENABLED(FAST_PWM_CNCROUTER)
-  void setPwmFrequency(uint8_t pin, uint8_t val);
-#endif
 
 /**
  * Feedrate scaling and conversion
@@ -132,9 +130,8 @@ extern float destination[NUM_AXIS];
   extern float  position_shift[XYZ],
                 home_offset[XYZ],
                 workspace_offset[XYZ];
-
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + home_offset[AXIS] + position_shift[AXIS])
-  #define RAW_POSITION(POS, AXIS)     ((POS) - home_offset[AXIS] - position_shift[AXIS])
+  #define LOGICAL_POSITION(POS, AXIS) ((POS) + workspace_offset[AXIS])
+  #define RAW_POSITION(POS, AXIS)     ((POS) - workspace_offset[AXIS])
 #else
   #define LOGICAL_POSITION(POS, AXIS) (POS)
   #define RAW_POSITION(POS, AXIS)     (POS)
@@ -155,7 +152,7 @@ extern float hotend_offset[XYZ][HOTENDS];
 extern float soft_endstop_min[XYZ];
 extern float soft_endstop_max[XYZ];
 
-#if ENABLED(SOFTWARE_MIN_ENDSTOPS) || ENABLED(SOFTWARE_MAX_ENDSTOPS)
+#if HAS(SOFTWARE_ENDSTOPS)
   extern bool soft_endstops_enabled;
   void clamp_to_software_endstops(float target[XYZ]);
 #else
@@ -213,10 +210,6 @@ float code_value_temp_diff();
 
 #if FAN_COUNT > 0
   extern int fanSpeeds[FAN_COUNT];
-#endif
-
-#if HAS(CONTROLLERFAN)
-  extern uint8_t controllerFanSpeed;
 #endif
 
 #if HAS(AUTO_FAN)
@@ -323,20 +316,5 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
-
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
-  extern void *__brkval;
-  extern size_t  __heap_start, __heap_end, __flp;
-
-  //
-  // Utility functions used by M100 to get its work done.
-  //
-  unsigned char *top_of_stack();
-  void prt_hex_nibble( unsigned int );
-  void prt_hex_byte(unsigned int );
-  void prt_hex_word(unsigned int );
-  int how_many_E5s_are_here( unsigned char *);
-
-#endif
 
 #endif // _MK_MAIN_H
