@@ -7,8 +7,8 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "SMART RAMPS"
 
-#ifndef ARDUINO_ARCH_SAM
-  #error Oops! Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+#if !defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__) && !defined(ARDUINO_ARCH_SAM)
+  #error Oops! Make sure you have 'Arduino Due' or 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
 
 #define ORIG_X_STEP_PIN       54
@@ -55,3 +55,33 @@
 
 // SPI for Max6675 or Max31855 Thermocouple
 #define MAX6675_SS            66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+
+
+#if ENABLED(ULTRA_LCD)
+
+  #if ENABLED(AZSMZ_12864_LCD)  
+  
+	#define DOGLCD_SCK 		  -1	 
+	#define DOGLCD_MOSI		  -1
+
+	#ifdef ARDUINO_ARCH_SAM
+		#define DOGLCD_SCK 		  52	 
+		#define DOGLCD_MOSI		  51  
+	#endif
+	
+    #define DOGLCD_A0         59
+    #define DOGLCD_CS         44
+	#define LCD_SCREEN_ROT_180
+	#define DEFAULT_LCD_CONTRAST 59
+	
+    #define ORIG_BEEPER_PIN 66
+
+    #define BTN_EN1         40
+    #define BTN_EN2         58
+    #define BTN_ENC         67
+
+    #define SDSS              53
+    #define SD_DETECT_PIN     49 
+	
+	#endif
+#endif // ULTRA_LCD

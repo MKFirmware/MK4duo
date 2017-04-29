@@ -175,6 +175,12 @@
   // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller as well
   //U8GLIB_NHD_C12864 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
   U8GLIB_NHD_C12864_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
+#elif ENABLED(AZSMZ_12864_LCD) 
+  #if DOGLCD_MOSI != -1 && DOGLCD_SCK != -1 
+	U8GLIB_NHD_C12864 u8g(DOGLCD_SCK, DOGLCD_MOSI,DOGLCD_CS, DOGLCD_A0); 
+  #else	
+	U8GLIB_NHD_C12864 u8g(DOGLCD_CS, DOGLCD_A0); 
+  #endif
 #elif ENABLED(U8GLIB_SSD1306)
   // Generic support for SSD1306 OLED I2C LCDs
   //U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes

@@ -49,7 +49,7 @@
  *
  * Valid values are 0-3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
  */
-#define SERIAL_PORT 0
+#define SERIAL_PORT -1
 
 /**
  * This setting determines the communication speed of the printer.
@@ -112,7 +112,10 @@
  * See: https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/Hardware.md *
  *                                                                                       *
  *****************************************************************************************/
-#define MOTHERBOARD BOARD_RAMPS_13_HFB
+//#define MOTHERBOARD BOARD_RAMPS_13_HFB
+//#define MOTHERBOARD BOARD_RADDS
+#define MOTHERBOARD BOARD_SMART_RAMPS
+
 /*****************************************************************************************/
 
 

@@ -1090,7 +1090,7 @@
 /*****************************************************************************************
  *************************************** SDCARD *******************************************
  ****************************************************************************************/
-//#define SDSUPPORT
+#define SDSUPPORT
 
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
@@ -1326,6 +1326,11 @@
 //#define VIKI2
 //#define miniVIKI
 
+// AZSMZ 12864 LCD
+// http://azsmz.aliexpress.com
+//
+#define AZSMZ_12864_LCD
+
 // Adafruit ST7565 Full Graphic Controller.
 // https://github.com/eboston/Adafruit-ST7565-Full-Graphic-Controller/
 //
@@ -1432,7 +1437,7 @@
 // Nextion 4.3" HMI panel model NX4827T043_11
 //#define NEXTION
 // Define Serial it use
-#define NEXTION_SERIAL 1
+#define NEXTION_SERIAL 2
 // Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
 #define NEXTION_UPDATE_INTERVAL 3000
 // For GFX preview visualization enable NEXTION GFX
