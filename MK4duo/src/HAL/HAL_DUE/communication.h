@@ -58,6 +58,7 @@ class Com {
     static inline void print(double number) { printFloat(number, 6); }
     static inline void print(double number, uint8_t digits) { printFloat(number, digits); }
     static inline void println() { HAL::serialWriteByte('\r'); HAL::serialWriteByte('\n'); }
+    static inline void print_spaces(uint8_t count) { while (count--) HAL::serialWriteByte(' '); }
 
   protected:
   private:
@@ -95,6 +96,8 @@ class Com {
 #define SERIAL_V(val, ...)                  (Com::print(val, ## __VA_ARGS__))
 #define SERIAL_C(c)                         (Com::print(c))
 #define SERIAL_E                            (Com::println())
+
+#define SERIAL_SP(C)                        (Com::print_spaces(C))
 
 #define SERIAL_MT(msg, txt)                 do{ SERIAL_M(msg); SERIAL_T(txt); }while(0)
 #define SERIAL_MV(msg, val, ...)            do{ SERIAL_M(msg); SERIAL_V(val, ## __VA_ARGS__); }while(0)

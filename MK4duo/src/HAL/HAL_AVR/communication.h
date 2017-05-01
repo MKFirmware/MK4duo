@@ -51,6 +51,8 @@ FORCE_INLINE void serialprintPGM(const char* str) {
   while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);
 }
 
+FORCE_INLINE void serial_spaces(uint8_t count) { while (count--) MKSERIAL.write(' '); }
+
 #define SERIAL_PS(message)                  (serialprintPGM(message))
 #define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
 
@@ -60,6 +62,8 @@ FORCE_INLINE void serialprintPGM(const char* str) {
 #define SERIAL_V(val, ...)                  (serial_print(val, ## __VA_ARGS__))
 #define SERIAL_C(c)                         SERIAL_WRITE(c)
 #define SERIAL_E                            SERIAL_WRITE('\n')
+
+#define SERIAL_SP(C)                        serial_spaces(C)
 
 #define SERIAL_MT(msg, txt)                 (serial_print_pair(PSTR(msg), txt))
 #define SERIAL_MV(msg, val, ...)            (serial_print_pair(PSTR(msg), val, ## __VA_ARGS__))
