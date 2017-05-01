@@ -233,7 +233,7 @@
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Daha Akit")                                          // Daha Akit
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Baskiyi sürdür")                                     // Baskiyi sürdür
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Min. Sicaklik")                                      // Min. Sicaklik:
-#define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozül: ")                                          //   Nozül: 
+#define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozül: ")                                          //   Nozül:
 
 #if LCD_HEIGHT >= 4
   // Up to 3 lines allowed
