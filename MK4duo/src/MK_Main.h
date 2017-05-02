@@ -58,6 +58,10 @@ void ok_to_send();
   void refresh_bed_level();
 #endif
 
+#if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
+  extern void mesh_probing_done();
+#endif
+
 #if HAS(LEVELING)
   void reset_bed_level();
 #endif

@@ -1481,9 +1481,9 @@ void kill_screen(const char* lcd_msg) {
           // Enable leveling, if needed
           #if ENABLED(MESH_BED_LEVELING)
 
+            lcd_synchronize();
             mbl.set_has_mesh(true);
-            mbl.set_reactivate(true);
-            enqueue_and_echo_commands_P(PSTR("G28"));
+            mesh_probing_done();
 
           #elif ENABLED(PROBE_MANUALLY)
 

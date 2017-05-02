@@ -42,6 +42,7 @@ class Com {
     FSTRINGVAR(tPauseCommunication)       // command for host that support action
     FSTRINGVAR(tContinueCommunication)    // command for host that support action
     FSTRINGVAR(tDisconnectCommunication)  // command for host that support action
+    FSTRINGVAR(tRequestPauseCommunication)// command for host that support action
 
     static void printInfoLN(FSTRINGPARAM(text));
     static void PS_PGM(FSTRINGPARAM(text));
@@ -64,23 +65,24 @@ class Com {
   private:
 };
 
-#define START       Com::tStart
-#define OK          Com::tOk
-#define OKSPACE     Com::tOkSpace
-#define ER          Com::tError
-#define WT          Com::tWait
-#define ECHO        Com::tEcho
-#define CFG         Com::tConfig
-#define CAP         Com::tCap
-#define INFO        Com::tInfo
-#define BUSY        Com::tBusy
-#define RESEND      Com::tResend
-#define WARNING     Com::tWarning
-#define TNAN        Com::tNAN
-#define TINF        Com::tINF
-#define PAUSE       Com::tPauseCommunication
-#define RESUME      Com::tContinueCommunication
-#define DISCONNECT  Com::tDisconnectCommunication
+#define START           Com::tStart
+#define OK              Com::tOk
+#define OKSPACE         Com::tOkSpace
+#define ER              Com::tError
+#define WT              Com::tWait
+#define ECHO            Com::tEcho
+#define CFG             Com::tConfig
+#define CAP             Com::tCap
+#define INFO            Com::tInfo
+#define BUSY            Com::tBusy
+#define RESEND          Com::tResend
+#define WARNING         Com::tWarning
+#define TNAN            Com::tNAN
+#define TINF            Com::tINF
+#define PAUSE           Com::tPauseCommunication
+#define RESUME          Com::tContinueCommunication
+#define DISCONNECT      Com::tDisconnectCommunication
+#define REQUEST_PAUSE   Com::tRequestPauseCommunication
 
 #define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
 #define SERIAL_WRITE(v)                     (Com::print(v))
