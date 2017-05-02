@@ -258,8 +258,6 @@ PrintCounter print_job_counter = PrintCounter();
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
 #endif
 
-#define PLANNER_XY_FEEDRATE() (min(planner.max_feedrate_mm_s[X_AXIS], planner.max_feedrate_mm_s[Y_AXIS]))
-
 #if HAS(ABL)
   int xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
@@ -1739,26 +1737,24 @@ static void clean_up_after_endstop_or_probe_move() {
   }
 #endif // HAS_BED_PROBE
 
-#if ENABLED(Z_PROBE_ALLEN_KEY) || HAS(Z_PROBE_SLED) || HAS(PROBING_PROCEDURE) || HOTENDS > 1 || ENABLED(NOZZLE_CLEAN_FEATURE) || ENABLED(NOZZLE_PARK_FEATURE)
-  static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
-    const bool  xx = x && !axis_homed[X_AXIS],
-                yy = y && !axis_homed[Y_AXIS],
-                zz = z && !axis_homed[Z_AXIS];
-    if (xx || yy || zz) {
-      SERIAL_SM(ECHO, MSG_HOME " ");
-      if (xx) SERIAL_M(MSG_X);
-      if (yy) SERIAL_M(MSG_Y);
-      if (zz) SERIAL_M(MSG_Z);
-      SERIAL_EM(" " MSG_FIRST);
+static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
+  const bool  xx = x && !axis_homed[X_AXIS],
+              yy = y && !axis_homed[Y_AXIS],
+              zz = z && !axis_homed[Z_AXIS];
+  if (xx || yy || zz) {
+    SERIAL_SM(ECHO, MSG_HOME " ");
+    if (xx) SERIAL_M(MSG_X);
+    if (yy) SERIAL_M(MSG_Y);
+    if (zz) SERIAL_M(MSG_Z);
+    SERIAL_EM(" " MSG_FIRST);
 
-      #if ENABLED(ULTRA_LCD)
-        lcd_status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
-      #endif
-      return true;
-    }
-    return false;
+    #if ENABLED(ULTRA_LCD)
+      lcd_status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
+    #endif
+    return true;
   }
-#endif
+  return false;
+}
 
 #if HAS(Z_PROBE_SLED)
 
@@ -2163,7 +2159,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
 #endif // HAS(BED_PROBE)
 
-#if PLANNER_LEVELING
+#if HAS(LEVELING)
   /**
    * Turn bed leveling on or off, fixing the current
    * position as-needed.
@@ -2267,7 +2263,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #endif
   }
 
-#endif // PLANNER_LEVELING
+#endif // HAS(LEVELING)
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
@@ -3927,7 +3923,7 @@ inline void gcode_G4() {
    * A delta can only safely home all axes at the same time
    * This is like quick_home_xy() but for 3 towers.
    */
-  inline void home_delta(bool safe_home = true) {
+  inline void home_delta() {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> home_delta", current_position);
@@ -3964,7 +3960,8 @@ inline void gcode_G4() {
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      if (safe_home) do_blocking_move_to_z(deltaParams.clip_start_height);
+      do_blocking_move_to_z(deltaParams.clip_start_height);
+      stepper.synchronize();
     #endif
 
   }
@@ -4105,11 +4102,7 @@ inline void gcode_G4() {
  *  B   Return to back point
  *
  */
-inline void gcode_G28(
-    #if MECH(DELTA)
-      bool safe_home = true
-    #endif
-  ) {
+inline void gcode_G28() {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -4138,7 +4131,7 @@ inline void gcode_G28(
   #endif
 
   // Disable the leveling matrix before homing
-  #if PLANNER_LEVELING
+  #if HAS(LEVELING)
     set_bed_leveling_enabled(false);
   #endif
 
@@ -4192,7 +4185,7 @@ inline void gcode_G28(
      * A delta can only safely home all axis at the same time
      */
 
-    home_delta(safe_home);
+    home_delta();
 
   #else // NOT DELTA
 
@@ -4374,6 +4367,8 @@ inline void gcode_G28(
     if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
   #endif
 }
+
+void home_all_axes() { gcode_G28(); }
 
 #if HAS(PROBING_PROCEDURE)
   void out_of_range_error(const char* p_edge) {
@@ -4700,7 +4695,7 @@ inline void gcode_G28(
 
     #if MECH(DELTA)
       // Homing
-      gcode_G28(false);
+      home_all_axes();
 
       #if ENABLED(PROBE_MANUALLY)
         if (!g29_in_progress)
@@ -4837,7 +4832,7 @@ inline void gcode_G28(
 
       #endif
 
-      #if PLANNER_LEVELING
+      #if HAS(LEVELING)
 
         if (code_seen('J')) {
           reset_bed_level();
@@ -5493,22 +5488,17 @@ inline void gcode_G28(
    *      U = <bool> with a non-zero value will apply the result to current zprobe_zoffset (ONLY DELTA)
    */
   inline void gcode_G30() {
-
     const float xpos = code_seen('X') ? code_value_linear_units() : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
                 ypos = code_seen('Y') ? code_value_linear_units() : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE,
                 pos[XYZ] = { xpos, ypos, LOGICAL_Z_POSITION(0) };
 
-    #if MECH(DELTA)
-      // Homing
-      gcode_G28(false);
+    // Don't allow G30 without homing first
+    if (axis_unhomed_error(true, true, true)) return;
 
-      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-    #else
-      if (!position_is_reachable(pos, true)) return;
-    #endif
+    if (!position_is_reachable(pos, true)) return;
 
     // Disable leveling so the planner won't mess with us
-    #if PLANNER_LEVELING
+    #if HAS(LEVELING)
       set_bed_leveling_enabled(false);
     #endif
 
@@ -5617,7 +5607,8 @@ inline void gcode_G28(
       if (!g33_in_progress) {
 
         // Homing
-        gcode_G28(false);
+        home_all_axes();
+
         do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
         stepper.synchronize();  // wait until the machine is idle
 
@@ -5706,7 +5697,8 @@ inline void gcode_G28(
     #else
 
       // Homing
-      gcode_G28(false);
+      home_all_axes();
+
       do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
       stepper.synchronize();  // wait until the machine is idle
 
@@ -5881,7 +5873,7 @@ inline void gcode_G28(
     SERIAL_E;
 
     // Homing
-    gcode_G28();
+    home_all_axes();
 
     #if HAS(NEXTION_MANUAL_BED)
       LcdBedLevelOff();
@@ -5895,30 +5887,34 @@ inline void gcode_G28(
 
   /**
    * G33: Delta AutoCalibration Algorithm based on Thinkyhead Marlin
+   *       Calibrate height, endstops, delta radius, and tower angles.
    *
-   * Usage:
-   *   G33 <Vn> <Pn> <A> <O> <T>
+   * Parameters:
    *
-   *     Vn = verbose level (n=0-2 default 1)
-   *          n=0 dry-run mode: setting + probe results / no calibration
-   *          n=1 settings 
-   *          n=2 setting + probe results 
-   *     Pn = n=-7 -> +7 : n*n probe points
-   *          calibrates height ('1 point'), endstops, and delta radius ('4 points') 
-   *          and tower angles with n > 2 ('7+ points')
-   *          n=1  probes center / sets height only
-   *          n=2  probes center and towers / sets height, endstops and delta radius
-   *          n=3  probes all points: center, towers and opposite towers / sets all
-   *          n>3  probes all points multiple times and averages
-   *     A  = abort 1 point delta height calibration after 1 probe
-   *     O  = use oposite tower points instead of tower points with 4 point calibration
-   *     T  = do not calibrate tower angles with 7+ point calibration
+   *   P  Number of probe points:
+   *
+   *      P1     Probe center and set height only.
+   *      P2     Probe center and towers. Set height, endstops, and delta radius.
+   *      P3     Probe all positions: center, towers and opposite towers. Set all.
+   *      P4-P7  Probe all positions at different locations and average them.
+   *
+   *   A  Abort delta height calibration after 1 probe (only P1)
+   *
+   *   O  Use opposite tower points instead of tower points (only P2)
+   *
+   *   T  Don't calibrate tower angle corrections (P3-P7)
+   *
+   *   V  Verbose level:
+   *
+   *      V0  Dry-run mode. Report settings and probe results. No calibration.
+   *      V1  Report settings
+   *      V2  Report settings and probe results
    */
   inline void gcode_G33() {
 
     stepper.synchronize();
 
-    #if PLANNER_LEVELING
+    #if HAS(LEVELING)
       set_bed_leveling_enabled(false);
     #endif
 
@@ -5934,7 +5930,7 @@ inline void gcode_G28(
     if (!WITHIN(verbose_level, 0, 2)) verbose_level = 1;
 
     // Homing
-    gcode_G28(false);
+    home_all_axes();
 
     float test_precision,
           zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
@@ -5984,7 +5980,7 @@ inline void gcode_G28(
     }
     SERIAL_E;
     if (probe_mode > 2) { // negative disables tower angles
-      SERIAL_M(".Tower angle :    Tx:");
+      SERIAL_M(".Tower angle:     Tx:");
       if (deltaParams.tower_radius_adj[A_AXIS] >= 0) SERIAL_C('+');
       SERIAL_V(deltaParams.tower_radius_adj[A_AXIS], 2);
       SERIAL_M("  Ty:");
@@ -6086,7 +6082,7 @@ inline void gcode_G28(
         #define Z0444(I) ZP(a_factor * 4.0 / 9.0, I)
         #define Z0888(I) ZP(a_factor * 8.0 / 9.0, I)
 
-        switch (probe_points) {
+        switch (probe_mode) {
           case -1:
             test_precision = 0.00;
           case 1:
@@ -6189,7 +6185,7 @@ inline void gcode_G28(
           if (iterations < 31)
             sprintf_P(mess, PSTR("Iteration:%02i"), (int)iterations);
           SERIAL_T(mess);
-          SERIAL_SP(36);
+          SERIAL_SP(38);
           SERIAL_M("std dev:");
           SERIAL_V(zero_std_dev, 3);
           SERIAL_E;
@@ -6210,7 +6206,7 @@ inline void gcode_G28(
         }
         SERIAL_E;
         if (probe_mode > 2) { // negative disables tower angles
-          SERIAL_M(".Tower angle :    Tx:");
+          SERIAL_M(".Tower angle:     Tx:");
           if (deltaParams.tower_radius_adj[A_AXIS] >= 0) SERIAL_C('+');
           SERIAL_V(deltaParams.tower_radius_adj[A_AXIS], 2);
           SERIAL_M("  Ty:");
@@ -6244,7 +6240,7 @@ inline void gcode_G28(
       stepper.synchronize();
 
       // Homing
-      gcode_G28(false);
+      home_all_axes();
 
     } while (zero_std_dev < test_precision && iterations < 31);
 
@@ -6266,7 +6262,7 @@ inline void gcode_G28(
   inline void gcode_G33() {
 
     // Homing
-    gcode_G28(false);
+    home_all_axes();
 
     do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
 
@@ -6392,7 +6388,7 @@ inline void gcode_G28(
           if (fix_tower_errors() != 0 ) {
             // Tower positions have been changed .. home to endstops
             SERIAL_EM("Tower Positions changed .. Homing");
-            gcode_G28(false);
+            home_all_axes();
             do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
           }
           else {
@@ -6400,7 +6396,7 @@ inline void gcode_G28(
             if (adj_diagrod_length() != 0) { 
               // If diagonal rod length has been changed .. home to endstops
               SERIAL_EM("Diagonal Rod Length changed .. Homing");
-              gcode_G28(false);
+              home_all_axes();
               do_probe_raise(_Z_PROBE_DEPLOY_HEIGHT);
             }
           }
@@ -7969,7 +7965,14 @@ inline void gcode_M115() {
       SERIAL_LM(CAP, "Z_PROBE:0");
     #endif
 
-    // SOFTWARE_POWER (G30)
+    // MESH_REPORT (M320 V, M420 V)
+    #if HAS(LEVELING)
+      SERIAL_LM(CAP, "LEVELING_DATA:1");
+    #else
+      SERIAL_LM(CAP, "LEVELING_DATA:0");
+    #endif
+
+    // SOFTWARE_POWER (M80)
     #if HAS(POWER_SWITCH)
       SERIAL_LM(CAP, "SOFTWARE_POWER:1");
     #else
@@ -11628,10 +11631,10 @@ void process_next_command() {
       case 28: //G28: Home all axes, one at a time
         gcode_G28(); break;
 
-      #if PLANNER_LEVELING
+      #if HAS(LEVELING)
         case 29: // G29 Detailed Z probe, probes the bed at 3 or more points.
           gcode_G29(); break;
-      #endif // PLANNER_LEVELING
+      #endif // HAS(LEVELING)
 
       #if HAS(BED_PROBE)
         case 30: // G30 Single Z Probe
@@ -12951,7 +12954,7 @@ void get_cartesian_from_steppers() {
  */
 void set_current_from_steppers_for_axis(const AxisEnum axis) {
   get_cartesian_from_steppers();
-  #if PLANNER_LEVELING
+  #if HAS(LEVELING)
     planner.unapply_leveling(cartes);
   #endif
   if (axis == ALL_AXES)
@@ -14447,9 +14450,10 @@ void setup() {
   #endif
 
   #if ENABLED(BLTOUCH)
-    bltouch_command(BLTOUCH_RESET);    // Just in case the BLTouch is in the error state, try to
-    set_bltouch_deployed(true);        // reset it. Also needs to deploy and stow to clear the
-    set_bltouch_deployed(false);       // error condition.
+    // Make sure any BLTouch error condition is cleared
+    bltouch_command(BLTOUCH_RESET);
+    set_bltouch_deployed(true);
+    set_bltouch_deployed(false);
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
@@ -14457,7 +14461,7 @@ void setup() {
   #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    gcode_G28();
+    home_all_axes();
   #endif
 
 }

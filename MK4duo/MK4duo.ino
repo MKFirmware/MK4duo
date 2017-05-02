@@ -51,7 +51,7 @@
  * G32 - Undock sled (Z_PROBE_SLED only)
  * G33 - Delta geometry Autocalibration
  *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
- *        P<npoints> V<nverbose> (Requires DELTA_AUTO_CALIBRATION_2)
+ *        P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
  *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
  * G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60 - Save current position coordinates (all axes, for active extruder).
