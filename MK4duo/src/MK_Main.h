@@ -58,7 +58,7 @@ void ok_to_send();
   void refresh_bed_level();
 #endif
 
-#if PLANNER_LEVELING
+#if HAS(LEVELING)
   void reset_bed_level();
 #endif
 

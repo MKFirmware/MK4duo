@@ -193,7 +193,7 @@ void EEPROM::Postprocess() {
     LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
   #endif
 
-  #if PLANNER_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  #if HAS(LEVELING) && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     set_z_fade_height(planner.z_fade_height);
   #endif
   
@@ -981,7 +981,7 @@ void EEPROM::Factory_Settings() {
     ZERO(home_offset);
   #endif
 
-  #if PLANNER_LEVELING
+  #if HAS(LEVELING)
     reset_bed_level();
   #endif
 

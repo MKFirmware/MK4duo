@@ -252,7 +252,7 @@ class Planner {
 
     static bool is_full() { return (block_buffer_tail == BLOCK_MOD(block_buffer_head + 1)); }
 
-    #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+    #if HAS(LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
       #define ARG_X float lx
       #define ARG_Y float ly
       #define ARG_Z float lz
@@ -262,7 +262,7 @@ class Planner {
       #define ARG_Z const float &lz
     #endif
 
-    #if PLANNER_LEVELING
+    #if HAS(LEVELING)
 
       /**
        * Apply leveling to transform a cartesian position
@@ -305,7 +305,7 @@ class Planner {
      *  driver      - target driver
      */
     static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING && IS_CARTESIAN
+      #if HAS(LEVELING) && IS_CARTESIAN
         apply_leveling(lx, ly, lz);
       #endif
       _buffer_line(lx, ly, lz, e, fr_mm_s, extruder, driver);
@@ -322,9 +322,9 @@ class Planner {
      *  driver   - target driver
      */
     static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+      #if HAS(LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if PLANNER_LEVELING
+        #if HAS(LEVELING)
           apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)
@@ -361,7 +361,7 @@ class Planner {
      * Clears previous speed values.
      */
     static FORCE_INLINE void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-      #if PLANNER_LEVELING && IS_CARTESIAN
+      #if HAS(LEVELING) && IS_CARTESIAN
         apply_leveling(lx, ly, lz);
       #endif
       _set_position_mm(lx, ly, lz, e);
@@ -493,6 +493,8 @@ class Planner {
     static void recalculate();
 
 };
+
+#define PLANNER_XY_FEEDRATE() (min(planner.max_feedrate_mm_s[X_AXIS], planner.max_feedrate_mm_s[Y_AXIS]))
 
 extern Planner planner;
 
