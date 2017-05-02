@@ -40,6 +40,7 @@
 #define PAUSE           "//action:pause"      // command for host that support action
 #define RESUME          "//action:resume"     // command for host that support action
 #define DISCONNECT      "//action:disconnect" // command for host that support action
+#define REQUEST_PAUSE   "RequestPause:"       // command for host that support action
 
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 #define SERIAL_WRITE(v)                     (MKSERIAL.write(v))

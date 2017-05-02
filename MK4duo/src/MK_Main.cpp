@@ -4303,21 +4303,6 @@ inline void gcode_G28() {
 
   endstops.not_homing();
 
-  // Enable mesh leveling again
-  #if ENABLED(MESH_BED_LEVELING)
-    if (mbl.reactivate()) {
-      set_bed_leveling_enabled(true);
-      if (home_all_axis || (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && homeZ)) {
-        #if ENABLED(MESH_G28_REST_ORIGIN)
-          current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
-          set_destination_to_current();
-          line_to_destination(homing_feedrate_mm_s[Z_AXIS]);
-          stepper.synchronize();
-        #endif
-      }
-    }
-  #endif
-
   if (come_back) {
     #if MECH(DELTA)
       feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
@@ -4432,6 +4417,18 @@ void home_all_axes() { gcode_G28(); }
     );
   }
 
+  void mesh_probing_done() {
+    mbl.set_has_mesh(true);
+    home_all_axes();
+    set_bed_leveling_enabled(true);
+    #if ENABLED(MESH_G28_REST_ORIGIN)
+      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
+      set_destination_to_current();
+      line_to_destination(homing_feedrate_mm_s[Z_AXIS]);
+      stepper.synchronize();
+    #endif
+  }
+
   /**
    * G29: Mesh-based Z probe, probes a grid and produces a
    *      mesh to compensate for variable bed height
@@ -4523,13 +4520,11 @@ void home_all_axes() { gcode_G28(); }
           stepper.synchronize();
 
           // After recording the last point, activate the mbl and home
-          SERIAL_EM("Mesh probing done.");
           mbl_probe_index = -1;
-          mbl.set_has_mesh(true);
-          mbl.set_reactivate(true);
-          enqueue_and_echo_commands_P(PSTR("G28"));
+          SERIAL_EM("Mesh probing done.");
           BUZZ(100, 659);
           BUZZ(100, 698);
+          mesh_probing_done();
         }
         break;
 
@@ -4834,6 +4829,7 @@ void home_all_axes() { gcode_G28(); }
 
       #if HAS(LEVELING)
 
+        // Jettison bed leveling data
         if (code_seen('J')) {
           reset_bed_level();
           return;
@@ -6831,6 +6827,7 @@ inline void gcode_M17() {
    */
   inline void gcode_M25() {
     card.pauseSDPrint();
+    SERIAL_LM(REQUEST_PAUSE, "SD pause");
   }
 
   /**
@@ -7292,8 +7289,8 @@ inline void gcode_M42() {
       return;
     }
 
-    float  X_current = current_position[X_AXIS],
-           Y_current = current_position[Y_AXIS];
+    float X_current = current_position[X_AXIS],
+          Y_current = current_position[Y_AXIS];
 
     bool stow_probe_after_each = code_seen('E');
 
@@ -7339,8 +7336,12 @@ inline void gcode_M42() {
       SERIAL_EM("Positioning the probe...");
 
     // Disable bed level correction in M48 because we want the raw data when we probe
-    #if HAS(ABL)
-      const bool abl_was_enabled = planner.abl_enabled;
+    #if HAS(LEVELING)
+      #if ENABLED(MESH_BED_LEVELING)
+        const bool abl_was_enabled = mbl.active();
+      #else
+        const bool abl_was_enabled = planner.abl_enabled;
+      #endif
       set_bed_leveling_enabled(false);
     #endif
 
@@ -7478,8 +7479,8 @@ inline void gcode_M42() {
 
     clean_up_after_endstop_or_probe_move();
 
-    // Re-enable bed level correction if it has been on
-    #if HAS(ABL)
+    // Re-enable bed level correction if it had been on
+    #if HAS(LEVELING)
       set_bed_leveling_enabled(abl_was_enabled);
     #endif
 
@@ -13673,6 +13674,7 @@ static void report_current_position() {
     if (!filament_ran_out) {
       filament_ran_out = true;
       enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+      SERIAL_LM(REQUEST_PAUSE, "End Filament detect!");
       stepper.synchronize();
     }
   }
