@@ -5908,22 +5908,36 @@ void home_all_axes() { gcode_G28(); }
    */
   inline void gcode_G33() {
 
-    stepper.synchronize();
+    const int8_t probe_points = code_seen('P') ? code_value_int() : 4;
+    if (!WITHIN(probe_points, 1, 7)) {
+      SERIAL_EM("?(P)oints is implausible (1 to 7).");
+      return;
+    }
+
+    const int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
+    if (!WITHIN(verbose_level, 0, 2)) {
+      SERIAL_EM("?(V)erbose Level is implausible (0-2).");
+      return;
+    }
+
+    const bool do_height_only       = probe_points == 1,
+               do_center_and_towers = probe_points == 2,
+               do_all_positions     = probe_points == 3,
+               do_circle_x2         = probe_points == 5,
+               do_circle_x3         = probe_points == 6,
+               do_circle_x4         = probe_points == 7,
+               probe_center_plus_3  = probe_points >= 3,
+               point_averaging      = probe_points >= 4,
+               probe_center_plus_6  = probe_points >= 5;
+
+    const char negating_parameter = do_height_only ? 'A' : do_center_and_towers ? 'O' : 'T';
+    int8_t probe_mode = code_seen(negating_parameter) && code_value_bool() ? -probe_points : probe_points;
+
+    SERIAL_EM("G33 Auto Calibrate");
 
     #if HAS(LEVELING)
       set_bed_leveling_enabled(false);
     #endif
-
-    int8_t  pp = code_seen('P') ? code_value_int() : 4,
-            probe_mode = (WITHIN(pp, 1, 7)) ? pp : 4;
-
-    probe_mode = (code_seen('A') && probe_mode == 1 ? -probe_mode : probe_mode);
-    probe_mode = (code_seen('O') && probe_mode == 2 ? -probe_mode : probe_mode);
-    probe_mode = (code_seen('T') && probe_mode > 2 ? -probe_mode : probe_mode);
-
-    int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
-
-    if (!WITHIN(verbose_level, 0, 2)) verbose_level = 1;
 
     // Homing
     home_all_axes();
@@ -5939,30 +5953,16 @@ void home_all_axes() { gcode_G28(); }
           zh_old = deltaParams.base_max_pos[C_AXIS],
           alpha_old = deltaParams.tower_radius_adj[A_AXIS],
           beta_old = deltaParams.tower_radius_adj[B_AXIS];
-    int8_t  iterations = 0,
-            probe_points = abs(probe_mode);
-    const bool  pp_equals_1 = (probe_points == 1),
-                pp_equals_2 = (probe_points == 2),
-                pp_equals_3 = (probe_points == 3),
-                pp_equals_4 = (probe_points == 4),
-                pp_equals_5 = (probe_points == 5),
-                pp_equals_6 = (probe_points == 6),
-                pp_equals_7 = (probe_points == 7),
-                pp_greather_2 = (probe_points > 2),
-                pp_greather_3 = (probe_points > 3),
-                pp_greather_4 = (probe_points > 4),
-                pp_greather_5 = (probe_points > 5);
 
     // print settings
 
-    SERIAL_EM("G33 Auto Calibrate");
     SERIAL_M("Checking... AC");
     if (verbose_level == 0) SERIAL_M(" (DRY-RUN)");
     SERIAL_E;
     LCD_MESSAGEPGM("Checking... AC");
 
     SERIAL_MV(".Height:", deltaParams.base_max_pos[C_AXIS], 2);
-    if (!pp_equals_1) {
+    if (!do_height_only) {
       SERIAL_M("    Ex:");
       if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
       SERIAL_V(deltaParams.endstop_adj[A_AXIS], 2);
@@ -5988,7 +5988,9 @@ void home_all_axes() { gcode_G28(); }
       SERIAL_E;
     }
 
-    do { // start iterations
+    int8_t iterations = 0;
+
+    do {
 
       float z_at_pt[13] = { 0 },
             S1 = 0.0,
@@ -5998,28 +6000,29 @@ void home_all_axes() { gcode_G28(); }
       test_precision = zero_std_dev;
       iterations++;
 
-      if (!pp_equals_3 && !pp_equals_6) { // probe the centre
+      if (!do_all_positions && !do_circle_x3) { // probe the centre
         setup_for_endstop_or_probe_move();
         z_at_pt[0] += probe_pt(0.0, 0.0 , true, 1);
         clean_up_after_endstop_or_probe_move();
       }
-      if (pp_greather_2) { // probe extra centre points
-        for (int8_t axis = (pp_greather_4 ? 11 : 9); axis > 0; axis -= (pp_greather_4 ? 2 : 4)) {              
+      if (probe_center_plus_3) { // probe extra centre points
+        for (int8_t axis = (probe_center_plus_6 ? 11 : 9); axis > 0; axis -= probe_center_plus_6 ? 2 : 4) {              
           setup_for_endstop_or_probe_move();
           z_at_pt[0] += probe_pt(
             cos(RADIANS(180 + 30 * axis)) * (0.1 * deltaParams.probe_radius),
             sin(RADIANS(180 + 30 * axis)) * (0.1 * deltaParams.probe_radius), true, 1);
           clean_up_after_endstop_or_probe_move();
         }
-        z_at_pt[0] /= (pp_equals_5 ? 7 : probe_points);
+        z_at_pt[0] /= float(do_circle_x2 ? 7 : probe_points);
       }
-      if (!pp_equals_1) {  // probe the radius
-        float start_circles = (pp_equals_7 ? -1.5 : pp_equals_6 || pp_equals_5 ? -1 : 0),
-              end_circles = -start_circles;
+      if (!do_height_only) {  // probe the radius
         bool zig_zag = true;
         for (uint8_t axis = (probe_mode == -2 ? 3 : 1); axis < 13; 
-             axis += (pp_equals_2 ? 4 : pp_equals_3 || pp_equals_5 ? 2 : 1)) {
-          for (float circles = start_circles ; circles <= end_circles; circles++) {
+             axis += (do_center_and_towers ? 4 : do_all_positions ? 2 : 1)) {
+          float offset_circles = (do_circle_x4 ? (zig_zag ? 1.5 : 1.0) :
+                                  do_circle_x3 ? (zig_zag ? 1.0 : 0.5) :
+                                  do_circle_x2 ? (zig_zag ? 0.5 : 0.0) : 0);
+          for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
             setup_for_endstop_or_probe_move();
             z_at_pt[axis] += probe_pt(
               cos(RADIANS(180 + 30 * axis)) * 
@@ -6028,22 +6031,19 @@ void home_all_axes() { gcode_G28(); }
               (1 + circles * 0.1 * (zig_zag ? 1 : -1)) * deltaParams.probe_radius, true, 1);
             clean_up_after_endstop_or_probe_move();
           }
-          start_circles += (pp_greather_5 ? (zig_zag ? 0.5 : -0.5) : 0);
-          end_circles = -start_circles;
           zig_zag = !zig_zag;
-          z_at_pt[axis] /= (pp_equals_7 ? (zig_zag ? 4.0 : 3.0) :
-                            pp_equals_6 ? (zig_zag ? 3.0 : 2.0) : pp_equals_5 ? 3 : 1);
+          z_at_pt[axis] /= (2 * offset_circles + 1);
         }
       }
-      if (pp_greather_3 && !pp_equals_5) // average intermediates to tower and opposites
-        for (uint8_t axis = 1; axis < 13; axis += 2)
+      if (point_averaging) // average intermediates to tower and opposites
+        for (uint8_t axis = 1; axis < 11; axis += 2)
           z_at_pt[axis] = (z_at_pt[axis] + (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 2.0) / 2.0;
 
       S1 += z_at_pt[0];
       S2 += sq(z_at_pt[0]);
       N++;
-      if (!pp_equals_1) // std dev from zero plane
-        for (uint8_t axis = (probe_mode == -2 ? 3 : 1); axis < 13; axis += (pp_equals_2 ? 4 : 2)) {
+      if (!do_height_only) // std dev from zero plane
+        for (uint8_t axis = (probe_mode == -2 ? 3 : 1); axis < 13; axis += (do_center_and_towers ? 4 : 2)) {
           S1 += z_at_pt[axis];
           S2 += sq(z_at_pt[axis]);
           N++;
@@ -6140,7 +6140,7 @@ void home_all_axes() { gcode_G28(); }
         SERIAL_M(".      c:");
         if (z_at_pt[0] > 0) SERIAL_C('+');
         SERIAL_V(z_at_pt[0], 2);
-        if (probe_mode == 2 || pp_greather_2) {
+        if (probe_mode == 2 || probe_center_plus_3) {
           SERIAL_M("     x:");
           if (z_at_pt[1] >= 0) SERIAL_C('+');
           SERIAL_V(z_at_pt[1], 2);
@@ -6152,8 +6152,8 @@ void home_all_axes() { gcode_G28(); }
           SERIAL_V(z_at_pt[9], 2);
         }
         if (probe_mode != -2) SERIAL_E;
-        if (probe_mode == -2 || pp_greather_2) {
-          if (pp_greather_2) {
+        if (probe_mode == -2 || probe_center_plus_3) {
+          if (probe_center_plus_3) {
             SERIAL_C('.');
             SERIAL_SP(13);
           }
@@ -6188,7 +6188,7 @@ void home_all_axes() { gcode_G28(); }
           lcd_setstatus(mess);
         }
         SERIAL_MV(".Height:", deltaParams.base_max_pos[C_AXIS], 2);
-        if (!pp_equals_1) {
+        if (!do_height_only) {
           SERIAL_M("    Ex:");
           if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
           SERIAL_V(deltaParams.endstop_adj[A_AXIS], 2);
@@ -9218,31 +9218,31 @@ inline void gcode_M400() { stepper.synchronize(); }
 
     SERIAL_M("{\"status\":\"");
     #if ENABLED(SDSUPPORT)
-      if (!print_job_counter.isRunning() && !card.sdprinting) SERIAL_M("I"); // IDLING
-      else if (card.sdprinting) SERIAL_M("P");          // SD PRINTING
+      if (!print_job_counter.isRunning() && !card.sdprinting) SERIAL_C('I'); // IDLING
+      else if (card.sdprinting) SERIAL_C('P');          // SD PRINTING
       else SERIAL_M("B");                               // SOMETHING ELSE, BUT SOMETHIG
     #else
-      if (!print_job_counter.isRunning()) SERIAL_M("I");                     // IDLING
-      else SERIAL_M("B");                               // SOMETHING ELSE, BUT SOMETHIG
+      if (!print_job_counter.isRunning()) SERIAL_C('I');                     // IDLING
+      else SERIAL_C('B');                               // SOMETHING ELSE, BUT SOMETHIG
     #endif
 
     SERIAL_M("\",\"coords\": {");
     SERIAL_M("\"axesHomed\":[");
-    if (axis_was_homed & (_BV(X_AXIS)|_BV(Y_AXIS)|_BV(Z_AXIS)) == (_BV(X_AXIS)|_BV(Y_AXIS)|_BV(Z_AXIS)))
+    if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
       SERIAL_M("1, 1, 1");
     else
       SERIAL_M("0, 0, 0");
 
     SERIAL_MV("],\"extr\":[", current_position[E_AXIS]);
-    SERIAL_MV("],\"xyz\":[", current_position[X_AXIS]); // X
-    SERIAL_MV(",", current_position[Y_AXIS]); // Y
-    SERIAL_MV(",", current_position[Z_AXIS]); // Z
+    SERIAL_MV("],\"xyz\":[", current_position[X_AXIS]); // X AXIS
+    SERIAL_MV(",", current_position[Y_AXIS]);           // Y AXIS
+    SERIAL_MV(",", current_position[Z_AXIS]);           // Z AXIS
 
     SERIAL_MV("]},\"currentTool\":", active_extruder);
 
     #if HAS(POWER_SWITCH)
       SERIAL_M(",\"params\": {\"atxPower\":");
-      SERIAL_M(powerManager.powersupply ? "1" : "0");
+      SERIAL_C(powerManager.powersupply ? '1' : '0');
     #else
       SERIAL_M(",\"params\": {\"NormPower\":");
     #endif
@@ -9255,7 +9255,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_M(",\"extrFactors\":[");
     firstOccurrence = true;
     for (uint8_t i = 0; i < EXTRUDERS; i++) {
-      if (!firstOccurrence) SERIAL_M(",");
+      if (!firstOccurrence) SERIAL_C(',');
       SERIAL_V(flow_percentage[i]); // Really *100? 100 is normal
       firstOccurrence = false;
     }
@@ -9266,28 +9266,28 @@ inline void gcode_M400() { stepper.synchronize(); }
       SERIAL_MV("\"bed\": {\"current\":", thermalManager.degBed(), 1);
       SERIAL_MV(",\"active\":", thermalManager.degTargetBed(), 1);
       SERIAL_M(",\"state\":");
-      SERIAL_M(thermalManager.degTargetBed() > 0 ? "2" : "1");
+      SERIAL_C(thermalManager.degTargetBed() > 0 ? '2' : '1');
       SERIAL_M("},");
     #endif
     SERIAL_M("\"heads\": {\"current\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_M(",");
+      if (!firstOccurrence) SERIAL_C(',');
       SERIAL_V(thermalManager.degHotend(h), 1);
       firstOccurrence = false;
     }
     SERIAL_M("],\"active\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_M(",");
+      if (!firstOccurrence) SERIAL_C(',');
       SERIAL_V(thermalManager.degTargetHotend(h), 1);
       firstOccurrence = false;
     }
     SERIAL_M("],\"state\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_M(",");
-      SERIAL_M(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? "2" : "1");
+      if (!firstOccurrence) SERIAL_C(',');
+      SERIAL_C(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
       firstOccurrence = false;
     }
 
@@ -9318,7 +9318,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         SERIAL_M("\",\"tools\":[");
         firstOccurrence = true;
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          if (!firstOccurrence) SERIAL_M(",");
+          if (!firstOccurrence) SERIAL_C(',');
           SERIAL_MV("{\"number\":", i + 1);
           #if HOTENDS > 1
             SERIAL_MV(",\"heaters\":[", i + 1);
@@ -9350,7 +9350,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         SERIAL_M(",\"extrRaw\":[");
         firstOccurrence = true;
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          if (!firstOccurrence) SERIAL_M(",");
+          if (!firstOccurrence) SERIAL_C(',');
           SERIAL_V(current_position[E_AXIS] * flow_percentage[i]);
           firstOccurrence = false;
         }
@@ -9364,7 +9364,7 @@ inline void gcode_M400() { stepper.synchronize(); }
             }
             else fractionprinted = (float)(card.sdpos >> 8) / (float)(card.fileSize >> 8);
             SERIAL_V((float) floorf(fractionprinted * 1000) / 1000);
-            SERIAL_M(",");
+            SERIAL_C(',');
           }
         #endif
         SERIAL_M("\"firstLayerHeight\":");
@@ -9380,37 +9380,37 @@ inline void gcode_M400() { stepper.synchronize(); }
         SERIAL_EM(",");
         SERIAL_M("\"axisMins\":[");
         SERIAL_V((int) X_MIN_POS);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V((int) Y_MIN_POS);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V((int) Z_MIN_POS);
         SERIAL_M("],\"axisMaxes\":[");
         SERIAL_V((int) X_MAX_POS);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V((int) Y_MAX_POS);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V((int) Z_MAX_POS);
         SERIAL_M("],\"planner.accelerations\":[");
-        SERIAL_V(planner.acceleration_units_per_sq_second[X_AXIS]);
-        SERIAL_M(",");
-        SERIAL_V(planner.acceleration_units_per_sq_second[Y_AXIS]);
-        SERIAL_M(",");
-        SERIAL_V(planner.acceleration_units_per_sq_second[Z_AXIS]);
+        SERIAL_V(planner.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_C(',');
+        SERIAL_V(planner.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_C(',');
+        SERIAL_V(planner.max_acceleration_mm_per_s2[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_M(",");
-          SERIAL_V(planner.acceleration_units_per_sq_second[E_AXIS + i]);
+          SERIAL_C(',');
+          SERIAL_V(planner.max_acceleration_mm_per_s2[E_AXIS + i]);
         }
         SERIAL_M("],");
 
         #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
           SERIAL_M("\"currents\":[");
           SERIAL_V(motor_current[X_AXIS]);
-          SERIAL_M(",");
+          SERIAL_C(',');
           SERIAL_V(motor_current[Y_AXIS]);
-          SERIAL_M(",");
+          SERIAL_C(',');
           SERIAL_V(motor_current[Z_AXIS]);
           for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-            SERIAL_M(",");
+            SERIAL_C(',');
             SERIAL_V(motor_current[E_AXIS + i]);
           }
           SERIAL_EM("],");
@@ -9443,12 +9443,12 @@ inline void gcode_M400() { stepper.synchronize(); }
         }
         SERIAL_M("],\"maxFeedrates\":[");
         SERIAL_V(planner.max_feedrate_mm_s[X_AXIS]);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V(planner.max_feedrate_mm_s[Y_AXIS]);
-        SERIAL_M(",");
+        SERIAL_C(',');
         SERIAL_V(planner.max_feedrate_mm_s[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_M(",");
+          SERIAL_C(',');
           SERIAL_V(planner.max_feedrate_mm_s[E_AXIS + i]);
         }
         SERIAL_M("]");
