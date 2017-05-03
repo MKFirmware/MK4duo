@@ -9451,10 +9451,11 @@ inline void gcode_M400() { stepper.synchronize(); }
           SERIAL_C(',');
           SERIAL_V(planner.max_feedrate_mm_s[E_AXIS + i]);
         }
-        SERIAL_M("]");
+        SERIAL_C(']');
         break;
     }
-    SERIAL_EM("}");
+    SERIAL_C('}');
+    SERIAL_E;
   }
 #endif // JSON_OUTPUT
 
