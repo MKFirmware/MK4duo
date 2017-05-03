@@ -482,13 +482,13 @@
   #endif
 
   /**
-   * Set ABL options based on the specific type of leveling
+   * Set granular options based on the specific type of leveling
    */
   #define ABL_PLANAR (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
   #define ABL_GRID   (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
   #define HAS_ABL    (ABL_PLANAR || ABL_GRID)
 
-  #define PLANNER_LEVELING      (HAS_ABL || ENABLED(MESH_BED_LEVELING))
+  #define HAS_LEVELING          (HAS_ABL || ENABLED(MESH_BED_LEVELING))
   #define HAS_PROBING_PROCEDURE (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
 
   #if HAS_PROBING_PROCEDURE
