@@ -429,9 +429,6 @@ void Endstops::update() {
     #define D_(N) stepper.motor_direction(CORE_AXIS_##N)
   #endif
 
-  /**
-   * X AXIS TEST
-   */
   #if CORE_IS_XY || CORE_IS_XZ
     /**
      * Head direction in -X axis for CoreXY and CoreXZ bots.
@@ -452,9 +449,6 @@ void Endstops::update() {
     #define X_AXIS_HEAD X_AXIS
   #endif
 
-  /**
-   * Y AXIS TEST
-   */
   #if CORE_IS_XY || CORE_IS_YZ
     /**
      * Head direction in -Y axis for CoreXY / CoreYZ bots.
@@ -475,9 +469,6 @@ void Endstops::update() {
     #define Y_AXIS_HEAD Y_AXIS
   #endif
 
-  /**
-   * Z AXIS TEST
-   */
   #if CORE_IS_XZ || CORE_IS_YZ
     /**
      * Head direction in -Z axis for CoreXZ or CoreYZ bots.
