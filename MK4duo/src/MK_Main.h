@@ -175,7 +175,7 @@ extern float soft_endstop_max[XYZ];
   #define clamp_to_software_endstops(x) NOOP
 #endif
 
-#if HAS(WORKSPACE_OFFSET) || ENABLED(DUAL_X_CARRIAGE)
+#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   void update_software_endstops(const AxisEnum axis);
 #endif
 
