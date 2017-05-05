@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -699,11 +699,19 @@ void recvRetCommandFinished() {
 }
 
 uint8_t Nextion_PageID() {
-  uint32_t val;
-  sendCommand("get dp");
+  uint8_t temp[5] = {0};
 
-  recvRetNumber(&val);
-  return val;
+  sendCommand("sendme");
+
+  nexSerial.setTimeout(NEX_TIMEOUT);
+
+  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
+    return 2;
+
+  if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD && temp[2] == 0xFF && temp[3] == 0xFF && temp[4] == 0xFF)
+    return temp[1];
+  else
+    return 2;
 }
 
 void setCurrentBrightness(uint8_t dimValue) {

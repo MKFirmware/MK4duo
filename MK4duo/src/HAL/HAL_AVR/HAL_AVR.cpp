@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ void HAL_temp_timer_start() {
   TEMP_TCCR |= (1 << CS01) | (1 << CS00);
 }
 
-unsigned long HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 bool HAL::execute_100ms = false;
 
 // Return available memory

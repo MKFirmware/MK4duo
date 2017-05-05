@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -162,7 +162,7 @@
 #define MSG_CARD_MENU                       _UxGT("Stampa da SD")
 #define MSG_NO_CARD                         _UxGT("SD non presente")
 #define MSG_DWELL                           _UxGT("Sospensione...")
-#define MSG_USERWAIT                        _UxGT("Attendi Utente..")
+#define MSG_USERWAIT                        _UxGT("Clicca per cont...")
 #define MSG_RESUMING                        _UxGT("Riprendi Stampa")
 #define MSG_PRINT_ABORTED                   _UxGT("Stampa annullata")
 #define MSG_NO_MOVE                         _UxGT("Nessun Movimento")

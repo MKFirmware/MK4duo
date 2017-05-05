@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -221,7 +221,7 @@ class HAL {
 
     virtual ~HAL();
 
-    static volatile uint AnalogInputValues[ANALOG_INPUTS];
+    static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
     static bool execute_100ms;
 
     static void hwSetup(void);

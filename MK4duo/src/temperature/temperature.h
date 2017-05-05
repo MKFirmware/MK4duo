@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ class Temperature {
     #endif
     static float      current_temperature[HOTENDS],
                       current_temperature_bed;
-    static int        current_temperature_raw[HOTENDS],
+    static int16_t    current_temperature_raw[HOTENDS],
                       target_temperature[HOTENDS],
                       current_temperature_bed_raw,
                       target_temperature_bed;
@@ -58,14 +58,14 @@ class Temperature {
 
     #if HAS(TEMP_CHAMBER)
       static float    current_temperature_chamber;
-      static int      target_temperature_chamber,
+      static int16_t  target_temperature_chamber,
                       current_temperature_chamber_raw;
       static uint8_t  soft_pwm_chamber;
     #endif
 
     #if HAS(TEMP_COOLER)
       static float    current_temperature_cooler;
-      static int      target_temperature_cooler,
+      static int16_t  target_temperature_cooler,
                       current_temperature_cooler_raw;
       static uint8_t  soft_pwm_cooler;
     #endif
@@ -194,48 +194,48 @@ class Temperature {
     #endif
 
     // Init min and max temp with extreme values to prevent false errors during startup
-    static int minttemp_raw[HOTENDS],
-               maxttemp_raw[HOTENDS],
-               minttemp[HOTENDS],
-               maxttemp[HOTENDS];
+    static int16_t  minttemp_raw[HOTENDS],
+                    maxttemp_raw[HOTENDS],
+                    minttemp[HOTENDS],
+                    maxttemp[HOTENDS];
 
     #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
-      static int consecutive_low_temperature_error[HOTENDS];
+      static uint8_t consecutive_low_temperature_error[HOTENDS];
       #if HAS(TEMP_BED)
-        static int consecutive_bed_low_temperature_error;
+        static uint8_t consecutive_bed_low_temperature_error;
       #endif
     #endif
 
     #if ENABLED(MILLISECONDS_PREHEAT_TIME)
-      static unsigned long preheat_end_time[HOTENDS];
+      static millis_t preheat_end_time[HOTENDS];
     #endif
 
     #if ENABLED(BED_MINTEMP)
-      static int bed_minttemp_raw;
+      static int16_t bed_minttemp_raw;
     #endif
 
     #if ENABLED(BED_MAXTEMP)
-      static int bed_maxttemp_raw;
+      static int16_t bed_maxttemp_raw;
     #endif
 
     #if ENABLED(CHAMBER_MINTEMP)
-      static int chamber_minttemp_raw;
+      static int16_t chamber_minttemp_raw;
     #endif
 
     #if ENABLED(CHAMBER_MAXTEMP)
-      static int chamber_maxttemp_raw;
+      static int16_t chamber_maxttemp_raw;
     #endif
 
     #if ENABLED(COOLER_MINTEMP)
-      static int cooler_minttemp_raw;
+      static int16_t cooler_minttemp_raw;
     #endif
 
     #if ENABLED(COOLER_MAXTEMP)
-      static int cooler_maxttemp_raw;
+      static int16_t cooler_maxttemp_raw;
     #endif
 
     #if ENABLED(FILAMENT_SENSOR)
-      static int meas_shift_index;  // Index of a delayed sample in buffer
+      static int16_t meas_shift_index;  // Index of a delayed sample in buffer
     #endif
 
     #if HAS(AUTO_FAN)
@@ -334,33 +334,33 @@ class Temperature {
     #endif
 
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      static float rawHotendTemp(uint8_t h) {
+      static int16_t rawHotendTemp(uint8_t h) {
         #if HOTENDS <= 1
           UNUSED(h);
         #endif
         return current_temperature_raw[HOTEND_INDEX];
       }
-      static float rawBedTemp() { return current_temperature_bed_raw; }
+      static int16_t rawBedTemp() { return current_temperature_bed_raw; }
       #if HAS(TEMP_CHAMBER)
-        static float rawChamberTemp() { return current_temperature_chamber_raw; }
+        static int16_t rawChamberTemp() { return current_temperature_chamber_raw; }
       #endif
       #if HAS(TEMP_COOLER)
-        static float rawCoolerTemp() { return current_temperature_cooler_raw; }
+        static int16_t rawCoolerTemp() { return current_temperature_cooler_raw; }
       #endif
     #endif
 
-    static float degTargetHotend(uint8_t h) {
+    static int16_t degTargetHotend(uint8_t h) {
       #if HOTENDS <= 1
         UNUSED(h);
       #endif
       return target_temperature[HOTEND_INDEX];
     }
-    static float degTargetBed() { return target_temperature_bed; }
+    static int16_t degTargetBed() { return target_temperature_bed; }
     #if HAS(TEMP_CHAMBER)
-      static float degTargetChamber() { return target_temperature_chamber; }
+      static int16_t degTargetChamber() { return target_temperature_chamber; }
     #endif
     #if HAS(TEMP_COOLER)
-      static float degTargetCooler() { return target_temperature_cooler; }
+      static int16_t degTargetCooler() { return target_temperature_cooler; }
     #endif
 
     #if WATCH_HOTENDS
@@ -379,14 +379,14 @@ class Temperature {
       void start_watching_cooler();
     #endif
 
-    static void setTargetHotend(const float& celsius, uint8_t h) {
+    static void setTargetHotend(const int16_t& celsius, uint8_t h) {
       #if HOTENDS <= 1
         UNUSED(h);
       #endif
       #if ENABLED(MILLISECONDS_PREHEAT_TIME)
-        if (celsius == 0.0f)
+        if (celsius == 0)
           reset_preheat_time(HOTEND_INDEX);
-        else if (target_temperature[HOTEND_INDEX] == 0.0f)
+        else if (target_temperature[HOTEND_INDEX] == 0)
           start_preheat_time(HOTEND_INDEX);
       #endif
       target_temperature[HOTEND_INDEX] = celsius;
@@ -395,7 +395,7 @@ class Temperature {
       #endif
     }
 
-    static void setTargetBed(const float& celsius) {
+    static void setTargetBed(const int16_t& celsius) {
       target_temperature_bed = celsius;
       #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
         start_watching_bed();
@@ -403,7 +403,7 @@ class Temperature {
     }
 
     #if HAS(TEMP_CHAMBER)
-      static void setTargetChamber(const float& celsius) {
+      static void setTargetChamber(const int16_t& celsius) {
         target_temperature_chamber = celsius;
         #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
           start_watching_chamber();
@@ -412,7 +412,7 @@ class Temperature {
     #endif
 
     #if HAS(TEMP_COOLER)
-      static void setTargetCooler(const float& celsius) {
+      static void setTargetCooler(const int16_t& celsius) {
         target_temperature_cooler = celsius;
         #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
           start_watching_cooler();
@@ -498,16 +498,6 @@ class Temperature {
      * Update the temp manager when PID values change
      */
     static void updatePID();
-
-    #if ENABLED(AUTOTEMP)
-      static void autotempShutdown() {
-        if (planner.autotemp_enabled) {
-          planner.autotemp_enabled = false;
-          if (degTargetHotend(EXTRUDER_IDX) > planner.autotemp_min)
-            setTargetHotend(0, EXTRUDER_IDX);
-        }
-      }
-    #endif
 
     #if ENABLED(BABYSTEPPING)
 

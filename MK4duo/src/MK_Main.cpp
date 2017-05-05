@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,7 +188,6 @@ float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA
       volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
 
 #if ENABLED(WORKSPACE_OFFSETS)
-
   // The distance that XYZ has been offset by G92. Reset by G28.
   float position_shift[XYZ] = { 0 };
 
@@ -209,7 +208,7 @@ float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
       soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 #if FAN_COUNT > 0
-  int fanSpeeds[FAN_COUNT] = { 0 };
+  int16_t fanSpeeds[FAN_COUNT] = { 0 };
 #endif
 
 #if HAS(AUTO_FAN)
@@ -999,19 +998,21 @@ inline void get_serial_commands() {
 #if ENABLED(SDSUPPORT)
 
   /**
-   * Function for Stop e save
+   * SD Stop & Store location
    */
-  inline void sd_stop_e_save() {
+  void stopSDPrint(const bool store_location) {
     if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
-      SERIAL_EM("Close file and save restart.gcode");
-      card.stopSDPrint(true);
+      if (store_location) SERIAL_EM("Close file and save restart.gcode");
+      card.stopSDPrint(store_location);
       clear_command_queue();
       quickstop_stepper();
       print_job_counter.stop();
-      #if ENABLED(AUTOTEMP)
-        thermalManager.autotempShutdown();
-      #endif
       wait_for_heatup = false;
+      thermalManager.disable_all_heaters();
+      thermalManager.disable_all_coolers();
+      #if FAN_COUNT > 0
+        FAN_LOOP() fanSpeeds[f] = 0;
+      #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
       #if HAS(POWER_SWITCH)
         powerManager.power_off();
@@ -1039,7 +1040,7 @@ inline void get_serial_commands() {
 
     #if HAS(POWER_CHECK)
       if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
-        sd_stop_e_save();
+        stopSDPrint(true);
         return;
       }
     #endif
@@ -1069,11 +1070,8 @@ inline void get_serial_commands() {
           #if ENABLED(PRINTER_EVENT_LEDS)
             LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
             set_led_color(0, 255, 0); // Green
-            #if HAS_RESUME_CONTINUE
-              KEEPALIVE_STATE(PAUSED_FOR_USER);
-              wait_for_user = true;
-              while (wait_for_user) idle();
-              KEEPALIVE_STATE(IN_HANDLER);
+            #if HAS(RESUME_CONTINUE)
+              enqueue_and_echo_commands_P(PSTR("M0")); // end of the queue!
             #else
               safe_delay(1000);
             #endif
@@ -1179,32 +1177,24 @@ inline bool code_value_bool() { return !code_has_value() || code_value_byte() > 
   inline float code_value_linear_units() { return code_value_float() * linear_unit_factor; }
   inline float code_value_axis_units(int axis) { return code_value_float() * axis_unit_factor(axis); }
   inline float code_value_per_axis_unit(int axis) { return code_value_float() / axis_unit_factor(axis); }
-
-#else
-
-  inline float code_value_linear_units() { return code_value_float(); }
-  inline float code_value_axis_units(int axis) { UNUSED(axis); return code_value_float(); }
-  inline float code_value_per_axis_unit(int axis) { UNUSED(axis); return code_value_float(); }
-
 #endif
 
 #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
   inline void set_input_temp_units(TempUnit units) { input_temp_units = units; }
 
-  float code_value_temp_abs() {
+  int16_t code_value_temp_abs() {
     switch (input_temp_units) {
-      case TEMPUNIT_C:
-        return code_value_float();
       case TEMPUNIT_F:
         return (code_value_float() - 32) * 0.5555555556;
       case TEMPUNIT_K:
         return code_value_float() - 273.15;
+      case TEMPUNIT_C:
       default:
-        return code_value_float();
+        return code_value_int();
     }
   }
 
-  float code_value_temp_diff() {
+  int16_t code_value_temp_diff() {
     switch (input_temp_units) {
       case TEMPUNIT_C:
       case TEMPUNIT_K:
@@ -1216,8 +1206,8 @@ inline bool code_value_bool() { return !code_has_value() || code_value_byte() > 
     }
   }
 #else
-  float code_value_temp_abs() { return code_value_float(); }
-  float code_value_temp_diff() { return code_value_float(); }
+  int16_t code_value_temp_abs() { return code_value_float(); }
+  int16_t code_value_temp_diff() { return code_value_float(); }
 #endif
 
 FORCE_INLINE millis_t code_value_millis() { return code_value_ulong(); }
@@ -1296,7 +1286,7 @@ bool get_target_hotend_from_command(int code) {
   static float raised_parked_position[NUM_AXIS];    // used in mode 1
   static millis_t delayed_move_time = 0;            // used in mode 1
   static float duplicate_hotend_x_offset = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
-  static float duplicate_hotend_temp_offset = 0;    // used in mode 2
+  static int16_t duplicate_hotend_temp_offset = 0;  // used in mode 2
   bool hotend_duplication_enabled = false;          // used in mode 2
 
 #endif // DUAL_X_CARRIAGE
@@ -1313,7 +1303,9 @@ bool get_target_hotend_from_command(int code) {
    * at the same positions relative to the machine.
    */
   void update_software_endstops(const AxisEnum axis) {
-    const float offs = workspace_offset[axis] = home_offset[axis] + position_shift[axis];
+    const float offs = home_offset[axis] + position_shift[axis];
+
+    workspace_offset[axis] = offs;
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
@@ -1338,9 +1330,6 @@ bool get_target_hotend_from_command(int code) {
           soft_endstop_max[axis] = base_max_pos(axis) + offs;
         }
       }
-    #elif MECH(DELTA)
-      soft_endstop_min[axis] = deltaParams.base_min_pos[axis] + offs;
-      soft_endstop_max[axis] = deltaParams.base_max_pos[axis] + offs;
     #else
       soft_endstop_min[axis] = base_min_pos(axis) + offs;
       soft_endstop_max[axis] = base_max_pos(axis) + offs;
@@ -1349,21 +1338,16 @@ bool get_target_hotend_from_command(int code) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("For ", axis_codes[axis]);
-        #if ENABLED(WORKSPACE_OFFSETS)
-          SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
-          SERIAL_MV("\n position_shift = ", position_shift[axis]);
-        #endif
+        SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
+        SERIAL_MV("\n position_shift = ", position_shift[axis]);
         SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
         SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
       }
     #endif
 
-    #if MECH(DELTA)
-      if (axis == Z_AXIS) deltaParams.Set_clip_start_height();
-    #endif
   }
 
-#endif // WORKSPACE_OFFSETS
+#endif // ENABLED(WORKSPACE_OFFSETS) || DUAL_X_CARRIAGE
 
 #if ENABLED(WORKSPACE_OFFSETS)
 
@@ -1381,7 +1365,7 @@ bool get_target_hotend_from_command(int code) {
     update_software_endstops(axis);
   }
 
-#endif // WORKSPACE_OFFSETS
+#endif // ENABLED(WORKSPACE_OFFSETS)
 
 /**
  * Set an axis' current position to its home position (after homing).
@@ -1458,7 +1442,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
   #endif
   {
     #if MECH(DELTA)
-      current_position[axis] = LOGICAL_POSITION(deltaParams.base_home_pos[axis], axis);
+      current_position[axis] = (axis == Z_AXIS ? deltaParams.delta_height : 0.0);
     #else
       current_position[axis] = LOGICAL_POSITION(base_home_pos(axis), axis);
     #endif
@@ -2364,7 +2348,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
   /**
    * Extrapolate a single point from its neighbors
    */
-  static void extrapolate_one_point(uint8_t x, uint8_t y, int8_t xdir, int8_t ydir) {
+  static void extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_M("Extrapolate [");
@@ -2387,9 +2371,10 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
     SERIAL_E;
 
     // Get X neighbors, Y neighbors, and XY neighbors
-    float a1 = z_values[x + xdir][y], a2 = z_values[x + xdir * 2][y],
-          b1 = z_values[x][y + ydir], b2 = z_values[x][y + ydir * 2],
-          c1 = z_values[x + xdir][y + ydir], c2 = z_values[x + xdir * 2][y + ydir * 2];
+    const uint8_t x1 = x + xdir, y1 = y + ydir, x2 = x1 + xdir, y2 = y1 + ydir;
+    float a1 = z_values[x1][y ], a2 = z_values[x2][y ],
+          b1 = z_values[x ][y1], b2 = z_values[x ][y2],
+          c1 = z_values[x1][y1], c2 = z_values[x2][y2];
 
     // Treat far unprobed points as zero, near as equal to far
     if (isnan(a2)) a2 = 0.0; if (isnan(a1)) a1 = a2;
@@ -2422,19 +2407,19 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
    */
   static void extrapolate_unprobed_bed_level() {
     #if ENABLED(HALF_IN_X)
-      const uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
+      constexpr uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
     #else
-      const uint8_t ctrx1 = (GRID_MAX_POINTS_X - 1) * 0.5, // left-of-center
-                    ctrx2 = GRID_MAX_POINTS_X * 0.5,       // right-of-center
-                    xlen = ctrx1;
+      constexpr uint8_t ctrx1 = (GRID_MAX_POINTS_X - 1) * 0.5, // left-of-center
+                        ctrx2 = GRID_MAX_POINTS_X * 0.5,       // right-of-center
+                        xlen = ctrx1;
     #endif
 
     #if ENABLED(HALF_IN_Y)
-      const uint8_t ctry2 = 0, ylen = GRID_MAX_POINTS_Y - 1;
+      constexpr uint8_t ctry2 = 0, ylen = GRID_MAX_POINTS_Y - 1;
     #else
-      const uint8_t ctry1 = (GRID_MAX_POINTS_Y - 1) * 0.5, // top-of-center
-                    ctry2 = GRID_MAX_POINTS_Y * 0.5,       // bottom-of-center
-                    ylen = ctry1;
+      constexpr uint8_t ctry1 = (GRID_MAX_POINTS_Y - 1) * 0.5, // top-of-center
+                        ctry2 = GRID_MAX_POINTS_Y * 0.5,       // bottom-of-center
+                        ylen = ctry1;
     #endif
 
     for (uint8_t xo = 0; xo <= xlen; xo++) {
@@ -2670,7 +2655,7 @@ static void homeaxis(const AxisEnum axis) {
     if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
   #endif
   #if MECH(DELTA)
-    do_homing_move(axis, 1.5 * deltaParams.max_length[axis] * axis_home_dir);
+    do_homing_move(axis, 1.5 * deltaParams.delta_height * axis_home_dir);
   #else
     do_homing_move(axis, 1.5 * max_length(axis) * axis_home_dir);
   #endif
@@ -2886,17 +2871,17 @@ static void homeaxis(const AxisEnum axis) {
   void print_heaterstates() {
     #if HAS(TEMP_0) || ENABLED(HEATER_0_USES_MAX6675)
       SERIAL_MV(MSG_T, thermalManager.degHotend(target_extruder), 1);
-      SERIAL_MV(" /", thermalManager.degTargetHotend(target_extruder), 1);
+      SERIAL_MV(" /", thermalManager.degTargetHotend(target_extruder));
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        SERIAL_MV(" (", thermalManager.rawHotendTemp(target_extruder) / OVERSAMPLENR);
+        SERIAL_MV(" (", thermalManager.rawHotendTemp(target_extruder));
         SERIAL_C(')');
       #endif
     #endif
     #if HAS(TEMP_BED)
       SERIAL_MV(MSG_B, thermalManager.degBed(), 1);
-      SERIAL_MV(" /", thermalManager.degTargetBed(), 1);
+      SERIAL_MV(" /", thermalManager.degTargetBed());
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        SERIAL_MV(" (", thermalManager.rawBedTemp() / OVERSAMPLENR);
+        SERIAL_MV(" (", thermalManager.rawBedTemp());
         SERIAL_C(')');
       #endif
     #endif
@@ -2905,9 +2890,9 @@ static void homeaxis(const AxisEnum axis) {
         SERIAL_MV(" T", h);
         SERIAL_C(':');
         SERIAL_V(thermalManager.degHotend(h), 1);
-        SERIAL_MV(" /", thermalManager.degTargetHotend(h), 1);
+        SERIAL_MV(" /", thermalManager.degTargetHotend(h));
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          SERIAL_MV(" (", thermalManager.rawHotendTemp(h) / OVERSAMPLENR);
+          SERIAL_MV(" (", thermalManager.rawHotendTemp(h));
           SERIAL_C(')');
         #endif
       }
@@ -2930,7 +2915,7 @@ static void homeaxis(const AxisEnum axis) {
   void print_chamberstate() {
     SERIAL_M(" CHAMBER: ");
     SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetChamber(), 1);
+    SERIAL_MV(" /", thermalManager.degTargetChamber());
     SERIAL_M(MSG_CAT);
     #if ENABLED(CHAMBER_WATTS)
       SERIAL_V(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
@@ -2940,7 +2925,7 @@ static void homeaxis(const AxisEnum axis) {
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV("    ADC C:", thermalManager.degChamber(), 1);
-      SERIAL_MV("C->", thermalManager.rawChamberTemp() / OVERSAMPLENR, 1);
+      SERIAL_MV("C->", thermalManager.rawChamberTemp());
     #endif
   }
 #endif // HAS(TEMP_CHAMBER)
@@ -2949,7 +2934,7 @@ static void homeaxis(const AxisEnum axis) {
   void print_coolerstate() {
     SERIAL_M(" COOL: ");
     SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetCooler(), 1);
+    SERIAL_MV(" /", thermalManager.degTargetCooler());
     SERIAL_M(MSG_CAT);
     #if ENABLED(COOLER_WATTS)
       SERIAL_V(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
@@ -2959,7 +2944,7 @@ static void homeaxis(const AxisEnum axis) {
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV("    ADC C:", thermalManager.degCooler(), 1);
-      SERIAL_MV("C->", thermalManager.rawCoolerTemp() / OVERSAMPLENR, 0);
+      SERIAL_MV("C->", thermalManager.rawCoolerTemp());
     #endif
   }
 #endif // HAS(TEMP_COOLER)
@@ -3934,7 +3919,7 @@ inline void gcode_G4() {
     sync_plan_position();
 
     // Move all carriages together linearly until an endstop is hit.
-    current_position[X_AXIS] = current_position[Y_AXIS] = current_position[Z_AXIS] = deltaParams.max_length[Z_AXIS] + 10;
+    current_position[X_AXIS] = current_position[Y_AXIS] = current_position[Z_AXIS] = deltaParams.delta_height + 10;
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
     line_to_current_position();
     stepper.synchronize();
@@ -5950,7 +5935,7 @@ void home_all_axes() { gcode_G28(); }
             deltaParams.endstop_adj[C_AXIS]
           },
           dr_old = deltaParams.delta_radius,
-          zh_old = deltaParams.base_max_pos[C_AXIS],
+          zh_old = deltaParams.delta_height,
           alpha_old = deltaParams.tower_radius_adj[A_AXIS],
           beta_old = deltaParams.tower_radius_adj[B_AXIS];
 
@@ -5961,7 +5946,7 @@ void home_all_axes() { gcode_G28(); }
     SERIAL_E;
     LCD_MESSAGEPGM("Checking... AC");
 
-    SERIAL_MV(".Height:", deltaParams.base_max_pos[C_AXIS], 2);
+    SERIAL_MV(".Height:", deltaParams.delta_height, 2);
     if (!do_height_only) {
       SERIAL_M("    Ex:");
       if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
@@ -6055,7 +6040,7 @@ void home_all_axes() { gcode_G28(); }
       if (zero_std_dev < test_precision) {
         COPY_ARRAY(e_old, deltaParams.endstop_adj);
         dr_old = deltaParams.delta_radius;
-        zh_old = deltaParams.base_max_pos[C_AXIS];
+        zh_old = deltaParams.delta_height;
         alpha_old = deltaParams.tower_radius_adj[A_AXIS];
         beta_old = deltaParams.tower_radius_adj[B_AXIS];
 
@@ -6120,7 +6105,7 @@ void home_all_axes() { gcode_G28(); }
 
         // adjust delta_height and endstops by the max amount
         const float z_temp = MAX3(deltaParams.endstop_adj[A_AXIS], deltaParams.endstop_adj[B_AXIS], deltaParams.endstop_adj[C_AXIS]);
-        deltaParams.base_max_pos[C_AXIS] -= z_temp;
+        deltaParams.delta_height -= z_temp;
         LOOP_XYZ(i) deltaParams.endstop_adj[i] -= z_temp;
 
         deltaParams.Recalc_delta_constants();
@@ -6128,7 +6113,7 @@ void home_all_axes() { gcode_G28(); }
       else { // step one back
         COPY_ARRAY(deltaParams.endstop_adj, e_old);
         deltaParams.delta_radius = dr_old;
-        deltaParams.base_max_pos[C_AXIS] = zh_old;
+        deltaParams.delta_height = zh_old;
         deltaParams.tower_radius_adj[A_AXIS] = alpha_old;
         deltaParams.tower_radius_adj[B_AXIS] = beta_old;
 
@@ -6187,7 +6172,7 @@ void home_all_axes() { gcode_G28(); }
           SERIAL_E;
           lcd_setstatus(mess);
         }
-        SERIAL_MV(".Height:", deltaParams.base_max_pos[C_AXIS], 2);
+        SERIAL_MV(".Height:", deltaParams.delta_height, 2);
         if (!do_height_only) {
           SERIAL_M("    Ex:");
           if (deltaParams.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
@@ -6227,7 +6212,7 @@ void home_all_axes() { gcode_G28(); }
         else {
           SERIAL_M("Calibration OK");
           LCD_MESSAGEPGM("Calibration OK");
-          SERIAL_MV(".Height:", deltaParams.base_max_pos[C_AXIS], 2);
+          SERIAL_MV(".Height:", deltaParams.delta_height, 2);
           SERIAL_E;
           SERIAL_EM("Save with M500 and/or copy to configuration_delta.h");
         }
@@ -6606,7 +6591,7 @@ inline void gcode_G92() {
         if (i != E_AXIS) didXYZ = true;
       #else
         #if ENABLED(WORKSPACE_OFFSETS)
-          float p = current_position[i];
+          const float p = current_position[i];
         #endif
         float v = code_value_axis_units(i);
 
@@ -6879,14 +6864,9 @@ inline void gcode_M31() {
   char buffer[21];
   duration_t elapsed = print_job_counter.duration();
   elapsed.toString(buffer);
-
   lcd_setstatus(buffer);
 
   SERIAL_LMT(ECHO, MSG_PRINT_TIME, buffer);
-
-  #if ENABLED(AUTOTEMP)
-    thermalManager.autotempShutdown();
-  #endif
 }
 
 #if ENABLED(SDSUPPORT)
@@ -6902,10 +6882,10 @@ inline void gcode_M31() {
   }
 
   /**
-   * M33: Close File and save restart.gcode
+   * M33: Close File and store location in restart.gcode
    */
   inline void gcode_M33() {
-    sd_stop_e_save();
+    stopSDPrint(true);
   }
 
   /**
@@ -7666,7 +7646,7 @@ inline void gcode_M92() {
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
       if (i == E_AXIS) {
-        float value = code_value_per_axis_unit(E_AXIS + TARGET_EXTRUDER);
+        const float value = code_value_per_axis_unit((AxisEnum)E_AXIS + TARGET_EXTRUDER);
         if (value < 20.0) {
           float factor = planner.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] / value; // increase e constants if M92 E14 is given for netfab.
           planner.max_jerk[E_AXIS + TARGET_EXTRUDER] *= factor;
@@ -7676,7 +7656,7 @@ inline void gcode_M92() {
         planner.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] = value;
       }
       else {
-        planner.axis_steps_per_mm[i] = code_value_per_axis_unit(i);
+        planner.axis_steps_per_mm[i] = code_value_per_axis_unit((AxisEnum)i);
       }
     }
   }
@@ -7742,13 +7722,14 @@ inline void gcode_M104() {
   #endif
 
   if (code_seen('S')) {
-    thermalManager.setTargetHotend(code_value_temp_abs(), TARGET_EXTRUDER);
+    const int16_t temp = code_value_temp_abs();
+    thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
     #if ENABLED(DUAL_X_CARRIAGE)
       if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-        thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
+        thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
     #endif
 
-    if (code_value_temp_abs() > thermalManager.degHotend(TARGET_EXTRUDER))
+    if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
       lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
   }
 
@@ -7836,10 +7817,11 @@ inline void gcode_M109() {
 
   const bool no_wait_for_cooling = code_seen('S');
   if (no_wait_for_cooling || code_seen('R')) {
-    thermalManager.setTargetHotend(code_value_temp_abs(), TARGET_EXTRUDER);
+    const int16_t temp = code_value_temp_abs();
+    thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
     #if ENABLED(DUAL_X_CARRIAGE)
       if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-        thermalManager.setTargetHotend(code_value_temp_abs() == 0.0 ? 0.0 : code_value_temp_abs() + duplicate_hotend_temp_offset, 1);
+        thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
     #endif
 
     if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
@@ -8458,7 +8440,7 @@ inline void gcode_M205() {
     report_current_position();
   }
 
-#endif // WORKSPACE_OFFSETS
+#endif // ENABLED(WORKSPACE_OFFSETS)
 
 #if ENABLED(FWRETRACT)
   /**
@@ -8786,11 +8768,11 @@ inline void gcode_M226() {
  */
 inline void gcode_M303() {
   #if HAS(PID_HEATING) || HAS(PID_COOLING)
-    int h = code_seen('H') ? code_value_int() : 0;
-    int c = code_seen('C') ? code_value_int() : 5;
-    bool u = code_seen('U') && code_value_bool() != 0;
+    const int   h = code_seen('H') ? code_value_int() : 0,
+                c = code_seen('C') ? code_value_int() : 5;
+    const bool  u = code_seen('U') && code_value_bool() != 0;
 
-    float temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70.0 : 200.0);
+    int16_t temp = code_seen('S') ? code_value_temp_abs() : (h < 0 ? 70 : 200);
 
     if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
 
@@ -9264,7 +9246,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_M("\"temps\": {");
     #if HAS(TEMP_BED)
       SERIAL_MV("\"bed\": {\"current\":", thermalManager.degBed(), 1);
-      SERIAL_MV(",\"active\":", thermalManager.degTargetBed(), 1);
+      SERIAL_MV(",\"active\":", thermalManager.degTargetBed());
       SERIAL_M(",\"state\":");
       SERIAL_C(thermalManager.degTargetBed() > 0 ? '2' : '1');
       SERIAL_M("},");
@@ -9280,7 +9262,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_C(',');
-      SERIAL_V(thermalManager.degTargetHotend(h), 1);
+      SERIAL_V(thermalManager.degTargetHotend(h));
       firstOccurrence = false;
     }
     SERIAL_M("],\"state\":[");
@@ -9552,22 +9534,15 @@ inline void gcode_M400() { stepper.synchronize(); }
     bool err = false;
     LOOP_XYZ(i) {
       if (axis_homed[i]) {
-        #if MECH(DELTA)
-          float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? deltaParams.base_home_pos[i] : 0,
-                diff = current_position[i] - LOGICAL_POSITION(base, i);
-        #else
-          float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
-                diff = current_position[i] - LOGICAL_POSITION(base, i);
-        #endif
+        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
+              diff = current_position[i] - LOGICAL_POSITION(base, i);
         if (WITHIN(diff, -20, 20)) {
           set_home_offset((AxisEnum)i, home_offset[i] - diff);
         }
         else {
           SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
           LCD_ALERTMESSAGEPGM("Err: Too far!");
-          #if HAS(BUZZER)
-            BUZZ(200, 40);
-          #endif
+          BUZZ(200, 40);
           err = true;
           break;
         }
@@ -9577,16 +9552,13 @@ inline void gcode_M400() { stepper.synchronize(); }
     if (!err) {
       SYNC_PLAN_POSITION_KINEMATIC();
       report_current_position();
-      SERIAL_EM(MSG_HOME_OFFSETS_APPLIED);
       LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-      #if HAS(BUZZER)
-        BUZZ(100, 659);
-        BUZZ(100, 698);
-      #endif
+      BUZZ(100, 659);
+      BUZZ(100, 698);
     }
   }
 
-#endif // WORKSPACE_OFFSETS
+#endif // ENABLED(WORKSPACE_OFFSETS)
 
 #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
 
@@ -9825,7 +9797,7 @@ inline void gcode_M532() {
     bool  nozzle_timed_out  = false,
           nozzle_cool_down  = false,
           printer_timed_out = false;
-    float old_target_temperature[HOTENDS];
+    int16_t old_target_temperature[HOTENDS];
 
     // Pause the print job counter
     bool job_running = print_job_counter.isRunning();
@@ -10379,7 +10351,7 @@ inline void gcode_M532() {
     if (code_seen('U')) deltaParams.tower_pos_adj[A_AXIS] = code_value_linear_units();
     if (code_seen('V')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
     if (code_seen('W')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
-    if (code_seen('H')) deltaParams.base_max_pos[C_AXIS] = code_value_axis_units(Z_AXIS);
+    if (code_seen('H')) deltaParams.delta_height = code_value_axis_units(Z_AXIS);
     if (code_seen('O')) deltaParams.print_radius = code_value_linear_units();
 
     deltaParams.Recalc_delta_constants();
@@ -10449,7 +10421,7 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", deltaParams.diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ", deltaParams.segments_per_second);
       SERIAL_LMV(CFG, "O (Delta Print Radius): ", deltaParams.print_radius);
-      SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.base_max_pos[Z_AXIS], 3);
+      SERIAL_LMV(CFG, "H (Z-Height): ", deltaParams.delta_height, 3);
     }
   }
 #endif // MECH DELTA
@@ -10480,11 +10452,11 @@ inline void gcode_M532() {
 
     SERIAL_SMV(ECHO, "Advance K=", planner.extruder_advance_k);
     SERIAL_M(" E/D=");
-    const float ratio = planner.advance_ed_ratio;
-    ratio ? SERIAL_V(ratio) : SERIAL_M("Auto");
+    if (planner.advance_ed_ratio) SERIAL_V(planner.advance_ed_ratio);
+    else SERIAL_M("Auto");
     SERIAL_E;
   }
-#endif
+#endif // LIN_ADVANCE
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
@@ -11240,7 +11212,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (DEBUGGING(LEVELING)) {
                 SERIAL_EMV("Set inactive_extruder_x_pos=", inactive_extruder_x_pos);
-                SERIAL_EM("Clear extruder_duplication_enabled");
+                SERIAL_EM("Clear hotend_duplication_enabled");
               }
             #endif
             break;
@@ -11369,9 +11341,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
         current_position[Y_AXIS] += xydiff[Y_AXIS];
         #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
           LOOP_XY(i) {
-            #if ENABLED(WORKSPACE_OFFSETS)
-              position_shift[i] += xydiff[i];
-            #endif
+            position_shift[i] += xydiff[i];
             update_software_endstops((AxisEnum)i);
           }
         #endif
@@ -11981,7 +11951,7 @@ void process_next_command() {
         gcode_M205(); break;
 
       #if ENABLED(WORKSPACE_OFFSETS)
-        case 206: // M206 additional homing offset
+        case 206: // M206: Set home offsets
           gcode_M206(); break;
       #endif
 
@@ -12524,7 +12494,7 @@ void ok_to_send() {
       if (high_endstop > 0) {
         SERIAL_EMV("Reducing Build height by ", high_endstop);
         LOOP_XYZ(i) deltaParams.endstop_adj[i] -= high_endstop;
-        deltaParams.base_max_pos[Z_AXIS] -= high_endstop;
+        deltaParams.delta_height -= high_endstop;
       }
 
       deltaParams.Recalc_delta_constants();
@@ -12972,8 +12942,8 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
    * splitting the move where it crosses mesh borders.
    */
   void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF) {
-    int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X_AXIS)),
-        cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y_AXIS)),
+    int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X)),
+        cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y)),
         cx2 = mbl.cell_index_x(RAW_X_POSITION(destination[X_AXIS])),
         cy2 = mbl.cell_index_y(RAW_Y_POSITION(destination[Y_AXIS]));
     NOMORE(cx1, GRID_MAX_POINTS_X - 2);
@@ -13313,10 +13283,10 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
             );
             SYNC_PLAN_POSITION_KINEMATIC();
             stepper.synchronize();
-            extruder_duplication_enabled = true;
+            hotend_duplication_enabled = true;
             active_extruder_parked = false;
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) SERIAL_EM("Set extruder_duplication_enabled\nClear active_extruder_parked");
+              if (DEBUGGING(LEVELING)) SERIAL_EM("Set hotend_duplication_enabled\nClear active_extruder_parked");
             #endif
           }
           else {

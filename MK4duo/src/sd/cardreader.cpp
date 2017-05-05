@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ void CardReader::openAndPrintFile(const char *name) {
   enqueue_and_echo_commands_P(PSTR("M24"));
 }
 
-void CardReader::stopSDPrint(bool store_location /*=false*/) {
+void CardReader::stopSDPrint(const bool store_location /*=false*/) {
   sdprinting = false;
   if (isFileOpen()) closeFile(store_location);
 }
@@ -334,7 +334,7 @@ void CardReader::updir() {
   }
 }
 
-void CardReader::closeFile(bool store_location /*=false*/) {
+void CardReader::closeFile(const bool store_location /*=false*/) {
   file.sync();
   file.close();
   saving = false;
@@ -378,7 +378,7 @@ void CardReader::closeFile(bool store_location /*=false*/) {
       strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
     #else
       strcpy(buffer_G92_Z, "G92 Z");
-      dtostrf(current_position[Z_AXIS] + 5, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+      dtostrf(current_position[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
       strcat(buffer_G92_Z, "\n\n");
     #endif
 

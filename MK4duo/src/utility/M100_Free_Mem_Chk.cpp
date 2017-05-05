@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@ void init_free_memory(uint8_t *ptr, int16_t size) {
   SERIAL_EM(" bytes of memory initialized.\n");
 
   for (uint16_t i = 0; i < size; i++) {
-    if (((char) ptr[i]) != TEST_BYTE) {
+    if ((char)ptr[i] != TEST_BYTE) {
       SERIAL_MV("? address : ", hex_address(ptr + i));
       SERIAL_EMV("=", hex_byte(ptr[i]));
     }
@@ -238,7 +238,7 @@ void gcode_M100() {
   SERIAL_MV("\n__brkval : ", hex_address(__brkval));
   SERIAL_MV("\n__bss_end : ", hex_address(&__bss_end));
 
-  uint8_t *ptr = END_OF_HEAP(), *sp = top_of_stack();
+  char *ptr = END_OF_HEAP(), *sp = top_of_stack();
 
   SERIAL_MV("\nstart of free space : ", hex_address(ptr));
   SERIAL_EMV("\nStack Pointer : ", hex_address(sp));
@@ -309,15 +309,15 @@ int check_for_free_memory_corruption(const char * const title) {
   }
   SERIAL_MV("  block_found=", block_cnt);
 
-  if ((block_cnt != 1) || (__brkval != 0x0000))
+  if (block_cnt != 1 || __brkval != 0x0000)
     SERIAL_EM("\nMemory Corruption detected in free memory area.");
 
-  if ((block_cnt == 0))		    // Make sure the special case of no free blocks shows up as an
-    block_cnt = -1;           // error to the calling code!
+  if (block_cnt == 0)       // Make sure the special case of no free blocks shows up as an
+    block_cnt = -1;         // error to the calling code!
 
   SERIAL_M(" return=");
   if (block_cnt == 1) {
-    SERIAL_C('0');       // if the block_cnt is 1, nothing has broken up the free memory
+    SERIAL_C('0');        // if the block_cnt is 1, nothing has broken up the free memory
     SERIAL_E;             // area and it is appropriate to say 'no corruption'.
     return 0;
   }
