@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,15 +31,8 @@
     diagonal_rod              = DELTA_DIAGONAL_ROD;
     segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     print_radius              = DELTA_PRINTABLE_RADIUS;
-    base_min_pos[A_AXIS]      = X_MIN_POS;
-    base_min_pos[B_AXIS]      = Y_MIN_POS;
-    base_min_pos[C_AXIS]      = Z_MIN_POS;
-    base_max_pos[A_AXIS]      = X_MAX_POS;
-    base_max_pos[B_AXIS]      = Y_MAX_POS;
-    base_max_pos[C_AXIS]      = Z_MAX_POS;
-    max_length[A_AXIS]        = X_MAX_LENGTH;
-    max_length[B_AXIS]        = Y_MAX_LENGTH;
-    max_length[C_AXIS]        = Z_MAX_LENGTH;
+    probe_radius              = DELTA_PRINTABLE_RADIUS - 10;
+    delta_height              = DELTA_HEIGHT;
     endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
     endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
@@ -58,15 +51,10 @@
   void DeltaKinematics::Recalc_delta_constants() {
 
     LOOP_XY(i) {
-      base_min_pos[i]     = -print_radius;
-      base_max_pos[i]     = print_radius;
-      soft_endstop_min[i] = base_min_pos[i];
-      soft_endstop_max[i] = base_max_pos[i];
-      max_length[i]       = base_max_pos[i] - base_min_pos[i];
+      soft_endstop_min[i] = -print_radius;
+      soft_endstop_max[i] = print_radius;
     }
-    soft_endstop_max[Z_AXIS]  = base_max_pos[Z_AXIS];
-    max_length[Z_AXIS]        = base_max_pos[Z_AXIS] - Z_MIN_POS;
-    base_home_pos[Z_AXIS]     = base_max_pos[Z_AXIS];
+    soft_endstop_max[Z_AXIS]  = delta_height;
     probe_radius              = print_radius - 10;
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
@@ -97,7 +85,7 @@
     const float tempHeight = diagonal_rod;		// any sensible height will do here, probably even zero
     float cartesian[ABC];
     forward_kinematics_DELTA(tempHeight, tempHeight, tempHeight, cartesian);
-    homed_Height = base_max_pos[Z_AXIS] + tempHeight - cartesian[Z_AXIS];
+    homed_Height = delta_height + tempHeight - cartesian[Z_AXIS];
 
     Set_clip_start_height();
 
@@ -112,7 +100,7 @@
   void DeltaKinematics::NormaliseEndstopAdjustments() {
     const float min_endstop = MIN3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
     LOOP_XYZ(i) endstop_adj[i] -= min_endstop;
-    base_max_pos[Z_AXIS] += min_endstop;
+    delta_height += min_endstop;
     homed_Height += min_endstop;
   }
 
@@ -202,7 +190,7 @@
     Recalc_delta_constants();
 
     const float heightError = homed_Height + endstop_adj[A_AXIS] - oldHeightA - v[0];
-    base_max_pos[Z_AXIS] -= heightError;
+    delta_height -= heightError;
     homed_Height -= heightError;
 
     Recalc_delta_constants();
@@ -298,20 +286,15 @@
    * of a Mega2560 with a Graphical Display.
    */
   void DeltaKinematics::inverse_kinematics_DELTA(const float logical[XYZ]) {
-    const float raw[XYZ] = {
-      RAW_X_POSITION(logical[X_AXIS]),
-      RAW_Y_POSITION(logical[Y_AXIS]),
-      RAW_Z_POSITION(logical[Z_AXIS])
-    };
 
-    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(raw[A_AXIS] - towerX[A_AXIS]) - sq(raw[B_AXIS] - towerY[A_AXIS]));
-    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(raw[A_AXIS] - towerX[B_AXIS]) - sq(raw[B_AXIS] - towerY[B_AXIS]));
-    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - sq(raw[A_AXIS] - towerX[C_AXIS]) - sq(raw[B_AXIS] - towerY[C_AXIS]));
+    delta[A_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(logical[A_AXIS] - towerX[A_AXIS]) - sq(logical[B_AXIS] - towerY[A_AXIS]));
+    delta[B_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(logical[A_AXIS] - towerX[B_AXIS]) - sq(logical[B_AXIS] - towerY[B_AXIS]));
+    delta[C_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - sq(logical[A_AXIS] - towerX[C_AXIS]) - sq(logical[B_AXIS] - towerY[C_AXIS]));
 
     /*
-    SERIAL_MV("cartesian X:", raw[X_AXIS]);
-    SERIAL_MV(" Y:", raw[Y_AXIS]);
-    SERIAL_EMV(" Z:", raw[Z_AXIS]);
+    SERIAL_MV("cartesian X:", logical[X_AXIS]);
+    SERIAL_MV(" Y:", logical[Y_AXIS]);
+    SERIAL_EMV(" Z:", logical[Z_AXIS]);
     SERIAL_MV("delta A:", delta[A_AXIS]);
     SERIAL_MV(" B:", delta[B_AXIS]);
     SERIAL_EMV(" C:", delta[C_AXIS]);
@@ -319,14 +302,10 @@
   }
 
   void DeltaKinematics::Set_clip_start_height() {
-    float cartesian[XYZ] = {
-      LOGICAL_X_POSITION(0),
-      LOGICAL_Y_POSITION(0),
-      LOGICAL_Z_POSITION(0)
-    };
+    float cartesian[XYZ] = { 0, 0, 0 };
     inverse_kinematics_DELTA(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(print_radius);
+    cartesian[Y_AXIS] = print_radius;
     inverse_kinematics_DELTA(cartesian);
     clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }

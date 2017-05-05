@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,23 +131,34 @@ extern float destination[NUM_AXIS];
 
 // Workspace offsets
 #if ENABLED(WORKSPACE_OFFSETS)
-  extern float  position_shift[XYZ],
-                home_offset[XYZ],
-                workspace_offset[XYZ];
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + workspace_offset[AXIS])
-  #define RAW_POSITION(POS, AXIS)     ((POS) - workspace_offset[AXIS])
+  extern float home_offset[XYZ];
+  extern float position_shift[XYZ];
+  extern float workspace_offset[XYZ];
+  #define WORKSPACE_OFFSET(AXIS) workspace_offset[AXIS]
 #else
-  #define LOGICAL_POSITION(POS, AXIS) (POS)
-  #define RAW_POSITION(POS, AXIS)     (POS)
+  #define WORKSPACE_OFFSET(AXIS) 0
 #endif
 
-#define LOGICAL_X_POSITION(POS)     LOGICAL_POSITION(POS, X_AXIS)
-#define LOGICAL_Y_POSITION(POS)     LOGICAL_POSITION(POS, Y_AXIS)
-#define LOGICAL_Z_POSITION(POS)     LOGICAL_POSITION(POS, Z_AXIS)
-#define RAW_X_POSITION(POS)         RAW_POSITION(POS, X_AXIS)
-#define RAW_Y_POSITION(POS)         RAW_POSITION(POS, Y_AXIS)
-#define RAW_Z_POSITION(POS)         RAW_POSITION(POS, Z_AXIS)
-#define RAW_CURRENT_POSITION(AXIS)  RAW_POSITION(current_position[AXIS], AXIS)
+#define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
+#define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
+
+#if ENABLED(WORKSPACE_OFFSETS)
+  #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
+  #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
+  #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
+  #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
+  #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
+  #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
+#else
+  #define LOGICAL_X_POSITION(POS)   (POS)
+  #define LOGICAL_Y_POSITION(POS)   (POS)
+  #define LOGICAL_Z_POSITION(POS)   (POS)
+  #define RAW_X_POSITION(POS)       (POS)
+  #define RAW_Y_POSITION(POS)       (POS)
+  #define RAW_Z_POSITION(POS)       (POS)
+#endif
+
+#define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(current_position[A##_AXIS])
 
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
@@ -164,15 +175,25 @@ extern float soft_endstop_max[XYZ];
   #define clamp_to_software_endstops(x) NOOP
 #endif
 
-#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+#if HAS(WORKSPACE_OFFSET) || ENABLED(DUAL_X_CARRIAGE)
   void update_software_endstops(const AxisEnum axis);
 #endif
 
 // GCode support for external objects
 bool code_seen(char);
 int code_value_int();
-float code_value_temp_abs();
-float code_value_temp_diff();
+int16_t code_value_temp_abs();
+int16_t code_value_temp_diff();
+
+#if ENABLED(INCH_MODE_SUPPORT)
+  float code_value_linear_units();
+  float code_value_axis_units(const AxisEnum axis);
+  float code_value_per_axis_unit(const AxisEnum axis);
+#else
+  #define code_value_linear_units() code_value_float()
+  #define code_value_axis_units(A) code_value_float()
+  #define code_value_per_axis_unit(A) code_value_float()
+#endif
 
 #if ENABLED(LIN_ADVANCE)
   extern int extruder_advance_k;
@@ -213,7 +234,7 @@ float code_value_temp_diff();
 #endif
 
 #if FAN_COUNT > 0
-  extern int fanSpeeds[FAN_COUNT];
+  extern int16_t fanSpeeds[FAN_COUNT];
 #endif
 
 #if HAS(AUTO_FAN)
@@ -320,5 +341,12 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+
+/**
+ * SD Stop & Store location
+ */
+#if ENABLED(SDSUPPORT)
+  void stopSDPrint(const bool store_location);
+#endif
 
 #endif // _MK_MAIN_H

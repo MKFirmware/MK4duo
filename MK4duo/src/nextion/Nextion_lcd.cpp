@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -677,18 +677,8 @@
       }
     }
 
-    void StopPrint(const bool ssr = false) {
-      if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
-        card.stopSDPrint(ssr);
-        clear_command_queue();
-        quickstop_stepper();
-        print_job_counter.stop();
-        #if ENABLED(AUTOTEMP)
-          thermalManager.autotempShutdown();
-        #endif
-        wait_for_heatup = false;
-        lcd_setstatus(MSG_PRINT_ABORTED, true);
-      }
+    void StopPrint(const bool store_location = false) {
+      stopSDPrint(store_location);
     }
 
   #endif

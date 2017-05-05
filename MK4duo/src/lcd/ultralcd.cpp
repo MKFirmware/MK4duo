@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -653,27 +653,11 @@ void kill_screen(const char* lcd_msg) {
     }
 
     void lcd_sdcard_stop() {
-      card.stopSDPrint();
-      clear_command_queue();
-      quickstop_stepper();
-      print_job_counter.stop();
-      #if ENABLED(AUTOTEMP)
-        thermalManager.autotempShutdown();
-      #endif
-      wait_for_heatup = false;
-      LCD_MESSAGEPGM(MSG_PRINT_ABORTED);
+      stopSDPrint(false);
     }
 
     void lcd_sdcard_stop_save() {
-      card.stopSDPrint(true);
-      clear_command_queue();
-      quickstop_stepper();
-      print_job_counter.stop();
-      #if ENABLED(AUTOTEMP)
-        thermalManager.autotempShutdown();
-      #endif
-      wait_for_heatup = false;
-      LCD_MESSAGEPGM(MSG_PRINT_ABORTED);
+      stopSDPrint(true);
     }
 
   #endif // SDSUPPORT
@@ -819,7 +803,7 @@ void kill_screen(const char* lcd_msg) {
    *
    */
 
-  #if ENABLED(WORKSPACE_OFFSETS)
+  #if HAS_M206_M408_COMMAND
     /**
      * Set the home offset based on the current_position
      */
@@ -1091,14 +1075,14 @@ void kill_screen(const char* lcd_msg) {
     }
   #endif // EASY_LOAD
 
-  constexpr int heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_1_MAXTEMP, HEATER_1_MAXTEMP);
+  constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP);
 
   /**
    *
    * "Prepare" submenu items
    *
    */
-  void _lcd_preheat(int endnum, const float temph, const float tempb, const int fan) {
+  void _lcd_preheat(const int endnum, const int16_t temph, const int16_t tempb, const int16_t fan) {
     if (temph > 0) thermalManager.setTargetHotend(min(heater_maxtemp[endnum], temph), endnum);
     #if TEMP_SENSOR_BED != 0
       if (tempb >= 0) thermalManager.setTargetBed(tempb);
@@ -1645,7 +1629,7 @@ void kill_screen(const char* lcd_msg) {
 
     #endif
 
-    #if ENABLED(WORKSPACE_OFFSETS)
+    #if HAS_M206_M408_COMMAND
       //
       // Set Home Offsets
       //

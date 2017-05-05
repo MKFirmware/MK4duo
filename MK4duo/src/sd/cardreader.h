@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ public:
   void getfilename(uint16_t nr, const char* const match = NULL);
   void startFileprint();
   void openAndPrintFile(const char *name);
-  void stopSDPrint(bool store_location = false);
+  void stopSDPrint(const bool store_location = false);
   void write_command(char* buf);
   bool write_data(const uint8_t value);
   uint8_t read_data();
@@ -61,7 +61,7 @@ public:
   void deleteFile(char* filename);
   void finishWrite();
   void makeDirectory(char* filename);
-  void closeFile(bool store_location = false);
+  void closeFile(const bool store_location = false);
   char *createFilename(char *buffer, const dir_t &p);
   void printingHasFinished();
   void chdir(const char* relpath);

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,23 +38,23 @@ Temperature thermalManager;
 
 // public:
 
-float Temperature::current_temperature[HOTENDS] = { 0.0 },
-      Temperature::current_temperature_bed = 0.0;
-int   Temperature::current_temperature_raw[HOTENDS] = { 0 },
-      Temperature::target_temperature[HOTENDS] = { 0 },
-      Temperature::current_temperature_bed_raw = 0,
-      Temperature::target_temperature_bed = 0;
+float   Temperature::current_temperature[HOTENDS] = { 0.0 },
+        Temperature::current_temperature_bed = 0.0;
+int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
+        Temperature::target_temperature[HOTENDS] = { 0 },
+        Temperature::current_temperature_bed_raw = 0,
+        Temperature::target_temperature_bed = 0;
 
 #if HAS(TEMP_CHAMBER)
-  float Temperature::current_temperature_chamber = 0.0;
-  int   Temperature::target_temperature_chamber = 0,
-        Temperature::current_temperature_chamber_raw = 0;
+  float   Temperature::current_temperature_chamber = 0.0;
+  int16_t Temperature::target_temperature_chamber = 0,
+          Temperature::current_temperature_chamber_raw = 0;
 #endif
 
 #if HAS(TEMP_COOLER)
-  float Temperature::current_temperature_cooler = 0.0;
-  int   Temperature::target_temperature_cooler = 0,
-        Temperature::current_temperature_cooler_raw = 0;
+  float   Temperature::current_temperature_cooler = 0.0;
+  int16_t Temperature::target_temperature_cooler = 0,
+          Temperature::current_temperature_cooler_raw = 0;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -189,49 +189,49 @@ uint8_t Temperature::soft_pwm_bed;
 #endif
 
 // Init min and max temp with extreme values to prevent false errors during startup
-int Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_TEMP , HEATER_1_RAW_LO_TEMP , HEATER_2_RAW_LO_TEMP, HEATER_3_RAW_LO_TEMP),
-    Temperature::maxttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_HI_TEMP , HEATER_1_RAW_HI_TEMP , HEATER_2_RAW_HI_TEMP, HEATER_3_RAW_HI_TEMP),
-    Temperature::minttemp[HOTENDS] = { 0 },
-    Temperature::maxttemp[HOTENDS] = ARRAY_BY_HOTENDS(16383);
+int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_TEMP , HEATER_1_RAW_LO_TEMP , HEATER_2_RAW_LO_TEMP, HEATER_3_RAW_LO_TEMP),
+        Temperature::maxttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_HI_TEMP , HEATER_1_RAW_HI_TEMP , HEATER_2_RAW_HI_TEMP, HEATER_3_RAW_HI_TEMP),
+        Temperature::minttemp[HOTENDS] = { 0 },
+        Temperature::maxttemp[HOTENDS] = ARRAY_BY_HOTENDS(16383);
 
 #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
-  int Temperature::consecutive_low_temperature_error[HOTENDS] = { 0 };
+  uint8_t Temperature::consecutive_low_temperature_error[HOTENDS] = { 0 };
   #if HAS(TEMP_BED)
-    int Temperature::consecutive_bed_low_temperature_error = 0;
+    uint8_t Temperature::consecutive_bed_low_temperature_error = 0;
   #endif
 #endif
 
 #if ENABLED(MILLISECONDS_PREHEAT_TIME)
-  unsigned long Temperature::preheat_end_time[HOTENDS] = { 0 };
+  millis_t Temperature::preheat_end_time[HOTENDS] = { 0 };
 #endif
 
 #if ENABLED(BED_MINTEMP)
-  int Temperature::bed_minttemp_raw = HEATER_BED_RAW_LO_TEMP;
+  int16_t Temperature::bed_minttemp_raw = HEATER_BED_RAW_LO_TEMP;
 #endif
 
 #if ENABLED(BED_MAXTEMP)
-  int Temperature::bed_maxttemp_raw = HEATER_BED_RAW_HI_TEMP;
+  int16_t Temperature::bed_maxttemp_raw = HEATER_BED_RAW_HI_TEMP;
 #endif
 
 #if ENABLED(CHAMBER_MINTEMP)
-  int Temperature::chamber_minttemp_raw = HEATER_CHAMBER_RAW_LO_TEMP;
+  int16_t Temperature::chamber_minttemp_raw = HEATER_CHAMBER_RAW_LO_TEMP;
 #endif
 #if ENABLED(CHAMBER_MAXTEMP)
-  int Temperature::chamber_maxttemp_raw = HEATER_CHAMBER_RAW_HI_TEMP;
+  int16_t Temperature::chamber_maxttemp_raw = HEATER_CHAMBER_RAW_HI_TEMP;
 #endif
 #if ENABLED(COOLER_MINTEMP)
-  int Temperature::cooler_minttemp_raw = COOLER_RAW_LO_TEMP;
+  int16_t Temperature::cooler_minttemp_raw = COOLER_RAW_LO_TEMP;
 #endif
 #if ENABLED(COOLER_MAXTEMP)
-  int Temperature::cooler_maxttemp_raw = COOLER_RAW_HI_TEMP;
+  int16_t Temperature::cooler_maxttemp_raw = COOLER_RAW_HI_TEMP;
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
-  int Temperature::meas_shift_index;  // Index of a delayed sample in buffer
+  int16_t Temperature::meas_shift_index;  // Index of a delayed sample in buffer
 #endif
 
 #if HAS(POWER_CONSUMPTION_SENSOR)
-  int Temperature::current_raw_powconsumption = 0;  // Holds measured power consumption
+  int16_t Temperature::current_raw_powconsumption = 0;  // Holds measured power consumption
   static unsigned long Temperature::raw_powconsumption_value = 0;
 #endif
 
@@ -1693,6 +1693,11 @@ void Temperature::init() {
 #endif // THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED
 
 void Temperature::disable_all_heaters() {
+
+  #if ENABLED(AUTOTEMP)
+    planner.autotemp_enabled = false;
+  #endif
+
   HOTEND_LOOP() setTargetHotend(0, h);
   setTargetBed(0);
 
@@ -1923,9 +1928,9 @@ void Temperature::set_current_temp_raw() {
   };
 
   for (uint8_t h = 0; h < COUNT(temp_dir); h++) {
-    const int tdir = temp_dir[h], rawtemp = current_temperature_raw[h] * tdir;
-    if (rawtemp > maxttemp_raw[h] * tdir && target_temperature[h] > 0.0f) max_temp_error(h);
-    if (rawtemp < minttemp_raw[h] * tdir && !is_preheating(h) && target_temperature[h] > 0.0f) {
+    const int16_t tdir = temp_dir[h], rawtemp = current_temperature_raw[h] * tdir;
+    if (rawtemp > maxttemp_raw[h] * tdir && target_temperature[h] > 0) max_temp_error(h);
+    if (rawtemp < minttemp_raw[h] * tdir && !is_preheating(h) && target_temperature[h] > 0) {
       #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
         if (++consecutive_low_temperature_error[h] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       #endif
@@ -1944,7 +1949,7 @@ void Temperature::set_current_temp_raw() {
       #define GEBED >=
     #endif
     if (current_temperature_bed_raw GEBED bed_maxttemp_raw) max_temp_error(-1);
-    if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0.0f) {
+    if (bed_minttemp_raw GEBED current_temperature_bed_raw && target_temperature_bed > 0) {
       #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
         if (++consecutive_bed_low_temperature_error >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       #endif
@@ -1964,7 +1969,7 @@ void Temperature::set_current_temp_raw() {
     #endif
     if (current_temperature_chamber_raw GECHAMBER chamber_maxttemp_raw)
       _temp_error(-2, PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
-    if (chamber_minttemp_raw GECHAMBER current_temperature_chamber_raw && target_temperature_chamber > 0.0f)
+    if (chamber_minttemp_raw GECHAMBER current_temperature_chamber_raw && target_temperature_chamber > 0)
       _temp_error(-2, PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
   #endif
 
@@ -1976,7 +1981,7 @@ void Temperature::set_current_temp_raw() {
     #endif
     if (current_temperature_cooler_raw GECOOLER cooler_maxttemp_raw)
       _temp_error(-3, PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_COOLER));
-    if (cooler_minttemp_raw GECOOLER current_temperature_cooler_raw && target_temperature_cooler > 0.0f)
+    if (cooler_minttemp_raw GECOOLER current_temperature_cooler_raw && target_temperature_cooler > 0)
       _temp_error(-3, PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_COOLER));
   #endif
 }

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@
  *  M666  R               deltaParams.delta_radius (float)
  *  M666  D               deltaParams.diagonal_rod (float)
  *  M666  S               deltaParams.segments_per_second (float)
- *  M666  H               deltaParams.base_max_pos (float)
+ *  M666  H               deltaParams.delta_height (float)
  *  M666  ABC             deltaParams.tower_radius_adj (float x3)
  *  M666  IJK             deltaParams.tower_pos_adj (float x3)
  *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
@@ -196,7 +196,7 @@ void EEPROM::Postprocess() {
   #if HAS(LEVELING) && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     set_z_fade_height(planner.z_fade_height);
   #endif
-  
+
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     refresh_bed_level();
   #endif
@@ -322,7 +322,7 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(planner.min_segment_time);
     EEPROM_WRITE(planner.max_jerk);
     #if DISABLED(WORKSPACE_OFFSETS)
-      float home_offset[XYZ] = { 0 };
+      const float home_offset[XYZ] = { 0 };
     #endif
     EEPROM_WRITE(home_offset);
     EEPROM_WRITE(hotend_offset);
@@ -390,7 +390,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(deltaParams.delta_radius);
       EEPROM_WRITE(deltaParams.diagonal_rod);
       EEPROM_WRITE(deltaParams.segments_per_second);
-      EEPROM_WRITE(deltaParams.base_max_pos);
+      EEPROM_WRITE(deltaParams.delta_height);
       EEPROM_WRITE(deltaParams.tower_radius_adj);
       EEPROM_WRITE(deltaParams.tower_pos_adj);
       EEPROM_WRITE(deltaParams.diagonal_rod_adj);
@@ -723,7 +723,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(deltaParams.delta_radius);
         EEPROM_READ(deltaParams.diagonal_rod);
         EEPROM_READ(deltaParams.segments_per_second);
-        EEPROM_READ(deltaParams.base_max_pos);
+        EEPROM_READ(deltaParams.delta_height);
         EEPROM_READ(deltaParams.tower_radius_adj);
         EEPROM_READ(deltaParams.tower_pos_adj);
         EEPROM_READ(deltaParams.diagonal_rod_adj);
@@ -1228,7 +1228,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)
-      CONFIG_MSG_START("Home offset (mm):");
+      CONFIG_MSG_START("Home offset:");
       SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(home_offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(home_offset[Y_AXIS]), 3);
       SERIAL_EMV(" Z", LINEAR_UNIT(home_offset[Z_AXIS]), 3);
@@ -1310,7 +1310,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" D", LINEAR_UNIT(deltaParams.diagonal_rod));
       SERIAL_MV(" S", deltaParams.segments_per_second);
       SERIAL_MV(" O", LINEAR_UNIT(deltaParams.print_radius));
-      SERIAL_MV(" H", LINEAR_UNIT(deltaParams.base_max_pos[C_AXIS]), 3);
+      SERIAL_MV(" H", LINEAR_UNIT(deltaParams.delta_height), 3);
       SERIAL_E;
 
     #elif ENABLED(Z_TWO_ENDSTOPS)

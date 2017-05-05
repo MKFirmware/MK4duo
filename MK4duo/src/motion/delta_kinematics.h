@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,26 +29,32 @@
 
     public:
 
-      DeltaKinematics() { Init(); }
-
-      // Core parameters
+      /**
+       * Public Delta parameters
+       */
       float diagonal_rod          = DELTA_DIAGONAL_ROD,
             delta_radius          = DEFAULT_DELTA_RADIUS,
             segments_per_second   = DELTA_SEGMENTS_PER_SECOND,
             print_radius          = DELTA_PRINTABLE_RADIUS,
             probe_radius          = DELTA_PROBEABLE_RADIUS,
-            clip_start_height     = Z_MAX_POS,
+            delta_height          = DELTA_HEIGHT,
+            clip_start_height     = DELTA_HEIGHT,
             diagonal_rod_adj[ABC] = { TOWER_A_DIAGROD_ADJ, TOWER_B_DIAGROD_ADJ, TOWER_C_DIAGROD_ADJ },
             endstop_adj[ABC]      = { TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ },
             tower_radius_adj[ABC] = { TOWER_A_RADIUS_ADJ, TOWER_B_RADIUS_ADJ, TOWER_C_RADIUS_ADJ },
             tower_pos_adj[ABC]    = { TOWER_A_POSITION_ADJ, TOWER_B_POSITION_ADJ, TOWER_C_POSITION_ADJ },
-            base_min_pos[ABC]     = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-            base_max_pos[ABC]     = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
-            base_home_pos[ABC]    = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
             max_length[ABC]       = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
-      // Function
+      /**
+       * Public Function
+       */
+      DeltaKinematics() {};
+
+      /**
+       * Initialize Delta parameters
+       */
       void Init();
+
       float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       void Adjust(const uint8_t numFactors, const float v[]);
       void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
@@ -56,7 +62,6 @@
       void inverse_kinematics_DELTA(const float logical[XYZ]);
       void Recalc_delta_constants();
       void Convert_endstop_adj();
-
       void Set_clip_start_height();
 
     private:
@@ -81,4 +86,5 @@
   extern DeltaKinematics deltaParams;
 
 #endif
+
 #endif // _DELTA_PARAMETERS_H_
