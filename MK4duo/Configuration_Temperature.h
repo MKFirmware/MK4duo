@@ -32,6 +32,7 @@
  * - Parallel heaters
  * - Redundant thermistor
  * - Temperature status LEDs
+ * - PWM Heater Speed
  * - PID Settings - HOTEND
  * - PID Settings - BED
  * - PID Settings - CHAMBER
@@ -259,6 +260,22 @@
  
  
 /***********************************************************************
+ ************************* PWM Heater Speed ****************************
+ ***********************************************************************
+ *                                                                     *
+ * PWM Heater frequency and values                                     *
+ *    0 -  15Hz 256 values                                             *
+ *    1 -  30Hz 128 values                                             *
+ *    2 -  61Hz  64 values                                             *
+ *    3 - 122Hz  32 values                                             *
+ *    4 - 244Hz  16 values                                             *
+ *                                                                     *
+ ***********************************************************************/
+#define HEATER_PWM_SPEED 0
+/***********************************************************************/
+
+
+/***********************************************************************
  ********************** PID Settings - HOTEND **************************
  ***********************************************************************
  *                                                                     *
@@ -271,7 +288,7 @@
 #define BANG_MAX  255       // Limits current to nozzle while in bang-bang mode; 255 = full current
 #define PID_MIN     0       // Limits min current to nozzle while PID is active;   0 = no current
 #define PID_MAX   255       // Limits max current to nozzle while PID is active; 255 = full current
-#define HEATER_PWM_SPEED 0  // PWM speed 0, 1, 2
+
 //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 //#define PID_DEBUG         // Sends debug data to the serial port.
 //#define PID_OPENLOOP 1    // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX

@@ -350,6 +350,11 @@ class HAL {
     static int16_t AnalogInputValues[ANALOG_INPUTS];
     static bool execute_100ms;
 
+    static uint8_t soft_pwm_fan[FAN_COUNT];
+    #if HAS_CONTROLLERFAN
+      static uint8_t soft_pwm_controller_fan;
+    #endif
+
     // do any hardware-specific initialization here
     static inline void hwSetup() {}
 

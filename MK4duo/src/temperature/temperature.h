@@ -74,9 +74,6 @@ class Temperature {
       static float    redundant_temperature;
     #endif
 
-    static uint8_t  fanSpeedSoftPwm[FAN_COUNT],
-                    soft_pwm_fan[FAN_COUNT];
-
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
 
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
@@ -379,7 +376,7 @@ class Temperature {
       void start_watching_cooler();
     #endif
 
-    static void setTargetHotend(const int16_t& celsius, uint8_t h) {
+    static void setTargetHotend(const int16_t celsius, uint8_t h) {
       #if HOTENDS <= 1
         UNUSED(h);
       #endif
@@ -395,7 +392,7 @@ class Temperature {
       #endif
     }
 
-    static void setTargetBed(const int16_t& celsius) {
+    static void setTargetBed(const int16_t celsius) {
       target_temperature_bed = celsius;
       #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
         start_watching_bed();
@@ -403,7 +400,7 @@ class Temperature {
     }
 
     #if HAS(TEMP_CHAMBER)
-      static void setTargetChamber(const int16_t& celsius) {
+      static void setTargetChamber(const int16_t celsius) {
         target_temperature_chamber = celsius;
         #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
           start_watching_chamber();
@@ -412,7 +409,7 @@ class Temperature {
     #endif
 
     #if HAS(TEMP_COOLER)
-      static void setTargetCooler(const int16_t& celsius) {
+      static void setTargetCooler(const int16_t celsius) {
         target_temperature_cooler = celsius;
         #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
           start_watching_cooler();

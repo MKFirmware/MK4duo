@@ -62,7 +62,7 @@ void ok_to_send();
   extern void mesh_probing_done();
 #endif
 
-#if HAS(LEVELING)
+#if HAS_LEVELING
   void reset_bed_level();
 #endif
 
@@ -167,7 +167,7 @@ extern float hotend_offset[XYZ][HOTENDS];
 extern float soft_endstop_min[XYZ];
 extern float soft_endstop_max[XYZ];
 
-#if HAS(SOFTWARE_ENDSTOPS)
+#if HAS_SOFTWARE_ENDSTOPS
   extern bool soft_endstops_enabled;
   void clamp_to_software_endstops(float target[XYZ]);
 #else
@@ -224,7 +224,7 @@ int16_t code_value_temp_diff();
   extern float z2_endstop_adj;
 #endif
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   extern float zprobe_zoffset;
   extern bool probe_process;
 #endif

@@ -1428,7 +1428,7 @@ void kill_screen(const char* lcd_msg) {
         refresh_cmd_timeout();
         current_position[Z_AXIS] += float((int32_t)encoderPosition) * (LCD_Z_STEP);
         NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(current_position[Z_AXIS],  (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
         lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
         encoderPosition = 0;
@@ -1831,7 +1831,7 @@ void kill_screen(const char* lcd_msg) {
       float min = current_position[axis] - 1000,
             max = current_position[axis] + 1000;
 
-      #if HAS(SOFTWARE_ENDSTOPS)
+      #if HAS_SOFTWARE_ENDSTOPS
         // Limit to software endstops, if enabled
         if (soft_endstops_enabled) {
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
@@ -2387,7 +2387,7 @@ void kill_screen(const char* lcd_msg) {
   void lcd_control_motion_menu() {
     START_MENU();
     MENU_BACK(MSG_CONTROL);
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
       MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif
     // Manual bed leveling, Bed Z:

@@ -42,9 +42,6 @@
    * SAM3X8E
    */
   #if ENABLED(ARDUINO_ARCH_SAM)
-    #if ENABLED(FAST_PWM_FAN)
-      #undef FAST_PWM_FAN
-    #endif
     #ifdef M100_FREE_MEMORY_WATCHER
       #undef M100_FREE_MEMORY_WATCHER
     #endif
@@ -756,14 +753,14 @@
       #define WRITE_HEATER_BED(v) WRITE(HEATER_BED_PIN,v)
     #endif
   #endif
-  #if HAS(HEATER_CHAMBER)
+  #if HAS_HEATER_CHAMBER
     #if ENABLED(INVERTED_CHAMBER_PIN)
       #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER_PIN,!v)
     #else
       #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER_PIN,v)
     #endif
   #endif
-  #if HAS(COOLER)
+  #if HAS_COOLER
     #if ENABLED(INVERTED_COOLER_PIN)
       #define WRITE_COOLER(v) WRITE(COOLER_PIN,!v)
     #else
@@ -964,8 +961,8 @@
   #if HEATER_PWM_SPEED < 0
     #define HEATER_PWM_SPEED 0
   #endif
-  #if HEATER_PWM_SPEED > 2
-    #define HEATER_PWM_SPEED 2
+  #if HEATER_PWM_SPEED > 4
+    #define HEATER_PWM_SPEED 4
   #endif
 
   #if HEATER_PWM_SPEED == 0
@@ -974,9 +971,15 @@
   #elif HEATER_PWM_SPEED == 1
     #define HEATER_PWM_STEP 2
     #define HEATER_PWM_MASK 254
-  #else
+  #elif HEATER_PWM_SPEED == 2
     #define HEATER_PWM_STEP 4
     #define HEATER_PWM_MASK 252
+  #elif HEATER_PWM_SPEED == 3
+    #define HEATER_PWM_STEP 8
+    #define HEATER_PWM_MASK 248
+  #elif HEATER_PWM_SPEED == 4
+    #define HEATER_PWM_STEP 16
+    #define HEATER_PWM_MASK 240
   #endif
 
   #if DISABLED(FAN_PWM_SPEED)
@@ -985,8 +988,8 @@
   #if FAN_PWM_SPEED < 0
     #define FAN_PWM_SPEED 0
   #endif
-  #if FAN_PWM_SPEED > 2
-    #define FAN_PWM_SPEED 2
+  #if FAN_PWM_SPEED > 4
+    #define FAN_PWM_SPEED 4
   #endif
 
   #if FAN_PWM_SPEED == 0
@@ -995,9 +998,15 @@
   #elif FAN_PWM_SPEED == 1
     #define FAN_PWM_STEP 2
     #define FAN_PWM_MASK 254
-  #else
+  #elif FAN_PWM_SPEED == 2
     #define FAN_PWM_STEP 4
     #define FAN_PWM_MASK 252
+  #elif FAN_PWM_SPEED == 3
+    #define FAN_PWM_STEP 8
+    #define FAN_PWM_MASK 248
+  #else FAN_PWM_SPEED == 4
+    #define FAN_PWM_STEP 16
+    #define FAN_PWM_MASK 240
   #endif
 
   // TEMPERATURE
