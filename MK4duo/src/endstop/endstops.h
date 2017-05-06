@@ -76,7 +76,7 @@ class Endstops {
     static void hit_on_purpose() { endstop_hit_bits = 0; }
 
     // Enable / disable endstop z-probe checking
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
       static volatile bool z_probe_enabled;
       static void enable_z_probe(bool onoff = true) { z_probe_enabled = onoff; }
     #endif
@@ -98,7 +98,7 @@ class Endstops {
 
 extern Endstops endstops;
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   #define ENDSTOPS_ENABLED  (endstops.enabled || endstops.z_probe_enabled)
 #else
   #define ENDSTOPS_ENABLED  endstops.enabled

@@ -193,7 +193,7 @@ void EEPROM::Postprocess() {
     LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
   #endif
 
-  #if HAS(LEVELING) && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     set_z_fade_height(planner.z_fade_height);
   #endif
 
@@ -981,11 +981,11 @@ void EEPROM::Factory_Settings() {
     ZERO(home_offset);
   #endif
 
-  #if HAS(LEVELING)
+  #if HAS_LEVELING
     reset_bed_level();
   #endif
 
-  #if HAS(BED_PROBE)
+  #if HAS_BED_PROBE
     zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
@@ -1323,7 +1323,7 @@ void EEPROM::Factory_Settings() {
     /**
      * Auto Bed Leveling
      */
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
       CONFIG_MSG_START("Z Probe offset:");
       SERIAL_LMV(CFG, "  M666 P", LINEAR_UNIT(zprobe_zoffset));
     #endif

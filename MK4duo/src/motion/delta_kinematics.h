@@ -55,18 +55,23 @@
        */
       void Init();
 
-      float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-      void Adjust(const uint8_t numFactors, const float v[]);
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
+        void Adjust(const uint8_t numFactors, const float v[]);
+        void Convert_endstop_adj();
+      #endif
+
       void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
       void forward_kinematics_DELTA(const float point[ABC], float cartesian[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void inverse_kinematics_DELTA(const float logical[XYZ]);
       void Recalc_delta_constants();
-      void Convert_endstop_adj();
       void Set_clip_start_height();
 
     private:
 
-      void NormaliseEndstopAdjustments();
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+        void NormaliseEndstopAdjustments();
+      #endif
 
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);

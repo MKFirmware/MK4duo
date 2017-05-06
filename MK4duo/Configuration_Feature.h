@@ -120,18 +120,12 @@
 /**************************************************************************
  **************************** Fan configuration ***************************
  **************************************************************************/
-// Increase the FAN pwm frequency. Removes the PWM noise but increases heating in the FET/Arduino
-// Only 8 bit boards
-//#define FAST_PWM_FAN
-
-// Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
-// which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
-// is too low, you should also increment FAN PWM SPEED.
-//#define FAN_SOFT_PWM
-
-// Incrementing this by 1 will double the software PWM frequency.
-// However, control resolution will be halved for each increment;
-// at zero value, there are 256 effective control positions.
+// FAN PWM speed
+// 0 -  15Hz 256 values
+// 1 -  30Hz 128 values
+// 2 -  61Hz  64 values
+// 3 - 122Hz  32 values
+// 4 - 244Hz  16 values
 #define FAN_PWM_SPEED 0
 
 // When first starting the main fan, run it at full speed for the

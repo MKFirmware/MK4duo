@@ -41,10 +41,6 @@
 
   #define ORIG_FAN_PIN            -1
 
-  #if ORIG_FAN_PIN == 12 || ORIG_FAN_PIN ==13
-    #define FAN_SOFT_PWM
-  #endif
-
   #if MB(AZTEEG_X1) || MB(STB_11) || MB(MELZI)
     #define ORIG_FAN_PIN           4 // Works for Panelolu2 too
     #if MB(MELZI)

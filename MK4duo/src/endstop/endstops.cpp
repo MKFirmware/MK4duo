@@ -51,7 +51,7 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
     Endstops::current_endstop_bits = 0,
     Endstops::old_endstop_bits = 0;
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   volatile bool Endstops::z_probe_enabled = false;
 #endif
 
@@ -584,7 +584,7 @@ void Endstops::update() {
 
         #else
 
-          #if HAS(BED_PROBE) && HASNT(Z_PROBE_PIN)
+          #if HAS_BED_PROBE && HASNT(Z_PROBE_PIN)
             if (z_probe_enabled) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
@@ -595,7 +595,7 @@ void Endstops::update() {
       #endif // HAS(Z_MIN)
 
       // When closing the gap check the enabled probe
-      #if HAS(BED_PROBE) && HAS(Z_PROBE_PIN)
+      #if HAS_BED_PROBE && HAS(Z_PROBE_PIN)
         if (z_probe_enabled) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);

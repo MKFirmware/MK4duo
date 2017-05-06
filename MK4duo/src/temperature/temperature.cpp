@@ -70,10 +70,6 @@ uint8_t Temperature::soft_pwm_bed;
   uint8_t Temperature::soft_pwm_cooler;
 #endif
 
-#if ENABLED(FAN_SOFT_PWM)
-  uint8_t Temperature::fanSpeedSoftPwm[FAN_COUNT];
-#endif
-
 #if ENABLED(PIDTEMP)
   float Temperature::Kp[HOTENDS],
         Temperature::Ki[HOTENDS],
@@ -240,10 +236,6 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 #endif
 
 uint8_t Temperature::soft_pwm[HOTENDS];
-
-#if ENABLED(FAN_SOFT_PWM)
-  uint8_t Temperature::soft_pwm_fan[FAN_COUNT];
-#endif
 
 #if ENABLED(FILAMENT_SENSOR)
   int Temperature::current_raw_filwidth = 0;  //Holds measured filament diameter - one extruder only
@@ -1361,42 +1353,27 @@ void Temperature::init() {
   #if HAS(HEATER_BED)
     SET_OUTPUT(HEATER_BED_PIN);
   #endif
-  #if HAS(HEATER_CHAMBER)
+  #if HAS_HEATER_CHAMBER
     SET_OUTPUT(HEATER_CHAMBER_PIN);
   #endif
-  #if HAS(COOLER)
+  #if HAS_COOLER
     SET_OUTPUT(COOLER_PIN);
-    #if ENABLED(FAST_PWM_COOLER)
-	    HAL::setPwmFrequency(COOLER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
-    #endif
   #endif
 
   #if HAS(FAN0)
     SET_OUTPUT(FAN_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
 
   #if HAS(FAN1)
     SET_OUTPUT(FAN1_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(FAN1_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
 
   #if HAS(FAN2)
     SET_OUTPUT(FAN2_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(FAN2_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
 
   #if HAS(FAN3)
     SET_OUTPUT(FAN3_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(FAN3_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
 
   #if ENABLED(HEATER_0_USES_MAX6675)
@@ -1414,27 +1391,15 @@ void Temperature::init() {
 
   #if HAS(AUTO_FAN_0)
     SET_OUTPUT(H0_AUTO_FAN_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(H0_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
   #if HAS(AUTO_FAN_1) && !AUTO_1_IS_0
     SET_OUTPUT(H1_AUTO_FAN_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(H1_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
   #if HAS(AUTO_FAN_2) && !AUTO_2_IS_0 && !AUTO_2_IS_1
     SET_OUTPUT(H2_AUTO_FAN_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(H2_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
   #if HAS(AUTO_FAN_3) && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
     SET_OUTPUT(H3_AUTO_FAN_PIN);
-    #if ENABLED(FAST_PWM_FAN)
-      HAL::setPwmFrequency(H3_AUTO_FAN_PIN, 1); // No prescaling. Pwm frequency = F_CPU/256/8
-    #endif
   #endif
 
   // Use timer for temperature measurement
@@ -1743,7 +1708,7 @@ void Temperature::disable_all_heaters() {
   #if HAS(TEMP_CHAMBER)
     target_temperature_chamber = 0;
     soft_pwm_chamber = 0;
-    #if HAS(HEATER_CHAMBER)
+    #if HAS_HEATER_CHAMBER
       WRITE_HEATER_CHAMBER(LOW);
     #endif
   #endif
@@ -1764,7 +1729,7 @@ void Temperature::disable_all_heaters() {
     #if HAS(TEMP_COOLER)
       target_temperature_cooler = 0;
       soft_pwm_chamber = 0;
-      #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER)
+      #if HAS_COOLER && !ENABLED(FAST_PWM_COOLER)
         WRITE_COOLER(LOW);
       #endif
     #endif

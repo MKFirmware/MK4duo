@@ -477,32 +477,17 @@ void Planner::check_axes_activity() {
 
     #endif // FAN_KICKSTART_TIME
 
-    #if ENABLED(FAN_SOFT_PWM)
-      #if HAS(FAN0)
-        thermalManager.fanSpeedSoftPwm[0] = CALC_FAN_SPEED(0);
-      #endif
-      #if HAS(FAN1)
-        thermalManager.fanSpeedSoftPwm[1] = CALC_FAN_SPEED(1);
-      #endif
-      #if HAS(FAN2)
-        thermalManager.fanSpeedSoftPwm[2] = CALC_FAN_SPEED(2);
-      #endif
-      #if HAS(FAN3)
-        thermalManager.fanSpeedSoftPwm[3] = CALC_FAN_SPEED(3);
-      #endif
-    #else
-      #if HAS(FAN0)
-        analogWrite(FAN_PIN, CALC_FAN_SPEED(0));
-      #endif
-      #if HAS(FAN1)
-        analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
-      #endif
-      #if HAS(FAN2)
-        analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));
-      #endif
-      #if HAS(FAN3)
-        analogWrite(FAN3_PIN, CALC_FAN_SPEED(3));
-      #endif
+    #if HAS(FAN0)
+      HAL::soft_pwm_fan[0] = CALC_FAN_SPEED(0);
+    #endif
+    #if HAS(FAN1)
+      HAL::soft_pwm_fan[1] = CALC_FAN_SPEED(1);
+    #endif
+    #if HAS(FAN2)
+      HAL::soft_pwm_fan[2] = CALC_FAN_SPEED(2);
+    #endif
+    #if HAS(FAN3)
+      HAL::soft_pwm_fan[3] = CALC_FAN_SPEED(3);
     #endif
 
   #endif // FAN_COUNT > 0
@@ -521,7 +506,7 @@ void Planner::check_axes_activity() {
   #endif
 }
 
-#if HAS(LEVELING)
+#if HAS_LEVELING
   /**
    * lx, ly, lz - Logical (cartesian, not delta) positions in mm
    */
@@ -625,7 +610,7 @@ void Planner::check_axes_activity() {
     #endif
   }
 
-#endif // HAS(LEVELING)
+#endif // HAS_LEVELING
 
 /**
  * Planner::_buffer_line
@@ -1521,7 +1506,7 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
 }
 
 void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
-  #if HAS(LEVELING)
+  #if HAS_LEVELING
     float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
     apply_leveling(lpos);
   #else

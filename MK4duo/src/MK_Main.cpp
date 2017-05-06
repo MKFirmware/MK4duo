@@ -201,7 +201,7 @@ float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA
 #endif
 
 // Software Endstops. Default to configured limits.
-#if HAS(SOFTWARE_ENDSTOPS)
+#if HAS_SOFTWARE_ENDSTOPS
   bool soft_endstops_enabled = true;
 #endif
 float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
@@ -253,7 +253,7 @@ static millis_t stepper_inactive_time = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL
 // Print Job Timer
 PrintCounter print_job_counter = PrintCounter();
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
 #endif
 
@@ -1451,7 +1451,7 @@ static void set_axis_is_at_home(AxisEnum axis) {
   /**
    * Z Probe Z Homing? Account for the probe's Z offset.
    */
-  #if HAS(BED_PROBE) && (Z_HOME_DIR < 0)
+  #if HAS_BED_PROBE && (Z_HOME_DIR < 0)
     if (axis == Z_AXIS) {
       #if HOMING_Z_WITH_PROBE
 
@@ -1701,7 +1701,7 @@ static void clean_up_after_endstop_or_probe_move() {
   refresh_cmd_timeout();
 }
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   /**
    * Raise Z to a minimum height to make room for a servo to move
    */
@@ -1792,7 +1792,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
 
 #endif
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
 
   // TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
   #if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
@@ -2141,9 +2141,9 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
     return measured_z;
   }
 
-#endif // HAS(BED_PROBE)
+#endif // HAS_BED_PROBE
 
-#if HAS(LEVELING)
+#if HAS_LEVELING
   /**
    * Turn bed leveling on or off, fixing the current
    * position as-needed.
@@ -2247,7 +2247,7 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
     #endif
   }
 
-#endif // HAS(LEVELING)
+#endif // HAS_LEVELING
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
@@ -3439,7 +3439,7 @@ void unknown_command_error() {
 #endif //HOST_KEEPALIVE_FEATURE
 
 bool position_is_reachable(const float target[XYZ]
-  #if HAS(BED_PROBE)
+  #if HAS_BED_PROBE
     , bool by_probe=false
   #endif
 ) {
@@ -3465,7 +3465,7 @@ bool position_is_reachable(const float target[XYZ]
       dx = point.x;
       dy = point.y;
     }
-  #elif HAS(BED_PROBE)
+  #elif HAS_BED_PROBE
     if (by_probe) {
       dx -= X_PROBE_OFFSET_FROM_NOZZLE;
       dy -= Y_PROBE_OFFSET_FROM_NOZZLE;
@@ -3827,7 +3827,7 @@ inline void gcode_G4() {
       SERIAL_EM("NONE");
     #endif
 
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
       SERIAL_MV("Probe Offset X:", X_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Z:", zprobe_zoffset);
@@ -3906,7 +3906,6 @@ inline void gcode_G4() {
 
   /**
    * A delta can only safely home all axes at the same time
-   * This is like quick_home_xy() but for 3 towers.
    */
   inline void home_delta() {
 
@@ -3942,13 +3941,6 @@ inline void gcode_G4() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< home_delta", current_position);
     #endif
-
-    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(deltaParams.clip_start_height);
-      stepper.synchronize();
-    #endif
-
   }
 #endif // DELTA
 
@@ -4029,12 +4021,12 @@ inline void gcode_G4() {
 
     if (position_is_reachable(
           destination
-          #if HAS(BED_PROBE)
+          #if HAS_BED_PROBE
             , true
           #endif
         )
     ) {
-      #if HAS(BED_PROBE)
+      #if HAS_BED_PROBE
         destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
         destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
       #endif
@@ -4116,7 +4108,7 @@ inline void gcode_G28() {
   #endif
 
   // Disable the leveling matrix before homing
-  #if HAS(LEVELING)
+  #if HAS_LEVELING
     set_bed_leveling_enabled(false);
   #endif
 
@@ -4144,35 +4136,27 @@ inline void gcode_G28() {
     COPY_ARRAY(lastpos, current_position);
   }
 
-  #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
-
-    bool  homeX = code_seen('X'),
-          homeY = code_seen('Y'),
-          homeZ = code_seen('Z'),
-          homeE = code_seen('E');
-
-    if (homeZ) homeX = homeY = true;
-
-  #else
-
-    const bool  homeX = code_seen('X'),
-                homeY = code_seen('Y'),
-                homeZ = code_seen('Z'),
-                homeE = code_seen('E');
-
-  #endif
-
-  const bool home_all_axis = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
-
   #if MECH(DELTA)
-
-    /**
-     * A delta can only safely home all axis at the same time
-     */
 
     home_delta();
 
   #else // NOT DELTA
+
+    #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
+      bool  homeX = code_seen('X'),
+            homeY = code_seen('Y'),
+            homeZ = code_seen('Z'),
+            homeE = code_seen('E');
+
+      if (homeZ) homeX = homeY = true;
+    #else
+      const bool  homeX = code_seen('X'),
+                  homeY = code_seen('Y'),
+                  homeZ = code_seen('Z'),
+                  homeE = code_seen('E');
+    #endif
+  
+    const bool home_all_axis = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
 
     set_destination_to_current();
 
@@ -4288,6 +4272,11 @@ inline void gcode_G28() {
 
   endstops.not_homing();
 
+  #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+    // move to a height where we can use the full xy-area
+    do_blocking_move_to_z(deltaParams.clip_start_height);
+  #endif
+
   if (come_back) {
     #if MECH(DELTA)
       feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
@@ -4326,6 +4315,8 @@ inline void gcode_G28() {
 
   clean_up_after_endstop_or_probe_move();
 
+  stepper.synchronize();
+
   // Restore the active tool after homing
   #if HOTENDS > 1
     tool_change(old_tool_index, 0, true);
@@ -4336,11 +4327,11 @@ inline void gcode_G28() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
   #endif
-}
+} // G28
 
 void home_all_axes() { gcode_G28(); }
 
-#if HAS(PROBING_PROCEDURE)
+#if HAS_PROBING_PROCEDURE
   void out_of_range_error(const char* p_edge) {
     SERIAL_M("?Probe ");
     SERIAL_PS(p_edge);
@@ -4438,7 +4429,7 @@ void home_all_axes() { gcode_G28(); }
   inline void gcode_G29() {
 
     static int mbl_probe_index = -1;
-    #if HAS(SOFTWARE_ENDSTOPS)
+    #if HAS_SOFTWARE_ENDSTOPS
       static bool enable_soft_endstops;
     #endif
 
@@ -4473,7 +4464,7 @@ void home_all_axes() { gcode_G28(); }
         }
         // For each G29 S2...
         if (mbl_probe_index == 0) {
-          #if HAS(SOFTWARE_ENDSTOPS)
+          #if HAS_SOFTWARE_ENDSTOPS
             // For the initial G29 S2 save software endstop state
             enable_soft_endstops = soft_endstops_enabled;
           #endif
@@ -4481,7 +4472,7 @@ void home_all_axes() { gcode_G28(); }
         else {
           // For G29 S2 after adjusting Z.
           mbl.set_zigzag_z(mbl_probe_index - 1, current_position[Z_AXIS]);
-          #if HAS(SOFTWARE_ENDSTOPS)
+          #if HAS_SOFTWARE_ENDSTOPS
             soft_endstops_enabled = enable_soft_endstops;
           #endif
         }
@@ -4490,7 +4481,7 @@ void home_all_axes() { gcode_G28(); }
           mbl.zigzag(mbl_probe_index, px, py);
           _manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
 
-          #if HAS(SOFTWARE_ENDSTOPS)
+          #if HAS_SOFTWARE_ENDSTOPS
             // Disable software endstops to allow manual adjustment
             // If G29 is not completed, they will not be re-enabled
             soft_endstops_enabled = false;
@@ -4812,7 +4803,7 @@ void home_all_axes() { gcode_G28(); }
 
       #endif
 
-      #if HAS(LEVELING)
+      #if HAS_LEVELING
 
         // Jettison bed leveling data
         if (code_seen('J')) {
@@ -4943,8 +4934,6 @@ void home_all_axes() { gcode_G28(); }
           // Initialize a grid with the given dimensions
           bilinear_grid_spacing[X_AXIS] = xGridSpacing;
           bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
-          bilinear_grid_factor[X_AXIS] = RECIPROCAL(xGridSpacing);
-          bilinear_grid_factor[Y_AXIS] = RECIPROCAL(yGridSpacing);
           bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
           bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
 
@@ -5457,7 +5446,7 @@ void home_all_axes() { gcode_G28(); }
 
 #endif // HAS_ABL
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
 
   /**
    * G30: Do a single Z probe at the current XY
@@ -5479,7 +5468,7 @@ void home_all_axes() { gcode_G28(); }
     if (!position_is_reachable(pos, true)) return;
 
     // Disable leveling so the planner won't mess with us
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
       set_bed_leveling_enabled(false);
     #endif
 
@@ -5519,7 +5508,7 @@ void home_all_axes() { gcode_G28(); }
 
   #endif // Z_PROBE_SLED
 
-#endif // HAS(BED_PROBE)
+#endif // HAS_BED_PROBE
 
 #if ENABLED(DELTA_AUTO_CALIBRATION_1)
 
@@ -5920,7 +5909,7 @@ void home_all_axes() { gcode_G28(); }
 
     SERIAL_EM("G33 Auto Calibrate");
 
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
       set_bed_leveling_enabled(false);
     #endif
 
@@ -7316,7 +7305,7 @@ inline void gcode_M42() {
       SERIAL_EM("Positioning the probe...");
 
     // Disable bed level correction in M48 because we want the raw data when we probe
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
       #if ENABLED(MESH_BED_LEVELING)
         const bool abl_was_enabled = mbl.active();
       #else
@@ -7460,7 +7449,7 @@ inline void gcode_M42() {
     clean_up_after_endstop_or_probe_move();
 
     // Re-enable bed level correction if it had been on
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
       set_bed_leveling_enabled(abl_was_enabled);
     #endif
 
@@ -7942,14 +7931,14 @@ inline void gcode_M115() {
     #endif
 
     // Z_PROBE (G30)
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
       SERIAL_LM(CAP, "Z_PROBE:1");
     #else
       SERIAL_LM(CAP, "Z_PROBE:0");
     #endif
 
     // MESH_REPORT (M320 V, M420 V)
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
       SERIAL_LM(CAP, "LEVELING_DATA:1");
     #else
       SERIAL_LM(CAP, "LEVELING_DATA:0");
@@ -8016,7 +8005,7 @@ inline void gcode_M121() { endstops.enable_globally(false); }
  * Usage: M122 S1 to enable, M122 S0 to disable, M122 alone for report
  */
 inline void gcode_M122() {
-  #if HAS(SOFTWARE_ENDSTOPS)
+  #if HAS_SOFTWARE_ENDSTOPS
     if (code_seen('S')) soft_endstops_enabled = code_value_bool();
     SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
     SERIAL_PS(soft_endstops_enabled ? PSTR(MSG_ON) : PSTR(MSG_OFF));
@@ -9122,7 +9111,7 @@ inline void gcode_M303() {
  */
 inline void gcode_M400() { stepper.synchronize(); }
 
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
 
   /**
    * M401: Engage Z Servo endstop if available
@@ -10272,7 +10261,7 @@ inline void gcode_M532() {
 
 #endif // MECH(MUVE3D)
 
-#if HAS(BED_PROBE) && NOMECH(DELTA)
+#if HAS_BED_PROBE && NOMECH(DELTA)
 
   // M666: Set Z probe offset
   inline void gcode_M666() {
@@ -10339,6 +10328,12 @@ inline void gcode_M532() {
    */
   inline void gcode_M666() {
 
+    if (code_seen('H')) {
+      const float old_delta_height = deltaParams.delta_height;
+      deltaParams.delta_height = code_value_axis_units(Z_AXIS);
+      current_position[Z_AXIS] += deltaParams.delta_height - old_delta_height;
+    }
+
     if (code_seen('D')) deltaParams.diagonal_rod = code_value_linear_units();
     if (code_seen('R')) deltaParams.delta_radius = code_value_linear_units();
     if (code_seen('S')) deltaParams.segments_per_second = code_value_float();
@@ -10351,12 +10346,11 @@ inline void gcode_M532() {
     if (code_seen('U')) deltaParams.tower_pos_adj[A_AXIS] = code_value_linear_units();
     if (code_seen('V')) deltaParams.tower_pos_adj[B_AXIS] = code_value_linear_units();
     if (code_seen('W')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
-    if (code_seen('H')) deltaParams.delta_height = code_value_axis_units(Z_AXIS);
     if (code_seen('O')) deltaParams.print_radius = code_value_linear_units();
 
     deltaParams.Recalc_delta_constants();
 
-    #if HAS(BED_PROBE)
+    #if HAS_BED_PROBE
 
       if (code_seen('P')) {
 
@@ -10391,7 +10385,7 @@ inline void gcode_M532() {
         SERIAL_E;
       }
 
-    #endif // HAS(BED_PROBE)
+    #endif // HAS_BED_PROBE
 
     LOOP_XYZ(i) {
       if (code_seen(axis_codes[i])) deltaParams.endstop_adj[i] = code_value_axis_units(i);
@@ -10404,7 +10398,7 @@ inline void gcode_M532() {
         SERIAL_EMV(" (Endstop Adj): ", deltaParams.endstop_adj[i], 3);
       }
 
-      #if HAS(BED_PROBE)
+      #if HAS_BED_PROBE
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", zprobe_zoffset, 3);
       #endif
 
@@ -11603,12 +11597,12 @@ void process_next_command() {
       case 28: //G28: Home all axes, one at a time
         gcode_G28(); break;
 
-      #if HAS(LEVELING)
+      #if HAS_LEVELING
         case 29: // G29 Detailed Z probe, probes the bed at 3 or more points.
           gcode_G29(); break;
-      #endif // HAS(LEVELING)
+      #endif // HAS_LEVELING
 
-      #if HAS(BED_PROBE)
+      #if HAS_BED_PROBE
         case 30: // G30 Single Z Probe
           gcode_G30(); break;
         
@@ -11618,7 +11612,7 @@ void process_next_command() {
           case 32: // G32: undock the sled
             gcode_G32(); break;
         #endif // Z_PROBE_SLED
-      #endif // HAS(BED_PROBE)
+      #endif // HAS_BED_PROBE
 
       #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3)
         case 33:  // G33 Delta AutoCalibration
@@ -12062,7 +12056,7 @@ void process_next_command() {
       case 400: // M400 finish all moves
         gcode_M400(); break;
 
-      #if HAS(BED_PROBE)
+      #if HAS_BED_PROBE
         case 401: // M401: Engage Z Servo endstop if available
           gcode_M401(); break;
         case 402: // M402: Retract Z Servo endstop if enabled
@@ -12176,7 +12170,7 @@ void process_next_command() {
           gcode_M655(); break;
       #endif
 
-      #if HAS(BED_PROBE) || MECH(DELTA)
+      #if HAS_BED_PROBE || MECH(DELTA)
         case 666: // M666 Set Z probe offset or set delta endstop and geometry adjustment
           gcode_M666(); break;
       #endif
@@ -12288,7 +12282,7 @@ void ok_to_send() {
   SERIAL_E;
 }
 
-#if HAS(SOFTWARE_ENDSTOPS)
+#if HAS_SOFTWARE_ENDSTOPS
 
   /**
    * Constrain the given coordinates to the software endstops.
@@ -12926,7 +12920,7 @@ void get_cartesian_from_steppers() {
  */
 void set_current_from_steppers_for_axis(const AxisEnum axis) {
   get_cartesian_from_steppers();
-  #if HAS(LEVELING)
+  #if HAS_LEVELING
     planner.unapply_leveling(cartes);
   #endif
   if (axis == ALL_AXES)
@@ -13490,7 +13484,7 @@ static void report_current_position() {
   }
 #endif
 
-#if HAS(CONTROLLERFAN)
+#if HAS_CONTROLLERFAN
 
   void controllerFan() {
     static millis_t lastMotorOn = 0,    // Last time a motor was turned on
@@ -13523,19 +13517,11 @@ static void report_current_position() {
       }
 
       // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      uint8_t speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
-
-      // allows digital or PWM fan output to be used (see M42 handling)
-      #if ENABLED(FAN_SOFT_PWM)
-        fanSpeedSoftPwm_controller = speed;
-      #else
-        WRITE(CONTROLLERFAN_PIN, speed);
-        analogWrite(CONTROLLERFAN_PIN, speed);
-      #endif
+      HAL::soft_pwm_controller_fan = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
     }
   }
 
-#endif // HAS(CONTROLLERFAN)
+#endif // HAS_CONTROLLERFAN
 
 #if MECH(MORGAN_SCARA)
 
@@ -13900,7 +13886,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  #if HAS(CONTROLLERFAN)
+  #if HAS_CONTROLLERFAN
     controllerFan(); // Check if fan should be turned on to cool stepper drivers down
   #endif
 
@@ -14352,7 +14338,7 @@ void setup() {
     #endif
   #endif
 
-  #if HAS(BED_PROBE)
+  #if HAS_BED_PROBE
     endstops.enable_z_probe(false);
   #endif
 
