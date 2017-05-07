@@ -376,12 +376,7 @@ void Planner::recalculate() {
  * Maintain fans, paste extruder pressure,
  */
 void Planner::check_axes_activity() {
-  unsigned char axis_active[NUM_AXIS] = { 0 },
-                tail_fan_speed[FAN_COUNT];
-
-  #if FAN_COUNT > 0
-    FAN_LOOP() tail_fan_speed[f] = fanSpeeds[f];
-  #endif
+  unsigned char axis_active[NUM_AXIS] = { 0 };
 
   #if ENABLED(BARICUDA)
     #if HAS_HEATER_1
@@ -393,10 +388,6 @@ void Planner::check_axes_activity() {
   #endif
 
   if (blocks_queued()) {
-
-    #if FAN_COUNT > 0
-      FAN_LOOP() tail_fan_speed[f] = block_buffer[block_buffer_tail].fan_speed[f];
-    #endif
 
     block_t* block;
 
@@ -434,63 +425,6 @@ void Planner::check_axes_activity() {
       disable_E5();
     }
   #endif
-
-  #if FAN_COUNT > 0
-
-    #if ENABLED(FAN_MIN_PWM)
-      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ? ( FAN_MIN_PWM + (tail_fan_speed[f] * (255 - FAN_MIN_PWM)) / 255 ) : 0)
-    #else
-      #define CALC_FAN_SPEED(f) tail_fan_speed[f]
-    #endif
-
-    #if ENABLED(FAN_KICKSTART_TIME)
-
-      static millis_t fan_kick_end[FAN_COUNT] = { 0 };
-
-      #define KICKSTART_FAN(f) \
-        if (tail_fan_speed[f]) { \
-          millis_t ms = millis(); \
-          if (fan_kick_end[f] == 0) { \
-            fan_kick_end[f] = ms + FAN_KICKSTART_TIME; \
-            tail_fan_speed[f] = 255; \
-          } else { \
-            if (PENDING(ms, fan_kick_end[f])) { \
-              tail_fan_speed[f] = 255; \
-            } \
-          } \
-        } else { \
-          fan_kick_end[f] = 0; \
-        }
-
-      #if HAS(FAN0)
-        KICKSTART_FAN(0);
-      #endif
-      #if HAS(FAN1)
-        KICKSTART_FAN(1);
-      #endif
-      #if HAS(FAN2)
-        KICKSTART_FAN(2);
-      #endif
-      #if HAS(FAN3)
-        KICKSTART_FAN(3);
-      #endif
-
-    #endif // FAN_KICKSTART_TIME
-
-    #if HAS(FAN0)
-      HAL::soft_pwm_fan[0] = CALC_FAN_SPEED(0);
-    #endif
-    #if HAS(FAN1)
-      HAL::soft_pwm_fan[1] = CALC_FAN_SPEED(1);
-    #endif
-    #if HAS(FAN2)
-      HAL::soft_pwm_fan[2] = CALC_FAN_SPEED(2);
-    #endif
-    #if HAS(FAN3)
-      HAL::soft_pwm_fan[3] = CALC_FAN_SPEED(3);
-    #endif
-
-  #endif // FAN_COUNT > 0
 
   #if ENABLED(AUTOTEMP)
     getHighESpeed();
@@ -796,10 +730,6 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
       block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
-  #endif
-
-  #if FAN_COUNT > 0
-    FAN_LOOP() block->fan_speed[f] = fanSpeeds[f];
   #endif
 
   #if ENABLED(BARICUDA)

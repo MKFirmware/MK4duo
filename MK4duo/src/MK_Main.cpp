@@ -210,9 +210,14 @@ float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
 #if FAN_COUNT > 0
   int16_t fanSpeeds[FAN_COUNT] = { 0 };
 #endif
-
+#if HAS_CONTROLLERFAN
+  uint8_t controller_fanSpeeds = 0;
+#endif
 #if HAS(AUTO_FAN)
-  uint8_t autoFanSpeeds[HOTENDS];
+  uint8_t autoFanSpeeds[HOTENDS] = { 0 };
+#endif
+#if ENABLED(FAN_KICKSTART_TIME)
+  uint8_t fanKickstart = 0;
 #endif
 
 float hotend_offset[XYZ][HOTENDS];
@@ -7761,6 +7766,12 @@ inline void gcode_M105() {
 
 #if FAN_COUNT > 0
 
+  #if ENABLED(FAN_MIN_PWM)
+    #define CALC_FAN_SPEED() (speed ? ( FAN_MIN_PWM + (speed * (255 - FAN_MIN_PWM)) / 255 ) : 0)
+  #else
+    #define CALC_FAN_SPEED() speed
+  #endif
+
   /**
    * M106: Set Fan Speed
    *
@@ -7768,10 +7779,20 @@ inline void gcode_M105() {
    *  P<index> Fan index, if more than one fan
    */
   inline void gcode_M106() {
-    uint16_t s = code_seen('S') ? code_value_ushort() : 255,
-             p = code_seen('P') ? code_value_ushort() : 0;
-    NOMORE(s, 255);
-    if (p < FAN_COUNT) fanSpeeds[p] = s;
+    uint8_t speed = code_seen('S') ? code_value_ushort() : 255,
+            fan   = code_seen('P') ? code_value_ushort() : 0;
+
+    if (fan >= FAN_COUNT || fanSpeeds[fan] == speed)
+      return;
+
+    #if ENABLED(FAN_KICKSTART_TIME)
+      if (fanKickstart == 0 && speed > fanSpeeds[fan] && speed < 85) {
+        if (fanSpeeds[fan]) fanKickstart = FAN_KICKSTART_TIME / 100;
+        else                fanKickstart = FAN_KICKSTART_TIME / 25;
+      }
+    #endif
+
+    fanSpeeds[fan] = CALC_FAN_SPEED();
   }
 
   /**
@@ -13517,7 +13538,7 @@ static void report_current_position() {
       }
 
       // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      HAL::soft_pwm_controller_fan = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
+      controller_fanSpeeds = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
     }
   }
 

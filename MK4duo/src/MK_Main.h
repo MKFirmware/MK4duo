@@ -236,9 +236,14 @@ int16_t code_value_temp_diff();
 #if FAN_COUNT > 0
   extern int16_t fanSpeeds[FAN_COUNT];
 #endif
-
+#if HAS_CONTROLLERFAN
+  extern uint8_t controller_fanSpeeds;
+#endif
 #if HAS(AUTO_FAN)
   extern uint8_t autoFanSpeeds[HOTENDS];
+#endif
+#if ENABLED(FAN_KICKSTART_TIME)
+  extern uint8_t fanKickstart;
 #endif
 
 #if ENABLED(BARICUDA)
