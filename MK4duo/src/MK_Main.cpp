@@ -1180,32 +1180,44 @@ inline bool code_value_bool() { return !code_has_value() || code_value_byte() > 
   }
 
   inline float code_value_linear_units() { return code_value_float() * linear_unit_factor; }
-  inline float code_value_axis_units(int axis) { return code_value_float() * axis_unit_factor(axis); }
-  inline float code_value_per_axis_unit(int axis) { return code_value_float() / axis_unit_factor(axis); }
+  inline float code_value_axis_units(const AxisEnum axis) { return code_value_float() * axis_unit_factor(axis); }
+  inline float code_value_per_axis_unit(const AxisEnum axis) { return code_value_float() / axis_unit_factor(axis); }
 #endif
 
 #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
   inline void set_input_temp_units(TempUnit units) { input_temp_units = units; }
 
-  int16_t code_value_temp_abs() {
+  float to_temp_units(const float &c) {
     switch (input_temp_units) {
       case TEMPUNIT_F:
-        return (code_value_float() - 32) * 0.5555555556;
+        return c * 0.5555555556 + 32.0;
       case TEMPUNIT_K:
-        return code_value_float() - 273.15;
+        return c + 273.15;
       case TEMPUNIT_C:
       default:
-        return code_value_int();
+        return c;
+    }
+  }
+
+  int16_t code_value_temp_abs() {
+    const float c = code_value_float();
+    switch (input_temp_units) {
+      case TEMPUNIT_F:
+        return (int16_t)((c - 32.0) * 0.5555555556);
+      case TEMPUNIT_K:
+        return (int16_t)(c - 273.15);
+      case TEMPUNIT_C:
+      default:
+        return (int16_t)(c);
     }
   }
 
   int16_t code_value_temp_diff() {
     switch (input_temp_units) {
-      case TEMPUNIT_C:
-      case TEMPUNIT_K:
-        return code_value_float();
       case TEMPUNIT_F:
         return code_value_float() * 0.5555555556;
+      case TEMPUNIT_C:
+      case TEMPUNIT_K:
       default:
         return code_value_float();
     }

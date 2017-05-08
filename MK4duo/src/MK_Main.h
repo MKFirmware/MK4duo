@@ -182,6 +182,7 @@ extern float soft_endstop_max[XYZ];
 // GCode support for external objects
 bool code_seen(char);
 int code_value_int();
+float to_temp_units(const float &c);
 int16_t code_value_temp_abs();
 int16_t code_value_temp_diff();
 

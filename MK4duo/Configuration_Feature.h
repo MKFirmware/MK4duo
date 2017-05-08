@@ -135,7 +135,6 @@
 
 // This defines the minimal speed for the main fan, run in PWM mode
 // to enable uncomment and set minimal PWM speed for reliable running (1-255)
-// if fan speed is [1 - (FAN_MIN_PWM-1)] it is set to FAN_MIN_PWM
 //#define FAN_MIN_PWM 50
 
 // This is for controlling a fan to cool down the stepper drivers
