@@ -349,7 +349,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
           old_file_name[50];
 
     const char* restart_name_File = "restart.gcode";
-SERIAL_EM("SONO QUI");
+
     sdprinting = false;
     stepper.synchronize();
 
