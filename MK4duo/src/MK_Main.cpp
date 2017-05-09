@@ -683,7 +683,7 @@ void clear_command_queue() {
  */
 inline void _commit_command(bool say_ok) {
   send_ok[cmd_queue_index_w] = say_ok;
-  cmd_queue_index_w = (cmd_queue_index_w + 1) % BUFSIZE;
+  if (++cmd_queue_index_w >= BUFSIZE) cmd_queue_index_w = 0;
   commands_in_queue++;
 }
 
@@ -1223,8 +1223,8 @@ inline bool code_value_bool() { return !code_has_value() || code_value_byte() > 
     }
   }
 #else
-  int16_t code_value_temp_abs() { return code_value_float(); }
-  int16_t code_value_temp_diff() { return code_value_float(); }
+  int16_t code_value_temp_abs() { return code_value_int(); }
+  int16_t code_value_temp_diff() { return code_value_int(); }
 #endif
 
 FORCE_INLINE millis_t code_value_millis() { return code_value_ulong(); }
@@ -14470,10 +14470,6 @@ void setup() {
  */
 void loop() {
 
-  #if ENABLED(USE_WATCHDOG)
-    watchdog_reset();
-  #endif
-
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
   #if HAS(EEPROM_SD)
@@ -14522,7 +14518,7 @@ void loop() {
     // The queue may be reset by a command handler or by code invoked by idle() within a handler
     if (commands_in_queue) {
       --commands_in_queue;
-      cmd_queue_index_r = (cmd_queue_index_r + 1) % BUFSIZE;
+      if (++cmd_queue_index_r >= BUFSIZE) cmd_queue_index_r = 0;
     }
   }
   endstops.report_state();
