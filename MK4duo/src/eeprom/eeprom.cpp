@@ -1317,17 +1317,19 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" Z", LINEAR_UNIT(deltaParams.endstop_adj[C_AXIS]));
       SERIAL_E;
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ, R=Delta Radius, D=Diagonal Rod, S=Segments per second, O=Print Radius, H=Z Height");
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
+      CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
+      CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(deltaParams.diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(deltaParams.diagonal_rod_adj[1]), 3);
       SERIAL_MV(" C", LINEAR_UNIT(deltaParams.diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", LINEAR_UNIT(deltaParams.tower_radius_adj[0]), 3);
-      SERIAL_MV(" J", LINEAR_UNIT(deltaParams.tower_radius_adj[1]), 3);
-      SERIAL_MV(" K", LINEAR_UNIT(deltaParams.tower_radius_adj[2]), 3);
-      SERIAL_MV(" U", deltaParams.tower_pos_adj[0], 3);
-      SERIAL_MV(" V", deltaParams.tower_pos_adj[1], 3);
-      SERIAL_MV(" W", deltaParams.tower_pos_adj[2], 3);
+      SERIAL_MV(" I", deltaParams.tower_radius_adj[0], 3);
+      SERIAL_MV(" J", deltaParams.tower_radius_adj[1], 3);
+      SERIAL_MV(" K", deltaParams.tower_radius_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(deltaParams.tower_pos_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(deltaParams.tower_pos_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(deltaParams.tower_pos_adj[2]), 3);
       SERIAL_MV(" R", LINEAR_UNIT(deltaParams.delta_radius));
       SERIAL_MV(" D", LINEAR_UNIT(deltaParams.diagonal_rod));
       SERIAL_MV(" S", deltaParams.segments_per_second);
@@ -1364,18 +1366,32 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
       CONFIG_MSG_START("PID settings:");
       #if ENABLED(PIDTEMP)
-        for (int8_t h = 0; h < HOTENDS; h++) {
-          SERIAL_SMV(CFG, "  M301 H", h);
-          SERIAL_MV(" P", PID_PARAM(Kp, h));
-          SERIAL_MV(" I", PID_PARAM(Ki, h));
-          SERIAL_MV(" D", PID_PARAM(Kd, h));
+        #if HOTENDS == 1
+          SERIAL_SM(CFG, "  M301 H0");
+          SERIAL_MV(" P", PID_PARAM(Kp, 0));
+          SERIAL_MV(" I", PID_PARAM(Ki, 0));
+          SERIAL_MV(" D", PID_PARAM(Kd, 0));
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_MV(" C", PID_PARAM(Kc, h));
+            SERIAL_MV(" C", PID_PARAM(Kc, 0));
           #endif
           SERIAL_E;
-        }
-        #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          SERIAL_LMV(CFG, "  M301 L", lpq_len);
+          #if ENABLED(PID_ADD_EXTRUSION_RATE)
+            SERIAL_LMV(CFG, "  M301 L", lpq_len);
+          #endif
+        #elif HOTENDS > 1
+          for (int8_t h = 0; h < HOTENDS; h++) {
+            SERIAL_SMV(CFG, "  M301 H", h);
+            SERIAL_MV(" P", PID_PARAM(Kp, h));
+            SERIAL_MV(" I", PID_PARAM(Ki, h));
+            SERIAL_MV(" D", PID_PARAM(Kd, h));
+            #if ENABLED(PID_ADD_EXTRUSION_RATE)
+              SERIAL_MV(" C", PID_PARAM(Kc, h));
+            #endif
+            SERIAL_E;
+          }
+          #if ENABLED(PID_ADD_EXTRUSION_RATE)
+            SERIAL_LMV(CFG, "  M301 L", lpq_len);
+          #endif
         #endif
       #endif
       #if ENABLED(PIDTEMPBED)
