@@ -66,7 +66,7 @@ bool Running = true;
 
 // Print status related
 long  currentLayer = 0,
-      maxLayer = -1; // -1 = unknown
+      maxLayer = -1;      // -1 = unknown
 char  printName[21] = ""; // max. 20 chars + 0
 float progress = 0.0;
 
@@ -898,7 +898,7 @@ inline void get_serial_commands() {
       if (!serial_count) continue; // skip empty lines
 
       serial_line_buffer[serial_count] = 0; // terminate string
-      serial_count = 0; //reset buffer
+      serial_count = 0; // reset buffer
 
       char* command = serial_line_buffer;
 
@@ -4682,13 +4682,11 @@ void home_all_axes() { gcode_G28(); }
     #endif
 
     #if MECH(DELTA)
-      // Homing
-      home_all_axes();
-
-      #if ENABLED(PROBE_MANUALLY)
-        if (!g29_in_progress)
-      #endif
-          do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+      if (!g29_in_progress) {
+        // Homing
+        home_all_axes();
+        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+      }
     #else
       // Don't allow auto-levelling without homing first
       if (axis_unhomed_error(true, true, true)) return;
@@ -8079,7 +8077,7 @@ inline void gcode_M122() {
      */
     inline void gcode_M129() { baricuda_e_to_p_pressure = 0; }
   #endif
-#endif //BARICUDA
+#endif // BARICUDA
 
 #if HAS(TEMP_BED)
   /**
@@ -11500,7 +11498,7 @@ void process_next_command() {
     #if ENABLED(M100_FREE_MEMORY_WATCHER)
       SERIAL_SMV(ECHO, "slot:", cmd_queue_index_r);
       #if ENABLED(M100_FREE_MEMORY_DUMPER)
-        M100_dump_routine("   Command Queue:", &command_queue[0][0], &command_queue[BUFSIZE][MAX_CMD_SIZE]);
+        M100_dump_routine("   Command Queue:", (const char*)command_queue, (const char*)(command_queue + sizeof(command_queue)));
       #endif
     #endif
   }
