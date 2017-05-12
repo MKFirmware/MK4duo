@@ -1,11 +1,11 @@
 /****************************************************************************************
-* 403 - 404
+* 1404
 * Arduino pin assignment
-* Ramps - FD v1 & v2
+* Ramps - FD v2
 ****************************************************************************************/
 
 #define KNOWN_BOARD
-#define BOARD_NAME "RAMPS FD v1"
+#define BOARD_NAME "RAMPS FD v2"
 
 #ifndef ARDUINO_ARCH_SAM
   #error Oops! Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
@@ -120,3 +120,7 @@
 
 // SPI for Max6675 Thermocouple
 #define MAX6675_SS              53
+
+
+
+

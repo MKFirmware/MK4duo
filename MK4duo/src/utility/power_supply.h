@@ -25,7 +25,7 @@
 
   class Power {
     public:
-      static bool powersupply;
+      static bool powersupply_on;
       static void check();
       static void power_on();
       static void power_off();
