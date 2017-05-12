@@ -1445,7 +1445,7 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      deltaParams.inverse_kinematics_DELTA(lpos);
+      deltaParams.Transform(lpos);
     #else
         inverse_kinematics(lpos);
     #endif

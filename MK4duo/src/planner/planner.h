@@ -337,7 +337,7 @@ class Planner {
 
       #if IS_KINEMATIC
         #if MECH(DELTA)
-          deltaParams.inverse_kinematics_DELTA(lpos);
+          deltaParams.Transform(lpos);
         #else
             inverse_kinematics(lpos);
         #endif

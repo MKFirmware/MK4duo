@@ -1055,7 +1055,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_extrude(float length, float feedrate) {
       current_position[E_AXIS] += length;
       #if MECH(DELTA)
-        deltaParams.inverse_kinematics_DELTA(current_position);
+        deltaParams.Transform(current_position);
         planner.buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], current_position[E_AXIS], feedrate, active_extruder, active_driver);
       #else
         planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate, active_extruder, active_driver);
@@ -1368,12 +1368,10 @@ void kill_screen(const char* lcd_msg) {
 
     // LCD probed points are from defaults
     constexpr uint8_t total_probe_points =
-      #if ABL_GRID
-        (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
-      #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-        int(3)
-      #elif ENABLED(MESH_BED_LEVELING)
-        (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
+      #if ENABLED(AUTO_BED_LEVELING_3POINT)
+        3
+      #elif ABL_GRID || ENABLED(MESH_BED_LEVELING)
+        GRID_MAX_POINTS
       #endif
     ;
 
@@ -1715,7 +1713,7 @@ void kill_screen(const char* lcd_msg) {
     // Switch power on/off
     //
     #if HAS(POWER_SWITCH)
-      if (powerManager.powersupply)
+      if (powerManager.powersupply_on)
         MENU_ITEM(gcode, MSG_SWITCH_PS_OFF, PSTR("M81"));
       else
         MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));

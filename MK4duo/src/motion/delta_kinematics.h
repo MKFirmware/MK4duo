@@ -30,6 +30,11 @@
     public:
 
       /**
+       * Constructor
+       */
+      DeltaKinematics() {};
+
+      /**
        * Public Delta parameters
        */
       float diagonal_rod          = DELTA_DIAGONAL_ROD,
@@ -46,11 +51,6 @@
             max_length[ABC]       = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
       /**
-       * Public Function
-       */
-      DeltaKinematics() {};
-
-      /**
        * Initialize Delta parameters
        */
       void Init();
@@ -61,11 +61,12 @@
         void Convert_endstop_adj();
       #endif
 
-      void forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
-      void forward_kinematics_DELTA(const float point[ABC], float cartesian[ABC]) { forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
-      void inverse_kinematics_DELTA(const float logical[XYZ]);
-      void Recalc_delta_constants();
+      void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
+      void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
+      void Transform(const float logical[XYZ]);
+      void Recalc();
       void Set_clip_start_height();
+      bool IsReachable(const float dx, const float dy);
 
     private:
 
@@ -82,6 +83,7 @@
             towerX[ABC],                // The X coordinate of each tower
             towerY[ABC],                // The Y coordinate of each tower
             homed_Height,
+            printRadiusSquared,
             Xbc, Xca, Xab, Ybc, Yca, Yab,
             coreFa, coreFb, coreFc,
             Q, Q2, D2;

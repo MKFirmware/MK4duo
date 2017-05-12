@@ -447,7 +447,8 @@
 
 // Set the number of grid points per dimension
 // Works best with 5 or more points in each dimension.
-#define GRID_MAX_POINTS 9
+#define GRID_MAX_POINTS_X 7
+#define GRID_MAX_POINTS_Y 7
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST

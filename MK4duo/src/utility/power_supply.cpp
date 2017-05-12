@@ -25,7 +25,7 @@
 
 #if HAS(POWER_SWITCH)
 
-  bool Power::powersupply = 
+  bool Power::powersupply_on = 
     #if ENABLED(PS_DEFAULT_OFF)
       false
     #else
@@ -46,12 +46,12 @@
   void Power::power_on() {
     OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
     HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000L);
-    powersupply = true;
+    powersupply_on = true;
   }
 
   void Power::power_off() {
     OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-    powersupply = false;
+    powersupply_on = false;
   }
 
   bool Power::is_power_needed() {
@@ -64,28 +64,6 @@
     #if HAS(AUTO_FAN)
       HOTEND_LOOP() if (autoFanSpeeds[h] > 0) return true;
     #endif
-
-    if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON || thermalManager.soft_pwm_bed > 0
-      || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
-      #if EXTRUDERS > 1
-        || E1_ENABLE_READ == E_ENABLE_ON
-        #if HAS(X2_ENABLE)
-          || X2_ENABLE_READ == X_ENABLE_ON
-        #endif
-        #if EXTRUDERS > 2
-          || E2_ENABLE_READ == E_ENABLE_ON
-          #if EXTRUDERS > 3
-            || E3_ENABLE_READ == E_ENABLE_ON
-            #if EXTRUDERS > 4
-              || E4_ENABLE_READ == E_ENABLE_ON
-              #if EXTRUDERS > 5
-                || E5_ENABLE_READ == E_ENABLE_ON
-              #endif
-            #endif
-          #endif
-        #endif
-      #endif
-    ) return true;
 
     HOTEND_LOOP() if (thermalManager.target_temperature[h] > 0) return true;
 

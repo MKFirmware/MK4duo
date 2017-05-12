@@ -3498,7 +3498,7 @@ bool position_is_reachable(const float target[XYZ]
       return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
     #endif
   #elif MECH(DELTA)
-    return HYPOT2(dx, dy) <= sq((float)(deltaParams.print_radius));
+    return deltaParams.IsReachable(dx, dy);
   #else
     const float dz = RAW_Z_POSITION(target[Z_AXIS]);
     return WITHINXY(dx, dy) && WITHINZ(dz);
@@ -4078,6 +4078,9 @@ inline void gcode_G4() {
   #endif
 #else
   constexpr bool g29_in_progress = false;
+  #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+    constexpr bool g33_in_progress = false;
+  #endif
 #endif
 
 /**
@@ -4106,7 +4109,7 @@ inline void gcode_G28() {
   #endif
 
   #if HAS(POWER_SWITCH)
-    if (!powerManager.powersupply) powerManager.power_on(); // Power On if power is off
+    if (!powerManager.powersupply_on) powerManager.power_on(); // Power On if power is off
   #endif
 
   // Wait for planner moves to finish!
@@ -4494,7 +4497,7 @@ void home_all_axes() { gcode_G28(); }
           #endif
         }
         // If there's another point to sample, move there with optional lift.
-        if (mbl_probe_index < (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)) {
+        if (mbl_probe_index < GRID_MAX_POINTS) {
           mbl.zigzag(mbl_probe_index, px, py);
           _manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
 
@@ -4721,8 +4724,6 @@ void home_all_axes() { gcode_G28(); }
       ABL_VAR int left_probe_bed_position, right_probe_bed_position, front_probe_bed_position, back_probe_bed_position;
       ABL_VAR float xGridSpacing, yGridSpacing;
 
-      #define ABL_GRID_MAX (GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y)
-
       #if ABL_PLANAR
         ABL_VAR uint8_t abl_grid_points_x = GRID_MAX_POINTS_X,
                         abl_grid_points_y = GRID_MAX_POINTS_Y;
@@ -4736,7 +4737,7 @@ void home_all_axes() { gcode_G28(); }
         #if ABL_PLANAR
           ABL_VAR int abl2;
         #else // 3-point
-          int constexpr abl2 = ABL_GRID_MAX;
+          int constexpr abl2 = GRID_MAX_POINTS;
         #endif
       #endif
 
@@ -4748,8 +4749,8 @@ void home_all_axes() { gcode_G28(); }
 
         ABL_VAR int indexIntoAB[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
-        ABL_VAR float eqnAMatrix[ABL_GRID_MAX * 3], // "A" matrix of the linear system of equations
-                      eqnBVector[ABL_GRID_MAX],     // "B" vector of Z points
+        ABL_VAR float eqnAMatrix[GRID_MAX_POINTS * 3], // "A" matrix of the linear system of equations
+                      eqnBVector[GRID_MAX_POINTS],     // "B" vector of Z points
                       mean;
       #endif
 
@@ -5566,7 +5567,9 @@ void home_all_axes() { gcode_G28(); }
 
     const uint8_t   MaxCalibrationPoints = 10;
 
-    ABL_VAR uint8_t probe_index;
+    ABL_VAR uint8_t probe_index,
+                    numFactors,
+                    numPoints;
 
     ABL_VAR float   xBedProbePoints[MaxCalibrationPoints],
                     yBedProbePoints[MaxCalibrationPoints],
@@ -5579,35 +5582,35 @@ void home_all_axes() { gcode_G28(); }
       ABL_VAR bool enable_soft_endstops = true;
     #endif
 
-    ABL_VAR uint8_t numFactors = code_seen('F') ? constrain(code_value_int(), 3, 7) : 7;
-    ABL_VAR uint8_t numPoints  = code_seen('P') ? constrain(code_value_int(), 7, 10) : 7;
-
     const bool stow = code_seen('S') ? code_value_bool() : true;
+
+    /**
+     * On the initial G33 fetch command parameters.
+     */
+    if (!g33_in_progress) {
+
+      numFactors = code_seen('F') ? constrain(code_value_int(), 3, 7) : 7;
+      numPoints  = code_seen('P') ? constrain(code_value_int(), 7, 10) : 7;
+
+      // Homing
+      home_all_axes();
+
+      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
+      stepper.synchronize();  // wait until the machine is idle
+
+      SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
+      SERIAL_MV(" points and ", numFactors);
+      SERIAL_EM(" Factors");
+      LCD_MESSAGEPGM("Auto Calibration...");
+      probe_index = 0;
+      #if HAS(NEXTION_MANUAL_BED)
+        LcdBedLevelOn();
+      #endif
+    }
 
     #if ENABLED(PROBE_MANUALLY)
 
-      /**
-       * On the initial G30 fetch command parameters.
-       */
-      if (!g33_in_progress) {
-
-        // Homing
-        home_all_axes();
-
-        do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-        stepper.synchronize();  // wait until the machine is idle
-
-        SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
-        SERIAL_MV(" points and ", numFactors);
-        SERIAL_EM(" Factors");
-        LCD_MESSAGEPGM("Auto Calibration...");
-        probe_index = 0;
-        #if HAS(NEXTION_MANUAL_BED)
-          LcdBedLevelOn();
-        #endif
-      }
-
-      // Query G30 status
+      // Query G33 status
       if (code_seen('Q')) {
         if (!g33_in_progress)
           SERIAL_EM("Manual G30 idle");
@@ -5634,13 +5637,13 @@ void home_all_axes() { gcode_G28(); }
 
       // Is there a next point to move to?
       if (probe_index < 6) {
-        xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
-        yBedProbePoints[probe_index] = deltaParams.probe_radius * cos((2 * M_PI * probe_index) / 6);
+        xBedProbePoints[probe_index] = deltaParams.print_radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = deltaParams.print_radius * cos((2 * M_PI * probe_index) / 6);
       }
       if (numPoints >= 10) {
         if (probe_index >= 6 && probe_index < 9) {
-          xBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-          yBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          xBedProbePoints[probe_index] = (deltaParams.print_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (deltaParams.print_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
         }
         else if (probe_index >= 9) {
           xBedProbePoints[9] = 0.0;
@@ -5667,7 +5670,7 @@ void home_all_axes() { gcode_G28(); }
       }
       else {
         // Then calibration is done!
-        // G30 finishing code goes here
+        // G33 finishing code goes here
 
         // After recording the last point, activate abl
         SERIAL_EM("Calibration probing done.");
@@ -5680,17 +5683,6 @@ void home_all_axes() { gcode_G28(); }
       }
 
     #else
-
-      // Homing
-      home_all_axes();
-
-      do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
-      stepper.synchronize();  // wait until the machine is idle
-
-      SERIAL_MV("Starting Auto Calibration ", numPoints);
-      SERIAL_MV(" points and ", numFactors);
-      SERIAL_EM(" Factors");
-      LCD_MESSAGEPGM("Auto Calibration...");
 
       for (probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
@@ -5735,7 +5727,7 @@ void home_all_axes() { gcode_G28(); }
       machinePos[B_AXIS] = yp;
       machinePos[C_AXIS] = 0.0;
 
-      deltaParams.inverse_kinematics_DELTA(machinePos);
+      deltaParams.Transform(machinePos);
 
       for (uint8_t axis = 0; axis < ABC; axis++)
         probeMotorPositions[i][axis] = delta[axis];
@@ -5825,7 +5817,7 @@ void home_all_axes() { gcode_G28(); }
       for (int8_t i = 0; i < numPoints; i++) {
         LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
         float newPosition[ABC];
-        deltaParams.forward_kinematics_DELTA(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
+        deltaParams.InverseTransform(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
         corrections[i] = newPosition[Z_AXIS];
         expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
         sumOfSquares += sq(expectedResiduals[i]);
@@ -5844,7 +5836,7 @@ void home_all_axes() { gcode_G28(); }
     SERIAL_MV(" after ", expectedRmsError, 4);
     SERIAL_E;
 
-    deltaParams.Recalc_delta_constants();
+    deltaParams.Recalc();
 
     SERIAL_MV("Endstops X", deltaParams.endstop_adj[A_AXIS], 3);
     SERIAL_MV(" Y", deltaParams.endstop_adj[B_AXIS], 3);
@@ -6112,7 +6104,7 @@ void home_all_axes() { gcode_G28(); }
         deltaParams.delta_height -= z_temp;
         LOOP_XYZ(i) deltaParams.endstop_adj[i] -= z_temp;
 
-        deltaParams.Recalc_delta_constants();
+        deltaParams.Recalc();
       }
       else { // step one back
         COPY_ARRAY(deltaParams.endstop_adj, e_old);
@@ -6121,7 +6113,7 @@ void home_all_axes() { gcode_G28(); }
         deltaParams.tower_radius_adj[A_AXIS] = alpha_old;
         deltaParams.tower_radius_adj[B_AXIS] = beta_old;
 
-        deltaParams.Recalc_delta_constants();
+        deltaParams.Recalc();
       }
 
       // print report
@@ -7525,11 +7517,19 @@ inline void gcode_M78() {
   else print_job_counter.showStats();
 }
 
-#if HAS(POWER_SWITCH)
+#if HAS_POWER_SWITCH
   /**
-   * M80: Turn on Power Supply
+   * M80   : Turn on Power Supply
+   * M80 S : Report the current state and exit
    */
   inline void gcode_M80() {
+
+    // S: Report the current power supply state and exit
+    if (code_seen('S')) {
+      SERIAL_PS(powerManager.powersupply_on ? PSTR("PS:1\n") : PSTR("PS:0\n"));
+      return;
+    }
+
     powerManager.power_on();
 
     // If you have a switch on suicide pin, this is useful
@@ -7586,7 +7586,7 @@ inline void gcode_M81() {
   #if HAS(SUICIDE)
     stepper.synchronize();
     suicide();
-  #elif HAS(POWER_SWITCH)
+  #elif HAS_POWER_SWITCH
     powerManager.power_off();
   #endif
 
@@ -9244,7 +9244,7 @@ inline void gcode_M400() { stepper.synchronize(); }
 
     #if HAS(POWER_SWITCH)
       SERIAL_M(",\"params\": {\"atxPower\":");
-      SERIAL_C(powerManager.powersupply ? '1' : '0');
+      SERIAL_C(powerManager.powersupply_on ? '1' : '0');
     #else
       SERIAL_M(",\"params\": {\"NormPower\":");
     #endif
@@ -10379,7 +10379,7 @@ inline void gcode_M532() {
     if (code_seen('W')) deltaParams.tower_pos_adj[C_AXIS] = code_value_linear_units();
     if (code_seen('O')) deltaParams.print_radius = code_value_linear_units();
 
-    deltaParams.Recalc_delta_constants();
+    deltaParams.Recalc();
 
     #if HAS_BED_PROBE
 
@@ -12459,7 +12459,7 @@ void ok_to_send() {
       deltaParams.endstop_adj[Y_AXIS] += y_endstop;
       deltaParams.endstop_adj[Z_AXIS] += z_endstop;
 
-      deltaParams.inverse_kinematics_DELTA(current_position);
+      deltaParams.Transform(current_position);
       planner.set_position_mm(delta[A_AXIS] - x_endstop , delta[B_AXIS] - y_endstop, delta[C_AXIS] - z_endstop, current_position[E_AXIS]);  
       stepper.synchronize();
     }
@@ -12522,7 +12522,7 @@ void ok_to_send() {
         deltaParams.delta_height -= high_endstop;
       }
 
-      deltaParams.Recalc_delta_constants();
+      deltaParams.Recalc();
     }
 
     int fix_tower_errors() {
@@ -12660,7 +12660,7 @@ void ok_to_send() {
 
         do {
           deltaParams.delta_radius += adj_dRadius;
-          deltaParams.Recalc_delta_constants();
+          deltaParams.Recalc();
           adj_done = false;
 
           adj_endstops();
@@ -12712,7 +12712,7 @@ void ok_to_send() {
 
       do {
         deltaParams.tower_radius_adj[tower - 1] += adj_tRadius;
-        deltaParams.Recalc_delta_constants();
+        deltaParams.Recalc();
         adj_done = false;
 
         if (tower == 1) {
@@ -12766,7 +12766,7 @@ void ok_to_send() {
 
       do {
         deltaParams.tower_pos_adj[tower - 1] += adj_val;
-        deltaParams.Recalc_delta_constants();
+        deltaParams.Recalc();
 
         if ((tower == 1) or (tower == 3)) bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
         if ((tower == 1) or (tower == 2)) bed_level_oz = probe_pt(0.0, -deltaParams.probe_radius);
@@ -12828,7 +12828,7 @@ void ok_to_send() {
 
       do {
         deltaParams.diagonal_rod += adj_val;
-        deltaParams.Recalc_delta_constants();
+        deltaParams.Recalc();
 
         bed_level_oy = probe_pt(-SIN_60 * deltaParams.probe_radius, COS_60 * deltaParams.probe_radius);
         bed_level_oz = probe_pt(0.0, -deltaParams.probe_radius);
@@ -12920,7 +12920,7 @@ void ok_to_send() {
  */
 void get_cartesian_from_steppers() {
   #if MECH(DELTA)
-    deltaParams.forward_kinematics_DELTA(
+    deltaParams.InverseTransform(
       stepper.get_axis_position_mm(A_AXIS),
       stepper.get_axis_position_mm(B_AXIS),
       stepper.get_axis_position_mm(C_AXIS),
@@ -13169,7 +13169,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
       #if IS_SCARA
         inverse_kinematics(logical);
       #else
-        deltaParams.inverse_kinematics_DELTA(logical);
+        deltaParams.Transform(logical);
       #endif
 
       ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
@@ -13921,8 +13921,8 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     controllerFan(); // Check if fan should be turned on to cool stepper drivers down
   #endif
 
-  #if HAS(POWER_SWITCH)
-    if (!powerManager.powersupply) powerManager.check(); // Check Power
+  #if HAS_POWER_SWITCH
+    if (!powerManager.powersupply_on) powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
@@ -13975,7 +13975,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
       #if IS_KINEMATIC
         #if MECH(DELTA)
-          deltaParams.inverse_kinematics_DELTA(current_position);
+          deltaParams.Transform(current_position);
         #else
           inverse_kinematics(current_position);
         #endif
@@ -14199,7 +14199,7 @@ void kill(const char* lcd_msg) {
      disable_cncrouter();
   #endif
 
-  #if HAS(POWER_SWITCH)
+  #if HAS_POWER_SWITCH
     SET_INPUT(PS_ON_PIN);
   #endif
 

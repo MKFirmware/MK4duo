@@ -90,15 +90,15 @@
           break;
       }
 
-      hiParams.Recalc_delta_constants();
-      loParams.Recalc_delta_constants();
+      hiParams.Recalc();
+      loParams.Recalc();
 
       float newPos[ABC];
 
-      hiParams.forward_kinematics_DELTA((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
+      hiParams.InverseTransform((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
       const float zHi = newPos[C_AXIS];
 
-      loParams.forward_kinematics_DELTA((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
+      loParams.InverseTransform((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
       const float zLo = newPos[C_AXIS];
 
       return ((float)zHi - (float)zLo) / (2 * perturb);
@@ -133,13 +133,13 @@
         }
       }
 
-      Recalc_delta_constants();
+      Recalc();
 
       const float heightError = homed_Height + endstop_adj[A_AXIS] - oldHeightA - v[0];
       delta_height -= heightError;
       homed_Height -= heightError;
 
-      Recalc_delta_constants();
+      Recalc();
 
     }
 
@@ -159,7 +159,7 @@
   #endif // DELTA_AUTO_CALIBRATION_1
 
   /**
-   * Delta Forward Kinematics
+   * Delta InverseTransform
    *
    * See the Wikipedia article "Trilateration"
    * https://en.wikipedia.org/wiki/Trilateration
@@ -183,7 +183,7 @@
    *
    * The result is stored in the cartesian[] array.
    */
-  void DeltaKinematics::forward_kinematics_DELTA(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
+  void DeltaKinematics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
 
     const float Fa = coreFa + sq(Ha);
     const float Fb = coreFb + sq(Hb);
@@ -209,7 +209,7 @@
     cartesian[Z_AXIS] = z;
   }
 
-  void DeltaKinematics::Recalc_delta_constants() {
+  void DeltaKinematics::Recalc() {
 
     LOOP_XY(i) {
       soft_endstop_min[i] = -print_radius;
@@ -245,8 +245,9 @@
 
     const float tempHeight = diagonal_rod;		// any sensible height will do here, probably even zero
     float cartesian[ABC];
-    forward_kinematics_DELTA(tempHeight, tempHeight, tempHeight, cartesian);
+    InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
     homed_Height = delta_height + tempHeight - cartesian[Z_AXIS];
+    printRadiusSquared = sq(print_radius);
 
     Set_clip_start_height();
 
@@ -289,7 +290,7 @@
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void DeltaKinematics::inverse_kinematics_DELTA(const float logical[XYZ]) {
+  void DeltaKinematics::Transform(const float logical[XYZ]) {
 
     delta[A_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(logical[A_AXIS] - towerX[A_AXIS]) - sq(logical[B_AXIS] - towerY[A_AXIS]));
     delta[B_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(logical[A_AXIS] - towerX[B_AXIS]) - sq(logical[B_AXIS] - towerY[B_AXIS]));
@@ -307,11 +308,15 @@
 
   void DeltaKinematics::Set_clip_start_height() {
     float cartesian[XYZ] = { 0, 0, 0 };
-    inverse_kinematics_DELTA(cartesian);
+    Transform(cartesian);
     float distance = delta[A_AXIS];
     cartesian[Y_AXIS] = print_radius;
-    inverse_kinematics_DELTA(cartesian);
+    Transform(cartesian);
     clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
+  }
+
+  bool DeltaKinematics::IsReachable(const float dx, const float dy) {
+    return HYPOT2(dx, dy) <= printRadiusSquared;
   }
 
 #endif
