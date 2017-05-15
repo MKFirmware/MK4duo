@@ -74,12 +74,12 @@ uint8_t mk_debug_flags = DEBUG_NONE;
 
 // Printer mode
 PrinterMode printer_mode =
-#if EXTRUDERS > 0
-  PRINTER_MODE_FFF;
+#if ENABLED(CNCROUTER)
+  PRINTER_MODE_CNC;
 #elif ENABLED(LASERBEAM)
   PRINTER_MODE_LASER;
-#elif ENABLED(CNCROUTER)
-  PRINTER_MODE_CNC;
+#else
+  PRINTER_MODE_FFF;
 #endif
 
 /**
