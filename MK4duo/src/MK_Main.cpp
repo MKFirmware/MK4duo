@@ -2795,11 +2795,14 @@ static void homeaxis(const AxisEnum axis) {
       }
     }
     else {
-      // If the height hasn't been altered, undo the Z hop
+
+      // If the height hasn't been lowered, undo the Z hop
       if (retract_zlift > 0.01 && hop_height == current_position[Z_AXIS]) {
         // Pretend current position is higher. Z will lower on the next move
         current_position[Z_AXIS] += retract_zlift;
         SYNC_PLAN_POSITION_KINEMATIC();
+        // Lower Z
+        prepare_move_to_destination();
       }
 
       feedrate_mm_s = retract_recover_feedrate_mm_s;
@@ -5632,7 +5635,7 @@ void home_all_axes() { gcode_G28(); }
       }
       else {
         // Save the previous Z before going to the next point
-        zBedProbePoints[probe_index - 1] = -current_position[Z_AXIS];
+        zBedProbePoints[probe_index - 1] = current_position[Z_AXIS];
       }
 
       // Is there a next point to move to?
@@ -5687,22 +5690,22 @@ void home_all_axes() { gcode_G28(); }
       for (probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = deltaParams.probe_radius * sin((2 * M_PI * probe_index) / 6);
         yBedProbePoints[probe_index] = deltaParams.probe_radius * cos((2 * M_PI * probe_index) / 6);
-        zBedProbePoints[probe_index] = -probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+        zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
       }
       if (numPoints >= 10) {
         for (probe_index = 6; probe_index < 9; probe_index++) {
           xBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
           yBedProbePoints[probe_index] = (deltaParams.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
-          zBedProbePoints[probe_index] = -probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+          zBedProbePoints[probe_index] = probe_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = -probe_pt(0.0, 0.0, true, 4);
+        zBedProbePoints[9] = probe_pt(0.0, 0.0, true, 4);
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = -probe_pt(0.0, 0.0, true, 4);
+        zBedProbePoints[6] = probe_pt(0.0, 0.0, true, 4);
       }
 
     #endif
