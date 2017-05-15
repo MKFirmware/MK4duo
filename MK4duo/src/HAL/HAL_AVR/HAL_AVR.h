@@ -73,6 +73,14 @@
 #include "fastio.h"
 #include "watchdog_AVR.h"
 
+// BLUETOOTH
+#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+  #undef SERIAL_PORT
+  #undef BAUDRATE
+  #define SERIAL_PORT BLUETOOTH_PORT
+  #define BAUDRATE    BLUETOOTH_BAUD
+#endif
+
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
   #include "HardwareSerial.h"
