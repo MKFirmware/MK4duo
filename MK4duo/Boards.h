@@ -51,6 +51,7 @@
 *   72 BOARD_ULTIMAIN_2         - Ultimainboard 2.x (Uses TEMP_SENSOR 20)
 *   77 BOARD_3DRAG              - 3Drag Controller
 *   78 BOARD_K8200              - Vellemann K8200 Controller (derived from 3Drag Controller)
+*   79 BOARD_3DVERTEX           - 3DVertex Controller (Velleman K8400)
 *
 *    8 BOARD_TEENSYLU           - Teensylu
 *   80 BOARD_RUMBA              - Rumba
@@ -145,7 +146,8 @@
 #define BOARD_ULTIMAIN_2        72    // Ultimainboard 2.x (Uses TEMP_SENSOR 20)
 #define BOARD_3DRAG             77    // 3Drag Controller
 #define BOARD_K8200             78    // Vellemann K8200 Controller (derived from 3Drag Controller)
-
+#define BOARD_3DVERTEX          79    // 3DVertex Controller (Velleman K8400)
+ 
 #define BOARD_TEENSYLU           8    // Teensylu
 #define BOARD_RUMBA             80    // Rumba
 
