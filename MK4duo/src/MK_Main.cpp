@@ -208,7 +208,7 @@ float soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
       soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 #if FAN_COUNT > 0
-  int16_t fanSpeeds[FAN_COUNT] = { 0 };
+  int fanSpeeds[FAN_COUNT] = { 0 };
 #endif
 #if HAS_CONTROLLERFAN
   uint8_t controller_fanSpeeds = 0;
@@ -1577,6 +1577,8 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 
   #if MECH(DELTA)
 
+    if (!position_is_reachable_xy(x, y)) return;
+
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
     set_destination_to_current();          // sync destination at the start
@@ -1630,6 +1632,8 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
     }
 
   #elif IS_SCARA
+
+    if (!position_is_reachable_xy(x, y)) return;
 
     set_destination_to_current();
 
@@ -1738,10 +1742,11 @@ static void clean_up_after_endstop_or_probe_move() {
   }
 #endif // HAS_BED_PROBE
 
-static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
+bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
   const bool  xx = x && !axis_homed[X_AXIS],
               yy = y && !axis_homed[Y_AXIS],
               zz = z && !axis_homed[Z_AXIS];
+
   if (xx || yy || zz) {
     SERIAL_SM(ECHO, MSG_HOME " ");
     if (xx) SERIAL_M(MSG_X);
@@ -2084,15 +2089,15 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
 
   #endif // MAKERARM_SCARA
 
-  //
-  // - Move to the given XY
-  // - Deploy the probe, if not already deployed
-  // - Probe the bed, get the Z position
-  // - Depending on the 'stow' flag
-  //   - Stow the probe, or
-  //   - Raise to the BETWEEN height
-  // - Return the probed Z position
-  //
+  /**
+   * - Move to the given XY
+   * - Deploy the probe, if not already deployed
+   * - Probe the bed, get the Z position
+   * - Depending on the 'stow' flag
+   *   - Stow the probe, or
+   *   - Raise to the BETWEEN height
+   * - Return the probed Z position
+   */
   float probe_pt(const float x, const float y, const bool stow=false, const int verbose_level=1) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -2103,6 +2108,8 @@ static bool axis_unhomed_error(const bool x, const bool y, const bool z) {
         DEBUG_POS("", current_position);
       }
     #endif
+
+    if (!position_is_reachable_by_probe_xy(x, y)) return NAN;
 
     const float old_feedrate_mm_s = feedrate_mm_s;
 
@@ -3380,7 +3387,7 @@ void gcode_get_destination() {
 
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i]))
-      destination[i] = code_value_axis_units(i) + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
+      destination[i] = code_value_axis_units((AxisEnum)i) + (axis_relative_modes[i] || relative_mode ? current_position[i] : 0);
     else
       destination[i] = current_position[i];
   }
@@ -3419,8 +3426,9 @@ void gcode_get_destination() {
 }
 
 void unknown_command_error() {
-  SERIAL_SMV(ER, MSG_UNKNOWN_COMMAND, current_command);
-  SERIAL_EM("\"");
+  SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, current_command);
+  SERIAL_C('"');
+  SERIAL_E;
 }
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -3457,56 +3465,6 @@ void unknown_command_error() {
   }
 
 #endif //HOST_KEEPALIVE_FEATURE
-
-bool position_is_reachable(const float target[XYZ]
-  #if HAS_BED_PROBE
-    , bool by_probe=false
-  #endif
-) {
-  float dx = RAW_X_POSITION(target[X_AXIS]),
-        dy = RAW_Y_POSITION(target[Y_AXIS]);
-
-  #define WITHINXY(x,y) ((x) >= X_MIN_POS - 0.0001 && (x) <= X_MAX_POS + 0.0001 \
-                        && (y) >= Y_MIN_POS - 0.0001 && (y) <= Y_MAX_POS + 0.0001)
-  #define WITHINZ(z)    ((z) >= Z_MIN_POS - 0.0001 && (z) <= Z_MAX_POS + 0.0001)
-
-  #if MECH(MAKERARM_SCARA)
-    if (by_probe) {
-      // If the returned point is 0,0,0 the radius test will fail
-      vector_3 point = probe_point_to_end_point(dx, dy);
-      // Is the tool point outside the rectangular bounds?
-      if (!WITHINXY(point.x, point.y)) {
-        // Try the opposite arm orientation
-        arm_orientation = !arm_orientation;
-        point = probe_point_to_end_point(dx, dy);
-        // If still unreachable keep the old arm orientation
-        if (!WITHINXY(point.x, point.y)) arm_orientation = !arm_orientation;
-      }
-      dx = point.x;
-      dy = point.y;
-    }
-  #elif HAS_BED_PROBE
-    if (by_probe) {
-      dx -= X_PROBE_OFFSET_FROM_NOZZLE;
-      dy -= Y_PROBE_OFFSET_FROM_NOZZLE;
-    }
-  #endif
-
-  #if IS_SCARA
-    #if MIDDLE_DEAD_ZONE_R > 0
-      const float R2 = HYPOT2(dx - SCARA_OFFSET_X, dy - SCARA_OFFSET_Y);
-      bool good = WITHINZ(dz) && (R2 >= sq(float(MIDDLE_DEAD_ZONE_R))) && (R2 <= sq(L1 + L2));
-      return good;
-    #else
-      return WITHINZ(dz) && HYPOT2(dx - (SCARA_OFFSET_X), dy - (SCARA_OFFSET_Y)) <= sq(L1 + L2);
-    #endif
-  #elif MECH(DELTA)
-    return deltaParams.IsReachable(dx, dy);
-  #else
-    const float dz = RAW_Z_POSITION(target[Z_AXIS]);
-    return WITHINXY(dx, dy) && WITHINZ(dz);
-  #endif
-}
 
 /**************************************************
  ***************** GCode Handlers *****************
@@ -3617,7 +3575,7 @@ inline void gcode_G0_G1(
 
       float arc_offset[2] = { 0.0, 0.0 };
       if (code_seen('R')) {
-        const float r = code_value_axis_units(X_AXIS),
+        const float r = code_value_linear_units(),
                     x1 = current_position[X_AXIS], y1 = current_position[Y_AXIS],
                     x2 = destination[X_AXIS], y2 = destination[Y_AXIS];
         if (r && (x2 != x1 || y2 != y1)) {
@@ -3633,8 +3591,8 @@ inline void gcode_G0_G1(
         }
       }
       else {
-        if (code_seen('I')) arc_offset[X_AXIS] = code_value_axis_units(X_AXIS);
-        if (code_seen('J')) arc_offset[Y_AXIS] = code_value_axis_units(Y_AXIS);
+        if (code_seen('I')) arc_offset[X_AXIS] = code_value_linear_units();
+        if (code_seen('J')) arc_offset[Y_AXIS] = code_value_linear_units();
       }
 
       if (arc_offset[0] || arc_offset[1]) {
@@ -3687,10 +3645,10 @@ inline void gcode_G4() {
       gcode_get_destination();
 
       const float offset[] = {
-        code_seen('I') ? code_value_axis_units(X_AXIS) : 0.0,
-        code_seen('J') ? code_value_axis_units(Y_AXIS) : 0.0,
-        code_seen('P') ? code_value_axis_units(X_AXIS) : 0.0,
-        code_seen('Q') ? code_value_axis_units(Y_AXIS) : 0.0
+        code_seen('I') ? code_value_linear_units() : 0.0,
+        code_seen('J') ? code_value_linear_units() : 0.0,
+        code_seen('P') ? code_value_linear_units() : 0.0,
+        code_seen('Q') ? code_value_linear_units() : 0.0
       };
 
       plan_cubic_move(offset);
@@ -3758,7 +3716,7 @@ inline void gcode_G4() {
    */
   inline void gcode_G12() {
     // Don't allow nozzle cleaning without homing first
-    if (axis_unhomed_error(true, true, true)) { return; }
+    if (axis_unhomed_error()) { return; }
 
     const uint8_t pattern = code_seen('P') ? code_value_ushort() : 0,
                   strokes = code_seen('S') ? code_value_ushort() : NOZZLE_CLEAN_STROKES,
@@ -3787,7 +3745,7 @@ inline void gcode_G4() {
    */
   inline void gcode_G27() {
     // Don't allow nozzle parking without homing first
-    if (axis_unhomed_error(true, true, true)) { return; }
+    if (axis_unhomed_error()) { return; }
     Nozzle::park(code_seen('P') ? code_value_ushort() : 0);
   }
 #endif // NOZZLE_PARK_FEATURE
@@ -3988,20 +3946,22 @@ inline void gcode_G4() {
     destination[Y_AXIS] = LOGICAL_Y_POSITION(Z_SAFE_HOMING_Y_POINT);
     destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
-    if (position_is_reachable(
-          destination
-          #if HOMING_Z_WITH_PROBE
-            , true
-          #endif
-        )
-    ) {
-      #if HOMING_Z_WITH_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
-      #endif
+    #if HOMING_Z_WITH_PROBE
+      destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
+      destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+    #endif
+
+    if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
+
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("Z_SAFE_HOMING", destination);
       #endif
+
+      // This causes the carriage on Dual X to unpark
+      #if ENABLED(DUAL_X_CARRIAGE)
+        active_extruder_parked = false;
+      #endif
+
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
       HOMEAXIS(Z);
     }
@@ -4039,17 +3999,13 @@ inline void gcode_G4() {
     destination[Y_AXIS] = LOGICAL_Y_POSITION(DOUBLE_Z_HOMING_Y_POINT);
     destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
-    if (position_is_reachable(
-          destination
-          #if HAS_BED_PROBE
-            , true
-          #endif
-        )
-    ) {
-      #if HAS_BED_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
-      #endif
+    #if HAS_BED_PROBE
+      destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
+      destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+    #endif
+
+    if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
+
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
       #endif
@@ -4102,7 +4058,7 @@ inline void gcode_G4() {
  *  B   Return to back point
  *
  */
-inline void gcode_G28() {
+inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -4166,26 +4122,24 @@ inline void gcode_G28() {
   #else // NOT DELTA
 
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
-      bool  homeX = code_seen('X'),
-            homeY = code_seen('Y'),
-            homeZ = code_seen('Z'),
-            homeE = code_seen('E');
-
-      if (homeZ) homeX = homeY = true;
+      const bool  homeZ = always_home_all || code_seen('Z'),
+                  homeX = always_home_all || homeZ || code_seen('X'),
+                  homeY = always_home_all || homeZ || code_seen('Y'),
+                  homeE = always_home_all || code_seen('E');
     #else
-      const bool  homeX = code_seen('X'),
-                  homeY = code_seen('Y'),
-                  homeZ = code_seen('Z'),
-                  homeE = code_seen('E');
+      const bool  homeX = always_home_all || code_seen('X'),
+                  homeY = always_home_all || code_seen('Y'),
+                  homeZ = always_home_all || code_seen('Z'),
+                  homeE = always_home_all || code_seen('E');
     #endif
   
-    const bool home_all_axis = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
+    const bool home_all = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
 
     set_destination_to_current();
 
     #if Z_HOME_DIR > 0  // If homing away from BED do Z first
 
-      if (home_all_axis || homeZ) {
+      if (home_all || homeZ) {
         HOMEAXIS(Z);
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("> HOMEAXIS(Z)", current_position);
@@ -4194,7 +4148,7 @@ inline void gcode_G28() {
 
     #else
 
-      if (home_all_axis || homeX || homeY) {
+      if (home_all || homeX || homeY) {
         // Raise Z before homing any other axes and z is not already high enough (never lower z)
         destination[Z_AXIS] = LOGICAL_Z_POSITION(MIN_Z_HEIGHT_FOR_HOMING);
         if (destination[Z_AXIS] > current_position[Z_AXIS]) {
@@ -4209,12 +4163,12 @@ inline void gcode_G28() {
     #endif
 
     #if ENABLED(QUICK_HOME)
-      if (home_all_axis || (homeX && homeY)) quick_home_xy();
+      if (home_all || (homeX && homeY)) quick_home_xy();
     #endif
 
     #if ENABLED(HOME_Y_BEFORE_X)
       // Home Y
-      if (home_all_axis || homeY) {
+      if (home_all || homeY) {
         HOMEAXIS(Y);
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("> homeY", current_position);
@@ -4223,7 +4177,7 @@ inline void gcode_G28() {
     #endif
 
     // Home X
-    if (home_all_axis || homeX) {
+    if (home_all || homeX) {
       #if ENABLED(DUAL_X_CARRIAGE)
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
@@ -4250,7 +4204,7 @@ inline void gcode_G28() {
 
     #if DISABLED(HOME_Y_BEFORE_X)
       // Home Y
-      if (home_all_axis || homeY) {
+      if (home_all || homeY) {
         HOMEAXIS(Y);
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("> homeY", current_position);
@@ -4260,18 +4214,18 @@ inline void gcode_G28() {
 
     // Home Z last if homing towards the bed
     #if Z_HOME_DIR < 0
-      if (home_all_axis || homeZ) {
+      if (home_all || homeZ) {
         #if ENABLED(Z_SAFE_HOMING)
           home_z_safely();
         #else
           HOMEAXIS(Z);
         #endif // !Z_SAFE_HOMING
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) DEBUG_POS("> (home_all_axis || homeZ) > final", current_position);
+          if (DEBUGGING(LEVELING)) DEBUG_POS("> (home_all || homeZ) > final", current_position);
         #endif
       }
     #elif ENABLED(DOUBLE_Z_HOMING)
-      if (home_all_axis || homeZ)
+      if (home_all || homeZ)
         double_home_z();
     #endif
 
@@ -4280,7 +4234,7 @@ inline void gcode_G28() {
   #endif // !DELTA (gcode_G28)
 
   #if ENABLED(NPR2)
-    if ((home_all_axis) || (code_seen('E'))) {
+    if ((home_all) || (code_seen('E'))) {
       set_destination_to_current();
       destination[E_AXIS] = -200;
       active_driver = active_extruder = 1;
@@ -4352,7 +4306,7 @@ inline void gcode_G28() {
   #endif
 } // G28
 
-void home_all_axes() { gcode_G28(); }
+void home_all_axes() { gcode_G28(true); }
 
 #if HAS_PROBING_PROCEDURE
   void out_of_range_error(const char* p_edge) {
@@ -4553,7 +4507,7 @@ void home_all_axes() { gcode_G28(); }
         }
 
         if (code_seen('Z')) {
-          mbl.z_values[px][py] = code_value_axis_units(Z_AXIS);
+          mbl.z_values[px][py] = code_value_linear_units();
         }
         else {
           SERIAL_C('Z'); say_not_entered();
@@ -4563,7 +4517,7 @@ void home_all_axes() { gcode_G28(); }
 
       case MeshSetZOffset:
         if (code_seen('Z')) {
-          mbl.z_offset = code_value_axis_units(Z_AXIS);
+          mbl.z_offset = code_value_linear_units();
         }
         else {
           SERIAL_C('Z'); say_not_entered();
@@ -4695,7 +4649,7 @@ void home_all_axes() { gcode_G28(); }
       }
     #else
       // Don't allow auto-levelling without homing first
-      if (axis_unhomed_error(true, true, true)) return;
+      if (axis_unhomed_error()) return;
     #endif
 
     // Define local vars 'static' for manual probing, 'auto' otherwise
@@ -4799,8 +4753,8 @@ void home_all_axes() { gcode_G28(); }
 
           const float x = code_seen('X') && code_has_value() ? code_value_float() : 99999,
                       y = code_seen('Y') && code_has_value() ? code_value_float() : 99999;
-          int8_t i = code_seen('I') && code_has_value() ? code_value_byte() : -1,
-                 j = code_seen('J') && code_has_value() ? code_value_byte() : -1;
+          int8_t      i = code_seen('I') && code_has_value() ? code_value_byte() : -1,
+                      j = code_seen('J') && code_has_value() ? code_value_byte() : -1;
 
           if (x < 99998 && y < 99998) {
             // Get nearest i / j from x / y
@@ -4859,7 +4813,7 @@ void home_all_axes() { gcode_G28(); }
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        zoffset = code_seen('Z') ? code_value_axis_units(Z_AXIS) : 0;
+        zoffset = code_seen('Z') ? code_value_linear_units() : 0;
 
       #endif
 
@@ -4867,10 +4821,10 @@ void home_all_axes() { gcode_G28(); }
 
         xy_probe_feedrate_mm_s = MMM_TO_MMS(code_seen('S') ? code_value_linear_units() : XY_PROBE_SPEED);
 
-        left_probe_bed_position = code_seen('L') ? (int)code_value_axis_units(X_AXIS) : LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION);
-        right_probe_bed_position = code_seen('R') ? (int)code_value_axis_units(X_AXIS) : LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION);
-        front_probe_bed_position = code_seen('F') ? (int)code_value_axis_units(Y_AXIS) : LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION);
-        back_probe_bed_position = code_seen('B') ? (int)code_value_axis_units(Y_AXIS) : LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION);
+        left_probe_bed_position   = code_seen('L') ? (int)code_value_linear_units() : LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION);
+        right_probe_bed_position  = code_seen('R') ? (int)code_value_linear_units() : LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION);
+        front_probe_bed_position  = code_seen('F') ? (int)code_value_linear_units() : LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION);
+        back_probe_bed_position   = code_seen('B') ? (int)code_value_linear_units() : LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION);
 
         const bool left_out_l = left_probe_bed_position < LOGICAL_X_POSITION(MIN_PROBE_X),
                    left_out = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),
@@ -5064,8 +5018,7 @@ void home_all_axes() { gcode_G28(); }
             indexIntoAB[xCount][yCount] = abl_probe_index;
           #endif
 
-          float pos[XYZ] = { xProbe, yProbe, 0 };
-          if (position_is_reachable(pos)) break;
+          if (position_is_reachable_xy(xProbe, yProbe)) break;
           ++abl_probe_index;
         }
 
@@ -5175,8 +5128,7 @@ void home_all_axes() { gcode_G28(); }
 
             #if IS_KINEMATIC
               // Avoid probing outside the round or hexagonal area
-              const float pos[XYZ] = { xProbe, yProbe, 0 };
-              if (!position_is_reachable(pos, true)) continue;
+              if (!position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
             #endif
 
             measured_z = faux ? 0.001 * random(-100, 101) : probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
@@ -5482,9 +5434,9 @@ void home_all_axes() { gcode_G28(); }
                 pos[XYZ] = { xpos, ypos, LOGICAL_Z_POSITION(0) };
 
     // Don't allow G30 without homing first
-    if (axis_unhomed_error(true, true, true)) return;
+    if (axis_unhomed_error()) return;
 
-    if (!position_is_reachable(pos, true)) return;
+    if (!position_is_reachable_by_probe_xy(xpos, ypos)) return;
 
     // Disable leveling so the planner won't mess with us
     #if HAS_LEVELING
@@ -6559,7 +6511,7 @@ inline void gcode_G61() {
 
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
-      destination[i] = code_value_axis_units(i) + stored_position[slot][i];
+      destination[i] = code_value_axis_units((AxisEnum)i) + stored_position[slot][i];
     }
     else {
       destination[i] = current_position[i];
@@ -6586,13 +6538,13 @@ inline void gcode_G92() {
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
       #if IS_SCARA
-        current_position[i] = code_value_axis_units(i);
+        current_position[i] = code_value_axis_units((AxisEnum)i);
         if (i != E_AXIS) didXYZ = true;
       #else
         #if ENABLED(WORKSPACE_OFFSETS)
           const float p = current_position[i];
         #endif
-        float v = code_value_axis_units(i);
+        float v = code_value_axis_units((AxisEnum)i);
 
         current_position[i] = v;
 
@@ -7251,7 +7203,7 @@ inline void gcode_M42() {
    */
   inline void gcode_M48() {
 
-    if (axis_unhomed_error(true, true, true)) return;
+    if (axis_unhomed_error()) return;
 
     int8_t verbose_level = code_seen('V') ? code_value_byte() : 1;
     if (!WITHIN(verbose_level, 0, 4)) {
@@ -7273,23 +7225,20 @@ inline void gcode_M42() {
 
     bool stow_probe_after_each = code_seen('E');
 
-    float X_probe_location = code_seen('X') ? code_value_axis_units(X_AXIS) : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
+    float X_probe_location = code_seen('X') ? code_value_linear_units() : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
+    float Y_probe_location = code_seen('Y') ? code_value_linear_units() : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
+
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
         out_of_range_error(PSTR("X"));
         return;
       }
-    #endif
-
-    float Y_probe_location = code_seen('Y') ? code_value_axis_units(Y_AXIS) : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
-    #if NOMECH(DELTA)
       if (!WITHIN(Y_probe_location, LOGICAL_Y_POSITION(MIN_PROBE_Y), LOGICAL_Y_POSITION(MAX_PROBE_Y))) {
         out_of_range_error(PSTR("Y"));
         return;
       }
     #else
-      float pos[XYZ] = { X_probe_location, Y_probe_location, 0 };
-      if (!position_is_reachable(pos, true)) {
+      if (!position_is_reachable_by_probe_xy(X_probe_location, Y_probe_location)) {
         SERIAL_LM(ER, "? (X,Y) location outside of probeable radius.");
         return;
       }
@@ -7608,7 +7557,7 @@ inline void gcode_M82() { axis_relative_modes[E_AXIS] = false; }
 inline void gcode_M83() { axis_relative_modes[E_AXIS] = true; }
 
 /**
- * M18, M84: Disable all stepper motors
+ * M18, M84: Disable stepper motors
  */
 inline void gcode_M18_M84() {
   if (code_seen('S')) {
@@ -8356,7 +8305,7 @@ inline void gcode_M201() {
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      planner.max_acceleration_mm_per_s2[a] = code_value_axis_units(a);
+      planner.max_acceleration_mm_per_s2[a] = code_value_axis_units((AxisEnum)a);
     }
   }
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
@@ -8366,7 +8315,7 @@ inline void gcode_M201() {
 #if 0 // Not used for Sprinter/grbl gen6
   inline void gcode_M202() {
     LOOP_XYZE(i) {
-      if(code_seen(axis_codes[i])) axis_travel_steps_per_sqr_second[i] = code_value_axis_units(i) * planner.axis_steps_per_mm[i];
+      if(code_seen(axis_codes[i])) axis_travel_steps_per_sqr_second[i] = code_value_axis_units((AxisEnum)i) * planner.axis_steps_per_mm[i];
     }
   }
 #endif
@@ -8383,7 +8332,7 @@ inline void gcode_M203() {
   LOOP_XYZE(i) {
     if (code_seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      planner.max_feedrate_mm_s[a] = code_value_axis_units(a);
+      planner.max_feedrate_mm_s[a] = code_value_axis_units((AxisEnum)a);
     }
   }
 }
@@ -8437,10 +8386,10 @@ inline void gcode_M205() {
   if (code_seen('S')) planner.min_feedrate_mm_s = code_value_linear_units();
   if (code_seen('V')) planner.min_travel_feedrate_mm_s = code_value_linear_units();
   if (code_seen('B')) planner.min_segment_time = code_value_millis();
-  if (code_seen('X')) planner.max_jerk[X_AXIS] = code_value_axis_units(X_AXIS);
-  if (code_seen('Y')) planner.max_jerk[Y_AXIS] = code_value_axis_units(Y_AXIS);
-  if (code_seen('Z')) planner.max_jerk[Z_AXIS] = code_value_axis_units(Z_AXIS);
-  if (code_seen('E')) planner.max_jerk[E_AXIS + TARGET_EXTRUDER] = code_value_axis_units(E_AXIS + TARGET_EXTRUDER);
+  if (code_seen('X')) planner.max_jerk[X_AXIS] = code_value_linear_units();
+  if (code_seen('Y')) planner.max_jerk[Y_AXIS] = code_value_linear_units();
+  if (code_seen('Z')) planner.max_jerk[Z_AXIS] = code_value_linear_units();
+  if (code_seen('E')) planner.max_jerk[E_AXIS + TARGET_EXTRUDER] = code_value_linear_units();
 }
 
 #if ENABLED(WORKSPACE_OFFSETS)
@@ -8451,12 +8400,12 @@ inline void gcode_M205() {
   inline void gcode_M206() {
     LOOP_XYZ(i) {
       if (code_seen(axis_codes[i])) {
-        set_home_offset((AxisEnum)i, code_value_axis_units(i));
+        set_home_offset((AxisEnum)i, code_value_linear_units());
       }
     }
     #if MECH(MORGAN_SCARA)
-      if (code_seen('T')) set_home_offset(X_AXIS, code_value_axis_units(X_AXIS)); // Theta
-      if (code_seen('P')) set_home_offset(Y_AXIS, code_value_axis_units(Y_AXIS)); // Psi
+      if (code_seen('T')) set_home_offset(X_AXIS, code_value_linear_units()); // Theta
+      if (code_seen('P')) set_home_offset(Y_AXIS, code_value_linear_units()); // Psi
     #endif
 
     SYNC_PLAN_POSITION_KINEMATIC();
@@ -8477,7 +8426,7 @@ inline void gcode_M205() {
   inline void gcode_M207() {
     if (code_seen('S')) retract_length = code_value_axis_units(E_AXIS);
     if (code_seen('F')) retract_feedrate_mm_s = MMM_TO_MMS(code_value_axis_units(E_AXIS));
-    if (code_seen('Z')) retract_zlift = code_value_axis_units(Z_AXIS);
+    if (code_seen('Z')) retract_zlift = code_value_linear_units();
     #if EXTRUDERS > 1
       if (code_seen('W')) retract_length_swap = code_value_axis_units(E_AXIS);
     #endif
@@ -8492,7 +8441,7 @@ inline void gcode_M205() {
    */
   inline void gcode_M208() {
     if (code_seen('S')) retract_recover_length = code_value_axis_units(E_AXIS);
-    if (code_seen('F')) retract_recover_feedrate_mm_s = code_value_axis_units(E_AXIS) / 60;
+    if (code_seen('F')) retract_recover_feedrate_mm_s = MMM_TO_MMS(code_value_axis_units(E_AXIS));
     #if EXTRUDERS > 1
       if (code_seen('W')) retract_recover_length_swap = code_value_axis_units(E_AXIS);
     #endif
@@ -8524,9 +8473,9 @@ inline void gcode_M218() {
   GET_TARGET_HOTEND(218);
   if (TARGET_EXTRUDER == 0) return;
 
-  if (code_seen('X')) hotend_offset[X_AXIS][TARGET_EXTRUDER] = code_value_axis_units(X_AXIS);
-  if (code_seen('Y')) hotend_offset[Y_AXIS][TARGET_EXTRUDER] = code_value_axis_units(Y_AXIS);
-  if (code_seen('Z')) hotend_offset[Z_AXIS][TARGET_EXTRUDER] = code_value_axis_units(Z_AXIS);
+  if (code_seen('X')) hotend_offset[X_AXIS][TARGET_EXTRUDER] = code_value_linear_units();
+  if (code_seen('Y')) hotend_offset[Y_AXIS][TARGET_EXTRUDER] = code_value_linear_units();
+  if (code_seen('Z')) hotend_offset[Z_AXIS][TARGET_EXTRUDER] = code_value_linear_units();
 
   SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
   HOTEND_LOOP() {
@@ -8900,58 +8849,37 @@ inline void gcode_M303() {
 
     /**
      * M321: Set Level bilinear manual
-     *       X<x grid value>
-     *       Y<y grid value>
-     *       Z<level value> Set the exact value in bilinear_level[x][y]
-     *       S<value> Add value to bilinear_level[x][y] or current position if not set X & Y
+     *
+     * Usage:
+     *   M321 I<xindex> J<yindex> Z<linear>
+     *   M321 I<xindex> J<yindex> Q<offset>
      */
     inline void gcode_M321() {
-      uint8_t px = 0, py = 0;
-      float val = 0.0;
-      bool hasX, hasY, hasZ, hasS;
-      const float ratio_x = (RAW_X_POSITION(current_position[X_AXIS]) - bilinear_start[X_AXIS]) / bilinear_grid_spacing[X_AXIS],
-                  ratio_y = (RAW_Y_POSITION(current_position[Y_AXIS]) - bilinear_start[Y_AXIS]) / bilinear_grid_spacing[Y_AXIS];
-      const int gridx = constrain(FLOOR(ratio_x), 0, GRID_MAX_POINTS_X - 1),
-                gridy = constrain(FLOOR(ratio_y), 0, GRID_MAX_POINTS_Y - 1);
+      const bool hasI = code_seen('I');
+      const int8_t ix = hasI ? code_value_int() : -1;
+      const bool hasJ = code_seen('J');
+      const int8_t iy = hasJ ? code_value_int() : -1;
+      const bool hasZ = code_seen('Z'), hasQ = !hasZ && code_seen('Q');
 
-      if ((hasX = code_seen('X'))) px = code_value_int();
-      if ((hasY = code_seen('Y'))) py = code_value_int();
+      if (!hasI || !hasJ || !(hasZ || hasQ)) {
+        SERIAL_LM(ER, MSG_ERR_M321_PARAMETERS);
+      }
+        else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1)) {
+        SERIAL_LM(ER, MSG_ERR_MESH_XY);
+      }
 
-      if ((hasZ = code_seen('Z')))
-        val = code_value_float();
-      else if ((hasS = code_seen('S')))
-        val = code_value_float();
-
-      if (px >= GRID_MAX_POINTS_X || py >= GRID_MAX_POINTS_Y) {
-        SERIAL_LM(ECHO, " X Y error");
+      if (hasI && hasJ && !(hasZ || hasQ)) {
+        SERIAL_MV("Level value in ix", ix);
+        SERIAL_MV(" iy", iy);
+        SERIAL_EMV(" Z", z_values[ix][iy]);
         return;
       }
-
-      if (hasX && hasY) {
-        if (hasZ) {
-          z_values[px][py] = val;
-        }
-        else if (hasS) {
-          z_values[px][py] += val;
-        }
-        SERIAL_MV("Level value in X", px);
-        SERIAL_MV(" Y", py);
-        SERIAL_EMV(" Z", z_values[px][py]);
-        return;
+      else {
+        z_values[ix][iy] = code_value_linear_units() + (hasQ ? z_values[ix][iy] : 0);
+        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+          bed_level_virt_interpolate();
+        #endif
       }
-      else if (hasS) {
-        z_values[gridx][gridy] += val;
-      }
-
-      #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bed_level_virt_interpolate();
-      #endif
-
-      SERIAL_MV("Level value in gridx=", gridx);
-      SERIAL_MV(" gridy=", gridy);
-      SERIAL_MV(" X", current_position[X_AXIS]);
-      SERIAL_MV(" Y", current_position[Y_AXIS]);
-      SERIAL_EMV(" Z", z_values[gridx][gridy]);
     }
 
   #endif
@@ -9068,7 +8996,7 @@ inline void gcode_M303() {
   }
 
   /**
-   * M364: SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
+   * M364: SCARA calibration: Move to cal-position PsiC (90 deg to Theta calibration position)
    */
   inline bool gcode_M364() {
     SERIAL_LM(ECHO, " Cal: Theta-Psi 90");
@@ -9507,36 +9435,28 @@ inline void gcode_M400() { stepper.synchronize(); }
 
   /**
    * M421: Set a single Mesh Bed Leveling Z coordinate
-   * Use either 'M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>'
+   *
+   * Usage:
+   *   M421 X<linear> Y<linear> Z<linear>
+   *   M421 X<linear> Y<linear> Q<offset>
+   *   M421 I<xindex> J<yindex> Z<linear>
+   *   M421 I<xindex> J<yindex> Q<offset>
    */
   inline void gcode_M421() {
-    int8_t px = 0, py = 0;
-    float z = 0;
-    bool hasX, hasY, hasZ, hasI, hasJ;
-    if ((hasX = code_seen('X'))) px = mbl.probe_index_x(code_value_axis_units(X_AXIS));
-    if ((hasY = code_seen('Y'))) py = mbl.probe_index_y(code_value_axis_units(Y_AXIS));
-    if ((hasI = code_seen('I'))) px = code_value_axis_units(X_AXIS);
-    if ((hasJ = code_seen('J'))) py = code_value_axis_units(Y_AXIS);
-    if ((hasZ = code_seen('Z'))) z = code_value_axis_units(Z_AXIS);
+    const bool hasX = code_seen('X'), hasI = code_seen('I');
+    const int8_t ix = hasI ? code_value_int() : hasX ? mbl.probe_index_x(RAW_X_POSITION(code_value_linear_units())) : -1;
+    const bool hasY = code_seen('Y'), hasJ = code_seen('J');
+    const int8_t iy = hasJ ? code_value_int() : hasY ? mbl.probe_index_y(RAW_Y_POSITION(code_value_linear_units())) : -1;
+    const bool hasZ = code_seen('Z'), hasQ = !hasZ && code_seen('Q');
 
-    if (hasX && hasY && hasZ) {
-
-      if (px >= 0 && py >= 0)
-        mbl.set_z(px, py, z);
-      else {
-        SERIAL_LM(ER, MSG_ERR_MESH_XY);
-      }
-    }
-    else if (hasI && hasJ && hasZ) {
-      if (WITHIN(px, 0, GRID_MAX_POINTS_X - 1) && WITHIN(py, 0, GRID_MAX_POINTS_Y - 1))
-        mbl.set_z(px, py, z);
-      else {
-        SERIAL_LM(ER, MSG_ERR_MESH_XY);
-      }
-    }
-    else {
+    if (int(hasI && hasJ) + int(hasX && hasY) != 1 || !(hasZ || hasQ)) {
       SERIAL_LM(ER, MSG_ERR_M421_PARAMETERS);
     }
+    else if (ix < 0 || iy < 0) {
+      SERIAL_LM(ER, MSG_ERR_MESH_XY);
+    }
+    else
+      mbl.set_z(ix, iy, code_value_linear_units() + (hasQ ? mbl.z_values[ix][iy] : 0));
   }
 #endif // MESH_BED_LEVELING
 
@@ -9853,7 +9773,7 @@ inline void gcode_M532() {
     RUNPLAN(FILAMENT_CHANGE_RETRACT_FEEDRATE);
 
     // Lift Z axis
-    float z_lift = code_seen('Z') ? code_value_axis_units(Z_AXIS) :
+    float z_lift = code_seen('Z') ? code_value_linear_units() :
       #if ENABLED(FILAMENT_CHANGE_Z_ADD) && FILAMENT_CHANGE_Z_ADD > 0
         FILAMENT_CHANGE_Z_ADD
       #else
@@ -9868,12 +9788,12 @@ inline void gcode_M532() {
     }
 
     // Move XY axes to filament exchange position
-    if (code_seen('X')) destination[X_AXIS] = code_value_axis_units(X_AXIS);
+    if (code_seen('X')) destination[X_AXIS] = code_value_linear_units();
     #if ENABLED(FILAMENT_CHANGE_X_POS)
       else destination[X_AXIS] = FILAMENT_CHANGE_X_POS;
     #endif
 
-    if (code_seen('Y')) destination[Y_AXIS] = code_value_axis_units(Y_AXIS);
+    if (code_seen('Y')) destination[Y_AXIS] = code_value_linear_units();
     #if ENABLED(FILAMENT_CHANGE_Y_POS)
       else destination[Y_AXIS] = FILAMENT_CHANGE_Y_POS;
     #endif
@@ -10084,7 +10004,7 @@ inline void gcode_M532() {
     if (code_seen('S')) dual_x_carriage_mode = code_value_byte();
     switch(dual_x_carriage_mode) {
       case DXC_DUPLICATION_MODE:
-        if (code_seen('X')) duplicate_hotend_x_offset = max(code_value_axis_units(X_AXIS), X2_MIN_POS - x_home_pos(0));
+        if (code_seen('X')) duplicate_hotend_x_offset = max(code_value_linear_units(), X2_MIN_POS - x_home_pos(0));
         if (code_seen('R')) duplicate_hotend_temp_offset = code_value_temp_diff();
         SERIAL_M(MSG_HOTEND_OFFSET);
         SERIAL_MV(" ", hotend_offset[X_AXIS][0]);
@@ -10304,7 +10224,7 @@ inline void gcode_M532() {
     SERIAL_C(' ');
 
     if (code_seen('P')) {
-      float p_val = code_value_axis_units(Z_AXIS);
+      float p_val = code_value_linear_units();
       if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
 
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -10364,7 +10284,7 @@ inline void gcode_M532() {
 
     if (code_seen('H')) {
       const float old_delta_height = deltaParams.delta_height;
-      deltaParams.delta_height = code_value_axis_units(Z_AXIS);
+      deltaParams.delta_height = code_value_linear_units();
       current_position[Z_AXIS] += deltaParams.delta_height - old_delta_height;
     }
 
@@ -10391,7 +10311,7 @@ inline void gcode_M532() {
         SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
         SERIAL_C(' ');
 
-        float p_val = code_value_axis_units(Z_AXIS);
+        float p_val = code_value_linear_units();
         if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
 
           #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -10422,7 +10342,7 @@ inline void gcode_M532() {
     #endif // HAS_BED_PROBE
 
     LOOP_XYZ(i) {
-      if (code_seen(axis_codes[i])) deltaParams.endstop_adj[i] = code_value_axis_units(i);
+      if (code_seen(axis_codes[i])) deltaParams.endstop_adj[i] = code_value_linear_units();
     }
 
     if (code_seen('L')) {
@@ -10716,9 +10636,9 @@ inline void gcode_M907() {
   inline void gcode_M995() {
     uint16_t x = 0, y = 0, z = 0;
 
-    if (code_seen('X')) x = code_value_axis_units(X_AXIS);
-    if (code_seen('Y')) y = code_value_axis_units(Y_AXIS);
-    if (code_seen('Z')) z = code_value_axis_units(Z_AXIS);
+    if (code_seen('X')) x = code_value_linear_units();
+    if (code_seen('Y')) y = code_value_linear_units();
+    if (code_seen('Z')) z = code_value_linear_units();
 
     gfx_origin(x, y ,z);
   }
@@ -10809,7 +10729,7 @@ inline void gcode_T(uint8_t tool_id) {
 
     if (printer_mode == PRINTER_MODE_FFF) tool_change(
       tool_id,
-      code_seen('F') ? MMM_TO_MMS(code_value_axis_units(X_AXIS)) : 0.0,
+      code_seen('F') ? MMM_TO_MMS(code_value_linear_units()) : 0.0,
       (tool_id == active_extruder) || (code_seen('S') && code_value_bool())
     );
 
@@ -11141,7 +11061,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
     feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
     if (tmp_extruder != active_extruder) {
-      if (!no_move && axis_unhomed_error(true, true, true)) {
+      if (!no_move && axis_unhomed_error()) {
         SERIAL_EM("No move on toolchange");
         no_move = true;
       }
@@ -11629,7 +11549,7 @@ void process_next_command() {
       #endif // NOZZLE_PARK_FEATURE
 
       case 28: //G28: Home all axes, one at a time
-        gcode_G28(); break;
+        gcode_G28(false); break;
 
       #if HAS_LEVELING
         case 29: // G29 Detailed Z probe, probes the bed at 3 or more points.
@@ -13100,13 +13020,16 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
   inline bool prepare_kinematic_move_to(float ltarget[NUM_AXIS]) {
 
     // Get the top feedrate of the move in the XY plane
-    float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+    const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
 
     // If the move is only in Z/E don't split up the move
     if (ltarget[X_AXIS] == current_position[X_AXIS] && ltarget[Y_AXIS] == current_position[Y_AXIS]) {
       planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder, active_driver);
       return false;
     }
+
+    // Fail if attempting move outside printable radius
+    if (!position_is_reachable_xy(ltarget[X_AXIS], ltarget[Y_AXIS])) return true;
 
     // Get the cartesian distances moved in XYZE
     float difference[NUM_AXIS];
