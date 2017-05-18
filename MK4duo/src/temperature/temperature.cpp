@@ -40,20 +40,20 @@ Temperature thermalManager;
 
 float   Temperature::current_temperature[HOTENDS] = { 0.0 },
         Temperature::current_temperature_bed = 0.0;
-int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
+int     Temperature::current_temperature_raw[HOTENDS] = { 0 },
         Temperature::target_temperature[HOTENDS] = { 0 },
         Temperature::current_temperature_bed_raw = 0,
         Temperature::target_temperature_bed = 0;
 
 #if HAS(TEMP_CHAMBER)
   float   Temperature::current_temperature_chamber = 0.0;
-  int16_t Temperature::target_temperature_chamber = 0,
+  int     Temperature::target_temperature_chamber = 0,
           Temperature::current_temperature_chamber_raw = 0;
 #endif
 
 #if HAS(TEMP_COOLER)
   float   Temperature::current_temperature_cooler = 0.0;
-  int16_t Temperature::target_temperature_cooler = 0,
+  int     Temperature::target_temperature_cooler = 0,
           Temperature::current_temperature_cooler_raw = 0;
 #endif
 

@@ -67,7 +67,7 @@ void ok_to_send();
 #endif
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  extern void set_z_fade_height(const float zfh);
+  void set_z_fade_height(const float zfh);
 #endif
 
 void kill(const char *);
@@ -235,7 +235,7 @@ int16_t code_value_temp_diff();
 #endif
 
 #if FAN_COUNT > 0
-  extern int16_t fanSpeeds[FAN_COUNT];
+  extern int fanSpeeds[FAN_COUNT];
 #endif
 #if HAS_CONTROLLERFAN
   extern uint8_t controller_fanSpeeds;
@@ -347,6 +347,69 @@ void do_blocking_move_to(const float &x, const float &y, const float &z, const f
 void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
 void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+
+bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
+
+/**
+ * position_is_reachable family of functions
+ */
+
+#if IS_KINEMATIC // (DELTA or SCARA)
+
+  #if IS_SCARA
+    extern const float L1, L2;
+  #endif
+
+  inline bool position_is_reachable_raw_xy(float raw_x, float raw_y) {
+    #if MECH(DELTA)
+      return deltaParams.IsReachable(raw_x, raw_y);
+    #elif IS_SCARA
+      #if MIDDLE_DEAD_ZONE_R > 0
+        const float R2 = HYPOT2(raw_x - SCARA_OFFSET_X, raw_y - SCARA_OFFSET_Y);
+        return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
+      #else
+        return HYPOT2(raw_x - SCARA_OFFSET_X, raw_y - SCARA_OFFSET_Y) <= sq(L1 + L2);
+      #endif
+    #else // CARTESIAN
+      #error
+    #endif
+  }
+
+  inline bool position_is_reachable_by_probe_raw_xy(float raw_x, float raw_y) {
+
+    // both the nozzle and the probe must be able to reach the point
+
+    return (position_is_reachable_raw_xy(raw_x, raw_y) &&
+            position_is_reachable_raw_xy(
+              raw_x - X_PROBE_OFFSET_FROM_NOZZLE,
+              raw_y - Y_PROBE_OFFSET_FROM_NOZZLE));
+  }
+
+#else // CARTESIAN
+
+  inline bool position_is_reachable_raw_xy(float raw_x, float raw_y) {
+      // note to reviewer: this +/-0.0001 logic is copied from original postion_is_reachable
+      return WITHIN(raw_x, X_MIN_POS - 0.0001, X_MAX_POS + 0.0001)
+          && WITHIN(raw_y, Y_MIN_POS - 0.0001, Y_MAX_POS + 0.0001);
+  }
+
+  inline bool position_is_reachable_by_probe_raw_xy(float raw_x, float raw_y) {
+      // note to reviewer: this logic is copied from UBL_G29.cpp and does not contain the +/-0.0001 above
+      return WITHIN(raw_x, MIN_PROBE_X, MAX_PROBE_X)
+          && WITHIN(raw_y, MIN_PROBE_Y, MAX_PROBE_Y);
+  }
+
+#endif // CARTESIAN
+
+inline bool position_is_reachable_by_probe_xy(float target_x, float target_y) {
+  return position_is_reachable_by_probe_raw_xy(
+            RAW_X_POSITION(target_x),
+            RAW_Y_POSITION(target_y));
+}
+
+inline bool position_is_reachable_xy(float target_x, float target_y) {
+  return position_is_reachable_raw_xy(RAW_X_POSITION(target_x), RAW_Y_POSITION(target_y));
+}
 
 /**
  * SD Stop & Store location

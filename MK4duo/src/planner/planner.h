@@ -339,7 +339,7 @@ class Planner {
         #if MECH(DELTA)
           deltaParams.Transform(lpos);
         #else
-            inverse_kinematics(lpos);
+          inverse_kinematics(lpos);
         #endif
         _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #else

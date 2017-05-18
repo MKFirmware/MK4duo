@@ -48,7 +48,7 @@ class Temperature {
     #endif
     static float      current_temperature[HOTENDS],
                       current_temperature_bed;
-    static int16_t    current_temperature_raw[HOTENDS],
+    static int        current_temperature_raw[HOTENDS],
                       target_temperature[HOTENDS],
                       current_temperature_bed_raw,
                       target_temperature_bed;
@@ -58,14 +58,14 @@ class Temperature {
 
     #if HAS(TEMP_CHAMBER)
       static float    current_temperature_chamber;
-      static int16_t  target_temperature_chamber,
+      static int      target_temperature_chamber,
                       current_temperature_chamber_raw;
       static uint8_t  soft_pwm_chamber;
     #endif
 
     #if HAS(TEMP_COOLER)
       static float    current_temperature_cooler;
-      static int16_t  target_temperature_cooler,
+      static int      target_temperature_cooler,
                       current_temperature_cooler_raw;
       static uint8_t  soft_pwm_cooler;
     #endif
