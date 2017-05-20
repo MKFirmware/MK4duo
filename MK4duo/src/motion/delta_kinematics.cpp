@@ -31,7 +31,7 @@
     diagonal_rod              = DELTA_DIAGONAL_ROD;
     segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     print_radius              = DELTA_PRINTABLE_RADIUS;
-    probe_radius              = DELTA_PRINTABLE_RADIUS - 10;
+    probe_radius              = DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
     delta_height              = DELTA_HEIGHT;
     endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
@@ -134,12 +134,9 @@
       }
 
       Recalc();
-
       const float heightError = homed_Height + endstop_adj[A_AXIS] - oldHeightA - v[0];
       delta_height -= heightError;
       homed_Height -= heightError;
-
-      Recalc();
 
     }
 

@@ -5909,7 +5909,7 @@ void home_all_axes() { gcode_G28(true); }
       SERIAL_M("  Ez:");
       if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
       SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
-      SERIAL_MV("    Radius:", deltaParams.delta_radius);
+      SERIAL_MV("    Radius:", deltaParams.delta_radius, 3);
     }
     SERIAL_E;
     if (probe_mode > 2) { // negative disables tower angles
@@ -6135,7 +6135,7 @@ void home_all_axes() { gcode_G28(true); }
           SERIAL_M("  Ez:");
           if (deltaParams.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
           SERIAL_V(deltaParams.endstop_adj[C_AXIS], 2);
-          SERIAL_MV("    Radius:", deltaParams.delta_radius);
+          SERIAL_MV("    Radius:", deltaParams.delta_radius, 3);
         }
         SERIAL_E;
         if (probe_mode > 2) { // negative disables tower angles
