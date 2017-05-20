@@ -370,8 +370,6 @@ bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true)
       #else
         return HYPOT2(raw_x - SCARA_OFFSET_X, raw_y - SCARA_OFFSET_Y) <= sq(L1 + L2);
       #endif
-    #else // CARTESIAN
-      #error
     #endif
   }
 
