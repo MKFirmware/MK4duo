@@ -216,7 +216,7 @@
       soft_endstop_max[i] = print_radius;
     }
     soft_endstop_max[Z_AXIS]  = delta_height;
-    probe_radius              = print_radius - 10;
+    probe_radius              = print_radius - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);

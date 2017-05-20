@@ -5166,12 +5166,12 @@ void home_all_axes() { gcode_G28(true); }
           // Retain the last probe position
           xProbe = LOGICAL_X_POSITION(points[i].x);
           yProbe = LOGICAL_Y_POSITION(points[i].y);
-          measured_z = points[i].z = faux ? 0.001 * random(-100, 101) : probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
-        }
-
-        if (isnan(measured_z)) {
-          planner.abl_enabled = abl_should_enable;
-          return;
+          measured_z = faux ? 0.001 * random(-100, 101) : probe_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
+          if (isnan(measured_z)) {
+            planner.abl_enabled = abl_should_enable;
+            return;
+          }
+          points[i].z = measured_z;
         }
 
         if (!dryrun) {
@@ -5430,8 +5430,7 @@ void home_all_axes() { gcode_G28(true); }
    */
   inline void gcode_G30() {
     const float xpos = code_seen('X') ? code_value_linear_units() : current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-                ypos = code_seen('Y') ? code_value_linear_units() : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE,
-                pos[XYZ] = { xpos, ypos, LOGICAL_Z_POSITION(0) };
+                ypos = code_seen('Y') ? code_value_linear_units() : current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
 
     // Don't allow G30 without homing first
     if (axis_unhomed_error()) return;
@@ -5447,9 +5446,11 @@ void home_all_axes() { gcode_G28(true); }
 
     const float measured_z = probe_pt(xpos, ypos, !code_seen('S') || code_value_bool(), 1);
 
-    SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-    SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
-    SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
+    if (!isnan(measured_z)) {
+      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
+    }
 
     #if MECH(DELTA)
       if (code_seen('U') && code_value_bool() != 0) {
@@ -5553,7 +5554,7 @@ void home_all_axes() { gcode_G28(true); }
       do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, homing_feedrate_mm_s[Z_AXIS]);
       stepper.synchronize();  // wait until the machine is idle
 
-      SERIAL_MV("Starting LCD Auto Calibration ", numPoints);
+      SERIAL_MV("Starting Auto Calibration ", numPoints);
       SERIAL_MV(" points and ", numFactors);
       SERIAL_EM(" Factors");
       LCD_MESSAGEPGM("Auto Calibration...");
@@ -7276,7 +7277,8 @@ inline void gcode_M42() {
     setup_for_endstop_or_probe_move();
 
     // Move to the first point, deploy, and probe
-    probe_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
+    const float t = probe_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
+    if (isnan(t)) return;
 
     randomSeed(millis());
 
