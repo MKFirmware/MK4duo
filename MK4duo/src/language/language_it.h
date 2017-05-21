@@ -218,6 +218,8 @@
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibra Centro")
 #define MSG_DELTA_AUTO_CALIBRATE            _UxGT("Auto Calibrazione")
 #define MSG_DELTA_HEIGHT_CALIBRATE          _UxGT("Imp. altezza Delta")
+#define MSG_DELTA_CHECKING                  _UxGT("Verifico... AC")
+#define MSG_DELTA_AUTO_CALIBRATE_OK         _UxGT("Calibrazione OK")
 
 // Info printers
 #define MSG_INFO_MENU                       _UxGT("Info. stampante")

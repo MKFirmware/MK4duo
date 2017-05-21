@@ -38,23 +38,30 @@ Temperature thermalManager;
 
 // public:
 
-float   Temperature::current_temperature[HOTENDS] = { 0.0 },
-        Temperature::current_temperature_bed = 0.0;
+float   Temperature::current_temperature[HOTENDS]     = { 0.0 },
+        Temperature::current_temperature_bed          = 0.0;
 int     Temperature::current_temperature_raw[HOTENDS] = { 0 },
-        Temperature::target_temperature[HOTENDS] = { 0 },
-        Temperature::current_temperature_bed_raw = 0,
-        Temperature::target_temperature_bed = 0;
+        Temperature::target_temperature[HOTENDS]      = { 0 },
+        Temperature::current_temperature_bed_raw      = 0,
+        Temperature::target_temperature_bed           = 0;
 
 #if HAS(TEMP_CHAMBER)
-  float   Temperature::current_temperature_chamber = 0.0;
-  int     Temperature::target_temperature_chamber = 0,
-          Temperature::current_temperature_chamber_raw = 0;
+  float   Temperature::current_temperature_chamber      = 0.0;
+  int     Temperature::target_temperature_chamber       = 0,
+          Temperature::current_temperature_chamber_raw  = 0;
 #endif
 
 #if HAS(TEMP_COOLER)
-  float   Temperature::current_temperature_cooler = 0.0;
-  int     Temperature::target_temperature_cooler = 0,
+  float   Temperature::current_temperature_cooler     = 0.0;
+  int     Temperature::target_temperature_cooler      = 0,
           Temperature::current_temperature_cooler_raw = 0;
+#endif
+#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  float   Temperature::current_temperature_mcu  = 0.0,
+          Temperature::highest_temperature_mcu  = 0.0,
+          Temperature::lowest_temperature_mcu   = 4096.0,
+          Temperature::alarm_temperature_mcu    = 80.0;
+  int     Temperature::current_temperature_mcu_raw;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -1215,6 +1222,13 @@ float Temperature::analog2tempBed(int raw) {
   }
 #endif
 
+#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  float Temperature::analog2tempMCU(int raw) {
+    float mcutemp = (float)raw * (3.3 / 4096.0);
+    return (mcutemp - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
+  }
+#endif
+
 /**
  * Get the raw values into the actual temperatures.
  * The raw values are created in interrupt context,
@@ -1257,6 +1271,14 @@ void Temperature::updateTemperaturesFromRawValues() {
       watt_overflow--;
     }
     last_update = temp_last_update;
+  #endif
+
+  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    current_temperature_mcu = analog2tempMCU(current_temperature_mcu_raw);
+    if (current_temperature_mcu > highest_temperature_mcu)
+      highest_temperature_mcu= current_temperature_mcu;
+    if (current_temperature_mcu < lowest_temperature_mcu && current_temperature_mcu != 0)
+      lowest_temperature_mcu = current_temperature_mcu;
   #endif
 
   #if ENABLED(USE_WATCHDOG)
@@ -1859,6 +1881,10 @@ void Temperature::set_current_temp_raw() {
 
   #if HAS(POWER_CONSUMPTION_SENSOR)
     current_raw_powconsumption = HAL::AnalogInputValues[POWER_SENSOR_INDEX];
+  #endif
+
+  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    current_temperature_mcu_raw = HAL::AnalogInputValues[MCU_SENSOR_INDEX];
   #endif
 
   int constexpr temp_dir[] = {

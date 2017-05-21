@@ -200,6 +200,7 @@ int HAL::getFreeRam() {
 
   // Convert an Arduino Due pin number to the corresponding ADC channel number
   adc_channel_num_t HAL::pinToAdcChannel(int pin) {
+    if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
     if (pin < A0) pin += A0;
     return (adc_channel_num_t) (int)g_APinDescription[pin].ulADCChannelNumber;
   }
@@ -233,9 +234,15 @@ int HAL::getFreeRam() {
       for (int j = 0; j < MEDIAN_COUNT; j++)
         AnalogSamples[i][j] = 2048;
     }
+
     // enable channels
     ADC->ADC_CHER = adcEnable;
     ADC->ADC_CHDR = !adcEnable;
+
+    #if !MB(RADDS) // RADDS not have MCU Temperature
+      // Enable MCU temperature
+      ADC->ADC_ACR |= ADC_ACR_TSON;
+    #endif
 
     // Initialize ADC mode register (some of the following params are not used here)
     // HW trigger disabled, use external Trigger, 12 bit resolution
@@ -998,7 +1005,7 @@ HAL_TEMP_TIMER_ISR {
     adcCounter++;
     for (int i = 0; i < ANALOG_INPUTS; i++) {
       int32_t cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i])];
-      cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
+      if (i != MCU_SENSOR_INDEX) cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
       AnalogInputRead[i] += cur;
       adcSamplesMin[i] = min(adcSamplesMin[i], cur);
       adcSamplesMax[i] = max(adcSamplesMax[i], cur);
