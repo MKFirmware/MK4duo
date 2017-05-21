@@ -195,6 +195,7 @@
 #define OVERSAMPLENR 6
 #define MEDIAN_COUNT 10 // MEDIAN COUNT for Smoother temperature
 #define NUM_ADC_SAMPLES (2 + (1 << OVERSAMPLENR))
+#define ADC_TEMPERATURE_SENSOR 15
 
 // --------------------------------------------------------------------------
 // Types

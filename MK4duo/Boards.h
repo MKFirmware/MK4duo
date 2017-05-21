@@ -147,7 +147,7 @@
 #define BOARD_3DRAG             77    // 3Drag Controller
 #define BOARD_K8200             78    // Vellemann K8200 Controller (variant of the 3Drag Controller)
 #define BOARD_3DVERTEX          79    // 3DVertex Controller (Velleman K8400)
- 
+
 #define BOARD_TEENSYLU           8    // Teensylu
 #define BOARD_RUMBA             80    // Rumba
 

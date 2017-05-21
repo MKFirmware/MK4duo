@@ -70,6 +70,14 @@ class Temperature {
       static uint8_t  soft_pwm_cooler;
     #endif
 
+    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+      static float    current_temperature_mcu,
+                      highest_temperature_mcu,
+                      lowest_temperature_mcu,
+                      alarm_temperature_mcu;
+      static int      current_temperature_mcu_raw;
+    #endif
+
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
       static float    redundant_temperature;
     #endif
@@ -260,6 +268,9 @@ class Temperature {
     #if HAS(TEMP_COOLER)
       static float analog2tempCooler(int raw);
     #endif
+    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+      static float analog2tempMCU(int raw);
+    #endif
 
     /**
      * Called from the Temperature ISR
@@ -343,6 +354,9 @@ class Temperature {
       #endif
       #if HAS(TEMP_COOLER)
         static int16_t rawCoolerTemp() { return current_temperature_cooler_raw; }
+      #endif
+      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+        static float rawMCUTemp() { return current_temperature_mcu_raw; }
       #endif
     #endif
 
