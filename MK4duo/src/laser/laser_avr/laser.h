@@ -67,7 +67,7 @@
       float raster_mm_per_pulse;
       int raster_raw_length;
       int raster_num_pixels;
-      bool raster_direction;
+      uint8_t raster_direction;
     #endif // LASER_RASTER
   } laser_t;
 
