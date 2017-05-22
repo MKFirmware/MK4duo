@@ -202,7 +202,7 @@
 
 #include "utf_mapper.h"
 
-int lcd_contrast;
+uint16_t lcd_contrast;
 static char currentfont = 0;
 
 // The current graphical page being rendered
@@ -669,8 +669,13 @@ static void lcd_implementation_status_screen() {
 
     #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
 
-      if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) // Display both Status message line and Filament display on the last line
-        lcd_print(lcd_status_message);
+      if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
+        const char *str = lcd_status_message;
+        uint8_t i = LCD_WIDTH;
+        char c;
+        while (i-- && (c = *str++)) lcd_print(c);
+      }
+
       #if HAS(LCD_POWER_SENSOR)
         #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT))
           else if (PENDING(millis(), previous_lcd_status_ms + 10000UL))
@@ -685,6 +690,7 @@ static void lcd_implementation_status_screen() {
             lcd_printPGM(PSTR("Wh"));
           }
       #endif
+
       #if HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)
         else {
           lcd_printPGM(PSTR(LCD_STR_FILAM_DIA));
@@ -697,7 +703,10 @@ static void lcd_implementation_status_screen() {
         }
       #endif
     #else
-      lcd_print(lcd_status_message);
+      const char *str = lcd_status_message;
+      uint8_t i = LCD_WIDTH;
+      char c;
+      while (i-- && (c = *str++)) lcd_print(c);
     #endif
   }
 }

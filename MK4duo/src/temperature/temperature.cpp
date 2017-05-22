@@ -107,28 +107,28 @@ uint8_t Temperature::soft_pwm_bed;
 #endif
 
 #if WATCH_HOTENDS
-  int Temperature::watch_target_temp[HOTENDS] = { 0 };
+  uint16_t Temperature::watch_target_temp[HOTENDS] = { 0 };
   millis_t Temperature::watch_heater_next_ms[HOTENDS] = { 0 };
 #endif
 
 #if WATCH_THE_BED
-  int Temperature::watch_target_bed_temp = 0;
+  uint16_t Temperature::watch_target_bed_temp = 0;
   millis_t Temperature::watch_bed_next_ms = 0;
 #endif
 
 #if WATCH_THE_CHAMBER
-  int Temperature::watch_target_temp_chamber = 0;
+  uint16_t Temperature::watch_target_temp_chamber = 0;
   millis_t Temperature::watch_chamber_next_ms = 0;
 #endif
 
 #if WATCH_THE_COOLER
-  int Temperature::watch_target_temp_cooler = 0;
+  uint16_t Temperature::watch_target_temp_cooler = 0;
   millis_t Temperature::watch_cooler_next_ms = 0;
 #endif
 
 #if ENABLED(PREVENT_COLD_EXTRUSION)
   bool Temperature::allow_cold_extrude = false;
-  float Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
+  uint16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
 #endif
 
 // private:
@@ -880,62 +880,45 @@ void Temperature::manage_temp_controller() {
   updateTemperaturesFromRawValues(); // also resets the watchdog
 
   #if ENABLED(HEATER_0_USES_MAX6675)
-    if (current_temperature[0] > min(HEATER_0_MAXTEMP, MAX6675_TMAX - 1)) max_temp_error(0);
-    if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + 0.01)) min_temp_error(0);
+    if (current_temperature[0] > min(HEATER_0_MAXTEMP, MAX6675_TMAX - 1.0)) max_temp_error(0);
+    if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + .01)) min_temp_error(0);
   #endif
 
   #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS(AUTO_FAN)
     millis_t ms = millis();
   #endif
 
-  // Loop through all hotends
   HOTEND_LOOP() {
 
     #if ENABLED(THERMAL_PROTECTION_HOTENDS)
+      // Check for thermal runaway
       thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], current_temperature[h], target_temperature[h], h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
     #endif
 
-    uint8_t pid_output = get_pid_output(h);
-    // Check if temperature is within the correct range
-    soft_pwm[h] = (current_temperature[h] > minttemp[h] || is_preheating(h)) && current_temperature[h] < maxttemp[h] ? (int)pid_output : 0;
+    soft_pwm[h] = (current_temperature[h] > minttemp[h] || is_preheating(h)) && current_temperature[h] < maxttemp[h] ? (int)get_pid_output(h) : 0;
 
-    // Check if the temperature is failing to increase
     #if WATCH_HOTENDS
-
-      // Is it time to check this extruder's heater?
+      // Make sure temperature is increasing
       if (watch_heater_next_ms[h] && ELAPSED(ms, watch_heater_next_ms[h])) {
-        // Has it failed to increase enough?
-        if (degHotend(h) < watch_target_temp[h]) {
-          // Stop!
+        if (degHotend(h) < watch_target_temp[h])
           _temp_error(h, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
-        }
-        else {
-          // Start again if the target is still far off
-          start_watching_heater(h);
-        }
+        else
+          start_watching_heater(h); // Start again if the target is still far off
       }
+    #endif
 
-    #endif // THERMAL_PROTECTION_HOTENDS
-
-    // Check if the temperature is failing to increase
     #if WATCH_THE_BED
-
-      // Is it time to check the bed?
+      // Make sure temperature is increasing
       if (watch_bed_next_ms && ELAPSED(ms, watch_bed_next_ms)) {
-        // Has it failed to increase enough?
-        if (degBed() < watch_target_bed_temp) {
-          // Stop!
+        if (degBed() < watch_target_bed_temp)
           _temp_error(-1, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
-        }
-        else {
-          // Start again if the target is still far off
+        else
           start_watching_bed();
-        }
       }
-
-    #endif // THERMAL_PROTECTION_HOTENDS
+    #endif
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
+      // Make sure measured temperatures are close together
       if (FABS(current_temperature[0] - redundant_temperature) > MAX_REDUNDANT_TEMP_SENSOR_DIFF) {
         _temp_error(0, PSTR(MSG_REDUNDANCY), PSTR(MSG_ERR_REDUNDANT_TEMP));
       }
@@ -985,13 +968,11 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PIDTEMPBED)
-      uint8_t pid_output = get_pid_output_bed();
-
-      soft_pwm_bed = current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP ? (int)pid_output : 0;
+      soft_pwm_bed = WITHIN(current_temperature_bed, BED_MINTEMP, BED_MAXTEMP) ? (int)get_pid_output_bed() : 0;
 
     #elif ENABLED(BED_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
-      if (current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP) {
+      if (WITHIN(current_temperature_bed, BED_MINTEMP, BED_MAXTEMP)) {
         if (current_temperature_bed >= target_temperature_bed + BED_HYSTERESIS)
           soft_pwm_bed = 0;
         else if (current_temperature_bed <= target_temperature_bed - (BED_HYSTERESIS))
@@ -1003,7 +984,7 @@ void Temperature::manage_temp_controller() {
       }
     #else // !PIDTEMPBED && !BED_LIMIT_SWITCHING
       // Check if temperature is within the correct range
-      if (current_temperature_bed > BED_MINTEMP && current_temperature_bed < BED_MAXTEMP) {
+      if (WITHIN(current_temperature_bed, BED_MINTEMP, BED_MAXTEMP)) {
         soft_pwm_bed = current_temperature_bed < target_temperature_bed ? MAX_BED_POWER : 0;
       }
       else {
@@ -1019,13 +1000,11 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PIDTEMPCHAMBER)
-      uint8_t pid_output_chamber = get_pid_output_chamber();
-
-      soft_pwm_chamber = current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP ? (int)pid_output_chamber : 0;
+      soft_pwm_chamber = WITHIN(current_temperature_chamber, CHAMBER_MINTEMP, CHAMBER_MAXTEMP) ? (int)get_pid_output_chamber() : 0;
 
     #elif ENABLED(CHAMBER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
-      if (current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP) {
+      if (WITHIN(current_temperature_chamber, CHAMBER_MINTEMP, CHAMBER_MAXTEMP)) {
         if (current_temperature_chamber >= target_temperature_chamber + CHAMBER_HYSTERESIS)
           soft_pwm_chamber = 0;
         else if (current_temperature_chamber <= target_temperature_chamber - CHAMBER_HYSTERESIS)
@@ -1037,7 +1016,7 @@ void Temperature::manage_temp_controller() {
       }
     #else // !PIDTEMPCHAMBER && !CHAMBER_LIMIT_SWITCHING
       // Check if temperature is within the correct range
-      if (current_temperature_chamber > CHAMBER_MINTEMP && current_temperature_chamber < CHAMBER_MAXTEMP) {
+      if (WITHIN(current_temperature_chamber, CHAMBER_MINTEMP, CHAMBER_MAXTEMP)) {
         soft_pwm_chamber = current_temperature_chamber < target_temperature_chamber ? MAX_CHAMBER_POWER : 0;
       }
       else {
@@ -1053,13 +1032,11 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PIDTEMPCOOLER)
-      uint8_t pid_output_cooler = get_pid_output_cooler();
-
-      soft_pwm_cooler = current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP ? (int)pid_output_cooler : 0;
+      soft_pwm_cooler = WITHIN(current_temperature_cooler, COOLER_MINTEMP, COOLER_MAXTEMP) ? (int)get_pid_output_cooler() : 0;
 
     #elif ENABLED(COOLER_LIMIT_SWITCHING)
       // Check if temperature is within the correct band
-      if (current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP) {
+      if (WITHIN(current_temperature_cooler, COOLER_MINTEMP, COOLER_MAXTEMP)) {
         if (current_temperature_cooler >= target_temperature_cooler + COOLER_HYSTERESIS)
           soft_pwm_cooler = MAX_COOLER_POWER >> 1;
         else if (current_temperature_cooler <= target_temperature_cooler - COOLER_HYSTERESIS)
@@ -1071,7 +1048,7 @@ void Temperature::manage_temp_controller() {
       }
     #else // COOLER_LIMIT_SWITCHING
       // Check if temperature is within the correct range
-      if (current_temperature_cooler > COOLER_MINTEMP && current_temperature_cooler < COOLER_MAXTEMP) {
+      if (WITHIN(current_temperature_cooler, COOLER_MINTEMP, COOLER_MAXTEMP)) {
         soft_pwm_cooler = current_temperature_cooler > target_temperature_cooler ? MAX_COOLER_POWER : 0;
       }
       else {
