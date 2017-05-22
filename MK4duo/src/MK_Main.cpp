@@ -5032,6 +5032,7 @@ void home_all_axes() { gcode_G28(true); }
             indexIntoAB[xCount][yCount] = abl_probe_index;
           #endif
 
+          // Keep looping till a reachable point is found
           if (position_is_reachable_xy(xProbe, yProbe)) break;
           ++abl_probe_index;
         }
@@ -5905,21 +5906,6 @@ void home_all_axes() { gcode_G28(true); }
                 _7p_quadruple_circle = probe_points == 7,
                 _7p_multi_circle     = _7p_double_circle || _7p_triple_circle || _7p_quadruple_circle,
                 _7p_intermed_points  = _7p_calibration && !_7p_half_circle;
-
-    if (!_1p_calibration) {  // test if the outer radius is reachable
-      for (uint8_t axis = 1; axis < 13; ++axis) {
-        float circles = (_7p_quadruple_circle ? 1.5 :
-                         _7p_triple_circle ? 1.0 :
-                         _7p_double_circle ? 0.5 : 0);
-        if (!position_is_reachable_by_probe_xy(cos(RADIANS(180 + 30 * axis)) * 
-                                               deltaParams.probe_radius * (1 + circles * 0.1),
-                                               sin(RADIANS(180 + 30 * axis)) * 
-                                               deltaParams.probe_radius * (1 + circles * 0.1))) {
-          SERIAL_EM("?(M666 O) radius is implausible.");
-          return;
-        }
-      }
-    }
 
     SERIAL_EM("G33 Auto Calibrate");
 
@@ -8801,7 +8787,7 @@ inline void gcode_M226() {
     else if (!seen_S) {
       // Report current state
       SERIAL_MV("Cold extrudes are ", (thermalManager.allow_cold_extrude ? "en" : "dis"));
-      SERIAL_MV("abled (min temp ", int(thermalManager.extrude_min_temp + 0.5));
+      SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
       SERIAL_EM("C)");
     }
   }
@@ -13642,9 +13628,8 @@ static void report_current_position() {
         #if HAS(TEMP_BED)
           max_temp = MAX3(max_temp, thermalManager.degTargetBed(), thermalManager.degBed());
         #endif
-      HOTEND_LOOP() {
+      HOTEND_LOOP()
         max_temp = MAX3(max_temp, thermalManager.degHotend(h), thermalManager.degTargetHotend(h));
-      }
       bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;
