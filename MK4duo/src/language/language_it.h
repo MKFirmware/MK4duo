@@ -180,6 +180,7 @@
 #define MSG_INIT_SDCARD                     _UxGT("Iniz. SD-Card")
 #define MSG_CNG_SDCARD                      _UxGT("Cambia SD-Card")
 #define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
+#define MSG_BLTOUCH                         _UxGT("BLTouch")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("Autotest BLTouch")
 #define MSG_BLTOUCH_RESET                   _UxGT("Resetta BLTouch")
 #define MSG_HOME                            _UxGT("Home")

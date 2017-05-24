@@ -37,19 +37,19 @@
  * G4  - Dwell S[seconds] or P[milliseconds], delay in Second or Millisecond
  * G5  - Bezier curve - from http://forums.reprap.org/read.php?147,93577
  * G7  - Laser raster base64
- * G10 - retract filament according to settings of M207
- * G11 - retract recover filament according to settings of M208
- * G12 - Nozzle Clean
+ * G10 - Retract filament according to settings of M207
+ * G11 - Retract recover filament according to settings of M208
+ * G12 - Clean tool
  * G20 - Set input units to inches
  * G21 - Set input units to millimeters
- * G27 - Nozzle Park
+ * G27 - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
  * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
  *        Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
- * G33 - Delta geometry Autocalibration
+ * G33 - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
  *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
  *        P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
  *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
