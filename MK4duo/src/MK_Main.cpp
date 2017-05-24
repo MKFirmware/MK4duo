@@ -2098,7 +2098,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
    *   - Raise to the BETWEEN height
    * - Return the probed Z position
    */
-  float probe_pt(const float x, const float y, const bool stow=false, const int verbose_level=1) {
+  float probe_pt(const float &x, const float &y, const bool stow=false, const int verbose_level=1) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> probe_pt(", x);
@@ -9540,10 +9540,10 @@ inline void gcode_M400() { stepper.synchronize(); }
     bool err = false;
     LOOP_XYZ(i) {
       if (axis_homed[i]) {
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
-              diff = current_position[i] - LOGICAL_POSITION(base, i);
+        const float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
+                    diff = base - RAW_POSITION(current_position[i], i);
         if (WITHIN(diff, -20, 20)) {
-          set_home_offset((AxisEnum)i, home_offset[i] - diff);
+          set_home_offset((AxisEnum)i, diff);
         }
         else {
           SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);

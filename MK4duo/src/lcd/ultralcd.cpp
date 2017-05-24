@@ -445,7 +445,7 @@ uint16_t max_display_update_time = 0;
         // For LCD_PROGRESS_BAR re-initialize custom characters
         lcd_set_custom_characters(screen == lcd_status_screen);
       #endif
-      lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
       screen_changed = true;
       #if ENABLED(DOGLCD)
         drawing_screen = false;
@@ -666,7 +666,7 @@ void kill_screen(const char* lcd_msg) {
 
     void toggle_case_light() {
       case_light_on ^= true;
-      lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
       update_case_light();
     }
 
@@ -819,7 +819,7 @@ void kill_screen(const char* lcd_msg) {
       if (encoderPosition) {
         const int babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
         encoderPosition = 0;
-        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+        lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
         thermalManager.babystep_axis(axis, babystep_increment);
         babysteps_done += babystep_increment;
       }
@@ -1865,7 +1865,7 @@ void kill_screen(const char* lcd_msg) {
       manual_move_to_current(axis);
 
       encoderPosition = 0;
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
     if (lcdDrawUpdate) lcd_implementation_drawedit(name, ftostr41sign(current_position[axis]));
   }
@@ -1893,7 +1893,7 @@ void kill_screen(const char* lcd_msg) {
       current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
       encoderPosition = 0;
       manual_move_to_current(E_AXIS);
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+      lcdDrawUpdate = LCDVIEW_KEEP_REDRAWING;
     }
     if (lcdDrawUpdate) {
       PGM_P pos_label;
@@ -2519,32 +2519,6 @@ void kill_screen(const char* lcd_msg) {
 
     END_MENU();
   }
-
-  /**
-   *
-   * "Control" > "Contrast" submenu
-   *
-   */
-  #if HAS(LCD_CONTRAST)
-    void lcd_set_contrast() {
-      if (lcd_clicked) { return lcd_goto_previous_menu(); }
-      ENCODER_DIRECTION_NORMAL();
-      if (encoderPosition) {
-        set_lcd_contrast(lcd_contrast + encoderPosition);
-        encoderPosition = 0;
-        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-      }
-      if (lcdDrawUpdate) {
-        lcd_implementation_drawedit(PSTR(MSG_CONTRAST),
-          #if LCD_CONTRAST_MAX >= 100
-            itostr3(lcd_contrast)
-          #else
-            itostr2(lcd_contrast)
-          #endif
-        );
-      }
-    }
-  #endif // HAS(LCD_CONTRAST)
 
   /**
    *
