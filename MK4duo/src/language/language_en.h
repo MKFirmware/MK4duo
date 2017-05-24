@@ -174,6 +174,8 @@
 #define MSG_BLTOUCH                         _UxGT("BLTouch")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Self-Test")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
+#define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy BLTouch")
+#define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #define MSG_HOME                            _UxGT("Home")
 #define MSG_FIRST                           _UxGT("first")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("ZProbe ZOffset")

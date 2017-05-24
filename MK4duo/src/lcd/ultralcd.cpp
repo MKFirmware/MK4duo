@@ -672,6 +672,28 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // HAS(CASE_LIGHT)
 
+  #if ENABLED(BLTOUCH)
+
+    /**
+     *
+     * "BLTouch" submenu
+     *
+     */
+    static void bltouch_menu() {
+      START_MENU();
+      //
+      // ^ Main
+      //
+      MENU_BACK(MSG_MAIN);
+      MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
+      MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
+      MENU_ITEM(gcode, MSG_BLTOUCH_DEPLOY, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_DEPLOY)));
+      MENU_ITEM(gcode, MSG_BLTOUCH_STOW, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_STOW)));
+      END_MENU();
+    }
+
+  #endif // BLTOUCH
+
   #if ENABLED(LCD_PROGRESS_BAR_TEST)
 
     static void progress_bar_test() {
