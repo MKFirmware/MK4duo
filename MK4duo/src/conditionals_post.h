@@ -1006,7 +1006,7 @@
   #elif FAN_PWM_SPEED == 3
     #define FAN_PWM_STEP 8
     #define FAN_PWM_MASK 248
-  #else FAN_PWM_SPEED == 4
+  #elif FAN_PWM_SPEED == 4
     #define FAN_PWM_STEP 16
     #define FAN_PWM_MASK 240
   #endif
