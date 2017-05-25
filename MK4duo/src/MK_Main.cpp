@@ -713,12 +713,12 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 }
 
 void setup_killpin() {
-  #if HAS(KILL)
+  #if HAS_KILL
     SET_INPUT_PULLUP(KILL_PIN);
   #endif
   }
 
-#if HAS(FIL_RUNOUT)
+#if HAS_FIL_RUNOUT
   void setup_filrunoutpin() {
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
       SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
@@ -729,22 +729,22 @@ void setup_killpin() {
 #endif
 
 void setup_homepin(void) {
-  #if HAS(HOME)
+  #if HAS_HOME
     SET_INPUT_PULLUP(HOME_PIN);
   #endif
 }
 
 void setup_photpin() {
-  #if HAS(PHOTOGRAPH)
+  #if HAS_PHOTOGRAPH
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 }
 
 void setup_powerhold() {
-  #if HAS(SUICIDE)
+  #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, HIGH);
   #endif
-  #if HAS(POWER_SWITCH)
+  #if HAS_POWER_SWITCH
     #if ENABLED(PS_DEFAULT_OFF)
       powerManager.power_off();
     #else
@@ -754,30 +754,30 @@ void setup_powerhold() {
 }
 
 void suicide() {
-  #if HAS(SUICIDE)
+  #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, LOW);
   #endif
 }
 
 void servo_init() {
-  #if NUM_SERVOS >= 1 && HAS(SERVO_0)
+  #if NUM_SERVOS >= 1 && HAS_SERVO_0
     servo[0].attach(SERVO0_PIN);
     servo[0].detach(); // Just set up the pin. We don't have a position yet. Don't move to a random position.
   #endif
-  #if NUM_SERVOS >= 2 && HAS(SERVO_1)
+  #if NUM_SERVOS >= 2 && HAS_SERVO_1
     servo[1].attach(SERVO1_PIN);
     servo[1].detach();
   #endif
-  #if NUM_SERVOS >= 3 && HAS(SERVO_2)
+  #if NUM_SERVOS >= 3 && HAS_SERVO_2
     servo[2].attach(SERVO2_PIN);
     servo[2].detach();
   #endif
-  #if NUM_SERVOS >= 4 && HAS(SERVO_3)
+  #if NUM_SERVOS >= 4 && HAS_SERVO_3
     servo[3].attach(SERVO3_PIN);
     servo[3].detach();
   #endif
 
-  #if HAS(DONDOLO)
+  #if HAS_DONDOLO
     servo[DONDOLO_SERVO_INDEX].attach(0);
     servo[DONDOLO_SERVO_INDEX].write(DONDOLO_SERVOPOS_E0);
     #if (DONDOLO_SERVO_DELAY > 0)
@@ -786,7 +786,7 @@ void servo_init() {
     #endif
   #endif
 
-  #if HAS(Z_SERVO_ENDSTOP)
+  #if HAS_Z_SERVO_ENDSTOP
     /**
      * Set position of Z Servo Endstop
      *
@@ -803,14 +803,14 @@ void servo_init() {
 /**
  * Stepper Reset (RigidBoard, et.al.)
  */
-#if HAS(STEPPER_RESET)
+#if HAS_STEPPER_RESET
   void disableStepperDrivers() {
     OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
   }
   void enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
 #endif
 
-#if HAS(COLOR_LEDS)
+#if HAS_COLOR_LEDS
 
   void set_led_color(
     const uint8_t r, const uint8_t g, const uint8_t b
@@ -843,7 +843,7 @@ void servo_init() {
     #endif
   }
 
-#endif
+#endif // HAS_COLOR_LEDS
   
 void gcode_line_error(const char* err, bool doFlush = true) {
   SERIAL_S(ER);
@@ -7010,7 +7010,7 @@ inline void gcode_M42() {
   } // toggle_pins
 
   inline void servo_probe_test(){
-    #if !(NUM_SERVOS >= 1 && HAS(SERVO_0))
+    #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
       SERIAL_LM(ER, "SERVO not setup");
     #elif HASNT(Z_SERVO_ENDSTOP)
       SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
@@ -14383,10 +14383,13 @@ void setup() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if ENABLED(RGB_LED)
-    pinMode(RGB_LED_R_PIN, OUTPUT);
-    pinMode(RGB_LED_G_PIN, OUTPUT);
-    pinMode(RGB_LED_B_PIN, OUTPUT);
+  #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
+    SET_OUTPUT(RGB_LED_R_PIN);
+    SET_OUTPUT(RGB_LED_G_PIN);
+    SET_OUTPUT(RGB_LED_B_PIN);
+    #if ENABLED(RGBW_LED)
+      SET_OUTPUT(RGB_LED_W_PIN);
+    #endif
   #endif
 
   #if ENABLED(LASERBEAM)
