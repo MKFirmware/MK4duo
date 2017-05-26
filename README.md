@@ -1,6 +1,6 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
-## Version 4.3.2
+ - Version 4.3.2
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
