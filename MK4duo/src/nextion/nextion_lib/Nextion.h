@@ -481,6 +481,8 @@ class NexObject {
  */
 bool nexInit();
 
+void getConnect(char *buffer, uint16_t len);
+
 /**
  * Listen touch event and calling callbacks attached before.
  *

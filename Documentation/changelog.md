@@ -1,3 +1,7 @@
+### Version 4.3.2 Stable
+* Add Nextion Diamond version by MrGoblin 7"
+* Fix and clear code
+
 ### Version 4.3.19 dev
 * Algorithm based on Thinkyhead Marlin
 * Change the old command G30 A in G33 for Delta Autocalibration

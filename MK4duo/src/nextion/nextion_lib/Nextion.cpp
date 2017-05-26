@@ -613,6 +613,27 @@ bool nexInit() {
   return false;
 }
 
+void getConnect(char *buffer, uint16_t len) {
+  HAL::delayMilliseconds(100);
+  sendCommand("");
+  HAL::delayMilliseconds(100);
+  sendCommand("connect");
+  HAL::delayMilliseconds(100);
+
+  uint16_t ret = 0;
+  String temp = String("");
+  uint8_t c = 0;
+
+  while (nexSerial.available()) {
+    c = nexSerial.read();
+    temp += (char)c;
+  }
+
+  ret = temp.length();
+  ret = ret > len ? len : ret;
+  strncpy(buffer, temp.c_str(), ret);
+}
+  
 void nexLoop(NexObject *nex_listen_list[]) {
   static uint8_t __buffer[10];
   uint16_t i;
