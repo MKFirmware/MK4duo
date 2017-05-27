@@ -52,7 +52,7 @@
 //// In the case that the laserdriver need at least a certain level "LASER_REMAP_INTENSITY"
 // to give anything, the intensity can be remapped to start at "LASER_REMAP_INTENSITY"
 // At least some CO2-drivers need it, not sure about laserdiode drivers.
-#define LASER_REMAP_INTENSITY 0
+#define LASER_REMAP_INTENSITY 7
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 // #define HIGH_TO_FIRE
@@ -66,9 +66,9 @@
 #define LASER_RASTER
 #define LASER_MAX_RASTER_LINE 68      // Maximum number of base64 encoded pixels per raster gcode command
 #define LASER_RASTER_ASPECT_RATIO 1   // pixels aren't square on most displays, 1.33 == 4:3 aspect ratio. 
-#define LASER_RASTER_MM_PER_PULSE 0.1 // Can be overridden by providing an R value in M649 command : M649 S17 B2 D0 R0.1 F4000
+#define LASER_RASTER_MM_PER_PULSE 0.2 // Can be overridden by providing an R value in M649 command : M649 S17 B2 D0 R0.1 F4000
 
-#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 $ direction change. Manual Moves must be made between each line.
+//#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 $ direction change. Manual Moves must be made between each line.
 
 // Uncomment the following if the laser cutter is equipped with a peripheral relay board
 // to control power to an exhaust fan, cooler pump, laser power supply, etc.
