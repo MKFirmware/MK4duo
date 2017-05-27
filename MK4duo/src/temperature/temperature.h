@@ -106,28 +106,28 @@ class Temperature {
     #endif
 
     #if WATCH_HOTENDS
-      static int watch_target_temp[HOTENDS];
+      static uint16_t watch_target_temp[HOTENDS];
       static millis_t watch_heater_next_ms[HOTENDS];
     #endif
 
     #if WATCH_THE_BED
-      static int watch_target_bed_temp;
+      static uint16_t watch_target_bed_temp;
       static millis_t watch_bed_next_ms;
     #endif
 
     #if WATCH_THE_CHAMBER
-      int watch_target_temp_chamber = 0;
+      uint16_t watch_target_temp_chamber = 0;
       millis_t watch_chamber_next_ms = 0;
     #endif
 
     #if WATCH_THE_COOLER
-      int watch_target_temp_cooler = 0;
+      uint16_t watch_target_temp_cooler = 0;
       millis_t watch_cooler_next_ms = 0;
     #endif
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
-      static float extrude_min_temp;
+      static uint16_t extrude_min_temp;
       static bool tooColdToExtrude(uint8_t h) {
         #if HOTENDS <= 1
           UNUSED(h);

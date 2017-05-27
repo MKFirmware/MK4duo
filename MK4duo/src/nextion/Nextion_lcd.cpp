@@ -65,7 +65,7 @@
   #endif
 
   #if ENABLED(NEXTION_GFX)
-    GFX gfx = GFX(1, 24, 250, 155);
+    GFX gfx = GFX(1, 1, 1, 1);
   #endif
 
   /**
@@ -89,6 +89,9 @@
   NexObject Pfilament     = NexObject(13, 0,  "filament");
   NexObject Pselect       = NexObject(14, 0,  "select");
   NexObject PBedLevel     = NexObject(15, 0,  "bedlevel");
+  NexObject Poptions      = NexObject(16, 0,  "options");
+  NexObject Ptime         = NexObject(17, 0,  "time");
+  NexObject Pusertemp     = NexObject(18, 0,  "usertemp");
 
   /**
    *******************************************************************
@@ -133,25 +136,25 @@
   NexObject Hotend1     = NexObject(2,  27, "t3");
   NexObject Hotend2     = NexObject(2,  28, "t4");
   NexObject Fanspeed    = NexObject(2,  29, "t5");
+  NexObject Wavetemp    = NexObject(2,  30, "s0");
+  NexObject sdbar       = NexObject(2,  31, "j0");
   NexObject LcdX        = NexObject(2,  32, "t6");
   NexObject LcdY        = NexObject(2,  33, "t7");
   NexObject LcdZ        = NexObject(2,  34, "t8");
   NexObject LcdTime     = NexObject(2,  35, "t9");
-  NexObject Wavetemp    = NexObject(2,  30, "s0");
-  NexObject sdbar       = NexObject(2,  31, "j0");
 
   /**
    *******************************************************************
    * Nextion component for page:SDCard
    *******************************************************************
    */
+  NexObject sdlist      = NexObject(3,  1,  "h0");
   NexObject sdrow0      = NexObject(3,  2,  "t0");
   NexObject sdrow1      = NexObject(3,  3,  "t1");
   NexObject sdrow2      = NexObject(3,  4,  "t2");
   NexObject sdrow3      = NexObject(3,  5,  "t3");
   NexObject sdrow4      = NexObject(3,  6,  "t4");
   NexObject sdrow5      = NexObject(3,  7,  "t5");
-  NexObject sdfolder    = NexObject(3,  16, "t6");
   NexObject Folder0     = NexObject(3,  8,  "p0");
   NexObject Folder1     = NexObject(3,  9,  "p1");
   NexObject Folder2     = NexObject(3,  10, "p2");
@@ -159,11 +162,11 @@
   NexObject Folder4     = NexObject(3,  12, "p4");
   NexObject Folder5     = NexObject(3,  13, "p5");
   NexObject Folderup    = NexObject(3,  14, "p6");
+  NexObject sdfolder    = NexObject(3,  16, "t6");
   NexObject ScrollUp    = NexObject(3,  18, "p7");
   NexObject ScrollDown  = NexObject(3,  19, "p8");
   NexObject sd_mount    = NexObject(3,  22, "p12");
   NexObject sd_dismount = NexObject(3,  23, "p13");
-  NexObject sdlist      = NexObject(3,  1,  "h0");
 
   /**
    *******************************************************************
@@ -176,7 +179,6 @@
    * Nextion component for page:Move
    *******************************************************************
    */
-  NexObject MotorOff    = NexObject(5,  17, "p0");
   NexObject XYHome      = NexObject(5,  2,  "p4");
   NexObject XYUp        = NexObject(5,  3,  "p5");
   NexObject XYRight     = NexObject(5,  4,  "p6");
@@ -185,11 +187,12 @@
   NexObject ZHome       = NexObject(5,  7,  "p9");
   NexObject ZUp         = NexObject(5,  8,  "p10");
   NexObject ZDown       = NexObject(5,  9,  "p11");
+  NexObject movecmd     = NexObject(5,  11, "vacmd");
+  NexObject LedCoord5   = NexObject(5,  12, "t0");
+  NexObject MotorOff    = NexObject(5,  17, "p0");
+  NexObject ext         = NexObject(5,  19, "va0");
   NexObject Extrude     = NexObject(5,  20, "p12");
   NexObject Retract     = NexObject(5,  22, "p14");
-  NexObject movecmd     = NexObject(5,  11, "vacmd");
-  NexObject ext         = NexObject(5,  19, "va0");
-  NexObject LedCoord5   = NexObject(5,  12, "t0");
   NexObject SpeedX      = NexObject(5,  23, "vafrx");
   NexObject SpeedY      = NexObject(5,  24, "vafry");
   NexObject SpeedZ      = NexObject(5,  25, "vafrz");
@@ -208,20 +211,20 @@
    *******************************************************************
    */
   NexObject Tgcode      = NexObject(7,  1,  "tgcode");
-  NexObject Send        = NexObject(7,  44, "b39");
+  NexObject Send        = NexObject(7,  27, "bsend");
 
   /**
    *******************************************************************
    * Nextion component for page:Rfid
    *******************************************************************
    */
-  NexObject RfidText    = NexObject(8,  8,  "t0");
   NexObject Rfid0       = NexObject(8,  2,  "b0");
   NexObject Rfid1       = NexObject(8,  3,  "b1");
   NexObject Rfid2       = NexObject(8,  4,  "b2");
   NexObject Rfid3       = NexObject(8,  5,  "b3");
   NexObject Rfid4       = NexObject(8,  6,  "b4");
   NexObject Rfid5       = NexObject(8,  7,  "b5");
+  NexObject RfidText    = NexObject(8,  8,  "t0");
   NexObject RfidR       = NexObject(8,  9,  "bt0");
 
   /**
@@ -268,7 +271,7 @@
    *******************************************************************
    */
   NexObject FilLoad     = NexObject(13, 3,  "p2");
-  NexObject FilUnload   = NexObject(13, 4,  "p4");
+  NexObject FilUnload   = NexObject(13, 4,  "p3");
   NexObject Filgcode    = NexObject(13, 12, "vacmd");
 
   /**
@@ -1083,7 +1086,24 @@
       return;
     }
     else {
-      SERIAL_EM("Nextion LCD connected!");
+      SERIAL_M("Nextion LCD");
+      // Get Model
+      ZERO(buffer);
+      getConnect(buffer, sizeof(buffer));
+
+      if (strstr(buffer, "NX4827T043") || strstr(buffer, "NX4827K043")) { // Model 4.3" Normal or Enhanced
+        SERIAL_M(" 4.3");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "NX8048T070") || strstr(buffer, "NX8048K070")) { // Model 7" Normal or Enhanced
+        SERIAL_M(" 7");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(274, 213, 250, 155);
+        #endif
+      }
+      SERIAL_C('"'); SERIAL_EM(" connected!");
 
       #if ENABLED(NEXTION_GFX)
         gfx.color_set(NX_AXIS + X_AXIS, 63488);
@@ -1187,7 +1207,7 @@
     if (PageID == 2) {
       LcdX.setText(ftostr4sign(current_position[X_AXIS]));
       LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
-      LcdZ.setText(ftostr4sign(FIXFLOAT(current_position[Z_AXIS])));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
       strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));

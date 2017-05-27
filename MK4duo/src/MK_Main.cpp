@@ -713,12 +713,12 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
 }
 
 void setup_killpin() {
-  #if HAS(KILL)
+  #if HAS_KILL
     SET_INPUT_PULLUP(KILL_PIN);
   #endif
   }
 
-#if HAS(FIL_RUNOUT)
+#if HAS_FIL_RUNOUT
   void setup_filrunoutpin() {
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
       SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
@@ -729,22 +729,22 @@ void setup_killpin() {
 #endif
 
 void setup_homepin(void) {
-  #if HAS(HOME)
+  #if HAS_HOME
     SET_INPUT_PULLUP(HOME_PIN);
   #endif
 }
 
 void setup_photpin() {
-  #if HAS(PHOTOGRAPH)
+  #if HAS_PHOTOGRAPH
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 }
 
 void setup_powerhold() {
-  #if HAS(SUICIDE)
+  #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, HIGH);
   #endif
-  #if HAS(POWER_SWITCH)
+  #if HAS_POWER_SWITCH
     #if ENABLED(PS_DEFAULT_OFF)
       powerManager.power_off();
     #else
@@ -754,30 +754,30 @@ void setup_powerhold() {
 }
 
 void suicide() {
-  #if HAS(SUICIDE)
+  #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, LOW);
   #endif
 }
 
 void servo_init() {
-  #if NUM_SERVOS >= 1 && HAS(SERVO_0)
+  #if NUM_SERVOS >= 1 && HAS_SERVO_0
     servo[0].attach(SERVO0_PIN);
     servo[0].detach(); // Just set up the pin. We don't have a position yet. Don't move to a random position.
   #endif
-  #if NUM_SERVOS >= 2 && HAS(SERVO_1)
+  #if NUM_SERVOS >= 2 && HAS_SERVO_1
     servo[1].attach(SERVO1_PIN);
     servo[1].detach();
   #endif
-  #if NUM_SERVOS >= 3 && HAS(SERVO_2)
+  #if NUM_SERVOS >= 3 && HAS_SERVO_2
     servo[2].attach(SERVO2_PIN);
     servo[2].detach();
   #endif
-  #if NUM_SERVOS >= 4 && HAS(SERVO_3)
+  #if NUM_SERVOS >= 4 && HAS_SERVO_3
     servo[3].attach(SERVO3_PIN);
     servo[3].detach();
   #endif
 
-  #if HAS(DONDOLO)
+  #if HAS_DONDOLO
     servo[DONDOLO_SERVO_INDEX].attach(0);
     servo[DONDOLO_SERVO_INDEX].write(DONDOLO_SERVOPOS_E0);
     #if (DONDOLO_SERVO_DELAY > 0)
@@ -786,7 +786,7 @@ void servo_init() {
     #endif
   #endif
 
-  #if HAS(Z_SERVO_ENDSTOP)
+  #if HAS_Z_SERVO_ENDSTOP
     /**
      * Set position of Z Servo Endstop
      *
@@ -803,14 +803,14 @@ void servo_init() {
 /**
  * Stepper Reset (RigidBoard, et.al.)
  */
-#if HAS(STEPPER_RESET)
+#if HAS_STEPPER_RESET
   void disableStepperDrivers() {
     OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
   }
   void enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
 #endif
 
-#if HAS(COLOR_LEDS)
+#if HAS_COLOR_LEDS
 
   void set_led_color(
     const uint8_t r, const uint8_t g, const uint8_t b
@@ -843,7 +843,7 @@ void servo_init() {
     #endif
   }
 
-#endif
+#endif // HAS_COLOR_LEDS
   
 void gcode_line_error(const char* err, bool doFlush = true) {
   SERIAL_S(ER);
@@ -2098,7 +2098,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
    *   - Raise to the BETWEEN height
    * - Return the probed Z position
    */
-  float probe_pt(const float x, const float y, const bool stow=false, const int verbose_level=1) {
+  float probe_pt(const float &x, const float &y, const bool stow=false, const int verbose_level=1) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> probe_pt(", x);
@@ -3682,17 +3682,17 @@ inline void gcode_G4() {
       destination[Y_AXIS] = current_position[Y_AXIS]; // Dont increment Y axis
     #else
       case 0:
-	  case 1:
+      case 1:
         destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
         break;	  
       case 2:
-	  case 3:
+      case 3:
         destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
         break;	  
-	  case 4:
+      case 4:
         destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
         break;	  
-	  case 5:
+      case 5:
         destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
         break;	  
     #endif
@@ -3704,54 +3704,47 @@ inline void gcode_G4() {
       case 0:
         destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Negative Horizontal Raster Line");
+            SERIAL_EM("Negative Horizontal Raster Line");
           }
         break;
 
       case 1:
         destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Positive Horizontal Raster Line");
+            SERIAL_EM("Positive Horizontal Raster Line");
           }
           break;
 
       case 2: // Negative Vertical
         destination[Y_AXIS] = current_position[Y_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Negative Vertical Raster Line");
+            SERIAL_EM("Negative Vertical Raster Line");
           }
           break;
 
       case 3: // Positive Vertical
         destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Positive Vertical Raster Line");
+            SERIAL_EM("Positive Vertical Raster Line");
           }
           break;
       case 4: // Negative X Positive Y 45deg
         destination[X_AXIS] = current_position[X_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
         destination[Y_AXIS] = current_position[Y_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Negative X Positive Y 45deg Raster Line");
+            SERIAL_EM("Negative X Positive Y 45deg Raster Line");
           }
           break;
       case 5: // Positive X Negarite Y 45deg
         destination[X_AXIS] = current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
         destination[Y_AXIS] = current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Positive X Negarite Y 45deg Raster Line");
+            SERIAL_EM("Positive X Negarite Y 45deg Raster Line");
           }
           break;
       default:
         if (laser.diagnostics) {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLN("Unknown direction");
+            SERIAL_EM("Unknown direction");
           }
           break;
           
@@ -5096,6 +5089,7 @@ void home_all_axes() { gcode_G28(true); }
             indexIntoAB[xCount][yCount] = abl_probe_index;
           #endif
 
+          // Keep looping till a reachable point is found
           if (position_is_reachable_xy(xProbe, yProbe)) break;
           ++abl_probe_index;
         }
@@ -5969,21 +5963,6 @@ void home_all_axes() { gcode_G28(true); }
                 _7p_quadruple_circle = probe_points == 7,
                 _7p_multi_circle     = _7p_double_circle || _7p_triple_circle || _7p_quadruple_circle,
                 _7p_intermed_points  = _7p_calibration && !_7p_half_circle;
-
-    if (!_1p_calibration) {  // test if the outer radius is reachable
-      for (uint8_t axis = 1; axis < 13; ++axis) {
-        float circles = (_7p_quadruple_circle ? 1.5 :
-                         _7p_triple_circle ? 1.0 :
-                         _7p_double_circle ? 0.5 : 0);
-        if (!position_is_reachable_by_probe_xy(cos(RADIANS(180 + 30 * axis)) * 
-                                               deltaParams.probe_radius * (1 + circles * 0.1),
-                                               sin(RADIANS(180 + 30 * axis)) * 
-                                               deltaParams.probe_radius * (1 + circles * 0.1))) {
-          SERIAL_EM("?(M666 O) radius is implausible.");
-          return;
-        }
-      }
-    }
 
     SERIAL_EM("G33 Auto Calibrate");
 
@@ -7088,7 +7067,7 @@ inline void gcode_M42() {
   } // toggle_pins
 
   inline void servo_probe_test(){
-    #if !(NUM_SERVOS >= 1 && HAS(SERVO_0))
+    #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
       SERIAL_LM(ER, "SERVO not setup");
     #elif HASNT(Z_SERVO_ENDSTOP)
       SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
@@ -8865,7 +8844,7 @@ inline void gcode_M226() {
     else if (!seen_S) {
       // Report current state
       SERIAL_MV("Cold extrudes are ", (thermalManager.allow_cold_extrude ? "en" : "dis"));
-      SERIAL_MV("abled (min temp ", int(thermalManager.extrude_min_temp + 0.5));
+      SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
       SERIAL_EM("C)");
     }
   }
@@ -9618,10 +9597,10 @@ inline void gcode_M400() { stepper.synchronize(); }
     bool err = false;
     LOOP_XYZ(i) {
       if (axis_homed[i]) {
-        float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
-              diff = current_position[i] - LOGICAL_POSITION(base, i);
+        const float base = (current_position[i] > (soft_endstop_min[i] + soft_endstop_max[i]) * 0.5) ? base_home_pos((AxisEnum)i) : 0,
+                    diff = base - RAW_POSITION(current_position[i], i);
         if (WITHIN(diff, -20, 20)) {
-          set_home_offset((AxisEnum)i, home_offset[i] - diff);
+          set_home_offset((AxisEnum)i, diff);
         }
         else {
           SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
@@ -13706,9 +13685,8 @@ static void report_current_position() {
         #if HAS(TEMP_BED)
           max_temp = MAX3(max_temp, thermalManager.degTargetBed(), thermalManager.degBed());
         #endif
-      HOTEND_LOOP() {
+      HOTEND_LOOP()
         max_temp = MAX3(max_temp, thermalManager.degHotend(h), thermalManager.degTargetHotend(h));
-      }
       bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;
@@ -14462,10 +14440,13 @@ void setup() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if ENABLED(RGB_LED)
-    pinMode(RGB_LED_R_PIN, OUTPUT);
-    pinMode(RGB_LED_G_PIN, OUTPUT);
-    pinMode(RGB_LED_B_PIN, OUTPUT);
+  #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
+    SET_OUTPUT(RGB_LED_R_PIN);
+    SET_OUTPUT(RGB_LED_G_PIN);
+    SET_OUTPUT(RGB_LED_B_PIN);
+    #if ENABLED(RGBW_LED)
+      SET_OUTPUT(RGB_LED_W_PIN);
+    #endif
   #endif
 
   #if ENABLED(LASERBEAM)

@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV31"
+#define EEPROM_VERSION "MKV32"
 
 /**
  * MKV431 EEPROM Layout:
@@ -122,7 +122,7 @@
  *  M306      PID         coolerKp, coolerKi, coolerKd (float x3)
  *
  * DOGLCD:
- *  M250  C               lcd_contrast (int)
+ *  M250  C               lcd_contrast (uint16_t)
  *
  * FWRETRACT:
  *  M209  S               autoretract_enabled (bool)
@@ -442,7 +442,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if HASNT(LCD_CONTRAST)
-      const int lcd_contrast = 32;
+      const uint16_t lcd_contrast = 32;
     #endif
     EEPROM_WRITE(lcd_contrast);
 
@@ -773,7 +773,7 @@ void EEPROM::Postprocess() {
       #endif
 
       #if HASNT(LCD_CONTRAST)
-        int lcd_contrast;
+        uint16_t lcd_contrast;
       #endif
       EEPROM_READ(lcd_contrast);
 

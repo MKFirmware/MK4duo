@@ -360,53 +360,47 @@ bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true)
     extern const float L1, L2;
   #endif
 
-  inline bool position_is_reachable_raw_xy(float raw_x, float raw_y) {
+  inline bool position_is_reachable_raw_xy(const float &rx, const float &ry) {
     #if MECH(DELTA)
-      return deltaParams.IsReachable(raw_x, raw_y);
+      return deltaParams.IsReachable(rx, ry);
     #elif IS_SCARA
       #if MIDDLE_DEAD_ZONE_R > 0
-        const float R2 = HYPOT2(raw_x - SCARA_OFFSET_X, raw_y - SCARA_OFFSET_Y);
+        const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
         return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
       #else
-        return HYPOT2(raw_x - SCARA_OFFSET_X, raw_y - SCARA_OFFSET_Y) <= sq(L1 + L2);
+        return HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y) <= sq(L1 + L2);
       #endif
     #endif
   }
 
-  inline bool position_is_reachable_by_probe_raw_xy(float raw_x, float raw_y) {
-
+  inline bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
     // both the nozzle and the probe must be able to reach the point
-
-    return (position_is_reachable_raw_xy(raw_x, raw_y) &&
-            position_is_reachable_raw_xy(
-              raw_x - X_PROBE_OFFSET_FROM_NOZZLE,
-              raw_y - Y_PROBE_OFFSET_FROM_NOZZLE));
+    return  position_is_reachable_raw_xy(rx, ry)
+        &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
   }
 
 #else // CARTESIAN
 
-  inline bool position_is_reachable_raw_xy(float raw_x, float raw_y) {
-      // note to reviewer: this +/-0.0001 logic is copied from original postion_is_reachable
-      return WITHIN(raw_x, X_MIN_POS - 0.0001, X_MAX_POS + 0.0001)
-          && WITHIN(raw_y, Y_MIN_POS - 0.0001, Y_MAX_POS + 0.0001);
+  inline bool position_is_reachable_raw_xy(const float &rx, const float &ry) {
+      // Add 0.001 margin to deal with float imprecision
+      return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
+          && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
   }
 
-  inline bool position_is_reachable_by_probe_raw_xy(float raw_x, float raw_y) {
-      // note to reviewer: this logic is copied from UBL_G29.cpp and does not contain the +/-0.0001 above
-      return WITHIN(raw_x, MIN_PROBE_X, MAX_PROBE_X)
-          && WITHIN(raw_y, MIN_PROBE_Y, MAX_PROBE_Y);
+  inline bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+      // Add 0.001 margin to deal with float imprecision
+      return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
+          && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
   }
 
 #endif // CARTESIAN
 
-inline bool position_is_reachable_by_probe_xy(float target_x, float target_y) {
-  return position_is_reachable_by_probe_raw_xy(
-            RAW_X_POSITION(target_x),
-            RAW_Y_POSITION(target_y));
+FORCE_INLINE bool position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
+  return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 }
 
-inline bool position_is_reachable_xy(float target_x, float target_y) {
-  return position_is_reachable_raw_xy(RAW_X_POSITION(target_x), RAW_Y_POSITION(target_y));
+FORCE_INLINE bool position_is_reachable_xy(const float &lx, const float &ly) {
+  return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 }
 
 /**
