@@ -2,6 +2,7 @@
 * Add ADVANCED PAUSE FEATURE (Ex Filament Change. Requires an LCD display)
 * Add PARK HEAD ON PAUSE (Park head on SD pause or M125 commands. Requires an LCD display)
 * Add M125 - Store current position and move to pause park position.
+* Add automatic call M600 with one extruder and ADVANCED PAUSE FEATURE when change tools
 
 ### Version 4.3.2 Stable
 * Add Nextion Diamond version by MrGoblin 7"
