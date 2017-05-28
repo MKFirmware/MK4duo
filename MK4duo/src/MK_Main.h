@@ -26,7 +26,7 @@
 void get_command();
 
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep=false  // pass true to keep steppers from disabling on timeout
   #endif
 );
@@ -179,23 +179,6 @@ extern float soft_endstop_max[XYZ];
   void update_software_endstops(const AxisEnum axis);
 #endif
 
-// GCode support for external objects
-bool code_seen(char);
-int code_value_int();
-float to_temp_units(const float &c);
-int16_t code_value_temp_abs();
-int16_t code_value_temp_diff();
-
-#if ENABLED(INCH_MODE_SUPPORT)
-  float code_value_linear_units();
-  float code_value_axis_units(const AxisEnum axis);
-  float code_value_per_axis_unit(const AxisEnum axis);
-#else
-  #define code_value_linear_units() code_value_float()
-  #define code_value_axis_units(A) code_value_float()
-  #define code_value_per_axis_unit(A) code_value_float()
-#endif
-
 #if ENABLED(LIN_ADVANCE)
   extern int extruder_advance_k;
 #endif
@@ -261,8 +244,8 @@ int16_t code_value_temp_diff();
   extern int meas_delay_cm;             // Delay distance
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  extern FilamentChangeMenuResponse filament_change_menu_response;
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  extern AdvancedPauseMenuResponse advanced_pause_menu_response;
 #endif
 
 #if HAS(POWER_CONSUMPTION_SENSOR)

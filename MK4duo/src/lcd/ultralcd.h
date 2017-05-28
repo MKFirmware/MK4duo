@@ -35,8 +35,7 @@
 
   int lcd_strlen(const char* s);
   int lcd_strlen_P(const char* s);
-  void lcd_key_touch_update();
-  void lcd_draw_update();
+  void lcd_update();
   void lcd_init();
   bool lcd_hasstatus();
   void lcd_setstatus(const char* message, const bool persist=false);
@@ -62,7 +61,7 @@
   #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
   #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
 
-  #define LCD_TIMEOUT_TO_STATUS 15000
+  #define LCD_UPDATE_INTERVAL 100
 
   #if ENABLED(ULTIPANEL)
 
@@ -90,9 +89,9 @@
     void lcd_quick_feedback();        // Audible feedback for a button click - could also be visual
     void lcd_completion_feedback(const bool good=true);
 
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
-      void lcd_filament_change_show_message(const FilamentChangeMessage message);
-    #endif // FILAMENT_CHANGE_FEATURE
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      void lcd_advanced_pause_show_message(const AdvancedPauseMessage message);
+    #endif // ADVANCED_PAUSE_FEATURE
 
   #else
 
@@ -164,8 +163,7 @@
 
 #elif DISABLED(NEXTION)
 
-  inline void lcd_key_touch_update() {}
-  inline void lcd_draw_update() {}
+  inline void lcd_update() {}
   inline void lcd_init() {}
   inline bool lcd_hasstatus() { return false; }
   inline void lcd_setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }

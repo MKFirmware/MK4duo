@@ -1138,37 +1138,32 @@ void EEPROM::Factory_Settings() {
      * Announce current units, in case inches are being displayed
      */
     #if ENABLED(INCH_MODE_SUPPORT)
-      extern float linear_unit_factor, volumetric_unit_factor;
-      #define LINEAR_UNIT(N) ((N) / linear_unit_factor)
-      #define VOLUMETRIC_UNIT(N) ((N) / (volumetric_enabled ? volumetric_unit_factor : linear_unit_factor))
+      #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
+      #define VOLUMETRIC_UNIT(N) ((N) / (volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_SM(CFG, "  G2");
-      SERIAL_C(linear_unit_factor == 1.0 ? '1' : '0');
+      SERIAL_C(parser.linear_unit_factor == 1.0 ? '1' : '0');
       SERIAL_M(" ; Units in ");
-      SERIAL_PS(linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
+      SERIAL_PS(parser.linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
     #else
       #define LINEAR_UNIT(N) N
       #define VOLUMETRIC_UNIT(N) N
       SERIAL_LM(CFG, "  G21 ; Units in mm");
     #endif
-    SERIAL_E;
 
     #if ENABLED(ULTIPANEL)
 
       // Temperature units - for Ultipanel temperature options
 
       #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-        extern TempUnit input_temp_units;
-        extern float to_temp_units(const float &f);
-        #define TEMP_UNIT(N) to_temp_units(N)
+        #define TEMP_UNIT(N) parser.to_temp_units(N)
         SERIAL_SM(CFG, "  M149 ");
-        SERIAL_C(input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C');
+        SERIAL_C(parser.temp_units_code);
         SERIAL_M(" ; Units in ");
-        SERIAL_PS(input_temp_units == TEMPUNIT_K ? PSTR("Kelvin\n") : input_temp_units == TEMPUNIT_F ? PSTR("Fahrenheit\n") : PSTR("Celsius\n"));
+        SERIAL_PS(parser.temp_units_name());
       #else
         #define TEMP_UNIT(N) N
-        SERIAL_LM(CFG, "  M149 C ; Units in Celsius\n");
+        SERIAL_LM(CFG, "  M149 C ; Units in Celsius");
       #endif
-      SERIAL_E;
 
     #endif
 

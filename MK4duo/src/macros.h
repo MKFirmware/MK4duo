@@ -74,14 +74,16 @@
 #define HASNT(FE) (!(HAS_##FE))
 
 // Macros to contrain values
-#define WITHIN(V,L,H) ((V) >= (L) && (V) <= (H))
-#define NUMERIC(a) ((a) >= '0' && '9' >= (a))
-#define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-')
-#define NOLESS(v,n) do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n) do{ if (v > n) v = n; }while(0)
-#define COUNT(a) (sizeof(a) / sizeof(*a))
-#define ZERO(a) memset(a, 0, sizeof(a))
-#define COPY_ARRAY(a,b) memcpy(a, b, min(sizeof(a), sizeof(b)))
+#define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
+#define NUMERIC(a)        ((a) >= '0' && '9' >= (a))
+#define DECIMAL(a)        (NUMERIC(a) || a == '.')
+#define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
+#define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
+#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
+#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+#define COUNT(a)          (sizeof(a) / sizeof(*a))
+#define ZERO(a)           memset(a, 0, sizeof(a))
+#define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
 
 // Macro for debugging
 #define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))

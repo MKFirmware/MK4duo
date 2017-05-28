@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
+#if ENABLED(M100_FREE_MEMORY_WATCHER) || ENABLED(DEBUG_GCODE_PARSER)
 
 static char _hex[7] = "0x0000";
 
