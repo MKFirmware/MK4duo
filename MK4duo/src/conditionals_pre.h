@@ -34,6 +34,10 @@
     #define LCD_HEIGHT 4
   #endif
 
+  #if DISABLED(LCD_TIMEOUT_TO_STATUS)
+    #define LCD_TIMEOUT_TO_STATUS 15000
+  #endif
+
   #if ENABLED(SAV_3DGLCD)
     //#define U8GLIB_SSD1306
     #define U8GLIB_SH1106

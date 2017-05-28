@@ -151,7 +151,7 @@ int16_t count_test_bytes(const char * const ptr) {
  *  Return the number of free bytes in the memory pool,
  *  with other vital statistics defining the pool.
  */
-void free_memory_pool_report(char * const ptr, const uint16_t size) {
+void free_memory_pool_report(char * const ptr, const int16_t size) {
   int16_t max_cnt = -1, block_cnt = 0;
   char *max_addr = NULL;
   // Find the longest block of test bytes in the buffer
@@ -186,7 +186,7 @@ void free_memory_pool_report(char * const ptr, const uint16_t size) {
    *  This is useful to check the correctness of the M100 D and the M100 F commands.
    */
   void corrupt_free_memory(char *ptr, const uint16_t size) {
-    if (code_seen('C')) {
+    if (parser.seen('C')) {
       ptr += 8;
       const uint16_t near_top = top_of_stack() - ptr - 250, // -250 to avoid interrupt activity that's altered the stack.
                      j = near_top / (size + 1);
@@ -244,22 +244,24 @@ void gcode_M100() {
 
   // Always init on the first invocation of M100
   static bool m100_not_initialized = true;
-  if (m100_not_initialized || code_seen('I')) {
+  if (m100_not_initialized || parser.seen('I')) {
     m100_not_initialized = false;
     init_free_memory(ptr, sp - ptr);
   }
 
   #if ENABLED(M100_FREE_MEMORY_DUMPER)
-    if (code_seen('D'))
+    if (parser.seen('D'))
       return dump_free_memory(ptr, sp);
   #endif
 
-  if (code_seen('F'))
+  if (parser.seen('F'))
     return free_memory_pool_report(ptr, sp - ptr);
 
   #if ENABLED(M100_FREE_MEMORY_CORRUPTOR)
-    if (code_seen('C'))
-      return corrupt_free_memory(ptr, code_value_int());
+
+    if (parser.seen('C'))
+      return corrupt_free_memory(ptr, parser.value_int());
+
   #endif
 }
 

@@ -62,7 +62,7 @@
 // When only one extruder is selected, the "1" on the symbol will not
 // be displayed.
 
-#if HAS(TEMP_BED)
+#if HAS_TEMP_BED
   #if HOTENDS == 1
     #define STATUS_SCREENWIDTH     115 //Width in pixels
     #define STATUS_SCREENHEIGHT     19 //Height in pixels

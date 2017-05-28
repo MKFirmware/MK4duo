@@ -111,6 +111,7 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
+#include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"

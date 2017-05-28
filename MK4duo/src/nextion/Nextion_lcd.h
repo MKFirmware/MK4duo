@@ -95,9 +95,9 @@
       void LcdBedLevelOff();
     #endif
 
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
-      void lcd_filament_change_show_message(FilamentChangeMessage message);
-    #endif // FILAMENT_CHANGE_FEATURE
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      void lcd_advanced_pause_show_message(AdvancedPauseMessage message);
+    #endif
 
     #if ENABLED(RFID_MODULE)
       void rfidPopCallback(void *ptr);

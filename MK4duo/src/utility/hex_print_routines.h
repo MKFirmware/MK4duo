@@ -23,7 +23,7 @@
 #ifndef HEX_PRINT_ROUTINES_H
 #define HEX_PRINT_ROUTINES_H
 
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
+#if ENABLED(M100_FREE_MEMORY_WATCHER) || ENABLED(DEBUG_GCODE_PARSER)
 
 //
 // Utility functions to create and print hex strings as nybble, byte, and word.

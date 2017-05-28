@@ -43,7 +43,7 @@
  * - Bowden Filament management
  * - Extruder advance constant
  * - Extruder Advance Linear Pressure Control
- * - Filament Change
+ * - Advanced Pause
  * MOTION FEATURES:
  * - Software endstops
  * - Endstops only for homing
@@ -126,16 +126,16 @@
 // 2 -  61Hz  64 values
 // 3 - 122Hz  32 values
 // 4 - 244Hz  16 values
-#define FAN_PWM_SPEED 4
+#define FAN_PWM_SPEED 0
 
 // When first starting the main fan, run it at full speed for the
 // given number of milliseconds.  This gets the fan spinning reliably
 // before setting a PWM value.
-#define FAN_KICKSTART_TIME 200
+//#define FAN_KICKSTART_TIME 200
 
 // This defines the minimal speed for the main fan, run in PWM mode
 // to enable uncomment and set minimal PWM speed for reliable running (1-255)
-#define FAN_MIN_PWM 50
+//#define FAN_MIN_PWM 50
 
 // This is for controlling a fan to cool down the stepper drivers
 // it will turn on when any driver is enabled
@@ -144,7 +144,7 @@
 //#define CONTROLLERFAN
 #define CONTROLLERFAN_SECS       60   // How many seconds, after all motors were disabled, the fan should run
 #define CONTROLLERFAN_SPEED     255   // 255 = full speed
-#define CONTROLLERFAN_MIN_SPEED  30
+#define CONTROLLERFAN_MIN_SPEED   0
 
 // Hotend cooling fans
 // Configure fan pin outputs to automatically turn on/off when the associated
@@ -486,48 +486,53 @@
 
 
 /**************************************************************************
- *************************** Filament Change ******************************
+ *************************** Advanced Pause *******************************
  **************************************************************************
  *                                                                        *
+ * Experimental feature for filament change support and for parking       *
+ * the nozzle when paused.                                                *
  * Add the GCode M600 for initiating filament change.                     *
  *                                                                        *
- * Uncomment FILAMENT CHANGE FEATURE to enable this feature               *
+ * If PARK HEAD ON PAUSE enabled, adds the GCode M125 to pause printing   *
+ * and park the nozzle.                                                   *
+ *                                                                        *
  * Requires an LCD display.                                               *
  * This feature is required for the default FILAMENT RUNOUT SCRIPT.       *
  *                                                                        *
  **************************************************************************/
-//#define FILAMENT_CHANGE_FEATURE
+//#define ADVANCED_PAUSE_FEATURE
 
-#define FILAMENT_CHANGE_X_POS 3               // X position of hotend
-#define FILAMENT_CHANGE_Y_POS 3               // Y position of hotend
-#define FILAMENT_CHANGE_Z_ADD 10              // Z addition of hotend (lift)
-#define FILAMENT_CHANGE_XY_FEEDRATE 100       // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
-#define FILAMENT_CHANGE_Z_FEEDRATE 5          // Z axis feedrate in mm/s (not used for delta printers)
-#define FILAMENT_CHANGE_RETRACT_FEEDRATE 20   // Initial retract feedrate in mm/s
-#define FILAMENT_CHANGE_RETRACT_LENGTH 2      // Initial retract in mm
-                                              // It is a short retract used immediately after print interrupt before move to filament exchange position
-#define FILAMENT_CHANGE_COOLDOWN_TEMP 160     // Temp for cooldown, if this parameter is equal to 0 no cooling.
-#define FILAMENT_CHANGE_RETRACT_2_FEEDRATE 20 // Second retract filament feedrate in mm/s - filament retract post cool down
-#define FILAMENT_CHANGE_RETRACT_2_LENGTH 20   // Second retract filament length from hotend in mm
-#define FILAMENT_CHANGE_UNLOAD_FEEDRATE 100   // Unload filament feedrate in mm/s - filament unloading can be fast
-#define FILAMENT_CHANGE_UNLOAD_LENGTH 100     // Unload filament length from hotend in mm
-                                              // Longer length for bowden printers to unload filament from whole bowden tube,
-                                              // shorter length for printers without bowden to unload filament from extruder only,
-                                              // 0 to disable unloading for manual unloading
-#define FILAMENT_CHANGE_LOAD_FEEDRATE 100     // Load filament feedrate in mm/s - filament loading into the bowden tube can be fast
-#define FILAMENT_CHANGE_LOAD_LENGTH 100       // Load filament length over hotend in mm
-                                              // Longer length for bowden printers to fast load filament into whole bowden tube over the hotend,
-                                              // Short or zero length for printers without bowden where loading is not used
-#define FILAMENT_CHANGE_EXTRUDE_FEEDRATE 5    // Extrude filament feedrate in mm/s - must be slower than load feedrate
-#define FILAMENT_CHANGE_EXTRUDE_LENGTH 50     // Extrude filament length in mm after filament is load over the hotend,
-                                              // 0 to disable for manual extrusion
-                                              // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
-                                              // or until outcoming filament color is not clear for filament color change
-#define FILAMENT_CHANGE_NOZZLE_TIMEOUT 45L    // Turn off nozzle if user doesn't change filament within this time limit in seconds
-#define FILAMENT_CHANGE_PRINTER_OFF 5L        // Turn off printer if user doesn't change filament within this time limit in Minutes
-#define FILAMENT_CHANGE_NUMBER_OF_BEEPS 5L    // Number of alert beeps before printer goes quiet
-#define FILAMENT_CHANGE_NO_STEPPER_TIMEOUT    // Enable to have stepper motors hold position during filament change
-                                              // even if it takes longer than DEFAULT_STEPPER_DEACTIVE_TIME.
+#define PAUSE_PARK_X_POS 3                  // X position of hotend
+#define PAUSE_PARK_Y_POS 3                  // Y position of hotend
+#define PAUSE_PARK_Z_ADD 10                 // Z addition of hotend (lift)
+#define PAUSE_PARK_XY_FEEDRATE 100          // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
+#define PAUSE_PARK_Z_FEEDRATE 5             // Z axis feedrate in mm/s (not used for delta printers)
+#define PAUSE_PARK_RETRACT_FEEDRATE 20      // Initial retract feedrate in mm/s
+#define PAUSE_PARK_RETRACT_LENGTH 2         // Initial retract in mm
+                                            // It is a short retract used immediately after print interrupt before move to filament exchange position
+#define PAUSE_PARK_COOLDOWN_TEMP 160        // Temp for cooldown, if this parameter is equal to 0 no cooling.
+#define PAUSE_PARK_RETRACT_2_FEEDRATE 20    // Second retract filament feedrate in mm/s - filament retract post cool down
+#define PAUSE_PARK_RETRACT_2_LENGTH 20      // Second retract filament length from hotend in mm
+#define PAUSE_PARK_UNLOAD_FEEDRATE 100      // Unload filament feedrate in mm/s - filament unloading can be fast
+#define PAUSE_PARK_UNLOAD_LENGTH 100        // Unload filament length from hotend in mm
+                                            // Longer length for bowden printers to unload filament from whole bowden tube,
+                                            // shorter length for printers without bowden to unload filament from extruder only,
+                                            // 0 to disable unloading for manual unloading
+#define PAUSE_PARK_LOAD_FEEDRATE 100        // Load filament feedrate in mm/s - filament loading into the bowden tube can be fast
+#define PAUSE_PARK_LOAD_LENGTH 100          // Load filament length over hotend in mm
+                                            // Longer length for bowden printers to fast load filament into whole bowden tube over the hotend,
+                                            // Short or zero length for printers without bowden where loading is not used
+#define PAUSE_PARK_EXTRUDE_FEEDRATE 5       // Extrude filament feedrate in mm/s - must be slower than load feedrate
+#define PAUSE_PARK_EXTRUDE_LENGTH 50        // Extrude filament length in mm after filament is load over the hotend,
+                                            // 0 to disable for manual extrusion
+                                            // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
+                                            // or until outcoming filament color is not clear for filament color change
+#define PAUSE_PARK_NOZZLE_TIMEOUT 45        // Turn off nozzle if user doesn't change filament within this time limit in seconds
+#define PAUSE_PARK_PRINTER_OFF 5            // Turn off printer if user doesn't change filament within this time limit in Minutes
+#define PAUSE_PARK_NUMBER_OF_ALERT_BEEPS 5  // Number of alert beeps before printer goes quiet
+#define PAUSE_PARK_NO_STEPPER_TIMEOUT       // Enable to have stepper motors hold position during filament change
+                                            // even if it takes longer than DEFAULT STEPPER DEACTIVE TIME.
+//#define PARK_HEAD_ON_PAUSE                // Go to filament change position on pause, return to print position on resume
 /**************************************************************************/
 
 
@@ -1072,7 +1077,7 @@
  * Uncomment EEPROM SD for use writing EEPROM on SD                                                                     *
  *                                                                                                                      *
  ************************************************************************************************************************/
-#define EEPROM_SETTINGS
+//#define EEPROM_SETTINGS
 
 //#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_SD
@@ -1083,7 +1088,7 @@
 /*****************************************************************************************
  *************************************** SDCARD *******************************************
  ****************************************************************************************/
-#define SDSUPPORT
+//#define SDSUPPORT
 
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
@@ -1179,7 +1184,7 @@
 //                 https://github.com/olikraus/U8glib_Arduino
 //
 //#define ULTRA_LCD   // Character based
-#define DOGLCD      // Full graphics display
+//#define DOGLCD      // Full graphics display
 
 
 // Additional options for Graphical Displays
@@ -1277,6 +1282,12 @@
 // Include a page of printer information in the LCD Main Menu
 #define LCD_INFO_MENU
 
+// On the Info Screen, display XY with one decimal place when possible
+//#define LCD_DECIMAL_SMALL_XY
+
+// The timeout (in ms) to return to the status screen from sub-menus
+//#define LCD_TIMEOUT_TO_STATUS 15000
+
 // CONTROLLER TYPE: Standard
 
 // MK4duo supports a wide variety of controllers.
@@ -1341,7 +1352,7 @@
 // RepRapDiscount FULL GRAPHIC Smart Controller
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
-#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // MakerLab Mini Panel with graphic
 // controller and SD support - http://reprap.org/wiki/Mini_panel
@@ -1547,7 +1558,7 @@
  * Check also Configuration_Laser.h                                       *
  *                                                                        *
  **************************************************************************/
-#define LASERBEAM
+//#define LASERBEAM
 /**************************************************************************/
 
 
