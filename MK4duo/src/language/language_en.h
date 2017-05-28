@@ -71,7 +71,6 @@
 #define MSG_PREHEAT_3_END                   MSG_PREHEAT_3 _UxGT(" End")
 #define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Bed")
 #define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3 _UxGT(" conf")
-#define MSG_TOO_COLD_FOR_FILAMENTCHANGE     _UxGT("Hotend too cold to change filament")
 #define MSG_COOLDOWN                        _UxGT("Cooldown")
 #define MSG_SWITCH_PS_ON                    _UxGT("Switch power on")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Switch power off")
@@ -154,6 +153,7 @@
 #define MSG_NO_CARD                         _UxGT("No SD card")
 #define MSG_DWELL                           _UxGT("Sleep...")
 #define MSG_USERWAIT                        _UxGT("Click to resume...")
+#define MSG_PRINT_PAUSED                    _UxGT("Print paused")
 #define MSG_RESUMING                        _UxGT("Resuming print")
 #define MSG_PRINT_ABORTED                   _UxGT("Print aborted")
 #define MSG_NO_MOVE                         _UxGT("No move.")
@@ -243,7 +243,7 @@
 #define MSG_LIGHTS_ON                       _UxGT("Case light on")
 #define MSG_LIGHTS_OFF                      _UxGT("Case light off")
 
-// FILAMENT_CHANGE_FEATURE
+// ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CHANGE OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrude more")
