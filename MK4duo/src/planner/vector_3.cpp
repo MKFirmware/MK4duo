@@ -90,7 +90,7 @@ void vector_3::debug(const char title[]) {
   SERIAL_EMV(" z: ", z, 6);
 }
 
-void apply_rotation_xyz(matrix_3x3 matrix, float& x, float& y, float& z) {
+void apply_rotation_xyz(matrix_3x3 matrix, float &x, float &y, float &z) {
   vector_3 vector = vector_3(x, y, z);
   vector.apply_rotation(matrix);
   x = vector.x;

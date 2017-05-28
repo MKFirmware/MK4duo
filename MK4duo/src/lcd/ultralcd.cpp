@@ -42,6 +42,10 @@ int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3
 uint8_t lcd_status_message_level;
 char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kana with up to 3*LCD_WIDTH+1
 
+#if ENABLED(STATUS_MESSAGE_SCROLLING)
+  uint8_t status_scroll_pos = 0;
+#endif
+
 #if ENABLED(DOGLCD)
   #include "ultralcd_impl_DOGM.h"
 #else
@@ -3646,22 +3650,28 @@ void lcd_update() {
   } // ELAPSED(ms, next_lcd_update_ms)
 }
 
-void set_utf_strlen(char* s, uint8_t n) {
-  uint8_t i = 0, j = 0;
-  while (s[i] && (j < n)) {
-    #if ENABLED(MAPPER_NON)
-      j++;
-    #else
-      if ((s[i] & 0xC0u) != 0x80u) j++;
-    #endif
-    i++;
+#if DISABLED(STATUS_MESSAGE_SCROLLING)
+
+  void set_utf_strlen(char* s, uint8_t n) {
+    uint8_t i = 0, j = 0;
+    while (s[i] && (j < n)) {
+      #if ENABLED(MAPPER_NON)
+        j++;
+      #else
+        if ((s[i] & 0xC0u) != 0x80u) j++;
+      #endif
+      i++;
+    }
+    while (j++ < n) s[i++] = ' ';
+    s[i] = '\0';
   }
-  while (j++ < n) s[i++] = ' ';
-  s[i] = '\0';
-}
+
+#endif
 
 void lcd_finishstatus(bool persist=false) {
-  set_utf_strlen(lcd_status_message, LCD_WIDTH);
+  #if DISABLED(STATUS_MESSAGE_SCROLLING)
+    set_utf_strlen(lcd_status_message, LCD_WIDTH);
+  #endif
   #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
     UNUSED(persist);
   #endif
@@ -3676,6 +3686,10 @@ void lcd_finishstatus(bool persist=false) {
 
   #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
     previous_lcd_status_ms = millis();  // get status message to show up for a while
+  #endif
+
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    status_scroll_pos = 0;
   #endif
 }
 

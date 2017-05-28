@@ -3,6 +3,7 @@
 * Add PARK HEAD ON PAUSE (Park head on SD pause or M125 commands. Requires an LCD display)
 * Add M125 - Store current position and move to pause park position.
 * Add automatic call M600 with one extruder and ADVANCED PAUSE FEATURE when change tools
+* Add STATUS MESSAGE SCROLLING. The message on lcd scroll right to the left.
 
 ### Version 4.3.2 Stable
 * Add Nextion Diamond version by MrGoblin 7"

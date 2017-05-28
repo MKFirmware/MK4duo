@@ -119,10 +119,10 @@
     void lsDive(SdBaseFile parent, const char* const match = NULL);
     void parsejson(SdBaseFile &file);
     bool findGeneratedBy(char* buf, char* genBy);
-    bool findFirstLayerHeight(char* buf, float& firstlayerHeight);
-    bool findLayerHeight(char* buf, float& layerHeight);
-    bool findFilamentNeed(char* buf, float& filament);
-    bool findTotalHeight(char* buf, float& objectHeight);
+    bool findFirstLayerHeight(char* buf, float &firstlayerHeight);
+    bool findLayerHeight(char* buf, float &layerHeight);
+    bool findFilamentNeed(char* buf, float &filament);
+    bool findTotalHeight(char* buf, float &objectHeight);
   };
 
   extern CardReader card;
