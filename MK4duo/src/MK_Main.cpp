@@ -3425,7 +3425,7 @@ void gcode_get_destination() {
     COPY_ARRAY(resume_position, current_position);
     set_destination_to_current();
 
-    // Initial retract before move to filament change position
+    // Initial retract before move to pause park position
     destination[E_AXIS] += retract;
 
     RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
@@ -8344,7 +8344,7 @@ inline void gcode_M122() {
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 
   /**
-   * M125: Store current position and move to filament change position.
+   * M125: Store current position and move to pause park position.
    *       Called on pause (by M25) to prevent material leaking onto the
    *       object. On resume (M24) the head will be moved back and the
    *       print will resume.
@@ -8360,7 +8360,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M125() {
 
-    // Initial retract before move to filament change position
+    // Initial retract before move to pause park position
     const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
       #if defined(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         - (PAUSE_PARK_RETRACT_LENGTH)
@@ -8376,7 +8376,7 @@ inline void gcode_M122() {
       #endif
     ;
 
-    // Move XY axes to filament change position or given position
+    // Move XY axes to pause park position or given position
     const float x_pos = parser.seen('X') ? parser.value_linear_units() : 0
       #ifdef PAUSE_PARK_X_POS
         + PAUSE_PARK_X_POS
@@ -10109,7 +10109,7 @@ inline void gcode_M532() {
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
   /**
-   * M600: Pause for filament change
+   * M600: Pause Park and filament change
    *
    *  E[distance] - Retract the filament this far (negative value)
    *  Z[distance] - Move the Z axis by this distance
@@ -10124,7 +10124,7 @@ inline void gcode_M532() {
    */
   inline void gcode_M600() {
 
-    // Initial retract before move to filament change position
+    // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
       #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         - (PAUSE_PARK_RETRACT_LENGTH)
@@ -11968,7 +11968,7 @@ void process_next_command() {
       #endif
 
       #if ENABLED(PARK_HEAD_ON_PAUSE)
-        case 125: // M125: Store current position and move to filament change position
+        case 125: // M125: Store current position and move to pause park position
           gcode_M125(); break;
       #endif
 
@@ -12266,7 +12266,7 @@ void process_next_command() {
       #endif
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        case 600: // Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+        case 600: // Pause Park X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
           gcode_M600(); break;
       #endif
 
