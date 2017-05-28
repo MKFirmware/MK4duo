@@ -3901,7 +3901,7 @@ inline void gcode_G4() {
     #endif
     }
 
-    if (parser.seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, parser.string_arg, laser.raster_raw_length);
+    if (parser.seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, parser.string_arg + 1, laser.raster_raw_length);
 
     switch (laser.raster_direction) {
       case 0: // Negative X
