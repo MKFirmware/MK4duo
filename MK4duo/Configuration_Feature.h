@@ -126,16 +126,16 @@
 // 2 -  61Hz  64 values
 // 3 - 122Hz  32 values
 // 4 - 244Hz  16 values
-#define FAN_PWM_SPEED 0
+#define FAN_PWM_SPEED 4
 
 // When first starting the main fan, run it at full speed for the
 // given number of milliseconds.  This gets the fan spinning reliably
 // before setting a PWM value.
-//#define FAN_KICKSTART_TIME 200
+#define FAN_KICKSTART_TIME 200
 
 // This defines the minimal speed for the main fan, run in PWM mode
 // to enable uncomment and set minimal PWM speed for reliable running (1-255)
-//#define FAN_MIN_PWM 50
+#define FAN_MIN_PWM 50
 
 // This is for controlling a fan to cool down the stepper drivers
 // it will turn on when any driver is enabled
@@ -144,7 +144,7 @@
 //#define CONTROLLERFAN
 #define CONTROLLERFAN_SECS       60   // How many seconds, after all motors were disabled, the fan should run
 #define CONTROLLERFAN_SPEED     255   // 255 = full speed
-#define CONTROLLERFAN_MIN_SPEED   0
+#define CONTROLLERFAN_MIN_SPEED  30
 
 // Hotend cooling fans
 // Configure fan pin outputs to automatically turn on/off when the associated
@@ -1072,7 +1072,7 @@
  * Uncomment EEPROM SD for use writing EEPROM on SD                                                                     *
  *                                                                                                                      *
  ************************************************************************************************************************/
-//#define EEPROM_SETTINGS
+#define EEPROM_SETTINGS
 
 //#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_SD
@@ -1083,7 +1083,7 @@
 /*****************************************************************************************
  *************************************** SDCARD *******************************************
  ****************************************************************************************/
-//#define SDSUPPORT
+#define SDSUPPORT
 
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
 //#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
@@ -1179,7 +1179,7 @@
 //                 https://github.com/olikraus/U8glib_Arduino
 //
 //#define ULTRA_LCD   // Character based
-//#define DOGLCD      // Full graphics display
+#define DOGLCD      // Full graphics display
 
 
 // Additional options for Graphical Displays
@@ -1341,7 +1341,7 @@
 // RepRapDiscount FULL GRAPHIC Smart Controller
 // http://reprap.org/wiki/RepRapDiscount_Full_Graphic_Smart_Controller
 //
-//#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+#define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 
 // MakerLab Mini Panel with graphic
 // controller and SD support - http://reprap.org/wiki/Mini_panel
@@ -1547,7 +1547,7 @@
  * Check also Configuration_Laser.h                                       *
  *                                                                        *
  **************************************************************************/
-//#define LASERBEAM
+#define LASERBEAM
 /**************************************************************************/
 
 

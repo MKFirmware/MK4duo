@@ -3676,21 +3676,78 @@ inline void gcode_G4() {
     if (code_seen('L')) laser.raster_raw_length = code_value_int();
 
     if (code_seen('$')) {
-      laser.raster_direction = code_value_bool();
-      destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+      laser.raster_direction = code_value_int(); //code_value_bool();
+    #ifdef LASER_RASTER_MANUAL_Y_FEED
+      destination[X_AXIS] = current_position[X_AXIS]; // Dont increment X axis
+      destination[Y_AXIS] = current_position[Y_AXIS]; // Dont increment Y axis
+    #else
+      case 0:
+      case 1:
+        destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+        break;	  
+      case 2:
+      case 3:
+        destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+        break;	  
+      case 4:
+        destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+        break;	  
+      case 5:
+        destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+        break;	  
+    #endif
     }
 
     if (code_seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, seen_pointer + 1, laser.raster_raw_length);
 
-    if (!laser.raster_direction) {
-      destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-      if (laser.diagnostics)
-        SERIAL_EM("Negative Raster Line");
-    }
-    else {
-      destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
-      if (laser.diagnostics)
-        SERIAL_EM("Positive Raster Line");
+    switch (laser.raster_direction) {
+      case 0:
+        destination[X_AXIS] = current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        if (laser.diagnostics) {
+            SERIAL_EM("Negative Horizontal Raster Line");
+          }
+        break;
+
+      case 1:
+        destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        if (laser.diagnostics) {
+            SERIAL_EM("Positive Horizontal Raster Line");
+          }
+          break;
+
+      case 2: // Negative Vertical
+        destination[Y_AXIS] = current_position[Y_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        if (laser.diagnostics) {
+            SERIAL_EM("Negative Vertical Raster Line");
+          }
+          break;
+
+      case 3: // Positive Vertical
+        destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        if (laser.diagnostics) {
+            SERIAL_EM("Positive Vertical Raster Line");
+          }
+          break;
+      case 4: // Negative X Positive Y 45deg
+        destination[X_AXIS] = current_position[X_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
+        destination[Y_AXIS] = current_position[Y_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
+        if (laser.diagnostics) {
+            SERIAL_EM("Negative X Positive Y 45deg Raster Line");
+          }
+          break;
+      case 5: // Positive X Negarite Y 45deg
+        destination[X_AXIS] = current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
+        destination[Y_AXIS] = current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels)*0.707106);
+        if (laser.diagnostics) {
+            SERIAL_EM("Positive X Negarite Y 45deg Raster Line");
+          }
+          break;
+      default:
+        if (laser.diagnostics) {
+            SERIAL_EM("Unknown direction");
+          }
+          break;
+          
     }
 
     laser.ppm = 1 / laser.raster_mm_per_pulse; // number of pulses per millimetre
