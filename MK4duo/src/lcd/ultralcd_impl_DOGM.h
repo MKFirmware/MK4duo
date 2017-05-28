@@ -241,13 +241,24 @@ char lcd_print_and_count(const char c) {
   else return charset_mapper(c);
 }
 
-void lcd_print(const char* const str) {
-  for (uint8_t i = 0; char c = str[i]; ++i) lcd_print(c);
+/**
+ * Core LCD printing functions
+ * On DOGM all strings go through a filter for utf
+ * But only use lcd_print_utf and lcd_printPGM_utf for translated text
+ */
+void lcd_print(const char* const str) { for (uint8_t i = 0; char c = str[i]; ++i) lcd_print(c); }
+void lcd_printPGM(const char* str) { for (; char c = pgm_read_byte(str); ++str) lcd_print(c); }
+
+void lcd_print_utf(const char* const str, const uint8_t maxLength=LCD_WIDTH) {
+  char c;
+  for (uint8_t i = 0, n = maxLength; n && (c = str[i]); ++i)
+    n -= charset_mapper(c);
 }
 
-/* Arduino < 1.0.0 is missing a function to print PROGMEM strings, so we need to implement our own */
-void lcd_printPGM(const char* str) {
-  for (; char c = pgm_read_byte(str); ++str) lcd_print(c);
+void lcd_printPGM_utf(const char* str, const uint8_t maxLength=LCD_WIDTH) {
+  char c;
+  for (uint8_t i = 0, n = maxLength; n && (c = str[i]); ++i)
+    n -= charset_mapper(c);
 }
 
 // Initialize or re-initialize the LCD
@@ -399,6 +410,20 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
         lcd_printPGM(pstr);
     }
   }
+}
+
+inline void lcd_implementation_status_message() {
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    lcd_print_utf(lcd_status_message + status_scroll_pos);
+    const uint8_t slen = lcd_strlen(lcd_status_message);
+    if (slen > LCD_WIDTH) {
+      // Skip any non-printing bytes
+      while (!charset_mapper(lcd_status_message[status_scroll_pos])) ++status_scroll_pos;
+      if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+    }
+  #else
+    lcd_print_utf(lcd_status_message);
+  #endif
 }
 
 static void lcd_implementation_status_screen() {
@@ -680,10 +705,7 @@ static void lcd_implementation_status_screen() {
 
     #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
       if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
-        const char *str = lcd_status_message;
-        uint8_t i = LCD_WIDTH;
-        char c;
-        while (i-- && (c = *str++)) lcd_print(c);
+        lcd_implementation_status_message();
       }
 
       #if HAS_LCD_POWER_SENSOR
@@ -713,10 +735,7 @@ static void lcd_implementation_status_screen() {
         }
       #endif
     #else
-      const char *str = lcd_status_message;
-      uint8_t i = LCD_WIDTH;
-      char c;
-      while (i-- && (c = *str++)) lcd_print(c);
+      lcd_implementation_status_message();
     #endif
   }
 }
