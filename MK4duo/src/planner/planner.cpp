@@ -86,7 +86,7 @@ float Planner::min_feedrate_mm_s,
       Planner::travel_acceleration,             // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
       Planner::max_jerk[XYZE_N];                // The largest speed change requiring no acceleration
 
-#if HAS(ABL)
+#if HAS_ABL
   bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
 #endif
 
@@ -446,7 +446,7 @@ void Planner::check_axes_activity() {
    */
   void Planner::apply_leveling(float &lx, float &ly, float &lz) {
 
-    #if HAS(ABL)
+    #if HAS_ABL
       if (!abl_enabled) return;
     #endif
 
@@ -499,7 +499,7 @@ void Planner::check_axes_activity() {
 
   void Planner::unapply_leveling(float logical[XYZ]) {
 
-    #if HAS(ABL)
+    #if HAS_ABL
       if (!abl_enabled) return;
     #endif
 

@@ -1427,6 +1427,11 @@
 //
 //#define SAV_3DGLCD
 
+// ANET DISPLAY
+//
+//#define ANET_KEYPAD_LCD
+//#define ANET_FULL_GRAPHICS_LCD
+
 // CONTROLLER TYPE: Shift register panels
 //
 // 2 wire Non-latching LCD SR from https://goo.gl/aJJ4sH

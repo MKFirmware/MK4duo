@@ -78,6 +78,10 @@ class Temperature {
       static int      current_temperature_mcu_raw;
     #endif
 
+    #if ENABLED(ADC_KEYPAD)
+      static int      current_ADCKey_raw;
+    #endif
+
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
       static float    redundant_temperature;
     #endif

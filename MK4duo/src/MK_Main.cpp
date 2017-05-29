@@ -250,7 +250,7 @@ PrintCounter print_job_counter = PrintCounter();
   float zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
 #endif
 
-#if HAS(ABL)
+#if HAS_ABL
   int xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
 #elif defined(XY_PROBE_SPEED)
@@ -590,7 +590,7 @@ static bool pin_is_protected(uint8_t pin) {
     print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
   }
 
-  #if HAS(ABL)
+  #if HAS_ABL
     void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
       print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
     }
@@ -654,7 +654,7 @@ static bool drain_injected_commands_P() {
  * Aborts the current queue, if any.
  * Note: drain_injected_commands_P() must be called repeatedly to drain the commands afterwards
  */
-void enqueue_and_echo_commands_P(const char* pgcode) {
+void enqueue_and_echo_commands_P(const char * const pgcode) {
   injected_commands_P = pgcode;
   drain_injected_commands_P(); // first command executed asap (when possible)
 }
@@ -2053,6 +2053,25 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
 #endif // HAS_BED_PROBE
 
 #if HAS_LEVELING
+
+  bool leveling_is_valid() {
+    #if ENABLED(MESH_BED_LEVELING)
+      return mbl.has_mesh();
+    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      return !!bilinear_grid_spacing[X_AXIS];
+    #else // 3POINT, LINEAR
+      return true;
+    #endif
+  }
+
+  bool leveling_is_active() {
+    #if ENABLED(MESH_BED_LEVELING)
+      return mbl.active();
+    #else
+      return planner.abl_enabled;
+    #endif
+  }
+
   /**
    * Turn bed leveling on or off, fixing the current
    * position as-needed.
@@ -2060,28 +2079,26 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
    * Disable: Current position = physical position
    *  Enable: Current position = "unleveled" physical position
    */
-  void set_bed_leveling_enabled(bool enable) {
-    #if ENABLED(MESH_BED_LEVELING)
+  void set_bed_leveling_enabled(const bool enable/*=true*/) {
 
-      if (enable != mbl.active()) {
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      const bool can_change = (!enable || leveling_is_valid());
+    #else
+      constexpr bool can_change = true;
+    #endif
+
+    if (can_change && enable != leveling_is_active()) {
+
+      #if ENABLED(MESH_BED_LEVELING)
 
         if (!enable)
           planner.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
 
-        mbl.set_active(enable && mbl.has_mesh());
+        const bool enabling = enable && leveling_is_valid();
+        mbl.set_active(enabling);
+        if (enabling) planner.unapply_leveling(current_position);
 
-        if (enable && mbl.has_mesh()) planner.unapply_leveling(current_position);
-      }
-
-    #elif HAS(ABL)
-
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        const bool can_change = (!enable || (bilinear_grid_spacing[0] && bilinear_grid_spacing[1]));
       #else
-        constexpr bool can_change = true;
-      #endif
-
-      if (can_change && enable != planner.abl_enabled) {
 
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
           // Force bilinear_z_offset to re-calculate next time
@@ -2100,9 +2117,9 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
           );
         else
           planner.unapply_leveling(current_position);
-      }
 
-    #endif
+      #endif
+    }
   }
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -2111,13 +2128,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
       planner.z_fade_height = zfh;
       planner.inverse_z_fade_height = RECIPROCAL(zfh);
 
-      if (
-        #if ENABLED(MESH_BED_LEVELING)
-          mbl.active()
-        #else
-          planner.abl_enabled
-        #endif
-      ) {
+      if (leveling_is_active())
         set_current_from_steppers_for_axis(
           #if ABL_PLANAR
             ALL_AXES
@@ -2125,7 +2136,6 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
             Z_AXIS
           #endif
         );
-      }
     }
 
   #endif // LEVELING_FADE_HEIGHT
@@ -2136,7 +2146,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
   void reset_bed_level() {
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)
-      if (mbl.has_mesh()) {
+      if (leveling_is_valid()) {
         mbl.reset();
         mbl.set_has_mesh(false);
       }
@@ -4089,7 +4099,7 @@ inline void gcode_G4() {
       SERIAL_EM(" Nozzle)");
     #endif
 
-    #if HAS(ABL)
+    #if HAS_ABL
       SERIAL_M("Auto Bed Leveling: ");
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
         SERIAL_M("LINEAR");
@@ -4098,9 +4108,9 @@ inline void gcode_G4() {
       #elif ENABLED(AUTO_BED_LEVELING_3POINT)
         SERIAL_M("3POINT");
       #endif
-      if (planner.abl_enabled) {
+      if (leveling_is_active()) {
         SERIAL_EM(" (enabled)");
-        #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT)
+        #if ABL_PLANAR
           float diff[XYZ] = {
             stepper.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
             stepper.get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
@@ -4119,16 +4129,25 @@ inline void gcode_G4() {
           SERIAL_MV("ABL Adjustment Z", bilinear_z_offset(current_position));
         #endif
       }
+      else
+        SERIAL_M(" (disabled)");
+
       SERIAL_E;
+
     #elif ENABLED(MESH_BED_LEVELING)
+
       SERIAL_M("Mesh Bed Leveling");
-      if (mbl.active()) {
+      if (leveling_is_active()) {
         float lz = current_position[Z_AXIS];
         planner.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], lz);
         SERIAL_EM(" (enabled)");
         SERIAL_MV("MBL Adjustment Z", lz);
       }
+      else
+        SERIAL_M(" (disabled)");
+
       SERIAL_E;
+
     #endif
 
   }
@@ -4336,7 +4355,7 @@ inline void gcode_G28(const bool always_home_all) {
       // Cancel the active G30 session
       g33_in_progress = false;
     #endif
-    #if HAS(NEXTION_MANUAL_BED)
+    #if HAS_NEXTION_MANUAL_BED
       LcdBedLevelOff();
     #endif
   #endif
@@ -4683,8 +4702,8 @@ void home_all_axes() { gcode_G28(true); }
 
     switch (state) {
       case MeshReport:
-        if (mbl.has_mesh()) {
-          SERIAL_EMT("State: ", mbl.active() ? MSG_ON : MSG_OFF);
+        if (leveling_is_valid()) {
+          SERIAL_EMT("State: ", leveling_is_active() ? MSG_ON : MSG_OFF);
           mbl_mesh_report();
         }
         else
@@ -4797,7 +4816,7 @@ void home_all_axes() { gcode_G28(true); }
     report_current_position();
   }
 
-#elif HAS(ABL)
+#elif HAS_ABL
 
   #if ABL_GRID
     #if ENABLED(PROBE_Y_FIRST)
@@ -4994,16 +5013,16 @@ void home_all_axes() { gcode_G28(true); }
         abl_probe_index = -1;
       #endif
 
-      abl_should_enable = planner.abl_enabled;
+      abl_should_enable = leveling_is_active();
 
-      #if HAS(NEXTION_MANUAL_BED)
+      #if HAS_NEXTION_MANUAL_BED
         LcdBedLevelOn();
       #endif
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
         if (parser.seen('W')) {
-          if (!bilinear_grid_spacing[X_AXIS]) {
+          if (!leveling_is_valid()) {
             SERIAL_LM(ER, "No bilinear grid");
             return;
           }
@@ -5314,7 +5333,6 @@ void home_all_axes() { gcode_G28(true); }
           // Leveling done! Fall through to G29 finishing code below
 
           SERIAL_EM("Grid probing done.");
-          g29_in_progress = false;
 
           // Re-enable software endstops, if needed
           #if HAS_SOFTWARE_ENDSTOPS
@@ -5488,8 +5506,11 @@ void home_all_axes() { gcode_G28(true); }
       if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", current_position);
     #endif
 
-    #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
-      lcd_wait_for_move = false;
+    #if ENABLED(PROBE_MANUALLY)
+      g29_in_progress = false;
+      #if ENABLED(LCD_BED_LEVELING)
+        lcd_wait_for_move = false;
+      #endif
     #endif
 
     // Calculate leveling, print reports, correct the position
@@ -5676,7 +5697,7 @@ void home_all_axes() { gcode_G28(true); }
       stepper.synchronize();
     #endif
 
-    #if HAS(NEXTION_MANUAL_BED)
+    #if HAS_NEXTION_MANUAL_BED
       LcdBedLevelOff();
     #endif
 
@@ -5851,7 +5872,7 @@ void home_all_axes() { gcode_G28(true); }
       SERIAL_EM(" Factors");
       LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE);
       probe_index = 0;
-      #if HAS(NEXTION_MANUAL_BED)
+      #if HAS_NEXTION_MANUAL_BED
         LcdBedLevelOn();
       #endif
     }
@@ -6109,7 +6130,7 @@ void home_all_axes() { gcode_G28(true); }
       tool_change(old_tool_index, 0, true);
     #endif
 
-    #if HAS(NEXTION_MANUAL_BED)
+    #if HAS_NEXTION_MANUAL_BED
       LcdBedLevelOff();
     #endif
 
@@ -7335,6 +7356,7 @@ inline void gcode_M42() {
       #endif
 
       SERIAL_EM("Deploy & stow 4 times");
+      SET_INPUT_PULLUP(PROBE_TEST_PIN);
       bool deploy_state, stow_state;
       for (uint8_t i = 0; i < 4; i++) {
         servo[probe_index].move(z_servo_angle[0]); // deploy
@@ -7594,11 +7616,7 @@ inline void gcode_M42() {
 
     // Disable bed level correction in M48 because we want the raw data when we probe
     #if HAS_LEVELING
-      #if ENABLED(MESH_BED_LEVELING)
-        const bool abl_was_enabled = mbl.active();
-      #else
-        const bool abl_was_enabled = planner.abl_enabled;
-      #endif
+      const bool was_enabled = leveling_is_active();
       set_bed_leveling_enabled(false);
     #endif
 
@@ -8240,7 +8258,7 @@ inline void gcode_M115() {
     SERIAL_LM(CAP, "PROGRESS:1");
 
     // AUTOLEVEL (G29)
-    #if HAS(ABL)
+    #if HAS_ABL
       SERIAL_LM(CAP, "AUTOLEVEL:1");
     #else
       SERIAL_LM(CAP, "AUTOLEVEL:0");
@@ -9210,7 +9228,7 @@ inline void gcode_M303() {
   }
 #endif // PIDTEMPCOOLER
 
-#if HAS(ABL)
+#if HAS_ABL
 
   /**
    * M320: Enable/Disable Bed Leveling and/or set the Z fade height.
@@ -9220,8 +9238,22 @@ inline void gcode_M303() {
    *       V[bool]   Verbose - Print the leveling grid
    */
   inline void gcode_M320() {
-    bool to_enable = false;
 
+    // V to print the matrix
+    if (parser.seen('V')) {
+      #if ABL_PLANAR
+        planner.bed_level_matrix.debug("Bed Level Correction Matrix:");
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        if (leveling_is_valid()) {
+          print_bilinear_leveling_grid();
+          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            bed_level_virt_print();
+          #endif
+        }
+      #endif
+    }
+
+    bool to_enable = false;
     if (parser.seen('S')) {
       to_enable = parser.value_bool();
       set_bed_leveling_enabled(to_enable);
@@ -9234,24 +9266,11 @@ inline void gcode_M303() {
       }
     #endif
 
-    if (to_enable && !planner.abl_enabled) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+    const bool new_status = leveling_is_active();
+    if (to_enable && !new_status)
+      SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
-    SERIAL_LMV(ECHO, "ABL: ", planner.abl_enabled ? MSG_ON : MSG_OFF);
-
-    // V to print the matrix
-    if (parser.seen('V')) {
-      #if ABL_PLANAR
-        planner.bed_level_matrix.debug("Bed Level Correction Matrix:");
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        if (bilinear_grid_spacing[X_AXIS]) {
-          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bed_level_virt_print();
-          #else
-            print_bilinear_leveling_grid();
-          #endif
-        }
-      #endif
-    }
+    SERIAL_LMV(ECHO, "ABL: ", new_status ? MSG_ON : MSG_OFF);
   }
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -9822,6 +9841,12 @@ inline void gcode_M400() { stepper.synchronize(); }
   inline void gcode_M420() {
     bool to_enable = false;
 
+    // V to print the matrix or mesh
+    if (parser.seen('V') && leveling_is_valid()) {
+      SERIAL_EM("Mesh Bed Level data:");
+      mbl_mesh_report();
+    }
+
     if (parser.seen('S')) {
       to_enable = parser.value_bool();
       set_bed_leveling_enabled(to_enable);
@@ -9831,15 +9856,11 @@ inline void gcode_M400() { stepper.synchronize(); }
       if (parser.seen('Z')) set_z_fade_height(parser.value_linear_units());
     #endif
 
-    if (to_enable && !(mbl.active())) SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
+    const bool new_status = leveling_is_active();
+    if (to_enable && !new_status)
+      SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
-    SERIAL_LMV(ECHO, "MBL: ", mbl.active() ? MSG_ON : MSG_OFF);
-
-    // V to print the matrix or mesh
-    if (parser.seen('V') && mbl.has_mesh()) {
-      SERIAL_EM("Mesh Bed Level data:");
-      mbl_mesh_report();
-    }
+    SERIAL_LMV(ECHO, "MBL: ", new_status() ? MSG_ON : MSG_OFF);
   }
 
   /**
@@ -12148,7 +12169,7 @@ void process_next_command() {
           gcode_M306(); break;
       #endif
 
-      #if HAS(ABL)
+      #if HAS_ABL
         case 320: // M320: Activate ABL
           gcode_M320(); break;
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)

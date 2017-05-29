@@ -204,38 +204,48 @@ void EEPROM::Postprocess() {
 
 #if ENABLED(EEPROM_SETTINGS)
 
+  #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
+  #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
+  #define EEPROM_WRITE(VAR) write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_READ(VAR)  read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+
   const char version[6] = EEPROM_VERSION;
 
-  uint16_t EEPROM::eeprom_checksum;
+  bool EEPROM::eeprom_error;
 
-  bool  EEPROM::eeprom_write_error,
-        EEPROM::eeprom_read_error;
+  void EEPROM::crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
+    uint8_t *ptr = (uint8_t *)data;
+    while (cnt--) {
+      *crc = (uint16_t)(*crc ^ (uint16_t)(((uint16_t)*ptr++) << 8));
+      for (uint8_t x = 0; x < 8; x++)
+        *crc = (uint16_t)((*crc & 0x8000) ? ((uint16_t)(*crc << 1) ^ 0x1021) : (*crc << 1));
+    }
+  }
 
-  #if HAS(EEPROM_SD)
+  #if HAS_EEPROM_SD
 
-    void EEPROM::write_data(int &pos, const uint8_t* value, uint16_t size) {
-      if (eeprom_write_error) return;
-
+    void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
+      if (eeprom_error) return;
       while(size--) {
-        const uint8_t v = *value;
+        uint8_t v = *value;
         if (!card.write_data(v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-          eeprom_write_error = true;
+          eeprom_error = true;
           return;
         }
-        eeprom_checksum += v;
+        crc16(crc, &v, 1);
         pos++;
         value++;
       };
     }
 
     void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
-      if (eeprom_read_error) return;
+      if (eeprom_error) return;
 
       do {
         uint8_t c = card.read_data();
         *value = c;
-        eeprom_checksum += c;
+        crc16(crc, &c, 1);
         pos++;
         value++;
       } while (--size);
@@ -243,8 +253,8 @@ void EEPROM::Postprocess() {
 
   #else
 
-    void EEPROM::write_data(int &pos, const uint8_t* value, uint16_t size) {
-      if (eeprom_write_error) return;
+    void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
+      if (eeprom_error) return;
 
       while(size--) {
         uint8_t * const p = (uint8_t * const)pos;
@@ -255,32 +265,28 @@ void EEPROM::Postprocess() {
           eeprom_write_byte(p, v);
           if (eeprom_read_byte(p) != v) {
             SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-            eeprom_write_error = true;
+            eeprom_error = true;
             return;
           }
         }
-        eeprom_checksum += v;
+        crc16(crc, &v, 1);
         pos++;
         value++;
       };
     }
 
-    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
+    void EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+      if (eeprom_error) return;
       do {
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
-        if (!eeprom_read_error) *value = c;
-        eeprom_checksum += c;
+        *value = c;
+        crc16(crc, &c, 1);
         pos++;
         value++;
       } while (--size);
     }
 
   #endif
-
-  #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
-  #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR) write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
-  #define EEPROM_READ(VAR)  read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR))
 
   /**
    * M500 - Store Configuration
@@ -289,11 +295,13 @@ void EEPROM::Postprocess() {
     float dummy = 0.0f;
     char ver[6] = "00000";
 
+    uint16_t working_crc = 0;
+
     EEPROM_START();
 
-    eeprom_write_error = false;
+    eeprom_error = false;
 
-    #if HAS(EEPROM_SD)
+    #if HAS_EEPROM_SD
       // EEPROM on SDCARD
       if (!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) {
         SERIAL_LM(ER, MSG_NO_CARD);
@@ -303,12 +311,10 @@ void EEPROM::Postprocess() {
       card.setroot(true);
       card.startWrite((char *)"EEPROM.bin", false);
       EEPROM_WRITE(version);
-      eeprom_checksum = 0; // clear before first "real data"
     #else
       // EEPROM on SPI or IC2
-      EEPROM_WRITE(ver);     // invalidate data first
-      EEPROM_SKIP(eeprom_checksum); // Skip the checksum slot
-      eeprom_checksum = 0; // clear before first "real data"
+      EEPROM_WRITE(ver);        // invalidate data first
+      EEPROM_SKIP(working_crc); // Skip the checksum slot
     #endif
 
     EEPROM_WRITE(planner.axis_steps_per_mm);
@@ -331,14 +337,16 @@ void EEPROM::Postprocess() {
     // General Leveling
     //
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      EEPROM_WRITE(planner.z_fade_height);
+      const float zfh = planner.z_fade_height;
+    #else
+      const float zfh = 10.0;
     #endif
+    EEPROM_WRITE(zfh);
 
     //
     // Mesh Bed Leveling
     //
     #if ENABLED(MESH_BED_LEVELING)
-      // Compile time test that sizeof(mbl.z_values) is as expected
       static_assert(
         sizeof(mbl.z_values) == GRID_MAX_POINTS * sizeof(mbl.z_values[0][0]),
         "MBL Z array is the wrong size."
@@ -375,8 +383,8 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(z_values);               // 9-256 floats
     #endif // AUTO_BED_LEVELING_BILINEAR
 
-    #if HASNT(BED_PROBE)
-      float zprobe_zoffset = 0;
+    #if !HAS_BED_PROBE
+      const float zprobe_zoffset = 0;
     #endif
     EEPROM_WRITE(zprobe_zoffset);
 
@@ -419,7 +427,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if DISABLED(PID_ADD_EXTRUSION_RATE)
-      int lpq_len = 20;
+      const int lpq_len = 20;
     #endif
     EEPROM_WRITE(lpq_len);
     
@@ -441,7 +449,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(thermalManager.coolerKd);
     #endif
 
-    #if HASNT(LCD_CONTRAST)
+    #if !HAS_LCD_CONTRAST
       const uint16_t lcd_contrast = 32;
     #endif
     EEPROM_WRITE(lcd_contrast);
@@ -480,8 +488,8 @@ void EEPROM::Postprocess() {
     #endif
 
     // Save TCM2130 Configuration, and placeholder values
+    uint16_t val;
     #if ENABLED(HAVE_TMC2130)
-      uint16_t val;
       #if ENABLED(X_IS_TMC2130)
         val = stepperX.getCurrent();
       #else
@@ -564,40 +572,42 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(planner.advance_ed_ratio);
     #endif
 
-    if (!eeprom_write_error) {
+    if (!eeprom_error) {
+      const int eeprom_size = eeprom_index;
+      
+      const uint16_t final_crc = working_crc;
 
-      uint16_t  final_checksum = eeprom_checksum,
-                eeprom_size = eeprom_index;
-
+      // Write the EEPROM header
       eeprom_index = EEPROM_OFFSET;
       EEPROM_WRITE(version);
-      EEPROM_WRITE(final_checksum);
+      EEPROM_WRITE(final_crc);
 
       // Report storage size
       SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
-      SERIAL_EM(" bytes)");
+      SERIAL_MV(" bytes; crc ", final_crc);
+      SERIAL_EM(")");
     }
 
-    #if HAS(EEPROM_SD)
+    #if HAS_EEPROM_SD
       card.finishWrite();
       unset_sd_dot();
     #endif
 
-    return !eeprom_write_error;
+    return !eeprom_error;
   }
 
   /**
-   * M501 - Retrieve Configuration
+   * M501 - Load Configuration
    */
   bool EEPROM::Load_Settings() {
+    uint16_t working_crc = 0;
 
     EEPROM_START();
-    eeprom_read_error = false; // If set EEPROM_READ won't write into RAM
 
     char stored_ver[6];
-    uint16_t stored_checksum;
+    uint16_t stored_crc;
 
-    #if HAS(EEPROM_SD)
+    #if HAS_EEPROM_SD
       if (IS_SD_INSERTED || !card.isFileOpen() || !card.sdprinting || card.cardOK) {
         set_sd_dot();
         card.setroot(true);
@@ -610,7 +620,7 @@ void EEPROM::Postprocess() {
       }
     #else
       EEPROM_READ(stored_ver);
-      EEPROM_READ(stored_checksum);
+      EEPROM_READ(stored_crc);
     #endif
 
     if (strncmp(version, stored_ver, 5) != 0) {
@@ -627,7 +637,7 @@ void EEPROM::Postprocess() {
     else {
       float dummy = 0;
 
-      eeprom_checksum = 0; // clear before reading first "real data"
+      working_crc = 0; // clear before reading first "real data"
 
       // version number match
       EEPROM_READ(planner.axis_steps_per_mm);
@@ -706,7 +716,7 @@ void EEPROM::Postprocess() {
         }
       #endif // AUTO_BED_LEVELING_BILINEAR
 
-      #if HASNT(BED_PROBE)
+      #if !HAS_BED_PROBE
         float zprobe_zoffset = 0;
       #endif
       EEPROM_READ(zprobe_zoffset);
@@ -809,8 +819,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(motor_current);
       #endif
 
+      uint16_t val;
       #if ENABLED(HAVE_TMC2130)
-        uint16_t val;
         EEPROM_READ(val);
         #if ENABLED(X_IS_TMC2130)
           stepperX.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
@@ -869,11 +879,11 @@ void EEPROM::Postprocess() {
         EEPROM_READ(planner.advance_ed_ratio);
       #endif
 
-      #if HAS(EEPROM_SD)
+      #if HAS_EEPROM_SD
 
         card.closeFile();
         unset_sd_dot();
-        if (eeprom_read_error)
+        if (eeprom_error)
           Factory_Settings();
         else {
           Postprocess();
@@ -884,18 +894,17 @@ void EEPROM::Postprocess() {
 
       #else
 
-        if (eeprom_checksum == stored_checksum) {
-          if (eeprom_read_error)
-            Factory_Settings();
-          else {
-            Postprocess();
-            SERIAL_V(version);
-            SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
-            SERIAL_EM(" bytes)");
-          }
+        if (working_crc == stored_crc) {
+          Postprocess();
+          SERIAL_V(version);
+          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+          SERIAL_MV(" bytes; crc ", working_crc);
+          SERIAL_EM(")");
         }
         else {
-          SERIAL_LM(ER, "EEPROM checksum mismatch");
+          SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
+          SERIAL_MV(" != ", working_crc);
+          SERIAL_EM(" (calculated)!");
           Factory_Settings();
         }
 
@@ -906,7 +915,7 @@ void EEPROM::Postprocess() {
       Print_Settings();
     #endif
 
-    return !eeprom_read_error;
+    return !eeprom_error;
   }
 
 #else // !EEPROM_SETTINGS
@@ -1261,7 +1270,7 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    #if HAS(LCD_CONTRAST)
+    #if HAS_LCD_CONTRAST
       CONFIG_MSG_START("LCD Contrast:");
       SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
     #endif
@@ -1269,7 +1278,7 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(MESH_BED_LEVELING)
 
       CONFIG_MSG_START("Mesh Bed Leveling:");
-      SERIAL_SMV(CFG, "  M420 S", mbl.has_mesh() ? 1 : 0);
+      SERIAL_SMV(CFG, "  M420 S", leveling_is_valid() ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
@@ -1286,7 +1295,7 @@ void EEPROM::Factory_Settings() {
     #elif HAS_ABL
 
       CONFIG_MSG_START("Auto Bed Leveling:");
-      SERIAL_SMV(CFG, "  M320 S", planner.abl_enabled ? 1 : 0);
+      SERIAL_SMV(CFG, "  M320 S", leveling_is_active() ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif

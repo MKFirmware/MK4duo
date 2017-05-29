@@ -240,8 +240,7 @@
 #define MSG_INFO_PSU                        _UxGT("Power Supply")
 
 // CASE LIGHT
-#define MSG_LIGHTS_ON                       _UxGT("Case light on")
-#define MSG_LIGHTS_OFF                      _UxGT("Case light off")
+#define MSG_CASE_LIGHT                      _UxGT("Case light")
 
 // ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")
