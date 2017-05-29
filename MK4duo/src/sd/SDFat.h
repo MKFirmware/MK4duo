@@ -1895,7 +1895,7 @@ class SdBaseFile {
    * \param[in] dateTime The user's call back function.
    */
   static void dateTimeCallback(
-    void (*dateTime)(uint16_t& date, uint16_t& time)) {  // NOLINT
+    void (*dateTime)(uint16_t &date, uint16_t &time)) {  // NOLINT
     oldDateTime_ = dateTime;
     dateTime_ = dateTime ? oldToNew : 0;
   }
@@ -1970,7 +1970,7 @@ class SdBaseFile {
 //------------------------------------------------------------------------------
 // rest are private
  private:
-  static void (*oldDateTime_)(uint16_t& date, uint16_t& time);  // NOLINT
+  static void (*oldDateTime_)(uint16_t &date, uint16_t &time);  // NOLINT
   static void oldToNew(uint16_t* date, uint16_t* time) {
     uint16_t d;
     uint16_t t;
@@ -1986,7 +1986,7 @@ class SdBaseFile {
     const char* path, uint32_t size)
     __attribute__((error("use createContiguous(&bgnBlock, &endBlock)")));
   static void dateTimeCallback(  // NOLINT
-    void (*dateTime)(uint16_t& date, uint16_t& time))  // NOLINT
+    void (*dateTime)(uint16_t &date, uint16_t &time))  // NOLINT
     __attribute__((error("use void dateTimeCallback("
      "void (*dateTime)(uint16_t* date, uint16_t* time))")));
   bool dirEntry(dir_t& dir)  // NOLINT

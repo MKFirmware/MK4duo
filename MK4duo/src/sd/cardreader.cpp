@@ -611,7 +611,7 @@ bool CardReader::findGeneratedBy(char* buf, char* genBy) {
   return false;
 }
 
-bool CardReader::findFirstLayerHeight(char* buf, float& firstlayerHeight) {
+bool CardReader::findFirstLayerHeight(char* buf, float &firstlayerHeight) {
   // SLIC3R
   firstlayerHeight = 0;
   const char* layerHeightSlic3r = PSTR("; first_layer_height ");
@@ -640,7 +640,7 @@ bool CardReader::findFirstLayerHeight(char* buf, float& firstlayerHeight) {
   return false;
 }
 
-bool CardReader::findLayerHeight(char* buf, float& layerHeight) {
+bool CardReader::findLayerHeight(char* buf, float &layerHeight) {
   // SLIC3R
   layerHeight = 0;
   const char* layerHeightSlic3r = PSTR("; layer_height ");
@@ -669,7 +669,7 @@ bool CardReader::findLayerHeight(char* buf, float& layerHeight) {
   return false;
 }
 
-bool CardReader::findFilamentNeed(char* buf, float& filament) {
+bool CardReader::findFilamentNeed(char* buf, float &filament) {
   const char* filamentUsedStr = PSTR("filament used");
   const char* pos = strstr_P(buf, filamentUsedStr);
   filament = 0;
@@ -690,7 +690,7 @@ bool CardReader::findFilamentNeed(char* buf, float& filament) {
   return false;
 }
 
-bool CardReader::findTotalHeight(char* buf, float& height) {
+bool CardReader::findTotalHeight(char* buf, float &height) {
   int len = 1024;
   bool inComment, inRelativeMode = false;
   unsigned int zPos;

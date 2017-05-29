@@ -247,6 +247,15 @@ class Temperature {
       static millis_t next_auto_fan_check_ms;
     #endif
 
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      static millis_t heater_idle_timeout_ms[HOTENDS];
+      static bool heater_idle_timeout_exceeded[HOTENDS];
+      #if HAS_TEMP_BED
+        static millis_t bed_idle_timeout_ms;
+        static bool bed_idle_timeout_exceeded;
+      #endif
+    #endif
+
   public:
 
     /**
@@ -366,7 +375,9 @@ class Temperature {
       #endif
       return target_temperature[HOTEND_INDEX];
     }
+
     static int16_t degTargetBed() { return target_temperature_bed; }
+
     #if HAS(TEMP_CHAMBER)
       static int16_t degTargetChamber() { return target_temperature_chamber; }
     #endif
@@ -401,22 +412,32 @@ class Temperature {
           start_preheat_time(HOTEND_INDEX);
       #endif
       target_temperature[HOTEND_INDEX] = celsius;
-      #if ENABLED(THERMAL_PROTECTION_HOTENDS) && WATCH_TEMP_PERIOD > 0
+      #if WATCH_HOTENDS
         start_watching_heater(HOTEND_INDEX);
       #endif
     }
 
     static void setTargetBed(const int16_t celsius) {
-      target_temperature_bed = celsius;
-      #if ENABLED(THERMAL_PROTECTION_BED) && WATCH_BED_TEMP_PERIOD > 0
-        start_watching_bed();
+      #if HAS_TEMP_BED
+        #if ENABLED(BED_MAXTEMP)
+          target_temperature_bed = min(celsius, BED_MAXTEMP);
+        #else
+          target_temperature_bed = celsius;
+        #endif
+        #if WATCH_THE_BED
+          start_watching_bed();
+        #endif
       #endif
     }
 
     #if HAS(TEMP_CHAMBER)
       static void setTargetChamber(const int16_t celsius) {
-        target_temperature_chamber = celsius;
-        #if ENABLED(THERMAL_PROTECTION_CHAMBER) && WATCH_CHAMBER_TEMP_PERIOD > 0
+        #if ENABLED(CHAMBER_MAXTEMP)
+          target_temperature_chamber = min(celsius, CHAMBER_MAXTEMP);
+        #else
+          target_temperature_chamber = celsius;
+        #endif
+        #if WATCH_THE_CHAMBER
           start_watching_chamber();
         #endif
       }
@@ -424,8 +445,12 @@ class Temperature {
 
     #if HAS(TEMP_COOLER)
       static void setTargetCooler(const int16_t celsius) {
-        target_temperature_cooler = celsius;
-        #if ENABLED(THERMAL_PROTECTION_COOLER) && WATCH_COOLER_TEMP_PERIOD > 0
+        #if ENABLED(COOLER_MAXTEMP)
+          target_temperature_cooler = min(celsius, COOLER_MAXTEMP);
+        #else
+          target_temperature_cooler = celsius;
+        #endif
+        #if WATCH_THE_COOLER
           start_watching_cooler();
         #endif
       }
@@ -437,7 +462,9 @@ class Temperature {
       #endif
       return target_temperature[HOTEND_INDEX] > current_temperature[HOTEND_INDEX];
     }
+
     static bool isHeatingBed() { return target_temperature_bed > current_temperature_bed; }
+
     #if HAS(TEMP_CHAMBER)
       static bool isHeatingChamber() { return target_temperature_chamber > current_temperature_chamber; }
     #endif
@@ -451,7 +478,9 @@ class Temperature {
       #endif
       return target_temperature[HOTEND_INDEX] < current_temperature[HOTEND_INDEX];
     }
+
     static bool isCoolingBed() { return target_temperature_bed < current_temperature_bed; }
+
     #if HAS(TEMP_CHAMBER)
       static bool isCoolingChamber() { return target_temperature_chamber < current_temperature_chamber; }
     #endif
@@ -543,6 +572,53 @@ class Temperature {
       }
 
     #endif // BABYSTEPPING
+
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      static void start_heater_idle_timer(uint8_t h, millis_t timeout_ms) {
+        #if HOTENDS == 1
+          UNUSED(h);
+        #endif
+        heater_idle_timeout_ms[HOTEND_INDEX] = millis() + timeout_ms;
+        heater_idle_timeout_exceeded[HOTEND_INDEX] = false;
+      }
+
+      static void reset_heater_idle_timer(uint8_t h) {
+        #if HOTENDS == 1
+          UNUSED(h);
+        #endif
+        heater_idle_timeout_ms[HOTEND_INDEX] = 0;
+        heater_idle_timeout_exceeded[HOTEND_INDEX] = false;
+        #if WATCH_HOTENDS
+          start_watching_heater(HOTEND_INDEX);
+        #endif
+      }
+
+      static bool is_heater_idle(uint8_t h) {
+        #if HOTENDS == 1
+          UNUSED(h);
+        #endif
+        return heater_idle_timeout_exceeded[HOTEND_INDEX];
+      }
+
+      #if HAS_TEMP_BED
+        static void start_bed_idle_timer(millis_t timeout_ms) {
+          bed_idle_timeout_ms = millis() + timeout_ms;
+          bed_idle_timeout_exceeded = false;
+        }
+
+        static void reset_bed_idle_timer() {
+          bed_idle_timeout_ms = 0;
+          bed_idle_timeout_exceeded = false;
+          #if WATCH_THE_BED
+            start_watching_bed();
+          #endif
+        }
+
+        static bool is_bed_idle() {
+          return bed_idle_timeout_exceeded;
+        }
+      #endif
+    #endif
 
   private:
 

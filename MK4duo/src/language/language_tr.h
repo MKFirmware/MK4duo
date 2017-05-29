@@ -227,8 +227,8 @@
 
 #define MSG_DRIVE_STRENGTH                  _UxGT("Sürücü Gücü")                                        // Sürücü Gücü
 #define MSG_DAC_PERCENT                     _UxGT("Sürücü %")                                           // Sürücü %
-#define MSG_DAC_EEPROM_WRITE                _UxGT("DAC'i EEPROM'a Yaz")                                 // DAC'i EEPROM'a Yaz
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("Filaman Degistir")                                   // Filaman Degistir
+#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
+#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("Seçenekler:")                                        // Seçenekler:
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Daha Akit")                                          // Daha Akit
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Baskiyi sürdür")                                     // Baskiyi sürdür

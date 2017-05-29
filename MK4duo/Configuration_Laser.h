@@ -68,7 +68,7 @@
 #define LASER_RASTER_ASPECT_RATIO 1   // pixels aren't square on most displays, 1.33 == 4:3 aspect ratio. 
 #define LASER_RASTER_MM_PER_PULSE 0.2 // Can be overridden by providing an R value in M649 command : M649 S17 B2 D0 R0.1 F4000
 
-//#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 $ direction change. Manual Moves must be made between each line.
+#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 # direction change. Manual Moves must be made between each line. Has no effect on $ direction changes to stay compatible with turnkey plugin.
 
 // Uncomment the following if the laser cutter is equipped with a peripheral relay board
 // to control power to an exhaust fan, cooler pump, laser power supply, etc.
@@ -83,129 +83,5 @@
 //#define LASER_DIAMETER 0.1        // milimeters
 //#define LASER_PWM 50000           // hertz
 //#define LASER_FOCAL_HEIGHT 74.50  // z axis position at which the laser is focused
-
-
-// Uncomment these options for the mUVe 1 3D printer
-//#ifdef CUSTOM_MACHINE_NAME
-// #undef CUSTOM_MACHINE_NAME
-// #define CUSTOM_MACHINE_NAME "mUVe1 Printer"
-//#endif
-//#define LASER_WATTS 0.05
-//#define LASER_DIAMETER 0.1 // milimeters
-//#define LASER_PWM 8000 // hertz
-//#define MUVE_Z_PEEL // The mUVe 1 uses a special peel maneuver between each layer, it requires independent control of each Z motor
-
-// Uncomment these options for the Buildlog.net laser cutter, and other similar models
-//#ifdef CUSTOM_MACHINE_NAME
-// #undef CUSTOM_MACHINE_NAME
-// #define CUSTOM_MACHINE_NAME "Laser Cutter"
-//#endif
-//#define LASER_WATTS 40.0
-//#define LASER_DIAMETER 0.1 // milimeters
-//#define LASER_PWM 25000 // hertz
-//#define LASER_FOCAL_HEIGHT 74.50 // z axis position at which the laser is focused
-
-// Uncomment these options for the K40 laser cutter, and other similar models
-//#ifdef CUSTOM_MACHINE_NAME
-// #undef CUSTOM_MACHINE_NAME
-// #define CUSTOM_MACHINE_NAME "K40 Laser"
-//#endif
-//#define LASER_WATTS 40.0
-//#define LASER_DIAMETER 0.1 // milimeters
-//#define LASER_PWM 50000 // hertz
-//#define LASER_FOCAL_HEIGHT 50 // z axis position at which the laser is focused
-//  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
-//#ifdef DEFAULT_MAX_ACCELERATION
-//  #undef DEFAULT_MAX_ACCELERATION
-//  #define DEFAULT_MAX_ACCELERATION              {5000, 5000, 50, 1000, 1000, 1000, 1000}
-//#endif
-//  X, Y, Z and E* maximum acceleration in mm/s^2 for printing moves
-//#ifdef DEFAULT_ACCELERATION
-//  #undef DEFAULT_ACCELERATION
-//  #define DEFAULT_ACCELERATION          5000
-//#endif
-//  X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
-//#ifdef DEFAULT_TRAVEL_ACCELERATION
-//  #undef DEFAULT_TRAVEL_ACCELERATION
-//  #define DEFAULT_TRAVEL_ACCELERATION   20000
-//#endif
-
-
-
-// Uncomment these options for the All Things RC A5 laser Engraver, and other similar models
-#ifdef CUSTOM_MACHINE_NAME //if the macro CUSTOM_MACHINE_NAME is defined 
-  #undef CUSTOM_MACHINE_NAME //un-define it
-  #define CUSTOM_MACHINE_NAME "A5 Laser"//redefine it with the new value
-#endif
-#define LASER_WATTS 5.0
-#define LASER_DIAMETER 0.1 // milimeters
-#define LASER_PWM 10000 // hertz
-#define LASER_FOCAL_HEIGHT 74.50 // z axis position at which the laser is focused
-//  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
-#ifdef DEFAULT_MAX_ACCELERATION
-  #undef DEFAULT_MAX_ACCELERATION
-  #define DEFAULT_MAX_ACCELERATION              {2000, 1500, 50, 1000, 1000, 1000, 1000}
-#endif
-//  X, Y, Z and E* maximum acceleration in mm/s^2 for printing moves
-#ifdef DEFAULT_ACCELERATION
-  #undef DEFAULT_ACCELERATION
-  #define DEFAULT_ACCELERATION          2000
-#endif
-//  X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
-#ifdef DEFAULT_TRAVEL_ACCELERATION
-  #undef DEFAULT_TRAVEL_ACCELERATION
-  #define DEFAULT_TRAVEL_ACCELERATION   2000
-#endif
-
-// Uncomment these options for the All Things RC A3 laser Engraver, and other similar models
-//#ifdef CUSTOM_MACHINE_NAME
-// #undef CUSTOM_MACHINE_NAME
-// #define CUSTOM_MACHINE_NAME "A3 Laser"
-//#endif
-//#define LASER_WATTS 5.0
-//#define LASER_DIAMETER 0.1 // milimeters
-//#define LASER_PWM 10000 // hertz
-//#define LASER_FOCAL_HEIGHT 74.50 // z axis position at which the laser is focused
-//  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
-//#ifdef DEFAULT_MAX_ACCELERATION
-//  #undef DEFAULT_MAX_ACCELERATION
-//  #define DEFAULT_MAX_ACCELERATION              {4000, 4000, 50, 1000, 1000, 1000, 1000}
-//#endif
-//  X, Y, Z and E* maximum acceleration in mm/s^2 for printing moves
-//#ifdef DEFAULT_ACCELERATION
-//  #undef DEFAULT_ACCELERATION
-//  #define DEFAULT_ACCELERATION          2000
-//#endif
-//  X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
-//#ifdef DEFAULT_TRAVEL_ACCELERATION
-//  #undef DEFAULT_TRAVEL_ACCELERATION
-//  #define DEFAULT_TRAVEL_ACCELERATION   15000
-//#endif
-
-// Uncomment these options for the All Things RC Pocket laser Engraver, and other similar models
-//#ifdef CUSTOM_MACHINE_NAME
-// #undef CUSTOM_MACHINE_NAME
-// #define CUSTOM_MACHINE_NAME "Pocket Laser"
-//#endif
-//#define LASER_WATTS 0.5
-//#define LASER_DIAMETER 0.07 // milimeters
-//#define LASER_PWM 8000 // hertz
-//#define LASER_FOCAL_HEIGHT 74.50 // z axis position at which the laser is focused
-//  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
-//#ifdef DEFAULT_MAX_ACCELERATION
-//  #undef DEFAULT_MAX_ACCELERATION
-//  #define DEFAULT_MAX_ACCELERATION              {500, 500, 50, 1000, 1000, 1000, 1000}
-//#endif
-//  X, Y, Z and E* maximum acceleration in mm/s^2 for printing moves
-//#ifdef DEFAULT_ACCELERATION
-//  #undef DEFAULT_ACCELERATION
-//  #define DEFAULT_ACCELERATION          200
-//#endif
-//  X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
-//#ifdef DEFAULT_TRAVEL_ACCELERATION
-//  #undef DEFAULT_TRAVEL_ACCELERATION
-//  #define DEFAULT_TRAVEL_ACCELERATION   200
-//#endif
-
 
 #endif

@@ -241,13 +241,24 @@ char lcd_print_and_count(const char c) {
   else return charset_mapper(c);
 }
 
-void lcd_print(const char* const str) {
-  for (uint8_t i = 0; char c = str[i]; ++i) lcd_print(c);
+/**
+ * Core LCD printing functions
+ * On DOGM all strings go through a filter for utf
+ * But only use lcd_print_utf and lcd_printPGM_utf for translated text
+ */
+void lcd_print(const char* const str) { for (uint8_t i = 0; char c = str[i]; ++i) lcd_print(c); }
+void lcd_printPGM(const char* str) { for (; char c = pgm_read_byte(str); ++str) lcd_print(c); }
+
+void lcd_print_utf(const char* const str, const uint8_t maxLength=LCD_WIDTH) {
+  char c;
+  for (uint8_t i = 0, n = maxLength; n && (c = str[i]); ++i)
+    n -= charset_mapper(c);
 }
 
-/* Arduino < 1.0.0 is missing a function to print PROGMEM strings, so we need to implement our own */
-void lcd_printPGM(const char* str) {
-  for (; char c = pgm_read_byte(str); ++str) lcd_print(c);
+void lcd_printPGM_utf(const char* str, const uint8_t maxLength=LCD_WIDTH) {
+  char c;
+  for (uint8_t i = 0, n = maxLength; n && (c = str[i]); ++i)
+    n -= charset_mapper(c);
 }
 
 // Initialize or re-initialize the LCD
@@ -348,15 +359,26 @@ FORCE_INLINE void _draw_centered_temp(const int temp, const uint8_t x, const uin
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
 }
 
-FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater) {
-  #if HAS(TEMP_BED)
+FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
+  #if HAS_TEMP_BED
     bool isBed = heater < 0;
   #else
     const bool isBed = false;
   #endif
 
-  if (PAGE_UNDER(7))
-    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7);
+  if (PAGE_UNDER(7)) {
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      const bool is_idle = (!isBed ? thermalManager.is_heater_idle(heater) :
+      #if HAS_TEMP_BED
+        thermalManager.is_bed_idle()
+      #else
+        false
+      #endif
+      );
+
+      if (blink || !is_idle)
+    #endif
+    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7); }
 
   if (PAGE_CONTAINS(21, 28))
     _draw_centered_temp((isBed ? thermalManager.degBed() : thermalManager.degHotend(heater)) + 0.5, x, 28);
@@ -390,6 +412,20 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
+inline void lcd_implementation_status_message() {
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    lcd_print_utf(lcd_status_message + status_scroll_pos);
+    const uint8_t slen = lcd_strlen(lcd_status_message);
+    if (slen > LCD_WIDTH) {
+      // Skip any non-printing bytes
+      while (!charset_mapper(lcd_status_message[status_scroll_pos])) ++status_scroll_pos;
+      if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+    }
+  #else
+    lcd_print_utf(lcd_status_message);
+  #endif
+}
+
 static void lcd_implementation_status_screen() {
 
   bool blink = lcd_blink();
@@ -420,21 +456,21 @@ static void lcd_implementation_status_screen() {
 
   #endif
 
-    {
-      //
-      // Fan Animation
-      //
-      if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
+  {
+    //
+    // Fan Animation
+    //
+    if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
-        u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-          #if HAS(FAN0)
-            blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
-          #else
-            status_screen0_bmp
-          #endif
-        );
-      }
+      u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
+        #if HAS(FAN0)
+          blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
+        #else
+          status_screen0_bmp
+        #endif
+      );
     }
+  }
 
   if (printer_mode == PRINTER_MODE_FFF) {
 
@@ -444,24 +480,24 @@ static void lcd_implementation_status_screen() {
 
     if (PAGE_UNDER(28)) {
       // Hotends
-      HOTEND_LOOP() _draw_heater_status(5 + h * 25, h);
+      HOTEND_LOOP() _draw_heater_status(5 + h * 25, h, blink);
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(81, -1);
+        _draw_heater_status(81, -1, blink);
       #endif
 
-      if (PAGE_CONTAINS(20, 27)) {
-        // Fan
-        u8g.setPrintPos(104, 27);
-        #if HAS(FAN0)
-          int per = ((fanSpeeds[0] + 1) * 100) / 256;
+      #if HAS_FAN0
+        if (PAGE_CONTAINS(20, 27)) {
+          // Fan
+          const int per = ((fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
+            u8g.setPrintPos(104, 27);
             lcd_print(itostr3(per));
             u8g.print('%');
           }
-        #endif
-      }
+        }
+      #endif
     }
   }
 
@@ -577,7 +613,7 @@ static void lcd_implementation_status_screen() {
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];
-  #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+  #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
     static char wstring[5], mstring[4];
   #endif
 
@@ -586,7 +622,7 @@ static void lcd_implementation_status_screen() {
     strcpy(xstring, ftostr4sign(current_position[X_AXIS]));
     strcpy(ystring, ftostr4sign(current_position[Y_AXIS]));
     strcpy(zstring, ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
-    #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+    #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
     #endif
@@ -644,7 +680,7 @@ static void lcd_implementation_status_screen() {
     //
     // Filament sensor display if SD is disabled
     //
-    #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+    #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       u8g.setPrintPos(56, 50);
       lcd_print(wstring);
       u8g.setPrintPos(102, 50);
@@ -667,17 +703,13 @@ static void lcd_implementation_status_screen() {
   if (PAGE_CONTAINS(STATUS_BASELINE + 1 - INFO_FONT_HEIGHT, STATUS_BASELINE)) {
     u8g.setPrintPos(0, STATUS_BASELINE);
 
-    #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
-
+    #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
       if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
-        const char *str = lcd_status_message;
-        uint8_t i = LCD_WIDTH;
-        char c;
-        while (i-- && (c = *str++)) lcd_print(c);
+        lcd_implementation_status_message();
       }
 
-      #if HAS(LCD_POWER_SENSOR)
-        #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT))
+      #if HAS_LCD_POWER_SENSOR
+        #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT))
           else if (PENDING(millis(), previous_lcd_status_ms + 10000UL))
         #else
           else
@@ -703,10 +735,7 @@ static void lcd_implementation_status_screen() {
         }
       #endif
     #else
-      const char *str = lcd_status_message;
-      uint8_t i = LCD_WIDTH;
-      char c;
-      while (i-- && (c = *str++)) lcd_print(c);
+      lcd_implementation_status_message();
     #endif
   }
 }
@@ -716,7 +745,7 @@ static void lcd_implementation_status_screen() {
   uint8_t row_y1, row_y2;
   uint8_t constexpr row_height = DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION);
 
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
     static void lcd_implementation_hotend_status(const uint8_t row) {
       row_y1 = row * row_height + 1;
@@ -733,7 +762,7 @@ static void lcd_implementation_status_screen() {
       lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
     }
 
-  #endif // FILAMENT_CHANGE_FEATURE
+  #endif // ADVANCED_PAUSE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
