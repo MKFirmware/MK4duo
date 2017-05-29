@@ -4,6 +4,8 @@
 * Add M125 - Store current position and move to pause park position.
 * Add automatic call M600 with one extruder and ADVANCED PAUSE FEATURE when change tools
 * Add STATUS MESSAGE SCROLLING. The message on lcd scroll right to the left.
+* Add ANET board for A2, A6 and A8 printer
+* Add ANET full graphics lcd
 
 ### Version 4.3.2 Stable
 * Add Nextion Diamond version by MrGoblin 7"
