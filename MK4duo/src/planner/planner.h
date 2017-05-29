@@ -156,7 +156,7 @@ class Planner {
                   travel_acceleration,              // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
                   max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
 
-    #if HAS(ABL)
+    #if HAS_ABL
       static bool abl_enabled;              // Flag that bed leveling is enabled
       #if ABL_PLANAR
         static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level

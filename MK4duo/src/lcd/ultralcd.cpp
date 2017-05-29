@@ -375,6 +375,8 @@ uint16_t max_display_update_time = 0;
   millis_t next_button_update_ms;
   #if ENABLED(REPRAPWORLD_KEYPAD)
     volatile uint8_t buttons_reprapworld_keypad;
+  #else ENABLED(ADC_KEYPAD)
+    volatile uint8_t buttons_adc_keypad;
   #endif
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)
     volatile uint8_t slow_buttons;
@@ -456,9 +458,10 @@ uint16_t max_display_update_time = 0;
   /**
    * Show "Moving..." till moves are done, then revert to previous display.
    */
-  inline void lcd_synchronize() {
+  inline void lcd_synchronize(const char * const msg=NULL) {
     static bool no_reentry = false;
-    lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_MOVING));
+    const static char moving[] PROGMEM = MSG_MOVING;
+    lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, msg ? msg : moving);
     if (no_reentry) return;
 
     // Make this the current handler till all moves are done
@@ -666,19 +669,6 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // SDSUPPORT
 
-  #if HAS_CASE_LIGHT
-
-    extern bool case_light_on;
-    extern void update_case_light();
-
-    void toggle_case_light() {
-      case_light_on ^= true;
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-      update_case_light();
-    }
-
-  #endif // HAS_CASE_LIGHT
-
   #if ENABLED(BLTOUCH)
 
     /**
@@ -748,6 +738,11 @@ void kill_screen(const char* lcd_msg) {
    *
    */
 
+  #if HAS_CASE_LIGHT
+    extern bool case_light_on;
+    extern void update_case_light();
+  #endif
+
   void lcd_main_menu() {
     START_MENU();
     MENU_BACK(MSG_WATCH);
@@ -769,10 +764,7 @@ void kill_screen(const char* lcd_msg) {
     // Switch case light on/off
     //
     #if HAS_CASE_LIGHT
-      if (case_light_on)
-        MENU_ITEM(function, MSG_LIGHTS_OFF, toggle_case_light);
-      else
-        MENU_ITEM(function, MSG_LIGHTS_ON, toggle_case_light);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, case_light_on, update_case_light);
     #endif
 
     if (planner.movesplanned() || IS_SD_PRINTING) {
@@ -1353,6 +1345,11 @@ void kill_screen(const char* lcd_msg) {
 
   #endif
 
+  #if ENABLED(EEPROM_SETTINGS)
+    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
+    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
+  #endif
+
   #if ENABLED(LCD_BED_LEVELING)
 
     /**
@@ -1417,7 +1414,7 @@ void kill_screen(const char* lcd_msg) {
 
           // The last G29 will record but not move
           if (manual_probe_index == total_probe_points - 1)
-            enqueue_and_echo_commands_P("G29 V1");
+            enqueue_and_echo_commands_P(PSTR("G29 V1"));
 
         #endif
 
@@ -1431,13 +1428,15 @@ void kill_screen(const char* lcd_msg) {
           #if MANUAL_PROBE_HEIGHT > 0
             current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
             line_to_current(Z_AXIS);
-            lcd_synchronize();
+          #endif
+
+          #if MANUAL_PROBE_HEIGHT > 0 || ENABLED(MESH_BED_LEVELING)
+            lcd_synchronize(PSTR(MSG_LEVEL_BED_DONE));
           #endif
 
           // Enable leveling, if needed
           #if ENABLED(MESH_BED_LEVELING)
 
-            lcd_synchronize();
             mbl.set_has_mesh(true);
             mesh_probing_done();
 
@@ -1563,13 +1562,48 @@ void kill_screen(const char* lcd_msg) {
       enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
+    static bool _level_state;
+    void _lcd_toggle_bed_leveling() { set_bed_leveling_enabled(_level_state); }
+    void _lcd_set_z_fade_height() { set_z_fade_height(planner.z_fade_height); }
+
     /**
-     * Step 1: Bed Level entry-point: "Cancel" or "Level Bed"
+     * Step 1: Bed Level entry-point
+     *  - Cancel
+     *  - Level Bed >
+     *  - Leveling On/Off (if there is leveling data)
+     *  - Fade Height (Req: ENABLE_LEVELING_FADE_HEIGHT)
+     *  - Mesh Z Offset (Req: MESH_BED_LEVELING)
+     *  - Z Probe Offset (Req: HAS_BED_PROBE)
+     *  - Load Settings (Req: EEPROM_SETTINGS)
+     *  - Save Settings (Req: EEPROM_SETTINGS)
      */
     void lcd_level_bed() {
       START_MENU();
-      MENU_BACK(MSG_LEVEL_BED_CANCEL);
+      MENU_BACK(MSG_PREPARE);
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
+      if (leveling_is_valid()) {      // Leveling data exists? Show more options.
+        _level_state = leveling_is_active();
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &_level_state, _lcd_toggle_bed_leveling);
+      }
+
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        set_z_fade_height(planner.z_fade_height);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_Z_FADE_HEIGHT, &planner.z_fade_height, 0.0, 100.0, _lcd_set_z_fade_height);
+      #endif
+
+      // Manual bed leveling, Bed Z:
+      #if ENABLED(MESH_BED_LEVELING)
+        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
+      #endif
+
+      #if HAS_BED_PROBE
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+      #endif
+
+      #if ENABLED(EEPROM_SETTINGS)
+        MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
+        MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      #endif
       END_MENU();
     }
 
@@ -2071,11 +2105,6 @@ void kill_screen(const char* lcd_msg) {
     void lcd_callback_set_contrast() { set_lcd_contrast(lcd_contrast); }
   #endif // HAS_LCD_CONTRAST
 
-  #if ENABLED(EEPROM_SETTINGS)
-    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
-    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
-  #endif
-
   static void lcd_factory_settings() {
     eeprom.Factory_Settings();
     lcd_completion_feedback();
@@ -2378,14 +2407,14 @@ void kill_screen(const char* lcd_msg) {
    */
   void lcd_control_temperature_preheat_material3_settings_menu() { _lcd_control_temperature_preheat_settings_menu(2); }
 
-  void _reset_acceleration_rates() { planner.reset_acceleration_rates(); }
-  void _planner_refresh_positioning() { planner.refresh_positioning(); }
-
   /**
    *
    * "Control" > "Motion" submenu
    *
    */
+  void _reset_acceleration_rates() { planner.reset_acceleration_rates(); }
+  void _planner_refresh_positioning() { planner.refresh_positioning(); }
+
   void lcd_control_motion_menu() {
     START_MENU();
     MENU_BACK(MSG_CONTROL);
@@ -3220,6 +3249,7 @@ void kill_screen(const char* lcd_msg) {
    *
    */
   #if ENABLED(REPRAPWORLD_KEYPAD)
+
     void _reprapworld_keypad_move(AxisEnum axis, int dir) {
       move_menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
       encoderPosition = dir;
@@ -3271,7 +3301,53 @@ void kill_screen(const char* lcd_msg) {
       }
     }
 
-  #endif // REPRAPWORLD_KEYPAD
+  #elif ENABLED(ADC_KEYPAD) // ADC_KEYPAD
+
+    inline void handle_adc_keypad() {
+      
+      if (buttons_adc_keypad != 0) {
+        lcd_quick_feedback();
+        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+        if ((currentScreen == lcd_main_menu) || (currentScreen == lcd_tune_menu) || (currentScreen == lcd_prepare_menu) || (currentScreen == lcd_control_menu)
+          #if ENABLED(SDSUPPORT)
+            || (currentScreen == lcd_sdcard_menu)
+          #endif
+          || (currentScreen == lcd_move_menu)
+          || (currentScreen == lcd_move_get_x_amount)
+          || (currentScreen == lcd_move_get_y_amount)
+          || (currentScreen == lcd_move_get_z_amount)
+          || (currentScreen == lcd_move_get_e_amount)
+          || (currentScreen == lcd_move_menu_10mm)
+          || (currentScreen == lcd_move_menu_1mm)
+          || (currentScreen == lcd_move_menu_01mm)
+          || (currentScreen == lcd_control_temperature_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material1_settings_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material2_settings_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material3_settings_menu)
+          || (currentScreen == lcd_control_motion_menu)
+          || (currentScreen == lcd_control_filament_menu)
+          #if HAS_TEMP_0 || HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED
+            || (currentScreen == lcd_preheat_m1_menu) || (currentScreen == lcd_preheat_m2_menu) || (currentScreen == lcd_preheat_m3_menu)
+          #endif
+        ) {
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
+            encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
+          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
+            encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
+
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_LEFT)
+            menu_action_back();
+        }
+        else {
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
+            encoderPosition += ENCODER_PULSES_PER_STEP;
+          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
+            encoderPosition -= ENCODER_PULSES_PER_STEP;
+        }
+      }
+    }
+
+  #endif
 
   /**
    *
@@ -3513,6 +3589,8 @@ void lcd_update() {
 
       #if ENABLED(REPRAPWORLD_KEYPAD)
         handle_reprapworld_keypad();
+      #elif ENABLED(ADC_KEYPAD)
+        handle_adc_keypad();
       #endif
 
       bool encoderPastThreshold = (abs(encoderDiff) >= ENCODER_PULSES_PER_STEP);
@@ -3596,6 +3674,11 @@ void lcd_update() {
               break;
           } // switch
         }
+
+      #if ENABLED(ADC_KEYPAD)
+        buttons_adc_keypad = 0;
+      #endif
+
       #if ENABLED(ULTIPANEL)
         #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
       #else
@@ -3841,6 +3924,15 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
         #endif
         #if ENABLED(REPRAPWORLD_KEYPAD)
           GET_BUTTON_STATES(buttons_reprapworld_keypad);
+        #else ENABLED(ADC_KEYPAD)
+          // for the reprapworld_keypad
+          uint8_t newbutton_adc_keypad = 0;
+          buttons = 0;
+          if (buttons_adc_keypad == 0) {
+            newbutton_adc_keypad = get_ADC_keyValue();
+            if ((newbutton_adc_keypad > 0) && (newbutton_adc_keypad <= 8))
+              buttons_adc_keypad = 1 << (newbutton_adc_keypad - 1);
+          }
         #endif
       #else
         GET_BUTTON_STATES(buttons);
@@ -3887,6 +3979,42 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 #endif // ULTIPANEL
 
 #endif // ULTRA_LCD
+
+#if ENABLED(ADC_KEYPAD)
+
+  #define	ADC_KEY_NUM		8
+  typedef struct {
+    unsigned short ADCKeyValueMin;
+    unsigned short ADCKeyValueMax;
+    unsigned char  ADCKeyNo;
+  }_stADCKeypadTable_;
+
+  _stADCKeypadTable_ stADCKeyTable[ADC_KEY_NUM] = {
+    // VALUE_MIN, VALUE_MAX , KEY
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F1 + 1 },		  // F1
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F2 + 1 },		  // F2
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },		  // F3
+    { 300,  500, 	BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },	  // LEFT
+    { 1900, 2200, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
+    { 570,  870, 	BLEN_REPRAPWORLD_KEYPAD_UP + 1 },		  // UP
+    { 2670, 2870, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },	  // DOWN
+    { 1150, 1450, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 },	// ENTER
+  };
+
+  unsigned char get_ADC_keyValue(void) {
+    unsigned short currentkpADCValue = (thermalManager.current_ADCKey_raw >> 2);
+    thermalManager.current_ADCKey_raw = 0;
+    if (currentkpADCValue < 4000) {
+      for (unsigned char i = 0; i < ADC_KEY_NUM; i++) {
+        if ((currentkpADCValue > stADCKeyTable[i].ADCKeyValueMin) && (currentkpADCValue < stADCKeyTable[i].ADCKeyValueMax)) {
+          return stADCKeyTable[i].ADCKeyNo;
+        }
+      }
+    }
+    return 0;
+  }
+
+#endif
 
 #if ENABLED(SDSUPPORT)
   void set_sd_dot() {

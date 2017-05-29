@@ -42,7 +42,7 @@
 #ifndef VECTOR_3_H
 #define VECTOR_3_H
 
-#if HAS(ABL)
+#if HAS_ABL
 class matrix_3x3;
 
 struct vector_3 {

@@ -50,9 +50,10 @@ class EEPROM {
 
     #if ENABLED(EEPROM_SETTINGS)
       static uint16_t eeprom_checksum;
-      static bool eeprom_read_error, eeprom_write_error;
-      static void write_data(int &pos, const uint8_t* value, uint16_t size);
-      static void read_data(int &pos, uint8_t* value, uint16_t size);
+      static bool eeprom_error;
+      static void write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
+      static void read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc);
+      static void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
     #endif
 
 };

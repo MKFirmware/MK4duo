@@ -64,6 +64,10 @@ int     Temperature::current_temperature_raw[HOTENDS] = { 0 },
   int     Temperature::current_temperature_mcu_raw;
 #endif
 
+#if ENABLED(ADC_KEYPAD)
+  int     Temperature::current_ADCKey_raw;
+#endif
+
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
   float Temperature::redundant_temperature = 0.0;
 #endif
@@ -1927,6 +1931,10 @@ void Temperature::set_current_temp_raw() {
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
     current_temperature_mcu_raw = HAL::AnalogInputValues[MCU_SENSOR_INDEX];
+  #endif
+
+  #if ENABLED(ADC_KEYPAD)
+    current_ADCKey_raw = HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX];
   #endif
 
   int constexpr temp_dir[] = {
