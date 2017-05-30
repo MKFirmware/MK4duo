@@ -4573,6 +4573,8 @@ inline void gcode_G28(const bool always_home_all) {
     tool_change(old_tool_index, 0, true);
   #endif
 
+  lcd_refresh();
+
   report_current_position();
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -4620,7 +4622,7 @@ void home_all_axes() { gcode_G28(true); }
 
     #if MANUAL_PROBE_HEIGHT > 0
       feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
-      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 0.2; // just slightly over the bed
+      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
       #if MECH(DELTA)
         do_blocking_move_to_z(current_position[Z_AXIS], feedrate_mm_s);
       #else
@@ -4917,8 +4919,14 @@ void home_all_axes() { gcode_G28(true); }
       #endif
     #endif
 
+    #if ENABLED(PROBE_MANUALLY)
+      const bool seenA = parser.seen('A'), seenQ = parser.seen('Q'), no_action = seenA || seenQ;
+    #endif
+
     #if ENABLED(DEBUG_LEVELING_FEATURE) && DISABLED(PROBE_MANUALLY)
       const bool faux = parser.seen('C') && parser.value_bool();
+    #elif ENABLED(PROBE_MANUALLY)
+      const bool faux = no_action;
     #else
       bool constexpr faux = false;
     #endif
@@ -5027,18 +5035,18 @@ void home_all_axes() { gcode_G28(true); }
             return;
           }
 
-          const float z = parser.seen('Z') && parser.has_value() ? parser.value_float() : 99999;
-          if (!WITHIN(z, -10, 10)) {
+          const float z = parser.seen('Z') && parser.has_value() ? parser.value_float() : NAN;
+          if (!isnan(z) || !WITHIN(z, -10, 10)) {
             SERIAL_LM(ER, "Bad Z value");
             return;
           }
 
-          const float x = parser.seen('X') && parser.has_value() ? parser.value_float() : 99999,
-                      y = parser.seen('Y') && parser.has_value() ? parser.value_float() : 99999;
+          const float x = parser.seen('X') && parser.has_value() ? parser.value_float() : NAN,
+                      y = parser.seen('Y') && parser.has_value() ? parser.value_float() : NAN;
           int8_t      i = parser.seen('I') && parser.has_value() ? parser.value_byte() : -1,
                       j = parser.seen('J') && parser.has_value() ? parser.value_byte() : -1;
 
-          if (x < 99998 && y < 99998) {
+          if (!isnan(x) && !isnan(y)) {
             // Get nearest i / j from x / y
             i = (x - LOGICAL_X_POSITION(bilinear_start[X_AXIS]) + 0.5 * xGridSpacing) / xGridSpacing;
             j = (y - LOGICAL_Y_POSITION(bilinear_start[Y_AXIS]) + 0.5 * yGridSpacing) / yGridSpacing;
@@ -5074,7 +5082,11 @@ void home_all_axes() { gcode_G28(true); }
         return;
       }
 
-      dryrun = parser.seen('D') && parser.value_bool();
+      dryrun = (parser.seen('D') && parser.value_bool())
+        #if ENABLED(PROBE_MANUALLY)
+          || no_action
+        #endif
+      ;
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
@@ -5095,7 +5107,7 @@ void home_all_axes() { gcode_G28(true); }
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        zoffset = parser.seen('Z') ? parser.value_axis_units(Z_AXIS) : 0;
+        zoffset = parser.seen('Z') ? parser.value_linear_units() : 0;
 
       #endif
 
@@ -5103,10 +5115,10 @@ void home_all_axes() { gcode_G28(true); }
 
         xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.seen('S') ? parser.value_linear_units() : XY_PROBE_SPEED);
 
-        left_probe_bed_position   = parser.seen('L') ? (int)parser.value_axis_units(X_AXIS) : LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION);
-        right_probe_bed_position  = parser.seen('R') ? (int)parser.value_axis_units(X_AXIS) : LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION);
-        front_probe_bed_position  = parser.seen('F') ? (int)parser.value_axis_units(Y_AXIS) : LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION);
-        back_probe_bed_position   = parser.seen('B') ? (int)parser.value_axis_units(Y_AXIS) : LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION);
+        left_probe_bed_position   = parser.seen('L') ? (int)parser.value_linear_units() : LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION);
+        right_probe_bed_position  = parser.seen('R') ? (int)parser.value_linear_units() : LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION);
+        front_probe_bed_position  = parser.seen('F') ? (int)parser.value_linear_units() : LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION);
+        back_probe_bed_position   = parser.seen('B') ? (int)parser.value_linear_units() : LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION);
 
         const bool left_out_l = left_probe_bed_position < LOGICAL_X_POSITION(MIN_PROBE_X),
                    left_out = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),
@@ -5217,11 +5229,9 @@ void home_all_axes() { gcode_G28(true); }
 
     #if ENABLED(PROBE_MANUALLY)
 
-      const bool seenA = parser.seen('A'), seenQ = parser.seen('Q');
-
       // For manual probing, get the next index to probe now.
       // On the first probe this will be incremented to 0.
-      if (!seenA && !seenQ) {
+      if (!no_action) {
         ++abl_probe_index;
         g29_in_progress = true;
       }
@@ -5243,17 +5253,14 @@ void home_all_axes() { gcode_G28(true); }
       if (verbose_level || seenQ) {
         SERIAL_M("Manual G29 ");
         if (g29_in_progress) {
-          SERIAL_MV("point ", abl_probe_index + 1);
+          SERIAL_MV("point ", min(abl_probe_index + 1, abl2));
           SERIAL_EMV(" of ", abl2);
         }
         else
           SERIAL_EM("idle");
       }
 
-      if (seenA || seenQ) return;
-
-      // Fall through to probe the first point
-      g29_in_progress = true;
+      if (no_action) return;
 
       if (abl_probe_index == 0) {
         // For the initial G29 save software endstop state
@@ -5277,6 +5284,14 @@ void home_all_axes() { gcode_G28(true); }
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
           z_values[xCount][yCount] = measured_z + zoffset;
+
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) {
+              SERIAL_MV("Save X", xCount);
+              SERIAL_MV(" Y", yCount);
+              SERIAL_EMV(" Z", z_values[xCount][yCount]);
+            }
+          #endif
 
         #elif ENABLED(AUTO_BED_LEVELING_3POINT)
 
@@ -5440,7 +5455,7 @@ void home_all_axes() { gcode_G28(true); }
 
             #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-              if (!dryrun) z_values[xCount][yCount] = measured_z + zoffset;
+              z_values[xCount][yCount] = measured_z + zoffset;
 
             #endif
 
@@ -9860,7 +9875,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     if (to_enable && !new_status)
       SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
-    SERIAL_LMV(ECHO, "MBL: ", new_status() ? MSG_ON : MSG_OFF);
+    SERIAL_LMV(ECHO, "MBL: ", new_status ? MSG_ON : MSG_OFF);
   }
 
   /**
