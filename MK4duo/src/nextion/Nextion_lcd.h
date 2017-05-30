@@ -62,8 +62,8 @@
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist=false);
     void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
-    void lcd_setstatuspgm(const char* message, const uint8_t level=0);
-    void lcd_setalertstatuspgm(const char* message);
+    void lcd_setstatusPGM(const char* message, const uint8_t level=0);
+    void lcd_setalertstatusPGM(const char * const message);
     void lcd_reset_alert_level();
     void lcd_scrollinfo(const char* titolo, const char* message);
 
@@ -106,9 +106,7 @@
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
     FORCE_INLINE void lcd_draw_update() {}
-
-    #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
-    #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
+    FORCE_INLINE void lcd_refresh() {}
 
   #endif
 
