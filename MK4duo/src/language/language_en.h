@@ -79,6 +79,7 @@
 #define MSG_RETRACT                         _UxGT("Retract")
 #define MSG_PURGE                           _UxGT("Purge")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
+#define MSG_USER_MENU                       _UxGT("Custom Commands")
 #define MSG_SPEED                           _UxGT("Speed")
 #define MSG_NOZZLE                          _UxGT("Nozzle")
 #define MSG_BED                             _UxGT("Bed")

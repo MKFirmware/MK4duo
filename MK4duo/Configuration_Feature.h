@@ -107,6 +107,7 @@
  * - Extend capabilities report
  * - Whatchdog
  * - Start / Stop Gcode
+ * - User menu items
  *
  * Basic-settings can be found in Configuration_Basic.h
  * Mechanisms-settings can be found in Configuration_Xxxxxx.h (where Xxxxxx can be: Cartesian - Delta - Core - Scara)
@@ -1956,7 +1957,7 @@
 
 
 /*****************************************************************************************
- ********************************* Start - Stop Gcode ************************************
+ ********************************* Start / Stop Gcode ************************************
  *****************************************************************************************
  *                                                                                       *
  * Start - Stop Gcode use when Start or Stop printing width M11 command                  *
@@ -1968,5 +1969,34 @@
 //#define STOP_GCODE
 #define STOP_PRINTING_SCRIPT "G28\nM107\nM104 T0 S0\nM140 S0\nM84\nM81"
 /*****************************************************************************************/
- 
+
+
+/*****************************************************************************************
+ *********************************** User menu items *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * USer-defined menu items that execute custom GCode                                     *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define CUSTOM_USER_MENUS
+
+#define USER_SCRIPT_DONE "M117 User Script Done"
+
+#define USER_DESC_1 "Home & ABL"
+#define USER_GCODE_1 "G28\nG29"
+
+#define USER_DESC_2 "Preheat for PLA"
+#define USER_GCODE_2 "M140 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND)
+
+#define USER_DESC_3 "Preheat for ABS"
+#define USER_GCODE_3 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND)
+
+#define USER_DESC_4 "Heat Bed/Home/Level"
+#define USER_GCODE_4 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nG28\nG29"
+
+#define USER_DESC_5 "Home & Info"
+#define USER_GCODE_5 "G28\nM503"
+/*****************************************************************************************/
+
+
 #endif

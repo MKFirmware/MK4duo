@@ -40,7 +40,7 @@
   bool lcd_hasstatus();
   void lcd_setstatus(const char* message, const bool persist=false);
   void lcd_setstatusPGM(const char* message, const int8_t level=0);
-  void lcd_setalertstatusPGM(const char * const message);
+  void lcd_setalertstatusPGM(const char* message);
   void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
   void lcd_reset_alert_level();
   void lcd_kill_screen();
