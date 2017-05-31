@@ -2885,7 +2885,7 @@ static void homeaxis(const AxisEnum axis) {
   }
 #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
   void print_MCUstate() {
     SERIAL_M(" MCU: min");
     SERIAL_MV(MSG_C, thermalManager.lowest_temperature_mcu, 1);
