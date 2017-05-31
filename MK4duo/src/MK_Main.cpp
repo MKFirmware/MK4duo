@@ -7772,7 +7772,7 @@ inline void gcode_M42() {
 
     // Re-enable bed level correction if it had been on
     #if HAS_LEVELING
-      set_bed_leveling_enabled(abl_was_enabled);
+      set_bed_leveling_enabled(was_enabled);
     #endif
 
     report_current_position();
