@@ -765,10 +765,12 @@ static_assert(1 >= 0
 /**
  * LCD_BED_LEVELING requirements
  */
-#if ENABLED(LCD_BED_LEVELING) && DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-  #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
-#elif ENABLED(LCD_BED_LEVELING) && ENABLED(MESH_BED_LEVELING) && ENABLED(PROBE_MANUALLY)
-  #error "LCD_BED_LEVELING requires one of MESH_BED_LEVELING or PROBE_MANUALLY."
+#if ENABLED(LCD_BED_LEVELING)
+  #if !HAS_LCD
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+  #endif
 #endif
 
 // Firmware Retract
@@ -870,10 +872,10 @@ static_assert(1 >= 0
 #endif
 
 /**
- * Filament Change with Extruder Runout Prevention
+ * Advanced Pause
  */
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
-  #if DISABLED(ULTIPANEL) && DISABLED(NEXTION)
+  #if !HAS_LCD
     #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
     #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."

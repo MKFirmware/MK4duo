@@ -126,7 +126,7 @@ public:
     static volatile bool seen(const char c) {
       char *p = strchr(command_args, c);
       const bool b = !!p;
-      if (b) value_ptr = DECIMAL_SIGNED(p[1]) ? &p[1] : NULL;
+      if (b) value_ptr = DECIMAL_SIGNED(p[1]) ? &p[1] : (char*)NULL;
       return b;
     }
 
@@ -218,7 +218,7 @@ public:
         return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';
       }
       FORCE_INLINE static char* temp_units_name() {
-        return input_temp_units == TEMPUNIT_K ? PSTR("Kelvin") : input_temp_units == TEMPUNIT_F ? PSTR("Fahrenheit") : PSTR("Celsius")
+        return input_temp_units == TEMPUNIT_K ? PSTR("Kelvin") : input_temp_units == TEMPUNIT_F ? PSTR("Fahrenheit") : PSTR("Celsius");
       }
       inline static float to_temp_units(const float &f) {
         switch (input_temp_units) {
