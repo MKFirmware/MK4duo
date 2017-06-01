@@ -335,7 +335,7 @@
   #define HAS_DONDOLO       (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR))
 
   // LCD
-  #define HAS_LCD           (ENABLED(ULTRA_LCD) || ENABLED(NEXTION))
+  #define HAS_LCD           (ENABLED(ULTIPANEL) || ENABLED(NEXTION))
   #define HAS_BTN_BACK      (PIN_EXISTS(BTN_BACK))
 
   // SD support
@@ -941,6 +941,14 @@
     #ifndef STEPPER_DIRECTION_DELAY
       #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
     #endif
+  #endif
+
+  // Add commands that need sub-codes to this list
+  #define USE_GCODE_SUBCODES ENABLED(G38_PROBE_TARGET)
+
+  // MESH_BED_LEVELING overrides PROBE_MANUALLY
+  #if ENABLED(MESH_BED_LEVELING)
+    #undef PROBE_MANUALLY
   #endif
 
   // MUVE 3D

@@ -144,6 +144,8 @@
   #endif // DISPLAY_CHARSET_HD44780
 #endif // SIMULATE_ROMFONT
 
+#define PRINTABLE(C) (((C) & 0xC0u) != 0x80u)
+
 #if ENABLED(MAPPER_C2C3)
 
   char charset_mapper(const char c) {
@@ -466,8 +468,11 @@
 
   #define MAPPER_NON
 
+  #undef PRINTABLE
+  #define PRINTABLE(C) true
+
   char charset_mapper(const char c) {
-    HARDWARE_CHAR_OUT( c );
+    HARDWARE_CHAR_OUT(c);
     return 1;
   }
 
