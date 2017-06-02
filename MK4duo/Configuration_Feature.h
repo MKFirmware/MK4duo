@@ -1587,15 +1587,18 @@
  ******************************* Case Light *******************************
  **************************************************************************
  *                                                                        *
- * Support case light                                                     *
+ * M355 Case Light on-off / brightness                                    *
  *                                                                        *
  **************************************************************************/
 //#define CASE_LIGHT
 
-// Set to true if HIGH is the OFF state (active low)
+// set to true if case light is ON when pin is at 0
 #define INVERT_CASE_LIGHT false
-// Uncomment to set default state to on
-//#define CASE_LIGHT_DEFAULT_ON
+// set default power up state to on or off
+#define CASE_LIGHT_DEFAULT_ON false
+// set power up brightness 0-255 ( only used if on PWM
+// and if CASE_LIGHT_DEFAULT is set to on)
+#define CASE_LIGHT_DEFAULT_BRIGHTNESS 255   
 /**************************************************************************/
 
 
