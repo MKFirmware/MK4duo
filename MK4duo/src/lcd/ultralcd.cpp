@@ -688,6 +688,24 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // SDSUPPORT
 
+  #if HAS_CASE_LIGHT
+
+    extern int case_light_brightness;
+    extern bool case_light_on;
+    extern void update_case_light();
+
+    void case_light_menu() {
+      START_MENU();
+      //
+      // ^ Main
+      //
+      MENU_BACK(MSG_MAIN);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_CASE_LIGHT_BRIGHTNESS, &case_light_brightness, 0, 255, update_case_light, true);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
+      END_MENU();
+    }
+  #endif // HAS_CASE_LIGHT
+
   #if ENABLED(BLTOUCH)
 
     /**
@@ -809,11 +827,6 @@ void kill_screen(const char* lcd_msg) {
    *
    */
 
-  #if HAS_CASE_LIGHT
-    extern bool case_light_on;
-    extern void update_case_light();
-  #endif
-
   void lcd_main_menu() {
     START_MENU();
     MENU_BACK(MSG_WATCH);
@@ -836,10 +849,10 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     //
-    // Switch case light on/off
+    // Set Case light on/off/brightness
     //
     #if HAS_CASE_LIGHT
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, &case_light_on, update_case_light);
+      MENU_ITEM(submenu, MSG_CASE_LIGHT, case_light_menu);
     #endif
 
     if (planner.movesplanned() || IS_SD_PRINTING) {

@@ -243,6 +243,7 @@
 
 // CASE LIGHT
 #define MSG_CASE_LIGHT                      _UxGT("Case light")
+#define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Light BRIGHTNESS")
 
 // ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")

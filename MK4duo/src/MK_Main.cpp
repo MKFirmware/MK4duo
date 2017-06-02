@@ -334,16 +334,6 @@ PrintCounter print_job_counter = PrintCounter();
 
 #endif // FWRETRACT
 
-#if HAS(CASE_LIGHT)
-  bool case_light_on =
-    #if ENABLED(CASE_LIGHT_DEFAULT_ON)
-      true
-    #else
-      false
-    #endif
-  ;
-#endif
-
 #if MECH(DELTA)
 
   float delta[ABC];
@@ -3608,7 +3598,8 @@ void gcode_get_destination() {
       idle();
       wait_for_heatup = false;
       HOTEND_LOOP() {
-        if (abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > 3) {
+        const int16_t target_temp = thermalManager.degTargetHotend(h);
+        if (target_temp && abs(thermalManager.degHotend(h) - target_temp) > 3) {
           wait_for_heatup = true;
           break;
         }
@@ -8356,7 +8347,7 @@ inline void gcode_M115() {
     #endif
 
     // TOGGLE_LIGHTS (M355)
-    #if HAS(CASE_LIGHT)
+    #if HAS_CASE_LIGHT
       SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
     #else
       SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
@@ -9430,28 +9421,44 @@ inline void gcode_M226() {
 
 #endif // HAS(MICROSTEPS)
 
-#if HAS(CASE_LIGHT)
+#if HAS_CASE_LIGHT
 
-  uint8_t case_light_brightness = 255;
+  int case_light_brightness;
+  bool case_light_on;
 
   void update_case_light() {
-    WRITE(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? HIGH : LOW);
-    analogWrite(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? case_light_brightness : 0);
+    pinMode(CASE_LIGHT_PIN, OUTPUT);
+    uint8_t case_light_bright = (uint8_t)case_light_brightness;
+    if (case_light_on) {
+      WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
+      analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
+    }
   }
 
   /**
-   * M355: Turn case lights on/off
+   * M355: Turn case light on/off and set brightness
    *
-   *   S<bool>  Turn case light on or off
-   *   P<byte>  Set case light brightness (PWM pin required)
+   *   P<byte>  Set case light brightness (PWM pin required - ignored otherwise)
    *
+   *   S<bool>  Set case light on/off
+   *
+   *   When S turns on the light on a PWM pin then the current brightness level is used/restored
+   *
+   *   M355 P200 S0 turns off the light & sets the brightness level
+   *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
    */
   inline void gcode_M355() {
-    if (parser.seen('P')) case_light_brightness = parser.value_byte();
-    if (parser.seen('S')) case_light_on = parser.value_bool();
-    update_case_light();
-    SERIAL_SM(ECHO, "Case lights ");
-    case_light_on ? SERIAL_EM("on") : SERIAL_EM("off");
+    uint8_t args = 0;
+    if (parser.seen('P')) ++args, case_light_brightness = parser.value_byte();
+    if (parser.seen('S')) ++args, case_light_on = parser.value_bool(); 
+    if (args) update_case_light();
+
+    // always report case light status
+    SERIAL_S(ECHO);
+    if (!case_light_on)
+      SERIAL_EM("Case light: off");
+    else
+      SERIAL_MV("Case light: ", case_light_brightness);
   }
 
 #endif // HAS_CASE_LIGHT
@@ -14577,7 +14584,9 @@ void setup() {
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 
-  #if HAS(CASE_LIGHT)
+  #if HAS_CASE_LIGHT
+    case_light_on = CASE_LIGHT_DEFAULT_ON;
+    case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
     update_case_light();
   #endif
 
