@@ -78,6 +78,7 @@
 #define MSG_EXTRUDE                         _UxGT("Extrude")
 #define MSG_RETRACT                         _UxGT("Retract")
 #define MSG_PURGE                           _UxGT("Purge")
+#define MSG_BED_LEVELING                    _UxGT("Bed Leveling")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
 #define MSG_USER_MENU                       _UxGT("Custom Commands")
 #define MSG_SPEED                           _UxGT("Speed")
