@@ -77,6 +77,8 @@ uint8_t MCUSR;
             adcSamplePos = 0;
   uint32_t  adcEnable = 0;
   bool      Analog_is_ready = false;
+
+  volatile int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
@@ -104,7 +106,6 @@ HAL::~HAL() {
   // dtor
 }
 
-volatile int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 bool HAL::execute_100ms = false;
 
 // do any hardware-specific initialization here

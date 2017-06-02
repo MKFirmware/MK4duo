@@ -63,6 +63,8 @@
   uint8_t adcCounter[ANALOG_INPUTS],
           adcSamplePos = 0;
   bool    Analog_is_ready = false;
+
+  int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
@@ -107,7 +109,6 @@ void HAL_temp_timer_start() {
   TEMP_TCCR |= (1 << CS01) | (1 << CS00);
 }
 
-int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { };
 bool HAL::execute_100ms = false;
 
 // Return available memory

@@ -355,7 +355,10 @@ class HAL {
 
     virtual ~HAL();
 
-    static int16_t AnalogInputValues[ANALOG_INPUTS];
+    #if ANALOG_INPUTS > 0
+      static int16_t AnalogInputValues[ANALOG_INPUTS];
+    #endif
+
     static bool execute_100ms;
 
     // do any hardware-specific initialization here
