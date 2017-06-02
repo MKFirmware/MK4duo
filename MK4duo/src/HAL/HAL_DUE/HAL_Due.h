@@ -222,7 +222,10 @@ class HAL {
 
     virtual ~HAL();
 
-    static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
+    #if ANALOG_INPUTS > 0
+      static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
+    #endif
+
     static bool execute_100ms;
 
     static void hwSetup(void);

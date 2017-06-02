@@ -304,17 +304,17 @@ void Stepper::set_directions() {
       count_direction[AXIS ##_AXIS] = 1; \
     }
 
-  #if HAS(X_DIR)
+  #if HAS_X_DIR
     SET_STEP_DIR(X); // A
   #endif
-  #if HAS(Y_DIR)
+  #if HAS_Y_DIR
     SET_STEP_DIR(Y); // B
   #endif
-  #if HAS(Z_DIR)
+  #if HAS_Z_DIR
     SET_STEP_DIR(Z); // C
   #endif
 
-  #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+  #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
     if (motor_direction(E_AXIS)) {
       REV_E_DIR();
       count_direction[E_AXIS] = -1;
@@ -632,7 +632,7 @@ void Stepper::isr() {
     #endif
 
     // For non-advance use linear interpolation for E also
-    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Keep updating the single E axis
         counter_E += current_block->steps[E_AXIS];
@@ -666,7 +666,7 @@ void Stepper::isr() {
       PULSE_STOP(Z);
     #endif
 
-    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Always step the single E axis
         if (counter_E > 0) {
@@ -1101,19 +1101,19 @@ void Stepper::init() {
   #endif
 
   // Initialize Dir Pins
-  #if HAS(X_DIR)
+  #if HAS_X_DIR
     X_DIR_INIT;
   #endif
   #if HAS(X2_DIR)
     X2_DIR_INIT;
   #endif
-  #if HAS(Y_DIR)
+  #if HAS_Y_DIR
     Y_DIR_INIT;
     #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_DIR)
       Y2_DIR_INIT;
     #endif
   #endif
-  #if HAS(Z_DIR)
+  #if HAS_Z_DIR
     Z_DIR_INIT;
     #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_DIR)
       Z2_DIR_INIT;

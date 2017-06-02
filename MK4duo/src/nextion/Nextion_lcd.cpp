@@ -424,7 +424,7 @@
       #endif
     #endif
 
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       Bed0.setValue(1, "printer");
     #endif
 
@@ -894,6 +894,7 @@
 
     #if ENABLED(PROBE_MANUALLY)
       extern bool g29_in_progress;
+      bool lcd_wait_for_move;
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         extern bool g33_in_progress;
       #endif
@@ -996,10 +997,14 @@
 
     theater.getValue(&Heater);
 
-    if (Heater == 4)
-      thermalManager.setTargetBed(temperature);
-    else
+    #if HAS_TEMP_BED
+      if (Heater == 4)
+        thermalManager.setTargetBed(temperature);
+      else
+    #endif
+    #if HAS_TEMP_HOTEND
       thermalManager.setTargetHotend(temperature, (uint8_t)Heater);
+    #endif
 
     Pprinter.show();
   }
@@ -1143,10 +1148,10 @@
       #if HAS(TEMP_0)
         Hotend0.attachPop(hotPopCallback, &Hotend0);
       #endif
-      #if HAS(TEMP_1)
+      #if HAS_TEMP_1
         Hotend1.attachPop(hotPopCallback, &Hotend1);
       #endif
-      #if HAS(TEMP_2) || HAS(TEMP_BED)
+      #if HAS_TEMP_2 || HAS_TEMP_BED
         Hotend2.attachPop(hotPopCallback, &Hotend2);
       #endif
 
@@ -1307,7 +1312,7 @@
             targetdegtoLCD(0, PrevioustargetdegHeater[0]);
           }
         #endif
-        #if HAS(TEMP_1)
+        #if HAS_TEMP_1
           if (PreviousdegHeater[1] != thermalManager.degHotend(1)) {
             PreviousdegHeater[1] = thermalManager.degHotend(1);
             degtoLCD(1, PreviousdegHeater[1]);
@@ -1317,7 +1322,7 @@
             targetdegtoLCD(1, PrevioustargetdegHeater[1]);
           }
         #endif
-        #if HAS(TEMP_BED)
+        #if HAS_TEMP_BED
           if (PreviousdegHeater[2] != thermalManager.degBed()) {
             PreviousdegHeater[2] = thermalManager.degBed();
             degtoLCD(2, PreviousdegHeater[2]);

@@ -432,7 +432,7 @@ class Planner {
 
     #endif
 
-    #if ENABLED(AUTOTEMP)
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
       static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();

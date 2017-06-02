@@ -74,13 +74,19 @@ uint8_t mk_debug_flags = DEBUG_NONE;
 
 // Printer mode
 PrinterMode printer_mode =
-#if ENABLED(CNCROUTER)
-  PRINTER_MODE_CNC;
-#elif ENABLED(LASERBEAM)
-  PRINTER_MODE_LASER;
-#else
-  PRINTER_MODE_FFF;
-#endif
+  #if ENABLED(PLOTTER)
+    PRINTER_MODE_PLOTTER
+  #elif ENABLED(SOLDER)
+    PRINTER_MODE_SOLDER;
+  #elif ENABLED(PICK_AND_PLACE)
+    PRINTER_MODE_PICKER;
+  #elif ENABLED(CNCROUTER)
+    PRINTER_MODE_CNC;
+  #elif ENABLED(LASERBEAM)
+    PRINTER_MODE_LASER;
+  #else
+    PRINTER_MODE_FFF;
+  #endif
 
 /**
  * Cartesian Current Position
@@ -2789,7 +2795,8 @@ static void homeaxis(const AxisEnum axis) {
 
 #endif
 
-#if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
+#if HAS_TEMP_HOTEND || HAS_TEMP_BED
+
   void print_heaterstates() {
     #if HAS(TEMP_0) || ENABLED(HEATER_0_USES_MAX6675)
       SERIAL_MV(MSG_T, thermalManager.degHotend(target_extruder), 1);
@@ -2799,7 +2806,7 @@ static void homeaxis(const AxisEnum axis) {
         SERIAL_C(')');
       #endif
     #endif
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       SERIAL_MV(MSG_B, thermalManager.degBed(), 1);
       SERIAL_MV(" /", thermalManager.degTargetBed());
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
@@ -2820,7 +2827,7 @@ static void homeaxis(const AxisEnum axis) {
       }
     #endif
     SERIAL_MV(MSG_AT ":", thermalManager.getHeaterPower(target_extruder));
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       SERIAL_MV(MSG_BAT, thermalManager.getBedPower());
     #endif
     #if HOTENDS > 1
@@ -2831,9 +2838,11 @@ static void homeaxis(const AxisEnum axis) {
       }
     #endif
   }
+
 #endif
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
+
   void print_chamberstate() {
     SERIAL_M(" CHAMBER:");
     SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
@@ -2850,9 +2859,11 @@ static void homeaxis(const AxisEnum axis) {
       SERIAL_MV(" C->", thermalManager.rawChamberTemp());
     #endif
   }
-#endif // HAS(TEMP_CHAMBER)
 
-#if HAS(TEMP_COOLER)
+#endif // HAS_TEMP_CHAMBER
+
+#if HAS_TEMP_COOLER
+
   void print_coolerstate() {
     SERIAL_M(" COOL:");
     SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
@@ -2869,9 +2880,11 @@ static void homeaxis(const AxisEnum axis) {
       SERIAL_MV(" C->", thermalManager.rawCoolerTemp());
     #endif
   }
-#endif // HAS(TEMP_COOLER)
+
+#endif // HAS_TEMP_COOLER
 
 #if ENABLED(FLOWMETER_SENSOR)
+
   void print_flowratestate() {
     float readval = get_flowrate();
 
@@ -2883,9 +2896,11 @@ static void homeaxis(const AxisEnum axis) {
     SERIAL_MV(" FLOW: ", readval);
     SERIAL_M(" l/min ");
   }
+
 #endif
 
 #if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
+
   void print_MCUstate() {
     SERIAL_M(" MCU: min");
     SERIAL_MV(MSG_C, thermalManager.lowest_temperature_mcu, 1);
@@ -2897,129 +2912,136 @@ static void homeaxis(const AxisEnum axis) {
       SERIAL_MV(" C->", thermalManager.rawMCUTemp());
     #endif
   }
+
 #endif
 
 #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+
   void print_cncspeed() {
     SERIAL_MV(" CNC speed: ", getCNCSpeed());
     SERIAL_M(" rpm ");
   }
+
 #endif
 
-#if DISABLED(MIN_COOLING_SLOPE_DEG)
-  #define MIN_COOLING_SLOPE_DEG 1.50
-#endif
-#if DISABLED(MIN_COOLING_SLOPE_TIME)
-  #define MIN_COOLING_SLOPE_TIME 60
-#endif
+#if HAS_TEMP_HOTEND
 
-inline void wait_heater(bool no_wait_for_cooling = true) {
-
-  #if TEMP_RESIDENCY_TIME > 0
-    millis_t residency_start_ms = 0;
-    // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
-  #else
-    // Loop until the temperature is exactly on target
-    #define TEMP_CONDITIONS (wants_to_cool ? thermalManager.isCoolingHotend(target_extruder) : thermalManager.isHeatingHotend(target_extruder))
+  #if DISABLED(MIN_COOLING_SLOPE_DEG)
+    #define MIN_COOLING_SLOPE_DEG 1.50
+  #endif
+  #if DISABLED(MIN_COOLING_SLOPE_TIME)
+    #define MIN_COOLING_SLOPE_TIME 60
   #endif
 
-  float theTarget = -1.0, old_temp = 9999.0;
-  bool wants_to_cool = false;
-  wait_for_heatup = true;
-  millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
-
-  KEEPALIVE_STATE(WAIT_HEATER);
-
-  #if ENABLED(PRINTER_EVENT_LEDS)
-    const float start_temp = thermalManager.degHotend(target_extruder);
-    uint8_t old_blue = 0;
-  #endif
-
-  do {
-    // Target temperature might be changed during the loop
-    if (theTarget != thermalManager.degTargetHotend(target_extruder))
-      theTarget = thermalManager.degTargetHotend(target_extruder);
-
-    wants_to_cool = thermalManager.isCoolingHotend(target_extruder);
-
-    // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
-    if (no_wait_for_cooling && wants_to_cool) break;
-
-    now = millis();
-    if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
-      next_temp_ms = now + 1000UL;
-      print_heaterstates();
-      #if TEMP_RESIDENCY_TIME > 0
-        SERIAL_M(MSG_W);
-        if (residency_start_ms) {
-          long rem = ((TEMP_RESIDENCY_TIME * 1000UL) - (now - residency_start_ms)) / 1000UL;
-          SERIAL_EV(rem);
-        }
-        else {
-          SERIAL_EM("?");
-        }
-      #else
-        SERIAL_E;
-      #endif
-    }
-
-    idle();
-    refresh_cmd_timeout(); // to prevent stepper_inactive_time from running out
-
-    const float temp = thermalManager.degHotend(target_extruder);
-
-    #if ENABLED(PRINTER_EVENT_LEDS)
-      // Gradually change LED strip from violet to red as nozzle heats up
-      if (!wants_to_cool) {
-        const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
-        if (blue != old_blue) set_led_color(255, 0, (old_blue = blue));
-      }
-    #endif
+  inline void wait_heater(bool no_wait_for_cooling = true) {
 
     #if TEMP_RESIDENCY_TIME > 0
-
-      float temp_diff = FABS(theTarget - temp);
-
-      if (!residency_start_ms) {
-        // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-        if (temp_diff < TEMP_WINDOW) residency_start_ms = now;
-      }
-      else if (temp_diff > TEMP_HYSTERESIS) {
-        // Restart the timer whenever the temperature falls outside the hysteresis.
-        residency_start_ms = now;
-      }
-
+      millis_t residency_start_ms = 0;
+      // Loop until the temperature has stabilized
+      #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
+    #else
+      // Loop until the temperature is exactly on target
+      #define TEMP_CONDITIONS (wants_to_cool ? thermalManager.isCoolingHotend(target_extruder) : thermalManager.isHeatingHotend(target_extruder))
     #endif
 
-    // Prevent a wait-forever situation if R is misused i.e. M109 R0
-    if (wants_to_cool) {
-      // Break after MIN_COOLING_SLOPE_TIME seconds
-      // if the temperature did not drop at least MIN_COOLING_SLOPE_DEG
-      if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
-        if (old_temp - temp < MIN_COOLING_SLOPE_DEG) break;
-        next_cool_check_ms = now + 1000UL * MIN_COOLING_SLOPE_TIME;
-        old_temp = temp;
+    float theTarget = -1.0, old_temp = 9999.0;
+    bool wants_to_cool = false;
+    wait_for_heatup = true;
+    millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
+
+    KEEPALIVE_STATE(WAIT_HEATER);
+
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      const float start_temp = thermalManager.degHotend(target_extruder);
+      uint8_t old_blue = 0;
+    #endif
+
+    do {
+      // Target temperature might be changed during the loop
+      if (theTarget != thermalManager.degTargetHotend(target_extruder))
+        theTarget = thermalManager.degTargetHotend(target_extruder);
+
+      wants_to_cool = thermalManager.isCoolingHotend(target_extruder);
+
+      // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
+      if (no_wait_for_cooling && wants_to_cool) break;
+
+      now = millis();
+      if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
+        next_temp_ms = now + 1000UL;
+        print_heaterstates();
+        #if TEMP_RESIDENCY_TIME > 0
+          SERIAL_M(MSG_W);
+          if (residency_start_ms) {
+            long rem = ((TEMP_RESIDENCY_TIME * 1000UL) - (now - residency_start_ms)) / 1000UL;
+            SERIAL_EV(rem);
+          }
+          else {
+            SERIAL_EM("?");
+          }
+        #else
+          SERIAL_E;
+        #endif
       }
+
+      idle();
+      refresh_cmd_timeout(); // to prevent stepper_inactive_time from running out
+
+      const float temp = thermalManager.degHotend(target_extruder);
+
+      #if ENABLED(PRINTER_EVENT_LEDS)
+        // Gradually change LED strip from violet to red as nozzle heats up
+        if (!wants_to_cool) {
+          const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
+          if (blue != old_blue) set_led_color(255, 0, (old_blue = blue));
+        }
+      #endif
+
+      #if TEMP_RESIDENCY_TIME > 0
+
+        float temp_diff = FABS(theTarget - temp);
+
+        if (!residency_start_ms) {
+          // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
+          if (temp_diff < TEMP_WINDOW) residency_start_ms = now;
+        }
+        else if (temp_diff > TEMP_HYSTERESIS) {
+          // Restart the timer whenever the temperature falls outside the hysteresis.
+          residency_start_ms = now;
+        }
+
+      #endif
+
+      // Prevent a wait-forever situation if R is misused i.e. M109 R0
+      if (wants_to_cool) {
+        // Break after MIN_COOLING_SLOPE_TIME seconds
+        // if the temperature did not drop at least MIN_COOLING_SLOPE_DEG
+        if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
+          if (old_temp - temp < MIN_COOLING_SLOPE_DEG) break;
+          next_cool_check_ms = now + 1000UL * MIN_COOLING_SLOPE_TIME;
+          old_temp = temp;
+        }
+      }
+
+    } while (wait_for_heatup && TEMP_CONDITIONS);
+
+    if (wait_for_heatup) {
+      LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+      #if ENABLED(PRINTER_EVENT_LEDS)
+        #if ENABLED(RGBW_LED)
+          set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
+        #else
+          set_led_color(255, 255, 255); // Set LEDs All On
+        #endif
+      #endif
     }
 
-  } while (wait_for_heatup && TEMP_CONDITIONS);
-
-  if (wait_for_heatup) {
-    LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
-    #if ENABLED(PRINTER_EVENT_LEDS)
-      #if ENABLED(RGBW_LED)
-        set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
-      #else
-        set_led_color(255, 255, 255); // Set LEDs All On
-      #endif
-    #endif
+    KEEPALIVE_STATE(IN_HANDLER);
   }
 
-  KEEPALIVE_STATE(IN_HANDLER);
-}
+#endif
 
-#if HAS(TEMP_BED)
+#if HAS_TEMP_BED
 
   #if DISABLED(MIN_COOLING_SLOPE_DEG_BED)
     #define MIN_COOLING_SLOPE_DEG_BED 1.50
@@ -3127,9 +3149,10 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
 
     KEEPALIVE_STATE(IN_HANDLER);
   }
-#endif // HAS(TEMP_BED)
+#endif // HAS_TEMP_BED
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
+
   inline void wait_chamber(bool no_wait_for_heating = true) {
     #if TEMP_CHAMBER_RESIDENCY_TIME > 0
       millis_t residency_start_ms = 0;
@@ -3198,9 +3221,11 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     LCD_MESSAGEPGM(MSG_CHAMBER_DONE);
     KEEPALIVE_STATE(IN_HANDLER);
   }
+
 #endif
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
+
   inline void wait_cooler(bool no_wait_for_heating = true) {
     #if TEMP_COOLER_RESIDENCY_TIME > 0
       millis_t residency_start_ms = 0;
@@ -3273,6 +3298,7 @@ inline void wait_heater(bool no_wait_for_cooling = true) {
     LCD_MESSAGEPGM(MSG_COOLER_DONE);
     KEEPALIVE_STATE(IN_HANDLER);
   }
+
 #endif
 
 /**
@@ -3893,21 +3919,28 @@ inline void gcode_G4() {
 
     if (parser.seen('$')) {
       laser.raster_direction = parser.value_int();
-    #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
-      destination[X_AXIS] = current_position[X_AXIS]; // Dont increment X axis
-      destination[Y_AXIS] = current_position[Y_AXIS]; // Dont increment Y axis
-    #else
-      case 0:
-      case 1:
-      case 4:
-        destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
-      break;	  
-      case 2:
-      case 3:
-      case 5:
-        destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment X axis
-      break;	  
-    #endif
+      destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+    }
+
+    if (parser.seen('#')) {
+      laser.raster_direction = parser.value_int();
+      #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
+        destination[X_AXIS] = current_position[X_AXIS]; // Dont increment X axis
+        destination[Y_AXIS] = current_position[Y_AXIS]; // Dont increment Y axis
+      #else
+        switch(laser.raster_direction) {
+          case 0:
+          case 1:
+          case 4:
+            destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+          break;	  
+          case 2:
+          case 3:
+          case 5:
+            destination[X_AXIS] = current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment X axis
+          break;
+        }
+      #endif
     }
 
     if (parser.seen('D')) laser.raster_num_pixels = base64_decode(laser.raster_data, parser.string_arg + 1, laser.raster_raw_length);
@@ -6986,7 +7019,7 @@ inline void gcode_G92() {
   }
 #endif // HAS_RESUME_CONTINUE
 
-#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+#if HAS_MULTI_MODE
 
   /**
    * M3: Setting laser beam or fire laser - CNC clockwise speed
@@ -6998,29 +7031,36 @@ inline void gcode_G92() {
    *      B - Set mode
    */
   inline void gcode_M3_M4(bool clockwise) {
+    stepper.synchronize();
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
-      if (printer_mode == PRINTER_MODE_LASER) {
-        if (IsRunning()) {
-          if (parser.seen('S')) laser.intensity = parser.value_float();
-          if (parser.seen('L')) laser.duration = parser.value_ulong();
-          if (parser.seen('P')) laser.ppm = parser.value_float();
-          if (parser.seen('D')) laser.diagnostics = parser.value_bool();
-          if (parser.seen('B')) laser_set_mode(parser.value_int());
+    switch (printer_mode) {
+
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+        case PRINTER_MODE_LASER: {
+          if (IsRunning()) {
+            if (parser.seen('S')) laser.intensity = parser.value_float();
+            if (parser.seen('L')) laser.duration = parser.value_ulong();
+            if (parser.seen('P')) laser.ppm = parser.value_float();
+            if (parser.seen('D')) laser.diagnostics = parser.value_bool();
+            if (parser.seen('B')) laser_set_mode(parser.value_int());
+          }
+
+          laser.status = LASER_ON;
+          laser.fired = LASER_FIRE_SPINDLE;
+
         }
+        break;
+      #endif
 
-        laser.status = LASER_ON;
-        laser.fired = LASER_FIRE_SPINDLE;
+      #if ENABLED(CNCROUTER)
+        case PRINTER_MODE_CNC:
+          if (parser.seen('S')) setCNCRouterSpeed(parser.value_ulong(), clockwise);
+        break;
+      #endif
 
-      }
-    #endif
+      default: break; // other tools
 
-    #if ENABLED(CNCROUTER)
-      if (printer_mode == PRINTER_MODE_CNC) {
-        stepper.synchronize();
-        if (parser.seen('S')) setCNCRouterSpeed(parser.value_ulong(), clockwise);
-      }
-    #endif
+    } // printer_mode
 
     prepare_move_to_destination();
   }
@@ -7029,29 +7069,36 @@ inline void gcode_G92() {
    * M5: Turn off laser beam - CNC off
    */
   inline void gcode_M5() {
+    stepper.synchronize();
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
-      if (printer_mode == PRINTER_MODE_LASER) {
-        if (laser.status != LASER_OFF) {
-          laser.status = LASER_OFF;
-          laser.mode = CONTINUOUS;
-          laser.duration = 0;
+    switch (printer_mode) {
+    
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+        case PRINTER_MODE_LASER: {
+          if (laser.status != LASER_OFF) {
+            laser.status = LASER_OFF;
+            laser.mode = CONTINUOUS;
+            laser.duration = 0;
 
-          prepare_move_to_destination();
-
-          if (laser.diagnostics)
-            SERIAL_EM("Laser M5 called and laser OFF");
+            if (laser.diagnostics)
+              SERIAL_EM("Laser M5 called and laser OFF");
+          }
         }
-      }
-    #endif
+        break;
+      #endif
 
-    #if ENABLED(CNCROUTER)
-      if (printer_mode == PRINTER_MODE_CNC) {
-        stepper.synchronize();
-        disable_cncrouter();
-        prepare_move_to_destination();
-      }
-    #endif
+      #if ENABLED(CNCROUTER)
+        case PRINTER_MODE_CNC:
+          disable_cncrouter();
+        break;
+      #endif
+
+      default: break; // other tools
+
+    } // printer_mode
+
+    prepare_move_to_destination();
+
   }
 
   #if ENABLED(CNCROUTER)
@@ -7061,7 +7108,7 @@ inline void gcode_G92() {
     inline void gcode_M6() { tool_change_cnc(CNC_M6_TOOL_ID); }
   #endif
 
-#endif // LASERBEAM || CNCROUTER
+#endif // HAS_MULTI_MODE
 
 /**
  * M17: Enable power on all stepper motors
@@ -8027,36 +8074,40 @@ inline void gcode_M92() {
   }
 #endif // HYSTERESIS
 
-/**
- * M104: Set hotend temperature
- */
-inline void gcode_M104() {
+#if HAS_TEMP_HOTEND
 
-  GET_TARGET_EXTRUDER(104);
+  /**
+   * M104: Set hotend temperature
+   */
+  inline void gcode_M104() {
 
-  if (DEBUGGING(DRYRUN)) return;
+    GET_TARGET_EXTRUDER(104);
 
-  #if ENABLED(SINGLENOZZLE)
-    if (TARGET_EXTRUDER != active_extruder) return;
-  #endif
+    if (DEBUGGING(DRYRUN)) return;
 
-  if (parser.seen('S')) {
-    const int16_t temp = parser.value_celsius();
-    thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
-    #if ENABLED(DUAL_X_CARRIAGE)
-      if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-        thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+    #if ENABLED(SINGLENOZZLE)
+      if (TARGET_EXTRUDER != active_extruder) return;
     #endif
 
-    if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
-      lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    if (parser.seen('S')) {
+      const int16_t temp = parser.value_celsius();
+      thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+      #if ENABLED(DUAL_X_CARRIAGE)
+        if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+      #endif
+
+      if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
+        lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    }
+
+    #if ENABLED(AUTOTEMP)
+      planner.autotemp_M104_M109();
+    #endif
+
   }
 
-  #if ENABLED(AUTOTEMP)
-    planner.autotemp_M104_M109();
-  #endif
-
-}
+#endif
 
 /**
  * M105: Read hot end and bed temperature
@@ -8065,15 +8116,15 @@ inline void gcode_M105() {
 
   GET_TARGET_HOTEND(105);
 
-  #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675) || HAS(TEMP_COOLER) || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
+  #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
     SERIAL_S(OK);
-    #if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
+    #if HAS_TEMP_HOTEND || HAS_TEMP_BED
       print_heaterstates();
     #endif
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_CHAMBER
       print_chamberstate();
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       print_coolerstate();
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
@@ -8140,38 +8191,42 @@ inline void gcode_M105() {
   inline void gcode_M108() { wait_for_heatup = false; }
 #endif
 
-/**
- * M109: Sxxx Wait for hotend(s) to reach temperature. Waits only when heating.
- *       Rxxx Wait for hotend(s) to reach temperature. Waits when heating and cooling.
- */
-inline void gcode_M109() {
+#if HAS_TEMP_HOTEND
 
-  GET_TARGET_EXTRUDER(109);
-  if (DEBUGGING(DRYRUN)) return;
+  /**
+   * M109: Sxxx Wait for hotend(s) to reach temperature. Waits only when heating.
+   *       Rxxx Wait for hotend(s) to reach temperature. Waits when heating and cooling.
+   */
+  inline void gcode_M109() {
 
-  #if ENABLED(SINGLENOZZLE)
-    if (TARGET_EXTRUDER != active_extruder) return;
-  #endif
+    GET_TARGET_EXTRUDER(109);
+    if (DEBUGGING(DRYRUN)) return;
 
-  const bool no_wait_for_cooling = parser.seen('S');
-  if (no_wait_for_cooling || parser.seen('R')) {
-    const int16_t temp = parser.value_celsius();
-    thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
-    #if ENABLED(DUAL_X_CARRIAGE)
-      if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-        thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+    #if ENABLED(SINGLENOZZLE)
+      if (TARGET_EXTRUDER != active_extruder) return;
     #endif
 
-    if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
-      lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    const bool no_wait_for_cooling = parser.seen('S');
+    if (no_wait_for_cooling || parser.seen('R')) {
+      const int16_t temp = parser.value_celsius();
+      thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+      #if ENABLED(DUAL_X_CARRIAGE)
+        if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+      #endif
+
+      if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
+        lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    }
+
+    #if ENABLED(AUTOTEMP)
+      planner.autotemp_M104_M109();
+    #endif
+
+    wait_heater(no_wait_for_cooling);
   }
 
-  #if ENABLED(AUTOTEMP)
-    planner.autotemp_M104_M109();
-  #endif
-
-  wait_heater(no_wait_for_cooling);
-}
+#endif
 
 /**
  * M110: Set Current Line Number
@@ -8468,7 +8523,7 @@ inline void gcode_M122() {
   #endif
 #endif // BARICUDA
 
-#if HAS(TEMP_BED)
+#if HAS_TEMP_BED
   /**
    * M140: Set Bed temperature
    */
@@ -8478,7 +8533,7 @@ inline void gcode_M122() {
   }
 #endif
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
   /**
    * M141: Set Chamber temperature
    */
@@ -8488,7 +8543,7 @@ inline void gcode_M122() {
   }
 #endif
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
   /**
    * M142: Set Cooler temperature
    */
@@ -8656,7 +8711,7 @@ inline void gcode_M122() {
   inline void gcode_M165() { gcode_get_mix(); }
 #endif  // COLOR_MIXING_EXTRUDER
 
-#if HAS(TEMP_BED)
+#if HAS_TEMP_BED
   /**
    * M190: Sxxx Wait for bed current temp to reach target temp. Waits only when heating
    *       Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
@@ -8671,9 +8726,9 @@ inline void gcode_M122() {
 
     wait_bed(no_wait_for_cooling);
   }
-#endif // HAS(TEMP_BED)
+#endif // HAS_TEMP_BED
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
   /**
    * M191: Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
    *       Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
@@ -8687,9 +8742,9 @@ inline void gcode_M122() {
 
     wait_chamber(no_wait_for_cooling);
   }
-#endif // HAS(TEMP_CHAMBER)
+#endif // HAS_TEMP_CHAMBER
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
   /**
    * M192: Sxxx Wait for cooler current temp to reach target temp. Waits only when heating
    *       Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling
@@ -9138,7 +9193,7 @@ inline void gcode_M226() {
   }
 #endif // PIDTEMP
 
-#if ENABLED(PREVENT_COLD_EXTRUSION)
+#if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
   /**
    * M302: Allow cold extrudes, or set the minimum extrude temperature
    *
@@ -9172,36 +9227,40 @@ inline void gcode_M226() {
   }
 #endif // PREVENT_COLD_EXTRUSION
 
-/**
- * M303: PID relay autotune
- *
- *       S<temperature> sets the target temperature. (default target temperature = 150C)
- *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
- *       C<cycles>
- *       U<bool> with a non-zero value will apply the result to current settings
- */
-inline void gcode_M303() {
-  #if HAS(PID_HEATING) || HAS(PID_COOLING)
-    const int   h = parser.seen('H') ? parser.value_int() : 0,
-                c = parser.seen('C') ? parser.value_int() : 5;
-    const bool  u = parser.seen('U') && parser.value_bool() != 0;
+#if ENABLED(PIDTEMP)
 
-    int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
+  /**
+   * M303: PID relay autotune
+   *
+   *       S<temperature> sets the target temperature. (default target temperature = 150C)
+   *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
+   *       C<cycles>
+   *       U<bool> with a non-zero value will apply the result to current settings
+   */
+  inline void gcode_M303() {
+    #if HAS(PID_HEATING) || HAS(PID_COOLING)
+      const int   h = parser.seen('H') ? parser.value_int() : 0,
+                  c = parser.seen('C') ? parser.value_int() : 5;
+      const bool  u = parser.seen('U') && parser.value_bool() != 0;
 
-    if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
+      int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
 
-    KEEPALIVE_STATE(NOT_BUSY); // don't send "busy: processing" messages during autotune output
+      if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
 
-    thermalManager.PID_autotune(temp, h, c, u);
+      KEEPALIVE_STATE(NOT_BUSY); // don't send "busy: processing" messages during autotune output
 
-    KEEPALIVE_STATE(IN_HANDLER);
-  #else
-    SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
-  #endif
-}
+      thermalManager.PID_autotune(temp, h, c, u);
 
+      KEEPALIVE_STATE(IN_HANDLER);
+    #else
+      SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
+    #endif
+  }
+
+#endif
 
 #if ENABLED(PIDTEMPBED)
+
   // M304: Set bed PID parameters P I and D
   inline void gcode_M304() {
     if (parser.seen('P')) thermalManager.bedKp = parser.value_float();
@@ -9213,9 +9272,11 @@ inline void gcode_M303() {
     SERIAL_MV(" i:", thermalManager.bedKi);
     SERIAL_EMV(" d:", thermalManager.bedKd);
   }
+
 #endif // PIDTEMPBED
 
 #if ENABLED(PIDTEMPCHAMBER)
+
   // M305: Set chamber PID parameters P I and D
   inline void gcode_M305() {
     if (parser.seen('P')) thermalManager.chamberKp = parser.value_float();
@@ -9227,9 +9288,11 @@ inline void gcode_M303() {
     SERIAL_MV(" i:", thermalManager.chamberKi);
     SERIAL_EMV(" d:", thermalManager.chamberKd);
   }
+
 #endif // PIDTEMPCHAMBER
 
 #if ENABLED(PIDTEMPCOOLER)
+
   // M306: Set cooler PID parameters P I and D
   inline void gcode_M306() {
     if (parser.seen('P')) thermalManager.coolerKp = parser.value_float();
@@ -9241,6 +9304,7 @@ inline void gcode_M303() {
     SERIAL_MV(" i:", thermalManager.coolerKi);
     SERIAL_EMV(" d:", thermalManager.coolerKd);
   }
+
 #endif // PIDTEMPCOOLER
 
 #if HAS_ABL
@@ -9638,7 +9702,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_EM("]},");
 
     SERIAL_M("\"temps\": {");
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       SERIAL_MV("\"bed\": {\"current\":", thermalManager.degBed(), 1);
       SERIAL_MV(",\"active\":", thermalManager.degTargetBed());
       SERIAL_M(",\"state\":");
@@ -9948,35 +10012,52 @@ inline void gcode_M400() { stepper.synchronize(); }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)
 
-#if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+#if HAS_MULTI_MODE
 
   /**
-   * M450: Report printer mode
+   * Shared function for Printer Mode GCodes
+   */
+  static void gcode_printer_mode(const int8_t new_mode) {
+    const static char str_tooltype_0[] PROGMEM = "FFF";
+    const static char str_tooltype_1[] PROGMEM = "Laser";
+    const static char str_tooltype_2[] PROGMEM = "CNC";
+    const static char* const tool_strings[] PROGMEM = { str_tooltype_0, str_tooltype_1, str_tooltype_2 };
+    if (new_mode >= 0 && (PrinterMode)new_mode < PRINTER_MODE_COUNT) printer_mode = (PrinterMode)new_mode;
+    SERIAL_SM(ECHO, "Printer-Mode: ");
+    SERIAL_PS((char*)pgm_read_word(&(tool_strings[printer_mode])));
+    SERIAL_C(' ');
+    SERIAL_EV((int)(printer_mode == PRINTER_MODE_FFF ? active_extruder : 0));
+  }
+
+  /**
+   * M450: Set and/or report current tool type
+   *
+   *  S<type> - The new tool type
    */
   inline void gcode_M450() {
-    SERIAL_M("PrinterMode:");
-    switch(printer_mode) {
-      case PRINTER_MODE_LASER:
-        SERIAL_M("Laser");
-      break;
-      case PRINTER_MODE_CNC:
-        SERIAL_M("CNC");
-      break;
-      default:
-        SERIAL_M("FFF");
-    }
-    SERIAL_E;
+    gcode_printer_mode(parser.seen('S') ? parser.value_byte() : -1);
   }
 
-  inline void gcode_M451_M452_M453(const PrinterMode mode) {
-    if (IS_SD_PRINTING || print_job_counter.isRunning()) SERIAL_EM("Cannot change printer mode while running");
-    else {
-      printer_mode = mode;
-      gcode_M450();
-    }
-  }
+  /**
+   * M451: Select FFF printer mode
+   */
+  inline void gcode_M451() { gcode_printer_mode(PRINTER_MODE_FFF); }
 
-#endif // LASERBEAM || CNCROUTER
+  #if ENABLED(LASERBEAM)
+    /**
+     * M452: Select Laser printer mode
+     */
+    inline void gcode_M452() { gcode_printer_mode(PRINTER_MODE_LASER); }
+  #endif
+
+  #if HAS_CNCROUTER
+    /**
+     * M453: Select CNC printer mode
+     */
+    inline void gcode_M453() { gcode_printer_mode(PRINTER_MODE_CNC); }
+  #endif
+
+#endif // HAS_MULTI_MODE
 
 /**
  * M500: Store settings in EEPROM
@@ -11946,8 +12027,10 @@ void process_next_command() {
           gcode_M100(); break;
       #endif
 
-      case 104: // M104: Set hot end temperature
-        gcode_M104(); break;
+      #if HAS_TEMP_HOTEND
+        case 104: // M104: Set hot end temperature
+          gcode_M104(); break;
+      #endif
 
       case 105: // M105: Report current temperature
         gcode_M105();
@@ -11966,8 +12049,10 @@ void process_next_command() {
           gcode_M108(); break;
       #endif
 
-      case 109: // M109: Wait for hotend temperature to reach target
-        gcode_M109(); break;
+      #if HAS_TEMP_HOTEND
+        case 109: // M109: Wait for hotend temperature to reach target
+          gcode_M109(); break;
+      #endif
 
       case 110: // M110: Set Current Line Number
         gcode_M110(); break;
@@ -12034,17 +12119,17 @@ void process_next_command() {
         #endif // HAS(HEATER_2)
       #endif // BARICUDA
 
-      #if HAS(TEMP_BED)
+      #if HAS_TEMP_BED
         case 140: // M140 - Set bed temp
           gcode_M140(); break;
       #endif
 
-      #if HAS(TEMP_CHAMBER)
+      #if HAS_TEMP_CHAMBER
         case 141: // M141 - Set chamber temp
           gcode_M141(); break;
       #endif
 
-      #if HAS(TEMP_COOLER)
+      #if HAS_TEMP_COOLER
         case 142: // M142 - Set cooler temp
           gcode_M142(); break;
       #endif
@@ -12080,17 +12165,17 @@ void process_next_command() {
           gcode_M165(); break;
       #endif
 
-      #if HAS(TEMP_BED)
+      #if HAS_TEMP_BED
         case 190: // M190 - Wait for bed heater to reach target.
           gcode_M190(); break;
       #endif // TEMP_BED
 
-      #if HAS(TEMP_CHAMBER)
+      #if HAS_TEMP_CHAMBER
         case 191: // M191 - Wait for chamber heater to reach target.
           gcode_M191(); break;
       #endif
 
-      #if HAS(TEMP_COOLER)
+      #if HAS_TEMP_COOLER
         case 192: // M192 - Wait for chamber heater to reach target.
           gcode_M192(); break;
       #endif
@@ -12161,13 +12246,15 @@ void process_next_command() {
           gcode_M301(); break;
       #endif
 
-      #if ENABLED(PREVENT_COLD_EXTRUSION)
+      #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
         case 302: // M302: Allow cold extrudes (set the minimum extrude temperature)
           gcode_M302(); break;
       #endif
 
-      case 303: // M303: PID autotune
-        gcode_M303(); break;
+      #if ENABLED(PIDTEMP)
+        case 303: // M303: PID autotune
+          gcode_M303(); break;
+      #endif
 
       #if ENABLED(PIDTEMPBED)
         case 304: // M304: Set Bed PID
@@ -12263,18 +12350,18 @@ void process_next_command() {
           gcode_M428(); break;
       #endif
 
-      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+      #if HAS_MULTI_MODE
         case 450:
           gcode_M450(); break; // report printer mode
         case 451:
-          gcode_M451_M452_M453(PRINTER_MODE_FFF); break;    // set printer mode printer
+          gcode_M451(); break;    // set printer mode printer
         #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
           case 452:
-            gcode_M451_M452_M453(PRINTER_MODE_LASER); break;  // set printer mode laser
+            gcode_M452(); break;  // set printer mode laser
         #endif
         #if ENABLED(CNCROUTER)
           case 453:
-            gcode_M451_M452_M453(PRINTER_MODE_CNC); break;    // set printer mode router
+            gcode_M453(); break;  // set printer mode router
         #endif
       #endif
 
@@ -13775,7 +13862,7 @@ static void report_current_position() {
     if (ELAPSED(millis(), next_status_led_update_ms)) {
       next_status_led_update_ms += 500; // Update every 0.5s
       float max_temp = 0.0;
-        #if HAS(TEMP_BED)
+        #if HAS_TEMP_BED
           max_temp = MAX3(max_temp, thermalManager.degTargetBed(), thermalManager.degBed());
         #endif
       HOTEND_LOOP()
