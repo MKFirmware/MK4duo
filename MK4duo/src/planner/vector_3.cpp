@@ -41,7 +41,7 @@
 
 #include "../../base.h"
 
-#if HAS(ABL)
+#if HAS_ABL
 
 #include <math.h>
 #include "vector_3.h"

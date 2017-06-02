@@ -1414,16 +1414,16 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setstatuspgm(const char* message, uint8_t level) {
-    if (level < lcd_status_message_level && NextionON) {
-      strncpy_P(lcd_status_message, message, 30);
-      lcd_status_message_level = level;
-      if (PageID == 2) LcdStatus.setText(lcd_status_message);
-    }
+  void lcd_setstatusPGM(const char* message, uint8_t level) {
+    if (level < 0) level = lcd_status_message_level = 0;
+    if (level < lcd_status_message_level || !NextionON) return;
+    strncpy_P(lcd_status_message, message, 30);
+    lcd_status_message_level = level;
+    if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
   void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
-    if (level < lcd_status_message_level) return;
+    if (level < lcd_status_message_level || !NextionON) return;
     lcd_status_message_level = level;
     va_list args;
     va_start(args, fmt);
@@ -1432,8 +1432,8 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setalertstatuspgm(const char* message) {
-    lcd_setstatuspgm(message, 1);
+  void lcd_setalertstatusPGM(const char * const message) {
+    lcd_setstatusPGM(message, 1);
   }
 
   void lcd_reset_alert_level() { lcd_status_message_level = 0; }

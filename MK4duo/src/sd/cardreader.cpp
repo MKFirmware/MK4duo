@@ -402,7 +402,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
 
     #if ENABLED(MESH_BED_LEVELING)
       if (mbl.active()) fileRestart.write("M420 S1\n");
-    #elif HAS(ABL)
+    #elif HAS_ABL
       if (planner.abl_enabled) fileRestart.write("M320 S1\n");
     #endif
 

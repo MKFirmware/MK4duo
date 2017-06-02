@@ -86,7 +86,7 @@
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
-#if HAS(ABL)
+#if HAS_ABL
   #include "src/planner/vector_3.h"
 #endif
 

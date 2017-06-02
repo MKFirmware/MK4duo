@@ -217,23 +217,23 @@ uint16_t max_display_update_time = 0;
    *     menu_action_setting_edit_int3(PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)
    *
    */
-  #define _MENU_ITEM_PART_1(TYPE, LABEL, ...) \
+  #define _MENU_ITEM_PART_1(TYPE, ...) \
     if (_menuLineNr == _thisItemNr) { \
-      if (lcdDrawUpdate) \
-        lcd_implementation_drawmenu_ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PSTR(LABEL), ## __VA_ARGS__); \
       if (lcd_clicked && encoderLine == _thisItemNr) {
 
-  #define _MENU_ITEM_PART_2(TYPE, ...) \
+  #define _MENU_ITEM_PART_2(TYPE, LABEL, ...) \
         menu_action_ ## TYPE(__VA_ARGS__); \
         if (screen_changed) return; \
       } \
+      if (lcdDrawUpdate) \
+        lcd_implementation_drawmenu_ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PSTR(LABEL), ## __VA_ARGS__); \
     } \
     ++_thisItemNr
 
   #define MENU_ITEM(TYPE, LABEL, ...) do { \
       _skipStatic = false; \
-      _MENU_ITEM_PART_1(TYPE, LABEL, ## __VA_ARGS__); \
-      _MENU_ITEM_PART_2(TYPE, ## __VA_ARGS__); \
+      _MENU_ITEM_PART_1(TYPE, ## __VA_ARGS__); \
+      _MENU_ITEM_PART_2(TYPE, LABEL, ## __VA_ARGS__); \
     } while(0)
 
   #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL, 0)
@@ -262,10 +262,10 @@ uint16_t max_display_update_time = 0;
      * MENU_MULTIPLIER_ITEM generates drawing and handling code for a multiplier menu item
      */
     #define MENU_MULTIPLIER_ITEM(type, label, ...) do { \
-        _MENU_ITEM_PART_1(type, label, ## __VA_ARGS__); \
+        _MENU_ITEM_PART_1(type, ## __VA_ARGS__); \
         encoderRateMultiplierEnabled = true; \
         lastEncoderMovementMillis = 0; \
-        _MENU_ITEM_PART_2(type, ## __VA_ARGS__); \
+        _MENU_ITEM_PART_2(type, label, ## __VA_ARGS__); \
       } while(0)
 
   #else // !ENCODER_RATE_MULTIPLIER
@@ -375,6 +375,8 @@ uint16_t max_display_update_time = 0;
   millis_t next_button_update_ms;
   #if ENABLED(REPRAPWORLD_KEYPAD)
     volatile uint8_t buttons_reprapworld_keypad;
+  #else ENABLED(ADC_KEYPAD)
+    volatile uint8_t buttons_adc_keypad;
   #endif
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)
     volatile uint8_t slow_buttons;
@@ -456,18 +458,33 @@ uint16_t max_display_update_time = 0;
   /**
    * Show "Moving..." till moves are done, then revert to previous display.
    */
-  inline void lcd_synchronize() {
+  static const char moving[] PROGMEM = MSG_MOVING;
+  static const char *sync_message = moving;
+
+  //
+  // Display the synchronize screen until moves are
+  // finished, and don't return to the caller until
+  // done. ** This blocks the command queue! **
+  //
+  void _lcd_synchronize() {
     static bool no_reentry = false;
-    lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_MOVING));
+    if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, sync_message);
     if (no_reentry) return;
 
     // Make this the current handler till all moves are done
     no_reentry = true;
     screenFunc_t old_screen = currentScreen;
-    lcd_goto_screen(lcd_synchronize);
+    lcd_goto_screen(_lcd_synchronize);
     stepper.synchronize();
     no_reentry = false;
     lcd_goto_screen(old_screen);
+  }
+
+  // Display the synchronize screen with a custom message
+  // ** This blocks the command queue! **
+  void lcd_synchronize(const char * const msg=NULL) {
+    sync_message = msg ? msg : moving;
+    _lcd_synchronize();
   }
 
   void lcd_return_to_status() { lcd_goto_screen(lcd_status_screen); }
@@ -541,8 +558,6 @@ void lcd_status_screen() {
     #endif
   #endif // LCD_PROGRESS_BAR
 
-  lcd_implementation_status_screen();
-
   #if ENABLED(ULTIPANEL)
 
     if (lcd_clicked) {
@@ -555,6 +570,7 @@ void lcd_status_screen() {
         #endif
       );
       lcd_goto_screen(lcd_main_menu);
+      return;
     }
 
     #if ENABLED(ULTIPANEL_FEEDMULTIPLY)
@@ -583,7 +599,11 @@ void lcd_status_screen() {
     feedrate_percentage = constrain(feedrate_percentage, 10, 999);
 
   #endif // ULTIPANEL
+
+  lcd_implementation_status_screen();
 }
+
+void lcd_reset_status() { lcd_setstatusPGM(PSTR(""), -1); }
 
 /**
  *
@@ -592,7 +612,7 @@ void lcd_status_screen() {
  */
 void kill_screen(const char* lcd_msg) {
   lcd_init();
-  lcd_setalertstatuspgm(lcd_msg);
+  lcd_setalertstatusPGM(lcd_msg);
   #if ENABLED(DOGLCD)
     u8g.firstPage();
     do {
@@ -643,7 +663,7 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(PARK_HEAD_ON_PAUSE)
         enqueue_and_echo_commands_P(PSTR("M125"));
       #endif
-      lcd_setstatuspgm(PSTR(MSG_PRINT_PAUSED), true);
+      lcd_setstatusPGM(PSTR(MSG_PRINT_PAUSED), -1);
     }
 
     void lcd_sdcard_resume() {
@@ -653,31 +673,20 @@ void kill_screen(const char* lcd_msg) {
         card.startFileprint();
         print_job_counter.start();
       #endif
-      lcd_setstatuspgm(PSTR(""), true);
+      lcd_reset_status();
     }
 
     void lcd_sdcard_stop() {
       stopSDPrint(false);
+      lcd_return_to_status();
     }
 
     void lcd_sdcard_stop_save() {
       stopSDPrint(true);
+      lcd_return_to_status();
     }
 
   #endif // SDSUPPORT
-
-  #if HAS_CASE_LIGHT
-
-    extern bool case_light_on;
-    extern void update_case_light();
-
-    void toggle_case_light() {
-      case_light_on ^= true;
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-      update_case_light();
-    }
-
-  #endif // HAS_CASE_LIGHT
 
   #if ENABLED(BLTOUCH)
 
@@ -742,15 +751,76 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // HAS_DEBUG_MENU
 
+  #if ENABLED(CUSTOM_USER_MENUS)
+
+    #ifdef USER_SCRIPT_DONE
+      #define _DONE_SCRIPT "\n" USER_SCRIPT_DONE
+    #else
+      #define _DONE_SCRIPT ""
+    #endif
+
+    void _lcd_user_gcode(const char * const cmd) {
+      lcd_return_to_status();
+      enqueue_and_echo_commands_P(cmd);
+    }
+
+    #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
+      void lcd_user_gcode_1() { _lcd_user_gcode(PSTR(USER_GCODE_1 _DONE_SCRIPT)); }
+    #endif
+    #if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
+      void lcd_user_gcode_2() { _lcd_user_gcode(PSTR(USER_GCODE_2 _DONE_SCRIPT)); }
+    #endif
+    #if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
+      void lcd_user_gcode_3() { _lcd_user_gcode(PSTR(USER_GCODE_3 _DONE_SCRIPT)); }
+    #endif
+    #if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
+      void lcd_user_gcode_4() { _lcd_user_gcode(PSTR(USER_GCODE_4 _DONE_SCRIPT)); }
+    #endif
+    #if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
+      void lcd_user_gcode_5() { _lcd_user_gcode(PSTR(USER_GCODE_5 _DONE_SCRIPT)); }
+    #endif
+
+    void _lcd_user_menu() {
+      START_MENU();
+      MENU_BACK(MSG_MAIN);
+      #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
+        MENU_ITEM(function, USER_DESC_1, lcd_user_gcode_1);
+      #endif
+      #if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
+        MENU_ITEM(function, USER_DESC_2, lcd_user_gcode_2);
+      #endif
+      #if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
+        MENU_ITEM(function, USER_DESC_3, lcd_user_gcode_3);
+      #endif
+      #if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
+        MENU_ITEM(function, USER_DESC_4, lcd_user_gcode_4);
+      #endif
+      #if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
+        MENU_ITEM(function, USER_DESC_5, lcd_user_gcode_5);
+      #endif
+      END_MENU();
+    }
+
+  #endif
+
   /**
    *
    * "Main" menu
    *
    */
 
+  #if HAS_CASE_LIGHT
+    extern bool case_light_on;
+    extern void update_case_light();
+  #endif
+
   void lcd_main_menu() {
     START_MENU();
     MENU_BACK(MSG_WATCH);
+
+    #if ENABLED(CUSTOM_USER_MENUS)
+      MENU_ITEM(submenu, MSG_USER_MENU, _lcd_user_menu);
+    #endif
 
     //
     // Debug Menu when certain options are enabled
@@ -769,10 +839,7 @@ void kill_screen(const char* lcd_msg) {
     // Switch case light on/off
     //
     #if HAS_CASE_LIGHT
-      if (case_light_on)
-        MENU_ITEM(function, MSG_LIGHTS_OFF, toggle_case_light);
-      else
-        MENU_ITEM(function, MSG_LIGHTS_ON, toggle_case_light);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, &case_light_on, update_case_light);
     #endif
 
     if (planner.movesplanned() || IS_SD_PRINTING) {
@@ -1353,6 +1420,11 @@ void kill_screen(const char* lcd_msg) {
 
   #endif
 
+  #if ENABLED(EEPROM_SETTINGS)
+    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
+    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
+  #endif
+
   #if ENABLED(LCD_BED_LEVELING)
 
     /**
@@ -1372,6 +1444,26 @@ void kill_screen(const char* lcd_msg) {
       #endif
     );
 
+    //
+    // Raise Z to the "manual probe height"
+    // Don't return until done.
+    // ** This blocks the command queue! **
+    //
+    void _lcd_after_probing() {
+      #if MANUAL_PROBE_HEIGHT > 0
+        current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+        line_to_current(Z_AXIS);
+      #endif
+      // Display "Done" screen and wait for moves to complete
+      #if MANUAL_PROBE_HEIGHT > 0 || ENABLED(MESH_BED_LEVELING)
+        lcd_synchronize(PSTR(MSG_LEVEL_BED_DONE));
+      #endif
+      lcd_goto_previous_menu();
+      lcd_completion_feedback();
+      defer_return_to_status = false;
+      //LCD_MESSAGEPGM(MSG_LEVEL_BED_DONE);
+    }
+
     #if ENABLED(MESH_BED_LEVELING)
 
       // Utility to go to the next mesh point
@@ -1384,18 +1476,28 @@ void kill_screen(const char* lcd_msg) {
         current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
         planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder, active_driver);
         #if MANUAL_PROBE_HEIGHT > 0
-          current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 0.2;
+          current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
           line_to_current(Z_AXIS);
         #endif
         lcd_synchronize();
       }
 
-    #endif // MESH_BED_LEVELING
+    #elif ENABLED(PROBE_MANUALLY)
 
-    void _lcd_level_bed_done() {
-      if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_DONE));
-      lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
-    }
+      bool lcd_wait_for_move;
+
+      //
+      // Bed leveling is done. Wait for G29 to complete.
+      // A flag is used so that this can release control
+      // and allow the command queue to be processed.
+      //
+      void _lcd_level_bed_done() {
+        if (!lcd_wait_for_move) _lcd_after_probing();
+        if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_DONE));
+        lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
+      }
+
+    #endif
 
     void _lcd_level_goto_next_point();
 
@@ -1407,57 +1509,55 @@ void kill_screen(const char* lcd_msg) {
 
       if (lcd_clicked) {
 
-        // Use a hook to set the probe point z
+        //
+        // Save the current Z position
+        //
+
         #if ENABLED(MESH_BED_LEVELING)
 
+          //
           // MBL records the position but doesn't move to the next one
+          //
+
           mbl.set_zigzag_z(manual_probe_index, current_position[Z_AXIS]);
-
-        #elif ENABLED(PROBE_MANUALLY)
-
-          // The last G29 will record but not move
-          if (manual_probe_index == total_probe_points - 1)
-            enqueue_and_echo_commands_P("G29 V1");
 
         #endif
 
         // If done...
         if (++manual_probe_index >= total_probe_points) {
 
-          // Say "Done!"
-          lcd_goto_screen(_lcd_level_bed_done);
+          #if ENABLED(PROBE_MANUALLY)
 
-          // Raise Z to the "manual probe height"
-          #if MANUAL_PROBE_HEIGHT > 0
-            current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-            line_to_current(Z_AXIS);
-            lcd_synchronize();
-          #endif
+            //
+            // The last G29 will record and enable but not move.
+            // Since G29 is deferred, 
+            //
+            lcd_wait_for_move = true;
+            enqueue_and_echo_commands_P(PSTR("G29 V1"));
+            lcd_goto_screen(_lcd_level_bed_done);
 
-          // Enable leveling, if needed
-          #if ENABLED(MESH_BED_LEVELING)
+          #elif ENABLED(MESH_BED_LEVELING)
 
-            lcd_synchronize();
+            _lcd_after_probing();
+
             mbl.set_has_mesh(true);
             mesh_probing_done();
 
-          #elif ENABLED(PROBE_MANUALLY)
-
-            // ABL will be enabled due to "G29".
-
           #endif
 
-          lcd_return_to_status();
-          //LCD_MESSAGEPGM(MSG_LEVEL_BED_DONE);
-          lcd_completion_feedback();
         }
-        else
+        else {
+          // MESH_BED_LEVELING: Z already stored, just move
+          //    PROBE_MANUALLY: Send G29 to record Z, then move
           _lcd_level_goto_next_point();
+        }
 
         return;
       }
 
+      //
       // Encoder knob or keypad buttons adjust the Z position
+      //
       if (encoderPosition) {
         refresh_cmd_timeout();
         current_position[Z_AXIS] += float((int32_t)encoderPosition) * (LCD_Z_STEP);
@@ -1468,8 +1568,9 @@ void kill_screen(const char* lcd_msg) {
         encoderPosition = 0;
       }
 
-      // Update on first display, then only on updates to Z position
-      // Show message above on clicks instead
+      //
+      // Draw on first display, then only on Z change
+      //
       if (lcdDrawUpdate) {
         const float v = current_position[Z_AXIS];
         lcd_implementation_drawedit(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001 : 0.0001), '+'));
@@ -1479,10 +1580,6 @@ void kill_screen(const char* lcd_msg) {
     /**
      * Step 6: Display "Next point: 1 / 9" while waiting for move to finish
      */
-
-    #if ENABLED(PROBE_MANUALLY)
-      bool lcd_wait_for_move;
-    #endif
 
     void _lcd_level_bed_moving() {
       if (lcdDrawUpdate) {
@@ -1520,7 +1617,7 @@ void kill_screen(const char* lcd_msg) {
 
       #elif ENABLED(PROBE_MANUALLY)
 
-        // G29 will signal when it's done
+        // G29 Records Z, moves, and signals when it pauses
         lcd_wait_for_move = true;
         enqueue_and_echo_commands_P(PSTR("G29 V1"));
 
@@ -1563,13 +1660,58 @@ void kill_screen(const char* lcd_msg) {
       enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
+    static bool _level_state;
+    void _lcd_toggle_bed_leveling() { set_bed_leveling_enabled(_level_state); }
+
+    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+      void _lcd_set_z_fade_height() { set_z_fade_height(planner.z_fade_height); }
+    #endif
+
     /**
-     * Step 1: Bed Level entry-point: "Cancel" or "Level Bed"
+     * Step 1: Bed Level entry-point
+     *  - Cancel
+     *  - Auto Home       (if homing needed)
+     *  - Leveling On/Off (if data exists, and homed)
+     *  - Level Bed >
+     *  - Fade Height     (Req: ENABLE_LEVELING_FADE_HEIGHT)
+     *  - Mesh Z Offset   (Req: MESH_BED_LEVELING)
+     *  - Z Probe Offset  (Req: HAS_BED_PROBE, Opt: BABYSTEP_ZPROBE_OFFSET)
+     *  - Load Settings   (Req: EEPROM_SETTINGS)
+     *  - Save Settings   (Req: EEPROM_SETTINGS)
      */
-    void lcd_level_bed() {
+    void lcd_bed_leveling() {
       START_MENU();
-      MENU_BACK(MSG_LEVEL_BED_CANCEL);
+      MENU_BACK(MSG_PREPARE);
+
+      if (!(axis_known_position[X_AXIS] && axis_known_position[Y_AXIS] && axis_known_position[Z_AXIS]))
+        MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
+      else if (leveling_is_valid()) {
+        _level_state = leveling_is_active();
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &_level_state, _lcd_toggle_bed_leveling);
+      }
+
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        set_z_fade_height(planner.z_fade_height);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_Z_FADE_HEIGHT, &planner.z_fade_height, 0.0, 100.0, _lcd_set_z_fade_height);
+      #endif
+
+      //
+      // MBL Z Offset
+      //
+      #if ENABLED(MESH_BED_LEVELING)
+        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
+      #endif
+
+      #if HAS_BED_PROBE
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+      #endif
+
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
+
+      #if ENABLED(EEPROM_SETTINGS)
+        MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
+        MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      #endif
       END_MENU();
     }
 
@@ -1618,7 +1760,7 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(PROBE_MANUALLY)
         if (!g29_in_progress)
       #endif
-      MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_level_bed);
+      MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_bed_leveling);
     #endif
 
     #if HAS_M206_M408_COMMAND
@@ -2071,11 +2213,6 @@ void kill_screen(const char* lcd_msg) {
     void lcd_callback_set_contrast() { set_lcd_contrast(lcd_contrast); }
   #endif // HAS_LCD_CONTRAST
 
-  #if ENABLED(EEPROM_SETTINGS)
-    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
-    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
-  #endif
-
   static void lcd_factory_settings() {
     eeprom.Factory_Settings();
     lcd_completion_feedback();
@@ -2378,14 +2515,14 @@ void kill_screen(const char* lcd_msg) {
    */
   void lcd_control_temperature_preheat_material3_settings_menu() { _lcd_control_temperature_preheat_settings_menu(2); }
 
-  void _reset_acceleration_rates() { planner.reset_acceleration_rates(); }
-  void _planner_refresh_positioning() { planner.refresh_positioning(); }
-
   /**
    *
    * "Control" > "Motion" submenu
    *
    */
+  void _reset_acceleration_rates() { planner.reset_acceleration_rates(); }
+  void _planner_refresh_positioning() { planner.refresh_positioning(); }
+
   void lcd_control_motion_menu() {
     START_MENU();
     MENU_BACK(MSG_CONTROL);
@@ -2952,7 +3089,7 @@ void kill_screen(const char* lcd_msg) {
       END_SCREEN();
     }
 
-    void lcd_filament_change_wait_for_nozzles_to_heat() {
+    void lcd_advanced_pause_wait_for_nozzles_to_heat() {
       START_SCREEN();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER, true, true);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
@@ -3121,7 +3258,7 @@ void kill_screen(const char* lcd_msg) {
           break;
         case ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
           defer_return_to_status = true;
-          lcd_goto_screen(lcd_filament_change_wait_for_nozzles_to_heat);
+          lcd_goto_screen(lcd_advanced_pause_wait_for_nozzles_to_heat);
           break;
         case ADVANCED_PAUSE_MESSAGE_OPTION:
           defer_return_to_status = true;
@@ -3220,6 +3357,7 @@ void kill_screen(const char* lcd_msg) {
    *
    */
   #if ENABLED(REPRAPWORLD_KEYPAD)
+
     void _reprapworld_keypad_move(AxisEnum axis, int dir) {
       move_menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
       encoderPosition = dir;
@@ -3271,7 +3409,53 @@ void kill_screen(const char* lcd_msg) {
       }
     }
 
-  #endif // REPRAPWORLD_KEYPAD
+  #elif ENABLED(ADC_KEYPAD) // ADC_KEYPAD
+
+    inline void handle_adc_keypad() {
+      
+      if (buttons_adc_keypad != 0) {
+        lcd_quick_feedback();
+        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+        if ((currentScreen == lcd_main_menu) || (currentScreen == lcd_tune_menu) || (currentScreen == lcd_prepare_menu) || (currentScreen == lcd_control_menu)
+          #if ENABLED(SDSUPPORT)
+            || (currentScreen == lcd_sdcard_menu)
+          #endif
+          || (currentScreen == lcd_move_menu)
+          || (currentScreen == lcd_move_get_x_amount)
+          || (currentScreen == lcd_move_get_y_amount)
+          || (currentScreen == lcd_move_get_z_amount)
+          || (currentScreen == lcd_move_get_e_amount)
+          || (currentScreen == lcd_move_menu_10mm)
+          || (currentScreen == lcd_move_menu_1mm)
+          || (currentScreen == lcd_move_menu_01mm)
+          || (currentScreen == lcd_control_temperature_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material1_settings_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material2_settings_menu)
+          || (currentScreen == lcd_control_temperature_preheat_material3_settings_menu)
+          || (currentScreen == lcd_control_motion_menu)
+          || (currentScreen == lcd_control_filament_menu)
+          #if HAS_TEMP_0 || HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED
+            || (currentScreen == lcd_preheat_m1_menu) || (currentScreen == lcd_preheat_m2_menu) || (currentScreen == lcd_preheat_m3_menu)
+          #endif
+        ) {
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
+            encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
+          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
+            encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
+
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_LEFT)
+            menu_action_back();
+        }
+        else {
+          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
+            encoderPosition += ENCODER_PULSES_PER_STEP;
+          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
+            encoderPosition -= ENCODER_PULSES_PER_STEP;
+        }
+      }
+    }
+
+  #endif
 
   /**
    *
@@ -3380,11 +3564,7 @@ void lcd_init() {
 int lcd_strlen(const char* s) {
   int i = 0, j = 0;
   while (s[i]) {
-    #if ENABLED(MAPPER_NON)
-      j++;
-    #else
-      if ((s[i] & 0xC0u) != 0x80u) j++;
-    #endif
+    if (PRINTABLE(s[i])) j++;
     i++;
   }
   return j;
@@ -3393,11 +3573,7 @@ int lcd_strlen(const char* s) {
 int lcd_strlen_P(const char* s) {
   int j = 0;
   while (pgm_read_byte(s)) {
-    #if ENABLED(MAPPER_NON)
-      j++;
-    #else
-      if ((pgm_read_byte(s) & 0xC0u) != 0x80u) j++;
-    #endif
+    if (PRINTABLE(pgm_read_byte(s))) j++;
     s++;
   }
   return j;
@@ -3457,7 +3633,7 @@ void lcd_update() {
     // If the action button is pressed...
     if (LCD_CLICKED) {
       if (!wait_for_unclick) {           // If not waiting for a debounce release:
-        wait_for_unclick = true;         //  Set debounce flag to ignore continuous clicks
+        wait_for_unclick = true;         //  Set debounce flag to ignore continous clicks
         lcd_clicked = !wait_for_user;    //  Keep the click if not waiting for a user-click
         wait_for_user = false;           //  Any click clears wait for user
         lcd_quick_feedback();            //  Always make a click sound
@@ -3491,8 +3667,7 @@ void lcd_update() {
 
   #endif // SDSUPPORT && SD_DETECT_PIN
 
-  const  millis_t ms = millis();
-
+  const millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)
     #if ENABLED(DOGLCD)
       || drawing_screen
@@ -3513,6 +3688,8 @@ void lcd_update() {
 
       #if ENABLED(REPRAPWORLD_KEYPAD)
         handle_reprapworld_keypad();
+      #elif ENABLED(ADC_KEYPAD)
+        handle_adc_keypad();
       #endif
 
       bool encoderPastThreshold = (abs(encoderDiff) >= ENCODER_PULSES_PER_STEP);
@@ -3596,6 +3773,11 @@ void lcd_update() {
               break;
           } // switch
         }
+
+      #if ENABLED(ADC_KEYPAD)
+        buttons_adc_keypad = 0;
+      #endif
+
       #if ENABLED(ULTIPANEL)
         #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
       #else
@@ -3650,28 +3832,29 @@ void lcd_update() {
   } // ELAPSED(ms, next_lcd_update_ms)
 }
 
-#if DISABLED(STATUS_MESSAGE_SCROLLING)
-
-  void set_utf_strlen(char* s, uint8_t n) {
-    uint8_t i = 0, j = 0;
-    while (s[i] && (j < n)) {
-      #if ENABLED(MAPPER_NON)
-        j++;
-      #else
-        if ((s[i] & 0xC0u) != 0x80u) j++;
-      #endif
-      i++;
-    }
-    while (j++ < n) s[i++] = ' ';
-    s[i] = '\0';
+void pad_message_string() {
+  uint8_t i = 0, j = 0;
+  char c;
+  while ((c = lcd_status_message[i]) && j < LCD_WIDTH) {
+    if (PRINTABLE(c)) j++;
+    i++;
   }
-
-#endif
+  if (true
+    #if ENABLED(STATUS_MESSAGE_SCROLLING)
+      && j < LCD_WIDTH
+    #endif
+  ) {
+    // pad with spaces to fill up the line
+    while (j++ < LCD_WIDTH) lcd_status_message[i++] = ' ';
+    // chop off at the edge
+    lcd_status_message[i] = '\0';
+  }
+}
 
 void lcd_finishstatus(bool persist=false) {
-  #if DISABLED(STATUS_MESSAGE_SCROLLING)
-    set_utf_strlen(lcd_status_message, LCD_WIDTH);
-  #endif
+
+  pad_message_string();
+
   #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
     UNUSED(persist);
   #endif
@@ -3705,7 +3888,8 @@ void lcd_setstatus(const char * const message, const bool persist) {
   lcd_finishstatus(persist);
 }
 
-void lcd_setstatuspgm(const char * const message, const uint8_t level) {
+void lcd_setstatusPGM(const char * const message, int8_t level) {
+  if (level < 0) level = lcd_status_message_level = 0;
   if (level < lcd_status_message_level) return;
   lcd_status_message_level = level;
   strncpy_P(lcd_status_message, message, 3 * (LCD_WIDTH));
@@ -3722,8 +3906,8 @@ void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
   lcd_finishstatus(level > 0);
 }
 
-void lcd_setalertstatuspgm(const char * const message) {
-  lcd_setstatuspgm(message, 1);
+void lcd_setalertstatusPGM(const char * const message) {
+  lcd_setstatusPGM(message, 1);
   #if ENABLED(ULTIPANEL)
     lcd_return_to_status();
   #endif
@@ -3745,7 +3929,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
    * These values are independent of which pins are used for EN_A and EN_B indications
    * The rotary encoder part is also independent to the chipset used for the LCD
    */
-  #if defined(EN_A) && defined(EN_B)
+  #if ENABLED(EN_A) && ENABLED(EN_B)
     #define encrot0 0
     #define encrot1 2
     #define encrot2 3
@@ -3841,6 +4025,15 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
         #endif
         #if ENABLED(REPRAPWORLD_KEYPAD)
           GET_BUTTON_STATES(buttons_reprapworld_keypad);
+        #elif ENABLED(ADC_KEYPAD)
+          // for the reprapworld_keypad
+          uint8_t newbutton_adc_keypad = 0;
+          buttons = 0;
+          if (buttons_adc_keypad == 0) {
+            newbutton_adc_keypad = get_ADC_keyValue();
+            if ((newbutton_adc_keypad > 0) && (newbutton_adc_keypad <= 8))
+              buttons_adc_keypad = 1 << (newbutton_adc_keypad - 1);
+          }
         #endif
       #else
         GET_BUTTON_STATES(buttons);
@@ -3887,6 +4080,42 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 #endif // ULTIPANEL
 
 #endif // ULTRA_LCD
+
+#if ENABLED(ADC_KEYPAD)
+
+  #define	ADC_KEY_NUM		8
+  typedef struct {
+    unsigned short ADCKeyValueMin;
+    unsigned short ADCKeyValueMax;
+    unsigned char  ADCKeyNo;
+  }_stADCKeypadTable_;
+
+  _stADCKeypadTable_ stADCKeyTable[ADC_KEY_NUM] = {
+    // VALUE_MIN, VALUE_MAX , KEY
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F1 + 1 },		  // F1
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F2 + 1 },		  // F2
+    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },		  // F3
+    { 300,  500, 	BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },	  // LEFT
+    { 1900, 2200, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
+    { 570,  870, 	BLEN_REPRAPWORLD_KEYPAD_UP + 1 },		  // UP
+    { 2670, 2870, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },	  // DOWN
+    { 1150, 1450, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 },	// ENTER
+  };
+
+  unsigned char get_ADC_keyValue(void) {
+    unsigned short currentkpADCValue = (thermalManager.current_ADCKey_raw >> 2);
+    thermalManager.current_ADCKey_raw = 0;
+    if (currentkpADCValue < 4000) {
+      for (unsigned char i = 0; i < ADC_KEY_NUM; i++) {
+        if ((currentkpADCValue > stADCKeyTable[i].ADCKeyValueMin) && (currentkpADCValue < stADCKeyTable[i].ADCKeyValueMax)) {
+          return stADCKeyTable[i].ADCKeyNo;
+        }
+      }
+    }
+    return 0;
+  }
+
+#endif
 
 #if ENABLED(SDSUPPORT)
   void set_sd_dot() {

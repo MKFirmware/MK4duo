@@ -54,7 +54,6 @@ void ok_to_send();
   extern float  bilinear_grid_factor[2],
                 z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   float bilinear_z_offset(const float logical[XYZ]);
-  void set_bed_leveling_enabled(bool enable=true);
   void refresh_bed_level();
 #endif
 
@@ -63,6 +62,9 @@ void ok_to_send();
 #endif
 
 #if HAS_LEVELING
+  bool leveling_is_valid();
+  bool leveling_is_active();
+  void set_bed_leveling_enabled(const bool enable=true);
   void reset_bed_level();
 #endif
 
@@ -118,8 +120,8 @@ extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each ext
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
 extern float filament_size[EXTRUDERS];          // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
 extern float volumetric_multiplier[EXTRUDERS];  // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
-extern bool axis_known_position[XYZ];           // axis[n].is_known
-extern bool axis_homed[XYZ];                    // axis[n].is_homed
+extern bool axis_known_position[XYZ];
+extern bool axis_homed[XYZ];
 extern volatile bool wait_for_heatup;
 
 #if ENABLED(EMERGENCY_PARSER) || HAS(LCD)

@@ -48,6 +48,7 @@
 #define MSG_LEVEL_BED_WAITING               _UxGT("Click to Begin")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Next Point")
 #define MSG_LEVEL_BED_DONE                  _UxGT("Leveling Done!")
+#define MSG_Z_FADE_HEIGHT                   _UxGT("Fade Height")
 #define MSG_LEVEL_BED_CANCEL                _UxGT("Cancel")
 #define MSG_SET_HOME_OFFSETS                _UxGT("Set home offsets")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offsets applied")
@@ -78,6 +79,7 @@
 #define MSG_RETRACT                         _UxGT("Retract")
 #define MSG_PURGE                           _UxGT("Purge")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
+#define MSG_USER_MENU                       _UxGT("Custom Commands")
 #define MSG_SPEED                           _UxGT("Speed")
 #define MSG_NOZZLE                          _UxGT("Nozzle")
 #define MSG_BED                             _UxGT("Bed")
@@ -240,8 +242,7 @@
 #define MSG_INFO_PSU                        _UxGT("Power Supply")
 
 // CASE LIGHT
-#define MSG_LIGHTS_ON                       _UxGT("Case light on")
-#define MSG_LIGHTS_OFF                      _UxGT("Case light off")
+#define MSG_CASE_LIGHT                      _UxGT("Case light")
 
 // ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")

@@ -7,6 +7,7 @@
 *   11 BOARD_GEN7_12            - Gen7 v1.1, v1.2
 *   12 BOARD_GEN7_13            - Gen7 v1.3
 *   12 BOARD_GEN7_14            - Gen7 v1.4
+*  100 BOARD_ANET               - Anet board for A2, A6 and A8
 *
 *    2 BOARD_CHEAPTRONIC        - Cheaptronic v1.0
 *   20 BOARD_SETHI              - Sethi 3D_1
@@ -102,6 +103,7 @@
 #define BOARD_GEN7_12           11    // Gen7 v1.1, v1.2
 #define BOARD_GEN7_13           12    // Gen7 v1.3
 #define BOARD_GEN7_14           13    // Gen7 v1.4
+#define BOARD_ANET             100    // Anet board for A2, A6 and A8
 
 #define BOARD_CHEAPTRONIC        2    // Cheaptronic v1.0
 #define BOARD_SETHI             20    // Sethi 3D_1

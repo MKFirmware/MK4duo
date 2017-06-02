@@ -663,7 +663,7 @@ static_assert(1 >= 0
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS(ABL) || ENABLED(DELTA_AUTO_CALIBRATION_1)
+  #if HAS_ABL || ENABLED(DELTA_AUTO_CALIBRATION_1)
     #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
@@ -704,7 +704,7 @@ static_assert(1 >= 0
 /**
  * Auto Bed Leveling
  */
-#if HAS(ABL)
+#if HAS_ABL
 
   /**
    * Delta and SCARA have limited bed leveling options
@@ -765,10 +765,12 @@ static_assert(1 >= 0
 /**
  * LCD_BED_LEVELING requirements
  */
-#if ENABLED(LCD_BED_LEVELING) && DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-  #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
-#elif ENABLED(LCD_BED_LEVELING) && ENABLED(MESH_BED_LEVELING) && ENABLED(PROBE_MANUALLY)
-  #error "LCD_BED_LEVELING requires one of MESH_BED_LEVELING or PROBE_MANUALLY."
+#if ENABLED(LCD_BED_LEVELING)
+  #if !HAS_LCD
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+  #endif
 #endif
 
 // Firmware Retract
@@ -870,10 +872,10 @@ static_assert(1 >= 0
 #endif
 
 /**
- * Filament Change with Extruder Runout Prevention
+ * Advanced Pause
  */
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
-  #if DISABLED(ULTIPANEL) && DISABLED(NEXTION)
+  #if !HAS_LCD
     #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
     #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."

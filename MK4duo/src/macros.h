@@ -66,6 +66,10 @@
 #define SIN_60 0.8660254037844386
 #define COS_60 0.5
 
+// Macros to contrain values
+#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
+#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+
 // Macros to support option testing
 #define ENABLED defined
 #define DISABLED !defined
@@ -73,14 +77,11 @@
 #define HAS(FE) (HAS_##FE)
 #define HASNT(FE) (!(HAS_##FE))
 
-// Macros to contrain values
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
-#define NUMERIC(a)        ((a) >= '0' && '9' >= (a))
+#define NUMERIC(a)        WITHIN(a, '0', '9')
 #define DECIMAL(a)        (NUMERIC(a) || a == '.')
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
 #define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
 #define COUNT(a)          (sizeof(a) / sizeof(*a))
 #define ZERO(a)           memset(a, 0, sizeof(a))
 #define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
@@ -98,6 +99,7 @@
 #define ARRAY_3(v1, v2, v3, ...)                          { v1, v2, v3 }
 #define ARRAY_2(v1, v2, ...)                              { v1, v2 }
 #define ARRAY_1(v1, ...)                                  { v1 }
+#define ARRAY_0(...)                                      { }
 
 #define _ARRAY_N(N, ...) ARRAY_ ##N(__VA_ARGS__)
 #define ARRAY_N(N, ...) _ARRAY_N(N, __VA_ARGS__)
