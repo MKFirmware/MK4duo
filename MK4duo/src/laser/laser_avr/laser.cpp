@@ -206,13 +206,13 @@
       digitalWrite(LASER_PERIPHERALS_STATUS_PIN, HIGH); // Set the peripherals status pin to pull-up.
     #endif // LASER_PERIPHERALS
 
-    #if LASER_CONTROL == 2
+    //#if LASER_CONTROL == 2
       pinMode(LASER_PWR_PIN, OUTPUT);
       digitalWrite(LASER_PWR_PIN, LASER_UNARM);         // Laser FIRING is active LOW, so preset the pin
-    #endif
+    //#endif
 
     // initialize state to some sane defaults
-    laser.intensity = 50.0;
+    laser.intensity = 0.0; //50.0;
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;

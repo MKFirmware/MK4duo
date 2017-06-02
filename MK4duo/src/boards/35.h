@@ -69,6 +69,9 @@
 #define ORIG_HEATER_BED_PIN     -1  // BED
 #define ORIG_TEMP_BED_PIN       14  // ANALOG NUMBERING
 
+#define ORIG_LASER_PWR_PIN      -1 // '5' Usually use SERVO 2 PIN (PWM for 1 pin control, ON/OFF for 2 pin control)
+#define ORIG_LASER_TTL_PIN      -1 // '6' Usually use SERVO 1 PIN (PWN for 2 pin control)
+
 #if NUM_SERVOS > 0
   #define SERVO0_PIN            11
   #if NUM_SERVOS > 1

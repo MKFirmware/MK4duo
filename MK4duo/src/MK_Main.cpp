@@ -3893,6 +3893,11 @@ inline void gcode_G4() {
 
     if (parser.seen('$')) {
       laser.raster_direction = parser.value_int();
+      destination[Y_AXIS] = current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+    }
+
+    if (parser.seen('#')) {
+      laser.raster_direction = parser.value_int(); //code_value_bool();
     #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
       destination[X_AXIS] = current_position[X_AXIS]; // Dont increment X axis
       destination[Y_AXIS] = current_position[Y_AXIS]; // Dont increment Y axis
