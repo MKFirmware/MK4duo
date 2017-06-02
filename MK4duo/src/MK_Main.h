@@ -297,15 +297,15 @@ extern uint8_t active_driver;
   extern void digipot_i2c_init();
 #endif
 
-#if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
+#if HAS(TEMP_0) || HAS_TEMP_BED || ENABLED(HEATER_0_USES_MAX6675)
   void print_heaterstates();
 #endif
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
   void print_chamberstate();
 #endif
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
   void print_coolerstate();
 #endif
 

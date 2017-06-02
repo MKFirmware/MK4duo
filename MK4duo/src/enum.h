@@ -149,9 +149,13 @@ enum EndstopEnum {
 #endif
 
 enum PrinterMode {
-  PRINTER_MODE_FFF,
-  PRINTER_MODE_LASER,
-  PRINTER_MODE_CNC
+  PRINTER_MODE_FFF,           // M450 S0 or M451
+  PRINTER_MODE_LASER,         // M450 S1 or M452
+  PRINTER_MODE_CNC,           // M450 S2 or M453
+  PRINTER_MODE_PICKER,        // M450 S3 or M454
+  PRINTER_MODE_SOLDER,        // M450 S4
+  PRINTER_MODE_PLOTTER,
+  PRINTER_MODE_COUNT
 };
 
 /**

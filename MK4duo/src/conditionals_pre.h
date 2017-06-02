@@ -403,10 +403,17 @@
     #define E_INDEX   (E_AXIS + active_extruder)
     #define GET_TARGET_EXTRUDER(CMD) if (get_target_extruder_from_command(CMD)) return
     #define TARGET_EXTRUDER target_extruder
-  #else
+  #elif EXTRUDERS == 1
     #define XYZE_N    XYZE
     #define E_AXIS_N  E_AXIS
     #define E_INDEX   E_AXIS
+    #define GET_TARGET_EXTRUDER(CMD) NOOP
+    #define TARGET_EXTRUDER 0
+  #elif EXTRUDERS == 0
+    #undef PIDTEMP
+    #define XYZE_N    XYZ
+    #define E_AXIS_N  0
+    #define E_INDEX   0
     #define GET_TARGET_EXTRUDER(CMD) NOOP
     #define TARGET_EXTRUDER 0
   #endif

@@ -408,7 +408,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
 
     fileRestart.write(buffer_G92_Z);
 
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       if (thermalManager.degTargetBed() > 0) {
         char Bedtemp[15];
         sprintf(Bedtemp, "M190 S%i\n", (int)thermalManager.degTargetBed());

@@ -358,8 +358,9 @@ FORCE_INLINE void _draw_centered_temp(const int temp, const uint8_t x, const uin
 }
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
+
   #if HAS_TEMP_BED
-    bool isBed = heater < 0;
+    const bool isBed = heater < 0;
   #else
     const bool isBed = false;
   #endif

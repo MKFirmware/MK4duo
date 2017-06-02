@@ -99,7 +99,7 @@ float Planner::min_feedrate_mm_s,
         Planner::inverse_z_fade_height;
 #endif
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
   float Planner::autotemp_max = 250,
         Planner::autotemp_min = 210,
         Planner::autotemp_factor = 0.1;
@@ -346,7 +346,7 @@ void Planner::recalculate() {
 }
 
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::getHighESpeed() {
     static float oldt = 0;
@@ -426,7 +426,7 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  #if ENABLED(AUTOTEMP)
+  #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
     getHighESpeed();
   #endif
 
@@ -602,7 +602,11 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
-    if (de) {
+    if (de
+      #if HAS_MULTI_MODE
+        && printer_mode == PRINTER_MODE_FFF
+      #endif
+    ) {
       #if ENABLED(NPR2)
         if (extruder != 1)
       #endif
@@ -722,7 +726,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->steps[E_AXIS] = esteps;
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
-  if (printer_mode != PRINTER_MODE_LASER)
+  #if HAS_MULTI_MODE
+    if (printer_mode != PRINTER_MODE_LASER)
+  #endif
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
 
@@ -1505,7 +1511,7 @@ void Planner::refresh_positioning() {
   reset_acceleration_rates();
 }
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
     autotemp_enabled = parser.seen('F');
