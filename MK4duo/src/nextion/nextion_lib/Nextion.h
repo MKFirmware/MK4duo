@@ -78,7 +78,8 @@ typedef void (*NexTouchEventCb)(void *ptr);
  * Class NexObject
  */
 class NexObject {
-  public: /* methods */
+
+  public:
 
     /**
      * Constructor.
@@ -89,7 +90,11 @@ class NexObject {
      */
     NexObject(uint8_t pid, uint8_t cid, const char *name);
 
-    static void iterate(NexObject **list, uint8_t pid, uint8_t cid, int32_t event);
+    /**
+     * iterate search pid, cid or event in list
+     *
+     */
+    static void iterate(NexObject **list, const uint8_t pid, const uint8_t cid, const int32_t event);
 
     /**
      * Attach an callback function of push touch event.
@@ -127,7 +132,7 @@ class NexObject {
      */
     void detachPop(void);
 
-  public: /* function */
+  public:
 
     /**
      * Show itself.
@@ -162,7 +167,7 @@ class NexObject {
      * @param pname  - To set page name
      */
     void getValue(uint32_t *number, const char *pname=NULL);
-	
+
     /**
      * Set val attribute of component
      *
@@ -177,7 +182,7 @@ class NexObject {
      * @param ch - channel of waveform(0-3).
      * @param number - the value of waveform.
      */
-    void addValue(uint8_t ch, uint8_t number);
+    void addValue(const uint8_t ch, const uint8_t number);
 
     /**
      * Get hig attribute of component
@@ -191,7 +196,7 @@ class NexObject {
      *
      * @param number - To set up the data
      */
-    void Set_cursor_height_hig(uint32_t number);
+    void Set_cursor_height_hig(const uint32_t number);
 
     /**
      * Get maxval attribute of component
@@ -205,7 +210,7 @@ class NexObject {
      *
      * @param number - To set up the data
      */
-    void setMaxval(uint32_t number);
+    void setMaxval(const uint32_t number);
 
     /**
      * Get minval attribute of component
@@ -219,7 +224,7 @@ class NexObject {
      *
      * @param number - To set up the data
      */
-    void setMinval(uint32_t number);
+    void setMinval(const uint32_t number);
 
     /**
      * Get bco attribute of component
@@ -320,10 +325,11 @@ class NexObject {
     void setPic(uint32_t number);
 
     /**
+     * Get componet vis.
      *
      * @return true if status show, false if status hide
      */
-    inline bool GetVisibility() { return Visibility; };
+    bool getObjVis(void);
 
     /**
      * Set visibility attribute of component
@@ -332,10 +338,10 @@ class NexObject {
      */
     void SetVisibility(bool visible);
 
-  protected: /* methods */
+  protected:
 
     /**
-     * Get page id.
+     * Get componet page id.
      *
      * @return the id of page.
      */
@@ -353,17 +359,19 @@ class NexObject {
      *
      * @return the name of component.
      */
-    const char *getObjName(void);    
+    const char *getObjName(void);
 
-  private: /* methods */
+  private:
+
     void push(void);
     void pop(void);
 
-  private: /* data */
-    uint8_t __pid; /* Page ID */
-    uint8_t __cid; /* Component ID */
-    const char *__name; /* An unique name */
-    bool Visibility = true; /* object visibility */
+  private:
+
+    uint8_t __pid;
+    uint8_t __cid;
+    const char *__name;
+    bool __vis;
 
     NexTouchEventCb __cb_push;
     void *__cbpush_ptr;
@@ -378,7 +386,8 @@ class NexObject {
 #if ENABLED(SDSUPPORT)
 
   class NexUpload {
-    public: /* methods */
+
+    public:
 
       /**
        * Constructor.
@@ -406,7 +415,7 @@ class NexObject {
        */
       void startUpload(void);
 
-    private: /* methods */
+    private:
 
       /**
        * get communicate baudrate.
@@ -460,7 +469,7 @@ class NexObject {
        */
       uint16_t recvRetString(String &string, uint32_t timeout = 100, bool recv_flag=false);
 
-    private: /* data */
+    private:
 
       uint32_t _baudrate; /*nextion serail baudrate*/
       const char *_file_name; /*nextion tft file name*/
