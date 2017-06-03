@@ -480,7 +480,7 @@
    * The BLTouch Probe emulates a servo probe
    */
   #if ENABLED(BLTOUCH)
-    #if HAS(Z_PROBE_PIN)
+    #if HAS_Z_PROBE_PIN
       #define TEST_BLTOUCH() _TEST_BLTOUCH(Z_PROBE)
     #else
       #define TEST_BLTOUCH() _TEST_BLTOUCH(Z_MIN)

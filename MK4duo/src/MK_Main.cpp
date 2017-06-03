@@ -1699,7 +1699,7 @@ bool axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool
 
   // TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
   #if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
-    #if HAS(Z_PROBE_PIN)
+    #if HAS_Z_PROBE_PIN
       #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != Z_PROBE_ENDSTOP_INVERTING)
     #else
       #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING)
@@ -7361,7 +7361,7 @@ inline void gcode_M42() {
   inline void servo_probe_test(){
     #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
       SERIAL_LM(ER, "SERVO not setup");
-    #elif HASNT(Z_SERVO_ENDSTOP)
+    #elif !HAS_Z_SERVO_ENDSTOP
       SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
     #else
 
@@ -7374,7 +7374,7 @@ inline void gcode_M42() {
 
       bool probe_inverting;
 
-      #if HAS(Z_PROBE_PIN)
+      #if HAS_Z_PROBE_PIN
 
         #define PROBE_TEST_PIN Z_PROBE_PIN
 
@@ -7390,7 +7390,7 @@ inline void gcode_M42() {
 
         probe_inverting = Z_PROBE_ENDSTOP_INVERTING;
 
-      #elif HAS(Z_MIN)
+      #elif HAS_Z_MIN
 
         #define PROBE_TEST_PIN Z_MIN_PIN
 

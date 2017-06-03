@@ -77,7 +77,7 @@ void Endstops::init() {
     #endif
   #endif
 
-  #if HAS(Z_MIN)
+  #if HAS_Z_MIN
     #if ENABLED(ENDSTOPPULLUP_ZMIN)
       SET_INPUT_PULLUP(Z_MIN_PIN);
     #else
@@ -165,7 +165,7 @@ void Endstops::init() {
     #endif
   #endif
 
-  #if HAS(Z_PROBE_PIN)
+  #if HAS_Z_PROBE_PIN
     #if ENABLED(ENDSTOPPULLUP_ZPROBE)
       SET_INPUT_PULLUP(Z_PROBE_PIN);
     #else
@@ -235,7 +235,7 @@ void Endstops::M119() {
   #if HAS(Y_MAX)
     SERIAL_EMT(MSG_Y_MAX, ((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
-  #if HAS(Z_MIN)
+  #if HAS_Z_MIN
     SERIAL_EMT(MSG_Z_MIN, ((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(Z2_MIN)
@@ -259,7 +259,7 @@ void Endstops::M119() {
   #if HAS(Z4_MAX)
     SERIAL_EMT(MSG_Z4_MAX, ((READ(Z4_MAX_PIN)^Z4_MAX_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
-  #if HAS(Z_PROBE_PIN)
+  #if HAS_Z_PROBE_PIN
     SERIAL_EMT(MSG_Z_PROBE, ((READ(Z_PROBE_PIN)^Z_PROBE_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS(E_MIN)
@@ -533,7 +533,7 @@ void Endstops::update() {
 
   if (Z_MOVE_TEST) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
-      #if HAS(Z_MIN)
+      #if HAS_Z_MIN
         #if ENABLED(Z_FOUR_ENDSTOPS)
 
           UPDATE_ENDSTOP_BIT(Z, MIN);
@@ -592,10 +592,10 @@ void Endstops::update() {
 
         #endif // Z_FOUR_ENDSTOPS
 
-      #endif // HAS(Z_MIN)
+      #endif // HAS_Z_MIN
 
       // When closing the gap check the enabled probe
-      #if HAS_BED_PROBE && HAS(Z_PROBE_PIN)
+      #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
         if (z_probe_enabled) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
