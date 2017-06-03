@@ -148,7 +148,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_MIN)
+  #if HAS_Z_MIN
     #if (digitalPinToInterrupt(Z_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -178,7 +178,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_PROBE_PIN)
+  #if HAS_Z_PROBE_PIN
     #if (digitalPinToInterrupt(Z_PROBE_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MIN_PROBE_PIN), endstop_ISR, CHANGE);
     #else
