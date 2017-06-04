@@ -1,3 +1,7 @@
+### Version 4.3.21 dev
+* Add User menu LCD
+* Write Kinematic function for Cartesian, Core and DELTA. SCARA for now not implemented.
+
 ### Version 4.3.20 dev
 * Add ADVANCED PAUSE FEATURE (Ex Filament Change. Requires an LCD display)
 * Add PARK HEAD ON PAUSE (Park head on SD pause or M125 commands. Requires an LCD display)

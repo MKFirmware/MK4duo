@@ -1030,7 +1030,7 @@
   #endif
 
   // TEMPERATURE
-  #if HOTENDS > 0 && HAS(TEMP_0)
+  #if HOTENDS > 0 && HAS_TEMP_0
     #define HOT0_ANALOG_INPUTS 1
     #define HOT0_SENSOR_INDEX 0
     #define HOT0_ANALOG_CHANNEL TEMP_0_PIN

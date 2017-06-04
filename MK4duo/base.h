@@ -96,10 +96,6 @@
   #include "src/mbl/mesh_bed_leveling.h"
 #endif
 
-#if MECH(DELTA)
-  #include "src/motion/delta_kinematics.h"
-#endif
-
 #if ENABLED(LASERBEAM)
   #if ENABLED(LASER_RASTER)
     #include "src/laser/base64/base64.h"
@@ -111,6 +107,7 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
+#include "src/kinematics/kinematics.h"
 #include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
@@ -120,7 +117,6 @@
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/motion/stepper.h"
-#include "src/motion/cartesian_correction.h"
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
@@ -136,7 +132,7 @@
   #include "src/alligator/external_dac.h"
 #endif
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   #include <SPI.h>
 #endif
 

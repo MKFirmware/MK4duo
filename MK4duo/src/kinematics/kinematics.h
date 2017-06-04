@@ -20,13 +20,24 @@
  *
  */
 
-#ifndef CONFIGURATION_VERSION_H
-  #define CONFIGURATION_VERSION_H
+/**
+ * kinematics.h
+ *
+ * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ */
+ 
+#ifndef _KINEMATICS_H_
+#define _KINEMATICS_H_
 
-  #define FIRMWARE_NAME "MK4duo"
-  #define SHORT_BUILD_VERSION "4.3.21_dev"
-  #define BUILD_VERSION FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-  #define STRING_DISTRIBUTION_DATE __DATE__ " " __TIME__    // build date and time
-  // It might also be appropriate to define a location where additional information can be found
-  #define FIRMWARE_URL  "marlinkimbra.it"
+#if IS_CARTESIAN
+  #include "cartesian_kinematics.h"
+#elif IS_CORE
+  #include "core_kinematics.h"
+#elif IS_DELTA
+  #include "delta_kinematics.h"
+#elif IS_SCARA
+  #error "This version not supoorted scara for now, please use old version"
+  //#include "scara_kinematics.h"
 #endif
+
+#endif /* _KINEMATICS_H_ */
