@@ -27,10 +27,10 @@
  */
 
 /**
- * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
+ * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
  */
 #if __cplusplus < 201103L
-  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
+  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
 
 // Start check

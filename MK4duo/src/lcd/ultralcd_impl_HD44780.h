@@ -583,10 +583,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!axis_homed[axis])
+    if (!Kinematics.axis_homed[axis])
       lcd.print('?');
     else {
-      if (!axis_known_position[axis])
+      if (!Kinematics.axis_known_position[axis])
         lcd.print(' ');
       else
         lcd_printPGM(pstr);
@@ -765,16 +765,16 @@ static void lcd_implementation_status_screen() {
 
       #else
         // Before homing the axis letters are blinking 'X' <-> '?'.
-        // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+        // When axis is homed but Kinematics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
-        lcd.print(ftostr4sign(current_position[X_AXIS]));
+        lcd.print(ftostr4sign(Kinematics.current_position[X_AXIS]));
 
         lcd.print(' ');
 
         _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
-        lcd.print(ftostr4sign(current_position[Y_AXIS]));
+        lcd.print(ftostr4sign(Kinematics.current_position[Y_AXIS]));
 
       #endif // HOTENDS > 1 || HAS_TEMP_BED
 
@@ -782,7 +782,7 @@ static void lcd_implementation_status_screen() {
 
     lcd.setCursor(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd.print(ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
+    lcd.print(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
 
   #endif // LCD_HEIGHT > 2
 

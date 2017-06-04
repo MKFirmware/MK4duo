@@ -79,6 +79,7 @@ The new features are:
 * Added Power Check for Stop and Save
 * Added Probe Manually
 * Added LCD Bed Leveling
+* Added User menu LCD
 
 ## Credits
 

@@ -901,21 +901,21 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
     }
 
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Kinematics.current_position[Z_AXIS] += (LCD_Z_STEP);
+        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Kinematics.current_position[Z_AXIS] -= (LCD_Z_STEP);
+        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedSend) {
@@ -1145,7 +1145,7 @@
         Rfid5.attachPop(rfidPopCallback,  &Rfid5);
       #endif
 
-      #if HAS(TEMP_0)
+      #if HAS_TEMP_0
         Hotend0.attachPop(hotPopCallback, &Hotend0);
       #endif
       #if HAS_TEMP_1
@@ -1217,33 +1217,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(Kinematics.current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(Kinematics.current_position[Y_AXIS]));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
-      strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
-      if (axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(current_position[X_AXIS]);
+      strcat(buffer, (Kinematics.axis_homed[X_AXIS] ? "X" : "?"));
+      if (Kinematics.axis_homed[X_AXIS]) {
+        valuetemp = ftostr4sign(Kinematics.current_position[X_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(current_position[Y_AXIS]);
+      strcat(buffer, (Kinematics.axis_homed[Y_AXIS] ? " Y" : " ?"));
+      if (Kinematics.axis_homed[Y_AXIS]) {
+        valuetemp = ftostr4sign(Kinematics.current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(current_position[Z_AXIS]));
+      strcat(buffer, (Kinematics.axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (Kinematics.axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(current_position[Z_AXIS])));
+      BedZ.setText(ftostr43sign(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
     }
   }
 
@@ -1302,7 +1302,7 @@
           Previousfeedrate = feedrate_percentage;
         }
 
-        #if HAS(TEMP_0)
+        #if HAS_TEMP_0
           if (PreviousdegHeater[0] != thermalManager.degHotend(0)) {
             PreviousdegHeater[0] = thermalManager.degHotend(0);
             degtoLCD(0, PreviousdegHeater[0]);
