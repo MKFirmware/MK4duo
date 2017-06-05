@@ -358,8 +358,9 @@ FORCE_INLINE void _draw_centered_temp(const int temp, const uint8_t x, const uin
 }
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
+
   #if HAS_TEMP_BED
-    bool isBed = heater < 0;
+    const bool isBed = heater < 0;
   #else
     const bool isBed = false;
   #endif
@@ -399,10 +400,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!axis_homed[axis])
+    if (!Kinematics.axis_homed[axis])
       u8g.print('?');
     else {
-      if (!axis_known_position[axis])
+      if (!Kinematics.axis_known_position[axis])
         u8g.print(' ');
       else
         lcd_printPGM(pstr);
@@ -412,12 +413,17 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
 
 inline void lcd_implementation_status_message() {
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    static bool last_blink = false;
     lcd_print_utf(lcd_status_message + status_scroll_pos);
     const uint8_t slen = lcd_strlen(lcd_status_message);
     if (slen > LCD_WIDTH) {
-      // Skip any non-printing bytes
-      while (!PRINTABLE(lcd_status_message[status_scroll_pos])) ++status_scroll_pos;
-      if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      const bool new_blink = lcd_blink();
+      if (last_blink != new_blink) {
+        last_blink = new_blink;
+        // Skip any non-printing bytes
+        while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
+        if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      }
     }
   #else
     lcd_print_utf(lcd_status_message);
@@ -426,7 +432,7 @@ inline void lcd_implementation_status_message() {
 
 static void lcd_implementation_status_screen() {
 
-  bool blink = lcd_blink();
+  const bool blink = lcd_blink();
 
   // Status Menu Font
   lcd_setFont(FONT_STATUSMENU);
@@ -607,7 +613,7 @@ static void lcd_implementation_status_screen() {
   #endif
 
   // Before homing the axis letters are blinking 'X' <-> '?'.
-  // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+  // When axis is homed but Kinematics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];
@@ -617,9 +623,9 @@ static void lcd_implementation_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (page.page == 0) {
-    strcpy(xstring, ftostr4sign(current_position[X_AXIS]));
-    strcpy(ystring, ftostr4sign(current_position[Y_AXIS]));
-    strcpy(zstring, ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
+    strcpy(xstring, ftostr4sign(Kinematics.current_position[X_AXIS]));
+    strcpy(ystring, ftostr4sign(Kinematics.current_position[Y_AXIS]));
+    strcpy(zstring, ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
     #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
@@ -757,7 +763,9 @@ static void lcd_implementation_status_screen() {
       lcd_print(' ');
       lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
       lcd_print('/');
-      lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+
+      if (lcd_blink() || !thermalManager.is_heater_idle(active_extruder))
+        lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

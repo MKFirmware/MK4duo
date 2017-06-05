@@ -27,10 +27,10 @@
  */
 
 /**
- * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
+ * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
  */
 #if __cplusplus < 201103L
-  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
+  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
 
 // Start check
@@ -481,27 +481,6 @@
   #endif
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
-  #if DISABLED(PAUSE_PARK_X_POS)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_X_POS
-  #endif
-  #if DISABLED(PAUSE_PARK_Y_POS)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Y_POS
-  #endif
-  #if DISABLED(PAUSE_PARK_Z_ADD)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Z_ADD
-  #endif
-  #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH
-  #endif
-  #if DISABLED(PAUSE_PARK_UNLOAD_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH
-  #endif
-  #if DISABLED(PAUSE_PARK_PRINTER_OFF)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
-  #endif
-#endif
-
 /**
  * Progress Bar
  */
@@ -875,10 +854,31 @@ static_assert(1 >= 0
  * Advanced Pause
  */
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if EXTRUDERS == 0
+    #error "ADVANCED_PAUSE_FEATURE currently requires extruders."
+  #endif
   #if !HAS_LCD
     #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
     #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
+  #endif
+  #if DISABLED(PAUSE_PARK_X_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_X_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Y_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Y_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Z_ADD)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Z_ADD
+  #endif
+  #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_UNLOAD_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_PRINTER_OFF)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
   #endif
 #endif
 
@@ -1939,11 +1939,11 @@ static_assert(1 >= 0
      #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
   #else
     #if(LASER_CONTROL == 1)
-      #if( !PIN_EXISTS(LASER_PWR))
+      #if(!HAS_LASER_POWER)
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
       #endif
     #else
-      #if( !PIN_EXISTS(LASER_PWR) || !PIN_EXISTS(LASER_TTL))
+      #if(!HAS_LASER_POWER || !HAS_LASER_TTL)
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_TTL_PIN to a valid pin if you enable LASER
       #endif
     #endif

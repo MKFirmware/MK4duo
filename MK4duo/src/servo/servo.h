@@ -70,7 +70,7 @@
 #ifndef _SERVO_H
 #define _SERVO_H
 
-#if HAS(SERVOS)
+#if HAS_SERVOS
   #include <inttypes.h>
   #include "servotimers.h"
 

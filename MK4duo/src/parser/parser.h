@@ -164,8 +164,8 @@ public:
   inline unsigned static long value_ulong() { return value_ptr ? strtoul(value_ptr, NULL, 10) : 0UL; }
 
   // Code value for use as time
-  FORCE_INLINE static millis_t value_millis() { return value_ulong(); }
-  FORCE_INLINE static millis_t value_millis_from_seconds() { return value_float() * 1000UL; }
+  FORCE_INLINE static millis_t value_millis()               { return value_ulong(); }
+  FORCE_INLINE static millis_t value_millis_from_seconds()  { return value_float() * 1000UL; }
 
   // Reduce to fewer bits
   FORCE_INLINE static int value_int()    { return (int)value_long(); }

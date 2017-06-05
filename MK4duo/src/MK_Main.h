@@ -40,10 +40,6 @@ void manage_inactivity(bool ignore_stepper_queue = false);
 void FlushSerialRequestResend();
 void ok_to_send();
 
-#if IS_KINEMATIC
-  extern float delta[ABC];
-#endif
-
 #if IS_SCARA
   void forward_kinematics_SCARA(const float &a, const float &b);
   void inverse_kinematics(const float logical[XYZ]);
@@ -55,10 +51,14 @@ void ok_to_send();
                 z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   float bilinear_z_offset(const float logical[XYZ]);
   void refresh_bed_level();
+  #if !IS_KINEMATIC
+    extern void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits = 0xFFFF, uint16_t y_splits = 0xFFFF);
+  #endif
 #endif
 
 #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
   extern void mesh_probing_done();
+  extern void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF);
 #endif
 
 #if HAS_LEVELING
@@ -112,7 +112,17 @@ extern void safe_delay(millis_t ms);
 /**
  * Feedrate scaling and conversion
  */
+extern float feedrate_mm_s, saved_feedrate_mm_s;
 extern int feedrate_percentage;
+
+#if HAS_ABL
+  extern int xy_probe_feedrate_mm_s;
+  #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
+#elif ENABLED(XY_PROBE_SPEED)
+  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED)
+#else
+  #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
+#endif
 
 extern bool axis_relative_modes[];
 extern bool volumetric_enabled;
@@ -120,47 +130,14 @@ extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each ext
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
 extern float filament_size[EXTRUDERS];          // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
 extern float volumetric_multiplier[EXTRUDERS];  // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
-extern bool axis_known_position[XYZ];
-extern bool axis_homed[XYZ];
+
 extern volatile bool wait_for_heatup;
+
+extern const char axis_codes[NUM_AXIS];
 
 #if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
   extern volatile bool wait_for_user;
 #endif
-
-extern float current_position[NUM_AXIS];
-extern float destination[NUM_AXIS];
-
-// Workspace offsets
-#if ENABLED(WORKSPACE_OFFSETS)
-  extern float home_offset[XYZ];
-  extern float position_shift[XYZ];
-  extern float workspace_offset[XYZ];
-  #define WORKSPACE_OFFSET(AXIS) workspace_offset[AXIS]
-#else
-  #define WORKSPACE_OFFSET(AXIS) 0
-#endif
-
-#define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
-#define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
-
-#if ENABLED(WORKSPACE_OFFSETS)
-  #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
-  #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
-  #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
-  #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
-  #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
-  #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
-#else
-  #define LOGICAL_X_POSITION(POS)   (POS)
-  #define LOGICAL_Y_POSITION(POS)   (POS)
-  #define LOGICAL_Z_POSITION(POS)   (POS)
-  #define RAW_X_POSITION(POS)       (POS)
-  #define RAW_Y_POSITION(POS)       (POS)
-  #define RAW_Z_POSITION(POS)       (POS)
-#endif
-
-#define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(current_position[A##_AXIS])
 
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
@@ -213,6 +190,12 @@ extern float soft_endstop_max[XYZ];
 #if HAS_BED_PROBE
   extern float zprobe_zoffset;
   extern bool probe_process;
+  extern bool set_probe_deployed(bool deploy);
+  #define DEPLOY_PROBE() set_probe_deployed(true)
+  #define STOW_PROBE() set_probe_deployed(false)
+  #if ENABLED(BLTOUCH)
+    extern void set_bltouch_deployed(const bool deploy);
+  #endif
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -297,15 +280,15 @@ extern uint8_t active_driver;
   extern void digipot_i2c_init();
 #endif
 
-#if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
+#if HAS(TEMP_0) || HAS_TEMP_BED || ENABLED(HEATER_0_USES_MAX6675)
   void print_heaterstates();
 #endif
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
   void print_chamberstate();
 #endif
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
   void print_coolerstate();
 #endif
 
@@ -324,69 +307,6 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_
 #if ENABLED(CNCROUTER)
   void tool_change_cnc(const uint8_t tool_id, bool wait = true, bool raise_z = true);
 #endif
-
-/**
- * Blocking movement and shorthand functions
- */
-void do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
-
-bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
-
-/**
- * position_is_reachable family of functions
- */
-
-#if IS_KINEMATIC // (DELTA or SCARA)
-
-  #if IS_SCARA
-    extern const float L1, L2;
-  #endif
-
-  inline bool position_is_reachable_raw_xy(const float &rx, const float &ry) {
-    #if MECH(DELTA)
-      return deltaParams.IsReachable(rx, ry);
-    #elif IS_SCARA
-      #if MIDDLE_DEAD_ZONE_R > 0
-        const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
-        return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
-      #else
-        return HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y) <= sq(L1 + L2);
-      #endif
-    #endif
-  }
-
-  inline bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
-    // both the nozzle and the probe must be able to reach the point
-    return  position_is_reachable_raw_xy(rx, ry)
-        &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
-  }
-
-#else // CARTESIAN
-
-  inline bool position_is_reachable_raw_xy(const float &rx, const float &ry) {
-      // Add 0.001 margin to deal with float imprecision
-      return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
-          && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
-  }
-
-  inline bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
-      // Add 0.001 margin to deal with float imprecision
-      return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
-          && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
-  }
-
-#endif // CARTESIAN
-
-FORCE_INLINE bool position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
-  return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
-}
-
-FORCE_INLINE bool position_is_reachable_xy(const float &lx, const float &ly) {
-  return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
-}
 
 /**
  * SD Stop & Store location

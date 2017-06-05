@@ -130,7 +130,7 @@ enum EndstopEnum {
     ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
   };
   
-  #if HAS(LCD)
+  #if HAS_LCD
     enum AdvancedPauseMessage {
       ADVANCED_PAUSE_MESSAGE_INIT,
       ADVANCED_PAUSE_MESSAGE_COOLDOWN,
@@ -149,9 +149,13 @@ enum EndstopEnum {
 #endif
 
 enum PrinterMode {
-  PRINTER_MODE_FFF,
-  PRINTER_MODE_LASER,
-  PRINTER_MODE_CNC
+  PRINTER_MODE_FFF,           // M450 S0 or M451
+  PRINTER_MODE_LASER,         // M450 S1 or M452
+  PRINTER_MODE_CNC,           // M450 S2 or M453
+  PRINTER_MODE_PICKER,        // M450 S3 or M454
+  PRINTER_MODE_SOLDER,        // M450 S4
+  PRINTER_MODE_PLOTTER,
+  PRINTER_MODE_COUNT
 };
 
 /**
@@ -173,7 +177,7 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_CPR,
   SD_CFG_FIL,
   SD_CFG_NPR,
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   SD_CFG_PWR,
 #endif
   SD_CFG_TME,

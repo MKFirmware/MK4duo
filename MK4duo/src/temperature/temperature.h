@@ -46,24 +46,29 @@ class Temperature {
     #if ENABLED(FILAMENT_SENSOR)
       static int      current_raw_filwidth;  // Holds measured filament diameter - one extruder only
     #endif
-    static float      current_temperature[HOTENDS],
-                      current_temperature_bed;
-    static int        current_temperature_raw[HOTENDS],
-                      target_temperature[HOTENDS],
-                      current_temperature_bed_raw,
+    
+    #if HAS_TEMP_HOTEND
+      static float      current_temperature[HOTENDS];
+      static int        current_temperature_raw[HOTENDS],
+                        target_temperature[HOTENDS];
+      static uint8_t    soft_pwm[HOTENDS];
+    #endif
+    
+    #if HAS_TEMP_BED
+      static float    current_temperature_bed;
+      static int      current_temperature_bed_raw,
                       target_temperature_bed;
+      static uint8_t  soft_pwm_bed;
+    #endif
 
-    static uint8_t    soft_pwm[HOTENDS],
-                      soft_pwm_bed;
-
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_CHAMBER
       static float    current_temperature_chamber;
       static int      target_temperature_chamber,
                       current_temperature_chamber_raw;
       static uint8_t  soft_pwm_chamber;
     #endif
 
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static float    current_temperature_cooler;
       static int      target_temperature_cooler,
                       current_temperature_cooler_raw;
@@ -129,7 +134,7 @@ class Temperature {
       millis_t watch_cooler_next_ms = 0;
     #endif
 
-    #if ENABLED(PREVENT_COLD_EXTRUSION)
+    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
       static uint16_t extrude_min_temp;
       static bool tooColdToExtrude(uint8_t h) {
@@ -210,7 +215,7 @@ class Temperature {
 
     #if ENABLED(MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
       static uint8_t consecutive_low_temperature_error[HOTENDS];
-      #if HAS(TEMP_BED)
+      #if HAS_TEMP_BED
         static uint8_t consecutive_bed_low_temperature_error;
       #endif
     #endif
@@ -273,12 +278,16 @@ class Temperature {
     /**
      * Static (class) methods
      */
-    static float analog2temp(const int raw, uint8_t h);
-    static float analog2tempBed(int raw);
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_HOTEND
+      static float analog2temp(const int raw, uint8_t h);
+    #endif
+    #if HAS_TEMP_BED
+      static float analog2tempBed(int raw);
+    #endif
+    #if HAS_TEMP_CHAMBER
       static float analog2tempChamber(int raw);
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static float analog2tempCooler(int raw);
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
@@ -298,35 +307,37 @@ class Temperature {
     /**
      * Preheating hotends
      */
-    #if ENABLED(MILLISECONDS_PREHEAT_TIME)
-      static bool is_preheating(uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        return preheat_end_time[HOTEND_INDEX] && PENDING(millis(), preheat_end_time[HOTEND_INDEX]);
-      }
-      static void start_preheat_time(uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        preheat_end_time[HOTEND_INDEX] = millis() + MILLISECONDS_PREHEAT_TIME;
-      }
-      static void reset_preheat_time(uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        preheat_end_time[HOTEND_INDEX] = 0;
-      }
-    #else
-      #define is_preheating(n) (false)
+    #if HAS_TEMP_HOTEND
+      #if ENABLED(MILLISECONDS_PREHEAT_TIME)
+        static bool is_preheating(uint8_t h) {
+          #if HOTENDS <= 1
+            UNUSED(h);
+          #endif
+          return preheat_end_time[HOTEND_INDEX] && PENDING(millis(), preheat_end_time[HOTEND_INDEX]);
+        }
+        static void start_preheat_time(uint8_t h) {
+          #if HOTENDS <= 1
+            UNUSED(h);
+          #endif
+          preheat_end_time[HOTEND_INDEX] = millis() + MILLISECONDS_PREHEAT_TIME;
+        }
+        static void reset_preheat_time(uint8_t h) {
+          #if HOTENDS <= 1
+            UNUSED(h);
+          #endif
+          preheat_end_time[HOTEND_INDEX] = 0;
+        }
+      #else
+        #define is_preheating(n) (false)
+      #endif
     #endif
 
-    #if HAS(FILAMENT_SENSOR)
+    #if HAS_FILAMENT_SENSOR
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
       static int widthFil_to_size_ratio(); // Convert raw Filament Width to an extrusion ratio
     #endif
 
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       // For converting raw Power Consumption to watt
       static float analog2voltage(),
                    analog2current(),
@@ -340,32 +351,47 @@ class Temperature {
     // inline so that there is no performance decrease.
     // deg=degreeCelsius
 
-    static float degHotend(uint8_t h) {
-      #if HOTENDS <= 1
+    #if HAS_TEMP_HOTEND
+      static float degHotend(uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        return current_temperature[HOTEND_INDEX];
+      }
+    #else
+      static float degHotend(uint8_t h) {
         UNUSED(h);
-      #endif
-      return current_temperature[HOTEND_INDEX];
-    }
-    static float degBed() { return current_temperature_bed; }
-    #if HAS(TEMP_CHAMBER)
+        return 0.0;
+      }
+    #endif
+    #if HAS_TEMP_BED
+      static float degBed() { return current_temperature_bed; }
+    #else
+      static float degBed() { return 0.0; }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static float degChamber() { return current_temperature_chamber; }
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static float degCooler() { return current_temperature_cooler; }
     #endif
 
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      static int16_t rawHotendTemp(uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        return current_temperature_raw[HOTEND_INDEX];
-      }
-      static int16_t rawBedTemp() { return current_temperature_bed_raw; }
-      #if HAS(TEMP_CHAMBER)
+      #if HAS_TEMP_HOTEND
+        static int16_t rawHotendTemp(uint8_t h) {
+          #if HOTENDS <= 1
+            UNUSED(h);
+          #endif
+          return current_temperature_raw[HOTEND_INDEX];
+        }
+      #endif
+      #if HAS_TEMP_BED
+        static int16_t rawBedTemp() { return current_temperature_bed_raw; }
+      #endif
+      #if HAS_TEMP_CHAMBER
         static int16_t rawChamberTemp() { return current_temperature_chamber_raw; }
       #endif
-      #if HAS(TEMP_COOLER)
+      #if HAS_TEMP_COOLER
         static int16_t rawCoolerTemp() { return current_temperature_cooler_raw; }
       #endif
       #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
@@ -373,56 +399,63 @@ class Temperature {
       #endif
     #endif
 
-    static int16_t degTargetHotend(uint8_t h) {
-      #if HOTENDS <= 1
+    #if HAS_TEMP_HOTEND
+      static int16_t degTargetHotend(uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        return target_temperature[HOTEND_INDEX];
+      }
+    #else
+      static int16_t degTargetHotend(uint8_t h) {
         UNUSED(h);
-      #endif
-      return target_temperature[HOTEND_INDEX];
-    }
-
-    static int16_t degTargetBed() { return target_temperature_bed; }
-
-    #if HAS(TEMP_CHAMBER)
+        return 0;
+      }
+    #endif
+    #if HAS_TEMP_BED
+      static int16_t degTargetBed() { return target_temperature_bed; }
+    #else
+      static int16_t degTargetBed() { return 0; }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static int16_t degTargetChamber() { return target_temperature_chamber; }
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static int16_t degTargetCooler() { return target_temperature_cooler; }
     #endif
 
     #if WATCH_HOTENDS
       static void start_watching_heater(uint8_t h = 0);
     #endif
-
     #if WATCH_THE_BED
       static void start_watching_bed();
     #endif
-
     #if WATCH_THE_CHAMBER
       void start_watching_chamber();
     #endif
-
     #if WATCH_THE_COOLER
       void start_watching_cooler();
     #endif
 
-    static void setTargetHotend(const int16_t celsius, uint8_t h) {
-      #if HOTENDS <= 1
-        UNUSED(h);
-      #endif
-      #if ENABLED(MILLISECONDS_PREHEAT_TIME)
-        if (celsius == 0)
-          reset_preheat_time(HOTEND_INDEX);
-        else if (target_temperature[HOTEND_INDEX] == 0)
-          start_preheat_time(HOTEND_INDEX);
-      #endif
-      target_temperature[HOTEND_INDEX] = celsius;
-      #if WATCH_HOTENDS
-        start_watching_heater(HOTEND_INDEX);
-      #endif
-    }
-
-    static void setTargetBed(const int16_t celsius) {
-      #if HAS_TEMP_BED
+    #if HAS_TEMP_HOTEND
+      static void setTargetHotend(const int16_t celsius, uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        #if ENABLED(MILLISECONDS_PREHEAT_TIME)
+          if (celsius == 0)
+            reset_preheat_time(HOTEND_INDEX);
+          else if (target_temperature[HOTEND_INDEX] == 0)
+            start_preheat_time(HOTEND_INDEX);
+        #endif
+        target_temperature[HOTEND_INDEX] = celsius;
+        #if WATCH_HOTENDS
+          start_watching_heater(HOTEND_INDEX);
+        #endif
+      }
+    #endif
+    #if HAS_TEMP_BED
+      static void setTargetBed(const int16_t celsius) {
         #if ENABLED(BED_MAXTEMP)
           target_temperature_bed = min(celsius, BED_MAXTEMP);
         #else
@@ -431,10 +464,9 @@ class Temperature {
         #if WATCH_THE_BED
           start_watching_bed();
         #endif
-      #endif
-    }
-
-    #if HAS(TEMP_CHAMBER)
+      }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static void setTargetChamber(const int16_t celsius) {
         #if ENABLED(CHAMBER_MAXTEMP)
           target_temperature_chamber = min(celsius, CHAMBER_MAXTEMP);
@@ -446,8 +478,7 @@ class Temperature {
         #endif
       }
     #endif
-
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static void setTargetCooler(const int16_t celsius) {
         #if ENABLED(COOLER_MAXTEMP)
           target_temperature_cooler = min(celsius, COOLER_MAXTEMP);
@@ -460,53 +491,62 @@ class Temperature {
       }
     #endif
 
-    static bool isHeatingHotend(uint8_t h) {
-      #if HOTENDS <= 1
+    #if HAS_TEMP_HOTEND
+      static bool isHeatingHotend(uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        return target_temperature[HOTEND_INDEX] > current_temperature[HOTEND_INDEX];
+      }
+    #else
+      static bool isHeatingHotend(uint8_t h) {
         UNUSED(h);
-      #endif
-      return target_temperature[HOTEND_INDEX] > current_temperature[HOTEND_INDEX];
-    }
-
-    static bool isHeatingBed() { return target_temperature_bed > current_temperature_bed; }
-
-    #if HAS(TEMP_CHAMBER)
+        return false;
+      }
+    #endif
+    #if HAS_TEMP_BED
+      static bool isHeatingBed() { return target_temperature_bed > current_temperature_bed; }
+    #else
+      static bool isHeatingBed() { return false; }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static bool isHeatingChamber() { return target_temperature_chamber > current_temperature_chamber; }
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static bool isHeatingCooler() { return target_temperature_cooler > current_temperature_cooler; } 
     #endif
 
-    static bool isCoolingHotend(uint8_t h) {
-      #if HOTENDS <= 1
-        UNUSED(h);
-      #endif
-      return target_temperature[HOTEND_INDEX] < current_temperature[HOTEND_INDEX];
-    }
-
-    static bool isCoolingBed() { return target_temperature_bed < current_temperature_bed; }
-
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_HOTEND
+      static bool isCoolingHotend(uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        return target_temperature[HOTEND_INDEX] < current_temperature[HOTEND_INDEX];
+      }
+    #endif
+    #if HAS_TEMP_BED
+      static bool isCoolingBed() { return target_temperature_bed < current_temperature_bed; }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static bool isCoolingChamber() { return target_temperature_chamber < current_temperature_chamber; }
     #endif
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static bool isCoolingCooler() { return target_temperature_cooler < current_temperature_cooler; } 
     #endif
 
     /**
-     * The software PWM power for a hotends
+     * The software PWM power
      */
-    static int getHeaterPower(int h) { return soft_pwm[h]; }
-    
-    /**
-     * The software PWM power for a bed
-     */
-    static int getBedPower() { return soft_pwm_bed; }
-
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_HOTEND
+      static int getHeaterPower(int h) { return soft_pwm[h]; }
+    #endif
+    #if HAS_TEMP_BED
+      static int getBedPower() { return soft_pwm_bed; }
+    #endif
+    #if HAS_TEMP_CHAMBER
       static int getChamberPower() { return soft_pwm_chamber; }
     #endif
-
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static int getCoolerPower() {
         #if ENABLED(FAST_PWM_COOLER)
           return fast_pwm_cooler;
@@ -525,7 +565,7 @@ class Temperature {
     /**
      * Switch off all cooler, set all target temperatures to 0
      */
-    #if HAS(TEMP_COOLER)
+    #if HAS_TEMP_COOLER
       static void disable_all_coolers();
     #else
       inline void disable_all_coolers() {}
@@ -668,19 +708,19 @@ class Temperature {
         static millis_t thermal_runaway_bed_timer;
       #endif
 
-      #if ENABLED(THERMAL_PROTECTION_CHAMBER) && HAS(TEMP_CHAMBER)
+      #if ENABLED(THERMAL_PROTECTION_CHAMBER) && HAS_TEMP_CHAMBER
         static TRState thermal_runaway_chamber_state_machine = TRReset;
         static millis_t thermal_runaway_chamber_timer;
       #endif
 
-      #if ENABLED(THERMAL_PROTECTION_COOLER) && HAS(TEMP_COOLER)
+      #if ENABLED(THERMAL_PROTECTION_COOLER) && HAS_TEMP_COOLER
         static TRState thermal_runaway_cooler_state_machine = TRReset;
         static millis_t thermal_runaway_cooler_timer;
       #endif
 
     #endif // THERMAL_PROTECTION
 
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       int current_raw_powconsumption;
       static unsigned long raw_powconsumption_value;
     #endif

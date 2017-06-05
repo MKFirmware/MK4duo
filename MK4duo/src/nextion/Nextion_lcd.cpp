@@ -424,7 +424,7 @@
       #endif
     #endif
 
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       Bed0.setValue(1, "printer");
     #endif
 
@@ -894,27 +894,28 @@
 
     #if ENABLED(PROBE_MANUALLY)
       extern bool g29_in_progress;
+      bool lcd_wait_for_move;
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         extern bool g33_in_progress;
       #endif
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
     }
 
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Kinematics.current_position[Z_AXIS] += (LCD_Z_STEP);
+        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Kinematics.current_position[Z_AXIS] -= (LCD_Z_STEP);
+        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedSend) {
@@ -996,10 +997,14 @@
 
     theater.getValue(&Heater);
 
-    if (Heater == 4)
-      thermalManager.setTargetBed(temperature);
-    else
+    #if HAS_TEMP_BED
+      if (Heater == 4)
+        thermalManager.setTargetBed(temperature);
+      else
+    #endif
+    #if HAS_TEMP_HOTEND
       thermalManager.setTargetHotend(temperature, (uint8_t)Heater);
+    #endif
 
     Pprinter.show();
   }
@@ -1140,13 +1145,13 @@
         Rfid5.attachPop(rfidPopCallback,  &Rfid5);
       #endif
 
-      #if HAS(TEMP_0)
+      #if HAS_TEMP_0
         Hotend0.attachPop(hotPopCallback, &Hotend0);
       #endif
-      #if HAS(TEMP_1)
+      #if HAS_TEMP_1
         Hotend1.attachPop(hotPopCallback, &Hotend1);
       #endif
-      #if HAS(TEMP_2) || HAS(TEMP_BED)
+      #if HAS_TEMP_2 || HAS_TEMP_BED
         Hotend2.attachPop(hotPopCallback, &Hotend2);
       #endif
 
@@ -1196,7 +1201,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.GetVisibility() && show_Wave) {
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1212,33 +1217,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(Kinematics.current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(Kinematics.current_position[Y_AXIS]));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
-      strcat(buffer, (axis_homed[X_AXIS] ? "X" : "?"));
-      if (axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(current_position[X_AXIS]);
+      strcat(buffer, (Kinematics.axis_homed[X_AXIS] ? "X" : "?"));
+      if (Kinematics.axis_homed[X_AXIS]) {
+        valuetemp = ftostr4sign(Kinematics.current_position[X_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(current_position[Y_AXIS]);
+      strcat(buffer, (Kinematics.axis_homed[Y_AXIS] ? " Y" : " ?"));
+      if (Kinematics.axis_homed[Y_AXIS]) {
+        valuetemp = ftostr4sign(Kinematics.current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(current_position[Z_AXIS]));
+      strcat(buffer, (Kinematics.axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (Kinematics.axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(current_position[Z_AXIS])));
+      BedZ.setText(ftostr43sign(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
     }
   }
 
@@ -1297,7 +1302,7 @@
           Previousfeedrate = feedrate_percentage;
         }
 
-        #if HAS(TEMP_0)
+        #if HAS_TEMP_0
           if (PreviousdegHeater[0] != thermalManager.degHotend(0)) {
             PreviousdegHeater[0] = thermalManager.degHotend(0);
             degtoLCD(0, PreviousdegHeater[0]);
@@ -1307,7 +1312,7 @@
             targetdegtoLCD(0, PrevioustargetdegHeater[0]);
           }
         #endif
-        #if HAS(TEMP_1)
+        #if HAS_TEMP_1
           if (PreviousdegHeater[1] != thermalManager.degHotend(1)) {
             PreviousdegHeater[1] = thermalManager.degHotend(1);
             degtoLCD(1, PreviousdegHeater[1]);
@@ -1317,7 +1322,7 @@
             targetdegtoLCD(1, PrevioustargetdegHeater[1]);
           }
         #endif
-        #if HAS(TEMP_BED)
+        #if HAS_TEMP_BED
           if (PreviousdegHeater[2] != thermalManager.degBed()) {
             PreviousdegHeater[2] = thermalManager.degBed();
             degtoLCD(2, PreviousdegHeater[2]);

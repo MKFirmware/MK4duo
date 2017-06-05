@@ -130,7 +130,8 @@
  * See: https://github.com/MagoKimbra/MK4duo/blob/master/Documentation/Hardware.md *
  *                                                                                       *
  *****************************************************************************************/
-#define MOTHERBOARD BOARD_RAMPS_13_HFB
+#define MOTHERBOARD BOARD_RAMPS_13_HFF
+//#define MOTHERBOARD BOARD_RAMPS_FD_V2
 /*****************************************************************************************/
 
 
@@ -189,12 +190,12 @@
  ************************** Extruders number ***************************
  ***********************************************************************/
 // This defines the number of extruder real or virtual
-// 1,2,3,4,5,6
-#define EXTRUDERS 1
+// 0,1,2,3,4,5,6
+#define EXTRUDERS 0
 
 // This defines the number of Driver extruder you have and use
-// 1,2,3,4,5,6
-#define DRIVER_EXTRUDERS 1
+// 0,1,2,3,4,5,6
+#define DRIVER_EXTRUDERS 0
 /***********************************************************************/
 
 #endif

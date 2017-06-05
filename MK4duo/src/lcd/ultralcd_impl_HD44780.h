@@ -583,10 +583,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!axis_homed[axis])
+    if (!Kinematics.axis_homed[axis])
       lcd.print('?');
     else {
-      if (!axis_known_position[axis])
+      if (!Kinematics.axis_known_position[axis])
         lcd.print(' ');
       else
         lcd_printPGM(pstr);
@@ -595,7 +595,12 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
 }
 
 FORCE_INLINE void _draw_heater_status(const int8_t heater, const char prefix, const bool blink) {
-  const bool isBed = heater < 0;
+
+  #if HAS_TEMP_BED
+    const bool isBed = heater < 0;
+  #else
+    const bool isBed = false;
+  #endif
 
   const float t1 = (isBed ? thermalManager.degBed()       : thermalManager.degHotend(heater)),
               t2 = (isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater));
@@ -672,7 +677,7 @@ Possible status screens:
        |01234567890123456789|
 */
 static void lcd_implementation_status_screen() {
-  bool blink = lcd_blink();
+  const bool blink = lcd_blink();
 
   //
   // Line 1
@@ -685,12 +690,14 @@ static void lcd_implementation_status_screen() {
     //
     // Hotend 0 Temperature
     //
-    _draw_heater_status(0, -1, blink);
+    #if HAS_TEMP_HOTEND
+      _draw_heater_status(0, -1, blink);
+    #endif
 
     //
     // Hotend 1 or Bed Temperature
     //
-    #if HOTENDS > 1 || TEMP_SENSOR_BED != 0
+    #if HOTENDS > 1 || HAS_TEMP_BED
 
       lcd.setCursor(8, 0);
       #if HOTENDS > 1
@@ -701,19 +708,21 @@ static void lcd_implementation_status_screen() {
         _draw_heater_status(-1, -1, blink);
       #endif
 
-    #endif // HOTENDS > 1 || TEMP_SENSOR_BED != 0
+    #endif // HOTENDS > 1 || HAS_TEMP_BED
 
   #else // LCD_WIDTH >= 20
 
     //
     // Hotend 0 Temperature
     //
-    _draw_heater_status(0, LCD_STR_THERMOMETER[0], blink);
+    #if HAS_TEMP_HOTEND
+      _draw_heater_status(0, LCD_STR_THERMOMETER[0], blink);
+    #endif
 
     //
     // Hotend 1 or Bed Temperature
     //
-    #if HOTENDS > 1 || TEMP_SENSOR_BED != 0
+    #if HOTENDS > 1 || HAS_TEMP_BED
       lcd.setCursor(10, 0);
       #if HOTENDS > 1
         _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
@@ -721,7 +730,7 @@ static void lcd_implementation_status_screen() {
         _draw_heater_status(-1, LCD_STR_BEDTEMP[0], blink);
       #endif
 
-    #endif // HOTENDS > 1 || TEMP_SENSOR_BED != 0
+    #endif // HOTENDS > 1 || HAS_TEMP_BED
 
   #endif // LCD_WIDTH >= 20
 
@@ -747,33 +756,33 @@ static void lcd_implementation_status_screen() {
 
       lcd.setCursor(0, 1);
 
-      #if HOTENDS > 1 && TEMP_SENSOR_BED != 0
+      #if HOTENDS > 1 && HAS_TEMP_BED
 
         // If we both have a 2nd hotend and a heated bed,
         // show the heated bed temp on the left,
         // since the first line is filled with extruder temps
-      _draw_heater_status(-1, LCD_STR_BEDTEMP[0], blink);
+        _draw_heater_status(-1, LCD_STR_BEDTEMP[0], blink);
 
       #else
         // Before homing the axis letters are blinking 'X' <-> '?'.
-        // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+        // When axis is homed but Kinematics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
-        lcd.print(ftostr4sign(current_position[X_AXIS]));
+        lcd.print(ftostr4sign(Kinematics.current_position[X_AXIS]));
 
         lcd.print(' ');
 
         _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
-        lcd.print(ftostr4sign(current_position[Y_AXIS]));
+        lcd.print(ftostr4sign(Kinematics.current_position[Y_AXIS]));
 
-      #endif // HOTENDS > 1 || TEMP_SENSOR_BED != 0
+      #endif // HOTENDS > 1 || HAS_TEMP_BED
 
     #endif // LCD_WIDTH >= 20
 
     lcd.setCursor(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd.print(ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
+    lcd.print(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
 
   #endif // LCD_HEIGHT > 2
 
@@ -832,8 +841,10 @@ static void lcd_implementation_status_screen() {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0]))
-      return lcd_draw_progress_bar(card.percentDone());
+    if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
+      const uint8_t percent = card.percentDone();
+      if (percent) return lcd_draw_progress_bar(percent);
+    }
 
   #elif (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
 
@@ -857,18 +868,23 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("W C:"));
         lcd.print(ltostr7(power_consumption_hour));
         lcd_printPGM(PSTR("Wh"));
+        return;
       }
     #endif
 
   #endif // FILAMENT_LCD_DISPLAY || POWER_SENSOR
 
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    static bool last_blink = false;
     lcd_print_utf(lcd_status_message + status_scroll_pos);
     const uint8_t slen = lcd_strlen(lcd_status_message);
     if (slen > LCD_WIDTH) {
-      // Skip any non-printing bytes
-      while (!PRINTABLE(lcd_status_message[status_scroll_pos])) ++status_scroll_pos;
-      if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      if (last_blink != blink) {
+        last_blink = blink;
+        // Skip any non-printing bytes
+        while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
+        if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      }
     }
   #else
     lcd_print_utf(lcd_status_message);
@@ -883,9 +899,7 @@ static void lcd_implementation_status_screen() {
       if (row < LCD_HEIGHT) {
         lcd.setCursor(LCD_WIDTH - 9, row);
         lcd.print(LCD_STR_THERMOMETER[0]);
-        lcd.print(itostr3(thermalManager.degHotend(active_extruder)));
-        lcd.print('/');
-        lcd.print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+        _draw_heater_status(active_extruder, LCD_STR_THERMOMETER[0], lcd_blink());
       }
     }
 

@@ -69,7 +69,7 @@
 
     if (thermalManager.target_temperature_bed > 0) return true;
 
-    #if HAS(TEMP_CHAMBER)
+    #if HAS_TEMP_CHAMBER
       if (thermalManager.target_temperature_chamber > 0) return true;
     #endif
 

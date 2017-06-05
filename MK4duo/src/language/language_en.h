@@ -78,6 +78,7 @@
 #define MSG_EXTRUDE                         _UxGT("Extrude")
 #define MSG_RETRACT                         _UxGT("Retract")
 #define MSG_PURGE                           _UxGT("Purge")
+#define MSG_BED_LEVELING                    _UxGT("Bed Leveling")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
 #define MSG_USER_MENU                       _UxGT("Custom Commands")
 #define MSG_SPEED                           _UxGT("Speed")
@@ -243,6 +244,7 @@
 
 // CASE LIGHT
 #define MSG_CASE_LIGHT                      _UxGT("Case light")
+#define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Light BRIGHTNESS")
 
 // ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")

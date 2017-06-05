@@ -134,6 +134,14 @@ class Planner {
 
   public:
 
+    #if ENABLED(HYSTERESIS) || ENABLED(ZWOBBLE)
+      /**
+       * The current position of the tool in absolute steps
+       * Recalculated if any axis_steps_per_mm are changed by gcode
+       */
+      static long position[NUM_AXIS];
+    #endif
+
     /**
      * A ring buffer of moves described in steps
      */
@@ -173,11 +181,13 @@ class Planner {
 
   private:
 
-    /**
-     * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
-     */
-    static long position[NUM_AXIS];
+    #if DISABLED(HYSTERESIS) && DISABLED(ZWOBBLE)
+      /**
+       * The current position of the tool in absolute steps
+       * Recalculated if any axis_steps_per_mm are changed by gcode
+       */
+      static long position[NUM_AXIS];
+    #endif
 
     /**
      * Speed of previous path line segment
@@ -327,23 +337,19 @@ class Planner {
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          zwobble.InsertCorrection(lpos[Z_AXIS]);
+          Kinematics.insert_zwobble_correction(lpos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          hysteresis.InsertCorrection(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
+          Kinematics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
         #endif
       #else
         const float * const lpos = ltarget;
       #endif
 
       #if IS_KINEMATIC
-        #if MECH(DELTA)
-          deltaParams.Transform(lpos);
-        #else
-          inverse_kinematics(lpos);
-        #endif
-        _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
+        Kinematics.Transform(lpos);
+        _buffer_line(Kinematics.delta[A_AXIS], Kinematics.delta[B_AXIS], Kinematics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #else
         _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #endif
@@ -432,7 +438,7 @@ class Planner {
 
     #endif
 
-    #if ENABLED(AUTOTEMP)
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
       static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();

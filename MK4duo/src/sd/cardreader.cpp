@@ -367,23 +367,23 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     strcat(bufferFilerestart, old_file_name);
 
     strcpy(buffer_G1, "G1 X");
-    dtostrf(current_position[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    dtostrf(Kinematics.current_position[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
     strcat(buffer_G1, " Y");
-    dtostrf(current_position[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    dtostrf(Kinematics.current_position[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
     strcat(buffer_G1, " Z");
-    dtostrf(current_position[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    dtostrf(Kinematics.current_position[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
     strcat(buffer_G1, " F3600\n");
 
     #if MECH(DELTA)
       strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
     #else
       strcpy(buffer_G92_Z, "G92 Z");
-      dtostrf(current_position[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+      dtostrf(Kinematics.current_position[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
       strcat(buffer_G92_Z, "\n\n");
     #endif
 
     strcpy(buffer_G92_E, "G92 E");
-    dtostrf(current_position[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
+    dtostrf(Kinematics.current_position[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
     strcat(buffer_G92_E, "\n");
 
     if (!fileRestart.exists(restart_name_File)) {
@@ -408,7 +408,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
 
     fileRestart.write(buffer_G92_Z);
 
-    #if HAS(TEMP_BED)
+    #if HAS_TEMP_BED
       if (thermalManager.degTargetBed() > 0) {
         char Bedtemp[15];
         sprintf(Bedtemp, "M190 S%i\n", (int)thermalManager.degTargetBed());
@@ -450,8 +450,8 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     fileRestart.sync();
     fileRestart.close();
 
-    current_position[Z_AXIS] += 5;
-    do_blocking_move_to_z(current_position[Z_AXIS]);
+    Kinematics.current_position[Z_AXIS] += 5;
+    Kinematics.do_blocking_move_to_z(Kinematics.current_position[Z_AXIS]);
 
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
@@ -749,7 +749,7 @@ bool CardReader::findTotalHeight(char* buf, float &height) {
 void CardReader::PrintSettings() {
   // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     SERIAL_LM(CFG, "Watt/h consumed:");
     SERIAL_SV(CFG, power_consumption_hour);
     SERIAL_EM(" Wh");
@@ -759,7 +759,7 @@ void CardReader::PrintSettings() {
 }
 
 void CardReader::ResetDefault() {
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     power_consumption_hour = 0;
   #endif
   print_job_counter.initStats();
@@ -868,7 +868,7 @@ void CardReader::ResetDefault() {
     "CPR",  // Number of complete prints
     "FIL",  // Filament Usage
     "NPR",  // Number of prints
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     "PWR",  // Power Consumption
   #endif
     "TME",  // Longest print job
@@ -888,7 +888,7 @@ void CardReader::ResetDefault() {
     unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
     ltoa(print_job_counter.data.totalPrints, buff, 10);
     unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       ltoa(power_consumption_hour, buff, 10);
       unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
     #endif
@@ -938,7 +938,7 @@ void CardReader::ResetDefault() {
           else print_job_counter.data.totalPrints = (unsigned long)atol(value);
         }
         break;
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         case SD_CFG_PWR: {
           if (addValue) power_consumption_hour += (unsigned long)atol(value);
           else power_consumption_hour = (unsigned long)atol(value);

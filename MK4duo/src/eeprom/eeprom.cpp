@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV32"
+#define EEPROM_VERSION "MKV33"
 
 /**
  * MKV431 EEPROM Layout:
@@ -59,7 +59,7 @@
  *  M205  Y               planner.max_jerk[Y_AXIS] (float)
  *  M205  Z               planner.max_jerk[Z_AXIS] (float)
  *  M205  E   E0 ...      planner.max_jerk[E_AXIS * EXTRDURES] (float x6)
- *  M206  XYZ             home_offset (float x3)
+ *  M206  XYZ             Kinematics.home_offset (float x3)
  *  M218  T   XY          hotend_offset (float x6)
  *
  * Global Leveling:
@@ -89,15 +89,15 @@
  *  M595  H OS            Hotend AD595 Offset & Gain
  *
  * DELTA:
- *  M666  XYZ             deltaParams.endstop_adj (float x3)
- *  M666  R               deltaParams.delta_radius (float)
- *  M666  D               deltaParams.diagonal_rod (float)
- *  M666  S               deltaParams.segments_per_second (float)
- *  M666  H               deltaParams.delta_height (float)
- *  M666  ABC             deltaParams.tower_radius_adj (float x3)
- *  M666  IJK             deltaParams.tower_pos_adj (float x3)
- *  M666  UVW             deltaParams.diagonal_rod_adj (float x3)
- *  M666  O               deltaParams.print_radius (float)
+ *  M666  XYZ             Kinematics.endstop_adj (float x3)
+ *  M666  R               Kinematics.delta_radius (float)
+ *  M666  D               Kinematics.diagonal_rod (float)
+ *  M666  S               Kinematics.segments_per_second (float)
+ *  M666  H               Kinematics.delta_height (float)
+ *  M666  ABC             Kinematics.tower_radius_adj (float x3)
+ *  M666  IJK             Kinematics.tower_pos_adj (float x3)
+ *  M666  UVW             Kinematics.diagonal_rod_adj (float x3)
+ *  M666  O               Kinematics.print_radius (float)
  *
  * Z_TWO_ENDSTOPS:
  *  M666  Z               z2_endstop_adj (float)
@@ -175,7 +175,7 @@ void EEPROM::Postprocess() {
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
-    deltaParams.Recalc();
+    Kinematics.Recalc();
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
@@ -258,7 +258,7 @@ void EEPROM::Postprocess() {
 
       while(size--) {
         uint8_t * const p = (uint8_t * const)pos;
-        const uint8_t v = *value;
+        uint8_t v = *value;
         // EEPROM has only ~100,000 write cycles,
         // so only write bytes that have changed!
         if (v != eeprom_read_byte(p)) {
@@ -317,6 +317,8 @@ void EEPROM::Postprocess() {
       EEPROM_SKIP(working_crc); // Skip the checksum slot
     #endif
 
+    working_crc = 0; // clear before first "real data"
+
     EEPROM_WRITE(planner.axis_steps_per_mm);
     EEPROM_WRITE(planner.max_feedrate_mm_s);
     EEPROM_WRITE(planner.max_acceleration_mm_per_s2);
@@ -327,21 +329,17 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(planner.min_travel_feedrate_mm_s);
     EEPROM_WRITE(planner.min_segment_time);
     EEPROM_WRITE(planner.max_jerk);
-    #if DISABLED(WORKSPACE_OFFSETS)
-      const float home_offset[XYZ] = { 0 };
+    #if ENABLED(WORKSPACE_OFFSETS)
+      EEPROM_WRITE(Kinematics.home_offset);
     #endif
-    EEPROM_WRITE(home_offset);
     EEPROM_WRITE(hotend_offset);
 
     //
     // General Leveling
     //
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      const float zfh = planner.z_fade_height;
-    #else
-      const float zfh = 10.0;
+      EEPROM_WRITE(planner.z_fade_height);
     #endif
-    EEPROM_WRITE(zfh);
 
     //
     // Mesh Bed Leveling
@@ -394,15 +392,15 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MECH(DELTA)
-      EEPROM_WRITE(deltaParams.endstop_adj);
-      EEPROM_WRITE(deltaParams.delta_radius);
-      EEPROM_WRITE(deltaParams.diagonal_rod);
-      EEPROM_WRITE(deltaParams.segments_per_second);
-      EEPROM_WRITE(deltaParams.delta_height);
-      EEPROM_WRITE(deltaParams.tower_radius_adj);
-      EEPROM_WRITE(deltaParams.tower_pos_adj);
-      EEPROM_WRITE(deltaParams.diagonal_rod_adj);
-      EEPROM_WRITE(deltaParams.print_radius);
+      EEPROM_WRITE(Kinematics.endstop_adj);
+      EEPROM_WRITE(Kinematics.delta_radius);
+      EEPROM_WRITE(Kinematics.diagonal_rod);
+      EEPROM_WRITE(Kinematics.segments_per_second);
+      EEPROM_WRITE(Kinematics.delta_height);
+      EEPROM_WRITE(Kinematics.tower_radius_adj);
+      EEPROM_WRITE(Kinematics.tower_pos_adj);
+      EEPROM_WRITE(Kinematics.diagonal_rod_adj);
+      EEPROM_WRITE(Kinematics.print_radius);
     #elif ENABLED(Z_TWO_ENDSTOPS)
       EEPROM_WRITE(z2_endstop_adj);
     #endif
@@ -651,10 +649,9 @@ void EEPROM::Postprocess() {
       EEPROM_READ(planner.min_travel_feedrate_mm_s);
       EEPROM_READ(planner.min_segment_time);
       EEPROM_READ(planner.max_jerk);
-      #if DISABLED(WORKSPACE_OFFSETS)
-        float home_offset[XYZ];
+      #if ENABLED(WORKSPACE_OFFSETS)
+        EEPROM_READ(Kinematics.home_offset);
       #endif
-      EEPROM_READ(home_offset);
       EEPROM_READ(hotend_offset);
 
       //
@@ -729,15 +726,15 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MECH(DELTA)
-        EEPROM_READ(deltaParams.endstop_adj);
-        EEPROM_READ(deltaParams.delta_radius);
-        EEPROM_READ(deltaParams.diagonal_rod);
-        EEPROM_READ(deltaParams.segments_per_second);
-        EEPROM_READ(deltaParams.delta_height);
-        EEPROM_READ(deltaParams.tower_radius_adj);
-        EEPROM_READ(deltaParams.tower_pos_adj);
-        EEPROM_READ(deltaParams.diagonal_rod_adj);
-        EEPROM_READ(deltaParams.print_radius);
+        EEPROM_READ(Kinematics.endstop_adj);
+        EEPROM_READ(Kinematics.delta_radius);
+        EEPROM_READ(Kinematics.diagonal_rod);
+        EEPROM_READ(Kinematics.segments_per_second);
+        EEPROM_READ(Kinematics.delta_height);
+        EEPROM_READ(Kinematics.tower_radius_adj);
+        EEPROM_READ(Kinematics.tower_pos_adj);
+        EEPROM_READ(Kinematics.diagonal_rod_adj);
+        EEPROM_READ(Kinematics.print_radius);
       #elif ENABLED(Z_TWO_ENDSTOPS)
         EEPROM_READ(z2_endstop_adj);
       #endif
@@ -782,7 +779,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(thermalManager.coolerKd);
       #endif
 
-      #if HASNT(LCD_CONTRAST)
+      #if !HAS_LCD_CONTRAST
         uint16_t lcd_contrast;
       #endif
       EEPROM_READ(lcd_contrast);
@@ -987,7 +984,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    ZERO(home_offset);
+    ZERO(Kinematics.home_offset);
   #endif
 
   #if HAS_LEVELING
@@ -999,7 +996,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MECH(DELTA)
-    deltaParams.Init();
+    Kinematics.Init();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -1014,7 +1011,7 @@ void EEPROM::Factory_Settings() {
     lcd_preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
   #endif
 
-  #if HAS(LCD_CONTRAST)
+  #if HAS_LCD_CONTRAST
     lcd_contrast = DEFAULT_LCD_CONTRAST;
   #endif
 
@@ -1255,9 +1252,9 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(WORKSPACE_OFFSETS)
       CONFIG_MSG_START("Home offset:");
-      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(home_offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(home_offset[Y_AXIS]), 3);
-      SERIAL_EMV(" Z", LINEAR_UNIT(home_offset[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(Kinematics.home_offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(Kinematics.home_offset[Y_AXIS]), 3);
+      SERIAL_EMV(" Z", LINEAR_UNIT(Kinematics.home_offset[Z_AXIS]), 3);
     #endif
 
     #if HOTENDS > 1
@@ -1316,29 +1313,29 @@ void EEPROM::Factory_Settings() {
 
       CONFIG_MSG_START("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" X", LINEAR_UNIT(deltaParams.endstop_adj[A_AXIS]));
-      SERIAL_MV(" Y", LINEAR_UNIT(deltaParams.endstop_adj[B_AXIS]));
-      SERIAL_MV(" Z", LINEAR_UNIT(deltaParams.endstop_adj[C_AXIS]));
+      SERIAL_MV(" X", LINEAR_UNIT(Kinematics.endstop_adj[A_AXIS]));
+      SERIAL_MV(" Y", LINEAR_UNIT(Kinematics.endstop_adj[B_AXIS]));
+      SERIAL_MV(" Z", LINEAR_UNIT(Kinematics.endstop_adj[C_AXIS]));
       SERIAL_E;
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
       CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
       CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" A", LINEAR_UNIT(deltaParams.diagonal_rod_adj[0]), 3);
-      SERIAL_MV(" B", LINEAR_UNIT(deltaParams.diagonal_rod_adj[1]), 3);
-      SERIAL_MV(" C", LINEAR_UNIT(deltaParams.diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", deltaParams.tower_radius_adj[0], 3);
-      SERIAL_MV(" J", deltaParams.tower_radius_adj[1], 3);
-      SERIAL_MV(" K", deltaParams.tower_radius_adj[2], 3);
-      SERIAL_MV(" U", LINEAR_UNIT(deltaParams.tower_pos_adj[0]), 3);
-      SERIAL_MV(" V", LINEAR_UNIT(deltaParams.tower_pos_adj[1]), 3);
-      SERIAL_MV(" W", LINEAR_UNIT(deltaParams.tower_pos_adj[2]), 3);
-      SERIAL_MV(" R", LINEAR_UNIT(deltaParams.delta_radius));
-      SERIAL_MV(" D", LINEAR_UNIT(deltaParams.diagonal_rod));
-      SERIAL_MV(" S", deltaParams.segments_per_second);
-      SERIAL_MV(" O", LINEAR_UNIT(deltaParams.print_radius));
-      SERIAL_MV(" H", LINEAR_UNIT(deltaParams.delta_height), 3);
+      SERIAL_MV(" A", LINEAR_UNIT(Kinematics.diagonal_rod_adj[0]), 3);
+      SERIAL_MV(" B", LINEAR_UNIT(Kinematics.diagonal_rod_adj[1]), 3);
+      SERIAL_MV(" C", LINEAR_UNIT(Kinematics.diagonal_rod_adj[2]), 3);
+      SERIAL_MV(" I", Kinematics.tower_radius_adj[0], 3);
+      SERIAL_MV(" J", Kinematics.tower_radius_adj[1], 3);
+      SERIAL_MV(" K", Kinematics.tower_radius_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(Kinematics.tower_pos_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(Kinematics.tower_pos_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(Kinematics.tower_pos_adj[2]), 3);
+      SERIAL_MV(" R", LINEAR_UNIT(Kinematics.delta_radius));
+      SERIAL_MV(" D", LINEAR_UNIT(Kinematics.diagonal_rod));
+      SERIAL_MV(" S", Kinematics.segments_per_second);
+      SERIAL_MV(" O", LINEAR_UNIT(Kinematics.print_radius));
+      SERIAL_MV(" H", LINEAR_UNIT(Kinematics.delta_height), 3);
       SERIAL_E;
 
     #elif ENABLED(Z_TWO_ENDSTOPS)

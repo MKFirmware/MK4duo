@@ -40,7 +40,7 @@
 
 #include "../../base.h"
 
-#if HAS(SERVOS)
+#if HAS_SERVOS
   #include "servo.h"
 
   #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)

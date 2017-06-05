@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if HAS(BUZZER)
+#if HAS_BUZZER
 
   #include "buzzer.h"
 

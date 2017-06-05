@@ -99,7 +99,7 @@ float Planner::min_feedrate_mm_s,
         Planner::inverse_z_fade_height;
 #endif
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
   float Planner::autotemp_max = 250,
         Planner::autotemp_min = 210,
         Planner::autotemp_factor = 0.1;
@@ -346,7 +346,7 @@ void Planner::recalculate() {
 }
 
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::getHighESpeed() {
     static float oldt = 0;
@@ -426,7 +426,7 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  #if ENABLED(AUTOTEMP)
+  #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
     getHighESpeed();
   #endif
 
@@ -602,7 +602,11 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
-    if (de) {
+    if (de
+      #if HAS_MULTI_MODE
+        && printer_mode == PRINTER_MODE_FFF
+      #endif
+    ) {
       #if ENABLED(NPR2)
         if (extruder != 1)
       #endif
@@ -722,7 +726,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->steps[E_AXIS] = esteps;
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
-  if (printer_mode != PRINTER_MODE_LASER)
+  #if HAS_MULTI_MODE
+    if (printer_mode != PRINTER_MODE_LASER)
+  #endif
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
 
@@ -1445,11 +1451,11 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      deltaParams.Transform(lpos);
+      Kinematics.Transform(lpos);
     #else
         inverse_kinematics(lpos);
     #endif
-    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+    _set_position_mm(Kinematics.delta[A_AXIS], Kinematics.delta[B_AXIS], Kinematics.delta[C_AXIS], position[E_AXIS]);
   #else
     _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
   #endif
@@ -1501,11 +1507,11 @@ void Planner::reset_acceleration_rates() {
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-  set_position_mm_kinematic(current_position);
+  set_position_mm_kinematic(Kinematics.current_position);
   reset_acceleration_rates();
 }
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
     autotemp_enabled = parser.seen('F');

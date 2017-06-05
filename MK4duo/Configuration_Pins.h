@@ -47,10 +47,10 @@
 #endif
 
 // Y axis pins
-#define Y_STEP_PIN          ORIG_Y_STEP_PIN
-#define Y_DIR_PIN           ORIG_Y_DIR_PIN
-#define Y_ENABLE_PIN        ORIG_Y_ENABLE_PIN
-#define Y_CS_PIN            ORIG_Y_CS_PIN
+#define Y_STEP_PIN          ORIG_Z_STEP_PIN
+#define Y_DIR_PIN           ORIG_Z_DIR_PIN
+#define Y_ENABLE_PIN        ORIG_Z_ENABLE_PIN
+#define Y_CS_PIN            ORIG_Z_CS_PIN
 
 // Y2 axis pins
 #if ENABLED(Y_TWO_STEPPER)
@@ -61,10 +61,10 @@
 #endif
 
 // Z axis pins
-#define Z_STEP_PIN          ORIG_Z_STEP_PIN
-#define Z_DIR_PIN           ORIG_Z_DIR_PIN
-#define Z_ENABLE_PIN        ORIG_Z_ENABLE_PIN
-#define Z_CS_PIN            ORIG_Z_CS_PIN
+#define Z_STEP_PIN          ORIG_Y_STEP_PIN
+#define Z_DIR_PIN           ORIG_Y_DIR_PIN
+#define Z_ENABLE_PIN        ORIG_Y_ENABLE_PIN
+#define Z_CS_PIN            ORIG_Y_CS_PIN
 
 // Z2 axis pins
 #if ENABLED(Z_TWO_STEPPER)
@@ -197,6 +197,7 @@
 #endif
 
 #if ENABLED(LASERBEAM)
+// Single pin control uses only LASER_PWR_PIN and uses PWM to control it
   #define LASER_PWR_PIN                   ORIG_LASER_PWR_PIN
   #define LASER_TTL_PIN                   ORIG_LASER_TTL_PIN
   #if ENABLED(LASER_PERIPHERALS)
