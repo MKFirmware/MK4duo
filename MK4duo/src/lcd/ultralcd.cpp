@@ -2358,21 +2358,21 @@ void kill_screen(const char* lcd_msg) {
     //
     // Bed:
     //
-    #if WATCH_THE_BED
+    #if HAS_TEMP_BED
       MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15);
     #endif
 
     //
     // Chamber:
     //
-    #if WATCH_THE_CHAMBER
+    #if HAS_TEMP_CHAMBER
       MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_CHAMBER, &thermalManager.target_temperature_chamber, 0, CHAMBER_MAXTEMP - 15);
     #endif
 
     //
     // Cooler:
     //
-    #if WATCH_THE_COOLER
+    #if HAS_TEMP_COOLER
       MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLER, &thermalManager.target_temperature_cooler, 0, COOLER_MAXTEMP - 15);
     #endif
 
