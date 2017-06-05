@@ -239,7 +239,7 @@ void EEPROM::Postprocess() {
       };
     }
 
-    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
+    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc) {
       if (eeprom_error) return;
 
       do {
