@@ -23,7 +23,7 @@
 #include "../../base.h"
 #include "utility.h"
 
-#if HAS(LCD)
+#if HAS_LCD
 
   char conv[8] = { 0 };
 
@@ -229,4 +229,4 @@
     return &conv[1];
   }
 
-#endif // HAS(LCD)
+#endif // HAS_LCD

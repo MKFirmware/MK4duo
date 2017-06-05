@@ -24,7 +24,7 @@
 #define ULTRALCD_H
 
 #if ENABLED(ULTRA_LCD)
-  #if HAS(BUZZER)
+  #if HAS_BUZZER
     #include "buzzer.h"
   #endif
 

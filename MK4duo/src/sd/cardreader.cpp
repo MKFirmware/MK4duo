@@ -749,7 +749,7 @@ bool CardReader::findTotalHeight(char* buf, float &height) {
 void CardReader::PrintSettings() {
   // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     SERIAL_LM(CFG, "Watt/h consumed:");
     SERIAL_SV(CFG, power_consumption_hour);
     SERIAL_EM(" Wh");
@@ -759,7 +759,7 @@ void CardReader::PrintSettings() {
 }
 
 void CardReader::ResetDefault() {
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     power_consumption_hour = 0;
   #endif
   print_job_counter.initStats();
@@ -868,7 +868,7 @@ void CardReader::ResetDefault() {
     "CPR",  // Number of complete prints
     "FIL",  // Filament Usage
     "NPR",  // Number of prints
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     "PWR",  // Power Consumption
   #endif
     "TME",  // Longest print job
@@ -888,7 +888,7 @@ void CardReader::ResetDefault() {
     unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
     ltoa(print_job_counter.data.totalPrints, buff, 10);
     unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       ltoa(power_consumption_hour, buff, 10);
       unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
     #endif
@@ -938,7 +938,7 @@ void CardReader::ResetDefault() {
           else print_job_counter.data.totalPrints = (unsigned long)atol(value);
         }
         break;
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         case SD_CFG_PWR: {
           if (addValue) power_consumption_hour += (unsigned long)atol(value);
           else power_consumption_hour = (unsigned long)atol(value);

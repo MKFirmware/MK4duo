@@ -98,7 +98,7 @@ void pciSetup(byte pin) {
 
 void setup_endstop_interrupts( void ) {
 
-  #if HAS(X_MAX)
+  #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt
       attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it
     #else
@@ -108,7 +108,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(X_MIN)
+  #if HAS_X_MIN
     #if (digitalPinToInterrupt(X_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(X_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -118,7 +118,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Y_MAX)
+  #if HAS_Y_MAX
     #if (digitalPinToInterrupt(Y_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Y_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -128,7 +128,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Y_MIN)
+  #if HAS_Y_MIN
     #if (digitalPinToInterrupt(Y_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Y_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -138,7 +138,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_MAX)
+  #if HAS_Z_MAX
     #if (digitalPinToInterrupt(Z_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -158,7 +158,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z2_MAX)
+  #if HAS_Z2_MAX
     #if (digitalPinToInterrupt(Z2_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z2_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -168,7 +168,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z2_MIN)
+  #if HAS_Z2_MIN
     #if (digitalPinToInterrupt(Z2_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z2_MIN_PIN), endstop_ISR, CHANGE);
     #else
