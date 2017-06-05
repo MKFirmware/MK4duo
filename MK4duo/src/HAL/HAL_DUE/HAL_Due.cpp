@@ -139,7 +139,7 @@ void HAL::hwSetup(void) {
       OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
     #endif
 
-    #if HAS(BUZZER)
+    #if HAS_BUZZER
       buzz(10,10);
     #endif
 
@@ -924,19 +924,19 @@ HAL_TEMP_TIMER_ISR {
   }
   
   if (pwm_count_fan == 0) {
-    #if HAS(FAN0)
+    #if HAS_FAN0
       if ((pwm_fan_pos[0] = (fanSpeeds[0] & FAN_PWM_MASK)) > 0)
         WRITE_FAN(HIGH);
     #endif
-    #if HAS(FAN1)
+    #if HAS_FAN1
       if ((pwm_fan_pos[1] = (fanSpeeds[1] & FAN_PWM_MASK)) > 0)
         WRITE_FAN1(HIGH);
     #endif
-    #if HAS(FAN2)
+    #if HAS_FAN2
       if ((pwm_fan_pos[2] = (fanSpeeds[2] & FAN_PWM_MASK)) > 0)
         WRITE_FAN2(HIGH);
     #endif
-    #if HAS(FAN3)
+    #if HAS_FAN3
       if ((pwm_fan_pos[3] = (fanSpeeds[3] & FAN_PWM_MASK)) > 0)
         WRITE_FAN3(HIGH);
     #endif
@@ -975,19 +975,19 @@ HAL_TEMP_TIMER_ISR {
     if (fanKickstart == 0)
   #endif
   {
-    #if HAS(FAN0)
+    #if HAS_FAN0
       if (pwm_fan_pos[0] == pwm_count_fan && pwm_fan_pos[0] != FAN_PWM_MASK)
         WRITE_FAN(LOW);
     #endif
-    #if HAS(FAN1)
+    #if HAS_FAN1
       if (pwm_fan_pos[1] == pwm_count_fan && pwm_fan_pos[1] != FAN_PWM_MASK)
         WRITE_FAN1(LOW);
     #endif
-    #if HAS(FAN2)
+    #if HAS_FAN2
       if (pwm_fan_pos[2] == pwm_count_fan && pwm_fan_pos[2] != FAN_PWM_MASK)
         WRITE_FAN2(LOW);
     #endif
-    #if HAS(FAN3)
+    #if HAS_FAN3
       if (pwm_fan_pos[3] == pwm_count_fan && pwm_fan_pos[3] != FAN_PWM_MASK)
         WRITE_FAN3(LOW);
     #endif

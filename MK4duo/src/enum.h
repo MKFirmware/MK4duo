@@ -130,7 +130,7 @@ enum EndstopEnum {
     ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
   };
   
-  #if HAS(LCD)
+  #if HAS_LCD
     enum AdvancedPauseMessage {
       ADVANCED_PAUSE_MESSAGE_INIT,
       ADVANCED_PAUSE_MESSAGE_COOLDOWN,
@@ -177,7 +177,7 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_CPR,
   SD_CFG_FIL,
   SD_CFG_NPR,
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   SD_CFG_PWR,
 #endif
   SD_CFG_TME,

@@ -758,7 +758,7 @@
   #else
     #define WRITE_HEATER_0(v) WRITE_HEATER_0P(v)
   #endif
-  #if HAS(HEATER_BED)
+  #if HAS_HEATER_BED
     #if ENABLED(INVERTED_BED_PIN)
       #define WRITE_HEATER_BED(v) WRITE(HEATER_BED_PIN,!v)
     #else
@@ -783,13 +783,13 @@
   /**
    * Up to 4 PWM fans
    */
-  #if HAS(FAN3)
+  #if HAS_FAN3
     #define FAN_COUNT 4
-  #elif HAS(FAN2)
+  #elif HAS_FAN2
     #define FAN_COUNT 3
-  #elif HAS(FAN1)
+  #elif HAS_FAN1
     #define FAN_COUNT 2
-  #elif HAS(FAN0)
+  #elif HAS_FAN0
     #define FAN_COUNT 1
   #else
     #define FAN_COUNT 0
@@ -802,17 +802,17 @@
     #define _WRITE_FAN(pin, v) WRITE(pin, v)
   #endif
 
-  #if HAS(FAN0)
+  #if HAS_FAN0
     #define WRITE_FAN(v) _WRITE_FAN(FAN_PIN, v)
     #define WRITE_FAN0(v) WRITE_FAN(v)
   #endif
-  #if HAS(FAN1)
+  #if HAS_FAN1
     #define WRITE_FAN1(v) _WRITE_FAN(FAN1_PIN, v)
   #endif
-  #if HAS(FAN2)
+  #if HAS_FAN2
     #define WRITE_FAN2(v) _WRITE_FAN(FAN2_PIN, v)
   #endif
-  #if HAS(FAN3)
+  #if HAS_FAN3
     #define WRITE_FAN3(v) _WRITE_FAN(FAN3_PIN, v)
   #endif
   #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
@@ -876,7 +876,7 @@
   /**
    * Servos
    */
-  #if HAS(SERVOS)
+  #if HAS_SERVOS
     #ifndef Z_ENDSTOP_SERVO_NR
       #define Z_ENDSTOP_SERVO_NR -1
     #endif
@@ -1114,7 +1114,7 @@
     #define COOLER_COMMA CHAMBER_COMMA
   #endif
 
-  #if HAS(FILAMENT_SENSOR)
+  #if HAS_FILAMENT_SENSOR
     #define FILAMENT_ANALOG_INPUTS 1
     #define FILAMENT_SENSOR_INDEX HOT0_ANALOG_INPUTS+HOT1_ANALOG_INPUTS+HOT2_ANALOG_INPUTS+HOT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS
     #define FILAMENT_ANALOG_CHANNEL COOLER_COMMA FILWIDTH_PIN
@@ -1126,7 +1126,7 @@
     #define FILAMENT_COMMA COOLER_COMMA
   #endif
 
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     #define POWER_ANALOG_INPUTS 1
     #define POWER_SENSOR_INDEX HOT0_ANALOG_INPUTS+HOT1_ANALOG_INPUTS+HOT2_ANALOG_INPUTS+HOT3_ANALOG_INPUTS+BED_ANALOG_INPUTS+CHAMBER_ANALOG_INPUTS+COOLER_ANALOG_INPUTS+FILAMENT_ANALOG_INPUTS
     #define POWER_ANALOG_CHANNEL FILAMENT_COMMA POWER_CONSUMPTION_PIN

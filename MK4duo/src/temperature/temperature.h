@@ -332,12 +332,12 @@ class Temperature {
       #endif
     #endif
 
-    #if HAS(FILAMENT_SENSOR)
+    #if HAS_FILAMENT_SENSOR
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
       static int widthFil_to_size_ratio(); // Convert raw Filament Width to an extrusion ratio
     #endif
 
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       // For converting raw Power Consumption to watt
       static float analog2voltage(),
                    analog2current(),
@@ -720,7 +720,7 @@ class Temperature {
 
     #endif // THERMAL_PROTECTION
 
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       int current_raw_powconsumption;
       static unsigned long raw_powconsumption_value;
     #endif

@@ -677,7 +677,7 @@ Possible status screens:
        |01234567890123456789|
 */
 static void lcd_implementation_status_screen() {
-  bool blink = lcd_blink();
+  const bool blink = lcd_blink();
 
   //
   // Line 1
@@ -761,7 +761,7 @@ static void lcd_implementation_status_screen() {
         // If we both have a 2nd hotend and a heated bed,
         // show the heated bed temp on the left,
         // since the first line is filled with extruder temps
-      _draw_heater_status(-1, LCD_STR_BEDTEMP[0], blink);
+        _draw_heater_status(-1, LCD_STR_BEDTEMP[0], blink);
 
       #else
         // Before homing the axis letters are blinking 'X' <-> '?'.
@@ -841,8 +841,10 @@ static void lcd_implementation_status_screen() {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0]))
-      return lcd_draw_progress_bar(card.percentDone());
+    if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
+      const uint8_t percent = card.percentDone();
+      if (percent) return lcd_draw_progress_bar(percent);
+    }
 
   #elif (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
 
@@ -866,18 +868,23 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("W C:"));
         lcd.print(ltostr7(power_consumption_hour));
         lcd_printPGM(PSTR("Wh"));
+        return;
       }
     #endif
 
   #endif // FILAMENT_LCD_DISPLAY || POWER_SENSOR
 
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    static bool last_blink = false;
     lcd_print_utf(lcd_status_message + status_scroll_pos);
     const uint8_t slen = lcd_strlen(lcd_status_message);
     if (slen > LCD_WIDTH) {
-      // Skip any non-printing bytes
-      while (!PRINTABLE(lcd_status_message[status_scroll_pos++])) { /* nada */ }
-      if (status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      if (last_blink != blink) {
+        last_blink = blink;
+        // Skip any non-printing bytes
+        while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
+        if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      }
     }
   #else
     lcd_print_utf(lcd_status_message);

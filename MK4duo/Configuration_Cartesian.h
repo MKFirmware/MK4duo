@@ -636,8 +636,11 @@
 //#define HYSTERESIS
 //#define ZWOBBLE
 
-#define DEFAULT_HYSTERESIS_MM   0, 0, 0, 0  // X, Y, Z, E hysteresis in mm.
-#define DEFAULT_ZWOBBLE         0, 0, 0     // A, W, P
+ // X, Y, Z, E hysteresis in mm.
+#define DEFAULT_HYSTERESIS_MM { 0, 0, 0, 0 }
+
+// A, W, P
+#define DEFAULT_ZWOBBLE       { 0, 0, 0 }
 /*****************************************************************************************/
 
 #endif

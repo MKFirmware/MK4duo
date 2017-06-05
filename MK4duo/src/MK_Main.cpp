@@ -187,7 +187,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
+#if ENABLED(EMERGENCY_PARSER) || HAS_LCD
   volatile bool wait_for_user = false;
 #endif
 
@@ -369,7 +369,7 @@ float cartes[XYZ] = { 0 };
   int meas_delay_cm = MEASUREMENT_DELAY_CM;                     // Distance delay setting
 #endif
 
-#if HAS(FIL_RUNOUT)
+#if HAS_FIL_RUNOUT
   static bool filament_ran_out = false;
 #endif
 
@@ -395,7 +395,7 @@ float cartes[XYZ] = { 0 };
   bool IDLE_OOZING_retracted[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   float power_consumption_meas = 0.0;
   unsigned long power_consumption_hour;
   unsigned long startpower = 0;
@@ -413,7 +413,7 @@ float cartes[XYZ] = { 0 };
 
 static bool send_ok[BUFSIZE];
 
-#if HAS(SERVOS)
+#if HAS_SERVOS
   Servo servo[NUM_SERVOS];
   #define MOVE_SERVO(I, P) servo[I].move(P)
   #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[0])
@@ -710,7 +710,7 @@ inline void get_serial_commands() {
   static char serial_line_buffer[MAX_CMD_SIZE];
   static bool serial_comment_mode = false;
 
-  #if HAS(DOOR)
+  #if HAS_DOOR
     if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
       KEEPALIVE_STATE(DOOR_OPEN);
       return;  // do nothing while door is open
@@ -883,14 +883,14 @@ inline void get_serial_commands() {
 
     if (!card.sdprinting) return;
 
-    #if HAS(DOOR)
+    #if HAS_DOOR
       if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
         KEEPALIVE_STATE(DOOR_OPEN);
         return;  // do nothing while door is open
       }
     #endif
 
-    #if HAS(POWER_CHECK)
+    #if HAS_POWER_CHECK
       if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
         stopSDPrint(true);
         return;
@@ -1551,7 +1551,7 @@ static void clean_up_after_endstop_or_probe_move() {
       vector_3 point = probe_point_to_end_point(x, y);
       float dx = point.x, dy = point.y;
       if (dx == 0.0 && dy == 0.0) {
-        #if HAS(BUZZER)
+        #if HAS_BUZZER
           BUZZ(100, 220);
         #endif
         return 0.0;
@@ -1650,8 +1650,12 @@ static void clean_up_after_endstop_or_probe_move() {
           (void)bilinear_z_offset(reset);
         #endif
 
+        // Enable or disable leveling compensation in the planner
         planner.abl_enabled = enable;
+
         if (!enable)
+          // When disabling just get the current position from the steppers.
+          // This will yield the smallest error when first converted back to steps.
           set_current_from_steppers_for_axis(
             #if ABL_PLANAR
               ALL_AXES
@@ -1660,9 +1664,11 @@ static void clean_up_after_endstop_or_probe_move() {
             #endif
           );
         else
+          // When enabling, remove compensation from the current position,
+          // so compensation will give the right stepper counts.
           planner.unapply_leveling(Kinematics.current_position);
 
-      #endif
+      #endif // ABL
     }
   }
 
@@ -2882,6 +2888,25 @@ void gcode_get_destination() {
     return true;
   }
 
+  static void ensure_safe_temperature() {
+    bool did_show = false;
+    wait_for_heatup = true;
+    while (wait_for_heatup) {
+      idle();
+      wait_for_heatup = false;
+      HOTEND_LOOP() {
+        if (thermalManager.degTargetHotend(h) && abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > 3) {
+          wait_for_heatup = true;
+          if (!did_show) { // Show "wait for heating"
+            lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
+            did_show = true;
+          }
+          break;
+        }
+      }
+    }
+  }
+
   static void wait_for_filament_reload(int8_t max_beep_count = 0) {
     bool nozzle_timed_out = false,
          bed_timed_out = false;
@@ -2938,21 +2963,8 @@ void gcode_get_destination() {
 
     #if HAS_LCD
       // Show "wait for heating"
-      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
+      if (nozzle_timed_out) ensure_safe_temperature();
     #endif
-
-    wait_for_heatup = true;
-    while (wait_for_heatup) {
-      idle();
-      wait_for_heatup = false;
-      HOTEND_LOOP() {
-        const int16_t target_temp = thermalManager.degTargetHotend(h);
-        if (target_temp && abs(thermalManager.degHotend(h) - target_temp) > 3) {
-          wait_for_heatup = true;
-          break;
-        }
-      }
-    }
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
@@ -4067,7 +4079,7 @@ void home_all_axes() { gcode_G28(true); }
 
     #elif ENABLED(AUTO_BED_LEVELING_3POINT)
 
-      int constexpr abl2 = GRID_MAX_POINTS;
+      int constexpr abl2 = 3;
 
       // Probe at 3 arbitrary points
       ABL_VAR vector_3 points[3] = {
@@ -6193,7 +6205,7 @@ inline void gcode_M17() {
 
     card.startFileprint();
     print_job_counter.start();
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       startpower = power_consumption_hour;
     #endif
   }
@@ -6308,7 +6320,7 @@ inline void gcode_M31() {
       feedrate_percentage = 100;  // 100% feedrate_mm_s
       card.startFileprint();
       print_job_counter.start();
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         startpower = power_consumption_hour;
       #endif
     }
@@ -6351,16 +6363,16 @@ inline void gcode_M42() {
 
   #if FAN_COUNT > 0
     switch (pin_number) {
-      #if HAS(FAN0)
+      #if HAS_FAN0
         case FAN_PIN: fanSpeeds[0] = pin_status; break;
       #endif
-      #if HAS(FAN1)
+      #if HAS_FAN1
         case FAN1_PIN: fanSpeeds[1] = pin_status; break;
       #endif
-      #if HAS(FAN2)
+      #if HAS_FAN2
         case FAN2_PIN: fanSpeeds[2] = pin_status; break;
       #endif
-      #if HAS(FAN3)
+      #if HAS_FAN3
         case FAN3_PIN: fanSpeeds[3] = pin_status; break;
       #endif
     }
@@ -6860,7 +6872,7 @@ inline void gcode_M42() {
 
 #endif // Z_MIN_PROBE_REPEATABILITY_TEST
 
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   /**
    * M70 - Power consumption sensor calibration
    *
@@ -8121,7 +8133,7 @@ inline void gcode_M226() {
 
 #endif // DOGLCD
 
-#if HAS(SERVOS)
+#if HAS_SERVOS
   /**
    * M280: Get or set servo position. P<index> S<angle>
    */
@@ -8167,7 +8179,7 @@ inline void gcode_M226() {
   }
 #endif // NUM_SERVOS > 0
 
-#if HAS(BUZZER)
+#if HAS_BUZZER
   /**
    * M300: Play beep sound S<frequency Hz> P<duration ms>
    */
@@ -8180,7 +8192,7 @@ inline void gcode_M226() {
 
     BUZZ(duration, frequency);
   }
-#endif // HAS(BUZZER)
+#endif // HAS_BUZZER
 
 #if ENABLED(PIDTEMP)
   /**
@@ -8434,7 +8446,7 @@ inline void gcode_M226() {
 
 #endif
 
-#if HAS(MICROSTEPS)
+#if HAS_MICROSTEPS
 
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
   inline void gcode_M350() {
@@ -8462,7 +8474,7 @@ inline void gcode_M226() {
     stepper.microstep_readings();
   }
 
-#endif // HAS(MICROSTEPS)
+#endif // HAS_MICROSTEPS
 
 #if HAS_CASE_LIGHT
 
@@ -9190,13 +9202,13 @@ inline void gcode_M530() {
     #if ENABLED(START_GCODE)
       enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
     #endif
-    #if HAS(FIL_RUNOUT)
+    #if HAS_FIL_RUNOUT
       filament_ran_out = false;
       SERIAL_EM("Filament runout activated.");
       SERIAL_S(RESUME);
       SERIAL_E;
     #endif
-    #if HAS(POWER_CONSUMPTION_SENSOR)
+    #if HAS_POWER_CONSUMPTION_SENSOR
       startpower = power_consumption_hour;
     #endif
   }
@@ -9206,7 +9218,7 @@ inline void gcode_M530() {
     #if ENABLED(STOP_GCODE)
       enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
     #endif
-    #if HAS(FIL_RUNOUT)
+    #if HAS_FIL_RUNOUT
       filament_ran_out = false;
       SERIAL_EM("Filament runout deactivated.");
     #endif
@@ -9289,6 +9301,8 @@ inline void gcode_M532() {
    *
    */
   inline void gcode_M600() {
+
+    ensure_safe_temperature();
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
@@ -9968,7 +9982,7 @@ inline void gcode_M532() {
  * M907: Set digital trimpot motor current using axis codes X, Y, Z, E, B, S
  */
 inline void gcode_M907() {
-  #if HAS(DIGIPOTSS)
+  #if HAS_DIGIPOTSS
     LOOP_XYZE(i)
       if (parser.seen(axis_codes[i])) stepper.digipot_current(i, parser.value_int());
     if (parser.seen('B')) stepper.digipot_current(4, parser.value_int());
@@ -9992,7 +10006,7 @@ inline void gcode_M907() {
   #endif
 }
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   /**
    * M908: Control digital trimpot directly (M908 P<pin> S<current>)
    */
@@ -10002,7 +10016,7 @@ inline void gcode_M907() {
       parser.seen('S') ? parser.value_int() : 0
     );
   }
-#endif // HAS(DIGIPOTSS)
+#endif // HAS_DIGIPOTSS
 
 #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
   /**
@@ -10758,12 +10772,12 @@ inline void invalid_extruder_error(const uint8_t &e) {
 
         KEEPALIVE_STATE(PAUSED_FOR_USER);
 
-        #if HAS(BUZZER)
+        #if HAS_BUZZER
           millis_t next_buzz = millis();
         #endif
 
         while (wait_for_user) {
-          #if HAS(BUZZER)
+          #if HAS_BUZZER
             if (millis() - next_buzz > 60000) {
               for (uint8_t i = 0; i < 3; i++) BUZZ(300, 1000);
               next_buzz = millis();
@@ -11025,7 +11039,7 @@ void process_next_command() {
           gcode_M48(); break;
       #endif
 
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         case 70: // M70: Power consumption sensor calibration
           gcode_M70(); break;
       #endif
@@ -11281,12 +11295,12 @@ void process_next_command() {
           gcode_M250(); break;
       #endif
 
-      #if HAS(SERVOS)
+      #if HAS_SERVOS
         case 280: // M280: Set servo position absolute
           gcode_M280(); break;
       #endif
 
-      #if HAS(BUZZER)
+      #if HAS_BUZZER
         case 300: // M300: Play beep tone
           gcode_M300(); break;
       #endif
@@ -11332,7 +11346,7 @@ void process_next_command() {
           gcode_M322(); break;
       #endif
 
-      #if HAS(MICROSTEPS)
+      #if HAS_MICROSTEPS
         case 350: // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
           gcode_M350(); break;
         case 351: // M351: Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
@@ -11492,10 +11506,10 @@ void process_next_command() {
       case 907: // M907 Set digital trimpot motor current using axis codes.
         gcode_M907(); break;
 
-      #if HAS(DIGIPOTSS)
+      #if HAS_DIGIPOTSS
         case 908: // M908 Control digital trimpot directly.
           gcode_M908(); break;
-      #endif // HAS(DIGIPOTSS)
+      #endif // HAS_DIGIPOTSS
 
       #if ENABLED(HAVE_TMC2130)
         case 911: // M911: Report TMC2130 prewarn triggered flags
@@ -12704,7 +12718,7 @@ static void report_current_position() {
     else
       C2 = (HYPOT2(sx, sy) - (L1_2 + L2_2)) / (2.0 * L1 * L2);
 
-    S2 = _SQRT(sq(C2) - 1);
+    S2 = SQRT(1 - sq(C2));
 
     // Unrotated Arm1 plus rotated Arm2 gives the distance from Center to End
     SK1 = L1 + L2 * C2;
@@ -12765,7 +12779,7 @@ static void report_current_position() {
 
 #endif
 
-#if HAS(FIL_RUNOUT)
+#if HAS_FIL_RUNOUT
   void handle_filament_runout() {
     if (!filament_ran_out) {
       filament_ran_out = true;
@@ -12910,7 +12924,7 @@ void calculate_volumetric_multipliers() {
  */
 void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
-  #if HAS(FIL_RUNOUT) && FILAMENT_RUNOUT_DOUBLE_CHECK > 0
+  #if HAS_FIL_RUNOUT && FILAMENT_RUNOUT_DOUBLE_CHECK > 0
     static bool filament_double_check = false;
     static millis_t filament_switch_time = 0;
     if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING) {
@@ -12925,7 +12939,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         filament_switch_time = millis() + FILAMENT_RUNOUT_DOUBLE_CHECK;
       }
     }
-  #elif HAS(FIL_RUNOUT)
+  #elif HAS_FIL_RUNOUT
     if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING)
       handle_filament_runout();
   #endif
@@ -13417,7 +13431,7 @@ void setup() {
     update_case_light();
   #endif
 
-  #if HAS(DOOR)
+  #if HAS_DOOR
     #if ENABLED(DOOR_OPEN_PULLUP)
       SET_INPUT_PULLUP(DOOR_PIN);
     #else
@@ -13425,7 +13439,7 @@ void setup() {
     #endif
   #endif
 
-  #if HAS(POWER_CHECK) && ENABLED(SDSUPPORT)
+  #if HAS_POWER_CHECK && ENABLED(SDSUPPORT)
     #if ENABLED(POWER_CHECK_PULLUP)
       SET_INPUT_PULLUP(POWER_CHECK_PIN);
     #else

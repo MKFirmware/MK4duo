@@ -265,7 +265,7 @@
   #endif
 #endif
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   #include <SPI.h>
 #endif
 

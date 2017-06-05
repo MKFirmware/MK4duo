@@ -230,12 +230,12 @@ class Stepper {
     static void disable_e_steppers();
     static void disable_all_steppers();
 
-    #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
+    #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digitalPotWrite(int address, int value);
       static void digipot_current(uint8_t driver, int current);
     #endif
 
-    #if HAS(MICROSTEPS)
+    #if HAS_MICROSTEPS
       static void microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2);
       static void microstep_mode(uint8_t driver, uint8_t stepping);
       static void microstep_readings();

@@ -246,7 +246,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   int16_t Temperature::meas_shift_index;  // Index of a delayed sample in buffer
 #endif
 
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   int16_t Temperature::current_raw_powconsumption = 0;  // Holds measured power consumption
   static unsigned long Temperature::raw_powconsumption_value = 0;
 #endif
@@ -1316,7 +1316,7 @@ void Temperature::updateTemperaturesFromRawValues() {
   #if ENABLED(FILAMENT_SENSOR)
     filament_width_meas = analog2widthFil();
   #endif
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     static millis_t last_update = millis();
     millis_t temp_last_update = millis();
     millis_t from_last_update = temp_last_update - last_update;
@@ -1367,7 +1367,7 @@ void Temperature::updateTemperaturesFromRawValues() {
 
 #endif
 
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   // Convert raw Power Consumption to watt
   float Temperature::raw_analog2voltage() {
     return ((HAL_VOLTAGE_PIN) * current_raw_powconsumption) / (1023.0);
@@ -1433,7 +1433,7 @@ void Temperature::init() {
   #if HAS(HEATER_3)
     SET_OUTPUT(HEATER_3_PIN);
   #endif
-  #if HAS(HEATER_BED)
+  #if HAS_HEATER_BED
     SET_OUTPUT(HEATER_BED_PIN);
   #endif
   #if HAS_HEATER_CHAMBER
@@ -1443,19 +1443,19 @@ void Temperature::init() {
     SET_OUTPUT(COOLER_PIN);
   #endif
 
-  #if HAS(FAN0)
+  #if HAS_FAN0
     SET_OUTPUT(FAN_PIN);
   #endif
 
-  #if HAS(FAN1)
+  #if HAS_FAN1
     SET_OUTPUT(FAN1_PIN);
   #endif
 
-  #if HAS(FAN2)
+  #if HAS_FAN2
     SET_OUTPUT(FAN2_PIN);
   #endif
 
-  #if HAS(FAN3)
+  #if HAS_FAN3
     SET_OUTPUT(FAN3_PIN);
   #endif
 
@@ -1804,7 +1804,7 @@ void Temperature::disable_all_heaters() {
   #if HAS_TEMP_BED
     target_temperature_bed = 0;
     soft_pwm_bed = 0;
-    #if HAS(HEATER_BED)
+    #if HAS_HEATER_BED
       WRITE_HEATER_BED(LOW);
     #endif
   #endif
@@ -1962,7 +1962,7 @@ void Temperature::set_current_temp_raw() {
     current_temperature_cooler_raw = HAL::AnalogInputValues[COOLER_SENSOR_INDEX];
   #endif
 
-  #if HAS(POWER_CONSUMPTION_SENSOR)
+  #if HAS_POWER_CONSUMPTION_SENSOR
     current_raw_powconsumption = HAL::AnalogInputValues[POWER_SENSOR_INDEX];
   #endif
 

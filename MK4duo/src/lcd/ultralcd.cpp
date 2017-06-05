@@ -2380,7 +2380,7 @@ void kill_screen(const char* lcd_msg) {
     // Fan Speed:
     //
     #if FAN_COUNT > 0
-      #if HAS(FAN0)
+      #if HAS_FAN0
         #if FAN_COUNT > 1
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 0"
         #else
@@ -2394,7 +2394,7 @@ void kill_screen(const char* lcd_msg) {
       #if HAS_FAN2
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[2], 0, 255);
       #endif
-      #if HAS(FAN3)
+      #if HAS_FAN3
         MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[3], 0, 255);
       #endif
     #endif // FAN_COUNT > 0
@@ -2854,7 +2854,7 @@ void kill_screen(const char* lcd_msg) {
       centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
       sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
 
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         char Power[10];
         sprintf_P(Power, PSTR("%uWh"), power_consumption_hour);
       #endif
@@ -2865,7 +2865,7 @@ void kill_screen(const char* lcd_msg) {
       STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
       STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
       STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
-      #if HAS(POWER_CONSUMPTION_SENSOR)
+      #if HAS_POWER_CONSUMPTION_SENSOR
         STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ",  false, false, Power);
       #endif
       END_SCREEN();
