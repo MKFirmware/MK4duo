@@ -204,6 +204,6 @@
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)
 #define MMS_TO_MMM(MM_S) ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S) ((MM_S) * feedrate_percentage * 0.01)
+#define MMS_SCALED(MM_S) ((MM_S) * Mechanics.feedrate_percentage * 0.01)
 
 #endif //__MACROS_H

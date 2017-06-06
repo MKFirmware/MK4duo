@@ -1297,9 +1297,9 @@
           }
         #endif
 
-        if (Previousfeedrate != feedrate_percentage) {
-          VSpeed.setValue(feedrate_percentage);
-          Previousfeedrate = feedrate_percentage;
+        if (Previousfeedrate != Mechanics.feedrate_percentage) {
+          VSpeed.setValue(Mechanics.feedrate_percentage);
+          Previousfeedrate = Mechanics.feedrate_percentage;
         }
 
         #if HAS_TEMP_0
@@ -1403,7 +1403,7 @@
       case 6:
         static uint32_t temp_feedrate = 0;
         VSpeed.getValue(&temp_feedrate, "printer");
-        Previousfeedrate = feedrate_percentage = (int)temp_feedrate;
+        Previousfeedrate = Mechanics.feedrate_percentage = (int)temp_feedrate;
         break;
       case 15:
         coordtoLCD();
