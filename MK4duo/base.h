@@ -40,7 +40,6 @@
 
 #include "src/macros.h"
 #include "Boards.h"
-#include "src/mechanics.h"
 
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
@@ -107,7 +106,7 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
-#include "src/kinematics/kinematics.h"
+#include "src/mechanics/mechanics.h"
 #include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"

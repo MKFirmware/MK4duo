@@ -21,21 +21,21 @@
  */
 
 /**
- * cartesian_kinematics.h
+ * cartesian_mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _CARTESIAN_KINEMATICS_H_
-#define _CARTESIAN_KINEMATICS_H_
+#ifndef _CARTESIAN_MECHANICS_H_
+#define _CARTESIAN_MECHANICS_H_
 
 #if IS_CARTESIAN
 
-  class CartesianKinematics {
+  class Cartesian_Mechanics {
 
     public: /** Constructor */
 
-      CartesianKinematics() {};
+      Cartesian_Mechanics() {};
 
     public: /** Public Parameters */
 
@@ -127,12 +127,10 @@
       void line_to_destination();
 
       /**
-       * Prepare a linear move in a Cartesian setup.
+       * Prepare a single move and get ready for the next one
        * If Mesh Bed Leveling is enabled, perform a mesh move.
-       *
-       * Returns true if the caller didn't update current_position.
        */
-      bool prepare_linear_move_to_destination();
+      void prepare_move_to_destination();
 
       /**
        * Blocking movement and shorthand functions
@@ -276,17 +274,17 @@
 
   };
 
-  extern CartesianKinematics Kinematics;
+  extern Cartesian_Mechanics Mechanics;
 
   // DEBUG LEVELING
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Kinematics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
   #endif
 
   // Workspace offsets
   #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Kinematics.workspace_offset[AXIS]
+    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
   #else
     #define WORKSPACE_OFFSET(AXIS) 0
   #endif
@@ -310,8 +308,8 @@
     #define RAW_Z_POSITION(POS)       (POS)
   #endif
 
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Kinematics.current_position[A##_AXIS])
+  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
 
 #endif // MECH(CARTESIAN)
 
-#endif // _CARTESIAN_KINEMATICS_H_
+#endif // _CARTESIAN_MECHANICS_H_

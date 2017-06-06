@@ -21,7 +21,7 @@
  */
 
 /**
- * cartesian_kinematics.cpp
+ * cartesian_mechanics.cpp
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
@@ -30,9 +30,9 @@
 
 #if IS_CARTESIAN
 
-  CartesianKinematics Kinematics;
+  Cartesian_Mechanics Mechanics;
 
-  void CartesianKinematics::Init() { 
+  void Cartesian_Mechanics::Init() { 
 
     #if ENABLED(HYSTERESIS)
       const float hyst[] = DEFAULT_HYSTERESIS_MM;
@@ -55,43 +55,68 @@
   }
 
   /**
-   * Prepare a linear move in a Cartesian setup.
+   * Prepare a single move and get ready for the next one
    * If Mesh Bed Leveling is enabled, perform a mesh move.
-   *
-   * Returns true if the caller didn't update current_position.
    */
-  bool CartesianKinematics::prepare_linear_move_to_destination() {
+  void Cartesian_Mechanics::prepare_move_to_destination() {
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_E)
-      if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
-        laser.status = LASER_ON;
-        laser.fired = LASER_FIRE_E;
+    endstops.clamp_to_software_endstops(destination);
+    refresh_cmd_timeout();
+
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
+      if (!DEBUGGING(DRYRUN)) {
+        if (destination[E_AXIS] != current_position[E_AXIS]) {
+          if (thermalManager.tooColdToExtrude(active_extruder))
+            current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+          #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+            if (labs(destination[E_AXIS] - current_position[E_AXIS]) > EXTRUDE_MAXLENGTH) {
+              current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+              SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
+            }
+          #endif
+        }
       }
-      if (current_position[E_AXIS] == destination[E_AXIS] && laser.fired == LASER_FIRE_E)
-        laser.status = LASER_OFF;
     #endif
 
-    // Do not use feedrate_percentage for E or Z only moves
-    if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS])
-      line_to_destination();
-    else {
-      const float fr_scaled = MMS_SCALED(feedrate_mm_s);
-      #if ENABLED(MESH_BED_LEVELING)
-        if (mbl.active()) { // direct used of mbl.active() for speed
-          mesh_line_to_destination(fr_scaled);
-          return true;
+    #if ENABLED(DUAL_X_CARRIAGE)
+
+      if (prepare_move_to_destination_dualx()) return;
+
+    #else
+      
+      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_E)
+        if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
+          laser.status = LASER_ON;
+          laser.fired = LASER_FIRE_E;
         }
-        else
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        if (planner.abl_enabled) { // direct use of abl_enabled for speed
-          bilinear_line_to_destination(fr_scaled);
-          return true;
-        }
-        else
+        if (current_position[E_AXIS] == destination[E_AXIS] && laser.fired == LASER_FIRE_E)
+          laser.status = LASER_OFF;
       #endif
-          line_to_destination(fr_scaled);
-    }
-    return false;
+
+      // Do not use feedrate_percentage for E or Z only moves
+      if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS])
+        line_to_destination();
+      else {
+        const float fr_scaled = MMS_SCALED(feedrate_mm_s);
+        #if ENABLED(MESH_BED_LEVELING)
+          if (mbl.active()) { // direct used of mbl.active() for speed
+            mesh_line_to_destination(fr_scaled);
+            return;
+          }
+          else
+        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          if (planner.abl_enabled) { // direct use of abl_enabled for speed
+            bilinear_line_to_destination(fr_scaled);
+            return;
+          }
+          else
+        #endif
+            line_to_destination(fr_scaled);
+      }
+
+    #endif
+
+    set_current_to_destination();
   }
 
   /**
@@ -99,7 +124,7 @@
    * Move the planner to the current position from wherever it last moved
    * (or from wherever it has been told it is located).
    */
-  void CartesianKinematics::line_to_current_position() {
+  void Cartesian_Mechanics::line_to_current_position() {
     planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
   }
 
@@ -107,16 +132,16 @@
    * line_to_destination
    * Move the planner, not necessarily synced with current_position
    */
-  void CartesianKinematics::line_to_destination(float fr_mm_s) {
+  void Cartesian_Mechanics::line_to_destination(float fr_mm_s) {
     planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
   }
-  void CartesianKinematics::line_to_destination() { line_to_destination(feedrate_mm_s); }
+  void Cartesian_Mechanics::line_to_destination() { line_to_destination(feedrate_mm_s); }
 
   /**
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void CartesianKinematics::do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s /*=0.0*/) {
+  void Cartesian_Mechanics::do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -150,31 +175,31 @@
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
     #endif
   }
-  void CartesianKinematics::do_blocking_move_to_x(const float &x, const float &fr_mm_s/*=0.0*/) {
+  void Cartesian_Mechanics::do_blocking_move_to_x(const float &x, const float &fr_mm_s/*=0.0*/) {
     do_blocking_move_to(x, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
   }
-  void CartesianKinematics::do_blocking_move_to_z(const float &z, const float &fr_mm_s/*=0.0*/) {
+  void Cartesian_Mechanics::do_blocking_move_to_z(const float &z, const float &fr_mm_s/*=0.0*/) {
     do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z, fr_mm_s);
   }
-  void CartesianKinematics::do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s/*=0.0*/) {
+  void Cartesian_Mechanics::do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s/*=0.0*/) {
     do_blocking_move_to(x, y, current_position[Z_AXIS], fr_mm_s);
   }
 
-  void CartesianKinematics::sync_plan_position() {
+  void Cartesian_Mechanics::sync_plan_position() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
     #endif
     planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
   }
 
-  void CartesianKinematics::sync_plan_position_e() {
+  void Cartesian_Mechanics::sync_plan_position_e() {
     planner.set_e_position_mm(current_position[E_AXIS]);
   }
 
   /**
    * Home an individual linear axis
    */
-  void CartesianKinematics::do_homing_move(AxisEnum axis, const float distance, float fr_mm_s/*=0.0*/) {
+  void Cartesian_Mechanics::do_homing_move(AxisEnum axis, const float distance, float fr_mm_s/*=0.0*/) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -213,7 +238,7 @@
     #endif
   }
 
-  void CartesianKinematics::homeaxis(const AxisEnum axis) {
+  void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     #define CAN_HOME(A) \
       (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
@@ -275,14 +300,14 @@
 
     #if ENABLED(Z_TWO_ENDSTOPS)
       if (axis == Z_AXIS) {
-        float adj = FABS(z2_endstop_adj);
+        float adj = FABS(endstops.z2_endstop_adj);
         bool lockZ1;
         if (axis_home_dir > 0) {
           adj = -adj;
-          lockZ1 = (z2_endstop_adj > 0);
+          lockZ1 = (endstops.z2_endstop_adj > 0);
         }
         else
-          lockZ1 = (z2_endstop_adj < 0);
+          lockZ1 = (endstops.z2_endstop_adj < 0);
 
         if (lockZ1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
 
@@ -316,7 +341,7 @@
 
   #if ENABLED(QUICK_HOME)
 
-    void CartesianKinematics::quick_home_xy() {
+    void Cartesian_Mechanics::quick_home_xy() {
 
       // Pretend the current position is 0,0
       current_position[X_AXIS] = current_position[Y_AXIS] = 0;
@@ -342,7 +367,7 @@
 
   #if ENABLED(Z_SAFE_HOMING)
 
-    void CartesianKinematics::home_z_safely() {
+    void Cartesian_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
       if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
@@ -397,7 +422,7 @@
 
   #if ENABLED(DOUBLE_Z_HOMING)
 
-    void CartesianKinematics::double_home_z() {
+    void Cartesian_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
       if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
@@ -433,7 +458,7 @@
         const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * zprobe_zoffset);
         current_position[Z_AXIS] -= newzero;
         destination[Z_AXIS] = current_position[Z_AXIS];
-        soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
+        endstops.soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
 
         sync_plan_position();
         do_blocking_move_to_z(MIN_Z_HEIGHT_FOR_HOMING);
@@ -453,7 +478,7 @@
   /**
    * Home Cartesian
    */
-  void CartesianKinematics::Home(const bool always_home_all) {
+  void Cartesian_Mechanics::Home(const bool always_home_all) {
 
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
       const bool  homeZ = always_home_all || parser.seen('Z'),
@@ -574,7 +599,7 @@
    *
    * Callers must sync the planner position after calling this!
    */
-  void CartesianKinematics::set_axis_is_at_home(AxisEnum axis) {
+  void Cartesian_Mechanics::set_axis_is_at_home(AxisEnum axis) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -587,7 +612,7 @@
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
-      update_software_endstops(axis);
+      endstops.update_software_endstops(axis);
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -628,7 +653,7 @@
     #endif
   }
 
-  float CartesianKinematics::get_homing_bump_feedrate(AxisEnum axis) {
+  float Cartesian_Mechanics::get_homing_bump_feedrate(AxisEnum axis) {
     int constexpr homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
     int hbd = homing_bump_divisor[axis];
     if (hbd < 1) {
@@ -638,7 +663,7 @@
     return homing_feedrate_mm_s[axis] / hbd;
   }
 
-  bool CartesianKinematics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
+  bool Cartesian_Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
     const bool  xx = x && !axis_homed[X_AXIS],
                 yy = y && !axis_homed[Y_AXIS],
                 zz = z && !axis_homed[Z_AXIS];
@@ -657,26 +682,26 @@
     }
     return false;
   }
-  bool CartesianKinematics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+  bool Cartesian_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
     // Add 0.001 margin to deal with float imprecision
     return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
         && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
   }
-  bool CartesianKinematics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+  bool Cartesian_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
     // Add 0.001 margin to deal with float imprecision
     return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
         && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
   }
-  bool CartesianKinematics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
+  bool Cartesian_Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
     return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
   }
-  bool CartesianKinematics::position_is_reachable_xy(const float &lx, const float &ly) {
+  bool Cartesian_Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
     return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
   }
 
   #if ENABLED(HYSTERESIS)
 
-    void CartesianKinematics::set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm) {
+    void Cartesian_Mechanics::set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm) {
       m_hysteresis_mm[X_AXIS] = x_mm;
       m_hysteresis_mm[Y_AXIS] = y_mm;
       m_hysteresis_mm[Z_AXIS] = z_mm;
@@ -690,12 +715,12 @@
       calc_hysteresis_steps();
     }
 
-    void CartesianKinematics::calc_hysteresis_steps() {
+    void Cartesian_Mechanics::calc_hysteresis_steps() {
       for (uint8_t i = 0; i < NUM_AXIS; i++)
         m_hysteresis_steps[i] = (long)(m_hysteresis_mm[i] * planner.axis_steps_per_mm[i]);
     }
 
-    void CartesianKinematics::set_hysteresis_axis(uint8_t axis, float mm) {
+    void Cartesian_Mechanics::set_hysteresis_axis(uint8_t axis, float mm) {
       m_hysteresis_mm[axis] = mm;
 
       if (mm != 0.0f) m_hysteresis_bits |=  ( 1 << axis);
@@ -705,7 +730,7 @@
       report_hysteresis();
     }
 
-    void CartesianKinematics::report_hysteresis() {
+    void Cartesian_Mechanics::report_hysteresis() {
       SERIAL_MV("Hysteresis X", m_hysteresis_mm[X_AXIS]);
       SERIAL_MV(" Y", m_hysteresis_mm[Y_AXIS]);
       SERIAL_MV(" Z", m_hysteresis_mm[Z_AXIS]);
@@ -716,7 +741,7 @@
       SERIAL_EMV(" e=", m_hysteresis_axis_shift[E_AXIS]);
     }
 
-    void CartesianKinematics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
+    void Cartesian_Mechanics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
       long target[NUM_AXIS] = {x * planner.axis_steps_per_mm[X_AXIS], y * planner.axis_steps_per_mm[Y_AXIS], z * planner.axis_steps_per_mm[Z_AXIS], e * planner.axis_steps_per_mm[E_AXIS + active_extruder]};
       uint8_t direction_bits = calc_direction_bits(planner.position, target);
       uint8_t move_bits = calc_move_bits(planner.position, target);
@@ -740,7 +765,7 @@
     }
     
     // direction 0: positive, 1: negative
-    uint8_t CartesianKinematics::calc_direction_bits(const long *position, const long *target) {
+    uint8_t Cartesian_Mechanics::calc_direction_bits(const long *position, const long *target) {
       unsigned char direction_bits = 0;
 
       if (target[X_AXIS] < position[X_AXIS])
@@ -755,7 +780,7 @@
       return direction_bits;
     }
 
-    uint8_t CartesianKinematics::calc_move_bits(const long *position, const long *target) {
+    uint8_t Cartesian_Mechanics::calc_move_bits(const long *position, const long *target) {
       uint8_t move_bits = 0;
 
       if (target[X_AXIS] != position[X_AXIS])
@@ -774,11 +799,11 @@
 
   #if ENABLED(ZWOBBLE)
 
-    void CartesianKinematics::report_zwobble() {
+    void Cartesian_Mechanics::report_zwobble() {
       if (!m_zwobble_sinusoidal)
         SERIAL_M("Custom wobble function");
       else
-        SERIAL_MV("CartesianKinematics Amp(A): ", m_zwobble_amplitude);
+        SERIAL_MV("Cartesian_Mechanics Amp(A): ", m_zwobble_amplitude);
 
       SERIAL_MV(" phase(P): ", m_zwobble_phase); 
       SERIAL_MV(" period(W): ", TWOPI / m_zwobble_puls);
@@ -805,7 +830,7 @@
     }
 
     // insert a planner.buffer_line if required to handle any hysteresis
-    void CartesianKinematics::insert_zwobble_correction(const float targetZ) {
+    void Cartesian_Mechanics::insert_zwobble_correction(const float targetZ) {
 
       if (!m_zwobble_consistent) return; // don't go through consistency checks all the time; just check one bool
 
@@ -850,19 +875,19 @@
         planner.position[Z_AXIS] -= stepDiff;
     }
 
-    void CartesianKinematics::set_zwobble_amplitude(float _amplitude) {
+    void Cartesian_Mechanics::set_zwobble_amplitude(float _amplitude) {
       m_zwobble_amplitude = _amplitude;
       m_zwobble_sinusoidal = true; // set_zwobble_amplitude sets to sinusoidal by default
       calculateLut();
     }
 
-    void CartesianKinematics::set_zwobble_period(float _period) {
+    void Cartesian_Mechanics::set_zwobble_period(float _period) {
       if (_period <= 0) return;
       m_zwobble_puls = TWOPI / _period;
       calculateLut();
     }
 
-    void CartesianKinematics::set_zwobble_phase(float _phase ) {
+    void Cartesian_Mechanics::set_zwobble_phase(float _phase ) {
       // poor man's modulo operation
       while (_phase > 0) _phase -= 360;
       while (_phase < 0) _phase += 360;
@@ -871,7 +896,7 @@
       m_zwobble_phase = RADIANS(_phase); // convert phase to radians
     }
 
-    void CartesianKinematics::set_zwobble_sample(float zRod, float zActual) {
+    void Cartesian_Mechanics::set_zwobble_sample(float zRod, float zActual) {
       if (DEBUGGING(ALL)) {
         SERIAL_MV("New sample Rod: ", zRod);
         SERIAL_EMV(" Act: ", zActual);
@@ -889,7 +914,7 @@
       insertInLut(zRod, zActual);
     }
 
-    void CartesianKinematics::set_zwobble_scaledsample(float zRod, float zScaledLength) {
+    void Cartesian_Mechanics::set_zwobble_scaledsample(float zRod, float zScaledLength) {
       // We want to be able to correct scaling factor or set it before/after samples, so (ICK) store scaled samples as negative numbers  
       set_zwobble_sample(zRod, -zScaledLength);
 
@@ -937,12 +962,12 @@
       }
     }
 
-    void CartesianKinematics::set_zwobble_scalingfactor(float zActualPerScaledLength) {
+    void Cartesian_Mechanics::set_zwobble_scalingfactor(float zActualPerScaledLength) {
       m_zwobble_scalingFactor = zActualPerScaledLength;
     }
 
     // calculate the ZRod -> Zactual LUT using the model Zactual = Zrod + sin(w*Zrod) - this will actually only be used for one period
-    void CartesianKinematics::calculateLut() {
+    void Cartesian_Mechanics::calculateLut() {
       zwobble_lastZ = -1.0;
       zwobble_lastZRod = -1.0; // reinitialize memorized Z values since we are changing the model
       if (!areParametersConsistent()) return;
@@ -961,7 +986,7 @@
       }
     }
 
-    void CartesianKinematics::initLinearLut() {
+    void Cartesian_Mechanics::initLinearLut() {
       float period = TWOPI / m_zwobble_puls;
       zwobble_lutSize = 2; // only 2 samples originally
       SET_ZROD(0, 0);
@@ -970,7 +995,7 @@
       SET_ZACTUAL(1, period);
     }
 
-    void CartesianKinematics::insertInLut(float zRod, float zActual) {
+    void Cartesian_Mechanics::insertInLut(float zRod, float zActual) {
       // check if the given zRod alread exists in LUT
       for (int i = 0; i < zwobble_lutSize; i++) {
         if (EQUAL_WITHIN_TOLERANCE(zRod, ZROD(i))) {
@@ -1019,7 +1044,7 @@
       }
     }
 
-    float CartesianKinematics::findInLut(float z) {
+    float Cartesian_Mechanics::findInLut(float z) {
       int i = 0;
       if (z >= ZACTUAL(zwobble_lutSize - 1))
         return ZROD(zwobble_lutSize - 1);
@@ -1040,7 +1065,7 @@
     }
 
     // Find the Z value to be given to the "rod" in order to obtain the desired Z
-    float CartesianKinematics::findZRod(float z) {
+    float Cartesian_Mechanics::findZRod(float z) {
       int nCycle = 0;
       float identicalZ = -m_zwobble_phase / m_zwobble_puls;
 
@@ -1057,7 +1082,7 @@
       return identicalZ + deltaZrod;
     }
 
-    bool CartesianKinematics::areParametersConsistent() {
+    bool Cartesian_Mechanics::areParametersConsistent() {
       if (!m_zwobble_sinusoidal) {
         m_zwobble_consistent = true;  // parameters are always consistent if lut is not sinusoidal
         return true;          // if the model is not sinusoidal, then don't check for consistency
@@ -1077,7 +1102,7 @@
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
 
-    void CartesianKinematics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
+    void Cartesian_Mechanics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
       SERIAL_PS(prefix);
       SERIAL_C('(');
       SERIAL_V(x);
@@ -1089,12 +1114,12 @@
       else SERIAL_E;
     }
 
-    void CartesianKinematics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
+    void Cartesian_Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
       print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
     }
 
     #if HAS_ABL
-      void CartesianKinematics::print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
+      void Cartesian_Mechanics::print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
         print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
       }
     #endif

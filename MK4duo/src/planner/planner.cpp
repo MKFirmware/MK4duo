@@ -1451,11 +1451,11 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      Kinematics.Transform(lpos);
+      Mechanics.Transform(lpos);
     #else
-        inverse_kinematics(lpos);
+        inverse_mechanism(lpos);
     #endif
-    _set_position_mm(Kinematics.delta[A_AXIS], Kinematics.delta[B_AXIS], Kinematics.delta[C_AXIS], position[E_AXIS]);
+    _set_position_mm(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS], Mechanics.delta[C_AXIS], position[E_AXIS]);
   #else
     _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
   #endif
@@ -1507,7 +1507,7 @@ void Planner::reset_acceleration_rates() {
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-  set_position_mm_kinematic(Kinematics.current_position);
+  set_position_mm_kinematic(Mechanics.current_position);
   reset_acceleration_rates();
 }
 

@@ -142,22 +142,6 @@ extern const char axis_codes[NUM_AXIS];
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
 
-// Software Endstops
-extern float soft_endstop_min[XYZ];
-extern float soft_endstop_max[XYZ];
-
-#if HAS_SOFTWARE_ENDSTOPS
-  extern bool soft_endstops_enabled;
-  void clamp_to_software_endstops(float target[XYZ]);
-#else
-  #define soft_endstops_enabled false
-  #define clamp_to_software_endstops(x) NOOP
-#endif
-
-#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-  void update_software_endstops(const AxisEnum axis);
-#endif
-
 #if ENABLED(LIN_ADVANCE)
   extern int extruder_advance_k;
 #endif
@@ -174,17 +158,6 @@ extern float soft_endstop_max[XYZ];
 #if ENABLED(G38_PROBE_TARGET)
   extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
               G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
-#endif
-
-#if ENABLED(Z_FOUR_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-  extern float z4_endstop_adj;
-#elif ENABLED(Z_THREE_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  extern float z2_endstop_adj;
 #endif
 
 #if HAS_BED_PROBE

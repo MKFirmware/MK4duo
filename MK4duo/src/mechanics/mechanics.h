@@ -21,23 +21,23 @@
  */
 
 /**
- * kinematics.h
+ * mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
- 
-#ifndef _KINEMATICS_H_
-#define _KINEMATICS_H_
+
+#ifndef _MECHANICS_H_
+#define _MECHANICS_H_
 
 #if IS_CARTESIAN
-  #include "cartesian_kinematics.h"
+  #include "cartesian_mechanics.h"
 #elif IS_CORE
-  #include "core_kinematics.h"
+  #include "core_mechanics.h"
 #elif IS_DELTA
-  #include "delta_kinematics.h"
+  #include "delta_mechanics.h"
 #elif IS_SCARA
   #error "This version not supoorted scara for now, please use old version"
-  //#include "scara_kinematics.h"
+  //#include "scara_mechanism.h"
 #endif
 
-#endif /* _KINEMATICS_H_ */
+#endif /* _MECHANICS_H_ */
