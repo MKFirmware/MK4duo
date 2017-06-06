@@ -127,13 +127,7 @@ bool pos_saved = false;
   TempUnit input_temp_units = TEMPUNIT_C;
 #endif
 
-/**
- * Feed rates are often configured with mm/m
- * but the planner and stepper like mm/s units.
- */
-float feedrate_mm_s = MMM_TO_MMS(1500.0), saved_feedrate_mm_s;
-int feedrate_percentage = 100, saved_feedrate_percentage,
-    flow_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100),
+int flow_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100),
     density_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100);
 
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES,
@@ -1051,25 +1045,6 @@ bool get_target_hotend_from_command(int code) {
 #endif // ENABLED(WORKSPACE_OFFSETS)
 
 /**
- * Set an axis' current position to its home position (after homing).
- *
- * For Core and Cartesian robots this applies one-to-one when an
- * individual axis has been homed.
- *
- * DELTA should wait until all homing is done before setting the XYZ
- * current_position to home, because homing is a single operation.
- * In the case where the axis positions are already known and previously
- * homed, DELTA could home to X or Y individually by moving either one
- * to the center. However, homing Z always homes XY and Z.
- *
- * SCARA should wait until all XY homing is done before setting the XY
- * current_position to home, because neither X nor Y is at home until
- * both are at home. Z can however be homed individually.
- * 
- */
-
-
-/**
  * Prepare to do endstop or probe moves
  * with custom feedrates.
  *
@@ -1082,9 +1057,9 @@ static void setup_for_endstop_or_probe_move() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) DEBUG_POS("setup_for_endstop_or_probe_move", Mechanics.current_position);
   #endif
-  saved_feedrate_mm_s = feedrate_mm_s;
-  saved_feedrate_percentage = feedrate_percentage;
-  feedrate_percentage = 100;
+  Mechanics.saved_feedrate_mm_s = Mechanics.feedrate_mm_s;
+  Mechanics.saved_feedrate_percentage = Mechanics.feedrate_percentage;
+  Mechanics.feedrate_percentage = 100;
   refresh_cmd_timeout();
 }
 
@@ -1092,8 +1067,8 @@ static void clean_up_after_endstop_or_probe_move() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) DEBUG_POS("clean_up_after_endstop_or_probe_move", Mechanics.current_position);
   #endif
-  feedrate_mm_s = saved_feedrate_mm_s;
-  feedrate_percentage = saved_feedrate_percentage;
+  Mechanics.feedrate_mm_s = Mechanics.saved_feedrate_mm_s;
+  Mechanics.feedrate_percentage = Mechanics.saved_feedrate_percentage;
   refresh_cmd_timeout();
 }
 
@@ -1463,7 +1438,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
     if (!Mechanics.position_is_reachable_by_probe_xy(x, y)) return NAN;
 
-    const float old_feedrate_mm_s = feedrate_mm_s;
+    const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
 
     #if MECH(DELTA)
       if (Mechanics.current_position[Z_AXIS] > Mechanics.clip_start_height)
@@ -1487,7 +1462,7 @@ static void clean_up_after_endstop_or_probe_move() {
     // Ensure a minimum height before moving the probe
     do_probe_raise(Z_PROBE_BETWEEN_HEIGHT);
 
-    feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+    Mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
     // Move the probe to the given XY
     Mechanics.do_blocking_move_to_xy(dx, dy);
@@ -1512,7 +1487,7 @@ static void clean_up_after_endstop_or_probe_move() {
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< probe_pt");
     #endif
 
-    feedrate_mm_s = old_feedrate_mm_s;
+    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
     return measured_z;
   }
@@ -1950,12 +1925,12 @@ static void clean_up_after_endstop_or_probe_move() {
 
     if (retracting == retracted[active_extruder]) return;
 
-    const float old_feedrate_mm_s = feedrate_mm_s;
+    const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
 
     Mechanics.set_destination_to_current();
 
     if (retracting) {
-      feedrate_mm_s = retract_feedrate_mm_s;
+      Mechanics.feedrate_mm_s = retract_feedrate_mm_s;
       Mechanics.current_position[E_AXIS] += (swapping ? retract_length_swap : retract_length) / volumetric_multiplier[active_extruder];
       Mechanics.sync_plan_position_e();
       Mechanics.prepare_move_to_destination();
@@ -1980,7 +1955,7 @@ static void clean_up_after_endstop_or_probe_move() {
         Mechanics.prepare_move_to_destination();
       }
 
-      feedrate_mm_s = retract_recover_feedrate_mm_s;
+      Mechanics.feedrate_mm_s = retract_recover_feedrate_mm_s;
       const float move_e = swapping ? retract_length_swap + retract_recover_length_swap : retract_length + retract_recover_length;
       Mechanics.current_position[E_AXIS] -= move_e / volumetric_multiplier[active_extruder];
       Mechanics.sync_plan_position_e();
@@ -1989,7 +1964,7 @@ static void clean_up_after_endstop_or_probe_move() {
       Mechanics.prepare_move_to_destination();
     }
 
-    feedrate_mm_s = old_feedrate_mm_s;
+    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
     retracted[active_extruder] = retracting;
 
   } // retract
@@ -2037,24 +2012,24 @@ static void clean_up_after_endstop_or_probe_move() {
 
   void IDLE_OOZING_retract(bool retracting) {  
     if (retracting && !IDLE_OOZING_retracted[active_extruder]) {
-      float old_feedrate_mm_s = feedrate_mm_s;
+      float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
       Mechanics.set_destination_to_current();
       Mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / volumetric_multiplier[active_extruder];
-      feedrate_mm_s = IDLE_OOZING_FEEDRATE;
+      Mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
       planner.set_e_position_mm(Mechanics.current_position[E_AXIS]);
       Mechanics.prepare_move_to_destination();
-      feedrate_mm_s = old_feedrate_mm_s;
+      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[active_extruder] = true;
       //SERIAL_EM("-");
     }
     else if (!retracting && IDLE_OOZING_retracted[active_extruder]) {
-      float old_feedrate_mm_s = feedrate_mm_s;
+      float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
       Mechanics.set_destination_to_current();
       Mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / volumetric_multiplier[active_extruder];
-      feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
+      Mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
       planner.set_e_position_mm(Mechanics.current_position[E_AXIS]);
       Mechanics.prepare_move_to_destination();
-      feedrate_mm_s = old_feedrate_mm_s;
+      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[active_extruder] = false;
       //SERIAL_EM("+");
     }
@@ -2575,11 +2550,11 @@ static void clean_up_after_endstop_or_probe_move() {
  */
 
 /**
- * Set XYZE Mechanics.destination and feedrate_mm_s from the current GCode command
+ * Set XYZE Mechanics.destination and Mechanics.feedrate_mm_s from the current GCode command
  *
  *  - Set Mechanics.destination from included axis codes
  *  - Set to current for missing axis codes
- *  - Set the feedrate_mm_s, if included
+ *  - Set the Mechanics.feedrate_mm_s, if included
  */
 void gcode_get_destination() {
 
@@ -2595,7 +2570,7 @@ void gcode_get_destination() {
   }
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)
-    feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
+    Mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
     Mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * density_percentage[previous_extruder] / 100) + Mechanics.current_position[E_AXIS];
@@ -3252,7 +3227,7 @@ inline void gcode_G4() {
     }
 
     laser.ppm = 1 / laser.raster_mm_per_pulse; // number of pulses per millimetre
-    laser.duration = (1000000 / feedrate_mm_s) / laser.ppm; // (1 second in microseconds / (time to move 1mm in microseconds)) / (pulses per mm) = Duration of pulse, taking into account feedrate_mm_s as speed and ppm
+    laser.duration = (1000000 / Mechanics.feedrate_mm_s) / laser.ppm; // (1 second in microseconds / (time to move 1mm in microseconds)) / (pulses per mm) = Duration of pulse, taking into account Mechanics.feedrate_mm_s as speed and ppm
 
     laser.mode = RASTER;
     laser.status = LASER_ON;
@@ -3518,7 +3493,7 @@ inline void gcode_G28(const bool always_home_all) {
   float lastpos[NUM_AXIS];
   float old_feedrate_mm_s;
   if (come_back) {
-    old_feedrate_mm_s = feedrate_mm_s;
+    old_feedrate_mm_s = Mechanics.feedrate_mm_s;
     COPY_ARRAY(lastpos, Mechanics.current_position);
   }
 
@@ -3546,10 +3521,10 @@ inline void gcode_G28(const bool always_home_all) {
   #endif
 
   if (come_back) {
-    feedrate_mm_s = Mechanics.homing_feedrate_mm_s[X_AXIS];
+    Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[X_AXIS];
     COPY_ARRAY(Mechanics.destination, lastpos);
     Mechanics.prepare_move_to_destination();
-    feedrate_mm_s = old_feedrate_mm_s;
+    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
   }
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -3598,38 +3573,38 @@ void home_all_axes() { gcode_G28(true); }
   #endif
 
   inline void _manual_goto_xy(const float &x, const float &y) {
-    const float old_feedrate_mm_s = feedrate_mm_s;
+    const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
 
     #if MANUAL_PROBE_HEIGHT > 0
-      feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
+      Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
       Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
       #if MECH(DELTA)
-        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], feedrate_mm_s);
+        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], Mechanics.feedrate_mm_s);
       #else
         Mechanics.line_to_current_position();
       #endif
     #endif
 
-    feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
+    Mechanics.feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
     Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
     Mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
     #if MECH(DELTA)
-      Mechanics.do_blocking_move_to_xy(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], feedrate_mm_s);
+      Mechanics.do_blocking_move_to_xy(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.feedrate_mm_s);
     #else
       Mechanics.line_to_current_position();
     #endif
 
     #if MANUAL_PROBE_HEIGHT > 0
-      feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
+      Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
       Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
       #if MECH(DELTA)
-        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], feedrate_mm_s);
+        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], Mechanics.feedrate_mm_s);
       #else
         Mechanics.line_to_current_position();
       #endif
     #endif
 
-    feedrate_mm_s = old_feedrate_mm_s;
+    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
     stepper.synchronize();
 
     #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
@@ -5771,7 +5746,7 @@ void home_all_axes() { gcode_G28(true); }
       Mechanics.prepare_move_to_destination();
       stepper.synchronize();
 
-      feedrate_mm_s /= 4;
+      Mechanics.feedrate_mm_s /= 4;
 
       // Bump the target more slowly
       LOOP_XYZ(i) Mechanics.destination[i] -= retract_mm[i] * 2;
@@ -5806,7 +5781,7 @@ void home_all_axes() { gcode_G28(true); }
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
       if (fabs(Mechanics.destination[i] - Mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
-        if (!parser.seen('F')) feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
+        if (!parser.seen('F')) Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
           SERIAL_LM(ER, "Failed to reach target");
@@ -5864,7 +5839,7 @@ inline void gcode_G61() {
   SERIAL_M("->");
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)
-    feedrate_mm_s = MMM_TO_MMS(parser.value_linear_units());
+    Mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_linear_units());
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
@@ -6239,8 +6214,8 @@ inline void gcode_M31() {
       card.selectFile(namestartpos);
       if (parser.seen('S')) card.setIndex(parser.value_long());
 
-      feedrate_mm_s       = 20.0; // 20 units/sec
-      feedrate_percentage = 100;  // 100% feedrate_mm_s
+      Mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
+      Mechanics.feedrate_percentage = 100;  // 100% Mechanics.feedrate_mm_s
       card.startFileprint();
       print_job_counter.start();
       #if HAS_POWER_CONSUMPTION_SENSOR
@@ -7810,7 +7785,7 @@ inline void gcode_M203() {
  *    T* R  = Retract only (no X, Y, Z) moves
  *    V     = Travel (non printing) moves
  *
- *  Also sets minimum segment time in ms (B20000) to prevent buffer under-runs and M20 minimum feedrate_mm_s
+ *  Also sets minimum segment time in ms (B20000) to prevent buffer under-runs and M20 minimum Mechanics.feedrate_mm_s
  */
 inline void gcode_M204() {
 
@@ -7956,7 +7931,7 @@ inline void gcode_M218() {
  * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
  */
 inline void gcode_M220() {
-  if (parser.seen('S')) feedrate_percentage = parser.value_int();
+  if (parser.seen('S')) Mechanics.feedrate_percentage = parser.value_int();
 }
 
 /**
@@ -8675,7 +8650,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_M(",\"fanPercent\":[");
     SERIAL_V(fanSpeeds[0]);
 
-    SERIAL_MV("],\"speedFactor\":", feedrate_percentage);
+    SERIAL_MV("],\"speedFactor\":", Mechanics.feedrate_percentage);
 
     SERIAL_M(",\"extrFactors\":[");
     firstOccurrence = true;
@@ -9360,7 +9335,7 @@ inline void gcode_M532() {
 
     if (parser.seen('F')) {
       float next_feedrate = parser.value_linear_units();
-      if(next_feedrate > 0.0) feedrate_mm_s = next_feedrate;
+      if(next_feedrate > 0.0) Mechanics.feedrate_mm_s = next_feedrate;
     }
   }
 
@@ -10375,9 +10350,9 @@ inline void invalid_extruder_error(const uint8_t &e) {
       if (tmp_extruder >= EXTRUDERS)
         return invalid_extruder_error(tmp_extruder);
 
-      const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : feedrate_mm_s;
+      const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : Mechanics.feedrate_mm_s;
 
-      feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+      Mechanics.feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
       if (tmp_extruder != active_extruder) {
         if (!no_move && Mechanics.axis_unhomed_error()) {
@@ -10649,7 +10624,7 @@ inline void invalid_extruder_error(const uint8_t &e) {
         enable_solenoid_on_active_extruder();
       #endif // EXT_SOLENOID
 
-      feedrate_mm_s = old_feedrate_mm_s;
+      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
     #endif // HOTENDS > 1
 
@@ -11176,7 +11151,7 @@ void process_next_command() {
         gcode_M202();
         break;
       #endif
-      case 203: // M203 max feedrate_mm_s units/sec
+      case 203: // M203 max Mechanics.feedrate_mm_s units/sec
         gcode_M203(); break;
       case 204: // M204 planner.acceleration S normal moves T filament only moves
         gcode_M204(); break;
@@ -12454,7 +12429,7 @@ static void report_current_position() {
     // Initialize the extruder axis
     arc_target[E_AXIS] = Mechanics.current_position[E_AXIS];
 
-    const float fr_mm_s = MMS_SCALED(feedrate_mm_s);
+    const float fr_mm_s = MMS_SCALED(Mechanics.feedrate_mm_s);
 
     millis_t next_idle_ms = millis() + 200UL;
 

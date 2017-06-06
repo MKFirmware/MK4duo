@@ -109,12 +109,6 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-/**
- * Feedrate scaling and conversion
- */
-extern float feedrate_mm_s, saved_feedrate_mm_s;
-extern int feedrate_percentage;
-
 #if HAS_ABL
   extern int xy_probe_feedrate_mm_s;
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
@@ -124,7 +118,6 @@ extern int feedrate_percentage;
   #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
 #endif
 
-extern bool axis_relative_modes[];
 extern bool volumetric_enabled;
 extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each extruder
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
