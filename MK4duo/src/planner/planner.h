@@ -337,19 +337,19 @@ class Planner {
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          Kinematics.insert_zwobble_correction(lpos[Z_AXIS]);
+          Mechanics.insert_zwobble_correction(lpos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          Kinematics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
+          Mechanics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
         #endif
       #else
         const float * const lpos = ltarget;
       #endif
 
       #if IS_KINEMATIC
-        Kinematics.Transform(lpos);
-        _buffer_line(Kinematics.delta[A_AXIS], Kinematics.delta[B_AXIS], Kinematics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
+        Mechanics.Transform(lpos);
+        _buffer_line(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS], Mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #else
         _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #endif

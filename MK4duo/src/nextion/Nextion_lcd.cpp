@@ -901,21 +901,21 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
     }
 
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        Kinematics.current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Mechanics.current_position[Z_AXIS] += (LCD_Z_STEP);
+        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        Kinematics.current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Mechanics.current_position[Z_AXIS] -= (LCD_Z_STEP);
+        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedSend) {
@@ -1217,33 +1217,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(Kinematics.current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(Kinematics.current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(Mechanics.current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(Mechanics.current_position[Y_AXIS]));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
-      strcat(buffer, (Kinematics.axis_homed[X_AXIS] ? "X" : "?"));
-      if (Kinematics.axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(Kinematics.current_position[X_AXIS]);
+      strcat(buffer, (Mechanics.axis_homed[X_AXIS] ? "X" : "?"));
+      if (Mechanics.axis_homed[X_AXIS]) {
+        valuetemp = ftostr4sign(Mechanics.current_position[X_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Kinematics.axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (Kinematics.axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(Kinematics.current_position[Y_AXIS]);
+      strcat(buffer, (Mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
+      if (Mechanics.axis_homed[Y_AXIS]) {
+        valuetemp = ftostr4sign(Mechanics.current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Kinematics.axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (Kinematics.axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS]));
+      strcat(buffer, (Mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (Mechanics.axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
+      BedZ.setText(ftostr43sign(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
     }
   }
 

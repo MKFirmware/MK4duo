@@ -21,21 +21,21 @@
  */
 
 /**
- * delta_kinematics.h
+ * delta_mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _DELTA_KINEMATICS_H_
-#define _DELTA_KINEMATICS_H_
+#ifndef _DELTA_MECHANICS_H_
+#define _DELTA_MECHANICS_H_
 
 #if IS_DELTA
 
-  class DeltaKinematics {
+  class Delta_Mechanics {
 
     public: /** Constructor */
 
-      DeltaKinematics() {};
+      Delta_Mechanics() {};
 
     public: /** Public Parameters */
 
@@ -141,12 +141,12 @@
       void line_to_destination();
 
       /**
-       * Prepare a linear move in a DELTA setup.
+       * Prepare a single move and get ready for the next one.
        *
        * This calls buffer_line several times, adding
        * small incremental moves for DELTA.
        */
-      bool prepare_linear_move_to_destination();
+      void prepare_move_to_destination();
 
       /**
        * Blocking movement and shorthand functions
@@ -163,11 +163,6 @@
        */
       void sync_plan_position();
       void sync_plan_position_e();
-
-      /**
-       * Calculate delta, start a line, and set current_position to destination
-       */
-      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
 
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
@@ -235,6 +230,11 @@
       void homeaxis(const AxisEnum axis);
 
       /**
+       * Calculate delta, start a line, and set current_position to destination
+       */
+      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+
+      /**
        * Some planner shorthand inline functions
        */
       float get_homing_bump_feedrate(AxisEnum axis);
@@ -249,17 +249,17 @@
 
   };
 
-  extern DeltaKinematics Kinematics;
+  extern Delta_Mechanics Mechanics;
 
   // DEBUG LEVELING
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Kinematics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
   #endif
 
   // Workspace offsets
   #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Kinematics.workspace_offset[AXIS]
+    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
   #else
     #define WORKSPACE_OFFSET(AXIS) 0
   #endif
@@ -283,8 +283,8 @@
     #define RAW_Z_POSITION(POS)       (POS)
   #endif
 
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Kinematics.current_position[A##_AXIS])
+  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
 
 #endif // MECH(DELTA)
 
-#endif // _DELTA_KINEMATICS_H_
+#endif // _DELTA_MECHANICS_H_

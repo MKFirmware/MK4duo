@@ -652,7 +652,7 @@ void kill_screen(const char* lcd_msg) {
   }
 
   inline void line_to_current(AxisEnum axis) {
-    planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+    planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
   }
 
   #if ENABLED(SDSUPPORT)
@@ -1134,12 +1134,12 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(EASY_LOAD)
     void lcd_extrude(float length, float feedrate) {
-      Kinematics.current_position[E_AXIS] += length;
+      Mechanics.current_position[E_AXIS] += length;
       #if MECH(DELTA)
-        Kinematics.Transform(Kinematics.current_position);
-        planner.buffer_line(delta[X_AXIS], delta[Y_AXIS], delta[Z_AXIS], Kinematics.current_position[E_AXIS], feedrate, active_extruder, active_driver);
+        Mechanics.Transform(Mechanics.current_position);
+        planner.buffer_line(Mechanics.delta[X_AXIS], Mechanics.delta[Y_AXIS], Mechanics.delta[Z_AXIS], Mechanics.current_position[E_AXIS], feedrate, active_extruder, active_driver);
       #else
-        planner.buffer_line(Kinematics.current_position[X_AXIS], Kinematics.current_position[Y_AXIS], Kinematics.current_position[Z_AXIS], Kinematics.current_position[E_AXIS], feedrate, active_extruder, active_driver);
+        planner.buffer_line(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.current_position[Z_AXIS], Mechanics.current_position[E_AXIS], feedrate, active_extruder, active_driver);
       #endif
     }
     void lcd_purge() { lcd_extrude(LCD_PURGE_LENGTH, LCD_PURGE_FEEDRATE); }
@@ -1466,7 +1466,7 @@ void kill_screen(const char* lcd_msg) {
     //
     void _lcd_after_probing() {
       #if MANUAL_PROBE_HEIGHT > 0
-        Kinematics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+        Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
         line_to_current(Z_AXIS);
       #endif
       // Display "Done" screen and wait for moves to complete
@@ -1484,14 +1484,14 @@ void kill_screen(const char* lcd_msg) {
       // Utility to go to the next mesh point
       inline void _manual_probe_goto_xy(float x, float y) {
         #if MANUAL_PROBE_HEIGHT > 0
-          Kinematics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+          Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
           line_to_current(Z_AXIS);
         #endif
-        Kinematics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-        Kinematics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-        planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder, active_driver);
+        Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+        Mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+        planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder, active_driver);
         #if MANUAL_PROBE_HEIGHT > 0
-          Kinematics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
+          Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
           line_to_current(Z_AXIS);
         #endif
         lcd_synchronize();
@@ -1534,7 +1534,7 @@ void kill_screen(const char* lcd_msg) {
           // MBL records the position but doesn't move to the next one
           //
 
-          mbl.set_zigzag_z(manual_probe_index, Kinematics.current_position[Z_AXIS]);
+          mbl.set_zigzag_z(manual_probe_index, Mechanics.current_position[Z_AXIS]);
 
         #endif
 
@@ -1574,9 +1574,9 @@ void kill_screen(const char* lcd_msg) {
       //
       if (encoderPosition) {
         refresh_cmd_timeout();
-        Kinematics.current_position[Z_AXIS] += float((int32_t)encoderPosition) * (LCD_Z_STEP);
-        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Kinematics.current_position[Z_AXIS],  (LCD_PROBE_Z_RANGE) * 0.5);
+        Mechanics.current_position[Z_AXIS] += float((int32_t)encoderPosition) * (LCD_Z_STEP);
+        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Mechanics.current_position[Z_AXIS],  (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
         lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
         encoderPosition = 0;
@@ -1586,7 +1586,7 @@ void kill_screen(const char* lcd_msg) {
       // Draw on first display, then only on Z change
       //
       if (lcdDrawUpdate) {
-        const float v = Kinematics.current_position[Z_AXIS];
+        const float v = Mechanics.current_position[Z_AXIS];
         lcd_implementation_drawedit(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001 : 0.0001), '+'));
       }
     }
@@ -1656,7 +1656,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_level_bed_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_HOMING), NULL);
       lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW;
-      if (Kinematics.axis_homed[X_AXIS] && Kinematics.axis_homed[Y_AXIS] && Kinematics.axis_homed[Z_AXIS])
+      if (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS])
         lcd_goto_screen(_lcd_level_bed_homing_done);
     }
 
@@ -1669,7 +1669,7 @@ void kill_screen(const char* lcd_msg) {
      */
     void _lcd_level_bed_continue() {
       defer_return_to_status = true;
-      Kinematics.axis_homed[X_AXIS] = Kinematics.axis_homed[Y_AXIS] = Kinematics.axis_homed[Z_AXIS] = false;
+      Mechanics.axis_homed[X_AXIS] = Mechanics.axis_homed[Y_AXIS] = Mechanics.axis_homed[Z_AXIS] = false;
       lcd_goto_screen(_lcd_level_bed_homing);
       enqueue_and_echo_commands_P(PSTR("G28"));
     }
@@ -1697,7 +1697,7 @@ void kill_screen(const char* lcd_msg) {
       START_MENU();
       MENU_BACK(MSG_PREPARE);
 
-      if (!(Kinematics.axis_known_position[X_AXIS] && Kinematics.axis_known_position[Y_AXIS] && Kinematics.axis_known_position[Z_AXIS]))
+      if (!(Mechanics.axis_known_position[X_AXIS] && Mechanics.axis_known_position[Y_AXIS] && Mechanics.axis_known_position[Z_AXIS]))
         MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
       else if (leveling_is_valid()) {
         _level_state = leveling_is_active();
@@ -1749,7 +1749,7 @@ void kill_screen(const char* lcd_msg) {
     // Move Axis
     //
     #if MECH(DELTA)
-      if (Kinematics.axis_homed[Z_AXIS])
+      if (Mechanics.axis_homed[Z_AXIS])
     #endif
         MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
 
@@ -1886,7 +1886,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_calibrate_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
-      if (Kinematics.axis_homed[X_AXIS] && Kinematics.axis_homed[Y_AXIS] && Kinematics.axis_homed[Z_AXIS])
+      if (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS])
         lcd_goto_previous_menu();
     }
 
@@ -1906,14 +1906,14 @@ void kill_screen(const char* lcd_msg) {
         reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
 
-      Kinematics.current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (Kinematics.print_radius) / 5;
+      Mechanics.current_position[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT + (Mechanics.print_radius) / 5;
       line_to_current(Z_AXIS);
 
-      Kinematics.current_position[X_AXIS] = a < 0 ? LOGICAL_X_POSITION(X_HOME_POS) : cos(RADIANS(a)) * Kinematics.print_radius;
-      Kinematics.current_position[Y_AXIS] = a < 0 ? LOGICAL_Y_POSITION(Y_HOME_POS) : sin(RADIANS(a)) * Kinematics.print_radius;
+      Mechanics.current_position[X_AXIS] = a < 0 ? LOGICAL_X_POSITION(X_HOME_POS) : cos(RADIANS(a)) * Mechanics.print_radius;
+      Mechanics.current_position[Y_AXIS] = a < 0 ? LOGICAL_Y_POSITION(Y_HOME_POS) : sin(RADIANS(a)) * Mechanics.print_radius;
       line_to_current(Z_AXIS);
 
-      Kinematics.current_position[Z_AXIS] = 4.0;
+      Mechanics.current_position[Z_AXIS] = 4.0;
       line_to_current(Z_AXIS);
 
       lcd_synchronize();
@@ -1939,7 +1939,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(gcode, MSG_DELTA_AUTO_CALIBRATE, PSTR("G33 A"));
       #endif
       MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
-      if (Kinematics.axis_homed[Z_AXIS]) {
+      if (Mechanics.axis_homed[Z_AXIS]) {
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
@@ -1956,7 +1956,7 @@ void kill_screen(const char* lcd_msg) {
    */
   inline void manage_manual_move() {
     if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
-      planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), active_extruder, active_driver);
       manual_move_axis = (int8_t)NO_AXIS;
     }
   }
@@ -1982,43 +1982,43 @@ void kill_screen(const char* lcd_msg) {
     if (encoderPosition) {
       refresh_cmd_timeout();
 
-      float min = Kinematics.current_position[axis] - 1000,
-            max = Kinematics.current_position[axis] + 1000;
+      float min = Mechanics.current_position[axis] - 1000,
+            max = Mechanics.current_position[axis] + 1000;
 
       #if HAS_SOFTWARE_ENDSTOPS
         // Limit to software endstops, if enabled
-        if (soft_endstops_enabled) {
+        if (endstops.soft_endstops_enabled) {
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-            min = soft_endstop_min[axis];
+            min = endstops.soft_endstop_min[axis];
           #endif
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            max = soft_endstop_max[axis];
+            max = endstops.soft_endstop_max[axis];
           #endif
         }
       #endif
 
       // Get the new position
-      Kinematics.current_position[axis] += float((int32_t)encoderPosition) * move_menu_scale;
+      Mechanics.current_position[axis] += float((int32_t)encoderPosition) * move_menu_scale;
 
       // Delta limits XY based on the current offset from center
       // This assumes the center is 0,0
       #if MECH(DELTA)
         if (axis != Z_AXIS) {
-          max = SQRT(sq((float)(DELTA_PRINTABLE_RADIUS)) - sq(Kinematics.current_position[Y_AXIS - axis]));
+          max = SQRT(sq((float)(DELTA_PRINTABLE_RADIUS)) - sq(Mechanics.current_position[Y_AXIS - axis]));
           min = -max;
         }
       #endif
 
       // Limit only when trying to move towards the limit
-      if ((int32_t)encoderPosition < 0) NOLESS(Kinematics.current_position[axis], min);
-      if ((int32_t)encoderPosition > 0) NOMORE(Kinematics.current_position[axis], max);
+      if ((int32_t)encoderPosition < 0) NOLESS(Mechanics.current_position[axis], min);
+      if ((int32_t)encoderPosition > 0) NOMORE(Mechanics.current_position[axis], max);
 
       manual_move_to_current(axis);
 
       encoderPosition = 0;
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
-    if (lcdDrawUpdate) lcd_implementation_drawedit(name, ftostr41sign(Kinematics.current_position[axis]));
+    if (lcdDrawUpdate) lcd_implementation_drawedit(name, ftostr41sign(Mechanics.current_position[axis]));
   }
   void lcd_move_x() { _lcd_move_xyz(PSTR(MSG_MOVE_X), X_AXIS); }
   void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
@@ -2041,7 +2041,7 @@ void kill_screen(const char* lcd_msg) {
     }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition) {
-      Kinematics.current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
+      Mechanics.current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
       encoderPosition = 0;
       manual_move_to_current(E_AXIS);
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
@@ -2068,7 +2068,7 @@ void kill_screen(const char* lcd_msg) {
           #endif
         }
       #endif
-      lcd_implementation_drawedit(pos_label, ftostr41sign(Kinematics.current_position[E_AXIS]));
+      lcd_implementation_drawedit(pos_label, ftostr41sign(Mechanics.current_position[E_AXIS]));
     }
   }
 
@@ -2151,11 +2151,11 @@ void kill_screen(const char* lcd_msg) {
    */
 
   #if IS_KINEMATIC
-    #define _MOVE_XYZ_ALLOWED (Kinematics.axis_homed[X_AXIS] && Kinematics.axis_homed[Y_AXIS] && Kinematics.axis_homed[Z_AXIS])
+    #define _MOVE_XYZ_ALLOWED (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS])
     #if MECH(DELTA)
-      #define _MOVE_XY_ALLOWED (Kinematics.current_position[Z_AXIS] <= Kinematics.clip_start_height)
+      #define _MOVE_XY_ALLOWED (Mechanics.current_position[Z_AXIS] <= Mechanics.clip_start_height)
       void lcd_lower_z_to_clip_height() {
-        Kinematics.current_position[Z_AXIS] = Kinematics.clip_start_height;
+        Mechanics.current_position[Z_AXIS] = Mechanics.clip_start_height;
         line_to_current(Z_AXIS);
         lcd_synchronize();
       }
@@ -2748,7 +2748,7 @@ void kill_screen(const char* lcd_msg) {
     void action_laser_focus_7mm() { laser_set_focus(7); }
 
     void laser_set_focus(float f_length) {
-      if (!Kinematics.axis_homed[Z_AXIS]) {
+      if (!Mechanics.axis_homed[Z_AXIS]) {
         enqueue_and_echo_commands_P(PSTR("G28 Z F150"));
       }
       focalLength = f_length;
@@ -3407,7 +3407,7 @@ void kill_screen(const char* lcd_msg) {
           if (REPRAPWORLD_KEYPAD_MOVE_Z_UP)     reprapworld_keypad_move_z_up();
         #endif
 
-        if (Kinematics.axis_homed[X_AXIS] && Kinematics.axis_homed[Y_AXIS] && Kinematics.axis_homed[Z_AXIS]) {
+        if (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS]) {
           #if MECH(DELTA) || Z_HOME_DIR != -1
             if (REPRAPWORLD_KEYPAD_MOVE_Z_UP)   reprapworld_keypad_move_z_up();
           #endif
