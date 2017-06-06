@@ -747,7 +747,7 @@ static void lcd_implementation_status_screen() {
       #if HOTENDS > 1
         _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
       #else
-        _draw_heater_status(-1, LCD_BEDTEMP_CHAR[0], blink);
+        _draw_heater_status(-1, LCD_BEDTEMP_CHAR, blink);
       #endif
 
     #endif // HOTENDS > 1 || HAS_TEMP_BED
