@@ -252,7 +252,7 @@ class Temperature {
       static int16_t meas_shift_index;  // Index of a delayed sample in buffer
     #endif
 
-    #if HAS(AUTO_FAN)
+    #if HAS_AUTO_FAN
       static millis_t next_auto_fan_check_ms;
     #endif
 

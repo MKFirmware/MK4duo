@@ -251,7 +251,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   static unsigned long Temperature::raw_powconsumption_value = 0;
 #endif
 
-#if HAS(AUTO_FAN)
+#if HAS_AUTO_FAN
   millis_t Temperature::next_auto_fan_check_ms = 0;
 #endif
 
@@ -288,7 +288,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
     NOLESS(ncycles, 5);
     NOMORE(ncycles, 20);
 
-    #if HAS(AUTO_FAN)
+    #if HAS_AUTO_FAN
       next_auto_fan_check_ms = temp_ms + 2500UL;
     #endif
 
@@ -387,7 +387,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
       NOLESS(maxTemp, currentTemp);
       NOMORE(minTemp, currentTemp);
 
-      #if HAS(AUTO_FAN)
+      #if HAS_AUTO_FAN
         if (ELAPSED(ms, next_auto_fan_check_ms)) {
           checkExtruderAutoFans();
           next_auto_fan_check_ms = ms + 2500UL;
@@ -613,7 +613,7 @@ void Temperature::updatePID() {
 
 }
 
-#if HAS(AUTO_FAN)
+#if HAS_AUTO_FAN
 
   void Temperature::checkExtruderAutoFans() {
     const int8_t fanPin[] = { H0_AUTO_FAN_PIN, H1_AUTO_FAN_PIN, H2_AUTO_FAN_PIN, H3_AUTO_FAN_PIN };
@@ -923,7 +923,7 @@ void Temperature::manage_temp_controller() {
     if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + .01)) min_temp_error(0);
   #endif
 
-  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS(AUTO_FAN)
+  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS_AUTO_FAN
     millis_t ms = millis();
   #endif
 
@@ -964,7 +964,7 @@ void Temperature::manage_temp_controller() {
 
   #endif
 
-  #if HAS(AUTO_FAN)
+  #if HAS_AUTO_FAN
     if (ELAPSED(ms, next_auto_fan_check_ms)) { // only need to check fan state very infrequently
       checkExtruderAutoFans();
       next_auto_fan_check_ms = ms + 2500UL;
@@ -1421,16 +1421,16 @@ void Temperature::init() {
     last_e_position = 0;
   #endif
 
-  #if HAS(HEATER_0)
+  #if HAS_HEATER_0
     SET_OUTPUT(HEATER_0_PIN);
   #endif
-  #if HAS(HEATER_1)
+  #if HAS_HEATER_1
     SET_OUTPUT(HEATER_1_PIN);
   #endif
-  #if HAS(HEATER_2)
+  #if HAS_HEATER_2
     SET_OUTPUT(HEATER_2_PIN);
   #endif
-  #if HAS(HEATER_3)
+  #if HAS_HEATER_3
     SET_OUTPUT(HEATER_3_PIN);
   #endif
   #if HAS_HEATER_BED

@@ -961,9 +961,9 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    float tmp11[] = MOTOR_CURRENT;
+    const float tmp11[] = MOTOR_CURRENT;
     for (int8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      motor_current[i] = tmp11[i];
+      motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
   #endif
 
   LOOP_XYZE_N(i) {

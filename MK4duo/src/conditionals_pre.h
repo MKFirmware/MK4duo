@@ -266,10 +266,11 @@
     #define LCD_STR_FILAM_DIA   "\xf8"
     #define LCD_STR_FILAM_MUL   "\xa4"
   #else
-    /* Custom characters defined in the first 8 characters of the LCD */
+    // Custom characters defined in the first 8 characters of the LCD
+    // Print double-quoted items only as char. They may have 'unexpected' results if used in strings!
     #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
     #define LCD_DEGREE_CHAR      0x01
-    #define LCD_STR_THERMOMETER "\x02" // Too many places use preprocessor string concatination to change this to a char right now.
+    #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
     #define LCD_UPLEVEL_CHAR     0x03
     #define LCD_REFRESH_CHAR     0x04
     #define LCD_STR_FOLDER      "\x05"
@@ -411,6 +412,7 @@
     #define TARGET_EXTRUDER 0
   #elif EXTRUDERS == 0
     #undef PIDTEMP
+    #undef FWRETRACT
     #define XYZE_N    XYZ
     #define E_AXIS_N  0
     #define E_INDEX   0

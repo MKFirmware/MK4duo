@@ -165,7 +165,10 @@ extern float hotend_offset[XYZ][HOTENDS];
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  extern uint32_t host_keepalive_interval;
+  extern MK4duoBusyState busy_state;
+  #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
+#else
+  #define KEEPALIVE_STATE(n) NOOP
 #endif
 
 #if FAN_COUNT > 0
