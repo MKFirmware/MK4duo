@@ -272,10 +272,10 @@
   #define WATCH_THE_COOLER  (HAS_THERMALLY_PROTECTED_COOLER && WATCH_COOLER_TEMP_PERIOD > 0)
 
   // Auto fans
-  #define HAS_AUTO_FAN_0    (ENABLED(HOTEND_AUTO_FAN) && PIN_EXISTS(H0_AUTO_FAN))
-  #define HAS_AUTO_FAN_1    (ENABLED(HOTEND_AUTO_FAN) && PIN_EXISTS(H1_AUTO_FAN))
-  #define HAS_AUTO_FAN_2    (ENABLED(HOTEND_AUTO_FAN) && PIN_EXISTS(H2_AUTO_FAN))
-  #define HAS_AUTO_FAN_3    (ENABLED(HOTEND_AUTO_FAN) && PIN_EXISTS(H3_AUTO_FAN))
+  #define HAS_AUTO_FAN_0    (ENABLED(HOTEND_AUTO_FAN) && HOTENDS > 0 && PIN_EXISTS(H0_AUTO_FAN))
+  #define HAS_AUTO_FAN_1    (ENABLED(HOTEND_AUTO_FAN) && HOTENDS > 1 && PIN_EXISTS(H1_AUTO_FAN))
+  #define HAS_AUTO_FAN_2    (ENABLED(HOTEND_AUTO_FAN) && HOTENDS > 2 && PIN_EXISTS(H2_AUTO_FAN))
+  #define HAS_AUTO_FAN_3    (ENABLED(HOTEND_AUTO_FAN) && HOTENDS > 3 && PIN_EXISTS(H3_AUTO_FAN))
   #define HAS_AUTO_FAN      (HAS_AUTO_FAN_0 || HAS_AUTO_FAN_1 || HAS_AUTO_FAN_2 || HAS_AUTO_FAN_3)
   #define AUTO_1_IS_0       (H1_AUTO_FAN_PIN == H0_AUTO_FAN_PIN)
   #define AUTO_2_IS_0       (H2_AUTO_FAN_PIN == H0_AUTO_FAN_PIN)
@@ -743,21 +743,23 @@
   #else
     #define WRITE_HEATER(pin, value) WRITE(pin, value)
   #endif
-  #define WRITE_HEATER_0P(v) WRITE_HEATER(HEATER_0_PIN, v)
-  #if HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
-    #define WRITE_HEATER_1(v) WRITE_HEATER(HEATER_1_PIN, v)
-    #if HOTENDS > 2
-      #define WRITE_HEATER_2(v) WRITE_HEATER(HEATER_2_PIN, v)
-      #if HOTENDS > 3
-        #define WRITE_HEATER_3(v) WRITE_HEATER(HEATER_3_PIN, v)
-      #endif
+  #if HOTENDS > 0
+    #define WRITE_HEATER_0P(v) WRITE_HEATER(HEATER_0_PIN, v)
+    #if HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
+      #define WRITE_HEATER_1(v) WRITE_HEATER(HEATER_1_PIN, v)
+      #if HOTENDS > 2
+        #define WRITE_HEATER_2(v) WRITE_HEATER(HEATER_2_PIN, v)
+        #if HOTENDS > 3
+          #define WRITE_HEATER_3(v) WRITE_HEATER(HEATER_3_PIN, v)
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+    #if ENABLED(HEATERS_PARALLEL)
+      #define WRITE_HEATER_0(v) { WRITE_HEATER_0P(v); WRITE_HEATER_1(v); }
+    #else
+      #define WRITE_HEATER_0(v) WRITE_HEATER_0P(v)
     #endif
-  #endif
-  #if ENABLED(HEATERS_PARALLEL)
-    #define WRITE_HEATER_0(v) { WRITE_HEATER_0P(v); WRITE_HEATER_1(v); }
-  #else
-    #define WRITE_HEATER_0(v) WRITE_HEATER_0P(v)
-  #endif
+  #endif // HOTENDS > 0
   #if HAS_HEATER_BED
     #if ENABLED(INVERTED_BED_PIN)
       #define WRITE_HEATER_BED(v) WRITE(HEATER_BED_PIN,!v)
@@ -987,18 +989,23 @@
 
   #if HEATER_PWM_SPEED == 0
     #define HEATER_PWM_STEP 1
+    #define HEATER_PWM_FREQ 15
     #define HEATER_PWM_MASK 255
   #elif HEATER_PWM_SPEED == 1
     #define HEATER_PWM_STEP 2
+    #define HEATER_PWM_FREQ 30
     #define HEATER_PWM_MASK 254
   #elif HEATER_PWM_SPEED == 2
     #define HEATER_PWM_STEP 4
+    #define HEATER_PWM_FREQ 61
     #define HEATER_PWM_MASK 252
   #elif HEATER_PWM_SPEED == 3
     #define HEATER_PWM_STEP 8
+    #define HEATER_PWM_FREQ 122
     #define HEATER_PWM_MASK 248
   #elif HEATER_PWM_SPEED == 4
     #define HEATER_PWM_STEP 16
+    #define HEATER_PWM_FREQ 244
     #define HEATER_PWM_MASK 240
   #endif
 
@@ -1014,18 +1021,23 @@
 
   #if FAN_PWM_SPEED == 0
     #define FAN_PWM_STEP 1
+    #define FAN_PWM_FREQ 15
     #define FAN_PWM_MASK 255
   #elif FAN_PWM_SPEED == 1
     #define FAN_PWM_STEP 2
+    #define FAN_PWM_FREQ 30
     #define FAN_PWM_MASK 254
   #elif FAN_PWM_SPEED == 2
     #define FAN_PWM_STEP 4
+    #define FAN_PWM_FREQ 61
     #define FAN_PWM_MASK 252
   #elif FAN_PWM_SPEED == 3
     #define FAN_PWM_STEP 8
+    #define FAN_PWM_FREQ 122
     #define FAN_PWM_MASK 248
   #elif FAN_PWM_SPEED == 4
     #define FAN_PWM_STEP 16
+    #define FAN_PWM_FREQ 244
     #define FAN_PWM_MASK 240
   #endif
 

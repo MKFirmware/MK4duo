@@ -75,8 +75,8 @@
 #define SUICIDE_PIN           -1 //PIN that has to be turned on right after start, to keep power flowing.
 
 // Note that on the Due pin A0 on the board is channel 2 on the ARM chip
-#define ORIG_HEATER_BED_PIN   69 // PA0
-#define ORIG_HEATER_0_PIN     68 // PA1
+#define ORIG_HEATER_BED_PIN   68 // PA1
+#define ORIG_HEATER_0_PIN     69 // PA0
 #define ORIG_HEATER_1_PIN      8 // PC22 on piggy
 #define ORIG_HEATER_2_PIN      9 // PC21 on piggy
 #define ORIG_HEATER_3_PIN     97 // PC20 on piggy

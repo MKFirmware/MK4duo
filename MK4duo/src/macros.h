@@ -147,6 +147,10 @@
 #define ARRAY_BY_HOTENDS_N(...) ARRAY_N(HOTENDS, __VA_ARGS__)
 #define ARRAY_BY_HOTENDS(v1) ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
 
+// ARRAY_BY_FAN based on FAN_COUNT
+#define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
+#define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
+
 // Macros for adding
 #define INC_0 1
 #define INC_1 2

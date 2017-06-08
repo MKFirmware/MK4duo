@@ -553,7 +553,7 @@
     #define NORM_E_DIR()    { switch(TOOL_DE_INDEX) { case 0: E0_DIR_WRITE(!INVERT_E0_DIR); break;  case 1: E1_DIR_WRITE(!INVERT_E1_DIR); break; }}
     #define REV_E_DIR()     { switch(TOOL_DE_INDEX) { case 0: E0_DIR_WRITE( INVERT_E0_DIR); break;  case 1: E1_DIR_WRITE( INVERT_E1_DIR); break; }}
   #endif
-#else
+#elif DRIVER_EXTRUDERS > 0
   #if ENABLED(DONDOLO_SINGLE_MOTOR)
     #define E_STEP_WRITE(v) E0_STEP_WRITE(v)
     #define NORM_E_DIR() E0_DIR_WRITE(current_block->active_extruder ?  INVERT_E0_DIR : !INVERT_E0_DIR)
@@ -636,7 +636,7 @@
 
 #else // !COLOR_MIXING_EXTRUDER
 
-  #if HAS(E0_ENABLE)
+  #if (DRIVER_EXTRUDERS > 0) && HAS_E0_ENABLE
     #define  enable_E0() E0_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E0() E0_ENABLE_WRITE(!E_ENABLE_ON)
   #else
@@ -644,7 +644,7 @@
     #define disable_E0() NOOP
   #endif
 
-  #if (DRIVER_EXTRUDERS > 1) && HAS(E1_ENABLE)
+  #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
     #define  enable_E1() E1_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E1() E1_ENABLE_WRITE(!E_ENABLE_ON)
   #else
@@ -652,7 +652,7 @@
     #define disable_E1() NOOP
   #endif
 
-  #if (DRIVER_EXTRUDERS > 2) && HAS(E2_ENABLE)
+  #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
     #define  enable_E2() E2_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E2() E2_ENABLE_WRITE(!E_ENABLE_ON)
   #else
@@ -660,7 +660,7 @@
     #define disable_E2() NOOP
   #endif
 
-  #if (DRIVER_EXTRUDERS > 3) && HAS(E3_ENABLE)
+  #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
     #define  enable_E3() E3_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E3() E3_ENABLE_WRITE(!E_ENABLE_ON)
   #else
@@ -668,7 +668,7 @@
     #define disable_E3() NOOP
   #endif
 
-  #if (DRIVER_EXTRUDERS > 4) && HAS(E4_ENABLE)
+  #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
     #define  enable_E4() E4_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E4() E4_ENABLE_WRITE(!E_ENABLE_ON)
   #else
@@ -676,7 +676,7 @@
     #define disable_E4() NOOP
   #endif
 
-  #if (DRIVER_EXTRUDERS > 5) && HAS(E5_ENABLE)
+  #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
     #define  enable_E5() E5_ENABLE_WRITE( E_ENABLE_ON)
     #define disable_E5() E5_ENABLE_WRITE(!E_ENABLE_ON)
   #else

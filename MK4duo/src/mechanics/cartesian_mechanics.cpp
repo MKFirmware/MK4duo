@@ -130,7 +130,8 @@
 
   /**
    * line_to_destination
-   * Move the planner, not necessarily synced with current_position
+   * Move the planner to the position stored in the destination array, which is
+   * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
    */
   void Cartesian_Mechanics::line_to_destination(float fr_mm_s) {
     planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
@@ -141,29 +142,29 @@
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void Cartesian_Mechanics::do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s /*=0.0*/) {
+  void Cartesian_Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, x, y, z);
+      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
     #endif
 
     // If Z needs to raise, do it before moving XY
-    if (current_position[Z_AXIS] < z) {
+    if (current_position[Z_AXIS] < lz) {
       feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
-      current_position[Z_AXIS] = z;
+      current_position[Z_AXIS] = lz;
       line_to_current_position();
     }
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
-    current_position[X_AXIS] = x;
-    current_position[Y_AXIS] = y;
+    current_position[X_AXIS] = lx;
+    current_position[Y_AXIS] = ly;
     line_to_current_position();
 
     // If Z needs to lower, do it after moving XY
-    if (current_position[Z_AXIS] > z) {
+    if (current_position[Z_AXIS] > lz) {
       feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
-      current_position[Z_AXIS] = z;
+      current_position[Z_AXIS] = lz;
       line_to_current_position();
     }
 
@@ -175,14 +176,14 @@
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
     #endif
   }
-  void Cartesian_Mechanics::do_blocking_move_to_x(const float &x, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(x, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+  void Cartesian_Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(lx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
   }
-  void Cartesian_Mechanics::do_blocking_move_to_z(const float &z, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z, fr_mm_s);
+  void Cartesian_Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], lz, fr_mm_s);
   }
-  void Cartesian_Mechanics::do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(x, y, current_position[Z_AXIS], fr_mm_s);
+  void Cartesian_Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(lx, ly, current_position[Z_AXIS], fr_mm_s);
   }
 
   void Cartesian_Mechanics::sync_plan_position() {
@@ -199,7 +200,7 @@
   /**
    * Home an individual linear axis
    */
-  void Cartesian_Mechanics::do_homing_move(AxisEnum axis, const float distance, float fr_mm_s/*=0.0*/) {
+  void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -599,7 +600,7 @@
    *
    * Callers must sync the planner position after calling this!
    */
-  void Cartesian_Mechanics::set_axis_is_at_home(AxisEnum axis) {
+  void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -653,9 +654,9 @@
     #endif
   }
 
-  float Cartesian_Mechanics::get_homing_bump_feedrate(AxisEnum axis) {
-    int constexpr homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
-    int hbd = homing_bump_divisor[axis];
+  float Cartesian_Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
+    const uint8_t homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+    uint8_t hbd = homing_bump_divisor[axis];
     if (hbd < 1) {
       hbd = 10;
       SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");

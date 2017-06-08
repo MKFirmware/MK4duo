@@ -1,3 +1,7 @@
+### Version 4.3.22 dev
+* Add Hardware PWM for SAM processor
+* Add M114 D for Detail position, leveled, unlevel, stepper
+
 ### Version 4.3.21 dev
 * Add User menu LCD
 * Write Kinematic function for Cartesian, Core and DELTA. SCARA for now not implemented.

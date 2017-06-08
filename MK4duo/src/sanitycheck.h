@@ -1711,7 +1711,7 @@ static_assert(1 >= 0
 /**
  * Make sure auto fan pins don't conflict with the fan pin
  */
-#if HAS(AUTO_FAN) && HAS(FAN)
+#if HAS_AUTO_FAN && HAS_FAN
   #if H0_AUTO_FAN_PIN == FAN_PIN
     #error CONFLICT ERROR: You cannot set H0_AUTO_FAN_PIN equal to FAN_PIN.
   #elif H1_AUTO_FAN_PIN == FAN_PIN
@@ -1723,7 +1723,7 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if HAS(FAN) && CONTROLLERFAN_PIN == FAN_PIN
+#if HAS_FAN && CONTROLLERFAN_PIN == FAN_PIN
   #error CONFLICT ERROR: You cannot set CONTROLLERFAN_PIN equal to FAN_PIN.
 #endif
 
@@ -1731,19 +1731,19 @@ static_assert(1 >= 0
  * Test required HEATER defines
  */
 #if HOTENDS > 3
-  #if HASNT(HEATER_3)
+  #if !HAS_HEATER_3
     #error DEPENDENCY ERROR: HEATER_3_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 2
-  #if HASNT(HEATER_2)
+  #if !HAS_HEATER_2
     #error DEPENDENCY ERROR: HEATER_2_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
-  #if HASNT(HEATER_1)
+  #if !HAS_HEATER_1
     #error DEPENDENCY ERROR: HEATER_1_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 0
-  #if HASNT(HEATER_0)
+  #if !HAS_HEATER_0
     #error DEPENDENCY ERROR: HEATER_0_PIN not EXIST for this board
   #endif
 #endif
@@ -1907,7 +1907,7 @@ static_assert(1 >= 0
   #if DRIVER_EXTRUDERS > 1
     #error DEPENDENCY ERROR: You must set DRIVER_EXTRUDERS = 1 for MKSE6 MULTI EXTRUDER
   #endif
-  #if HASNT(SERVOS)
+  #if !HAS_SERVOS
     #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for MKSE6 MULTI EXTRUDER
   #endif
   #if DISABLED(SINGLENOZZLE)
@@ -1919,7 +1919,7 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You have to set E_MIN_PIN to a valid pin if you enable NPR2
 #endif
 
-#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && HASNT(SERVOS)
+#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && !HAS_SERVOS
   #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for DONDOLO MULTI EXTRUDER
 #endif
 

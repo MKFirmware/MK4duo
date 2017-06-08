@@ -1168,27 +1168,27 @@ void Stepper::init() {
     #endif
   #endif
 
-  #if HAS(E0_ENABLE)
+  #if HAS_E0_ENABLE
     E0_ENABLE_INIT;
     if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E1_ENABLE)
+  #if HAS_E1_ENABLE
     E1_ENABLE_INIT;
     if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E2_ENABLE)
+  #if HAS_E2_ENABLE
     E2_ENABLE_INIT;
     if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E3_ENABLE)
+  #if HAS_E3_ENABLE
     E3_ENABLE_INIT;
     if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E4_ENABLE)
+  #if HAS_E4_ENABLE
     E4_ENABLE_INIT;
     if (!E_ENABLE_ON) E4_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E5_ENABLE)
+  #if HAS_E5_ENABLE
     E5_ENABLE_INIT;
     if (!E_ENABLE_ON) E5_ENABLE_WRITE(HIGH);
   #endif

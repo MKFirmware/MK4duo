@@ -431,10 +431,10 @@ void Planner::check_axes_activity() {
   #endif
 
   #if ENABLED(BARICUDA)
-    #if HAS(HEATER_1)
+    #if HAS_HEATER_1
       analogWrite(HEATER_1_PIN, tail_valve_pressure);
     #endif
-    #if HAS(HEATER_2)
+    #if HAS_HEATER_2
       analogWrite(HEATER_2_PIN, tail_e_to_p_pressure);
     #endif
   #endif
@@ -780,7 +780,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
     #if DISABLED(MKR4) && DISABLED(MKR6) && DISABLED(NPR2)
 
-      #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
+      #if EXTRUDERS > 0 && ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
         for (uint8_t i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
@@ -788,13 +788,13 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         switch(extruder) {
           case 0:
             enable_E0();
+            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
               if (extruder_duplication_enabled) {
                 enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
-            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if EXTRUDERS > 1
               if (g_uc_extruder_last_move[1] == 0) disable_E1();
               #if EXTRUDERS > 2

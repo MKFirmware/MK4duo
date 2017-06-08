@@ -112,7 +112,7 @@ enum EndstopEnum {
  * MK4duo sends messages if blocked or busy
  */
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  enum FirmwareState {
+  enum MK4duoBusyState {
     NOT_BUSY,           // Not in a handler
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)

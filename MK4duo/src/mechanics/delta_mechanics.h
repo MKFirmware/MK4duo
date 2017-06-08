@@ -144,7 +144,8 @@
 
       /**
        * line_to_destination
-       * Move the planner, not necessarily synced with current_position
+       * Move the planner to the position stored in the destination array, which is
+       * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
        */
       void line_to_destination(float fr_mm_s);
       void line_to_destination();
@@ -158,12 +159,14 @@
       void prepare_move_to_destination();
 
       /**
-       * Blocking movement and shorthand functions
+       *  Plan a move to (X, Y, Z) and set the current_position
+       *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to(const float logical[ABC], const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_x(const float &lx, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_z(const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s = 0.0);
 
       /**
        * sync_plan_position
@@ -201,7 +204,7 @@
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(AxisEnum axis);
+      void set_axis_is_at_home(const AxisEnum axis);
 
       bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
       bool position_is_reachable_raw_xy(const float &rx, const float &ry);
@@ -231,7 +234,7 @@
       /**
        * Home an individual linear axis
        */
-      void do_homing_move(AxisEnum axis, const float distance, float fr_mm_s=0.0);
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
       /**
        *  Home axis
@@ -246,7 +249,7 @@
       /**
        * Some planner shorthand inline functions
        */
-      float get_homing_bump_feedrate(AxisEnum axis);
+      float get_homing_bump_feedrate(const AxisEnum axis);
 
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         void NormaliseEndstopAdjustments();

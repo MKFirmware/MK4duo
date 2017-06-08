@@ -115,26 +115,26 @@ static constexpr Fastio_Param Fastio[111] = {
  */
 
 // Read a pin
-static FORCE_INLINE bool READ(const uint32_t pin) {
+static FORCE_INLINE bool READ(const uint8_t pin) {
   return (bool)(Fastio[pin].base_address -> PIO_PDSR & (MASK(Fastio[pin].shift_count)));
 }
 
-static FORCE_INLINE bool READ_VAR(const uint32_t pin) {
+static FORCE_INLINE bool READ_VAR(const uint8_t pin) {
   return g_APinDescription[pin].pPort->PIO_PDSR & g_APinDescription[pin].ulPin ? true : false;
 }
 
 // write to a pin
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
-static FORCE_INLINE void WRITE(const uint32_t pin, uint8_t flag) {
+static FORCE_INLINE void WRITE(const uint8_t pin, uint8_t flag) {
    flag ? Fastio[pin].base_address -> PIO_SODR = MASK(Fastio[pin].shift_count) : Fastio[pin].base_address -> PIO_CODR = MASK(Fastio[pin].shift_count);
 }
 
-static FORCE_INLINE void WRITE_VAR(const uint32_t pin, uint8_t flag) {
+static FORCE_INLINE void WRITE_VAR(const uint8_t pin, uint8_t flag) {
   flag ? g_APinDescription[pin].pPort->PIO_SODR = g_APinDescription[pin].ulPin : g_APinDescription[pin].pPort->PIO_CODR = g_APinDescription[pin].ulPin;
 }
 
 // toggle a pin
-static FORCE_INLINE void TOGGLE(const uint32_t pin) {
+static FORCE_INLINE void TOGGLE(const uint8_t pin) {
   WRITE(pin, !READ(pin));
 }
 
@@ -150,18 +150,18 @@ static FORCE_INLINE void TOGGLE(const uint32_t pin) {
 */
 
 // set pin as input
-static FORCE_INLINE void SET_INPUT(const uint32_t pin) {
+static FORCE_INLINE void SET_INPUT(const uint8_t pin) {
   pmc_enable_periph_clk(g_APinDescription[pin].ulPeripheralId);
   PIO_Configure(g_APinDescription[pin].pPort, PIO_INPUT, g_APinDescription[pin].ulPin, 0);
 }
 
 // set pin as output
-static FORCE_INLINE void _SET_OUTPUT(const uint32_t pin) {
+static FORCE_INLINE void _SET_OUTPUT(const uint8_t pin) {
   PIO_Configure(g_APinDescription[pin].pPort, PIO_OUTPUT_1, g_APinDescription[pin].ulPin, g_APinDescription[pin].ulPinConfiguration);
 }
 
 // Write doesn't work for pullups
-static FORCE_INLINE void PULLUP(const uint32_t pin) {
+static FORCE_INLINE void PULLUP(const uint8_t pin) {
   pinMode(pin, INPUT_PULLUP);
 }
 
@@ -177,19 +177,19 @@ static FORCE_INLINE void PULLUP(const uint32_t pin) {
 */
 
 // set pin as input with pullup wrapper
-static FORCE_INLINE void SET_INPUT_PULLUP(const uint32_t pin) {
+static FORCE_INLINE void SET_INPUT_PULLUP(const uint8_t pin) {
   SET_INPUT(pin);
   PULLUP(pin);
 }
 
 // Shorthand
-static FORCE_INLINE void OUT_WRITE(const uint32_t pin, uint8_t flag) {
+static FORCE_INLINE void OUT_WRITE(const uint8_t pin, uint8_t flag) {
   _SET_OUTPUT(pin);
   WRITE(pin, flag);
 }
 
 // set pin as output wrapper
-static FORCE_INLINE void SET_OUTPUT(const uint32_t pin) {
+static FORCE_INLINE void SET_OUTPUT(const uint8_t pin) {
   OUT_WRITE(pin, LOW);
 }
 
