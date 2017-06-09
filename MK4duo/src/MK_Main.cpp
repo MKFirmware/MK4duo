@@ -975,39 +975,6 @@ bool get_target_hotend_from_command(int code) {
   return false;
 }
 
-#if ENABLED(DUAL_X_CARRIAGE)
-
-  #define DXC_FULL_CONTROL_MODE 0
-  #define DXC_AUTO_PARK_MODE    1
-  #define DXC_DUPLICATION_MODE  2
-
-  static int dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
-
-  static float x_home_pos(int extruder) {
-    if (extruder == 0)
-      return LOGICAL_X_POSITION(Mechanics.base_home_pos[X_AXIS]);
-    else
-      // In dual carriage mode the extruder offset provides an override of the
-      // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
-      // This allow soft recalibration of the second extruder offset position without firmware reflash
-      // (through the M218 command).
-      return (hotend_offset[X_AXIS][1] > 0) ? hotend_offset[X_AXIS][1] : X2_HOME_POS;
-  }
-
-  static int x_home_dir(int extruder) {
-    return (extruder == 0) ? X_HOME_DIR : X2_HOME_DIR;
-  }
-
-  static float inactive_hotend_x_pos = X2_MAX_POS;  // used in mode 0 & 1
-  static bool active_hotend_parked = false;         // used in mode 1 & 2
-  static float raised_parked_position[NUM_AXIS];    // used in mode 1
-  static millis_t delayed_move_time = 0;            // used in mode 1
-  static float duplicate_hotend_x_offset = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
-  static int16_t duplicate_hotend_temp_offset = 0;  // used in mode 2
-  bool hotend_duplication_enabled = false;          // used in mode 2
-
-#endif // DUAL_X_CARRIAGE
-
 #if ENABLED(WORKSPACE_OFFSETS)
 
   /**
@@ -3466,7 +3433,7 @@ inline void gcode_G28(const bool always_home_all) {
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    hotend_duplication_enabled = false;
+    Mechanics.hotend_duplication_enabled = false;
   #endif
 
   setup_for_endstop_or_probe_move();
@@ -7022,9 +6989,10 @@ inline void gcode_M92() {
     if (parser.seen('S')) {
       const int16_t temp = parser.value_celsius();
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+        if (Mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + Mechanics.duplicate_hotend_temp_offset : 0, 1);
       #endif
 
       if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
@@ -7140,9 +7108,10 @@ inline void gcode_M105() {
     if (no_wait_for_cooling || parser.seen('R')) {
       const int16_t temp = parser.value_celsius();
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          thermalManager.setTargetHotend(temp ? temp + duplicate_hotend_temp_offset : 0, 1);
+        if (Mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + Mechanics.duplicate_hotend_temp_offset : 0, 1);
       #endif
 
       if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
@@ -9268,6 +9237,7 @@ inline void gcode_M532() {
 #endif // ADVANCED_PAUSE_FEATURE
 
 #if ENABLED(DUAL_X_CARRIAGE)
+
   /**
    * M605: Set dual x-carriage movement mode
    *
@@ -9282,28 +9252,33 @@ inline void gcode_M532() {
    */
   inline void gcode_M605() {
     stepper.synchronize();
-    if (parser.seen('S')) dual_x_carriage_mode = parser.value_byte();
-    switch(dual_x_carriage_mode) {
-      case DXC_DUPLICATION_MODE:
-        if (parser.seen('X')) duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - x_home_pos(0));
-        if (parser.seen('R')) duplicate_hotend_temp_offset = parser.value_celsius_diff();
-        SERIAL_M(MSG_HOTEND_OFFSET);
-        SERIAL_MV(" ", hotend_offset[X_AXIS][0]);
-        SERIAL_MV(",", hotend_offset[Y_AXIS][0]);
-        SERIAL_MV(" ", duplicate_hotend_x_offset);
-        SERIAL_EMV(",", hotend_offset[Y_AXIS][1]);
-        break;
+    if (parser.seen('S')) Mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
+    switch(Mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:
       case DXC_AUTO_PARK_MODE:
         break;
+      case DXC_DUPLICATION_MODE:
+        if (parser.seen('X')) Mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - Mechanics.x_home_pos(0));
+        if (parser.seen('R')) Mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
+        SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
+        SERIAL_C(' ');
+        SERIAL_V(hotend_offset[X_AXIS][0]);
+        SERIAL_C(',');
+        SERIAL_V(hotend_offset[Y_AXIS][0]);
+        SERIAL_C(' ');
+        SERIAL_V(Mechanics.duplicate_hotend_x_offset);
+        SERIAL_C(',');
+        SERIAL_EV(hotend_offset[Y_AXIS][1]);
+        break;
       default:
-        dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
+        Mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
         break;
     }
-    active_hotend_parked = false;
-    hotend_duplication_enabled = false;
-    delayed_move_time = 0;
+    Mechanics.active_hotend_parked = false;
+    Mechanics.hotend_duplication_enabled = false;
+    Mechanics.delayed_move_time = 0;
   }
+
 #endif // DUAL_X_CARRIAGE
 
 #if ENABLED(LASERBEAM)
@@ -9569,19 +9544,19 @@ inline void gcode_M532() {
       Mechanics.current_position[Z_AXIS] += Mechanics.delta_height - old_delta_height;
     }
 
-    if (parser.seen('D')) Mechanics.diagonal_rod = parser.value_linear_units();
-    if (parser.seen('R')) Mechanics.delta_radius = parser.value_linear_units();
-    if (parser.seen('S')) Mechanics.segments_per_second = parser.value_float();
-    if (parser.seen('A')) Mechanics.diagonal_rod_adj[A_AXIS] = parser.value_linear_units();
-    if (parser.seen('B')) Mechanics.diagonal_rod_adj[B_AXIS] = parser.value_linear_units();
-    if (parser.seen('C')) Mechanics.diagonal_rod_adj[C_AXIS] = parser.value_linear_units();
-    if (parser.seen('I')) Mechanics.tower_radius_adj[A_AXIS] = parser.value_linear_units();
-    if (parser.seen('J')) Mechanics.tower_radius_adj[B_AXIS] = parser.value_linear_units();
-    if (parser.seen('K')) Mechanics.tower_radius_adj[C_AXIS] = parser.value_linear_units();
-    if (parser.seen('U')) Mechanics.tower_pos_adj[A_AXIS] = parser.value_linear_units();
-    if (parser.seen('V')) Mechanics.tower_pos_adj[B_AXIS] = parser.value_linear_units();
-    if (parser.seen('W')) Mechanics.tower_pos_adj[C_AXIS] = parser.value_linear_units();
-    if (parser.seen('O')) Mechanics.print_radius = parser.value_linear_units();
+    if (parser.seen('D')) Mechanics.diagonal_rod              = parser.value_linear_units();
+    if (parser.seen('R')) Mechanics.delta_radius              = parser.value_linear_units();
+    if (parser.seen('S')) Mechanics.segments_per_second       = parser.value_float();
+    if (parser.seen('A')) Mechanics.diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('B')) Mechanics.diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('C')) Mechanics.diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('I')) Mechanics.tower_radius_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('J')) Mechanics.tower_radius_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('K')) Mechanics.tower_radius_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('U')) Mechanics.tower_pos_adj[A_AXIS]     = parser.value_linear_units();
+    if (parser.seen('V')) Mechanics.tower_pos_adj[B_AXIS]     = parser.value_linear_units();
+    if (parser.seen('W')) Mechanics.tower_pos_adj[C_AXIS]     = parser.value_linear_units();
+    if (parser.seen('O')) Mechanics.print_radius              = parser.value_linear_units();
 
     Mechanics.Recalc();
 
@@ -9637,25 +9612,27 @@ inline void gcode_M532() {
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", zprobe_zoffset, 3);
       #endif
 
-      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ", Mechanics.diagonal_rod_adj[0], 3);
-      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ", Mechanics.diagonal_rod_adj[1], 3);
-      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ", Mechanics.diagonal_rod_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ", Mechanics.tower_radius_adj[0], 3);
-      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ", Mechanics.tower_radius_adj[1], 3);
-      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ", Mechanics.tower_radius_adj[2], 3);
-      SERIAL_LMV(CFG, "U (Tower A Position Correction): ", Mechanics.tower_pos_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Position Correction): ", Mechanics.tower_pos_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Position Correction): ", Mechanics.tower_pos_adj[2], 3);
-      SERIAL_LMV(CFG, "R (Delta Radius): ", Mechanics.delta_radius, 4);
-      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ", Mechanics.diagonal_rod, 4);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ", Mechanics.segments_per_second);
-      SERIAL_LMV(CFG, "O (Delta Print Radius): ", Mechanics.print_radius);
-      SERIAL_LMV(CFG, "H (Z-Height): ", Mechanics.delta_height, 3);
+      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[0], 3);
+      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[1], 3);
+      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        Mechanics.tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        Mechanics.tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        Mechanics.tower_radius_adj[2], 3);
+      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      Mechanics.tower_pos_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      Mechanics.tower_pos_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      Mechanics.tower_pos_adj[2], 3);
+      SERIAL_LMV(CFG, "R (Delta Radius): ",                     Mechanics.delta_radius, 4);
+      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              Mechanics.diagonal_rod, 4);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ",        Mechanics.segments_per_second);
+      SERIAL_LMV(CFG, "O (Delta Print Radius): ",               Mechanics.print_radius);
+      SERIAL_LMV(CFG, "H (Z-Height): ",                         Mechanics.delta_height, 3);
     }
   }
+
 #endif // MECH DELTA
 
 #if ENABLED(LIN_ADVANCE)
+
   /**
    * M900: Set and/or Get advance K factor and WH/D ratio
    *
@@ -9685,6 +9662,7 @@ inline void gcode_M532() {
     else SERIAL_M("Auto");
     SERIAL_E;
   }
+
 #endif // LIN_ADVANCE
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -9911,6 +9889,7 @@ inline void gcode_M907() {
 #endif // HAS_DIGIPOTSS
 
 #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+
   /**
    * M995: Nextion Origin
    */
@@ -9930,9 +9909,11 @@ inline void gcode_M907() {
   inline void gcode_M996() {
     if (parser.seen('S')) gfx_scale(parser.value_float());
   }
+
 #endif
 
 #if ENABLED(NPR2)
+
   /**
    * M997: Cxx Move Carter xx gradi
    */
@@ -9945,6 +9926,7 @@ inline void gcode_M907() {
       if (csteps > 0) stepper.colorstep(csteps, true);
     }
   }
+
 #endif
 
 /**
@@ -10029,8 +10011,37 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 }
 
-#if ENABLED(MKSE6)
-  inline void move_extruder_servo(uint8_t e) {
+
+#if ENABLED(NPR2)
+
+  void MK_multi_tool_change(const uint8_t &e) {
+
+    if (e != old_color) {
+      long csteps;
+      stepper.synchronize(); // Finish all movement
+
+      if (old_color == 99)
+        csteps = (color_position[e]) * color_step_moltiplicator;
+      else
+        csteps = (color_position[e] - color_position[old_color]) * color_step_moltiplicator;
+
+      if (csteps < 0) stepper.colorstep(-csteps, false);
+      if (csteps > 0) stepper.colorstep(csteps, true);
+
+      // Set the new active extruder
+      previous_extruder = active_extruder;
+      old_color = active_extruder = e;
+      active_driver = 0;
+      SERIAL_EMV(MSG_ACTIVE_COLOR, (int)active_extruder);
+    }
+  }
+
+#elif ENABLED(MKSE6)
+
+  void MK_multi_tool_change(const uint8_t e) {
+
+    stepper.synchronize(); // Finish all movement
+
     const int angles[EXTRUDERS] = ARRAY_BY_EXTRUDERS_N (
       MKSE6_SERVOPOS_E0, MKSE6_SERVOPOS_E1,
       MKSE6_SERVOPOS_E2, MKSE6_SERVOPOS_E3,
@@ -10041,10 +10052,197 @@ inline void gcode_T(uint8_t tool_id) {
     #if (MKSE6_SERVO_DELAY > 0)
       safe_delay(MKSE6_SERVO_DELAY);
     #endif
+
+    // Set the new active extruder
+    previous_extruder = active_extruder;
+    active_extruder = e;
+    active_driver = 0;
   }
+
+#elif ENABLED(MKR4)
+
+  void MK_multi_tool_change(const uint8_t &e) {
+
+    stepper.synchronize(); // Finish all movement
+    stepper.disable_e_steppers();
+
+    #if (EXTRUDERS == 4) && HAS_E0E2 && HAS_E1E3 && (DRIVER_EXTRUDERS == 2)
+
+      switch(e) {
+        case 0:
+          WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+          WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+          WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+          active_driver = 1;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E1();
+          break;
+        case 2:
+          WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
+          WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E2();
+          break;
+        case 3:
+          WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+          WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
+          active_driver = 1;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E3();
+          break;
+      }
+
+    #elif (EXTRUDERS == 3) && HAS_E0E2 && (DRIVER_EXTRUDERS == 2)
+
+      switch(e) {
+        case 0:
+          WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+          active_driver = 1;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E1();
+          break;
+        case 2:
+          WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+      }
+
+    #elif (EXTRUDERS == 2) && HAS_E0E1 && (DRIVER_EXTRUDERS == 1)
+
+      switch(e) {
+        case 0:
+          WRITE_RELE(E0E1_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+      }
+
+    #endif // E0E1_CHOICE_PIN E0E2_CHOICE_PIN E1E3_CHOICE_PIN
+
+    // Set the new active extruder
+    previous_extruder = active_extruder;
+    active_extruder = e;
+  }
+
+#elif ENABLED(MKR6) || ENABLED(MKR12)
+
+  void MK_multi_tool_change(const uint8_t &e) {
+
+    stepper.synchronize(); // Finish all movement
+    stepper.disable_e_steppers();
+
+    #if (EXTRUDERS == 2) && HAS_EX1 && (DRIVER_EXTRUDERS == 1)
+
+      switch(e) {
+        case 0:
+          WRITE_RELE(EX1_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(EX1_CHOICE_PIN, HIGH);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+      }
+
+    #elif (EXTRUDERS == 3) && HAS_EX1 && HAS_EX2 && (DRIVER_EXTRUDERS == 1)
+
+      switch(e) {
+        case 0:
+          WRITE_RELE(EX1_CHOICE_PIN, LOW);
+          WRITE_RELE(EX2_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(EX1_CHOICE_PIN, HIGH);
+          WRITE_RELE(EX2_CHOICE_PIN, LOW);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 2:
+          WRITE_RELE(EX1_CHOICE_PIN, HIGH);
+          WRITE_RELE(EX2_CHOICE_PIN, HIGH);
+          active_driver = 0;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+      }
+
+    #elif (EXTRUDERS > 3) && HAS_EX1 && HAS_EX2
+
+      uint8_t multiply = e, driver;
+
+      for (driver = 0; driver < DRIVER_EXTRUDERS; driver++) {
+        if (multiply < 3) break;
+        multiply -= 3;
+      }
+
+      switch(multiply) {
+        case 0:
+          WRITE_RELE(EX1_CHOICE_PIN, LOW);
+          WRITE_RELE(EX2_CHOICE_PIN, LOW);
+          active_driver = driver;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 1:
+          WRITE_RELE(EX1_CHOICE_PIN, HIGH);
+          WRITE_RELE(EX2_CHOICE_PIN, LOW);
+          active_driver = driver;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        case 2:
+          WRITE_RELE(EX1_CHOICE_PIN, HIGH);
+          WRITE_RELE(EX2_CHOICE_PIN, HIGH);
+          active_driver = driver;
+          safe_delay(500); // 500 microseconds delay for relay
+          enable_E0();
+          break;
+        default:
+          SERIAL_LM(ER, "More Driver Extruders");
+          break;
+      }
+
+    #endif
+
+    // Set the new active extruder
+    previous_extruder = active_extruder;
+    active_extruder = e;
+  }
+
 #endif
 
 #if HAS_DONDOLO
+
   inline void move_extruder_servo(uint8_t e) {
     const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
     MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
@@ -10053,6 +10251,7 @@ inline void gcode_T(uint8_t tool_id) {
       safe_delay(DONDOLO_SERVO_DELAY);
     #endif
   }
+
 #endif
 
 inline void invalid_extruder_error(const uint8_t &e) {
@@ -10064,13 +10263,18 @@ inline void invalid_extruder_error(const uint8_t &e) {
 
   void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
-    #if HOTENDS <= 1
+    #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+      // T0-T15: Switch virtual tool by changing the mix
+      if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
+        return invalid_extruder_error(tmp_extruder);
+    #else
+      if (tmp_extruder >= EXTRUDERS)
+        return invalid_extruder_error(tmp_extruder);
+    #endif
+
+    #if HOTENDS == 1
 
       #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-
-        // T0-T15: Switch virtual tool by changing the mix
-        if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
-          return invalid_extruder_error(tmp_extruder);
 
         // T0-Tnnn: Switch virtual tool by changing the mix
         for (uint8_t j = 0; j < MIXING_STEPPERS; j++)
@@ -10078,271 +10282,25 @@ inline void invalid_extruder_error(const uint8_t &e) {
 
         SERIAL_EMV(MSG_ACTIVE_COLOR, (int)tmp_extruder);
 
-      #elif ENABLED(MKSE6)
-
-        if (tmp_extruder >= EXTRUDERS)
-          return invalid_extruder_error(tmp_extruder);
-
-        stepper.synchronize(); // Finish all movement
-
-        move_extruder_servo(tmp_extruder);
-
-        // Set the new active extruder
-        previous_extruder = active_extruder;
-        active_extruder = tmp_extruder;
-        active_driver = 0;
+      #elif HAS_MKMULTI_TOOLS
 
         UNUSED(fr_mm_s);
         UNUSED(no_move);
 
-      #elif ENABLED(NPR2)
-
-        if (tmp_extruder >= EXTRUDERS)
-          return invalid_extruder_error(tmp_extruder);
-
-        if (tmp_extruder != old_color) {
-          long csteps;
-          stepper.synchronize(); // Finish all movement
-
-          if (old_color == 99)
-            csteps = (color_position[tmp_extruder]) * color_step_moltiplicator;
-          else
-            csteps = (color_position[tmp_extruder] - color_position[old_color]) * color_step_moltiplicator;
-
-          if (csteps < 0) stepper.colorstep(-csteps, false);
-          if (csteps > 0) stepper.colorstep(csteps, true);
-
-          // Set the new active extruder
-          previous_extruder = active_extruder;
-          old_color = active_extruder = tmp_extruder;
-          active_driver = 0;
-          SERIAL_EMV(MSG_ACTIVE_COLOR, (int)active_extruder);
-
-          UNUSED(fr_mm_s);
-          UNUSED(no_move);
-        }
-
-      #elif ENABLED(MKR4)
-
-        if (tmp_extruder >= EXTRUDERS)
-          return invalid_extruder_error(tmp_extruder);
-
-        #if (EXTRUDERS == 4) && HAS(E0E2) && HAS(E1E3) && (DRIVER_EXTRUDERS == 2)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-              WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-              WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E1();
-              break;
-            case 2:
-              WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
-              WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E2();
-              break;
-            case 3:
-              WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-              WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E3();
-              break;
-          }
-
-        #elif (EXTRUDERS == 3) && HAS(E0E2) && (DRIVER_EXTRUDERS == 2)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E1();
-              break;
-            case 2:
-              WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-          }
-
-        #elif (EXTRUDERS == 2) && HAS(E0E1) && (DRIVER_EXTRUDERS == 1)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(E0E1_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-          }
-
-        #endif // E0E1_CHOICE_PIN E0E2_CHOICE_PIN E1E3_CHOICE_PIN
-
-        // Set the new active extruder
-        previous_extruder = active_extruder;
-        active_extruder = tmp_extruder;
-
-        UNUSED(fr_mm_s);
-        UNUSED(no_move);
-
-      #elif ENABLED(MKR6)
-
-        if (tmp_extruder >= EXTRUDERS)
-          return invalid_extruder_error(tmp_extruder);
-
-        #if (EXTRUDERS == 2) && HAS(EX1) && (DRIVER_EXTRUDERS == 1)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(EX1_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-          }
-
-        #elif (EXTRUDERS == 3) && HAS(EX1) && HAS(EX2) && (DRIVER_EXTRUDERS == 1)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(EX1_CHOICE_PIN, LOW);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 2:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-          }
-
-        #elif (EXTRUDERS > 3) && HAS(EX1) && HAS(EX2) && (DRIVER_EXTRUDERS == 2)
-
-          stepper.synchronize(); // Finish all movement
-          stepper.disable_e_steppers();
-          switch(tmp_extruder) {
-            case 0:
-              WRITE_RELE(EX1_CHOICE_PIN, LOW);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 1:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 2:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-              active_driver = 0;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E0();
-              break;
-            case 3:
-              WRITE_RELE(EX1_CHOICE_PIN, LOW);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E1();
-              break;
-            case 4:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, LOW);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E1();
-              break;
-            case 5:
-              WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-              WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-              active_driver = 1;
-              safe_delay(500); // 500 microseconds delay for relay
-              enable_E1();
-              break;
-          }
-
-        #endif
-
-        // Set the new active extruder
-        previous_extruder = active_extruder;
-        active_extruder = tmp_extruder;
-        
-        UNUSED(fr_mm_s);
-        UNUSED(no_move);
+        MK_multi_tool_change(tmp_extruder);
 
       #else
 
-        if (tmp_extruder >= EXTRUDERS)
-          return invalid_extruder_error(tmp_extruder);
+        UNUSED(fr_mm_s);
+        UNUSED(no_move);
 
         // Set the new active extruder
         previous_extruder = active_extruder;
         active_driver = active_extruder = tmp_extruder;
 
-        UNUSED(fr_mm_s);
-        UNUSED(no_move);
-
       #endif
 
     #else // HOTENDS > 1
-
-      if (tmp_extruder >= EXTRUDERS)
-        return invalid_extruder_error(tmp_extruder);
 
       const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : Mechanics.feedrate_mm_s;
 
@@ -10362,7 +10320,7 @@ inline void invalid_extruder_error(const uint8_t &e) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
               SERIAL_M("Dual X Carriage Mode ");
-              switch (dual_x_carriage_mode) {
+              switch (Mechanics.dual_x_carriage_mode) {
                 case DXC_DUPLICATION_MODE: SERIAL_EM("DXC_DUPLICATION_MODE"); break;
                 case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
                 case DXC_FULL_CONTROL_MODE: SERIAL_EM("DXC_FULL_CONTROL_MODE"); break;
@@ -10370,10 +10328,10 @@ inline void invalid_extruder_error(const uint8_t &e) {
             }
           #endif
 
-          const float xhome = x_home_pos(active_extruder);
-          if (dual_x_carriage_mode == DXC_AUTO_PARK_MODE
+          const float xhome = Mechanics.x_home_pos(active_extruder);
+          if (Mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
               && IsRunning()
-              && (delayed_move_time || Mechanics.current_position[X_AXIS] != xhome)
+              && (Mechanics.delayed_move_time || Mechanics.current_position[X_AXIS] != xhome)
           ) {
             float raised_z = Mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
             #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
@@ -10415,40 +10373,40 @@ inline void invalid_extruder_error(const uint8_t &e) {
           #endif
 
           // Only when auto-parking are carriages safe to move
-          if (dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
+          if (Mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
 
-          switch (dual_x_carriage_mode) {
+          switch (Mechanics.dual_x_carriage_mode) {
             case DXC_FULL_CONTROL_MODE:
               // New current position is the position of the activated hotend
-              Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_hotend_x_pos);
+              Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(Mechanics.inactive_hotend_x_pos);
               // Save the inactive hotend's position (from the old Mechanics.current_position)
-              inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
+              Mechanics.inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
               break;
             case DXC_AUTO_PARK_MODE:
               // record raised toolhead position for use by unpark
-              COPY_ARRAY(raised_parked_position, Mechanics.current_position);
-              raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
+              COPY_ARRAY(Mechanics.raised_parked_position, Mechanics.current_position);
+              Mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
               #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-                NOMORE(raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
+                NOMORE(Mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
               #endif
-              active_hotend_parked = true;
-              delayed_move_time = 0;
+              Mechanics.active_hotend_parked = true;
+              Mechanics.delayed_move_time = 0;
               break;
             case DXC_DUPLICATION_MODE:
               // If the new hotend is the left one, set it "parked"
               // This triggers the second hotend to move into the duplication position
-              active_hotend_parked = (active_extruder == 0);
+              Mechanics.active_hotend_parked = (active_extruder == 0);
 
-              if (active_hotend_parked)
-                Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(inactive_hotend_x_pos);
+              if (Mechanics.active_hotend_parked)
+                Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(Mechanics.inactive_hotend_x_pos);
               else
-                Mechanics.current_position[X_AXIS] = Mechanics.destination[X_AXIS] + duplicate_hotend_x_offset;
-              inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
-              hotend_duplication_enabled = false;
+                Mechanics.current_position[X_AXIS] = Mechanics.destination[X_AXIS] + Mechanics.duplicate_hotend_x_offset;
+              Mechanics.inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
+              Mechanics.hotend_duplication_enabled = false;
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
                   SERIAL_EMV("Set inactive_extruder_x_pos=", inactive_extruder_x_pos);
-                  SERIAL_EM("Clear hotend_duplication_enabled");
+                  SERIAL_EM("Clear Mechanics.hotend_duplication_enabled");
                 }
               #endif
               break;
@@ -10456,7 +10414,7 @@ inline void invalid_extruder_error(const uint8_t &e) {
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
-              SERIAL_EMV("Active hotend parked: ", active_hotend_parked ? "yes" : "no");
+              SERIAL_EMV("Active hotend parked: ", Mechanics.active_hotend_parked ? "yes" : "no");
               DEBUG_POS("New hotend (parked)", Mechanics.current_position);
             }
           #endif
@@ -12244,86 +12202,6 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 
 #endif // AUTO_BED_LEVELING_BILINEAR
 
-#if ENABLED(DUAL_X_CARRIAGE)
-
-  /**
-   * Prepare a linear move in a dual X axis setup
-   */
-  inline bool prepare_move_to_destination_dualx() {
-    if (active_hotend_parked) {
-      switch (dual_x_carriage_mode) {
-        case DXC_FULL_CONTROL_MODE:
-          break;
-        case DXC_AUTO_PARK_MODE:
-          if (Mechanics.current_position[E_AXIS] == Mechanics.destination[E_AXIS]) {
-            // This is a travel move (with no extrusion)
-            // Skip it, but keep track of the current position
-            // (so it can be used as the start of the next non-travel move)
-            if (delayed_move_time != 0xFFFFFFFFUL) {
-              Mechanics.set_current_to_destination();
-              NOLESS(raised_parked_position[Z_AXIS], Mechanics.destination[Z_AXIS]);
-              delayed_move_time = millis();
-              return true;
-            }
-          }
-          // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
-          for (uint8_t i = 0; i < 3; i++)
-            planner.buffer_line(
-              i == 0 ? raised_parked_position[X_AXIS] : Mechanics.current_position[X_AXIS],
-              i == 0 ? raised_parked_position[Y_AXIS] : Mechanics.current_position[Y_AXIS],
-              i == 2 ? Mechanics.current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
-              Mechanics.current_position[E_AXIS],
-              i == 1 ? PLANNER_XY_FEEDRATE() : planner.max_feedrate_mm_s[Z_AXIS],
-              active_extruder,
-              active_driver
-            );
-          delayed_move_time = 0;
-          active_extruder_parked = false;
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) SERIAL_EM("Clear active_extruder_parked");
-          #endif
-          break;
-        case DXC_DUPLICATION_MODE:
-          if (active_extruder == 0) {
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) {
-                SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_extruder_x_pos));
-                SERIAL_EMV(" ... Line to X", Mechanics.current_position[X_AXIS] + duplicate_extruder_x_offset);
-              }
-            #endif
-            // move duplicate extruder into correct duplication position.
-            planner.set_position_mm(
-              LOGICAL_X_POSITION(inactive_extruder_x_pos),
-              Mechanics.current_position[Y_AXIS],
-              Mechanics.current_position[Z_AXIS],
-              Mechanics.current_position[E_AXIS]
-            );
-            planner.buffer_line(
-              Mechanics.current_position[X_AXIS] + duplicate_extruder_x_offset,
-              Mechanics.current_position[Y_AXIS], Mechanics.current_position[Z_AXIS], Mechanics.current_position[E_AXIS],
-              planner.max_feedrate_mm_s[X_AXIS], 1, active_driver
-            );
-            Mechanics.sync_plan_position();
-            stepper.synchronize();
-            hotend_duplication_enabled = true;
-            active_extruder_parked = false;
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) SERIAL_EM("Set hotend_duplication_enabled\nClear active_extruder_parked");
-            #endif
-          }
-          else {
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) SERIAL_EM("Active extruder not 0");
-            #endif
-          }
-          break;
-      }
-    }
-    return false;
-  }
-
-#endif // DUAL_X_CARRIAGE
-
 /**
  * Report current position to host
  */
@@ -12364,15 +12242,20 @@ void report_current_position_detail() {
   const float raw[XYZ] = { RAW_X_POSITION(Mechanics.current_position[X_AXIS]), RAW_Y_POSITION(Mechanics.current_position[Y_AXIS]), RAW_Z_POSITION(Mechanics.current_position[Z_AXIS]) };
   report_xyz(raw);
 
-  SERIAL_M("Leveled:");
   float leveled[XYZ] = { Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.current_position[Z_AXIS] };
-  planner.apply_leveling(leveled);
-  report_xyz(leveled);
 
-  SERIAL_M("UnLevel:");
-  float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
-  planner.unapply_leveling(unleveled);
-  report_xyz(unleveled);
+  #if HAS_LEVELING
+
+    SERIAL_M("Leveled:");
+    planner.apply_leveling(leveled);
+    report_xyz(leveled);
+
+    SERIAL_M("UnLevel:");
+    float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
+    planner.unapply_leveling(unleveled);
+    report_xyz(unleveled);
+
+  #endif
 
   #if IS_KINEMATIC
     #if IS_SCARA
@@ -12413,6 +12296,7 @@ void report_current_position_detail() {
 }
 
 #if ENABLED(ARC_SUPPORT)
+
   /**
    * Plan an arc in 2 dimensions
    *
@@ -12544,6 +12428,7 @@ void report_current_position_detail() {
     // in any intermediate location.
     Mechanics.set_current_to_destination();
   }
+
 #endif
 
 #if HAS_CONTROLLERFAN
@@ -13018,9 +12903,9 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (delayed_move_time && ELAPSED(ms, delayed_move_time + 1000UL) && IsRunning()) {
+    if (Mechanics.delayed_move_time && ELAPSED(ms, Mechanics.delayed_move_time + 1000UL) && IsRunning()) {
       // travel moves have been received so enact them
-      delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
+      Mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
       Mechanics.set_destination_to_current();
       Mechanics.prepare_move_to_destination();
     }

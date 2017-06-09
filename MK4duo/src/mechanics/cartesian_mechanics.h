@@ -111,6 +111,17 @@
 
       const signed char home_dir[XYZ]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
+      #if ENABLED(DUAL_X_CARRIAGE)
+        DualXMode dual_x_carriage_mode          = DEFAULT_DUAL_X_CARRIAGE_MODE;
+        float     inactive_hotend_x_pos         = X2_MAX_POS,                   // used in mode 0 & 1
+                  raised_parked_position[NUM_AXIS],                             // used in mode 1
+                  duplicate_hotend_x_offset     = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
+        int16_t   duplicate_hotend_temp_offset  = 0;                            // used in mode 2
+        millis_t  delayed_move_time             = 0;                            // used in mode 1
+        bool      active_hotend_parked          = false,                        // used in mode 1 & 2
+                  hotend_duplication_enabled    = false;                        // used in mode 2
+      #endif
+
     public: /** Public Function */
 
       /**
@@ -181,6 +192,10 @@
       bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
       bool position_is_reachable_xy(const float &lx, const float &ly);
 
+      #if ENABLED(DUAL_X_CARRIAGE)
+        float x_home_pos(const int extruder);
+      #endif
+
       #if ENABLED(HYSTERESIS)
         void set_hysteresis_axis(uint8_t axis, float mm);
         void report_hysteresis();
@@ -249,6 +264,14 @@
        *  Home axis
        */
       void homeaxis(const AxisEnum axis);
+
+      /**
+       * Prepare a linear move in a dual X axis setup
+       */
+      #if ENABLED(DUAL_X_CARRIAGE)
+        bool  prepare_move_to_destination_dualx();
+        int   x_home_dir(const int extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
+      #endif
 
       #if ENABLED(QUICK_HOME)
         void quick_home_xy();

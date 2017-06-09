@@ -1864,12 +1864,30 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if ENABLED(MKR4) && ENABLED(MKR6)
-  #error DEPENDENCY ERROR: You must set only one MKR system
-#endif
+/**
+ * Allow only multy tools option to be defined
+ */
+static_assert(1 >= 0
+  #if ENABLED(NPR2)
+    + 1
+  #endif
+  #if ENABLED(MKR4)
+    + 1
+  #endif
+  #if ENABLED(MKR6)
+    + 1
+  #endif
+  #if ENABLED(MKR12)
+    + 1
+  #endif
+  #if ENABLED(MKSE6)
+    + 1
+  #endif
+  , "Please enable only one Multy tools function: NPR2, MKR4, MKR6, MKR12 or MKSE6."
+);
 
 #if ENABLED(MKR4)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
     #error DEPENDENCY ERROR: You must set E0E1_CHOICE_PIN to a valid pin if you enable MKR4 with 2 extruder and 1 driver
   #elif (EXTRUDERS > 2) && (DRIVER_EXTRUDERS == 1)
     #error DEPENDENCY ERROR: For 3 or more extruder you must set 2 DRIVER_EXTRUDERS for MKR4 system
@@ -1881,9 +1899,11 @@ static_assert(1 >= 0
     #error DEPENDENCY ERROR: You must set E0E2_CHOICE_PIN and E1E3_CHOICE_PIN to a valid pin if you enable MKR4 with 4 extruder and 2 driver
   #elif (EXTRUDERS > 4)
     #error DEPENDENCY ERROR: MKR4 support only max 4 extruder
-  #endif 
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR4 MULTI EXTRUDER
+  #endif
 #elif ENABLED(MKR6)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
     #error DEPENDENCY ERROR: You must to set EX1_CHOICE_PIN to a valid pin if you enable MKR6 with 2 extruder and 1 driver
   #elif (EXTRUDERS == 3) && (DRIVER_EXTRUDERS == 1) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 3 extruder and 1 driver
@@ -1897,10 +1917,40 @@ static_assert(1 >= 0
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 6 extruder and 2 driver
   #elif (EXTRUDERS > 6)
     #error DEPENDENCY ERROR: MKR6 support only max 6 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR6 MULTI EXTRUDER
   #endif
-#endif
-
-#if ENABLED(MKSE6)
+#elif ENABLED(MKR12)
+  #if   (EXTRUDERS >= 4) && (DRIVER_EXTRUDERS == 1)
+    #error DEPENDENCY ERROR: For 4 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 4) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 4 extruder and 2 driver
+  #elif (EXTRUDERS == 5) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 5 extruder and 2 driver
+  #elif (EXTRUDERS == 6) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 6 extruder and 2 driver
+  #elif (EXTRUDERS >= 7) && (DRIVER_EXTRUDERS == 2)
+    #error DEPENDENCY ERROR: For 7 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 7) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 7 extruder and 3 driver
+  #elif (EXTRUDERS == 8) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 8 extruder and 3 driver
+  #elif (EXTRUDERS == 9) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 9 extruder and 3 driver
+  #elif (EXTRUDERS >= 10) && (DRIVER_EXTRUDERS == 3)
+    #error DEPENDENCY ERROR: For 10 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 10) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 10 extruder and 4 driver
+  #elif (EXTRUDERS == 11) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 11 extruder and 4 driver
+  #elif (EXTRUDERS == 12) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 12 extruder and 4 driver
+  #elif (EXTRUDERS > 12)
+    #error DEPENDENCY ERROR: MKR12 support only max 12 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR12 MULTI EXTRUDER
+  #endif
+#elif ENABLED(MKSE6)
   #if EXTRUDERS < 2
     #error DEPENDENCY ERROR: You must set EXTRUDERS > 1 for MKSE6 MULTI EXTRUDER
   #endif

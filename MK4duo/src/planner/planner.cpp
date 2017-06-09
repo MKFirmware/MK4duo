@@ -778,7 +778,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Enable extruder(s)
   if (esteps) {
 
-    #if DISABLED(MKR4) && DISABLED(MKR6) && DISABLED(NPR2)
+    #if !HAS_MKMULTI_TOOLS
 
       #if EXTRUDERS > 0 && ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
@@ -901,12 +901,35 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         case 1:
         case 2:
           enable_E0();
-        break;
+          break;
         case 3:
         case 4:
         case 5:
           enable_E1();
-        break;
+          break;
+      }
+    #elif ENABLED(MKR12)
+      switch(extruder) {
+        case 0:
+        case 1:
+        case 2:
+          enable_E0();
+          break;
+        case 3:
+        case 4:
+        case 5:
+          enable_E1();
+          break;
+        case 6:
+        case 7:
+        case 8:
+          enable_E2();
+          break;
+        case 9:
+        case 10:
+        case 11:
+          enable_E3();
+          break;
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_E0();
