@@ -679,7 +679,6 @@ static uint16_t TCChanFreq[numTcChannels] = {0};
 static inline void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
 }
-
 static inline void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
 }
@@ -688,14 +687,14 @@ static inline void TC_WriteCCR(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CCR = v;
 }
 
-static inline uint32_t TC_read_ra(Tc *p_tc, uint32_t ul_channel) {
-  return p_tc->TC_CHANNEL[ul_channel].TC_RA;
+static inline uint32_t TC_read_ra(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RA;
 }
-static inline uint32_t TC_read_rb(Tc *p_tc, uint32_t ul_channel) {
-  return p_tc->TC_CHANNEL[ul_channel].TC_RB;
+static inline uint32_t TC_read_rb(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RB;
 }
-static inline uint32_t TC_read_rc(Tc *p_tc, uint32_t ul_channel) {
-  return p_tc->TC_CHANNEL[ul_channel].TC_RC;
+static inline uint32_t TC_read_rc(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RC;
 }
 
 // AnalogWriteTc to a TC pin

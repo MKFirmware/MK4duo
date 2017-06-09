@@ -1,6 +1,8 @@
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor
 * Add M114 D for Detail position, leveled, unlevel, stepper
+* Add MKR12 system for 12 extruder with 16 relé and 4 driver
+* Support to 12 Extruder
 * Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
 
 ### Version 4.3.21 dev

@@ -1194,20 +1194,20 @@ void Stepper::init() {
   #endif
 
   #if ENABLED(MKR4) // MKR4 System
-    #if HAS(E0E1)
+    #if HAS_E0E1
       OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E0E2)
+    #if HAS_E0E2
       OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E1E3)
+    #if HAS_E1E3
       OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
     #endif
-  #elif ENABLED(MKR6) // MKR6 System
-    #if HAS(EX1)
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
       OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(EX2)
+    #if HAS_EX2
       OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
     #endif
   #endif

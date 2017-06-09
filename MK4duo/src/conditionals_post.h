@@ -334,7 +334,10 @@
   // Multi Mode
   #define HAS_MULTI_MODE    (ENABLED(LASERBEAM) || ENABLED(CNCROUTER) || ENABLED(MILLING) || ENABLED(PICK_AND_PLACE) || ENABLED(SOLDER) || ENABLED(PLOTTER))
 
-  // MKR4 or NKR6
+  // MK Multi tool system
+  #define HAS_MKMULTI_TOOLS (ENABLED(NPR2) || ENABLED(MKSE6) || ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12))
+
+  // MKR4 or MKR6 or MKR12
   #define HAS_E0E1          (PIN_EXISTS(E0E1_CHOICE))
   #define HAS_E0E2          (PIN_EXISTS(E0E2_CHOICE))
   #define HAS_E1E3          (PIN_EXISTS(E1E3_CHOICE))
@@ -827,7 +830,7 @@
     #endif
   #endif
 
-  #if ENABLED(MKR4) || ENABLED(MKR6)
+  #if ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12)
     #if ENABLED(INVERTED_RELE_PINS)
       #define WRITE_RELE(pin, value) WRITE(pin, !value)
       #define OUT_WRITE_RELE(pin, value) OUT_WRITE(pin, !value)

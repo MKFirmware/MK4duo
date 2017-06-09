@@ -33,10 +33,6 @@ void idle(
 
 void manage_inactivity(bool ignore_stepper_queue = false);
 
-#if ENABLED(DUAL_X_CARRIAGE)
-  extern bool hotend_duplication_enabled;
-#endif
-
 void FlushSerialRequestResend();
 void ok_to_send();
 
