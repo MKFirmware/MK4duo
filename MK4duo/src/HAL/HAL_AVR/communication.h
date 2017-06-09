@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #define PAUSE           "//action:pause"      // command for host that support action
 #define RESUME          "//action:resume"     // command for host that support action
 #define DISCONNECT      "//action:disconnect" // command for host that support action
+#define REQUEST_PAUSE   "RequestPause:"       // command for host that support action
 
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 #define SERIAL_WRITE(v)                     (MKSERIAL.write(v))

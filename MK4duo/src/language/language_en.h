@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 #define MSG_LEVEL_BED_WAITING               _UxGT("Click to Begin")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Next Point")
 #define MSG_LEVEL_BED_DONE                  _UxGT("Leveling Done!")
+#define MSG_Z_FADE_HEIGHT                   _UxGT("Fade Height")
 #define MSG_LEVEL_BED_CANCEL                _UxGT("Cancel")
 #define MSG_SET_HOME_OFFSETS                _UxGT("Set home offsets")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offsets applied")
@@ -71,14 +72,15 @@
 #define MSG_PREHEAT_3_END                   MSG_PREHEAT_3 _UxGT(" End")
 #define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Bed")
 #define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3 _UxGT(" conf")
-#define MSG_TOO_COLD_FOR_FILAMENTCHANGE     _UxGT("Hotend too cold to change filament")
 #define MSG_COOLDOWN                        _UxGT("Cooldown")
 #define MSG_SWITCH_PS_ON                    _UxGT("Switch power on")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Switch power off")
 #define MSG_EXTRUDE                         _UxGT("Extrude")
 #define MSG_RETRACT                         _UxGT("Retract")
 #define MSG_PURGE                           _UxGT("Purge")
+#define MSG_BED_LEVELING                    _UxGT("Bed Leveling")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
+#define MSG_USER_MENU                       _UxGT("Custom Commands")
 #define MSG_SPEED                           _UxGT("Speed")
 #define MSG_NOZZLE                          _UxGT("Nozzle")
 #define MSG_BED                             _UxGT("Bed")
@@ -153,7 +155,8 @@
 #define MSG_CARD_MENU                       _UxGT("Print from SD")
 #define MSG_NO_CARD                         _UxGT("No SD card")
 #define MSG_DWELL                           _UxGT("Sleep...")
-#define MSG_USERWAIT                        _UxGT("Wait for user...")
+#define MSG_USERWAIT                        _UxGT("Click to resume...")
+#define MSG_PRINT_PAUSED                    _UxGT("Print paused")
 #define MSG_RESUMING                        _UxGT("Resuming print")
 #define MSG_PRINT_ABORTED                   _UxGT("Print aborted")
 #define MSG_NO_MOVE                         _UxGT("No move.")
@@ -171,8 +174,11 @@
 #define MSG_INIT_SDCARD                     _UxGT("Init. SD card")
 #define MSG_CNG_SDCARD                      _UxGT("Change SD card")
 #define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
+#define MSG_BLTOUCH                         _UxGT("BLTouch")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Self-Test")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
+#define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy BLTouch")
+#define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #define MSG_HOME                            _UxGT("Home")
 #define MSG_FIRST                           _UxGT("first")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("ZProbe ZOffset")
@@ -209,6 +215,8 @@
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibrate Center")
 #define MSG_DELTA_AUTO_CALIBRATE            _UxGT("Auto Calibration")
 #define MSG_DELTA_HEIGHT_CALIBRATE          _UxGT("Set Delta Height")
+#define MSG_DELTA_CHECKING                  _UxGT("Checking... AC")
+#define MSG_DELTA_AUTO_CALIBRATE_OK         _UxGT("Calibration OK")
 
 // Info printers
 #define MSG_INFO_MENU                       _UxGT("About Printer")
@@ -235,10 +243,10 @@
 #define MSG_INFO_PSU                        _UxGT("Power Supply")
 
 // CASE LIGHT
-#define MSG_LIGHTS_ON                       _UxGT("Case light on")
-#define MSG_LIGHTS_OFF                      _UxGT("Case light off")
+#define MSG_CASE_LIGHT                      _UxGT("Case light")
+#define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Light BRIGHTNESS")
 
-// FILAMENT_CHANGE_FEATURE
+// ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CHANGE FILAMENT")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CHANGE OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrude more")

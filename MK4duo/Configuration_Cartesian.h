@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -493,7 +493,6 @@
 //#define BED_CENTER_AT_0_0
 
 // Manually set the home position. Leave these undefined for automatic settings.
-// For DELTA this is the top-center of the Cartesian print volume.
 //#define MANUAL_X_HOME_POS 0
 //#define MANUAL_Y_HOME_POS 0
 //#define MANUAL_Z_HOME_POS 0
@@ -637,8 +636,11 @@
 //#define HYSTERESIS
 //#define ZWOBBLE
 
-#define DEFAULT_HYSTERESIS_MM   0, 0, 0, 0  // X, Y, Z, E hysteresis in mm.
-#define DEFAULT_ZWOBBLE         0, 0, 0     // A, W, P
+ // X, Y, Z, E hysteresis in mm.
+#define DEFAULT_HYSTERESIS_MM { 0, 0, 0, 0 }
+
+// A, W, P
+#define DEFAULT_ZWOBBLE       { 0, 0, 0 }
 /*****************************************************************************************/
 
 #endif

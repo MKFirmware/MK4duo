@@ -1,6 +1,7 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
+
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
-## Version 4.3.1x dev
+Version 4.3.2x development
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
@@ -78,6 +79,7 @@ The new features are:
 * Added Power Check for Stop and Save
 * Added Probe Manually
 * Added LCD Bed Leveling
+* Added User menu LCD
 
 ## Credits
 

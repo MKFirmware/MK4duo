@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,6 +146,7 @@
 #define MSG_POWER_CHECK_SENSOR              "power check: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
+#define MSG_ERR_M321_PARAMETERS             "M321 required parameters missing"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
 #define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
@@ -188,6 +189,7 @@
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           "cold extrusion prevented"
 #define MSG_ERR_LONG_EXTRUDE_STOP           "too long extrusion prevented"
+#define MSG_TOO_COLD_FOR_M600               "M600 Hotend too cold to change filament"
 #define MSG_BABYSTEPPING_X                  "Babystepping X"
 #define MSG_BABYSTEPPING_Y                  "Babystepping Y"
 #define MSG_BABYSTEPPING_Z                  "Babystepping Z"

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,8 +194,8 @@ void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &
                 middle[]= NOZZLE_CLEAN_CIRCLE_MIDDLE;
 
     #if MECH(DELTA)
-      if (current_position[Z_AXIS] > deltaParams.clip_start_height)
-        do_blocking_move_to_z(deltaParams.clip_start_height);
+      if (current_position[Z_AXIS] > Mechanics.clip_start_height)
+        do_blocking_move_to_z(Mechanics.clip_start_height);
     #endif
 
     switch (pattern) {

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@
  */
 
 /**
- * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
+ * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
  */
 #if __cplusplus < 201103L
-  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
+  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
 
 // Start check
@@ -481,27 +481,6 @@
   #endif
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  #if DISABLED(FILAMENT_CHANGE_X_POS)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_X_POS
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_Y_POS)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_Y_POS
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_Z_ADD)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_Z_ADD
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_RETRACT_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_RETRACT_LENGTH
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_UNLOAD_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_UNLOAD_LENGTH
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_PRINTER_OFF)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_PRINTER_OFF
-  #endif
-#endif
-
 /**
  * Progress Bar
  */
@@ -520,15 +499,15 @@
  */
 #if MECH(DELTA)
   #if ABL_GRID
-    #if (GRID_MAX_POINTS & 1) == 0
-      #error "DELTA requires GRID_MAX_POINTS to be odd numbers."
-    #elif GRID_MAX_POINTS_X < 3
-      #error "DELTA requires GRID_MAX_POINTS to be 3 or higher."
+    #if (GRID_MAX_POINTS_X & 1) == 0  || (GRID_MAX_POINTS_Y & 1) == 0
+      #error "DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be odd numbers."
+    #elif GRID_MAX_POINTS_X < 3 || GRID_MAX_POINTS_Y < 3
+      #error "DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be 3 or higher."
     #endif
   #endif
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    #error "DELTA is incompatible with ENABLE_LEVELING_FADE_HEIGHT. Please disable it."
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && DISABLED(AUTO_BED_LEVELING_FEATURE)
+    #error "ENABLE_LEVELING_FADE_HEIGHT on DELTA requires AUTO_BED_LEVELING_FEATURE."
   #endif
 
   static_assert(1 >= 0
@@ -663,7 +642,7 @@ static_assert(1 >= 0
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS(ABL) || ENABLED(DELTA_AUTO_CALIBRATION_1)
+  #if HAS_ABL || ENABLED(DELTA_AUTO_CALIBRATION_1)
     #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
@@ -704,7 +683,7 @@ static_assert(1 >= 0
 /**
  * Auto Bed Leveling
  */
-#if HAS(ABL)
+#if HAS_ABL
 
   /**
    * Delta and SCARA have limited bed leveling options
@@ -765,10 +744,12 @@ static_assert(1 >= 0
 /**
  * LCD_BED_LEVELING requirements
  */
-#if ENABLED(LCD_BED_LEVELING) && DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-  #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
-#elif ENABLED(LCD_BED_LEVELING) && ENABLED(MESH_BED_LEVELING) && ENABLED(PROBE_MANUALLY)
-  #error "LCD_BED_LEVELING requires one of MESH_BED_LEVELING or PROBE_MANUALLY."
+#if ENABLED(LCD_BED_LEVELING)
+  #if !HAS_LCD
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+  #endif
 #endif
 
 // Firmware Retract
@@ -864,19 +845,40 @@ static_assert(1 >= 0
     #error DEPENDENCY ERROR: Missing setting FIL_RUNOUT_PIN_INVERTING
   #elif DISABLED(FILAMENT_RUNOUT_SCRIPT)
     #error DEPENDENCY ERROR: Missing setting FILAMENT_RUNOUT_SCRIPT 
-  #elif DISABLED(FILAMENT_CHANGE_FEATURE)
-    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "FILAMENT_CHANGE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
+  #elif DISABLED(ADVANCED_PAUSE_FEATURE)
+    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   #endif
 #endif
 
 /**
- * Filament Change with Extruder Runout Prevention
+ * Advanced Pause
  */
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  #if DISABLED(ULTIPANEL) && DISABLED(NEXTION)
-    #error "FILAMENT_CHANGE_FEATURE currently requires an LCD controller."
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if EXTRUDERS == 0
+    #error "ADVANCED_PAUSE_FEATURE currently requires extruders."
+  #endif
+  #if !HAS_LCD
+    #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    #error "EXTRUDER_RUNOUT_PREVENT is incompatible with FILAMENT_CHANGE_FEATURE."
+    #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
+  #endif
+  #if DISABLED(PAUSE_PARK_X_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_X_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Y_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Y_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Z_ADD)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Z_ADD
+  #endif
+  #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_UNLOAD_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_PRINTER_OFF)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
   #endif
 #endif
 
@@ -1576,9 +1578,6 @@ static_assert(1 >= 0
     #if DISABLED(Z_PROBE_BETWEEN_HEIGHT)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_BETWEEN_HEIGHT
     #endif
-    #if DISABLED(GRID_MAX_POINTS)
-      #error DEPENDENCY ERROR: Missing setting GRID_MAX_POINTS
-    #endif
   #endif
 #endif
 
@@ -1712,7 +1711,7 @@ static_assert(1 >= 0
 /**
  * Make sure auto fan pins don't conflict with the fan pin
  */
-#if HAS(AUTO_FAN) && HAS(FAN)
+#if HAS_AUTO_FAN && HAS_FAN
   #if H0_AUTO_FAN_PIN == FAN_PIN
     #error CONFLICT ERROR: You cannot set H0_AUTO_FAN_PIN equal to FAN_PIN.
   #elif H1_AUTO_FAN_PIN == FAN_PIN
@@ -1724,7 +1723,7 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if HAS(FAN) && CONTROLLERFAN_PIN == FAN_PIN
+#if HAS_FAN && CONTROLLERFAN_PIN == FAN_PIN
   #error CONFLICT ERROR: You cannot set CONTROLLERFAN_PIN equal to FAN_PIN.
 #endif
 
@@ -1732,19 +1731,19 @@ static_assert(1 >= 0
  * Test required HEATER defines
  */
 #if HOTENDS > 3
-  #if HASNT(HEATER_3)
+  #if !HAS_HEATER_3
     #error DEPENDENCY ERROR: HEATER_3_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 2
-  #if HASNT(HEATER_2)
+  #if !HAS_HEATER_2
     #error DEPENDENCY ERROR: HEATER_2_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
-  #if HASNT(HEATER_1)
+  #if !HAS_HEATER_1
     #error DEPENDENCY ERROR: HEATER_1_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 0
-  #if HASNT(HEATER_0)
+  #if !HAS_HEATER_0
     #error DEPENDENCY ERROR: HEATER_0_PIN not EXIST for this board
   #endif
 #endif
@@ -1865,12 +1864,30 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if ENABLED(MKR4) && ENABLED(MKR6)
-  #error DEPENDENCY ERROR: You must set only one MKR system
-#endif
+/**
+ * Allow only multy tools option to be defined
+ */
+static_assert(1 >= 0
+  #if ENABLED(NPR2)
+    + 1
+  #endif
+  #if ENABLED(MKR4)
+    + 1
+  #endif
+  #if ENABLED(MKR6)
+    + 1
+  #endif
+  #if ENABLED(MKR12)
+    + 1
+  #endif
+  #if ENABLED(MKSE6)
+    + 1
+  #endif
+  , "Please enable only one Multy tools function: NPR2, MKR4, MKR6, MKR12 or MKSE6."
+);
 
 #if ENABLED(MKR4)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
     #error DEPENDENCY ERROR: You must set E0E1_CHOICE_PIN to a valid pin if you enable MKR4 with 2 extruder and 1 driver
   #elif (EXTRUDERS > 2) && (DRIVER_EXTRUDERS == 1)
     #error DEPENDENCY ERROR: For 3 or more extruder you must set 2 DRIVER_EXTRUDERS for MKR4 system
@@ -1882,9 +1899,11 @@ static_assert(1 >= 0
     #error DEPENDENCY ERROR: You must set E0E2_CHOICE_PIN and E1E3_CHOICE_PIN to a valid pin if you enable MKR4 with 4 extruder and 2 driver
   #elif (EXTRUDERS > 4)
     #error DEPENDENCY ERROR: MKR4 support only max 4 extruder
-  #endif 
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR4 MULTI EXTRUDER
+  #endif
 #elif ENABLED(MKR6)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
     #error DEPENDENCY ERROR: You must to set EX1_CHOICE_PIN to a valid pin if you enable MKR6 with 2 extruder and 1 driver
   #elif (EXTRUDERS == 3) && (DRIVER_EXTRUDERS == 1) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 3 extruder and 1 driver
@@ -1898,17 +1917,47 @@ static_assert(1 >= 0
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 6 extruder and 2 driver
   #elif (EXTRUDERS > 6)
     #error DEPENDENCY ERROR: MKR6 support only max 6 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR6 MULTI EXTRUDER
   #endif
-#endif
-
-#if ENABLED(MKSE6)
+#elif ENABLED(MKR12)
+  #if   (EXTRUDERS >= 4) && (DRIVER_EXTRUDERS == 1)
+    #error DEPENDENCY ERROR: For 4 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 4) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 4 extruder and 2 driver
+  #elif (EXTRUDERS == 5) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 5 extruder and 2 driver
+  #elif (EXTRUDERS == 6) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 6 extruder and 2 driver
+  #elif (EXTRUDERS >= 7) && (DRIVER_EXTRUDERS == 2)
+    #error DEPENDENCY ERROR: For 7 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 7) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 7 extruder and 3 driver
+  #elif (EXTRUDERS == 8) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 8 extruder and 3 driver
+  #elif (EXTRUDERS == 9) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 9 extruder and 3 driver
+  #elif (EXTRUDERS >= 10) && (DRIVER_EXTRUDERS == 3)
+    #error DEPENDENCY ERROR: For 10 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 10) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 10 extruder and 4 driver
+  #elif (EXTRUDERS == 11) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 11 extruder and 4 driver
+  #elif (EXTRUDERS == 12) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 12 extruder and 4 driver
+  #elif (EXTRUDERS > 12)
+    #error DEPENDENCY ERROR: MKR12 support only max 12 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR12 MULTI EXTRUDER
+  #endif
+#elif ENABLED(MKSE6)
   #if EXTRUDERS < 2
     #error DEPENDENCY ERROR: You must set EXTRUDERS > 1 for MKSE6 MULTI EXTRUDER
   #endif
   #if DRIVER_EXTRUDERS > 1
     #error DEPENDENCY ERROR: You must set DRIVER_EXTRUDERS = 1 for MKSE6 MULTI EXTRUDER
   #endif
-  #if HASNT(SERVOS)
+  #if !HAS_SERVOS
     #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for MKSE6 MULTI EXTRUDER
   #endif
   #if DISABLED(SINGLENOZZLE)
@@ -1920,7 +1969,7 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You have to set E_MIN_PIN to a valid pin if you enable NPR2
 #endif
 
-#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && HASNT(SERVOS)
+#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && !HAS_SERVOS
   #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for DONDOLO MULTI EXTRUDER
 #endif
 
@@ -1940,11 +1989,11 @@ static_assert(1 >= 0
      #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
   #else
     #if(LASER_CONTROL == 1)
-      #if( !PIN_EXISTS(LASER_PWR))
+      #if(!HAS_LASER_POWER)
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
       #endif
     #else
-      #if( !PIN_EXISTS(LASER_PWR) || !PIN_EXISTS(LASER_TTL))
+      #if(!HAS_LASER_POWER || !HAS_LASER_TTL)
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_TTL_PIN to a valid pin if you enable LASER
       #endif
     #endif

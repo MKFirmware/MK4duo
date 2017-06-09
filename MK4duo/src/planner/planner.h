@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,10 +108,6 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  #if FAN_COUNT > 0
-    uint16_t fan_speed[FAN_COUNT];
-  #endif
-
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
   #endif
@@ -138,6 +134,14 @@ class Planner {
 
   public:
 
+    #if ENABLED(HYSTERESIS) || ENABLED(ZWOBBLE)
+      /**
+       * The current position of the tool in absolute steps
+       * Recalculated if any axis_steps_per_mm are changed by gcode
+       */
+      static long position[NUM_AXIS];
+    #endif
+
     /**
      * A ring buffer of moves described in steps
      */
@@ -160,9 +164,11 @@ class Planner {
                   travel_acceleration,              // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
                   max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
 
-    #if HAS(ABL)
-      static bool abl_enabled;            // Flag that bed leveling is enabled
-      static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
+    #if HAS_ABL
+      static bool abl_enabled;              // Flag that bed leveling is enabled
+      #if ABL_PLANAR
+        static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
+      #endif
     #endif
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -175,11 +181,13 @@ class Planner {
 
   private:
 
-    /**
-     * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
-     */
-    static long position[NUM_AXIS];
+    #if DISABLED(HYSTERESIS) && DISABLED(ZWOBBLE)
+      /**
+       * The current position of the tool in absolute steps
+       * Recalculated if any axis_steps_per_mm are changed by gcode
+       */
+      static long position[NUM_AXIS];
+    #endif
 
     /**
      * Speed of previous path line segment
@@ -252,7 +260,7 @@ class Planner {
 
     static bool is_full() { return (block_buffer_tail == BLOCK_MOD(block_buffer_head + 1)); }
 
-    #if HAS(LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+    #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
       #define ARG_X float lx
       #define ARG_Y float ly
       #define ARG_Z float lz
@@ -262,7 +270,7 @@ class Planner {
       #define ARG_Z const float &lz
     #endif
 
-    #if HAS(LEVELING)
+    #if HAS_LEVELING
 
       /**
        * Apply leveling to transform a cartesian position
@@ -305,7 +313,7 @@ class Planner {
      *  driver      - target driver
      */
     static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if HAS(LEVELING) && IS_CARTESIAN
+      #if HAS_LEVELING && IS_CARTESIAN
         apply_leveling(lx, ly, lz);
       #endif
       _buffer_line(lx, ly, lz, e, fr_mm_s, extruder, driver);
@@ -322,30 +330,26 @@ class Planner {
      *  driver   - target driver
      */
     static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if HAS(LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+      #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if HAS(LEVELING)
+        #if HAS_LEVELING
           apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          zwobble.InsertCorrection(lpos[Z_AXIS]);
+          Mechanics.insert_zwobble_correction(lpos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          hysteresis.InsertCorrection(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
+          Mechanics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
         #endif
       #else
         const float * const lpos = ltarget;
       #endif
 
       #if IS_KINEMATIC
-        #if MECH(DELTA)
-          deltaParams.inverse_kinematics_DELTA(lpos);
-        #else
-            inverse_kinematics(lpos);
-        #endif
-        _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
+        Mechanics.Transform(lpos);
+        _buffer_line(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS], Mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #else
         _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
       #endif
@@ -361,7 +365,7 @@ class Planner {
      * Clears previous speed values.
      */
     static FORCE_INLINE void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-      #if HAS(LEVELING) && IS_CARTESIAN
+      #if HAS_LEVELING && IS_CARTESIAN
         apply_leveling(lx, ly, lz);
       #endif
       _set_position_mm(lx, ly, lz, e);
@@ -434,7 +438,7 @@ class Planner {
 
     #endif
 
-    #if ENABLED(AUTOTEMP)
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
       static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();

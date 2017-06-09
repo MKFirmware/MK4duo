@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ FSTRINGVALUE(Com::tINF,"INF")
 FSTRINGVALUE(Com::tPauseCommunication,"// action:pause")
 FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
 FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
+FSTRINGVALUE(Com::tRequestPauseCommunication,"RequestPause:")
 
 void Com::printInfoLN(FSTRINGPARAM(text)) {
   PS_PGM(tInfo);

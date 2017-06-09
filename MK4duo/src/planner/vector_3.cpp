@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
 
 #include "../../base.h"
 
-#if HAS(ABL)
+#if HAS_ABL
 
 #include <math.h>
 #include "vector_3.h"
@@ -90,7 +90,7 @@ void vector_3::debug(const char title[]) {
   SERIAL_EMV(" z: ", z, 6);
 }
 
-void apply_rotation_xyz(matrix_3x3 matrix, float& x, float& y, float& z) {
+void apply_rotation_xyz(matrix_3x3 matrix, float &x, float &y, float &z) {
   vector_3 vector = vector_3(x, y, z);
   vector.apply_rotation(matrix);
   x = vector.x;

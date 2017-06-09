@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,6 +77,8 @@ uint8_t MCUSR;
             adcSamplePos = 0;
   uint32_t  adcEnable = 0;
   bool      Analog_is_ready = false;
+
+  volatile int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
@@ -92,6 +94,10 @@ void sei(void) {
   interrupts();
 }
 
+static inline void ConfigurePin(const PinDescription& pinDesc) {
+  PIO_Configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+}
+
 #ifndef DUE_SOFTWARE_SPI
   int spiDueDividors[] = {10,21,42,84,168,255,255};
 #endif
@@ -104,7 +110,6 @@ HAL::~HAL() {
   // dtor
 }
 
-volatile uint HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
 bool HAL::execute_100ms = false;
 
 // do any hardware-specific initialization here
@@ -138,7 +143,7 @@ void HAL::hwSetup(void) {
       OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
     #endif
 
-    #if HAS(BUZZER)
+    #if HAS_BUZZER
       buzz(10,10);
     #endif
 
@@ -200,6 +205,7 @@ int HAL::getFreeRam() {
 
   // Convert an Arduino Due pin number to the corresponding ADC channel number
   adc_channel_num_t HAL::pinToAdcChannel(int pin) {
+    if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
     if (pin < A0) pin += A0;
     return (adc_channel_num_t) (int)g_APinDescription[pin].ulADCChannelNumber;
   }
@@ -233,9 +239,15 @@ int HAL::getFreeRam() {
       for (int j = 0; j < MEDIAN_COUNT; j++)
         AnalogSamples[i][j] = 2048;
     }
+
     // enable channels
     ADC->ADC_CHER = adcEnable;
     ADC->ADC_CHDR = !adcEnable;
+
+    #if !MB(RADDS) // RADDS not have MCU Temperature
+      // Enable MCU temperature
+      ADC->ADC_ACR |= ADC_ACR_TSON;
+    #endif
 
     // Initialize ADC mode register (some of the following params are not used here)
     // HW trigger disabled, use external Trigger, 12 bit resolution
@@ -570,6 +582,208 @@ void HAL::resetHardware() {
 #endif // DISABLED(SOFTWARE_SPI)
 
 // --------------------------------------------------------------------------
+// Analogic write to a PWM Pin
+// --------------------------------------------------------------------------
+static bool     PWMEnabled      = false;
+static uint16_t PWMChanFreq[8]  = {0},
+                PWMChanPeriod[8];
+
+static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for Intel spec PWM fans that need 25kHz PWM
+static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
+
+static inline uint32_t ConvertRange(float f, uint32_t top) { return lround(f * (float)top); }
+
+// AnalogWritePwm to a PWM pin
+// Return true if successful, false if we need to call software pwm
+static bool AnalogWritePwm(const PinDescription& pinDesc, float ulValue, uint16_t freq) {
+
+  const uint32_t chan = pinDesc.ulPWMChannel;
+
+  if (freq == 0) {
+    PWMChanFreq[chan] = freq;
+    return false;
+  }
+  else if (PWMChanFreq[chan] != freq) {
+    if (!PWMEnabled) {
+      // PWM Startup code
+      pmc_enable_periph_clk(PWM_INTERFACE_ID);
+      PWMC_ConfigureClocks(PwmSlowClock, PwmFastClock, VARIANT_MCK);
+      PWM->PWM_SCM = 0;     // ensure no sync channels
+      PWMEnabled = true;
+    }
+
+    const bool useFastClock = (freq >= PwmFastClock / 65535);
+    const uint32_t period = ((useFastClock) ? PwmFastClock : PwmSlowClock) / freq;
+    const uint32_t duty = ConvertRange(ulValue, period);
+
+    PWMChanFreq[chan] = freq;
+    PWMChanPeriod[chan] = (uint16_t)period;
+
+    // Set up the PWM channel
+    // We need to work around a bug in the SAM PWM channels. Enabling a channel is supposed to clear the counter, but it doesn't.
+    // A further complication is that on the SAM3X, the update-period register doesn't appear to work.
+    // So we need to make sure the counter is less than the new period before we change the period.
+    for (unsigned int j = 0; j < 5; ++j) {  // twice through should be enough, but just in case...
+    
+      PWMC_DisableChannel(PWM, chan);
+      uint32_t oldCurrentVal = PWM->PWM_CH_NUM[chan].PWM_CCNT & 0xFFFF;
+      if (oldCurrentVal < period || oldCurrentVal > 65536 - 10) // if counter is already small enough or about to wrap round, OK
+        break;
+      oldCurrentVal += 2;											// note: +1 doesn't work here, has to be at least +2
+      PWM->PWM_CH_NUM[chan].PWM_CPRD = oldCurrentVal;				// change the period to be just greater than the counter
+      PWM->PWM_CH_NUM[chan].PWM_CMR = PWM_CMR_CPRE_CLKB;			// use the fast clock to avoid waiting too long
+      PWMC_EnableChannel(PWM, chan);
+      for (unsigned int i = 0; i < 1000; ++i) {
+        const uint32_t newCurrentVal = PWM->PWM_CH_NUM[chan].PWM_CCNT & 0xFFFF;
+        if (newCurrentVal < period || newCurrentVal > oldCurrentVal)
+          break;    // get out when we have wrapped round, or failed to
+      }
+    }
+
+    PWMC_ConfigureChannel(PWM, chan, ((useFastClock) ? PWM_CMR_CPRE_CLKB : PWM_CMR_CPRE_CLKA), 0, 0);
+    PWMC_SetDutyCycle(PWM, chan, duty);
+    PWMC_SetPeriod(PWM, chan, period);
+    PWMC_EnableChannel(PWM, chan);
+
+    // Now setup the PWM output pin for PWM this channel - do this after configuring the PWM to avoid glitches
+    ConfigurePin(pinDesc);
+  }
+  else {
+    const uint32_t ul_period = (uint32_t)PWMChanPeriod[chan];
+    PWMC_SetDutyCycle(PWM, chan, ConvertRange(ulValue, ul_period));
+  }
+  return true;
+}
+
+// --------------------------------------------------------------------------
+// Analogic Write to a TC Pin
+// --------------------------------------------------------------------------
+const unsigned int numTcChannels = 9;
+
+// Map from timer channel to TC channel number
+static const uint8_t channelToChNo[] = { 0, 1, 2, 0, 1, 2, 0, 1, 2 };
+
+// Map from timer channel to TC number
+static Tc * const channelToTC[] = { TC0, TC0, TC0,
+                                    TC1, TC1, TC1,
+                                    TC2, TC2, TC2 };
+
+// Map from timer channel to TIO number
+static const uint8_t channelToId[] = {  ID_TC0, ID_TC1, ID_TC2,
+                                        ID_TC3, ID_TC4, ID_TC5,
+                                        ID_TC6, ID_TC7, ID_TC8 };
+
+// Current frequency of each TC channel
+static uint16_t TCChanFreq[numTcChannels] = {0};
+
+static inline void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v) {
+  tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
+}
+static inline void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
+  tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
+}
+
+static inline void TC_WriteCCR(Tc *tc, uint32_t chan, uint32_t v) {
+  tc->TC_CHANNEL[chan].TC_CCR = v;
+}
+
+static inline uint32_t TC_read_ra(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RA;
+}
+static inline uint32_t TC_read_rb(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RB;
+}
+static inline uint32_t TC_read_rc(Tc *tc, uint32_t chan) {
+  return tc->TC_CHANNEL[chan].TC_RC;
+}
+
+// AnalogWriteTc to a TC pin
+// Return true if successful, false if we need to call software pwm
+static bool AnalogWriteTc(const PinDescription& pinDesc, float ulValue, uint16_t freq) {
+
+  const uint32_t chan = (uint32_t)pinDesc.ulTCChannel >> 1;
+  if (freq == 0) {
+    TCChanFreq[chan] = freq;
+    return false;
+  }
+  else {
+    Tc * const chTC = channelToTC[chan];
+    const uint32_t chNo = channelToChNo[chan];
+    const bool doInit = (TCChanFreq[chan] != freq);
+
+    if (doInit) {
+      TCChanFreq[chan] = freq;
+
+      // Enable the peripheral clock to this timer
+      pmc_enable_periph_clk(channelToId[chan]);
+
+      // Set up the timer mode and top count
+      TC_Configure(chTC, chNo,
+              TC_CMR_TCCLKS_TIMER_CLOCK2 |    // clock is MCLK/8 to save a little power and avoid overflow later on
+              TC_CMR_WAVE |                   // Waveform mode
+              TC_CMR_WAVSEL_UP_RC |           // Counter running up and reset when equals to RC
+              TC_CMR_EEVT_XC0 |               // Set external events from XC0 (this setup TIOB as output)
+              TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
+              TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR |
+              TC_CMR_ASWTRG_SET | TC_CMR_BSWTRG_SET);	// Software trigger will let us set the output high
+      const uint32_t top = (VARIANT_MCK / 8) / (uint32_t)freq;  // with 120MHz clock this varies between 228 (@ 65.535kHz) and 15 million (@ 1Hz)
+      // The datasheet doesn't say how the period relates to the RC value, but from measurement it seems that we do not need to subtract one from top
+      TC_SetRC(chTC, chNo, top);
+
+      // When using TC channels to do PWM control of heaters with active low outputs on the Duet WiFi, if we don't take precautions
+      // then we get a glitch straight after initialising the channel, because the compare output starts in the low state.
+      // To avoid that, set the output high here if a high PWM was requested.
+      if (ulValue >= 0.5)
+        TC_WriteCCR(chTC, chan, TC_CCR_SWTRG);
+    }
+
+    const uint32_t threshold = ConvertRange(ulValue, TC_read_rc(chTC, chNo));
+    if (threshold == 0) {
+      if (((uint32_t)pinDesc.ulTCChannel & 1) == 0) {
+        TC_SetRA(chTC, chNo, 1);
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+      }
+      else {
+        TC_SetRB(chTC, chNo, 1);
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+      }
+    }
+    else {
+      if (((uint32_t)pinDesc.ulTCChannel & 1) == 0) {
+        TC_SetRA(chTC, chNo, threshold);
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+      }
+      else {
+        TC_SetRB(chTC, chNo, threshold);
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
+      }
+    }
+
+    if (doInit) {
+      ConfigurePin(pinDesc);
+      TC_Start(chTC, chNo);
+    }
+  }
+  return true;
+}
+
+bool HAL::AnalogWrite(Pin pin, const uint8_t value, const uint16_t freq) {
+
+  if (isnan(value)) return true;
+
+  const float ulValue = (float)value / 255.0;
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  const uint32_t attr = pinDesc.ulPinAttribute;
+
+  if ((attr & PIN_ATTR_PWM) != 0)
+    return AnalogWritePwm(pinDesc, ulValue, freq);
+  else if ((attr & PIN_ATTR_TIMER) != 0)
+    return AnalogWriteTc(pinDesc, ulValue, freq);
+
+  return false;
+}
+
+// --------------------------------------------------------------------------
 // eeprom
 // --------------------------------------------------------------------------
 
@@ -751,89 +965,6 @@ void HAL::resetHardware() {
 
 #endif // I2C_EEPROM
 
-// LASER
-#if ENABLED(LASERBEAM)
-  static void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v) {
-    tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
-  }
-
-  static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
-    tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
-  }
-
-  static uint32_t chA, chNo;
-  static Tc *chTC;
-  static uint32_t TC_const;
-
-  void HAL_laser_init_pwm(uint8_t ulPin, uint16_t ulFreq) {
-    uint32_t attr = g_APinDescription[ulPin].ulPinAttribute;
-    if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
-      // We use MCLK/2 as clock.
-      const uint32_t TC = VARIANT_MCK / 2 / ulFreq;
-      TC_const = TC/TC_MAX_DUTY_CYCLE;
-
-      // Setup Timer for this pin
-      ETCChannel channel = g_APinDescription[ulPin].ulTCChannel;
-      static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
-      static const uint32_t channelToAB[]   = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
-
-      static Tc *channelToTC[] = {
-        TC0, TC0, TC0, TC0, TC0, TC0,
-        TC1, TC1, TC1, TC1, TC1, TC1,
-        TC2, TC2, TC2, TC2, TC2, TC2
-      };
-
-      static const uint32_t channelToId[] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8 };
-      chNo = channelToChNo[channel];
-      chA  = channelToAB[channel];
-      chTC = channelToTC[channel];
-      uint32_t interfaceID = channelToId[channel];
-      pmc_enable_periph_clk(TC_INTERFACE_ID + interfaceID);
-      TC_Configure(chTC, chNo,
-      TC_CMR_TCCLKS_TIMER_CLOCK1 |
-      TC_CMR_WAVE |         // Waveform mode
-      TC_CMR_WAVSEL_UP_RC | // Counter running up and reset when equals to RC
-      TC_CMR_EEVT_XC0 |     // Set external events from XC0 (this setup TIOB as output)
-      TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
-      TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-      TC_SetRC(chTC, chNo, TC);
-
-      if (chA)
-        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
-      else
-        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-
-      PIO_Configure(g_APinDescription[ulPin].pPort,
-        g_APinDescription[ulPin].ulPinType,
-        g_APinDescription[ulPin].ulPin,
-        g_APinDescription[ulPin].ulPinConfiguration);
-
-      TC_Start(chTC, chNo);
-    }
-  }
-
-  void HAL_laser_intensity(uint8_t intensity) {
-    uint32_t ulValue = intensity * TC_const;
-
-    if (ulValue == 0) {
-      if (chA)
-        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
-      else
-        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-    }
-    else {
-      if (chA) {
-        TC_SetRA(chTC, chNo, ulValue);
-        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-      }
-      else {
-        TC_SetRB(chTC, chNo, ulValue);
-        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
-      }
-    }
-  }
-#endif
-
 /**
  * Timer 0 is is called 3906 timer per second.
  * It is used to update pwm values for heater and some other frequent jobs.
@@ -851,30 +982,32 @@ HAL_TEMP_TIMER_ISR {
   // Allow UART ISRs
   _DISABLE_ISRs();
 
-  static uint8_t  pwm_count_heater  = 0,
-                  pwm_count_fan     = 0;
+  static uint8_t  pwm_count_heater        = 0,
+                  pwm_count_fan           = 0;
 
-  #define ISR_STATICS(n) static uint8_t soft_pwm_ ##n = 0
-
-  // Statics per heater
-  ISR_STATICS(0);
-  #if HOTENDS > 1
-    ISR_STATICS(1);
-    #if HOTENDS > 2
-      ISR_STATICS(2);
-      #if HOTENDS > 3
-        ISR_STATICS(3);
-      #endif
-    #endif
+  #if HAS_TEMP_HOTEND
+    static uint8_t  pwm_heater_pos[HOTENDS] = { 0 };
+    static bool     pwm_heater_hd[HOTENDS]  = ARRAY_BY_HOTENDS(true);
   #endif
   #if HAS_HEATER_BED
-    ISR_STATICS(BED);
+    static uint8_t  pwm_bed_pos = 0;
+    static bool     pwm_bed_hd  = true;
   #endif
-  #if HAS(HEATER_CHAMBER)
-    ISR_STATICS(CHAMBER);
+  #if HAS_HEATER_CHAMBER
+    static uint8_t  pwm_chamber_pos = 0;
+    static bool     pwm_chamber_hd  = true;
   #endif
-  #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER)
-    ISR_STATICS(COOLER);
+  #if HAS_COOLER
+    static uint8_t  pwm_cooler_pos = 0;
+    static bool     pwm_cooler_hd  = true;
+  #endif
+  #if FAN_COUNT > 0
+    static uint8_t  pwm_fan_pos[FAN_COUNT]  = { 0 };
+    static bool     pwm_fan_hd[FAN_COUNT]   = ARRAY_BY_FANS(true);
+  #endif
+  #if HAS_CONTROLLERFAN
+    static uint8_t  pwm_controller_pos = 0;
+    static bool     pwm_controller_hd  = true;
   #endif
 
   #if ENABLED(FILAMENT_SENSOR)
@@ -882,143 +1015,219 @@ HAL_TEMP_TIMER_ISR {
   #endif
 
   /**
+   * Harware PWM or TC
+   */
+  #if HOTENDS > 0
+    if (pwm_heater_hd[0])
+      pwm_heater_hd[0] = HAL::AnalogWrite(HEATER_0_PIN, thermalManager.soft_pwm[0], HEATER_PWM_FREQ);
+    #if HOTENDS > 1
+      if (pwm_heater_hd[1])
+        pwm_heater_hd[1] = HAL::AnalogWrite(HEATER_1_PIN, thermalManager.soft_pwm[1], HEATER_PWM_FREQ);
+      #if HOTENDS > 2
+        if (pwm_heater_hd[2])
+          pwm_heater_hd[2] = HAL::AnalogWrite(HEATER_2_PIN, thermalManager.soft_pwm[2], HEATER_PWM_FREQ);
+        #if HOTENDS > 3
+          if (pwm_heater_hd[3])
+            pwm_heater_hd[3] = HAL::AnalogWrite(HEATER_3_PIN, thermalManager.soft_pwm[3], HEATER_PWM_FREQ);
+        #endif
+      #endif
+    #endif
+  #endif
+
+  #if HAS_HEATER_BED && HAS_TEMP_BED
+    if (pwm_bed_hd)
+      pwm_bed_hd = HAL::AnalogWrite(HEATER_BED_PIN, thermalManager.soft_pwm_bed, HEATER_PWM_FREQ);
+  #endif
+
+  #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
+    if (pwm_chamber_hd)
+      pwm_chamber_hd = HAL::AnalogWrite(HEATER_CHAMBER_PIN, thermalManager.soft_pwm_chamber, HEATER_PWM_FREQ);
+  #endif
+
+  #if HAS_COOLER && HAS_TEMP_COOLER
+    if (pwm_cooler_hd)
+      pwm_cooler_hd = HAL::AnalogWrite(HEATER_COOLER_PIN, thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
+  #endif
+
+  #if HAS_FAN0
+    if (pwm_fan_hd[0])
+      pwm_fan_hd[0] = HAL::AnalogWrite(FAN_PIN, fanSpeeds[0], FAN_PWM_FREQ);
+  #endif
+  #if HAS_FAN1
+    if (pwm_fan_hd[1])
+      pwm_fan_hd[1] = HAL::AnalogWrite(FAN1_PIN, fanSpeeds[1], FAN_PWM_FREQ);
+  #endif
+  #if HAS_FAN2
+    if (pwm_fan_hd[2])
+      pwm_fan_hd[2] = HAL::AnalogWrite(FAN2_PIN, fanSpeeds[2], FAN_PWM_FREQ);
+  #endif
+  #if HAS_FAN3
+    if (pwm_fan_hd[3])
+      pwm_fan_hd[3] = HAL::AnalogWrite(FAN3_PIN, fanSpeeds[3], FAN_PWM_FREQ);
+  #endif
+  #if HAS_CONTROLLERFAN
+    if (pwm_controller_hd)
+      pwm_controller_hd = HAL::AnalogWrite(CONTROLLERFAN_PIN, controller_fanSpeeds, FAN_PWM_FREQ);
+  #endif
+
+  /**
    * Standard PWM modulation
    */
   if (pwm_count_heater == 0) {
-    if ((soft_pwm_0 = (thermalManager.soft_pwm[0] & HEATER_PWM_MASK)) > 0)
-      WRITE_HEATER_0(HIGH);
-    #if HOTENDS > 1
-      if ((soft_pwm_1 = (thermalManager.soft_pwm[1] & HEATER_PWM_MASK)) > 0)
-        WRITE_HEATER_1(HIGH);
-      #if HOTENDS > 2
-        if ((soft_pwm_2 = (thermalManager.soft_pwm[2] & HEATER_PWM_MASK)) > 0)
-          WRITE_HEATER_2(HIGH);
-        #if HOTENDS > 3
-          if ((soft_pwm_3 = (thermalManager.soft_pwm[3] & HEATER_PWM_MASK)) > 0)
-            WRITE_HEATER_0(HIGH);
+    #if HOTENDS > 0
+      if (!pwm_heater_hd[0] && (pwm_heater_pos[0] = (thermalManager.soft_pwm[0] & HEATER_PWM_MASK)) > 0)
+        WRITE_HEATER_0(HIGH);
+      #if HOTENDS > 1
+        if (!pwm_heater_hd[1] && (pwm_heater_pos[1] = (thermalManager.soft_pwm[1] & HEATER_PWM_MASK)) > 0)
+          WRITE_HEATER_1(HIGH);
+        #if HOTENDS > 2
+          if (!pwm_heater_hd[2] && (pwm_heater_pos[2] = (thermalManager.soft_pwm[2] & HEATER_PWM_MASK)) > 0)
+            WRITE_HEATER_2(HIGH);
+          #if HOTENDS > 3
+            if (!pwm_heater_hd[3] && (pwm_heater_pos[3] = (thermalManager.soft_pwm[3] & HEATER_PWM_MASK)) > 0)
+              WRITE_HEATER_0(HIGH);
+          #endif
         #endif
       #endif
     #endif
 
-    #if HAS_HEATER_BED
-      if ((soft_pwm_BED = (thermalManager.soft_pwm_bed & HEATER_PWM_MASK)) > 0)
+    #if HAS_HEATER_BED && HAS_TEMP_BED
+      if (!pwm_bed_hd && (pwm_bed_pos = (thermalManager.soft_pwm_bed & HEATER_PWM_MASK)) > 0)
         WRITE_HEATER_BED(HIGH);
     #endif
 
-    #if HAS(HEATER_CHAMBER) && HAS(TEMP_CHAMBER)
-      if ((soft_pwm_CHAMBER = (thermalManager.soft_pwm_chamber & HEATER_PWM_MASK)) > 0)
+    #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
+      if (!pwm_chamber_hd && (pwm_chamber_pos = (thermalManager.soft_pwm_chamber & HEATER_PWM_MASK)) > 0)
         WRITE_HEATER_CHAMBER(HIGH);
     #endif
 
-    #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER) && HAS(TEMP_COOLER)
-      if ((soft_pwm_COOLER = (thermalManager.soft_pwm_cooler & HEATER_PWM_MASK)) > 0)
+    #if HAS_COOLER && !ENABLED(FAST_PWM_COOLER) && HAS_TEMP_COOLER
+      if (!pwm_cooler_hd && (pwm_cooler_pos = (thermalManager.soft_pwm_cooler & HEATER_PWM_MASK)) > 0)
         WRITE_COOLER(HIGH);
     #endif
 
   }
-  
-  #if ENABLED(FAN_SOFT_PWM)
-    if (pwm_count_fan == 0) {
-      #if HAS(FAN0)
-        if ((thermalManager.soft_pwm_fan[0] = (thermalManager.fanSpeedSoftPwm[0] & FAN_PWM_MASK)) > 0)
-          WRITE_FAN(HIGH);
-      #endif
-      #if HAS(FAN1)
-        if ((thermalManager.soft_pwm_fan[1] = (thermalManager.fanSpeedSoftPwm[1] & FAN_PWM_MASK)) > 0)
-          WRITE_FAN1(HIGH);
-      #endif
-      #if HAS(FAN2)
-        if ((thermalManager.soft_pwm_fan[2] = (thermalManager.fanSpeedSoftPwm[2] & FAN_PWM_MASK)) > 0)
-          WRITE_FAN2(HIGH);
-      #endif
-      #if HAS(FAN3)
-        if ((thermalManager.soft_pwm_fan[3] = (thermalManager.fanSpeedSoftPwm[3] & FAN_PWM_MASK)) > 0)
-          WRITE_FAN3(HIGH);
-      #endif
-    }
-  #endif
 
-  if (soft_pwm_0 == pwm_count_heater && soft_pwm_0 != HEATER_PWM_MASK) WRITE_HEATER_0(LOW);
-  #if HOTENDS > 1
-    if (soft_pwm_1 == pwm_count_heater && soft_pwm_1 != HEATER_PWM_MASK) WRITE_HEATER_1(LOW);
-    #if HOTENDS > 2
-      if (soft_pwm_2 == pwm_count_heater && soft_pwm_2 != HEATER_PWM_MASK) WRITE_HEATER_2(LOW);
-      #if HOTENDS > 3
-        if (soft_pwm_3 == pwm_count_heater && soft_pwm_3 != HEATER_PWM_MASK) WRITE_HEATER_3(LOW);
+  if (pwm_count_fan == 0) {
+    #if HAS_FAN0
+      if (!pwm_fan_hd[0] && (pwm_fan_pos[0] = (fanSpeeds[0] & FAN_PWM_MASK)) > 0)
+        WRITE_FAN(HIGH);
+    #endif
+    #if HAS_FAN1
+      if (!pwm_fan_hd[1] && (pwm_fan_pos[1] = (fanSpeeds[1] & FAN_PWM_MASK)) > 0)
+        WRITE_FAN1(HIGH);
+    #endif
+    #if HAS_FAN2
+      if (!pwm_fan_hd[2] && (pwm_fan_pos[2] = (fanSpeeds[2] & FAN_PWM_MASK)) > 0)
+        WRITE_FAN2(HIGH);
+    #endif
+    #if HAS_FAN3
+      if (!pwm_fan_hd[3] && (pwm_fan_pos[3] = (fanSpeeds[3] & FAN_PWM_MASK)) > 0)
+        WRITE_FAN3(HIGH);
+    #endif
+    #if HAS_CONTROLLERFAN
+      if (!pwm_controller_hd && (pwm_controller_pos = (controller_fanSpeeds & FAN_PWM_MASK)) > 0)
+        WRITE(CONTROLLERFAN_PIN, HIGH);
+    #endif
+  }
+
+  #if HOTENDS > 0
+    if (!pwm_heater_hd[0] && pwm_heater_pos[0] == pwm_count_heater && pwm_heater_pos[0] != HEATER_PWM_MASK) WRITE_HEATER_0(LOW);
+    #if HOTENDS > 1
+      if (!pwm_heater_hd[1] && pwm_heater_pos[1] == pwm_count_heater && pwm_heater_pos[1] != HEATER_PWM_MASK) WRITE_HEATER_1(LOW);
+      #if HOTENDS > 2
+        if (!pwm_heater_hd[2] && pwm_heater_pos[2] == pwm_count_heater && pwm_heater_pos[2] != HEATER_PWM_MASK) WRITE_HEATER_2(LOW);
+        #if HOTENDS > 3
+          if (!pwm_heater_hd[3] && pwm_heater_pos[3] == pwm_count_heater && pwm_heater_pos[3] != HEATER_PWM_MASK) WRITE_HEATER_3(LOW);
+        #endif
       #endif
     #endif
   #endif
 
-  #if HAS_HEATER_BED
-    if (soft_pwm_BED == pwm_count_heater && soft_pwm_BED != HEATER_PWM_MASK) WRITE_HEATER_BED(LOW);
+  #if HAS_HEATER_BED && HAS_TEMP_BED
+    if (!pwm_bed_hd && pwm_bed_pos == pwm_count_heater && pwm_bed_pos != HEATER_PWM_MASK) WRITE_HEATER_BED(LOW);
   #endif
 
-  #if HAS(HEATER_CHAMBER) && HAS(TEMP_CHAMBER)
-    if (soft_pwm_CHAMBER == pwm_count_heater && soft_pwm_CHAMBER != HEATER_PWM_MASK) WRITE_HEATER_CHAMBER(LOW);
+  #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
+    if (!pwm_chamber_hd && pwm_chamber_pos == pwm_count_heater && pwm_chamber_pos != HEATER_PWM_MASK) WRITE_HEATER_CHAMBER(LOW);
   #endif
 
-  #if HAS(COOLER) && !ENABLED(FAST_PWM_COOLER) && HAS(TEMP_COOLER)
-    if (soft_pwm_COOLER == pwm_count_heater && soft_pwm_COOLER != HEATER_PWM_MASK) WRITE_COOLER(LOW);
+  #if HAS_COOLER && !ENABLED(FAST_PWM_COOLER) && HAS_TEMP_COOLER
+    if (!pwm_cooler_hd && pwm_cooler_pos == pwm_count_heater && pwm_cooler_pos != HEATER_PWM_MASK) WRITE_COOLER(LOW);
   #endif
 
-  #if ENABLED(FAN_SOFT_PWM)
-    #if HAS(FAN0)
-      if (thermalManager.soft_pwm_fan[0] == pwm_count_fan && thermalManager.soft_pwm_fan[0] != FAN_PWM_MASK)
+  #if ENABLED(FAN_KICKSTART_TIME)
+    if (fanKickstart == 0)
+  #endif
+  {
+    #if HAS_FAN0
+      if (!pwm_fan_hd[0] && pwm_fan_pos[0] == pwm_count_fan && pwm_fan_pos[0] != FAN_PWM_MASK)
         WRITE_FAN(LOW);
     #endif
-    #if HAS(FAN1)
-      if (thermalManager.soft_pwm_fan[1] == pwm_count_fan && thermalManager.soft_pwm_fan[1] != FAN_PWM_MASK)
+    #if HAS_FAN1
+      if (!pwm_fan_hd[1] && pwm_fan_pos[1] == pwm_count_fan && pwm_fan_pos[1] != FAN_PWM_MASK)
         WRITE_FAN1(LOW);
     #endif
-    #if HAS(FAN2)
-      if (thermalManager.soft_pwm_fan[2] == pwm_count_fan && thermalManager.soft_pwm_fan[2] != FAN_PWM_MASK)
+    #if HAS_FAN2
+      if (!pwm_fan_hd[2] && pwm_fan_pos[2] == pwm_count_fan && pwm_fan_pos[2] != FAN_PWM_MASK)
         WRITE_FAN2(LOW);
     #endif
-    #if HAS(FAN3)
-      if (thermalManager.soft_pwm_fan[3] == pwm_count_fan && thermalManager.soft_pwm_fan[3] != FAN_PWM_MASK)
+    #if HAS_FAN3
+      if (!pwm_fan_hd[3] && pwm_fan_pos[3] == pwm_count_fan && pwm_fan_pos[3] != FAN_PWM_MASK)
         WRITE_FAN3(LOW);
     #endif
-  #endif
+    #if HAS_CONTROLLERFAN
+      if (!pwm_controller_hd && pwm_controller_pos == pwm_count_fan && controller_fanSpeeds != FAN_PWM_MASK)
+        WRITE(CONTROLLERFAN_PIN, LOW);
+    #endif
+  }
 
   // Calculation cycle approximate a 100ms
   cycle_100ms++;
   if (cycle_100ms >= 390) {
     cycle_100ms = 0;
     HAL::execute_100ms = true;
+    #if ENABLED(FAN_KICKSTART_TIME)
+      if (fanKickstart) fanKickstart--;
+    #endif
   }
 
   // read analog values
-  if ((ADC->ADC_ISR & adcEnable) == adcEnable) { // conversion finished?
-    adcCounter++;
-    for (int i = 0; i < ANALOG_INPUTS; i++) {
-      int32_t cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i])];
-      cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
-      AnalogInputRead[i] += cur;
-      adcSamplesMin[i] = min(adcSamplesMin[i], cur);
-      adcSamplesMax[i] = max(adcSamplesMax[i], cur);
-      if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
-        AnalogInputRead[i] = AnalogInputRead[i] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[i] + adcSamplesMax[i]);
-        adcSamplesMin[i] = 100000;
-        adcSamplesMax[i] = 0;
-        AnalogSamplesSum[i] -= AnalogSamples[i][adcSamplePos];
-        AnalogSamplesSum[i] += (AnalogSamples[i][adcSamplePos] = AnalogInputRead[i] >> OVERSAMPLENR);
-        HAL::AnalogInputValues[i] = AnalogSamplesSum[i] / MEDIAN_COUNT;
-        AnalogInputRead[i] = 0;
-      } // adcCounter >= NUM_ADC_SAMPLES
-    } // for i
-    if (adcCounter >= NUM_ADC_SAMPLES) {
-      adcCounter = 0;
-      adcSamplePos++;
-      if (adcSamplePos >= MEDIAN_COUNT) {
-        adcSamplePos = 0;
-        Analog_is_ready = true;
-      }
-    }
-    ADC->ADC_CR = ADC_CR_START; // reread values
-  }
+  #if ANALOG_INPUTS > 0
 
-  // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (Analog_is_ready) thermalManager.set_current_temp_raw();
+    if ((ADC->ADC_ISR & adcEnable) == adcEnable) { // conversion finished?
+      adcCounter++;
+      for (int i = 0; i < ANALOG_INPUTS; i++) {
+        int32_t cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i])];
+        if (i != MCU_SENSOR_INDEX) cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
+        AnalogInputRead[i] += cur;
+        adcSamplesMin[i] = min(adcSamplesMin[i], cur);
+        adcSamplesMax[i] = max(adcSamplesMax[i], cur);
+        if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
+          AnalogInputRead[i] = AnalogInputRead[i] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[i] + adcSamplesMax[i]);
+          adcSamplesMin[i] = 100000;
+          adcSamplesMax[i] = 0;
+          AnalogSamplesSum[i] -= AnalogSamples[i][adcSamplePos];
+          AnalogSamplesSum[i] += (AnalogSamples[i][adcSamplePos] = AnalogInputRead[i] >> OVERSAMPLENR);
+          HAL::AnalogInputValues[i] = AnalogSamplesSum[i] / MEDIAN_COUNT;
+          AnalogInputRead[i] = 0;
+        } // adcCounter >= NUM_ADC_SAMPLES
+      } // for i
+      if (adcCounter >= NUM_ADC_SAMPLES) {
+        adcCounter = 0;
+        adcSamplePos++;
+        if (adcSamplePos >= MEDIAN_COUNT) {
+          adcSamplePos = 0;
+          Analog_is_ready = true;
+        }
+      }
+      ADC->ADC_CR = ADC_CR_START; // reread values
+    }
+
+    // Update the raw values if they've been read. Else we could be updating them during reading.
+    if (Analog_is_ready) thermalManager.set_current_temp_raw();
+
+  #endif
 
   pwm_count_heater  += HEATER_PWM_STEP;
   pwm_count_fan     += FAN_PWM_STEP;

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,43 +61,61 @@
  */
 #define BAUDRATE 115200
 
-// Enable the Bluetooth serial interface
+/**
+ * Enable the Bluetooth serial interface
+ */
 //#define BLUETOOTH
 #define BLUETOOTH_PORT 1
 #define BLUETOOTH_BAUD 115200
 
-// User-specified version info of this build to display in [Pronterface, etc] terminal window during
-// startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
-// build by the user have been successfully uploaded into firmware.
+/**
+ * User-specified version info of this build to display in [Pronterface, etc] terminal window during
+ * startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
+ * build by the user have been successfully uploaded into firmware.
+ */
 #define STRING_CONFIG_H_AUTHOR "(none, default config)"   // Who made the changes.
 
-// Define this to set a unique identifier for this printer, (Used by some programs to differentiate between machines)
-// You can use an online service to generate a random UUID. (eg http://www.uuidgenerator.net/version4)
+/**
+ * Define this to set a unique identifier for this printer, (Used by some programs to differentiate between machines)
+ * You can use an online service to generate a random UUID. (eg http://www.uuidgenerator.net/version4)
+ */
 #define MACHINE_UUID "00000000-0000-0000-0000-000000000000"
 
-// Kill Method
-// 0 - Disable heaters, wait forever
-// 1 - Reset controller. Will not reset separate communication chips!
+/**
+ * Kill Method
+ *  0 - Disable heaters, wait forever
+ *  1 - Reset controller. Will not reset separate communication chips!
+ */
 #define KILL_METHOD 0
 
-// Some particular clients re-start sending commands only after receiving a 'wait' when there is a bad serial-connection.
-// Milliseconds
+/**
+ * Some particular clients re-start sending commands only after receiving a 'wait' when there is a bad serial-connection.
+ * Milliseconds
+ */
 #define NO_TIMEOUTS 1000
 // Uncomment to include more info in ok command
 //#define ADVANCED_OK
 
-// Enable an emergency-command parser to intercept certain commands as they
-// enter the serial receive buffer, so they cannot be blocked.
-// Currently handles M108, M112, M410
-// Does not work on boards using Arduino DUE processors!
+/**
+ * Enable an emergency-command parser to intercept certain commands as they
+ * enter the serial receive buffer, so they cannot be blocked.
+ * Currently handles M108, M112, M410
+ * Does not work on boards using Arduino DUE processors!
+ */
 //#define EMERGENCY_PARSER
 
-//
-// Host Keepalive
-//
-// When enabled MK4duo will send a busy status message to the host
-// every couple of seconds when it can't accept commands.
-// Disable this if your host doesn't like keepalive messages
+/**
+ * Spend 28 bytes of SRAM to optimize the GCode parser
+ */
+//#define FASTER_GCODE_PARSER
+
+/**
+ * Host Keepalive
+ *
+ * When enabled MK4duo will send a busy status message to the host
+ * every couple of seconds when it can't accept commands.
+ * Disable this if your host doesn't like keepalive messages
+ */
 //#define HOST_KEEPALIVE_FEATURE
 // Number of seconds between "busy" messages. Set with M113.
 #define DEFAULT_KEEPALIVE_INTERVAL 2
@@ -171,11 +189,11 @@
  ************************** Extruders number ***************************
  ***********************************************************************/
 // This defines the number of extruder real or virtual
-// 1,2,3,4,5,6
+// 0,1,2,3,4,5,6
 #define EXTRUDERS 1
 
 // This defines the number of Driver extruder you have and use
-// 1,2,3,4,5,6
+// 0,1,2,3,4,5,6
 #define DRIVER_EXTRUDERS 1
 /***********************************************************************/
 

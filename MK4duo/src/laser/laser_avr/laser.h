@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@
       float raster_mm_per_pulse;
       int raster_raw_length;
       int raster_num_pixels;
-      bool raster_direction;
+      uint8_t raster_direction;
     #endif // LASER_RASTER
   } laser_t;
 

@@ -1,3 +1,27 @@
+### Version 4.3.22 dev
+* Add Hardware PWM for SAM processor
+* Add M114 D for Detail position, leveled, unlevel, stepper
+* Add MKR12 system for 12 extruder with 16 relé and 4 driver
+* Support to 12 Extruder
+* Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
+
+### Version 4.3.21 dev
+* Add User menu LCD
+* Write Kinematic function for Cartesian, Core and DELTA. SCARA for now not implemented.
+
+### Version 4.3.20 dev
+* Add ADVANCED PAUSE FEATURE (Ex Filament Change. Requires an LCD display)
+* Add PARK HEAD ON PAUSE (Park head on SD pause or M125 commands. Requires an LCD display)
+* Add M125 - Store current position and move to pause park position.
+* Add automatic call M600 with one extruder and ADVANCED PAUSE FEATURE when change tools
+* Add STATUS MESSAGE SCROLLING. The message on lcd scroll right to the left.
+* Add ANET board for A2, A6 and A8 printer
+* Add ANET full graphics lcd
+
+### Version 4.3.2 Stable
+* Add Nextion Diamond version by MrGoblin 7"
+* Fix and clear code
+
 ### Version 4.3.19 dev
 * Algorithm based on Thinkyhead Marlin
 * Change the old command G30 A in G33 for Delta Autocalibration

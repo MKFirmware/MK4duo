@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,19 +37,19 @@
  * G4  - Dwell S[seconds] or P[milliseconds], delay in Second or Millisecond
  * G5  - Bezier curve - from http://forums.reprap.org/read.php?147,93577
  * G7  - Laser raster base64
- * G10 - retract filament according to settings of M207
- * G11 - retract recover filament according to settings of M208
- * G12 - Nozzle Clean
+ * G10 - Retract filament according to settings of M207
+ * G11 - Retract recover filament according to settings of M208
+ * G12 - Clean tool
  * G20 - Set input units to inches
  * G21 - Set input units to millimeters
- * G27 - Nozzle Park
+ * G27 - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
  * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
  *        Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
  * G31 - Dock sled (Z_PROBE_SLED only)
  * G32 - Undock sled (Z_PROBE_SLED only)
- * G33 - Delta geometry Autocalibration
+ * G33 - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
  *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
  *        P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
  *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
@@ -129,6 +129,7 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S<1=true|0=false> Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
+ * M125 - Save current position and move to pause park position. (Requires PARK_HEAD_ON_PAUSE)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
@@ -178,8 +179,8 @@
  * M321 - Set a single Auto Bed Leveling Z coordinate - X<gridx> Y<gridy> Z<level val> S<level add>
  * M322 - Reset Auto Bed Leveling matrix
  * M323 - Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
- * M350 - Set microstepping mode.
- * M351 - Toggle MS1 MS2 pins directly.
+ * M350 - Set microstepping mode. (Requires digital microstepping pins.)
+ * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Turn case lights on/off
  * M380 - Activate solenoid on active extruder
  * M381 - Disable all solenoids
@@ -214,7 +215,7 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment
- * M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+ * M900 - Get and/or Set advance K factor and WH/D ratio. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
  *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
  * M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
@@ -229,7 +230,7 @@
  * M361 - SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
  * M362 - SCARA calibration: Move to cal-position PsiA (0 deg calibration)
  * M363 - SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
- * M364 - SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
+ * M364 - SCARA calibration: Move to cal-position PsIC (90 deg to Theta calibration position)
  * ************* SCARA End ***************
  *
  * M928 - Start SD logging (M928 filename.g) - ended by M29
@@ -264,7 +265,7 @@
   #endif
 #endif
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   #include <SPI.h>
 #endif
 

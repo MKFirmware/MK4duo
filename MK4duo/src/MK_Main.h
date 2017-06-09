@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,23 +26,15 @@
 void get_command();
 
 void idle(
-  #if ENABLED(FILAMENT_CHANGE_FEATURE) || ENABLED(CNCROUTER)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) || ENABLED(CNCROUTER)
     bool no_stepper_sleep=false  // pass true to keep steppers from disabling on timeout
   #endif
 );
 
 void manage_inactivity(bool ignore_stepper_queue = false);
 
-#if ENABLED(DUAL_X_CARRIAGE)
-  extern bool hotend_duplication_enabled;
-#endif
-
 void FlushSerialRequestResend();
 void ok_to_send();
-
-#if IS_KINEMATIC
-  extern float delta[ABC];
-#endif
 
 #if IS_SCARA
   void forward_kinematics_SCARA(const float &a, const float &b);
@@ -54,16 +46,26 @@ void ok_to_send();
   extern float  bilinear_grid_factor[2],
                 z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   float bilinear_z_offset(const float logical[XYZ]);
-  void set_bed_leveling_enabled(bool enable=true);
   void refresh_bed_level();
+  #if !IS_KINEMATIC
+    extern void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits = 0xFFFF, uint16_t y_splits = 0xFFFF);
+  #endif
 #endif
 
-#if HAS(LEVELING)
+#if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
+  extern void mesh_probing_done();
+  extern void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF);
+#endif
+
+#if HAS_LEVELING
+  bool leveling_is_valid();
+  bool leveling_is_active();
+  void set_bed_leveling_enabled(const bool enable=true);
   void reset_bed_level();
 #endif
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  extern void set_z_fade_height(const float zfh);
+  void set_z_fade_height(const float zfh);
 #endif
 
 void kill(const char *);
@@ -103,72 +105,31 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-/**
- * Feedrate scaling and conversion
- */
-extern int feedrate_percentage;
+#if HAS_ABL
+  extern int xy_probe_feedrate_mm_s;
+  #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
+#elif ENABLED(XY_PROBE_SPEED)
+  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED)
+#else
+  #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
+#endif
 
-extern bool axis_relative_modes[];
 extern bool volumetric_enabled;
 extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each extruder
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
 extern float filament_size[EXTRUDERS];          // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
 extern float volumetric_multiplier[EXTRUDERS];  // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
-extern bool axis_known_position[XYZ];           // axis[n].is_known
-extern bool axis_homed[XYZ];                    // axis[n].is_homed
+
 extern volatile bool wait_for_heatup;
+
+extern const char axis_codes[NUM_AXIS];
 
 #if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
   extern volatile bool wait_for_user;
 #endif
 
-extern float current_position[NUM_AXIS];
-extern float destination[NUM_AXIS];
-
-// Workspace offsets
-#if ENABLED(WORKSPACE_OFFSETS)
-  extern float  position_shift[XYZ],
-                home_offset[XYZ],
-                workspace_offset[XYZ];
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + workspace_offset[AXIS])
-  #define RAW_POSITION(POS, AXIS)     ((POS) - workspace_offset[AXIS])
-#else
-  #define LOGICAL_POSITION(POS, AXIS) (POS)
-  #define RAW_POSITION(POS, AXIS)     (POS)
-#endif
-
-#define LOGICAL_X_POSITION(POS)     LOGICAL_POSITION(POS, X_AXIS)
-#define LOGICAL_Y_POSITION(POS)     LOGICAL_POSITION(POS, Y_AXIS)
-#define LOGICAL_Z_POSITION(POS)     LOGICAL_POSITION(POS, Z_AXIS)
-#define RAW_X_POSITION(POS)         RAW_POSITION(POS, X_AXIS)
-#define RAW_Y_POSITION(POS)         RAW_POSITION(POS, Y_AXIS)
-#define RAW_Z_POSITION(POS)         RAW_POSITION(POS, Z_AXIS)
-#define RAW_CURRENT_POSITION(AXIS)  RAW_POSITION(current_position[AXIS], AXIS)
-
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
-
-// Software Endstops
-extern float soft_endstop_min[XYZ];
-extern float soft_endstop_max[XYZ];
-
-#if HAS(SOFTWARE_ENDSTOPS)
-  extern bool soft_endstops_enabled;
-  void clamp_to_software_endstops(float target[XYZ]);
-#else
-  #define soft_endstops_enabled false
-  #define clamp_to_software_endstops(x) NOOP
-#endif
-
-#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-  void update_software_endstops(const AxisEnum axis);
-#endif
-
-// GCode support for external objects
-bool code_seen(char);
-int code_value_int();
-float code_value_temp_abs();
-float code_value_temp_diff();
 
 #if ENABLED(LIN_ADVANCE)
   extern int extruder_advance_k;
@@ -188,32 +149,35 @@ float code_value_temp_diff();
               G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
 #endif
 
-#if ENABLED(Z_FOUR_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-  extern float z4_endstop_adj;
-#elif ENABLED(Z_THREE_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  extern float z2_endstop_adj;
-#endif
-
-#if HAS(BED_PROBE)
+#if HAS_BED_PROBE
   extern float zprobe_zoffset;
   extern bool probe_process;
+  extern bool set_probe_deployed(bool deploy);
+  #define DEPLOY_PROBE() set_probe_deployed(true)
+  #define STOW_PROBE() set_probe_deployed(false)
+  #if ENABLED(BLTOUCH)
+    extern void set_bltouch_deployed(const bool deploy);
+  #endif
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  extern uint32_t host_keepalive_interval;
+  extern MK4duoBusyState busy_state;
+  #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
+#else
+  #define KEEPALIVE_STATE(n) NOOP
 #endif
 
 #if FAN_COUNT > 0
   extern int fanSpeeds[FAN_COUNT];
 #endif
-
+#if HAS_CONTROLLERFAN
+  extern uint8_t controller_fanSpeeds;
+#endif
 #if HAS(AUTO_FAN)
   extern uint8_t autoFanSpeeds[HOTENDS];
+#endif
+#if ENABLED(FAN_KICKSTART_TIME)
+  extern uint8_t fanKickstart;
 #endif
 
 #if ENABLED(BARICUDA)
@@ -230,8 +194,8 @@ float code_value_temp_diff();
   extern int meas_delay_cm;             // Delay distance
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  extern FilamentChangeMenuResponse filament_change_menu_response;
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  extern AdvancedPauseMenuResponse advanced_pause_menu_response;
 #endif
 
 #if HAS(POWER_CONSUMPTION_SENSOR)
@@ -281,15 +245,15 @@ extern uint8_t active_driver;
   extern void digipot_i2c_init();
 #endif
 
-#if HAS(TEMP_0) || HAS(TEMP_BED) || ENABLED(HEATER_0_USES_MAX6675)
+#if HAS(TEMP_0) || HAS_TEMP_BED || ENABLED(HEATER_0_USES_MAX6675)
   void print_heaterstates();
 #endif
 
-#if HAS(TEMP_CHAMBER)
+#if HAS_TEMP_CHAMBER
   void print_chamberstate();
 #endif
 
-#if HAS(TEMP_COOLER)
+#if HAS_TEMP_COOLER
   void print_coolerstate();
 #endif
 
@@ -310,11 +274,10 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s = 0.0, bool no_
 #endif
 
 /**
- * Blocking movement and shorthand functions
+ * SD Stop & Store location
  */
-void do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
-void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+#if ENABLED(SDSUPPORT)
+  void stopSDPrint(const bool store_location);
+#endif
 
 #endif // _MK_MAIN_H

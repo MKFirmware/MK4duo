@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@
   #include "speed_lookuptable.h"
 #endif
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   #include <SPI.h>
 #endif
 
@@ -304,17 +304,17 @@ void Stepper::set_directions() {
       count_direction[AXIS ##_AXIS] = 1; \
     }
 
-  #if HAS(X_DIR)
+  #if HAS_X_DIR
     SET_STEP_DIR(X); // A
   #endif
-  #if HAS(Y_DIR)
+  #if HAS_Y_DIR
     SET_STEP_DIR(Y); // B
   #endif
-  #if HAS(Z_DIR)
+  #if HAS_Z_DIR
     SET_STEP_DIR(Z); // C
   #endif
 
-  #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+  #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
     if (motor_direction(E_AXIS)) {
       REV_E_DIR();
       count_direction[E_AXIS] = -1;
@@ -632,7 +632,7 @@ void Stepper::isr() {
     #endif
 
     // For non-advance use linear interpolation for E also
-    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Keep updating the single E axis
         counter_E += current_block->steps[E_AXIS];
@@ -666,7 +666,7 @@ void Stepper::isr() {
       PULSE_STOP(Z);
     #endif
 
-    #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
+    #if HAS_EXTRUDERS && DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         // Always step the single E axis
         if (counter_E > 0) {
@@ -1072,7 +1072,7 @@ void Stepper::isr() {
 void Stepper::init() {
 
   // Init Digipot Motor Current
-  #if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
+  #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
     digipot_init();
   #endif
 
@@ -1081,7 +1081,7 @@ void Stepper::init() {
   #endif // MB(ALLIGATOR)
 
   // Init Microstepping Pins
-  #if HAS(MICROSTEPS)
+  #if HAS_MICROSTEPS
     microstep_init();
   #endif
 
@@ -1101,19 +1101,19 @@ void Stepper::init() {
   #endif
 
   // Initialize Dir Pins
-  #if HAS(X_DIR)
+  #if HAS_X_DIR
     X_DIR_INIT;
   #endif
   #if HAS(X2_DIR)
     X2_DIR_INIT;
   #endif
-  #if HAS(Y_DIR)
+  #if HAS_Y_DIR
     Y_DIR_INIT;
     #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_DIR)
       Y2_DIR_INIT;
     #endif
   #endif
-  #if HAS(Z_DIR)
+  #if HAS_Z_DIR
     Z_DIR_INIT;
     #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_DIR)
       Z2_DIR_INIT;
@@ -1168,46 +1168,46 @@ void Stepper::init() {
     #endif
   #endif
 
-  #if HAS(E0_ENABLE)
+  #if HAS_E0_ENABLE
     E0_ENABLE_INIT;
     if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E1_ENABLE)
+  #if HAS_E1_ENABLE
     E1_ENABLE_INIT;
     if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E2_ENABLE)
+  #if HAS_E2_ENABLE
     E2_ENABLE_INIT;
     if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E3_ENABLE)
+  #if HAS_E3_ENABLE
     E3_ENABLE_INIT;
     if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E4_ENABLE)
+  #if HAS_E4_ENABLE
     E4_ENABLE_INIT;
     if (!E_ENABLE_ON) E4_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E5_ENABLE)
+  #if HAS_E5_ENABLE
     E5_ENABLE_INIT;
     if (!E_ENABLE_ON) E5_ENABLE_WRITE(HIGH);
   #endif
 
   #if ENABLED(MKR4) // MKR4 System
-    #if HAS(E0E1)
+    #if HAS_E0E1
       OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E0E2)
+    #if HAS_E0E2
       OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E1E3)
+    #if HAS_E1E3
       OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
     #endif
-  #elif ENABLED(MKR6) // MKR6 System
-    #if HAS(EX1)
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
       OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(EX2)
+    #if HAS_EX2
       OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
     #endif
   #endif
@@ -1540,17 +1540,20 @@ void Stepper::report_positions() {
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
     cli();
-    uint8_t old_dir;
 
     switch (axis) {
 
-      case X_AXIS:
-        BABYSTEP_AXIS(X, false);
-        break;
+      #if ENABLED(BABYSTEP_XY)
 
-      case Y_AXIS:
-        BABYSTEP_AXIS(Y, false);
-        break;
+        case X_AXIS:
+          BABYSTEP_AXIS(X, false);
+          break;
+
+        case Y_AXIS:
+          BABYSTEP_AXIS(Y, false);
+          break;
+
+      #endif
 
       case Z_AXIS: {
 
@@ -1605,7 +1608,7 @@ void Stepper::report_positions() {
 /**
  * Software-controlled Stepper Motor Current
  */
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
 
   // From Arduino DigitalPotControl example
   void Stepper::digitalPotWrite(int address, int value) {
@@ -1618,10 +1621,10 @@ void Stepper::report_positions() {
 
 #endif
 
-#if HAS(DIGIPOTSS) || HAS(MOTOR_CURRENT_PWM)
+#if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
 
   void Stepper::digipot_init() {
-    #if HAS(DIGIPOTSS)
+    #if HAS_DIGIPOTSS
       const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
 
       SPI.begin();
@@ -1649,10 +1652,10 @@ void Stepper::report_positions() {
   }
 
   void Stepper::digipot_current(uint8_t driver, int current) {
-    #if HAS(DIGIPOTSS)
+    #if HAS_DIGIPOTSS
       const uint8_t digipot_ch[] = DIGIPOT_CHANNELS;
       digitalPotWrite(digipot_ch[driver], current);
-    #elif HAS(MOTOR_CURRENT_PWM)
+    #elif HAS_MOTOR_CURRENT_PWM
       #define _WRITE_CURRENT_PWM(P) analogWrite(P, 255L * current / (MOTOR_CURRENT_PWM_RANGE))
       switch (driver) {
         #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
@@ -1680,46 +1683,46 @@ void Stepper::report_positions() {
   }
 #endif
 
-#if HAS(MICROSTEPS)
+#if HAS_MICROSTEPS
 
   /**
    * Software-controlled Microstepping
    */
   void Stepper::microstep_init() {
 
-    #if HAS(X_MICROSTEPS)
+    #if HAS_X_MICROSTEPS
       SET_OUTPUT(X_MS1_PIN);
       SET_OUTPUT(X_MS2_PIN);
     #endif
-    #if HAS(Y_MICROSTEPS)
+    #if HAS_Y_MICROSTEPS
       SET_OUTPUT(Y_MS1_PIN);
       SET_OUTPUT(Y_MS2_PIN);
     #endif
-    #if HAS(Z_MICROSTEPS)
+    #if HAS_Z_MICROSTEPS
       SET_OUTPUT(Z_MS1_PIN);
       SET_OUTPUT(Z_MS2_PIN);
     #endif
-    #if HAS(E0_MICROSTEPS)
+    #if HAS_E0_MICROSTEPS
       SET_OUTPUT(E0_MS1_PIN);
       SET_OUTPUT(E0_MS2_PIN);
     #endif
-    #if HAS(E1_MICROSTEPS)
+    #if HAS_E1_MICROSTEPS
       SET_OUTPUT(E1_MS1_PIN);
       SET_OUTPUT(E1_MS2_PIN);
     #endif
-    #if HAS(E2_MICROSTEPS)
+    #if HAS_E2_MICROSTEPS
       SET_OUTPUT(E2_MS1_PIN);
       SET_OUTPUT(E2_MS2_PIN);
     #endif
-    #if HAS(E3_MICROSTEPS)
+    #if HAS_E3_MICROSTEPS
       SET_OUTPUT(E3_MS1_PIN);
       SET_OUTPUT(E3_MS2_PIN);
     #endif
-    #if HAS(E4_MICROSTEPS)
+    #if HAS_E4_MICROSTEPS
       SET_OUTPUT(E4_MS1_PIN);
       SET_OUTPUT(E4_MS2_PIN);
     #endif
-    #if HAS(E5_MICROSTEPS)
+    #if HAS_E5_MICROSTEPS
       SET_OUTPUT(E5_MS1_PIN);
       SET_OUTPUT(E5_MS2_PIN);
     #endif
@@ -1731,61 +1734,61 @@ void Stepper::report_positions() {
 
   void Stepper::microstep_ms(uint8_t driver, int8_t ms1, int8_t ms2) {
     if (ms1 >= 0) switch (driver) {
-      #if HAS(X_MICROSTEPS)
+      #if HAS_X_MICROSTEPS
         case 0: WRITE(X_MS1_PIN, ms1); break;
       #endif
-      #if HAS(Y_MICROSTEPS)
+      #if HAS_Y_MICROSTEPS
         case 1: WRITE(Y_MS1_PIN, ms1); break;
       #endif
-      #if HAS(Z_MICROSTEPS)
+      #if HAS_Z_MICROSTEPS
         case 2: WRITE(Z_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E0_MICROSTEPS)
+      #if HAS_E0_MICROSTEPS
         case 3: WRITE(E0_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E1_MICROSTEPS)
+      #if HAS_E1_MICROSTEPS
         case 4: WRITE(E1_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E2_MICROSTEPS)
+      #if HAS_E2_MICROSTEPS
         case 5: WRITE(E2_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E3_MICROSTEPS)
+      #if HAS_E3_MICROSTEPS
         case 6: WRITE(E3_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E4_MICROSTEPS)
+      #if HAS_E4_MICROSTEPS
         case 7: WRITE(E4_MS1_PIN, ms1); break;
       #endif
-      #if HAS(E5_MICROSTEPS)
+      #if HAS_E5_MICROSTEPS
         case 8: WRITE(E5_MS1_PIN, ms1); break;
       #endif
     }
     #if !MB(ALLIGATOR) && !MB(ALLIGATOR_V3)
       if (ms2 >= 0) switch (driver) {
-        #if HAS(X_MICROSTEPS)
+        #if HAS_X_MICROSTEPS
           case 0: WRITE(X_MS2_PIN, ms2); break;
         #endif
-        #if HAS(Y_MICROSTEPS)
+        #if HAS_Y_MICROSTEPS
           case 1: WRITE(Y_MS2_PIN, ms2); break;
         #endif
-        #if HAS(Z_MICROSTEPS)
+        #if HAS_Z_MICROSTEPS
           case 2: WRITE(Z_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E0_MICROSTEPS)
+        #if HAS_E0_MICROSTEPS
           case 3: WRITE(E0_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E1_MICROSTEPS)
+        #if HAS_E1_MICROSTEPS
           case 4: WRITE(E1_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E2_MICROSTEPS)
+        #if HAS_E2_MICROSTEPS
           case 5: WRITE(E2_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E3_MICROSTEPS)
+        #if HAS_E3_MICROSTEPS
           case 6: WRITE(E3_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E4_MICROSTEPS)
+        #if HAS_E4_MICROSTEPS
           case 7: WRITE(E4_MS2_PIN, ms2); break;
         #endif
-        #if HAS(E5_MICROSTEPS)
+        #if HAS_E5_MICROSTEPS
           case 8: WRITE(E5_MS2_PIN, ms2); break;
         #endif
       }
@@ -1807,7 +1810,7 @@ void Stepper::report_positions() {
 
   void Stepper::microstep_readings() {
     SERIAL_M(MSG_MICROSTEP_MS1_MS2);
-    #if HAS(X_MICROSTEPS)
+    #if HAS_X_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_X);
       SERIAL_V(READ(X_MS1_PIN));
       #if PIN_EXISTS(X_MS2)
@@ -1816,7 +1819,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(Y_MICROSTEPS)
+    #if HAS_Y_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_Y);
       SERIAL_V(READ(Y_MS1_PIN));
       #if PIN_EXISTS(Y_MS2)
@@ -1825,7 +1828,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(Z_MICROSTEPS)
+    #if HAS_Z_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_Z);
       SERIAL_V(READ(Z_MS1_PIN));
       #if PIN_EXISTS(Z_MS2)
@@ -1834,7 +1837,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E0_MICROSTEPS)
+    #if HAS_E0_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E0);
       SERIAL_V(READ(E0_MS1_PIN));
       #if PIN_EXISTS(E0_MS2)
@@ -1843,7 +1846,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E1_MICROSTEPS)
+    #if HAS_E1_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E1);
       SERIAL_V(READ(E1_MS1_PIN));
       #if PIN_EXISTS(E1_MS2)
@@ -1852,7 +1855,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E2_MICROSTEPS)
+    #if HAS_E2_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E2);
       SERIAL_V(READ(E2_MS1_PIN));
       #if PIN_EXISTS(E2_MS2)
@@ -1861,7 +1864,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E3_MICROSTEPS)
+    #if HAS_E3_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E3);
       SERIAL_V(READ(E3_MS1_PIN));
       #if PIN_EXISTS(E3_MS2)
@@ -1870,7 +1873,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E4_MICROSTEPS)
+    #if HAS_E4_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E4);
       SERIAL_V(READ(E4_MS1_PIN));
       #if PIN_EXISTS(E4_MS2)
@@ -1879,7 +1882,7 @@ void Stepper::report_positions() {
         SERIAL_E;
       #endif
     #endif
-    #if HAS(E5_MICROSTEPS)
+    #if HAS_E5_MICROSTEPS
       SERIAL_M(MSG_MICROSTEP_E5);
       SERIAL_V(READ(E5_MS1_PIN));
       #if PIN_EXISTS(E5_MS2)

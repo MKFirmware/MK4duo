@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,8 +34,9 @@
  * - Solenoid extruder
  * - Color Mixing Extruder
  * - Multiextruder old MKR4
- * - Multiextruder new MKR6
- * - Multiextruder new MKSE6 (multiextruder with Servo)
+ * - Multiextruder MKR6
+ * - Multiextruder MKR12
+ * - Multiextruder MKSE6 (multiextruder with Servo)
  * - Multiextruder NPr2
  * - Multiextruder DONDOLO
  * - Extruder idle oozing prevention
@@ -43,7 +44,7 @@
  * - Bowden Filament management
  * - Extruder advance constant
  * - Extruder Advance Linear Pressure Control
- * - Filament Change
+ * - Advanced Pause
  * MOTION FEATURES:
  * - Software endstops
  * - Endstops only for homing
@@ -107,6 +108,7 @@
  * - Extend capabilities report
  * - Whatchdog
  * - Start / Stop Gcode
+ * - User menu items
  *
  * Basic-settings can be found in Configuration_Basic.h
  * Mechanisms-settings can be found in Configuration_Xxxxxx.h (where Xxxxxx can be: Cartesian - Delta - Core - Scara)
@@ -120,28 +122,21 @@
 /**************************************************************************
  **************************** Fan configuration ***************************
  **************************************************************************/
-// Increase the FAN pwm frequency. Removes the PWM noise but increases heating in the FET/Arduino
-// Only 8 bit boards
-//#define FAST_PWM_FAN
-
-// Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
-// which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
-// is too low, you should also increment FAN PWM SPEED.
-//#define FAN_SOFT_PWM
-
-// Incrementing this by 1 will double the software PWM frequency.
-// However, control resolution will be halved for each increment;
-// at zero value, there are 256 effective control positions.
+// FAN PWM speed
+// 0 -  15Hz 256 values
+// 1 -  30Hz 128 values
+// 2 -  61Hz  64 values
+// 3 - 122Hz  32 values
+// 4 - 244Hz  16 values
 #define FAN_PWM_SPEED 0
 
 // When first starting the main fan, run it at full speed for the
 // given number of milliseconds.  This gets the fan spinning reliably
-// before setting a PWM value. (Does not work with software PWM for fan on Sanguinololu)
-//#define FAN_KICKSTART_TIME 100
+// before setting a PWM value.
+//#define FAN_KICKSTART_TIME 200
 
 // This defines the minimal speed for the main fan, run in PWM mode
 // to enable uncomment and set minimal PWM speed for reliable running (1-255)
-// if fan speed is [1 - (FAN_MIN_PWM-1)] it is set to FAN_MIN_PWM
 //#define FAN_MIN_PWM 50
 
 // This is for controlling a fan to cool down the stepper drivers
@@ -276,7 +271,7 @@
  ***********************************************************************
  *                                                                     *
  * Setting for more extruder width relay system                        *
- * This is new system for 6 extruder width 2 driver and 6 relay.       *
+ * This is new system for 6 extruder width 2 driver and 8 relay.       *
  * See Configuration_pins.h for pin command relay                      *
  *                                                                     *
  * Uncomment MKR6 to enable this feature                               *
@@ -284,6 +279,23 @@
  * Uncomment INVERTED_RELE_PINS if your relay switches with GND        *
  ***********************************************************************/
 //#define MKR6
+//#define INVERTED_RELE_PINS
+/***********************************************************************/
+
+
+/***********************************************************************
+ ************************* Multiextruder MKR12 *************************
+ ***********************************************************************
+ *                                                                     *
+ * Setting for more extruder width relay system                        *
+ * This is new system for 12 extruder width 4 driver and 16 relay.     *
+ * See Configuration_pins.h for pin command relay                      *
+ *                                                                     *
+ * Uncomment MKR12 to enable this feature                              *
+ *                                                                     *
+ * Uncomment INVERTED_RELE_PINS if your relay switches with GND        *
+ ***********************************************************************/
+//#define MKR12
 //#define INVERTED_RELE_PINS
 /***********************************************************************/
 
@@ -493,48 +505,53 @@
 
 
 /**************************************************************************
- *************************** Filament Change ******************************
+ *************************** Advanced Pause *******************************
  **************************************************************************
  *                                                                        *
+ * Experimental feature for filament change support and for parking       *
+ * the nozzle when paused.                                                *
  * Add the GCode M600 for initiating filament change.                     *
  *                                                                        *
- * Uncomment FILAMENT CHANGE FEATURE to enable this feature               *
+ * If PARK HEAD ON PAUSE enabled, adds the GCode M125 to pause printing   *
+ * and park the nozzle.                                                   *
+ *                                                                        *
  * Requires an LCD display.                                               *
  * This feature is required for the default FILAMENT RUNOUT SCRIPT.       *
  *                                                                        *
  **************************************************************************/
-//#define FILAMENT_CHANGE_FEATURE
+//#define ADVANCED_PAUSE_FEATURE
 
-#define FILAMENT_CHANGE_X_POS 3               // X position of hotend
-#define FILAMENT_CHANGE_Y_POS 3               // Y position of hotend
-#define FILAMENT_CHANGE_Z_ADD 10              // Z addition of hotend (lift)
-#define FILAMENT_CHANGE_XY_FEEDRATE 100       // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
-#define FILAMENT_CHANGE_Z_FEEDRATE 5          // Z axis feedrate in mm/s (not used for delta printers)
-#define FILAMENT_CHANGE_RETRACT_FEEDRATE 20   // Initial retract feedrate in mm/s
-#define FILAMENT_CHANGE_RETRACT_LENGTH 2      // Initial retract in mm
-                                              // It is a short retract used immediately after print interrupt before move to filament exchange position
-#define FILAMENT_CHANGE_COOLDOWN_TEMP 160     // Temp for cooldown, if this parameter is equal to 0 no cooling.
-#define FILAMENT_CHANGE_RETRACT_2_FEEDRATE 20 // Second retract filament feedrate in mm/s - filament retract post cool down
-#define FILAMENT_CHANGE_RETRACT_2_LENGTH 20   // Second retract filament length from hotend in mm
-#define FILAMENT_CHANGE_UNLOAD_FEEDRATE 100   // Unload filament feedrate in mm/s - filament unloading can be fast
-#define FILAMENT_CHANGE_UNLOAD_LENGTH 100     // Unload filament length from hotend in mm
-                                              // Longer length for bowden printers to unload filament from whole bowden tube,
-                                              // shorter length for printers without bowden to unload filament from extruder only,
-                                              // 0 to disable unloading for manual unloading
-#define FILAMENT_CHANGE_LOAD_FEEDRATE 100     // Load filament feedrate in mm/s - filament loading into the bowden tube can be fast
-#define FILAMENT_CHANGE_LOAD_LENGTH 100       // Load filament length over hotend in mm
-                                              // Longer length for bowden printers to fast load filament into whole bowden tube over the hotend,
-                                              // Short or zero length for printers without bowden where loading is not used
-#define FILAMENT_CHANGE_EXTRUDE_FEEDRATE 5    // Extrude filament feedrate in mm/s - must be slower than load feedrate
-#define FILAMENT_CHANGE_EXTRUDE_LENGTH 50     // Extrude filament length in mm after filament is load over the hotend,
-                                              // 0 to disable for manual extrusion
-                                              // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
-                                              // or until outcoming filament color is not clear for filament color change
-#define FILAMENT_CHANGE_NOZZLE_TIMEOUT 45L    // Turn off nozzle if user doesn't change filament within this time limit in seconds
-#define FILAMENT_CHANGE_PRINTER_OFF 5L        // Turn off printer if user doesn't change filament within this time limit in Minutes
-#define FILAMENT_CHANGE_NUMBER_OF_BEEPS 5L    // Number of alert beeps before printer goes quiet
-#define FILAMENT_CHANGE_NO_STEPPER_TIMEOUT    // Enable to have stepper motors hold position during filament change
-                                              // even if it takes longer than DEFAULT_STEPPER_DEACTIVE_TIME.
+#define PAUSE_PARK_X_POS 3                  // X position of hotend
+#define PAUSE_PARK_Y_POS 3                  // Y position of hotend
+#define PAUSE_PARK_Z_ADD 10                 // Z addition of hotend (lift)
+#define PAUSE_PARK_XY_FEEDRATE 100          // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
+#define PAUSE_PARK_Z_FEEDRATE 5             // Z axis feedrate in mm/s (not used for delta printers)
+#define PAUSE_PARK_RETRACT_FEEDRATE 20      // Initial retract feedrate in mm/s
+#define PAUSE_PARK_RETRACT_LENGTH 2         // Initial retract in mm
+                                            // It is a short retract used immediately after print interrupt before move to filament exchange position
+#define PAUSE_PARK_COOLDOWN_TEMP 160        // Temp for cooldown, if this parameter is equal to 0 no cooling.
+#define PAUSE_PARK_RETRACT_2_FEEDRATE 20    // Second retract filament feedrate in mm/s - filament retract post cool down
+#define PAUSE_PARK_RETRACT_2_LENGTH 20      // Second retract filament length from hotend in mm
+#define PAUSE_PARK_UNLOAD_FEEDRATE 100      // Unload filament feedrate in mm/s - filament unloading can be fast
+#define PAUSE_PARK_UNLOAD_LENGTH 100        // Unload filament length from hotend in mm
+                                            // Longer length for bowden printers to unload filament from whole bowden tube,
+                                            // shorter length for printers without bowden to unload filament from extruder only,
+                                            // 0 to disable unloading for manual unloading
+#define PAUSE_PARK_LOAD_FEEDRATE 100        // Load filament feedrate in mm/s - filament loading into the bowden tube can be fast
+#define PAUSE_PARK_LOAD_LENGTH 100          // Load filament length over hotend in mm
+                                            // Longer length for bowden printers to fast load filament into whole bowden tube over the hotend,
+                                            // Short or zero length for printers without bowden where loading is not used
+#define PAUSE_PARK_EXTRUDE_FEEDRATE 5       // Extrude filament feedrate in mm/s - must be slower than load feedrate
+#define PAUSE_PARK_EXTRUDE_LENGTH 50        // Extrude filament length in mm after filament is load over the hotend,
+                                            // 0 to disable for manual extrusion
+                                            // Filament can be extruded repeatedly from the filament exchange menu to fill the hotend,
+                                            // or until outcoming filament color is not clear for filament color change
+#define PAUSE_PARK_NOZZLE_TIMEOUT 45        // Turn off nozzle if user doesn't change filament within this time limit in seconds
+#define PAUSE_PARK_PRINTER_OFF 5            // Turn off printer if user doesn't change filament within this time limit in Minutes
+#define PAUSE_PARK_NUMBER_OF_ALERT_BEEPS 5  // Number of alert beeps before printer goes quiet
+#define PAUSE_PARK_NO_STEPPER_TIMEOUT       // Enable to have stepper motors hold position during filament change
+                                            // even if it takes longer than DEFAULT STEPPER DEACTIVE TIME.
+//#define PARK_HEAD_ON_PAUSE                // Go to filament change position on pause, return to print position on resume
 /**************************************************************************/
 
 
@@ -1284,6 +1301,15 @@
 // Include a page of printer information in the LCD Main Menu
 #define LCD_INFO_MENU
 
+// Scroll a longer status message into view
+//#define STATUS_MESSAGE_SCROLLING
+
+// On the Info Screen, display XY with one decimal place when possible
+//#define LCD_DECIMAL_SMALL_XY
+
+// The timeout (in ms) to return to the status screen from sub-menus
+//#define LCD_TIMEOUT_TO_STATUS 15000
+
 // CONTROLLER TYPE: Standard
 
 // MK4duo supports a wide variety of controllers.
@@ -1419,6 +1445,11 @@
 // SAV OLEd LCD module support using either SSD1306 or SH1106 based LCD modules
 //
 //#define SAV_3DGLCD
+
+// ANET DISPLAY
+//
+//#define ANET_KEYPAD_LCD
+//#define ANET_FULL_GRAPHICS_LCD
 
 // CONTROLLER TYPE: Shift register panels
 //
@@ -1574,15 +1605,18 @@
  ******************************* Case Light *******************************
  **************************************************************************
  *                                                                        *
- * Support case light                                                     *
+ * M355 Case Light on-off / brightness                                    *
  *                                                                        *
  **************************************************************************/
 //#define CASE_LIGHT
 
-// Set to true if HIGH is the OFF state (active low)
+// set to true if case light is ON when pin is at 0
 #define INVERT_CASE_LIGHT false
-// Uncomment to set default state to on
-//#define CASE_LIGHT_DEFAULT_ON
+// set default power up state to on or off
+#define CASE_LIGHT_DEFAULT_ON false
+// set power up brightness 0-255 ( only used if on PWM
+// and if CASE_LIGHT_DEFAULT is set to on)
+#define CASE_LIGHT_DEFAULT_BRIGHTNESS 255   
 /**************************************************************************/
 
 
@@ -1595,10 +1629,16 @@
  ***********************************************************************
  *                                                                     *
  * Default stepper release if idle. Set to 0 to deactivate.            *
+ * Steppers will shut down DEFAULT_STEPPER_DEACTIVE_TIME seconds after *
+ * the last move when DISABLE_INACTIVE_? is defined.                   *
  * Time can be set by M18 and M84.                                     *
  *                                                                     *
  ***********************************************************************/
 #define DEFAULT_STEPPER_DEACTIVE_TIME 120
+#define DISABLE_INACTIVE_X
+#define DISABLE_INACTIVE_Y
+#define DISABLE_INACTIVE_Z
+#define DISABLE_INACTIVE_E
 /***********************************************************************/
 
 
@@ -1938,7 +1978,7 @@
 
 
 /*****************************************************************************************
- ********************************* Start - Stop Gcode ************************************
+ ********************************* Start / Stop Gcode ************************************
  *****************************************************************************************
  *                                                                                       *
  * Start - Stop Gcode use when Start or Stop printing width M11 command                  *
@@ -1950,5 +1990,34 @@
 //#define STOP_GCODE
 #define STOP_PRINTING_SCRIPT "G28\nM107\nM104 T0 S0\nM140 S0\nM84\nM81"
 /*****************************************************************************************/
- 
+
+
+/*****************************************************************************************
+ *********************************** User menu items *************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * USer-defined menu items that execute custom GCode                                     *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define CUSTOM_USER_MENUS
+
+#define USER_SCRIPT_DONE "M117 User Script Done"
+
+#define USER_DESC_1 "Home & ABL"
+#define USER_GCODE_1 "G28\nG29"
+
+#define USER_DESC_2 "Preheat for PLA"
+#define USER_GCODE_2 "M140 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND)
+
+#define USER_DESC_3 "Preheat for ABS"
+#define USER_GCODE_3 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND)
+
+#define USER_DESC_4 "Heat Bed/Home/Level"
+#define USER_GCODE_4 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nG28\nG29"
+
+#define USER_DESC_5 "Home & Info"
+#define USER_GCODE_5 "G28\nM503"
+/*****************************************************************************************/
+
+
 #endif

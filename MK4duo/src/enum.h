@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ enum EndstopEnum {
  * MK4duo sends messages if blocked or busy
  */
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  enum FirmwareState {
+  enum MK4duoBusyState {
     NOT_BUSY,           // Not in a handler
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)
@@ -123,35 +123,39 @@ enum EndstopEnum {
   };
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  enum FilamentChangeMenuResponse {
-    FILAMENT_CHANGE_RESPONSE_WAIT_FOR,
-    FILAMENT_CHANGE_RESPONSE_EXTRUDE_MORE,
-    FILAMENT_CHANGE_RESPONSE_RESUME_PRINT
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  enum AdvancedPauseMenuResponse {
+    ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
+    ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
+    ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
   };
   
-  #if HAS(LCD)
-    enum FilamentChangeMessage {
-      FILAMENT_CHANGE_MESSAGE_INIT,
-      FILAMENT_CHANGE_MESSAGE_COOLDOWN,
-      FILAMENT_CHANGE_MESSAGE_UNLOAD,
-      FILAMENT_CHANGE_MESSAGE_INSERT,
-      FILAMENT_CHANGE_MESSAGE_LOAD,
-      FILAMENT_CHANGE_MESSAGE_EXTRUDE,
-      FILAMENT_CHANGE_MESSAGE_OPTION,
-      FILAMENT_CHANGE_MESSAGE_RESUME,
-      FILAMENT_CHANGE_MESSAGE_STATUS,
-      FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
-      FILAMENT_CHANGE_MESSAGE_PRINTER_OFF,
-      FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
+  #if HAS_LCD
+    enum AdvancedPauseMessage {
+      ADVANCED_PAUSE_MESSAGE_INIT,
+      ADVANCED_PAUSE_MESSAGE_COOLDOWN,
+      ADVANCED_PAUSE_MESSAGE_UNLOAD,
+      ADVANCED_PAUSE_MESSAGE_INSERT,
+      ADVANCED_PAUSE_MESSAGE_LOAD,
+      ADVANCED_PAUSE_MESSAGE_EXTRUDE,
+      ADVANCED_PAUSE_MESSAGE_OPTION,
+      ADVANCED_PAUSE_MESSAGE_RESUME,
+      ADVANCED_PAUSE_MESSAGE_STATUS,
+      ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+      ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
+      ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
     };
   #endif
 #endif
 
 enum PrinterMode {
-  PRINTER_MODE_FFF,
-  PRINTER_MODE_LASER,
-  PRINTER_MODE_CNC
+  PRINTER_MODE_FFF,           // M450 S0 or M451
+  PRINTER_MODE_LASER,         // M450 S1 or M452
+  PRINTER_MODE_CNC,           // M450 S2 or M453
+  PRINTER_MODE_PICKER,        // M450 S3 or M454
+  PRINTER_MODE_SOLDER,        // M450 S4
+  PRINTER_MODE_PLOTTER,
+  PRINTER_MODE_COUNT
 };
 
 /**
@@ -173,12 +177,23 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_CPR,
   SD_CFG_FIL,
   SD_CFG_NPR,
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   SD_CFG_PWR,
 #endif
   SD_CFG_TME,
   SD_CFG_TPR,
   SD_CFG_END // Leave this always as the last
 };
+
+/**
+ * DUAL X CARRIAGE
+ */
+#if ENABLED(DUAL_X_CARRIAGE)
+  enum DualXMode {
+    DXC_FULL_CONTROL_MODE,
+    DXC_AUTO_PARK_MODE,
+    DXC_DUPLICATION_MODE
+  };
+#endif
 
 #endif //__ENUM_H__

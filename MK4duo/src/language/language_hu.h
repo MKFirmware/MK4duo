@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -233,7 +233,7 @@
 #define MSG_LIGHTS_ON                       _UxGT("Doboz fény be")
 #define MSG_LIGHTS_OFF                      _UxGT("Doboz fény ki")
 
-// FILAMENT_CHANGE_FEATURE
+// ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CSERÉLJ SZÁLAT")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CSERE OPCIÓK:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudálj többet")

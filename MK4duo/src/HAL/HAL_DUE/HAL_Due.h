@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -195,12 +195,14 @@
 #define OVERSAMPLENR 6
 #define MEDIAN_COUNT 10 // MEDIAN COUNT for Smoother temperature
 #define NUM_ADC_SAMPLES (2 + (1 << OVERSAMPLENR))
+#define ADC_TEMPERATURE_SENSOR 15
 
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
 
 typedef uint32_t millis_t;
+typedef uint8_t Pin;
 
 // --------------------------------------------------------------------------
 // Public Variables
@@ -221,7 +223,10 @@ class HAL {
 
     virtual ~HAL();
 
-    static volatile uint AnalogInputValues[ANALOG_INPUTS];
+    #if ANALOG_INPUTS > 0
+      static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
+    #endif
+
     static bool execute_100ms;
 
     static void hwSetup(void);
@@ -256,13 +261,15 @@ class HAL {
       static void spiSendBlock(uint8_t token, const uint8_t* buf);
     #endif
 
-    static inline void digitalWrite(uint8_t pin, uint8_t value) {
+    static bool AnalogWrite(Pin pin, const uint8_t value, const uint16_t freq);
+
+    static inline void digitalWrite(Pin pin, uint8_t value) {
       WRITE_VAR(pin, value);
     }
-    static inline uint8_t digitalRead(uint8_t pin) {
+    static inline uint8_t digitalRead(Pin pin) {
       return READ_VAR(pin);
     }
-    static inline void pinMode(uint8_t pin, uint8_t mode) {
+    static inline void pinMode(Pin pin, uint8_t mode) {
       if (mode == INPUT) {
         SET_INPUT(pin);
       }
@@ -341,11 +348,5 @@ uint8_t eeprom_read_byte(uint8_t* pos);
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
-
-#if ENABLED(LASERBEAM)
-  #define LASER_PWM_MAX_DUTY 255
-  void HAL_laser_init_pwm(uint8_t pin, uint16_t freq);
-  void HAL_laser_intensity(uint8_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
-#endif
 
 #endif // HAL_SAM_H

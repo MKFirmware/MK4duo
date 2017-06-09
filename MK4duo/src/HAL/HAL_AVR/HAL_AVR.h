@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,14 @@
 
 #include "fastio.h"
 #include "watchdog_AVR.h"
+
+// BLUETOOTH
+#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+  #undef SERIAL_PORT
+  #undef BAUDRATE
+  #define SERIAL_PORT BLUETOOTH_PORT
+  #define BAUDRATE    BLUETOOTH_BAUD
+#endif
 
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
@@ -347,7 +355,10 @@ class HAL {
 
     virtual ~HAL();
 
-    static unsigned long AnalogInputValues[ANALOG_INPUTS];
+    #if ANALOG_INPUTS > 0
+      static int16_t AnalogInputValues[ANALOG_INPUTS];
+    #endif
+
     static bool execute_100ms;
 
     // do any hardware-specific initialization here

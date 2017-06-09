@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@
 
 #include "utf_mapper.h"
 
-int lcd_contrast;
+uint16_t lcd_contrast;
 static char currentfont = 0;
 
 // The current graphical page being rendered
@@ -241,13 +241,22 @@ char lcd_print_and_count(const char c) {
   else return charset_mapper(c);
 }
 
-void lcd_print(const char* const str) {
-  for (uint8_t i = 0; char c = str[i]; ++i) lcd_print(c);
+/**
+ * Core LCD printing functions
+ * On DOGM all strings go through a filter for utf
+ * But only use lcd_print_utf and lcd_printPGM_utf for translated text
+ */
+void lcd_print(const char *str) { while (*str) lcd_print(*str++); }
+void lcd_printPGM(const char *str) { while (const char c = pgm_read_byte(str)) lcd_print(c), ++str; }
+
+void lcd_print_utf(const char *str, uint8_t n=LCD_WIDTH) {
+  char c;
+  while (n && (c = *str)) n -= charset_mapper(c), ++str;
 }
 
-/* Arduino < 1.0.0 is missing a function to print PROGMEM strings, so we need to implement our own */
-void lcd_printPGM(const char* str) {
-  for (; char c = pgm_read_byte(str); ++str) lcd_print(c);
+void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
+  char c;
+  while (n && (c = pgm_read_byte(str))) n -= charset_mapper(c), ++str;
 }
 
 // Initialize or re-initialize the LCD
@@ -348,15 +357,27 @@ FORCE_INLINE void _draw_centered_temp(const int temp, const uint8_t x, const uin
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
 }
 
-FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater) {
-  #if HAS(TEMP_BED)
-    bool isBed = heater < 0;
+FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
+
+  #if HAS_TEMP_BED
+    const bool isBed = heater < 0;
   #else
     const bool isBed = false;
   #endif
 
-  if (PAGE_UNDER(7))
-    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7);
+  if (PAGE_UNDER(7)) {
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      const bool is_idle = (!isBed ? thermalManager.is_heater_idle(heater) :
+      #if HAS_TEMP_BED
+        thermalManager.is_bed_idle()
+      #else
+        false
+      #endif
+      );
+
+      if (blink || !is_idle)
+    #endif
+    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7); }
 
   if (PAGE_CONTAINS(21, 28))
     _draw_centered_temp((isBed ? thermalManager.degBed() : thermalManager.degHotend(heater)) + 0.5, x, 28);
@@ -379,10 +400,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!axis_homed[axis])
+    if (!Mechanics.axis_homed[axis])
       u8g.print('?');
     else {
-      if (!axis_known_position[axis])
+      if (!Mechanics.axis_known_position[axis])
         u8g.print(' ');
       else
         lcd_printPGM(pstr);
@@ -390,9 +411,28 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
+inline void lcd_implementation_status_message() {
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    static bool last_blink = false;
+    lcd_print_utf(lcd_status_message + status_scroll_pos);
+    const uint8_t slen = lcd_strlen(lcd_status_message);
+    if (slen > LCD_WIDTH) {
+      const bool new_blink = lcd_blink();
+      if (last_blink != new_blink) {
+        last_blink = new_blink;
+        // Skip any non-printing bytes
+        while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
+        if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+      }
+    }
+  #else
+    lcd_print_utf(lcd_status_message);
+  #endif
+}
+
 static void lcd_implementation_status_screen() {
 
-  bool blink = lcd_blink();
+  const bool blink = lcd_blink();
 
   // Status Menu Font
   lcd_setFont(FONT_STATUSMENU);
@@ -420,21 +460,21 @@ static void lcd_implementation_status_screen() {
 
   #endif
 
-    {
-      //
-      // Fan Animation
-      //
-      if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
+  {
+    //
+    // Fan Animation
+    //
+    if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
-        u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-          #if HAS(FAN0)
-            blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
-          #else
-            status_screen0_bmp
-          #endif
-        );
-      }
+      u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
+        #if HAS(FAN0)
+          blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
+        #else
+          status_screen0_bmp
+        #endif
+      );
     }
+  }
 
   if (printer_mode == PRINTER_MODE_FFF) {
 
@@ -444,24 +484,24 @@ static void lcd_implementation_status_screen() {
 
     if (PAGE_UNDER(28)) {
       // Hotends
-      HOTEND_LOOP() _draw_heater_status(5 + h * 25, h);
+      HOTEND_LOOP() _draw_heater_status(5 + h * 25, h, blink);
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(81, -1);
+        _draw_heater_status(81, -1, blink);
       #endif
 
-      if (PAGE_CONTAINS(20, 27)) {
-        // Fan
-        u8g.setPrintPos(104, 27);
-        #if HAS(FAN0)
-          int per = ((fanSpeeds[0] + 1) * 100) / 256;
+      #if HAS_FAN0
+        if (PAGE_CONTAINS(20, 27)) {
+          // Fan
+          const int per = ((fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
+            u8g.setPrintPos(104, 27);
             lcd_print(itostr3(per));
             u8g.print('%');
           }
-        #endif
-      }
+        }
+      #endif
     }
   }
 
@@ -573,20 +613,20 @@ static void lcd_implementation_status_screen() {
   #endif
 
   // Before homing the axis letters are blinking 'X' <-> '?'.
-  // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+  // When axis is homed but Mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];
-  #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+  #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
     static char wstring[5], mstring[4];
   #endif
 
   // At the first page, regenerate the XYZ strings
   if (page.page == 0) {
-    strcpy(xstring, ftostr4sign(current_position[X_AXIS]));
-    strcpy(ystring, ftostr4sign(current_position[Y_AXIS]));
-    strcpy(zstring, ftostr52sp(FIXFLOAT(current_position[Z_AXIS])));
-    #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+    strcpy(xstring, ftostr4sign(Mechanics.current_position[X_AXIS]));
+    strcpy(ystring, ftostr4sign(Mechanics.current_position[Y_AXIS]));
+    strcpy(zstring, ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
+    #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
     #endif
@@ -638,13 +678,13 @@ static void lcd_implementation_status_screen() {
 
     lcd_setFont(FONT_STATUSMENU);
     u8g.setPrintPos(12, 50);
-    lcd_print(itostr3(feedrate_percentage));
+    lcd_print(itostr3(Mechanics.feedrate_percentage));
     u8g.print('%');
 
     //
     // Filament sensor display if SD is disabled
     //
-    #if HAS(LCD_FILAMENT_SENSOR) && DISABLED(SDSUPPORT)
+    #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       u8g.setPrintPos(56, 50);
       lcd_print(wstring);
       u8g.setPrintPos(102, 50);
@@ -667,12 +707,13 @@ static void lcd_implementation_status_screen() {
   if (PAGE_CONTAINS(STATUS_BASELINE + 1 - INFO_FONT_HEIGHT, STATUS_BASELINE)) {
     u8g.setPrintPos(0, STATUS_BASELINE);
 
-    #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
+    #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
+      if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
+        lcd_implementation_status_message();
+      }
 
-      if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) // Display both Status message line and Filament display on the last line
-        lcd_print(lcd_status_message);
-      #if HAS(LCD_POWER_SENSOR)
-        #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT))
+      #if HAS_LCD_POWER_SENSOR
+        #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT))
           else if (PENDING(millis(), previous_lcd_status_ms + 10000UL))
         #else
           else
@@ -685,6 +726,7 @@ static void lcd_implementation_status_screen() {
             lcd_printPGM(PSTR("Wh"));
           }
       #endif
+
       #if HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)
         else {
           lcd_printPGM(PSTR(LCD_STR_FILAM_DIA));
@@ -697,7 +739,7 @@ static void lcd_implementation_status_screen() {
         }
       #endif
     #else
-      lcd_print(lcd_status_message);
+      lcd_implementation_status_message();
     #endif
   }
 }
@@ -707,7 +749,7 @@ static void lcd_implementation_status_screen() {
   uint8_t row_y1, row_y2;
   uint8_t constexpr row_height = DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION);
 
-  #if ENABLED(FILAMENT_CHANGE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
     static void lcd_implementation_hotend_status(const uint8_t row) {
       row_y1 = row * row_height + 1;
@@ -721,10 +763,12 @@ static void lcd_implementation_status_screen() {
       lcd_print(' ');
       lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
       lcd_print('/');
-      lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+
+      if (lcd_blink() || !thermalManager.is_heater_idle(active_extruder))
+        lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
     }
 
-  #endif // FILAMENT_CHANGE_FEATURE
+  #endif // ADVANCED_PAUSE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
   static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {

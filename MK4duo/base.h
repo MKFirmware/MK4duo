@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,6 @@
 
 #include "src/macros.h"
 #include "Boards.h"
-#include "src/mechanics.h"
 
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
@@ -86,7 +85,7 @@
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
-#if HAS(ABL)
+#if HAS_ABL
   #include "src/planner/vector_3.h"
 #endif
 
@@ -94,10 +93,6 @@
   #include "src/planner/qr_solve.h"
 #elif ENABLED(MESH_BED_LEVELING)
   #include "src/mbl/mesh_bed_leveling.h"
-#endif
-
-#if MECH(DELTA)
-  #include "src/motion/delta_kinematics.h"
 #endif
 
 #if ENABLED(LASERBEAM)
@@ -111,6 +106,8 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
+#include "src/mechanics/mechanics.h"
+#include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
@@ -119,7 +116,6 @@
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/motion/stepper.h"
-#include "src/motion/cartesian_correction.h"
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
@@ -135,7 +131,7 @@
   #include "src/alligator/external_dac.h"
 #endif
 
-#if HAS(DIGIPOTSS)
+#if HAS_DIGIPOTSS
   #include <SPI.h>
 #endif
 

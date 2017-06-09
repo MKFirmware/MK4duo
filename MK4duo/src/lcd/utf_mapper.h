@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,6 +143,8 @@
     #error "Something went wrong in the setting of DISPLAY_CHARSET_HD44780"
   #endif // DISPLAY_CHARSET_HD44780
 #endif // SIMULATE_ROMFONT
+
+#define PRINTABLE(C) (((C) & 0xC0u) != 0x80u)
 
 #if ENABLED(MAPPER_C2C3)
 
@@ -466,8 +468,11 @@
 
   #define MAPPER_NON
 
+  #undef PRINTABLE
+  #define PRINTABLE(C) true
+
   char charset_mapper(const char c) {
-    HARDWARE_CHAR_OUT( c );
+    HARDWARE_CHAR_OUT(c);
     return 1;
   }
 

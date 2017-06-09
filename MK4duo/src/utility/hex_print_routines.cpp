@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
+#if ENABLED(M100_FREE_MEMORY_WATCHER) || ENABLED(DEBUG_GCODE_PARSER)
 
 static char _hex[7] = "0x0000";
 
@@ -41,7 +41,7 @@ char* hex_word(const uint16_t w) {
 }
 
 char* hex_address(const void * const w) {
-  (void)hex_word((uint16_t)w);
+  (void)hex_word((int)w);
   return _hex;
 }
 

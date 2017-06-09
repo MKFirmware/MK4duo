@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,10 @@
     #define LCD_HEIGHT 4
   #endif
 
+  #if DISABLED(LCD_TIMEOUT_TO_STATUS)
+    #define LCD_TIMEOUT_TO_STATUS 15000
+  #endif
+
   #if ENABLED(SAV_3DGLCD)
     //#define U8GLIB_SSD1306
     #define U8GLIB_SH1106
@@ -60,6 +64,11 @@
     #define ULTIPANEL
     #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 17
+  #endif
+
+  #if ENABLED(ANET_KEYPAD_LCD)
+    #define ADC_KEYPAD
+    #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
   #endif
 
   #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
@@ -108,12 +117,9 @@
 
   #if ENABLED(BQ_LCD_SMART_CONTROLLER)
     #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
-    #if DISABLED(LONG_FILENAME_HOST_SUPPORT)
-      #define LONG_FILENAME_HOST_SUPPORT
-    #endif
   #endif
 
-  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) || ENABLED(ANET_FULL_GRAPHICS_LCD)
     #define DOGLCD
     #define U8GLIB_ST7920
     #define REPRAP_DISCOUNT_SMART_CONTROLLER
@@ -122,9 +128,12 @@
   #if ENABLED(ULTIMAKERCONTROLLER)              \
    || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) \
    || ENABLED(G3D_PANEL)                        \
-   || ENABLED(RIGIDBOT_PANEL)                   \
-   || ENABLED(REPRAPWORLD_KEYPAD)
+   || ENABLED(RIGIDBOT_PANEL)
     #define ULTIPANEL
+    #define NEWPANEL
+  #endif
+
+  #if ENABLED(REPRAPWORLD_KEYPAD)
     #define NEWPANEL
   #endif
 
@@ -257,15 +266,16 @@
     #define LCD_STR_FILAM_DIA   "\xf8"
     #define LCD_STR_FILAM_MUL   "\xa4"
   #else
-    /* Custom characters defined in the first 8 characters of the LCD */
-    #define LCD_STR_BEDTEMP     "\x00"  // Print only as a char. This will have 'unexpected' results when used in a string!
-    #define LCD_STR_DEGREE      "\x01"
-    #define LCD_STR_THERMOMETER "\x02"
-    #define LCD_STR_UPLEVEL     "\x03"
-    #define LCD_STR_REFRESH     "\x04"
+    // Custom characters defined in the first 8 characters of the LCD
+    // Print double-quoted items only as char. They may have 'unexpected' results if used in strings!
+    #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
+    #define LCD_DEGREE_CHAR      0x01
+    #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
+    #define LCD_UPLEVEL_CHAR     0x03
+    #define LCD_REFRESH_CHAR     0x04
     #define LCD_STR_FOLDER      "\x05"
-    #define LCD_STR_FEEDRATE    "\x06"
-    #define LCD_STR_CLOCK       "\x07"
+    #define LCD_FEEDRATE_CHAR    0x06
+    #define LCD_CLOCK_CHAR       0x07
     #define LCD_STR_ARROW_RIGHT ">"  /* from the default character set */
   #endif
 
@@ -394,10 +404,18 @@
     #define E_INDEX   (E_AXIS + active_extruder)
     #define GET_TARGET_EXTRUDER(CMD) if (get_target_extruder_from_command(CMD)) return
     #define TARGET_EXTRUDER target_extruder
-  #else
+  #elif EXTRUDERS == 1
     #define XYZE_N    XYZE
     #define E_AXIS_N  E_AXIS
     #define E_INDEX   E_AXIS
+    #define GET_TARGET_EXTRUDER(CMD) NOOP
+    #define TARGET_EXTRUDER 0
+  #elif EXTRUDERS == 0
+    #undef PIDTEMP
+    #undef FWRETRACT
+    #define XYZE_N    XYZ
+    #define E_AXIS_N  0
+    #define E_INDEX   0
     #define GET_TARGET_EXTRUDER(CMD) NOOP
     #define TARGET_EXTRUDER 0
   #endif

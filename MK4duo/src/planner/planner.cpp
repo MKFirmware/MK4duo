@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ float Planner::min_feedrate_mm_s,
       Planner::travel_acceleration,             // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
       Planner::max_jerk[XYZE_N];                // The largest speed change requiring no acceleration
 
-#if HAS(ABL)
+#if HAS_ABL
   bool Planner::abl_enabled = false; // Flag that auto bed leveling is enabled
 #endif
 
@@ -99,7 +99,7 @@ float Planner::min_feedrate_mm_s,
         Planner::inverse_z_fade_height;
 #endif
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
   float Planner::autotemp_max = 250,
         Planner::autotemp_min = 210,
         Planner::autotemp_factor = 0.1;
@@ -346,7 +346,7 @@ void Planner::recalculate() {
 }
 
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::getHighESpeed() {
     static float oldt = 0;
@@ -365,10 +365,7 @@ void Planner::recalculate() {
 
     float t = autotemp_min + high * autotemp_factor;
     t = constrain(t, autotemp_min, autotemp_max);
-    if (oldt > t) {
-      t *= (1 - (AUTOTEMP_OLDWEIGHT));
-      t += (AUTOTEMP_OLDWEIGHT) * oldt;
-    }
+    if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
     thermalManager.setTargetHotend(t, 0);
   }
@@ -379,12 +376,7 @@ void Planner::recalculate() {
  * Maintain fans, paste extruder pressure,
  */
 void Planner::check_axes_activity() {
-  unsigned char axis_active[NUM_AXIS] = { 0 },
-                tail_fan_speed[FAN_COUNT];
-
-  #if FAN_COUNT > 0
-    FAN_LOOP() tail_fan_speed[f] = fanSpeeds[f];
-  #endif
+  unsigned char axis_active[NUM_AXIS] = { 0 };
 
   #if ENABLED(BARICUDA)
     #if HAS_HEATER_1
@@ -396,10 +388,6 @@ void Planner::check_axes_activity() {
   #endif
 
   if (blocks_queued()) {
-
-    #if FAN_COUNT > 0
-      FAN_LOOP() tail_fan_speed[f] = block_buffer[block_buffer_tail].fan_speed[f];
-    #endif
 
     block_t* block;
 
@@ -438,99 +426,27 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  #if FAN_COUNT > 0
-
-    #if ENABLED(FAN_MIN_PWM)
-      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ? ( FAN_MIN_PWM + (tail_fan_speed[f] * (255 - FAN_MIN_PWM)) / 255 ) : 0)
-    #else
-      #define CALC_FAN_SPEED(f) tail_fan_speed[f]
-    #endif
-
-    #if ENABLED(FAN_KICKSTART_TIME)
-
-      static millis_t fan_kick_end[FAN_COUNT] = { 0 };
-
-      #define KICKSTART_FAN(f) \
-        if (tail_fan_speed[f]) { \
-          millis_t ms = millis(); \
-          if (fan_kick_end[f] == 0) { \
-            fan_kick_end[f] = ms + FAN_KICKSTART_TIME; \
-            tail_fan_speed[f] = 255; \
-          } else { \
-            if (PENDING(ms, fan_kick_end[f])) { \
-              tail_fan_speed[f] = 255; \
-            } \
-          } \
-        } else { \
-          fan_kick_end[f] = 0; \
-        }
-
-      #if HAS(FAN0)
-        KICKSTART_FAN(0);
-      #endif
-      #if HAS(FAN1)
-        KICKSTART_FAN(1);
-      #endif
-      #if HAS(FAN2)
-        KICKSTART_FAN(2);
-      #endif
-      #if HAS(FAN3)
-        KICKSTART_FAN(3);
-      #endif
-
-    #endif // FAN_KICKSTART_TIME
-
-    #if ENABLED(FAN_SOFT_PWM)
-      #if HAS(FAN0)
-        thermalManager.fanSpeedSoftPwm[0] = CALC_FAN_SPEED(0);
-      #endif
-      #if HAS(FAN1)
-        thermalManager.fanSpeedSoftPwm[1] = CALC_FAN_SPEED(1);
-      #endif
-      #if HAS(FAN2)
-        thermalManager.fanSpeedSoftPwm[2] = CALC_FAN_SPEED(2);
-      #endif
-      #if HAS(FAN3)
-        thermalManager.fanSpeedSoftPwm[3] = CALC_FAN_SPEED(3);
-      #endif
-    #else
-      #if HAS(FAN0)
-        analogWrite(FAN_PIN, CALC_FAN_SPEED(0));
-      #endif
-      #if HAS(FAN1)
-        analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
-      #endif
-      #if HAS(FAN2)
-        analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));
-      #endif
-      #if HAS(FAN3)
-        analogWrite(FAN3_PIN, CALC_FAN_SPEED(3));
-      #endif
-    #endif
-
-  #endif // FAN_COUNT > 0
-
-  #if ENABLED(AUTOTEMP)
+  #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
     getHighESpeed();
   #endif
 
   #if ENABLED(BARICUDA)
-    #if HAS(HEATER_1)
+    #if HAS_HEATER_1
       analogWrite(HEATER_1_PIN, tail_valve_pressure);
     #endif
-    #if HAS(HEATER_2)
+    #if HAS_HEATER_2
       analogWrite(HEATER_2_PIN, tail_e_to_p_pressure);
     #endif
   #endif
 }
 
-#if HAS(LEVELING)
+#if HAS_LEVELING
   /**
    * lx, ly, lz - Logical (cartesian, not delta) positions in mm
    */
   void Planner::apply_leveling(float &lx, float &ly, float &lz) {
 
-    #if HAS(ABL)
+    #if HAS_ABL
       if (!abl_enabled) return;
     #endif
 
@@ -583,7 +499,7 @@ void Planner::check_axes_activity() {
 
   void Planner::unapply_leveling(float logical[XYZ]) {
 
-    #if HAS(ABL)
+    #if HAS_ABL
       if (!abl_enabled) return;
     #endif
 
@@ -628,7 +544,7 @@ void Planner::check_axes_activity() {
     #endif
   }
 
-#endif // HAS(LEVELING)
+#endif // HAS_LEVELING
 
 /**
  * Planner::_buffer_line
@@ -686,7 +602,11 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(PREVENT_COLD_EXTRUSION)
-    if (de) {
+    if (de
+      #if HAS_MULTI_MODE
+        && printer_mode == PRINTER_MODE_FFF
+      #endif
+    ) {
       #if ENABLED(NPR2)
         if (extruder != 1)
       #endif
@@ -806,7 +726,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->steps[E_AXIS] = esteps;
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
-  if (printer_mode != PRINTER_MODE_LASER)
+  #if HAS_MULTI_MODE
+    if (printer_mode != PRINTER_MODE_LASER)
+  #endif
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
 
@@ -814,10 +736,6 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
       block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
-  #endif
-
-  #if FAN_COUNT > 0
-    FAN_LOOP() block->fan_speed[f] = fanSpeeds[f];
   #endif
 
   #if ENABLED(BARICUDA)
@@ -860,9 +778,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Enable extruder(s)
   if (esteps) {
 
-    #if DISABLED(MKR4) && DISABLED(MKR6) && DISABLED(NPR2)
+    #if !HAS_MKMULTI_TOOLS
 
-      #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
+      #if EXTRUDERS > 0 && ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
         for (uint8_t i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
@@ -870,13 +788,13 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         switch(extruder) {
           case 0:
             enable_E0();
+            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
               if (extruder_duplication_enabled) {
                 enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
-            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if EXTRUDERS > 1
               if (g_uc_extruder_last_move[1] == 0) disable_E1();
               #if EXTRUDERS > 2
@@ -983,12 +901,35 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         case 1:
         case 2:
           enable_E0();
-        break;
+          break;
         case 3:
         case 4:
         case 5:
           enable_E1();
-        break;
+          break;
+      }
+    #elif ENABLED(MKR12)
+      switch(extruder) {
+        case 0:
+        case 1:
+        case 2:
+          enable_E0();
+          break;
+        case 3:
+        case 4:
+        case 5:
+          enable_E1();
+          break;
+        case 6:
+        case 7:
+        case 8:
+          enable_E2();
+          break;
+        case 9:
+        case 10:
+        case 11:
+          enable_E3();
+          break;
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_E0();
@@ -1524,7 +1465,7 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
 }
 
 void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
-  #if HAS(LEVELING)
+  #if HAS_LEVELING
     float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
     apply_leveling(lpos);
   #else
@@ -1533,11 +1474,11 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      deltaParams.inverse_kinematics_DELTA(lpos);
+      Mechanics.Transform(lpos);
     #else
-        inverse_kinematics(lpos);
+        inverse_mechanism(lpos);
     #endif
-    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+    _set_position_mm(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS], Mechanics.delta[C_AXIS], position[E_AXIS]);
   #else
     _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
   #endif
@@ -1589,17 +1530,17 @@ void Planner::reset_acceleration_rates() {
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-  set_position_mm_kinematic(current_position);
+  set_position_mm_kinematic(Mechanics.current_position);
   reset_acceleration_rates();
 }
 
-#if ENABLED(AUTOTEMP)
+#if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
-    autotemp_enabled = code_seen('F');
-    if (autotemp_enabled) autotemp_factor = code_value_temp_diff();
-    if (code_seen('S')) autotemp_min = code_value_temp_abs();
-    if (code_seen('B')) autotemp_max = code_value_temp_abs();
+    autotemp_enabled = parser.seen('F');
+    if (autotemp_enabled) autotemp_factor = parser.value_celsius_diff();
+    if (parser.seen('S')) autotemp_min = parser.value_celsius();
+    if (parser.seen('B')) autotemp_max = parser.value_celsius();
   }
 
 #endif

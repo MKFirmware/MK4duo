@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@
 #define MSG_LEVEL_BED_WAITING               "Click para iniciar"
 #define MSG_LEVEL_BED_NEXT_POINT            "Proximo ponto"
 #define MSG_LEVEL_BED_DONE                  "Pronto !"
-#define MSG_LEVEL_BED_CANCEL                "Cancelar"
 #define MSG_SET_HOME_OFFSETS                "Definir desvio"
 #define MSG_HOME_OFFSETS_APPLIED            "Offsets applied"
 #define MSG_SET_ORIGIN                      "Definir origem"
@@ -91,6 +90,7 @@
 #define MSG_PID_D                           "PID-D"
 #define MSG_PID_C                           "PID-C"
 #define MSG_ACC                             "Acc"
+#define MSG_JERK                            _UxGT("Jerk")
 #define MSG_VX_JERK                         "Vx-jerk"
 #define MSG_VY_JERK                         "Vy-jerk"
 #define MSG_VZ_JERK                         "Vz-jerk"
@@ -101,6 +101,7 @@
 #define MSG_AMAX                            "Amax "
 #define MSG_A_RETRACT                       "A-retraccao"
 #define MSG_A_TRAVEL                        "A-movimento"
+#define MSG_STEPS_PER_MM                    "Passo/mm"
 #define MSG_XSTEPS                          "X passo/mm"
 #define MSG_YSTEPS                          "Y passo/mm"
 #define MSG_ZSTEPS                          "Z passo/mm"

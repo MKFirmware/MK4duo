@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 
 #include "../../base.h"
 
-#if HAS(SERVOS)
+#if HAS_SERVOS
   #include "servo.h"
 
   #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)

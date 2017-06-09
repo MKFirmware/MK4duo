@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 #ifndef VECTOR_3_H
 #define VECTOR_3_H
 
-#if HAS(ABL)
+#if HAS_ABL
 class matrix_3x3;
 
 struct vector_3 {
@@ -77,7 +77,7 @@ struct matrix_3x3 {
 };
 
 
-void apply_rotation_xyz(matrix_3x3 rotationMatrix, float& x, float& y, float& z);
+void apply_rotation_xyz(matrix_3x3 rotationMatrix, float &x, float &y, float &z);
 #endif // HAS_ABL
 
 #endif // VECTOR_3_H

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,8 +62,8 @@
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist=false);
     void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
-    void lcd_setstatuspgm(const char* message, const uint8_t level=0);
-    void lcd_setalertstatuspgm(const char* message);
+    void lcd_setstatusPGM(const char* message, const uint8_t level=0);
+    void lcd_setalertstatusPGM(const char * const message);
     void lcd_reset_alert_level();
     void lcd_scrollinfo(const char* titolo, const char* message);
 
@@ -95,9 +95,9 @@
       void LcdBedLevelOff();
     #endif
 
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
-      void lcd_filament_change_show_message(FilamentChangeMessage message);
-    #endif // FILAMENT_CHANGE_FEATURE
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      void lcd_advanced_pause_show_message(AdvancedPauseMessage message);
+    #endif
 
     #if ENABLED(RFID_MODULE)
       void rfidPopCallback(void *ptr);
@@ -106,9 +106,7 @@
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
     FORCE_INLINE void lcd_draw_update() {}
-
-    #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
-    #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
+    FORCE_INLINE void lcd_refresh() {}
 
   #endif
 
