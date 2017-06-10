@@ -312,13 +312,13 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 
     SERIAL_EM(MSG_PID_AUTOTUNE_START);
     if (temp_controller == -1) {
-      SERIAL_M("BED");
+      SERIAL_MSG("BED");
     }
     else if(temp_controller == -2) {
-      SERIAL_M("CHAMBER");
+      SERIAL_MSG("CHAMBER");
     }
     else if(temp_controller == -3) {
-      SERIAL_M("COOLER");
+      SERIAL_MSG("COOLER");
     }
     else {
       SERIAL_MV("Hotend: ", temp_controller);
@@ -328,7 +328,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
     if (storeValues)
       SERIAL_EM(" Apply result");
     else
-      SERIAL_E;
+      SERIAL_EOL();
 
     disable_all_heaters(); // switch off all heaters.
     #if HAS_TEMP_COOLER
@@ -501,15 +501,15 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
       if (ELAPSED(ms, temp_ms + 1000UL)) {
         #if HAS_TEMP_HOTEND || HAS_TEMP_BED
           print_heaterstates();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
         #if HAS_TEMP_CHAMBER
           print_chamberstate();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
         #if HAS_TEMP_COOLER
           print_coolerstate();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
 
         temp_ms = ms;
@@ -652,7 +652,7 @@ void Temperature::_temp_error(int tc, const char* serial_msg, const char* lcd_ms
   static bool killed = false;
   if (IsRunning()) {
     SERIAL_ST(ER, serial_msg);
-    SERIAL_M(MSG_STOPPED_HEATER);
+    SERIAL_MSG(MSG_STOPPED_HEATER);
     if (tc >= 0)
       SERIAL_EV((int)tc);
     #if HAS_TEMP_BED
@@ -1695,8 +1695,8 @@ void Temperature::init() {
     static float tr_target_temperature[HOTENDS + 3] = { 0.0 };
 
     /*
-        SERIAL_M("Thermal Thermal Runaway Running. Heater ID: ");
-        if (temp_controller_id < 0) SERIAL_M("bed"); else SERIAL_V(temp_controller_id);
+        SERIAL_MSG("Thermal Thermal Runaway Running. Heater ID: ");
+        if (temp_controller_id < 0) SERIAL_MSG("bed"); else SERIAL_VAL(temp_controller_id);
         SERIAL_MV(" ;  State:", *state);
         SERIAL_MV(" ;  Timer:", *timer);
         SERIAL_MV(" ;  Temperature:", temperature);
@@ -1908,7 +1908,7 @@ void Temperature::disable_all_heaters() {
     if (max6675_temp & MAX6675_ERROR_MASK) {
       SERIAL_SM(ER, "Temp measurement error! ");
       #if MAX6675_ERROR_MASK == 7
-        SERIAL_M("MAX31855 ");
+        SERIAL_MSG("MAX31855 ");
         if (max6675_temp & 1)
           SERIAL_EM("Open Circuit");
         else if (max6675_temp & 2)

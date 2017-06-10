@@ -509,8 +509,8 @@ inline bool _enqueuecommand(const char* cmd, bool say_ok = false) {
 bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   if (_enqueuecommand(cmd, say_ok)) {
     SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
-    SERIAL_C('"');
-    SERIAL_E;
+    SERIAL_CHR('"');
+    SERIAL_EOL();
     return true;
   }
   return false;
@@ -650,7 +650,7 @@ void servo_init() {
 #endif // HAS_COLOR_LEDS
   
 void gcode_line_error(const char* err, bool doFlush = true) {
-  SERIAL_S(ER);
+  SERIAL_STR(ER);
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
   //Serial.println(gcode_N);
@@ -1029,7 +1029,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("do_probe_raise(", z_raise);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -1057,7 +1057,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("dock_sled(", stow);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -1135,7 +1135,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
           SERIAL_MV("set_bltouch_deployed(", deploy);
-          SERIAL_C(')'); SERIAL_E;
+          SERIAL_CHR(')'); SERIAL_EOL();
         }
       #endif
     }
@@ -1437,7 +1437,7 @@ static void clean_up_after_endstop_or_probe_move() {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
       SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
-      SERIAL_E;
+      SERIAL_EOL();
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -1580,57 +1580,57 @@ static void clean_up_after_endstop_or_probe_move() {
    */
   static void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
     #if DISABLED(SCAD_MESH_OUTPUT)
-      SERIAL_S(ECHO);
+      SERIAL_STR(ECHO);
       for (uint8_t x = 0; x < sx; x++) {
         for (uint8_t i = 0; i < precision + 2 + (x < 10 ? 1 : 0); i++)
-          SERIAL_C(' ');
-        SERIAL_V((int)x);
+          SERIAL_CHR(' ');
+        SERIAL_VAL((int)x);
       }
-      SERIAL_E;
+      SERIAL_EOL();
     #endif
     #if ENABLED(SCAD_MESH_OUTPUT)
       SERIAL_EM("measured_z = [");  // open 2D array
     #endif
     for (uint8_t y = 0; y < sy; y++) {
       #if ENABLED(SCAD_MESH_OUTPUT)
-        SERIAL_M(" [");             // open sub-array
+        SERIAL_MSG(" [");             // open sub-array
       #else
-        SERIAL_S(ECHO);
-        if (y < 10) SERIAL_C(' ');
-        SERIAL_V((int)y);
+        SERIAL_STR(ECHO);
+        if (y < 10) SERIAL_CHR(' ');
+        SERIAL_VAL((int)y);
       #endif
       for (uint8_t x = 0; x < sx; x++) {
-        SERIAL_C(' ');
+        SERIAL_CHR(' ');
         const float offset = fn(x, y);
         if (!isnan(offset)) {
-          if (offset >= 0) SERIAL_C('+');
-          SERIAL_V(offset, precision);
+          if (offset >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(offset, precision);
         }
         else {
           #if ENABLED(SCAD_MESH_OUTPUT)
             for (uint8_t i = 3; i < precision + 3; i++)
-              SERIAL_C(' ');
-            SERIAL_M("NAN");
+              SERIAL_CHR(' ');
+            SERIAL_MSG("NAN");
           #else
             for (uint8_t i = 0; i < precision + 3; i++)
-              SERIAL_C(i ? '=' : ' ');
+              SERIAL_CHR(i ? '=' : ' ');
           #endif
         }
         #if ENABLED(SCAD_MESH_OUTPUT)
-          if (x < sx - 1) SERIAL_C(',');
+          if (x < sx - 1) SERIAL_CHR(',');
         #endif
       }
       #if ENABLED(SCAD_MESH_OUTPUT)
-        SERIAL_C(' ');
-        SERIAL_C(']');                     // close sub-array
-        if (y < sy - 1) SERIAL_C(',');
+        SERIAL_CHR(' ');
+        SERIAL_CHR(']');                     // close sub-array
+        if (y < sy - 1) SERIAL_CHR(',');
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
     }
     #if ENABLED(SCAD_MESH_OUTPUT)
-      SERIAL_M("\n];");                     // close 2D array
+      SERIAL_MSG("\n];");                     // close 2D array
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
 
@@ -1675,15 +1675,15 @@ static void clean_up_after_endstop_or_probe_move() {
   static void extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
-        SERIAL_M("Extrapolate [");
-        if (x < 10) SERIAL_C(' ');
-        SERIAL_V((int)x);
-        SERIAL_C(xdir ? (xdir > 0 ? '+' : '-') : ' ');
-        SERIAL_C(' ');
-        if (y < 10) SERIAL_C(' ');
-        SERIAL_V((int)y);
-        SERIAL_C(ydir ? (ydir > 0 ? '+' : '-') : ' ');
-        SERIAL_C(']');
+        SERIAL_MSG("Extrapolate [");
+        if (x < 10) SERIAL_CHR(' ');
+        SERIAL_VAL((int)x);
+        SERIAL_CHR(xdir ? (xdir > 0 ? '+' : '-') : ' ');
+        SERIAL_CHR(' ');
+        if (y < 10) SERIAL_CHR(' ');
+        SERIAL_VAL((int)y);
+        SERIAL_CHR(ydir ? (ydir > 0 ? '+' : '-') : ' ');
+        SERIAL_CHR(']');
       }
     #endif
     if (!isnan(z_values[x][y])) {
@@ -1692,7 +1692,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #endif
       return;  // Don't overwrite good values.
     }
-    SERIAL_E;
+    SERIAL_EOL();
 
     // Get X neighbors, Y neighbors, and XY neighbors
     const uint8_t x1 = x + xdir, y1 = y + ydir, x2 = x1 + xdir, y2 = y1 + ydir;
@@ -2002,7 +2002,7 @@ static void clean_up_after_endstop_or_probe_move() {
       SERIAL_MV(" /", thermalManager.degTargetHotend(target_extruder));
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
         SERIAL_MV(" (", thermalManager.rawHotendTemp(target_extruder));
-        SERIAL_C(')');
+        SERIAL_CHR(')');
       #endif
     #endif
     #if HAS_TEMP_BED
@@ -2010,18 +2010,18 @@ static void clean_up_after_endstop_or_probe_move() {
       SERIAL_MV(" /", thermalManager.degTargetBed());
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
         SERIAL_MV(" (", thermalManager.rawBedTemp());
-        SERIAL_C(')');
+        SERIAL_CHR(')');
       #endif
     #endif
     #if HOTENDS > 1
       for (uint8_t h = 0; h < HOTENDS; h++) {
         SERIAL_MV(" T", h);
-        SERIAL_C(':');
-        SERIAL_V(thermalManager.degHotend(h), 1);
+        SERIAL_CHR(':');
+        SERIAL_VAL(thermalManager.degHotend(h), 1);
         SERIAL_MV(" /", thermalManager.degTargetHotend(h));
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
           SERIAL_MV(" (", thermalManager.rawHotendTemp(h));
-          SERIAL_C(')');
+          SERIAL_CHR(')');
         #endif
       }
     #endif
@@ -2032,8 +2032,8 @@ static void clean_up_after_endstop_or_probe_move() {
     #if HOTENDS > 1
       for (uint8_t h = 0; h < HOTENDS; h++) {
         SERIAL_MV(MSG_AT, h);
-        SERIAL_C(':');
-        SERIAL_V(thermalManager.getHeaterPower(h));
+        SERIAL_CHR(':');
+        SERIAL_VAL(thermalManager.getHeaterPower(h));
       }
     #endif
   }
@@ -2043,15 +2043,15 @@ static void clean_up_after_endstop_or_probe_move() {
 #if HAS_TEMP_CHAMBER
 
   void print_chamberstate() {
-    SERIAL_M(" CHAMBER:");
+    SERIAL_MSG(" CHAMBER:");
     SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
     SERIAL_MV(" /", thermalManager.degTargetChamber());
-    SERIAL_M(MSG_CAT);
+    SERIAL_MSG(MSG_CAT);
     #if ENABLED(CHAMBER_WATTS)
-      SERIAL_V(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
-      SERIAL_M("W");
+      SERIAL_VAL(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
+      SERIAL_MSG("W");
     #else
-      SERIAL_V(thermalManager.getChamberPower());
+      SERIAL_VAL(thermalManager.getChamberPower());
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV(" ADC C:", thermalManager.degChamber(), 1);
@@ -2064,15 +2064,15 @@ static void clean_up_after_endstop_or_probe_move() {
 #if HAS_TEMP_COOLER
 
   void print_coolerstate() {
-    SERIAL_M(" COOL:");
+    SERIAL_MSG(" COOL:");
     SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
     SERIAL_MV(" /", thermalManager.degTargetCooler());
-    SERIAL_M(MSG_CAT);
+    SERIAL_MSG(MSG_CAT);
     #if ENABLED(COOLER_WATTS)
-      SERIAL_V(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
-      SERIAL_M("W");
+      SERIAL_VAL(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
+      SERIAL_MSG("W");
     #else
-      SERIAL_V(thermalManager.getCoolerPower());
+      SERIAL_VAL(thermalManager.getCoolerPower());
     #endif
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV(" ADC C:", thermalManager.degCooler(), 1);
@@ -2093,7 +2093,7 @@ static void clean_up_after_endstop_or_probe_move() {
     #endif
 
     SERIAL_MV(" FLOW: ", readval);
-    SERIAL_M(" l/min ");
+    SERIAL_MSG(" l/min ");
   }
 
 #endif
@@ -2101,11 +2101,11 @@ static void clean_up_after_endstop_or_probe_move() {
 #if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
 
   void print_MCUstate() {
-    SERIAL_M(" MCU: min");
+    SERIAL_MSG(" MCU: min");
     SERIAL_MV(MSG_C, thermalManager.lowest_temperature_mcu, 1);
-    SERIAL_M(", current");
+    SERIAL_MSG(", current");
     SERIAL_MV(MSG_C, thermalManager.current_temperature_mcu, 1);
-    SERIAL_M(", max");
+    SERIAL_MSG(", max");
     SERIAL_MV(MSG_C, thermalManager.highest_temperature_mcu, 1);
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV(" C->", thermalManager.rawMCUTemp());
@@ -2118,7 +2118,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
   void print_cncspeed() {
     SERIAL_MV(" CNC speed: ", getCNCSpeed());
-    SERIAL_M(" rpm ");
+    SERIAL_MSG(" rpm ");
   }
 
 #endif
@@ -2170,7 +2170,7 @@ static void clean_up_after_endstop_or_probe_move() {
         next_temp_ms = now + 1000UL;
         print_heaterstates();
         #if TEMP_RESIDENCY_TIME > 0
-          SERIAL_M(MSG_W);
+          SERIAL_MSG(MSG_W);
           if (residency_start_ms) {
             long rem = ((TEMP_RESIDENCY_TIME * 1000UL) - (now - residency_start_ms)) / 1000UL;
             SERIAL_EV(rem);
@@ -2179,7 +2179,7 @@ static void clean_up_after_endstop_or_probe_move() {
             SERIAL_EM("?");
           }
         #else
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
       }
 
@@ -2290,7 +2290,7 @@ static void clean_up_after_endstop_or_probe_move() {
         next_temp_ms = now + 1000UL;
         print_heaterstates();
         #if TEMP_BED_RESIDENCY_TIME > 0
-          SERIAL_M(MSG_W);
+          SERIAL_MSG(MSG_W);
           if (residency_start_ms) {
             long rem = (((TEMP_BED_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL;
             SERIAL_EV(rem);
@@ -2299,7 +2299,7 @@ static void clean_up_after_endstop_or_probe_move() {
             SERIAL_EM("?");
           }
         #else
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
       }
 
@@ -2385,7 +2385,7 @@ static void clean_up_after_endstop_or_probe_move() {
         next_temp_ms = now + 1000UL;
         print_chamberstate();
         #if TEMP_CHAMBER_RESIDENCY_TIME > 0
-          SERIAL_M(MSG_W);
+          SERIAL_MSG(MSG_W);
           if (residency_start_ms) {
             long rem = (((TEMP_CHAMBER_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL;
             SERIAL_EV(rem);
@@ -2394,7 +2394,7 @@ static void clean_up_after_endstop_or_probe_move() {
             SERIAL_EM("?");
           }
         #else
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
       }
 
@@ -2462,7 +2462,7 @@ static void clean_up_after_endstop_or_probe_move() {
         next_temp_ms = now + 1000UL;
         print_coolerstate();
         #if TEMP_COOLER_RESIDENCY_TIME > 0
-          SERIAL_M(MSG_W);
+          SERIAL_MSG(MSG_W);
           if (residency_start_ms) {
             long rem = (((TEMP_COOLER_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL;
             SERIAL_EV(rem);
@@ -2471,7 +2471,7 @@ static void clean_up_after_endstop_or_probe_move() {
             SERIAL_EM("?");
           }
         #else
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
       }
 
@@ -2788,7 +2788,7 @@ void gcode_get_destination() {
       #endif
 
       idle(true);
-    } // while(wait_for_user)
+    }
 
     KEEPALIVE_STATE(IN_HANDLER);
   }
@@ -2812,10 +2812,7 @@ void gcode_get_destination() {
       thermalManager.setTargetHotend(old_target_temperature[h], h);
     }
 
-    #if HAS_LCD
-      // Show "wait for heating"
-      if (nozzle_timed_out) ensure_safe_temperature();
-    #endif
+    if (nozzle_timed_out) ensure_safe_temperature();
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
@@ -3253,7 +3250,7 @@ inline void gcode_G4() {
 #if ENABLED(DEBUG_LEVELING_FEATURE)
 
   void log_machine_info() {
-    SERIAL_M("Machine Type: ");
+    SERIAL_MSG("Machine Type: ");
     #if MECH(DELTA)
       SERIAL_EM("Delta");
     #elif IS_SCARA
@@ -3264,7 +3261,7 @@ inline void gcode_G4() {
       SERIAL_EM("Cartesian");
     #endif
 
-    SERIAL_M("Probe: ");
+    SERIAL_MSG("Probe: ");
     #if ENABLED(PROBE_MANUALLY)
       SERIAL_EM("PROBE_MANUALLY");
     #elif ENABLED(Z_PROBE_FIX_MOUNTED)
@@ -3286,38 +3283,38 @@ inline void gcode_G4() {
       SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Z:", zprobe_zoffset);
       #if (X_PROBE_OFFSET_FROM_NOZZLE > 0)
-        SERIAL_M(" (Right");
+        SERIAL_MSG(" (Right");
       #elif (X_PROBE_OFFSET_FROM_NOZZLE < 0)
-        SERIAL_M(" (Left");
+        SERIAL_MSG(" (Left");
       #elif (Y_PROBE_OFFSET_FROM_NOZZLE != 0)
-        SERIAL_M(" (Middle");
+        SERIAL_MSG(" (Middle");
       #else
-        SERIAL_M(" (Aligned With");
+        SERIAL_MSG(" (Aligned With");
       #endif
       #if (Y_PROBE_OFFSET_FROM_NOZZLE > 0)
-        SERIAL_M("-Back");
+        SERIAL_MSG("-Back");
       #elif (Y_PROBE_OFFSET_FROM_NOZZLE < 0)
-        SERIAL_M("-Front");
+        SERIAL_MSG("-Front");
       #elif (X_PROBE_OFFSET_FROM_NOZZLE != 0)
-        SERIAL_M("-Center");
+        SERIAL_MSG("-Center");
       #endif
       if (zprobe_zoffset < 0)
-        SERIAL_M(" & Below");
+        SERIAL_MSG(" & Below");
       else if (zprobe_zoffset > 0)
-        SERIAL_M(" & Above");
+        SERIAL_MSG(" & Above");
       else
-        SERIAL_M(" & Same Z as");
+        SERIAL_MSG(" & Same Z as");
       SERIAL_EM(" Nozzle)");
     #endif
 
     #if HAS_ABL
-      SERIAL_M("Auto Bed Leveling: ");
+      SERIAL_MSG("Auto Bed Leveling: ");
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-        SERIAL_M("LINEAR");
+        SERIAL_MSG("LINEAR");
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        SERIAL_M("BILINEAR");
+        SERIAL_MSG("BILINEAR");
       #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-        SERIAL_M("3POINT");
+        SERIAL_MSG("3POINT");
       #endif
       if (leveling_is_active()) {
         SERIAL_EM(" (enabled)");
@@ -3327,27 +3324,27 @@ inline void gcode_G4() {
             stepper.get_axis_position_mm(Y_AXIS) - Mechanics.current_position[Y_AXIS],
             stepper.get_axis_position_mm(Z_AXIS) - Mechanics.current_position[Z_AXIS]
           };
-          SERIAL_M("ABL Adjustment X");
-          if (diff[X_AXIS] > 0) SERIAL_C('+');
-          SERIAL_V(diff[X_AXIS]);
-          SERIAL_M(" Y");
-          if (diff[Y_AXIS] > 0) SERIAL_C('+');
-          SERIAL_V(diff[Y_AXIS]);
-          SERIAL_M(" Z");
-          if (diff[Z_AXIS] > 0) SERIAL_C('+');
-          SERIAL_V(diff[Z_AXIS]);
+          SERIAL_MSG("ABL Adjustment X");
+          if (diff[X_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[X_AXIS]);
+          SERIAL_MSG(" Y");
+          if (diff[Y_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[Y_AXIS]);
+          SERIAL_MSG(" Z");
+          if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           SERIAL_MV("ABL Adjustment Z", bilinear_z_offset(Mechanics.current_position));
         #endif
       }
       else
-        SERIAL_M(" (disabled)");
+        SERIAL_MSG(" (disabled)");
 
-      SERIAL_E;
+      SERIAL_EOL();
 
     #elif ENABLED(MESH_BED_LEVELING)
 
-      SERIAL_M("Mesh Bed Leveling");
+      SERIAL_MSG("Mesh Bed Leveling");
       if (leveling_is_active()) {
         float lz = Mechanics.current_position[Z_AXIS];
         planner.apply_leveling(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], lz);
@@ -3355,9 +3352,9 @@ inline void gcode_G4() {
         SERIAL_MV("MBL Adjustment Z", lz);
       }
       else
-        SERIAL_M(" (disabled)");
+        SERIAL_MSG(" (disabled)");
 
-      SERIAL_E;
+      SERIAL_EOL();
 
     #endif
 
@@ -3513,7 +3510,7 @@ void home_all_axes() { gcode_G28(true); }
 
 #if HAS_PROBING_PROCEDURE
   void out_of_range_error(const char* p_edge) {
-    SERIAL_M("?Probe ");
+    SERIAL_MSG("?Probe ");
     SERIAL_PS(p_edge);
     SERIAL_EM(" position out of range.");
   }
@@ -3623,7 +3620,7 @@ void home_all_axes() { gcode_G28(true); }
 
     const MeshLevelingState state = parser.seen('S') ? (MeshLevelingState)parser.value_byte() : MeshReport;
     if (!WITHIN(state, 0, 5)) {
-      SERIAL_M("S out of range (0-5).");
+      SERIAL_MSG("S out of range (0-5).");
       return;
     }
 
@@ -3701,7 +3698,7 @@ void home_all_axes() { gcode_G28(true); }
           }
         }
         else {
-          SERIAL_C('X'); say_not_entered();
+          SERIAL_CHR('X'); say_not_entered();
           return;
         }
 
@@ -3713,7 +3710,7 @@ void home_all_axes() { gcode_G28(true); }
           }
         }
         else {
-          SERIAL_C('Y'); say_not_entered();
+          SERIAL_CHR('Y'); say_not_entered();
           return;
         }
 
@@ -3721,7 +3718,7 @@ void home_all_axes() { gcode_G28(true); }
           mbl.z_values[px][py] = parser.value_axis_units(Z_AXIS);
         }
         else {
-          SERIAL_C('Z'); say_not_entered();
+          SERIAL_CHR('Z'); say_not_entered();
           return;
         }
         break;
@@ -3731,7 +3728,7 @@ void home_all_axes() { gcode_G28(true); }
           mbl.z_offset = parser.value_axis_units(Z_AXIS);
         }
         else {
-          SERIAL_C('Z'); say_not_entered();
+          SERIAL_CHR('Z'); say_not_entered();
           return;
         }
         break;
@@ -4180,7 +4177,7 @@ void home_all_axes() { gcode_G28(true); }
 
       // Query G29 status
       if (verbose_level || seenQ) {
-        SERIAL_M("Manual G29 ");
+        SERIAL_MSG("Manual G29 ");
         if (g29_in_progress) {
           SERIAL_MV("point ", min(abl_probe_index + 1, abl2));
           SERIAL_EMV(" of ", abl2);
@@ -4530,14 +4527,14 @@ void home_all_axes() { gcode_G28(true); }
             NOMORE(min_diff, eqnBVector[ind] - z_tmp);
 
             if (diff >= 0.0)
-              SERIAL_M(" +");   // Include + for column alignment
+              SERIAL_MSG(" +");   // Include + for column alignment
             else
-              SERIAL_C(' ');
-            SERIAL_V(diff, 5);
+              SERIAL_CHR(' ');
+            SERIAL_VAL(diff, 5);
           } // xx
-          SERIAL_E;
+          SERIAL_EOL();
         } // yy
-        SERIAL_E;
+        SERIAL_EOL();
 
         if (verbose_level > 3) {
           SERIAL_EM("\nCorrected Bed Height vs. Bed Topology:");
@@ -4553,14 +4550,14 @@ void home_all_axes() { gcode_G28(true); }
 
               float diff = eqnBVector[ind] - z_tmp - min_diff;
               if (diff >= 0.0)
-                SERIAL_M(" +");   // Include + for column alignment
+                SERIAL_MSG(" +");   // Include + for column alignment
               else
-                SERIAL_C(' ');
-              SERIAL_V(diff, 5);
+                SERIAL_CHR(' ');
+              SERIAL_VAL(diff, 5);
             } // xx
-            SERIAL_E;
+            SERIAL_EOL();
           } // yy
-          SERIAL_E;
+          SERIAL_EOL();
         }
       } // do_topography_map
 
@@ -4633,7 +4630,7 @@ void home_all_axes() { gcode_G28(true); }
     #if ENABLED(Z_PROBE_END_SCRIPT)
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
-          SERIAL_M("Z Probe End Script: ");
+          SERIAL_MSG("Z Probe End Script: ");
           SERIAL_EM(Z_PROBE_END_SCRIPT);
         }
       #endif
@@ -4705,7 +4702,7 @@ void home_all_axes() { gcode_G28(true); }
       }
     #endif
 
-    SERIAL_E;
+    SERIAL_EOL();
 
     clean_up_after_endstop_or_probe_move();
 
@@ -5047,7 +5044,7 @@ void home_all_axes() { gcode_G28(true); }
     SERIAL_MV(" factors using ", numPoints);
     SERIAL_MV(" points, deviation before ", SQRT(initialSumOfSquares / numPoints), 4);
     SERIAL_MV(" after ", expectedRmsError, 4);
-    SERIAL_E;
+    SERIAL_EOL();
 
     Mechanics.Recalc();
 
@@ -5060,7 +5057,7 @@ void home_all_axes() { gcode_G28(true); }
     SERIAL_MV(" Towers radius correction A", Mechanics.tower_radius_adj[A_AXIS], 2);
     SERIAL_MV(" B", Mechanics.tower_radius_adj[B_AXIS], 2);
     SERIAL_MV(" C", Mechanics.tower_radius_adj[C_AXIS], 2);
-    SERIAL_E;
+    SERIAL_EOL();
 
     endstops.enable(true);
     Mechanics.Home();
@@ -5173,36 +5170,36 @@ void home_all_axes() { gcode_G28(true); }
 
     // print settings
 
-    SERIAL_M("Checking... AC");
-    if (verbose_level == 0) SERIAL_M(" (DRY-RUN)");
-    SERIAL_E;
+    SERIAL_MSG("Checking... AC");
+    if (verbose_level == 0) SERIAL_MSG(" (DRY-RUN)");
+    SERIAL_EOL();
     LCD_MESSAGEPGM(MSG_DELTA_CHECKING);
 
     SERIAL_MV(".Height:", Mechanics.delta_height, 2);
     if (!_1p_calibration) {
-      SERIAL_M("    Ex:");
-      if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.endstop_adj[A_AXIS], 2);
-      SERIAL_M("  Ey:");
-      if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.endstop_adj[B_AXIS], 2);
-      SERIAL_M("  Ez:");
-      if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.endstop_adj[C_AXIS], 2);
+      SERIAL_MSG("    Ex:");
+      if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.endstop_adj[A_AXIS], 2);
+      SERIAL_MSG("  Ey:");
+      if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.endstop_adj[B_AXIS], 2);
+      SERIAL_MSG("  Ez:");
+      if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.endstop_adj[C_AXIS], 2);
       SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
     }
-    SERIAL_E;
+    SERIAL_EOL();
     if (_7p_calibration && towers_set) {
-      SERIAL_M(".Tower angle:     Tx:");
-      if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.tower_radius_adj[A_AXIS], 2);
-      SERIAL_M("  Ty:");
-      if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.tower_radius_adj[B_AXIS], 2);
-      SERIAL_M("  Tz:");
-      if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_C('+');
-      SERIAL_V(Mechanics.tower_radius_adj[C_AXIS], 2);
-      SERIAL_E;
+      SERIAL_MSG(".Tower angle:     Tx:");
+      if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.tower_radius_adj[A_AXIS], 2);
+      SERIAL_MSG("  Ty:");
+      if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.tower_radius_adj[B_AXIS], 2);
+      SERIAL_MSG("  Tz:");
+      if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_CHR('+');
+      SERIAL_VAL(Mechanics.tower_radius_adj[C_AXIS], 2);
+      SERIAL_EOL();
     }
 
     int8_t iterations = 0;
@@ -5348,100 +5345,100 @@ void home_all_axes() { gcode_G28(true); }
 
       // print report
       if (verbose_level != 1) {
-        SERIAL_M(".      c:");
-        if (z_at_pt[0] > 0) SERIAL_C('+');
-        SERIAL_V(z_at_pt[0], 2);
+        SERIAL_MSG(".      c:");
+        if (z_at_pt[0] > 0) SERIAL_CHR('+');
+        SERIAL_VAL(z_at_pt[0], 2);
         if (_4p_towers_points || _7p_calibration) {
-          SERIAL_M("     x:");
-          if (z_at_pt[1] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[1], 2);
-          SERIAL_M("   y:");
-          if (z_at_pt[5] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[5], 2);
-          SERIAL_M("   z:");
-          if (z_at_pt[9] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[9], 2);
+          SERIAL_MSG("     x:");
+          if (z_at_pt[1] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[1], 2);
+          SERIAL_MSG("   y:");
+          if (z_at_pt[5] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[5], 2);
+          SERIAL_MSG("   z:");
+          if (z_at_pt[9] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[9], 2);
         }
-        if (!_4p_opposite_points) SERIAL_E;
+        if (!_4p_opposite_points) SERIAL_EOL();
         if ((_4p_opposite_points) || _7p_calibration) {
           if (_7p_calibration) {
-            SERIAL_C('.');
+            SERIAL_CHR('.');
             SERIAL_SP(13);
           }
-          SERIAL_M("    yz:");
-          if (z_at_pt[7] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[7], 2);
-          SERIAL_M("  zx:");
-          if (z_at_pt[11] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[11], 2);
-          SERIAL_M("  xy:");
-          if (z_at_pt[3] >= 0) SERIAL_C('+');
-          SERIAL_V(z_at_pt[3], 2);
-          SERIAL_E;
+          SERIAL_MSG("    yz:");
+          if (z_at_pt[7] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[7], 2);
+          SERIAL_MSG("  zx:");
+          if (z_at_pt[11] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[11], 2);
+          SERIAL_MSG("  xy:");
+          if (z_at_pt[3] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(z_at_pt[3], 2);
+          SERIAL_EOL();
         }
       }
       if (test_precision != 0.0) {
         if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {  // end iterations
-          SERIAL_M("Calibration OK");
+          SERIAL_MSG("Calibration OK");
           SERIAL_SP(36);
           if (zero_std_dev >= test_precision)
-            SERIAL_M("rolling back.");
+            SERIAL_MSG("rolling back.");
           else
             SERIAL_MV("std dev:", zero_std_dev, 3);
-          SERIAL_E;
+          SERIAL_EOL();
           LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE_OK);
         }
         else {
           char mess[15] = "No convergence";
           if (iterations < 31)
             sprintf_P(mess, PSTR("Iteration:%02i"), (int)iterations);
-          SERIAL_T(mess);
+          SERIAL_TXT(mess);
           SERIAL_SP(38);
           SERIAL_EMV("std dev:", zero_std_dev, 3);
           lcd_setstatus(mess);
         }
         SERIAL_MV(".Height:", Mechanics.delta_height, 2);
         if (!_1p_calibration) {
-          SERIAL_M("    Ex:");
-          if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.endstop_adj[A_AXIS], 2);
-          SERIAL_M("  Ey:");
-          if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.endstop_adj[B_AXIS], 2);
-          SERIAL_M("  Ez:");
-          if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.endstop_adj[C_AXIS], 2);
+          SERIAL_MSG("    Ex:");
+          if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.endstop_adj[A_AXIS], 2);
+          SERIAL_MSG("  Ey:");
+          if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.endstop_adj[B_AXIS], 2);
+          SERIAL_MSG("  Ez:");
+          if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.endstop_adj[C_AXIS], 2);
           SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
         }
-        SERIAL_E;
+        SERIAL_EOL();
         if (_7p_calibration && towers_set) {
-          SERIAL_M(".Tower angle:     Tx:");
-          if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.tower_radius_adj[A_AXIS], 2);
-          SERIAL_M("  Ty:");
-          if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.tower_radius_adj[B_AXIS], 2);
-          SERIAL_M("  Tz:");
-          if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_C('+');
-          SERIAL_V(Mechanics.tower_radius_adj[C_AXIS], 2);
-          SERIAL_E;
+          SERIAL_MSG(".Tower angle:     Tx:");
+          if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.tower_radius_adj[A_AXIS], 2);
+          SERIAL_MSG("  Ty:");
+          if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.tower_radius_adj[B_AXIS], 2);
+          SERIAL_MSG("  Tz:");
+          if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_CHR('+');
+          SERIAL_VAL(Mechanics.tower_radius_adj[C_AXIS], 2);
+          SERIAL_EOL();
         }
         if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {
           SERIAL_PS(save_message);
-          SERIAL_E;
+          SERIAL_EOL();
         }
       }
       else {
         if (verbose_level == 0) {
-          SERIAL_M("End DRY-RUN");
+          SERIAL_MSG("End DRY-RUN");
           SERIAL_SP(39);
           SERIAL_EMV("std dev:", zero_std_dev, 3);
         }
         else {
-          SERIAL_M("Calibration OK");
+          SERIAL_MSG("Calibration OK");
           LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE_OK);
           SERIAL_PS(save_message);
-          SERIAL_E;
+          SERIAL_EOL();
         }
       }
 
@@ -5762,7 +5759,7 @@ inline void gcode_G60() {
   COPY_ARRAY(Mechanics.stored_position[slot], Mechanics.current_position);
   pos_saved = true;
 
-  SERIAL_M(MSG_SAVED_POS);
+  SERIAL_MSG(MSG_SAVED_POS);
   SERIAL_MV(" S", slot);
   SERIAL_MV("<-X:", Mechanics.stored_position[slot][X_AXIS]);
   SERIAL_MV(" Y:", Mechanics.stored_position[slot][Y_AXIS]);
@@ -5787,9 +5784,9 @@ inline void gcode_G61() {
     return;
   }
 
-  SERIAL_M(MSG_RESTORING_POS);
+  SERIAL_MSG(MSG_RESTORING_POS);
   SERIAL_MV(" S", slot);
-  SERIAL_M("->");
+  SERIAL_MSG("->");
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)
     Mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_linear_units());
@@ -5804,7 +5801,7 @@ inline void gcode_G61() {
     SERIAL_MV(" ", axis_codes[i]);
     SERIAL_MV(":", Mechanics.destination[i]);
   }
-  SERIAL_E;
+  SERIAL_EOL();
 
   // finish moves
   Mechanics.prepare_move_to_destination();
@@ -6235,30 +6232,31 @@ inline void gcode_M42() {
   #include "utility/pinsdebug.h"
 
   inline void toggle_pins() {
-    const bool I_flag = parser.seen('I') && parser.value_bool();
-    const int repeat = parser.seen('R') ? parser.value_int() : 1,
-              start = parser.seen('S') ? parser.value_int() : 0,
-              end = parser.seen('E') ? parser.value_int() : NUM_DIGITAL_PINS - 1,
-              wait = parser.seen('W') ? parser.value_int() : 500;
+    const bool  I_flag  = parser.seen('I') && parser.value_bool();
+    const int   repeat  = parser.seen('R') ? parser.value_int() : 1,
+                start   = parser.seen('S') ? parser.value_int() : 0,
+                end     = parser.seen('E') ? parser.value_int() : NUM_DIGITAL_PINS - 1,
+                wait    = parser.seen('W') ? parser.value_int() : 500;
 
     for (uint8_t pin = start; pin <= end; pin++) {
-        if (!I_flag && pin_is_protected(pin)) {
-          SERIAL_MV("Sensitive Pin: ", pin);
-          SERIAL_EM(" untouched.");
+
+      if (!I_flag && pin_is_protected(pin)) {
+        SERIAL_MV("Sensitive Pin: ", pin);
+        SERIAL_EM(" untouched.");
+      }
+      else {
+        SERIAL_MV("Pulsing Pin: ", pin);
+        pinMode(pin, OUTPUT);
+        for (int16_t j = 0; j < repeat; j++) {
+          digitalWrite(pin, 0);
+          safe_delay(wait);
+          digitalWrite(pin, 1);
+          safe_delay(wait);
+          digitalWrite(pin, 0);
+          safe_delay(wait);
         }
-        else {
-          SERIAL_MV("Pulsing Pin: ", pin);
-          pinMode(pin, OUTPUT);
-          for (int16_t j = 0; j < repeat; j++) {
-            digitalWrite(pin, 0);
-            safe_delay(wait);
-            digitalWrite(pin, 1);
-            safe_delay(wait);
-            digitalWrite(pin, 0);
-            safe_delay(wait);
-          }
-        }
-      SERIAL_E;
+      }
+      SERIAL_EOL();
     }
     SERIAL_EM("Done");
   } // toggle_pins
@@ -6285,7 +6283,7 @@ inline void gcode_M42() {
 
         SERIAL_EMV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
         SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_INVERTING (ignores Z_MIN_ENDSTOP_INVERTING)");
-        SERIAL_M(".  Z_PROBE_ENDSTOP_INVERTING: ");
+        SERIAL_MSG(".  Z_PROBE_ENDSTOP_INVERTING: ");
 
         #if Z_PROBE_ENDSTOP_INVERTING
           SERIAL_EM("true");
@@ -6301,7 +6299,7 @@ inline void gcode_M42() {
 
         SERIAL_EMV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
         SERIAL_EM(".  Uses Z_MIN_ENDSTOP_INVERTING (ignores Z_PROBE_ENDSTOP_INVERTING)");
-        SERIAL_M(".  Z_MIN_ENDSTOP_INVERTING: ");
+        SERIAL_MSG(".  Z_MIN_ENDSTOP_INVERTING: ");
 
         #if Z_MIN_ENDSTOP_INVERTING
           SERIAL_EM("true");
@@ -6420,8 +6418,8 @@ inline void gcode_M42() {
     // Enable or disable endstop monitoring
     if (parser.seen('E')) {
       endstop_monitor_flag = parser.value_bool();
-      SERIAL_M("endstop monitor ");
-      SERIAL_T(endstop_monitor_flag ? "en" : "dis");
+      SERIAL_MSG("endstop monitor ");
+      SERIAL_TXT(endstop_monitor_flag ? "en" : "dis");
       SERIAL_EM("abled");
       return;
     }
@@ -6603,8 +6601,8 @@ inline void gcode_M42() {
         if (verbose_level > 3) {
           SERIAL_MV("Starting radius: ", radius);
           SERIAL_MV("   angle: ", angle);
-          SERIAL_M(" Direction: ");
-          if (dir > 0) SERIAL_M("Counter-");
+          SERIAL_MSG(" Direction: ");
+          if (dir > 0) SERIAL_MSG("Counter-");
           SERIAL_EM("Clockwise");
         }
 
@@ -6647,7 +6645,7 @@ inline void gcode_M42() {
             Y_current = constrain(Y_current, Y_MIN_POS, Y_MAX_POS);
           #endif
           if (verbose_level > 3) {
-            SERIAL_M("Going to:");
+            SERIAL_MSG("Going to:");
             SERIAL_MV(" x: ", X_current);
             SERIAL_MV(" y: ", Y_current);
             SERIAL_EMV("  z: ", Mechanics.current_position[Z_AXIS]);
@@ -6680,7 +6678,7 @@ inline void gcode_M42() {
       sigma = SQRT(sum / (n + 1));
       if (verbose_level > 0) {
         if (verbose_level > 1) {
-          SERIAL_V(n + 1);
+          SERIAL_VAL(n + 1);
           SERIAL_MV(" of ", (int)n_samples);
           SERIAL_MV(": z: ", sample_set[n], 3);
           if (verbose_level > 2) {
@@ -6690,7 +6688,7 @@ inline void gcode_M42() {
             SERIAL_MV(" max: ", max, 3);
             SERIAL_MV(" range: ", max - min, 3);
           }
-          SERIAL_E;
+          SERIAL_EOL();
         }
       }
 
@@ -6705,11 +6703,11 @@ inline void gcode_M42() {
       SERIAL_MV(" Min: ", min, 3);
       SERIAL_MV(" Max: ", max, 3);
       SERIAL_MV(" Range: ", max - min, 3);
-      SERIAL_E;
+      SERIAL_EOL();
     }
 
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
-    SERIAL_E;
+    SERIAL_EOL();
 
     clean_up_after_endstop_or_probe_move();
 
@@ -7015,7 +7013,7 @@ inline void gcode_M105() {
   GET_TARGET_HOTEND(105);
 
   #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
-    SERIAL_S(OK);
+    SERIAL_STR(OK);
     #if HAS_TEMP_HOTEND || HAS_TEMP_BED
       print_heaterstates();
     #endif
@@ -7038,7 +7036,7 @@ inline void gcode_M105() {
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
   #endif
 
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 #if FAN_COUNT > 0
@@ -7161,15 +7159,15 @@ inline void gcode_M111() {
     uint8_t comma = 0;
     for (uint8_t i = 0; i < COUNT(debug_strings); i++) {
       if (TEST(mk_debug_flags, i)) {
-        if (comma++) SERIAL_C(',');
+        if (comma++) SERIAL_CHR(',');
         SERIAL_PS((char*)pgm_read_word(&(debug_strings[i])));
       }
     }
   }
   else {
-    SERIAL_M(MSG_DEBUG_OFF);
+    SERIAL_MSG(MSG_DEBUG_OFF);
   }
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 #if DISABLED(EMERGENCY_PARSER)
@@ -7288,11 +7286,7 @@ inline void gcode_M117() { lcd_setstatus(parser.string_arg); }
 /**
  * M118: Output to Host the message text
  */
-inline void gcode_M118() {
-  SERIAL_S(ECHO);
-  SERIAL_T(parser.string_arg);
-  SERIAL_E;
-}
+inline void gcode_M118() { SERIAL_LT(ECHO, parser.string_arg); }
 
 /**
  * M119: Output endstop states to serial output
@@ -7320,18 +7314,18 @@ inline void gcode_M122() {
     SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
     SERIAL_PS(endstops.soft_endstops_enabled ? PSTR(MSG_ON) : PSTR(MSG_OFF));
   #else
-    SERIAL_M(MSG_SOFT_ENDSTOPS);
-    SERIAL_M(MSG_OFF);
+    SERIAL_MSG(MSG_SOFT_ENDSTOPS);
+    SERIAL_MSG(MSG_OFF);
   #endif
-  SERIAL_M(MSG_SOFT_MIN);
+  SERIAL_MSG(MSG_SOFT_MIN);
   SERIAL_MV(    MSG_X, endstops.soft_endstop_min[X_AXIS]);
   SERIAL_MV(" " MSG_Y, endstops.soft_endstop_min[Y_AXIS]);
   SERIAL_MV(" " MSG_Z, endstops.soft_endstop_min[Z_AXIS]);
-  SERIAL_M(MSG_SOFT_MAX);
+  SERIAL_MSG(MSG_SOFT_MAX);
   SERIAL_MV(    MSG_X, endstops.soft_endstop_max[X_AXIS]);
   SERIAL_MV(" " MSG_Y, endstops.soft_endstop_max[Y_AXIS]);
   SERIAL_MV(" " MSG_Z, endstops.soft_endstop_max[Z_AXIS]);
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 #if ENABLED(PARK_HEAD_ON_PAUSE)
@@ -7561,7 +7555,7 @@ inline void gcode_M122() {
         print_MCUstate();
       #endif
 
-      SERIAL_E;
+      SERIAL_EOL();
     }
   }
 
@@ -7888,7 +7882,7 @@ inline void gcode_M218() {
     SERIAL_MV(",", hotend_offset[Y_AXIS][h]);
     SERIAL_MV(",", hotend_offset[Z_AXIS][h]);
   }
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 /**
@@ -8093,7 +8087,7 @@ inline void gcode_M226() {
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         SERIAL_MV(" C:", PID_PARAM(Kc, h));
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
     }
     else {
       SERIAL_LM(ER, MSG_INVALID_EXTRUDER);
@@ -8371,7 +8365,7 @@ inline void gcode_M226() {
     if (args) update_case_light();
 
     // always report case light status
-    SERIAL_S(ECHO);
+    SERIAL_STR(ECHO);
     if (!case_light_on)
       SERIAL_EM("Case light: off");
     else
@@ -8580,22 +8574,22 @@ inline void gcode_M400() { stepper.synchronize(); }
 
     if (parser.seen('S')) type = parser.value_byte();
 
-    SERIAL_M("{\"status\":\"");
+    SERIAL_MSG("{\"status\":\"");
     #if ENABLED(SDSUPPORT)
-      if (!print_job_counter.isRunning() && !card.sdprinting) SERIAL_C('I'); // IDLING
-      else if (card.sdprinting) SERIAL_C('P');          // SD PRINTING
-      else SERIAL_M("B");                               // SOMETHING ELSE, BUT SOMETHIG
+      if (!print_job_counter.isRunning() && !card.sdprinting) SERIAL_CHR('I'); // IDLING
+      else if (card.sdprinting) SERIAL_CHR('P');          // SD PRINTING
+      else SERIAL_MSG("B");                               // SOMETHING ELSE, BUT SOMETHIG
     #else
-      if (!print_job_counter.isRunning()) SERIAL_C('I');                     // IDLING
-      else SERIAL_C('B');                               // SOMETHING ELSE, BUT SOMETHIG
+      if (!print_job_counter.isRunning()) SERIAL_CHR('I');                     // IDLING
+      else SERIAL_CHR('B');                               // SOMETHING ELSE, BUT SOMETHIG
     #endif
 
-    SERIAL_M("\",\"coords\": {");
-    SERIAL_M("\"axesHomed\":[");
+    SERIAL_MSG("\",\"coords\": {");
+    SERIAL_MSG("\"axesHomed\":[");
     if (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS])
-      SERIAL_M("1, 1, 1");
+      SERIAL_MSG("1, 1, 1");
     else
-      SERIAL_M("0, 0, 0");
+      SERIAL_MSG("0, 0, 0");
 
     SERIAL_MV("],\"extr\":[", Mechanics.current_position[E_AXIS]);
     SERIAL_MV("],\"xyz\":[", Mechanics.current_position[X_AXIS]); // X AXIS
@@ -8605,53 +8599,53 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_MV("]},\"currentTool\":", active_extruder);
 
     #if HAS(POWER_SWITCH)
-      SERIAL_M(",\"params\": {\"atxPower\":");
-      SERIAL_C(powerManager.powersupply_on ? '1' : '0');
+      SERIAL_MSG(",\"params\": {\"atxPower\":");
+      SERIAL_CHR(powerManager.powersupply_on ? '1' : '0');
     #else
-      SERIAL_M(",\"params\": {\"NormPower\":");
+      SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif
 
-    SERIAL_M(",\"fanPercent\":[");
-    SERIAL_V(fanSpeeds[0]);
+    SERIAL_MSG(",\"fanPercent\":[");
+    SERIAL_VAL(fanSpeeds[0]);
 
     SERIAL_MV("],\"speedFactor\":", Mechanics.feedrate_percentage);
 
-    SERIAL_M(",\"extrFactors\":[");
+    SERIAL_MSG(",\"extrFactors\":[");
     firstOccurrence = true;
     for (uint8_t i = 0; i < EXTRUDERS; i++) {
-      if (!firstOccurrence) SERIAL_C(',');
-      SERIAL_V(flow_percentage[i]); // Really *100? 100 is normal
+      if (!firstOccurrence) SERIAL_CHR(',');
+      SERIAL_VAL(flow_percentage[i]); // Really *100? 100 is normal
       firstOccurrence = false;
     }
     SERIAL_EM("]},");
 
-    SERIAL_M("\"temps\": {");
+    SERIAL_MSG("\"temps\": {");
     #if HAS_TEMP_BED
       SERIAL_MV("\"bed\": {\"current\":", thermalManager.degBed(), 1);
       SERIAL_MV(",\"active\":", thermalManager.degTargetBed());
-      SERIAL_M(",\"state\":");
-      SERIAL_C(thermalManager.degTargetBed() > 0 ? '2' : '1');
-      SERIAL_M("},");
+      SERIAL_MSG(",\"state\":");
+      SERIAL_CHR(thermalManager.degTargetBed() > 0 ? '2' : '1');
+      SERIAL_MSG("},");
     #endif
-    SERIAL_M("\"heads\": {\"current\":[");
+    SERIAL_MSG("\"heads\": {\"current\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_C(',');
-      SERIAL_V(thermalManager.degHotend(h), 1);
+      if (!firstOccurrence) SERIAL_CHR(',');
+      SERIAL_VAL(thermalManager.degHotend(h), 1);
       firstOccurrence = false;
     }
-    SERIAL_M("],\"active\":[");
+    SERIAL_MSG("],\"active\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_C(',');
-      SERIAL_V(thermalManager.degTargetHotend(h));
+      if (!firstOccurrence) SERIAL_CHR(',');
+      SERIAL_VAL(thermalManager.degTargetHotend(h));
       firstOccurrence = false;
     }
-    SERIAL_M("],\"state\":[");
+    SERIAL_MSG("],\"state\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
-      if (!firstOccurrence) SERIAL_C(',');
-      SERIAL_C(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
+      if (!firstOccurrence) SERIAL_CHR(',');
+      SERIAL_CHR(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
       firstOccurrence = false;
     }
 
@@ -8663,163 +8657,163 @@ inline void gcode_M400() { stepper.synchronize(); }
         break;
       case 2:
         SERIAL_EM(",");
-        SERIAL_M("\"coldExtrudeTemp\":0,\"coldRetractTemp\":0.0,\"geometry\":\"");
+        SERIAL_MSG("\"coldExtrudeTemp\":0,\"coldRetractTemp\":0.0,\"geometry\":\"");
         #if MECH(CARTESIAN)
-          SERIAL_M("cartesian");
+          SERIAL_MSG("cartesian");
         #elif MECH(COREXY)
-          SERIAL_M("corexy");
+          SERIAL_MSG("corexy");
         #elif MECH(COREYX)
-          SERIAL_M("coreyx");
+          SERIAL_MSG("coreyx");
         #elif MECH(COREXZ)
-          SERIAL_M("corexz");
+          SERIAL_MSG("corexz");
         #elif MECH(COREZX)
-          SERIAL_M("corezx");
+          SERIAL_MSG("corezx");
         #elif MECH(DELTA)
-          SERIAL_M("delta");
+          SERIAL_MSG("delta");
         #endif
-        SERIAL_M("\",\"name\":\"");
-        SERIAL_M(CUSTOM_MACHINE_NAME);
-        SERIAL_M("\",\"tools\":[");
+        SERIAL_MSG("\",\"name\":\"");
+        SERIAL_MSG(CUSTOM_MACHINE_NAME);
+        SERIAL_MSG("\",\"tools\":[");
         firstOccurrence = true;
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          if (!firstOccurrence) SERIAL_C(',');
+          if (!firstOccurrence) SERIAL_CHR(',');
           SERIAL_MV("{\"number\":", i + 1);
           #if HOTENDS > 1
             SERIAL_MV(",\"heaters\":[", i + 1);
-            SERIAL_M("],");
+            SERIAL_MSG("],");
           #else
-            SERIAL_M(",\"heaters\":[1],");
+            SERIAL_MSG(",\"heaters\":[1],");
           #endif
           #if DRIVER_EXTRUDERS > 1
             SERIAL_MV("\"drives\":[", i);
-            SERIAL_M("]");
+            SERIAL_MSG("]");
           #else
-            SERIAL_M("\"drives\":[0]");
+            SERIAL_MSG("\"drives\":[0]");
           #endif
-          SERIAL_M("}");
+          SERIAL_MSG("}");
           firstOccurrence = false;
         }
         break;
       case 3:
         SERIAL_EM(",");
-        SERIAL_M("\"currentLayer\":");
+        SERIAL_MSG("\"currentLayer\":");
         #if ENABLED(SDSUPPORT)
           if (card.sdprinting && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
-            SERIAL_V((int) (Mechanics.current_position[Z_AXIS] / card.layerHeight));
+            SERIAL_VAL((int) (Mechanics.current_position[Z_AXIS] / card.layerHeight));
           }
-          else SERIAL_V(0);
+          else SERIAL_VAL(0);
         #else
-          SERIAL_V(-1);
+          SERIAL_VAL(-1);
         #endif
-        SERIAL_M(",\"extrRaw\":[");
+        SERIAL_MSG(",\"extrRaw\":[");
         firstOccurrence = true;
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          if (!firstOccurrence) SERIAL_C(',');
-          SERIAL_V(Mechanics.current_position[E_AXIS] * flow_percentage[i]);
+          if (!firstOccurrence) SERIAL_CHR(',');
+          SERIAL_VAL(Mechanics.current_position[E_AXIS] * flow_percentage[i]);
           firstOccurrence = false;
         }
-        SERIAL_M("],");
+        SERIAL_MSG("],");
         #if ENABLED(SDSUPPORT)
           if (card.sdprinting) {
-            SERIAL_M("\"fractionPrinted\":");
+            SERIAL_MSG("\"fractionPrinted\":");
             float fractionprinted;
             if (card.fileSize < 2000000) {
               fractionprinted = (float)card.sdpos / (float)card.fileSize;
             }
             else fractionprinted = (float)(card.sdpos >> 8) / (float)(card.fileSize >> 8);
-            SERIAL_V((float) floorf(fractionprinted * 1000) / 1000);
-            SERIAL_C(',');
+            SERIAL_VAL((float) floorf(fractionprinted * 1000) / 1000);
+            SERIAL_CHR(',');
           }
         #endif
-        SERIAL_M("\"firstLayerHeight\":");
+        SERIAL_MSG("\"firstLayerHeight\":");
         #if ENABLED(SDSUPPORT)
-          if (card.sdprinting) SERIAL_V(card.firstlayerHeight);
-          else SERIAL_M("0");
+          if (card.sdprinting) SERIAL_VAL(card.firstlayerHeight);
+          else SERIAL_MSG("0");
         #else
-          SERIAL_M("0");
+          SERIAL_MSG("0");
         #endif
         break;
       case 4:
       case 5:
         SERIAL_EM(",");
-        SERIAL_M("\"axisMins\":[");
-        SERIAL_V((int) X_MIN_POS);
-        SERIAL_C(',');
-        SERIAL_V((int) Y_MIN_POS);
-        SERIAL_C(',');
-        SERIAL_V((int) Z_MIN_POS);
-        SERIAL_M("],\"axisMaxes\":[");
-        SERIAL_V((int) X_MAX_POS);
-        SERIAL_C(',');
-        SERIAL_V((int) Y_MAX_POS);
-        SERIAL_C(',');
-        SERIAL_V((int) Z_MAX_POS);
-        SERIAL_M("],\"planner.accelerations\":[");
-        SERIAL_V(planner.max_acceleration_mm_per_s2[X_AXIS]);
-        SERIAL_C(',');
-        SERIAL_V(planner.max_acceleration_mm_per_s2[Y_AXIS]);
-        SERIAL_C(',');
-        SERIAL_V(planner.max_acceleration_mm_per_s2[Z_AXIS]);
+        SERIAL_MSG("\"axisMins\":[");
+        SERIAL_VAL((int) X_MIN_POS);
+        SERIAL_CHR(',');
+        SERIAL_VAL((int) Y_MIN_POS);
+        SERIAL_CHR(',');
+        SERIAL_VAL((int) Z_MIN_POS);
+        SERIAL_MSG("],\"axisMaxes\":[");
+        SERIAL_VAL((int) X_MAX_POS);
+        SERIAL_CHR(',');
+        SERIAL_VAL((int) Y_MAX_POS);
+        SERIAL_CHR(',');
+        SERIAL_VAL((int) Z_MAX_POS);
+        SERIAL_MSG("],\"planner.accelerations\":[");
+        SERIAL_VAL(planner.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_CHR(',');
+        SERIAL_VAL(planner.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_CHR(',');
+        SERIAL_VAL(planner.max_acceleration_mm_per_s2[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_C(',');
-          SERIAL_V(planner.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_CHR(',');
+          SERIAL_VAL(planner.max_acceleration_mm_per_s2[E_AXIS + i]);
         }
-        SERIAL_M("],");
+        SERIAL_MSG("],");
 
         #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-          SERIAL_M("\"currents\":[");
-          SERIAL_V(motor_current[X_AXIS]);
-          SERIAL_C(',');
-          SERIAL_V(motor_current[Y_AXIS]);
-          SERIAL_C(',');
-          SERIAL_V(motor_current[Z_AXIS]);
+          SERIAL_MSG("\"currents\":[");
+          SERIAL_VAL(motor_current[X_AXIS]);
+          SERIAL_CHR(',');
+          SERIAL_VAL(motor_current[Y_AXIS]);
+          SERIAL_CHR(',');
+          SERIAL_VAL(motor_current[Z_AXIS]);
           for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-            SERIAL_C(',');
-            SERIAL_V(motor_current[E_AXIS + i]);
+            SERIAL_CHR(',');
+            SERIAL_VAL(motor_current[E_AXIS + i]);
           }
           SERIAL_EM("],");
         #endif
 
-        SERIAL_M("\"firmwareElectronics\":\"");
+        SERIAL_MSG("\"firmwareElectronics\":\"");
         #if MB(RAMPS_13_HFB) || MB(RAMPS_13_HHB) || MB(RAMPS_13_HFF) || MB(RAMPS_13_HHF) || MB(RAMPS_13_HHH)
-          SERIAL_M("RAMPS");
+          SERIAL_MSG("RAMPS");
         #elif MB(ALLIGATOR)
-          SERIAL_M("ALLIGATOR");
+          SERIAL_MSG("ALLIGATOR");
         #elif MB(ALLIGATOR_V3)
-          SERIAL_M("ALLIGATOR_V3");
+          SERIAL_MSG("ALLIGATOR_V3");
         #elif MB(RADDS) || MB(RAMPS_FD_V1) || MB(RAMPS_FD_V2) || MB(SMART_RAMPS) || MB(RAMPS4DUE)
-          SERIAL_M("Arduino due");
+          SERIAL_MSG("Arduino due");
         #elif MB(ULTRATRONICS)
-          SERIAL_M("ULTRATRONICS");
+          SERIAL_MSG("ULTRATRONICS");
         #else
-          SERIAL_M("AVR");
+          SERIAL_MSG("AVR");
         #endif
-        SERIAL_M("\",\"firmwareName\":\"");
-        SERIAL_M(FIRMWARE_NAME);
-        SERIAL_M(",\"firmwareVersion\":\"");
-        SERIAL_M(SHORT_BUILD_VERSION);
-        SERIAL_M("\",\"firmwareDate\":\"");
-        SERIAL_M(STRING_DISTRIBUTION_DATE);
+        SERIAL_MSG("\",\"firmwareName\":\"");
+        SERIAL_MSG(FIRMWARE_NAME);
+        SERIAL_MSG(",\"firmwareVersion\":\"");
+        SERIAL_MSG(SHORT_BUILD_VERSION);
+        SERIAL_MSG("\",\"firmwareDate\":\"");
+        SERIAL_MSG(STRING_DISTRIBUTION_DATE);
 
-        SERIAL_M("\",\"minFeedrates\":[0,0,0");
+        SERIAL_MSG("\",\"minFeedrates\":[0,0,0");
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_M(",0");
+          SERIAL_MSG(",0");
         }
-        SERIAL_M("],\"maxFeedrates\":[");
-        SERIAL_V(planner.max_feedrate_mm_s[X_AXIS]);
-        SERIAL_C(',');
-        SERIAL_V(planner.max_feedrate_mm_s[Y_AXIS]);
-        SERIAL_C(',');
-        SERIAL_V(planner.max_feedrate_mm_s[Z_AXIS]);
+        SERIAL_MSG("],\"maxFeedrates\":[");
+        SERIAL_VAL(planner.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_CHR(',');
+        SERIAL_VAL(planner.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_CHR(',');
+        SERIAL_VAL(planner.max_feedrate_mm_s[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_C(',');
-          SERIAL_V(planner.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_CHR(',');
+          SERIAL_VAL(planner.max_feedrate_mm_s[E_AXIS + i]);
         }
-        SERIAL_C(']');
+        SERIAL_CHR(']');
         break;
     }
-    SERIAL_C('}');
-    SERIAL_E;
+    SERIAL_CHR('}');
+    SERIAL_EOL();
   }
 #endif // JSON_OUTPUT
 
@@ -8950,7 +8944,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     if (new_mode >= 0 && (PrinterMode)new_mode < PRINTER_MODE_COUNT) printer_mode = (PrinterMode)new_mode;
     SERIAL_SM(ECHO, "Printer-Mode: ");
     SERIAL_PS((char*)pgm_read_word(&(tool_strings[printer_mode])));
-    SERIAL_C(' ');
+    SERIAL_CHR(' ');
     SERIAL_EV((int)(printer_mode == PRINTER_MODE_FFF ? active_extruder : 0));
   }
 
@@ -9058,9 +9052,9 @@ inline void gcode_M530() {
   if (parser.seen('S') && parser.value_bool()) {
     print_job_counter.start();
 
-    SERIAL_M("Start Printing");
+    SERIAL_MSG("Start Printing");
     if (maxLayer > 0) SERIAL_EMV(" - MaxLayer:", maxLayer);
-    else SERIAL_E;
+    else SERIAL_EOL();
 
     #if ENABLED(START_GCODE)
       enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
@@ -9068,8 +9062,8 @@ inline void gcode_M530() {
     #if HAS_FIL_RUNOUT
       filament_ran_out = false;
       SERIAL_EM("Filament runout activated.");
-      SERIAL_S(RESUME);
-      SERIAL_E;
+      SERIAL_STR(RESUME);
+      SERIAL_EOL();
     #endif
     #if HAS_POWER_CONSUMPTION_SENSOR
       startpower = power_consumption_hour;
@@ -9261,13 +9255,13 @@ inline void gcode_M532() {
         if (parser.seen('X')) Mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - Mechanics.x_home_pos(0));
         if (parser.seen('R')) Mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
         SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
-        SERIAL_C(' ');
-        SERIAL_V(hotend_offset[X_AXIS][0]);
-        SERIAL_C(',');
-        SERIAL_V(hotend_offset[Y_AXIS][0]);
-        SERIAL_C(' ');
-        SERIAL_V(Mechanics.duplicate_hotend_x_offset);
-        SERIAL_C(',');
+        SERIAL_CHR(' ');
+        SERIAL_VAL(hotend_offset[X_AXIS][0]);
+        SERIAL_CHR(',');
+        SERIAL_VAL(hotend_offset[Y_AXIS][0]);
+        SERIAL_CHR(' ');
+        SERIAL_VAL(Mechanics.duplicate_hotend_x_offset);
+        SERIAL_CHR(',');
         SERIAL_EV(hotend_offset[Y_AXIS][1]);
         break;
       default:
@@ -9477,7 +9471,7 @@ inline void gcode_M532() {
   inline void gcode_M666() {
 
     SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
-    SERIAL_C(' ');
+    SERIAL_CHR(' ');
 
     if (parser.seen('P')) {
       float p_val = parser.value_linear_units();
@@ -9497,11 +9491,11 @@ inline void gcode_M532() {
         #endif
 
         zprobe_zoffset = p_val;
-        SERIAL_V(zprobe_zoffset);
+        SERIAL_VAL(zprobe_zoffset);
       }
       else {
         SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
-        SERIAL_C(' ');
+        SERIAL_CHR(' ');
         SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
       }
     }
@@ -9509,7 +9503,7 @@ inline void gcode_M532() {
       SERIAL_MV(": ", zprobe_zoffset, 3);
     }
 
-    SERIAL_E;
+    SERIAL_EOL();
   }
 
 #elif MECH(DELTA)
@@ -9565,7 +9559,7 @@ inline void gcode_M532() {
       if (parser.seen('P')) {
 
         SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
-        SERIAL_C(' ');
+        SERIAL_CHR(' ');
 
         float p_val = parser.value_linear_units();
         if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
@@ -9584,15 +9578,15 @@ inline void gcode_M532() {
           #endif
 
           zprobe_zoffset = p_val;
-          SERIAL_V(zprobe_zoffset);
+          SERIAL_VAL(zprobe_zoffset);
         }
         else {
           SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
-          SERIAL_C(' ');
+          SERIAL_CHR(' ');
           SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
         }
 
-        SERIAL_E;
+        SERIAL_EOL();
       }
 
     #endif // HAS_BED_PROBE
@@ -9657,10 +9651,10 @@ inline void gcode_M532() {
     if (newR >= 0) planner.advance_ed_ratio = newR;
 
     SERIAL_SMV(ECHO, "Advance K=", planner.extruder_advance_k);
-    SERIAL_M(" E/D=");
-    if (planner.advance_ed_ratio) SERIAL_V(planner.advance_ed_ratio);
-    else SERIAL_M("Auto");
-    SERIAL_E;
+    SERIAL_MSG(" E/D=");
+    if (planner.advance_ed_ratio) SERIAL_VAL(planner.advance_ed_ratio);
+    else SERIAL_MSG("Auto");
+    SERIAL_EOL();
   }
 
 #endif // LIN_ADVANCE
@@ -9686,8 +9680,8 @@ inline void gcode_M532() {
 #elif ENABLED(HAVE_TMC2130)
 
   static void tmc2130_get_current(TMC2130Stepper &st, const char name) {
-    SERIAL_C(name);
-    SERIAL_M(" axis driver current: ");
+    SERIAL_CHR(name);
+    SERIAL_MSG(" axis driver current: ");
     SERIAL_EV(st.getCurrent());
   }
   static void tmc2130_set_current(TMC2130Stepper &st, const char name, const int mA) {
@@ -9696,20 +9690,20 @@ inline void gcode_M532() {
   }
 
   static void tmc2130_report_otpw(TMC2130Stepper &st, const char name) {
-    SERIAL_C(name);
-    SERIAL_M(" axis temperature prewarn triggered: ");
+    SERIAL_CHR(name);
+    SERIAL_MSG(" axis temperature prewarn triggered: ");
     SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
-    SERIAL_E;
+    SERIAL_EOL();
   }
   static void tmc2130_clear_otpw(TMC2130Stepper &st, const char name) {
     st.clear_otpw();
-    SERIAL_C(name);
+    SERIAL_CHR(name);
     SERIAL_EM(" prewarn flag cleared");
   }
 
   static void tmc2130_get_pwmthrs(TMC2130Stepper &st, const char name, const uint16_t spmm) {
-    SERIAL_C(name);
-    SERIAL_M(" stealthChop max speed set to ");
+    SERIAL_CHR(name);
+    SERIAL_MSG(" stealthChop max speed set to ");
     SERIAL_EV(12650000UL * st.microsteps() / (256 * st.stealth_max_speed() * spmm));
   }
   static void tmc2130_set_pwmthrs(TMC2130Stepper &st, const char name, const int32_t thrs, const uint32_t spmm) {
@@ -9718,8 +9712,8 @@ inline void gcode_M532() {
   }
 
   static void tmc2130_get_sgt(TMC2130Stepper &st, const char name) {
-    SERIAL_C(name);
-    SERIAL_M(" driver homing sensitivity set to ");
+    SERIAL_CHR(name);
+    SERIAL_MSG(" driver homing sensitivity set to ");
     SERIAL_EV(st.sgt());
   }
   static void tmc2130_set_sgt(TMC2130Stepper &st, const char name, const int8_t sgt_val) {
@@ -9963,7 +9957,7 @@ inline void gcode_T(uint8_t tool_id) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV(">>> gcode_T(", tool_id);
-      SERIAL_C(')'); SERIAL_E;
+      SERIAL_CHR(')'); SERIAL_EOL();
       DEBUG_POS("BEFORE", Mechanics.current_position);
     }
   #endif
@@ -10319,7 +10313,7 @@ inline void invalid_extruder_error(const uint8_t &e) {
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
-              SERIAL_M("Dual X Carriage Mode ");
+              SERIAL_MSG("Dual X Carriage Mode ");
               switch (Mechanics.dual_x_carriage_mode) {
                 case DXC_DUPLICATION_MODE: SERIAL_EM("DXC_DUPLICATION_MODE"); break;
                 case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
@@ -10599,8 +10593,8 @@ inline void invalid_extruder_error(const uint8_t &e) {
     if (tool_id != active_cnc_tool) {
 
       if (wait) {
-        SERIAL_S(PAUSE);
-        SERIAL_E;
+        SERIAL_STR(PAUSE);
+        SERIAL_EOL();
       }
 
       stepper.synchronize();
@@ -10649,8 +10643,8 @@ inline void invalid_extruder_error(const uint8_t &e) {
       if (wait) {
         KEEPALIVE_STATE(IN_HANDLER);
 
-        SERIAL_S(RESUME);
-        SERIAL_E;
+        SERIAL_STR(RESUME);
+        SERIAL_EOL();
       }
     }
   }
@@ -11435,19 +11429,19 @@ void FlushSerialRequestResend() {
 void ok_to_send() {
   refresh_cmd_timeout();
   if (!send_ok[cmd_queue_index_r]) return;
-  SERIAL_S(OK);
+  SERIAL_STR(OK);
   #if ENABLED(ADVANCED_OK)
     char* p = command_queue[cmd_queue_index_r];
     if (*p == 'N') {
-      SERIAL_C(' ');
-      SERIAL_C(*p++);
+      SERIAL_CHR(' ');
+      SERIAL_CHR(*p++);
       while (NUMERIC_SIGNED(*p))
-        SERIAL_C(*p++);
+        SERIAL_CHR(*p++);
     }
     SERIAL_MV(" P", (int)(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
     SERIAL_MV(" B", BUFSIZE - commands_in_queue);
   #endif
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -11524,7 +11518,7 @@ void ok_to_send() {
     /*
     static float last_offset = 0;
     if (FABS(last_offset - offset) > 0.2) {
-      SERIAL_M("Sudden Shift at ");
+      SERIAL_MSG("Sudden Shift at ");
       SERIAL_MV("x=", x);
       SERIAL_MV(" / ", ABL_BG_SPACING(X_AXIS));
       SERIAL_EMV(" -> gridx=", gridx);
@@ -11598,24 +11592,24 @@ void ok_to_send() {
         SERIAL_MV(" (adj:", Mechanics.endstop_adj[1], 4);
         SERIAL_MV(") z:", bed_level_z, 4);
         SERIAL_MV(" (adj:", Mechanics.endstop_adj[2], 4);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
 
         if (FABS(bed_level_x) <= ac_prec) {
           x_done = true;
-          SERIAL_M("X=OK ");
+          SERIAL_MSG("X=OK ");
         }
         else {
           x_done = false;
-          SERIAL_M("X=ERROR ");
+          SERIAL_MSG("X=ERROR ");
         }
 
         if (FABS(bed_level_y) <= ac_prec) {
           y_done = true;
-          SERIAL_M("Y=OK ");
+          SERIAL_MSG("Y=OK ");
         }
         else {
           y_done = false;
-          SERIAL_M("Y=ERROR ");
+          SERIAL_MSG("Y=ERROR ");
         }
 
         if (FABS(bed_level_z) <= ac_prec) {
@@ -11674,11 +11668,11 @@ void ok_to_send() {
       if (FABS(x_diff - z_diff) <= ac_prec) xz_equal = true;
       if (FABS(y_diff - z_diff) <= ac_prec) yz_equal = true;
 
-      SERIAL_M("xy_equal = ");
+      SERIAL_MSG("xy_equal = ");
       if (xy_equal == true) SERIAL_EM("true"); else SERIAL_EM("false");
-      SERIAL_M("xz_equal = ");
+      SERIAL_MSG("xz_equal = ");
       if (xz_equal == true) SERIAL_EM("true"); else SERIAL_EM("false");
-      SERIAL_M("yz_equal = ");
+      SERIAL_MSG("yz_equal = ");
       if (yz_equal == true) SERIAL_EM("true"); else SERIAL_EM("false");
 
       low_opp   = MIN3(bed_level_ox, bed_level_oy, bed_level_oz);
@@ -11732,13 +11726,13 @@ void ok_to_send() {
       if ((t1_err == false) and (t2_err == true) and (t3_err == false)) err_tower = 2;
       if ((t1_err == false) and (t2_err == false) and (t3_err == true)) err_tower = 3;
 
-      SERIAL_M("t1:");
-      if (t1_err == true) SERIAL_M("Err"); else SERIAL_M("OK");
-      SERIAL_M(" t2:");
-      if (t2_err == true) SERIAL_M("Err"); else SERIAL_M("OK");
-      SERIAL_M(" t3:");
-      if (t3_err == true) SERIAL_M("Err"); else SERIAL_M("OK");
-      SERIAL_E;
+      SERIAL_MSG("t1:");
+      if (t1_err == true) SERIAL_MSG("Err"); else SERIAL_MSG("OK");
+      SERIAL_MSG(" t2:");
+      if (t2_err == true) SERIAL_MSG("Err"); else SERIAL_MSG("OK");
+      SERIAL_MSG(" t3:");
+      if (t3_err == true) SERIAL_MSG("Err"); else SERIAL_MSG("OK");
+      SERIAL_EOL();
 
       if (err_tower == 0)
         SERIAL_EM("Tower geometry OK");
@@ -11807,7 +11801,7 @@ void ok_to_send() {
           SERIAL_MV(" delta radius:", Mechanics.delta_radius, 4);
           SERIAL_MV(" prec:", adjdone_vector, 3);
           SERIAL_MV(" tries:", adj_attempts);
-          SERIAL_M(" done:");
+          SERIAL_MSG(" done:");
           if (adj_done == true) SERIAL_EM("true");
           else SERIAL_EM("false");
 
@@ -11866,7 +11860,7 @@ void ok_to_send() {
         SERIAL_MV("tower:", bed_level, 4);
         SERIAL_MV(" opptower:", bed_level_o, 4);
         SERIAL_MV(" tower radius adj:", Mechanics.tower_radius_adj[tower - 1], 4);
-        SERIAL_M(" done:");
+        SERIAL_MSG(" done:");
         if (adj_done == true) SERIAL_EM("true");
         else SERIAL_EM("false");
 
@@ -11980,45 +11974,45 @@ void ok_to_send() {
       // Display Report
       SERIAL_EM("| \tZ-Tower\t\t\tEndstop Offsets");
 
-      SERIAL_M("| \t");
-      if (bed_level_z >= 0) SERIAL_M(" ");
+      SERIAL_MSG("| \t");
+      if (bed_level_z >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_z, 4);
       SERIAL_MV("\t\t\tX:", Mechanics.endstop_adj[0], 4);
       SERIAL_MV(" Y:", Mechanics.endstop_adj[1], 4);
       SERIAL_EMV(" Z:", Mechanics.endstop_adj[2], 4);
 
-      SERIAL_M("| ");
-      if (bed_level_ox >= 0) SERIAL_M(" ");
+      SERIAL_MSG("| ");
+      if (bed_level_ox >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_ox, 4);
-      SERIAL_M("\t");
-      if (bed_level_oy >= 0) SERIAL_M(" ");
+      SERIAL_MSG("\t");
+      if (bed_level_oy >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_oy, 4);
       SERIAL_EM("\t\tTower Offsets");
 
-      SERIAL_M("| \t");
-      if (bed_level_c >= 0) SERIAL_M(" ");
+      SERIAL_MSG("| \t");
+      if (bed_level_c >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_c, 4);
       SERIAL_MV("\t\t\tA:", Mechanics.tower_radius_adj[0]);
       SERIAL_MV(" B:", Mechanics.tower_radius_adj[1]);
       SERIAL_EMV(" C:", Mechanics.tower_radius_adj[2]);
 
-      SERIAL_M("| ");
-      if (bed_level_x >= 0) SERIAL_M(" ");
+      SERIAL_MSG("| ");
+      if (bed_level_x >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_x, 4);
-      SERIAL_M("\t");
-      if (bed_level_y >= 0) SERIAL_M(" ");
+      SERIAL_MSG("\t");
+      if (bed_level_y >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_y, 4);
       SERIAL_MV("\t\tI:", Mechanics.tower_pos_adj[0]);
       SERIAL_MV(" J:", Mechanics.tower_pos_adj[1]);
       SERIAL_EMV(" K:", Mechanics.tower_pos_adj[2]);
 
-      SERIAL_M("| \t");
-      if (bed_level_oz >= 0) SERIAL_M(" ");
+      SERIAL_MSG("| \t");
+      if (bed_level_oz >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_oz, 4);
       SERIAL_EMV("\t\t\tDelta Radius: ", Mechanics.delta_radius, 4);
 
       SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", Mechanics.diagonal_rod, 4);
-      SERIAL_E;
+      SERIAL_EOL();
     }
 
   #endif
@@ -12221,12 +12215,12 @@ void report_current_position() {
 
 void report_xyze(const float pos[XYZE], const uint8_t n = 4, const uint8_t precision = 3) {
   for (uint8_t i = 0; i < n; i++) {
-    SERIAL_C(' ');
-    SERIAL_C(axis_codes[i]);
-    SERIAL_C(':');
-    SERIAL_V(pos[i], precision);
+    SERIAL_CHR(' ');
+    SERIAL_CHR(axis_codes[i]);
+    SERIAL_CHR(':');
+    SERIAL_VAL(pos[i], precision);
   }
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 inline void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
@@ -12235,10 +12229,10 @@ void report_current_position_detail() {
 
   stepper.synchronize();
 
-  SERIAL_M("\nLogical:");
+  SERIAL_MSG("\nLogical:");
   report_xyze(Mechanics.current_position);
 
-  SERIAL_M("Raw:    ");
+  SERIAL_MSG("Raw:    ");
   const float raw[XYZ] = { RAW_X_POSITION(Mechanics.current_position[X_AXIS]), RAW_Y_POSITION(Mechanics.current_position[Y_AXIS]), RAW_Z_POSITION(Mechanics.current_position[Z_AXIS]) };
   report_xyz(raw);
 
@@ -12246,11 +12240,11 @@ void report_current_position_detail() {
 
   #if HAS_LEVELING
 
-    SERIAL_M("Leveled:");
+    SERIAL_MSG("Leveled:");
     planner.apply_leveling(leveled);
     report_xyz(leveled);
 
-    SERIAL_M("UnLevel:");
+    SERIAL_MSG("UnLevel:");
     float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
     planner.unapply_leveling(unleveled);
     report_xyz(unleveled);
@@ -12259,15 +12253,15 @@ void report_current_position_detail() {
 
   #if IS_KINEMATIC
     #if IS_SCARA
-      SERIAL_M("ScaraK: ");
+      SERIAL_MSG("ScaraK: ");
     #else
-      SERIAL_M("DeltaK: ");
+      SERIAL_MSG("DeltaK: ");
     #endif
     Mechanics.Transform(leveled);  // writes delta[]
     report_xyz(Mechanics.delta);
   #endif
 
-  SERIAL_M("Stepper:");
+  SERIAL_MSG("Stepper:");
   const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
   report_xyze(step_count, 4, 0);
 
@@ -12276,11 +12270,11 @@ void report_current_position_detail() {
       stepper.get_axis_position_degrees(A_AXIS),
       stepper.get_axis_position_degrees(B_AXIS)
     };
-    SERIAL_M("Degrees:");
+    SERIAL_MSG("Degrees:");
     report_xyze(deg, 2);
   #endif
 
-  SERIAL_M("FromStp:");
+  SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartes[XYZ] (with forward kinematics)
   const float from_steppers[XYZE] = { cartes[X_AXIS], cartes[Y_AXIS], cartes[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
@@ -12291,7 +12285,7 @@ void report_current_position_detail() {
     from_steppers[Z_AXIS] - leveled[Z_AXIS],
     from_steppers[E_AXIS] - Mechanics.current_position[E_AXIS]
   };
-  SERIAL_M("Differ: ");
+  SERIAL_MSG("Differ: ");
   report_xyze(diff);
 }
 
@@ -12614,9 +12608,9 @@ void calculate_volumetric_multipliers() {
       duration_t elapsed = print_job_counter.duration();
       const bool has_days = (elapsed.value > 60*60*24L);
       (void)elapsed.toDigital(timestamp, has_days);
-      SERIAL_T(timestamp);
-      SERIAL_T(": ");
-      SERIAL_T(axisID);
+      SERIAL_TXT(timestamp);
+      SERIAL_TXT(": ");
+      SERIAL_TXT(axisID);
       SERIAL_EM(" driver overtemperature warning!");
     }
     previous_otpw = is_otpw;
@@ -12634,7 +12628,7 @@ void calculate_volumetric_multipliers() {
       if (is_otpw) {
         st.setCurrent(current - CURRENT_STEP, R_SENSE, HOLD_MULTIPLIER);
         #if ENABLED(REPORT_CURRENT_CHANGE)
-          SERIAL_T(axisID);
+          SERIAL_TXT(axisID);
           SERIAL_MV(" current decreased to ", st.getCurrent());
         #endif
       }
@@ -12647,12 +12641,12 @@ void calculate_volumetric_multipliers() {
         if (current <= AUTO_ADJUST_MAX) {
           st.setCurrent(current, R_SENSE, HOLD_MULTIPLIER);
           #if ENABLED(REPORT_CURRENT_CHANGE)
-            SERIAL_T(axisID);
+            SERIAL_TXT(axisID);
             SERIAL_MV(" current increased to ", st.getCurrent());
           #endif
         }
       }
-      SERIAL_E;
+      SERIAL_EOL();
     #endif
   }
 
@@ -13113,8 +13107,8 @@ void stop() {
     Running = false;
     Stopped_gcode_LastN = gcode_LastN; // Save last g_code for restart
     SERIAL_LM(ER, MSG_ERR_STOPPED);
-    SERIAL_S(PAUSE);
-    SERIAL_E;
+    SERIAL_STR(PAUSE);
+    SERIAL_EOL();
     LCD_MESSAGEPGM(MSG_STOPPED);
   }
 }
@@ -13164,7 +13158,7 @@ void setup() {
   SERIAL_L(START);
 
   // Check startup
-  SERIAL_S(INFO);
+  SERIAL_STR(INFO);
   HAL::showStartReason();
 
   SERIAL_LM(ECHO, BUILD_VERSION);
