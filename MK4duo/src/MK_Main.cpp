@@ -11042,7 +11042,7 @@ void process_next_command() {
           gcode_M142(); break;
       #endif
 
-      #if ENABLED(ULTIPANEL) && TEMP_SENSOR_0 != 0
+      #if ENABLED(ULTIPANEL) && HAS_TEMP_0
         case 145: // M145: Set material heatup parameters
           gcode_M145(); break;
       #endif
