@@ -1098,24 +1098,24 @@
       return;
     }
     else {
-      SERIAL_M("Nextion LCD");
+      SERIAL_MSG("Nextion LCD");
       // Get Model
       ZERO(buffer);
       getConnect(buffer, sizeof(buffer));
 
       if (strstr(buffer, "NX4827T043") || strstr(buffer, "NX4827K043")) { // Model 4.3" Normal or Enhanced
-        SERIAL_M(" 4.3");
+        SERIAL_MSG(" 4.3");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
       else if (strstr(buffer, "NX8048T070") || strstr(buffer, "NX8048K070")) { // Model 7" Normal or Enhanced
-        SERIAL_M(" 7");
+        SERIAL_MSG(" 7");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(274, 213, 250, 155);
         #endif
       }
-      SERIAL_C('"'); SERIAL_EM(" connected!");
+      SERIAL_CHR('"'); SERIAL_EM(" connected!");
 
       #if ENABLED(NEXTION_GFX)
         gfx.color_set(NX_AXIS + X_AXIS, 63488);

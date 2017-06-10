@@ -899,7 +899,7 @@ void EEPROM::Postprocess() {
           Factory_Settings();
         else {
           Postprocess();
-          SERIAL_V(version);
+          SERIAL_VAL(version);
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_EM(" bytes)");
         }
@@ -908,7 +908,7 @@ void EEPROM::Postprocess() {
 
         if (working_crc == stored_crc) {
           Postprocess();
-          SERIAL_V(version);
+          SERIAL_VAL(version);
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_MV(" bytes; crc ", working_crc);
           SERIAL_EM(")");
@@ -1147,7 +1147,7 @@ void EEPROM::Factory_Settings() {
 
 #if DISABLED(DISABLE_M503)
 
-  #define CONFIG_MSG_START(str) do{ if (!forReplay) SERIAL_S(CFG); SERIAL_EM(str); }while(0)
+  #define CONFIG_MSG_START(str) do{ if (!forReplay) SERIAL_STR(CFG); SERIAL_EM(str); }while(0)
 
   /**
    * M503 - Print Configuration
@@ -1162,8 +1162,8 @@ void EEPROM::Factory_Settings() {
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
       #define VOLUMETRIC_UNIT(N) ((N) / (volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_SM(CFG, "  G2");
-      SERIAL_C(parser.linear_unit_factor == 1.0 ? '1' : '0');
-      SERIAL_M(" ; Units in ");
+      SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
+      SERIAL_MSG(" ; Units in ");
       SERIAL_PS(parser.linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
     #else
       #define LINEAR_UNIT(N) N
@@ -1178,8 +1178,8 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
         #define TEMP_UNIT(N) parser.to_temp_units(N)
         SERIAL_SM(CFG, "  M149 ");
-        SERIAL_C(parser.temp_units_code);
-        SERIAL_M(" ; Units in ");
+        SERIAL_CHR(parser.temp_units_code);
+        SERIAL_MSG(" ; Units in ");
         SERIAL_PS(parser.temp_units_name());
       #else
         #define TEMP_UNIT(N) N
@@ -1195,7 +1195,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.axis_steps_per_mm[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
@@ -1210,7 +1210,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_feedrate_mm_s[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
@@ -1225,7 +1225,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_acceleration_mm_per_s2[E_AXIS]));
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
@@ -1239,7 +1239,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 R", LINEAR_UNIT(planner.retract_acceleration[0]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
@@ -1257,7 +1257,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", LINEAR_UNIT(planner.max_jerk[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if (EXTRUDERS > 1)
       for(int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
@@ -1294,7 +1294,7 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
 
       for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
         for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
@@ -1311,7 +1311,7 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
 
     #endif
 
@@ -1331,7 +1331,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" X", LINEAR_UNIT(Mechanics.endstop_adj[A_AXIS]));
       SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.endstop_adj[B_AXIS]));
       SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.endstop_adj[C_AXIS]));
-      SERIAL_E;
+      SERIAL_EOL();
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
       CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
@@ -1351,7 +1351,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" S", Mechanics.segments_per_second);
       SERIAL_MV(" O", LINEAR_UNIT(Mechanics.print_radius));
       SERIAL_MV(" H", LINEAR_UNIT(Mechanics.delta_height), 3);
-      SERIAL_E;
+      SERIAL_EOL();
 
     #endif
 
@@ -1370,7 +1370,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
         SERIAL_MV(" B", TEMP_UNIT(lcd_preheat_bed_temp[i]));
         SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
-        SERIAL_E;
+        SERIAL_EOL();
       }
     #endif // ULTIPANEL
 
@@ -1385,7 +1385,7 @@ void EEPROM::Factory_Settings() {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_MV(" C", PID_PARAM(Kc, 0));
           #endif
-          SERIAL_E;
+          SERIAL_EOL();
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", lpq_len);
           #endif
@@ -1398,7 +1398,7 @@ void EEPROM::Factory_Settings() {
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               SERIAL_MV(" C", PID_PARAM(Kc, h));
             #endif
-            SERIAL_E;
+            SERIAL_EOL();
           }
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", lpq_len);
@@ -1448,7 +1448,7 @@ void EEPROM::Factory_Settings() {
     if (!forReplay) {
       SERIAL_SM(CFG, "Filament settings:");
       if (volumetric_enabled)
-        SERIAL_E;
+        SERIAL_EOL();
       else
         SERIAL_EM(" Disabled");
     }
@@ -1473,7 +1473,7 @@ void EEPROM::Factory_Settings() {
       #if EXTRUDERS == 1
         SERIAL_MV(" T0 E", motor_current[E_AXIS], 2);
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
           SERIAL_SMV(CFG, "  M906 T", i);
@@ -1518,15 +1518,15 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(E3_IS_TMC2130)
         SERIAL_MV(" E3", stepperE3.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if ENABLED(E4_IS_TMC2130)
         SERIAL_MV(" E4", stepperE4.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if ENABLED(E5_IS_TMC2130)
         SERIAL_MV(" E5", stepperE5.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
     #endif
 
     /**

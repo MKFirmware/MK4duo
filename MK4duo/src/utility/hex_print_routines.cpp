@@ -45,9 +45,9 @@ char* hex_address(const void * const w) {
   return _hex;
 }
 
-void print_hex_nybble(const uint8_t n)        { SERIAL_C(hex_nybble(n));  }
-void print_hex_byte(const uint8_t b)          { SERIAL_V(hex_byte(b));    }
-void print_hex_word(const uint16_t w)         { SERIAL_V(hex_word(w));    }
-void print_hex_address(const void * const w)  { SERIAL_V(hex_address(w)); }
+void print_hex_nybble(const uint8_t n)        { SERIAL_CHR(hex_nybble(n));  }
+void print_hex_byte(const uint8_t b)          { SERIAL_VAL(hex_byte(b));    }
+void print_hex_word(const uint16_t w)         { SERIAL_VAL(hex_word(w));    }
+void print_hex_address(const void * const w)  { SERIAL_VAL(hex_address(w)); }
 
 #endif // M100_FREE_MEMORY_WATCHER

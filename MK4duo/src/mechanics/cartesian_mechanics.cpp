@@ -287,7 +287,7 @@
         SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
         SERIAL_MV(", ", distance);
         SERIAL_MV(", ", fr_mm_s);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -314,7 +314,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
@@ -328,7 +328,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -415,7 +415,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
@@ -685,7 +685,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -729,7 +729,7 @@
         #endif
         DEBUG_POS("", current_position);
         SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
@@ -751,9 +751,9 @@
 
     if (xx || yy || zz) {
       SERIAL_SM(ECHO, MSG_HOME " ");
-      if (xx) SERIAL_M(MSG_X);
-      if (yy) SERIAL_M(MSG_Y);
-      if (zz) SERIAL_M(MSG_Z);
+      if (xx) SERIAL_MSG(MSG_X);
+      if (yy) SERIAL_MSG(MSG_Y);
+      if (zz) SERIAL_MSG(MSG_Z);
       SERIAL_EM(" " MSG_FIRST);
 
       #if ENABLED(ULTRA_LCD)
@@ -897,7 +897,7 @@
 
     void Cartesian_Mechanics::report_zwobble() {
       if (!m_zwobble_sinusoidal)
-        SERIAL_M("Custom wobble function");
+        SERIAL_MSG("Custom wobble function");
       else
         SERIAL_MV("Cartesian_Mechanics Amp(A): ", m_zwobble_amplitude);
 
@@ -908,7 +908,7 @@
       if (!areParametersConsistent())
         SERIAL_SM(WARNING, " Inconsistent parameters!");
 
-      SERIAL_E;
+      SERIAL_EOL();
 
       if (!m_zwobble_sinusoidal) {
         // print out the LUT
@@ -918,7 +918,7 @@
 
           int delta = (ZACTUAL(i) - ZROD(i)) * 200 + 20;
           for (int j = 0; j < delta; j++) {
-            SERIAL_M(" ");
+            SERIAL_MSG(" ");
           }
           SERIAL_EM("  +");
         }
@@ -1200,14 +1200,14 @@
 
     void Cartesian_Mechanics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
       SERIAL_PS(prefix);
-      SERIAL_C('(');
-      SERIAL_V(x);
+      SERIAL_CHR('(');
+      SERIAL_VAL(x);
       SERIAL_MV(", ", y);
       SERIAL_MV(", ", z);
-      SERIAL_C(")");
+      SERIAL_CHR(")");
 
       if (suffix) SERIAL_PS(suffix);
-      else SERIAL_E;
+      else SERIAL_EOL();
     }
 
     void Cartesian_Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
