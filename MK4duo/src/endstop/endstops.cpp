@@ -216,7 +216,7 @@ void Endstops::report_state() {
       #define P_AXIS Z_AXIS
       if (TEST(endstop_hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
 
     #if ENABLED(ULTRA_LCD)
       lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
@@ -474,7 +474,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
       #if HAS_Z2_MAX
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", !!TEST(current_endstop_bits_local, Z2_MAX));
       #endif
-      SERIAL_M("\n\n");
+      SERIAL_MSG("\n\n");
       old_endstop_bits_local = current_endstop_bits_local;
     }
   }

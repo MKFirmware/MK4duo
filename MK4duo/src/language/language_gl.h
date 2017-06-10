@@ -193,7 +193,6 @@
 #define MSG_INFO_BAUDRATE                   _UxGT("Baudios")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocolo")
 #define MSG_CASE_LIGHT                      _UxGT("Luz")
-
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Total traballos")
   #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Total completos")
@@ -207,7 +206,6 @@
   #define MSG_INFO_PRINT_LONGEST            _UxGT("O +longo")
   #define MSG_INFO_PRINT_FILAMENT           _UxGT("Extruido")
 #endif
-
 #define MSG_INFO_MIN_TEMP                   _UxGT("Min Temp")
 #define MSG_INFO_MAX_TEMP                   _UxGT("Max Temp")
 #define MSG_INFO_PSU                        _UxGT("Fonte alime.")

@@ -571,10 +571,10 @@ void CardReader::printEscapeChars(const char* s) {
       case '\r':
       case '\t':
       case '\\':
-      SERIAL_C('\\');
+      SERIAL_CHR('\\');
       break;
     }
-    SERIAL_C(s[i]);
+    SERIAL_CHR(s[i]);
   }
 }
 
