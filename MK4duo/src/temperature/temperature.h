@@ -125,18 +125,18 @@ class Temperature {
     #endif
 
     #if WATCH_THE_CHAMBER
-      uint16_t watch_target_temp_chamber = 0;
-      millis_t watch_chamber_next_ms = 0;
+      static uint16_t watch_target_temp_chamber = 0;
+      static millis_t watch_chamber_next_ms = 0;
     #endif
 
     #if WATCH_THE_COOLER
-      uint16_t watch_target_temp_cooler = 0;
-      millis_t watch_cooler_next_ms = 0;
+      static uint16_t watch_target_temp_cooler = 0;
+      static millis_t watch_cooler_next_ms = 0;
     #endif
 
     #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
-      static uint16_t extrude_min_temp;
+      static int16_t extrude_min_temp;
       static bool tooColdToExtrude(uint8_t h) {
         #if HOTENDS <= 1
           UNUSED(h);

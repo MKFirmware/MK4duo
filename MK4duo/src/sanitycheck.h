@@ -609,7 +609,7 @@ static_assert(1 >= 0
   /**
    * NUM_SERVOS is required for a Z servo probe
    */
-  #if HAS(Z_SERVO_ENDSTOP)
+  #if HAS_Z_SERVO_ENDSTOP
     #ifndef NUM_SERVOS
       #error "You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
     #elif Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
