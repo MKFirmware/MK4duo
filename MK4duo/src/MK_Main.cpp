@@ -30,6 +30,10 @@
 
 #include "../base.h"
 
+#if ENABLED(PCA9632)
+  #include "utility/pca9632.h"
+#endif
+
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include "HAL/HAL_endstop_interrupts.h"
 #endif
@@ -215,7 +219,7 @@ PrintCounter print_job_counter = PrintCounter();
   bool Spool_must_write[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if HAS(Z_SERVO_ENDSTOP)
+#if HAS_Z_SERVO_ENDSTOP
   const int z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
 #endif
 
@@ -628,7 +632,9 @@ void servo_init() {
       // This variant uses i2c to send the RGB components to the device.
       SendColors(r, g, b);
 
-    #else
+    #endif
+
+    #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
 
       // This variant uses 3 separate pins for the RGB components.
       // If the pins can do PWM then their intensity will be set.
@@ -645,6 +651,12 @@ void servo_init() {
       #endif
 
     #endif
+
+    #if ENABLED(PCA9632)
+      // Update I2C LED driver
+      PCA9632_SetColor(r, g, b);
+    #endif
+
   }
 
 #endif // HAS_COLOR_LEDS
@@ -1996,41 +2008,65 @@ static void clean_up_after_endstop_or_probe_move() {
 
 #if HAS_TEMP_HOTEND || HAS_TEMP_BED
 
-  void print_heaterstates() {
-    #if HAS_TEMP_0 || ENABLED(HEATER_0_USES_MAX6675)
-      SERIAL_MV(MSG_T, thermalManager.degHotend(target_extruder), 1);
-      SERIAL_MV(" /", thermalManager.degTargetHotend(target_extruder));
-      #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        SERIAL_MV(" (", thermalManager.rawHotendTemp(target_extruder));
-        SERIAL_CHR(')');
+  void print_heater_state(const float &c, const int16_t &t,
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      const int16_t r,
+    #endif
+    const int8_t e=-2
+  ) {
+    SERIAL_CHR(' ');
+    SERIAL_CHR(
+      #if HAS_TEMP_BED && HAS_TEMP_HOTEND
+        e == -1 ? 'B' : 'T'
+      #elif HAS_TEMP_HOTEND
+        'T'
+      #else
+        'B'
       #endif
+    );
+    #if HOTENDS > 1
+      if (e >= 0) SERIAL_CHR('0' + e);
+    #endif
+    SERIAL_CHR(':');
+    SERIAL_VAL(c, 1);
+    SERIAL_MV(" /" , t);
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      SERIAL_MV(" (", r);
+      SERIAL_CHR(')');
+    #endif
+  }
+
+  void print_heaterstates() {
+    #if HAS_TEMP_HOTEND
+      print_heater_state(thermalManager.degHotend(target_extruder), thermalManager.degTargetHotend(target_extruder)
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , thermalManager.rawHotendTemp(target_extruder)
+        #endif
+      );
     #endif
     #if HAS_TEMP_BED
-      SERIAL_MV(MSG_B, thermalManager.degBed(), 1);
-      SERIAL_MV(" /", thermalManager.degTargetBed());
-      #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        SERIAL_MV(" (", thermalManager.rawBedTemp());
-        SERIAL_CHR(')');
-      #endif
-    #endif
-    #if HOTENDS > 1
-      for (uint8_t h = 0; h < HOTENDS; h++) {
-        SERIAL_MV(" T", h);
-        SERIAL_CHR(':');
-        SERIAL_VAL(thermalManager.degHotend(h), 1);
-        SERIAL_MV(" /", thermalManager.degTargetHotend(h));
+      print_heater_state(thermalManager.degBed(), thermalManager.degTargetBed()
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          SERIAL_MV(" (", thermalManager.rawHotendTemp(h));
+          , thermalManager.rawBedTemp()
           SERIAL_CHR(')');
         #endif
-      }
+        , -1 // BED
+      );
+    #endif
+    #if HOTENDS > 1
+      HOTEND_LOOP() print_heater_state(thermalManager.degHotend(h), thermalManager.degTargetHotend(h)
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , thermalManager.rawHotendTemp(h)
+        #endif
+        , h
+      );
     #endif
     SERIAL_MV(MSG_AT ":", thermalManager.getHeaterPower(target_extruder));
     #if HAS_TEMP_BED
       SERIAL_MV(MSG_BAT, thermalManager.getBedPower());
     #endif
     #if HOTENDS > 1
-      for (uint8_t h = 0; h < HOTENDS; h++) {
+      HOTEND_LOOP() {
         SERIAL_MV(MSG_AT, h);
         SERIAL_CHR(':');
         SERIAL_VAL(thermalManager.getHeaterPower(h));
@@ -2143,7 +2179,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #define TEMP_CONDITIONS (wants_to_cool ? thermalManager.isCoolingHotend(target_extruder) : thermalManager.isHeatingHotend(target_extruder))
     #endif
 
-    float theTarget = -1.0, old_temp = 9999.0;
+    float target_temp = -1.0, old_temp = 9999.0;
     bool wants_to_cool = false;
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
@@ -2157,8 +2193,8 @@ static void clean_up_after_endstop_or_probe_move() {
 
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != thermalManager.degTargetHotend(target_extruder))
-        theTarget = thermalManager.degTargetHotend(target_extruder);
+      if (target_temp != thermalManager.degTargetHotend(target_extruder))
+        target_temp = thermalManager.degTargetHotend(target_extruder);
 
       wants_to_cool = thermalManager.isCoolingHotend(target_extruder);
 
@@ -2171,16 +2207,12 @@ static void clean_up_after_endstop_or_probe_move() {
         print_heaterstates();
         #if TEMP_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
-          if (residency_start_ms) {
-            long rem = ((TEMP_RESIDENCY_TIME * 1000UL) - (now - residency_start_ms)) / 1000UL;
-            SERIAL_EV(rem);
-          }
-          else {
-            SERIAL_EM("?");
-          }
-        #else
-          SERIAL_EOL();
+          if (residency_start_ms)
+            SERIAL_VAL(long((((TEMP_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL));
+          else
+            SERIAL_CHR("?");
         #endif
+        SERIAL_EOL();
       }
 
       idle();
@@ -2198,7 +2230,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       #if TEMP_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - temp);
+        float temp_diff = FABS(target_temp - temp);
 
         if (!residency_start_ms) {
           // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -2260,7 +2292,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #define TEMP_BED_CONDITIONS (wants_to_cool ? thermalManager.isCoolingBed() : thermalManager.isHeatingBed())
     #endif
 
-    float theTarget = -1.0, old_temp = 9999.0;
+    float target_temp = -1.0, old_temp = 9999.0;
     bool wants_to_cool = false;
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
@@ -2277,8 +2309,8 @@ static void clean_up_after_endstop_or_probe_move() {
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != thermalManager.degTargetBed())
-        theTarget = thermalManager.degTargetBed();
+      if (target_temp != thermalManager.degTargetBed())
+        target_temp = thermalManager.degTargetBed();
 
       wants_to_cool = thermalManager.isCoolingBed();
 
@@ -2291,16 +2323,12 @@ static void clean_up_after_endstop_or_probe_move() {
         print_heaterstates();
         #if TEMP_BED_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
-          if (residency_start_ms) {
-            long rem = (((TEMP_BED_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL;
-            SERIAL_EV(rem);
-          }
-          else {
-            SERIAL_EM("?");
-          }
-        #else
-          SERIAL_EOL();
+          if (residency_start_ms)
+            SERIAL_VAL(long((((TEMP_BED_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL));
+          else
+            SERIAL_CHR("?");
         #endif
+        SERIAL_EOL();
       }
 
       idle();
@@ -2318,7 +2346,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       #if TEMP_BED_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - temp);
+        float temp_diff = FABS(target_temp - temp);
 
         if (!residency_start_ms) {
           // Start the TEMP_BED_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -2348,6 +2376,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
     KEEPALIVE_STATE(IN_HANDLER);
   }
+
 #endif // HAS_TEMP_BED
 
 #if HAS_TEMP_CHAMBER
@@ -2362,7 +2391,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #define TEMP_CHAMBER_CONDITIONS (wants_to_heat ? thermalManager.isHeatingChamber() : thermalManager.isCoolingChamber())
     #endif
 
-    float theTarget = -1;
+    float target_temp = -1;
     bool wants_to_heat;
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0;
@@ -2372,8 +2401,8 @@ static void clean_up_after_endstop_or_probe_move() {
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != thermalManager.degTargetChamber())
-        theTarget = thermalManager.degTargetChamber();
+      if (target_temp != thermalManager.degTargetChamber())
+        target_temp = thermalManager.degTargetChamber();
 
       wants_to_heat = thermalManager.isHeatingChamber();
 
@@ -2403,7 +2432,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       #if TEMP_CHAMBER_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - thermalManager.degTargetChamber());
+        float temp_diff = FABS(target_temp - thermalManager.degTargetChamber());
 
         if (!residency_start_ms) {
           // Start the TEMP_CHAMBER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -2435,7 +2464,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #define TEMP_COOLER_CONDITIONS (wants_to_heat ? thermalManager.isHeatingCooler() : thermalManager.isCoolingCooler())
     #endif
 
-    float theTarget = -1;
+    float target_temp = -1;
     bool wants_to_heat;
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0;
@@ -2445,8 +2474,8 @@ static void clean_up_after_endstop_or_probe_move() {
     // Wait for temperature to come close enough
     do {
       // Target temperature might be changed during the loop
-      if (theTarget != thermalManager.degTargetCooler())
-        theTarget = thermalManager.degTargetCooler();
+      if (target_temp != thermalManager.degTargetCooler())
+        target_temp = thermalManager.degTargetCooler();
 
       wants_to_heat = thermalManager.isHeatingCooler();
 
@@ -2455,7 +2484,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       // Prevent a wait-forever situation if R is misused i.e. M190 C R50
       // Simply don't wait to heat a cooler over 25C
-      if (wants_to_heat && theTarget > 25) break;
+      if (wants_to_heat && target_temp > 25) break;
 
       now = millis();
       if (ELAPSED(now, next_temp_ms)) { //Print Temp Reading every 1 second while heating up.
@@ -2480,7 +2509,7 @@ static void clean_up_after_endstop_or_probe_move() {
 
       #if TEMP_COOLER_RESIDENCY_TIME > 0
 
-        float temp_diff = FABS(theTarget - thermalManager.degTargetCooler());
+        float temp_diff = FABS(target_temp - thermalManager.degTargetCooler());
 
         if (!residency_start_ms) {
           // Start the TEMP_COOLER_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -2626,7 +2655,7 @@ void gcode_get_destination() {
   }
 
   static bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
-                          const float &unload_length = 0, int8_t max_beep_count = 0, bool show_lcd = false) {
+                          const float &unload_length = 0, const int8_t max_beep_count = 0, const bool show_lcd = false) {
 
     if (move_away_flag) return false; // already paused
 
@@ -2758,7 +2787,7 @@ void gcode_get_destination() {
     }
   }
 
-  static void wait_for_filament_reload(int8_t max_beep_count = 0) {
+  static void wait_for_filament_reload(const int8_t max_beep_count = 0) {
     bool nozzle_timed_out = false,
          bed_timed_out = false;
 
@@ -2793,7 +2822,7 @@ void gcode_get_destination() {
     KEEPALIVE_STATE(IN_HANDLER);
   }
 
-  static void resume_print(const float &load_length = 0, const float &initial_extrude_length = 0, int8_t max_beep_count = 0) {
+  static void resume_print(const float &load_length = 0, const float &initial_extrude_length = 0, const int8_t max_beep_count = 0) {
     bool  nozzle_timed_out  = false,
           bed_timed_out     = false;
 
@@ -3251,7 +3280,7 @@ inline void gcode_G4() {
 
   void log_machine_info() {
     SERIAL_MSG("Machine Type: ");
-    #if MECH(DELTA)
+    #if IS_DELTA
       SERIAL_EM("Delta");
     #elif IS_SCARA
       SERIAL_EM("SCARA");
@@ -3272,7 +3301,7 @@ inline void gcode_G4() {
       SERIAL_EM("Z_PROBE_SLED");
     #elif ENABLED(Z_PROBE_ALLEN_KEY)
       SERIAL_EM("ALLEN KEY");
-    #elif HAS(Z_SERVO_ENDSTOP)
+    #elif HAS_Z_SERVO_ENDSTOP
       SERIAL_EM("SERVO PROBE");
     #else
       SERIAL_EM("NONE");
@@ -3319,7 +3348,7 @@ inline void gcode_G4() {
       if (leveling_is_active()) {
         SERIAL_EM(" (enabled)");
         #if ABL_PLANAR
-          float diff[XYZ] = {
+          const float diff[XYZ] = {
             stepper.get_axis_position_mm(X_AXIS) - Mechanics.current_position[X_AXIS],
             stepper.get_axis_position_mm(Y_AXIS) - Mechanics.current_position[Y_AXIS],
             stepper.get_axis_position_mm(Z_AXIS) - Mechanics.current_position[Z_AXIS]
@@ -5101,7 +5130,18 @@ void home_all_axes() { gcode_G28(true); }
    *      V0  Dry-run mode. Report settings and probe results. No calibration.
    *      V1  Report settings
    *      V2  Report settings and probe results
+   *
+   *   E   Engage the probe for each point
    */
+
+  void print_signed_float(const char * const prefix, const float &f) {
+    SERIAL_MSG("  ");
+    SERIAL_PS(prefix);
+    SERIAL_CHR(':');
+    if (f >= 0) SERIAL_CHR('+');
+    SERIAL_VAL(f, 2);
+  }
+
   inline void gcode_G33() {
 
     const int8_t probe_points = parser.seen('P') ? parser.value_int() : 3;
@@ -5123,17 +5163,33 @@ void home_all_axes() { gcode_G28(true); }
     }
 
     const bool  towers_set = !parser.seen('T'),
-                _1p_calibration      = probe_points == 1,
-                _4p_calibration      = probe_points == 2,
-                _4p_towers_points    = _4p_calibration && towers_set,
-                _4p_opposite_points  = _4p_calibration && !towers_set,
-                _7p_calibration      = probe_points >= 3,
-                _7p_half_circle      = probe_points == 3,
-                _7p_double_circle    = probe_points == 5,
-                _7p_triple_circle    = probe_points == 6,
-                _7p_quadruple_circle = probe_points == 7,
-                _7p_multi_circle     = _7p_double_circle || _7p_triple_circle || _7p_quadruple_circle,
-                _7p_intermed_points  = _7p_calibration && !_7p_half_circle;
+                stow_after_each       = parser.seen('E') && parser.value_bool(),
+                _1p_calibration       = probe_points == 1,
+                _4p_calibration       = probe_points == 2,
+                _4p_towers_points     = _4p_calibration && towers_set,
+                _4p_opposite_points   = _4p_calibration && !towers_set,
+                _7p_calibration       = probe_points >= 3,
+                _7p_half_circle       = probe_points == 3,
+                _7p_double_circle     = probe_points == 5,
+                _7p_triple_circle     = probe_points == 6,
+                _7p_quadruple_circle  = probe_points == 7,
+                _7p_multi_circle      = _7p_double_circle || _7p_triple_circle || _7p_quadruple_circle,
+                _7p_intermed_points   = _7p_calibration && !_7p_half_circle;
+
+    const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
+    int8_t iterations = 0;
+    float test_precision,
+          zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
+          zero_std_dev_old = zero_std_dev,
+          e_old[XYZ] = {
+            Mechanics.endstop_adj[A_AXIS],
+            Mechanics.endstop_adj[B_AXIS],
+            Mechanics.endstop_adj[C_AXIS]
+          },
+          dr_old = Mechanics.delta_radius,
+          zh_old = Mechanics.delta_height,
+          alpha_old = Mechanics.tower_radius_adj[A_AXIS],
+          beta_old = Mechanics.tower_radius_adj[B_AXIS];
 
     SERIAL_EM("G33 Auto Calibrate");
 
@@ -5154,20 +5210,6 @@ void home_all_axes() { gcode_G28(true); }
     Mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
     stepper.synchronize();  // wait until the machine is idle
 
-    const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
-    float test_precision,
-          zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
-          zero_std_dev_old = zero_std_dev,
-          e_old[XYZ] = {
-            Mechanics.endstop_adj[A_AXIS],
-            Mechanics.endstop_adj[B_AXIS],
-            Mechanics.endstop_adj[C_AXIS]
-          },
-          dr_old = Mechanics.delta_radius,
-          zh_old = Mechanics.delta_height,
-          alpha_old = Mechanics.tower_radius_adj[A_AXIS],
-          beta_old = Mechanics.tower_radius_adj[B_AXIS];
-
     // print settings
 
     SERIAL_MSG("Checking... AC");
@@ -5177,32 +5219,19 @@ void home_all_axes() { gcode_G28(true); }
 
     SERIAL_MV(".Height:", Mechanics.delta_height, 2);
     if (!_1p_calibration) {
-      SERIAL_MSG("    Ex:");
-      if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.endstop_adj[A_AXIS], 2);
-      SERIAL_MSG("  Ey:");
-      if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.endstop_adj[B_AXIS], 2);
-      SERIAL_MSG("  Ez:");
-      if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.endstop_adj[C_AXIS], 2);
+      print_signed_float(PSTR("  Ex"), Mechanics.endstop_adj[A_AXIS]);
+      print_signed_float(PSTR("Ey"), Mechanics.endstop_adj[B_AXIS]);
+      print_signed_float(PSTR("Ez"), Mechanics.endstop_adj[C_AXIS]);
       SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
     }
     SERIAL_EOL();
     if (_7p_calibration && towers_set) {
-      SERIAL_MSG(".Tower angle:     Tx:");
-      if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.tower_radius_adj[A_AXIS], 2);
-      SERIAL_MSG("  Ty:");
-      if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.tower_radius_adj[B_AXIS], 2);
-      SERIAL_MSG("  Tz:");
-      if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_CHR('+');
-      SERIAL_VAL(Mechanics.tower_radius_adj[C_AXIS], 2);
+      SERIAL_MSG(".Tower angle:   ");
+      print_signed_float(PSTR("Tx"), Mechanics.tower_radius_adj[A_AXIS]);
+      print_signed_float(PSTR("Ty"), Mechanics.tower_radius_adj[B_AXIS]);
+      print_signed_float(PSTR("Tz"), Mechanics.tower_radius_adj[C_AXIS]);
       SERIAL_EOL();
     }
-
-    int8_t iterations = 0;
 
     do {
 
@@ -5214,12 +5243,12 @@ void home_all_axes() { gcode_G28(true); }
       iterations++;
 
       if (!_7p_half_circle && !_7p_triple_circle) { // probe the center
-        z_at_pt[0] += probe_pt(0.0, 0.0 , true, 1);
+        z_at_pt[0] += probe_pt(0.0, 0.0 , stow_after_each, 1);
       }
       if (_7p_calibration) { // probe extra center points
         for (int8_t axis = _7p_multi_circle ? 11 : 9; axis > 0; axis -= _7p_multi_circle ? 2 : 4) {
           const float a = RADIANS(180 + 30 * axis), r = Mechanics.probe_radius * 0.1;
-          z_at_pt[0] += probe_pt(cos(a) * r, sin(a) * r, true, 1);
+          z_at_pt[0] += probe_pt(cos(a) * r, sin(a) * r, stow_after_each, 1);
         }
         z_at_pt[0] /= float(_7p_double_circle ? 7 : probe_points);
       }
@@ -5234,7 +5263,7 @@ void home_all_axes() { gcode_G28(true); }
           for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
             const float a = RADIANS(180 + 30 * axis),
                         r = Mechanics.probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
-            z_at_pt[axis] += probe_pt(cos(a) * r, sin(a) * r, true, 1);
+            z_at_pt[axis] += probe_pt(cos(a) * r, sin(a) * r, stow_after_each, 1);
           }
           zig_zag = !zig_zag;
           z_at_pt[axis] /= (2 * offset_circles + 1);
@@ -5256,7 +5285,7 @@ void home_all_axes() { gcode_G28(true); }
         }
       }
       zero_std_dev_old = zero_std_dev;
-      zero_std_dev = round(sqrt(S2 / N) * 1000.0) / 1000.0 + 0.00001;
+      zero_std_dev = round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001;
 
       if (iterations == 1) Mechanics.delta_height = zh_old; // reset height after 1st probe change
 
@@ -5345,19 +5374,12 @@ void home_all_axes() { gcode_G28(true); }
 
       // print report
       if (verbose_level != 1) {
-        SERIAL_MSG(".      c:");
-        if (z_at_pt[0] > 0) SERIAL_CHR('+');
-        SERIAL_VAL(z_at_pt[0], 2);
+        SERIAL_MSG(".    ");
+        print_signed_float(PSTR("c"), z_at_pt[0]);
         if (_4p_towers_points || _7p_calibration) {
-          SERIAL_MSG("     x:");
-          if (z_at_pt[1] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[1], 2);
-          SERIAL_MSG("   y:");
-          if (z_at_pt[5] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[5], 2);
-          SERIAL_MSG("   z:");
-          if (z_at_pt[9] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[9], 2);
+          print_signed_float(PSTR("   x"), z_at_pt[1]);
+          print_signed_float(PSTR(" y"), z_at_pt[5]);
+          print_signed_float(PSTR(" z"), z_at_pt[9]);
         }
         if (!_4p_opposite_points) SERIAL_EOL();
         if ((_4p_opposite_points) || _7p_calibration) {
@@ -5365,15 +5387,9 @@ void home_all_axes() { gcode_G28(true); }
             SERIAL_CHR('.');
             SERIAL_SP(13);
           }
-          SERIAL_MSG("    yz:");
-          if (z_at_pt[7] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[7], 2);
-          SERIAL_MSG("  zx:");
-          if (z_at_pt[11] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[11], 2);
-          SERIAL_MSG("  xy:");
-          if (z_at_pt[3] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(z_at_pt[3], 2);
+          print_signed_float(PSTR("  yz"), z_at_pt[7]);
+          print_signed_float(PSTR("zx"), z_at_pt[11]);
+          print_signed_float(PSTR("xy"), z_at_pt[3]);
           SERIAL_EOL();
         }
       }
@@ -5399,28 +5415,17 @@ void home_all_axes() { gcode_G28(true); }
         }
         SERIAL_MV(".Height:", Mechanics.delta_height, 2);
         if (!_1p_calibration) {
-          SERIAL_MSG("    Ex:");
-          if (Mechanics.endstop_adj[A_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.endstop_adj[A_AXIS], 2);
-          SERIAL_MSG("  Ey:");
-          if (Mechanics.endstop_adj[B_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.endstop_adj[B_AXIS], 2);
-          SERIAL_MSG("  Ez:");
-          if (Mechanics.endstop_adj[C_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.endstop_adj[C_AXIS], 2);
+          print_signed_float(PSTR("  Ex"), Mechanics.endstop_adj[A_AXIS]);
+          print_signed_float(PSTR("Ey"), Mechanics.endstop_adj[B_AXIS]);
+          print_signed_float(PSTR("Ez"), Mechanics.endstop_adj[C_AXIS]);
           SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
         }
         SERIAL_EOL();
         if (_7p_calibration && towers_set) {
-          SERIAL_MSG(".Tower angle:     Tx:");
-          if (Mechanics.tower_radius_adj[A_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.tower_radius_adj[A_AXIS], 2);
-          SERIAL_MSG("  Ty:");
-          if (Mechanics.tower_radius_adj[B_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.tower_radius_adj[B_AXIS], 2);
-          SERIAL_MSG("  Tz:");
-          if (Mechanics.tower_radius_adj[C_AXIS] >= 0) SERIAL_CHR('+');
-          SERIAL_VAL(Mechanics.tower_radius_adj[C_AXIS], 2);
+          SERIAL_MSG(".Tower angle :  ");
+          print_signed_float(PSTR("Tx"), Mechanics.tower_radius_adj[A_AXIS]);
+          print_signed_float(PSTR("Ty"), Mechanics.tower_radius_adj[B_AXIS]);
+          print_signed_float(PSTR("Tz"), Mechanics.tower_radius_adj[C_AXIS]);
           SERIAL_EOL();
         }
         if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {
@@ -7528,7 +7533,7 @@ inline void gcode_M122() {
     );
   }
 
-#endif // BLINKM || RGB_LED
+#endif // HAS_COLOR_LEDS
 
 #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
 
@@ -8510,7 +8515,7 @@ inline void gcode_M400() { stepper.synchronize(); }
    */
   inline void gcode_M402() { STOW_PROBE(); }
 
-#endif // (ENABLED(AUTO_BED_LEVELING_FEATURE) && DISABLED(Z_PROBE_SLED) && HAS(Z_SERVO_ENDSTOP))
+#endif // (ENABLED(AUTO_BED_LEVELING_FEATURE) && DISABLED(Z_PROBE_SLED) && HAS_Z_SERVO_ENDSTOP)
 
 #if ENABLED(FILAMENT_SENSOR)
 
@@ -11052,7 +11057,7 @@ void process_next_command() {
           gcode_M149(); break;
       #endif
 
-      #if ENABLED(BLINKM) || ENABLED(RGB_LED)
+      #if HAS_COLOR_LEDS
         case 150: // M150
           gcode_M150(); break;
       #endif //BLINKM

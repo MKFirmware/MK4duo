@@ -6,8 +6,8 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "Anet"
 
-#if !defined(__AVR_ATmega1280__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+#if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega1284P__)
+  #error Oops!  Make sure you have 'Anet' selected from the 'Tools -> Boards' menu.
 #endif
 
 #if defined(__AVR_ATmega1284P__)
