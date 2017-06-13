@@ -9985,8 +9985,10 @@ inline void gcode_T(uint8_t tool_id) {
 
   #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    if (printer_mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || print_job_counter.isRunning()))
+    if (printer_mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || print_job_counter.isRunning()) && previous_extruder != tool_id) {
       gcode_M600();
+      previous_extruder = tool_id;
+    }
 
   #elif EXTRUDERS > 1 && (HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1))
 
