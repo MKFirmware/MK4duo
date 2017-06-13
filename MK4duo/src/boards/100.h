@@ -109,6 +109,10 @@
       #define LCD_PINS_RS       27
       #define LCD_PINS_ENABLE   28
       #define LCD_PINS_D4       30
+
+      #define BTN_EN1           11
+      #define BTN_EN2           10
+      #define BTN_ENC           16
     #else
       #error "You need to select ANET or RepRap Version"
     #endif
