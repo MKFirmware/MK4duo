@@ -3445,7 +3445,7 @@ void kill_screen(const char* lcd_msg) {
           || (currentScreen == lcd_control_temperature_preheat_material3_settings_menu)
           || (currentScreen == lcd_control_motion_menu)
           || (currentScreen == lcd_control_filament_menu)
-          #if HAS_TEMP_0 || HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED
+          #if HAS_TEMP_0 && (HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED)
             || (currentScreen == lcd_preheat_m1_menu) || (currentScreen == lcd_preheat_m2_menu) || (currentScreen == lcd_preheat_m3_menu)
           #endif
         ) {

@@ -68,6 +68,8 @@
 
   #if ENABLED(ANET_KEYPAD_LCD)
     #define ADC_KEYPAD
+    #define ULTIPANEL
+    #define NEWPANEL
     #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
   #endif
 
