@@ -89,6 +89,10 @@
     
 	#elif ENABLED(U8GLIB_ST7920)
 
+    #define DOGLCD_A0           30
+    #define DOGLCD_CS           29
+    #define LCD_CONTRAST         1
+
     #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
       // For RepRap Discount (with Anet Adapter wiring)
       #define SERVO0_PIN        27 // free for BLTouch/3D-Touch
@@ -98,6 +102,7 @@
       #define LCD_PINS_D4       17
       #define BTN_EN1           11
       #define BTN_EN2           10
+      #define BTN_ENC           16
     #elif ENABLED(ANET_FULL_GRAPHICS_LCD)
       #define BEEPER_PIN 17
 
