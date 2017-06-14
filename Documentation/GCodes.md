@@ -132,7 +132,7 @@
 *  M141 - Set hot chamber target temp
 *  M142 - Set cooler target temp
 *  M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
-*  M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U: Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+*  M150 - Set Status LED Color as R<red> U<green> B<blue>. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
 *  M155 - Set temperature auto-report interval
 *  M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
 *  M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.

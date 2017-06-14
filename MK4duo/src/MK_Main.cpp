@@ -9164,6 +9164,9 @@ inline void gcode_M532() {
    */
   inline void gcode_M600() {
 
+    // Homing first
+    if (axis_unhomed_error()) home_all_axes();
+
     // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
       #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
