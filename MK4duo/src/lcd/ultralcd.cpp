@@ -4103,20 +4103,19 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
   _stADCKeypadTable_ stADCKeyTable[ADC_KEY_NUM] = {
     // VALUE_MIN, VALUE_MAX , KEY
-    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F1 + 1 },		  // F1
-    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F2 + 1 },		  // F2
-    { 4000, 4096, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },		  // F3
-    { 300,  500, 	BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },	  // LEFT
-    { 1900, 2200, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
-    { 570,  870, 	BLEN_REPRAPWORLD_KEYPAD_UP + 1 },		  // UP
-    { 2670, 2870, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },	  // DOWN
-    { 1150, 1450, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 },	// ENTER
+    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F1 + 1 },     // F1
+    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F2 + 1 },     // F2
+    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },     // F3
+    { 18,  32, 	BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },   // LEFT
+    { 118, 138, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
+    { 34,  54, 	BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
+    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
+    { 70, 90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 },   // ENTER
   };
 
   unsigned char get_ADC_keyValue(void) {
-    unsigned short currentkpADCValue = (thermalManager.current_ADCKey_raw >> 2);
-    thermalManager.current_ADCKey_raw = 0;
-    if (currentkpADCValue < 4000) {
+    unsigned short currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX] >> 2);
+    if (currentkpADCValue < 250) {
       for (unsigned char i = 0; i < ADC_KEY_NUM; i++) {
         if ((currentkpADCValue > stADCKeyTable[i].ADCKeyValueMin) && (currentkpADCValue < stADCKeyTable[i].ADCKeyValueMax)) {
           return stADCKeyTable[i].ADCKeyNo;
