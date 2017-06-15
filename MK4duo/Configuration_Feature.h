@@ -34,8 +34,9 @@
  * - Solenoid extruder
  * - Color Mixing Extruder
  * - Multiextruder old MKR4
- * - Multiextruder new MKR6
- * - Multiextruder new MKSE6 (multiextruder with Servo)
+ * - Multiextruder MKR6
+ * - Multiextruder MKR12
+ * - Multiextruder MKSE6 (multiextruder with Servo)
  * - Multiextruder NPr2
  * - Multiextruder DONDOLO
  * - Extruder idle oozing prevention
@@ -81,6 +82,7 @@
  * - RFID card reader
  * - BLINKM
  * - RGB LED
+ * - PCA 9632 PWM LED
  * - Printer Event LEDs
  * - Laser beam
  * - CNC Router
@@ -270,7 +272,7 @@
  ***********************************************************************
  *                                                                     *
  * Setting for more extruder width relay system                        *
- * This is new system for 6 extruder width 2 driver and 6 relay.       *
+ * This is new system for 6 extruder width 2 driver and 8 relay.       *
  * See Configuration_pins.h for pin command relay                      *
  *                                                                     *
  * Uncomment MKR6 to enable this feature                               *
@@ -278,6 +280,23 @@
  * Uncomment INVERTED_RELE_PINS if your relay switches with GND        *
  ***********************************************************************/
 //#define MKR6
+//#define INVERTED_RELE_PINS
+/***********************************************************************/
+
+
+/***********************************************************************
+ ************************* Multiextruder MKR12 *************************
+ ***********************************************************************
+ *                                                                     *
+ * Setting for more extruder width relay system                        *
+ * This is new system for 12 extruder width 4 driver and 16 relay.     *
+ * See Configuration_pins.h for pin command relay                      *
+ *                                                                     *
+ * Uncomment MKR12 to enable this feature                              *
+ *                                                                     *
+ * Uncomment INVERTED_RELE_PINS if your relay switches with GND        *
+ ***********************************************************************/
+//#define MKR12
 //#define INVERTED_RELE_PINS
 /***********************************************************************/
 
@@ -1080,7 +1099,7 @@
  ************************************************************************************************************************/
 #define EEPROM_SETTINGS
 
-//#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_SD
 //#define DISABLE_M503
 /************************************************************************************************************************/
@@ -1539,6 +1558,17 @@
  **************************************************************************/
 //#define RGB_LED
 //#define RGBW_LED
+/**************************************************************************/
+
+
+/**************************************************************************
+ *************************** PCA 9632 PWM LED *****************************
+ **************************************************************************
+ *                                                                        *
+ * PCA 9632 PWM LED driver Support                                        *
+ *                                                                        *
+ **************************************************************************/
+//#define PCA9632
 /**************************************************************************/
 
 

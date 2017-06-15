@@ -901,21 +901,21 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(Kinematics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
     }
 
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        Kinematics.current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Mechanics.current_position[Z_AXIS] += (LCD_Z_STEP);
+        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        Kinematics.current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(Kinematics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Kinematics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        Mechanics.current_position[Z_AXIS] -= (LCD_Z_STEP);
+        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedSend) {
@@ -1098,24 +1098,24 @@
       return;
     }
     else {
-      SERIAL_M("Nextion LCD");
+      SERIAL_MSG("Nextion LCD");
       // Get Model
       ZERO(buffer);
       getConnect(buffer, sizeof(buffer));
 
       if (strstr(buffer, "NX4827T043") || strstr(buffer, "NX4827K043")) { // Model 4.3" Normal or Enhanced
-        SERIAL_M(" 4.3");
+        SERIAL_MSG(" 4.3");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
       else if (strstr(buffer, "NX8048T070") || strstr(buffer, "NX8048K070")) { // Model 7" Normal or Enhanced
-        SERIAL_M(" 7");
+        SERIAL_MSG(" 7");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(274, 213, 250, 155);
         #endif
       }
-      SERIAL_C('"'); SERIAL_EM(" connected!");
+      SERIAL_CHR('"'); SERIAL_EM(" connected!");
 
       #if ENABLED(NEXTION_GFX)
         gfx.color_set(NX_AXIS + X_AXIS, 63488);
@@ -1217,33 +1217,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(Kinematics.current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(Kinematics.current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(Mechanics.current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(Mechanics.current_position[Y_AXIS]));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
-      strcat(buffer, (Kinematics.axis_homed[X_AXIS] ? "X" : "?"));
-      if (Kinematics.axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(Kinematics.current_position[X_AXIS]);
+      strcat(buffer, (Mechanics.axis_homed[X_AXIS] ? "X" : "?"));
+      if (Mechanics.axis_homed[X_AXIS]) {
+        valuetemp = ftostr4sign(Mechanics.current_position[X_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Kinematics.axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (Kinematics.axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(Kinematics.current_position[Y_AXIS]);
+      strcat(buffer, (Mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
+      if (Mechanics.axis_homed[Y_AXIS]) {
+        valuetemp = ftostr4sign(Mechanics.current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Kinematics.axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (Kinematics.axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS]));
+      strcat(buffer, (Mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (Mechanics.axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
+      BedZ.setText(ftostr43sign(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
     }
   }
 
@@ -1297,9 +1297,9 @@
           }
         #endif
 
-        if (Previousfeedrate != feedrate_percentage) {
-          VSpeed.setValue(feedrate_percentage);
-          Previousfeedrate = feedrate_percentage;
+        if (Previousfeedrate != Mechanics.feedrate_percentage) {
+          VSpeed.setValue(Mechanics.feedrate_percentage);
+          Previousfeedrate = Mechanics.feedrate_percentage;
         }
 
         #if HAS_TEMP_0
@@ -1403,7 +1403,7 @@
       case 6:
         static uint32_t temp_feedrate = 0;
         VSpeed.getValue(&temp_feedrate, "printer");
-        Previousfeedrate = feedrate_percentage = (int)temp_feedrate;
+        Previousfeedrate = Mechanics.feedrate_percentage = (int)temp_feedrate;
         break;
       case 15:
         coordtoLCD();

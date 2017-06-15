@@ -191,11 +191,11 @@
  ***********************************************************************/
 // This defines the number of extruder real or virtual
 // 0,1,2,3,4,5,6
-#define EXTRUDERS 0
+#define EXTRUDERS 1 //(0 causes a compile error)
 
 // This defines the number of Driver extruder you have and use
-// 0,1,2,3,4,5,6
-#define DRIVER_EXTRUDERS 0
+// 0,1,2,3,4,5,6 //(0 causes a compile error)
+#define DRIVER_EXTRUDERS 1
 /***********************************************************************/
 
 #endif

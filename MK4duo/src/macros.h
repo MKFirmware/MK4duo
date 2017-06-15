@@ -30,6 +30,37 @@
 #define ABC       3
 #define XYZ       3
 
+/**
+ * Macros for mechanics type
+ */
+#define MECH_UNKNOWN        -1
+#define MECH_CARTESIAN       0
+#define MECH_COREXY          1
+#define MECH_COREYX          2
+#define MECH_DELTA           3
+#define MECH_MORGAN_SCARA    4
+#define MECH_MAKERARM_SCARA  5
+#define MECH_COREXZ          8
+#define MECH_COREZX          9
+#define MECH_COREYZ         10
+#define MECH_COREZY         11
+#define MECH_MUVE3D         21
+
+#define MECH(mech)    (MECHANISM == MECH_##mech)
+#define NOMECH(mech)  (MECHANISM != MECH_##mech)
+
+#define IS_SCARA      (MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA))
+#define IS_DELTA      (MECH(DELTA))
+#define IS_KINEMATIC  (IS_DELTA || IS_SCARA)
+
+#define CORE_IS_XY    (MECH(COREXY) || MECH(COREYX))
+#define CORE_IS_XZ    (MECH(COREXZ) || MECH(COREZX))
+#define CORE_IS_YZ    (MECH(COREYZ) || MECH(COREZY))
+#define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
+
+#define IS_CARTESIAN  (!IS_KINEMATIC && !IS_CORE)
+/********************************************************************/
+
 // Function macro
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
@@ -90,31 +121,38 @@
 #define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))
 
 // Macros for initializing arrays
-#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
-#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, ...)      { v1, v2, v3, v4, v5, v6, v7, v8 }
-#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, ...)          { v1, v2, v3, v4, v5, v6, v7 }
-#define ARRAY_6(v1, v2, v3, v4, v5, v6, ...)              { v1, v2, v3, v4, v5, v6 }
-#define ARRAY_5(v1, v2, v3, v4, v5, ...)                  { v1, v2, v3, v4, v5 }
-#define ARRAY_4(v1, v2, v3, v4, ...)                      { v1, v2, v3, v4 }
-#define ARRAY_3(v1, v2, v3, ...)                          { v1, v2, v3 }
-#define ARRAY_2(v1, v2, ...)                              { v1, v2 }
-#define ARRAY_1(v1, ...)                                  { v1 }
-#define ARRAY_0(...)                                      { }
+#define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
+#define ARRAY_11(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, ...)       { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11 }
+#define ARRAY_10(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, ...)            { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10 }
+#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, ...)                  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
+#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, ...)                      { v1, v2, v3, v4, v5, v6, v7, v8 }
+#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, ...)                          { v1, v2, v3, v4, v5, v6, v7 }
+#define ARRAY_6(v1, v2, v3, v4, v5, v6, ...)                              { v1, v2, v3, v4, v5, v6 }
+#define ARRAY_5(v1, v2, v3, v4, v5, ...)                                  { v1, v2, v3, v4, v5 }
+#define ARRAY_4(v1, v2, v3, v4, ...)                                      { v1, v2, v3, v4 }
+#define ARRAY_3(v1, v2, v3, ...)                                          { v1, v2, v3 }
+#define ARRAY_2(v1, v2, ...)                                              { v1, v2 }
+#define ARRAY_1(v1, ...)                                                  { v1 }
+#define ARRAY_0(...)                                                      { }
 
 #define _ARRAY_N(N, ...) ARRAY_ ##N(__VA_ARGS__)
 #define ARRAY_N(N, ...) _ARRAY_N(N, __VA_ARGS__)
 
 // ARRAY_BY_N based
 #define ARRAY_BY_N_N(N, ...) ARRAY_N(N, __VA_ARGS__)
-#define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_EXTRUDERS based on EXTRUDERS
 #define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
-#define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_HOTENDS based on HOTENDS
 #define ARRAY_BY_HOTENDS_N(...) ARRAY_N(HOTENDS, __VA_ARGS__)
 #define ARRAY_BY_HOTENDS(v1) ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
+
+// ARRAY_BY_FAN based on FAN_COUNT
+#define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
+#define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
 // Macros for adding
 #define INC_0 1
@@ -173,6 +211,6 @@
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)
 #define MMS_TO_MMM(MM_S) ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S) ((MM_S) * feedrate_percentage * 0.01)
+#define MMS_SCALED(MM_S) ((MM_S) * Mechanics.feedrate_percentage * 0.01)
 
 #endif //__MACROS_H

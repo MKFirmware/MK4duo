@@ -112,7 +112,7 @@ enum EndstopEnum {
  * MK4duo sends messages if blocked or busy
  */
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  enum FirmwareState {
+  enum MK4duoBusyState {
     NOT_BUSY,           // Not in a handler
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)
@@ -184,5 +184,16 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_TPR,
   SD_CFG_END // Leave this always as the last
 };
+
+/**
+ * DUAL X CARRIAGE
+ */
+#if ENABLED(DUAL_X_CARRIAGE)
+  enum DualXMode {
+    DXC_FULL_CONTROL_MODE,
+    DXC_AUTO_PARK_MODE,
+    DXC_DUPLICATION_MODE
+  };
+#endif
 
 #endif //__ENUM_H__

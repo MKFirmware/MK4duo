@@ -189,7 +189,7 @@ void GCodeParser::parse(char *p) {
         if (debug) {
           SERIAL_MV("Got letter ", code); // DEBUG
           SERIAL_MV(" at index ", (int)(p - command_ptr - 1)); // DEBUG
-          if (has_num) SERIAL_M(" (has_num)");
+          if (has_num) SERIAL_MSG(" (has_num)");
         }
       #endif
 
@@ -201,7 +201,7 @@ void GCodeParser::parse(char *p) {
       }
 
       #if ENABLED(DEBUG_GCODE_PARSER)
-        if (debug) SERIAL_E;
+        if (debug) SERIAL_EOL();
       #endif
 
       #if ENABLED(FASTER_GCODE_PARSER)
@@ -228,8 +228,8 @@ void GCodeParser::parse(char *p) {
 
 void GCodeParser::unknown_command_error() {
   SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, command_ptr);
-  SERIAL_C('"');
-  SERIAL_E;
+  SERIAL_CHR('"');
+  SERIAL_EOL();
 }
 
 #if ENABLED(DEBUG_GCODE_PARSER)
@@ -237,25 +237,25 @@ void GCodeParser::unknown_command_error() {
   void GCodeParser::debug() {
     SERIAL_MV("Command: ", command_ptr);
     SERIAL_MV(" (", command_letter);
-    SERIAL_V(codenum);
+    SERIAL_VAL(codenum);
     SERIAL_EM(")");
     #if ENABLED(FASTER_GCODE_PARSER)
-      SERIAL_M(" args: \"");
+      SERIAL_MSG(" args: \"");
       for (char c = 'A'; c <= 'Z'; ++c)
-        if (seen(c)) { SERIAL_C(c); SERIAL_C(' '); }
+        if (seen(c)) { SERIAL_CHR(c); SERIAL_CHR(' '); }
     #else
       SERIAL_MV(" args: \"", command_args);
     #endif
-    SERIAL_M("\"");
+    SERIAL_MSG("\"");
     if (string_arg) {
-      SERIAL_M(" string: \"");
-      SERIAL_T(string_arg);
-      SERIAL_C('"');
+      SERIAL_MSG(" string: \"");
+      SERIAL_TXT(string_arg);
+      SERIAL_CHR('"');
     }
-    SERIAL_M("\n\n");
+    SERIAL_MSG("\n\n");
     for (char c = 'A'; c <= 'Z'; ++c) {
       if (seen(c)) {
-        SERIAL_MV("Code '", c); SERIAL_M("':");
+        SERIAL_MV("Code '", c); SERIAL_MSG("':");
         if (has_value()) {
           SERIAL_MV("\n    float: ", value_float());
           SERIAL_MV("\n     long: ", value_long());
@@ -270,8 +270,8 @@ void GCodeParser::unknown_command_error() {
           SERIAL_MV("\n  celsius: ", value_celsius());
         }
         else
-          SERIAL_M(" (no value)");
-        SERIAL_M("\n\n");
+          SERIAL_MSG(" (no value)");
+        SERIAL_MSG("\n\n");
       }
     }
   }

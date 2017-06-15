@@ -21,7 +21,7 @@
  */
 
 /**
- * endstops.cpp - A singleton object to manage endstops
+ * endstops.cpp - A singleton object to manage endstops hardware and software
  */
 
 #include "../../base.h"
@@ -33,14 +33,29 @@ Endstops endstops;
 
 // public:
 
+float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+      Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
+
 bool  Endstops::enabled = true,
       Endstops::enabled_globally =
         #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-          (false)
+          (false),
         #else
-          (true)
+          (true),
         #endif
-      ;
+      Endstops::soft_endstops_enabled = true;
+
+#if ENABLED(Z_FOUR_ENDSTOPS)
+  float Endstops::z2_endstop_adj = 0,
+        Endstops::z3_endstop_adj = 0,
+        Endstops::z4_endstop_adj = 0;
+#elif ENABLED(Z_THREE_ENDSTOPS)
+  float Endstops::z2_endstop_adj = 0,
+        Endstops::z3_endstop_adj = 0;
+#elif ENABLED(Z_TWO_ENDSTOPS)
+  float Endstops::z2_endstop_adj = 0;
+#endif
+
 volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
@@ -201,7 +216,7 @@ void Endstops::report_state() {
       #define P_AXIS Z_AXIS
       if (TEST(endstop_hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
 
     #if ENABLED(ULTRA_LCD)
       lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
@@ -275,6 +290,85 @@ void Endstops::M119() {
     SERIAL_EMT(MSG_POWER_CHECK_SENSOR, ((READ(POWER_CHECK_PIN)^POWER_CHECK_PIN_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
 } // Endstops::M119
+
+/**
+ * Constrain the given coordinates to the software endstops.
+ */
+void Endstops::clamp_to_software_endstops(float target[XYZ]) {
+  #if HAS_SOFTWARE_ENDSTOPS
+    if (!soft_endstops_enabled) return;
+    #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+      NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
+      NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
+      NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
+    #endif
+    #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+      NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
+      NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
+      NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
+    #endif
+  #else
+    UNUSED(target);
+  #endif
+}
+
+#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+
+  /**
+   * Software endstops can be used to monitor the open end of
+   * an axis that has a hardware endstop on the other end. Or
+   * they can prevent axes from moving past endstops and grinding.
+   *
+   * To keep doing their job as the coordinate system changes,
+   * the software endstop positions must be refreshed to remain
+   * at the same positions relative to the machine.
+   */
+  void Endstops::update_software_endstops(const AxisEnum axis) {
+    const float offs = Mechanics.home_offset[axis] + Mechanics.position_shift[axis];
+
+    Mechanics.workspace_offset[axis] = offs;
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      if (axis == X_AXIS) {
+
+        // In Dual X mode hotend_offset[X] is T1's home position
+        float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+
+        if (active_extruder != 0) {
+          // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
+          soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
+          soft_endstop_max[X_AXIS] = dual_max_x + offs;
+        }
+        else if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+          // In Duplication Mode, T0 can move as far left as X_MIN_POS
+          // but not so far to the right that T1 would move past the end
+          soft_endstop_min[X_AXIS] = Mechanics.base_min_pos[X_AXIS] + offs;
+          soft_endstop_max[X_AXIS] = min(Mechanics.base_max_pos[X_AXIS], dual_max_x - duplicate_hotend_x_offset) + offs;
+        }
+        else {
+          // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
+          soft_endstop_min[axis] = Mechanics.base_min_pos[axis] + offs;
+          soft_endstop_max[axis] = Mechanics.base_max_pos[axis] + offs;
+        }
+      }
+    #else
+      soft_endstop_min[axis] = Mechanics.base_min_pos[axis] + offs;
+      soft_endstop_max[axis] = Mechanics.base_max_pos[axis] + offs;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("For ", axis_codes[axis]);
+        SERIAL_MV(" axis:\n home_offset = ", Mechanics.home_offset[axis]);
+        SERIAL_MV("\n position_shift = ", Mechanics.position_shift[axis]);
+        SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
+        SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
+      }
+    #endif
+
+  }
+
+#endif // ENABLED(WORKSPACE_OFFSETS) || DUAL_X_CARRIAGE
 
 #if ENABLED(Z_FOUR_ENDSTOPS)
   // Pass the result of the endstop test
@@ -380,7 +474,7 @@ void Endstops::M119() {
       #if HAS_Z2_MAX
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", !!TEST(current_endstop_bits_local, Z2_MAX));
       #endif
-      SERIAL_M("\n\n");
+      SERIAL_MSG("\n\n");
       old_endstop_bits_local = current_endstop_bits_local;
     }
   }

@@ -61,7 +61,7 @@
         if (fanSpeeds[i] > 0) return true;
     #endif
 
-    #if HAS(AUTO_FAN)
+    #if HAS_AUTO_FAN
       HOTEND_LOOP() if (autoFanSpeeds[h] > 0) return true;
     #endif
 

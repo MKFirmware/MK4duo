@@ -20,13 +20,17 @@
  *
  */
 
-#ifndef CONFIGURATION_VERSION_H
-  #define CONFIGURATION_VERSION_H
+/**
+ * Driver for the Philips PCA9632 LED driver.
+ * Written by Robert Mendon Feb 2017.
+ */
 
-  #define FIRMWARE_NAME "Metchit"
-  #define SHORT_BUILD_VERSION "4.3.22_dev"
-  #define BUILD_VERSION FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-  #define STRING_DISTRIBUTION_DATE __DATE__ " " __TIME__    // build date and time
-  // It might also be appropriate to define a location where additional information can be found
-  #define FIRMWARE_URL  "metchit.com.au"
-#endif
+#ifndef __PCA9632_H__
+#define __PCA9632_H__
+
+#include "Arduino.h"
+#include "Wire.h"
+
+void PCA9632_SetColor(const byte r, const byte g, const byte  b);
+
+#endif // __PCA9632_H__

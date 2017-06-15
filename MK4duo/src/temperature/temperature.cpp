@@ -69,10 +69,6 @@ Temperature thermalManager;
   int     Temperature::current_temperature_mcu_raw;
 #endif
 
-#if ENABLED(ADC_KEYPAD)
-  int     Temperature::current_ADCKey_raw;
-#endif
-
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
   float Temperature::redundant_temperature = 0.0;
 #endif
@@ -141,7 +137,7 @@ Temperature thermalManager;
 
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
   bool Temperature::allow_cold_extrude = false;
-  uint16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
+  int16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
 #endif
 
 // private:
@@ -251,7 +247,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   static unsigned long Temperature::raw_powconsumption_value = 0;
 #endif
 
-#if HAS(AUTO_FAN)
+#if HAS_AUTO_FAN
   millis_t Temperature::next_auto_fan_check_ms = 0;
 #endif
 
@@ -288,7 +284,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
     NOLESS(ncycles, 5);
     NOMORE(ncycles, 20);
 
-    #if HAS(AUTO_FAN)
+    #if HAS_AUTO_FAN
       next_auto_fan_check_ms = temp_ms + 2500UL;
     #endif
 
@@ -312,13 +308,13 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 
     SERIAL_EM(MSG_PID_AUTOTUNE_START);
     if (temp_controller == -1) {
-      SERIAL_M("BED");
+      SERIAL_MSG("BED");
     }
     else if(temp_controller == -2) {
-      SERIAL_M("CHAMBER");
+      SERIAL_MSG("CHAMBER");
     }
     else if(temp_controller == -3) {
-      SERIAL_M("COOLER");
+      SERIAL_MSG("COOLER");
     }
     else {
       SERIAL_MV("Hotend: ", temp_controller);
@@ -328,7 +324,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
     if (storeValues)
       SERIAL_EM(" Apply result");
     else
-      SERIAL_E;
+      SERIAL_EOL();
 
     disable_all_heaters(); // switch off all heaters.
     #if HAS_TEMP_COOLER
@@ -387,7 +383,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
       NOLESS(maxTemp, currentTemp);
       NOMORE(minTemp, currentTemp);
 
-      #if HAS(AUTO_FAN)
+      #if HAS_AUTO_FAN
         if (ELAPSED(ms, next_auto_fan_check_ms)) {
           checkExtruderAutoFans();
           next_auto_fan_check_ms = ms + 2500UL;
@@ -501,15 +497,15 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
       if (ELAPSED(ms, temp_ms + 1000UL)) {
         #if HAS_TEMP_HOTEND || HAS_TEMP_BED
           print_heaterstates();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
         #if HAS_TEMP_CHAMBER
           print_chamberstate();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
         #if HAS_TEMP_COOLER
           print_coolerstate();
-          SERIAL_E;
+          SERIAL_EOL();
         #endif
 
         temp_ms = ms;
@@ -613,7 +609,7 @@ void Temperature::updatePID() {
 
 }
 
-#if HAS(AUTO_FAN)
+#if HAS_AUTO_FAN
 
   void Temperature::checkExtruderAutoFans() {
     const int8_t fanPin[] = { H0_AUTO_FAN_PIN, H1_AUTO_FAN_PIN, H2_AUTO_FAN_PIN, H3_AUTO_FAN_PIN };
@@ -652,7 +648,7 @@ void Temperature::_temp_error(int tc, const char* serial_msg, const char* lcd_ms
   static bool killed = false;
   if (IsRunning()) {
     SERIAL_ST(ER, serial_msg);
-    SERIAL_M(MSG_STOPPED_HEATER);
+    SERIAL_MSG(MSG_STOPPED_HEATER);
     if (tc >= 0)
       SERIAL_EV((int)tc);
     #if HAS_TEMP_BED
@@ -923,7 +919,7 @@ void Temperature::manage_temp_controller() {
     if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + .01)) min_temp_error(0);
   #endif
 
-  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS(AUTO_FAN)
+  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS_AUTO_FAN
     millis_t ms = millis();
   #endif
 
@@ -964,7 +960,7 @@ void Temperature::manage_temp_controller() {
 
   #endif
 
-  #if HAS(AUTO_FAN)
+  #if HAS_AUTO_FAN
     if (ELAPSED(ms, next_auto_fan_check_ms)) { // only need to check fan state very infrequently
       checkExtruderAutoFans();
       next_auto_fan_check_ms = ms + 2500UL;
@@ -1421,16 +1417,16 @@ void Temperature::init() {
     last_e_position = 0;
   #endif
 
-  #if HAS(HEATER_0)
+  #if HAS_HEATER_0
     SET_OUTPUT(HEATER_0_PIN);
   #endif
-  #if HAS(HEATER_1)
+  #if HAS_HEATER_1
     SET_OUTPUT(HEATER_1_PIN);
   #endif
-  #if HAS(HEATER_2)
+  #if HAS_HEATER_2
     SET_OUTPUT(HEATER_2_PIN);
   #endif
-  #if HAS(HEATER_3)
+  #if HAS_HEATER_3
     SET_OUTPUT(HEATER_3_PIN);
   #endif
   #if HAS_HEATER_BED
@@ -1695,8 +1691,8 @@ void Temperature::init() {
     static float tr_target_temperature[HOTENDS + 3] = { 0.0 };
 
     /*
-        SERIAL_M("Thermal Thermal Runaway Running. Heater ID: ");
-        if (temp_controller_id < 0) SERIAL_M("bed"); else SERIAL_V(temp_controller_id);
+        SERIAL_MSG("Thermal Thermal Runaway Running. Heater ID: ");
+        if (temp_controller_id < 0) SERIAL_MSG("bed"); else SERIAL_VAL(temp_controller_id);
         SERIAL_MV(" ;  State:", *state);
         SERIAL_MV(" ;  Timer:", *timer);
         SERIAL_MV(" ;  Temperature:", temperature);
@@ -1908,7 +1904,7 @@ void Temperature::disable_all_heaters() {
     if (max6675_temp & MAX6675_ERROR_MASK) {
       SERIAL_SM(ER, "Temp measurement error! ");
       #if MAX6675_ERROR_MASK == 7
-        SERIAL_M("MAX31855 ");
+        SERIAL_MSG("MAX31855 ");
         if (max6675_temp & 1)
           SERIAL_EM("Open Circuit");
         else if (max6675_temp & 2)
@@ -1968,10 +1964,6 @@ void Temperature::set_current_temp_raw() {
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
     current_temperature_mcu_raw = HAL::AnalogInputValues[MCU_SENSOR_INDEX];
-  #endif
-
-  #if ENABLED(ADC_KEYPAD)
-    current_ADCKey_raw = HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX];
   #endif
 
   #if HAS_TEMP_HOTEND

@@ -1168,46 +1168,46 @@ void Stepper::init() {
     #endif
   #endif
 
-  #if HAS(E0_ENABLE)
+  #if HAS_E0_ENABLE
     E0_ENABLE_INIT;
     if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E1_ENABLE)
+  #if HAS_E1_ENABLE
     E1_ENABLE_INIT;
     if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E2_ENABLE)
+  #if HAS_E2_ENABLE
     E2_ENABLE_INIT;
     if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E3_ENABLE)
+  #if HAS_E3_ENABLE
     E3_ENABLE_INIT;
     if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E4_ENABLE)
+  #if HAS_E4_ENABLE
     E4_ENABLE_INIT;
     if (!E_ENABLE_ON) E4_ENABLE_WRITE(HIGH);
   #endif
-  #if HAS(E5_ENABLE)
+  #if HAS_E5_ENABLE
     E5_ENABLE_INIT;
     if (!E_ENABLE_ON) E5_ENABLE_WRITE(HIGH);
   #endif
 
   #if ENABLED(MKR4) // MKR4 System
-    #if HAS(E0E1)
+    #if HAS_E0E1
       OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E0E2)
+    #if HAS_E0E2
       OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
     #endif
-    #if HAS(E1E3)
+    #if HAS_E1E3
       OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
     #endif
-  #elif ENABLED(MKR6) // MKR6 System
-    #if HAS(EX1)
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
       OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
     #endif
-    #if HAS(EX2)
+    #if HAS_EX2
       OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
     #endif
   #endif
@@ -1451,33 +1451,33 @@ void Stepper::report_positions() {
   CRITICAL_SECTION_END;
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
-    SERIAL_M(MSG_COUNT_A);
+    SERIAL_MSG(MSG_COUNT_A);
   #elif MECH(DELTA)
-    SERIAL_M(MSG_COUNT_ALPHA);
+    SERIAL_MSG(MSG_COUNT_ALPHA);
   #else
-    SERIAL_M(MSG_COUNT_X);
+    SERIAL_MSG(MSG_COUNT_X);
   #endif
-  SERIAL_V(xpos);
+  SERIAL_VAL(xpos);
 
   #if CORE_IS_XY || CORE_IS_YZ || IS_SCARA
-    SERIAL_M(" B:");
+    SERIAL_MSG(" B:");
   #elif MECH(DELTA)
-    SERIAL_M(" Beta:");
+    SERIAL_MSG(" Beta:");
   #else
-    SERIAL_M(" Y:");
+    SERIAL_MSG(" Y:");
   #endif
-  SERIAL_V(ypos);
+  SERIAL_VAL(ypos);
 
   #if CORE_IS_XZ || CORE_IS_YZ
-    SERIAL_M(" C:");
+    SERIAL_MSG(" C:");
   #elif MECH(DELTA)
-    SERIAL_M(" Teta:");
+    SERIAL_MSG(" Teta:");
   #else
-    SERIAL_M(" Z:");
+    SERIAL_MSG(" Z:");
   #endif
-  SERIAL_V(zpos);
+  SERIAL_VAL(zpos);
 
-  SERIAL_E;
+  SERIAL_EOL();
 }
 
 #if ENABLED(NPR2)
@@ -1809,86 +1809,86 @@ void Stepper::report_positions() {
   }
 
   void Stepper::microstep_readings() {
-    SERIAL_M(MSG_MICROSTEP_MS1_MS2);
+    SERIAL_MSG(MSG_MICROSTEP_MS1_MS2);
     #if HAS_X_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_X);
-      SERIAL_V(READ(X_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_X);
+      SERIAL_VAL(READ(X_MS1_PIN));
       #if PIN_EXISTS(X_MS2)
         SERIAL_EV(READ(X_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_Y_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_Y);
-      SERIAL_V(READ(Y_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_Y);
+      SERIAL_VAL(READ(Y_MS1_PIN));
       #if PIN_EXISTS(Y_MS2)
         SERIAL_EV(READ(Y_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_Z_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_Z);
-      SERIAL_V(READ(Z_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_Z);
+      SERIAL_VAL(READ(Z_MS1_PIN));
       #if PIN_EXISTS(Z_MS2)
         SERIAL_EV(READ(Z_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E0_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E0);
-      SERIAL_V(READ(E0_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E0);
+      SERIAL_VAL(READ(E0_MS1_PIN));
       #if PIN_EXISTS(E0_MS2)
         SERIAL_EV(READ(E0_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E1_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E1);
-      SERIAL_V(READ(E1_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E1);
+      SERIAL_VAL(READ(E1_MS1_PIN));
       #if PIN_EXISTS(E1_MS2)
         SERIAL_EV(READ(E1_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E2_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E2);
-      SERIAL_V(READ(E2_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E2);
+      SERIAL_VAL(READ(E2_MS1_PIN));
       #if PIN_EXISTS(E2_MS2)
         SERIAL_EV(READ(E2_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E3_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E3);
-      SERIAL_V(READ(E3_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E3);
+      SERIAL_VAL(READ(E3_MS1_PIN));
       #if PIN_EXISTS(E3_MS2)
         SERIAL_EV(READ(E3_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E4_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E4);
-      SERIAL_V(READ(E4_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E4);
+      SERIAL_VAL(READ(E4_MS1_PIN));
       #if PIN_EXISTS(E4_MS2)
         SERIAL_EV(READ(E4_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
     #if HAS_E5_MICROSTEPS
-      SERIAL_M(MSG_MICROSTEP_E5);
-      SERIAL_V(READ(E5_MS1_PIN));
+      SERIAL_MSG(MSG_MICROSTEP_E5);
+      SERIAL_VAL(READ(E5_MS1_PIN));
       #if PIN_EXISTS(E5_MS2)
         SERIAL_EV(READ(E5_MS2_PIN));
       #else
-        SERIAL_E;
+        SERIAL_EOL();
       #endif
     #endif
   }

@@ -21,35 +21,23 @@
  */
 
 /**
- * delta_kinematics.h
+ * core_mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _DELTA_KINEMATICS_H_
-#define _DELTA_KINEMATICS_H_
+#ifndef _CORE_MECHANICS_H_
+#define _CORE_MECHANICS_H_
 
-#if IS_DELTA
+#if IS_CORE
 
-  class DeltaKinematics {
+  class Core_Mechanics {
 
     public: /** Constructor */
 
-      DeltaKinematics() {};
+      Core_Mechanics() {};
 
     public: /** Public Parameters */
-
-      float diagonal_rod,
-            delta_radius,
-            segments_per_second,
-            print_radius,
-            probe_radius,
-            delta_height,
-            clip_start_height,
-            diagonal_rod_adj[ABC],
-            endstop_adj[ABC],
-            tower_radius_adj[ABC],
-            tower_pos_adj[ABC];
 
       /**
        * Cartesian Current Position
@@ -57,7 +45,7 @@
        *   Used by 'line_to_current_position' to do a move after changing it.
        *   Used by 'sync_plan_position' to update 'planner.position'.
        */
-      float current_position[ABCE];
+      float current_position[XYZE];
 
       /**
        * Cartesian Stored Position
@@ -65,13 +53,7 @@
        *   Used by G60 for stored.
        *   Used by G61 for move to.
        */
-      float stored_position[NUM_POSITON_SLOTS][ABCE];
-
-      /**
-       * Delta Position
-       *   Used to move tower.
-       */
-      float delta[ABC];
+      float stored_position[NUM_POSITON_SLOTS][XYZE];
 
       /**
        * Cartesian Destination
@@ -79,18 +61,18 @@
        *   Set with 'gcode_get_destination' or 'set_destination_to_current'.
        *   'line_to_destination' sets 'current_position' to 'destination'.
        */
-      float destination[ABCE];
+      float destination[XYZE];
 
       /**
        * axis_homed
        *   Flags that each linear axis was homed.
-       *   ABC on delta.
+       *   XYZ on cartesian.
        *
        * axis_known_position
        *   Flags that the position is known in each linear axis. Set when homed.
        *   Cleared whenever a stepper powers off, potentially losing its position.
        */
-      bool axis_homed[ABC], axis_known_position[ABC];
+      bool axis_homed[XYZ], axis_known_position[XYZ];
 
       /**
        * Workspace Offset
@@ -108,23 +90,47 @@
       #endif
 
       /**
+       * Feed rates are often configured with mm/m
+       * but the planner and stepper like mm/s units.
+       */
+      float feedrate_mm_s             = MMM_TO_MMS(1500.0),
+            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
+      int   feedrate_percentage       = 100,
+            saved_feedrate_percentage = 100;
+
+      /**
        * Homing feed rates are often configured with mm/m
        * but the planner and stepper like mm/s units.
        */
-      const float homing_feedrate_mm_s[ABC] = { MMM_TO_MMS(HOMING_FEEDRATE_XYZ), MMM_TO_MMS(HOMING_FEEDRATE_XYZ), MMM_TO_MMS(HOMING_FEEDRATE_XYZ) },
-                  home_bump_mm[ABC]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+      const float homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
+                  base_max_pos[XYZ]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+                  base_min_pos[XYZ]         = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+                  base_home_pos[XYZ]        = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
+                  max_length[XYZ]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
+                  home_bump_mm[XYZ]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
-      const signed char home_dir[ABC]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
+      const signed char home_dir[XYZ]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        DualXMode dual_x_carriage_mode          = DEFAULT_DUAL_X_CARRIAGE_MODE;
+        float     inactive_hotend_x_pos         = X2_MAX_POS,                   // used in mode 0 & 1
+                  raised_parked_position[NUM_AXIS],                             // used in mode 1
+                  duplicate_hotend_x_offset     = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
+        int16_t   duplicate_hotend_temp_offset  = 0;                            // used in mode 2
+        millis_t  delayed_move_time             = 0;                            // used in mode 1
+        bool      active_hotend_parked          = false,                        // used in mode 1 & 2
+                  hotend_duplication_enabled    = false;                        // used in mode 2
+      #endif
 
     public: /** Public Function */
 
       /**
-       * Initialize Delta parameters
+       * Initialize Cartesian parameters
        */
       void Init();
 
-      FORCE_INLINE void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
-      FORCE_INLINE void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
+      void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
+      void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
 
       /**
        * line_to_current_position
@@ -135,69 +141,50 @@
 
       /**
        * line_to_destination
-       * Move the planner, not necessarily synced with current_position
+       * Move the planner to the position stored in the destination array, which is
+       * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
        */
       void line_to_destination(float fr_mm_s);
       void line_to_destination();
 
       /**
-       * Prepare a linear move in a DELTA setup.
-       *
-       * This calls buffer_line several times, adding
-       * small incremental moves for DELTA.
+       * Prepare a single move and get ready for the next one
+       * If Mesh Bed Leveling is enabled, perform a mesh move.
        */
-      bool prepare_linear_move_to_destination();
+      void prepare_move_to_destination();
 
       /**
-       * Blocking movement and shorthand functions
+       *  Plan a move to (X, Y, Z) and set the current_position
+       *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_x(const float &lx, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_z(const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s = 0.0);
 
       /**
        * sync_plan_position
        *
-       * Set the planner/stepper positions kinematic
+       * Set the planner/stepper positions directly from current_position with
+       * no kinematic translation. Used for homing axes and cartesian/core syncing.
        */
       void sync_plan_position();
       void sync_plan_position_e();
 
       /**
-       * Calculate delta, start a line, and set current_position to destination
+       * Home Cartesian
        */
-      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
-
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-        void Adjust(const uint8_t numFactors, const float v[]);
-        void Convert_endstop_adj();
-      #endif
-
-      void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
-      void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
-      void Transform(const float logical[ABC]);
-      void Recalc();
-      void Set_clip_start_height();
-
-      /**
-       * Home Delta
-       */
-      void Home(const bool always_home_all=true);
+      void Home(const bool always_home_all);
 
       /**
        * Set an axis' current position to its home position (after homing).
        *
-       * DELTA should wait until all homing is done before setting the XYZ
-       * current_position to home, because homing is a single operation.
-       * In the case where the axis positions are already known and previously
-       * homed, DELTA could home to X or Y individually by moving either one
-       * to the center. However, homing Z always homes XY and Z.
+       * For Cartesian robots this applies one-to-one when an
+       * individual axis has been homed.
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(AxisEnum axis);
+      void set_axis_is_at_home(const AxisEnum axis);
 
       bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
       bool position_is_reachable_raw_xy(const float &rx, const float &ry);
@@ -205,29 +192,26 @@
       bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
       bool position_is_reachable_xy(const float &lx, const float &ly);
 
+      #if ENABLED(DUAL_X_CARRIAGE)
+        float x_home_pos(const int extruder);
+      #endif
+
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
         void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+        #if HAS_ABL
+          void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+        #endif
       #endif
 
     private: /** Private Parameters */
-
-      // Derived values
-      float  delta_diagonal_rod_2[ABC],  // Diagonal rod 2
-                    towerX[ABC],                // The X coordinate of each tower
-                    towerY[ABC],                // The Y coordinate of each tower
-                    homed_Height,
-                    printRadiusSquared,
-                    Xbc, Xca, Xab, Ybc, Yca, Yab,
-                    coreFa, coreFb, coreFc,
-                    Q, Q2, D2;
 
     private: /** Private Function */
 
       /**
        * Home an individual linear axis
        */
-      void do_homing_move(AxisEnum axis, const float distance, float fr_mm_s=0.0);
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
       /**
        *  Home axis
@@ -235,31 +219,43 @@
       void homeaxis(const AxisEnum axis);
 
       /**
+       * Prepare a linear move in a dual X axis setup
+       */
+      #if ENABLED(DUAL_X_CARRIAGE)
+        bool  prepare_move_to_destination_dualx();
+        int   x_home_dir(const int extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
+      #endif
+
+      #if ENABLED(QUICK_HOME)
+        void quick_home_xy();
+      #endif
+
+      #if ENABLED(Z_SAFE_HOMING)
+        void home_z_safely();
+      #endif
+
+      #if ENABLED(DOUBLE_Z_HOMING)
+        void double_home_z();
+      #endif
+
+      /**
        * Some planner shorthand inline functions
        */
-      float get_homing_bump_feedrate(AxisEnum axis);
-
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        void NormaliseEndstopAdjustments();
-      #endif
-
-      #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
-        float Q_rsqrt(float number);
-      #endif
+      float get_homing_bump_feedrate(const AxisEnum axis);
 
   };
 
-  extern DeltaKinematics Kinematics;
+  extern Core_Mechanics Mechanics;
 
   // DEBUG LEVELING
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Kinematics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
   #endif
 
   // Workspace offsets
   #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Kinematics.workspace_offset[AXIS]
+    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
   #else
     #define WORKSPACE_OFFSET(AXIS) 0
   #endif
@@ -283,8 +279,8 @@
     #define RAW_Z_POSITION(POS)       (POS)
   #endif
 
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Kinematics.current_position[A##_AXIS])
+  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
 
-#endif // MECH(DELTA)
+#endif // MECH(CORE)
 
-#endif // _DELTA_KINEMATICS_H_
+#endif // _CORE_MECHANICS_H_

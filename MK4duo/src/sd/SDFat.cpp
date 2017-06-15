@@ -697,24 +697,24 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
       if (level >= SD_MAX_FOLDER_DEPTH) continue; // can't go deeper
       if (level < SD_MAX_FOLDER_DEPTH && findFilename == NULL) {
         if (level && !isJson) {
-          SERIAL_T(card.fileName);
-          SERIAL_C('/');
+          SERIAL_TXT(card.fileName);
+          SERIAL_CHR('/');
         }
         #ifdef JSON_OUTPUT
           if (isJson) {
-            if (!firstFile) SERIAL_C(',');
-            SERIAL_C('"'); SERIAL_C('*');
+            if (!firstFile) SERIAL_CHR(',');
+            SERIAL_CHR('"'); SERIAL_CHR('*');
             CardReader::printEscapeChars(card.tempLongFilename);
-            SERIAL_C('"');
+            SERIAL_CHR('"');
             firstFile = false;
           }
           else {
-            SERIAL_T(card.tempLongFilename);
-            SERIAL_C('/'); SERIAL_E; // End with / to mark it as directory entry, so we can see empty directories.
+            SERIAL_TXT(card.tempLongFilename);
+            SERIAL_CHR('/'); SERIAL_EOL(); // End with / to mark it as directory entry, so we can see empty directories.
           }
         #else
-          SERIAL_T(card.tempLongFilename);
-          SERIAL_C('/'); SERIAL_E;// End with / to mark it as directory entry, so we can see empty directories.
+          SERIAL_TXT(card.tempLongFilename);
+          SERIAL_CHR('/'); SERIAL_EOL();// End with / to mark it as directory entry, so we can see empty directories.
         #endif
       }
       SdBaseFile next;
@@ -751,25 +751,25 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
       }
       else {
         if(level && !isJson) {
-          SERIAL_T(card.fileName);
-          SERIAL_C('/');
+          SERIAL_TXT(card.fileName);
+          SERIAL_CHR('/');
         }
         #ifdef JSON_OUTPUT
           if (isJson) {
-            if (!firstFile) SERIAL_C(',');
-            SERIAL_C('"');
+            if (!firstFile) SERIAL_CHR(',');
+            SERIAL_CHR('"');
             CardReader::printEscapeChars(card.tempLongFilename);
-            SERIAL_C('"');
+            SERIAL_CHR('"');
             firstFile = false;
           }
           else
         #endif
         {
-          SERIAL_T(card.tempLongFilename);
+          SERIAL_TXT(card.tempLongFilename);
           #ifdef SD_EXTENDED_DIR
             SERIAL_MV(" ", (long) p->fileSize);
           #endif
-          SERIAL_E;
+          SERIAL_EOL();
         }
       }
     }
@@ -827,23 +827,23 @@ int8_t SdBaseFile::lsPrintNext(uint8_t flags, uint8_t indent) {
       && DIR_IS_FILE_OR_SUBDIR(&dir)) break;
   }
   // indent for dir level
-  for (uint8_t i = 0; i < indent; i++) SERIAL_C(' ');
+  for (uint8_t i = 0; i < indent; i++) SERIAL_CHR(' ');
 
   printDirName(dir, flags & (LS_DATE | LS_SIZE) ? 14 : 0, true);
 
   // print modify date/time if requested
   if (flags & LS_DATE) {
-    SERIAL_C(' ');
+    SERIAL_CHR(' ');
     printFatDate(dir.lastWriteDate);
-    SERIAL_C(' ');
+    SERIAL_CHR(' ');
     printFatTime(dir.lastWriteTime);
   }
   // print size if requested
   if (!DIR_IS_SUBDIR(&dir) && (flags & LS_SIZE)) {
-    SERIAL_C(' ');
-    SERIAL_V(dir.fileSize);
+    SERIAL_CHR(' ');
+    SERIAL_VAL(dir.fileSize);
   }
-  SERIAL_E;
+  SERIAL_EOL();
   return DIR_IS_FILE(&dir) ? 1 : 2;
 }
 //------------------------------------------------------------------------------
@@ -1601,26 +1601,26 @@ void SdBaseFile::printDirName(const dir_t& dir, uint8_t width, bool printSlash) 
   for (uint8_t i = 0; i < 11; i++) {
     if (dir.name[i] == ' ')continue;
     if (i == 8) {
-      SERIAL_C('.');
+      SERIAL_CHR('.');
       w++;
     }
-    SERIAL_C(dir.name[i]);
+    SERIAL_CHR(dir.name[i]);
     w++;
   }
   if (DIR_IS_SUBDIR(&dir) && printSlash) {
-    SERIAL_C('/');
+    SERIAL_CHR('/');
     w++;
   }
   while (w < width) {
-    SERIAL_C(' ');
+    SERIAL_CHR(' ');
     w++;
   }
 }
 //------------------------------------------------------------------------------
 // print uint8_t with width 2
 static void print2u(uint8_t v) {
-  if (v < 10) SERIAL_C('0');
-  SERIAL_V(v);
+  if (v < 10) SERIAL_CHR('0');
+  SERIAL_VAL(v);
 }
 //------------------------------------------------------------------------------
 /** Print a file's creation date and time
@@ -1637,7 +1637,7 @@ bool SdBaseFile::printCreateDateTime() {
     goto fail;
   }
   printFatDate(dir.creationDate);
-  SERIAL_C(' ');
+  SERIAL_CHR(' ');
   printFatTime(dir.creationTime);
   return true;
 
@@ -1654,10 +1654,10 @@ fail:
  * \param[in] fatDate The date field from a directory entry.
  */
 void SdBaseFile::printFatDate(uint16_t fatDate) {
-  SERIAL_V((int)FAT_YEAR(fatDate));
-  SERIAL_C('-');
+  SERIAL_VAL((int)FAT_YEAR(fatDate));
+  SERIAL_CHR('-');
   print2u(FAT_MONTH(fatDate));
-  SERIAL_C('-');
+  SERIAL_CHR('-');
   print2u(FAT_DAY(fatDate));
 }
 
@@ -1671,9 +1671,9 @@ void SdBaseFile::printFatDate(uint16_t fatDate) {
  */
 void SdBaseFile::printFatTime(uint16_t fatTime) {
   print2u(FAT_HOUR(fatTime));
-  SERIAL_C(':');
+  SERIAL_CHR(':');
   print2u(FAT_MINUTE(fatTime));
-  SERIAL_C(':');
+  SERIAL_CHR(':');
   print2u(FAT_SECOND(fatTime));
 }
 //------------------------------------------------------------------------------
@@ -1691,7 +1691,7 @@ bool SdBaseFile::printModifyDateTime() {
     goto fail;
   }
   printFatDate(dir.lastWriteDate);
-  SERIAL_C(' ');
+  SERIAL_CHR(' ');
   printFatTime(dir.lastWriteTime);
   return true;
 
@@ -1784,7 +1784,7 @@ bool SdBaseFile::printName() {
     DBG_FAIL_MACRO;
     goto fail;
   }
-  SERIAL_T(name);
+  SERIAL_TXT(name);
   return true;
 fail:
   return false;
@@ -4325,7 +4325,7 @@ void SdFile::writeln_P(PGM_P str) {
  * \param[in] str Pointer to string stored in flash memory.
  */
 void SdFatUtil::SerialPrint_P(PGM_P str) {
-  SERIAL_T(str);
+  SERIAL_TXT(str);
 }
 //------------------------------------------------------------------------------
 /** %Print a string in flash memory to Serial followed by a CR/LF.

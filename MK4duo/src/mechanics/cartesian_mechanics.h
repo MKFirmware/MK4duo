@@ -21,21 +21,21 @@
  */
 
 /**
- * core_kinematics.h
+ * cartesian_mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _CORE_KINEMATICS_H_
-#define _CORE_KINEMATICS_H_
+#ifndef _CARTESIAN_MECHANICS_H_
+#define _CARTESIAN_MECHANICS_H_
 
-#if IS_CORE
+#if IS_CARTESIAN
 
-  class CoreKinematics {
+  class Cartesian_Mechanics {
 
     public: /** Constructor */
 
-      CoreKinematics() {};
+      Cartesian_Mechanics() {};
 
     public: /** Public Parameters */
 
@@ -90,6 +90,15 @@
       #endif
 
       /**
+       * Feed rates are often configured with mm/m
+       * but the planner and stepper like mm/s units.
+       */
+      float feedrate_mm_s             = MMM_TO_MMS(1500.0),
+            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
+      int   feedrate_percentage       = 100,
+            saved_feedrate_percentage = 100;
+
+      /**
        * Homing feed rates are often configured with mm/m
        * but the planner and stepper like mm/s units.
        */
@@ -101,6 +110,17 @@
                   home_bump_mm[XYZ]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
       const signed char home_dir[XYZ]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        DualXMode dual_x_carriage_mode          = DEFAULT_DUAL_X_CARRIAGE_MODE;
+        float     inactive_hotend_x_pos         = X2_MAX_POS,                   // used in mode 0 & 1
+                  raised_parked_position[NUM_AXIS],                             // used in mode 1
+                  duplicate_hotend_x_offset     = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
+        int16_t   duplicate_hotend_temp_offset  = 0;                            // used in mode 2
+        millis_t  delayed_move_time             = 0;                            // used in mode 1
+        bool      active_hotend_parked          = false,                        // used in mode 1 & 2
+                  hotend_duplication_enabled    = false;                        // used in mode 2
+      #endif
 
     public: /** Public Function */
 
@@ -121,26 +141,26 @@
 
       /**
        * line_to_destination
-       * Move the planner, not necessarily synced with current_position
+       * Move the planner to the position stored in the destination array, which is
+       * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
        */
       void line_to_destination(float fr_mm_s);
       void line_to_destination();
 
       /**
-       * Prepare a linear move in a Cartesian setup.
+       * Prepare a single move and get ready for the next one
        * If Mesh Bed Leveling is enabled, perform a mesh move.
-       *
-       * Returns true if the caller didn't update current_position.
        */
-      bool prepare_linear_move_to_destination();
+      void prepare_move_to_destination();
 
       /**
-       * Blocking movement and shorthand functions
+       *  Plan a move to (X, Y, Z) and set the current_position
+       *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_x(const float &x, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_z(const float &z, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_x(const float &lx, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_z(const float &lz, const float &fr_mm_s = 0.0);
+      void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s = 0.0);
 
       /**
        * sync_plan_position
@@ -164,13 +184,46 @@
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(AxisEnum axis);
+      void set_axis_is_at_home(const AxisEnum axis);
 
       bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
       bool position_is_reachable_raw_xy(const float &rx, const float &ry);
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
       bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
       bool position_is_reachable_xy(const float &lx, const float &ly);
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        float x_home_pos(const int extruder);
+      #endif
+
+      #if ENABLED(HYSTERESIS)
+        void set_hysteresis_axis(uint8_t axis, float mm);
+        void report_hysteresis();
+        void insert_hysteresis_correction(const float x, const float y, const float z, const float e);
+      #endif
+
+      #if ENABLED(ZWOBBLE)
+        #define STEPS_IN_ZLUT 50
+        #define ZWOBBLE_MIN_Z 0.1
+        // minimum distance within which two distances in mm are considered equal
+        #define TOLERANCE_MM 0.01
+        #define DISTANCE(_A,_B) abs((_A) - (_B))
+        #define EQUAL_WITHIN_TOLERANCE(_A, _B) (DISTANCE(_A, _B) < TOLERANCE_MM)
+        #define TWOPI 6.28318530718
+        #define ZACTUAL_IS_SCALED(_I) (zwobble_zLut[_I][1] < 0)
+        #define ZACTUAL(_I) (zwobble_zLut[_I][1] < 0 ? -zwobble_zLut[_I][1] * m_zwobble_scalingFactor : zwobble_zLut[_I][1])
+        #define ZROD(_I) zwobble_zLut[_I][0]
+        #define SET_ZACTUAL(_I,_V) zwobble_zLut[_I][1] = _V
+        #define SET_ZROD(_I,_V) zwobble_zLut[_I][0] = _V
+        void report_zwobble();
+        void insert_zwobble_correction(const float targetZ);
+        void set_zwobble_amplitude(float _amplitude);
+        void set_zwobble_period(float _period);
+        void set_zwobble_phase(float _phase);
+        void set_zwobble_sample(float zRod, float zActual);
+        void set_zwobble_scaledsample(float zRod, float zScaledLength);
+        void set_zwobble_scalingfactor(float zActualPerScaledLength);
+      #endif
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
@@ -182,17 +235,43 @@
 
     private: /** Private Parameters */
 
+      #if ENABLED(HYSTERESIS)
+        float   m_hysteresis_axis_shift[XYZE],
+                m_hysteresis_mm[XYZE];
+        long    m_hysteresis_steps[XYZE];
+        uint8_t m_hysteresis_prev_direction_bits,
+                m_hysteresis_bits;
+      #endif
+
+      #if ENABLED(ZWOBBLE)
+        float   m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
+                zwobble_zLut[STEPS_IN_ZLUT][2],
+                zwobble_lastZ, zwobble_lastZRod,
+                m_zwobble_scalingFactor;
+        bool    m_zwobble_consistent,
+                m_zwobble_sinusoidal;
+        int     zwobble_lutSize;
+      #endif
+
     private: /** Private Function */
 
       /**
        * Home an individual linear axis
        */
-      void do_homing_move(AxisEnum axis, const float distance, float fr_mm_s=0.0);
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
       /**
        *  Home axis
        */
       void homeaxis(const AxisEnum axis);
+
+      /**
+       * Prepare a linear move in a dual X axis setup
+       */
+      #if ENABLED(DUAL_X_CARRIAGE)
+        bool  prepare_move_to_destination_dualx();
+        int   x_home_dir(const int extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
+      #endif
 
       #if ENABLED(QUICK_HOME)
         void quick_home_xy();
@@ -206,24 +285,40 @@
         void double_home_z();
       #endif
 
+      #if ENABLED(HYSTERESIS)
+        void set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
+        void calc_hysteresis_steps();
+        uint8_t calc_direction_bits(const long *position, const long *target);
+        uint8_t calc_move_bits(const long *position, const long *target);
+      #endif
+
+      #if ENABLED(ZWOBBLE)
+        void  calculateLut();
+        void  initLinearLut();
+        void  insertInLut(float, float);
+        float findInLut(float);
+        float findZRod(float);
+        bool  areParametersConsistent();
+      #endif
+
       /**
        * Some planner shorthand inline functions
        */
-      float get_homing_bump_feedrate(AxisEnum axis);
+      float get_homing_bump_feedrate(const AxisEnum axis);
 
   };
 
-  extern CoreKinematics Kinematics;
+  extern Cartesian_Mechanics Mechanics;
 
   // DEBUG LEVELING
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Kinematics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
   #endif
 
   // Workspace offsets
   #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Kinematics.workspace_offset[AXIS]
+    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
   #else
     #define WORKSPACE_OFFSET(AXIS) 0
   #endif
@@ -247,8 +342,8 @@
     #define RAW_Z_POSITION(POS)       (POS)
   #endif
 
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Kinematics.current_position[A##_AXIS])
+  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
 
 #endif // MECH(CARTESIAN)
 
-#endif // _CORE_KINEMATICS_H_
+#endif // _CARTESIAN_MECHANICS_H_

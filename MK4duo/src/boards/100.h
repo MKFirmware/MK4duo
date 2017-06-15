@@ -6,8 +6,8 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "Anet"
 
-#if !defined(__AVR_ATmega1280__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+#if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega1284P__)
+  #error Oops!  Make sure you have 'Anet' selected from the 'Tools -> Boards' menu.
 #endif
 
 #if defined(__AVR_ATmega1284P__)
@@ -89,6 +89,10 @@
     
 	#elif ENABLED(U8GLIB_ST7920)
 
+    #define DOGLCD_A0           30
+    #define DOGLCD_CS           29
+    #define LCD_CONTRAST         1
+
     #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
       // For RepRap Discount (with Anet Adapter wiring)
       #define SERVO0_PIN        27 // free for BLTouch/3D-Touch
@@ -98,12 +102,17 @@
       #define LCD_PINS_D4       17
       #define BTN_EN1           11
       #define BTN_EN2           10
+      #define BTN_ENC           16
     #elif ENABLED(ANET_FULL_GRAPHICS_LCD)
       #define BEEPER_PIN 17
 
       #define LCD_PINS_RS       27
       #define LCD_PINS_ENABLE   28
       #define LCD_PINS_D4       30
+
+      #define BTN_EN1           11
+      #define BTN_EN2           10
+      #define BTN_ENC           16
     #else
       #error "You need to select ANET or RepRap Version"
     #endif

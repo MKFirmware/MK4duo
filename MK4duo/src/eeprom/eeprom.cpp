@@ -59,7 +59,7 @@
  *  M205  Y               planner.max_jerk[Y_AXIS] (float)
  *  M205  Z               planner.max_jerk[Z_AXIS] (float)
  *  M205  E   E0 ...      planner.max_jerk[E_AXIS * EXTRDURES] (float x6)
- *  M206  XYZ             Kinematics.home_offset (float x3)
+ *  M206  XYZ             Mechanics.home_offset (float x3)
  *  M218  T   XY          hotend_offset (float x6)
  *
  * Global Leveling:
@@ -89,18 +89,15 @@
  *  M595  H OS            Hotend AD595 Offset & Gain
  *
  * DELTA:
- *  M666  XYZ             Kinematics.endstop_adj (float x3)
- *  M666  R               Kinematics.delta_radius (float)
- *  M666  D               Kinematics.diagonal_rod (float)
- *  M666  S               Kinematics.segments_per_second (float)
- *  M666  H               Kinematics.delta_height (float)
- *  M666  ABC             Kinematics.tower_radius_adj (float x3)
- *  M666  IJK             Kinematics.tower_pos_adj (float x3)
- *  M666  UVW             Kinematics.diagonal_rod_adj (float x3)
- *  M666  O               Kinematics.print_radius (float)
- *
- * Z_TWO_ENDSTOPS:
- *  M666  Z               z2_endstop_adj (float)
+ *  M666  XYZ             Mechanics.endstop_adj (float x3)
+ *  M666  R               Mechanics.delta_radius (float)
+ *  M666  D               Mechanics.diagonal_rod (float)
+ *  M666  S               Mechanics.segments_per_second (float)
+ *  M666  H               Mechanics.delta_height (float)
+ *  M666  ABC             Mechanics.tower_radius_adj (float x3)
+ *  M666  IJK             Mechanics.tower_pos_adj (float x3)
+ *  M666  UVW             Mechanics.diagonal_rod_adj (float x3)
+ *  M666  O               Mechanics.print_radius (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp (int x3)
@@ -175,7 +172,7 @@ void EEPROM::Postprocess() {
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
-    Kinematics.Recalc();
+    Mechanics.Recalc();
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
@@ -190,7 +187,7 @@ void EEPROM::Postprocess() {
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
     // Software endstops depend on home_offset
-    LOOP_XYZ(i) update_software_endstops((AxisEnum)i);
+    LOOP_XYZ(i) endstops.update_software_endstops((AxisEnum)i);
   #endif
 
   #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -239,7 +236,7 @@ void EEPROM::Postprocess() {
       };
     }
 
-    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size) {
+    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc) {
       if (eeprom_error) return;
 
       do {
@@ -330,7 +327,7 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(planner.min_segment_time);
     EEPROM_WRITE(planner.max_jerk);
     #if ENABLED(WORKSPACE_OFFSETS)
-      EEPROM_WRITE(Kinematics.home_offset);
+      EEPROM_WRITE(Mechanics.home_offset);
     #endif
     EEPROM_WRITE(hotend_offset);
 
@@ -392,17 +389,26 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MECH(DELTA)
-      EEPROM_WRITE(Kinematics.endstop_adj);
-      EEPROM_WRITE(Kinematics.delta_radius);
-      EEPROM_WRITE(Kinematics.diagonal_rod);
-      EEPROM_WRITE(Kinematics.segments_per_second);
-      EEPROM_WRITE(Kinematics.delta_height);
-      EEPROM_WRITE(Kinematics.tower_radius_adj);
-      EEPROM_WRITE(Kinematics.tower_pos_adj);
-      EEPROM_WRITE(Kinematics.diagonal_rod_adj);
-      EEPROM_WRITE(Kinematics.print_radius);
+      EEPROM_WRITE(Mechanics.endstop_adj);
+      EEPROM_WRITE(Mechanics.delta_radius);
+      EEPROM_WRITE(Mechanics.diagonal_rod);
+      EEPROM_WRITE(Mechanics.segments_per_second);
+      EEPROM_WRITE(Mechanics.delta_height);
+      EEPROM_WRITE(Mechanics.tower_radius_adj);
+      EEPROM_WRITE(Mechanics.tower_pos_adj);
+      EEPROM_WRITE(Mechanics.diagonal_rod_adj);
+      EEPROM_WRITE(Mechanics.print_radius);
+    #endif
+
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      EEPROM_WRITE(endstops.z2_endstop_adj);
+      EEPROM_WRITE(endstops.z3_endstop_adj);
+      EEPROM_WRITE(endstops.z4_endstop_adj);
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      EEPROM_WRITE(endstops.z3_endstop_adj);
+      EEPROM_WRITE(endstops.z4_endstop_adj);
     #elif ENABLED(Z_TWO_ENDSTOPS)
-      EEPROM_WRITE(z2_endstop_adj);
+      EEPROM_WRITE(endstops.z2_endstop_adj);
     #endif
 
     #if DISABLED(ULTIPANEL)
@@ -650,7 +656,7 @@ void EEPROM::Postprocess() {
       EEPROM_READ(planner.min_segment_time);
       EEPROM_READ(planner.max_jerk);
       #if ENABLED(WORKSPACE_OFFSETS)
-        EEPROM_READ(Kinematics.home_offset);
+        EEPROM_READ(Mechanics.home_offset);
       #endif
       EEPROM_READ(hotend_offset);
 
@@ -726,17 +732,26 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MECH(DELTA)
-        EEPROM_READ(Kinematics.endstop_adj);
-        EEPROM_READ(Kinematics.delta_radius);
-        EEPROM_READ(Kinematics.diagonal_rod);
-        EEPROM_READ(Kinematics.segments_per_second);
-        EEPROM_READ(Kinematics.delta_height);
-        EEPROM_READ(Kinematics.tower_radius_adj);
-        EEPROM_READ(Kinematics.tower_pos_adj);
-        EEPROM_READ(Kinematics.diagonal_rod_adj);
-        EEPROM_READ(Kinematics.print_radius);
+        EEPROM_READ(Mechanics.endstop_adj);
+        EEPROM_READ(Mechanics.delta_radius);
+        EEPROM_READ(Mechanics.diagonal_rod);
+        EEPROM_READ(Mechanics.segments_per_second);
+        EEPROM_READ(Mechanics.delta_height);
+        EEPROM_READ(Mechanics.tower_radius_adj);
+        EEPROM_READ(Mechanics.tower_pos_adj);
+        EEPROM_READ(Mechanics.diagonal_rod_adj);
+        EEPROM_READ(Mechanics.print_radius);
+      #endif
+
+      #if ENABLED(Z_FOUR_ENDSTOPS)
+        EEPROM_READ(endstops.z2_endstop_adj);
+        EEPROM_READ(endstops.z3_endstop_adj);
+        EEPROM_READ(endstops.z4_endstop_adj);
+      #elif ENABLED(Z_THREE_ENDSTOPS)
+        EEPROM_READ(endstops.z3_endstop_adj);
+        EEPROM_READ(endstops.z4_endstop_adj);
       #elif ENABLED(Z_TWO_ENDSTOPS)
-        EEPROM_READ(z2_endstop_adj);
+        EEPROM_READ(endstops.z2_endstop_adj);
       #endif
 
       #if DISABLED(ULTIPANEL)
@@ -884,7 +899,7 @@ void EEPROM::Postprocess() {
           Factory_Settings();
         else {
           Postprocess();
-          SERIAL_V(version);
+          SERIAL_VAL(version);
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_EM(" bytes)");
         }
@@ -893,7 +908,7 @@ void EEPROM::Postprocess() {
 
         if (working_crc == stored_crc) {
           Postprocess();
-          SERIAL_V(version);
+          SERIAL_VAL(version);
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_MV(" bytes; crc ", working_crc);
           SERIAL_EM(")");
@@ -946,9 +961,9 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    float tmp11[] = MOTOR_CURRENT;
+    const float tmp11[] = MOTOR_CURRENT;
     for (int8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      motor_current[i] = tmp11[i];
+      motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
   #endif
 
   LOOP_XYZE_N(i) {
@@ -984,7 +999,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    ZERO(Kinematics.home_offset);
+    ZERO(Mechanics.home_offset);
   #endif
 
   #if HAS_LEVELING
@@ -996,7 +1011,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MECH(DELTA)
-    Kinematics.Init();
+    Mechanics.Init();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -1132,7 +1147,7 @@ void EEPROM::Factory_Settings() {
 
 #if DISABLED(DISABLE_M503)
 
-  #define CONFIG_MSG_START(str) do{ if (!forReplay) SERIAL_S(CFG); SERIAL_EM(str); }while(0)
+  #define CONFIG_MSG_START(str) do{ if (!forReplay) SERIAL_STR(CFG); SERIAL_EM(str); }while(0)
 
   /**
    * M503 - Print Configuration
@@ -1147,8 +1162,8 @@ void EEPROM::Factory_Settings() {
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
       #define VOLUMETRIC_UNIT(N) ((N) / (volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_SM(CFG, "  G2");
-      SERIAL_C(parser.linear_unit_factor == 1.0 ? '1' : '0');
-      SERIAL_M(" ; Units in ");
+      SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
+      SERIAL_MSG(" ; Units in ");
       SERIAL_PS(parser.linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
     #else
       #define LINEAR_UNIT(N) N
@@ -1163,8 +1178,8 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
         #define TEMP_UNIT(N) parser.to_temp_units(N)
         SERIAL_SM(CFG, "  M149 ");
-        SERIAL_C(parser.temp_units_code);
-        SERIAL_M(" ; Units in ");
+        SERIAL_CHR(parser.temp_units_code);
+        SERIAL_MSG(" ; Units in ");
         SERIAL_PS(parser.temp_units_name());
       #else
         #define TEMP_UNIT(N) N
@@ -1180,7 +1195,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.axis_steps_per_mm[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
@@ -1195,7 +1210,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_feedrate_mm_s[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
@@ -1210,7 +1225,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(planner.max_acceleration_mm_per_s2[E_AXIS]));
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
@@ -1224,7 +1239,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 R", LINEAR_UNIT(planner.retract_acceleration[0]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
@@ -1242,7 +1257,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", LINEAR_UNIT(planner.max_jerk[E_AXIS]), 3);
     #endif
-    SERIAL_E;
+    SERIAL_EOL();
     #if (EXTRUDERS > 1)
       for(int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
@@ -1252,9 +1267,9 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(WORKSPACE_OFFSETS)
       CONFIG_MSG_START("Home offset:");
-      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(Kinematics.home_offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(Kinematics.home_offset[Y_AXIS]), 3);
-      SERIAL_EMV(" Z", LINEAR_UNIT(Kinematics.home_offset[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(Mechanics.home_offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.home_offset[Y_AXIS]), 3);
+      SERIAL_EMV(" Z", LINEAR_UNIT(Mechanics.home_offset[Z_AXIS]), 3);
     #endif
 
     #if HOTENDS > 1
@@ -1279,7 +1294,7 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
 
       for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
         for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
@@ -1296,7 +1311,7 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(planner.z_fade_height));
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
 
     #endif
 
@@ -1313,37 +1328,32 @@ void EEPROM::Factory_Settings() {
 
       CONFIG_MSG_START("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" X", LINEAR_UNIT(Kinematics.endstop_adj[A_AXIS]));
-      SERIAL_MV(" Y", LINEAR_UNIT(Kinematics.endstop_adj[B_AXIS]));
-      SERIAL_MV(" Z", LINEAR_UNIT(Kinematics.endstop_adj[C_AXIS]));
-      SERIAL_E;
+      SERIAL_MV(" X", LINEAR_UNIT(Mechanics.endstop_adj[A_AXIS]));
+      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.endstop_adj[B_AXIS]));
+      SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.endstop_adj[C_AXIS]));
+      SERIAL_EOL();
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
       CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
       CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" A", LINEAR_UNIT(Kinematics.diagonal_rod_adj[0]), 3);
-      SERIAL_MV(" B", LINEAR_UNIT(Kinematics.diagonal_rod_adj[1]), 3);
-      SERIAL_MV(" C", LINEAR_UNIT(Kinematics.diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", Kinematics.tower_radius_adj[0], 3);
-      SERIAL_MV(" J", Kinematics.tower_radius_adj[1], 3);
-      SERIAL_MV(" K", Kinematics.tower_radius_adj[2], 3);
-      SERIAL_MV(" U", LINEAR_UNIT(Kinematics.tower_pos_adj[0]), 3);
-      SERIAL_MV(" V", LINEAR_UNIT(Kinematics.tower_pos_adj[1]), 3);
-      SERIAL_MV(" W", LINEAR_UNIT(Kinematics.tower_pos_adj[2]), 3);
-      SERIAL_MV(" R", LINEAR_UNIT(Kinematics.delta_radius));
-      SERIAL_MV(" D", LINEAR_UNIT(Kinematics.diagonal_rod));
-      SERIAL_MV(" S", Kinematics.segments_per_second);
-      SERIAL_MV(" O", LINEAR_UNIT(Kinematics.print_radius));
-      SERIAL_MV(" H", LINEAR_UNIT(Kinematics.delta_height), 3);
-      SERIAL_E;
+      SERIAL_MV(" A", LINEAR_UNIT(Mechanics.diagonal_rod_adj[0]), 3);
+      SERIAL_MV(" B", LINEAR_UNIT(Mechanics.diagonal_rod_adj[1]), 3);
+      SERIAL_MV(" C", LINEAR_UNIT(Mechanics.diagonal_rod_adj[2]), 3);
+      SERIAL_MV(" I", Mechanics.tower_radius_adj[0], 3);
+      SERIAL_MV(" J", Mechanics.tower_radius_adj[1], 3);
+      SERIAL_MV(" K", Mechanics.tower_radius_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(Mechanics.tower_pos_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(Mechanics.tower_pos_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(Mechanics.tower_pos_adj[2]), 3);
+      SERIAL_MV(" R", LINEAR_UNIT(Mechanics.delta_radius));
+      SERIAL_MV(" D", LINEAR_UNIT(Mechanics.diagonal_rod));
+      SERIAL_MV(" S", Mechanics.segments_per_second);
+      SERIAL_MV(" O", LINEAR_UNIT(Mechanics.print_radius));
+      SERIAL_MV(" H", LINEAR_UNIT(Mechanics.delta_height), 3);
+      SERIAL_EOL();
 
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-
-      CONFIG_MSG_START("Z2 Endstop adjustement:");
-      SERIAL_LMV(CFG, "  M666 Z", LINEAR_UNIT(z2_endstop_adj));
-
-    #endif // DELTA
+    #endif
 
     /**
      * Auto Bed Leveling
@@ -1360,7 +1370,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
         SERIAL_MV(" B", TEMP_UNIT(lcd_preheat_bed_temp[i]));
         SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
-        SERIAL_E;
+        SERIAL_EOL();
       }
     #endif // ULTIPANEL
 
@@ -1375,7 +1385,7 @@ void EEPROM::Factory_Settings() {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_MV(" C", PID_PARAM(Kc, 0));
           #endif
-          SERIAL_E;
+          SERIAL_EOL();
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", lpq_len);
           #endif
@@ -1388,7 +1398,7 @@ void EEPROM::Factory_Settings() {
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               SERIAL_MV(" C", PID_PARAM(Kc, h));
             #endif
-            SERIAL_E;
+            SERIAL_EOL();
           }
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", lpq_len);
@@ -1438,7 +1448,7 @@ void EEPROM::Factory_Settings() {
     if (!forReplay) {
       SERIAL_SM(CFG, "Filament settings:");
       if (volumetric_enabled)
-        SERIAL_E;
+        SERIAL_EOL();
       else
         SERIAL_EM(" Disabled");
     }
@@ -1463,7 +1473,7 @@ void EEPROM::Factory_Settings() {
       #if EXTRUDERS == 1
         SERIAL_MV(" T0 E", motor_current[E_AXIS], 2);
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
           SERIAL_SMV(CFG, "  M906 T", i);
@@ -1508,15 +1518,15 @@ void EEPROM::Factory_Settings() {
       #if ENABLED(E3_IS_TMC2130)
         SERIAL_MV(" E3", stepperE3.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if ENABLED(E4_IS_TMC2130)
         SERIAL_MV(" E4", stepperE4.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
       #if ENABLED(E5_IS_TMC2130)
         SERIAL_MV(" E5", stepperE5.getCurrent());
       #endif
-      SERIAL_E;
+      SERIAL_EOL();
     #endif
 
     /**

@@ -431,10 +431,10 @@ void Planner::check_axes_activity() {
   #endif
 
   #if ENABLED(BARICUDA)
-    #if HAS(HEATER_1)
+    #if HAS_HEATER_1
       analogWrite(HEATER_1_PIN, tail_valve_pressure);
     #endif
-    #if HAS(HEATER_2)
+    #if HAS_HEATER_2
       analogWrite(HEATER_2_PIN, tail_e_to_p_pressure);
     #endif
   #endif
@@ -778,9 +778,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Enable extruder(s)
   if (esteps) {
 
-    #if DISABLED(MKR4) && DISABLED(MKR6) && DISABLED(NPR2)
+    #if !HAS_MKMULTI_TOOLS
 
-      #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
+      #if EXTRUDERS > 0 && ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
         for (uint8_t i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
@@ -788,13 +788,13 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         switch(extruder) {
           case 0:
             enable_E0();
+            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
               if (extruder_duplication_enabled) {
                 enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
-            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if EXTRUDERS > 1
               if (g_uc_extruder_last_move[1] == 0) disable_E1();
               #if EXTRUDERS > 2
@@ -901,12 +901,35 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         case 1:
         case 2:
           enable_E0();
-        break;
+          break;
         case 3:
         case 4:
         case 5:
           enable_E1();
-        break;
+          break;
+      }
+    #elif ENABLED(MKR12)
+      switch(extruder) {
+        case 0:
+        case 1:
+        case 2:
+          enable_E0();
+          break;
+        case 3:
+        case 4:
+        case 5:
+          enable_E1();
+          break;
+        case 6:
+        case 7:
+        case 8:
+          enable_E2();
+          break;
+        case 9:
+        case 10:
+        case 11:
+          enable_E3();
+          break;
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_E0();
@@ -1451,11 +1474,11 @@ void Planner::set_position_mm_kinematic(const float position[NUM_AXIS]) {
 
   #if IS_KINEMATIC
     #if MECH(DELTA)
-      Kinematics.Transform(lpos);
+      Mechanics.Transform(lpos);
     #else
-        inverse_kinematics(lpos);
+        inverse_mechanism(lpos);
     #endif
-    _set_position_mm(Kinematics.delta[A_AXIS], Kinematics.delta[B_AXIS], Kinematics.delta[C_AXIS], position[E_AXIS]);
+    _set_position_mm(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS], Mechanics.delta[C_AXIS], position[E_AXIS]);
   #else
     _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
   #endif
@@ -1507,7 +1530,7 @@ void Planner::reset_acceleration_rates() {
 // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-  set_position_mm_kinematic(Kinematics.current_position);
+  set_position_mm_kinematic(Mechanics.current_position);
   reset_acceleration_rates();
 }
 

@@ -33,10 +33,6 @@ void idle(
 
 void manage_inactivity(bool ignore_stepper_queue = false);
 
-#if ENABLED(DUAL_X_CARRIAGE)
-  extern bool hotend_duplication_enabled;
-#endif
-
 void FlushSerialRequestResend();
 void ok_to_send();
 
@@ -109,12 +105,6 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-/**
- * Feedrate scaling and conversion
- */
-extern float feedrate_mm_s, saved_feedrate_mm_s;
-extern int feedrate_percentage;
-
 #if HAS_ABL
   extern int xy_probe_feedrate_mm_s;
   #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
@@ -124,7 +114,6 @@ extern int feedrate_percentage;
   #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
 #endif
 
-extern bool axis_relative_modes[];
 extern bool volumetric_enabled;
 extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each extruder
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
@@ -141,22 +130,6 @@ extern const char axis_codes[NUM_AXIS];
 
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
-
-// Software Endstops
-extern float soft_endstop_min[XYZ];
-extern float soft_endstop_max[XYZ];
-
-#if HAS_SOFTWARE_ENDSTOPS
-  extern bool soft_endstops_enabled;
-  void clamp_to_software_endstops(float target[XYZ]);
-#else
-  #define soft_endstops_enabled false
-  #define clamp_to_software_endstops(x) NOOP
-#endif
-
-#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-  void update_software_endstops(const AxisEnum axis);
-#endif
 
 #if ENABLED(LIN_ADVANCE)
   extern int extruder_advance_k;
@@ -176,17 +149,6 @@ extern float soft_endstop_max[XYZ];
               G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
 #endif
 
-#if ENABLED(Z_FOUR_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-  extern float z4_endstop_adj;
-#elif ENABLED(Z_THREE_ENDSTOPS)
-  extern float z2_endstop_adj;
-  extern float z3_endstop_adj;
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  extern float z2_endstop_adj;
-#endif
-
 #if HAS_BED_PROBE
   extern float zprobe_zoffset;
   extern bool probe_process;
@@ -199,7 +161,10 @@ extern float soft_endstop_max[XYZ];
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  extern uint32_t host_keepalive_interval;
+  extern MK4duoBusyState busy_state;
+  #define KEEPALIVE_STATE(n) do{ busy_state = n; }while(0)
+#else
+  #define KEEPALIVE_STATE(n) NOOP
 #endif
 
 #if FAN_COUNT > 0

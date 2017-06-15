@@ -21,7 +21,7 @@
  */
 
 /**
- * delta_kinematics.cpp
+ * delta_mechanics.cpp
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
@@ -30,9 +30,9 @@
 
 #if IS_DELTA
 
-  DeltaKinematics Kinematics;
+  Delta_Mechanics Mechanics;
 
-  void DeltaKinematics::Init() { 
+  void Delta_Mechanics::Init() { 
     delta_radius              = DEFAULT_DELTA_RADIUS;
     diagonal_rod              = DELTA_DIAGONAL_ROD;
     segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
@@ -57,41 +57,43 @@
   }
 
   /**
-   * line_to_current_position
-   * Move the planner to the current position from wherever it last moved
-   * (or from wherever it has been told it is located).
-   */
-  void DeltaKinematics::line_to_current_position() {
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
-  }
-
-  /**
-   * line_to_destination
-   * Move the planner, not necessarily synced with current_position
-   */
-  void DeltaKinematics::line_to_destination(float fr_mm_s) {
-    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
-  }
-  void DeltaKinematics::line_to_destination() { line_to_destination(feedrate_mm_s); }
-
-  /**
-   * Prepare a linear move in a DELTA setup.
+   * Prepare a single move and get ready for the next one.
    *
    * This calls buffer_line several times, adding
    * small incremental moves for DELTA.
    */
-  bool DeltaKinematics::prepare_linear_move_to_destination() {
+  void Delta_Mechanics::prepare_move_to_destination() {
+
+    endstops.clamp_to_software_endstops(destination);
+    refresh_cmd_timeout();
+
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
+      if (!DEBUGGING(DRYRUN)) {
+        if (destination[E_AXIS] != current_position[E_AXIS]) {
+          if (thermalManager.tooColdToExtrude(active_extruder))
+            current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+          #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+            if (labs(destination[E_AXIS] - current_position[E_AXIS]) > EXTRUDE_MAXLENGTH) {
+              current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+              SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
+            }
+          #endif
+        }
+      }
+    #endif
+
     // Get the top feedrate of the move in the XY plane
     const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
 
     // If the move is only in Z/E don't split up the move
     if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
       planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
-      return false;
+      set_current_to_destination();
+      return;
     }
 
     // Fail if attempting move outside printable radius
-    if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
+    if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return;
 
     // Get the cartesian distances moved in XYZE
     float difference[NUM_AXIS];
@@ -104,7 +106,7 @@
     if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
 
     // No E move either? Game over.
-    if (UNEAR_ZERO(cartesian_mm)) return true;
+    if (UNEAR_ZERO(cartesian_mm)) return;
 
     // Minimum number of seconds to move the given distance
     float seconds = cartesian_mm / _feedrate_mm_s;
@@ -158,21 +160,40 @@
 
     planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
 
-    return false;
+    set_current_to_destination();
   }
+
+  /**
+   * line_to_current_position
+   * Move the planner to the current position from wherever it last moved
+   * (or from wherever it has been told it is located).
+   */
+  void Delta_Mechanics::line_to_current_position() {
+    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
+  }
+
+  /**
+   * line_to_destination
+   * Move the planner to the position stored in the destination array, which is
+   * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
+   */
+  void Delta_Mechanics::line_to_destination(float fr_mm_s) {
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
+  }
+  void Delta_Mechanics::line_to_destination() { line_to_destination(feedrate_mm_s); }
 
   /**
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void DeltaKinematics::do_blocking_move_to(const float &x, const float &y, const float &z, const float &fr_mm_s /*=0.0*/) {
+  void Delta_Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, x, y, z);
+      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
     #endif
 
-    if (!position_is_reachable_xy(x, y)) return;
+    if (!position_is_reachable_xy(lx, ly)) return;
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
@@ -184,10 +205,10 @@
 
     // when in the danger zone
     if (current_position[Z_AXIS] > clip_start_height) {
-      if (z > clip_start_height) {   // staying in the danger zone
-        destination[X_AXIS] = x;           // move directly (uninterpolated)
-        destination[Y_AXIS] = y;
-        destination[Z_AXIS] = z;
+      if (lz > clip_start_height) {   // staying in the danger zone
+        destination[X_AXIS] = lx;           // move directly (uninterpolated)
+        destination[Y_AXIS] = ly;
+        destination[Z_AXIS] = lz;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("danger zone move", current_position);
@@ -203,24 +224,23 @@
       }
     }
 
-    if (z > current_position[Z_AXIS]) {    // raising?
-      destination[Z_AXIS] = z;
+    if (lz > current_position[Z_AXIS]) {    // raising?
+      destination[Z_AXIS] = lz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", current_position);
       #endif
     }
 
-    destination[X_AXIS] = x;
-    destination[Y_AXIS] = y;
-    prepare_linear_move_to_destination();
-    set_current_to_destination();
+    destination[X_AXIS] = lx;
+    destination[Y_AXIS] = ly;
+    prepare_move_to_destination();         // set_current_to_destination
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("xy move", current_position);
     #endif
 
-    if (z < current_position[Z_AXIS]) {    // lowering?
-      destination[Z_AXIS] = z;
+    if (lz < current_position[Z_AXIS]) {    // lowering?
+      destination[Z_AXIS] = lz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", current_position);
@@ -235,31 +255,34 @@
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
     #endif
   }
-  void DeltaKinematics::do_blocking_move_to_x(const float &x, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(x, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+  void Delta_Mechanics::do_blocking_move_to(const float logical[XYZ], const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS], fr_mm_s);
   }
-  void DeltaKinematics::do_blocking_move_to_z(const float &z, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], z, fr_mm_s);
+  void Delta_Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(lx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
   }
-  void DeltaKinematics::do_blocking_move_to_xy(const float &x, const float &y, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(x, y, current_position[Z_AXIS], fr_mm_s);
+  void Delta_Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], lz, fr_mm_s);
+  }
+  void Delta_Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(lx, ly, current_position[Z_AXIS], fr_mm_s);
   }
 
-  void DeltaKinematics::sync_plan_position() {
+  void Delta_Mechanics::sync_plan_position() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
     #endif
     planner.set_position_mm_kinematic(current_position);
   }
 
-  void DeltaKinematics::sync_plan_position_e() {
+  void Delta_Mechanics::sync_plan_position_e() {
     planner.set_e_position_mm(current_position[E_AXIS]);
   }
 
   /**
    * Calculate delta, start a line, and set current_position to destination
    */
-  void DeltaKinematics::prepare_uninterpolated_move_to_destination(const float fr_mm_s/*=0.0*/) {
+  void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s/*=0.0*/) {
     if ( current_position[X_AXIS] == destination[X_AXIS]
       && current_position[Y_AXIS] == destination[Y_AXIS]
       && current_position[Z_AXIS] == destination[Z_AXIS]
@@ -281,9 +304,9 @@
     // 5 = Y tower correction
     // 6 = diagonal_rod rod length
     // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
-    float DeltaKinematics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
+    float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
       const float perturb = 0.2;			// perturbation amount in mm or degrees
-      DeltaKinematics hiParams(*this), loParams(*this);
+      Delta_Mechanics hiParams(*this), loParams(*this);
 
       switch(deriv) {
         case 0:
@@ -334,7 +357,7 @@
     //  X tower position adjustment
     //  Y tower position adjustment
     //  Diagonal rod length adjustment
-    void DeltaKinematics::Adjust(const uint8_t numFactors, const float v[]) {
+    void Delta_Mechanics::Adjust(const uint8_t numFactors, const float v[]) {
 
       const float oldHeightA = homed_Height + endstop_adj[A_AXIS];
 
@@ -364,12 +387,12 @@
     }
 
     // Convert endstop_adj
-    void DeltaKinematics::Convert_endstop_adj() {
+    void Delta_Mechanics::Convert_endstop_adj() {
       LOOP_XYZ(i) endstop_adj[i] *= -1;
     }
 
     // Normalize Endstop
-    void DeltaKinematics::NormaliseEndstopAdjustments() {
+    void Delta_Mechanics::NormaliseEndstopAdjustments() {
       const float min_endstop = MIN3(endstop_adj[A_AXIS], endstop_adj[B_AXIS], endstop_adj[C_AXIS]);
       LOOP_XYZ(i) endstop_adj[i] -= min_endstop;
       delta_height += min_endstop;
@@ -398,12 +421,12 @@
    * use of any vector library.
    *
    * by Andreas Hardtung 2016-06-07
-   * based on a Java function from "Delta Robot Kinematics V3"
+   * based on a Java function from "Delta Robot Mechanics V3"
    * by Steve Graves
    *
    * The result is stored in the cartesian[] array.
    */
-  void DeltaKinematics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
+  void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
 
     const float Fa = coreFa + sq(Ha);
     const float Fb = coreFb + sq(Hb);
@@ -429,14 +452,14 @@
     cartesian[Z_AXIS] = z;
   }
 
-  void DeltaKinematics::Recalc() {
+  void Delta_Mechanics::Recalc() {
 
     LOOP_XY(i) {
-      soft_endstop_min[i] = -print_radius;
-      soft_endstop_max[i] = print_radius;
+      endstops.soft_endstop_min[i] = -print_radius;
+      endstops.soft_endstop_max[i] = print_radius;
     }
-    soft_endstop_max[Z_AXIS]  = delta_height;
-    probe_radius              = print_radius - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
+    endstops.soft_endstop_max[Z_AXIS]  = delta_height;
+    probe_radius = print_radius - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(diagonal_rod + diagonal_rod_adj[B_AXIS]);
@@ -479,7 +502,7 @@
      * Fast inverse SQRT from Quake III Arena
      * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    float DeltaKinematics::Q_rsqrt(float number) {
+    float Delta_Mechanics::Q_rsqrt(float number) {
       long i;
       float x2, y;
       const float threehalfs = 1.5f;
@@ -502,7 +525,7 @@
   #endif
 
   /**
-   * Delta Inverse Kinematics
+   * Delta Inverse Mechanics
    *
    * Calculate the tower positions for a given logical
    * position, storing the result in the delta[] array.
@@ -511,7 +534,7 @@
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void DeltaKinematics::Transform(const float logical[XYZ]) {
+  void Delta_Mechanics::Transform(const float logical[XYZ]) {
 
     delta[A_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(logical[A_AXIS] - towerX[A_AXIS]) - sq(logical[B_AXIS] - towerY[A_AXIS]));
     delta[B_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(logical[A_AXIS] - towerX[B_AXIS]) - sq(logical[B_AXIS] - towerY[B_AXIS]));
@@ -527,23 +550,23 @@
     */
   }
 
-  void DeltaKinematics::Set_clip_start_height() {
+  void Delta_Mechanics::Set_clip_start_height() {
     float cartesian[XYZ] = { 0, 0, 0 };
     Transform(cartesian);
     float distance = delta[A_AXIS];
     cartesian[Y_AXIS] = print_radius;
     Transform(cartesian);
-    clip_start_height = soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
+    clip_start_height = endstops.soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
   }
 
-  void DeltaKinematics::do_homing_move(AxisEnum axis, const float distance, float fr_mm_s/*=0.0*/) {
+  void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
         SERIAL_MV(", ", distance);
         SERIAL_MV(", ", fr_mm_s);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -561,12 +584,12 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
 
-  void DeltaKinematics::homeaxis(const AxisEnum axis) {
+  void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 
     #define CAN_HOME(A) \
       (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
@@ -575,7 +598,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
 
       if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
@@ -617,7 +640,7 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
@@ -625,7 +648,7 @@
   /**
    * Home Delta
    */
-  void DeltaKinematics::Home(const bool always_home_all) {
+  void Delta_Mechanics::Home(const bool always_home_all) {
 
     UNUSED(always_home_all);
 
@@ -663,12 +686,12 @@
     #endif
   }
 
-  void DeltaKinematics::set_axis_is_at_home(AxisEnum axis) {
+  void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
 
@@ -676,7 +699,7 @@
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
-      update_software_endstops(axis);
+      endstops.update_software_endstops(axis);
     #endif
 
     current_position[axis] = (axis == Z_AXIS ? delta_height : 0.0);
@@ -689,14 +712,14 @@
         #endif
         DEBUG_POS("", current_position);
         SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
-        SERIAL_C(')'); SERIAL_E;
+        SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
   }
 
-  float DeltaKinematics::get_homing_bump_feedrate(AxisEnum axis) {
-    int constexpr homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
-    int hbd = homing_bump_divisor[axis];
+  float Delta_Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
+    const uint8_t homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+    uint8_t hbd = homing_bump_divisor[axis];
     if (hbd < 1) {
       hbd = 10;
       SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");
@@ -704,16 +727,16 @@
     return homing_feedrate_mm_s[axis] / hbd;
   }
 
-  bool DeltaKinematics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
+  bool Delta_Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
     const bool  xx = x && !axis_homed[X_AXIS],
                 yy = y && !axis_homed[Y_AXIS],
                 zz = z && !axis_homed[Z_AXIS];
 
     if (xx || yy || zz) {
       SERIAL_SM(ECHO, MSG_HOME " ");
-      if (xx) SERIAL_M(MSG_X);
-      if (yy) SERIAL_M(MSG_Y);
-      if (zz) SERIAL_M(MSG_Z);
+      if (xx) SERIAL_MSG(MSG_X);
+      if (yy) SERIAL_MSG(MSG_Y);
+      if (zz) SERIAL_MSG(MSG_Z);
       SERIAL_EM(" " MSG_FIRST);
 
       #if ENABLED(ULTRA_LCD)
@@ -723,36 +746,36 @@
     }
     return false;
   }
-  bool DeltaKinematics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+  bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
     return HYPOT2(rx, ry) <= printRadiusSquared;
   }
-  bool DeltaKinematics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+  bool Delta_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
     // both the nozzle and the probe must be able to reach the point
     return  position_is_reachable_raw_xy(rx, ry)
         &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
   }
-  bool DeltaKinematics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
+  bool Delta_Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
     return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
   }
-  bool DeltaKinematics::position_is_reachable_xy(const float &lx, const float &ly) {
+  bool Delta_Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
     return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
   }
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
 
-    void DeltaKinematics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
+    void Delta_Mechanics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
       SERIAL_PS(prefix);
-      SERIAL_C('(');
-      SERIAL_V(x);
+      SERIAL_CHR('(');
+      SERIAL_VAL(x);
       SERIAL_MV(", ", y);
       SERIAL_MV(", ", z);
-      SERIAL_C(")");
+      SERIAL_CHR(")");
 
       if (suffix) SERIAL_PS(suffix);
-      else SERIAL_E;
+      else SERIAL_EOL();
     }
 
-    void DeltaKinematics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
+    void Delta_Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
       print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
     }
 

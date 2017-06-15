@@ -45,7 +45,6 @@
 #include "ultralcd.h"
 #include "ultralcd_st7920_u8glib_rrd.h"
 #include "dogm_bitmaps.h"
-#include "../utility/utility.h"
 
 #if ENABLED(LASERBEAM)
   #include "laserbitmaps.h"
@@ -400,10 +399,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!Kinematics.axis_homed[axis])
+    if (!Mechanics.axis_homed[axis])
       u8g.print('?');
     else {
-      if (!Kinematics.axis_known_position[axis])
+      if (!Mechanics.axis_known_position[axis])
         u8g.print(' ');
       else
         lcd_printPGM(pstr);
@@ -413,16 +412,33 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
 
 inline void lcd_implementation_status_message() {
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    const bool blink = lcd_blink();
     static bool last_blink = false;
-    lcd_print_utf(lcd_status_message + status_scroll_pos);
     const uint8_t slen = lcd_strlen(lcd_status_message);
-    if (slen > LCD_WIDTH) {
-      const bool new_blink = lcd_blink();
-      if (last_blink != new_blink) {
-        last_blink = new_blink;
+    const char *stat = lcd_status_message + status_scroll_pos;
+    if (slen <= LCD_WIDTH)
+      lcd_print_utf(stat);                                      // The string isn't scrolling
+    else {
+      if (status_scroll_pos <= slen - LCD_WIDTH)
+        lcd_print_utf(stat);                                    // The string fills the screen
+      else {
+        uint8_t chars = LCD_WIDTH;
+        if (status_scroll_pos < slen) {                         // First string still visible
+          lcd_print_utf(stat);                                  // The string leaves space
+          chars -= slen - status_scroll_pos;                    // Amount of space left
+        }
+        u8g.print('.');                                         // Always at 1+ spaces left, draw a dot
+        if (--chars) {
+          if (status_scroll_pos < slen + 1)                     // Draw a second dot if there's space
+            --chars, u8g.print('.');
+          if (chars) lcd_print_utf(lcd_status_message, chars);  // Print a second copy of the message
+        }
+      }
+      if (last_blink != blink) {
+        last_blink = blink;
         // Skip any non-printing bytes
-        while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
-        if (++status_scroll_pos > slen - LCD_WIDTH) status_scroll_pos = 0;
+        if (status_scroll_pos < slen) while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
+        if (++status_scroll_pos >= slen + 2) status_scroll_pos = 0;
       }
     }
   #else
@@ -613,7 +629,7 @@ static void lcd_implementation_status_screen() {
   #endif
 
   // Before homing the axis letters are blinking 'X' <-> '?'.
-  // When axis is homed but Kinematics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+  // When axis is homed but Mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];
@@ -623,9 +639,9 @@ static void lcd_implementation_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (page.page == 0) {
-    strcpy(xstring, ftostr4sign(Kinematics.current_position[X_AXIS]));
-    strcpy(ystring, ftostr4sign(Kinematics.current_position[Y_AXIS]));
-    strcpy(zstring, ftostr52sp(FIXFLOAT(Kinematics.current_position[Z_AXIS])));
+    strcpy(xstring, ftostr4sign(Mechanics.current_position[X_AXIS]));
+    strcpy(ystring, ftostr4sign(Mechanics.current_position[Y_AXIS]));
+    strcpy(zstring, ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
     #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
@@ -678,7 +694,7 @@ static void lcd_implementation_status_screen() {
 
     lcd_setFont(FONT_STATUSMENU);
     u8g.setPrintPos(12, 50);
-    lcd_print(itostr3(feedrate_percentage));
+    lcd_print(itostr3(Mechanics.feedrate_percentage));
     u8g.print('%');
 
     //
