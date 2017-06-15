@@ -1293,7 +1293,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #endif
 
       // move up by the bump distance
-      Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS] + home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS] + Mechanics.home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
     #else
 
@@ -5672,7 +5672,7 @@ void home_all_axes() { gcode_G28(true); }
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
       float dist = Mechanics.destination[i] - Mechanics.current_position[i];
-      retract_mm[i] = fabs(dist) < G38_MINIMUM_MOVE ? 0 : home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      retract_mm[i] = fabs(dist) < G38_MINIMUM_MOVE ? 0 : Mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
     stepper.synchronize();  // wait until the machine is idle
