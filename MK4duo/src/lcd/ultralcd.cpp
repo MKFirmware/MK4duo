@@ -976,17 +976,23 @@ void kill_screen(const char* lcd_msg) {
     #endif // HOTENDS > 1
   #endif
 
-  #if WATCH_THE_BED
-    void watch_temp_callback_bed() { thermalManager.start_watching_bed(); }
-  #endif
+  void watch_temp_callback_bed() {
+    #if WATCH_THE_BED
+      thermalManager.start_watching_bed();
+    #endif
+  }
 
-  #if WATCH_THE_CHAMBER
-    void watch_temp_callback_chamber() { thermalManager.start_watching_chamber(); }
-  #endif
+  void watch_temp_callback_chamber() {
+    #if WATCH_THE_CHAMBER
+      thermalManager.start_watching_chamber();
+    #endif
+  }
 
-  #if WATCH_THE_COOLER
-    void watch_temp_callback_cooler() { thermalManager.start_watching_cooler(); }
-  #endif
+  void watch_temp_callback_cooler() {
+    #if WATCH_THE_COOLER
+      thermalManager.start_watching_cooler();
+    #endif
+  }
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     void lcd_enqueue_filament_change() {
@@ -1043,21 +1049,21 @@ void kill_screen(const char* lcd_msg) {
     //
     // Bed:
     //
-    #if WATCH_THE_BED
+    #if HAS_TEMP_BED
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
     //
     // Chamber:
     //
-    #if WATCH_THE_CHAMBER
+    #if HAS_TEMP_CHAMBER
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &thermalManager.target_temperature_chamber, 0, CHAMBER_MAXTEMP - 15, watch_temp_callback_chamber);
     #endif
 
     //
     // Cooler:
     //
-    #if WATCH_THE_COOLER
+    #if HAS_TEMP_COOLER
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &thermalManager.target_temperature_cooler, 0, COOLER_MAXTEMP - 15, watch_temp_callback_cooler);
     #endif
 

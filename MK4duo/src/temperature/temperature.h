@@ -282,16 +282,16 @@ class Temperature {
       static float analog2temp(const int raw, uint8_t h);
     #endif
     #if HAS_TEMP_BED
-      static float analog2tempBed(int raw);
+      static float analog2tempBed(const int raw);
     #endif
     #if HAS_TEMP_CHAMBER
-      static float analog2tempChamber(int raw);
+      static float analog2tempChamber(const int raw);
     #endif
     #if HAS_TEMP_COOLER
-      static float analog2tempCooler(int raw);
+      static float analog2tempCooler(const int raw);
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      static float analog2tempMCU(int raw);
+      static float analog2tempMCU(const int raw);
     #endif
 
     /**
@@ -575,7 +575,7 @@ class Temperature {
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
     #if HAS(PID_HEATING) || HAS(PID_COOLING)
-      static void PID_autotune(float temp, int temp_controller, int ncycles, bool storeValues=false);
+      static void PID_autotune(const float temp, const int temp_controller, int ncycles, bool storeValues=false);
     #endif
 
     /**
@@ -674,7 +674,7 @@ class Temperature {
 
     static void checkExtruderAutoFans();
 
-    static uint8_t get_pid_output(int h);
+    static uint8_t get_pid_output(const int8_t h);
 
     #if ENABLED(PIDTEMPBED)
       static uint8_t get_pid_output_bed();
@@ -688,9 +688,9 @@ class Temperature {
       static uint8_t get_pid_output_cooler();
     #endif
 
-    static void _temp_error(int tc, const char* serial_msg, const char* lcd_msg);
-    static void min_temp_error(int8_t h);
-    static void max_temp_error(int8_t h);
+    static void _temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg);
+    static void min_temp_error(const int8_t h);
+    static void max_temp_error(const int8_t h);
 
     #if ENABLED(THERMAL_PROTECTION_HOTENDS) || ENABLED(THERMAL_PROTECTION_BED) || ENABLED(THERMAL_PROTECTION_COOLER)
 

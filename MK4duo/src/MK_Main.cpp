@@ -3311,20 +3311,20 @@ inline void gcode_G4() {
       SERIAL_MV("Probe Offset X:", X_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Z:", zprobe_zoffset);
-      #if (X_PROBE_OFFSET_FROM_NOZZLE > 0)
+      #if X_PROBE_OFFSET_FROM_NOZZLE > 0
         SERIAL_MSG(" (Right");
-      #elif (X_PROBE_OFFSET_FROM_NOZZLE < 0)
+      #elif X_PROBE_OFFSET_FROM_NOZZLE < 0
         SERIAL_MSG(" (Left");
-      #elif (Y_PROBE_OFFSET_FROM_NOZZLE != 0)
+      #elif Y_PROBE_OFFSET_FROM_NOZZLE != 0
         SERIAL_MSG(" (Middle");
       #else
         SERIAL_MSG(" (Aligned With");
       #endif
-      #if (Y_PROBE_OFFSET_FROM_NOZZLE > 0)
+      #if Y_PROBE_OFFSET_FROM_NOZZLE > 0
         SERIAL_MSG("-Back");
-      #elif (Y_PROBE_OFFSET_FROM_NOZZLE < 0)
+      #elif Y_PROBE_OFFSET_FROM_NOZZLE < 0
         SERIAL_MSG("-Front");
-      #elif (X_PROBE_OFFSET_FROM_NOZZLE != 0)
+      #elif X_PROBE_OFFSET_FROM_NOZZLE != 0
         SERIAL_MSG("-Center");
       #endif
       if (zprobe_zoffset < 0)
@@ -5146,7 +5146,7 @@ void home_all_axes() { gcode_G28(true); }
 
     const int8_t probe_points = parser.seen('P') ? parser.value_int() : 3;
     if (!WITHIN(probe_points, 1, 7)) {
-      SERIAL_EM("?(P)oints is implausible (1 to 7).");
+      SERIAL_EM("?(P)oints is implausible (1-7).");
       return;
     }
 
@@ -5933,7 +5933,7 @@ inline void gcode_G92() {
 
     switch (printer_mode) {
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+      #if ENABLED(LASERBEAM)
         case PRINTER_MODE_LASER: {
           if (IsRunning()) {
             if (parser.seen('S')) laser.intensity = parser.value_float();
@@ -5971,7 +5971,7 @@ inline void gcode_G92() {
 
     switch (printer_mode) {
     
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+      #if ENABLED(LASERBEAM)
         case PRINTER_MODE_LASER: {
           if (laser.status != LASER_OFF) {
             laser.status = LASER_OFF;
@@ -9165,7 +9165,7 @@ inline void gcode_M532() {
   inline void gcode_M600() {
 
     // Homing first
-    if (axis_unhomed_error()) home_all_axes();
+    if (Mechanics.axis_unhomed_error()) home_all_axes();
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
@@ -10818,7 +10818,7 @@ void process_next_command() {
           gcode_M0_M1(); break;
       #endif // ULTIPANEL || EMERGENCY_PARSER
 
-      #if (ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)) || ENABLED(CNCROUTER)
+      #if ENABLED(LASERBEAM) || ENABLED(CNCROUTER)
         case 3: // M03: Setting laser beam or CNC clockwise speed
         case 4: // M04: Turn on laser beam or CNC counter clockwise speed
           gcode_M3_M4(parser.codenum == 3); break;
@@ -11273,7 +11273,7 @@ void process_next_command() {
           gcode_M450(); break; // report printer mode
         case 451:
           gcode_M451(); break;    // set printer mode printer
-        #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_SPINDLE)
+        #if ENABLED(LASERBEAM)
           case 452:
             gcode_M452(); break;  // set printer mode laser
         #endif
