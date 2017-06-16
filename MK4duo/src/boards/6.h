@@ -11,7 +11,7 @@
 #define KNOWN_BOARD 1
 #define BOARD_NAME "Melzi"
 
-#if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega1284P__)
+#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
   #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu.
 #endif
 
@@ -19,7 +19,7 @@
   #define SANGUINOLOLU_V_1_2
 #endif
 
-#if defined(__AVR_ATmega1284P__)
+#if ENABLED(__AVR_ATmega1284P__)
   #define LARGE_FLASH true
 #endif
 

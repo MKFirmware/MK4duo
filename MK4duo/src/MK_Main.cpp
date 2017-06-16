@@ -7354,14 +7354,14 @@ inline void gcode_M122() {
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
-      #if defined(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
+      #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         - (PAUSE_PARK_RETRACT_LENGTH)
       #endif
     ;
 
     // Lift Z axis
     const float z_lift = parser.seen('Z') ? parser.value_linear_units() :
-      #if defined(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
+      #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
         PAUSE_PARK_Z_ADD
       #else
         0

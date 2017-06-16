@@ -31,8 +31,8 @@
 
 #define KNOWN_BOARD 1
 
-#ifndef __AVR_ATmega644__
-#error Oops!  Make sure you have 'SanguinoA' selected from the 'Tools -> Boards' menu.
+#if DISABLED(__AVR_ATmega644__)
+    #error Oops!  Make sure you have 'SanguinoA' selected from the 'Tools -> Boards' menu.
 #endif
 
 #define ORIG_X_STEP_PIN         21

@@ -49,7 +49,7 @@
 #include "HardwareSerial.h"
 
 // Disable HardwareSerial.cpp to support chips without a UART (Attiny, etc.)
-#if !defined(USBCON) && (defined(UBRRH) || defined(UBRR0H) || defined(UBRR1H) || defined(UBRR2H) || defined(UBRR3H))
+#if DISABLED(USBCON) && (ENABLED(UBRRH) || ENABLED(UBRR0H) || ENABLED(UBRR1H) || ENABLED(UBRR2H) || ENABLED(UBRR3H))
 
   #if UART_PRESENT(SERIAL_PORT)
     ring_buffer_r rx_buffer = { { 0 }, 0, 0 };

@@ -31,7 +31,7 @@
 
 #define KNOWN_BOARD 1
 
-#if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega644__)
+#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega644__)
 #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu. (Final OMCA board)
 #endif
 

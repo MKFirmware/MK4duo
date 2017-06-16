@@ -6,7 +6,7 @@
 #define KNOWN_BOARD 1
 #define BOARD_NAME "Minitronics v1.0"
 
-#ifndef __AVR_ATmega1281__
+#if DISABLED(__AVR_ATmega1281__)
   #error Oops! Make sure you have 'Minitronics ' selected from the 'Tools -> Boards' menu.
 #endif
 

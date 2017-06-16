@@ -6,8 +6,8 @@
 #define KNOWN_BOARD 1
 #define BOARD_NAME "2009"
 
-#ifndef __AVR_ATmega328P__
-#error Oops!  Make sure you have 'Arduino Duemilanove w/ ATMega328' selected from the 'Tools -> Boards' menu.
+#if DISABLED(__AVR_ATmega328P__)
+    #error Oops!  Make sure you have 'Arduino Duemilanove w/ ATMega328' selected from the 'Tools -> Boards' menu.
 #endif
 
 #define ORIG_X_STEP_PIN         19
