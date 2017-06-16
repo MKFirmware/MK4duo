@@ -114,17 +114,17 @@ typedef struct {
 
   uint32_t segment_time;
 
-  #if ENABLED(LASERBEAM)
-    uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
-    bool laser_status; // LASER_OFF, LASER_ON
-    float laser_ppm; // pulses per millimeter, for pulsed and raster firing modes
-    uint32_t laser_duration; // laser firing duration in microseconds, for pulsed and raster firing modes
-    uint32_t steps_l; // step count between firings of the laser, for pulsed firing mode
-    float laser_intensity; // Laser firing instensity in clock cycles for the PWM timer
+  #if ENABLED(LASER)
+    uint8_t laser_mode;       // CONTINUOUS, PULSED, RASTER
+    bool laser_status;        // LASER_OFF, LASER_ON
+    float laser_ppm;          // pulses per millimeter, for pulsed and raster firing modes
+    uint32_t laser_duration;  // laser firing duration in microseconds, for pulsed and raster firing modes
+    uint32_t steps_l;         // step count between firings of the laser, for pulsed firing mode
+    float laser_intensity;    // Laser firing instensity in clock cycles for the PWM timer
     #if ENABLED(LASER_RASTER)
       unsigned char laser_raster_data[LASER_MAX_RASTER_LINE];
     #endif
-  #endif 
+  #endif
 
 } block_t;
 

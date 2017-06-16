@@ -131,12 +131,12 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
   long Stepper::counter_m[MIXING_STEPPERS];
 #endif
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
   long Stepper::counter_L;
   #if ENABLED(LASER_RASTER)
     int Stepper::counter_raster;
   #endif // LASER_RASTER
-#endif // LASERBEAM
+#endif // LASER
 
 HAL_TIMER_TYPE  Stepper::acc_step_rate, // needed for deceleration start point
                 Stepper::OCR1A_nominal;
@@ -419,7 +419,7 @@ void Stepper::isr() {
   }
 
   #if ENABLED(CPU_32_BIT)
-    #if ENABLED(LASERBEAM)
+    #if ENABLED(LASER)
       if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
           SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
@@ -427,7 +427,7 @@ void Stepper::isr() {
       }
     #endif
   #else
-    #if ENABLED(LASERBEAM) && (!ENABLED(LASER_PULSE_METHOD))
+    #if ENABLED(LASER) && (!ENABLED(LASER_PULSE_METHOD))
       if (laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
           SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
@@ -450,7 +450,7 @@ void Stepper::isr() {
       // Initialize Bresenham counters to 1/2 the ceiling
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
 
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         #if ENABLED(CPU_32_BIT)
           counter_L = 1000 * counter_X;
         #else
@@ -482,7 +482,7 @@ void Stepper::isr() {
         }
       #endif
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_RASTER)
+      #if ENABLED(LASER) && ENABLED(LASER_RASTER)
          if (current_block->laser_mode == RASTER) counter_raster = 0;
       #endif
 
@@ -508,7 +508,7 @@ void Stepper::isr() {
   #endif
 
   // Continuous firing of the laser during a move happens here, PPM and raster happen further down
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
       laser_fire(current_block->laser_intensity);
 
@@ -684,7 +684,7 @@ void Stepper::isr() {
       #endif
     #endif // !ADVANCE && !LIN_ADVANCE
 
-    #if ENABLED(LASERBEAM)
+    #if ENABLED(LASER)
       counter_L += current_block->steps_l;
       if (counter_L > 0) {
         if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
@@ -732,7 +732,7 @@ void Stepper::isr() {
           laser_extinguish();
         }
       #endif // DISABLED(LASER_PULSE_METHOD)
-    #endif // LASERBEAM
+    #endif // LASER
 
     if (++step_events_completed >= current_block->step_event_count) {
       all_steps_done = true;
@@ -911,11 +911,11 @@ void Stepper::isr() {
     planner.discard_current_block();
 
     #if ENABLED(CPU_32_BIT)
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         laser_extinguish();
       #endif
     #else
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_PULSE_METHOD)
+      #if ENABLED(LASER) && ENABLED(LASER_PULSE_METHOD)
         if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
           laser_extinguish();
       #endif

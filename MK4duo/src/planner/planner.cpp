@@ -1013,7 +1013,8 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     );
   }
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
+
     block->laser_intensity = laser.intensity;
     block->laser_duration = laser.duration;
     block->laser_status = laser.status;
@@ -1023,16 +1024,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     // Calculate steps between laser firings (steps_l) and consider that when determining largest
     // interval between steps for X, Y, Z, E, L to feed to the motion control code.
     if (laser.mode == RASTER || laser.mode == PULSED) {
-      block->steps_l = labs(1000 * block->millimeters * laser.ppm);
+      block->steps_l = labs(block->millimeters * laser.ppm);
       for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
         // Scale the image intensity based on the raster power.
         // 100% power on a pixel basis is 255, convert back to 255 = 100.
-        int OldRange, NewRange;
-        float NewValue;
-
-        OldRange = (255.0 - 0.0);
-        NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
-        NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / OldRange) + LASER_REMAP_INTENSITY);
+        const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
+        float NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0) + LASER_REMAP_INTENSITY);
 
         // If less than 7%, turn off the laser tube.
         if (NewValue <= LASER_REMAP_INTENSITY)
@@ -1044,12 +1041,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     else
       block->steps_l = 0;
 
-    block->step_event_count = max(block->step_event_count, block->steps_l / 1000);
+    block->step_event_count = max(block->step_event_count, block->steps_l);
 
     if (laser.diagnostics && block->laser_status == LASER_ON)
-      SERIAL_EM("Laser firing enabled");
+      SERIAL_LM(ECHO, "Laser firing enabled");
 
-  #endif // LASERBEAM
+  #endif // LASER
 
   float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides
 
@@ -1059,7 +1056,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   const uint8_t moves_queued = movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
-  #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || ENABLED(XY_FREQUENCY_LIMIT)
+  #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
     // Segment time im micro seconds
     unsigned long segment_time = LROUND(1000000.0 / inverse_mm_s);
   #endif

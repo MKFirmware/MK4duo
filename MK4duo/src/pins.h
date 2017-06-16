@@ -71,7 +71,7 @@
   #define MISO_PIN            12
   #define SCK_PIN             10
   #define SS_PIN              16
-#elif ENABLED (ARDUINO_ARCH_SAM)
+#elif ENABLED(ARDUINO_ARCH_SAM)
   #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
     #if (SDSS == 4)
       #define SPI_PIN         87
@@ -121,85 +121,85 @@
 ********************************* END MOTHERBOARD ***************************************
 ****************************************************************************************/
 
-#ifndef ORIG_X_CS_PIN
+#if DISABLED(ORIG_X_CS_PIN)
   #define ORIG_X_CS_PIN       -1
 #endif
-#ifndef ORIG_Y_CS_PIN
+#if DISABLED(ORIG_Y_CS_PIN)
   #define ORIG_Y_CS_PIN       -1
 #endif
-#ifndef ORIG_Z_CS_PIN
+#if DISABLED(ORIG_Z_CS_PIN)
   #define ORIG_Z_CS_PIN       -1
 #endif
-#ifndef ORIG_E0_CS_PIN
+#if DISABLED(ORIG_E0_CS_PIN)
   #define ORIG_E0_CS_PIN      -1
 #endif
-#ifndef ORIG_E1_CS_PIN
+#if DISABLED(ORIG_E1_CS_PIN)
   #define ORIG_E1_CS_PIN      -1
 #endif
-#ifndef ORIG_E2_CS_PIN
+#if DISABLED(ORIG_E2_CS_PIN)
   #define ORIG_E2_CS_PIN      -1
 #endif
-#ifndef ORIG_E3_CS_PIN
+#if DISABLED(ORIG_E3_CS_PIN)
   #define ORIG_E3_CS_PIN      -1
 #endif
-#ifndef ORIG_E4_CS_PIN
+#if DISABLED(ORIG_E4_CS_PIN)
   #define ORIG_E4_CS_PIN      -1
 #endif
-#ifndef ORIG_E5_CS_PIN
+#if DISABLED(ORIG_E5_CS_PIN)
   #define ORIG_E5_CS_PIN      -1
 #endif
 
-#ifndef ORIG_E0_DIR_PIN
+#if DISABLED(ORIG_E0_DIR_PIN)
   #define ORIG_E0_DIR_PIN     -1
   #define ORIG_E0_ENABLE_PIN  -1
   #define ORIG_E0_STEP_PIN    -1
 #endif
-#ifndef ORIG_E1_DIR_PIN
+#if DISABLED(ORIG_E1_DIR_PIN)
   #define ORIG_E1_DIR_PIN     -1
   #define ORIG_E1_ENABLE_PIN  -1
   #define ORIG_E1_STEP_PIN    -1
 #endif
-#ifndef ORIG_E2_DIR_PIN
+#if DISABLED(ORIG_E2_DIR_PIN)
   #define ORIG_E2_DIR_PIN     -1
   #define ORIG_E2_ENABLE_PIN  -1
   #define ORIG_E2_STEP_PIN    -1
 #endif
-#ifndef ORIG_E3_DIR_PIN
+#if DISABLED(ORIG_E3_DIR_PIN)
   #define ORIG_E3_DIR_PIN     -1
   #define ORIG_E3_ENABLE_PIN  -1
   #define ORIG_E3_STEP_PIN    -1
 #endif
-#ifndef ORIG_E4_DIR_PIN
+#if DISABLED(ORIG_E4_DIR_PIN)
   #define ORIG_E4_DIR_PIN     -1
   #define ORIG_E4_ENABLE_PIN  -1
   #define ORIG_E4_STEP_PIN    -1
 #endif
-#ifndef ORIG_E5_DIR_PIN
+#if DISABLED(ORIG_E5_DIR_PIN)
   #define ORIG_E5_DIR_PIN     -1
   #define ORIG_E5_ENABLE_PIN  -1
   #define ORIG_E5_STEP_PIN    -1
 #endif
 
-#ifndef ORIG_HEATER_1_PIN
+#if DISABLED(ORIG_HEATER_1_PIN)
   #define ORIG_HEATER_1_PIN   -1
 #endif
-#ifndef ORIG_TEMP_1_PIN
+#if DISABLED(ORIG_TEMP_1_PIN)
   #define ORIG_TEMP_1_PIN     -1
 #endif
-#ifndef ORIG_HEATER_2_PIN
+#if DISABLED(ORIG_HEATER_2_PIN)
   #define ORIG_HEATER_2_PIN   -1
 #endif
-#ifndef ORIG_TEMP_2_PIN
+#if DISABLED(ORIG_TEMP_2_PIN)
   #define ORIG_TEMP_2_PIN     -1
 #endif
-#ifndef ORIG_HEATER_3_PIN
+#if DISABLED(ORIG_HEATER_3_PIN)
   #define ORIG_HEATER_3_PIN   -1
 #endif
-#ifndef ORIG_TEMP_3_PIN
+#if DISABLED(ORIG_TEMP_3_PIN)
   #define ORIG_TEMP_3_PIN     -1
 #endif
 
-#if ENABLED(X_STOP_PIN)
+#if PIN_EXISTS(X_STOP_PIN)
   #if X_HOME_DIR < 0
     #define ORIG_X_MIN_PIN X_STOP_PIN
     #define ORIG_X_MAX_PIN -1
@@ -209,7 +209,7 @@
   #endif
 #endif
 
-#if ENABLED(Y_STOP_PIN)
+#if PIN_EXISTS(Y_STOP_PIN)
   #if Y_HOME_DIR < 0
     #define ORIG_Y_MIN_PIN Y_STOP_PIN
     #define ORIG_Y_MAX_PIN -1
@@ -219,7 +219,7 @@
   #endif
 #endif
 
-#if ENABLED(Z_STOP_PIN)
+#if PIN_EXISTS(Z_STOP_PIN)
   #if Z_HOME_DIR < 0
     #define ORIG_Z_MIN_PIN Z_STOP_PIN
     #define ORIG_Z_MAX_PIN -1
@@ -229,63 +229,63 @@
   #endif
 #endif
 
-#ifndef X_MS1_PIN
+#if DISABLED(X_MS1_PIN)
   #define X_MS1_PIN     -1
 #endif
-#ifndef X_MS2_PIN
+#if DISABLED(X_MS2_PIN)
   #define X_MS2_PIN     -1
 #endif
-#ifndef Y_MS1_PIN
+#if DISABLED(Y_MS1_PIN)
   #define Y_MS1_PIN     -1
 #endif
-#ifndef Y_MS2_PIN
+#if DISABLED(Y_MS2_PIN)
   #define Y_MS2_PIN     -1
 #endif
-#ifndef Z_MS1_PIN
+#if DISABLED(Z_MS1_PIN)
   #define Z_MS1_PIN     -1
 #endif
-#ifndef Z_MS2_PIN
+#if DISABLED(Z_MS2_PIN)
   #define Z_MS2_PIN     -1
 #endif
-#ifndef E0_MS1_PIN
+#if DISABLED(E0_MS1_PIN)
   #define E0_MS1_PIN    -1
 #endif
-#ifndef E0_MS2_PIN
+#if DISABLED(E0_MS2_PIN)
   #define E0_MS2_PIN    -1
 #endif
-#ifndef E1_MS1_PIN
+#if DISABLED(E1_MS1_PIN)
   #define E1_MS1_PIN    -1
 #endif
-#ifndef E1_MS2_PIN
+#if DISABLED(E1_MS2_PIN)
   #define E1_MS2_PIN    -1
 #endif
-#ifndef DIGIPOTSS_PIN
+#if DISABLED(DIGIPOTSS_PIN)
   #define DIGIPOTSS_PIN -1
 #endif
-#ifndef LCD_CONTRAST
+#if DISABLED(LCD_CONTRAST)
   #define LCD_CONTRAST  -1
 #endif
-#ifndef Z2_MIN_PIN
+#if DISABLED(Z2_MIN_PIN)
   #define Z2_MIN_PIN    -1
 #endif
-#ifndef Z2_MAX_PIN
+#if DISABLED(Z2_MAX_PIN)
   #define Z2_MAX_PIN    -1
 #endif
 
-#ifndef ORIG_FAN_PIN
+#if DISABLED(ORIG_FAN_PIN)
   #define ORIG_FAN_PIN  -1
 #endif
-#ifndef ORIG_FAN1_PIN
+#if DISABLED(ORIG_FAN1_PIN)
   #define ORIG_FAN1_PIN -1
 #endif
-#ifndef ORIG_FAN2_PIN
+#if DISABLED(ORIG_FAN2_PIN)
   #define ORIG_FAN2_PIN -1
 #endif
-#ifndef ORIG_FAN3_PIN
+#if DISABLED(ORIG_FAN3_PIN)
   #define ORIG_FAN3_PIN -1
 #endif
 
-#ifndef ORIG_BEEPER_PIN
+#if DISABLED(ORIG_BEEPER_PIN)
   #define ORIG_BEEPER_PIN -1
 #endif
 
@@ -319,37 +319,6 @@
   #define Z_MAX_PIN -1
 #endif // Z_HOME_DIR > 0
 
-/****************************************************************************************/
-
-#if ENABLED(DISABLE_XMAX_ENDSTOP)
-  #undef X_MAX_PIN
-  #define X_MAX_PIN -1
-#endif
-
-#if ENABLED(DISABLE_XMIN_ENDSTOP)
-  #undef X_MIN_PIN 
-  #define X_MIN_PIN -1
-#endif
-
-#if ENABLED(DISABLE_YMAX_ENDSTOP)
-  #undef Y_MAX_PIN
-  #define Y_MAX_PIN -1
-#endif
-
-#if ENABLED(DISABLE_YMIN_ENDSTOP)
-  #undef Y_MIN_PIN
-  #define Y_MIN_PIN -1
-#endif
-
-#if ENABLED(DISABLE_ZMAX_ENDSTOP)
-  #undef Z_MAX_PIN
-  #define Z_MAX_PIN -1
-#endif
-
-#if ENABLED(DISABLE_ZMIN_ENDSTOP)
-  #undef Z_MIN_PIN 
-  #define Z_MIN_PIN -1
-#endif
 /****************************************************************************************/
 
 // List of pins which to ignore when asked to change by gcode, 0 and 1 are RX and TX, do not mess with those!
@@ -405,27 +374,27 @@
   #define _E5_PINS
 #endif
 
-#ifndef TEMP_COOLER_PIN
+#if DISABLED(TEMP_COOLER_PIN)
   #define TEMP_COOLER_PIN -1
 #endif
 
-#ifndef COOLER_PIN
+#if DISABLED(COOLER_PIN)
   #define COOLER_PIN -1
 #endif
 
-#ifndef LASER_PWR_PIN
+#if DISABLED(LASER_PWR_PIN)
   #define LASER_PWR_PIN -1
 #endif
 
-#ifndef LASER_TTL_PIN
-  #define LASER_TTL_PIN -1
+#if DISABLED(LASER_PWM_PIN)
+  #define LASER_PWM_PIN -1
 #endif
 
-#ifndef FLOWMETER_PIN
+#if DISABLED(FLOWMETER_PIN)
   #define FLOWMETER_PIN -1
 #endif
 
-#ifndef CNCROUTER_PIN
+#if DISABLED(CNCROUTER_PIN)
   #define CNCROUTER_PIN -1
 #endif
 
@@ -439,7 +408,7 @@
                         analogInputToDigitalPin(TEMP_BED_PIN), \
                         analogInputToDigitalPin(TEMP_CHAMBER_PIN), \
                         analogInputToDigitalPin(TEMP_COOLER_PIN), \
-                        COOLER_PIN, LASER_PWR_PIN, LASER_TTL_PIN, \
+                        COOLER_PIN, LASER_PWR_PIN, LASER_PWM_PIN, \
                         FLOWMETER_PIN \
                        }
 
