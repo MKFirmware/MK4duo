@@ -1,10 +1,11 @@
-/**
+/****************************************************************************************
+ * 40
  * MKS BASE 1.0 – Arduino Mega2560 with RAMPS v1.4 pin assignments
- */
+ ***************************************************************************************/
 
 #define KNOWN_BOARD 1
 
-#if !defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)
+#if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
   #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
 
