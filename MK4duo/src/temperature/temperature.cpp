@@ -266,7 +266,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 
 #if HAS(PID_HEATING) || HAS(PID_COOLING)
 
-  void Temperature::PID_autotune(float temp, int temp_controller, int ncycles, bool storeValues/*=false*/) {
+  void Temperature::PID_autotune(const float temp, const int temp_controller, int ncycles, bool storeValues/*=false*/) {
 
     float currentTemp = 0.0;
     int cycles = 0;
@@ -644,7 +644,7 @@ void Temperature::updatePID() {
 //
 // Temperature Error Handlers
 //
-void Temperature::_temp_error(int tc, const char* serial_msg, const char* lcd_msg) {
+void Temperature::_temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg) {
   static bool killed = false;
   if (IsRunning()) {
     SERIAL_ST(ER, serial_msg);
@@ -680,7 +680,7 @@ void Temperature::_temp_error(int tc, const char* serial_msg, const char* lcd_ms
   #endif
 }
 
-void Temperature::max_temp_error(int8_t h) {
+void Temperature::max_temp_error(const int8_t h) {
   #if HAS_TEMP_BED
     _temp_error(h, PSTR(MSG_T_MAXTEMP), h >= 0 ? PSTR(MSG_ERR_MAXTEMP) : PSTR(MSG_ERR_MAXTEMP_BED));
   #else
@@ -690,7 +690,7 @@ void Temperature::max_temp_error(int8_t h) {
     #endif
   #endif
 }
-void Temperature::min_temp_error(int8_t h) {
+void Temperature::min_temp_error(const int8_t h) {
   #if HAS_TEMP_BED
     _temp_error(h, PSTR(MSG_T_MINTEMP), h >= 0 ? PSTR(MSG_ERR_MINTEMP) : PSTR(MSG_ERR_MINTEMP_BED));
   #else
@@ -701,7 +701,7 @@ void Temperature::min_temp_error(int8_t h) {
   #endif
 }
 
-uint8_t Temperature::get_pid_output(int h) {
+uint8_t Temperature::get_pid_output(const int8_t h) {
   #if HOTENDS <= 1
     UNUSED(h);
     #define _HOTEND_TEST  true
@@ -1179,7 +1179,7 @@ void Temperature::manage_temp_controller() {
 
   // Derived from RepRap FiveD extruder::getTemperature()
   // For bed temperature measurement.
-  float Temperature::analog2tempBed(int raw) {
+  float Temperature::analog2tempBed(const int raw) {
     #if ENABLED(BED_USES_THERMISTOR)
       float celsius = 0;
       byte i;
@@ -1211,7 +1211,7 @@ void Temperature::manage_temp_controller() {
 
 #if HAS_TEMP_CHAMBER
 
-  float Temperature::analog2tempChamber(int raw) { 
+  float Temperature::analog2tempChamber(const int raw) { 
     #if ENABLED(CHAMBER_USES_THERMISTOR)
       float celsius = 0;
       byte i;
@@ -1243,7 +1243,7 @@ void Temperature::manage_temp_controller() {
 
 #if HAS_TEMP_COOLER
 
-  float Temperature::analog2tempCooler(int raw) { 
+  float Temperature::analog2tempCooler(const int raw) { 
     #if ENABLED(COOLER_USES_THERMISTOR)
       float celsius = 0;
       byte i;
@@ -1275,7 +1275,7 @@ void Temperature::manage_temp_controller() {
 
 #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
 
-  float Temperature::analog2tempMCU(int raw) {
+  float Temperature::analog2tempMCU(const int raw) {
     float mcutemp = (float)raw * (3.3 / 4096.0);
     return (mcutemp - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
   }
@@ -1491,7 +1491,7 @@ void Temperature::init() {
 
   #define TEMP_MIN_ROUTINE(NR) \
     minttemp[NR] = HEATER_ ##NR## _MINTEMP; \
-    while(analog2temp(minttemp_raw[NR], NR) < HEATER_ ##NR## _MINTEMP) { \
+    while (analog2temp(minttemp_raw[NR], NR) < HEATER_ ##NR## _MINTEMP) { \
       if (HEATER_ ##NR## _RAW_LO_TEMP < HEATER_ ##NR## _RAW_HI_TEMP) \
         minttemp_raw[NR] += OVERSAMPLENR; \
       else \
@@ -1499,7 +1499,7 @@ void Temperature::init() {
     }
   #define TEMP_MAX_ROUTINE(NR) \
     maxttemp[NR] = HEATER_ ##NR## _MAXTEMP; \
-    while(analog2temp(maxttemp_raw[NR], NR) > HEATER_ ##NR## _MAXTEMP) { \
+    while (analog2temp(maxttemp_raw[NR], NR) > HEATER_ ##NR## _MAXTEMP) { \
       if (HEATER_ ##NR## _RAW_LO_TEMP < HEATER_ ##NR## _RAW_HI_TEMP) \
         maxttemp_raw[NR] -= OVERSAMPLENR; \
       else \
@@ -1701,11 +1701,11 @@ void Temperature::init() {
 
     int temp_controller_index;
 
-    if(temp_controller_id >= 0)
+    if (temp_controller_id >= 0)
       temp_controller_index = temp_controller_id;
-    else if(temp_controller_id == -1)
+    else if (temp_controller_id == -1)
       temp_controller_index = HOTENDS; // BED
-    else if(temp_controller_id == -2)
+    else if (temp_controller_id == -2)
       temp_controller_index = HOTENDS + 1; // CHAMBER
     else
       temp_controller_index = HOTENDS + 2; // COOLER
