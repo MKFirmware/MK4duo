@@ -7,7 +7,7 @@
 #define KNOWN_BOARD
 #define BOARD_NAME "RAMPS4DUE"
 
-#ifndef ARDUINO_ARCH_SAM
+#if DISABLED(ARDUINO_ARCH_SAM)
   #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
 #endif
 

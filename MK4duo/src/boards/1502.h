@@ -8,7 +8,7 @@
 #define BOARD_NAME "Alligator R2"
 #define NUM_DIGITAL_PINS 100
 
-#ifndef ARDUINO_ARCH_SAM
+#if DISABLED(ARDUINO_ARCH_SAM)
   #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
 #endif
 

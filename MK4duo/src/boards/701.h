@@ -6,7 +6,7 @@
 #define KNOWN_BOARD 1
 #define BOARD_NAME "Megatronics v2.0"
 
-#ifndef __AVR_ATmega2560__
+#if DISABLED(__AVR_ATmega2560__)
   #error Oops! Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
 #endif
 
