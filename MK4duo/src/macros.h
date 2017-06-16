@@ -180,7 +180,7 @@
 #define DECREMENT_(n) DEC_ ##n
 #define DECREMENT(n) DECREMENT_(n)
 
-#define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN >= 0)
+#define PIN_EXISTS(PN) (ENABLED(PN##_PIN) && PN##_PIN >= 0)
 
 #define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
 #define ELAPSED(NOW,SOON) (!PENDING(NOW,SOON))

@@ -57,7 +57,7 @@
 #define SD_FAT_VERSION 20130629
 //------------------------------------------------------------------------------
 /** error if old IDE */
-#if !defined(ARDUINO) || ARDUINO < 100
+#if DISABLED(ARDUINO) || ARDUINO < 100
 #error Arduino IDE must be 1.0 or greater
 #endif  // ARDUINO < 100
 //------------------------------------------------------------------------------
@@ -358,7 +358,7 @@ union csd_t {
 /**
  * Don't use mult-block read/write on small AVR boards
  */
-#if defined(RAMEND) && (RAMEND < 3000 || (NONLINEAR_SYSTEM && RAMEND<8000))
+#if ENABLED(RAMEND) && (RAMEND < 3000 || (NONLINEAR_SYSTEM && RAMEND<8000))
 #define USE_MULTI_BLOCK_SD_IO 0
 #else
 #define USE_MULTI_BLOCK_SD_IO 1
@@ -375,7 +375,7 @@ union csd_t {
 /**
  * Use native SPI on Teensy 3.0 if USE_NATIVE_MK20DX128-SPI is nonzero.
  */
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if ENABLED(__arm__) && ENABLED(CORE_TEENSY)
 #define USE_NATIVE_MK20DX128_SPI 1
 #else
 #define USE_NATIVE_MK20DX128_SPI 0
@@ -384,7 +384,7 @@ union csd_t {
 /**
  * Use fast SAM3X SPI library if USE_NATIVE_SAM3X_SPI is nonzero.
  */
-#if defined(__arm__) && !defined(CORE_TEENSY)
+#if ENABLED(__arm__) && DISABLED(CORE_TEENSY)
 #define USE_NATIVE_SAM3X_SPI 1
 #else
 #define USE_NATIVE_SAM3X_SPI 0
@@ -576,9 +576,9 @@ uint8_t const SD_CARD_TYPE_SDHC = 3;
  * define SOFTWARE_SPI to use bit-bang SPI
  */
 //------------------------------------------------------------------------------
-#if LEONARDO_SOFT_SPI && defined(__AVR_ATmega32U4__) && !defined(CORE_TEENSY)
+#if LEONARDO_SOFT_SPI && ENABLED(__AVR_ATmega32U4__) && DISABLED(CORE_TEENSY)
 #define SOFTWARE_SPI
-#elif MEGA_SOFT_SPI&&(defined(__AVR_ATmega1280__)||defined(__AVR_ATmega2560__))
+#elif MEGA_SOFT_SPI&&(ENABLED(__AVR_ATmega1280__)||ENABLED(__AVR_ATmega2560__))
 #define SOFTWARE_SPI
 #elif USE_SOFTWARE_SPI
 #define SOFTWARE_SPI
@@ -1484,7 +1484,7 @@ class SdVolume {
   }
 //------------------------------------------------------------------------------
   // Deprecated functions  - suppress cpplint warnings with NOLINT comment
-#if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+#if ALLOW_DEPRECATED_FUNCTIONS && DISABLED(DOXYGEN)
 
  public:
   /** \deprecated Use: bool SdVolume::init(Sd2Card* dev);
@@ -1865,7 +1865,7 @@ class SdBaseFile {
                            uint8_t width, bool printSlash);
 //------------------------------------------------------------------------------
 // Deprecated functions  - suppress cpplint warnings with NOLINT comment
-#if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+#if ALLOW_DEPRECATED_FUNCTIONS && DISABLED(DOXYGEN)
 
  public:
   /** \deprecated Use:
@@ -1978,7 +1978,7 @@ class SdBaseFile {
     *date = d;
     *time = t;
   }
-#elif !defined(DOXYGEN)  // ALLOW_DEPRECATED_FUNCTIONS
+#elif DISABLED(DOXYGEN)  // ALLOW_DEPRECATED_FUNCTIONS
  public:
   bool contiguousRange(uint32_t& bgnBlock, uint32_t& endBlock)  // NOLINT
     __attribute__((error("use contiguousRange(&bgnBlock, &endBlock)")));
@@ -2066,7 +2066,7 @@ using namespace SdFatUtil;  // NOLINT
 class SdFat {
  public:
   SdFat() {}
-#if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+#if ALLOW_DEPRECATED_FUNCTIONS && DISABLED(DOXYGEN)
  /**
    * Initialize an SdFat object.
    *
@@ -2083,7 +2083,7 @@ class SdFat {
     uint8_t chipSelectPin = SD_CHIP_SELECT_PIN) {
     return begin(chipSelectPin, sckRateID);
   }
-#elif  !defined(DOXYGEN)  // ALLOW_DEPRECATED_FUNCTIONS
+#elif  DISABLED(DOXYGEN)  // ALLOW_DEPRECATED_FUNCTIONS
   bool init() __attribute__((error("use sd.begin()")));
   bool init(uint8_t sckRateID)
     __attribute__((error("use sd.begin(chipSelect, sckRate)")));

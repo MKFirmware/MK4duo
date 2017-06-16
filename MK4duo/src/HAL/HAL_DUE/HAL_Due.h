@@ -112,7 +112,7 @@
   #define MKSERIAL Serial3
 #endif
 
-#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
   #undef MKSERIAL
   #if BLUETOOTH_PORT == 1
     #define MKSERIAL Serial1

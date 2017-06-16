@@ -627,9 +627,9 @@ static_assert(1 >= 0
   /**
    * Make sure Z raise values are set
    */
-  #if !defined(Z_PROBE_DEPLOY_HEIGHT)
+  #if DISABLED(Z_PROBE_DEPLOY_HEIGHT)
     #error "You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
-  #elif !defined(Z_PROBE_BETWEEN_HEIGHT)
+  #elif DISABLED(Z_PROBE_BETWEEN_HEIGHT)
     #error "You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
   #elif Z_PROBE_DEPLOY_HEIGHT < 0
     #error "Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."

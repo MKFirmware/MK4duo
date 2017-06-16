@@ -50,14 +50,14 @@
 #endif
 
 // The presence of the UBRRH register is used to detect a UART.
-#define UART_PRESENT(port) ((port == 0 && (defined(UBRRH) || defined(UBRR0H))) || \
-                            (port == 1 && defined(UBRR1H)) || (port == 2 && defined(UBRR2H)) || \
-                            (port == 3 && defined(UBRR3H)))
+#define UART_PRESENT(port) ((port == 0 && (ENABLED(UBRRH) || ENABLED(UBRR0H))) || \
+                            (port == 1 && ENABLED(UBRR1H)) || (port == 2 && ENABLED(UBRR2H)) || \
+                            (port == 3 && ENABLED(UBRR3H)))
 
 // These are macros to build serial port register names for the selected SERIAL_PORT (C preprocessor
 // requires two levels of indirection to expand macro values properly)
 #define SERIAL_REGNAME(registerbase,number,suffix) SERIAL_REGNAME_INTERNAL(registerbase,number,suffix)
-#if SERIAL_PORT == 0 && (!defined(UBRR0H) || !defined(UDR0)) // use un-numbered registers if necessary
+#if SERIAL_PORT == 0 && (DISABLED(UBRR0H) || DISABLED(UDR0)) // use un-numbered registers if necessary
   #define SERIAL_REGNAME_INTERNAL(registerbase,number,suffix) registerbase##suffix
 #else
   #define SERIAL_REGNAME_INTERNAL(registerbase,number,suffix) registerbase##number##suffix

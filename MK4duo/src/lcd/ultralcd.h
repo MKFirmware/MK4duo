@@ -28,7 +28,7 @@
     #include "buzzer.h"
   #endif
 
-  #define BUTTON_EXISTS(BN) (defined(BTN_## BN) && BTN_## BN >= 0)
+  #define BUTTON_EXISTS(BN) (ENABLED(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN) !READ(BTN_## BN)
 
   extern int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
