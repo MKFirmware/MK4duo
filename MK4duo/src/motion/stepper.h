@@ -137,12 +137,12 @@ class Stepper {
           if (current_block->mix_event_count[VAR])
     #endif
 
-    #if ENABLED(LASERBEAM)
+    #if ENABLED(LASER)
       static long counter_L;
       #if ENABLED(LASER_RASTER)
         static int counter_raster;
       #endif // LASER_RASTER
-    #endif // LASERBEAM
+    #endif // LASER
 
   public:
 

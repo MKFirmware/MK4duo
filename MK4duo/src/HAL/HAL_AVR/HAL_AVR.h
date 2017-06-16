@@ -74,7 +74,7 @@
 #include "watchdog_AVR.h"
 
 // BLUETOOTH
-#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
   #undef SERIAL_PORT
   #undef BAUDRATE
   #define SERIAL_PORT BLUETOOTH_PORT
@@ -106,7 +106,7 @@
 
 #define PACK
 
-#if defined(ARDUINO) && ARDUINO >= 100
+#if ENABLED(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
@@ -397,7 +397,7 @@ class HAL {
       SET_INPUT(MISO_PIN);
       #ifdef PRR
         PRR &= ~(1 << PRSPI);
-      #elif defined PRR0
+      #elif ENABLED PRR0
         PRR0 &= ~(1 << PRSPI);
       #endif
       // See avr processor documentation

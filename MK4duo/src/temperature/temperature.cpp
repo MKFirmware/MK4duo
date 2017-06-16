@@ -1869,7 +1869,7 @@ void Temperature::disable_all_heaters() {
       CBI(
         #ifdef PRR
           PRR
-        #elif defined(PRR0)
+        #elif ENABLED(PRR0)
           PRR0
         #endif
           , PRSPI);

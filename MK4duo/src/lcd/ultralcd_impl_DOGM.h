@@ -46,7 +46,7 @@
 #include "ultralcd_st7920_u8glib_rrd.h"
 #include "dogm_bitmaps.h"
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
   #include "laserbitmaps.h"
 #endif
 
@@ -453,7 +453,7 @@ static void lcd_implementation_status_screen() {
   // Status Menu Font
   lcd_setFont(FONT_STATUSMENU);
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
 
     if (printer_mode == PRINTER_MODE_LASER) {
       #if ENABLED(LASER_PERIPHERALS)

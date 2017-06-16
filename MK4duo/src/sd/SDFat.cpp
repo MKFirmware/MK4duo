@@ -2906,7 +2906,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 // suppress cpplint warnings with NOLINT comment
-#if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+#if ALLOW_DEPRECATED_FUNCTIONS && DISABLED(DOXYGEN)
 void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
 #endif  // ALLOW_DEPRECATED_FUNCTIONS
 
@@ -4123,7 +4123,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
   cacheStatus_ = 0;  // cacheSync() will write block if true
   cacheBlockNumber_ = 0XFFFFFFFF;
   cacheFatOffset_ = 0;
-  #if defined(USE_SERARATEFAT_CACHE) && USE_SERARATEFAT_CACHE
+  #if ENABLED(USE_SERARATEFAT_CACHE) && USE_SERARATEFAT_CACHE
     cacheFatStatus_ = 0;  // cacheSync() will write block if true
     cacheFatBlockNumber_ = 0XFFFFFFFF;
   #endif  // USE_SERARATEFAT_CACHE
@@ -4131,7 +4131,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
   // if part > 0 assume mbr volume with partition table
   if (part) {
     if (part > 4) {
-#if defined(DEBUG_SD_ERROR)
+#if ENABLED(DEBUG_SD_ERROR)
 	SERIAL_LM(ER, "volume init: illegal part");
 #endif		
       DBG_FAIL_MACRO;
@@ -4139,7 +4139,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
     }
     pc = cacheFetch(volumeStartBlock, CACHE_FOR_READ);
     if (!pc) {
-#if defined(DEBUG_SD_ERROR)
+#if ENABLED(DEBUG_SD_ERROR)
 		SERIAL_LM(ER, "volume init: cache fetch failed");
 #endif
       DBG_FAIL_MACRO;

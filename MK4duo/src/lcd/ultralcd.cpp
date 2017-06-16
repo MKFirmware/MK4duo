@@ -52,7 +52,7 @@ char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kan
   #include "ultralcd_impl_HD44780.h"
 #endif
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
   void lcd_laser_focus_menu();
   void lcd_laser_menu();
   void lcd_laser_test_fire_menu();
@@ -847,7 +847,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(submenu, MSG_DEBUG_MENU, lcd_debug_menu);
     #endif
 
-    #if ENABLED(LASERBEAM)
+    #if ENABLED(LASER)
       if ((!(planner.movesplanned() || IS_SD_PRINTING)) && printer_mode == PRINTER_MODE_LASER) {
         MENU_ITEM(submenu, "Laser Functions", lcd_laser_menu);
       }
@@ -2682,7 +2682,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // FWRETRACT
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
 
     void lcd_laser_menu() {
       START_MENU();
@@ -2762,7 +2762,7 @@ void kill_screen(const char* lcd_msg) {
       enqueue_and_echo_commands_P(cmd);
     }
 
-  #endif // LASERBEAM
+  #endif // LASER
 
   #if ENABLED(SDSUPPORT)
 

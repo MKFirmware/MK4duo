@@ -68,10 +68,10 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
  * M1   - Same as M0
- * M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASERBEAM)
+ * M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASER)
  *        S<value> CNC clockwise speed. (Requires CNCROUTERS)
  * M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
- * M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
+ * M5   - Turn off laser beam. (Requires LASER) - Turn off CNC. (Requires CNCROUTERS)
  * M6   - Tool change CNC. (Requires CNCROUTERS)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84

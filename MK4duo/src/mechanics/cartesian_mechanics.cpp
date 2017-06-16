@@ -85,7 +85,7 @@
 
     #else
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_E)
+      #if ENABLED(LASER)
         if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
           laser.status = LASER_ON;
           laser.fired = LASER_FIRE_E;

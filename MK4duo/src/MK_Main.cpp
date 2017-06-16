@@ -86,7 +86,7 @@ PrinterMode printer_mode =
     PRINTER_MODE_PICKER;
   #elif ENABLED(CNCROUTER)
     PRINTER_MODE_CNC;
-  #elif ENABLED(LASERBEAM)
+  #elif ENABLED(LASER)
     PRINTER_MODE_LASER;
   #else
     PRINTER_MODE_FFF;
@@ -2960,7 +2960,7 @@ void gcode_get_destination() {
 inline void gcode_G0_G1(
   #if IS_SCARA
     bool fast_move = false
-  #elif ENABLED(LASERBEAM)
+  #elif ENABLED(LASER)
     bool lfire = false
   #endif
 ) {
@@ -2980,7 +2980,7 @@ inline void gcode_G0_G1(
       }
     #endif // FWRETRACT
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
+    #if ENABLED(LASER)
       if (lfire) {
         if (parser.seen('S')) laser.intensity = parser.value_float();
         if (parser.seen('L')) laser.duration = parser.value_ulong();
@@ -2999,7 +2999,7 @@ inline void gcode_G0_G1(
       Mechanics.prepare_move_to_destination();
     #endif
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
+    #if ENABLED(LASER)
       if (lfire) laser.status = LASER_OFF;
     #endif
 
@@ -3042,7 +3042,7 @@ inline void gcode_G0_G1(
 
       gcode_get_destination();
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_G1)
+      #if ENABLED(LASER)
         if (parser.seen('S')) laser.intensity = parser.value_float();
         if (parser.seen('L')) laser.duration = parser.value_ulong();
         if (parser.seen('P')) laser.ppm = parser.value_float();
@@ -3088,6 +3088,10 @@ inline void gcode_G0_G1(
         // Bad arguments
         SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
       }
+
+      #if ENABLED(LASER)
+        laser.status = LASER_OFF;
+      #endif
     }
   }
 
@@ -3140,7 +3144,8 @@ inline void gcode_G4() {
   }
 #endif
 
-#if ENABLED(LASERBEAM) && ENABLED(LASER_RASTER)
+#if ENABLED(LASER) && ENABLED(LASER_RASTER)
+
   inline void gcode_G7() {
 
     if (parser.seen('L')) laser.raster_raw_length = parser.value_int();
@@ -5933,7 +5938,7 @@ inline void gcode_G92() {
 
     switch (printer_mode) {
 
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         case PRINTER_MODE_LASER: {
           if (IsRunning()) {
             if (parser.seen('S')) laser.intensity = parser.value_float();
@@ -5971,7 +5976,7 @@ inline void gcode_G92() {
 
     switch (printer_mode) {
     
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         case PRINTER_MODE_LASER: {
           if (laser.status != LASER_OFF) {
             laser.status = LASER_OFF;
@@ -6807,7 +6812,7 @@ inline void gcode_M78() {
 
     LCD_MESSAGEPGM(WELCOME_MSG);
 
-    #if ENABLED(LASERBEAM) && ENABLED(LASER_PERIPHERALS)
+    #if ENABLED(LASER) && ENABLED(LASER_PERIPHERALS)
       laser_peripherals_on();
       laser_wait_for_peripherals();
     #endif
@@ -6831,7 +6836,7 @@ inline void gcode_M81() {
     #endif
   #endif
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     laser_extinguish();
     #if ENABLED(LASER_PERIPHERALS)
       laser_peripherals_off();
@@ -7354,14 +7359,14 @@ inline void gcode_M122() {
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
-      #if defined(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
+      #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         - (PAUSE_PARK_RETRACT_LENGTH)
       #endif
     ;
 
     // Lift Z axis
     const float z_lift = parser.seen('Z') ? parser.value_linear_units() :
-      #if defined(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
+      #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
         PAUSE_PARK_Z_ADD
       #else
         0
@@ -8967,7 +8972,7 @@ inline void gcode_M400() { stepper.synchronize(); }
    */
   inline void gcode_M451() { gcode_printer_mode(PRINTER_MODE_FFF); }
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     /**
      * M452: Select Laser printer mode
      */
@@ -9283,7 +9288,7 @@ inline void gcode_M532() {
 
 #endif // DUAL_X_CARRIAGE
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
 
   // M649 set laser options
   inline void gcode_M649() {
@@ -9310,7 +9315,7 @@ inline void gcode_M532() {
     }
   }
 
-#endif // LASERBEAM
+#endif // LASER
 
 #if MECH(MUVE3D)
   
@@ -10692,7 +10697,7 @@ void process_next_command() {
       case 1:
         #if IS_SCARA
           gcode_G0_G1(parser.codenum == 0); break;
-        #elif ENABLED(LASERBEAM)
+        #elif ENABLED(LASER)
           gcode_G0_G1(parser.codenum == 1); break;
         #else
           gcode_G0_G1(); break;
@@ -10709,7 +10714,7 @@ void process_next_command() {
       case 4:
         gcode_G4(); break;
 
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         #if ENABLED(G5_BEZIER)
           case 5: // G5: Bezier curve - from http://forums.reprap.org/read.php?147,93577
             gcode_G5(); break;
@@ -10719,7 +10724,7 @@ void process_next_command() {
           case 7: // G7: Execute laser raster line
             gcode_G7(); break;
         #endif // LASER_RASTER
-      #endif // LASERBEAM
+      #endif // LASER
 
       #if ENABLED(FWRETRACT)
         case 10: // G10: retract
@@ -10818,13 +10823,13 @@ void process_next_command() {
           gcode_M0_M1(); break;
       #endif // ULTIPANEL || EMERGENCY_PARSER
 
-      #if ENABLED(LASERBEAM) || ENABLED(CNCROUTER)
+      #if ENABLED(LASER) || ENABLED(CNCROUTER)
         case 3: // M03: Setting laser beam or CNC clockwise speed
         case 4: // M04: Turn on laser beam or CNC counter clockwise speed
           gcode_M3_M4(parser.codenum == 3); break;
         case 5: // M05: Turn off laser beam or CNC stop
           gcode_M5(); break;
-      #endif // LASERBEAM || CNCROUTER
+      #endif // LASER || CNCROUTER
 
       #if ENABLED(CNCROUTER)
         case 6: // M06: Tool change CNC
@@ -11273,7 +11278,7 @@ void process_next_command() {
           gcode_M450(); break; // report printer mode
         case 451:
           gcode_M451(); break;    // set printer mode printer
-        #if ENABLED(LASERBEAM)
+        #if ENABLED(LASER)
           case 452:
             gcode_M452(); break;  // set printer mode laser
         #endif
@@ -11324,7 +11329,7 @@ void process_next_command() {
           gcode_M605(); break;
       #endif
 
-      #if ENABLED(LASERBEAM)
+      #if ENABLED(LASER)
         case 649: // M649 set laser options
           gcode_M649(); break;
       #endif 
@@ -12778,7 +12783,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     #if ENABLED(DISABLE_INACTIVE_E)
       stepper.disable_e_steppers();
     #endif
-    #if ENABLED(LASERBEAM)
+    #if ENABLED(LASER)
       if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
@@ -13063,7 +13068,7 @@ void kill(const char* lcd_msg) {
   HAL::delayMilliseconds(250);  // Wait to ensure all interrupts routines stopped
   thermalManager.disable_all_heaters(); // Turn off heaters again
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     laser_init();
     #if ENABLED(LASER_PERIPHERALS)
       laser_peripherals_off();
@@ -13101,7 +13106,7 @@ void stop() {
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     if (laser.diagnostics) SERIAL_EM("Laser set to off, stop() called");
     laser_extinguish();
     #if ENABLED(LASER_PERIPHERALS)
@@ -13279,7 +13284,7 @@ void setup() {
     #endif
   #endif
 
-  #if ENABLED(LASERBEAM)
+  #if ENABLED(LASER)
     laser_init();
   #endif
 
