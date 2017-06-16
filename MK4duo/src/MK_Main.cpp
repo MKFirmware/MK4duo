@@ -393,7 +393,7 @@ static bool send_ok[BUFSIZE];
   #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[1])
 #endif
 
-#if HAS(CHDK)
+#if HAS_CHDK
   millis_t chdkHigh = 0;
   bool chdkActive = false;
 #endif
@@ -1053,7 +1053,7 @@ static void clean_up_after_endstop_or_probe_move() {
   }
 #endif // HAS_BED_PROBE
 
-#if HAS(Z_PROBE_SLED)
+#if HAS_Z_PROBE_SLED
 
   #if DISABLED(SLED_DOCKING_OFFSET)
     #define SLED_DOCKING_OFFSET 0
@@ -1293,7 +1293,7 @@ static void clean_up_after_endstop_or_probe_move() {
       #endif
 
       // move up by the bump distance
-      Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS] + Mechanics.home_bump_mm(Z_AXIS), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS] + Mechanics.home_bump_mm[Z_AXIS], MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
     #else
 
@@ -7954,16 +7954,16 @@ inline void gcode_M226() {
   } // parser.seen('P')
 }
 
-#if HAS(CHDK) || HAS(PHOTOGRAPH)
+#if HAS_CHDK || HAS_PHOTOGRAPH
   /**
    * M240: Trigger a camera
    */
   inline void gcode_M240() {
-    #if HAS(CHDK)
+    #if HAS_CHDK
        OUT_WRITE(CHDK_PIN, HIGH);
        chdkHigh = millis();
        chdkActive = true;
-    #elif HAS(PHOTOGRAPH)
+    #elif HAS_PHOTOGRAPH
       const uint8_t NUM_PULSES = 16;
       const float PULSE_LENGTH = 0.01524;
       for (int i = 0; i < NUM_PULSES; i++) {
@@ -7979,9 +7979,9 @@ inline void gcode_M226() {
         WRITE(PHOTOGRAPH_PIN, LOW);
         HAL::delayMilliseconds(PULSE_LENGTH);
       }
-    #endif // HASNT(CHDK) && HAS(PHOTOGRAPH)
+    #endif // HASNT(CHDK) && HAS_PHOTOGRAPH
   }
-#endif // HAS(CHDK) || PHOTOGRAPH_PIN
+#endif // HAS_CHDK || PHOTOGRAPH_PIN
 
 #if HAS(LCD_CONTRAST)
   /**
@@ -9297,7 +9297,7 @@ inline void gcode_M532() {
       laser.rasterlaserpower =  laser.intensity;
     }
 
-    if(IsRunning()) {
+    if (IsRunning()) {
       if (parser.seen('L')) laser.duration = parser.value_ulong();
       if (parser.seen('P')) laser.ppm = parser.value_float();
       if (parser.seen('B')) laser_set_mode(parser.value_int());
@@ -9306,7 +9306,7 @@ inline void gcode_M532() {
 
     if (parser.seen('F')) {
       float next_feedrate = parser.value_linear_units();
-      if(next_feedrate > 0.0) Mechanics.feedrate_mm_s = next_feedrate;
+      if (next_feedrate > 0.0) Mechanics.feedrate_mm_s = next_feedrate;
     }
   }
 
@@ -11139,7 +11139,7 @@ void process_next_command() {
       case 226: // M226: P<pin number> S<pin state>- Wait until the specified pin reaches the state required
         gcode_M226(); break;
 
-      #if HAS(CHDK) || HAS(PHOTOGRAPH)
+      #if HAS_CHDK || HAS_PHOTOGRAPH
         case 240: // M240: Triggers a camera by emulating a Canon RC-1 : http://www.doc-diy.net/photo/rc-1_hacked/
           gcode_M240(); break;
       #endif
@@ -12791,7 +12791,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     #endif
   }
 
-  #if HAS(CHDK) // Check if pin should be set to LOW after M240 set it to HIGH
+  #if HAS_CHDK // Check if pin should be set to LOW after M240 set it to HIGH
     if (chdkActive && ELAPSED(ms, chdkHigh + CHDK_DELAY)) {
       chdkActive = false;
       WRITE(CHDK_PIN, LOW);
@@ -13156,7 +13156,7 @@ void setup() {
 
   setup_powerhold();
 
-  #if HAS(STEPPER_RESET)
+  #if HAS_STEPPER_RESET
     disableStepperDrivers();
   #endif
 
@@ -13218,7 +13218,7 @@ void setup() {
   stepper.init();    // Initialize stepper, this enables interrupts!
   servo_init();
 
-  #if HAS(PHOTOGRAPH)
+  #if HAS_PHOTOGRAPH
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 
@@ -13248,7 +13248,7 @@ void setup() {
     endstops.enable_z_probe(false);
   #endif
 
-  #if HAS(STEPPER_RESET)
+  #if HAS_STEPPER_RESET
     enableStepperDrivers();
   #endif
 
@@ -13256,7 +13256,7 @@ void setup() {
     digipot_i2c_init();
   #endif
 
-  #if HAS(Z_PROBE_SLED)
+  #if HAS_Z_PROBE_SLED
     OUT_WRITE(SLED_PIN, LOW); // turn it off
   #endif
 
