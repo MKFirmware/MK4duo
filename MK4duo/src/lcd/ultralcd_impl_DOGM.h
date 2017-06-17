@@ -410,9 +410,8 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
-inline void lcd_implementation_status_message() {
+inline void lcd_implementation_status_message(const bool blink) {
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
-    const bool blink = lcd_blink();
     static bool last_blink = false;
     const uint8_t slen = lcd_strlen(lcd_status_message);
     const char *stat = lcd_status_message + status_scroll_pos;
@@ -725,7 +724,7 @@ static void lcd_implementation_status_screen() {
 
     #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
       if (PENDING(millis(), previous_lcd_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
-        lcd_implementation_status_message();
+        lcd_implementation_status_message(blink);
       }
 
       #if HAS_LCD_POWER_SENSOR
@@ -755,7 +754,7 @@ static void lcd_implementation_status_screen() {
         }
       #endif
     #else
-      lcd_implementation_status_message();
+      lcd_implementation_status_message(blink);
     #endif
   }
 }
