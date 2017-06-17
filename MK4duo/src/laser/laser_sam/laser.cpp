@@ -42,7 +42,7 @@
 
 #include "../../../base.h"
 
-#if ENABLED(LASERBEAM) && ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)
 
   laser_t laser;
 
@@ -54,8 +54,8 @@
         return;
       }
     #elif LASER_CONTROL == 2
-      if (!HAL::AnalogWrite(LASER_TTL_PIN, 0, LASER_PWM)) {
-        SERIAL_LM(ER, "LASER_TTL_PIN not PWM or TC pin, please select onother pin!");
+      if (!HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM)) {
+        SERIAL_LM(ER, "LASER_PWM_PIN not PWM or TC pin, please select onother pin!");
         return;
       }
     #endif
@@ -91,16 +91,19 @@
     #endif
   }
 
-  void laser_fire(float intensity = 100.0) { // Fire with range 0-100
+  void laser_fire(float intensity/*= 100.0*/) {
+
     laser.firing = LASER_ON;
     laser.last_firing = micros(); // microseconds of last laser firing
-    if (intensity > 100.0) intensity = 100.0; // restrict intensity between 0 and 100
-    if (intensity < 0) intensity = 0;
+
+    // restrict intensity between 0 and 100
+    NOMORE(intensity, 100);
+    NOLESS(intensity, 0);
 
     #if LASER_CONTROL == 1
       HAL::AnalogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
     #elif LASER_CONTROL == 2
-      HAL::AnalogWrite(LASER_TTL_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      HAL::AnalogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
@@ -115,7 +118,7 @@
     #if LASER_CONTROL == 1
       HAL::AnalogWrite(LASER_PWR_PIN, intensity, LASER_PWM); // Range 0-255
     #elif LASER_CONTROL == 2
-      HAL::AnalogWrite(LASER_TTL_PIN, intensity, LASER_PWM); // Range 0-255
+      HAL::AnalogWrite(LASER_PWM_PIN, intensity, LASER_PWM); // Range 0-255
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
@@ -133,7 +136,7 @@
       #if LASER_CONTROL == 1
         HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);
       #elif LASER_CONTROL == 2
-        HAL::AnalogWrite(LASER_TTL_PIN, 0, LASER_PWM);
+        HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM);
         WRITE(LASER_PWR_PIN, LASER_UNARM);
       #endif
 
@@ -204,4 +207,4 @@
     }
   #endif // LASER_PERIPHERALS
 
-#endif // LASERBEAM
+#endif // LASER

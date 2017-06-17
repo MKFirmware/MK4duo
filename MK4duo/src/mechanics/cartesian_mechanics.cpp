@@ -64,13 +64,14 @@
     refresh_cmd_timeout();
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
+
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
           if (thermalManager.tooColdToExtrude(active_extruder))
-            current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+            current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-            if (labs(destination[E_AXIS] - current_position[E_AXIS]) > EXTRUDE_MAXLENGTH) {
-              current_position[E_AXIS] = destination[E_AXIS]; // Behave as if the move really took place, but ignore E part
+            if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
+              current_position[E_AXIS] = destination[E_AXIS];
               SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
             }
           #endif
@@ -84,7 +85,7 @@
 
     #else
 
-      #if ENABLED(LASERBEAM) && ENABLED(LASER_FIRE_E)
+      #if ENABLED(LASER)
         if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS]))){
           laser.status = LASER_ON;
           laser.fired = LASER_FIRE_E;

@@ -42,7 +42,7 @@
    * SAM3X8E
    */
   #if ENABLED(ARDUINO_ARCH_SAM)
-    #ifdef M100_FREE_MEMORY_WATCHER
+    #if ENABLED(M100_FREE_MEMORY_WATCHER)
       #undef M100_FREE_MEMORY_WATCHER
     #endif
     #if ENABLED(EMERGENCY_PARSER)
@@ -99,7 +99,7 @@
    /**
    * Set the home position based on settings or manual overrides
    */
-  #ifdef MANUAL_X_HOME_POS
+  #if ENABLED(MANUAL_X_HOME_POS)
     #define X_HOME_POS MANUAL_X_HOME_POS
   #elif ENABLED(BED_CENTER_AT_0_0)
     #if MECH(DELTA)
@@ -115,7 +115,7 @@
     #endif
   #endif
 
-  #ifdef MANUAL_Y_HOME_POS
+  #if ENABLED(MANUAL_Y_HOME_POS)
     #define Y_HOME_POS MANUAL_Y_HOME_POS
   #elif ENABLED(BED_CENTER_AT_0_0)
     #if MECH(DELTA)
@@ -131,7 +131,7 @@
     #endif
   #endif
 
-  #ifdef MANUAL_Z_HOME_POS
+  #if ENABLED(MANUAL_Z_HOME_POS)
     #define Z_HOME_POS MANUAL_Z_HOME_POS
   #else
     #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
@@ -329,10 +329,10 @@
 
   // Laser support
   #define HAS_LASER_POWER   (PIN_EXISTS(LASER_PWR))
-  #define HAS_LASER_TTL     (PIN_EXISTS(LASER_TTL))
+  #define HAS_LASER_PWM     (PIN_EXISTS(LASER_PWM))
 
   // Multi Mode
-  #define HAS_MULTI_MODE    (ENABLED(LASERBEAM) || ENABLED(CNCROUTER) || ENABLED(MILLING) || ENABLED(PICK_AND_PLACE) || ENABLED(SOLDER) || ENABLED(PLOTTER))
+  #define HAS_MULTI_MODE    (ENABLED(LASER) || ENABLED(CNCROUTER) || ENABLED(MILLING) || ENABLED(PICK_AND_PLACE) || ENABLED(SOLDER) || ENABLED(PLOTTER))
 
   // MK Multi tool system
   #define HAS_MKMULTI_TOOLS (ENABLED(NPR2) || ENABLED(MKSE6) || ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12))
@@ -547,10 +547,10 @@
    * Safe Homing Options
    */
   #if ENABLED(Z_SAFE_HOMING)
-    #ifndef Z_SAFE_HOMING_X_POINT
+    #if DISABLED(Z_SAFE_HOMING_X_POINT)
       #define Z_SAFE_HOMING_X_POINT ((X_MIN_POS + X_MAX_POS) / 2)
     #endif
-    #ifndef Z_SAFE_HOMING_Y_POINT
+    #if DISABLED(Z_SAFE_HOMING_Y_POINT)
       #define Z_SAFE_HOMING_Y_POINT ((Y_MIN_POS + Y_MAX_POS) / 2)
     #endif
     #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
@@ -844,17 +844,17 @@
    * Buzzer/Speaker
    */
   #if ENABLED(LCD_USE_I2C_BUZZER)
-    #ifndef LCD_FEEDBACK_FREQUENCY_HZ
+    #if DISABLED(LCD_FEEDBACK_FREQUENCY_HZ)
       #define LCD_FEEDBACK_FREQUENCY_HZ 1000
     #endif
-    #ifndef LCD_FEEDBACK_FREQUENCY_DURATION_MS
+    #if DISABLED(LCD_FEEDBACK_FREQUENCY_DURATION_MS)
       #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
     #endif
   #else
-    #ifndef LCD_FEEDBACK_FREQUENCY_HZ
+    #if DISABLED(LCD_FEEDBACK_FREQUENCY_HZ)
       #define LCD_FEEDBACK_FREQUENCY_HZ 5000
     #endif
-    #ifndef LCD_FEEDBACK_FREQUENCY_DURATION_MS
+    #if DISABLED(LCD_FEEDBACK_FREQUENCY_DURATION_MS)
       #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
     #endif
   #endif
@@ -882,7 +882,7 @@
    * Servos
    */
   #if HAS_SERVOS
-    #ifndef Z_ENDSTOP_SERVO_NR
+    #if DISABLED(Z_ENDSTOP_SERVO_NR)
       #define Z_ENDSTOP_SERVO_NR -1
     #endif
   #endif
@@ -912,23 +912,23 @@
    * Bed Probe dependencies
    */
   #if HAS_BED_PROBE
-    #ifndef X_PROBE_OFFSET_FROM_NOZZLE
+    #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
       #define X_PROBE_OFFSET_FROM_NOZZLE 0
     #endif
-    #ifndef Y_PROBE_OFFSET_FROM_NOZZLE
+    #if DISABLED(Y_PROBE_OFFSET_FROM_NOZZLE)
       #define Y_PROBE_OFFSET_FROM_NOZZLE 0
     #endif
-    #ifndef Z_PROBE_OFFSET_FROM_NOZZLE
+    #if DISABLED(Z_PROBE_OFFSET_FROM_NOZZLE)
       #define Z_PROBE_OFFSET_FROM_NOZZLE 0
     #endif
-    #ifndef Z_PROBE_OFFSET_RANGE_MIN
+    #if DISABLED(Z_PROBE_OFFSET_RANGE_MIN)
       #define Z_PROBE_OFFSET_RANGE_MIN -50
     #endif
-    #ifndef Z_PROBE_OFFSET_RANGE_MAX
+    #if DISABLED(Z_PROBE_OFFSET_RANGE_MAX)
       #define Z_PROBE_OFFSET_RANGE_MAX 50
     #endif
-    #ifndef XY_PROBE_SPEED
-      #ifdef HOMING_FEEDRATE_X
+    #if DISABLED(XY_PROBE_SPEED)
+      #if ENABLED(HOMING_FEEDRATE_X)
         #define XY_PROBE_SPEED HOMING_FEEDRATE_X
       #elif define HOMING_FEEDRATE_XYZ
         #define XY_PROBE_SPEED HOMING_FEEDRATE_XYZ
@@ -953,7 +953,7 @@
 
   #if ENABLED(CPU_32_BIT)
     // Add additional delay for between direction signal and pulse signal of stepper
-    #ifndef STEPPER_DIRECTION_DELAY
+    #if DISABLED(STEPPER_DIRECTION_DELAY)
       #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
     #endif
   #endif

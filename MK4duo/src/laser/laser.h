@@ -23,21 +23,21 @@
 #ifndef _LASER_H
   #define _LASER_H
 
-  #ifdef HIGH_TO_FIRE // Some cutters fire on high, some on low.
-    #define LASER_ARM HIGH
+  #if ENABLED(HIGH_TO_FIRE) // Some cutters fire on high, some on low.
+    #define LASER_ARM   HIGH
     #define LASER_UNARM LOW
   #else
-    #define LASER_ARM LOW
+    #define LASER_ARM   LOW
     #define LASER_UNARM HIGH
   #endif
 
   // Laser constants
-  #define LASER_OFF 0
-  #define LASER_ON 1
+  #define LASER_OFF   0
+  #define LASER_ON    1
 
-  #define CONTINUOUS 0
-  #define PULSED 1
-  #define RASTER 2
+  #define CONTINUOUS  0
+  #define PULSED      1
+  #define RASTER      2
 
   #define LASER_PWM_MAX_DUTY_CYCLE 255
 

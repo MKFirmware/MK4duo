@@ -157,7 +157,7 @@ void HAL::analogStart() {
 
     uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
 
-    #if defined(ADCSRB) && defined(MUX5)
+    #if ENABLED(ADCSRB) && ENABLED(MUX5)
       if (channel & 8)  // Reading channel 0-7 or 8-15?
         ADCSRB |= _BV(MUX5);
       else
@@ -174,7 +174,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
   val &= 0x07;
   switch(digitalPinToTimer(pin)) {
 
-    #if defined(TCCR0A)
+    #if ENABLED(TCCR0A)
       case TIMER0A:
       case TIMER0B:
         // TCCR0B &= ~(_BV(CS00) | _BV(CS01) | _BV(CS02));
@@ -182,7 +182,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR1A)
+    #if ENABLED(TCCR1A)
       case TIMER1A:
       case TIMER1B:
         // TCCR1B &= ~(_BV(CS10) | _BV(CS11) | _BV(CS12));
@@ -190,7 +190,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR2)
+    #if ENABLED(TCCR2)
       case TIMER2:
       case TIMER2:
         TCCR2 &= ~(_BV(CS10) | _BV(CS11) | _BV(CS12));
@@ -198,7 +198,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR2A)
+    #if ENABLED(TCCR2A)
       case TIMER2A:
       case TIMER2B:
         TCCR2B &= ~(_BV(CS20) | _BV(CS21) | _BV(CS22));
@@ -206,7 +206,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR3A)
+    #if ENABLED(TCCR3A)
       case TIMER3A:
       case TIMER3B:
       case TIMER3C:
@@ -215,7 +215,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR4A)
+    #if ENABLED(TCCR4A)
       case TIMER4A:
       case TIMER4B:
       case TIMER4C:
@@ -224,7 +224,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
         break;
     #endif
 
-    #if defined(TCCR5A)
+    #if ENABLED(TCCR5A)
       case TIMER5A:
       case TIMER5B:
       case TIMER5C:
@@ -416,7 +416,7 @@ HAL_TEMP_TIMER_ISR {
           Analog_is_ready = true;
         }
         uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-        #if defined(ADCSRB) && defined(MUX5)
+        #if ENABLED(ADCSRB) && ENABLED(MUX5)
           if (channel & 8)  // Reading channel 0-7 or 8-15?
             ADCSRB |= _BV(MUX5);
           else

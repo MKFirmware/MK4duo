@@ -627,9 +627,9 @@ static_assert(1 >= 0
   /**
    * Make sure Z raise values are set
    */
-  #if !defined(Z_PROBE_DEPLOY_HEIGHT)
+  #if DISABLED(Z_PROBE_DEPLOY_HEIGHT)
     #error "You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
-  #elif !defined(Z_PROBE_BETWEEN_HEIGHT)
+  #elif DISABLED(Z_PROBE_BETWEEN_HEIGHT)
     #error "You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
   #elif Z_PROBE_DEPLOY_HEIGHT < 0
     #error "Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."
@@ -1981,7 +1981,7 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO
 #endif
 
-#if ENABLED(LASERBEAM) 
+#if ENABLED(LASER) 
   #if (!ENABLED(LASER_REMAP_INTENSITY) && ENABLED(LASER_RASTER))
     #error DEPENDENCY ERROR: You have to set LASER_REMAP_INTENSITY with LASER_RASTER enabled
   #endif
@@ -1993,13 +1993,10 @@ static_assert(1 >= 0
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
       #endif
     #else
-      #if(!HAS_LASER_POWER || !HAS_LASER_TTL)
-        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_TTL_PIN to a valid pin if you enable LASER
+      #if(!HAS_LASER_POWER || !HAS_LASER_PWM)
+        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_PWM_PIN to a valid pin if you enable LASER
       #endif
     #endif
-  #endif
-  #if DISABLED(LASER_HAS_FOCUS)
-    #error DEPENDENCY ERROR: Missing LASER_HAS_FOCUS setting
   #endif
 #endif
 

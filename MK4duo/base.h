@@ -65,7 +65,7 @@
   #include "Configuration_Overall.h"
 #endif
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
   #include "Configuration_Laser.h"
 #endif
 
@@ -95,7 +95,7 @@
   #include "src/mbl/mesh_bed_leveling.h"
 #endif
 
-#if ENABLED(LASERBEAM)
+#if ENABLED(LASER)
   #if ENABLED(LASER_RASTER)
     #include "src/laser/base64/base64.h"
   #endif

@@ -36,26 +36,20 @@
 
 // The following define selects how to control the laser.
 // Please choose the one that matches your setup.
-// 1 = Single pin control - LOW when off, HIGH when on, PWM to adjust intensity
-// 2 = Two pin control - A firing pin for which LOW = off, HIGH = on, and a seperate intensity pin which carries a constant PWM signal and adjusts duty cycle to control intensity
+// 1 = Single pin control - LASER_PWR_PIN LOW when off, HIGH when on, PWM to adjust intensity
+// 2 = Two pin control    - LASER_PWR_PIN for which LOW = off, HIGH = on, and a seperate LASER_PWM_PIN which carries a constant PWM signal and adjusts duty cycle to control intensity
 #define LASER_CONTROL 1
 
-// The following define to use the new HakanBasted laser_pulse method to fire laser. It should be more efficient, but it's less tested.
-// Thanks for it to HakanBastedt that has implemented it for Marlin at https://github.com/HakanBastedt/Marlin
-// Uncomment to enable it *USE AT YOUR OWN RISK*, it should work but it's *NOT WELL TESTED YET*
-// Only for MEGA. On DUE processor is automatic.
-//#define LASER_PULSE_METHOD
-
 // If your machine has laser focuser, set this to true and it will use Z axis for focus or disable it.
-#define LASER_HAS_FOCUS false
+#define LASER_HAS_FOCUS false (Removed from current code)
 
-//// In the case that the laserdriver need at least a certain level "LASER_REMAP_INTENSITY"
+// In the case that the laserdriver need at least a certain level "LASER_REMAP_INTENSITY"
 // to give anything, the intensity can be remapped to start at "LASER_REMAP_INTENSITY"
 // At least some CO2-drivers need it, not sure about laserdiode drivers.
 #define LASER_REMAP_INTENSITY 0
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
-#define HIGH_TO_FIRE
+//#define HIGH_TO_FIRE (Removed from current code)
 
 // The following defines select which G codes tell the laser to fire. It's OK to uncomment more than one.
 #define LASER_FIRE_G1 10      // fire the laser on a G1 move, extinguish when the move ends
@@ -68,7 +62,7 @@
 #define LASER_RASTER_ASPECT_RATIO 1   // pixels aren't square on most displays, 1.33 == 4:3 aspect ratio. 
 #define LASER_RASTER_MM_PER_PULSE 0.1 // Can be overridden by providing an R value in M649 command : M649 S17 B2 D0 R0.1 F4000
 
-#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 # direction change. Manual Moves must be made between each line. Has no effect on $ direction changes to stay compatible with turnkey plugin.
+#define LASER_RASTER_MANUAL_Y_FEED // Do not perform any X or Y movements on a G7 @ direction change. Manual Moves must be made between each line. Has no effect on $ direction changes to stay compatible with turnkey plugin.
 
 // Uncomment the following if the laser cutter is equipped with a peripheral relay board
 // to control power to an exhaust fan, cooler pump, laser power supply, etc.
@@ -139,7 +133,7 @@
 #endif
 #define LASER_WATTS 5.0
 #define LASER_DIAMETER 0.1 // milimeters
-#define LASER_PWM 10000 // hertz
+#define LASER_PWM 16000 // hertz
 #define LASER_FOCAL_HEIGHT 74.50 // z axis position at which the laser is focused
 //  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
 #ifdef DEFAULT_MAX_ACCELERATION

@@ -96,7 +96,7 @@
 /**
  * Ports and Functions
  */
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__)
+#if ENABLED(__AVR_ATmega168__) || ENABLED(__AVR_ATmega328__) || ENABLED(__AVR_ATmega328P__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1
@@ -426,7 +426,7 @@
   #define PD7_PWM     NULL
 #endif  /*  _AVR_ATmega{168,328,328P}__ */
 
-#if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(__AVR_ATmega1284P__)
+#if ENABLED(__AVR_ATmega644__) || ENABLED(__AVR_ATmega644P__) || ENABLED(__AVR_ATmega644PA__) || ENABLED(__AVR_ATmega1284P__)
   // UART
   #define RXD         DIO8
   #define TXD         DIO9
@@ -927,7 +927,7 @@
   #define PD7_PWM     OCR2A
 #endif  /*  _AVR_ATmega{644,644P,644PA}__ */
 
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1
@@ -2022,7 +2022,7 @@
 
 #endif
 
-#if defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__)
+#if ENABLED(__AVR_AT90USB1287__) || ENABLED(__AVR_AT90USB1286__) || ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB647__)
 
   // change for your board
   #define DEBUG_LED   DIO31 /* led D5 red */
@@ -3326,7 +3326,7 @@
 #endif // __AVR_AT90usbxxx__
 
 
-#if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+#if ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega2561__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1
