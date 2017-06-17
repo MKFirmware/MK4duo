@@ -348,7 +348,6 @@ float cartes[XYZ] = { 0 };
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   AdvancedPauseMenuResponse advanced_pause_menu_response;
-  int16_t old_target_temperature[HOTENDS];
 #endif
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -2654,14 +2653,39 @@ void gcode_get_destination() {
     }
   }
 
+  static void ensure_safe_temperature() {
+    bool heaters_heating = true;
+
+    wait_for_heatup = true;
+    while (wait_for_heatup && heaters_heating) {
+      idle();
+      heaters_heating = false;
+      HOTEND_LOOP() {
+        if (thermalManager.degTargetHotend(h) && abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > TEMP_HYSTERESIS) {
+          heaters_heating = true;
+          #if HAS_LCD
+            lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
+          #endif
+          break;
+        }
+      }
+    }
+  }
+  
   static bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
                           const float &unload_length = 0, const int8_t max_beep_count = 0, const bool show_lcd = false) {
 
     if (move_away_flag) return false; // already paused
 
-    if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(active_extruder) && unload_length > 0) {
-      SERIAL_LM(ER, MSG_TOO_COLD_FOR_M600);
-      return false;
+    if (!DEBUGGING(DRYRUN) && (unload_length != 0 || retract != 0 || retract2 != 0)) {
+      #if ENABLED(PREVENT_COLD_EXTRUSION)
+        if (thermalManager.tooColdToExtrude(active_extruder)) {
+          SERIAL_LM(ER, MSG_TOO_COLD_FOR_M600);
+          return false;
+        }
+      #endif
+
+      ensure_safe_temperature(); // wait for hotend to heat up before unloading
     }
 
     // Indicate that the printer is paused
@@ -2688,10 +2712,11 @@ void gcode_get_destination() {
     COPY_ARRAY(resume_position, Mechanics.current_position);
     Mechanics.set_destination_to_current();
 
-    // Initial retract before move to pause park position
-    Mechanics.destination[E_AXIS] += retract;
-
-    RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
+    if (retract) {
+      // Initial retract before move to filament change position
+      Mechanics.destination[E_AXIS] += retract;
+      RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
+    }
 
     // Lift Z axis
     if (z_lift > 0) {
@@ -2709,11 +2734,11 @@ void gcode_get_destination() {
     stepper.synchronize();
 
     // Store in old temperature the target temperature for hotend and bed
+    int16_t old_target_temperature[HOTENDS];
     HOTEND_LOOP() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
 
     // Second retract filament with Cool Down
-    if (retract2 != 0) {
-
+    if (retract2) {
       // Cool Down hotend
       #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
@@ -2725,7 +2750,6 @@ void gcode_get_destination() {
       Mechanics.destination[E_AXIS] -= retract2;
       RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
       stepper.synchronize();
-
     }
 
     if (unload_length != 0) {
@@ -2740,51 +2764,40 @@ void gcode_get_destination() {
       Mechanics.destination[E_AXIS] += unload_length;
       RUNPLAN(PAUSE_PARK_UNLOAD_FEEDRATE);
       stepper.synchronize();
-
-      if (show_lcd) {
-        #if HAS_LCD
-          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INSERT);
-        #endif
-      }
-
-      #if HAS_BUZZER
-        filament_change_beep(max_beep_count, true);
-      #endif
-
-      idle();
     }
 
-    // Disable extruders steppers for manual filament changing
-    stepper.disable_e_steppers();
-    safe_delay(100);
+    if (show_lcd) {
+      #if HAS_LCD
+        lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INSERT);
+      #endif
+    }
+
+    #if HAS_BUZZER
+      filament_change_beep(max_beep_count, true);
+    #endif
+
+    idle();
+
+    // Disable extruders steppers for manual filament changing (only on boards that have separate ENABLE_PINS)
+    #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
+      stepper.disable_e_steppers();
+      safe_delay(100);
+    #endif
 
     // Start the heater idle timers
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;
     const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
 
-    HOTEND_LOOP()
+    HOTEND_LOOP() {
       thermalManager.start_heater_idle_timer(h, nozzle_timeout);
+      thermalManager.setTargetHotend(old_target_temperature[h], h);
+    }
 
-    #if HAS_TEMP_BED
+    #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
       thermalManager.start_bed_idle_timer(bed_timeout);
     #endif
 
     return true;
-  }
-
-  static void ensure_safe_temperature() {
-    wait_for_heatup = true;
-    while (wait_for_heatup) {
-      idle();
-      wait_for_heatup = false;
-      HOTEND_LOOP() {
-        if (thermalManager.degTargetHotend(h) && abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > 3) {
-          wait_for_heatup = true;
-          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
-          break;
-        }
-      }
-    }
   }
 
   static void wait_for_filament_reload(const int8_t max_beep_count = 0) {
@@ -2804,17 +2817,69 @@ void gcode_get_destination() {
         HOTEND_LOOP()
           nozzle_timed_out |= thermalManager.is_heater_idle(h);
 
-      #if HAS_TEMP_BED
-        if (!bed_timed_out)
-          bed_timed_out |= thermalManager.is_bed_idle();
-      #endif
+      if (nozzle_timed_out) {
 
-      #if HAS_LCD
-        if (nozzle_timed_out && !bed_timed_out)
+        #if HAS_LCD
           lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE);
-        else if (bed_timed_out)
-          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_PRINTER_OFF);
-      #endif
+        #endif
+
+        // Wait for LCD click or M108
+        while (wait_for_user) {
+
+          if (!bed_timed_out) {
+            #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
+              bed_timed_out = thermalManager.is_bed_idle();
+            #endif
+          }
+          else {
+            #if HAS_LCD
+              lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_PRINTER_OFF);
+            #endif
+          }
+
+          idle(true);
+        }
+
+        // Re-enable the bed if they timed out
+        #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
+          if (bed_timed_out) {
+            thermalManager.reset_bed_idle_timer();
+            #if HAS_LCD
+              lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
+            #endif
+            wait_bed();
+          }
+        #endif
+
+        // Re-enable the heaters if they timed out
+        HOTEND_LOOP() thermalManager.reset_heater_idle_timer(h);
+
+        // Wait for the heaters to reach the target temperatures
+        ensure_safe_temperature();
+
+        #if HAS_LCD
+          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INSERT);
+        #endif
+
+        // Start the heater idle timers
+        const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;
+        const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
+
+        HOTEND_LOOP()
+          thermalManager.start_heater_idle_timer(h, nozzle_timeout);
+
+        #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
+          thermalManager.start_bed_idle_timer(bed_timeout);
+        #endif
+
+        wait_for_user = true; /* Wait for user to load filament */
+        nozzle_timed_out = false;
+        bed_timed_out = false;
+
+        #if HAS_BUZZER
+          filament_change_beep(max_beep_count, true);
+        #endif
+      }
 
       idle(true);
     }
@@ -2829,16 +2894,15 @@ void gcode_get_destination() {
     if (!move_away_flag) return;
 
     // Re-enable the heaters if they timed out
-    #if HAS_TEMP_BED
-      bed_timed_out |= thermalManager.is_bed_idle();
+    #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
+      bed_timed_out = thermalManager.is_bed_idle();
       thermalManager.reset_bed_idle_timer();
-      wait_bed();
+      if (bed_timed_out) wait_bed();
     #endif
 
     HOTEND_LOOP() {
       nozzle_timed_out |= thermalManager.is_heater_idle(h);
       thermalManager.reset_heater_idle_timer(h);
-      thermalManager.setTargetHotend(old_target_temperature[h], h);
     }
 
     if (nozzle_timed_out) ensure_safe_temperature();
@@ -6887,7 +6951,7 @@ inline void gcode_M18_M84() {
       if (parser.seen('X')) disable_X();
       if (parser.seen('Y')) disable_Y();
       if (parser.seen('Z')) disable_Z();
-      #if ((E0_ENABLE_PIN != X_ENABLE_PIN) && (E1_ENABLE_PIN != Y_ENABLE_PIN)) // Only enable on boards that have seperate ENABLE_PINS
+      #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN // Only enable on boards that have seperate ENABLE_PINS
         if (parser.seen('E')) {
           stepper.disable_e_steppers();
         }
