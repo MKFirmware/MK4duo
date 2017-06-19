@@ -300,14 +300,18 @@ void EEPROM::Postprocess() {
 
     #if HAS_EEPROM_SD
       // EEPROM on SDCARD
-      if (!IS_SD_INSERTED || card.isFileOpen() || card.sdprinting) {
+      if (!IS_SD_INSERTED) {
         SERIAL_LM(ER, MSG_NO_CARD);
         return false;
       }
-      set_sd_dot();
-      card.setroot(true);
-      card.startWrite((char *)"EEPROM.bin", false);
-      EEPROM_WRITE(version);
+      else if (card.sdprinting || !card.cardOK)
+        return false;
+      else {
+        set_sd_dot();
+        card.setroot(true);
+        card.startWrite((char *)"EEPROM.bin", true);
+        EEPROM_WRITE(version);
+      }
     #else
       // EEPROM on SPI or IC2
       EEPROM_WRITE(ver);        // invalidate data first
@@ -612,15 +616,18 @@ void EEPROM::Postprocess() {
     uint16_t stored_crc;
 
     #if HAS_EEPROM_SD
-      if (IS_SD_INSERTED || !card.isFileOpen() || !card.sdprinting || card.cardOK) {
+      // EEPROM on SDCARD
+      if (!IS_SD_INSERTED) {
+        SERIAL_LM(ER, MSG_NO_CARD);
+        return false;
+      }
+      else if (card.sdprinting || !card.cardOK)
+        return false;
+      else {
         set_sd_dot();
         card.setroot(true);
         card.selectFile((char *)"EEPROM.bin", true);
         EEPROM_READ(stored_ver);
-      }
-      else {
-        SERIAL_LM(ER, MSG_NO_CARD);
-        return false;
       }
     #else
       EEPROM_READ(stored_ver);
