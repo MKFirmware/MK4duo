@@ -4,6 +4,7 @@
 * Add MKR12 system for 12 extruder with 16 relé and 4 driver
 * Support to 12 Extruder
 * Add support for PCA9632 PWM RGB LED
+* Add support DAV System (By D'angella Vincenzo)
 * Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
 
 ### Version 4.3.21 dev
