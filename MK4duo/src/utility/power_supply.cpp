@@ -23,7 +23,7 @@
 #include "../../base.h"
 #include "power_supply.h"
 
-#if HAS(POWER_SWITCH)
+#if HAS_POWER_SWITCH
 
   bool Power::powersupply_on = 
     #if ENABLED(PS_DEFAULT_OFF)

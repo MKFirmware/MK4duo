@@ -748,7 +748,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
               lpq[lpq_ptr] = 0;
             }
             if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
-            cTerm[HOTEND_INDEX] = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, HOTEND_INDEX);
+            cTerm[HOTEND_INDEX] = (lpq[lpq_ptr] * Mechanics.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, HOTEND_INDEX);
             pidTerm += cTerm[HOTEND_INDEX];
           }
         #endif // PID_ADD_EXTRUSION_RATE

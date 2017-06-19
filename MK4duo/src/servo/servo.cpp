@@ -41,7 +41,10 @@
 #include "../../base.h"
 
 #if HAS_SERVOS
+
   #include "servo.h"
+
+  Servo servo[NUM_SERVOS];
 
   #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)
   #define ticksToUs(_ticks) (((unsigned)_ticks * SERVO_TIMER_PRESCALER) / clockCyclesPerMicrosecond())  // converts from ticks back to microseconds

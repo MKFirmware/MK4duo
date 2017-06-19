@@ -124,7 +124,7 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 long Stepper::acceleration_time, Stepper::deceleration_time;
 
-volatile long Stepper::count_position[NUM_AXIS] = { 0 };
+volatile long Stepper::machine_position[NUM_AXIS] = { 0 };
 volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -534,7 +534,7 @@ void Stepper::isr() {
   #define PULSE_STOP(AXIS) \
     if (_COUNTER(AXIS) > 0) { \
       _COUNTER(AXIS) -= current_block->step_event_count; \
-      count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+      machine_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
     }
 
@@ -573,7 +573,7 @@ void Stepper::isr() {
         counter_E -= current_block->step_event_count;
         #if DISABLED(COLOR_MIXING_EXTRUDER)
           // Don't step E here for mixing extruder
-          count_position[E_AXIS] += count_direction[E_AXIS];
+          machine_position[E_AXIS] += count_direction[E_AXIS];
           motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
         #endif
       }
@@ -671,7 +671,7 @@ void Stepper::isr() {
         // Always step the single E axis
         if (counter_E > 0) {
           counter_E -= current_block->step_event_count;
-          count_position[E_AXIS] += count_direction[E_AXIS];
+          machine_position[E_AXIS] += count_direction[E_AXIS];
         }
         MIXING_STEPPERS_LOOP(j) {
           if (counter_m[j] > 0) {
@@ -1309,39 +1309,39 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
 
   #if CORE_IS_XY
     // corexy positioning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * b;
-    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-    count_position[Z_AXIS] = c;
+    machine_position[A_AXIS] = a + (CORE_FACTOR) * b;
+    machine_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
+    machine_position[Z_AXIS] = c;
   #elif CORE_IS_XZ
     // corexz planning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * c;
-    count_position[Y_AXIS] = b;
-    count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+    machine_position[A_AXIS] = a + (CORE_FACTOR) * c;
+    machine_position[Y_AXIS] = b;
+    machine_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
   #elif CORE_IS_YZ
     // coreyz planning
-    count_position[X_AXIS] = a;
-    count_position[B_AXIS] = b + (CORE_FACTOR) * c;
-    count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+    machine_position[X_AXIS] = a;
+    machine_position[B_AXIS] = b + (CORE_FACTOR) * c;
+    machine_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
   #else
     // default non-h-bot planning
-    count_position[X_AXIS] = a;
-    count_position[Y_AXIS] = b;
-    count_position[Z_AXIS] = c;
+    machine_position[X_AXIS] = a;
+    machine_position[Y_AXIS] = b;
+    machine_position[Z_AXIS] = c;
   #endif
 
-  count_position[E_AXIS] = e;
+  machine_position[E_AXIS] = e;
   CRITICAL_SECTION_END;
 }
 
 void Stepper::set_position(const AxisEnum &axis, const long &v) {
   CRITICAL_SECTION_START;
-  count_position[axis] = v;
+  machine_position[axis] = v;
   CRITICAL_SECTION_END;
 }
 
 void Stepper::set_e_position(const long &e) {
   CRITICAL_SECTION_START;
-  count_position[E_AXIS] = e;
+  machine_position[E_AXIS] = e;
   CRITICAL_SECTION_END;
 }
 
@@ -1350,35 +1350,9 @@ void Stepper::set_e_position(const long &e) {
  */
 long Stepper::position(AxisEnum axis) {
   CRITICAL_SECTION_START;
-  const long count_pos = count_position[axis];
+  const long machine_pos = machine_position[axis];
   CRITICAL_SECTION_END;
-  return count_pos;
-}
-
-/**
- * Get an axis position according to stepper position(s)
- * For CORE machines apply translation from ABC to XYZ.
- */
-float Stepper::get_axis_position_mm(AxisEnum axis) {
-  float axis_steps;
-  #if IS_CORE
-    // Requesting one of the "core" axes?
-    if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
-      CRITICAL_SECTION_START;
-      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
-      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-      axis_steps = 0.5f * (
-        axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
-                            : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
-      );
-      CRITICAL_SECTION_END;
-    }
-    else
-      axis_steps = position(axis);
-  #else
-    axis_steps = position(axis);
-  #endif
-  return axis_steps * planner.steps_to_mm[axis];
+  return machine_pos;
 }
 
 void Stepper::enable_all_steppers() {
@@ -1430,13 +1404,13 @@ void Stepper::endstop_triggered(AxisEnum axis) {
   #if IS_CORE
 
     endstops_trigsteps[axis] = 0.5f * (
-      axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
-                          : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
+      axis == CORE_AXIS_2 ? CORESIGN(machine_position[CORE_AXIS_1] - machine_position[CORE_AXIS_2])
+                          : machine_position[CORE_AXIS_1] + machine_position[CORE_AXIS_2]
     );
 
   #else // !COREXY && !COREXZ && !COREYZ
 
-    endstops_trigsteps[axis] = count_position[axis];
+    endstops_trigsteps[axis] = machine_position[axis];
 
   #endif // !COREXY && !COREXZ && !COREYZ
 
@@ -1445,9 +1419,9 @@ void Stepper::endstop_triggered(AxisEnum axis) {
 
 void Stepper::report_positions() {
   CRITICAL_SECTION_START;
-  const long  xpos = count_position[X_AXIS],
-              ypos = count_position[Y_AXIS],
-              zpos = count_position[Z_AXIS];
+  const long  xpos = machine_position[X_AXIS],
+              ypos = machine_position[Y_AXIS],
+              zpos = machine_position[Z_AXIS];
   CRITICAL_SECTION_END;
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA

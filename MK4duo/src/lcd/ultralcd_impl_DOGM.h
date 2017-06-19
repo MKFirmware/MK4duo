@@ -520,7 +520,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
 
     //
     // SD Card Symbol
@@ -742,7 +742,7 @@ static void lcd_implementation_status_screen() {
           }
       #endif
 
-      #if HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)
+      #if HAS(LCD_FILAMENT_SENSOR) && HAS_SDSUPPORT
         else {
           lcd_printPGM(PSTR(LCD_STR_FILAM_DIA));
           u8g.print(':');
@@ -953,7 +953,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
 
     static void _drawmenu_sd(const bool isSelected, const uint8_t row, const char* const pstr, const char* longFilename, const bool isDir) {
       UNUSED(pstr);

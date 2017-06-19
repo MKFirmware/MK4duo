@@ -43,7 +43,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
 #ifndef SdFat_h
 #define SdFat_h

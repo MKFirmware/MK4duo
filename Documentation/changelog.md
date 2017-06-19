@@ -1,3 +1,8 @@
+### Version 4.3.23 dev
+* Create class bedlevel and probe
+* Fix EEPROM_SD
+* Fix and clear code
+
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor
 * Add M114 D for Detail position, leveled, unlevel, stepper

@@ -29,6 +29,50 @@
 #ifndef _MECHANICS_H_
 #define _MECHANICS_H_
 
+// DEBUG LEVELING
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+  #define DEBUG_POS(SUFFIX,VAR)       do{ \
+    Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+#endif
+
+// Workspace offsets
+#if ENABLED(WORKSPACE_OFFSETS)
+  #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
+#else
+  #define WORKSPACE_OFFSET(AXIS) 0
+#endif
+
+#define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
+#define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
+
+#if ENABLED(WORKSPACE_OFFSETS)
+  #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
+  #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
+  #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
+  #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
+  #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
+  #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
+#else
+  #define LOGICAL_X_POSITION(POS)   (POS)
+  #define LOGICAL_Y_POSITION(POS)   (POS)
+  #define LOGICAL_Z_POSITION(POS)   (POS)
+  #define RAW_X_POSITION(POS)       (POS)
+  #define RAW_Y_POSITION(POS)       (POS)
+  #define RAW_Z_POSITION(POS)       (POS)
+#endif
+
+#define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
+
+#if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+  #define ARG_X float lx
+  #define ARG_Y float ly
+  #define ARG_Z float lz
+#else
+  #define ARG_X const float &lx
+  #define ARG_Y const float &ly
+  #define ARG_Z const float &lz
+#endif
+
 #if IS_CARTESIAN
   #include "cartesian_mechanics.h"
 #elif IS_CORE

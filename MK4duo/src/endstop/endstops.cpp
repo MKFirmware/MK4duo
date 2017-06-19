@@ -66,10 +66,6 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
     Endstops::current_endstop_bits = 0,
     Endstops::old_endstop_bits = 0;
 
-#if HAS_BED_PROBE
-  volatile bool Endstops::z_probe_enabled = false;
-#endif
-
 /**
  * Class and Instance Methods
  */
@@ -224,7 +220,7 @@ void Endstops::report_state() {
 
     hit_on_purpose();
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && ENABLED(SDSUPPORT)
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && HAS_SDSUPPORT
       if (stepper.abort_on_endstop_hit) {
         card.sdprinting = false;
         card.closeFile();
@@ -679,7 +675,7 @@ void Endstops::update() {
         #else
 
           #if HAS_BED_PROBE && HASNT(Z_PROBE_PIN)
-            if (z_probe_enabled) UPDATE_ENDSTOP(Z, MIN);
+            if (probe.enabled) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
@@ -690,7 +686,7 @@ void Endstops::update() {
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (z_probe_enabled) {
+        if (probe.enabled) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
         }

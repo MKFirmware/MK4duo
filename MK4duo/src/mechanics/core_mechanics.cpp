@@ -35,6 +35,125 @@
   void Core_Mechanics::Init() { }
 
   /**
+   * Get an axis position according to stepper position(s)
+   */
+  float Core_Mechanics::get_axis_position_mm(AxisEnum axis) {
+
+    float axis_steps;
+
+    // Requesting one of the "core" axes?
+    if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
+      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
+      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
+      axis_steps = 0.5f * (
+        axis == CORE_AXIS_2 ? CORESIGN(stepper.position(CORE_AXIS_1) - stepper.position(CORE_AXIS_2))
+                            : stepper.position(CORE_AXIS_1) + stepper.position(CORE_AXIS_2)
+      );
+    }
+    else
+      axis_steps = stepper.position((axis);
+
+    return axis_steps * steps_to_mm[axis];
+  }
+
+  /**
+   * Directly set the planner XYZ position (and stepper positions)
+   * converting mm into steps.
+   *
+   */
+  void Core_Mechanics::_set_position_mm(const float &a, const float &b, const float &c, const float &e) {
+
+    planner.position[X_AXIS] = LROUND(a * axis_steps_per_mm[X_AXIS]),
+    planner.position[Y_AXIS] = LROUND(b * axis_steps_per_mm[Y_AXIS]),
+    planner.position[Z_AXIS] = LROUND(c * axis_steps_per_mm[Z_AXIS]),
+    planner.position[E_AXIS] = LROUND(e * axis_steps_per_mm[E_INDEX]);
+
+    #if ENABLED(LIN_ADVANCE)
+      planner.position_float[X_AXIS] = a;
+      planner.position_float[Y_AXIS] = b;
+      planner.position_float[Z_AXIS] = c;
+      planner.position_float[E_AXIS] = e;
+    #endif
+
+    stepper.set_position(planner.position[X_AXIS], planner.position[Y_AXIS], planner.position[Z_AXIS], planner.position[E_AXIS]);
+    planner.zero_previous_nominal_speed();
+    planner.zero_previous_speed();
+
+  }
+
+  /**
+   * Setters for planner position (also setting stepper position).
+   */
+  void Core_Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
+
+    #if EXTRUDERS > 1
+      const uint8_t axis_index = axis + (axis == E_AXIS ? active_extruder : 0);
+    #else
+      const uint8_t axis_index = axis;
+    #endif
+
+    planner.position[axis] = LROUND(v * axis_steps_per_mm[axis_index]);
+
+    #if ENABLED(LIN_ADVANCE)
+      planner.position_float[axis] = v;
+    #endif
+
+    stepper.set_position(axis, v);
+    planner.zero_previous_speed(axis);
+
+  }
+
+  void Core_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
+
+    #if PLANNER_LEVELING
+      bedlevel.apply_leveling(lx, ly, lz);
+    #endif
+
+    _set_position_mm(lx, ly, lz, e);
+
+  }
+
+  void Core_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
+    #if PLANNER_LEVELING
+      float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
+      bedlevel.apply_leveling(lpos);
+    #else
+      const float * const lpos = position;
+    #endif
+    _set_position_mm(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], position[E_AXIS]);
+  }
+
+  /**
+   * Get the stepper positions in the cartesian_position[] array.
+   *
+   * The result is in the current coordinate space with
+   * leveling applied. The coordinates need to be run through
+   * unapply_leveling to obtain the "ideal" coordinates
+   * suitable for current_position, etc.
+   */
+  void Core_Mechanics::get_cartesian_from_steppers() {
+    cartesian_position[X_AXIS] = get_axis_position_mm(X_AXIS);
+    cartesian_position[Y_AXIS] = get_axis_position_mm(Y_AXIS);
+    cartesian_position[Z_AXIS] = get_axis_position_mm(Z_AXIS);
+  }
+
+  /**
+   * Set the current_position for an axis based on
+   * the stepper positions, removing any leveling that
+   * may have been applied.
+   */
+  void Core_Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
+    get_cartesian_from_steppers();
+    #if HAS_LEVELING
+      bedlevel.unapply_leveling(cartesian_position);
+    #endif
+    if (axis == ALL_AXES)
+      COPY_ARRAY(current_position, cartesian_position);
+    else
+      current_position[axis] = cartesian_position[axis];
+  }
+
+  /**
    * Prepare a single move and get ready for the next one
    * If Mesh Bed Leveling is enabled, perform a mesh move.
    */
@@ -44,6 +163,7 @@
     refresh_cmd_timeout();
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
+
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
           if (thermalManager.tooColdToExtrude(active_extruder))
@@ -85,7 +205,7 @@
           }
           else
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (planner.abl_enabled) { // direct use of abl_enabled for speed
+          if (bedlevel.abl_enabled) { // direct use of abl_enabled for speed
             bilinear_line_to_destination(fr_scaled);
             return;
           }
@@ -128,7 +248,7 @@
                 i == 0 ? raised_parked_position[Y_AXIS] : current_position[Y_AXIS],
                 i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
                 current_position[E_AXIS],
-                i == 1 ? PLANNER_XY_FEEDRATE() : planner.max_feedrate_mm_s[Z_AXIS],
+                i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
                 active_extruder,
                 active_driver
               );
@@ -147,7 +267,7 @@
                 }
               #endif
               // move duplicate extruder into correct duplication position.
-              planner.set_position_mm(
+              set_position_mm(
                 LOGICAL_X_POSITION(inactive_extruder_x_pos),
                 current_position[Y_AXIS],
                 current_position[Z_AXIS],
@@ -156,7 +276,7 @@
               planner.buffer_line(
                 current_position[X_AXIS] + duplicate_extruder_x_offset,
                 current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
-                planner.max_feedrate_mm_s[X_AXIS], 1, active_driver
+                max_feedrate_mm_s[X_AXIS], 1, active_driver
               );
               sync_plan_position();
               stepper.synchronize();
@@ -250,11 +370,32 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
     #endif
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+    set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+  }
+  void Core_Mechanics::sync_plan_position_e() {
+    set_e_position_mm(current_position[E_AXIS]);
   }
 
-  void Core_Mechanics::sync_plan_position_e() {
-    planner.set_e_position_mm(current_position[E_AXIS]);
+  // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
+  void Core_Mechanics::reset_acceleration_rates() {
+    #if EXTRUDERS > 1
+      #define HIGHEST_CONDITION (i < E_AXIS || i == E_INDEX)
+    #else
+      #define HIGHEST_CONDITION true
+    #endif
+    uint32_t highest_rate = 1;
+    LOOP_XYZE_N(i) {
+      max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
+      if (HIGHEST_CONDITION) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
+    }
+    planner.cutoff_long = 4294967295UL / highest_rate;
+  }
+
+  // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
+  void Core_Mechanics::refresh_positioning() {
+    LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
+    set_position_mm_kinematic(current_position);
+    reset_acceleration_rates();
   }
 
   /**
@@ -320,7 +461,7 @@
 
     // Homing Z towards the bed? Deploy the Z probe or endstop.
     #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && DEPLOY_PROBE()) return;
+      if (axis == Z_AXIS && probe.set_deployed(true)) return;
     #endif
 
     // Set a flag for Z motor locking
@@ -389,7 +530,7 @@
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && STOW_PROBE()) return;
+      if (axis == Z_AXIS && probe.set_deployed(false)) return;
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -532,6 +673,135 @@
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) SERIAL_EM("<<< DOUBLE_Z_HOMING");
       #endif
+    }
+
+  #endif
+
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+    #define CELL_INDEX(A,V) ((RAW_##A##_POSITION(V) - bedlevel.bilinear_start[A##_AXIS]) * ABL_BG_FACTOR(A##_AXIS))
+
+    /**
+     * Prepare a bilinear-leveled linear move on Cartesian,
+     * splitting the move where it crosses mesh borders.
+     */
+    void Core_Mechanics::bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
+
+      int cx1 = CELL_INDEX(X, current_position[X_AXIS]),
+          cy1 = CELL_INDEX(Y, current_position[Y_AXIS]),
+          cx2 = CELL_INDEX(X, destination[X_AXIS]),
+          cy2 = CELL_INDEX(Y, destination[Y_AXIS]);
+      cx1 = constrain(cx1, 0, ABL_BG_POINTS_X - 2);
+      cy1 = constrain(cy1, 0, ABL_BG_POINTS_Y - 2);
+      cx2 = constrain(cx2, 0, ABL_BG_POINTS_X - 2);
+      cy2 = constrain(cy2, 0, ABL_BG_POINTS_Y - 2);
+
+      if (cx1 == cx2 && cy1 == cy2) {
+        // Start and end on same mesh square
+        line_to_destination(fr_mm_s);
+        set_current_to_destination();
+        return;
+      }
+
+      #define LINE_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
+
+      float normalized_dist, end[XYZE];
+
+      // Split at the left/front border of the right/top square
+      int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+      if (cx2 != cx1 && TEST(x_splits, gcx)) {
+        COPY_ARRAY(end, destination);
+        destination[X_AXIS] = LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx);
+        normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
+        destination[Y_AXIS] = LINE_SEGMENT_END(Y);
+        CBI(x_splits, gcx);
+      }
+      else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+        COPY_ARRAY(end, destination);
+        destination[Y_AXIS] = LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS] + ABL_BG_SPACING(Y_AXIS) * gcy);
+        normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
+        destination[X_AXIS] = LINE_SEGMENT_END(X);
+        CBI(y_splits, gcy);
+      }
+      else {
+        // Already split on a border
+        line_to_destination(fr_mm_s);
+        set_current_to_destination();
+        return;
+      }
+
+      destination[Z_AXIS] = LINE_SEGMENT_END(Z);
+      destination[E_AXIS] = LINE_SEGMENT_END(E);
+
+      // Do the split and look for more borders
+      bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+
+      // Restore destination from stack
+      COPY_ARRAY(destination, end);
+      bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+    }
+
+  #endif // AUTO_BED_LEVELING_BILINEAR
+
+  #if ENABLED(MESH_BED_LEVELING)
+
+    /**
+     * Prepare a mesh-leveled linear move in a Cartesian setup,
+     * splitting the move where it crosses mesh borders.
+     */
+    void Core_Mechanics::mesh_line_to_destination(float fr_mm_s, uint8_t x_splits/*= 0xFF*/, uint8_t y_splits/*= 0xFF*/) {
+      int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X)),
+          cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y)),
+          cx2 = mbl.cell_index_x(RAW_X_POSITION(destination[X_AXIS])),
+          cy2 = mbl.cell_index_y(RAW_Y_POSITION(destination[Y_AXIS]));
+      NOMORE(cx1, GRID_MAX_POINTS_X - 2);
+      NOMORE(cy1, GRID_MAX_POINTS_Y - 2);
+      NOMORE(cx2, GRID_MAX_POINTS_X - 2);
+      NOMORE(cy2, GRID_MAX_POINTS_Y - 2);
+
+      if (cx1 == cx2 && cy1 == cy2) {
+        // Start and end on same mesh square
+        line_to_destination(fr_mm_s);
+        set_current_to_destination();
+        return;
+      }
+
+      #define MBL_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
+
+      float normalized_dist, end[XYZE];
+
+      // Split at the left/front border of the right/top square
+      int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+      if (cx2 != cx1 && TEST(x_splits, gcx)) {
+        COPY_ARRAY(end, destination);
+        destination[X_AXIS] = LOGICAL_X_POSITION(mbl.index_to_xpos[gcx]);
+        normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
+        destination[Y_AXIS] = MBL_SEGMENT_END(Y);
+        CBI(x_splits, gcx);
+      }
+      else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+        COPY_ARRAY(end, destination);
+        destination[Y_AXIS] = LOGICAL_Y_POSITION(mbl.index_to_ypos[gcy]);
+        normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
+        destination[X_AXIS] = MBL_SEGMENT_END(X);
+        CBI(y_splits, gcy);
+      }
+      else {
+        // Already split on a border
+        line_to_destination(fr_mm_s);
+        set_current_to_destination();
+        return;
+      }
+
+      destination[Z_AXIS] = MBL_SEGMENT_END(Z);
+      destination[E_AXIS] = MBL_SEGMENT_END(E);
+
+      // Do the split and look for more borders
+      mesh_line_to_destination(fr_mm_s, x_splits, y_splits);
+
+      // Restore destination from stack
+      COPY_ARRAY(destination, end);
+      mesh_line_to_destination(fr_mm_s, x_splits, y_splits);  
     }
 
   #endif
