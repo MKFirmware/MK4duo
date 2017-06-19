@@ -11649,7 +11649,7 @@ void ok_to_send() {
       Mechanics.endstop_adj[Z_AXIS] += z_endstop;
 
       Mechanics.Transform(Mechanics.current_position);
-      planner.set_position_mm(delta[A_AXIS] - x_endstop , delta[B_AXIS] - y_endstop, delta[C_AXIS] - z_endstop, Mechanics.current_position[E_AXIS]);  
+      planner.set_position_mm(Mechanics.delta[A_AXIS] - x_endstop , Mechanics.delta[B_AXIS] - y_endstop, Mechanics.delta[C_AXIS] - z_endstop, Mechanics.current_position[E_AXIS]);  
       stepper.synchronize();
     }
 
@@ -13262,11 +13262,13 @@ void setup() {
   #if ENABLED(SDSUPPORT)
     // loads custom configuration from SDCARD if available else uses defaults
     card.RetrieveSettings();
-    HAL::delayMilliseconds(300);
+    HAL::delayMilliseconds(500);
   #endif
 
   // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  (void)eeprom.Load_Settings();
+  #if !HAS_EEPROM_SD
+    (void)eeprom.Load_Settings();
+  #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
@@ -13417,7 +13419,7 @@ void loop() {
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
-  #if HAS(EEPROM_SD)
+  #if HAS_EEPROM_SD
     static uint8_t wait_for_host_init_string_to_finish = 1;
     if (wait_for_host_init_string_to_finish) {
       if (commands_in_queue != 0 && wait_for_host_init_string_to_finish == 1) wait_for_host_init_string_to_finish = 2;
