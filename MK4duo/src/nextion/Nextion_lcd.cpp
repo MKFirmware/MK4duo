@@ -59,7 +59,7 @@
   const float manual_feedrate_mm_m[]  = MANUAL_FEEDRATE;
   static millis_t next_lcd_update_ms;
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
     uint8_t SDstatus    = 0; // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
@@ -436,7 +436,7 @@
       speed_list[i]->setText(temp, "move");
     }
 
-    #if ENABLED(SDSUPPORT)
+    #if HAS_SDSUPPORT
       card.mount();
       if (card.cardOK)
         SDstatus = 2;
@@ -520,7 +520,7 @@
       lcdDrawUpdate = false; \
     } while(0)
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
 
     void UploadNewFirmware() {
       if(IS_SD_INSERTED || card.cardOK) {
@@ -1074,7 +1074,7 @@
     static uint32_t icon = 0;
     Vyes.getValue(&icon);
     switch(icon) {
-      #if ENABLED(SDSUPPORT)
+      #if HAS_SDSUPPORT
         case 1:
         case 2: // StopPrint
           StopPrint(icon == 2); Pprinter.show(); break;
@@ -1127,7 +1127,7 @@
         gfx.color_set(NX_HIGH, 63488);
       #endif
 
-      #if ENABLED(SDSUPPORT)
+      #if HAS_SDSUPPORT
         sd_mount.attachPop(sdmountdismountPopCallback, &sd_mount);
         sd_dismount.attachPop(sdmountdismountPopCallback, &sd_dismount);
         sdlist.attachPop(sdlistPopCallback);
@@ -1335,7 +1335,7 @@
 
         coordtoLCD();
 
-        #if ENABLED(SDSUPPORT)
+        #if HAS_SDSUPPORT
 
           if (card.isFileOpen()) {
             if (SDstatus != 3) {
@@ -1392,7 +1392,7 @@
         #endif // SDSUPPORT
 
         break;
-      #if ENABLED(SDSUPPORT)
+      #if HAS_SDSUPPORT
         case 3:
           if (PreviousPage != 3) setpageSD();
           break;

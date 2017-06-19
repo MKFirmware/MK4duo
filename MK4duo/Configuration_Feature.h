@@ -1091,7 +1091,6 @@
 // This enable the firmware to write some configuration that require frequent update, on the SD card
 //#define SD_SETTINGS                     // Uncomment to enable
 #define SD_CFG_SECONDS        300         // seconds between update
-#define CFG_SD_FILE           "INFO.CFG"  // name of the configuration file
 /*****************************************************************************************/
 
 

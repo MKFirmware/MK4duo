@@ -23,7 +23,7 @@
 #ifndef CARDREADER_H
 #define CARDREADER_H
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
   #define SD_MAX_FOLDER_DEPTH 10     // Maximum folder depth
   #define MAX_VFAT_ENTRIES (2)

@@ -98,12 +98,6 @@ class Endstops {
       void update_software_endstops(const AxisEnum axis);
     #endif
 
-    // Enable / disable endstop z-probe checking
-    #if HAS_BED_PROBE
-      static volatile bool z_probe_enabled;
-      static void enable_z_probe(bool onoff = true) { z_probe_enabled = onoff; }
-    #endif
-
     #if ENABLED(PINS_DEBUGGING)
       static void endstop_monitor();
     #endif
@@ -122,7 +116,7 @@ class Endstops {
 extern Endstops endstops;
 
 #if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (endstops.enabled || endstops.z_probe_enabled)
+  #define ENDSTOPS_ENABLED  (endstops.enabled || probe.enabled)
 #else
   #define ENDSTOPS_ENABLED  endstops.enabled
 #endif

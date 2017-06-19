@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include <avr/dtostrf.h>
@@ -403,7 +403,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     #if ENABLED(MESH_BED_LEVELING)
       if (mbl.active()) fileRestart.write("M420 S1\n");
     #elif HAS_ABL
-      if (planner.abl_enabled) fileRestart.write("M320 S1\n");
+      if (bedlevel.abl_enabled) fileRestart.write("M320 S1\n");
     #endif
 
     fileRestart.write(buffer_G92_Z);

@@ -214,8 +214,8 @@
 #define Z_PROBE_SPEED_FAST 120
 // Speed for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW 60
-// Use double touch for probing
-//#define PROBE_DOUBLE_TOUCH
+// Z Probe repetitions, median for best result
+#define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST

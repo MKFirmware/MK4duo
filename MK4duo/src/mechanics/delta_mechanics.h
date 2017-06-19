@@ -52,6 +52,34 @@
             tower_pos_adj[ABC];
 
       /**
+       * Feedrate, min, max, travel
+       */
+      float min_feedrate_mm_s,
+            max_feedrate_mm_s[XYZE_N],        // Max speeds in mm per second
+            min_travel_feedrate_mm_s;
+
+      /**
+       * Step per unit
+       */
+      float axis_steps_per_mm[XYZE_N],
+            steps_to_mm[XYZE_N];
+
+      /**
+       * Acceleration and Jerk
+       */
+      float     acceleration,                         // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
+                retract_acceleration[EXTRUDERS],      // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+                travel_acceleration,                  // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
+                max_jerk[XYZE_N];                     // The largest speed change requiring no acceleration
+      uint32_t  max_acceleration_steps_per_s2[XYZE_N],
+                max_acceleration_mm_per_s2[XYZE_N];   // Use M201 to override by software
+
+      /**
+       * Min segment time
+       */
+      millis_t  min_segment_time;
+
+      /**
        * Cartesian Current Position
        *   Used to track the logical position as moves are queued.
        *   Used by 'line_to_current_position' to do a move after changing it.
@@ -66,6 +94,11 @@
        *   Used by G61 for move to.
        */
       float stored_position[NUM_POSITON_SLOTS][ABCE];
+
+      /**
+       * Cartesian position
+       */
+      float cartesian_position[ABC];
 
       /**
        * Delta Position
@@ -132,6 +165,46 @@
        */
       void Init();
 
+      /**
+       * Get the position (mm) of an axis based on stepper position(s)
+       */
+      float get_axis_position_mm(AxisEnum axis);
+
+      /**
+       * Set the planner.position and individual stepper positions.
+       * Used by G92, G28, G29, and other procedures.
+       *
+       * Multiplies by axis_steps_per_mm[] and does necessary conversion
+       *
+       * Clears previous speed values.
+       */
+      void set_position_mm(const float &a, const float &b, const float &c, const float &e);
+      void set_position_mm(const AxisEnum axis, const float &v);
+      void set_position_mm_kinematic(const float position[NUM_AXIS]);
+      FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(AxisEnum(Z_AXIS), z); }
+      FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
+
+      /**
+       * Get the stepper positions in the cartesian_position[] array.
+       * Forward kinematics are applied for DELTA.
+       *
+       * The result is in the current coordinate space with
+       * leveling applied. The coordinates need to be run through
+       * unapply_leveling to obtain the "ideal" coordinates
+       * suitable for current_position, etc.
+       */
+      void get_cartesian_from_steppers();
+
+      /**
+       * Set the current_position for an axis based on
+       * the stepper positions, removing any leveling that
+       * may have been applied.
+       */
+      void set_current_from_steppers_for_axis(const AxisEnum axis);
+
+      /**
+       * Set current to destination and set destination to current
+       */
       FORCE_INLINE void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
       FORCE_INLINE void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
 
@@ -151,7 +224,7 @@
       void line_to_destination();
 
       /**
-       * Prepare a single move and get ready for the next one.
+       * Prepare a linear move in a DELTA setup.
        *
        * This calls buffer_line several times, adding
        * small incremental moves for DELTA.
@@ -185,8 +258,10 @@
       void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
       void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void Transform(const float logical[ABC]);
-      void Recalc();
+      void recalc_delta_settings();
       void Set_clip_start_height();
+      void reset_acceleration_rates();
+      void refresh_positioning();
 
       /**
        * Home Delta
@@ -263,40 +338,6 @@
 
   extern Delta_Mechanics Mechanics;
 
-  // DEBUG LEVELING
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
-  #endif
-
-  // Workspace offsets
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
-  #else
-    #define WORKSPACE_OFFSET(AXIS) 0
-  #endif
-
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
-  #define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
-
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
-    #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
-    #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
-    #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
-    #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
-    #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
-  #else
-    #define LOGICAL_X_POSITION(POS)   (POS)
-    #define LOGICAL_Y_POSITION(POS)   (POS)
-    #define LOGICAL_Z_POSITION(POS)   (POS)
-    #define RAW_X_POSITION(POS)       (POS)
-    #define RAW_Y_POSITION(POS)       (POS)
-    #define RAW_Z_POSITION(POS)       (POS)
-  #endif
-
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
-
-#endif // MECH(DELTA)
+#endif // IS_DELTA
 
 #endif // _DELTA_MECHANICS_H_
