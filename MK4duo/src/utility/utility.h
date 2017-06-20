@@ -25,6 +25,9 @@
 
 #if ENABLED(ULTRA_LCD) || ENABLED(NEXTION)
 
+  // Convert uint8_t to string with 123 format
+  char* i8tostr3(const uint8_t x);
+
   // Convert unsigned int to string with 12 format
   char* itostr2(const uint8_t &xx);
 

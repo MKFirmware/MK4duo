@@ -49,114 +49,114 @@
  *  M92   XYZ E0 ...      Mechanics.axis_steps_per_mm X,Y,Z,E0 ... (float x9)
  *  M203  XYZ E0 ...      Mechanics.max_feedrate_mm_s X,Y,Z,E0 ... (float x9)
  *  M201  XYZ E0 ...      Mechanics.max_acceleration_mm_per_s2 X,Y,Z,E0 ... (uint32_t x9)
- *  M204  P               Mechanics.acceleration (float)
- *  M204  R   E0 ...      Mechanics.retract_acceleration (float x6)
- *  M204  T               Mechanics.travel_acceleration (float)
- *  M205  S               Mechanics.min_feedrate_mm_s (float)
- *  M205  T               Mechanics.min_travel_feedrate_mm_s (float)
- *  M205  B               Mechanics.min_segment_time (ulong)
- *  M205  X               Mechanics.max_jerk[X_AXIS] (float)
- *  M205  Y               Mechanics.max_jerk[Y_AXIS] (float)
- *  M205  Z               Mechanics.max_jerk[Z_AXIS] (float)
- *  M205  E   E0 ...      Mechanics.max_jerk[E_AXIS * EXTRDURES] (float x6)
- *  M206  XYZ             Mechanics.home_offset (float x3)
- *  M218  T   XY          hotend_offset (float x6)
+ *  M204  P               Mechanics.acceleration                (float)
+ *  M204  R   E0 ...      Mechanics.retract_acceleration        (float x6)
+ *  M204  T               Mechanics.travel_acceleration         (float)
+ *  M205  S               Mechanics.min_feedrate_mm_s           (float)
+ *  M205  T               Mechanics.min_travel_feedrate_mm_s    (float)
+ *  M205  B               Mechanics.min_segment_time            (ulong)
+ *  M205  X               Mechanics.max_jerk[X_AXIS]            (float)
+ *  M205  Y               Mechanics.max_jerk[Y_AXIS]            (float)
+ *  M205  Z               Mechanics.max_jerk[Z_AXIS]            (float)
+ *  M205  E   E0 ...      Mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
+ *  M206  XYZ             Mechanics.home_offset                 (float x3)
+ *  M218  T   XY          hotend_offset                         (float x6)
  *
  * Global Leveling:
- *                        z_fade_height           (float)
+ *                        z_fade_height                         (float)
  *
  * MESH_BED_LEVELING:
  *  M420  S               from mbl.status (bool)
  *                        mbl.z_offset (float)
- *                        GRID_MAX_POINTS_X (uint8 as set in firmware)
- *                        GRID_MAX_POINTS_Y (uint8 as set in firmware)
- *  G29   S3  XYZ         z_values[][] (float x9, by default, up to float x 81) +288
+ *                        GRID_MAX_POINTS_X                     (uint8 as set in firmware)
+ *                        GRID_MAX_POINTS_Y                     (uint8 as set in firmware)
+ *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
- *                        planner.bed_level_matrix        (matrix_3x3 = float x9)
+ *                        planner.bed_level_matrix              (matrix_3x3 = float x9)
  *
  * AUTO_BED_LEVELING_BILINEAR:
- *                        GRID_MAX_POINTS_X               (uint8_t)
- *                        GRID_MAX_POINTS_Y               (uint8_t)
- *                        bedlevel.bilinear_grid_spacing  (int x2)   from G29: (B-F)/X, (R-L)/Y
- *  G29   L F             bedlevel.bilinear_start         (int x2)
- *                        bedlevel.z_values[][]           (float x9, up to float x256)
+ *                        GRID_MAX_POINTS_X                     (uint8_t)
+ *                        GRID_MAX_POINTS_Y                     (uint8_t)
+ *                        bedlevel.bilinear_grid_spacing        (int x2)   from G29: (B-F)/X, (R-L)/Y
+ *  G29   L F             bedlevel.bilinear_start               (int x2)
+ *                        bedlevel.z_values[][]                 (float x9, up to float x256)
  *
  * HAS_BED_PROBE:
- *  M666  P               probe.z_offset                  (float)
+ *  M666  P               probe.z_offset                        (float)
  *
  * HOTENDS AD595:
  *  M595  H OS            Hotend AD595 Offset & Gain
  *
  * DELTA:
- *  M666  XYZ             Mechanics.endstop_adj           (float x3)
- *  M666  R               Mechanics.delta_radius          (float)
- *  M666  D               Mechanics.diagonal_rod          (float)
- *  M666  S               Mechanics.segments_per_second   (float)
- *  M666  H               Mechanics.delta_height          (float)
- *  M666  ABC             Mechanics.tower_radius_adj      (float x3)
- *  M666  IJK             Mechanics.tower_pos_adj         (float x3)
- *  M666  UVW             Mechanics.diagonal_rod_adj      (float x3)
- *  M666  O               Mechanics.print_radius          (float)
+ *  M666  XYZ             Mechanics.delta_endstop_adj           (float x3)
+ *  M666  R               Mechanics.delta_radius                (float)
+ *  M666  D               Mechanics.delta_diagonal_rod          (float)
+ *  M666  S               Mechanics.delta_segments_per_second   (float)
+ *  M666  H               Mechanics.delta_height                (float)
+ *  M666  ABC             Mechanics.delta_tower_radius_adj      (float x3)
+ *  M666  IJK             Mechanics.delta_tower_pos_adj         (float x3)
+ *  M666  UVW             Mechanics.delta_diagonal_rod_adj      (float x3)
+ *  M666  O               Mechanics.delta_print_radius          (float)
  *
  * ULTIPANEL:
- *  M145  S0  H           lcd_preheat_hotend_temp         (int x3)
- *  M145  S0  B           lcd_preheat_bed_temp            (int x3)
- *  M145  S0  F           lcd_preheat_fan_speed           (int x3)
+ *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
+ *  M145  S0  B           lcd_preheat_bed_temp                  (int x3)
+ *  M145  S0  F           lcd_preheat_fan_speed                 (int x3)
  *
  * PIDTEMP:
- *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0]      (float x4)
- *  M301  E1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]      (float x4)
- *  M301  E2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]      (float x4)
- *  M301  E3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]      (float x4)
+ *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0]            (float x4)
+ *  M301  E1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]            (float x4)
+ *  M301  E2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]            (float x4)
+ *  M301  E3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]            (float x4)
  *  M301  L               lpq_len
  *
  * PIDTEMPBED:
- *  M304      PID         bedKp, bedKi, bedKd             (float x3)
+ *  M304      PID         bedKp, bedKi, bedKd                   (float x3)
  * PIDTEMPCHAMBER
- *  M305      PID         chamberKp, chamberKi, chamberKd (float x3)
+ *  M305      PID         chamberKp, chamberKi, chamberKd       (float x3)
  * PIDTEMPCOOLER
- *  M306      PID         coolerKp, coolerKi, coolerKd    (float x3)
+ *  M306      PID         coolerKp, coolerKi, coolerKd          (float x3)
  *
  * DOGLCD:
- *  M250  C               lcd_contrast                    (uint16_t)
+ *  M250  C               lcd_contrast                          (uint16_t)
  *
  * FWRETRACT:
- *  M209  S               autoretract_enabled             (bool)
- *  M207  S               retract_length                  (float)
- *  M207  W               retract_length_swap             (float)
- *  M207  F               retract_feedrate                (float)
- *  M207  Z               retract_zlift                   (float)
- *  M208  S               retract_recover_length          (float)
- *  M208  W               retract_recover_length_swap     (float)
- *  M208  F               retract_recover_feedrate        (float)
+ *  M209  S               autoretract_enabled                   (bool)
+ *  M207  S               retract_length                        (float)
+ *  M207  W               retract_length_swap                   (float)
+ *  M207  F               retract_feedrate                      (float)
+ *  M207  Z               retract_zlift                         (float)
+ *  M208  S               retract_recover_length                (float)
+ *  M208  W               retract_recover_length_swap           (float)
+ *  M208  F               retract_recover_feedrate              (float)
  *
  * Volumetric Extrusion:
- *  M200  D               volumetric_enabled              (bool)
- *  M200  T D             filament_size                   (float x6)
+ *  M200  D               volumetric_enabled                    (bool)
+ *  M200  T D             filament_size                         (float x6)
  *
  *  M???  S               IDLE_OOZING_enabled
  *
  * ALLIGATOR:
- *  M906  XYZ T0-4 E      Motor current                   (float x7)
+ *  M906  XYZ T0-4 E      Motor current                         (float x7)
  *
  * HAVE_TMC2130:
- *  M906  X               stepperX current                (uint16_t)
- *  M906  Y               stepperY current                (uint16_t)
- *  M906  Z               stepperZ current                (uint16_t)
- *  M906  X2              stepperX2 current               (uint16_t)
- *  M906  Y2              stepperY2 current               (uint16_t)
- *  M906  Z2              stepperZ2 current               (uint16_t)
- *  M906  E0              stepperE0 current               (uint16_t)
- *  M906  E1              stepperE1 current               (uint16_t)
- *  M906  E2              stepperE2 current               (uint16_t)
- *  M906  E3              stepperE3 current               (uint16_t)
- *  M906  E4              stepperE4 current               (uint16_t)
- *  M906  E5              stepperE5 current               (uint16_t)
+ *  M906  X               stepperX current                      (uint16_t)
+ *  M906  Y               stepperY current                      (uint16_t)
+ *  M906  Z               stepperZ current                      (uint16_t)
+ *  M906  X2              stepperX2 current                     (uint16_t)
+ *  M906  Y2              stepperY2 current                     (uint16_t)
+ *  M906  Z2              stepperZ2 current                     (uint16_t)
+ *  M906  E0              stepperE0 current                     (uint16_t)
+ *  M906  E1              stepperE1 current                     (uint16_t)
+ *  M906  E2              stepperE2 current                     (uint16_t)
+ *  M906  E3              stepperE3 current                     (uint16_t)
+ *  M906  E4              stepperE4 current                     (uint16_t)
+ *  M906  E5              stepperE5 current                     (uint16_t)
  *
  * LIN_ADVANCE:
- *  M900  K               extruder_advance_k              (float)
- *  M900  WHD             advance_ed_ratio                (float)
+ *  M900  K               extruder_advance_k                    (float)
+ *  M900  WHD             advance_ed_ratio                      (float)
  *
  */
 
@@ -392,15 +392,15 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MECH(DELTA)
-      EEPROM_WRITE(Mechanics.endstop_adj);
+      EEPROM_WRITE(Mechanics.delta_endstop_adj);
       EEPROM_WRITE(Mechanics.delta_radius);
-      EEPROM_WRITE(Mechanics.diagonal_rod);
-      EEPROM_WRITE(Mechanics.segments_per_second);
+      EEPROM_WRITE(Mechanics.delta_diagonal_rod);
+      EEPROM_WRITE(Mechanics.delta_segments_per_second);
       EEPROM_WRITE(Mechanics.delta_height);
-      EEPROM_WRITE(Mechanics.tower_radius_adj);
-      EEPROM_WRITE(Mechanics.tower_pos_adj);
-      EEPROM_WRITE(Mechanics.diagonal_rod_adj);
-      EEPROM_WRITE(Mechanics.print_radius);
+      EEPROM_WRITE(Mechanics.delta_tower_radius_adj);
+      EEPROM_WRITE(Mechanics.delta_tower_pos_adj);
+      EEPROM_WRITE(Mechanics.delta_diagonal_rod_adj);
+      EEPROM_WRITE(Mechanics.delta_print_radius);
     #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -736,15 +736,15 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MECH(DELTA)
-        EEPROM_READ(Mechanics.endstop_adj);
+        EEPROM_READ(Mechanics.delta_endstop_adj);
         EEPROM_READ(Mechanics.delta_radius);
-        EEPROM_READ(Mechanics.diagonal_rod);
-        EEPROM_READ(Mechanics.segments_per_second);
+        EEPROM_READ(Mechanics.delta_diagonal_rod);
+        EEPROM_READ(Mechanics.delta_segments_per_second);
         EEPROM_READ(Mechanics.delta_height);
-        EEPROM_READ(Mechanics.tower_radius_adj);
-        EEPROM_READ(Mechanics.tower_pos_adj);
-        EEPROM_READ(Mechanics.diagonal_rod_adj);
-        EEPROM_READ(Mechanics.print_radius);
+        EEPROM_READ(Mechanics.delta_tower_radius_adj);
+        EEPROM_READ(Mechanics.delta_tower_pos_adj);
+        EEPROM_READ(Mechanics.delta_diagonal_rod_adj);
+        EEPROM_READ(Mechanics.delta_print_radius);
       #endif
 
       #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -1332,28 +1332,28 @@ void EEPROM::Factory_Settings() {
 
       CONFIG_MSG_START("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" X", LINEAR_UNIT(Mechanics.endstop_adj[A_AXIS]));
-      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.endstop_adj[B_AXIS]));
-      SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.endstop_adj[C_AXIS]));
+      SERIAL_MV(" X", LINEAR_UNIT(Mechanics.delta_endstop_adj[A_AXIS]));
+      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.delta_endstop_adj[B_AXIS]));
+      SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
       CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
       CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" A", LINEAR_UNIT(Mechanics.diagonal_rod_adj[0]), 3);
-      SERIAL_MV(" B", LINEAR_UNIT(Mechanics.diagonal_rod_adj[1]), 3);
-      SERIAL_MV(" C", LINEAR_UNIT(Mechanics.diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", Mechanics.tower_radius_adj[0], 3);
-      SERIAL_MV(" J", Mechanics.tower_radius_adj[1], 3);
-      SERIAL_MV(" K", Mechanics.tower_radius_adj[2], 3);
-      SERIAL_MV(" U", LINEAR_UNIT(Mechanics.tower_pos_adj[0]), 3);
-      SERIAL_MV(" V", LINEAR_UNIT(Mechanics.tower_pos_adj[1]), 3);
-      SERIAL_MV(" W", LINEAR_UNIT(Mechanics.tower_pos_adj[2]), 3);
+      SERIAL_MV(" A", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[0]), 3);
+      SERIAL_MV(" B", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[1]), 3);
+      SERIAL_MV(" C", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[2]), 3);
+      SERIAL_MV(" I", Mechanics.delta_tower_radius_adj[0], 3);
+      SERIAL_MV(" J", Mechanics.delta_tower_radius_adj[1], 3);
+      SERIAL_MV(" K", Mechanics.delta_tower_radius_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[2]), 3);
       SERIAL_MV(" R", LINEAR_UNIT(Mechanics.delta_radius));
-      SERIAL_MV(" D", LINEAR_UNIT(Mechanics.diagonal_rod));
-      SERIAL_MV(" S", Mechanics.segments_per_second);
-      SERIAL_MV(" O", LINEAR_UNIT(Mechanics.print_radius));
+      SERIAL_MV(" D", LINEAR_UNIT(Mechanics.delta_diagonal_rod));
+      SERIAL_MV(" S", Mechanics.delta_segments_per_second);
+      SERIAL_MV(" O", LINEAR_UNIT(Mechanics.delta_print_radius));
       SERIAL_MV(" H", LINEAR_UNIT(Mechanics.delta_height), 3);
       SERIAL_EOL();
 

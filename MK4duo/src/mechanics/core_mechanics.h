@@ -126,10 +126,10 @@
        * Feed rates are often configured with mm/m
        * but the planner and stepper like mm/s units.
        */
-      float feedrate_mm_s             = MMM_TO_MMS(1500.0),
-            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
-      int   feedrate_percentage       = 100,
-            saved_feedrate_percentage = 100;
+      float   feedrate_mm_s             = MMM_TO_MMS(1500.0),
+              saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
+      int16_t feedrate_percentage       = 100,
+              saved_feedrate_percentage = 100;
 
       /**
        * Homing feed rates are often configured with mm/m

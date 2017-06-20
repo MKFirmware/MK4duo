@@ -591,7 +591,7 @@ static uint16_t PWMChanFreq[8]  = {0},
 static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for Intel spec PWM fans that need 25kHz PWM
 static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
 
-static inline uint32_t ConvertRange(float f, uint32_t top) { return lround(f * (float)top); }
+static inline uint32_t ConvertRange(float f, uint32_t top) { return LROUND(f * (float)top); }
 
 // AnalogWritePwm to a PWM pin
 // Return true if successful, false if we need to call software pwm
