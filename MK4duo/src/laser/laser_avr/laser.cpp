@@ -183,8 +183,6 @@
 
     #if ENABLED(LASER_PWM_INVERT)
         intensity = 100 - intensity;
-    #else
-        intensity = intensity;
 	#endif
 	
     #if LASER_CONTROL == 1
