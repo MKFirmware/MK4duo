@@ -3,6 +3,8 @@
 * Fix EEPROM_SD
 * Fix and clear code
 * Add Laser PWM Invert invert and HIGH to Fire
+* Add LASER_REMAP_INTENSITY can be disabled
+
 
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor
