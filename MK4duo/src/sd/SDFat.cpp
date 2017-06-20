@@ -43,7 +43,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
 #include "Arduino.h"
 #include "SDFat.h"

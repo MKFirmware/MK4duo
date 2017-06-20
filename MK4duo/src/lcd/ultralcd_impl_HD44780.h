@@ -284,7 +284,7 @@ const static PROGMEM byte clock[8] = {
   B00000
 };
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
   const static PROGMEM byte refresh[8] = {
     B00000,
     B00110,
@@ -351,7 +351,7 @@ static void lcd_set_custom_characters(
   createChar_P(LCD_FEEDRATE_CHAR, feedrate);
   createChar_P(LCD_CLOCK_CHAR, clock);
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
     #if ENABLED(LCD_PROGRESS_BAR)
       static bool char_mode = false;
       if (info_screen_charset != char_mode) {
@@ -762,7 +762,7 @@ static void lcd_implementation_status_screen() {
 
     #if LCD_WIDTH < 20
 
-      #if ENABLED(SDSUPPORT)
+      #if HAS_SDSUPPORT
         lcd.setCursor(0, 2);
         lcd_printPGM(PSTR("SD"));
         if (IS_SD_PRINTING)
@@ -817,7 +817,7 @@ static void lcd_implementation_status_screen() {
     lcd.print(itostr3(Mechanics.feedrate_percentage));
     lcd.print('%');
 
-    #if LCD_WIDTH >= 20 && ENABLED(SDSUPPORT)
+    #if LCD_WIDTH >= 20 && HAS_SDSUPPORT
 
       lcd.setCursor(7, 2);
       lcd_printPGM(PSTR("SD"));
@@ -868,7 +868,7 @@ static void lcd_implementation_status_screen() {
 
   #elif (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
 
-    #if HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)
+    #if HAS(LCD_FILAMENT_SENSOR) && HAS_SDSUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
       // After allowing lcd_status_message to show for 5 seconds
       if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
@@ -1038,7 +1038,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
 
     static void lcd_implementation_drawmenu_sd(const bool sel, const uint8_t row, const char* const pstr, const char* longFilename, const uint8_t concat, const char post_char) {
       UNUSED(pstr);

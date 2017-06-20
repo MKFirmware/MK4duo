@@ -49,7 +49,7 @@ void PrintCounter::loadStats() {
     PrintCounter::debug(PSTR("loadStats"));
   #endif
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     // Checks if the SDCARD is inserted
     if(IS_SD_INSERTED && !IS_SD_PRINTING) {
       card.RetrieveSettings(true);
@@ -65,7 +65,7 @@ void PrintCounter::saveStats() {
   // Refuses to save data is object is not loaded
   if (!this->loaded) return;
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     card.StoreSettings();
   #endif
 }
@@ -123,7 +123,7 @@ void PrintCounter::tick() {
     #endif
   }
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     const static millis_t j = this->saveInterval * 1000UL;
     if (!this->loaded) {
       this->loadStats();

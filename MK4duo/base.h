@@ -85,16 +85,6 @@
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
-#if HAS_ABL
-  #include "src/planner/vector_3.h"
-#endif
-
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
-  #include "src/planner/qr_solve.h"
-#elif ENABLED(MESH_BED_LEVELING)
-  #include "src/mbl/mesh_bed_leveling.h"
-#endif
-
 #if ENABLED(LASER)
   #if ENABLED(LASER_RASTER)
     #include "src/laser/base64/base64.h"
@@ -107,6 +97,8 @@
 #endif
 
 #include "src/mechanics/mechanics.h"
+#include "src/bedlevel/bedlevel.h"
+#include "src/bedlevel/probe.h"
 #include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"

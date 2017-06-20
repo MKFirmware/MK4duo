@@ -125,5 +125,7 @@
       int8_t max;                       // maximum is this value times 4 added to MAX_PULSE_WIDTH
   };
 
+  extern Servo servo[NUM_SERVOS];
+
 #endif // SERVOS
 #endif // _SERVO_H

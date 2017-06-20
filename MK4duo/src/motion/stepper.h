@@ -123,7 +123,7 @@ class Stepper {
     //
     // Positions of stepper motors, in step units
     //
-    static volatile long count_position[NUM_AXIS];
+    static volatile long machine_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)
@@ -192,11 +192,6 @@ class Stepper {
     // Report the positions of the steppers, in steps
     //
     static void report_positions();
-
-    //
-    // Get the position (mm) of an axis based on stepper position(s)
-    //
-    static float get_axis_position_mm(AxisEnum axis);
 
     //
     // SCARA AB axes are in degrees, not mm
@@ -275,7 +270,7 @@ class Stepper {
     // Triggered position of an axis in mm (not core-savvy)
     //
     static FORCE_INLINE float triggered_position_mm(AxisEnum axis) {
-      return endstops_trigsteps[axis] * planner.steps_to_mm[axis];
+      return endstops_trigsteps[axis] * Mechanics.steps_to_mm[axis];
     }
 
     #if ENABLED(LIN_ADVANCE)

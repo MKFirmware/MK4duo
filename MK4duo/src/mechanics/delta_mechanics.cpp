@@ -53,11 +53,112 @@
     diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
     clip_start_height         = Z_MAX_POS;
 
-    Recalc();
+    recalc_delta_settings();
   }
 
   /**
-   * Prepare a single move and get ready for the next one.
+   * Get an axis position according to stepper position(s)
+   */
+  float Delta_Mechanics::get_axis_position_mm(AxisEnum axis) {
+    return stepper.position(axis) * steps_to_mm[axis];
+  }
+
+  /**
+   * Directly set the planner XYZ position (and stepper positions)
+   * converting mm into steps.
+   */
+  void Delta_Mechanics::set_position_mm(const float &a, const float &b, const float &c, const float &e) {
+
+    planner.position[A_AXIS] = LROUND(a * axis_steps_per_mm[A_AXIS]),
+    planner.position[B_AXIS] = LROUND(b * axis_steps_per_mm[B_AXIS]),
+    planner.position[C_AXIS] = LROUND(c * axis_steps_per_mm[C_AXIS]),
+    planner.position[E_AXIS] = LROUND(e * axis_steps_per_mm[E_INDEX]);
+
+    #if ENABLED(LIN_ADVANCE)
+      planner.position_float[A_AXIS] = a;
+      planner.position_float[B_AXIS] = b;
+      planner.position_float[C_AXIS] = c;
+      planner.position_float[E_AXIS] = e;
+    #endif
+
+    stepper.set_position(planner.position[A_AXIS], planner.position[B_AXIS], planner.position[C_AXIS], planner.position[E_AXIS]);
+    planner.zero_previous_nominal_speed();
+    planner.zero_previous_speed();
+
+  }
+
+  /**
+   * Setters for planner position (also setting stepper position).
+   */
+  void Delta_Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
+
+    #if EXTRUDERS > 1
+      const uint8_t axis_index = axis + (axis == E_AXIS ? active_extruder : 0);
+    #else
+      const uint8_t axis_index = axis;
+    #endif
+
+    planner.position[axis] = LROUND(v * axis_steps_per_mm[axis_index]);
+
+    #if ENABLED(LIN_ADVANCE)
+      planner.position_float[axis] = v;
+    #endif
+
+    stepper.set_position(axis, v);
+    planner.zero_previous_speed(axis);
+
+  }
+
+  void Delta_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
+    #if PLANNER_LEVELING
+      float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
+      bedlevel.apply_leveling(lpos);
+    #else
+      const float * const lpos = position;
+    #endif
+    Transform(position);
+    set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+  }
+
+  /**
+   * Get the stepper positions in the cartesian_position[] array.
+   * Forward kinematics are applied for DELTA.
+   *
+   * The result is in the current coordinate space with
+   * leveling applied. The coordinates need to be run through
+   * unapply_leveling to obtain the "ideal" coordinates
+   * suitable for current_position, etc.
+   */
+  void Delta_Mechanics::get_cartesian_from_steppers() {
+    InverseTransform(
+      get_axis_position_mm(A_AXIS),
+      get_axis_position_mm(B_AXIS),
+      get_axis_position_mm(C_AXIS),
+      cartesian_position
+    );
+    cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
+    cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
+    cartesian_position[Z_AXIS] += LOGICAL_Z_POSITION(0);
+  }
+
+  /**
+   * Set the current_position for an axis based on
+   * the stepper positions, removing any leveling that
+   * may have been applied.
+   */
+  void Delta_Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
+    get_cartesian_from_steppers();
+    #if PLANNER_LEVELING
+      bedlevel.unapply_leveling(cartesian_position);
+    #endif
+    if (axis == ALL_AXES)
+      COPY_ARRAY(current_position, cartesian_position);
+    else
+      current_position[axis] = cartesian_position[axis];
+  }
+
+  /**
+   * Prepare a linear move in a DELTA setup.
    *
    * This calls buffer_line several times, adding
    * small incremental moves for DELTA.
@@ -82,83 +183,91 @@
       }
     #endif
 
-    // Get the top feedrate of the move in the XY plane
-    const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+    #if UBL_DELTA
 
-    // If the move is only in Z/E don't split up the move
-    if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
+      if (ubl.prepare_segmented_line_to(destination, feedrate_mm_s)) return;
+
+    #else
+
+      // Get the top feedrate of the move in the XY plane
+      const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+
+      // If the move is only in Z/E don't split up the move
+      if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
+        planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
+        set_current_to_destination();
+        return;
+      }
+
+      // Fail if attempting move outside printable radius
+      if (!position_is_reachable_xy(destination[A_AXIS], destination[B_AXIS])) return;
+
+      // Get the cartesian distances moved in XYZE
+      float difference[NUM_AXIS];
+      LOOP_XYZE(i) difference[i] = destination[i] - current_position[i];
+
+      // Get the linear distance in XYZ
+      float cartesian_mm = SQRT(sq(difference[A_AXIS]) + sq(difference[B_AXIS]) + sq(difference[C_AXIS]));
+
+      // If the move is very short, check the E move distance
+      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
+
+      // No E move either? Game over.
+      if (UNEAR_ZERO(cartesian_mm)) return;
+
+      // Minimum number of seconds to move the given distance
+      float seconds = cartesian_mm / _feedrate_mm_s;
+
+      // The number of segments-per-second times the duration
+      // gives the number of segments we should produce
+      uint16_t segments = segments_per_second * seconds;
+
+      // At least one segment is required
+      NOLESS(segments, 1);
+
+      // The approximate length of each segment
+      const float inv_segments = 1.0 / float(segments),
+                  segment_distance[XYZE] = {
+                    difference[A_AXIS] * inv_segments,
+                    difference[B_AXIS] * inv_segments,
+                    difference[C_AXIS] * inv_segments,
+                    difference[E_AXIS] * inv_segments
+                  };
+
+      //SERIAL_MV("mm=", cartesian_mm);
+      //SERIAL_MV(" seconds=", seconds);
+      //SERIAL_EMV(" segments=", segments);
+
+      // Get the logical current position as starting point
+      float logical[XYZE];
+      COPY_ARRAY(logical, current_position);
+
+      // Drop one segment so the last move is to the exact target.
+      // If there's only 1 segment, loops will be skipped entirely.
+      --segments;
+
+      // Calculate and execute the segments
+      for (uint16_t s = segments + 1; --s;) {
+        LOOP_XYZE(i) logical[i] += segment_distance[i];
+        Transform(logical);
+
+        // Adjust Z if bed leveling is enabled
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          if (bedlevel.abl_enabled) {
+            const float zadj = bedlevel.bilinear_z_offset(logical);
+            delta[A_AXIS] += zadj;
+            delta[B_AXIS] += zadj;
+            delta[C_AXIS] += zadj;
+          }
+        #endif
+
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+
+      }
+
       planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
-      set_current_to_destination();
-      return;
-    }
 
-    // Fail if attempting move outside printable radius
-    if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return;
-
-    // Get the cartesian distances moved in XYZE
-    float difference[NUM_AXIS];
-    LOOP_XYZE(i) difference[i] = destination[i] - current_position[i];
-
-    // Get the linear distance in XYZ
-    float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
-
-    // If the move is very short, check the E move distance
-    if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
-
-    // No E move either? Game over.
-    if (UNEAR_ZERO(cartesian_mm)) return;
-
-    // Minimum number of seconds to move the given distance
-    float seconds = cartesian_mm / _feedrate_mm_s;
-
-    // The number of segments-per-second times the duration
-    // gives the number of segments we should produce
-    uint16_t segments = segments_per_second * seconds;
-
-    // At least one segment is required
-    NOLESS(segments, 1);
-
-    // The approximate length of each segment
-    const float inv_segments = 1.0 / float(segments),
-                segment_distance[XYZE] = {
-                  difference[X_AXIS] * inv_segments,
-                  difference[Y_AXIS] * inv_segments,
-                  difference[Z_AXIS] * inv_segments,
-                  difference[E_AXIS] * inv_segments
-                };
-
-    //SERIAL_MV("mm=", cartesian_mm);
-    //SERIAL_MV(" seconds=", seconds);
-    //SERIAL_EMV(" segments=", segments);
-
-    // Get the logical current position as starting point
-    float logical[XYZE];
-    COPY_ARRAY(logical, current_position);
-
-    // Drop one segment so the last move is to the exact target.
-    // If there's only 1 segment, loops will be skipped entirely.
-    --segments;
-
-    // Calculate and execute the segments
-    for (uint16_t s = segments + 1; --s;) {
-      LOOP_XYZE(i) logical[i] += segment_distance[i];
-      Transform(logical);
-
-      // Adjust Z if bed leveling is enabled
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        if (planner.abl_enabled) {
-          const float zadj = bilinear_z_offset(logical);
-          delta[A_AXIS] += zadj;
-          delta[B_AXIS] += zadj;
-          delta[C_AXIS] += zadj;
-        }
-      #endif
-
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
-
-    }
-
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
+    #endif // !UBL_DELTA
 
     set_current_to_destination();
   }
@@ -169,7 +278,7 @@
    * (or from wherever it has been told it is located).
    */
   void Delta_Mechanics::line_to_current_position() {
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
+    planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
   }
 
   /**
@@ -178,7 +287,7 @@
    * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
    */
   void Delta_Mechanics::line_to_destination(float fr_mm_s) {
-    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
+    planner.buffer_line(destination[A_AXIS], destination[B_AXIS], destination[C_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
   }
   void Delta_Mechanics::line_to_destination() { line_to_destination(feedrate_mm_s); }
 
@@ -204,11 +313,11 @@
     #endif
 
     // when in the danger zone
-    if (current_position[Z_AXIS] > clip_start_height) {
+    if (current_position[C_AXIS] > clip_start_height) {
       if (lz > clip_start_height) {   // staying in the danger zone
-        destination[X_AXIS] = lx;           // move directly (uninterpolated)
-        destination[Y_AXIS] = ly;
-        destination[Z_AXIS] = lz;
+        destination[A_AXIS] = lx;           // move directly (uninterpolated)
+        destination[B_AXIS] = ly;
+        destination[C_AXIS] = lz;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("danger zone move", current_position);
@@ -216,7 +325,7 @@
         return;
       }
       else {
-        destination[Z_AXIS] = clip_start_height;
+        destination[C_AXIS] = clip_start_height;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("zone border move", current_position);
@@ -224,23 +333,23 @@
       }
     }
 
-    if (lz > current_position[Z_AXIS]) {    // raising?
-      destination[Z_AXIS] = lz;
+    if (lz > current_position[C_AXIS]) {    // raising?
+      destination[C_AXIS] = lz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", current_position);
       #endif
     }
 
-    destination[X_AXIS] = lx;
-    destination[Y_AXIS] = ly;
+    destination[A_AXIS] = lx;
+    destination[B_AXIS] = ly;
     prepare_move_to_destination();         // set_current_to_destination
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("xy move", current_position);
     #endif
 
-    if (lz < current_position[Z_AXIS]) {    // lowering?
-      destination[Z_AXIS] = lz;
+    if (lz < current_position[C_AXIS]) {    // lowering?
+      destination[C_AXIS] = lz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", current_position);
@@ -256,41 +365,50 @@
     #endif
   }
   void Delta_Mechanics::do_blocking_move_to(const float logical[XYZ], const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS], fr_mm_s);
+    do_blocking_move_to(logical[A_AXIS], logical[B_AXIS], logical[C_AXIS], fr_mm_s);
   }
   void Delta_Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(lx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+    do_blocking_move_to(lx, current_position[B_AXIS], current_position[C_AXIS], fr_mm_s);
   }
   void Delta_Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], lz, fr_mm_s);
+    do_blocking_move_to(current_position[A_AXIS], current_position[B_AXIS], lz, fr_mm_s);
   }
   void Delta_Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(lx, ly, current_position[Z_AXIS], fr_mm_s);
+    do_blocking_move_to(lx, ly, current_position[C_AXIS], fr_mm_s);
   }
 
   void Delta_Mechanics::sync_plan_position() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
     #endif
-    planner.set_position_mm_kinematic(current_position);
+    set_position_mm_kinematic(current_position);
   }
-
   void Delta_Mechanics::sync_plan_position_e() {
-    planner.set_e_position_mm(current_position[E_AXIS]);
+    set_e_position_mm(current_position[E_AXIS]);
   }
 
   /**
    * Calculate delta, start a line, and set current_position to destination
    */
   void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s/*=0.0*/) {
-    if ( current_position[X_AXIS] == destination[X_AXIS]
-      && current_position[Y_AXIS] == destination[Y_AXIS]
-      && current_position[Z_AXIS] == destination[Z_AXIS]
-      && current_position[E_AXIS] == destination[E_AXIS]
-    ) return;
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
+    #endif
 
     refresh_cmd_timeout();
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder, active_driver);
+
+    #if UBL_DELTA
+      // ubl segmented line will do z-only moves in single segment
+      ubl.prepare_segmented_line_to(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
+    #else
+      if ( current_position[A_AXIS] == destination[A_AXIS]
+        && current_position[B_AXIS] == destination[B_AXIS]
+        && current_position[C_AXIS] == destination[C_AXIS]
+        && current_position[E_AXIS] == destination[E_AXIS]
+      ) return;
+
+      planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder, active_driver);
+    #endif
     set_current_to_destination();
   }
 
@@ -336,8 +454,8 @@
           break;
       }
 
-      hiParams.Recalc();
-      loParams.Recalc();
+      hiParams.recalc_delta_settings();
+      loParams.recalc_delta_settings();
 
       float newPos[ABC];
 
@@ -379,7 +497,7 @@
         }
       }
 
-      Recalc();
+      recalc_delta_settings();
       const float heightError = homed_Height + endstop_adj[A_AXIS] - oldHeightA - v[0];
       delta_height -= heightError;
       homed_Height -= heightError;
@@ -447,18 +565,18 @@
 
     const float z = (minusHalfB - sqrtf(sq(minusHalfB) - A * C)) / A;
 
-    cartesian[X_AXIS] = (U * z - S) / Q;
-    cartesian[Y_AXIS] = (P - R * z) / Q;
-    cartesian[Z_AXIS] = z;
+    cartesian[A_AXIS] = (U * z - S) / Q;
+    cartesian[B_AXIS] = (P - R * z) / Q;
+    cartesian[C_AXIS] = z;
   }
 
-  void Delta_Mechanics::Recalc() {
+  void Delta_Mechanics::recalc_delta_settings() {
 
     LOOP_XY(i) {
       endstops.soft_endstop_min[i] = -print_radius;
       endstops.soft_endstop_max[i] = print_radius;
     }
-    endstops.soft_endstop_max[Z_AXIS]  = delta_height;
+    endstops.soft_endstop_max[C_AXIS]  = delta_height;
     probe_radius = print_radius - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
 
     delta_diagonal_rod_2[A_AXIS] = sq(diagonal_rod + diagonal_rod_adj[A_AXIS]);
@@ -489,7 +607,7 @@
     const float tempHeight = diagonal_rod;		// any sensible height will do here, probably even zero
     float cartesian[ABC];
     InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
-    homed_Height = delta_height + tempHeight - cartesian[Z_AXIS];
+    homed_Height = delta_height + tempHeight - cartesian[C_AXIS];
     printRadiusSquared = sq(print_radius);
 
     Set_clip_start_height();
@@ -536,14 +654,14 @@
    */
   void Delta_Mechanics::Transform(const float logical[XYZ]) {
 
-    delta[A_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(logical[A_AXIS] - towerX[A_AXIS]) - sq(logical[B_AXIS] - towerY[A_AXIS]));
-    delta[B_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(logical[A_AXIS] - towerX[B_AXIS]) - sq(logical[B_AXIS] - towerY[B_AXIS]));
-    delta[C_AXIS] = logical[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - sq(logical[A_AXIS] - towerX[C_AXIS]) - sq(logical[B_AXIS] - towerY[C_AXIS]));
+    delta[A_AXIS] = logical[C_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - sq(logical[A_AXIS] - towerX[A_AXIS]) - sq(logical[B_AXIS] - towerY[A_AXIS]));
+    delta[B_AXIS] = logical[C_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - sq(logical[A_AXIS] - towerX[B_AXIS]) - sq(logical[B_AXIS] - towerY[B_AXIS]));
+    delta[C_AXIS] = logical[C_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - sq(logical[A_AXIS] - towerX[C_AXIS]) - sq(logical[B_AXIS] - towerY[C_AXIS]));
 
     /*
-    SERIAL_MV("cartesian X:", logical[X_AXIS]);
-    SERIAL_MV(" Y:", logical[Y_AXIS]);
-    SERIAL_EMV(" Z:", logical[Z_AXIS]);
+    SERIAL_MV("cartesian X:", logical[A_AXIS]);
+    SERIAL_MV(" Y:", logical[B_AXIS]);
+    SERIAL_EMV(" Z:", logical[C_AXIS]);
     SERIAL_MV("delta A:", delta[A_AXIS]);
     SERIAL_MV(" B:", delta[B_AXIS]);
     SERIAL_EMV(" C:", delta[C_AXIS]);
@@ -554,9 +672,31 @@
     float cartesian[XYZ] = { 0, 0, 0 };
     Transform(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = print_radius;
+    cartesian[B_AXIS] = print_radius;
     Transform(cartesian);
-    clip_start_height = endstops.soft_endstop_max[Z_AXIS] - abs(distance - delta[A_AXIS]);
+    clip_start_height = endstops.soft_endstop_max[C_AXIS] - abs(distance - delta[A_AXIS]);
+  }
+
+  // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
+  void Delta_Mechanics::reset_acceleration_rates() {
+    #if EXTRUDERS > 1
+      #define HIGHEST_CONDITION (i < E_AXIS || i == E_INDEX)
+    #else
+      #define HIGHEST_CONDITION true
+    #endif
+    uint32_t highest_rate = 1;
+    LOOP_XYZE_N(i) {
+      max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
+      if (HIGHEST_CONDITION) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
+    }
+    planner.cutoff_long = 4294967295UL / highest_rate;
+  }
+
+  // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
+  void Delta_Mechanics::refresh_positioning() {
+    LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
+    set_position_mm_kinematic(current_position);
+    reset_acceleration_rates();
   }
 
   void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
@@ -573,9 +713,9 @@
     // Tell the planner we're at Z=0
     current_position[axis] = 0;
 
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+    set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
     current_position[axis] = distance;
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
+    planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
 
     stepper.synchronize();
 
@@ -658,11 +798,11 @@
 
     // Init the current position of all carriages to 0,0,0
     ZERO(current_position);
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+    set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
 
     // Move all carriages together linearly until an endstop is hit.
-    current_position[X_AXIS] = current_position[Y_AXIS] = current_position[Z_AXIS] = delta_height + 10;
-    feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
+    current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
+    feedrate_mm_s = homing_feedrate_mm_s[A_AXIS];
     line_to_current_position();
     stepper.synchronize();
     endstops.hit_on_purpose(); // clear endstop hit flags
@@ -702,7 +842,7 @@
       endstops.update_software_endstops(axis);
     #endif
 
-    current_position[axis] = (axis == Z_AXIS ? delta_height : 0.0);
+    current_position[axis] = (axis == C_AXIS ? delta_height : 0.0);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
@@ -728,9 +868,9 @@
   }
 
   bool Delta_Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-    const bool  xx = x && !axis_homed[X_AXIS],
-                yy = y && !axis_homed[Y_AXIS],
-                zz = z && !axis_homed[Z_AXIS];
+    const bool  xx = x && !axis_homed[A_AXIS],
+                yy = y && !axis_homed[B_AXIS],
+                zz = z && !axis_homed[C_AXIS];
 
     if (xx || yy || zz) {
       SERIAL_SM(ECHO, MSG_HOME " ");
@@ -776,7 +916,7 @@
     }
 
     void Delta_Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
-      print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
+      print_xyz(prefix, suffix, xyz[A_AXIS], xyz[B_AXIS], xyz[C_AXIS]);
     }
 
   #endif

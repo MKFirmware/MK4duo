@@ -41,7 +41,7 @@
 #define LASER_CONTROL 1
 
 // If your machine has laser focuser, set this to true and it will use Z axis for focus or disable it.
-#define LASER_HAS_FOCUS false (Removed from current code)
+#define LASER_HAS_FOCUS false // (Removed from current code)
 
 // In the case that the laserdriver need at least a certain level "LASER_REMAP_INTENSITY"
 // to give anything, the intensity can be remapped to start at "LASER_REMAP_INTENSITY"
@@ -49,7 +49,10 @@
 #define LASER_REMAP_INTENSITY 0
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
-//#define HIGH_TO_FIRE (Removed from current code)
+#define HIGH_TO_FIRE
+
+// Uncomment the following if your laser pwm pin (not the power pin) needs to be inverted.
+#define LASER_PWM_INVERT
 
 // The following defines select which G codes tell the laser to fire. It's OK to uncomment more than one.
 #define LASER_FIRE_G1 10      // fire the laser on a G1 move, extinguish when the move ends

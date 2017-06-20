@@ -440,7 +440,7 @@
   /**
    * Class NexUpload
    */
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SDSUPPORT
 
     NexUpload::NexUpload(const char *file_name, uint32_t upload_baudrate) {
       _file_name = file_name;

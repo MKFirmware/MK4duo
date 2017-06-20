@@ -199,7 +199,7 @@
   #define ORIG_TEMP_3_PIN     -1
 #endif
 
-#if PIN_EXISTS(X_STOP_PIN)
+#if PIN_EXISTS(X_STOP)
   #if X_HOME_DIR < 0
     #define ORIG_X_MIN_PIN X_STOP_PIN
     #define ORIG_X_MAX_PIN -1
@@ -209,7 +209,7 @@
   #endif
 #endif
 
-#if PIN_EXISTS(Y_STOP_PIN)
+#if PIN_EXISTS(Y_STOP)
   #if Y_HOME_DIR < 0
     #define ORIG_Y_MIN_PIN Y_STOP_PIN
     #define ORIG_Y_MAX_PIN -1
@@ -219,7 +219,7 @@
   #endif
 #endif
 
-#if PIN_EXISTS(Z_STOP_PIN)
+#if PIN_EXISTS(Z_STOP)
   #if Z_HOME_DIR < 0
     #define ORIG_Z_MIN_PIN Z_STOP_PIN
     #define ORIG_Z_MAX_PIN -1

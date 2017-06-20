@@ -584,7 +584,7 @@ static_assert(1 >= 0
     #if ENABLED(FIX_MOUNTED_PROBE)
       + 1
     #endif
-    #if HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
+    #if HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
       + 1
     #endif
     #if ENABLED(BLTOUCH)
@@ -609,7 +609,7 @@ static_assert(1 >= 0
   /**
    * NUM_SERVOS is required for a Z servo probe
    */
-  #if HAS_Z_SERVO_ENDSTOP
+  #if HAS_Z_SERVO_PROBE
     #ifndef NUM_SERVOS
       #error "You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
     #elif Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
@@ -904,7 +904,7 @@ static_assert(1 >= 0
 #endif
 
 //addon
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
   #if DISABLED(SD_FINISHED_STEPPERRELEASE)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE
   #endif

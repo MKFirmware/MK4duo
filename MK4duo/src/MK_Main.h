@@ -41,32 +41,7 @@ void ok_to_send();
   void inverse_kinematics(const float logical[XYZ]);
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-  extern int bilinear_grid_spacing[2], bilinear_start[2];
-  extern float  bilinear_grid_factor[2],
-                z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
-  float bilinear_z_offset(const float logical[XYZ]);
-  void refresh_bed_level();
-  #if !IS_KINEMATIC
-    extern void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits = 0xFFFF, uint16_t y_splits = 0xFFFF);
-  #endif
-#endif
-
-#if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
-  extern void mesh_probing_done();
-  extern void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF);
-#endif
-
-#if HAS_LEVELING
-  bool leveling_is_valid();
-  bool leveling_is_active();
-  void set_bed_leveling_enabled(const bool enable=true);
-  void reset_bed_level();
-#endif
-
-#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  void set_z_fade_height(const float zfh);
-#endif
+void home_all_axes();
 
 void kill(const char *);
 void Stop();
@@ -105,15 +80,6 @@ inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
 extern void safe_delay(millis_t ms);
 
-#if HAS_ABL
-  extern int xy_probe_feedrate_mm_s;
-  #define XY_PROBE_FEEDRATE_MM_S xy_probe_feedrate_mm_s
-#elif ENABLED(XY_PROBE_SPEED)
-  #define XY_PROBE_FEEDRATE_MM_S MMM_TO_MMS(XY_PROBE_SPEED)
-#else
-  #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
-#endif
-
 extern bool volumetric_enabled;
 extern int flow_percentage[EXTRUDERS];          // Extrusion factor for each extruder
 extern int density_percentage[EXTRUDERS];       // Extrusion density factor for each extruder
@@ -147,17 +113,6 @@ extern float hotend_offset[XYZ][HOTENDS];
 #if ENABLED(G38_PROBE_TARGET)
   extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
               G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
-#endif
-
-#if HAS_BED_PROBE
-  extern float zprobe_zoffset;
-  extern bool probe_process;
-  extern bool set_probe_deployed(bool deploy);
-  #define DEPLOY_PROBE() set_probe_deployed(true)
-  #define STOW_PROBE() set_probe_deployed(false)
-  #if ENABLED(BLTOUCH)
-    extern void set_bltouch_deployed(const bool deploy);
-  #endif
 #endif
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -232,9 +187,9 @@ extern float hotend_offset[XYZ][HOTENDS];
 extern PrintCounter print_job_counter;
 
 // Handling multiple extruders pins
-extern uint8_t active_extruder;
-extern uint8_t previous_extruder;
-extern uint8_t active_driver;
+extern uint8_t  active_extruder,
+                previous_extruder,
+                active_driver;
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   extern float motor_current[3 + DRIVER_EXTRUDERS];

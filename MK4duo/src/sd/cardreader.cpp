@@ -22,7 +22,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include <avr/dtostrf.h>
@@ -190,10 +190,10 @@ uint8_t CardReader::read_data() {
   return (char)get();
 }
     
-bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
+bool CardReader::selectFile(const char* filename, const bool silent/*=false*/) {
   const char *oldP = filename;
 
-  if(!cardOK) return false;
+  if (!cardOK) return false;
 
   file.close();
 
@@ -206,7 +206,7 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
     fileSize = file.fileSize();
     sdpos = 0;
 
-    if(!silent) {
+    if (!silent) {
       SERIAL_MT(MSG_SD_FILE_OPENED, oldP);
       SERIAL_EMV(MSG_SD_SIZE, fileSize);
       SERIAL_EM(MSG_SD_FILE_SELECTED);
@@ -223,7 +223,7 @@ bool CardReader::selectFile(const char* filename, bool silent/*=false*/) {
     return true;
   }
   else {
-    if(!silent) SERIAL_EMT(MSG_SD_OPEN_FILE_FAIL, oldP);
+    if (!silent) SERIAL_EMT(MSG_SD_OPEN_FILE_FAIL, oldP);
     return false;
   }
 }
@@ -237,8 +237,8 @@ void CardReader::printStatus() {
     SERIAL_EM(MSG_SD_NOT_PRINTING);
 }
 
-void CardReader::startWrite(char *filename, bool lcd_status/*=true*/) {
-  if(!cardOK) return;
+void CardReader::startWrite(char *filename, const bool silent/*=false*/) {
+  if (!cardOK) return;
   file.close();
 
   if(!file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
@@ -246,7 +246,7 @@ void CardReader::startWrite(char *filename, bool lcd_status/*=true*/) {
   }
   else {
     saving = true;
-    if (lcd_status) {
+    if (!silent) {
       SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
       lcd_setstatus(filename);
     }
@@ -254,14 +254,14 @@ void CardReader::startWrite(char *filename, bool lcd_status/*=true*/) {
 }
 
 void CardReader::deleteFile(char *filename) {
-  if(!cardOK) return;
+  if (!cardOK) return;
   sdprinting = false;
   file.close();
   if(fat.remove(filename)) {
     SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
   }
   else {
-    if(fat.rmdir(filename))
+    if (fat.rmdir(filename))
       SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
     else
       SERIAL_EM(MSG_SD_FILE_DELETION_ERR);
@@ -269,7 +269,7 @@ void CardReader::deleteFile(char *filename) {
 }
 
 void CardReader::finishWrite() {
-    if(!saving) return; // already closed or never opened
+    if (!saving) return; // already closed or never opened
     file.sync();
     file.close();
     saving = false;
@@ -277,10 +277,10 @@ void CardReader::finishWrite() {
 }
 
 void CardReader::makeDirectory(char *filename) {
-  if(!cardOK) return;
+  if (!cardOK) return;
   sdprinting = false;
   file.close();
-  if(fat.mkdir(filename)) {
+  if (fat.mkdir(filename)) {
     SERIAL_EM(MSG_SD_DIRECTORY_CREATED);
   }
   else {
@@ -403,7 +403,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     #if ENABLED(MESH_BED_LEVELING)
       if (mbl.active()) fileRestart.write("M420 S1\n");
     #elif HAS_ABL
-      if (planner.abl_enabled) fileRestart.write("M320 S1\n");
+      if (bedlevel.abl_enabled) fileRestart.write("M320 S1\n");
     #endif
 
     fileRestart.write(buffer_G92_Z);
@@ -880,7 +880,7 @@ void CardReader::ResetDefault() {
 
     set_sd_dot();
     setroot(true);
-    startWrite((char *)CFG_SD_FILE, false);
+    startWrite((char *)"INFO.cfg", true);
     char buff[CFG_SD_MAX_VALUE_LEN];
     ltoa(print_job_counter.data.finishedPrints, buff, 10);
     unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
@@ -898,7 +898,7 @@ void CardReader::ResetDefault() {
     unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
 
     finishWrite();
-    setlast();
+    //setlast();
     unset_sd_dot();
   }
 
@@ -910,7 +910,7 @@ void CardReader::ResetDefault() {
     int k_idx;
     int k_len, v_len;
     setroot(true);
-    selectFile((char *)CFG_SD_FILE, true);
+    selectFile((char *)"INFO.cfg", true);
 
     while (true) {
       k_len = CFG_SD_MAX_KEY_LEN;
@@ -960,7 +960,7 @@ void CardReader::ResetDefault() {
 
     print_job_counter.loaded = true;
     closeFile();
-    setlast();
+    //setlast();
     unset_sd_dot();
   }
 
