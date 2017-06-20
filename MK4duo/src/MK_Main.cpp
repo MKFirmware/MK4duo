@@ -2805,7 +2805,7 @@ inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
     // move to a height where we can use the full xy-area
-    Mechanics.do_blocking_move_to_z(Mechanics.clip_start_height);
+    Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
   #endif
 
   if (come_back) {
@@ -3278,8 +3278,8 @@ void home_all_axes() { gcode_G28(true); }
             return;
           }
 
-          const float z = parser.seen('Z') && parser.has_value() ? parser.value_float() : NAN;
-          if (!isnan(z) || !WITHIN(z, -10, 10)) {
+          const float z = parser.seen('Z') && parser.has_value() ? parser.value_float() : RAW_CURRENT_POSITION(Z);;
+          if (!WITHIN(z, -10, 10)) {
             SERIAL_LM(ER, "Bad Z value");
             return;
           }
@@ -3564,8 +3564,8 @@ void home_all_axes() { gcode_G28(true); }
           const float xBase = xCount * xGridSpacing + left_probe_bed_position,
                       yBase = yCount * yGridSpacing + front_probe_bed_position;
 
-          xProbe = floor(xBase + (xBase < 0 ? 0 : 0.5));
-          yProbe = floor(yBase + (yBase < 0 ? 0 : 0.5));
+          xProbe = FLOOR(xBase + (xBase < 0 ? 0 : 0.5));
+          yProbe = FLOOR(yBase + (yBase < 0 ? 0 : 0.5));
 
           #if ENABLED(AUTO_BED_LEVELING_LINEAR)
             indexIntoAB[xCount][yCount] = abl_probe_index;
@@ -4170,13 +4170,13 @@ void home_all_axes() { gcode_G28(true); }
 
       // Is there a next point to move to?
       if (probe_index < 6) {
-        xBedProbePoints[probe_index] = Mechanics.print_radius * sin((2 * M_PI * probe_index) / 6);
-        yBedProbePoints[probe_index] = Mechanics.print_radius * cos((2 * M_PI * probe_index) / 6);
+        xBedProbePoints[probe_index] = Mechanics.delta_print_radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = Mechanics.delta_print_radius * cos((2 * M_PI * probe_index) / 6);
       }
       if (numPoints >= 10) {
         if (probe_index >= 6 && probe_index < 9) {
-          xBedProbePoints[probe_index] = (Mechanics.print_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-          yBedProbePoints[probe_index] = (Mechanics.print_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          xBedProbePoints[probe_index] = (Mechanics.delta_print_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (Mechanics.delta_print_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
         }
         else if (probe_index >= 9) {
           xBedProbePoints[9] = 0.0;
@@ -4218,14 +4218,14 @@ void home_all_axes() { gcode_G28(true); }
     #else
 
       for (probe_index = 0; probe_index < 6; probe_index++) {
-        xBedProbePoints[probe_index] = Mechanics.probe_radius * sin((2 * M_PI * probe_index) / 6);
-        yBedProbePoints[probe_index] = Mechanics.probe_radius * cos((2 * M_PI * probe_index) / 6);
+        xBedProbePoints[probe_index] = Mechanics.delta_probe_radius * sin((2 * M_PI * probe_index) / 6);
+        yBedProbePoints[probe_index] = Mechanics.delta_probe_radius * cos((2 * M_PI * probe_index) / 6);
         zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
       }
       if (numPoints >= 10) {
         for (probe_index = 6; probe_index < 9; probe_index++) {
-          xBedProbePoints[probe_index] = (Mechanics.probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
-          yBedProbePoints[probe_index] = (Mechanics.probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
+          xBedProbePoints[probe_index] = (Mechanics.delta_probe_radius / 2) * sin((2 * M_PI * (probe_index - 6)) / 3);
+          yBedProbePoints[probe_index] = (Mechanics.delta_probe_radius / 2) * cos((2 * M_PI * (probe_index - 6)) / 3);
           zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         }
         xBedProbePoints[9] = 0.0;
@@ -4240,7 +4240,7 @@ void home_all_axes() { gcode_G28(true); }
 
     #endif
 
-    // convert endstop_adj;
+    // convert delta_endstop_adj;
     Mechanics.Convert_endstop_adj();
 
     float probeMotorPositions[MaxCalibrationPoints][ABC],
@@ -4360,7 +4360,7 @@ void home_all_axes() { gcode_G28(true); }
 
     } while (iteration < 2);
 
-    // convert endstop_adj;
+    // convert delta_endstop_adj;
     Mechanics.Convert_endstop_adj();
 
     SERIAL_MV("Calibrated ", numFactors);
@@ -4371,15 +4371,15 @@ void home_all_axes() { gcode_G28(true); }
 
     Mechanics.recalc_delta_settings();
 
-    SERIAL_MV("Endstops X", Mechanics.endstop_adj[A_AXIS], 3);
-    SERIAL_MV(" Y", Mechanics.endstop_adj[B_AXIS], 3);
-    SERIAL_MV(" Z", Mechanics.endstop_adj[C_AXIS], 3);
+    SERIAL_MV("Endstops X", Mechanics.delta_endstop_adj[A_AXIS], 3);
+    SERIAL_MV(" Y", Mechanics.delta_endstop_adj[B_AXIS], 3);
+    SERIAL_MV(" Z", Mechanics.delta_endstop_adj[C_AXIS], 3);
     SERIAL_MV(" height ", endstops.soft_endstop_max[C_AXIS], 3);
-    SERIAL_MV(" diagonal rod ", Mechanics.diagonal_rod, 3);
+    SERIAL_MV(" diagonal rod ", Mechanics.delta_diagonal_rod, 3);
     SERIAL_MV(" delta radius ", Mechanics.delta_radius, 3);
-    SERIAL_MV(" Towers radius correction A", Mechanics.tower_radius_adj[A_AXIS], 2);
-    SERIAL_MV(" B", Mechanics.tower_radius_adj[B_AXIS], 2);
-    SERIAL_MV(" C", Mechanics.tower_radius_adj[C_AXIS], 2);
+    SERIAL_MV(" Towers radius correction A", Mechanics.delta_tower_radius_adj[A_AXIS], 2);
+    SERIAL_MV(" B", Mechanics.delta_tower_radius_adj[B_AXIS], 2);
+    SERIAL_MV(" C", Mechanics.delta_tower_radius_adj[C_AXIS], 2);
     SERIAL_EOL();
 
     endstops.enable(true);
@@ -4387,7 +4387,7 @@ void home_all_axes() { gcode_G28(true); }
     endstops.not_homing();
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      Mechanics.do_blocking_move_to_z(Mechanics.clip_start_height);
+      Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
     #endif
     clean_up_after_endstop_or_probe_move();
     #if HOTENDS > 1
@@ -4476,14 +4476,14 @@ void home_all_axes() { gcode_G28(true); }
           zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
           zero_std_dev_old = zero_std_dev,
           e_old[XYZ] = {
-            Mechanics.endstop_adj[A_AXIS],
-            Mechanics.endstop_adj[B_AXIS],
-            Mechanics.endstop_adj[C_AXIS]
+            Mechanics.delta_endstop_adj[A_AXIS],
+            Mechanics.delta_endstop_adj[B_AXIS],
+            Mechanics.delta_endstop_adj[C_AXIS]
           },
           dr_old = Mechanics.delta_radius,
           zh_old = Mechanics.delta_height,
-          alpha_old = Mechanics.tower_radius_adj[A_AXIS],
-          beta_old = Mechanics.tower_radius_adj[B_AXIS];
+          alpha_old = Mechanics.delta_tower_radius_adj[A_AXIS],
+          beta_old = Mechanics.delta_tower_radius_adj[B_AXIS];
 
     SERIAL_EM("G33 Auto Calibrate");
 
@@ -4513,17 +4513,17 @@ void home_all_axes() { gcode_G28(true); }
 
     SERIAL_MV(".Height:", Mechanics.delta_height, 2);
     if (!_1p_calibration) {
-      print_signed_float(PSTR("  Ex"), Mechanics.endstop_adj[A_AXIS]);
-      print_signed_float(PSTR("Ey"), Mechanics.endstop_adj[B_AXIS]);
-      print_signed_float(PSTR("Ez"), Mechanics.endstop_adj[C_AXIS]);
+      print_signed_float(PSTR("  Ex"), Mechanics.delta_endstop_adj[A_AXIS]);
+      print_signed_float(PSTR("Ey"), Mechanics.delta_endstop_adj[B_AXIS]);
+      print_signed_float(PSTR("Ez"), Mechanics.delta_endstop_adj[C_AXIS]);
       SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
     }
     SERIAL_EOL();
     if (_7p_calibration && towers_set) {
       SERIAL_MSG(".Tower angle:   ");
-      print_signed_float(PSTR("Tx"), Mechanics.tower_radius_adj[A_AXIS]);
-      print_signed_float(PSTR("Ty"), Mechanics.tower_radius_adj[B_AXIS]);
-      print_signed_float(PSTR("Tz"), Mechanics.tower_radius_adj[C_AXIS]);
+      print_signed_float(PSTR("Tx"), Mechanics.delta_tower_radius_adj[A_AXIS]);
+      print_signed_float(PSTR("Ty"), Mechanics.delta_tower_radius_adj[B_AXIS]);
+      print_signed_float(PSTR("Tz"), Mechanics.delta_tower_radius_adj[C_AXIS]);
       SERIAL_EOL();
     }
 
@@ -4541,7 +4541,7 @@ void home_all_axes() { gcode_G28(true); }
       }
       if (_7p_calibration) { // probe extra center points
         for (int8_t axis = _7p_multi_circle ? 11 : 9; axis > 0; axis -= _7p_multi_circle ? 2 : 4) {
-          const float a = RADIANS(180 + 30 * axis), r = Mechanics.probe_radius * 0.1;
+          const float a = RADIANS(180 + 30 * axis), r = Mechanics.delta_probe_radius * 0.1;
           z_at_pt[0] += probe.check_pt(cos(a) * r, sin(a) * r, stow_after_each, 1);
         }
         z_at_pt[0] /= float(_7p_double_circle ? 7 : probe_points);
@@ -4556,7 +4556,7 @@ void home_all_axes() { gcode_G28(true); }
                                        _7p_double_circle    ? (zig_zag ? 0.5 : 0.0) : 0;
           for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
             const float a = RADIANS(180 + 30 * axis),
-                        r = Mechanics.probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
+                        r = Mechanics.delta_probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
             z_at_pt[axis] += probe.check_pt(cos(a) * r, sin(a) * r, stow_after_each, 1);
           }
           zig_zag = !zig_zag;
@@ -4586,17 +4586,17 @@ void home_all_axes() { gcode_G28(true); }
       // Solve matrices
 
       if (zero_std_dev < test_precision && zero_std_dev > calibration_precision) {
-        COPY_ARRAY(e_old, Mechanics.endstop_adj);
+        COPY_ARRAY(e_old, Mechanics.delta_endstop_adj);
         dr_old = Mechanics.delta_radius;
         zh_old = Mechanics.delta_height;
-        alpha_old = Mechanics.tower_radius_adj[A_AXIS];
-        beta_old = Mechanics.tower_radius_adj[B_AXIS];
+        alpha_old = Mechanics.delta_tower_radius_adj[A_AXIS];
+        beta_old = Mechanics.delta_tower_radius_adj[B_AXIS];
 
         float e_delta[XYZ] = { 0.0 }, r_delta = 0.0, t_alpha = 0.0, t_beta = 0.0;
-        const float r_diff = Mechanics.delta_radius - Mechanics.probe_radius,
+        const float r_diff = Mechanics.delta_radius - Mechanics.delta_probe_radius,
                     h_factor = 1.00 + r_diff * 0.001,                          // 1.02 for r_diff = 20mm
                     r_factor = -(1.75 + 0.005 * r_diff + 0.001 * sq(r_diff)),  // 2.25 for r_diff = 20mm
-                    a_factor = 100.0 / Mechanics.probe_radius;               // 1.25 for cal_rd = 80mm
+                    a_factor = 100.0 / Mechanics.delta_probe_radius;               // 1.25 for cal_rd = 80mm
 
         #define ZP(N,I) ((N) * z_at_pt[I])
         #define Z1000(I) ZP(1.00, I)
@@ -4644,24 +4644,24 @@ void home_all_axes() { gcode_G28(true); }
             break;
         }
 
-        LOOP_XYZ(axis) Mechanics.endstop_adj[axis] += e_delta[axis];
+        LOOP_XYZ(axis) Mechanics.delta_endstop_adj[axis] += e_delta[axis];
         Mechanics.delta_radius += r_delta;
-        Mechanics.tower_radius_adj[A_AXIS] += t_alpha;
-        Mechanics.tower_radius_adj[B_AXIS] += t_beta;
+        Mechanics.delta_tower_radius_adj[A_AXIS] += t_alpha;
+        Mechanics.delta_tower_radius_adj[B_AXIS] += t_beta;
 
         // adjust delta_height and endstops by the max amount
-        const float z_temp = MAX3(Mechanics.endstop_adj[A_AXIS], Mechanics.endstop_adj[B_AXIS], Mechanics.endstop_adj[C_AXIS]);
+        const float z_temp = MAX3(Mechanics.delta_endstop_adj[A_AXIS], Mechanics.delta_endstop_adj[B_AXIS], Mechanics.delta_endstop_adj[C_AXIS]);
         Mechanics.delta_height -= z_temp;
-        LOOP_XYZ(i) Mechanics.endstop_adj[i] -= z_temp;
+        LOOP_XYZ(i) Mechanics.delta_endstop_adj[i] -= z_temp;
 
         Mechanics.recalc_delta_settings();
       }
       else if(zero_std_dev >= test_precision) {   // step one back
-        COPY_ARRAY(Mechanics.endstop_adj, e_old);
+        COPY_ARRAY(Mechanics.delta_endstop_adj, e_old);
         Mechanics.delta_radius = dr_old;
         Mechanics.delta_height = zh_old;
-        Mechanics.tower_radius_adj[A_AXIS] = alpha_old;
-        Mechanics.tower_radius_adj[B_AXIS] = beta_old;
+        Mechanics.delta_tower_radius_adj[A_AXIS] = alpha_old;
+        Mechanics.delta_tower_radius_adj[B_AXIS] = beta_old;
 
         Mechanics.recalc_delta_settings();
       }
@@ -4709,17 +4709,17 @@ void home_all_axes() { gcode_G28(true); }
         }
         SERIAL_MV(".Height:", Mechanics.delta_height, 2);
         if (!_1p_calibration) {
-          print_signed_float(PSTR("  Ex"), Mechanics.endstop_adj[A_AXIS]);
-          print_signed_float(PSTR("Ey"), Mechanics.endstop_adj[B_AXIS]);
-          print_signed_float(PSTR("Ez"), Mechanics.endstop_adj[C_AXIS]);
+          print_signed_float(PSTR("  Ex"), Mechanics.delta_endstop_adj[A_AXIS]);
+          print_signed_float(PSTR("Ey"), Mechanics.delta_endstop_adj[B_AXIS]);
+          print_signed_float(PSTR("Ez"), Mechanics.delta_endstop_adj[C_AXIS]);
           SERIAL_MV("    Radius:", Mechanics.delta_radius, 2);
         }
         SERIAL_EOL();
         if (_7p_calibration && towers_set) {
           SERIAL_MSG(".Tower angle :  ");
-          print_signed_float(PSTR("Tx"), Mechanics.tower_radius_adj[A_AXIS]);
-          print_signed_float(PSTR("Ty"), Mechanics.tower_radius_adj[B_AXIS]);
-          print_signed_float(PSTR("Tz"), Mechanics.tower_radius_adj[C_AXIS]);
+          print_signed_float(PSTR("Tx"), Mechanics.delta_tower_radius_adj[A_AXIS]);
+          print_signed_float(PSTR("Ty"), Mechanics.delta_tower_radius_adj[B_AXIS]);
+          print_signed_float(PSTR("Tz"), Mechanics.delta_tower_radius_adj[C_AXIS]);
           SERIAL_EOL();
         }
         if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {
@@ -4751,7 +4751,7 @@ void home_all_axes() { gcode_G28(true); }
     } while (zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31);
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      Mechanics.do_blocking_move_to_z(Mechanics.clip_start_height);
+      Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
     #endif
     probe.set_deployed(false);
     clean_up_after_endstop_or_probe_move();
@@ -4967,7 +4967,7 @@ void home_all_axes() { gcode_G28(true); }
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
       float dist = Mechanics.destination[i] - Mechanics.current_position[i];
-      retract_mm[i] = fabs(dist) < G38_MINIMUM_MOVE ? 0 : Mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      retract_mm[i] = FABS(dist) < G38_MINIMUM_MOVE ? 0 : Mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
     stepper.synchronize();  // wait until the machine is idle
@@ -5030,7 +5030,7 @@ void home_all_axes() { gcode_G28(true); }
 
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
-      if (fabs(Mechanics.destination[i] - Mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
+      if (FABS(Mechanics.destination[i] - Mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
         if (!parser.seen('F')) Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
@@ -5892,7 +5892,7 @@ inline void gcode_M42() {
         float angle = random(0.0, 360.0),
               radius = random(
                 #if MECH(DELTA)
-                  Mechanics.probe_radius / 8, Mechanics.probe_radius / 3
+                  Mechanics.delta_probe_radius / 8, Mechanics.delta_probe_radius / 3
                 #else
                   5, X_MAX_LENGTH / 8
                 #endif
@@ -8841,19 +8841,19 @@ inline void gcode_M532() {
       Mechanics.current_position[Z_AXIS] += Mechanics.delta_height - old_delta_height;
     }
 
-    if (parser.seen('D')) Mechanics.diagonal_rod              = parser.value_linear_units();
+    if (parser.seen('D')) Mechanics.delta_diagonal_rod              = parser.value_linear_units();
     if (parser.seen('R')) Mechanics.delta_radius              = parser.value_linear_units();
-    if (parser.seen('S')) Mechanics.segments_per_second       = parser.value_float();
-    if (parser.seen('A')) Mechanics.diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('B')) Mechanics.diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('C')) Mechanics.diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('I')) Mechanics.tower_radius_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('J')) Mechanics.tower_radius_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('K')) Mechanics.tower_radius_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('U')) Mechanics.tower_pos_adj[A_AXIS]     = parser.value_linear_units();
-    if (parser.seen('V')) Mechanics.tower_pos_adj[B_AXIS]     = parser.value_linear_units();
-    if (parser.seen('W')) Mechanics.tower_pos_adj[C_AXIS]     = parser.value_linear_units();
-    if (parser.seen('O')) Mechanics.print_radius              = parser.value_linear_units();
+    if (parser.seen('S')) Mechanics.delta_segments_per_second       = parser.value_float();
+    if (parser.seen('A')) Mechanics.delta_diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('B')) Mechanics.delta_diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('C')) Mechanics.delta_diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('I')) Mechanics.delta_tower_radius_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('J')) Mechanics.delta_tower_radius_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('K')) Mechanics.delta_tower_radius_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('U')) Mechanics.delta_tower_pos_adj[A_AXIS]     = parser.value_linear_units();
+    if (parser.seen('V')) Mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
+    if (parser.seen('W')) Mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
+    if (parser.seen('O')) Mechanics.delta_print_radius              = parser.value_linear_units();
 
     Mechanics.recalc_delta_settings();
 
@@ -8895,33 +8895,33 @@ inline void gcode_M532() {
     #endif // HAS_BED_PROBE
 
     LOOP_XYZ(i) {
-      if (parser.seen(axis_codes[i])) Mechanics.endstop_adj[i] = parser.value_linear_units();
+      if (parser.seen(axis_codes[i])) Mechanics.delta_endstop_adj[i] = parser.value_linear_units();
     }
 
     if (parser.seen('L')) {
       SERIAL_LM(CFG, "Current Delta geometry values:");
       LOOP_XYZ(i) {
         SERIAL_SV(CFG, axis_codes[i]);
-        SERIAL_EMV(" (Endstop Adj): ", Mechanics.endstop_adj[i], 3);
+        SERIAL_EMV(" (Endstop Adj): ", Mechanics.delta_endstop_adj[i], 3);
       }
 
       #if HAS_BED_PROBE
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", probe.z_offset, 3);
       #endif
 
-      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[0], 3);
-      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[1], 3);
-      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  Mechanics.diagonal_rod_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        Mechanics.tower_radius_adj[0], 3);
-      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        Mechanics.tower_radius_adj[1], 3);
-      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        Mechanics.tower_radius_adj[2], 3);
-      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      Mechanics.tower_pos_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      Mechanics.tower_pos_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      Mechanics.tower_pos_adj[2], 3);
+      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[0], 3);
+      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[1], 3);
+      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        Mechanics.delta_tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        Mechanics.delta_tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        Mechanics.delta_tower_radius_adj[2], 3);
+      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      Mechanics.delta_tower_pos_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      Mechanics.delta_tower_pos_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      Mechanics.delta_tower_pos_adj[2], 3);
       SERIAL_LMV(CFG, "R (Delta Radius): ",                     Mechanics.delta_radius, 4);
-      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              Mechanics.diagonal_rod, 4);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ",        Mechanics.segments_per_second);
-      SERIAL_LMV(CFG, "O (Delta Print Radius): ",               Mechanics.print_radius);
+      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              Mechanics.delta_diagonal_rod, 4);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ",        Mechanics.delta_segments_per_second);
+      SERIAL_LMV(CFG, "O (Delta Print Radius): ",               Mechanics.delta_print_radius);
       SERIAL_LMV(CFG, "H (Z-Height): ",                         Mechanics.delta_height, 3);
     }
   }
@@ -9542,7 +9542,7 @@ inline void gcode_T(uint8_t tool_id) {
 
 #if HAS_DONDOLO
 
-  inline void move_extruder_servo(uint8_t e) {
+  inline void move_extruder_servo(const uint8_t e) {
     const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
     MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
 
@@ -9553,7 +9553,7 @@ inline void gcode_T(uint8_t tool_id) {
 
 #endif
 
-inline void invalid_extruder_error(const uint8_t &e) {
+inline void invalid_extruder_error(const uint8_t e) {
   SERIAL_SMV(ER, "T", (int)e);
   SERIAL_EM(" " MSG_INVALID_EXTRUDER);
 }
@@ -10761,19 +10761,19 @@ void ok_to_send() {
       bed_level_c = probe.check_pt(0.0, 0.0);
 
       // Probe all bed positions & store carriage positions
-      bed_level_z = probe.check_pt(0.0, Mechanics.probe_radius);
-      bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
-      bed_level_x = probe.check_pt(-SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
-      bed_level_oz = probe.check_pt(0.0, -Mechanics.probe_radius);
-      bed_level_y = probe.check_pt(SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
-      bed_level_ox = probe.check_pt(SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
+      bed_level_z = probe.check_pt(0.0, Mechanics.delta_probe_radius);
+      bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+      bed_level_x = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+      bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
+      bed_level_y = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+      bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
       bed_level_c = probe.check_pt(0.0, 0.0);
     }
 
     void apply_endstop_adjustment(const float x_endstop, const float y_endstop, const float z_endstop) {
-      Mechanics.endstop_adj[X_AXIS] += x_endstop;
-      Mechanics.endstop_adj[Y_AXIS] += y_endstop;
-      Mechanics.endstop_adj[Z_AXIS] += z_endstop;
+      Mechanics.delta_endstop_adj[X_AXIS] += x_endstop;
+      Mechanics.delta_endstop_adj[Y_AXIS] += y_endstop;
+      Mechanics.delta_endstop_adj[Z_AXIS] += z_endstop;
 
       Mechanics.Transform(Mechanics.current_position);
       Mechanics.set_position_mm(Mechanics.delta[A_AXIS] - x_endstop , Mechanics.delta[B_AXIS] - y_endstop, Mechanics.delta[C_AXIS] - z_endstop, Mechanics.current_position[E_AXIS]);  
@@ -10786,18 +10786,18 @@ void ok_to_send() {
       bool z_done = false;
 
       do {
-        bed_level_z = probe.check_pt(0.0, Mechanics.probe_radius);
-        bed_level_x = probe.check_pt(-SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
-        bed_level_y = probe.check_pt(SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
+        bed_level_z = probe.check_pt(0.0, Mechanics.delta_probe_radius);
+        bed_level_x = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+        bed_level_y = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
 
         apply_endstop_adjustment(bed_level_x, bed_level_y, bed_level_z);
 
         SERIAL_MV("x:", bed_level_x, 4);
-        SERIAL_MV(" (adj:", Mechanics.endstop_adj[0], 4);
+        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[0], 4);
         SERIAL_MV(") y:", bed_level_y, 4);
-        SERIAL_MV(" (adj:", Mechanics.endstop_adj[1], 4);
+        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[1], 4);
         SERIAL_MV(") z:", bed_level_z, 4);
-        SERIAL_MV(" (adj:", Mechanics.endstop_adj[2], 4);
+        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[2], 4);
         SERIAL_CHR(')'); SERIAL_EOL();
 
         if (FABS(bed_level_x) <= ac_prec) {
@@ -10828,13 +10828,13 @@ void ok_to_send() {
         }
       } while (((x_done == false) or (y_done == false) or (z_done == false)));
 
-      const float high_endstop = MAX3(Mechanics.endstop_adj[A_AXIS], Mechanics.endstop_adj[B_AXIS], Mechanics.endstop_adj[C_AXIS]);
+      const float high_endstop = MAX3(Mechanics.delta_endstop_adj[A_AXIS], Mechanics.delta_endstop_adj[B_AXIS], Mechanics.delta_endstop_adj[C_AXIS]);
 
       SERIAL_EMV("High endstop:", high_endstop, 4);
 
       if (high_endstop > 0) {
         SERIAL_EMV("Reducing Build height by ", high_endstop);
-        LOOP_XYZ(i) Mechanics.endstop_adj[i] -= high_endstop;
+        LOOP_XYZ(i) Mechanics.delta_endstop_adj[i] -= high_endstop;
         Mechanics.delta_height -= high_endstop;
       }
 
@@ -10850,7 +10850,7 @@ void ok_to_send() {
             low_opp, high_opp;
       uint8_t err_tower = 0;
 
-      COPY_ARRAY(saved_tower_radius_adj, Mechanics.tower_radius_adj);
+      COPY_ARRAY(saved_tower_radius_adj, Mechanics.delta_tower_radius_adj);
 
       x_diff = FABS(bed_level_x - bed_level_ox);
       y_diff = FABS(bed_level_y - bed_level_oy);
@@ -10950,7 +10950,7 @@ void ok_to_send() {
 
       // Set return value to indicate if anything has been changed (0 = no change)
       int retval = 0;
-      LOOP_XYZ(i) if (saved_tower_radius_adj[i] != Mechanics.tower_radius_adj[i]) retval++;
+      LOOP_XYZ(i) if (saved_tower_radius_adj[i] != Mechanics.delta_tower_radius_adj[i]) retval++;
       return retval;
     }
 
@@ -11027,27 +11027,27 @@ void ok_to_send() {
             bed_level_o = 0.0;
 
       do {
-        Mechanics.tower_radius_adj[tower - 1] += adj_tRadius;
+        Mechanics.delta_tower_radius_adj[tower - 1] += adj_tRadius;
         Mechanics.recalc_delta_settings();
         adj_done = false;
 
         if (tower == 1) {
           // Bedlevel_x
-          bed_level = probe.check_pt(-SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
+          bed_level = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
           // Bedlevel_ox
-          bed_level_o = probe.check_pt(SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
+          bed_level_o = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
         }
         if (tower == 2) {
           // Bedlevel_y
-          bed_level = probe.check_pt(SIN_60 * Mechanics.probe_radius, -COS_60 * Mechanics.probe_radius);
+          bed_level = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
           // Bedlevel_oy
-          bed_level_o = probe.check_pt(-SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
+          bed_level_o = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
         }
         if (tower == 3) {
           // Bedlevel_z
-          bed_level = probe.check_pt(0.0, Mechanics.probe_radius);
+          bed_level = probe.check_pt(0.0, Mechanics.delta_probe_radius);
           // Bedlevel_oz
-          bed_level_o = probe.check_pt(0.0, -Mechanics.probe_radius);
+          bed_level_o = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
         }
 
         // Set inital adjustment value if it is currently 0
@@ -11065,7 +11065,7 @@ void ok_to_send() {
         // Show progress
         SERIAL_MV("tower:", bed_level, 4);
         SERIAL_MV(" opptower:", bed_level_o, 4);
-        SERIAL_MV(" tower radius adj:", Mechanics.tower_radius_adj[tower - 1], 4);
+        SERIAL_MV(" tower radius adj:", Mechanics.delta_tower_radius_adj[tower - 1], 4);
         SERIAL_MSG(" done:");
         if (adj_done == true) SERIAL_EM("true");
         else SERIAL_EM("false");
@@ -11081,12 +11081,12 @@ void ok_to_send() {
       float adj_prv;
 
       do {
-        Mechanics.tower_pos_adj[tower - 1] += adj_val;
+        Mechanics.delta_tower_pos_adj[tower - 1] += adj_val;
         Mechanics.recalc_delta_settings();
 
-        if ((tower == 1) or (tower == 3)) bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
-        if ((tower == 1) or (tower == 2)) bed_level_oz = probe.check_pt(0.0, -Mechanics.probe_radius);
-        if ((tower == 2) or (tower == 3)) bed_level_ox = probe.check_pt(SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
+        if ((tower == 1) or (tower == 3)) bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+        if ((tower == 1) or (tower == 2)) bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
+        if ((tower == 2) or (tower == 3)) bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
 
         adj_prv = adj_val;
         adj_val = 0;
@@ -11140,15 +11140,15 @@ void ok_to_send() {
       float adj_val = 0;
       float adj_mag = 0.2;
       float adj_prv, target;
-      float prev_diag_rod = Mechanics.diagonal_rod;
+      float prev_diag_rod = Mechanics.delta_diagonal_rod;
 
       do {
-        Mechanics.diagonal_rod += adj_val;
+        Mechanics.delta_diagonal_rod += adj_val;
         Mechanics.recalc_delta_settings();
 
-        bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
-        bed_level_oz = probe.check_pt(0.0, -Mechanics.probe_radius);
-        bed_level_ox = probe.check_pt(SIN_60 * Mechanics.probe_radius, COS_60 * Mechanics.probe_radius);
+        bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+        bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
+        bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
         bed_level_c = probe.check_pt(0.0, 0.0);
 
         target = (bed_level_ox + bed_level_oy + bed_level_oz) / 3;
@@ -11173,7 +11173,7 @@ void ok_to_send() {
         SERIAL_EMV(" adj:", adj_val, 5);
       } while(adj_val != 0);
 
-      return (Mechanics.diagonal_rod - prev_diag_rod);
+      return (Mechanics.delta_diagonal_rod - prev_diag_rod);
     }
 
     void calibration_report() {
@@ -11183,9 +11183,9 @@ void ok_to_send() {
       SERIAL_MSG("| \t");
       if (bed_level_z >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_z, 4);
-      SERIAL_MV("\t\t\tX:", Mechanics.endstop_adj[0], 4);
-      SERIAL_MV(" Y:", Mechanics.endstop_adj[1], 4);
-      SERIAL_EMV(" Z:", Mechanics.endstop_adj[2], 4);
+      SERIAL_MV("\t\t\tX:", Mechanics.delta_endstop_adj[0], 4);
+      SERIAL_MV(" Y:", Mechanics.delta_endstop_adj[1], 4);
+      SERIAL_EMV(" Z:", Mechanics.delta_endstop_adj[2], 4);
 
       SERIAL_MSG("| ");
       if (bed_level_ox >= 0) SERIAL_MSG(" ");
@@ -11198,9 +11198,9 @@ void ok_to_send() {
       SERIAL_MSG("| \t");
       if (bed_level_c >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_c, 4);
-      SERIAL_MV("\t\t\tA:", Mechanics.tower_radius_adj[0]);
-      SERIAL_MV(" B:", Mechanics.tower_radius_adj[1]);
-      SERIAL_EMV(" C:", Mechanics.tower_radius_adj[2]);
+      SERIAL_MV("\t\t\tA:", Mechanics.delta_tower_radius_adj[0]);
+      SERIAL_MV(" B:", Mechanics.delta_tower_radius_adj[1]);
+      SERIAL_EMV(" C:", Mechanics.delta_tower_radius_adj[2]);
 
       SERIAL_MSG("| ");
       if (bed_level_x >= 0) SERIAL_MSG(" ");
@@ -11208,16 +11208,16 @@ void ok_to_send() {
       SERIAL_MSG("\t");
       if (bed_level_y >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_y, 4);
-      SERIAL_MV("\t\tI:", Mechanics.tower_pos_adj[0]);
-      SERIAL_MV(" J:", Mechanics.tower_pos_adj[1]);
-      SERIAL_EMV(" K:", Mechanics.tower_pos_adj[2]);
+      SERIAL_MV("\t\tI:", Mechanics.delta_tower_pos_adj[0]);
+      SERIAL_MV(" J:", Mechanics.delta_tower_pos_adj[1]);
+      SERIAL_EMV(" K:", Mechanics.delta_tower_pos_adj[2]);
 
       SERIAL_MSG("| \t");
       if (bed_level_oz >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_oz, 4);
       SERIAL_EMV("\t\t\tDelta Radius: ", Mechanics.delta_radius, 4);
 
-      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", Mechanics.diagonal_rod, 4);
+      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", Mechanics.delta_diagonal_rod, 4);
       SERIAL_EOL();
     }
 
