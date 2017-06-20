@@ -911,13 +911,8 @@ static_assert(1 >= 0
   #if DISABLED(SD_FINISHED_RELEASECOMMAND)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND
   #endif
-  #if ENABLED(SD_SETTINGS)
-    #if DISABLED(SD_CFG_SECONDS)
-      #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
-    #endif
-    #if DISABLED(CFG_SD_FILE)
-      #error DEPENDENCY ERROR: Missing setting CFG_SD_FILE
-    #endif
+  #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
+    #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
   #endif
 #endif
 #if ENABLED(SHOW_BOOTSCREEN)
