@@ -67,7 +67,6 @@ char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kan
   void action_laser_focus_6mm();
   void action_laser_focus_7mm();
   void action_laser_test_weak();
-  void action_laser_test_altweak();
   void action_laser_test_20_50ms();
   void action_laser_test_20_100ms();
   void action_laser_test_100_50ms();
@@ -2707,8 +2706,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_laser_test_fire_menu() {
       START_MENU();
        MENU_BACK("Laser Functions");
-       MENU_ITEM(function, "0.5% ON", action_laser_test_weak);
-       MENU_ITEM(function, "99.5% ON", action_laser_test_altweak);
+       MENU_ITEM(function, "Weak ON", action_laser_test_weak);
        MENU_ITEM(function, " 20%  50ms", action_laser_test_20_50ms);
        MENU_ITEM(function, " 20% 100ms", action_laser_test_20_100ms);
        MENU_ITEM(function, "100%  50ms", action_laser_test_100_50ms);
@@ -2719,8 +2717,7 @@ void kill_screen(const char* lcd_msg) {
 
     void action_laser_acc_on() { enqueue_and_echo_commands_P(PSTR("M80")); }
     void action_laser_acc_off() { enqueue_and_echo_commands_P(PSTR("M81")); }
-    void action_laser_test_weak() { laser_fire(0.5); }
-    void action_laser_test_altweak() { laser_fire(99.5); }
+    void action_laser_test_weak() { laser_fire(0.3); }
     void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
     void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
     void action_laser_test_100_50ms() { laser_test_fire(100, 50); }
