@@ -5,6 +5,7 @@
 * Add Laser PWM Invert invert and HIGH to Fire
 * Add LASER_REMAP_INTENSITY can be disabled
 * Add Weak laser option in LCD Laser Test submenu
+* Fix Laser Init
 
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor

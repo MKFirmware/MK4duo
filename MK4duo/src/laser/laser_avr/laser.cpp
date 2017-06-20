@@ -65,15 +65,15 @@
       TCCR3A = _BV(COM3B1) | _BV(COM3B0) | _BV(WGM31); // Fast PWM (WGM31) / (Clear OC3B/pin 2 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR3B = ICR3;
-	#else
-	  OCR3B = 0;
+    #else
+      OCR3B = 0;
     #endif
     }
     else if (pin == 3) {
       TCCR3A = _BV(COM3C1) | _BV(COM3C0) | _BV(WGM31); // Fast PWM (WGM31) / Clear OC3C/pin 3 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR3C = ICR3;
-	#else
+    #else
       OCR3C = 0;
     #endif
     }
@@ -81,7 +81,7 @@
       TCCR3A = _BV(COM3A1) | _BV(COM3A0) | _BV(WGM31); // Fast PWM (WGM31) / Clear OC3A/pin 5 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR3A = ICR3;
-	#else
+    #else
       OCR3A = 0;
     #endif
     }
@@ -109,7 +109,7 @@
       TCCR4A = _BV(COM4A1) |  _BV(COM4A0) | _BV(WGM41); // Fast PWM (WGM41) / Clear OC4A/pin 5 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR4A = ICR4;
-	#else
+    #else
       OCR4A = 0;
     #endif
     }
@@ -117,7 +117,7 @@
       TCCR4A = _BV(COM4B1) | _BV(COM4B0) | _BV(WGM41); // Fast PWM (WGM41) / (Clear OC4B/pin 2 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR4B = ICR4;
-	#else
+    #else
       OCR4B = 0;
     #endif
     }
@@ -125,7 +125,7 @@
       TCCR4A = _BV(COM4C1) | _BV(COM4C0) | _BV(WGM41); // Fast PWM (WGM41) / Clear OC4C/pin 4 on compare match (set output to low level)
     #if ENABLED(LASER_PWM_INVERT)
       OCR4C = ICR4;
-	#else
+    #else
       OCR4C = 0;
     #endif
     }
@@ -157,7 +157,7 @@
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
-    laser.firing = LASER_OFF;
+    laser.firing = LASER_ON;
     laser.mode = CONTINUOUS;
     laser.last_firing = 0;
     laser.diagnostics = false;

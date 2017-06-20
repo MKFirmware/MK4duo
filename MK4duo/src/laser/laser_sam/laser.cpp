@@ -74,7 +74,7 @@
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
-    laser.firing = LASER_OFF;
+    laser.firing = LASER_ON;
     laser.mode = CONTINUOUS;
     laser.last_firing = 0;
     laser.diagnostics = false;
