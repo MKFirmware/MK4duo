@@ -43,10 +43,8 @@
 //Machine name
 #if ENABLED(CUSTOM_MACHINE_NAME)
   #define MACHINE_NAME CUSTOM_MACHINE_NAME
-#elif ENABLED(BOARD_NAME)
-  #define MACHINE_NAME BOARD_NAME
 #else
-  #define MACHINE_NAME "3D Printer"
+  #define MACHINE_NAME BOARD_NAME
 #endif
 
 // LCD Menu Messages
