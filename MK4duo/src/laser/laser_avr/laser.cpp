@@ -49,7 +49,7 @@
 
   laser_t laser;
 
-  void timer3_init(int pin) {
+  void timer3_init(Pin pin) {
 
     pinMode(pin, OUTPUT);
     digitalWrite(pin, HIGH);
@@ -79,7 +79,7 @@
     interrupts();
   }
 
-  void timer4_init(int pin) {
+  void timer4_init(Pin pin) {
 
     pinMode(pin, OUTPUT);
     digitalWrite(pin, HIGH);
@@ -128,8 +128,12 @@
       OUT_WRITE(LASER_PERIPHERALS_STATUS_PIN, HIGH);  // Set the peripherals status pin to pull-up.
     #endif
 
+    #if LASER_CONTROL == 2
+      OUT_WRITE(LASER_PWR_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
+    #endif
+
     // initialize state to some sane defaults
-    laser.intensity = 50.0;
+    laser.intensity = 100.0;
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
@@ -189,7 +193,7 @@
         OCR4C = labs((intensity / 100.0) * (F_CPU / LASER_PWM));
       #endif
 
-      WRITE(LASER_PWR_PIN, LOW);
+      WRITE(LASER_PWR_PIN, LASER_ARM);
 
     #endif
 
@@ -234,7 +238,7 @@
           OCR4C = 0;
         #endif
 
-        WRITE(LASER_PWR_PIN, HIGH);
+        WRITE(LASER_PWR_PIN, LASER_UNARM);
 
       #endif
 

@@ -266,11 +266,6 @@
 #define MSG_BED_LEVELING_Y                  " Y:"
 #define MSG_BED_LEVELING_Z                  "Z-probe:"
 
-// LCD Menu Messages
-#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
-#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
-#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
-
 // Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"
@@ -305,7 +300,10 @@
 #define MSG_DIAM_E5 " 5"
 #define MSG_DIAM_E6 " 6"
 
-#include "language_en.h"
+#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
+#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
+#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
+
 #include INCLUDE_LANGUAGE
 
 #if DISABLED(SIMULATE_ROMFONT) \
@@ -318,5 +316,7 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
+
+#include "language_en.h"
 
 #endif //__LANGUAGE_H

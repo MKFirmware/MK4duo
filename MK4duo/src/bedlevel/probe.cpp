@@ -191,7 +191,7 @@ float Probe::check_pt(const float &x, const float &y, const bool stow/*=true*/, 
 
   if (set_deployed(true)) return NAN;
 
-  float measured_z;
+  float measured_z = 0.0;
 
   // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
   refresh_cmd_timeout();

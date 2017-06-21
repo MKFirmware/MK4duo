@@ -70,7 +70,7 @@
     #endif
 
     // initialize state to some sane defaults
-    laser.intensity = 50.0;
+    laser.intensity = 100.0;
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
@@ -107,8 +107,7 @@
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
-    if (laser.diagnostics)
-      SERIAL_EM("Laser fired");
+    if (laser.diagnostics) SERIAL_EM("Laser fired");
   }
 
   void laser_fire_byte(uint8_t intensity) { // Fire with byte-range 0-255
@@ -122,16 +121,14 @@
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
-    if (laser.diagnostics)
-      SERIAL_EM("Laser_byte fired");
+    if (laser.diagnostics) SERIAL_EM("Laser_byte fired");
   }
 
   void laser_extinguish() {
     if (laser.firing == LASER_ON) {
       laser.firing = LASER_OFF;
 
-      if (laser.diagnostics)
-        SERIAL_EM("Laser being extinguished");
+      if (laser.diagnostics) SERIAL_EM("Laser being extinguished");
 
       #if LASER_CONTROL == 1
         HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);

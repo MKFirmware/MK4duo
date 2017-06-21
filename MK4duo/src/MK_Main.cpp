@@ -1877,21 +1877,25 @@ void gcode_get_destination() {
     static bool sd_print_paused = false;
   #endif
 
-  static void filament_change_beep(const int8_t max_beep_count, const bool init=false) {
-    static millis_t next_buzz = 0;
-    static int8_t runout_beep = 0;
+  #if HAS_BUZZER
 
-    if (init) next_buzz = runout_beep = 0;
+    static void filament_change_beep(const int8_t max_beep_count, const bool init=false) {
+      static millis_t next_buzz = 0;
+      static int8_t runout_beep = 0;
 
-    const millis_t ms = millis();
-    if (ELAPSED(ms, next_buzz)) {
-      if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
-        next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 2500 : 400);
-        BUZZ(300, 2000);
-        runout_beep++;
+      if (init) next_buzz = runout_beep = 0;
+
+      const millis_t ms = millis();
+      if (ELAPSED(ms, next_buzz)) {
+        if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
+          next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 2500 : 400);
+          BUZZ(300, 2000);
+          runout_beep++;
+        }
       }
     }
-  }
+
+  #endif
 
   static void ensure_safe_temperature() {
     bool heaters_heating = true;
@@ -2014,6 +2018,8 @@ void gcode_get_destination() {
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
+    #else
+      UNUSED(max_beep_count);
     #endif
 
     idle();
@@ -2051,6 +2057,8 @@ void gcode_get_destination() {
 
       #if HAS_BUZZER
         filament_change_beep(max_beep_count);
+      #else
+        UNUSED(max_beep_count);
       #endif
 
       if (!nozzle_timed_out)
@@ -2149,6 +2157,8 @@ void gcode_get_destination() {
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
+    #else
+      UNUSED(max_beep_count);
     #endif
 
     if (load_length != 0) {
@@ -3210,7 +3220,8 @@ void home_all_axes() { gcode_G28(true); }
       #endif
 
       ABL_VAR int left_probe_bed_position, right_probe_bed_position, front_probe_bed_position, back_probe_bed_position;
-      ABL_VAR float xGridSpacing, yGridSpacing;
+      ABL_VAR float xGridSpacing = 0.0,
+                    yGridSpacing = 0.0;
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
         ABL_VAR uint8_t abl_grid_points_x = GRID_MAX_POINTS_X,
@@ -11291,8 +11302,8 @@ void report_current_position_detail() {
   #endif
 
   SERIAL_MSG("Stepper:");
-  const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
-  report_xyze(step_count, 4, 0);
+  const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+  report_xyze((float*)step_count, 4, 0);
 
   #if IS_SCARA
     const float deg[XYZ] = {
@@ -11801,7 +11812,6 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
-        eeprom.Store_Settings();
       }
       laser_init();
       #if ENABLED(LASER_PERIPHERALS)
