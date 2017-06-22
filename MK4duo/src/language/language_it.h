@@ -30,6 +30,7 @@
 #ifndef LANGUAGE_IT_H
 #define LANGUAGE_IT_H
 
+#define MAPPER_C2C3
 #define DISPLAY_CHARSET_ISO10646_1
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronta.")
@@ -89,21 +90,13 @@
 #define MSG_MOVE_01MM                       _UxGT("Muovi di 0.1mm")
 #define MSG_MOVE_1MM                        _UxGT("Muovi di   1mm")
 #define MSG_MOVE_10MM                       _UxGT("Muovi di  10mm")
-#if ENABLED(DOGLCD)
-  #define MSG_SPEED                         _UxGT("Velocità")
-#else
-  #define MSG_SPEED                         _UxGT("Velocita")
-#endif
+#define MSG_SPEED                           _UxGT("Velocità")
 #define MSG_BED_Z                           _UxGT("piatto Z")
 #define MSG_NOZZLE                          _UxGT("Ugello")
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
 #define MSG_COOLER                          _UxGT("Raffreddamento")
-#if ENABLED(DOGLCD)
-  #define MSG_FAN_SPEED                     _UxGT("Velocità ventola")
-#else
-  #define MSG_FAN_SPEED                     _UxGT("Velocita ventola")
-#endif
+#define MSG_FAN_SPEED                       _UxGT("Velocità ventola")
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
 #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")
@@ -125,10 +118,12 @@
 #define MSG_VY_JERK                         _UxGT("Vy-jerk")
 #define MSG_VZ_JERK                         _UxGT("Vz-jerk")
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
+#define MSG_VELOCITY                        _UxGT("Velocità")
 #define MSG_VMAX                            _UxGT("Vmax ")
 #define MSG_VMIN                            _UxGT("Vmin")
 #define MSG_VTRAV_MIN                       _UxGT("VTrav min")
 #define MSG_AMAX                            _UxGT("Amax ")
+#define MSG_ACCELERATION                    _UxGT("Accelerazione")
 #define MSG_A_RETRACT                       _UxGT("A-retract")
 #define MSG_A_TRAVEL                        _UxGT("A-Spostamento")
 #define MSG_STEPS_PER_MM                    _UxGT("Passi/mm")
@@ -251,11 +246,7 @@
 
 // CASE LIGHT
 #define MSG_CASE_LIGHT                      _UxGT("Luci Case")
-#if ENABLED(DOGLCD)
-  #define MSG_CASE_LIGHT_BRIGHTNESS         _UxGT("Luminosità Luci")
-#else
-  #define MSG_CASE_LIGHT_BRIGHTNESS         _UxGT("Luminosita Luci")
-#endif
+#define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Luminosità Luci")
 
 #define MSG_DRIVE_STRENGTH                  _UxGT("Potenza Drive")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")
@@ -265,11 +256,7 @@
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("OPZIONI:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Estrudi ancora")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Riprendi stampa")
-#if ENABLED(DOGLCD)
-  #define MSG_FILAMENT_CHANGE_MINTEMP       _UxGT("Temp minima è ")
-#else
-  #define MSG_FILAMENT_CHANGE_MINTEMP       _UxGT("Temp minima e' ")
-#endif
+#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp minima è ")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Ugello: ")
 
 #if LCD_HEIGHT >= 4
@@ -345,11 +332,7 @@
 #define MSG_RFID_TEMP_BED                   _UxGT("Temperatura Bed: ")
 #define MSG_RFID_TEMP_USER_HOTEND           _UxGT("Temperatura utente Hotend: ")
 #define MSG_RFID_TEMP_USER_BED              _UxGT("Temperatura utente Bed: ")
-#if ENABLED(DOGLCD)
-  #define MSG_RFID_DENSITY                  _UxGT("Densità: ")
-#else
-  #define MSG_RFID_DENSITY                  _UxGT("Densita: ")
-#endif
+#define MSG_RFID_DENSITY                    _UxGT("Densità: ")
 #define MSG_RFID_SPOOL_LENGHT               _UxGT("Lunghezza bobina: ")
 
 #endif // LANGUAGE_IT_H

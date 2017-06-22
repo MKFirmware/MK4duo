@@ -11803,7 +11803,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser.time = 0;
         eeprom.Store_Settings();
       }
-      laser_init();
+      laser_extinguish();
       #if ENABLED(LASER_PERIPHERALS)
         laser_peripherals_off();
       #endif

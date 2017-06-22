@@ -123,7 +123,7 @@ public:
 
     // Code is found in the string. If not found, value_ptr is unchanged.
     // This allows "if (seen('A')||seen('B'))" to use the last-found value.
-    static volatile bool seen(const char c) {
+    static bool seen(const char c) {
       char *p = strchr(command_args, c);
       const bool b = !!p;
       if (b) value_ptr = DECIMAL_SIGNED(p[1]) ? &p[1] : (char*)NULL;
@@ -189,7 +189,7 @@ public:
           linear_unit_factor = 1.0;
           break;
       }
-      volumetric_unit_factor = pow(linear_unit_factor, 3.0);
+      volumetric_unit_factor = POW(linear_unit_factor, 3.0);
     }
 
     inline static float axis_unit_factor(const AxisEnum axis) {

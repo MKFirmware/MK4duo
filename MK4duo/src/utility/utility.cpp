@@ -32,6 +32,14 @@
   #define RJDIGIT(n, f) ((n) >= (f) ? DIGIMOD(n, f) : ' ')
   #define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
 
+  // Convert unsigned int to string 123 format
+  char* i8tostr3(const uint8_t xx) {
+    conv[4] = RJDIGIT(xx, 100);
+    conv[5] = RJDIGIT(xx, 10);
+    conv[6] = DIGIMOD(xx, 1);
+    return &conv[4];
+  }
+
   // Convert unsigned int to string with 12 format
   char* itostr2(const uint8_t &xx) {
     conv[5] = DIGIMOD(xx, 10);

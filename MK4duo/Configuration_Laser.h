@@ -46,7 +46,7 @@
 // In the case that the laserdriver need at least a certain level "LASER_REMAP_INTENSITY"
 // to give anything, the intensity can be remapped to start at "LASER_REMAP_INTENSITY"
 // At least some CO2-drivers need it, not sure about laserdiode drivers.
-// comment this line if your do not want to remap the intensity. Saves
+// comment this line if your do not want to remap the intensity. Saves 154 bytes and a few CPU cycles
 //#define LASER_REMAP_INTENSITY 7
 
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)

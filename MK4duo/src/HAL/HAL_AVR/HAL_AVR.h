@@ -224,8 +224,9 @@
 // Types
 // --------------------------------------------------------------------------
 
-typedef uint16_t HAL_TIMER_TYPE;
-typedef uint32_t millis_t;
+typedef uint16_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef uint8_t   Pin;
 
 // --------------------------------------------------------------------------
 // Timer

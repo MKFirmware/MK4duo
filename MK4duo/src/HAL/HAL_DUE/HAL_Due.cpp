@@ -506,7 +506,6 @@ void HAL::resetHardware() {
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
     void HAL::spiSend(uint32_t chan, byte b) {
-      uint8_t dummy_read = 0;
       // wait for transmit register empty
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       // write byte with address and end transmission flag
@@ -514,29 +513,24 @@ void HAL::resetHardware() {
       // wait for receive register
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       // clear status
-      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-        dummy_read = SPI0->SPI_RDR;
+      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
     }
 
     void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
-      uint8_t dummy_read = 0;
       if (n == 0) return;
-      for (int i = 0; i < n - 1; i++) {
+      for (uint32_t i = 0; i < n - 1; i++) {
         while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
         SPI0->SPI_TDR = (uint32_t)buf[i] | SPI_PCS(chan);
         while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
-        while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-          dummy_read = SPI0->SPI_RDR;
+        while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
       }
       spiSend(chan, buf[n - 1]);
     }
 
     uint8_t HAL::spiReceive(uint32_t chan) {
-      uint8_t spirec_tmp;
       // wait for transmit register empty
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
-      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-        spirec_tmp =  SPI0->SPI_RDR;
+      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
 
       // write dummy byte with address and end transmission flag
       SPI0->SPI_TDR = 0x000000FF | SPI_PCS(chan) | SPI_TDR_LASTXFER;
@@ -591,7 +585,7 @@ static uint16_t PWMChanFreq[8]  = {0},
 static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for Intel spec PWM fans that need 25kHz PWM
 static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
 
-static inline uint32_t ConvertRange(float f, uint32_t top) { return lround(f * (float)top); }
+static inline uint32_t ConvertRange(float f, uint32_t top) { return LROUND(f * (float)top); }
 
 // AnalogWritePwm to a PWM pin
 // Return true if successful, false if we need to call software pwm

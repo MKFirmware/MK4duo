@@ -39,17 +39,17 @@
 
     public: /** Public Parameters */
 
-      float diagonal_rod,
+      float delta_diagonal_rod,
             delta_radius,
-            segments_per_second,
-            print_radius,
-            probe_radius,
+            delta_segments_per_second,
+            delta_print_radius,
+            delta_probe_radius,
             delta_height,
-            clip_start_height,
-            diagonal_rod_adj[ABC],
-            endstop_adj[ABC],
-            tower_radius_adj[ABC],
-            tower_pos_adj[ABC];
+            delta_clip_start_height,
+            delta_diagonal_rod_adj[ABC],
+            delta_endstop_adj[ABC],
+            delta_tower_radius_adj[ABC],
+            delta_tower_pos_adj[ABC];
 
       /**
        * Feedrate, min, max, travel
@@ -144,10 +144,10 @@
        * Feed rates are often configured with mm/m
        * but the planner and stepper like mm/s units.
        */
-      float feedrate_mm_s             = MMM_TO_MMS(1500.0),
-            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
-      int   feedrate_percentage       = 100,
-            saved_feedrate_percentage = 100;
+      float   feedrate_mm_s             = MMM_TO_MMS(1500.0),
+              saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
+      int16_t feedrate_percentage       = 100,
+              saved_feedrate_percentage = 100;
 
       /**
        * Homing feed rates are often configured with mm/m
@@ -259,7 +259,6 @@
       void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void Transform(const float logical[ABC]);
       void recalc_delta_settings();
-      void Set_clip_start_height();
       void reset_acceleration_rates();
       void refresh_positioning();
 
@@ -320,6 +319,12 @@
        * Calculate delta, start a line, and set current_position to destination
        */
       void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+
+      /**
+       * Calculate the highest Z position where the
+       * effector has the full range of XY motion.
+       */
+      void Set_clip_start_height();
 
       /**
        * Some planner shorthand inline functions

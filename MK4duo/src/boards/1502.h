@@ -168,7 +168,9 @@
 //@@@
 
 //###UNKNOWN_PINS
+#undef NUM_DIGITAL_PINS
 #define NUM_DIGITAL_PINS 100
+
 #define SPI_CHAN_DAC 1
 #define X_MS1_PIN             99  // PC10
 #define Y_MS1_PIN             10  // PC29

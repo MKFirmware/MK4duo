@@ -57,7 +57,6 @@
   char buffer[100]                    = { 0 };
   char lcd_status_message[30]         = WELCOME_MSG;
   const float manual_feedrate_mm_m[]  = MANUAL_FEEDRATE;
-  static millis_t next_lcd_update_ms;
 
   #if HAS_SDSUPPORT
     uint8_t SDstatus    = 0; // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
@@ -1191,12 +1190,6 @@
   }
 
   static void degtoLCD(const uint8_t h, const float temp) {
-    static const uint16_t maxTemp =
-      #if HOTENDS == 1
-        HEATER_0_MAXTEMP;
-      #else
-        200;
-      #endif
 
     heater_list0[h]->setValue(temp);
 

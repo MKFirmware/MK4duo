@@ -163,8 +163,8 @@ float Probe::check_pt(const float &x, const float &y, const bool stow/*=true*/, 
   const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
 
   #if MECH(DELTA)
-    if (Mechanics.current_position[Z_AXIS] > Mechanics.clip_start_height)
-      Mechanics.do_blocking_move_to_z(Mechanics.clip_start_height);
+    if (Mechanics.current_position[Z_AXIS] > Mechanics.delta_clip_start_height)
+      Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
   #endif
 
   #if MECH(MAKERARM_SCARA)
@@ -191,7 +191,7 @@ float Probe::check_pt(const float &x, const float &y, const bool stow/*=true*/, 
 
   if (set_deployed(true)) return NAN;
 
-  float measured_z;
+  float measured_z = 0.0;
 
   // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
   refresh_cmd_timeout();
@@ -208,7 +208,7 @@ float Probe::check_pt(const float &x, const float &y, const bool stow/*=true*/, 
     // move down slowly to find bed
     move_to_z(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
 
-    measured_z += Mechanics.current_position[Z_AXIS] + z_offset;
+    measured_z += RAW_CURRENT_POSITION(Z) + z_offset;
 
     if (r + 1 < Z_PROBE_REPETITIONS) {
       // move up by the bump distance
