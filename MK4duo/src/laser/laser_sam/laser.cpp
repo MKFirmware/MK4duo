@@ -70,7 +70,7 @@
     #endif
 
     // initialize state to some sane defaults
-    laser.intensity = 0.5;
+    laser.intensity = 0.3;
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
@@ -112,8 +112,7 @@
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
-    if (laser.diagnostics)
-      SERIAL_EM("Laser fired");
+    if (laser.diagnostics) SERIAL_EM("Laser fired");
   }
 
   void laser_fire_byte(uint8_t intensity) { // Fire with byte-range 0-255
@@ -131,16 +130,14 @@
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
-    if (laser.diagnostics)
-      SERIAL_EM("Laser_byte fired");
+    if (laser.diagnostics) SERIAL_EM("Laser_byte fired");
   }
 
   void laser_extinguish() {
     if (laser.firing == LASER_ON) {
       laser.firing = LASER_OFF;
 
-      if (laser.diagnostics)
-        SERIAL_EM("Laser being extinguished");
+      if (laser.diagnostics) SERIAL_EM("Laser being extinguished");
 
       #if LASER_CONTROL == 1
         #if ENABLED(LASER_PWM_INVERT)

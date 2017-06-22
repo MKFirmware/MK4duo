@@ -86,7 +86,7 @@
   extern laser_t laser;
 
   void laser_init();
-  void laser_fire(float intensity=0.5);
+  void laser_fire(float intensity=0.3);
   void laser_extinguish();
   void laser_update_lifetime();
   void laser_set_mode(uint8_t mode);
