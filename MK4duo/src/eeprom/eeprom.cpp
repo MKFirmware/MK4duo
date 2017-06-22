@@ -289,7 +289,6 @@ void EEPROM::Postprocess() {
    * M500 - Store Configuration
    */
   bool EEPROM::Store_Settings() {
-    float dummy = 0.0f;
     char ver[6] = "00000";
 
     uint16_t working_crc = 0;
@@ -467,6 +466,7 @@ void EEPROM::Postprocess() {
       #if EXTRUDERS > 1
         EEPROM_WRITE(retract_length_swap);
       #else
+        const float dummy = 0.0f;
         EEPROM_WRITE(dummy);
       #endif
       EEPROM_WRITE(retract_feedrate);
@@ -495,8 +495,8 @@ void EEPROM::Postprocess() {
     #endif
 
     // Save TCM2130 Configuration, and placeholder values
-    uint16_t val;
     #if ENABLED(HAVE_TMC2130)
+      uint16_t val;
       #if ENABLED(X_IS_TMC2130)
         val = stepperX.getCurrent();
       #else
@@ -835,8 +835,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(motor_current);
       #endif
 
-      uint16_t val;
       #if ENABLED(HAVE_TMC2130)
+        uint16_t val;
         EEPROM_READ(val);
         #if ENABLED(X_IS_TMC2130)
           stepperX.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
@@ -966,7 +966,7 @@ void EEPROM::Factory_Settings() {
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     const float tmp11[] = MOTOR_CURRENT;
-    for (int8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
+    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
   #endif
 
@@ -976,7 +976,7 @@ void EEPROM::Factory_Settings() {
     Mechanics.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
   }
 
-  for (int8_t i = 0; i < EXTRUDERS; i++) {
+  for (uint8_t i = 0; i < EXTRUDERS; i++) {
     Mechanics.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
     Mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
   }

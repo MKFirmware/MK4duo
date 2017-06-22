@@ -376,7 +376,7 @@ uint16_t max_display_update_time = 0;
   millis_t next_button_update_ms;
   #if ENABLED(REPRAPWORLD_KEYPAD)
     volatile uint8_t buttons_reprapworld_keypad;
-  #else ENABLED(ADC_KEYPAD)
+  #elif ENABLED(ADC_KEYPAD)
     volatile uint8_t buttons_adc_keypad;
   #endif
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)

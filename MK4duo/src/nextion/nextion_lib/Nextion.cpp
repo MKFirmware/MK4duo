@@ -585,6 +585,8 @@
 
         --send_timer;
       }
+
+      return true;
     }
 
   #endif  // SDSUPPORT
