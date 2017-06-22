@@ -131,6 +131,7 @@
  *                                                                                       *
  *****************************************************************************************/
 #define MOTHERBOARD BOARD_RAMPS_13_HFB
+//#define MOTHERBOARD BOARD_RAMPS_FD_V2
 /*****************************************************************************************/
 
 
@@ -190,7 +191,7 @@
  ***********************************************************************/
 // This defines the number of extruder real or virtual
 // 0,1,2,3,4,5,6
-#define EXTRUDERS 1
+#define EXTRUDERS 1 //(0 causes a compile error)
 
 // This defines the number of Driver extruder you have and use
 // 0,1,2,3,4,5,6

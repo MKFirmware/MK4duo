@@ -2469,7 +2469,7 @@ inline void gcode_G4() {
       Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
     }
 
-    if (parser.seen('#')) {
+    if (parser.seen('@')) {
       laser.raster_direction = parser.value_int();
       #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
         Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS]; // Dont increment X axis
@@ -11827,7 +11827,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  #if HAS_KILL
+  #if HAS(KILL)
 
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press
