@@ -101,9 +101,8 @@
     NOLESS(intensity, 0);
 
     #if ENABLED(LASER_PWM_INVERT)
-        intensity = 100 - intensity;
-	#endif
-
+      intensity = 100 - intensity;
+    #endif
 
     #if LASER_CONTROL == 1
       HAL::AnalogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
@@ -120,8 +119,8 @@
     laser.last_firing = micros(); // microseconds of last laser firing
 
     #if ENABLED(LASER_PWM_INVERT)
-        intensity = 255 - intensity;
-	#endif
+      intensity = 255 - intensity;
+    #endif
 
     #if LASER_CONTROL == 1
       HAL::AnalogWrite(LASER_PWR_PIN, intensity, LASER_PWM); // Range 0-255
@@ -142,15 +141,15 @@
       #if LASER_CONTROL == 1
         #if ENABLED(LASER_PWM_INVERT)
           HAL::AnalogWrite(LASER_PWR_PIN, 255, LASER_PWM);
-		#else
+        #else
           HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);
-		#endif
+        #endif
       #elif LASER_CONTROL == 2
         #if ENABLED(LASER_PWM_INVERT)
           HAL::AnalogWrite(LASER_PWM_PIN, 255, LASER_PWM);
-		#else
+        #else
           HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM);
-		#endif
+        #endif
         WRITE(LASER_PWR_PIN, LASER_UNARM);
       #endif
 

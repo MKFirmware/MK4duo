@@ -1040,7 +1040,7 @@ HAL_TEMP_TIMER_ISR {
 
   #if HAS_COOLER && HAS_TEMP_COOLER
     if (pwm_cooler_hd)
-      pwm_cooler_hd = HAL::AnalogWrite(HEATER_COOLER_PIN, thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
+      pwm_cooler_hd = HAL::AnalogWrite(COOLER_PIN, thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
   #endif
 
   #if HAS_FAN0

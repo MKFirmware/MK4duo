@@ -203,9 +203,9 @@
 #define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Vietato")
 #define MSG_HALTED                          _UxGT("STAMPANTE FERMATA")
 #define MSG_PLEASE_RESET                    _UxGT("Riavviare prego")
-#define MSG_END_DAY                         _UxGT("giorni")
-#define MSG_END_HOUR                        _UxGT("ore")
-#define MSG_END_MINUTE                      _UxGT("minuti")
+#define MSG_LONG_DAY                         _UxGT("giorni")
+#define MSG_LONG_HOUR                        _UxGT("ore")
+#define MSG_LONG_MINUTE                      _UxGT("minuti")
 #define MSG_PRINT_TIME                      _UxGT("Print time ")
 
 // Calibrate Delta

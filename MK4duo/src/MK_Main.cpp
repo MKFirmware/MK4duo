@@ -11827,7 +11827,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  #if HAS(KILL)
+  #if HAS_KILL
 
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press

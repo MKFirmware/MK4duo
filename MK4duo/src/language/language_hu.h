@@ -194,9 +194,9 @@
 #define MSG_ERR_MINTEMP_COOLER              _UxGT("MINTEMP COOLER ERROR")
 #define MSG_HALTED                          _UxGT("PRINTER HALTED")
 #define MSG_PLEASE_RESET                    _UxGT("Kérem visszaállítani")
-#define MSG_END_DAY                         _UxGT("nap")
-#define MSG_END_HOUR                        _UxGT("óra")
-#define MSG_END_MINUTE                      _UxGT("perc")
+#define MSG_LONG_DAY                         _UxGT("nap")
+#define MSG_LONG_HOUR                        _UxGT("óra")
+#define MSG_LONG_MINUTE                      _UxGT("perc")
 #define MSG_PRINT_TIME                      _UxGT("Nyomtatás ideje ")
 
 // Calibrate Delta
