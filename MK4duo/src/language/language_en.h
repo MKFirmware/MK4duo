@@ -725,14 +725,23 @@
 #ifndef MSG_PLEASE_RESET
   #define MSG_PLEASE_RESET                    _UxGT("Please reset")
 #endif
-#ifndef MSG_END_DAY
-  #define MSG_END_DAY                         _UxGT("days")
+#ifndef MSG_SHORT_DAY
+  #define MSG_SHORT_DAY                       _UxGT("d") // One character only
 #endif
-#ifndef MSG_END_HOUR
-  #define MSG_END_HOUR                        _UxGT("hours")
+#ifndef MSG_SHORT_HOUR
+  #define MSG_SHORT_HOUR                      _UxGT("h") // One character only
 #endif
-#ifndef MSG_END_MINUTE
-  #define MSG_END_MINUTE                      _UxGT("minutes")
+#ifndef MSG_SHORT_MINUTE
+  #define MSG_SHORT_MINUTE                    _UxGT("m") // One character only
+#endif
+#ifndef MSG_LONG_DAY
+  #define MSG_LONG_DAY                        _UxGT("days")
+#endif
+#ifndef MSG_LONG_HOUR
+  #define MSG_LONG_HOUR                       _UxGT("hours")
+#endif
+#ifndef MSG_LONG_MINUTE
+  #define MSG_LONG_MINUTE                     _UxGT("minutes")
 #endif
 #ifndef MSG_PRINT_TIME
   #define MSG_PRINT_TIME                      _UxGT("Print time ")

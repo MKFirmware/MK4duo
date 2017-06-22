@@ -1055,7 +1055,7 @@
  ************************************************************************************************************************/
 //#define EEPROM_SETTINGS
 
-#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+//#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_SD
 //#define DISABLE_M503
 /************************************************************************************************************************/
@@ -1601,8 +1601,7 @@
  * Time can be set by M18 and M84.                                     *
  *                                                                     *
  ***********************************************************************/
-//#define DEFAULT_STEPPER_DEACTIVE_TIME 120
-#define DEFAULT_STEPPER_DEACTIVE_TIME 0
+#define DEFAULT_STEPPER_DEACTIVE_TIME 120
 #define DISABLE_INACTIVE_X
 #define DISABLE_INACTIVE_Y
 #define DISABLE_INACTIVE_Z
