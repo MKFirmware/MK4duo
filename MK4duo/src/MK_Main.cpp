@@ -11813,7 +11813,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
       }
-      laser_init();
+      laser_extinguish();
       #if ENABLED(LASER_PERIPHERALS)
         laser_peripherals_off();
       #endif
@@ -11827,7 +11827,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  #if HAS(KILL)
+  #if HAS_KILL
 
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press
