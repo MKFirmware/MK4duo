@@ -197,7 +197,6 @@
 #endif
 
 #if ENABLED(LASER)
-// Single pin control uses only LASER_PWR_PIN and uses PWM to control it
   #define LASER_PWR_PIN                   ORIG_LASER_PWR_PIN
   #define LASER_PWM_PIN                   ORIG_LASER_PWM_PIN
   #if ENABLED(LASER_PERIPHERALS)

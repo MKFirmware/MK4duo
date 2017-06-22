@@ -2469,7 +2469,7 @@ inline void gcode_G4() {
       Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
     }
 
-    if (parser.seen('@')) {
+    if (parser.seen('#')) {
       laser.raster_direction = parser.value_int();
       #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
         Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS]; // Dont increment X axis
@@ -2794,7 +2794,6 @@ inline void gcode_G28(const bool always_home_all) {
     old_feedrate_mm_s = Mechanics.feedrate_mm_s;
     COPY_ARRAY(lastpos, Mechanics.current_position);
   }
-
   Mechanics.Home(always_home_all);
 
   #if ENABLED(NPR2)
@@ -6706,7 +6705,10 @@ inline void gcode_M122() {
         if (job_running) print_job_counter.start();
       }
     }
+    }
   }
+
+#endif // PARK_HEAD_ON_PAUSE
 
 #endif // PARK_HEAD_ON_PAUSE
 
@@ -7666,6 +7668,8 @@ inline void gcode_M226() {
    *
    *   When S turns on the light on a PWM pin then the current brightness level is used/restored
    *
+   *   M355 P200 S0 turns off the light & sets the brightness level
+   *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
    *   M355 P200 S0 turns off the light & sets the brightness level
    *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
    */
@@ -9320,7 +9324,6 @@ inline void gcode_T(uint8_t tool_id) {
     }
   #endif
 }
-
 
 #if ENABLED(NPR2)
 
@@ -11827,7 +11830,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #endif
 
-  #if HAS(KILL)
+  #if HAS_KILL
 
     // Check if the kill button was pressed and wait just in case it was an accidental
     // key kill key press

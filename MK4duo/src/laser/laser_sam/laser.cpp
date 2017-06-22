@@ -50,12 +50,12 @@
 
     #if LASER_CONTROL == 1
       if (!HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM)) {
-        SERIAL_LM(ER, "LASER_PWR_PIN not PWM or TC pin, please select another pin!");
+        SERIAL_LM(ER, "LASER_PWR_PIN not PWM or TC pin, please select onother pin!");
         return;
       }
     #elif LASER_CONTROL == 2
       if (!HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM)) {
-        SERIAL_LM(ER, "LASER_PWM_PIN not PWM or TC pin, please select another pin!");
+        SERIAL_LM(ER, "LASER_PWM_PIN not PWM or TC pin, please select onother pin!");
         return;
       }
     #endif
@@ -70,7 +70,7 @@
     #endif
 
     // initialize state to some sane defaults
-    laser.intensity = 0.3;
+    laser.intensity = 100.0;
     laser.ppm = 0.0;
     laser.duration = 0;
     laser.status = LASER_OFF;
@@ -100,12 +100,14 @@
     NOMORE(intensity, 100);
     NOLESS(intensity, 0);
 
-    #if ENABLED(LASER_PWM_INVERT)
-        intensity = 100 - intensity;
+    #if LASER_CONTROL == 1
+      HAL::AnalogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+    #elif LASER_CONTROL == 2
+      HAL::AnalogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      WRITE(LASER_PWR_PIN, LASER_ARM);
 	#endif
 
-
-    #if LASER_CONTROL == 1
+    if (laser.diagnostics) SERIAL_EM("Laser fired");
       HAL::AnalogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
     #elif LASER_CONTROL == 2
       HAL::AnalogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
@@ -119,12 +121,11 @@
     laser.firing = LASER_ON;
     laser.last_firing = micros(); // microseconds of last laser firing
 
-    #if ENABLED(LASER_PWM_INVERT)
-        intensity = 255 - intensity;
-	#endif
-
     #if LASER_CONTROL == 1
       HAL::AnalogWrite(LASER_PWR_PIN, intensity, LASER_PWM); // Range 0-255
+    #elif LASER_CONTROL == 2
+      HAL::AnalogWrite(LASER_PWM_PIN, intensity, LASER_PWM); // Range 0-255
+      WRITE(LASER_PWR_PIN, LASER_ARM);
     #elif LASER_CONTROL == 2
       HAL::AnalogWrite(LASER_PWM_PIN, intensity, LASER_PWM); // Range 0-255
       WRITE(LASER_PWR_PIN, LASER_ARM);
@@ -140,10 +141,10 @@
       if (laser.diagnostics) SERIAL_EM("Laser being extinguished");
 
       #if LASER_CONTROL == 1
-        #if ENABLED(LASER_PWM_INVERT)
-          HAL::AnalogWrite(LASER_PWR_PIN, 255, LASER_PWM);
-		#else
-          HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);
+        HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);
+      #elif LASER_CONTROL == 2
+        HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM);
+        WRITE(LASER_PWR_PIN, LASER_UNARM);
 		#endif
       #elif LASER_CONTROL == 2
         #if ENABLED(LASER_PWM_INVERT)

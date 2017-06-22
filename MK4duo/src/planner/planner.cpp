@@ -883,12 +883,8 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       for (int i = 0; i < LASER_MAX_RASTER_LINE; i++) {
         // Scale the image intensity based on the raster power.
         // 100% power on a pixel basis is 255, convert back to 255 = 100.
-        #if ENABLED(LASER_REMAP_INTENSITY)
-          const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
-          float NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0) + LASER_REMAP_INTENSITY);
-        #else
-		  const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0);
-          float NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0));
+        const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
+        float NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0) + LASER_REMAP_INTENSITY);
         #endif
 
         #if ENABLED(LASER_REMAP_INTENSITY)

@@ -149,8 +149,8 @@
 #define SUICIDE_PIN -1
 
 //###LASER
-#define ORIG_LASER_PWR_PIN 5  // SERVO 2 PIN (PWM for 1 pin control, ON/OFF for 2 pin control)
-#define ORIG_LASER_PWM_PIN -1  // 6 // SERVO 1 PIN (PWN for 2 pin control)
+#define ORIG_LASER_PWR_PIN 5
+#define ORIG_LASER_PWM_PIN 6
 
 //###SERVOS
 #if NUM_SERVOS > 0

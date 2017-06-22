@@ -2,10 +2,6 @@
 * Create class bedlevel and probe
 * Fix EEPROM_SD
 * Fix and clear code
-* Add Laser PWM Invert invert and HIGH to Fire
-* Add LASER_REMAP_INTENSITY can be disabled
-* Add Weak laser option in LCD Laser Test submenu
-* Fix Laser Init
 
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor
@@ -15,6 +11,10 @@
 * Add support for PCA9632 PWM RGB LED
 * Add support DAV System (By D'angella Vincenzo)
 * Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
+
+### Version 4.3.21 dev
+* Add User menu LCD
+* Write Kinematic function for Cartesian, Core and DELTA. SCARA for now not implemented.
 
 ### Version 4.3.21 dev
 * Add User menu LCD
