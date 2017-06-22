@@ -47,10 +47,10 @@
 #endif
 
 // Y axis pins
-#define Y_STEP_PIN          ORIG_Y_STEP_PIN
-#define Y_DIR_PIN           ORIG_Y_DIR_PIN
-#define Y_ENABLE_PIN        ORIG_Y_ENABLE_PIN
-#define Y_CS_PIN            ORIG_Y_CS_PIN
+#define Y_STEP_PIN          ORIG_Z_STEP_PIN
+#define Y_DIR_PIN           ORIG_Z_DIR_PIN
+#define Y_ENABLE_PIN        ORIG_Z_ENABLE_PIN
+#define Y_CS_PIN            ORIG_Z_CS_PIN
 
 // Y2 axis pins
 #if ENABLED(Y_TWO_STEPPER)
@@ -61,10 +61,10 @@
 #endif
 
 // Z axis pins
-#define Z_STEP_PIN          ORIG_Z_STEP_PIN
-#define Z_DIR_PIN           ORIG_Z_DIR_PIN
-#define Z_ENABLE_PIN        ORIG_Z_ENABLE_PIN
-#define Z_CS_PIN            ORIG_Z_CS_PIN
+#define Z_STEP_PIN          ORIG_Y_STEP_PIN
+#define Z_DIR_PIN           ORIG_Y_DIR_PIN
+#define Z_ENABLE_PIN        ORIG_Y_ENABLE_PIN
+#define Z_CS_PIN            ORIG_Y_CS_PIN
 
 // Z2 axis pins
 #if ENABLED(Z_TWO_STEPPER)
@@ -138,12 +138,12 @@
 #endif
 
 // ENDSTOP pin
-#define X_MIN_PIN           ORIG_X_MIN_PIN
-#define X_MAX_PIN           ORIG_X_MAX_PIN
-#define Y_MIN_PIN           ORIG_Y_MIN_PIN
-#define Y_MAX_PIN           ORIG_Y_MAX_PIN
-#define Z_MIN_PIN           ORIG_Z_MIN_PIN
-#define Z_MAX_PIN           ORIG_Z_MAX_PIN
+#define X_MIN_PIN           -1 // ORIG_X_MIN_PIN
+#define X_MAX_PIN           -1 // ORIG_X_MAX_PIN
+#define Y_MIN_PIN           -1 // ORIG_Y_MIN_PIN
+#define Y_MAX_PIN           -1 // ORIG_Y_MAX_PIN
+#define Z_MIN_PIN           -1 // ORIG_Z_MIN_PIN
+#define Z_MAX_PIN           -1 // ORIG_Z_MAX_PIN
 #define Z2_MIN_PIN          -1
 #define Z2_MAX_PIN          -1
 #define Z3_MIN_PIN          -1
