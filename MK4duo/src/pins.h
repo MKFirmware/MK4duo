@@ -33,7 +33,7 @@
 #include INCLUDE_BY_MB(MOTHERBOARD)
 
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "Unknow"
+  #define BOARD_NAME "Undefined"
 #endif
 /****************************************************************************************/
 
