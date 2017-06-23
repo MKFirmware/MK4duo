@@ -44,33 +44,33 @@ class Temperature {
   public:
 
     #if ENABLED(FILAMENT_SENSOR)
-      static int      current_raw_filwidth;  // Holds measured filament diameter - one extruder only
+      static int16_t    current_raw_filwidth;  // Holds measured filament diameter - one extruder only
     #endif
     
     #if HAS_TEMP_HOTEND
       static float      current_temperature[HOTENDS];
-      static int        current_temperature_raw[HOTENDS],
+      static int16_t    current_temperature_raw[HOTENDS],
                         target_temperature[HOTENDS];
       static uint8_t    soft_pwm[HOTENDS];
     #endif
     
     #if HAS_TEMP_BED
       static float    current_temperature_bed;
-      static int      current_temperature_bed_raw,
+      static int16_t  current_temperature_bed_raw,
                       target_temperature_bed;
       static uint8_t  soft_pwm_bed;
     #endif
 
     #if HAS_TEMP_CHAMBER
       static float    current_temperature_chamber;
-      static int      target_temperature_chamber,
+      static int16_t  target_temperature_chamber,
                       current_temperature_chamber_raw;
       static uint8_t  soft_pwm_chamber;
     #endif
 
     #if HAS_TEMP_COOLER
       static float    current_temperature_cooler;
-      static int      target_temperature_cooler,
+      static int16_t  target_temperature_cooler,
                       current_temperature_cooler_raw;
       static uint8_t  soft_pwm_cooler;
     #endif
@@ -80,11 +80,11 @@ class Temperature {
                       highest_temperature_mcu,
                       lowest_temperature_mcu,
                       alarm_temperature_mcu;
-      static int      current_temperature_mcu_raw;
+      static int16_t  current_temperature_mcu_raw;
     #endif
 
     #if ENABLED(ADC_KEYPAD)
-      static int      current_ADCKey_raw;
+      static int16_t  current_ADCKey_raw;
     #endif
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)

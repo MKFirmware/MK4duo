@@ -131,8 +131,8 @@ bool pos_saved = false;
   TempUnit input_temp_units = TEMPUNIT_C;
 #endif
 
-int flow_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100),
-    density_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100);
+int16_t flow_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100),
+        density_percentage[EXTRUDERS] = ARRAY_BY_EXTRUDERS(100);
 
 bool axis_relative_modes[] = AXIS_RELATIVE_MODES,
      #if ENABLED(VOLUMETRIC_DEFAULT_ON)
@@ -145,7 +145,7 @@ float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA
       volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
 
 #if FAN_COUNT > 0
-  int fanSpeeds[FAN_COUNT] = { 0 };
+  int16_t fanSpeeds[FAN_COUNT] = { 0 };
 #endif
 #if HAS_CONTROLLERFAN
   uint8_t controller_fanSpeeds = 0;
