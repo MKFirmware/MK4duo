@@ -39,25 +39,25 @@ Temperature thermalManager;
 // public:
 #if HAS_TEMP_HOTEND
   float   Temperature::current_temperature[HOTENDS]     = { 0.0 };
-  int     Temperature::current_temperature_raw[HOTENDS] = { 0 },
+  int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
           Temperature::target_temperature[HOTENDS]      = { 0 };
 #endif
 
 #if HAS_TEMP_BED
   float   Temperature::current_temperature_bed          = 0.0;
-  int     Temperature::current_temperature_bed_raw      = 0,
+  int16_t Temperature::current_temperature_bed_raw      = 0,
           Temperature::target_temperature_bed           = 0;
 #endif
 
 #if HAS_TEMP_CHAMBER
   float   Temperature::current_temperature_chamber      = 0.0;
-  int     Temperature::target_temperature_chamber       = 0,
+  int16_t Temperature::target_temperature_chamber       = 0,
           Temperature::current_temperature_chamber_raw  = 0;
 #endif
 
 #if HAS_TEMP_COOLER
   float   Temperature::current_temperature_cooler     = 0.0;
-  int     Temperature::target_temperature_cooler      = 0,
+  int16_t Temperature::target_temperature_cooler      = 0,
           Temperature::current_temperature_cooler_raw = 0;
 #endif
 
@@ -66,7 +66,7 @@ Temperature thermalManager;
           Temperature::highest_temperature_mcu  = 0.0,
           Temperature::lowest_temperature_mcu   = 4096.0,
           Temperature::alarm_temperature_mcu    = 80.0;
-  int     Temperature::current_temperature_mcu_raw;
+  int16_t Temperature::current_temperature_mcu_raw;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
