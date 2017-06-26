@@ -365,12 +365,6 @@ PrintCounter print_job_counter = PrintCounter();
 
 static bool send_ok[BUFSIZE];
 
-#if HAS_SERVOS
-  #define MOVE_SERVO(I, P) servo[I].move(P)
-  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[0])
-  #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
-#endif
-
 #if HAS_CHDK
   millis_t chdkHigh = 0;
   bool chdkActive = false;

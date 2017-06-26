@@ -71,6 +71,7 @@
 #define _SERVO_H
 
 #if HAS_SERVOS
+
   #include <inttypes.h>
   #include "servotimers.h"
 
@@ -90,9 +91,11 @@
   #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
 
   #define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
-  #define MAX_SERVOS (_Nbr_16timers  * SERVOS_PER_TIMER)
+  #define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
 
   #define INVALID_SERVO         255     // flag indicating an invalid servo index
+
+  #define MOVE_SERVO(I, P)    servo[I].move(P)
 
   typedef struct {
     uint8_t nbr        :6 ;             // a pin number from 0 to 63
@@ -128,4 +131,5 @@
   extern Servo servo[NUM_SERVOS];
 
 #endif // SERVOS
+
 #endif // _SERVO_H

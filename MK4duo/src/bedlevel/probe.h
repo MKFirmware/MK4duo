@@ -38,6 +38,11 @@
   #endif
 #endif
 
+#if HAS_Z_SERVO_PROBE
+  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[0])
+  #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
+#endif
+
 class Probe {
 
   public: /** Constructor */
