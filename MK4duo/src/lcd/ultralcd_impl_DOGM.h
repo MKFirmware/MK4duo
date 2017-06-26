@@ -482,7 +482,7 @@ static void lcd_implementation_status_screen() {
     if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
       u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
-        #if HAS(FAN0)
+        #if HAS_FAN0
           blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
         #else
           status_screen0_bmp
@@ -499,7 +499,7 @@ static void lcd_implementation_status_screen() {
 
     if (PAGE_UNDER(28)) {
       // Hotends
-      HOTEND_LOOP() _draw_heater_status(5 + h * 25, h, blink);
+      LOOP_HOTEND() _draw_heater_status(5 + h * 25, h, blink);
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
@@ -576,7 +576,7 @@ static void lcd_implementation_status_screen() {
       uint8_t len1 = elapsed.toDigital(buffer1, false),
               len2 = finished.toDigital(buffer2, false);
 
-      #if HAS(LCD_POWER_SENSOR)
+      #if HAS_LCD_POWER_SENSOR
         if (millis() < print_millis + 1000) {
           u8g.setPrintPos(54, 48);
           lcd_print('S');
@@ -742,7 +742,7 @@ static void lcd_implementation_status_screen() {
           }
       #endif
 
-      #if HAS(LCD_FILAMENT_SENSOR) && HAS_SDSUPPORT
+      #if HAS_LCD_FILAMENT_SENSOR && HAS_SDSUPPORT
         else {
           lcd_printPGM(PSTR(LCD_STR_FILAM_DIA));
           u8g.print(':');

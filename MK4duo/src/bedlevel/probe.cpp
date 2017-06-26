@@ -33,6 +33,10 @@ Probe probe;
 float Probe::z_offset = Z_PROBE_OFFSET_FROM_NOZZLE;
 bool  Probe::enabled = false;
 
+#if HAS_Z_SERVO_PROBE
+  const int Probe::z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
+#endif
+
 // returns false for ok and true for failure
 bool Probe::set_deployed(bool deploy) {
 
@@ -298,4 +302,29 @@ void Probe::move_to_z(float z, float fr_mm_m) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) DEBUG_POS("<<< move_to_z", Mechanics.current_position);
   #endif
+}
+
+void Probe::refresh_zprobe_zoffset() {
+
+  static float last_z_offset = NAN;
+
+  if (!isnan(last_z_offset)) {
+
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      const float diff = z_offset - last_z_offset;
+
+      // Correct bilinear grid for new probe offset
+      if (diff) {
+        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+          for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+            bedlevel.z_values[x][y] -= diff;
+      }
+      #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+        bedlevel.bed_level_virt_interpolate();
+      #endif
+    #endif
+
+  }
+
+  last_z_offset = z_offset;
 }

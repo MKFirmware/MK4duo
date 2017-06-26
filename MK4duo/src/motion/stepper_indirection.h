@@ -571,10 +571,10 @@
   #endif
 #endif // DRIVER_EXTRUDERS
 
-#if HAS(X2_ENABLE)
+#if HAS_X2_ENABLE
   #define  enable_X() do{ X_ENABLE_WRITE( X_ENABLE_ON); X2_ENABLE_WRITE( X_ENABLE_ON); }while(0)
   #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); X2_ENABLE_WRITE(!X_ENABLE_ON); Mechanics.axis_known_position[X_AXIS] = false; }while(0)
-#elif HAS(X_ENABLE)
+#elif HAS_X_ENABLE
   #define  enable_X() X_ENABLE_WRITE( X_ENABLE_ON)
   #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); Mechanics.axis_known_position[X_AXIS] = false; }while(0)
 #else
@@ -582,10 +582,10 @@
   #define disable_X() NOOP
 #endif
 
-#if HAS(Y2_ENABLE)
+#if HAS_Y2_ENABLE
   #define  enable_Y() do{ Y_ENABLE_WRITE( Y_ENABLE_ON); Y2_ENABLE_WRITE(Y_ENABLE_ON); }while(0)
   #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); Y2_ENABLE_WRITE(!Y_ENABLE_ON); Mechanics.axis_known_position[Y_AXIS] = false; }while(0)
-#elif HAS(Y_ENABLE)
+#elif HAS_Y_ENABLE
   #define  enable_Y() Y_ENABLE_WRITE( Y_ENABLE_ON)
   #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); Mechanics.axis_known_position[Y_AXIS] = false; }while(0)
 #else
@@ -599,10 +599,10 @@
 #elif HAS(Z3_ENABLE)
   #define  enable_Z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON);   Z3_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
   #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON); Mechanics.axis_known_position[Z_AXIS] = false; }while(0)
-#elif HAS(Z2_ENABLE)
+#elif HAS_Z2_ENABLE
   #define  enable_Z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
   #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); Mechanics.axis_known_position[Z_AXIS] = false; }while(0)
-#elif HAS(Z_ENABLE)
+#elif HAS_Z_ENABLE
   #define  enable_Z() Z_ENABLE_WRITE( Z_ENABLE_ON)
   #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Mechanics.axis_known_position[Z_AXIS] = false; }while(0)
 #else

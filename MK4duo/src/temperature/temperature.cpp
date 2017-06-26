@@ -239,7 +239,8 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
-  int16_t Temperature::meas_shift_index;  // Index of a delayed sample in buffer
+  int8_t    Temperature::meas_shift_index;          // Index of a delayed sample in buffer
+  uint16_t  Temperature::current_raw_filwidth = 0;  // Measured filament diameter - one extruder only
 #endif
 
 #if HAS_POWER_CONSUMPTION_SENSOR
@@ -251,10 +252,6 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   millis_t Temperature::next_auto_fan_check_ms = 0;
 #endif
 
-#if ENABLED(FILAMENT_SENSOR)
-  int Temperature::current_raw_filwidth = 0;  //Holds measured filament diameter - one extruder only
-#endif
-
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   millis_t Temperature::heater_idle_timeout_ms[HOTENDS] = { 0 };
   bool Temperature::heater_idle_timeout_exceeded[HOTENDS] = { false };
@@ -264,7 +261,7 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   #endif
 #endif
 
-#if HAS(PID_HEATING) || HAS(PID_COOLING)
+#if HAS_PID_HEATING || HAS_PID_COOLING
 
   void Temperature::PID_autotune(const float temp, const int temp_controller, int ncycles, bool storeValues/*=false*/) {
 
@@ -583,7 +580,7 @@ Temperature::Temperature() { }
 void Temperature::updatePID() {
 
   #if ENABLED(PIDTEMP)
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
       temp_iState_min[HOTEND_INDEX] = (float)PID_MIN * 10.0f / PID_PARAM(Ki, HOTEND_INDEX);
       temp_iState_max[HOTEND_INDEX] = (float)PID_MAX * 10.0f / PID_PARAM(Ki, HOTEND_INDEX);
     }
@@ -621,7 +618,7 @@ void Temperature::updatePID() {
     };
     uint8_t fanState = 0;
  
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
       if (current_temperature[h] > HOTEND_AUTO_FAN_TEMPERATURE)
         SBI(fanState, fanBit[h]);
     }
@@ -925,7 +922,7 @@ void Temperature::manage_temp_controller() {
 
   #if HAS_TEMP_HOTEND
 
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         if (!heater_idle_timeout_exceeded[h] && heater_idle_timeout_ms[h] && ELAPSED(ms, heater_idle_timeout_ms[h]))
@@ -956,7 +953,7 @@ void Temperature::manage_temp_controller() {
         }
       #endif
 
-    } // HOTEND_LOOP
+    } // LOOP_HOTEND
 
   #endif
 
@@ -1293,7 +1290,7 @@ void Temperature::updateTemperaturesFromRawValues() {
     current_temperature_raw[0] = read_max6675();
   #endif
   #if HAS_TEMP_HOTEND
-    HOTEND_LOOP()
+    LOOP_HOTEND()
       current_temperature[h] = analog2temp(current_temperature_raw[h], h);
   #endif
   #if HAS_TEMP_BED
@@ -1349,7 +1346,7 @@ void Temperature::updateTemperaturesFromRawValues() {
 
   // Convert raw Filament Width to millimeters
   float Temperature::analog2widthFil() {
-    return current_raw_filwidth / 16383.0 * 5.0;
+    return current_raw_filwidth * 5.0 * (1.0 / 16383.0);
     //return current_raw_filwidth;
   }
 
@@ -1411,48 +1408,56 @@ void Temperature::init() {
   #endif
 
   // Finish init of mult hotend arrays
-  HOTEND_LOOP() maxttemp[h] = maxttemp[0];
+  LOOP_HOTEND() maxttemp[h] = maxttemp[0];
 
   #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
   #endif
 
-  #if HAS_HEATER_0
+  #if HAS_HEATER_0 && HAS_TEMP_0
     SET_OUTPUT(HEATER_0_PIN);
+    WRITE_HEATER_0(LOW);
   #endif
-  #if HAS_HEATER_1
+  #if HAS_HEATER_1 && HAS_TEMP_1
     SET_OUTPUT(HEATER_1_PIN);
+    WRITE_HEATER_1(LOW);
   #endif
-  #if HAS_HEATER_2
+  #if HAS_HEATER_2 && HAS_TEMP_2
     SET_OUTPUT(HEATER_2_PIN);
+    WRITE_HEATER_2(LOW);
   #endif
-  #if HAS_HEATER_3
+  #if HAS_HEATER_3 && HAS_TEMP_3
     SET_OUTPUT(HEATER_3_PIN);
+    WRITE_HEATER_3(LOW);
   #endif
-  #if HAS_HEATER_BED
+  #if HAS_HEATER_BED && HAS_TEMP_BED
     SET_OUTPUT(HEATER_BED_PIN);
+    WRITE_HEATER_BED(LOW);
   #endif
-  #if HAS_HEATER_CHAMBER
+  #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
     SET_OUTPUT(HEATER_CHAMBER_PIN);
+    WRITE_HEATER_CHAMBER(LOW);
   #endif
-  #if HAS_COOLER
+  #if HAS_COOLER && HAS_TEMP_COOLER
     SET_OUTPUT(COOLER_PIN);
+    WRITE_COOLER(LOW);
   #endif
 
   #if HAS_FAN0
     SET_OUTPUT(FAN_PIN);
+    WRITE_FAN0(LOW);
   #endif
-
   #if HAS_FAN1
     SET_OUTPUT(FAN1_PIN);
+    WRITE_FAN1(LOW);
   #endif
-
   #if HAS_FAN2
     SET_OUTPUT(FAN2_PIN);
+    WRITE_FAN2(LOW);
   #endif
-
   #if HAS_FAN3
     SET_OUTPUT(FAN3_PIN);
+    WRITE_FAN3(LOW);
   #endif
 
   #if ENABLED(HEATER_0_USES_MAX6675)
@@ -1468,16 +1473,16 @@ void Temperature::init() {
 
   HAL::analogStart();
 
-  #if HAS(AUTO_FAN_0)
+  #if HAS_AUTO_FAN_0
     SET_OUTPUT(H0_AUTO_FAN_PIN);
   #endif
-  #if HAS(AUTO_FAN_1) && !AUTO_1_IS_0
+  #if HAS_AUTO_FAN_1 && !AUTO_1_IS_0
     SET_OUTPUT(H1_AUTO_FAN_PIN);
   #endif
-  #if HAS(AUTO_FAN_2) && !AUTO_2_IS_0 && !AUTO_2_IS_1
+  #if HAS_AUTO_FAN_2 && !AUTO_2_IS_0 && !AUTO_2_IS_1
     SET_OUTPUT(H2_AUTO_FAN_PIN);
   #endif
-  #if HAS(AUTO_FAN_3) && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
+  #if HAS_AUTO_FAN_3 && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
     SET_OUTPUT(H3_AUTO_FAN_PIN);
   #endif
 
@@ -1759,7 +1764,7 @@ void Temperature::disable_all_heaters() {
   #endif
 
   #if HAS_TEMP_HOTEND
-    HOTEND_LOOP() setTargetHotend(0, h);
+    LOOP_HOTEND() setTargetHotend(0, h);
   #endif
   #if HAS_TEMP_BED
     setTargetBed(0);

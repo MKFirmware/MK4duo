@@ -103,7 +103,7 @@
 
   #endif
 
-  #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
+  #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
     extern millis_t previous_lcd_status_ms;
   #endif
 

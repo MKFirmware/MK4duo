@@ -986,7 +986,7 @@ void EEPROM::Factory_Settings() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    HOTEND_LOOP() hotend_offset[i][h] = tmp10[i][h];
+    LOOP_HOTEND() hotend_offset[i][h] = tmp10[i][h];
   }
 
   Mechanics.acceleration = DEFAULT_ACCELERATION;
@@ -1035,7 +1035,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(PIDTEMP)
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
       PID_PARAM(Kp, h) = tmp6[h];
       PID_PARAM(Ki, h) = tmp7[h];
       PID_PARAM(Kd, h) = tmp8[h];

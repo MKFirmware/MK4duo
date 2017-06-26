@@ -804,7 +804,6 @@
   #else
     #define FAN_COUNT 0
   #endif
-  #define FAN_LOOP() for (uint8_t f = 0; f < FAN_COUNT; f++)
 
   #if ENABLED(INVERTED_FAN_PINS)
     #define _WRITE_FAN(pin, v) WRITE(pin, !v)

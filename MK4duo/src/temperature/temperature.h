@@ -29,8 +29,6 @@
 
 #include "thermistortables.h"
 
-#define HOTEND_LOOP() for (int8_t h = 0; h < HOTENDS; h++)
-
 #if HOTENDS <= 1
   #define HOTEND_INDEX  0
   #define EXTRUDER_IDX  0
@@ -43,10 +41,6 @@ class Temperature {
 
   public:
 
-    #if ENABLED(FILAMENT_SENSOR)
-      static int16_t    current_raw_filwidth;  // Holds measured filament diameter - one extruder only
-    #endif
-    
     #if HAS_TEMP_HOTEND
       static float      current_temperature[HOTENDS];
       static int16_t    current_temperature_raw[HOTENDS],
@@ -249,7 +243,8 @@ class Temperature {
     #endif
 
     #if ENABLED(FILAMENT_SENSOR)
-      static int16_t meas_shift_index;  // Index of a delayed sample in buffer
+      static int8_t   meas_shift_index;     // Index of a delayed sample in buffer
+      static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
     #endif
 
     #if HAS_AUTO_FAN
@@ -574,7 +569,7 @@ class Temperature {
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
-    #if HAS(PID_HEATING) || HAS(PID_COOLING)
+    #if HAS_PID_HEATING || HAS_PID_COOLING
       static void PID_autotune(const float temp, const int temp_controller, int ncycles, bool storeValues=false);
     #endif
 

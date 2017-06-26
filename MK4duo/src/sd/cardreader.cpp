@@ -431,7 +431,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     fileRestart.write(buffer_G1);
 
     #if FAN_COUNT > 0
-      FAN_LOOP() {
+      LOOP_FAN() {
         if (fanSpeeds[f] > 0) {
           char fanSp[20];
           sprintf(fanSp, "M106 S%i P%i\n", (int)fanSpeeds[f], (int)f);
@@ -455,7 +455,7 @@ void CardReader::closeFile(const bool store_location /*=false*/) {
     thermalManager.disable_all_coolers();
     #if FAN_COUNT > 0
       #if FAN_COUNT > 1
-        FAN_LOOP() fanSpeeds[f] = 0;
+        LOOP_FAN() fanSpeeds[f] = 0;
       #else
         fanSpeeds[0] = 0;
       #endif

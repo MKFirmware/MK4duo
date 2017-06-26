@@ -201,12 +201,22 @@
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
 #define FIXFLOAT(f)       (f + 0.00001)
 
-#define _AXIS(AXIS) AXIS ##_AXIS
+#define _AXIS(AXIS)       AXIS ##_AXIS
 
-#define LOOP_XY(VAR)      for (uint8_t VAR = X_AXIS; VAR <= Y_AXIS; VAR++)
-#define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
-#define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
-#define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)
+
+// LOOP MACROS
+#define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)
+#define LOOP_S_L_N(VAR, S, N)   for (uint8_t VAR=S; VAR<N; VAR++)
+#define LOOP_LE_N(VAR, N)       LOOP_S_LE_N(VAR, 0, N)
+#define LOOP_L_N(VAR, N)        LOOP_S_L_N(VAR, 0, N)
+
+#define LOOP_NA(VAR)            LOOP_L_N(VAR, NUM_AXIS)
+#define LOOP_XY(VAR)            LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
+#define LOOP_XYZ(VAR)           LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
+#define LOOP_XYZE(VAR)          LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
+#define LOOP_XYZE_N(VAR)        LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
+#define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
+#define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)

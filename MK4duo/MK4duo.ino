@@ -30,62 +30,65 @@
  *
  * "G" Codes
  *
- * G0  -> G1 except for laser where G0 is "move without firing"
- * G1  - Coordinated Movement X Y Z E F(feedrate) P(Purge), for laser move by firing
- * G2  - CW ARC
- * G3  - CCW ARC
- * G4  - Dwell S[seconds] or P[milliseconds], delay in Second or Millisecond
- * G5  - Bezier curve - from http://forums.reprap.org/read.php?147,93577
- * G7  - Laser raster base64
- * G10 - Retract filament according to settings of M207
- * G11 - Retract recover filament according to settings of M208
- * G12 - Clean tool
- * G20 - Set input units to inches
- * G21 - Set input units to millimeters
- * G27 - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
- * G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
- * G29 - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
- *        Fyyy Lxxx Rxxx Byyy for customer grid.
- * G30 - Single Z probe, probes bed at X Y location (defaults to current XY location)
- * G31 - Dock sled (Z_PROBE_SLED only)
- * G32 - Undock sled (Z_PROBE_SLED only)
- * G33 - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
- *        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
- *        P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
- *        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
- * G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
- * G60 - Save current position coordinates (all axes, for active extruder).
- *        S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
- * G61 - Apply/restore saved coordinates to the active extruder.
- *        X Y Z E - Value to add at stored coordinates.
- *        F<speed> - Set Feedrate.
- *        S<SLOT> - specifies memory slot # (0-based) to restore from (default 0).
- * G90 - Use Absolute Coordinates
- * G91 - Use Relative Coordinates
- * G92 - Set current position to coordinates given
+ * G0   -> G1 except for laser where G0 is "move without firing"
+ * G1   - Coordinated Movement X Y Z E F(feedrate) P(Purge), for laser move by firing
+ * G2   - CW ARC
+ * G3   - CCW ARC
+ * G4   - Dwell S[seconds] or P[milliseconds], delay in Second or Millisecond
+ * G5   - Bezier curve - from http://forums.reprap.org/read.php?147,93577
+ * G7   - Laser raster base64
+ * G10  - Retract filament according to settings of M207
+ * G11  - Retract recover filament according to settings of M208
+ * G12  - Clean tool
+ * G17  - Select Plane XY (Requires CNC_WORKSPACE_PLANES)
+ * G18  - Select Plane ZX (Requires CNC_WORKSPACE_PLANES)
+ * G19  - Select Plane YZ (Requires CNC_WORKSPACE_PLANES)
+ * G20  - Set input units to inches
+ * G21  - Set input units to millimeters
+ * G27  - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
+ * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
+ * G29  - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
+ *          Fyyy Lxxx Rxxx Byyy for customer grid.
+ * G30  - Single Z probe, probes bed at X Y location (defaults to current XY location)
+ * G31  - Dock sled (Z_PROBE_SLED only)
+ * G32  - Undock sled (Z_PROBE_SLED only)
+ * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
+ *          F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
+ *          P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
+ *          A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
+ * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
+ * G60  - Save current position coordinates (all axes, for active extruder).
+ *          S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
+ * G61  - Apply/restore saved coordinates to the active extruder.
+ *          X Y Z E - Value to add at stored coordinates.
+ *          F<speed> - Set Feedrate.
+ *          S<SLOT> - specifies memory slot # (0-based) to restore from (default 0).
+ * G90  - Use Absolute Coordinates
+ * G91  - Use Relative Coordinates
+ * G92  - Set current position to coordinates given
  *
  * "M" Codes
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
- * M1   - Same as M0
+ * M1   -> M0
  * M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASER)
  *        S<value> CNC clockwise speed. (Requires CNCROUTERS)
  * M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
- * M5   - Turn off laser beam. (Requires LASER) - Turn off CNC. (Requires CNCROUTERS)
+ * M5   - Turn laser/spindle off. (Requires LASER or Requires CNCROUTERS)
  * M6   - Tool change CNC. (Requires CNCROUTERS)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
- * M20  - List SD card
- * M21  - Init SD card
- * M22  - Release SD card
- * M23  - Select SD file (M23 filename.g)
- * M24  - Start/resume SD print
- * M25  - Pause SD print
- * M26  - Set SD position in bytes (M26 S12345)
- * M27  - Report SD print status
- * M28  - Start SD write (M28 filename.g)
- * M29  - Stop SD write
- * M30  - Delete file from SD (M30 filename.g)
+ * M20  - List SD card. (Requires SDSUPPORT)
+ * M21  - Init SD card. (Requires SDSUPPORT)
+ * M22  - Release SD card. (Requires SDSUPPORT)
+ * M23  - Select SD file (M23 filename.g). (Requires SDSUPPORT)
+ * M24  - Start/resume SD print. (Requires SDSUPPORT)
+ * M25  - Pause SD print. (Requires SDSUPPORT)
+ * M26  - Set SD position in bytes (M26 S12345). (Requires SDSUPPORT)
+ * M27  - Report SD print status. (Requires SDSUPPORT)
+ * M28  - Start SD write (M28 filename.g). (Requires SDSUPPORT)
+ * M29  - Stop SD write. (Requires SDSUPPORT)
+ * M30  - Delete file from SD (M30 filename.g). (Requires SDSUPPORT)
  * M31  - Output time since last M109 or SD card start to serial
  * M32  - Make directory
  * M33  - Stop printing, close file and save restart.gcode

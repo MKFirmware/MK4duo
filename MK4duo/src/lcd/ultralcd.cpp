@@ -1439,7 +1439,7 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_cooldown() {
     #if FAN_COUNT > 0
-      FAN_LOOP() fanSpeeds[f] = 0;
+      LOOP_FAN() fanSpeeds[f] = 0;
     #endif
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
@@ -1457,6 +1457,10 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(EEPROM_SETTINGS)
     static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
     static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
+  #endif
+
+  #if HAS_BED_PROBE
+    static void lcd_refresh_zprobe_zoffset() { probe.refresh_zprobe_zoffset(); }
   #endif
 
   #if ENABLED(LCD_BED_LEVELING)
@@ -1821,7 +1825,7 @@ void kill_screen(const char* lcd_msg) {
         //
         bool has_heat = false;
         #if HAS_TEMP_HOTEND
-          HOTEND_LOOP() if (thermalManager.target_temperature[h]) { has_heat = true; break; }
+          LOOP_HOTEND() if (thermalManager.target_temperature[h]) { has_heat = true; break; }
         #endif
         #if HAS_TEMP_BED
           if (thermalManager.target_temperature_bed) has_heat = true;
@@ -3541,7 +3545,7 @@ void kill_screen(const char* lcd_msg) {
    */
   #if ENABLED(REPRAPWORLD_KEYPAD)
 
-    void _reprapworld_keypad_move(AxisEnum axis, int16_t dir) {
+    void _reprapworld_keypad_move(const AxisEnum axis, const int16_t dir) {
       move_menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
       encoderPosition = dir;
       switch (axis) {
@@ -4050,7 +4054,7 @@ void lcd_finishstatus(const bool persist=false) {
   #endif
   lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
 
-  #if (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
+  #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
     previous_lcd_status_ms = millis();  // get status message to show up for a while
   #endif
 
