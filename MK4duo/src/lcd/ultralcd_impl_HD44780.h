@@ -834,7 +834,7 @@ static void lcd_implementation_status_screen() {
     uint8_t len = elapsed.toDigital(buffer);
 
     lcd.setCursor(LCD_WIDTH - len - 1, 2);
-    #if HAS(LCD_POWER_SENSOR)
+    #if HAS_LCD_POWER_SENSOR
       if (millis() < print_millis + 1000) {
         lcd.print((char)LCD_CLOCK_CHAR);
         lcd_print(buffer);
@@ -866,9 +866,9 @@ static void lcd_implementation_status_screen() {
       if (percent) return lcd_draw_progress_bar(percent);
     }
 
-  #elif (HAS(LCD_FILAMENT_SENSOR) && ENABLED(SDSUPPORT)) || HAS(LCD_POWER_SENSOR)
+  #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
 
-    #if HAS(LCD_FILAMENT_SENSOR) && HAS_SDSUPPORT
+    #if HAS_LCD_FILAMENT_SENSOR && HAS_SDSUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
       // After allowing lcd_status_message to show for 5 seconds
       if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
@@ -881,7 +881,7 @@ static void lcd_implementation_status_screen() {
       }
     #endif
 
-    #if HAS(LCD_POWER_SENSOR)
+    #if HAS_LCD_POWER_SENSOR
       else if (ELAPSED(millis(), previous_lcd_status_ms + 10000UL)) {
         lcd_printPGM(PSTR("P:"));
         lcd.print(ftostr43sign(power_consumption_meas));

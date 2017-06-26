@@ -49,6 +49,10 @@ class Probe {
     static float  z_offset;
     static bool   enabled;
 
+    #if HAS_Z_SERVO_PROBE
+      static const int z_servo_angle[2];
+    #endif
+
   public: /** Public Function */
 
     /**
@@ -79,6 +83,8 @@ class Probe {
       static void bltouch_command(int angle);
       static void set_bltouch_deployed(const bool deploy);
     #endif
+
+    static void refresh_zprobe_zoffset();
 
   private: /** Private Parameters */
 

@@ -211,10 +211,6 @@ PrintCounter print_job_counter = PrintCounter();
         Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if HAS_Z_SERVO_PROBE
-  const int z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
-#endif
-
 #if ENABLED(BARICUDA)
   int baricuda_valve_pressure   = 0,
       baricuda_e_to_p_pressure  = 0;
@@ -321,9 +317,9 @@ PrintCounter print_job_counter = PrintCounter();
   bool    filament_sensor = false;                                // M405 turns on filament_sensor control, M406 turns it off 
   float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
           filament_width_meas = DEFAULT_MEASURED_FILAMENT_DIA;    // Measured filament diameter
-  int8_t  measurement_delay[MAX_MEASUREMENT_DELAY + 1];           // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
-  int     filwidth_delay_index[2] = { 0, -1 },                    // Indexes into ring buffer
-          meas_delay_cm = MEASUREMENT_DELAY_CM;                   // Distance delay setting
+  uint8_t meas_delay_cm = MEASUREMENT_DELAY_CM,                   // Distance delay setting
+          measurement_delay[MAX_MEASUREMENT_DELAY + 1];           // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
+  int8_t  filwidth_delay_index[2] = { 0, -1 };                    // Indexes into ring buffer
 #endif
 
 #if HAS_FIL_RUNOUT
@@ -371,8 +367,8 @@ static bool send_ok[BUFSIZE];
 
 #if HAS_SERVOS
   #define MOVE_SERVO(I, P) servo[I].move(P)
-  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[0])
-  #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[1])
+  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[0])
+  #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
 #endif
 
 #if HAS_CHDK
@@ -390,6 +386,10 @@ static bool send_ok[BUFSIZE];
   uint8_t host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
 #else
   #define host_keepalive() NOOP
+#endif
+
+#if ENABLED(CNC_WORKSPACE_PLANES)
+  static WorkspacePlane workspace_plane = PLANE_XY;
 #endif
 
 /**
@@ -811,7 +811,7 @@ inline void get_serial_commands() {
       thermalManager.disable_all_heaters();
       thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        FAN_LOOP() fanSpeeds[f] = 0;
+        LOOP_FAN() fanSpeeds[f] = 0;
       #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
       #if HAS_POWER_SWITCH
@@ -1293,7 +1293,7 @@ static void clean_up_after_endstop_or_probe_move() {
       );
     #endif
     #if HOTENDS > 1
-      HOTEND_LOOP() print_heater_state(thermalManager.degHotend(h), thermalManager.degTargetHotend(h)
+      LOOP_HOTEND() print_heater_state(thermalManager.degHotend(h), thermalManager.degTargetHotend(h)
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
           , thermalManager.rawHotendTemp(h)
         #endif
@@ -1305,7 +1305,7 @@ static void clean_up_after_endstop_or_probe_move() {
       SERIAL_MV(MSG_BAT, thermalManager.getBedPower());
     #endif
     #if HOTENDS > 1
-      HOTEND_LOOP() {
+      LOOP_HOTEND() {
         SERIAL_MV(MSG_AT, h);
         SERIAL_CHR(':');
         SERIAL_VAL(thermalManager.getHeaterPower(h));
@@ -1904,7 +1904,7 @@ void gcode_get_destination() {
     while (wait_for_heatup && heaters_heating) {
       idle();
       heaters_heating = false;
-      HOTEND_LOOP() {
+      LOOP_HOTEND() {
         if (thermalManager.degTargetHotend(h) && abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > TEMP_HYSTERESIS) {
           heaters_heating = true;
           #if HAS_LCD
@@ -1979,7 +1979,7 @@ void gcode_get_destination() {
 
     // Store in old temperature the target temperature for hotend and bed
     int16_t old_target_temperature[HOTENDS];
-    HOTEND_LOOP() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
+    LOOP_HOTEND() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
 
     // Second retract filament with Cool Down
     if (retract2) {
@@ -2034,7 +2034,7 @@ void gcode_get_destination() {
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;
     const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
 
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
       thermalManager.start_heater_idle_timer(h, nozzle_timeout);
       thermalManager.setTargetHotend(old_target_temperature[h], h);
     }
@@ -2062,7 +2062,7 @@ void gcode_get_destination() {
       #endif
 
       if (!nozzle_timed_out)
-        HOTEND_LOOP()
+        LOOP_HOTEND()
           nozzle_timed_out |= thermalManager.is_heater_idle(h);
 
       if (nozzle_timed_out) {
@@ -2100,7 +2100,7 @@ void gcode_get_destination() {
         #endif
 
         // Re-enable the heaters if they timed out
-        HOTEND_LOOP() thermalManager.reset_heater_idle_timer(h);
+        LOOP_HOTEND() thermalManager.reset_heater_idle_timer(h);
 
         // Wait for the heaters to reach the target temperatures
         ensure_safe_temperature();
@@ -2113,7 +2113,7 @@ void gcode_get_destination() {
         const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;
         const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
 
-        HOTEND_LOOP()
+        LOOP_HOTEND()
           thermalManager.start_heater_idle_timer(h, nozzle_timeout);
 
         #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
@@ -2148,7 +2148,7 @@ void gcode_get_destination() {
       if (bed_timed_out) wait_bed();
     #endif
 
-    HOTEND_LOOP() {
+    LOOP_HOTEND() {
       nozzle_timed_out |= thermalManager.is_heater_idle(h);
       thermalManager.reset_heater_idle_timer(h);
     }
@@ -2338,6 +2338,9 @@ inline void gcode_G0_G1(
  *    X or Y must differ from the current XY.
  *    Mixing R with I or J will throw an error.
  *
+ *  - P specifies the number of full circles to do
+ *    before the specified arc move.
+ *
  *  Examples:
  *
  *    G2 I10           ; CW circle centered at X+10
@@ -2373,27 +2376,37 @@ inline void gcode_G0_G1(
 
       float arc_offset[2] = { 0.0, 0.0 };
       if (parser.seen('R')) {
-        const float r = parser.value_axis_units(X_AXIS),
-                    x1 = Mechanics.current_position[X_AXIS], y1 = Mechanics.current_position[Y_AXIS],
-                    x2 = Mechanics.destination[X_AXIS],      y2 = Mechanics.destination[Y_AXIS];
-        if (r && (x2 != x1 || y2 != y1)) {
+        const float r = parser.value_linear_units(),
+                    p1 = Mechanics.current_position[X_AXIS], q1 = Mechanics.current_position[Y_AXIS],
+                    p2 = Mechanics.destination[X_AXIS],      q2 = Mechanics.destination[Y_AXIS];
+        if (r && (p2 != p1 || q2 != q1)) {
           const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
-                      dx = x2 - x1, dy = y2 - y1,                 // X and Y differences
+                      dx = p2 - p1, dy = q2 - q1,                 // X and Y differences
                       d = HYPOT(dx, dy),                          // Linear distance between the points
                       h = SQRT(sq(r) - sq(d * 0.5)),              // Distance to the arc pivot-point
-                      mx = (x1 + x2) * 0.5, my = (y1 + y2) * 0.5, // Point between the two points
+                      mx = (p1 + p2) * 0.5, my = (q1 + q2) * 0.5, // Point between the two points
                       sx = -dy / d, sy = dx / d,                  // Slope of the perpendicular bisector
                       cx = mx + e * h * sx, cy = my + e * h * sy; // Pivot-point of the arc
-          arc_offset[X_AXIS] = cx - x1;
-          arc_offset[Y_AXIS] = cy - y1;
+          arc_offset[0] = cx - p1;
+          arc_offset[1] = cy - q1;
         }
       }
       else {
-        if (parser.seen('I')) arc_offset[X_AXIS] = parser.value_axis_units(X_AXIS);
-        if (parser.seen('J')) arc_offset[Y_AXIS] = parser.value_axis_units(Y_AXIS);
+        if (parser.seen('I')) arc_offset[0] = parser.value_linear_units();
+        if (parser.seen('J')) arc_offset[1] = parser.value_linear_units();
       }
 
       if (arc_offset[0] || arc_offset[1]) {
+
+        #if ENABLED(ARC_P_CIRCLES)
+          // P indicates number of circles to do
+          int8_t circles_to_do = parser.seen('P') ? parser.value_byte() : 0;
+          if (!WITHIN(circles_to_do, 0, 100))
+            SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+          while (circles_to_do--)
+            plan_arc(current_position, arc_offset, clockwise);
+        #endif
+
         // Send an arc to the planner
         plan_arc(Mechanics.destination, arc_offset, clockwise);
         refresh_cmd_timeout();
@@ -2571,6 +2584,24 @@ inline void gcode_G4() {
     Nozzle::clean(pattern, strokes, radius, objects);
   }
 #endif
+
+#if ENABLED(CNC_WORKSPACE_PLANES)
+
+  void report_workspace_plane() {
+    SERIAL_SM(ECHO, "Workspace Plane ");
+    SERIAL_PS(workspace_plane == PLANE_YZ ? PSTR("YZ\n") : workspace_plane == PLANE_ZX ? PSTR("ZX\n") : PSTR("XY\n"));
+  }
+
+  /**
+   * G17: Select Plane XY
+   * G18: Select Plane ZX
+   * G19: Select Plane YZ
+   */
+  inline void gcode_G17() { workspace_plane = PLANE_XY; }
+  inline void gcode_G18() { workspace_plane = PLANE_ZX; }
+  inline void gcode_G19() { workspace_plane = PLANE_YZ; }
+
+#endif // CNC_WORKSPACE_PLANES
 
 #if ENABLED(INCH_MODE_SUPPORT)
   /**
@@ -2775,6 +2806,10 @@ inline void gcode_G28(const bool always_home_all) {
   #if HOTENDS > 1
     const uint8_t old_tool_index = active_extruder;
     tool_change(0, 0, true);
+  #endif
+
+  #if ENABLED(CNC_WORKSPACE_PLANES)
+    workspace_plane = PLANE_XY;
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
@@ -5583,8 +5618,8 @@ inline void gcode_M42() {
 
       SERIAL_EM("Servo probe test");
       SERIAL_EMV(".  Using index:  ", probe_index);
-      SERIAL_EMV(".  Deploy angle: ", z_servo_angle[0]);
-      SERIAL_EMV(".  Stow angle:   ", z_servo_angle[1]);
+      SERIAL_EMV(".  Deploy angle: ", probe.z_servo_angle[0]);
+      SERIAL_EMV(".  Stow angle:   ", probe.z_servo_angle[1]);
 
       bool probe_inverting;
 
@@ -5626,10 +5661,10 @@ inline void gcode_M42() {
       SET_INPUT_PULLUP(PROBE_TEST_PIN);
       bool deploy_state, stow_state;
       for (uint8_t i = 0; i < 4; i++) {
-        servo[probe_index].move(z_servo_angle[0]); // deploy
+        servo[probe_index].move(probe.z_servo_angle[0]); // deploy
         safe_delay(500);
         deploy_state = digitalRead(PROBE_TEST_PIN);
-        servo[probe_index].move(z_servo_angle[1]); // stow
+        servo[probe_index].move(probe.z_servo_angle[1]); // stow
         safe_delay(500);
         stow_state = digitalRead(PROBE_TEST_PIN);
       }
@@ -5652,8 +5687,8 @@ inline void gcode_M42() {
         #endif
 
       }
-      else {                                       // measure active signal length
-        servo[probe_index].move(z_servo_angle[0]); // deploy
+      else {                                              // measure active signal length
+        servo[probe_index].move(probe.z_servo_angle[0]);  // deploy
         safe_delay(500);
         SERIAL_EM("please trigger probe");
         uint16_t probe_counter = 0;
@@ -5678,7 +5713,7 @@ inline void gcode_M42() {
             else
               SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
 
-            servo[probe_index].move(z_servo_angle[1]); // stow
+            servo[probe_index].move(probe.z_servo_angle[1]); // stow
 
           } // pulse detected
 
@@ -6131,7 +6166,7 @@ inline void gcode_M81() {
   stepper.finish_and_disable();
   #if FAN_COUNT > 0
     #if FAN_COUNT > 1
-      FAN_LOOP() fanSpeeds[f] = 0;
+      LOOP_FAN() fanSpeeds[f] = 0;
     #else
       fanSpeeds[0] = 0;
     #endif
@@ -7188,7 +7223,7 @@ inline void gcode_M218() {
   if (parser.seen('Z')) hotend_offset[Z_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
 
   SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
-  HOTEND_LOOP() {
+  LOOP_HOTEND() {
     SERIAL_MV(" ", hotend_offset[X_AXIS][h]);
     SERIAL_MV(",", hotend_offset[Y_AXIS][h]);
     SERIAL_MV(",", hotend_offset[Z_AXIS][h]);
@@ -7451,7 +7486,7 @@ inline void gcode_M226() {
    *       U<bool> with a non-zero value will apply the result to current settings
    */
   inline void gcode_M303() {
-    #if HAS(PID_HEATING) || HAS(PID_COOLING)
+    #if HAS_PID_HEATING || HAS_PID_COOLING
       const int   h = parser.seen('H') ? parser.value_int() : 0,
                   c = parser.seen('C') ? parser.value_int() : 5;
       const bool  u = parser.seen('U') && parser.value_bool() != 0;
@@ -7843,11 +7878,11 @@ inline void gcode_M400() { stepper.synchronize(); }
   inline void gcode_M405() {
     // This is technically a linear measurement, but since it's quantized to centimeters and is a different unit than
     // everything else, it uses parser.value_int() instead of parser.value_linear_units().
-    if (parser.seen('D')) meas_delay_cm = parser.value_int();
+    if (parser.seen('D')) meas_delay_cm = parser.value_byte();
     NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
 
     if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
-      const int temp_ratio = thermalManager.widthFil_to_size_ratio() - 100; // -100 to scale within a signed byte
+      const uint8_t temp_ratio = thermalManager.widthFil_to_size_ratio() - 100; // -100 to scale within a signed byte
 
       for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
         measurement_delay[i] = temp_ratio;
@@ -10043,6 +10078,15 @@ void process_next_command() {
           gcode_G12(); break;
       #endif // NOZZLE_CLEAN_FEATURE
 
+      #if ENABLED(CNC_WORKSPACE_PLANES)
+        case 17: // G17: Select Plane XY
+          gcode_G17(); break;
+        case 18: // G18: Select Plane ZX
+          gcode_G18(); break;
+        case 19: // G19: Select Plane YZ
+          gcode_G19(); break;
+      #endif // CNC_WORKSPACE_PLANES
+
       #if ENABLED(INCH_MODE_SUPPORT)
         case 20: //G20: Inch Mode
           gcode_G20(); break;
@@ -11331,6 +11375,11 @@ void report_current_position_detail() {
 
 #if ENABLED(ARC_SUPPORT)
 
+  #if N_ARC_CORRECTION < 1
+    #undef N_ARC_CORRECTION
+    #define N_ARC_CORRECTION 1
+  #endif
+
   /**
    * Plan an arc in 2 dimensions
    *
@@ -11346,24 +11395,35 @@ void report_current_position_detail() {
     uint8_t clockwise     // Clockwise?
   ) {
 
-    float r_X = -offset[X_AXIS],  // Radius vector from center to current location
-          r_Y = -offset[Y_AXIS];
+    #if ENABLED(CNC_WORKSPACE_PLANES)
+      AxisEnum p_axis, q_axis, l_axis;
+      switch (workspace_plane) {
+        case PLANE_XY: p_axis = X_AXIS; q_axis = Y_AXIS; l_axis = Z_AXIS; break;
+        case PLANE_ZX: p_axis = Z_AXIS; q_axis = X_AXIS; l_axis = Y_AXIS; break;
+        case PLANE_YZ: p_axis = Y_AXIS; q_axis = Z_AXIS; l_axis = X_AXIS; break;
+      }
+    #else
+      constexpr AxisEnum p_axis = X_AXIS, q_axis = Y_AXIS, l_axis = Z_AXIS;
+    #endif
 
-    const float radius = HYPOT(r_X, r_Y),
-                center_X = Mechanics.current_position[X_AXIS] - r_X,
-                center_Y = Mechanics.current_position[Y_AXIS] - r_Y,
-                rt_X = logical[X_AXIS] - center_X,
-                rt_Y = logical[Y_AXIS] - center_Y,
-                linear_travel = logical[Z_AXIS] - Mechanics.current_position[Z_AXIS],
+    // Radius vector from center to current location
+    float r_P = -offset[0], r_Q = -offset[1];
+
+    const float radius = HYPOT(r_P, r_Q),
+                center_P = Mechanics.current_position[p_axis] - r_P,
+                center_Q = Mechanics.current_position[q_axis] - r_Q,
+                rt_X = logical[p_axis] - center_P,
+                rt_Y = logical[q_axis] - center_Q,
+                linear_travel = logical[l_axis] - Mechanics.current_position[l_axis],
                 extruder_travel = logical[E_AXIS] - Mechanics.current_position[E_AXIS];
 
     // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
-    float angular_travel = atan2(r_X * rt_Y - r_Y * rt_X, r_X * rt_X + r_Y * rt_Y);
+    float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
     if (angular_travel < 0) angular_travel += RADIANS(360);
     if (clockwise) angular_travel -= RADIANS(360);
 
     // Make a circle if the angular rotation is 0
-    if (angular_travel == 0 && Mechanics.current_position[X_AXIS] == logical[X_AXIS] && Mechanics.current_position[Y_AXIS] == logical[Y_AXIS])
+    if (angular_travel == 0 && Mechanics.current_position[p_axis] == logical[p_axis] && Mechanics.current_position[q_axis] == logical[q_axis])
       angular_travel += RADIANS(360);
 
     float mm_of_travel = HYPOT(angular_travel * radius, FABS(linear_travel));
@@ -11407,7 +11467,7 @@ void report_current_position_detail() {
                 cos_T = 1 - 0.5 * sq(theta_per_segment); // Small angle approximation
 
     // Initialize the linear axis
-    arc_target[Z_AXIS] = Mechanics.current_position[Z_AXIS];
+    arc_target[l_axis] = Mechanics.current_position[l_axis];
 
     // Initialize the extruder axis
     arc_target[E_AXIS] = Mechanics.current_position[E_AXIS];
@@ -11416,7 +11476,10 @@ void report_current_position_detail() {
 
     millis_t next_idle_ms = millis() + 200UL;
 
-    int8_t count = 0;
+    #if N_ARC_CORRECTION > 1
+      int8_t count = N_ARC_CORRECTION;
+    #endif
+
     for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
       thermalManager.manage_temp_controller();
@@ -11425,28 +11488,34 @@ void report_current_position_detail() {
         idle();
       }
 
-      if (++count < N_ARC_CORRECTION) {
-        // Apply vector rotation matrix to previous r_X / 1
-        const float r_new_Y = r_X * sin_T + r_Y * cos_T;
-        r_X = r_X * cos_T - r_Y * sin_T;
-        r_Y = r_new_Y;
-      }
-      else {
+      #if N_ARC_CORRECTION > 1
+        if (--count) {
+          // Apply vector rotation matrix to previous r_P / 1
+          const float r_new_Y = r_P * sin_T + r_Q * cos_T;
+          r_P = r_P * cos_T - r_Q * sin_T;
+          r_Q = r_new_Y;
+        }
+        else
+      #endif
+      {
+        #if N_ARC_CORRECTION > 1
+          count = N_ARC_CORRECTION;
+        #endif
+
         // Arc correction to radius vector. Computed only every N_ARC_CORRECTION increments.
         // Compute exact location by applying transformation matrix from initial radius vector(=-offset).
         // To reduce stuttering, the sin and cos could be computed at different times.
         // For now, compute both at the same time.
         const float cos_Ti = cos(i * theta_per_segment),
                     sin_Ti = sin(i * theta_per_segment);
-        r_X = -offset[X_AXIS] * cos_Ti + offset[Y_AXIS] * sin_Ti;
-        r_Y = -offset[X_AXIS] * sin_Ti - offset[Y_AXIS] * cos_Ti;
-        count = 0;
+        r_P = -offset[0] * cos_Ti + offset[1] * sin_Ti;
+        r_Q = -offset[0] * sin_Ti - offset[1] * cos_Ti;
       }
 
       // Update arc_target location
-      arc_target[X_AXIS] = center_X + r_X;
-      arc_target[Y_AXIS] = center_Y + r_Y;
-      arc_target[Z_AXIS] += linear_per_segment;
+      arc_target[p_axis] = center_P + r_P;
+      arc_target[q_axis] = center_Q + r_Q;
+      arc_target[l_axis] += linear_per_segment;
       arc_target[E_AXIS] += extruder_per_segment;
 
       endstops.clamp_to_software_endstops(arc_target);
@@ -11477,7 +11546,7 @@ void report_current_position_detail() {
         || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
         #if EXTRUDERS > 1
           || E1_ENABLE_READ == E_ENABLE_ON
-          #if HAS(X2_ENABLE)
+          #if HAS_X2_ENABLE
             || X2_ENABLE_READ == X_ENABLE_ON
           #endif
           #if EXTRUDERS > 2
@@ -11589,17 +11658,20 @@ void report_current_position_detail() {
         #if HAS_TEMP_BED
           max_temp = MAX3(max_temp, thermalManager.degTargetBed(), thermalManager.degBed());
         #endif
-      HOTEND_LOOP()
+      LOOP_HOTEND()
         max_temp = MAX3(max_temp, thermalManager.degHotend(h), thermalManager.degTargetHotend(h));
-      bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
+      const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;
         #if PIN_EXISTS(STAT_LED_RED)
           WRITE(STAT_LED_RED_PIN, new_led ? HIGH : LOW);
+          #if PIN_EXISTS(STAT_LED_BLUE)
+            WRITE(STAT_LED_BLUE_PIN, new_led ? LOW : HIGH);
+          #endif
+        #else
+          WRITE(STAT_LED_BLUE_PIN, new_led ? HIGH : LOW);
         #endif
-        #if PIN_EXISTS(STAT_LED_BLUE)
-          WRITE(STAT_LED_BLUE_PIN, new_led ? LOW : HIGH);
-        #endif
+        
       }
     }
   }

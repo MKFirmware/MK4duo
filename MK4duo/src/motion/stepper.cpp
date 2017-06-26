@@ -628,13 +628,13 @@ void Stepper::isr() {
       uint32_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
     #endif
 
-    #if HAS(X_STEP)
+    #if HAS_X_STEP
       PULSE_START(X);
     #endif
-    #if HAS(Y_STEP)
+    #if HAS_Y_STEP
       PULSE_START(Y);
     #endif
-    #if HAS(Z_STEP)
+    #if HAS_Z_STEP
       PULSE_START(Z);
     #endif
 
@@ -663,13 +663,13 @@ void Stepper::isr() {
       DELAY_NOPS(EXTRA_CYCLES_XYZE);
     #endif
 
-    #if HAS(X_STEP)
+    #if HAS_X_STEP
       PULSE_STOP(X);
     #endif
-    #if HAS(Y_STEP)
+    #if HAS_Y_STEP
       PULSE_STOP(Y);
     #endif
-    #if HAS(Z_STEP)
+    #if HAS_Z_STEP
       PULSE_STOP(Z);
     #endif
 
@@ -1111,65 +1111,65 @@ void Stepper::init() {
   #if HAS_X_DIR
     X_DIR_INIT;
   #endif
-  #if HAS(X2_DIR)
+  #if HAS_X2_DIR
     X2_DIR_INIT;
   #endif
   #if HAS_Y_DIR
     Y_DIR_INIT;
-    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_DIR)
+    #if ENABLED(Y_TWO_STEPPER) && HAS_Y2_DIR
       Y2_DIR_INIT;
     #endif
   #endif
   #if HAS_Z_DIR
     Z_DIR_INIT;
-    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_DIR)
+    #if ENABLED(Z_TWO_STEPPER) && HAS_Z2_DIR
       Z2_DIR_INIT;
     #endif
   #endif
-  #if HAS(E0_DIR)
+  #if HAS_E0_DIR
     E0_DIR_INIT;
   #endif
-  #if HAS(E1_DIR)
+  #if HAS_E1_DIR
     E1_DIR_INIT;
   #endif
-  #if HAS(E2_DIR)
+  #if HAS_E2_DIR
     E2_DIR_INIT;
   #endif
-  #if HAS(E3_DIR)
+  #if HAS_E3_DIR
     E3_DIR_INIT;
   #endif
-  #if HAS(E4_DIR)
+  #if HAS_E4_DIR
     E4_DIR_INIT;
   #endif
-  #if HAS(E5_DIR)
+  #if HAS_E5_DIR
     E5_DIR_INIT;
   #endif
 
   //Initialize Enable Pins - steppers default to disabled.
 
-  #if HAS(X_ENABLE)
+  #if HAS_X_ENABLE
     X_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
-    #if (ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER)) && HAS(X2_ENABLE)
+    #if (ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER)) && HAS_X2_ENABLE
       X2_ENABLE_INIT;
       if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
     #endif
   #endif
 
-  #if HAS(Y_ENABLE)
+  #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
 
-    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_ENABLE)
+    #if ENABLED(Y_TWO_STEPPER) && HAS_Y2_ENABLE
       Y2_ENABLE_INIT;
       if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
     #endif
   #endif
 
-  #if HAS(Z_ENABLE)
+  #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
-    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_ENABLE)
+    #if ENABLED(Z_TWO_STEPPER) && HAS_Z2_ENABLE
       Z2_ENABLE_INIT;
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
@@ -1234,7 +1234,7 @@ void Stepper::init() {
   #define E_AXIS_INIT(NUM) AXIS_INIT(E## NUM, E)
 
   // Init Step Pins
-  #if HAS(X_STEP)
+  #if HAS_X_STEP
     #if ENABLED(X_TWO_STEPPER) || ENABLED(DUAL_X_CARRIAGE)
       X2_STEP_INIT;
       X2_STEP_WRITE(INVERT_X_STEP_PIN);
@@ -1242,7 +1242,7 @@ void Stepper::init() {
     AXIS_INIT(X, X);
   #endif
 
-  #if HAS(Y_STEP)
+  #if HAS_Y_STEP
     #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_STEP)
       Y2_STEP_INIT;
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
@@ -1250,7 +1250,7 @@ void Stepper::init() {
     AXIS_INIT(Y, Y);
   #endif
 
-  #if HAS(Z_STEP)
+  #if HAS_Z_STEP
     #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_STEP)
       Z2_STEP_INIT;
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
@@ -1258,22 +1258,22 @@ void Stepper::init() {
     AXIS_INIT(Z, Z);
   #endif
 
-  #if HAS(E0_STEP)
+  #if HAS_E0_STEP
     E_AXIS_INIT(0);
   #endif
-  #if HAS(E1_STEP)
+  #if HAS_E1_STEP
     E_AXIS_INIT(1);
   #endif
-  #if HAS(E2_STEP)
+  #if HAS_E2_STEP
     E_AXIS_INIT(2);
   #endif
-  #if HAS(E3_STEP)
+  #if HAS_E3_STEP
     E_AXIS_INIT(3);
   #endif
-  #if HAS(E4_STEP)
+  #if HAS_E4_STEP
     E_AXIS_INIT(4);
   #endif
-  #if HAS(E5_STEP)
+  #if HAS_E5_STEP
     E_AXIS_INIT(5);
   #endif
 

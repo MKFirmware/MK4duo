@@ -166,8 +166,7 @@ enum LCDViewAction {
   LCDVIEW_REDRAW_NOW,
   LCDVIEW_CALL_REDRAW_NEXT,
   LCDVIEW_CLEAR_CALL_REDRAW,
-  LCDVIEW_CALL_NO_REDRAW,
-  LCDVIEW_U8G_CONTINUE
+  LCDVIEW_CALL_NO_REDRAW
 };
 
 /**
@@ -194,6 +193,14 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
     DXC_AUTO_PARK_MODE,
     DXC_DUPLICATION_MODE
   };
+#endif
+
+/**
+ * Workspace planes only apply to G2/G3 moves
+ * (and "canned cycles" - not a current feature)
+ */
+#if ENABLED(CNC_WORKSPACE_PLANES)
+  enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
 #endif
 
 #endif //__ENUM_H__

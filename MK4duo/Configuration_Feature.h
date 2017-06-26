@@ -1754,11 +1754,15 @@
 // minimum time in microseconds that a movement needs to take if the buffer is emptied.
 #define DEFAULT_MINSEGMENTTIME 20000
 
-// Arc interpretation settings:
-// Disabling this saves ~2738 bytes
+//
+// G2/G3 Arc Support
+//
+// Disable this feature to save ~3226 bytes
 #define ARC_SUPPORT
-#define MM_PER_ARC_SEGMENT 1
-#define N_ARC_CORRECTION 25
+#define MM_PER_ARC_SEGMENT 1    // Length of each arc segment
+#define N_ARC_CORRECTION  25    // Number of intertpolated segments between corrections
+//#define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
+//#define CNC_WORKSPACE_PLANES  // Allow G2/G3 to operate in XY, ZX, or YZ planes
 
 // Moves with fewer segments than this will be ignored and joined with the next movement
 #define MIN_STEPS_PER_SEGMENT 6
