@@ -585,11 +585,11 @@ static uint16_t PWMChanFreq[8]  = {0},
 static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for Intel spec PWM fans that need 25kHz PWM
 static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
 
-static inline uint32_t ConvertRange(float f, uint32_t top) { return LROUND(f * (float)top); }
+static inline uint32_t ConvertRange(const float f, const uint32_t top) { return LROUND(f * (float)top); }
 
 // AnalogWritePwm to a PWM pin
 // Return true if successful, false if we need to call software pwm
-static bool AnalogWritePwm(const PinDescription& pinDesc, float ulValue, uint16_t freq) {
+static bool AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
 
   const uint32_t chan = pinDesc.ulPWMChannel;
 
@@ -693,7 +693,7 @@ static inline uint32_t TC_read_rc(Tc *tc, uint32_t chan) {
 
 // AnalogWriteTc to a TC pin
 // Return true if successful, false if we need to call software pwm
-static bool AnalogWriteTc(const PinDescription& pinDesc, float ulValue, uint16_t freq) {
+static bool AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
 
   const uint32_t chan = (uint32_t)pinDesc.ulTCChannel >> 1;
   if (freq == 0) {
@@ -981,27 +981,63 @@ HAL_TEMP_TIMER_ISR {
 
   #if HAS_TEMP_HOTEND
     static uint8_t  pwm_heater_pos[HOTENDS] = { 0 };
-    static bool     pwm_heater_hd[HOTENDS]  = ARRAY_BY_HOTENDS(true);
+    static bool     pwm_heater_hd[HOTENDS]  =
+      #if ENABLED(INVERTED_HEATER_PINS)
+        ARRAY_BY_HOTENDS(false)
+      #else
+        ARRAY_BY_HOTENDS(true)
+      #endif
+    ;
   #endif
   #if HAS_HEATER_BED
     static uint8_t  pwm_bed_pos = 0;
-    static bool     pwm_bed_hd  = true;
+    static bool     pwm_bed_hd  =
+      #if ENABLED(INVERTED_BED_PIN)
+        false
+      #else
+        true
+      #endif
+    ;
   #endif
   #if HAS_HEATER_CHAMBER
     static uint8_t  pwm_chamber_pos = 0;
-    static bool     pwm_chamber_hd  = true;
+    static bool     pwm_chamber_hd  =
+      #if ENABLED(INVERTED_CHAMBER_PIN)
+        false
+      #else
+        true
+      #endif
+    ;
   #endif
   #if HAS_COOLER
     static uint8_t  pwm_cooler_pos = 0;
-    static bool     pwm_cooler_hd  = true;
+    static bool     pwm_cooler_hd  =
+      #if ENABLED(INVERTED_COOLER_PIN)
+        false
+      #else
+        true
+      #endif
+    ;
   #endif
   #if FAN_COUNT > 0
     static uint8_t  pwm_fan_pos[FAN_COUNT]  = { 0 };
-    static bool     pwm_fan_hd[FAN_COUNT]   = ARRAY_BY_FANS(true);
+    static bool     pwm_fan_hd[FAN_COUNT]   =
+      #if ENABLED(INVERTED_FAN_PIN)
+        ARRAY_BY_FANS(false)
+      #else
+        ARRAY_BY_FANS(true)
+      #endif
+    ;
   #endif
   #if HAS_CONTROLLERFAN
     static uint8_t  pwm_controller_pos = 0;
-    static bool     pwm_controller_hd  = true;
+    static bool     pwm_controller_hd  =
+      #if ENABLED(INVERTED_FAN_PIN)
+        false
+      #else
+        true
+      #endif
+    ;
   #endif
 
   #if ENABLED(FILAMENT_SENSOR)

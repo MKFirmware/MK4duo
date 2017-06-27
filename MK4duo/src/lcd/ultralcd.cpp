@@ -377,8 +377,6 @@ uint16_t max_display_update_time = 0;
   millis_t next_button_update_ms;
   #if ENABLED(REPRAPWORLD_KEYPAD)
     volatile uint8_t buttons_reprapworld_keypad;
-  #elif ENABLED(ADC_KEYPAD)
-    volatile uint8_t buttons_adc_keypad;
   #endif
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)
     volatile uint8_t slow_buttons;
@@ -3598,48 +3596,34 @@ void kill_screen(const char* lcd_msg) {
 
   #elif ENABLED(ADC_KEYPAD) // ADC_KEYPAD
 
-    inline void handle_adc_keypad() {
-      
-      if (buttons_adc_keypad != 0) {
+    inline bool handle_adc_keypad() {
+      static uint8_t adc_steps = 0;
+      if (buttons_reprapworld_keypad) {
+        if (adc_steps < 20) ++adc_steps;
         lcd_quick_feedback();
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-        if ((currentScreen == lcd_main_menu) || (currentScreen == lcd_tune_menu) || (currentScreen == lcd_prepare_menu) || (currentScreen == lcd_control_menu)
-          #if HAS_SDSUPPORT
-            || (currentScreen == lcd_sdcard_menu)
-          #endif
-          || (currentScreen == lcd_move_menu)
-          || (currentScreen == lcd_move_get_x_amount)
-          || (currentScreen == lcd_move_get_y_amount)
-          || (currentScreen == lcd_move_get_z_amount)
-          || (currentScreen == lcd_move_get_e_amount)
-          || (currentScreen == lcd_move_menu_10mm)
-          || (currentScreen == lcd_move_menu_1mm)
-          || (currentScreen == lcd_move_menu_01mm)
-          || (currentScreen == lcd_control_temperature_menu)
-          || (currentScreen == lcd_control_temperature_preheat_material1_settings_menu)
-          || (currentScreen == lcd_control_temperature_preheat_material2_settings_menu)
-          || (currentScreen == lcd_control_temperature_preheat_material3_settings_menu)
-          || (currentScreen == lcd_control_motion_menu)
-          || (currentScreen == lcd_control_filament_menu)
-          #if HAS_TEMP_0 && (HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED)
-            || (currentScreen == lcd_preheat_m1_menu) || (currentScreen == lcd_preheat_m2_menu) || (currentScreen == lcd_preheat_m3_menu)
-          #endif
-        ) {
-          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
-            encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
-          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
-            encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
-
-          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_LEFT)
-            menu_action_back();
+        if (encoderDirection == -1) { // side effect which signals we are inside a menu
+          if      (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)  encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
+          else if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_UP)    encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
+          else if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_LEFT)  menu_action_back();
+          else if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_RIGHT) lcd_return_to_status();
         }
         else {
-          if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)
-            encoderPosition += ENCODER_PULSES_PER_STEP;
-          else if (buttons_adc_keypad & EN_REPRAPWORLD_KEYPAD_UP)
-            encoderPosition -= ENCODER_PULSES_PER_STEP;
+          const int8_t step = adc_steps > 19 ? 100 : adc_steps > 10 ? 10 : 1;
+               if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_DOWN)  encoderPosition += ENCODER_PULSES_PER_STEP * step;
+          else if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_UP)    encoderPosition -= ENCODER_PULSES_PER_STEP * step;
+          else if (buttons_reprapworld_keypad & EN_REPRAPWORLD_KEYPAD_RIGHT) encoderPosition = 0;
         }
+        #if ENABLED(ADC_KEYPAD_DEBUG)
+          SERIAL_EMV("buttons_reprapworld_keypad = ", (uint32_t)buttons_reprapworld_keypad);
+          SERIAL_EMV("encoderPosition = ", (uint32_t)encoderPosition);
+        #endif
+        return true;
       }
+      else if (!HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX])
+        adc_steps = 0; // reset stepping acceleration
+
+      return false;
     }
 
   #endif
@@ -3874,9 +3858,14 @@ void lcd_update() {
       #endif
 
       #if ENABLED(REPRAPWORLD_KEYPAD)
+
         handle_reprapworld_keypad();
+
       #elif ENABLED(ADC_KEYPAD)
-        handle_adc_keypad();
+
+        if (handle_adc_keypad())
+          return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+
       #endif
 
       bool encoderPastThreshold = (abs(encoderDiff) >= ENCODER_PULSES_PER_STEP);
@@ -3962,7 +3951,7 @@ void lcd_update() {
         }
 
       #if ENABLED(ADC_KEYPAD)
-        buttons_adc_keypad = 0;
+        buttons_reprapworld_keypad = 0;
       #endif
 
       #if ENABLED(ULTIPANEL)
@@ -4210,18 +4199,23 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
         #if ENABLED(LCD_HAS_SLOW_BUTTONS)
           buttons |= slow_buttons;
         #endif
-        #if ENABLED(REPRAPWORLD_KEYPAD)
-          GET_BUTTON_STATES(buttons_reprapworld_keypad);
-        #elif ENABLED(ADC_KEYPAD)
-          // for the reprapworld_keypad
-          uint8_t newbutton_adc_keypad = 0;
+
+        #if ENABLED(ADC_KEYPAD)
+          
+          uint8_t newbutton_reprapworld_keypad = 0;
           buttons = 0;
-          if (buttons_adc_keypad == 0) {
-            newbutton_adc_keypad = get_ADC_keyValue();
-            if ((newbutton_adc_keypad > 0) && (newbutton_adc_keypad <= 8))
-              buttons_adc_keypad = 1 << (newbutton_adc_keypad - 1);
+          if (buttons_reprapworld_keypad == 0) {
+            newbutton_reprapworld_keypad = get_ADC_keyValue();
+            if (WITHIN(newbutton_reprapworld_keypad, 1, 8))
+              buttons_reprapworld_keypad = _BV(newbutton_reprapworld_keypad - 1);
           }
+
+        #elif ENABLED(REPRAPWORLD_KEYPAD)
+
+          GET_BUTTON_STATES(buttons_reprapworld_keypad);
+
         #endif
+
       #else
         GET_BUTTON_STATES(buttons);
       #endif // !NEWPANEL
@@ -4270,32 +4264,33 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
 #if ENABLED(ADC_KEYPAD)
 
-  #define	ADC_KEY_NUM		8
   typedef struct {
-    unsigned short ADCKeyValueMin;
-    unsigned short ADCKeyValueMax;
-    unsigned char  ADCKeyNo;
-  }_stADCKeypadTable_;
+    uint16_t ADCKeyValueMin, ADCKeyValueMax;
+    uint8_t  ADCKeyNo;
+  } _stADCKeypadTable_;
 
-  _stADCKeypadTable_ stADCKeyTable[ADC_KEY_NUM] = {
+  static const _stADCKeypadTable_ stADCKeyTable[] PROGMEM = {
     // VALUE_MIN, VALUE_MAX , KEY
     { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F1 + 1 },     // F1
     { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F2 + 1 },     // F2
     { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },     // F3
-    { 18,  32, 	BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },   // LEFT
+    {  18,  32, BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },   // LEFT
     { 118, 138, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
-    { 34,  54, 	BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
+    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
     { 166, 180, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
-    { 70, 90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 },   // ENTER
+    {  70,  90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 }, // ENTER
   };
 
-  unsigned char get_ADC_keyValue(void) {
-    unsigned short currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX] >> 2);
+  uint8_t get_ADC_keyValue(void) {
+    const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX] >> 2);
+    #if ENABLED(ADC_KEYPAD_DEBUG)
+      SERIAL_EV(currentkpADCValue);
+    #endif
     if (currentkpADCValue < 250) {
-      for (unsigned char i = 0; i < ADC_KEY_NUM; i++) {
-        if ((currentkpADCValue > stADCKeyTable[i].ADCKeyValueMin) && (currentkpADCValue < stADCKeyTable[i].ADCKeyValueMax)) {
-          return stADCKeyTable[i].ADCKeyNo;
-        }
+      for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {
+        const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
+                       hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
+        if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
       }
     }
     return 0;
