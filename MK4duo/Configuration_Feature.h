@@ -140,6 +140,9 @@
 // to enable uncomment and set minimal PWM speed for reliable running (1-255)
 //#define FAN_MIN_PWM 50
 
+// For inverted logical FAN PIN
+//#define INVERTED_FAN_PINS
+
 // This is for controlling a fan to cool down the stepper drivers
 // it will turn on when any driver is enabled
 // and turn off after the set amount of seconds from last driver being disabled again
