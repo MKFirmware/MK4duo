@@ -7,7 +7,8 @@
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
   #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
