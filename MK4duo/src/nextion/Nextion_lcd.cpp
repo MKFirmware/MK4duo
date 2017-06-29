@@ -894,9 +894,6 @@
     #if ENABLED(PROBE_MANUALLY)
       extern bool g29_in_progress;
       bool lcd_wait_for_move;
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        extern bool g33_in_progress;
-      #endif
     #endif
 
     void line_to_current(AxisEnum axis) {
@@ -921,7 +918,7 @@
         #if ENABLED(PROBE_MANUALLY)
           if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
           #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-            else if (g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
+            else if (Mechanics.g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
           #endif
         #endif
       }

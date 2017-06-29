@@ -158,6 +158,10 @@
 
       const signed char home_dir[ABC]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
+      #if HAS_DELTA_AUTO_CALIBRATION
+        bool g33_in_progress = false;
+      #endif
+
     public: /** Public Function */
 
       /**
@@ -249,12 +253,6 @@
       void sync_plan_position();
       void sync_plan_position_e();
 
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-        void Adjust(const uint8_t numFactors, const float v[]);
-        void Convert_endstop_adj();
-      #endif
-
       void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
       void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void Transform(const float logical[ABC]);
@@ -286,6 +284,16 @@
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
       bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
       bool position_is_reachable_xy(const float &lx, const float &ly);
+
+      #if HAS_DELTA_AUTO_CALIBRATION
+        void auto_calibration();
+      #endif
+
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
+        void Adjust(const uint8_t numFactors, const float v[]);
+        void Convert_endstop_adj();
+      #endif
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
