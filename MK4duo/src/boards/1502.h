@@ -14,7 +14,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-	#define BOARD_NAME "Alligator R2"
+  #define BOARD_NAME "Alligator R2"
 #endif
 //@@@
 
@@ -155,16 +155,16 @@
 
 //###SERVOS
 #if NUM_SERVOS > 0
-	#define SERVO0_PIN 36
-	#if NUM_SERVOS > 1
-		#define SERVO1_PIN 40
-		#if NUM_SERVOS > 2
-			#define SERVO2_PIN 41
-			#if NUM_SERVOS > 3
-				#define SERVO3_PIN -1
-			#endif
-		#endif
-	#endif
+  #define SERVO0_PIN 36
+  #if NUM_SERVOS > 1
+    #define SERVO1_PIN 40
+    #if NUM_SERVOS > 2
+      #define SERVO2_PIN 41
+      #if NUM_SERVOS > 3
+        #define SERVO3_PIN -1
+      #endif
+    #endif
+  #endif
 #endif
 //@@@
 
