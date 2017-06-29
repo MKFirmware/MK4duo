@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
 #endif
 //@@@
 
@@ -14,7 +14,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-	#define BOARD_NAME "RAMPS4DUE"
+  #define BOARD_NAME "RAMPS4DUE"
 #endif
 //@@@
 
@@ -155,16 +155,16 @@
 
 //###SERVOS
 #if NUM_SERVOS > 0
-	#define SERVO0_PIN -1
-	#if NUM_SERVOS > 1
-		#define SERVO1_PIN -1
-		#if NUM_SERVOS > 2
-			#define SERVO2_PIN -1
-			#if NUM_SERVOS > 3
-				#define SERVO3_PIN -1
-			#endif
-		#endif
-	#endif
+  #define SERVO0_PIN -1
+  #if NUM_SERVOS > 1
+    #define SERVO1_PIN -1
+    #if NUM_SERVOS > 2
+      #define SERVO2_PIN -1
+      #if NUM_SERVOS > 3
+        #define SERVO3_PIN -1
+      #endif
+    #endif
+  #endif
 #endif
 //@@@
 
