@@ -13,7 +13,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "Megatronics V3_0"
+  #define BOARD_NAME "Megatronics V3.0"
 #endif
 //@@@
 

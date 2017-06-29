@@ -13,7 +13,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "ANET"
+  #define BOARD_NAME "Anet"
 #endif
 //@@@
 

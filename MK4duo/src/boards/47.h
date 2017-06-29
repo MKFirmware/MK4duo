@@ -13,7 +13,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "MKS V1_3"
+  #define BOARD_NAME "MKS V1.3"
 #endif
 //@@@
 

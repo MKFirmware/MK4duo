@@ -78,6 +78,9 @@ void prepare_arc_move(char isclockwise);
 extern millis_t previous_cmd_ms;
 inline void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
+extern void setup_for_endstop_or_probe_move();
+extern void clean_up_after_endstop_or_probe_move();
+
 extern void safe_delay(millis_t ms);
 
 extern bool volumetric_enabled;

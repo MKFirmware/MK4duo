@@ -13,7 +13,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "3DVERTEX"
+  #define BOARD_NAME "3DVertex"
 #endif
 //@@@
 
