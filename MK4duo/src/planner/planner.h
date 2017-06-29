@@ -238,7 +238,7 @@ class Planner {
      *  driver      - target driver
      */
     static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
+      #if HAS_LEVELING && (IS_CARTESIAN || IS_CORE)
         bedlevel.apply_leveling(lx, ly, lz);
       #endif
       _buffer_line(lx, ly, lz, e, fr_mm_s, extruder, driver);
@@ -255,9 +255,9 @@ class Planner {
      *  driver   - target driver
      */
     static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+      #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if PLANNER_LEVELING
+        #if HAS_LEVELING
           bedlevel.apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)

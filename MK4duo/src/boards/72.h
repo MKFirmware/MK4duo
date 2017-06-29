@@ -1,18 +1,19 @@
 /****************************************************************************************
 * 72
-* Ultiboard v2.0 pin assignment
+* Ultimainboard 2.x
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(__AVR_ATmega2560__)
   #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Ultiboard v2.0"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Ultimainboard 2.x"
 #endif
 //@@@
 

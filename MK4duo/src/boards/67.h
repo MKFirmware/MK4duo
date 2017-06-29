@@ -4,15 +4,16 @@
 ****************************************************************************************/
 
 //###CHIP
-#if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#if DISABLED(__AVR_ATmega2560__)
+  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "AZTEEG X3"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Azteeg X3"
 #endif
 //@@@
 

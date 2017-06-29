@@ -1,6 +1,6 @@
 /******************************************************************************
 * 10
-* Gen7 Alfons
+* Gen7 custom (Alfons3 Version)
 * These Pins are assigned for the modified GEN7
 * Board from Alfons3 Please review the pins and adjust it for your needs
 ******************************************************************************/
@@ -8,13 +8,14 @@
 //###CHIP
 #if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
   #error Oops!  Make sure you have 'Gen7' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Gen7"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Gen7 custom (Alfons3 Version)"
 #endif
 //@@@
 

@@ -56,9 +56,19 @@
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <stdint.h>
 #include <Arduino.h>
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+typedef uint32_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 #include "fastio_Due.h"
 #include "watchdog_Due.h"
 #include "HAL_timers_Due.h"
@@ -196,13 +206,6 @@
 #define ADC_TEMPERATURE_SENSOR 15
 
 // --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
-
-typedef uint32_t millis_t;
-typedef int16_t Pin;
-
-// --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
 
@@ -259,15 +262,15 @@ class HAL {
       static void spiSendBlock(uint8_t token, const uint8_t* buf);
     #endif
 
-    static bool AnalogWrite(Pin pin, const uint8_t value, const uint16_t freq);
+    static bool analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=50);
 
-    static inline void digitalWrite(Pin pin, uint8_t value) {
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
       WRITE_VAR(pin, value);
     }
-    static inline uint8_t digitalRead(Pin pin) {
+    static inline uint8_t digitalRead(const Pin pin) {
       return READ_VAR(pin);
     }
-    static inline void pinMode(Pin pin, uint8_t mode) {
+    static inline void pinMode(const Pin pin, const uint8_t mode) {
       if (mode == INPUT) {
         SET_INPUT(pin);
       }
@@ -283,8 +286,8 @@ class HAL {
         : "+r" (n) :
       );
     }
-    static inline void delayMilliseconds(unsigned int delayMs) {
-      unsigned int del;
+    static inline void delayMilliseconds(uint16_t delayMs) {
+      uint16_t del;
       while (delayMs > 0) {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);

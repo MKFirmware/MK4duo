@@ -55,7 +55,7 @@ FORCE_INLINE void serial_spaces(uint8_t count) {
 #define SERIAL_PS(message)                  (serialprintPGM(message))
 #define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
 
-#define SERIAL_STR(srt)                     SERIAL_PGM(srt)
+#define SERIAL_STR(str)                     SERIAL_PGM(str)
 #define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
 #define SERIAL_TXT(txt)                     (serial_print(txt))
 #define SERIAL_VAL(val, ...)                (serial_print(val, ## __VA_ARGS__))
@@ -67,11 +67,11 @@ FORCE_INLINE void serial_spaces(uint8_t count) {
 #define SERIAL_MT(msg, txt)                 (serial_print_pair(PSTR(msg), txt))
 #define SERIAL_MV(msg, val, ...)            (serial_print_pair(PSTR(msg), val, ## __VA_ARGS__))
 
-#define SERIAL_SM(srt, msg)                 do{ SERIAL_STR(srt); SERIAL_MSG(msg); }while(0)
-#define SERIAL_ST(srt, txt)                 do{ SERIAL_STR(srt); SERIAL_TXT(txt); }while(0)
-#define SERIAL_SV(srt, val, ...)            do{ SERIAL_STR(srt); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
-#define SERIAL_SMT(srt, msg, txt)           do{ SERIAL_STR(srt); SERIAL_MT(msg, txt); }while(0)
-#define SERIAL_SMV(srt, msg, val, ...)      do{ SERIAL_STR(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); }while(0)
+#define SERIAL_ST(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); }while(0)
+#define SERIAL_SV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); }while(0)
+#define SERIAL_SMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
 
 #define SERIAL_EM(msg)                      (serialprintPGM(PSTR(msg "\n")))
 #define SERIAL_ET(txt)                      do{ SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
@@ -79,12 +79,12 @@ FORCE_INLINE void serial_spaces(uint8_t count) {
 #define SERIAL_EMT(msg, txt)                do{ SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
 #define SERIAL_EMV(msg, val, ...)           do{ SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 
-#define SERIAL_L(srt)                       do{ SERIAL_STR(srt); SERIAL_EOL(); }while(0)
-#define SERIAL_LM(srt, msg)                 do{ SERIAL_STR(srt); SERIAL_EM(msg); }while(0)
-#define SERIAL_LT(srt, txt)                 do{ SERIAL_STR(srt); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LV(srt, val, ...)            do{ SERIAL_STR(srt); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-#define SERIAL_LMT(srt, msg, txt)           do{ SERIAL_STR(srt); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LMV(srt, msg, val, ...)      do{ SERIAL_STR(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_L(str)                       do{ SERIAL_STR(str); SERIAL_EOL(); }while(0)
+#define SERIAL_LM(str, msg)                 do{ SERIAL_STR(str); SERIAL_EM(msg); }while(0)
+#define SERIAL_LT(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 
 FORCE_INLINE void serial_print(const char *v)   { MKSERIAL.print(v); }
 FORCE_INLINE void serial_print(char v)          { MKSERIAL.print(v); }

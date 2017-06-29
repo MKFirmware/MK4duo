@@ -6,13 +6,14 @@
 //###CHIP
 #if DISABLED(__AVR_ATmega1281__)
   #error Oops! Make sure you have 'Minitronics ' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Minitronics v1.0"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Minitronics"
 #endif
 //@@@
 

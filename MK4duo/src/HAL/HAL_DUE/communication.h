@@ -89,7 +89,7 @@ class Com {
 #define SERIAL_PS(message)                  (Com::PS_PGM(message))
 #define SERIAL_PGM(message)                 (Com::PS_PGM(PSTR(message)))
 
-#define SERIAL_STR(srt)                     (Com::PS_PGM(srt))
+#define SERIAL_STR(str)                     (Com::PS_PGM(str))
 #define SERIAL_MSG(msg)                     (Com::PS_PGM(PSTR(msg)))
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
@@ -101,11 +101,11 @@ class Com {
 #define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
 #define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
 
-#define SERIAL_SM(srt, msg)                 do{ SERIAL_STR(srt); SERIAL_MSG(msg); }while(0)
-#define SERIAL_ST(srt, txt)                 do{ SERIAL_STR(srt); SERIAL_TXT(txt); }while(0)
-#define SERIAL_SV(srt, val, ...)            do{ SERIAL_STR(srt); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
-#define SERIAL_SMT(srt, msg, txt)           do{ SERIAL_STR(srt); SERIAL_MT(msg, txt); }while(0)
-#define SERIAL_SMV(srt, msg, val, ...)      do{ SERIAL_STR(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); }while(0)
+#define SERIAL_ST(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); }while(0)
+#define SERIAL_SV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); }while(0)
+#define SERIAL_SMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
 
 #define SERIAL_EM(msg)                      do{ SERIAL_MSG(msg); SERIAL_EOL(); }while(0)
 #define SERIAL_ET(txt)                      do{ SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
@@ -113,11 +113,11 @@ class Com {
 #define SERIAL_EMT(msg, txt)                do{ SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
 #define SERIAL_EMV(msg, val, ...)           do{ SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 
-#define SERIAL_L(srt)                       do{ SERIAL_STR(srt); SERIAL_EOL(); }while(0)
-#define SERIAL_LM(srt, msg)                 do{ SERIAL_STR(srt); SERIAL_MSG(msg); SERIAL_EOL(); }while(0)
-#define SERIAL_LT(srt, txt)                 do{ SERIAL_STR(srt); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LV(srt, val, ...)            do{ SERIAL_STR(srt); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-#define SERIAL_LMT(srt, msg, txt)           do{ SERIAL_STR(srt); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LMV(srt, msg, val, ...)      do{ SERIAL_STR(srt); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_L(str)                       do{ SERIAL_STR(str); SERIAL_EOL(); }while(0)
+#define SERIAL_LM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); SERIAL_EOL(); }while(0)
+#define SERIAL_LT(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 
 #endif

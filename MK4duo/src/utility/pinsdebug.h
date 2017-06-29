@@ -940,7 +940,7 @@ bool get_pinMode(uint8_t pin) {
 }
 
 // pretty report with PWM info
-inline void report_pin_state_extended(int8_t pin, bool ignore) {
+inline void report_pin_state_extended(Pin pin, bool ignore) {
 
   char buffer[30];   // for the sprintf statements
 

@@ -258,6 +258,7 @@
       void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
       void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
       void Transform(const float logical[ABC]);
+      void Transform_segment_raw(const float rx, const float ry, const float rz, const float le, const float fr);
       void recalc_delta_settings();
       void reset_acceleration_rates();
       void refresh_positioning();
