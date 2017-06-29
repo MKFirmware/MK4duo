@@ -747,7 +747,7 @@ void kill_screen(const char* lcd_msg) {
       encoderPosition = 0;
       lcd_implementation_drawmenu_static(0, PSTR(MSG_PROGRESS_BAR_TEST), true, true);
       lcd.setCursor((LCD_WIDTH) / 2 - 2, LCD_HEIGHT - 2);
-      lcd.print(itostr3(bar_percent)); lcd.print('%');
+      lcd.print(itostr3(bar_percent)); lcd.write('%');
       lcd.setCursor(0, LCD_HEIGHT - 1); lcd_draw_progress_bar(bar_percent);
     }
 

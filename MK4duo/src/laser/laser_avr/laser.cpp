@@ -177,13 +177,13 @@
 
   }
 
-  void laser_fire(float intensity/*= 100*/){
+  void laser_fire(float intensity/*=100.0*/){
 
     laser.firing = LASER_ON;
     laser.last_firing = micros(); // microseconds of last laser firing
 
-    NOMORE(intensity, 100);
-    NOLESS(intensity, 0);
+    NOMORE(intensity, 100.0);
+    NOLESS(intensity, 0.0);
 
     #if ENABLED(LASER_PWM_INVERT)
       intensity = 100 - intensity;
