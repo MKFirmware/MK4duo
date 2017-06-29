@@ -6,7 +6,8 @@
 //###CHIP
 #if DISABLED(__AVR_ATmega328P__)
   #error Oops!  Make sure you have 'Arduino Duemilanove w/ ATMega328' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 

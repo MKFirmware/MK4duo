@@ -32,7 +32,8 @@
 //###CHIP
 #if DISABLED(__AVR_ATmega644__)
   #error Oops!  Make sure you have 'SanguinoA' selected from the 'Tools -> Boards' menu.
-#endif//@@@
+#endif
+//@@@
 
 #define KNOWN_BOARD 1
 
