@@ -15,7 +15,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "Gen7 (Alfons3 Version)"
+  #define BOARD_NAME "Gen7 (Alfons3)"
 #endif
 //@@@
 

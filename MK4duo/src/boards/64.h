@@ -12,7 +12,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "STB"
+  #define BOARD_NAME "STB v1.1"
 #endif
 //@@@
 

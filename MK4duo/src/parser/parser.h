@@ -92,7 +92,7 @@ class GCodeParser {
     // Index so that 'X' falls on index 24
     #define PARAM_IND(N)  ((N) >> 3)
     #define PARAM_BIT(N)  ((N) & 0x7)
-    #define LETTER_OFF(N) ((N) - 'A' + 1)
+    #define LETTER_OFF(N) ((N) - 'A')
     #define LETTER_IND(N) PARAM_IND(LETTER_OFF(N))
     #define LETTER_BIT(N) PARAM_BIT(LETTER_OFF(N))
 
@@ -303,6 +303,7 @@ class GCodeParser {
     // Provide simple value accessors with default option
     FORCE_INLINE static float    floatval(const char c, const float dval=0.0)   { return seenval(c) ? value_float()        : dval; }
     FORCE_INLINE static bool     boolval(const char c, const bool dval=false)   { return seen(c)    ? value_bool()         : dval; }
+    FORCE_INLINE static bool     noboolval(const char c, const bool dval=false) { return seen(c)    ? !value_bool()        : dval; }
     FORCE_INLINE static uint8_t  byteval(const char c, const uint8_t dval=0)    { return seenval(c) ? value_byte()         : dval; }
     FORCE_INLINE static int16_t  intval(const char c, const int16_t dval=0)     { return seenval(c) ? value_int()          : dval; }
     FORCE_INLINE static uint16_t ushortval(const char c, const uint16_t dval=0) { return seenval(c) ? value_ushort()       : dval; }

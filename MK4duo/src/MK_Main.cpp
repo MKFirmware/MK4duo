@@ -4024,12 +4024,12 @@ void home_all_axes() { gcode_G28(true); }
   /**
    * G30: Do a single Z probe at the current XY
    * Usage:
-   *    G30 <X#> <Y#> <S#> <U#>
+   *    G30 <X#> <Y#> <S#> <Z#> <P#>
    *      X = Probe X position (default=current probe position)
    *      Y = Probe Y position (default=current probe position)
    *      S = <bool> Stows the probe if 1 (default=1)
    *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
-   *      U = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+   *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
    */
   inline void gcode_G30() {
     const float xpos = parser.seen('X') ? parser.value_linear_units() : Mechanics.current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
@@ -4056,12 +4056,12 @@ void home_all_axes() { gcode_G28(true); }
     }
 
     #if IS_DELTA
-      if (parser.seen('Z') && parser.value_bool()) {
+      if (parser.boolval('Z')) {
         Mechanics.delta_height -= measured_z;
         Mechanics.recalc_delta_settings();
         SERIAL_MV("  New delta height = ", Mechanics.delta_height, 3);
       }
-      else if (parser.seen('U') && parser.value_bool()) {
+      else if (parser.boolval('P')) {
         probe.z_offset += endstops.soft_endstop_min[Z_AXIS] - measured_z;
         SERIAL_MV("  New Z probe offset = ", probe.z_offset, 3);
       }
@@ -4461,8 +4461,6 @@ void home_all_axes() { gcode_G28(true); }
    *
    *   Cn.nn Calibration precision; when omitted calibrates to maximum precision
    *
-   *   Fn  Force to run at least n iterations and takes the best result
-   *
    *   Vn Verbose level:
    *
    *      V0  Dry-run mode. Report settings and probe results. No calibration.
@@ -4500,13 +4498,7 @@ void home_all_axes() { gcode_G28(true); }
       return;
     }
 
-    const int8_t force_iterations = parser.intval('F', 1);
-    if (!WITHIN(force_iterations, 1, 30)) {
-      SERIAL_EM("?(F)orce iteration is implausible (1-30).");
-      return;
-    }
-
-    const bool  towers_set            = !parser.boolval('T'),
+    const bool  towers_set            = !parser.noboolval('T'),
                 stow_after_each       = parser.boolval('E'),
                 _1p_calibration       = probe_points == 1,
                 _4p_calibration       = probe_points == 2,
@@ -4577,8 +4569,7 @@ void home_all_axes() { gcode_G28(true); }
 
     do {
 
-      float z_at_pt[13] = { 0 }, S1 = 0.0, S2 = 0.0;
-      int16_t N = 0;
+      float z_at_pt[13] = { 0 };
 
       test_precision = zero_std_dev_old != 999.0 ? (zero_std_dev + zero_std_dev_old) / 2 : zero_std_dev;
 
@@ -4613,13 +4604,13 @@ void home_all_axes() { gcode_G28(true); }
         }
       }
       if (_7p_intermed_points) { // average intermediates to tower and opposites
-        for (uint8_t axis = 1; axis <= 11; axis += 2)
+        for (uint8_t axis = 1; axis < 13; axis += 2)
           z_at_pt[axis] = (z_at_pt[axis] + (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 2.0) / 2.0;
       }
 
-      S1 += z_at_pt[0];
-      S2 += sq(z_at_pt[0]);
-      N++;
+      float S1  = z_at_pt[0],
+            S2  = sq(z_at_pt[0]);
+      int16_t N = 1;
       if (!_1p_calibration) { // std dev from zero plane
         for (uint8_t axis = (_4p_opposite_points ? 3 : 1); axis < 13; axis += (_4p_calibration ? 4 : 2)) {
           S1 += z_at_pt[axis];
@@ -4633,7 +4624,7 @@ void home_all_axes() { gcode_G28(true); }
 
       // Solve matrices
 
-      if ((zero_std_dev < test_precision && zero_std_dev > calibration_precision) || iterations <= force_iterations) {
+      if (zero_std_dev < test_precision && zero_std_dev > calibration_precision) {
         if (zero_std_dev < zero_std_dev_min) {
           COPY_ARRAY(e_old, Mechanics.delta_endstop_adj);
           dr_old = Mechanics.delta_radius;
@@ -4738,7 +4729,7 @@ void home_all_axes() { gcode_G28(true); }
         }
       }
       if (test_precision != 0.0) {
-        if ((zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) && iterations > force_iterations) {  // end iterations
+        if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {  // end iterations
           SERIAL_MSG("Calibration OK");
           SERIAL_SP(36);
           if (zero_std_dev >= test_precision)
@@ -4772,7 +4763,7 @@ void home_all_axes() { gcode_G28(true); }
           print_signed_float(PSTR("Tz"), Mechanics.delta_tower_radius_adj[C_AXIS]);
           SERIAL_EOL();
         }
-        if ((zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) && iterations > force_iterations) {
+        if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {
           SERIAL_PS(save_message);
           SERIAL_EOL();
         }
@@ -4798,7 +4789,7 @@ void home_all_axes() { gcode_G28(true); }
       Mechanics.Home();
       endstops.not_homing();
 
-    } while ((zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31) || iterations <= force_iterations);
+    } while (zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31);
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);

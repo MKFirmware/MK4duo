@@ -12,7 +12,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "Sanguinololu"
+  #define BOARD_NAME "Sanguinololu v1.2"
 #endif
 //@@@
 
