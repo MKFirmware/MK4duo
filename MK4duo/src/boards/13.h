@@ -12,8 +12,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Gen7"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Gen7 v1.4"
 #endif
 //@@@
 

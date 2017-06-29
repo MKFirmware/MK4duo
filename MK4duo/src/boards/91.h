@@ -30,16 +30,16 @@
 ****************************************************************************************/
 
 //###CHIP
-#if DISABLED(__AVR_ATmega644__)
-  #error Oops!  Make sure you have 'SanguinoA' selected from the 'Tools -> Boards' menu.
+#if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATMega644P__)
+  #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu. (Final OMCA board)
 #endif
 //@@@
 
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Open Motion"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Open"
 #endif
 //@@@
 

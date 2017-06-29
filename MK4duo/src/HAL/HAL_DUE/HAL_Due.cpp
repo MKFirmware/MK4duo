@@ -761,7 +761,7 @@ static bool AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, co
   return true;
 }
 
-bool HAL::AnalogWrite(Pin pin, const uint8_t value, const uint16_t freq) {
+bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) {
 
   if (isnan(value)) return true;
 
@@ -1049,16 +1049,16 @@ HAL_TEMP_TIMER_ISR {
    */
   #if HOTENDS > 0
     if (pwm_heater_hd[0])
-      pwm_heater_hd[0] = HAL::AnalogWrite(HEATER_0_PIN, thermalManager.soft_pwm[0], HEATER_PWM_FREQ);
+      pwm_heater_hd[0] = HAL::analogWrite(HEATER_0_PIN, thermalManager.soft_pwm[0], HEATER_PWM_FREQ);
     #if HOTENDS > 1
       if (pwm_heater_hd[1])
-        pwm_heater_hd[1] = HAL::AnalogWrite(HEATER_1_PIN, thermalManager.soft_pwm[1], HEATER_PWM_FREQ);
+        pwm_heater_hd[1] = HAL::analogWrite(HEATER_1_PIN, thermalManager.soft_pwm[1], HEATER_PWM_FREQ);
       #if HOTENDS > 2
         if (pwm_heater_hd[2])
-          pwm_heater_hd[2] = HAL::AnalogWrite(HEATER_2_PIN, thermalManager.soft_pwm[2], HEATER_PWM_FREQ);
+          pwm_heater_hd[2] = HAL::analogWrite(HEATER_2_PIN, thermalManager.soft_pwm[2], HEATER_PWM_FREQ);
         #if HOTENDS > 3
           if (pwm_heater_hd[3])
-            pwm_heater_hd[3] = HAL::AnalogWrite(HEATER_3_PIN, thermalManager.soft_pwm[3], HEATER_PWM_FREQ);
+            pwm_heater_hd[3] = HAL::analogWrite(HEATER_3_PIN, thermalManager.soft_pwm[3], HEATER_PWM_FREQ);
         #endif
       #endif
     #endif
@@ -1066,38 +1066,38 @@ HAL_TEMP_TIMER_ISR {
 
   #if HAS_HEATER_BED && HAS_TEMP_BED
     if (pwm_bed_hd)
-      pwm_bed_hd = HAL::AnalogWrite(HEATER_BED_PIN, thermalManager.soft_pwm_bed, HEATER_PWM_FREQ);
+      pwm_bed_hd = HAL::analogWrite(HEATER_BED_PIN, thermalManager.soft_pwm_bed, HEATER_PWM_FREQ);
   #endif
 
   #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
     if (pwm_chamber_hd)
-      pwm_chamber_hd = HAL::AnalogWrite(HEATER_CHAMBER_PIN, thermalManager.soft_pwm_chamber, HEATER_PWM_FREQ);
+      pwm_chamber_hd = HAL::analogWrite(HEATER_CHAMBER_PIN, thermalManager.soft_pwm_chamber, HEATER_PWM_FREQ);
   #endif
 
   #if HAS_COOLER && HAS_TEMP_COOLER
     if (pwm_cooler_hd)
-      pwm_cooler_hd = HAL::AnalogWrite(COOLER_PIN, thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
+      pwm_cooler_hd = HAL::analogWrite(COOLER_PIN, thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
   #endif
 
   #if HAS_FAN0
     if (pwm_fan_hd[0])
-      pwm_fan_hd[0] = HAL::AnalogWrite(FAN_PIN, fanSpeeds[0], FAN_PWM_FREQ);
+      pwm_fan_hd[0] = HAL::analogWrite(FAN_PIN, fanSpeeds[0], FAN_PWM_FREQ);
   #endif
   #if HAS_FAN1
     if (pwm_fan_hd[1])
-      pwm_fan_hd[1] = HAL::AnalogWrite(FAN1_PIN, fanSpeeds[1], FAN_PWM_FREQ);
+      pwm_fan_hd[1] = HAL::analogWrite(FAN1_PIN, fanSpeeds[1], FAN_PWM_FREQ);
   #endif
   #if HAS_FAN2
     if (pwm_fan_hd[2])
-      pwm_fan_hd[2] = HAL::AnalogWrite(FAN2_PIN, fanSpeeds[2], FAN_PWM_FREQ);
+      pwm_fan_hd[2] = HAL::analogWrite(FAN2_PIN, fanSpeeds[2], FAN_PWM_FREQ);
   #endif
   #if HAS_FAN3
     if (pwm_fan_hd[3])
-      pwm_fan_hd[3] = HAL::AnalogWrite(FAN3_PIN, fanSpeeds[3], FAN_PWM_FREQ);
+      pwm_fan_hd[3] = HAL::analogWrite(FAN3_PIN, fanSpeeds[3], FAN_PWM_FREQ);
   #endif
   #if HAS_CONTROLLERFAN
     if (pwm_controller_hd)
-      pwm_controller_hd = HAL::AnalogWrite(CONTROLLERFAN_PIN, controller_fanSpeeds, FAN_PWM_FREQ);
+      pwm_controller_hd = HAL::analogWrite(CONTROLLERFAN_PIN, controller_fanSpeeds, FAN_PWM_FREQ);
   #endif
 
   /**

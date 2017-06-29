@@ -1,11 +1,5 @@
 /****************************************************************************************
-* 6 - 62 - 63 - 64 - 65
 *  6 - Sanguinololu <1.2
-* 62 - Sanguinololu 1.2 and above
-* 63 - Melzi
-* 64 - STB 1.1
-* 65 - Azteeg X1
-* 66 - MELZI 1284
 ****************************************************************************************/
 
 //###CHIP
@@ -17,8 +11,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Melzi"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Sanguinololu"
 #endif
 //@@@
 

@@ -12,8 +12,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "SAINSMART"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Sainsmart 2in1"
 #endif
 //@@@
 

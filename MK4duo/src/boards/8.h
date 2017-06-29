@@ -18,8 +18,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Teensylu 0.7"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Teensylu"
 #endif
 //@@@
 

@@ -13,8 +13,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "RAMPS FD v1"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Ramps FD v1"
 #endif
 //@@@
 

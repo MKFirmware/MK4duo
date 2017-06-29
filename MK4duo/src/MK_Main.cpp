@@ -417,9 +417,9 @@ void report_current_position_detail();
  * Sensitive pin test for M42, M226
  */
 static bool pin_is_protected(uint8_t pin) {
-  static const int sensitive_pins[] = SENSITIVE_PINS;
+  static const int8_t sensitive_pins[] PROGMEM = SENSITIVE_PINS;
   for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
-    if (sensitive_pins[i] == pin) return true;
+    if (pin == (int8_t)pgm_read_byte(&sensitive_pins[i])) return true;
   return false;
 }
 
@@ -925,14 +925,15 @@ void get_available_commands() {
  *
  * Returns TRUE if the target is invalid
  */
-bool get_target_extruder_from_command(int code) {
-  if (parser.seen('T')) {
-    if (parser.value_byte() >= EXTRUDERS) {
-      SERIAL_SMV(ER, "M", code);
-      SERIAL_EMV(" " MSG_INVALID_EXTRUDER, parser.value_byte());
+bool get_target_extruder_from_command(const uint16_t code) {
+  if (parser.seenval('T')) {
+    const int8_t e = parser.value_byte();
+    if (e >= EXTRUDERS) {
+      SERIAL_SMV(ECHO, "M", code);
+      SERIAL_EMV(" " MSG_INVALID_EXTRUDER, e);
       return true;
     }
-    target_extruder = parser.value_byte();
+    target_extruder = e;
   }
   else
     target_extruder = active_extruder;
@@ -941,18 +942,19 @@ bool get_target_extruder_from_command(int code) {
 }
 
 /**
- * Set target_Hotend from the T parameter or the active_extruder
+ * Set target_Hotend from the H parameter or the active_extruder
  *
  * Returns TRUE if the target is invalid
  */
-bool get_target_hotend_from_command(int code) {
-  if (parser.seen('H')) {
-    if (parser.value_byte() >= HOTENDS) {
+bool get_target_hotend_from_command(const uint16_t code) {
+  if (parser.seenval('H')) {
+    const int8_t h = parser.value_byte();
+    if (h >= HOTENDS) {
       SERIAL_SMV(ER, "M", code);
-      SERIAL_EMV(" " MSG_INVALID_HOTEND, parser.value_byte());
+      SERIAL_EMV(" " MSG_INVALID_HOTEND, h);
       return true;
     }
-    target_extruder = parser.value_byte();
+    target_extruder = h;
   }
   else
     target_extruder = active_extruder;
@@ -1192,7 +1194,7 @@ static void clean_up_after_endstop_or_probe_move() {
     const char* mixing_codes = "ABCDHI";
     byte mix_bits = 0;
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
-      if (parser.seen(mixing_codes[i])) {
+      if (parser.seenval(mixing_codes[i])) {
         SBI(mix_bits, i);
         float v = parser.value_float();
         NOLESS(v, 0.0);
@@ -2354,11 +2356,11 @@ inline void gcode_G0_G1(
       gcode_get_destination();
 
       #if ENABLED(LASER)
-        if (parser.seen('S')) laser.intensity = parser.value_float();
-        if (parser.seen('L')) laser.duration = parser.value_ulong();
-        if (parser.seen('P')) laser.ppm = parser.value_float();
-        if (parser.seen('D')) laser.diagnostics = parser.value_bool();
-        if (parser.seen('B')) laser_set_mode(parser.value_int());
+        if (parser.seenval('S')) laser.intensity = parser.value_float();
+        if (parser.seenval('L')) laser.duration = parser.value_ulong();
+        if (parser.seenval('P')) laser.ppm = parser.value_float();
+        if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
+        if (parser.seenval('B')) laser_set_mode(parser.value_int());
 
         laser.status = LASER_ON;
         laser.fired = LASER_FIRE_G1;
@@ -2369,7 +2371,7 @@ inline void gcode_G0_G1(
       #endif
 
       float arc_offset[2] = { 0.0, 0.0 };
-      if (parser.seen('R')) {
+      if (parser.seenval('R')) {
         const float r = parser.value_linear_units(),
                     p1 = Mechanics.current_position[X_AXIS], q1 = Mechanics.current_position[Y_AXIS],
                     p2 = Mechanics.destination[X_AXIS],      q2 = Mechanics.destination[Y_AXIS];
@@ -2386,8 +2388,8 @@ inline void gcode_G0_G1(
         }
       }
       else {
-        if (parser.seen('I')) arc_offset[0] = parser.value_linear_units();
-        if (parser.seen('J')) arc_offset[1] = parser.value_linear_units();
+        if (parser.seenval('I')) arc_offset[0] = parser.value_linear_units();
+        if (parser.seenval('J')) arc_offset[1] = parser.value_linear_units();
       }
 
       if (arc_offset[0] || arc_offset[1]) {
@@ -2424,8 +2426,8 @@ inline void gcode_G0_G1(
 inline void gcode_G4() {
   millis_t dwell_ms = 0;
 
-  if (parser.seen('P')) dwell_ms = parser.value_millis(); // milliseconds to wait
-  if (parser.seen('S')) dwell_ms = parser.value_millis_from_seconds(); // seconds to wait
+  if (parser.seenval('P')) dwell_ms = parser.value_millis();              // milliseconds to wait
+  if (parser.seenval('S')) dwell_ms = parser.value_millis_from_seconds(); // seconds to wait
 
   stepper.synchronize();
   refresh_cmd_timeout();
@@ -2454,10 +2456,10 @@ inline void gcode_G4() {
       gcode_get_destination();
 
       const float offset[] = {
-        parser.seen('I') ? parser.value_axis_units(X_AXIS) : 0.0,
-        parser.seen('J') ? parser.value_axis_units(Y_AXIS) : 0.0,
-        parser.seen('P') ? parser.value_axis_units(X_AXIS) : 0.0,
-        parser.seen('Q') ? parser.value_axis_units(Y_AXIS) : 0.0
+        parser.linearval('I'),
+        parser.linearval('J'),
+        parser.linearval('P'),
+        parser.linearval('Q')
       };
 
       plan_cubic_move(offset);
@@ -2469,14 +2471,14 @@ inline void gcode_G4() {
 
   inline void gcode_G7() {
 
-    if (parser.seen('L')) laser.raster_raw_length = parser.value_int();
+    if (parser.seenval('L')) laser.raster_raw_length = parser.value_int();
 
-    if (parser.seen('$')) {
+    if (parser.seenval('$')) {
       laser.raster_direction = parser.value_int();
       Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
     }
 
-    if (parser.seen('@')) {
+    if (parser.seenval('@')) {
       laser.raster_direction = parser.value_int();
       #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
         Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS]; // Dont increment X axis
@@ -3046,7 +3048,7 @@ void home_all_axes() { gcode_G28(true); }
         break;
 
       case MeshSet:
-        if (parser.seen('X')) {
+        if (parser.seenval('X')) {
           px = parser.value_int() - 1;
           if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
             SERIAL_EM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
@@ -3058,7 +3060,7 @@ void home_all_axes() { gcode_G28(true); }
           return;
         }
 
-        if (parser.seen('Y')) {
+        if (parser.seenval('Y')) {
           py = parser.value_int() - 1;
           if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
             SERIAL_EM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
@@ -3070,7 +3072,7 @@ void home_all_axes() { gcode_G28(true); }
           return;
         }
 
-        if (parser.seen('Z')) {
+        if (parser.seenval('Z')) {
           mbl.z_values[px][py] = parser.value_axis_units(Z_AXIS);
         }
         else {
@@ -3080,7 +3082,7 @@ void home_all_axes() { gcode_G28(true); }
         break;
 
       case MeshSetZOffset:
-        if (parser.seen('Z')) {
+        if (parser.seenval('Z')) {
           mbl.z_offset = parser.value_axis_units(Z_AXIS);
         }
         else {
@@ -3318,16 +3320,16 @@ void home_all_axes() { gcode_G28(true); }
             return;
           }
 
-          const float z = parser.seen('Z') && parser.has_value() ? parser.value_float() : RAW_CURRENT_POSITION(Z);;
+          const float z = parser.floatval('Z', RAW_CURRENT_POSITION(Z));
           if (!WITHIN(z, -10, 10)) {
             SERIAL_LM(ER, "Bad Z value");
             return;
           }
 
-          const float x = parser.seen('X') && parser.has_value() ? parser.value_float() : NAN,
-                      y = parser.seen('Y') && parser.has_value() ? parser.value_float() : NAN;
-          int8_t      i = parser.seen('I') && parser.has_value() ? parser.value_byte() : -1,
-                      j = parser.seen('J') && parser.has_value() ? parser.value_byte() : -1;
+          const float x = parser.floatval('X', NAN),
+                      y = parser.floatval('Y', NAN);
+          int8_t      i = parser.byteval('I', -1),
+                      j = parser.byteval('J', -1);
 
           if (!isnan(x) && !isnan(y)) {
             // Get nearest i / j from x / y
@@ -3359,13 +3361,13 @@ void home_all_axes() { gcode_G28(true); }
 
       #endif
 
-      verbose_level = parser.seen('V') && parser.has_value() ? parser.value_int() : 0;
+      verbose_level = parser.intval('V');
       if (!WITHIN(verbose_level, 0, 4)) {
         SERIAL_EM("?(V)erbose Level is implausible (0-4).");
         return;
       }
 
-      dryrun = (parser.seen('D') && parser.value_bool())
+      dryrun = parser.boolval('D')
         #if ENABLED(PROBE_MANUALLY)
           || no_action
         #endif
@@ -3373,13 +3375,13 @@ void home_all_axes() { gcode_G28(true); }
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
-        do_topography_map = verbose_level > 2 || parser.seen('T');
+        do_topography_map = verbose_level > 2 || parser.boolval('T');
 
         // X and Y specify points in each direction, overriding the default
         // These values may be saved with the completed mesh
-        abl_grid_points_x = parser.seen('X') ? parser.value_int() : GRID_MAX_POINTS_X;
-        abl_grid_points_y = parser.seen('Y') ? parser.value_int() : GRID_MAX_POINTS_Y;
-        if (parser.seen('P')) abl_grid_points_x = abl_grid_points_y = parser.value_int();
+        abl_grid_points_x = parser.intval('X', GRID_MAX_POINTS_X);
+        abl_grid_points_y = parser.intval('Y', GRID_MAX_POINTS_Y);
+        if (parser.seenval('P')) abl_grid_points_x = abl_grid_points_y = parser.value_int();
 
         if (abl_grid_points_x < 2 || abl_grid_points_y < 2) {
           SERIAL_EM("?Number of probe points is implausible (2 minimum).");
@@ -3390,7 +3392,7 @@ void home_all_axes() { gcode_G28(true); }
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        zoffset = parser.seen('Z') ? parser.value_linear_units() : 0;
+        zoffset = parser.linearval('Z');
 
       #endif
 
@@ -3398,19 +3400,19 @@ void home_all_axes() { gcode_G28(true); }
 
         bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.seen('S') ? parser.value_linear_units() : XY_PROBE_SPEED);
 
-        left_probe_bed_position   = parser.seen('L') ? (int)parser.value_linear_units() : LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION);
-        right_probe_bed_position  = parser.seen('R') ? (int)parser.value_linear_units() : LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION);
-        front_probe_bed_position  = parser.seen('F') ? (int)parser.value_linear_units() : LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION);
-        back_probe_bed_position   = parser.seen('B') ? (int)parser.value_linear_units() : LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION);
+        left_probe_bed_position   = (int)parser.linearval('L', LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION));
+        right_probe_bed_position  = (int)parser.linearval('R', LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION));
+        front_probe_bed_position  = (int)parser.linearval('F', LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION));
+        back_probe_bed_position   = (int)parser.linearval('B', LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION));
 
-        const bool left_out_l = left_probe_bed_position < LOGICAL_X_POSITION(MIN_PROBE_X),
-                   left_out = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),
-                   right_out_r = right_probe_bed_position > LOGICAL_X_POSITION(MAX_PROBE_X),
-                   right_out = right_out_r || right_probe_bed_position < left_probe_bed_position + MIN_PROBE_EDGE,
-                   front_out_f = front_probe_bed_position < LOGICAL_Y_POSITION(MIN_PROBE_Y),
-                   front_out = front_out_f || front_probe_bed_position > back_probe_bed_position - (MIN_PROBE_EDGE),
-                   back_out_b = back_probe_bed_position > LOGICAL_Y_POSITION(MAX_PROBE_Y),
-                   back_out = back_out_b || back_probe_bed_position < front_probe_bed_position + MIN_PROBE_EDGE;
+        const bool left_out_l   = left_probe_bed_position < LOGICAL_X_POSITION(MIN_PROBE_X),
+                   left_out     = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),
+                   right_out_r  = right_probe_bed_position > LOGICAL_X_POSITION(MAX_PROBE_X),
+                   right_out    = right_out_r || right_probe_bed_position < left_probe_bed_position + MIN_PROBE_EDGE,
+                   front_out_f  = front_probe_bed_position < LOGICAL_Y_POSITION(MIN_PROBE_Y),
+                   front_out    = front_out_f || front_probe_bed_position > back_probe_bed_position - (MIN_PROBE_EDGE),
+                   back_out_b   = back_probe_bed_position > LOGICAL_Y_POSITION(MAX_PROBE_Y),
+                   back_out     = back_out_b || back_probe_bed_position < front_probe_bed_position + MIN_PROBE_EDGE;
 
         if (left_out || right_out || front_out || back_out) {
           if (left_out) {
@@ -4459,6 +4461,8 @@ void home_all_axes() { gcode_G28(true); }
    *
    *   Cn.nn Calibration precision; when omitted calibrates to maximum precision
    *
+   *   Fn  Force to run at least n iterations and takes the best result
+   *
    *   Vn Verbose level:
    *
    *      V0  Dry-run mode. Report settings and probe results. No calibration.
@@ -4478,26 +4482,32 @@ void home_all_axes() { gcode_G28(true); }
 
   inline void gcode_G33() {
 
-    const int8_t probe_points = parser.seen('P') ? parser.value_int() : 4;
+    const int8_t probe_points = parser.intval('P', 4);
     if (!WITHIN(probe_points, 1, 7)) {
       SERIAL_EM("?(P)oints is implausible (1-7).");
       return;
     }
 
-    const int8_t verbose_level = parser.seen('V') ? parser.value_byte() : 1;
+    const int8_t verbose_level = parser.byteval('V', 1);
     if (!WITHIN(verbose_level, 0, 2)) {
       SERIAL_EM("?(V)erbose Level is implausible (0-2).");
       return;
     }
 
-    const float calibration_precision = parser.seen('C') ? parser.value_float() : 0.0;
+    const float calibration_precision = parser.floatval('C');
     if (calibration_precision < 0) {
       SERIAL_EM("?(C)alibration precision is implausible (>0).");
       return;
     }
 
-    const bool  towers_set = !parser.seen('T'),
-                stow_after_each       = parser.seen('E') && parser.value_bool(),
+    const int8_t force_iterations = parser.intval('F', 1);
+    if (!WITHIN(force_iterations, 1, 30)) {
+      SERIAL_EM("?(F)orce iteration is implausible (1-30).");
+      return;
+    }
+
+    const bool  towers_set            = !parser.boolval('T'),
+                stow_after_each       = parser.boolval('E'),
                 _1p_calibration       = probe_points == 1,
                 _4p_calibration       = probe_points == 2,
                 _4p_towers_points     = _4p_calibration && towers_set,
@@ -4515,6 +4525,7 @@ void home_all_axes() { gcode_G28(true); }
     float test_precision,
           zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
           zero_std_dev_old = zero_std_dev,
+          zero_std_dev_min = zero_std_dev,
           e_old[XYZ] = {
             Mechanics.delta_endstop_adj[A_AXIS],
             Mechanics.delta_endstop_adj[B_AXIS],
@@ -4540,9 +4551,6 @@ void home_all_axes() { gcode_G28(true); }
     Mechanics.Home();
     endstops.not_homing();
     probe.set_deployed(true);
-
-    //Mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
-    //stepper.synchronize();  // wait until the machine is idle
 
     // print settings
 
@@ -4591,9 +4599,10 @@ void home_all_axes() { gcode_G28(true); }
         const uint8_t start = _4p_opposite_points ? 3 : 1,
                        step = _4p_calibration ? 4 : _7p_half_circle ? 2 : 1;
         for (uint8_t axis = start; axis < 13; axis += step) {
-          const float offset_circles = _7p_quadruple_circle ? (zig_zag ? 1.5 : 1.0) :
-                                       _7p_triple_circle    ? (zig_zag ? 1.0 : 0.5) :
-                                       _7p_double_circle    ? (zig_zag ? 0.5 : 0.0) : 0;
+          const float zigadd = (zig_zag ? 0.5 : 0.0),
+                      offset_circles =  _7p_quadruple_circle ? zigadd + 1.0 :
+                                        _7p_triple_circle    ? zigadd + 0.5 :
+                                        _7p_double_circle    ? zigadd : 0;
           for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
             const float a = RADIANS(180 + 30 * axis),
                         r = Mechanics.delta_probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
@@ -4619,18 +4628,19 @@ void home_all_axes() { gcode_G28(true); }
         }
       }
       zero_std_dev_old = zero_std_dev;
+      NOMORE(zero_std_dev_min, zero_std_dev);
       zero_std_dev = round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001;
-
-      if (iterations == 1) Mechanics.delta_height = zh_old; // reset height after 1st probe change
 
       // Solve matrices
 
-      if (zero_std_dev < test_precision && zero_std_dev > calibration_precision) {
-        COPY_ARRAY(e_old, Mechanics.delta_endstop_adj);
-        dr_old = Mechanics.delta_radius;
-        zh_old = Mechanics.delta_height;
-        alpha_old = Mechanics.delta_tower_radius_adj[A_AXIS];
-        beta_old = Mechanics.delta_tower_radius_adj[B_AXIS];
+      if ((zero_std_dev < test_precision && zero_std_dev > calibration_precision) || iterations <= force_iterations) {
+        if (zero_std_dev < zero_std_dev_min) {
+          COPY_ARRAY(e_old, Mechanics.delta_endstop_adj);
+          dr_old = Mechanics.delta_radius;
+          zh_old = Mechanics.delta_height;
+          alpha_old = Mechanics.delta_tower_radius_adj[A_AXIS];
+          beta_old = Mechanics.delta_tower_radius_adj[B_AXIS];
+        }
 
         float e_delta[XYZ] = { 0.0 }, r_delta = 0.0, t_alpha = 0.0, t_beta = 0.0;
         const float r_diff = Mechanics.delta_radius - Mechanics.delta_probe_radius,
@@ -4728,7 +4738,7 @@ void home_all_axes() { gcode_G28(true); }
         }
       }
       if (test_precision != 0.0) {
-        if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {  // end iterations
+        if ((zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) && iterations > force_iterations) {  // end iterations
           SERIAL_MSG("Calibration OK");
           SERIAL_SP(36);
           if (zero_std_dev >= test_precision)
@@ -4762,7 +4772,7 @@ void home_all_axes() { gcode_G28(true); }
           print_signed_float(PSTR("Tz"), Mechanics.delta_tower_radius_adj[C_AXIS]);
           SERIAL_EOL();
         }
-        if (zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) {
+        if ((zero_std_dev >= test_precision || zero_std_dev <= calibration_precision) && iterations > force_iterations) {
           SERIAL_PS(save_message);
           SERIAL_EOL();
         }
@@ -4788,7 +4798,7 @@ void home_all_axes() { gcode_G28(true); }
       Mechanics.Home();
       endstops.not_homing();
 
-    } while (zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31);
+    } while ((zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31) || iterations <= force_iterations);
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
@@ -5071,7 +5081,7 @@ void home_all_axes() { gcode_G28(true); }
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
       if (FABS(Mechanics.destination[i] - Mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
-        if (!parser.seen('F')) Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
+        if (!parser.seenval('F')) Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
           SERIAL_LM(ER, "Failed to reach target");
@@ -5084,13 +5094,56 @@ void home_all_axes() { gcode_G28(true); }
 
 #endif // G38_PROBE_TARGET
 
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+
+  /**
+   * G42: Move X & Y axes to mesh coordinates (I & J)
+   */
+  inline void gcode_G42() {
+    if (IsRunning()) {
+      const bool hasI = parser.seenval('I');
+      const int8_t ix = hasI ? parser.value_int() : 0;
+      const bool hasJ = parser.seenval('J');
+      const int8_t iy = hasJ ? parser.value_int() : 0;
+
+      if ((hasI && !WITHIN(ix, 0, GRID_MAX_POINTS_X - 1)) || (hasJ && !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))) {
+        SERIAL_EM(MSG_ERR_MESH_XY);
+        return;
+      }
+
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        #define _GET_MESH_X(I) bedlevel.bilinear_start[X_AXIS] + I * bedlevel.bilinear_grid_spacing[X_AXIS]
+        #define _GET_MESH_Y(J) bedlevel.bilinear_start[Y_AXIS] + J * bedlevel.bilinear_grid_spacing[Y_AXIS]
+      #elif ENABLED(MESH_BED_LEVELING)
+        #define _GET_MESH_X(I) mbl.index_to_xpos[I]
+        #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
+      #endif
+
+      Mechanics.set_destination_to_current();
+      if (hasI) Mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
+      if (hasJ) Mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
+      if (parser.boolval('P')) {
+        if (hasI) Mechanics.destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
+        if (hasJ) Mechanics.destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+      }
+
+      const float fval = parser.linearval('F');
+      if (fval > 0.0) Mechanics.feedrate_mm_s = MMM_TO_MMS(fval);
+
+      Mechanics.prepare_move_to_destination();
+
+    }
+  }
+
+#endif ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+
 /**
  * G60:  save current position
  *        S<slot> specifies memory slot # (0-based) to save into (default 0)
  */
 inline void gcode_G60() {
-  uint8_t slot = 0;
-  if (parser.seen('S')) slot = parser.value_byte();
+
+  const uint8_t slot = parser.byteval('S');
 
   if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
@@ -5114,10 +5167,10 @@ inline void gcode_G60() {
  *        S<slot> specifies memory slot # (0-based) to save into (default 0).
  */
 inline void gcode_G61() {
+
   if (!pos_saved) return;
 
-  uint8_t slot = 0;
-  if (parser.seen('S')) slot = parser.value_byte();
+  const uint8_t slot = parser.byteval('S');
 
   if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
@@ -5153,12 +5206,12 @@ inline void gcode_G61() {
  */
 inline void gcode_G92() {
   bool didXYZ = false,
-       didE = parser.seen('E');
+       didE = parser.seenval('E');
 
   if (!didE) stepper.synchronize();
 
   LOOP_XYZE(i) {
-    if (parser.seen(axis_codes[i])) {
+    if (parser.seenval(axis_codes[i])) {
       #if IS_SCARA
         Mechanics.current_position[i] = parser.value_axis_units((AxisEnum)i);
         if (i != E_AXIS) didXYZ = true;
@@ -5199,11 +5252,11 @@ inline void gcode_G92() {
 
     millis_t ms = 0;
     bool hasP = false, hasS = false;
-    if (parser.seen('P')) {
+    if (parser.seenval('P')) {
       ms = parser.value_millis(); // milliseconds to wait
       hasP = ms > 0;
     }
-    if (parser.seen('S')) {
+    if (parser.seenval('S')) {
       ms = parser.value_millis_from_seconds(); // seconds to wait
       hasS = ms > 0;
     }
@@ -5271,11 +5324,11 @@ inline void gcode_G92() {
       #if ENABLED(LASER)
         case PRINTER_MODE_LASER: {
           if (IsRunning()) {
-            if (parser.seen('S')) laser.intensity = parser.value_float();
-            if (parser.seen('L')) laser.duration = parser.value_ulong();
-            if (parser.seen('P')) laser.ppm = parser.value_float();
-            if (parser.seen('D')) laser.diagnostics = parser.value_bool();
-            if (parser.seen('B')) laser_set_mode(parser.value_int());
+            if (parser.seenval('S')) laser.intensity = parser.value_float();
+            if (parser.seenval('L')) laser.duration = parser.value_ulong();
+            if (parser.seenval('P')) laser.ppm = parser.value_float();
+            if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
+            if (parser.seenval('B')) laser_set_mode(parser.value_int());
           }
 
           laser.status = LASER_ON;
@@ -5287,7 +5340,7 @@ inline void gcode_G92() {
 
       #if ENABLED(CNCROUTER)
         case PRINTER_MODE_CNC:
-          if (parser.seen('S')) setCNCRouterSpeed(parser.value_ulong(), clockwise);
+          if (parser.seenval('S')) setCNCRouterSpeed(parser.value_ulong(), clockwise);
         break;
       #endif
 
@@ -5502,7 +5555,7 @@ inline void gcode_M31() {
       SERIAL_MV("Open file: ", namestartpos);
       SERIAL_EM(" and start print.");
       card.selectFile(namestartpos);
-      if (parser.seen('S')) card.setIndex(parser.value_long());
+      if (parser.seenval('S')) card.setIndex(parser.value_long());
 
       Mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
       Mechanics.feedrate_percentage = 100;  // 100% Mechanics.feedrate_mm_s
@@ -5532,12 +5585,10 @@ inline void gcode_M31() {
  *  S<byte> Pin status from 0 - 255
  */
 inline void gcode_M42() {
-  if (!parser.seen('S')) return;
+  if (!parser.seenval('S')) return;
+  const byte pin_status = parser.value_byte();
 
-  int pin_status = parser.value_int();
-  if (!WITHIN(pin_status, 0, 255)) return;
-
-  int pin_number = parser.seen('P') ? parser.value_int() : LED_PIN;
+  const Pin pin_number = parser.intval('P', LED_PIN);
   if (pin_number < 0) return;
 
   if (pin_is_protected(pin_number)) {
@@ -5545,9 +5596,9 @@ inline void gcode_M42() {
     return;
   }
 
-  pinMode(pin_number, OUTPUT);
-  digitalWrite(pin_number, pin_status);
-  analogWrite(pin_number, pin_status);
+  HAL::pinMode(pin_number, OUTPUT);
+  HAL::digitalWrite(pin_number, pin_status);
+  HAL::analogWrite(pin_number, pin_status);
 
   #if FAN_COUNT > 0
     switch (pin_number) {
@@ -5572,13 +5623,13 @@ inline void gcode_M42() {
   #include "utility/pinsdebug.h"
 
   inline void toggle_pins() {
-    const bool  I_flag  = parser.seen('I') && parser.value_bool();
-    const int   repeat  = parser.seen('R') ? parser.value_int() : 1,
-                start   = parser.seen('S') ? parser.value_int() : 0,
-                end     = parser.seen('E') ? parser.value_int() : NUM_DIGITAL_PINS - 1,
-                wait    = parser.seen('W') ? parser.value_int() : 500;
+    const bool  I_flag  = parser.boolval('I');
+    const int   repeat  = parser.intval('R', 1),
+                start   = parser.intval('S'),
+                end     = parser.intval('E', NUM_DIGITAL_PINS - 1),
+                wait    = parser.intval('W', 500);
 
-    for (uint8_t pin = start; pin <= end; pin++) {
+    for (Pin pin = start; pin <= end; pin++) {
 
       if (!I_flag && pin_is_protected(pin)) {
         SERIAL_MV("Sensitive Pin: ", pin);
@@ -5586,13 +5637,13 @@ inline void gcode_M42() {
       }
       else {
         SERIAL_MV("Pulsing Pin: ", pin);
-        pinMode(pin, OUTPUT);
+        HAL::pinMode(pin, OUTPUT);
         for (int16_t j = 0; j < repeat; j++) {
-          digitalWrite(pin, 0);
+          HAL::digitalWrite(pin, 0);
           safe_delay(wait);
-          digitalWrite(pin, 1);
+          HAL::digitalWrite(pin, 1);
           safe_delay(wait);
-          digitalWrite(pin, 0);
+          HAL::digitalWrite(pin, 0);
           safe_delay(wait);
         }
       }
@@ -6204,11 +6255,11 @@ inline void gcode_M83() { axis_relative_modes[E_AXIS] = true; }
  * M18, M84: Disable stepper motors
  */
 inline void gcode_M18_M84() {
-  if (parser.seen('S')) {
+  if (parser.seenval('S')) {
     stepper_inactive_time = parser.value_millis_from_seconds();
   }
   else {
-    bool all_axis = !((parser.seen('X')) || (parser.seen('Y')) || (parser.seen('Z')) || (parser.seen('E')));
+    bool all_axis = !(parser.seen_axis());
     if (all_axis) {
       stepper.finish_and_disable();
     }
@@ -6218,9 +6269,7 @@ inline void gcode_M18_M84() {
       if (parser.seen('Y')) disable_Y();
       if (parser.seen('Z')) disable_Z();
       #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN // Only enable on boards that have seperate ENABLE_PINS
-        if (parser.seen('E')) {
-          stepper.disable_e_steppers();
-        }
+        if (parser.seen('E')) stepper.disable_e_steppers();
       #endif
     }
   }
@@ -6230,7 +6279,7 @@ inline void gcode_M18_M84() {
  * M85: Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
  */
 inline void gcode_M85() {
-  if (parser.seen('S')) max_inactive_time = parser.value_millis_from_seconds();
+  if (parser.seenval('S')) max_inactive_time = parser.value_millis_from_seconds();
 }
 
 /**
@@ -6324,7 +6373,7 @@ inline void gcode_M92() {
       if (TARGET_EXTRUDER != active_extruder) return;
     #endif
 
-    if (parser.seen('S')) {
+    if (parser.seenval('S')) {
       const int16_t temp = parser.value_celsius();
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
 
@@ -6442,8 +6491,8 @@ inline void gcode_M105() {
       if (TARGET_EXTRUDER != active_extruder) return;
     #endif
 
-    const bool no_wait_for_cooling = parser.seen('S');
-    if (no_wait_for_cooling || parser.seen('R')) {
+    const bool no_wait_for_cooling = parser.seenval('S');
+    if (no_wait_for_cooling || parser.seenval('R')) {
       const int16_t temp = parser.value_celsius();
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
 
@@ -6469,14 +6518,14 @@ inline void gcode_M105() {
  * M110: Set Current Line Number
  */
 inline void gcode_M110() {
-  if (parser.seen('N')) gcode_LastN = parser.value_long();
+  if (parser.seenval('N')) gcode_LastN = parser.value_long();
 }
 
 /**
  * M111: Debug mode Repetier Host compatibile
  */
 inline void gcode_M111() {
-  mk_debug_flags = parser.seen('S') ? parser.value_byte() : (uint8_t) DEBUG_NONE;
+  mk_debug_flags = parser.byteval('S', (uint8_t)DEBUG_NONE);
 
   const static char str_debug_1[]   PROGMEM = MSG_DEBUG_ECHO;
   const static char str_debug_2[]   PROGMEM = MSG_DEBUG_INFO;
@@ -6524,7 +6573,7 @@ inline void gcode_M111() {
    *   S<seconds> Optional. Set the keepalive interval.
    */
   inline void gcode_M113() {
-    if (parser.seen('S')) {
+    if (parser.seenval('S')) {
       host_keepalive_interval = parser.value_byte();
       NOMORE(host_keepalive_interval, 60);
     }
@@ -6594,14 +6643,14 @@ inline void gcode_M115() {
       SERIAL_LM(CAP, "LEVELING_DATA:0");
     #endif
 
-    // SOFTWARE_POWER (M80)
+    // SOFTWARE_POWER (M80, M81)
     #if HAS_POWER_SWITCH
       SERIAL_LM(CAP, "SOFTWARE_POWER:1");
     #else
       SERIAL_LM(CAP, "SOFTWARE_POWER:0");
     #endif
 
-    // TOGGLE_LIGHTS (M355)
+    // CASE LIGHTS (M355)
     #if HAS_CASE_LIGHT
       SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
     #else
@@ -6624,9 +6673,16 @@ inline void gcode_M115() {
 inline void gcode_M117() { lcd_setstatus(parser.string_arg); }
 
 /**
- * M118: Output to Host the message text
+ * M118: Display a message in the host console.
+ *
+ *  A  Append '// ' for an action command, as in OctoPrint
+ *  E  Have the host 'echo:' the text
  */
-inline void gcode_M118() { SERIAL_LT(ECHO, parser.string_arg); }
+inline void gcode_M118() {
+  if (parser.boolval('E')) SERIAL_STR(ECHO);
+  if (parser.boolval('A')) SERIAL_MSG("// ");
+  SERIAL_ET(parser.string_arg);
+}
 
 /**
  * M119: Output endstop states to serial output
@@ -6744,7 +6800,7 @@ inline void gcode_M122() {
     /**
      * M126: Heater 1 valve open
      */
-    inline void gcode_M126() { baricuda_valve_pressure = parser.seen('S') ? parser.value_byte() : 255; }
+    inline void gcode_M126() { baricuda_valve_pressure = parser.byteval('S', 255); }
     /**
      * M127: Heater 1 valve close
      */
@@ -6755,7 +6811,7 @@ inline void gcode_M122() {
     /**
      * M128: Heater 2 valve open
      */
-    inline void gcode_M128() { baricuda_e_to_p_pressure = parser.seen('S') ? parser.value_byte() : 255; }
+    inline void gcode_M128() { baricuda_e_to_p_pressure = parser.byteval('S', 255); }
     /**
      * M129: Heater 2 valve close
      */
@@ -6769,7 +6825,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M140() {
     if (DEBUGGING(DRYRUN)) return;
-    if (parser.seen('S')) thermalManager.setTargetBed(parser.value_celsius());
+    if (parser.seenval('S')) thermalManager.setTargetBed(parser.value_celsius());
   }
 #endif
 
@@ -6779,7 +6835,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M141() {
     if (DEBUGGING(DRYRUN)) return;
-    if (parser.seen('S')) thermalManager.setTargetChamber(parser.value_celsius());
+    if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
   }
 #endif
 
@@ -6789,7 +6845,7 @@ inline void gcode_M122() {
    */
   inline void gcode_M142() {
     if (DEBUGGING(DRYRUN)) return;
-    if (parser.seen('S')) thermalManager.setTargetCooler(parser.value_celsius());
+    if (parser.seenval('S')) thermalManager.setTargetCooler(parser.value_celsius());
   }
 #endif
 
@@ -6803,24 +6859,24 @@ inline void gcode_M122() {
    *   F<fan speed>
    */
   inline void gcode_M145() {
-    uint8_t material = parser.seen('S') ? (uint8_t)parser.value_int() : 0;
+    uint8_t material = (uint8_t)parser.intval('S');
     if (material >= COUNT(lcd_preheat_hotend_temp)) {
       SERIAL_LM(ER, MSG_ERR_MATERIAL_INDEX);
     }
     else {
       int v;
-      if (parser.seen('H')) {
+      if (parser.seenval('H')) {
         v = parser.value_int();
         #if HEATER_0_MAXTEMP
           lcd_preheat_hotend_temp[material] = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP - 15);
         #endif
       }
-      if (parser.seen('F')) {
+      if (parser.seenval('F')) {
         v = parser.value_int();
         lcd_preheat_fan_speed[material] = constrain(v, 0, 255);
       }
       #if HAS_TEMP_BED
-        if (parser.seen('B')) {
+        if (parser.seenval('B')) {
           v = parser.value_int();
           lcd_preheat_bed_temp[material] = constrain(v, BED_MINTEMP, BED_MAXTEMP - 15);
         }
@@ -6835,9 +6891,9 @@ inline void gcode_M122() {
    * M149: Set temperature units
    */
   inline void gcode_M149() {
-         if (parser.seen('C')) set_input_temp_units(TEMPUNIT_C);
-    else if (parser.seen('K')) set_input_temp_units(TEMPUNIT_K);
-    else if (parser.seen('F')) set_input_temp_units(TEMPUNIT_F);
+         if (parser.seenval('C')) set_input_temp_units(TEMPUNIT_C);
+    else if (parser.seenval('K')) set_input_temp_units(TEMPUNIT_K);
+    else if (parser.seenval('F')) set_input_temp_units(TEMPUNIT_F);
   }
 #endif
 
@@ -6859,11 +6915,11 @@ inline void gcode_M122() {
    */
   inline void gcode_M150() {
     set_led_color(
-      parser.seen('R') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
-      parser.seen('U') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
-      parser.seen('B') ? (parser.has_value() ? parser.value_byte() : 255) : 0
+      parser.byteval('R'),
+      parser.byteval('U'),
+      parser.byteval('B')
       #if ENABLED(RGBW_LED)
-        , parser.seen('W') ? (parser.has_value() ? parser.value_byte() : 255) : 0
+        , parser.byteval('W')
       #endif
     );
   }
@@ -6879,7 +6935,7 @@ inline void gcode_M122() {
    * M155: Set temperature auto-report interval. M155 S<seconds>
    */
   inline void gcode_M155() {
-    if (parser.seen('S')) {
+    if (parser.seenval('S')) {
       auto_report_temp_interval = parser.value_byte();
       NOMORE(auto_report_temp_interval, 60);
       next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
@@ -7163,11 +7219,11 @@ inline void gcode_M205() {
    *   Z[units]     retract_zlift
    */
   inline void gcode_M207() {
-    if (parser.seen('S')) retract_length = parser.value_axis_units(E_AXIS);
-    if (parser.seen('F')) retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
-    if (parser.seen('Z')) retract_zlift = parser.value_linear_units();
+    if (parser.seenval('S')) retract_length = parser.value_axis_units(E_AXIS);
+    if (parser.seenval('F')) retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seenval('Z')) retract_zlift = parser.value_linear_units();
     #if EXTRUDERS > 1
-      if (parser.seen('W')) retract_length_swap = parser.value_axis_units(E_AXIS);
+      if (parser.seenval('W')) retract_length_swap = parser.value_axis_units(E_AXIS);
     #endif
   }
 
@@ -7179,10 +7235,10 @@ inline void gcode_M205() {
    *   F[units/min] retract_recover_feedrate_mm_s
    */
   inline void gcode_M208() {
-    if (parser.seen('S')) retract_recover_length = parser.value_axis_units(E_AXIS);
-    if (parser.seen('F')) retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seenval('S')) retract_recover_length = parser.value_axis_units(E_AXIS);
+    if (parser.seenval('F')) retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
     #if EXTRUDERS > 1
-      if (parser.seen('W')) retract_recover_length_swap = parser.value_axis_units(E_AXIS);
+      if (parser.seenval('W')) retract_recover_length_swap = parser.value_axis_units(E_AXIS);
     #endif
   }
 
@@ -7192,7 +7248,7 @@ inline void gcode_M205() {
    *   moves will be classified as retraction.
    */
   inline void gcode_M209() {
-    if (parser.seen('S')) {
+    if (parser.seenval('S')) {
       autoretract_enabled = parser.value_bool();
       for (int i = 0; i < EXTRUDERS; i++) retracted[i] = false;
     }
@@ -7212,9 +7268,9 @@ inline void gcode_M218() {
   GET_TARGET_HOTEND(218);
   if (TARGET_EXTRUDER == 0) return;
 
-  if (parser.seen('X')) hotend_offset[X_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
-  if (parser.seen('Y')) hotend_offset[Y_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
-  if (parser.seen('Z')) hotend_offset[Z_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
+  if (parser.seenval('X')) hotend_offset[X_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
+  if (parser.seenval('Y')) hotend_offset[Y_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
+  if (parser.seenval('Z')) hotend_offset[Z_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
 
   SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
   LOOP_HOTEND() {
@@ -7229,7 +7285,7 @@ inline void gcode_M218() {
  * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
  */
 inline void gcode_M220() {
-  if (parser.seen('S')) Mechanics.feedrate_percentage = parser.value_int();
+  if (parser.seenval('S')) Mechanics.feedrate_percentage = parser.value_int();
 }
 
 /**
@@ -7238,7 +7294,7 @@ inline void gcode_M220() {
 inline void gcode_M221() {
 
   GET_TARGET_EXTRUDER(221);
-  if (parser.seen('S')) flow_percentage[TARGET_EXTRUDER] = parser.value_int();
+  if (parser.seenval('S')) flow_percentage[TARGET_EXTRUDER] = parser.value_int();
 }
 
 /**
@@ -7248,7 +7304,7 @@ inline void gcode_M222() {
 
   GET_TARGET_EXTRUDER(222);
 
-  if (parser.seen('S')) {
+  if (parser.seenval('S')) {
     density_percentage[TARGET_EXTRUDER] = parser.value_int();
     #if ENABLED(RFID_MODULE)
       RFID522.RfidData[TARGET_EXTRUDER].data.density = density_percentage[TARGET_EXTRUDER];
@@ -7260,17 +7316,17 @@ inline void gcode_M222() {
  * M226: Wait until the specified pin reaches the state required (M226 P<pin> S<state>)
  */
 inline void gcode_M226() {
-  if (parser.seen('P')) {
-    int pin_number = parser.value_int(),
-        pin_state = parser.seen('S') ? parser.value_int() : -1; // required pin state - default is inverted
+  if (parser.seenval('P')) {
+    const int pin_number = parser.value_int(),
+              pin_state = parser.intval('S', -1); // required pin state - default is inverted
 
-    if (pin_state >= -1 && pin_state <= 1 && pin_number > -1 && !pin_is_protected(pin_number)) {
+    if (WITHIN(pin_state, -1, 1) && pin_number > -1 && !pin_is_protected(pin_number)) {
 
       int target = LOW;
 
       stepper.synchronize();
 
-      pinMode(pin_number, INPUT);
+      HAL::pinMode(pin_number, INPUT);
       switch(pin_state) {
         case 1:
           target = HIGH;
@@ -7279,11 +7335,11 @@ inline void gcode_M226() {
           target = LOW;
           break;
         case -1:
-          target = !digitalRead(pin_number);
+          target = !HAL::digitalRead(pin_number);
           break;
       }
 
-      while(digitalRead(pin_number) != target) idle();
+      while (HAL::digitalRead(pin_number) != target) idle();
 
     } // pin_state -1 0 1 && pin_number > -1
   } // parser.seen('P')
@@ -7323,7 +7379,7 @@ inline void gcode_M226() {
    * M250: Read and optionally set the LCD contrast
    */
   inline void gcode_M250() {
-    if (parser.seen('C')) set_lcd_contrast(parser.value_int());
+    if (parser.seenval('C')) set_lcd_contrast(parser.value_int());
     SERIAL_EMV("lcd contrast value: ", lcd_contrast);
   }
 
@@ -7335,11 +7391,11 @@ inline void gcode_M226() {
    */
   inline void gcode_M280() {
     if (!parser.seen('P')) return;
-    int servo_index = parser.value_int();
+    const int servo_index = parser.value_int();
 
     #if HAS_DONDOLO
       int servo_position = 0;
-      if (parser.seen('S')) {
+      if (parser.seenval('S')) {
         servo_position = parser.value_int();
         if (servo_index >= 0 && servo_index < NUM_SERVOS && servo_index != DONDOLO_SERVO_INDEX) {
           MOVE_SERVO(servo_index, servo_position);
@@ -7359,8 +7415,8 @@ inline void gcode_M226() {
         }
       }
     #else
-      if (servo_index >= 0 && servo_index < NUM_SERVOS) {
-        if (parser.seen('S'))
+      if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
+        if (parser.seenval('S'))
           MOVE_SERVO(servo_index, parser.value_int());
         else {
           SERIAL_SMV(ECHO, " Servo ", servo_index);
@@ -9219,8 +9275,8 @@ inline void gcode_M907() {
    */
   inline void gcode_M908() {
     digitalPotWrite(
-      parser.seen('P') ? parser.value_int() : 0,
-      parser.seen('S') ? parser.value_int() : 0
+      parser.intval('P'),
+      parser.intval('S')
     );
   }
 #endif // HAS_DIGIPOTSS
@@ -9230,21 +9286,13 @@ inline void gcode_M907() {
   /**
    * M995: Nextion Origin
    */
-  inline void gcode_M995() {
-    uint16_t x = 0, y = 0, z = 0;
-
-    if (parser.seen('X')) x = parser.value_linear_units();
-    if (parser.seen('Y')) y = parser.value_linear_units();
-    if (parser.seen('Z')) z = parser.value_linear_units();
-
-    gfx_origin(x, y ,z);
-  }
+  inline void gcode_M995() { gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
 
   /**
    * M996: Nextion Scale
    */
   inline void gcode_M996() {
-    if (parser.seen('S')) gfx_scale(parser.value_float());
+    if (parser.seenval('S')) gfx_scale(parser.value_float());
   }
 
 #endif
@@ -9256,7 +9304,7 @@ inline void gcode_M907() {
    */
   inline void gcode_M997() {
     long csteps;
-    if (parser.seen('C')) {
+    if (parser.seenval('C')) {
       csteps = parser.value_ulong() * color_step_moltiplicator;
       SERIAL_EMV("csteps: ", csteps);
       if (csteps < 0) stepper.colorstep(-csteps, false);
@@ -9280,7 +9328,7 @@ inline void gcode_M999() {
   Running = true;
   lcd_reset_alert_level();
 
-  if (parser.seen('S') && parser.value_bool()) return;
+  if (parser.boolval('S')) return;
 
   FlushSerialRequestResend();
 }
@@ -9312,9 +9360,9 @@ inline void gcode_T(uint8_t tool_id) {
 
     if (printer_mode == PRINTER_MODE_CNC) {
       // Host manage wait on change, don't block
-      if (parser.seen('W')) wait=false;
+      if (parser.seen('W')) wait = false;
       // Host manage position, don't raise Z
-      if (parser.seen('Z')) raise_z=false;
+      if (parser.seen('Z')) raise_z = false;
 
       tool_change_cnc(tool_id, wait, raise_z);
     }
@@ -9336,8 +9384,8 @@ inline void gcode_T(uint8_t tool_id) {
 
     if (printer_mode == PRINTER_MODE_FFF) tool_change(
       tool_id,
-      parser.seen('F') ? MMM_TO_MMS(parser.value_linear_units()) : 0.0,
-      (tool_id == active_extruder) || (parser.seen('S') && parser.value_bool())
+      MMM_TO_MMS(parser.linearval('F')),
+      (tool_id == active_extruder) || parser.boolval('S')
     );
 
   #endif
@@ -10115,7 +10163,7 @@ void process_next_command() {
       #endif // HAS_BED_PROBE
 
       #if HAS_DELTA_AUTO_CALIBRATION
-        case 33:  // G33 Delta AutoCalibration
+        case 33: // G33 Delta AutoCalibration
           gcode_G33(); break;
       #endif // HAS_DELTA_AUTO_CALIBRATION
 
@@ -10124,6 +10172,11 @@ void process_next_command() {
           if (subcode == 2 || subcode == 3)
             gcode_G38(subcode == 2);
           break;
+      #endif
+
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+        case 42: // G42: Move X & Y axes to mesh coordinates (I & J)
+          gcode_G42(); break;
       #endif
 
       // G40 Compensation Off XXX CNC

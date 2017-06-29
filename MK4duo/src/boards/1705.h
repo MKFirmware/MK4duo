@@ -12,8 +12,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Ultratronics v1.0"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Ultratronics"
 #endif
 //@@@
 

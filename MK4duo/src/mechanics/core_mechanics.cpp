@@ -105,7 +105,7 @@
 
   void Core_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
 
-    #if PLANNER_LEVELING
+    #if HAS_LEVELING
       bedlevel.apply_leveling(lx, ly, lz);
     #endif
 
@@ -114,7 +114,7 @@
   }
 
   void Core_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
-    #if PLANNER_LEVELING
+    #if HAS_LEVELING
       float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
       bedlevel.apply_leveling(lpos);
     #else

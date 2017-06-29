@@ -1,6 +1,6 @@
 /****************************************************************************************
 * 72
-* Ultiboard v2.0 pin assignment
+* Ultimainboard 2.x
 ****************************************************************************************/
 
 //###CHIP
@@ -12,8 +12,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Ultiboard v2.0"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Ultimainboard 2.x"
 #endif
 //@@@
 

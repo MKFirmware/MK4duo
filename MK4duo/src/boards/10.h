@@ -1,6 +1,6 @@
 /******************************************************************************
 * 10
-* Gen7 Alfons
+* Gen7 custom (Alfons3 Version)
 * These Pins are assigned for the modified GEN7
 * Board from Alfons3 Please review the pins and adjust it for your needs
 ******************************************************************************/
@@ -14,8 +14,8 @@
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
-#ifndef BOARD_NAME
-	#define BOARD_NAME "Gen7"
+#if DISABLED(BOARD_NAME)
+	#define BOARD_NAME "Gen7 custom (Alfons3 Version)"
 #endif
 //@@@
 
