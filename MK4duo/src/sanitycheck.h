@@ -686,17 +686,6 @@ static_assert(1 >= 0
 #if HAS_ABL
 
   /**
-   * Delta and SCARA have limited bed leveling options
-   */
-  #if DISABLED(AUTO_BED_LEVELING_BILINEAR)
-    #if MECH(DELTA)
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for DELTA bed leveling."
-    #elif IS_SCARA
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for SCARA bed leveling."
-    #endif
-  #endif
-
-  /**
    * Check auto bed leveling sub-options, especially probe points
    */
   #if ABL_GRID
