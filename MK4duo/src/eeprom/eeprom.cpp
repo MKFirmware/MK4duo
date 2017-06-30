@@ -73,7 +73,7 @@
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
- *                        planner.bed_level_matrix              (matrix_3x3 = float x9)
+ *                        bedlevel.bed_level_matrix             (matrix_3x3 = float x9)
  *
  * AUTO_BED_LEVELING_BILINEAR:
  *                        GRID_MAX_POINTS_X                     (uint8_t)
@@ -362,7 +362,7 @@ void EEPROM::Postprocess() {
     // Planar Bed Leveling matrix
     //
     #if ABL_PLANAR
-      EEPROM_WRITE(planner.bed_level_matrix);
+      EEPROM_WRITE(bedlevel.bed_level_matrix);
     #endif
 
     //
@@ -699,7 +699,7 @@ void EEPROM::Postprocess() {
       // Planar Bed Leveling matrix
       //
       #if ABL_PLANAR
-        EEPROM_READ(planner.bed_level_matrix);
+        EEPROM_READ(bedlevel.bed_level_matrix);
       #endif
 
       //
