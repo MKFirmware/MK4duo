@@ -131,4 +131,4 @@
   #include "src/mfrc522/MFRC522_serial.h"
 #endif
 
-#endif
+#endif // BASE_H

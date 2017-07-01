@@ -4413,7 +4413,7 @@ void home_all_axes() { gcode_G28(true); }
     }
   }
 
-#endif ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+#endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
 /**
  * G60:  save current position
