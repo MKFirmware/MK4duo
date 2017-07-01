@@ -104,8 +104,8 @@
 #define COS_60 0.5
 
 // Macros to contrain values
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+#define NOLESS(v,n)       v= (v < n) ? n : v
+#define NOMORE(v,n)       v= (v > n) ? n : v
 
 // Macros to support option testing
 #define ENABLED defined
