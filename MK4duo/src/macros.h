@@ -182,7 +182,7 @@
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
 #define FIXFLOAT(f)       (f + 0.00001)
 
-//#define _AXIS(AXIS)       AXIS ##_AXIS
+#define _AXIS(AXIS)       AXIS ##_AXIS
 
 
 // LOOP MACROS
