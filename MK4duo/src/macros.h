@@ -32,12 +32,6 @@
 
 // Function macro
 #define FORCE_INLINE __attribute__((always_inline)) inline
-#define _UNUSED      __attribute__((unused))
-#define _O0          __attribute__((optimize("O0")))
-#define _Os          __attribute__((optimize("Os")))
-#define _O1          __attribute__((optimize("O1")))
-#define _O2          __attribute__((optimize("O2")))
-#define _O3          __attribute__((optimize("O3")))
 
 /**
  * Macros for mechanics type
@@ -74,8 +68,7 @@
 #define UNUSED(x) (void) (x)
 
 // Macros to make a string from a macro
-#define STRINGIFY_(M) #M
-#define STRINGIFY(M) STRINGIFY_(M)
+#define STRINGIFY(M) #M
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
@@ -104,8 +97,8 @@
 #define COS_60 0.5
 
 // Macros to contrain values
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+#define NOLESS(v,n)       v = (v < n) ? n : v
+#define NOMORE(v,n)       v = (v > n) ? n : v
 
 // Macros to support option testing
 #define ENABLED defined
@@ -160,32 +153,6 @@
 #define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
 #define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
-// Macros for adding
-#define INC_0 1
-#define INC_1 2
-#define INC_2 3
-#define INC_3 4
-#define INC_4 5
-#define INC_5 6
-#define INC_6 7
-#define INC_7 8
-#define INC_8 9
-#define INCREMENT_(n) INC_ ##n
-#define INCREMENT(n) INCREMENT_(n)
-
-// Macros for subtracting
-#define DEC_1 0
-#define DEC_2 1
-#define DEC_3 2
-#define DEC_4 3
-#define DEC_5 4
-#define DEC_6 5
-#define DEC_7 6
-#define DEC_8 7
-#define DEC_9 8
-#define DECREMENT_(n) DEC_ ##n
-#define DECREMENT(n) DECREMENT_(n)
-
 #define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN >= 0)
 
 #define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
@@ -206,9 +173,6 @@
 
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
 #define FIXFLOAT(f)       (f + 0.00001)
-
-#define _AXIS(AXIS)       AXIS ##_AXIS
-
 
 // LOOP MACROS
 #define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)

@@ -183,7 +183,6 @@
     SERIAL_LMV(CFG, "Ppm       ", laser.ppm);
     SERIAL_LMV(CFG, "Mode      ", laser.mode);
     SERIAL_LMV(CFG, "Status    ", laser.status);
-    SERIAL_LMV(CFG, "Fired     ", laser.fired);
   }
 
   #if ENABLED(LASER_PERIPHERALS)

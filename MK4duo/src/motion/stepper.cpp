@@ -534,35 +534,35 @@ void Stepper::isr() {
 
   // Advance the Bresenham counter; start a pulse if the axis needs a step
   #define PULSE_START(AXIS) \
-    _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+    _COUNTER(AXIS) += current_block->steps[AXIS ##_AXIS]; \
     if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
 
   // Stop an active pulse, reset the Bresenham counter, update the position
   #define PULSE_STOP(AXIS) \
     if (_COUNTER(AXIS) > 0) { \
       _COUNTER(AXIS) -= current_block->step_event_count; \
-      machine_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+      machine_position[AXIS ##_AXIS] += count_direction[AXIS ##_AXIS]; \
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
     }
 
   #define _COUNT_STEPPERS_0 0
   #if HAS_X_STEP
-    #define _COUNT_STEPPERS_1 INCREMENT(_COUNT_STEPPERS_0)
+    #define _COUNT_STEPPERS_1 (_COUNT_STEPPERS_0 + 1)
   #else
     #define _COUNT_STEPPERS_1 _COUNT_STEPPERS_0
   #endif
   #if HAS_Y_STEP
-    #define _COUNT_STEPPERS_2 INCREMENT(_COUNT_STEPPERS_1)
+    #define _COUNT_STEPPERS_2 (_COUNT_STEPPERS_1 + 1)
   #else
     #define _COUNT_STEPPERS_2 _COUNT_STEPPERS_1
   #endif
   #if HAS_Z_STEP
-    #define _COUNT_STEPPERS_3 INCREMENT(_COUNT_STEPPERS_2)
+    #define _COUNT_STEPPERS_3 (_COUNT_STEPPERS_2 + 1)
   #else
     #define _COUNT_STEPPERS_3 _COUNT_STEPPERS_2
   #endif
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-    #define _COUNT_STEPPERS_4 INCREMENT(_COUNT_STEPPERS_3)
+    #define _COUNT_STEPPERS_4 (_COUNT_STEPPERS_3 + 1)
   #else
     #define _COUNT_STEPPERS_4 _COUNT_STEPPERS_3
   #endif
