@@ -182,8 +182,6 @@
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
 #define FIXFLOAT(f)       (f + 0.00001)
 
-#define _AXIS(AXIS)       AXIS ##_AXIS
-
 
 // LOOP MACROS
 #define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)

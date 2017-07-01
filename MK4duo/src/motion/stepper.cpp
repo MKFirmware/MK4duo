@@ -534,14 +534,14 @@ void Stepper::isr() {
 
   // Advance the Bresenham counter; start a pulse if the axis needs a step
   #define PULSE_START(AXIS) \
-    _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+    _COUNTER(AXIS) += current_block->steps[AXIS ##_AXIS]; \
     if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
 
   // Stop an active pulse, reset the Bresenham counter, update the position
   #define PULSE_STOP(AXIS) \
     if (_COUNTER(AXIS) > 0) { \
       _COUNTER(AXIS) -= current_block->step_event_count; \
-      machine_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
+      machine_position[AXIS ##_AXIS] += count_direction[AXIS ##_AXIS]; \
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
     }
 

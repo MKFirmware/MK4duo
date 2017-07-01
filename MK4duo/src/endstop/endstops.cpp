@@ -491,9 +491,9 @@ void Endstops::update() {
 
   #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[_AXIS(AXIS)] > 0) { \
+      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[AXIS ##_AXIS] > 0) { \
         _ENDSTOP_HIT(AXIS); \
-        stepper.endstop_triggered(_AXIS(AXIS)); \
+        stepper.endstop_triggered(AXIS ##_AXIS); \
       } \
     } while(0)
 
@@ -502,9 +502,9 @@ void Endstops::update() {
     if (G38_move) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
-        if      (stepper.current_block->steps[_AXIS(X)] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(_AXIS(X)); }
-        else if (stepper.current_block->steps[_AXIS(Y)] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(_AXIS(Y)); }
-        else if (stepper.current_block->steps[_AXIS(Z)] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(_AXIS(Z)); }
+        if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(X_AXIS); }
+        else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(Y_AXIS); }
+        else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(Z_AXIS); }
         G38_endstop_hit = true;
       }
     }
