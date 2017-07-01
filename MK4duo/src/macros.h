@@ -32,12 +32,14 @@
 
 // Function macro
 #define FORCE_INLINE __attribute__((always_inline)) inline
-#define _UNUSED      __attribute__((unused))
-#define _O0          __attribute__((optimize("O0")))
-#define _Os          __attribute__((optimize("Os")))
-#define _O1          __attribute__((optimize("O1")))
-#define _O2          __attribute__((optimize("O2")))
-#define _O3          __attribute__((optimize("O3")))
+
+// These macros are not used anywhere in MK4duo yet. Uncomment if needed.
+//#define _UNUSED      __attribute__((unused))
+//#define _O0          __attribute__((optimize("O0")))
+//#define _Os          __attribute__((optimize("Os")))
+//#define _O1          __attribute__((optimize("O1")))
+//#define _O2          __attribute__((optimize("O2")))
+//#define _O3          __attribute__((optimize("O3")))
 
 /**
  * Macros for mechanics type
@@ -73,9 +75,8 @@
 // Compiler warning on unused varable.
 #define UNUSED(x) (void) (x)
 
-// Macros to make a string from a macro
-#define STRINGIFY_(M) #M
-#define STRINGIFY(M) STRINGIFY_(M)
+// Macro to make a string from a macro
+#define STRINGIFY(M) #M
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
