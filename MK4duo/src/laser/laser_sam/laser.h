@@ -40,64 +40,63 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef LASER_H
-  #define LASER_H
+#ifndef _LASER_H
+#define _LASER_H
 
-  #include <inttypes.h>
+#include <inttypes.h>
 
-  // split into planned and status
-  typedef struct {
+// split into planned and status
+typedef struct {
 
-    int       fired;        // method used to ask the laser to fire - LASER_FIRE_G1, LASER_FIRE_SPINDLE, LASER_FIRE_E, etc
-    float     intensity,    // Laser firing instensity 0.0 - 100.0
-              ppm;          // pulses per millimeter, for pulsed firing mode
+  float     intensity,    // Laser firing instensity 0.0 - 100.0
+            ppm;          // pulses per millimeter, for pulsed firing mode
 
-    uint32_t  duration,     // laser firing duration in microseconds, for pulsed firing mode
-              dur;          // instantaneous duration
+  uint32_t  duration,     // laser firing duration in microseconds, for pulsed firing mode
+            dur;          // instantaneous duration
 
-    bool      status,       // LASER_ON / LASER_OFF - buffered
-              firing,       // LASER_ON / LASER_OFF - instantaneous
-              diagnostics;  // Verbose debugging output over serial
+  bool      status,       // LASER_ON / LASER_OFF - buffered
+            firing,       // LASER_ON / LASER_OFF - instantaneous
+            diagnostics;  // Verbose debugging output over serial
 
-    uint8_t   mode;         // CONTINUOUS, PULSED, RASTER
+  uint8_t   mode;         // CONTINUOUS, PULSED, RASTER
 
-    millis_t  last_firing;  // microseconds since last laser firing
+  millis_t  last_firing;  // microseconds since last laser firing
 
-    uint16_t  time,         // temporary counter to limit eeprom writes
-              lifetime;     // laser lifetime firing counter in minutes
+  uint16_t  time,         // temporary counter to limit eeprom writes
+            lifetime;     // laser lifetime firing counter in minutes
 
-    #if ENABLED(LASER_RASTER)
+  #if ENABLED(LASER_RASTER)
 
-      unsigned char raster_data[LASER_MAX_RASTER_LINE],
-                    rasterlaserpower;
+    unsigned char raster_data[LASER_MAX_RASTER_LINE],
+                  rasterlaserpower;
 
-      float         raster_aspect_ratio,
-                    raster_mm_per_pulse;
+    float         raster_aspect_ratio,
+                  raster_mm_per_pulse;
 
-      int           raster_raw_length,
-                    raster_num_pixels;
+    int           raster_raw_length,
+                  raster_num_pixels;
 
-      uint8_t       raster_direction;
+    uint8_t       raster_direction;
 
-    #endif
+  #endif
 
-  } laser_t;
+} laser_t;
 
-  extern laser_t laser;
+extern laser_t laser;
 
-  void laser_init();
-  void laser_fire(float intensity=100.0);
-  void laser_fire_byte(uint8_t intensity);
-  void laser_extinguish();
-  void laser_update_lifetime();
-  void laser_set_mode(int mode);
-  void laser_diagnose();
+void laser_init();
+void laser_fire(float intensity=100.0);
+void laser_fire_byte(uint8_t intensity);
+void laser_extinguish();
+void laser_update_lifetime();
+void laser_set_mode(int mode);
+void laser_diagnose();
 
-  #if ENABLED(LASER_PERIPHERALS)
-    bool laser_peripherals_ok();
-    void laser_peripherals_on();
-    void laser_peripherals_off();
-    void laser_wait_for_peripherals();
-  #endif // LASER_PERIPHERALS
+#if ENABLED(LASER_PERIPHERALS)
+  bool laser_peripherals_ok();
+  void laser_peripherals_on();
+  void laser_peripherals_off();
+  void laser_wait_for_peripherals();
+#endif // LASER_PERIPHERALS
 
-#endif // LASER_H
+#endif // _LASER_H

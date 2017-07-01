@@ -454,8 +454,7 @@
       RFID.setValue(1, "printer");
     #endif
 
-    #define LANGUAGE_STRING_(M) STRINGIFY_(M)
-    #define LANGUAGE_STRING(M) LANGUAGE_STRING_(M)
+    #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
     Language.setText(NEXTION_LANGUAGE, "printer");
   }
