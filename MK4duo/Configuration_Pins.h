@@ -95,6 +95,7 @@
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
   #define E0_CS_PIN         ORIG_E0_CS_PIN
   #define SOL0_PIN          ORIG_SOL0_PIN
+  #define E0_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 1
@@ -103,6 +104,7 @@
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define E1_CS_PIN         ORIG_E1_CS_PIN
   #define SOL1_PIN          ORIG_SOL1_PIN
+  #define E1_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 2
@@ -111,6 +113,7 @@
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
   #define E2_CS_PIN         ORIG_E2_CS_PIN
   #define SOL2_PIN          ORIG_SOL2_PIN
+  #define E2_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 3
@@ -119,6 +122,7 @@
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
   #define E3_CS_PIN         ORIG_E3_CS_PIN
   #define SOL3_PIN          ORIG_SOL3_PIN
+  #define E3_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 4
@@ -127,6 +131,7 @@
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
   #define E4_CS_PIN         ORIG_E4_CS_PIN
   #define SOL4_PIN          ORIG_SOL4_PIN
+  #define E4_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 5
@@ -135,6 +140,7 @@
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
   #define E5_CS_PIN         ORIG_E5_CS_PIN
   #define SOL5_PIN          ORIG_SOL5_PIN
+  #define E5_ENC_PIN        -1
 #endif
 
 // ENDSTOP pin

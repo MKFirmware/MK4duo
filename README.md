@@ -80,6 +80,8 @@ The new features are:
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD
+* Added DAV system for filament runout
+* Added Extruder Encoder for control filament movement (Experimental)
 
 ## Credits
 

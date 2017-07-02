@@ -191,36 +191,42 @@
   #define HAS_E0_STEP       (PIN_EXISTS(E0_STEP))
   #define HAS_E0_MICROSTEPS (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E0_MS1))
   #define HAS_SOLENOID_0    (PIN_EXISTS(SOL0))
+  #define HAS_E0_ENC        (PIN_EXISTS(E0_ENC))
 
   #define HAS_E1_ENABLE     (PIN_EXISTS(E1_ENABLE))
   #define HAS_E1_DIR        (PIN_EXISTS(E1_DIR))
   #define HAS_E1_STEP       (PIN_EXISTS(E1_STEP))
   #define HAS_E1_MICROSTEPS (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E1_MS1))
   #define HAS_SOLENOID_1    (PIN_EXISTS(SOL1))
+  #define HAS_E1_ENC        (PIN_EXISTS(E1_ENC))
 
   #define HAS_E2_ENABLE     (PIN_EXISTS(E2_ENABLE))
   #define HAS_E2_DIR        (PIN_EXISTS(E2_DIR))
   #define HAS_E2_STEP       (PIN_EXISTS(E2_STEP))
   #define HAS_E2_MICROSTEPS (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E2_MS1))
   #define HAS_SOLENOID_2    (PIN_EXISTS(SOL2))
+  #define HAS_E2_ENC        (PIN_EXISTS(E2_ENC))
 
   #define HAS_E3_ENABLE     (PIN_EXISTS(E3_ENABLE))
   #define HAS_E3_DIR        (PIN_EXISTS(E3_DIR))
   #define HAS_E3_STEP       (PIN_EXISTS(E3_STEP))
   #define HAS_E3_MICROSTEPS (PIN_EXISTS(E3_MS1))
   #define HAS_SOLENOID_3    (PIN_EXISTS(SOL3))
+  #define HAS_E3_ENC        (PIN_EXISTS(E3_ENC))
 
   #define HAS_E4_ENABLE     (PIN_EXISTS(E4_ENABLE))
   #define HAS_E4_DIR        (PIN_EXISTS(E4_DIR))
   #define HAS_E4_STEP       (PIN_EXISTS(E4_STEP))
   #define HAS_E4_MICROSTEPS (PIN_EXISTS(E4_MS1))
   #define HAS_SOLENOID_4    (PIN_EXISTS(SOL4))
+  #define HAS_E4_ENC        (PIN_EXISTS(E4_ENC))
 
   #define HAS_E5_ENABLE     (PIN_EXISTS(E5_ENABLE))
   #define HAS_E5_DIR        (PIN_EXISTS(E5_DIR))
   #define HAS_E5_STEP       (PIN_EXISTS(E5_STEP))
   #define HAS_E5_MICROSTEPS (PIN_EXISTS(E5_MS1))
   #define HAS_SOLENOID_5    (PIN_EXISTS(SOL5))
+  #define HAS_E5_ENC        (PIN_EXISTS(E5_ENC))
 
   // Endstops and bed probe
   #define HAS_X_MIN         (PIN_EXISTS(X_MIN))
@@ -336,7 +342,7 @@
   #define HAS_MULTI_MODE    (ENABLED(LASER) || ENABLED(CNCROUTER) || ENABLED(MILLING) || ENABLED(PICK_AND_PLACE) || ENABLED(SOLDER) || ENABLED(PLOTTER))
 
   // MK Multi tool system
-  #define HAS_MKMULTI_TOOLS (ENABLED(NPR2) || ENABLED(MKSE6) || ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12))
+  #define HAS_MKMULTI_TOOLS (ENABLED(NPR2) || ENABLED(MKSE6) || ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12) || ENABLED(DONDOLO_SINGLE_MOTOR))
 
   // MKR4 or MKR6 or MKR12
   #define HAS_E0E1          (PIN_EXISTS(E0E1_CHOICE))
@@ -358,6 +364,9 @@
   // SD support
   #define HAS_SDSUPPORT     (ENABLED(SDSUPPORT))
   #define HAS_EEPROM_SD     (ENABLED(EEPROM_SD) && ENABLED(SDSUPPORT))
+
+  // Extruder Encoder
+  #define HAS_EXT_ENCODER   (ENABLED(EXTRUDER_ENCODER_CONTROL) && (HAS_E0_ENC || HAS_E1_ENC || HAS_E2_ENC || HAS_E3_ENC || HAS_E4_ENC || HAS_E5_ENC))
 
   // Other
   #define HAS_Z_PROBE_SLED  (ENABLED(Z_PROBE_SLED) && PIN_EXISTS(SLED))
@@ -450,6 +459,11 @@
   #if MECH(DELTA)
     #undef SLOWDOWN       // DELTA not needs SLOWDOWN
     #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
+
+    // DELTA must have same valour for 3 axis Home Feedrate
+    #define HOMING_FEEDRATE_X HOMING_FEEDRATE_XYZ
+    #define HOMING_FEEDRATE_Y HOMING_FEEDRATE_XYZ
+    #define HOMING_FEEDRATE_Z HOMING_FEEDRATE_XYZ
 
     // DELTA must have same valour for 3 axis endstop hits
     #define X_HOME_BUMP_MM XYZ_HOME_BUMP_MM

@@ -194,8 +194,8 @@ void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &
                 middle[]= NOZZLE_CLEAN_CIRCLE_MIDDLE;
 
     #if MECH(DELTA)
-      if (current_position[Z_AXIS] > Mechanics.clip_start_height)
-        do_blocking_move_to_z(Mechanics.clip_start_height);
+      if (current_position[Z_AXIS] > mechanics.clip_start_height)
+        do_blocking_move_to_z(mechanics.clip_start_height);
     #endif
 
     switch (pattern) {

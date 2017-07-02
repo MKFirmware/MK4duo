@@ -54,8 +54,8 @@
 #endif
 
 #if ENABLED(G38_PROBE_TARGET)
-  bool G38_move = false,
-       G38_endstop_hit = false;
+  bool G38_move         = false,
+       G38_endstop_hit  = false;
 #endif
 
 #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
@@ -69,12 +69,15 @@
 bool Running = true;
 
 // Print status related
-long  currentLayer = 0,
-      maxLayer = -1;      // -1 = unknown
-char  printName[21] = ""; // max. 20 chars + 0
-float progress = 0.0;
+long  currentLayer  = 0,
+      maxLayer      = -1;   // -1 = unknown
+char  printName[21] = "";   // max. 20 chars + 0
+float progress      = 0.0;
 
 uint8_t mk_debug_flags = DEBUG_NONE;
+
+// Interrupt Event
+MK4duoInterruptEvent interruptEvent = INTERRUPT_EVENT_NONE;
 
 // Printer mode
 PrinterMode printer_mode =
@@ -164,12 +167,12 @@ uint8_t active_extruder   = 0,
         previous_extruder = 0,
         active_driver     = 0;
 
+static uint8_t target_extruder;
+
 #if ENABLED(CNCROUTER)
   uint8_t active_cnc_tool = 0;
   #define CNC_M6_TOOL_ID 255
 #endif
-
-static uint8_t target_extruder;
 
 // Relative Mode. Enable with G91, disable with G90.
 static bool relative_mode = false;
@@ -188,7 +191,7 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 static int serial_count = 0;
 
 // Inactivity shutdown
-millis_t previous_cmd_ms = 0;
+millis_t previous_cmd_ms              = 0;
 static millis_t max_inactive_time     = 0,
                 stepper_inactive_time = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL;
 
@@ -218,9 +221,9 @@ PrintCounter print_job_counter = PrintCounter();
 
 #if ENABLED(FWRETRACT)
 
-  bool  autoretract_enabled       = false,
-        retracted[EXTRUDERS]      = { false },
-        retracted_swap[EXTRUDERS] = { false };
+  bool  autoretract_enabled           = false,
+        retracted[EXTRUDERS]          = { false },
+        retracted_swap[EXTRUDERS]     = { false };
 
   float retract_length                = RETRACT_LENGTH,
         retract_length_swap           = RETRACT_LENGTH_SWAP,
@@ -322,8 +325,16 @@ PrintCounter print_job_counter = PrintCounter();
   int8_t  filwidth_delay_index[2] = { 0, -1 };                    // Indexes into ring buffer
 #endif
 
-#if HAS_FIL_RUNOUT
+#if HAS_FIL_RUNOUT || HAS_EXT_ENCODER
   static bool filament_ran_out = false;
+#endif
+
+#if HAS_EXT_ENCODER
+  int32_t encStepsSinceLastSignal[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(0);
+  uint8_t encLastSignal[EXTRUDERS]            = ARRAY_BY_EXTRUDERS(0);
+  int8_t  encLastDir[EXTRUDERS]               = ARRAY_BY_EXTRUDERS(1);
+  int32_t encLastChangeAt[EXTRUDERS]          = ARRAY_BY_EXTRUDERS(0),
+          encErrorSteps[EXTRUDERS]            = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
 #endif
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -410,7 +421,6 @@ void safe_delay(millis_t ms) {
   void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
 #endif
 
-void report_current_position();
 void report_current_position_detail();
 
 /**
@@ -973,8 +983,8 @@ bool get_target_hotend_from_command(const uint16_t code) {
    * call sync_plan_position soon after this.
    */
   static void set_home_offset(AxisEnum axis, float v) {
-    Mechanics.current_position[axis] += v - Mechanics.home_offset[axis];
-    Mechanics.home_offset[axis] = v;
+    mechanics.current_position[axis] += v - mechanics.home_offset[axis];
+    mechanics.home_offset[axis] = v;
     endstops.update_software_endstops(axis);
   }
 
@@ -991,20 +1001,20 @@ bool get_target_hotend_from_command(const uint16_t code) {
  */
 void setup_for_endstop_or_probe_move() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("setup_for_endstop_or_probe_move", Mechanics.current_position);
+    if (DEBUGGING(LEVELING)) DEBUG_POS("setup_for_endstop_or_probe_move", mechanics.current_position);
   #endif
-  Mechanics.saved_feedrate_mm_s = Mechanics.feedrate_mm_s;
-  Mechanics.saved_feedrate_percentage = Mechanics.feedrate_percentage;
-  Mechanics.feedrate_percentage = 100;
+  mechanics.saved_feedrate_mm_s = mechanics.feedrate_mm_s;
+  mechanics.saved_feedrate_percentage = mechanics.feedrate_percentage;
+  mechanics.feedrate_percentage = 100;
   refresh_cmd_timeout();
 }
 
 void clean_up_after_endstop_or_probe_move() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("clean_up_after_endstop_or_probe_move", Mechanics.current_position);
+    if (DEBUGGING(LEVELING)) DEBUG_POS("clean_up_after_endstop_or_probe_move", mechanics.current_position);
   #endif
-  Mechanics.feedrate_mm_s = Mechanics.saved_feedrate_mm_s;
-  Mechanics.feedrate_percentage = Mechanics.saved_feedrate_percentage;
+  mechanics.feedrate_mm_s = mechanics.saved_feedrate_mm_s;
+  mechanics.feedrate_percentage = mechanics.saved_feedrate_percentage;
   refresh_cmd_timeout();
 }
 
@@ -1029,7 +1039,7 @@ void clean_up_after_endstop_or_probe_move() {
     #endif
 
     // Dock sled a bit closer to ensure proper capturing
-    Mechanics.do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
+    mechanics.do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
     WRITE(SLED_PIN, !stow); // switch solenoid
   }
 
@@ -1043,13 +1053,13 @@ void clean_up_after_endstop_or_probe_move() {
                 z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION;
 
     // Move to the start position to initiate deployment
-    Mechanics.do_blocking_move_to(z_probe_deploy_start_location, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
     // Move to engage deployment
-    Mechanics.do_blocking_move_to(z_probe_deploy_end_location, Mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
 
     // Move to trigger deployment
-    Mechanics.do_blocking_move_to(z_probe_deploy_start_location, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
   void run_stow_moves_script() {
 
@@ -1057,13 +1067,13 @@ void clean_up_after_endstop_or_probe_move() {
                 z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
 
     // Move to the start position to initiate retraction
-    Mechanics.do_blocking_move_to(z_probe_retract_start_location, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
     // Move the nozzle down to push the Z probe into retracted position
-    Mechanics.do_blocking_move_to(z_probe_retract_end_location, Mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
 
     // Move up for safety
-    Mechanics.do_blocking_move_to(z_probe_retract_start_location, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
 
 #endif
@@ -1088,9 +1098,9 @@ void clean_up_after_endstop_or_probe_move() {
       inverse_kinematics(pos, Y_PROBE_OFFSET_FROM_NOZZLE);
 
       // Get the arm-end XY based on the given angles
-      forward_kinematics_SCARA(Mechanics.delta[A_AXIS], Mechanics.delta[B_AXIS]);
-      float tx = LOGICAL_X_POSITION(Mechanics.cartesian_position[X_AXIS]),
-            ty = LOGICAL_Y_POSITION(Mechanics.cartesian_position[Y_AXIS]);
+      forward_kinematics_SCARA(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS]);
+      float tx = LOGICAL_X_POSITION(mechanics.cartesian_position[X_AXIS]),
+            ty = LOGICAL_Y_POSITION(mechanics.cartesian_position[Y_AXIS]);
 
       return vector_3(tx, ty, 0);
     }
@@ -1109,7 +1119,7 @@ void clean_up_after_endstop_or_probe_move() {
       inverse_kinematics(logical);
 
       // Get the probe XY based on the sum of the angles
-      float ab = RADIANS(Mechanics.delta[A_AXIS] + Mechanics.delta[B_AXIS] + 90.0);
+      float ab = RADIANS(mechanics.delta[A_AXIS] + mechanics.delta[B_AXIS] + 90.0);
       return vector_3(
         logical[X_AXIS] + sin(ab) * X_PROBE_OFFSET_FROM_NOZZLE,
         logical[Y_AXIS] - cos(ab) * Y_PROBE_OFFSET_FROM_NOZZLE,
@@ -1129,46 +1139,46 @@ void clean_up_after_endstop_or_probe_move() {
 
     if (retracting == retracted[active_extruder]) return;
 
-    const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
+    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
-    Mechanics.set_destination_to_current();
+    mechanics.set_destination_to_current();
 
     if (retracting) {
-      Mechanics.feedrate_mm_s = retract_feedrate_mm_s;
-      Mechanics.current_position[E_AXIS] += (swapping ? retract_length_swap : retract_length) / volumetric_multiplier[active_extruder];
-      Mechanics.sync_plan_position_e();
-      Mechanics.prepare_move_to_destination();
+      mechanics.feedrate_mm_s = retract_feedrate_mm_s;
+      mechanics.current_position[E_AXIS] += (swapping ? retract_length_swap : retract_length) / volumetric_multiplier[active_extruder];
+      mechanics.sync_plan_position_e();
+      mechanics.prepare_move_to_destination();
 
       if (retract_zlift > 0.01) {
-        hop_height = Mechanics.current_position[Z_AXIS];
+        hop_height = mechanics.current_position[Z_AXIS];
         // Pretend current position is lower
-        Mechanics.current_position[Z_AXIS] -= retract_zlift;
-        Mechanics.sync_plan_position();
-        // Raise up to the old Mechanics.current_position
-        Mechanics.prepare_move_to_destination();
+        mechanics.current_position[Z_AXIS] -= retract_zlift;
+        mechanics.sync_plan_position();
+        // Raise up to the old mechanics.current_position
+        mechanics.prepare_move_to_destination();
       }
     }
     else {
 
       // If the height hasn't been lowered, undo the Z hop
-      if (retract_zlift > 0.01 && hop_height == Mechanics.current_position[Z_AXIS]) {
+      if (retract_zlift > 0.01 && hop_height == mechanics.current_position[Z_AXIS]) {
         // Pretend current position is higher. Z will lower on the next move
-        Mechanics.current_position[Z_AXIS] += retract_zlift;
-        Mechanics.sync_plan_position();
+        mechanics.current_position[Z_AXIS] += retract_zlift;
+        mechanics.sync_plan_position();
         // Lower Z
-        Mechanics.prepare_move_to_destination();
+        mechanics.prepare_move_to_destination();
       }
 
-      Mechanics.feedrate_mm_s = retract_recover_feedrate_mm_s;
+      mechanics.feedrate_mm_s = retract_recover_feedrate_mm_s;
       const float move_e = swapping ? retract_length_swap + retract_recover_length_swap : retract_length + retract_recover_length;
-      Mechanics.current_position[E_AXIS] -= move_e / volumetric_multiplier[active_extruder];
-      Mechanics.sync_plan_position_e();
+      mechanics.current_position[E_AXIS] -= move_e / volumetric_multiplier[active_extruder];
+      mechanics.sync_plan_position_e();
 
       // Lower Z and recover E
-      Mechanics.prepare_move_to_destination();
+      mechanics.prepare_move_to_destination();
     }
 
-    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+    mechanics.feedrate_mm_s = old_feedrate_mm_s;
     retracted[active_extruder] = retracting;
 
   } // retract
@@ -1216,24 +1226,24 @@ void clean_up_after_endstop_or_probe_move() {
 
   void IDLE_OOZING_retract(bool retracting) {  
     if (retracting && !IDLE_OOZING_retracted[active_extruder]) {
-      float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
-      Mechanics.set_destination_to_current();
-      Mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / volumetric_multiplier[active_extruder];
-      Mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
-      Mechanics.set_e_position_mm(Mechanics.current_position[E_AXIS]);
-      Mechanics.prepare_move_to_destination();
-      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+      float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+      mechanics.set_destination_to_current();
+      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / volumetric_multiplier[active_extruder];
+      mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
+      mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      mechanics.prepare_move_to_destination();
+      mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[active_extruder] = true;
       //SERIAL_EM("-");
     }
     else if (!retracting && IDLE_OOZING_retracted[active_extruder]) {
-      float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
-      Mechanics.set_destination_to_current();
-      Mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / volumetric_multiplier[active_extruder];
-      Mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
-      Mechanics.set_e_position_mm(Mechanics.current_position[E_AXIS]);
-      Mechanics.prepare_move_to_destination();
-      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+      float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+      mechanics.set_destination_to_current();
+      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / volumetric_multiplier[active_extruder];
+      mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
+      mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      mechanics.prepare_move_to_destination();
+      mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[active_extruder] = false;
       //SERIAL_EM("+");
     }
@@ -1771,11 +1781,11 @@ void clean_up_after_endstop_or_probe_move() {
  */
 
 /**
- * Set XYZE Mechanics.destination and Mechanics.feedrate_mm_s from the current GCode command
+ * Set XYZE mechanics.destination and mechanics.feedrate_mm_s from the current GCode command
  *
- *  - Set Mechanics.destination from included axis codes
+ *  - Set mechanics.destination from included axis codes
  *  - Set to current for missing axis codes
- *  - Set the Mechanics.feedrate_mm_s, if included
+ *  - Set the mechanics.feedrate_mm_s, if included
  */
 void gcode_get_destination() {
 
@@ -1785,19 +1795,19 @@ void gcode_get_destination() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i]))
-      Mechanics.destination[i] = parser.value_axis_units((AxisEnum)i) + (axis_relative_modes[i] || relative_mode ? Mechanics.current_position[i] : 0);
+      mechanics.destination[i] = parser.value_axis_units((AxisEnum)i) + (axis_relative_modes[i] || relative_mode ? mechanics.current_position[i] : 0);
     else
-      Mechanics.destination[i] = Mechanics.current_position[i];
+      mechanics.destination[i] = mechanics.current_position[i];
   }
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)
-    Mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
+    mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    Mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * density_percentage[previous_extruder] / 100) + Mechanics.current_position[E_AXIS];
+    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * density_percentage[previous_extruder] / 100) + mechanics.current_position[E_AXIS];
 
   if(!DEBUGGING(DRYRUN))
-    print_job_counter.data.filamentUsed += (Mechanics.destination[E_AXIS] - Mechanics.current_position[E_AXIS]);
+    print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     gcode_get_mix();
@@ -1805,20 +1815,20 @@ void gcode_get_destination() {
 
   #if ENABLED(RFID_MODULE)
     if(!DEBUGGING(DRYRUN))
-      RFID522.RfidData[active_extruder].data.lenght -= (Mechanics.destination[E_AXIS] - Mechanics.current_position[E_AXIS]);
+      RFID522.RfidData[active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       if((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
-        gfx_line_to(Mechanics.destination[X_AXIS] + (X_MAX_POS), Mechanics.destination[Y_AXIS] + (Y_MAX_POS), Mechanics.destination[Z_AXIS]);
+        gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
       else
-        gfx_cursor_to(Mechanics.destination[X_AXIS] + (X_MAX_POS), Mechanics.destination[Y_AXIS] + (Y_MAX_POS), Mechanics.destination[Z_AXIS]);
+        gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
     #else
       if((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
-        gfx_line_to(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS]);
+        gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
       else
-        gfx_cursor_to(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS]);
+        gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
     #endif
   #endif
 }
@@ -1860,9 +1870,9 @@ void gcode_get_destination() {
 
 // Define runplan for move axes
 #if IS_KINEMATIC
-  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(Mechanics.destination, RATE_MM_S, active_extruder, active_driver);
+  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, active_extruder);
 #else
-  #define RUNPLAN(RATE_MM_S) Mechanics.line_to_destination(RATE_MM_S);
+  #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S);
 #endif
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -1949,27 +1959,27 @@ void gcode_get_destination() {
     stepper.synchronize();
 
     // Save current position
-    COPY_ARRAY(resume_position, Mechanics.current_position);
-    Mechanics.set_destination_to_current();
+    COPY_ARRAY(resume_position, mechanics.current_position);
+    mechanics.set_destination_to_current();
 
     if (retract) {
       // Initial retract before move to filament change position
-      Mechanics.destination[E_AXIS] += retract;
+      mechanics.destination[E_AXIS] += retract;
       RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
     }
 
     // Lift Z axis
     if (z_lift > 0) {
-      Mechanics.destination[Z_AXIS] += z_lift;
-      NOMORE(Mechanics.destination[Z_AXIS], Z_MAX_POS);
+      mechanics.destination[Z_AXIS] += z_lift;
+      NOMORE(mechanics.destination[Z_AXIS], Z_MAX_POS);
       RUNPLAN(PAUSE_PARK_Z_FEEDRATE);
     }
 
     // Move XY axes to filament exchange position
-    Mechanics.destination[X_AXIS] = x_pos;
-    Mechanics.destination[Y_AXIS] = y_pos;
+    mechanics.destination[X_AXIS] = x_pos;
+    mechanics.destination[Y_AXIS] = y_pos;
 
-    endstops.clamp_to_software_endstops(Mechanics.destination);
+    endstops.clamp_to_software_endstops(mechanics.destination);
     RUNPLAN(PAUSE_PARK_XY_FEEDRATE);
     stepper.synchronize();
 
@@ -1987,7 +1997,7 @@ void gcode_get_destination() {
       #endif
 
       // Second retract filament
-      Mechanics.destination[E_AXIS] -= retract2;
+      mechanics.destination[E_AXIS] -= retract2;
       RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
       stepper.synchronize();
     }
@@ -2001,7 +2011,7 @@ void gcode_get_destination() {
       }
 
       // Unload filament
-      Mechanics.destination[E_AXIS] += unload_length;
+      mechanics.destination[E_AXIS] += unload_length;
       RUNPLAN(PAUSE_PARK_UNLOAD_FEEDRATE);
       stepper.synchronize();
     }
@@ -2180,7 +2190,7 @@ void gcode_get_destination() {
       #endif
 
       // Load filament
-      Mechanics.destination[E_AXIS] += load_length;
+      mechanics.destination[E_AXIS] += load_length;
 
       RUNPLAN(PAUSE_PARK_LOAD_FEEDRATE);
       stepper.synchronize();
@@ -2196,7 +2206,7 @@ void gcode_get_destination() {
           lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_EXTRUDE);
 
           // Extrude filament to get into hotend
-          Mechanics.destination[E_AXIS] += extrude_length;
+          mechanics.destination[E_AXIS] += extrude_length;
           RUNPLAN(PAUSE_PARK_EXTRUDE_FEEDRATE);
           stepper.synchronize();
         }
@@ -2221,18 +2231,18 @@ void gcode_get_destination() {
     #endif
 
     // Set extruder to saved position
-    Mechanics.destination[E_AXIS] = Mechanics.current_position[E_AXIS] = resume_position[E_AXIS];
-    Mechanics.set_e_position_mm(Mechanics.current_position[E_AXIS]);
+    mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS];
+    mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
 
     #if IS_KINEMATIC
       // Move XYZ to starting position
-      planner.buffer_line_kinematic(resume_position, PAUSE_PARK_XY_FEEDRATE, active_extruder, active_driver);
+      planner.buffer_line_kinematic(resume_position, PAUSE_PARK_XY_FEEDRATE, active_extruder);
     #else
       // Move XY to starting position, then Z
-      Mechanics.destination[X_AXIS] = resume_position[X_AXIS];
-      Mechanics.destination[Y_AXIS] = resume_position[Y_AXIS];
+      mechanics.destination[X_AXIS] = resume_position[X_AXIS];
+      mechanics.destination[Y_AXIS] = resume_position[Y_AXIS];
       RUNPLAN(PAUSE_PARK_XY_FEEDRATE);
-      Mechanics.destination[Z_AXIS] = resume_position[Z_AXIS];
+      mechanics.destination[Z_AXIS] = resume_position[Z_AXIS];
       RUNPLAN(PAUSE_PARK_Z_FEEDRATE);
     #endif
     stepper.synchronize();
@@ -2241,7 +2251,7 @@ void gcode_get_destination() {
       filament_ran_out = false;
     #endif
 
-    Mechanics.set_current_to_destination();
+    mechanics.set_current_to_destination();
 
     #if HAS_LCD
       // Show status screen
@@ -2279,18 +2289,18 @@ inline void gcode_G0_G1(
 
     #if ENABLED(FWRETRACT)
       if (autoretract_enabled && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z')) && parser.seen('E')) {
-        const float echange = Mechanics.destination[E_AXIS] - Mechanics.current_position[E_AXIS];
+        const float echange = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
         // Is this move an attempt to retract or recover?
         if ((echange < -MIN_RETRACT && !retracted[active_extruder]) || (echange > MIN_RETRACT && retracted[active_extruder])) {
-          Mechanics.current_position[E_AXIS] = Mechanics.destination[E_AXIS]; // hide the slicer-generated retract/recover from calculations
-          Mechanics.sync_plan_position_e();  // AND from the planner
+          mechanics.current_position[E_AXIS] = mechanics.destination[E_AXIS]; // hide the slicer-generated retract/recover from calculations
+          mechanics.sync_plan_position_e();  // AND from the planner
           retract(!retracted[active_extruder]);
           return;
         }
       }
     #endif // FWRETRACT
 
-    #if ENABLED(LASER)
+    #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
         if (parser.seen('S')) laser.intensity = parser.value_float();
         if (parser.seen('L')) laser.duration = parser.value_ulong();
@@ -2299,17 +2309,16 @@ inline void gcode_G0_G1(
         if (parser.seen('B')) laser_set_mode(parser.value_int());
 
         laser.status = LASER_ON;
-        laser.fired = LASER_FIRE_G1;
       }
     #endif
 
     #if IS_SCARA
-      fast_move ? prepare_uninterpolated_move_to_destination() : Mechanics.prepare_move_to_destination();
+      fast_move ? prepare_uninterpolated_move_to_destination() : mechanics.prepare_move_to_destination();
     #else
-      Mechanics.prepare_move_to_destination();
+      mechanics.prepare_move_to_destination();
     #endif
 
-    #if ENABLED(LASER)
+    #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
       if (lfire) laser.status = LASER_OFF;
     #endif
 
@@ -2326,7 +2335,7 @@ inline void gcode_G0_G1(
  *    At least one of the IJ parameters is required.
  *    X and Y can be omitted to do a complete circle.
  *    The given XY is not error-checked. The arc ends
- *     based on the angle of the Mechanics.destination.
+ *     based on the angle of the mechanics.destination.
  *    Mixing I or J with R will throw an error.
  *
  *  - R specifies the radius. X or Y is required.
@@ -2355,7 +2364,7 @@ inline void gcode_G0_G1(
 
       gcode_get_destination();
 
-      #if ENABLED(LASER)
+      #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
         if (parser.seenval('S')) laser.intensity = parser.value_float();
         if (parser.seenval('L')) laser.duration = parser.value_ulong();
         if (parser.seenval('P')) laser.ppm = parser.value_float();
@@ -2363,7 +2372,6 @@ inline void gcode_G0_G1(
         if (parser.seenval('B')) laser_set_mode(parser.value_int());
 
         laser.status = LASER_ON;
-        laser.fired = LASER_FIRE_G1;
       #endif
 
       #if ENABLED(SF_ARC_FIX)
@@ -2373,8 +2381,8 @@ inline void gcode_G0_G1(
       float arc_offset[2] = { 0.0, 0.0 };
       if (parser.seenval('R')) {
         const float r = parser.value_linear_units(),
-                    p1 = Mechanics.current_position[X_AXIS], q1 = Mechanics.current_position[Y_AXIS],
-                    p2 = Mechanics.destination[X_AXIS],      q2 = Mechanics.destination[Y_AXIS];
+                    p1 = mechanics.current_position[X_AXIS], q1 = mechanics.current_position[Y_AXIS],
+                    p2 = mechanics.destination[X_AXIS],      q2 = mechanics.destination[Y_AXIS];
         if (r && (p2 != p1 || q2 != q1)) {
           const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
                       dx = p2 - p1, dy = q2 - q1,                 // X and Y differences
@@ -2404,7 +2412,7 @@ inline void gcode_G0_G1(
         #endif
 
         // Send an arc to the planner
-        plan_arc(Mechanics.destination, arc_offset, clockwise);
+        plan_arc(mechanics.destination, arc_offset, clockwise);
         refresh_cmd_timeout();
       }
       else {
@@ -2412,7 +2420,7 @@ inline void gcode_G0_G1(
         SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
       }
 
-      #if ENABLED(LASER)
+      #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
         laser.status = LASER_OFF;
       #endif
     }
@@ -2475,25 +2483,25 @@ inline void gcode_G4() {
 
     if (parser.seenval('$')) {
       laser.raster_direction = parser.value_int();
-      Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+      mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
     }
 
     if (parser.seenval('@')) {
       laser.raster_direction = parser.value_int();
       #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
-        Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS]; // Dont increment X axis
-        Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS]; // Dont increment Y axis
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS]; // Dont increment X axis
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS]; // Dont increment Y axis
       #else
         switch(laser.raster_direction) {
           case 0:
           case 1:
           case 4:
-            Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+            mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
           break;	  
           case 2:
           case 3:
           case 5:
-            Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment X axis
+            mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment X axis
           break;
         }
       #endif
@@ -2503,29 +2511,29 @@ inline void gcode_G4() {
 
     switch (laser.raster_direction) {
       case 0: // Negative X
-        Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) SERIAL_EM("Negative Horizontal Raster Line");
       break;
       case 1: // Positive X
-        Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) SERIAL_EM("Positive Horizontal Raster Line");
       break;
       case 2: // Negative Vertical
-        Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] - (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) SERIAL_EM("Negative Vertical Raster Line");
       break;
       case 3: // Positive Vertical
-        Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_num_pixels);
         if (laser.diagnostics) SERIAL_EM("Positive Vertical Raster Line");
       break;
       case 4: // Negative X Positive Y 45deg
-        Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
-        Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         if (laser.diagnostics) SERIAL_EM("Negative X Positive Y 45deg Raster Line");
       break;
       case 5: // Positive X Negarite Y 45deg
-        Mechanics.destination[X_AXIS] = Mechanics.current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
-        Mechanics.destination[Y_AXIS] = Mechanics.current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         if (laser.diagnostics) SERIAL_EM("Positive X Negarite Y 45deg Raster Line");
       break;
       default:
@@ -2534,12 +2542,11 @@ inline void gcode_G4() {
     }
 
     laser.ppm = 1 / laser.raster_mm_per_pulse; // number of pulses per millimetre
-    laser.duration = (1000000 / Mechanics.feedrate_mm_s) / laser.ppm; // (1 second in microseconds / (time to move 1mm in microseconds)) / (pulses per mm) = Duration of pulse, taking into account Mechanics.feedrate_mm_s as speed and ppm
+    laser.duration = (1000000 / mechanics.feedrate_mm_s) / laser.ppm; // (1 second in microseconds / (time to move 1mm in microseconds)) / (pulses per mm) = Duration of pulse, taking into account mechanics.feedrate_mm_s as speed and ppm
 
     laser.mode = RASTER;
     laser.status = LASER_ON;
-    laser.fired = RASTER;
-    Mechanics.prepare_move_to_destination();
+    mechanics.prepare_move_to_destination();
   }
 #endif
 
@@ -2570,7 +2577,7 @@ inline void gcode_G4() {
    */
   inline void gcode_G12() {
     // Don't allow nozzle cleaning without homing first
-    if (Mechanics.axis_unhomed_error()) { return; }
+    if (mechanics.axis_unhomed_error()) { return; }
 
     const uint8_t pattern = parser.seen('P') ? parser.value_ushort() : 0,
                   strokes = parser.seen('S') ? parser.value_ushort() : NOZZLE_CLEAN_STROKES,
@@ -2617,7 +2624,7 @@ inline void gcode_G4() {
    */
   inline void gcode_G27() {
     // Don't allow nozzle parking without homing first
-    if (Mechanics.axis_unhomed_error()) { return; }
+    if (mechanics.axis_unhomed_error()) { return; }
     Nozzle::park(parser.seen('P') ? parser.value_ushort() : 0);
   }
 #endif // NOZZLE_PARK_FEATURE
@@ -2695,9 +2702,9 @@ inline void gcode_G4() {
         SERIAL_EM(" (enabled)");
         #if ABL_PLANAR
           const float diff[XYZ] = {
-            Mechanics.get_axis_position_mm(X_AXIS) - Mechanics.current_position[X_AXIS],
-            Mechanics.get_axis_position_mm(Y_AXIS) - Mechanics.current_position[Y_AXIS],
-            Mechanics.get_axis_position_mm(Z_AXIS) - Mechanics.current_position[Z_AXIS]
+            mechanics.get_axis_position_mm(X_AXIS) - mechanics.current_position[X_AXIS],
+            mechanics.get_axis_position_mm(Y_AXIS) - mechanics.current_position[Y_AXIS],
+            mechanics.get_axis_position_mm(Z_AXIS) - mechanics.current_position[Z_AXIS]
           };
           SERIAL_MSG("ABL Adjustment X");
           if (diff[X_AXIS] > 0) SERIAL_CHR('+');
@@ -2709,7 +2716,7 @@ inline void gcode_G4() {
           if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
           SERIAL_VAL(diff[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(Mechanics.current_position));
+          SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(mechanics.current_position));
         #endif
       }
       else
@@ -2721,8 +2728,8 @@ inline void gcode_G4() {
 
       SERIAL_MSG("Mesh Bed Leveling");
       if (bedlevel.leveling_is_active()) {
-        float lz = Mechanics.current_position[Z_AXIS];
-        bedlevel.apply_leveling(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], lz);
+        float lz = mechanics.current_position[Z_AXIS];
+        bedlevel.apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], lz);
         SERIAL_EM(" (enabled)");
         SERIAL_MV("MBL Adjustment Z", lz);
       }
@@ -2803,7 +2810,7 @@ inline void gcode_G28(const bool always_home_all) {
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    Mechanics.hotend_duplication_enabled = false;
+    mechanics.hotend_duplication_enabled = false;
   #endif
 
   setup_for_endstop_or_probe_move();
@@ -2816,23 +2823,23 @@ inline void gcode_G28(const bool always_home_all) {
   float lastpos[NUM_AXIS];
   float old_feedrate_mm_s;
   if (come_back) {
-    old_feedrate_mm_s = Mechanics.feedrate_mm_s;
-    COPY_ARRAY(lastpos, Mechanics.current_position);
+    old_feedrate_mm_s = mechanics.feedrate_mm_s;
+    COPY_ARRAY(lastpos, mechanics.current_position);
   }
 
-  Mechanics.Home(always_home_all);
+  mechanics.Home(always_home_all);
 
   #if ENABLED(NPR2)
     if ((home_all) || (parser.seen('E'))) {
-      Mechanics.set_destination_to_current();
-      Mechanics.destination[E_AXIS] = -200;
+      mechanics.set_destination_to_current();
+      mechanics.destination[E_AXIS] = -200;
       active_driver = active_extruder = 1;
-      planner.buffer_line_kinematic(Mechanics.destination, COLOR_HOMERATE, active_extruder, active_driver);
+      planner.buffer_line_kinematic(mechanics.destination, COLOR_HOMERATE, active_extruder);
       stepper.synchronize();
       old_color = 99;
       active_driver = active_extruder = 0;
-      Mechanics.current_position[E_AXIS] = 0;
-      Mechanics.sync_plan_position_e();
+      mechanics.current_position[E_AXIS] = 0;
+      mechanics.sync_plan_position_e();
     }
   #endif
 
@@ -2840,23 +2847,23 @@ inline void gcode_G28(const bool always_home_all) {
 
   #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
     // move to a height where we can use the full xy-area
-    Mechanics.do_blocking_move_to_z(Mechanics.delta_clip_start_height);
+    mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
   #endif
 
   if (come_back) {
-    Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(Mechanics.destination, lastpos);
-    Mechanics.prepare_move_to_destination();
-    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+    mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[X_AXIS];
+    COPY_ARRAY(mechanics.destination, lastpos);
+    mechanics.prepare_move_to_destination();
+    mechanics.feedrate_mm_s = old_feedrate_mm_s;
   }
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS);
-      gfx_cursor_to(Mechanics.current_position[X_AXIS] + (X_MAX_POS), Mechanics.current_position[Y_AXIS] + (Y_MAX_POS), Mechanics.current_position[Z_AXIS]);
+      gfx_cursor_to(mechanics.current_position[X_AXIS] + (X_MAX_POS), mechanics.current_position[Y_AXIS] + (Y_MAX_POS), mechanics.current_position[Z_AXIS]);
     #else
       gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
-      gfx_cursor_to(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.current_position[Z_AXIS]);
+      gfx_cursor_to(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
     #endif
   #endif
 
@@ -2871,7 +2878,7 @@ inline void gcode_G28(const bool always_home_all) {
 
   lcd_refresh();
 
-  report_current_position();
+  mechanics.report_current_position();
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
@@ -2896,38 +2903,38 @@ void home_all_axes() { gcode_G28(true); }
   #endif
 
   inline void _manual_goto_xy(const float &x, const float &y) {
-    const float old_feedrate_mm_s = Mechanics.feedrate_mm_s;
+    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
     #if MANUAL_PROBE_HEIGHT > 0
-      Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
-      Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+      mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[Z_AXIS];
+      mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
       #if MECH(DELTA)
-        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], Mechanics.feedrate_mm_s);
+        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS], mechanics.feedrate_mm_s);
       #else
-        Mechanics.line_to_current_position();
+        mechanics.line_to_current_position();
       #endif
     #endif
 
-    Mechanics.feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-    Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-    Mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+    mechanics.feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
+    mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+    mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
     #if MECH(DELTA)
-      Mechanics.do_blocking_move_to_xy(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.feedrate_mm_s);
+      mechanics.do_blocking_move_to_xy(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.feedrate_mm_s);
     #else
-      Mechanics.line_to_current_position();
+      mechanics.line_to_current_position();
     #endif
 
     #if MANUAL_PROBE_HEIGHT > 0
-      Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[Z_AXIS];
-      Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
+      mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[Z_AXIS];
+      mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
       #if MECH(DELTA)
-        Mechanics.do_blocking_move_to_z(Mechanics.current_position[Z_AXIS], Mechanics.feedrate_mm_s);
+        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS], mechanics.feedrate_mm_s);
       #else
-        Mechanics.line_to_current_position();
+        mechanics.line_to_current_position();
       #endif
     #endif
 
-    Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+    mechanics.feedrate_mm_s = old_feedrate_mm_s;
     stepper.synchronize();
 
     #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
@@ -3008,7 +3015,7 @@ void home_all_axes() { gcode_G28(true); }
         }
         else {
           // For G29 S2 after adjusting Z.
-          mbl.set_zigzag_z(mbl_probe_index - 1, Mechanics.current_position[Z_AXIS]);
+          mbl.set_zigzag_z(mbl_probe_index - 1, mechanics.current_position[Z_AXIS]);
           #if HAS_SOFTWARE_ENDSTOPS
             endstops.soft_endstops_enabled = enable_soft_endstops;
           #endif
@@ -3028,8 +3035,8 @@ void home_all_axes() { gcode_G28(true); }
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
-          Mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-          Mechanics.line_to_current_position();
+          mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+          mechanics.line_to_current_position();
           stepper.synchronize();
 
           // After recording the last point, activate the mbl and home
@@ -3091,7 +3098,7 @@ void home_all_axes() { gcode_G28(true); }
 
     } // switch(state)
 
-    report_current_position();
+    mechanics.report_current_position();
   }
 
 #elif HAS_ABL
@@ -3186,7 +3193,7 @@ void home_all_axes() { gcode_G28(true); }
       const uint8_t old_debug_flags = mk_debug_flags;
       if (query) mk_debug_flags |= DEBUG_LEVELING;
       if (DEBUGGING(LEVELING)) {
-        DEBUG_POS(">>> gcode_G29", Mechanics.current_position);
+        DEBUG_POS(">>> gcode_G29", mechanics.current_position);
         log_machine_info();
       }
       mk_debug_flags = old_debug_flags;
@@ -3211,11 +3218,11 @@ void home_all_axes() { gcode_G28(true); }
       if (!g29_in_progress) {
         // Homing
         home_all_axes();
-        Mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+        mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
       }
     #else
       // Don't allow auto-levelling without homing first
-      if (Mechanics.axis_unhomed_error()) return;
+      if (mechanics.axis_unhomed_error()) return;
     #endif
 
     // Define local vars 'static' for manual probing, 'auto' otherwise
@@ -3447,10 +3454,10 @@ void home_all_axes() { gcode_G28(true); }
       if (!dryrun) {
         // Re-orient the current position without leveling
         // based on where the steppers are positioned.
-        Mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+        mechanics.set_current_from_steppers_for_axis(ALL_AXES);
 
         // Sync the planner to where the steppers stopped
-        Mechanics.sync_plan_position();
+        mechanics.sync_plan_position();
       }
 
       if (!faux) setup_for_endstop_or_probe_move();
@@ -3550,7 +3557,7 @@ void home_all_axes() { gcode_G28(true); }
       else {
         // For G29 after adjusting Z.
         // Save the previous Z before going to the next point
-        measured_z = Mechanics.current_position[Z_AXIS];
+        measured_z = mechanics.current_position[Z_AXIS];
 
         #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
@@ -3608,7 +3615,7 @@ void home_all_axes() { gcode_G28(true); }
           #endif
 
           // Keep looping till a reachable point is found
-          if (Mechanics.position_is_reachable_xy(xProbe, yProbe)) break;
+          if (mechanics.position_is_reachable_xy(xProbe, yProbe)) break;
           ++abl_probe_index;
         }
 
@@ -3714,7 +3721,7 @@ void home_all_axes() { gcode_G28(true); }
 
             #if IS_KINEMATIC
               // Avoid probing outside the round or hexagonal area
-              if (!Mechanics.position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
+              if (!mechanics.position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
             #endif
 
             measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
@@ -3797,7 +3804,7 @@ void home_all_axes() { gcode_G28(true); }
     if (!faux) clean_up_after_endstop_or_probe_move();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", Mechanics.current_position);
+      if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", mechanics.current_position);
     #endif
 
     #if ENABLED(PROBE_MANUALLY)
@@ -3929,21 +3936,21 @@ void home_all_axes() { gcode_G28(true); }
         //
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) DEBUG_POS("G29 uncorrected XYZ", Mechanics.current_position);
+          if (DEBUGGING(LEVELING)) DEBUG_POS("G29 uncorrected XYZ", mechanics.current_position);
         #endif
 
         float converted[XYZ];
-        COPY_ARRAY(converted, Mechanics.current_position);
+        COPY_ARRAY(converted, mechanics.current_position);
 
         bedlevel.abl_enabled = true;
         bedlevel.unapply_leveling(converted); // use conversion machinery
         bedlevel.abl_enabled = false;
  
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(Mechanics.current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
-          && NEAR(Mechanics.current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
+        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
+          && NEAR(mechanics.current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
         ) {
-          float simple_z = Mechanics.current_position[Z_AXIS] - measured_z;
+          float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
               SERIAL_MV("Z from Probe:", simple_z);
@@ -3955,10 +3962,10 @@ void home_all_axes() { gcode_G28(true); }
         }
 
         // The rotated XY and corrected Z are now current_position
-        COPY_ARRAY(Mechanics.current_position, converted);
+        COPY_ARRAY(mechanics.current_position, converted);
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) DEBUG_POS("G29 corrected XYZ", Mechanics.current_position);
+          if (DEBUGGING(LEVELING)) DEBUG_POS("G29 corrected XYZ", mechanics.current_position);
         #endif
       }
 
@@ -3966,15 +3973,15 @@ void home_all_axes() { gcode_G28(true); }
 
       if (!dryrun) {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) SERIAL_EMV("G29 uncorrected Z:", Mechanics.current_position[Z_AXIS]);
+          if (DEBUGGING(LEVELING)) SERIAL_EMV("G29 uncorrected Z:", mechanics.current_position[Z_AXIS]);
         #endif
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z. (Just like bedlevel.unapply_leveling)
-        Mechanics.current_position[Z_AXIS] -= bedlevel.bilinear_z_offset(Mechanics.current_position);
+        mechanics.current_position[Z_AXIS] -= bedlevel.bilinear_z_offset(mechanics.current_position);
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) SERIAL_EMV(" corrected Z:", Mechanics.current_position[Z_AXIS]);
+          if (DEBUGGING(LEVELING)) SERIAL_EMV(" corrected Z:", mechanics.current_position[Z_AXIS]);
         #endif
       }
 
@@ -3999,7 +4006,7 @@ void home_all_axes() { gcode_G28(true); }
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G29");
     #endif
 
-    report_current_position();
+    mechanics.report_current_position();
 
     KEEPALIVE_STATE(IN_HANDLER);
 
@@ -4007,7 +4014,7 @@ void home_all_axes() { gcode_G28(true); }
     bedlevel.abl_enabled = dryrun ? abl_should_enable : true;
 
     if (bedlevel.abl_enabled)
-      Mechanics.sync_plan_position();
+      mechanics.sync_plan_position();
 
   }
 
@@ -4016,57 +4023,9 @@ void home_all_axes() { gcode_G28(true); }
 #if HAS_BED_PROBE
 
   /**
-   * G30: Do a single Z probe at the current XY
-   * Usage:
-   *    G30 <X#> <Y#> <S#> <Z#> <P#>
-   *      X = Probe X position (default=current probe position)
-   *      Y = Probe Y position (default=current probe position)
-   *      S = <bool> Stows the probe if 1 (default=1)
-   *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
-   *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+   * G30: Do a single Z probe
    */
-  inline void gcode_G30() {
-    const float xpos = parser.seen('X') ? parser.value_linear_units() : Mechanics.current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-                ypos = parser.seen('Y') ? parser.value_linear_units() : Mechanics.current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-    // Don't allow G30 without homing first
-    if (Mechanics.axis_unhomed_error()) return;
-
-    if (!Mechanics.position_is_reachable_by_probe_xy(xpos, ypos)) return;
-
-    // Disable leveling so the planner won't mess with us
-    #if HAS_LEVELING
-      bedlevel.set_bed_leveling_enabled(false);
-    #endif
-
-    setup_for_endstop_or_probe_move();
-
-    const float measured_z = probe.check_pt(xpos, ypos, !parser.seen('S') || parser.value_bool(), 1);
-
-    if (!isnan(measured_z)) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
-    }
-
-    #if IS_DELTA
-      if (parser.boolval('Z')) {
-        Mechanics.delta_height -= measured_z;
-        Mechanics.recalc_delta_settings();
-        SERIAL_MV("  New delta height = ", Mechanics.delta_height, 3);
-      }
-      else if (parser.boolval('P')) {
-        probe.z_offset += endstops.soft_endstop_min[Z_AXIS] - measured_z;
-        SERIAL_MV("  New Z probe offset = ", probe.z_offset, 3);
-      }
-    #endif
-
-    SERIAL_EOL();
-
-    clean_up_after_endstop_or_probe_move();
-
-    report_current_position();
-  }
+  inline void gcode_G30() { probe.single_probe(); }
 
   #if ENABLED(Z_PROBE_SLED)
 
@@ -4086,7 +4045,7 @@ void home_all_axes() { gcode_G28(true); }
 
 #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2)
 
-  inline void gcode_G33() { Mechanics.auto_calibration(); }
+  inline void gcode_G33() { mechanics.auto_calibration(); }
 
 #elif ENABLED(DELTA_AUTO_CALIBRATION_3)
 
@@ -4106,7 +4065,7 @@ void home_all_axes() { gcode_G28(true); }
     // Homing
     home_all_axes();
 
-    Mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, Mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
     stepper.synchronize();  // wait until the machine is idle
 
@@ -4279,7 +4238,7 @@ void home_all_axes() { gcode_G28(true); }
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G33");
     #endif
 
-    report_current_position();
+    mechanics.report_current_position();
     KEEPALIVE_STATE(IN_HANDLER);
   }
 
@@ -4294,23 +4253,23 @@ void home_all_axes() { gcode_G28(true); }
     // Get direction of move and retract
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
-      float dist = Mechanics.destination[i] - Mechanics.current_position[i];
-      retract_mm[i] = FABS(dist) < G38_MINIMUM_MOVE ? 0 : Mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      float dist = mechanics.destination[i] - mechanics.current_position[i];
+      retract_mm[i] = FABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
     stepper.synchronize();  // wait until the machine is idle
 
-    // Move until Mechanics.destination reached or target hit
+    // Move until mechanics.destination reached or target hit
     endstops.enable(true);
     G38_move = true;
     G38_endstop_hit = false;
-    Mechanics.prepare_move_to_destination();
+    mechanics.prepare_move_to_destination();
     stepper.synchronize();
     G38_move = false;
 
     endstops.hit_on_purpose();
-    Mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-    Mechanics.sync_plan_position();
+    mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+    mechanics.sync_plan_position();
 
     // Only do remaining moves if target was hit
     if (G38_endstop_hit) {
@@ -4318,25 +4277,25 @@ void home_all_axes() { gcode_G28(true); }
       G38_pass_fail = true;
 
       // Move away by the retract distance
-      Mechanics.set_destination_to_current();
-      LOOP_XYZ(i) Mechanics.destination[i] += retract_mm[i];
+      mechanics.set_destination_to_current();
+      LOOP_XYZ(i) mechanics.destination[i] += retract_mm[i];
       endstops.enable(false);
-      Mechanics.prepare_move_to_destination();
+      mechanics.prepare_move_to_destination();
       stepper.synchronize();
 
-      Mechanics.feedrate_mm_s /= 4;
+      mechanics.feedrate_mm_s /= 4;
 
       // Bump the target more slowly
-      LOOP_XYZ(i) Mechanics.destination[i] -= retract_mm[i] * 2;
+      LOOP_XYZ(i) mechanics.destination[i] -= retract_mm[i] * 2;
 
       endstops.enable(true);
       G38_move = true;
-      Mechanics.prepare_move_to_destination();
+      mechanics.prepare_move_to_destination();
       stepper.synchronize();
       G38_move = false;
 
-      Mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-      Mechanics.sync_plan_position();
+      mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+      mechanics.sync_plan_position();
     }
 
     endstops.hit_on_purpose();
@@ -4358,8 +4317,8 @@ void home_all_axes() { gcode_G28(true); }
 
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
-      if (FABS(Mechanics.destination[i] - Mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
-        if (!parser.seenval('F')) Mechanics.feedrate_mm_s = Mechanics.homing_feedrate_mm_s[i];
+      if (FABS(mechanics.destination[i] - mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
+        if (!parser.seenval('F')) mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
           SERIAL_LM(ER, "Failed to reach target");
@@ -4397,23 +4356,23 @@ void home_all_axes() { gcode_G28(true); }
         #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
       #endif
 
-      Mechanics.set_destination_to_current();
-      if (hasI) Mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
-      if (hasJ) Mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
+      mechanics.set_destination_to_current();
+      if (hasI) mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
+      if (hasJ) mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
       if (parser.boolval('P')) {
-        if (hasI) Mechanics.destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        if (hasJ) Mechanics.destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        if (hasI) mechanics.destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
+        if (hasJ) mechanics.destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
       }
 
       const float fval = parser.linearval('F');
-      if (fval > 0.0) Mechanics.feedrate_mm_s = MMM_TO_MMS(fval);
+      if (fval > 0.0) mechanics.feedrate_mm_s = MMM_TO_MMS(fval);
 
-      Mechanics.prepare_move_to_destination();
+      mechanics.prepare_move_to_destination();
 
     }
   }
 
-#endif ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+#endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
 /**
  * G60:  save current position
@@ -4427,15 +4386,15 @@ inline void gcode_G60() {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
   } 
-  COPY_ARRAY(Mechanics.stored_position[slot], Mechanics.current_position);
+  COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position);
   pos_saved = true;
 
   SERIAL_MSG(MSG_SAVED_POS);
   SERIAL_MV(" S", slot);
-  SERIAL_MV("<-X:", Mechanics.stored_position[slot][X_AXIS]);
-  SERIAL_MV(" Y:", Mechanics.stored_position[slot][Y_AXIS]);
-  SERIAL_MV(" Z:", Mechanics.stored_position[slot][Z_AXIS]);
-  SERIAL_EMV(" E:", Mechanics.stored_position[slot][E_AXIS]);
+  SERIAL_MV("<-X:", mechanics.stored_position[slot][X_AXIS]);
+  SERIAL_MV(" Y:", mechanics.stored_position[slot][Y_AXIS]);
+  SERIAL_MV(" Z:", mechanics.stored_position[slot][Z_AXIS]);
+  SERIAL_EMV(" E:", mechanics.stored_position[slot][E_AXIS]);
 }
 
 /**
@@ -4460,22 +4419,22 @@ inline void gcode_G61() {
   SERIAL_MSG("->");
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)
-    Mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_linear_units());
+    mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_linear_units());
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      Mechanics.destination[i] = parser.value_axis_units((AxisEnum)i) + Mechanics.stored_position[slot][i];
+      mechanics.destination[i] = parser.value_axis_units((AxisEnum)i) + mechanics.stored_position[slot][i];
     }
     else {
-      Mechanics.destination[i] = Mechanics.current_position[i];
+      mechanics.destination[i] = mechanics.current_position[i];
     }
     SERIAL_MV(" ", axis_codes[i]);
-    SERIAL_MV(":", Mechanics.destination[i]);
+    SERIAL_MV(":", mechanics.destination[i]);
   }
   SERIAL_EOL();
 
   // finish moves
-  Mechanics.prepare_move_to_destination();
+  mechanics.prepare_move_to_destination();
   stepper.synchronize();
 }
 
@@ -4491,20 +4450,20 @@ inline void gcode_G92() {
   LOOP_XYZE(i) {
     if (parser.seenval(axis_codes[i])) {
       #if IS_SCARA
-        Mechanics.current_position[i] = parser.value_axis_units((AxisEnum)i);
+        mechanics.current_position[i] = parser.value_axis_units((AxisEnum)i);
         if (i != E_AXIS) didXYZ = true;
       #else
         #if ENABLED(WORKSPACE_OFFSETS)
-          const float p = Mechanics.current_position[i];
+          const float p = mechanics.current_position[i];
         #endif
         float v = parser.value_axis_units((AxisEnum)i);
 
-        Mechanics.current_position[i] = v;
+        mechanics.current_position[i] = v;
 
         if (i != E_AXIS) {
           didXYZ = true;
           #if ENABLED(WORKSPACE_OFFSETS)
-            Mechanics.position_shift[i] += v - p; // Offset the coordinate space
+            mechanics.position_shift[i] += v - p; // Offset the coordinate space
             endstops.update_software_endstops((AxisEnum)i);
           #endif
         }
@@ -4512,11 +4471,11 @@ inline void gcode_G92() {
     }
   }
   if (didXYZ)
-    Mechanics.sync_plan_position();
+    mechanics.sync_plan_position();
   else if (didE)
-    Mechanics.sync_plan_position_e();
+    mechanics.sync_plan_position_e();
 
-  report_current_position();
+  mechanics.report_current_position();
 }
 
 #if HAS(RESUME_CONTINUE)
@@ -4599,7 +4558,7 @@ inline void gcode_G92() {
 
     switch (printer_mode) {
 
-      #if ENABLED(LASER)
+      #if ENABLED(LASER) && ENABLED(LASER_FIRE_SPINDLE)
         case PRINTER_MODE_LASER: {
           if (IsRunning()) {
             if (parser.seenval('S')) laser.intensity = parser.value_float();
@@ -4608,10 +4567,7 @@ inline void gcode_G92() {
             if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
             if (parser.seenval('B')) laser_set_mode(parser.value_int());
           }
-
           laser.status = LASER_ON;
-          laser.fired = LASER_FIRE_SPINDLE;
-
         }
         break;
       #endif
@@ -4626,7 +4582,7 @@ inline void gcode_G92() {
 
     } // printer_mode
 
-    Mechanics.prepare_move_to_destination();
+    mechanics.prepare_move_to_destination();
   }
 
   /**
@@ -4661,7 +4617,7 @@ inline void gcode_G92() {
 
     } // printer_mode
 
-    Mechanics.prepare_move_to_destination();
+    mechanics.prepare_move_to_destination();
 
   }
 
@@ -4835,8 +4791,8 @@ inline void gcode_M31() {
       card.selectFile(namestartpos);
       if (parser.seenval('S')) card.setIndex(parser.value_long());
 
-      Mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
-      Mechanics.feedrate_percentage = 100;  // 100% Mechanics.feedrate_mm_s
+      mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
+      mechanics.feedrate_percentage = 100;  // 100% mechanics.feedrate_mm_s
       card.startFileprint();
       print_job_counter.start();
       #if HAS_POWER_CONSUMPTION_SENSOR
@@ -5179,7 +5135,7 @@ inline void gcode_M42() {
    */
   inline void gcode_M48() {
 
-    if (Mechanics.axis_unhomed_error()) return;
+    if (mechanics.axis_unhomed_error()) return;
 
     int8_t verbose_level = parser.seen('V') ? parser.value_byte() : 1;
     if (!WITHIN(verbose_level, 0, 4)) {
@@ -5196,8 +5152,8 @@ inline void gcode_M42() {
       return;
     }
 
-    float X_current = Mechanics.current_position[X_AXIS],
-          Y_current = Mechanics.current_position[Y_AXIS];
+    float X_current = mechanics.current_position[X_AXIS],
+          Y_current = mechanics.current_position[Y_AXIS];
 
     bool stow_probe_after_each = parser.seen('E');
 
@@ -5214,7 +5170,7 @@ inline void gcode_M42() {
         return;
       }
     #else
-      if (!Mechanics.position_is_reachable_by_probe_xy(X_probe_location, Y_probe_location)) {
+      if (!mechanics.position_is_reachable_by_probe_xy(X_probe_location, Y_probe_location)) {
         SERIAL_LM(ER, "? (X,Y) location outside of probeable radius.");
         return;
       }
@@ -5261,7 +5217,7 @@ inline void gcode_M42() {
         float angle = random(0.0, 360.0),
               radius = random(
                 #if MECH(DELTA)
-                  Mechanics.delta_probe_radius / 8, Mechanics.delta_probe_radius / 3
+                  mechanics.delta_probe_radius / 8, mechanics.delta_probe_radius / 3
                 #else
                   5, X_MAX_LENGTH / 8
                 #endif
@@ -5301,7 +5257,7 @@ inline void gcode_M42() {
           #if MECH(DELTA)
             // If we have gone out too far, we can do a simple fix and scale the numbers
             // back in closer to the origin.
-            while (!Mechanics.position_is_reachable_by_probe_xy(X_current, Y_current)) {
+            while (!mechanics.position_is_reachable_by_probe_xy(X_current, Y_current)) {
               X_current *= 0.8;
               Y_current *= 0.8;
               if (verbose_level > 3) {
@@ -5317,9 +5273,9 @@ inline void gcode_M42() {
             SERIAL_MSG("Going to:");
             SERIAL_MV(" x: ", X_current);
             SERIAL_MV(" y: ", Y_current);
-            SERIAL_EMV("  z: ", Mechanics.current_position[Z_AXIS]);
+            SERIAL_EMV("  z: ", mechanics.current_position[Z_AXIS]);
           }
-          Mechanics.do_blocking_move_to_xy(X_current, Y_current);
+          mechanics.do_blocking_move_to_xy(X_current, Y_current);
         } // n_legs loop
       } // n_legs
 
@@ -5385,7 +5341,7 @@ inline void gcode_M42() {
       bedlevel.set_bed_leveling_enabled(was_enabled);
     #endif
 
-    report_current_position();
+    mechanics.report_current_position();
   }
 
 #endif // Z_MIN_PROBE_REPEATABILITY_TEST
@@ -5575,19 +5531,19 @@ inline void gcode_M92() {
       if (i == E_AXIS) {
         const float value = parser.value_per_axis_unit((AxisEnum)(E_AXIS + TARGET_EXTRUDER));
         if (value < 20.0) {
-          float factor = Mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] / value; // increase e constants if M92 E14 is given for netfab.
-          Mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] *= factor;
-          Mechanics.max_feedrate_mm_s[E_AXIS + TARGET_EXTRUDER] *= factor;
-          Mechanics.max_acceleration_steps_per_s2[E_AXIS + TARGET_EXTRUDER] *= factor;
+          float factor = mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] / value; // increase e constants if M92 E14 is given for netfab.
+          mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] *= factor;
+          mechanics.max_feedrate_mm_s[E_AXIS + TARGET_EXTRUDER] *= factor;
+          mechanics.max_acceleration_steps_per_s2[E_AXIS + TARGET_EXTRUDER] *= factor;
         }
-        Mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] = value;
+        mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] = value;
       }
       else {
-        Mechanics.axis_steps_per_mm[i] = parser.value_per_axis_unit((AxisEnum)i);
+        mechanics.axis_steps_per_mm[i] = parser.value_per_axis_unit((AxisEnum)i);
       }
     }
   }
-  Mechanics.refresh_positioning();
+  mechanics.refresh_positioning();
 }
 
 #if ENABLED(ZWOBBLE)
@@ -5595,7 +5551,7 @@ inline void gcode_M92() {
    * M96: Print ZWobble value
    */
   inline void gcode_M96() {
-    Mechanics.report_zwobble();
+    mechanics.report_zwobble();
   }
 
   /**
@@ -5604,15 +5560,15 @@ inline void gcode_M92() {
   inline void gcode_M97() {
     float zVal = -1.0, hVal = -1.0, lVal = -1.0;
 
-    if (parser.seen('A')) Mechanics.set_zwobble_amplitude(parser.value_float());
-    if (parser.seen('W')) Mechanics.set_zwobble_period(parser.value_float());
-    if (parser.seen('P')) Mechanics.set_zwobble_phase(parser.value_float());
+    if (parser.seen('A')) mechanics.set_zwobble_amplitude(parser.value_float());
+    if (parser.seen('W')) mechanics.set_zwobble_period(parser.value_float());
+    if (parser.seen('P')) mechanics.set_zwobble_phase(parser.value_float());
     if (parser.seen('Z')) zVal = parser.value_float();
     if (parser.seen('H')) hVal = parser.value_float();
     if (parser.seen('L')) lVal = parser.value_float();
-    if (zVal >= 0 && hVal >= 0) Mechanics.set_zwobble_sample(zVal, hVal);
-    if (zVal >= 0 && lVal >= 0) Mechanics.set_zwobble_scaledsample(zVal, lVal);
-    if (lVal >  0 && hVal >  0) Mechanics.set_zwobble_scalingfactor(hVal / lVal);
+    if (zVal >= 0 && hVal >= 0) mechanics.set_zwobble_sample(zVal, hVal);
+    if (zVal >= 0 && lVal >= 0) mechanics.set_zwobble_scaledsample(zVal, lVal);
+    if (lVal >  0 && hVal >  0) mechanics.set_zwobble_scalingfactor(hVal / lVal);
   }
 #endif // ZWOBBLE
 
@@ -5622,7 +5578,7 @@ inline void gcode_M92() {
    * M98: Print Hysteresis value
    */
   inline void gcode_M98() {
-    Mechanics.report_hysteresis();
+    mechanics.report_hysteresis();
   }
 
   /**
@@ -5631,7 +5587,7 @@ inline void gcode_M92() {
   inline void gcode_M99() {
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i]))
-        Mechanics.set_hysteresis_axis(i, parser.value_float());
+        mechanics.set_hysteresis_axis(i, parser.value_float());
     }
   }
 #endif // HYSTERESIS
@@ -5656,8 +5612,8 @@ inline void gcode_M92() {
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (Mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          thermalManager.setTargetHotend(temp ? temp + Mechanics.duplicate_hotend_temp_offset : 0, 1);
+        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0, 1);
       #endif
 
       if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
@@ -5775,8 +5731,8 @@ inline void gcode_M105() {
       thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (Mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          thermalManager.setTargetHotend(temp ? temp + Mechanics.duplicate_hotend_temp_offset : 0, 1);
+        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0, 1);
       #endif
 
       if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
@@ -5872,7 +5828,7 @@ inline void gcode_M114() {
   }
 
   stepper.synchronize();
-  report_current_position();
+  mechanics.report_current_position();
 }
 
 /**
@@ -6378,17 +6334,17 @@ inline void gcode_M201() {
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      Mechanics.max_acceleration_mm_per_s2[a] = parser.value_axis_units((AxisEnum)a);
+      mechanics.max_acceleration_mm_per_s2[a] = parser.value_axis_units((AxisEnum)a);
     }
   }
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
-  Mechanics.reset_acceleration_rates();
+  mechanics.reset_acceleration_rates();
 }
 
 #if 0 // Not used for Sprinter/grbl gen6
   inline void gcode_M202() {
     LOOP_XYZE(i) {
-      if(parser.seen(axis_codes[i])) axis_travel_steps_per_sqr_second[i] = parser.value_axis_units((AxisEnum)i) * Mechanics.axis_steps_per_mm[i];
+      if(parser.seen(axis_codes[i])) axis_travel_steps_per_sqr_second[i] = parser.value_axis_units((AxisEnum)i) * mechanics.axis_steps_per_mm[i];
     }
   }
 #endif
@@ -6405,7 +6361,7 @@ inline void gcode_M203() {
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      Mechanics.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
+      mechanics.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
     }
   }
 }
@@ -6417,27 +6373,27 @@ inline void gcode_M203() {
  *    T* R  = Retract only (no X, Y, Z) moves
  *    V     = Travel (non printing) moves
  *
- *  Also sets minimum segment time in ms (B20000) to prevent buffer under-runs and M20 minimum Mechanics.feedrate_mm_s
+ *  Also sets minimum segment time in ms (B20000) to prevent buffer under-runs and M20 minimum mechanics.feedrate_mm_s
  */
 inline void gcode_M204() {
 
   GET_TARGET_EXTRUDER(204);
 
   if (parser.seen('S')) {  // Kept for legacy compatibility. Should NOT BE USED for new developments.
-    Mechanics.travel_acceleration = Mechanics.acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Print and Travel acceleration: ", Mechanics.acceleration );
+    mechanics.travel_acceleration = mechanics.acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Print and Travel acceleration: ", mechanics.acceleration );
   }
   if (parser.seen('P')) {
-    Mechanics.acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Print acceleration: ", Mechanics.acceleration );
+    mechanics.acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Print acceleration: ", mechanics.acceleration );
   }
   if (parser.seen('R')) {
-    Mechanics.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
-    SERIAL_EMV("Setting Retract acceleration: ", Mechanics.retract_acceleration[TARGET_EXTRUDER]);
+    mechanics.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
+    SERIAL_EMV("Setting Retract acceleration: ", mechanics.retract_acceleration[TARGET_EXTRUDER]);
   }
   if (parser.seen('V')) {
-    Mechanics.travel_acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Travel acceleration: ", Mechanics.travel_acceleration );
+    mechanics.travel_acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Travel acceleration: ", mechanics.travel_acceleration );
   }
 }
 
@@ -6456,13 +6412,13 @@ inline void gcode_M205() {
 
   GET_TARGET_EXTRUDER(205);
 
-  if (parser.seen('S')) Mechanics.min_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('V')) Mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('B')) Mechanics.min_segment_time = parser.value_millis();
-  if (parser.seen('X')) Mechanics.max_jerk[X_AXIS] = parser.value_linear_units();
-  if (parser.seen('Y')) Mechanics.max_jerk[Y_AXIS] = parser.value_linear_units();
-  if (parser.seen('Z')) Mechanics.max_jerk[Z_AXIS] = parser.value_linear_units();
-  if (parser.seen('E')) Mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] = parser.value_linear_units();
+  if (parser.seen('S')) mechanics.min_feedrate_mm_s = parser.value_linear_units();
+  if (parser.seen('V')) mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
+  if (parser.seen('B')) mechanics.min_segment_time = parser.value_millis();
+  if (parser.seen('X')) mechanics.max_jerk[X_AXIS] = parser.value_linear_units();
+  if (parser.seen('Y')) mechanics.max_jerk[Y_AXIS] = parser.value_linear_units();
+  if (parser.seen('Z')) mechanics.max_jerk[Z_AXIS] = parser.value_linear_units();
+  if (parser.seen('E')) mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] = parser.value_linear_units();
 }
 
 #if ENABLED(WORKSPACE_OFFSETS)
@@ -6481,8 +6437,8 @@ inline void gcode_M205() {
       if (parser.seen('P')) set_home_offset(Y_AXIS, parser.value_linear_units()); // Psi
     #endif
 
-    Mechanics.sync_plan_position();
-    report_current_position();
+    mechanics.sync_plan_position();
+    mechanics.report_current_position();
   }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)
@@ -6563,7 +6519,7 @@ inline void gcode_M218() {
  * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
  */
 inline void gcode_M220() {
-  if (parser.seenval('S')) Mechanics.feedrate_percentage = parser.value_int();
+  if (parser.seenval('S')) mechanics.feedrate_percentage = parser.value_int();
 }
 
 /**
@@ -7053,10 +7009,10 @@ inline void gcode_M226() {
   bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     if (IsRunning()) {
       forward_kinematics_SCARA(delta_a, delta_b);
-      Mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(Mechanics.cartesian_position[X_AXIS]);
-      Mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(Mechanics.cartesian_position[Y_AXIS]);
-      Mechanics.destination[Z_AXIS] = Mechanics.current_position[Z_AXIS];
-      Mechanics.prepare_move_to_destination();
+      mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(mechanics.cartesian_position[X_AXIS]);
+      mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(mechanics.cartesian_position[Y_AXIS]);
+      mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS];
+      mechanics.prepare_move_to_destination();
       return true;
     }
     return false;
@@ -7260,15 +7216,15 @@ inline void gcode_M400() { stepper.synchronize(); }
 
     SERIAL_MSG("\",\"coords\": {");
     SERIAL_MSG("\"axesHomed\":[");
-    if (Mechanics.axis_homed[X_AXIS] && Mechanics.axis_homed[Y_AXIS] && Mechanics.axis_homed[Z_AXIS])
+    if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
       SERIAL_MSG("1, 1, 1");
     else
       SERIAL_MSG("0, 0, 0");
 
-    SERIAL_MV("],\"extr\":[", Mechanics.current_position[E_AXIS]);
-    SERIAL_MV("],\"xyz\":[", Mechanics.current_position[X_AXIS]); // X AXIS
-    SERIAL_MV(",", Mechanics.current_position[Y_AXIS]);           // Y AXIS
-    SERIAL_MV(",", Mechanics.current_position[Z_AXIS]);           // Z AXIS
+    SERIAL_MV("],\"extr\":[", mechanics.current_position[E_AXIS]);
+    SERIAL_MV("],\"xyz\":[", mechanics.current_position[X_AXIS]); // X AXIS
+    SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
+    SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
 
     SERIAL_MV("]},\"currentTool\":", active_extruder);
 
@@ -7282,7 +7238,7 @@ inline void gcode_M400() { stepper.synchronize(); }
     SERIAL_MSG(",\"fanPercent\":[");
     SERIAL_VAL(fanSpeeds[0]);
 
-    SERIAL_MV("],\"speedFactor\":", Mechanics.feedrate_percentage);
+    SERIAL_MV("],\"speedFactor\":", mechanics.feedrate_percentage);
 
     SERIAL_MSG(",\"extrFactors\":[");
     firstOccurrence = true;
@@ -7373,7 +7329,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         SERIAL_MSG("\"currentLayer\":");
         #if HAS_SDSUPPORT
           if (card.sdprinting && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
-            SERIAL_VAL((int) (Mechanics.current_position[Z_AXIS] / card.layerHeight));
+            SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
           }
           else SERIAL_VAL(0);
         #else
@@ -7383,7 +7339,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         firstOccurrence = true;
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(Mechanics.current_position[E_AXIS] * flow_percentage[i]);
+          SERIAL_VAL(mechanics.current_position[E_AXIS] * flow_percentage[i]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");
@@ -7423,14 +7379,14 @@ inline void gcode_M400() { stepper.synchronize(); }
         SERIAL_CHR(',');
         SERIAL_VAL((int) Z_MAX_POS);
         SERIAL_MSG("],\"planner.accelerations\":[");
-        SERIAL_VAL(Mechanics.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(Mechanics.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(Mechanics.max_acceleration_mm_per_s2[Z_AXIS]);
+        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(Mechanics.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]);
         }
         SERIAL_MSG("],");
 
@@ -7474,14 +7430,14 @@ inline void gcode_M400() { stepper.synchronize(); }
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");
-        SERIAL_VAL(Mechanics.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_VAL(mechanics.max_feedrate_mm_s[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(Mechanics.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_VAL(mechanics.max_feedrate_mm_s[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(Mechanics.max_feedrate_mm_s[Z_AXIS]);
+        SERIAL_VAL(mechanics.max_feedrate_mm_s[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(Mechanics.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_VAL(mechanics.max_feedrate_mm_s[E_AXIS + i]);
         }
         SERIAL_CHR(']');
         break;
@@ -7578,9 +7534,9 @@ inline void gcode_M400() { stepper.synchronize(); }
   inline void gcode_M428() {
     bool err = false;
     LOOP_XYZ(i) {
-      if (Mechanics.axis_homed[i]) {
-        const float base = (Mechanics.current_position[i] > (endstops.soft_endstop_min[i] + endstops.soft_endstop_max[i]) * 0.5) ? Mechanics.base_home_pos[(AxisEnum)i] : 0,
-                    diff = base - RAW_POSITION(Mechanics.current_position[i], i);
+      if (mechanics.axis_homed[i]) {
+        const float base = (mechanics.current_position[i] > (endstops.soft_endstop_min[i] + endstops.soft_endstop_max[i]) * 0.5) ? mechanics.base_home_pos[(AxisEnum)i] : 0,
+                    diff = base - RAW_POSITION(mechanics.current_position[i], i);
         if (WITHIN(diff, -20, 20)) {
           set_home_offset((AxisEnum)i, diff);
         }
@@ -7595,8 +7551,8 @@ inline void gcode_M400() { stepper.synchronize(); }
     }
 
     if (!err) {
-      Mechanics.sync_plan_position();
-      report_current_position();
+      mechanics.sync_plan_position();
+      mechanics.report_current_position();
       LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
       BUZZ(100, 659);
       BUZZ(100, 698);
@@ -7834,7 +7790,7 @@ inline void gcode_M532() {
   inline void gcode_M600() {
 
     // Homing first
-    if (Mechanics.axis_unhomed_error()) home_all_axes();
+    if (mechanics.axis_unhomed_error()) home_all_axes();
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
@@ -7923,31 +7879,31 @@ inline void gcode_M532() {
    */
   inline void gcode_M605() {
     stepper.synchronize();
-    if (parser.seen('S')) Mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
-    switch(Mechanics.dual_x_carriage_mode) {
+    if (parser.seen('S')) mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
+    switch(mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:
       case DXC_AUTO_PARK_MODE:
         break;
       case DXC_DUPLICATION_MODE:
-        if (parser.seen('X')) Mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - Mechanics.x_home_pos(0));
-        if (parser.seen('R')) Mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
+        if (parser.seen('X')) mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
+        if (parser.seen('R')) mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
         SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
         SERIAL_CHR(' ');
         SERIAL_VAL(hotend_offset[X_AXIS][0]);
         SERIAL_CHR(',');
         SERIAL_VAL(hotend_offset[Y_AXIS][0]);
         SERIAL_CHR(' ');
-        SERIAL_VAL(Mechanics.duplicate_hotend_x_offset);
+        SERIAL_VAL(mechanics.duplicate_hotend_x_offset);
         SERIAL_CHR(',');
         SERIAL_EV(hotend_offset[Y_AXIS][1]);
         break;
       default:
-        Mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
+        mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
         break;
     }
-    Mechanics.active_hotend_parked = false;
-    Mechanics.hotend_duplication_enabled = false;
-    Mechanics.delayed_move_time = 0;
+    mechanics.active_hotend_parked = false;
+    mechanics.hotend_duplication_enabled = false;
+    mechanics.delayed_move_time = 0;
   }
 
 #endif // DUAL_X_CARRIAGE
@@ -7975,7 +7931,7 @@ inline void gcode_M532() {
 
     if (parser.seen('F')) {
       float next_feedrate = parser.value_linear_units();
-      if (next_feedrate > 0.0) Mechanics.feedrate_mm_s = next_feedrate;
+      if (next_feedrate > 0.0) mechanics.feedrate_mm_s = next_feedrate;
     }
   }
 
@@ -8006,13 +7962,13 @@ inline void gcode_M532() {
   inline void gcode_M651() {
 
     if (peel_distance > 0) {
-      planner.buffer_line(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS] + peel_distance, Mechanics.destination[Z_AXIS], peel_speed, active_extruder, active_driver);
-      planner.buffer_line(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS] + peel_distance, Mechanics.destination[Z_AXIS] + peel_distance, peel_speed, active_extruder, active_driver);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, active_extruder);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, active_extruder);
       stepper.synchronize();
       if (peel_pause > 0) safe_delay(peel_pause);
     }
 
-    planner.buffer_line(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS], Mechanics.destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+    planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, active_extruder);
     stepper.synchronize();
   }
 
@@ -8020,7 +7976,7 @@ inline void gcode_M532() {
   inline void gcode_M653() {
     // Double tilts are not allowed.
     if (!tilted) {
-      planner.buffer_line(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS] + tilt_distance, Mechanics.destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + tilt_distance, mechanics.destination[Z_AXIS], retract_speed, active_extruder);
       stepper.synchronize();
     }
   }
@@ -8031,10 +7987,10 @@ inline void gcode_M532() {
     if (tilted) {
        // To prevent subsequent commands from not knowing our
        // actual position, update the Z axis, then move to it.
-       Mechanics.destination[Z_AXIS] += tilt_distance;
-       planner.buffer_line(Mechanics.destination[X_AXIS], Mechanics.destination[Y_AXIS], Mechanics.destination[Z_AXIS], Mechanics.destination[Z_AXIS], retract_speed, active_extruder, active_driver);
+       mechanics.destination[Z_AXIS] += tilt_distance;
+       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, active_extruder);
        // And save it away as our current position, because we're there.
-       Mechanics.set_current_to_destination();
+       mechanics.set_current_to_destination();
        stepper.synchronize();
        tilted = false;
     }
@@ -8210,26 +8166,26 @@ inline void gcode_M532() {
   inline void gcode_M666() {
 
     if (parser.seen('H')) {
-      const float old_delta_height = Mechanics.delta_height;
-      Mechanics.delta_height = parser.value_linear_units();
-      Mechanics.current_position[Z_AXIS] += Mechanics.delta_height - old_delta_height;
+      const float old_delta_height = mechanics.delta_height;
+      mechanics.delta_height = parser.value_linear_units();
+      mechanics.current_position[Z_AXIS] += mechanics.delta_height - old_delta_height;
     }
 
-    if (parser.seen('D')) Mechanics.delta_diagonal_rod              = parser.value_linear_units();
-    if (parser.seen('R')) Mechanics.delta_radius              = parser.value_linear_units();
-    if (parser.seen('S')) Mechanics.delta_segments_per_second       = parser.value_float();
-    if (parser.seen('A')) Mechanics.delta_diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('B')) Mechanics.delta_diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('C')) Mechanics.delta_diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('I')) Mechanics.delta_tower_radius_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('J')) Mechanics.delta_tower_radius_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('K')) Mechanics.delta_tower_radius_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('U')) Mechanics.delta_tower_pos_adj[A_AXIS]     = parser.value_linear_units();
-    if (parser.seen('V')) Mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
-    if (parser.seen('W')) Mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
-    if (parser.seen('O')) Mechanics.delta_print_radius              = parser.value_linear_units();
+    if (parser.seen('D')) mechanics.delta_diagonal_rod              = parser.value_linear_units();
+    if (parser.seen('R')) mechanics.delta_radius              = parser.value_linear_units();
+    if (parser.seen('S')) mechanics.delta_segments_per_second       = parser.value_float();
+    if (parser.seen('A')) mechanics.delta_diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('B')) mechanics.delta_diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('C')) mechanics.delta_diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('I')) mechanics.delta_tower_radius_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('J')) mechanics.delta_tower_radius_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('K')) mechanics.delta_tower_radius_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('U')) mechanics.delta_tower_pos_adj[A_AXIS]     = parser.value_linear_units();
+    if (parser.seen('V')) mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
+    if (parser.seen('W')) mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
+    if (parser.seen('O')) mechanics.delta_print_radius              = parser.value_linear_units();
 
-    Mechanics.recalc_delta_settings();
+    mechanics.recalc_delta_settings();
 
     #if HAS_BED_PROBE
 
@@ -8269,34 +8225,34 @@ inline void gcode_M532() {
     #endif // HAS_BED_PROBE
 
     LOOP_XYZ(i) {
-      if (parser.seen(axis_codes[i])) Mechanics.delta_endstop_adj[i] = parser.value_linear_units();
+      if (parser.seen(axis_codes[i])) mechanics.delta_endstop_adj[i] = parser.value_linear_units();
     }
 
     if (parser.seen('L')) {
       SERIAL_LM(CFG, "Current Delta geometry values:");
       LOOP_XYZ(i) {
         SERIAL_SV(CFG, axis_codes[i]);
-        SERIAL_EMV(" (Endstop Adj): ", Mechanics.delta_endstop_adj[i], 3);
+        SERIAL_EMV(" (Endstop Adj): ", mechanics.delta_endstop_adj[i], 3);
       }
 
       #if HAS_BED_PROBE
         SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", probe.z_offset, 3);
       #endif
 
-      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[0], 3);
-      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[1], 3);
-      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  Mechanics.delta_diagonal_rod_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        Mechanics.delta_tower_radius_adj[0], 3);
-      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        Mechanics.delta_tower_radius_adj[1], 3);
-      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        Mechanics.delta_tower_radius_adj[2], 3);
-      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      Mechanics.delta_tower_pos_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      Mechanics.delta_tower_pos_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      Mechanics.delta_tower_pos_adj[2], 3);
-      SERIAL_LMV(CFG, "R (Delta Radius): ",                     Mechanics.delta_radius, 4);
-      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              Mechanics.delta_diagonal_rod, 4);
-      SERIAL_LMV(CFG, "S (Delta Segments per second): ",        Mechanics.delta_segments_per_second);
-      SERIAL_LMV(CFG, "O (Delta Print Radius): ",               Mechanics.delta_print_radius);
-      SERIAL_LMV(CFG, "H (Z-Height): ",                         Mechanics.delta_height, 3);
+      SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[0], 3);
+      SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[1], 3);
+      SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        mechanics.delta_tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        mechanics.delta_tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        mechanics.delta_tower_radius_adj[2], 3);
+      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      mechanics.delta_tower_pos_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      mechanics.delta_tower_pos_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      mechanics.delta_tower_pos_adj[2], 3);
+      SERIAL_LMV(CFG, "R (Delta Radius): ",                     mechanics.delta_radius, 4);
+      SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.delta_diagonal_rod, 4);
+      SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.delta_segments_per_second);
+      SERIAL_LMV(CFG, "O (Delta Print Radius): ",               mechanics.delta_print_radius);
+      SERIAL_LMV(CFG, "H (Z-Height): ",                         mechanics.delta_height, 3);
     }
   }
 
@@ -8483,20 +8439,20 @@ inline void gcode_M532() {
         values[i] = parser.seen(axis_codes[i]) ? parser.value_int() : 0;
 
       #if ENABLED(X_IS_TMC2130)
-        if (values[X_AXIS]) tmc2130_set_pwmthrs(stepperX, 'X', values[X_AXIS], Mechanics.axis_steps_per_mm[X_AXIS]);
-        else tmc2130_get_pwmthrs(stepperX, 'X', Mechanics.axis_steps_per_mm[X_AXIS]);
+        if (values[X_AXIS]) tmc2130_set_pwmthrs(stepperX, 'X', values[X_AXIS], mechanics.axis_steps_per_mm[X_AXIS]);
+        else tmc2130_get_pwmthrs(stepperX, 'X', mechanics.axis_steps_per_mm[X_AXIS]);
       #endif
       #if ENABLED(Y_IS_TMC2130)
-        if (values[Y_AXIS]) tmc2130_set_pwmthrs(stepperY, 'Y', values[Y_AXIS], Mechanics.axis_steps_per_mm[Y_AXIS]);
-        else tmc2130_get_pwmthrs(stepperY, 'Y', Mechanics.axis_steps_per_mm[Y_AXIS]);
+        if (values[Y_AXIS]) tmc2130_set_pwmthrs(stepperY, 'Y', values[Y_AXIS], mechanics.axis_steps_per_mm[Y_AXIS]);
+        else tmc2130_get_pwmthrs(stepperY, 'Y', mechanics.axis_steps_per_mm[Y_AXIS]);
       #endif
       #if ENABLED(Z_IS_TMC2130)
-        if (values[Z_AXIS]) tmc2130_set_pwmthrs(stepperZ, 'Z', values[Z_AXIS], Mechanics.axis_steps_per_mm[Z_AXIS]);
-        else tmc2130_get_pwmthrs(stepperZ, 'Z', Mechanics.axis_steps_per_mm[Z_AXIS]);
+        if (values[Z_AXIS]) tmc2130_set_pwmthrs(stepperZ, 'Z', values[Z_AXIS], mechanics.axis_steps_per_mm[Z_AXIS]);
+        else tmc2130_get_pwmthrs(stepperZ, 'Z', mechanics.axis_steps_per_mm[Z_AXIS]);
       #endif
       #if ENABLED(E0_IS_TMC2130)
-        if (values[E_AXIS]) tmc2130_set_pwmthrs(stepperE0, 'E', values[E_AXIS], Mechanics.axis_steps_per_mm[E_AXIS]);
-        else tmc2130_get_pwmthrs(stepperE0, 'E', Mechanics.axis_steps_per_mm[E_AXIS]);
+        if (values[E_AXIS]) tmc2130_set_pwmthrs(stepperE0, 'E', values[E_AXIS], mechanics.axis_steps_per_mm[E_AXIS]);
+        else tmc2130_get_pwmthrs(stepperE0, 'E', mechanics.axis_steps_per_mm[E_AXIS]);
       #endif
     }
   #endif // HYBRID_THRESHOLD
@@ -8627,7 +8583,7 @@ inline void gcode_T(uint8_t tool_id) {
     if (DEBUGGING(LEVELING)) {
       SERIAL_MV(">>> gcode_T(", tool_id);
       SERIAL_CHR(')'); SERIAL_EOL();
-      DEBUG_POS("BEFORE", Mechanics.current_position);
+      DEBUG_POS("BEFORE", mechanics.current_position);
     }
   #endif
 
@@ -8670,7 +8626,7 @@ inline void gcode_T(uint8_t tool_id) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
-      DEBUG_POS("AFTER", Mechanics.current_position);
+      DEBUG_POS("AFTER", mechanics.current_position);
       SERIAL_EM("<<< gcode_T");
     }
   #endif
@@ -8967,25 +8923,25 @@ inline void invalid_extruder_error(const uint8_t e) {
 
     #else // HOTENDS > 1
 
-      const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : Mechanics.feedrate_mm_s;
+      const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : mechanics.feedrate_mm_s;
 
-      Mechanics.feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+      mechanics.feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
       if (tmp_extruder != active_extruder) {
-        if (!no_move && Mechanics.axis_unhomed_error()) {
+        if (!no_move && mechanics.axis_unhomed_error()) {
           SERIAL_EM("No move on toolchange");
           no_move = true;
         }
 
-        // Save current position to Mechanics.destination, for use later
-        Mechanics.set_destination_to_current();
+        // Save current position to mechanics.destination, for use later
+        mechanics.set_destination_to_current();
 
         #if ENABLED(DUAL_X_CARRIAGE)
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
               SERIAL_MSG("Dual X Carriage Mode ");
-              switch (Mechanics.dual_x_carriage_mode) {
+              switch (mechanics.dual_x_carriage_mode) {
                 case DXC_DUPLICATION_MODE: SERIAL_EM("DXC_DUPLICATION_MODE"); break;
                 case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
                 case DXC_FULL_CONTROL_MODE: SERIAL_EM("DXC_FULL_CONTROL_MODE"); break;
@@ -8993,12 +8949,12 @@ inline void invalid_extruder_error(const uint8_t e) {
             }
           #endif
 
-          const float xhome = Mechanics.x_home_pos(active_extruder);
-          if (Mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
+          const float xhome = mechanics.x_home_pos(active_extruder);
+          if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
               && IsRunning()
-              && (Mechanics.delayed_move_time || Mechanics.current_position[X_AXIS] != xhome)
+              && (mechanics.delayed_move_time || mechanics.current_position[X_AXIS] != xhome)
           ) {
-            float raised_z = Mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
+            float raised_z = mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
             #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
               NOMORE(raised_z, endstops.soft_endstop_max[Z_AXIS]);
             #endif
@@ -9006,72 +8962,71 @@ inline void invalid_extruder_error(const uint8_t e) {
               if (DEBUGGING(LEVELING)) {
                 SERIAL_EMV("Raise to ", raised_z);
                 SERIAL_EMV("MoveX to ", xhome);
-                SERIAL_EMV("Lower to ", Mechanics.current_position[Z_AXIS]);
+                SERIAL_EMV("Lower to ", mechanics.current_position[Z_AXIS]);
               }
             #endif
             // Park old head: 1) raise 2) move to park position 3) lower
             for (uint8_t i = 0; i < 3; i++)
               planner.buffer_line(
-                i == 0 ? Mechanics.current_position[X_AXIS] : xhome,
-                Mechanics.current_position[Y_AXIS],
-                i == 2 ? Mechanics.current_position[Z_AXIS] : raised_z,
-                Mechanics.current_position[E_AXIS],
-                Mechanics.max_feedrate_mm_s[i == 1 ? X_AXIS : Z_AXIS],
-                active_extruder,
-                active_driver
+                i == 0 ? mechanics.current_position[X_AXIS] : xhome,
+                mechanics.current_position[Y_AXIS],
+                i == 2 ? mechanics.current_position[Z_AXIS] : raised_z,
+                mechanics.current_position[E_AXIS],
+                mechanics.max_feedrate_mm_s[i == 1 ? X_AXIS : Z_AXIS],
+                active_extruder
               );
             stepper.synchronize();
           }
 
           // apply Y & Z extruder offset (x offset is already used in determining home pos)
-          Mechanics.current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder];
-          Mechanics.current_position[Z_AXIS] -= hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
+          mechanics.current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder];
+          mechanics.current_position[Z_AXIS] -= hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
 
           // Activate the new extruder
           active_extruder = active_driver = tmp_extruder;
 
           // This function resets the max/min values - the current position may be overwritten below.
-          Mechanics.set_axis_is_at_home(X_AXIS);
+          mechanics.set_axis_is_at_home(X_AXIS);
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) DEBUG_POS("New Extruder", Mechanics.current_position);
+            if (DEBUGGING(LEVELING)) DEBUG_POS("New Extruder", mechanics.current_position);
           #endif
 
           // Only when auto-parking are carriages safe to move
-          if (Mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
+          if (mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
 
-          switch (Mechanics.dual_x_carriage_mode) {
+          switch (mechanics.dual_x_carriage_mode) {
             case DXC_FULL_CONTROL_MODE:
               // New current position is the position of the activated hotend
-              Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(Mechanics.inactive_hotend_x_pos);
-              // Save the inactive hotend's position (from the old Mechanics.current_position)
-              Mechanics.inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
+              mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(mechanics.inactive_hotend_x_pos);
+              // Save the inactive hotend's position (from the old mechanics.current_position)
+              mechanics.inactive_hotend_x_pos = RAW_X_POSITION(mechanics.destination[X_AXIS]);
               break;
             case DXC_AUTO_PARK_MODE:
               // record raised toolhead position for use by unpark
-              COPY_ARRAY(Mechanics.raised_parked_position, Mechanics.current_position);
-              Mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
+              COPY_ARRAY(mechanics.raised_parked_position, mechanics.current_position);
+              mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
               #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-                NOMORE(Mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
+                NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
               #endif
-              Mechanics.active_hotend_parked = true;
-              Mechanics.delayed_move_time = 0;
+              mechanics.active_hotend_parked = true;
+              mechanics.delayed_move_time = 0;
               break;
             case DXC_DUPLICATION_MODE:
               // If the new hotend is the left one, set it "parked"
               // This triggers the second hotend to move into the duplication position
-              Mechanics.active_hotend_parked = (active_extruder == 0);
+              mechanics.active_hotend_parked = (active_extruder == 0);
 
-              if (Mechanics.active_hotend_parked)
-                Mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(Mechanics.inactive_hotend_x_pos);
+              if (mechanics.active_hotend_parked)
+                mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(mechanics.inactive_hotend_x_pos);
               else
-                Mechanics.current_position[X_AXIS] = Mechanics.destination[X_AXIS] + Mechanics.duplicate_hotend_x_offset;
-              Mechanics.inactive_hotend_x_pos = RAW_X_POSITION(Mechanics.destination[X_AXIS]);
-              Mechanics.hotend_duplication_enabled = false;
+                mechanics.current_position[X_AXIS] = mechanics.destination[X_AXIS] + mechanics.duplicate_hotend_x_offset;
+              mechanics.inactive_hotend_x_pos = RAW_X_POSITION(mechanics.destination[X_AXIS]);
+              mechanics.hotend_duplication_enabled = false;
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
                   SERIAL_EMV("Set inactive_extruder_x_pos=", inactive_extruder_x_pos);
-                  SERIAL_EM("Clear Mechanics.hotend_duplication_enabled");
+                  SERIAL_EM("Clear mechanics.hotend_duplication_enabled");
                 }
               #endif
               break;
@@ -9079,8 +9034,8 @@ inline void invalid_extruder_error(const uint8_t e) {
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
-              SERIAL_EMV("Active hotend parked: ", Mechanics.active_hotend_parked ? "yes" : "no");
-              DEBUG_POS("New hotend (parked)", Mechanics.current_position);
+              SERIAL_EMV("Active hotend parked: ", mechanics.active_hotend_parked ? "yes" : "no");
+              DEBUG_POS("New hotend (parked)", mechanics.current_position);
             }
           #endif
 
@@ -9093,17 +9048,17 @@ inline void invalid_extruder_error(const uint8_t e) {
                   z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
                   z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
 
-            // Always raise by some amount (Mechanics.destination copied from current_position earlier)
-            Mechanics.destination[Z_AXIS] += z_raise;
-            planner.buffer_line_kinematic(Mechanics.destination, Mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
+            // Always raise by some amount (mechanics.destination copied from current_position earlier)
+            mechanics.destination[Z_AXIS] += z_raise;
+            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
             stepper.synchronize();
 
             move_extruder_servo(tmp_extruder);
             HAL::delayMilliseconds(500);
 
             // Move back down
-            Mechanics.destination[Z_AXIS] = Mechanics.current_position[Z_AXIS] - z_back;
-            planner.buffer_line_kinematic(Mechanics.destination, Mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder, active_driver);
+            mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS] - z_back;
+            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
             stepper.synchronize();
           #endif
 
@@ -9156,7 +9111,7 @@ inline void invalid_extruder_error(const uint8_t e) {
 
             // Adjustments to the current position
             float xydiff[2] = { offset_vec.x, offset_vec.y };
-            Mechanics.current_position[Z_AXIS] += offset_vec.z;
+            mechanics.current_position[Z_AXIS] += offset_vec.z;
 
           #else // !ABL_PLANAR
 
@@ -9169,17 +9124,17 @@ inline void invalid_extruder_error(const uint8_t e) {
 
               if (mbl.active()) {
                 #if ENABLED(DEBUG_LEVELING_FEATURE)
-                  if (DEBUGGING(LEVELING)) SERIAL_MV("Z before MBL: ", Mechanics.current_position[Z_AXIS]);
+                  if (DEBUGGING(LEVELING)) SERIAL_MV("Z before MBL: ", mechanics.current_position[Z_AXIS]);
                 #endif
-                float x2 = Mechanics.current_position[X_AXIS] + xydiff[X_AXIS],
-                      y2 = Mechanics.current_position[Y_AXIS] + xydiff[Y_AXIS],
-                      z1 = Mechanics.current_position[Z_AXIS], z2 = z1;
-                bedlevel.apply_leveling(Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], z1);
+                float x2 = mechanics.current_position[X_AXIS] + xydiff[X_AXIS],
+                      y2 = mechanics.current_position[Y_AXIS] + xydiff[Y_AXIS],
+                      z1 = mechanics.current_position[Z_AXIS], z2 = z1;
+                bedlevel.apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], z1);
                 bedlevel.apply_leveling(x2, y2, z2);
-                Mechanics.current_position[Z_AXIS] += z2 - z1;
+                mechanics.current_position[Z_AXIS] += z2 - z1;
                 #if ENABLED(DEBUG_LEVELING_FEATURE)
                   if (DEBUGGING(LEVELING))
-                    SERIAL_EMV(" after: ", Mechanics.current_position[Z_AXIS]);
+                    SERIAL_EMV(" after: ", mechanics.current_position[Z_AXIS]);
                 #endif
               }
 
@@ -9196,11 +9151,11 @@ inline void invalid_extruder_error(const uint8_t e) {
           #endif
 
           // The newly-selected extruder XY is actually at...
-          Mechanics.current_position[X_AXIS] += xydiff[X_AXIS];
-          Mechanics.current_position[Y_AXIS] += xydiff[Y_AXIS];
+          mechanics.current_position[X_AXIS] += xydiff[X_AXIS];
+          mechanics.current_position[Y_AXIS] += xydiff[Y_AXIS];
           #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
             LOOP_XY(i) {
-              Mechanics.position_shift[i] += xydiff[i];
+              mechanics.position_shift[i] += xydiff[i];
               endstops.update_software_endstops((AxisEnum)i);
             }
           #endif
@@ -9218,18 +9173,18 @@ inline void invalid_extruder_error(const uint8_t e) {
         #endif // !DUAL_X_CARRIAGE
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) DEBUG_POS("Sync After Toolchange", Mechanics.current_position);
+          if (DEBUGGING(LEVELING)) DEBUG_POS("Sync After Toolchange", mechanics.current_position);
         #endif
 
         // Tell the planner the new "current position"
-        Mechanics.sync_plan_position();
+        mechanics.sync_plan_position();
 
         // Move to the "old position" (move the extruder into place)
         if (!no_move && IsRunning()) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", Mechanics.destination);
+            if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", mechanics.destination);
           #endif
-          Mechanics.prepare_move_to_destination();
+          mechanics.prepare_move_to_destination();
         }
 
       } // (tmp_extruder != active_extruder)
@@ -9241,7 +9196,7 @@ inline void invalid_extruder_error(const uint8_t e) {
         enable_solenoid_on_active_extruder();
       #endif // EXT_SOLENOID
 
-      Mechanics.feedrate_mm_s = old_feedrate_mm_s;
+      mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
     #endif // HOTENDS > 1
 
@@ -9273,8 +9228,8 @@ inline void invalid_extruder_error(const uint8_t e) {
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         if (raise_z) {
           saved_speed = getCNCSpeed();
-          saved_z = Mechanics.current_position[Z_AXIS];
-          Mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
+          saved_z = mechanics.current_position[Z_AXIS];
+          mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
         }
       #endif
 
@@ -9306,7 +9261,7 @@ inline void invalid_extruder_error(const uint8_t e) {
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         else setCNCRouterSpeed(saved_speed);
         if (raise_z)
-          Mechanics.do_blocking_move_to_z(saved_z);
+          mechanics.do_blocking_move_to_z(saved_z);
       #endif
 
       stepper.synchronize();
@@ -9782,9 +9737,9 @@ void process_next_command() {
         gcode_M202();
         break;
       #endif
-      case 203: // M203 max Mechanics.feedrate_mm_s units/sec
+      case 203: // M203 max mechanics.feedrate_mm_s units/sec
         gcode_M203(); break;
-      case 204: // M204 Mechanics.acceleration S normal moves T filament only moves
+      case 204: // M204 mechanics.acceleration S normal moves T filament only moves
         gcode_M204(); break;
       case 205: //M205 advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk
         gcode_M205(); break;
@@ -10141,22 +10096,22 @@ void ok_to_send() {
       bed_level_c = probe.check_pt(0.0, 0.0);
 
       // Probe all bed positions & store carriage positions
-      bed_level_z = probe.check_pt(0.0, Mechanics.delta_probe_radius);
-      bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
-      bed_level_x = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
-      bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
-      bed_level_y = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
-      bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+      bed_level_z = probe.check_pt(0.0, mechanics.delta_probe_radius);
+      bed_level_oy = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
+      bed_level_x = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
+      bed_level_oz = probe.check_pt(0.0, -mechanics.delta_probe_radius);
+      bed_level_y = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
+      bed_level_ox = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
       bed_level_c = probe.check_pt(0.0, 0.0);
     }
 
     void apply_endstop_adjustment(const float x_endstop, const float y_endstop, const float z_endstop) {
-      Mechanics.delta_endstop_adj[X_AXIS] += x_endstop;
-      Mechanics.delta_endstop_adj[Y_AXIS] += y_endstop;
-      Mechanics.delta_endstop_adj[Z_AXIS] += z_endstop;
+      mechanics.delta_endstop_adj[X_AXIS] += x_endstop;
+      mechanics.delta_endstop_adj[Y_AXIS] += y_endstop;
+      mechanics.delta_endstop_adj[Z_AXIS] += z_endstop;
 
-      Mechanics.Transform(Mechanics.current_position);
-      Mechanics.set_position_mm(Mechanics.delta[A_AXIS] - x_endstop , Mechanics.delta[B_AXIS] - y_endstop, Mechanics.delta[C_AXIS] - z_endstop, Mechanics.current_position[E_AXIS]);  
+      mechanics.Transform(mechanics.current_position);
+      mechanics.set_position_mm(mechanics.delta[A_AXIS] - x_endstop , mechanics.delta[B_AXIS] - y_endstop, mechanics.delta[C_AXIS] - z_endstop, mechanics.current_position[E_AXIS]);  
       stepper.synchronize();
     }
 
@@ -10166,18 +10121,18 @@ void ok_to_send() {
       bool z_done = false;
 
       do {
-        bed_level_z = probe.check_pt(0.0, Mechanics.delta_probe_radius);
-        bed_level_x = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
-        bed_level_y = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+        bed_level_z = probe.check_pt(0.0, mechanics.delta_probe_radius);
+        bed_level_x = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
+        bed_level_y = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
 
         apply_endstop_adjustment(bed_level_x, bed_level_y, bed_level_z);
 
         SERIAL_MV("x:", bed_level_x, 4);
-        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[0], 4);
+        SERIAL_MV(" (adj:", mechanics.delta_endstop_adj[0], 4);
         SERIAL_MV(") y:", bed_level_y, 4);
-        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[1], 4);
+        SERIAL_MV(" (adj:", mechanics.delta_endstop_adj[1], 4);
         SERIAL_MV(") z:", bed_level_z, 4);
-        SERIAL_MV(" (adj:", Mechanics.delta_endstop_adj[2], 4);
+        SERIAL_MV(" (adj:", mechanics.delta_endstop_adj[2], 4);
         SERIAL_CHR(')'); SERIAL_EOL();
 
         if (FABS(bed_level_x) <= ac_prec) {
@@ -10208,17 +10163,17 @@ void ok_to_send() {
         }
       } while (((x_done == false) or (y_done == false) or (z_done == false)));
 
-      const float high_endstop = MAX3(Mechanics.delta_endstop_adj[A_AXIS], Mechanics.delta_endstop_adj[B_AXIS], Mechanics.delta_endstop_adj[C_AXIS]);
+      const float high_endstop = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
 
       SERIAL_EMV("High endstop:", high_endstop, 4);
 
       if (high_endstop > 0) {
         SERIAL_EMV("Reducing Build height by ", high_endstop);
-        LOOP_XYZ(i) Mechanics.delta_endstop_adj[i] -= high_endstop;
-        Mechanics.delta_height -= high_endstop;
+        LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= high_endstop;
+        mechanics.delta_height -= high_endstop;
       }
 
-      Mechanics.recalc_delta_settings();
+      mechanics.recalc_delta_settings();
     }
 
     int fix_tower_errors() {
@@ -10230,7 +10185,7 @@ void ok_to_send() {
             low_opp, high_opp;
       uint8_t err_tower = 0;
 
-      COPY_ARRAY(saved_tower_radius_adj, Mechanics.delta_tower_radius_adj);
+      COPY_ARRAY(saved_tower_radius_adj, mechanics.delta_tower_radius_adj);
 
       x_diff = FABS(bed_level_x - bed_level_ox);
       y_diff = FABS(bed_level_y - bed_level_oy);
@@ -10330,7 +10285,7 @@ void ok_to_send() {
 
       // Set return value to indicate if anything has been changed (0 = no change)
       int retval = 0;
-      LOOP_XYZ(i) if (saved_tower_radius_adj[i] != Mechanics.delta_tower_radius_adj[i]) retval++;
+      LOOP_XYZ(i) if (saved_tower_radius_adj[i] != mechanics.delta_tower_radius_adj[i]) retval++;
       return retval;
     }
 
@@ -10355,8 +10310,8 @@ void ok_to_send() {
         adjdone_vector = 0.01; 
 
         do {
-          Mechanics.delta_radius += adj_dRadius;
-          Mechanics.recalc_delta_settings();
+          mechanics.delta_radius += adj_dRadius;
+          mechanics.recalc_delta_settings();
           adj_done = false;
 
           adj_endstops();
@@ -10384,7 +10339,7 @@ void ok_to_send() {
 
           // Show progress
           SERIAL_MV(" c:", bed_level_c, 4);
-          SERIAL_MV(" delta radius:", Mechanics.delta_radius, 4);
+          SERIAL_MV(" delta radius:", mechanics.delta_radius, 4);
           SERIAL_MV(" prec:", adjdone_vector, 3);
           SERIAL_MV(" tries:", adj_attempts);
           SERIAL_MSG(" done:");
@@ -10407,27 +10362,27 @@ void ok_to_send() {
             bed_level_o = 0.0;
 
       do {
-        Mechanics.delta_tower_radius_adj[tower - 1] += adj_tRadius;
-        Mechanics.recalc_delta_settings();
+        mechanics.delta_tower_radius_adj[tower - 1] += adj_tRadius;
+        mechanics.recalc_delta_settings();
         adj_done = false;
 
         if (tower == 1) {
           // Bedlevel_x
-          bed_level = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+          bed_level = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
           // Bedlevel_ox
-          bed_level_o = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+          bed_level_o = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
         }
         if (tower == 2) {
           // Bedlevel_y
-          bed_level = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, -COS_60 * Mechanics.delta_probe_radius);
+          bed_level = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, -COS_60 * mechanics.delta_probe_radius);
           // Bedlevel_oy
-          bed_level_o = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+          bed_level_o = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
         }
         if (tower == 3) {
           // Bedlevel_z
-          bed_level = probe.check_pt(0.0, Mechanics.delta_probe_radius);
+          bed_level = probe.check_pt(0.0, mechanics.delta_probe_radius);
           // Bedlevel_oz
-          bed_level_o = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
+          bed_level_o = probe.check_pt(0.0, -mechanics.delta_probe_radius);
         }
 
         // Set inital adjustment value if it is currently 0
@@ -10445,7 +10400,7 @@ void ok_to_send() {
         // Show progress
         SERIAL_MV("tower:", bed_level, 4);
         SERIAL_MV(" opptower:", bed_level_o, 4);
-        SERIAL_MV(" tower radius adj:", Mechanics.delta_tower_radius_adj[tower - 1], 4);
+        SERIAL_MV(" tower radius adj:", mechanics.delta_tower_radius_adj[tower - 1], 4);
         SERIAL_MSG(" done:");
         if (adj_done == true) SERIAL_EM("true");
         else SERIAL_EM("false");
@@ -10461,12 +10416,12 @@ void ok_to_send() {
       float adj_prv;
 
       do {
-        Mechanics.delta_tower_pos_adj[tower - 1] += adj_val;
-        Mechanics.recalc_delta_settings();
+        mechanics.delta_tower_pos_adj[tower - 1] += adj_val;
+        mechanics.recalc_delta_settings();
 
-        if ((tower == 1) or (tower == 3)) bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
-        if ((tower == 1) or (tower == 2)) bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
-        if ((tower == 2) or (tower == 3)) bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+        if ((tower == 1) or (tower == 3)) bed_level_oy = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
+        if ((tower == 1) or (tower == 2)) bed_level_oz = probe.check_pt(0.0, -mechanics.delta_probe_radius);
+        if ((tower == 2) or (tower == 3)) bed_level_ox = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
 
         adj_prv = adj_val;
         adj_val = 0;
@@ -10520,15 +10475,15 @@ void ok_to_send() {
       float adj_val = 0;
       float adj_mag = 0.2;
       float adj_prv, target;
-      float prev_diag_rod = Mechanics.delta_diagonal_rod;
+      float prev_diag_rod = mechanics.delta_diagonal_rod;
 
       do {
-        Mechanics.delta_diagonal_rod += adj_val;
-        Mechanics.recalc_delta_settings();
+        mechanics.delta_diagonal_rod += adj_val;
+        mechanics.recalc_delta_settings();
 
-        bed_level_oy = probe.check_pt(-SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
-        bed_level_oz = probe.check_pt(0.0, -Mechanics.delta_probe_radius);
-        bed_level_ox = probe.check_pt(SIN_60 * Mechanics.delta_probe_radius, COS_60 * Mechanics.delta_probe_radius);
+        bed_level_oy = probe.check_pt(-SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
+        bed_level_oz = probe.check_pt(0.0, -mechanics.delta_probe_radius);
+        bed_level_ox = probe.check_pt(SIN_60 * mechanics.delta_probe_radius, COS_60 * mechanics.delta_probe_radius);
         bed_level_c = probe.check_pt(0.0, 0.0);
 
         target = (bed_level_ox + bed_level_oy + bed_level_oz) / 3;
@@ -10553,7 +10508,7 @@ void ok_to_send() {
         SERIAL_EMV(" adj:", adj_val, 5);
       } while(adj_val != 0);
 
-      return (Mechanics.delta_diagonal_rod - prev_diag_rod);
+      return (mechanics.delta_diagonal_rod - prev_diag_rod);
     }
 
     void calibration_report() {
@@ -10563,9 +10518,9 @@ void ok_to_send() {
       SERIAL_MSG("| \t");
       if (bed_level_z >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_z, 4);
-      SERIAL_MV("\t\t\tX:", Mechanics.delta_endstop_adj[0], 4);
-      SERIAL_MV(" Y:", Mechanics.delta_endstop_adj[1], 4);
-      SERIAL_EMV(" Z:", Mechanics.delta_endstop_adj[2], 4);
+      SERIAL_MV("\t\t\tX:", mechanics.delta_endstop_adj[0], 4);
+      SERIAL_MV(" Y:", mechanics.delta_endstop_adj[1], 4);
+      SERIAL_EMV(" Z:", mechanics.delta_endstop_adj[2], 4);
 
       SERIAL_MSG("| ");
       if (bed_level_ox >= 0) SERIAL_MSG(" ");
@@ -10578,9 +10533,9 @@ void ok_to_send() {
       SERIAL_MSG("| \t");
       if (bed_level_c >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_c, 4);
-      SERIAL_MV("\t\t\tA:", Mechanics.delta_tower_radius_adj[0]);
-      SERIAL_MV(" B:", Mechanics.delta_tower_radius_adj[1]);
-      SERIAL_EMV(" C:", Mechanics.delta_tower_radius_adj[2]);
+      SERIAL_MV("\t\t\tA:", mechanics.delta_tower_radius_adj[0]);
+      SERIAL_MV(" B:", mechanics.delta_tower_radius_adj[1]);
+      SERIAL_EMV(" C:", mechanics.delta_tower_radius_adj[2]);
 
       SERIAL_MSG("| ");
       if (bed_level_x >= 0) SERIAL_MSG(" ");
@@ -10588,39 +10543,22 @@ void ok_to_send() {
       SERIAL_MSG("\t");
       if (bed_level_y >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_y, 4);
-      SERIAL_MV("\t\tI:", Mechanics.delta_tower_pos_adj[0]);
-      SERIAL_MV(" J:", Mechanics.delta_tower_pos_adj[1]);
-      SERIAL_EMV(" K:", Mechanics.delta_tower_pos_adj[2]);
+      SERIAL_MV("\t\tI:", mechanics.delta_tower_pos_adj[0]);
+      SERIAL_MV(" J:", mechanics.delta_tower_pos_adj[1]);
+      SERIAL_EMV(" K:", mechanics.delta_tower_pos_adj[2]);
 
       SERIAL_MSG("| \t");
       if (bed_level_oz >= 0) SERIAL_MSG(" ");
       SERIAL_MV("", bed_level_oz, 4);
-      SERIAL_EMV("\t\t\tDelta Radius: ", Mechanics.delta_radius, 4);
+      SERIAL_EMV("\t\t\tDelta Radius: ", mechanics.delta_radius, 4);
 
-      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", Mechanics.delta_diagonal_rod, 4);
+      SERIAL_EMV("| X-Tower\tY-Tower\t\tDiagonal Rod: ", mechanics.delta_diagonal_rod, 4);
       SERIAL_EOL();
     }
 
   #endif
 
 #endif // DELTA
-
-/**
- * Report current position to host
- */
-void report_current_position() {
-  SERIAL_MV( "X:", Mechanics.current_position[X_AXIS]);
-  SERIAL_MV(" Y:", Mechanics.current_position[Y_AXIS]);
-  SERIAL_MV(" Z:", Mechanics.current_position[Z_AXIS]);
-  SERIAL_MV(" E:", Mechanics.current_position[E_AXIS]);
-
-  stepper.report_positions();
-
-  #if IS_SCARA
-    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
-    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
-  #endif
-}
 
 void report_xyze(const float pos[XYZE], const uint8_t n = 4, const uint8_t precision = 3) {
   for (uint8_t i = 0; i < n; i++) {
@@ -10639,13 +10577,13 @@ void report_current_position_detail() {
   stepper.synchronize();
 
   SERIAL_MSG("\nLogical:");
-  report_xyze(Mechanics.current_position);
+  report_xyze(mechanics.current_position);
 
   SERIAL_MSG("Raw:    ");
-  const float raw[XYZ] = { RAW_X_POSITION(Mechanics.current_position[X_AXIS]), RAW_Y_POSITION(Mechanics.current_position[Y_AXIS]), RAW_Z_POSITION(Mechanics.current_position[Z_AXIS]) };
+  const float raw[XYZ] = { RAW_X_POSITION(mechanics.current_position[X_AXIS]), RAW_Y_POSITION(mechanics.current_position[Y_AXIS]), RAW_Z_POSITION(mechanics.current_position[Z_AXIS]) };
   report_xyz(raw);
 
-  float leveled[XYZ] = { Mechanics.current_position[X_AXIS], Mechanics.current_position[Y_AXIS], Mechanics.current_position[Z_AXIS] };
+  float leveled[XYZ] = { mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS] };
 
   #if HAS_LEVELING
 
@@ -10666,8 +10604,8 @@ void report_current_position_detail() {
     #else
       SERIAL_MSG("DeltaK: ");
     #endif
-    Mechanics.Transform(leveled);  // writes delta[]
-    report_xyz(Mechanics.delta);
+    mechanics.Transform(leveled);  // writes delta[]
+    report_xyz(mechanics.delta);
   #endif
 
   SERIAL_MSG("Stepper:");
@@ -10684,15 +10622,15 @@ void report_current_position_detail() {
   #endif
 
   SERIAL_MSG("FromStp:");
-  Mechanics.get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-  const float from_steppers[XYZE] = { Mechanics.cartesian_position[X_AXIS], Mechanics.cartesian_position[Y_AXIS], Mechanics.cartesian_position[Z_AXIS], Mechanics.get_axis_position_mm(E_AXIS) };
+  mechanics.get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+  const float from_steppers[XYZE] = { mechanics.cartesian_position[X_AXIS], mechanics.cartesian_position[Y_AXIS], mechanics.cartesian_position[Z_AXIS], mechanics.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
   const float diff[XYZE] = {
     from_steppers[X_AXIS] - leveled[X_AXIS],
     from_steppers[Y_AXIS] - leveled[Y_AXIS],
     from_steppers[Z_AXIS] - leveled[Z_AXIS],
-    from_steppers[E_AXIS] - Mechanics.current_position[E_AXIS]
+    from_steppers[E_AXIS] - mechanics.current_position[E_AXIS]
   };
   SERIAL_MSG("Differ: ");
   report_xyze(diff);
@@ -10735,12 +10673,12 @@ void report_current_position_detail() {
     float r_P = -offset[0], r_Q = -offset[1];
 
     const float radius = HYPOT(r_P, r_Q),
-                center_P = Mechanics.current_position[p_axis] - r_P,
-                center_Q = Mechanics.current_position[q_axis] - r_Q,
+                center_P = mechanics.current_position[p_axis] - r_P,
+                center_Q = mechanics.current_position[q_axis] - r_Q,
                 rt_X = logical[p_axis] - center_P,
                 rt_Y = logical[q_axis] - center_Q,
-                linear_travel = logical[l_axis] - Mechanics.current_position[l_axis],
-                extruder_travel = logical[E_AXIS] - Mechanics.current_position[E_AXIS];
+                linear_travel = logical[l_axis] - mechanics.current_position[l_axis],
+                extruder_travel = logical[E_AXIS] - mechanics.current_position[E_AXIS];
 
     // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
     float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
@@ -10748,7 +10686,7 @@ void report_current_position_detail() {
     if (clockwise) angular_travel -= RADIANS(360);
 
     // Make a circle if the angular rotation is 0
-    if (angular_travel == 0 && Mechanics.current_position[p_axis] == logical[p_axis] && Mechanics.current_position[q_axis] == logical[q_axis])
+    if (angular_travel == 0 && mechanics.current_position[p_axis] == logical[p_axis] && mechanics.current_position[q_axis] == logical[q_axis])
       angular_travel += RADIANS(360);
 
     float mm_of_travel = HYPOT(angular_travel * radius, FABS(linear_travel));
@@ -10792,12 +10730,12 @@ void report_current_position_detail() {
                 cos_T = 1 - 0.5 * sq(theta_per_segment); // Small angle approximation
 
     // Initialize the linear axis
-    arc_target[l_axis] = Mechanics.current_position[l_axis];
+    arc_target[l_axis] = mechanics.current_position[l_axis];
 
     // Initialize the extruder axis
-    arc_target[E_AXIS] = Mechanics.current_position[E_AXIS];
+    arc_target[E_AXIS] = mechanics.current_position[E_AXIS];
 
-    const float fr_mm_s = MMS_SCALED(Mechanics.feedrate_mm_s);
+    const float fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
 
     millis_t next_idle_ms = millis() + 200UL;
 
@@ -10845,16 +10783,16 @@ void report_current_position_detail() {
 
       endstops.clamp_to_software_endstops(arc_target);
 
-      planner.buffer_line_kinematic(arc_target, fr_mm_s, active_extruder, active_driver);
+      planner.buffer_line_kinematic(arc_target, fr_mm_s, active_extruder);
     }
 
     // Ensure last segment arrives at target location.
-    planner.buffer_line_kinematic(logical, fr_mm_s, active_extruder, active_driver);
+    planner.buffer_line_kinematic(logical, fr_mm_s, active_extruder);
 
     // As far as the parser is concerned, the position is now == target. In reality the
     // motion control system might still be processing the action and the real tool position
     // in any intermediate location.
-    Mechanics.set_current_to_destination();
+    mechanics.set_current_to_destination();
   }
 
 #endif
@@ -10901,7 +10839,7 @@ void report_current_position_detail() {
 #if MECH(MORGAN_SCARA)
 
   /**
-   * Morgan SCARA Forward Mechanics. Results in cartesian_position[].
+   * Morgan SCARA Forward mechanics. Results in cartesian_position[].
    * Maths and first version by QHARLEY.
    * Integrated and slightly restructured by Joachim Cerny.
    */
@@ -10920,7 +10858,7 @@ void report_current_position_detail() {
   }
 
   /**
-   * Morgan SCARA Inverse Mechanics. Results in delta[].
+   * Morgan SCARA Inverse mechanics. Results in delta[].
    *
    * See http://forums.reprap.org/read.php?185,283327
    * 
@@ -11003,22 +10941,61 @@ void report_current_position_detail() {
 
 #endif
 
-#if HAS_FIL_RUNOUT
-  void handle_filament_runout() {
-    if (!filament_ran_out) {
-      filament_ran_out = true;
-      enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-      SERIAL_LM(REQUEST_PAUSE, "End Filament detect!");
-      stepper.synchronize();
-    }
+void setInterruptEvent(const MK4duoInterruptEvent event) {
+  if (interruptEvent == INTERRUPT_EVENT_NONE)
+    interruptEvent = event;
+}
+
+void handle_Interrupt_Event() {
+
+  if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
+
+  const MK4duoInterruptEvent event = interruptEvent;
+  interruptEvent = INTERRUPT_EVENT_NONE;
+
+  switch(event) {
+    #if HAS_FIL_RUNOUT || HAS_DAV_SYSTEM
+      //case INTERRUPT_EVENT_FIL_RUNOUT:
+      case INTERRUPT_EVENT_DAV_SYSTEM:
+        if (!filament_ran_out) {
+          filament_ran_out = true;
+          enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+          SERIAL_LM(REQUEST_PAUSE, "End Filament detect");
+          stepper.synchronize();
+        }
+        break;
+    #endif
+
+    #if HAS_EXT_ENCODER
+      case INTERRUPT_EVENT_ENC_DETECT:
+        if (!filament_ran_out) {
+          filament_ran_out = true;
+          stepper.synchronize();
+          #if HAS_SDSUPPORT
+            if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING)
+              gcode_M25();
+            else
+          #endif
+          if (print_job_counter.isRunning()) {
+            #if ENABLED(PARK_HEAD_ON_PAUSE)
+              gcode_M125();
+            #endif
+          }
+          SERIAL_LM(REQUEST_PAUSE, "Extruder jam detected");
+        }
+        break;
+    #endif
+
+    default:
+      break;
   }
-#endif
+}
 
 void quickstop_stepper() {
   stepper.quick_stop();
   stepper.synchronize();
-  Mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-  Mechanics.sync_plan_position();
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.sync_plan_position();
 }
 
 float calculate_volumetric_multiplier(float diameter) {
@@ -11154,7 +11131,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING) {
       if (filament_double_check) {
         if (ELAPSED(millis(), filament_switch_time) {
-          handle_filament_runout();
+          setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
           filament_double_check = false;
         }
       }
@@ -11165,7 +11142,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     }
   #elif HAS_FIL_RUNOUT
     if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING)
-      handle_filament_runout();
+      setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
   #endif
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
@@ -11300,11 +11277,11 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
       previous_cmd_ms = ms; // refresh_cmd_timeout()
 
-      const float olde = Mechanics.current_position[E_AXIS];
-      Mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
-      planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), active_extruder, active_driver);
-      Mechanics.current_position[E_AXIS] = olde;
-      Mechanics.set_e_position_mm(olde);
+      const float olde = mechanics.current_position[E_AXIS];
+      mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), active_extruder);
+      mechanics.current_position[E_AXIS] = olde;
+      mechanics.set_e_position_mm(olde);
       stepper.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
@@ -11333,11 +11310,11 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (Mechanics.delayed_move_time && ELAPSED(ms, Mechanics.delayed_move_time + 1000UL) && IsRunning()) {
+    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && IsRunning()) {
       // travel moves have been received so enact them
-      Mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
-      Mechanics.set_destination_to_current();
-      Mechanics.prepare_move_to_destination();
+      mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
+      mechanics.set_destination_to_current();
+      mechanics.prepare_move_to_destination();
     }
   #endif
 
@@ -11441,6 +11418,8 @@ void idle(
       no_stepper_sleep
     #endif
   );
+
+  handle_Interrupt_Event();
 
   print_job_counter.tick();
 
@@ -11614,7 +11593,7 @@ void setup() {
     DLPSerial.begin(PROJECTOR_BAUDRATE);
   #endif
 
-  Mechanics.Init();
+  mechanics.Init();
 
   #if HAS_SDSUPPORT
     // loads custom configuration from SDCARD if available else uses defaults
@@ -11629,13 +11608,13 @@ void setup() {
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
-    COPY_ARRAY(Mechanics.current_position, Mechanics.home_offset);
+    COPY_ARRAY(mechanics.current_position, mechanics.home_offset);
   #else
-    ZERO(Mechanics.current_position);
+    ZERO(mechanics.current_position);
   #endif
 
   // Vital to init stepper/planner equivalent for current_position
-  Mechanics.sync_plan_position();
+  mechanics.sync_plan_position();
 
   thermalManager.init();    // Initialize temperature loop
 

@@ -1,3 +1,7 @@
+### Version 4.3.24 dev
+* Add Extruder Encoder for control filament movement (Experimental)
+* Fix and clear code
+
 ### Version 4.3.23 dev
 * Create class bedlevel and probe
 * G33 now have Z e P sub command. Z1 modify Delta Height and P1 modify Probe Z offset.

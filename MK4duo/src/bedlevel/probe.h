@@ -29,76 +29,92 @@
 #ifndef _PROBE_H_
 #define _PROBE_H_
 
-// TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
-#if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
-  #if HAS_Z_PROBE_PIN
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != Z_PROBE_ENDSTOP_INVERTING)
-  #else
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING)
+#if HAS_BED_PROBE
+
+  // TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
+  #if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
+    #if HAS_Z_PROBE_PIN
+      #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != Z_PROBE_ENDSTOP_INVERTING)
+    #else
+      #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING)
+    #endif
   #endif
-#endif
 
-#if HAS_Z_SERVO_PROBE
-  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[0])
-  #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
-#endif
+  #if HAS_Z_SERVO_PROBE
+    #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[0])
+    #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
+  #endif
 
-class Probe {
+  class Probe {
 
-  public: /** Constructor */
+    public: /** Constructor */
 
-    Probe() {};
+      Probe() {};
 
-  public: /** Public Parameters */
+    public: /** Public Parameters */
 
-    static float  z_offset;
-    static bool   enabled;
+      static float  z_offset;
+      static bool   enabled;
 
-    #if HAS_Z_SERVO_PROBE
-      static const int z_servo_angle[2];
-    #endif
+      #if HAS_Z_SERVO_PROBE
+        static const int z_servo_angle[2];
+      #endif
 
-  public: /** Public Function */
+    public: /** Public Function */
 
-    /**
-     * Enable / disable endstop z-probe checking
-     */
-    static void set_enable(bool onoff = true) { enabled = onoff; }
+      /**
+       * Enable / disable endstop z-probe checking
+       */
+      static void set_enable(bool onoff = true) { enabled = onoff; }
 
-    static bool set_deployed(bool deploy);
+      static bool set_deployed(bool deploy);
 
-    /**
-     * Raise Z to a minimum height to make room for a servo to move
-     */
-    static void raise(const float z_raise);
+      /**
+       * Raise Z to a minimum height to make room for a servo to move
+       */
+      static void raise(const float z_raise);
 
-    /**
-     * Check Pt (ex probe_pt)
-     * - Move to the given XY
-     * - Deploy the probe, if not already deployed
-     * - Probe the bed, get the Z position
-     * - Depending on the 'stow' flag
-     *   - Stow the probe, or
-     *   - Raise to the BETWEEN height
-     * - Return the probed Z position
-     */
-    static float check_pt(const float &x, const float &y, const bool stow=true, const int verbose_level=1);
+      /**
+       * Check Pt (ex probe_pt)
+       * - Move to the given XY
+       * - Deploy the probe, if not already deployed
+       * - Probe the bed, get the Z position
+       * - Depending on the 'stow' flag
+       *   - Stow the probe, or
+       *   - Raise to the BETWEEN height
+       * - Return the probed Z position
+       */
+      static float check_pt(const float &x, const float &y, const bool stow=true, const int verbose_level=1);
 
-    #if ENABLED(BLTOUCH)
-      static void bltouch_command(int angle);
-      static void set_bltouch_deployed(const bool deploy);
-    #endif
+      /**
+       * Do a single Z probe
+       * Usage:
+       *    G30 <X#> <Y#> <S#> <Z#> <P#>
+       *      X = Probe X position (default=current probe position)
+       *      Y = Probe Y position (default=current probe position)
+       *      S = <bool> Stows the probe if 1 (default=1)
+       *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
+       *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+       */
+      static void single_probe();
 
-    static void refresh_zprobe_zoffset();
+      #if ENABLED(BLTOUCH)
+        static void bltouch_command(int angle);
+        static void set_bltouch_deployed(const bool deploy);
+      #endif
 
-  private: /** Private Parameters */
+      static void refresh_zprobe_zoffset();
 
-  private: /** Private Function */
+    private: /** Private Parameters */
 
-    static void move_to_z(float z, float fr_mm_m);
+    private: /** Private Function */
 
-};
+      static void move_to_z(float z, float fr_mm_m);
 
-extern Probe probe;
+  };
 
-#endif /* _BEDLEVEL_H_ */
+  extern Probe probe;
+
+#endif // HAS_BED_PROBE
+
+#endif /* _PROBE_H_ */

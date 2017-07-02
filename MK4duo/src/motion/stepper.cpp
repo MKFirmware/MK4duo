@@ -265,6 +265,68 @@ volatile long Stepper::endstops_trigsteps[XYZ];
   #define E_APPLY_STEP(v,Q) E_STEP_WRITE(v)
 #endif
 
+
+/**
+ * Encoder Extruder definition
+ */
+#if HAS_EXT_ENCODER
+  #define _TEST_EXTRUDER_ENC(x,pin) { \
+    const uint8_t sig = READ(pin); \
+    encStepsSinceLastSignal[x] += encLastDir[x]; \
+    if (encLastSignal[x] != sig && abs(encStepsSinceLastSignal[x] - encLastChangeAt[x]) > ENC_MIN_STEPS) { \
+      if (sig) encStepsSinceLastSignal[x] = 0; \
+      encLastSignal[x] = sig; \
+      encLastChangeAt[x] = encStepsSinceLastSignal[x]; \
+    } \
+    else if (abs(encStepsSinceLastSignal[x]) > encErrorSteps[x]) { \
+      if (encLastDir[x] > 0) \
+        setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT); \
+    } \
+  }
+
+  #define RESET_EXTRUDER_ENC(x,dir) encLastDir[x] = dir ? 1 : -1;
+
+  #define ___TEST_EXTRUDER_ENC(x,y) _TEST_EXTRUDER_ENC(x,y)
+  #define __TEST_EXTRUDER_ENC(x)    ___TEST_EXTRUDER_ENC(x,E ##x## _ENC_PIN)
+  #define TEST_EXTRUDER_ENC(x)      __TEST_EXTRUDER_ENC(x)
+
+  #if HAS_E0_ENC
+    #define TEST_EXTRUDER_ENC0      TEST_EXTRUDER_ENC(0)
+  #else
+    #define TEST_EXTRUDER_ENC0
+  #endif
+  #if HAS_E1_ENC
+    #define TEST_EXTRUDER_ENC1      TEST_EXTRUDER_ENC(1)
+  #else
+    #define TEST_EXTRUDER_ENC1
+  #endif
+  #if HAS_E2_ENC
+    #define TEST_EXTRUDER_ENC2      TEST_EXTRUDER_ENC(2)
+  #else
+    #define TEST_EXTRUDER_ENC2
+  #endif
+  #if HAS_E3_ENC
+    #define TEST_EXTRUDER_ENC3      TEST_EXTRUDER_ENC(3)
+  #else
+    #define TEST_EXTRUDER_ENC3
+  #endif
+  #if HAS_E4_ENC
+    #define TEST_EXTRUDER_ENC4      TEST_EXTRUDER_ENC(4)
+  #else
+    #define TEST_EXTRUDER_ENC4
+  #endif
+  #if HAS_E5_ENC
+    #define TEST_EXTRUDER_ENC5      TEST_EXTRUDER_ENC(5)
+  #else
+    #define TEST_EXTRUDER_ENC5
+  #endif
+
+#endif // HAS_EXT_ENCODER
+
+#define EXTRUDER_FLAG_RETRACTED 1
+#define EXTRUDER_FLAG_WAIT_JAM_STARTCOUNT 2 ///< Waiting for the first signal to start counting
+
+
 /**
  *         __________________________
  *        /|                        |\     _________________         ^
@@ -331,6 +393,35 @@ void Stepper::set_directions() {
       count_direction[E_AXIS] = 1;
     }
   #endif // !ADVANCE && !LIN_ADVANCE
+
+  #if HAS_EXT_ENCODER
+
+    switch(active_extruder) {
+      case 0:
+        RESET_EXTRUDER_ENC(0, count_direction[E_AXIS]); break;
+      #if EXTRUDERS > 1
+        case 1:
+          RESET_EXTRUDER_ENC(1, count_direction[E_AXIS]); break;
+        #if EXTRUDERS > 2
+          case 2:
+            RESET_EXTRUDER_ENC(2, count_direction[E_AXIS]); break;
+          #if EXTRUDERS > 3
+            case 3:
+              RESET_EXTRUDER_ENC(3, count_direction[E_AXIS]); break;
+            #if EXTRUDERS > 4
+              case 4:
+                RESET_EXTRUDER_ENC(4, count_direction[E_AXIS]); break;
+              #if EXTRUDERS > 5
+                case 5:
+                  RESET_EXTRUDER_ENC(5, count_direction[E_AXIS]); break;
+              #endif // EXTRUDERS > 5
+            #endif // EXTRUDERS > 4
+          #endif // EXTRUDERS > 3
+        #endif // EXTRUDERS > 2
+      #endif // EXTRUDERS > 1
+    }
+
+  #endif
 }
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
@@ -653,6 +744,34 @@ void Stepper::isr() {
       #else // !COLOR_MIXING_EXTRUDER
         PULSE_START(E);
       #endif
+
+      #if HAS_EXT_ENCODER
+        switch(active_extruder) {
+          case 0:
+            TEST_EXTRUDER_ENC0; break;
+          #if EXTRUDERS > 1
+            case 1:
+              TEST_EXTRUDER_ENC1; break;
+            #if EXTRUDERS > 2
+              case 2:
+                TEST_EXTRUDER_ENC2; break;
+              #if EXTRUDERS > 3
+                case 3:
+                  TEST_EXTRUDER_ENC3; break;
+                #if EXTRUDERS > 4
+                  case 4:
+                    TEST_EXTRUDER_ENC4; break;
+                  #if EXTRUDERS > 5
+                    case 5:
+                      TEST_EXTRUDER_ENC5; break;
+                  #endif // EXTRUDERS > 5
+                #endif // EXTRUDERS > 4
+              #endif // EXTRUDERS > 3
+            #endif // EXTRUDERS > 2
+          #endif // EXTRUDERS > 1
+        }
+      #endif // HAS_EXT_ENCODER
+
     #endif // !ADVANCE && !LIN_ADVANCE
 
     // For a minimum pulse time wait before stopping pulses
@@ -1276,6 +1395,24 @@ void Stepper::init() {
   #if HAS_E5_STEP
     E_AXIS_INIT(5);
   #endif
+
+  #if HAS_EXT_ENCODER
+    // Initialize enc sensors
+    #if HAS_E0_ENC
+      #if ENABLED(E0_ENC_PULLUP)
+        SET_INPUT_PULLUP(E0_ENC_PIN);
+      #else
+        SET_INPUT(E0_ENC_PIN);
+      #endif
+    #endif
+
+    HAL::delayMilliseconds(1);
+
+    #if HAS_E0_ENC
+      encLastSignal[0] = READ(E0_ENC_PIN);
+    #endif
+
+  #endif // HAS_EXT_ENCODER
 
   // Init Stepper ISR to 122 Hz for quick starting
   HAL_STEPPER_TIMER_START();
