@@ -25,8 +25,8 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#ifndef _CONDITIONALS_POST_H
-#define _CONDITIONALS_POST_H
+#ifndef _CONDITIONALS_POST_H_
+#define _CONDITIONALS_POST_H_
 
   /**
    * BLUETOOTH
@@ -1200,4 +1200,4 @@
     #define ANALOG_INPUT_CHANNELS { }
   #endif
 
-#endif // _CONDITIONALS_POST_H
+#endif /* _CONDITIONALS_POST_H_ */
