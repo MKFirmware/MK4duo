@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef CONFIGURATION_PINS_H
-#define CONFIGURATION_PINS_H
+#ifndef _CONFIGURATION_PINS_H_
+#define _CONFIGURATION_PINS_H_
 
 //=================================== BASIC ==================================
 
@@ -276,4 +276,4 @@
 
 //============================================================================
 
-#endif
+#endif /* _CONFIGURATION_PINS_H_ */

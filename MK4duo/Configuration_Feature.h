@@ -118,8 +118,8 @@
  * 
  */
 
-#ifndef CONFIGURATION_FEATURE_H
-#define CONFIGURATION_FEATURE_H
+#ifndef _CONFIGURATION_FEATURE_H_
+#define _CONFIGURATION_FEATURE_H_
 
 /**************************************************************************
  **************************** Fan configuration ***************************
@@ -2071,5 +2071,4 @@
 #define USER_GCODE_5 "G28\nM503"
 /*****************************************************************************************/
 
-
-#endif
+#endif /* _CONFIGURATION_FEATURE_H_ */

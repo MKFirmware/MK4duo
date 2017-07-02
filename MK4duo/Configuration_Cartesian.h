@@ -55,8 +55,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_MECHANISM
-#define CONFIGURATION_MECHANISM
+#ifndef _CONFIGURATION_CARTESIAN_H_
+#define _CONFIGURATION_CARTESIAN_H_
 
 #define KNOWN_MECH
 
@@ -643,4 +643,4 @@
 #define DEFAULT_ZWOBBLE       { 0, 0, 0 }
 /*****************************************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_CARTESIAN_H_ */

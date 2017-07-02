@@ -20,6 +20,9 @@
  *
  */
 
+#ifndef _CONFIGURATION_MOTOR_DRIVER_H_
+#define _CONFIGURATION_MOTOR_DRIVER_H_
+
 /**********************************************************************************
  **************************** TMC26X motor drivers ********************************
  **********************************************************************************
@@ -314,3 +317,5 @@
   #define E3_STALLCURRENT 1500
 
 #endif
+
+#endif /* _CONFIGURATION_MOTOR_DRIVER_H_ */
