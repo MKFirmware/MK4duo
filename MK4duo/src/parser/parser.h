@@ -112,7 +112,7 @@ class GCodeParser {
           if (debug) {
             SERIAL_MV("Set bit ", (int)PARAM_BIT(ind));
             SERIAL_MV(" of index ", (int)PARAM_IND(ind));
-            SERIAL_EMV(" | param = ", hex_address((void*)param[ind]));
+            SERIAL_EMV(" | param = ",(int)param[ind]);
           }
         #endif
       }

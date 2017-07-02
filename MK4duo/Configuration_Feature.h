@@ -1177,7 +1177,7 @@
 //#define SHOW_CUSTOM_BOOTSCREEN
 #define STRING_SPLASH_LINE1 "v" SHORT_BUILD_VERSION       // will be shown during bootup in line 1
 #define STRING_SPLASH_LINE2 STRING_DISTRIBUTION_DATE      // will be shown during bootup in line 2
-#define SPLASH_SCREEN_DURATION 5000                       // SPLASH SCREEN duration in millisecond
+#define BOOTSCREEN_TIMEOUT 2000
 
 // LCD TYPE
 //
