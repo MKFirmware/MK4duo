@@ -36,8 +36,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_BASIC_H
-#define CONFIGURATION_BASIC_H
+#ifndef _CONFIGURATION_BASIC_H_
+#define _CONFIGURATION_BASIC_H_
 
 /***********************************************************************
  ********************** Serial comunication type ***********************
@@ -197,4 +197,4 @@
 #define DRIVER_EXTRUDERS 1
 /***********************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_BASIC_H_ */

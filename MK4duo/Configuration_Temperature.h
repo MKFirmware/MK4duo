@@ -43,8 +43,8 @@
  *
  */
 
-#ifndef CONFIGURATION_TEMPERATURE_H
-#define CONFIGURATION_TEMPERATURE_H
+#ifndef _CONFIGURATION_TEMPERATURE_H_
+#define _CONFIGURATION_TEMPERATURE_H_
 
 /************************************************************************************
  ******************************** Temperature Units Support *************************
@@ -566,4 +566,4 @@
 #define EXTRUDE_MAXLENGTH (X_MAX_LENGTH + Y_MAX_LENGTH)
 /***********************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_TEMPERATURE_H_ */
