@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef BASE_H
-#define BASE_H
+#ifndef _BASE_H_
+#define _BASE_H_
 
 #include "Arduino.h"
 #include "pins_arduino.h"
@@ -131,4 +131,4 @@
   #include "src/mfrc522/MFRC522_serial.h"
 #endif
 
-#endif
+#endif /* _BASE_H_ */

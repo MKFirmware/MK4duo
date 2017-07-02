@@ -31,7 +31,7 @@ void idle(
   #endif
 );
 
-void manage_inactivity(bool ignore_stepper_queue = false);
+void manage_inactivity(bool ignore_stepper_queue=false);
 
 void FlushSerialRequestResend();
 void ok_to_send();
@@ -47,8 +47,16 @@ void kill(const char *);
 void Stop();
 void quickstop_stepper();
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  void handle_filament_runout();
+extern MK4duoInterruptEvent interruptEvent;
+void setInterruptEvent(const MK4duoInterruptEvent event);
+void handle_Interrupt_Event();
+
+#if HAS_EXT_ENCODER
+  extern int32_t  encStepsSinceLastSignal[EXTRUDERS]; // when was the last signal
+  extern uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
+  extern int8_t   encLastDir[EXTRUDERS];
+  extern int32_t  encLastChangeAt[EXTRUDERS],
+                  encErrorSteps[EXTRUDERS];
 #endif
 
 extern uint8_t mk_debug_flags;
@@ -69,8 +77,8 @@ extern float  progress;
 // Count of commands in the queue
 extern uint8_t commands_in_queue;
 
-bool enqueue_and_echo_command(const char* cmd, bool say_ok = false);  // Add a single command to the end of the buffer. Return false on failure.
-void enqueue_and_echo_commands_P(const char* cmd);                    // Set one or more commands to be prioritized over the next Serial/SD command.
+bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);  // Add a single command to the end of the buffer. Return false on failure.
+void enqueue_and_echo_commands_P(const char* cmd);                  // Set one or more commands to be prioritized over the next Serial/SD command.
 void clear_command_queue();
 
 void prepare_arc_move(char isclockwise);

@@ -108,6 +108,16 @@ enum EndstopEnum {
 #endif
 
 /**
+ * Interrupt Event
+ */
+enum MK4duoInterruptEvent {
+  INTERRUPT_EVENT_NONE,
+  INTERRUPT_EVENT_FIL_RUNOUT,
+  INTERRUPT_EVENT_DAV_SYSTEM,
+  INTERRUPT_EVENT_ENC_DETECT
+};
+
+/**
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */

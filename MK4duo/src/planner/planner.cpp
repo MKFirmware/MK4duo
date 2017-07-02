@@ -23,7 +23,7 @@
 /**
  * planner.cpp
  *
- * Buffer movement commands and manage the Mechanics.acceleration profile plan
+ * Buffer movement commands and manage the mechanics.acceleration profile plan
  *
  * Derived from Grbl
  * Copyright (c) 2009-2011 Simen Svale Skogsrud
@@ -33,17 +33,17 @@
  *
  * Reasoning behind the mathematics in this module (in the key of 'Mathematica'):
  *
- * s == speed, a == Mechanics.acceleration, t == time, d == distance
+ * s == speed, a == mechanics.acceleration, t == time, d == distance
  *
  * Basic definitions:
  *   Speed[s_, a_, t_] := s + (a*t)
  *   Travel[s_, a_, t_] := Integrate[Speed[s, a, t], t]
  *
- * Distance to reach a specific speed with a constant Mechanics.acceleration:
+ * Distance to reach a specific speed with a constant mechanics.acceleration:
  *   Solve[{Speed[s, a, t] == m, Travel[s, a, t] == d}, d, t]
  *   d -> (m^2 - s^2)/(2 a) --> estimate_acceleration_distance()
  *
- * Speed after a given distance of travel with constant Mechanics.acceleration:
+ * Speed after a given distance of travel with constant mechanics.acceleration:
  *   Solve[{Speed[s, a, t] == m, Travel[s, a, t] == d}, m, t]
  *   m -> Sqrt[2 a d + s^2]
  *
@@ -177,7 +177,7 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 void Planner::reverse_pass_kernel(block_t* const current, const block_t *next) {
   if (!current || !next) return;
   // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
-  // If not, block in state of Mechanics.acceleration or deceleration. Reset entry speed to maximum and
+  // If not, block in state of mechanics.acceleration or deceleration. Reset entry speed to maximum and
   // check for maximum allowable speed reductions to ensure maximum possible planned speed.
   float max_entry_speed = current->max_entry_speed;
   if (current->entry_speed != max_entry_speed) {
@@ -221,7 +221,7 @@ void Planner::reverse_pass() {
 void Planner::forward_pass_kernel(const block_t* previous, block_t* const current) {
   if (!previous) return;
 
-  // If the previous block is an Mechanics.acceleration block, but it is not long enough to complete the
+  // If the previous block is an mechanics.acceleration block, but it is not long enough to complete the
   // full speed change within the block, we need to adjust the entry speed accordingly. Entry
   // speeds have already been reset, maximized, and reverse planned by reverse planner.
   // If nominal length is true, max junction speed is guaranteed to be reached. No need to recheck.
@@ -295,16 +295,16 @@ void Planner::recalculate_trapezoids() {
  *      a. The junction jerk is within the set limit, and
  *
  *      b. No speed reduction within one block requires faster
- *         deceleration than the one, true constant Mechanics.acceleration.
+ *         deceleration than the one, true constant mechanics.acceleration.
  *
  *   2. Go over every block in chronological order...
  *
  *      Dial down junction speed reduction values if:
  *      a. The speed increase within one block would require faster
- *         Mechanics.acceleration than the one, true constant Mechanics.acceleration.
+ *         mechanics.acceleration than the one, true constant mechanics.acceleration.
  *
  * After that, all blocks will have an entry_factor allowing all speed changes to
- * be performed using only the one, true constant Mechanics.acceleration, and where no junction
+ * be performed using only the one, true constant mechanics.acceleration, and where no junction
  * jerk is jerkier than the set limit, Jerky. Finally it will:
  *
  *   3. Recalculate "trapezoids" for all blocks.
@@ -420,18 +420,17 @@ void Planner::check_axes_activity() {
  *  a,b,c,e     - target positions in mm or degrees
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
- *  driver      - target driver
  */
-void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder, const uint8_t driver) {
+void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder) {
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
   // this should be done after the wait, because otherwise a M92 code within the gcode disrupts this calculation somehow
   const long target[XYZE] = {
-    LROUND(a * Mechanics.axis_steps_per_mm[X_AXIS]),
-    LROUND(b * Mechanics.axis_steps_per_mm[Y_AXIS]),
-    LROUND(c * Mechanics.axis_steps_per_mm[Z_AXIS]),
-    LROUND(e * Mechanics.axis_steps_per_mm[E_AXIS_N])
+    LROUND(a * mechanics.axis_steps_per_mm[X_AXIS]),
+    LROUND(b * mechanics.axis_steps_per_mm[Y_AXIS]),
+    LROUND(c * mechanics.axis_steps_per_mm[Z_AXIS]),
+    LROUND(e * mechanics.axis_steps_per_mm[E_AXIS_N])
   };
 
   #if ENABLED(LIN_ADVANCE)
@@ -478,7 +477,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         }
 
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (labs(de) > (int32_t)Mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
+        if (labs(de) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
           #if ENABLED(EASY_LOAD)
             if (!allow_lengthy_extrude_once) {
           #endif
@@ -594,12 +593,17 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(BARICUDA)
-    block->valve_pressure = baricuda_valve_pressure;
-    block->e_to_p_pressure = baricuda_e_to_p_pressure;
+    block->valve_pressure   = baricuda_valve_pressure;
+    block->e_to_p_pressure  = baricuda_e_to_p_pressure;
   #endif
 
   block->active_extruder = extruder;
-  block->active_driver = driver;
+
+  #if HAS_MKMULTI_TOOLS
+    block->active_driver = active_driver;
+  #else
+    block->active_driver = extruder;
+  #endif
 
   // Enable active axes
   #if CORE_IS_XY
@@ -810,9 +814,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   }
 
   if (esteps)
-    NOLESS(fr_mm_s, Mechanics.min_feedrate_mm_s);
+    NOLESS(fr_mm_s, mechanics.min_feedrate_mm_s);
   else
-    NOLESS(fr_mm_s, Mechanics.min_travel_feedrate_mm_s);
+    NOLESS(fr_mm_s, mechanics.min_travel_feedrate_mm_s);
 
   /**
    * This part of the code calculates the total length of the movement.
@@ -825,31 +829,31 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if IS_CORE
     float delta_mm[Z_HEAD + 1];
     #if CORE_IS_XY
-      delta_mm[X_HEAD] = dx * Mechanics.steps_to_mm[A_AXIS];
-      delta_mm[Y_HEAD] = dy * Mechanics.steps_to_mm[B_AXIS];
-      delta_mm[Z_AXIS] = dz * Mechanics.steps_to_mm[Z_AXIS];
-      delta_mm[A_AXIS] = da * Mechanics.steps_to_mm[A_AXIS];
-      delta_mm[B_AXIS] = CORESIGN(db) * Mechanics.steps_to_mm[B_AXIS];
+      delta_mm[X_HEAD] = dx * mechanics.steps_to_mm[A_AXIS];
+      delta_mm[Y_HEAD] = dy * mechanics.steps_to_mm[B_AXIS];
+      delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
+      delta_mm[A_AXIS] = da * mechanics.steps_to_mm[A_AXIS];
+      delta_mm[B_AXIS] = CORESIGN(db) * mechanics.steps_to_mm[B_AXIS];
     #elif CORE_IS_XZ
-      delta_mm[X_HEAD] = dx * Mechanics.steps_to_mm[A_AXIS];
-      delta_mm[Y_AXIS] = dy * Mechanics.steps_to_mm[Y_AXIS];
-      delta_mm[Z_HEAD] = dz * Mechanics.steps_to_mm[C_AXIS];
-      delta_mm[A_AXIS] = da * Mechanics.steps_to_mm[A_AXIS];
-      delta_mm[C_AXIS] = CORESIGN(dc) * Mechanics.steps_to_mm[C_AXIS];
+      delta_mm[X_HEAD] = dx * mechanics.steps_to_mm[A_AXIS];
+      delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
+      delta_mm[Z_HEAD] = dz * mechanics.steps_to_mm[C_AXIS];
+      delta_mm[A_AXIS] = da * mechanics.steps_to_mm[A_AXIS];
+      delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm[C_AXIS];
     #elif CORE_IS_YZ
-      delta_mm[X_AXIS] = dx * Mechanics.steps_to_mm[X_AXIS];
-      delta_mm[Y_HEAD] = dy * Mechanics.steps_to_mm[B_AXIS];
-      delta_mm[Z_HEAD] = dz * Mechanics.steps_to_mm[C_AXIS];
-      delta_mm[B_AXIS] = db * Mechanics.steps_to_mm[B_AXIS];
-      delta_mm[C_AXIS] = CORESIGN(dc) * Mechanics.steps_to_mm[C_AXIS];
+      delta_mm[X_AXIS] = dx * mechanics.steps_to_mm[X_AXIS];
+      delta_mm[Y_HEAD] = dy * mechanics.steps_to_mm[B_AXIS];
+      delta_mm[Z_HEAD] = dz * mechanics.steps_to_mm[C_AXIS];
+      delta_mm[B_AXIS] = db * mechanics.steps_to_mm[B_AXIS];
+      delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm[C_AXIS];
     #endif
   #else
     float delta_mm[E_AXIS + 1];
-    delta_mm[X_AXIS] = dx * Mechanics.steps_to_mm[X_AXIS];
-    delta_mm[Y_AXIS] = dy * Mechanics.steps_to_mm[Y_AXIS];
-    delta_mm[Z_AXIS] = dz * Mechanics.steps_to_mm[Z_AXIS];
+    delta_mm[X_AXIS] = dx * mechanics.steps_to_mm[X_AXIS];
+    delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
+    delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
   #endif
-  delta_mm[E_AXIS] = esteps_float * Mechanics.steps_to_mm[E_AXIS_N];
+  delta_mm[E_AXIS] = esteps_float * mechanics.steps_to_mm[E_AXIS_N];
 
   if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = FABS(delta_mm[E_AXIS]);
@@ -924,9 +928,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   #if ENABLED(SLOWDOWN)
     if (moves_queued > 1 && moves_queued < (BLOCK_BUFFER_SIZE) / 2) {
-      if (segment_time < Mechanics.min_segment_time) {
+      if (segment_time < mechanics.min_segment_time) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
-        inverse_mm_s = 1000000.0 / (segment_time + LROUND(2 * (Mechanics.min_segment_time - segment_time) / moves_queued));
+        inverse_mm_s = 1000000.0 / (segment_time + LROUND(2 * (mechanics.min_segment_time - segment_time) / moves_queued));
         #if ENABLED(XY_FREQUENCY_LIMIT)
           segment_time = LROUND(1000000.0 / inverse_mm_s);
         #endif
@@ -982,7 +986,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   LOOP_XYZE(i) {
     const float cs = FABS(current_speed[i] = delta_mm[i] * inverse_mm_s);
     if (i == E_AXIS) i += extruder;
-    if (cs > Mechanics.max_feedrate_mm_s[i]) NOMORE(speed_factor, Mechanics.max_feedrate_mm_s[i] / cs);
+    if (cs > mechanics.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
   }
 
   // Max segment time in µs.
@@ -1030,32 +1034,32 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     block->nominal_rate *= speed_factor;
   }
 
-  // Compute and limit the Mechanics.acceleration rate for the trapezoid generator.
+  // Compute and limit the mechanics.acceleration rate for the trapezoid generator.
   const float steps_per_mm = block->step_event_count * inverse_millimeters;
   uint32_t accel;
   if (!block->steps[X_AXIS] && !block->steps[Y_AXIS] && !block->steps[Z_AXIS]) {
-    // convert to: Mechanics.acceleration steps/sec^2
-    accel = CEIL(Mechanics.retract_acceleration[extruder] * steps_per_mm);
+    // convert to: mechanics.acceleration steps/sec^2
+    accel = CEIL(mechanics.retract_acceleration[extruder] * steps_per_mm);
   }
   else {
     #define LIMIT_ACCEL_LONG(AXIS,INDX) do{ \
-      if (block->steps[AXIS] && Mechanics.max_acceleration_steps_per_s2[AXIS+INDX] < accel) { \
-        const uint32_t comp = Mechanics.max_acceleration_steps_per_s2[AXIS+INDX] * block->step_event_count; \
+      if (block->steps[AXIS] && mechanics.max_acceleration_steps_per_s2[AXIS+INDX] < accel) { \
+        const uint32_t comp = mechanics.max_acceleration_steps_per_s2[AXIS+INDX] * block->step_event_count; \
         if (accel * block->steps[AXIS] > comp) accel = comp / block->steps[AXIS]; \
       } \
     }while(0)
 	
     #define LIMIT_ACCEL_FLOAT(AXIS,INDX) do{ \
-      if (block->steps[AXIS] && Mechanics.max_acceleration_steps_per_s2[AXIS+INDX] < accel) { \
-        const float comp = (float)Mechanics.max_acceleration_steps_per_s2[AXIS+INDX] * (float)block->step_event_count; \
+      if (block->steps[AXIS] && mechanics.max_acceleration_steps_per_s2[AXIS+INDX] < accel) { \
+        const float comp = (float)mechanics.max_acceleration_steps_per_s2[AXIS+INDX] * (float)block->step_event_count; \
         if ((float)accel * (float)block->steps[AXIS] > comp) accel = comp / (float)block->steps[AXIS]; \
       } \
     }while(0)
 
-    // Start with print or travel Mechanics.acceleration
-    accel = CEIL((esteps ? Mechanics.acceleration : Mechanics.travel_acceleration) * steps_per_mm);
+    // Start with print or travel mechanics.acceleration
+    accel = CEIL((esteps ? mechanics.acceleration : mechanics.travel_acceleration) * steps_per_mm);
 
-    // Limit Mechanics.acceleration per axis
+    // Limit mechanics.acceleration per axis
     if (block->step_event_count <= cutoff_long){
       LIMIT_ACCEL_LONG(X_AXIS, 0);
       LIMIT_ACCEL_LONG(Y_AXIS, 0);
@@ -1093,14 +1097,14 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     };
 
     /*
-       Compute maximum allowable entry speed at junction by centripetal Mechanics.acceleration approximation.
+       Compute maximum allowable entry speed at junction by centripetal mechanics.acceleration approximation.
 
        Let a circle be tangent to both previous and current path line segments, where the junction
        deviation is defined as the distance from the junction to the closest edge of the circle,
        collinear with the circle center.
 
-       The circular segment joining the two paths represents the path of centripetal Mechanics.acceleration.
-       Solve for max velocity based on max Mechanics.acceleration about the radius of the circle, defined
+       The circular segment joining the two paths represents the path of centripetal mechanics.acceleration.
+       Solve for max velocity based on max mechanics.acceleration about the radius of the circle, defined
        indirectly by junction deviation.
 
        This may be also viewed as path width or max_jerk in the previous grbl version. This approach
@@ -1122,7 +1126,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         vmax_junction = min(previous_nominal_speed, block->nominal_speed);
         // Skip and avoid divide by zero for straight junctions at 180 degrees. Limit to min() of nominal speeds.
         if (cos_theta > -0.95) {
-          // Compute maximum junction velocity based on maximum Mechanics.acceleration and junction deviation
+          // Compute maximum junction velocity based on maximum mechanics.acceleration and junction deviation
           float sin_theta_d2 = SQRT(0.5 * (1.0 - cos_theta)); // Trig half angle identity. Always positive.
           NOMORE(vmax_junction, SQRT(block->acceleration * junction_deviation * sin_theta_d2 / (1.0 - sin_theta_d2)));
         }
@@ -1141,7 +1145,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   uint8_t limited = 0;
   LOOP_XYZE(i) {
     const float jerk = FABS(current_speed[i]),
-                maxj = (i == E_AXIS) ? Mechanics.max_jerk[i + extruder] : Mechanics.max_jerk[i];
+                maxj = (i == E_AXIS) ? mechanics.max_jerk[i + extruder] : mechanics.max_jerk[i];
 
     if (jerk > maxj) {
       if (limited) {
@@ -1172,7 +1176,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     LOOP_XYZE(axis) {
       // Limit an axis. We have to differentiate: coasting, reversal of an axis, full stop.
       float v_exit = previous_speed[axis], v_entry = current_speed[axis];
-      const float maxj = (axis == E_AXIS) ? Mechanics.max_jerk[axis + extruder] : Mechanics.max_jerk[axis];
+      const float maxj = (axis == E_AXIS) ? mechanics.max_jerk[axis + extruder] : mechanics.max_jerk[axis];
 
       if (prev_speed_larger) v_exit *= smaller_speed_factor;
       if (limited) {
@@ -1218,7 +1222,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // Set flag if block will always reach maximum junction speed regardless of entry/exit speeds.
   // If a block can de/ac-celerate from nominal speed to zero within the length of the block, then
   // the current block and next block junction speeds are guaranteed to always be at their maximum
-  // junction speeds in deceleration and Mechanics.acceleration, respectively. This is due to how the current
+  // junction speeds in deceleration and mechanics.acceleration, respectively. This is due to how the current
   // block nominal speed limits both the current and next maximum junction speeds. Hence, in both
   // the reverse and forward planners, the corresponding block junction speed will always be at the
   // the maximum junction speed and may always be ignored for any speed reduction checks.
@@ -1256,7 +1260,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         extruder_advance_k
         * (UNEAR_ZERO(advance_ed_ratio) ? de_float / mm_D_float : advance_ed_ratio) // Use the fixed ratio, if set
         * (block->nominal_speed / (float)block->nominal_rate)
-        * Mechanics.axis_steps_per_mm[E_AXIS_N] * 256.0
+        * mechanics.axis_steps_per_mm[E_AXIS_N] * 256.0
       );
 
   #elif ENABLED(ADVANCE)
@@ -1304,7 +1308,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 void Planner::sync_from_steppers() {
   LOOP_XYZE(i) position[i] = stepper.position((AxisEnum)i);
   #if ENABLED(LIN_ADVANCE)
-    LOOP_XYZE(i) position_float[i] = stepper.position((AxisEnum)i) * (i == E_AXIS ? Mechanics.steps_to_mm[E_INDEX] : Mechanics.steps_to_mm[i]);
+    LOOP_XYZE(i) position_float[i] = stepper.position((AxisEnum)i) * (i == E_AXIS ? mechanics.steps_to_mm[E_INDEX] : mechanics.steps_to_mm[i]);
   #endif
 }
 

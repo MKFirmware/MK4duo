@@ -896,28 +896,28 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(Mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder, active_driver);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder);
     }
 
     void bedlevelPopCallBack(void *ptr) {
 
       if (ptr == &BedUp) {
-        Mechanics.current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        mechanics.current_position[Z_AXIS] += (LCD_Z_STEP);
+        NOLESS(mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedDown) {
-        Mechanics.current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(Mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(Mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+        mechanics.current_position[Z_AXIS] -= (LCD_Z_STEP);
+        NOLESS(mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
         line_to_current(Z_AXIS);
       }
       else if (ptr == &BedSend) {
         #if ENABLED(PROBE_MANUALLY)
           if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
           #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-            else if (Mechanics.g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
+            else if (mechanics.g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
           #endif
         #endif
       }
@@ -1206,33 +1206,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(Mechanics.current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(Mechanics.current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(mechanics.current_position[X_AXIS]));
+      LcdY.setText(ftostr4sign(mechanics.current_position[Y_AXIS]));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
     }
     else if (PageID == 5) {
-      strcat(buffer, (Mechanics.axis_homed[X_AXIS] ? "X" : "?"));
-      if (Mechanics.axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(Mechanics.current_position[X_AXIS]);
+      strcat(buffer, (mechanics.axis_homed[X_AXIS] ? "X" : "?"));
+      if (mechanics.axis_homed[X_AXIS]) {
+        valuetemp = ftostr4sign(mechanics.current_position[X_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (Mechanics.axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(Mechanics.current_position[Y_AXIS]);
+      strcat(buffer, (mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
+      if (mechanics.axis_homed[Y_AXIS]) {
+        valuetemp = ftostr4sign(mechanics.current_position[Y_AXIS]);
         strcat(buffer, valuetemp);
       }
 
-      strcat(buffer, (Mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (Mechanics.axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS]));
+      strcat(buffer, (mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
+      if (mechanics.axis_homed[Z_AXIS]) {
+        valuetemp = ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
+      BedZ.setText(ftostr43sign(FIXFLOAT(mechanics.current_position[Z_AXIS])));
     }
   }
 
@@ -1286,9 +1286,9 @@
           }
         #endif
 
-        if (Previousfeedrate != Mechanics.feedrate_percentage) {
-          VSpeed.setValue(Mechanics.feedrate_percentage);
-          Previousfeedrate = Mechanics.feedrate_percentage;
+        if (Previousfeedrate != mechanics.feedrate_percentage) {
+          VSpeed.setValue(mechanics.feedrate_percentage);
+          Previousfeedrate = mechanics.feedrate_percentage;
         }
 
         #if HAS_TEMP_0
@@ -1392,7 +1392,7 @@
       case 6:
         static uint32_t temp_feedrate = 0;
         VSpeed.getValue(&temp_feedrate, "printer");
-        Previousfeedrate = Mechanics.feedrate_percentage = (int)temp_feedrate;
+        Previousfeedrate = mechanics.feedrate_percentage = (int)temp_feedrate;
         break;
       case 15:
         coordtoLCD();

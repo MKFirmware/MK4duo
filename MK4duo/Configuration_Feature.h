@@ -65,6 +65,7 @@
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
+ * - Extruder Encoder Control
  * - Filament diameter sensor
  * - Filament Runout sensor
  * - Power consumption sensor
@@ -860,6 +861,32 @@
 //===========================================================================
 //============================= SENSORS FEATURES ============================
 //===========================================================================
+
+
+/**********************************************************************************
+ *************************** Extruder Encoder Control *****************************
+ **********************************************************************************
+ *                                                                                *
+ * Support for Encoder on extruder for control filament movement                  *
+ * EXPERIMENTAL Function                                                          *
+ *                                                                                *
+ * You can compare filament moves with extruder moves to detect if the extruder   *
+ * is jamming, the spool is knotted or if you are running out of filament.        *
+ * You need a movement tracker, that changes a digital signal every x extrusion   *
+ * steps.                                                                         *
+ *                                                                                *
+ * Please define/ Encoder pin for any extruder in configuration pins.              *
+ *                                                                                *
+ **********************************************************************************/
+//#define EXTRUDER_ENCODER_CONTROL
+
+// Enc error step is step for error detect 
+#define ENC_ERROR_STEPS     500
+// Enc min step It must be the minimum number of steps that the extruder does
+// to get a signal from the encoder
+#define ENC_MIN_STEPS        10
+/**********************************************************************************/
+
 
 /**********************************************************************************
  *************************** Filament diameter sensor *****************************

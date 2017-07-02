@@ -20,7 +20,8 @@
  *
  */
 
-#include "../../base.h"
+#ifndef _MESH_BED_LEVELING_
+#define _MESH_BED_LEVELING_
 
 #if ENABLED(MESH_BED_LEVELING)
 
@@ -121,3 +122,5 @@
   extern mesh_bed_leveling mbl;
 
 #endif  // MESH_BED_LEVELING
+
+#endif /* _MESH_BED_LEVELING_ */

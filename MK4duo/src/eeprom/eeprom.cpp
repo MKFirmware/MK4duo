@@ -46,20 +46,20 @@
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
  *
- *  M92   XYZ E0 ...      Mechanics.axis_steps_per_mm X,Y,Z,E0 ... (float x9)
- *  M203  XYZ E0 ...      Mechanics.max_feedrate_mm_s X,Y,Z,E0 ... (float x9)
- *  M201  XYZ E0 ...      Mechanics.max_acceleration_mm_per_s2 X,Y,Z,E0 ... (uint32_t x9)
- *  M204  P               Mechanics.acceleration                (float)
- *  M204  R   E0 ...      Mechanics.retract_acceleration        (float x6)
- *  M204  T               Mechanics.travel_acceleration         (float)
- *  M205  S               Mechanics.min_feedrate_mm_s           (float)
- *  M205  T               Mechanics.min_travel_feedrate_mm_s    (float)
- *  M205  B               Mechanics.min_segment_time            (ulong)
- *  M205  X               Mechanics.max_jerk[X_AXIS]            (float)
- *  M205  Y               Mechanics.max_jerk[Y_AXIS]            (float)
- *  M205  Z               Mechanics.max_jerk[Z_AXIS]            (float)
- *  M205  E   E0 ...      Mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
- *  M206  XYZ             Mechanics.home_offset                 (float x3)
+ *  M92   XYZ E0 ...      mechanics.axis_steps_per_mm X,Y,Z,E0 ... (float x9)
+ *  M203  XYZ E0 ...      mechanics.max_feedrate_mm_s X,Y,Z,E0 ... (float x9)
+ *  M201  XYZ E0 ...      mechanics.max_acceleration_mm_per_s2 X,Y,Z,E0 ... (uint32_t x9)
+ *  M204  P               mechanics.acceleration                (float)
+ *  M204  R   E0 ...      mechanics.retract_acceleration        (float x6)
+ *  M204  T               mechanics.travel_acceleration         (float)
+ *  M205  S               mechanics.min_feedrate_mm_s           (float)
+ *  M205  T               mechanics.min_travel_feedrate_mm_s    (float)
+ *  M205  B               mechanics.min_segment_time            (ulong)
+ *  M205  X               mechanics.max_jerk[X_AXIS]            (float)
+ *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
+ *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
+ *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
+ *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          hotend_offset                         (float x6)
  *
  * Global Leveling:
@@ -89,15 +89,15 @@
  *  M595  H OS            Hotend AD595 Offset & Gain
  *
  * DELTA:
- *  M666  XYZ             Mechanics.delta_endstop_adj           (float x3)
- *  M666  R               Mechanics.delta_radius                (float)
- *  M666  D               Mechanics.delta_diagonal_rod          (float)
- *  M666  S               Mechanics.delta_segments_per_second   (float)
- *  M666  H               Mechanics.delta_height                (float)
- *  M666  ABC             Mechanics.delta_tower_radius_adj      (float x3)
- *  M666  IJK             Mechanics.delta_tower_pos_adj         (float x3)
- *  M666  UVW             Mechanics.delta_diagonal_rod_adj      (float x3)
- *  M666  O               Mechanics.delta_print_radius          (float)
+ *  M666  XYZ             mechanics.delta_endstop_adj           (float x3)
+ *  M666  R               mechanics.delta_radius                (float)
+ *  M666  D               mechanics.delta_diagonal_rod          (float)
+ *  M666  S               mechanics.delta_segments_per_second   (float)
+ *  M666  H               mechanics.delta_height                (float)
+ *  M666  ABC             mechanics.delta_tower_radius_adj      (float x3)
+ *  M666  IJK             mechanics.delta_tower_pos_adj         (float x3)
+ *  M666  UVW             mechanics.delta_diagonal_rod_adj      (float x3)
+ *  M666  O               mechanics.delta_print_radius          (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
@@ -167,17 +167,17 @@ EEPROM eeprom;
  */
 void EEPROM::Postprocess() {
   // steps per s2 needs to be updated to agree with units per s2
-  Mechanics.reset_acceleration_rates();
+  mechanics.reset_acceleration_rates();
 
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
-    Mechanics.recalc_delta_settings();
+    mechanics.recalc_delta_settings();
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
-  Mechanics.refresh_positioning();
+  mechanics.refresh_positioning();
 
   #if ENABLED(PIDTEMP)
     thermalManager.updatePID();
@@ -319,18 +319,18 @@ void EEPROM::Postprocess() {
 
     working_crc = 0; // clear before first "real data"
 
-    EEPROM_WRITE(Mechanics.axis_steps_per_mm);
-    EEPROM_WRITE(Mechanics.max_feedrate_mm_s);
-    EEPROM_WRITE(Mechanics.max_acceleration_mm_per_s2);
-    EEPROM_WRITE(Mechanics.acceleration);
-    EEPROM_WRITE(Mechanics.retract_acceleration);
-    EEPROM_WRITE(Mechanics.travel_acceleration);
-    EEPROM_WRITE(Mechanics.min_feedrate_mm_s);
-    EEPROM_WRITE(Mechanics.min_travel_feedrate_mm_s);
-    EEPROM_WRITE(Mechanics.min_segment_time);
-    EEPROM_WRITE(Mechanics.max_jerk);
+    EEPROM_WRITE(mechanics.axis_steps_per_mm);
+    EEPROM_WRITE(mechanics.max_feedrate_mm_s);
+    EEPROM_WRITE(mechanics.max_acceleration_mm_per_s2);
+    EEPROM_WRITE(mechanics.acceleration);
+    EEPROM_WRITE(mechanics.retract_acceleration);
+    EEPROM_WRITE(mechanics.travel_acceleration);
+    EEPROM_WRITE(mechanics.min_feedrate_mm_s);
+    EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
+    EEPROM_WRITE(mechanics.min_segment_time);
+    EEPROM_WRITE(mechanics.max_jerk);
     #if ENABLED(WORKSPACE_OFFSETS)
-      EEPROM_WRITE(Mechanics.home_offset);
+      EEPROM_WRITE(mechanics.home_offset);
     #endif
     EEPROM_WRITE(hotend_offset);
 
@@ -391,15 +391,15 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MECH(DELTA)
-      EEPROM_WRITE(Mechanics.delta_endstop_adj);
-      EEPROM_WRITE(Mechanics.delta_radius);
-      EEPROM_WRITE(Mechanics.delta_diagonal_rod);
-      EEPROM_WRITE(Mechanics.delta_segments_per_second);
-      EEPROM_WRITE(Mechanics.delta_height);
-      EEPROM_WRITE(Mechanics.delta_tower_radius_adj);
-      EEPROM_WRITE(Mechanics.delta_tower_pos_adj);
-      EEPROM_WRITE(Mechanics.delta_diagonal_rod_adj);
-      EEPROM_WRITE(Mechanics.delta_print_radius);
+      EEPROM_WRITE(mechanics.delta_endstop_adj);
+      EEPROM_WRITE(mechanics.delta_radius);
+      EEPROM_WRITE(mechanics.delta_diagonal_rod);
+      EEPROM_WRITE(mechanics.delta_segments_per_second);
+      EEPROM_WRITE(mechanics.delta_height);
+      EEPROM_WRITE(mechanics.delta_tower_radius_adj);
+      EEPROM_WRITE(mechanics.delta_tower_pos_adj);
+      EEPROM_WRITE(mechanics.delta_diagonal_rod_adj);
+      EEPROM_WRITE(mechanics.delta_print_radius);
     #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -650,18 +650,18 @@ void EEPROM::Postprocess() {
       working_crc = 0; // clear before reading first "real data"
 
       // version number match
-      EEPROM_READ(Mechanics.axis_steps_per_mm);
-      EEPROM_READ(Mechanics.max_feedrate_mm_s);
-      EEPROM_READ(Mechanics.max_acceleration_mm_per_s2);
-      EEPROM_READ(Mechanics.acceleration);
-      EEPROM_READ(Mechanics.retract_acceleration);
-      EEPROM_READ(Mechanics.travel_acceleration);
-      EEPROM_READ(Mechanics.min_feedrate_mm_s);
-      EEPROM_READ(Mechanics.min_travel_feedrate_mm_s);
-      EEPROM_READ(Mechanics.min_segment_time);
-      EEPROM_READ(Mechanics.max_jerk);
+      EEPROM_READ(mechanics.axis_steps_per_mm);
+      EEPROM_READ(mechanics.max_feedrate_mm_s);
+      EEPROM_READ(mechanics.max_acceleration_mm_per_s2);
+      EEPROM_READ(mechanics.acceleration);
+      EEPROM_READ(mechanics.retract_acceleration);
+      EEPROM_READ(mechanics.travel_acceleration);
+      EEPROM_READ(mechanics.min_feedrate_mm_s);
+      EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
+      EEPROM_READ(mechanics.min_segment_time);
+      EEPROM_READ(mechanics.max_jerk);
       #if ENABLED(WORKSPACE_OFFSETS)
-        EEPROM_READ(Mechanics.home_offset);
+        EEPROM_READ(mechanics.home_offset);
       #endif
       EEPROM_READ(hotend_offset);
 
@@ -736,15 +736,15 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MECH(DELTA)
-        EEPROM_READ(Mechanics.delta_endstop_adj);
-        EEPROM_READ(Mechanics.delta_radius);
-        EEPROM_READ(Mechanics.delta_diagonal_rod);
-        EEPROM_READ(Mechanics.delta_segments_per_second);
-        EEPROM_READ(Mechanics.delta_height);
-        EEPROM_READ(Mechanics.delta_tower_radius_adj);
-        EEPROM_READ(Mechanics.delta_tower_pos_adj);
-        EEPROM_READ(Mechanics.delta_diagonal_rod_adj);
-        EEPROM_READ(Mechanics.delta_print_radius);
+        EEPROM_READ(mechanics.delta_endstop_adj);
+        EEPROM_READ(mechanics.delta_radius);
+        EEPROM_READ(mechanics.delta_diagonal_rod);
+        EEPROM_READ(mechanics.delta_segments_per_second);
+        EEPROM_READ(mechanics.delta_height);
+        EEPROM_READ(mechanics.delta_tower_radius_adj);
+        EEPROM_READ(mechanics.delta_tower_pos_adj);
+        EEPROM_READ(mechanics.delta_diagonal_rod_adj);
+        EEPROM_READ(mechanics.delta_print_radius);
       #endif
 
       #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -971,14 +971,14 @@ void EEPROM::Factory_Settings() {
   #endif
 
   LOOP_XYZE_N(i) {
-    Mechanics.axis_steps_per_mm[i]          = tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1];
-    Mechanics.max_feedrate_mm_s[i]          = tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1];
-    Mechanics.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
+    mechanics.axis_steps_per_mm[i]          = tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1];
+    mechanics.max_feedrate_mm_s[i]          = tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1];
+    mechanics.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
   }
 
   for (uint8_t i = 0; i < EXTRUDERS; i++) {
-    Mechanics.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
-    Mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
+    mechanics.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
+    mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
   }
 
   static_assert(
@@ -989,21 +989,21 @@ void EEPROM::Factory_Settings() {
     LOOP_HOTEND() hotend_offset[i][h] = tmp10[i][h];
   }
 
-  Mechanics.acceleration = DEFAULT_ACCELERATION;
-  Mechanics.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
-  Mechanics.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
-  Mechanics.min_segment_time = DEFAULT_MINSEGMENTTIME;
-  Mechanics.min_travel_feedrate_mm_s = DEFAULT_MINTRAVELFEEDRATE;
-  Mechanics.max_jerk[X_AXIS] = DEFAULT_XJERK;
-  Mechanics.max_jerk[Y_AXIS] = DEFAULT_YJERK;
-  Mechanics.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
+  mechanics.acceleration = DEFAULT_ACCELERATION;
+  mechanics.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
+  mechanics.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
+  mechanics.min_segment_time = DEFAULT_MINSEGMENTTIME;
+  mechanics.min_travel_feedrate_mm_s = DEFAULT_MINTRAVELFEEDRATE;
+  mechanics.max_jerk[X_AXIS] = DEFAULT_XJERK;
+  mechanics.max_jerk[Y_AXIS] = DEFAULT_YJERK;
+  mechanics.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0;
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    ZERO(Mechanics.home_offset);
+    ZERO(mechanics.home_offset);
   #endif
 
   #if HAS_LEVELING
@@ -1015,7 +1015,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MECH(DELTA)
-    Mechanics.Init();
+    mechanics.Init();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -1193,87 +1193,87 @@ void EEPROM::Factory_Settings() {
     #endif
 
     CONFIG_MSG_START("Steps per unit:");
-    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(Mechanics.axis_steps_per_mm[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.axis_steps_per_mm[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.axis_steps_per_mm[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(mechanics.axis_steps_per_mm[X_AXIS]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.axis_steps_per_mm[Y_AXIS]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.axis_steps_per_mm[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(Mechanics.axis_steps_per_mm[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(Mechanics.axis_steps_per_mm[E_AXIS + i]), 3);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS + i]), 3);
       }
     #endif // EXTRUDERS > 1
 
     CONFIG_MSG_START("Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(Mechanics.max_feedrate_mm_s[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.max_feedrate_mm_s[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.max_feedrate_mm_s[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(mechanics.max_feedrate_mm_s[X_AXIS]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_feedrate_mm_s[Y_AXIS]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_feedrate_mm_s[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(Mechanics.max_feedrate_mm_s[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(Mechanics.max_feedrate_mm_s[E_AXIS + i]), 3);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS + i]), 3);
       }
     #endif // EXTRUDERS > 1
 
     CONFIG_MSG_START("Maximum Acceleration (units/s2):");
-    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(Mechanics.max_acceleration_mm_per_s2[X_AXIS]));
-    SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.max_acceleration_mm_per_s2[Y_AXIS]));
-    SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.max_acceleration_mm_per_s2[Z_AXIS]));
+    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[X_AXIS]));
+    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[Y_AXIS]));
+    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[Z_AXIS]));
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(Mechanics.max_acceleration_mm_per_s2[E_AXIS]));
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS]));
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(Mechanics.max_acceleration_mm_per_s2[E_AXIS + i]));
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]));
       }
     #endif // EXTRUDERS > 1
 
     CONFIG_MSG_START("Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>");
-    SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(Mechanics.acceleration), 3);
-    SERIAL_MV(" V", LINEAR_UNIT(Mechanics.travel_acceleration), 3);
+    SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(mechanics.acceleration), 3);
+    SERIAL_MV(" V", LINEAR_UNIT(mechanics.travel_acceleration), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 R", LINEAR_UNIT(Mechanics.retract_acceleration[0]), 3);
+      SERIAL_MV(" T0 R", LINEAR_UNIT(mechanics.retract_acceleration[0]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
-        SERIAL_EMV(" R", LINEAR_UNIT(Mechanics.retract_acceleration[i]), 3);
+        SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[i]), 3);
       }
     #endif
 
     CONFIG_MSG_START("Advanced variables: S<min_feedrate> V<min_travel_feedrate> B<min_segment_time_ms> X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>");
-    SERIAL_SMV(CFG, "  M205 S", LINEAR_UNIT(Mechanics.min_feedrate_mm_s), 3);
-    SERIAL_MV(" V", LINEAR_UNIT(Mechanics.min_travel_feedrate_mm_s), 3);
-    SERIAL_MV(" B", Mechanics.min_segment_time);
-    SERIAL_MV(" X", LINEAR_UNIT(Mechanics.max_jerk[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.max_jerk[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.max_jerk[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M205 S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
+    SERIAL_MV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
+    SERIAL_MV(" B", mechanics.min_segment_time);
+    SERIAL_MV(" X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", LINEAR_UNIT(Mechanics.max_jerk[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", LINEAR_UNIT(mechanics.max_jerk[E_AXIS]), 3);
     #endif
     SERIAL_EOL();
     #if (EXTRUDERS > 1)
       for(int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
-        SERIAL_EMV(" E" , LINEAR_UNIT(Mechanics.max_jerk[E_AXIS + i]), 3);
+        SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
       }
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)
       CONFIG_MSG_START("Home offset:");
-      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(Mechanics.home_offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.home_offset[Y_AXIS]), 3);
-      SERIAL_EMV(" Z", LINEAR_UNIT(Mechanics.home_offset[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(mechanics.home_offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.home_offset[Y_AXIS]), 3);
+      SERIAL_EMV(" Z", LINEAR_UNIT(mechanics.home_offset[Z_AXIS]), 3);
     #endif
 
     #if HOTENDS > 1
@@ -1332,29 +1332,29 @@ void EEPROM::Factory_Settings() {
 
       CONFIG_MSG_START("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" X", LINEAR_UNIT(Mechanics.delta_endstop_adj[A_AXIS]));
-      SERIAL_MV(" Y", LINEAR_UNIT(Mechanics.delta_endstop_adj[B_AXIS]));
-      SERIAL_MV(" Z", LINEAR_UNIT(Mechanics.delta_endstop_adj[C_AXIS]));
+      SERIAL_MV(" X", LINEAR_UNIT(mechanics.delta_endstop_adj[A_AXIS]));
+      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.delta_endstop_adj[B_AXIS]));
+      SERIAL_MV(" Z", LINEAR_UNIT(mechanics.delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
       CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
       CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
-      SERIAL_MV(" A", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[0]), 3);
-      SERIAL_MV(" B", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[1]), 3);
-      SERIAL_MV(" C", LINEAR_UNIT(Mechanics.delta_diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", Mechanics.delta_tower_radius_adj[0], 3);
-      SERIAL_MV(" J", Mechanics.delta_tower_radius_adj[1], 3);
-      SERIAL_MV(" K", Mechanics.delta_tower_radius_adj[2], 3);
-      SERIAL_MV(" U", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[0]), 3);
-      SERIAL_MV(" V", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[1]), 3);
-      SERIAL_MV(" W", LINEAR_UNIT(Mechanics.delta_tower_pos_adj[2]), 3);
-      SERIAL_MV(" R", LINEAR_UNIT(Mechanics.delta_radius));
-      SERIAL_MV(" D", LINEAR_UNIT(Mechanics.delta_diagonal_rod));
-      SERIAL_MV(" S", Mechanics.delta_segments_per_second);
-      SERIAL_MV(" O", LINEAR_UNIT(Mechanics.delta_print_radius));
-      SERIAL_MV(" H", LINEAR_UNIT(Mechanics.delta_height), 3);
+      SERIAL_MV(" A", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[0]), 3);
+      SERIAL_MV(" B", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[1]), 3);
+      SERIAL_MV(" C", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[2]), 3);
+      SERIAL_MV(" I", mechanics.delta_tower_radius_adj[0], 3);
+      SERIAL_MV(" J", mechanics.delta_tower_radius_adj[1], 3);
+      SERIAL_MV(" K", mechanics.delta_tower_radius_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(mechanics.delta_tower_pos_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(mechanics.delta_tower_pos_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(mechanics.delta_tower_pos_adj[2]), 3);
+      SERIAL_MV(" R", LINEAR_UNIT(mechanics.delta_radius));
+      SERIAL_MV(" D", LINEAR_UNIT(mechanics.delta_diagonal_rod));
+      SERIAL_MV(" S", mechanics.delta_segments_per_second);
+      SERIAL_MV(" O", LINEAR_UNIT(mechanics.delta_print_radius));
+      SERIAL_MV(" H", LINEAR_UNIT(mechanics.delta_height), 3);
       SERIAL_EOL();
 
     #endif

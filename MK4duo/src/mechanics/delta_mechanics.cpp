@@ -27,10 +27,11 @@
  */
 
 #include "../../base.h"
+#include "delta_mechanics.h"
 
 #if IS_DELTA
 
-  Delta_Mechanics Mechanics;
+  Delta_Mechanics mechanics;
 
   void Delta_Mechanics::Init() {
     delta_diagonal_rod              = DELTA_DIAGONAL_ROD;
@@ -56,60 +57,10 @@
     recalc_delta_settings();
   }
 
-  /**
-   * Get an axis position according to stepper position(s)
-   */
-  float Delta_Mechanics::get_axis_position_mm(AxisEnum axis) {
-    return stepper.position(axis) * steps_to_mm[axis];
+  void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
+    _set_position_mm(lx, ly, lz, e);
   }
-
-  /**
-   * Directly set the planner XYZ position (and stepper positions)
-   * converting mm into steps.
-   */
-  void Delta_Mechanics::set_position_mm(const float &a, const float &b, const float &c, const float &e) {
-
-    planner.position[A_AXIS] = LROUND(a * axis_steps_per_mm[A_AXIS]),
-    planner.position[B_AXIS] = LROUND(b * axis_steps_per_mm[B_AXIS]),
-    planner.position[C_AXIS] = LROUND(c * axis_steps_per_mm[C_AXIS]),
-    planner.position[E_AXIS] = LROUND(e * axis_steps_per_mm[E_INDEX]);
-
-    #if ENABLED(LIN_ADVANCE)
-      planner.position_float[A_AXIS] = a;
-      planner.position_float[B_AXIS] = b;
-      planner.position_float[C_AXIS] = c;
-      planner.position_float[E_AXIS] = e;
-    #endif
-
-    stepper.set_position(planner.position[A_AXIS], planner.position[B_AXIS], planner.position[C_AXIS], planner.position[E_AXIS]);
-    planner.zero_previous_nominal_speed();
-    planner.zero_previous_speed();
-
-  }
-
-  /**
-   * Setters for planner position (also setting stepper position).
-   */
-  void Delta_Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
-
-    #if EXTRUDERS > 1
-      const uint8_t axis_index = axis + (axis == E_AXIS ? active_extruder : 0);
-    #else
-      const uint8_t axis_index = axis;
-    #endif
-
-    planner.position[axis] = LROUND(v * axis_steps_per_mm[axis_index]);
-
-    #if ENABLED(LIN_ADVANCE)
-      planner.position_float[axis] = v;
-    #endif
-
-    stepper.set_position(axis, v);
-    planner.zero_previous_speed(axis);
-
-  }
-
-  void Delta_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
+  void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
     #if HAS_LEVELING
       float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
       bedlevel.apply_leveling(lpos);
@@ -117,7 +68,7 @@
       const float * const lpos = position;
     #endif
     Transform(position);
-    set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   }
 
   /**
@@ -139,22 +90,6 @@
     cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
     cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
     cartesian_position[Z_AXIS] += LOGICAL_Z_POSITION(0);
-  }
-
-  /**
-   * Set the current_position for an axis based on
-   * the stepper positions, removing any leveling that
-   * may have been applied.
-   */
-  void Delta_Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
-    get_cartesian_from_steppers();
-    #if HAS_LEVELING
-      bedlevel.unapply_leveling(cartesian_position);
-    #endif
-    if (axis == ALL_AXES)
-      COPY_ARRAY(current_position, cartesian_position);
-    else
-      current_position[axis] = cartesian_position[axis];
   }
 
   /**
@@ -188,7 +123,7 @@
 
     // If the move is only in Z/E don't split up the move
     if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
       set_current_to_destination();
       return;
     }
@@ -255,33 +190,14 @@
         }
       #endif
 
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder, active_driver);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder);
 
     }
 
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder, active_driver);
+    planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
 
     set_current_to_destination();
   }
-
-  /**
-   * line_to_current_position
-   * Move the planner to the current position from wherever it last moved
-   * (or from wherever it has been told it is located).
-   */
-  void Delta_Mechanics::line_to_current_position() {
-    planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder, active_driver);
-  }
-
-  /**
-   * line_to_destination
-   * Move the planner to the position stored in the destination array, which is
-   * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
-   */
-  void Delta_Mechanics::line_to_destination(float fr_mm_s) {
-    planner.buffer_line(destination[A_AXIS], destination[B_AXIS], destination[C_AXIS], destination[E_AXIS], fr_mm_s, active_extruder, active_driver);
-  }
-  void Delta_Mechanics::line_to_destination() { line_to_destination(feedrate_mm_s); }
 
   /**
    *  Plan a move to (X, Y, Z) and set the current_position
@@ -356,28 +272,6 @@
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
     #endif
   }
-  void Delta_Mechanics::do_blocking_move_to(const float logical[XYZ], const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(logical[A_AXIS], logical[B_AXIS], logical[C_AXIS], fr_mm_s);
-  }
-  void Delta_Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(lx, current_position[B_AXIS], current_position[C_AXIS], fr_mm_s);
-  }
-  void Delta_Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(current_position[A_AXIS], current_position[B_AXIS], lz, fr_mm_s);
-  }
-  void Delta_Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
-    do_blocking_move_to(lx, ly, current_position[C_AXIS], fr_mm_s);
-  }
-
-  void Delta_Mechanics::sync_plan_position() {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
-    #endif
-    set_position_mm_kinematic(current_position);
-  }
-  void Delta_Mechanics::sync_plan_position_e() {
-    set_e_position_mm(current_position[E_AXIS]);
-  }
 
   /**
    * Calculate delta, start a line, and set current_position to destination
@@ -395,7 +289,7 @@
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder, active_driver);
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder);
 
     set_current_to_destination();
   }
@@ -549,7 +443,7 @@
     const float delta_B = rz + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - rx, towerY[B_AXIS] - ry ));
     const float delta_C = rz + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - rx, towerY[C_AXIS] - ry ));
 
-    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, active_extruder, active_driver);
+    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, active_extruder);
   }
 
   void Delta_Mechanics::Set_clip_start_height() {
@@ -563,58 +457,6 @@
     cartesian[Y_AXIS] = LOGICAL_Y_POSITION(delta_print_radius);
     Transform(cartesian);
     delta_clip_start_height = delta_height - FABS(distance - delta[A_AXIS]);
-  }
-
-  // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
-  void Delta_Mechanics::reset_acceleration_rates() {
-    #if EXTRUDERS > 1
-      #define HIGHEST_CONDITION (i < E_AXIS || i == E_INDEX)
-    #else
-      #define HIGHEST_CONDITION true
-    #endif
-    uint32_t highest_rate = 1;
-    LOOP_XYZE_N(i) {
-      max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
-      if (HIGHEST_CONDITION) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
-    }
-    planner.cutoff_long = 4294967295UL / highest_rate;
-  }
-
-  // Recalculate position, steps_to_mm if axis_steps_per_mm changes!
-  void Delta_Mechanics::refresh_positioning() {
-    LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-    set_position_mm_kinematic(current_position);
-    reset_acceleration_rates();
-  }
-
-  void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
-        SERIAL_MV(", ", distance);
-        SERIAL_MV(", ", fr_mm_s);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
-
-    // Tell the planner we're at Z=0
-    current_position[axis] = 0;
-
-    set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
-    current_position[axis] = distance;
-    planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder, active_driver);
-
-    stepper.synchronize();
-
-    endstops.hit_on_purpose();
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
   }
 
   void Delta_Mechanics::homeaxis(const AxisEnum axis) {
@@ -745,35 +587,6 @@
     #endif
   }
 
-  float Delta_Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
-    const uint8_t homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
-    uint8_t hbd = homing_bump_divisor[axis];
-    if (hbd < 1) {
-      hbd = 10;
-      SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");
-    }
-    return homing_feedrate_mm_s[axis] / hbd;
-  }
-
-  bool Delta_Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-    const bool  xx = x && !axis_homed[A_AXIS],
-                yy = y && !axis_homed[B_AXIS],
-                zz = z && !axis_homed[C_AXIS];
-
-    if (xx || yy || zz) {
-      SERIAL_SM(ECHO, MSG_HOME " ");
-      if (xx) SERIAL_MSG(MSG_X);
-      if (yy) SERIAL_MSG(MSG_Y);
-      if (zz) SERIAL_MSG(MSG_Z);
-      SERIAL_EM(" " MSG_FIRST);
-
-      #if ENABLED(ULTRA_LCD)
-        lcd_status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
-      #endif
-      return true;
-    }
-    return false;
-  }
   bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
     return HYPOT2(rx, ry) <= printRadiusSquared;
   }
@@ -781,12 +594,6 @@
     // both the nozzle and the probe must be able to reach the point
     return  position_is_reachable_raw_xy(rx, ry)
         &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
-  }
-  bool Delta_Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
-    return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
-  }
-  bool Delta_Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
-    return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
   }
 
   #if ENABLED(DELTA_AUTO_CALIBRATION_1)
@@ -1604,24 +1411,4 @@
 
   #endif
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-
-    void Delta_Mechanics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
-      SERIAL_PS(prefix);
-      SERIAL_CHR('(');
-      SERIAL_VAL(x);
-      SERIAL_MV(", ", y);
-      SERIAL_MV(", ", z);
-      SERIAL_CHR(")");
-
-      if (suffix) SERIAL_PS(suffix);
-      else SERIAL_EOL();
-    }
-
-    void Delta_Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
-      print_xyz(prefix, suffix, xyz[A_AXIS], xyz[B_AXIS], xyz[C_AXIS]);
-    }
-
-  #endif
-
-#endif
+#endif // IS_DELTA

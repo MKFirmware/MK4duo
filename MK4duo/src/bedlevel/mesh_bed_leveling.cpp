@@ -21,6 +21,7 @@
  */
 
 #include "../../base.h"
+#include "mesh_bed_leveling.h"
 
 #if ENABLED(MESH_BED_LEVELING)
 

@@ -459,7 +459,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
 
   static void logo_lines(const char* const extra) {
     int16_t indent = (LCD_WIDTH - 8 - lcd_strlen_P(extra)) / 2;
-    lcd.setCursor(indent, 0); lcd.write('\x00'); lcd_printPGM(PSTR( "------" ));  lcd.write('\x01');
+    lcd.setCursor(indent, 0); lcd.print('\x00'); lcd_printPGM(PSTR( "------" ));  lcd.write('\x01');
     lcd.setCursor(indent, 1);                    lcd_printPGM(PSTR("|MK4duo|"));  lcd_printPGM(extra);
     lcd.setCursor(indent, 2); lcd.write('\x02'); lcd_printPGM(PSTR( "------" ));  lcd.write('\x03');
   }
@@ -599,10 +599,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!Mechanics.axis_homed[axis])
+    if (!mechanics.axis_homed[axis])
       lcd.write('?');
     else {
-      if (!Mechanics.axis_known_position[axis])
+      if (!mechanics.axis_known_position[axis])
         lcd.write(' ');
       else
         lcd_printPGM(pstr);
@@ -785,16 +785,16 @@ static void lcd_implementation_status_screen() {
 
       #else
         // Before homing the axis letters are blinking 'X' <-> '?'.
-        // When axis is homed but Mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+        // When axis is homed but mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
-        lcd.print(ftostr4sign(Mechanics.current_position[X_AXIS]));
+        lcd.print(ftostr4sign(mechanics.current_position[X_AXIS]));
 
         lcd.write(' ');
 
         _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
-        lcd.print(ftostr4sign(Mechanics.current_position[Y_AXIS]));
+        lcd.print(ftostr4sign(mechanics.current_position[Y_AXIS]));
 
       #endif // HOTENDS > 1 || HAS_TEMP_BED
 
@@ -802,7 +802,7 @@ static void lcd_implementation_status_screen() {
 
     lcd.setCursor(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd.print(ftostr52sp(FIXFLOAT(Mechanics.current_position[Z_AXIS])));
+    lcd.print(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
 
   #endif // LCD_HEIGHT > 2
 
@@ -814,7 +814,7 @@ static void lcd_implementation_status_screen() {
 
     lcd.setCursor(0, 2);
     lcd.print((char)LCD_FEEDRATE_CHAR);
-    lcd.print(itostr3(Mechanics.feedrate_percentage));
+    lcd.print(itostr3(mechanics.feedrate_percentage));
     lcd.write('%');
 
     #if LCD_WIDTH >= 20 && HAS_SDSUPPORT
