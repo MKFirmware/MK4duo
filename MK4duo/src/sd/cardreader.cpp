@@ -42,7 +42,7 @@ CardReader::CardReader() {
     OUT_WRITE(SDPOWER, HIGH);
   #endif // SDPOWER
 
-  next_autostart_ms = millis() + SPLASH_SCREEN_DURATION;
+  next_autostart_ms = millis() + BOOTSCREEN_TIMEOUT;
 }
 
 char* CardReader::createFilename(char* buffer, const dir_t& p) { // buffer > 12characters

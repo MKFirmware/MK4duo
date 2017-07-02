@@ -11705,10 +11705,14 @@ void setup() {
 
   lcd_init();
   #if ENABLED(SHOW_BOOTSCREEN)
-    #if ENABLED(DOGLCD)
-      safe_delay(SPLASH_SCREEN_DURATION);
+    #if ENABLED(DOGLCD)                           // On DOGM the first bootscreen is already drawn
+      #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
+        safe_delay(CUSTOM_BOOTSCREEN_TIMEOUT);    // Custom boot screen pause
+        lcd_bootscreen();                         // Show MK4duo boot screen
+      #endif
+      safe_delay(BOOTSCREEN_TIMEOUT);
     #elif ENABLED(ULTRA_LCD)
-      bootscreen();
+      lcd_bootscreen();
       #if DISABLED(SDSUPPORT)
         lcd_init();
       #endif
