@@ -116,6 +116,7 @@
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
 #include "src/utility/nozzle.h"
+#include "src/utility/blinkm.h"
 #include "src/utility/hex_print_routines.h"
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
