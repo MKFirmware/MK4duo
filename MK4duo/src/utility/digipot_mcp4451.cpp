@@ -24,9 +24,9 @@
 
 #if ENABLED(DIGIPOT_I2C)
 
-#include "Stream.h"
-#include "utility/twi.h"
-#include "Wire.h"
+#include <Stream.h>
+#include <Wire.h>
+#include <utility/twi.h>
 
 #include "digipot_mcp4451.h"
 
