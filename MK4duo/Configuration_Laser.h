@@ -46,6 +46,10 @@
 // comment this line if your do not want to remap the intensity. Saves 154 bytes and a few CPU cycles
 #define LASER_REMAP_INTENSITY 7
 
+// Normally the intensity is a value between 0 and 100 percent.
+// If you want a value in bytes (0 to 255), activate the following function.
+//#define INTENSITY_IN_BYTE
+
 // Uncomment the following if your laser firing pin (not the PWM pin) for two pin control requires a HIGH signal to fire rather than a low (eg Red Sail M300 RS 3040)
 // #define HIGH_TO_FIRE
 

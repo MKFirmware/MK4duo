@@ -2284,7 +2284,11 @@ inline void gcode_G0_G1(
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
-        if (parser.seen('S')) laser.intensity = parser.value_float();
+        #if ENABLED(INTENSITY_IN_BYTE)
+          if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+        #else
+          if (parser.seenval('S')) laser.intensity = parser.value_float();
+        #endif
         if (parser.seen('L')) laser.duration = parser.value_ulong();
         if (parser.seen('P')) laser.ppm = parser.value_float();
         if (parser.seen('D')) laser.diagnostics = parser.value_bool();
@@ -2347,7 +2351,11 @@ inline void gcode_G0_G1(
       gcode_get_destination();
 
       #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
-        if (parser.seenval('S')) laser.intensity = parser.value_float();
+        #if ENABLED(INTENSITY_IN_BYTE)
+          if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+        #else
+          if (parser.seenval('S')) laser.intensity = parser.value_float();
+        #endif
         if (parser.seenval('L')) laser.duration = parser.value_ulong();
         if (parser.seenval('P')) laser.ppm = parser.value_float();
         if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
@@ -3189,7 +3197,7 @@ void home_all_axes() { gcode_G28(true); }
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE) && DISABLED(PROBE_MANUALLY)
-      const bool faux = parser.seen('C') && parser.value_bool();
+      const bool faux = parser.boolval('C');
     #elif ENABLED(PROBE_MANUALLY)
       const bool faux = no_action;
     #else
@@ -4543,7 +4551,11 @@ inline void gcode_G92() {
       #if ENABLED(LASER) && ENABLED(LASER_FIRE_SPINDLE)
         case PRINTER_MODE_LASER: {
           if (IsRunning()) {
-            if (parser.seenval('S')) laser.intensity = parser.value_float();
+            #if ENABLED(INTENSITY_IN_BYTE)
+              if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+            #else
+              if (parser.seenval('S')) laser.intensity = parser.value_float();
+            #endif
             if (parser.seenval('L')) laser.duration = parser.value_ulong();
             if (parser.seenval('P')) laser.ppm = parser.value_float();
             if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
@@ -5838,6 +5850,9 @@ inline void gcode_M115() {
     // PROGRESS (M530 S L, M531 <file>, M532 X L)
     SERIAL_LM(CAP, "PROGRESS:1");
 
+    // Print Job timer M75, M76, M77
+    SERIAL_LM(CAP, "PRINT_JOB:1");
+
     // AUTOLEVEL (G29)
     #if HAS_ABL
       SERIAL_LM(CAP, "AUTOLEVEL:1");
@@ -6953,9 +6968,10 @@ inline void gcode_M226() {
     pinMode(CASE_LIGHT_PIN, OUTPUT);
     uint8_t case_light_bright = (uint8_t)case_light_brightness;
     if (case_light_on) {
-      WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
-      analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
+      HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
+      WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
     }
+    else WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
   }
 
   /**

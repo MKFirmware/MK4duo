@@ -40,7 +40,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../../base.h"
+#include "../../base.h"
 
 #if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)
 
@@ -114,24 +114,6 @@
     if (laser.diagnostics) SERIAL_EM("Laser fired");
   }
 
-  void laser_fire_byte(uint8_t intensity) { // Fire with byte-range 0-255
-    laser.firing = LASER_ON;
-    laser.last_firing = micros(); // microseconds of last laser firing
-
-    #if ENABLED(LASER_PWM_INVERT)
-      intensity = 255 - intensity;
-    #endif
-
-    #if LASER_CONTROL == 1
-      HAL::AnalogWrite(LASER_PWR_PIN, intensity, LASER_PWM); // Range 0-255
-    #elif LASER_CONTROL == 2
-      HAL::AnalogWrite(LASER_PWM_PIN, intensity, LASER_PWM); // Range 0-255
-      WRITE(LASER_PWR_PIN, LASER_ARM);
-    #endif
-
-    if (laser.diagnostics) SERIAL_EM("Laser_byte fired");
-  }
-
   void laser_extinguish() {
     if (laser.firing == LASER_ON) {
       laser.firing = LASER_OFF;
@@ -160,7 +142,7 @@
     }
   }
 
-  void laser_set_mode(int mode) {
+  void laser_set_mode(uint8_t mode) {
     switch(mode) {
       case 0:
         laser.mode = CONTINUOUS;
