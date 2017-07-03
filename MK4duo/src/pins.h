@@ -28,7 +28,7 @@
 #define EEPROM_SPI_ALLIGATOR 2
 #define EEPROM_SDCARD 3
 
-#define INCLUDE_BY_MB(M)    STRINGIFY(boards/M.h)
+#define INCLUDE_BY_MB(M) STRINGIFY(boards/M.h)
 
 #include INCLUDE_BY_MB(MOTHERBOARD)
 

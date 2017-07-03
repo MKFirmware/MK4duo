@@ -189,9 +189,9 @@ void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &
 
   #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-    const float start[XYZ] = NOZZLE_CLEAN_START_POINT,
-                end[XYZ]   = NOZZLE_CLEAN_END_POINT,
-                middle[XYZ]= NOZZLE_CLEAN_CIRCLE_MIDDLE;
+    const float start[] = NOZZLE_CLEAN_START_POINT,
+                end[]   = NOZZLE_CLEAN_END_POINT,
+                middle[]= NOZZLE_CLEAN_CIRCLE_MIDDLE;
 
     #if MECH(DELTA)
       if (mechanics.current_position[Z_AXIS] > mechanics.clip_start_height)
@@ -217,7 +217,7 @@ void Nozzle::park(const uint8_t &z_action) {
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
     const float z       = mechanics.current_position[Z_AXIS],
-                park[XYZ]  = NOZZLE_PARK_POINT;
+                park[]  = NOZZLE_PARK_POINT;
 
     switch(z_action) {
       case 1: // force Z-park height

@@ -153,39 +153,31 @@
    *   - Raise to the BETWEEN height
    * - Return the probed Z position
    */
-  float Probe::check_pt(const float &x, const float &y, const bool stow/*=true*/, const int verbose_level/*=1*/) {
+  float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/, const int verbose_level/*=1*/, const bool printable/*=true*/) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
-        SERIAL_MV(">>> check_pt(", x);
-        SERIAL_MV(", ", y);
+        SERIAL_MV(">>> check_pt(", lx);
+        SERIAL_MV(", ", ly);
         SERIAL_MV(", ", stow ? "" : "no ");
         SERIAL_EM("stow)");
         DEBUG_POS("", mechanics.current_position);
       }
     #endif
 
-    if (!mechanics.position_is_reachable_by_probe_xy(x, y)) return NAN;
+    const float dx = lx - (X_PROBE_OFFSET_FROM_NOZZLE),
+                dy = ly - (Y_PROBE_OFFSET_FROM_NOZZLE);
+
+    if (printable)
+      if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
+    else
+      if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
     #if MECH(DELTA)
       if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
         mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
-    #endif
-
-    #if MECH(MAKERARM_SCARA)
-      vector_3 point = probe_point_to_end_point(x, y);
-      float dx = point.x, dy = point.y;
-      if (dx == 0.0 && dy == 0.0) {
-        #if HAS_BUZZER
-          BUZZ(100, 220);
-        #endif
-        return 0.0;
-      }
-    #else
-      const float dx = x - (X_PROBE_OFFSET_FROM_NOZZLE),
-                  dy = y - (Y_PROBE_OFFSET_FROM_NOZZLE);
     #endif
 
     // Ensure a minimum height before moving the probe
@@ -232,8 +224,8 @@
 
     if (verbose_level > 2) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, x, 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, y, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, lx, 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, ly, 3);
       SERIAL_EOL();
     }
 

@@ -107,7 +107,7 @@
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
-#include "src/motion/stepper.h"
+#include "src/stepper/stepper.h"
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"

@@ -84,7 +84,7 @@
        *   - Raise to the BETWEEN height
        * - Return the probed Z position
        */
-      static float check_pt(const float &x, const float &y, const bool stow=true, const int verbose_level=1);
+      static float check_pt(const float &lx, const float &ly, const bool stow=true, const int verbose_level=1, const bool printable=true);
 
       /**
        * Do a single Z probe

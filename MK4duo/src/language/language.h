@@ -286,8 +286,8 @@
 #define MSG_DIAM_E5 " 5"
 #define MSG_DIAM_E6 " 6"
 
-#define LANGUAGE_INCL(M) STRINGIFY(language_##M.h)
-#define INCLUDE_BY_LANGUAGE(M) LANGUAGE_INCL(M)
+#define LANGUAGE_INCL(M)        STRINGIFY(language_##M.h)
+#define INCLUDE_BY_LANGUAGE(M)  LANGUAGE_INCL(M)
 
 #include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE)
 
