@@ -40,7 +40,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../../base.h"
+#include "../../base.h"
 
 #if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_AVR)
 
