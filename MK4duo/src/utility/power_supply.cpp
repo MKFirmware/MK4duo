@@ -21,7 +21,6 @@
  */
 
 #include "../../base.h"
-#include "power_supply.h"
 
 #if HAS_POWER_SWITCH
 

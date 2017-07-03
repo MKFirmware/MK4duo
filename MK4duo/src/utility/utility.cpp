@@ -21,7 +21,6 @@
  */
 
 #include "../../base.h"
-#include "utility.h"
 
 #if HAS_LCD
 

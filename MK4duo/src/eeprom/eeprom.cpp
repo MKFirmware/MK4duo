@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV34"
+#define EEPROM_VERSION "MKV35"
 
 /**
  * MKV431 EEPROM Layout:
@@ -98,6 +98,7 @@
  *  M666  IJK             mechanics.delta_tower_pos_adj         (float x3)
  *  M666  UVW             mechanics.delta_diagonal_rod_adj      (float x3)
  *  M666  O               mechanics.delta_print_radius          (float)
+ *  M666  Q               mechanics.delta_probe_radius          (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
@@ -400,6 +401,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(mechanics.delta_tower_pos_adj);
       EEPROM_WRITE(mechanics.delta_diagonal_rod_adj);
       EEPROM_WRITE(mechanics.delta_print_radius);
+      EEPROM_WRITE(mechanics.delta_probe_radius);
     #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -745,6 +747,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mechanics.delta_tower_pos_adj);
         EEPROM_READ(mechanics.delta_diagonal_rod_adj);
         EEPROM_READ(mechanics.delta_print_radius);
+        EEPROM_READ(mechanics.delta_probe_radius);
       #endif
 
       #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -1014,9 +1017,7 @@ void EEPROM::Factory_Settings() {
     probe.z_offset = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
-  #if MECH(DELTA)
-    mechanics.Init();
-  #endif
+  mechanics.Init();
 
   #if ENABLED(ULTIPANEL)
     lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
@@ -1328,7 +1329,7 @@ void EEPROM::Factory_Settings() {
       }
     #endif // HEATER_USES_AD595
 
-    #if MECH(DELTA)
+    #if IS_DELTA
 
       CONFIG_MSG_START("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
@@ -1354,6 +1355,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" D", LINEAR_UNIT(mechanics.delta_diagonal_rod));
       SERIAL_MV(" S", mechanics.delta_segments_per_second);
       SERIAL_MV(" O", LINEAR_UNIT(mechanics.delta_print_radius));
+      SERIAL_MV(" Q", LINEAR_UNIT(mechanics.delta_probe_radius));
       SERIAL_MV(" H", LINEAR_UNIT(mechanics.delta_height), 3);
       SERIAL_EOL();
 

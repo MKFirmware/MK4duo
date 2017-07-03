@@ -657,37 +657,6 @@
 
       SERIAL_EOL();
 
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-
-        float plane[XYZ];
-
-        #if MECH(DELTA)
-          gfx_clear((endstops.soft_endstop_max[X_AXIS]) * 2, (endstops.soft_endstop_max[Y_AXIS]) * 2, endstops.soft_endstop_max[Z_AXIS], true);
-        #else
-          gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS, true);
-        #endif
-
-        gfx_scale(1.4);
-
-        #if MECH(DELTA)
-          gfx_cursor_to(LEFT_PROBE_BED_POSITION + (endstops.soft_endstop_max[X_AXIS]), FRONT_PROBE_BED_POSITION + (endstops.soft_endstop_max[Y_AXIS]), 10);
-        #else
-          gfx_cursor_to(LEFT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION, 10);
-        #endif
-
-        for (plane[Y_AXIS] = FRONT_PROBE_BED_POSITION; plane[Y_AXIS] < BACK_PROBE_BED_POSITION; plane[Y_AXIS] += 5) {
-          for (plane[X_AXIS] = LEFT_PROBE_BED_POSITION; plane[X_AXIS] < RIGHT_PROBE_BED_POSITION; plane[X_AXIS] += 5) {
-            plane[Z_AXIS] = 10 + (bilinear_z_offset(plane) * 10);
-            #if MECH(DELTA)
-              gfx_plane_to(plane[X_AXIS] + (endstops.soft_endstop_max[X_AXIS]), plane[Y_AXIS] + (endstops.soft_endstop_max[Y_AXIS]), plane[Z_AXIS]);
-            #else
-              gfx_plane_to(plane[X_AXIS], plane[Y_AXIS], plane[Z_AXIS]);
-            #endif
-          }
-        }
-
-      #endif
-
     }
 
   #endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)

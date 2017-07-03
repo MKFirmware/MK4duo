@@ -510,13 +510,17 @@ class HAL {
 #undef FLOOR
 #undef LROUND
 #undef FMOD
+#undef COS
+#undef SIN
 #define ATAN2(y, x) atan2(y, x)
-#define FABS(x) fabs(x)
-#define POW(x, y) pow(x, y)
-#define SQRT(x) sqrt(x)
-#define CEIL(x) ceil(x)
-#define FLOOR(x) floor(x)
-#define LROUND(x) lround(x)
-#define FMOD(x, y) fmod(x, y)
+#define FABS(x)     fabs(x)
+#define POW(x, y)   pow(x, y)
+#define SQRT(x)     sqrt(x)
+#define CEIL(x)     ceil(x)
+#define FLOOR(x)    floor(x)
+#define LROUND(x)   lround(x)
+#define FMOD(x, y)  fmod(x, y)
+#define COS(x)      cos(x)
+#define SIN(x)      sin(x)
 
 #endif // HAL_AVR_H

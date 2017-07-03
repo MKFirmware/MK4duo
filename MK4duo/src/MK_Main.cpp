@@ -503,12 +503,6 @@ bool enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
   return false;
 }
 
-void setup_killpin() {
-  #if HAS_KILL
-    SET_INPUT_PULLUP(KILL_PIN);
-  #endif
-  }
-
 #if HAS_FIL_RUNOUT
   void setup_filrunoutpin() {
     #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
@@ -518,18 +512,6 @@ void setup_killpin() {
     #endif
   }
 #endif
-
-void setup_homepin(void) {
-  #if HAS_HOME
-    SET_INPUT_PULLUP(HOME_PIN);
-  #endif
-}
-
-void setup_photpin() {
-  #if HAS_PHOTOGRAPH
-    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
-  #endif
-}
 
 void setup_powerhold() {
   #if HAS_SUICIDE
@@ -4478,7 +4460,7 @@ inline void gcode_G92() {
   mechanics.report_current_position();
 }
 
-#if HAS(RESUME_CONTINUE)
+#if HAS_RESUME_CONTINUE
 
   /**
    * M0: Unconditional stop - Wait for user button press on LCD
@@ -8160,6 +8142,7 @@ inline void gcode_M532() {
    *    Y = Beta  (Tower 2) Endstop Adjust
    *    Z = Gamma (Tower 3) Endstop Adjust
    *    O = Print radius
+   *    Q = Probe radius
    *    P = Z probe offset
    *    H = Z Height
    */
@@ -8172,7 +8155,7 @@ inline void gcode_M532() {
     }
 
     if (parser.seen('D')) mechanics.delta_diagonal_rod              = parser.value_linear_units();
-    if (parser.seen('R')) mechanics.delta_radius              = parser.value_linear_units();
+    if (parser.seen('R')) mechanics.delta_radius                    = parser.value_linear_units();
     if (parser.seen('S')) mechanics.delta_segments_per_second       = parser.value_float();
     if (parser.seen('A')) mechanics.delta_diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
     if (parser.seen('B')) mechanics.delta_diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
@@ -8184,6 +8167,7 @@ inline void gcode_M532() {
     if (parser.seen('V')) mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
     if (parser.seen('W')) mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
     if (parser.seen('O')) mechanics.delta_print_radius              = parser.value_linear_units();
+    if (parser.seen('Q')) mechanics.delta_probe_radius              = parser.value_linear_units();
 
     mechanics.recalc_delta_settings();
 
@@ -8252,6 +8236,7 @@ inline void gcode_M532() {
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.delta_diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.delta_segments_per_second);
       SERIAL_LMV(CFG, "O (Delta Print Radius): ",               mechanics.delta_print_radius);
+      SERIAL_LMV(CFG, "Q (Delta Probe Radius): ",               mechanics.delta_probe_radius);
       SERIAL_LMV(CFG, "H (Z-Height): ",                         mechanics.delta_height, 3);
     }
   }
@@ -11557,7 +11542,9 @@ void setup() {
     setup_filrunoutpin();
   #endif
 
-  setup_killpin();
+  #if HAS_KILL
+    SET_INPUT_PULLUP(KILL_PIN);
+  #endif
 
   setup_powerhold();
 
@@ -11667,7 +11654,9 @@ void setup() {
     OUT_WRITE(SLED_PIN, LOW); // turn it off
   #endif
 
-  setup_homepin();
+  #if HAS_HOME
+    SET_INPUT_PULLUP(HOME_PIN);
+  #endif
 
   #if PIN_EXISTS(STAT_LED_RED_PIN)
     OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off

@@ -107,7 +107,7 @@
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
-#include "src/motion/stepper.h"
+#include "src/stepper/stepper.h"
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
@@ -129,6 +129,39 @@
 
 #if ENABLED(RFID_MODULE)
   #include "src/mfrc522/MFRC522_serial.h"
+#endif
+
+#if ENABLED(HAVE_TMCDRIVER)
+  #include <SPI.h>
+  #include <TMC26XStepper.h>
+#endif
+
+#if ENABLED(HAVE_TMC2130DRIVER)
+  #include <SPI.h>
+  #include <TMC2130Stepper.h>
+#endif
+
+#if ENABLED(HAVE_L6470DRIVER)
+  #include <SPI.h>
+  #include <L6470.h>
+#endif
+
+#if ENABLED(ULTRA_LCD)
+  #if ENABLED(LCD_I2C_TYPE_PCF8575)
+    #include <Wire.h>
+    #include <LiquidCrystal_I2C.h>
+  #elif ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)
+    #include <Wire.h>
+    #include <LiquidTWI2.h>
+  #elif ENABLED(LCM1602)
+    #include <Wire.h>
+    #include <LCD.h>
+    #include <LiquidCrystal_I2C.h>
+  #elif ENABLED(DOGLCD)
+    #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
+  #else
+    #include <LiquidCrystal.h> // library for character LCD
+  #endif
 #endif
 
 #endif /* _BASE_H_ */
