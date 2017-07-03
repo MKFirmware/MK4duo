@@ -127,10 +127,6 @@
   #include <SPI.h>
 #endif
 
-#if ENABLED(DIGIPOT_I2C)
-  #include <Wire.h>
-#endif
-
 #if ENABLED(RFID_MODULE)
   #include "src/mfrc522/MFRC522_serial.h"
 #endif
