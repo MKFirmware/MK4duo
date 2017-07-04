@@ -83,9 +83,19 @@ class Laser{
 		void Init();
 		void fire(float intensity=100.0);
 		void extinguish();
-		//void update_lifetime(); //Function not implemented yet
 		void set_mode(uint8_t mode);
-		void diagnose(); //PROBLEM: not implemented in laser_avr.cpp!!!
+
+		/*PROBLEM: not implemented yet!!!
+    * (NEVER USED IN MK4DUO)
+    *
+		* void update_lifetime();
+    */
+
+    /*PROBLEM: not implemented in laser_avr.cpp!!!
+    * (NEVER USED IN MK4DUO)
+    *
+		* void diagnose();
+		*/
 
 		#if ENABLED(LASER_PERIPHERALS)
 			bool peripherals_ok();
