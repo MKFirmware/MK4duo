@@ -23,16 +23,9 @@
 #ifndef __BUZZER_H__
   #define __BUZZER_H__
 
-  #if HAS_BUZZER
-
-    void buzz(long duration, uint16_t freq);
-
-    #define BUZZ(duration, freq) buzz(duration, freq)
-  
-  #else
-
-    #define BUZZ(duration, freq) { /* NOOP */ }
-
-  #endif
+  class Buzzer{
+    public:
+      void buzz(long duration, uint16_t freq);
+  };
 
 #endif // __BUZZER_H__
