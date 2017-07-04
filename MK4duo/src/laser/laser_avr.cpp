@@ -47,10 +47,8 @@
   #include <Arduino.h>
   #include <avr/interrupt.h>
 
-  Laser laser;
-  
-  #define PWM_PULSE_FREQUENCY (F_CPU / LASER_PWM)
-  #define PWM_MAPPED_INTENSITY labs((intensity / 100.0) * (PWM_PULSE_FREQUENCY))
+  #define PWM_PULSE_FREQUENCY   (F_CPU / LASER_PWM)
+  #define PWM_MAPPED_INTENSITY  labs((intensity / 100.0) * (PWM_PULSE_FREQUENCY))
 
   #if ENABLED(LASER_PWM_INVERT)
     #define OCR3_INIT      ICR3
@@ -67,6 +65,8 @@
 
   #define IS_TIMER_3_PWM (LASER_PWM_PIN == 2 || LASER_PWM_PIN == 3 || LASER_PWM_PIN == 5)
   #define IS_TIMER_4_PWM (LASER_PWM_PIN == 6 || LASER_PWM_PIN == 7 || LASER_PWM_PIN == 8)
+
+  Laser laser;
 
   void Laser::timer3_init(Pin pin) {
 
@@ -195,37 +195,37 @@
     #endif
 
     #if LASER_CONTROL == 1
-      
+
       #if LASER_PWR_PIN == 2
-        OCR3B= PWM_MAPPED_INTENSITY;
+        OCR3B = PWM_MAPPED_INTENSITY;
       #elif LASER_PWR_PIN == 3
-        OCR3C= PWM_MAPPED_INTENSITY;
+        OCR3C = PWM_MAPPED_INTENSITY;
       #elif LASER_PWR_PIN == 5
-        OCR3A= PWM_MAPPED_INTENSITY;
+        OCR3A = PWM_MAPPED_INTENSITY;
       #elif LASER_PWR_PIN == 6
-        OCR4A= PWM_MAPPED_INTENSITY;
+        OCR4A = PWM_MAPPED_INTENSITY;
       #elif LASER_PWR_PIN == 7
-        OCR4B= PWM_MAPPED_INTENSITY;
+        OCR4B = PWM_MAPPED_INTENSITY;
       #elif LASER_PWR_PIN == 8
-        OCR4C= PWM_MAPPED_INTENSITY;
+        OCR4C = PWM_MAPPED_INTENSITY;
       #endif
-   
+
     #elif LASER_CONTROL == 2
 
       #if LASER_PWM_PIN == 2
-        OCR3B= PWM_MAPPED_INTENSITY;
+        OCR3B = PWM_MAPPED_INTENSITY;
       #elif LASER_PWM_PIN == 3
-        OCR3C= PWM_MAPPED_INTENSITY;
+        OCR3C = PWM_MAPPED_INTENSITY;
       #elif LASER_PWM_PIN == 5
-        OCR3A= PWM_MAPPED_INTENSITY;
+        OCR3A = PWM_MAPPED_INTENSITY;
       #elif LASER_PWM_PIN == 6
-        OCR4A= PWM_MAPPED_INTENSITY;
+        OCR4A = PWM_MAPPED_INTENSITY;
       #elif LASER_PWM_PIN == 7
-        OCR4B= PWM_MAPPED_INTENSITY;
+        OCR4B = PWM_MAPPED_INTENSITY;
       #elif LASER_PWM_PIN == 8
-        OCR4C= PWM_MAPPED_INTENSITY;
+        OCR4C = PWM_MAPPED_INTENSITY;
       #endif
-      
+
       WRITE(LASER_PWR_PIN, LASER_ARM);
 
     #endif /* LASER_CONTROL */
@@ -297,6 +297,7 @@
   }
 
   #if ENABLED(LASER_PERIPHERALS)
+
     bool Laser::peripherals_ok() { return !digitalRead(LASER_PERIPHERALS_STATUS_PIN); }
 
     void Laser::peripherals_on() {
@@ -328,6 +329,7 @@
         }
       }
     }
+
   #endif // LASER_PERIPHERALS
 
-#endif // LASER
+#endif // ENABLED(LASER) && ENABLED(ARDUINO_ARCH_AVR)
