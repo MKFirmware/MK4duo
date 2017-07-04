@@ -2285,7 +2285,7 @@ inline void gcode_G0_G1(
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
       if (lfire) {
         #if ENABLED(INTENSITY_IN_BYTE)
-          if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+          if (parser.seenval('S')) laser.intensity = ((float)parser.value_byte() / 255.0) * 100.0;
         #else
           if (parser.seenval('S')) laser.intensity = parser.value_float();
         #endif
@@ -2352,7 +2352,7 @@ inline void gcode_G0_G1(
 
       #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
         #if ENABLED(INTENSITY_IN_BYTE)
-          if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+          if (parser.seenval('S')) laser.intensity = ((float)parser.value_byte() / 255.0) * 100.0;
         #else
           if (parser.seenval('S')) laser.intensity = parser.value_float();
         #endif
