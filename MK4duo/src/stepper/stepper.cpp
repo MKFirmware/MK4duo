@@ -522,7 +522,7 @@ void Stepper::isr() {
       if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
           SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
-        laser_extinguish();
+        laser.extinguish();
       }
     #endif
   #else
@@ -530,7 +530,7 @@ void Stepper::isr() {
       if (laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
           SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
-        laser_extinguish();
+        laser.extinguish();
       }
     #endif
   #endif
@@ -609,13 +609,13 @@ void Stepper::isr() {
   // Continuous firing of the laser during a move happens here, PPM and raster happen further down
   #if ENABLED(LASER)
     if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
-      laser_fire(current_block->laser_intensity);
+      laser.fire(current_block->laser_intensity);
 
     #if DISABLED(LASER_PULSE_METHOD)
       if (current_block->laser_status == LASER_OFF) {
         if (laser.diagnostics)
           SERIAL_EM("Laser status set to off, in interrupt handler");
-        laser_extinguish();
+        laser.extinguish();
       }
     #endif
   #endif
@@ -820,7 +820,7 @@ void Stepper::isr() {
             laser_pulse(ulValue, current_block->laser_duration);
             laser.time += current_block->laser_duration / 1000; 
           #else
-            laser_fire(current_block->laser_intensity);
+            laser.fire(current_block->laser_intensity);
           #endif
           if (laser.diagnostics) {
             SERIAL_MV("X: ", counter_X);
@@ -839,7 +839,7 @@ void Stepper::isr() {
             #else
               // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
               // going from darkened paper to burning through paper.
-              laser_fire(current_block->laser_raster_data[counter_raster]); 
+              laser.fire(current_block->laser_raster_data[counter_raster]); 
             #endif
             if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
             counter_raster++;
@@ -856,7 +856,7 @@ void Stepper::isr() {
         if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
           if (laser.diagnostics)
             SERIAL_EM("Laser firing duration elapsed, in interrupt fast loop");
-          laser_extinguish();
+          laser.extinguish();
         }
       #endif // DISABLED(LASER_PULSE_METHOD)
     #endif // LASER
@@ -1039,12 +1039,12 @@ void Stepper::isr() {
 
     #if ENABLED(CPU_32_BIT)
       #if ENABLED(LASER)
-        laser_extinguish();
+        laser.extinguish();
       #endif
     #else
       #if ENABLED(LASER) && ENABLED(LASER_PULSE_METHOD)
         if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
-          laser_extinguish();
+          laser.extinguish();
       #endif
     #endif
   }

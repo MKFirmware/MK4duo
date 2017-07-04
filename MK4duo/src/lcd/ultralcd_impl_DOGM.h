@@ -467,7 +467,7 @@ static void lcd_implementation_status_screen() {
 
     if (printer_mode == PRINTER_MODE_LASER) {
       #if ENABLED(LASER_PERIPHERALS)
-        if (laser_peripherals_ok()) {
+        if (laser.peripherals_ok()) {
           u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
         }
       #endif
