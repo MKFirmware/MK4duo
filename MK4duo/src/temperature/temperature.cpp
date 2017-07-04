@@ -1828,7 +1828,7 @@ void Temperature::disable_all_heaters() {
 
     #if ENABLED(LASER)
       // No laser firing with no coolers running! (paranoia)
-      laser_extinguish();
+      laser.extinguish();
     #endif
 
     #if HAS_TEMP_COOLER

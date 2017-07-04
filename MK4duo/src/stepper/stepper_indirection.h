@@ -41,8 +41,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STEPPER_INDIRECTION_H
-#define STEPPER_INDIRECTION_H
+#ifndef _STEPPER_INDIRECTION_H_
+#define _STEPPER_INDIRECTION_H_
 
 // TMC26X drivers have STEP/DIR on normal pins, but ENABLE via SPI
 #if ENABLED(HAVE_TMCDRIVER)
@@ -692,4 +692,4 @@
 
 #endif
 
-#endif // STEPPER_INDIRECTION_H
+#endif /* _STEPPER_INDIRECTION_H_ */

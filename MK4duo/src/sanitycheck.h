@@ -1969,7 +1969,15 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO
 #endif
 
-#if ENABLED(LASER) 
+#if ENABLED(LASER)
+  #if ENABLED(LASER_PERIPHERALS)
+    #if !PIN_EXISTS(LASER_PERIPHERALS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
+    #if !PIN_EXISTS(LASER_PERIPHERALS_STATUS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_STATUS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
+  #endif
   #if (DISABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
      #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
   #else
@@ -1983,7 +1991,7 @@ static_assert(1 >= 0
       #endif
     #endif
   #endif
-#endif
+#endif /* ENABLED(LASER) */
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
   #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
