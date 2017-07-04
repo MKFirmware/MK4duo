@@ -44,72 +44,72 @@
 #define LASER_PWM_MAX_DUTY_CYCLE 255
 
 class Laser{
-	public: /** Public Parameters */
+  public: /** Public Parameters */
 
-		float     intensity,    // Laser firing instensity 0.0 - 100.0
-		          ppm;          // pulses per millimeter, for pulsed firing mode
+    float     intensity,    // Laser firing instensity 0.0 - 100.0
+              ppm;          // pulses per millimeter, for pulsed firing mode
 
-		uint32_t  duration,     // laser firing duration in microseconds, for pulsed firing mode
-		          dur;          // instantaneous duration
+    uint32_t  duration,     // laser firing duration in microseconds, for pulsed firing mode
+              dur;          // instantaneous duration
 
-		bool      status,       // LASER_ON / LASER_OFF - buffered
-		          firing,       // LASER_ON / LASER_OFF - instantaneous
-		          diagnostics;  // Verbose debugging output over serial
+    bool      status,       // LASER_ON / LASER_OFF - buffered
+              firing,       // LASER_ON / LASER_OFF - instantaneous
+              diagnostics;  // Verbose debugging output over serial
 
-		uint8_t   mode;         // CONTINUOUS, PULSED, RASTER
+    uint8_t   mode;         // CONTINUOUS, PULSED, RASTER
 
-		millis_t  last_firing;  // microseconds since last laser firing
+    millis_t  last_firing;  // microseconds since last laser firing
 
-		uint16_t  time,         // temporary counter to limit eeprom writes
-		          lifetime;     // laser lifetime firing counter in minutes
+    uint16_t  time,         // temporary counter to limit eeprom writes
+              lifetime;     // laser lifetime firing counter in minutes
 
-		#if ENABLED(LASER_RASTER)
+    #if ENABLED(LASER_RASTER)
 
-		  unsigned char raster_data[LASER_MAX_RASTER_LINE],
-		                rasterlaserpower;
+      unsigned char raster_data[LASER_MAX_RASTER_LINE],
+                    rasterlaserpower;
 
-		  float         raster_aspect_ratio,
-		                raster_mm_per_pulse;
+      float         raster_aspect_ratio,
+                    raster_mm_per_pulse;
 
-		  int           raster_raw_length,
-		                raster_num_pixels;
+      int           raster_raw_length,
+                    raster_num_pixels;
 
-		  uint8_t       raster_direction;
+      uint8_t       raster_direction;
 
-		#endif
+    #endif
 
-	public: /** Public Function */
+  public: /** Public Function */
 
-		void Init();
-		void fire(float intensity=100.0);
-		void extinguish();
-		void set_mode(uint8_t mode);
+    void Init();
+    void fire(float intensity=100.0);
+    void extinguish();
+    void set_mode(uint8_t mode);
 
-		/*PROBLEM: not implemented yet!!!
+    /*PROBLEM: not implemented yet!!!
     * (NEVER USED IN MK4DUO)
     *
-		* void update_lifetime();
+    * void update_lifetime();
     */
 
     /*PROBLEM: not implemented in laser_avr.cpp!!!
     * (NEVER USED IN MK4DUO)
     *
-		* void diagnose();
-		*/
+    * void diagnose();
+    */
 
-		#if ENABLED(LASER_PERIPHERALS)
-			bool peripherals_ok();
-			void peripherals_on();
-			void peripherals_off();
-			void wait_for_peripherals();
-		#endif // LASER_PERIPHERALS
+    #if ENABLED(LASER_PERIPHERALS)
+      bool peripherals_ok();
+      void peripherals_on();
+      void peripherals_off();
+      void wait_for_peripherals();
+    #endif // LASER_PERIPHERALS
 
-	private: /** Private Function */
+  private: /** Private Function */
 
-		#if ENABLED(ARDUINO_ARCH_AVR)
-			void timer3_init(Pin pin);
-			void timer4_init(Pin pin);
-		#endif
+    #if ENABLED(ARDUINO_ARCH_AVR)
+      void timer3_init(Pin pin);
+      void timer4_init(Pin pin);
+    #endif
 };
 
 extern Laser laser;

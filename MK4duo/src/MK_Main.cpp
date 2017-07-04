@@ -2487,7 +2487,7 @@ inline void gcode_G4() {
           case 1:
           case 4:
             mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
-          break;	  
+          break;
           case 2:
           case 3:
           case 5:
