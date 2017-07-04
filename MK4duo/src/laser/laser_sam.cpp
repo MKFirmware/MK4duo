@@ -201,4 +201,4 @@
     }
   #endif // LASER_PERIPHERALS
 
-#endif // LASER
+#endif // ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)

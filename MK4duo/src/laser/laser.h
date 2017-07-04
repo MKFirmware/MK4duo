@@ -41,8 +41,6 @@
 #define PULSED      1
 #define RASTER      2
 
-#define LASER_PWM_MAX_DUTY_CYCLE 255
-
 class Laser {
 
   public: /** Public Parameters */
