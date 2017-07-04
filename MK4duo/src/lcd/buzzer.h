@@ -25,7 +25,7 @@
 
   class Buzzer{
     public:
-      void buzz(long duration, uint16_t freq);
+      static void buzz(long duration, uint16_t freq);
   };
 
 #endif // __BUZZER_H__
