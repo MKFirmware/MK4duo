@@ -637,7 +637,7 @@ void kill_screen(const char* lcd_msg) {
     next_button_update_ms = millis() + 500;
 
     // Buzz and wait. The delay is needed for buttons to settle!
-    Buzzer::buzz(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+    BUZZ(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
     #if ENABLED(LCD_USE_I2C_BUZZER)
       HAL::delayMilliseconds(10);
     #endif
@@ -645,10 +645,10 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_completion_feedback(const bool good/*=true*/) {
     if (good) {
-      Buzzer::buzz(100, 659);
-      Buzzer::buzz(100, 698);
+      BUZZ(100, 659);
+      BUZZ(100, 698);
     }
-    else Buzzer::buzz(20, 440);
+    else BUZZ(20, 440);
   }
 
   inline void line_to_current_z() {

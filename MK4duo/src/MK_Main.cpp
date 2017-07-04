@@ -1877,7 +1877,7 @@ void gcode_get_destination() {
       if (ELAPSED(ms, next_buzz)) {
         if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
           next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 2500 : 400);
-          Buzzer::buzz(300, 2000);
+          BUZZ(300, 2000);
           runout_beep++;
         }
       }
@@ -3032,8 +3032,8 @@ void home_all_axes() { gcode_G28(true); }
           // After recording the last point, activate the mbl and home
           mbl_probe_index = -1;
           SERIAL_EM("Mesh probing done.");
-          Buzzer::buzz(100, 659);
-          Buzzer::buzz(100, 698);
+          BUZZ(100, 659);
+          BUZZ(100, 698);
           bedlevel.mesh_probing_done();
         }
         break;
@@ -6673,7 +6673,7 @@ inline void gcode_M226() {
     // Limits the tone duration to 0-5 seconds.
     NOMORE(duration, 5000);
 
-    Buzzer::buzz(duration, frequency);
+    BUZZ(duration, frequency);
   }
 #endif // HAS_BUZZER
 
@@ -7541,7 +7541,7 @@ inline void gcode_M400() { stepper.synchronize(); }
         else {
           SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
           LCD_ALERTMESSAGEPGM("Err: Too far!");
-          Buzzer::buzz(200, 40);
+          BUZZ(200, 40);
           err = true;
           break;
         }
@@ -7552,8 +7552,8 @@ inline void gcode_M400() { stepper.synchronize(); }
       mechanics.sync_plan_position();
       mechanics.report_current_position();
       LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-      Buzzer::buzz(100, 659);
-      Buzzer::buzz(100, 698);
+      BUZZ(100, 659);
+      BUZZ(100, 698);
     }
   }
 
@@ -9250,7 +9250,7 @@ inline void invalid_extruder_error(const uint8_t e) {
         while (wait_for_user) {
           #if HAS_BUZZER
             if (millis() - next_buzz > 60000) {
-              for (uint8_t i = 0; i < 3; i++) Buzzer::buzz(300, 1000);
+              for (uint8_t i = 0; i < 3; i++) BUZZ(300, 1000);
               next_buzz = millis();
             }
           #endif
