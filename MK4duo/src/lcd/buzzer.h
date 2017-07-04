@@ -21,22 +21,24 @@
  */
 
 #ifndef __BUZZER_H__
-  #define __BUZZER_H__
+#define __BUZZER_H__
 
-  #if HAS_BUZZER
+#if HAS_BUZZER
 
-    class Buzzer{
-      public:
-        static void buzz(long duration, uint16_t freq);
-    };
+  class Buzzer {
 
-    #define BUZZ(duration, freq) Buzzer::buzz(duration, freq)
-  
-  #else
+    public:
 
-    #define BUZZ(duration, freq) { /* NOOP */ }
+      static void buzz(long duration, uint16_t freq);
 
-  #endif /* HAS_BUFFER */
-  
+  };
+
+  #define BUZZ(duration, freq) Buzzer::buzz(duration, freq)
+
+#else
+
+  #define BUZZ(duration, freq) { /* NOOP */ }
+
+#endif /* HAS_BUFFER */
 
 #endif // __BUZZER_H__

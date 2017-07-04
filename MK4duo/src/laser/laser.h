@@ -43,7 +43,8 @@
 
 #define LASER_PWM_MAX_DUTY_CYCLE 255
 
-class Laser{
+class Laser {
+
   public: /** Public Parameters */
 
     float     intensity,    // Laser firing instensity 0.0 - 100.0
@@ -84,18 +85,6 @@ class Laser{
     void fire(float intensity=100.0);
     void extinguish();
     void set_mode(uint8_t mode);
-
-    /*PROBLEM: not implemented yet!!!
-    * (NEVER USED IN MK4DUO)
-    *
-    * void update_lifetime();
-    */
-
-    /*PROBLEM: not implemented in laser_avr.cpp!!!
-    * (NEVER USED IN MK4DUO)
-    *
-    * void diagnose();
-    */
 
     #if ENABLED(LASER_PERIPHERALS)
       bool peripherals_ok();
