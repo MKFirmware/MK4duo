@@ -71,7 +71,7 @@
   void Laser::timer3_init(Pin pin) {
 
     pinMode(pin, OUTPUT);
-    digitalWrite(pin, HIGH); //Should be replaced with LASER_ARM ???
+    digitalWrite(pin, HIGH);
 
     // Setup timer3 to fast PWM with OC w/ ICR3 as TOP
     noInterrupts();
@@ -101,7 +101,7 @@
   void Laser::timer4_init(Pin pin) {
 
     pinMode(pin, OUTPUT);
-    digitalWrite(pin, HIGH); //Should be replaced with LASER_ARM ???
+    digitalWrite(pin, HIGH);
 
     // Setup timer4 to fast PWM with OC w/ ICR4 as TOP
     noInterrupts();
