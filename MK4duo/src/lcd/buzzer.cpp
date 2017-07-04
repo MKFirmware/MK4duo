@@ -22,7 +22,8 @@
 
 #include "../../base.h"
 
-#if HAS_BUFFER
+#if HAS_BUZZER
+
   void Buzzer::buzz(long duration, uint16_t freq) {
     if (freq > 0) {
       #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -51,4 +52,5 @@
       HAL::delayMilliseconds(duration);
     }
   }
-#endif /* HAS_BUFFER */
+
+#endif /* HAS_BUZZER */
