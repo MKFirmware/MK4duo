@@ -44,9 +44,9 @@
 
 #if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)
 
-  laser_t laser;
+  Laser laser;
 
-  void laser_init() {
+  void Laser::Init() {
 
     #if LASER_CONTROL == 1
       if (!HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM)) {
@@ -87,11 +87,11 @@
     #endif // LASER_RASTER
     
     #if DISABLED(LASER_PULSE_METHOD)
-      laser_extinguish();
+      laser.extinguish();
     #endif
   }
 
-  void laser_fire(float intensity/*=100.0*/) {
+  void Laser::fire(float intensity/*=100.0*/) {
 
     laser.firing = LASER_ON;
     laser.last_firing = micros(); // microseconds of last laser firing
@@ -114,7 +114,7 @@
     if (laser.diagnostics) SERIAL_EM("Laser fired");
   }
 
-  void laser_extinguish() {
+  void Laser::extinguish() {
     if (laser.firing == LASER_ON) {
       laser.firing = LASER_OFF;
 
@@ -142,7 +142,7 @@
     }
   }
 
-  void laser_set_mode(uint8_t mode) {
+  void Laser::set_mode(uint8_t mode) {
     switch(mode) {
       case 0:
         laser.mode = CONTINUOUS;
@@ -156,7 +156,7 @@
     }
   }
 
-  void laser_diagnose() {
+  void Laser::diagnose() {
     if (!laser.diagnostics)
       return;
 
@@ -168,15 +168,15 @@
   }
 
   #if ENABLED(LASER_PERIPHERALS)
-    bool laser_peripherals_ok() { return !READ(LASER_PERIPHERALS_STATUS_PIN); }
+    bool Laser::peripherals_ok() { return !READ(LASER_PERIPHERALS_STATUS_PIN); }
 
-    void laser_peripherals_on() {
+    void Laser::peripherals_on() {
       WRITE(LASER_PERIPHERALS_PIN, LOW);
       if (laser.diagnostics)
         SERIAL_EM("Laser Peripherals Enabled");
     }
 
-    void laser_peripherals_off() {
+    void Laser::peripherals_off() {
       if (!READ(LASER_PERIPHERALS_STATUS_PIN)) {
         WRITE(LASER_PERIPHERALS_PIN, HIGH);
         if (laser.diagnostics)
@@ -184,12 +184,12 @@
       }
     }
 
-    void laser_wait_for_peripherals() {
+    void Laser::wait_for_peripherals() {
       unsigned long timeout = millis() + LASER_PERIPHERALS_TIMEOUT;
       if (laser.diagnostics)
         SERIAL_EM("Waiting for peripheral control board signal...");
 
-      while(!laser_peripherals_ok()) {
+      while(!peripherals_ok()) {
         if (millis() > timeout) {
           if (laser.diagnostics)
             SERIAL_LM(ER, "Peripheral control board failed to respond");

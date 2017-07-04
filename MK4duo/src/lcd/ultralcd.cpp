@@ -2855,7 +2855,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(submenu, "Set Focus", lcd_laser_focus_menu);
       MENU_ITEM(submenu, "Test Fire", lcd_laser_test_fire_menu);
       #if ENABLED(LASER_PERIPHERALS)
-        if (laser_peripherals_ok()) {
+        if (laser.peripherals_ok()) {
           MENU_ITEM(function, "Turn On Pumps/Fans", action_laser_acc_on);
         }
         else if (!(planner.movesplanned() || IS_SD_PRINTING)) {
@@ -2879,7 +2879,7 @@ void kill_screen(const char* lcd_msg) {
 
     void action_laser_acc_on() { enqueue_and_echo_commands_P(PSTR("M80")); }
     void action_laser_acc_off() { enqueue_and_echo_commands_P(PSTR("M81")); }
-    void action_laser_test_weak() { laser_fire(0.3); }
+    void action_laser_test_weak() { laser.fire(0.3); }
     void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
     void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
     void action_laser_test_100_50ms() { laser_test_fire(100, 50); }
@@ -2888,9 +2888,9 @@ void kill_screen(const char* lcd_msg) {
 
     void laser_test_fire(uint8_t power, int dwell) {
       enqueue_and_echo_commands_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
-      laser_fire(power);
+      laser.fire(power);
       delay(dwell);
-      laser_extinguish();
+      laser.extinguish();
     }
 
     float focalLength = 0;

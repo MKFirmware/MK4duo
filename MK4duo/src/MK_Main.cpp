@@ -2292,7 +2292,7 @@ inline void gcode_G0_G1(
         if (parser.seen('L')) laser.duration = parser.value_ulong();
         if (parser.seen('P')) laser.ppm = parser.value_float();
         if (parser.seen('D')) laser.diagnostics = parser.value_bool();
-        if (parser.seen('B')) laser_set_mode(parser.value_int());
+        if (parser.seen('B')) laser.set_mode(parser.value_int());
 
         laser.status = LASER_ON;
       }
@@ -2359,7 +2359,7 @@ inline void gcode_G0_G1(
         if (parser.seenval('L')) laser.duration = parser.value_ulong();
         if (parser.seenval('P')) laser.ppm = parser.value_float();
         if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
-        if (parser.seenval('B')) laser_set_mode(parser.value_int());
+        if (parser.seenval('B')) laser.set_mode(parser.value_int());
 
         laser.status = LASER_ON;
       #endif
@@ -4559,7 +4559,7 @@ inline void gcode_G92() {
             if (parser.seenval('L')) laser.duration = parser.value_ulong();
             if (parser.seenval('P')) laser.ppm = parser.value_float();
             if (parser.seenval('D')) laser.diagnostics = parser.value_bool();
-            if (parser.seenval('B')) laser_set_mode(parser.value_int());
+            if (parser.seenval('B')) laser.set_mode(parser.value_int());
           }
           laser.status = LASER_ON;
         }
@@ -5422,8 +5422,8 @@ inline void gcode_M78() {
     LCD_MESSAGEPGM(WELCOME_MSG);
 
     #if ENABLED(LASER) && ENABLED(LASER_PERIPHERALS)
-      laser_peripherals_on();
-      laser_wait_for_peripherals();
+      laser.peripherals_on();
+      laser.wait_for_peripherals();
     #endif
   }
 #endif // HAS_POWER_SWITCH
@@ -5446,9 +5446,9 @@ inline void gcode_M81() {
   #endif
 
   #if ENABLED(LASER)
-    laser_extinguish();
+    laser.extinguish();
     #if ENABLED(LASER_PERIPHERALS)
-      laser_peripherals_off();
+      laser.peripherals_off();
     #endif
   #endif
 
@@ -7923,7 +7923,7 @@ inline void gcode_M532() {
     if (IsRunning()) {
       if (parser.seen('L')) laser.duration = parser.value_ulong();
       if (parser.seen('P')) laser.ppm = parser.value_float();
-      if (parser.seen('B')) laser_set_mode(parser.value_int());
+      if (parser.seen('B')) laser.set_mode(parser.value_int());
       if (parser.seen('R')) laser.raster_mm_per_pulse = (parser.value_float());
     }
 
@@ -11188,9 +11188,9 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
         laser.lifetime += laser.time / 60000; // convert to minutes
         laser.time = 0;
       }
-      laser_extinguish();
+      laser.extinguish();
       #if ENABLED(LASER_PERIPHERALS)
-        laser_peripherals_off();
+        laser.peripherals_off();
       #endif
     #endif
   }
@@ -11470,9 +11470,9 @@ void kill(const char* lcd_msg) {
   thermalManager.disable_all_heaters(); // Turn off heaters again
 
   #if ENABLED(LASER)
-    laser_init();
+    laser.Init();
     #if ENABLED(LASER_PERIPHERALS)
-      laser_peripherals_off();
+      laser.peripherals_off();
     #endif
   #endif
 
@@ -11509,9 +11509,9 @@ void Stop() {
 
   #if ENABLED(LASER)
     if (laser.diagnostics) SERIAL_EM("Laser set to off, Stop() called");
-    laser_extinguish();
+    laser.extinguish();
     #if ENABLED(LASER_PERIPHERALS)
-      laser_peripherals_off();
+      laser.peripherals_off();
     #endif
   #endif
 
@@ -11692,7 +11692,7 @@ void setup() {
   #endif
 
   #if ENABLED(LASER)
-    laser_init();
+    laser.Init();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
