@@ -68,7 +68,8 @@
 #define UNUSED(x) (void) (x)
 
 // Macros to make a string from a macro
-#define STRINGIFY(M) #M
+#define _STRINGIFY_(M) #M
+#define STRINGIFY(M) _STRINGIFY_(M)
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
