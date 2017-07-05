@@ -826,9 +826,9 @@
       SERIAL_MV(" height ", delta_height, 3);
       SERIAL_MV(" diagonal rod ", delta_diagonal_rod, 3);
       SERIAL_MV(" delta radius ", delta_radius, 3);
-      SERIAL_MV(" Towers radius correction A", delta_tower_radius_adj[A_AXIS], 2);
-      SERIAL_MV(" B", delta_tower_radius_adj[B_AXIS], 2);
-      SERIAL_MV(" C", delta_tower_radius_adj[C_AXIS], 2);
+      SERIAL_MV(" Towers radius correction I", delta_tower_radius_adj[A_AXIS], 2);
+      SERIAL_MV(" J", delta_tower_radius_adj[B_AXIS], 2);
+      SERIAL_MV(" K", delta_tower_radius_adj[C_AXIS], 2);
       SERIAL_EOL();
 
       endstops.enable(true);
