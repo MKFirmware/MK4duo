@@ -191,7 +191,7 @@ void EEPROM::Postprocess() {
     LOOP_XYZ(i) endstops.update_software_endstops((AxisEnum)i);
   #endif
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.set_z_fade_height(bedlevel.z_fade_height);
   #endif
 

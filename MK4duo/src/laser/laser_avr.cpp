@@ -59,7 +59,7 @@
     #define OCR4_INIT      0
     #define OCR_EXTINGUISH 0
   #endif
-  
+
   #define IS_TIMER_3_PWR (LASER_PWR_PIN == 2 || LASER_PWR_PIN == 3 || LASER_PWR_PIN == 5)
   #define IS_TIMER_4_PWR (LASER_PWR_PIN == 6 || LASER_PWR_PIN == 7 || LASER_PWR_PIN == 8)
 

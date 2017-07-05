@@ -42,6 +42,10 @@ int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_spe
 uint8_t lcd_status_message_level;
 char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kana with up to 3*LCD_WIDTH+1
 
+#if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
+  bool lcd_wait_for_move;
+#endif
+
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t status_scroll_pos = 0;
 #endif
@@ -1517,8 +1521,6 @@ void kill_screen(const char* lcd_msg) {
 
     #elif ENABLED(PROBE_MANUALLY)
 
-      bool lcd_wait_for_move;
-
       //
       // Bed leveling is done. Wait for G29 to complete.
       // A flag is used so that this can release control
@@ -1922,10 +1924,10 @@ void kill_screen(const char* lcd_msg) {
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
 
-      line_to_z(Z_PROBE_BETWEEN_HEIGHT + (mechanics.print_radius) / 5);
+      line_to_z(Z_PROBE_BETWEEN_HEIGHT + (mechanics.delta_print_radius) / 5);
 
-      mechanics.current_position[X_AXIS] = a < 0 ? LOGICAL_X_POSITION(X_HOME_POS) : cos(RADIANS(a)) * mechanics.print_radius;
-      mechanics.current_position[Y_AXIS] = a < 0 ? LOGICAL_Y_POSITION(Y_HOME_POS) : sin(RADIANS(a)) * mechanics.print_radius;
+      mechanics.current_position[X_AXIS] = a < 0 ? LOGICAL_X_POSITION(0) : COS(RADIANS(a)) * mechanics.delta_print_radius;
+      mechanics.current_position[Y_AXIS] = a < 0 ? LOGICAL_Y_POSITION(0) : SIN(RADIANS(a)) * mechanics.delta_print_radius;
       line_to_current_z();
 
       line_to_z(4.0);
@@ -1938,8 +1940,8 @@ void kill_screen(const char* lcd_msg) {
 
     void _goto_tower_x() { _goto_tower_pos(210); }
     void _goto_tower_y() { _goto_tower_pos(330); }
-    void _goto_tower_z() { _goto_tower_pos(90); }
-    void _goto_center()  { _goto_tower_pos(-1); }
+    void _goto_tower_z() { _goto_tower_pos( 90); }
+    void _goto_center()  { _goto_tower_pos( -1); }
 
     void lcd_delta_calibrate_menu() {
       START_MENU();

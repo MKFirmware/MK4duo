@@ -128,22 +128,22 @@
 // Delta Printable radius
 #define DELTA_PRINTABLE_RADIUS 75.0         // mm
 
-//Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
+// Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
 #define TOWER_A_ENDSTOP_ADJ 0   // Front Left Tower
 #define TOWER_B_ENDSTOP_ADJ 0   // Front Right Tower
 #define TOWER_C_ENDSTOP_ADJ 0   // Rear Tower
 
-//Tower Position Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
+// Tower Radius Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
 #define TOWER_A_RADIUS_ADJ 0    // Front Left Tower
 #define TOWER_B_RADIUS_ADJ 0    // Front Right Tower
 #define TOWER_C_RADIUS_ADJ 0    // Rear Tower
 
-//Tower Radius Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
+// Tower Position Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
 #define TOWER_A_POSITION_ADJ 0  // Front Left Tower
 #define TOWER_B_POSITION_ADJ 0  // Front Right Tower
 #define TOWER_C_POSITION_ADJ 0  // Rear Tower
 
-//Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
+// Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
 #define TOWER_A_DIAGROD_ADJ 0   // Front Left Tower
 #define TOWER_B_DIAGROD_ADJ 0   // Front Right Tower
 #define TOWER_C_DIAGROD_ADJ 0   // Rear Tower

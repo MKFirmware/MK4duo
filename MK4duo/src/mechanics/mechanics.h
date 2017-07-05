@@ -239,8 +239,8 @@ class Mechanics {
     FORCE_INLINE void line_to_destination() { line_to_destination(feedrate_mm_s); }
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position
-     *  The final current_position may not be the one that was requested
+     * Plan a move to (X, Y, Z) and set the current_position
+     * The final current_position may not be the one that was requested
      */
     virtual void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s=0.0);
             void do_blocking_move_to(const float logical[ABC], const float &fr_mm_s=0.0);
@@ -285,6 +285,13 @@ class Mechanics {
     virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
             bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
             bool position_is_reachable_xy(const float &lx, const float &ly);
+
+    #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+      /**
+       * Manual goto xy for Mesh Bed levelo or Probe Manually
+       */
+      virtual void manual_goto_xy(const float &x, const float &y);
+    #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);

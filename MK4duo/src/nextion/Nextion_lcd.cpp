@@ -916,9 +916,7 @@
       else if (ptr == &BedSend) {
         #if ENABLED(PROBE_MANUALLY)
           if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
-          #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-            else if (mechanics.g33_in_progress) enqueue_and_echo_commands_P(PSTR("G33"));
-          #endif
+          wait_for_user = false;
         #endif
       }
     }
