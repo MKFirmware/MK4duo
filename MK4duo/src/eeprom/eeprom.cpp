@@ -338,7 +338,7 @@ void EEPROM::Postprocess() {
     //
     // General Leveling
     //
-    #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       EEPROM_WRITE(bedlevel.z_fade_height);
     #endif
 
@@ -369,7 +369,7 @@ void EEPROM::Postprocess() {
     //
     // Bilinear Auto Bed Leveling
     //
-    #if HAS_LEVELING && ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       static_assert(
         sizeof(bedlevel.z_values) == GRID_MAX_POINTS * sizeof(bedlevel.z_values[0][0]),
         "Bilinear Z array is the wrong size."
@@ -670,7 +670,7 @@ void EEPROM::Postprocess() {
       //
       // General Leveling
       //
-      #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         EEPROM_READ(bedlevel.z_fade_height);
       #endif
 
@@ -707,7 +707,7 @@ void EEPROM::Postprocess() {
       //
       // Bilinear Auto Bed Leveling
       //
-      #if HAS_LEVELING && ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
         uint8_t grid_max_x, grid_max_y;
         EEPROM_READ(grid_max_x);              // 1 byte
         EEPROM_READ(grid_max_y);              // 1 byte
@@ -1001,7 +1001,7 @@ void EEPROM::Factory_Settings() {
   mechanics.max_jerk[Y_AXIS] = DEFAULT_YJERK;
   mechanics.max_jerk[Z_AXIS] = DEFAULT_ZJERK;
 
-  #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0;
   #endif
 
