@@ -125,6 +125,10 @@
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
+      #if ENABLED(PROBE_MANUALLY)
+        void manual_goto_xy(const float &x, const float &y) override;
+      #endif
+
       #if HAS_DELTA_AUTO_CALIBRATION
         void auto_calibration();
       #endif

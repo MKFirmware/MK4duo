@@ -506,10 +506,6 @@
     #endif
   #endif
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && DISABLED(AUTO_BED_LEVELING_FEATURE)
-    #error "ENABLE_LEVELING_FADE_HEIGHT on DELTA requires AUTO_BED_LEVELING_FEATURE."
-  #endif
-
   static_assert(1 >= 0
     #if ENABLED(DELTA_AUTO_CALIBRATION_1)
       +1
@@ -646,13 +642,15 @@ static_assert(1 >= 0
     #error "Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
     #error "DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
+    #error "DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
 #endif
 
-#if !HAS_BED_PROBE
-  #if ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3)
-    #error "Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+#if !HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
+  #if ENABLED(DELTA_AUTO_CALIBRATION_3)
+    #error "DELTA_AUTO_CALIBRATION_3 requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
@@ -733,6 +731,13 @@ static_assert(1 >= 0
   #endif // !ABL_GRID
 
 #endif // HAS_ABL
+
+/**
+ * ENABLE_LEVELING_FADE_HEIGHT requirements
+ */
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
+  #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
+#endif
 
 /**
  * LCD_BED_LEVELING requirements
@@ -1991,7 +1996,7 @@ static_assert(1 >= 0
       #endif
     #endif
   #endif
-#endif /* ENABLED(LASER) */
+#endif // ENABLED(LASER)
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
   #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR

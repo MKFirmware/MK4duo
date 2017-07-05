@@ -155,87 +155,134 @@
    */
   float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/, const int verbose_level/*=1*/, const bool printable/*=true*/) {
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
-        SERIAL_MV(">>> check_pt(", lx);
-        SERIAL_MV(", ", ly);
-        SERIAL_MV(", ", stow ? "" : "no ");
-        SERIAL_EM("stow)");
-        DEBUG_POS("", mechanics.current_position);
-      }
-    #endif
+    #if ENABLED(PROBE_MANUALLY)
 
-    const float dx = lx - (X_PROBE_OFFSET_FROM_NOZZLE),
-                dy = ly - (Y_PROBE_OFFSET_FROM_NOZZLE);
+      UNUSED(stow);
+      UNUSED(verbose_level);
+      UNUSED(printable);
 
-    if (printable)
-      if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
-    else
-      if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
-
-    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-
-    #if MECH(DELTA)
-      if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
-        mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
-    #endif
-
-    // Ensure a minimum height before moving the probe
-    raise(Z_PROBE_BETWEEN_HEIGHT);
-
-    mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
-
-    // Move the probe to the given XY
-    mechanics.do_blocking_move_to_xy(dx, dy);
-
-    if (set_deployed(true)) return NAN;
-
-    float measured_z = 0.0;
-
-    // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
-    refresh_cmd_timeout();
-
-    // If the nozzle is above the travel height then
-    // move down quickly before doing the slow probe
-    float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
-    if (z_offset < 0) z -= z_offset;
-    if (z < mechanics.current_position[Z_AXIS])
-      mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-
-    for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
-
-      // move down slowly to find bed
-      move_to_z(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
-
-      measured_z += RAW_CURRENT_POSITION(Z) + z_offset;
-
-      if (r + 1 < Z_PROBE_REPETITIONS) {
-        // move up by the bump distance
-        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + mechanics.home_bump_mm[Z_AXIS], MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-      }
-    }
-
-    measured_z /= (float)Z_PROBE_REPETITIONS;
-
-    if (!stow)
+      // Ensure a minimum height before moving the probe
       raise(Z_PROBE_BETWEEN_HEIGHT);
-    else
-      if (set_deployed(false)) return NAN;
 
-    if (verbose_level > 2) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, lx, 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, ly, 3);
-      SERIAL_EOL();
-    }
+      // Move the probe to the given XY
+      mechanics.manual_goto_xy(lx, ly);
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< check_pt");
-    #endif
+      // Disable software endstops to allow manual adjustment
+      #if HAS_SOFTWARE_ENDSTOPS
+        const bool old_enable_soft_endstops = endstops.soft_endstops_enabled;
+        endstops.soft_endstops_enabled = false;
+      #endif
 
-    mechanics.feedrate_mm_s = old_feedrate_mm_s;
+      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      wait_for_user = true;
 
-    return measured_z;
+      #if ENABLED(ULTIPANEL)
+        lcd_move_menu_01mm();
+      #elif ENABLED(NEXTION)
+        LcdBedLevelOn();
+      #endif
+
+      while (wait_for_user) idle();
+
+      #if ENABLED(NEXTION)
+        LcdBedLevelOff();
+      #endif
+
+      KEEPALIVE_STATE(IN_HANDLER);
+
+      // Re-enable software endstops, if needed
+      #if HAS_SOFTWARE_ENDSTOPS
+        endstops.soft_endstops_enabled = old_enable_soft_endstops;
+      #endif
+
+      return RAW_CURRENT_POSITION(Z);
+
+    #else // !ENABLED(PROBE_MANUALLY)
+  
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) {
+          SERIAL_MV(">>> check_pt(", lx);
+          SERIAL_MV(", ", ly);
+          SERIAL_MV(", ", stow ? "" : "no ");
+          SERIAL_EM("stow)");
+          DEBUG_POS("", mechanics.current_position);
+        }
+      #endif
+
+      const float dx = lx - (X_PROBE_OFFSET_FROM_NOZZLE),
+                  dy = ly - (Y_PROBE_OFFSET_FROM_NOZZLE);
+
+      if (printable)
+        if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
+      else
+        if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
+
+      const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+
+      #if MECH(DELTA)
+        if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
+          mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
+      #endif
+
+      // Ensure a minimum height before moving the probe
+      raise(Z_PROBE_BETWEEN_HEIGHT);
+
+      mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+      // Move the probe to the given XY
+      mechanics.do_blocking_move_to_xy(dx, dy);
+
+      if (set_deployed(true)) return NAN;
+
+      float measured_z = 0.0;
+
+      // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
+      refresh_cmd_timeout();
+
+      // If the nozzle is above the travel height then
+      // move down quickly before doing the slow probe
+      float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
+      if (z_offset < 0) z -= z_offset;
+      if (z < mechanics.current_position[Z_AXIS])
+        mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+
+      for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
+
+        // move down slowly to find bed
+        move_to_z(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+
+        measured_z += RAW_CURRENT_POSITION(Z) + z_offset;
+
+        if (r + 1 < Z_PROBE_REPETITIONS) {
+          // move up by the bump distance
+          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + mechanics.home_bump_mm[Z_AXIS], MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        }
+      }
+
+      measured_z /= (float)Z_PROBE_REPETITIONS;
+
+      if (!stow)
+        raise(Z_PROBE_BETWEEN_HEIGHT);
+      else
+        if (set_deployed(false)) return NAN;
+
+      if (verbose_level > 2) {
+        SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
+        SERIAL_MV(MSG_BED_LEVELING_X, lx, 3);
+        SERIAL_MV(MSG_BED_LEVELING_Y, ly, 3);
+        SERIAL_EOL();
+      }
+
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("<<< check_pt");
+      #endif
+
+      mechanics.feedrate_mm_s = old_feedrate_mm_s;
+
+      return measured_z;
+
+    #endif // !ENABLED(PROBE_MANUALLY)
+
   }
 
   /**

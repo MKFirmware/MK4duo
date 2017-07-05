@@ -2775,10 +2775,6 @@ inline void gcode_G28(const bool always_home_all) {
   // Cancel the active G29 session
   #if ENABLED(PROBE_MANUALLY)
     g29_in_progress = false;
-    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-      // Cancel the active G30 session
-      g33_in_progress = false;
-    #endif
     #if HAS_NEXTION_MANUAL_BED
       LcdBedLevelOff();
     #endif
@@ -2886,54 +2882,6 @@ void home_all_axes() { gcode_G28(true); }
   }
 #endif
 
-#if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
-
-  #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
-    extern bool lcd_wait_for_move;
-  #endif
-
-  inline void _manual_goto_xy(const float &x, const float &y) {
-    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-
-    #if MANUAL_PROBE_HEIGHT > 0
-      mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[Z_AXIS];
-      mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-      #if MECH(DELTA)
-        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS], mechanics.feedrate_mm_s);
-      #else
-        mechanics.line_to_current_position();
-      #endif
-    #endif
-
-    mechanics.feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-    mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-    mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-    #if MECH(DELTA)
-      mechanics.do_blocking_move_to_xy(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.feedrate_mm_s);
-    #else
-      mechanics.line_to_current_position();
-    #endif
-
-    #if MANUAL_PROBE_HEIGHT > 0
-      mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[Z_AXIS];
-      mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
-      #if MECH(DELTA)
-        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS], mechanics.feedrate_mm_s);
-      #else
-        mechanics.line_to_current_position();
-      #endif
-    #endif
-
-    mechanics.feedrate_mm_s = old_feedrate_mm_s;
-    stepper.synchronize();
-
-    #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
-      lcd_wait_for_move = false;
-    #endif
-  }
-
-#endif // ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
-
 #if ENABLED(MESH_BED_LEVELING)
 
   // Save 130 bytes with non-duplication of PSTR
@@ -3013,7 +2961,7 @@ void home_all_axes() { gcode_G28(true); }
         // If there's another point to sample, move there with optional lift.
         if (mbl_probe_index < GRID_MAX_POINTS) {
           mbl.zigzag(mbl_probe_index, px, py);
-          _manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
+          mechanics.manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
 
           #if HAS_SOFTWARE_ENDSTOPS
             // Disable software endstops to allow manual adjustment
@@ -3520,7 +3468,7 @@ void home_all_axes() { gcode_G28(true); }
         #endif
         bedlevel.abl_enabled = abl_should_enable;
         g29_in_progress = false;
-        #if ENABLED(LCD_BED_LEVELING)
+        #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
           lcd_wait_for_move = false;
         #endif
       }
@@ -3611,7 +3559,7 @@ void home_all_axes() { gcode_G28(true); }
 
         // Is there a next point to move to?
         if (abl_probe_index < abl2) {
-          _manual_goto_xy(xProbe, yProbe); // Can be used here too!
+          mechanics.manual_goto_xy(xProbe, yProbe); // Can be used here too!
           #if HAS_SOFTWARE_ENDSTOPS
             // Disable software endstops to allow manual adjustment
             // If G29 is not completed, they will not be re-enabled
@@ -3799,7 +3747,7 @@ void home_all_axes() { gcode_G28(true); }
 
     #if ENABLED(PROBE_MANUALLY)
       g29_in_progress = false;
-      #if ENABLED(LCD_BED_LEVELING)
+      #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
         lcd_wait_for_move = false;
       #endif
     #endif
