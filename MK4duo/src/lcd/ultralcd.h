@@ -51,7 +51,7 @@
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
   #if ENABLED(PROBE_MANUALLY)
-    extern void lcd_move_menu_01mm();
+    extern void lcd_move_z_probe();
   #endif
 
   #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
