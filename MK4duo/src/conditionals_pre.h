@@ -39,41 +39,53 @@
   #endif
 
   #if ENABLED(SAV_3DGLCD)
-    //#define U8GLIB_SSD1306
-    #define U8GLIB_SH1106
-  #endif
 
-  #if ENABLED(RADDS_DISPLAY)
+    #define U8GLIB_SH1106
+
+  #elif ENABLED(RADDS_DISPLAY)
+
     #define ENCODER_PULSES_PER_STEP 2
     #define ENCODER_STEPS_PER_MENU_ITEM 1
     #define ULTIPANEL
     #define NEWPANEL
-  #endif
 
-  #if ENABLED(CARTESIO_UI)
+  #elif ENABLED(CARTESIO_UI)
+
     #define DOGLCD
     #define ULTIPANEL
     #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 90
     #define LCD_CONTRAST_MIN 60
     #define LCD_CONTRAST_MAX 140
-  #endif
 
-  #if ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+  #elif ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+
     #define DOGLCD
     #define ULTIPANEL
     #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 17
-  #endif
 
-  #if ENABLED(ANET_KEYPAD_LCD)
+  #elif ENABLED(ANET_KEYPAD_LCD)
+
+    #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
     #define ADC_KEYPAD
+    #define ADC_KEY_NUM 8
     #define ULTIPANEL
     #define NEWPANEL
-    #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
-  #endif
+    // this helps to implement ADC_KEYPAD menus
+    #define ENCODER_STEPS_PER_MENU_ITEM 1
+    #define REVERSE_MENU_DIRECTION
 
-  #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+  #elif ENABLED(ANET_FULL_GRAPHICS_LCD)
+
+    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+  #elif ENABLED(BQ_LCD_SMART_CONTROLLER)
+
+    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+  #elif ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+
     #define ULTRA_LCD // general LCD support, also 16x2
     #define DOGLCD    // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
     #define ULTIMAKERCONTROLLER // as available from the Ultimaker online store.
@@ -92,16 +104,22 @@
       #define SD_DETECT_INVERTED
     #endif
 
-  #endif
+  #elif ENABLED(RA_CONTROL_PANEL)
 
-  // Generic support for SSD1306 / SH1106 OLED based LCDs.
-  #if ENABLED(U8GLIB_SSD1306) || ENABLED(U8GLIB_SH1106)
-    #define ULTRA_LCD  //general LCD support, also 16x2
-    #define DOGLCD  // Support for I2C LCD 128x64 (Controller SSD1306 / SH1106 graphic Display Family)
-  #endif
+    #define LCD_I2C_TYPE_PCA8574
+    #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
+    #define ULTIPANEL
+    #define NEWPANEL
 
-  // WANHAO D6 OLED LCD
-  #if ENABLED(WANHAO_D6_OLED)
+  #elif ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+
+    #define DOGLCD
+    #define U8GLIB_ST7920
+    #define ULTIPANEL
+    #define NEWPANEL
+
+  #elif ENABLED(WANHAO_D6_OLED)
+
     #define U8GLIB_SSD1306
     #define LCD_WIDTH 22
     #define LCD_HEIGHT 5
@@ -111,17 +129,20 @@
     #define ULTRA_LCD  // general LCD support, also 16x2
     #define DOGLCD // Support for I2C LCD 128x64
     #define ULTIPANEL
+
+  #endif
+
+  // Generic support for SSD1306 / SH1106 OLED based LCDs.
+  #if ENABLED(U8GLIB_SSD1306) || ENABLED(U8GLIB_SH1106)
+    #define ULTRA_LCD  //general LCD support, also 16x2
+    #define DOGLCD  // Support for I2C LCD 128x64 (Controller SSD1306 / SH1106 graphic Display Family)
   #endif
 
   #if ENABLED(PANEL_ONE) || ENABLED(U8GLIB_SH1106)
     #define ULTIMAKERCONTROLLER
   #endif
 
-  #if ENABLED(BQ_LCD_SMART_CONTROLLER)
-    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
-  #endif
-
-  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) || ENABLED(ANET_FULL_GRAPHICS_LCD)
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
     #define DOGLCD
     #define U8GLIB_ST7920
     #define REPRAP_DISCOUNT_SMART_CONTROLLER
@@ -140,20 +161,6 @@
     #if ENABLED(ULTIPANEL) && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
       #define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
     #endif
-  #endif
-
-  #if ENABLED(RA_CONTROL_PANEL)
-    #define LCD_I2C_TYPE_PCA8574
-    #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
-    #define ULTIPANEL
-    #define NEWPANEL
-  #endif
-
-  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-    #define DOGLCD
-    #define U8GLIB_ST7920
-    #define ULTIPANEL
-    #define NEWPANEL
   #endif
 
   /**
