@@ -95,6 +95,8 @@
        */
       void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s=0.0) override;
 
+      void manual_goto_xy(const float &x, const float &y) override;
+
       /**
        * Delta function
        */
@@ -124,10 +126,6 @@
 
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
-
-      #if ENABLED(PROBE_MANUALLY)
-        void manual_goto_xy(const float &x, const float &y) override;
-      #endif
 
       #if HAS_DELTA_AUTO_CALIBRATION
         void auto_calibration();

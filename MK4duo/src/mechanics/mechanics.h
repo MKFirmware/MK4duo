@@ -249,6 +249,11 @@ class Mechanics {
             void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s=0.0);
 
     /**
+     * Manual goto xy for Mesh Bed level or Probe Manually
+     */
+    virtual void manual_goto_xy(const float &x, const float &y);
+
+    /**
      * sync_plan_position
      *
      * Set the planner/stepper positions directly from current_position with
@@ -285,13 +290,6 @@ class Mechanics {
     virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
             bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
             bool position_is_reachable_xy(const float &lx, const float &ly);
-
-    #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
-      /**
-       * Manual goto xy for Mesh Bed levelo or Probe Manually
-       */
-      virtual void manual_goto_xy(const float &x, const float &y);
-    #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);

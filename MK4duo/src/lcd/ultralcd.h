@@ -50,9 +50,7 @@
   extern uint8_t lcdDrawUpdate;
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
-  #if ENABLED(PROBE_MANUALLY)
-    extern void lcd_move_z_probe();
-  #endif
+  extern void lcd_move_z_probe();
 
   #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
     extern bool lcd_wait_for_move;
