@@ -2117,6 +2117,9 @@ void kill_screen(const char* lcd_msg) {
   void lcd_move_menu_10mm() { move_menu_scale = 10.0; lcd_goto_screen(_manual_move_func_ptr); }
   void lcd_move_menu_1mm()  { move_menu_scale =  1.0; lcd_goto_screen(_manual_move_func_ptr); }
   void lcd_move_menu_01mm() { move_menu_scale =  0.1; lcd_goto_screen(_manual_move_func_ptr); }
+  #if ENABLED(PROBE_MANUALLY)
+    void lcd_move_z_probe() { move_menu_scale = LCD_Z_STEP ; lcd_goto_screen(lcd_move_z); }
+  #endif
 
   void _lcd_move_distance_menu(AxisEnum axis, screenFunc_t func) {
     _manual_move_func_ptr = func;

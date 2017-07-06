@@ -177,7 +177,7 @@
       wait_for_user = true;
 
       #if ENABLED(ULTIPANEL)
-        lcd_move_menu_01mm();
+        lcd_move_z_probe();
       #elif ENABLED(NEXTION)
         LcdBedLevelOn();
       #endif
