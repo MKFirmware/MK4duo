@@ -101,9 +101,7 @@ extern volatile bool wait_for_heatup;
 
 extern const char axis_codes[NUM_AXIS];
 
-#if ENABLED(EMERGENCY_PARSER) || HAS(LCD)
-  extern volatile bool wait_for_user;
-#endif
+extern volatile bool wait_for_user;
 
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];

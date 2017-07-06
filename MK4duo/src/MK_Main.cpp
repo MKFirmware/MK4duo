@@ -181,9 +181,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if ENABLED(EMERGENCY_PARSER) || HAS_LCD
-  volatile bool wait_for_user = false;
-#endif
+volatile bool wait_for_user = false;
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
