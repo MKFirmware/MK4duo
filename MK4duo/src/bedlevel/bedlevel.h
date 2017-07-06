@@ -51,17 +51,17 @@
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
-      #define ABL_BG_FACTOR(A)  bilinear_grid_factor_virt[A]
+      #define ABL_BG_SPACING(A) bedlevel.bilinear_grid_spacing_virt[A]
+      #define ABL_BG_FACTOR(A)  bedlevel.bilinear_grid_factor_virt[A]
       #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
       #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
-      #define ABL_BG_GRID(X,Y)  z_values_virt[X][Y]
+      #define ABL_BG_GRID(X,Y)  bedlevel.z_values_virt[X][Y]
     #else
-      #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
-      #define ABL_BG_FACTOR(A)  bilinear_grid_factor[A]
+      #define ABL_BG_SPACING(A) bedlevel.bilinear_grid_spacing[A]
+      #define ABL_BG_FACTOR(A)  bedlevel.bilinear_grid_factor[A]
       #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
       #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
-      #define ABL_BG_GRID(X,Y)  z_values[X][Y]
+      #define ABL_BG_GRID(X,Y)  bedlevel.z_values[X][Y]
     #endif
 
   #endif

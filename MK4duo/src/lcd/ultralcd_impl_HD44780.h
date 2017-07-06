@@ -308,7 +308,7 @@ const static PROGMEM byte clock[8] = {
   };
 
   #if ENABLED(LCD_PROGRESS_BAR)
-    const static PROGMEM byte progress[3][8] = { {
+    const static PROGMEM byte progress_bar[3][8] = { {
       B00000,
       B10000,
       B10000,
@@ -357,7 +357,7 @@ static void lcd_set_custom_characters(
       if (info_screen_charset != char_mode) {
         char_mode = info_screen_charset;
         if (info_screen_charset) { // Progress bar characters for info screen
-          for (int16_t i = 3; i--;) createChar_P(LCD_STR_PROGRESS[i], progress[i]);
+          for (int16_t i = 3; i--;) createChar_P(LCD_STR_PROGRESS[i], progress_bar[i]);
         }
         else { // Custom characters for submenus
           createChar_P(LCD_UPLEVEL_CHAR, uplevel);
@@ -859,7 +859,7 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LCD_PROGRESS_BAR)
 
-    // Draw the progress bar if the message has shown long enough
+    // Draw the progress_bar bar if the message has shown long enough
     // or if there is no message set.
     if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
       const uint8_t percent = card.percentDone();

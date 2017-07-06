@@ -273,6 +273,26 @@
     #endif
   }
 
+  void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
+
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT;
+    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], active_extruder);
+
+    current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+    current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder);
+
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), active_extruder);
+
+    stepper.synchronize();
+
+    #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+      lcd_wait_for_move = false;
+    #endif
+
+  }
+
   /**
    * Calculate delta, start a line, and set current_position to destination
    */
@@ -585,30 +605,6 @@
     return  position_is_reachable_raw_xy(rx, ry)
         &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
   }
-
-  #if ENABLED(PROBE_MANUALLY)
-
-    void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
-
-      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT;
-      planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], active_extruder);
-
-      current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-      current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder);
-
-      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED), active_extruder);
-
-      stepper.synchronize();
-
-      #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
-        lcd_wait_for_move = false;
-      #endif
-
-    }
-
-  #endif
 
   #if ENABLED(DELTA_AUTO_CALIBRATION_1)
 

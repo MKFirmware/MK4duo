@@ -1917,31 +1917,10 @@ void kill_screen(const char* lcd_msg) {
       lcd_goto_screen(_lcd_calibrate_homing);
     }
 
-    // Move directly to the tower position with uninterpolated moves
-    // If we used interpolated moves it would cause this to become re-entrant
-    void _goto_tower_pos(const float &a) {
-      #if HAS_LEVELING
-        bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
-      #endif
-
-      line_to_z(Z_PROBE_BETWEEN_HEIGHT + (mechanics.delta_print_radius) / 5);
-
-      mechanics.current_position[X_AXIS] = a < 0 ? LOGICAL_X_POSITION(0) : COS(RADIANS(a)) * mechanics.delta_print_radius;
-      mechanics.current_position[Y_AXIS] = a < 0 ? LOGICAL_Y_POSITION(0) : SIN(RADIANS(a)) * mechanics.delta_print_radius;
-      line_to_current_z();
-
-      line_to_z(4.0);
-
-      lcd_synchronize();
-
-      move_menu_scale = 0.1;
-      lcd_goto_screen(lcd_move_z);
-    }
-
-    void _goto_tower_x() { _goto_tower_pos(210); }
-    void _goto_tower_y() { _goto_tower_pos(330); }
-    void _goto_tower_z() { _goto_tower_pos( 90); }
-    void _goto_center()  { _goto_tower_pos( -1); }
+    void _goto_tower_x() { mechanics.manual_goto_xy(COS(RADIANS(210)) * mechanics.delta_print_radius, SIN(RADIANS(210)) * mechanics.delta_print_radius); }
+    void _goto_tower_y() { mechanics.manual_goto_xy(COS(RADIANS(330)) * mechanics.delta_print_radius, SIN(RADIANS(330)) * mechanics.delta_print_radius); }
+    void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_print_radius, SIN(RADIANS( 90)) * mechanics.delta_print_radius); }
+    void _goto_center()  { mechanics.manual_goto_xy(0,0); }
 
     void lcd_delta_calibrate_menu() {
       START_MENU();
@@ -2117,9 +2096,7 @@ void kill_screen(const char* lcd_msg) {
   void lcd_move_menu_10mm() { move_menu_scale = 10.0; lcd_goto_screen(_manual_move_func_ptr); }
   void lcd_move_menu_1mm()  { move_menu_scale =  1.0; lcd_goto_screen(_manual_move_func_ptr); }
   void lcd_move_menu_01mm() { move_menu_scale =  0.1; lcd_goto_screen(_manual_move_func_ptr); }
-  #if ENABLED(PROBE_MANUALLY)
-    void lcd_move_z_probe() { move_menu_scale = LCD_Z_STEP ; lcd_goto_screen(lcd_move_z); }
-  #endif
+  void lcd_move_z_probe()   { move_menu_scale = LCD_Z_STEP ; lcd_goto_screen(lcd_move_z); }
 
   void _lcd_move_distance_menu(AxisEnum axis, screenFunc_t func) {
     _manual_move_func_ptr = func;
@@ -2172,9 +2149,9 @@ void kill_screen(const char* lcd_msg) {
   #if IS_KINEMATIC
     #define _MOVE_XYZ_ALLOWED (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
     #if MECH(DELTA)
-      #define _MOVE_XY_ALLOWED (mechanics.current_position[Z_AXIS] <= mechanics.clip_start_height)
+      #define _MOVE_XY_ALLOWED (mechanics.current_position[Z_AXIS] <= mechanics.delta_clip_start_height)
       void lcd_lower_z_to_clip_height() {
-        line_to_z(mechanics.clip_start_height);
+        line_to_z(mechanics.delta_clip_start_height);
         lcd_synchronize();
       }
     #else
