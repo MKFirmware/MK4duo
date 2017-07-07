@@ -369,6 +369,10 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
 
+  #if !HEATER_IDLE_HANDLER
+    UNUSED(blink);
+  #endif
+
   #if HAS_TEMP_BED
     const bool isBed = heater < 0;
   #else
@@ -376,7 +380,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, cons
   #endif
 
   if (PAGE_UNDER(7)) {
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if HEATER_IDLE_HANDLER
       const bool is_idle = (!isBed ? thermalManager.is_heater_idle(heater) :
       #if HAS_TEMP_BED
         thermalManager.is_bed_idle()

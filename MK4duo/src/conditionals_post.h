@@ -355,7 +355,6 @@
 #define HAS_DONDOLO       (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR))
 
 // LCD
-#define HAS_LCD           (ENABLED(ULTIPANEL) || ENABLED(NEXTION))
 #define HAS_BTN_BACK      (PIN_EXISTS(BTN_BACK))
 
 // EEPROM support
@@ -843,6 +842,15 @@
 #endif
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
+/**
+ * Heater & Fan Pausing
+ */
+#if FAN_COUNT == 0
+  #undef PROBING_FANS_OFF
+#endif
+#define QUIET_PROBING       (HAS_BED_PROBE && (ENABLED(PROBING_HEATERS_OFF) || ENABLED(PROBING_FANS_OFF)))
+#define HEATER_IDLE_HANDLER (ENABLED(ADVANCED_PAUSE_FEATURE) || ENABLED(PROBING_HEATERS_OFF))
+
 #if HAS_CNCROUTER
   #if ENABLED(INVERTED_CNCROUTER_PIN)
     #define WRITE_CNCROUTER(v) WRITE(CNCROUTER_PIN, !v)
@@ -851,6 +859,9 @@
   #endif
 #endif
 
+/**
+ * Multiextruder with relè system
+ */
 #if ENABLED(MKR4) || ENABLED(MKR6) || ENABLED(MKR12)
   #if ENABLED(INVERTED_RELE_PINS)
     #define WRITE_RELE(pin, value) WRITE(pin, !value)

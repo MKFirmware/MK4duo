@@ -168,10 +168,10 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
     const float dx = lx - (X_PROBE_OFFSET_FROM_NOZZLE),
                 dy = ly - (Y_PROBE_OFFSET_FROM_NOZZLE);
 
-    if (printable)
+    if (printable) {
       if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
-    else
-      if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
+    }
+    else if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
@@ -237,7 +237,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
     return measured_z;
 
-  #else // !HAS_BED_PROBE
+  #elif HAS_RESUME_CONTINUE
 
     UNUSED(stow);
     UNUSED(verbose_level);
@@ -279,7 +279,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
     return RAW_CURRENT_POSITION(Z);
 
-  #endif // !HAS_BED_PROBE
+  #endif // HAS_RESUME_CONTINUE
 
 }
 
@@ -337,6 +337,18 @@ void Probe::single_probe() {
   mechanics.report_current_position();
 }
 
+#if QUIET_PROBING
+  void Probe::probing_pause(const bool p) {
+    #if ENABLED(PROBING_HEATERS_OFF)
+      thermalManager.pause(p);
+    #endif
+    #if ENABLED(PROBING_FANS_OFF)
+      fans_pause(p);
+    #endif
+    if (p) safe_delay(25);
+  }
+#endif // QUIET_PROBING
+
 #if ENABLED(BLTOUCH)
   void Probe::bltouch_command(int angle) {
     servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
@@ -376,8 +388,16 @@ void Probe::move_to_z(float z, float fr_mm_m) {
     set_bltouch_deployed(true);
   #endif
 
+  #if QUIET_PROBING
+    probing_pause(true);
+  #endif
+
   // Move down until probe triggered
   mechanics.do_blocking_move_to_z(LOGICAL_Z_POSITION(z), MMM_TO_MMS(fr_mm_m));
+
+  #if QUIET_PROBING
+    probing_pause(false);
+  #endif
 
   // Retract BLTouch immediately after a probe
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)

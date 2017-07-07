@@ -275,6 +275,10 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
     }
   #endif
 
+  #if QUIET_PROBING
+    if (axis == Z_AXIS) probe.probing_pause(true);
+  #endif
+
   // Tell the planner we're at Z=0
   current_position[axis] = 0;
 
@@ -283,6 +287,10 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
   planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], active_extruder);
 
   stepper.synchronize();
+
+  #if QUIET_PROBING
+    if (axis == Z_AXIS) probe.probing_pause(false);
+  #endif
 
   endstops.hit_on_purpose();
 

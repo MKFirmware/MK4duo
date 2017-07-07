@@ -251,7 +251,11 @@ class Temperature {
       static millis_t next_auto_fan_check_ms;
     #endif
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(PROBING_HEATERS_OFF)
+      static bool paused;
+    #endif
+
+    #if HEATER_IDLE_HANDLER
       static millis_t heater_idle_timeout_ms[HOTENDS];
       static bool heater_idle_timeout_exceeded[HOTENDS];
       #if HAS_TEMP_BED
@@ -612,7 +616,12 @@ class Temperature {
 
     #endif // BABYSTEPPING
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(PROBING_HEATERS_OFF)
+      static void pause(const bool p);
+      static bool is_paused() { return paused; }
+    #endif
+
+    #if HEATER_IDLE_HANDLER
       static void start_heater_idle_timer(uint8_t h, millis_t timeout_ms) {
         #if HOTENDS == 1
           UNUSED(h);
