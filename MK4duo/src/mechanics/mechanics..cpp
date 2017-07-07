@@ -192,39 +192,35 @@ void Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const f
   do_blocking_move_to(lx, ly, current_position[C_AXIS], fr_mm_s);
 }
 
-#if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+void Mechanics::manual_goto_xy(const float &x, const float &y) {
 
-  void Mechanics::manual_goto_xy(const float &x, const float &y) {
+  const float old_feedrate_mm_s = feedrate_mm_s;
 
-    const float old_feedrate_mm_s = feedrate_mm_s;
-
-    #if MANUAL_PROBE_HEIGHT > 0
-      feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
-      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-      line_to_current_position();
-    #endif
-
-    feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-    current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-    current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+  #if MANUAL_PROBE_HEIGHT > 0
+    feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
     line_to_current_position();
+  #endif
 
-    #if MANUAL_PROBE_HEIGHT > 0
-      feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
-      current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
-      line_to_current_position();
-    #endif
+  feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
+  current_position[X_AXIS] = LOGICAL_X_POSITION(x);
+  current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+  line_to_current_position();
 
-    feedrate_mm_s = old_feedrate_mm_s;
-    stepper.synchronize();
+  #if MANUAL_PROBE_HEIGHT > 0
+    feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS); // just slightly over the bed
+    line_to_current_position();
+  #endif
 
-    #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
-      lcd_wait_for_move = false;
-    #endif
+  feedrate_mm_s = old_feedrate_mm_s;
+  stepper.synchronize();
 
-  }
+  #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+    lcd_wait_for_move = false;
+  #endif
 
-#endif
+}
 
 /**
  * sync_plan_position

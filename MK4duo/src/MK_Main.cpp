@@ -181,9 +181,7 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-#if ENABLED(EMERGENCY_PARSER) || HAS_LCD
-  volatile bool wait_for_user = false;
-#endif
+volatile bool wait_for_user = false;
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
@@ -1411,7 +1409,9 @@ void clean_up_after_endstop_or_probe_move() {
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
-    KEEPALIVE_STATE(WAIT_HEATER);
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(NOT_BUSY);
+    #endif
 
     #if ENABLED(PRINTER_EVENT_LEDS)
       const float start_temp = thermalManager.degHotend(target_extruder);
@@ -1494,7 +1494,9 @@ void clean_up_after_endstop_or_probe_move() {
       #endif
     }
 
-    KEEPALIVE_STATE(IN_HANDLER);
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(IN_HANDLER);
+    #endif
   }
 
 #endif
@@ -1524,7 +1526,9 @@ void clean_up_after_endstop_or_probe_move() {
     wait_for_heatup = true;
     millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
-    KEEPALIVE_STATE(WAIT_HEATER);
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(NOT_BUSY);
+    #endif
 
     target_extruder = active_extruder; // for print_heaterstates
 
@@ -1601,7 +1605,9 @@ void clean_up_after_endstop_or_probe_move() {
 
     if (wait_for_heatup) LCD_MESSAGEPGM(MSG_BED_DONE);
 
-    KEEPALIVE_STATE(IN_HANDLER);
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(IN_HANDLER);
+    #endif
   }
 
 #endif // HAS_TEMP_BED
@@ -4609,6 +4615,8 @@ inline void gcode_M17() {
    * M23: Select a file
    */
   inline void gcode_M23() {
+    // Simplify3D includes the size, so zero out all spaces (#7227)
+    for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
     card.selectFile(parser.string_arg);
   }
 
@@ -6704,37 +6712,42 @@ inline void gcode_M226() {
   }
 #endif // PREVENT_COLD_EXTRUSION
 
-#if ENABLED(PIDTEMP)
+/**
+ * M303: PID relay autotune
+ *
+ *       S<temperature> sets the target temperature. (default target temperature = 150C)
+ *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
+ *       C<cycles>
+ *       U<bool> with a non-zero value will apply the result to current settings
+ */
+inline void gcode_M303() {
 
-  /**
-   * M303: PID relay autotune
-   *
-   *       S<temperature> sets the target temperature. (default target temperature = 150C)
-   *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
-   *       C<cycles>
-   *       U<bool> with a non-zero value will apply the result to current settings
-   */
-  inline void gcode_M303() {
-    #if HAS_PID_HEATING || HAS_PID_COOLING
-      const int   h = parser.seen('H') ? parser.value_int() : 0,
-                  c = parser.seen('C') ? parser.value_int() : 5;
-      const bool  u = parser.seen('U') && parser.value_bool() != 0;
+  #if HAS_PID_HEATING || HAS_PID_COOLING
+    const int   h = parser.seen('H') ? parser.value_int() : 0,
+                c = parser.seen('C') ? parser.value_int() : 5;
+    const bool  u = parser.seen('U') && parser.value_bool() != 0;
 
-      int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
+    int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
 
-      if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
+    if (WITHIN(h, 0, HOTENDS - 1)) target_extruder = h;
 
-      KEEPALIVE_STATE(NOT_BUSY); // don't send "busy: processing" messages during autotune output
-
-      thermalManager.PID_autotune(temp, h, c, u);
-
-      KEEPALIVE_STATE(IN_HANDLER);
-    #else
-      SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(NOT_BUSY);
     #endif
-  }
 
-#endif
+    thermalManager.PID_autotune(temp, h, c, u);
+
+    #if DISABLED(BUSY_WHILE_HEATING)
+      KEEPALIVE_STATE(IN_HANDLER);
+    #endif
+
+  #else
+
+    SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
+
+  #endif
+
+}
 
 #if ENABLED(PIDTEMPBED)
 
@@ -9351,8 +9364,8 @@ void process_next_command() {
 
       #if ENABLED(G38_PROBE_TARGET)
         case 38: // G38.2 & G38.3
-          if (subcode == 2 || subcode == 3)
-            gcode_G38(subcode == 2);
+          if (parser.subcode == 2 || parser.subcode == 3)
+            gcode_G38(parser.subcode == 2);
           break;
       #endif
 
@@ -9748,10 +9761,8 @@ void process_next_command() {
           gcode_M302(); break;
       #endif
 
-      #if ENABLED(PIDTEMP)
-        case 303: // M303: PID autotune
-          gcode_M303(); break;
-      #endif
+      case 303: // M303: PID autotune
+        gcode_M303(); break;
 
       #if ENABLED(PIDTEMPBED)
         case 304: // M304: Set Bed PID
@@ -11199,7 +11210,7 @@ void manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (ELAPSED(ms, previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
       && thermalManager.degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP) {
-      bool oldstatus;
+      bool oldstatus = 0;
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         oldstatus = E0_ENABLE_READ;
         enable_E0();
