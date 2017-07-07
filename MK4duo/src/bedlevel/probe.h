@@ -96,6 +96,10 @@ class Probe {
      */
     static void single_probe();
 
+    #if QUIET_PROBING
+      static void probing_pause(const bool p);
+    #endif
+
     #if ENABLED(BLTOUCH)
       static void bltouch_command(int angle);
       static void set_bltouch_deployed(const bool deploy);

@@ -131,12 +131,6 @@
         void auto_calibration();
       #endif
 
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-        void Adjust(const uint8_t numFactors, const float v[]);
-        void Convert_endstop_adj();
-      #endif
-
     private: /** Private Parameters */
 
       // Derived values
@@ -167,9 +161,16 @@
        */
       void Set_clip_start_height();
 
-      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        void NormaliseEndstopAdjustments();
-      #endif
+      void Adjust(const uint8_t numFactors, const float v[]);
+      void Convert_endstop_adj();
+      void NormaliseEndstopAdjustments();
+      float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
+
+      /**
+       * Print data
+       */
+      void print_signed_float(const char * const prefix, const float &f);
+      void print_G33_settings(const bool end_stops, const bool tower_angles);
 
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);

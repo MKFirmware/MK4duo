@@ -149,6 +149,10 @@ float filament_size[EXTRUDERS] = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA
 
 #if FAN_COUNT > 0
   int16_t fanSpeeds[FAN_COUNT] = { 0 };
+  #if ENABLED(PROBING_FANS_OFF)
+    bool fans_paused = false;
+    int16_t paused_fanSpeeds[FAN_COUNT] = { 0 };
+  #endif
 #endif
 #if HAS_CONTROLLERFAN
   uint8_t controller_fanSpeeds = 0;
@@ -181,7 +185,9 @@ static bool relative_mode = false;
 volatile bool wait_for_heatup = true;
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
-volatile bool wait_for_user = false;
+#if HAS_RESUME_CONTINUE
+  volatile bool wait_for_user = false;
+#endif
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
@@ -400,8 +406,6 @@ static bool send_ok[BUFSIZE];
  * ******************************** FUNCTIONS ********************************
  * ***************************************************************************
  */
-
-void stop();
 
 void get_available_commands();
 void process_next_command();
@@ -1110,6 +1114,24 @@ void clean_up_after_endstop_or_probe_move() {
   #endif // MAKERARM_SCARA
 
 #endif // HAS_BED_PROBE
+
+#if ENABLED(PROBING_FANS_OFF)
+
+  void fans_pause(const bool p) {
+    if (p != fans_paused) {
+      fans_paused = p;
+      if (p)
+        LOOP_FAN() {
+          paused_fanSpeeds[f] = fanSpeeds[f];
+          fanSpeeds[f] = 0;
+        }
+      else
+        LOOP_FAN()
+          fanSpeeds[f] = paused_fanSpeeds[f];
+    }
+  }
+
+#endif // PROBING_FANS_OFF
 
 #if ENABLED(FWRETRACT)
 
@@ -5393,11 +5415,12 @@ inline void gcode_M81() {
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
   stepper.finish_and_disable();
+
   #if FAN_COUNT > 0
-    #if FAN_COUNT > 1
-      LOOP_FAN() fanSpeeds[f] = 0;
-    #else
-      fanSpeeds[0] = 0;
+    LOOP_FAN() fanSpeeds[f] = 0;
+    #if ENABLED(PROBING_FANS_OFF)
+      fans_paused = false;
+      ZERO(paused_fanSpeeds);
     #endif
   #endif
 
@@ -11465,6 +11488,10 @@ void Stop() {
 
   thermalManager.disable_all_heaters();
   thermalManager.disable_all_coolers();
+
+  #if ENABLED(PROBING_FANS_OFF)
+    if (fans_paused) fans_pause(false); // put things back the way they were
+  #endif
 
   #if ENABLED(LASER)
     if (laser.diagnostics) SERIAL_EM("Laser set to off, Stop() called");

@@ -252,7 +252,11 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
   millis_t Temperature::next_auto_fan_check_ms = 0;
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
+#if ENABLED(PROBING_HEATERS_OFF)
+  bool Temperature::paused;
+#endif
+
+#if HEATER_IDLE_HANDLER
   millis_t Temperature::heater_idle_timeout_ms[HOTENDS] = { 0 };
   bool Temperature::heater_idle_timeout_exceeded[HOTENDS] = { false };
   #if HAS_TEMP_BED
@@ -713,7 +717,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
       temp_dState[HOTEND_INDEX][pid_pointer[HOTEND_INDEX]++] = current_temperature[HOTEND_INDEX];
       pid_pointer[HOTEND_INDEX] &= 3;
       float error = target_temperature[HOTEND_INDEX] - current_temperature[HOTEND_INDEX];
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      #if HEATER_IDLE_HANDLER
         if (heater_idle_timeout_exceeded[HOTEND_INDEX]) {
           pid_output = 0;
           temp_iState[HOTEND_INDEX] = 0;
@@ -723,7 +727,11 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
       if (error > PID_FUNCTIONAL_RANGE) {
         pid_output = PID_MAX;
       }
-      else if (error < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0) {
+      else if (error < -(PID_FUNCTIONAL_RANGE) || target_temperature[HOTEND_INDEX] == 0 
+        #if HEATER_IDLE_HANDLER
+          || heater_idle_timeout_exceeded[HOTEND_INDEX]
+        #endif
+      ) {
         pid_output = 0;
       }
       else {
@@ -764,7 +772,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     #endif // PID_DEBUG
 
   #elif HAS_TEMP_HOTEND /* PID off and have Hotend*/
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if HEATER_IDLE_HANDLER
       if (heater_idle_timeout_exceeded[HOTEND_INDEX])
         pid_output = 0;
       else
@@ -916,7 +924,7 @@ void Temperature::manage_temp_controller() {
     if (current_temperature[0] < max(HEATER_0_MINTEMP, MAX6675_TMIN + .01)) min_temp_error(0);
   #endif
 
-  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS_AUTO_FAN
+  #if WATCH_HOTENDS || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || DISABLED(PIDTEMPBED) || DISABLED(PIDTEMPCHAMBER) || DISABLED(PIDTEMPCOOLER) || HAS_AUTO_FAN || HEATER_IDLE_HANDLER
     millis_t ms = millis();
   #endif
 
@@ -924,7 +932,7 @@ void Temperature::manage_temp_controller() {
 
     LOOP_HOTEND() {
 
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      #if HEATER_IDLE_HANDLER
         if (!heater_idle_timeout_exceeded[h] && heater_idle_timeout_ms[h] && ELAPSED(ms, heater_idle_timeout_ms[h]))
           heater_idle_timeout_exceeded[h] = true;
       #endif
@@ -1005,7 +1013,7 @@ void Temperature::manage_temp_controller() {
 
   #if HAS_TEMP_BED
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if HEATER_IDLE_HANDLER
       if (!bed_idle_timeout_exceeded && bed_idle_timeout_ms && ELAPSED(ms, bed_idle_timeout_ms))
         bed_idle_timeout_exceeded = true;
     #endif
@@ -1014,7 +1022,7 @@ void Temperature::manage_temp_controller() {
       thermal_runaway_protection(&thermal_runaway_bed_state_machine, &thermal_runaway_bed_timer, current_temperature_bed, target_temperature_bed, -1, THERMAL_PROTECTION_BED_PERIOD, THERMAL_PROTECTION_BED_HYSTERESIS);
     #endif
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if HEATER_IDLE_HANDLER
       if (bed_idle_timeout_exceeded) {
         soft_pwm_bed = 0;
 
@@ -1600,6 +1608,10 @@ void Temperature::init() {
       #endif
     }
   #endif // COOLER_MAXTEMP
+
+  #if ENABLED(PROBING_HEATERS_OFF)
+    paused = false;
+  #endif
 }
 
 #if WATCH_HOTENDS
@@ -1715,7 +1727,7 @@ void Temperature::init() {
     else
       temp_controller_index = HOTENDS + 2; // COOLER
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if HEATER_IDLE_HANDLER
       // If the heater idle timeout expires, restart
       if (temp_controller_id >= 0 && heater_idle_timeout_exceeded[temp_controller_id]) {
         *state = TRInactive;
@@ -1771,6 +1783,11 @@ void Temperature::disable_all_heaters() {
   #endif
   #if HAS_TEMP_CHAMBER
     setTargetChamber(0);
+  #endif
+
+  // Unpause and reset everything
+  #if ENABLED(PROBING_HEATERS_OFF)
+    pause(false);
   #endif
 
   // If all heaters go down then for sure our print job has stopped
@@ -1840,6 +1857,28 @@ void Temperature::disable_all_heaters() {
     #endif
   }
 #endif
+
+#if ENABLED(PROBING_HEATERS_OFF)
+
+  void Temperature::pause(const bool p) {
+    if (p != paused) {
+      paused = p;
+      if (p) {
+        LOOP_HOTEND() start_heater_idle_timer(h, 0); // timeout immediately
+        #if HAS_TEMP_BED
+          start_bed_idle_timer(0); // timeout immediately
+        #endif
+      }
+      else {
+        LOOP_HOTEND() reset_heater_idle_timer(h);
+        #if HAS_TEMP_BED
+          reset_bed_idle_timer();
+        #endif
+      }
+    }
+  }
+
+#endif // PROBING_HEATERS_OFF
 
 #if ENABLED(HEATER_0_USES_MAX6675)
 

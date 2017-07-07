@@ -101,7 +101,9 @@ extern volatile bool wait_for_heatup;
 
 extern const char axis_codes[NUM_AXIS];
 
-extern volatile bool wait_for_user;
+#if HAS_RESUME_CONTINUE
+  extern volatile bool wait_for_user;
+#endif
 
 // Hotend offset
 extern float hotend_offset[XYZ][HOTENDS];
@@ -133,6 +135,11 @@ extern float hotend_offset[XYZ][HOTENDS];
 
 #if FAN_COUNT > 0
   extern int16_t fanSpeeds[FAN_COUNT];
+  #if ENABLED(PROBING_FANS_OFF)
+    extern bool fans_paused;
+    extern int16_t paused_fanSpeeds[FAN_COUNT];
+    extern void fans_pause(const bool p);
+  #endif
 #endif
 #if HAS_CONTROLLERFAN
   extern uint8_t controller_fanSpeeds;
