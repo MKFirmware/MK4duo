@@ -320,6 +320,13 @@
     #define HAS_LCD_CONTRAST false
   #endif
 
+  // Boot screens
+  #if DISABLED(ULTRA_LCD)
+    #undef SHOW_BOOTSCREEN
+  #elif DISABLED(BOOTSCREEN_TIMEOUT)
+    #define BOOTSCREEN_TIMEOUT 2500
+  #endif
+
   #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
 
   /**

@@ -119,6 +119,8 @@
 //#define HOST_KEEPALIVE_FEATURE
 // Number of seconds between "busy" messages. Set with M113.
 #define DEFAULT_KEEPALIVE_INTERVAL 2
+// Some hosts require "busy" messages even during heating
+#define BUSY_WHILE_HEATING
 /***********************************************************************/
 
 
