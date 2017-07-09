@@ -132,8 +132,12 @@
     if (!position_is_reachable_xy(destination[A_AXIS], destination[B_AXIS])) return;
 
     // Get the cartesian distances moved in XYZE
-    float difference[NUM_AXIS];
-    LOOP_XYZE(i) difference[i] = destination[i] - current_position[i];
+    const float difference[XYZE] = {
+      destination[A_AXIS] - current_position[A_AXIS],
+      destination[B_AXIS] - current_position[B_AXIS],
+      destination[C_AXIS] - current_position[C_AXIS],
+      destination[E_AXIS] - current_position[E_AXIS]
+    };
 
     // Get the linear distance in XYZ
     float cartesian_mm = SQRT(sq(difference[A_AXIS]) + sq(difference[B_AXIS]) + sq(difference[C_AXIS]));

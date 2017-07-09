@@ -141,6 +141,11 @@ class Temperature {
       static bool tooColdToExtrude(uint8_t h) { UNUSED(h); return false; }
     #endif
 
+    #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+      static uint8_t auto_report_temp_interval;
+      static millis_t next_temp_report_ms;
+    #endif
+
   private:
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -668,6 +673,26 @@ class Temperature {
       #endif
     #endif
 
+    #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+      static void auto_report_temperatures();
+    #endif
+
+    #if HAS_TEMP_HOTEND || HAS_TEMP_BED
+      static void print_heaterstates();
+    #endif
+
+    #if HAS_TEMP_CHAMBER
+      static void print_chamberstate();
+    #endif
+
+    #if HAS_TEMP_COOLER
+      static void print_coolerstate();
+    #endif
+
+    #if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
+      static void print_MCUstate();
+    #endif
+
   private:
 
     static void updateTemperaturesFromRawValues();
@@ -728,6 +753,16 @@ class Temperature {
       int current_raw_powconsumption;
       static unsigned long raw_powconsumption_value;
     #endif
+
+    #if HAS_TEMP_HOTEND || HAS_TEMP_BED
+      static void print_heater_state(const float &c, const int16_t &t,
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          const int16_t r,
+        #endif
+        const int8_t e=-2
+      );
+    #endif
+
 };
 
 extern Temperature thermalManager;

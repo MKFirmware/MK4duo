@@ -205,6 +205,7 @@ extern PrintCounter print_job_counter;
 // Handling multiple extruders pins
 extern uint8_t  active_extruder,
                 previous_extruder,
+                target_extruder,
                 active_driver;
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -214,18 +215,6 @@ extern uint8_t  active_extruder,
 #if ENABLED(DIGIPOT_I2C)
   extern void digipot_i2c_set_current( int channel, float current );
   extern void digipot_i2c_init();
-#endif
-
-#if HAS(TEMP_0) || HAS_TEMP_BED || ENABLED(HEATER_0_USES_MAX6675)
-  void print_heaterstates();
-#endif
-
-#if HAS_TEMP_CHAMBER
-  void print_chamberstate();
-#endif
-
-#if HAS_TEMP_COOLER
-  void print_coolerstate();
 #endif
 
 #if ENABLED(FLOWMETER_SENSOR)

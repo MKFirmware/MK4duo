@@ -41,11 +41,12 @@
  */
 
 #include "../../base.h"
-#include <Arduino.h>
 
-#ifdef RFID_MODULE
+#if ENABLED(RFID_MODULE)
 
   #include "MFRC522_serial.h"
+
+  MFRC522 RFID522;
 
   uint8_t MFRC522Data[20];
 

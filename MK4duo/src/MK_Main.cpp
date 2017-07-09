@@ -38,10 +38,6 @@
   #include "HAL/HAL_endstop_interrupts.h"
 #endif
 
-#if ENABLED(RFID_MODULE)
-  MFRC522 RFID522;
-#endif
-
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
   void gcode_M100();
   #if ENABLED(M100_FREE_MEMORY_DUMPER)
@@ -60,10 +56,6 @@
 
 #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
   bool flow_firstread = false;
-#endif
-
-#if HAS_POWER_SWITCH
-  Power powerManager;
 #endif
 
 bool Running = true;
@@ -169,9 +161,8 @@ float hotend_offset[XYZ][HOTENDS];
 // The active extruder (tool). Set with T<extruder> command.
 uint8_t active_extruder   = 0,
         previous_extruder = 0,
+        target_extruder   = 0,
         active_driver     = 0;
-
-static uint8_t target_extruder;
 
 #if ENABLED(CNCROUTER)
   uint8_t active_cnc_tool = 0;
@@ -321,7 +312,7 @@ PrintCounter print_job_counter = PrintCounter();
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
-  bool    filament_sensor = false;                                // M405 turns on filament_sensor control, M406 turns it off 
+  bool    filament_sensor = false;                                // M405 turns on filament_sensor control, M406 turns it off
   float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
           filament_width_meas = DEFAULT_MEASURED_FILAMENT_DIA;    // Measured filament diameter
   uint8_t meas_delay_cm = MEASUREMENT_DELAY_CM,                   // Distance delay setting
@@ -627,7 +618,7 @@ void servo_init() {
   }
 
 #endif // HAS_COLOR_LEDS
-  
+
 void gcode_line_error(const char* err, bool doFlush = true) {
   SERIAL_STR(ER);
   SERIAL_PS(err);
@@ -1028,7 +1019,7 @@ void clean_up_after_endstop_or_probe_move() {
   }
 
 #endif // Z_PROBE_SLED
-  
+
 #if ENABLED(Z_PROBE_ALLEN_KEY)
 
   void run_deploy_moves_script() {
@@ -1226,7 +1217,7 @@ void clean_up_after_endstop_or_probe_move() {
 
 #if ENABLED(IDLE_OOZING_PREVENT)
 
-  void IDLE_OOZING_retract(bool retracting) {  
+  void IDLE_OOZING_retract(bool retracting) {
     if (retracting && !IDLE_OOZING_retracted[active_extruder]) {
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
       mechanics.set_destination_to_current();
@@ -1253,118 +1244,6 @@ void clean_up_after_endstop_or_probe_move() {
 
 #endif
 
-#if HAS_TEMP_HOTEND || HAS_TEMP_BED
-
-  void print_heater_state(const float &c, const int16_t &t,
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      const int16_t r,
-    #endif
-    const int8_t e=-2
-  ) {
-    SERIAL_CHR(' ');
-    SERIAL_CHR(
-      #if HAS_TEMP_BED && HAS_TEMP_HOTEND
-        e == -1 ? 'B' : 'T'
-      #elif HAS_TEMP_HOTEND
-        'T'
-      #else
-        'B'
-      #endif
-    );
-    #if HOTENDS > 1
-      if (e >= 0) SERIAL_CHR('0' + e);
-    #endif
-    SERIAL_CHR(':');
-    SERIAL_VAL(c, 1);
-    SERIAL_MV(" /" , t);
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" (", r);
-      SERIAL_CHR(')');
-    #endif
-  }
-
-  void print_heaterstates() {
-    #if HAS_TEMP_HOTEND
-      print_heater_state(thermalManager.degHotend(target_extruder), thermalManager.degTargetHotend(target_extruder)
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawHotendTemp(target_extruder)
-        #endif
-      );
-    #endif
-    #if HAS_TEMP_BED
-      print_heater_state(thermalManager.degBed(), thermalManager.degTargetBed()
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawBedTemp()
-          SERIAL_CHR(')');
-        #endif
-        , -1 // BED
-      );
-    #endif
-    #if HOTENDS > 1
-      LOOP_HOTEND() print_heater_state(thermalManager.degHotend(h), thermalManager.degTargetHotend(h)
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawHotendTemp(h)
-        #endif
-        , h
-      );
-    #endif
-    SERIAL_MV(MSG_AT ":", thermalManager.getHeaterPower(target_extruder));
-    #if HAS_TEMP_BED
-      SERIAL_MV(MSG_BAT, thermalManager.getBedPower());
-    #endif
-    #if HOTENDS > 1
-      LOOP_HOTEND() {
-        SERIAL_MV(MSG_AT, h);
-        SERIAL_CHR(':');
-        SERIAL_VAL(thermalManager.getHeaterPower(h));
-      }
-    #endif
-  }
-
-#endif
-
-#if HAS_TEMP_CHAMBER
-
-  void print_chamberstate() {
-    SERIAL_MSG(" CHAMBER:");
-    SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetChamber());
-    SERIAL_MSG(MSG_CAT);
-    #if ENABLED(CHAMBER_WATTS)
-      SERIAL_VAL(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
-      SERIAL_MSG("W");
-    #else
-      SERIAL_VAL(thermalManager.getChamberPower());
-    #endif
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" ADC C:", thermalManager.degChamber(), 1);
-      SERIAL_MV(" C->", thermalManager.rawChamberTemp());
-    #endif
-  }
-
-#endif // HAS_TEMP_CHAMBER
-
-#if HAS_TEMP_COOLER
-
-  void print_coolerstate() {
-    SERIAL_MSG(" COOL:");
-    SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetCooler());
-    SERIAL_MSG(MSG_CAT);
-    #if ENABLED(COOLER_WATTS)
-      SERIAL_VAL(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
-      SERIAL_MSG("W");
-    #else
-      SERIAL_VAL(thermalManager.getCoolerPower());
-    #endif
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" ADC C:", thermalManager.degCooler(), 1);
-      SERIAL_MV(" C->", thermalManager.rawCoolerTemp());
-    #endif
-  }
-
-#endif // HAS_TEMP_COOLER
-
 #if ENABLED(FLOWMETER_SENSOR)
 
   void print_flowratestate() {
@@ -1377,22 +1256,6 @@ void clean_up_after_endstop_or_probe_move() {
 
     SERIAL_MV(" FLOW: ", readval);
     SERIAL_MSG(" l/min ");
-  }
-
-#endif
-
-#if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
-
-  void print_MCUstate() {
-    SERIAL_MSG(" MCU: min");
-    SERIAL_MV(MSG_C, thermalManager.lowest_temperature_mcu, 1);
-    SERIAL_MSG(", current");
-    SERIAL_MV(MSG_C, thermalManager.current_temperature_mcu, 1);
-    SERIAL_MSG(", max");
-    SERIAL_MV(MSG_C, thermalManager.highest_temperature_mcu, 1);
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" C->", thermalManager.rawMCUTemp());
-    #endif
   }
 
 #endif
@@ -1453,7 +1316,7 @@ void clean_up_after_endstop_or_probe_move() {
       now = millis();
       if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
         next_temp_ms = now + 1000UL;
-        print_heaterstates();
+        thermalManager.print_heaterstates();
         #if TEMP_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
           if (residency_start_ms)
@@ -1573,7 +1436,7 @@ void clean_up_after_endstop_or_probe_move() {
       now = millis();
       if (ELAPSED(now, next_temp_ms)) { // Print Temp Reading every 1 second while heating up.
         next_temp_ms = now + 1000UL;
-        print_heaterstates();
+        thermalManager.print_heaterstates();
         #if TEMP_BED_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
           if (residency_start_ms)
@@ -1810,7 +1673,7 @@ void gcode_get_destination() {
       mechanics.destination[i] = mechanics.current_position[i];
   }
 
-  if (parser.seen('F') && parser.value_linear_units() > 0.0)
+  if (parser.linearval('F') > 0.0)
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
@@ -1931,7 +1794,7 @@ void gcode_get_destination() {
       }
     }
   }
-  
+
   static bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
                           const float &unload_length = 0, const int8_t max_beep_count = 0, const bool show_lcd = false) {
 
@@ -3911,7 +3774,7 @@ void home_all_axes() { gcode_G28(true); }
         bedlevel.abl_enabled = true;
         bedlevel.unapply_leveling(converted); // use conversion machinery
         bedlevel.abl_enabled = false;
- 
+
         // Use the last measured distance to the bed, if possible
         if ( NEAR(mechanics.current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
           && NEAR(mechanics.current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
@@ -4046,7 +3909,7 @@ void home_all_axes() { gcode_G28(true); }
     // Probe all points
     bed_probe_all();
 
-    // Show calibration report      
+    // Show calibration report
     calibration_report();
 
     if (parser.seen('E')) {
@@ -4160,7 +4023,7 @@ void home_all_axes() { gcode_G28(true); }
           }
           else {
             SERIAL_EM("Checking Diagonal Rod Length");
-            if (adj_diagrod_length() != 0) { 
+            if (adj_diagrod_length() != 0) {
               // If diagonal rod length has been changed .. home to endstops
               SERIAL_EM("Diagonal Rod Length changed .. Homing");
               home_all_axes();
@@ -4351,7 +4214,7 @@ inline void gcode_G60() {
   if (slot >= NUM_POSITON_SLOTS) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
     return;
-  } 
+  }
   COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position);
   pos_saved = true;
 
@@ -4562,7 +4425,7 @@ inline void gcode_G92() {
     stepper.synchronize();
 
     switch (printer_mode) {
-    
+
       #if ENABLED(LASER)
         case PRINTER_MODE_LASER: {
           if (laser.status != LASER_OFF) {
@@ -4832,7 +4695,7 @@ inline void gcode_M42() {
     const bool  I_flag  = parser.boolval('I');
     const int   repeat  = parser.intval('R', 1),
                 start   = parser.intval('S'),
-                end     = parser.intval('E', NUM_DIGITAL_PINS - 1),
+                end     = parser.intval('E', LAST_PIN - 1),
                 wait    = parser.intval('W', 500);
 
     for (Pin pin = start; pin <= end; pin++) {
@@ -5028,7 +4891,7 @@ inline void gcode_M42() {
 
     // Get the range of pins to test or watch
     const uint8_t first_pin = parser.seen('P') ? parser.value_byte() : 0,
-                  last_pin = parser.seen('P') ? first_pin : NUM_DIGITAL_PINS - 1;
+                  last_pin = parser.seen('P') ? first_pin : LAST_PIN - 1;
 
     if (first_pin > last_pin) return;
 
@@ -5099,7 +4962,7 @@ inline void gcode_M42() {
    *     E = Engage probe for each reading
    *     L = Number of legs of movement before probe
    *     S = Schizoid (Or Star if you prefer)
-   *  
+   *
    * This function assumes the bed has been homed.  Specifically, that a G28 command
    * as been issued prior to invoking the M48 Z-Probe repeatability measurement function.
    * Any information generated by a prior G29 Bed leveling command will be lost and need to be
@@ -5611,13 +5474,13 @@ inline void gcode_M105() {
   #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
     SERIAL_STR(OK);
     #if HAS_TEMP_HOTEND || HAS_TEMP_BED
-      print_heaterstates();
+      thermalManager.print_heaterstates();
     #endif
     #if HAS_TEMP_CHAMBER
-      print_chamberstate();
+      thermalManager.print_chamberstate();
     #endif
     #if HAS_TEMP_COOLER
-      print_coolerstate();
+      thermalManager.print_coolerstate();
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
       print_flowratestate();
@@ -5626,7 +5489,7 @@ inline void gcode_M105() {
       print_cncspeed();
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      print_MCUstate();
+      thermalManager.print_MCUstate();
     #endif
   #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
@@ -5669,7 +5532,7 @@ inline void gcode_M105() {
   /**
    * M107: Fan Off
    */
-  inline void gcode_M107() { 
+  inline void gcode_M107() {
     uint16_t p = parser.seen('P') ? parser.value_ushort() : 0;
     if (p < FAN_COUNT) fanSpeeds[p] = 0;
   }
@@ -6138,30 +6001,14 @@ inline void gcode_M122() {
 
 #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
 
-  static uint8_t auto_report_temp_interval;
-  static millis_t next_temp_report_ms;
-
   /**
    * M155: Set temperature auto-report interval. M155 S<seconds>
    */
   inline void gcode_M155() {
     if (parser.seenval('S')) {
-      auto_report_temp_interval = parser.value_byte();
-      NOMORE(auto_report_temp_interval, 60);
-      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
-    }
-  }
-
-  inline void auto_report_temperatures() {
-    if (auto_report_temp_interval && ELAPSED(millis(), next_temp_report_ms)) {
-      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
-      print_heaterstates();
-
-      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-        print_MCUstate();
-      #endif
-
-      SERIAL_EOL();
+      thermalManager.auto_report_temp_interval = parser.value_byte();
+      NOMORE(thermalManager.auto_report_temp_interval, 60);
+      thermalManager.next_temp_report_ms = millis() + 1000UL * thermalManager.auto_report_temp_interval;
     }
   }
 
@@ -6973,7 +6820,7 @@ inline void gcode_M303() {
   inline void gcode_M355() {
     uint8_t args = 0;
     if (parser.seen('P')) ++args, case_light_brightness = parser.value_byte();
-    if (parser.seen('S')) ++args, case_light_on = parser.value_bool(); 
+    if (parser.seen('S')) ++args, case_light_on = parser.value_bool();
     if (args) update_case_light();
 
     // always report case light status
@@ -7137,7 +6984,7 @@ inline void gcode_M400() { stepper.synchronize(); }
       SERIAL_EMV("Filament dia (nominal mm):", filament_width_nominal);
     }
   }
-    
+
   /**
    * M405: Turn on filament sensor for control
    */
@@ -7166,7 +7013,7 @@ inline void gcode_M400() { stepper.synchronize(); }
    * M406: Turn off filament sensor for control
    */
   inline void gcode_M406() { filament_sensor = false; }
-  
+
   /**
    * M407: Get measured filament diameter on serial output
    */
@@ -7660,7 +7507,7 @@ inline void gcode_M503() {
 inline void gcode_M530() {
 
   if (parser.seen('L')) maxLayer = parser.value_long();
-  
+
   if (parser.seen('S') && parser.value_bool()) {
     print_job_counter.start();
 
@@ -7897,7 +7744,7 @@ inline void gcode_M532() {
     // do this at the start so we can debug if needed!
     if (parser.seen('D') && IsRunning()) laser.diagnostics = parser.value_bool();
 
-    // Wait for the rest 
+    // Wait for the rest
     // stepper.synchronize();
     if (parser.seen('S') && IsRunning()) {
       laser.intensity = parser.value_float();
@@ -7920,7 +7767,7 @@ inline void gcode_M532() {
 #endif // LASER
 
 #if MECH(MUVE3D)
-  
+
   // M650: Set peel distance
   inline void gcode_M650() {
 
@@ -7934,7 +7781,7 @@ inline void gcode_M532() {
     layer_thickness = (parser.seen('H') ? parser.value_float() : 0.0);
 
     // Initialize tilted to false. The intent here is that you would send this command at the start of a print job, and
-    // the platform would be level when you do. As such, we assume that you either hand-cranked it to level, or executed 
+    // the platform would be level when you do. As such, we assume that you either hand-cranked it to level, or executed
     // an M654 command via manual GCode before running a new print job. If not, then the platform is currently tilted, and
     // your print job is going to go poorly.
     tilted = false;
@@ -7989,7 +7836,7 @@ inline void gcode_M532() {
         // Power Off
         case 0: {
           // 0614000400341101005E
-          const byte off[] = {0x06, 0x14, 0x00, 0x04, 0x00, 
+          const byte off[] = {0x06, 0x14, 0x00, 0x04, 0x00,
                               0x34, 0x11, 0x01, 0x00, 0x5E};
           DLPSerial.write(off, sizeof(off));
         }
@@ -8573,7 +8420,7 @@ inline void gcode_T(uint8_t tool_id) {
   #endif
 
   #if ENABLED(CNCROUTER)
-    
+
     bool wait = true;
     bool raise_z = false;
 
@@ -9193,7 +9040,7 @@ inline void invalid_extruder_error(const uint8_t e) {
 
 #if ENABLED(CNCROUTER)
 
-  // TODO: manage auto tool change 
+  // TODO: manage auto tool change
   void tool_change_cnc(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=true*/) {
 
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
@@ -9330,7 +9177,7 @@ void process_next_command() {
 
       // G17 - G19: XXX CNC plane selection
       // G17 -> XY (default)
-      // G18 -> ZX 
+      // G18 -> ZX
       // G19 -> YZ
 
       #if ENABLED(NOZZLE_CLEAN_FEATURE)
@@ -9371,7 +9218,7 @@ void process_next_command() {
       #if HAS_BED_PROBE
         case 30: // G30 Single Z Probe
           gcode_G30(); break;
-        
+
         #if ENABLED(Z_PROBE_SLED)
           case 31: // G31: dock the sled
             gcode_G31(); break;
@@ -9398,13 +9245,13 @@ void process_next_command() {
       #endif
 
       // G40 Compensation Off XXX CNC
-      // G54-G59 Coordinate system selection (CNC XXX)      
+      // G54-G59 Coordinate system selection (CNC XXX)
 
       case 60: // G60 Saved Coordinates
         gcode_G60(); break;
       case 61: // G61 Restore Coordinates
         gcode_G61(); break;
-   
+
       // G80: Cancel Canned Cycle (XXX CNC)
 
       case 90: // G90 - Use Absolute Coordinates
@@ -9940,7 +9787,7 @@ void process_next_command() {
       #if ENABLED(LASER)
         case 649: // M649 set laser options
           gcode_M649(); break;
-      #endif 
+      #endif
 
       #if MECH(MUVE3D)
         case 650: // M650: Set peel distance
@@ -10094,7 +9941,7 @@ void ok_to_send() {
       mechanics.delta_endstop_adj[Z_AXIS] += z_endstop;
 
       mechanics.Transform(mechanics.current_position);
-      mechanics.set_position_mm(mechanics.delta[A_AXIS] - x_endstop , mechanics.delta[B_AXIS] - y_endstop, mechanics.delta[C_AXIS] - z_endstop, mechanics.current_position[E_AXIS]);  
+      mechanics.set_position_mm(mechanics.delta[A_AXIS] - x_endstop , mechanics.delta[B_AXIS] - y_endstop, mechanics.delta[C_AXIS] - z_endstop, mechanics.current_position[E_AXIS]);
       stepper.synchronize();
     }
 
@@ -10288,9 +10135,9 @@ void ok_to_send() {
         SERIAL_EMV("Bed level center = ", bed_level_c);
 
         // set initial direction and magnitude for delta radius adjustment
-        adj_attempts = 0; 
-        adj_dRadius = 0; 
-        adjdone_vector = 0.01; 
+        adj_attempts = 0;
+        adj_dRadius = 0;
+        adjdone_vector = 0.01;
 
         do {
           mechanics.delta_radius += adj_dRadius;
@@ -10308,7 +10155,7 @@ void ok_to_send() {
 
           // Adjustment complete?
           if (FABS(bed_level_c) <= ac_prec) {
-            //Done to within acprec .. but done within adjdone_vector? 
+            //Done to within acprec .. but done within adjdone_vector?
             if (FABS(bed_level_c) <= adjdone_vector)
               adj_done = true;
             else {
@@ -10331,7 +10178,7 @@ void ok_to_send() {
 
           // Overshot target? .. reverse and scale down adjustment
           if (((bed_level_c < 0) and (adj_dRadius < 0)) or ((bed_level_c > 0) and (adj_dRadius > 0))) adj_dRadius = -(adj_dRadius / 2);
-  
+
         } while (adj_done == false);
 
         return true;
@@ -10423,7 +10270,7 @@ void ok_to_send() {
           if (bed_level_ox < bed_level_oy) adj_val = adj_mag;
           if (bed_level_ox > bed_level_oy) adj_val = -adj_mag;
         }
-           
+
         if ((adj_val > 0) and (adj_prv < 0)) {
           adj_mag = adj_mag / 2;
           adj_val = adj_mag;
@@ -10677,7 +10524,7 @@ void report_current_position_detail() {
 
     uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
     if (segments == 0) segments = 1;
-    
+
     /**
      * Vector rotation by transformation matrix: r is the original vector, r_T is the rotated vector,
      * and phi is the angle of rotation. Based on the solution approach by Jens Geisler.
@@ -10844,13 +10691,13 @@ void report_current_position_detail() {
    * Morgan SCARA Inverse mechanics. Results in delta[].
    *
    * See http://forums.reprap.org/read.php?185,283327
-   * 
+   *
    * Maths and first version by QHARLEY.
    * Integrated and slightly restructured by Joachim Cerny.
    */
   void inverse_kinematics(const float logical[XYZ]) {
 
-    static float C2, S2, SK1, SK2, THETA, PSI; 
+    static float C2, S2, SK1, SK2, THETA, PSI;
 
     const float sx = RAW_X_POSITION(logical[X_AXIS]) - SCARA_offset_x,  // Translate SCARA to standard X Y
                 sy = RAW_Y_POSITION(logical[Y_AXIS]) - SCARA_offset_y;  // With scaling factor.
@@ -10917,7 +10764,7 @@ void report_current_position_detail() {
         #else
           WRITE(STAT_LED_BLUE_PIN, new_led ? HIGH : LOW);
         #endif
-        
+
       }
     }
   }
@@ -11385,7 +11232,7 @@ void idle(
   host_keepalive();
 
   #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-    auto_report_temperatures();
+    thermalManager.auto_report_temperatures();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
