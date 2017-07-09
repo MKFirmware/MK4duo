@@ -20,20 +20,29 @@
  *
  */
 
-#ifndef POWER_SUPPLY_H
-  #define POWER_SUPPLY_H
+#ifndef _POWER_SUPPLY_H_
+#define _POWER_SUPPLY_H_
+
+#if HAS_POWER_SWITCH
 
   class Power {
+
     public:
+
       static bool powersupply_on;
+
       static void check();
       static void power_on();
       static void power_off();
-      
+
     private:
+
       static bool is_power_needed();
+
   };
 
   extern Power powerManager;
 
-#endif // POWER_SUPPLY_H
+#endif // HAS_POWER_SWITCH
+
+#endif /* _POWER_SUPPLY_H_ */

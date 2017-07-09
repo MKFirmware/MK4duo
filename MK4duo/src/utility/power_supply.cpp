@@ -24,6 +24,8 @@
 
 #if HAS_POWER_SWITCH
 
+  Power powerManager
+
   bool Power::powersupply_on = 
     #if ENABLED(PS_DEFAULT_OFF)
       false

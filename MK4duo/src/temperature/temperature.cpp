@@ -136,14 +136,19 @@ Temperature thermalManager;
 #endif
 
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
-  bool Temperature::allow_cold_extrude = false;
+  bool    Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
+#endif
+
+#if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+  uint8_t   Temperature::auto_report_temp_interval = 0;
+  millis_t  Temperature::next_temp_report_ms = 0;
 #endif
 
 // private:
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-  int Temperature::redundant_temperature_raw = 0;
+  int   Temperature::redundant_temperature_raw = 0;
   float Temperature::redundant_temperature = 0.0;
 #endif
 
@@ -1286,6 +1291,151 @@ void Temperature::manage_temp_controller() {
   }
 
 #endif
+
+#if HAS_TEMP_HOTEND || HAS_TEMP_BED
+
+  void Temperature::print_heater_state(const float &c, const int16_t &t,
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      const int16_t r,
+    #endif
+    const int8_t e/*=-2*/
+  ) {
+    SERIAL_CHR(' ');
+    SERIAL_CHR(
+      #if HAS_TEMP_BED && HAS_TEMP_HOTEND
+        e == -1 ? 'B' : 'T'
+      #elif HAS_TEMP_HOTEND
+        'T'
+      #else
+        'B'
+      #endif
+    );
+    #if HOTENDS > 1
+      if (e >= 0) SERIAL_CHR('0' + e);
+    #endif
+    SERIAL_CHR(':');
+    SERIAL_VAL(c, 1);
+    SERIAL_MV(" /" , t);
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      SERIAL_MV(" (", r);
+      SERIAL_CHR(')');
+    #endif
+  }
+
+  void Temperature::print_heaterstates() {
+    #if HAS_TEMP_HOTEND
+      print_heater_state(degHotend(target_extruder), degTargetHotend(target_extruder)
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , rawHotendTemp(target_extruder)
+        #endif
+      );
+    #endif
+    #if HAS_TEMP_BED
+      print_heater_state(degBed(), degTargetBed()
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , rawBedTemp()
+          SERIAL_CHR(')');
+        #endif
+        , -1 // BED
+      );
+    #endif
+    #if HOTENDS > 1
+      LOOP_HOTEND() print_heater_state(degHotend(h), degTargetHotend(h)
+        #if ENABLED(SHOW_TEMP_ADC_VALUES)
+          , rawHotendTemp(h)
+        #endif
+        , h
+      );
+    #endif
+    SERIAL_MV(MSG_AT ":", getHeaterPower(target_extruder));
+    #if HAS_TEMP_BED
+      SERIAL_MV(MSG_BAT, getBedPower());
+    #endif
+    #if HOTENDS > 1
+      LOOP_HOTEND() {
+        SERIAL_MV(MSG_AT, h);
+        SERIAL_CHR(':');
+        SERIAL_VAL(getHeaterPower(h));
+      }
+    #endif
+  }
+
+#endif
+
+#if HAS_TEMP_CHAMBER
+
+  void Temperature::print_chamberstate() {
+    SERIAL_MSG(" CHAMBER:");
+    SERIAL_MV(MSG_C, degChamber(), 1);
+    SERIAL_MV(" /", degTargetChamber());
+    SERIAL_MSG(MSG_CAT);
+    #if ENABLED(CHAMBER_WATTS)
+      SERIAL_VAL(((CHAMBER_WATTS) * getChamberPower()) / 127.0);
+      SERIAL_MSG("W");
+    #else
+      SERIAL_VAL(getChamberPower());
+    #endif
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      SERIAL_MV(" ADC C:", degChamber(), 1);
+      SERIAL_MV(" C->", rawChamberTemp());
+    #endif
+  }
+
+#endif // HAS_TEMP_CHAMBER
+
+#if HAS_TEMP_COOLER
+
+  void Temperature::print_coolerstate() {
+    SERIAL_MSG(" COOL:");
+    SERIAL_MV(MSG_C, degCooler(), 1);
+    SERIAL_MV(" /", degTargetCooler());
+    SERIAL_MSG(MSG_CAT);
+    #if ENABLED(COOLER_WATTS)
+      SERIAL_VAL(((COOLER_WATTS) * getCoolerPower()) / 127.0);
+      SERIAL_MSG("W");
+    #else
+      SERIAL_VAL(getCoolerPower());
+    #endif
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      SERIAL_MV(" ADC C:", degCooler(), 1);
+      SERIAL_MV(" C->", rawCoolerTemp());
+    #endif
+  }
+
+#endif // HAS_TEMP_COOLER
+
+#if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
+
+  void Temperature::print_MCUstate() {
+    SERIAL_MSG(" MCU: min");
+    SERIAL_MV(MSG_C, lowest_temperature_mcu, 1);
+    SERIAL_MSG(", current");
+    SERIAL_MV(MSG_C, current_temperature_mcu, 1);
+    SERIAL_MSG(", max");
+    SERIAL_MV(MSG_C, highest_temperature_mcu, 1);
+    #if ENABLED(SHOW_TEMP_ADC_VALUES)
+      SERIAL_MV(" C->", rawMCUTemp());
+    #endif
+  }
+
+#endif
+
+#if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+
+  void Temperature::auto_report_temperatures() {
+    if (auto_report_temp_interval && ELAPSED(millis(), next_temp_report_ms)) {
+      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
+      print_heaterstates();
+
+      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+        print_MCUstate();
+      #endif
+
+      SERIAL_EOL();
+    }
+  }
+
+#endif // AUTO_REPORT_TEMPERATURES
 
 /**
  * Get the raw values into the actual temperatures.

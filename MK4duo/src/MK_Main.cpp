@@ -38,10 +38,6 @@
   #include "HAL/HAL_endstop_interrupts.h"
 #endif
 
-#if ENABLED(RFID_MODULE)
-  MFRC522 RFID522;
-#endif
-
 #if ENABLED(M100_FREE_MEMORY_WATCHER)
   void gcode_M100();
   #if ENABLED(M100_FREE_MEMORY_DUMPER)
@@ -60,10 +56,6 @@
 
 #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
   bool flow_firstread = false;
-#endif
-
-#if HAS_POWER_SWITCH
-  Power powerManager;
 #endif
 
 bool Running = true;
@@ -169,9 +161,8 @@ float hotend_offset[XYZ][HOTENDS];
 // The active extruder (tool). Set with T<extruder> command.
 uint8_t active_extruder   = 0,
         previous_extruder = 0,
+        target_extruder   = 0,
         active_driver     = 0;
-
-static uint8_t target_extruder;
 
 #if ENABLED(CNCROUTER)
   uint8_t active_cnc_tool = 0;
@@ -1253,118 +1244,6 @@ void clean_up_after_endstop_or_probe_move() {
 
 #endif
 
-#if HAS_TEMP_HOTEND || HAS_TEMP_BED
-
-  void print_heater_state(const float &c, const int16_t &t,
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      const int16_t r,
-    #endif
-    const int8_t e=-2
-  ) {
-    SERIAL_CHR(' ');
-    SERIAL_CHR(
-      #if HAS_TEMP_BED && HAS_TEMP_HOTEND
-        e == -1 ? 'B' : 'T'
-      #elif HAS_TEMP_HOTEND
-        'T'
-      #else
-        'B'
-      #endif
-    );
-    #if HOTENDS > 1
-      if (e >= 0) SERIAL_CHR('0' + e);
-    #endif
-    SERIAL_CHR(':');
-    SERIAL_VAL(c, 1);
-    SERIAL_MV(" /" , t);
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" (", r);
-      SERIAL_CHR(')');
-    #endif
-  }
-
-  void print_heaterstates() {
-    #if HAS_TEMP_HOTEND
-      print_heater_state(thermalManager.degHotend(target_extruder), thermalManager.degTargetHotend(target_extruder)
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawHotendTemp(target_extruder)
-        #endif
-      );
-    #endif
-    #if HAS_TEMP_BED
-      print_heater_state(thermalManager.degBed(), thermalManager.degTargetBed()
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawBedTemp()
-          SERIAL_CHR(')');
-        #endif
-        , -1 // BED
-      );
-    #endif
-    #if HOTENDS > 1
-      LOOP_HOTEND() print_heater_state(thermalManager.degHotend(h), thermalManager.degTargetHotend(h)
-        #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , thermalManager.rawHotendTemp(h)
-        #endif
-        , h
-      );
-    #endif
-    SERIAL_MV(MSG_AT ":", thermalManager.getHeaterPower(target_extruder));
-    #if HAS_TEMP_BED
-      SERIAL_MV(MSG_BAT, thermalManager.getBedPower());
-    #endif
-    #if HOTENDS > 1
-      LOOP_HOTEND() {
-        SERIAL_MV(MSG_AT, h);
-        SERIAL_CHR(':');
-        SERIAL_VAL(thermalManager.getHeaterPower(h));
-      }
-    #endif
-  }
-
-#endif
-
-#if HAS_TEMP_CHAMBER
-
-  void print_chamberstate() {
-    SERIAL_MSG(" CHAMBER:");
-    SERIAL_MV(MSG_C, thermalManager.degChamber(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetChamber());
-    SERIAL_MSG(MSG_CAT);
-    #if ENABLED(CHAMBER_WATTS)
-      SERIAL_VAL(((CHAMBER_WATTS) * thermalManager.getChamberPower()) / 127.0);
-      SERIAL_MSG("W");
-    #else
-      SERIAL_VAL(thermalManager.getChamberPower());
-    #endif
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" ADC C:", thermalManager.degChamber(), 1);
-      SERIAL_MV(" C->", thermalManager.rawChamberTemp());
-    #endif
-  }
-
-#endif // HAS_TEMP_CHAMBER
-
-#if HAS_TEMP_COOLER
-
-  void print_coolerstate() {
-    SERIAL_MSG(" COOL:");
-    SERIAL_MV(MSG_C, thermalManager.degCooler(), 1);
-    SERIAL_MV(" /", thermalManager.degTargetCooler());
-    SERIAL_MSG(MSG_CAT);
-    #if ENABLED(COOLER_WATTS)
-      SERIAL_VAL(((COOLER_WATTS) * thermalManager.getCoolerPower()) / 127.0);
-      SERIAL_MSG("W");
-    #else
-      SERIAL_VAL(thermalManager.getCoolerPower());
-    #endif
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" ADC C:", thermalManager.degCooler(), 1);
-      SERIAL_MV(" C->", thermalManager.rawCoolerTemp());
-    #endif
-  }
-
-#endif // HAS_TEMP_COOLER
-
 #if ENABLED(FLOWMETER_SENSOR)
 
   void print_flowratestate() {
@@ -1377,22 +1256,6 @@ void clean_up_after_endstop_or_probe_move() {
 
     SERIAL_MV(" FLOW: ", readval);
     SERIAL_MSG(" l/min ");
-  }
-
-#endif
-
-#if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
-
-  void print_MCUstate() {
-    SERIAL_MSG(" MCU: min");
-    SERIAL_MV(MSG_C, thermalManager.lowest_temperature_mcu, 1);
-    SERIAL_MSG(", current");
-    SERIAL_MV(MSG_C, thermalManager.current_temperature_mcu, 1);
-    SERIAL_MSG(", max");
-    SERIAL_MV(MSG_C, thermalManager.highest_temperature_mcu, 1);
-    #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" C->", thermalManager.rawMCUTemp());
-    #endif
   }
 
 #endif
@@ -1453,7 +1316,7 @@ void clean_up_after_endstop_or_probe_move() {
       now = millis();
       if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
         next_temp_ms = now + 1000UL;
-        print_heaterstates();
+        thermalManager.print_heaterstates();
         #if TEMP_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
           if (residency_start_ms)
@@ -1573,7 +1436,7 @@ void clean_up_after_endstop_or_probe_move() {
       now = millis();
       if (ELAPSED(now, next_temp_ms)) { // Print Temp Reading every 1 second while heating up.
         next_temp_ms = now + 1000UL;
-        print_heaterstates();
+        thermalManager.print_heaterstates();
         #if TEMP_BED_RESIDENCY_TIME > 0
           SERIAL_MSG(MSG_W);
           if (residency_start_ms)
@@ -1810,7 +1673,7 @@ void gcode_get_destination() {
       mechanics.destination[i] = mechanics.current_position[i];
   }
 
-  if (parser.seen('F') && parser.value_linear_units() > 0.0)
+  if (parser.linearval('F') > 0.0)
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
@@ -5611,13 +5474,13 @@ inline void gcode_M105() {
   #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
     SERIAL_STR(OK);
     #if HAS_TEMP_HOTEND || HAS_TEMP_BED
-      print_heaterstates();
+      thermalManager.print_heaterstates();
     #endif
     #if HAS_TEMP_CHAMBER
-      print_chamberstate();
+      thermalManager.print_chamberstate();
     #endif
     #if HAS_TEMP_COOLER
-      print_coolerstate();
+      thermalManager.print_coolerstate();
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
       print_flowratestate();
@@ -5626,7 +5489,7 @@ inline void gcode_M105() {
       print_cncspeed();
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      print_MCUstate();
+      thermalManager.print_MCUstate();
     #endif
   #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
@@ -6138,30 +6001,14 @@ inline void gcode_M122() {
 
 #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
 
-  static uint8_t auto_report_temp_interval;
-  static millis_t next_temp_report_ms;
-
   /**
    * M155: Set temperature auto-report interval. M155 S<seconds>
    */
   inline void gcode_M155() {
     if (parser.seenval('S')) {
-      auto_report_temp_interval = parser.value_byte();
-      NOMORE(auto_report_temp_interval, 60);
-      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
-    }
-  }
-
-  inline void auto_report_temperatures() {
-    if (auto_report_temp_interval && ELAPSED(millis(), next_temp_report_ms)) {
-      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
-      print_heaterstates();
-
-      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-        print_MCUstate();
-      #endif
-
-      SERIAL_EOL();
+      thermalManager.auto_report_temp_interval = parser.value_byte();
+      NOMORE(thermalManager.auto_report_temp_interval, 60);
+      thermalManager.next_temp_report_ms = millis() + 1000UL * thermalManager.auto_report_temp_interval;
     }
   }
 
@@ -11385,7 +11232,7 @@ void idle(
   host_keepalive();
 
   #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-    auto_report_temperatures();
+    thermalManager.auto_report_temperatures();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)

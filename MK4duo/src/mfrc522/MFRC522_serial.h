@@ -40,8 +40,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MFRC522_H
-  #define MFRC522_H
+#ifndef _MFRC522_H_
+#define _MFRC522_H_
+
+#if ENABLED(RFID_MODULE)
 
   //------------------MFRC522 register ---------------
   #define         MFRC522_HEADER      0xAB
@@ -59,13 +61,12 @@
   #define         BLOCK_TOTAL         26 // block total = block used + 1
 
   class MFRC522 {
-    public:
+
+    public: /** Constructor */
+
       MFRC522();
-      bool init();
-      bool getID(uint8_t e);
-      bool readBlock(uint8_t e);
-      bool writeBlock(uint8_t e);
-      void printInfo(uint8_t e);
+
+    public: /** Public Parameters */
 
       typedef struct {
         char brand[16];           // 16 byte Block 5
@@ -97,12 +98,28 @@
       RfidPacket_t RfidData[EXTRUDERS];
       RfidPacketID_t RfidDataID[EXTRUDERS];
 
-    private:
+    public: /** Public Function */
+
+      bool init();
+      bool getID(uint8_t e);
+      bool readBlock(uint8_t e);
+      bool writeBlock(uint8_t e);
+      void printInfo(uint8_t e);
+
+    private: /** Private Parameters */
+
+    private: /** Private Function */
+
       void write(uint8_t value);
       byte read();
       bool communicate(uint8_t sendDataLength, uint8_t command, uint8_t *sendData = NULL);
       void clear();
       bool available();
+
   };
 
-#endif // MFRC522_H
+  extern MFRC522 RFID522;
+
+#endif // ENABLED(RFID_MODULE)
+
+#endif /* _MFRC522_H_ */
