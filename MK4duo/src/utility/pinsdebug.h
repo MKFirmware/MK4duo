@@ -38,12 +38,14 @@ bool endstop_monitor_flag = false;
 #endif
 
 #if ENABLED(ARDUINO_ARCH_SAM)
+  #define LAST_PIN                        PINS_COUNT // Arduino Due's NUM_DIGITAL_PINS only includes the digital only pins
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
   #define digitalPinToTimer(pin)          digitalPinHasPWM(pin)
 #else
+  #define LAST_PIN                        NUM_DIGITAL_PINS
   #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint8_t
@@ -54,9 +56,9 @@ IO_REG_TYPE rBit;   // receive pin's ports and bitmask
 volatile IO_REG_TYPE *rReg;
 
 int digitalRead_mod(int8_t pin) { // same as digitalRead except the PWM stop section has been removed
-  rBit = PIN_TO_BITMASK(pin);			// get receive pin's ports and bitmask
-	rReg = PIN_TO_BASEREG(pin);
-	return DIRECT_READ(rReg, rBit);
+  rBit = PIN_TO_BITMASK(pin);     // get receive pin's ports and bitmask
+  rReg = PIN_TO_BASEREG(pin);
+  return DIRECT_READ(rReg, rBit);
 }
 
 // Report pin name for a given fastio digital pin index
