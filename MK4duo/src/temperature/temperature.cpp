@@ -37,6 +37,8 @@
 Temperature thermalManager;
 
 // public:
+volatile bool Temperature::wait_for_heatup = true;
+
 #if HAS_TEMP_HOTEND
   float   Temperature::current_temperature[HOTENDS]     = { 0.0 };
   int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
@@ -109,6 +111,10 @@ Temperature thermalManager;
   float Temperature::coolerKp = DEFAULT_coolerKp,
         Temperature::coolerKi = DEFAULT_coolerKi,
         Temperature::coolerKd = DEFAULT_coolerKd;
+#endif
+
+#if HAS(AUTO_FAN)
+  uint8_t Temperature::autoFanSpeeds[HOTENDS] = { 0 };
 #endif
 
 #if ENABLED(BABYSTEPPING)
@@ -652,7 +658,7 @@ void Temperature::updatePID() {
 //
 void Temperature::_temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg) {
   static bool killed = false;
-  if (IsRunning()) {
+  if (printer.IsRunning()) {
     SERIAL_ST(ER, serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
     if (tc >= 0)
@@ -673,9 +679,9 @@ void Temperature::_temp_error(const int8_t tc, const char * const serial_msg, co
 
   #if DISABLED(BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE)
     if (!killed) {
-      Running = false;
+      printer.setRunning(false);
       killed = true;
-      kill(lcd_msg);
+      printer.kill(lcd_msg);
     }
     else {
       disable_all_heaters();
@@ -712,7 +718,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     UNUSED(h);
     #define _HOTEND_TEST  true
   #else
-    #define _HOTEND_TEST  h == active_extruder
+    #define _HOTEND_TEST  h == printer.active_extruder
   #endif
 
   uint8_t pid_output = 0;
@@ -987,7 +993,7 @@ void Temperature::manage_temp_controller() {
       // Get the delayed info and add 100 to reconstitute to a percent of
       // the nominal filament diameter then square it to get an area
       const float vmroot = measurement_delay[meas_shift_index] * 0.01 + 1.0;
-      volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
+      printer.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
     }
   #endif // FILAMENT_SENSOR
 
@@ -1147,7 +1153,7 @@ void Temperature::manage_temp_controller() {
       {
         SERIAL_SV(ER, (int)h);
         SERIAL_EM(MSG_INVALID_EXTRUDER_NUM);
-        kill(PSTR(MSG_KILLED));
+        printer.kill(PSTR(MSG_KILLED));
         return 0.0;
       }
 
@@ -1324,9 +1330,9 @@ void Temperature::manage_temp_controller() {
 
   void Temperature::print_heaterstates() {
     #if HAS_TEMP_HOTEND
-      print_heater_state(degHotend(target_extruder), degTargetHotend(target_extruder)
+      print_heater_state(degHotend(printer.target_extruder), degTargetHotend(printer.target_extruder)
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , rawHotendTemp(target_extruder)
+          , rawHotendTemp(printer.target_extruder)
         #endif
       );
     #endif
@@ -1347,7 +1353,7 @@ void Temperature::manage_temp_controller() {
         , h
       );
     #endif
-    SERIAL_MV(MSG_AT ":", getHeaterPower(target_extruder));
+    SERIAL_MV(MSG_AT ":", getHeaterPower(printer.target_extruder));
     #if HAS_TEMP_BED
       SERIAL_MV(MSG_BAT, getBedPower());
     #endif
@@ -1941,7 +1947,7 @@ void Temperature::disable_all_heaters() {
   #endif
 
   // If all heaters go down then for sure our print job has stopped
-  print_job_counter.stop();
+  printer.print_job_counter.stop();
 
   #define DISABLE_HEATER(NR) { \
     setTargetHotend(0, NR); \
@@ -1991,7 +1997,7 @@ void Temperature::disable_all_heaters() {
     setTargetCooler(0);
 
     // if cooler go down the print job is stopped 
-    print_job_counter.stop();
+    printer.print_job_counter.stop();
 
     #if ENABLED(LASER)
       // No laser firing with no coolers running! (paranoia)

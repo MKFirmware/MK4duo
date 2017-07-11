@@ -113,6 +113,14 @@ class Probe {
 
     static void move_to_z(float z, float fr_mm_m);
 
+    #if ENABLED(Z_PROBE_ALLEN_KEY)
+      static void run_deploy_moves_script();
+    #endif
+
+    #if HAS_Z_PROBE_SLED
+      static void dock_sled(bool stow);
+    #endif
+
 };
 
 extern Probe probe;

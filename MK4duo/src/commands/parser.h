@@ -26,14 +26,10 @@
  *            so settings for these codes are located in this class.
  */
 
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef _PARSER_H_
+#define _PARSER_H_
 
 //#define DEBUG_GCODE_PARSER
-
-#if ENABLED(INCH_MODE_SUPPORT)
-  extern bool volumetric_enabled;
-#endif
 
 /**
  * Parser Gcode
@@ -120,7 +116,7 @@ class GCodeParser {
       // Code seen bit was set. If not found, value_ptr is unchanged.
       // This allows "if (seen('A')||seen('B'))" to use the last-found value.
       // This is volatile because its side-effects are important
-      static volatile bool seen(const char c) {
+      static bool seen(const char c) {
         const uint8_t ind = LETTER_OFF(c);
         if (ind >= COUNT(param)) return false; // Only A-Z
         const bool b = TEST(codebits[PARAM_IND(ind)], PARAM_BIT(ind));
@@ -138,7 +134,7 @@ class GCodeParser {
       // This allows "if (seen('A')||seen('B'))" to use the last-found value.
       // This is volatile because its side-effects are important
       // p DEVE ESSERE CHAR e non CONST CHAR
-      static volatile bool seen(const char c) {
+      static bool seen(const char c) {
         char *p = strchr(command_args, c);
         const bool b = !!p;
         if (b) value_ptr = DECIMAL_SIGNED(p[1]) ? &p[1] : (char*)NULL;
@@ -220,7 +216,7 @@ class GCodeParser {
       }
 
       inline static float axis_unit_factor(const AxisEnum axis) {
-        return (axis >= E_AXIS && volumetric_enabled ? volumetric_unit_factor : linear_unit_factor);
+        return (axis >= E_AXIS && printer.volumetric_enabled ? volumetric_unit_factor : linear_unit_factor);
       }
 
       inline static float value_linear_units()                     { return value_float() * linear_unit_factor; }
@@ -294,8 +290,6 @@ class GCodeParser {
 
     FORCE_INLINE static float value_feedrate() { return value_linear_units(); }
 
-    void unknown_command_error();
-
     // Provide simple value accessors with default option
     FORCE_INLINE static float    floatval(const char c, const float dval=0.0)   { return seenval(c) ? value_float()        : dval; }
     FORCE_INLINE static bool     boolval(const char c, const bool dval=false)   { return seen(c)    ? value_bool()         : dval; }
@@ -311,4 +305,4 @@ class GCodeParser {
 
 extern GCodeParser parser;
 
-#endif // PARSER_H
+#endif /* _PARSER_H_ */

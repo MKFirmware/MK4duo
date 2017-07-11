@@ -28,8 +28,8 @@
  *    ARDUINO_ARCH_AVR : For all Atmel AVR boards
  */
 
-#ifndef _HAL_H
-#define _HAL_H
+#ifndef _HAL_H_
+#define _HAL_H_
 
 #include <stdint.h>
 
@@ -44,4 +44,4 @@
   #error "Unsupported Platform!"
 #endif
 
-#endif // _HAL_H
+#endif /* _HAL_H_ */

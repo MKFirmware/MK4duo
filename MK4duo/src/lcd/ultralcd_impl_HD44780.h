@@ -514,7 +514,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       if (strlen(STRING) <= LCD_WIDTH) { \
         lcd.setCursor((LCD_WIDTH - lcd_strlen_P(PSTR(STRING))) / 2, 3); \
         lcd_printPGM(PSTR(STRING)); \
-        safe_delay(DELAY); \
+        printer.safe_delay(DELAY); \
       } \
       else { \
         lcd_scroll(0, 3, PSTR(STRING), LCD_WIDTH, DELAY); \
@@ -532,7 +532,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
         #if ENABLED(STRING_SPLASH_LINE2)
           CENTER_OR_SCROLL(STRING_SPLASH_LINE2, 2000);
         #else
-          safe_delay(2000);
+          printer.safe_delay(2000);
         #endif
       }
       else {
@@ -557,7 +557,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       //
       if (LCD_EXTRA_SPACE >= strlen(STRING_SPLASH_LINE2) + 1) {
         logo_lines(PSTR(" " STRING_SPLASH_LINE2));
-        safe_delay(2000);
+        printer.safe_delay(2000);
       }
       else {
         logo_lines(PSTR(""));
@@ -568,7 +568,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       // Show only the MK4duo logo
       //
       logo_lines(PSTR(""));
-      safe_delay(2000);
+      printer.safe_delay(2000);
     #endif
 
     lcd.clear();
@@ -834,7 +834,7 @@ static void lcd_implementation_status_screen() {
     #endif // LCD_WIDTH >= 20 && SDSUPPORT
 
     char buffer[10];
-    duration_t elapsed = print_job_counter.duration();
+    duration_t elapsed = printer.print_job_counter.duration();
     uint8_t len = elapsed.toDigital(buffer);
 
     lcd.setCursor(LCD_WIDTH - len - 1, 2);
@@ -879,7 +879,7 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("Dia "));
         lcd.print(ftostr12ns(filament_width_meas));
         lcd_printPGM(PSTR(" V"));
-        lcd.print(itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+        lcd.print(itostr3(100.0 * printer.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
         lcd.write('%');
         return;
       }
@@ -940,7 +940,7 @@ static void lcd_implementation_status_screen() {
       if (row < LCD_HEIGHT) {
         lcd.setCursor(LCD_WIDTH - 9, row);
         lcd.print(LCD_STR_THERMOMETER[0]);
-        _draw_heater_status(active_extruder, LCD_STR_THERMOMETER[0], lcd_blink());
+        _draw_heater_status(printer.active_extruder, LCD_STR_THERMOMETER[0], lcd_blink());
       }
     }
 
@@ -1111,16 +1111,16 @@ static void lcd_implementation_status_screen() {
     #if FAN_COUNT > 0
       if (0
         #if HAS_FAN0
-          || fanSpeeds[0]
+          || printer.fanSpeeds[0]
         #endif
         #if HAS_FAN1
-          || fanSpeeds[1]
+          || printer.fanSpeeds[1]
         #endif
         #if HAS_FAN2
-          || fanSpeeds[2]
+          || printer.fanSpeeds[2]
         #endif
         #if HAS_FAN3
-          || fanSpeeds[3]
+          || printer.fanSpeeds[3]
         #endif
       ) leds |= LED_C;
     #endif // FAN_COUNT > 0

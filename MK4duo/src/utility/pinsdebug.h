@@ -915,7 +915,7 @@ inline void report_pin_state(int8_t pin) {
   SERIAL_CHR(' ');
   bool dummy;
   if (report_pin_name(pin, dummy)) {
-    if (pin_is_protected(pin))
+    if (printer.pin_is_protected(pin))
       SERIAL_MSG(" (protected)");
     else {
       SERIAL_MSG(" = ");
@@ -955,7 +955,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
   report_pin_name(pin, analog_pin);
 
   // report pin state
-  if (pin_is_protected(pin) && !ignore)
+  if (printer.pin_is_protected(pin) && !ignore)
     SERIAL_MSG("protected ");
   else {
     if (analog_pin) {

@@ -63,7 +63,7 @@
     #endif
 
     #if HAS_AUTO_FAN
-      LOOP_HOTEND() if (autoFanSpeeds[h] > 0) return true;
+      LOOP_HOTEND() if (thermalManager.autoFanSpeeds[h] > 0) return true;
     #endif
 
     LOOP_HOTEND() if (thermalManager.target_temperature[h] > 0) return true;

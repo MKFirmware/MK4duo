@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef HAL_ENDSTOP_INTERRUPTS_H_
-#define HAL_ENDSTOP_INTERRUPTS_H_
+#ifndef _HAL_ENDSTOP_INTERRUPTS_H_
+#define _HAL_ENDSTOP_INTERRUPTS_H_
 
 volatile uint8_t e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
                             // Must be reset to 0 by the test function when the tests are finished.
@@ -42,4 +42,4 @@ void endstop_ISR(void) { endstop_ISR_worker(); }
   #error "Unsupported Platform!"
 #endif
 
-#endif // HAL_ENDSTOP_INTERRUPTS_H_
+#endif /* _HAL_ENDSTOP_INTERRUPTS_H_ */

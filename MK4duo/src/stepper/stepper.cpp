@@ -74,6 +74,8 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
   bool Stepper::performing_homing = false;
 #endif
 
+millis_t Stepper::stepper_inactive_time  = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL;
+
 // private:
 
 unsigned char Stepper::last_direction_bits = 0;        // The next stepping-bits to be output
@@ -273,19 +275,19 @@ volatile long Stepper::endstops_trigsteps[XYZ];
 #if HAS_EXT_ENCODER
   #define _TEST_EXTRUDER_ENC(x,pin) { \
     const uint8_t sig = READ(pin); \
-    encStepsSinceLastSignal[x] += encLastDir[x]; \
-    if (encLastSignal[x] != sig && abs(encStepsSinceLastSignal[x] - encLastChangeAt[x]) > ENC_MIN_STEPS) { \
-      if (sig) encStepsSinceLastSignal[x] = 0; \
-      encLastSignal[x] = sig; \
-      encLastChangeAt[x] = encStepsSinceLastSignal[x]; \
+    printer.encStepsSinceLastSignal[x] += printer.encLastDir[x]; \
+    if (printer.encLastSignal[x] != sig && abs(printer.encStepsSinceLastSignal[x] - printer.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
+      if (sig) printer.encStepsSinceLastSignal[x] = 0; \
+      printer.encLastSignal[x] = sig; \
+      printer.encLastChangeAt[x] = printer.encStepsSinceLastSignal[x]; \
     } \
-    else if (abs(encStepsSinceLastSignal[x]) > encErrorSteps[x]) { \
-      if (encLastDir[x] > 0) \
-        setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT); \
+    else if (abs(printer.encStepsSinceLastSignal[x]) > printer.encErrorSteps[x]) { \
+      if (printer.encLastDir[x] > 0) \
+        printer.setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT); \
     } \
   }
 
-  #define RESET_EXTRUDER_ENC(x,dir) encLastDir[x] = dir ? 1 : -1;
+  #define RESET_EXTRUDER_ENC(x,dir) printer.encLastDir[x] = dir ? 1 : -1;
 
   #define ___TEST_EXTRUDER_ENC(x,y) _TEST_EXTRUDER_ENC(x,y)
   #define __TEST_EXTRUDER_ENC(x)    ___TEST_EXTRUDER_ENC(x,E ##x## _ENC_PIN)
@@ -397,7 +399,7 @@ void Stepper::set_directions() {
 
   #if HAS_EXT_ENCODER
 
-    switch(active_extruder) {
+    switch(printer.active_extruder) {
       case 0:
         RESET_EXTRUDER_ENC(0, count_direction[E_AXIS]); break;
       #if EXTRUDERS > 1
@@ -510,7 +512,7 @@ void Stepper::isr() {
     current_block = NULL;
     planner.discard_current_block();
     #if ENABLED(SD_FINISHED_RELEASECOMMAND)
-      if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+      if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
     _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000); // Run at max speed - 10 KHz
     _ENABLE_ISRs(); // re-enable ISRs
@@ -747,7 +749,7 @@ void Stepper::isr() {
       #endif
 
       #if HAS_EXT_ENCODER
-        switch(active_extruder) {
+        switch(printer.active_extruder) {
           case 0:
             TEST_EXTRUDER_ENC0; break;
           #if EXTRUDERS > 1
@@ -1410,7 +1412,7 @@ void Stepper::init() {
     HAL::delayMilliseconds(1);
 
     #if HAS_E0_ENC
-      encLastSignal[0] = READ(E0_ENC_PIN);
+      printer.encLastSignal[0] = READ(E0_ENC_PIN);
     #endif
 
   #endif // HAS_EXT_ENCODER
@@ -1435,7 +1437,7 @@ void Stepper::init() {
 /**
  * Block until all buffered steps are executed
  */
-void Stepper::synchronize() { while (planner.blocks_queued()) idle(); }
+void Stepper::synchronize() { while (planner.blocks_queued()) printer.idle(); }
 
 /**
  * Set the stepper positions directly in steps
@@ -1796,7 +1798,7 @@ void Stepper::report_positions() {
   void Stepper::set_driver_current() {
     uint8_t digipot_motor = 0;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-      digipot_motor = 255 * motor_current[i] / 3.3;
+      digipot_motor = 255 * printer.motor_current[i] / 3.3;
       ExternalDac::setValue(i, digipot_motor);
     }
   }

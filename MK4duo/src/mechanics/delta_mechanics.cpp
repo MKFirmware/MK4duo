@@ -101,12 +101,12 @@
   void Delta_Mechanics::prepare_move_to_destination() {
 
     endstops.clamp_to_software_endstops(destination);
-    refresh_cmd_timeout();
+    commands.refresh_cmd_timeout();
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(active_extruder))
+          if (thermalManager.tooColdToExtrude(printer.active_extruder))
             current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
@@ -123,7 +123,7 @@
 
     // If the move is only in Z/E don't split up the move
     if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, printer.active_extruder);
       set_current_to_destination();
       return;
     }
@@ -194,11 +194,11 @@
         }
       #endif
 
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, printer.active_extruder);
 
     }
 
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
+    planner.buffer_line_kinematic(destination, _feedrate_mm_s, printer.active_extruder);
 
     set_current_to_destination();
   }
@@ -280,14 +280,14 @@
   void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
 
     current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT;
-    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], active_extruder);
+    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], printer.active_extruder);
 
     current_position[X_AXIS] = LOGICAL_X_POSITION(x);
     current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder);
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), printer.active_extruder);
 
     current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), active_extruder);
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), printer.active_extruder);
 
     stepper.synchronize();
 
@@ -305,7 +305,7 @@
       if (DEBUGGING(LEVELING)) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
     #endif
 
-    refresh_cmd_timeout();
+    commands.refresh_cmd_timeout();
 
     if ( current_position[A_AXIS] == destination[A_AXIS]
       && current_position[B_AXIS] == destination[B_AXIS]
@@ -313,7 +313,7 @@
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder);
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), printer.active_extruder);
 
     set_current_to_destination();
   }
@@ -466,7 +466,7 @@
     const float delta_B = rz + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - rx, towerY[B_AXIS] - ry ));
     const float delta_C = rz + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - rx, towerY[C_AXIS] - ry ));
 
-    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, active_extruder);
+    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, printer.active_extruder);
   }
 
   void Delta_Mechanics::Set_clip_start_height() {
@@ -658,10 +658,10 @@
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
       #if HOTENDS > 1
-        const uint8_t old_tool_index = active_extruder;
+        const uint8_t old_tool_index = printer.active_extruder;
         tool_change(0, 0, true);
       #endif
-      setup_for_endstop_or_probe_move();
+      printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
       Home();
       endstops.not_homing();
@@ -838,7 +838,7 @@
       #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
         do_blocking_move_to_z(delta_clip_start_height);
       #endif
-      clean_up_after_endstop_or_probe_move();
+      printer.clean_up_after_endstop_or_probe_move();
       #if HOTENDS > 1
         tool_change(old_tool_index, 0, true);
       #endif
@@ -953,10 +953,10 @@
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
       #if HOTENDS > 1
-        const uint8_t old_tool_index = active_extruder;
+        const uint8_t old_tool_index = printer.active_extruder;
         tool_change(0, 0, true);
       #endif
-      setup_for_endstop_or_probe_move();
+      printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
       Home();
       endstops.not_homing();
@@ -1203,7 +1203,7 @@
         do_blocking_move_to_z(delta_clip_start_height);
       #endif
       probe.set_deployed(false);
-      clean_up_after_endstop_or_probe_move();
+      printer.clean_up_after_endstop_or_probe_move();
       #if HOTENDS > 1
         tool_change(old_tool_index, 0, true);
       #endif
@@ -1338,6 +1338,58 @@
     LOOP_XYZ(i) delta_endstop_adj[i] -= min_endstop;
     delta_height += min_endstop;
     homed_Height += min_endstop;
+  }
+
+  // Report detail current position to host
+  void Delta_Mechanics::report_current_position_detail() {
+
+    stepper.synchronize();
+
+    SERIAL_MSG("\nLogical:");
+    report_xyze(current_position);
+
+    SERIAL_MSG("Raw:    ");
+    const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
+    report_xyz(raw);
+
+    float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+
+    #if HAS_LEVELING
+
+      SERIAL_MSG("Leveled:");
+      bedlevel.apply_leveling(leveled);
+      report_xyz(leveled);
+
+      SERIAL_MSG("UnLevel:");
+      float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
+      bedlevel.unapply_leveling(unleveled);
+      report_xyz(unleveled);
+
+    #endif
+
+    SERIAL_MSG("DeltaK: ");
+    Transform(leveled);  // writes delta[]
+    report_xyz(delta);
+
+    SERIAL_MSG("Stepper:");
+    const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+    report_xyze((float*)step_count, 4, 0);
+
+    SERIAL_MSG("FromStp:");
+    get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+    report_xyze(from_steppers);
+
+    const float diff[XYZE] = {
+      from_steppers[X_AXIS] - leveled[X_AXIS],
+      from_steppers[Y_AXIS] - leveled[Y_AXIS],
+      from_steppers[Z_AXIS] - leveled[Z_AXIS],
+      from_steppers[E_AXIS] - current_position[E_AXIS]
+    };
+
+    SERIAL_MSG("Differ: ");
+    report_xyze(diff);
+
   }
 
 #endif // IS_DELTA

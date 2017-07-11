@@ -52,8 +52,6 @@
 
 #define TEST_BYTE ((char) 0xE5)
 
-extern char command_queue[BUFSIZE][MAX_CMD_SIZE];
-
 extern char* __brkval;
 extern size_t  __heap_start, __heap_end, __flp;
 extern char __bss_end;
@@ -115,11 +113,11 @@ int16_t count_test_bytes(const char * const ptr) {
         print_hex_byte(ptr[i]);
         SERIAL_CHR(' ');
       }
-      safe_delay(25);
+      printer.safe_delay(25);
       SERIAL_CHR('|');                      // Point out non test bytes
       for (uint8_t i = 0; i < 16; i++) {
         char ccc = (char)ptr[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
-        if (&ptr[i] >= (const char*)command_queue && &ptr[i] < (const char*)(command_queue + sizeof(command_queue))) { // Print out ASCII in the command buffer area
+        if (&ptr[i] >= (const char*)commands.command_queue && &ptr[i] < (const char*)(commands.command_queue + sizeof(commands.command_queue))) { // Print out ASCII in the command buffer area
           if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
         }
         else { // If not in the command buffer area, flag bytes that don't match the test byte
@@ -129,8 +127,8 @@ int16_t count_test_bytes(const char * const ptr) {
       }
       SERIAL_EOL();
       ptr += 16;
-      safe_delay(25);
-      idle();
+      printer.safe_delay(25);
+      printer.idle();
     }
   }
 
@@ -280,13 +278,13 @@ int check_for_free_memory_corruption(const char * const title) {
   if (sp < ptr) {
     SERIAL_MSG(" sp < Heap ");
     // SET_INPUT_PULLUP(63);           // if the developer has a switch wired up to their controller board
-    // safe_delay(5);                  // this code can be enabled to pause the display as soon as the
+    // printer.safe_delay(5);                  // this code can be enabled to pause the display as soon as the
     // while ( READ(63))               // malfunction is detected.   It is currently defaulting to a switch
-    //   idle();                       // being on pin-63 which is unassigend and available on most controller
-    // safe_delay(20);                 // boards.
+    //   printer.idle();               // being on pin-63 which is unassigend and available on most controller
+    // printer.safe_delay(20);                 // boards.
     // while ( !READ(63))
-    //   idle();
-    safe_delay(20);
+    //   printer.idle();
+    printer.safe_delay(20);
     #if ENABLED(M100_FREE_MEMORY_DUMPER)
       M100_dump_routine("   Memory corruption detected with sp<Heap\n", (char*)0x1B80, (char*)0x21FF);
     #endif

@@ -131,6 +131,11 @@
         void auto_calibration();
       #endif
 
+      /**
+       * Report current position to host
+       */
+      void report_current_position_detail() override;
+
     private: /** Private Parameters */
 
       // Derived values

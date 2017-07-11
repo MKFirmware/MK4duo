@@ -34,7 +34,7 @@
 #endif
 
 #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-  TempUnit GCodeParser::input_temp_units;
+  TempUnit GCodeParser::input_temp_units = TEMPUNIT_C;
 #endif
 
 char *GCodeParser::command_ptr,
@@ -224,12 +224,6 @@ void GCodeParser::parse(char *p) {
       while (*p == ' ') p++;                    // Skip over all spaces
     }
   }
-}
-
-void GCodeParser::unknown_command_error() {
-  SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, command_ptr);
-  SERIAL_CHR('"');
-  SERIAL_EOL();
 }
 
 #if ENABLED(DEBUG_GCODE_PARSER)

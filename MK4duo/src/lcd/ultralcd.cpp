@@ -656,7 +656,7 @@ void kill_screen(const char* lcd_msg) {
   }
 
   inline void line_to_current_z() {
-    planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), active_extruder);
+    planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), printer.active_extruder);
   }
 
   inline void line_to_z(const float &z) {
@@ -668,30 +668,30 @@ void kill_screen(const char* lcd_msg) {
 
     void lcd_sdcard_pause() {
       card.pauseSDPrint();
-      print_job_counter.pause();
+      printer.print_job_counter.pause();
       #if ENABLED(PARK_HEAD_ON_PAUSE)
-        enqueue_and_echo_commands_P(PSTR("M125"));
+        commands.enqueue_and_echo_commands_P(PSTR("M125"));
       #endif
       lcd_setstatusPGM(PSTR(MSG_PRINT_PAUSED), -1);
     }
 
     void lcd_sdcard_resume() {
       #if ENABLED(PARK_HEAD_ON_PAUSE)
-        enqueue_and_echo_commands_P(PSTR("M24"));
+        commands.enqueue_and_echo_commands_P(PSTR("M24"));
       #else
         card.startFileprint();
-        print_job_counter.start();
+        printer.print_job_counter.start();
       #endif
       lcd_reset_status();
     }
 
     void lcd_sdcard_stop() {
-      stopSDPrint(false);
+      printer.stopSDPrint(false);
       lcd_return_to_status();
     }
 
     void lcd_sdcard_stop_save() {
-      stopSDPrint(true);
+      printer.stopSDPrint(true);
       lcd_return_to_status();
     }
 
@@ -787,8 +787,8 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     void _lcd_user_gcode(const char * const cmd) {
-      lcd_return_to_status();
-      enqueue_and_echo_commands_P(cmd);
+      commands.enqueue_and_echo_commands_P(cmd);
+      lcd_completion_feedback();
     }
 
     #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
@@ -852,7 +852,7 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     #if ENABLED(LASER)
-      if ((!(planner.movesplanned() || IS_SD_PRINTING)) && printer_mode == PRINTER_MODE_LASER) {
+      if ((!(planner.movesplanned() || IS_SD_PRINTING)) && printer.mode == PRINTER_MODE_LASER) {
         MENU_ITEM(submenu, "Laser Functions", lcd_laser_menu);
       }
     #endif
@@ -919,7 +919,7 @@ void kill_screen(const char* lcd_msg) {
      */
     void lcd_set_home_offsets() {
       // M428 Command
-      enqueue_and_echo_commands_P(PSTR("M428"));
+      commands.enqueue_and_echo_commands_P(PSTR("M428"));
       lcd_return_to_status();
     }
   #endif
@@ -953,9 +953,9 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_tune_fixstep() {
     #if MECH(DELTA)
-      enqueue_and_echo_commands_P(PSTR("G28 B"));
+      commands.enqueue_and_echo_commands_P(PSTR("G28 B"));
     #else
-      enqueue_and_echo_commands_P(PSTR("G28 X Y B"));
+      commands.enqueue_and_echo_commands_P(PSTR("G28 X Y B"));
     #endif
   }
 
@@ -1003,7 +1003,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_enqueue_filament_change() {
 
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(active_extruder)) {
+        if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(printer.active_extruder)) {
           lcd_save_previous_screen();
           lcd_goto_screen(lcd_advanced_pause_toocold_menu);
           return;
@@ -1011,7 +1011,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
-      enqueue_and_echo_commands_P(PSTR("M600 B0"));
+      commands.enqueue_and_echo_commands_P(PSTR("M600 B0"));
     }
 
   #endif
@@ -1087,16 +1087,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &printer.fanSpeeds[0], 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fanSpeeds[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &printer.fanSpeeds[1], 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &printer.fanSpeeds[2], 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &printer.fanSpeeds[3], 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -1108,19 +1108,19 @@ void kill_screen(const char* lcd_msg) {
     // Flow 4:
     //
     #if EXTRUDERS == 1
-      MENU_ITEM_EDIT(int3, MSG_FLOW, &flow_percentage[0], 10, 999);
+      MENU_ITEM_EDIT(int3, MSG_FLOW, &printer.flow_percentage[0], 10, 999);
     #else // EXTRUDERS > 1
-      MENU_ITEM_EDIT(int3, MSG_FLOW, &flow_percentage[active_extruder], 10, 999);
-      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N1, &flow_percentage[0], 10, 999);
-      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N2, &flow_percentage[1], 10, 999);
+      MENU_ITEM_EDIT(int3, MSG_FLOW, &printer.flow_percentage[printer.active_extruder], 10, 999);
+      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N1, &printer.flow_percentage[0], 10, 999);
+      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N2, &printer.flow_percentage[1], 10, 999);
       #if EXTRUDERS > 2
-        MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N3, &flow_percentage[2], 10, 999);
+        MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N3, &printer.flow_percentage[2], 10, 999);
         #if EXTRUDERS > 3
-          MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N4, &flow_percentage[3], 10, 999);
+          MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N4, &printer.flow_percentage[3], 10, 999);
           #if EXTRUDERS > 4
-            MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N5, &flow_percentage[4], 10, 999);
+            MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N5, &printer.flow_percentage[4], 10, 999);
             #if EXTRUDERS > 5
-              MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N6, &flow_percentage[5], 10, 999);
+              MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N6, &printer.flow_percentage[5], 10, 999);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4
         #endif // EXTRUDERS > 3
@@ -1146,7 +1146,7 @@ void kill_screen(const char* lcd_msg) {
     // Change filament
     //
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      if (!thermalManager.tooColdToExtrude(active_extruder))
+      if (!thermalManager.tooColdToExtrude(printer.active_extruder))
         MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
     #endif
 
@@ -1158,9 +1158,9 @@ void kill_screen(const char* lcd_msg) {
       mechanics.current_position[E_AXIS] += length;
       #if MECH(DELTA)
         mechanics.Transform(mechanics.current_position);
-        planner.buffer_line(mechanics.delta[X_AXIS], mechanics.delta[Y_AXIS], mechanics.delta[Z_AXIS], mechanics.current_position[E_AXIS], feedrate, active_extruder);
+        planner.buffer_line(mechanics.delta[X_AXIS], mechanics.delta[Y_AXIS], mechanics.delta[Z_AXIS], mechanics.current_position[E_AXIS], feedrate, printer.active_extruder);
       #else
-        planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], feedrate, active_extruder);
+        planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], feedrate, printer.active_extruder);
       #endif
     }
     void lcd_purge() { lcd_extrude(LCD_PURGE_LENGTH, LCD_PURGE_FEEDRATE); }
@@ -1195,9 +1195,9 @@ void kill_screen(const char* lcd_msg) {
     #endif
     #if FAN_COUNT > 0
       #if FAN_COUNT > 1
-        fanSpeeds[active_extruder < FAN_COUNT ? active_extruder : 0] = fan;
+        printer.fanSpeeds[printer.active_extruder < FAN_COUNT ? printer.active_extruder : 0] = fan;
       #else
-        fanSpeeds[0] = fan;
+        printer.fanSpeeds[0] = fan;
       #endif
     #else
       UNUSED(fan);
@@ -1441,7 +1441,7 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_cooldown() {
     #if FAN_COUNT > 0
-      LOOP_FAN() fanSpeeds[f] = 0;
+      LOOP_FAN() printer.fanSpeeds[f] = 0;
     #endif
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
@@ -1512,7 +1512,7 @@ void kill_screen(const char* lcd_msg) {
         #endif
         mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
         mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-        planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), active_extruder);
+        planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), printer.active_extruder);
         #if MANUAL_PROBE_HEIGHT > 0
           line_to_z(LOGICAL_Z_POSITION(Z_MIN_POS));
         #endif
@@ -1567,7 +1567,7 @@ void kill_screen(const char* lcd_msg) {
             // The last G29 will record and enable but not move.
             //
             lcd_wait_for_move = true;
-            enqueue_and_echo_commands_P(PSTR("G29 V1"));
+            commands.enqueue_and_echo_commands_P(PSTR("G29 V1"));
             lcd_goto_screen(_lcd_level_bed_done);
 
           #elif ENABLED(MESH_BED_LEVELING)
@@ -1593,7 +1593,7 @@ void kill_screen(const char* lcd_msg) {
       // Encoder knob or keypad buttons adjust the Z position
       //
       if (encoderPosition) {
-        refresh_cmd_timeout();
+        commands.refresh_cmd_timeout();
         const float z = mechanics.current_position[Z_AXIS] + float((int32_t)encoderPosition) * (LCD_Z_STEP);
         line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5, (LCD_PROBE_Z_RANGE) * 0.5));
         lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
@@ -1651,7 +1651,7 @@ void kill_screen(const char* lcd_msg) {
 
         // G29 Records Z, moves, and signals when it pauses
         lcd_wait_for_move = true;
-        enqueue_and_echo_commands_P(PSTR("G29 V1"));
+        commands.enqueue_and_echo_commands_P(PSTR("G29 V1"));
 
       #endif
     }
@@ -1689,7 +1689,7 @@ void kill_screen(const char* lcd_msg) {
       defer_return_to_status = true;
       mechanics.axis_homed[X_AXIS] = mechanics.axis_homed[Y_AXIS] = mechanics.axis_homed[Z_AXIS] = false;
       lcd_goto_screen(_lcd_level_bed_homing);
-      enqueue_and_echo_commands_P(PSTR("G28"));
+      commands.enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
     static bool _level_state;
@@ -1774,7 +1774,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Auto Home
     //
-    if (printer_mode == PRINTER_MODE_LASER)
+    if (printer.mode == PRINTER_MODE_LASER)
       MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28 X Y F2000"));
     else {
       MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
@@ -1808,13 +1808,13 @@ void kill_screen(const char* lcd_msg) {
     //
     MENU_ITEM(gcode, MSG_DISABLE_STEPPERS, PSTR("M84"));
 
-    if (printer_mode == PRINTER_MODE_FFF) {
+    if (printer.mode == PRINTER_MODE_FFF) {
 
       //
       // Change filament
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        if (!thermalManager.tooColdToExtrude(active_extruder))
+        if (!thermalManager.tooColdToExtrude(printer.active_extruder))
           MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
       #endif
 
@@ -1913,7 +1913,7 @@ void kill_screen(const char* lcd_msg) {
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
 
-      enqueue_and_echo_commands_P(PSTR("G28"));
+      commands.enqueue_and_echo_commands_P(PSTR("G28"));
       lcd_goto_screen(_lcd_calibrate_homing);
     }
 
@@ -1951,7 +1951,7 @@ void kill_screen(const char* lcd_msg) {
    */
   inline void manage_manual_move() {
     if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), active_extruder);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), printer.active_extruder);
       manual_move_axis = (int8_t)NO_AXIS;
     }
   }
@@ -1975,7 +1975,7 @@ void kill_screen(const char* lcd_msg) {
     if (lcd_clicked) { return lcd_goto_previous_menu(); }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition) {
-      refresh_cmd_timeout();
+      commands.refresh_cmd_timeout();
 
       float min = mechanics.current_position[axis] - 1000,
             max = mechanics.current_position[axis] + 1000;
@@ -2025,12 +2025,12 @@ void kill_screen(const char* lcd_msg) {
   ) {
     #if EXTRUDERS > 1
       static uint8_t old_extruder = 0;
-      old_extruder = active_extruder;
-      tool_change(eindex, 0.0, true);
+      old_extruder = printer.active_extruder;
+      printer.tool_change(eindex, 0.0, true);
     #endif
     if (lcd_clicked) {
       #if EXTRUDERS > 1
-        tool_change(old_extruder, 0.0, true);
+        printer.tool_change(old_extruder, 0.0, true);
       #endif
       return lcd_goto_previous_menu();
     }
@@ -2182,7 +2182,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
 
     #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)
-      if (active_extruder)
+      if (printer.active_extruder)
         MENU_ITEM(gcode, MSG_SELECT MSG_E1, PSTR("T0"));
       else
         MENU_ITEM(gcode, MSG_SELECT MSG_E2, PSTR("T1"));
@@ -2227,10 +2227,10 @@ void kill_screen(const char* lcd_msg) {
   void lcd_control_menu() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
-    if (printer_mode == PRINTER_MODE_FFF)
+    if (printer.mode == PRINTER_MODE_FFF)
       MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
     MENU_ITEM(submenu, MSG_MOTION, lcd_control_motion_menu);
-    if (printer_mode == PRINTER_MODE_FFF)
+    if (printer.mode == PRINTER_MODE_FFF)
       MENU_ITEM(submenu, MSG_FILAMENT, lcd_control_filament_menu);
 
     #if HAS_LCD_CONTRAST
@@ -2278,7 +2278,7 @@ void kill_screen(const char* lcd_msg) {
           autotune_temp[h]
         #endif
       );
-      enqueue_and_echo_command(cmd);
+      commands.enqueue_and_echo_command(cmd);
     }
 
   #endif //PID_AUTOTUNE_MENU
@@ -2381,16 +2381,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fanSpeeds[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &printer.fanSpeeds[0], 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fanSpeeds[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &printer.fanSpeeds[1], 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fanSpeeds[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &printer.fanSpeeds[2], 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fanSpeeds[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &printer.fanSpeeds[3], 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -2528,7 +2528,7 @@ void kill_screen(const char* lcd_msg) {
    */
   void _reset_acceleration_rates() { mechanics.reset_acceleration_rates(); }
   #if EXTRUDERS > 1
-    void _reset_e_acceleration_rate(const uint8_t e) { if (e == active_extruder) _reset_acceleration_rates(); }
+    void _reset_e_acceleration_rate(const uint8_t e) { if (e == printer.active_extruder) _reset_acceleration_rates(); }
     void _reset_e0_acceleration_rate() { _reset_e_acceleration_rate(0); }
     void _reset_e1_acceleration_rate() { _reset_e_acceleration_rate(1); }
     #if EXTRUDERS > 2
@@ -2548,7 +2548,7 @@ void kill_screen(const char* lcd_msg) {
   void _planner_refresh_positioning() { mechanics.refresh_positioning(); }
   #if EXTRUDERS > 1
     void _planner_refresh_e_positioning(const uint8_t e) {
-      if (e == active_extruder)
+      if (e == printer.active_extruder)
         _planner_refresh_positioning();
       else
         mechanics.steps_to_mm[E_AXIS + e] = 1.0 / mechanics.axis_steps_per_mm[E_AXIS + e];
@@ -2580,7 +2580,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_ITEM_EDIT(float3, MSG_VMAX MSG_Z, &mechanics.max_feedrate_mm_s[Z_AXIS], 1, 999);
 
     #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.max_feedrate_mm_s[E_AXIS + active_extruder], 1, 999);
+      MENU_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.max_feedrate_mm_s[E_AXIS + printer.active_extruder], 1, 999);
       MENU_ITEM_EDIT(float3, MSG_VMAX MSG_E1, &mechanics.max_feedrate_mm_s[E_AXIS], 1, 999);
       MENU_ITEM_EDIT(float3, MSG_VMAX MSG_E2, &mechanics.max_feedrate_mm_s[E_AXIS + 1], 1, 999);
       #if EXTRUDERS > 2
@@ -2618,7 +2618,7 @@ void kill_screen(const char* lcd_msg) {
 
     // M204 R Retract Acceleration
     #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.retract_acceleration[active_extruder], 100, 99000);
+      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.retract_acceleration[printer.active_extruder], 100, 99000);
       MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E1, &mechanics.retract_acceleration[0], 100, 99000);
       MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E2, &mechanics.retract_acceleration[1], 100, 99000);
       #if EXTRUDERS > 2
@@ -2646,7 +2646,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_Z, &mechanics.max_acceleration_mm_per_s2[Z_AXIS], 10, 99000, _reset_acceleration_rates);
 
     #if EXTRUDERS > 1
-      MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E, &mechanics.max_acceleration_mm_per_s2[E_AXIS + active_extruder], 100, 99000, _reset_acceleration_rates);
+      MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E, &mechanics.max_acceleration_mm_per_s2[E_AXIS + printer.active_extruder], 100, 99000, _reset_acceleration_rates);
       MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E1, &mechanics.max_acceleration_mm_per_s2[E_AXIS], 100, 99000, _reset_e0_acceleration_rate);
       MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E2, &mechanics.max_acceleration_mm_per_s2[E_AXIS + 1], 100, 99000, _reset_e1_acceleration_rate);
       #if EXTRUDERS > 2
@@ -2682,7 +2682,7 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.max_jerk[E_AXIS + active_extruder], 1, 990);
+      MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.max_jerk[E_AXIS + printer.active_extruder], 1, 990);
       MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E1, &mechanics.max_jerk[E_AXIS], 1, 990);
       MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E2, &mechanics.max_jerk[E_AXIS + 1], 1, 990);
       #if EXTRUDERS > 2
@@ -2714,7 +2714,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ZSTEPS, &mechanics.axis_steps_per_mm[Z_AXIS], 5, 9999, _planner_refresh_positioning);
 
     #if EXTRUDERS > 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ESTEPS, &mechanics.axis_steps_per_mm[E_AXIS + active_extruder], 5, 9999, _planner_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ESTEPS, &mechanics.axis_steps_per_mm[E_AXIS + printer.active_extruder], 5, 9999, _planner_refresh_positioning);
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E1STEPS, &mechanics.axis_steps_per_mm[E_AXIS], 5, 9999, _planner_refresh_e0_positioning);
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E2STEPS, &mechanics.axis_steps_per_mm[E_AXIS + 1], 5, 9999, _planner_refresh_e1_positioning);
       #if EXTRUDERS > 2
@@ -2776,22 +2776,22 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_k, 0, 999);
     #endif
 
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &volumetric_enabled, calculate_volumetric_multipliers);
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &printer.volumetric_enabled, printer.calculate_volumetric_multipliers);
 
-    if (volumetric_enabled) {
+    if (printer.volumetric_enabled) {
       #if EXTRUDERS == 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &printer.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
       #else // EXTRUDERS > 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &filament_size[1], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &printer.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &printer.filament_size[1], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
         #if EXTRUDERS > 2
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &filament_size[2], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &printer.filament_size[2], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
           #if EXTRUDERS > 3
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &filament_size[3], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &printer.filament_size[3], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
             #if EXTRUDERS > 4
-              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &filament_size[4], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &printer.filament_size[4], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
               #if EXTRUDERS > 5
-                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &filament_size[5], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, calculate_volumetric_multipliers);
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &printer.filament_size[5], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
               #endif // EXTRUDERS > 5
             #endif // EXTRUDERS > 4
           #endif // EXTRUDERS > 3
@@ -2859,8 +2859,8 @@ void kill_screen(const char* lcd_msg) {
        END_MENU();
     }
 
-    void action_laser_acc_on() { enqueue_and_echo_commands_P(PSTR("M80")); }
-    void action_laser_acc_off() { enqueue_and_echo_commands_P(PSTR("M81")); }
+    void action_laser_acc_on() { commands.enqueue_and_echo_commands_P(PSTR("M80")); }
+    void action_laser_acc_off() { commands.enqueue_and_echo_commands_P(PSTR("M81")); }
     void action_laser_test_weak() { laser.fire(0.3); }
     void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
     void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
@@ -2869,7 +2869,7 @@ void kill_screen(const char* lcd_msg) {
     void action_laser_test_warm() { laser_test_fire(15, 2000); }
 
     void laser_test_fire(uint8_t power, int dwell) {
-      enqueue_and_echo_commands_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
+      commands.enqueue_and_echo_commands_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
       laser.fire(power);
       delay(dwell);
       laser.extinguish();
@@ -2901,14 +2901,14 @@ void kill_screen(const char* lcd_msg) {
 
     void laser_set_focus(float f_length) {
       if (!mechanics.axis_homed[Z_AXIS]) {
-        enqueue_and_echo_commands_P(PSTR("G28 Z F150"));
+        commands.enqueue_and_echo_commands_P(PSTR("G28 Z F150"));
       }
       focalLength = f_length;
       float focus = LASER_FOCAL_HEIGHT - f_length;
       char cmd[20];
 
       sprintf_P(cmd, PSTR("G0 Z%s F150"), ftostr52sign(focus));
-      enqueue_and_echo_commands_P(cmd);
+      commands.enqueue_and_echo_commands_P(cmd);
     }
 
   #endif // LASER
@@ -2989,21 +2989,21 @@ void kill_screen(const char* lcd_msg) {
       char printTime[20];
       char Filamentlung[20];
 
-      t       = print_job_counter.data.printer_usage / 60;
+      t       = printer.print_job_counter.data.printer_usage / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
       sprintf_P(lifeTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
-      t       = print_job_counter.data.printTime / 60;
+      t       = printer.print_job_counter.data.printTime / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
       sprintf_P(printTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
-      kmeter      = (long)print_job_counter.data.filamentUsed / 1000 / 1000;
-      meter       = ((long)print_job_counter.data.filamentUsed / 1000) % 1000;
-      centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
+      kmeter      = (long)printer.print_job_counter.data.filamentUsed / 1000 / 1000;
+      meter       = ((long)printer.print_job_counter.data.filamentUsed / 1000) % 1000;
+      centimeter  = ((long)printer.print_job_counter.data.filamentUsed / 10) % 100;
       sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
 
       #if HAS_POWER_CONSUMPTION_SENSOR
@@ -3012,8 +3012,8 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       START_SCREEN();
-      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(print_job_counter.data.totalPrints));
-      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(print_job_counter.data.finishedPrints));
+      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(printer.print_job_counter.data.totalPrints));
+      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(printer.print_job_counter.data.finishedPrints));
       STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
       STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
       STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
@@ -3169,11 +3169,11 @@ void kill_screen(const char* lcd_msg) {
     }
 
     void lcd_filament_change_resume_print() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
     }
 
     void lcd_filament_change_extrude_more() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     void lcd_advanced_pause_option_menu() {
@@ -3428,7 +3428,7 @@ void kill_screen(const char* lcd_msg) {
           break;
         case ADVANCED_PAUSE_MESSAGE_OPTION:
           defer_return_to_status = true;
-          advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+          printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
           lcd_goto_screen(lcd_advanced_pause_option_menu);
           break;
         case ADVANCED_PAUSE_MESSAGE_RESUME:
@@ -3541,7 +3541,7 @@ void kill_screen(const char* lcd_msg) {
     void reprapworld_keypad_move_x_right() { _reprapworld_keypad_move(X_AXIS,  1); }
     void reprapworld_keypad_move_y_up()    { _reprapworld_keypad_move(Y_AXIS, -1); }
     void reprapworld_keypad_move_y_down()  { _reprapworld_keypad_move(Y_AXIS,  1); }
-    void reprapworld_keypad_move_home()    { enqueue_and_echo_commands_P(PSTR("G28")); } // move all axes home and wait
+    void reprapworld_keypad_move_home()    { commands.enqueue_and_echo_commands_P(PSTR("G28")); } // move all axes home and wait
     void reprapworld_keypad_move_menu()    { lcd_goto_screen(lcd_move_menu); }
 
     inline void handle_reprapworld_keypad() {
@@ -3617,7 +3617,7 @@ void kill_screen(const char* lcd_msg) {
    */
   void _menu_action_back() { lcd_goto_previous_menu(); }
   void menu_action_submenu(screenFunc_t func) { lcd_save_previous_screen(); lcd_goto_screen(func); }
-  void menu_action_gcode(const char* pgcode) { enqueue_and_echo_commands_P(pgcode); }
+  void menu_action_gcode(const char* pgcode) { commands.enqueue_and_echo_commands_P(pgcode); }
   void menu_action_function(screenFunc_t func) { (*func)(); }
 
   #if HAS_SDSUPPORT
@@ -3787,8 +3787,8 @@ void lcd_update() {
     if (LCD_CLICKED) {
       if (!wait_for_unclick) {           // If not waiting for a debounce release:
         wait_for_unclick = true;         //  Set debounce flag to ignore continous clicks
-        lcd_clicked = !wait_for_user;    //  Keep the click if not waiting for a user-click
-        wait_for_user = false;           //  Any click clears wait for user
+        lcd_clicked = !printer.wait_for_user;    //  Keep the click if not waiting for a user-click
+        printer.wait_for_user = false;           //  Any click clears wait for user
         lcd_quick_feedback();            //  Always make a click sound
       }
     }

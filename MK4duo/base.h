@@ -96,14 +96,15 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
+#include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
 #include "src/bedlevel/bedlevel.h"
 #include "src/bedlevel/probe.h"
-#include "src/parser/parser.h"
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
 #include "src/utility/power_supply.h"
+#include "src/printer/printer.h"
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"

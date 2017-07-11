@@ -34,12 +34,14 @@
   #define EXTRUDER_IDX  0
 #else
   #define HOTEND_INDEX  h
-  #define EXTRUDER_IDX  active_extruder
+  #define EXTRUDER_IDX  printer.active_extruder
 #endif
 
 class Temperature {
 
   public:
+
+    static volatile bool  wait_for_heatup;
 
     #if HAS_TEMP_HOTEND
       static float      current_temperature[HOTENDS];
@@ -102,6 +104,10 @@ class Temperature {
 
     #if ENABLED(PIDTEMPCOOLER)
       static float coolerKp, coolerKi, coolerKd;
+    #endif
+
+    #if HAS(AUTO_FAN)
+      static uint8_t autoFanSpeeds[HOTENDS];
     #endif
 
     #if ENABLED(BABYSTEPPING)

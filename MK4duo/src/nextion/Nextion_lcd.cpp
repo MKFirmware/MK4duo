@@ -510,7 +510,7 @@
       ++_lcdLineNr \
 
   #define END_MENU() \
-      idle(); \
+      printer.idle(); \
       lcdDrawUpdate = false; \
     } while(1)
 
@@ -669,17 +669,17 @@
       if (card.cardOK && card.isFileOpen()) {
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
-          print_job_counter.pause();
+          printer.print_job_counter.pause();
         }
         else {
           card.startFileprint();
-          print_job_counter.start();
+          printer.print_job_counter.start();
         }
       }
     }
 
     void StopPrint(const bool store_location = false) {
-      stopSDPrint(store_location);
+      printer.stopSDPrint(store_location);
     }
 
   #endif
@@ -696,12 +696,12 @@
     }
 
     static void lcd_filament_change_resume_print() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
     }
 
     static void lcd_filament_change_extrude_more() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     static void lcd_advanced_pause_option_menu() {
@@ -833,7 +833,7 @@
             lcd_advanced_pause_wait_for_nozzles_to_heat();
             break;
           case ADVANCED_PAUSE_MESSAGE_OPTION:
-            advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+            printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
             lcd_advanced_pause_option_menu();
             break;
           case ADVANCED_PAUSE_MESSAGE_RESUME:
@@ -877,7 +877,7 @@
         temp += "W";
 
       temp.toCharArray(buffer, sizeof(buffer));
-      enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo_command(buffer);
     }
 
     void rfid_setText(const char* message, uint32_t color /* = 65535 */) {
@@ -896,7 +896,7 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), active_extruder);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), printer.active_extruder);
     }
 
     void bedlevelPopCallBack(void *ptr) {
@@ -915,8 +915,8 @@
       }
       else if (ptr == &BedSend) {
         #if ENABLED(PROBE_MANUALLY)
-          if (g29_in_progress) enqueue_and_echo_commands_P(PSTR("G29"));
-          wait_for_user = false;
+          if (g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
+          printer.wait_for_user = false;
         #endif
       }
     }
@@ -1006,20 +1006,20 @@
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
     Tgcode.setText("");
-    enqueue_and_echo_command(buffer);
+    commands.enqueue_and_echo_command(buffer);
   }
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr) {
-      fanSpeeds[0] = fanSpeeds[0] ? 0 : 255;
-      Fantimer.enable(fanSpeeds[0] ? false : true);
+      printer.fanSpeeds[0] = printer.fanSpeeds[0] ? 0 : 255;
+      Fantimer.enable(printer.fanSpeeds[0] ? false : true);
     }
   #endif
 
   void setmovePopCallback(void *ptr) {
 
     #if EXTRUDERS > 1
-      const uint8_t temp_extruder = active_extruder;
+      const uint8_t temp_extruder = printer.active_extruder;
       uint32_t new_extruder;
       char temp[5] = {0};
 
@@ -1028,39 +1028,39 @@
       itoa(new_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo_command(buffer);
     #endif
 
     ZERO(buffer);
     movecmd.getText(buffer, sizeof(buffer));
-    enqueue_and_echo_commands_P(PSTR("G91"));
-    enqueue_and_echo_command(buffer);
-    enqueue_and_echo_commands_P(PSTR("G90"));
+    commands.enqueue_and_echo_commands_P(PSTR("G91"));
+    commands.enqueue_and_echo_command(buffer);
+    commands.enqueue_and_echo_commands_P(PSTR("G90"));
 
     #if EXTRUDERS > 1
       ZERO(buffer);
       itoa(temp_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo_command(buffer);
     #endif
   }
 
   void motoroffPopCallback(void *ptr) {
-    enqueue_and_echo_commands_P(PSTR("M84"));
+    commands.enqueue_and_echo_commands_P(PSTR("M84"));
   }
 
   void sendPopCallback(void *ptr) {
     lcd_clicked = true;
-    wait_for_user = false;
+    printer.wait_for_user = false;
   }
 
   void filamentPopCallback(void *ptr) {
     ZERO(buffer);
     Filgcode.getText(buffer, sizeof(buffer));
-    enqueue_and_echo_commands_P(PSTR("G91"));
-    enqueue_and_echo_command(buffer);
-    enqueue_and_echo_commands_P(PSTR("G90"));
+    commands.enqueue_and_echo_commands_P(PSTR("G91"));
+    commands.enqueue_and_echo_command(buffer);
+    commands.enqueue_and_echo_commands_P(PSTR("G90"));
   }
 
   void YesPopCallback(void *ptr) {
@@ -1188,7 +1188,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
+      if (!(printer.print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1267,11 +1267,11 @@
         }
 
         #if FAN_COUNT > 0
-          if (PreviousfanSpeed != fanSpeeds[0]) {
-            if (fanSpeeds[0] > 0) {
+          if (PreviousfanSpeed != printer.fanSpeeds[0]) {
+            if (printer.fanSpeeds[0] > 0) {
               Fantimer.enable();
               ZERO(buffer);
-              temp = itostr3(((float)fanSpeeds[0] / 255) * 100);
+              temp = itostr3(((float)printer.fanSpeeds[0] / 255) * 100);
               strcat(buffer, temp);
               strcat(buffer, "%");
               Fanspeed.setText(buffer);
@@ -1280,7 +1280,7 @@
               Fantimer.enable(false);
               Fanspeed.setText("");
             }
-            PreviousfanSpeed = fanSpeeds[0];
+            PreviousfanSpeed = printer.fanSpeeds[0];
           }
         #endif
 
@@ -1337,7 +1337,7 @@
                 // Progress bar solid part
                 sdbar.setValue(card.percentDone());
                 // Estimate End Time
-                uint16_t time = print_job_counter.duration() / 60;
+                uint16_t time = printer.print_job_counter.duration() / 60;
                 uint16_t end_time = (time * (100 - card.percentDone())) / card.percentDone();
                 if (end_time > (60 * 23) || end_time == 0) {
                   LcdTime.setText("S--:-- E--:--");
@@ -1446,7 +1446,7 @@
     }
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
+      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
         Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
@@ -1454,12 +1454,12 @@
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
+      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING))
+      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.line_to(NX_TOOL, x, y, z);
     }
 

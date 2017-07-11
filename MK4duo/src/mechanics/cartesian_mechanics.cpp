@@ -62,13 +62,13 @@
   void Cartesian_Mechanics::prepare_move_to_destination() {
 
     endstops.clamp_to_software_endstops(destination);
-    refresh_cmd_timeout();
+    commands.refresh_cmd_timeout();
 
     #if ENABLED(PREVENT_COLD_EXTRUSION)
 
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(active_extruder))
+          if (thermalManager.tooColdToExtrude(printer.active_extruder))
             current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
@@ -149,7 +149,7 @@
                 i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
                 current_position[E_AXIS],
                 i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
-                active_extruder
+                printer.active_extruder
               );
             delayed_move_time = 0;
             active_extruder_parked = false;
@@ -158,7 +158,7 @@
             #endif
             break;
           case DXC_DUPLICATION_MODE:
-            if (active_extruder == 0) {
+            if (printer.active_extruder == 0) {
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
                   SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_extruder_x_pos));
@@ -213,7 +213,7 @@
 
     const int axis_home_dir =
       #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(active_extruder) :
+        (axis == X_AXIS) ? x_home_dir(printer.active_extruder) :
       #endif
       home_dir[axis];
 
@@ -308,7 +308,7 @@
       sync_plan_position();
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        const int x_axis_home_dir = x_home_dir(active_extruder);
+        const int x_axis_home_dir = x_home_dir(printer.active_extruder);
       #else
         const int x_axis_home_dir = home_dir[X_AXIS];
       #endif
@@ -628,14 +628,14 @@
     if (home_all || homeX) {
       #if ENABLED(DUAL_X_CARRIAGE)
         // Always home the 2nd (right) extruder first
-        active_extruder = 1;
+        printer.active_extruder = 1;
         homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
         inactive_hotend_x_pos = RAW_X_POSITION(current_position[X_AXIS]);
 
         // Home the 1st (left) extruder
-        active_extruder = 0;
+        printer.active_extruder = 0;
         homeaxis(X_AXIS);
 
         // Consider the active extruder to be parked
@@ -705,8 +705,8 @@
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (axis == X_AXIS && (active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
-        current_position[X_AXIS] = x_home_pos(active_extruder);
+      if (axis == X_AXIS && (printer.active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
+        current_position[X_AXIS] = x_home_pos(printer.active_extruder);
         return;
       }
     #endif
@@ -752,7 +752,7 @@
         // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
         // This allow soft recalibration of the second extruder offset position without firmware reflash
         // (through the M218 command).
-        return LOGICAL_X_POSITION(hotend_offset[X_AXIS][1] > 0 ? hotend_offset[X_AXIS][1] : X2_HOME_POS);
+        return LOGICAL_X_POSITION(printer.hotend_offset[X_AXIS][1] > 0 ? printer.hotend_offset[X_AXIS][1] : X2_HOME_POS);
     }
 
   #endif
@@ -800,7 +800,7 @@
     }
 
     void Cartesian_Mechanics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
-      long target[NUM_AXIS] = {x * axis_steps_per_mm[X_AXIS], y * axis_steps_per_mm[Y_AXIS], z * axis_steps_per_mm[Z_AXIS], e * axis_steps_per_mm[E_AXIS + active_extruder]};
+      long target[NUM_AXIS] = {x * axis_steps_per_mm[X_AXIS], y * axis_steps_per_mm[Y_AXIS], z * axis_steps_per_mm[Z_AXIS], e * axis_steps_per_mm[E_AXIS + printer.active_extruder]};
       uint8_t direction_bits = calc_direction_bits(planner.position, target);
       uint8_t move_bits = calc_move_bits(planner.position, target);
 

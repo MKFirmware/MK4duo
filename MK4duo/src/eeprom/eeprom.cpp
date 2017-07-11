@@ -60,7 +60,7 @@
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
  *  M206  XYZ             mechanics.home_offset                 (float x3)
- *  M218  T   XY          hotend_offset                         (float x6)
+ *  M218  T   XY          printer.hotend_offset                         (float x6)
  *
  * Global Leveling:
  *                        z_fade_height                         (float)
@@ -133,8 +133,8 @@
  *  M208  F               retract_recover_feedrate              (float)
  *
  * Volumetric Extrusion:
- *  M200  D               volumetric_enabled                    (bool)
- *  M200  T D             filament_size                         (float x6)
+ *  M200  D               printer.volumetric_enabled            (bool)
+ *  M200  T D             printer.filament_size                         (float x6)
  *
  *  M???  S               IDLE_OOZING_enabled
  *
@@ -184,7 +184,7 @@ void EEPROM::Postprocess() {
     thermalManager.updatePID();
   #endif
 
-  calculate_volumetric_multipliers();
+  printer.calculate_volumetric_multipliers();
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
     // Software endstops depend on home_offset
@@ -333,7 +333,7 @@ void EEPROM::Postprocess() {
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
     #endif
-    EEPROM_WRITE(hotend_offset);
+    EEPROM_WRITE(printer.hotend_offset);
 
     //
     // General Leveling
@@ -482,18 +482,18 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(retract_recover_feedrate);
     #endif // FWRETRACT
 
-    EEPROM_WRITE(volumetric_enabled);
+    EEPROM_WRITE(printer.volumetric_enabled);
 
     // Save filament sizes
     for (uint8_t e = 0; e < EXTRUDERS; e++)
-      EEPROM_WRITE(filament_size[e]);
+      EEPROM_WRITE(printer.filament_size[e]);
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       EEPROM_WRITE(IDLE_OOZING_enabled);
     #endif
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      EEPROM_WRITE(motor_current);
+      EEPROM_WRITE(printer.motor_current);
     #endif
 
     // Save TCM2130 Configuration, and placeholder values
@@ -665,7 +665,7 @@ void EEPROM::Postprocess() {
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
       #endif
-      EEPROM_READ(hotend_offset);
+      EEPROM_READ(printer.hotend_offset);
 
       //
       // General Leveling
@@ -825,17 +825,17 @@ void EEPROM::Postprocess() {
         EEPROM_READ(retract_recover_feedrate);
       #endif // FWRETRACT
 
-      EEPROM_READ(volumetric_enabled);
+      EEPROM_READ(printer.volumetric_enabled);
 
       for (int8_t e = 0; e < EXTRUDERS; e++)
-        EEPROM_READ(filament_size[e]);
+        EEPROM_READ(printer.filament_size[e]);
 
       #if ENABLED(IDLE_OOZING_PREVENT)
         EEPROM_READ(IDLE_OOZING_enabled);
       #endif
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        EEPROM_READ(motor_current);
+        EEPROM_READ(printer.motor_current);
       #endif
 
       #if ENABLED(HAVE_TMC2130)
@@ -970,7 +970,7 @@ void EEPROM::Factory_Settings() {
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     const float tmp11[] = MOTOR_CURRENT;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
+      printer.motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
   #endif
 
   LOOP_XYZE_N(i) {
@@ -989,7 +989,7 @@ void EEPROM::Factory_Settings() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() hotend_offset[i][h] = tmp10[i][h];
+    LOOP_HOTEND() printer.hotend_offset[i][h] = tmp10[i][h];
   }
 
   mechanics.acceleration = DEFAULT_ACCELERATION;
@@ -1081,13 +1081,13 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-    volumetric_enabled = true;
+    printer.volumetric_enabled = true;
   #else
-    volumetric_enabled = false;
+    printer.volumetric_enabled = false;
   #endif
 
-  for (uint8_t q = 0; q < COUNT(filament_size); q++)
-    filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
+  for (uint8_t q = 0; q < COUNT(printer.filament_size); q++)
+    printer.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
 
   endstops.enable_globally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
@@ -1165,7 +1165,7 @@ void EEPROM::Factory_Settings() {
      */
     #if ENABLED(INCH_MODE_SUPPORT)
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
-      #define VOLUMETRIC_UNIT(N) ((N) / (volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
+      #define VOLUMETRIC_UNIT(N) ((N) / (printer.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_SM(CFG, "  G2");
       SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
       SERIAL_MSG(" ; Units in ");
@@ -1281,9 +1281,9 @@ void EEPROM::Factory_Settings() {
       CONFIG_MSG_START("Hotend offset (mm):");
       for (int8_t h = 1; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M218 H", h);
-        SERIAL_MV(" X", LINEAR_UNIT(hotend_offset[X_AXIS][h]), 3);
-        SERIAL_MV(" Y", LINEAR_UNIT(hotend_offset[Y_AXIS][h]), 3);
-        SERIAL_EMV(" Z", LINEAR_UNIT(hotend_offset[Z_AXIS][h]), 3);
+        SERIAL_MV(" X", LINEAR_UNIT(printer.hotend_offset[X_AXIS][h]), 3);
+        SERIAL_MV(" Y", LINEAR_UNIT(printer.hotend_offset[Y_AXIS][h]), 3);
+        SERIAL_EMV(" Z", LINEAR_UNIT(printer.hotend_offset[Z_AXIS][h]), 3);
       }
     #endif
 
@@ -1453,18 +1453,18 @@ void EEPROM::Factory_Settings() {
      */
     if (!forReplay) {
       SERIAL_SM(CFG, "Filament settings:");
-      if (volumetric_enabled)
+      if (printer.volumetric_enabled)
         SERIAL_EOL();
       else
         SERIAL_EM(" Disabled");
     }
     #if EXTRUDERS == 1
-      SERIAL_LMV(CFG, "  M200 T0 D", filament_size[0], 3);
+      SERIAL_LMV(CFG, "  M200 T0 D", printer.filament_size[0], 3);
     #endif
     #if EXTRUDERS > 1
       for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M200 T", (int)i);
-        SERIAL_EMV(" D", filament_size[i], 3);
+        SERIAL_EMV(" D", printer.filament_size[i], 3);
       }
     #endif
 
@@ -1473,17 +1473,17 @@ void EEPROM::Factory_Settings() {
      */
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       CONFIG_MSG_START("Motor current:");
-      SERIAL_SMV(CFG, "  M906 X", motor_current[X_AXIS], 2);
-      SERIAL_MV(" Y", motor_current[Y_AXIS], 2);
-      SERIAL_MV(" Z", motor_current[Z_AXIS], 2);
+      SERIAL_SMV(CFG, "  M906 X", printer.motor_current[X_AXIS], 2);
+      SERIAL_MV(" Y", printer.motor_current[Y_AXIS], 2);
+      SERIAL_MV(" Z", printer.motor_current[Z_AXIS], 2);
       #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", motor_current[E_AXIS], 2);
+        SERIAL_MV(" T0 E", printer.motor_current[E_AXIS], 2);
       #endif
       SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
           SERIAL_SMV(CFG, "  M906 T", i);
-          SERIAL_EMV(" E", motor_current[E_AXIS + i], 2);
+          SERIAL_EMV(" E", printer.motor_current[E_AXIS + i], 2);
         }
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR

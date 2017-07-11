@@ -46,6 +46,48 @@
 
   Servo servo[NUM_SERVOS];
 
+  void servo_init() {
+
+    #if NUM_SERVOS >= 1 && HAS_SERVO_0
+      servo[0].attach(SERVO0_PIN);
+      servo[0].detach(); // Just set up the pin. We don't have a position yet. Don't move to a random position.
+    #endif
+    #if NUM_SERVOS >= 2 && HAS_SERVO_1
+      servo[1].attach(SERVO1_PIN);
+      servo[1].detach();
+    #endif
+    #if NUM_SERVOS >= 3 && HAS_SERVO_2
+      servo[2].attach(SERVO2_PIN);
+      servo[2].detach();
+    #endif
+    #if NUM_SERVOS >= 4 && HAS_SERVO_3
+      servo[3].attach(SERVO3_PIN);
+      servo[3].detach();
+    #endif
+
+    #if HAS_DONDOLO
+      servo[DONDOLO_SERVO_INDEX].attach(0);
+      servo[DONDOLO_SERVO_INDEX].write(DONDOLO_SERVOPOS_E0);
+      #if (DONDOLO_SERVO_DELAY > 0)
+        printer.safe_delay(DONDOLO_SERVO_DELAY);
+        servo[DONDOLO_SERVO_INDEX].detach();
+      #endif
+    #endif
+
+    #if HAS_Z_SERVO_PROBE
+      /**
+       * Set position of Z Servo Endstop
+       *
+       * The servo might be deployed and positioned too low to stow
+       * when starting up the machine or rebooting the board.
+       * There's no way to know where the nozzle is positioned until
+       * homing has been done - no homing with z-probe without init!
+       *
+       */
+      STOW_Z_SERVO();
+    #endif
+  }
+
   #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)
   #define ticksToUs(_ticks) (((unsigned)_ticks * SERVO_TIMER_PRESCALER) / clockCyclesPerMicrosecond())  // converts from ticks back to microseconds
 

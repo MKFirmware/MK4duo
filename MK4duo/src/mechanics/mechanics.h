@@ -280,7 +280,10 @@ class Mechanics {
     /**
      * Report current position to host
      */
-    void report_current_position();
+            void report_current_position();
+    virtual void report_current_position_detail();
+
+    FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
 
     //float get_homing_bump_feedrate(const AxisEnum axis);
 
@@ -290,6 +293,19 @@ class Mechanics {
     virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
             bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
             bool position_is_reachable_xy(const float &lx, const float &ly);
+
+    /**
+     * Plan an arc in 2 dimensions
+     *
+     * The arc is approximated by generating many small linear segments.
+     * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+     * Arcs should only be made relatively large (over 5mm), as larger arcs with
+     * larger segments will tend to be more efficient. Your slicer should have
+     * options for G2/G3 arc generation. In future these options may be GCode tunable.
+     */
+    #if ENABLED(ARC_SUPPORT)
+      void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
+    #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
@@ -302,6 +318,8 @@ class Mechanics {
   private: /** Private Function */
 
   protected: /** Protected Function */
+
+    void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
 

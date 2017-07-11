@@ -255,3 +255,11 @@
  */
 
 #include "base.h"
+
+void setup() {
+  printer.setup();
+}
+
+void loop() {
+  commands.command_loop();
+}
