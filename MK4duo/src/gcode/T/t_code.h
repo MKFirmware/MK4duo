@@ -36,7 +36,10 @@
  * For CNC no other parameters are expected
  *
  */
-inline void gcode_T(uint8_t tool_id) {
+
+#define T0
+
+inline void gcode_T0(uint8_t tool_id) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
