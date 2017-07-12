@@ -7465,6 +7465,19 @@ inline void gcode_M503() {
   (void)eeprom.Print_Settings(parser.seen('S') && !parser.value_bool());
 }
 
+#if HAS_EXT_ENCODER
+  /**
+   * M512: Print Encoder status
+   */
+  inline void gcode_M512() {
+
+    #if HAS_E0_ENC
+      SERIAL_EMV("Enc0 signal:", (int16_t)READ_ENCODER(E0_ENC_PIN));
+    #endif
+
+  }
+#endif
+
 #if ENABLED(RFID_MODULE)
   /**
    * M522: Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
@@ -7691,6 +7704,22 @@ inline void gcode_M532() {
   }
 
 #endif // ADVANCED_PAUSE_FEATURE
+
+#if HAS_EXT_ENCODER
+  /**
+   * M602: Enable or disable Extruder Encoder
+   */
+  
+  /**
+   * M604: Set Extruder Encoder
+   */
+  inline void gcode_M604() {
+    GET_TARGET_EXTRUDER(604);
+    stepper.synchronize();
+    encErrorSteps[target_extruder] = parser.intval('S', ENC_ERROR_STEPS);
+    SERIAL_EMV("Encoder Error Steps: ", encErrorSteps[target_extruder]);
+  }
+#endif
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -9752,6 +9781,11 @@ void process_next_command() {
       case 503: // M503: print settings currently in memory
         gcode_M503(); break;
 
+      #if HAS_EXT_ENCODER
+        case 512: // M512: Print Encoder status
+          gcode_M512(); break;
+      #endif
+
       #if ENABLED(RFID_MODULE)
         case 522: // M422: Read or Write on card. M522 T<extruders> R<read> or W<write>
           gcode_M522(); break;
@@ -9777,6 +9811,11 @@ void process_next_command() {
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         case 600: // Pause Park X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
           gcode_M600(); break;
+      #endif
+
+      #if HAS_EXT_ENCODER
+        case 604: // M604: Set Extruder Encoder
+          gcode_M604(); break;
       #endif
 
       #if ENABLED(DUAL_X_CARRIAGE)

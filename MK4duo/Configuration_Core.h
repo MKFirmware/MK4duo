@@ -202,7 +202,7 @@
 // its trigger-point if hardware endstops are active.
 //#define Z_PROBE_FIX_MOUNTED
 
-// The BLTouch probe emulates a servo probe.
+// The BLTouch probe uses a Hall effect sensor and emulates a servo.
 // The default connector is SERVO 0.
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
