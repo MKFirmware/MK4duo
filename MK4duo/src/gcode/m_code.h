@@ -243,7 +243,7 @@ inline void gcode_M17() {
   /**
    * M25: Pause SD Print
    */
-  inline void gcode_M25() {
+  void gcode_M25() {
     card.pauseSDPrint();
     printer.print_job_counter.pause();
     SERIAL_LM(REQUEST_PAUSE, "SD pause");
@@ -1534,7 +1534,7 @@ inline void gcode_M122() {
    *    Y = override Y
    *    Z = override Z raise
    */
-  inline void gcode_M125() {
+  void gcode_M125() {
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
@@ -3185,6 +3185,19 @@ inline void gcode_M503() {
   (void)eeprom.Print_Settings(parser.seen('S') && !parser.value_bool());
 }
 
+#if HAS_EXT_ENCODER
+  /**
+   * M512: Print Encoder status
+   */
+  inline void gcode_M512() {
+
+    #if HAS_E0_ENC
+      SERIAL_EMV("Enc0 signal:", (int16_t)READ_ENCODER(E0_ENC_PIN));
+    #endif
+
+  }
+#endif
+
 #if ENABLED(RFID_MODULE)
   /**
    * M522: Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
@@ -3411,6 +3424,22 @@ inline void gcode_M532() {
   }
 
 #endif // ADVANCED_PAUSE_FEATURE
+
+#if HAS_EXT_ENCODER
+  /**
+   * M602: Enable or disable Extruder Encoder
+   */
+
+  /**
+   * M604: Set Extruder Encoder
+   */
+  inline void gcode_M604() {
+    GET_TARGET_EXTRUDER(604);
+    stepper.synchronize();
+    printer.encErrorSteps[printer.target_extruder] = parser.intval('S', ENC_ERROR_STEPS);
+    SERIAL_EMV("Encoder Error Steps: ", printer.encErrorSteps[printer.target_extruder]);
+  }
+#endif
 
 #if ENABLED(DUAL_X_CARRIAGE)
 

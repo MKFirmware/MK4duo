@@ -885,6 +885,8 @@
 // Enc min step It must be the minimum number of steps that the extruder does
 // to get a signal from the encoder
 #define ENC_MIN_STEPS        10
+// For invert read signal
+//#define INVERTED_ENCODER_PINS
 /**********************************************************************************/
 
 

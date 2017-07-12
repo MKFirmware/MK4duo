@@ -30,6 +30,16 @@
 #define _PRINTER_H_
 
 extern const char axis_codes[NUM_AXIS];
+extern void home_all_axes();
+
+#if HAS_EXT_ENCODER
+  #if HAS_SDSUPPORT
+    extern void gcode_M25();
+  #endif
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    extern void gcode_M125();
+  #endif
+#endif
 
 class Printer {
 

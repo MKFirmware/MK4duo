@@ -43,7 +43,7 @@
     #include "vector_3.h"
   #endif
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-    #include "qr_solve.h"
+    #include "least_squares_fit.h"
   #elif ENABLED(MESH_BED_LEVELING)
     #include "mesh_bed_leveling.h"
   #endif

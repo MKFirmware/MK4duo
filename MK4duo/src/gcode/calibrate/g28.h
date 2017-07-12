@@ -165,7 +165,7 @@
  *  B   Return to back point
  *
  */
-inline void gcode_G28(const bool always_home_all=false) {
+inline void gcode_HOME(const bool always_home_all) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
@@ -281,4 +281,6 @@ inline void gcode_G28(const bool always_home_all=false) {
 
 } // G28
 
-void home_all_axes() { gcode_G28(true); }
+void home_all_axes() { gcode_HOME(true); }
+
+inline void gcode_G28(void) { gcode_HOME(false); }

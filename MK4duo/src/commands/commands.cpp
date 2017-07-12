@@ -30,8 +30,6 @@
 #include "commands.h"
 #include "../gcode/gcode.h"
 
-typedef void (*lpfGCode) (void);
-
 Commands commands;
 
 /**
@@ -561,11 +559,17 @@ void Commands::process_next_gcode() {
 
     case 'G': {
       const int gcode_cmd = parser.codenum;
-      for (int tblIndex = 0; tblIndex < COUNT(GCode_Table); tblIndex ++) {
-        if (gcode_cmd == GCode_Table[tblIndex][0]) {
-          ((lpfGCode)(GCode_Table[tblIndex][1]))(); // Command found, execute
+      bool code_found = false;
+      for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); ++index) {
+        if (gcode_cmd == GCode_Table[index].code) {
+          code_found = true;
+          GCode_Table[index].command(); // Command found, execute
           break; 
         }
+      }
+      if (!code_found) {
+        // Command not found, throw an error
+        unknown_command_error();
       }
     }
     break;
@@ -1052,6 +1056,11 @@ void Commands::process_next_gcode() {
       case 503: // M503: print settings currently in memory
         gcode_M503(); break;
 
+      #if HAS_EXT_ENCODER
+        case 512: // M512: Print Encoder status
+          gcode_M512(); break;
+      #endif
+
       #if ENABLED(RFID_MODULE)
         case 522: // M422: Read or Write on card. M522 T<extruders> R<read> or W<write>
           gcode_M522(); break;
@@ -1077,6 +1086,11 @@ void Commands::process_next_gcode() {
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         case 600: // Pause Park X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
           gcode_M600(); break;
+      #endif
+
+      #if HAS_EXT_ENCODER
+        case 604: // M604: Set Extruder Encoder
+          gcode_M604(); break;
       #endif
 
       #if ENABLED(DUAL_X_CARRIAGE)

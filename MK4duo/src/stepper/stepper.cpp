@@ -274,7 +274,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
  */
 #if HAS_EXT_ENCODER
   #define _TEST_EXTRUDER_ENC(x,pin) { \
-    const uint8_t sig = READ(pin); \
+    const uint8_t sig = READ_ENCODER(pin); \
     printer.encStepsSinceLastSignal[x] += printer.encLastDir[x]; \
     if (printer.encLastSignal[x] != sig && abs(printer.encStepsSinceLastSignal[x] - printer.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
       if (sig) printer.encStepsSinceLastSignal[x] = 0; \
@@ -287,7 +287,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
     } \
   }
 
-  #define RESET_EXTRUDER_ENC(x,dir) printer.encLastDir[x] = dir ? 1 : -1;
+  #define RESET_EXTRUDER_ENC(x,dir) printer.encLastDir[x] = dir;
 
   #define ___TEST_EXTRUDER_ENC(x,y) _TEST_EXTRUDER_ENC(x,y)
   #define __TEST_EXTRUDER_ENC(x)    ___TEST_EXTRUDER_ENC(x,E ##x## _ENC_PIN)
@@ -749,29 +749,31 @@ void Stepper::isr() {
       #endif
 
       #if HAS_EXT_ENCODER
-        switch(printer.active_extruder) {
-          case 0:
-            TEST_EXTRUDER_ENC0; break;
-          #if EXTRUDERS > 1
-            case 1:
-              TEST_EXTRUDER_ENC1; break;
-            #if EXTRUDERS > 2
-              case 2:
-                TEST_EXTRUDER_ENC2; break;
-              #if EXTRUDERS > 3
-                case 3:
-                  TEST_EXTRUDER_ENC3; break;
-                #if EXTRUDERS > 4
-                  case 4:
-                    TEST_EXTRUDER_ENC4; break;
-                  #if EXTRUDERS > 5
-                    case 5:
-                      TEST_EXTRUDER_ENC5; break;
-                  #endif // EXTRUDERS > 5
-                #endif // EXTRUDERS > 4
-              #endif // EXTRUDERS > 3
-            #endif // EXTRUDERS > 2
-          #endif // EXTRUDERS > 1
+        if (counter_E > 0) {
+          switch(printer.active_extruder) {
+            case 0:
+              TEST_EXTRUDER_ENC0; break;
+            #if EXTRUDERS > 1
+              case 1:
+                TEST_EXTRUDER_ENC1; break;
+              #if EXTRUDERS > 2
+                case 2:
+                  TEST_EXTRUDER_ENC2; break;
+                #if EXTRUDERS > 3
+                  case 3:
+                    TEST_EXTRUDER_ENC3; break;
+                  #if EXTRUDERS > 4
+                    case 4:
+                      TEST_EXTRUDER_ENC4; break;
+                    #if EXTRUDERS > 5
+                      case 5:
+                        TEST_EXTRUDER_ENC5; break;
+                    #endif // EXTRUDERS > 5
+                  #endif // EXTRUDERS > 4
+                #endif // EXTRUDERS > 3
+              #endif // EXTRUDERS > 2
+            #endif // EXTRUDERS > 1
+          }
         }
       #endif // HAS_EXT_ENCODER
 
@@ -1412,7 +1414,7 @@ void Stepper::init() {
     HAL::delayMilliseconds(1);
 
     #if HAS_E0_ENC
-      printer.encLastSignal[0] = READ(E0_ENC_PIN);
+      printer.encLastSignal[0] = READ_ENCODER(E0_ENC_PIN);
     #endif
 
   #endif // HAS_EXT_ENCODER

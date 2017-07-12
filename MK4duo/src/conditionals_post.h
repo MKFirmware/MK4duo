@@ -843,6 +843,17 @@
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
 /**
+ * Extruder Encoder
+ */
+#if HAS_EXT_ENCODER
+  #if ENABLED(INVERTED_ENCODER_PINS)
+    #define READ_ENCODER(v) !READ(v)
+  #else
+    #define READ_ENCODER(v) READ(v)
+  #endif
+#endif
+
+/**
  * Heater & Fan Pausing
  */
 #if FAN_COUNT == 0

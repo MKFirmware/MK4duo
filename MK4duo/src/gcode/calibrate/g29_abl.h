@@ -26,176 +26,13 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_PROBING_PROCEDURE
+void out_of_range_error(const char* p_edge) {
+  SERIAL_MSG("?Probe ");
+  SERIAL_PS(p_edge);
+  SERIAL_EM(" position out of range.");
+}
 
-  void out_of_range_error(const char* p_edge) {
-    SERIAL_MSG("?Probe ");
-    SERIAL_PS(p_edge);
-    SERIAL_EM(" position out of range.");
-  }
-
-#endif
-
-#if ENABLED(MESH_BED_LEVELING)
-
-  #define G29
-
-  // Save 130 bytes with non-duplication of PSTR
-  void say_not_entered() { SERIAL_EM(" not entered."); }
-
-  /**
-   * G29: Mesh-based Z probe, probes a grid and produces a
-   *      mesh to compensate for variable bed height
-   *
-   * Parameters With MESH_BED_LEVELING:
-   *
-   *  S0              Produce a mesh report
-   *  S1              Start probing mesh points
-   *  S2              Probe the next mesh point
-   *  S3 Xn Yn Zn.nn  Manually modify a single point
-   *  S4 Zn.nn        Set z offset. Positive away from bed, negative closer to bed.
-   *  S5              Reset and disable mesh
-   *
-   * The S0 report the points as below
-   *
-   *  +----> X-axis  1-n
-   *  |
-   *  |
-   *  v Y-axis  1-n
-   *
-   */
-  inline void gcode_G29(void) {
-
-    static int mbl_probe_index = -1;
-    #if HAS_SOFTWARE_ENDSTOPS
-      static bool enable_soft_endstops;
-    #endif
-
-    const MeshLevelingState state = parser.seen('S') ? (MeshLevelingState)parser.value_byte() : MeshReport;
-    if (!WITHIN(state, 0, 5)) {
-      SERIAL_MSG("S out of range (0-5).");
-      return;
-    }
-
-    int8_t px, py;
-
-    switch (state) {
-      case MeshReport:
-        if (bedlevel.leveling_is_valid()) {
-          SERIAL_EMT("State: ", bedlevel.leveling_is_active() ? MSG_ON : MSG_OFF);
-          bedlevel.mbl_mesh_report();
-        }
-        else
-          SERIAL_EM("Mesh bed leveling has no data.");
-        break;
-
-      case MeshStart:
-        mbl.reset();
-        mbl_probe_index = 0;
-        commands.enqueue_and_echo_commands_P(PSTR("G28\nG29 S2"));
-        break;
-
-      case MeshNext:
-        if (mbl_probe_index < 0) {
-          SERIAL_EM("Start mesh probing with \"G29 S1\" first.");
-          return;
-        }
-        // For each G29 S2...
-        if (mbl_probe_index == 0) {
-          #if HAS_SOFTWARE_ENDSTOPS
-            // For the initial G29 S2 save software endstop state
-            enable_soft_endstops = endstops.soft_endstops_enabled;
-          #endif
-        }
-        else {
-          // For G29 S2 after adjusting Z.
-          mbl.set_zigzag_z(mbl_probe_index - 1, mechanics.current_position[Z_AXIS]);
-          #if HAS_SOFTWARE_ENDSTOPS
-            endstops.soft_endstops_enabled = enable_soft_endstops;
-          #endif
-        }
-        // If there's another point to sample, move there with optional lift.
-        if (mbl_probe_index < GRID_MAX_POINTS) {
-          mbl.zigzag(mbl_probe_index, px, py);
-          mechanics.manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
-
-          #if HAS_SOFTWARE_ENDSTOPS
-            // Disable software endstops to allow manual adjustment
-            // If G29 is not completed, they will not be re-enabled
-            endstops.soft_endstops_enabled = false;
-          #endif
-
-          mbl_probe_index++;
-        }
-        else {
-          // One last "return to the bed" (as originally coded) at completion
-          mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
-          mechanics.line_to_current_position();
-          stepper.synchronize();
-
-          // After recording the last point, activate the mbl and home
-          mbl_probe_index = -1;
-          SERIAL_EM("Mesh probing done.");
-          BUZZ(100, 659);
-          BUZZ(100, 698);
-          bedlevel.mesh_probing_done();
-        }
-        break;
-
-      case MeshSet:
-        if (parser.seenval('X')) {
-          px = parser.value_int() - 1;
-          if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
-            SERIAL_EM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
-            return;
-          }
-        }
-        else {
-          SERIAL_CHR('X'); say_not_entered();
-          return;
-        }
-
-        if (parser.seenval('Y')) {
-          py = parser.value_int() - 1;
-          if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
-            SERIAL_EM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
-            return;
-          }
-        }
-        else {
-          SERIAL_CHR('Y'); say_not_entered();
-          return;
-        }
-
-        if (parser.seenval('Z')) {
-          mbl.z_values[px][py] = parser.value_axis_units(Z_AXIS);
-        }
-        else {
-          SERIAL_CHR('Z'); say_not_entered();
-          return;
-        }
-        break;
-
-      case MeshSetZOffset:
-        if (parser.seenval('Z')) {
-          mbl.z_offset = parser.value_axis_units(Z_AXIS);
-        }
-        else {
-          SERIAL_CHR('Z'); say_not_entered();
-          return;
-        }
-        break;
-
-      case MeshReset:
-        bedlevel.reset_bed_level();
-        break;
-
-    } // switch(state)
-
-    mechanics.report_current_position();
-  }
-
-#elif HAS_ABL
+#if HAS_ABL
 
   #define G29
 
@@ -281,7 +118,7 @@
    *     There's no extra effect if you have a fixed Z probe.
    *
    */
-  inline void gcode_G29() {
+  inline void gcode_G29(void) {
 
     // G29 Q is also available if debugging
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -347,7 +184,11 @@
         ABL_VAR  int8_t PR_INNER_VAR;
       #endif
 
-      ABL_VAR int left_probe_bed_position, right_probe_bed_position, front_probe_bed_position, back_probe_bed_position;
+      ABL_VAR int left_probe_bed_position,
+                  right_probe_bed_position,
+                  front_probe_bed_position,
+                  back_probe_bed_position;
+
       ABL_VAR float xGridSpacing = 0.0,
                     yGridSpacing = 0.0;
 
@@ -393,6 +234,11 @@
       };
 
     #endif // AUTO_BED_LEVELING_3POINT
+
+    #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+      struct linear_fit_data lsf_results;
+      incremental_LSF_reset(&lsf_results);
+    #endif
 
     /**
      * On the initial G29 fetch command parameters.
@@ -590,11 +436,7 @@
           abl_should_enable = false;
         }
 
-      #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
-
-        mean = 0.0;
-
-      #endif // AUTO_BED_LEVELING_LINEAR
+      #endif // AUTO_BED_LEVELING_BILINEAR
 
       #if ENABLED(AUTO_BED_LEVELING_3POINT)
 
@@ -655,15 +497,7 @@
         // Save the previous Z before going to the next point
         measured_z = mechanics.current_position[Z_AXIS];
 
-        #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-
-          mean += measured_z;
-          eqnBVector[abl_probe_index] = measured_z;
-          eqnAMatrix[abl_probe_index + 0 * abl2] = xProbe;
-          eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
-          eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
-
-        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
           bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
 
@@ -835,6 +669,10 @@
               eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
               eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
 
+              incremental_LSF(&lsf_results, xProbe, yProbe, measured_z);
+
+              indexIntoAB[xCount][yCount] = abl_probe_index;
+
             #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
               bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
@@ -935,7 +773,11 @@
        * so Vx = -a Vy = -b Vz = 1 (we want the vector facing towards positive Z
        */
       float plane_equation_coefficients[3];
-      qr_solve(plane_equation_coefficients, abl2, 3, eqnAMatrix, eqnBVector);
+
+      finish_incremental_LSF(&lsf_results);
+      plane_equation_coefficients[0] = -lsf_results.A;  // We should be able to eliminate the '-' on these three lines and down below
+      plane_equation_coefficients[1] = -lsf_results.B;  // but that is not yet tested.
+      plane_equation_coefficients[2] = -lsf_results.D;
 
       mean /= abl2;
 
@@ -950,7 +792,7 @@
       // Create the matrix but don't correct the position yet
       if (!dryrun) {
         bedlevel.bed_level_matrix = matrix_3x3::create_look_at(
-          vector_3(-plane_equation_coefficients[0], -plane_equation_coefficients[1], 1)
+          vector_3(-plane_equation_coefficients[0], -plane_equation_coefficients[1], 1) // We can eleminate the '-' here and up above
         );
       }
 

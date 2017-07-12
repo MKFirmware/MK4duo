@@ -237,7 +237,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
     return measured_z;
 
-  #elif HAS_RESUME_CONTINUE
+  #elif HAS_RESUME_CONTINUE && ENABLED(PROBE_MANUALLY)
 
     UNUSED(stow);
     UNUSED(verbose_level);

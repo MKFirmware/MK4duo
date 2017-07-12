@@ -642,7 +642,6 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
       #endif
     }
   }
-
 }
 
 /**
@@ -959,7 +958,7 @@ void Printer::handle_Interrupt_Event() {
 
     #if HAS_EXT_ENCODER
       case INTERRUPT_EVENT_ENC_DETECT:
-        if (!filament_ran_out) {
+        if (!filament_ran_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           filament_ran_out = true;
           stepper.synchronize();
           #if HAS_SDSUPPORT
