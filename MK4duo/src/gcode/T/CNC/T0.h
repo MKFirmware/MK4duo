@@ -27,7 +27,7 @@
  */
 
 /**
- * T0-TN: Switch tool, usually switching extruders or CNC tools
+ * T0: Switch tool, usually switching extruders or CNC tools
  *
  * For Extruders:
  *   F[units/min] Set the movement feedrate
@@ -36,7 +36,10 @@
  * For CNC no other parameters are expected
  *
  */
-inline void gcode_T(uint8_t tool_id) {
+
+#define T0
+
+inline void gcode_T0(uint8_t tool_id) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {

@@ -26,7 +26,12 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-//Including this file will give free access to every gcode table!
-#include "G/table.h"
-#include "M/table.h"
-#include "T/table.h"
+#define M17
+
+/**
+ * M17: Enable power on all stepper motors
+ */
+inline void gcode_M17() {
+  LCD_MESSAGEPGM(MSG_NO_MOVE);
+  stepper.enable_all_steppers();
+}
