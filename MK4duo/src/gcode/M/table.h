@@ -26,7 +26,19 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+#include "printer_resume/m0.h"
+#include "multi_mode/m3.h"
+#include "motion/m17.h"
+#include "sd/m20.h"
+#include "sd/m32.h"
+#include "pins_debugging/m43.h"
+#include "probe/m48.h"
+#include "power/m70.h"
+#include "power/m80.h"
+#include "power/m81.h"
+
 #include "m_code.h"
+
 
 #define M_CODE_TYPE uint16_t
 

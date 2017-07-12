@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#include "t_code.h"
+#include "CNC/T0.h"
 
 #define T_CODE_TYPE uint8_t
 

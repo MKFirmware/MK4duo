@@ -27,7 +27,7 @@
  */
 
 /**
- * T0-TN: Switch tool, usually switching extruders or CNC tools
+ * T0: Switch tool, usually switching extruders or CNC tools
  *
  * For Extruders:
  *   F[units/min] Set the movement feedrate
