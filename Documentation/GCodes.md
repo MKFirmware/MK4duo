@@ -110,6 +110,7 @@
 *  M105 - Read current temp
 *  M106 - S<speed> P<fan> Fan on
 *  M107 - P<fan> Fan off
+*  M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating
           R[xxx] Wait for hotend current temp to reach target temp. Waits when heating and cooling
           IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
