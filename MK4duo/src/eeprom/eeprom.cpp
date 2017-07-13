@@ -224,6 +224,7 @@ void EEPROM::Postprocess() {
     if (eeprom_error) return;
 
     while(size--) {
+
       #if HAS_EEPROM_SD
 
         uint8_t v = *value;
@@ -263,7 +264,7 @@ void EEPROM::Postprocess() {
         uint8_t c = card.read_data();
       #else
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      #endif        
+      #endif
       *value = c;
       crc16(crc, &c, 1);
       pos++;

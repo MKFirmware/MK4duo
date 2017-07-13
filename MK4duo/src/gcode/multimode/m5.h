@@ -21,11 +21,49 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#if HAS_MULTI_MODE
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+  #define MCODE_M5
+
+  /**
+   * M5: Turn off laser beam - CNC off
+   */
+  inline void gcode_M5(void) {
+    stepper.synchronize();
+
+    switch (printer.mode) {
+
+      #if ENABLED(LASER)
+        case PRINTER_MODE_LASER: {
+          if (laser.status != LASER_OFF) {
+            laser.status = LASER_OFF;
+            laser.mode = CONTINUOUS;
+            laser.duration = 0;
+
+            if (laser.diagnostics)
+              SERIAL_EM("Laser M5 called and laser OFF");
+          }
+        }
+        break;
+      #endif
+
+      #if ENABLED(CNCROUTER)
+        case PRINTER_MODE_CNC:
+          disable_cncrouter();
+        break;
+      #endif
+
+      default: break; // other tools
+
+    } // printer.mode
+
+    mechanics.prepare_move_to_destination();
+
+  }
+
+#endif // HAS_MULTI_MODE

@@ -546,6 +546,53 @@
     UNUSED(always_home_all);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_EM(">>> gcode_G28");
+        log_machine_info();
+      }
+    #endif
+
+    #if HAS_POWER_SWITCH
+      if (!powerManager.powersupply_on) powerManager.power_on(); // Power On if power is off
+    #endif
+
+    // Wait for planner moves to finish!
+    stepper.synchronize();
+
+    // Cancel the active G29 session
+    #if ENABLED(PROBE_MANUALLY)
+      printer.g29_in_progress = false;
+      #if HAS_NEXTION_MANUAL_BED
+        LcdBedLevelOff();
+      #endif
+    #endif
+
+    // Disable the leveling matrix before homing
+    #if HAS_LEVELING
+      bedlevel.set_bed_leveling_enabled(false);
+    #endif
+
+    // Always home with tool 0 active
+    #if HOTENDS > 1
+      const uint8_t old_tool_index = printer.active_extruder;
+      printer.tool_change(0, 0, true);
+    #endif
+
+    printer.setup_for_endstop_or_probe_move();
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("> endstops.enable(true)");
+    #endif
+    endstops.enable(true); // Enable endstops for next homing move
+
+    bool come_back = parser.seen('B');
+    float lastpos[NUM_AXIS];
+    float old_feedrate_mm_s;
+    if (come_back) {
+      old_feedrate_mm_s = mechanics.feedrate_mm_s;
+      COPY_ARRAY(lastpos, mechanics.current_position);
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS(">>> home_delta", current_position);
     #endif
 
@@ -577,6 +624,57 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("<<< home_delta", current_position);
     #endif
+
+    #if ENABLED(NPR2)
+      if ((home_all) || (parser.seen('E'))) {
+        set_destination_to_current();
+        destination[E_AXIS] = -200;
+        printer.active_driver = printer.active_extruder = 1;
+        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, printer.active_extruder);
+        stepper.synchronize();
+        old_color = 99;
+        printer.active_driver = printer.active_extruder = 0;
+        current_position[E_AXIS] = 0;
+        sync_plan_position_e();
+      }
+    #endif
+
+    endstops.not_homing();
+
+    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+      // move to a height where we can use the full xy-area
+      do_blocking_move_to_z(delta_clip_start_height);
+    #endif
+
+    if (come_back) {
+      feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
+      COPY_ARRAY(destination, lastpos);
+      prepare_move_to_destination();
+      feedrate_mm_s = old_feedrate_mm_s;
+    }
+
+    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS);
+      gfx_cursor_to(current_position[X_AXIS] + (X_MAX_POS), current_position[Y_AXIS] + (Y_MAX_POS), current_position[Z_AXIS]);
+    #endif
+
+    printer.clean_up_after_endstop_or_probe_move();
+
+    stepper.synchronize();
+
+    // Restore the active tool after homing
+    #if HOTENDS > 1
+      printer.tool_change(old_tool_index, 0, true);
+    #endif
+
+    lcd_refresh();
+
+    report_current_position();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
+    #endif
+
   }
 
   void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {

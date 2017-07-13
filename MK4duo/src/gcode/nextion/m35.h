@@ -21,11 +21,23 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#if ENABLED(NEXTION)
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+  #if HAS_SDSUPPORT
+
+    #define MCODE_M35
+
+    /**
+     * M35: Upload Firmware to Nextion from SD
+     */
+    inline void gcode_M35(void) {
+      UploadNewFirmware();
+    }
+  #endif
+
+#endif // ENABLED(NEXTION)

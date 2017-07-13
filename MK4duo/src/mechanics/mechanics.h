@@ -273,6 +273,23 @@ class Mechanics {
     void refresh_positioning();
 
     /**
+     * Home all axes according to settings
+     *
+     * Parameters
+     *
+     *  None  Home to all axes with no parameters.
+     *        With QUICK_HOME enabled XY will home together, then Z.
+     *
+     * Cartesian parameters
+     *
+     *  X   Home to the X endstop
+     *  Y   Home to the Y endstop
+     *  Z   Home to the Z endstop
+     *
+     */
+    virtual void Home(const bool always_home_all);
+
+    /**
      * Home an individual linear axis
      */
     void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
@@ -322,6 +339,10 @@ class Mechanics {
     void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      void log_machine_info();
+    #endif
 
 };
 

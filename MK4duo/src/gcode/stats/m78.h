@@ -21,11 +21,19 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#define CODE_M78
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+/**
+ * M78: Show print statistics
+ */
+inline void gcode_M78(void) {
+  // "M78 S78" will reset the statistics
+  if (parser.seen('S') && parser.value_int() == 78)
+    printer.print_job_counter.initStats();
+  else printer.print_job_counter.showStats();
+}

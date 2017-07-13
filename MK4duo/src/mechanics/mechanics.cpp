@@ -603,3 +603,118 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
   #endif
 
 #endif
+
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+
+  void Mechanics::log_machine_info() {
+    SERIAL_MSG("Machine Type: ");
+    #if IS_DELTA
+      SERIAL_EM("Delta");
+    #elif IS_SCARA
+      SERIAL_EM("SCARA");
+    #elif IS_CORE
+      SERIAL_EM("Core");
+    #else
+      SERIAL_EM("Cartesian");
+    #endif
+
+    SERIAL_MSG("Probe: ");
+    #if ENABLED(PROBE_MANUALLY)
+      SERIAL_EM("PROBE_MANUALLY");
+    #elif ENABLED(Z_PROBE_FIX_MOUNTED)
+      SERIAL_EM("Z_PROBE_FIX_MOUNTED");
+    #elif ENABLED(BLTOUCH)
+      SERIAL_EM("BLTOUCH");
+    #elif ENABLED(Z_PROBE_SLED)
+      SERIAL_EM("Z_PROBE_SLED");
+    #elif ENABLED(Z_PROBE_ALLEN_KEY)
+      SERIAL_EM("ALLEN KEY");
+    #elif HAS_Z_SERVO_PROBE
+      SERIAL_EM("SERVO PROBE");
+    #else
+      SERIAL_EM("NONE");
+    #endif
+
+    #if HAS_BED_PROBE
+      SERIAL_MV("Probe Offset X:", X_PROBE_OFFSET_FROM_NOZZLE);
+      SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
+      SERIAL_MV(" Z:", probe.z_offset);
+      #if X_PROBE_OFFSET_FROM_NOZZLE > 0
+        SERIAL_MSG(" (Right");
+      #elif X_PROBE_OFFSET_FROM_NOZZLE < 0
+        SERIAL_MSG(" (Left");
+      #elif Y_PROBE_OFFSET_FROM_NOZZLE != 0
+        SERIAL_MSG(" (Middle");
+      #else
+        SERIAL_MSG(" (Aligned With");
+      #endif
+      #if Y_PROBE_OFFSET_FROM_NOZZLE > 0
+        SERIAL_MSG("-Back");
+      #elif Y_PROBE_OFFSET_FROM_NOZZLE < 0
+        SERIAL_MSG("-Front");
+      #elif X_PROBE_OFFSET_FROM_NOZZLE != 0
+        SERIAL_MSG("-Center");
+      #endif
+      if (probe.z_offset < 0)
+        SERIAL_MSG(" & Below");
+      else if (probe.z_offset > 0)
+        SERIAL_MSG(" & Above");
+      else
+        SERIAL_MSG(" & Same Z as");
+      SERIAL_EM(" Nozzle)");
+    #endif
+
+    #if HAS_ABL
+      SERIAL_MSG("Auto Bed Leveling: ");
+      #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+        SERIAL_MSG("LINEAR");
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        SERIAL_MSG("BILINEAR");
+      #elif ENABLED(AUTO_BED_LEVELING_3POINT)
+        SERIAL_MSG("3POINT");
+      #endif
+      if (bedlevel.leveling_is_active()) {
+        SERIAL_EM(" (enabled)");
+        #if ABL_PLANAR
+          const float diff[XYZ] = {
+            get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
+            get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
+            get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
+          };
+          SERIAL_MSG("ABL Adjustment X");
+          if (diff[X_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[X_AXIS]);
+          SERIAL_MSG(" Y");
+          if (diff[Y_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[Y_AXIS]);
+          SERIAL_MSG(" Z");
+          if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
+          SERIAL_VAL(diff[Z_AXIS]);
+        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(current_position));
+        #endif
+      }
+      else
+        SERIAL_MSG(" (disabled)");
+
+      SERIAL_EOL();
+
+    #elif ENABLED(MESH_BED_LEVELING)
+
+      SERIAL_MSG("Mesh Bed Leveling");
+      if (bedlevel.leveling_is_active()) {
+        float lz = current_position[Z_AXIS];
+        bedlevel.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], lz);
+        SERIAL_EM(" (enabled)");
+        SERIAL_MV("MBL Adjustment Z", lz);
+      }
+      else
+        SERIAL_MSG(" (disabled)");
+
+      SERIAL_EOL();
+
+    #endif
+
+  }
+
+#endif // DEBUG_LEVELING_FEATURE

@@ -108,6 +108,12 @@ PrinterMode Printer::mode =
 // Print Job Timer
 PrintCounter Printer::print_job_counter = PrintCounter();
 
+#if ENABLED(PROBE_MANUALLY)
+  bool Printer::g29_in_progress = false;
+#else
+  const bool Printer::g29_in_progress = false;
+#endif
+
 #if HAS_SDSUPPORT
   bool Printer::sd_print_paused = false;
 #endif
@@ -374,7 +380,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    home_all_axes();
+    mechanics.Home(true);
   #endif
 
 }

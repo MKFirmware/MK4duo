@@ -21,11 +21,14 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#define CODE_M76
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+/**
+ * M76: Pause print timer
+ */
+inline void gcode_M76(void) { printer.print_job_counter.pause(); }

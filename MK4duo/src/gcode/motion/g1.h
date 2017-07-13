@@ -46,7 +46,7 @@ void gcode_G0_G1(
       if (autoretract_enabled && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z')) && parser.seen('E')) {
         const float echange = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
         // Is this move an attempt to retract or recover?
-        if ((echange < -MIN_RETRACT && !retracted[printer.active_extruder]) || (echange > MIN_RETRACT && retracted[printer.active_extruder])) {
+        if ((echange < -(MIN_RETRACT) && !retracted[printer.active_extruder]) || (echange > MIN_RETRACT && retracted[printer.active_extruder])) {
           mechanics.current_position[E_AXIS] = mechanics.destination[E_AXIS]; // hide the slicer-generated retract/recover from calculations
           mechanics.sync_plan_position_e();  // AND from the planner
           fwretract(!retracted[printer.active_extruder]);

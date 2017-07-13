@@ -1057,7 +1057,7 @@ void Commands::process_next_gcode() {
         gcode_M503(); break;
 
       #if HAS_EXT_ENCODER
-        case 512: // M512: Print Encoder status
+        case 512: // M512: Print Extruder Encoder status Pin
           gcode_M512(); break;
       #endif
 
@@ -1089,7 +1089,7 @@ void Commands::process_next_gcode() {
       #endif
 
       #if HAS_EXT_ENCODER
-        case 604: // M604: Set Extruder Encoder
+        case 604: // M604: Set data Extruder Encoder
           gcode_M604(); break;
       #endif
 

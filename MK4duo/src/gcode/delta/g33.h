@@ -50,7 +50,7 @@
   inline void gcode_G33(void) {
 
     // Homing
-    home_all_axes();
+    mechanics.Home(true);
 
     mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
@@ -176,7 +176,7 @@
           if (fix_tower_errors() != 0 ) {
             // Tower positions have been changed .. home to endstops
             SERIAL_EM("Tower Positions changed .. Homing");
-            home_all_axes();
+            mechanics.Home(true);
             probe.raise(_Z_PROBE_DEPLOY_HEIGHT);
           }
           else {
@@ -184,7 +184,7 @@
             if (adj_diagrod_length() != 0) { 
               // If diagonal rod length has been changed .. home to endstops
               SERIAL_EM("Diagonal Rod Length changed .. Homing");
-              home_all_axes();
+              mechanics.Home(true);
               probe.raise(_Z_PROBE_DEPLOY_HEIGHT);
             }
           }

@@ -891,7 +891,6 @@
   #if ENABLED(LCD_BED_LEVELING)
 
     #if ENABLED(PROBE_MANUALLY)
-      extern bool g29_in_progress;
       bool lcd_wait_for_move;
     #endif
 
@@ -915,7 +914,7 @@
       }
       else if (ptr == &BedSend) {
         #if ENABLED(PROBE_MANUALLY)
-          if (g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
+          if (printer.g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
           printer.wait_for_user = false;
         #endif
       }

@@ -1095,47 +1095,47 @@ static void lcd_implementation_status_screen() {
 
   #endif // LCD_HAS_SLOW_BUTTONS
 
-#endif // ULTIPANEL
+  #if ENABLED(LCD_HAS_STATUS_INDICATORS)
 
-#if ENABLED(LCD_HAS_STATUS_INDICATORS)
+    static void lcd_implementation_update_indicators() {
+      // Set the LEDS - referred to as backlights by the LiquidTWI2 library
+      static uint8_t ledsprev = 0;
+      uint8_t leds = 0;
 
-  static void lcd_implementation_update_indicators() {
-    // Set the LEDS - referred to as backlights by the LiquidTWI2 library
-    static uint8_t ledsprev = 0;
-    uint8_t leds = 0;
+      if (thermalManager.degTargetBed() > 0) leds |= LED_A;
 
-    if (thermalManager.degTargetBed() > 0) leds |= LED_A;
+      if (thermalManager.degTargetHotend(0) > 0) leds |= LED_B;
 
-    if (thermalManager.degTargetHotend(0) > 0) leds |= LED_B;
+      #if FAN_COUNT > 0
+        if (0
+          #if HAS_FAN0
+            || printer.fanSpeeds[0]
+          #endif
+          #if HAS_FAN1
+            || printer.fanSpeeds[1]
+          #endif
+          #if HAS_FAN2
+            || printer.fanSpeeds[2]
+          #endif
+          #if HAS_FAN3
+            || printer.fanSpeeds[3]
+          #endif
+        ) leds |= LED_C;
+      #endif // FAN_COUNT > 0
 
-    #if FAN_COUNT > 0
-      if (0
-        #if HAS_FAN0
-          || printer.fanSpeeds[0]
-        #endif
-        #if HAS_FAN1
-          || printer.fanSpeeds[1]
-        #endif
-        #if HAS_FAN2
-          || printer.fanSpeeds[2]
-        #endif
-        #if HAS_FAN3
-          || printer.fanSpeeds[3]
-        #endif
-      ) leds |= LED_C;
-    #endif // FAN_COUNT > 0
+      #if HOTENDS > 1
+        if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;
+      #endif
 
-    #if HOTENDS > 1
-      if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;
-    #endif
+      if (leds != ledsprev) {
+        lcd.setBacklight(leds);
+        ledsprev = leds;
+      }
 
-    if (leds != ledsprev) {
-      lcd.setBacklight(leds);
-      ledsprev = leds;
     }
 
-  }
+  #endif // LCD_HAS_STATUS_INDICATORS
 
-#endif // LCD_HAS_STATUS_INDICATORS
+#endif // ULTIPANEL
 
 #endif // ULTRALCD_IMPL_HD44780_H

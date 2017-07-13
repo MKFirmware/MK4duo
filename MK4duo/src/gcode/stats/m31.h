@@ -21,11 +21,21 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#define MCODE_M31
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+/**
+ * M31: Get the time since the start of SD Print (or last M109)
+ */
+inline void gcode_M31(void) {
+  char buffer[21];
+  duration_t elapsed = printer.print_job_counter.duration();
+  elapsed.toString(buffer);
+  lcd_setstatus(buffer);
+
+  SERIAL_LMT(ECHO, MSG_PRINT_TIME, buffer);
+}

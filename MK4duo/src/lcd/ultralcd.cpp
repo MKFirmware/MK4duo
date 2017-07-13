@@ -1678,10 +1678,6 @@ void kill_screen(const char* lcd_msg) {
         lcd_goto_screen(_lcd_level_bed_homing_done);
     }
 
-    #if ENABLED(PROBE_MANUALLY)
-      extern bool g29_in_progress;
-    #endif
-
     /**
      * Step 2: Continue Bed Leveling...
      */
@@ -1790,7 +1786,7 @@ void kill_screen(const char* lcd_msg) {
     //
     #if ENABLED(LCD_BED_LEVELING)
       #if ENABLED(PROBE_MANUALLY)
-        if (!g29_in_progress)
+        if (!printer.g29_in_progress)
       #endif
       MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_bed_leveling);
     #endif

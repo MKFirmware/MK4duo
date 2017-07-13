@@ -21,11 +21,17 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#define MCODE_M17
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+/**
+ * M17: Enable power on all stepper motors
+ */
+inline void gcode_M17(void) {
+  LCD_MESSAGEPGM(MSG_NO_MOVE);
+  stepper.enable_all_steppers();
+}

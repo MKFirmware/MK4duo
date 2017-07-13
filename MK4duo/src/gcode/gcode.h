@@ -26,31 +26,93 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+// Calibrate Commands
+#include "calibrate/g28.h"
+#include "calibrate/g29_mbl.h"
+#include "calibrate/g29_abl.h"
+#include "calibrate/g42.h"
+#include "calibrate/m48.h"
+
+// Config Commands
+
+// Control Commands
+#include "control/m17.h"
+#include "control/m42.h"
+
+// Debug Commands
+#include "debug/m43.h"
+
+// Delta Commands
+#include "delta/g33.h"
+
+// Feature Commands
+#include "feature/g12.h"
+#include "feature/g27.h"
+#include "feature/g60.h"
+#include "feature/g61.h"
+
+// Geometry Commands
+#include "geometry/g92.h"
+
+// Host Commands
+
+// LCD Commands
+#include "lcd/m0_m1.h"
+
+// Mixing Commands
+
+// Motion Commands
 #include "motion/g1.h"
 #include "motion/g2.h"
 #include "motion/g4.h"
 #include "motion/g5.h"
-#include "laser/g7.h"
 #include "motion/g10.h"
-#include "feature/g12.h"
-#include "cnc/g17.h"
-#include "units/g20.h"
-#include "feature/g27.h"
-#include "calibrate/g28.h"
-#include "calibrate/g29_mbl.h"
-#include "calibrate/g29_abl.h"
-#include "probe/g30.h"
-#include "probe/g31.h"
-#include "delta/g33.h"
-#include "probe/g38.h"
-#include "calibrate/g42.h"
-#include "feature/g60.h"
-#include "feature/g61.h"
 #include "motion/g90.h"
 #include "motion/g91.h"
-#include "geometry/g92.h"
 
+// MultiMode Commands (Laser - CNC)
+#include "multimode/g7.h"
+#include "multimode/g17.h"
+#include "multimode/m3_m4.h"
+#include "multimode/m5.h"
+#include "multimode/m6.h"
+
+// Nextion Commands
+#include "nextion/m35.h"
+
+// Power Commands
+#include "power/m80.h"
+#include "power/m81.h"
+
+// Probe Commands
+#include "probe/g30.h"
+#include "probe/g31.h"
+#include "probe/g38.h"
+
+// SDCard Commands
+#include "sdcard/sdcard.h"
+
+// Sensor Commands
+#include "sensor/m70.h"
+
+// Stats Commands
+#include "stats/m31.h"
+#include "stats/m75.h"
+#include "stats/m76.h"
+#include "stats/m77.h"
+#include "stats/m78.h"
+
+// Temperature Commands
+
+// Units Commands
+#include "units/g20.h"
+
+// Da spostare ancora
 #include "m_code.h"
-#include "t_code.h"
+
+// Table for G and M code
 #include "table_gcode.h"
 #include "table_mcode.h"
+
+// T Commands
+#include "t_code.h"

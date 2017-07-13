@@ -21,11 +21,18 @@
  */
 
 /**
- * gcode.h
+ * mcode
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#if ENABLED(CNCROUTER)
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+  #define MCODE_M6
+  
+  /*
+   * M6: CNC tool change
+   */
+  inline void gcode_M6(void) { tool_change_cnc(CNC_M6_TOOL_ID); }
+
+#endif // HAS_MULTI_MODE

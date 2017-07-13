@@ -125,6 +125,7 @@
  * M105 - Read current temp
  * M106 - S<speed> P<fan> Fan on
  * M107 - P<fan> Fan off
+ * M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
  * M109 - Sxxx Wait for hotend current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for hotend current temp to reach target temp. Waits when heating and cooling
  *        IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
@@ -214,6 +215,7 @@
  * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
+ * M512 - Print Extruder Encoder status Pin
  * M522 - Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
  * M531 - filename - Define filename being printed
@@ -221,6 +223,7 @@
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M595 - Set hotend AD595 O<offset> and S<gain>
  * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+ * M604 - Set data Extruder Encoder S[Error steps] (requires EXTRUDER ENCODER)
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Set z probe offset or Endstop and delta geometry adjustment

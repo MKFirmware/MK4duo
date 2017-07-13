@@ -148,9 +148,9 @@ void out_of_range_error(const char* p_edge) {
     #endif
 
     #if MECH(DELTA)
-      if (!g29_in_progress) {
+      if (!printer.g29_in_progress) {
         // Homing
-        home_all_axes();
+        mechanics.Home(true);
         mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
       }
     #else
@@ -243,7 +243,7 @@ void out_of_range_error(const char* p_edge) {
     /**
      * On the initial G29 fetch command parameters.
      */
-    if (!g29_in_progress) {
+    if (!printer.g29_in_progress) {
 
       #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)
         abl_probe_index = -1;
@@ -449,7 +449,7 @@ void out_of_range_error(const char* p_edge) {
 
       #endif // AUTO_BED_LEVELING_3POINT
 
-    } // !g29_in_progress
+    } // !printer.g29_in_progress
 
     #if ENABLED(PROBE_MANUALLY)
 
@@ -457,17 +457,17 @@ void out_of_range_error(const char* p_edge) {
       // On the first probe this will be incremented to 0.
       if (!no_action) {
         ++abl_probe_index;
-        g29_in_progress = true;
+        printer.g29_in_progress = true;
       }
 
       // Abort current G29 procedure, go back to ABLStart
-      if (seenA && g29_in_progress) {
+      if (seenA && printer.g29_in_progress) {
         SERIAL_EM("Manual G29 aborted");
         #if HAS_SOFTWARE_ENDSTOPS
           endstops.soft_endstops_enabled = enable_soft_endstops;
         #endif
         bedlevel.abl_enabled = abl_should_enable;
-        g29_in_progress = false;
+        printer.g29_in_progress = false;
         #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
           lcd_wait_for_move = false;
         #endif
@@ -476,7 +476,7 @@ void out_of_range_error(const char* p_edge) {
       // Query G29 status
       if (verbose_level || seenQ) {
         SERIAL_MSG("Manual G29 ");
-        if (g29_in_progress) {
+        if (printer.g29_in_progress) {
           SERIAL_MV("point ", min(abl_probe_index + 1, abl2));
           SERIAL_EMV(" of ", abl2);
         }
@@ -497,7 +497,15 @@ void out_of_range_error(const char* p_edge) {
         // Save the previous Z before going to the next point
         measured_z = mechanics.current_position[Z_AXIS];
 
-        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+
+          mean += measured_z;
+          eqnBVector[abl_probe_index] = measured_z;
+          eqnAMatrix[abl_probe_index + 0 * abl2] = xProbe;
+          eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
+          eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
+
+        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
           bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
 
@@ -587,7 +595,7 @@ void out_of_range_error(const char* p_edge) {
         else {
 
           SERIAL_EM("3-point probing done.");
-          g29_in_progress = false;
+          printer.g29_in_progress = false;
 
           // Re-enable software endstops, if needed
           #if HAS_SOFTWARE_ENDSTOPS
@@ -671,8 +679,6 @@ void out_of_range_error(const char* p_edge) {
 
               incremental_LSF(&lsf_results, xProbe, yProbe, measured_z);
 
-              indexIntoAB[xCount][yCount] = abl_probe_index;
-
             #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
               bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
@@ -742,7 +748,7 @@ void out_of_range_error(const char* p_edge) {
     #endif
 
     #if ENABLED(PROBE_MANUALLY)
-      g29_in_progress = false;
+      printer.g29_in_progress = false;
       #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
         lcd_wait_for_move = false;
       #endif

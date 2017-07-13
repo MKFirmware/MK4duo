@@ -30,7 +30,6 @@
 #define _PRINTER_H_
 
 extern const char axis_codes[NUM_AXIS];
-extern void home_all_axes();
 
 #if HAS_EXT_ENCODER
   #if HAS_SDSUPPORT
@@ -88,6 +87,12 @@ class Printer {
     static MK4duoInterruptEvent interruptEvent;
     static PrinterMode          mode;
     static PrintCounter         print_job_counter;
+
+    #if ENABLED(PROBE_MANUALLY)
+      static bool g29_in_progress;
+    #else
+      static const bool g29_in_progress;
+    #endif
 
     #if HAS_SDSUPPORT
       static bool sd_print_paused;
