@@ -220,41 +220,21 @@ void EEPROM::Postprocess() {
     }
   }
 
-  #if HAS_EEPROM_SD
+  void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
+    if (eeprom_error) return;
 
-    void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-      if (eeprom_error) return;
-      while(size--) {
+    while(size--) {
+      #if HAS_EEPROM_SD
+
         uint8_t v = *value;
         if (!card.write_data(v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           eeprom_error = true;
           return;
         }
-        crc16(crc, &v, 1);
-        pos++;
-        value++;
-      };
-    }
 
-    void EEPROM::read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc) {
-      if (eeprom_error) return;
+      #else
 
-      do {
-        uint8_t c = card.read_data();
-        *value = c;
-        crc16(crc, &c, 1);
-        pos++;
-        value++;
-      } while (--size);
-    }
-
-  #else
-
-    void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-      if (eeprom_error) return;
-
-      while(size--) {
         uint8_t * const p = (uint8_t * const)pos;
         uint8_t v = *value;
         // EEPROM has only ~100,000 write cycles,
@@ -267,24 +247,29 @@ void EEPROM::Postprocess() {
             return;
           }
         }
-        crc16(crc, &v, 1);
-        pos++;
-        value++;
-      };
-    }
+      #endif
 
-    void EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
-      if (eeprom_error) return;
-      do {
+      crc16(crc, &v, 1);
+      pos++;
+      value++;
+    };
+  }
+
+  void EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+    if (eeprom_error) return;
+
+    do {
+      #if HAS_EEPROM_SD
+        uint8_t c = card.read_data();
+      #else
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
-        *value = c;
-        crc16(crc, &c, 1);
-        pos++;
-        value++;
-      } while (--size);
-    }
-
-  #endif
+      #endif        
+      *value = c;
+      crc16(crc, &c, 1);
+      pos++;
+      value++;
+    } while (--size);
+  }
 
   /**
    * M500 - Store Configuration
