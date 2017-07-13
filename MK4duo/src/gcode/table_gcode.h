@@ -332,6 +332,6 @@ static const Gcode_t GCode_Table[] = {
     {98 , gcode_G98},
   #endif
   #if ENABLED(G99)
-    {99 , gcode_G99},
+    {99 , gcode_G99}
   #endif
 };
