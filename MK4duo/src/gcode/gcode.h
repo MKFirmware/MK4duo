@@ -62,11 +62,11 @@
 // Mixing Commands
 
 // Motion Commands
-#include "motion/g1.h"
-#include "motion/g2.h"
+#include "motion/g0_g1.h"
+#include "motion/g2_g3.h"
 #include "motion/g4.h"
 #include "motion/g5.h"
-#include "motion/g10.h"
+#include "motion/g10_g11.h"
 #include "motion/g90.h"
 #include "motion/g91.h"
 
