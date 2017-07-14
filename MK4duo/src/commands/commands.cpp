@@ -562,10 +562,10 @@ void Commands::process_next_gcode() {
       const int gcode_num= parser.codenum;
       G_CODE_TYPE start= 0, middle, end= COUNT(GCode_Table)-1;
           
-      if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code){
+      if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
         while(start <= end){
           middle= (start+end) >> 1;
-          if(GCode_table[middle].code == gcode_num){
+          if(GCode_table[middle].code == gcode_num) {
             code_found= true;
             GCode_Table[middle].command(); // Command found, execute it
             break;
