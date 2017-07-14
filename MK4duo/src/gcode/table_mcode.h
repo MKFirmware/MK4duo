@@ -33,7 +33,7 @@ typedef struct{
 	void (* command) ();	
 } Mcode_t;
 
-static const Mcode_t MCode_Table [] = {
+constexpr Mcode_t MCode_Table [] = {
 	#if ENABLED(CODE_M0)
 		{0, gcode_M0_M1},
 	#endif

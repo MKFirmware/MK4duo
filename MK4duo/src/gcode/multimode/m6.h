@@ -28,7 +28,7 @@
 
 #if ENABLED(CNCROUTER)
 
-  #define MCODE_M6
+  #define CODE_M6
   
   /*
    * M6: CNC tool change

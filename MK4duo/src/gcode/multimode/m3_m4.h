@@ -28,8 +28,8 @@
 
 #if HAS_MULTI_MODE
 
-  #define MCODE_M3
-  #define MCODE_M4
+  #define CODE_M3
+  #define CODE_M4
 
   /**
    * M3: Setting laser beam or fire laser - CNC clockwise speed
