@@ -558,19 +558,22 @@ void Commands::process_next_gcode() {
   switch(parser.command_letter) {
 
     case 'G': {
-      const int gcode_cmd = parser.codenum;
       bool code_found = false;
-      for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); ++index) {
-        if (gcode_cmd == GCode_Table[index].code) {
-          code_found = true;
-          GCode_Table[index].command(); // Command found, execute
-          break; 
-        }
+      const int gcode_num= parser.codenum;
+      G_CODE_TYPE start= 0, middle, end= COUNT(GCode_Table)-1;
+          
+      if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code){
+        while(start <= end){
+          middle= (start+end) >> 1;
+          if(GCode_table[middle].code == gcode_num){
+            code_found= true;
+            GCode_Table[middle].command(); // Command found, execute it
+            break;
+          }else if(GCode_table[middle].code < gcode_num) start= middle + 1;
+           else end= middle - 1;
+        }        
       }
-      if (!code_found) {
-        // Command not found, throw an error
-        unknown_command_error();
-      }
+      if(!code_found) unknown_command_error(); // Command not found, throw an error      
     }
     break;
 
