@@ -565,11 +565,11 @@ void Commands::process_next_gcode() {
       if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
         while(start <= end){
           middle= (start+end) >> 1;
-          if(GCode_table[middle].code == gcode_num) {
+          if(GCode_Table[middle].code == gcode_num) {
             code_found= true;
             GCode_Table[middle].command(); // Command found, execute it
             break;
-          }else if(GCode_table[middle].code < gcode_num) start= middle + 1;
+          }else if(GCode_Table[middle].code < gcode_num) start= middle + 1;
            else end= middle - 1;
         }        
       }
