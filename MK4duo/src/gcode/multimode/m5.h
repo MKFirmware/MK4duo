@@ -28,7 +28,7 @@
 
 #if HAS_MULTI_MODE
 
-  #define MCODE_M5
+  #define CODE_M5
 
   /**
    * M5: Turn off laser beam - CNC off

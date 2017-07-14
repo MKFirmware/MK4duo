@@ -30,7 +30,7 @@
 
   #if HAS_SDSUPPORT
 
-    #define MCODE_M35
+    #define CODE_M35
 
     /**
      * M35: Upload Firmware to Nextion from SD

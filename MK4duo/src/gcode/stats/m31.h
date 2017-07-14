@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define MCODE_M31
+#define CODE_M31
 
 /**
  * M31: Get the time since the start of SD Print (or last M109)
