@@ -290,15 +290,19 @@ class Temperature {
      */
     #if HAS_TEMP_HOTEND
       static float analog2temp(const int raw, uint8_t h);
+      static void wait_heater(bool no_wait_for_cooling=true);
     #endif
     #if HAS_TEMP_BED
       static float analog2tempBed(const int raw);
+      static void wait_bed(bool no_wait_for_cooling=true);
     #endif
     #if HAS_TEMP_CHAMBER
       static float analog2tempChamber(const int raw);
+      static void wait_chamber(bool no_wait_for_heating=true);
     #endif
     #if HAS_TEMP_COOLER
       static float analog2tempCooler(const int raw);
+      static void wait_cooler(bool no_wait_for_heating=true);
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
       static float analog2tempMCU(const int raw);

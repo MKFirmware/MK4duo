@@ -89,7 +89,7 @@ constexpr Mcode_t MCode_Table [] = {
 		{17, gcode_M17},
 	#endif
 	#if ENABLED(CODE_M18)
-		{18, gcode_M18},
+		{18, gcode_M18_M84},
 	#endif
 	#if ENABLED(CODE_M19)
 		{19, gcode_M19},
@@ -287,7 +287,7 @@ constexpr Mcode_t MCode_Table [] = {
 		{83, gcode_M83},
 	#endif
 	#if ENABLED(CODE_M84)
-		{84, gcode_M84},
+		{84, gcode_M18_M84},
 	#endif
 	#if ENABLED(CODE_M85)
 		{85, gcode_M85},
