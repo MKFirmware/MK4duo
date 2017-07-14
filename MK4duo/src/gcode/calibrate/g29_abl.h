@@ -505,6 +505,8 @@ void out_of_range_error(const char* p_edge) {
           eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
           eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
 
+          incremental_LSF(&lsf_results, xProbe, yProbe, measured_z);
+
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
           bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
