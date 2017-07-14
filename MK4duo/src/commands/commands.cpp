@@ -581,7 +581,7 @@ void Commands::process_next_gcode() {
 
       #if ENABLED(ULTIPANEL) || ENABLED(EMERGENCY_PARSER)
         case 0: // M0: Unconditional stop - Wait for user button press on LCD
-        case 1: // M1: Conditional stop - Wait for user button press on LCD
+        case 1: // M1: Same as M0
           gcode_M0_M1(); break;
       #endif // ULTIPANEL || EMERGENCY_PARSER
 
