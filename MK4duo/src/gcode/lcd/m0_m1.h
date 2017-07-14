@@ -33,7 +33,7 @@
 
   /**
    * M0: Unconditional stop - Wait for user button press on LCD
-   * M1: Conditional stop   - Wait for user button press on LCD
+   * M1: Same as M0
    */
   inline void gcode_M0_M1(void) {
     const char * const args = parser.string_arg;
