@@ -37,7 +37,7 @@
 
 // Control Commands
 #include "control/m17.h"
-#include "control/m70.h"
+#include "control/m42.h"
 
 // Debug Commands
 #include "debug/m43.h"
@@ -93,7 +93,7 @@
 #include "sdcard/sdcard.h"
 
 // Sensor Commands
-#include "sensor/m42.h"
+#include "sensor/m70.h"
 
 // Stats Commands
 #include "stats/m31.h"
