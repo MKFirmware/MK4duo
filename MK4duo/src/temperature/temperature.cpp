@@ -718,7 +718,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     UNUSED(h);
     #define _HOTEND_TEST  true
   #else
-    #define _HOTEND_TEST  h == printer.printer.active_extruder
+    #define _HOTEND_TEST  h == printer.active_extruder
   #endif
 
   uint8_t pid_output = 0;
