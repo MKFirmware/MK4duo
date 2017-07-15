@@ -644,8 +644,7 @@ void Temperature::updatePID() {
       if (pin >= 0 && !TEST(fanDone, fanBit[f])) {
         autoFanSpeeds[f] = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : 0;
         // this idiom allows both digital and PWM fan outputs (see M42 handling).
-        digitalWrite(pin, autoFanSpeeds[f]);
-        analogWrite(pin, autoFanSpeeds[f]);
+        WRITE_AUTO_FAN(pin, autoFanSpeeds[f]);
         SBI(fanDone, fanBit[f]);
       }
     }

@@ -40,6 +40,7 @@ bool endstop_monitor_flag = false;
 #if ENABLED(ARDUINO_ARCH_SAM)
   #define LAST_PIN                        PINS_COUNT // Arduino Due's NUM_DIGITAL_PINS only includes the digital only pins
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
+  #define PIN_TO_OSRREG(pin)              (&(digitalPinToPort(pin)->PIO_OSR))  // "0" means it's an input
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
@@ -47,6 +48,7 @@ bool endstop_monitor_flag = false;
 #else
   #define LAST_PIN                        NUM_DIGITAL_PINS
   #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
+  #define PIN_TO_OSRREG(pin)              (portInputRegister(digitalPinToPort(pin)))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint8_t
   #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
@@ -179,17 +181,17 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_ATT)
     PIN_SAY(E0_ATT_PIN);
   #endif
-  #if PIN_EXISTS(E0_AUTO_FAN)
-    PIN_SAY(E0_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H0_AUTO_FAN)
+    PIN_SAY(H0_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E1_AUTO_FAN)
-    PIN_SAY(E1_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H1_AUTO_FAN)
+    PIN_SAY(H1_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E2_AUTO_FAN)
-    PIN_SAY(E2_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H2_AUTO_FAN)
+    PIN_SAY(H2_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E3_AUTO_FAN)
-    PIN_SAY(E3_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H3_AUTO_FAN)
+    PIN_SAY(H3_AUTO_FAN_PIN);
   #endif
   #if PIN_EXISTS(E0_DIR)
     PIN_SAY(E0_DIR_PIN);
@@ -206,6 +208,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_STEP)
     PIN_SAY(E0_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E0_CS)
+    PIN_SAY(E0_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL0)
+    PIN_SAY(SOL0_PIN)
+  #endif
+  #if PIN_EXISTS(E0_ENC)
+    PIN_SAY(E0_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E1_DIR)
     PIN_SAY(E1_DIR_PIN);
   #endif
@@ -221,6 +232,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E1_STEP)
     PIN_SAY(E1_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E1_CS)
+    PIN_SAY(E1_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL1)
+    PIN_SAY(SOL1_PIN)
+  #endif
+  #if PIN_EXISTS(E1_ENC)
+    PIN_SAY(E1_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E2_DIR)
     PIN_SAY(E2_DIR_PIN);
   #endif
@@ -229,6 +249,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(E2_STEP)
     PIN_SAY(E2_STEP_PIN);
+  #endif
+  #if PIN_EXISTS(E2_CS)
+    PIN_SAY(E2_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL2)
+    PIN_SAY(SOL2_PIN)
+  #endif
+  #if PIN_EXISTS(E2_ENC)
+    PIN_SAY(E2_ENC_PIN)
   #endif
   #if PIN_EXISTS(E3_DIR)
     PIN_SAY(E3_DIR_PIN);
@@ -239,6 +268,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E3_STEP)
     PIN_SAY(E3_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E3_CS)
+    PIN_SAY(E3_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL3)
+    PIN_SAY(SOL3_PIN)
+  #endif
+  #if PIN_EXISTS(E3_ENC)
+    PIN_SAY(E3_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E4_DIR)
     PIN_SAY(E4_DIR_PIN);
   #endif
@@ -247,6 +285,33 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(E4_STEP)
     PIN_SAY(E4_STEP_PIN);
+  #endif
+  #if PIN_EXISTS(E4_CS)
+    PIN_SAY(E4_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL4)
+    PIN_SAY(SOL4_PIN)
+  #endif
+  #if PIN_EXISTS(E4_ENC)
+    PIN_SAY(E4_ENC_PIN)
+  #endif
+  #if PIN_EXISTS(E5_DIR)
+    PIN_SAY(E5_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E5_ENABLE)
+    PIN_SAY(E5_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E5_STEP)
+    PIN_SAY(E5_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E5_CS)
+    PIN_SAY(E5_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL5)
+    PIN_SAY(SOL5_PIN)
+  #endif
+  #if PIN_EXISTS(E5_ENC)
+    PIN_SAY(E5_ENC_PIN)
   #endif
   #if ENABLED(encrot1) && encrot1 >= 0
     PIN_SAY(encrot1);
@@ -330,20 +395,14 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(HEATER_3)
     PIN_SAY(HEATER_3_PIN);
   #endif
-  #if PIN_EXISTS(HEATER_4)
-    PIN_SAY(HEATER_4_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_5)
-    PIN_SAY(HEATER_5_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_6)
-    PIN_SAY(HEATER_6_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_7)
-    PIN_SAY(HEATER_7_PIN);
-  #endif
   #if PIN_EXISTS(HEATER_BED)
     PIN_SAY(HEATER_BED_PIN);
+  #endif
+  #if PIN_EXISTS(HEATER_CHAMBER)
+    PIN_SAY(HEATER_CHAMBER_PIN);
+  #endif
+  #if PIN_EXISTS(COOLER)
+    PIN_SAY(COOLER_PIN);
   #endif
   #if ENABLED(I2C_SCL) && I2C_SCL >= 0
     PIN_SAY(I2C_SCL);
@@ -526,14 +585,14 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(TEMP_3)
     ANALOG_PIN_SAY(TEMP_3_PIN);
   #endif
-  #if PIN_EXISTS(TEMP_4)
-    ANALOG_PIN_SAY(TEMP_4_PIN);
-  #endif
   #if PIN_EXISTS(TEMP_BED)
     ANALOG_PIN_SAY(TEMP_BED_PIN);
   #endif
-  #if PIN_EXISTS(TEMP_X)
-    ANALOG_PIN_SAY(TEMP_X_PIN);
+  #if PIN_EXISTS(TEMP_CHAMBER)
+    ANALOG_PIN_SAY(TEMP_CHAMBER_PIN);
+  #endif
+  #if PIN_EXISTS(TEMP_COOLER)
+    ANALOG_PIN_SAY(TEMP_COOLER_PIN);
   #endif
   #if ENABLED(TLC_BLANK_BIT) && TLC_BLANK_BIT >= 0
     PIN_SAY(TLC_BLANK_BIT);
@@ -649,8 +708,8 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(Z_MIN)
     PIN_SAY(Z_MIN_PIN);
   #endif
-  #if PIN_EXISTS(Z_MIN_PROBE)
-    PIN_SAY(Z_MIN_PROBE_PIN);
+  #if PIN_EXISTS(Z_PROBE)
+    PIN_SAY(Z_PROBE_PIN);
   #endif
   #if PIN_EXISTS(Z_MS1)
     PIN_SAY(Z_MS1_PIN);
@@ -663,6 +722,21 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(Z_STOP)
     PIN_SAY(Z_STOP_PIN);
+  #endif
+  #if PIN_EXISTS(Z2_MIN)
+    PIN_SAY(Z2_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MAX)
+    PIN_SAY(Z3_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MIN)
+    PIN_SAY(Z3_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MAX)
+    PIN_SAY(Z4_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MIN)
+    PIN_SAY(Z4_MIN_PIN)
   #endif
   #if PIN_EXISTS(Z2_DIR)
     PIN_SAY(Z2_DIR_PIN);
@@ -933,12 +1007,19 @@ inline void report_pin_state(int8_t pin) {
 
 bool get_pinMode(uint8_t pin) {
   rBit = PIN_TO_BITMASK(pin);
-  rReg = PIN_TO_BASEREG(pin);
+  rReg = PIN_TO_OSRREG(pin);
 
-  if (*rReg & rBit)
-    return false;
-  else
-    return true;
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    if (*rReg & rBit)
+      return true;
+    else
+      return false;  
+  #else
+    if (*rReg & rBit)
+      return false;
+    else
+      return true;
+  #endif    
 }
 
 // pretty report with PWM info

@@ -107,7 +107,7 @@
 #define ORIG_Z4_MIN_PIN -1
 #define ORIG_Z4_MAX_PIN -1
 #define ORIG_E_MIN_PIN -1
-#define ORIG_Z_PROBE_PIN -1
+#define ORIG_Z_PROBE_PIN 70
 
 //###SINGLE_ENDSTOP
 #define X_STOP_PIN -1
@@ -124,28 +124,28 @@
 #define ORIG_COOLER_PIN -1
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN 1
-#define ORIG_TEMP_1_PIN 2
-#define ORIG_TEMP_2_PIN 3
-#define ORIG_TEMP_3_PIN 4
-#define ORIG_TEMP_BED_PIN 0
+#define ORIG_TEMP_0_PIN 6
+#define ORIG_TEMP_1_PIN 5
+#define ORIG_TEMP_2_PIN 4
+#define ORIG_TEMP_3_PIN -1
+#define ORIG_TEMP_BED_PIN 7
 #define ORIG_TEMP_CHAMBER_PIN -1
 #define ORIG_TEMP_COOLER_PIN -1
 
 //###FAN
-#define ORIG_FAN_PIN -1
-#define ORIG_FAN1_PIN -1
+#define ORIG_FAN_PIN 12
+#define ORIG_FAN1_PIN 2
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1
 
 //###MISC
-#define ORIG_PS_ON_PIN -1
+#define ORIG_PS_ON_PIN 53
 #define ORIG_BEEPER_PIN -1
 #define LED_PIN 13
 #define SDPOWER -1
 #define SD_DETECT_PIN -1
 #define SDSS 4
-#define KILL_PIN -1
+#define KILL_PIN 51
 #define DEBUG_PIN -1
 #define SUICIDE_PIN -1
 
@@ -173,11 +173,6 @@
 //@@@
 
 //###IF_BLOCKS
-#define INVERTED_HEATER_PINS
-#define INVERTED_BED_PIN
-#define INVERTED_CHAMBER_PIN
-#define INVERTED_COOLER_PIN
-
 #if ENABLED(ULTRA_LCD)
   #if ENABLED(NEWPANEL)
     // ramps-fd lcd adaptor
