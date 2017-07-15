@@ -558,8 +558,8 @@ void Commands::process_next_gcode() {
   switch (parser.command_letter) {
 
     case 'G': {
-      bool code_found = false;
       const int gcode_num = parser.codenum;
+      bool code_found = false;
       G_CODE_TYPE start   = 0,
                   middle  = 0,
                   end     = COUNT(GCode_Table) - 1;
