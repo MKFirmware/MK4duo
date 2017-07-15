@@ -28,9 +28,9 @@
 
 #if ENABLED(CNC_WORKSPACE_PLANES)
 
-  #define G17
-  #define G18
-  #define G19
+  #define CODE_G17
+  #define CODE_G18
+  #define CODE_G19
 
   void report_workspace_plane() {
     SERIAL_SM(ECHO, "Workspace Plane ");

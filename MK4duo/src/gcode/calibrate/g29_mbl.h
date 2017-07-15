@@ -28,7 +28,7 @@
 
 #if ENABLED(MESH_BED_LEVELING)
 
-  #define G29
+  #define CODE_G29
 
   // Save 130 bytes with non-duplication of PSTR
   void say_not_entered() { SERIAL_EM(" not entered."); }

@@ -28,7 +28,7 @@
 
 #if ENABLED(Z_PROBE_SLED)
 
-  #define G31
+  #define CODE_G31
 
   /**
    * G31: Deploy the Z probe

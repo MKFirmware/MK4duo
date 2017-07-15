@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G61
+#define CODE_G61
 
 /**
  * G61:  Apply/restore saved coordinates to the active extruder.

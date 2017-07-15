@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G91
+#define CODE_G91
 
 /**
  * G91: Relative mode

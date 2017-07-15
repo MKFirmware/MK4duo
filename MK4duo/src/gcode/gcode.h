@@ -90,7 +90,7 @@
 
 // MultiMode Commands (Laser - CNC)
 #include "multimode/g7.h"
-#include "multimode/g17.h"
+#include "multimode/g17_g18_g19.h"
 #include "multimode/m3_m4.h"
 #include "multimode/m5.h"
 #include "multimode/m6.h"
@@ -127,7 +127,7 @@
 #include "temperature/m109.h"
 
 // Units Commands
-#include "units/g20.h"
+#include "units/g20_g21.h"
 #include "units/m82.h"
 #include "units/m83.h"
 

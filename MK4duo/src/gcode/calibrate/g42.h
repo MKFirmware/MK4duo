@@ -28,7 +28,7 @@
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
-  #define G42
+  #define CODE_G42
 
   /**
    * G42: Move X & Y axes to mesh coordinates (I & J)

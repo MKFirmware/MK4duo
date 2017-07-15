@@ -28,7 +28,7 @@
 
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  #define G12
+  #define CODE_G12
 
   /**
    * G12: Clean the nozzle

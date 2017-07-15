@@ -28,7 +28,7 @@
 
 #if ENABLED(G5_BEZIER)
 
-  #define G5
+  #define CODE_G5
 
   /**
    * Parameters interpreted according to:
