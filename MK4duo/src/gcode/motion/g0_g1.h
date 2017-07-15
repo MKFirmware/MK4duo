@@ -32,7 +32,7 @@
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
  */
-void gcode_G0_G1(
+inline void gcode_G0_G1(
   #if IS_SCARA
     bool fast_move = false
   #elif ENABLED(LASER)
@@ -82,24 +82,4 @@ void gcode_G0_G1(
     #endif
 
   }
-}
-
-inline void gcode_G0(void) {
-  #if IS_SCARA
-    gcode_G0_G1(true);
-  #elif ENABLED(LASER)
-    gcode_G0_G1(false);
-  #else
-    gcode_G0_G1();
-  #endif
-}
-
-inline void gcode_G1(void) {
-  #if IS_SCARA
-    gcode_G0_G1(false);
-  #elif ENABLED(LASER)
-    gcode_G0_G1(true);
-  #else
-    gcode_G0_G1();
-  #endif
 }

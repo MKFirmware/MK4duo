@@ -555,31 +555,40 @@ void Commands::process_next_gcode() {
   parser.parse(current_command);
 
   // Handle a known G, M, or T
-  switch(parser.command_letter) {
+  switch (parser.command_letter) {
 
     case 'G': {
       bool code_found = false;
-      const int gcode_num= parser.codenum;
-      G_CODE_TYPE start= 0, middle, end= COUNT(GCode_Table)-1;
-      
-      if(gcode_num == 0) {
-        code_found= true;
-        gcode_G0(); // Execute directly the most common Gcodes
-      }else if(gcode_num == 1) {
-        code_found= true;
-        gcode_G1(); // Execute directly the most common Gcodes  
-      }else if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
-        while(start <= end){
-          middle= (start+end) >> 1;
-          if(GCode_Table[middle].code == gcode_num) {
-            code_found= true;
+      const int gcode_num = parser.codenum;
+      G_CODE_TYPE start   = 0,
+                  middle  = 0,
+                  end     = COUNT(GCode_Table) - 1;
+
+      if (gcode_num <= 1) { // Execute directly the most common Gcodes
+        code_found = true;
+        #if IS_SCARA
+          gcode_G0_G1(gcode_num == 0);
+        #elif ENABLED(LASER)
+          gcode_G0_G1(gcode_num == 1);
+        #else
+          gcode_G0_G1();
+        #endif
+      }
+      else if (WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
+        while (start <= end) {
+          middle = (start + end) >> 1;
+          if (GCode_Table[middle].code == gcode_num) {
+            code_found = true;
             GCode_Table[middle].command(); // Command found, execute it
             break;
-          }else if(GCode_Table[middle].code < gcode_num) start= middle + 1;
-           else end= middle - 1;
-        }        
+          }
+          else if (GCode_Table[middle].code < gcode_num)
+            start = middle + 1;
+          else
+            end = middle - 1;
+        }
       }
-      if(!code_found) unknown_command_error(); // Command not found, throw an error      
+      if (!code_found) unknown_command_error(); // Command not found, throw an error
     }
     break;
 
