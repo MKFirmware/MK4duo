@@ -623,12 +623,6 @@ void Temperature::updatePID() {
 
 #if HAS_AUTO_FAN
 
-  #if ENABLED(INVERTED_AUTO_FAN_PINS)  // this idiom allows both digital and PWM fan outputs (see M42 handling).
-    #define WRITE_AUTO_FAN(pin, v) do{digitalWrite(pin, v ? 0 : 1); analogWrite(pin, 255 - v);}while(0)
-  #else
-    #define WRITE_AUTO_FAN(pin, v) do{digitalWrite(pin, v); analogWrite(pin, v);}while(0)
-  #endif
-
   void Temperature::checkExtruderAutoFans() {
     const int8_t fanPin[] = { H0_AUTO_FAN_PIN, H1_AUTO_FAN_PIN, H2_AUTO_FAN_PIN, H3_AUTO_FAN_PIN };
     const int fanBit[] = {
@@ -649,7 +643,9 @@ void Temperature::updatePID() {
       int8_t pin = fanPin[f];
       if (pin >= 0 && !TEST(fanDone, fanBit[f])) {
         autoFanSpeeds[f] = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : 0;
-        WRITE_AUTO_FAN(pin, autoFanSpeeds[f]);
+        // this idiom allows both digital and PWM fan outputs (see M42 handling).
+        digitalWrite(pin, autoFanSpeeds[f]);
+        analogWrite(pin, autoFanSpeeds[f]);
         SBI(fanDone, fanBit[f]);
       }
     }

@@ -41,10 +41,8 @@
             HAL::delayMicroseconds(delay);
           }
         #else // buzzer has its own resonator - needs a DC
-//          tone(BEEPER_PIN, freq, duration);  //doesn't work
-          WRITE(BEEPER_PIN, HIGH);
+          tone(BEEPER_PIN, freq, duration);
           HAL::delayMilliseconds(1 + duration);
-          WRITE(BEEPER_PIN, LOW);
         #endif
       #else
         HAL::delayMilliseconds(duration);
