@@ -155,7 +155,7 @@ uint8_t Stepper::step_loops, Stepper::step_loops_nominal;
 volatile long Stepper::endstops_trigsteps[XYZ];
 
 #if ENABLED(X_TWO_STEPPER)
-  #define X_APPLY_DIR(v,Q)  { X_DIR_WRITE(v); X2_DIR_WRITE((v) != INVERT_X2_VS_X_DIR); }
+  #define X_APPLY_DIR(v,Q)  { X_DIR_WRITE(v); X2_DIR_WRITE(v != INVERT_X2_VS_X_DIR); }
   #define X_APPLY_STEP(v,Q) { X_STEP_WRITE(v); X2_STEP_WRITE(v); }
 #elif ENABLED(DUAL_X_CARRIAGE)
   #define X_APPLY_DIR(v,ALWAYS) \
@@ -180,7 +180,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
 #endif
 
 #if ENABLED(Y_TWO_STEPPER)
-  #define Y_APPLY_DIR(v,Q)  { Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }
+  #define Y_APPLY_DIR(v,Q)  { Y_DIR_WRITE(v); Y2_DIR_WRITE(v != INVERT_Y2_VS_Y_DIR); }
   #define Y_APPLY_STEP(v,Q) { Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }
 #else
   #define Y_APPLY_DIR(v,Q) Y_DIR_WRITE(v)
@@ -239,7 +239,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
     #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); Z3_STEP_WRITE(v); }while(0)
   #endif
 #elif ENABLED(Z_TWO_STEPPER)
-  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); }
+  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v != INVERT_Z2_VS_Z_DIR); }
   #if ENABLED(Z_TWO_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \

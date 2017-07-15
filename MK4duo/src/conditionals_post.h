@@ -843,6 +843,15 @@
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
 /**
+ * Auto Fans pin
+ */
+#if ENABLED(INVERTED_AUTO_FAN_PINS)
+  #define WRITE_AUTO_FAN(pin, v) do{ digitalWrite(pin, v ? 0 : 1); HAL::analogWrite(pin, 255 - v); }while(0)
+#else
+  #define WRITE_AUTO_FAN(pin, v) do{ digitalWrite(pin, v); HAL::analogWrite(pin, v); }while(0)
+#endif
+
+/**
  * Extruder Encoder
  */
 #if HAS_EXT_ENCODER
@@ -898,7 +907,7 @@
     #define LCD_FEEDBACK_FREQUENCY_HZ 5000
   #endif
   #if DISABLED(LCD_FEEDBACK_FREQUENCY_DURATION_MS)
-    #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
+    #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 10
   #endif
 #endif
 
