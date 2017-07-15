@@ -597,7 +597,7 @@ void Commands::process_next_gcode() {
     }
     break;
 
-    case 'M': switch (code_num) {
+    case 'M': switch (parser.codenum) {
 
       #if ENABLED(ULTIPANEL) || ENABLED(EMERGENCY_PARSER)
         case 0: // M0: Unconditional stop - Wait for user button press on LCD
@@ -1202,7 +1202,7 @@ void Commands::process_next_gcode() {
     break;
 
     case 'T':
-      gcode_T(code_num);
+      gcode_T(parser.codenum);
     break;
 
     default: unknown_command_error();
