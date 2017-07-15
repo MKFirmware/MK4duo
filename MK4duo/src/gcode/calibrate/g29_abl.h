@@ -34,7 +34,7 @@ void out_of_range_error(const char* p_edge) {
 
 #if HAS_ABL
 
-  #define G29
+  #define CODE_G29
 
   #if ABL_GRID
     #if ENABLED(PROBE_Y_FIRST)

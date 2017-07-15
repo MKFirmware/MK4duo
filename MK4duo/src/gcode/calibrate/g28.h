@@ -26,6 +26,6 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G28
+#define CODE_G28
 
 inline void gcode_G28(void) { mechanics.Home(false); }

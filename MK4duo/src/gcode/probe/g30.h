@@ -28,7 +28,7 @@
 
 #if HAS_BED_PROBE
 
-  #define G30
+  #define CODE_G30
 
   /**
    * G30: Do a single Z probe

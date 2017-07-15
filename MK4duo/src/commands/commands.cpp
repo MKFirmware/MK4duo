@@ -558,19 +558,28 @@ void Commands::process_next_gcode() {
   switch(parser.command_letter) {
 
     case 'G': {
-      const int gcode_cmd = parser.codenum;
       bool code_found = false;
-      for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); ++index) {
-        if (gcode_cmd == GCode_Table[index].code) {
-          code_found = true;
-          GCode_Table[index].command(); // Command found, execute
-          break; 
-        }
+      const int gcode_num= parser.codenum;
+      G_CODE_TYPE start= 0, middle, end= COUNT(GCode_Table)-1;
+      
+      if(gcode_num == 0) {
+        code_found= true;
+        gcode_G0(); // Execute directly the most common Gcodes
+      }else if(gcode_num == 1) {
+        code_found= true;
+        gcode_G1(); // Execute directly the most common Gcodes  
+      }else if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
+        while(start <= end){
+          middle= (start+end) >> 1;
+          if(GCode_Table[middle].code == gcode_num) {
+            code_found= true;
+            GCode_Table[middle].command(); // Command found, execute it
+            break;
+          }else if(GCode_Table[middle].code < gcode_num) start= middle + 1;
+           else end= middle - 1;
+        }        
       }
-      if (!code_found) {
-        // Command not found, throw an error
-        unknown_command_error();
-      }
+      if(!code_found) unknown_command_error(); // Command not found, throw an error      
     }
     break;
 
@@ -578,7 +587,7 @@ void Commands::process_next_gcode() {
 
       #if ENABLED(ULTIPANEL) || ENABLED(EMERGENCY_PARSER)
         case 0: // M0: Unconditional stop - Wait for user button press on LCD
-        case 1: // M1: Conditional stop - Wait for user button press on LCD
+        case 1: // M1: Same as M0
           gcode_M0_M1(); break;
       #endif // ULTIPANEL || EMERGENCY_PARSER
 

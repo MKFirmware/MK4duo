@@ -28,7 +28,7 @@
 
 #if ENABLED(LASER) && ENABLED(LASER_RASTER)
 
-  #define G7
+  #define CODE_G7
 
   inline void gcode_G7(void) {
 

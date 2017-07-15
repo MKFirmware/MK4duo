@@ -28,7 +28,7 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  #define G27
+  #define CODE_G27
 
   /**
    * G27: Park the nozzle

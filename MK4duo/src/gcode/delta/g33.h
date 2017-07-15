@@ -28,13 +28,13 @@
 
 #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2)
 
-  #define G33
+  #define CODE_G33
 
   inline void gcode_G33(void) { mechanics.auto_calibration(); }
 
 #elif ENABLED(DELTA_AUTO_CALIBRATION_3)
 
-  #define G33
+  #define CODE_G33
 
   /**
    * G33: Delta AutoCalibration Algorithm based on Rich Cattell Marlin

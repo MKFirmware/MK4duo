@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G92
+#define CODE_G92
 
 /**
  * G92: Set current position to given X Y Z E

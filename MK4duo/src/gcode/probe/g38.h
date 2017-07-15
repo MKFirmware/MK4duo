@@ -28,7 +28,7 @@
 
 #if ENABLED(G38_PROBE_TARGET)
 
-  #define G38
+  #define CODE_G38
 
   static bool G38_run_probe() {
 

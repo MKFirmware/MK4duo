@@ -28,8 +28,8 @@
 
 #if ENABLED(FWRETRACT)
 
-  #define G10
-  #define G11
+  #define CODE_G10
+  #define CODE_G11
 
   /**
    * G10 - Retract filament according to settings of M207

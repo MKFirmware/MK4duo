@@ -34,304 +34,298 @@ typedef struct{
 } Gcode_t;
 
 constexpr Gcode_t GCode_Table[] = {
-  #if ENABLED(G0)
-    {0 , gcode_G0},
+  #if ENABLED(CODE_G2)
+    {2, gcode_G2},
   #endif
-  #if ENABLED(G1)
-    {1 , gcode_G1},
+  #if ENABLED(CODE_G3)
+    {3, gcode_G3},
   #endif
-  #if ENABLED(G2)
-    {2 , gcode_G2},
+  #if ENABLED(CODE_G4)
+    {4, gcode_G4},
   #endif
-  #if ENABLED(G3)
-    {3 , gcode_G3},
+  #if ENABLED(CODE_G5)
+    {5, gcode_G5},
   #endif
-  #if ENABLED(G4)
-    {4 , gcode_G4},
+  #if ENABLED(CODE_G6)
+    {6, gcode_G6},
   #endif
-  #if ENABLED(G5)
-    {5 , gcode_G5},
+  #if ENABLED(CODE_G7)
+    {7, gcode_G7},
   #endif
-  #if ENABLED(G6)
-    {6 , gcode_G6},
+  #if ENABLED(CODE_G8)
+    {8, gcode_G8},
   #endif
-  #if ENABLED(G7)
-    {7 , gcode_G7},
+  #if ENABLED(CODE_G9)
+    {9, gcode_G9},
   #endif
-  #if ENABLED(G8)
-    {8 , gcode_G8},
+  #if ENABLED(CODE_G10)
+    {10, gcode_G10},
   #endif
-  #if ENABLED(G9)
-    {9 , gcode_G9},
+  #if ENABLED(CODE_G11)
+    {11, gcode_G11},
   #endif
-  #if ENABLED(G10)
-    {10 , gcode_G10},
+  #if ENABLED(CODE_G12)
+    {12, gcode_G12},
   #endif
-  #if ENABLED(G11)
-    {11 , gcode_G11},
+  #if ENABLED(CODE_G13)
+    {13, gcode_G13},
   #endif
-  #if ENABLED(G12)
-    {12 , gcode_G12},
+  #if ENABLED(CODE_G14)
+    {14, gcode_G14},
   #endif
-  #if ENABLED(G13)
-    {13 , gcode_G13},
+  #if ENABLED(CODE_G15)
+    {15, gcode_G15},
   #endif
-  #if ENABLED(G14)
-    {14 , gcode_G14},
+  #if ENABLED(CODE_G16)
+    {16, gcode_G16},
   #endif
-  #if ENABLED(G15)
-    {15 , gcode_G15},
+  #if ENABLED(CODE_G17)
+    {17, gcode_G17},
   #endif
-  #if ENABLED(G16)
-    {16 , gcode_G16},
+  #if ENABLED(CODE_G18)
+    {18, gcode_G18},
   #endif
-  #if ENABLED(G17)
-    {17 , gcode_G17},
+  #if ENABLED(CODE_G19)
+    {19, gcode_G19},
   #endif
-  #if ENABLED(G18)
-    {18 , gcode_G18},
+  #if ENABLED(CODE_G20)
+    {20, gcode_G20},
   #endif
-  #if ENABLED(G19)
-    {19 , gcode_G19},
+  #if ENABLED(CODE_G21)
+    {21, gcode_G21},
   #endif
-  #if ENABLED(G20)
-    {20 , gcode_G20},
+  #if ENABLED(CODE_G22)
+    {22, gcode_G22},
   #endif
-  #if ENABLED(G21)
-    {21 , gcode_G21},
+  #if ENABLED(CODE_G23)
+    {23, gcode_G23},
   #endif
-  #if ENABLED(G22)
-    {22 , gcode_G22},
+  #if ENABLED(CODE_G24)
+    {24, gcode_G24},
   #endif
-  #if ENABLED(G23)
-    {23 , gcode_G23},
+  #if ENABLED(CODE_G25)
+    {25, gcode_G25},
   #endif
-  #if ENABLED(G24)
-    {24 , gcode_G24},
+  #if ENABLED(CODE_G26)
+    {26, gcode_G26},
   #endif
-  #if ENABLED(G25)
-    {25 , gcode_G25},
+  #if ENABLED(CODE_G27)
+    {27, gcode_G27},
   #endif
-  #if ENABLED(G26)
-    {26 , gcode_G26},
+  #if ENABLED(CODE_G28)
+    {28, gcode_G28},
   #endif
-  #if ENABLED(G27)
-    {27 , gcode_G27},
+  #if ENABLED(CODE_G29)
+    {29, gcode_G29},
   #endif
-  #if ENABLED(G28)
-    {28 , gcode_G28},
+  #if ENABLED(CODE_G30)
+    {30, gcode_G30},
   #endif
-  #if ENABLED(G29)
-    {29 , gcode_G29},
+  #if ENABLED(CODE_G31)
+    {31, gcode_G31},
   #endif
-  #if ENABLED(G30)
-    {30 , gcode_G30},
+  #if ENABLED(CODE_G32)
+    {32, gcode_G32},
   #endif
-  #if ENABLED(G31)
-    {31 , gcode_G31},
+  #if ENABLED(CODE_G33)
+    {33, gcode_G33},
   #endif
-  #if ENABLED(G32)
-    {32 , gcode_G32},
+  #if ENABLED(CODE_G34)
+    {34, gcode_G34},
   #endif
-  #if ENABLED(G33)
-    {33 , gcode_G33},
+  #if ENABLED(CODE_G35)
+    {35, gcode_G35},
   #endif
-  #if ENABLED(G34)
-    {34 , gcode_G34},
+  #if ENABLED(CODE_G36)
+    {36, gcode_G36},
   #endif
-  #if ENABLED(G35)
-    {35 , gcode_G35},
+  #if ENABLED(CODE_G37)
+    {37, gcode_G37},
   #endif
-  #if ENABLED(G36)
-    {36 , gcode_G36},
+  #if ENABLED(CODE_G38)
+    {38, gcode_G38},
   #endif
-  #if ENABLED(G37)
-    {37 , gcode_G37},
+  #if ENABLED(CODE_G39)
+    {39, gcode_G39},
   #endif
-  #if ENABLED(G38)
-    {38 , gcode_G38},
+  #if ENABLED(CODE_G40)
+    {40, gcode_G40},
   #endif
-  #if ENABLED(G39)
-    {39 , gcode_G39},
+  #if ENABLED(CODE_G41)
+    {41, gcode_G41},
   #endif
-  #if ENABLED(G40)
-    {40 , gcode_G40},
+  #if ENABLED(CODE_G42)
+    {42, gcode_G42},
   #endif
-  #if ENABLED(G41)
-    {41 , gcode_G41},
+  #if ENABLED(CODE_G43)
+    {43, gcode_G43},
   #endif
-  #if ENABLED(G42)
-    {42 , gcode_G42},
+  #if ENABLED(CODE_G44)
+    {44, gcode_G44},
   #endif
-  #if ENABLED(G43)
-    {43 , gcode_G43},
+  #if ENABLED(CODE_G45)
+    {45, gcode_G45},
   #endif
-  #if ENABLED(G44)
-    {44 , gcode_G44},
+  #if ENABLED(CODE_G46)
+    {46, gcode_G46},
   #endif
-  #if ENABLED(G45)
-    {45 , gcode_G45},
+  #if ENABLED(CODE_G47)
+    {47, gcode_G47},
   #endif
-  #if ENABLED(G46)
-    {46 , gcode_G46},
+  #if ENABLED(CODE_G48)
+    {48, gcode_G48},
   #endif
-  #if ENABLED(G47)
-    {47 , gcode_G47},
+  #if ENABLED(CODE_G49)
+    {49, gcode_G49},
   #endif
-  #if ENABLED(G48)
-    {48 , gcode_G48},
+  #if ENABLED(CODE_G50)
+    {50, gcode_G50},
   #endif
-  #if ENABLED(G49)
-    {49 , gcode_G49},
+  #if ENABLED(CODE_G51)
+    {51, gcode_G51},
   #endif
-  #if ENABLED(G50)
-    {50 , gcode_G50},
+  #if ENABLED(CODE_G52)
+    {52, gcode_G52},
   #endif
-  #if ENABLED(G51)
-    {51 , gcode_G51},
+  #if ENABLED(CODE_G53)
+    {53, gcode_G53},
   #endif
-  #if ENABLED(G52)
-    {52 , gcode_G52},
+  #if ENABLED(CODE_G54)
+    {54, gcode_G54},
   #endif
-  #if ENABLED(G53)
-    {53 , gcode_G53},
+  #if ENABLED(CODE_G55)
+    {55, gcode_G55},
   #endif
-  #if ENABLED(G54)
-    {54 , gcode_G54},
+  #if ENABLED(CODE_G56)
+    {56, gcode_G56},
   #endif
-  #if ENABLED(G55)
-    {55 , gcode_G55},
+  #if ENABLED(CODE_G57)
+    {57, gcode_G57},
   #endif
-  #if ENABLED(G56)
-    {56 , gcode_G56},
+  #if ENABLED(CODE_G58)
+    {58, gcode_G58},
   #endif
-  #if ENABLED(G57)
-    {57 , gcode_G57},
+  #if ENABLED(CODE_G59)
+    {59, gcode_G59},
   #endif
-  #if ENABLED(G58)
-    {58 , gcode_G58},
+  #if ENABLED(CODE_G60)
+    {60, gcode_G60},
   #endif
-  #if ENABLED(G59)
-    {59 , gcode_G59},
+  #if ENABLED(CODE_G61)
+    {61, gcode_G61},
   #endif
-  #if ENABLED(G60)
-    {60 , gcode_G60},
+  #if ENABLED(CODE_G62)
+    {62, gcode_G62},
   #endif
-  #if ENABLED(G61)
-    {61 , gcode_G61},
+  #if ENABLED(CODE_G63)
+    {63, gcode_G63},
   #endif
-  #if ENABLED(G62)
-    {62 , gcode_G62},
+  #if ENABLED(CODE_G64)
+    {64, gcode_G64},
   #endif
-  #if ENABLED(G63)
-    {63 , gcode_G63},
+  #if ENABLED(CODE_G65)
+    {65, gcode_G65},
   #endif
-  #if ENABLED(G64)
-    {64 , gcode_G64},
+  #if ENABLED(CODE_G66)
+    {66, gcode_G66},
   #endif
-  #if ENABLED(G65)
-    {65 , gcode_G65},
+  #if ENABLED(CODE_G67)
+    {67, gcode_G67},
   #endif
-  #if ENABLED(G66)
-    {66 , gcode_G66},
+  #if ENABLED(CODE_G68)
+    {68, gcode_G68},
   #endif
-  #if ENABLED(G67)
-    {67 , gcode_G67},
+  #if ENABLED(CODE_G69)
+    {69, gcode_G69},
   #endif
-  #if ENABLED(G68)
-    {68 , gcode_G68},
+  #if ENABLED(CODE_G70)
+    {70, gcode_G70},
   #endif
-  #if ENABLED(G69)
-    {69 , gcode_G69},
+  #if ENABLED(CODE_G71)
+    {71, gcode_G71},
   #endif
-  #if ENABLED(G70)
-    {70 , gcode_G70},
+  #if ENABLED(CODE_G72)
+    {72, gcode_G72},
   #endif
-  #if ENABLED(G71)
-    {71 , gcode_G71},
+  #if ENABLED(CODE_G73)
+    {73, gcode_G73},
   #endif
-  #if ENABLED(G72)
-    {72 , gcode_G72},
+  #if ENABLED(CODE_G74)
+    {74, gcode_G74},
   #endif
-  #if ENABLED(G73)
-    {73 , gcode_G73},
+  #if ENABLED(CODE_G75)
+    {75, gcode_G75},
   #endif
-  #if ENABLED(G74)
-    {74 , gcode_G74},
+  #if ENABLED(CODE_G76)
+    {76, gcode_G76},
   #endif
-  #if ENABLED(G75)
-    {75 , gcode_G75},
+  #if ENABLED(CODE_G77)
+    {77, gcode_G77},
   #endif
-  #if ENABLED(G76)
-    {76 , gcode_G76},
+  #if ENABLED(CODE_G78)
+    {78, gcode_G78},
   #endif
-  #if ENABLED(G77)
-    {77 , gcode_G77},
+  #if ENABLED(CODE_G79)
+    {79, gcode_G79},
   #endif
-  #if ENABLED(G78)
-    {78 , gcode_G78},
+  #if ENABLED(CODE_G80)
+    {80, gcode_G80},
   #endif
-  #if ENABLED(G79)
-    {79 , gcode_G79},
+  #if ENABLED(CODE_G81)
+    {81, gcode_G81},
   #endif
-  #if ENABLED(G80)
-    {80 , gcode_G80},
+  #if ENABLED(CODE_G82)
+    {82, gcode_G82},
   #endif
-  #if ENABLED(G81)
-    {81 , gcode_G81},
+  #if ENABLED(CODE_G83)
+    {83, gcode_G83},
   #endif
-  #if ENABLED(G82)
-    {82 , gcode_G82},
+  #if ENABLED(CODE_G84)
+    {84, gcode_G84},
   #endif
-  #if ENABLED(G83)
-    {83 , gcode_G83},
+  #if ENABLED(CODE_G85)
+    {85, gcode_G85},
   #endif
-  #if ENABLED(G84)
-    {84 , gcode_G84},
+  #if ENABLED(CODE_G86)
+    {86, gcode_G86},
   #endif
-  #if ENABLED(G85)
-    {85 , gcode_G85},
+  #if ENABLED(CODE_G87)
+    {87, gcode_G87},
   #endif
-  #if ENABLED(G86)
-    {86 , gcode_G86},
+  #if ENABLED(CODE_G88)
+    {88, gcode_G88},
   #endif
-  #if ENABLED(G87)
-    {87 , gcode_G87},
+  #if ENABLED(CODE_G89)
+    {89, gcode_G89},
   #endif
-  #if ENABLED(G88)
-    {88 , gcode_G88},
+  #if ENABLED(CODE_G90)
+    {90, gcode_G90},
   #endif
-  #if ENABLED(G89)
-    {89 , gcode_G89},
+  #if ENABLED(CODE_G91)
+    {91, gcode_G91},
   #endif
-  #if ENABLED(G90)
-    {90 , gcode_G90},
+  #if ENABLED(CODE_G92)
+    {92, gcode_G92},
   #endif
-  #if ENABLED(G91)
-    {91 , gcode_G91},
+  #if ENABLED(CODE_G93)
+    {93, gcode_G93},
   #endif
-  #if ENABLED(G92)
-    {92 , gcode_G92},
+  #if ENABLED(CODE_G94)
+    {94, gcode_G94},
   #endif
-  #if ENABLED(G93)
-    {93 , gcode_G93},
+  #if ENABLED(CODE_G95)
+    {95, gcode_G95},
   #endif
-  #if ENABLED(G94)
-    {94 , gcode_G94},
+  #if ENABLED(CODE_G96)
+    {96, gcode_G96},
   #endif
-  #if ENABLED(G95)
-    {95 , gcode_G95},
+  #if ENABLED(CODE_G97)
+    {97, gcode_G97},
   #endif
-  #if ENABLED(G96)
-    {96 , gcode_G96},
+  #if ENABLED(CODE_G98)
+    {98, gcode_G98},
   #endif
-  #if ENABLED(G97)
-    {97 , gcode_G97},
-  #endif
-  #if ENABLED(G98)
-    {98 , gcode_G98},
-  #endif
-  #if ENABLED(G99)
-    {99 , gcode_G99}
+  #if ENABLED(CODE_G99)
+    {99, gcode_G99}
   #endif
 };

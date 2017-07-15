@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G60
+#define CODE_G60
 
 /**
  * G60:  save current position

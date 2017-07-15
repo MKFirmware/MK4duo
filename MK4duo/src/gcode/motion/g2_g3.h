@@ -54,8 +54,8 @@
  */
 #if ENABLED(ARC_SUPPORT)
 
-  #define G2
-  #define G3
+  #define CODE_G2
+  #define CODE_G3
 
   void gcode_G2_G3(bool clockwise) {
 

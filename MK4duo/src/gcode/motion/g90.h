@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G90
+#define CODE_G90
 
 /**
  * G90: Assolute mode

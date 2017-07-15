@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G4
+#define CODE_G4
 
 /**
  * G4: Dwell S<seconds> or P<milliseconds>

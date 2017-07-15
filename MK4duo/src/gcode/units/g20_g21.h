@@ -28,8 +28,8 @@
 
 #if ENABLED(INCH_MODE_SUPPORT)
 
-  #define G20
-  #define G21
+  #define CODE_G20
+  #define CODE_G21
 
   /**
    * G20: Set input mode to inches

@@ -26,8 +26,8 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define G0
-#define G1
+#define CODE_G0
+#define CODE_G1
 
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
