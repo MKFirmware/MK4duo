@@ -178,6 +178,19 @@ class Printer {
       static void stopSDPrint(const bool store_location);
     #endif
 
+    #if HAS_TEMP_HOTEND
+      static void wait_heater(bool no_wait_for_cooling=true);
+    #endif
+    #if HAS_TEMP_BED
+      static void wait_bed(bool no_wait_for_cooling=true);
+    #endif
+    #if HAS_TEMP_CHAMBER
+      static void wait_chamber(bool no_wait_for_heating=true);
+    #endif
+    #if HAS_TEMP_COOLER
+      static void wait_cooler(bool no_wait_for_heating=true);
+    #endif
+
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       #if HAS_BUZZER
         static void filament_change_beep(const int8_t max_beep_count, const bool init=false);

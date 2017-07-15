@@ -27,6 +27,492 @@
  */
 
 
+/**
+ * M82: Set E codes absolute (default)
+ */
+inline void gcode_M82() { printer.axis_relative_modes[E_AXIS] = false; }
+
+/**
+ * M83: Set E codes relative while in Absolute Coordinates (G90) mode
+ */
+inline void gcode_M83() { printer.axis_relative_modes[E_AXIS] = true; }
+
+/**
+ * M18, M84: Disable stepper motors
+ */
+inline void gcode_M18_M84() {
+  if (parser.seenval('S')) {
+    stepper.stepper_inactive_time = parser.value_millis_from_seconds();
+  }
+  else {
+    bool all_axis = !(parser.seen_axis());
+    if (all_axis) {
+      stepper.finish_and_disable();
+    }
+    else {
+      stepper.synchronize();
+      if (parser.seen('X')) disable_X();
+      if (parser.seen('Y')) disable_Y();
+      if (parser.seen('Z')) disable_Z();
+      #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN // Only enable on boards that have seperate ENABLE_PINS
+        if (parser.seen('E')) stepper.disable_e_steppers();
+      #endif
+    }
+  }
+}
+
+/**
+ * M85: Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
+ */
+inline void gcode_M85() {
+  if (parser.seenval('S')) printer.max_inactive_time = parser.value_millis_from_seconds();
+}
+
+/**
+ * M92: Set axis steps-per-unit for one or more axes, X, Y, Z, and E.
+ *      (Follows the same syntax as G92)
+ *
+ *      With multiple extruders use T to specify which one.
+ */
+inline void gcode_M92() {
+
+  GET_TARGET_EXTRUDER(92);
+
+  LOOP_XYZE(i) {
+    if (parser.seen(axis_codes[i])) {
+      if (i == E_AXIS) {
+        const float value = parser.value_per_axis_unit((AxisEnum)(E_AXIS + TARGET_EXTRUDER));
+        if (value < 20.0) {
+          float factor = mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] / value; // increase e constants if M92 E14 is given for netfab.
+          mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] *= factor;
+          mechanics.max_feedrate_mm_s[E_AXIS + TARGET_EXTRUDER] *= factor;
+          mechanics.max_acceleration_steps_per_s2[E_AXIS + TARGET_EXTRUDER] *= factor;
+        }
+        mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] = value;
+      }
+      else {
+        mechanics.axis_steps_per_mm[i] = parser.value_per_axis_unit((AxisEnum)i);
+      }
+    }
+  }
+  mechanics.refresh_positioning();
+}
+
+#if ENABLED(ZWOBBLE)
+  /**
+   * M96: Print ZWobble value
+   */
+  inline void gcode_M96() {
+    mechanics.report_zwobble();
+  }
+
+  /**
+   * M97: Set ZWobble value
+   */
+  inline void gcode_M97() {
+    float zVal = -1.0, hVal = -1.0, lVal = -1.0;
+
+    if (parser.seen('A')) mechanics.set_zwobble_amplitude(parser.value_float());
+    if (parser.seen('W')) mechanics.set_zwobble_period(parser.value_float());
+    if (parser.seen('P')) mechanics.set_zwobble_phase(parser.value_float());
+    if (parser.seen('Z')) zVal = parser.value_float();
+    if (parser.seen('H')) hVal = parser.value_float();
+    if (parser.seen('L')) lVal = parser.value_float();
+    if (zVal >= 0 && hVal >= 0) mechanics.set_zwobble_sample(zVal, hVal);
+    if (zVal >= 0 && lVal >= 0) mechanics.set_zwobble_scaledsample(zVal, lVal);
+    if (lVal >  0 && hVal >  0) mechanics.set_zwobble_scalingfactor(hVal / lVal);
+  }
+#endif // ZWOBBLE
+
+#if ENABLED(HYSTERESIS)
+
+  /**
+   * M98: Print Hysteresis value
+   */
+  inline void gcode_M98() {
+    mechanics.report_hysteresis();
+  }
+
+  /**
+   * M99: Set Hysteresis value
+   */
+  inline void gcode_M99() {
+    LOOP_XYZE(i) {
+      if (parser.seen(axis_codes[i]))
+        mechanics.set_hysteresis_axis(i, parser.value_float());
+    }
+  }
+#endif // HYSTERESIS
+
+#if HAS_TEMP_HOTEND
+
+  /**
+   * M104: Set hotend temperature
+   */
+  inline void gcode_M104() {
+
+    GET_TARGET_EXTRUDER(104);
+
+    if (DEBUGGING(DRYRUN)) return;
+
+    #if ENABLED(SINGLENOZZLE)
+      if (TARGET_EXTRUDER != printer.active_extruder) return;
+    #endif
+
+    if (parser.seenval('S')) {
+      const int16_t temp = parser.value_celsius();
+      thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0, 1);
+      #endif
+
+      if (temp > thermalManager.degHotend(TARGET_EXTRUDER))
+        lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    }
+
+    #if ENABLED(AUTOTEMP)
+      planner.autotemp_M104_M109();
+    #endif
+
+  }
+
+#endif
+
+/**
+ * M105: Read hot end and bed temperature
+ */
+inline void gcode_M105() {
+
+  GET_TARGET_HOTEND(105);
+
+  #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
+    SERIAL_STR(OK);
+    #if HAS_TEMP_HOTEND || HAS_TEMP_BED
+      thermalManager.print_heaterstates();
+    #endif
+    #if HAS_TEMP_CHAMBER
+      thermalManager.print_chamberstate();
+    #endif
+    #if HAS_TEMP_COOLER
+      thermalManager.print_coolerstate();
+    #endif
+    #if ENABLED(FLOWMETER_SENSOR)
+      print_flowratestate();
+    #endif
+    #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
+      print_cncspeed();
+    #endif
+    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+      thermalManager.print_MCUstate();
+    #endif
+  #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
+    SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
+  #endif
+
+  SERIAL_EOL();
+}
+
+#if FAN_COUNT > 0
+
+  #if ENABLED(FAN_MIN_PWM)
+    #define CALC_FAN_SPEED() (speed ? ( FAN_MIN_PWM + (speed * (255 - FAN_MIN_PWM)) / 255 ) : 0)
+  #else
+    #define CALC_FAN_SPEED() speed
+  #endif
+
+  /**
+   * M106: Set Fan Speed
+   *
+   *  S<int>   Speed between 0-255
+   *  P<index> Fan index, if more than one fan
+   */
+  inline void gcode_M106() {
+    uint8_t speed = parser.seen('S') ? parser.value_ushort() : 255,
+            fan   = parser.seen('P') ? parser.value_ushort() : 0;
+
+    if (fan >= FAN_COUNT || printer.fanSpeeds[fan] == speed)
+      return;
+
+    #if ENABLED(FAN_KICKSTART_TIME)
+      if (printer.fanKickstart == 0 && speed > printer.fanSpeeds[fan] && speed < 85) {
+        if (printer.fanSpeeds[fan]) printer.fanKickstart = FAN_KICKSTART_TIME / 100;
+        else                printer.fanKickstart = FAN_KICKSTART_TIME / 25;
+      }
+    #endif
+
+    printer.fanSpeeds[fan] = CALC_FAN_SPEED();
+  }
+
+  /**
+   * M107: Fan Off
+   */
+  inline void gcode_M107() {
+    uint16_t p = parser.seen('P') ? parser.value_ushort() : 0;
+    if (p < FAN_COUNT) printer.fanSpeeds[p] = 0;
+  }
+
+#endif // FAN_COUNT > 0
+
+#if DISABLED(EMERGENCY_PARSER)
+  /**
+   * M108: Cancel heatup and wait for the hotend and bed, this G-code is asynchronously handled in the get_serial_commands() parser
+   */
+  inline void gcode_M108() { thermalManager.wait_for_heatup = false; }
+#endif
+
+#if HAS_TEMP_HOTEND
+
+  /**
+   * M109: Sxxx Wait for hotend(s) to reach temperature. Waits only when heating.
+   *       Rxxx Wait for hotend(s) to reach temperature. Waits when heating and cooling.
+   */
+  inline void gcode_M109() {
+
+    GET_TARGET_EXTRUDER(109);
+    if (DEBUGGING(DRYRUN)) return;
+
+    #if ENABLED(SINGLENOZZLE)
+      if (TARGET_EXTRUDER != printer.active_extruder) return;
+    #endif
+
+    const bool no_wait_for_cooling = parser.seenval('S');
+    if (no_wait_for_cooling || parser.seenval('R')) {
+      const int16_t temp = parser.value_celsius();
+      thermalManager.setTargetHotend(temp, TARGET_EXTRUDER);
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
+          thermalManager.setTargetHotend(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0, 1);
+      #endif
+
+      if (thermalManager.isHeatingHotend(TARGET_EXTRUDER))
+        lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+    }
+
+    #if ENABLED(AUTOTEMP)
+      planner.autotemp_M104_M109();
+    #endif
+
+    printer.wait_heater(no_wait_for_cooling);
+  }
+
+#endif
+
+/**
+ * M110: Set Current Line Number
+ */
+inline void gcode_M110() {
+  if (parser.seenval('N')) commands.gcode_LastN = parser.value_long();
+}
+
+/**
+ * M111: Debug mode Repetier Host compatibile
+ */
+inline void gcode_M111() {
+  commands.mk_debug_flags = parser.byteval('S', (uint8_t)DEBUG_NONE);
+
+  const static char str_debug_1[]   PROGMEM = MSG_DEBUG_ECHO;
+  const static char str_debug_2[]   PROGMEM = MSG_DEBUG_INFO;
+  const static char str_debug_4[]   PROGMEM = MSG_DEBUG_ERRORS;
+  const static char str_debug_8[]   PROGMEM = MSG_DEBUG_DRYRUN;
+  const static char str_debug_16[]  PROGMEM = MSG_DEBUG_COMMUNICATION;
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+    const static char str_debug_32[] PROGMEM = MSG_DEBUG_LEVELING;
+  #endif
+
+  const static char* const debug_strings[] PROGMEM = {
+    str_debug_1, str_debug_2, str_debug_4, str_debug_8, str_debug_16,
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      str_debug_32
+    #endif
+  };
+
+  SERIAL_SM(ECHO, MSG_DEBUG_PREFIX);
+  if (commands.mk_debug_flags) {
+    uint8_t comma = 0;
+    for (uint8_t i = 0; i < COUNT(debug_strings); i++) {
+      if (TEST(commands.mk_debug_flags, i)) {
+        if (comma++) SERIAL_CHR(',');
+        SERIAL_PS((char*)pgm_read_word(&(debug_strings[i])));
+      }
+    }
+  }
+  else {
+    SERIAL_MSG(MSG_DEBUG_OFF);
+  }
+  SERIAL_EOL();
+}
+
+#if DISABLED(EMERGENCY_PARSER)
+  /**
+   * M112: Emergency Stop
+   */
+  inline void gcode_M112() { printer.kill(PSTR(MSG_KILLED)); }
+#endif
+
+#if ENABLED(HOST_KEEPALIVE_FEATURE)
+  /**
+   * M113: Get or set Host Keepalive interval (0 to disable)
+   *
+   *   S<seconds> Optional. Set the keepalive interval.
+   */
+  inline void gcode_M113() {
+    if (parser.seenval('S')) {
+      printer.host_keepalive_interval = parser.value_byte();
+      NOMORE(printer.host_keepalive_interval, 60);
+    }
+    else {
+      SERIAL_EMV("M113 S", (unsigned long)printer.host_keepalive_interval);
+    }
+  }
+#endif
+
+/**
+ * M114: Report current position to host
+ */
+inline void gcode_M114() {
+
+  if (parser.seen('D')) {
+    mechanics.report_current_position_detail();
+    return;
+  }
+
+  stepper.synchronize();
+  mechanics.report_current_position();
+}
+
+/**
+ * M115: Capabilities string
+ */
+inline void gcode_M115() {
+  SERIAL_EM(MSG_M115_REPORT);
+
+  #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
+
+    // EEPROM (M500, M501)
+    #if ENABLED(EEPROM_SETTINGS)
+      SERIAL_LM(CAP, "EEPROM:1");
+    #else
+      SERIAL_LM(CAP, "EEPROM:0");
+    #endif
+
+    // AUTOREPORT_TEMP (M155)
+    #if ENABLED(AUTO_REPORT_TEMPERATURES)
+      SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
+    #else
+      SERIAL_LM(CAP, "AUTOREPORT_TEMP:0");
+    #endif
+
+    // PROGRESS (M530 S L, M531 <file>, M532 X L)
+    SERIAL_LM(CAP, "PROGRESS:1");
+
+    // Print Job timer M75, M76, M77
+    SERIAL_LM(CAP, "PRINT_JOB:1");
+
+    // AUTOLEVEL (G29)
+    #if HAS_ABL
+      SERIAL_LM(CAP, "AUTOLEVEL:1");
+    #else
+      SERIAL_LM(CAP, "AUTOLEVEL:0");
+    #endif
+
+    // Z_PROBE (G30)
+    #if HAS_BED_PROBE
+      SERIAL_LM(CAP, "Z_PROBE:1");
+    #else
+      SERIAL_LM(CAP, "Z_PROBE:0");
+    #endif
+
+    // MESH_REPORT (M320 V, M420 V)
+    #if HAS_LEVELING
+      SERIAL_LM(CAP, "LEVELING_DATA:1");
+    #else
+      SERIAL_LM(CAP, "LEVELING_DATA:0");
+    #endif
+
+    // SOFTWARE_POWER (M80, M81)
+    #if HAS_POWER_SWITCH
+      SERIAL_LM(CAP, "SOFTWARE_POWER:1");
+    #else
+      SERIAL_LM(CAP, "SOFTWARE_POWER:0");
+    #endif
+
+    // CASE LIGHTS (M355)
+    #if HAS_CASE_LIGHT
+      SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
+    #else
+      SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
+    #endif
+
+    // EMERGENCY_PARSER (M108, M112, M410)
+    #if ENABLED(EMERGENCY_PARSER)
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:1");
+    #else
+      SERIAL_LM(CAP, "EMERGENCY_PARSER:0");
+    #endif
+
+  #endif // EXTENDED_CAPABILITIES_REPORT
+}
+
+/**
+ * M117: Set LCD Status Message
+ */
+inline void gcode_M117() { lcd_setstatus(parser.string_arg); }
+
+/**
+ * M118: Display a message in the host console.
+ *
+ *  A  Append '// ' for an action command, as in OctoPrint
+ *  E  Have the host 'echo:' the text
+ */
+inline void gcode_M118() {
+  if (parser.boolval('E')) SERIAL_STR(ECHO);
+  if (parser.boolval('A')) SERIAL_MSG("// ");
+  SERIAL_ET(parser.string_arg);
+}
+
+/**
+ * M119: Output endstop states to serial output
+ */
+inline void gcode_M119() { endstops.M119(); }
+
+/**
+ * M120: Enable endstops and set non-homing endstop state to "enabled"
+ */
+inline void gcode_M120() { endstops.enable_globally(true); }
+
+/**
+ * M121: Disable endstops and set non-homing endstop state to "disabled"
+ */
+inline void gcode_M121() { endstops.enable_globally(false); }
+
+/**
+ * M122: Enable, Disable, and/or Report software endstops
+ *
+ * Usage: M122 S1 to enable, M122 S0 to disable, M122 alone for report
+ */
+inline void gcode_M122() {
+  #if HAS_SOFTWARE_ENDSTOPS
+    if (parser.seen('S')) endstops.soft_endstops_enabled = parser.value_bool();
+    SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
+    SERIAL_PS(endstops.soft_endstops_enabled ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+  #else
+    SERIAL_MSG(MSG_SOFT_ENDSTOPS);
+    SERIAL_MSG(MSG_OFF);
+  #endif
+  SERIAL_MSG(MSG_SOFT_MIN);
+  SERIAL_MV(    MSG_X, endstops.soft_endstop_min[X_AXIS]);
+  SERIAL_MV(" " MSG_Y, endstops.soft_endstop_min[Y_AXIS]);
+  SERIAL_MV(" " MSG_Z, endstops.soft_endstop_min[Z_AXIS]);
+  SERIAL_MSG(MSG_SOFT_MAX);
+  SERIAL_MV(    MSG_X, endstops.soft_endstop_max[X_AXIS]);
+  SERIAL_MV(" " MSG_Y, endstops.soft_endstop_max[Y_AXIS]);
+  SERIAL_MV(" " MSG_Z, endstops.soft_endstop_max[Z_AXIS]);
+  SERIAL_EOL();
+}
+
 #if ENABLED(PARK_HEAD_ON_PAUSE)
 
   /**
@@ -309,7 +795,7 @@
     if (no_wait_for_cooling || parser.seen('R'))
       thermalManager.setTargetBed(parser.value_celsius());
 
-    thermalManager.wait_bed(no_wait_for_cooling);
+    printer.wait_bed(no_wait_for_cooling);
   }
 #endif // HAS_TEMP_BED
 
