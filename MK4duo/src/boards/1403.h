@@ -107,7 +107,8 @@
 #define ORIG_Z4_MIN_PIN -1
 #define ORIG_Z4_MAX_PIN -1
 #define ORIG_E_MIN_PIN -1
-#define ORIG_Z_PROBE_PIN -1
+#define ORIG_Z_PROBE_PIN 70
+
 
 //###SINGLE_ENDSTOP
 #define X_STOP_PIN -1
@@ -115,19 +116,19 @@
 #define Z_STOP_PIN -1
 
 //###HEATER
-#define ORIG_HEATER_0_PIN 9
-#define ORIG_HEATER_1_PIN 10
-#define ORIG_HEATER_2_PIN 11
+#define ORIG_HEATER_0_PIN 11
+#define ORIG_HEATER_1_PIN -1
+#define ORIG_HEATER_2_PIN -1
 #define ORIG_HEATER_3_PIN -1
 #define ORIG_HEATER_BED_PIN 8
 #define ORIG_HEATER_CHAMBER_PIN -1
 #define ORIG_COOLER_PIN -1
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN 1
+#define ORIG_TEMP_0_PIN 4
 #define ORIG_TEMP_1_PIN 2
 #define ORIG_TEMP_2_PIN 3
-#define ORIG_TEMP_3_PIN 4
+#define ORIG_TEMP_3_PIN -1
 #define ORIG_TEMP_BED_PIN 0
 #define ORIG_TEMP_CHAMBER_PIN -1
 #define ORIG_TEMP_COOLER_PIN -1
@@ -138,14 +139,16 @@
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1
 
+//#define H0_AUTO_FAN_PIN 52  //must be defined in configuration_pins.h
+
 //###MISC
 #define ORIG_PS_ON_PIN -1
-#define ORIG_BEEPER_PIN -1
+#define ORIG_BEEPER_PIN 37
 #define LED_PIN 13
 #define SDPOWER -1
 #define SD_DETECT_PIN -1
 #define SDSS 4
-#define KILL_PIN -1
+#define KILL_PIN 51
 #define DEBUG_PIN -1
 #define SUICIDE_PIN -1
 
@@ -184,7 +187,7 @@
     #define LCD_PINS_D7         29
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
-      #define ORIG_BEEPER_PIN   37
+      #define ORIG_BEEPER_PIN   -1
 
       #define BTN_EN1           33
       #define BTN_EN2           31

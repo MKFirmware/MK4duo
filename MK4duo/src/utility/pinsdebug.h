@@ -40,6 +40,7 @@ bool endstop_monitor_flag = false;
 #if ENABLED(ARDUINO_ARCH_SAM)
   #define LAST_PIN                        PINS_COUNT // Arduino Due's NUM_DIGITAL_PINS only includes the digital only pins
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
+  #define PIN_TO_OSRREG(pin)              (&(digitalPinToPort(pin)->PIO_OSR))  // "0" means it's an input
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
@@ -47,6 +48,7 @@ bool endstop_monitor_flag = false;
 #else
   #define LAST_PIN                        NUM_DIGITAL_PINS
   #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
+  #define PIN_TO_OSRREG(pin)              (portInputRegister(digitalPinToPort(pin)))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint8_t
   #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
@@ -179,7 +181,13 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_ATT)
     PIN_SAY(E0_ATT_PIN);
   #endif
-  #if PIN_EXISTS(E0_AUTO_FAN)
+//  #if EXISTS(H0_AUTO_FAN) && H0_AUTO_FAN >= 0
+//    PIN_SAY(H0_AUTO_FAN);
+//  #endif 
+  #if PIN_EXISTS(H0_AUTO_FAN)
+    PIN_SAY(H0_AUTO_FAN_PIN);
+  #endif  
+   #if PIN_EXISTS(E0_AUTO_FAN)
     PIN_SAY(E0_AUTO_FAN_PIN);
   #endif
   #if PIN_EXISTS(E1_AUTO_FAN)
@@ -652,6 +660,9 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(Z_MIN_PROBE)
     PIN_SAY(Z_MIN_PROBE_PIN);
   #endif
+  #if PIN_EXISTS(Z_PROBE)
+    PIN_SAY(Z_PROBE_PIN);
+  #endif
   #if PIN_EXISTS(Z_MS1)
     PIN_SAY(Z_MS1_PIN);
   #endif
@@ -672,6 +683,591 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(Z2_STEP)
     PIN_SAY(Z2_STEP_PIN);
+  #endif
+  #if PIN_EXISTS(ADC_KEYPAD) && ADC_KEYPAD_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(ADC_KEYPAD_PIN)
+  #endif
+  #if defined(BEEPER) && BEEPER >= 0
+    PIN_SAY(BEEPER)
+  #endif
+  #if PIN_EXISTS(BEEPER)
+    PIN_SAY(BEEPER_PIN)
+  #endif
+  #if defined(BL_DW) && BL_DW >= 0
+    PIN_SAY(BL_DW)
+  #endif
+  #if defined(BL_LE) && BL_LE >= 0
+    PIN_SAY(BL_LE)
+  #endif
+  #if defined(BL_MI) && BL_MI >= 0
+    PIN_SAY(BL_MI)
+  #endif
+  #if defined(BL_RI) && BL_RI >= 0
+    PIN_SAY(BL_RI)
+  #endif
+  #if defined(BL_ST) && BL_ST >= 0
+    PIN_SAY(BL_ST)
+  #endif
+  #if defined(BL_UP) && BL_UP >= 0
+    PIN_SAY(BL_UP)
+  #endif
+  #if defined(BLEN_A) && BLEN_A >= 0
+    PIN_SAY(BLEN_A)
+  #endif
+  #if defined(BLEN_B) && BLEN_B >= 0
+    PIN_SAY(BLEN_B)
+  #endif
+  #if defined(BLEN_C) && BLEN_C >= 0
+    PIN_SAY(BLEN_C)
+  #endif
+  #if defined(BTN_BACK) && BTN_BACK >= 0
+    PIN_SAY(BTN_BACK)
+  #endif
+  #if defined(BTN_EN1) && BTN_EN1 >= 0
+    PIN_SAY(BTN_EN1)
+  #endif
+  #if defined(BTN_EN2) && BTN_EN2 >= 0
+    PIN_SAY(BTN_EN2)
+  #endif
+  #if defined(BTN_ENC) && BTN_ENC >= 0
+    PIN_SAY(BTN_ENC)
+  #endif
+  #if PIN_EXISTS(COOLER)
+    PIN_SAY(COOLER_PIN)
+  #endif
+  #if defined(DAC0_SYNC) && DAC0_SYNC >= 0
+    PIN_SAY(DAC0_SYNC)
+  #endif
+  #if defined(DAC1_SYNC) && DAC1_SYNC >= 0
+    PIN_SAY(DAC1_SYNC)
+  #endif
+  #if PIN_EXISTS(DEBUG)
+    PIN_SAY(DEBUG_PIN)
+  #endif
+  #if PIN_EXISTS(DIGIPOTSS)
+    PIN_SAY(DIGIPOTSS_PIN)
+  #endif
+  #if defined(DOGLCD_A0) && DOGLCD_A0 >= 0
+    PIN_SAY(DOGLCD_A0)
+  #endif
+  #if defined(DOGLCD_CS) && DOGLCD_CS >= 0
+    PIN_SAY(DOGLCD_CS)
+  #endif
+  #if PIN_EXISTS(E_MIN)
+    PIN_SAY(E_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(E0_CS)
+    PIN_SAY(E0_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E0_DIR)
+    PIN_SAY(E0_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E0_ENABLE)
+    PIN_SAY(E0_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E0_MS1)
+    PIN_SAY(E0_MS1_PIN)
+  #endif
+  #if PIN_EXISTS(E0_MS2)
+    PIN_SAY(E0_MS2_PIN)
+  #endif
+  #if PIN_EXISTS(E0_STEP)
+    PIN_SAY(E0_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E1_CS)
+    PIN_SAY(E1_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E1_DIR)
+    PIN_SAY(E1_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E1_ENABLE)
+    PIN_SAY(E1_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E1_MS1)
+    PIN_SAY(E1_MS1_PIN)
+  #endif
+  #if PIN_EXISTS(E1_MS2)
+    PIN_SAY(E1_MS2_PIN)
+  #endif
+  #if PIN_EXISTS(E1_STEP)
+    PIN_SAY(E1_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E2_CS)
+    PIN_SAY(E2_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E2_DIR)
+    PIN_SAY(E2_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E2_ENABLE)
+    PIN_SAY(E2_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E2_STEP)
+    PIN_SAY(E2_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E3_CS)
+    PIN_SAY(E3_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E3_DIR)
+    PIN_SAY(E3_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E3_ENABLE)
+    PIN_SAY(E3_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E3_STEP)
+    PIN_SAY(E3_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E4_CS)
+    PIN_SAY(E4_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E4_DIR)
+    PIN_SAY(E4_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E4_ENABLE)
+    PIN_SAY(E4_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E4_STEP)
+    PIN_SAY(E4_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E5_CS)
+    PIN_SAY(E5_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E5_DIR)
+    PIN_SAY(E5_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E5_ENABLE)
+    PIN_SAY(E5_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E5_STEP)
+    PIN_SAY(E5_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E6_CS)
+    PIN_SAY(E6_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E6_DIR)
+    PIN_SAY(E6_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E6_ENABLE)
+    PIN_SAY(E6_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E6_STEP)
+    PIN_SAY(E6_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E7_CS)
+    PIN_SAY(E7_CS_PIN)
+  #endif
+  #if PIN_EXISTS(E7_DIR)
+    PIN_SAY(E7_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E7_ENABLE)
+    PIN_SAY(E7_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E7_STEP)
+    PIN_SAY(E7_STEP_PIN)
+  #endif
+  #if defined(EEPROM_SD) && EEPROM_SD >= 0
+    PIN_SAY(EEPROM_SD)
+  #endif
+  #if defined(ENC424_SS) && ENC424_SS >= 0
+    PIN_SAY(ENC424_SS)
+  #endif
+  #if defined(ESP_WIFI_MODULE_COM) && ESP_WIFI_MODULE_COM >= 0
+    PIN_SAY(ESP_WIFI_MODULE_COM)
+  #endif
+  #if PIN_EXISTS(ESP_WIFI_MODULE_RESET)
+    PIN_SAY(ESP_WIFI_MODULE_RESET_PIN)
+  #endif
+  #if PIN_EXISTS(EXP_VOLTAGE_LEVEL)
+    PIN_SAY(EXP_VOLTAGE_LEVEL_PIN)
+  #endif
+  #if PIN_EXISTS(EXP1_OUT_ENABLE)
+    PIN_SAY(EXP1_OUT_ENABLE_PIN)
+  #endif
+  #if defined(EXP1_VOLTAGE_SELECT) && EXP1_VOLTAGE_SELECT >= 0
+    PIN_SAY(EXP1_VOLTAGE_SELECT)
+  #endif
+  #if PIN_EXISTS(FAN)
+    PIN_SAY(FAN_PIN)
+  #endif
+  #if PIN_EXISTS(FAN1)
+    PIN_SAY(FAN1_PIN)
+  #endif
+  #if PIN_EXISTS(FAN2)
+    PIN_SAY(FAN2_PIN)
+  #endif
+  #if PIN_EXISTS(FAN3)
+    PIN_SAY(FAN3_PIN)
+  #endif
+  #if PIN_EXISTS(FTDI_COM_RESET)
+    PIN_SAY(FTDI_COM_RESET_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_0)
+    PIN_SAY(HEATER_0_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_1)
+    PIN_SAY(HEATER_1_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_2)
+    PIN_SAY(HEATER_2_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_3)
+    PIN_SAY(HEATER_3_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_BED)
+    PIN_SAY(HEATER_BED_PIN)
+  #endif
+  #if PIN_EXISTS(HEATER_CHAMBER)
+    PIN_SAY(HEATER_CHAMBER_PIN)
+  #endif
+  #if defined(I2C_SCL) && I2C_SCL >= 0
+    PIN_SAY(I2C_SCL)
+  #endif
+  #if defined(I2C_SDA) && I2C_SDA >= 0
+    PIN_SAY(I2C_SDA)
+  #endif
+  #if PIN_EXISTS(KILL)
+    PIN_SAY(KILL_PIN)
+  #endif
+  #if PIN_EXISTS(LASER_PWM)
+    PIN_SAY(LASER_PWM_PIN)
+  #endif
+  #if PIN_EXISTS(LASER_PWR)
+    PIN_SAY(LASER_PWR_PIN)
+  #endif
+  #if PIN_EXISTS(LCD_BACKLIGHT)
+    PIN_SAY(LCD_BACKLIGHT_PIN)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_D4)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_D5)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_D6)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_D7)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_ENABLE)
+  #endif
+  #if PIN_EXISTS(LCD)
+    PIN_SAY(LCD_PINS_RS)
+  #endif
+  #if PIN_EXISTS(LCD_RESET)
+    PIN_SAY(LCD_RESET_PIN)
+  #endif
+  #if defined(LCD_SDSS) && LCD_SDSS >= 0
+    PIN_SAY(LCD_SDSS)
+  #endif
+  #if PIN_EXISTS(LED)
+    PIN_SAY(LED_PIN)
+  #endif
+  #if PIN_EXISTS(MAIN_VOLTAGE_MEASURE)
+    PIN_SAY(MAIN_VOLTAGE_MEASURE_PIN)
+  #endif
+  #if defined(MAX31855_SS0) && MAX31855_SS0 >= 0
+    PIN_SAY(MAX31855_SS0)
+  #endif
+  #if defined(MAX31855_SS1) && MAX31855_SS1 >= 0
+    PIN_SAY(MAX31855_SS1)
+  #endif
+  #if defined(MAX31855_SS2) && MAX31855_SS2 >= 0
+    PIN_SAY(MAX31855_SS2)
+  #endif
+  #if defined(MAX31855_SS3) && MAX31855_SS3 >= 0
+    PIN_SAY(MAX31855_SS3)
+  #endif
+  #if defined(MAX6675_SS) && MAX6675_SS >= 0
+    PIN_SAY(MAX6675_SS)
+  #endif
+  #if PIN_EXISTS(MOTOR_CURRENT_PWM_E)
+    PIN_SAY(MOTOR_CURRENT_PWM_E_PIN)
+  #endif
+  #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
+    PIN_SAY(MOTOR_CURRENT_PWM_XY_PIN)
+  #endif
+  #if PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
+    PIN_SAY(MOTOR_CURRENT_PWM_Z_PIN)
+  #endif
+  #if PIN_EXISTS(MOTOR_FAULT_PIGGY)
+    PIN_SAY(MOTOR_FAULT_PIGGY_PIN)
+  #endif
+  #if PIN_EXISTS(MOTOR_FAULT)
+    PIN_SAY(MOTOR_FAULT_PIN)
+  #endif
+  #if PIN_EXISTS(PHOTOGRAPH)
+    PIN_SAY(PHOTOGRAPH_PIN)
+  #endif
+  #if PIN_EXISTS(PIGGY_GPIO)
+    PIN_SAY(PIGGY_GPIO_PIN)
+  #endif
+  #if PIN_EXISTS(PS_ON)
+    PIN_SAY(PS_ON_PIN)
+  #endif
+  #if defined(S0_MUX) && S0_MUX >= 0
+    PIN_SAY(S0_MUX)
+  #endif
+  #if defined(S1_MUX) && S1_MUX >= 0
+    PIN_SAY(S1_MUX)
+  #endif
+  #if defined(S2_MUX) && S2_MUX >= 0
+    PIN_SAY(S2_MUX)
+  #endif
+  #if PIN_EXISTS(SAFETY_TRIGGERED)
+    PIN_SAY(SAFETY_TRIGGERED_PIN)
+  #endif
+  #if PIN_EXISTS(SCL)
+    PIN_SAY(SCL_PIN)
+  #endif
+  #if PIN_EXISTS(SD_DETECT)
+    PIN_SAY(SD_DETECT_PIN)
+  #endif
+  #if PIN_EXISTS(SDA)
+    PIN_SAY(SDA_PIN)
+  #endif
+  #if defined(SDPOWER) && SDPOWER >= 0
+    PIN_SAY(SDPOWER)
+  #endif
+  #if defined(SDSS) && SDSS >= 0
+    PIN_SAY(SDSS)
+  #endif
+  #if PIN_EXISTS(SERVO0)
+    PIN_SAY(SERVO0_PIN)
+  #endif
+  #if PIN_EXISTS(SERVO1)
+    PIN_SAY(SERVO1_PIN)
+  #endif
+  #if PIN_EXISTS(SERVO2)
+    PIN_SAY(SERVO2_PIN)
+  #endif
+  #if PIN_EXISTS(SERVO3)
+    PIN_SAY(SERVO3_PIN)
+  #endif
+  #if defined(SHIFT_CLK) && SHIFT_CLK >= 0
+    PIN_SAY(SHIFT_CLK)
+  #endif
+  #if defined(SHIFT_EN) && SHIFT_EN >= 0
+    PIN_SAY(SHIFT_EN)
+  #endif
+  #if defined(SHIFT_LD) && SHIFT_LD >= 0
+    PIN_SAY(SHIFT_LD)
+  #endif
+  #if defined(SHIFT_OUT) && SHIFT_OUT >= 0
+    PIN_SAY(SHIFT_OUT)
+  #endif
+  #if PIN_EXISTS(SLEEP_WAKE)
+    PIN_SAY(SLEEP_WAKE_PIN)
+  #endif
+  #if PIN_EXISTS(SOL0)
+    PIN_SAY(SOL0_PIN)
+  #endif
+  #if PIN_EXISTS(SOL1)
+    PIN_SAY(SOL1_PIN)
+  #endif
+  #if PIN_EXISTS(SOL2)
+    PIN_SAY(SOL2_PIN)
+  #endif
+  #if PIN_EXISTS(SOL3)
+    PIN_SAY(SOL3_PIN)
+  #endif
+  #if PIN_EXISTS(SOL4)
+    PIN_SAY(SOL4_PIN)
+  #endif
+  #if PIN_EXISTS(SOL5)
+    PIN_SAY(SOL5_PIN)
+  #endif
+  #if PIN_EXISTS(SOL6)
+    PIN_SAY(SOL6_PIN)
+  #endif
+  #if PIN_EXISTS(SOL7)
+    PIN_SAY(SOL7_PIN)
+  #endif
+  #if defined(SPI_CHAN_DAC) && SPI_CHAN_DAC >= 0
+    PIN_SAY(SPI_CHAN_DAC)
+  #endif
+  #if defined(SPI_CHAN_EEPROM1) && SPI_CHAN_EEPROM1 >= 0
+    PIN_SAY(SPI_CHAN_EEPROM1)
+  #endif
+  #if defined(SPI_EEPROM) && SPI_EEPROM >= 0
+    PIN_SAY(SPI_EEPROM)
+  #endif
+  #if defined(SPI_EEPROM1_CS) && SPI_EEPROM1_CS >= 0
+    PIN_SAY(SPI_EEPROM1_CS)
+  #endif
+  #if defined(SPI_EEPROM2_CS) && SPI_EEPROM2_CS >= 0
+    PIN_SAY(SPI_EEPROM2_CS)
+  #endif
+  #if defined(SPI_FLASH_CS) && SPI_FLASH_CS >= 0
+    PIN_SAY(SPI_FLASH_CS)
+  #endif
+  #if PIN_EXISTS(STAT_LED_BLUE)
+    PIN_SAY(STAT_LED_BLUE_PIN)
+  #endif
+  #if PIN_EXISTS(STAT_LED_RED)
+    PIN_SAY(STAT_LED_RED_PIN)
+  #endif
+  #if PIN_EXISTS(SUICIDE)
+    PIN_SAY(SUICIDE_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_0) && TEMP_0_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_0_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_1) && TEMP_1_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_1_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_2) && TEMP_2_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_2_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_3) && TEMP_3_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_3_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_BED) && TEMP_BED_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_BED_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_CHAMBER) && TEMP_CHAMBER_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_CHAMBER_PIN)
+  #endif
+  #if PIN_EXISTS(TEMP_COOLER) && TEMP_COOLER_PIN < NUM_ANALOG_INPUTS
+    ANALOG_PIN_SAY(TEMP_COOLER_PIN)
+  #endif
+  #if defined(TLC_BLANK_BIT) && TLC_BLANK_BIT >= 0
+    PIN_SAY(TLC_BLANK_BIT)
+  #endif
+  #if PIN_EXISTS(TLC_BLANK)
+    PIN_SAY(TLC_BLANK_PIN)
+  #endif
+  #if defined(TLC_BLANK_PORT) && TLC_BLANK_PORT >= 0
+    PIN_SAY(TLC_BLANK_PORT)
+  #endif
+  #if defined(TLC_CLOCK_BIT) && TLC_CLOCK_BIT >= 0
+    PIN_SAY(TLC_CLOCK_BIT)
+  #endif
+  #if PIN_EXISTS(TLC_CLOCK)
+    PIN_SAY(TLC_CLOCK_PIN)
+  #endif
+  #if defined(TLC_CLOCK_PORT) && TLC_CLOCK_PORT >= 0
+    PIN_SAY(TLC_CLOCK_PORT)
+  #endif
+  #if defined(TLC_DATA_BIT) && TLC_DATA_BIT >= 0
+    PIN_SAY(TLC_DATA_BIT)
+  #endif
+  #if PIN_EXISTS(TLC_DATA)
+    PIN_SAY(TLC_DATA_PIN)
+  #endif
+  #if defined(TLC_DATA_PORT) && TLC_DATA_PORT >= 0
+    PIN_SAY(TLC_DATA_PORT)
+  #endif
+  #if defined(TLC_XLAT_BIT) && TLC_XLAT_BIT >= 0
+    PIN_SAY(TLC_XLAT_BIT)
+  #endif
+  #if PIN_EXISTS(TLC_XLAT)
+    PIN_SAY(TLC_XLAT_PIN)
+  #endif
+  #if defined(TLC_XLAT_PORT) && TLC_XLAT_PORT >= 0
+    PIN_SAY(TLC_XLAT_PORT)
+  #endif
+  #if PIN_EXISTS(X_CS)
+    PIN_SAY(X_CS_PIN)
+  #endif
+  #if PIN_EXISTS(X_DIR)
+    PIN_SAY(X_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(X_ENABLE)
+    PIN_SAY(X_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(X_MAX)
+    PIN_SAY(X_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(X_MIN)
+    PIN_SAY(X_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(X_MS1)
+    PIN_SAY(X_MS1_PIN)
+  #endif
+  #if PIN_EXISTS(X_MS2)
+    PIN_SAY(X_MS2_PIN)
+  #endif
+  #if PIN_EXISTS(X_STEP)
+    PIN_SAY(X_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(X_STOP)
+    PIN_SAY(X_STOP_PIN)
+  #endif
+  #if PIN_EXISTS(Y_CS)
+    PIN_SAY(Y_CS_PIN)
+  #endif
+  #if PIN_EXISTS(Y_DIR)
+    PIN_SAY(Y_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(Y_ENABLE)
+    PIN_SAY(Y_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(Y_MAX)
+    PIN_SAY(Y_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Y_MIN)
+    PIN_SAY(Y_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Y_MS1)
+    PIN_SAY(Y_MS1_PIN)
+  #endif
+  #if PIN_EXISTS(Y_MS2)
+    PIN_SAY(Y_MS2_PIN)
+  #endif
+  #if PIN_EXISTS(Y_STEP)
+    PIN_SAY(Y_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(Y_STOP)
+    PIN_SAY(Y_STOP_PIN)
+  #endif
+  #if PIN_EXISTS(Z_CS)
+    PIN_SAY(Z_CS_PIN)
+  #endif
+  #if PIN_EXISTS(Z_DIR)
+    PIN_SAY(Z_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(Z_ENABLE)
+    PIN_SAY(Z_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(Z_MAX)
+    PIN_SAY(Z_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z_MIN)
+    PIN_SAY(Z_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z_MS1)
+    PIN_SAY(Z_MS1_PIN)
+  #endif
+  #if PIN_EXISTS(Z_MS2)
+    PIN_SAY(Z_MS2_PIN)
+  #endif
+  #if PIN_EXISTS(Z_PROBE)
+    PIN_SAY(Z_PROBE_PIN)
+  #endif
+  #if PIN_EXISTS(Z_STEP)
+    PIN_SAY(Z_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(Z_STOP)
+    PIN_SAY(Z_STOP_PIN)
+  #endif
+  #if PIN_EXISTS(Z2_MAX)
+    PIN_SAY(Z2_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z2_MIN)
+    PIN_SAY(Z2_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MAX)
+    PIN_SAY(Z3_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MIN)
+    PIN_SAY(Z3_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MAX)
+    PIN_SAY(Z4_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MIN)
+    PIN_SAY(Z4_MIN_PIN)
   #endif
 
   sprintf(buffer, NAME_FORMAT, "<unused> ");
@@ -915,7 +1511,7 @@ inline void report_pin_state(int8_t pin) {
   SERIAL_CHR(' ');
   bool dummy;
   if (report_pin_name(pin, dummy)) {
-    if (printer.pin_is_protected(pin))
+    if (pin_is_protected(pin))
       SERIAL_MSG(" (protected)");
     else {
       SERIAL_MSG(" = ");
@@ -933,12 +1529,19 @@ inline void report_pin_state(int8_t pin) {
 
 bool get_pinMode(uint8_t pin) {
   rBit = PIN_TO_BITMASK(pin);
-  rReg = PIN_TO_BASEREG(pin);
+  rReg = PIN_TO_OSRREG(pin);
 
-  if (*rReg & rBit)
-    return false;
-  else
-    return true;
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    if (*rReg & rBit)
+      return true;
+    else
+      return false;  
+  #else  
+    if (*rReg & rBit)
+      return false;
+    else
+      return true;
+  #endif    
 }
 
 // pretty report with PWM info
@@ -955,7 +1558,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
   report_pin_name(pin, analog_pin);
 
   // report pin state
-  if (printer.pin_is_protected(pin) && !ignore)
+  if (pin_is_protected(pin) && !ignore)
     SERIAL_MSG("protected ");
   else {
     if (analog_pin) {
@@ -966,7 +1569,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
     }
     else {
       if (!get_pinMode(pin)) {
-        pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
+//        pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
         SERIAL_MT("Input  = ", digitalRead_mod(pin));
       }
       else if (pwm_status(pin)) {
