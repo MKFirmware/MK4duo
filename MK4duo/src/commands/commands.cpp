@@ -562,9 +562,12 @@ void Commands::process_next_gcode() {
       const int gcode_num= parser.codenum;
       G_CODE_TYPE start= 0, middle, end= COUNT(GCode_Table)-1;
       
-      if(gcode_num <= 1){
+      if(gcode_num == 0) {
         code_found= true;
-        gcode_G0_G1(); // Execute directly the most common gcode
+        gcode_G0(); // Execute directly the most common Gcodes
+      }else if(gcode_num == 1) {
+        code_found= true;
+        gcode_G1(); // Execute directly the most common Gcodes  
       }else if(WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
         while(start <= end){
           middle= (start+end) >> 1;
