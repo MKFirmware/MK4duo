@@ -34,12 +34,6 @@ typedef struct{
 } Gcode_t;
 
 constexpr Gcode_t GCode_Table[] = {
-  #if ENABLED(G0)
-    {0 , gcode_G0},
-  #endif
-  #if ENABLED(G1)
-    {1 , gcode_G1},
-  #endif
   #if ENABLED(G2)
     {2 , gcode_G2},
   #endif
