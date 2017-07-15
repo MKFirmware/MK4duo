@@ -53,11 +53,6 @@
   #define KEEPALIVE_STATE(n) NOOP
 #endif
 
-#if ENABLED(BARICUDA)
-  extern int baricuda_valve_pressure;
-  extern int baricuda_e_to_p_pressure;
-#endif
-
 #if ENABLED(FILAMENT_SENSOR)
   extern bool     filament_sensor;          // Flag that filament sensor readings should control extrusion
   extern float    filament_width_nominal,   // Theoretical filament diameter i.e., 3.00 or 1.75

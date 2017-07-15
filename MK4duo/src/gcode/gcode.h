@@ -35,6 +35,11 @@
 
 // Config Commands
 #include "config/m92.h"
+#include "config/m200.h"
+#include "config/m201.h"
+#include "config/m203.h"
+#include "config/m204.h"
+#include "config/m205.h"
 
 // Control Commands
 #include "control/m17.h"
@@ -60,6 +65,9 @@
 #include "feature/g61.h"
 #include "feature/m96_m97.h"
 #include "feature/m98_m99.h"
+#include "feature/m125.h"
+#include "feature/m126_m127_m128_m129.h"
+#include "feature/m150.h"
 
 // Geometry Commands
 #include "geometry/g92.h"
@@ -76,8 +84,10 @@
 // LCD Commands
 #include "lcd/m0_m1.h"
 #include "lcd/m117.h"
+#include "lcd/m145.h"
 
 // Mixing Commands
+#include "mixing/m163_m164_m165.h"
 
 // Motion Commands
 #include "motion/g0_g1.h"
@@ -125,11 +135,19 @@
 #include "temperature/m105.h"
 #include "temperature/m108.h"
 #include "temperature/m109.h"
+#include "temperature/m140.h"
+#include "temperature/m141.h"
+#include "temperature/m142.h"
+#include "temperature/m155.h"
+#include "temperature/m190.h"
+#include "temperature/m191.h"
+#include "temperature/m192.h"
 
 // Units Commands
 #include "units/g20_g21.h"
 #include "units/m82.h"
 #include "units/m83.h"
+#include "units/m149.h"
 
 // Da spostare ancora
 #include "m_code.h"

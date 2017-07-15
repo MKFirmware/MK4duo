@@ -67,11 +67,6 @@
         Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if ENABLED(BARICUDA)
-  int baricuda_valve_pressure   = 0,
-      baricuda_e_to_p_pressure  = 0;
-#endif
-
 #if ENABLED(FWRETRACT)
 
   bool  autoretract_enabled           = false,
