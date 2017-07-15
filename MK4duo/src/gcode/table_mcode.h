@@ -29,11 +29,11 @@
 #define M_CODE_TYPE uint16_t
 
 typedef struct{
-	M_CODE_TYPE code;
-	void (* command) ();	
-} Mcode_t;
+	const M_CODE_TYPE code;
+	const void (* command) ();	
+} MCode_t;
 
-constexpr Mcode_t MCode_Table [] = {
+constexpr MCode_t MCode_Table [] = {
 	#if ENABLED(CODE_M0)
 		{0, gcode_M0_M1},
 	#endif
