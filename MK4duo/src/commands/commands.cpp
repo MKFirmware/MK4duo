@@ -565,12 +565,11 @@ void Commands::process_next_gcode() {
   // Parse the next command in the queue
   parser.parse(current_command);
 
-  const int code_num = parser.codenum;
-
   // Handle a known G, M, or T
   switch (parser.command_letter) {
 
     case 'G': {
+      const int code_num = parser.codenum;
       bool code_found = false;
       G_CODE_TYPE start   = 0,
                   middle  = 0,
