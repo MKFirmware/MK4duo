@@ -37,10 +37,6 @@
   #endif
 #endif
 
-#if ENABLED(G38_PROBE_TARGET)
-  bool G38_move         = false,
-       G38_endstop_hit  = false;
-#endif
 
 #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
   bool flow_firstread = false;
@@ -51,14 +47,6 @@
   #define CNC_M6_TOOL_ID 255
 #endif
 
-#if HEATER_USES_AD595
-  float ad595_offset[HOTENDS] = ARRAY_BY_HOTENDS(TEMP_SENSOR_AD595_OFFSET),
-        ad595_gain[HOTENDS]   = ARRAY_BY_HOTENDS(TEMP_SENSOR_AD595_GAIN);
-#endif
-
-#if ENABLED(NPR2)
-  uint8_t old_color = 99;
-#endif
 
 #if ENABLED(RFID_MODULE)
   unsigned long Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
@@ -66,22 +54,6 @@
         Spool_must_read[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(false),
         Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
-
-#if ENABLED(FWRETRACT)
-
-  bool  autoretract_enabled           = false,
-        retracted[EXTRUDERS]          = { false },
-        retracted_swap[EXTRUDERS]     = { false };
-
-  float retract_length                = RETRACT_LENGTH,
-        retract_length_swap           = RETRACT_LENGTH_SWAP,
-        retract_feedrate_mm_s         = RETRACT_FEEDRATE,
-        retract_zlift                 = RETRACT_ZLIFT,
-        retract_recover_length        = RETRACT_RECOVER_LENGTH,
-        retract_recover_length_swap   = RETRACT_RECOVER_LENGTH_SWAP,
-        retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
-
-#endif // FWRETRACT
 
 #if MECH(DELTA)
 
@@ -167,12 +139,6 @@
   bool IDLE_OOZING_retracted[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if HAS_POWER_CONSUMPTION_SENSOR
-  float power_consumption_meas = 0.0;
-  unsigned long power_consumption_hour,
-                startpower  = 0;
-                stoppower   = 0;
-#endif
 
 #if ENABLED(NPR2)
   static float  color_position[] = COLOR_STEP,

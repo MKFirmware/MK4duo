@@ -602,7 +602,7 @@ static void lcd_implementation_status_screen() {
           lcd_print(buffer2);
         }
         else {
-          lcd_print(itostr4(power_consumption_hour - startpower));
+          lcd_print(itostr4(powerManager.power_consumption_hour - powerManager.startpower));
           lcd_print((char*)"Wh");
         }
       #else
@@ -750,9 +750,9 @@ static void lcd_implementation_status_screen() {
         #endif
           {
             lcd_printPGM(PSTR("P:"));
-            lcd_print(ftostr31(power_consumption_meas));
+            lcd_print(ftostr31(powerManager.power_consumption_meas));
             lcd_printPGM(PSTR("W C:"));
-            lcd_print(ltostr7(power_consumption_hour));
+            lcd_print(ltostr7(powerManager.power_consumption_hour));
             lcd_printPGM(PSTR("Wh"));
           }
       #endif

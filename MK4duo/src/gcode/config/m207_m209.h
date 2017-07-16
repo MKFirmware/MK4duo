@@ -41,11 +41,11 @@
    *   Z[units]     retract_zlift
    */
   inline void gcode_M207(void) {
-    if (parser.seenval('S')) retract_length = parser.value_axis_units(E_AXIS);
-    if (parser.seenval('F')) retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
-    if (parser.seenval('Z')) retract_zlift = parser.value_linear_units();
+    if (parser.seenval('S')) printer.retract_length = parser.value_axis_units(E_AXIS);
+    if (parser.seenval('F')) printer.retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seenval('Z')) printer.retract_zlift = parser.value_linear_units();
     #if EXTRUDERS > 1
-      if (parser.seenval('W')) retract_length_swap = parser.value_axis_units(E_AXIS);
+      if (parser.seenval('W')) printer.retract_length_swap = parser.value_axis_units(E_AXIS);
     #endif
   }
 
@@ -57,10 +57,10 @@
    *   F[units/min] retract_recover_feedrate_mm_s
    */
   inline void gcode_M208() {
-    if (parser.seenval('S')) retract_recover_length = parser.value_axis_units(E_AXIS);
-    if (parser.seenval('F')) retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seenval('S')) printer.retract_recover_length = parser.value_axis_units(E_AXIS);
+    if (parser.seenval('F')) printer.retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
     #if EXTRUDERS > 1
-      if (parser.seenval('W')) retract_recover_length_swap = parser.value_axis_units(E_AXIS);
+      if (parser.seenval('W')) printer.retract_recover_length_swap = parser.value_axis_units(E_AXIS);
     #endif
   }
 
@@ -71,8 +71,8 @@
    */
   inline void gcode_M209() {
     if (parser.seenval('S')) {
-      autoretract_enabled = parser.value_bool();
-      for (int i = 0; i < EXTRUDERS; i++) retracted[i] = false;
+      printer.autoretract_enabled = parser.value_bool();
+      for (int i = 0; i < EXTRUDERS; i++) printer.retracted[i] = false;
     }
   }
 

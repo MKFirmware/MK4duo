@@ -86,7 +86,7 @@
     card.startFileprint();
     printer.print_job_counter.start();
     #if HAS_POWER_CONSUMPTION_SENSOR
-      startpower = power_consumption_hour;
+      powerManager.startpower = powerManager.power_consumption_hour;
     #endif
   }
 
@@ -185,7 +185,7 @@
       card.startFileprint();
       printer.print_job_counter.start();
       #if HAS_POWER_CONSUMPTION_SENSOR
-        startpower = power_consumption_hour;
+        powerManager.startpower = powerManager.power_consumption_hour;
       #endif
     }
   }

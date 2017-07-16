@@ -38,12 +38,12 @@
   void gcode_G10_G11(bool doRetract = false) {
     #if EXTRUDERS > 1
       if (doRetract) {
-        retracted_swap[printer.active_extruder] = (parser.seen('S') && parser.value_bool()); // checks for swap retract argument
+        printer.retracted_swap[printer.active_extruder] = (parser.seen('S') && parser.value_bool()); // checks for swap retract argument
       }
     #endif
-    fwretract(doRetract
+    printer.retract(doRetract
      #if EXTRUDERS > 1
-      , retracted_swap[printer.active_extruder]
+      , printer.retracted_swap[printer.active_extruder]
      #endif
     );
   }

@@ -499,13 +499,13 @@ void Endstops::update() {
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
-    if (G38_move) {
+    if (printer.G38_move) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
         if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(X_AXIS); }
         else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(Y_AXIS); }
         else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(Z_AXIS); }
-        G38_endstop_hit = true;
+        printer.G38_endstop_hit = true;
       }
     }
   #endif

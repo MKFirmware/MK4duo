@@ -31,15 +31,6 @@
 
 extern const char axis_codes[NUM_AXIS];
 
-#if HAS_EXT_ENCODER
-  #if HAS_SDSUPPORT
-    extern void gcode_M25();
-  #endif
-  #if ENABLED(PARK_HEAD_ON_PAUSE)
-    extern void gcode_M125();
-  #endif
-#endif
-
 class Printer {
 
   public: /** Constructor */
@@ -88,6 +79,14 @@ class Printer {
     static PrinterMode          mode;
     static PrintCounter         print_job_counter;
 
+    #if ENABLED(FWRETRACT)
+      static bool   autoretract_enabled,
+                    retracted[EXTRUDERS],
+                    retracted_swap[EXTRUDERS];
+      static float  retract_length, retract_length_swap, retract_feedrate_mm_s, retract_zlift,
+                    retract_recover_length, retract_recover_length_swap, retract_recover_feedrate_mm_s;
+    #endif
+
     #if ENABLED(PROBE_MANUALLY)
       static bool g29_in_progress;
     #else
@@ -110,6 +109,13 @@ class Printer {
     #endif
     #if ENABLED(FAN_KICKSTART_TIME)
       static uint8_t fanKickstart;
+    #endif
+
+    #if ENABLED(HOST_KEEPALIVE_FEATURE)
+      static MK4duoBusyState busy_state;
+      #define KEEPALIVE_STATE(n) do{ printer.busy_state = n; }while(0)
+    #else
+      #define KEEPALIVE_STATE(n) NOOP
     #endif
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -144,6 +150,15 @@ class Printer {
       static int8_t   encLastDir[EXTRUDERS];
       static int32_t  encLastChangeAt[EXTRUDERS],
                       encErrorSteps[EXTRUDERS];
+    #endif
+
+    #if ENABLED(NPR2)
+      static uint8_t old_color; // old color for system NPR2
+    #endif
+
+    #if ENABLED(G38_PROBE_TARGET)
+      static bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
+                  G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
     #endif
 
     #if ENABLED(BARICUDA)
@@ -190,6 +205,10 @@ class Printer {
 
     #if ENABLED(SDSUPPORT)
       static void stopSDPrint(const bool store_location);
+    #endif
+
+    #if ENABLED(FWRETRACT)
+      static void retract(const bool retracting, const bool swapping=false);
     #endif
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)

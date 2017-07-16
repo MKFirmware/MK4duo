@@ -844,7 +844,7 @@ static void lcd_implementation_status_screen() {
         lcd_print(buffer);
       }
       else {
-        lcd.print(itostr4(power_consumption_hour - startpower));
+        lcd.print(itostr4(powerManager.power_consumption_hour - powerManager.startpower));
         lcd.print('Wh');
       }
     #else
@@ -888,9 +888,9 @@ static void lcd_implementation_status_screen() {
     #if HAS_LCD_POWER_SENSOR
       else if (ELAPSED(millis(), previous_lcd_status_ms + 10000UL)) {
         lcd_printPGM(PSTR("P:"));
-        lcd.print(ftostr43sign(power_consumption_meas));
+        lcd.print(ftostr43sign(powerManager.power_consumption_meas));
         lcd_printPGM(PSTR("W C:"));
-        lcd.print(ltostr7(power_consumption_hour));
+        lcd.print(ltostr7(powerManager.power_consumption_hour));
         lcd_printPGM(PSTR("Wh"));
         return;
       }

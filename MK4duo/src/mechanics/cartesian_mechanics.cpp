@@ -232,7 +232,7 @@
         printer.active_driver = printer.active_extruder = 1;
         planner.buffer_line_kinematic(destination, COLOR_HOMERATE, printer.active_extruder);
         stepper.synchronize();
-        old_color = 99;
+        printer.old_color = 99;
         printer.active_driver = printer.active_extruder = 0;
         current_position[E_AXIS] = 0;
         sync_plan_position_e();

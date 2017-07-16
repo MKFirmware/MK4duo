@@ -108,6 +108,22 @@ PrinterMode Printer::mode =
 // Print Job Timer
 PrintCounter Printer::print_job_counter = PrintCounter();
 
+#if ENABLED(FWRETRACT)
+
+  bool  Printer::autoretract_enabled            = false,
+        Printer::retracted[EXTRUDERS]           = { false },
+        Printer::retracted_swap[EXTRUDERS]      = { false };
+
+  float Printer::retract_length                 = RETRACT_LENGTH,
+        Printer::retract_length_swap            = RETRACT_LENGTH_SWAP,
+        Printer::retract_feedrate_mm_s          = RETRACT_FEEDRATE,
+        Printer::retract_zlift                  = RETRACT_ZLIFT,
+        Printer::retract_recover_length         = RETRACT_RECOVER_LENGTH,
+        Printer::retract_recover_length_swap    = RETRACT_RECOVER_LENGTH_SWAP,
+        Printer::retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE;
+
+#endif // FWRETRACT
+
 #if ENABLED(PROBE_MANUALLY)
   bool Printer::g29_in_progress = false;
 #else
@@ -130,6 +146,10 @@ PrintCounter Printer::print_job_counter = PrintCounter();
 #endif
 #if ENABLED(FAN_KICKSTART_TIME)
   uint8_t Printer::fanKickstart;
+#endif
+
+#if ENABLED(HOST_KEEPALIVE_FEATURE)
+  MK4duoBusyState Printer::busy_state = NOT_BUSY;
 #endif
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -164,6 +184,15 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   int8_t  Printer::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);
   int32_t Printer::encLastChangeAt[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(0),
           Printer::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
+#endif
+
+#if ENABLED(NPR2)
+  uint8_t Printer::old_color = 99;
+#endif
+
+#if ENABLED(G38_PROBE_TARGET)
+  bool  Printer::G38_move         = false,
+        Printer::G38_endstop_hit  = false;
 #endif
 
 #if ENABLED(BARICUDA)
@@ -982,8 +1011,15 @@ void Printer::handle_Interrupt_Event() {
           filament_ran_out = true;
           stepper.synchronize();
           #if HAS_SDSUPPORT
-            if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING)
-              gcode_M25();
+            if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
+              card.pauseSDPrint();
+              print_job_counter.pause();
+              SERIAL_LM(REQUEST_PAUSE, "SD pause");
+
+              #if ENABLED(PARK_HEAD_ON_PAUSE)
+                park_head_on_pause();
+              #endif
+            }
             else
           #endif
           if (print_job_counter.isRunning()) {
@@ -1653,6 +1689,61 @@ void Printer::handle_Interrupt_Event() {
 
 #endif // HAS_SDSUPPORT
 
+#if ENABLED(FWRETRACT)
+
+  void Printer::retract(const bool retracting, const bool swapping/*=false*/) {
+
+    static float hop_height;
+
+    if (retracting == retracted[active_extruder]) return;
+
+    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+
+    mechanics.set_destination_to_current();
+
+    if (retracting) {
+
+      mechanics.feedrate_mm_s = retract_feedrate_mm_s;
+      mechanics.current_position[E_AXIS] += (swapping ? retract_length_swap : retract_length) / volumetric_multiplier[active_extruder];
+      mechanics.sync_plan_position_e();
+      mechanics.prepare_move_to_destination();
+
+      if (retract_zlift > 0.01) {
+        hop_height = mechanics.current_position[Z_AXIS];
+        // Pretend current position is lower
+        mechanics.current_position[Z_AXIS] -= retract_zlift;
+        mechanics.sync_plan_position();
+        // Raise up to the old current_position
+        mechanics.prepare_move_to_destination();
+      }
+    }
+    else {
+
+      // If the height hasn't been lowered, undo the Z hop
+      if (retract_zlift > 0.01 && hop_height <= mechanics.current_position[Z_AXIS]) {
+        // Pretend current position is higher. Z will lower on the next move
+        mechanics.current_position[Z_AXIS] += retract_zlift;
+        mechanics.sync_plan_position();
+        // Lower Z
+        mechanics.prepare_move_to_destination();
+      }
+
+      mechanics.feedrate_mm_s = retract_recover_feedrate_mm_s;
+      const float move_e = swapping ? retract_length_swap + retract_recover_length_swap : retract_length + retract_recover_length;
+      mechanics.current_position[E_AXIS] -= move_e / volumetric_multiplier[active_extruder];
+      mechanics.sync_plan_position_e();
+
+      // Recover E
+      mechanics.prepare_move_to_destination();
+    }
+
+    mechanics.feedrate_mm_s = old_feedrate_mm_s;
+    retracted[active_extruder] = retracting;
+
+  } // retract()
+
+#endif // FWRETRACT
+
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
   #if HAS_BUZZER
@@ -2288,7 +2379,6 @@ void Printer::invalid_extruder_error(const uint8_t e) {
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
 
-  MK4duoBusyState busy_state = NOT_BUSY;
   static millis_t next_busy_signal_ms = 0;
 
   /**

@@ -45,18 +45,18 @@
 
     // Move until mechanics.destination reached or target hit
     endstops.enable(true);
-    G38_move = true;
-    G38_endstop_hit = false;
+    printer.G38_move = true;
+    printer.G38_endstop_hit = false;
     mechanics.prepare_move_to_destination();
     stepper.synchronize();
-    G38_move = false;
+    printer.G38_move = false;
 
     endstops.hit_on_purpose();
     mechanics.set_current_from_steppers_for_axis(ALL_AXES);
     mechanics.sync_plan_position();
 
     // Only do remaining moves if target was hit
-    if (G38_endstop_hit) {
+    if (printer.G38_endstop_hit) {
 
       G38_pass_fail = true;
 
@@ -73,10 +73,10 @@
       LOOP_XYZ(i) mechanics.destination[i] -= retract_mm[i] * 2;
 
       endstops.enable(true);
-      G38_move = true;
+      printer.G38_move = true;
       mechanics.prepare_move_to_destination();
       stepper.synchronize();
-      G38_move = false;
+      printer.G38_move = false;
 
       mechanics.set_current_from_steppers_for_axis(ALL_AXES);
       mechanics.sync_plan_position();

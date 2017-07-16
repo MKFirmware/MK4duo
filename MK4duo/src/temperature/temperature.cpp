@@ -122,47 +122,52 @@ volatile bool Temperature::wait_for_heatup = true;
 #endif
 
 #if WATCH_HOTENDS
-  uint16_t Temperature::watch_target_temp[HOTENDS] = { 0 };
+  uint16_t Temperature::watch_target_temp[HOTENDS]    = { 0 };
   millis_t Temperature::watch_heater_next_ms[HOTENDS] = { 0 };
 #endif
 
 #if WATCH_THE_BED
   uint16_t Temperature::watch_target_bed_temp = 0;
-  millis_t Temperature::watch_bed_next_ms = 0;
+  millis_t Temperature::watch_bed_next_ms     = 0;
 #endif
 
 #if WATCH_THE_CHAMBER
   uint16_t Temperature::watch_target_temp_chamber = 0;
-  millis_t Temperature::watch_chamber_next_ms = 0;
+  millis_t Temperature::watch_chamber_next_ms     = 0;
 #endif
 
 #if WATCH_THE_COOLER
-  uint16_t Temperature::watch_target_temp_cooler = 0;
-  millis_t Temperature::watch_cooler_next_ms = 0;
+  uint16_t Temperature::watch_target_temp_cooler  = 0;
+  millis_t Temperature::watch_cooler_next_ms      = 0;
 #endif
 
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
   bool    Temperature::allow_cold_extrude = false;
-  int16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
+  int16_t Temperature::extrude_min_temp   = EXTRUDE_MINTEMP;
 #endif
 
 #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-  uint8_t   Temperature::auto_report_temp_interval = 0;
-  millis_t  Temperature::next_temp_report_ms = 0;
+  uint8_t   Temperature::auto_report_temp_interval  = 0;
+  millis_t  Temperature::next_temp_report_ms        = 0;
+#endif
+
+#if HEATER_USES_AD595
+  float Temperature::ad595_offset[HOTENDS]  = ARRAY_BY_HOTENDS(TEMP_SENSOR_AD595_OFFSET),
+        Temperature::ad595_gain[HOTENDS]    = ARRAY_BY_HOTENDS(TEMP_SENSOR_AD595_GAIN);
 #endif
 
 // private:
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-  int   Temperature::redundant_temperature_raw = 0;
-  float Temperature::redundant_temperature = 0.0;
+  int   Temperature::redundant_temperature_raw  = 0;
+  float Temperature::redundant_temperature      = 0.0;
 #endif
 
 #if ENABLED(PIDTEMP)
-  float Temperature::temp_iState[HOTENDS] = { 0 },
-        Temperature::temp_dState[HOTENDS][4] = { 0 },
-        Temperature::temp_iState_min[HOTENDS] = { 0 },
-        Temperature::temp_iState_max[HOTENDS] = { 0 },
+  float Temperature::temp_iState[HOTENDS]     = { 0.0 },
+        Temperature::temp_dState[HOTENDS][4]  = { 0.0 },
+        Temperature::temp_iState_min[HOTENDS] = { 0.0 },
+        Temperature::temp_iState_max[HOTENDS] = { 0.0 },
         Temperature::pid_error[HOTENDS];
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -252,11 +257,6 @@ int16_t Temperature::minttemp_raw[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_RAW_LO_
 #if ENABLED(FILAMENT_SENSOR)
   int8_t    Temperature::meas_shift_index;          // Index of a delayed sample in buffer
   uint16_t  Temperature::current_raw_filwidth = 0;  // Measured filament diameter - one extruder only
-#endif
-
-#if HAS_POWER_CONSUMPTION_SENSOR
-  int16_t Temperature::current_raw_powconsumption = 0;  // Holds measured power consumption
-  static unsigned long Temperature::raw_powconsumption_value = 0;
 #endif
 
 #if HAS_AUTO_FAN
@@ -1839,14 +1839,14 @@ void Temperature::updateTemperaturesFromRawValues() {
     millis_t temp_last_update = millis();
     millis_t from_last_update = temp_last_update - last_update;
     static float watt_overflow = 0.0;
-    power_consumption_meas = analog2power();
-    /*SERIAL_MV("raw:", raw_analog2voltage(), 5);
-    SERIAL_MV(" - V:", analog2voltage(), 5);
-    SERIAL_MV(" - I:", analog2current(), 5);
-    SERIAL_EMV(" - P:", analog2power(), 5);*/
-    watt_overflow += (power_consumption_meas * from_last_update) / 3600000.0;
+    powerManager.power_consumption_meas = powerManager.analog2power();
+    /*SERIAL_MV("raw:", powerManager.raw_analog2voltage(), 5);
+    SERIAL_MV(" - V:", powerManager.analog2voltage(), 5);
+    SERIAL_MV(" - I:", powerManager.analog2current(), 5);
+    SERIAL_EMV(" - P:", powerManager.analog2power(), 5);*/
+    watt_overflow += (powerManager.power_consumption_meas * from_last_update) / 3600000.0;
     if (watt_overflow >= 1.0) {
-      power_consumption_hour++;
+      powerManager.power_consumption_hour++;
       watt_overflow--;
     }
     last_update = temp_last_update;
@@ -1883,41 +1883,6 @@ void Temperature::updateTemperaturesFromRawValues() {
     return filament_width_nominal / temp * 100;
   }
 
-#endif
-
-#if HAS_POWER_CONSUMPTION_SENSOR
-  // Convert raw Power Consumption to watt
-  float Temperature::raw_analog2voltage() {
-    return ((HAL_VOLTAGE_PIN) * current_raw_powconsumption) / (1023.0);
-  }
-
-  float Temperature::analog2voltage() {
-    float power_zero_raw = (POWER_ZERO * 1023.0) / HAL_VOLTAGE_PIN;
-    float rel_raw_power = (current_raw_powconsumption < power_zero_raw) ? (2 * power_zero_raw - current_raw_powconsumption) : (current_raw_powconsumption);
-    return (((HAL_VOLTAGE_PIN) * rel_raw_power) / (1023.0) - POWER_ZERO;
-  }
-
-  float Temperature::analog2current() {
-    float temp = analog2voltage() / POWER_SENSITIVITY;
-    temp = (((100 - POWER_ERROR) / 100) * temp) - POWER_OFFSET;
-    return temp > 0 ? temp : 0;
-  }
-
-  float Temperature::analog2power() {
-    return (analog2current() * POWER_VOLTAGE * 100) /  POWER_EFFICIENCY;
-  }
-
-  float Temperature::analog2error(float current) {
-    float temp1 = (analog2voltage() / POWER_SENSITIVITY - POWER_OFFSET) * POWER_VOLTAGE;
-    if(temp1 <= 0) return 0.0;
-    float temp2 = (current) * POWER_VOLTAGE;
-    if(temp2 <= 0) return 0.0;
-    return ((temp2/temp1) - 1) * 100;
-  }
-
-  float Temperature::analog2efficiency(float watt) {
-    return (analog2current() * POWER_VOLTAGE * 100) / watt;
-  }
 #endif
 
 /**
@@ -2520,7 +2485,7 @@ void Temperature::set_current_temp_raw() {
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    current_raw_powconsumption = HAL::AnalogInputValues[POWER_SENSOR_INDEX];
+    powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_SENSOR_INDEX];
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)

@@ -26,40 +26,36 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(CODES_DEBUGGING)
+/**
+ * M44: Codes debug - report codes available (and how many of them there are).
+ *
+ *  M44         - Report complete statistics of available gcodes.
+ *                  I   Flag to show G-code statistics.
+ *                  J   Flag to show M-code statistics.
+ *
+ */
+inline void gcode_M44(void) {
 
-  /**
-   * M44: Codes debug - report codes available (and how many of them there are).
-   *
-   *  M44         - Report complete statistics of available gcodes.
-   *                  I   Flag to show G-code statistics.
-   *                  J   Flag to show M-code statistics.
-   *
-   */
-  inline void gcode_M44(void) {
+  if (parser.seen('I')) {
+    SERIAL_EMV("Number of G-codes available: ", (int)COUNT(GCode_Table));
+    SERIAL_EM("Complete list of G-codes available for this machine:");
 
-    if (parser.seen('I')) {
-      SERIAL_EMV("Number of G-codes available: ", (int)COUNT(GCode_Table));
-      SERIAL_EM("Complete list of G-codes available for this machine:");
-
-      for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); index++) {
-        SERIAL_EMV("G", GCode_Table[index].code);
-      }
+    for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); index++) {
+      SERIAL_EMV("G", GCode_Table[index].code);
     }
-    else if (parser.seen('J')) {
-      SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
-      SERIAL_EM("Complete list of M-codes available for this machine:");
+  }
+  else if (parser.seen('J')) {
+    SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
+    SERIAL_EM("Complete list of M-codes available for this machine:");
 
-      for (M_CODE_TYPE index = 0; index < (COUNT(MCode_Table) - 1); index++) {
-        SERIAL_EMV("M", MCode_Table[index].code);
-      }
-
-    }
-    else {
-      SERIAL_EM("Invalid parameter.");
-      SERIAL_EM("Please use the G or the M flag to choose between G-codes and M-codes.");
+    for (M_CODE_TYPE index = 0; index < (COUNT(MCode_Table) - 1); index++) {
+      SERIAL_EMV("M", MCode_Table[index].code);
     }
 
   }
+  else {
+    SERIAL_EM("Invalid parameter.");
+    SERIAL_EM("Please use the G or the M flag to choose between G-codes and M-codes.");
+  }
 
-#endif // ENABLED(CODES_DEBUGGING)
+}

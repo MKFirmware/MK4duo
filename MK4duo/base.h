@@ -103,7 +103,7 @@
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
-#include "src/utility/power_supply.h"
+#include "src/power/power.h"
 #include "src/printer/printer.h"
 #include "src/MK_Main.h"
 #include "src/planner/planner.h"

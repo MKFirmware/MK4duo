@@ -1754,10 +1754,6 @@ static_assert(1 >= 0
   #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
 #endif
 
-#if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
-  #error DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION
-#endif
-
 #if ENABLED(CHDK) || ENABLED(PHOTOGRAPH)
   #error CONFLICT ERROR: CHDK and PHOTOGRAPH are incompatible.
 #endif

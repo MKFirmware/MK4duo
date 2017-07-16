@@ -20,22 +20,46 @@
  *
  */
 
-#ifndef _POWER_SUPPLY_H_
-#define _POWER_SUPPLY_H_
+#ifndef _POWER_H_
+#define _POWER_H_
 
-#if HAS_POWER_SWITCH
+#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
 
   class Power {
 
-    public:
+    public: /** Constructor */
+
+    Power() {};
+
+    public: /** Public Parameters */
 
       static bool powersupply_on;
+
+      #if HAS_POWER_CONSUMPTION_SENSOR
+        static int16_t  current_raw_powconsumption;
+        static float    power_consumption_meas;       // holds the power consumption as accurately measured
+        static unsigned long  power_consumption_hour, // holds the power consumption per hour as accurately measured
+                              startpower;
+      #endif
+
+    public: /** Public Function */
 
       static void check();
       static void power_on();
       static void power_off();
 
-    private:
+      #if HAS_POWER_CONSUMPTION_SENSOR
+        static float  analog2voltage(),
+                      analog2current(),
+                      analog2power(),
+                      raw_analog2voltage(),
+                      analog2error(float current),
+                      analog2efficiency(float watt);
+      #endif
+
+    private: /** Private Parameters */
+
+    private: /** Private Function */
 
       static bool is_power_needed();
 
@@ -43,6 +67,6 @@
 
   extern Power powerManager;
 
-#endif // HAS_POWER_SWITCH
+#endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
 
-#endif /* _POWER_SUPPLY_H_ */
+#endif /* _POWER_H_ */

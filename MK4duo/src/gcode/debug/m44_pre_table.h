@@ -26,18 +26,14 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(CODES_DEBUGGING)
+#define CODE_M44
 
-  #define CODE_M44
-
-  /**
-   * M44: Codes debug - report codes available (and how many of them there are).
-   *
-   *  M44         - Report complete statistics of available gcodes.
-   *                  G   Flag to show G-code statistics.
-   *                  M   Flag to show M-code statistics.
-   *
-   */
-  inline void gcode_M44(void);
-
-#endif // ENABLED(CODES_DEBUGGING)
+/**
+ * M44: Codes debug - report codes available (and how many of them there are).
+ *
+ *  M44         - Report complete statistics of available gcodes.
+ *                  G   Flag to show G-code statistics.
+ *                  M   Flag to show M-code statistics.
+ *
+ */
+inline void gcode_M44(void);

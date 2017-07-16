@@ -2808,7 +2808,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_control_retract_menu() {
       START_MENU();
       MENU_BACK(MSG_CONTROL);
-      MENU_ITEM_EDIT(bool, MSG_AUTORETRACT, &autoretract_enabled);
+      MENU_ITEM_EDIT(bool, MSG_AUTORETRACT, &printer.autoretract_enabled);
       MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT, &retract_length, 0, 100);
       #if EXTRUDERS > 1
         MENU_ITEM_EDIT(float52, MSG_CONTROL_RETRACT_SWAP, &retract_length_swap, 0, 100);

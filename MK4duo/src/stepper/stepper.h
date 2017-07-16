@@ -275,11 +275,6 @@ class Stepper {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
 
-    #if ENABLED(LIN_ADVANCE)
-      void advance_M905(const float &k);
-      FORCE_INLINE int get_advance_k() { return extruder_advance_k; }
-    #endif
-
     #if ENABLED(NPR2) // Multiextruder
       static void colorstep(long csteps, const bool direction);
     #endif

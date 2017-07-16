@@ -37,19 +37,19 @@
 
     GET_TARGET_HOTEND(595);
 
-    if (parser.seen('O')) ad595_offset[TARGET_EXTRUDER] = parser.value_float();
-    if (parser.seen('S')) ad595_gain[TARGET_EXTRUDER] = parser.value_float();
+    if (parser.seen('O')) thermalManager.ad595_offset[TARGET_EXTRUDER]  = parser.value_float();
+    if (parser.seen('S')) thermalManager.ad595_gain[TARGET_EXTRUDER]    = parser.value_float();
 
     for (int8_t h = 0; h < HOTENDS; h++) {
       // if gain == 0 you get MINTEMP!
-      if (ad595_gain[h] == 0) ad595_gain[h]= 1;
+      if (thermalManager.ad595_gain[h] == 0) thermalManager.ad595_gain[h]= 1;
     }
 
     SERIAL_EM(MSG_AD595);
     for (int8_t h = 0; h < HOTENDS; h++) {
       SERIAL_MV(" T", h);
-      SERIAL_MV(" Offset: ", ad595_offset[h]);
-      SERIAL_EMV(", Gain: ", ad595_gain[h]);
+      SERIAL_MV(" Offset: ", thermalManager.ad595_offset[h]);
+      SERIAL_EMV(", Gain: ", thermalManager.ad595_gain[h]);
     }
   }
 
