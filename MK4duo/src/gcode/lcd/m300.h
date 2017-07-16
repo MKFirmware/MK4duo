@@ -26,25 +26,21 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if HAS_BUZZER
 
-  #define CODE_M125
+  #define CODE_M300
 
   /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
+   * M300: Play beep sound S<frequency Hz> P<duration ms>
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M300(void) {
+    uint16_t const frequency = parser.seen('S') ? parser.value_ushort() : 260;
+    uint16_t duration = parser.seen('P') ? parser.value_ushort() : 1000;
 
-#endif
+    // Limits the tone duration to 0-5 seconds.
+    NOMORE(duration, 5000);
+
+    BUZZ(duration, frequency);
+  }
+
+#endif // HAS_BUZZER

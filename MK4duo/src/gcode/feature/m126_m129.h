@@ -26,25 +26,42 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if ENABLED(BARICUDA)
 
-  #define CODE_M125
+  #if HAS_HEATER_1
 
-  /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
-   */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+    #define CODE_M126
 
-#endif
+    /**
+     * M126: Heater 1 valve open
+     */
+    inline void gcode_M126(void) { printer.baricuda_valve_pressure = parser.byteval('S', 255); }
+
+    #define CODE_M127
+
+    /**
+     * M127: Heater 1 valve close
+     */
+    inline void gcode_M127(void) { printer.baricuda_valve_pressure = 0; }
+
+  #endif
+
+  #if HAS_HEATER_2
+
+    #define CODE_M128
+
+    /**
+     * M128: Heater 2 valve open
+     */
+    inline void gcode_M128(void) { printer.baricuda_e_to_p_pressure = parser.byteval('S', 255); }
+
+    #define CODE_M129
+
+    /**
+     * M129: Heater 2 valve close
+     */
+    inline void gcode_M129(void) { printer.baricuda_e_to_p_pressure = 0; }
+
+  #endif
+
+#endif // BARICUDA

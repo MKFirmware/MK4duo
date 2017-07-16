@@ -124,6 +124,15 @@ class Printer {
       static float motor_current[3 + DRIVER_EXTRUDERS];
     #endif
 
+    #if ENABLED(FILAMENT_SENSOR)
+      static bool     filament_sensor;          // Flag that filament sensor readings should control extrusion
+      static float    filament_width_nominal,   // Theoretical filament diameter i.e., 3.00 or 1.75
+                      filament_width_meas;      // Measured filament diameter
+      static uint8_t  meas_delay_cm,            // Delay distance
+                      measurement_delay[];      // Ring buffer to delay measurement
+      static int8_t   filwidth_delay_index[2];  // Ring buffer indexes. Used by planner, temperature, and main code
+    #endif
+
     #if HAS_CASE_LIGHT
       static int case_light_brightness;
       static bool case_light_on;
@@ -135,6 +144,11 @@ class Printer {
       static int8_t   encLastDir[EXTRUDERS];
       static int32_t  encLastChangeAt[EXTRUDERS],
                       encErrorSteps[EXTRUDERS];
+    #endif
+
+    #if ENABLED(BARICUDA)
+      static int baricuda_valve_pressure;
+      static int baricuda_e_to_p_pressure;
     #endif
 
   public: /** Public Function */
@@ -187,6 +201,9 @@ class Printer {
                               const float &unload_length=0, const int8_t max_beep_count=0, const bool show_lcd=false);
       static void wait_for_filament_reload(const int8_t max_beep_count=0);
       static void resume_print(const float &load_length=0, const float &initial_extrude_length=0, const int8_t max_beep_count=0);
+      #if ENABLED(PARK_HEAD_ON_PAUSE)
+        static void park_head_on_pause();
+      #endif
     #endif
 
     #if HAS_CASE_LIGHT

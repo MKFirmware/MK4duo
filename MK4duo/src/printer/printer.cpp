@@ -144,6 +144,15 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   float Printer::motor_current[3 + DRIVER_EXTRUDERS];
 #endif
 
+#if ENABLED(FILAMENT_SENSOR)
+  bool    Printer::filament_sensor        = false;                          // M405 turns on filament_sensor control, M406 turns it off
+  float   Printer::filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,   // Nominal filament width. Change with M404
+          Printer::filament_width_meas    = DEFAULT_MEASURED_FILAMENT_DIA;  // Measured filament diameter
+  uint8_t Printer::meas_delay_cm          = MEASUREMENT_DELAY_CM,           // Distance delay setting
+          Printer::measurement_delay[MAX_MEASUREMENT_DELAY + 1];            // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
+  int8_t  Printer::filwidth_delay_index[2] = { 0, -1 };                     // Indexes into ring buffer
+#endif
+
 #if HAS_CASE_LIGHT
   int   Printer::case_light_brightness;
   bool  Printer::case_light_on;
@@ -157,6 +166,11 @@ PrintCounter Printer::print_job_counter = PrintCounter();
           Printer::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
 #endif
 
+#if ENABLED(BARICUDA)
+  int Printer::baricuda_valve_pressure  = 0,
+      Printer::baricuda_e_to_p_pressure = 0;
+#endif
+
 /**
  * Public Function
  */
@@ -164,7 +178,7 @@ PrintCounter Printer::print_job_counter = PrintCounter();
 /**
  * MK4duo entry-point: Set up before the program loop
  *  - Set up Alligator Board
- *  - Set up the printer.kill pin, filament runout, power hold
+ *  - Set up the kill pin, filament runout, power hold
  *  - Start the serial port
  *  - Print startup messages and diagnostics
  *  - Get EEPROM or default settings
@@ -347,10 +361,10 @@ void Printer::setup() {
   #if ENABLED(SHOW_BOOTSCREEN)
     #if ENABLED(DOGLCD)                           // On DOGM the first bootscreen is already drawn
       #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
-        printer.safe_delay(CUSTOM_BOOTSCREEN_TIMEOUT);    // Custom boot screen pause
+        safe_delay(CUSTOM_BOOTSCREEN_TIMEOUT);    // Custom boot screen pause
         lcd_bootscreen();                         // Show MK4duo boot screen
       #endif
-      printer.safe_delay(BOOTSCREEN_TIMEOUT);
+      safe_delay(BOOTSCREEN_TIMEOUT);
     #elif ENABLED(ULTRA_LCD)
       lcd_bootscreen();
       #if DISABLED(SDSUPPORT)
@@ -580,7 +594,7 @@ void Printer::Stop() {
      disable_cncrouter();
   #endif
 
-  if (printer.IsRunning()) {
+  if (IsRunning()) {
     Running = false;
     commands.save_last_gcode; // Save last g_code for restart
     SERIAL_LM(ER, MSG_ERR_STOPPED);
@@ -851,7 +865,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && printer.IsRunning()) {
+    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && IsRunning()) {
       // travel moves have been received so enact them
       mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
       mechanics.set_destination_to_current();
@@ -974,7 +988,7 @@ void Printer::handle_Interrupt_Event() {
           #endif
           if (print_job_counter.isRunning()) {
             #if ENABLED(PARK_HEAD_ON_PAUSE)
-              gcode_M125();
+              park_head_on_pause();
             #endif
           }
           SERIAL_LM(REQUEST_PAUSE, "Extruder jam detected");
@@ -1058,7 +1072,7 @@ void Printer::handle_Interrupt_Event() {
 
           const float xhome = mechanics.x_home_pos(active_extruder);
           if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
-              && printer.IsRunning()
+              && IsRunning()
               && (mechanics.delayed_move_time || mechanics.current_position[X_AXIS] != xhome)
           ) {
             float raised_z = mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
@@ -1132,8 +1146,8 @@ void Printer::handle_Interrupt_Event() {
               mechanics.hotend_duplication_enabled = false;
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
-                  SERIAL_EMV("Set inactive_extruder_x_pos=", inactive_extruder_x_pos);
-                  SERIAL_EM("Clear mechanics.hotend_duplication_enabled");
+                  SERIAL_EMV("Set inactive_hotend_x_pos=", mechanics.inactive_hotend_x_pos);
+                  SERIAL_EM("Clear hotend_duplication_enabled");
                 }
               #endif
               break;
@@ -1287,7 +1301,7 @@ void Printer::handle_Interrupt_Event() {
         mechanics.sync_plan_position();
 
         // Move to the "old position" (move the extruder into place)
-        if (!no_move && printer.IsRunning()) {
+        if (!no_move && IsRunning()) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", mechanics.destination);
           #endif
@@ -2026,6 +2040,62 @@ void Printer::handle_Interrupt_Event() {
     move_away_flag = false;
   }
 
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+
+    void Printer::park_head_on_pause() {
+
+      // Initial retract before move to pause park position
+      const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
+        #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
+          - (PAUSE_PARK_RETRACT_LENGTH)
+        #endif
+      ;
+
+      // Lift Z axis
+      const float z_lift = parser.seen('Z') ? parser.value_linear_units() :
+        #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
+          PAUSE_PARK_Z_ADD
+        #else
+          0
+        #endif
+      ;
+
+      // Move XY axes to pause park position or given position
+      const float x_pos = parser.seen('X') ? parser.value_linear_units() : 0
+        #ifdef PAUSE_PARK_X_POS
+          + PAUSE_PARK_X_POS
+        #endif
+      ;
+      const float y_pos = parser.seen('Y') ? parser.value_linear_units() : 0
+        #ifdef PAUSE_PARK_Y_POS
+          + PAUSE_PARK_Y_POS
+        #endif
+      ;
+
+      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+        if (active_extruder > 0) {
+          if (!parser.seen('X')) x_pos += hotend_offset[X_AXIS][active_extruder];
+          if (!parser.seen('Y')) y_pos += hotend_offset[Y_AXIS][active_extruder];
+        }
+      #endif
+
+      const bool job_running = print_job_counter.isRunning();
+
+      if (pause_print(retract, 0, z_lift, x_pos, y_pos)) {
+        if (!IS_SD_PRINTING) {
+          // Wait for lcd click or M108
+          wait_for_filament_reload();
+
+          // Return to print position and continue
+          resume_print();
+
+          if (job_running) print_job_counter.start();
+        }
+      }
+    }
+
+  #endif // ENABLED(PARK_HEAD_ON_PAUSE)
+
 #endif // ADVANCED_PAUSE_FEATURE
 
 #if HAS_CASE_LIGHT
@@ -2298,7 +2368,7 @@ void Printer::invalid_extruder_error(const uint8_t e) {
     static bool previous_otpw = false;
     if (is_otpw && !previous_otpw) {
       char timestamp[10];
-      duration_t elapsed = printer.print_job_counter.duration();
+      duration_t elapsed = print_job_counter.duration();
       const bool has_days = (elapsed.value > 60*60*24L);
       (void)elapsed.toDigital(timestamp, has_days);
       SERIAL_TXT(timestamp);

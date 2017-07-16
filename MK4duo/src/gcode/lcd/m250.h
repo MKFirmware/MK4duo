@@ -26,25 +26,16 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if HAS(LCD_CONTRAST)
 
-  #define CODE_M125
+  #define CODE_M250
 
   /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
+   * M250: Read and optionally set the LCD contrast
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M250(void) {
+    if (parser.seenval('C')) set_lcd_contrast(parser.value_int());
+    SERIAL_EMV("lcd contrast value: ", lcd_contrast);
+  }
 
-#endif
+#endif // HAS(LCD_CONTRAST)

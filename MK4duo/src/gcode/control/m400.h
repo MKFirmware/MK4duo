@@ -26,25 +26,9 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#define CODE_M400
 
-  #define CODE_M125
-
-  /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
-   */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
-
-#endif
+/**
+ * M400: Finish all moves
+ */
+inline void gcode_M400(void) { stepper.synchronize(); }

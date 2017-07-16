@@ -26,25 +26,35 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if HAS_CHDK || HAS_PHOTOGRAPH
 
-  #define CODE_M125
+  #define CODE_M240
 
   /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
+   * M240: Trigger a camera
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M240(void) {
+    #if HAS_CHDK
+       OUT_WRITE(CHDK_PIN, HIGH);
+       chdkHigh = millis();
+       chdkActive = true;
+    #elif HAS_PHOTOGRAPH
+      const uint8_t NUM_PULSES = 16;
+      const float PULSE_LENGTH = 0.01524;
+      for (int i = 0; i < NUM_PULSES; i++) {
+        WRITE(PHOTOGRAPH_PIN, HIGH);
+        HAL::delayMilliseconds(PULSE_LENGTH);
+        WRITE(PHOTOGRAPH_PIN, LOW);
+        HAL::delayMilliseconds(PULSE_LENGTH);
+      }
+      HAL::delayMilliseconds(7.33);
+      for (int i = 0; i < NUM_PULSES; i++) {
+        WRITE(PHOTOGRAPH_PIN, HIGH);
+        HAL::delayMilliseconds(PULSE_LENGTH);
+        WRITE(PHOTOGRAPH_PIN, LOW);
+        HAL::delayMilliseconds(PULSE_LENGTH);
+      }
+    #endif // HASNT(CHDK) && HAS_PHOTOGRAPH
+  }
 
-#endif
+#endif // HAS_CHDK || PHOTOGRAPH_PIN

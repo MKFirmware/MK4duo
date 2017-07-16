@@ -26,25 +26,19 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if HAS_BED_PROBE
 
-  #define CODE_M125
+  #define CODE_M401
+  #define CODE_M402
 
   /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
+   * M401: Engage Z Servo endstop if available
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M401(void) { probe.set_deployed(true); }
 
-#endif
+  /**
+   * M402: Retract Z Servo endstop if enabled
+   */
+  inline void gcode_M402(void) { probe.set_deployed(false); }
+
+#endif // HAS_BED_PROBE

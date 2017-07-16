@@ -164,15 +164,6 @@
   static bool   tilted = false;
 #endif
 
-#if ENABLED(FILAMENT_SENSOR)
-  bool    filament_sensor = false;                                // M405 turns on filament_sensor control, M406 turns it off
-  float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
-          filament_width_meas = DEFAULT_MEASURED_FILAMENT_DIA;    // Measured filament diameter
-  uint8_t meas_delay_cm = MEASUREMENT_DELAY_CM,                   // Distance delay setting
-          measurement_delay[MAX_MEASUREMENT_DELAY + 1];           // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
-  int8_t  filwidth_delay_index[2] = { 0, -1 };                    // Indexes into ring buffer
-#endif
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   float mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
   #if MIXING_VIRTUAL_TOOLS  > 1

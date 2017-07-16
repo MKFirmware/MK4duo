@@ -53,14 +53,6 @@
   #define KEEPALIVE_STATE(n) NOOP
 #endif
 
-#if ENABLED(FILAMENT_SENSOR)
-  extern bool     filament_sensor;          // Flag that filament sensor readings should control extrusion
-  extern float    filament_width_nominal,   // Theoretical filament diameter i.e., 3.00 or 1.75
-                  filament_width_meas;      // Measured filament diameter
-  extern uint8_t  meas_delay_cm,            // Delay distance
-                  measurement_delay[];      // Ring buffer to delay measurement
-  extern int8_t   filwidth_delay_index[2];  // Ring buffer indexes. Used by planner, temperature, and main code
-#endif
 
 #if HAS(POWER_CONSUMPTION_SENSOR)
   extern float power_consumption_meas;          //holds the power consumption as accurately measured

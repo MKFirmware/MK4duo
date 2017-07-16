@@ -26,25 +26,37 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#define CODE_M226
 
-  #define CODE_M125
+/**
+ * M226: Wait until the specified pin reaches the state required (M226 P<pin> S<state>)
+ */
+inline void gcode_M226(void) {
+  if (parser.seenval('P')) {
+    const int pin_number = parser.value_int(),
+              pin_state = parser.intval('S', -1); // required pin state - default is inverted
 
-  /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
-   */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+    if (WITHIN(pin_state, -1, 1) && pin_number > -1 && !printer.pin_is_protected(pin_number)) {
 
-#endif
+      int target = LOW;
+
+      stepper.synchronize();
+
+      HAL::pinMode(pin_number, INPUT);
+      switch(pin_state) {
+        case 1:
+          target = HIGH;
+          break;
+        case 0:
+          target = LOW;
+          break;
+        case -1:
+          target = !HAL::digitalRead(pin_number);
+          break;
+      }
+
+      while (HAL::digitalRead(pin_number) != target) printer.idle();
+
+    } // pin_state -1 0 1 && pin_number > -1
+  } // parser.seen('P')
+}

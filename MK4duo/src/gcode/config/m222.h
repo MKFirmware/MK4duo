@@ -26,25 +26,19 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#define CODE_M222
 
-  #define CODE_M125
+/**
+ * M222: Set density extrusion percentage (M222 T0 S95)
+ */
+inline void gcode_M222(void) {
 
-  /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
-   */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  GET_TARGET_EXTRUDER(222);
 
-#endif
+  if (parser.seenval('S')) {
+    printer.density_percentage[TARGET_EXTRUDER] = parser.value_int();
+    #if ENABLED(RFID_MODULE)
+      RFID522.RfidData[TARGET_EXTRUDER].data.density = printer.density_percentage[TARGET_EXTRUDER];
+    #endif
+  }
+}

@@ -26,25 +26,26 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if ENABLED(WORKSPACE_OFFSETS)
 
-  #define CODE_M125
+  #define CODE_M206
 
   /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
+   * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M206(void) {
+    LOOP_XYZ(i) {
+      if (parser.seen(axis_codes[i])) {
+        set_home_offset((AxisEnum)i, parser.value_linear_units());
+      }
+    }
+    #if MECH(MORGAN_SCARA)
+      if (parser.seen('T')) set_home_offset(X_AXIS, parser.value_linear_units()); // Theta
+      if (parser.seen('P')) set_home_offset(Y_AXIS, parser.value_linear_units()); // Psi
+    #endif
 
-#endif
+    mechanics.sync_plan_position();
+    mechanics.report_current_position();
+  }
+
+#endif // ENABLED(WORKSPACE_OFFSETS)

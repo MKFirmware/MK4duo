@@ -26,25 +26,15 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PARK_HEAD_ON_PAUSE)
+#if HAS_ABL
 
-  #define CODE_M125
+  #define CODE_M322
 
-  /**
-   * M125: Store current position and move to pause park position.
-   *       Called on pause (by M25) to prevent material leaking onto the
-   *       object. On resume (M24) the head will be moved back and the
-   *       print will resume.
-   *
-   *       If MK4duo is compiled without SD Card support, M125 can be
-   *       used directly to pause the print and move to park position,
-   *       resuming with a button click or M108.
-   *
-   *    L = override retract length
-   *    X = override X
-   *    Y = override Y
-   *    Z = override Z raise
-   */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  // M322: Reset auto leveling matrix
+  inline void gcode_M322(void) {
+    bedlevel.reset_bed_level();
+    if (parser.seen('S') && parser.value_bool())
+      eeprom.Store_Settings();
+  }
 
-#endif
+#endif // HAS_ABL

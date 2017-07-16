@@ -159,7 +159,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
   #define X_APPLY_STEP(v,Q) { X_STEP_WRITE(v); X2_STEP_WRITE(v); }
 #elif ENABLED(DUAL_X_CARRIAGE)
   #define X_APPLY_DIR(v,ALWAYS) \
-    if (hotend_duplication_enabled || ALWAYS) { \
+    if (mechanics.hotend_duplication_enabled || ALWAYS) { \
       X_DIR_WRITE(v); \
       X2_DIR_WRITE(v); \
     } \
@@ -167,7 +167,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
       if (TOOL_E_INDEX != 0) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
     }
   #define X_APPLY_STEP(v,ALWAYS) \
-    if (hotend_duplication_enabled || ALWAYS) { \
+    if (mechanics.hotend_duplication_enabled || ALWAYS) { \
       X_STEP_WRITE(v); \
       X2_STEP_WRITE(v); \
     } \
