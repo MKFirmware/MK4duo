@@ -467,7 +467,7 @@ bool Commands::drain_injected_commands_P() {
  * Aborts the current queue, if any.
  * Note: drain_injected_commands_P() must be called repeatedly to drain the commands afterwards
  */
-void Commands::enqueue_and_echo_commands_P(const char * const pgcode) {
+void Commands::enqueue_and_echo_commands_P(const char * pgcode) {
   injected_commands_P = pgcode;
   drain_injected_commands_P(); // first command executed asap (when possible)
 }
@@ -539,6 +539,17 @@ void Commands::unknown_command_error() {
 #define GCODE_M(N) \
   case ##N: gcode_M##N(); break
 
+/* G0 and G1 are sent to the machine way more frequently than any other GCode.
+ * We want to make sure that their use is optimized to its maximum.
+ */
+#if IS_SCARA
+  #define EXECUTE_G0_G1(NUM) gcode_G0_G1(NUM == 0)
+#elif ENABLED(LASER)
+  #define EXECUTE_G0_G1(NUM) gcode_G0_G1(NUM == 1)
+#else
+  #define EXECUTE_G0_G1(NUM) gcode_G0_G1()
+#endif
+
 /**
  * Process a single command and dispatch it to its handler
  * This is called from the main loop()
@@ -558,31 +569,25 @@ void Commands::process_next_gcode() {
   switch (parser.command_letter) {
 
     case 'G': {
-      const int gcode_num = parser.codenum;
+      const int code_num = parser.codenum;
       bool code_found = false;
       G_CODE_TYPE start   = 0,
                   middle  = 0,
                   end     = COUNT(GCode_Table) - 1;
 
-      if (gcode_num <= 1) { // Execute directly the most common Gcodes
+      if (code_num <= 1) { // Execute directly the most common Gcodes
         code_found = true;
-        #if IS_SCARA
-          gcode_G0_G1(gcode_num == 0);
-        #elif ENABLED(LASER)
-          gcode_G0_G1(gcode_num == 1);
-        #else
-          gcode_G0_G1();
-        #endif
+        EXECUTE_G0_G1(code_num);
       }
-      else if (WITHIN(gcode_num, GCode_Table[start].code, GCode_Table[end].code)) {
+      else if (WITHIN(code_num, GCode_Table[start].code, GCode_Table[end].code)) {
         while (start <= end) {
           middle = (start + end) >> 1;
-          if (GCode_Table[middle].code == gcode_num) {
+          if (GCode_Table[middle].code == code_num) {
             code_found = true;
             GCode_Table[middle].command(); // Command found, execute it
             break;
           }
-          else if (GCode_Table[middle].code < gcode_num)
+          else if (GCode_Table[middle].code < code_num)
             start = middle + 1;
           else
             end = middle - 1;

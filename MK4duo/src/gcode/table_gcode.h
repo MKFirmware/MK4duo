@@ -29,11 +29,11 @@
 #define G_CODE_TYPE uint8_t
 
 typedef struct{
-	G_CODE_TYPE code;
-	void (* command) ();	
-} Gcode_t;
+	const G_CODE_TYPE code;
+	const void (* command) ();	
+} GCode_t;
 
-constexpr Gcode_t GCode_Table[] = {
+constexpr GCode_t GCode_Table[] = {
   #if ENABLED(CODE_G2)
     {2, gcode_G2},
   #endif
