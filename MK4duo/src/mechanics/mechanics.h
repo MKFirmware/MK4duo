@@ -165,7 +165,7 @@ class Mechanics {
     /**
      * Workspace Offset
      */
-    #if ENABLED(WORKSPACE_OFFSETS)
+    #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
       // The distance that XYZ has been offset by G92. Reset by G28.
       float position_shift[XYZ] = { 0 };
 
