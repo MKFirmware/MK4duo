@@ -593,8 +593,8 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(BARICUDA)
-    block->valve_pressure   = baricuda_valve_pressure;
-    block->e_to_p_pressure  = baricuda_e_to_p_pressure;
+    block->valve_pressure   = printer.baricuda_valve_pressure;
+    block->e_to_p_pressure  = printer.baricuda_e_to_p_pressure;
   #endif
 
   block->active_extruder = extruder;

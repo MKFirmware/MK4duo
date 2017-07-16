@@ -551,9 +551,9 @@
   #define REV_E_DIR()     { switch(TOOL_DE_INDEX) { case 2: E2_DIR_WRITE( INVERT_E2_DIR); break; case 1: E1_DIR_WRITE( INVERT_E1_DIR); break; case 0: E0_DIR_WRITE( INVERT_E0_DIR); break; } }
 #elif DRIVER_EXTRUDERS > 1
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E_STEP_WRITE(v) { if(hotend_duplication_enabled) { E0_STEP_WRITE(v); E1_STEP_WRITE(v); } else if(TOOL_DE_INDEX == 0) { E0_STEP_WRITE(v); } else { E1_STEP_WRITE(v); }}
-    #define NORM_E_DIR()    { if(hotend_duplication_enabled) { E0_DIR_WRITE(!INVERT_E0_DIR); E1_DIR_WRITE(!INVERT_E1_DIR); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE(!INVERT_E0_DIR); } else { E1_DIR_WRITE(!INVERT_E1_DIR); }}
-    #define REV_E_DIR()     { if(hotend_duplication_enabled) { E0_DIR_WRITE( INVERT_E0_DIR); E1_DIR_WRITE( INVERT_E1_DIR); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE( INVERT_E0_DIR); } else { E1_DIR_WRITE( INVERT_E1_DIR); }}
+    #define E_STEP_WRITE(v) { if(mechanics.hotend_duplication_enabled) { E0_STEP_WRITE(v); E1_STEP_WRITE(v); } else if(TOOL_DE_INDEX == 0) { E0_STEP_WRITE(v); } else { E1_STEP_WRITE(v); }}
+    #define NORM_E_DIR()    { if(mechanics.hotend_duplication_enabled) { E0_DIR_WRITE(!INVERT_E0_DIR); E1_DIR_WRITE(!INVERT_E1_DIR); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE(!INVERT_E0_DIR); } else { E1_DIR_WRITE(!INVERT_E1_DIR); }}
+    #define REV_E_DIR()     { if(mechanics.hotend_duplication_enabled) { E0_DIR_WRITE( INVERT_E0_DIR); E1_DIR_WRITE( INVERT_E1_DIR); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE( INVERT_E0_DIR); } else { E1_DIR_WRITE( INVERT_E1_DIR); }}
   #else
     #define E_STEP_WRITE(v) { switch(TOOL_DE_INDEX) { case 0: E0_STEP_WRITE(v); break;              case 1: E1_STEP_WRITE(v); break; }}
     #define NORM_E_DIR()    { switch(TOOL_DE_INDEX) { case 0: E0_DIR_WRITE(!INVERT_E0_DIR); break;  case 1: E1_DIR_WRITE(!INVERT_E1_DIR); break; }}

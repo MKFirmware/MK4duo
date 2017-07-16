@@ -107,7 +107,7 @@
 #define ORIG_Z4_MIN_PIN -1
 #define ORIG_Z4_MAX_PIN -1
 #define ORIG_E_MIN_PIN -1
-#define ORIG_Z_PROBE_PIN 70
+#define ORIG_Z_PROBE_PIN -1
 
 //###SINGLE_ENDSTOP
 #define X_STOP_PIN -1
@@ -145,7 +145,7 @@
 #define SDPOWER -1
 #define SD_DETECT_PIN -1
 #define SDSS 4
-#define KILL_PIN 51
+#define KILL_PIN -1
 #define DEBUG_PIN -1
 #define SUICIDE_PIN -1
 

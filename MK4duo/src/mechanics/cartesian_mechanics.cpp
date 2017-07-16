@@ -369,37 +369,37 @@
                 printer.active_extruder
               );
             delayed_move_time = 0;
-            active_extruder_parked = false;
+            active_hotend_parked = false;
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) SERIAL_EM("Clear active_extruder_parked");
+              if (DEBUGGING(LEVELING)) SERIAL_EM("Clear active_hotend_parked");
             #endif
             break;
           case DXC_DUPLICATION_MODE:
             if (printer.active_extruder == 0) {
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
-                  SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_extruder_x_pos));
-                  SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_extruder_x_offset);
+                  SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_hotend_x_pos));
+                  SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_hotend_x_offset);
                 }
               #endif
               // move duplicate extruder into correct duplication position.
               set_position_mm(
-                LOGICAL_X_POSITION(inactive_extruder_x_pos),
+                LOGICAL_X_POSITION(inactive_hotend_x_pos),
                 current_position[Y_AXIS],
                 current_position[Z_AXIS],
                 current_position[E_AXIS]
               );
               planner.buffer_line(
-                current_position[X_AXIS] + duplicate_extruder_x_offset,
+                current_position[X_AXIS] + duplicate_hotend_x_offset,
                 current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
                 max_feedrate_mm_s[X_AXIS], 1
               );
               sync_plan_position();
               stepper.synchronize();
               hotend_duplication_enabled = true;
-              active_extruder_parked = false;
+              active_hotend_parked = false;
               #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (DEBUGGING(LEVELING)) SERIAL_EM("Set hotend_duplication_enabled\nClear active_extruder_parked");
+                if (DEBUGGING(LEVELING)) SERIAL_EM("Set hotend_duplication_enabled\nClear active_hotend_parked");
               #endif
             }
             else {
@@ -579,7 +579,7 @@
 
         // This causes the carriage on Dual X to unpark
         #if ENABLED(DUAL_X_CARRIAGE)
-          active_extruder_parked = false;
+          active_hotend_parked = false;
         #endif
 
         do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);

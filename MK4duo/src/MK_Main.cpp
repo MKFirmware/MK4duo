@@ -67,11 +67,6 @@
         Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if ENABLED(BARICUDA)
-  int baricuda_valve_pressure   = 0,
-      baricuda_e_to_p_pressure  = 0;
-#endif
-
 #if ENABLED(FWRETRACT)
 
   bool  autoretract_enabled           = false,
@@ -167,15 +162,6 @@
                 tilt_distance = 0,
                 layer_thickness = 0;
   static bool   tilted = false;
-#endif
-
-#if ENABLED(FILAMENT_SENSOR)
-  bool    filament_sensor = false;                                // M405 turns on filament_sensor control, M406 turns it off
-  float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
-          filament_width_meas = DEFAULT_MEASURED_FILAMENT_DIA;    // Measured filament diameter
-  uint8_t meas_delay_cm = MEASUREMENT_DELAY_CM,                   // Distance delay setting
-          measurement_delay[MAX_MEASUREMENT_DELAY + 1];           // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
-  int8_t  filwidth_delay_index[2] = { 0, -1 };                    // Indexes into ring buffer
 #endif
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
