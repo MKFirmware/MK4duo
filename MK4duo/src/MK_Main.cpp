@@ -8886,8 +8886,8 @@ inline void invalid_extruder_error(const uint8_t e) {
               mechanics.hotend_duplication_enabled = false;
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
-                  SERIAL_EMV("Set inactive_hotend_x_pos=", inactive_hotend_x_pos);
-                  SERIAL_EM("Clear mechanics.hotend_duplication_enabled");
+                  SERIAL_EMV("Set inactive_hotend_x_pos=", mechanics.inactive_hotend_x_pos);
+                  SERIAL_EM("Clear hotend_duplication_enabled");
                 }
               #endif
               break;
