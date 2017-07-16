@@ -73,6 +73,7 @@
 
 // Debug Commands
 #include "debug/m43.h"
+#include "debug/m44.h"
 
 // Delta Commands
 #include "delta/g33.h"
