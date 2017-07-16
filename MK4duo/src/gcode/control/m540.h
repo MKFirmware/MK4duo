@@ -26,42 +26,15 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(BARICUDA)
+#if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
 
-  #if HAS_HEATER_1
+  #define CODE_M540
 
-    #define CODE_M126
+  /**
+   * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
+   */
+  inline void gcode_M540(void) {
+    if (parser.seen('S')) stepper.abort_on_endstop_hit = parser.value_bool();
+  }
 
-    /**
-     * M126: Heater 1 valve open
-     */
-    inline void gcode_M126(void) { printer.baricuda_valve_pressure = parser.byteval('S', 255); }
-
-    #define CODE_M127
-
-    /**
-     * M127: Heater 1 valve close
-     */
-    inline void gcode_M127(void) { printer.baricuda_valve_pressure = 0; }
-
-  #endif
-
-  #if HAS_HEATER_2
-
-    #define CODE_M128
-
-    /**
-     * M128: Heater 2 valve open
-     */
-    inline void gcode_M128(void) { printer.baricuda_e_to_p_pressure = parser.byteval('S', 255); }
-
-    #define CODE_M129
-
-    /**
-     * M129: Heater 2 valve close
-     */
-    inline void gcode_M129(void) { printer.baricuda_e_to_p_pressure = 0; }
-
-  #endif
-
-#endif // BARICUDA
+#endif // ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)

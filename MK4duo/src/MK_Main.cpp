@@ -154,16 +154,6 @@
 
 #endif
 
-#if MECH(MUVE3D)
-  static float  peel_distance = 0,
-                peel_speed = 0,
-                peel_pause = 0,
-                retract_speed = 0,
-                tilt_distance = 0,
-                layer_thickness = 0;
-  static bool   tilted = false;
-#endif
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   float mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
   #if MIXING_VIRTUAL_TOOLS  > 1

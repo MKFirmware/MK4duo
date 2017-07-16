@@ -21,7 +21,7 @@
  */
 
 /**
- * gcode.h
+ * tcode.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
@@ -36,7 +36,9 @@
  * For CNC no other parameters are expected
  *
  */
-inline void gcode_T(uint8_t tool_id) {
+inline void gcode_T(void) {
+
+  uint8_t tool_id = parser.codenum;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {

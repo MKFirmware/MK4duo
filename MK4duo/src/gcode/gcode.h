@@ -35,6 +35,7 @@
 #include "calibrate/m320.h"               // Set ABL
 #include "calibrate/m321.h"               // Set Bilinear Bed Level Manual
 #include "calibrate/m322.h"               // Reset ABL
+#include "calibrate/m420_m421.h"          // Set MBL
 
 // Config Commands
 #include "config/m92.h"
@@ -53,6 +54,13 @@
 #include "config/m304.h"                  // Set PID parameters Bed
 #include "config/m305.h"                  // Set PID parameters Chamber
 #include "config/m306.h"                  // Set PID parameters Cooler
+#include "config/m595.h"                  // Set AD595 offset & Gain
+#include "config/m666.h"                  // Set Z probe offset
+#include "config/m900.h"                  // Set and/or Get advance K factor
+#include "config/m906.h"                  // Set Alliagtor motor currents or Set motor current in milliamps with have a TMC2130 driver
+#include "config/m907.h"                  // Set digital trimpot motor current
+#include "config/m908.h"                  // Control digital trimpot directly
+#include "config/m911_m914.h"             // Set TMC2130 driver
 
 // Control Commands
 #include "control/m17.h"
@@ -70,13 +78,22 @@
 #include "control/m355.h"                 // Set Case Light
 #include "control/m380_m381.h"            // Extruder Solenoid
 #include "control/m400.h"                 // Finish all moves
+#include "control/m410.h"                 // Quickstop
+#include "control/m540.h"                 // Enable/disable SD card abort on endstop hit
+#include "control/m605.h"                 // Set dual x-carriage movement mode
+#include "control/m997.h"                 // NPr2 Move Carter xx gradi
+#include "control/m999.h"                 // Restart after being stopped
 
 // Debug Commands
 #include "debug/m43.h"
 #include "debug/m44_pre_table.h"          // Debug Code Info
 
 // Delta Commands
-#include "delta/g33.h"
+#include "delta/g33.h"                    // Autocalibration
+#include "delta/m666.h"                   // Set delta parameters
+
+// EEPROM Commands
+#include "eeprom/m500_m503.h"             // Eeprom read write and print
 
 // Feature Commands
 #include "feature/g12.h"
@@ -86,13 +103,15 @@
 #include "feature/m96_m97.h"
 #include "feature/m98_m99.h"
 #include "feature/m125.h"
-#include "feature/m126_m129.h"            //
+#include "feature/m126_m129.h"            // Solenoid feature
 #include "feature/m150.h"
 #include "feature/m240.h"                 // Photo Camera
+#include "feature/m600.h"                 // Advanced Pause change filament
 
 // Geometry Commands
 #include "geometry/g92.h"
 #include "geometry/m206.h"
+#include "geometry/m428.h"                // Set the home_offset
 
 // Host Commands
 #include "host/m110.h"
@@ -103,6 +122,9 @@
 #include "host/m118.h"
 #include "host/m119.h"                    // Endstop status print
 #include "host/m408.h"                    // Json output
+#include "host/m530.h"                    // Enables explicit printing mode
+#include "host/m531.h"                    // Define filename being printed
+#include "host/m532.h"                    // Update current print state progress
 
 // LCD Commands
 #include "lcd/m0_m1.h"
@@ -129,9 +151,14 @@
 #include "multimode/m3_m4.h"
 #include "multimode/m5.h"
 #include "multimode/m6.h"
+#include "multimode/m649.h"               // Set laser options
+
+// Muve3D Commands
+#include "muve3d/m650_m655.h"             // Muve3D control
 
 // Nextion Commands
-#include "nextion/m35.h"
+#include "nextion/m35.h"                  // Upload firmware to Nextion from SD
+#include "nextion/m995_m996.h"            // Setting GFX for Nextion
 
 // Power Commands
 #include "power/m80.h"
@@ -143,6 +170,9 @@
 #include "probe/g38.h"
 #include "probe/m401_m402.h"              // Lower e Raise probe
 
+// Rfid Commands
+#include "rfid/m522.h"                    // Rfid read and write
+
 // Scara Commands
 #include "scara/m360_m364.h"
 
@@ -152,6 +182,8 @@
 // Sensor Commands
 #include "sensor/m70.h"
 #include "sensor/m404_m407.h"             // Filament Sensor
+#include "sensor/m512.h"                  // Extruder Encoder read pin
+#include "sensor/m602_m604.h"             // Extruder Encoder settings
 
 // Stats Commands
 #include "stats/m31.h"
@@ -174,21 +206,18 @@
 #include "temperature/m192.h"
 #include "temperature/m303.h"             // PID autotune
 
+// Tools Commands
+#include "tools/tcode.h"
+
 // Units Commands
 #include "units/g20_g21.h"
 #include "units/m82.h"
 #include "units/m83.h"
 #include "units/m149.h"
 
-// Da spostare ancora
-#include "m_code.h"
-
 // Table for G and M code
 #include "table_gcode.h"
 #include "table_mcode.h"
 
-// Include m44_post define table for debugging
+// Include m44 post define table for debugging
 #include "debug/m44_post_table.h"
-
-// T Commands
-#include "t_code.h"

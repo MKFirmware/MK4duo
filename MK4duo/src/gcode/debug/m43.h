@@ -28,7 +28,7 @@
 
 #if ENABLED(PINS_DEBUGGING)
 
-  #include "utility/pinsdebug.h"
+  #include "../../utility/pinsdebug.h"
 
   #define CODE_M43
 

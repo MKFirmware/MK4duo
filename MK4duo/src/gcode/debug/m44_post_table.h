@@ -50,7 +50,7 @@
       SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
       SERIAL_EM("Complete list of M-codes available for this machine:");
 
-      for (M_CODE_TYPE index = 0; index < COUNT(MCode_Table); index++) {
+      for (M_CODE_TYPE index = 0; index < (COUNT(MCode_Table) - 1); index++) {
         SERIAL_EMV("M", MCode_Table[index].code);
       }
 

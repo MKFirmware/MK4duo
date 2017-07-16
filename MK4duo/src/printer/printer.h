@@ -271,9 +271,9 @@ extern Printer printer;
 
 // Define runplan for move axes
 #if IS_KINEMATIC
-  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, printer.active_extruder);
+  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, printer.active_extruder)
 #else
-  #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S);
+  #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S)
 #endif
 
 #endif /* _PRINTER_H_ */
