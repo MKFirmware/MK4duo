@@ -106,6 +106,7 @@
  * - G20/G21 Inch mode support
  * - Report JSON-style response
  * - M43 command for pins info and testing
+ * - M44 Code Info
  * - M115 Auto report temperatures
  * - Extend capabilities report
  * - Whatchdog

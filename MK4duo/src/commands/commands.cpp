@@ -467,7 +467,7 @@ bool Commands::drain_injected_commands_P() {
  * Aborts the current queue, if any.
  * Note: drain_injected_commands_P() must be called repeatedly to drain the commands afterwards
  */
-void Commands::enqueue_and_echo_commands_P(const char * pgcode) {
+void Commands::enqueue_and_echo_commands_P(const char * const pgcode) {
   injected_commands_P = pgcode;
   drain_injected_commands_P(); // first command executed asap (when possible)
 }
@@ -532,12 +532,6 @@ void Commands::unknown_command_error() {
   SERIAL_CHR('"');
   SERIAL_EOL();
 }
-
-#define GCODE_G(N) \
-  case ##N: gcode_G##N(); break
-
-#define GCODE_M(N) \
-  case ##N: gcode_M##N(); break
 
 /* G0 and G1 are sent to the machine way more frequently than any other GCode.
  * We want to make sure that their use is optimized to its maximum.
