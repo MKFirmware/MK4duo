@@ -30,7 +30,7 @@
 
 typedef struct{
 	const G_CODE_TYPE code;
-	const void (* command) ();	
+	void (* command) ();	
 } GCode_t;
 
 constexpr GCode_t GCode_Table[] = {

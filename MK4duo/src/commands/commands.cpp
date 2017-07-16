@@ -669,6 +669,11 @@ void Commands::process_next_gcode() {
           gcode_M43(); break;
       #endif
 
+      #if ENABLED(CODES_DEBUGGING)
+        case 44: // M44: Code debug info
+          gcode_M44(); break;
+      #endif
+
       #if ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
         case 48: // M48: Z probe repeatability test
           gcode_M48(); break;

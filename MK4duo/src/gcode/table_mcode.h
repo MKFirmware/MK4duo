@@ -30,7 +30,7 @@
 
 typedef struct{
 	const M_CODE_TYPE code;
-	const void (* command) ();	
+	void (* command) ();	
 } MCode_t;
 
 constexpr MCode_t MCode_Table [] = {

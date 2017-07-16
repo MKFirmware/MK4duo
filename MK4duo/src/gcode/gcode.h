@@ -73,7 +73,7 @@
 
 // Debug Commands
 #include "debug/m43.h"
-#include "debug/m44.h"
+#include "debug/m44_pre_table.h"          // Debug Code Info
 
 // Delta Commands
 #include "delta/g33.h"
@@ -186,6 +186,9 @@
 // Table for G and M code
 #include "table_gcode.h"
 #include "table_mcode.h"
+
+// Include m44_post define table for debugging
+#include "debug/m44_post_table.h"
 
 // T Commands
 #include "t_code.h"

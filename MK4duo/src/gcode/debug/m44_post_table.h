@@ -28,40 +28,38 @@
 
 #if ENABLED(CODES_DEBUGGING)
 
-  #define CODE_M44
-
-   /**
+  /**
    * M44: Codes debug - report codes available (and how many of them there are).
    *
    *  M44         - Report complete statistics of available gcodes.
-   *                  G   Flag to show G-code statistics.
-   *                  M   Flag to show M-code statistics.
+   *                  I   Flag to show G-code statistics.
+   *                  J   Flag to show M-code statistics.
    *
    */
   inline void gcode_M44(void) {
 
-    if (parser.seen('G')) {
-      SERIAL_EMV("Number of G-codes available: ", COUNT(GCode_Table));
+    if (parser.seen('I')) {
+      SERIAL_EMV("Number of G-codes available: ", (int)COUNT(GCode_Table));
       SERIAL_EM("Complete list of G-codes available for this machine:");
 
-      G_CODE_TYPE i;
-      for(i = 0; i < COUNT(GCode_Table) ; i++){
-        SERIAL_EMV("G", GCode_Table[i].code);
+      for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); index++) {
+        SERIAL_EMV("G", GCode_Table[index].code);
       }
-
-    }else if (parser.seen('M') {
-      SERIAL_EMV("Number of M-codes available: ", COUNT(MCode_Table));
+    }
+    else if (parser.seen('J')) {
+      SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
       SERIAL_EM("Complete list of M-codes available for this machine:");
 
-      M_CODE_TYPE i;
-      for(i = 0; i < COUNT(MCode_Table) ; i++){
-        SERIAL_EMV("M", MCode_Table[i].code);
+      for (M_CODE_TYPE index = 0; index < COUNT(MCode_Table); index++) {
+        SERIAL_EMV("M", MCode_Table[index].code);
       }
 
-    }else {
+    }
+    else {
       SERIAL_EM("Invalid parameter.");
       SERIAL_EM("Please use the G or the M flag to choose between G-codes and M-codes.");
     }
 
   }
-#endif // GCODES_DEBUGGING
+
+#endif // ENABLED(CODES_DEBUGGING)
