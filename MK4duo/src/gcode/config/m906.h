@@ -102,22 +102,22 @@
   inline void gcode_M906(void) {
     uint16_t values[NUM_AXIS];
     LOOP_XYZE(i)
-      values[i] = parser.seen(axis_codes[i]) ? parser.value_int() : 0;
+      values[i] = parser.intval(axis_codes[i]);
 
     #if ENABLED(X_IS_TMC2130)
-      if (values[X_AXIS]) tmc2130_set_current(values[X_AXIS], stepperX, 'X');
+      if (values[X_AXIS]) tmc2130_set_current(stepperX, 'X', values[X_AXIS]);
       else tmc2130_get_current(stepperX, 'X');
     #endif
     #if ENABLED(Y_IS_TMC2130)
-      if (values[Y_AXIS]) tmc2130_set_current(values[Y_AXIS], stepperY, 'Y');
+      if (values[Y_AXIS]) tmc2130_set_current(stepperY, 'Y', values[Y_AXIS]);
       else tmc2130_get_current(stepperY, 'Y');
     #endif
     #if ENABLED(Z_IS_TMC2130)
-      if (values[Z_AXIS]) tmc2130_set_current(values[Z_AXIS], stepperZ, 'Z');
+      if (values[Z_AXIS]) tmc2130_set_current(stepperZ, 'Z', values[Z_AXIS]);
       else tmc2130_get_current(stepperZ, 'Z');
     #endif
     #if ENABLED(E0_IS_TMC2130)
-      if (values[E_AXIS]) tmc2130_set_current(values[E_AXIS], stepperE0, 'E');
+      if (values[E_AXIS]) tmc2130_set_current(stepperE0, 'E', values[E_AXIS]);
       else tmc2130_get_current(stepperE0, 'E');
     #endif
 

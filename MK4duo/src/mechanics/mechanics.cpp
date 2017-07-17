@@ -149,7 +149,7 @@ void Mechanics::do_blocking_move_to(const float &lx, const float &ly, const floa
   const float old_feedrate_mm_s = feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
+    if (DEBUGGING(LEVELING)) bedlevel.print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
   #endif
 
   // If Z needs to raise, do it before moving XY
@@ -575,32 +575,6 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
     // in any intermediate location.
     set_current_to_destination();
   }
-
-#endif
-
-#if ENABLED(DEBUG_LEVELING_FEATURE)
-
-  void Mechanics::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
-    SERIAL_PS(prefix);
-    SERIAL_CHR('(');
-    SERIAL_VAL(x);
-    SERIAL_MV(", ", y);
-    SERIAL_MV(", ", z);
-    SERIAL_CHR(")");
-
-    if (suffix) SERIAL_PS(suffix);
-    else SERIAL_EOL();
-  }
-
-  void Mechanics::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
-    print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
-  }
-
-  #if ABL_PLANAR
-    void Mechanics::print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
-      print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
-    }
-  #endif
 
 #endif
 

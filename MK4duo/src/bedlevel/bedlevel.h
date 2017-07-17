@@ -39,7 +39,7 @@
 
 #if HAS_LEVELING
 
-  #if HAS_ABL
+  #if ABL_PLANAR
     #include "vector_3.h"
   #endif
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
@@ -138,6 +138,14 @@
       #if ENABLED(MESH_BED_LEVELING)
         static void mesh_probing_done();
         static void mbl_mesh_report();
+      #endif
+
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
+        void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+        #if ABL_PLANAR
+          void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+        #endif
       #endif
 
     private: /** Private Parameters */

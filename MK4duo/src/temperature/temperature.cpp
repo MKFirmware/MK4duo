@@ -2217,7 +2217,7 @@ void Temperature::init() {
         tr_target_temperature[temp_controller_index] = 0;
       }
       #if HAS_TEMP_BED
-        else if (heater_id == -1 && bed_idle_timeout_exceeded) {
+        else if (temp_controller_id == -1 && bed_idle_timeout_exceeded) {
           *state = TRInactive;
           tr_target_temperature[temp_controller_index] = 0;
         }

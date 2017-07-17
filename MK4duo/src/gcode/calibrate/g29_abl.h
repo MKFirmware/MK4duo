@@ -127,7 +127,7 @@ void out_of_range_error(const char* p_edge) {
       if (query) commands.mk_debug_flags |= DEBUG_LEVELING;
       if (DEBUGGING(LEVELING)) {
         DEBUG_POS(">>> gcode_G29", mechanics.current_position);
-        log_machine_info();
+        mechanics.log_machine_info();
       }
       commands.mk_debug_flags = old_debug_flags;
       #if DISABLED(PROBE_MANUALLY)

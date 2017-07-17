@@ -39,45 +39,46 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VECTOR_3_H
-#define VECTOR_3_H
+#ifndef _VECTOR_3_H_
+#define _VECTOR_3_H_
 
 #if HAS_ABL
-class matrix_3x3;
 
-struct vector_3 {
-  float x, y, z;
+  class matrix_3x3;
 
-  vector_3();
-  vector_3(float x, float y, float z);
+  struct vector_3 {
+    float x, y, z;
 
-  static vector_3 cross(vector_3 a, vector_3 b);
+    vector_3();
+    vector_3(float x, float y, float z);
 
-  vector_3 operator+(vector_3 v);
-  vector_3 operator-(vector_3 v);
-  void normalize();
-  float get_length();
-  vector_3 get_normal();
+    static vector_3 cross(vector_3 a, vector_3 b);
 
-  void debug(const char title[]);
+    vector_3 operator+(vector_3 v);
+    vector_3 operator-(vector_3 v);
+    void normalize();
+    float get_length();
+    vector_3 get_normal();
 
-  void apply_rotation(matrix_3x3 matrix);
-};
+    void debug(const char title[]);
 
-struct matrix_3x3 {
-  float matrix[9];
+    void apply_rotation(matrix_3x3 matrix);
+  };
 
-  static matrix_3x3 create_from_rows(vector_3 row_0, vector_3 row_1, vector_3 row_2);
-  static matrix_3x3 create_look_at(vector_3 target);
-  static matrix_3x3 transpose(matrix_3x3 original);
+  struct matrix_3x3 {
+    float matrix[9];
 
-  void set_to_identity();
+    static matrix_3x3 create_from_rows(vector_3 row_0, vector_3 row_1, vector_3 row_2);
+    static matrix_3x3 create_look_at(vector_3 target);
+    static matrix_3x3 transpose(matrix_3x3 original);
 
-  void debug(const char title[]);
-};
+    void set_to_identity();
 
+    void debug(const char title[]);
+  };
 
-void apply_rotation_xyz(matrix_3x3 rotationMatrix, float &x, float &y, float &z);
+  void apply_rotation_xyz(matrix_3x3 rotationMatrix, float &x, float &y, float &z);
+
 #endif // HAS_ABL
 
-#endif // VECTOR_3_H
+#endif /* _VECTOR_3_H_ */

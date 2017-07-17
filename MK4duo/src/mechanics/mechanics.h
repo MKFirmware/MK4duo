@@ -32,7 +32,7 @@
 // DEBUG LEVELING
 #if ENABLED(DEBUG_LEVELING_FEATURE)
   #define DEBUG_POS(SUFFIX,VAR)       do{ \
-    mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+    bedlevel.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
 #endif
 
 // Workspace offsets
@@ -325,11 +325,7 @@ class Mechanics {
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
-      void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
-      #if ABL_PLANAR
-        void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
-      #endif
+      void log_machine_info();
     #endif
 
   private: /** Private Function */
@@ -339,10 +335,6 @@ class Mechanics {
     void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      void log_machine_info();
-    #endif
 
 };
 

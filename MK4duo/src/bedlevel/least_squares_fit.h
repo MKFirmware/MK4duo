@@ -32,6 +32,9 @@
  *
  */
 
+#ifndef _LEAST_SQUARES_FIT_H_
+#define _LEAST_SQUARES_FIT_H_
+
 #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
   struct linear_fit_data {
@@ -81,3 +84,5 @@
   int finish_incremental_LSF(struct linear_fit_data *);
 
 #endif // ENABLED(AUTO_BED_LEVELING_LINEAR)
+
+#endif /* _LEAST_SQUARES_FIT_H_ */
