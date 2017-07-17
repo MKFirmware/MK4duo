@@ -36,22 +36,22 @@
   inline void gcode_M522(void) {
 
     GET_TARGET_EXTRUDER(522);
-    if (!RFID_ON) return;
+    if (!printer.RFID_ON) return;
 
     if (parser.seen('R')) {
       SERIAL_EM("Put RFID on tag!");
       #if ENABLED(NEXTION)
         rfid_setText("Put RFID on tag!");
       #endif
-      Spool_must_read[TARGET_EXTRUDER] = true;
+      printer.Spool_must_read[TARGET_EXTRUDER] = true;
     }
     if (parser.seen('W')) {
-      if (Spool_ID[TARGET_EXTRUDER] != 0) {
+      if (printer.Spool_ID[TARGET_EXTRUDER] != 0) {
         SERIAL_EM("Put RFID on tag!");
         #if ENABLED(NEXTION)
           rfid_setText("Put RFID on tag!");
         #endif
-        Spool_must_write[TARGET_EXTRUDER] = true;
+        printer.Spool_must_write[TARGET_EXTRUDER] = true;
       }
       else {
         SERIAL_LM(ER, "You have not read this Spool!");
@@ -61,7 +61,7 @@
       }
     }
 
-    if (parser.seen('L')) RFID522.printInfo(TARGET_EXTRUDER);
+    if (parser.seen('L')) rfid522.printInfo(TARGET_EXTRUDER);
   }
 
 #endif // RFID_MODULE

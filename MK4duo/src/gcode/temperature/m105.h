@@ -47,7 +47,7 @@ inline void gcode_M105(void) {
       thermalManager.print_coolerstate();
     #endif
     #if ENABLED(FLOWMETER_SENSOR)
-      print_flowratestate();
+      flowmeter.print_flow_rate_state();
     #endif
     #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
       print_cncspeed();

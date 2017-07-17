@@ -39,15 +39,42 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef FLOWMETER_H
-  #define FLOWMETER_H
+#ifndef _FLOWMETER_H_
+#define _FLOWMETER_H_
 
-  #define FLOWMETER_CALIBRATION (FLOWMETER_MAXFREQ / FLOWMETER_MAXFLOW)
+#define FLOWMETER_CALIBRATION (FLOWMETER_MAXFREQ / FLOWMETER_MAXFLOW)
 
-  #if ENABLED(FLOWMETER_SENSOR)
-  void flowrate_manage();
-  void flow_init();
-  float get_flowrate();
-  #endif
+#if ENABLED(FLOWMETER_SENSOR)
 
-#endif // FLOWMETER_H
+  class FlowMeter {
+
+    public: /** Constructor */
+
+      FlowMeter() {};
+
+    public: /** Public Parameters */
+
+      static bool   flow_firstread;
+      static float  flowrate;
+
+    public: /** Public Function */
+
+      static void flowrate_manage();
+      static void flow_init();
+      static void print_flow_rate_state();
+
+    private: /** Private Parameters */
+
+      static int flowrate_pulsecount;  
+      static millis_t flowmeter_timer,
+                      lastflow;
+
+    private: /** Private Function */
+
+  };
+
+  extern FlowMeter flowmeter;
+
+#endif
+
+#endif /* _FLOWMETER_H_ */

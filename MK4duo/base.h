@@ -105,7 +105,6 @@
 #include "src/printcounter/printcounter.h"
 #include "src/power/power.h"
 #include "src/printer/printer.h"
-#include "src/MK_Main.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/stepper/stepper.h"
@@ -114,6 +113,7 @@
 #include "src/lcd/ultralcd.h"
 #include "src/lcd/buzzer.h"
 #include "src/nextion/Nextion_lcd.h"
+#include "src/mfrc522/mfrc522.h"
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
 #include "src/utility/nozzle.h"
@@ -126,10 +126,6 @@
 
 #if HAS_DIGIPOTSS
   #include <SPI.h>
-#endif
-
-#if ENABLED(RFID_MODULE)
-  #include "src/mfrc522/MFRC522_serial.h"
 #endif
 
 #if ENABLED(HAVE_TMCDRIVER)

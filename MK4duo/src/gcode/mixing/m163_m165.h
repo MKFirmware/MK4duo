@@ -43,7 +43,7 @@
     if (mix_index < MIXING_STEPPERS) {
       float mix_value = parser.seen('P') ? parser.value_float() : 0.0;
       NOLESS(mix_value, 0.0);
-      mixing_factor[mix_index] = RECIPROCAL(mix_value);
+      printer.mixing_factor[mix_index] = RECIPROCAL(mix_value);
     }
   }
 
@@ -62,7 +62,7 @@
       if (tool_index < MIXING_VIRTUAL_TOOLS) {
         normalize_mix();
         for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
-          mixing_virtual_tool_mix[tool_index][i] = mixing_factor[i];
+          printer.mixing_virtual_tool_mix[tool_index][i] = printer.mixing_factor[i];
         }
       }
     }

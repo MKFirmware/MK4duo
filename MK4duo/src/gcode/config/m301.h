@@ -54,8 +54,8 @@
       if (parser.seen('D')) PID_PARAM(Kd, h) = parser.value_float();
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         if (parser.seen('C')) PID_PARAM(Kc, h) = parser.value_float();
-        if (parser.seen('L')) lpq_len = parser.value_float();
-        NOMORE(lpq_len, LPQ_MAX_LEN);
+        if (parser.seen('L')) thermalManager.lpq_len = parser.value_float();
+        NOMORE(thermalManager.lpq_len, LPQ_MAX_LEN);
       #endif
 
       thermalManager.updatePID();

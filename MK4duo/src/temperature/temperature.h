@@ -172,10 +172,11 @@ class Temperature {
                     pid_error[HOTENDS];
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        static float cTerm[HOTENDS];
-        static long last_e_position;
-        static long lpq[LPQ_MAX_LEN];
-        static int lpq_ptr;
+        static float  cTerm[HOTENDS];
+        static long   last_e_position,
+                      lpq[LPQ_MAX_LEN];
+        static int    lpq_ptr,
+                      lpq_len;
       #endif
 
       static uint8_t pid_pointer[HOTENDS];

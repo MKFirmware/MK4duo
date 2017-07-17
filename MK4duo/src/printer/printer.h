@@ -87,6 +87,13 @@ class Printer {
                     retract_recover_length, retract_recover_length_swap, retract_recover_feedrate_mm_s;
     #endif
 
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static float mixing_factor[MIXING_STEPPERS];
+      #if MIXING_VIRTUAL_TOOLS  > 1
+        float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
+      #endif
+    #endif
+
     #if ENABLED(PROBE_MANUALLY)
       static bool g29_in_progress;
     #else
@@ -139,6 +146,13 @@ class Printer {
       static int8_t   filwidth_delay_index[2];  // Ring buffer indexes. Used by planner, temperature, and main code
     #endif
 
+    #if ENABLED(RFID_MODULE)
+      static uint32_t Spool_ID[EXTRUDERS];
+      static bool     RFID_ON,
+                      Spool_must_read[EXTRUDERS],
+                      Spool_must_write[EXTRUDERS];
+    #endif
+
     #if HAS_CASE_LIGHT
       static int case_light_brightness;
       static bool case_light_on;
@@ -164,6 +178,14 @@ class Printer {
     #if ENABLED(BARICUDA)
       static int baricuda_valve_pressure;
       static int baricuda_e_to_p_pressure;
+    #endif
+
+    #if ENABLED(EASY_LOAD)
+      static bool allow_lengthy_extrude_once; // for load/unload
+    #endif
+
+    #if ENABLED(IDLE_OOZING_PREVENT)
+      static bool IDLE_OOZING_enabled;
     #endif
 
   public: /** Public Function */
@@ -247,6 +269,11 @@ class Printer {
 
   private: /** Private Parameters */
 
+    #if ENABLED(IDLE_OOZING_PREVENT)
+      millis_t  axis_last_activity;
+      bool      IDLE_OOZING_retracted[EXTRUDERS];
+    #endif
+
   private: /** Private Function */
 
     #if HAS_FIL_RUNOUT
@@ -267,6 +294,10 @@ class Printer {
     static float calculate_volumetric_multiplier(const float diameter);
 
     static void invalid_extruder_error(const uint8_t e);
+
+    #if HAS_DONDOLO
+      static void move_extruder_servo(const uint8_t e);
+    #endif
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       IDLE_OOZING_retract(bool retracting);

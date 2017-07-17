@@ -118,7 +118,7 @@
 
   };
 
-  extern MFRC522 RFID522;
+  extern MFRC522 rfid522;
 
 #endif // ENABLED(RFID_MODULE)
 

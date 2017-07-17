@@ -110,7 +110,7 @@
  *  M301  E1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]            (float x4)
  *  M301  E2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]            (float x4)
  *  M301  E3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]            (float x4)
- *  M301  L               lpq_len
+ *  M301  L               thermalManager.lpq_len
  *
  * PIDTEMPBED:
  *  M304      PID         bedKp, bedKi, bedKd                   (float x3)
@@ -136,7 +136,7 @@
  *  M200  D               printer.volumetric_enabled            (bool)
  *  M200  T D             printer.filament_size                 (float x6)
  *
- *  M???  S               IDLE_OOZING_enabled
+ *  M???  S               printer.IDLE_OOZING_enabled
  *
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current                         (float x7)
@@ -418,13 +418,11 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(PID_PARAM(Kd, h));
         EEPROM_WRITE(PID_PARAM(Kc, h));
       }
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        EEPROM_WRITE(thermalManager.lpq_len);
+      #endif
     #endif
 
-    #if DISABLED(PID_ADD_EXTRUSION_RATE)
-      const int lpq_len = 20;
-    #endif
-    EEPROM_WRITE(lpq_len);
-    
     #if ENABLED(PIDTEMPBED)
       EEPROM_WRITE(thermalManager.bedKp);
       EEPROM_WRITE(thermalManager.bedKi);
@@ -475,7 +473,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(printer.filament_size[e]);
 
     #if ENABLED(IDLE_OOZING_PREVENT)
-      EEPROM_WRITE(IDLE_OOZING_enabled);
+      EEPROM_WRITE(printer.IDLE_OOZING_enabled);
     #endif
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -762,12 +760,10 @@ void EEPROM::Postprocess() {
           EEPROM_READ(PID_PARAM(Kd, h));
           EEPROM_READ(PID_PARAM(Kc, h));
         }
+        #if ENABLED(PID_ADD_EXTRUSION_RATE)
+          EEPROM_READ(thermalManager.lpq_len);
+        #endif
       #endif // PIDTEMP
-
-      #if DISABLED(PID_ADD_EXTRUSION_RATE)
-        int lpq_len;
-      #endif
-      EEPROM_READ(lpq_len);
 
       #if ENABLED(PIDTEMPBED)
         EEPROM_READ(thermalManager.bedKp);
@@ -817,7 +813,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(printer.filament_size[e]);
 
       #if ENABLED(IDLE_OOZING_PREVENT)
-        EEPROM_READ(IDLE_OOZING_enabled);
+        EEPROM_READ(printer.IDLE_OOZING_enabled);
       #endif
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -1029,7 +1025,7 @@ void EEPROM::Factory_Settings() {
       PID_PARAM(Kc, h) = tmp9[h];
     }
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      lpq_len = 20; // default last-position-queue size
+      thermalManager.lpq_len = 20; // default last-position-queue size
     #endif
   #endif // PIDTEMP
 
@@ -1084,7 +1080,7 @@ void EEPROM::Factory_Settings() {
   );
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    IDLE_OOZING_enabled = true;
+    printer.IDLE_OOZING_enabled = true;
   #endif
 
   #if ENABLED(HAVE_TMC2130)
@@ -1379,7 +1375,7 @@ void EEPROM::Factory_Settings() {
           #endif
           SERIAL_EOL();
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_LMV(CFG, "  M301 L", lpq_len);
+            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
           #endif
         #elif HOTENDS > 1
           for (int8_t h = 0; h < HOTENDS; h++) {
@@ -1393,7 +1389,7 @@ void EEPROM::Factory_Settings() {
             SERIAL_EOL();
           }
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_LMV(CFG, "  M301 L", lpq_len);
+            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
           #endif
         #endif
       #endif

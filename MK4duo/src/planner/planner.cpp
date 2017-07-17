@@ -479,7 +479,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         if (labs(de) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
           #if ENABLED(EASY_LOAD)
-            if (!allow_lengthy_extrude_once) {
+            if (!printer.allow_lengthy_extrude_once) {
           #endif
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
@@ -490,7 +490,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
           #if ENABLED(EASY_LOAD)
             }
-            allow_lengthy_extrude_once = false;
+            printer.allow_lengthy_extrude_once = false;
           #endif
         }
       #endif // PREVENT_LENGTHY_EXTRUDE
@@ -589,7 +589,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   // For a mixing extruder, get steps for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
+      block->mix_event_count[i] = printer.mixing_factor[i] * block->step_event_count;
   #endif
 
   #if ENABLED(BARICUDA)

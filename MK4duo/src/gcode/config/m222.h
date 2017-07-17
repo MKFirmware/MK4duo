@@ -38,7 +38,7 @@ inline void gcode_M222(void) {
   if (parser.seenval('S')) {
     printer.density_percentage[TARGET_EXTRUDER] = parser.value_int();
     #if ENABLED(RFID_MODULE)
-      RFID522.RfidData[TARGET_EXTRUDER].data.density = printer.density_percentage[TARGET_EXTRUDER];
+      rfid522.RfidData[TARGET_EXTRUDER].data.density = printer.density_percentage[TARGET_EXTRUDER];
     #endif
   }
 }

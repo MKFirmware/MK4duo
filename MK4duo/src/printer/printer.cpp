@@ -124,6 +124,13 @@ PrintCounter Printer::print_job_counter = PrintCounter();
 
 #endif // FWRETRACT
 
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+  float Printer::mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
+  #if MIXING_VIRTUAL_TOOLS  > 1
+    float Printer::mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
+  #endif
+#endif
+
 #if ENABLED(PROBE_MANUALLY)
   bool Printer::g29_in_progress = false;
 #else
@@ -173,6 +180,13 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   int8_t  Printer::filwidth_delay_index[2] = { 0, -1 };                     // Indexes into ring buffer
 #endif
 
+#if ENABLED(RFID_MODULE)
+  uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
+  bool      Printer::RFID_ON = false,
+            Printer::Spool_must_read[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(false),
+            Printer::Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
+#endif
+
 #if HAS_CASE_LIGHT
   int   Printer::case_light_brightness;
   bool  Printer::case_light_on;
@@ -198,6 +212,16 @@ PrintCounter Printer::print_job_counter = PrintCounter();
 #if ENABLED(BARICUDA)
   int Printer::baricuda_valve_pressure  = 0,
       Printer::baricuda_e_to_p_pressure = 0;
+#endif
+
+#if ENABLED(EASY_LOAD)
+  bool Printer::allow_lengthy_extrude_once = false; // for load/unload
+#endif
+
+#if ENABLED(IDLE_OOZING_PREVENT)
+  millis_t  Printer::axis_last_activity   = 0;
+  bool      Printer::IDLE_OOZING_enabled  = true,
+            Printer::IDLE_OOZING_retracted[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
 /**
@@ -375,13 +399,13 @@ void Printer::setup() {
 
   #if ENABLED(FLOWMETER_SENSOR)
     #if ENABLED(MINFLOW_PROTECTION)
-      flow_firstread = false;
+      flowmeter.flow_firstread = false;
     #endif
-    flow_init();
+    flowmeter.flow_init();
   #endif
 
   #if ENABLED(RFID_MODULE)
-    RFID_ON = RFID522.init();
+    RFID_ON = rfid522.init();
     if (RFID_ON)
       SERIAL_EM("RFID CONNECT");
   #endif
@@ -500,7 +524,7 @@ void Printer::get_destination_from_command() {
 
   #if ENABLED(RFID_MODULE)
     if(!DEBUGGING(DRYRUN))
-      RFID522.RfidData[active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
+      rfid522.RfidData[active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -554,7 +578,7 @@ void Printer::kill(const char* lcd_msg) {
     HAL::resetHardware();
   #endif
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    flow_firstread = false;
+    flowmeter.flow_firstread = false;
   #endif
 
   #if ENABLED(ULTRA_LCD)
@@ -601,7 +625,7 @@ void Printer::kill(const char* lcd_msg) {
  */
 void Printer::Stop() {
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    flow_firstread = false;
+    flowmeter.flow_firstread = false;
   #endif
 
   thermalManager.disable_all_heaters();
@@ -666,7 +690,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
-    flowrate_manage();
+    flowmeter.flowrate_manage();
   #endif
 
   #if ENABLED(CNCROUTER)
@@ -746,8 +770,8 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    if (flow_firstread && print_job_counter.isRunning() && (get_flowrate() < (float)MINFLOW_PROTECTION)) {
-      flow_firstread = false;
+    if (flowmeter.flow_firstread && print_job_counter.isRunning() && (flowmeter.flowrate < (float)MINFLOW_PROTECTION)) {
+      flowmeter.flow_firstread = false;
       kill(PSTR(MSG_KILLED));
     }
   #endif
@@ -922,28 +946,28 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(RFID_MODULE)
     for (uint8_t e = 0; e < EXTRUDERS; e++) {
       if (Spool_must_read[e]) {
-        if (RFID522.getID(e)) {
-          Spool_ID[e] = RFID522.RfidDataID[e].Spool_ID;
+        if (rfid522.getID(e)) {
+          Spool_ID[e] = rfid522.RfidDataID[e].Spool_ID;
           HAL::delayMilliseconds(200);
-          if (RFID522.readBlock(e)) {
+          if (rfid522.readBlock(e)) {
             Spool_must_read[e] = false;
-            density_percentage[e] = RFID522.RfidData[e].data.density;
-            filament_size[e] = RFID522.RfidData[e].data.size;
+            density_percentage[e] = rfid522.RfidData[e].data.density;
+            filament_size[e] = rfid522.RfidData[e].data.size;
             calculate_volumetric_multipliers();
-            RFID522.printInfo(e);
+            rfid522.printInfo(e);
           }
         }
       }
 
       if (Spool_must_write[e]) {
-        if (RFID522.getID(e)) {
-          if (Spool_ID[e] == RFID522.RfidDataID[e].Spool_ID) {
+        if (rfid522.getID(e)) {
+          if (Spool_ID[e] == rfid522.RfidDataID[e].Spool_ID) {
             HAL::delayMilliseconds(200);
-            if (RFID522.writeBlock(e)) {
+            if (rfid522.writeBlock(e)) {
               Spool_must_write[e] = false;
               SERIAL_SMV(INFO, "Spool on E", e);
               SERIAL_EM(" writed!");
-              RFID522.printInfo(e);
+              rfid522.printInfo(e);
             }
           }
         }
@@ -1366,6 +1390,9 @@ void Printer::handle_Interrupt_Event() {
 #if ENABLED(NPR2)
 
   void Printer::MK_multi_tool_change(const uint8_t &e) {
+
+    const float color_position[] = COLOR_STEP,
+                color_step_moltiplicator = (DRIVER_MICROSTEP / MOTOR_ANGLE) * CARTER_MOLTIPLICATOR;
 
     if (e != old_color) {
       long csteps;
@@ -2347,6 +2374,19 @@ void Printer::invalid_extruder_error(const uint8_t e) {
   SERIAL_SMV(ER, "T", (int)e);
   SERIAL_EM(" " MSG_INVALID_EXTRUDER);
 }
+
+#if HAS_DONDOLO
+
+  void Printer::move_extruder_servo(const uint8_t e) {
+    const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
+    MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
+
+    #if (DONDOLO_SERVO_DELAY > 0)
+      printer.safe_delay(DONDOLO_SERVO_DELAY);
+    #endif
+  }
+
+#endif
 
 #if ENABLED(IDLE_OOZING_PREVENT)
 

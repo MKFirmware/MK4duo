@@ -172,9 +172,10 @@ volatile bool Temperature::wait_for_heatup = true;
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     float Temperature::cTerm[HOTENDS];
-    long Temperature::last_e_position;
-    long Temperature::lpq[LPQ_MAX_LEN];
-    int Temperature::lpq_ptr = 0;
+    long  Temperature::last_e_position,
+          Temperature::lpq[LPQ_MAX_LEN];
+    int   Temperature::lpq_ptr = 0,
+          Temperature::lpq_len = 20;
   #endif
 
   uint8_t Temperature::pid_pointer[HOTENDS] = { 0 };
@@ -1839,14 +1840,14 @@ void Temperature::updateTemperaturesFromRawValues() {
     millis_t temp_last_update = millis();
     millis_t from_last_update = temp_last_update - last_update;
     static float watt_overflow = 0.0;
-    powerManager.power_consumption_meas = powerManager.analog2power();
+    powerManager.consumption_meas = powerManager.analog2power();
     /*SERIAL_MV("raw:", powerManager.raw_analog2voltage(), 5);
     SERIAL_MV(" - V:", powerManager.analog2voltage(), 5);
     SERIAL_MV(" - I:", powerManager.analog2current(), 5);
     SERIAL_EMV(" - P:", powerManager.analog2power(), 5);*/
-    watt_overflow += (powerManager.power_consumption_meas * from_last_update) / 3600000.0;
+    watt_overflow += (powerManager.consumption_meas * from_last_update) / 3600000.0;
     if (watt_overflow >= 1.0) {
-      powerManager.power_consumption_hour++;
+      powerManager.consumption_hour++;
       watt_overflow--;
     }
     last_update = temp_last_update;

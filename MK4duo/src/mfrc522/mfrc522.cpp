@@ -44,9 +44,9 @@
 
 #if ENABLED(RFID_MODULE)
 
-  #include "MFRC522_serial.h"
+  #include "mfrc522.h"
 
-  MFRC522 RFID522;
+  MFRC522 rfid522;
 
   uint8_t MFRC522Data[20];
 

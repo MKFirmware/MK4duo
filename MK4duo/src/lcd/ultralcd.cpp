@@ -1166,12 +1166,12 @@ void kill_screen(const char* lcd_msg) {
     void lcd_purge() { lcd_extrude(LCD_PURGE_LENGTH, LCD_PURGE_FEEDRATE); }
     void lcd_retract() { lcd_extrude(-LCD_RETRACT_LENGTH, LCD_RETRACT_FEEDRATE); }
     void lcd_easy_load() {
-      allow_lengthy_extrude_once = true;
+      printer.allow_lengthy_extrude_once = true;
       lcd_extrude(BOWDEN_LENGTH, LCD_LOAD_FEEDRATE);
       lcd_return_to_status();
     }
     void lcd_easy_unload() {
-      allow_lengthy_extrude_once = true;
+      printer.allow_lengthy_extrude_once = true;
       lcd_extrude(-BOWDEN_LENGTH, LCD_UNLOAD_FEEDRATE);
       lcd_return_to_status();
     }
@@ -2447,7 +2447,7 @@ void kill_screen(const char* lcd_msg) {
     // Idle oozing
     //
     #if ENABLED(IDLE_OOZING_PREVENT)
-      MENU_ITEM_EDIT(bool, MSG_IDLEOOZING, &IDLE_OOZING_enabled);
+      MENU_ITEM_EDIT(bool, MSG_IDLEOOZING, &printer.IDLE_OOZING_enabled);
     #endif
 
     //
@@ -3004,7 +3004,7 @@ void kill_screen(const char* lcd_msg) {
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         char Power[10];
-        sprintf_P(Power, PSTR("%uWh"), power_consumption_hour);
+        sprintf_P(Power, PSTR("%uWh"), consumption_hour);
       #endif
 
       START_SCREEN();

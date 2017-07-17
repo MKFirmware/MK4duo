@@ -36,7 +36,7 @@
   inline void gcode_M997(void) {
     long csteps;
     if (parser.seenval('C')) {
-      csteps = parser.value_ulong() * color_step_moltiplicator;
+      csteps = parser.value_ulong() * (DRIVER_MICROSTEP / MOTOR_ANGLE) * CARTER_MOLTIPLICATOR;
       SERIAL_EMV("csteps: ", csteps);
       if (csteps < 0) stepper.colorstep(-csteps, false);
       if (csteps > 0) stepper.colorstep(csteps, true);

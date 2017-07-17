@@ -751,7 +751,7 @@
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       SERIAL_LM(CFG, "Watt/h consumed:");
-      SERIAL_SV(CFG, powerManager.power_consumption_hour);
+      SERIAL_SV(CFG, powerManager.consumption_hour);
       SERIAL_EM(" Wh");
     #endif
 
@@ -760,7 +760,7 @@
 
   void CardReader::ResetDefault() {
     #if HAS_POWER_CONSUMPTION_SENSOR
-      powerManager.power_consumption_hour = 0;
+      powerManager.consumption_hour = 0;
     #endif
     printer.print_job_counter.initStats();
     SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
@@ -889,7 +889,7 @@
       ltoa(printer.print_job_counter.data.totalPrints, buff, 10);
       unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
       #if HAS_POWER_CONSUMPTION_SENSOR
-        ltoa(powerManager.power_consumption_hour, buff, 10);
+        ltoa(powerManager.consumption_hour, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
       #endif
       ltoa(printer.print_job_counter.data.printer_usage, buff, 10);
@@ -940,8 +940,8 @@
           break;
         #if HAS_POWER_CONSUMPTION_SENSOR
           case SD_CFG_PWR: {
-            if (addValue) powerManager.power_consumption_hour += (unsigned long)atol(value);
-            else powerManager.power_consumption_hour = (unsigned long)atol(value);
+            if (addValue) powerManager.consumption_hour += (unsigned long)atol(value);
+            else powerManager.consumption_hour = (unsigned long)atol(value);
           }
           break;
         #endif
