@@ -188,6 +188,11 @@ class Printer {
       static bool IDLE_OOZING_enabled;
     #endif
 
+    #if HAS_CHDK
+      static millis_t chdkHigh;
+      static bool chdkActive;
+    #endif
+
   public: /** Public Function */
 
     static void setup();
@@ -272,6 +277,11 @@ class Printer {
     #if ENABLED(IDLE_OOZING_PREVENT)
       millis_t  axis_last_activity;
       bool      IDLE_OOZING_retracted[EXTRUDERS];
+    #endif
+
+    #if ENABLED(CNCROUTER)
+      static uint8_t active_cnc_tool;
+      #define CNC_M6_TOOL_ID 255
     #endif
 
   private: /** Private Function */

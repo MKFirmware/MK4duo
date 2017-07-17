@@ -41,7 +41,7 @@
 
 #include "../../base.h"
 
-#if HAS_ABL
+#if ABL_PLANAR
 
 #include <math.h>
 

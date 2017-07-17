@@ -177,6 +177,10 @@ class Mechanics {
       float workspace_offset[XYZ] = { 0 };
     #endif
 
+    #if ENABLED(CNC_WORKSPACE_PLANES)
+      WorkspacePlane workspace_plane = PLANE_XY;
+    #endif
+
   public: /** Public Function */
 
     /**

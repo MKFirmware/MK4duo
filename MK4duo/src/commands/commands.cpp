@@ -134,12 +134,12 @@ void Commands::get_serial_commands() {
       char* command = serial_line_buffer;
 
       while (*command == ' ') command++; // skip any leading spaces
-      char* npos = (*command == 'N') ? command : NULL; // Require the N parameter to start the line
-      char* apos = strchr(command, '*');
+      char  *npos = (*command == 'N') ? command : NULL, // Require the N parameter to start the line
+            *apos = strchr(command, '*');
 
       if (npos) {
 
-        const bool M110 = strstr_P(command, PSTR("M110")) != NULL;
+        bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
         if (M110) {
           char* n2pos = strchr(command + 4, 'N');
@@ -217,7 +217,7 @@ void Commands::get_serial_commands() {
       // The command will be injected when EOL is reached
     }
     else if (serial_char == '\\') { // Handle escapes
-      if (HAL::serialByteAvailable()) {
+      if (HAL::serialByteAvailable() > 0) {
         // if we have one more character, copy it over
         serial_char = HAL::serialReadByte();
         if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;

@@ -34,7 +34,7 @@
 
   void report_workspace_plane() {
     SERIAL_SM(ECHO, "Workspace Plane ");
-    SERIAL_PS(workspace_plane == PLANE_YZ ? PSTR("YZ\n") : workspace_plane == PLANE_ZX ? PSTR("ZX\n") : PSTR("XY\n"));
+    SERIAL_PS(mechanics.workspace_plane == PLANE_YZ ? PSTR("YZ\n") : mechanics.workspace_plane == PLANE_ZX ? PSTR("ZX\n") : PSTR("XY\n"));
   }
 
   /**
@@ -42,8 +42,8 @@
    * G18: Select Plane ZX
    * G19: Select Plane YZ
    */
-  inline void gcode_G17(void) { workspace_plane = PLANE_XY; }
-  inline void gcode_G18(void) { workspace_plane = PLANE_ZX; }
-  inline void gcode_G19(void) { workspace_plane = PLANE_YZ; }
+  inline void gcode_G17(void) { mechanics.workspace_plane = PLANE_XY; }
+  inline void gcode_G18(void) { mechanics.workspace_plane = PLANE_ZX; }
+  inline void gcode_G19(void) { mechanics.workspace_plane = PLANE_YZ; }
 
 #endif // CNC_WORKSPACE_PLANES

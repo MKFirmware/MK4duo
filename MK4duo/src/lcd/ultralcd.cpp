@@ -1926,8 +1926,6 @@ void kill_screen(const char* lcd_msg) {
       #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
         MENU_ITEM(gcode, MSG_DELTA_AUTO_CALIBRATE, PSTR("G33"));
         MENU_ITEM(gcode, MSG_DELTA_HEIGHT_CALIBRATE, PSTR("G33 P1"));
-      #elif ENABLED(DELTA_AUTO_CALIBRATION_3)
-        MENU_ITEM(gcode, MSG_DELTA_AUTO_CALIBRATE, PSTR("G33 A"));
       #endif
       MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
       if (mechanics.axis_homed[Z_AXIS]) {

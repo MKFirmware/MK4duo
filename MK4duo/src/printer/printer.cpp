@@ -41,10 +41,6 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
-/**
- * Public Parameters
- */
-
 bool    Printer::Running        = true,
         Printer::relative_mode  = false,
         Printer::pos_saved      = false;
@@ -222,6 +218,15 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   millis_t  Printer::axis_last_activity   = 0;
   bool      Printer::IDLE_OOZING_enabled  = true,
             Printer::IDLE_OOZING_retracted[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
+#endif
+
+#if HAS_CHDK
+  millis_t  Printer::chdkHigh   = 0;
+  bool      Printer::chdkActive = false;
+#endif
+
+#if ENABLED(CNCROUTER)
+  uint8_t   Printer::active_cnc_tool = 0;
 #endif
 
 /**

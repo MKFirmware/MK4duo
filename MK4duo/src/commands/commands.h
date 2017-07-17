@@ -31,6 +31,13 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
+#if ENABLED(M100_FREE_MEMORY_WATCHER)
+  void gcode_M100();
+  #if ENABLED(M100_FREE_MEMORY_DUMPER)
+    void M100_dump_routine(const char * const title, const char *start, const char *end);
+  #endif
+#endif
+
 class Commands {
 
   public: /** Constructor */

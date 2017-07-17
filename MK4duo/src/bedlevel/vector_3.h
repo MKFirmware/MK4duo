@@ -42,7 +42,7 @@
 #ifndef _VECTOR_3_H_
 #define _VECTOR_3_H_
 
-#if HAS_ABL
+#if ABL_PLANAR
 
   class matrix_3x3;
 

@@ -49,12 +49,12 @@
   void Laser::Init() {
 
     #if LASER_CONTROL == 1
-      if (!HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM)) {
+      if (!HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM)) {
         SERIAL_LM(ER, "LASER_PWR_PIN not PWM or TC pin, please select another pin!");
         return;
       }
     #elif LASER_CONTROL == 2
-      if (!HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM)) {
+      if (!HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM)) {
         SERIAL_LM(ER, "LASER_PWM_PIN not PWM or TC pin, please select another pin!");
         return;
       }
@@ -105,9 +105,9 @@
     #endif
 
     #if LASER_CONTROL == 1
-      HAL::AnalogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      HAL::analogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
     #elif LASER_CONTROL == 2
-      HAL::AnalogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      HAL::analogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
       WRITE(LASER_PWR_PIN, LASER_ARM);
     #endif
 
@@ -122,15 +122,15 @@
 
       #if LASER_CONTROL == 1
         #if ENABLED(LASER_PWM_INVERT)
-          HAL::AnalogWrite(LASER_PWR_PIN, 255, LASER_PWM);
+          HAL::analogWrite(LASER_PWR_PIN, 255, LASER_PWM);
         #else
-          HAL::AnalogWrite(LASER_PWR_PIN, 0, LASER_PWM);
+          HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM);
         #endif
       #elif LASER_CONTROL == 2
         #if ENABLED(LASER_PWM_INVERT)
-          HAL::AnalogWrite(LASER_PWM_PIN, 255, LASER_PWM);
+          HAL::analogWrite(LASER_PWM_PIN, 255, LASER_PWM);
         #else
-          HAL::AnalogWrite(LASER_PWM_PIN, 0, LASER_PWM);
+          HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM);
         #endif
         WRITE(LASER_PWR_PIN, LASER_UNARM);
       #endif
@@ -154,17 +154,6 @@
         laser.mode = RASTER;
         return;
     }
-  }
-
-  void Laser::diagnose() {
-    if (!laser.diagnostics)
-      return;
-
-    SERIAL_LMV(CFG, "Intensity ", laser.intensity);
-    SERIAL_LMV(CFG, "Duration  ", laser.duration);
-    SERIAL_LMV(CFG, "Ppm       ", laser.ppm);
-    SERIAL_LMV(CFG, "Mode      ", laser.mode);
-    SERIAL_LMV(CFG, "Status    ", laser.status);
   }
 
   #if ENABLED(LASER_PERIPHERALS)

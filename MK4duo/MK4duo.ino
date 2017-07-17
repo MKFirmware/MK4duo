@@ -61,7 +61,6 @@
  * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
  *          F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
  *          P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
- *          A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
  * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60  - Save current position coordinates (all axes, for active extruder).
  *          S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
