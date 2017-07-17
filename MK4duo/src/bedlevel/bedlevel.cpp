@@ -661,4 +661,30 @@
 
   #endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
+  #if ENABLED(DEBUG_LEVELING_FEATURE)
+
+    void Bed_level::print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
+      SERIAL_PS(prefix);
+      SERIAL_CHR('(');
+      SERIAL_VAL(x);
+      SERIAL_MV(", ", y);
+      SERIAL_MV(", ", z);
+      SERIAL_CHR(")");
+
+      if (suffix) SERIAL_PS(suffix);
+      else SERIAL_EOL();
+    }
+
+    void Bed_level::print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
+      print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
+    }
+
+    #if ABL_PLANAR
+      void Bed_level::print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
+        print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
+      }
+    #endif
+
+  #endif // ENABLED(DEBUG_LEVELING_FEATURE)
+
 #endif // HAS_LEVELING

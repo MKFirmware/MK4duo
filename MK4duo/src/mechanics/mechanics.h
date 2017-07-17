@@ -32,7 +32,7 @@
 // DEBUG LEVELING
 #if ENABLED(DEBUG_LEVELING_FEATURE)
   #define DEBUG_POS(SUFFIX,VAR)       do{ \
-    mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
+    bedlevel.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
 #endif
 
 // Workspace offsets
@@ -290,14 +290,6 @@ class Mechanics {
     virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
             bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
             bool position_is_reachable_xy(const float &lx, const float &ly);
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
-      void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
-      #if ABL_PLANAR
-        void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
-      #endif
-    #endif
 
   private: /** Private Function */
 
