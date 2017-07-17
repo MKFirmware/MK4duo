@@ -37,8 +37,11 @@
 inline void gcode_M44(void) {
 
   if (parser.seen('I')) {
-    SERIAL_EMV("Number of G-codes available: ", (int)COUNT(GCode_Table));
+    SERIAL_EMV("Number of G-codes available: ", (int)(COUNT(GCode_Table) + 2));
     SERIAL_EM("Complete list of G-codes available for this machine:");
+
+    SERIAL_EM("G0");
+    SERIAL_EM("G1");
 
     for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); index++) {
       SERIAL_EMV("G", GCode_Table[index].code);
