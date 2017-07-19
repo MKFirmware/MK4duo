@@ -496,7 +496,7 @@
     #undef WORKSPACE_OFFSETS
   #endif
 
-  #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3))
+  #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
 
 #endif // MECH(DELTA)
 
@@ -627,7 +627,7 @@
  */
 #if ENABLED(ADVANCE)
   #define EXTRUSION_AREA (0.25 * (D_FILAMENT) * (D_FILAMENT) * M_PI)
-  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + active_extruder] / (EXTRUSION_AREA))
+  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + extruder.active] / (EXTRUSION_AREA))
 #endif
 
 /**
@@ -843,6 +843,15 @@
 #define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
 /**
+ * Auto Fans pin
+ */
+#if ENABLED(INVERTED_AUTO_FAN_PINS)
+  #define WRITE_AUTO_FAN(pin, v) do{ digitalWrite(pin, v ? 0 : 1); HAL::analogWrite(pin, 255 - v); }while(0)
+#else
+  #define WRITE_AUTO_FAN(pin, v) do{ digitalWrite(pin, v); HAL::analogWrite(pin, v); }while(0)
+#endif
+
+/**
  * Extruder Encoder
  */
 #if HAS_EXT_ENCODER
@@ -898,7 +907,7 @@
     #define LCD_FEEDBACK_FREQUENCY_HZ 5000
   #endif
   #if DISABLED(LCD_FEEDBACK_FREQUENCY_DURATION_MS)
-    #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
+    #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 10
   #endif
 #endif
 

@@ -160,6 +160,7 @@
 // the fan will turn on when any selected hotend is above the threshold.
 // You need to set HOTEND AUTO FAN PIN in Configuration_pins.h
 //#define HOTEND_AUTO_FAN
+//#define INVERTED_AUTO_FAN_PINS
 #define HOTEND_AUTO_FAN_TEMPERATURE  50
 #define HOTEND_AUTO_FAN_SPEED       255  // 255 = full speed
 #define HOTEND_AUTO_FAN_MIN_SPEED     0
@@ -544,8 +545,11 @@
  *                                                                        *
  * If defined the endstops will only be used for homing                   *
  *                                                                        *
+ * If you use all six endstop enable ENABLE ALL SIX ENDSTOP               *
+ *                                                                        *
  **************************************************************************/
 #define ENDSTOPS_ONLY_FOR_HOMING
+//#define ENABLED_ALL_SIX_ENDSTOP
 /**************************************************************************/
 
 

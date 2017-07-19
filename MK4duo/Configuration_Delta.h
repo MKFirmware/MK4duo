@@ -481,17 +481,12 @@
  * Three type of the calibration DELTA                                                   *
  *  1) Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points           ~3.2Kb *
  *  2) Algorithm based on Thinkyhead Marlin   4 points + iteration                ~4.5Kb *
- *  3) Algorithm based on Rich Cattell Marlin 4 points + iteration                ~8.0Kb *
  *                                                                                       *
  * To use one of this you must have a PROBE, please define you type probe.               *
  *                                                                                       *
  *****************************************************************************************/
 //#define DELTA_AUTO_CALIBRATION_1
 //#define DELTA_AUTO_CALIBRATION_2
-//#define DELTA_AUTO_CALIBRATION_3
-
-// Precision for G33 Delta Auto Calibration function
-#define AUTOCALIBRATION_PRECISION 0.1 // mm
 /*****************************************************************************************/
 
 

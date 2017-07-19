@@ -327,10 +327,10 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
 
-        // In Dual X mode hotend_offset[X] is T1's home position
-        float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+        // In Dual X mode printer.hotend_offset[X] is T1's home position
+        float dual_max_x = max(printer.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
-        if (active_extruder != 0) {
+        if (extruder.active != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
           soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
           soft_endstop_max[X_AXIS] = dual_max_x + offs;
@@ -499,13 +499,13 @@ void Endstops::update() {
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
-    if (G38_move) {
+    if (printer.G38_move) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
         if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(X_AXIS); }
         else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(Y_AXIS); }
         else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(Z_AXIS); }
-        G38_endstop_hit = true;
+        printer.G38_endstop_hit = true;
       }
     }
   #endif
@@ -581,7 +581,7 @@ void Endstops::update() {
 
   // With Dual X, endstops are only checked in the homing direction for the active extruder
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E0_ACTIVE stepper.current_block->active_extruder == 0
+    #define E0_ACTIVE stepper.current_block->extruder.active == 0
     #define X_MIN_TEST ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
     #define X_MAX_TEST ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
   #else

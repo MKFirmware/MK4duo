@@ -581,7 +581,7 @@
 
     void Bed_level::mesh_probing_done() {
       mbl.set_has_mesh(true);
-      home_all_axes();
+      mechanics.Home(true);
       set_bed_leveling_enabled(true);
       #if ENABLED(MESH_G28_REST_ORIGIN)
         mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);

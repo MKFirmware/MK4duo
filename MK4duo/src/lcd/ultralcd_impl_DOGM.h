@@ -469,7 +469,7 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(LASER)
 
-    if (printer_mode == PRINTER_MODE_LASER) {
+    if (printer.mode == PRINTER_MODE_LASER) {
       #if ENABLED(LASER_PERIPHERALS)
         if (laser.peripherals_ok()) {
           u8g.drawBitmapP(29,4, LASERENABLE_BYTEWIDTH, LASERENABLE_HEIGHT, laserenable_bmp);
@@ -498,7 +498,7 @@ static void lcd_implementation_status_screen() {
 
       u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
         #if HAS_FAN0
-          blink && fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
+          blink && printer.fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
         #else
           status_screen0_bmp
         #endif
@@ -506,7 +506,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  if (printer_mode == PRINTER_MODE_FFF) {
+  if (printer.mode == PRINTER_MODE_FFF) {
 
     //
     // Temperature Graphics and Info
@@ -524,7 +524,7 @@ static void lcd_implementation_status_screen() {
       #if HAS_FAN0
         if (PAGE_CONTAINS(20, 27)) {
           // Fan
-          const int16_t per = ((fanSpeeds[0] + 1) * 100) / 256;
+          const int16_t per = ((printer.fanSpeeds[0] + 1) * 100) / 256;
           if (per) {
             u8g.setPrintPos(104, 27);
             lcd_print(itostr3(per));
@@ -586,8 +586,8 @@ static void lcd_implementation_status_screen() {
 
       char buffer1[10];
       char buffer2[10];
-      duration_t elapsed  = print_job_counter.duration();
-      duration_t finished = (print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
+      duration_t elapsed  = printer.print_job_counter.duration();
+      duration_t finished = (printer.print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
       uint8_t len1 = elapsed.toDigital(buffer1, false),
               len2 = finished.toDigital(buffer2, false);
 
@@ -602,7 +602,7 @@ static void lcd_implementation_status_screen() {
           lcd_print(buffer2);
         }
         else {
-          lcd_print(itostr4(power_consumption_hour - startpower));
+          lcd_print(itostr4(powerManager.consumption_hour - powerManager.startpower));
           lcd_print((char*)"Wh");
         }
       #else
@@ -658,7 +658,7 @@ static void lcd_implementation_status_screen() {
     strcpy(zstring, ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
     #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
-      strcpy(mstring, itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+      strcpy(mstring, itostr3(100.0 * extruder.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
     #endif
   }
 
@@ -750,9 +750,9 @@ static void lcd_implementation_status_screen() {
         #endif
           {
             lcd_printPGM(PSTR("P:"));
-            lcd_print(ftostr31(power_consumption_meas));
+            lcd_print(ftostr31(powerManager.consumption_meas));
             lcd_printPGM(PSTR("W C:"));
-            lcd_print(ltostr7(power_consumption_hour));
+            lcd_print(ltostr7(powerManager.consumption_hour));
             lcd_printPGM(PSTR("Wh"));
           }
       #endif
@@ -764,7 +764,7 @@ static void lcd_implementation_status_screen() {
           lcd_print(ftostr12ns(filament_width_meas));
           lcd_printPGM(PSTR("  " LCD_STR_FILAM_MUL));
           u8g.print(':');
-          lcd_print(itostr3(100.0 * volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+          lcd_print(itostr3(100.0 * extruder.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
           u8g.print('%');
         }
       #endif
@@ -789,13 +789,13 @@ static void lcd_implementation_status_screen() {
 
       u8g.setPrintPos(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
       lcd_print('E');
-      lcd_print((char)('0' + active_extruder));
+      lcd_print((char)('0' + extruder.active));
       lcd_print(' ');
-      lcd_print(itostr3(thermalManager.degHotend(active_extruder)));
+      lcd_print(itostr3(thermalManager.degHotend(extruder.active)));
       lcd_print('/');
 
-      if (lcd_blink() || !thermalManager.is_heater_idle(active_extruder))
-        lcd_print(itostr3(thermalManager.degTargetHotend(active_extruder)));
+      if (lcd_blink() || !thermalManager.is_heater_idle(extruder.active))
+        lcd_print(itostr3(thermalManager.degTargetHotend(extruder.active)));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

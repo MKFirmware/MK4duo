@@ -63,15 +63,27 @@
       void Init();
 
       /**
+       * Home all axes according to settings
+       *
+       * Parameters
+       *
+       *  None  Home to all axes with no parameters.
+       *        With QUICK_HOME enabled XY will home together, then Z.
+       *
+       * Cartesian parameters
+       *
+       *  X   Home to the X endstop
+       *  Y   Home to the Y endstop
+       *  Z   Home to the Z endstop
+       *
+       */
+       void Home(const bool always_home_all);
+
+      /**
        * Prepare a single move and get ready for the next one
        * If Mesh Bed Leveling is enabled, perform a mesh move.
        */
       void prepare_move_to_destination();
-
-      /**
-       * Home Cartesian
-       */
-      void Home(const bool always_home_all);
 
       /**
        * Set an axis' current position to its home position (after homing).

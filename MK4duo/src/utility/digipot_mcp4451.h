@@ -35,7 +35,7 @@
 static byte current_to_wiper(float current);
 static void i2c_send(byte addr, byte a, byte b);
 // This is for the MCP4451 I2C based digipot
-void digipot_i2c_set_current(int channel, float current);
-void digipot_i2c_init();
+extern void digipot_i2c_set_current(int channel, float current);
+extern void digipot_i2c_init();
 
 #endif

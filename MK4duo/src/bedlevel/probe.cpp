@@ -59,25 +59,25 @@ bool Probe::set_deployed(bool deploy) {
       bltouch_command(BLTOUCH_RESET);    // try to reset it.
       bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
       bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
-      safe_delay(1500);                  // wait for internal self test to complete
+      printer.safe_delay(1500);                  // wait for internal self test to complete
                                          //   measured completion time was 0.65 seconds
                                          //   after reset, deploy & stow sequence
       if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
         SERIAL_LM(ER, MSG_STOP_BLTOUCH);
-        Stop();                          // punt!
+        printer.Stop();                          // punt!
         return true;
       }
     }
   #elif ENABLED(Z_PROBE_SLED)
     if (mechanics.axis_unhomed_error(true, false, false)) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
-      Stop();
+      printer.Stop();
       return true;
     }
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     if (mechanics.axis_unhomed_error(true, true,  true )) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
-      Stop();
+      printer.Stop();
       return true;
     }
   #endif
@@ -89,7 +89,7 @@ bool Probe::set_deployed(bool deploy) {
     // If endstop is already false, the Z probe is deployed
     if (_TRIGGERED_WHEN_STOWED_TEST == deploy) {        // closed after the probe specific actions.
                                                         // Would a goto be less ugly?
-      //while (!_TRIGGERED_WHEN_STOWED_TEST) { idle();  // would offer the opportunity
+      //while (!_TRIGGERED_WHEN_STOWED_TEST) { printer.idle();  // would offer the opportunity
                                                         // for a triggered when stowed manual probe.
       if (!deploy) set_enable(false); // Switch off triggered when stowed probes early
                                           // otherwise an Allen-Key probe can't be stowed.
@@ -109,7 +109,7 @@ bool Probe::set_deployed(bool deploy) {
     } // opened before the probe specific actions
 
     if (_TRIGGERED_WHEN_STOWED_TEST == deploy) {
-      if (IsRunning()) {
+      if (printer.IsRunning()) {
         SERIAL_LM(ER, "Z-Probe failed");
         LCD_ALERTMESSAGEPGM("Err: ZPROBE");
       }
@@ -193,7 +193,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
     float measured_z = 0.0;
 
     // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
-    refresh_cmd_timeout();
+    commands.refresh_cmd_timeout();
 
     // If the nozzle is above the travel height then
     // move down quickly before doing the slow probe
@@ -256,7 +256,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
     #endif
 
     KEEPALIVE_STATE(PAUSED_FOR_USER);
-    wait_for_user = true;
+    printer.wait_for_user = true;
 
     #if ENABLED(ULTIPANEL)
       lcd_move_z_probe();
@@ -264,7 +264,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       LcdBedLevelOn();
     #endif
 
-    while (wait_for_user) idle();
+    while (printer.wait_for_user) printer.idle();
 
     #if ENABLED(NEXTION)
       LcdBedLevelOff();
@@ -308,7 +308,7 @@ void Probe::single_probe() {
     bedlevel.set_bed_leveling_enabled(false);
   #endif
 
-  setup_for_endstop_or_probe_move();
+  printer.setup_for_endstop_or_probe_move();
 
   const float measured_z = check_pt(xpos, ypos, !parser.seen('S') || parser.value_bool(), 1);
 
@@ -332,7 +332,7 @@ void Probe::single_probe() {
 
   SERIAL_EOL();
 
-  clean_up_after_endstop_or_probe_move();
+  printer.clean_up_after_endstop_or_probe_move();
 
   mechanics.report_current_position();
 }
@@ -343,16 +343,16 @@ void Probe::single_probe() {
       thermalManager.pause(p);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
-      fans_pause(p);
+      printer.fans_pause(p);
     #endif
-    if (p) safe_delay(25);
+    if (p) printer.safe_delay(25);
   }
 #endif // QUIET_PROBING
 
 #if ENABLED(BLTOUCH)
   void Probe::bltouch_command(int angle) {
     servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
-    safe_delay(BLTOUCH_DELAY);
+    printer.safe_delay(BLTOUCH_DELAY);
   }
 
   void Probe::set_bltouch_deployed(const bool deploy) {
@@ -360,12 +360,12 @@ void Probe::single_probe() {
       bltouch_command(BLTOUCH_RESET);    // try to reset it.
       bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
       bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
-      safe_delay(1500);                  // wait for internal self test to complete
+      printer.safe_delay(1500);                  // wait for internal self test to complete
                                          //   measured completion time was 0.65 seconds
                                          //   after reset, deploy & stow sequence
       if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
         SERIAL_LM(ER, MSG_STOP_BLTOUCH);
-        Stop();                          // punt!
+        printer.Stop();                          // punt!
       }
     }
     bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
@@ -442,3 +442,63 @@ void Probe::refresh_zprobe_zoffset() {
 
   last_z_offset = z_offset;
 }
+
+#if ENABLED(Z_PROBE_ALLEN_KEY)
+
+  void Probe::run_deploy_moves_script() {
+
+    const float z_probe_deploy_start_location[] = Z_PROBE_DEPLOY_START_LOCATION,
+                z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION;
+
+    // Move to the start position to initiate deployment
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+
+    // Move to engage deployment
+    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+
+    // Move to trigger deployment
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+  }
+  void run_stow_moves_script() {
+
+    const float z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
+                z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
+
+    // Move to the start position to initiate retraction
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+
+    // Move the nozzle down to push the Z probe into retracted position
+    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+
+    // Move up for safety
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+  }
+
+#endif
+
+#if HAS_Z_PROBE_SLED
+
+  #if DISABLED(SLED_DOCKING_OFFSET)
+    #define SLED_DOCKING_OFFSET 0
+  #endif
+
+  /**
+   * Method to dock/undock a sled designed by Charles Bell.
+   *
+   * stow[in]     If false, move to MAX_ and engage the solenoid
+   *              If true, move to MAX_X and release the solenoid
+   */
+  void Probe::dock_sled(bool stow) {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("dock_sled(", stow);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    // Dock sled a bit closer to ensure proper capturing
+    mechanics.do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
+    WRITE(SLED_PIN, !stow); // switch solenoid
+  }
+
+#endif // Z_PROBE_SLED

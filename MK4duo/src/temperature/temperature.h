@@ -34,12 +34,14 @@
   #define EXTRUDER_IDX  0
 #else
   #define HOTEND_INDEX  h
-  #define EXTRUDER_IDX  active_extruder
+  #define EXTRUDER_IDX  extruder.active
 #endif
 
 class Temperature {
 
   public:
+
+    static volatile bool  wait_for_heatup;
 
     #if HAS_TEMP_HOTEND
       static float      current_temperature[HOTENDS];
@@ -104,6 +106,10 @@ class Temperature {
       static float coolerKp, coolerKi, coolerKd;
     #endif
 
+    #if HAS(AUTO_FAN)
+      static uint8_t autoFanSpeeds[HOTENDS];
+    #endif
+
     #if ENABLED(BABYSTEPPING)
       static volatile int babystepsTodo[3];
     #endif
@@ -146,6 +152,11 @@ class Temperature {
       static millis_t next_temp_report_ms;
     #endif
 
+    #if HEATER_USES_AD595
+      static float  ad595_offset[HOTENDS],
+                    ad595_gain[HOTENDS];
+    #endif
+
   private:
 
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -161,10 +172,11 @@ class Temperature {
                     pid_error[HOTENDS];
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        static float cTerm[HOTENDS];
-        static long last_e_position;
-        static long lpq[LPQ_MAX_LEN];
-        static int lpq_ptr;
+        static float  cTerm[HOTENDS];
+        static long   last_e_position,
+                      lpq[LPQ_MAX_LEN];
+        static int    lpq_ptr,
+                      lpq_len;
       #endif
 
       static uint8_t pid_pointer[HOTENDS];
@@ -284,15 +296,19 @@ class Temperature {
      */
     #if HAS_TEMP_HOTEND
       static float analog2temp(const int raw, uint8_t h);
+      static void wait_heater(bool no_wait_for_cooling=true);
     #endif
     #if HAS_TEMP_BED
       static float analog2tempBed(const int raw);
+      static void wait_bed(bool no_wait_for_cooling=true);
     #endif
     #if HAS_TEMP_CHAMBER
       static float analog2tempChamber(const int raw);
+      static void wait_chamber(bool no_wait_for_heating=true);
     #endif
     #if HAS_TEMP_COOLER
       static float analog2tempCooler(const int raw);
+      static void wait_cooler(bool no_wait_for_heating=true);
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
       static float analog2tempMCU(const int raw);
@@ -339,16 +355,6 @@ class Temperature {
     #if HAS_FILAMENT_SENSOR
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
       static int widthFil_to_size_ratio(); // Convert raw Filament Width to an extrusion ratio
-    #endif
-
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      // For converting raw Power Consumption to watt
-      static float analog2voltage(),
-                   analog2current(),
-                   analog2power(),
-                   raw_analog2voltage(),
-                   analog2error(float current),
-                   analog2efficiency(float watt);
     #endif
 
     // high level conversion routines, for use outside of temperature.cpp
@@ -748,11 +754,6 @@ class Temperature {
       #endif
 
     #endif // THERMAL_PROTECTION
-
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      int current_raw_powconsumption;
-      static unsigned long raw_powconsumption_value;
-    #endif
 
     #if HAS_TEMP_HOTEND || HAS_TEMP_BED
       static void print_heater_state(const float &c, const int16_t &t,

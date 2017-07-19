@@ -58,6 +58,8 @@ class Stepper {
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
+    static millis_t stepper_inactive_time;
+
     #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
       static bool abort_on_endstop_hit;
     #endif
@@ -272,11 +274,6 @@ class Stepper {
     static FORCE_INLINE float triggered_position_mm(AxisEnum axis) {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
-
-    #if ENABLED(LIN_ADVANCE)
-      void advance_M905(const float &k);
-      FORCE_INLINE int get_advance_k() { return extruder_advance_k; }
-    #endif
 
     #if ENABLED(NPR2) // Multiextruder
       static void colorstep(long csteps, const bool direction);

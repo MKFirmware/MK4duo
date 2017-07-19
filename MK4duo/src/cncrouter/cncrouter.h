@@ -39,25 +39,28 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef CNCROUTER_H
-  #define CNCROUTER_H
+#ifndef _CNCROUTER_H_
+#define _CNCROUTER_H_
 
-  #if ENABLED(CNCROUTER)
-    void cnc_init();    // initialize cnc router
-    void cnc_manage();  // management loop for CNC
+#if ENABLED(CNCROUTER)
 
-    #if ENABLED(FAST_PWM_CNCROUTER)
-      unsigned long getCNCSpeed();
+  void cnc_init();    // initialize cnc router
+  void cnc_manage();  // management loop for CNC
+
+  #if ENABLED(FAST_PWM_CNCROUTER)
+    unsigned long getCNCSpeed();
+    void print_cncspeed();
+  #else
+    #if ENABLED(INVERTED_CNCROUTER_PIN)
+      #define getCNCSpeed() READ(CNCROUTER_PIN)
     #else
-      #if ENABLED(INVERTED_CNCROUTER_PIN)
-        #define getCNCSpeed() READ(CNCROUTER_PIN)
-      #else
-        #define getCNCSpeed() !READ(CNCROUTER_PIN)
-      #endif // INVERTED_CNCROUTER_PIN
-    #endif // FAST_PWM_CNCROUTER
+      #define getCNCSpeed() !READ(CNCROUTER_PIN)
+    #endif // INVERTED_CNCROUTER_PIN
+  #endif // FAST_PWM_CNCROUTER
 
-    void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
-    void disable_cncrouter();
-  #endif // CNCROUTER
+  void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
+  void disable_cncrouter();
 
-#endif
+#endif // CNCROUTER
+
+#endif /* _CNCROUTER_H_ */

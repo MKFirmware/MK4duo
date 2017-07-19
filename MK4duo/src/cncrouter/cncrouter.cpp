@@ -42,6 +42,7 @@
 #include "../../base.h"
 
 #if ENABLED(CNCROUTER)
+
   void cnc_init() {
     SET_OUTPUT(CNCROUTER_PIN);
     #if ENABLED(FAST_PWM_CNCROUTER)
@@ -81,6 +82,11 @@
 
     unsigned long getCNCSpeed() {
       return rpm_instant;
+    }
+
+    void print_cncspeed() {
+      SERIAL_MV(" CNC speed: ", getCNCSpeed());
+      SERIAL_MSG(" rpm ");
     }
 
   #endif

@@ -177,6 +177,10 @@ class Mechanics {
       float workspace_offset[XYZ] = { 0 };
     #endif
 
+    #if ENABLED(CNC_WORKSPACE_PLANES)
+      WorkspacePlane workspace_plane = PLANE_XY;
+    #endif
+
   public: /** Public Function */
 
     /**
@@ -273,6 +277,23 @@ class Mechanics {
     void refresh_positioning();
 
     /**
+     * Home all axes according to settings
+     *
+     * Parameters
+     *
+     *  None  Home to all axes with no parameters.
+     *        With QUICK_HOME enabled XY will home together, then Z.
+     *
+     * Cartesian parameters
+     *
+     *  X   Home to the X endstop
+     *  Y   Home to the Y endstop
+     *  Z   Home to the Z endstop
+     *
+     */
+    virtual void Home(const bool always_home_all);
+
+    /**
      * Home an individual linear axis
      */
     void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
@@ -280,7 +301,10 @@ class Mechanics {
     /**
      * Report current position to host
      */
-    void report_current_position();
+            void report_current_position();
+    virtual void report_current_position_detail();
+
+    FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
 
     //float get_homing_bump_feedrate(const AxisEnum axis);
 
@@ -291,9 +315,28 @@ class Mechanics {
             bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
             bool position_is_reachable_xy(const float &lx, const float &ly);
 
+    /**
+     * Plan an arc in 2 dimensions
+     *
+     * The arc is approximated by generating many small linear segments.
+     * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+     * Arcs should only be made relatively large (over 5mm), as larger arcs with
+     * larger segments will tend to be more efficient. Your slicer should have
+     * options for G2/G3 arc generation. In future these options may be GCode tunable.
+     */
+    #if ENABLED(ARC_SUPPORT)
+      void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      void log_machine_info();
+    #endif
+
   private: /** Private Function */
 
   protected: /** Protected Function */
+
+    void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
 
