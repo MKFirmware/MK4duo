@@ -879,7 +879,7 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("Dia "));
         lcd.print(ftostr12ns(filament_width_meas));
         lcd_printPGM(PSTR(" V"));
-        lcd.print(itostr3(100.0 * extruder.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+        lcd.print(itostr3(100.0 * tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
         lcd.write('%');
         return;
       }
@@ -940,7 +940,7 @@ static void lcd_implementation_status_screen() {
       if (row < LCD_HEIGHT) {
         lcd.setCursor(LCD_WIDTH - 9, row);
         lcd.print(LCD_STR_THERMOMETER[0]);
-        _draw_heater_status(extruder.active, LCD_STR_THERMOMETER[0], lcd_blink());
+        _draw_heater_status(tools.active_extruder, LCD_STR_THERMOMETER[0], lcd_blink());
       }
     }
 

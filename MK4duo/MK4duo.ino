@@ -64,7 +64,7 @@
  * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G60  - Save current position coordinates (all axes, for active extruder).
  *          S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
- * G61  - Apply/restore saved coordinates to the active extruder.
+ * G61  - Apply/restore saved coordinates.
  *          X Y Z E - Value to add at stored coordinates.
  *          F<speed> - Set Feedrate.
  *          S<SLOT> - specifies memory slot # (0-based) to restore from (default 0).

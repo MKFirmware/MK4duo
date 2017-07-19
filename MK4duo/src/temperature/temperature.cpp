@@ -718,7 +718,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     UNUSED(h);
     #define _HOTEND_TEST  true
   #else
-    #define _HOTEND_TEST  h == extruder.active
+    #define _HOTEND_TEST  h == tools.active_extruder
   #endif
 
   uint8_t pid_output = 0;
@@ -993,7 +993,7 @@ void Temperature::manage_temp_controller() {
       // Get the delayed info and add 100 to reconstitute to a percent of
       // the nominal filament diameter then square it to get an area
       const float vmroot = measurement_delay[meas_shift_index] * 0.01 + 1.0;
-      extruder.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
+      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
     }
   #endif // FILAMENT_SENSOR
 
@@ -1204,7 +1204,7 @@ void Temperature::manage_temp_controller() {
       #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
     #else
       // Loop until the temperature is exactly on target
-      #define TEMP_CONDITIONS (wants_to_cool ? isCoolingHotend(extruder.target) : isHeatingHotend(extruder.target))
+      #define TEMP_CONDITIONS (wants_to_cool ? isCoolingHotend(tools.target_extruder) : isHeatingHotend(tools.target_extruder))
     #endif
 
     float target_temp = -1.0, old_temp = 9999.0;
@@ -1217,16 +1217,16 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PRINTER_EVENT_LEDS)
-      const float start_temp = degHotend(extruder.target);
+      const float start_temp = degHotend(tools.target_extruder);
       uint8_t old_blue = 0;
     #endif
 
     do {
       // Target temperature might be changed during the loop
-      if (target_temp != degTargetHotend(extruder.target))
-        target_temp = degTargetHotend(extruder.target);
+      if (target_temp != degTargetHotend(tools.target_extruder))
+        target_temp = degTargetHotend(tools.target_extruder);
 
-      wants_to_cool = isCoolingHotend(extruder.target);
+      wants_to_cool = isCoolingHotend(tools.target_extruder);
 
       // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
       if (no_wait_for_cooling && wants_to_cool) break;
@@ -1248,7 +1248,7 @@ void Temperature::manage_temp_controller() {
       printer.idle();
       commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
 
-      const float temp = degHotend(extruder.target);
+      const float temp = degHotend(tools.target_extruder);
 
       #if ENABLED(PRINTER_EVENT_LEDS)
         // Gradually change LED strip from violet to red as nozzle heats up
@@ -1363,7 +1363,7 @@ void Temperature::manage_temp_controller() {
       KEEPALIVE_STATE(NOT_BUSY);
     #endif
 
-    extruder.target = extruder.active; // for print_heaterstates
+    tools.target_extruder = tools.active_extruder; // for print_heaterstates
 
     #if ENABLED(PRINTER_EVENT_LEDS)
       const float start_temp = degBed();
@@ -1692,30 +1692,29 @@ void Temperature::manage_temp_controller() {
 
   void Temperature::print_heaterstates() {
     #if HAS_TEMP_HOTEND
-      print_heater_state(degHotend(extruder.target), degTargetHotend(extruder.target)
+      print_heater_state(degHotend(tools.target_extruder), degTargetHotend(tools.target_extruder)
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , rawHotendTemp(extruder.target)
+          , rawHotendTemp(tools.target_extruder)
         #endif
       );
     #endif
     #if HAS_TEMP_BED
-      print_heater_state(degBed(), degTargetBed()
+      print_heater_state(degBed(), degTargetBed(),
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , rawBedTemp()
-          SERIAL_CHR(')');
+          rawBedTemp(),
         #endif
-        , -1 // BED
+        -1 // BED
       );
     #endif
     #if HOTENDS > 1
-      LOOP_HOTEND() print_heater_state(degHotend(h), degTargetHotend(h)
+      LOOP_HOTEND() print_heater_state(degHotend(h), degTargetHotend(h),
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , rawHotendTemp(h)
+          rawHotendTemp(h),
         #endif
-        , h
+        h
       );
     #endif
-    SERIAL_MV(MSG_AT ":", getHeaterPower(extruder.target));
+    SERIAL_MV(MSG_AT ":", getHeaterPower(tools.target_extruder));
     #if HAS_TEMP_BED
       SERIAL_MV(MSG_BAT, getBedPower());
     #endif

@@ -44,8 +44,8 @@
   inline void gcode_M604(void) {
     GET_TARGET_EXTRUDER(604);
     stepper.synchronize();
-    extruder.encErrorSteps[extruder.target] = parser.intval('S', ENC_ERROR_STEPS);
-    SERIAL_EMV("Encoder Error Steps: ", extruder.encErrorSteps[extruder.target]);
+    tools.encErrorSteps[tools.target_extruder] = parser.intval('S', ENC_ERROR_STEPS);
+    SERIAL_EMV("Encoder Error Steps: ", tools.encErrorSteps[tools.target_extruder]);
   }
 
 #endif // HAS_EXT_ENCODER

@@ -106,7 +106,7 @@
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(extruder.active))
+          if (thermalManager.tooColdToExtrude(tools.active_extruder))
             current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
@@ -123,7 +123,7 @@
 
     // If the move is only in Z/E don't split up the move
     if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, extruder.active);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
       set_current_to_destination();
       return;
     }
@@ -194,11 +194,11 @@
         }
       #endif
 
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, extruder.active);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, tools.active_extruder);
 
     }
 
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, extruder.active);
+    planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
 
     set_current_to_destination();
   }
@@ -280,14 +280,14 @@
   void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
 
     current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT;
-    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], extruder.active);
+    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], tools.active_extruder);
 
     current_position[X_AXIS] = LOGICAL_X_POSITION(x);
     current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), extruder.active);
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
 
     current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), extruder.active);
+    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), tools.active_extruder);
 
     stepper.synchronize();
 
@@ -313,7 +313,7 @@
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), extruder.active);
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
 
     set_current_to_destination();
   }
@@ -466,7 +466,7 @@
     const float delta_B = rz + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - rx, towerY[B_AXIS] - ry ));
     const float delta_C = rz + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - rx, towerY[C_AXIS] - ry ));
 
-    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, extruder.active);
+    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, tools.active_extruder);
   }
 
   void Delta_Mechanics::Set_clip_start_height() {
@@ -574,7 +574,7 @@
 
     // Always home with tool 0 active
     #if HOTENDS > 1
-      const uint8_t old_tool_index = extruder.active;
+      const uint8_t old_tool_index = tools.active_extruder;
       printer.tool_change(0, 0, true);
     #endif
 
@@ -629,11 +629,11 @@
       if ((home_all) || (parser.seen('E'))) {
         set_destination_to_current();
         destination[E_AXIS] = -200;
-        extruder.driver = extruder.active = 1;
-        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, extruder.active);
+        tools.active_driver = tools.active_extruder = 1;
+        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, tools.active_extruder);
         stepper.synchronize();
         printer.old_color = 99;
-        extruder.driver = extruder.active = 0;
+        tools.active_driver = tools.active_extruder = 0;
         current_position[E_AXIS] = 0;
         sync_plan_position_e();
       }
@@ -756,7 +756,7 @@
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
       #if HOTENDS > 1
-        const uint8_t old_tool_index = extruder.active;
+        const uint8_t old_tool_index = tools.active_extruder;
         tool_change(0, 0, true);
       #endif
       printer.setup_for_endstop_or_probe_move();
@@ -1051,7 +1051,7 @@
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
       #if HOTENDS > 1
-        const uint8_t old_tool_index = extruder.active;
+        const uint8_t old_tool_index = tools.active_extruder;
         tool_change(0, 0, true);
       #endif
       printer.setup_for_endstop_or_probe_move();

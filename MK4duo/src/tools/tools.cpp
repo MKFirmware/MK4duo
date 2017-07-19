@@ -30,43 +30,43 @@
 
 #if EXTRUDERS > 0
 
-  Extruder extruder;
+  Tools tools;
 
-  uint8_t Extruder::active    = 0,
-          Extruder::previous  = 0,
-          Extruder::target    = 0,
-          Extruder::driver    = 0;
+  uint8_t Tools::active_extruder    = 0,
+          Tools::previous_extruder  = 0,
+          Tools::target_extruder    = 0,
+          Tools::active_driver      = 0;
 
   #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-    bool  Extruder::volumetric_enabled = true;
+    bool  Tools::volumetric_enabled = true;
   #else
-    bool  Extruder::volumetric_enabled = false;
+    bool  Tools::volumetric_enabled = false;
   #endif
 
-  int16_t Extruder::flow_percentage[EXTRUDERS]        = ARRAY_BY_EXTRUDERS(100),
-          Extruder::density_percentage[EXTRUDERS]     = ARRAY_BY_EXTRUDERS(100);
-  float   Extruder::filament_size[EXTRUDERS]          = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
-          Extruder::volumetric_multiplier[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(1.0);
+  int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
+          Tools::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
+  float   Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
+          Tools::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
 
   #if ENABLED(FWRETRACT)
-    bool  Extruder::autoretract_enabled           = false,
-          Extruder::retracted[EXTRUDERS]          = ARRAY_BY_EXTRUDERS(false),
-          Extruder::retracted_swap[EXTRUDERS]     = ARRAY_BY_EXTRUDERS(false);
-    float Extruder::retract_length                = RETRACT_LENGTH,
-          Extruder::retract_length_swap           = RETRACT_LENGTH_SWAP,
-          Extruder::retract_feedrate_mm_s         = RETRACT_FEEDRATE,
-          Extruder::retract_zlift                 = RETRACT_ZLIFT,
-          Extruder::retract_recover_length        = RETRACT_RECOVER_LENGTH,
-          Extruder::retract_recover_length_swap   = RETRACT_RECOVER_LENGTH_SWAP,
-          Extruder::retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
+    bool  Tools::autoretract_enabled            = false,
+          Tools::retracted[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(false),
+          Tools::retracted_swap[EXTRUDERS]      = ARRAY_BY_EXTRUDERS(false);
+    float Tools::retract_length                 = RETRACT_LENGTH,
+          Tools::retract_length_swap            = RETRACT_LENGTH_SWAP,
+          Tools::retract_feedrate_mm_s          = RETRACT_FEEDRATE,
+          Tools::retract_zlift                  = RETRACT_ZLIFT,
+          Tools::retract_recover_length         = RETRACT_RECOVER_LENGTH,
+          Tools::retract_recover_length_swap    = RETRACT_RECOVER_LENGTH_SWAP,
+          Tools::retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE;
   #endif
 
   #if HAS_EXT_ENCODER
-    uint8_t Extruder::encLastSignal[EXTRUDERS]            = ARRAY_BY_EXTRUDERS(0);
-    int8_t  Extruder::encLastDir[EXTRUDERS]               = ARRAY_BY_EXTRUDERS(1);
-    int32_t Extruder::encStepsSinceLastSignal[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(0),
-            Extruder::encLastChangeAt[EXTRUDERS]          = ARRAY_BY_EXTRUDERS(0),
-            Extruder::encErrorSteps[EXTRUDERS]            = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
+    uint8_t Tools::encLastSignal[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(0);
+    int8_t  Tools::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);
+    int32_t Tools::encStepsSinceLastSignal[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0),
+            Tools::encLastChangeAt[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(0),
+            Tools::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
   #endif
 
 #endif // EXTRUDERS > 0

@@ -627,7 +627,7 @@
  */
 #if ENABLED(ADVANCE)
   #define EXTRUSION_AREA (0.25 * (D_FILAMENT) * (D_FILAMENT) * M_PI)
-  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + extruder.active] / (EXTRUSION_AREA))
+  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + tools.active_extruder] / (EXTRUSION_AREA))
 #endif
 
 /**
