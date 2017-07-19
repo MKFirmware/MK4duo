@@ -88,6 +88,7 @@
 *
 *  M43 S       - Servo probe test
 *                  P<index> - Probe index (optional - defaults to 0
+*  M44  - Codes debug - report codes available (and how many of them there are)
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -120,6 +121,7 @@
 *  M114 - Output current position to serial port
 *  M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
 *  M117 - Display a message on the controller screen
+*  M118 - Display a message in the host console
 *  M119 - Output Endstop status to serial port
 *  M120 - Enable endstop detection
 *  M121 - Disable endstop detection
