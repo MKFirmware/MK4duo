@@ -1,3 +1,9 @@
+### Version 4.3.25 dev
+* New management commands
+* New classes created
+* Many changes made
+* Attention! This version is not stable
+
 ### Version 4.3.24 dev
 * Add Extruder Encoder for control filament movement (Experimental)
 * Now all types of delta autocalibration can be done with probe_manually and lcd
