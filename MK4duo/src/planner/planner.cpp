@@ -421,7 +421,7 @@ void Planner::check_axes_activity() {
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
  */
-void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t target_extruder) {
+void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder) {
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
@@ -462,10 +462,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       #endif
     ) {
       #if ENABLED(NPR2)
-        if (target_extruder != 1)
+        if (extruder != 1)
       #endif
         {
-          if (thermalManager.tooColdToExtrude(target_extruder)) {
+          if (thermalManager.tooColdToExtrude(extruder)) {
             position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
             de = 0; // no difference
             #if ENABLED(LIN_ADVANCE)
@@ -535,7 +535,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
   if (de < 0) SBI(dirb, E_AXIS);
 
-  const float esteps_float = de * extruder.volumetric_multiplier[target_extruder] * extruder.flow_percentage[target_extruder] * 0.01;
+  const float esteps_float = de * tools.volumetric_multiplier[extruder] * tools.flow_percentage[extruder] * 0.01;
   const int32_t esteps = abs(esteps_float) + 0.5;
 
   // Calculate the buffer head after we push this byte
@@ -597,12 +597,12 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     block->e_to_p_pressure  = printer.baricuda_e_to_p_pressure;
   #endif
 
-  block->active_extruder = target_extruder;
+  block->active_extruder = extruder;
 
   #if HAS_MKMULTI_TOOLS
-    block->active_driver = extruder.driver;
+    block->active_driver = tools.active_driver;
   #else
-    block->active_driver = target_extruder;
+    block->active_driver = extruder;
   #endif
 
   // Enable active axes
@@ -644,7 +644,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         for (uint8_t i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
 
-        switch(target_extruder) {
+        switch(extruder) {
           case 0:
             enable_E0();
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
@@ -755,7 +755,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         enable_E5();
       #endif
     #elif ENABLED(MKR6)
-      switch(target_extruder) {
+      switch(extruder) {
         case 0:
         case 1:
         case 2:
@@ -768,7 +768,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
           break;
       }
     #elif ENABLED(MKR12)
-      switch(target_extruder) {
+      switch(extruder) {
         case 0:
         case 1:
         case 2:
@@ -793,7 +793,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       enable_E0();
     #elif ENABLED(MKR4)
-      switch(target_extruder) {
+      switch(extruder) {
         case 0:
           enable_E0();
         break;
@@ -951,7 +951,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     static float filwidth_e_count = 0, filwidth_delay_dist = 0;
 
     // FMM update ring buffer used for delay with filament measurements
-    if (target_extruder == FILAMENT_SENSOR_EXTRUDER_NUM && filwidth_delay_index[1] >= 0) {  // only for extruder with filament sensor and if ring buffer is initialized
+    if (extruder == FILAMENT_SENSOR_EXTRUDER_NUM && filwidth_delay_index[1] >= 0) {  // only for extruder with filament sensor and if ring buffer is initialized
 
       const int MMD_CM = MAX_MEASUREMENT_DELAY + 1, MMD_MM = MMD_CM * 10;
 
@@ -985,7 +985,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
   LOOP_XYZE(i) {
     const float cs = FABS(current_speed[i] = delta_mm[i] * inverse_mm_s);
-    if (i == E_AXIS) i += target_extruder;
+    if (i == E_AXIS) i += extruder;
     if (cs > mechanics.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
   }
 
@@ -1039,7 +1039,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   uint32_t accel;
   if (!block->steps[X_AXIS] && !block->steps[Y_AXIS] && !block->steps[Z_AXIS]) {
     // convert to: mechanics.acceleration steps/sec^2
-    accel = CEIL(mechanics.retract_acceleration[target_extruder] * steps_per_mm);
+    accel = CEIL(mechanics.retract_acceleration[extruder] * steps_per_mm);
   }
   else {
     #define LIMIT_ACCEL_LONG(AXIS,INDX) do{ \
@@ -1064,13 +1064,13 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
       LIMIT_ACCEL_LONG(X_AXIS, 0);
       LIMIT_ACCEL_LONG(Y_AXIS, 0);
       LIMIT_ACCEL_LONG(Z_AXIS, 0);
-      LIMIT_ACCEL_LONG(E_AXIS, target_extruder);
+      LIMIT_ACCEL_LONG(E_AXIS, extruder);
     }
     else {
       LIMIT_ACCEL_FLOAT(X_AXIS, 0);
       LIMIT_ACCEL_FLOAT(Y_AXIS, 0);
       LIMIT_ACCEL_FLOAT(Z_AXIS, 0);
-      LIMIT_ACCEL_FLOAT(E_AXIS, target_extruder);
+      LIMIT_ACCEL_FLOAT(E_AXIS, extruder);
     }
   }
   block->acceleration_steps_per_s2 = accel;
@@ -1145,7 +1145,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   uint8_t limited = 0;
   LOOP_XYZE(i) {
     const float jerk = FABS(current_speed[i]),
-                maxj = (i == E_AXIS) ? mechanics.max_jerk[i + target_extruder] : mechanics.max_jerk[i];
+                maxj = (i == E_AXIS) ? mechanics.max_jerk[i + extruder] : mechanics.max_jerk[i];
 
     if (jerk > maxj) {
       if (limited) {
@@ -1176,7 +1176,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     LOOP_XYZE(axis) {
       // Limit an axis. We have to differentiate: coasting, reversal of an axis, full stop.
       float v_exit = previous_speed[axis], v_entry = current_speed[axis];
-      const float maxj = (axis == E_AXIS) ? mechanics.max_jerk[axis + target_extruder] : mechanics.max_jerk[axis];
+      const float maxj = (axis == E_AXIS) ? mechanics.max_jerk[axis + extruder] : mechanics.max_jerk[axis];
 
       if (prev_speed_larger) v_exit *= smaller_speed_factor;
       if (limited) {

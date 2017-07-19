@@ -123,18 +123,18 @@
  *  M250  C               lcd_contrast                          (uint16_t)
  *
  * FWRETRACT:
- *  M209  S               extruder.autoretract_enabled           (bool)
- *  M207  S               extruder.retract_length                (float)
- *  M207  W               extruder.retract_length_swap           (float)
- *  M207  F               extruder.retract_feedrate_mm_s         (float)
- *  M207  Z               extruder.retract_zlift                 (float)
- *  M208  S               extruder.retract_recover_length        (float)
- *  M208  W               extruder.retract_recover_length_swap   (float)
- *  M208  F               extruder.retract_recover_feedrate_mm_s (float)
+ *  M209  S               tools.autoretract_enabled           (bool)
+ *  M207  S               tools.retract_length                (float)
+ *  M207  W               tools.retract_length_swap           (float)
+ *  M207  F               tools.retract_feedrate_mm_s         (float)
+ *  M207  Z               tools.retract_zlift                 (float)
+ *  M208  S               tools.retract_recover_length        (float)
+ *  M208  W               tools.retract_recover_length_swap   (float)
+ *  M208  F               tools.retract_recover_feedrate_mm_s (float)
  *
  * Volumetric Extrusion:
- *  M200  D               extruder.volumetric_enabled            (bool)
- *  M200  T D             extruder.filament_size               (float x6)
+ *  M200  D               tools.volumetric_enabled            (bool)
+ *  M200  T D             tools.filament_size                 (float x6)
  *
  *  M???  S               printer.IDLE_OOZING_enabled
  *
@@ -447,30 +447,30 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(lcd_contrast);
 
     #if ENABLED(FWRETRACT)
-      EEPROM_WRITE(extruder.autoretract_enabled);
-      EEPROM_WRITE(extruder.retract_length);
+      EEPROM_WRITE(tools.autoretract_enabled);
+      EEPROM_WRITE(tools.retract_length);
       #if EXTRUDERS > 1
-        EEPROM_WRITE(extruder.retract_length_swap);
+        EEPROM_WRITE(tools.retract_length_swap);
       #else
         const float dummy = 0.0f;
         EEPROM_WRITE(dummy);
       #endif
-      EEPROM_WRITE(extruder.retract_feedrate_mm_s);
-      EEPROM_WRITE(extruder.retract_zlift);
-      EEPROM_WRITE(extruder.retract_recover_length);
+      EEPROM_WRITE(tools.retract_feedrate_mm_s);
+      EEPROM_WRITE(tools.retract_zlift);
+      EEPROM_WRITE(tools.retract_recover_length);
       #if EXTRUDERS > 1
-        EEPROM_WRITE(extruder.retract_recover_length_swap);
+        EEPROM_WRITE(tools.retract_recover_length_swap);
       #else
         EEPROM_WRITE(dummy);
       #endif
-      EEPROM_WRITE(extruder.retract_recover_feedrate_mm_s);
+      EEPROM_WRITE(tools.retract_recover_feedrate_mm_s);
     #endif // FWRETRACT
 
-    EEPROM_WRITE(extruder.volumetric_enabled);
+    EEPROM_WRITE(tools.volumetric_enabled);
 
     // Save filament sizes
     for (uint8_t e = 0; e < EXTRUDERS; e++)
-      EEPROM_WRITE(extruder.filament_size[e]);
+      EEPROM_WRITE(tools.filament_size[e]);
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       EEPROM_WRITE(printer.IDLE_OOZING_enabled);
@@ -789,28 +789,28 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_contrast);
 
       #if ENABLED(FWRETRACT)
-        EEPROM_READ(extruder.autoretract_enabled);
-        EEPROM_READ(extruder.retract_length);
+        EEPROM_READ(tools.autoretract_enabled);
+        EEPROM_READ(tools.retract_length);
         #if EXTRUDERS > 1
-          EEPROM_READ(extruder.retract_length_swap);
+          EEPROM_READ(tools.retract_length_swap);
         #else
           EEPROM_READ(dummy);
         #endif
-        EEPROM_READ(extruder.retract_feedrate_mm_s);
-        EEPROM_READ(extruder.retract_zlift);
-        EEPROM_READ(extruder.retract_recover_length);
+        EEPROM_READ(tools.retract_feedrate_mm_s);
+        EEPROM_READ(tools.retract_zlift);
+        EEPROM_READ(tools.retract_recover_length);
         #if EXTRUDERS > 1
-          EEPROM_READ(extruder.retract_recover_length_swap);
+          EEPROM_READ(tools.retract_recover_length_swap);
         #else
           EEPROM_READ(dummy);
         #endif
-        EEPROM_READ(extruder.retract_recover_feedrate_mm_s);
+        EEPROM_READ(tools.retract_recover_feedrate_mm_s);
       #endif // FWRETRACT
 
-      EEPROM_READ(extruder.volumetric_enabled);
+      EEPROM_READ(tools.volumetric_enabled);
 
       for (int8_t e = 0; e < EXTRUDERS; e++)
-        EEPROM_READ(extruder.filament_size[e]);
+        EEPROM_READ(tools.filament_size[e]);
 
       #if ENABLED(IDLE_OOZING_PREVENT)
         EEPROM_READ(printer.IDLE_OOZING_enabled);
@@ -1048,28 +1048,28 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(FWRETRACT)
-    extruder.autoretract_enabled = false;
-    extruder.retract_length = RETRACT_LENGTH;
+    tools.autoretract_enabled = false;
+    tools.retract_length = RETRACT_LENGTH;
     #if EXTRUDERS > 1
-      extruder.retract_length_swap = RETRACT_LENGTH_SWAP;
+      tools.retract_length_swap = RETRACT_LENGTH_SWAP;
     #endif
-    extruder.retract_feedrate_mm_s = RETRACT_FEEDRATE;
-    extruder.retract_zlift = RETRACT_ZLIFT;
-    extruder.retract_recover_length = RETRACT_RECOVER_LENGTH;
+    tools.retract_feedrate_mm_s = RETRACT_FEEDRATE;
+    tools.retract_zlift = RETRACT_ZLIFT;
+    tools.retract_recover_length = RETRACT_RECOVER_LENGTH;
     #if EXTRUDERS > 1
-      extruder.retract_recover_length_swap = RETRACT_RECOVER_LENGTH_SWAP;
+      tools.retract_recover_length_swap = RETRACT_RECOVER_LENGTH_SWAP;
     #endif
-    extruder.retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
+    tools.retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
   #endif
 
   #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-    extruder.volumetric_enabled = true;
+    tools.volumetric_enabled = true;
   #else
-    extruder.volumetric_enabled = false;
+    tools.volumetric_enabled = false;
   #endif
 
-  for (uint8_t q = 0; q < COUNT(extruder.filament_size); q++)
-    extruder.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
+  for (uint8_t q = 0; q < COUNT(tools.filament_size); q++)
+    tools.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
 
   endstops.enable_globally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
@@ -1147,7 +1147,7 @@ void EEPROM::Factory_Settings() {
      */
     #if ENABLED(INCH_MODE_SUPPORT)
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
-      #define VOLUMETRIC_UNIT(N) ((N) / (extruder.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
+      #define VOLUMETRIC_UNIT(N) ((N) / (tools.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_SM(CFG, "  G2");
       SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
       SERIAL_MSG(" ; Units in ");
@@ -1412,22 +1412,22 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(FWRETRACT)
       CONFIG_MSG_START("Retract: S=Length (mm) F:Speed (mm/m) Z: ZLift (mm)");
-      SERIAL_SMV(CFG, "  M207 S", extruder.retract_length);
+      SERIAL_SMV(CFG, "  M207 S", tools.retract_length);
       #if EXTRUDERS > 1
-        SERIAL_MV(" W", extruder.retract_length_swap);
+        SERIAL_MV(" W", tools.retract_length_swap);
       #endif
-      SERIAL_MV(" F", extruder.retract_feedrate_mm_s * 60);
-      SERIAL_EMV(" Z", extruder.retract_zlift);
+      SERIAL_MV(" F", tools.retract_feedrate_mm_s * 60);
+      SERIAL_EMV(" Z", tools.retract_zlift);
 
       CONFIG_MSG_START("Recover: S=Extra length (mm) F:Speed (mm/m)");
-      SERIAL_SMV(CFG, "  M208 S", extruder.retract_recover_length);
+      SERIAL_SMV(CFG, "  M208 S", tools.retract_recover_length);
       #if EXTRUDERS > 1
-        SERIAL_MV(" W", extruder.retract_recover_length_swap);
+        SERIAL_MV(" W", tools.retract_recover_length_swap);
       #endif
-      SERIAL_MV(" F", extruder.retract_recover_feedrate_mm_s * 60);
+      SERIAL_MV(" F", tools.retract_recover_feedrate_mm_s * 60);
 
       CONFIG_MSG_START("Auto-Retract: S=0 to disable, 1 to interpret extrude-only moves as retracts or recoveries");
-      SERIAL_LMV(CFG, "  M209 S", extruder.autoretract_enabled ? 1 : 0);
+      SERIAL_LMV(CFG, "  M209 S", tools.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
     /**
@@ -1435,18 +1435,18 @@ void EEPROM::Factory_Settings() {
      */
     if (!forReplay) {
       SERIAL_SM(CFG, "Filament settings:");
-      if (extruder.volumetric_enabled)
+      if (tools.volumetric_enabled)
         SERIAL_EOL();
       else
         SERIAL_EM(" Disabled");
     }
     #if EXTRUDERS == 1
-      SERIAL_LMV(CFG, "  M200 T0 D", extruder.filament_size[0], 3);
+      SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
     #endif
     #if EXTRUDERS > 1
       for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M200 T", (int)i);
-        SERIAL_EMV(" D", extruder.filament_size[i], 3);
+        SERIAL_EMV(" D", tools.filament_size[i], 3);
       }
     #endif
 

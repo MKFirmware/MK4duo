@@ -31,24 +31,24 @@
 
 #if EXTRUDERS > 0
 
-  class Extruder {
+  class Tools {
 
     public: /** Constructor */
 
-      Extruder() {};
+      Tools() {};
 
     public: /** Public Parameters */
 
-      static uint8_t  active,
-                      previous,
-                      target,
-                      driver;
+      static uint8_t  active_extruder,
+                      previous_extruder,
+                      target_extruder,
+                      active_driver;
 
       static bool     volumetric_enabled;
 
       static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                       density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
-      static float    filament_size[EXTRUDERS],         // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
+      static float    filament_size[EXTRUDERS],         // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
                       volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
 
       #if ENABLED(FWRETRACT)
@@ -69,7 +69,7 @@
 
   };
 
-  extern Extruder extruder;
+  extern Tools tools;
 
 #endif
 

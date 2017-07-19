@@ -29,7 +29,7 @@
 #define CODE_G61
 
 /**
- * G61:  Apply/restore saved coordinates to the active extruder.
+ * G61:  Apply/restore saved coordinates.
  *        X Y Z E - Value to add at stored coordinates.
  *        F<speed> - Set Feedrate.
  *        S<slot> specifies memory slot # (0-based) to save into (default 0).

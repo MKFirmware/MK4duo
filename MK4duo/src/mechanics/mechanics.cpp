@@ -62,7 +62,7 @@ void Mechanics::_set_position_mm(const float &a, const float &b, const float &c,
 void Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
 
   #if EXTRUDERS > 1
-    const uint8_t axis_index = axis + (axis == E_AXIS ? extruder.active : 0);
+    const uint8_t axis_index = axis + (axis == E_AXIS ? tools.active_extruder : 0);
   #else
     const uint8_t axis_index = axis;
   #endif
@@ -129,7 +129,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position() {
-  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], feedrate_mm_s, extruder.active);
+  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], feedrate_mm_s, tools.active_extruder);
 }
 
 /**
@@ -138,7 +138,7 @@ void Mechanics::line_to_current_position() {
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
 void Mechanics::line_to_destination(float fr_mm_s) {
-  planner.buffer_line(destination[A_AXIS], destination[B_AXIS], destination[C_AXIS], destination[E_AXIS], fr_mm_s, extruder.active);
+  planner.buffer_line(destination[A_AXIS], destination[B_AXIS], destination[C_AXIS], destination[E_AXIS], fr_mm_s, tools.active_extruder);
 }
 
 /**
@@ -284,7 +284,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
   set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
   current_position[axis] = distance;
-  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], extruder.active);
+  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
   stepper.synchronize();
 
@@ -564,11 +564,11 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
 
       endstops.clamp_to_software_endstops(arc_target);
 
-      planner.buffer_line_kinematic(arc_target, fr_mm_s, extruder.active);
+      planner.buffer_line_kinematic(arc_target, fr_mm_s, tools.active_extruder);
     }
 
     // Ensure last segment arrives at target location.
-    planner.buffer_line_kinematic(logical, fr_mm_s, extruder.active);
+    planner.buffer_line_kinematic(logical, fr_mm_s, tools.active_extruder);
 
     // As far as the parser is concerned, the position is now == target. In reality the
     // motion control system might still be processing the action and the real tool position

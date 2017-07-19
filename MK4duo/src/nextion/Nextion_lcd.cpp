@@ -895,7 +895,7 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), extruder.active);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), tools.active_extruder);
     }
 
     void bedlevelPopCallBack(void *ptr) {
@@ -1018,7 +1018,7 @@
   void setmovePopCallback(void *ptr) {
 
     #if EXTRUDERS > 1
-      const uint8_t temp_extruder = extruder.active;
+      const uint8_t temp_extruder = tools.active_extruder;
       uint32_t new_extruder;
       char temp[5] = {0};
 

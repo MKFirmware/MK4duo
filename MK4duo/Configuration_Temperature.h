@@ -319,7 +319,7 @@
  * If bang-bang, BED LIMIT SWITCHING will enable hysteresis            *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the bed. It uses the same frequency PWM as the extruder.
+// Uncomment this to enable PID on the bed. It uses the same frequency PWM as the hotend.
 // which is fine for driving a square wave into a resistive load and does not significantly impact you FET heating.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
@@ -359,7 +359,7 @@
  * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis        *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the chamber. It uses the same frequency PWM as the extruder.
+// Uncomment this to enable PID on the chamber. It uses the same frequency PWM as the hotend.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use chamber PID until someone else verifies your hardware works.
@@ -398,7 +398,7 @@
  * If bang-bang, COOLER_LIMIT_SWITCHING will enable hysteresis         *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the cooler. It uses the same frequency PWM as the extruder
+// Uncomment this to enable PID on the cooler. It uses the same frequency PWM as the hotend.
 // if you use a software PWM or the frequency you select if using an hardware PWM
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W cooler.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably

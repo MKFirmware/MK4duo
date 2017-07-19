@@ -66,9 +66,9 @@ inline void gcode_T(void) {
 
   #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    if (printer.mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || printer.print_job_counter.isRunning()) && extruder.previous != tool_id) {
+    if (printer.mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || printer.print_job_counter.isRunning()) && tools.previous_extruder != tool_id) {
       gcode_M600();
-      extruder.previous = tool_id;
+      tools.previous_extruder = tool_id;
     }
 
   #elif EXTRUDERS > 1 && (HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1))
@@ -80,7 +80,7 @@ inline void gcode_T(void) {
     if (printer.mode == PRINTER_MODE_FFF) printer.tool_change(
       tool_id,
       MMM_TO_MMS(parser.linearval('F')),
-      (tool_id == extruder.active) || parser.boolval('S')
+      (tool_id == tools.active_extruder) || parser.boolval('S')
     );
 
   #endif

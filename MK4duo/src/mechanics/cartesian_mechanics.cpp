@@ -89,7 +89,7 @@
 
     // Always home with tool 0 active
     #if HOTENDS > 1
-      const uint8_t old_tool_index = extruder.active;
+      const uint8_t old_tool_index = tools.active_extruder;
       printer.tool_change(0, 0, true);
     #endif
 
@@ -174,14 +174,14 @@
     if (home_all || homeX) {
       #if ENABLED(DUAL_X_CARRIAGE)
         // Always home the 2nd (right) extruder first
-        extruder.active = 1;
+        tools.active_extruder = 1;
         homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
         inactive_hotend_x_pos = RAW_X_POSITION(current_position[X_AXIS]);
 
         // Home the 1st (left) extruder
-        extruder.active = 0;
+        tools.active_extruder = 0;
         homeaxis(X_AXIS);
 
         // Consider the active extruder to be parked
@@ -229,11 +229,11 @@
       if ((home_all) || (parser.seen('E'))) {
         set_destination_to_current();
         destination[E_AXIS] = -200;
-        extruder.driver = extruder.active = 1;
-        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, extruder.active);
+        tools.active_driver = tools.active_extruder = 1;
+        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, tools.active_extruder);
         stepper.synchronize();
         printer.old_color = 99;
-        extruder.driver = extruder.active = 0;
+        tools.active_driver = tools.active_extruder = 0;
         current_position[E_AXIS] = 0;
         sync_plan_position_e();
       }
@@ -285,7 +285,7 @@
 
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(extruder.active))
+          if (thermalManager.tooColdToExtrude(tools.active_extruder))
             current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
@@ -366,7 +366,7 @@
                 i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
                 current_position[E_AXIS],
                 i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
-                extruder.active
+                tools.active_extruder
               );
             delayed_move_time = 0;
             active_hotend_parked = false;
@@ -375,7 +375,7 @@
             #endif
             break;
           case DXC_DUPLICATION_MODE:
-            if (extruder.active == 0) {
+            if (tools.active_extruder == 0) {
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
                   SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_hotend_x_pos));
@@ -430,7 +430,7 @@
 
     const int axis_home_dir =
       #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(extruder.active) :
+        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
       #endif
       home_dir[axis];
 
@@ -525,7 +525,7 @@
       sync_plan_position();
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        const int x_axis_home_dir = x_home_dir(extruder.active);
+        const int x_axis_home_dir = x_home_dir(tools.active_extruder);
       #else
         const int x_axis_home_dir = home_dir[X_AXIS];
       #endif
@@ -806,8 +806,8 @@
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (axis == X_AXIS && (extruder.active == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
-        current_position[X_AXIS] = x_home_pos(extruder.active);
+      if (axis == X_AXIS && (tools.active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
+        current_position[X_AXIS] = x_home_pos(tools.active_extruder);
         return;
       }
     #endif
@@ -901,7 +901,7 @@
     }
 
     void Cartesian_Mechanics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
-      long target[NUM_AXIS] = {x * axis_steps_per_mm[X_AXIS], y * axis_steps_per_mm[Y_AXIS], z * axis_steps_per_mm[Z_AXIS], e * axis_steps_per_mm[E_AXIS + extruder.active]};
+      long target[NUM_AXIS] = {x * axis_steps_per_mm[X_AXIS], y * axis_steps_per_mm[Y_AXIS], z * axis_steps_per_mm[Z_AXIS], e * axis_steps_per_mm[E_AXIS + tools.active_extruder]};
       uint8_t direction_bits = calc_direction_bits(planner.position, target);
       uint8_t move_bits = calc_move_bits(planner.position, target);
 

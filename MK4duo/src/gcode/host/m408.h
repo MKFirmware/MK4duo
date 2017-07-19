@@ -61,7 +61,7 @@
     SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
     SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
 
-    SERIAL_MV("]},\"currentTool\":", extruder.active);
+    SERIAL_MV("]},\"currentTool\":", tools.active_extruder);
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
@@ -79,7 +79,7 @@
     firstOccurrence = true;
     for (uint8_t e = 0; e < EXTRUDERS; e++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(extruder.flow_percentage[e]);
+      SERIAL_VAL(tools.flow_percentage[e]);
       firstOccurrence = false;
     }
     SERIAL_EM("]},");
@@ -174,7 +174,7 @@
         firstOccurrence = true;
         for (uint8_t e = 0; e < EXTRUDERS; e++) {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.current_position[E_AXIS] * extruder.flow_percentage[e]);
+          SERIAL_VAL(mechanics.current_position[E_AXIS] * tools.flow_percentage[e]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");

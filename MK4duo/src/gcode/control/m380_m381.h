@@ -59,7 +59,7 @@
     }
   }
 
-  void enable_solenoid_on_active_extruder() { enable_solenoid(extruder.active); }
+  void enable_solenoid_on_active_extruder() { enable_solenoid(tools.active_extruder); }
 
   void disable_all_solenoids() {
     OUT_WRITE(SOL0_PIN, LOW);

@@ -65,13 +65,13 @@
   inline void gcode_M651(void) {
 
     if (peel_distance > 0) {
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, extruder.active);
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, extruder.active);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, tools.active_extruder);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, tools.active_extruder);
       stepper.synchronize();
       if (peel_pause > 0) printer.safe_delay(peel_pause);
     }
 
-    planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, extruder.active);
+    planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
     stepper.synchronize();
   }
 
@@ -79,7 +79,7 @@
   inline void gcode_M653(void) {
     // Double tilts are not allowed.
     if (!tilted) {
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + tilt_distance, mechanics.destination[Z_AXIS], retract_speed, extruder.active);
+      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + tilt_distance, mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
       stepper.synchronize();
     }
   }
@@ -91,7 +91,7 @@
        // To prevent subsequent commands from not knowing our
        // actual position, update the Z axis, then move to it.
        mechanics.destination[Z_AXIS] += tilt_distance;
-       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, extruder.active);
+       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
        // And save it away as our current position, because we're there.
        mechanics.set_current_to_destination();
        stepper.synchronize();

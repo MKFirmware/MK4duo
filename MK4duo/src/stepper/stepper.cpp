@@ -275,19 +275,19 @@ volatile long Stepper::endstops_trigsteps[XYZ];
 #if HAS_EXT_ENCODER
   #define _TEST_EXTRUDER_ENC(x,pin) { \
     const uint8_t sig = READ_ENCODER(pin); \
-    extruder.encStepsSinceLastSignal[x] += extruder.encLastDir[x]; \
-    if (extruder.encLastSignal[x] != sig && abs(extruder.encStepsSinceLastSignal[x] - extruder.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
-      if (sig) extruder.encStepsSinceLastSignal[x] = 0; \
-      extruder.encLastSignal[x] = sig; \
-      extruder.encLastChangeAt[x] = extruder.encStepsSinceLastSignal[x]; \
+    tools.encStepsSinceLastSignal[x] += tools.encLastDir[x]; \
+    if (tools.encLastSignal[x] != sig && abs(tools.encStepsSinceLastSignal[x] - tools.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
+      if (sig) tools.encStepsSinceLastSignal[x] = 0; \
+      tools.encLastSignal[x] = sig; \
+      tools.encLastChangeAt[x] = tools.encStepsSinceLastSignal[x]; \
     } \
-    else if (abs(extruder.encStepsSinceLastSignal[x]) > extruder.encErrorSteps[x]) { \
-      if (extruder.encLastDir[x] > 0) \
+    else if (abs(tools.encStepsSinceLastSignal[x]) > tools.encErrorSteps[x]) { \
+      if (tools.encLastDir[x] > 0) \
         printer.setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT); \
     } \
   }
 
-  #define RESET_EXTRUDER_ENC(x,dir) extruder.encLastDir[x] = dir;
+  #define RESET_EXTRUDER_ENC(x,dir) tools.encLastDir[x] = dir;
 
   #define ___TEST_EXTRUDER_ENC(x,y) _TEST_EXTRUDER_ENC(x,y)
   #define __TEST_EXTRUDER_ENC(x)    ___TEST_EXTRUDER_ENC(x,E ##x## _ENC_PIN)
@@ -399,7 +399,7 @@ void Stepper::set_directions() {
 
   #if HAS_EXT_ENCODER
 
-    switch(extruder.active) {
+    switch(tools.active_extruder) {
       case 0:
         RESET_EXTRUDER_ENC(0, count_direction[E_AXIS]); break;
       #if EXTRUDERS > 1
@@ -750,7 +750,7 @@ void Stepper::isr() {
 
       #if HAS_EXT_ENCODER
         if (counter_E > 0) {
-          switch(extruder.active) {
+          switch(tools.active_extruder) {
             case 0:
               TEST_EXTRUDER_ENC0; break;
             #if EXTRUDERS > 1
@@ -1410,11 +1410,61 @@ void Stepper::init() {
         SET_INPUT(E0_ENC_PIN);
       #endif
     #endif
+    #if HAS_E1_ENC
+      #if ENABLED(E1_ENC_PULLUP)
+        SET_INPUT_PULLUP(E1_ENC_PIN);
+      #else
+        SET_INPUT(E1_ENC_PIN);
+      #endif
+    #endif
+    #if HAS_E2_ENC
+      #if ENABLED(E2_ENC_PULLUP)
+        SET_INPUT_PULLUP(E2_ENC_PIN);
+      #else
+        SET_INPUT(E2_ENC_PIN);
+      #endif
+    #endif
+    #if HAS_E3_ENC
+      #if ENABLED(E3_ENC_PULLUP)
+        SET_INPUT_PULLUP(E3_ENC_PIN);
+      #else
+        SET_INPUT(E3_ENC_PIN);
+      #endif
+    #endif
+    #if HAS_E4_ENC
+      #if ENABLED(E4_ENC_PULLUP)
+        SET_INPUT_PULLUP(E4_ENC_PIN);
+      #else
+        SET_INPUT(E4_ENC_PIN);
+      #endif
+    #endif
+    #if HAS_E5_ENC
+      #if ENABLED(E5_ENC_PULLUP)
+        SET_INPUT_PULLUP(E5_ENC_PIN);
+      #else
+        SET_INPUT(E5_ENC_PIN);
+      #endif
+    #endif
 
     HAL::delayMilliseconds(1);
 
     #if HAS_E0_ENC
-      extruder.encLastSignal[0] = READ_ENCODER(E0_ENC_PIN);
+      tools.encLastSignal[0] = READ_ENCODER(E0_ENC_PIN);
+    #endif
+    #if HAS_E1_ENC
+      tools.encLastSignal[1] = READ_ENCODER(E1_ENC_PIN);
+    #endif
+    #if HAS_E2_ENC
+      tools.encLastSignal[2] = READ_ENCODER(E2_ENC_PIN);
+    #endif
+    #if HAS_E3_ENC
+      tools.encLastSignal[3] = READ_ENCODER(E3_ENC_PIN);
+    #endif
+    #if HAS_E4_ENC
+      tools.encLastSignal[4] = READ_ENCODER(E4_ENC_PIN);
+    #endif
+    #if HAS_E5_ENC
+      tools.encLastSignal[5] = READ_ENCODER(E5_ENC_PIN);
     #endif
 
   #endif // HAS_EXT_ENCODER

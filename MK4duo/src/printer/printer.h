@@ -247,8 +247,8 @@ class Printer {
   private: /** Private Parameters */
 
     #if ENABLED(IDLE_OOZING_PREVENT)
-      millis_t  axis_last_activity;
-      bool      IDLE_OOZING_retracted[EXTRUDERS];
+      static millis_t axis_last_activity;
+      static bool     IDLE_OOZING_retracted[EXTRUDERS];
     #endif
 
     #if ENABLED(CNCROUTER)
@@ -282,7 +282,7 @@ class Printer {
     #endif
 
     #if ENABLED(IDLE_OOZING_PREVENT)
-      IDLE_OOZING_retract(bool retracting);
+      static void IDLE_OOZING_retract(bool retracting);
     #endif
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -303,7 +303,7 @@ extern Printer printer;
 
 // Define runplan for move axes
 #if IS_KINEMATIC
-  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, extruder.active)
+  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, tools.active_extruder)
 #else
   #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S)
 #endif
