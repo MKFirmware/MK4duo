@@ -45,7 +45,7 @@ inline void gcode_M303(void) {
 
     int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
 
-    if (WITHIN(h, 0, HOTENDS - 1)) printer.target_extruder = h;
+    if (WITHIN(h, 0, HOTENDS - 1)) extruder.target = h;
 
     #if DISABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(NOT_BUSY);

@@ -718,7 +718,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     UNUSED(h);
     #define _HOTEND_TEST  true
   #else
-    #define _HOTEND_TEST  h == printer.active_extruder
+    #define _HOTEND_TEST  h == extruder.active
   #endif
 
   uint8_t pid_output = 0;
@@ -993,7 +993,7 @@ void Temperature::manage_temp_controller() {
       // Get the delayed info and add 100 to reconstitute to a percent of
       // the nominal filament diameter then square it to get an area
       const float vmroot = measurement_delay[meas_shift_index] * 0.01 + 1.0;
-      printer.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
+      extruder.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
     }
   #endif // FILAMENT_SENSOR
 
@@ -1204,7 +1204,7 @@ void Temperature::manage_temp_controller() {
       #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
     #else
       // Loop until the temperature is exactly on target
-      #define TEMP_CONDITIONS (wants_to_cool ? isCoolingHotend(printer.target_extruder) : isHeatingHotend(printer.target_extruder))
+      #define TEMP_CONDITIONS (wants_to_cool ? isCoolingHotend(extruder.target) : isHeatingHotend(extruder.target))
     #endif
 
     float target_temp = -1.0, old_temp = 9999.0;
@@ -1217,16 +1217,16 @@ void Temperature::manage_temp_controller() {
     #endif
 
     #if ENABLED(PRINTER_EVENT_LEDS)
-      const float start_temp = degHotend(printer.target_extruder);
+      const float start_temp = degHotend(extruder.target);
       uint8_t old_blue = 0;
     #endif
 
     do {
       // Target temperature might be changed during the loop
-      if (target_temp != degTargetHotend(printer.target_extruder))
-        target_temp = degTargetHotend(printer.target_extruder);
+      if (target_temp != degTargetHotend(extruder.target))
+        target_temp = degTargetHotend(extruder.target);
 
-      wants_to_cool = isCoolingHotend(printer.target_extruder);
+      wants_to_cool = isCoolingHotend(extruder.target);
 
       // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
       if (no_wait_for_cooling && wants_to_cool) break;
@@ -1248,7 +1248,7 @@ void Temperature::manage_temp_controller() {
       printer.idle();
       commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
 
-      const float temp = degHotend(printer.target_extruder);
+      const float temp = degHotend(extruder.target);
 
       #if ENABLED(PRINTER_EVENT_LEDS)
         // Gradually change LED strip from violet to red as nozzle heats up
@@ -1363,7 +1363,7 @@ void Temperature::manage_temp_controller() {
       KEEPALIVE_STATE(NOT_BUSY);
     #endif
 
-    printer.target_extruder = printer.active_extruder; // for print_heaterstates
+    extruder.target = extruder.active; // for print_heaterstates
 
     #if ENABLED(PRINTER_EVENT_LEDS)
       const float start_temp = degBed();
@@ -1692,9 +1692,9 @@ void Temperature::manage_temp_controller() {
 
   void Temperature::print_heaterstates() {
     #if HAS_TEMP_HOTEND
-      print_heater_state(degHotend(printer.target_extruder), degTargetHotend(printer.target_extruder)
+      print_heater_state(degHotend(extruder.target), degTargetHotend(extruder.target)
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
-          , rawHotendTemp(printer.target_extruder)
+          , rawHotendTemp(extruder.target)
         #endif
       );
     #endif
@@ -1715,7 +1715,7 @@ void Temperature::manage_temp_controller() {
         , h
       );
     #endif
-    SERIAL_MV(MSG_AT ":", getHeaterPower(printer.target_extruder));
+    SERIAL_MV(MSG_AT ":", getHeaterPower(extruder.target));
     #if HAS_TEMP_BED
       SERIAL_MV(MSG_BAT, getBedPower());
     #endif

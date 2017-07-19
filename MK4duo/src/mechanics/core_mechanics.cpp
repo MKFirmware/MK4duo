@@ -69,7 +69,7 @@
 
     // Always home with tool 0 active
     #if HOTENDS > 1
-      const uint8_t old_tool_index = printer.active_extruder;
+      const uint8_t old_tool_index = extruder.active;
       printer.tool_change(0, 0, true);
     #endif
 
@@ -154,14 +154,14 @@
     if (home_all || homeX) {
       #if ENABLED(DUAL_X_CARRIAGE)
         // Always home the 2nd (right) extruder first
-        printer.active_extruder = 1;
+        extruder.active = 1;
         homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
         inactive_hotend_x_pos = RAW_X_POSITION(current_position[X_AXIS]);
 
         // Home the 1st (left) extruder
-        printer.active_extruder = 0;
+        extruder.active = 0;
         homeaxis(X_AXIS);
 
         // Consider the active extruder to be parked
@@ -209,11 +209,11 @@
       if ((home_all) || (parser.seen('E'))) {
         set_destination_to_current();
         destination[E_AXIS] = -200;
-        printer.active_driver = printer.active_extruder = 1;
-        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, printer.active_extruder);
+        extruder.driver = extruder.active = 1;
+        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, extruder.active);
         stepper.synchronize();
         printer.old_color = 99;
-        printer.active_driver = printer.active_extruder = 0;
+        extruder.driver = extruder.active = 0;
         current_position[E_AXIS] = 0;
         sync_plan_position_e();
       }
@@ -265,7 +265,7 @@
 
       if (!DEBUGGING(DRYRUN)) {
         if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(printer.active_extruder))
+          if (thermalManager.tooColdToExtrude(extruder.active))
             current_position[E_AXIS] = destination[E_AXIS];
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
@@ -346,7 +346,7 @@
                 i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
                 current_position[E_AXIS],
                 i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
-                printer.active_extruder
+                extruder.active
               );
             delayed_move_time = 0;
             active_hotend_parked = false;
@@ -355,7 +355,7 @@
             #endif
             break;
           case DXC_DUPLICATION_MODE:
-            if (printer.active_extruder == 0) {
+            if (extruder.active == 0) {
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
                   SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_hotend_x_pos));
@@ -410,7 +410,7 @@
 
     const int axis_home_dir =
       #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(printer.active_extruder) :
+        (axis == X_AXIS) ? x_home_dir(extruder.active) :
       #endif
       home_dir[axis];
 
@@ -505,7 +505,7 @@
       sync_plan_position();
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        const int x_axis_home_dir = x_home_dir(printer.active_extruder);
+        const int x_axis_home_dir = x_home_dir(extruder.active);
       #else
         const int x_axis_home_dir = home_dir[X_AXIS];
       #endif
@@ -786,8 +786,8 @@
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (axis == X_AXIS && (printer.active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
-        current_position[X_AXIS] = x_home_pos(printer.active_extruder);
+      if (axis == X_AXIS && (extruder.active == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
+        current_position[X_AXIS] = x_home_pos(extruder.active);
         return;
       }
     #endif

@@ -213,4 +213,4 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
 #endif
 
-#endif //__ENUM_H__
+#endif /* __ENUM_H__ */

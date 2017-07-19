@@ -417,7 +417,7 @@
       #endif
 
       char CurrHotend[10];
-      sprintf(CurrHotend, "T%i\n", printer.active_extruder);
+      sprintf(CurrHotend, "T%i\n", extruder.active);
       fileRestart.write(CurrHotend);
 
       for (uint8_t h = 0; h < HOTENDS; h++) {

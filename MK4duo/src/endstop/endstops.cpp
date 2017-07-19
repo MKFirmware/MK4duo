@@ -330,7 +330,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
         // In Dual X mode printer.hotend_offset[X] is T1's home position
         float dual_max_x = max(printer.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
-        if (printer.active_extruder != 0) {
+        if (extruder.active != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
           soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
           soft_endstop_max[X_AXIS] = dual_max_x + offs;
@@ -581,7 +581,7 @@ void Endstops::update() {
 
   // With Dual X, endstops are only checked in the homing direction for the active extruder
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E0_ACTIVE stepper.current_block->printer.active_extruder == 0
+    #define E0_ACTIVE stepper.current_block->extruder.active == 0
     #define X_MIN_TEST ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
     #define X_MAX_TEST ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
   #else

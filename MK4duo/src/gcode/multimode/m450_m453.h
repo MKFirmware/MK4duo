@@ -40,7 +40,7 @@
     SERIAL_SM(ECHO, "Printer-Mode: ");
     SERIAL_PS((char*)pgm_read_word(&(tool_strings[printer.mode])));
     SERIAL_CHR(' ');
-    SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? printer.active_extruder : 0));
+    SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? extruder.active : 0));
   }
 
   #define CODE_M450

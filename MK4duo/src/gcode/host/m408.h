@@ -61,7 +61,7 @@
     SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
     SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
 
-    SERIAL_MV("]},\"currentTool\":", printer.active_extruder);
+    SERIAL_MV("]},\"currentTool\":", extruder.active);
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
@@ -77,9 +77,9 @@
 
     SERIAL_MSG(",\"extrFactors\":[");
     firstOccurrence = true;
-    for (uint8_t i = 0; i < EXTRUDERS; i++) {
+    for (uint8_t e = 0; e < EXTRUDERS; e++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(printer.flow_percentage[i]); // Really *100? 100 is normal
+      SERIAL_VAL(extruder.flow_percentage[e]);
       firstOccurrence = false;
     }
     SERIAL_EM("]},");
@@ -172,9 +172,9 @@
         #endif
         SERIAL_MSG(",\"extrRaw\":[");
         firstOccurrence = true;
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        for (uint8_t e = 0; e < EXTRUDERS; e++) {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.current_position[E_AXIS] * printer.flow_percentage[i]);
+          SERIAL_VAL(mechanics.current_position[E_AXIS] * extruder.flow_percentage[e]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");

@@ -42,12 +42,12 @@ inline void gcode_M200(void) {
     // setting any extruder filament size disables volumetric on the assumption that
     // slicers either generate in extruder values as cubic mm or as as filament feeds
     // for all extruders
-    printer.volumetric_enabled = (parser.value_linear_units() != 0.0);
-    if (printer.volumetric_enabled) {
-      printer.filament_size[TARGET_EXTRUDER] = parser.value_linear_units();
+    extruder.volumetric_enabled = (parser.value_linear_units() != 0.0);
+    if (extruder.volumetric_enabled) {
+      extruder.filament_size[TARGET_EXTRUDER] = parser.value_linear_units();
       // make sure all extruders have some sane value for the filament size
-      for (int i = 0; i < EXTRUDERS; i++)
-        if (!printer.filament_size[i]) printer.filament_size[i] = DEFAULT_NOMINAL_FILAMENT_DIA;
+      for (int e = 0; e < EXTRUDERS; e++)
+        if (!extruder.filament_size[e]) extruder.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
     }
   }
   else {

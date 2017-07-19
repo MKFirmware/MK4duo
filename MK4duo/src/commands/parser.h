@@ -216,7 +216,7 @@ class GCodeParser {
       }
 
       inline static float axis_unit_factor(const AxisEnum axis) {
-        return (axis >= E_AXIS && printer.volumetric_enabled ? volumetric_unit_factor : linear_unit_factor);
+        return (axis >= E_AXIS && extruder.volumetric_enabled ? volumetric_unit_factor : linear_unit_factor);
       }
 
       inline static float value_linear_units()                     { return value_float() * linear_unit_factor; }

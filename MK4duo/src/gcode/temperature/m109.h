@@ -40,7 +40,7 @@
     if (DEBUGGING(DRYRUN)) return;
 
     #if ENABLED(SINGLENOZZLE)
-      if (TARGET_EXTRUDER != printer.active_extruder) return;
+      if (TARGET_EXTRUDER != extruder.active) return;
     #endif
 
     const bool no_wait_for_cooling = parser.seenval('S');

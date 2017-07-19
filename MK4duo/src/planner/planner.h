@@ -225,11 +225,11 @@ class Planner {
      *
      * Leveling and kinematics should be applied ahead of this.
      *
-     *  a,b,c,e   - target position in mm or degrees
-     *  fr_mm_s   - (target) speed of the move
-     *  extruder  - target extruder
+     *  a,b,c,e         - target position in mm or degrees
+     *  fr_mm_s         - (target) speed of the move
+     *  target_extruder - target extruder
      */
-    static void _buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder);
+    static void _buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t target_extruder);
 
     /**
      * Add a new linear movement to the buffer.
@@ -239,15 +239,15 @@ class Planner {
      * Kinematic machines should call buffer_line_kinematic (for leveled moves).
      * (Cartesians may also call buffer_line_kinematic.)
      *
-     *  lx,ly,lz,e  - target position in mm or degrees
-     *  fr_mm_s     - (target) speed of the move (mm/s)
-     *  extruder    - target extruder
+     *  lx,ly,lz,e      - target position in mm or degrees
+     *  fr_mm_s         - (target) speed of the move (mm/s)
+     *  target_extruder - target extruder
      */
-    static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+    static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t target_extruder) {
       #if HAS_LEVELING && (IS_CARTESIAN || IS_CORE)
         bedlevel.apply_leveling(lx, ly, lz);
       #endif
-      _buffer_line(lx, ly, lz, e, fr_mm_s, extruder);
+      _buffer_line(lx, ly, lz, e, fr_mm_s, target_extruder);
     }
 
     /**
@@ -255,11 +255,11 @@ class Planner {
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  ltarget  - x,y,z,e CARTESIAN target in mm
-     *  fr_mm_s  - (target) speed of the move (mm/s)
-     *  extruder - target extruder
+     *  ltarget         - x,y,z,e CARTESIAN target in mm
+     *  fr_mm_s         - (target) speed of the move (mm/s)
+     *  target_extruder - target extruder
      */
-    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t target_extruder) {
       #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
         #if HAS_LEVELING
@@ -279,9 +279,9 @@ class Planner {
 
       #if IS_KINEMATIC
         mechanics.Transform(lpos);
-        _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
+        _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, target_extruder);
       #else
-        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
+        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, target_extruder);
       #endif
     }
 

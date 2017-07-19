@@ -96,6 +96,7 @@
   #include "src/cncrouter/cncrouter.h"
 #endif
 
+#include "src/tools/tools.h"
 #include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
 #include "src/bedlevel/bedlevel.h"

@@ -47,12 +47,6 @@ bool    Printer::Running        = true,
 
 volatile bool Printer::wait_for_user = false;
 
-int16_t Printer::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
-        Printer::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
-
-float   Printer::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
-        Printer::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
-
 float   Printer::hotend_offset[XYZ][HOTENDS];
 
 // Print status related
@@ -61,23 +55,12 @@ long    Printer::currentLayer  = 0,
 char    Printer::printName[21] = "";   // max. 20 chars + 0
 float   Printer::progress      = 0.0;
 
-// Extruders
-uint8_t Printer::active_extruder    = 0,
-        Printer::previous_extruder  = 0,
-        Printer::target_extruder    = 0,
-        Printer::active_driver      = 0;
-
 uint8_t Printer::host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
 
 float   Printer::resume_position[XYZE];
 bool    Printer::move_away_flag = false;
 
-bool    Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES,
-          #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-            Printer::volumetric_enabled = true;
-          #else
-            Printer::volumetric_enabled = false;
-          #endif
+bool    Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
 // Inactivity shutdown
 millis_t  Printer::max_inactive_time      = 0;
@@ -103,22 +86,6 @@ PrinterMode Printer::mode =
 
 // Print Job Timer
 PrintCounter Printer::print_job_counter = PrintCounter();
-
-#if ENABLED(FWRETRACT)
-
-  bool  Printer::autoretract_enabled            = false,
-        Printer::retracted[EXTRUDERS]           = { false },
-        Printer::retracted_swap[EXTRUDERS]      = { false };
-
-  float Printer::retract_length                 = RETRACT_LENGTH,
-        Printer::retract_length_swap            = RETRACT_LENGTH_SWAP,
-        Printer::retract_feedrate_mm_s          = RETRACT_FEEDRATE,
-        Printer::retract_zlift                  = RETRACT_ZLIFT,
-        Printer::retract_recover_length         = RETRACT_RECOVER_LENGTH,
-        Printer::retract_recover_length_swap    = RETRACT_RECOVER_LENGTH_SWAP,
-        Printer::retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE;
-
-#endif // FWRETRACT
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   float Printer::mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
@@ -186,14 +153,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
 #if HAS_CASE_LIGHT
   int   Printer::case_light_brightness;
   bool  Printer::case_light_on;
-#endif
-
-#if HAS_EXT_ENCODER
-  int32_t Printer::encStepsSinceLastSignal[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
-  uint8_t Printer::encLastSignal[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(0);
-  int8_t  Printer::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);
-  int32_t Printer::encLastChangeAt[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(0),
-          Printer::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
 #endif
 
 #if ENABLED(NPR2)
@@ -518,7 +477,7 @@ void Printer::get_destination_from_command() {
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * density_percentage[previous_extruder] / 100) + mechanics.current_position[E_AXIS];
+    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * extruder.density_percentage[extruder.previous] / 100) + mechanics.current_position[E_AXIS];
 
   if(!DEBUGGING(DRYRUN))
     print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
@@ -529,7 +488,7 @@ void Printer::get_destination_from_command() {
 
   #if ENABLED(RFID_MODULE)
     if(!DEBUGGING(DRYRUN))
-      rfid522.RfidData[active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
+      rfid522.RfidData[extruder.active].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -560,10 +519,10 @@ bool Printer::get_target_tool_from_command(const uint16_t code) {
       SERIAL_EMV(" " MSG_INVALID_EXTRUDER, t);
       return true;
     }
-    target_extruder = t;
+    extruder.target = t;
   }
   else
-    target_extruder = active_extruder;
+    extruder.target = extruder.active;
 
   return false;
 }
@@ -671,7 +630,7 @@ void Printer::quickstop_stepper() {
 
 void Printer::calculate_volumetric_multipliers() {
   for (uint8_t e = 0; e < EXTRUDERS; e++)
-    volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
+    extruder.volumetric_multiplier[e] = calculate_volumetric_multiplier(extruder.filament_size[e]);
 }
 
 void Printer::idle(bool no_stepper_sleep/*=false*/) {
@@ -862,13 +821,13 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && thermalManager.degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP) {
+      && thermalManager.degHotend(extruder.active) > EXTRUDER_RUNOUT_MINTEMP) {
       bool oldstatus = 0;
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         oldstatus = E0_ENABLE_READ;
         enable_E0();
       #else // !DONDOLO_SINGLE_MOTOR
-        switch (active_extruder) {
+        switch (extruder.active) {
           case 0: oldstatus = E0_ENABLE_READ; enable_E0(); break;
           #if DRIVER_EXTRUDERS > 1
             case 1: oldstatus = E1_ENABLE_READ; enable_E1(); break;
@@ -892,14 +851,14 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
       const float olde = mechanics.current_position[E_AXIS];
       mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), active_extruder);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), extruder.active);
       mechanics.current_position[E_AXIS] = olde;
       mechanics.set_e_position_mm(olde);
       stepper.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
       #else
-        switch(active_extruder) {
+        switch(extruder.active) {
           case 0: E0_ENABLE_WRITE(oldstatus); break;
           #if DRIVER_EXTRUDERS > 1
             case 1: E1_ENABLE_WRITE(oldstatus); break;
@@ -933,12 +892,12 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (planner.blocks_queued()) axis_last_activity = millis();
-    if (thermalManager.degHotend(active_extruder) > IDLE_OOZING_MINTEMP && !(DEBUGGING(DRYRUN)) && IDLE_OOZING_enabled) {
+    if (thermalManager.degHotend(extruder.active) > IDLE_OOZING_MINTEMP && !(DEBUGGING(DRYRUN)) && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
       {
-        if (thermalManager.degTargetHotend(active_extruder) < IDLE_OOZING_MINTEMP) {
+        if (thermalManager.degTargetHotend(extruder.active) < IDLE_OOZING_MINTEMP) {
           IDLE_OOZING_retract(false);
         }
         else if ((millis() - axis_last_activity) >  IDLE_OOZING_SECONDS * 1000UL) {
@@ -956,8 +915,8 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
           HAL::delayMilliseconds(200);
           if (rfid522.readBlock(e)) {
             Spool_must_read[e] = false;
-            density_percentage[e] = rfid522.RfidData[e].data.density;
-            filament_size[e] = rfid522.RfidData[e].data.size;
+            extruder.density_percentage[e] = rfid522.RfidData[e].data.density;
+            extruder.filament_size[e] = rfid522.RfidData[e].data.size;
             calculate_volumetric_multipliers();
             rfid522.printInfo(e);
           }
@@ -1102,8 +1061,8 @@ void Printer::handle_Interrupt_Event() {
         UNUSED(no_move);
 
         // Set the new active extruder
-        previous_extruder = active_extruder;
-        active_driver = active_extruder = tmp_extruder;
+        extruder.previous = extruder.active;
+        extruder.driver = extruder.active = tmp_extruder;
 
       #endif
 
@@ -1113,7 +1072,7 @@ void Printer::handle_Interrupt_Event() {
 
       mechanics.feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
-      if (tmp_extruder != active_extruder) {
+      if (tmp_extruder != extruder.active) {
         if (!no_move && mechanics.axis_unhomed_error()) {
           SERIAL_EM("No move on toolchange");
           no_move = true;
@@ -1135,7 +1094,7 @@ void Printer::handle_Interrupt_Event() {
             }
           #endif
 
-          const float xhome = mechanics.x_home_pos(active_extruder);
+          const float xhome = mechanics.x_home_pos(extruder.active);
           if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
               && IsRunning()
               && (mechanics.delayed_move_time || mechanics.current_position[X_AXIS] != xhome)
@@ -1159,17 +1118,17 @@ void Printer::handle_Interrupt_Event() {
                 i == 2 ? mechanics.current_position[Z_AXIS] : raised_z,
                 mechanics.current_position[E_AXIS],
                 mechanics.max_feedrate_mm_s[i == 1 ? X_AXIS : Z_AXIS],
-                active_extruder
+                extruder.active
               );
             stepper.synchronize();
           }
 
           // apply Y & Z extruder offset (x offset is already used in determining home pos)
-          mechanics.current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder];
-          mechanics.current_position[Z_AXIS] -= hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
+          mechanics.current_position[Y_AXIS] -= hotend_offset[Y_AXIS][extruder.active] - hotend_offset[Y_AXIS][tmp_extruder];
+          mechanics.current_position[Z_AXIS] -= hotend_offset[Z_AXIS][extruder.active] - hotend_offset[Z_AXIS][tmp_extruder];
 
           // Activate the new extruder
-          active_extruder = active_driver = tmp_extruder;
+          extruder.active = extruder.driver = tmp_extruder;
 
           // This function resets the max/min values - the current position may be overwritten below.
           mechanics.set_axis_is_at_home(X_AXIS);
@@ -1201,7 +1160,7 @@ void Printer::handle_Interrupt_Event() {
             case DXC_DUPLICATION_MODE:
               // If the new hotend is the left one, set it "parked"
               // This triggers the second hotend to move into the duplication position
-              mechanics.active_hotend_parked = (active_extruder == 0);
+              mechanics.active_hotend_parked = (extruder.active == 0);
 
               if (mechanics.active_hotend_parked)
                 mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(mechanics.inactive_hotend_x_pos);
@@ -1230,13 +1189,13 @@ void Printer::handle_Interrupt_Event() {
 
           #if HAS_DONDOLO
             // <0 if the new nozzle is higher, >0 if lower. A bigger raise when lower.
-            float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
+            float z_diff = hotend_offset[Z_AXIS][extruder.active] - hotend_offset[Z_AXIS][tmp_extruder],
                   z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
                   z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
 
             // Always raise by some amount (mechanics.destination copied from current_position earlier)
             mechanics.destination[Z_AXIS] += z_raise;
-            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], extruder.active);
             stepper.synchronize();
 
             move_extruder_servo(tmp_extruder);
@@ -1244,7 +1203,7 @@ void Printer::handle_Interrupt_Event() {
 
             // Move back down
             mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS] - z_back;
-            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+            planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], extruder.active);
             stepper.synchronize();
           #endif
 
@@ -1276,8 +1235,8 @@ void Printer::handle_Interrupt_Event() {
             vector_3 tmp_offset_vec = vector_3(hotend_offset[X_AXIS][tmp_extruder],
                                                hotend_offset[Y_AXIS][tmp_extruder],
                                                0),
-                     act_offset_vec = vector_3(hotend_offset[X_AXIS][active_extruder],
-                                               hotend_offset[Y_AXIS][active_extruder],
+                     act_offset_vec = vector_3(hotend_offset[X_AXIS][extruder.active],
+                                               hotend_offset[Y_AXIS][extruder.active],
                                                0),
                      offset_vec = tmp_offset_vec - act_offset_vec;
 
@@ -1302,8 +1261,8 @@ void Printer::handle_Interrupt_Event() {
           #else // !ABL_PLANAR
 
             float xydiff[2] = {
-              hotend_offset[X_AXIS][tmp_extruder] - hotend_offset[X_AXIS][active_extruder],
-              hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][active_extruder]
+              hotend_offset[X_AXIS][tmp_extruder] - hotend_offset[X_AXIS][extruder.active],
+              hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][extruder.active]
             };
 
             #if ENABLED(MESH_BED_LEVELING)
@@ -1347,13 +1306,13 @@ void Printer::handle_Interrupt_Event() {
           #endif
 
           // Set the new active extruder
-          previous_extruder = active_extruder;
+          extruder.previous = extruder.active;
 
           #if ENABLED(DONDOLO_SINGLE_MOTOR)
-            active_extruder = tmp_extruder;
-            active_driver = 0;
+            extruder.active = tmp_extruder;
+            extruder.driver = 0;
           #else
-            active_extruder = active_driver = tmp_extruder;
+            extruder.active = extruder.driver = tmp_extruder;
           #endif
 
         #endif // !DUAL_X_CARRIAGE
@@ -1373,7 +1332,7 @@ void Printer::handle_Interrupt_Event() {
           mechanics.prepare_move_to_destination();
         }
 
-      } // (tmp_extruder != active_extruder)
+      } // (tmp_extruder != extruder.active)
 
       stepper.synchronize();
 
@@ -1386,8 +1345,8 @@ void Printer::handle_Interrupt_Event() {
 
     #endif // HOTENDS > 1
 
-    SERIAL_LMV(ECHO, MSG_ACTIVE_DRIVER, (int)active_driver);
-    SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
+    SERIAL_LMV(ECHO, MSG_ACTIVE_DRIVER, (int)extruder.driver);
+    SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)extruder.active);
   }
 
 #endif // EXTRUDERS > 1
@@ -1412,10 +1371,10 @@ void Printer::handle_Interrupt_Event() {
       if (csteps > 0) stepper.colorstep(csteps, true);
 
       // Set the new active extruder
-      previous_extruder = active_extruder;
-      old_color = active_extruder = e;
-      active_driver = 0;
-      SERIAL_EMV(MSG_ACTIVE_COLOR, (int)active_extruder);
+      extruder.previous = extruder.active;
+      old_color = extruder.active = e;
+      extruder.driver = 0;
+      SERIAL_EMV(MSG_ACTIVE_COLOR, (int)extruder.active);
     }
   }
 
@@ -1437,9 +1396,9 @@ void Printer::handle_Interrupt_Event() {
     #endif
 
     // Set the new active extruder
-    previous_extruder = active_extruder;
-    active_extruder = e;
-    active_driver = 0;
+    extruder.previous = extruder.active;
+    extruder.active = e;
+    extruder.driver = 0;
   }
 
 #elif ENABLED(MKR4)
@@ -1455,28 +1414,28 @@ void Printer::handle_Interrupt_Event() {
         case 0:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
           WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
           WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-          active_driver = 1;
+          extruder.driver = 1;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E1();
           break;
         case 2:
           WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
           WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E2();
           break;
         case 3:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
           WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
-          active_driver = 1;
+          extruder.driver = 1;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E3();
           break;
@@ -1487,19 +1446,19 @@ void Printer::handle_Interrupt_Event() {
       switch(e) {
         case 0:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-          active_driver = 1;
+          extruder.driver = 1;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E1();
           break;
         case 2:
           WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
@@ -1510,13 +1469,13 @@ void Printer::handle_Interrupt_Event() {
       switch(e) {
         case 0:
           WRITE_RELE(E0E1_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
@@ -1525,8 +1484,8 @@ void Printer::handle_Interrupt_Event() {
     #endif // E0E1_CHOICE_PIN E0E2_CHOICE_PIN E1E3_CHOICE_PIN
 
     // Set the new active extruder
-    previous_extruder = active_extruder;
-    active_extruder = e;
+    extruder.previous = extruder.active;
+    extruder.active = e;
   }
 
 #elif ENABLED(MKR6) || ENABLED(MKR12)
@@ -1541,13 +1500,13 @@ void Printer::handle_Interrupt_Event() {
       switch(e) {
         case 0:
           WRITE_RELE(EX1_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
@@ -1559,21 +1518,21 @@ void Printer::handle_Interrupt_Event() {
         case 0:
           WRITE_RELE(EX1_CHOICE_PIN, LOW);
           WRITE_RELE(EX2_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(EX1_CHOICE_PIN, HIGH);
           WRITE_RELE(EX2_CHOICE_PIN, LOW);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 2:
           WRITE_RELE(EX1_CHOICE_PIN, HIGH);
           WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-          active_driver = 0;
+          extruder.driver = 0;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
@@ -1592,21 +1551,21 @@ void Printer::handle_Interrupt_Event() {
         case 0:
           WRITE_RELE(EX1_CHOICE_PIN, LOW);
           WRITE_RELE(EX2_CHOICE_PIN, LOW);
-          active_driver = driver;
+          extruder.driver = driver;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 1:
           WRITE_RELE(EX1_CHOICE_PIN, HIGH);
           WRITE_RELE(EX2_CHOICE_PIN, LOW);
-          active_driver = driver;
+          extruder.driver = driver;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
         case 2:
           WRITE_RELE(EX1_CHOICE_PIN, HIGH);
           WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-          active_driver = driver;
+          extruder.driver = driver;
           safe_delay(500); // 500 microseconds delay for relay
           enable_E0();
           break;
@@ -1618,8 +1577,8 @@ void Printer::handle_Interrupt_Event() {
     #endif
 
     // Set the new active extruder
-    previous_extruder = active_extruder;
-    active_extruder = e;
+    extruder.previous = extruder.active;
+    extruder.active = e;
   }
 
 #endif
@@ -1727,7 +1686,7 @@ void Printer::handle_Interrupt_Event() {
 
     static float hop_height;
 
-    if (retracting == retracted[active_extruder]) return;
+    if (retracting == extruder.retracted[extruder.active]) return;
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
@@ -1735,15 +1694,15 @@ void Printer::handle_Interrupt_Event() {
 
     if (retracting) {
 
-      mechanics.feedrate_mm_s = retract_feedrate_mm_s;
-      mechanics.current_position[E_AXIS] += (swapping ? retract_length_swap : retract_length) / volumetric_multiplier[active_extruder];
+      mechanics.feedrate_mm_s = extruder.retract_feedrate_mm_s;
+      mechanics.current_position[E_AXIS] += (swapping ? extruder.retract_length_swap : extruder.retract_length) / extruder.volumetric_multiplier[extruder.active];
       mechanics.sync_plan_position_e();
       mechanics.prepare_move_to_destination();
 
-      if (retract_zlift > 0.01) {
+      if (extruder.retract_zlift > 0.01) {
         hop_height = mechanics.current_position[Z_AXIS];
         // Pretend current position is lower
-        mechanics.current_position[Z_AXIS] -= retract_zlift;
+        mechanics.current_position[Z_AXIS] -= extruder.retract_zlift;
         mechanics.sync_plan_position();
         // Raise up to the old current_position
         mechanics.prepare_move_to_destination();
@@ -1752,17 +1711,17 @@ void Printer::handle_Interrupt_Event() {
     else {
 
       // If the height hasn't been lowered, undo the Z hop
-      if (retract_zlift > 0.01 && hop_height <= mechanics.current_position[Z_AXIS]) {
+      if (extruder.retract_zlift > 0.01 && hop_height <= mechanics.current_position[Z_AXIS]) {
         // Pretend current position is higher. Z will lower on the next move
-        mechanics.current_position[Z_AXIS] += retract_zlift;
+        mechanics.current_position[Z_AXIS] += extruder.retract_zlift;
         mechanics.sync_plan_position();
         // Lower Z
         mechanics.prepare_move_to_destination();
       }
 
-      mechanics.feedrate_mm_s = retract_recover_feedrate_mm_s;
-      const float move_e = swapping ? retract_length_swap + retract_recover_length_swap : retract_length + retract_recover_length;
-      mechanics.current_position[E_AXIS] -= move_e / volumetric_multiplier[active_extruder];
+      mechanics.feedrate_mm_s = extruder.retract_recover_feedrate_mm_s;
+      const float move_e = swapping ? extruder.retract_length_swap + extruder.retract_recover_length_swap : extruder.retract_length + extruder.retract_recover_length;
+      mechanics.current_position[E_AXIS] -= move_e / extruder.volumetric_multiplier[extruder.active];
       mechanics.sync_plan_position_e();
 
       // Recover E
@@ -1770,7 +1729,7 @@ void Printer::handle_Interrupt_Event() {
     }
 
     mechanics.feedrate_mm_s = old_feedrate_mm_s;
-    retracted[active_extruder] = retracting;
+    extruder.retracted[extruder.active] = retracting;
 
   } // retract()
 
@@ -1824,7 +1783,7 @@ void Printer::handle_Interrupt_Event() {
 
     if (!DEBUGGING(DRYRUN) && (unload_length != 0 || retract != 0 || retract2 != 0)) {
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        if (thermalManager.tooColdToExtrude(active_extruder)) {
+        if (thermalManager.tooColdToExtrude(extruder.active)) {
           SERIAL_LM(ER, MSG_TOO_COLD_FOR_M600);
           return false;
         }
@@ -1887,7 +1846,7 @@ void Printer::handle_Interrupt_Event() {
       // Cool Down hotend
       #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
-        thermalManager.setTargetHotend(PAUSE_PARK_COOLDOWN_TEMP, active_extruder);
+        thermalManager.setTargetHotend(PAUSE_PARK_COOLDOWN_TEMP, extruder.active);
         thermalManager.wait_heater(false);
       #endif
 
@@ -2131,7 +2090,7 @@ void Printer::handle_Interrupt_Event() {
 
     #if IS_KINEMATIC
       // Move XYZ to starting position
-      planner.buffer_line_kinematic(resume_position, PAUSE_PARK_XY_FEEDRATE, active_extruder);
+      planner.buffer_line_kinematic(resume_position, PAUSE_PARK_XY_FEEDRATE, extruder.active);
     #else
       // Move XY to starting position, then Z
       mechanics.destination[X_AXIS] = resume_position[X_AXIS];
@@ -2196,9 +2155,9 @@ void Printer::handle_Interrupt_Event() {
       ;
 
       #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-        if (active_extruder > 0) {
-          if (!parser.seen('X')) x_pos += hotend_offset[X_AXIS][active_extruder];
-          if (!parser.seen('Y')) y_pos += hotend_offset[Y_AXIS][active_extruder];
+        if (extruder.active > 0) {
+          if (!parser.seen('X')) x_pos += hotend_offset[X_AXIS][extruder.active];
+          if (!parser.seen('Y')) y_pos += hotend_offset[Y_AXIS][extruder.active];
         }
       #endif
 
@@ -2370,7 +2329,7 @@ void Printer::setup_powerhold() {
 #endif // HAS_CONTROLLERFAN
 
 float Printer::calculate_volumetric_multiplier(const float diameter) {
-  if (!volumetric_enabled || diameter == 0) return 1.0;
+  if (!extruder.volumetric_enabled || diameter == 0) return 1.0;
   float d2 = diameter * 0.5;
   return 1.0 / (M_PI * d2 * d2);
 }
@@ -2396,26 +2355,26 @@ void Printer::invalid_extruder_error(const uint8_t e) {
 #if ENABLED(IDLE_OOZING_PREVENT)
 
   void Printer::IDLE_OOZING_retract(bool retracting) {
-    if (retracting && !IDLE_OOZING_retracted[active_extruder]) {
+    if (retracting && !IDLE_OOZING_retracted[extruder.active]) {
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
       mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / volumetric_multiplier[active_extruder];
+      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / extruder.volumetric_multiplier[extruder.active];
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
       mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[active_extruder] = true;
+      IDLE_OOZING_retracted[extruder.active] = true;
       //SERIAL_EM("-");
     }
-    else if (!retracting && IDLE_OOZING_retracted[active_extruder]) {
+    else if (!retracting && IDLE_OOZING_retracted[extruder.active]) {
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
       mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / volumetric_multiplier[active_extruder];
+      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / extruder.volumetric_multiplier[extruder.active];
       mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
       mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[active_extruder] = false;
+      IDLE_OOZING_retracted[extruder.active] = false;
       //SERIAL_EM("+");
     }
   }

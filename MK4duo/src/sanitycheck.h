@@ -1537,9 +1537,6 @@ static_assert(1 >= 0
     #if DISABLED(Z_PROBE_SPEED)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_SPEED
     #endif
-    #if DISABLED(AUTOCALIBRATION_PRECISION)
-      #error DEPENDENCY ERROR: Missing setting AUTOCALIBRATION_PRECISION
-    #endif
     #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
       #error DEPENDENCY ERROR: Missing setting X_PROBE_OFFSET_FROM_NOZZLE
     #endif

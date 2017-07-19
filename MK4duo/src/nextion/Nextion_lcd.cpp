@@ -118,7 +118,7 @@
   NexObject Bed1        = NexObject(2,  7,  "bed1");
   NexObject Chamber0    = NexObject(2,  8,  "cha0");
   NexObject Chamber1    = NexObject(2,  9,  "cha1");
-  NexObject Extruder    = NexObject(2,  10, "extruder");
+  NexObject Extruders   = NexObject(2,  10, "extruder");
   NexObject Fan         = NexObject(2,  11, "fan");
   NexObject SD          = NexObject(2,  12, "sd");
   NexObject RFID        = NexObject(2,  13, "rfid");
@@ -427,7 +427,7 @@
       Bed0.setValue(1, "printer");
     #endif
 
-    Extruder.setValue(EXTRUDERS, "printer");
+    Extruders.setValue(EXTRUDERS, "printer");
 
     LOOP_XYZE(i) {
       ZERO(temp);
@@ -895,7 +895,7 @@
     #endif
 
     void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), printer.active_extruder);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), extruder.active);
     }
 
     void bedlevelPopCallBack(void *ptr) {
@@ -1018,7 +1018,7 @@
   void setmovePopCallback(void *ptr) {
 
     #if EXTRUDERS > 1
-      const uint8_t temp_extruder = printer.active_extruder;
+      const uint8_t temp_extruder = extruder.active;
       uint32_t new_extruder;
       char temp[5] = {0};
 

@@ -40,17 +40,10 @@ class Printer {
   public: /** Public Parameters */
 
     static bool Running,
-                volumetric_enabled,
                 pos_saved;
 
     static volatile bool  wait_for_heatup,
                           wait_for_user;
-
-    // Extruder
-    static uint8_t  active_extruder,
-                    previous_extruder,
-                    target_extruder,
-                    active_driver;
 
     static uint8_t host_keepalive_interval;
 
@@ -59,11 +52,6 @@ class Printer {
 
     static bool relative_mode,
                 axis_relative_modes[];
-
-    static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
-                    density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
-    static float    filament_size[EXTRUDERS],         // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the extruder.
-                    volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
 
     // Hotend offset
     static float  hotend_offset[XYZ][HOTENDS];
@@ -78,14 +66,6 @@ class Printer {
     static MK4duoInterruptEvent interruptEvent;
     static PrinterMode          mode;
     static PrintCounter         print_job_counter;
-
-    #if ENABLED(FWRETRACT)
-      static bool   autoretract_enabled,
-                    retracted[EXTRUDERS],
-                    retracted_swap[EXTRUDERS];
-      static float  retract_length, retract_length_swap, retract_feedrate_mm_s, retract_zlift,
-                    retract_recover_length, retract_recover_length_swap, retract_recover_feedrate_mm_s;
-    #endif
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       static float mixing_factor[MIXING_STEPPERS];
@@ -156,14 +136,6 @@ class Printer {
     #if HAS_CASE_LIGHT
       static int case_light_brightness;
       static bool case_light_on;
-    #endif
-
-    #if HAS_EXT_ENCODER
-      static int32_t  encStepsSinceLastSignal[EXTRUDERS]; // when was the last signal
-      static uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
-      static int8_t   encLastDir[EXTRUDERS];
-      static int32_t  encLastChangeAt[EXTRUDERS],
-                      encErrorSteps[EXTRUDERS];
     #endif
 
     #if ENABLED(NPR2)
@@ -331,7 +303,7 @@ extern Printer printer;
 
 // Define runplan for move axes
 #if IS_KINEMATIC
-  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, printer.active_extruder)
+  #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, extruder.active)
 #else
   #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S)
 #endif

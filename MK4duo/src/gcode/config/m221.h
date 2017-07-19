@@ -34,5 +34,5 @@
 inline void gcode_M221(void) {
 
   GET_TARGET_EXTRUDER(221);
-  if (parser.seenval('S')) printer.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
+  if (parser.seenval('S')) extruder.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
 }

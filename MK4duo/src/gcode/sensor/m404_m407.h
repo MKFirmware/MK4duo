@@ -66,7 +66,7 @@
     printer.filament_sensor = true;
 
     //SERIAL_MV("Filament dia (measured mm):", printer.filament_width_meas);
-    //SERIAL_EMV("Extrusion ratio(%):", printer.flow_percentage[printer.active_extruder]);
+    //SERIAL_EMV("Extrusion ratio(%):", extruder.flow_percentage[extruder.active]);
   }
 
   /**

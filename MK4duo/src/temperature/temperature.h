@@ -34,7 +34,7 @@
   #define EXTRUDER_IDX  0
 #else
   #define HOTEND_INDEX  h
-  #define EXTRUDER_IDX  printer.active_extruder
+  #define EXTRUDER_IDX  extruder.active
 #endif
 
 class Temperature {
