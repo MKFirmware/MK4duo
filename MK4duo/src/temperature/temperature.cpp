@@ -1254,7 +1254,7 @@ void Temperature::manage_temp_controller() {
         // Gradually change LED strip from violet to red as nozzle heats up
         if (!wants_to_cool) {
           const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
-          if (blue != old_blue) set_led_color(255, 0, (old_blue = blue));
+          if (blue != old_blue) printer.set_led_color(255, 0, (old_blue = blue));
         }
       #endif
 
@@ -1290,9 +1290,9 @@ void Temperature::manage_temp_controller() {
       LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
       #if ENABLED(PRINTER_EVENT_LEDS)
         #if ENABLED(RGBW_LED)
-          set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
+          printer.set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
         #else
-          set_led_color(255, 255, 255); // Set LEDs All On
+          printer.set_led_color(255, 255, 255); // Set LEDs All On
         #endif
       #endif
     }
@@ -1404,7 +1404,7 @@ void Temperature::manage_temp_controller() {
         // Gradually change LED strip from blue to violet as bed heats up
         if (!wants_to_cool) {
           const uint8_t red = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 0, 255);
-          if (red != old_red) set_led_color((old_red = red), 0, 255);
+          if (red != old_red) printer.set_led_color((old_red = red), 0, 255);
         }
       #endif
 
