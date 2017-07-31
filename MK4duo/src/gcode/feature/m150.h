@@ -46,11 +46,11 @@
    */
   inline void gcode_M150(void) {
     printer.set_led_color(
-      parser.byteval('R'),
-      parser.byteval('U'),
-      parser.byteval('B')
-      #if ENABLED(RGBW_LED)
-        , parser.byteval('W')
+      parser.seen('R') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
+      parser.seen('U') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
+      parser.seen('B') ? (parser.has_value() ? parser.value_byte() : 255) : 0
+      #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
+        , parser.seen('W') ? (parser.has_value() ? parser.value_byte() : 255) : 0
       #endif
     );
   }

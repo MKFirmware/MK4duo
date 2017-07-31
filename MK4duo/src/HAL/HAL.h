@@ -33,11 +33,28 @@
 
 #include <stdint.h>
 
+// Standard SPI functions
+/** Initialise SPI bus */
+void spiBegin(void);
+/** Configure SPI for specified SPI speed */
+void spiInit(uint8_t spiRate);
+/** Read single byte from SPI */
+uint8_t spiRec(void);
+/** Read from SPI into buffer */
+void spiRead(uint8_t* buf, uint16_t nbyte);
+/** Write single byte to SPI */
+void spiSend(uint8_t b);
+void spiSend(const uint8_t* buf, size_t n);
+/** Write token and then write from 512 byte buffer to SPI (for SD card) */
+void spiSendBlock(uint8_t token, const uint8_t* buf);
+
 #if ENABLED(ARDUINO_ARCH_SAM)
   #define CPU_32_BIT
+  #include "HAL_DUE/spi_pins_Due.h"
   #include "HAL_DUE/HAL_Due.h"
   #include "HAL_DUE/communication.h"
 #elif ENABLED(ARDUINO_ARCH_AVR)
+  #include "HAL_AVR/spi_pins_AVR.h"
   #include "HAL_AVR/HAL_AVR.h"
   #include "HAL_AVR/communication.h"
 #else

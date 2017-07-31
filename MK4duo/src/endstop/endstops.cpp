@@ -37,13 +37,8 @@ float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
       Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 bool  Endstops::enabled = true,
-      Endstops::enabled_globally =
-        #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-          (false),
-        #else
-          (true),
-        #endif
-      Endstops::soft_endstops_enabled = true;
+      Endstops::soft_endstops_enabled = true,
+      Endstops::enabled_globally;
 
 #if ENABLED(Z_FOUR_ENDSTOPS)
   float Endstops::z2_endstop_adj = 0,

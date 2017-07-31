@@ -230,8 +230,11 @@ class Printer {
 
     #if HAS_COLOR_LEDS
       static void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b
-                                #if ENABLED(RGBW_LED)
+                                #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
                                   , const uint8_t w=0
+                                  #if ENABLED(NEOPIXEL_RGBW_LED)
+                                    , bool isSequence=false
+                                  #endif
                                 #endif
       );
     #endif
@@ -287,6 +290,11 @@ class Printer {
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static void host_keepalive();
+    #endif
+
+    #if ENABLED(NEOPIXEL_RGBW_LED)
+      static void set_neopixel_color(const uint32_t color);
+      static void setup_neopixel();
     #endif
 
     #if ENABLED(TEMP_STAT_LEDS)

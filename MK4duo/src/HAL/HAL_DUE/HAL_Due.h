@@ -209,10 +209,6 @@ typedef int8_t    Pin;
 // Public Variables
 // --------------------------------------------------------------------------
 
-#ifndef DUE_SOFTWARE_SPI
-  extern int spiDueDividors[];
-#endif
-
 // reset reason set by bootloader
 extern uint8_t MCUSR;
 volatile static uint32_t debug_counter;
@@ -231,36 +227,6 @@ class HAL {
     static bool execute_100ms;
 
     static void hwSetup(void);
-
-    #ifdef DUE_SOFTWARE_SPI
-      static uint8_t spiTransfer(uint8_t b); // using Mode 0
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      static uint8_t spiReceive();
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t b);
-      static void spiSend(const uint8_t* buf , size_t n) ;
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #else
-      // Hardware setup
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      // Write single byte to SPI
-      static void spiSend(byte b);
-      static void spiSend(const uint8_t* buf, size_t n);
-      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        static void spiSend(uint32_t chan, byte b);
-        static void spiSend(uint32_t chan , const uint8_t* buf , size_t n);
-        static uint8_t spiReceive(uint32_t chan);
-      #endif
-      // Read single byte from SPI
-      static uint8_t spiReceive();
-      // Read from SPI into buffer
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-
-      // Write from buffer to SPI
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #endif
 
     static bool analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=50);
 
@@ -344,10 +310,19 @@ void sei(void);
 
 int freeMemory(void);
 
+// SPI: Extended functions which take a channel number (hardware SPI only)
+/** Write single byte to specified SPI channel */
+void spiSend(uint32_t chan, byte b);
+/** Write buffer to specified SPI channel */
+void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
+/** Read single byte from specified SPI channel */
+uint8_t spiRec(uint32_t chan);
+
+
 // EEPROM
-uint8_t eeprom_read_byte(uint8_t* pos);
-void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
-void eeprom_write_byte(uint8_t* pos, uint8_t value);
-void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
+void eeprom_write_byte(unsigned char *pos, unsigned char value);
+unsigned char eeprom_read_byte(unsigned char *pos);
+void eeprom_read_block (void *__dst, const void *__src, size_t __n);
+void eeprom_update_block (const void *__src, void *__dst, size_t __n);
 
 #endif // HAL_SAM_H
