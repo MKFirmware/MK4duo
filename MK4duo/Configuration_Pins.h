@@ -275,7 +275,7 @@
 #endif
 
 #if ENABLED(NEOPIXEL_RGBW_LED)
-  #define NEOPIXEL_PIN  41
+  #define NEOPIXEL_PIN  -1
 #endif
 
 //============================================================================
