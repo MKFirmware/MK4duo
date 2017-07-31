@@ -39,87 +39,8 @@
 
 
 /****************************************************************************************
-******************** Available chip select pins for HW SPI ******************************
-*****************************************************************************************/
-#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
-  #define MOSI_PIN            51
-  #define MISO_PIN            50
-  #define SCK_PIN             52
-  #define SS_PIN              53
-#elif ENABLED(__AVR_ATmega644P__) || ENABLED(__AVR_ATmega644__) || ENABLED(__AVR_ATmega1284P__)
-  #define MOSI_PIN             5
-  #define MISO_PIN             6
-  #define SCK_PIN              7
-  #define SS_PIN               4
-#elif ENABLED(__AVR_ATmega32U4__)
-  #define MOSI_PIN             2
-  #define MISO_PIN             3
-  #define SCK_PIN              1
-  #define SS_PIN               4
-#elif ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB1286__)
-  #define MOSI_PIN            22
-  #define MISO_PIN            23
-  #define SCK_PIN             21
-  #define SS_PIN              20
-#elif ENABLED(__AVR_ATmega168__) ||ENABLED(__AVR_ATmega168P__) ||ENABLED(__AVR_ATmega328P__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             13
-  #define SS_PIN              10
-#elif ENABLED(__AVR_ATmega1281__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             10
-  #define SS_PIN              16
-#elif ENABLED(ARDUINO_ARCH_SAM)
-  #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
-    #if (SDSS == 4)
-      #define SPI_PIN         87
-      #define SPI_CHAN        1
-    #elif (SDSS == 10)
-      #define SPI_PIN         77
-      #define SPI_CHAN        0
-    #elif (SDSS == 52)
-      #define SPI_PIN         86
-      #define SPI_CHAN        2
-    #elif (SDSS == 59)
-      #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-        #define DUE_SOFTWARE_SPI
-      #else
-        #define SPI_PIN       4
-        #define SPI_CHAN      1
-      #endif
-    #elif (SDSS == 60)
-      #define SPI_PIN         60
-      #define SPI_CHAN        1
-    #else
-      #define SPI_PIN         77
-      #define SPI_CHAN        0
-    #endif
-    #define MISO_PIN          74
-    #define MOSI_PIN          75
-    #define SCK_PIN           76
-  #else
-    #define DUE_SOFTWARE_SPI
-    #define MOSI_PIN		      51
-    #define MISO_PIN		      50
-    #define SCK_PIN 		      52
-  #endif
-
-  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-    #define SS_PIN            4
-  #else
-    #define SS_PIN            SDSS
-  #endif
-
-#endif
-/****************************************************************************************/
-
-
-
-/****************************************************************************************
-********************************* END MOTHERBOARD ***************************************
-****************************************************************************************/
+ ********************************* END MOTHERBOARD **************************************
+ ****************************************************************************************/
 
 #if DISABLED(ORIG_X_CS_PIN)
   #define ORIG_X_CS_PIN       -1
