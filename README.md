@@ -83,19 +83,20 @@ The new features are:
 * Added User menu LCD
 * Added DAV system for filament runout
 * Added Extruder Encoder for control filament movement (Experimental)
+* Added Adafruit Neopixel LED
 
 ## Credits
 
 The current MarlinKimbra dev team consists of:
- - [MagoKimbra - Alberto Cotronei](https://github.com/MagoKimbra)
+  - [MagoKimbra - Alberto Cotronei](https://github.com/MagoKimbra)
 
 More features have been added by:
+  - Mr.Goblin
   - [iosonopersia](https://github.com/iosonopersia)
+  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
   - [Wurstnase](https://github.com/Wurstnase)
   - Giutrec
   - Drakelive
-  - MrGoblins
-  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
 
 ## License
 
