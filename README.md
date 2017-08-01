@@ -87,14 +87,15 @@ The new features are:
 ## Credits
 
 The current MarlinKimbra dev team consists of:
- - MagoKimbra - Alberto Cotronei (https://github.com/MagoKimbra)
+ - [MagoKimbra - Alberto Cotronei](https://github.com/MagoKimbra)
 
 More features have been added by:
-  - Nico [@wurstnase]
+  - [iosonopersia](https://github.com/iosonopersia)
+  - [Wurstnase](https://github.com/Wurstnase)
   - Giutrec
   - Drakelive
   - MrGoblins
-  - Franco (nextime) Lanza (https://git.nexlab.net/u/nextime)
+  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
 
 ## License
 
