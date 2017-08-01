@@ -48,6 +48,7 @@ The new features are:
 * Management Color Mixing Extruder
 * System Management MKr4 for 4 extruders width just two drivers and 8 relay.
 * System Management MKr6 for 6 extruders width just two drivers and 8 relay.
+* System Management MKr12 for 12 extruders width just four drivers and 16 relay.
 * Management Multyextruder NPr2, 4/6 extruders with only two engines.
 * Management Dual Extruder DONDOLO.
 * Adding commands to facilitate purging of hotend. 
@@ -55,7 +56,7 @@ The new features are:
 * Added Delta Auto Calibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
 * Added Delta Auto Calibration Algorithm based on Thinkyhead Marlin
 * Added Delta Auto Calibration Algorithm based on Rich Cattell Marlin
-* Adding Debug Dryrun used by repetier.
+* Added Debug Dryrun used by repetier.
 * Added total Power on time writed in SD CARD.
 * Added total Power consumption writed in SD CARD.
 * Added total filament printed writed in SD CARD.
