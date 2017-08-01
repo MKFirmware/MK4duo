@@ -51,8 +51,8 @@ The new features are:
 * System Management MKr12 for 12 extruders width just four drivers and 16 relay.
 * Management Multyextruder NPr2, 4/6 extruders with only two engines.
 * Management Dual Extruder DONDOLO.
-* Adding commands to facilitate purging of hotend. 
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
+* Added commands to facilitate purging of hotend. 
 * Added Delta Auto Calibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
 * Added Delta Auto Calibration Algorithm based on Thinkyhead Marlin
 * Added Delta Auto Calibration Algorithm based on Rich Cattell Marlin
