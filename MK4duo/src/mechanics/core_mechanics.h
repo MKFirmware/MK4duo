@@ -109,6 +109,14 @@
       void homeaxis(const AxisEnum axis);
 
       /**
+       * Prepare a linear move in a Cartesian setup.
+       * If Mesh Bed Leveling is enabled, perform a mesh move.
+       *
+       * Returns true if the caller didn't update current_position.
+       */
+      bool prepare_move_to_destination_cartesian();
+
+      /**
        * Prepare a linear move in a dual X axis setup
        */
       #if ENABLED(DUAL_X_CARRIAGE)
