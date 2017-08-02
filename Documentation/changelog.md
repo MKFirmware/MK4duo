@@ -3,7 +3,6 @@
 * New classes created
 * Many changes made
 * Add Adafruit NeoPixel Led
-* Attention! This version is not stable
 
 ### Version 4.3.24 dev
 * Add Extruder Encoder for control filament movement (Experimental)
