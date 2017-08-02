@@ -1789,6 +1789,8 @@ void kill_screen(const char* lcd_msg) {
         if (!printer.g29_in_progress)
       #endif
       MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_bed_leveling);
+    #elif HAS_LEVELING
+      MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
     #endif
 
     #if HAS_M206_M408_COMMAND
@@ -1810,7 +1812,7 @@ void kill_screen(const char* lcd_msg) {
       // Change filament
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        if (!thermalManager.tooColdToExtrude(tools.active_extruder))
+        if (!thermalManager.tooColdToExtrude(active_extruder) && !IS_SD_PRINTING)
           MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
       #endif
 
