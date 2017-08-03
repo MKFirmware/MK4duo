@@ -107,7 +107,7 @@
     unsigned char cncrouter_calcPWM(unsigned long rpm) {
       unsigned char pwm;
       pwm = rpm * 255 / MAX_CNCROUTER_SPEED;
-      if (pwm > MAX_CNCROUTER_PWM_VAL) pwm = MAX_CNCROUTER_PWM_VAL;
+      NOMORE(pwm, MAX_CNCROUTER_PWM_VAL);
       return pwm;
     }
   #endif
@@ -130,8 +130,8 @@
   // XXX TODO: support for CNCROUTER_ANTICLOCKWISE 
   void setCNCRouterSpeed(unsigned long rpm, bool clockwise/*=false*/) {
     #if ENABLED(FAST_PWM_CNCROUTER)
-      if (rpm > MAX_CNCROUTER_SPEED) rpm = MAX_CNCROUTER_SPEED;
-      if ((rpm < MIN_CNCROUTER_SPEED) && (rpm > 0)) rpm = MIN_CNCROUTER_SPEED;
+      NOMORE(rpm, MAX_CNCROUTER_SPEED);
+      if (rpm > 0) NOLESS(rpm, MIN_CNCROUTER_SPEED);
       #if ENABLED(CNCROUTER_SLOWSTART)
         rpm_target = rpm;
         cncrouter_speed_step();
@@ -140,7 +140,7 @@
         setPwmCNCRouter(cncrouter_calcPWM(rpm));
       #endif
     #else
-      WRITE_CNCROUTER((rpm) ? 1 : 0);  
+      WRITE_CNCROUTER(!!rpm);  
     #endif
   }
 
