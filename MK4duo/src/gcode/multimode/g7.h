@@ -87,7 +87,7 @@
       case 5: // Positive X Negarite Y 45deg
         mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
-        if (laser.diagnostics) SERIAL_EM("Positive X Negarite Y 45deg Raster Line");
+        if (laser.diagnostics) SERIAL_EM("Positive X Negative Y 45deg Raster Line");
       break;
       default:
         if (laser.diagnostics) SERIAL_EM("Unknown direction");

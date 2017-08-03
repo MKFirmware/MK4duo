@@ -583,15 +583,7 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
 
   void Mechanics::log_machine_info() {
     SERIAL_MSG("Machine Type: ");
-    #if IS_DELTA
-      SERIAL_EM("Delta");
-    #elif IS_SCARA
-      SERIAL_EM("SCARA");
-    #elif IS_CORE
-      SERIAL_EM("Core");
-    #else
-      SERIAL_EM("Cartesian");
-    #endif
+    SERIAL_EM(MACHINE_TYPE);
 
     SERIAL_MSG("Probe: ");
     #if ENABLED(PROBE_MANUALLY)
