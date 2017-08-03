@@ -21,7 +21,8 @@
  */
 
 /**
- * Japanese (Kana UTF8 version)
+ * Japanese (Kana)
+ * UTF-8 for Graphical Display
  *
  * LCD Menu Messages
  * See also documentation/LCDLanguageFont.md
