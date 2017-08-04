@@ -186,7 +186,7 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC1, 0, TC3_IRQn, 15},  // 3 - temperature
   { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer3]
-  { TC2, 0, TC6_IRQn, 0 },  // 6
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Adafruit Neopixel
   { TC2, 1, TC7_IRQn, 0 },  // 7
   { TC2, 2, TC8_IRQn, 0 },  // 8
 };
