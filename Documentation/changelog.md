@@ -1,8 +1,27 @@
+### Version 4.3.25 dev
+* New management commands
+* New classes created
+* Many changes made
+* Add Adafruit NeoPixel Led
+
+### Version 4.3.24 dev
+* Add Extruder Encoder for control filament movement (Experimental)
+* Now all types of delta autocalibration can be done with probe_manually and lcd
+* Fix and clear code
+
+### Version 4.3.23 dev
+* Create class bedlevel and probe
+* G30 now have Z e P sub command. Z1 modify Delta Height and P1 modify Probe Z offset.
+* Fix EEPROM_SD
+* Fix and clear code
+
 ### Version 4.3.22 dev
 * Add Hardware PWM for SAM processor
 * Add M114 D for Detail position, leveled, unlevel, stepper
 * Add MKR12 system for 12 extruder with 16 relé and 4 driver
 * Support to 12 Extruder
+* Add support for PCA9632 PWM RGB LED
+* Add support DAV System (By D'angella Vincenzo)
 * Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
 
 ### Version 4.3.21 dev

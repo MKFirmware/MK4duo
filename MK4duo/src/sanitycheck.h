@@ -506,10 +506,6 @@
     #endif
   #endif
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && DISABLED(AUTO_BED_LEVELING_FEATURE)
-    #error "ENABLE_LEVELING_FADE_HEIGHT on DELTA requires AUTO_BED_LEVELING_FEATURE."
-  #endif
-
   static_assert(1 >= 0
     #if ENABLED(DELTA_AUTO_CALIBRATION_1)
       +1
@@ -517,10 +513,7 @@
     #if ENABLED(DELTA_AUTO_CALIBRATION_2)
       +1
     #endif
-    #if ENABLED(DELTA_AUTO_CALIBRATION_3)
-      +1
-    #endif
-    , "Select only one of: DELTA_AUTO_CALIBRATION_1, DELTA_AUTO_CALIBRATION_2 or DELTA_AUTO_CALIBRATION_3"
+    , "Select only one of: DELTA_AUTO_CALIBRATION_1 or DELTA_AUTO_CALIBRATION_2"
   );
 #endif
 
@@ -584,7 +577,7 @@ static_assert(1 >= 0
     #if ENABLED(FIX_MOUNTED_PROBE)
       + 1
     #endif
-    #if HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
+    #if HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
       + 1
     #endif
     #if ENABLED(BLTOUCH)
@@ -609,7 +602,7 @@ static_assert(1 >= 0
   /**
    * NUM_SERVOS is required for a Z servo probe
    */
-  #if HAS(Z_SERVO_ENDSTOP)
+  #if HAS_Z_SERVO_PROBE
     #ifndef NUM_SERVOS
       #error "You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
     #elif Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
@@ -627,9 +620,9 @@ static_assert(1 >= 0
   /**
    * Make sure Z raise values are set
    */
-  #if !defined(Z_PROBE_DEPLOY_HEIGHT)
+  #if DISABLED(Z_PROBE_DEPLOY_HEIGHT)
     #error "You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
-  #elif !defined(Z_PROBE_BETWEEN_HEIGHT)
+  #elif DISABLED(Z_PROBE_BETWEEN_HEIGHT)
     #error "You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
   #elif Z_PROBE_DEPLOY_HEIGHT < 0
     #error "Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."
@@ -642,16 +635,18 @@ static_assert(1 >= 0
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS_ABL || ENABLED(DELTA_AUTO_CALIBRATION_1)
-    #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
-  #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #if HAS_ABL
+    #error "Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
+    #error "DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
+    #error "DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
 #endif
 
-#if HASNT(BED_PROBE) && (ENABLED(DELTA_AUTO_CALIBRATION_2) || ENABLED(DELTA_AUTO_CALIBRATION_3))
-  #error "Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+#if (!HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)) && ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
+  #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
 #endif
 
 /**
@@ -684,17 +679,6 @@ static_assert(1 >= 0
  * Auto Bed Leveling
  */
 #if HAS_ABL
-
-  /**
-   * Delta and SCARA have limited bed leveling options
-   */
-  #if DISABLED(AUTO_BED_LEVELING_BILINEAR)
-    #if MECH(DELTA)
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for DELTA bed leveling."
-    #elif IS_SCARA
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for SCARA bed leveling."
-    #endif
-  #endif
 
   /**
    * Check auto bed leveling sub-options, especially probe points
@@ -742,13 +726,20 @@ static_assert(1 >= 0
 #endif // HAS_ABL
 
 /**
+ * ENABLE_LEVELING_FADE_HEIGHT requirements
+ */
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
+  #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
+#endif
+
+/**
  * LCD_BED_LEVELING requirements
  */
 #if ENABLED(LCD_BED_LEVELING)
   #if !HAS_LCD
     #error "LCD_BED_LEVELING requires an LCD controller."
   #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or PROBE_MANUALLY."
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
   #endif
 #endif
 
@@ -904,28 +895,23 @@ static_assert(1 >= 0
 #endif
 
 //addon
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
   #if DISABLED(SD_FINISHED_STEPPERRELEASE)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE
   #endif
   #if DISABLED(SD_FINISHED_RELEASECOMMAND)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND
   #endif
-  #if ENABLED(SD_SETTINGS)
-    #if DISABLED(SD_CFG_SECONDS)
-      #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
-    #endif
-    #if DISABLED(CFG_SD_FILE)
-      #error DEPENDENCY ERROR: Missing setting CFG_SD_FILE
-    #endif
+  #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
+    #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
   #endif
 #endif
 #if ENABLED(SHOW_BOOTSCREEN)
   #if DISABLED(STRING_SPLASH_LINE1)
     #error DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1
   #endif
-  #if DISABLED(SPLASH_SCREEN_DURATION)
-    #error DEPENDENCY ERROR: Missing setting SPLASH_SCREEN_DURATION
+  #if DISABLED(BOOTSCREEN_TIMEOUT)
+    #error DEPENDENCY ERROR: Missing setting BOOTSCREEN_TIMEOUT
   #endif
 #endif
 #if ENABLED(ULTIPANEL)
@@ -1551,9 +1537,6 @@ static_assert(1 >= 0
     #if DISABLED(Z_PROBE_SPEED)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_SPEED
     #endif
-    #if DISABLED(AUTOCALIBRATION_PRECISION)
-      #error DEPENDENCY ERROR: Missing setting AUTOCALIBRATION_PRECISION
-    #endif
     #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
       #error DEPENDENCY ERROR: Missing setting X_PROBE_OFFSET_FROM_NOZZLE
     #endif
@@ -1668,7 +1651,7 @@ static_assert(1 >= 0
 /**
  * Servo deactivation depends on servo endstops
  */
-#if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) && HASNT(Z_SERVO_ENDSTOP)
+#if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) && !HAS_Z_SERVO_PROBE
   #error DEPENDENCY ERROR: At least one of the Z_ENDSTOP_SERVO_NR is required for DEACTIVATE_SERVOS_AFTER_MOVE.
 #endif
 
@@ -1759,10 +1742,6 @@ static_assert(1 >= 0
 
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
   #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
-#endif
-
-#if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
-  #error DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION
 #endif
 
 #if ENABLED(CHDK) || ENABLED(PHOTOGRAPH)
@@ -1981,11 +1960,16 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO
 #endif
 
-#if ENABLED(LASERBEAM) 
-  #if (!ENABLED(LASER_REMAP_INTENSITY) && ENABLED(LASER_RASTER))
-    #error DEPENDENCY ERROR: You have to set LASER_REMAP_INTENSITY with LASER_RASTER enabled
+#if ENABLED(LASER)
+  #if ENABLED(LASER_PERIPHERALS)
+    #if !PIN_EXISTS(LASER_PERIPHERALS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
+    #if !PIN_EXISTS(LASER_PERIPHERALS_STATUS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_STATUS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
   #endif
-  #if (!ENABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
+  #if (DISABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
      #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
   #else
     #if(LASER_CONTROL == 1)
@@ -1993,15 +1977,12 @@ static_assert(1 >= 0
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
       #endif
     #else
-      #if(!HAS_LASER_POWER || !HAS_LASER_TTL)
-        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_TTL_PIN to a valid pin if you enable LASER
+      #if(!HAS_LASER_POWER || !HAS_LASER_PWM)
+        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_PWM_PIN to a valid pin if you enable LASER
       #endif
     #endif
   #endif
-  #if DISABLED(LASER_HAS_FOCUS)
-    #error DEPENDENCY ERROR: Missing LASER_HAS_FOCUS setting
-  #endif
-#endif
+#endif // ENABLED(LASER)
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
   #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
@@ -2060,6 +2041,28 @@ static_assert(1 >= 0
   #elif !IS_CARTESIAN
     #error "G38_PROBE_TARGET requires a Cartesian machine."
   #endif
+#endif
+
+/**
+ * RGB_LED Requirements
+ */
+#define _RGB_TEST (PIN_EXISTS(RGB_LED_R) && PIN_EXISTS(RGB_LED_G) && PIN_EXISTS(RGB_LED_B))
+#if ENABLED(RGB_LED)
+  #if !_RGB_TEST
+    #error "RGB_LED requires RGB_LED_R_PIN, RGB_LED_G_PIN, and RGB_LED_B_PIN."
+  #elif ENABLED(RGBW_LED)
+    #error "Please enable only one of RGB_LED and RGBW_LED."
+  #endif
+#elif ENABLED(RGBW_LED)
+  #if !(_RGB_TEST && PIN_EXISTS(RGB_LED_W))
+    #error "RGBW_LED requires RGB_LED_R_PIN, RGB_LED_G_PIN, RGB_LED_B_PIN, and RGB_LED_W_PIN."
+  #endif
+#elif ENABLED(NEOPIXEL_RGBW_LED)
+  #if !(PIN_EXISTS(NEOPIXEL) && NEOPIXEL_PIXELS > 0)
+    #error "NEOPIXEL_RGBW_LED requires NEOPIXEL_PIN and NEOPIXEL_PIXELS."
+  #endif
+#elif ENABLED(PRINTER_EVENT_LEDS) && DISABLED(BLINKM) && DISABLED(PCA9632) && DISABLED(NEOPIXEL_RGBW_LED)
+  #error "PRINTER_EVENT_LEDS requires BLINKM, PCA9632, RGB_LED, RGBW_LED or NEOPIXEL_RGBW_LED."
 #endif
 
 /**

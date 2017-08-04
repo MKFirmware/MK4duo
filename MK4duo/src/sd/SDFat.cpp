@@ -43,7 +43,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
 #include "Arduino.h"
 #include "SDFat.h"
@@ -2906,7 +2906,7 @@ fail:
 }
 //------------------------------------------------------------------------------
 // suppress cpplint warnings with NOLINT comment
-#if ALLOW_DEPRECATED_FUNCTIONS && !defined(DOXYGEN)
+#if ALLOW_DEPRECATED_FUNCTIONS && DISABLED(DOXYGEN)
 void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
 #endif  // ALLOW_DEPRECATED_FUNCTIONS
 
@@ -2916,96 +2916,6 @@ void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
 // debug trace macro
 #define SD_TRACE(m, b)
 // #define SD_TRACE(m, b) Serial.print(m);Serial.println(b);
-// SPI functions
-#ifndef SOFTWARE_SPI
-// functions for hardware SPI
-//------------------------------------------------------------------------------
-// make sure SPCR rate is in expected bits
-#if (SPR0 != 0 || SPR1 != 1)
-  #error unexpected SPCR bits
-#endif
-//------------------------------------------------------------------------------
-/**
- * initialize SPI pins
- */
-static void spiBegin() {
-  HAL::spiBegin();
-}
-//------------------------------------------------------------------------------
-/**
- * Initialize hardware SPI
- * Set SCK rate to F_CPU/POW(2, 1 + spiRate) for spiRate [0,6]
- */
-static void spiInit(uint8_t spiRate) {
-  HAL::spiInit(spiRate);
-}
-//------------------------------------------------------------------------------
-/** SPI receive a byte */
-static uint8_t spiRec() {
-  return HAL::spiReceive();
-}
-//------------------------------------------------------------------------------
-/** SPI read data - only one call so force inline */
-static inline __attribute__((always_inline))
-  uint8_t spiRec(uint8_t* buf, uint16_t nbyte) {
-  HAL::spiReadBlock(buf, nbyte);
-  return 0;
-}
-//------------------------------------------------------------------------------
-/** SPI send a byte */
-static void spiSend(uint8_t b) {
-  HAL::spiSend(b);
-}
-//------------------------------------------------------------------------------
-/** SPI send block - only one call so force inline */
-static inline __attribute__((always_inline))
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
-    HAL::spiSendBlock(token, buf);
-}
-static void spiSend(const uint8_t* buf, size_t n) {
-  HAL::spiSend(buf, n);
-}
-
-//------------------------------------------------------------------------------
-#else  // SOFTWARE_SPI
-#include <SoftSPI.h>
-static
-SoftSPI<SOFT_SPI_MISO_PIN, SOFT_SPI_MOSI_PIN, SOFT_SPI_SCK_PIN, 0> softSpiBus;
-//------------------------------------------------------------------------------
-/**
- * initialize SPI pins
- */
-static void spiBegin() {
-  softSpiBus.begin();
-}
-//------------------------------------------------------------------------------
-/** Soft SPI receive byte */
-static uint8_t spiRec() {
-  return softSpiBus.receive();
-}
-//------------------------------------------------------------------------------
-/** Soft SPI read data */
-static uint8_t spiRec(uint8_t* buf, size_t nbyte) {
-  for (size_t i = 0; i < nbyte; i++) {
-    buf[i] = spiRec();
-  }
-  return 0;
-}
-//------------------------------------------------------------------------------
-/** Soft SPI send byte */
-static void spiSend(uint8_t data) {
-  softSpiBus.send(data);
-}
-//------------------------------------------------------------------------------
-/** Soft SPI send block */
-static void spiSendBlock(uint8_t token, const uint8_t* buf) {
-  spiSend(token);
-  for (uint16_t i = 0; i < 512; i++) {
-    spiSend(buf[i]);
-  }
-}
-
-#endif  // SOFTWARE_SPI
 //==============================================================================
 
 #if ENABLED(SD_CHECK_AND_RETRY)
@@ -3144,11 +3054,11 @@ uint32_t Sd2Card::cardSize() {
 void Sd2Card::chipSelectHigh() {
   HAL::digitalWrite(chipSelectPin_, HIGH);
   // insure MISO goes high impedance
-  HAL::spiSend(0XFF);
+  spiSend(0XFF);
 }
 //------------------------------------------------------------------------------
 void Sd2Card::chipSelectLow() {
-  #ifndef SOFTWARE_SPI
+  #if DISABLED(SOFTWARE_SPI)
     spiInit(spiRate_);
   #endif  // SOFTWARE_SPI
   HAL::digitalWrite(chipSelectPin_, LOW);
@@ -3229,11 +3139,17 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   uint16_t t0 = (uint16_t)HAL::timeInMilliseconds();
   uint32_t arg;
 
+  // If init takes more than 4s it could trigger
+  // watchdog leading to a reboot loop.
+  #if ENABLED(USE_WATCHDOG)
+    watchdog_reset();
+  #endif
+
   HAL::pinMode(chipSelectPin_, OUTPUT);
   HAL::digitalWrite(chipSelectPin_, HIGH);
   spiBegin();
 
-  #ifndef SOFTWARE_SPI
+  #if DISABLED(SOFTWARE_SPI)
     // set SCK rate for initialization commands
     spiRate_ = SPI_SD_INIT_RATE;
     spiInit(spiRate_);
@@ -3296,6 +3212,7 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   #ifndef SOFTWARE_SPI
     return setSckRate(sckRateID);
   #else  // SOFTWARE_SPI
+    UNUSED(sckRateID);
     return true;
   #endif  // SOFTWARE_SPI
 
@@ -3356,7 +3273,6 @@ bool Sd2Card::readData(uint8_t* dst) {
 }
 //------------------------------------------------------------------------------
 bool Sd2Card::readData(uint8_t* dst, size_t count) {
-  uint16_t crc;
   // wait for start block token
   uint16_t t0 = HAL::timeInMilliseconds();
   while ((status_ = spiRec()) == 0XFF) {
@@ -3369,25 +3285,33 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
     error(SD_CARD_ERROR_READ);
     goto fail;
   }
+
   // transfer data
-  if ((status_ = spiRec(dst, count))) {
-    error(SD_CARD_ERROR_SPI_DMA);
-    goto fail;
-  }
-  // get crc
-  crc = (spiRec() << 8) | spiRec();
+  spiRead(dst, count);
+
   #if ENABLED(SD_CHECK_AND_RETRY)
-    if (crc != CRC_CCITT(dst, count)) {
-      error(SD_CARD_ERROR_READ_CRC);
+    uint16_t calcCrc = CRC_CCITT(dst, count);
+    uint16_t recvCrc = spiRec() << 8;
+    recvCrc |= spiRec();
+    if (calcCrc != recvCrc) {
+      error(SD_CARD_ERROR_CRC);
       goto fail;
     }
+  #else
+    // discard CRC
+    spiRec();
+    spiRec();
   #endif  // SD_CHECK_AND_RETRY
 
   chipSelectHigh();
+  // Send an additional dummy byte, required by Toshiba Flash Air SD Card
+  spiSend(0XFF);
   return true;
 
 fail:
   chipSelectHigh();
+  // Send an additional dummy byte, required by Toshiba Flash Air SD Card
+  spiSend(0XFF);
   return false;
 }
 //------------------------------------------------------------------------------
@@ -4123,7 +4047,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
   cacheStatus_ = 0;  // cacheSync() will write block if true
   cacheBlockNumber_ = 0XFFFFFFFF;
   cacheFatOffset_ = 0;
-  #if defined(USE_SERARATEFAT_CACHE) && USE_SERARATEFAT_CACHE
+  #if ENABLED(USE_SERARATEFAT_CACHE) && USE_SERARATEFAT_CACHE
     cacheFatStatus_ = 0;  // cacheSync() will write block if true
     cacheFatBlockNumber_ = 0XFFFFFFFF;
   #endif  // USE_SERARATEFAT_CACHE
@@ -4131,7 +4055,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
   // if part > 0 assume mbr volume with partition table
   if (part) {
     if (part > 4) {
-#if defined(DEBUG_SD_ERROR)
+#if ENABLED(DEBUG_SD_ERROR)
 	SERIAL_LM(ER, "volume init: illegal part");
 #endif		
       DBG_FAIL_MACRO;
@@ -4139,7 +4063,7 @@ bool SdVolume::init(Sd2Card* dev, uint8_t part) {
     }
     pc = cacheFetch(volumeStartBlock, CACHE_FOR_READ);
     if (!pc) {
-#if defined(DEBUG_SD_ERROR)
+#if ENABLED(DEBUG_SD_ERROR)
 		SERIAL_LM(ER, "volume init: cache fetch failed");
 #endif
       DBG_FAIL_MACRO;

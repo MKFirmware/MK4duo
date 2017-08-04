@@ -383,7 +383,7 @@ class NexObject {
 /**
  * Class NexUpload
  */
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
   class NexUpload {
 

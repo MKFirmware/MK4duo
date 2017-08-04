@@ -39,25 +39,59 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef CNCROUTER_H
-  #define CNCROUTER_H
+#ifndef _CNCROUTER_H_
+#define _CNCROUTER_H_
 
-  #if ENABLED(CNCROUTER)
-    void cnc_init();    // initialize cnc router
-    void cnc_manage();  // management loop for CNC
+#if ENABLED(CNCROUTER)
 
-    #if ENABLED(FAST_PWM_CNCROUTER)
-      unsigned long getCNCSpeed();
-    #else
-      #if ENABLED(INVERTED_CNCROUTER_PIN)
-        #define getCNCSpeed() READ(CNCROUTER_PIN)
+  class Cncrouter {
+
+    public: /** Constructor */
+
+      Cncrouter() {};
+
+    public: /** Public Parameters */
+
+    public: /** Public Function */
+
+      static void init();    // initialize cnc router
+      static void manage();  // management loop for CNC
+
+      #if ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t get_Speed();
+        static void print_Speed();
       #else
-        #define getCNCSpeed() !READ(CNCROUTER_PIN)
-      #endif // INVERTED_CNCROUTER_PIN
-    #endif // FAST_PWM_CNCROUTER
+        #if ENABLED(INVERTED_CNCROUTER_PIN)
+          #define get_Speed() READ(CNCROUTER_PIN)
+        #else
+          #define get_Speed() !READ(CNCROUTER_PIN)
+        #endif // INVERTED_CNCROUTER_PIN
+      #endif // FAST_PWM_CNCROUTER
 
-    void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
-    void disable_cncrouter();
-  #endif // CNCROUTER
+      static void setRouterSpeed(uint32_t rpm, bool clockwise=false);
+      static void disable_router();
 
-#endif
+    private: /** Private Parameters */
+
+      #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_target;
+        static millis_t next_speed_step; 
+      #endif
+
+      #if ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_instant;
+      #endif
+
+    private: /** Private Function */
+
+      static void speed_step();
+      static uint8_t calcPWM(uint32_t rpm);
+      static void setPwm(uint8_t pwm);
+
+  };
+
+  extern Cncrouter cnc;
+
+#endif // CNCROUTER
+
+#endif /* _CNCROUTER_H_ */

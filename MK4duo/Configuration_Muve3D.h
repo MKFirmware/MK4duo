@@ -51,8 +51,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_MECHANISM
-#define CONFIGURATION_MECHANISM
+#ifndef _CONFIGURATION_MUVE3D_H_
+#define _CONFIGURATION_MUVE3D_H_
 
 #define KNOWN_MECH
 
@@ -372,4 +372,4 @@
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_MUVE3D_H_ */

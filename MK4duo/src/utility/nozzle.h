@@ -26,10 +26,10 @@
 #include "../../base.h"
 
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
-  constexpr float nozzle_clean_start_point[4] = NOZZLE_CLEAN_START_POINT,
-                  nozzle_clean_end_point[4] = NOZZLE_CLEAN_END_POINT,
-                  nozzle_clean_length = fabs(nozzle_clean_start_point[X_AXIS] - nozzle_clean_end_point[X_AXIS]), //abs x size of wipe pad
-                  nozzle_clean_height = fabs(nozzle_clean_start_point[Y_AXIS] - nozzle_clean_end_point[Y_AXIS]); //abs y size of wipe pad
+  constexpr float nozzle_clean_start_point[XYZ] = NOZZLE_CLEAN_START_POINT,
+                  nozzle_clean_end_point[XYZ]   = NOZZLE_CLEAN_END_POINT,
+                  nozzle_clean_length = FABS(nozzle_clean_start_point[X_AXIS] - nozzle_clean_end_point[X_AXIS]), //abs x size of wipe pad
+                  nozzle_clean_height = FABS(nozzle_clean_start_point[Y_AXIS] - nozzle_clean_end_point[Y_AXIS]); //abs y size of wipe pad
   constexpr bool nozzle_clean_horizontal = nozzle_clean_length >= nozzle_clean_height; //whether to zig-zag horizontally or vertically
 #endif //NOZZLE_CLEAN_FEATURE
 
@@ -88,4 +88,4 @@ class Nozzle {
 
 };
 
-#endif
+#endif /* __NOZZLE_H__ */

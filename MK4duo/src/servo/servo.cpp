@@ -41,7 +41,52 @@
 #include "../../base.h"
 
 #if HAS_SERVOS
+
   #include "servo.h"
+
+  Servo servo[NUM_SERVOS];
+
+  void servo_init() {
+
+    #if NUM_SERVOS >= 1 && HAS_SERVO_0
+      servo[0].attach(SERVO0_PIN);
+      servo[0].detach(); // Just set up the pin. We don't have a position yet. Don't move to a random position.
+    #endif
+    #if NUM_SERVOS >= 2 && HAS_SERVO_1
+      servo[1].attach(SERVO1_PIN);
+      servo[1].detach();
+    #endif
+    #if NUM_SERVOS >= 3 && HAS_SERVO_2
+      servo[2].attach(SERVO2_PIN);
+      servo[2].detach();
+    #endif
+    #if NUM_SERVOS >= 4 && HAS_SERVO_3
+      servo[3].attach(SERVO3_PIN);
+      servo[3].detach();
+    #endif
+
+    #if HAS_DONDOLO
+      servo[DONDOLO_SERVO_INDEX].attach(0);
+      servo[DONDOLO_SERVO_INDEX].write(DONDOLO_SERVOPOS_E0);
+      #if (DONDOLO_SERVO_DELAY > 0)
+        printer.safe_delay(DONDOLO_SERVO_DELAY);
+        servo[DONDOLO_SERVO_INDEX].detach();
+      #endif
+    #endif
+
+    #if HAS_Z_SERVO_PROBE
+      /**
+       * Set position of Z Servo Endstop
+       *
+       * The servo might be deployed and positioned too low to stow
+       * when starting up the machine or rebooting the board.
+       * There's no way to know where the nozzle is positioned until
+       * homing has been done - no homing with z-probe without init!
+       *
+       */
+      STOW_Z_SERVO();
+    #endif
+  }
 
   #define usToTicks(_us)    (( clockCyclesPerMicrosecond() * _us) / SERVO_TIMER_PRESCALER)              // converts microseconds to tick (PRESCALER depends on architecture)
   #define ticksToUs(_ticks) (((unsigned)_ticks * SERVO_TIMER_PRESCALER) / clockCyclesPerMicrosecond())  // converts from ticks back to microseconds
@@ -67,27 +112,27 @@
     /// Interrupt handler for the TC0 channel 1.
     //------------------------------------------------------------------------------
     void Servo_Handler(timer16_Sequence_t timer, Tc *pTc, uint8_t channel);
-    #if defined (_useTimer1)
+    #if ENABLED (_useTimer1)
       void HANDLER_FOR_TIMER1(void) {
         Servo_Handler(_timer1, TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
       }
     #endif
-    #if defined (_useTimer2)
+    #if ENABLED (_useTimer2)
       void HANDLER_FOR_TIMER2(void) {
         Servo_Handler(_timer2, TC_FOR_TIMER2, CHANNEL_FOR_TIMER2);
       }
     #endif
-    #if defined (_useTimer3)
+    #if ENABLED (_useTimer3)
       void HANDLER_FOR_TIMER3(void) {
         Servo_Handler(_timer3, TC_FOR_TIMER3, CHANNEL_FOR_TIMER3);
       }
     #endif
-    #if defined (_useTimer4)
+    #if ENABLED (_useTimer4)
       void HANDLER_FOR_TIMER4(void) {
         Servo_Handler(_timer4, TC_FOR_TIMER4, CHANNEL_FOR_TIMER4);
       }
     #endif
-    #if defined (_useTimer5)
+    #if ENABLED (_useTimer5)
       void HANDLER_FOR_TIMER5(void) {
         Servo_Handler(_timer5, TC_FOR_TIMER5, CHANNEL_FOR_TIMER5);
       }
@@ -144,23 +189,23 @@
     }
 
     static void initISR(timer16_Sequence_t timer) {
-      #if defined (_useTimer1)
+      #if ENABLED (_useTimer1)
         if (timer == _timer1)
           _initISR(TC_FOR_TIMER1, CHANNEL_FOR_TIMER1, ID_TC_FOR_TIMER1, IRQn_FOR_TIMER1);
       #endif
-      #if defined (_useTimer2)
+      #if ENABLED (_useTimer2)
         if (timer == _timer2)
           _initISR(TC_FOR_TIMER2, CHANNEL_FOR_TIMER2, ID_TC_FOR_TIMER2, IRQn_FOR_TIMER2);
       #endif
-      #if defined (_useTimer3)
+      #if ENABLED (_useTimer3)
         if (timer == _timer3)
           _initISR(TC_FOR_TIMER3, CHANNEL_FOR_TIMER3, ID_TC_FOR_TIMER3, IRQn_FOR_TIMER3);
       #endif
-      #if defined (_useTimer4)
+      #if ENABLED (_useTimer4)
         if (timer == _timer4)
           _initISR(TC_FOR_TIMER4, CHANNEL_FOR_TIMER4, ID_TC_FOR_TIMER4, IRQn_FOR_TIMER4);
       #endif
-      #if defined (_useTimer5)
+      #if ENABLED (_useTimer5)
         if (timer == _timer5)
           _initISR(TC_FOR_TIMER5, CHANNEL_FOR_TIMER5, ID_TC_FOR_TIMER5, IRQn_FOR_TIMER5);
       #endif
@@ -168,19 +213,19 @@
 
     static void finISR(timer16_Sequence_t timer) {
       UNUSED(timer);
-      #if defined (_useTimer1)
+      #if ENABLED (_useTimer1)
         TC_Stop(TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
       #endif
-      #if defined (_useTimer2)
+      #if ENABLED (_useTimer2)
         TC_Stop(TC_FOR_TIMER2, CHANNEL_FOR_TIMER2);
       #endif
-      #if defined (_useTimer3)
+      #if ENABLED (_useTimer3)
         TC_Stop(TC_FOR_TIMER3, CHANNEL_FOR_TIMER3);
       #endif
-      #if defined (_useTimer4)
+      #if ENABLED (_useTimer4)
         TC_Stop(TC_FOR_TIMER4, CHANNEL_FOR_TIMER4);
       #endif
-      #if defined (_useTimer5)
+      #if ENABLED (_useTimer5)
         TC_Stop(TC_FOR_TIMER5, CHANNEL_FOR_TIMER5);
       #endif
     }
@@ -249,7 +294,7 @@
           TCCR1A = 0;             // normal counting mode
           TCCR1B = _BV(CS11);     // set prescaler of 8
           TCNT1 = 0;              // clear the timer count
-        #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
+        #if ENABLED(__AVR_ATmega8__) || ENABLED(__AVR_ATmega128__)
           SBI(TIFR, OCF1A);      // clear any pending interrupts;
           SBI(TIMSK, OCIE1A);    // enable the output compare interrupt
         #else
@@ -257,7 +302,7 @@
           SBI(TIFR1, OCF1A);     // clear any pending interrupts;
           SBI(TIMSK1, OCIE1A);   // enable the output compare interrupt
         #endif
-        #if defined(WIRING)
+        #if ENABLED(WIRING)
           timerAttach(TIMER1OUTCOMPAREA_INT, Timer1Service);
         #endif
         }
@@ -306,7 +351,7 @@
       //disable use of the given timer
       #ifdef WIRING
         if (timer == _timer1) {
-          #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+          #if ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega2561__)
             TIMSK1 &= ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
           #else
             TIMSK  &= ~_BV(OCIE1A);  // disable timer 1 output compare interrupt
@@ -314,7 +359,7 @@
           timerDetach(TIMER1OUTCOMPAREA_INT);
         }
         else if (timer == _timer3) {
-          #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+          #if ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega2561__)
             TIMSK3 &= ~_BV(OCIE3A);    // disable the timer3 output compare A interrupt
           #else
             ETIMSK &= ~_BV(OCIE3A);    // disable the timer3 output compare A interrupt

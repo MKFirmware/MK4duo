@@ -56,9 +56,19 @@
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <stdint.h>
 #include <Arduino.h>
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+typedef uint32_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 #include "fastio_Due.h"
 #include "watchdog_Due.h"
 #include "HAL_timers_Due.h"
@@ -112,7 +122,7 @@
   #define MKSERIAL Serial3
 #endif
 
-#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
   #undef MKSERIAL
   #if BLUETOOTH_PORT == 1
     #define MKSERIAL Serial1
@@ -174,9 +184,7 @@
 #undef HIGH
 #define HIGH        1
 
-// intRes = intIn1 * intIn2 >> 16
 #define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
-// intRes = longIn1 * longIn2 >> 24
 #define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
@@ -185,7 +193,7 @@
 
 // TEMPERATURE
 #undef analogInputToDigitalPin
-#define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
+#define analogInputToDigitalPin(p) ((p < 12) ? (p) + 54 : -1)
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
 #define ANALOG_REDUCE_BITS 0
@@ -198,19 +206,8 @@
 #define ADC_TEMPERATURE_SENSOR 15
 
 // --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
-
-typedef uint32_t millis_t;
-typedef uint8_t Pin;
-
-// --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
-
-#ifndef DUE_SOFTWARE_SPI
-  extern int spiDueDividors[];
-#endif
 
 // reset reason set by bootloader
 extern uint8_t MCUSR;
@@ -231,45 +228,15 @@ class HAL {
 
     static void hwSetup(void);
 
-    #ifdef DUE_SOFTWARE_SPI
-      static uint8_t spiTransfer(uint8_t b); // using Mode 0
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      static uint8_t spiReceive();
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t b);
-      static void spiSend(const uint8_t* buf , size_t n) ;
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #else
-      // Hardware setup
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      // Write single byte to SPI
-      static void spiSend(byte b);
-      static void spiSend(const uint8_t* buf, size_t n);
-      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        static void spiSend(uint32_t chan, byte b);
-        static void spiSend(uint32_t chan , const uint8_t* buf , size_t n);
-        static uint8_t spiReceive(uint32_t chan);
-      #endif
-      // Read single byte from SPI
-      static uint8_t spiReceive();
-      // Read from SPI into buffer
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+    static bool analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=50);
 
-      // Write from buffer to SPI
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #endif
-
-    static bool AnalogWrite(Pin pin, const uint8_t value, const uint16_t freq);
-
-    static inline void digitalWrite(Pin pin, uint8_t value) {
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
       WRITE_VAR(pin, value);
     }
-    static inline uint8_t digitalRead(Pin pin) {
+    static inline uint8_t digitalRead(const Pin pin) {
       return READ_VAR(pin);
     }
-    static inline void pinMode(Pin pin, uint8_t mode) {
+    static inline void pinMode(const Pin pin, const uint8_t mode) {
       if (mode == INPUT) {
         SET_INPUT(pin);
       }
@@ -285,8 +252,8 @@ class HAL {
         : "+r" (n) :
       );
     }
-    static inline void delayMilliseconds(unsigned int delayMs) {
-      unsigned int del;
+    static inline void delayMilliseconds(uint16_t delayMs) {
+      uint16_t del;
       while (delayMs > 0) {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
@@ -343,10 +310,19 @@ void sei(void);
 
 int freeMemory(void);
 
+// SPI: Extended functions which take a channel number (hardware SPI only)
+/** Write single byte to specified SPI channel */
+void spiSend(uint32_t chan, byte b);
+/** Write buffer to specified SPI channel */
+void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
+/** Read single byte from specified SPI channel */
+uint8_t spiRec(uint32_t chan);
+
+
 // EEPROM
-uint8_t eeprom_read_byte(uint8_t* pos);
-void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
-void eeprom_write_byte(uint8_t* pos, uint8_t value);
-void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
+void eeprom_write_byte(unsigned char *pos, unsigned char value);
+unsigned char eeprom_read_byte(unsigned char *pos);
+void eeprom_read_block (void *__dst, const void *__src, size_t __n);
+void eeprom_update_block (const void *__src, void *__dst, size_t __n);
 
 #endif // HAL_SAM_H

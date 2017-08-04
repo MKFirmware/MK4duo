@@ -108,6 +108,16 @@ enum EndstopEnum {
 #endif
 
 /**
+ * Interrupt Event
+ */
+enum MK4duoInterruptEvent {
+  INTERRUPT_EVENT_NONE,
+  INTERRUPT_EVENT_FIL_RUNOUT,
+  INTERRUPT_EVENT_DAV_SYSTEM,
+  INTERRUPT_EVENT_ENC_DETECT
+};
+
+/**
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
@@ -166,8 +176,7 @@ enum LCDViewAction {
   LCDVIEW_REDRAW_NOW,
   LCDVIEW_CALL_REDRAW_NEXT,
   LCDVIEW_CLEAR_CALL_REDRAW,
-  LCDVIEW_CALL_NO_REDRAW,
-  LCDVIEW_U8G_CONTINUE
+  LCDVIEW_CALL_NO_REDRAW
 };
 
 /**
@@ -196,4 +205,12 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   };
 #endif
 
-#endif //__ENUM_H__
+/**
+ * Workspace planes only apply to G2/G3 moves
+ * (and "canned cycles" - not a current feature)
+ */
+#if ENABLED(CNC_WORKSPACE_PLANES)
+  enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
+#endif
+
+#endif /* __ENUM_H__ */

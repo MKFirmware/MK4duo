@@ -56,25 +56,35 @@
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+typedef uint16_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 #include "fastio.h"
 #include "watchdog_AVR.h"
 
 // BLUETOOTH
-#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
   #undef SERIAL_PORT
   #undef BAUDRATE
   #define SERIAL_PORT BLUETOOTH_PORT
@@ -106,7 +116,7 @@
 
 #define PACK
 
-#if defined(ARDUINO) && ARDUINO >= 100
+#if ENABLED(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
@@ -219,13 +229,6 @@
 #define ANALOG_REF ANALOG_REF_AVCC
 #define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define OVERSAMPLENR 5
-
-// --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
-
-typedef uint16_t HAL_TIMER_TYPE;
-typedef uint32_t millis_t;
 
 // --------------------------------------------------------------------------
 // Timer
@@ -374,104 +377,30 @@ class HAL {
 
     static void setPwmFrequency(uint8_t pin, uint8_t val);
 
-    // SPI related functions
-    static void spiBegin() {
-      #if SS_PIN >= 0
-        SET_INPUT(MISO_PIN);
-        SET_OUTPUT(MOSI_PIN);
-        SET_OUTPUT(SCK_PIN);
-        // SS must be in output mode even it is not chip select
-        SET_OUTPUT(SS_PIN);
-        // set SS high - may be chip select for another SPI device
-        WRITE(SS_PIN, HIGH);
-      #endif
+    static inline void analogWrite(const Pin pin, const uint8_t value) {
+      ::analogWrite(pin, value);
     }
-    static inline void spiInit(uint8_t spiRate) {
-      uint8_t r = 0;
-      for (uint8_t b = 2; spiRate > b && r < 6; b <<= 1, r++);
-
-      SET_OUTPUT(SS_PIN);
-      WRITE(SS_PIN, HIGH);
-      SET_OUTPUT(SCK_PIN);
-      SET_OUTPUT(MOSI_PIN);
-      SET_INPUT(MISO_PIN);
-      #ifdef PRR
-        PRR &= ~(1 << PRSPI);
-      #elif defined PRR0
-        PRR0 &= ~(1 << PRSPI);
-      #endif
-      // See avr processor documentation
-      SPCR = (1 << SPE) | (1 << MSTR) | (r >> 1);
-      SPSR = (r & 1 || r == 6 ? 0 : 1) << SPI2X;
-    }
-    static inline uint8_t spiReceive(uint8_t send = 0xFF) {
-      SPDR = send;
-      while (!(SPSR & (1 << SPIF))) {}
-      return SPDR;
-    }
-    static inline void spiReadBlock(uint8_t* buf, size_t nbyte) {
-      if (nbyte-- == 0) return;
-      SPDR = 0XFF;
-      for (size_t i = 0; i < nbyte; i++) {
-        while (!(SPSR & (1 << SPIF))) {}
-        buf[i] = SPDR;
-        SPDR = 0XFF;
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-      buf[nbyte] = SPDR;
-    }
-    static inline void spiSend(uint8_t b) {
-      SPDR = b;
-      while (!(SPSR & (1 << SPIF))) {}
-    }
-    static inline void spiSend(const uint8_t* buf, size_t n) {
-      if (n == 0) return;
-      SPDR = buf[0];
-      if (n > 1) {
-        uint8_t b = buf[1];
-        size_t i = 2;
-        while (1) {
-          while (!(SPSR & (1 << SPIF))) {}
-          SPDR = b;
-          if (i == n) break;
-          b = buf[i++];
-        }
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-    }
-    static inline __attribute__((always_inline))
-    void spiSendBlock(uint8_t token, const uint8_t* buf) {
-      SPDR = token;
-      for (uint16_t i = 0; i < 512; i += 2) {
-        while (!(SPSR & (1 << SPIF))) {}
-        SPDR = buf[i];
-        while (!(SPSR & (1 << SPIF))) {}
-        SPDR = buf[i + 1];
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-    }
-
-    static inline void digitalWrite(uint8_t pin,uint8_t value) {
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
       ::digitalWrite(pin, value);
     }
-    static inline uint8_t digitalRead(uint8_t pin) {
+    static inline uint8_t digitalRead(const Pin pin) {
       return ::digitalRead(pin);
     }
-    static inline void pinMode(uint8_t pin,uint8_t mode) {
+    static inline void pinMode(const Pin pin, const uint8_t mode) {
       ::pinMode(pin, mode);
     }
 
-    static inline void delayMicroseconds(unsigned int delayUs) {
+    static inline void delayMicroseconds(const uint16_t delayUs) {
       ::delayMicroseconds(delayUs);
     }
-    static inline void delayMilliseconds(unsigned int delayMs) {
+    static inline void delayMilliseconds(const uint16_t delayMs) {
       ::delay(delayMs);
     }
-    static inline unsigned long timeInMilliseconds() {
+    static inline uint32_t timeInMilliseconds() {
       return millis();
     }
 
-    static inline void serialSetBaudrate(long baud) {
+    static inline void serialSetBaudrate(const uint16_t baud) {
       MKSERIAL.begin(baud);
     }
     static inline bool serialByteAvailable() {
@@ -480,7 +409,7 @@ class HAL {
     static inline uint8_t serialReadByte() {
       return MKSERIAL.read();
     }
-    static inline void serialWriteByte(char b) {
+    static inline void serialWriteByte(const char b) {
       MKSERIAL.write(b);
     }
     static inline void serialFlush() {
@@ -504,13 +433,17 @@ class HAL {
 #undef FLOOR
 #undef LROUND
 #undef FMOD
+#undef COS
+#undef SIN
 #define ATAN2(y, x) atan2(y, x)
-#define FABS(x) fabs(x)
-#define POW(x, y) pow(x, y)
-#define SQRT(x) sqrt(x)
-#define CEIL(x) ceil(x)
-#define FLOOR(x) floor(x)
-#define LROUND(x) lround(x)
-#define FMOD(x, y) fmod(x, y)
+#define FABS(x)     fabs(x)
+#define POW(x, y)   pow(x, y)
+#define SQRT(x)     sqrt(x)
+#define CEIL(x)     ceil(x)
+#define FLOOR(x)    floor(x)
+#define LROUND(x)   lround(x)
+#define FMOD(x, y)  fmod(x, y)
+#define COS(x)      cos(x)
+#define SIN(x)      sin(x)
 
 #endif // HAL_AVR_H

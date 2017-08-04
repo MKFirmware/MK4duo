@@ -30,6 +30,9 @@
 #define ABC       3
 #define XYZ       3
 
+// Function macro
+#define FORCE_INLINE __attribute__((always_inline)) inline
+
 /**
  * Macros for mechanics type
  */
@@ -61,15 +64,12 @@
 #define IS_CARTESIAN  (!IS_KINEMATIC && !IS_CORE)
 /********************************************************************/
 
-// Function macro
-#define FORCE_INLINE __attribute__((always_inline)) inline
-
 // Compiler warning on unused varable.
 #define UNUSED(x) (void) (x)
 
 // Macros to make a string from a macro
 #define STRINGIFY_(M) #M
-#define STRINGIFY(M) STRINGIFY_(M)
+#define STRINGIFY(M)  STRINGIFY_(M)
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
@@ -98,8 +98,8 @@
 #define COS_60 0.5
 
 // Macros to contrain values
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+#define NOLESS(v,n)       v = (v < n) ? n : v
+#define NOMORE(v,n)       v = (v > n) ? n : v
 
 // Macros to support option testing
 #define ENABLED defined
@@ -118,7 +118,7 @@
 #define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
 
 // Macro for debugging
-#define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))
+#define DEBUGGING(F) (commands.mk_debug_flags & (DEBUG_## F))
 
 // Macros for initializing arrays
 #define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
@@ -154,32 +154,6 @@
 #define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
 #define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
-// Macros for adding
-#define INC_0 1
-#define INC_1 2
-#define INC_2 3
-#define INC_3 4
-#define INC_4 5
-#define INC_5 6
-#define INC_6 7
-#define INC_7 8
-#define INC_8 9
-#define INCREMENT_(n) INC_ ##n
-#define INCREMENT(n) INCREMENT_(n)
-
-// Macros for subtracting
-#define DEC_1 0
-#define DEC_2 1
-#define DEC_3 2
-#define DEC_4 3
-#define DEC_5 4
-#define DEC_6 5
-#define DEC_7 6
-#define DEC_8 7
-#define DEC_9 8
-#define DECREMENT_(n) DEC_ ##n
-#define DECREMENT(n) DECREMENT_(n)
-
 #define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN >= 0)
 
 #define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
@@ -201,16 +175,23 @@
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
 #define FIXFLOAT(f)       (f + 0.00001)
 
-#define _AXIS(AXIS) AXIS ##_AXIS
+// LOOP MACROS
+#define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)
+#define LOOP_S_L_N(VAR, S, N)   for (uint8_t VAR=S; VAR<N; VAR++)
+#define LOOP_LE_N(VAR, N)       LOOP_S_LE_N(VAR, 0, N)
+#define LOOP_L_N(VAR, N)        LOOP_S_L_N(VAR, 0, N)
 
-#define LOOP_XY(VAR)      for (uint8_t VAR = X_AXIS; VAR <= Y_AXIS; VAR++)
-#define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
-#define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
-#define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)
+#define LOOP_NA(VAR)            LOOP_L_N(VAR, NUM_AXIS)
+#define LOOP_XY(VAR)            LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
+#define LOOP_XYZ(VAR)           LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
+#define LOOP_XYZE(VAR)          LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
+#define LOOP_XYZE_N(VAR)        LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
+#define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
+#define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)
 #define MMS_TO_MMM(MM_S) ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S) ((MM_S) * Mechanics.feedrate_percentage * 0.01)
+#define MMS_SCALED(MM_S) ((MM_S) * mechanics.feedrate_percentage * 0.01)
 
 #endif //__MACROS_H

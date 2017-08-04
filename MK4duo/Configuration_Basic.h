@@ -36,8 +36,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_BASIC_H
-#define CONFIGURATION_BASIC_H
+#ifndef _CONFIGURATION_BASIC_H_
+#define _CONFIGURATION_BASIC_H_
 
 /***********************************************************************
  ********************** Serial comunication type ***********************
@@ -119,6 +119,8 @@
 //#define HOST_KEEPALIVE_FEATURE
 // Number of seconds between "busy" messages. Set with M113.
 #define DEFAULT_KEEPALIVE_INTERVAL 2
+// Some hosts require "busy" messages even during heating
+#define BUSY_WHILE_HEATING
 /***********************************************************************/
 
 
@@ -197,4 +199,4 @@
 #define DRIVER_EXTRUDERS 1
 /***********************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_BASIC_H_ */

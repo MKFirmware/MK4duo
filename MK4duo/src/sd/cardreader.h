@@ -23,7 +23,7 @@
 #ifndef CARDREADER_H
 #define CARDREADER_H
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
 
   #define SD_MAX_FOLDER_DEPTH 10     // Maximum folder depth
   #define MAX_VFAT_ENTRIES (2)
@@ -55,9 +55,9 @@
     void write_command(char* buf);
     bool write_data(const uint8_t value);
     uint8_t read_data();
-    bool selectFile(const char *filename, bool silent = false);
+    bool selectFile(const char *filename, const bool silent=false);
     void printStatus();
-    void startWrite(char* filename, bool lcd_status = true);
+    void startWrite(char* filename, const bool silent=false);
     void deleteFile(char* filename);
     void finishWrite();
     void makeDirectory(char* filename);

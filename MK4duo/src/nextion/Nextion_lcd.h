@@ -76,7 +76,7 @@
       void gfx_plane_to(const float x, const float y, const float z);
     #endif
 
-    #if ENABLED(SDSUPPORT)
+    #if HAS_SDSUPPORT
       void sdmountdismountPopCallback(void *ptr);
       void sdlistPopCallback(void *ptr);
       void sdfilePopCallback(void *ptr);

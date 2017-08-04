@@ -22,6 +22,7 @@
 
 /**
  * Portuguese (Brazil)
+ * UTF-8 for Graphical Display
  *
  * LCD Menu Messages
  * See also documentation/LCDLanguageFont.md

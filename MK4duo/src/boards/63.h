@@ -1,18 +1,176 @@
 /****************************************************************************************
-* 6 - 62 - 63 - 64 - 65
-*  6 - Sanguinololu <1.2
-* 62 - Sanguinololu 1.2 and above
 * 63 - Melzi
-* 64 - STB 1.1
-* 65 - Azteeg X1
-* 66 - MELZI 1284
 ****************************************************************************************/
 
- #if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega1284P__)
+//###CHIP
+#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
+  #error Oops!  Make sure you have 'Sanguino' or 'Anet' selected from the 'Tools -> Boards' menu.
+#endif
+//@@@
+
+#define KNOWN_BOARD 1
+
+//###BOARD_NAME
+#if DISABLED(BOARD_NAME)
+  #define BOARD_NAME "Melzi"
+#endif
+//@@@
+
+
+//###X_AXIS
+#define ORIG_X_STEP_PIN 15
+#define ORIG_X_DIR_PIN 21
+#define ORIG_X_ENABLE_PIN -1
+#define ORIG_X_CS_PIN -1
+
+//###Y_AXIS
+#define ORIG_Y_STEP_PIN 22
+#define ORIG_Y_DIR_PIN 23
+#define ORIG_Y_ENABLE_PIN -1
+#define ORIG_Y_CS_PIN -1
+
+//###Z_AXIS
+#define ORIG_Z_STEP_PIN 3
+#define ORIG_Z_DIR_PIN 2
+#define ORIG_Z_ENABLE_PIN -1
+#define ORIG_Z_CS_PIN -1
+
+//###EXTRUDER_0
+#define ORIG_E0_STEP_PIN 1
+#define ORIG_E0_DIR_PIN 0
+#define ORIG_E0_ENABLE_PIN -1
+#define ORIG_E0_CS_PIN -1
+#define ORIG_SOL0_PIN -1
+
+//###EXTRUDER_1
+#define ORIG_E1_STEP_PIN -1
+#define ORIG_E1_DIR_PIN -1
+#define ORIG_E1_ENABLE_PIN -1
+#define ORIG_E1_CS_PIN -1
+#define ORIG_SOL1_PIN -1
+
+//###EXTRUDER_2
+#define ORIG_E2_STEP_PIN -1
+#define ORIG_E2_DIR_PIN -1
+#define ORIG_E2_ENABLE_PIN -1
+#define ORIG_E2_CS_PIN -1
+#define ORIG_SOL2_PIN -1
+
+//###EXTRUDER_3
+#define ORIG_E3_STEP_PIN -1
+#define ORIG_E3_DIR_PIN -1
+#define ORIG_E3_ENABLE_PIN -1
+#define ORIG_E3_CS_PIN -1
+#define ORIG_SOL3_PIN -1
+
+//###EXTRUDER_4
+#define ORIG_E4_STEP_PIN -1
+#define ORIG_E4_DIR_PIN -1
+#define ORIG_E4_ENABLE_PIN -1
+#define ORIG_E4_CS_PIN -1
+#define ORIG_SOL4_PIN -1
+
+//###EXTRUDER_5
+#define ORIG_E5_STEP_PIN -1
+#define ORIG_E5_DIR_PIN -1
+#define ORIG_E5_ENABLE_PIN -1
+#define ORIG_E5_CS_PIN -1
+#define ORIG_SOL5_PIN -1
+
+//###EXTRUDER_6
+#define ORIG_E6_STEP_PIN -1
+#define ORIG_E6_DIR_PIN -1
+#define ORIG_E6_ENABLE_PIN -1
+#define ORIG_E6_CS_PIN -1
+#define ORIG_SOL6_PIN -1
+
+//###EXTRUDER_7
+#define ORIG_E7_STEP_PIN -1
+#define ORIG_E7_DIR_PIN -1
+#define ORIG_E7_ENABLE_PIN -1
+#define ORIG_E7_CS_PIN -1
+#define ORIG_SOL7_PIN -1
+
+//###ENDSTOP
+#define ORIG_X_MIN_PIN -1
+#define ORIG_X_MAX_PIN -1
+#define ORIG_Y_MIN_PIN -1
+#define ORIG_Y_MAX_PIN -1
+#define ORIG_Z_MIN_PIN -1
+#define ORIG_Z_MAX_PIN -1
+#define ORIG_Z2_MIN_PIN -1
+#define ORIG_Z2_MAX_PIN -1
+#define ORIG_Z3_MIN_PIN -1
+#define ORIG_Z3_MAX_PIN -1
+#define ORIG_Z4_MIN_PIN -1
+#define ORIG_Z4_MAX_PIN -1
+#define ORIG_E_MIN_PIN -1
+#define ORIG_Z_PROBE_PIN -1
+
+//###SINGLE_ENDSTOP
+#define X_STOP_PIN 18
+#define Y_STOP_PIN 19
+#define Z_STOP_PIN 20
+
+//###HEATER
+#define ORIG_HEATER_0_PIN 13
+#define ORIG_HEATER_1_PIN -1
+#define ORIG_HEATER_2_PIN -1
+#define ORIG_HEATER_3_PIN -1
+#define ORIG_HEATER_BED_PIN -1
+#define ORIG_HEATER_CHAMBER_PIN -1
+#define ORIG_COOLER_PIN -1
+
+//###TEMPERATURE
+#define ORIG_TEMP_0_PIN 7
+#define ORIG_TEMP_1_PIN -1
+#define ORIG_TEMP_2_PIN -1
+#define ORIG_TEMP_3_PIN -1
+#define ORIG_TEMP_BED_PIN 6
+#define ORIG_TEMP_CHAMBER_PIN -1
+#define ORIG_TEMP_COOLER_PIN -1
+
+//###FAN
+#define ORIG_FAN_PIN -1
+#define ORIG_FAN1_PIN -1
+#define ORIG_FAN2_PIN -1
+#define ORIG_FAN3_PIN -1
+
+//###MISC
+#define ORIG_PS_ON_PIN -1
+#define ORIG_BEEPER_PIN -1
+#define LED_PIN -1
+#define SDPOWER -1
+#define SD_DETECT_PIN -1
+#define SDSS 31
+#define KILL_PIN -1
+#define DEBUG_PIN -1
+#define SUICIDE_PIN -1
+
+//###LASER
+#define ORIG_LASER_PWR_PIN -1
+#define ORIG_LASER_PWM_PIN -1
+
+//###SERVOS
+#if NUM_SERVOS > 0
+  #define SERVO0_PIN -1
+  #if NUM_SERVOS > 1
+    #define SERVO1_PIN -1
+    #if NUM_SERVOS > 2
+      #define SERVO2_PIN -1
+      #if NUM_SERVOS > 3
+        #define SERVO3_PIN -1
+      #endif
+    #endif
+  #endif
+#endif
+//@@@
+
+
+//###IF_BLOCKS
+#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
     #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu.
   #endif
-
-  #define KNOWN_BOARD 1
 
   #if !MB(SANGUINOLOLU_11)
     #define SANGUINOLOLU_V_1_2
@@ -21,25 +179,6 @@
   #if defined(__AVR_ATmega1284P__)
     #define LARGE_FLASH true
   #endif
-
-  #define ORIG_X_STEP_PIN         15
-  #define ORIG_X_DIR_PIN          21
-  #define X_STOP_PIN              18
-
-  #define ORIG_Y_STEP_PIN         22
-  #define ORIG_Y_DIR_PIN          23
-  #define Y_STOP_PIN              19
-
-  #define ORIG_Z_STEP_PIN          3
-  #define ORIG_Z_DIR_PIN           2
-  #define Z_STOP_PIN              20
-
-  #define ORIG_E0_STEP_PIN         1
-  #define ORIG_E0_DIR_PIN          0
-
-  #define LED_PIN                 -1
-
-  #define ORIG_FAN_PIN            -1
 
   #if MB(AZTEEG_X1) || MB(STB_11) || MB(MELZI)
     #define ORIG_FAN_PIN           4 // Works for Panelolu2 too
@@ -63,13 +202,6 @@
     #endif
   #endif
 
-  #define ORIG_PS_ON_PIN          -1
-  #define KILL_PIN                -1
-
-  #define ORIG_HEATER_0_PIN       13 // (extruder)
-  #define ORIG_HEATER_1_PIN       -1
-  #define ORIG_HEATER_2_PIN       -1
-
   #if ENABLED(SANGUINOLOLU_V_1_2)
 
     #define ORIG_HEATER_BED_PIN   12 // (bed)
@@ -92,19 +224,12 @@
 
   #endif
 
-    #define ORIG_TEMP_0_PIN        7   // MUST USE ANALOG INPUT NUMBERING NOT DIGITAL OUTPUT NUMBERING!!!!!!!!! (pin 33 extruder)
-    #define ORIG_TEMP_1_PIN       -1
-    #define ORIG_TEMP_2_PIN       -1
-    #define ORIG_TEMP_BED_PIN      6   // MUST USE ANALOG INPUT NUMBERING NOT DIGITAL OUTPUT NUMBERING!!!!!!!!! (pin 34 bed)
-    #define SDPOWER               -1
-    #define SDSS                  31
-
   /**
    * On some broken versions of the Sanguino libraries the pin definitions are wrong,
    * which then needs SDSS as pin 24. But you should upgrade your Sanguino libraries! See #368.
    */
-  //#define SDSS               24
 
+//#define SDSS               24
   #if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
 
     // No buzzer installed
@@ -188,3 +313,4 @@
     #define SD_DETECT_PIN         -1
 
   #endif // MAKRPANEL
+//@@@

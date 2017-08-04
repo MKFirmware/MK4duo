@@ -45,7 +45,7 @@
  * So we extend them here because these are the normal pins for Y_MIN and Y_MAX on RAMPS.
  * There are more PCI-enabled processor pins on Port J, but they are not connected to Arduino MEGA.
  */
-#if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA)
+#if ENABLED(ARDUINO_AVR_MEGA2560) || ENABLED(ARDUINO_AVR_MEGA)
   #undef  digitalPinToPCICR
   #define digitalPinToPCICR(p)    ( (((p) >= 10) && ((p) <= 15)) || \
                                   (((p) >= 50) && ((p) <= 53)) || \
@@ -191,4 +191,4 @@ void setup_endstop_interrupts( void ) {
   // If we arrive here without raising an assertion, each pin has either an EXT-interrupt or a PCI.
 }
 
-#endif //_ENDSTOP_INTERRUPTS_H_
+#endif /* _ENDSTOP_INTERRUPTS_H_ */

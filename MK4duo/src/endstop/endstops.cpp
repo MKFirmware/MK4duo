@@ -37,13 +37,8 @@ float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
       Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 
 bool  Endstops::enabled = true,
-      Endstops::enabled_globally =
-        #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-          (false),
-        #else
-          (true),
-        #endif
-      Endstops::soft_endstops_enabled = true;
+      Endstops::soft_endstops_enabled = true,
+      Endstops::enabled_globally;
 
 #if ENABLED(Z_FOUR_ENDSTOPS)
   float Endstops::z2_endstop_adj = 0,
@@ -65,10 +60,6 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
 #endif
     Endstops::current_endstop_bits = 0,
     Endstops::old_endstop_bits = 0;
-
-#if HAS_BED_PROBE
-  volatile bool Endstops::z_probe_enabled = false;
-#endif
 
 /**
  * Class and Instance Methods
@@ -224,7 +215,7 @@ void Endstops::report_state() {
 
     hit_on_purpose();
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && ENABLED(SDSUPPORT)
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && HAS_SDSUPPORT
       if (stepper.abort_on_endstop_hit) {
         card.sdprinting = false;
         card.closeFile();
@@ -324,43 +315,43 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
    * at the same positions relative to the machine.
    */
   void Endstops::update_software_endstops(const AxisEnum axis) {
-    const float offs = Mechanics.home_offset[axis] + Mechanics.position_shift[axis];
+    const float offs = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
-    Mechanics.workspace_offset[axis] = offs;
+    mechanics.workspace_offset[axis] = offs;
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
 
-        // In Dual X mode hotend_offset[X] is T1's home position
-        float dual_max_x = max(hotend_offset[X_AXIS][1], X2_MAX_POS);
+        // In Dual X mode printer.hotend_offset[X] is T1's home position
+        float dual_max_x = max(printer.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
-        if (active_extruder != 0) {
+        if (tools.active_extruder != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
           soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
           soft_endstop_max[X_AXIS] = dual_max_x + offs;
         }
-        else if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+        else if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
           // In Duplication Mode, T0 can move as far left as X_MIN_POS
           // but not so far to the right that T1 would move past the end
-          soft_endstop_min[X_AXIS] = Mechanics.base_min_pos[X_AXIS] + offs;
-          soft_endstop_max[X_AXIS] = min(Mechanics.base_max_pos[X_AXIS], dual_max_x - duplicate_hotend_x_offset) + offs;
+          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS] + offs;
+          soft_endstop_max[X_AXIS] = min(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset) + offs;
         }
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-          soft_endstop_min[axis] = Mechanics.base_min_pos[axis] + offs;
-          soft_endstop_max[axis] = Mechanics.base_max_pos[axis] + offs;
+          soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
+          soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
         }
       }
     #else
-      soft_endstop_min[axis] = Mechanics.base_min_pos[axis] + offs;
-      soft_endstop_max[axis] = Mechanics.base_max_pos[axis] + offs;
+      soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
+      soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("For ", axis_codes[axis]);
-        SERIAL_MV(" axis:\n home_offset = ", Mechanics.home_offset[axis]);
-        SERIAL_MV("\n position_shift = ", Mechanics.position_shift[axis]);
+        SERIAL_MV(" axis:\n home_offset = ", mechanics.home_offset[axis]);
+        SERIAL_MV("\n position_shift = ", mechanics.position_shift[axis]);
         SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
         SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
       }
@@ -495,21 +486,21 @@ void Endstops::update() {
 
   #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[_AXIS(AXIS)] > 0) { \
+      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[AXIS ##_AXIS] > 0) { \
         _ENDSTOP_HIT(AXIS); \
-        stepper.endstop_triggered(_AXIS(AXIS)); \
+        stepper.endstop_triggered(AXIS ##_AXIS); \
       } \
     } while(0)
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
-    if (G38_move) {
+    if (printer.G38_move) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
-        if      (stepper.current_block->steps[_AXIS(X)] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(_AXIS(X)); }
-        else if (stepper.current_block->steps[_AXIS(Y)] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(_AXIS(Y)); }
-        else if (stepper.current_block->steps[_AXIS(Z)] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(_AXIS(Z)); }
-        G38_endstop_hit = true;
+        if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X); stepper.endstop_triggered(X_AXIS); }
+        else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y); stepper.endstop_triggered(Y_AXIS); }
+        else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z); stepper.endstop_triggered(Z_AXIS); }
+        printer.G38_endstop_hit = true;
       }
     }
   #endif
@@ -679,7 +670,7 @@ void Endstops::update() {
         #else
 
           #if HAS_BED_PROBE && HASNT(Z_PROBE_PIN)
-            if (z_probe_enabled) UPDATE_ENDSTOP(Z, MIN);
+            if (probe.enabled) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
@@ -690,7 +681,7 @@ void Endstops::update() {
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (z_probe_enabled) {
+        if (probe.enabled) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
         }

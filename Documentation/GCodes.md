@@ -39,10 +39,10 @@
 ## M Codes
 *  M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
 *  M1   - Same as M0
-*  M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASERBEAM)
+*  M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASER)
 *         S<value> CNC clockwise speed. (Requires CNCROUTERS)
 *  M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
-*  M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
+*  M5   - Turn off laser beam. (Requires LASER) - Turn off CNC. (Requires CNCROUTERS)
 *  M6   - Tool change CNC. (Requires CNCROUTERS)
 *  M17  - Enable/Power all stepper motors
 *  M18  - Disable all stepper motors; same as M84
@@ -88,6 +88,7 @@
 *
 *  M43 S       - Servo probe test
 *                  P<index> - Probe index (optional - defaults to 0
+*  M44  - Codes debug - report codes available (and how many of them there are)
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -110,6 +111,7 @@
 *  M105 - Read current temp
 *  M106 - S<speed> P<fan> Fan on
 *  M107 - P<fan> Fan off
+*  M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating
           R[xxx] Wait for hotend current temp to reach target temp. Waits when heating and cooling
           IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
@@ -119,6 +121,7 @@
 *  M114 - Output current position to serial port
 *  M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
 *  M117 - Display a message on the controller screen
+*  M118 - Display a message in the host console
 *  M119 - Output Endstop status to serial port
 *  M120 - Enable endstop detection
 *  M121 - Disable endstop detection
@@ -132,7 +135,7 @@
 *  M141 - Set hot chamber target temp
 *  M142 - Set cooler target temp
 *  M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
-*  M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U: Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+*  M150 - Set Status LED Color as R<red> U<green> B<blue>. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
 *  M155 - Set temperature auto-report interval
 *  M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
 *  M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.

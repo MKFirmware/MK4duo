@@ -31,7 +31,7 @@
 
 #if IS_CARTESIAN
 
-  class Cartesian_Mechanics {
+  class Cartesian_Mechanics : public Mechanics {
 
     public: /** Constructor */
 
@@ -39,77 +39,10 @@
 
     public: /** Public Parameters */
 
-      /**
-       * Cartesian Current Position
-       *   Used to track the logical position as moves are queued.
-       *   Used by 'line_to_current_position' to do a move after changing it.
-       *   Used by 'sync_plan_position' to update 'planner.position'.
-       */
-      float current_position[XYZE];
-
-      /**
-       * Cartesian Stored Position
-       *   Used to save logical position as moves are queued.
-       *   Used by G60 for stored.
-       *   Used by G61 for move to.
-       */
-      float stored_position[NUM_POSITON_SLOTS][XYZE];
-
-      /**
-       * Cartesian Destination
-       *   A temporary position, usually applied to 'current_position'.
-       *   Set with 'gcode_get_destination' or 'set_destination_to_current'.
-       *   'line_to_destination' sets 'current_position' to 'destination'.
-       */
-      float destination[XYZE];
-
-      /**
-       * axis_homed
-       *   Flags that each linear axis was homed.
-       *   XYZ on cartesian.
-       *
-       * axis_known_position
-       *   Flags that the position is known in each linear axis. Set when homed.
-       *   Cleared whenever a stepper powers off, potentially losing its position.
-       */
-      bool axis_homed[XYZ], axis_known_position[XYZ];
-
-      /**
-       * Workspace Offset
-       */
-      #if ENABLED(WORKSPACE_OFFSETS)
-        // The distance that XYZ has been offset by G92. Reset by G28.
-        float position_shift[XYZ] = { 0 };
-
-        // This offset is added to the configured home position.
-        // Set by M206, M428, or menu item. Saved to EEPROM.
-        float home_offset[XYZ] = { 0 };
-
-        // The above two are combined to save on computes
-        float workspace_offset[XYZ] = { 0 };
-      #endif
-
-      /**
-       * Feed rates are often configured with mm/m
-       * but the planner and stepper like mm/s units.
-       */
-      float feedrate_mm_s             = MMM_TO_MMS(1500.0),
-            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0);
-      int   feedrate_percentage       = 100,
-            saved_feedrate_percentage = 100;
-
-      /**
-       * Homing feed rates are often configured with mm/m
-       * but the planner and stepper like mm/s units.
-       */
-      const float homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-                  base_max_pos[XYZ]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+      const float base_max_pos[XYZ]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
                   base_min_pos[XYZ]         = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
                   base_home_pos[XYZ]        = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
-                  max_length[XYZ]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
-                  home_bump_mm[XYZ]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
-
-      const signed char home_dir[XYZ]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
+                  max_length[XYZ]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
       #if ENABLED(DUAL_X_CARRIAGE)
         DualXMode dual_x_carriage_mode          = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -129,52 +62,28 @@
        */
       void Init();
 
-      void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
-      void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
-
       /**
-       * line_to_current_position
-       * Move the planner to the current position from wherever it last moved
-       * (or from wherever it has been told it is located).
+       * Home all axes according to settings
+       *
+       * Parameters
+       *
+       *  None  Home to all axes with no parameters.
+       *        With QUICK_HOME enabled XY will home together, then Z.
+       *
+       * Cartesian parameters
+       *
+       *  X   Home to the X endstop
+       *  Y   Home to the Y endstop
+       *  Z   Home to the Z endstop
+       *
        */
-      void line_to_current_position();
-
-      /**
-       * line_to_destination
-       * Move the planner to the position stored in the destination array, which is
-       * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
-       */
-      void line_to_destination(float fr_mm_s);
-      void line_to_destination();
+      void Home(const bool always_home_all);
 
       /**
        * Prepare a single move and get ready for the next one
        * If Mesh Bed Leveling is enabled, perform a mesh move.
        */
       void prepare_move_to_destination();
-
-      /**
-       *  Plan a move to (X, Y, Z) and set the current_position
-       *  The final current_position may not be the one that was requested
-       */
-      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_x(const float &lx, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_z(const float &lz, const float &fr_mm_s = 0.0);
-      void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s = 0.0);
-
-      /**
-       * sync_plan_position
-       *
-       * Set the planner/stepper positions directly from current_position with
-       * no kinematic translation. Used for homing axes and cartesian/core syncing.
-       */
-      void sync_plan_position();
-      void sync_plan_position_e();
-
-      /**
-       * Home Cartesian
-       */
-      void Home(const bool always_home_all);
 
       /**
        * Set an axis' current position to its home position (after homing).
@@ -185,12 +94,6 @@
        * Callers must sync the planner position after calling this!
        */
       void set_axis_is_at_home(const AxisEnum axis);
-
-      bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
-      bool position_is_reachable_raw_xy(const float &rx, const float &ry);
-      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
-      bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
-      bool position_is_reachable_xy(const float &lx, const float &ly);
 
       #if ENABLED(DUAL_X_CARRIAGE)
         float x_home_pos(const int extruder);
@@ -225,14 +128,6 @@
         void set_zwobble_scalingfactor(float zActualPerScaledLength);
       #endif
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
-        void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
-        #if HAS_ABL
-          void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
-        #endif
-      #endif
-
     private: /** Private Parameters */
 
       #if ENABLED(HYSTERESIS)
@@ -256,14 +151,17 @@
     private: /** Private Function */
 
       /**
-       * Home an individual linear axis
-       */
-      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
-
-      /**
        *  Home axis
        */
       void homeaxis(const AxisEnum axis);
+
+      /**
+       * Prepare a linear move in a Cartesian setup.
+       * If Mesh Bed Leveling is enabled, perform a mesh move.
+       *
+       * Returns true if the caller didn't update current_position.
+       */
+      bool prepare_move_to_destination_cartesian();
 
       /**
        * Prepare a linear move in a dual X axis setup
@@ -285,6 +183,18 @@
         void double_home_z();
       #endif
 
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+      #endif
+
+      #if ENABLED(MESH_BED_LEVELING)
+        /**
+         * Prepare a mesh-leveled linear move in a Cartesian setup,
+         * splitting the move where it crosses mesh borders.
+         */
+        void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF);
+      #endif
+
       #if ENABLED(HYSTERESIS)
         void set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
         void calc_hysteresis_steps();
@@ -301,49 +211,10 @@
         bool  areParametersConsistent();
       #endif
 
-      /**
-       * Some planner shorthand inline functions
-       */
-      float get_homing_bump_feedrate(const AxisEnum axis);
-
   };
 
-  extern Cartesian_Mechanics Mechanics;
+  extern Cartesian_Mechanics mechanics;
 
-  // DEBUG LEVELING
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    #define DEBUG_POS(SUFFIX,VAR)       do{ \
-      Mechanics.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
-  #endif
+#endif // IS_CARTESIAN
 
-  // Workspace offsets
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #define WORKSPACE_OFFSET(AXIS) Mechanics.workspace_offset[AXIS]
-  #else
-    #define WORKSPACE_OFFSET(AXIS) 0
-  #endif
-
-  #define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
-  #define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
-
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
-    #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
-    #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
-    #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
-    #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
-    #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
-  #else
-    #define LOGICAL_X_POSITION(POS)   (POS)
-    #define LOGICAL_Y_POSITION(POS)   (POS)
-    #define LOGICAL_Z_POSITION(POS)   (POS)
-    #define RAW_X_POSITION(POS)       (POS)
-    #define RAW_Y_POSITION(POS)       (POS)
-    #define RAW_Z_POSITION(POS)       (POS)
-  #endif
-
-  #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(Mechanics.current_position[A##_AXIS])
-
-#endif // MECH(CARTESIAN)
-
-#endif // _CARTESIAN_MECHANICS_H_
+#endif /* _CARTESIAN_MECHANICS_H_ */

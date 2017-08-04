@@ -21,7 +21,7 @@
  */
 
 /**
- * Simplified Chineses
+ * Simplified Chinese
  *
  * LCD Menu Messages
  * See also documentation/LCDLanguageFont.md

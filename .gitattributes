@@ -1,0 +1,3 @@
+MK4duo/**/*.cpp linguist-language=Arduino
+MK4duo/**/*.h linguist-language=Arduino
+Documentation/* linguist-documentation

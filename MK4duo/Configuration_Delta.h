@@ -55,8 +55,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_MECHANISM
-#define CONFIGURATION_MECHANISM
+#ifndef _CONFIGURATION_DELTA_H_
+#define _CONFIGURATION_DELTA_H_
 
 #define KNOWN_MECH
 
@@ -128,22 +128,22 @@
 // Delta Printable radius
 #define DELTA_PRINTABLE_RADIUS 75.0         // mm
 
-//Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
+// Endstop Offset Adjustment - All values are in mm and must be negative (to move down away from endstop switches) 
 #define TOWER_A_ENDSTOP_ADJ 0   // Front Left Tower
 #define TOWER_B_ENDSTOP_ADJ 0   // Front Right Tower
 #define TOWER_C_ENDSTOP_ADJ 0   // Rear Tower
 
-//Tower Position Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
+// Tower Radius Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
 #define TOWER_A_RADIUS_ADJ 0    // Front Left Tower
 #define TOWER_B_RADIUS_ADJ 0    // Front Right Tower
 #define TOWER_C_RADIUS_ADJ 0    // Rear Tower
 
-//Tower Radius Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
+// Tower Position Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
 #define TOWER_A_POSITION_ADJ 0  // Front Left Tower
 #define TOWER_B_POSITION_ADJ 0  // Front Right Tower
 #define TOWER_C_POSITION_ADJ 0  // Rear Tower
 
-//Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
+// Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
 #define TOWER_A_DIAGROD_ADJ 0   // Front Left Tower
 #define TOWER_B_DIAGROD_ADJ 0   // Front Right Tower
 #define TOWER_C_DIAGROD_ADJ 0   // Rear Tower
@@ -252,7 +252,7 @@
 // its trigger-point if hardware endstops are active.
 //#define Z_PROBE_FIX_MOUNTED
 
-// The BLTouch probe emulates a servo probe.
+// The BLTouch probe uses a Hall effect sensor and emulates a servo.
 // The default connector is SERVO 0.
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
@@ -302,6 +302,14 @@
 // For M666 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Enable if probing seems unreliable. Heaters and/or fans - consistent with the
+// options selected below - will be disabled during probing so as to minimize
+// potential EM interference by quieting/silencing the source of the 'noise' (the change
+// in current flowing through the wires).  This is likely most useful to users of the
+// BLTouch probe, but may also help those with inductive or other probe types.
+//#define PROBING_HEATERS_OFF       // Turn heaters off when probing
+//#define PROBING_FANS_OFF          // Turn fans off when probing
 
 // Use the LCD controller for bed leveling
 // Requires MESH BED LEVELING or PROBE MANUALLY
@@ -473,17 +481,12 @@
  * Three type of the calibration DELTA                                                   *
  *  1) Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points           ~3.2Kb *
  *  2) Algorithm based on Thinkyhead Marlin   4 points + iteration                ~4.5Kb *
- *  3) Algorithm based on Rich Cattell Marlin 4 points + iteration                ~8.0Kb *
  *                                                                                       *
  * To use one of this you must have a PROBE, please define you type probe.               *
  *                                                                                       *
  *****************************************************************************************/
 //#define DELTA_AUTO_CALIBRATION_1
 //#define DELTA_AUTO_CALIBRATION_2
-//#define DELTA_AUTO_CALIBRATION_3
-
-// Precision for G33 Delta Auto Calibration function
-#define AUTOCALIBRATION_PRECISION 0.1 // mm
 /*****************************************************************************************/
 
 
@@ -613,4 +616,4 @@
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_DELTA_H_ */

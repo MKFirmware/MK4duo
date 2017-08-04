@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef CONFIGURATION_PINS_H
-#define CONFIGURATION_PINS_H
+#ifndef _CONFIGURATION_PINS_H_
+#define _CONFIGURATION_PINS_H_
 
 //=================================== BASIC ==================================
 
@@ -94,7 +94,8 @@
   #define E0_DIR_PIN        ORIG_E0_DIR_PIN
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
   #define E0_CS_PIN         ORIG_E0_CS_PIN
-  #define SOL0_PIN          -1
+  #define SOL0_PIN          ORIG_SOL0_PIN
+  #define E0_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 1
@@ -102,7 +103,8 @@
   #define E1_DIR_PIN        ORIG_E1_DIR_PIN
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define E1_CS_PIN         ORIG_E1_CS_PIN
-  #define SOL1_PIN          -1
+  #define SOL1_PIN          ORIG_SOL1_PIN
+  #define E1_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 2
@@ -110,7 +112,8 @@
   #define E2_DIR_PIN        ORIG_E2_DIR_PIN
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
   #define E2_CS_PIN         ORIG_E2_CS_PIN
-  #define SOL2_PIN          -1
+  #define SOL2_PIN          ORIG_SOL2_PIN
+  #define E2_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 3
@@ -118,7 +121,8 @@
   #define E3_DIR_PIN        ORIG_E3_DIR_PIN
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
   #define E3_CS_PIN         ORIG_E3_CS_PIN
-  #define SOL3_PIN          -1
+  #define SOL3_PIN          ORIG_SOL3_PIN
+  #define E3_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 4
@@ -126,7 +130,8 @@
   #define E4_DIR_PIN        ORIG_E4_DIR_PIN
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
   #define E4_CS_PIN         ORIG_E4_CS_PIN
-  #define SOL4_PIN          -1
+  #define SOL4_PIN          ORIG_SOL4_PIN
+  #define E4_ENC_PIN        -1
 #endif
 
 #if DRIVER_EXTRUDERS > 5
@@ -134,7 +139,8 @@
   #define E5_DIR_PIN        ORIG_E5_DIR_PIN
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
   #define E5_CS_PIN         ORIG_E5_CS_PIN
-  #define SOL5_PIN          -1
+  #define SOL5_PIN          ORIG_SOL5_PIN
+  #define E5_ENC_PIN        -1
 #endif
 
 // ENDSTOP pin
@@ -191,14 +197,14 @@
   #define E0E1_CHOICE_PIN -1
   #define E0E2_CHOICE_PIN -1
   #define E1E3_CHOICE_PIN -1
-#elif ENABLED(MKR6)
+#elif ENABLED(MKR6) || ENABLED(MKR12)
   #define EX1_CHOICE_PIN  -1
   #define EX2_CHOICE_PIN  -1
 #endif
 
-#if ENABLED(LASERBEAM)
-  #define LASER_PWR_PIN                   -1
-  #define LASER_TTL_PIN                   -1
+#if ENABLED(LASER)
+  #define LASER_PWR_PIN                   ORIG_LASER_PWR_PIN
+  #define LASER_PWM_PIN                   ORIG_LASER_PWM_PIN
   #if ENABLED(LASER_PERIPHERALS)
     #define LASER_PERIPHERALS_PIN         -1
     #define LASER_PERIPHERALS_STATUS_PIN  -1
@@ -211,6 +217,7 @@
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
   #define FIL_RUNOUT_PIN -1
+  #define FIL_RUNOUT_DAV_PIN -1
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
@@ -267,6 +274,10 @@
   #define RGB_LED_W_PIN -1
 #endif
 
+#if ENABLED(NEOPIXEL_RGBW_LED)
+  #define NEOPIXEL_PIN  -1
+#endif
+
 //============================================================================
 
-#endif
+#endif /* _CONFIGURATION_PINS_H_ */

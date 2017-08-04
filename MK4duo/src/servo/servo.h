@@ -64,13 +64,16 @@
     read()      - Gets the last written servo pulse width as an angle between 0 and 180. 
     readMicroseconds()   - Gets the last written servo pulse width in microseconds. (was read_us() in first release)
     attached()  - Returns true if there is a servo attached. 
-    detach()    - Stops an attached servos from pulsing its i/o pin. 
+    detach()    - Stops an attached servos from pulsing its i/o pin.
+    move(angle) - Sequence of attach(0), write(angle),
+                    With DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DELAY and detach.
  */
 
-#ifndef _SERVO_H
-#define _SERVO_H
+#ifndef _SERVO_H_
+#define _SERVO_H_
 
 #if HAS_SERVOS
+
   #include <inttypes.h>
   #include "servotimers.h"
 
@@ -90,9 +93,13 @@
   #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
 
   #define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
-  #define MAX_SERVOS (_Nbr_16timers  * SERVOS_PER_TIMER)
+  #define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
 
   #define INVALID_SERVO         255     // flag indicating an invalid servo index
+
+  #define MOVE_SERVO(I, P)    servo[I].move(P)
+
+  extern void servo_init();
 
   typedef struct {
     uint8_t nbr        :6 ;             // a pin number from 0 to 63
@@ -105,8 +112,11 @@
   } ServoInfo_t;
 
   class Servo {
+
     public:
+
       Servo();
+
       uint8_t attach(int pin);           // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
       uint8_t attach(int pin, int min, int max); // as above but also sets min and max values for writes.
       void detach();
@@ -120,10 +130,15 @@
       bool attached();                   // return true if this servo is attached, otherwise false
 
     private:
+
       uint8_t servoIndex;               // index into the channel data for this servo
       int8_t min;                       // minimum is this value times 4 added to MIN_PULSE_WIDTH
       int8_t max;                       // maximum is this value times 4 added to MAX_PULSE_WIDTH
+
   };
 
+  extern Servo servo[NUM_SERVOS];
+
 #endif // SERVOS
-#endif // _SERVO_H
+
+#endif /* _SERVO_H_ */

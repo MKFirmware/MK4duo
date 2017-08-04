@@ -150,18 +150,18 @@ static FORCE_INLINE void TOGGLE(const uint8_t pin) {
 */
 
 // set pin as input
-static FORCE_INLINE void SET_INPUT(const uint8_t pin) {
+static FORCE_INLINE void SET_INPUT(const Pin pin) {
   pmc_enable_periph_clk(g_APinDescription[pin].ulPeripheralId);
   PIO_Configure(g_APinDescription[pin].pPort, PIO_INPUT, g_APinDescription[pin].ulPin, 0);
 }
 
 // set pin as output
-static FORCE_INLINE void _SET_OUTPUT(const uint8_t pin) {
+static FORCE_INLINE void _SET_OUTPUT(const Pin pin) {
   PIO_Configure(g_APinDescription[pin].pPort, PIO_OUTPUT_1, g_APinDescription[pin].ulPin, g_APinDescription[pin].ulPinConfiguration);
 }
 
 // Write doesn't work for pullups
-static FORCE_INLINE void PULLUP(const uint8_t pin) {
+static FORCE_INLINE void PULLUP(const Pin pin) {
   pinMode(pin, INPUT_PULLUP);
 }
 
@@ -177,19 +177,19 @@ static FORCE_INLINE void PULLUP(const uint8_t pin) {
 */
 
 // set pin as input with pullup wrapper
-static FORCE_INLINE void SET_INPUT_PULLUP(const uint8_t pin) {
+static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
   SET_INPUT(pin);
   PULLUP(pin);
 }
 
 // Shorthand
-static FORCE_INLINE void OUT_WRITE(const uint8_t pin, uint8_t flag) {
+static FORCE_INLINE void OUT_WRITE(const Pin pin, const uint8_t flag) {
   _SET_OUTPUT(pin);
   WRITE(pin, flag);
 }
 
 // set pin as output wrapper
-static FORCE_INLINE void SET_OUTPUT(const uint8_t pin) {
+static FORCE_INLINE void SET_OUTPUT(const Pin pin) {
   OUT_WRITE(pin, LOW);
 }
 

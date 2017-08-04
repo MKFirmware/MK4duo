@@ -29,7 +29,7 @@
 //#define SIMULATE_ROMFONT
 
 // Fallback if no language is set. DON'T CHANGE
-#ifndef LCD_LANGUAGE
+#if DISABLED(LCD_LANGUAGE)
   #define LCD_LANGUAGE en
 #endif
 
@@ -40,29 +40,15 @@
 #define WESTERN  2
 #define CYRILLIC 3
 
-#if MB(ULTIMAKER)|| MB(ULTIMAKER_OLD)|| MB(ULTIMAIN_2)
-  #define MACHINE_NAME "Ultimaker"
-#elif MB(RUMBA)
-  #define MACHINE_NAME "Rumba"
-#elif MB(3DRAG)
-  #define MACHINE_NAME "3Drag"
-#elif MB(K8200)
-  #define MACHINE_NAME "K8200"
-#elif MB(5DPRINT)
-  #define MACHINE_NAME "Makibox"
-#elif MB(SAV_MKI)
-  #define MACHINE_NAME "SAV MkI"
-#elif DISABLED(MACHINE_NAME)
-  #define MACHINE_NAME "3D Printer"
-#endif
-
+//Machine name
 #if ENABLED(CUSTOM_MACHINE_NAME)
-  #undef MACHINE_NAME
   #define MACHINE_NAME CUSTOM_MACHINE_NAME
+#else
+  #define MACHINE_NAME BOARD_NAME
 #endif
 
 // LCD Menu Messages
-#if !(ENABLED( DISPLAY_CHARSET_HD44780_JAPAN ) || ENABLED( DISPLAY_CHARSET_HD44780_WESTERN ) || ENABLED( DISPLAY_CHARSET_HD44780_CYRILLIC ))
+#if DISABLED(DISPLAY_CHARSET_HD44780_JAPAN) && DISABLED(DISPLAY_CHARSET_HD44780_WESTERN) && DISABLED(DISPLAY_CHARSET_HD44780_CYRILLIC)
   #define DISPLAY_CHARSET_HD44780_JAPAN
 #endif
 
@@ -145,8 +131,8 @@
 #define MSG_DOOR_SENSOR                     "door: "
 #define MSG_POWER_CHECK_SENSOR              "power check: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
-#define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
-#define MSG_ERR_M321_PARAMETERS             "M321 required parameters missing"
+#define MSG_ERR_M421_PARAMETERS             "M421 incorrect parameter usage"
+#define MSG_ERR_M321_PARAMETERS             "M321 incorrect parameter usage"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
 #define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
@@ -266,11 +252,6 @@
 #define MSG_BED_LEVELING_Y                  " Y:"
 #define MSG_BED_LEVELING_Z                  "Z-probe:"
 
-// LCD Menu Messages
-#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
-#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
-#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
-
 // Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"
@@ -305,8 +286,10 @@
 #define MSG_DIAM_E5 " 5"
 #define MSG_DIAM_E6 " 6"
 
-#include "language_en.h"
-#include INCLUDE_LANGUAGE
+#define LANGUAGE_INCL(M)        STRINGIFY(language_##M.h)
+#define INCLUDE_BY_LANGUAGE(M)  LANGUAGE_INCL(M)
+
+#include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE)
 
 #if DISABLED(SIMULATE_ROMFONT) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_1) \
@@ -318,5 +301,7 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
+
+#include "language_en.h"
 
 #endif //__LANGUAGE_H

@@ -25,8 +25,8 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#ifndef CONDITIONALS_PRE_H
-#define CONDITIONALS_PRE_H
+#ifndef _CONDITIONALS_PRE_H_
+#define _CONDITIONALS_PRE_H_
 
   #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
@@ -39,39 +39,53 @@
   #endif
 
   #if ENABLED(SAV_3DGLCD)
-    //#define U8GLIB_SSD1306
-    #define U8GLIB_SH1106
-  #endif
 
-  #if ENABLED(RADDS_DISPLAY)
+    #define U8GLIB_SH1106
+
+  #elif ENABLED(RADDS_DISPLAY)
+
     #define ENCODER_PULSES_PER_STEP 2
     #define ENCODER_STEPS_PER_MENU_ITEM 1
     #define ULTIPANEL
     #define NEWPANEL
-  #endif
 
-  #if ENABLED(CARTESIO_UI)
+  #elif ENABLED(CARTESIO_UI)
+
     #define DOGLCD
     #define ULTIPANEL
     #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 90
     #define LCD_CONTRAST_MIN 60
     #define LCD_CONTRAST_MAX 140
-  #endif
 
-  #if ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+  #elif ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+
     #define DOGLCD
     #define ULTIPANEL
     #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 17
-  #endif
 
-  #if ENABLED(ANET_KEYPAD_LCD)
-    #define ADC_KEYPAD
+  #elif ENABLED(ANET_KEYPAD_LCD)
+
     #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
-  #endif
+    #define ADC_KEYPAD
+    #define ADC_KEY_NUM 8
+    #define ULTIPANEL
+    #define NEWPANEL
+    // this helps to implement ADC_KEYPAD menus
+    #define ENCODER_STEPS_PER_MENU_ITEM 1
+    #define REVERSE_MENU_DIRECTION
 
-  #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+  #elif ENABLED(ANET_FULL_GRAPHICS_LCD)
+
+    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+  #elif ENABLED(BQ_LCD_SMART_CONTROLLER)
+
+    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+
+  #elif ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+
     #define ULTRA_LCD // general LCD support, also 16x2
     #define DOGLCD    // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
     #define ULTIMAKERCONTROLLER // as available from the Ultimaker online store.
@@ -90,16 +104,22 @@
       #define SD_DETECT_INVERTED
     #endif
 
-  #endif
+  #elif ENABLED(RA_CONTROL_PANEL)
 
-  // Generic support for SSD1306 / SH1106 OLED based LCDs.
-  #if ENABLED(U8GLIB_SSD1306) || ENABLED(U8GLIB_SH1106)
-    #define ULTRA_LCD  //general LCD support, also 16x2
-    #define DOGLCD  // Support for I2C LCD 128x64 (Controller SSD1306 / SH1106 graphic Display Family)
-  #endif
+    #define LCD_I2C_TYPE_PCA8574
+    #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
+    #define ULTIPANEL
+    #define NEWPANEL
 
-  // WANHAO D6 OLED LCD
-  #if ENABLED(WANHAO_D6_OLED)
+  #elif ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+
+    #define DOGLCD
+    #define U8GLIB_ST7920
+    #define ULTIPANEL
+    #define NEWPANEL
+
+  #elif ENABLED(WANHAO_D6_OLED)
+
     #define U8GLIB_SSD1306
     #define LCD_WIDTH 22
     #define LCD_HEIGHT 5
@@ -109,17 +129,20 @@
     #define ULTRA_LCD  // general LCD support, also 16x2
     #define DOGLCD // Support for I2C LCD 128x64
     #define ULTIPANEL
+
+  #endif
+
+  // Generic support for SSD1306 / SH1106 OLED based LCDs.
+  #if ENABLED(U8GLIB_SSD1306) || ENABLED(U8GLIB_SH1106)
+    #define ULTRA_LCD  //general LCD support, also 16x2
+    #define DOGLCD  // Support for I2C LCD 128x64 (Controller SSD1306 / SH1106 graphic Display Family)
   #endif
 
   #if ENABLED(PANEL_ONE) || ENABLED(U8GLIB_SH1106)
     #define ULTIMAKERCONTROLLER
   #endif
 
-  #if ENABLED(BQ_LCD_SMART_CONTROLLER)
-    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
-  #endif
-
-  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) || ENABLED(ANET_FULL_GRAPHICS_LCD)
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
     #define DOGLCD
     #define U8GLIB_ST7920
     #define REPRAP_DISCOUNT_SMART_CONTROLLER
@@ -135,20 +158,9 @@
 
   #if ENABLED(REPRAPWORLD_KEYPAD)
     #define NEWPANEL
-  #endif
-
-  #if ENABLED(RA_CONTROL_PANEL)
-    #define LCD_I2C_TYPE_PCA8574
-    #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
-    #define ULTIPANEL
-    #define NEWPANEL
-  #endif
-
-  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-    #define DOGLCD
-    #define U8GLIB_ST7920
-    #define ULTIPANEL
-    #define NEWPANEL
+    #if ENABLED(ULTIPANEL) && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
+      #define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
+    #endif
   #endif
 
   /**
@@ -272,7 +284,7 @@
     #define LCD_DEGREE_CHAR      0x01
     #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
     #define LCD_UPLEVEL_CHAR     0x03
-    #define LCD_REFRESH_CHAR     0x04
+    #define LCD_STR_REFRESH     "\x04"
     #define LCD_STR_FOLDER      "\x05"
     #define LCD_FEEDRATE_CHAR    0x06
     #define LCD_CLOCK_CHAR       0x07
@@ -308,7 +320,15 @@
     #define HAS_LCD_CONTRAST false
   #endif
 
-  #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
+  // Boot screens
+  #if DISABLED(ULTRA_LCD)
+    #undef SHOW_BOOTSCREEN
+  #elif DISABLED(BOOTSCREEN_TIMEOUT)
+    #define BOOTSCREEN_TIMEOUT 2500
+  #endif
+
+  #define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
+  #define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
 
   /**
    * The BLTouch Probe emulates a servo probe
@@ -401,9 +421,9 @@
   #if EXTRUDERS > 1
     #define XYZE_N    3 + EXTRUDERS
     #define E_AXIS_N  (E_AXIS + extruder)
-    #define E_INDEX   (E_AXIS + active_extruder)
-    #define GET_TARGET_EXTRUDER(CMD) if (get_target_extruder_from_command(CMD)) return
-    #define TARGET_EXTRUDER target_extruder
+    #define E_INDEX   (E_AXIS + tools.active_extruder)
+    #define GET_TARGET_EXTRUDER(CMD) if (printer.get_target_tool_from_command(CMD)) return
+    #define TARGET_EXTRUDER tools.target_extruder
   #elif EXTRUDERS == 1
     #define XYZE_N    XYZE
     #define E_AXIS_N  E_AXIS
@@ -424,13 +444,13 @@
    * Multi-hotends support
    */
   #if HOTENDS > 1
-    #define GET_TARGET_HOTEND(CMD) if (get_target_hotend_from_command(CMD)) return
+    #define GET_TARGET_HOTEND(CMD) if (printer.get_target_tool_from_command(CMD)) return
   #else
     #define GET_TARGET_HOTEND(CMD) NOOP
   #endif
 
   #define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
-  #define HAS_RESUME_CONTINUE (ENABLED(NEWPANEL) || ENABLED(EMERGENCY_PARSER))
-  #define HAS_COLOR_LEDS (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED))
+  #define HAS_RESUME_CONTINUE   (HAS_LCD || ENABLED(EMERGENCY_PARSER))
+  #define HAS_COLOR_LEDS        (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_RGBW_LED))
 
-#endif // CONDITIONALS_PRE_H
+#endif /* _CONDITIONALS_PRE_H_ */

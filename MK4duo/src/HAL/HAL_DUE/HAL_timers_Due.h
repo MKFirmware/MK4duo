@@ -63,8 +63,6 @@
 // Types
 // --------------------------------------------------------------------------
 
-typedef uint32_t HAL_TIMER_TYPE;
-
 typedef struct {
   Tc          *pTimerRegs;
   uint16_t    channel;
