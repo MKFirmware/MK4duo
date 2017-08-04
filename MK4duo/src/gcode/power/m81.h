@@ -54,7 +54,7 @@ inline void gcode_M81(void) {
   #endif
 
   #if ENABLED(CNCROUTER)
-    disable_cncrouter();
+    cnc.disable_router();
   #endif
 
   printer.safe_delay(1000); // Wait 1 second before switching off

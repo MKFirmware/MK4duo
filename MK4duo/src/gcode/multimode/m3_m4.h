@@ -65,7 +65,7 @@
 
       #if ENABLED(CNCROUTER)
         case PRINTER_MODE_CNC:
-          if (parser.seenval('S')) setCNCRouterSpeed(parser.value_ulong(), clockwise);
+          if (parser.seenval('S')) cnc.setRouterSpeed(parser.value_ulong(), clockwise);
         break;
       #endif
 
