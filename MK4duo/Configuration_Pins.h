@@ -274,7 +274,7 @@
   #define RGB_LED_W_PIN -1
 #endif
 
-#if ENABLED(NEOPIXEL_RGBW_LED)
+#if HAS_NEOPIXEL
   #define NEOPIXEL_PIN  -1
 #endif
 

@@ -1258,7 +1258,10 @@ void Temperature::manage_temp_controller() {
             old_blue = blue;
             printer.set_led_color(255, 0, blue
               #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0, true
+                , 0
+              #endif
+              #if HAS_NEOPIXEL
+                , true
               #endif
             );
           }
@@ -1415,7 +1418,10 @@ void Temperature::manage_temp_controller() {
             old_red = red;
             printer.set_led_color(red, 0, 255
               #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0, true
+                , 0
+              #endif
+              #if HAS_NEOPIXEL
+                , true
               #endif
             );
           }
