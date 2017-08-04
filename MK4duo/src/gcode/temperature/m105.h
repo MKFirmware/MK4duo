@@ -50,7 +50,7 @@ inline void gcode_M105(void) {
       flowmeter.print_flow_rate_state();
     #endif
     #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
-      print_cncspeed();
+      cnc.print_Speed();
     #endif
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
       thermalManager.print_MCUstate();

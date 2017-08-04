@@ -44,22 +44,53 @@
 
 #if ENABLED(CNCROUTER)
 
-  void cnc_init();    // initialize cnc router
-  void cnc_manage();  // management loop for CNC
+  class Cncrouter {
 
-  #if ENABLED(FAST_PWM_CNCROUTER)
-    unsigned long getCNCSpeed();
-    void print_cncspeed();
-  #else
-    #if ENABLED(INVERTED_CNCROUTER_PIN)
-      #define getCNCSpeed() READ(CNCROUTER_PIN)
-    #else
-      #define getCNCSpeed() !READ(CNCROUTER_PIN)
-    #endif // INVERTED_CNCROUTER_PIN
-  #endif // FAST_PWM_CNCROUTER
+    public: /** Constructor */
 
-  void setCNCRouterSpeed(unsigned long rpm, bool clockwise = false);
-  void disable_cncrouter();
+      Cncrouter() {};
+
+    public: /** Public Parameters */
+
+    public: /** Public Function */
+
+      static void init();    // initialize cnc router
+      static void manage();  // management loop for CNC
+
+      #if ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t get_Speed();
+        static void print_Speed();
+      #else
+        #if ENABLED(INVERTED_CNCROUTER_PIN)
+          #define get_Speed() READ(CNCROUTER_PIN)
+        #else
+          #define get_Speed() !READ(CNCROUTER_PIN)
+        #endif // INVERTED_CNCROUTER_PIN
+      #endif // FAST_PWM_CNCROUTER
+
+      static void setRouterSpeed(uint32_t rpm, bool clockwise=false);
+      static void disable_router();
+
+    private: /** Private Parameters */
+
+      #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_target;
+        static millis_t next_speed_step; 
+      #endif
+
+      #if ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_instant;
+      #endif
+
+    private: /** Private Function */
+
+      static void speed_step();
+      static uint8_t calcPWM(uint32_t rpm);
+      static void setPwm(uint8_t pwm);
+
+  };
+
+  extern Cncrouter cnc;
 
 #endif // CNCROUTER
 

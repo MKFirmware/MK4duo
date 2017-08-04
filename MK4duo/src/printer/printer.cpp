@@ -288,7 +288,7 @@ void Printer::setup() {
   thermalManager.init();    // Initialize temperature loop
 
   #if ENABLED(CNCROUTER)
-    cnc_init();
+    cnc.init();
   #endif
 
   stepper.init();    // Initialize stepper, this enables interrupts!
@@ -573,7 +573,7 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   #if ENABLED(CNCROUTER)
-     disable_cncrouter();
+     cnc.disable_router();
   #endif
 
   #if HAS_POWER_SWITCH
@@ -616,7 +616,7 @@ void Printer::Stop() {
   #endif
 
   #if ENABLED(CNCROUTER)
-     disable_cncrouter();
+     cnc.disable_router();
   #endif
 
   if (IsRunning()) {
@@ -666,7 +666,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   #endif
 
   #if ENABLED(CNCROUTER)
-    cnc_manage();
+    cnc.manage();
   #endif
 
   manage_inactivity(no_stepper_sleep);
@@ -1611,13 +1611,13 @@ void Printer::handle_Interrupt_Event() {
 
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         if (raise_z) {
-          saved_speed = getCNCSpeed();
+          saved_speed = cnc.get_Speed();
           saved_z = mechanics.current_position[Z_AXIS];
           mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
         }
       #endif
 
-      disable_cncrouter();
+      cnc.disable_router();
       safe_delay(300);
 
       if (wait) {
@@ -1643,7 +1643,7 @@ void Printer::handle_Interrupt_Event() {
 
       if (tool_id != CNC_M6_TOOL_ID) active_cnc_tool = tool_id;
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
-        else setCNCRouterSpeed(saved_speed);
+        else cnc.setRouterSpeed(saved_speed);
         if (raise_z)
           mechanics.do_blocking_move_to_z(saved_z);
       #endif

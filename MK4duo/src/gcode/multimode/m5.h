@@ -54,7 +54,7 @@
 
       #if ENABLED(CNCROUTER)
         case PRINTER_MODE_CNC:
-          disable_cncrouter();
+          cnc.disable_router();
         break;
       #endif
 
