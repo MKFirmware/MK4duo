@@ -21,15 +21,26 @@
  */
 
 /**
- * blinkm.h
- * Library header file for BlinkM library
+ * blinkm.cpp - Library for controlling a BlinkM over i2c
+ * Created by Tim Koster, August 21 2013.
  */
 
-#ifndef BLINKM_H
-  #define BLINKM_H
+#include "../../base.h"
 
-  #if ENABLED(BLINKM)
-    void SendColors(byte red, byte grn, byte blu);
-  #endif
+#if ENABLED(BLINKM)
 
-#endif
+  #include "blinkm.h"
+  #include <Wire.h>
+
+  void SendColors(byte red, byte grn, byte blu) {
+    Wire.begin();
+    Wire.beginTransmission(0x09);
+    Wire.write('o');                    //to disable ongoing script, only needs to be used once
+    Wire.write('n');
+    Wire.write(red);
+    Wire.write(grn);
+    Wire.write(blu);
+    Wire.endTransmission();
+  }
+
+#endif // BLINKM
