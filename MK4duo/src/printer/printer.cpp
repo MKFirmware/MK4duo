@@ -32,12 +32,6 @@
   #include "../HAL/HAL_endstop_interrupts.h"
 #endif
 
-#if ENABLED(PCA9632)
-  #include "../utility/pca9632.h"
-#elif HAS_NEOPIXEL
-  #include "../utility/Adafruit_NeoPixel.h"
-#endif
-
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;

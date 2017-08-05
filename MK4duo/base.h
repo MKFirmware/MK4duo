@@ -97,6 +97,7 @@
 #endif
 
 #include "src/tools/tools.h"
+#include "src/tools/nozzle.h"
 #include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
 #include "src/bedlevel/bedlevel.h"
@@ -117,9 +118,16 @@
 #include "src/mfrc522/mfrc522.h"
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
-#include "src/utility/nozzle.h"
-#include "src/utility/blinkm.h"
+
 #include "src/utility/hex_print_routines.h"
+
+#if ENABLED(BLINKM)
+  #include "src/rgbled/blinkm.h"
+#elif ENABLED(PCA9632)
+  #include "src/rgbled/pca9632.h"
+#elif HAS_NEOPIXEL
+  #include "src/rgbled/Adafruit_NeoPixel.h"
+#endif
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
   #include "src/alligator/external_dac.h"
