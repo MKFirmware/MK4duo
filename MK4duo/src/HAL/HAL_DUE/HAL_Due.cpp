@@ -808,12 +808,9 @@ HAL_TEMP_TIMER_ISR {
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-
-    extern volatile uint8_t e_hit;
-
-    if (e_hit && ENDSTOPS_ENABLED) {
+    if (endstops.e_hit && ENDSTOPS_ENABLED) {
       endstops.update();  // call endstop update routine
-      e_hit--;
+      endstops.e_hit--;
     }
   #endif
 

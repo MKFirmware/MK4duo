@@ -267,11 +267,6 @@ class Printer {
 
     static void setup_powerhold();
 
-    #if HAS_STEPPER_RESET
-      static void disableStepperDrivers();
-      static void enableStepperDrivers();
-    #endif
-
     #if HAS_CONTROLLERFAN
       static void controllerFan();
     #endif

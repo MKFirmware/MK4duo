@@ -49,12 +49,13 @@
 
 #include "stepper_indirection.h"
 
-class Stepper;
-extern Stepper stepper;
-
 class Stepper {
 
-  public:
+  public: /** Constructor */
+
+    Stepper() { };
+
+  public: /** Public Parameters */
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
@@ -68,90 +69,7 @@ class Stepper {
       static bool performing_homing;
     #endif
 
-  private:
-
-    static unsigned char last_direction_bits;        // The next stepping-bits to be output
-    static unsigned int cleaning_buffer_counter;
-
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor, locked_z3_motor, locked_z4_motor;
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor, locked_z3_motor;
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor;
-    #endif
-
-    // Counter variables for the Bresenham line tracer
-    static long counter_X, counter_Y, counter_Z, counter_E;
-    static volatile uint32_t step_events_completed; // The number of step events executed in the current block
-
-    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
-      static HAL_TIMER_TYPE nextMainISR, nextAdvanceISR, eISR_Rate;
-      #define _NEXT_ISR(T) nextMainISR = T
-
-      #if ENABLED(LIN_ADVANCE)
-        static int  e_steps[DRIVER_EXTRUDERS],
-                    final_estep_rate,
-                    current_estep_rate[DRIVER_EXTRUDERS], // Actual extruder speed [steps/s]
-                    current_adv_steps[DRIVER_EXTRUDERS];  // The amount of current added esteps due to advance.
-                                                          // i.e., the current amount of pressure applied
-                                                          // to the spring (=filament).
-
-      #else
-        static long e_steps[DRIVER_EXTRUDERS],
-                    advance_rate, advance, final_advance, old_advance;
-      #endif
-    #else
-      #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);
-    #endif // ADVANCE or LIN_ADVANCE
-
-    static long acceleration_time, deceleration_time;
-    // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
-    static HAL_TIMER_TYPE acc_step_rate, // needed for deceleration start point
-                          OCR1A_nominal;
-
-    static uint8_t step_loops, step_loops_nominal;
-
-    static volatile long endstops_trigsteps[XYZ];
-    static volatile long endstops_stepsTotal, endstops_stepsDone;
-
-    #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
-      #ifndef PWM_MOTOR_CURRENT
-        #define PWM_MOTOR_CURRENT DEFAULT_PWM_MOTOR_CURRENT
-      #endif
-      static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
-    #endif
-
-    //
-    // Positions of stepper motors, in step units
-    //
-    static volatile long machine_position[NUM_AXIS];
-
-    //
-    // Current direction of stepper motors (+1 or -1)
-    //
-    static volatile signed char count_direction[NUM_AXIS];
-
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      static long counter_m[MIXING_STEPPERS];
-      #define MIXING_STEPPERS_LOOP(VAR) \
-        for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++) \
-          if (current_block->mix_event_count[VAR])
-    #endif
-
-    #if ENABLED(LASER)
-      static long counter_L;
-      #if ENABLED(LASER_RASTER)
-        static int counter_raster;
-      #endif // LASER_RASTER
-    #endif // LASER
-
-  public:
-
-    //
-    // Constructor / initializer
-    //
-    Stepper() { };
+  public: /** Public Function */
 
     //
     // Initialize stepper hardware
@@ -283,7 +201,85 @@ class Stepper {
       static void set_driver_current();
     #endif
 
-  private:
+  private: /** Private Parameters */
+
+    static unsigned char last_direction_bits;        // The next stepping-bits to be output
+    static unsigned int cleaning_buffer_counter;
+
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      static bool locked_z_motor, locked_z2_motor, locked_z3_motor, locked_z4_motor;
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      static bool locked_z_motor, locked_z2_motor, locked_z3_motor;
+    #elif ENABLED(Z_TWO_ENDSTOPS)
+      static bool locked_z_motor, locked_z2_motor;
+    #endif
+
+    // Counter variables for the Bresenham line tracer
+    static long counter_X, counter_Y, counter_Z, counter_E;
+    static volatile uint32_t step_events_completed; // The number of step events executed in the current block
+
+    #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+      static HAL_TIMER_TYPE nextMainISR, nextAdvanceISR, eISR_Rate;
+      #define _NEXT_ISR(T) nextMainISR = T
+
+      #if ENABLED(LIN_ADVANCE)
+        static int  e_steps[DRIVER_EXTRUDERS],
+                    final_estep_rate,
+                    current_estep_rate[DRIVER_EXTRUDERS], // Actual extruder speed [steps/s]
+                    current_adv_steps[DRIVER_EXTRUDERS];  // The amount of current added esteps due to advance.
+                                                          // i.e., the current amount of pressure applied
+                                                          // to the spring (=filament).
+
+      #else
+        static long e_steps[DRIVER_EXTRUDERS],
+                    advance_rate, advance, final_advance, old_advance;
+      #endif
+    #else
+      #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);
+    #endif // ADVANCE or LIN_ADVANCE
+
+    static long acceleration_time, deceleration_time;
+    // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
+    static HAL_TIMER_TYPE acc_step_rate, // needed for deceleration start point
+                          OCR1A_nominal;
+
+    static uint8_t step_loops, step_loops_nominal;
+
+    static volatile long endstops_trigsteps[XYZ];
+    static volatile long endstops_stepsTotal, endstops_stepsDone;
+
+    #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
+      #ifndef PWM_MOTOR_CURRENT
+        #define PWM_MOTOR_CURRENT DEFAULT_PWM_MOTOR_CURRENT
+      #endif
+      static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
+    #endif
+
+    //
+    // Positions of stepper motors, in step units
+    //
+    static volatile long machine_position[NUM_AXIS];
+
+    //
+    // Current direction of stepper motors (+1 or -1)
+    //
+    static volatile signed char count_direction[NUM_AXIS];
+
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static long counter_m[MIXING_STEPPERS];
+      #define MIXING_STEPPERS_LOOP(VAR) \
+        for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++) \
+          if (current_block->mix_event_count[VAR])
+    #endif
+
+    #if ENABLED(LASER)
+      static long counter_L;
+      #if ENABLED(LASER_RASTER)
+        static int counter_raster;
+      #endif // LASER_RASTER
+    #endif // LASER
+
+  private: /** Private Function */
 
     static FORCE_INLINE HAL_TIMER_TYPE calc_timer(HAL_TIMER_TYPE step_rate) {
       HAL_TIMER_TYPE timer;
@@ -388,6 +384,16 @@ class Stepper {
     static void digipot_init();
     static void microstep_init();
 
+    #if HAS_STEPPER_RESET
+      /**
+       * Stepper Reset (RigidBoard, et.al.)
+       */
+      static void disableStepperDrivers();
+      static void enableStepperDrivers();
+    #endif
+
 };
+
+extern Stepper stepper;
 
 #endif /* _STEPPER_H_ */

@@ -23,12 +23,9 @@
 #ifndef _HAL_ENDSTOP_INTERRUPTS_H_
 #define _HAL_ENDSTOP_INTERRUPTS_H_
 
-volatile uint8_t e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
-                            // Must be reset to 0 by the test function when the tests are finished.
-
 // This is what is really done inside the interrupts.
 FORCE_INLINE void endstop_ISR_worker( void ) {
-  e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
+  endstops.e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
 }
 
 // One ISR for all EXT-Interrupts

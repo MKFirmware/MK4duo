@@ -50,6 +50,8 @@
 *  703 BOARD_MEGATRONICS_3      - Megatronics v3.0
 *   71 BOARD_ULTIMAKER_OLD      - Ultimaker (Older electronics. Pre 1.5.4. This is rare)
 *   72 BOARD_ULTIMAIN_2         - Ultimainboard 2.x (Uses TEMP_SENSOR 20)
+*   74 BOARD_GT2560_REV_A       - Geeetech GT2560 Rev. A
+*   75 BOARD_GT2560_REV_A_PLUS  - Geeetech GT2560 Rev. A+
 *   77 BOARD_3DRAG              - 3Drag Controller
 *   78 BOARD_K8200              - Vellemann K8200 Controller (variant of the 3Drag Controller)
 *   79 BOARD_3DVERTEX           - 3DVertex Controller (Velleman K8400)
@@ -146,6 +148,8 @@
 #define BOARD_MEGATRONICS_3    703    // Megatronics v3.0
 #define BOARD_ULTIMAKER_OLD     71    // Ultimaker (Older electronics. Pre 1.5.4. This is rare)
 #define BOARD_ULTIMAIN_2        72    // Ultimainboard 2.x (Uses TEMP_SENSOR 20)
+#define BOARD_GT2560_REV_A      74    // Geeetech GT2560 Rev. A
+#define BOARD_GT2560_REV_A_PLUS 75    // Geeetech GT2560 Rev. A+
 #define BOARD_3DRAG             77    // 3Drag Controller
 #define BOARD_K8200             78    // Vellemann K8200 Controller (variant of the 3Drag Controller)
 #define BOARD_3DVERTEX          79    // 3DVertex Controller (Velleman K8400)

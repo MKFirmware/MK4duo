@@ -39,7 +39,7 @@
  *  On Due, all pins support external interrupt capability.
  */
 
-void setup_endstop_interrupts( void ) {
+void Endstops::setup_endstop_interrupts(void) {
 
   #if HAS_X_MAX
     attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it
