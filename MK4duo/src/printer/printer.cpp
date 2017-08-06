@@ -28,10 +28,6 @@
 
 #include "../../base.h"
 
-#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-  #include "../HAL/HAL_endstop_interrupts.h"
-#endif
-
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
@@ -223,7 +219,7 @@ void Printer::setup() {
   setup_powerhold();
 
   #if HAS_STEPPER_RESET
-    disableStepperDrivers();
+    stepper.disableStepperDrivers();
   #endif
 
   #if ENABLED(USE_WATCHDOG)
@@ -320,7 +316,7 @@ void Printer::setup() {
   #endif
 
   #if HAS_STEPPER_RESET
-    enableStepperDrivers();
+    stepper.enableStepperDrivers();
   #endif
 
   #if ENABLED(DIGIPOT_I2C)
@@ -407,7 +403,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    setup_endstop_interrupts();
+    endstops.setup_endstop_interrupts();
   #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
@@ -2335,16 +2331,6 @@ void Printer::setup_powerhold() {
     #endif
   #endif
 }
-
-/**
- * Stepper Reset (RigidBoard, et.al.)
- */
-#if HAS_STEPPER_RESET
-  void Printer::disableStepperDrivers() {
-    OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
-  }
-  void Printer::enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
-#endif
 
 #if HAS_CONTROLLERFAN
 

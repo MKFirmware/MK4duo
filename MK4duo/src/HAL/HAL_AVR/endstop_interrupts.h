@@ -96,7 +96,7 @@ void pciSetup(byte pin) {
   ISR(PCINT3_vect) { endstop_ISR_worker(); }
 #endif
 
-void setup_endstop_interrupts( void ) {
+void Endstops::setup_endstop_interrupts(void) {
 
   #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt

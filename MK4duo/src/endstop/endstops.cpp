@@ -26,6 +26,10 @@
 
 #include "../../base.h"
 
+#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+  #include "../HAL/HAL_endstop_interrupts.h"
+#endif
+
 // TEST_ENDSTOP: test the old and the current status of an endstop
 #define TEST_ENDSTOP(ENDSTOP) (TEST(current_endstop_bits & old_endstop_bits, ENDSTOP))
 
@@ -52,6 +56,9 @@ bool  Endstops::enabled = true,
 #endif
 
 volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+
+volatile uint8_t Endstops::e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
+                                      // Must be reset to 0 by the test function when the tests are finished.
 
 #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
   uint16_t
