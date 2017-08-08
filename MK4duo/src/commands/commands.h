@@ -50,43 +50,30 @@ class Commands {
                 gcode_LastN,
                 Stopped_gcode_LastN;
 
-    static bool send_ok[BUFSIZE];
-
     static uint8_t mk_debug_flags;
-
-    static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
     static millis_t previous_cmd_ms;
 
   public: /** Public Function */
 
-    static void command_loop();
-
-    static void get_serial_commands();
-    #if HAS_SDSUPPORT
-      static void get_sdcard_commands();
-    #endif
-
-    static void process_next_gcode();
-    static void unknown_command_error();
+    static void loop();
 
     static void FlushSerialRequestResend();
     static void ok_to_send();
     static void get_available_commands();
     static void clear_command_queue();
-    static void commit_command(bool say_ok);
 
-    static void enqueue_and_echo_commands_P(const char * const pgcode);
-    static bool drain_injected_commands_P();
-    static bool enqueuecommand(const char* cmd, bool say_ok=false);
     static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
+    static void enqueue_and_echo_commands_P(const char * const pgcode);
 
-    FORCE_INLINE static void save_last_gcode() { Stopped_gcode_LastN = gcode_LastN; }
-    FORCE_INLINE static char* get_command_queue()   { return command_queue[cmd_queue_index_r]; }
+    FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
     FORCE_INLINE static void reset_send_ok()        { for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true; }
     FORCE_INLINE static void refresh_cmd_timeout()  { previous_cmd_ms = millis(); }
 
   private: /** Private Parameters */
+
+    static char command_queue[BUFSIZE][MAX_CMD_SIZE];
+    static bool send_ok[BUFSIZE];
 
     static uint8_t  commands_in_queue,
                     cmd_queue_index_r,  // Ring buffer read position
@@ -98,7 +85,18 @@ class Commands {
 
   private: /** Private Function */
 
+    static void get_serial_commands();
+    #if HAS_SDSUPPORT
+      static void get_sdcard_commands();
+    #endif
+
+    static void process_next_command();
+    static void commit_command(bool say_ok);
+    static void unknown_command_error();
     static void gcode_line_error(const char* err, const bool doFlush=true);
+
+    static bool enqueue_command(const char* cmd, bool say_ok=false);
+    static bool drain_injected_commands_P();
 
 };
 

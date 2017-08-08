@@ -471,7 +471,7 @@
   #define HOMING_BUMP_DIVISOR {XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR}
 
   // Effective horizontal distance bridged by diagonal push rods.
-  #define DEFAULT_DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
+  #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
 
   #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     #define AUTO_BED_LEVELING_BILINEAR
@@ -538,10 +538,10 @@
  */
 #if IS_KINEMATIC
   // Check for this in the code instead
-  #define MIN_PROBE_X X_MIN_POS
-  #define MAX_PROBE_X X_MAX_POS
-  #define MIN_PROBE_Y Y_MIN_POS
-  #define MAX_PROBE_Y Y_MAX_POS
+  #define MIN_PROBE_X -mechanics.delta_print_radius
+  #define MAX_PROBE_X  mechanics.delta_print_radius
+  #define MIN_PROBE_Y -mechanics.delta_print_radius
+  #define MAX_PROBE_Y  mechanics.delta_print_radius
 #else
   // Boundaries for probing based on set limits
   #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + X_PROBE_OFFSET_FROM_NOZZLE))

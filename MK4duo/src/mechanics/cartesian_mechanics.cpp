@@ -76,7 +76,7 @@
 
     // Cancel the active G29 session
     #if ENABLED(PROBE_MANUALLY)
-      printer.g29_in_progress = false;
+      bedlevel.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         LcdBedLevelOff();
       #endif
@@ -633,7 +633,7 @@
           if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
         #endif
 
-        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.z_offset);
+        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.zprobe_zoffset);
         current_position[Z_AXIS] -= newzero;
         destination[Z_AXIS] = current_position[Z_AXIS];
         endstops.soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
@@ -820,12 +820,12 @@
      */
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS) {
-        current_position[Z_AXIS] -= probe.z_offset;
+        current_position[Z_AXIS] -= probe.zprobe_zoffset;
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) {
             SERIAL_EM("*** Z HOMED WITH PROBE ***");
-            SERIAL_EMV("z_offset = ", probe.z_offset);
+            SERIAL_EMV("zprobe_zoffset = ", probe.zprobe_zoffset);
           }
         #endif
       }

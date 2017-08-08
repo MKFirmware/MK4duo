@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _MESH_BED_LEVELING_
-#define _MESH_BED_LEVELING_
+#ifndef _MESH_BED_LEVELING_H_
+#define _MESH_BED_LEVELING_H_
 
 #if ENABLED(MESH_BED_LEVELING)
 
@@ -45,14 +45,19 @@
 
   class mesh_bed_leveling {
 
-    public:
+    public: /** Constructor */
+
+      mesh_bed_leveling();
+
+    public: /** Public Parameters */
+
       static uint8_t status; // Has Mesh and Is Active bits
-      static float  z_offset,
+      static float  zprobe_zoffset,
                     z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
                     index_to_xpos[GRID_MAX_POINTS_X],
                     index_to_ypos[GRID_MAX_POINTS_Y];
 
-      mesh_bed_leveling();
+    public: /** Public Function */
 
       static void reset();
 
@@ -111,16 +116,21 @@
                     z2 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy + 1], index_to_xpos[cx + 1], z_values[cx + 1][cy + 1]),
                     z0 = calc_z0(y0, index_to_ypos[cy], z1, index_to_ypos[cy + 1], z2);
 
-        return z_offset + z0
+        return zprobe_zoffset + z0
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             * factor
           #endif
         ;
       }
+
+    private: /** Private Parameters */
+
+    private: /** Private Function */
+
   };
 
   extern mesh_bed_leveling mbl;
 
 #endif  // MESH_BED_LEVELING
 
-#endif /* _MESH_BED_LEVELING_ */
+#endif /* _MESH_BED_LEVELING_H_ */

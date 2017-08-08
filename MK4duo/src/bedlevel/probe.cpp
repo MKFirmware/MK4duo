@@ -31,7 +31,7 @@
 
 Probe probe;
 
-float Probe::z_offset = Z_PROBE_OFFSET_FROM_NOZZLE;
+float Probe::zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
 bool  Probe::enabled  = false;
 
 #if HAS_Z_SERVO_PROBE
@@ -53,22 +53,7 @@ bool Probe::set_deployed(bool deploy) {
   // Make room for probe
   raise(_Z_PROBE_DEPLOY_HEIGHT);
 
-  // When deploying make sure BLTOUCH is not already triggered
-  #if ENABLED(BLTOUCH)
-    if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
-      bltouch_command(BLTOUCH_RESET);    // try to reset it.
-      bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
-      bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
-      printer.safe_delay(1500);                  // wait for internal self test to complete
-                                         //   measured completion time was 0.65 seconds
-                                         //   after reset, deploy & stow sequence
-      if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
-        SERIAL_LM(ER, MSG_STOP_BLTOUCH);
-        printer.Stop();                          // punt!
-        return true;
-      }
-    }
-  #elif ENABLED(Z_PROBE_SLED)
+  #if ENABLED(Z_PROBE_SLED)
     if (mechanics.axis_unhomed_error(true, false, false)) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
       printer.Stop();
@@ -98,7 +83,7 @@ bool Probe::set_deployed(bool deploy) {
   #if ENABLED(Z_PROBE_SLED)
     dock_sled(!deploy);
   #elif ENABLED(BLTOUCH) && MECH(DELTA)
-    set_bltouch_deployed(deploy);
+    if (set_bltouch_deployed(deploy)) return true;
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
     servo[Z_ENDSTOP_SERVO_NR].move(z_servo_angle[deploy ? 0 : 1]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
@@ -134,8 +119,8 @@ void Probe::raise(const float z_raise) {
     }
   #endif
 
-  float z_dest = LOGICAL_Z_POSITION(z_raise);
-  if (z_offset < 0) z_dest -= z_offset;
+  float z_dest = z_raise;
+  if (zprobe_zoffset < 0) z_dest -= zprobe_zoffset;
 
   if (z_dest > mechanics.current_position[Z_AXIS])
     mechanics.do_blocking_move_to_z(z_dest);
@@ -180,8 +165,11 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
         mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
     #endif
 
-    // Ensure a minimum height before moving the probe
-    raise(Z_PROBE_BETWEEN_HEIGHT);
+    #if HAS_SOFTWARE_ENDSTOPS
+      // Store the status of the soft endstops and disable if we're probing a non-printable location
+      const bool old_enable_soft_endstops = endstops.soft_endstops_enabled;
+      if (!printable) endstops.soft_endstops_enabled = false;
+    #endif
 
     mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
@@ -198,20 +186,20 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
     // If the nozzle is above the travel height then
     // move down quickly before doing the slow probe
     float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
-    if (z_offset < 0) z -= z_offset;
+    if (zprobe_zoffset < 0) z -= zprobe_zoffset;
     if (z < mechanics.current_position[Z_AXIS])
       mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
     for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
 
       // move down slowly to find bed
-      move_to_z(-(Z_MAX_LENGTH) - 10, Z_PROBE_SPEED_SLOW);
+       if (move_to_z(-10 + (printable ? 0 : -(Z_MAX_LENGTH)), Z_PROBE_SPEED_SLOW)) return NAN;
 
-      measured_z += RAW_CURRENT_POSITION(Z) + z_offset;
+      measured_z += RAW_CURRENT_POSITION(Z) + zprobe_zoffset;
 
       if (r + 1 < Z_PROBE_REPETITIONS) {
-        // move up by the bump distance
-        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + mechanics.home_bump_mm[Z_AXIS], MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        // move up to probe between height
+        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       }
     }
 
@@ -221,6 +209,11 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       raise(Z_PROBE_BETWEEN_HEIGHT);
     else
       if (set_deployed(false)) return NAN;
+
+    #if HAS_SOFTWARE_ENDSTOPS
+      // Restore the soft endstop status
+      endstops.soft_endstops_enabled = old_enable_soft_endstops;
+    #endif
 
     if (verbose_level > 2) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
@@ -272,8 +265,8 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
     KEEPALIVE_STATE(IN_HANDLER);
 
-    // Re-enable software endstops, if needed
     #if HAS_SOFTWARE_ENDSTOPS
+      // Restore the soft endstop status
       endstops.soft_endstops_enabled = old_enable_soft_endstops;
     #endif
 
@@ -291,7 +284,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
  *      Y = Probe Y position (default=current probe position)
  *      S = <bool> Stows the probe if 1 (default=1)
  *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
- *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+ *      P = <bool> with a non-zero value will apply the result to current probe.zprobe_zoffset (ONLY DELTA)
  */
 void Probe::single_probe() {
 
@@ -312,7 +305,7 @@ void Probe::single_probe() {
 
   const float measured_z = check_pt(xpos, ypos, !parser.seen('S') || parser.value_bool(), 1);
 
-  if (!isnan(measured_z)) {
+  if (!nan_error(measured_z)) {
     SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
     SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
     SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
@@ -325,8 +318,8 @@ void Probe::single_probe() {
       SERIAL_MV("  New delta height = ", mechanics.delta_height, 3);
     }
     else if (parser.boolval('P')) {
-      probe.z_offset += endstops.soft_endstop_min[Z_AXIS] - measured_z;
-      SERIAL_MV("  New Z probe offset = ", z_offset, 3);
+      probe.zprobe_zoffset += endstops.soft_endstop_min[Z_AXIS] - measured_z;
+      SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 3);
     }
   #endif
 
@@ -335,6 +328,15 @@ void Probe::single_probe() {
   printer.clean_up_after_endstop_or_probe_move();
 
   mechanics.report_current_position();
+}
+
+bool Probe::nan_error(const float v) {
+  const bool is_nan = isnan(v);
+  if (is_nan) {
+    LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
+    SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
+  }
+  return is_nan;
 }
 
 #if QUIET_PROBING
@@ -350,12 +352,13 @@ void Probe::single_probe() {
 #endif // QUIET_PROBING
 
 #if ENABLED(BLTOUCH)
+
   void Probe::bltouch_command(int angle) {
     servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
     printer.safe_delay(BLTOUCH_DELAY);
   }
 
-  void Probe::set_bltouch_deployed(const bool deploy) {
+  bool Probe::set_bltouch_deployed(const bool deploy) {
     if (deploy && TEST_BLTOUCH()) {      // If BL-Touch says it's triggered
       bltouch_command(BLTOUCH_RESET);    // try to reset it.
       bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
@@ -365,27 +368,33 @@ void Probe::single_probe() {
                                          //   after reset, deploy & stow sequence
       if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
         SERIAL_LM(ER, MSG_STOP_BLTOUCH);
-        printer.Stop();                          // punt!
+        printer.Stop();
+        return true;
       }
     }
+
     bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_MV("set_bltouch_deployed(", deploy);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
     #endif
+
+    return false;
   }
+
 #endif
 
-void Probe::move_to_z(float z, float fr_mm_m) {
+bool Probe::move_to_z(float z, float fr_mm_m) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) DEBUG_POS(">>> move_to_z", mechanics.current_position);
   #endif
 
   // Deploy BLTouch at the start of any probe
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)
-    set_bltouch_deployed(true);
+     if (set_bltouch_deployed(true)) return true;
   #endif
 
   #if QUIET_PROBING
@@ -393,7 +402,16 @@ void Probe::move_to_z(float z, float fr_mm_m) {
   #endif
 
   // Move down until probe triggered
-  mechanics.do_blocking_move_to_z(LOGICAL_Z_POSITION(z), MMM_TO_MMS(fr_mm_m));
+  mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(fr_mm_m));
+
+  // Check to see if the probe was triggered
+  const bool probe_triggered = TEST(endstops.endstop_hit_bits,
+    #if HAS_Z_PROBE_PIN
+      Z_PROBE
+    #else
+      Z_MIN
+    #endif
+  );
 
   #if QUIET_PROBING
     probing_pause(false);
@@ -401,7 +419,7 @@ void Probe::move_to_z(float z, float fr_mm_m) {
 
   // Retract BLTouch immediately after a probe
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)
-    set_bltouch_deployed(false);
+    if (probe_triggered && set_bltouch_deployed(false)) return true;
   #endif
 
   // Clear endstop flags
@@ -416,6 +434,8 @@ void Probe::move_to_z(float z, float fr_mm_m) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) DEBUG_POS("<<< move_to_z", mechanics.current_position);
   #endif
+
+  return !probe_triggered;
 }
 
 void Probe::refresh_zprobe_zoffset() {
@@ -425,7 +445,7 @@ void Probe::refresh_zprobe_zoffset() {
   if (!isnan(last_z_offset)) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      const float diff = z_offset - last_z_offset;
+      const float diff = zprobe_zoffset - last_z_offset;
 
       // Correct bilinear grid for new probe offset
       if (diff) {
@@ -440,7 +460,7 @@ void Probe::refresh_zprobe_zoffset() {
 
   }
 
-  last_z_offset = z_offset;
+  last_z_offset = zprobe_zoffset;
 }
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)

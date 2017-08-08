@@ -55,7 +55,7 @@
  *          Y = Probe Y position (default=current probe position)
  *          S = <bool> Stows the probe if 1 (default=1)
  *          Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
- *          P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+ *          P = <bool> with a non-zero value will apply the result to current zprobe_zoffset (ONLY DELTA)
  * G31  - Dock sled (Z_PROBE_SLED only)
  * G32  - Undock sled (Z_PROBE_SLED only)
  * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
@@ -263,5 +263,5 @@ void setup() {
 }
 
 void loop() {
-  commands.command_loop();
+  commands.loop();
 }

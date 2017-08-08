@@ -91,7 +91,7 @@
     WRITE(SCK_PIN, LOW);
   }
 
-  uint8_t spiRec(void) {
+  uint8_t spiReceive(void) {
     WRITE(SS_PIN, LOW);
     uint8_t b = spiTransfer(0xff);
     WRITE(SS_PIN, HIGH);
@@ -144,7 +144,7 @@
   // --------------------------------------------------------------------------
   // 8.4 MHz, 4 MHz, 2 MHz, 1 MHz, 0.5 MHz, 0.329 MHz, 0.329 MHz
   int spiDueDividors[] = { 10, 21, 42, 84, 168, 255, 255 };
-  bool spiInitMaded = false;
+  static bool spiInitMaded = false;
 
   void spiBegin() {
 
@@ -252,7 +252,6 @@
   }
 
   void spiSend(uint32_t chan, byte b) {
-    uint8_t dummy_read = 0;
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     // write byte with address and end transmission flag
@@ -260,27 +259,22 @@
     // wait for receive register
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
     // clear status
-    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-      dummy_read = SPI0->SPI_RDR;
-    UNUSED(dummy_read);
+    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
   }
 
   void spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
-    uint8_t dummy_read = 0;
     if (n == 0) return;
     for (int i = 0; i < (int)n - 1; i++) {
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       SPI0->SPI_TDR = (uint32_t)buf[i] | SPI_PCS(chan);
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
-      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-        dummy_read = SPI0->SPI_RDR;
-      UNUSED(dummy_read);
+      while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
     }
     spiSend(chan, buf[n - 1]);
   }
 
   // Read single byte from SPI
-  uint8_t spiRec(void) {
+  uint8_t spiReceive(void) {
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(SPI_CHAN) | SPI_TDR_LASTXFER;
     // wait for transmit register empty
@@ -293,13 +287,10 @@
     return SPI0->SPI_RDR;
   }
 
-  uint8_t spiRec(uint32_t chan) {
-    uint8_t spirec_tmp;
+  uint8_t spiReceive(uint32_t chan) {
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
-    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
-      spirec_tmp =  SPI0->SPI_RDR;
-      UNUSED(spirec_tmp);
+    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
 
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(chan) | SPI_TDR_LASTXFER;
@@ -321,7 +312,7 @@
       buf[i] = SPI0->SPI_RDR;
       //delayMicroseconds(1U);
     }
-    buf[nbyte] = spiRec();
+    buf[nbyte] = spiReceive();
   }
 
   // Write from buffer to SPI

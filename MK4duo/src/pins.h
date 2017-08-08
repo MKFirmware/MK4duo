@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef PINS_H
-#define PINS_H
+#ifndef _PINS_H_
+#define _PINS_H_
 
 #define EEPROM_NONE 0
 #define EEPROM_I2C  1
@@ -344,4 +344,4 @@
                         FLOWMETER_PIN \
                        }
 
-#endif //__PINS_H
+#endif /* _PINS_H_ */

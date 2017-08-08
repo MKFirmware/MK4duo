@@ -210,7 +210,7 @@ void Commands::get_serial_commands() {
       #endif
 
       // Add the command to the queue
-      enqueuecommand(serial_line_buffer, true);
+      enqueue_command(serial_line_buffer, true);
     }
     else if (serial_count >= MAX_CMD_SIZE - 1) {
       // Keep fetching, but ignore normal characters beyond the max length
@@ -236,7 +236,7 @@ void Commands::get_serial_commands() {
  *  - Process available commands (if not saving)
  *  - Call idle
  */
-void Commands::command_loop() {
+void Commands::loop() {
 
   get_available_commands();
 
@@ -275,11 +275,11 @@ void Commands::command_loop() {
         }
       }
       else
-        process_next_gcode();
+        process_next_command();
 
     #else
 
-      process_next_gcode();
+      process_next_command();
 
     #endif // SDSUPPORT
 
@@ -332,16 +332,14 @@ void Commands::command_loop() {
     if (commands_in_queue == 0) stop_buffering = false;
 
     uint16_t sd_count = 0;
-    bool card_eof = card.eof();
-    while (commands_in_queue < BUFSIZE && !card_eof && !stop_buffering) {
+    while (commands_in_queue < BUFSIZE && !card.eof() && !stop_buffering) {
       const int16_t n = card.get();
       char sd_char = (char)n;
-      card_eof = card.eof();
-      if (card_eof || n == -1
+      if (card.eof() || n == -1
           || sd_char == '\n' || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
       ) {
-        if (card_eof) {
+        if (card.eof()) {
           SERIAL_EM(MSG_FILE_PRINTED);
           card.printingHasFinished();
           #if ENABLED(PRINTER_EVENT_LEDS)
@@ -494,7 +492,7 @@ void Commands::commit_command(bool say_ok) {
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
  */
-bool Commands::enqueuecommand(const char* cmd, bool say_ok/*=false*/) {
+bool Commands::enqueue_command(const char* cmd, bool say_ok/*=false*/) {
   if (*cmd == ';' || commands_in_queue >= BUFSIZE) return false;
   strcpy(command_queue[cmd_queue_index_w], cmd);
   commit_command(say_ok);
@@ -505,7 +503,7 @@ bool Commands::enqueuecommand(const char* cmd, bool say_ok/*=false*/) {
  * Enqueue with Serial Echo
  */
 bool Commands::enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) {
-  if (enqueuecommand(cmd, say_ok)) {
+  if (enqueue_command(cmd, say_ok)) {
     SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
     SERIAL_CHR('"');
     SERIAL_EOL();
@@ -548,9 +546,9 @@ void Commands::unknown_command_error() {
  * Process a single command and dispatch it to its handler
  * This is called from the main loop()
  */
-void Commands::process_next_gcode() {
+void Commands::process_next_command() {
 
-  char * const current_command = get_command_queue();
+  char * const current_command = command_queue[cmd_queue_index_r];
 
   if (DEBUGGING(ECHO)) SERIAL_LV(ECHO, current_command);
 

@@ -92,6 +92,12 @@
                       z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
       #endif
 
+      #if ENABLED(PROBE_MANUALLY)
+        static bool g29_in_progress;
+      #else
+        static const bool g29_in_progress;
+      #endif
+
     public: /** Public Function */
 
       /**

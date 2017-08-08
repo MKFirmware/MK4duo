@@ -39,7 +39,7 @@ void spiBegin(void);
 /** Configure SPI for specified SPI speed */
 void spiInit(uint8_t spiRate);
 /** Read single byte from SPI */
-uint8_t spiRec(void);
+uint8_t spiReceive(void);
 /** Read from SPI into buffer */
 void spiRead(uint8_t* buf, uint16_t nbyte);
 /** Write single byte to SPI */

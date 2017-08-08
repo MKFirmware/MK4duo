@@ -118,13 +118,13 @@
 
     setup_for_endstop_or_probe_move();
 
+    double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
+
     // Move to the first point, deploy, and probe
     const float t = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
-    if (isnan(t)) return;
+    if (probe.nan_error(t)) goto FAIL;
 
     randomSeed(millis());
-
-    double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     for (uint8_t n = 0; n < n_samples; n++) {
       if (n_legs) {
@@ -196,6 +196,7 @@
 
       // Probe a single point
       sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, 0);
+      if (probe.nan_error(sample_set[n])) goto FAIL;
 
       /**
        * Get the current mean for the data points we have so far
@@ -234,7 +235,7 @@
 
     }  // End of probe loop
 
-    if (probe.set_deployed(false)) return;
+    if (probe.set_deployed(false)) goto FAIL;
 
     SERIAL_EM("Finished!");
 
@@ -248,6 +249,8 @@
 
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
     SERIAL_EOL();
+
+    FAIL:
 
     clean_up_after_endstop_or_probe_move();
 
