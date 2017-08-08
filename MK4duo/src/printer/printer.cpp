@@ -85,12 +85,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   #endif
 #endif
 
-#if ENABLED(PROBE_MANUALLY)
-  bool Printer::g29_in_progress = false;
-#else
-  const bool Printer::g29_in_progress = false;
-#endif
-
 #if HAS_SDSUPPORT
   bool Printer::sd_print_paused = false;
 #endif

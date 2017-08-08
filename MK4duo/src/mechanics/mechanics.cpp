@@ -605,7 +605,7 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
     #if HAS_BED_PROBE
       SERIAL_MV("Probe Offset X:", X_PROBE_OFFSET_FROM_NOZZLE);
       SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
-      SERIAL_MV(" Z:", probe.z_offset);
+      SERIAL_MV(" Z:", probe.zprobe_zoffset);
       #if X_PROBE_OFFSET_FROM_NOZZLE > 0
         SERIAL_MSG(" (Right");
       #elif X_PROBE_OFFSET_FROM_NOZZLE < 0
@@ -622,9 +622,9 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
       #elif X_PROBE_OFFSET_FROM_NOZZLE != 0
         SERIAL_MSG("-Center");
       #endif
-      if (probe.z_offset < 0)
+      if (probe.zprobe_zoffset < 0)
         SERIAL_MSG(" & Below");
-      else if (probe.z_offset > 0)
+      else if (probe.zprobe_zoffset > 0)
         SERIAL_MSG(" & Above");
       else
         SERIAL_MSG(" & Same Z as");

@@ -277,23 +277,6 @@ class Mechanics {
     void refresh_positioning();
 
     /**
-     * Home all axes according to settings
-     *
-     * Parameters
-     *
-     *  None  Home to all axes with no parameters.
-     *        With QUICK_HOME enabled XY will home together, then Z.
-     *
-     * Cartesian parameters
-     *
-     *  X   Home to the X endstop
-     *  Y   Home to the Y endstop
-     *  Z   Home to the Z endstop
-     *
-     */
-    virtual void Home(const bool always_home_all);
-
-    /**
      * Home an individual linear axis
      */
     void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
@@ -310,10 +293,10 @@ class Mechanics {
 
     bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
-    virtual bool position_is_reachable_raw_xy(const float &rx, const float &ry);
-    virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
-            bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
-            bool position_is_reachable_xy(const float &lx, const float &ly);
+    bool position_is_reachable_raw_xy(const float &rx, const float &ry);
+    bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
+    bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
+    bool position_is_reachable_xy(const float &lx, const float &ly);
 
     /**
      * Plan an arc in 2 dimensions

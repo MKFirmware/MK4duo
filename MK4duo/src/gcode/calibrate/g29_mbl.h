@@ -168,7 +168,7 @@
 
       case MeshSetZOffset:
         if (parser.seenval('Z')) {
-          mbl.z_offset = parser.value_axis_units(Z_AXIS);
+          mbl.zprobe_zoffset = parser.value_axis_units(Z_AXIS);
         }
         else {
           SERIAL_CHR('Z'); say_not_entered();

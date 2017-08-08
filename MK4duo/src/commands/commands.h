@@ -31,6 +31,13 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
+#if ENABLED(M100_FREE_MEMORY_WATCHER)
+  void gcode_M100();
+  #if ENABLED(M100_FREE_MEMORY_DUMPER)
+    void M100_dump_routine(const char * const title, const char *start, const char *end);
+  #endif
+#endif
+
 class Commands {
 
   public: /** Constructor */
@@ -56,10 +63,8 @@ class Commands {
     static void get_available_commands();
     static void clear_command_queue();
 
-    static void enqueue_and_echo_commands_P(const char * const pgcode);
-    static bool drain_injected_commands_P();
-    static bool enqueue_command(const char* cmd, bool say_ok=false);
     static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
+    static void enqueue_and_echo_commands_P(const char * const pgcode);
 
     FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
     FORCE_INLINE static void reset_send_ok()        { for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true; }
@@ -87,10 +92,11 @@ class Commands {
 
     static void process_next_command();
     static void commit_command(bool say_ok);
-    FORCE_INLINE static char* get_next_command()    { return command_queue[cmd_queue_index_r]; }
-
     static void unknown_command_error();
     static void gcode_line_error(const char* err, const bool doFlush=true);
+
+    static bool enqueue_command(const char* cmd, bool say_ok=false);
+    static bool drain_injected_commands_P();
 
 };
 

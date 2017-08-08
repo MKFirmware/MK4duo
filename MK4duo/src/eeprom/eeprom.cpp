@@ -66,8 +66,8 @@
  *                        z_fade_height                         (float)
  *
  * MESH_BED_LEVELING:
- *  M420  S               from mbl.status (bool)
- *                        mbl.z_offset (float)
+ *  M420  S               from mbl.status                       (bool)
+ *                        mbl.zprobe_zoffset                    (float)
  *                        GRID_MAX_POINTS_X                     (uint8 as set in firmware)
  *                        GRID_MAX_POINTS_Y                     (uint8 as set in firmware)
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
@@ -83,7 +83,7 @@
  *                        bedlevel.z_values[][]                 (float x9, up to float x256)
  *
  * HAS_BED_PROBE:
- *  M666  P               probe.z_offset                        (float)
+ *  M666  P               probe.zprobe_zoffset                  (float)
  *
  * HOTENDS AD595:
  *  M595  H OS            Hotend AD595 Offset & Gain
@@ -209,7 +209,7 @@ void EEPROM::Postprocess() {
 
   const char version[6] = EEPROM_VERSION;
 
-  bool EEPROM::eeprom_error;
+  bool EEPROM::eeprom_error = false;
 
   void EEPROM::crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
     uint8_t *ptr = (uint8_t *)data;
@@ -339,7 +339,7 @@ void EEPROM::Postprocess() {
       const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(leveling_is_on);
-      EEPROM_WRITE(mbl.z_offset);
+      EEPROM_WRITE(mbl.zprobe_zoffset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
       EEPROM_WRITE(mbl.z_values);
@@ -369,7 +369,7 @@ void EEPROM::Postprocess() {
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if HAS_BED_PROBE
-      EEPROM_WRITE(probe.z_offset);
+      EEPROM_WRITE(probe.zprobe_zoffset);
     #endif
 
     #if HEATER_USES_AD595
@@ -600,6 +600,8 @@ void EEPROM::Postprocess() {
     char stored_ver[6];
     uint16_t stored_crc;
 
+    eeprom_error = false;
+
     #if HAS_EEPROM_SD
       // EEPROM on SDCARD
       if (!IS_SD_INSERTED) {
@@ -669,7 +671,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mesh_num_x);
         EEPROM_READ(mesh_num_y);
         mbl.status = leveling_is_on ? _BV(MBL_STATUS_HAS_MESH_BIT) : 0;
-        mbl.z_offset = dummy;
+        mbl.zprobe_zoffset = dummy;
         if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
           // EEPROM data fits the current mesh
           EEPROM_READ(mbl.z_values);
@@ -711,7 +713,7 @@ void EEPROM::Postprocess() {
       #endif // AUTO_BED_LEVELING_BILINEAR
 
       #if HAS_BED_PROBE
-        EEPROM_READ(probe.z_offset);
+        EEPROM_READ(probe.zprobe_zoffset);
       #endif
 
       #if HEATER_USES_AD595
@@ -996,7 +998,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if HAS_BED_PROBE
-    probe.z_offset = Z_PROBE_OFFSET_FROM_NOZZLE;
+    probe.zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
   mechanics.Init();
@@ -1348,7 +1350,7 @@ void EEPROM::Factory_Settings() {
      */
     #if HAS_BED_PROBE
       CONFIG_MSG_START("Z Probe offset:");
-      SERIAL_LMV(CFG, "  M666 P", LINEAR_UNIT(probe.z_offset));
+      SERIAL_LMV(CFG, "  M666 P", LINEAR_UNIT(probe.zprobe_zoffset));
     #endif
 
     #if ENABLED(ULTIPANEL)

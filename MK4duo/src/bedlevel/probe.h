@@ -51,7 +51,7 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float  z_offset;
+    static float  zprobe_zoffset;
     static bool   enabled;
 
     #if HAS_Z_SERVO_PROBE
@@ -92,9 +92,11 @@ class Probe {
      *      Y = Probe Y position (default=current probe position)
      *      S = <bool> Stows the probe if 1 (default=1)
      *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
-     *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
+     *      P = <bool> with a non-zero value will apply the result to current probe.zprobe_zoffset (ONLY DELTA)
      */
     static void single_probe();
+
+    static bool nan_error(const float v);
 
     #if QUIET_PROBING
       static void probing_pause(const bool p);
@@ -102,7 +104,7 @@ class Probe {
 
     #if ENABLED(BLTOUCH)
       static void bltouch_command(int angle);
-      static void set_bltouch_deployed(const bool deploy);
+      static bool set_bltouch_deployed(const bool deploy);
     #endif
 
     static void refresh_zprobe_zoffset();
@@ -111,7 +113,7 @@ class Probe {
 
   private: /** Private Function */
 
-    static void move_to_z(float z, float fr_mm_m);
+    static bool move_to_z(float z, float fr_mm_m);
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();

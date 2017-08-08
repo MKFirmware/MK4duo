@@ -42,7 +42,7 @@
 
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
           // Correct bilinear grid for new probe offset
-          const float diff = p_val - probe.z_offset;
+          const float diff = p_val - probe.zprobe_zoffset;
           if (diff) {
             for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
               for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
@@ -53,8 +53,8 @@
           #endif
         #endif
 
-        probe.z_offset = p_val;
-        SERIAL_VAL(probe.z_offset);
+        probe.zprobe_zoffset = p_val;
+        SERIAL_VAL(probe.zprobe_zoffset);
       }
       else {
         SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
@@ -63,7 +63,7 @@
       }
     }
     else {
-      SERIAL_MV(": ", probe.z_offset, 3);
+      SERIAL_MV(": ", probe.zprobe_zoffset, 3);
     }
 
     SERIAL_EOL();

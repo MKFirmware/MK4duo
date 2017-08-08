@@ -148,7 +148,7 @@ void out_of_range_error(const char* p_edge) {
     #endif
 
     #if MECH(DELTA)
-      if (!printer.g29_in_progress) {
+      if (!bedlevel.g29_in_progress) {
         // Homing
         mechanics.Home(true);
         mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
@@ -243,7 +243,7 @@ void out_of_range_error(const char* p_edge) {
     /**
      * On the initial G29 fetch command parameters.
      */
-    if (!printer.g29_in_progress) {
+    if (!bedlevel.g29_in_progress) {
 
       #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)
         abl_probe_index = -1;
@@ -408,7 +408,7 @@ void out_of_range_error(const char* p_edge) {
         // Deploy the probe. Probe will raise if needed.
         if (probe.set_deployed(true)) {
           bedlevel.abl_enabled = abl_should_enable;
-          return;
+          goto FAIL;
         }
       #endif
 
@@ -449,7 +449,7 @@ void out_of_range_error(const char* p_edge) {
 
       #endif // AUTO_BED_LEVELING_3POINT
 
-    } // !printer.g29_in_progress
+    } // !bedlevel.g29_in_progress
 
     #if ENABLED(PROBE_MANUALLY)
 
@@ -457,17 +457,17 @@ void out_of_range_error(const char* p_edge) {
       // On the first probe this will be incremented to 0.
       if (!no_action) {
         ++abl_probe_index;
-        printer.g29_in_progress = true;
+        bedlevel.g29_in_progress = true;
       }
 
       // Abort current G29 procedure, go back to ABLStart
-      if (seenA && printer.g29_in_progress) {
+      if (seenA && bedlevel.g29_in_progress) {
         SERIAL_EM("Manual G29 aborted");
         #if HAS_SOFTWARE_ENDSTOPS
           endstops.soft_endstops_enabled = enable_soft_endstops;
         #endif
         bedlevel.abl_enabled = abl_should_enable;
-        printer.g29_in_progress = false;
+        bedlevel.g29_in_progress = false;
         #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
           lcd_wait_for_move = false;
         #endif
@@ -476,7 +476,7 @@ void out_of_range_error(const char* p_edge) {
       // Query G29 status
       if (verbose_level || seenQ) {
         SERIAL_MSG("Manual G29 ");
-        if (printer.g29_in_progress) {
+        if (bedlevel.g29_in_progress) {
           SERIAL_MV("point ", min(abl_probe_index + 1, abl2));
           SERIAL_EMV(" of ", abl2);
         }
@@ -597,7 +597,7 @@ void out_of_range_error(const char* p_edge) {
         else {
 
           SERIAL_EM("3-point probing done.");
-          printer.g29_in_progress = false;
+          bedlevel.g29_in_progress = false;
 
           // Re-enable software endstops, if needed
           #if HAS_SOFTWARE_ENDSTOPS
@@ -622,114 +622,114 @@ void out_of_range_error(const char* p_edge) {
       #endif // AUTO_BED_LEVELING_3POINT
 
     #else // !PROBE_MANUALLY
+      {
+        const bool stow_probe_after_each = parser.seen('E');
 
-      const bool stow_probe_after_each = parser.seen('E');
+        #if ABL_GRID
 
-      #if ABL_GRID
+          bool zig = PR_OUTER_END & 1;  // Always end at RIGHT and BACK_PROBE_BED_POSITION
 
-        bool zig = PR_OUTER_END & 1;  // Always end at RIGHT and BACK_PROBE_BED_POSITION
+          for (uint8_t PR_OUTER_VAR = 0; PR_OUTER_VAR < PR_OUTER_END; PR_OUTER_VAR++) {
 
-        for (uint8_t PR_OUTER_VAR = 0; PR_OUTER_VAR < PR_OUTER_END; PR_OUTER_VAR++) {
+            int8_t inStart, inStop, inInc;
 
-          int8_t inStart, inStop, inInc;
+            if (zig) {
+              inStart = 0;
+              inStop = PR_INNER_END;
+              inInc = 1;
+            }
+            else {
+              inStart = PR_INNER_END - 1;
+              inStop = -1;
+              inInc = -1;
+            }
 
-          if (zig) {
-            inStart = 0;
-            inStop = PR_INNER_END;
-            inInc = 1;
-          }
-          else {
-            inStart = PR_INNER_END - 1;
-            inStop = -1;
-            inInc = -1;
-          }
+            zig ^= true; // zag
 
-          zig ^= true; // zag
+            // Inner loop is Y with PROBE_Y_FIRST enabled
+            for (int8_t PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
 
-          // Inner loop is Y with PROBE_Y_FIRST enabled
-          for (int8_t PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
+              float xBase = left_probe_bed_position + xGridSpacing * xCount,
+                    yBase = front_probe_bed_position + yGridSpacing * yCount;
 
-            float xBase = left_probe_bed_position + xGridSpacing * xCount,
-                  yBase = front_probe_bed_position + yGridSpacing * yCount;
+              xProbe = FLOOR(xBase + (xBase < 0 ? 0 : 0.5));
+              yProbe = FLOOR(yBase + (yBase < 0 ? 0 : 0.5));
 
-            xProbe = FLOOR(xBase + (xBase < 0 ? 0 : 0.5));
-            yProbe = FLOOR(yBase + (yBase < 0 ? 0 : 0.5));
+              #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+                indexIntoAB[xCount][yCount] = ++abl_probe_index; // 0...
+              #endif
 
-            #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-              indexIntoAB[xCount][yCount] = ++abl_probe_index; // 0...
-            #endif
+              #if IS_KINEMATIC
+                // Avoid probing outside the round or hexagonal area
+                if (!mechanics.position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
+              #endif
 
-            #if IS_KINEMATIC
-              // Avoid probing outside the round or hexagonal area
-              if (!mechanics.position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
-            #endif
+              measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
+              if (probe.nan_error(measured_z)) {
+                bedlevel.abl_enabled = abl_should_enable;
+                goto FAIL;
+              }
+
+              #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+
+                mean += measured_z;
+                eqnBVector[abl_probe_index] = measured_z;
+                eqnAMatrix[abl_probe_index + 0 * abl2] = xProbe;
+                eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
+                eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
+
+                incremental_LSF(&lsf_results, xProbe, yProbe, measured_z);
+
+              #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+                bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
+
+              #endif
+
+              abl_should_enable = false;
+              printer.idle();
+
+            } // inner
+          } // outer
+
+        #elif ENABLED(AUTO_BED_LEVELING_3POINT)
+
+          // Probe at 3 arbitrary points
+
+          for (uint8_t i = 0; i < 3; ++i) {
+            // Retain the last probe position
+            xProbe = LOGICAL_X_POSITION(points[i].x);
+            yProbe = LOGICAL_Y_POSITION(points[i].y);
             measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
-
-            if (isnan(measured_z)) {
+            if (probe.nan_error(measured_z)) {
               bedlevel.abl_enabled = abl_should_enable;
               return;
             }
+            points[i].z = measured_z;
+          }
 
-            #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+          if (!dryrun) {
+            vector_3 planeNormal = vector_3::cross(points[0] - points[1], points[2] - points[1]).get_normal();
+            if (planeNormal.z < 0) {
+              planeNormal.x *= -1;
+              planeNormal.y *= -1;
+              planeNormal.z *= -1;
+            }
+            bedlevel.bed_level_matrix = matrix_3x3::create_look_at(planeNormal);
 
-              mean += measured_z;
-              eqnBVector[abl_probe_index] = measured_z;
-              eqnAMatrix[abl_probe_index + 0 * abl2] = xProbe;
-              eqnAMatrix[abl_probe_index + 1 * abl2] = yProbe;
-              eqnAMatrix[abl_probe_index + 2 * abl2] = 1;
-
-              incremental_LSF(&lsf_results, xProbe, yProbe, measured_z);
-
-            #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-              bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
-
-            #endif
-
+            // Can't re-enable (on error) until the new grid is written
             abl_should_enable = false;
-            printer.idle();
-
-          } // inner
-        } // outer
-
-      #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-
-        // Probe at 3 arbitrary points
-
-        for (uint8_t i = 0; i < 3; ++i) {
-          // Retain the last probe position
-          xProbe = LOGICAL_X_POSITION(points[i].x);
-          yProbe = LOGICAL_Y_POSITION(points[i].y);
-          measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
-          if (isnan(measured_z)) {
-            bedlevel.abl_enabled = abl_should_enable;
-            return;
           }
-          points[i].z = measured_z;
+
+        #endif // AUTO_BED_LEVELING_3POINT
+
+        // Raise to _Z_PROBE_DEPLOY_HEIGHT. Stow the probe.
+        if (probe.set_deployed(false)) {
+          bedlevel.abl_enabled = abl_should_enable;
+          goto FAIL;
         }
-
-        if (!dryrun) {
-          vector_3 planeNormal = vector_3::cross(points[0] - points[1], points[2] - points[1]).get_normal();
-          if (planeNormal.z < 0) {
-            planeNormal.x *= -1;
-            planeNormal.y *= -1;
-            planeNormal.z *= -1;
-          }
-          bedlevel.bed_level_matrix = matrix_3x3::create_look_at(planeNormal);
-
-          // Can't re-enable (on error) until the new grid is written
-          abl_should_enable = false;
-        }
-
-      #endif // AUTO_BED_LEVELING_3POINT
-
-      // Raise to _Z_PROBE_DEPLOY_HEIGHT. Stow the probe.
-      if (probe.set_deployed(false)) {
-        bedlevel.abl_enabled = abl_should_enable;
-        return;
       }
-
     #endif // !PROBE_MANUALLY
 
     //
@@ -742,15 +742,12 @@ void out_of_range_error(const char* p_edge) {
     // return or loop before this point.
     //
 
-    // Restore state after probing
-    if (!faux) printer.clean_up_after_endstop_or_probe_move();
-
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("> probing complete", mechanics.current_position);
     #endif
 
     #if ENABLED(PROBE_MANUALLY)
-      printer.g29_in_progress = false;
+      bedlevel.g29_in_progress = false;
       #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
         lcd_wait_for_move = false;
       #endif
@@ -948,6 +945,14 @@ void out_of_range_error(const char* p_edge) {
       LcdBedLevelOff();
     #endif
 
+    // Auto Bed Leveling is complete! Enable if possible.
+    bedlevel.abl_enabled = dryrun ? abl_should_enable : true;
+
+    FAIL:
+
+    // Restore state after probing
+    if (!faux) printer.clean_up_after_endstop_or_probe_move();
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G29");
     #endif
@@ -955,9 +960,6 @@ void out_of_range_error(const char* p_edge) {
     mechanics.report_current_position();
 
     KEEPALIVE_STATE(IN_HANDLER);
-
-    // Auto Bed Leveling is complete! Enable if possible.
-    bedlevel.abl_enabled = dryrun ? abl_should_enable : true;
 
     if (bedlevel.abl_enabled)
       mechanics.sync_plan_position();

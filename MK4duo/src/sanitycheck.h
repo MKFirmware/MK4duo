@@ -1491,9 +1491,6 @@ static_assert(1 >= 0
   #if DISABLED(DELTA_PRINTABLE_RADIUS)
     #error DEPENDENCY ERROR: Missing setting DELTA_PRINTABLE_RADIUS
   #endif
-  #if DISABLED(DEFAULT_DELTA_RADIUS)
-    #error DEPENDENCY ERROR: Missing setting DEFAULT_DELTA_RADIUS
-  #endif
   #if DISABLED(TOWER_A_ENDSTOP_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_A_ENDSTOP_ADJ
   #endif

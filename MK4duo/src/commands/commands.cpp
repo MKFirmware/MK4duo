@@ -262,7 +262,7 @@ void Commands::loop() {
     #if HAS_SDSUPPORT
 
       if (card.saving) {
-        char* command = get_next_command();
+        char* command = command_queue[cmd_queue_index_r];
         if (strstr_P(command, PSTR("M29"))) {
           // M29 closes the file
           card.finishWrite();
@@ -408,7 +408,7 @@ void Commands::ok_to_send() {
   if (!send_ok[cmd_queue_index_r]) return;
   SERIAL_STR(OK);
   #if ENABLED(ADVANCED_OK)
-    char* p = get_next_command();
+    char* p = command_queue[cmd_queue_index_r];
     if (*p == 'N') {
       SERIAL_CHR(' ');
       SERIAL_CHR(*p++);
@@ -548,7 +548,7 @@ void Commands::unknown_command_error() {
  */
 void Commands::process_next_command() {
 
-  char * const current_command = get_next_command();
+  char * const current_command = command_queue[cmd_queue_index_r];
 
   if (DEBUGGING(ECHO)) SERIAL_LV(ECHO, current_command);
 

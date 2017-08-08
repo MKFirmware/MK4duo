@@ -1036,7 +1036,7 @@ void kill_screen(const char* lcd_msg) {
 
     // Manual bed leveling, Bed Z:
     #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
-      MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
+      MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.zprobe_zoffset, -1, 1);
     #endif
 
     //
@@ -1727,11 +1727,11 @@ void kill_screen(const char* lcd_msg) {
       // MBL Z Offset
       //
       #if ENABLED(MESH_BED_LEVELING)
-        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
+        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.zprobe_zoffset, -1, 1);
       #endif
 
       #if HAS_BED_PROBE
-        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.z_offset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
       #endif
 
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
@@ -1786,7 +1786,7 @@ void kill_screen(const char* lcd_msg) {
     //
     #if ENABLED(LCD_BED_LEVELING)
       #if ENABLED(PROBE_MANUALLY)
-        if (!printer.g29_in_progress)
+        if (!bedlevel.g29_in_progress)
       #endif
       MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_bed_leveling);
     #elif HAS_LEVELING
@@ -1920,9 +1920,25 @@ void kill_screen(const char* lcd_msg) {
     void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_print_radius, SIN(RADIANS( 90)) * mechanics.delta_print_radius); }
     void _goto_center()  { mechanics.manual_goto_xy(0,0); }
 
+    void lcd_delta_settings() {
+      START_MENU();
+      MENU_BACK(MSG_DELTA_CALIBRATE);
+      MENU_ITEM_EDIT(float52, MSG_DELTA_HEIGHT, &mechanics.delta_height, DELTA_HEIGHT - 10.0, DELTA_HEIGHT + 10.0);
+      MENU_ITEM_EDIT(float43, "Ex", &mechanics.delta_endstop_adj[A_AXIS], -5.0, 0.0);
+      MENU_ITEM_EDIT(float43, "Ey", &mechanics.delta_endstop_adj[B_AXIS], -5.0, 0.0);
+      MENU_ITEM_EDIT(float43, "Ez", &mechanics.delta_endstop_adj[C_AXIS], -5.0, 0.0);
+      MENU_ITEM_EDIT(float52, MSG_DELTA_DIAG_ROG, &mechanics.delta_diagonal_rod, DELTA_DIAGONAL_ROD - 5.0, DELTA_DIAGONAL_ROD + 5.0);
+      MENU_ITEM_EDIT(float52, MSG_DELTA_RADIUS, &mechanics.delta_radius, DELTA_RADIUS - 5.0, DELTA_RADIUS + 5.0);
+      MENU_ITEM_EDIT(float43, "Tx", &mechanics.delta_tower_radius_adj[A_AXIS], -5.0, 5.0);
+      MENU_ITEM_EDIT(float43, "Ty", &mechanics.delta_tower_radius_adj[B_AXIS], -5.0, 5.0);
+      MENU_ITEM_EDIT(float43, "Tz", &mechanics.delta_tower_radius_adj[C_AXIS], -5.0, 5.0);
+      END_MENU();
+    }
+
     void lcd_delta_calibrate_menu() {
       START_MENU();
       MENU_BACK(MSG_MAIN);
+      MENU_ITEM(submenu, MSG_DELTA_SETTINGS, lcd_delta_settings);
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         MENU_ITEM(gcode, MSG_DELTA_AUTO_CALIBRATE, PSTR("G33"));
       #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
@@ -2737,7 +2753,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_CONTROL);
 
     #if HAS_BED_PROBE
-      MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &probe.z_offset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+      MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &probe.zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif
 
     // M203 / M205 - Feedrate items

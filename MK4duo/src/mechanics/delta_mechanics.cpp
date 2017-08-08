@@ -35,10 +35,10 @@
 
   void Delta_Mechanics::Init() {
     delta_diagonal_rod              = DELTA_DIAGONAL_ROD;
-    delta_radius                    = DEFAULT_DELTA_RADIUS;
+    delta_radius                    = DELTA_RADIUS;
     delta_segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     delta_print_radius              = DELTA_PRINTABLE_RADIUS;
-    delta_probe_radius              = DELTA_PRINTABLE_RADIUS - 10;
+    delta_probe_radius              = DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
     delta_height                    = DELTA_HEIGHT;
     delta_endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     delta_endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
@@ -371,11 +371,10 @@
 
   void Delta_Mechanics::recalc_delta_settings() {
 
-    LOOP_XY(i) {
-      endstops.soft_endstop_min[i] = -delta_print_radius;
-      endstops.soft_endstop_max[i] = delta_print_radius;
+    LOOP_XY(axis) {
+      endstops.soft_endstop_min[axis] = (axis == C_AXIS ? 0 : -delta_print_radius);
+      endstops.soft_endstop_max[axis] = (axis == C_AXIS ? delta_height : delta_print_radius);
     }
-    endstops.soft_endstop_max[C_AXIS] = delta_height;
 
     delta_diagonal_rod_2[A_AXIS] = sq(delta_diagonal_rod + delta_diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(delta_diagonal_rod + delta_diagonal_rod_adj[B_AXIS]);
@@ -406,7 +405,6 @@
     float cartesian[ABC];
     InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
     homed_Height = delta_height + tempHeight - cartesian[C_AXIS];
-    printRadiusSquared = sq(delta_print_radius);
 
     Set_clip_start_height();
 
@@ -541,7 +539,7 @@
   /**
    * Home Delta
    */
-  void Delta_Mechanics::Home(const bool always_home_all) {
+  bool Delta_Mechanics::Home(const bool always_home_all) {
 
     UNUSED(always_home_all);
 
@@ -561,7 +559,7 @@
 
     // Cancel the active G29 session
     #if ENABLED(PROBE_MANUALLY)
-      printer.g29_in_progress = false;
+      bedlevel.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         LcdBedLevelOff();
       #endif
@@ -605,6 +603,18 @@
     feedrate_mm_s = homing_feedrate_mm_s[A_AXIS];
     line_to_current_position();
     stepper.synchronize();
+
+    // If an endstop was not hit, then damage can occur if homing is continued.
+    // This can occur if the delta height is
+    // not set correctly.
+    if (!(TEST(endstops.endstop_hit_bits, X_MAX) ||
+          TEST(endstops.endstop_hit_bits, Y_MAX) ||
+          TEST(endstops.endstop_hit_bits, Z_MAX))) {
+      LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
+      SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
+      return false;
+    }
+
     endstops.hit_on_purpose(); // clear endstop hit flags
 
     // At least one carriage has reached the top.
@@ -675,6 +685,7 @@
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
     #endif
 
+    return true;
   }
 
   void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
@@ -699,15 +710,6 @@
     #endif
   }
 
-  bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
-    return HYPOT2(rx, ry) <= printRadiusSquared;
-  }
-  bool Delta_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
-    // both the nozzle and the probe must be able to reach the point
-    return  position_is_reachable_raw_xy(rx, ry)
-        &&  position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
-  }
-
   #if ENABLED(DELTA_AUTO_CALIBRATION_1)
 
     /**
@@ -725,6 +727,8 @@
     void Delta_Mechanics::auto_calibration() {
 
       const uint8_t   MaxCalibrationPoints = 10;
+
+      uint8_t iteration = 0;
 
       float   xBedProbePoints[MaxCalibrationPoints],
               yBedProbePoints[MaxCalibrationPoints],
@@ -761,7 +765,7 @@
       #endif
       printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
-      Home();
+      if (!Home()) return;
       endstops.not_homing();
       probe.set_deployed(true);
 
@@ -771,22 +775,26 @@
       for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
         yBedProbePoints[probe_index] = delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
-        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4, false);
+        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
+        if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
       }
       if (probe_points >= 10) {
         for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
           xBedProbePoints[probe_index] = (delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
           yBedProbePoints[probe_index] = (delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
-          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4, false);
+          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
+          if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe.check_pt(dx, dy, true, 4, false);
+        zBedProbePoints[9] = probe.check_pt(dx, dy, true, 4);
+        if (probe.nan_error(zBedProbePoints[9])) goto FAIL;
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe.check_pt(dx, dy, true, 4, false);
+        zBedProbePoints[6] = probe.check_pt(dx, dy, true, 4);
+        if (probe.nan_error(zBedProbePoints[6])) goto FAIL;
       }
 
       // convert delta_endstop_adj;
@@ -816,7 +824,6 @@
       }
 
       // Do 1 or more Newton-Raphson iterations
-      uint8_t iteration = 0;
 
       do {
         iteration++;
@@ -930,12 +937,15 @@
       SERIAL_EOL();
 
       endstops.enable(true);
-      Home();
+      if (!Home()) return;
       endstops.not_homing();
+
+    FAIL:
 
       #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
         do_blocking_move_to_z(delta_clip_start_height);
       #endif
+      probe.set_deployed(false);
       printer.clean_up_after_endstop_or_probe_move();
       #if HOTENDS > 1
         tool_change(old_tool_index, 0, true);
@@ -1037,8 +1047,8 @@
                     r = (1 + circles * 0.1) * delta_probe_radius;
         for (uint8_t axis = 1; axis < 13; ++axis) {
           const float a = RADIANS(180 + 30 * axis);
-          if (!position_is_reachable_xy(COS(a) * r, SIN(a) * r)) {
-            SERIAL_EM("?(M665 O) print radius is implausible.");
+          if (!position_is_reachable_by_probe_xy(COS(a) * r + dx, SIN(a) * r + dy)) {
+            SERIAL_EM("?(M665 Q) probe radius is implausible.");
             return;
           }
         }
@@ -1056,7 +1066,7 @@
       #endif
       printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
-      Home();
+      if (!Home()) return;
       endstops.not_homing();
       probe.set_deployed(true);
 
@@ -1070,7 +1080,11 @@
       print_G33_settings(!_1p_calibration, _7p_calibration && towers_set);
 
       #if DISABLED(PROBE_MANUALLY)
-        delta_height -= probe.check_pt(dx, dy, stow_after_each, 1, false); // 1st probe to set height
+        const float measured_z = probe.check_pt(dx, dy, stow_after_each, 1, false); // 1st probe to set height
+        if (probe.nan_error(measured_z))
+          goto FAIL;
+        else
+          delta_height -= measured_z;
       #endif
 
       do {
@@ -1085,11 +1099,13 @@
 
         if (!_7p_half_circle && !_7p_triple_circle) { // probe the center
           z_at_pt[0] += probe.check_pt(dx, dy, stow_after_each, 1, false);
+          if (probe.nan_error(z_at_pt[0])) goto FAIL;
         }
         if (_7p_calibration) { // probe extra center points
           for (int8_t axis = _7p_multi_circle ? 11 : 9; axis > 0; axis -= _7p_multi_circle ? 2 : 4) {
             const float a = RADIANS(180 + 30 * axis), r = delta_probe_radius * 0.1;
-            z_at_pt[0] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1, false);
+            z_at_pt[0] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
+            if (probe.nan_error(z_at_pt[0])) goto FAIL;
           }
           z_at_pt[0] /= float(_7p_double_circle ? 7 : probe_points);
         }
@@ -1105,7 +1121,8 @@
             for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
               const float a = RADIANS(180 + 30 * axis),
                           r = delta_probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
-              z_at_pt[axis] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1, false);
+              z_at_pt[axis] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
+              if (probe.nan_error(z_at_pt[axis])) goto FAIL;
             }
             zig_zag = !zig_zag;
             z_at_pt[axis] /= (2 * offset_circles + 1);
@@ -1292,10 +1309,12 @@
         }
 
         endstops.enable(true);
-        Home();
+        if (!Home()) return;
         endstops.not_homing();
 
       } while ((zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31) || iterations <= force_iterations);
+
+      FAIL:
 
       #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
         do_blocking_move_to_z(delta_clip_start_height);

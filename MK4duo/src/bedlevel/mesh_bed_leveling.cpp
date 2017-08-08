@@ -29,7 +29,7 @@
 
   uint8_t mesh_bed_leveling::status;
 
-  float mesh_bed_leveling::z_offset,
+  float mesh_bed_leveling::zprobe_zoffset,
         mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
         mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
         mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y];
@@ -44,7 +44,7 @@
 
   void mesh_bed_leveling::reset() {
     status = MBL_STATUS_NONE;
-    z_offset = 0;
+    zprobe_zoffset = 0;
     ZERO(z_values);
   }
 

@@ -59,6 +59,12 @@
     #endif
   #endif
 
+  #if ENABLED(PROBE_MANUALLY)
+    bool Bed_level::g29_in_progress = false;
+  #else
+    const bool Bed_level::g29_in_progress = false;
+  #endif
+
   /**
    * lx, ly, lz - Logical (cartesian, not delta) positions in mm
    */
@@ -572,7 +578,7 @@
 
     void Bed_level::mbl_mesh_report() {
       SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
-      SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
+      SERIAL_EMV("Z offset: ", mbl.zprobe_zoffset, 5);
       SERIAL_EM("Measured points:");
       print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
         [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[ix][iy]; }

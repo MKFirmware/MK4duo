@@ -74,12 +74,6 @@ class Printer {
       #endif
     #endif
 
-    #if ENABLED(PROBE_MANUALLY)
-      static bool g29_in_progress;
-    #else
-      static const bool g29_in_progress;
-    #endif
-
     #if HAS_SDSUPPORT
       static bool sd_print_paused;
     #endif
