@@ -263,5 +263,5 @@ void setup() {
 }
 
 void loop() {
-  commands.command_loop();
+  commands.loop();
 }
