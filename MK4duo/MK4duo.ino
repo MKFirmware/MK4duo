@@ -1,5 +1,5 @@
 /**
- * MK4duo 3D Printer Firmware and Laser
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
