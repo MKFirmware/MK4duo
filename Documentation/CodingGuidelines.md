@@ -1,9 +1,17 @@
 # MK4duo Coding Guidelines
-_written by [iosonopersia](https://github.com/iosonopersia), 2017_
+_written by [iosonopersia](https://github.com/iosonopersia), August 2017_
 
 ### Introduction
-**MK4duo** is a _Marlin_ fork that wants to provide a cleaner, simpler to understand code to its user-base. It was the first Marlin fork to exploit the possibility of _recursive subfolder compilation_ offered by the Arduino IDE starting from version 1.5.2 (please correct me if I'm wrong). Code was separated between different subfolders in order to make clear to the programmers which thematic group a file belongs to. The work needed to clean-up **MK4duo** code isn't finished yet: this is the reason why it's very important that everyone who's willing to contribute to this project knows well **how** we want to achieve that goal.
+**MK4duo** is a _Marlin_ fork that wants to provide a cleaner, simpler to understand code to its user-base. It was the first Marlin fork to exploit the possibility of _recursive subfolder compilation_ offered by the Arduino IDE starting from version 1.5.2 (please correct me if I'm wrong).
+
+Code was separated between different subfolders in order to make clear to the programmers which thematic group a file belongs to.
+
+The work needed to clean-up **MK4duo** code isn't finished yet: this is the reason why it's very important that everyone who's willing to contribute to this project knows well **how** we want to achieve that goal.
+
 _Remember: a cleaner code is a **more robust** code!_
+
+### Memory consumption and coding standards
+Try to minimize the number of variables used and to define them inside the function scope: this way, when the function will return, that memory will be freed. For coding standards you can refer to the good _Marlin_ documentation written by [thinkyhead](https://github.com/thinkyhead): [Coding Standards](https://github.com/MarlinFirmware/MarlinDocumentation/blob/master/_development/coding_standards.md).
 
 ### Subfolders
 **MK4duo** code is spread across a lot of **src/** subfolders. Each one is named after its role in the code: this makes really intuitive finding the part of the code you think should be modified. Dividing code files in subfolders is an important step in achieving our goal but we shouldn't abuse of this method: **a lot of folders are confusing just like a lot of files!**
@@ -47,6 +55,3 @@ In version 4.3.25 we overcame this problem, which still affects _Marlin_. We've 
 
 ### Useless MACROS
 **MK4duo** is already full of macros, since it embraces _conditional compiling_. A lot of other macros are used to prevent code duplication and others provide some useful services too. But they make the code less readable: we try to avoid and delete useless macros, **and you should try also!**
-
-### Memory consumption and coding standards
-Try to minimize the number of variables used and to define them inside the function scope: this way, when the function will return, that memory will be freed. For coding standards you can refer to the good _Marlin_ documentation written by [thinkyhead](https://github.com/thinkyhead): [Coding Standards](https://github.com/MarlinFirmware/MarlinDocumentation/blob/master/_development/coding_standards.md).
