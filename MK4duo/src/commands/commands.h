@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,13 +31,6 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
-#if ENABLED(M100_FREE_MEMORY_WATCHER)
-  void gcode_M100();
-  #if ENABLED(M100_FREE_MEMORY_DUMPER)
-    void M100_dump_routine(const char * const title, const char *start, const char *end);
-  #endif
-#endif
-
 class Commands {
 
   public: /** Constructor */
@@ -45,6 +38,8 @@ class Commands {
     Commands() {};
 
   public: /** Public Parameters */
+
+    static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
     static long gcode_N,
                 gcode_LastN,
@@ -72,7 +67,6 @@ class Commands {
 
   private: /** Private Parameters */
 
-    static char command_queue[BUFSIZE][MAX_CMD_SIZE];
     static bool send_ok[BUFSIZE];
 
     static uint8_t  commands_in_queue,

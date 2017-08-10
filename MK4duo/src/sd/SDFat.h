@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@
   //------------------------------------------------------------------------------
   /** error if old IDE */
   #if DISABLED(ARDUINO) || ARDUINO < 100
-  #error Arduino IDE must be 1.0 or greater
+    #error Arduino IDE must be 1.0 or greater
   #endif  // ARDUINO < 100
   //------------------------------------------------------------------------------
   #include <stdint.h>
@@ -350,18 +350,18 @@
    * are not a multiple of 512 bytes.
    */
   #ifdef __arm__
-  #define USE_SEPARATE_FAT_CACHE 1
+    #define USE_SEPARATE_FAT_CACHE 1
   #else  // __arm__
-  #define USE_SEPARATE_FAT_CACHE 0
+    #define USE_SEPARATE_FAT_CACHE 0
   #endif  // __arm__
   //------------------------------------------------------------------------------
   /**
    * Don't use mult-block read/write on small AVR boards
    */
   #if ENABLED(RAMEND) && (RAMEND < 3000 || (NONLINEAR_SYSTEM && RAMEND<8000))
-  #define USE_MULTI_BLOCK_SD_IO 0
+    #define USE_MULTI_BLOCK_SD_IO 0
   #else
-  #define USE_MULTI_BLOCK_SD_IO 1
+    #define USE_MULTI_BLOCK_SD_IO 1
   #endif
   //------------------------------------------------------------------------------
   /**
@@ -376,18 +376,18 @@
    * Use native SPI on Teensy 3.0 if USE_NATIVE_MK20DX128-SPI is nonzero.
    */
   #if ENABLED(__arm__) && ENABLED(CORE_TEENSY)
-  #define USE_NATIVE_MK20DX128_SPI 1
+    #define USE_NATIVE_MK20DX128_SPI 1
   #else
-  #define USE_NATIVE_MK20DX128_SPI 0
+    #define USE_NATIVE_MK20DX128_SPI 0
   #endif
   //------------------------------------------------------------------------------
   /**
    * Use fast SAM3X SPI library if USE_NATIVE_SAM3X_SPI is nonzero.
    */
   #if ENABLED(__arm__) && DISABLED(CORE_TEENSY)
-  #define USE_NATIVE_SAM3X_SPI 1
+    #define USE_NATIVE_SAM3X_SPI 1
   #else
-  #define USE_NATIVE_SAM3X_SPI 0
+    #define USE_NATIVE_SAM3X_SPI 0
   #endif
   //------------------------------------------------------------------------------
   /**
@@ -577,22 +577,22 @@
    */
   //------------------------------------------------------------------------------
   #if LEONARDO_SOFT_SPI && ENABLED(__AVR_ATmega32U4__) && DISABLED(CORE_TEENSY)
-  #define SOFTWARE_SPI
-  #elif MEGA_SOFT_SPI&&(ENABLED(__AVR_ATmega1280__)||ENABLED(__AVR_ATmega2560__))
-  #define SOFTWARE_SPI
+    #define SOFTWARE_SPI
+  #elif MEGA_SOFT_SPI && (ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__))
+    #define SOFTWARE_SPI
   #elif USE_SOFTWARE_SPI
-  #define SOFTWARE_SPI
+    #define SOFTWARE_SPI
   #endif  // LEONARDO_SOFT_SPI
   //------------------------------------------------------------------------------
   // define default chip select pin
   //
   #ifndef SOFTWARE_SPI
-  // hardware pin defs
-  /** The default chip select pin for the SD card is SS. */
-  uint8_t const  SD_CHIP_SELECT_PIN = SDSS;
+    // hardware pin defs
+    /** The default chip select pin for the SD card is SS. */
+    uint8_t const  SD_CHIP_SELECT_PIN = SDSS;
   #else  // SOFTWARE_SPI
-  /** SPI chip select pin */
-  uint8_t const SD_CHIP_SELECT_PIN = SOFT_SPI_CS_PIN;
+    /** SPI chip select pin */
+    uint8_t const SD_CHIP_SELECT_PIN = SOFT_SPI_CS_PIN;
   #endif  // SOFTWARE_SPI
   //------------------------------------------------------------------------------
   /**
@@ -674,7 +674,7 @@
       cardCommand(CMD55, 0);
       return cardCommand(cmd, arg);
     }
-    uint8_t cardCommand(uint8_t cmd, uint32_t arg);
+    uint8_t cardCommand(const uint8_t cmd, uint32_t arg);
     bool readData(uint8_t* dst, size_t count);
     bool readRegister(uint8_t cmd, void* buf);
     void chipSelectHigh();
