@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@
 #define MSG_LEVEL_BED_WAITING               _UxGT("Premeu per iniciar")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Següent punt")
 #define MSG_LEVEL_BED_DONE                  _UxGT("Anivellament fet!")
-#define MSG_LEVEL_BED_CANCEL                _UxGT("Cancel.la")
 #define MSG_SET_HOME_OFFSETS                _UxGT("Ajusta decalatge")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Decalatge aplicat")
 #define MSG_SET_ORIGIN                      _UxGT("Estableix origen")
@@ -70,6 +69,7 @@
 #define MSG_EXTRUDE                         _UxGT("Extrudeix")
 #define MSG_RETRACT                         _UxGT("Retreu")
 #define MSG_MOVE_AXIS                       _UxGT("Mou eixos")
+#define MSG_BED_LEVELING                    _UxGT("Anivella llit")
 #define MSG_LEVEL_BED                       _UxGT("Anivella llit")
 #define MSG_MOVING                          _UxGT("Movent..")
 #define MSG_FREE_XY                         _UxGT("XY lliures")
@@ -99,6 +99,7 @@
 #define MSG_PID_C                           _UxGT("PID-C")
 #define MSG_SELECT                          _UxGT("Select")
 #define MSG_ACC                             _UxGT("Accel")
+#define MSG_JERK                            _UxGT("Jerk")
 #define MSG_VX_JERK                         _UxGT("Vx-jerk")
 #define MSG_VY_JERK                         _UxGT("Vy-jerk")
 #define MSG_VZ_JERK                         _UxGT("Vz-jerk")
@@ -109,6 +110,7 @@
 #define MSG_AMAX                            _UxGT("Accel. max ")
 #define MSG_A_RETRACT                       _UxGT("Accel. retracc")
 #define MSG_A_TRAVEL                        _UxGT("Accel. Viatge")
+#define MSG_STEPS_PER_MM                    _UxGT("Passos/mm")
 #define MSG_XSTEPS                          _UxGT("Xpassos/mm")
 #define MSG_YSTEPS                          _UxGT("Ypassos/mm")
 #define MSG_ZSTEPS                          _UxGT("Zpassos/mm")
@@ -117,14 +119,15 @@
 #define MSG_E2STEPS                         _UxGT("E2passos/mm")
 #define MSG_E3STEPS                         _UxGT("E3passos/mm")
 #define MSG_E4STEPS                         _UxGT("E4passos/mm")
+#define MSG_E5STEPS                         _UxGT("E5passos/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatura")
 #define MSG_MOTION                          _UxGT("Moviment")
-#define MSG_VOLUMETRIC                      _UxGT("Filament")
+#define MSG_FILAMENT                        _UxGT("Filament")
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("E en mm3")
 #define MSG_FILAMENT_DIAM                   _UxGT("Diam. Fil.")
 #define MSG_CONTRAST                        _UxGT("Contrast de LCD")
-#define MSG_STORE_EPROM                     _UxGT("Desa memoria")
-#define MSG_LOAD_EPROM                      _UxGT("Carrega memoria")
+#define MSG_STORE_EEPROM                    _UxGT("Desa memoria")
+#define MSG_LOAD_EEPROM                     _UxGT("Carrega memoria")
 #define MSG_RESTORE_FAILSAFE                _UxGT("Restaura valors")
 #define MSG_REFRESH                         _UxGT("Actualitza")
 #define MSG_WATCH                           _UxGT("Pantalla Info.")
@@ -193,8 +196,7 @@
 #define MSG_INFO_EXTRUDERS                  _UxGT("Extrusors")
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocol")
-#define MSG_LIGHTS_ON                       _UxGT("Encen el llum")
-#define MSG_LIGHTS_OFF                      _UxGT("Apaga el llum")
+#define MSG_CASE_LIGHT                      _UxGT("Llum")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Total impressions")
@@ -217,8 +219,8 @@
 #define MSG_DRIVE_STRENGTH                  _UxGT("Força motor")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")
 #define MSG_DAC_EEPROM_WRITE                _UxGT("DAC EEPROM Write")
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CANVI DE FILAMENT")
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("OPCIONS CANVI:")
+#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
+#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudeix mes")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Repren impressió")
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp minima es ")

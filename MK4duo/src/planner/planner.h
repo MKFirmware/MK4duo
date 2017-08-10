@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,27 +108,24 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  #if FAN_COUNT > 0
-    uint16_t fan_speed[FAN_COUNT];
-  #endif
-
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
   #endif
 
   uint32_t segment_time;
 
-  #if ENABLED(LASERBEAM)
-    uint8_t laser_mode; // CONTINUOUS, PULSED, RASTER
-    bool laser_status; // LASER_OFF, LASER_ON
-    float laser_ppm; // pulses per millimeter, for pulsed and raster firing modes
-    uint32_t laser_duration; // laser firing duration in microseconds, for pulsed and raster firing modes
-    uint32_t steps_l; // step count between firings of the laser, for pulsed firing mode
-    float laser_intensity; // Laser firing instensity in clock cycles for the PWM timer
+  #if ENABLED(LASER)
+    uint8_t laser_mode;         // CONTINUOUS, PULSED, RASTER
+    bool laser_status;          // LASER_OFF, LASER_ON
+    float     laser_ppm,        // pulses per millimeter, for pulsed and raster firing modes
+              laser_intensity;  // Laser firing instensity in clock cycles for the PWM timer
+    uint32_t  laser_duration,   // Laser firing duration in microseconds, for pulsed and raster firing modes
+              steps_l;          // Step count between firings of the laser, for pulsed firing mode
+
     #if ENABLED(LASER_RASTER)
       unsigned char laser_raster_data[LASER_MAX_RASTER_LINE];
     #endif
-  #endif 
+  #endif
 
 } block_t;
 
@@ -139,43 +136,28 @@ class Planner {
   public:
 
     /**
+     * The current position of the tool in absolute steps
+     * Recalculated if any axis_steps_per_mm are changed by gcode
+     */
+    static long position[NUM_AXIS];
+
+    /**
      * A ring buffer of moves described in steps
      */
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,  // Index of the next block to be pushed
                             block_buffer_tail;
 
-    static float  max_feedrate_mm_s[XYZE_N],    // Max speeds in mm per second
-                  axis_steps_per_mm[XYZE_N],
-                  steps_to_mm[XYZE_N];
+    /**
+     * Limit where 64bit math is necessary for acceleration calculation
+ 	   */
+    static uint32_t cutoff_long;
 
-    static uint32_t max_acceleration_steps_per_s2[XYZE_N],
-                    max_acceleration_mm_per_s2[XYZE_N]; // Use M201 to override by software
-
-    static millis_t min_segment_time;
-    static float  min_feedrate_mm_s,
-                  min_travel_feedrate_mm_s,
-                  acceleration,                     // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
-                  retract_acceleration[EXTRUDERS],  // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
-                  travel_acceleration,              // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-                  max_jerk[XYZE_N];                 // The largest speed change requiring no acceleration
-
-    #if HAS(ABL)
-      static bool abl_enabled;            // Flag that bed leveling is enabled
-      static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
-    #endif
-
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      static float z_fade_height, inverse_z_fade_height;
+    #if ENABLED(LIN_ADVANCE)
+      static float extruder_advance_k, advance_ed_ratio;
     #endif
 
   private:
-
-    /**
-     * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
-     */
-    static long position[NUM_AXIS];
 
     /**
      * Speed of previous path line segment
@@ -186,11 +168,6 @@ class Planner {
      * Nominal speed of previous path line segment
      */
     static float previous_nominal_speed;
-
-    /**
-     * Limit where 64bit math is necessary for acceleration calculation
- 	   */
-    static uint32_t cutoff_long;
 
     #if ENABLED(DISABLE_INACTIVE_EXTRUDER)
       /**
@@ -209,19 +186,12 @@ class Planner {
     #endif
 
     #if ENABLED(LIN_ADVANCE)
-      static float  position_float[NUM_AXIS],
-                    extruder_advance_k,
-                    advance_ed_ratio;
+      static float position_float[NUM_AXIS];
     #endif
 
     #if ENABLED(ULTRA_LCD)
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
-
-    /**
-     * Last extruder used
-     */
-    static uint8_t last_extruder;
 
   public:
 
@@ -237,9 +207,6 @@ class Planner {
      * Static (class) Methods
      */
 
-    static void reset_acceleration_rates();
-    static void refresh_positioning();
-
     // Manage fans, paste pressure, etc.
     static void check_axes_activity();
 
@@ -249,34 +216,6 @@ class Planner {
     static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
 
     static bool is_full() { return (block_buffer_tail == BLOCK_MOD(block_buffer_head + 1)); }
-
-    #if HAS(ABL) || ENABLED(MESH_BED_LEVELING) || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-      #define ARG_X float lx
-      #define ARG_Y float ly
-      #define ARG_Z float lz
-    #else
-      #define ARG_X const float &lx
-      #define ARG_Y const float &ly
-      #define ARG_Z const float &lz
-    #endif
-
-    #if PLANNER_LEVELING
-
-      /**
-       * Apply leveling to transform a cartesian position
-       * as it will be given to the planner and steppers.
-       */
-      static void apply_leveling(float &lx, float &ly, float &lz);
-      static void apply_leveling(float logical[XYZ]) { apply_leveling(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS]); }
-      static void unapply_leveling(float logical[XYZ]);
-
-    #endif
-
-    #if ENABLED(LIN_ADVANCE)
-      static void set_extruder_advance_k(const float &k) { extruder_advance_k = k; };
-      static float get_extruder_advance_k() { return extruder_advance_k; };
-      static void set_advance_ed_ratio(const float &ratio) { advance_ed_ratio = ratio; };
-    #endif
 
     /**
      * Planner::_buffer_line
@@ -289,11 +228,8 @@ class Planner {
      *  a,b,c,e   - target position in mm or degrees
      *  fr_mm_s   - (target) speed of the move
      *  extruder  - target extruder
-     *  driver    - target driver
      */
-    static void _buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder, const uint8_t driver);
-
-    static void _set_position_mm(const float &a, const float &b, const float &c, const float &e);
+    static void _buffer_line(const float &a, const float &b, const float &c, const float &e, float fr_mm_s, const uint8_t extruder);
 
     /**
      * Add a new linear movement to the buffer.
@@ -306,13 +242,12 @@ class Planner {
      *  lx,ly,lz,e  - target position in mm or degrees
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
-     *  driver      - target driver
      */
-    static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING && IS_CARTESIAN
-        apply_leveling(lx, ly, lz);
+    static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+      #if HAS_LEVELING && (IS_CARTESIAN || IS_CORE)
+        bedlevel.apply_leveling(lx, ly, lz);
       #endif
-      _buffer_line(lx, ly, lz, e, fr_mm_s, extruder, driver);
+      _buffer_line(lx, ly, lz, e, fr_mm_s, extruder);
     }
 
     /**
@@ -320,60 +255,39 @@ class Planner {
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  ltarget  - x,y,z,e CARTESIAN target in mm
-     *  fr_mm_s  - (target) speed of the move (mm/s)
-     *  extruder - target extruder
-     *  driver   - target driver
+     *  ltarget   - x,y,z,e CARTESIAN target in mm
+     *  fr_mm_s   - (target) speed of the move (mm/s)
+     *  extruder  - target extruder
      */
-    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder, const uint8_t driver) {
-      #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+      #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if PLANNER_LEVELING
-          apply_leveling(lpos);
+        #if HAS_LEVELING
+          bedlevel.apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)
           // Calculate ZWobble
-          zwobble.InsertCorrection(lpos[Z_AXIS]);
+          mechanics.insert_zwobble_correction(lpos[Z_AXIS]);
         #endif
         #if ENABLED(HYSTERESIS)
           // Calculate Hysteresis
-          hysteresis.InsertCorrection(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
+          mechanics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
         #endif
       #else
         const float * const lpos = ltarget;
       #endif
 
       #if IS_KINEMATIC
-        #if MECH(DELTA)
-          deltaParams.inverse_kinematics_DELTA(lpos);
-        #else
-            inverse_kinematics(lpos);
-        #endif
-        _buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
+        mechanics.Transform(lpos);
+        _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
       #else
-        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder, driver);
+        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
       #endif
     }
 
-    /**
-     * Set the planner.position and individual stepper positions.
-     * Used by G92, G28, G29, and other procedures.
-     *
-     * Multiplies by axis_steps_per_mm[] and does necessary conversion
-     * for COREXY / COREXZ / COREYZ to set the corresponding stepper positions.
-     *
-     * Clears previous speed values.
-     */
-    static FORCE_INLINE void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-      #if PLANNER_LEVELING && IS_CARTESIAN
-        apply_leveling(lx, ly, lz);
-      #endif
-      _set_position_mm(lx, ly, lz, e);
-    }
-    static void set_position_mm_kinematic(const float position[NUM_AXIS]);
-    static void set_position_mm(const AxisEnum axis, const float &v);
-    static FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(Z_AXIS, z); }
-    static FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
+    static FORCE_INLINE void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
+    static FORCE_INLINE void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
+    static FORCE_INLINE void zero_previous_speed() { ZERO(previous_speed); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)
@@ -426,7 +340,7 @@ class Planner {
         // Does not matter because block_buffer_runtime_us is already an, too small, estimation.
         bbru >>= 10;
         // limit to about a minute.
-        NOMORE(bbru, 0xfffful);
+        NOMORE(bbru, 0xFFFFul);
         return bbru;
       }
 
@@ -438,7 +352,7 @@ class Planner {
 
     #endif
 
-    #if ENABLED(AUTOTEMP)
+    #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
       static float autotemp_max, autotemp_min, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();
@@ -497,6 +411,8 @@ class Planner {
     static void recalculate();
 
 };
+
+#define PLANNER_XY_FEEDRATE() (min(mechanics.max_feedrate_mm_s[X_AXIS], mechanics.max_feedrate_mm_s[Y_AXIS]))
 
 extern Planner planner;
 

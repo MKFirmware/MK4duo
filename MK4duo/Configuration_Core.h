@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +39,7 @@
  * - Disables axis
  * - Travel limits
  * - Axis relative mode
- * - Mesh Bed Leveling (MBL)
- * - Auto Bed Leveling (ABL)
+ * - Bed Leveling
  * - Leveling Fade Height (MBL or ABL)
  * - Safe Z homing
  * - Manual home positions
@@ -56,8 +55,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_MECHANISM
-#define CONFIGURATION_MECHANISM
+#ifndef _CONFIGURATION_CORE_H_
+#define _CONFIGURATION_CORE_H_
 
 #define KNOWN_MECH
 
@@ -192,14 +191,21 @@
 #define Z_ENDSTOP_SERVO_NR -1
 #define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
+// The "Manual Probe" provides a means to do "Auto" Bed Leveling without a probe.
+// Use G29 repeatedly, adjusting the Z height at each point with movement commands
+// or (with LCD BED LEVELING) the LCD controller.
+//#define PROBE_MANUALLY
+
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
 // An inductive probe must be deactivated to go below
 // its trigger-point if hardware endstops are active.
 //#define Z_PROBE_FIX_MOUNTED
 
-// The BLTouch probe emulates a servo probe.
+// The BLTouch probe uses a Hall effect sensor and emulates a servo.
+// The default connector is SERVO 0.
 //#define BLTOUCH
+//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
@@ -230,8 +236,8 @@
 #define Z_PROBE_SPEED_FAST 120
 // Speed for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW 60
-// Use double touch for probing
-//#define PROBE_DOUBLE_TOUCH
+// Z Probe repetitions, median for best result
+#define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
@@ -243,6 +249,20 @@
 // For M666 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Enable if probing seems unreliable. Heaters and/or fans - consistent with the
+// options selected below - will be disabled during probing so as to minimize
+// potential EM interference by quieting/silencing the source of the 'noise' (the change
+// in current flowing through the wires).  This is likely most useful to users of the
+// BLTouch probe, but may also help those with inductive or other probe types.
+//#define PROBING_HEATERS_OFF       // Turn heaters off when probing
+//#define PROBING_FANS_OFF          // Turn fans off when probing
+
+// Use the LCD controller for bed leveling
+// Requires MESH BED LEVELING or PROBE MANUALLY
+//#define LCD_BED_LEVELING
+#define LCD_Z_STEP 0.025    // Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z_MIN_POS for LCD Z adjustment
 /*****************************************************************************************/
 
 
@@ -384,38 +404,18 @@
 
 
 /*****************************************************************************************
- ******************************* Mesh Bed Leveling ***************************************
- *****************************************************************************************/
-//#define MESH_BED_LEVELING
-
-#define MESH_INSET         10   // Mesh inset margin on print area
-#define MESH_NUM_X_POINTS   3   // Don't use more than 7 points per axis, implementation limited.
-#define MESH_NUM_Y_POINTS   3
-#define MESH_HOME_SEARCH_Z  5   // Z after Home, bed somewhere below but above 0.0.
-
-// After homing all axes ('G28' or 'G28 XYZ') rest at origin [0,0,0]
-//#define MESH_G28_REST_ORIGIN
-
-// Add display menu option for bed leveling.
-//#define MANUAL_BED_LEVELING
-// Step size while manually probing Z axis.
-#define MBL_Z_STEP 0.025
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- ******************************* Auto Bed Leveling (ABL) *********************************
+ ********************************** Bed Leveling *****************************************
  *****************************************************************************************
  *                                                                                       *
- * Select one form of Auto Bed Leveling below.                                           *
+ * Select one from of Bed Leveling below.                                                *
  *                                                                                       *
  *  If you're also using the Probe for Z Homing, it's                                    *
  *  highly recommended to enable Z SAFE HOMING also!                                     *
  *                                                                                       *
- * - 3POINT                                                                              *
- *   Probe 3 arbitrary points on the bed (that aren't collinear)                         *
- *   You specify the XY coordinates of all 3 points.                                     *
- *   The result is a single tilted plane. Best for a flat bed.                           *
+ * - MESH                                                                                *
+ *   Probe several points in a grid.                                                     *
+ *   You specify the rectangle and the density of sample points.                         *
+ *   The result is a mesh.                                                               *
  *                                                                                       *
  * - LINEAR                                                                              *
  *   Probe several points in a grid.                                                     *
@@ -425,23 +425,47 @@
  * - BILINEAR                                                                            *
  *   Probe several points in a grid.                                                     *
  *   You specify the rectangle and the density of sample points.                         *
- *   The result is a mesh, best for large or uneven beds.                                *
+ *   The result is a grid, best for large or uneven beds.                                *
+ *                                                                                       *
+ * - 3POINT                                                                              *
+ *   Probe 3 arbitrary points on the bed (that aren't collinear)                         *
+ *   You specify the XY coordinates of all 3 points.                                     *
+ *   The result is a single tilted plane. Best for a flat bed.                           *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_BED_LEVELING_3POINT
+//#define MESH_BED_LEVELING
 //#define AUTO_BED_LEVELING_LINEAR
 //#define AUTO_BED_LEVELING_BILINEAR
+//#define AUTO_BED_LEVELING_3POINT
 
 // Enable detailed logging of G28, G29, G30, M48, etc.
 // Turn on with the command 'M111 S32'.
 // NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
-/** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
-// Set the number of grid points per dimension
-#define ABL_GRID_POINTS_X 3
-#define ABL_GRID_POINTS_Y 3
+/** START MESH BED LEVELING **/
+// Mesh inset margin on print area
+#define MESH_INSET 10
 
+// Default mesh area is an area with an inset margin on the print area.
+// Below are the macros that are used to define the borders for the mesh
+// area, made available here for specialized needs.
+#define MESH_MIN_X (X_MIN_POS + MESH_INSET)
+#define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
+#define MESH_MIN_Y (Y_MIN_POS + MESH_INSET)
+#define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+
+// After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
+//#define MESH_G28_REST_ORIGIN
+/** END MESH BED LEVELING **/
+
+/** START MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+// Set the number of grid points per dimension
+#define GRID_MAX_POINTS_X 3
+#define GRID_MAX_POINTS_Y 3
+/** END MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+
+/** START AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
 // Set the boundaries for probing (where the probe can reach).
 #define LEFT_PROBE_BED_POSITION 20
 #define RIGHT_PROBE_BED_POSITION 180
@@ -499,7 +523,6 @@
 //#define BED_CENTER_AT_0_0
 
 // Manually set the home position. Leave these undefined for automatic settings.
-// For DELTA this is the top-center of the Cartesian print volume.
 //#define MANUAL_X_HOME_POS 0
 //#define MANUAL_Y_HOME_POS 0
 //#define MANUAL_Z_HOME_POS 0
@@ -517,8 +540,8 @@
  * Note that if EEPROM is enabled, saved values will override these.                     *
  *                                                                                       *
  *****************************************************************************************/
- 
- 
+
+
 /*****************************************************************************************
  ******************************* Axis steps per unit *************************************
  *****************************************************************************************
@@ -537,8 +560,10 @@
  *****************************************************************************************/
 //                                       X,   Y, Z,  E0...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE          {300, 300, 2, 100, 100, 100, 100}
-#define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 60}  // Feedrates for manual moves along X, Y, Z, E from panel
-#define DEFAULT_MINIMUMFEEDRATE       0.0                       // minimum feedrate
+// Feedrates for manual moves along        X,     Y,     Z,  E from panel
+#define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 10*60}
+// Minimum feedrate
+#define DEFAULT_MINIMUMFEEDRATE       0.0
 #define DEFAULT_MINTRAVELFEEDRATE     0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
@@ -612,4 +637,4 @@
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_CORE_H_ */

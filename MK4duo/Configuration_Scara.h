@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,8 +55,8 @@
  * Pins-settings can be found in "Configuration_Pins.h"
  */
 
-#ifndef CONFIGURATION_MECHANISM
-#define CONFIGURATION_MECHANISM
+#ifndef _CONFIGURATION_SCARA_H_
+#define _CONFIGURATION_SCARA_H_
 
 #define KNOWN_MECH
 
@@ -378,8 +378,8 @@
 //#define MESH_BED_LEVELING
 
 #define MESH_INSET         10   // Mesh inset margin on print area
-#define MESH_NUM_X_POINTS   3   // Don't use more than 7 points per axis, implementation limited.
-#define MESH_NUM_Y_POINTS   3
+#define GRID_MAX_POINTS_X   3   // Don't use more than 7 points per axis, implementation limited.
+#define GRID_MAX_POINTS_Y   3
 #define MESH_HOME_SEARCH_Z  5   // Z after Home, bed somewhere below but above 0.0.
 
 // After homing all axes ('G28' or 'G28 XYZ') rest at origin [0,0,0]
@@ -388,7 +388,7 @@
 // Add display menu option for bed leveling.
 //#define MANUAL_BED_LEVELING
 // Step size while manually probing Z axis.
-#define MBL_Z_STEP 0.025
+#define LCD_Z_STEP 0.025
 /*****************************************************************************************/
 
 
@@ -428,8 +428,8 @@
 
 /** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 // Set the number of grid points per dimension
-#define ABL_GRID_POINTS_X 7
-#define ABL_GRID_POINTS_Y 7
+#define GRID_MAX_POINTS_X 7
+#define GRID_MAX_POINTS_Y 7
 
 // Set the boundaries for probing (where the probe can reach).
 #define LEFT_PROBE_BED_POSITION   X_MIN_POS + 200
@@ -629,4 +629,4 @@
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
 
-#endif
+#endif /* _CONFIGURATION_SCARA_H_ */

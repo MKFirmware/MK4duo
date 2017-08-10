@@ -1,3 +1,72 @@
+### Version 4.3.25 dev
+* New management commands
+* New classes created
+* Many changes made
+* Add Adafruit NeoPixel Led
+
+### Version 4.3.24 dev
+* Add Extruder Encoder for control filament movement (Experimental)
+* Now all types of delta autocalibration can be done with probe_manually and lcd
+* Fix and clear code
+
+### Version 4.3.23 dev
+* Create class bedlevel and probe
+* G30 now have Z e P sub command. Z1 modify Delta Height and P1 modify Probe Z offset.
+* Fix EEPROM_SD
+* Fix and clear code
+
+### Version 4.3.22 dev
+* Add Hardware PWM for SAM processor
+* Add M114 D for Detail position, leveled, unlevel, stepper
+* Add MKR12 system for 12 extruder with 16 relé and 4 driver
+* Support to 12 Extruder
+* Add support for PCA9632 PWM RGB LED
+* Add support DAV System (By D'angella Vincenzo)
+* Swap on Alligator board Heater_0 with Heater_Bed because this pin is Hardware PWM.
+
+### Version 4.3.21 dev
+* Add User menu LCD
+* Write Kinematic function for Cartesian, Core and DELTA. SCARA for now not implemented.
+
+### Version 4.3.20 dev
+* Add ADVANCED PAUSE FEATURE (Ex Filament Change. Requires an LCD display)
+* Add PARK HEAD ON PAUSE (Park head on SD pause or M125 commands. Requires an LCD display)
+* Add M125 - Store current position and move to pause park position.
+* Add automatic call M600 with one extruder and ADVANCED PAUSE FEATURE when change tools
+* Add STATUS MESSAGE SCROLLING. The message on lcd scroll right to the left.
+* Add ANET board for A2, A6 and A8 printer
+* Add ANET full graphics lcd
+
+### Version 4.3.2 Stable
+* Add Nextion Diamond version by MrGoblin 7"
+* Fix and clear code
+
+### Version 4.3.19 dev
+* Algorithm based on Thinkyhead Marlin
+* Change the old command G30 A in G33 for Delta Autocalibration
+* Fix and Clear code
+
+### Version 4.3.18 dev
+* Add Power Check pin for Stop & Save
+* Add Probe Manually
+* Add LCD Bed Level (Requires MESH BED LEVELING or PROBE MANUALLY)
+* Add Probe Manually for DELTA bed level and Calibration 7 points
+* Add LCD_BED_LEVELING for Nextion
+* Upgrade Nextion Firmware
+* Clear code
+
+### Version 4.3.16 dev
+* Update Nextion firmware
+* Fix and clear code
+
+### Version 4.3.15 dev
+* Rewrite HAL ADC for 8 and 32 bit
+* Rewrite PID finction for 8 and 32 bit
+* Fix SOFTWARE ENDSTOP
+* Add Workspace offset
+* Fix MBL
+* Clear code
+
 ### Version 4.3.14 dev
 * Add TMC2130 motor driver
 * Add EEPROM on SDCARD (Ultratronics)

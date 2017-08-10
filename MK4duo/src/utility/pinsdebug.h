@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@
 
 bool endstop_monitor_flag = false;
 
-#define  NAME_FORMAT "%-28s"   // one place to specify the format of all the sources of names
-                               // "-" left justify, "28" minimum width of name, pad with blanks
+#define NAME_FORMAT "%-35s" // one place to specify the format of all the sources of names
+                            // "-" left justify, "28" minimum width of name, pad with blanks
 
-#define _PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_T(buffer); return true; }
+#define _PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_TXT(buffer); return true; }
 #define PIN_SAY(NAME) if (pin == NAME) _PIN_SAY(#NAME);
 
-#define _ANALOG_PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_T(buffer); pin_is_analog = true; return true; }
+#define _ANALOG_PIN_SAY(NAME) { sprintf(buffer, NAME_FORMAT, NAME); SERIAL_TXT(buffer); pin_is_analog = true; return true; }
 #define ANALOG_PIN_SAY(NAME) if (pin == analogInputToDigitalPin(NAME)) _ANALOG_PIN_SAY(#NAME);
 
 #if ENABLED(ARDUINO_ARCH_SAM)
@@ -38,13 +38,17 @@ bool endstop_monitor_flag = false;
 #endif
 
 #if ENABLED(ARDUINO_ARCH_SAM)
+  #define LAST_PIN                        PINS_COUNT // Arduino Due's NUM_DIGITAL_PINS only includes the digital only pins
   #define PIN_TO_BASEREG(pin)             (&(digitalPinToPort(pin)->PIO_PER))
+  #define PIN_TO_OSRREG(pin)              (&(digitalPinToPort(pin)->PIO_OSR))  // "0" means it's an input
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint32_t
   #define DIRECT_READ(base, mask)         (((*((base)+15)) & (mask)) ? 1 : 0)
   #define digitalPinToTimer(pin)          digitalPinHasPWM(pin)
 #else
+  #define LAST_PIN                        NUM_DIGITAL_PINS
   #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
+  #define PIN_TO_OSRREG(pin)              (portInputRegister(digitalPinToPort(pin)))
   #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
   #define IO_REG_TYPE uint8_t
   #define DIRECT_READ(base, mask)         (((*(base)) & (mask)) ? 1 : 0)
@@ -54,9 +58,9 @@ IO_REG_TYPE rBit;   // receive pin's ports and bitmask
 volatile IO_REG_TYPE *rReg;
 
 int digitalRead_mod(int8_t pin) { // same as digitalRead except the PWM stop section has been removed
-  rBit = PIN_TO_BITMASK(pin);			// get receive pin's ports and bitmask
-	rReg = PIN_TO_BASEREG(pin);
-	return DIRECT_READ(rReg, rBit);
+  rBit = PIN_TO_BITMASK(pin);     // get receive pin's ports and bitmask
+  rReg = PIN_TO_BASEREG(pin);
+  return DIRECT_READ(rReg, rBit);
 }
 
 // Report pin name for a given fastio digital pin index
@@ -67,16 +71,16 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
 
   if (IS_ANALOG(pin)) {
     sprintf(buffer, "(A%2d)  ", int(pin - analogInputToDigitalPin(0)));
-    SERIAL_T(buffer);
+    SERIAL_TXT(buffer);
   }
-  else SERIAL_M("       ");
+  else SERIAL_MSG("       ");
 
   #if ENABLED(RXD) && RXD >= 0
-    if (pin == 0) { sprintf(buffer, NAME_FORMAT, "RXD"); SERIAL_T(buffer); return true; }
+    if (pin == 0) { sprintf(buffer, NAME_FORMAT, "RXD"); SERIAL_TXT(buffer); return true; }
   #endif
 
   #if ENABLED(TXD) && TXD >= 0
-    if (pin == 1) { sprintf(buffer, NAME_FORMAT, "TXD"); SERIAL_T(buffer); return true; }
+    if (pin == 1) { sprintf(buffer, NAME_FORMAT, "TXD"); SERIAL_TXT(buffer); return true; }
   #endif
 
   // Pin list updated from 7 OCT RCBugfix branch
@@ -177,17 +181,17 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_ATT)
     PIN_SAY(E0_ATT_PIN);
   #endif
-  #if PIN_EXISTS(E0_AUTO_FAN)
-    PIN_SAY(E0_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H0_AUTO_FAN)
+    PIN_SAY(H0_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E1_AUTO_FAN)
-    PIN_SAY(E1_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H1_AUTO_FAN)
+    PIN_SAY(H1_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E2_AUTO_FAN)
-    PIN_SAY(E2_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H2_AUTO_FAN)
+    PIN_SAY(H2_AUTO_FAN_PIN);
   #endif
-  #if PIN_EXISTS(E3_AUTO_FAN)
-    PIN_SAY(E3_AUTO_FAN_PIN);
+  #if PIN_EXISTS(H3_AUTO_FAN)
+    PIN_SAY(H3_AUTO_FAN_PIN);
   #endif
   #if PIN_EXISTS(E0_DIR)
     PIN_SAY(E0_DIR_PIN);
@@ -204,6 +208,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_STEP)
     PIN_SAY(E0_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E0_CS)
+    PIN_SAY(E0_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL0)
+    PIN_SAY(SOL0_PIN)
+  #endif
+  #if PIN_EXISTS(E0_ENC)
+    PIN_SAY(E0_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E1_DIR)
     PIN_SAY(E1_DIR_PIN);
   #endif
@@ -219,6 +232,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E1_STEP)
     PIN_SAY(E1_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E1_CS)
+    PIN_SAY(E1_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL1)
+    PIN_SAY(SOL1_PIN)
+  #endif
+  #if PIN_EXISTS(E1_ENC)
+    PIN_SAY(E1_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E2_DIR)
     PIN_SAY(E2_DIR_PIN);
   #endif
@@ -227,6 +249,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(E2_STEP)
     PIN_SAY(E2_STEP_PIN);
+  #endif
+  #if PIN_EXISTS(E2_CS)
+    PIN_SAY(E2_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL2)
+    PIN_SAY(SOL2_PIN)
+  #endif
+  #if PIN_EXISTS(E2_ENC)
+    PIN_SAY(E2_ENC_PIN)
   #endif
   #if PIN_EXISTS(E3_DIR)
     PIN_SAY(E3_DIR_PIN);
@@ -237,6 +268,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E3_STEP)
     PIN_SAY(E3_STEP_PIN);
   #endif
+  #if PIN_EXISTS(E3_CS)
+    PIN_SAY(E3_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL3)
+    PIN_SAY(SOL3_PIN)
+  #endif
+  #if PIN_EXISTS(E3_ENC)
+    PIN_SAY(E3_ENC_PIN)
+  #endif
   #if PIN_EXISTS(E4_DIR)
     PIN_SAY(E4_DIR_PIN);
   #endif
@@ -245,6 +285,33 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(E4_STEP)
     PIN_SAY(E4_STEP_PIN);
+  #endif
+  #if PIN_EXISTS(E4_CS)
+    PIN_SAY(E4_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL4)
+    PIN_SAY(SOL4_PIN)
+  #endif
+  #if PIN_EXISTS(E4_ENC)
+    PIN_SAY(E4_ENC_PIN)
+  #endif
+  #if PIN_EXISTS(E5_DIR)
+    PIN_SAY(E5_DIR_PIN)
+  #endif
+  #if PIN_EXISTS(E5_ENABLE)
+    PIN_SAY(E5_ENABLE_PIN)
+  #endif
+  #if PIN_EXISTS(E5_STEP)
+    PIN_SAY(E5_STEP_PIN)
+  #endif
+  #if PIN_EXISTS(E5_CS)
+    PIN_SAY(E5_CS_PIN)
+  #endif
+  #if PIN_EXISTS(SOL5)
+    PIN_SAY(SOL5_PIN)
+  #endif
+  #if PIN_EXISTS(E5_ENC)
+    PIN_SAY(E5_ENC_PIN)
   #endif
   #if ENABLED(encrot1) && encrot1 >= 0
     PIN_SAY(encrot1);
@@ -328,20 +395,14 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(HEATER_3)
     PIN_SAY(HEATER_3_PIN);
   #endif
-  #if PIN_EXISTS(HEATER_4)
-    PIN_SAY(HEATER_4_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_5)
-    PIN_SAY(HEATER_5_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_6)
-    PIN_SAY(HEATER_6_PIN);
-  #endif
-  #if PIN_EXISTS(HEATER_7)
-    PIN_SAY(HEATER_7_PIN);
-  #endif
   #if PIN_EXISTS(HEATER_BED)
     PIN_SAY(HEATER_BED_PIN);
+  #endif
+  #if PIN_EXISTS(HEATER_CHAMBER)
+    PIN_SAY(HEATER_CHAMBER_PIN);
+  #endif
+  #if PIN_EXISTS(COOLER)
+    PIN_SAY(COOLER_PIN);
   #endif
   #if ENABLED(I2C_SCL) && I2C_SCL >= 0
     PIN_SAY(I2C_SCL);
@@ -524,14 +585,14 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(TEMP_3)
     ANALOG_PIN_SAY(TEMP_3_PIN);
   #endif
-  #if PIN_EXISTS(TEMP_4)
-    ANALOG_PIN_SAY(TEMP_4_PIN);
-  #endif
   #if PIN_EXISTS(TEMP_BED)
     ANALOG_PIN_SAY(TEMP_BED_PIN);
   #endif
-  #if PIN_EXISTS(TEMP_X)
-    ANALOG_PIN_SAY(TEMP_X_PIN);
+  #if PIN_EXISTS(TEMP_CHAMBER)
+    ANALOG_PIN_SAY(TEMP_CHAMBER_PIN);
+  #endif
+  #if PIN_EXISTS(TEMP_COOLER)
+    ANALOG_PIN_SAY(TEMP_COOLER_PIN);
   #endif
   #if ENABLED(TLC_BLANK_BIT) && TLC_BLANK_BIT >= 0
     PIN_SAY(TLC_BLANK_BIT);
@@ -647,8 +708,8 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(Z_MIN)
     PIN_SAY(Z_MIN_PIN);
   #endif
-  #if PIN_EXISTS(Z_MIN_PROBE)
-    PIN_SAY(Z_MIN_PROBE_PIN);
+  #if PIN_EXISTS(Z_PROBE)
+    PIN_SAY(Z_PROBE_PIN);
   #endif
   #if PIN_EXISTS(Z_MS1)
     PIN_SAY(Z_MS1_PIN);
@@ -662,6 +723,21 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(Z_STOP)
     PIN_SAY(Z_STOP_PIN);
   #endif
+  #if PIN_EXISTS(Z2_MIN)
+    PIN_SAY(Z2_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MAX)
+    PIN_SAY(Z3_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z3_MIN)
+    PIN_SAY(Z3_MIN_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MAX)
+    PIN_SAY(Z4_MAX_PIN)
+  #endif
+  #if PIN_EXISTS(Z4_MIN)
+    PIN_SAY(Z4_MIN_PIN)
+  #endif
   #if PIN_EXISTS(Z2_DIR)
     PIN_SAY(Z2_DIR_PIN);
   #endif
@@ -673,12 +749,12 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
 
   sprintf(buffer, NAME_FORMAT, "<unused> ");
-  SERIAL_T(buffer);
+  SERIAL_TXT(buffer);
 
   return false;
 } // report_pin_name
 
-#define PWM_PRINT(V) do{ sprintf(buffer, "PWM:  %4d", V); SERIAL_T(buffer); }while(0)
+#define PWM_PRINT(V) do{ sprintf(buffer, "PWM:  %4d", V); SERIAL_TXT(buffer); }while(0)
 #define PWM_CASE(N) \
   case TIMER##N: \
     if (TCCR##N & (_BV(COM## N ##1) | _BV(COM## N ##0))) { \
@@ -733,7 +809,7 @@ static bool pwm_status(uint8_t pin) {
     default:
       return false;
   }
-  SERIAL_M("  ");
+  SERIAL_MSG("  ");
 } // pwm_status
 
 #if DISABLED(ARDUINO_ARCH_SAM)
@@ -742,8 +818,8 @@ static bool pwm_status(uint8_t pin) {
   #define WGM_MAKE4(N) (WGM_MAKE3(N) | (TEST(TCCR##N##B, WGM##N##3) >> 1))
   #define TIMER_PREFIX(T,L,N) do{ \
       WGM = WGM_MAKE##N(T); \
-      SERIAL_M("    TIMER"); \
-      SERIAL_M(STRINGIFY(T) STRINGIFY(L)); \
+      SERIAL_MSG("    TIMER"); \
+      SERIAL_MSG(STRINGIFY(T) STRINGIFY(L)); \
       SERIAL_MV("    WGM: ", WGM); \
       SERIAL_MV("    TIMSK" STRINGIFY(T) ": ", TIMSK##T); \
     }while(0)
@@ -761,7 +837,7 @@ static bool pwm_status(uint8_t pin) {
     SERIAL_EM("   Probably can't be used as a PWM because counter/timer is being used as an interrupt");
   }
   static void can_be_used() {
-    SERIAL_M("   can be used as PWM   ");
+    SERIAL_MSG("   can be used as PWM   ");
   }
 
   static void pwm_details(uint8_t pin) {
@@ -903,63 +979,70 @@ static bool pwm_status(uint8_t pin) {
       case NOT_ON_TIMER: break;
 
     }
-    SERIAL_M("  ");
+    SERIAL_MSG("  ");
   }  // pwm_details
 
 #endif
 
 inline void report_pin_state(int8_t pin) {
-  SERIAL_V((int)pin);
-  SERIAL_C(' ');
+  SERIAL_VAL((int)pin);
+  SERIAL_CHR(' ');
   bool dummy;
   if (report_pin_name(pin, dummy)) {
-    if (pin_is_protected(pin))
-      SERIAL_M(" (protected)");
+    if (printer.pin_is_protected(pin))
+      SERIAL_MSG(" (protected)");
     else {
-      SERIAL_M(" = ");
+      SERIAL_MSG(" = ");
       pinMode(pin, INPUT_PULLUP);
-      SERIAL_V(digitalRead(pin));
+      SERIAL_VAL(digitalRead(pin));
       if (IS_ANALOG(pin)) {
-        SERIAL_C(' '); SERIAL_C('(');
-        SERIAL_V(analogRead(pin - analogInputToDigitalPin(0)));
-        SERIAL_C(')');
+        SERIAL_CHR(' '); SERIAL_CHR('(');
+        SERIAL_VAL(analogRead(pin - analogInputToDigitalPin(0)));
+        SERIAL_CHR(')');
       }
     }
   }
-  SERIAL_EOL;
+  SERIAL_EOL();
 }
 
 bool get_pinMode(uint8_t pin) {
   rBit = PIN_TO_BITMASK(pin);
-  rReg = PIN_TO_BASEREG(pin);
+  rReg = PIN_TO_OSRREG(pin);
 
-  if (*rReg & rBit)
-    return false;
-  else
-    return true;
+  #if ENABLED(ARDUINO_ARCH_SAM)
+    if (*rReg & rBit)
+      return true;
+    else
+      return false;  
+  #else
+    if (*rReg & rBit)
+      return false;
+    else
+      return true;
+  #endif    
 }
 
 // pretty report with PWM info
-inline void report_pin_state_extended(int8_t pin, bool ignore) {
+inline void report_pin_state_extended(Pin pin, bool ignore) {
 
   char buffer[30];   // for the sprintf statements
 
   // report pin number
   sprintf(buffer, "PIN:% 3d ", pin);
-  SERIAL_T(buffer);
+  SERIAL_TXT(buffer);
 
   // report pin name
   bool analog_pin;
   report_pin_name(pin, analog_pin);
 
   // report pin state
-  if (pin_is_protected(pin) && !ignore)
-    SERIAL_M("protected ");
+  if (printer.pin_is_protected(pin) && !ignore)
+    SERIAL_MSG("protected ");
   else {
     if (analog_pin) {
       #if DISABLED(ARDUINO_ARCH_SAM)
         sprintf(buffer, "Analog in =% 5d", analogRead(pin - analogInputToDigitalPin(0)));
-        SERIAL_T(buffer);
+        SERIAL_TXT(buffer);
       #endif
     }
     else {
@@ -979,5 +1062,5 @@ inline void report_pin_state_extended(int8_t pin, bool ignore) {
     pwm_details(pin);
   #endif
 
-  SERIAL_E;
+  SERIAL_EOL();
 }

@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@
  */
 
 /**
- * Require gcc 4.7 or newer (first included with Arduino 1.6.8) for C++11 features.
+ * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
  */
 #if __cplusplus < 201103L
-  #error "Marlin requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.6.8). Please upgrade your toolchain."
+  #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
 
 // Start check
@@ -337,10 +337,6 @@
 #endif
 
 // Fan
-#if DISABLED(SOFT_PWM_SCALE)
-  #error DEPENDENCY ERROR: Missing setting SOFT_PWM_SCALE
-#endif
-
 #if ENABLED(CONTROLLERFAN)
   #if DISABLED(CONTROLLERFAN_SECS)
     #error DEPENDENCY ERROR: Missing setting CONTROLLERFAN_SECS
@@ -485,37 +481,6 @@
   #endif
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  #if DISABLED(FILAMENT_CHANGE_X_POS)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_X_POS
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_Y_POS)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_Y_POS
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_Z_ADD)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_Z_ADD
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_RETRACT_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_RETRACT_LENGTH
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_UNLOAD_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_UNLOAD_LENGTH
-  #endif
-  #if DISABLED(FILAMENT_CHANGE_PRINTER_OFF)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_CHANGE_PRINTER_OFF
-  #endif
-#endif
-
-/**
- * Motion
- */
-#if DISABLED(SOFTWARE_MIN_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MIN_ENDSTOPS
-#endif
-#if DISABLED(SOFTWARE_MAX_ENDSTOPS)
-  #error DEPENDENCY ERROR: Missing setting SOFTWARE_MAX_ENDSTOPS
-#endif
-
 /**
  * Progress Bar
  */
@@ -534,16 +499,22 @@
  */
 #if MECH(DELTA)
   #if ABL_GRID
-    #if (AUTO_BED_LEVELING_GRID_POINTS & 1) == 0
-      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be odd numbers."
-    #elif ABL_GRID_POINTS_X < 3
-      #error "DELTA requires AUTO_BED_LEVELING_GRID_POINTS to be 3 or higher."
+    #if (GRID_MAX_POINTS_X & 1) == 0  || (GRID_MAX_POINTS_Y & 1) == 0
+      #error "DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be odd numbers."
+    #elif GRID_MAX_POINTS_X < 3 || GRID_MAX_POINTS_Y < 3
+      #error "DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be 3 or higher."
     #endif
   #endif
 
-  #if ENABLED(AUTO_CALIBRATION_FEATURE) && ENABLED(AUTO_CALIBRATION_7_POINT)
-    #error "Only one system Autocalibration must is defined."
-  #endif
+  static_assert(1 >= 0
+    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+      +1
+    #endif
+    #if ENABLED(DELTA_AUTO_CALIBRATION_2)
+      +1
+    #endif
+    , "Select only one of: DELTA_AUTO_CALIBRATION_1 or DELTA_AUTO_CALIBRATION_2"
+  );
 #endif
 
 /**
@@ -564,32 +535,21 @@
 /**
  * Allow only one bed leveling option to be defined
  */
-#if HAS(ABL)
-  #define COUNT_LEV_1 0
+static_assert(1 >= 0
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-    #define COUNT_LEV_2 INCREMENT(COUNT_LEV_1)
-  #else
-    #define COUNT_LEV_2 COUNT_LEV_1
+    + 1
   #endif
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
-    #define COUNT_LEV_3 INCREMENT(COUNT_LEV_2)
-  #else
-    #define COUNT_LEV_3 COUNT_LEV_2
+    + 1
   #endif
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define COUNT_LEV_4 INCREMENT(COUNT_LEV_3)
-  #else
-    #define COUNT_LEV_4 COUNT_LEV_3
+    + 1
   #endif
   #if ENABLED(MESH_BED_LEVELING)
-    #define COUNT_LEV_5 INCREMENT(COUNT_LEV_4)
-  #else
-    #define COUNT_LEV_5 COUNT_LEV_4
+    + 1
   #endif
-  #if COUNT_LEV_5 > 1
-    #error "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, or AUTO_BED_LEVELING_BILINEAR."
-  #endif
-#endif
+  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT or AUTO_BED_LEVELING_BILINEAR."
+);
 
 /**
  * Mesh Bed Leveling
@@ -597,11 +557,9 @@
 #if ENABLED(MESH_BED_LEVELING)
   #if MECH(DELTA)
     #error "MESH_BED_LEVELING does not yet support DELTA printers."
-  #elif MESH_NUM_X_POINTS > 9 || MESH_NUM_Y_POINTS > 9
-    #error "MESH_NUM_X_POINTS and MESH_NUM_Y_POINTS must be less than 10."
+  #elif GRID_MAX_POINTS_X > 9 || GRID_MAX_POINTS_Y > 9
+    #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
   #endif
-#elif ENABLED(MANUAL_BED_LEVELING)
-  #error "MANUAL_BED_LEVELING only applies to MESH_BED_LEVELING."
 #endif
 
 /**
@@ -612,35 +570,27 @@
   /**
    * Allow only one probe option to be defined
    */
-  #define COUNT_PROBE_1 0
-  #if ENABLED(Z_PROBE_FIX_MOUNTED)
-    #define COUNT_PROBE_2 INCREMENT(COUNT_PROBE_1)
-  #else
-    #define COUNT_PROBE_2 COUNT_PROBE_1
-  #endif
-  #if HAS_Z_SERVO_ENDSTOP && DISABLED(BLTOUCH)
-    #define COUNT_PROBE_3 INCREMENT(COUNT_PROBE_2)
-  #else
-    #define COUNT_PROBE_3 COUNT_PROBE_2
-  #endif
-  #if ENABLED(BLTOUCH)
-    #define COUNT_PROBE_4 INCREMENT(COUNT_PROBE_3)
-  #else
-    #define COUNT_PROBE_4 COUNT_PROBE_3
-  #endif
-  #if ENABLED(Z_PROBE_ALLEN_KEY)
-    #define COUNT_PROBE_5 INCREMENT(COUNT_PROBE_4)
-  #else
-    #define COUNT_PROBE_5 COUNT_PROBE_4
-  #endif
-  #if ENABLED(Z_PROBE_SLED)
-    #define COUNT_PROBE_6 INCREMENT(COUNT_PROBE_5)
-  #else
-    #define COUNT_PROBE_6 COUNT_PROBE_5
-  #endif
-  #if COUNT_PROBE_6 > 1
-    #error "Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
-  #endif
+  static_assert(1 >= 0
+    #if ENABLED(PROBE_MANUALLY)
+      + 1
+    #endif
+    #if ENABLED(FIX_MOUNTED_PROBE)
+      + 1
+    #endif
+    #if HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
+      + 1
+    #endif
+    #if ENABLED(BLTOUCH)
+      + 1
+    #endif
+    #if ENABLED(Z_PROBE_ALLEN_KEY)
+      + 1
+    #endif
+    #if ENABLED(Z_PROBE_SLED)
+      + 1
+    #endif
+    , "Please enable only one probe: FIX_MOUNTED_PROBE, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
+  );
 
   /**
    * Z_PROBE_SLED is incompatible with DELTA
@@ -652,7 +602,7 @@
   /**
    * NUM_SERVOS is required for a Z servo probe
    */
-  #if HAS(Z_SERVO_ENDSTOP)
+  #if HAS_Z_SERVO_PROBE
     #ifndef NUM_SERVOS
       #error "You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
     #elif Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
@@ -663,16 +613,16 @@
   /**
    * A probe needs a pin
    */
-  #if !PROBE_PIN_CONFIGURED
+  #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
     #error "A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
   #endif
 
   /**
    * Make sure Z raise values are set
    */
-  #if !defined(Z_PROBE_DEPLOY_HEIGHT)
+  #if DISABLED(Z_PROBE_DEPLOY_HEIGHT)
     #error "You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
-  #elif !defined(Z_PROBE_BETWEEN_HEIGHT)
+  #elif DISABLED(Z_PROBE_BETWEEN_HEIGHT)
     #error "You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
   #elif Z_PROBE_DEPLOY_HEIGHT < 0
     #error "Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."
@@ -685,12 +635,18 @@
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS(ABL) || ENABLED(AUTO_CALIBRATION_FEATURE) || ENABLED(AUTO_CALIBRATION_7_POINT)
-    #error "Auto Bed Leveling or Auto Calibration requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
-  #elif ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #if HAS_ABL
+    #error "Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
+    #error "DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
+    #error "DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
+#endif
+
+#if (!HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)) && ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
+  #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
 #endif
 
 /**
@@ -722,21 +678,10 @@
 /**
  * Auto Bed Leveling
  */
-#if HAS(ABL)
+#if HAS_ABL
 
   /**
-   * Delta and SCARA have limited bed leveling options
-   */
-  #if DISABLED(AUTO_BED_LEVELING_BILINEAR)
-    #if MECH(DELTA)
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for DELTA bed leveling."
-    #elif IS_SCARA
-      #error "Only AUTO_BED_LEVELING_BILINEAR is supported for SCARA bed leveling."
-    #endif
-  #endif
-
-  /**
-   * Check if Probe_Offset * Grid Points is greater than Probing Range
+   * Check auto bed leveling sub-options, especially probe points
    */
   #if ABL_GRID
 
@@ -780,6 +725,25 @@
 
 #endif // HAS_ABL
 
+/**
+ * ENABLE_LEVELING_FADE_HEIGHT requirements
+ */
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
+  #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
+#endif
+
+/**
+ * LCD_BED_LEVELING requirements
+ */
+#if ENABLED(LCD_BED_LEVELING)
+  #if !HAS_LCD
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
+  #endif
+#endif
+
+// Firmware Retract
 #if ENABLED(FWRETRACT)
   #if DISABLED(MIN_RETRACT)
     #error DEPENDENCY ERROR: Missing setting MIN_RETRACT
@@ -872,19 +836,40 @@
     #error DEPENDENCY ERROR: Missing setting FIL_RUNOUT_PIN_INVERTING
   #elif DISABLED(FILAMENT_RUNOUT_SCRIPT)
     #error DEPENDENCY ERROR: Missing setting FILAMENT_RUNOUT_SCRIPT 
-  #elif DISABLED(FILAMENT_CHANGE_FEATURE)
-    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "FILAMENT_CHANGE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
+  #elif DISABLED(ADVANCED_PAUSE_FEATURE)
+    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   #endif
 #endif
 
 /**
- * Filament Change with Extruder Runout Prevention
+ * Advanced Pause
  */
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  #if DISABLED(ULTIPANEL) && DISABLED(NEXTION)
-    #error "FILAMENT_CHANGE_FEATURE currently requires an LCD controller."
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if EXTRUDERS == 0
+    #error "ADVANCED_PAUSE_FEATURE currently requires extruders."
+  #endif
+  #if !HAS_LCD
+    #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    #error "EXTRUDER_RUNOUT_PREVENT is incompatible with FILAMENT_CHANGE_FEATURE."
+    #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
+  #endif
+  #if DISABLED(PAUSE_PARK_X_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_X_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Y_POS)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Y_POS
+  #endif
+  #if DISABLED(PAUSE_PARK_Z_ADD)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Z_ADD
+  #endif
+  #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_UNLOAD_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH
+  #endif
+  #if DISABLED(PAUSE_PARK_PRINTER_OFF)
+    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
   #endif
 #endif
 
@@ -910,28 +895,23 @@
 #endif
 
 //addon
-#if ENABLED(SDSUPPORT)
+#if HAS_SDSUPPORT
   #if DISABLED(SD_FINISHED_STEPPERRELEASE)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE
   #endif
   #if DISABLED(SD_FINISHED_RELEASECOMMAND)
     #error DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND
   #endif
-  #if ENABLED(SD_SETTINGS)
-    #if DISABLED(SD_CFG_SECONDS)
-      #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
-    #endif
-    #if DISABLED(CFG_SD_FILE)
-      #error DEPENDENCY ERROR: Missing setting CFG_SD_FILE
-    #endif
+  #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
+    #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
   #endif
 #endif
 #if ENABLED(SHOW_BOOTSCREEN)
   #if DISABLED(STRING_SPLASH_LINE1)
     #error DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1
   #endif
-  #if DISABLED(SPLASH_SCREEN_DURATION)
-    #error DEPENDENCY ERROR: Missing setting SPLASH_SCREEN_DURATION
+  #if DISABLED(BOOTSCREEN_TIMEOUT)
+    #error DEPENDENCY ERROR: Missing setting BOOTSCREEN_TIMEOUT
   #endif
 #endif
 #if ENABLED(ULTIPANEL)
@@ -996,8 +976,8 @@
 #endif
 #if ENABLED(HAVE_TMCDRIVER)
   #if ENABLED(X_IS_TMC)
-    #if DISABLED(X_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting X_MAX_CURRENT
+    #if DISABLED(X_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting X_CURRENT
     #endif
     #if DISABLED(X_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting X_SENSE_RESISTOR
@@ -1007,8 +987,8 @@
     #endif
   #endif
   #if ENABLED(X2_IS_TMC)
-    #if DISABLED(X2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting X2_MAX_CURRENT
+    #if DISABLED(X2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting X2_CURRENT
     #endif
     #if DISABLED(X2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting X2_SENSE_RESISTOR
@@ -1018,8 +998,8 @@
     #endif
   #endif
   #if ENABLED(Y_IS_TMC)
-    #if DISABLED(Y_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Y_MAX_CURRENT
+    #if DISABLED(Y_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Y_CURRENT
     #endif
     #if DISABLED(Y_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Y_SENSE_RESISTOR
@@ -1029,8 +1009,8 @@
     #endif
   #endif
   #if ENABLED(Y2_IS_TMC)
-    #if DISABLED(Y2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Y2_MAX_CURRENT
+    #if DISABLED(Y2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Y2_CURRENT
     #endif
     #if DISABLED(Y2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Y2_SENSE_RESISTOR
@@ -1040,8 +1020,8 @@
     #endif
   #endif
   #if ENABLED(Z_IS_TMC)
-    #if DISABLED(Z_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting Z_MAX_CURRENT
+    #if DISABLED(Z_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting Z_CURRENT
     #endif
     #if DISABLED(Z_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting Z_SENSE_RESISTOR
@@ -1062,8 +1042,8 @@
     #endif
   #endif
   #if ENABLED(E0_IS_TMC)
-    #if DISABLED(E0_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E0_MAX_CURRENT
+    #if DISABLED(E0_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E0_CURRENT
     #endif
     #if DISABLED(E0_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E0_SENSE_RESISTOR
@@ -1073,8 +1053,8 @@
     #endif
   #endif
   #if ENABLED(E1_IS_TMC)
-    #if DISABLED(E1_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E1_MAX_CURRENT
+    #if DISABLED(E1_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E1_CURRENT
     #endif
     #if DISABLED(E1_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E1_SENSE_RESISTOR
@@ -1084,8 +1064,8 @@
     #endif
   #endif
   #if ENABLED(E2_IS_TMC)
-    #if DISABLED(E2_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E2_MAX_CURRENT
+    #if DISABLED(E2_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E2_CURRENT
     #endif
     #if DISABLED(E2_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E2_SENSE_RESISTOR
@@ -1095,8 +1075,8 @@
     #endif
   #endif
   #if ENABLED(E3_IS_TMC)
-    #if DISABLED(E3_MAX_CURRENT)
-      #error DEPENDENCY ERROR: Missing setting E3_MAX_CURRENT
+    #if DISABLED(E3_CURRENT)
+      #error DEPENDENCY ERROR: Missing setting E3_CURRENT
     #endif
     #if DISABLED(E3_SENSE_RESISTOR)
       #error DEPENDENCY ERROR: Missing setting E3_SENSE_RESISTOR
@@ -1511,9 +1491,6 @@
   #if DISABLED(DELTA_PRINTABLE_RADIUS)
     #error DEPENDENCY ERROR: Missing setting DELTA_PRINTABLE_RADIUS
   #endif
-  #if DISABLED(DEFAULT_DELTA_RADIUS)
-    #error DEPENDENCY ERROR: Missing setting DEFAULT_DELTA_RADIUS
-  #endif
   #if DISABLED(TOWER_A_ENDSTOP_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_A_ENDSTOP_ADJ
   #endif
@@ -1557,9 +1534,6 @@
     #if DISABLED(Z_PROBE_SPEED)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_SPEED
     #endif
-    #if DISABLED(AUTOCALIBRATION_PRECISION)
-      #error DEPENDENCY ERROR: Missing setting AUTOCALIBRATION_PRECISION
-    #endif
     #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
       #error DEPENDENCY ERROR: Missing setting X_PROBE_OFFSET_FROM_NOZZLE
     #endif
@@ -1583,9 +1557,6 @@
     #endif
     #if DISABLED(Z_PROBE_BETWEEN_HEIGHT)
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_BETWEEN_HEIGHT
-    #endif
-    #if DISABLED(AUTO_BED_LEVELING_GRID_POINTS)
-      #error DEPENDENCY ERROR: Missing setting AUTO_BED_LEVELING_GRID_POINTS
     #endif
   #endif
 #endif
@@ -1677,7 +1648,7 @@
 /**
  * Servo deactivation depends on servo endstops
  */
-#if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) && HASNT(Z_SERVO_ENDSTOP)
+#if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) && !HAS_Z_SERVO_PROBE
   #error DEPENDENCY ERROR: At least one of the Z_ENDSTOP_SERVO_NR is required for DEACTIVATE_SERVOS_AFTER_MOVE.
 #endif
 
@@ -1720,7 +1691,7 @@
 /**
  * Make sure auto fan pins don't conflict with the fan pin
  */
-#if HAS(AUTO_FAN) && HAS(FAN)
+#if HAS_AUTO_FAN && HAS_FAN
   #if H0_AUTO_FAN_PIN == FAN_PIN
     #error CONFLICT ERROR: You cannot set H0_AUTO_FAN_PIN equal to FAN_PIN.
   #elif H1_AUTO_FAN_PIN == FAN_PIN
@@ -1732,7 +1703,7 @@
   #endif
 #endif
 
-#if HAS(FAN) && CONTROLLERFAN_PIN == FAN_PIN
+#if HAS_FAN && CONTROLLERFAN_PIN == FAN_PIN
   #error CONFLICT ERROR: You cannot set CONTROLLERFAN_PIN equal to FAN_PIN.
 #endif
 
@@ -1740,19 +1711,19 @@
  * Test required HEATER defines
  */
 #if HOTENDS > 3
-  #if HASNT(HEATER_3)
+  #if !HAS_HEATER_3
     #error DEPENDENCY ERROR: HEATER_3_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 2
-  #if HASNT(HEATER_2)
+  #if !HAS_HEATER_2
     #error DEPENDENCY ERROR: HEATER_2_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
-  #if HASNT(HEATER_1)
+  #if !HAS_HEATER_1
     #error DEPENDENCY ERROR: HEATER_1_PIN not EXIST for this board
   #endif
 #elif HOTENDS > 0
-  #if HASNT(HEATER_0)
+  #if !HAS_HEATER_0
     #error DEPENDENCY ERROR: HEATER_0_PIN not EXIST for this board
   #endif
 #endif
@@ -1761,17 +1732,13 @@
   #if ENABLED(SD_SETTINGS)
     #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
   #endif
-  #if ENABLED(EEPROM_SETTINGS) && ENABLED(SDCARD_EEPROM)
+  #if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
     #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
   #endif
 #endif
 
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
   #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
-#endif
-
-#if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
-  #error DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION
 #endif
 
 #if ENABLED(CHDK) || ENABLED(PHOTOGRAPH)
@@ -1873,12 +1840,30 @@
   #endif
 #endif
 
-#if ENABLED(MKR4) && ENABLED(MKR6)
-  #error DEPENDENCY ERROR: You must set only one MKR system
-#endif
+/**
+ * Allow only multy tools option to be defined
+ */
+static_assert(1 >= 0
+  #if ENABLED(NPR2)
+    + 1
+  #endif
+  #if ENABLED(MKR4)
+    + 1
+  #endif
+  #if ENABLED(MKR6)
+    + 1
+  #endif
+  #if ENABLED(MKR12)
+    + 1
+  #endif
+  #if ENABLED(MKSE6)
+    + 1
+  #endif
+  , "Please enable only one Multy tools function: NPR2, MKR4, MKR6, MKR12 or MKSE6."
+);
 
 #if ENABLED(MKR4)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(E0E1_CHOICE)
     #error DEPENDENCY ERROR: You must set E0E1_CHOICE_PIN to a valid pin if you enable MKR4 with 2 extruder and 1 driver
   #elif (EXTRUDERS > 2) && (DRIVER_EXTRUDERS == 1)
     #error DEPENDENCY ERROR: For 3 or more extruder you must set 2 DRIVER_EXTRUDERS for MKR4 system
@@ -1890,9 +1875,11 @@
     #error DEPENDENCY ERROR: You must set E0E2_CHOICE_PIN and E1E3_CHOICE_PIN to a valid pin if you enable MKR4 with 4 extruder and 2 driver
   #elif (EXTRUDERS > 4)
     #error DEPENDENCY ERROR: MKR4 support only max 4 extruder
-  #endif 
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR4 MULTI EXTRUDER
+  #endif
 #elif ENABLED(MKR6)
-  #if (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
+  #if   (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1) && !PIN_EXISTS(EX1_CHOICE)
     #error DEPENDENCY ERROR: You must to set EX1_CHOICE_PIN to a valid pin if you enable MKR6 with 2 extruder and 1 driver
   #elif (EXTRUDERS == 3) && (DRIVER_EXTRUDERS == 1) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 3 extruder and 1 driver
@@ -1906,17 +1893,47 @@
     #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR6 with 6 extruder and 2 driver
   #elif (EXTRUDERS > 6)
     #error DEPENDENCY ERROR: MKR6 support only max 6 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR6 MULTI EXTRUDER
   #endif
-#endif
-
-#if ENABLED(MKSE6)
+#elif ENABLED(MKR12)
+  #if   (EXTRUDERS >= 4) && (DRIVER_EXTRUDERS == 1)
+    #error DEPENDENCY ERROR: For 4 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 4) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 4 extruder and 2 driver
+  #elif (EXTRUDERS == 5) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 5 extruder and 2 driver
+  #elif (EXTRUDERS == 6) && (DRIVER_EXTRUDERS == 2) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 6 extruder and 2 driver
+  #elif (EXTRUDERS >= 7) && (DRIVER_EXTRUDERS == 2)
+    #error DEPENDENCY ERROR: For 7 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 7) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 7 extruder and 3 driver
+  #elif (EXTRUDERS == 8) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 8 extruder and 3 driver
+  #elif (EXTRUDERS == 9) && (DRIVER_EXTRUDERS == 3) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 9 extruder and 3 driver
+  #elif (EXTRUDERS >= 10) && (DRIVER_EXTRUDERS == 3)
+    #error DEPENDENCY ERROR: For 10 or more extruder you must set more DRIVER_EXTRUDERS for MKR12 system
+  #elif (EXTRUDERS == 10) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 10 extruder and 4 driver
+  #elif (EXTRUDERS == 11) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 11 extruder and 4 driver
+  #elif (EXTRUDERS == 12) && (DRIVER_EXTRUDERS == 4) && (!PIN_EXISTS(EX1_CHOICE) || !PIN_EXISTS(EX2_CHOICE))
+    #error DEPENDENCY ERROR: You have to set EX1_CHOICE_PIN and EX2_CHOICE_PIN to a valid pin if you enable MKR12 with 12 extruder and 4 driver
+  #elif (EXTRUDERS > 12)
+    #error DEPENDENCY ERROR: MKR12 support only max 12 extruder
+  #elif DISABLED(SINGLENOZZLE)
+    #error DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKR12 MULTI EXTRUDER
+  #endif
+#elif ENABLED(MKSE6)
   #if EXTRUDERS < 2
     #error DEPENDENCY ERROR: You must set EXTRUDERS > 1 for MKSE6 MULTI EXTRUDER
   #endif
   #if DRIVER_EXTRUDERS > 1
     #error DEPENDENCY ERROR: You must set DRIVER_EXTRUDERS = 1 for MKSE6 MULTI EXTRUDER
   #endif
-  #if HASNT(SERVOS)
+  #if !HAS_SERVOS
     #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for MKSE6 MULTI EXTRUDER
   #endif
   #if DISABLED(SINGLENOZZLE)
@@ -1928,7 +1945,7 @@
   #error DEPENDENCY ERROR: You have to set E_MIN_PIN to a valid pin if you enable NPR2
 #endif
 
-#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && HASNT(SERVOS)
+#if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && !HAS_SERVOS
   #error DEPENDENCY ERROR: You must enabled ENABLE_SERVOS and set NUM_SERVOS > 0 for DONDOLO MULTI EXTRUDER
 #endif
 
@@ -1940,27 +1957,29 @@
   #error DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO
 #endif
 
-#if ENABLED(LASERBEAM) 
-  #if (!ENABLED(LASER_REMAP_INTENSITY) && ENABLED(LASER_RASTER))
-    #error DEPENDENCY ERROR: You have to set LASER_REMAP_INTENSITY with LASER_RASTER enabled
+#if ENABLED(LASER)
+  #if ENABLED(LASER_PERIPHERALS)
+    #if !PIN_EXISTS(LASER_PERIPHERALS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
+    #if !PIN_EXISTS(LASER_PERIPHERALS_STATUS)
+      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_STATUS_PIN to a valid pin if you enable LASER_PERIPHERALS
+    #endif
   #endif
-  #if (!ENABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
+  #if (DISABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
      #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
   #else
     #if(LASER_CONTROL == 1)
-      #if( !PIN_EXISTS(LASER_PWR))
+      #if(!HAS_LASER_POWER)
         #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
       #endif
     #else
-      #if( !PIN_EXISTS(LASER_PWR) || !PIN_EXISTS(LASER_TTL))
-        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_TTL_PIN to a valid pin if you enable LASER
+      #if(!HAS_LASER_POWER || !HAS_LASER_PWM)
+        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_PWM_PIN to a valid pin if you enable LASER
       #endif
     #endif
   #endif
-  #if DISABLED(LASER_HAS_FOCUS)
-    #error DEPENDENCY ERROR: Missing LASER_HAS_FOCUS setting
-  #endif
-#endif
+#endif // ENABLED(LASER)
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
   #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
@@ -2020,3 +2039,114 @@
     #error "G38_PROBE_TARGET requires a Cartesian machine."
   #endif
 #endif
+
+/**
+ * RGB_LED Requirements
+ */
+#define _RGB_TEST (PIN_EXISTS(RGB_LED_R) && PIN_EXISTS(RGB_LED_G) && PIN_EXISTS(RGB_LED_B))
+#if ENABLED(RGB_LED)
+  #if !_RGB_TEST
+    #error "RGB_LED requires RGB_LED_R_PIN, RGB_LED_G_PIN, and RGB_LED_B_PIN."
+  #elif ENABLED(RGBW_LED)
+    #error "Please enable only one of RGB_LED and RGBW_LED."
+  #endif
+#elif ENABLED(RGBW_LED)
+  #if !(_RGB_TEST && PIN_EXISTS(RGB_LED_W))
+    #error "RGBW_LED requires RGB_LED_R_PIN, RGB_LED_G_PIN, RGB_LED_B_PIN, and RGB_LED_W_PIN."
+  #endif
+#elif ENABLED(NEOPIXEL_RGBW_LED)
+  #if !(PIN_EXISTS(NEOPIXEL) && NEOPIXEL_PIXELS > 0)
+    #error "NEOPIXEL_RGBW_LED requires NEOPIXEL_PIN and NEOPIXEL_PIXELS."
+  #endif
+#elif ENABLED(PRINTER_EVENT_LEDS) && DISABLED(BLINKM) && DISABLED(PCA9632) && !HAS_NEOPIXEL
+  #error "PRINTER_EVENT_LEDS requires BLINKM, PCA9632, RGB_LED, RGBW_LED or NEOPIXEL_LED."
+#endif
+
+/**
+ * Make sure only one display is enabled
+ *
+ * Note: BQ_LCD_SMART_CONTROLLER => REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+ *       REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER => REPRAP_DISCOUNT_SMART_CONTROLLER
+ *       SAV_3DGLCD => U8GLIB_SH1106 => ULTIMAKERCONTROLLER
+ *       miniVIKI => ULTIMAKERCONTROLLER
+ *       VIKI2 => ULTIMAKERCONTROLLER
+ *       ELB_FULL_GRAPHIC_CONTROLLER => ULTIMAKERCONTROLLER
+ *       PANEL_ONE => ULTIMAKERCONTROLLER
+ */
+static_assert(1 >= 0
+  #if ENABLED(ULTIMAKERCONTROLLER) \
+      && DISABLED(SAV_3DGLCD) && DISABLED(miniVIKI) && DISABLED(VIKI2) \
+      && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER) && DISABLED(PANEL_ONE)
+    + 1
+  #endif
+  #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) && DISABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) && DISABLED(BQ_LCD_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(CARTESIO_UI)
+    + 1
+  #endif
+  #if ENABLED(PANEL_ONE)
+    + 1
+  #endif
+  #if ENABLED(MAKRPANEL)
+    + 1
+  #endif
+  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+    + 1
+  #endif
+  #if ENABLED(VIKI2)
+    + 1
+  #endif
+  #if ENABLED(miniVIKI)
+    + 1
+  #endif
+  #if ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(G3D_PANEL)
+    + 1
+  #endif
+  #if ENABLED(MINIPANEL)
+    + 1
+  #endif
+  #if ENABLED(REPRAPWORLD_KEYPAD) && DISABLED(CARTESIO_UI)
+    + 1
+  #endif
+  #if ENABLED(RIGIDBOT_PANEL)
+    + 1
+  #endif
+  #if ENABLED(RA_CONTROL_PANEL)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_SAINSMART_YWROBOT)
+    + 1
+  #endif
+  #if ENABLED(LCM1602)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_PANELOLU2)
+    + 1
+  #endif
+  #if ENABLED(LCD_I2C_VIKI)
+    + 1
+  #endif
+  #if ENABLED(U8GLIB_SSD1306)
+    + 1
+  #endif
+  #if ENABLED(SAV_3DLCD)
+    + 1
+  #endif
+  #if ENABLED(BQ_LCD_SMART_CONTROLLER)
+    + 1
+  #endif
+  #if ENABLED(SAV_3DGLCD)
+    + 1
+  #endif
+  #if ENABLED(NEXTION)
+    + 1
+  #endif
+  , "Please select no more than one LCD controller option."
+);

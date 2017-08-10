@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,11 @@
 
     #include "watchdog_Due.h"
 
-    // Initialize watchdog with a 4 second interrupt time
-    void watchdogSetup(void) { watchdogEnable(4000); }
-
-    // TODO: implement for Due
-    void watchdog_init() {
-      // this is a stub
+    void watchdogSetup(void) {
+      // do whatever. don't remove this function.
     }
+
+    void watchdog_init(void) { watchdogEnable(4000); }
 
   #endif // USE_WATCHDOG
 

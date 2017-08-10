@@ -18,9 +18,14 @@
 *  G28 - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
 *  G29 - Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
           G29   Fyyy Lxxx Rxxx Byyy for customer grid.
-*  G30 - Single Z Probe, probes bed at current XY location. Bed Probe and Delta geometry Autocalibration G30 A
+*  G30 - Single Z Probe, probes bed at current XY location.
 *  G31 - Dock Z Probe sled (if enabled)
 *  G32 - Undock Z Probe sled (if enabled)
+*  G33 - Delta geometry Autocalibration
+*        F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
+*        P<npoints> V<nverbose> (Requires DELTA_AUTO_CALIBRATION_2)
+*        A<precision> E<precision> R<precision> I D T S (Requires DELTA_AUTO_CALIBRATION_3)
+*  G38 - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
 *  G60 - Save current position coordinates (all axes, for active extruder).
           S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
 *  G61 - Apply/restore saved coordinates to the active extruder.
@@ -34,10 +39,10 @@
 ## M Codes
 *  M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
 *  M1   - Same as M0
-*  M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASERBEAM)
+*  M3   - S<value> L<duration> P<ppm> D<diagnostic> B<set mode> in laser beam control. (Requires LASER)
 *         S<value> CNC clockwise speed. (Requires CNCROUTERS)
 *  M4   - S<value> CNC counter clockwise speed. (Requires CNCROUTERS)
-*  M5   - Turn off laser beam. (Requires LASERBEAM) - Turn off CNC. (Requires CNCROUTERS)
+*  M5   - Turn off laser beam. (Requires LASER) - Turn off CNC. (Requires CNCROUTERS)
 *  M6   - Tool change CNC. (Requires CNCROUTERS)
 *  M17  - Enable/Power all stepper motors
 *  M18  - Disable all stepper motors; same as M84
@@ -56,9 +61,34 @@
 *  M32  - Make directory
 *  M33  - Stop printing, close file and save restart.gcode
 *  M34  - Open file and start print
-*  M35  - Upload Firmware to Nextion from SD
+*  M35  - Upload Firmware to Nextion from SD (Requires NEXTION)
 *  M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
-*  M43  - Monitor pins & report changes - report active pins
+*  M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
+*
+*  M43         - report name and state of pin(s)
+*                  P<pin>  Pin to read or watch. If omitted, reads all pins.
+*                  I       Flag to ignore Marlin's pin protection.
+*
+*  M43 W       - Watch pins -reporting changes- until reset, click, or M108.
+*                  P<pin>  Pin to read or watch. If omitted, read/watch all pins.
+*                  I       Flag to ignore Marlin's pin protection.
+*
+*  M43 E<bool> - Enable / disable background endstop monitoring
+*                  - Machine continues to operate
+*                  - Reports changes to endstops
+*                  - Toggles LED when an endstop changes
+*                  - Can not reliably catch the 5mS pulse from BLTouch type probes
+*
+*  M43 T       - Toggle pin(s) and report which pin is being toggled
+*                  S<pin>  - Start Pin number.   If not given, will default to 0
+*                  L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
+*                  I       - Flag to ignore Marlin's pin protection.   Use with caution!!!!
+*                  R       - Repeat pulses on each pin this number of times before continueing to next pin
+*                  W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
+*
+*  M43 S       - Servo probe test
+*                  P<index> - Probe index (optional - defaults to 0
+*  M44  - Codes debug - report codes available (and how many of them there are)
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -81,6 +111,7 @@
 *  M105 - Read current temp
 *  M106 - S<speed> P<fan> Fan on
 *  M107 - P<fan> Fan off
+*  M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating
           R[xxx] Wait for hotend current temp to reach target temp. Waits when heating and cooling
           IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
@@ -88,12 +119,14 @@
 *  M111 - Set debug flags with S<mask>.
 *  M112 - Emergency stop
 *  M114 - Output current position to serial port
-*  M115 - Capabilities string
+*  M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
 *  M117 - Display a message on the controller screen
+*  M118 - Display a message in the host console
 *  M119 - Output Endstop status to serial port
 *  M120 - Enable endstop detection
 *  M121 - Disable endstop detection
-*  M122 - S<1=true/0=false> Enable or disable check software endstop
+*  M122 - S<1=true/0=false> Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
+*  M125 - Save current position and move to pause park position. (Requires PARK_HEAD_ON_PAUSE)
 *  M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
 *  M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
 *  M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
@@ -102,7 +135,7 @@
 *  M141 - Set hot chamber target temp
 *  M142 - Set cooler target temp
 *  M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
-*  M150 - Set BlinkM Color Output or RGB LED R: Red<0-255> U: Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
+*  M150 - Set Status LED Color as R<red> U<green> B<blue>. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
 *  M155 - Set temperature auto-report interval
 *  M163 - Set a single proportion for a mixing extruder. Requires COLOR_MIXING_EXTRUDER.
 *  M164 - Save the mix as a virtual extruder. Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS.
@@ -174,9 +207,24 @@
 *  M605 - Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 *  M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
 *  M666 - Set z probe offset or Endstop and delta geometry adjustment. M666 L for list command
-*  M906 - Set motor currents XYZ T0-4 E
-*  M907 - Set digital trimpot motor current using axis codes.
-*  M908 - Control digital trimpot directly.
+*  M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+*  M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
+*         Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)
+*  M907 - Set digital trimpot motor current using axis codes. (Requires a board with digital trimpots)
+*  M908 - Control digital trimpot directly. (Requires DIGIPOTSS_PIN)
+*  M911 - Report stepper driver overtemperature pre-warn condition. (Requires HAVE_TMC2130)
+*  M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
+*  M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
+*  M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+*
+*  ************ SCARA Specific - This can change to suit future G-code regulations
+*  M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
+*  M361 - SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
+*  M362 - SCARA calibration: Move to cal-position PsiA (0 deg calibration)
+*  M363 - SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
+*  M364 - SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
+* ************* SCARA End ***************
+*
 *  M928 - Start SD logging (M928 filename.g) - ended by M29
 *  M995 - X Y Z Set origin for graphic in NEXTION
 *  M996 - S<scale> Set scale for graphic in NEXTION

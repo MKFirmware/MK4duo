@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,12 +56,14 @@
     void setmovePopCallback(void *ptr);
     void setgcodePopCallback(void *ptr);
     void sendPopCallback(void *ptr);
-    void lcd_update();
+    void filamentPopCallback(void *ptr);
+    void lcd_key_touch_update();
+    void nextion_draw_update();
     void lcd_init();
     void lcd_setstatus(const char* message, const bool persist=false);
-    void status_printf(uint8_t level, const char *Status, ...);
-    void lcd_setstatuspgm(const char* message, const uint8_t level=0);
-    void lcd_setalertstatuspgm(const char* message);
+    void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
+    void lcd_setstatusPGM(const char* message, const uint8_t level=0);
+    void lcd_setalertstatusPGM(const char * const message);
     void lcd_reset_alert_level();
     void lcd_scrollinfo(const char* titolo, const char* message);
 
@@ -74,7 +76,7 @@
       void gfx_plane_to(const float x, const float y, const float z);
     #endif
 
-    #if ENABLED(SDSUPPORT)
+    #if HAS_SDSUPPORT
       void sdmountdismountPopCallback(void *ptr);
       void sdlistPopCallback(void *ptr);
       void sdfilePopCallback(void *ptr);
@@ -87,9 +89,15 @@
       void UploadNewFirmware();
     #endif
 
-    #if ENABLED(FILAMENT_CHANGE_FEATURE)
-      void lcd_filament_change_show_message(FilamentChangeMessage message);
-    #endif // FILAMENT_CHANGE_FEATURE
+    #if ENABLED(LCD_BED_LEVELING)
+      void bedlevelPopCallBack(void *ptr);
+      void LcdBedLevelOn();
+      void LcdBedLevelOff();
+    #endif
+
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      void lcd_advanced_pause_show_message(AdvancedPauseMessage message);
+    #endif
 
     #if ENABLED(RFID_MODULE)
       void rfidPopCallback(void *ptr);
@@ -97,10 +105,8 @@
     #endif
 
     FORCE_INLINE bool lcd_hasstatus() { return false; }
-    FORCE_INLINE void lcd_buttons_update() {}
-
-    #define LCD_MESSAGEPGM(x) lcd_setstatuspgm(PSTR(x))
-    #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatuspgm(PSTR(x))
+    FORCE_INLINE void lcd_draw_update() {}
+    FORCE_INLINE void lcd_refresh() {}
 
   #endif
 

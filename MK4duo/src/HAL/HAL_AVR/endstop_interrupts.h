@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * So we extend them here because these are the normal pins for Y_MIN and Y_MAX on RAMPS.
  * There are more PCI-enabled processor pins on Port J, but they are not connected to Arduino MEGA.
  */
-#if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA)
+#if ENABLED(ARDUINO_AVR_MEGA2560) || ENABLED(ARDUINO_AVR_MEGA)
   #undef  digitalPinToPCICR
   #define digitalPinToPCICR(p)    ( (((p) >= 10) && ((p) <= 15)) || \
                                   (((p) >= 50) && ((p) <= 53)) || \
@@ -96,9 +96,9 @@ void pciSetup(byte pin) {
   ISR(PCINT3_vect) { endstop_ISR_worker(); }
 #endif
 
-void setup_endstop_interrupts( void ) {
+void Endstops::setup_endstop_interrupts(void) {
 
-  #if HAS(X_MAX)
+  #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt
       attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it
     #else
@@ -108,7 +108,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(X_MIN)
+  #if HAS_X_MIN
     #if (digitalPinToInterrupt(X_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(X_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -118,7 +118,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Y_MAX)
+  #if HAS_Y_MAX
     #if (digitalPinToInterrupt(Y_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Y_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -128,7 +128,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Y_MIN)
+  #if HAS_Y_MIN
     #if (digitalPinToInterrupt(Y_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Y_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -138,7 +138,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_MAX)
+  #if HAS_Z_MAX
     #if (digitalPinToInterrupt(Z_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -148,7 +148,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_MIN)
+  #if HAS_Z_MIN
     #if (digitalPinToInterrupt(Z_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -158,7 +158,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z2_MAX)
+  #if HAS_Z2_MAX
     #if (digitalPinToInterrupt(Z2_MAX_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z2_MAX_PIN), endstop_ISR, CHANGE);
     #else
@@ -168,7 +168,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z2_MIN)
+  #if HAS_Z2_MIN
     #if (digitalPinToInterrupt(Z2_MIN_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z2_MIN_PIN), endstop_ISR, CHANGE);
     #else
@@ -178,7 +178,7 @@ void setup_endstop_interrupts( void ) {
     #endif
   #endif
 
-  #if HAS(Z_PROBE_PIN)
+  #if HAS_Z_PROBE_PIN
     #if (digitalPinToInterrupt(Z_PROBE_PIN) != NOT_AN_INTERRUPT)
       attachInterrupt(digitalPinToInterrupt(Z_MIN_PROBE_PIN), endstop_ISR, CHANGE);
     #else
@@ -191,4 +191,4 @@ void setup_endstop_interrupts( void ) {
   // If we arrive here without raising an assertion, each pin has either an EXT-interrupt or a PCI.
 }
 
-#endif //_ENDSTOP_INTERRUPTS_H_
+#endif /* _ENDSTOP_INTERRUPTS_H_ */

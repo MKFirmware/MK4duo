@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,9 +56,19 @@
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <stdint.h>
 #include <Arduino.h>
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+typedef uint32_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 #include "fastio_Due.h"
 #include "watchdog_Due.h"
 #include "HAL_timers_Due.h"
@@ -99,6 +109,7 @@
   #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
 #endif
 
+// SERIAL
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
@@ -111,7 +122,7 @@
   #define MKSERIAL Serial3
 #endif
 
-#if defined(BLUETOOTH) && BLUETOOTH_PORT > 0
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
   #undef MKSERIAL
   #if BLUETOOTH_PORT == 1
     #define MKSERIAL Serial1
@@ -122,6 +133,10 @@
   #endif
 #endif
 
+// EEPROM START
+#define EEPROM_OFFSET 10
+
+// MATH
 #define MATH_USE_HAL
 #undef ATAN2
 #undef FABS
@@ -144,13 +159,8 @@
 #define COS(x)      cosf(x)
 #define SIN(x)      sinf(x)
 
-#undef analogInputToDigitalPin
-#define analogInputToDigitalPin(p) ((p < 12u) ? (p) + 54u : -1)
-
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
-
-#define MAX_ANALOG_PIN_NUMBER 11
 
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3
@@ -167,10 +177,6 @@
 #define SPR0    0
 #define SPR1    1
 
-// Delays
-#define CYCLES_EATEN_BY_CODE  12
-#define CYCLES_EATEN_BY_E     12
-
 #define PACK    __attribute__ ((packed))
 
 #undef LOW
@@ -178,28 +184,30 @@
 #undef HIGH
 #define HIGH        1
 
-// intRes = intIn1 * intIn2 >> 16
 #define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
-// intRes = longIn1 * longIn2 >> 24
 #define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
+// Macros for stepper.cpp
+#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
 
 #define ADV_NEVER 0xFFFFFFFF
 
-#define OVERSAMPLENR 16
+// TEMPERATURE
+#undef analogInputToDigitalPin
+#define analogInputToDigitalPin(p) ((p < 12) ? (p) + 54 : -1)
+// Bits of the ADC converter
+#define ANALOG_INPUT_BITS 12
+#define ANALOG_REDUCE_BITS 0
+#define ANALOG_REDUCE_FACTOR 1
 
-// --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
-
-typedef uint32_t millis_t;
+#define MAX_ANALOG_PIN_NUMBER 11
+#define OVERSAMPLENR 6
+#define MEDIAN_COUNT 10 // MEDIAN COUNT for Smoother temperature
+#define NUM_ADC_SAMPLES (2 + (1 << OVERSAMPLENR))
+#define ADC_TEMPERATURE_SENSOR 15
 
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
-
-#ifndef DUE_SOFTWARE_SPI
-  extern int spiDueDividors[];
-#endif
 
 // reset reason set by bootloader
 extern uint8_t MCUSR;
@@ -212,59 +220,23 @@ class HAL {
 
     virtual ~HAL();
 
-    // do any hardware-specific initialization here
-    static FORCE_INLINE void hwSetup(void) {
-      #if DISABLED(USE_WATCHDOG)
-        // Disable watchdog
-        WDT_Disable(WDT);
-      #endif
-  
-      TimeTick_Configure(F_CPU);
-
-      // setup microsecond delay timer
-      pmc_enable_periph_clk(DELAY_TIMER_IRQ);
-      TC_Configure(DELAY_TIMER, DELAY_TIMER_CHANNEL, TC_CMR_WAVSEL_UP |
-                   TC_CMR_WAVE | DELAY_TIMER_CLOCK);
-      TC_Start(DELAY_TIMER, DELAY_TIMER_CHANNEL);
-    }
-
-    #ifdef DUE_SOFTWARE_SPI
-      static uint8_t spiTransfer(uint8_t b); // using Mode 0
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      static uint8_t spiReceive();
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t b);
-      static void spiSend(const uint8_t* buf , size_t n) ;
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #else
-      // Hardware setup
-      static void spiBegin();
-      static void spiInit(uint8_t spiClock);
-      // Write single byte to SPI
-      static void spiSend(byte b);
-      static void spiSend(const uint8_t* buf, size_t n);
-      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        static void spiSend(uint32_t chan, byte b);
-        static void spiSend(uint32_t chan , const uint8_t* buf , size_t n);
-        static uint8_t spiReceive(uint32_t chan);
-      #endif
-      // Read single byte from SPI
-      static uint8_t spiReceive();
-      // Read from SPI into buffer
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-
-      // Write from buffer to SPI
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
+    #if ANALOG_INPUTS > 0
+      static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
     #endif
 
-    static inline void digitalWrite(uint8_t pin, uint8_t value) {
+    static bool execute_100ms;
+
+    static void hwSetup(void);
+
+    static bool analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=50);
+
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
       WRITE_VAR(pin, value);
     }
-    static inline uint8_t digitalRead(uint8_t pin) {
+    static inline uint8_t digitalRead(const Pin pin) {
       return READ_VAR(pin);
     }
-    static inline void pinMode(uint8_t pin, uint8_t mode) {
+    static inline void pinMode(const Pin pin, const uint8_t mode) {
       if (mode == INPUT) {
         SET_INPUT(pin);
       }
@@ -280,8 +252,8 @@ class HAL {
         : "+r" (n) :
       );
     }
-    static inline void delayMilliseconds(unsigned int delayMs) {
-      unsigned int del;
+    static inline void delayMilliseconds(uint16_t delayMs) {
+      uint16_t del;
       while (delayMs > 0) {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
@@ -313,14 +285,17 @@ class HAL {
       MKSERIAL.flush();
     }
 
-    static void clear_reset_source();
-    static uint8_t get_reset_source();
+    static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();
 
+    static void analogStart();
+    static adc_channel_num_t pinToAdcChannel(int pin);
+
   protected:
   private:
+
 };
 
 /**
@@ -335,26 +310,19 @@ void sei(void);
 
 int freeMemory(void);
 
+// SPI: Extended functions which take a channel number (hardware SPI only)
+/** Write single byte to specified SPI channel */
+void spiSend(uint32_t chan, byte b);
+/** Write buffer to specified SPI channel */
+void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
+/** Read single byte from specified SPI channel */
+uint8_t spiReceive(uint32_t chan);
+
+
 // EEPROM
 uint8_t eeprom_read_byte(uint8_t* pos);
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
-
-// ADC
-uint16_t getAdcReading(adc_channel_num_t chan);
-void startAdcConversion(adc_channel_num_t chan);
-adc_channel_num_t pinToAdcChannel(int pin);
-
-uint16_t getAdcFreerun(adc_channel_num_t chan, bool wait_for_conversion = false);
-uint16_t getAdcSuperSample(adc_channel_num_t chan);
-void setAdcFreerun(void);
-void stopAdcFreerun(adc_channel_num_t chan);
-
-#if ENABLED(LASERBEAM)
-  #define LASER_PWM_MAX_DUTY 255
-  void HAL_laser_init_pwm(uint8_t pin, uint16_t freq);
-  void HAL_laser_intensity(uint8_t intensity); // Range: 0 - LASER_PWM_MAX_DUTY
-#endif
 
 #endif // HAL_SAM_H

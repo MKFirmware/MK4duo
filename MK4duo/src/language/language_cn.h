@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@
 #define MSG_LEVEL_BED_HOMING                "Homing XYZ"
 #define MSG_LEVEL_BED_WAITING               "Click to Begin"
 #define MSG_LEVEL_BED_DONE                  "Leveling Done!"
-#define MSG_LEVEL_BED_CANCEL                "Cancel"
 #define MSG_SET_HOME_OFFSETS                "\xbe\xbf\xbb\xbc\xbd\xc0\xc1"
 #define MSG_HOME_OFFSETS_APPLIED            "Offsets applied"
 #define MSG_SET_ORIGIN                      "\xbe\xbf\xbc\xbd"
@@ -62,6 +61,7 @@
 #define MSG_EXTRUDE                         "\xcc\xad"
 #define MSG_RETRACT                         "\xbb\xcd"
 #define MSG_MOVE_AXIS                       "\xc1\xb2\xce"
+#define MSG_BED_LEVELING                    "\xcf\xe0\xc4\xc7"
 #define MSG_LEVEL_BED                       "\xcf\xe0\xc4\xc7"
 #define MSG_MOVE_X                          "\xc1\xb2 X"
 #define MSG_MOVE_Y                          "\xc1\xb2 Y"
@@ -87,6 +87,7 @@
 #define MSG_PID_D                           "PID-D"
 #define MSG_PID_C                           "PID-C"
 #define MSG_ACC                             "Accel"
+#define MSG_JERK                            "Jerk"
 #define MSG_VX_JERK                         "Vx-jerk"
 #define MSG_VY_JERK                         "Vy-jerk"
 #define MSG_VZ_JERK                         "Vz-jerk"
@@ -97,6 +98,7 @@
 #define MSG_AMAX                            "Amax "
 #define MSG_A_RETRACT                       "A-retract"
 #define MSG_A_TRAVEL                        "A-travel"
+#define MSG_STEPS_PER_MM                    "Steps/mm"
 #define MSG_XSTEPS                          "Xsteps/mm"
 #define MSG_YSTEPS                          "Ysteps/mm"
 #define MSG_ZSTEPS                          "Zsteps/mm"
@@ -105,14 +107,15 @@
 #define MSG_E2STEPS                         "E2steps/mm"
 #define MSG_E3STEPS                         "E3steps/mm"
 #define MSG_E4STEPS                         "E4steps/mm"
+#define MSG_E5STEPS                         "E5steps/mm"
 #define MSG_TEMPERATURE                     "\xc9\xd2"
 #define MSG_MOTION                          "\xdf\xb2"
-#define MSG_VOLUMETRIC                      "Filament"
+#define MSG_FILAMENT                        "Filament"
 #define MSG_VOLUMETRIC_ENABLED              "E in mm3"
 #define MSG_FILAMENT_DIAM                   "Fil. Dia."
 #define MSG_CONTRAST                        "LCD contrast"
-#define MSG_STORE_EPROM                     "Store memory"
-#define MSG_LOAD_EPROM                      "Load memory"
+#define MSG_STORE_EEPROM                    "Store memory"
+#define MSG_LOAD_EEPROM                     "Load memory"
 #define MSG_RESTORE_FAILSAFE                "Restore failsafe"
 #define MSG_REFRESH                         "Refresh"
 #define MSG_WATCH                           "\xec\xed\xee\xef"

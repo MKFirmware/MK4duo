@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,32 +90,6 @@ enum EndstopEnum {
   E_MIN
 };
 
-/**
- * Temperature
- * Stages in the ISR loop
- */
-enum TempState {
-  PrepareTemp_0,
-  MeasureTemp_0,
-  PrepareTemp_BED,
-  MeasureTemp_BED,
-  PrepareTemp_1,
-  MeasureTemp_1,
-  PrepareTemp_2,
-  MeasureTemp_2,
-  PrepareTemp_3,
-  MeasureTemp_3,
-  PrepareTemp_CHAMBER,
-  MeasureTemp_CHAMBER,
-  PrepareTemp_COOLER,
-  MeasureTemp_COOLER,
-  Prepare_FILWIDTH,
-  Measure_FILWIDTH,
-  Prepare_POWCONSUMPTION,
-  Measure_POWCONSUMPTION,
-  StartupDelay // Startup, delay initial temp reading a tiny bit so the hardware can settle
-};
-
 #if ENABLED(EMERGENCY_PARSER)
   enum e_parser_state {
     state_RESET,
@@ -134,11 +108,21 @@ enum TempState {
 #endif
 
 /**
+ * Interrupt Event
+ */
+enum MK4duoInterruptEvent {
+  INTERRUPT_EVENT_NONE,
+  INTERRUPT_EVENT_FIL_RUNOUT,
+  INTERRUPT_EVENT_DAV_SYSTEM,
+  INTERRUPT_EVENT_ENC_DETECT
+};
+
+/**
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  enum FirmwareState {
+  enum MK4duoBusyState {
     NOT_BUSY,           // Not in a handler
     IN_HANDLER,         // Processing a GCode
     IN_PROCESS,         // Known to be blocking command input (as in G29)
@@ -149,53 +133,40 @@ enum TempState {
   };
 #endif
 
-#if ENABLED(FILAMENT_CHANGE_FEATURE)
-  enum FilamentChangeMenuResponse {
-    FILAMENT_CHANGE_RESPONSE_WAIT_FOR,
-    FILAMENT_CHANGE_RESPONSE_EXTRUDE_MORE,
-    FILAMENT_CHANGE_RESPONSE_RESUME_PRINT
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  enum AdvancedPauseMenuResponse {
+    ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
+    ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
+    ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
   };
   
-  #if HAS(LCD)
-    enum FilamentChangeMessage {
-      FILAMENT_CHANGE_MESSAGE_INIT,
-      FILAMENT_CHANGE_MESSAGE_COOLDOWN,
-      FILAMENT_CHANGE_MESSAGE_UNLOAD,
-      FILAMENT_CHANGE_MESSAGE_INSERT,
-      FILAMENT_CHANGE_MESSAGE_LOAD,
-      FILAMENT_CHANGE_MESSAGE_EXTRUDE,
-      FILAMENT_CHANGE_MESSAGE_OPTION,
-      FILAMENT_CHANGE_MESSAGE_RESUME,
-      FILAMENT_CHANGE_MESSAGE_STATUS,
-      FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
-      FILAMENT_CHANGE_MESSAGE_PRINTER_OFF,
-      FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
+  #if HAS_LCD
+    enum AdvancedPauseMessage {
+      ADVANCED_PAUSE_MESSAGE_INIT,
+      ADVANCED_PAUSE_MESSAGE_COOLDOWN,
+      ADVANCED_PAUSE_MESSAGE_UNLOAD,
+      ADVANCED_PAUSE_MESSAGE_INSERT,
+      ADVANCED_PAUSE_MESSAGE_LOAD,
+      ADVANCED_PAUSE_MESSAGE_EXTRUDE,
+      ADVANCED_PAUSE_MESSAGE_OPTION,
+      ADVANCED_PAUSE_MESSAGE_RESUME,
+      ADVANCED_PAUSE_MESSAGE_STATUS,
+      ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+      ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
+      ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
     };
   #endif
 #endif
 
 enum PrinterMode {
-  PRINTER_MODE_FFF,
-  PRINTER_MODE_LASER,
-  PRINTER_MODE_CNC
+  PRINTER_MODE_FFF,           // M450 S0 or M451
+  PRINTER_MODE_LASER,         // M450 S1 or M452
+  PRINTER_MODE_CNC,           // M450 S2 or M453
+  PRINTER_MODE_PICKER,        // M450 S3 or M454
+  PRINTER_MODE_SOLDER,        // M450 S4
+  PRINTER_MODE_PLOTTER,
+  PRINTER_MODE_COUNT
 };
-
-#if ENABLED(MESH_BED_LEVELING) && NOMECH(DELTA)
-  enum MeshLevelingState {
-    MeshReport,
-    MeshStart,
-    MeshNext,
-    MeshSet,
-    MeshSetZOffset,
-    MeshReset
-  };
-
-  enum MBLStatus {
-    MBL_STATUS_NONE = 0,
-    MBL_STATUS_HAS_MESH_BIT = 0,
-    MBL_STATUS_ACTIVE_BIT = 1
-  };
-#endif
 
 /**
  * Ultra LCD
@@ -205,8 +176,7 @@ enum LCDViewAction {
   LCDVIEW_REDRAW_NOW,
   LCDVIEW_CALL_REDRAW_NEXT,
   LCDVIEW_CLEAR_CALL_REDRAW,
-  LCDVIEW_CALL_NO_REDRAW,
-  LCDVIEW_U8G_CONTINUE
+  LCDVIEW_CALL_NO_REDRAW
 };
 
 /**
@@ -216,7 +186,7 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_CPR,
   SD_CFG_FIL,
   SD_CFG_NPR,
-#if HAS(POWER_CONSUMPTION_SENSOR)
+#if HAS_POWER_CONSUMPTION_SENSOR
   SD_CFG_PWR,
 #endif
   SD_CFG_TME,
@@ -224,4 +194,23 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
   SD_CFG_END // Leave this always as the last
 };
 
-#endif //__ENUM_H__
+/**
+ * DUAL X CARRIAGE
+ */
+#if ENABLED(DUAL_X_CARRIAGE)
+  enum DualXMode {
+    DXC_FULL_CONTROL_MODE,
+    DXC_AUTO_PARK_MODE,
+    DXC_DUPLICATION_MODE
+  };
+#endif
+
+/**
+ * Workspace planes only apply to G2/G3 moves
+ * (and "canned cycles" - not a current feature)
+ */
+#if ENABLED(CNC_WORKSPACE_PLANES)
+  enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
+#endif
+
+#endif /* __ENUM_H__ */

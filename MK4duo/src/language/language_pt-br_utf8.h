@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 /**
  * Portuguese (Brazil)
+ * UTF-8 for Graphical Display
  *
  * LCD Menu Messages
  * See also documentation/LCDLanguageFont.md
@@ -42,7 +43,6 @@
 #define MSG_LEVEL_BED_HOMING                _UxGT("Indo para origem")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Click to Begin")
 #define MSG_LEVEL_BED_DONE                  _UxGT("Leveling Done!")
-#define MSG_LEVEL_BED_CANCEL                _UxGT("Cancel")
 #define MSG_SET_HOME_OFFSETS                _UxGT("Ajustar Jogo")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offsets applied")
 #define MSG_SET_ORIGIN                      _UxGT("Ajustar orig.")
@@ -87,6 +87,7 @@
 #define MSG_PID_D                           _UxGT("PID-D")
 #define MSG_PID_C                           _UxGT("PID-C")
 #define MSG_ACC                             _UxGT("Acc")
+#define MSG_JERK                            _UxGT("Jogo")
 #define MSG_VX_JERK                         _UxGT("jogo VX")
 #define MSG_VY_JERK                         _UxGT("jogo VY")
 #define MSG_VZ_JERK                         _UxGT("jogo VZ")
@@ -97,6 +98,7 @@
 #define MSG_AMAX                            _UxGT("Amax ")
 #define MSG_A_RETRACT                       _UxGT("Retrair A")
 #define MSG_A_TRAVEL                        _UxGT("A-movimento")
+#define MSG_STEPS_PER_MM                    _UxGT("Passo/mm")
 #define MSG_XSTEPS                          _UxGT("Passo X/mm")
 #define MSG_YSTEPS                          _UxGT("Passo Y/mm")
 #define MSG_ZSTEPS                          _UxGT("Passo Z/mm")
@@ -105,14 +107,15 @@
 #define MSG_E2STEPS                         _UxGT("E2/mm")
 #define MSG_E3STEPS                         _UxGT("E3/mm")
 #define MSG_E4STEPS                         _UxGT("E4/mm")
+#define MSG_E5STEPS                         _UxGT("E5/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatura")
 #define MSG_MOTION                          _UxGT("Movimento")
-#define MSG_VOLUMETRIC                      _UxGT("Filamento")
+#define MSG_FILAMENT                        _UxGT("Filamento")
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("Extr. em mm3")
 #define MSG_FILAMENT_DIAM                   _UxGT("Diametro Fil.")
 #define MSG_CONTRAST                        _UxGT("Contraste")
-#define MSG_STORE_EPROM                     _UxGT("Salvar")
-#define MSG_LOAD_EPROM                      _UxGT("Ler")
+#define MSG_STORE_EEPROM                    _UxGT("Salvar")
+#define MSG_LOAD_EEPROM                     _UxGT("Ler")
 #define MSG_RESTORE_FAILSAFE                _UxGT("Rest. de emerg.")
 #define MSG_REFRESH                         LCD_STR_REFRESH _UxGT(" Restaurar")
 #define MSG_WATCH                           _UxGT("Monitorar")

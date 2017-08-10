@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,6 @@
 #define MSG_LEVEL_BED_WAITING               _UxGT("Κάντε κλικ για να ξεκινήσετε")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Επόμενο σημείο")
 #define MSG_LEVEL_BED_DONE                  _UxGT("Ολοκλήρωση επιπεδοποίησης!")
-#define MSG_LEVEL_BED_CANCEL                _UxGT("Ακύρωση")
 #define MSG_SET_HOME_OFFSETS                _UxGT("Ορισμός βασικών μετατοπίσεων")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Εφαρμόστηκαν οι μετατοπίσεις")
 #define MSG_SET_ORIGIN                      _UxGT("Ορισμός προέλευσης")
@@ -68,6 +67,7 @@
 #define MSG_EXTRUDE                         _UxGT("Εξώθηση")
 #define MSG_RETRACT                         _UxGT("Ανάσυρση")
 #define MSG_MOVE_AXIS                       _UxGT("Μετακίνηση άξονα")
+#define MSG_BED_LEVELING                    _UxGT("Επιπεδοποίηση κλίνης")
 #define MSG_LEVEL_BED                       _UxGT("Επιπεδοποίηση κλίνης")
 #define MSG_MOVE_X                          _UxGT("Μετακίνηση X")
 #define MSG_MOVE_Y                          _UxGT("Μετακίνηση Y")
@@ -94,6 +94,7 @@
 #define MSG_PID_D                           _UxGT("PID-D")
 #define MSG_PID_C                           _UxGT("PID-C")
 #define MSG_ACC                             _UxGT("Επιτάχυνση")
+#define MSG_JERK                            _UxGT("Vαντίδραση")
 #define MSG_VX_JERK                         _UxGT("Vαντίδραση x")
 #define MSG_VY_JERK                         _UxGT("Vαντίδραση y")
 #define MSG_VZ_JERK                         _UxGT("Vαντίδραση z")
@@ -101,9 +102,11 @@
 #define MSG_VMAX                            _UxGT("Vμεγ ")
 #define MSG_VMIN                            _UxGT("Vελαχ")
 #define MSG_VTRAV_MIN                       _UxGT("Vελάχ. μετατόπιση")
+#define MSG_ACCELERATION                    MSG_ACC
 #define MSG_AMAX                            _UxGT("Aμεγ ")
 #define MSG_A_RETRACT                       _UxGT("Α-ανάσυρση")
 #define MSG_A_TRAVEL                        _UxGT("Α-μετατόπιση")
+#define MSG_STEPS_PER_MM                    _UxGT("Bήματα ανά μμ")
 #define MSG_XSTEPS                          _UxGT("Bήματα X ανά μμ")
 #define MSG_YSTEPS                          _UxGT("Bήματα Υ ανά μμ")
 #define MSG_ZSTEPS                          _UxGT("Bήματα Ζ ανά μμ")
@@ -112,14 +115,15 @@
 #define MSG_E2STEPS                         _UxGT("Bήματα Ε2 ανά μμ")
 #define MSG_E3STEPS                         _UxGT("Bήματα Ε3 ανά μμ")
 #define MSG_E4STEPS                         _UxGT("Bήματα Ε4 ανά μμ")
+#define MSG_E5STEPS                         _UxGT("Bήματα Ε5 ανά μμ")
 #define MSG_TEMPERATURE                     _UxGT("Θερμοκρασία")
 #define MSG_MOTION                          _UxGT("Κίνηση")
-#define MSG_VOLUMETRIC                      _UxGT("Νήμα")
+#define MSG_FILAMENT                        _UxGT("Νήμα")
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("Ε σε μμ3")
 #define MSG_FILAMENT_DIAM                   _UxGT("Διάμετρος νήματος")
 #define MSG_CONTRAST                        _UxGT("Κοντράστ LCD")
-#define MSG_STORE_EPROM                     _UxGT("Αποθήκευση")
-#define MSG_LOAD_EPROM                      _UxGT("Φόρτωση")
+#define MSG_STORE_EEPROM                    _UxGT("Αποθήκευση")
+#define MSG_LOAD_EEPROM                     _UxGT("Φόρτωση")
 #define MSG_RESTORE_FAILSAFE                _UxGT("Επαναφορά ασφαλούς αντιγράφου")
 #define MSG_REFRESH                         _UxGT("Ανανέωση")
 #define MSG_WATCH                           _UxGT("Οθόνη πληροφόρησης")

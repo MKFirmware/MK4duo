@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,17 +40,23 @@
  */
 
 #include "../../base.h"
-#include <Arduino.h>
 
 #if ENABLED(FLOWMETER_SENSOR)
 
-  volatile int flowrate_pulsecount;  
-  float flowrate;
-  static millis_t flowmeter_timer = 0;
-  static millis_t lastflow = 0;
-  void flowrate_pulsecounter();
+  FlowMeter flowmeter;
 
-  void flow_init() {
+  bool      FlowMeter::flow_firstread       = false;
+  float     FlowMeter::flowrate             = 0.0;
+  int       FlowMeter::flowrate_pulsecount  = 0;
+  millis_t  FlowMeter::flowmeter_timer      = 0,
+            FlowMeter::astflow              = 0;
+
+  void FlowMeter::flowrate_pulsecounter() {
+    // Increment the pulse counter
+    flowrate_pulsecount++;
+  }
+
+  void FlowMeter::flow_init() {
     flowrate = 0;
     flowrate_pulsecount = 0;
     pinMode(FLOWMETER_PIN, INPUT);
@@ -58,7 +64,7 @@
     attachInterrupt(digitalPinToInterrupt(FLOWMETER_PIN), flowrate_pulsecounter, FALLING);
   }
 
-  void flowrate_manage() {
+  void FlowMeter::flowrate_manage() {
     millis_t  now;
     now = millis();
     if(ELAPSED(now, flowmeter_timer)) {
@@ -77,13 +83,15 @@
     }
   }
 
-  float get_flowrate() {
-    return flowrate;
-  }
+  void FlowMeter::print_flow_rate_state() {
 
-  void flowrate_pulsecounter() {
-    // Increment the pulse counter
-    flowrate_pulsecount++;
+    #if ENABLED(MINFLOW_PROTECTION)
+      if (flowrate > MINFLOW_PROTECTION)
+        flow_firstread = true;
+    #endif
+
+    SERIAL_MV(" FLOW: ", flowrate, 3);
+    SERIAL_MSG(" l/min ");
   }
 
 #endif // FLOWMETER_SENSOR

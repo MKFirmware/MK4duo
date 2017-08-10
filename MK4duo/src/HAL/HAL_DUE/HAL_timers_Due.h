@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,6 @@
 // Types
 // --------------------------------------------------------------------------
 
-typedef uint32_t HAL_TIMER_TYPE;
-
 typedef struct {
   Tc          *pTimerRegs;
   uint16_t    channel;
@@ -85,16 +83,25 @@ typedef struct {
 #define DELAY_TIMER_PRESCALE    8
 
 #define STEPPER_TIMER 2
-#define STEPPER_TIMER_PRESCALE 2.0
-#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / STEPPER_TIMER_PRESCALE)    // 42 MHz
-#define STEPPER_TIMER_TICKS_PER_US (HAL_STEPPER_TIMER_RATE / 1000000) // 42
+#define STEPPER_TIMER_PRESCALE  2.0
+#define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
 
 #define TEMP_TIMER 3
-#define TEMP_TIMER_FREQUENCY 2000
+#define TEMP_TIMER_FREQUENCY 3906
 
 #define BEEPER_TIMER 4
 #define BEEPER_TIMER_COUNTER TC1
 #define BEEPER_TIMER_CHANNEL 1
+
+#define AD_PRESCALE_FACTOR      84  // 500 kHz ADC clock 
+#define AD_TRACKING_CYCLES      4   // 0 - 15     + 1 adc clock cycles
+#define AD_TRANSFER_CYCLES      1   // 0 - 3      * 2 + 3 adc clock cycles
+
+#define ADC_ISR_EOC(channel)    (0x1u << channel)
+
+#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, 122)
+#define HAL_TEMP_TIMER_START()              HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY)
 
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
@@ -123,11 +130,46 @@ typedef struct {
         } while(0)
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000UL) // 84
+#define CYCLES_PER_US ((F_CPU) / 1000000) // 84
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT (((OVERSAMPLENR + 2) * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
+
+// Highly granular delays for step pulses, etc.
+#define DELAY_0_NOP   NOOP
+#define DELAY_1_NOP   __asm__("nop\n\t")
+#define DELAY_2_NOP   DELAY_1_NOP;  DELAY_1_NOP
+#define DELAY_3_NOP   DELAY_2_NOP;  DELAY_1_NOP
+#define DELAY_4_NOP   DELAY_3_NOP;  DELAY_1_NOP
+#define DELAY_5_NOP   DELAY_4_NOP;  DELAY_1_NOP
+#define DELAY_10_NOP  DELAY_5_NOP;  DELAY_5_NOP
+#define DELAY_20_NOP  DELAY_10_NOP; DELAY_10_NOP
+#define DELAY_40_NOP  DELAY_20_NOP; DELAY_20_NOP
+#define DELAY_80_NOP  DELAY_40_NOP; DELAY_40_NOP
+
+#define DELAY_NOPS(X) \
+  switch (X) { \
+    case 20: DELAY_1_NOP; case 19: DELAY_1_NOP; \
+    case 18: DELAY_1_NOP; case 17: DELAY_1_NOP; \
+    case 16: DELAY_1_NOP; case 15: DELAY_1_NOP; \
+    case 14: DELAY_1_NOP; case 13: DELAY_1_NOP; \
+    case 12: DELAY_1_NOP; case 11: DELAY_1_NOP; \
+    case 10: DELAY_1_NOP; case 9:  DELAY_1_NOP; \
+    case 8:  DELAY_1_NOP; case 7:  DELAY_1_NOP; \
+    case 6:  DELAY_1_NOP; case 5:  DELAY_1_NOP; \
+    case 4:  DELAY_1_NOP; case 3:  DELAY_1_NOP; \
+    case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
+  }
+
+#define DELAY_1US   DELAY_80_NOP; DELAY_4_NOP
+#define DELAY_2US   DELAY_1US;    DELAY_1US
+#define DELAY_3US   DELAY_1US;    DELAY_2US
+#define DELAY_4US   DELAY_1US;    DELAY_3US
+#define DELAY_5US   DELAY_1US;    DELAY_4US
+#define DELAY_6US   DELAY_1US;    DELAY_5US
+#define DELAY_7US   DELAY_1US;    DELAY_6US
+#define DELAY_8US   DELAY_1US;    DELAY_7US
+#define DELAY_9US   DELAY_1US;    DELAY_8US
+#define DELAY_10US  DELAY_1US;    DELAY_9US
 
 // --------------------------------------------------------------------------
 // Public Variables
@@ -140,11 +182,11 @@ typedef struct {
 static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - [servo timer5]
   { TC0, 1, TC1_IRQn, 0 },  // 1
-  { TC0, 2, TC2_IRQn, 2 },  // 2 - stepper
-  { TC1, 0, TC3_IRQn, 15 }, // 3 - temperature
+  { TC0, 2, TC2_IRQn, 1 },  // 2 - stepper
+  { TC1, 0, TC3_IRQn, 15},  // 3 - temperature
   { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer3]
-  { TC2, 0, TC6_IRQn, 0 },  // 6
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Adafruit Neopixel
   { TC2, 1, TC7_IRQn, 0 },  // 7
   { TC2, 2, TC8_IRQn, 0 },  // 8
 };

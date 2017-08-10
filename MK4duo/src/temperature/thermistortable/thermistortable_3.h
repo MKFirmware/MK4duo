@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,32 +22,32 @@
 
 // mendel-parts
 const short temptable_3[][2] PROGMEM = {
-  {    1 * OVERSAMPLENR, 864 },
-  {   21 * OVERSAMPLENR, 300 },
-  {   25 * OVERSAMPLENR, 290 },
-  {   29 * OVERSAMPLENR, 280 },
-  {   33 * OVERSAMPLENR, 270 },
-  {   39 * OVERSAMPLENR, 260 },
-  {   46 * OVERSAMPLENR, 250 },
-  {   54 * OVERSAMPLENR, 240 },
-  {   64 * OVERSAMPLENR, 230 },
-  {   75 * OVERSAMPLENR, 220 },
-  {   90 * OVERSAMPLENR, 210 },
-  {  107 * OVERSAMPLENR, 200 },
-  {  128 * OVERSAMPLENR, 190 },
-  {  154 * OVERSAMPLENR, 180 },
-  {  184 * OVERSAMPLENR, 170 },
-  {  221 * OVERSAMPLENR, 160 },
-  {  265 * OVERSAMPLENR, 150 },
-  {  316 * OVERSAMPLENR, 140 },
-  {  375 * OVERSAMPLENR, 130 },
-  {  441 * OVERSAMPLENR, 120 },
-  {  513 * OVERSAMPLENR, 110 },
-  {  588 * OVERSAMPLENR, 100 },
-  {  734 * OVERSAMPLENR,  80 },
-  {  856 * OVERSAMPLENR,  60 },
-  {  938 * OVERSAMPLENR,  40 },
-  {  986 * OVERSAMPLENR,  20 },
-  { 1008 * OVERSAMPLENR,   0 },
-  { 1018 * OVERSAMPLENR, -20 }
+  {    1, 864 },
+  {   21, 300 },
+  {   25, 290 },
+  {   29, 280 },
+  {   33, 270 },
+  {   39, 260 },
+  {   46, 250 },
+  {   54, 240 },
+  {   64, 230 },
+  {   75, 220 },
+  {   90, 210 },
+  {  107, 200 },
+  {  128, 190 },
+  {  154, 180 },
+  {  184, 170 },
+  {  221, 160 },
+  {  265, 150 },
+  {  316, 140 },
+  {  375, 130 },
+  {  441, 120 },
+  {  513, 110 },
+  {  588, 100 },
+  {  734,  80 },
+  {  856,  60 },
+  {  938,  40 },
+  {  986,  20 },
+  { 1008,   0 },
+  { 1018, -20 }
 };

@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,30 +26,34 @@
 class EEPROM {
 
   public:
+  
+    EEPROM() { }
 
-    static void ResetDefault();
-    static void StoreSettings();
-
-    #if DISABLED(DISABLE_M503)
-      static void PrintSettings(bool forReplay = false);
-    #else
-      static inline void PrintSettings(bool forReplay = false) {}
-    #endif
+    static void Factory_Settings();
+    static bool Store_Settings();
 
     #if ENABLED(EEPROM_SETTINGS)
-      static void RetrieveSettings();
+      static bool Load_Settings();
     #else
-      static inline void RetrieveSettings() { ResetDefault(); PrintSettings(); }
+      FORCE_INLINE static bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
+    #endif
+
+    #if DISABLED(DISABLE_M503)
+      static void Print_Settings(bool forReplay = false);
+    #else
+      FORCE_INLINE static void Print_Settings(bool forReplay = false) { }
     #endif
 
   private:
 
-    static void writeData(int &pos, const uint8_t* value, uint16_t size);
-    static void readData(int &pos, uint8_t* value, uint16_t size);
     static void Postprocess();
 
-    static uint16_t eeprom_checksum;
-    static const char version[6];
+    #if ENABLED(EEPROM_SETTINGS)
+      static bool eeprom_error;
+      static void write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
+      static void read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc);
+      static void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
+    #endif
 
 };
 

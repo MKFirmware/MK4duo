@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,6 @@
 #define MSG_LEVEL_BED_WAITING               _UxGT("單擊開始熱床調平")  //"Click to Begin"
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("下個熱床調平點")  //"Next Point"
 #define MSG_LEVEL_BED_DONE                  _UxGT("完成熱床調平")  //"Leveling Done!"
-#define MSG_LEVEL_BED_CANCEL                _UxGT("取消熱床調平")  //"Cancel"
 #define MSG_SET_HOME_OFFSETS                _UxGT("設置原點偏移")  //"Set home offsets"
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("偏移已啟用")  //"Offsets applied"
 #define MSG_SET_ORIGIN                      _UxGT("設置原點")  //"Set origin"
@@ -65,6 +64,7 @@
 #define MSG_EXTRUDE                         _UxGT("擠出")  //"Extrude"
 #define MSG_RETRACT                         _UxGT("回抽")  //"Retract"
 #define MSG_MOVE_AXIS                       _UxGT("移動軸")  //"Move axis"
+#define MSG_BED_LEVELING                    _UxGT("調平熱床")  //"Bed leveling"
 #define MSG_LEVEL_BED                       _UxGT("調平熱床")  //"Level bed"
 #define MSG_MOVE_X                          _UxGT("移動X")  //"Move X"
 #define MSG_MOVE_Y                          _UxGT("移動Y")  //"Move Y"
@@ -92,6 +92,7 @@
 #define MSG_PID_C                           _UxGT("PID-C")  //"PID-C"
 #define MSG_SELECT                          _UxGT("選擇")  //"Select"
 #define MSG_ACC                             _UxGT("加速度")  //"Accel" acceleration
+#define MSG_JERK                            _UxGT("抖動速率")  //"Jerk"
 #define MSG_VX_JERK                         _UxGT("X軸抖動速率")  //"Vx-jerk"
 #define MSG_VY_JERK                         _UxGT("Y軸抖動速率")  //"Vy-jerk"
 #define MSG_VZ_JERK                         _UxGT("Z軸抖動速率")  //"Vz-jerk"
@@ -102,18 +103,19 @@
 #define MSG_AMAX                            _UxGT("最大列印加速度")  //"Amax " max_acceleration_mm_per_s2, acceleration in units/s^2 for print moves
 #define MSG_A_RETRACT                       _UxGT("收進加速度")  //"A-retract" retract_acceleration, E acceleration in mm/s^2 for retracts
 #define MSG_A_TRAVEL                        _UxGT("非列印移動加速度")  //"A-travel" travel_acceleration, X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
+#define MSG_STEPS_PER_MM                    _UxGT("軸步數/mm")  //"Steps/mm" axis_steps_per_mm, axis steps-per-unit G92
 #define MSG_XSTEPS                          _UxGT("X軸步數/mm")  //"Xsteps/mm" axis_steps_per_mm, axis steps-per-unit G92
 #define MSG_YSTEPS                          _UxGT("Y軸步數/mm")  //"Ysteps/mm"
 #define MSG_ZSTEPS                          _UxGT("Z軸步數/mm")  //"Zsteps/mm"
 #define MSG_ESTEPS                          _UxGT("擠出機步數/mm")  //"Esteps/mm"
 #define MSG_TEMPERATURE                     _UxGT("溫度")  //"Temperature"
 #define MSG_MOTION                          _UxGT("運動")  //"Motion"
-#define MSG_VOLUMETRIC                      _UxGT("絲料測容")  //"Filament" lcd_control_volumetric_menu
+#define MSG_FILAMENT                        _UxGT("絲料測容")  //"Filament" lcd_control_volumetric_menu
 #define MSG_VOLUMETRIC_ENABLED              _UxGT("測容積mm³")  //"E in mm3" volumetric_enabled
 #define MSG_FILAMENT_DIAM                   _UxGT("絲料直徑")  //"Fil. Dia."
 #define MSG_CONTRAST                        _UxGT("LCD對比度")  //"LCD contrast"
-#define MSG_STORE_EPROM                     _UxGT("保存設置")  //"Store memory"
-#define MSG_LOAD_EPROM                      _UxGT("裝載設置")  //"Load memory"
+#define MSG_STORE_EEPROM                    _UxGT("保存設置")  //"Store memory"
+#define MSG_LOAD_EEPROM                     _UxGT("裝載設置")  //"Load memory"
 #define MSG_RESTORE_FAILSAFE                _UxGT("恢複安全值")  //"Restore failsafe"
 #define MSG_REFRESH                         _UxGT("刷新")  //"Refresh"
 #define MSG_WATCH                           _UxGT("資訊界面")  //"Info screen"
@@ -132,11 +134,11 @@
 #define MSG_KILLED                          _UxGT("已殺掉")  //"KILLED. "
 #define MSG_STOPPED                         _UxGT("已停止")  //"STOPPED. "
 #define MSG_CONTROL_RETRACT                 _UxGT("回抽長度mm")  //"Retract mm" retract_length, retract length (positive mm)
-#define MSG_CONTROL_RETRACT_SWAP            _UxGT("換手回抽長度mm")  //"Swap Re.mm" retract_length_swap, swap retract length (positive mm), for extruder change
+#define MSG_CONTROL_RETRACT_SWAP            _UxGT("換手回抽長度mm")  //"Swap Re.mm" swap_retract_length, swap retract length (positive mm), for extruder change
 #define MSG_CONTROL_RETRACTF                _UxGT("回抽速率mm/s")  //"Retract  V" retract_feedrate_mm_s, feedrate for retracting (mm/s)
 #define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Hop mm")  //"Hop mm" retract_zlift, retract Z-lift
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("回抽恢複長度mm")  //"UnRet +mm" retract_recover_length, additional recover length (mm, added to retract length when recovering)
-#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("換手回抽恢複長度mm")  //"S UnRet+mm" retract_recover_length_swap, additional swap recover length (mm, added to retract length when recovering from extruder change)
+#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("換手回抽恢複長度mm")  //"S UnRet+mm" swap_retract_recover_length, additional swap recover length (mm, added to retract length when recovering from extruder change)
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("回抽恢複後進料速率mm/s")  //"UnRet  V" retract_recover_feedrate_mm_s, feedrate for recovering from retraction (mm/s)
 #define MSG_AUTORETRACT                     _UxGT("自動抽回")  //"AutoRetr." autoretract_enabled,
 #define MSG_FILAMENTCHANGE                  _UxGT("更換絲料")  //"Change filament"
@@ -199,8 +201,8 @@
 #define MSG_INFO_MAX_TEMP                   _UxGT("最高溫度")  //"Max Temp"
 #define MSG_INFO_PSU                        _UxGT("電源供應")  //"Power Supply"
 
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("修改絲料")  //"CHANGE FILAMENT"
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("修改選項:")  //"CHANGE OPTIONS:"
+#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
+#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("擠出更多")  //"Extrude more"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("恢複列印")  //"Resume print"
 

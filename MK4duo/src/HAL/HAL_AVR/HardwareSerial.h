@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,14 +50,14 @@
 #endif
 
 // The presence of the UBRRH register is used to detect a UART.
-#define UART_PRESENT(port) ((port == 0 && (defined(UBRRH) || defined(UBRR0H))) || \
-                            (port == 1 && defined(UBRR1H)) || (port == 2 && defined(UBRR2H)) || \
-                            (port == 3 && defined(UBRR3H)))
+#define UART_PRESENT(port) ((port == 0 && (ENABLED(UBRRH) || ENABLED(UBRR0H))) || \
+                            (port == 1 && ENABLED(UBRR1H)) || (port == 2 && ENABLED(UBRR2H)) || \
+                            (port == 3 && ENABLED(UBRR3H)))
 
 // These are macros to build serial port register names for the selected SERIAL_PORT (C preprocessor
 // requires two levels of indirection to expand macro values properly)
 #define SERIAL_REGNAME(registerbase,number,suffix) SERIAL_REGNAME_INTERNAL(registerbase,number,suffix)
-#if SERIAL_PORT == 0 && (!defined(UBRR0H) || !defined(UDR0)) // use un-numbered registers if necessary
+#if SERIAL_PORT == 0 && (DISABLED(UBRR0H) || DISABLED(UDR0)) // use un-numbered registers if necessary
   #define SERIAL_REGNAME_INTERNAL(registerbase,number,suffix) registerbase##suffix
 #else
   #define SERIAL_REGNAME_INTERNAL(registerbase,number,suffix) registerbase##number##suffix
@@ -81,13 +81,11 @@
 #define M_U2Xx SERIAL_REGNAME(U2X,SERIAL_PORT,)
 #define M_USARTx_UDRE_vect SERIAL_REGNAME(USART,SERIAL_PORT,_UDRE_vect)
 
-
 #define DEC 10
 #define HEX 16
 #define OCT 8
 #define BIN 2
 #define BYTE 0
-
 
 #ifndef USBCON
 // Define constants and variables for buffering incoming serial data.  We're
@@ -136,7 +134,7 @@ struct ring_buffer_r {
 class MKHardwareSerial { //: public Stream
 
   public:
-    MKHardwareSerial();
+    MKHardwareSerial() {};
     static void begin(const long);
     static void end();
     static int peek(void);

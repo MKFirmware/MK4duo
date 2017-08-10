@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,34 +22,34 @@
 
 // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)
 const short temptable_12[][2] PROGMEM = {
-  {   35 * OVERSAMPLENR, 180 }, // top rating 180C
-  {  211 * OVERSAMPLENR, 140 },
-  {  233 * OVERSAMPLENR, 135 },
-  {  261 * OVERSAMPLENR, 130 },
-  {  290 * OVERSAMPLENR, 125 },
-  {  328 * OVERSAMPLENR, 120 },
-  {  362 * OVERSAMPLENR, 115 },
-  {  406 * OVERSAMPLENR, 110 },
-  {  446 * OVERSAMPLENR, 105 },
-  {  496 * OVERSAMPLENR, 100 },
-  {  539 * OVERSAMPLENR,  95 },
-  {  585 * OVERSAMPLENR,  90 },
-  {  629 * OVERSAMPLENR,  85 },
-  {  675 * OVERSAMPLENR,  80 },
-  {  718 * OVERSAMPLENR,  75 },
-  {  758 * OVERSAMPLENR,  70 },
-  {  793 * OVERSAMPLENR,  65 },
-  {  822 * OVERSAMPLENR,  60 },
-  {  841 * OVERSAMPLENR,  55 },
-  {  875 * OVERSAMPLENR,  50 },
-  {  899 * OVERSAMPLENR,  45 },
-  {  926 * OVERSAMPLENR,  40 },
-  {  946 * OVERSAMPLENR,  35 },
-  {  962 * OVERSAMPLENR,  30 },
-  {  977 * OVERSAMPLENR,  25 },
-  {  987 * OVERSAMPLENR,  20 },
-  {  995 * OVERSAMPLENR,  15 },
-  { 1001 * OVERSAMPLENR,  10 },
-  { 1010 * OVERSAMPLENR,   0 },
-  { 1023 * OVERSAMPLENR, -40 }
+  {   35, 180 }, // top rating 180C
+  {  211, 140 },
+  {  233, 135 },
+  {  261, 130 },
+  {  290, 125 },
+  {  328, 120 },
+  {  362, 115 },
+  {  406, 110 },
+  {  446, 105 },
+  {  496, 100 },
+  {  539,  95 },
+  {  585,  90 },
+  {  629,  85 },
+  {  675,  80 },
+  {  718,  75 },
+  {  758,  70 },
+  {  793,  65 },
+  {  822,  60 },
+  {  841,  55 },
+  {  875,  50 },
+  {  899,  45 },
+  {  926,  40 },
+  {  946,  35 },
+  {  962,  30 },
+  {  977,  25 },
+  {  987,  20 },
+  {  995,  15 },
+  { 1001,  10 },
+  { 1010,   0 },
+  { 1023, -40 }
 };

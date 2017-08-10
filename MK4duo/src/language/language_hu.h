@@ -1,9 +1,9 @@
 /*
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,8 +137,8 @@
 #define MSG_VOLUMETRIC_ENABLED              MSG_E _UxGT(" in mm3")
 #define MSG_FILAMENT_SIZE_EXTRUDER          _UxGT("Fil. Átm.")
 #define MSG_CONTRAST                        _UxGT("LCD kontraszt")
-#define MSG_STORE_EPROM                     _UxGT("Tárol memória")
-#define MSG_LOAD_EPROM                      _UxGT("Betölt memória")
+#define MSG_STORE_EEPROM                     _UxGT("Tárol memória")
+#define MSG_LOAD_EEPROM                      _UxGT("Betölt memória")
 #define MSG_RESTORE_FAILSAFE                _UxGT("Üzembiztosra vissza")
 #define MSG_REFRESH                         _UxGT("Frissít")
 #define MSG_WATCH                           _UxGT("Információs oldal")
@@ -194,9 +194,9 @@
 #define MSG_ERR_MINTEMP_COOLER              _UxGT("MINTEMP COOLER ERROR")
 #define MSG_HALTED                          _UxGT("PRINTER HALTED")
 #define MSG_PLEASE_RESET                    _UxGT("Kérem visszaállítani")
-#define MSG_END_DAY                         _UxGT("nap")
-#define MSG_END_HOUR                        _UxGT("óra")
-#define MSG_END_MINUTE                      _UxGT("perc")
+#define MSG_LONG_DAY                         _UxGT("nap")
+#define MSG_LONG_HOUR                        _UxGT("óra")
+#define MSG_LONG_MINUTE                      _UxGT("perc")
 #define MSG_PRINT_TIME                      _UxGT("Nyomtatás ideje ")
 
 // Calibrate Delta
@@ -233,7 +233,7 @@
 #define MSG_LIGHTS_ON                       _UxGT("Doboz fény be")
 #define MSG_LIGHTS_OFF                      _UxGT("Doboz fény ki")
 
-// FILAMENT_CHANGE_FEATURE
+// ADVANCED_PAUSE_FEATURE
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("CSERÉLJ SZÁLAT")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("CSERE OPCIÓK:")
 #define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudálj többet")

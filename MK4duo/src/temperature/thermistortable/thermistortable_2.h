@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,36 +26,36 @@
 // Calculated using 4.7kohm pullup, voltage divider math, and manufacturer provided temp/resistance
 //
 const short temptable_2[][2] PROGMEM = {
-  {    1 * OVERSAMPLENR, 848 },
-  {   30 * OVERSAMPLENR, 300 }, // top rating 300C
-  {   34 * OVERSAMPLENR, 290 },
-  {   39 * OVERSAMPLENR, 280 },
-  {   46 * OVERSAMPLENR, 270 },
-  {   53 * OVERSAMPLENR, 260 },
-  {   63 * OVERSAMPLENR, 250 },
-  {   74 * OVERSAMPLENR, 240 },
-  {   87 * OVERSAMPLENR, 230 },
-  {  104 * OVERSAMPLENR, 220 },
-  {  124 * OVERSAMPLENR, 210 },
-  {  148 * OVERSAMPLENR, 200 },
-  {  176 * OVERSAMPLENR, 190 },
-  {  211 * OVERSAMPLENR, 180 },
-  {  252 * OVERSAMPLENR, 170 },
-  {  301 * OVERSAMPLENR, 160 },
-  {  357 * OVERSAMPLENR, 150 },
-  {  420 * OVERSAMPLENR, 140 },
-  {  489 * OVERSAMPLENR, 130 },
-  {  562 * OVERSAMPLENR, 120 },
-  {  636 * OVERSAMPLENR, 110 },
-  {  708 * OVERSAMPLENR, 100 },
-  {  775 * OVERSAMPLENR,  90 },
-  {  835 * OVERSAMPLENR,  80 },
-  {  884 * OVERSAMPLENR,  70 },
-  {  924 * OVERSAMPLENR,  60 },
-  {  955 * OVERSAMPLENR,  50 },
-  {  977 * OVERSAMPLENR,  40 },
-  {  993 * OVERSAMPLENR,  30 },
-  { 1004 * OVERSAMPLENR,  20 },
-  { 1012 * OVERSAMPLENR,  10 },
-  { 1016 * OVERSAMPLENR,   0 }
+  {    1, 848 },
+  {   30, 300 }, // top rating 300C
+  {   34, 290 },
+  {   39, 280 },
+  {   46, 270 },
+  {   53, 260 },
+  {   63, 250 },
+  {   74, 240 },
+  {   87, 230 },
+  {  104, 220 },
+  {  124, 210 },
+  {  148, 200 },
+  {  176, 190 },
+  {  211, 180 },
+  {  252, 170 },
+  {  301, 160 },
+  {  357, 150 },
+  {  420, 140 },
+  {  489, 130 },
+  {  562, 120 },
+  {  636, 110 },
+  {  708, 100 },
+  {  775,  90 },
+  {  835,  80 },
+  {  884,  70 },
+  {  924,  60 },
+  {  955,  50 },
+  {  977,  40 },
+  {  993,  30 },
+  { 1004,  20 },
+  { 1012,  10 },
+  { 1016,   0 }
 };

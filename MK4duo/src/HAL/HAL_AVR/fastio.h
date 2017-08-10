@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,94 +33,70 @@
 
 #include <avr/io.h>
 
-/**
-  utility functions
-*/
-
-#ifndef MASK
-  #define MASK(PIN)  (1 << PIN)
+#ifndef _BV
+  #define _BV(PIN) (1 << PIN)
 #endif
 
 /**
-  magic I/O routines
-  now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
-*/
+ * Magic I/O routines
+ *
+ * Now you can simply SET_OUTPUT(PIN); WRITE(PIN, HIGH); WRITE(PIN, LOW);
+ */
 
-/// Read a pin
-#define _READ(IO) ((bool)(DIO ## IO ## _RPORT & MASK(DIO ## IO ## _PIN)))
-/// write to a pin
+// Read a pin
+#define _READ(IO) ((bool)(DIO ## IO ## _RPORT & _BV(DIO ## IO ## _PIN)))
+
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
 
-#define _WRITE_NC(IO, v)  do { if (v) {DIO ##  IO ## _WPORT |= MASK(DIO ## IO ## _PIN); } else {DIO ##  IO ## _WPORT &= ~MASK(DIO ## IO ## _PIN); }; } while (0)
+#define _WRITE_NC(IO, v)  do { if (v) {DIO ##  IO ## _WPORT |= _BV(DIO ## IO ## _PIN); } else {DIO ##  IO ## _WPORT &= ~_BV(DIO ## IO ## _PIN); }; } while (0)
 
 #define _WRITE_C(IO, v)   do { if (v) { \
                                          CRITICAL_SECTION_START; \
-                                         {DIO ##  IO ## _WPORT |= MASK(DIO ## IO ## _PIN); } \
+                                         {DIO ##  IO ## _WPORT |= _BV(DIO ## IO ## _PIN); } \
                                          CRITICAL_SECTION_END; \
                                        } \
                                        else { \
                                          CRITICAL_SECTION_START; \
-                                         {DIO ##  IO ## _WPORT &= ~MASK(DIO ## IO ## _PIN); } \
+                                         {DIO ##  IO ## _WPORT &= ~_BV(DIO ## IO ## _PIN); } \
                                          CRITICAL_SECTION_END; \
                                        } \
                                      } \
                                      while (0)
 
-#define _WRITE(IO, v)  do {  if (&(DIO ##  IO ## _RPORT) >= (uint8_t *)0x100) {_WRITE_C(IO, v); } else {_WRITE_NC(IO, v); }; } while (0)
+#define _WRITE(IO, v)   do { if (&(DIO ## IO ## _RPORT) >= (uint8_t *)0x100) {_WRITE_C(IO, v); } else {_WRITE_NC(IO, v); }; } while (0)
 
-/// toggle a pin
-#define _TOGGLE(IO)  do {DIO ##  IO ## _RPORT = MASK(DIO ## IO ## _PIN); } while (0)
+// toggle a pin
+#define _TOGGLE(IO)     do {DIO ## IO ## _RPORT ^= _BV(DIO ## IO ## _PIN); } while (0)
 
-/// set pin as input
-#define _SET_INPUT(IO) do {DIO ##  IO ## _DDR &= ~MASK(DIO ## IO ## _PIN); } while (0)
-/// set pin as output
-#define _SET_OUTPUT(IO) do {DIO ##  IO ## _DDR |=  MASK(DIO ## IO ## _PIN); } while (0)
+#define _SET_INPUT(IO)  do {DIO ## IO ## _DDR &= ~_BV(DIO ## IO ## _PIN); } while (0)
+#define _SET_OUTPUT(IO) do {DIO ## IO ## _DDR |= _BV(DIO ## IO ## _PIN); } while (0)
 
-/// check if pin is an input
-#define _GET_INPUT(IO)  ((DIO ## IO ## _DDR & MASK(DIO ## IO ## _PIN)) == 0)
-/// check if pin is an output
-#define _GET_OUTPUT(IO)  ((DIO ## IO ## _DDR & MASK(DIO ## IO ## _PIN)) != 0)
-
-/// check if pin is an timer
+#define _GET_INPUT(IO)  ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) == 0)
+#define _GET_OUTPUT(IO) ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) != 0)
 #define _GET_TIMER(IO)  (DIO ## IO ## _PWM)
 
-//  why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+#define READ(IO)    _READ(IO)
+#define WRITE(IO,V) _WRITE(IO,V)
+#define TOGGLE(IO)  _TOGGLE(IO)
 
-/// Read a pin wrapper
-#define READ(IO)          _READ(IO)
-/// Write to a pin wrapper
-#define WRITE(IO, v)      _WRITE(IO, v)
+#define SET_INPUT(IO)   _SET_INPUT(IO)
+#define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
+#define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
 
-/// toggle a pin wrapper
-#define TOGGLE(IO)        _TOGGLE(IO)
+#define GET_INPUT(IO)   _GET_INPUT(IO)
+#define GET_OUTPUT(IO)  _GET_OUTPUT(IO)
+#define GET_TIMER(IO)   _GET_TIMER(IO)
 
-/// set pin as input wrapper
-#define SET_INPUT(IO)     _SET_INPUT(IO)
-/// set pin as output wrapper
-#define SET_OUTPUT(IO)    _SET_OUTPUT(IO)
-
-/// check if pin is an input wrapper
-#define GET_INPUT(IO)     _GET_INPUT(IO)
-/// check if pin is an output wrapper
-#define GET_OUTPUT(IO)    _GET_OUTPUT(IO)
-
-/// check if pin is an timer wrapper
-#define GET_TIMER(IO)     _GET_TIMER(IO)
-
-// Shorthand
-#define OUT_WRITE(IO, v)  { SET_OUTPUT(IO); WRITE(IO, v); }
+#define OUT_WRITE(IO, v) do{ SET_OUTPUT(IO); WRITE(IO, v); }while(0)
 
 // Pullup
-#define PULLUP(IO)        _WRITE(IO, HIGH)
+#define PULLUP(IO)      _WRITE(IO, HIGH)
 #define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
 
 /**
-  ports and functions
-
-  added as necessary or if I feel like it- not a comprehensive list!
-*/
-
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__)
+ * Ports and Functions
+ */
+#if ENABLED(__AVR_ATmega168__) || ENABLED(__AVR_ATmega328__) || ENABLED(__AVR_ATmega328P__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1
@@ -146,8 +122,8 @@
   #define DEBUG_LED   AIO5
 
   /**
-  pins
-  */
+   * pins
+   */
 
   #define DIO0_PIN    PIND0
   #define DIO0_RPORT  PIND
@@ -232,7 +208,6 @@
   #define DIO13_WPORT PORTB
   #define DIO13_DDR   DDRB
   #define DIO13_PWM   NULL
-
 
   #define DIO14_PIN   PINC0
   #define DIO14_RPORT PINC
@@ -338,7 +313,6 @@
   #define PB7_DDR     DDRB
   #define PB7_PWM     NULL
 
-
   #undef PC0
   #define PC0_PIN     PINC0
   #define PC0_RPORT   PINC
@@ -394,7 +368,6 @@
   #define PC7_WPORT   PORTC
   #define PC7_DDR     DDRC
   #define PC7_PWM     NULL
-
 
   #undef PD0
   #define PD0_PIN     PIND0
@@ -453,7 +426,7 @@
   #define PD7_PWM     NULL
 #endif  /*  _AVR_ATmega{168,328,328P}__ */
 
-#if defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(__AVR_ATmega1284P__)
+#if ENABLED(__AVR_ATmega644__) || ENABLED(__AVR_ATmega644P__) || ENABLED(__AVR_ATmega644PA__) || ENABLED(__AVR_ATmega1284P__)
   // UART
   #define RXD         DIO8
   #define TXD         DIO9
@@ -483,8 +456,8 @@
 
   #define DEBUG_LED   DIO0
   /**
-  pins
-  */
+   * pins
+   */
 
   #define DIO0_PIN    PINB0
   #define DIO0_RPORT  PINB
@@ -954,7 +927,7 @@
   #define PD7_PWM     OCR2A
 #endif  /*  _AVR_ATmega{644,644P,644PA}__ */
 
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1
@@ -2049,7 +2022,7 @@
 
 #endif
 
-#if defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__)
+#if ENABLED(__AVR_AT90USB1287__) || ENABLED(__AVR_AT90USB1286__) || ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB647__)
 
   // change for your board
   #define DEBUG_LED   DIO31 /* led D5 red */
@@ -3353,7 +3326,7 @@
 #endif // __AVR_AT90usbxxx__
 
 
-#if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+#if ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega2561__)
   // UART
   #define RXD         DIO0
   #define TXD         DIO1

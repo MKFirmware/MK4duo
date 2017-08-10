@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,24 @@
  */
 
 #ifndef __BUZZER_H__
-  #define __BUZZER_H__
+#define __BUZZER_H__
 
-  #if HAS(BUZZER)
-    void buzz(long duration, uint16_t freq);
-  #endif
+#if HAS_BUZZER
+
+  class Buzzer {
+
+    public:
+
+      static void buzz(long duration, uint16_t freq);
+
+  };
+
+  #define BUZZ(duration, freq) Buzzer::buzz(duration, freq)
+
+#else
+
+  #define BUZZ(duration, freq) { /* NOOP */ }
+
+#endif /* HAS_BUFFER */
 
 #endif // __BUZZER_H__

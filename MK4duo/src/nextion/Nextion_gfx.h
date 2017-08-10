@@ -51,11 +51,11 @@
 
     public:
 
-      GFX(const uint16_t x = 0, const uint16_t y = 0, const uint16_t width = 1, const uint16_t height = 1) {
+      GFX(const uint16_t px = 0, const uint16_t py = 0, const uint16_t width = 1, const uint16_t height = 1) {
 
-        _top = y;
-        _left = x;
-        _width = width;
+        _left   = px;
+        _top    = py;
+        _width  = width;
         _height = height;
 
         for (uint8_t i = 0; i < 3; i++)
@@ -64,6 +64,13 @@
         for (uint8_t i = 0; i < NX_MAX; i++)
           color_tool[i] = 65535;
         color_tool[NX_BACKGROUND] = 0;
+      }
+
+      void set_position(const uint16_t px = 0, const uint16_t py = 0, const uint16_t width = 1, const uint16_t height = 1) {
+        _left   = px;
+        _top    = py;
+        _width  = width;
+        _height = height;
       }
 
       void clear() {

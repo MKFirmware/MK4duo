@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ void watchdog_init() {
   ISR(WDT_vect) {
     SERIAL_ERROR_START;
     SERIAL_ERRORLNPGM("Something is wrong, please turn off the printer.");
-    kill(PSTR("ERR:Please Reset")); //kill blocks //16 characters so it fits on a 16x2 display
+    printer.kill(PSTR("ERR:Please Reset")); // kill blocks // 16 characters so it fits on a 16x2 display
     while (1); //wait for user or serial reset
   }
 #endif // WATCHDOG_RESET_MANUAL

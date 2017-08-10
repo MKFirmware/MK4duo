@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@
     digitalWrite(SPI_EEPROM2_CS, HIGH);
     digitalWrite(SPI_FLASH_CS, HIGH);
     digitalWrite(SS_PIN, HIGH);
-    HAL::spiBegin();
+    spiBegin();
 
     //init onboard DAC
     HAL::delayMicroseconds(2U);
@@ -60,7 +60,7 @@
     HAL::delayMicroseconds(2U);
     digitalWrite(DAC0_SYNC, LOW);
 
-    HAL::spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
+    spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
     digitalWrite(DAC0_SYNC, HIGH);
 
     #if DRIVER_EXTRUDERS > 1
@@ -72,7 +72,7 @@
       HAL::delayMicroseconds(2U);
       digitalWrite(DAC1_SYNC, LOW);
 
-      HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+      spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
       digitalWrite(DAC1_SYNC, HIGH);
     #endif
 
@@ -120,7 +120,7 @@
     }
 
     HAL::delayMicroseconds(2U);
-    HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+    spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
 
     return;
   }

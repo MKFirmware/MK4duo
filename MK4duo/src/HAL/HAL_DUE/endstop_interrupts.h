@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,56 +29,53 @@
  * least one endstop has changed state, saving valuable CPU cycles.
  *
  * This feature only works when all used endstop pins can generate an 'external interrupt'.
- *
- * Test whether pins issue interrupts on your board by flashing 'pin_interrupt_test.ino'.
- * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
-#ifndef _ENDSTOP_INTERRUPTS_H
-#define _ENDSTOP_INTERRUPTS_H
+#ifndef _ENDSTOP_INTERRUPTS_H_
+#define _ENDSTOP_INTERRUPTS_H_
 
 /**
  *  Endstop interrupts for Due based targets.
  *  On Due, all pins support external interrupt capability.
  */
 
-void setup_endstop_interrupts( void ) {
+void Endstops::setup_endstop_interrupts(void) {
 
-  #if HAS(X_MAX)
+  #if HAS_X_MAX
     attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(X_MIN)
+  #if HAS_X_MIN
     attachInterrupt(digitalPinToInterrupt(X_MIN_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Y_MAX)
+  #if HAS_Y_MAX
     attachInterrupt(digitalPinToInterrupt(Y_MAX_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Y_MIN)
+  #if HAS_Y_MIN
     attachInterrupt(digitalPinToInterrupt(Y_MIN_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Z_MAX)
+  #if HAS_Z_MAX
     attachInterrupt(digitalPinToInterrupt(Z_MAX_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Z_MIN)
+  #if HAS_Z_MIN
     attachInterrupt(digitalPinToInterrupt(Z_MIN_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Z2_MAX)
+  #if HAS_Z2_MAX
     attachInterrupt(digitalPinToInterrupt(Z2_MAX_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Z2_MIN)
+  #if HAS_Z2_MIN
     attachInterrupt(digitalPinToInterrupt(Z2_MIN_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
-  #if HAS(Z_PROBE_PIN)
+  #if HAS_Z_PROBE_PIN
     attachInterrupt(digitalPinToInterrupt(Z_PROBE_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 }
 
-#endif // HAL_ENDSTOP_INTERRUPTS_SAM_H
+#endif /* _ENDSTOP_INTERRUPTS_H_ */

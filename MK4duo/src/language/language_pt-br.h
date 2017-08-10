@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@
 #define MSG_LEVEL_BED_HOMING                "Homing XYZ"
 #define MSG_LEVEL_BED_WAITING               "Click to Begin"
 #define MSG_LEVEL_BED_DONE                  "Leveling Done!"
-#define MSG_LEVEL_BED_CANCEL                "Cancel"
 #define MSG_SET_HOME_OFFSETS                "Ajustar Jogo"
 #define MSG_HOME_OFFSETS_APPLIED            "Offsets applied"
 #define MSG_SET_ORIGIN                      "Ajustar orig."
@@ -87,6 +86,7 @@
 #define MSG_PID_D                           "PID-D"
 #define MSG_PID_C                           "PID-C"
 #define MSG_ACC                             "Acc"
+#define MSG_JERK                            "Jogo"
 #define MSG_VX_JERK                         "jogo VX"
 #define MSG_VY_JERK                         "jogo VY"
 #define MSG_VZ_JERK                         "jogo VZ"
@@ -97,6 +97,7 @@
 #define MSG_AMAX                            "Amax "
 #define MSG_A_RETRACT                       "Retrair A"
 #define MSG_A_TRAVEL                        "A-movimento"
+#define MSG_STEPS_PER_MM                    "Passo/mm"
 #define MSG_XSTEPS                          "Passo X/mm"
 #define MSG_YSTEPS                          "Passo Y/mm"
 #define MSG_ZSTEPS                          "Passo Z/mm"
@@ -105,14 +106,15 @@
 #define MSG_E2STEPS                         "E2/mm"
 #define MSG_E3STEPS                         "E3/mm"
 #define MSG_E4STEPS                         "E4/mm"
+#define MSG_E5STEPS                         "E5/mm"
 #define MSG_TEMPERATURE                     "Temperatura"
 #define MSG_MOTION                          "Movimento"
-#define MSG_VOLUMETRIC                      "Filamento"
+#define MSG_FILAMENT                        "Filamento"
 #define MSG_VOLUMETRIC_ENABLED              "Extr. em mm3"
 #define MSG_FILAMENT_DIAM                   "Diametro Fil."
 #define MSG_CONTRAST                        "Contraste"
-#define MSG_STORE_EPROM                     "Salvar"
-#define MSG_LOAD_EPROM                      "Ler"
+#define MSG_STORE_EEPROM                    "Salvar"
+#define MSG_LOAD_EEPROM                     "Ler"
 #define MSG_RESTORE_FAILSAFE                "Rest. de emerg."
 #define MSG_REFRESH                         LCD_STR_REFRESH " Restaurar"
 #define MSG_WATCH                           "Monitorar"

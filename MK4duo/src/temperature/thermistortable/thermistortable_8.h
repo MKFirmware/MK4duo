@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,24 +22,24 @@
 
 // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)
 const short temptable_8[][2] PROGMEM = {
-  {    1 * OVERSAMPLENR, 704 },
-  {   54 * OVERSAMPLENR, 216 },
-  {  107 * OVERSAMPLENR, 175 },
-  {  160 * OVERSAMPLENR, 152 },
-  {  213 * OVERSAMPLENR, 137 },
-  {  266 * OVERSAMPLENR, 125 },
-  {  319 * OVERSAMPLENR, 115 },
-  {  372 * OVERSAMPLENR, 106 },
-  {  425 * OVERSAMPLENR,  99 },
-  {  478 * OVERSAMPLENR,  91 },
-  {  531 * OVERSAMPLENR,  85 },
-  {  584 * OVERSAMPLENR,  78 },
-  {  637 * OVERSAMPLENR,  71 },
-  {  690 * OVERSAMPLENR,  65 },
-  {  743 * OVERSAMPLENR,  58 },
-  {  796 * OVERSAMPLENR,  50 },
-  {  849 * OVERSAMPLENR,  42 },
-  {  902 * OVERSAMPLENR,  31 },
-  {  955 * OVERSAMPLENR,  17 },
-  { 1008 * OVERSAMPLENR,   0 }
+  {    1, 704 },
+  {   54, 216 },
+  {  107, 175 },
+  {  160, 152 },
+  {  213, 137 },
+  {  266, 125 },
+  {  319, 115 },
+  {  372, 106 },
+  {  425,  99 },
+  {  478,  91 },
+  {  531,  85 },
+  {  584,  78 },
+  {  637,  71 },
+  {  690,  65 },
+  {  743,  58 },
+  {  796,  50 },
+  {  849,  42 },
+  {  902,  31 },
+  {  955,  17 },
+  { 1008,   0 }
 };

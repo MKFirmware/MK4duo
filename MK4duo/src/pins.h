@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef PINS_H
-#define PINS_H
+#ifndef _PINS_H_
+#define _PINS_H_
 
 #define EEPROM_NONE 0
 #define EEPROM_I2C  1
@@ -39,167 +39,90 @@
 
 
 /****************************************************************************************
-******************** Available chip select pins for HW SPI ******************************
-*****************************************************************************************/
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-  #define MOSI_PIN            51
-  #define MISO_PIN            50
-  #define SCK_PIN             52
-  #define SS_PIN              53
-#elif defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega1284P__)
-  #define MOSI_PIN             5
-  #define MISO_PIN             6
-  #define SCK_PIN              7
-  #define SS_PIN               4
-#elif defined(__AVR_ATmega32U4__)
-  #define MOSI_PIN             2
-  #define MISO_PIN             3
-  #define SCK_PIN              1
-  #define SS_PIN               4
-#elif defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB1286__)
-  #define MOSI_PIN            22
-  #define MISO_PIN            23
-  #define SCK_PIN             21
-  #define SS_PIN              20
-#elif defined(__AVR_ATmega168__) ||defined(__AVR_ATmega168P__) ||defined(__AVR_ATmega328P__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             13
-  #define SS_PIN              10
-#elif defined(__AVR_ATmega1281__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             10
-  #define SS_PIN              16
-#elif defined (ARDUINO_ARCH_SAM)
-  #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
-    #if (SDSS == 4)
-      #define SPI_PIN         87
-      #define SPI_CHAN        1
-    #elif (SDSS == 10)
-      #define SPI_PIN         77
-      #define SPI_CHAN        0
-    #elif (SDSS == 52)
-      #define SPI_PIN         86
-      #define SPI_CHAN        2
-    #elif (SDSS == 59)
-      #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-        #define DUE_SOFTWARE_SPI
-      #else
-        #define SPI_PIN       4
-        #define SPI_CHAN      1
-      #endif
-    #elif (SDSS == 60)
-      #define SPI_PIN         60
-      #define SPI_CHAN        1
-    #else
-      #define SPI_PIN         77
-      #define SPI_CHAN        0
-    #endif
-    #define MISO_PIN          74
-    #define MOSI_PIN          75
-    #define SCK_PIN           76
-  #else
-    #define DUE_SOFTWARE_SPI
-    #define MOSI_PIN		      51
-    #define MISO_PIN		      50
-    #define SCK_PIN 		      52
-  #endif
+ ********************************* END MOTHERBOARD **************************************
+ ****************************************************************************************/
 
-  #if defined(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-    #define SS_PIN            4
-  #else
-    #define SS_PIN            SDSS
-  #endif
-
-#endif
-/****************************************************************************************/
-
-
-
-/****************************************************************************************
-********************************* END MOTHERBOARD ***************************************
-****************************************************************************************/
-
-#ifndef ORIG_X_CS_PIN
+#if DISABLED(ORIG_X_CS_PIN)
   #define ORIG_X_CS_PIN       -1
 #endif
-#ifndef ORIG_Y_CS_PIN
+#if DISABLED(ORIG_Y_CS_PIN)
   #define ORIG_Y_CS_PIN       -1
 #endif
-#ifndef ORIG_Z_CS_PIN
+#if DISABLED(ORIG_Z_CS_PIN)
   #define ORIG_Z_CS_PIN       -1
 #endif
-#ifndef ORIG_E0_CS_PIN
+#if DISABLED(ORIG_E0_CS_PIN)
   #define ORIG_E0_CS_PIN      -1
 #endif
-#ifndef ORIG_E1_CS_PIN
+#if DISABLED(ORIG_E1_CS_PIN)
   #define ORIG_E1_CS_PIN      -1
 #endif
-#ifndef ORIG_E2_CS_PIN
+#if DISABLED(ORIG_E2_CS_PIN)
   #define ORIG_E2_CS_PIN      -1
 #endif
-#ifndef ORIG_E3_CS_PIN
+#if DISABLED(ORIG_E3_CS_PIN)
   #define ORIG_E3_CS_PIN      -1
 #endif
-#ifndef ORIG_E4_CS_PIN
+#if DISABLED(ORIG_E4_CS_PIN)
   #define ORIG_E4_CS_PIN      -1
 #endif
-#ifndef ORIG_E5_CS_PIN
+#if DISABLED(ORIG_E5_CS_PIN)
   #define ORIG_E5_CS_PIN      -1
 #endif
 
-#ifndef ORIG_E0_DIR_PIN
+#if DISABLED(ORIG_E0_DIR_PIN)
   #define ORIG_E0_DIR_PIN     -1
   #define ORIG_E0_ENABLE_PIN  -1
   #define ORIG_E0_STEP_PIN    -1
 #endif
-#ifndef ORIG_E1_DIR_PIN
+#if DISABLED(ORIG_E1_DIR_PIN)
   #define ORIG_E1_DIR_PIN     -1
   #define ORIG_E1_ENABLE_PIN  -1
   #define ORIG_E1_STEP_PIN    -1
 #endif
-#ifndef ORIG_E2_DIR_PIN
+#if DISABLED(ORIG_E2_DIR_PIN)
   #define ORIG_E2_DIR_PIN     -1
   #define ORIG_E2_ENABLE_PIN  -1
   #define ORIG_E2_STEP_PIN    -1
 #endif
-#ifndef ORIG_E3_DIR_PIN
+#if DISABLED(ORIG_E3_DIR_PIN)
   #define ORIG_E3_DIR_PIN     -1
   #define ORIG_E3_ENABLE_PIN  -1
   #define ORIG_E3_STEP_PIN    -1
 #endif
-#ifndef ORIG_E4_DIR_PIN
+#if DISABLED(ORIG_E4_DIR_PIN)
   #define ORIG_E4_DIR_PIN     -1
   #define ORIG_E4_ENABLE_PIN  -1
   #define ORIG_E4_STEP_PIN    -1
 #endif
-#ifndef ORIG_E5_DIR_PIN
+#if DISABLED(ORIG_E5_DIR_PIN)
   #define ORIG_E5_DIR_PIN     -1
   #define ORIG_E5_ENABLE_PIN  -1
   #define ORIG_E5_STEP_PIN    -1
 #endif
 
-#ifndef ORIG_HEATER_1_PIN
+#if DISABLED(ORIG_HEATER_1_PIN)
   #define ORIG_HEATER_1_PIN   -1
 #endif
-#ifndef ORIG_TEMP_1_PIN
+#if DISABLED(ORIG_TEMP_1_PIN)
   #define ORIG_TEMP_1_PIN     -1
 #endif
-#ifndef ORIG_HEATER_2_PIN
+#if DISABLED(ORIG_HEATER_2_PIN)
   #define ORIG_HEATER_2_PIN   -1
 #endif
-#ifndef ORIG_TEMP_2_PIN
+#if DISABLED(ORIG_TEMP_2_PIN)
   #define ORIG_TEMP_2_PIN     -1
 #endif
-#ifndef ORIG_HEATER_3_PIN
+#if DISABLED(ORIG_HEATER_3_PIN)
   #define ORIG_HEATER_3_PIN   -1
 #endif
-#ifndef ORIG_TEMP_3_PIN
+#if DISABLED(ORIG_TEMP_3_PIN)
   #define ORIG_TEMP_3_PIN     -1
 #endif
 
-#if ENABLED(X_STOP_PIN)
+#if PIN_EXISTS(X_STOP)
+  #undef ORIG_X_MIN_PIN
+  #undef ORIG_X_MAX_PIN
   #if X_HOME_DIR < 0
     #define ORIG_X_MIN_PIN X_STOP_PIN
     #define ORIG_X_MAX_PIN -1
@@ -209,7 +132,9 @@
   #endif
 #endif
 
-#if ENABLED(Y_STOP_PIN)
+#if PIN_EXISTS(Y_STOP)
+  #undef ORIG_Y_MIN_PIN
+  #undef ORIG_Y_MAX_PIN
   #if Y_HOME_DIR < 0
     #define ORIG_Y_MIN_PIN Y_STOP_PIN
     #define ORIG_Y_MAX_PIN -1
@@ -219,7 +144,9 @@
   #endif
 #endif
 
-#if ENABLED(Z_STOP_PIN)
+#if PIN_EXISTS(Z_STOP)
+  #undef ORIG_Z_MIN_PIN
+  #undef ORIG_Z_MAX_PIN
   #if Z_HOME_DIR < 0
     #define ORIG_Z_MIN_PIN Z_STOP_PIN
     #define ORIG_Z_MAX_PIN -1
@@ -229,63 +156,63 @@
   #endif
 #endif
 
-#ifndef X_MS1_PIN
+#if DISABLED(X_MS1_PIN)
   #define X_MS1_PIN     -1
 #endif
-#ifndef X_MS2_PIN
+#if DISABLED(X_MS2_PIN)
   #define X_MS2_PIN     -1
 #endif
-#ifndef Y_MS1_PIN
+#if DISABLED(Y_MS1_PIN)
   #define Y_MS1_PIN     -1
 #endif
-#ifndef Y_MS2_PIN
+#if DISABLED(Y_MS2_PIN)
   #define Y_MS2_PIN     -1
 #endif
-#ifndef Z_MS1_PIN
+#if DISABLED(Z_MS1_PIN)
   #define Z_MS1_PIN     -1
 #endif
-#ifndef Z_MS2_PIN
+#if DISABLED(Z_MS2_PIN)
   #define Z_MS2_PIN     -1
 #endif
-#ifndef E0_MS1_PIN
+#if DISABLED(E0_MS1_PIN)
   #define E0_MS1_PIN    -1
 #endif
-#ifndef E0_MS2_PIN
+#if DISABLED(E0_MS2_PIN)
   #define E0_MS2_PIN    -1
 #endif
-#ifndef E1_MS1_PIN
+#if DISABLED(E1_MS1_PIN)
   #define E1_MS1_PIN    -1
 #endif
-#ifndef E1_MS2_PIN
+#if DISABLED(E1_MS2_PIN)
   #define E1_MS2_PIN    -1
 #endif
-#ifndef DIGIPOTSS_PIN
+#if DISABLED(DIGIPOTSS_PIN)
   #define DIGIPOTSS_PIN -1
 #endif
-#ifndef LCD_CONTRAST
+#if DISABLED(LCD_CONTRAST)
   #define LCD_CONTRAST  -1
 #endif
-#ifndef Z2_MIN_PIN
+#if DISABLED(Z2_MIN_PIN)
   #define Z2_MIN_PIN    -1
 #endif
-#ifndef Z2_MAX_PIN
+#if DISABLED(Z2_MAX_PIN)
   #define Z2_MAX_PIN    -1
 #endif
 
-#ifndef ORIG_FAN_PIN
+#if DISABLED(ORIG_FAN_PIN)
   #define ORIG_FAN_PIN  -1
 #endif
-#ifndef ORIG_FAN1_PIN
+#if DISABLED(ORIG_FAN1_PIN)
   #define ORIG_FAN1_PIN -1
 #endif
-#ifndef ORIG_FAN2_PIN
+#if DISABLED(ORIG_FAN2_PIN)
   #define ORIG_FAN2_PIN -1
 #endif
-#ifndef ORIG_FAN3_PIN
+#if DISABLED(ORIG_FAN3_PIN)
   #define ORIG_FAN3_PIN -1
 #endif
 
-#ifndef ORIG_BEEPER_PIN
+#if DISABLED(ORIG_BEEPER_PIN)
   #define ORIG_BEEPER_PIN -1
 #endif
 
@@ -293,63 +220,37 @@
 #include "../Configuration_Pins.h"
 /****************************************************************************************/
 
-#if DISABLED(DUAL_X_CARRIAGE)
-  #if X_HOME_DIR > 0    // Home X to MAX
-    #undef X_MIN_PIN
-    #define X_MIN_PIN -1
-  #elif X_HOME_DIR < 0  // Home X to MIN
-    #undef X_MAX_PIN
-    #define X_MAX_PIN -1
-  #endif // X_HOME_DIR > 0
-#endif // DISABLED(DUAL_X_CARRIAGE)
+// Disabled MIN or MAX endstop if not used
+#if DISABLED(ENABLED_ALL_SIX_ENDSTOP)
 
-#if Y_HOME_DIR > 0    // Home Y to MAX
-  #undef Y_MIN_PIN
-  #define Y_MIN_PIN -1
-#elif Y_HOME_DIR < 0  // Home Y to MIN
-  #undef Y_MAX_PIN
-  #define Y_MAX_PIN -1
-#endif // Y_HOME_DIR > 0
+  #if DISABLED(DUAL_X_CARRIAGE)
+    #if X_HOME_DIR > 0    // Home X to MAX
+      #undef X_MIN_PIN
+      #define X_MIN_PIN -1
+    #elif X_HOME_DIR < 0  // Home X to MIN
+      #undef X_MAX_PIN
+      #define X_MAX_PIN -1
+    #endif // X_HOME_DIR > 0
+  #endif // DISABLED(DUAL_X_CARRIAGE)
 
-#if Z_HOME_DIR > 0    // Home Z to MAX
-  #undef Z_MIN_PIN
-  #define Z_MIN_PIN -1
-#elif Z_HOME_DIR < 0  // Home Z to MIN
-  #undef Z_MAX_PIN
-  #define Z_MAX_PIN -1
-#endif // Z_HOME_DIR > 0
+  #if Y_HOME_DIR > 0    // Home Y to MAX
+    #undef Y_MIN_PIN
+    #define Y_MIN_PIN -1
+  #elif Y_HOME_DIR < 0  // Home Y to MIN
+    #undef Y_MAX_PIN
+    #define Y_MAX_PIN -1
+  #endif // Y_HOME_DIR > 0
 
-/****************************************************************************************/
+  #if Z_HOME_DIR > 0    // Home Z to MAX
+    #undef Z_MIN_PIN
+    #define Z_MIN_PIN -1
+  #elif Z_HOME_DIR < 0  // Home Z to MIN
+    #undef Z_MAX_PIN
+    #define Z_MAX_PIN -1
+  #endif // Z_HOME_DIR > 0
 
-#if ENABLED(DISABLE_XMAX_ENDSTOP)
-  #undef X_MAX_PIN
-  #define X_MAX_PIN -1
 #endif
 
-#if ENABLED(DISABLE_XMIN_ENDSTOP)
-  #undef X_MIN_PIN 
-  #define X_MIN_PIN -1
-#endif
-
-#if ENABLED(DISABLE_YMAX_ENDSTOP)
-  #undef Y_MAX_PIN
-  #define Y_MAX_PIN -1
-#endif
-
-#if ENABLED(DISABLE_YMIN_ENDSTOP)
-  #undef Y_MIN_PIN
-  #define Y_MIN_PIN -1
-#endif
-
-#if ENABLED(DISABLE_ZMAX_ENDSTOP)
-  #undef Z_MAX_PIN
-  #define Z_MAX_PIN -1
-#endif
-
-#if ENABLED(DISABLE_ZMIN_ENDSTOP)
-  #undef Z_MIN_PIN 
-  #define Z_MIN_PIN -1
-#endif
 /****************************************************************************************/
 
 // List of pins which to ignore when asked to change by gcode, 0 and 1 are RX and TX, do not mess with those!
@@ -405,27 +306,27 @@
   #define _E5_PINS
 #endif
 
-#ifndef TEMP_COOLER_PIN
+#if DISABLED(TEMP_COOLER_PIN)
   #define TEMP_COOLER_PIN -1
 #endif
 
-#ifndef COOLER_PIN
+#if DISABLED(COOLER_PIN)
   #define COOLER_PIN -1
 #endif
 
-#ifndef LASER_PWR_PIN
+#if DISABLED(LASER_PWR_PIN)
   #define LASER_PWR_PIN -1
 #endif
 
-#ifndef LASER_TTL_PIN
-  #define LASER_TTL_PIN -1
+#if DISABLED(LASER_PWM_PIN)
+  #define LASER_PWM_PIN -1
 #endif
 
-#ifndef FLOWMETER_PIN
+#if DISABLED(FLOWMETER_PIN)
   #define FLOWMETER_PIN -1
 #endif
 
-#ifndef CNCROUTER_PIN
+#if DISABLED(CNCROUTER_PIN)
   #define CNCROUTER_PIN -1
 #endif
 
@@ -439,8 +340,8 @@
                         analogInputToDigitalPin(TEMP_BED_PIN), \
                         analogInputToDigitalPin(TEMP_CHAMBER_PIN), \
                         analogInputToDigitalPin(TEMP_COOLER_PIN), \
-                        COOLER_PIN, LASER_PWR_PIN, LASER_TTL_PIN, \
+                        COOLER_PIN, LASER_PWR_PIN, LASER_PWM_PIN, \
                         FLOWMETER_PIN \
                        }
 
-#endif //__PINS_H
+#endif /* _PINS_H_ */

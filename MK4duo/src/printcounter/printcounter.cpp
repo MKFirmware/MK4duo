@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ void PrintCounter::loadStats() {
     PrintCounter::debug(PSTR("loadStats"));
   #endif
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     // Checks if the SDCARD is inserted
     if(IS_SD_INSERTED && !IS_SD_PRINTING) {
       card.RetrieveSettings(true);
@@ -65,7 +65,7 @@ void PrintCounter::saveStats() {
   // Refuses to save data is object is not loaded
   if (!this->loaded) return;
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     card.StoreSettings();
   #endif
 }
@@ -74,14 +74,14 @@ void PrintCounter::showStats() {
   char buffer[21];
   duration_t elapsed;
 
-  SERIAL_M(MSG_STATS);
+  SERIAL_MSG(MSG_STATS);
   SERIAL_MV("Total: ", this->data.totalPrints);
   SERIAL_MV(", Finished: ", this->data.finishedPrints);
-  SERIAL_M(", Failed: "); // Note: Removes 1 from failures with an active counter
+  SERIAL_MSG(", Failed: "); // Note: Removes 1 from failures with an active counter
   SERIAL_EV (this->data.totalPrints - this->data.finishedPrints -
             ((this->isRunning() || this->isPaused()) ? 1 : 0));
 
-  SERIAL_M(MSG_STATS);
+  SERIAL_MSG(MSG_STATS);
   elapsed = this->data.printTime;
   elapsed.toString(buffer);
   SERIAL_MT("Total print time: ", buffer);
@@ -89,7 +89,7 @@ void PrintCounter::showStats() {
   elapsed.toString(buffer);
   SERIAL_EMT(", Power on time: ", buffer);
 
-  SERIAL_M(MSG_STATS);
+  SERIAL_MSG(MSG_STATS);
 
   uint16_t  kmeter = (long)this->data.filamentUsed / 1000 / 1000,
             meter = ((long)this->data.filamentUsed / 1000) % 1000,
@@ -123,7 +123,7 @@ void PrintCounter::tick() {
     #endif
   }
 
-  #if ENABLED(SDSUPPORT) && ENABLED(SD_SETTINGS)
+  #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     const static millis_t j = this->saveInterval * 1000UL;
     if (!this->loaded) {
       this->loadStats();
@@ -180,7 +180,7 @@ void PrintCounter::reset() {
 
   void PrintCounter::debug(const char func[]) {
     SERIAL_SM(DEB, "PrintCounter::");
-    SERIAL_M(func);
+    SERIAL_MSG(func);
     SERIAL_EM("()");
   }
 

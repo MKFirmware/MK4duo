@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,20 +56,40 @@
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-
 #include <util/delay.h>
 #include <avr/pgmspace.h>
+#include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+typedef uint16_t  HAL_TIMER_TYPE;
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+
+// --------------------------------------------------------------------------
+// Includes
+// --------------------------------------------------------------------------
 #include "fastio.h"
 #include "watchdog_AVR.h"
+
+// BLUETOOTH
+#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
+  #undef SERIAL_PORT
+  #undef BAUDRATE
+  #define SERIAL_PORT BLUETOOTH_PORT
+  #define BAUDRATE    BLUETOOTH_BAUD
+#endif
 
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
@@ -96,7 +116,7 @@
 
 #define PACK
 
-#if defined(ARDUINO) && ARDUINO >= 100
+#if ENABLED(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
@@ -107,12 +127,13 @@
 #undef HIGH
 #define HIGH        1
 
+// EEPROM START
+#define EEPROM_OFFSET 100
+
 // Voltage for Pin
 #define HAL_VOLTAGE_PIN 5.0
 
 #define ADV_NEVER 65535
-
-#define OVERSAMPLENR 16
 
 /**
  * Optimized math functions for AVR
@@ -199,36 +220,48 @@
                  "r26" , "r27" \
                )
 
-// --------------------------------------------------------------------------
-// Types
-// --------------------------------------------------------------------------
+// Macros for stepper.cpp
+#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU24X32toH16(intRes, longIn1, longIn2)
 
-typedef uint16_t HAL_TIMER_TYPE;
-typedef uint32_t millis_t;
+// TEMPERATURE
+#define ANALOG_REF_AREF 0
+#define ANALOG_REF_AVCC _BV(REFS0)
+#define ANALOG_REF ANALOG_REF_AVCC
+#define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define OVERSAMPLENR 5
 
 // --------------------------------------------------------------------------
 // Timer
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 256.0)
+#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
-// Delays
-#define CYCLES_EATEN_BY_CODE 240
-#define CYCLES_EATEN_BY_E     60
+#define STEPPER_TIMER_PRESCALE  64
 
 #define STEPPER_TIMER OCR1A
-#define TEMP_TIMER 0
+#define STEPPER_TCCR  TCCR1A
+#define STEPPER_TIMSK TIMSK1
+#define STEPPER_OCIE  OCIE1A
 
-#define ENABLE_STEPPER_INTERRUPT()    SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_INTERRUPT()   CBI(TIMSK1, OCIE1A)
+#define TEMP_TIMER    OCR0B
+#define TEMP_TCCR     TCCR0B
+#define TEMP_TIMSK    TIMSK0
+#define TEMP_OCIE     OCIE0B
 
-#define ENABLE_TEMP_INTERRUPT()       SBI(TIMSK0, OCIE0B)
-#define DISABLE_TEMP_INTERRUPT()      CBI(TIMSK0, OCIE0B)
+#define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
+#define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
 
-#define HAL_timer_start (timer_num, frequency)
-#define HAL_timer_set_count(timer, count) timer = (count)
-#define HAL_timer_isr_prologue(timer_num)
+#define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
+
+#define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
+#define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
+
+#define HAL_timer_start(timer_num, frequency) { }
+#define HAL_timer_get_current_count(timer)    TCNT0
+#define HAL_timer_set_count(timer, count)     timer = (count)
+#define HAL_timer_isr_prologue(timer_num)     { }
 
 #define HAL_TIMER_SET_STEPPER_COUNT(n)  HAL_timer_set_count(STEPPER_TIMER, n)
 #define HAL_TIMER_SET_TEMP_COUNT(n)     HAL_timer_set_count(TEMP_TIMER, n)
@@ -251,11 +284,48 @@ typedef uint32_t millis_t;
         } while(0)
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000UL) // 16 or 20
+#define CYCLES_PER_US ((F_CPU) / 1000000) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-// Temperature PID_dT
-#define PID_dT ((OVERSAMPLENR * 18.0) / (TEMP_TIMER_FREQUENCY * PID_dT_FACTOR))
+
+// Highly granular delays for step pulses, etc.
+#define DELAY_0_NOP   NOOP
+#define DELAY_1_NOP   __asm__("nop\n\t")
+#define DELAY_2_NOP   DELAY_1_NOP;  DELAY_1_NOP
+#define DELAY_3_NOP   DELAY_1_NOP;  DELAY_2_NOP
+#define DELAY_4_NOP   DELAY_1_NOP;  DELAY_3_NOP
+#define DELAY_5_NOP   DELAY_1_NOP;  DELAY_4_NOP
+#define DELAY_10_NOP  DELAY_5_NOP;  DELAY_5_NOP
+#define DELAY_20_NOP  DELAY_10_NOP; DELAY_10_NOP
+
+#define DELAY_NOPS(X) \
+  switch (X) { \
+    case 20: DELAY_1_NOP; case 19: DELAY_1_NOP; \
+    case 18: DELAY_1_NOP; case 17: DELAY_1_NOP; \
+    case 16: DELAY_1_NOP; case 15: DELAY_1_NOP; \
+    case 14: DELAY_1_NOP; case 13: DELAY_1_NOP; \
+    case 12: DELAY_1_NOP; case 11: DELAY_1_NOP; \
+    case 10: DELAY_1_NOP; case 9:  DELAY_1_NOP; \
+    case 8:  DELAY_1_NOP; case 7:  DELAY_1_NOP; \
+    case 6:  DELAY_1_NOP; case 5:  DELAY_1_NOP; \
+    case 4:  DELAY_1_NOP; case 3:  DELAY_1_NOP; \
+    case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
+  }
+
+#if CYCLES_PER_MICROSECOND == 16
+  #define DELAY_1US DELAY_10_NOP; DELAY_5_NOP; DELAY_1_NOP
+#else
+  #define DELAY_1US DELAY_20_NOP
+#endif
+#define DELAY_2US  DELAY_1US; DELAY_1US
+#define DELAY_3US  DELAY_1US; DELAY_2US
+#define DELAY_4US  DELAY_1US; DELAY_3US
+#define DELAY_5US  DELAY_1US; DELAY_4US
+#define DELAY_6US  DELAY_1US; DELAY_5US
+#define DELAY_7US  DELAY_1US; DELAY_6US
+#define DELAY_8US  DELAY_1US; DELAY_7US
+#define DELAY_9US  DELAY_1US; DELAY_8US
+#define DELAY_10US DELAY_1US; DELAY_9US
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -278,6 +348,9 @@ class InterruptProtectedBlock {
     }
 };
 
+void HAL_stepper_timer_start();
+void HAL_temp_timer_start();
+
 class HAL {
   public:
 
@@ -285,113 +358,49 @@ class HAL {
 
     virtual ~HAL();
 
-    // do any hardware-specific initialization here
-    static inline void hwSetup(void) { /* noop */ }
+    #if ANALOG_INPUTS > 0
+      static int16_t AnalogInputValues[ANALOG_INPUTS];
+    #endif
 
-    static inline void clear_reset_source() { MCUSR = 0; }
-    static inline uint8_t get_reset_source() { return MCUSR; }
+    static bool execute_100ms;
+
+    // do any hardware-specific initialization here
+    static inline void hwSetup() {}
+
+    static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();
 
-    // SPI related functions
-    static void spiBegin() {
-      #if SS_PIN >= 0
-        SET_INPUT(MISO_PIN);
-        SET_OUTPUT(MOSI_PIN);
-        SET_OUTPUT(SCK_PIN);
-        // SS must be in output mode even it is not chip select
-        SET_OUTPUT(SS_PIN);
-        // set SS high - may be chip select for another SPI device
-        WRITE(SS_PIN, HIGH);
-      #endif
-    }
-    static inline void spiInit(uint8_t spiRate) {
-      uint8_t r = 0;
-      for (uint8_t b = 2; spiRate > b && r < 6; b <<= 1, r++);
+    static void analogStart();
+    static void analogRead();
 
-      SET_OUTPUT(SS_PIN);
-      WRITE(SS_PIN, HIGH);
-      SET_OUTPUT(SCK_PIN);
-      SET_OUTPUT(MOSI_PIN);
-      SET_INPUT(MISO_PIN);
-      #ifdef PRR
-        PRR &= ~(1 << PRSPI);
-      #elif defined PRR0
-        PRR0 &= ~(1 << PRSPI);
-      #endif
-      // See avr processor documentation
-      SPCR = (1 << SPE) | (1 << MSTR) | (r >> 1);
-      SPSR = (r & 1 || r == 6 ? 0 : 1) << SPI2X;
-    }
-    static inline uint8_t spiReceive(uint8_t send = 0xFF) {
-      SPDR = send;
-      while (!(SPSR & (1 << SPIF))) {}
-      return SPDR;
-    }
-    static inline void spiReadBlock(uint8_t* buf, size_t nbyte) {
-      if (nbyte-- == 0) return;
-      SPDR = 0XFF;
-      for (size_t i = 0; i < nbyte; i++) {
-        while (!(SPSR & (1 << SPIF))) {}
-        buf[i] = SPDR;
-        SPDR = 0XFF;
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-      buf[nbyte] = SPDR;
-    }
-    static inline void spiSend(uint8_t b) {
-      SPDR = b;
-      while (!(SPSR & (1 << SPIF))) {}
-    }
-    static inline void spiSend(const uint8_t* buf, size_t n) {
-      if (n == 0) return;
-      SPDR = buf[0];
-      if (n > 1) {
-        uint8_t b = buf[1];
-        size_t i = 2;
-        while (1) {
-          while (!(SPSR & (1 << SPIF))) {}
-          SPDR = b;
-          if (i == n) break;
-          b = buf[i++];
-        }
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-    }
-    static inline __attribute__((always_inline))
-    void spiSendBlock(uint8_t token, const uint8_t* buf) {
-      SPDR = token;
-      for (uint16_t i = 0; i < 512; i += 2) {
-        while (!(SPSR & (1 << SPIF))) {}
-        SPDR = buf[i];
-        while (!(SPSR & (1 << SPIF))) {}
-        SPDR = buf[i + 1];
-      }
-      while (!(SPSR & (1 << SPIF))) {}
-    }
+    static void setPwmFrequency(uint8_t pin, uint8_t val);
 
-    static inline void digitalWrite(uint8_t pin,uint8_t value) {
+    static inline void analogWrite(const Pin pin, const uint8_t value) {
+      ::analogWrite(pin, value);
+    }
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
       ::digitalWrite(pin, value);
     }
-    static inline uint8_t digitalRead(uint8_t pin) {
+    static inline uint8_t digitalRead(const Pin pin) {
       return ::digitalRead(pin);
     }
-    static inline void pinMode(uint8_t pin,uint8_t mode) {
+    static inline void pinMode(const Pin pin, const uint8_t mode) {
       ::pinMode(pin, mode);
     }
 
-    static inline void delayMicroseconds(unsigned int delayUs) {
+    static inline void delayMicroseconds(const uint16_t delayUs) {
       ::delayMicroseconds(delayUs);
     }
-    static inline void delayMilliseconds(unsigned int delayMs) {
+    static inline void delayMilliseconds(const uint16_t delayMs) {
       ::delay(delayMs);
     }
-    static inline unsigned long timeInMilliseconds() {
+    static inline uint32_t timeInMilliseconds() {
       return millis();
     }
 
-    static inline void serialSetBaudrate(long baud) {
+    static inline void serialSetBaudrate(const uint16_t baud) {
       MKSERIAL.begin(baud);
     }
     static inline bool serialByteAvailable() {
@@ -400,7 +409,7 @@ class HAL {
     static inline uint8_t serialReadByte() {
       return MKSERIAL.read();
     }
-    static inline void serialWriteByte(char b) {
+    static inline void serialWriteByte(const char b) {
       MKSERIAL.write(b);
     }
     static inline void serialFlush() {
@@ -409,6 +418,7 @@ class HAL {
 
   protected:
   private:
+
 };
 
 /**
@@ -423,13 +433,17 @@ class HAL {
 #undef FLOOR
 #undef LROUND
 #undef FMOD
+#undef COS
+#undef SIN
 #define ATAN2(y, x) atan2(y, x)
-#define FABS(x) fabs(x)
-#define POW(x, y) pow(x, y)
-#define SQRT(x) sqrt(x)
-#define CEIL(x) ceil(x)
-#define FLOOR(x) floor(x)
-#define LROUND(x) lround(x)
-#define FMOD(x, y) fmod(x, y)
+#define FABS(x)     fabs(x)
+#define POW(x, y)   pow(x, y)
+#define SQRT(x)     sqrt(x)
+#define CEIL(x)     ceil(x)
+#define FLOOR(x)    floor(x)
+#define LROUND(x)   lround(x)
+#define FMOD(x, y)  fmod(x, y)
+#define COS(x)      cos(x)
+#define SIN(x)      sin(x)
 
 #endif // HAL_AVR_H

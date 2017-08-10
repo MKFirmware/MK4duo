@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,12 +33,43 @@
 // Function macro
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
+/**
+ * Macros for mechanics type
+ */
+#define MECH_UNKNOWN        -1
+#define MECH_CARTESIAN       0
+#define MECH_COREXY          1
+#define MECH_COREYX          2
+#define MECH_DELTA           3
+#define MECH_MORGAN_SCARA    4
+#define MECH_MAKERARM_SCARA  5
+#define MECH_COREXZ          8
+#define MECH_COREZX          9
+#define MECH_COREYZ         10
+#define MECH_COREZY         11
+#define MECH_MUVE3D         21
+
+#define MECH(mech)    (MECHANISM == MECH_##mech)
+#define NOMECH(mech)  (MECHANISM != MECH_##mech)
+
+#define IS_SCARA      (MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA))
+#define IS_DELTA      (MECH(DELTA))
+#define IS_KINEMATIC  (IS_DELTA || IS_SCARA)
+
+#define CORE_IS_XY    (MECH(COREXY) || MECH(COREYX))
+#define CORE_IS_XZ    (MECH(COREXZ) || MECH(COREZX))
+#define CORE_IS_YZ    (MECH(COREYZ) || MECH(COREZY))
+#define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
+
+#define IS_CARTESIAN  (!IS_KINEMATIC && !IS_CORE)
+/********************************************************************/
+
 // Compiler warning on unused varable.
 #define UNUSED(x) (void) (x)
 
 // Macros to make a string from a macro
 #define STRINGIFY_(M) #M
-#define STRINGIFY(M) STRINGIFY_(M)
+#define STRINGIFY(M)  STRINGIFY_(M)
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
@@ -66,6 +97,10 @@
 #define SIN_60 0.8660254037844386
 #define COS_60 0.5
 
+// Macros to contrain values
+#define NOLESS(v,n)       v = (v < n) ? n : v
+#define NOMORE(v,n)       v = (v > n) ? n : v
+
 // Macros to support option testing
 #define ENABLED defined
 #define DISABLED !defined
@@ -73,69 +108,51 @@
 #define HAS(FE) (HAS_##FE)
 #define HASNT(FE) (!(HAS_##FE))
 
-// Macros to contrain values
-#define NUMERIC(a) ((a) >= '0' && '9' >= (a))
-#define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-')
-#define NOLESS(v,n) do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n) do{ if (v > n) v = n; }while(0)
-#define COUNT(a) (sizeof(a) / sizeof(*a))
-#define ZERO(a) memset(a, 0, sizeof(a))
-#define COPY_ARRAY(a,b) memcpy(a, b, min(sizeof(a), sizeof(b)))
+#define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
+#define NUMERIC(a)        WITHIN(a, '0', '9')
+#define DECIMAL(a)        (NUMERIC(a) || a == '.')
+#define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
+#define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
+#define COUNT(a)          (sizeof(a) / sizeof(*a))
+#define ZERO(a)           memset(a, 0, sizeof(a))
+#define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
 
 // Macro for debugging
-#define DEBUGGING(F) (mk_debug_flags & (DEBUG_## F))
+#define DEBUGGING(F) (commands.mk_debug_flags & (DEBUG_## F))
 
 // Macros for initializing arrays
-#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
-#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, ...)      { v1, v2, v3, v4, v5, v6, v7, v8 }
-#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, ...)          { v1, v2, v3, v4, v5, v6, v7 }
-#define ARRAY_6(v1, v2, v3, v4, v5, v6, ...)              { v1, v2, v3, v4, v5, v6 }
-#define ARRAY_5(v1, v2, v3, v4, v5, ...)                  { v1, v2, v3, v4, v5 }
-#define ARRAY_4(v1, v2, v3, v4, ...)                      { v1, v2, v3, v4 }
-#define ARRAY_3(v1, v2, v3, ...)                          { v1, v2, v3 }
-#define ARRAY_2(v1, v2, ...)                              { v1, v2 }
-#define ARRAY_1(v1, ...)                                  { v1 }
+#define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
+#define ARRAY_11(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, ...)       { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11 }
+#define ARRAY_10(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, ...)            { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10 }
+#define ARRAY_9(v1, v2, v3, v4, v5, v6, v7, v8, v9, ...)                  { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
+#define ARRAY_8(v1, v2, v3, v4, v5, v6, v7, v8, ...)                      { v1, v2, v3, v4, v5, v6, v7, v8 }
+#define ARRAY_7(v1, v2, v3, v4, v5, v6, v7, ...)                          { v1, v2, v3, v4, v5, v6, v7 }
+#define ARRAY_6(v1, v2, v3, v4, v5, v6, ...)                              { v1, v2, v3, v4, v5, v6 }
+#define ARRAY_5(v1, v2, v3, v4, v5, ...)                                  { v1, v2, v3, v4, v5 }
+#define ARRAY_4(v1, v2, v3, v4, ...)                                      { v1, v2, v3, v4 }
+#define ARRAY_3(v1, v2, v3, ...)                                          { v1, v2, v3 }
+#define ARRAY_2(v1, v2, ...)                                              { v1, v2 }
+#define ARRAY_1(v1, ...)                                                  { v1 }
+#define ARRAY_0(...)                                                      { }
 
 #define _ARRAY_N(N, ...) ARRAY_ ##N(__VA_ARGS__)
 #define ARRAY_N(N, ...) _ARRAY_N(N, __VA_ARGS__)
 
 // ARRAY_BY_N based
 #define ARRAY_BY_N_N(N, ...) ARRAY_N(N, __VA_ARGS__)
-#define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_EXTRUDERS based on EXTRUDERS
 #define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
-#define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_HOTENDS based on HOTENDS
 #define ARRAY_BY_HOTENDS_N(...) ARRAY_N(HOTENDS, __VA_ARGS__)
 #define ARRAY_BY_HOTENDS(v1) ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
 
-// Macros for adding
-#define INC_0 1
-#define INC_1 2
-#define INC_2 3
-#define INC_3 4
-#define INC_4 5
-#define INC_5 6
-#define INC_6 7
-#define INC_7 8
-#define INC_8 9
-#define INCREMENT_(n) INC_ ##n
-#define INCREMENT(n) INCREMENT_(n)
-
-// Macros for subtracting
-#define DEC_1 0
-#define DEC_2 1
-#define DEC_3 2
-#define DEC_4 3
-#define DEC_5 4
-#define DEC_6 5
-#define DEC_7 6
-#define DEC_8 7
-#define DEC_9 8
-#define DECREMENT_(n) DEC_ ##n
-#define DECREMENT(n) DECREMENT_(n)
+// ARRAY_BY_FAN based on FAN_COUNT
+#define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
+#define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
 #define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN >= 0)
 
@@ -156,17 +173,25 @@
 #define NEAR(x,y)         NEAR_ZERO((x)-(y))
 
 #define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
+#define FIXFLOAT(f)       (f + 0.00001)
 
-#define _AXIS(AXIS) AXIS ##_AXIS
+// LOOP MACROS
+#define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)
+#define LOOP_S_L_N(VAR, S, N)   for (uint8_t VAR=S; VAR<N; VAR++)
+#define LOOP_LE_N(VAR, N)       LOOP_S_LE_N(VAR, 0, N)
+#define LOOP_L_N(VAR, N)        LOOP_S_L_N(VAR, 0, N)
 
-#define LOOP_XY(VAR)      for (uint8_t VAR = X_AXIS; VAR <= Y_AXIS; VAR++)
-#define LOOP_XYZ(VAR)     for (uint8_t VAR = X_AXIS; VAR <= Z_AXIS; VAR++)
-#define LOOP_XYZE(VAR)    for (uint8_t VAR = X_AXIS; VAR <= E_AXIS; VAR++)
-#define LOOP_XYZE_N(VAR)  for (uint8_t VAR = X_AXIS; VAR < XYZE_N; VAR++)
+#define LOOP_NA(VAR)            LOOP_L_N(VAR, NUM_AXIS)
+#define LOOP_XY(VAR)            LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
+#define LOOP_XYZ(VAR)           LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
+#define LOOP_XYZE(VAR)          LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
+#define LOOP_XYZE_N(VAR)        LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
+#define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
+#define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)
 #define MMS_TO_MMM(MM_S) ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S) ((MM_S) * feedrate_percentage * 0.01)
+#define MMS_SCALED(MM_S) ((MM_S) * mechanics.feedrate_percentage * 0.01)
 
 #endif //__MACROS_H

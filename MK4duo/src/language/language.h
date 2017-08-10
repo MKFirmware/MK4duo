@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 //#define SIMULATE_ROMFONT
 
 // Fallback if no language is set. DON'T CHANGE
-#ifndef LCD_LANGUAGE
+#if DISABLED(LCD_LANGUAGE)
   #define LCD_LANGUAGE en
 #endif
 
@@ -40,29 +40,15 @@
 #define WESTERN  2
 #define CYRILLIC 3
 
-#if MB(ULTIMAKER)|| MB(ULTIMAKER_OLD)|| MB(ULTIMAIN_2)
-  #define MACHINE_NAME "Ultimaker"
-#elif MB(RUMBA)
-  #define MACHINE_NAME "Rumba"
-#elif MB(3DRAG)
-  #define MACHINE_NAME "3Drag"
-#elif MB(K8200)
-  #define MACHINE_NAME "K8200"
-#elif MB(5DPRINT)
-  #define MACHINE_NAME "Makibox"
-#elif MB(SAV_MKI)
-  #define MACHINE_NAME "SAV MkI"
-#elif DISABLED(MACHINE_NAME)
-  #define MACHINE_NAME "3D Printer"
-#endif
-
+//Machine name
 #if ENABLED(CUSTOM_MACHINE_NAME)
-  #undef MACHINE_NAME
   #define MACHINE_NAME CUSTOM_MACHINE_NAME
+#else
+  #define MACHINE_NAME BOARD_NAME
 #endif
 
 // LCD Menu Messages
-#if !(ENABLED( DISPLAY_CHARSET_HD44780_JAPAN ) || ENABLED( DISPLAY_CHARSET_HD44780_WESTERN ) || ENABLED( DISPLAY_CHARSET_HD44780_CYRILLIC ))
+#if DISABLED(DISPLAY_CHARSET_HD44780_JAPAN) && DISABLED(DISPLAY_CHARSET_HD44780_WESTERN) && DISABLED(DISPLAY_CHARSET_HD44780_CYRILLIC)
   #define DISPLAY_CHARSET_HD44780_JAPAN
 #endif
 
@@ -91,10 +77,10 @@
 
 #define MSG_ENQUEUEING                      "enqueueing \""
 #define MSG_POWERUP                         "PowerUp"
-#define MSG_EXTERNAL_RESET                  " External Reset"
-#define MSG_BROWNOUT_RESET                  " Brown out Reset"
-#define MSG_WATCHDOG_RESET                  " Watchdog Reset"
-#define MSG_SOFTWARE_RESET                  " Software Reset"
+#define MSG_EXTERNAL_RESET                  "External Reset"
+#define MSG_BROWNOUT_RESET                  "Brown out Reset"
+#define MSG_WATCHDOG_RESET                  "Watchdog Reset"
+#define MSG_SOFTWARE_RESET                  "Software Reset"
 #define MSG_AUTHOR                          " | Author: "
 #define MSG_CONFIGURATION_VER               "Last Updated: "
 #define MSG_COMPILED                        "Compiled: "
@@ -142,8 +128,11 @@
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
 #define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
+#define MSG_DOOR_SENSOR                     "door: "
+#define MSG_POWER_CHECK_SENSOR              "power check: "
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
-#define MSG_ERR_M421_PARAMETERS             "M421 required parameters missing"
+#define MSG_ERR_M421_PARAMETERS             "M421 incorrect parameter usage"
+#define MSG_ERR_M321_PARAMETERS             "M321 incorrect parameter usage"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
 #define MSG_ERR_ARC_ARGS                    "G2/G3 bad parameters"
 #define MSG_ERR_PROTECTED_PIN               "Protected Pin"
@@ -186,12 +175,18 @@
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           "cold extrusion prevented"
 #define MSG_ERR_LONG_EXTRUDE_STOP           "too long extrusion prevented"
+#define MSG_TOO_COLD_FOR_M600               "M600 Hotend too cold to change filament"
 #define MSG_BABYSTEPPING_X                  "Babystepping X"
 #define MSG_BABYSTEPPING_Y                  "Babystepping Y"
 #define MSG_BABYSTEPPING_Z                  "Babystepping Z"
 #define MSG_SERIAL_ERROR_MENU_STRUCTURE     "Error in menu structure"
 
 #define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
+
+#define MSG_STOP_BLTOUCH                    "STOP called because of BLTouch error - restart with M999"
+#define MSG_STOP_UNHOMED                    "STOP called because of unhomed error - restart with M999"
+#define MSG_KILL_INACTIVE_TIME              "KILL caused by too much inactive time - current command: "
+#define MSG_KILL_BUTTON                     "KILL caused by KILL button/pin"
 
 #define MSG_MICROSTEP_MS1_MS2               "MS1,MS2 Pins"
 #define MSG_MICROSTEP_X                     "X:"
@@ -229,9 +224,6 @@
 #define MSG_PID_DEBUG                       " PID_DEBUG "
 #define MSG_PID_DEBUG_INPUT                 ": Input "
 #define MSG_PID_DEBUG_OUTPUT                " Output "
-#define MSG_PID_DEBUG_PTERM                 " pTerm "
-#define MSG_PID_DEBUG_ITERM                 " iTerm "
-#define MSG_PID_DEBUG_DTERM                 " dTerm "
 #define MSG_PID_DEBUG_CTERM                 " cTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
@@ -259,11 +251,6 @@
 #define MSG_BED_LEVELING_X                  " X:"
 #define MSG_BED_LEVELING_Y                  " Y:"
 #define MSG_BED_LEVELING_Z                  "Z-probe:"
-
-// LCD Menu Messages
-#define LANGUAGE_INCL_(M) STRINGIFY_(language_##M.h)
-#define LANGUAGE_INCL(M) LANGUAGE_INCL_(M)
-#define INCLUDE_LANGUAGE LANGUAGE_INCL(LCD_LANGUAGE)
 
 // Never translate these strings
 #define MSG_X "X"
@@ -299,8 +286,10 @@
 #define MSG_DIAM_E5 " 5"
 #define MSG_DIAM_E6 " 6"
 
-#include "language_en.h"
-#include INCLUDE_LANGUAGE
+#define LANGUAGE_INCL(M)        STRINGIFY(language_##M.h)
+#define INCLUDE_BY_LANGUAGE(M)  LANGUAGE_INCL(M)
+
+#include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE)
 
 #if DISABLED(SIMULATE_ROMFONT) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_1) \
@@ -308,8 +297,11 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_CN) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_TR)
+ && DISABLED(DISPLAY_CHARSET_ISO10646_TR) \
+ && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
+
+#include "language_en.h"
 
 #endif //__LANGUAGE_H

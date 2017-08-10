@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,15 +24,37 @@
  *  endstops.h - manages endstops
  */
 
-#ifndef ENDSTOPS_H
-#define ENDSTOPS_H
+#ifndef _ENDSTOPS_H_
+#define _ENDSTOPS_H_
 
 class Endstops {
 
-  public:
+  public: /** Constructor */
+    Endstops() {};
 
-    static bool enabled, enabled_globally;
+  public: /** Public Parameters */
+
+    static float  soft_endstop_min[XYZ],
+                  soft_endstop_max[XYZ];
+
+    static bool enabled, enabled_globally,
+                soft_endstops_enabled;
+
+    #if ENABLED(Z_FOUR_ENDSTOPS)
+      static float  z2_endstop_adj,
+                    z3_endstop_adj,
+                    z4_endstop_adj;
+    #elif ENABLED(Z_THREE_ENDSTOPS)
+      static float  z2_endstop_adj,
+                    z3_endstop_adj;
+    #elif ENABLED(Z_TWO_ENDSTOPS)
+      static float  z2_endstop_adj;
+    #endif
+
     static volatile char endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
+
+    static volatile uint8_t e_hit;  // Different from 0 when the endstops shall be tested in detail.
+                                    // Must be reset to 0 by the test function when the tests are finished.
 
     #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
       static uint16_t
@@ -41,7 +63,7 @@ class Endstops {
     #endif
         current_endstop_bits, old_endstop_bits;
 
-    Endstops() {};
+  public: /** Public Function */
 
     /**
      * Initialize the endstop pins
@@ -75,13 +97,24 @@ class Endstops {
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
     static void hit_on_purpose() { endstop_hit_bits = 0; }
 
-    // Enable / disable endstop z-probe checking
-    #if HAS(BED_PROBE)
-      static volatile bool z_probe_enabled;
-      static void enable_z_probe(bool onoff = true) { z_probe_enabled = onoff; }
+    // Constrain the given coordinates to the software endstops.
+    void clamp_to_software_endstops(float target[XYZ]);
+
+    #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+      void update_software_endstops(const AxisEnum axis);
     #endif
 
-  private:
+    #if ENABLED(PINS_DEBUGGING)
+      static void endstop_monitor();
+    #endif
+
+    #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+      static void setup_endstop_interrupts(void);
+    #endif
+
+  private: /** Private Parameters */
+
+  private: /** Private Function */
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
       static void test_four_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3, EndstopEnum es4);
@@ -94,10 +127,10 @@ class Endstops {
 
 extern Endstops endstops;
 
-#if HAS(BED_PROBE)
-  #define ENDSTOPS_ENABLED  (endstops.enabled || endstops.z_probe_enabled)
+#if HAS_BED_PROBE
+  #define ENDSTOPS_ENABLED  (endstops.enabled || probe.enabled)
 #else
   #define ENDSTOPS_ENABLED  endstops.enabled
 #endif
 
-#endif // ENDSTOPS_H
+#endif /* _ENDSTOPS_H_ */

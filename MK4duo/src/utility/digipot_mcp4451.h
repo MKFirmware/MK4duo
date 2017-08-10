@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 static byte current_to_wiper(float current);
 static void i2c_send(byte addr, byte a, byte b);
 // This is for the MCP4451 I2C based digipot
-void digipot_i2c_set_current(int channel, float current);
-void digipot_i2c_init();
+extern void digipot_i2c_set_current(int channel, float current);
+extern void digipot_i2c_init();
 
 #endif

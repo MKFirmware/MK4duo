@@ -1,6 +1,7 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
+
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
-## Version 4.3.1x dev
+Version 4.3.2x development.
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
@@ -47,13 +48,15 @@ The new features are:
 * Management Color Mixing Extruder
 * System Management MKr4 for 4 extruders width just two drivers and 8 relay.
 * System Management MKr6 for 6 extruders width just two drivers and 8 relay.
+* System Management MKr12 for 12 extruders width just four drivers and 16 relay.
 * Management Multyextruder NPr2, 4/6 extruders with only two engines.
 * Management Dual Extruder DONDOLO.
-* Adding commands to facilitate purging of hotend. 
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
-* Added Autocalibration for DELTA
-* Added Autocalibration 7 points for DELTA (Similar RepRapFirmware)
-* Adding Debug Dryrun used by repetier.
+* Added commands to facilitate purging of hotend. 
+* Added Delta Auto Calibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
+* Added Delta Auto Calibration Algorithm based on Thinkyhead Marlin
+* Added Delta Auto Calibration Algorithm based on Rich Cattell Marlin
+* Added Debug Dryrun used by repetier.
 * Added total Power on time writed in SD CARD.
 * Added total Power consumption writed in SD CARD.
 * Added total filament printed writed in SD CARD.
@@ -74,18 +77,26 @@ The new features are:
 * Added save in EEPROM ABL or MBL
 * Added Door switch
 * Added TMC2130 motor driver
+* Added Power Check for Stop and Save
+* Added Probe Manually
+* Added LCD Bed Leveling
+* Added User menu LCD
+* Added DAV system for filament runout
+* Added Extruder Encoder for control filament movement (Experimental)
+* Added Adafruit Neopixel LED
 
 ## Credits
 
 The current MarlinKimbra dev team consists of:
- - MagoKimbra - Alberto Cotronei (https://github.com/MagoKimbra)
+  - [MagoKimbra - Alberto Cotronei](https://github.com/MagoKimbra)
 
 More features have been added by:
-  - Nico [@wurstnase]
+  - Mr.Goblin
+  - [iosonopersia](https://github.com/iosonopersia)
+  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
+  - [Wurstnase](https://github.com/Wurstnase)
   - Giutrec
   - Drakelive
-  - MrGoblins
-  - Franco (nextime) Lanza (https://git.nexlab.net/u/nextime)
 
 ## License
 
