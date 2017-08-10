@@ -38,7 +38,7 @@
     delta_radius                    = DELTA_RADIUS;
     delta_segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     delta_print_radius              = DELTA_PRINTABLE_RADIUS;
-    delta_probe_radius              = DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
+    delta_probe_radius              = DELTA_PROBEABLE_RADIUS;
     delta_height                    = DELTA_HEIGHT;
     delta_endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     delta_endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
