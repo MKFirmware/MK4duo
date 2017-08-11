@@ -49,8 +49,7 @@
    *    Y = Beta  (Tower 2) Endstop Adjust
    *    Z = Gamma (Tower 3) Endstop Adjust
    *    O = Print radius
-   *    Q = Probe radius
-   *    P = Z probe offset
+   *    P = Probe radius
    *    H = Z Height
    */
   inline void gcode_M666(void) {
@@ -74,7 +73,7 @@
     if (parser.seen('V')) mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
     if (parser.seen('W')) mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
     if (parser.seen('O')) mechanics.delta_print_radius              = parser.value_linear_units();
-    if (parser.seen('Q')) mechanics.delta_probe_radius              = parser.value_linear_units();
+    if (parser.seen('P')) mechanics.delta_probe_radius              = parser.value_linear_units();
 
     mechanics.recalc_delta_settings();
 
@@ -102,7 +101,7 @@
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.delta_diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.delta_segments_per_second);
       SERIAL_LMV(CFG, "O (Delta Print Radius): ",               mechanics.delta_print_radius);
-      SERIAL_LMV(CFG, "Q (Delta Probe Radius): ",               mechanics.delta_probe_radius);
+      SERIAL_LMV(CFG, "P (Delta Probe Radius): ",               mechanics.delta_probe_radius);
       SERIAL_LMV(CFG, "H (Z-Height): ",                         mechanics.delta_height, 3);
     }
   }
