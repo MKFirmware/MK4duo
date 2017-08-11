@@ -568,8 +568,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HOMING_Z_WITH_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        destination[X_AXIS] -= probe.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
       if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
@@ -623,8 +623,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HAS_BED_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        destination[X_AXIS] -= probe.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
       if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
@@ -633,7 +633,7 @@
           if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
         #endif
 
-        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.zprobe_zoffset);
+        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.offset[Z_AXIS]);
         current_position[Z_AXIS] -= newzero;
         destination[Z_AXIS] = current_position[Z_AXIS];
         endstops.soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
@@ -820,12 +820,12 @@
      */
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS) {
-        current_position[Z_AXIS] -= probe.zprobe_zoffset;
+        current_position[Z_AXIS] -= probe.offset[Z_AXIS];
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) {
             SERIAL_EM("*** Z HOMED WITH PROBE ***");
-            SERIAL_EMV("zprobe_zoffset = ", probe.zprobe_zoffset);
+            SERIAL_EMV("zprobe_zoffset = ", probe.offset[Z_AXIS]);
           }
         #endif
       }

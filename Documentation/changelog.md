@@ -1,8 +1,15 @@
+### Version 4.3.26 dev
+* Now Probe offset is a variable.
+* New command for compatibility with Marlin, M851 X Y Z for setting Probe Offset
+* Remove old command M666 P for Z offset Probe
+* Fix and clear code
+
 ### Version 4.3.25 dev
 * New management commands
 * New classes created
 * Many changes made
 * Add Adafruit NeoPixel Led
+* Fix and clear code
 
 ### Version 4.3.24 dev
 * Add Extruder Encoder for control filament movement (Experimental)

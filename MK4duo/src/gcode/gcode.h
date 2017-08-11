@@ -55,7 +55,6 @@
 #include "config/m305.h"                  // Set PID parameters Chamber
 #include "config/m306.h"                  // Set PID parameters Cooler
 #include "config/m595.h"                  // Set AD595 offset & Gain
-#include "config/m666.h"                  // Set Z probe offset
 #include "config/m900.h"                  // Set and/or Get advance K factor
 #include "config/m906.h"                  // Set Alliagtor motor currents or Set motor current in milliamps with have a TMC2130 driver
 #include "config/m907.h"                  // Set digital trimpot motor current
@@ -170,6 +169,7 @@
 #include "probe/g31.h"
 #include "probe/g38.h"
 #include "probe/m401_m402.h"              // Lower e Raise probe
+#include "probe/m851.h"                   // Set probe offset
 
 // Rfid Commands
 #include "rfid/m522.h"                    // Rfid read and write

@@ -52,7 +52,7 @@
     delta_diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
     delta_diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
     delta_diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
-    delta_clip_start_height         = Z_MAX_POS;
+    delta_clip_start_height         = DELTA_HEIGHT;
 
     recalc_delta_settings();
   }
@@ -371,7 +371,7 @@
 
   void Delta_Mechanics::recalc_delta_settings() {
 
-    LOOP_XY(axis) {
+    LOOP_XYZ(axis) {
       endstops.soft_endstop_min[axis] = (axis == C_AXIS ? 0 : -delta_print_radius);
       endstops.soft_endstop_max[axis] = (axis == C_AXIS ? delta_height : delta_print_radius);
     }
@@ -664,8 +664,8 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS);
-      gfx_cursor_to(current_position[X_AXIS] + (X_MAX_POS), current_position[Y_AXIS] + (Y_MAX_POS), current_position[Z_AXIS]);
+      gfx_clear(delta_print_radius * 2, delta_print_radius * 2, delta_height);
+      gfx_cursor_to(current_position[X_AXIS] + delta_print_radius, current_position[Y_AXIS] + delta_print_radius, current_position[Z_AXIS]);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();
@@ -769,8 +769,8 @@
       endstops.not_homing();
       probe.set_deployed(true);
 
-      const float dx = (X_PROBE_OFFSET_FROM_NOZZLE),
-                  dy = (Y_PROBE_OFFSET_FROM_NOZZLE);
+      const float dx = (probe.offset[X_AXIS]),
+                  dy = (probe.offset[Y_AXIS]);
 
       for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
@@ -1023,8 +1023,8 @@
                   _7p_intermed_points   = _7p_calibration && !_7p_half_circle;
 
       const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
-      const float dx = (X_PROBE_OFFSET_FROM_NOZZLE),
-                  dy = (Y_PROBE_OFFSET_FROM_NOZZLE);
+      const float dx = (probe.offset[X_AXIS]),
+                  dy = (probe.offset[Y_AXIS]);
       int8_t iterations = 0;
       float test_precision,
             zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end

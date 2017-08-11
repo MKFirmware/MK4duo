@@ -72,8 +72,8 @@
 
     bool stow_probe_after_each = parser.seen('E');
 
-    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
-    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
+    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + probe.offset[X_AXIS];
+    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + probe.offset[Y_AXIS];
 
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
@@ -166,8 +166,8 @@
           while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
             angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-          X_current = X_probe_location - (X_PROBE_OFFSET_FROM_NOZZLE) + cos(RADIANS(angle)) * radius;
-          Y_current = Y_probe_location - (Y_PROBE_OFFSET_FROM_NOZZLE) + sin(RADIANS(angle)) * radius;
+          X_current = X_probe_location - (probe.offset[X_AXIS]) + cos(RADIANS(angle)) * radius;
+          Y_current = Y_probe_location - (probe.offset[Y_AXIS]) + sin(RADIANS(angle)) * radius;
 
           #if MECH(DELTA)
             // If we have gone out too far, we can do a simple fix and scale the numbers
