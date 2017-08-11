@@ -23,6 +23,7 @@
 *   39 BOARD_SAINSMART_2IN1     - SainSmart 2 in 1
 *  301 BOARD_RAMBO              - Rambo
 *  302 BOARD_MINIRAMBO          - Mini Rambo
+*  315 BOARD_GT2560             - Geeetech GT2560 Rev A
 *  316 BOARD_PIBOT              - PiBot Controller Rev2.0 
 *
 *    4 BOARD_DUEMILANOVE_328P   - Duemilanove w/ ATMega328P pin assignment
@@ -119,6 +120,7 @@
 #define BOARD_SAINSMART_2IN1    39    // SainSmart 2 in 1
 #define BOARD_RAMBO            301    // Rambo
 #define BOARD_MINIRAMBO        302    // Mini-Rambo
+#define BOARD_GT2560           315    // Geeetech GT2560 Rev A
 #define BOARD_PIBOT            316    // PiBot Controller Rev2.0
 
 #define BOARD_DUEMILANOVE_328P   4    // Duemilanove w/ ATMega328P pin assignments
