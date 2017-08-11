@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,8 +72,8 @@
 
     bool stow_probe_after_each = parser.seen('E');
 
-    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
-    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
+    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + probe.offset[X_AXIS];
+    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + probe.offset[Y_AXIS];
 
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
@@ -118,13 +118,13 @@
 
     setup_for_endstop_or_probe_move();
 
+    double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
+
     // Move to the first point, deploy, and probe
     const float t = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
-    if (isnan(t)) return;
+    if (probe.nan_error(t)) goto FAIL;
 
     randomSeed(millis());
-
-    double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     for (uint8_t n = 0; n < n_samples; n++) {
       if (n_legs) {
@@ -166,8 +166,8 @@
           while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
             angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-          X_current = X_probe_location - (X_PROBE_OFFSET_FROM_NOZZLE) + cos(RADIANS(angle)) * radius;
-          Y_current = Y_probe_location - (Y_PROBE_OFFSET_FROM_NOZZLE) + sin(RADIANS(angle)) * radius;
+          X_current = X_probe_location - (probe.offset[X_AXIS]) + cos(RADIANS(angle)) * radius;
+          Y_current = Y_probe_location - (probe.offset[Y_AXIS]) + sin(RADIANS(angle)) * radius;
 
           #if MECH(DELTA)
             // If we have gone out too far, we can do a simple fix and scale the numbers
@@ -196,6 +196,7 @@
 
       // Probe a single point
       sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, 0);
+      if (probe.nan_error(sample_set[n])) goto FAIL;
 
       /**
        * Get the current mean for the data points we have so far
@@ -234,7 +235,7 @@
 
     }  // End of probe loop
 
-    if (probe.set_deployed(false)) return;
+    if (probe.set_deployed(false)) goto FAIL;
 
     SERIAL_EM("Finished!");
 
@@ -248,6 +249,8 @@
 
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
     SERIAL_EOL();
+
+    FAIL:
 
     clean_up_after_endstop_or_probe_move();
 

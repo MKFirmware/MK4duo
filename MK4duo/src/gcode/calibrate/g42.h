@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,8 +57,8 @@
       if (hasI) mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
       if (hasJ) mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
       if (parser.boolval('P')) {
-        if (hasI) mechanics.destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        if (hasJ) mechanics.destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        if (hasI) mechanics.destination[X_AXIS] -= probe.offset[X_AXIS];
+        if (hasJ) mechanics.destination[Y_AXIS] -= probe.offset[Y_AXIS];
       }
 
       const float fval = parser.linearval('F');

@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float  z_offset;
+    static float  offset[XYZ];
     static bool   enabled;
 
     #if HAS_Z_SERVO_PROBE
@@ -84,17 +84,7 @@ class Probe {
      */
     static float check_pt(const float &lx, const float &ly, const bool stow=true, const int verbose_level=1, const bool printable=true);
 
-    /**
-     * Do a single Z probe
-     * Usage:
-     *    G30 <X#> <Y#> <S#> <Z#> <P#>
-     *      X = Probe X position (default=current probe position)
-     *      Y = Probe Y position (default=current probe position)
-     *      S = <bool> Stows the probe if 1 (default=1)
-     *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
-     *      P = <bool> with a non-zero value will apply the result to current probe.z_offset (ONLY DELTA)
-     */
-    static void single_probe();
+    static bool nan_error(const float v);
 
     #if QUIET_PROBING
       static void probing_pause(const bool p);
@@ -102,16 +92,16 @@ class Probe {
 
     #if ENABLED(BLTOUCH)
       static void bltouch_command(int angle);
-      static void set_bltouch_deployed(const bool deploy);
+      static bool set_bltouch_deployed(const bool deploy);
     #endif
 
-    static void refresh_zprobe_zoffset();
+    static void refresh_offset();
 
   private: /** Private Parameters */
 
   private: /** Private Function */
 
-    static void move_to_z(float z, float fr_mm_m);
+    static bool move_to_z(float z, float fr_mm_m);
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();
@@ -124,5 +114,19 @@ class Probe {
 };
 
 extern Probe probe;
+
+#if IS_KINEMATIC
+  // Check for this in the code instead
+  #define MIN_PROBE_X -(mechanics.delta_probe_radius)
+  #define MAX_PROBE_X  (mechanics.delta_probe_radius)
+  #define MIN_PROBE_Y -(mechanics.delta_probe_radius)
+  #define MAX_PROBE_Y  (mechanics.delta_probe_radius)
+#else
+  // Boundaries for probing based on set limits
+  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
+#endif
 
 #endif /* _PROBE_H_ */

@@ -197,6 +197,7 @@
 *  M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 *  M502 - reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
 *  M503 - print the current settings (from memory not from EEPROM)
+*  M512 - Print Extruder Encoder status Pin. (Requires Extruder Encoder)
 *  M522 - Use for reader o writer tag width MFRC522. M522 T<extruder> R(read) W(write) L(print list data on tag)
 *  M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
 *  M531 - filename - Define filename being printed
@@ -206,7 +207,8 @@
 *  M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
 *  M605 - Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 *  M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
-*  M666 - Set z probe offset or Endstop and delta geometry adjustment. M666 L for list command
+*  M666 - Delta geometry adjustment.
+*  M851 - Set X Y Z Probe Offset in current units. (Requires Probe)
 *  M900 - K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
 *  M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
 *         Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)

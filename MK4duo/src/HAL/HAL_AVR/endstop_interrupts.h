@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ void pciSetup(byte pin) {
   ISR(PCINT3_vect) { endstop_ISR_worker(); }
 #endif
 
-void setup_endstop_interrupts( void ) {
+void Endstops::setup_endstop_interrupts(void) {
 
   #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt

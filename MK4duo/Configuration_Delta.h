@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,6 @@
  * - Stepper step logic
  * - Stepper direction
  * - Disables axis
- * - Manual home positions
- * - Travel limits
  * - Axis relative mode
  * - Auto Bed Leveling (ABL)
  * - Auto Calibration
@@ -230,7 +228,7 @@
  * To use a separte Z PROBE endstop, you must have a Z PROBE PIN                         *
  * defined in the Configuration_Pins.h file for your control board.                      *
  *                                                                                       *
- * Use M666 P to set the Z probe vertical offset from the nozzle. Store with M500.       *
+ * Use M851 X Y Z to set the probe offset from the nozzle. Store with M500.              *
  * WARNING: Setting the wrong pin may have unexpected and potentially                    *
  * disastrous outcomes. Use with caution and do your homework.                           *
  *                                                                                       *
@@ -299,7 +297,7 @@
 #define Z_PROBE_DEPLOY_HEIGHT  30  // Z position for the probe to deploy/stow
 #define Z_PROBE_BETWEEN_HEIGHT 10  // Z position for travel between points
 
-// For M666 give a range for adjusting the Z probe offset
+// For M851 give a range for adjusting the Probe Z Offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
 
@@ -397,37 +395,6 @@
 #define DISABLE_E false      // For all extruder
 // Disable only inactive extruder and keep active extruder enabled
 //#define DISABLE_INACTIVE_EXTRUDER
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- ******************************** Manual home positions **********************************
- *****************************************************************************************/
-// The center of the bed is at (X=0, Y=0)
-//#define BED_CENTER_AT_0_0
-
-// Manually set the home position. Leave these undefined for automatic settings.
-// For DELTA this is the top-center of the Cartesian print volume.
-#define MANUAL_X_HOME_POS 0
-#define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS DELTA_HEIGHT
-/*****************************************************************************************/
-
-
-/*****************************************************************************************
- ************************************ Travel limits **************************************
- *****************************************************************************************
- *                                                                                       *
- * Travel limits after homing (units are in mm)                                          *
- *                                                                                       *
- *****************************************************************************************/
-#define X_MAX_POS DELTA_PRINTABLE_RADIUS
-#define X_MIN_POS -DELTA_PRINTABLE_RADIUS
-#define Y_MAX_POS DELTA_PRINTABLE_RADIUS
-#define Y_MIN_POS -DELTA_PRINTABLE_RADIUS
-#define Z_MAX_POS DELTA_HEIGHT
-#define Z_MIN_POS 0
-#define E_MIN_POS 0
 /*****************************************************************************************/
 
 

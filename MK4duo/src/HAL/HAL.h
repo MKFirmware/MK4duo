@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ void spiBegin(void);
 /** Configure SPI for specified SPI speed */
 void spiInit(uint8_t spiRate);
 /** Read single byte from SPI */
-uint8_t spiRec(void);
+uint8_t spiReceive(void);
 /** Read from SPI into buffer */
 void spiRead(uint8_t* buf, uint16_t nbyte);
 /** Write single byte to SPI */

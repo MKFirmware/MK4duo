@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -668,8 +668,8 @@
 #ifndef MSG_FIRST
   #define MSG_FIRST                           _UxGT("first")
 #endif
-#ifndef MSG_ZPROBE_ZOFFSET
-  #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
+#ifndef MSG_PROBE_OFFSET
+  #define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
 #endif
 #ifndef MSG_BABYSTEP_X
   #define MSG_BABYSTEP_X                      _UxGT("Babystep X")
@@ -691,6 +691,9 @@
 #endif
 #ifndef MSG_THERMAL_RUNAWAY
   #define MSG_THERMAL_RUNAWAY                 _UxGT("THERMAL RUNAWAY")
+#endif
+#ifndef MSG_AD595
+  #define MSG_AD595                           _UxGT("AD595 Offset & Gain")
 #endif
 #ifndef MSG_ERR_MAXTEMP
   #define MSG_ERR_MAXTEMP                     _UxGT("Err: MAXTEMP")
@@ -774,13 +777,22 @@
   #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibrate Center")
 #endif
 #ifndef MSG_DELTA_SETTINGS
-  #define MSG_DELTA_SETTINGS                  _UxGT("Show Delta Settings")
+  #define MSG_DELTA_SETTINGS                  _UxGT("Delta Settings")
 #endif
 #ifndef MSG_DELTA_AUTO_CALIBRATE
   #define MSG_DELTA_AUTO_CALIBRATE            _UxGT("Auto Calibration")
 #endif
 #ifndef MSG_DELTA_HEIGHT_CALIBRATE
   #define MSG_DELTA_HEIGHT_CALIBRATE          _UxGT("Set Delta Height")
+#endif
+#ifndef MSG_DELTA_DIAG_ROG
+  #define MSG_DELTA_DIAG_ROG                  _UxGT("Diag Rod")
+#endif
+#ifndef MSG_DELTA_HEIGHT
+  #define MSG_DELTA_HEIGHT                    _UxGT("Height")
+#endif
+#ifndef MSG_DELTA_RADIUS
+  #define MSG_DELTA_RADIUS                    _UxGT("Radius")
 #endif
 #ifndef MSG_DELTA_CHECKING
   #define MSG_DELTA_CHECKING                  _UxGT("Checking... AC")
@@ -935,6 +947,12 @@
 #endif
 #ifndef MSG_FILAMENT_CHANGE_NOZZLE
   #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozzle: ")
+#endif
+#ifndef MSG_ERR_HOMING_FAILED
+  #define MSG_ERR_HOMING_FAILED               _UxGT("Homing failed")
+#endif
+#ifndef MSG_ERR_PROBING_FAILED
+  #define MSG_ERR_PROBING_FAILED              _UxGT("Probing failed")
 #endif
 
 //

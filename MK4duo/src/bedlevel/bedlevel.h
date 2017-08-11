@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,6 +90,12 @@
         static int    bilinear_grid_spacing[2], bilinear_start[2];
         static float  bilinear_grid_factor[2],
                       z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+      #endif
+
+      #if ENABLED(PROBE_MANUALLY)
+        static bool g29_in_progress;
+      #else
+        static const bool g29_in_progress;
       #endif
 
     public: /** Public Function */

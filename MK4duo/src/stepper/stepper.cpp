@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -427,10 +427,6 @@ void Stepper::set_directions() {
   #endif
 }
 
-#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-  extern volatile uint8_t e_hit;
-#endif
-
 /**
  * Stepper Driver Interrupt
  *
@@ -570,8 +566,8 @@ void Stepper::isr() {
       step_events_completed = 0;
 
       #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        e_hit = 2; // Needed for the case an endstop is already triggered before the new move begins.
-                   // No 'change' can be detected.
+        endstops.e_hit = 2; // Needed for the case an endstop is already triggered before the new move begins.
+                            // No 'change' can be detected.
       #endif
 
       #if ENABLED(Z_LATE_ENABLE)
@@ -600,9 +596,9 @@ void Stepper::isr() {
 
   // Update endstops state, if enabled
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (e_hit && ENDSTOPS_ENABLED) {
+    if (endstops.e_hit && ENDSTOPS_ENABLED) {
       endstops.update();
-      e_hit--;
+      endstops.e_hit--;
     }
   #else
     if (ENDSTOPS_ENABLED) endstops.update();
@@ -2067,3 +2063,13 @@ void Stepper::report_positions() {
   }
 
 #endif // HAS_MICROSTEPS
+
+/**
+ * Stepper Reset (RigidBoard, et.al.)
+ */
+#if HAS_STEPPER_RESET
+  void Stepper::disableStepperDrivers() {
+    OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
+  }
+  void Stepper::enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
+#endif

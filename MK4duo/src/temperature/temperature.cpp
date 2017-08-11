@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1258,7 +1258,10 @@ void Temperature::manage_temp_controller() {
             old_blue = blue;
             printer.set_led_color(255, 0, blue
               #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0, true
+                , 0
+              #endif
+              #if HAS_NEOPIXEL
+                , true
               #endif
             );
           }
@@ -1415,7 +1418,10 @@ void Temperature::manage_temp_controller() {
             old_red = red;
             printer.set_led_color(red, 0, 255
               #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0, true
+                , 0
+              #endif
+              #if HAS_NEOPIXEL
+                , true
               #endif
             );
           }

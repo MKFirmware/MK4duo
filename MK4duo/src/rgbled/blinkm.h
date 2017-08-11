@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,16 +21,15 @@
  */
 
 /**
- * Driver for the Philips PCA9632 LED driver.
- * Written by Robert Mendon Feb 2017.
+ * blinkm.h
+ * Library header file for BlinkM library
  */
 
-#ifndef __PCA9632_H__
-#define __PCA9632_H__
+#ifndef _BLINKM_H_
+#define _BLINKM_H_
 
-#include "Arduino.h"
-#include "Wire.h"
+#if ENABLED(BLINKM)
+  void SendColors(byte red, byte grn, byte blu);
+#endif
 
-void PCA9632_SetColor(const byte r, const byte g, const byte  b);
-
-#endif // __PCA9632_H__
+#endif /* _BLINKM_H_ */

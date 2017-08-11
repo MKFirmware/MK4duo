@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,23 +55,23 @@
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offset applicato")
 #define MSG_SET_ORIGIN                      _UxGT("Imposta Origine")
 #define MSG_PREHEAT_1                       _UxGT("Preriscalda PLA")
-#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
-#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Tutto")
-#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" Ugello")
-#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Piatto")
-#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" conf")
+#define MSG_PREHEAT_1_N                     _UxGT("Prerisc.PLA ")
+#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1_N _UxGT("Tutto")
+#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1_N _UxGT("Ugello")
+#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1_N _UxGT("Piatto")
+#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1_N _UxGT("conf")
 #define MSG_PREHEAT_2                       _UxGT("Preriscalda ABS")
-#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
-#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tutto")
-#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" Ugello")
-#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Piatto")
-#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
+#define MSG_PREHEAT_2_N                     _UxGT("Prerisc.ABS ")
+#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2_N _UxGT("Tutto")
+#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2_N _UxGT("Ugello")
+#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2_N _UxGT("Piatto")
+#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2_N _UxGT("conf")
 #define MSG_PREHEAT_3                       _UxGT("Preriscalda GUM")
-#define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
-#define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3 _UxGT(" Tutto")
-#define MSG_PREHEAT_3_END                   MSG_PREHEAT_3 _UxGT(" Ugello")
-#define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Piatto")
-#define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3 _UxGT(" conf")
+#define MSG_PREHEAT_3_N                     _UxGT("Prerisc.GUM ")
+#define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3_N _UxGT("Tutto")
+#define MSG_PREHEAT_3_END                   MSG_PREHEAT_3_N _UxGT("Ugello")
+#define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3_N _UxGT("Piatto")
+#define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3_N _UxGT("conf")
 #define MSG_COOLDOWN                        _UxGT("Raffredda")
 #define MSG_SWITCH_PS_ON                    _UxGT("Accendi aliment.")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Spegni aliment.")
@@ -79,6 +79,7 @@
 #define MSG_RETRACT                         _UxGT("Ritrai")
 #define MSG_PURGE                           _UxGT("Purge")
 #define MSG_MOVE_AXIS                       _UxGT("Muovi Asse")
+#define MSG_BED_LEVELING                    _UxGT("Livella piano")
 #define MSG_LEVEL_BED                       _UxGT("Livella piano")
 #define MSG_USER_MENU                       _UxGT("Comandi Utente")
 #define MSG_MOVING                          _UxGT("In movimento...")
@@ -182,7 +183,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Resetta BLTouch")
 #define MSG_HOME                            _UxGT("Home")
 #define MSG_FIRST                           _UxGT("prima")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("Zprobe ZOffset")
+#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
 #define MSG_BABYSTEP                        _UxGT("Babystep")
 #define MSG_BABYSTEP_X                      MSG_BABYSTEP _UxGT(" ") MSG_X
 #define MSG_BABYSTEP_Y                      MSG_BABYSTEP _UxGT(" ") MSG_Y

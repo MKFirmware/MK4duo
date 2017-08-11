@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@
 #define MSG_ZPROBE_OUT                      "Z probe out. bed"
 #define MSG_HOME                            "Home"  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           "first"
-#define MSG_ZPROBE_ZOFFSET                  "Z Offset"
+#define MSG_PROBE_OFFSET                    "Probe Offset"
 #define MSG_BABYSTEP_X                      "Babystep X"
 #define MSG_BABYSTEP_Y                      "Babystep Y"
 #define MSG_BABYSTEP_Z                      "Babystep Z"

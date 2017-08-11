@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -186,7 +186,7 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC1, 0, TC3_IRQn, 15},  // 3 - temperature
   { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer3]
-  { TC2, 0, TC6_IRQn, 0 },  // 6
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Adafruit Neopixel
   { TC2, 1, TC7_IRQn, 0 },  // 7
   { TC2, 2, TC8_IRQn, 0 },  // 8
 };

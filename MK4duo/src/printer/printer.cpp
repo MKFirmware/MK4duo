@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,18 +27,6 @@
  */
 
 #include "../../base.h"
-
-#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-  #include "../HAL/HAL_endstop_interrupts.h"
-#endif
-
-#if ENABLED(PCA9632)
-  #include "../utility/pca9632.h"
-#endif
-
-#if ENABLED(NEOPIXEL_RGBW_LED)
-  #include <Adafruit_NeoPixel.h>
-#endif
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
@@ -95,12 +83,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   #if MIXING_VIRTUAL_TOOLS  > 1
     float Printer::mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
   #endif
-#endif
-
-#if ENABLED(PROBE_MANUALLY)
-  bool Printer::g29_in_progress = false;
-#else
-  const bool Printer::g29_in_progress = false;
 #endif
 
 #if HAS_SDSUPPORT
@@ -231,7 +213,7 @@ void Printer::setup() {
   setup_powerhold();
 
   #if HAS_STEPPER_RESET
-    disableStepperDrivers();
+    stepper.disableStepperDrivers();
   #endif
 
   #if ENABLED(USE_WATCHDOG)
@@ -328,7 +310,7 @@ void Printer::setup() {
   #endif
 
   #if HAS_STEPPER_RESET
-    enableStepperDrivers();
+    stepper.enableStepperDrivers();
   #endif
 
   #if ENABLED(DIGIPOT_I2C)
@@ -351,7 +333,7 @@ void Printer::setup() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if ENABLED(NEOPIXEL_RGBW_LED)
+  #if HAS_NEOPIXEL
     SET_OUTPUT(NEOPIXEL_PIN);
     setup_neopixel();
   #endif
@@ -415,7 +397,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    setup_endstop_interrupts();
+    endstops.setup_endstop_interrupts();
   #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
@@ -2204,31 +2186,35 @@ void Printer::handle_Interrupt_Event() {
 
 #if HAS_COLOR_LEDS
 
-  #if ENABLED(NEOPIXEL_RGBW_LED)
+  #if HAS_NEOPIXEL
 
-    Adafruit_NeoPixel pixels(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRBW + NEO_KHZ800);
+    #if ENABLED(NEOPIXEL_RGB_LED)
+      Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+    #else
+      Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRBW + NEO_KHZ800);
+    #endif
 
     void Printer::set_neopixel_color(const uint32_t color) {
-      for (uint16_t i = 0; i < pixels.numPixels(); ++i)
-        pixels.setPixelColor(i, color);
-      pixels.show();
+      for (uint16_t i = 0; i < strip.numPixels(); ++i)
+        strip.setPixelColor(i, color);
+      strip.show();
     }
 
     void Printer::setup_neopixel() {
-      pixels.setBrightness(255); // 0 - 255 range
-      pixels.begin();
-      pixels.show(); // initialize to all off
+      strip.setBrightness(255); // 0 - 255 range
+      strip.begin();
+      strip.show(); // initialize to all off
 
       #if ENABLED(NEOPIXEL_STARTUP_TEST)
         delay(2000);
-        set_neopixel_color(pixels.Color(255, 0, 0, 0));  // red
+        set_neopixel_color(strip.Color(255, 0, 0, 0));  // red
         delay(2000);
-        set_neopixel_color(pixels.Color(0, 255, 0, 0));  // green
+        set_neopixel_color(strip.Color(0, 255, 0, 0));  // green
         delay(2000);
-        set_neopixel_color(pixels.Color(0, 0, 255, 0));  // blue
+        set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
         delay(2000);
       #endif
-      set_neopixel_color(pixels.Color(0, 0, 0, 255));    // white
+      set_neopixel_color(strip.Color(0, 0, 0, 255));    // white
     }
 
   #endif
@@ -2237,23 +2223,28 @@ void Printer::handle_Interrupt_Event() {
     const uint8_t r, const uint8_t g, const uint8_t b
       #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
         , const uint8_t w/*=0*/
-        #if ENABLED(NEOPIXEL_RGBW_LED)
-          , bool isSequence/*=false*/
-        #endif
+      #endif
+      #if HAS_NEOPIXEL
+        , bool isSequence/*=false*/
       #endif
   ) {
 
-    #if ENABLED(NEOPIXEL_RGBW_LED)
+    #if HAS_NEOPIXEL
 
-      const uint32_t color = pixels.Color(r, g, b, w);
+      #if ENABLED(NEOPIXEL_RGBW_LED)
+        const uint32_t color = strip.Color(r, g, b, w);
+      #else
+        const uint32_t color = strip.Color(r, g, b);
+      #endif
+
       static uint16_t nextLed = 0;
 
       if (!isSequence)
         set_neopixel_color(color);
       else {
-        pixels.setPixelColor(nextLed, color);
-        pixels.show();
-        if (++nextLed >= pixels.numPixels()) nextLed = 0;
+        strip.setPixelColor(nextLed, color);
+        strip.show();
+        if (++nextLed >= strip.numPixels()) nextLed = 0;
         return;
       }
 
@@ -2334,16 +2325,6 @@ void Printer::setup_powerhold() {
     #endif
   #endif
 }
-
-/**
- * Stepper Reset (RigidBoard, et.al.)
- */
-#if HAS_STEPPER_RESET
-  void Printer::disableStepperDrivers() {
-    OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
-  }
-  void Printer::enableStepperDrivers() { SET_INPUT(STEPPER_RESET_PIN); }  // set to input, which allows it to be pulled high by pullups
-#endif
 
 #if HAS_CONTROLLERFAN
 

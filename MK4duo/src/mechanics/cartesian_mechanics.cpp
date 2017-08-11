@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@
 
     // Cancel the active G29 session
     #if ENABLED(PROBE_MANUALLY)
-      printer.g29_in_progress = false;
+      bedlevel.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         LcdBedLevelOff();
       #endif
@@ -568,8 +568,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HOMING_Z_WITH_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        destination[X_AXIS] -= probe.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
       if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
@@ -623,8 +623,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HAS_BED_PROBE
-        destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        destination[X_AXIS] -= probe.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
       if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
@@ -633,7 +633,7 @@
           if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
         #endif
 
-        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.z_offset);
+        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.offset[Z_AXIS]);
         current_position[Z_AXIS] -= newzero;
         destination[Z_AXIS] = current_position[Z_AXIS];
         endstops.soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;
@@ -820,12 +820,12 @@
      */
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS) {
-        current_position[Z_AXIS] -= probe.z_offset;
+        current_position[Z_AXIS] -= probe.offset[Z_AXIS];
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) {
             SERIAL_EM("*** Z HOMED WITH PROBE ***");
-            SERIAL_EMV("z_offset = ", probe.z_offset);
+            SERIAL_EMV("zprobe_zoffset = ", probe.offset[Z_AXIS]);
           }
         #endif
       }

@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@
       /**
        * Home Delta
        */
-      void Home(const bool always_home_all=true);
+      bool Home(const bool always_home_all=true);
 
       /**
        * Set an axis' current position to its home position (after homing).
@@ -124,8 +124,8 @@
        */
       void set_axis_is_at_home(const AxisEnum axis);
 
-      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
-      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
+      //bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
+      //bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
       #if HAS_DELTA_AUTO_CALIBRATION
         void auto_calibration();
@@ -143,7 +143,6 @@
                     towerX[ABC],                // The X coordinate of each tower
                     towerY[ABC],                // The Y coordinate of each tower
                     homed_Height,
-                    printRadiusSquared,
                     Xbc, Xca, Xab, Ybc, Yca, Yab,
                     coreFa, coreFb, coreFc,
                     Q, Q2, D2;

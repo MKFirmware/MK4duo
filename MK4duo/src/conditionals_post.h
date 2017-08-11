@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -471,7 +471,7 @@
   #define HOMING_BUMP_DIVISOR {XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR}
 
   // Effective horizontal distance bridged by diagonal push rods.
-  #define DEFAULT_DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
+  #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
 
   #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     #define AUTO_BED_LEVELING_BILINEAR
@@ -486,11 +486,19 @@
   #define Z_PROBE_SPEED_SLOW  Z_PROBE_SPEED
 
   // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - 5)
-  #define LEFT_PROBE_BED_POSITION   -(DELTA_PROBEABLE_RADIUS)
-  #define RIGHT_PROBE_BED_POSITION  (DELTA_PROBEABLE_RADIUS)
-  #define FRONT_PROBE_BED_POSITION  -(DELTA_PROBEABLE_RADIUS)
-  #define BACK_PROBE_BED_POSITION   (DELTA_PROBEABLE_RADIUS)
+  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE)))
+  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
+  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
+  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
+  #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
+
+  #define X_MIN_POS -(mechanics.delta_print_radius)
+  #define X_MAX_POS  (mechanics.delta_print_radius)
+  #define Y_MIN_POS -(mechanics.delta_print_radius)
+  #define Y_MAX_POS  (mechanics.delta_print_radius)
+  #define Z_MAX_POS  (mechanics.delta_height)
+  #define Z_MIN_POS 0
+  #define E_MIN_POS 0
 
   #if ENABLED(WORKSPACE_OFFSETS)
     #undef WORKSPACE_OFFSETS
@@ -531,23 +539,6 @@
  */
 #if ENABLED(GRID_MAX_POINTS_X) && ENABLED(GRID_MAX_POINTS_Y)
   #define GRID_MAX_POINTS ((GRID_MAX_POINTS_X) * (GRID_MAX_POINTS_Y))
-#endif
-
-/**
- * Auto Bed Leveling
- */
-#if IS_KINEMATIC
-  // Check for this in the code instead
-  #define MIN_PROBE_X X_MIN_POS
-  #define MAX_PROBE_X X_MAX_POS
-  #define MIN_PROBE_Y Y_MIN_POS
-  #define MAX_PROBE_Y Y_MAX_POS
-#else
-  // Boundaries for probing based on set limits
-  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + X_PROBE_OFFSET_FROM_NOZZLE))
-  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + X_PROBE_OFFSET_FROM_NOZZLE))
-  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + Y_PROBE_OFFSET_FROM_NOZZLE))
-  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + Y_PROBE_OFFSET_FROM_NOZZLE))
 #endif
 
 /**

@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,12 @@
             Bed_level::z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
       int   Bed_level::bilinear_grid_spacing_virt[2] = { 0 };
     #endif
+  #endif
+
+  #if ENABLED(PROBE_MANUALLY)
+    bool Bed_level::g29_in_progress = false;
+  #else
+    const bool Bed_level::g29_in_progress = false;
   #endif
 
   /**
@@ -572,7 +578,7 @@
 
     void Bed_level::mbl_mesh_report() {
       SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
-      SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
+      SERIAL_EMV("Z offset: ", mbl.zprobe_zoffset, 5);
       SERIAL_EM("Measured points:");
       print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
         [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[ix][iy]; }

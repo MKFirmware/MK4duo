@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 
   uint8_t mesh_bed_leveling::status;
 
-  float mesh_bed_leveling::z_offset,
+  float mesh_bed_leveling::zprobe_zoffset,
         mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
         mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
         mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y];
@@ -44,7 +44,7 @@
 
   void mesh_bed_leveling::reset() {
     status = MBL_STATUS_NONE;
-    z_offset = 0;
+    zprobe_zoffset = 0;
     ZERO(z_values);
   }
 

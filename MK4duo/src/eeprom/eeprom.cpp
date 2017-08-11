@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,8 +66,8 @@
  *                        z_fade_height                         (float)
  *
  * MESH_BED_LEVELING:
- *  M420  S               from mbl.status (bool)
- *                        mbl.z_offset (float)
+ *  M420  S               from mbl.status                       (bool)
+ *                        mbl.zprobe_zoffset                    (float)
  *                        GRID_MAX_POINTS_X                     (uint8 as set in firmware)
  *                        GRID_MAX_POINTS_Y                     (uint8 as set in firmware)
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
@@ -83,7 +83,7 @@
  *                        bedlevel.z_values[][]                 (float x9, up to float x256)
  *
  * HAS_BED_PROBE:
- *  M666  P               probe.z_offset                        (float)
+ *  M851  XYZ             probe.offset                          (float x3)
  *
  * HOTENDS AD595:
  *  M595  H OS            Hotend AD595 Offset & Gain
@@ -98,7 +98,7 @@
  *  M666  IJK             mechanics.delta_tower_pos_adj         (float x3)
  *  M666  UVW             mechanics.delta_diagonal_rod_adj      (float x3)
  *  M666  O               mechanics.delta_print_radius          (float)
- *  M666  Q               mechanics.delta_probe_radius          (float)
+ *  M666  P               mechanics.delta_probe_radius          (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
@@ -209,7 +209,7 @@ void EEPROM::Postprocess() {
 
   const char version[6] = EEPROM_VERSION;
 
-  bool EEPROM::eeprom_error;
+  bool EEPROM::eeprom_error = false;
 
   void EEPROM::crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
     uint8_t *ptr = (uint8_t *)data;
@@ -339,7 +339,7 @@ void EEPROM::Postprocess() {
       const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(leveling_is_on);
-      EEPROM_WRITE(mbl.z_offset);
+      EEPROM_WRITE(mbl.zprobe_zoffset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
       EEPROM_WRITE(mbl.z_values);
@@ -369,7 +369,7 @@ void EEPROM::Postprocess() {
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if HAS_BED_PROBE
-      EEPROM_WRITE(probe.z_offset);
+      EEPROM_WRITE(probe.offset);
     #endif
 
     #if HEATER_USES_AD595
@@ -600,6 +600,8 @@ void EEPROM::Postprocess() {
     char stored_ver[6];
     uint16_t stored_crc;
 
+    eeprom_error = false;
+
     #if HAS_EEPROM_SD
       // EEPROM on SDCARD
       if (!IS_SD_INSERTED) {
@@ -669,7 +671,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mesh_num_x);
         EEPROM_READ(mesh_num_y);
         mbl.status = leveling_is_on ? _BV(MBL_STATUS_HAS_MESH_BIT) : 0;
-        mbl.z_offset = dummy;
+        mbl.zprobe_zoffset = dummy;
         if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
           // EEPROM data fits the current mesh
           EEPROM_READ(mbl.z_values);
@@ -711,7 +713,7 @@ void EEPROM::Postprocess() {
       #endif // AUTO_BED_LEVELING_BILINEAR
 
       #if HAS_BED_PROBE
-        EEPROM_READ(probe.z_offset);
+        EEPROM_READ(probe.offset);
       #endif
 
       #if HEATER_USES_AD595
@@ -996,7 +998,9 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if HAS_BED_PROBE
-    probe.z_offset = Z_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[0] = X_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[1] = Y_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[2] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
   mechanics.Init();
@@ -1321,8 +1325,8 @@ void EEPROM::Factory_Settings() {
       SERIAL_EOL();
 
       CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
-      CONFIG_MSG_START("                     R=Delta Radius, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
-      CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, H=DELTA_HEIGHT");
+      CONFIG_MSG_START("                     R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
+      CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[1]), 3);
@@ -1337,7 +1341,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" D", LINEAR_UNIT(mechanics.delta_diagonal_rod));
       SERIAL_MV(" S", mechanics.delta_segments_per_second);
       SERIAL_MV(" O", LINEAR_UNIT(mechanics.delta_print_radius));
-      SERIAL_MV(" Q", LINEAR_UNIT(mechanics.delta_probe_radius));
+      SERIAL_MV(" P", LINEAR_UNIT(mechanics.delta_probe_radius));
       SERIAL_MV(" H", LINEAR_UNIT(mechanics.delta_height), 3);
       SERIAL_EOL();
 
@@ -1347,8 +1351,11 @@ void EEPROM::Factory_Settings() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      CONFIG_MSG_START("Z Probe offset:");
-      SERIAL_LMV(CFG, "  M666 P", LINEAR_UNIT(probe.z_offset));
+      CONFIG_MSG_START(MSG_PROBE_OFFSET ":");
+      SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(probe.offset[Z_AXIS]), 3);
+      SERIAL_EOL();
     #endif
 
     #if ENABLED(ULTIPANEL)

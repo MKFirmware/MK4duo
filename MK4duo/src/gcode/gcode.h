@@ -1,9 +1,9 @@
 /**
- * MK4duo 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 - 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,6 @@
 #include "config/m305.h"                  // Set PID parameters Chamber
 #include "config/m306.h"                  // Set PID parameters Cooler
 #include "config/m595.h"                  // Set AD595 offset & Gain
-#include "config/m666.h"                  // Set Z probe offset
 #include "config/m900.h"                  // Set and/or Get advance K factor
 #include "config/m906.h"                  // Set Alliagtor motor currents or Set motor current in milliamps with have a TMC2130 driver
 #include "config/m907.h"                  // Set digital trimpot motor current
@@ -102,6 +101,7 @@
 #include "feature/g61.h"
 #include "feature/m96_m97.h"
 #include "feature/m98_m99.h"
+#include "feature/m100.h"                 // Free Memory Watcher
 #include "feature/m125.h"
 #include "feature/m126_m129.h"            // Solenoid feature
 #include "feature/m150.h"
@@ -169,6 +169,7 @@
 #include "probe/g31.h"
 #include "probe/g38.h"
 #include "probe/m401_m402.h"              // Lower e Raise probe
+#include "probe/m851.h"                   // Set probe offset
 
 // Rfid Commands
 #include "rfid/m522.h"                    // Rfid read and write
