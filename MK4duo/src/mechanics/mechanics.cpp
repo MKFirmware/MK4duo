@@ -411,11 +411,11 @@ bool Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const flo
   return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
       && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
 }
-bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
-  return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
-}
 bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
   return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
+}
+bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
+  return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 }
 
 #if ENABLED(ARC_SUPPORT)

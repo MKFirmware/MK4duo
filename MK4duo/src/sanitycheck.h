@@ -657,73 +657,19 @@ static_assert(1 >= 0
 #endif
 
 /**
- * Make sure Z_SAFE_HOMING point is reachable
+ * Check auto bed leveling sub-options, especially probe points
  */
-#if ENABLED(Z_SAFE_HOMING)
-  #if Z_SAFE_HOMING_X_POINT < MIN_PROBE_X || Z_SAFE_HOMING_X_POINT > MAX_PROBE_X
-    #if HAS_BED_PROBE
-      #error "Z_SAFE_HOMING_X_POINT can't be reached by the Z probe."
-    #else
-      #error "Z_SAFE_HOMING_X_POINT can't be reached by the nozzle."
-    #endif
-  #elif Z_SAFE_HOMING_Y_POINT < MIN_PROBE_Y || Z_SAFE_HOMING_Y_POINT > MAX_PROBE_Y
-    #if HAS_BED_PROBE
-      #error "Z_SAFE_HOMING_Y_POINT can't be reached by the Z probe."
-    #else
-      #error "Z_SAFE_HOMING_Y_POINT can't be reached by the nozzle."
+#if ABL_GRID
+
+  #if DISABLED(DELTA_PROBEABLE_RADIUS)
+    // Be sure points are in the right order
+    #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
+      #error "LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
+    #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
+      #error "FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
     #endif
   #endif
-#endif // Z_SAFE_HOMING
-
-/**
- * Auto Bed Leveling
- */
-#if HAS_ABL
-
-  /**
-   * Check auto bed leveling sub-options, especially probe points
-   */
-  #if ABL_GRID
-
-    #if DISABLED(DELTA_PROBEABLE_RADIUS)
-      // Be sure points are in the right order
-      #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
-        #error "LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
-      #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
-        #error "FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
-      #endif
-      // Make sure probing points are reachable
-      #if LEFT_PROBE_BED_POSITION < MIN_PROBE_X
-        #error "The given LEFT_PROBE_BED_POSITION can't be reached by the Z probe."
-      #elif RIGHT_PROBE_BED_POSITION > MAX_PROBE_X
-        #error "The given RIGHT_PROBE_BED_POSITION can't be reached by the Z probe."
-      #elif FRONT_PROBE_BED_POSITION < MIN_PROBE_Y
-        #error "The given FRONT_PROBE_BED_POSITION can't be reached by the Z probe."
-      #elif BACK_PROBE_BED_POSITION > MAX_PROBE_Y
-        #error "The given BACK_PROBE_BED_POSITION can't be reached by the Z probe."
-      #endif
-    #endif
-
-  #else // !ABL_GRID
-
-    // Check the triangulation points
-    #if ABL_PROBE_PT_1_X < MIN_PROBE_X || ABL_PROBE_PT_1_X > MAX_PROBE_X
-      #error "The given ABL_PROBE_PT_1_X can't be reached by the Z probe."
-    #elif ABL_PROBE_PT_2_X < MIN_PROBE_X || ABL_PROBE_PT_2_X > MAX_PROBE_X
-      #error "The given ABL_PROBE_PT_2_X can't be reached by the Z probe."
-    #elif ABL_PROBE_PT_3_X < MIN_PROBE_X || ABL_PROBE_PT_3_X > MAX_PROBE_X
-      #error "The given ABL_PROBE_PT_3_X can't be reached by the Z probe."
-    #elif ABL_PROBE_PT_1_Y < MIN_PROBE_Y || ABL_PROBE_PT_1_Y > MAX_PROBE_Y
-      #error "The given ABL_PROBE_PT_1_Y can't be reached by the Z probe."
-    #elif ABL_PROBE_PT_2_Y < MIN_PROBE_Y || ABL_PROBE_PT_2_Y > MAX_PROBE_Y
-      #error "The given ABL_PROBE_PT_2_Y can't be reached by the Z probe."
-    #elif ABL_PROBE_PT_3_Y < MIN_PROBE_Y || ABL_PROBE_PT_3_Y > MAX_PROBE_Y
-      #error "The given ABL_PROBE_PT_3_Y can't be reached by the Z probe."
-    #endif
-
-  #endif // !ABL_GRID
-
-#endif // HAS_ABL
+#endif // ABL_GRID
 
 /**
  * ENABLE_LEVELING_FADE_HEIGHT requirements

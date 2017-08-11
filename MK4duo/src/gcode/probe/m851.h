@@ -34,11 +34,8 @@
 
     SERIAL_SM(ECHO, MSG_PROBE_OFFSET);
 
-    if (parser.seen('X'))
-      probe.offset[X_AXIS] = parser.value_linear_units();
-
-    if (parser.seen('Y'))
-      probe.offset[Y_AXIS] = parser.value_linear_units();
+    probe.offset[X_AXIS] = parser.linearval('X', probe.offset[X_AXIS]);
+    probe.offset[Y_AXIS] = parser.linearval('Y', probe.offset[Y_AXIS]);
 
     if (parser.seen('Z')) {
       const float value = parser.value_linear_units();
