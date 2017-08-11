@@ -406,6 +406,8 @@
     InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
     homed_Height = delta_height + tempHeight - cartesian[C_AXIS];
 
+    NOMORE(delta_probe_radius, delta_print_radius);
+
     Set_clip_start_height();
 
   }
@@ -775,25 +777,25 @@
       for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
         yBedProbePoints[probe_index] = delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
-        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
+        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4, false);
         if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
       }
       if (probe_points >= 10) {
         for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
           xBedProbePoints[probe_index] = (delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
           yBedProbePoints[probe_index] = (delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
-          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
+          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4, false);
           if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe.check_pt(dx, dy, true, 4);
+        zBedProbePoints[9] = probe.check_pt(dx, dy, true, 4, false);
         if (probe.nan_error(zBedProbePoints[9])) goto FAIL;
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe.check_pt(dx, dy, true, 4);
+        zBedProbePoints[6] = probe.check_pt(dx, dy, true, 4, false);
         if (probe.nan_error(zBedProbePoints[6])) goto FAIL;
       }
 
@@ -809,10 +811,9 @@
       for (uint8_t i = 0; i < probe_points; ++i) {
         corrections[i] = 0.0;
         float machinePos[ABC];
-        float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
 
-        machinePos[A_AXIS] = xp;
-        machinePos[B_AXIS] = yp;
+        machinePos[A_AXIS] = xBedProbePoints[i];
+        machinePos[B_AXIS] = yBedProbePoints[i];
         machinePos[C_AXIS] = 0.0;
 
         Transform(machinePos);
@@ -1047,8 +1048,8 @@
                     r = (1 + circles * 0.1) * delta_probe_radius;
         for (uint8_t axis = 1; axis < 13; ++axis) {
           const float a = RADIANS(180 + 30 * axis);
-          if (!position_is_reachable_by_probe_xy(COS(a) * r + dx, SIN(a) * r + dy)) {
-            SERIAL_EM("?(M665 Q) probe radius is implausible.");
+          if (!position_is_reachable_xy(COS(a) * r, SIN(a) * r)) {
+            SERIAL_EM("?(M666 P) probe radius is implausible.");
             return;
           }
         }
@@ -1104,7 +1105,7 @@
         if (_7p_calibration) { // probe extra center points
           for (int8_t axis = _7p_multi_circle ? 11 : 9; axis > 0; axis -= _7p_multi_circle ? 2 : 4) {
             const float a = RADIANS(180 + 30 * axis), r = delta_probe_radius * 0.1;
-            z_at_pt[0] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
+            z_at_pt[0] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1, false);
             if (probe.nan_error(z_at_pt[0])) goto FAIL;
           }
           z_at_pt[0] /= float(_7p_double_circle ? 7 : probe_points);
@@ -1121,7 +1122,7 @@
             for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
               const float a = RADIANS(180 + 30 * axis),
                           r = delta_probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
-              z_at_pt[axis] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
+              z_at_pt[axis] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1, false);
               if (probe.nan_error(z_at_pt[axis])) goto FAIL;
             }
             zig_zag = !zig_zag;

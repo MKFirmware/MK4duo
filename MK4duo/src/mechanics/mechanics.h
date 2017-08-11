@@ -295,8 +295,8 @@ class Mechanics {
 
     bool position_is_reachable_raw_xy(const float &rx, const float &ry);
     bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
-    bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
     bool position_is_reachable_xy(const float &lx, const float &ly);
+    bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
 
     /**
      * Plan an arc in 2 dimensions

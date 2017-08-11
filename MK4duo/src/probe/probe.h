@@ -115,4 +115,18 @@ class Probe {
 
 extern Probe probe;
 
+#if IS_KINEMATIC
+  // Check for this in the code instead
+  #define MIN_PROBE_X -(mechanics.delta_probe_radius)
+  #define MAX_PROBE_X  (mechanics.delta_probe_radius)
+  #define MIN_PROBE_Y -(mechanics.delta_probe_radius)
+  #define MAX_PROBE_Y  (mechanics.delta_probe_radius)
+#else
+  // Boundaries for probing based on set limits
+  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
+#endif
+
 #endif /* _PROBE_H_ */
