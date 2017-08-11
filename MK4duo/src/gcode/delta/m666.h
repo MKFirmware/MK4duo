@@ -78,43 +78,6 @@
 
     mechanics.recalc_delta_settings();
 
-    #if HAS_BED_PROBE
-
-      if (parser.seen('P')) {
-
-        SERIAL_SM(ECHO, MSG_ZPROBE_ZOFFSET);
-        SERIAL_CHR(' ');
-
-        float p_val = parser.value_linear_units();
-        if (Z_PROBE_OFFSET_RANGE_MIN <= p_val && p_val <= Z_PROBE_OFFSET_RANGE_MAX) {
-
-          #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            // Correct bilinear grid for new probe offset
-            const float diff = p_val - probe.zprobe_zoffset;
-            if (diff) {
-              for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-                for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-                  bedlevel.z_values[x][y] += diff;
-            }
-            #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-              bedlevel.bed_level_virt_interpolate();
-            #endif
-          #endif
-
-          probe.zprobe_zoffset = p_val;
-          SERIAL_VAL(probe.zprobe_zoffset);
-        }
-        else {
-          SERIAL_MT(MSG_Z_MIN, Z_PROBE_OFFSET_RANGE_MIN);
-          SERIAL_CHR(' ');
-          SERIAL_MT(MSG_Z_MAX, Z_PROBE_OFFSET_RANGE_MAX);
-        }
-
-        SERIAL_EOL();
-      }
-
-    #endif // HAS_BED_PROBE
-
     LOOP_XYZ(i) {
       if (parser.seen(axis_codes[i])) mechanics.delta_endstop_adj[i] = parser.value_linear_units();
     }
@@ -125,10 +88,6 @@
         SERIAL_SV(CFG, axis_codes[i]);
         SERIAL_EMV(" (Endstop Adj): ", mechanics.delta_endstop_adj[i], 3);
       }
-
-      #if HAS_BED_PROBE
-        SERIAL_LMV(CFG, "P (ZProbe ZOffset): ", probe.zprobe_zoffset, 3);
-      #endif
 
       SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[0], 3);
       SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[1], 3);

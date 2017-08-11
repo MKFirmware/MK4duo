@@ -146,7 +146,7 @@
 #define MSG_ZPROBE_OUT                      "Son. fora da mesa"
 #define MSG_HOME                            "Home"  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           "first"
-#define MSG_ZPROBE_ZOFFSET                  "Deslocamento no Z"
+#define MSG_PROBE_OFFSET                    "Probe Offset"
 #define MSG_BABYSTEP_X                      "Passinho X"
 #define MSG_BABYSTEP_Y                      "Passinho Y"
 #define MSG_BABYSTEP_Z                      "Passinho Z"

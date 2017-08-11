@@ -83,7 +83,7 @@
  *                        bedlevel.z_values[][]                 (float x9, up to float x256)
  *
  * HAS_BED_PROBE:
- *  M666  P               probe.zprobe_zoffset                  (float)
+ *  M851  XYZ             probe.offset                          (float x3)
  *
  * HOTENDS AD595:
  *  M595  H OS            Hotend AD595 Offset & Gain
@@ -369,7 +369,7 @@ void EEPROM::Postprocess() {
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if HAS_BED_PROBE
-      EEPROM_WRITE(probe.zprobe_zoffset);
+      EEPROM_WRITE(probe.offset);
     #endif
 
     #if HEATER_USES_AD595
@@ -713,7 +713,7 @@ void EEPROM::Postprocess() {
       #endif // AUTO_BED_LEVELING_BILINEAR
 
       #if HAS_BED_PROBE
-        EEPROM_READ(probe.zprobe_zoffset);
+        EEPROM_READ(probe.offset);
       #endif
 
       #if HEATER_USES_AD595
@@ -998,7 +998,9 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if HAS_BED_PROBE
-    probe.zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[0] = X_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[1] = Y_PROBE_OFFSET_FROM_NOZZLE;
+    probe.offset[2] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
   mechanics.Init();
@@ -1349,8 +1351,11 @@ void EEPROM::Factory_Settings() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      CONFIG_MSG_START("Z Probe offset:");
-      SERIAL_LMV(CFG, "  M666 P", LINEAR_UNIT(probe.zprobe_zoffset));
+      CONFIG_MSG_START(MSG_PROBE_OFFSET ":");
+      SERIAL_SMV(CFG, "  M851 X:", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
+      SERIAL_MV(" Y:", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
+      SERIAL_MV(" Z:", LINEAR_UNIT(probe.offset[Z_AXIS]), 3);
+      SERIAL_EOL();
     #endif
 
     #if ENABLED(ULTIPANEL)

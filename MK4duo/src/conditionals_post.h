@@ -492,6 +492,14 @@
   #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
   #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
 
+  #define X_MIN_POS -(mechanics.delta_print_radius)
+  #define X_MAX_POS  (mechanics.delta_print_radius)
+  #define Y_MIN_POS -(mechanics.delta_print_radius)
+  #define Y_MAX_POS  (mechanics.delta_print_radius)
+  #define Z_MAX_POS  (mechanics.delta_height)
+  #define Z_MIN_POS 0
+  #define E_MIN_POS 0
+
   #if ENABLED(WORKSPACE_OFFSETS)
     #undef WORKSPACE_OFFSETS
   #endif
@@ -544,10 +552,10 @@
   #define MAX_PROBE_Y  (mechanics.delta_print_radius)
 #else
   // Boundaries for probing based on set limits
-  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + X_PROBE_OFFSET_FROM_NOZZLE))
-  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + X_PROBE_OFFSET_FROM_NOZZLE))
-  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + Y_PROBE_OFFSET_FROM_NOZZLE))
-  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + Y_PROBE_OFFSET_FROM_NOZZLE))
+  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
 #endif
 
 /**

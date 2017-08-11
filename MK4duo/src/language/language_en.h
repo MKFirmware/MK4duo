@@ -668,8 +668,8 @@
 #ifndef MSG_FIRST
   #define MSG_FIRST                           _UxGT("first")
 #endif
-#ifndef MSG_ZPROBE_ZOFFSET
-  #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
+#ifndef MSG_PROBE_OFFSET
+  #define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
 #endif
 #ifndef MSG_BABYSTEP_X
   #define MSG_BABYSTEP_X                      _UxGT("Babystep X")

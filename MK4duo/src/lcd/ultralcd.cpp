@@ -1715,7 +1715,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
       else if (bedlevel.leveling_is_valid()) {
         _level_state = bedlevel.leveling_is_active();
-        MENU_ITEM_EDIT_CALLBACK(bool, MSG_LEVEL_BED, &_level_state, _lcd_toggle_bed_leveling);
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &_level_state, _lcd_toggle_bed_leveling);
       }
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -1731,7 +1731,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       #if HAS_BED_PROBE
-        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_PROBE_OFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
       #endif
 
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
@@ -1788,9 +1788,9 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(PROBE_MANUALLY)
         if (!bedlevel.g29_in_progress)
       #endif
-      MENU_ITEM(submenu, MSG_LEVEL_BED, lcd_bed_leveling);
+      MENU_ITEM(submenu, MSG_BED_LEVELING, lcd_bed_leveling);
     #elif HAS_LEVELING
-      MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
+      MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));
     #endif
 
     #if HAS_M206_M408_COMMAND
@@ -2753,7 +2753,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_CONTROL);
 
     #if HAS_BED_PROBE
-      MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &probe.zprobe_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+      MENU_ITEM_EDIT(float32, MSG_PROBE_OFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif
 
     // M203 / M205 - Feedrate items

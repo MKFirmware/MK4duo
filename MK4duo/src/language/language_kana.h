@@ -214,7 +214,7 @@
 #else
   #define MSG_FIRST                         "\xa6\xcc\xaf\xb7\xbb\xbe\xd6"                                     // "ｦﾌｯｷｻｾﾖ" ("first")
 #endif
-#define MSG_ZPROBE_ZOFFSET                  "Z\xb5\xcc\xbe\xaf\xc4"                                            // "Zｵﾌｾｯﾄ" ("Z Offset")
+#define MSG_PROBE_OFFSET                    "Z\xb5\xcc\xbe\xaf\xc4"                                            // "Zｵﾌｾｯﾄ"   ("Z Offset")
 #define MSG_BABYSTEP_X                      "X\xbc\xde\xb8\x20\xcb\xde\xc4\xde\xb3"                            // "Xｼﾞｸ ﾋﾞﾄﾞｳ" ("Babystep X")
 #define MSG_BABYSTEP_Y                      "Y\xbc\xde\xb8\x20\xcb\xde\xc4\xde\xb3"                            // "Yｼﾞｸ ﾋﾞﾄﾞｳ" ("Babystep Y")
 #define MSG_BABYSTEP_Z                      "Z\xbc\xde\xb8\x20\xcb\xde\xc4\xde\xb3"                            // "Zｼﾞｸ ﾋﾞﾄﾞｳ" ("Babystep Z")

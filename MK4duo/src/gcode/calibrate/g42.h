@@ -57,8 +57,8 @@
       if (hasI) mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
       if (hasJ) mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
       if (parser.boolval('P')) {
-        if (hasI) mechanics.destination[X_AXIS] -= X_PROBE_OFFSET_FROM_NOZZLE;
-        if (hasJ) mechanics.destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_NOZZLE;
+        if (hasI) mechanics.destination[X_AXIS] -= probe.offset[X_AXIS];
+        if (hasJ) mechanics.destination[Y_AXIS] -= probe.offset[Y_AXIS];
       }
 
       const float fval = parser.linearval('F');

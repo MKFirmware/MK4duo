@@ -603,28 +603,30 @@ bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
     #endif
 
     #if HAS_BED_PROBE
-      SERIAL_MV("Probe Offset X:", X_PROBE_OFFSET_FROM_NOZZLE);
-      SERIAL_MV(" Y:", Y_PROBE_OFFSET_FROM_NOZZLE);
-      SERIAL_MV(" Z:", probe.zprobe_zoffset);
-      #if X_PROBE_OFFSET_FROM_NOZZLE > 0
+      SERIAL_SM(ECHO, MSG_PROBE_OFFSET);
+      SERIAL_MV(MSG_PROBE_OFFSET " X:", probe.offset[X_AXIS]);
+      SERIAL_MV(" Y:", probe.offset[Y_AXIS]);
+      SERIAL_MV(" Z:", probe.offset[Z_AXIS]);
+
+      if (probe.offset[X_AXIS] > 0)
         SERIAL_MSG(" (Right");
-      #elif X_PROBE_OFFSET_FROM_NOZZLE < 0
+      else if (probe.offset[X_AXIS] < 0)
         SERIAL_MSG(" (Left");
-      #elif Y_PROBE_OFFSET_FROM_NOZZLE != 0
+      else if (probe.offset[Y_AXIS] != 0)
         SERIAL_MSG(" (Middle");
-      #else
+      else
         SERIAL_MSG(" (Aligned With");
-      #endif
-      #if Y_PROBE_OFFSET_FROM_NOZZLE > 0
+
+      if (probe.offset[Y_AXIS] > 0)
         SERIAL_MSG("-Back");
-      #elif Y_PROBE_OFFSET_FROM_NOZZLE < 0
+      else if (probe.offset[Y_AXIS] < 0)
         SERIAL_MSG("-Front");
-      #elif X_PROBE_OFFSET_FROM_NOZZLE != 0
+      else if (probe.offset[X_AXIS] != 0)
         SERIAL_MSG("-Center");
-      #endif
-      if (probe.zprobe_zoffset < 0)
+
+      if (probe.offset[Z_AXIS] < 0)
         SERIAL_MSG(" & Below");
-      else if (probe.zprobe_zoffset > 0)
+      else if (probe.offset[Z_AXIS] > 0)
         SERIAL_MSG(" & Above");
       else
         SERIAL_MSG(" & Same Z as");

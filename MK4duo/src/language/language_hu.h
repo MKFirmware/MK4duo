@@ -173,7 +173,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
 #define MSG_HOME                            _UxGT("Haza")
 #define MSG_FIRST                           _UxGT("elsô")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("ZProbe ZOffset")
+#define MSG_PROBE_OFFSET                  _UxGT("ZProbe ZOffset")
 #define MSG_BABYSTEP                        _UxGT("Babystep")
 #define MSG_BABYSTEP_X                      MSG_BABYSTEP _UxGT(" ") MSG_X
 #define MSG_BABYSTEP_Y                      MSG_BABYSTEP _UxGT(" ") MSG_Y

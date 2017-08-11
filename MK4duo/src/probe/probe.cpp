@@ -27,11 +27,10 @@
  */
 
 #include "../../base.h"
-#include "probe.h"
 
 Probe probe;
 
-float Probe::zprobe_zoffset = Z_PROBE_OFFSET_FROM_NOZZLE;
+float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE };
 bool  Probe::enabled  = false;
 
 #if HAS_Z_SERVO_PROBE
@@ -120,7 +119,7 @@ void Probe::raise(const float z_raise) {
   #endif
 
   float z_dest = z_raise;
-  if (zprobe_zoffset < 0) z_dest -= zprobe_zoffset;
+  if (offset[Z_AXIS] < 0) z_dest -= offset[Z_AXIS];
 
   if (z_dest > mechanics.current_position[Z_AXIS])
     mechanics.do_blocking_move_to_z(z_dest);
@@ -150,8 +149,8 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       }
     #endif
 
-    const float dx = lx - (X_PROBE_OFFSET_FROM_NOZZLE),
-                dy = ly - (Y_PROBE_OFFSET_FROM_NOZZLE);
+    const float dx = lx - (offset[X_AXIS]),
+                dy = ly - (offset[Y_AXIS]);
 
     if (printable) {
       if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
@@ -186,7 +185,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
     // If the nozzle is above the travel height then
     // move down quickly before doing the slow probe
     float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
-    if (zprobe_zoffset < 0) z -= zprobe_zoffset;
+    if (offset[Z_AXIS] < 0) z -= offset[Z_AXIS];
     if (z < mechanics.current_position[Z_AXIS])
       mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
@@ -195,7 +194,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       // move down slowly to find bed
        if (move_to_z(-10 + (printable ? 0 : -(Z_MAX_LENGTH)), Z_PROBE_SPEED_SLOW)) return NAN;
 
-      measured_z += RAW_CURRENT_POSITION(Z) + zprobe_zoffset;
+      measured_z += RAW_CURRENT_POSITION(Z) + offset[Z_AXIS];
 
       if (r + 1 < Z_PROBE_REPETITIONS) {
         // move up to probe between height
@@ -274,60 +273,6 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
   #endif // HAS_RESUME_CONTINUE
 
-}
-
-/**
- * Do a single Z probe
- * Usage:
- *    G30 <X#> <Y#> <S#> <Z#> <P#>
- *      X = Probe X position (default=current probe position)
- *      Y = Probe Y position (default=current probe position)
- *      S = <bool> Stows the probe if 1 (default=1)
- *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
- *      P = <bool> with a non-zero value will apply the result to current probe.zprobe_zoffset (ONLY DELTA)
- */
-void Probe::single_probe() {
-
-  const float xpos = parser.seen('X') ? parser.value_linear_units() : mechanics.current_position[X_AXIS] + X_PROBE_OFFSET_FROM_NOZZLE,
-              ypos = parser.seen('Y') ? parser.value_linear_units() : mechanics.current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_NOZZLE;
-
-  // Don't allow G30 without homing first
-  if (mechanics.axis_unhomed_error()) return;
-
-  if (!mechanics.position_is_reachable_by_probe_xy(xpos, ypos)) return;
-
-  // Disable leveling so the planner won't mess with us
-  #if HAS_LEVELING
-    bedlevel.set_bed_leveling_enabled(false);
-  #endif
-
-  printer.setup_for_endstop_or_probe_move();
-
-  const float measured_z = check_pt(xpos, ypos, !parser.seen('S') || parser.value_bool(), 1);
-
-  if (!nan_error(measured_z)) {
-    SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-    SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
-    SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
-  }
-
-  #if IS_DELTA
-    if (parser.boolval('Z')) {
-      mechanics.delta_height -= measured_z;
-      mechanics.recalc_delta_settings();
-      SERIAL_MV("  New delta height = ", mechanics.delta_height, 3);
-    }
-    else if (parser.boolval('P')) {
-      probe.zprobe_zoffset += endstops.soft_endstop_min[Z_AXIS] - measured_z;
-      SERIAL_MV("  New Z probe offset = ", zprobe_zoffset, 3);
-    }
-  #endif
-
-  SERIAL_EOL();
-
-  printer.clean_up_after_endstop_or_probe_move();
-
-  mechanics.report_current_position();
 }
 
 bool Probe::nan_error(const float v) {
@@ -438,14 +383,14 @@ bool Probe::move_to_z(float z, float fr_mm_m) {
   return !probe_triggered;
 }
 
-void Probe::refresh_zprobe_zoffset() {
+void Probe::refresh_offset() {
 
   static float last_z_offset = NAN;
 
   if (!isnan(last_z_offset)) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      const float diff = zprobe_zoffset - last_z_offset;
+      const float diff = offset[Z_AXIS] - last_z_offset;
 
       // Correct bilinear grid for new probe offset
       if (diff) {
@@ -460,7 +405,7 @@ void Probe::refresh_zprobe_zoffset() {
 
   }
 
-  last_z_offset = zprobe_zoffset;
+  last_z_offset = offset[Z_AXIS];
 }
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)

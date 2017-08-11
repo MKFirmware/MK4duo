@@ -890,8 +890,8 @@ void out_of_range_error(const char* p_edge) {
         bedlevel.abl_enabled = false;
 
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_NOZZLE))
-          && NEAR(mechanics.current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_NOZZLE))
+        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - (probe.offset[X_AXIS]))
+          && NEAR(mechanics.current_position[Y_AXIS], yProbe - (probe.offset[Y_AXIS]))
         ) {
           float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
           #if ENABLED(DEBUG_LEVELING_FEATURE)
