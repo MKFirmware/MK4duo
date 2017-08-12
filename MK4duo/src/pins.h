@@ -217,7 +217,15 @@
 #endif
 
 /****************************************************************************************/
-#include "../Configuration_Pins.h"
+
+
+#ifdef MULTI_CONFIGURATION_OVERALL
+   #include "../Configuration_Overall_Pins.h"
+#else
+    #include "../Configuration_Pins.h"
+#endif
+
+
 /****************************************************************************************/
 
 // Disabled MIN or MAX endstop if not used
