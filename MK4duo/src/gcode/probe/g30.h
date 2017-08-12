@@ -59,7 +59,7 @@
 
     const float measured_z = probe.check_pt(xpos, ypos, parser.boolval('S', true), 1);
 
-    if (!probe.nan_error(measured_z)) {
+    if (!isnan(measured_z)) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
       SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
       SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
