@@ -755,8 +755,10 @@
  */
 #if ENABLED(INVERTED_HEATER_PINS)
   #define WRITE_HEATER(pin, value) WRITE(pin, !value)
+  #define HEATER_ON false
 #else
   #define WRITE_HEATER(pin, value) WRITE(pin, value)
+  #define HEATER_ON true
 #endif
 #if HOTENDS > 0
   #define WRITE_HEATER_0P(v) WRITE_HEATER(HEATER_0_PIN, v)
@@ -778,22 +780,28 @@
 #if HAS_HEATER_BED
   #if ENABLED(INVERTED_BED_PIN)
     #define WRITE_HEATER_BED(v) WRITE(HEATER_BED_PIN,!v)
+    #define BED_ON false
   #else
     #define WRITE_HEATER_BED(v) WRITE(HEATER_BED_PIN,v)
+    #define BED_ON true
   #endif
 #endif
 #if HAS_HEATER_CHAMBER
   #if ENABLED(INVERTED_CHAMBER_PIN)
     #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER_PIN,!v)
+    #define CHAMBER_ON false
   #else
     #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER_PIN,v)
+    #define CHAMBER_ON true
   #endif
 #endif
 #if HAS_COOLER
   #if ENABLED(INVERTED_COOLER_PIN)
     #define WRITE_COOLER(v) WRITE(COOLER_PIN,!v)
+    #define COOLER_ON false
   #else
     #define WRITE_COOLER(v) WRITE(COOLER_PIN,v)
+    #define COOLER_ON true
   #endif
 #endif
 
@@ -814,8 +822,10 @@
 
 #if ENABLED(INVERTED_FAN_PINS)
   #define _WRITE_FAN(pin, v) WRITE(pin, !v)
+  #define FAN_ON false
 #else
   #define _WRITE_FAN(pin, v) WRITE(pin, v)
+  #define FAN_ON true
 #endif
 
 #if HAS_FAN0
