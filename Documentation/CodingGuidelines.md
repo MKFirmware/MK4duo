@@ -2,7 +2,7 @@
 _written by [iosonopersia](https://github.com/iosonopersia), August 2017_
 
 ### Introduction
-**MK4duo** is a _Marlin_ fork that wants to provide a cleaner, simpler to understand code to its user-base. It was the first Marlin fork to exploit the possibility of _recursive subfolder compilation_ offered by the Arduino IDE starting from version 1.5.2 (please correct me if I'm wrong).
+**MK4duo** is a _Marlin_ fork that wants to provide a cleaner, simpler to understand code to its user-base. It was the first Marlin fork to exploit the possibility of _recursive subfolder compilation_ offered by the Arduino IDE starting from version 1.6.3.
 
 Code was separated between different subfolders in order to make clear to the programmers which thematic group a file belongs to.
 
