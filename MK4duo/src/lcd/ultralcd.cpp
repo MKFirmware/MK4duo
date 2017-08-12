@@ -2272,11 +2272,11 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(PID_AUTOTUNE_MENU)
 
     #if ENABLED(PIDTEMP)
-      int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(150);
+      int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(200);
     #endif
 
     #if ENABLED(PIDTEMPBED)
-      int16_t autotune_temp_bed = 70;
+      int16_t autotune_temp_bed = 60;
     #endif
 
     void _lcd_autotune(int16_t h) {
