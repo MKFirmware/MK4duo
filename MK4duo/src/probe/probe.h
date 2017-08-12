@@ -51,7 +51,7 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float  zprobe_zoffset;
+    static float  offset[XYZ];
     static bool   enabled;
 
     #if HAS_Z_SERVO_PROBE
@@ -65,12 +65,7 @@ class Probe {
      */
     static void set_enable(bool onoff = true) { enabled = onoff; }
 
-    static bool set_deployed(bool deploy);
-
-    /**
-     * Raise Z to a minimum height to make room for a servo to move
-     */
-    static void raise(const float z_raise);
+    static bool set_deployed(const bool deploy);
 
     /**
      * Check Pt (ex probe_pt)
@@ -84,20 +79,6 @@ class Probe {
      */
     static float check_pt(const float &lx, const float &ly, const bool stow=true, const int verbose_level=1, const bool printable=true);
 
-    /**
-     * Do a single Z probe
-     * Usage:
-     *    G30 <X#> <Y#> <S#> <Z#> <P#>
-     *      X = Probe X position (default=current probe position)
-     *      Y = Probe Y position (default=current probe position)
-     *      S = <bool> Stows the probe if 1 (default=1)
-     *      Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
-     *      P = <bool> with a non-zero value will apply the result to current probe.zprobe_zoffset (ONLY DELTA)
-     */
-    static void single_probe();
-
-    static bool nan_error(const float v);
-
     #if QUIET_PROBING
       static void probing_pause(const bool p);
     #endif
@@ -107,13 +88,29 @@ class Probe {
       static bool set_bltouch_deployed(const bool deploy);
     #endif
 
-    static void refresh_zprobe_zoffset();
+    static void refresh_offset();
 
   private: /** Private Parameters */
 
   private: /** Private Function */
 
-    static bool move_to_z(float z, float fr_mm_m);
+    /**
+     * @brief Used by run_z_probe to do a single Z probe move.
+     *
+     * @param  z        Z destination
+     * @param  fr_mm_s  Feedrate in mm/s
+     * @return true to indicate an error
+     */
+    static bool move_to_z(const float z, const float fr_mm_m);
+
+    /**
+     * @details Used by check_pt to do a single Z probe.
+     *          Leaves current_position[Z_AXIS] at the height where the probe triggered.
+     *
+     * @param  short_move Flag for a shorter probe move towards the bed
+     * @return The raw Z position where the probe was triggered
+     */
+    static float run_z_probe(const bool short_move=true);
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();
@@ -126,5 +123,19 @@ class Probe {
 };
 
 extern Probe probe;
+
+#if IS_KINEMATIC
+  // Check for this in the code instead
+  #define MIN_PROBE_X -(mechanics.delta_print_radius)
+  #define MAX_PROBE_X  (mechanics.delta_print_radius)
+  #define MIN_PROBE_Y -(mechanics.delta_print_radius)
+  #define MAX_PROBE_Y  (mechanics.delta_print_radius)
+#else
+  // Boundaries for probing based on set limits
+  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
+#endif
 
 #endif /* _PROBE_H_ */

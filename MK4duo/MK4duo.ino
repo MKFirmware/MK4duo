@@ -55,7 +55,7 @@
  *          Y = Probe Y position (default=current probe position)
  *          S = <bool> Stows the probe if 1 (default=1)
  *          Z = <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
- *          P = <bool> with a non-zero value will apply the result to current zprobe_zoffset (ONLY DELTA)
+ *          P = <bool> with a non-zero value will apply the result to current probe_offset_Z (ONLY DELTA)
  * G31  - Dock sled (Z_PROBE_SLED only)
  * G32  - Undock sled (Z_PROBE_SLED only)
  * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
@@ -214,7 +214,7 @@
  * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
- * M512 - Print Extruder Encoder status Pin
+ * M512 - Print Extruder Encoder status Pin. (Requires Extruder Encoder)
  * M522 - Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
  * M531 - filename - Define filename being printed
@@ -225,7 +225,8 @@
  * M604 - Set data Extruder Encoder S[Error steps] (requires EXTRUDER ENCODER)
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
- * M666 - Set z probe offset or Endstop and delta geometry adjustment
+ * M666 - Delta geometry adjustment
+ * M851 - Set X Y Z Probe Offset in current units. (Requires Probe)
  * M900 - Get and/or Set advance K factor and WH/D ratio. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
  *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires HAVE_TMC2130)

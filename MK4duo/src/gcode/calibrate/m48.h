@@ -72,8 +72,8 @@
 
     bool stow_probe_after_each = parser.seen('E');
 
-    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + X_PROBE_OFFSET_FROM_NOZZLE;
-    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + Y_PROBE_OFFSET_FROM_NOZZLE;
+    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + probe.offset[X_AXIS];
+    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + probe.offset[Y_AXIS];
 
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
@@ -116,143 +116,150 @@
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
-    setup_for_endstop_or_probe_move();
+    printer.setup_for_endstop_or_probe_move();
 
     double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     // Move to the first point, deploy, and probe
     const float t = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
-    if (probe.nan_error(t)) goto FAIL;
+    bool probing_good = !isnan(t);
 
-    randomSeed(millis());
+    if (probing_good) {
 
-    for (uint8_t n = 0; n < n_samples; n++) {
-      if (n_legs) {
-        int dir = (random(0, 10) > 5.0) ? -1 : 1;  // clockwise or counter clockwise
-        float angle = random(0.0, 360.0),
-              radius = random(
-                #if MECH(DELTA)
-                  mechanics.delta_probe_radius / 8, mechanics.delta_probe_radius / 3
-                #else
-                  5, X_MAX_LENGTH / 8
-                #endif
-              );
+      randomSeed(millis());
 
-        if (verbose_level > 3) {
-          SERIAL_MV("Starting radius: ", radius);
-          SERIAL_MV("   angle: ", angle);
-          SERIAL_MSG(" Direction: ");
-          if (dir > 0) SERIAL_MSG("Counter-");
-          SERIAL_EM("Clockwise");
-        }
+      for (uint8_t n = 0; n < n_samples; n++) {
+        if (n_legs) {
+          const int dir = (random(0, 10) > 5.0) ? -1 : 1;  // clockwise or counter clockwise
+          float angle = random(0.0, 360.0);
+          const float radius = random(
+            #if MECH(DELTA)
+              0.1250000000 * mechanics.delta_probe_radius,
+              0.3333333333 * mechanics.delta_probe_radius
+            #else
+              5, 0.125 * min(X_MAX_LENGTH, Y_MAX_LENGTH)
+            #endif
+          );
 
-        for (uint8_t l = 0; l < n_legs - 1; l++) {
-          double delta_angle;
-
-          if (schizoid_flag)
-            // The points of a 5 point star are 72 degrees apart.  We need to
-            // skip a point and go to the next one on the star.
-            delta_angle = dir * 2.0 * 72.0;
-
-          else
-            // If we do this line, we are just trying to move further
-            // around the circle.
-            delta_angle = dir * (float) random(25, 45);
-
-          angle += delta_angle;
-
-          while (angle > 360.0)   // We probably do not need to keep the angle between 0 and 2*PI, but the
-            angle -= 360.0;       // Arduino documentation says the trig functions should not be given values
-          while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
-            angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
-
-          X_current = X_probe_location - (X_PROBE_OFFSET_FROM_NOZZLE) + cos(RADIANS(angle)) * radius;
-          Y_current = Y_probe_location - (Y_PROBE_OFFSET_FROM_NOZZLE) + sin(RADIANS(angle)) * radius;
-
-          #if MECH(DELTA)
-            // If we have gone out too far, we can do a simple fix and scale the numbers
-            // back in closer to the origin.
-            while (!mechanics.position_is_reachable_by_probe_xy(X_current, Y_current)) {
-              X_current *= 0.8;
-              Y_current *= 0.8;
-              if (verbose_level > 3) {
-                SERIAL_MV("Pulling point towards center:", X_current);
-                SERIAL_EMV(", ", Y_current);
-              }
-            }
-          #else
-            X_current = constrain(X_current, X_MIN_POS, X_MAX_POS);
-            Y_current = constrain(Y_current, Y_MIN_POS, Y_MAX_POS);
-          #endif
           if (verbose_level > 3) {
-            SERIAL_MSG("Going to:");
-            SERIAL_MV(" x: ", X_current);
-            SERIAL_MV(" y: ", Y_current);
-            SERIAL_EMV("  z: ", mechanics.current_position[Z_AXIS]);
+            SERIAL_MV("Starting radius: ", radius);
+            SERIAL_MV("   angle: ", angle);
+            SERIAL_MSG(" Direction: ");
+            if (dir > 0) SERIAL_MSG("Counter-");
+            SERIAL_EM("Clockwise");
           }
-          mechanics.do_blocking_move_to_xy(X_current, Y_current);
-        } // n_legs loop
-      } // n_legs
 
-      // Probe a single point
-      sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, 0);
-      if (probe.nan_error(sample_set[n])) goto FAIL;
+          for (uint8_t l = 0; l < n_legs - 1; l++) {
+            double delta_angle;
 
-      /**
-       * Get the current mean for the data points we have so far
-       */
-      double sum = 0.0;
-      for (uint8_t j = 0; j <= n; j++) sum += sample_set[j];
-      mean = sum / (n + 1);
+            if (schizoid_flag)
+              // The points of a 5 point star are 72 degrees apart.  We need to
+              // skip a point and go to the next one on the star.
+              delta_angle = dir * 2.0 * 72.0;
 
-      NOMORE(min, sample_set[n]);
-      NOLESS(max, sample_set[n]);
+            else
+              // If we do this line, we are just trying to move further
+              // around the circle.
+              delta_angle = dir * (float) random(25, 45);
 
-      /**
-       * Now, use that mean to calculate the standard deviation for the
-       * data points we have so far
-       */
-      sum = 0.0;
-      for (uint8_t j = 0; j <= n; j++)
-        sum += sq(sample_set[j] - mean);
+            angle += delta_angle;
 
-      sigma = SQRT(sum / (n + 1));
-      if (verbose_level > 0) {
-        if (verbose_level > 1) {
-          SERIAL_VAL(n + 1);
-          SERIAL_MV(" of ", (int)n_samples);
-          SERIAL_MV(": z: ", sample_set[n], 3);
-          if (verbose_level > 2) {
-            SERIAL_MV(" mean: ", mean, 4);
-            SERIAL_MV(" sigma: ", sigma, 6);
-            SERIAL_MV(" min: ", min, 3);
-            SERIAL_MV(" max: ", max, 3);
-            SERIAL_MV(" range: ", max - min, 3);
+            while (angle > 360.0)   // We probably do not need to keep the angle between 0 and 2*PI, but the
+              angle -= 360.0;       // Arduino documentation says the trig functions should not be given values
+            while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
+              angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
+
+            X_current = X_probe_location - probe.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - probe.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
+
+            #if MECH(DELTA)
+              // If we have gone out too far, we can do a simple fix and scale the numbers
+              // back in closer to the origin.
+              while (!mechanics.position_is_reachable_by_probe_xy(X_current, Y_current)) {
+                X_current *= 0.8;
+                Y_current *= 0.8;
+                if (verbose_level > 3) {
+                  SERIAL_MV("Pulling point towards center:", X_current);
+                  SERIAL_EMV(", ", Y_current);
+                }
+              }
+            #else
+              X_current = constrain(X_current, X_MIN_POS, X_MAX_POS);
+              Y_current = constrain(Y_current, Y_MIN_POS, Y_MAX_POS);
+            #endif
+            if (verbose_level > 3) {
+              SERIAL_MSG("Going to:");
+              SERIAL_MV(" x: ", X_current);
+              SERIAL_MV(" y: ", Y_current);
+              SERIAL_EMV("  z: ", mechanics.current_position[Z_AXIS]);
+            }
+            mechanics.do_blocking_move_to_xy(X_current, Y_current);
+          } // n_legs loop
+        } // n_legs
+
+        // Probe a single point
+        sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, 0);
+
+        // Break the loop if the probe fails
+        probing_good = !isnan(sample_set[n]);
+        if (!probing_good) break;
+
+        /**
+         * Get the current mean for the data points we have so far
+         */
+        double sum = 0.0;
+        for (uint8_t j = 0; j <= n; j++) sum += sample_set[j];
+        mean = sum / (n + 1);
+
+        NOMORE(min, sample_set[n]);
+        NOLESS(max, sample_set[n]);
+
+        /**
+         * Now, use that mean to calculate the standard deviation for the
+         * data points we have so far
+         */
+        sum = 0.0;
+        for (uint8_t j = 0; j <= n; j++)
+          sum += sq(sample_set[j] - mean);
+
+        sigma = SQRT(sum / (n + 1));
+        if (verbose_level > 0) {
+          if (verbose_level > 1) {
+            SERIAL_VAL(n + 1);
+            SERIAL_MV(" of ", (int)n_samples);
+            SERIAL_MV(": z: ", sample_set[n], 3);
+            if (verbose_level > 2) {
+              SERIAL_MV(" mean: ", mean, 4);
+              SERIAL_MV(" sigma: ", sigma, 6);
+              SERIAL_MV(" min: ", min, 3);
+              SERIAL_MV(" max: ", max, 3);
+              SERIAL_MV(" range: ", max - min, 3);
+            }
+            SERIAL_EOL();
           }
-          SERIAL_EOL();
         }
+
+      }  // End of probe loop
+    }
+
+    probe.set_deployed(false);
+
+    if (probing_good) {
+      SERIAL_EM("Finished!");
+
+      if (verbose_level > 0) {
+        SERIAL_MV("Mean: ", mean, 6);
+        SERIAL_MV(" Min: ", min, 3);
+        SERIAL_MV(" Max: ", max, 3);
+        SERIAL_MV(" Range: ", max - min, 3);
+        SERIAL_EOL();
       }
 
-    }  // End of probe loop
-
-    if (probe.set_deployed(false)) goto FAIL;
-
-    SERIAL_EM("Finished!");
-
-    if (verbose_level > 0) {
-      SERIAL_MV("Mean: ", mean, 6);
-      SERIAL_MV(" Min: ", min, 3);
-      SERIAL_MV(" Max: ", max, 3);
-      SERIAL_MV(" Range: ", max - min, 3);
+      SERIAL_EMV("Standard Deviation: ", sigma, 6);
       SERIAL_EOL();
     }
 
-    SERIAL_EMV("Standard Deviation: ", sigma, 6);
-    SERIAL_EOL();
-
-    FAIL:
-
-    clean_up_after_endstop_or_probe_move();
+    printer.clean_up_after_endstop_or_probe_move();
 
     // Re-enable bed level correction if it had been on
     #if HAS_LEVELING

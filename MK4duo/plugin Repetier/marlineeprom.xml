@@ -624,16 +624,31 @@
     <detect>M666.*O(\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
+    <description unit="[unit]">Probe Radius</description>
+    <set>M666 P@</set>
+    <detect>M666.*P(\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
     <description unit="[unit]">Delta Height</description>
     <set>M666 H@</set>
     <detect>M666.*H(\d*\.?\d*)</detect>
   </entry>
 
   <!-- Z Probe offset -->
-  <entry type="float" max="0">
-    <description unit="[unit]">Z Probe offset</description>
-    <set>M666 P@</set>
-    <detect>M666.*P(-?\d*\.?\d*)</detect>
+  <entry type="float">
+    <description unit="[unit]">Probe X Offset</description>
+    <set>M851 X@</set>
+    <detect>M851.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Probe Y Offset</description>
+    <set>M851 Y@</set>
+    <detect>M851.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Probe Z Offset</description>
+    <set>M851 Z@</set>
+    <detect>M851.*Z(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- LCD Contrast -->

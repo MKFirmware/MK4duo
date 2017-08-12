@@ -38,7 +38,7 @@
     delta_radius                    = DELTA_RADIUS;
     delta_segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
     delta_print_radius              = DELTA_PRINTABLE_RADIUS;
-    delta_probe_radius              = DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE));
+    delta_probe_radius              = DELTA_PROBEABLE_RADIUS;
     delta_height                    = DELTA_HEIGHT;
     delta_endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
     delta_endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
@@ -52,7 +52,7 @@
     delta_diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
     delta_diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
     delta_diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
-    delta_clip_start_height         = Z_MAX_POS;
+    delta_clip_start_height         = DELTA_HEIGHT;
 
     recalc_delta_settings();
   }
@@ -371,7 +371,7 @@
 
   void Delta_Mechanics::recalc_delta_settings() {
 
-    LOOP_XY(axis) {
+    LOOP_XYZ(axis) {
       endstops.soft_endstop_min[axis] = (axis == C_AXIS ? 0 : -delta_print_radius);
       endstops.soft_endstop_max[axis] = (axis == C_AXIS ? delta_height : delta_print_radius);
     }
@@ -405,6 +405,8 @@
     float cartesian[ABC];
     InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
     homed_Height = delta_height + tempHeight - cartesian[C_AXIS];
+
+    NOMORE(delta_probe_radius, delta_print_radius);
 
     Set_clip_start_height();
 
@@ -664,8 +666,8 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      gfx_clear((X_MAX_POS) * 2, (Y_MAX_POS) * 2, Z_MAX_POS);
-      gfx_cursor_to(current_position[X_AXIS] + (X_MAX_POS), current_position[Y_AXIS] + (Y_MAX_POS), current_position[Z_AXIS]);
+      gfx_clear(delta_print_radius * 2, delta_print_radius * 2, delta_height);
+      gfx_cursor_to(current_position[X_AXIS] + delta_print_radius, current_position[Y_AXIS] + delta_print_radius, current_position[Z_AXIS]);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();
@@ -707,6 +709,21 @@
         SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
+    #endif
+  }
+
+  void Delta_Mechanics::Calibration_cleanup(
+    #if HOTENDS > 1
+      const uint8_t old_tool_index
+    #endif
+  ) {
+    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+      do_blocking_move_to_z(delta_clip_start_height);
+    #endif
+    probe.set_deployed(false);
+    printer.clean_up_after_endstop_or_probe_move();
+    #if HOTENDS > 1
+      printer.tool_change(old_tool_index, 0, true);
     #endif
   }
 
@@ -756,45 +773,51 @@
       LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE);
 
       stepper.synchronize();
+
       #if HAS_LEVELING
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
+
       #if HOTENDS > 1
         const uint8_t old_tool_index = tools.active_extruder;
-        tool_change(0, 0, true);
+        printer.tool_change(0, 0, true);
+        #define CALIBRATION_CLEANUP() Calibration_cleanup(old_tool_index)
+      #else
+        #define CALIBRATION_CLEANUP() Calibration_cleanup()
       #endif
+
       printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
       if (!Home()) return;
       endstops.not_homing();
       probe.set_deployed(true);
 
-      const float dx = (X_PROBE_OFFSET_FROM_NOZZLE),
-                  dy = (Y_PROBE_OFFSET_FROM_NOZZLE);
+      const float dx = (probe.offset[X_AXIS]),
+                  dy = (probe.offset[Y_AXIS]);
 
       for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
         xBedProbePoints[probe_index] = delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
         yBedProbePoints[probe_index] = delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
-        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
-        if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
+        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + probe.offset[X_AXIS], yBedProbePoints[probe_index] + probe.offset[Y_AXIS], false, 4);
+        if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
       }
       if (probe_points >= 10) {
         for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
           xBedProbePoints[probe_index] = (delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
           yBedProbePoints[probe_index] = (delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
-          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + dx, yBedProbePoints[probe_index] + dy, false, 4);
-          if (probe.nan_error(zBedProbePoints[probe_index])) goto FAIL;
+          zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + probe.offset[X_AXIS], yBedProbePoints[probe_index] + probe.offset[Y_AXIS], false, 4);
+          if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
         }
         xBedProbePoints[9] = 0.0;
         yBedProbePoints[9] = 0.0;
-        zBedProbePoints[9] = probe.check_pt(dx, dy, true, 4);
-        if (probe.nan_error(zBedProbePoints[9])) goto FAIL;
+        zBedProbePoints[9] = probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], true, 4, false);
+        if (isnan(zBedProbePoints[9])) return CALIBRATION_CLEANUP();
       }
       else {
         xBedProbePoints[6] = 0.0;
         yBedProbePoints[6] = 0.0;
-        zBedProbePoints[6] = probe.check_pt(dx, dy, true, 4);
-        if (probe.nan_error(zBedProbePoints[6])) goto FAIL;
+        zBedProbePoints[6] = probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], true, 4, false);
+        if (isnan(zBedProbePoints[6])) return CALIBRATION_CLEANUP();
       }
 
       // convert delta_endstop_adj;
@@ -809,10 +832,9 @@
       for (uint8_t i = 0; i < probe_points; ++i) {
         corrections[i] = 0.0;
         float machinePos[ABC];
-        float xp = xBedProbePoints[i], yp = yBedProbePoints[i];
 
-        machinePos[A_AXIS] = xp;
-        machinePos[B_AXIS] = yp;
+        machinePos[A_AXIS] = xBedProbePoints[i];
+        machinePos[B_AXIS] = yBedProbePoints[i];
         machinePos[C_AXIS] = 0.0;
 
         Transform(machinePos);
@@ -940,16 +962,7 @@
       if (!Home()) return;
       endstops.not_homing();
 
-    FAIL:
-
-      #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-        do_blocking_move_to_z(delta_clip_start_height);
-      #endif
-      probe.set_deployed(false);
-      printer.clean_up_after_endstop_or_probe_move();
-      #if HOTENDS > 1
-        tool_change(old_tool_index, 0, true);
-      #endif
+      CALIBRATION_CLEANUP();
 
     }
 
@@ -1002,8 +1015,8 @@
         return;
       }
 
-      const int8_t force_iterations = parser.intval('F', 1);
-      if (!WITHIN(force_iterations, 1, 30)) {
+      const int8_t force_iterations = parser.intval('F', 0);
+      if (!WITHIN(force_iterations, 0, 30)) {
         SERIAL_EM("?(F)orce iteration is implausible (1-30).");
         return;
       }
@@ -1023,8 +1036,6 @@
                   _7p_intermed_points   = _7p_calibration && !_7p_half_circle;
 
       const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
-      const float dx = (X_PROBE_OFFSET_FROM_NOZZLE),
-                  dy = (Y_PROBE_OFFSET_FROM_NOZZLE);
       int8_t iterations = 0;
       float test_precision,
             zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
@@ -1036,7 +1047,7 @@
               delta_endstop_adj[C_AXIS]
             },
             dr_old = delta_radius,
-            zh_old = delta_height,
+            dh_old = delta_height,
             alpha_old = delta_tower_radius_adj[A_AXIS],
             beta_old = delta_tower_radius_adj[B_AXIS];
 
@@ -1047,8 +1058,8 @@
                     r = (1 + circles * 0.1) * delta_probe_radius;
         for (uint8_t axis = 1; axis < 13; ++axis) {
           const float a = RADIANS(180 + 30 * axis);
-          if (!position_is_reachable_by_probe_xy(COS(a) * r + dx, SIN(a) * r + dy)) {
-            SERIAL_EM("?(M665 Q) probe radius is implausible.");
+          if (!position_is_reachable_by_probe_xy(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS])) {
+            SERIAL_EM("?(M666 P)robe radius is implausible.");
             return;
           }
         }
@@ -1057,13 +1068,19 @@
       SERIAL_EM("G33 Auto Calibrate");
 
       stepper.synchronize();
+
       #if HAS_LEVELING
         bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
       #endif
+
       #if HOTENDS > 1
         const uint8_t old_tool_index = tools.active_extruder;
         tool_change(0, 0, true);
+        #define CALIBRATION_CLEANUP() Calibration_cleanup(old_tool_index)
+      #else
+        #define CALIBRATION_CLEANUP() Calibration_cleanup()
       #endif
+
       printer.setup_for_endstop_or_probe_move();
       endstops.enable(true);
       if (!Home()) return;
@@ -1072,7 +1089,7 @@
 
       // print settings
 
-      SERIAL_MSG("Checking... AC");
+      SERIAL_MSG(MSG_DELTA_CHECKING);
       if (verbose_level == 0) SERIAL_MSG(" (DRY-RUN)");
       SERIAL_EOL();
       LCD_MESSAGEPGM(MSG_DELTA_CHECKING);
@@ -1080,11 +1097,9 @@
       print_G33_settings(!_1p_calibration, _7p_calibration && towers_set);
 
       #if DISABLED(PROBE_MANUALLY)
-        const float measured_z = probe.check_pt(dx, dy, stow_after_each, 1, false); // 1st probe to set height
-        if (probe.nan_error(measured_z))
-          goto FAIL;
-        else
-          delta_height -= measured_z;
+        const float measured_z = probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], stow_after_each, 1, false); // 1st probe to set height
+        if (isnan(measured_z)) return CALIBRATION_CLEANUP();
+        delta_height -= measured_z;
       #endif
 
       do {
@@ -1098,14 +1113,14 @@
         // Probe the points
 
         if (!_7p_half_circle && !_7p_triple_circle) { // probe the center
-          z_at_pt[0] += probe.check_pt(dx, dy, stow_after_each, 1, false);
-          if (probe.nan_error(z_at_pt[0])) goto FAIL;
+          z_at_pt[0] += probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], stow_after_each, 1, false);
+          if (isnan(z_at_pt[0])) return CALIBRATION_CLEANUP();
         }
         if (_7p_calibration) { // probe extra center points
           for (int8_t axis = _7p_multi_circle ? 11 : 9; axis > 0; axis -= _7p_multi_circle ? 2 : 4) {
             const float a = RADIANS(180 + 30 * axis), r = delta_probe_radius * 0.1;
-            z_at_pt[0] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
-            if (probe.nan_error(z_at_pt[0])) goto FAIL;
+            z_at_pt[0] += probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1);
+            if (isnan(z_at_pt[0])) return CALIBRATION_CLEANUP();
           }
           z_at_pt[0] /= float(_7p_double_circle ? 7 : probe_points);
         }
@@ -1121,8 +1136,8 @@
             for (float circles = -offset_circles ; circles <= offset_circles; circles++) {
               const float a = RADIANS(180 + 30 * axis),
                           r = delta_probe_radius * (1 + circles * (zig_zag ? 0.1 : -0.1));
-              z_at_pt[axis] += probe.check_pt(COS(a) * r + dx, SIN(a) * r + dy, stow_after_each, 1);
-              if (probe.nan_error(z_at_pt[axis])) goto FAIL;
+              z_at_pt[axis] += probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1);
+              if (isnan(z_at_pt[axis])) return CALIBRATION_CLEANUP();
             }
             zig_zag = !zig_zag;
             z_at_pt[axis] /= (2 * offset_circles + 1);
@@ -1152,7 +1167,7 @@
           if (zero_std_dev < zero_std_dev_min) {
             COPY_ARRAY(e_old, delta_endstop_adj);
             dr_old = delta_radius;
-            zh_old = delta_height;
+            dh_old = delta_height;
             alpha_old = delta_tower_radius_adj[A_AXIS];
             beta_old = delta_tower_radius_adj[B_AXIS];
           }
@@ -1228,7 +1243,7 @@
         else if (zero_std_dev >= test_precision) {   // step one back
           COPY_ARRAY(delta_endstop_adj, e_old);
           delta_radius = dr_old;
-          delta_height = zh_old;
+          delta_height = dh_old;
           delta_tower_radius_adj[A_AXIS] = alpha_old;
           delta_tower_radius_adj[B_AXIS] = beta_old;
 
@@ -1314,16 +1329,7 @@
 
       } while ((zero_std_dev < test_precision && zero_std_dev > calibration_precision && iterations < 31) || iterations <= force_iterations);
 
-      FAIL:
-
-      #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-        do_blocking_move_to_z(delta_clip_start_height);
-      #endif
-      probe.set_deployed(false);
-      printer.clean_up_after_endstop_or_probe_move();
-      #if HOTENDS > 1
-        tool_change(old_tool_index, 0, true);
-      #endif
+      CALIBRATION_CLEANUP();
     }
 
   #endif

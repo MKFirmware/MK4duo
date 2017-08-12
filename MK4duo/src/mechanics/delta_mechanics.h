@@ -170,6 +170,12 @@
       void NormaliseEndstopAdjustments();
       float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
 
+      void Calibration_cleanup(
+        #if HOTENDS > 1
+          const uint8_t old_tool_index
+        #endif
+      );
+
       /**
        * Print data
        */

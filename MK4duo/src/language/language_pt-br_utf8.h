@@ -147,7 +147,7 @@
 #define MSG_ZPROBE_OUT                      _UxGT("Son. fora da mesa")
 #define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("first")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("Deslocamento no Z")
+#define MSG_PROBE_OFFSET                  _UxGT("Deslocamento no Z")
 #define MSG_BABYSTEP_X                      _UxGT("Passinho X")
 #define MSG_BABYSTEP_Y                      _UxGT("Passinho Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Passinho Z")
