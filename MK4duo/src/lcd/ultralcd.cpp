@@ -1462,7 +1462,7 @@ void kill_screen(const char* lcd_msg) {
   #endif
 
   #if HAS_BED_PROBE
-    static void lcd_refresh_zprobe_zoffset() { probe.refresh_zprobe_zoffset(); }
+    static void lcd_refresh_zprobe_zoffset() { probe.refresh_offset(); }
   #endif
 
   #if ENABLED(LCD_BED_LEVELING)
