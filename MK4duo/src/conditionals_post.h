@@ -1326,4 +1326,13 @@
   #define ANALOG_INPUT_CHANNELS { }
 #endif
 
+/**
+ * PWM HARDWARE
+ */
+#if ENABLED(PWM_HARDWARE) && ENABLED(SAM3X8E)
+  #define PWM_HARDWARE_ON true
+#else
+  #define PWM_HARDWARE_ON false
+#endif
+
 #endif /* _CONDITIONALS_POST_H_ */
