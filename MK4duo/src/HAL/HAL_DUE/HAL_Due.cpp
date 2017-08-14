@@ -565,7 +565,7 @@ HAL_TEMP_TIMER_ISR {
     #if FAN_COUNT > 0
       LOOP_FAN() {
         if (fans[f].pwm_hardware)
-          fans[f].pwm_hardware = HAL::analogWrite(fans[f].pin, fans[f].Speed, FAN_PWM_FREQ);
+          fans[f].pwm_hardware = HAL::analogWrite(fans[f].pin, fans[f].pwm_val, FAN_PWM_FREQ);
       }
     #endif
 
