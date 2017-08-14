@@ -62,6 +62,7 @@
  *          F<nfactor> p<npoint> Q<debugging> (Requires DELTA_AUTO_CALIBRATION_1)
  *          P<points> <A> <O> <T> V<verbose> (Requires DELTA_AUTO_CALIBRATION_2)
  * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
+ * G42  - Coordinated move to a mesh point. (Requires MESH_BED_LEVELING or AUTO_BED_LEVELING_BILINEAR)
  * G60  - Save current position coordinates (all axes, for active extruder).
  *          S<SLOT> - specifies memory slot # (0-based) to save into (default 0).
  * G61  - Apply/restore saved coordinates.
