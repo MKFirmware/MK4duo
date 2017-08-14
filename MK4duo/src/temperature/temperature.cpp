@@ -625,7 +625,6 @@ void Temperature::updatePID() {
 #if HAS_AUTO_FAN
 
   void Temperature::checkExtruderAutoFans() {
-    const int8_t fanPin[] = { H0_AUTO_FAN_PIN, H1_AUTO_FAN_PIN, H2_AUTO_FAN_PIN, H3_AUTO_FAN_PIN };
     const int fanBit[] = {
                     0,
       AUTO_1_IS_0 ? 0 :               1,
@@ -640,13 +639,12 @@ void Temperature::updatePID() {
     }
  
     uint8_t fanDone = 0;
-    for (uint8_t f = 0; f < COUNT(fanPin); f++) {
-      int8_t pin = fanPin[f];
-      if (pin >= 0 && !TEST(fanDone, fanBit[f])) {
-        autoFanSpeeds[f] = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : 0;
-        // this idiom allows both digital and PWM fan outputs (see M42 handling).
-        WRITE_AUTO_FAN(pin, autoFanSpeeds[f]);
+    uint8_t f = 0;
+    for (uint8_t fan = AUTO_FAN0_INDEX; fan < (AUTO_FAN0_INDEX + AUTO_FAN_COUNT); fan++) {
+      if (!TEST(fanDone, fanBit[f])) {
+        fans[fan].Speed = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
         SBI(fanDone, fanBit[f]);
+        f++;
       }
     }
   }
@@ -1953,23 +1951,6 @@ void Temperature::init() {
     WRITE_COOLER(LOW);
   #endif
 
-  #if HAS_FAN0
-    SET_OUTPUT(FAN_PIN);
-    WRITE_FAN0(LOW);
-  #endif
-  #if HAS_FAN1
-    SET_OUTPUT(FAN1_PIN);
-    WRITE_FAN1(LOW);
-  #endif
-  #if HAS_FAN2
-    SET_OUTPUT(FAN2_PIN);
-    WRITE_FAN2(LOW);
-  #endif
-  #if HAS_FAN3
-    SET_OUTPUT(FAN3_PIN);
-    WRITE_FAN3(LOW);
-  #endif
-
   #if ENABLED(HEATER_0_USES_MAX6675)
 
     OUT_WRITE(SCK_PIN, LOW);
@@ -1982,19 +1963,6 @@ void Temperature::init() {
   #endif // HEATER_0_USES_MAX6675
 
   HAL::analogStart();
-
-  #if HAS_AUTO_FAN_0
-    SET_OUTPUT(H0_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_1 && !AUTO_1_IS_0
-    SET_OUTPUT(H1_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_2 && !AUTO_2_IS_0 && !AUTO_2_IS_1
-    SET_OUTPUT(H2_AUTO_FAN_PIN);
-  #endif
-  #if HAS_AUTO_FAN_3 && !AUTO_3_IS_0 && !AUTO_3_IS_1 && !AUTO_3_IS_2
-    SET_OUTPUT(H3_AUTO_FAN_PIN);
-  #endif
 
   // Use timer for temperature measurement
   // Interleave temperature interrupt with millies interrupt

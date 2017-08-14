@@ -89,20 +89,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   bool Printer::sd_print_paused = false;
 #endif
 
-#if FAN_COUNT > 0
-  int16_t Printer::fanSpeeds[FAN_COUNT];
-  #if ENABLED(PROBING_FANS_OFF)
-    bool Printer::fans_paused;
-    int16_t Printer::paused_fanSpeeds[FAN_COUNT];
-  #endif
-#endif
-#if HAS_CONTROLLERFAN
-  uint8_t Printer::controller_fanSpeeds;
-#endif
-#if ENABLED(FAN_KICKSTART_TIME)
-  uint8_t Printer::fanKickstart;
-#endif
-
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   MK4duoBusyState Printer::busy_state = NOT_BUSY;
 #endif
@@ -404,6 +390,9 @@ void Printer::setup() {
     mechanics.Home(true);
   #endif
 
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].setSpeed(0);
+  #endif
 }
 
 void Printer::safe_delay(millis_t ms) {
@@ -586,7 +575,7 @@ void Printer::Stop() {
   thermalManager.disable_all_coolers();
 
   #if ENABLED(PROBING_FANS_OFF)
-    if (fans_paused) fans_pause(false); // put things back the way they were
+    LOOP_FAN() if (fans[f].paused) fans[f].pause(false); // put things back the way they were
   #endif
 
   #if ENABLED(LASER)
@@ -939,24 +928,6 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   planner.check_axes_activity();
 }
-
-#if ENABLED(PROBING_FANS_OFF)
-
-  void Printer::fans_pause(const bool p) {
-    if (p != fans_paused) {
-      fans_paused = p;
-      if (p)
-        LOOP_FAN() {
-          paused_fanSpeeds[f] = fanSpeeds[f];
-          fanSpeeds[f] = 0;
-        }
-      else
-        LOOP_FAN()
-          fanSpeeds[f] = paused_fanSpeeds[f];
-    }
-  }
-
-#endif // PROBING_FANS_OFF
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
   if (interruptEvent == INTERRUPT_EVENT_NONE)
@@ -1659,7 +1630,7 @@ void Printer::handle_Interrupt_Event() {
       thermalManager.disable_all_heaters();
       thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        LOOP_FAN() fanSpeeds[f] = 0;
+        LOOP_FAN() fans[f].setSpeed(0);
       #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
       #if HAS_POWER_SWITCH
@@ -2359,7 +2330,7 @@ void Printer::setup_powerhold() {
       }
 
       // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      controller_fanSpeeds = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
+      fans[CONTROLLER_INDEX].setSpeed((!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED);
     }
   }
 

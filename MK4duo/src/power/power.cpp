@@ -102,12 +102,8 @@
   bool Power::is_power_needed() {
 
     #if FAN_COUNT > 0
-      for (uint8_t i = 0; i < FAN_COUNT; i++)
-        if (fanSpeeds[i] > 0) return true;
-    #endif
-
-    #if HAS_AUTO_FAN
-      LOOP_HOTEND() if (thermalManager.autoFanSpeeds[h] > 0) return true;
+      LOOP_FAN()
+        if (fans[f].Speed > 0) return true;
     #endif
 
     LOOP_HOTEND() if (thermalManager.target_temperature[h] > 0) return true;

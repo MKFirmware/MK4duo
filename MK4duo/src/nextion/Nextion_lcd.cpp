@@ -1010,8 +1010,8 @@
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr) {
-      printer.fanSpeeds[0] = printer.fanSpeeds[0] ? 0 : 255;
-      Fantimer.enable(printer.fanSpeeds[0] ? false : true);
+      fans[0].setSpeed(fans[0].Speed ? 0 : 255);
+      Fantimer.enable(fans[0].Speed ? false : true);
     }
   #endif
 
@@ -1266,11 +1266,11 @@
         }
 
         #if FAN_COUNT > 0
-          if (PreviousfanSpeed != printer.fanSpeeds[0]) {
-            if (printer.fanSpeeds[0] > 0) {
+          if (PreviousfanSpeed != fans[0].Speed) {
+            if (fans[0].Speed > 0) {
               Fantimer.enable();
               ZERO(buffer);
-              temp = itostr3(((float)printer.fanSpeeds[0] / 255) * 100);
+              temp = itostr3(((float)fans[0].Speed / 255) * 100);
               strcat(buffer, temp);
               strcat(buffer, "%");
               Fanspeed.setText(buffer);
@@ -1279,7 +1279,7 @@
               Fantimer.enable(false);
               Fanspeed.setText("");
             }
-            PreviousfanSpeed = printer.fanSpeeds[0];
+            PreviousfanSpeed = fans[0].Speed;
           }
         #endif
 

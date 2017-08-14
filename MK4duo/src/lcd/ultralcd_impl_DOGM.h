@@ -498,7 +498,7 @@ static void lcd_implementation_status_screen() {
 
       u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
         #if HAS_FAN0
-          blink && printer.fanSpeeds[0] ? status_screen0_bmp : status_screen1_bmp
+          blink && fans[0].Speed ? status_screen0_bmp : status_screen1_bmp
         #else
           status_screen0_bmp
         #endif
@@ -524,7 +524,7 @@ static void lcd_implementation_status_screen() {
       #if HAS_FAN0
         if (PAGE_CONTAINS(20, 27)) {
           // Fan
-          const int16_t per = ((printer.fanSpeeds[0] + 1) * 100) / 256;
+          const int16_t per = ((fans[0].Speed + 1) * 100) / 256;
           if (per) {
             u8g.setPrintPos(104, 27);
             lcd_print(itostr3(per));

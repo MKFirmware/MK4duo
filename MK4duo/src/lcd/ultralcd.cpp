@@ -1087,16 +1087,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &printer.fanSpeeds[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &printer.fanSpeeds[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &printer.fanSpeeds[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &printer.fanSpeeds[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -1195,9 +1195,9 @@ void kill_screen(const char* lcd_msg) {
     #endif
     #if FAN_COUNT > 0
       #if FAN_COUNT > 1
-        printer.fanSpeeds[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0] = fan;
+        fans[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0].setSpeed(fan);
       #else
-        printer.fanSpeeds[0] = fan;
+        fans[0].setSpeed(fan);
       #endif
     #else
       UNUSED(fan);
@@ -1441,7 +1441,7 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_cooldown() {
     #if FAN_COUNT > 0
-      LOOP_FAN() printer.fanSpeeds[f] = 0;
+      LOOP_FAN() fans[f].setSpeed(0);
     #endif
     thermalManager.disable_all_heaters();
     thermalManager.disable_all_coolers();
@@ -2393,16 +2393,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &printer.fanSpeeds[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &printer.fanSpeeds[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &printer.fanSpeeds[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &printer.fanSpeeds[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 

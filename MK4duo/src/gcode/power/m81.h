@@ -39,11 +39,13 @@ inline void gcode_M81(void) {
   stepper.finish_and_disable();
 
   #if FAN_COUNT > 0
-    LOOP_FAN() printer.fanSpeeds[f] = 0;
-    #if ENABLED(PROBING_FANS_OFF)
-      printer.fans_paused = false;
-      ZERO(printer.paused_fanSpeeds);
-    #endif
+    LOOP_FAN() {
+      fans[f].setSpeed(0);
+      #if ENABLED(PROBING_FANS_OFF)
+        fans[f].paused = false;
+        fans[f].paused_Speed = 0;
+      #endif
+    }
   #endif
 
   #if ENABLED(LASER)
