@@ -171,7 +171,7 @@ void HAL::hwSetup(void) {
   // Initialize Fans
   #if FAN_COUNT > 0
     const Pin FAN_PINS[FAN_COUNT] = FANS_CHANNELS;
-    LOOP_FAN() fans[f].init(FAN_PINS[f], FAN_INVERTED, true);
+    LOOP_FAN() fans[f].init(FAN_PINS[f], FAN_INVERTED, PWM_HARDWARE_ON);
   #endif
 }
 
@@ -525,47 +525,51 @@ HAL_TEMP_TIMER_ISR {
     static unsigned long raw_filwidth_value = 0;
   #endif
 
-  /**
-   * Harware PWM or TC
-   */
-  #if HOTENDS > 0
-    if (pwm_heater_hd[0])
-      pwm_heater_hd[0] = HAL::analogWrite(HEATER_0_PIN, (HEATER_ON) ? thermalManager.soft_pwm[0] : 255 - thermalManager.soft_pwm[0], HEATER_PWM_FREQ);
-    #if HOTENDS > 1
-      if (pwm_heater_hd[1])
-        pwm_heater_hd[1] = HAL::analogWrite(HEATER_1_PIN, (HEATER_ON) ? thermalManager.soft_pwm[1] : 255 - thermalManager.soft_pwm[1], HEATER_PWM_FREQ);
-      #if HOTENDS > 2
-        if (pwm_heater_hd[2])
-          pwm_heater_hd[2] = HAL::analogWrite(HEATER_2_PIN, (HEATER_ON) ? thermalManager.soft_pwm[2] : 255 - thermalManager.soft_pwm[2], HEATER_PWM_FREQ);
-        #if HOTENDS > 3
-          if (pwm_heater_hd[3])
-            pwm_heater_hd[3] = HAL::analogWrite(HEATER_3_PIN, (HEATER_ON) ? thermalManager.soft_pwm[3] : 255 - thermalManager.soft_pwm[3], HEATER_PWM_FREQ);
+  #if ENABLED(PWM_HARDWARE)
+
+    /**
+     * Harware PWM or TC
+     */
+    #if HOTENDS > 0
+      if (pwm_heater_hd[0])
+        pwm_heater_hd[0] = HAL::analogWrite(HEATER_0_PIN, (HEATER_ON) ? thermalManager.soft_pwm[0] : 255 - thermalManager.soft_pwm[0], HEATER_PWM_FREQ);
+      #if HOTENDS > 1
+        if (pwm_heater_hd[1])
+          pwm_heater_hd[1] = HAL::analogWrite(HEATER_1_PIN, (HEATER_ON) ? thermalManager.soft_pwm[1] : 255 - thermalManager.soft_pwm[1], HEATER_PWM_FREQ);
+        #if HOTENDS > 2
+          if (pwm_heater_hd[2])
+            pwm_heater_hd[2] = HAL::analogWrite(HEATER_2_PIN, (HEATER_ON) ? thermalManager.soft_pwm[2] : 255 - thermalManager.soft_pwm[2], HEATER_PWM_FREQ);
+          #if HOTENDS > 3
+            if (pwm_heater_hd[3])
+              pwm_heater_hd[3] = HAL::analogWrite(HEATER_3_PIN, (HEATER_ON) ? thermalManager.soft_pwm[3] : 255 - thermalManager.soft_pwm[3], HEATER_PWM_FREQ);
+          #endif
         #endif
       #endif
     #endif
-  #endif
 
-  #if HAS_HEATER_BED && HAS_TEMP_BED
-    if (pwm_bed_hd)
-      pwm_bed_hd = HAL::analogWrite(HEATER_BED_PIN, (BED_ON) ? thermalManager.soft_pwm_bed : 255 - thermalManager.soft_pwm_bed, HEATER_PWM_FREQ);
-  #endif
+    #if HAS_HEATER_BED && HAS_TEMP_BED
+      if (pwm_bed_hd)
+        pwm_bed_hd = HAL::analogWrite(HEATER_BED_PIN, (BED_ON) ? thermalManager.soft_pwm_bed : 255 - thermalManager.soft_pwm_bed, HEATER_PWM_FREQ);
+    #endif
 
-  #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
-    if (pwm_chamber_hd)
-      pwm_chamber_hd = HAL::analogWrite(HEATER_CHAMBER_PIN, (CHAMBER_ON) ? thermalManager.soft_pwm_chamber : 255 - thermalManager.soft_pwm_chamber, HEATER_PWM_FREQ);
-  #endif
+    #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
+      if (pwm_chamber_hd)
+        pwm_chamber_hd = HAL::analogWrite(HEATER_CHAMBER_PIN, (CHAMBER_ON) ? thermalManager.soft_pwm_chamber : 255 - thermalManager.soft_pwm_chamber, HEATER_PWM_FREQ);
+    #endif
 
-  #if HAS_COOLER && HAS_TEMP_COOLER
-    if (pwm_cooler_hd)
-      pwm_cooler_hd = HAL::analogWrite(COOLER_PIN, (COOLER_ON) ? thermalManager.soft_pwm_cooler : 255 - thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
-  #endif
+    #if HAS_COOLER && HAS_TEMP_COOLER
+      if (pwm_cooler_hd)
+        pwm_cooler_hd = HAL::analogWrite(COOLER_PIN, (COOLER_ON) ? thermalManager.soft_pwm_cooler : 255 - thermalManager.soft_pwm_cooler, HEATER_PWM_FREQ);
+    #endif
 
-  #if FAN_COUNT > 0
-    LOOP_FAN() {
-      if (fans[f].pwm_hardware)
-        fans[f].pwm_hardware = HAL::analogWrite(fans[f].pin, fans[f].Speed, FAN_PWM_FREQ);
-    }
-  #endif
+    #if FAN_COUNT > 0
+      LOOP_FAN() {
+        if (fans[f].pwm_hardware)
+          fans[f].pwm_hardware = HAL::analogWrite(fans[f].pin, fans[f].Speed, FAN_PWM_FREQ);
+      }
+    #endif
+
+  #endif // PWM_HARDWARE
 
   /**
    * Standard PWM modulation
