@@ -586,7 +586,7 @@ HAL_TEMP_TIMER_ISR {
             WRITE_HEATER_2(HIGH);
           #if HOTENDS > 3
             if (!pwm_heater_hd[3] && ((pwm_heater_pos[3] = (thermalManager.soft_pwm[3] & HEATER_PWM_MASK)) > 0))
-              WRITE_HEATER_0(HIGH);
+              WRITE_HEATER_3(HIGH);
           #endif
         #endif
       #endif
@@ -619,28 +619,35 @@ HAL_TEMP_TIMER_ISR {
   }
 
   #if HOTENDS > 0
-    if (!pwm_heater_hd[0] && pwm_heater_pos[0] == pwm_count_heater && pwm_heater_pos[0] != HEATER_PWM_MASK) WRITE_HEATER_0(LOW);
+    if (!pwm_heater_hd[0] && pwm_heater_pos[0] == pwm_count_heater && pwm_heater_pos[0] != HEATER_PWM_MASK)
+      WRITE_HEATER_0(LOW);
     #if HOTENDS > 1
-      if (!pwm_heater_hd[1] && pwm_heater_pos[1] == pwm_count_heater && pwm_heater_pos[1] != HEATER_PWM_MASK) WRITE_HEATER_1(LOW);
+      if (!pwm_heater_hd[1] && pwm_heater_pos[1] == pwm_count_heater && pwm_heater_pos[1] != HEATER_PWM_MASK)
+        WRITE_HEATER_1(LOW);
       #if HOTENDS > 2
-        if (!pwm_heater_hd[2] && pwm_heater_pos[2] == pwm_count_heater && pwm_heater_pos[2] != HEATER_PWM_MASK) WRITE_HEATER_2(LOW);
+        if (!pwm_heater_hd[2] && pwm_heater_pos[2] == pwm_count_heater && pwm_heater_pos[2] != HEATER_PWM_MASK)
+          WRITE_HEATER_2(LOW);
         #if HOTENDS > 3
-          if (!pwm_heater_hd[3] && pwm_heater_pos[3] == pwm_count_heater && pwm_heater_pos[3] != HEATER_PWM_MASK) WRITE_HEATER_3(LOW);
+          if (!pwm_heater_hd[3] && pwm_heater_pos[3] == pwm_count_heater && pwm_heater_pos[3] != HEATER_PWM_MASK)
+            WRITE_HEATER_3(LOW);
         #endif
       #endif
     #endif
   #endif
 
   #if HAS_HEATER_BED && HAS_TEMP_BED
-    if (!pwm_bed_hd && pwm_bed_pos == pwm_count_heater && pwm_bed_pos != HEATER_PWM_MASK) WRITE_HEATER_BED(LOW);
+    if (!pwm_bed_hd && pwm_bed_pos == pwm_count_heater && pwm_bed_pos != HEATER_PWM_MASK)
+      WRITE_HEATER_BED(LOW);
   #endif
 
   #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
-    if (!pwm_chamber_hd && pwm_chamber_pos == pwm_count_heater && pwm_chamber_pos != HEATER_PWM_MASK) WRITE_HEATER_CHAMBER(LOW);
+    if (!pwm_chamber_hd && pwm_chamber_pos == pwm_count_heater && pwm_chamber_pos != HEATER_PWM_MASK)
+      WRITE_HEATER_CHAMBER(LOW);
   #endif
 
   #if HAS_COOLER && !ENABLED(FAST_PWM_COOLER) && HAS_TEMP_COOLER
-    if (!pwm_cooler_hd && pwm_cooler_pos == pwm_count_heater && pwm_cooler_pos != HEATER_PWM_MASK) WRITE_COOLER(LOW);
+    if (!pwm_cooler_hd && pwm_cooler_pos == pwm_count_heater && pwm_cooler_pos != HEATER_PWM_MASK)
+      WRITE_COOLER(LOW);
   #endif
 
   #if FAN_COUNT > 0

@@ -2052,7 +2052,7 @@ void Temperature::init() {
   #endif // CHAMBER_MINTEMP
   #if ENABLED(CHAMBER_MAXTEMP)
     while(analog2tempChamber(chamber_maxttemp_raw) > CHAMBER_MAXTEMP) {
-      #if CHAMBER_RAW_LO_TEMP < CHAMBER_RAW_HI_TEMP
+      #if CHAMBER_RAW_LO_TEMP < HEATER_CHAMBER_RAW_HI_TEMP
         chamber_maxttemp_raw -= OVERSAMPLENR;
       #else
         chamber_maxttemp_raw += OVERSAMPLENR;
@@ -2062,7 +2062,7 @@ void Temperature::init() {
 
   #if ENABLED(COOLER_MINTEMP)
     while(analog2tempCooler(cooler_minttemp_raw) < COOLER_MINTEMP) {
-      #if COOLER_RAW_LO_TEMP < HEATER_COOLER_RAW_HI_TEMP
+      #if COOLER_RAW_LO_TEMP < COOLER_RAW_HI_TEMP
         cooler_minttemp_raw += OVERSAMPLENR;
       #else
         cooler_minttemp_raw -= OVERSAMPLENR;
