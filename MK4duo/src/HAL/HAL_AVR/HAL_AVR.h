@@ -365,7 +365,7 @@ class HAL {
     static bool execute_100ms;
 
     // do any hardware-specific initialization here
-    static inline void hwSetup() {}
+    static void hwSetup();
 
     static void showStartReason();
 

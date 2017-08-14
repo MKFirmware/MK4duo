@@ -357,7 +357,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       thermalManager.pause(p);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
-      printer.fans_pause(p);
+      LOOP_FAN() fans[f].pause(p);
     #endif
     if (p) printer.safe_delay(25);
   }

@@ -70,8 +70,10 @@
       SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif
 
-    SERIAL_MSG(",\"fanPercent\":[");
-    SERIAL_VAL(printer.fanSpeeds[0]);
+    #if FAN_COUNT > 0
+      SERIAL_MSG(",\"fanPercent\":[");
+      SERIAL_VAL(fans[0].Speed);
+    #endif
 
     SERIAL_MV("],\"speedFactor\":", mechanics.feedrate_percentage);
 

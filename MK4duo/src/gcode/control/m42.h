@@ -53,16 +53,16 @@ inline void gcode_M42(void) {
   #if FAN_COUNT > 0
     switch (pin_number) {
       #if HAS_FAN0
-        case FAN_PIN: printer.fanSpeeds[0] = pin_status; break;
+        case FAN_PIN: fans[0].setSpeed(pin_status); break;
       #endif
       #if HAS_FAN1
-        case FAN1_PIN: printer.fanSpeeds[1] = pin_status; break;
+        case FAN1_PIN: fans[1].setSpeed(pin_status); break;
       #endif
       #if HAS_FAN2
-        case FAN2_PIN: printer.fanSpeeds[2] = pin_status; break;
+        case FAN2_PIN: fans[2].setSpeed(pin_status); break;
       #endif
       #if HAS_FAN3
-        case FAN3_PIN: printer.fanSpeeds[3] = pin_status; break;
+        case FAN3_PIN: fans[3].setSpeed(pin_status); break;
       #endif
     }
   #endif

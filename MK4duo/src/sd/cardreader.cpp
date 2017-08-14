@@ -434,9 +434,9 @@
 
       #if FAN_COUNT > 0
         LOOP_FAN() {
-          if (printer.fanSpeeds[f] > 0) {
+          if (fans[f].Speed > 0) {
             char fanSp[20];
-            sprintf(fanSp, "M106 S%i P%i\n", (int)printer.fanSpeeds[f], (int)f);
+            sprintf(fanSp, "M106 S%i P%i\n", (int)fans[f].Speed, (int)f);
             fileRestart.write(fanSp);
           }
         }
@@ -456,11 +456,7 @@
       thermalManager.disable_all_heaters();
       thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        #if FAN_COUNT > 1
-          LOOP_FAN() printer.fanSpeeds[f] = 0;
-        #else
-          printer.fanSpeeds[0] = 0;
-        #endif
+        LOOP_FAN() fans[f].setSpeed(0);
       #endif
     }
   }

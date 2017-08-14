@@ -78,20 +78,6 @@ class Printer {
       static bool sd_print_paused;
     #endif
 
-    #if FAN_COUNT > 0
-      static int16_t fanSpeeds[FAN_COUNT];
-      #if ENABLED(PROBING_FANS_OFF)
-        static bool fans_paused;
-        static int16_t paused_fanSpeeds[FAN_COUNT];
-      #endif
-    #endif
-    #if HAS_CONTROLLERFAN
-      static uint8_t controller_fanSpeeds;
-    #endif
-    #if ENABLED(FAN_KICKSTART_TIME)
-      static uint8_t fanKickstart;
-    #endif
-
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static MK4duoBusyState busy_state;
       #define KEEPALIVE_STATE(n) do{ printer.busy_state = n; }while(0)
@@ -190,10 +176,6 @@ class Printer {
 
     #if ENABLED(CNCROUTER)
       static void tool_change_cnc(const uint8_t tool_id, bool wait=true, bool raise_z=true);
-    #endif
-
-    #if FAN_COUNT > 0 && ENABLED(PROBING_FANS_OFF)
-      static void fans_pause(const bool p);
     #endif
 
     #if ENABLED(SDSUPPORT)

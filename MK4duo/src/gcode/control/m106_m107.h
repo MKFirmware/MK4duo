@@ -44,20 +44,19 @@
    *  P<index> Fan index, if more than one fan
    */
   inline void gcode_M106(void) {
-    uint8_t speed = parser.seen('S') ? parser.value_ushort() : 255,
-            fan   = parser.seen('P') ? parser.value_ushort() : 0;
-
-    if (fan >= FAN_COUNT || printer.fanSpeeds[fan] == speed)
+    const uint8_t speed = parser.byteval('S', 255),
+                  fan   = parser.byteval('P', 0);
+    
+    if (fan >= FAN_COUNT || fans[fan].Speed == speed)
       return;
 
     #if ENABLED(FAN_KICKSTART_TIME)
-      if (printer.fanKickstart == 0 && speed > printer.fanSpeeds[fan] && speed < 85) {
-        if (printer.fanSpeeds[fan]) printer.fanKickstart = FAN_KICKSTART_TIME / 100;
-        else                printer.fanKickstart = FAN_KICKSTART_TIME / 25;
+      if (fans[fan].Kickstart == 0 && speed > fans[fan].Speed && speed < 85) {
+        if (fans[fan].Speed)  fans[fan].Kickstart = FAN_KICKSTART_TIME / 100;
+        else                  fans[fan].Kickstart = FAN_KICKSTART_TIME / 25;
       }
     #endif
-
-    printer.fanSpeeds[fan] = CALC_FAN_SPEED();
+    fans[fan].setSpeed(CALC_FAN_SPEED());
   }
 
   /**
@@ -65,7 +64,7 @@
    */
   inline void gcode_M107(void) {
     uint16_t p = parser.seen('P') ? parser.value_ushort() : 0;
-    if (p < FAN_COUNT) printer.fanSpeeds[p] = 0;
+    if (p < FAN_COUNT) fans[p].setSpeed(0);
   }
 
 #endif // FAN_COUNT > 0
