@@ -178,7 +178,7 @@
  
 #if ENABLED(MORGAN_SCARA)
 
-  bool Scara_Mechanics::SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
+  bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     if (printer.IsRunning()) {
       forward_kinematics_SCARA(delta_a, delta_b);
       destination[X_AXIS] = LOGICAL_X_POSITION(cartesian_position[X_AXIS]);

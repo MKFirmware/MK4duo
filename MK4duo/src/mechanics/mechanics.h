@@ -248,7 +248,7 @@ class Mechanics {
      * This may result in several calls to planner.buffer_line to
      * do smaller moves for DELTA, SCARA, mesh moves, etc.
      */
-    void Mechanics::prepare_move_to_destination();
+    void prepare_move_to_destination();
 
     /**
      * Prepare a single move and get ready for the next one
@@ -257,7 +257,7 @@ class Mechanics {
      * therefore is pure virtual and MUST be implemented in every
      * Mechanics subclass!
      */
-    virtual bool Mechanics::prepare_move_to_destination_mech_specific() = 0;
+    virtual bool prepare_move_to_destination_mech_specific();
 
     /**
      * Plan a move to (X, Y, Z) and set the current_position
@@ -349,8 +349,7 @@ class Mechanics {
 #elif IS_DELTA
   #include "delta_mechanics.h"
 #elif IS_SCARA
-  #error "This version does not support SCARA mechanics as for now, please use an older version of the firmware!"
-  //#include "scara_mechanics.h"
+  #include "scara_mechanics.h"
 #endif
 
 #endif /* _MECHANICS_H_ */
