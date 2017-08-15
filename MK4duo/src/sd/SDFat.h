@@ -75,61 +75,61 @@
   //------------------------------------------------------------------------------
   // SD card commands
   /** GO_IDLE_STATE - init card in spi mode if CS low */
-  uint8_t const CMD0 = 0X00;
+  uint8_t const CMD0 = 0x00;
   /** SEND_IF_COND - verify SD Memory Card interface operating condition.*/
-  uint8_t const CMD8 = 0X08;
+  uint8_t const CMD8 = 0x08;
   /** SEND_CSD - read the Card Specific Data (CSD register) */
-  uint8_t const CMD9 = 0X09;
+  uint8_t const CMD9 = 0x09;
   /** SEND_CID - read the card identification information (CID register) */
-  uint8_t const CMD10 = 0X0A;
+  uint8_t const CMD10 = 0x0A;
   /** STOP_TRANSMISSION - end multiple block read sequence */
-  uint8_t const CMD12 = 0X0C;
+  uint8_t const CMD12 = 0x0C;
   /** SEND_STATUS - read the card status register */
-  uint8_t const CMD13 = 0X0D;
+  uint8_t const CMD13 = 0x0D;
   /** READ_SINGLE_BLOCK - read a single data block from the card */
-  uint8_t const CMD17 = 0X11;
+  uint8_t const CMD17 = 0x11;
   /** READ_MULTIPLE_BLOCK - read a multiple data blocks from the card */
-  uint8_t const CMD18 = 0X12;
+  uint8_t const CMD18 = 0x12;
   /** WRITE_BLOCK - write a single data block to the card */
-  uint8_t const CMD24 = 0X18;
+  uint8_t const CMD24 = 0x18;
   /** WRITE_MULTIPLE_BLOCK - write blocks of data until a STOP_TRANSMISSION */
-  uint8_t const CMD25 = 0X19;
+  uint8_t const CMD25 = 0x19;
   /** ERASE_WR_BLK_START - sets the address of the first block to be erased */
-  uint8_t const CMD32 = 0X20;
+  uint8_t const CMD32 = 0x20;
   /** ERASE_WR_BLK_END - sets the address of the last block of the continuous
       range to be erased*/
-  uint8_t const CMD33 = 0X21;
+  uint8_t const CMD33 = 0x21;
   /** ERASE - erase all previously selected blocks */
-  uint8_t const CMD38 = 0X26;
+  uint8_t const CMD38 = 0x26;
   /** APP_CMD - escape for application specific command */
-  uint8_t const CMD55 = 0X37;
+  uint8_t const CMD55 = 0x37;
   /** READ_OCR - read the OCR register of a card */
-  uint8_t const CMD58 = 0X3A;
+  uint8_t const CMD58 = 0x3A;
   /** CRC_ON_OFF - enable or disable CRC checking */
-  uint8_t const CMD59 = 0X3B;
+  uint8_t const CMD59 = 0x3B;
   /** SET_WR_BLK_ERASE_COUNT - Set the number of write blocks to be
        pre-erased before writing */
-  uint8_t const ACMD23 = 0X17;
+  uint8_t const ACMD23 = 0x17;
   /** SD_SEND_OP_COMD - Sends host capacity support information and
       activates the card's initialization process */
-  uint8_t const ACMD41 = 0X29;
+  uint8_t const ACMD41 = 0x29;
   //------------------------------------------------------------------------------
   /** status for card in the ready state */
-  uint8_t const R1_READY_STATE = 0X00;
+  uint8_t const R1_READY_STATE = 0x00;
   /** status for card in the idle state */
-  uint8_t const R1_IDLE_STATE = 0X01;
+  uint8_t const R1_IDLE_STATE = 0x01;
   /** status bit for illegal command */
-  uint8_t const R1_ILLEGAL_COMMAND = 0X04;
+  uint8_t const R1_ILLEGAL_COMMAND = 0x04;
   /** start data token for read or write single block*/
-  uint8_t const DATA_START_BLOCK = 0XFE;
+  uint8_t const DATA_START_BLOCK = 0xFE;
   /** stop token for write multiple blocks*/
-  uint8_t const STOP_TRAN_TOKEN = 0XFD;
+  uint8_t const STOP_TRAN_TOKEN = 0xFD;
   /** start data token for write multiple blocks*/
-  uint8_t const WRITE_MULTIPLE_TOKEN = 0XFC;
+  uint8_t const WRITE_MULTIPLE_TOKEN = 0xFC;
   /** mask for data response tokens after a write block operation */
-  uint8_t const DATA_RES_MASK = 0X1F;
+  uint8_t const DATA_RES_MASK = 0x1F;
   /** write data accepted token */
-  uint8_t const DATA_RES_ACCEPTED = 0X05;
+  uint8_t const DATA_RES_ACCEPTED = 0x05;
   //------------------------------------------------------------------------------
   /** Card IDentification (CID) register */
   typedef struct CID {
@@ -235,7 +235,7 @@
     unsigned char reserved1 : 6;
     unsigned char csd_ver : 2;
     // byte 1
-    /** fixed to 0X0E */
+    /** fixed to 0x0E */
     unsigned char taac;
     // byte 2
     /** fixed to 0 */
@@ -509,61 +509,61 @@
   //------------------------------------------------------------------------------
   // SD card errors
   /** timeout error for command CMD0 (initialize card in SPI mode) */
-  uint8_t const SD_CARD_ERROR_CMD0 = 0X1;
+  uint8_t const SD_CARD_ERROR_CMD0 = 0x1;
   /** CMD8 was not accepted - not a valid SD card*/
-  uint8_t const SD_CARD_ERROR_CMD8 = 0X2;
+  uint8_t const SD_CARD_ERROR_CMD8 = 0x2;
   /** card returned an error response for CMD12 (write stop) */
-  uint8_t const SD_CARD_ERROR_CMD12 = 0X3;
+  uint8_t const SD_CARD_ERROR_CMD12 = 0x3;
   /** card returned an error response for CMD17 (read block) */
-  uint8_t const SD_CARD_ERROR_CMD17 = 0X4;
+  uint8_t const SD_CARD_ERROR_CMD17 = 0x4;
   /** card returned an error response for CMD18 (read multiple block) */
-  uint8_t const SD_CARD_ERROR_CMD18 = 0X5;
+  uint8_t const SD_CARD_ERROR_CMD18 = 0x5;
   /** card returned an error response for CMD24 (write block) */
-  uint8_t const SD_CARD_ERROR_CMD24 = 0X6;
+  uint8_t const SD_CARD_ERROR_CMD24 = 0x6;
   /**  WRITE_MULTIPLE_BLOCKS command failed */
-  uint8_t const SD_CARD_ERROR_CMD25 = 0X7;
+  uint8_t const SD_CARD_ERROR_CMD25 = 0x7;
   /** card returned an error response for CMD58 (read OCR) */
-  uint8_t const SD_CARD_ERROR_CMD58 = 0X8;
+  uint8_t const SD_CARD_ERROR_CMD58 = 0x8;
   /** SET_WR_BLK_ERASE_COUNT failed */
-  uint8_t const SD_CARD_ERROR_ACMD23 = 0X9;
+  uint8_t const SD_CARD_ERROR_ACMD23 = 0x9;
   /** ACMD41 initialization process timeout */
-  uint8_t const SD_CARD_ERROR_ACMD41 = 0XA;
+  uint8_t const SD_CARD_ERROR_ACMD41 = 0xA;
   /** card returned a bad CSR version field */
-  uint8_t const SD_CARD_ERROR_BAD_CSD = 0XB;
+  uint8_t const SD_CARD_ERROR_BAD_CSD = 0xB;
   /** erase block group command failed */
-  uint8_t const SD_CARD_ERROR_ERASE = 0XC;
+  uint8_t const SD_CARD_ERROR_ERASE = 0xC;
   /** card not capable of single block erase */
-  uint8_t const SD_CARD_ERROR_ERASE_SINGLE_BLOCK = 0XD;
+  uint8_t const SD_CARD_ERROR_ERASE_SINGLE_BLOCK = 0xD;
   /** Erase sequence timed out */
-  uint8_t const SD_CARD_ERROR_ERASE_TIMEOUT = 0XE;
+  uint8_t const SD_CARD_ERROR_ERASE_TIMEOUT = 0xE;
   /** card returned an error token instead of read data */
-  uint8_t const SD_CARD_ERROR_READ = 0XF;
+  uint8_t const SD_CARD_ERROR_READ = 0xF;
   /** read CID or CSD failed */
-  uint8_t const SD_CARD_ERROR_READ_REG = 0X10;
+  uint8_t const SD_CARD_ERROR_READ_REG = 0x10;
   /** timeout while waiting for start of read data */
-  uint8_t const SD_CARD_ERROR_READ_TIMEOUT = 0X11;
+  uint8_t const SD_CARD_ERROR_READ_TIMEOUT = 0x11;
   /** card did not accept STOP_TRAN_TOKEN */
-  uint8_t const SD_CARD_ERROR_STOP_TRAN = 0X12;
+  uint8_t const SD_CARD_ERROR_STOP_TRAN = 0x12;
   /** card returned an error token as a response to a write operation */
-  uint8_t const SD_CARD_ERROR_WRITE = 0X13;
+  uint8_t const SD_CARD_ERROR_WRITE = 0x13;
   /** attempt to write protected block zero */
-  uint8_t const SD_CARD_ERROR_WRITE_BLOCK_ZERO = 0X14;  // REMOVE - not used
+  uint8_t const SD_CARD_ERROR_WRITE_BLOCK_ZERO = 0x14;  // REMOVE - not used
   /** card did not go ready for a multiple block write */
-  uint8_t const SD_CARD_ERROR_WRITE_MULTIPLE = 0X15;
+  uint8_t const SD_CARD_ERROR_WRITE_MULTIPLE = 0x15;
   /** card returned an error to a CMD13 status check after a write */
-  uint8_t const SD_CARD_ERROR_WRITE_PROGRAMMING = 0X16;
+  uint8_t const SD_CARD_ERROR_WRITE_PROGRAMMING = 0x16;
   /** timeout occurred during write programming */
-  uint8_t const SD_CARD_ERROR_WRITE_TIMEOUT = 0X17;
+  uint8_t const SD_CARD_ERROR_WRITE_TIMEOUT = 0x17;
   /** incorrect rate selected */
-  uint8_t const SD_CARD_ERROR_SCK_RATE = 0X18;
+  uint8_t const SD_CARD_ERROR_SCK_RATE = 0x18;
   /** init() not called */
-  uint8_t const SD_CARD_ERROR_INIT_NOT_CALLED = 0X19;
+  uint8_t const SD_CARD_ERROR_INIT_NOT_CALLED = 0x19;
   /** card returned an error for CMD59 (CRC_ON_OFF) */
-  uint8_t const SD_CARD_ERROR_CMD59 = 0X1A;
+  uint8_t const SD_CARD_ERROR_CMD59 = 0x1A;
   /** invalid read CRC */
-  uint8_t const SD_CARD_ERROR_READ_CRC = 0X1B;
+  uint8_t const SD_CARD_ERROR_READ_CRC = 0x1B;
   /** SPI DMA error */
-  uint8_t const SD_CARD_ERROR_SPI_DMA = 0X1C;
+  uint8_t const SD_CARD_ERROR_SPI_DMA = 0x1C;
   //------------------------------------------------------------------------------
   // card types
   /** Standard capacity V1 SD card */
@@ -694,11 +694,11 @@
    */
   //------------------------------------------------------------------------------
   /** Value for byte 510 of boot block or MBR */
-  uint8_t const BOOTSIG0 = 0X55;
+  uint8_t const BOOTSIG0 = 0x55;
   /** Value for byte 511 of boot block or MBR */
-  uint8_t const BOOTSIG1 = 0XAA;
+  uint8_t const BOOTSIG1 = 0xAA;
   /** Value for bootSignature field int FAT/FAT32 boot sector */
-  uint8_t const EXTENDED_BOOT_SIG = 0X29;
+  uint8_t const EXTENDED_BOOT_SIG = 0x29;
   //------------------------------------------------------------------------------
   /**
    * \struct partitionTable
@@ -710,8 +710,8 @@
   struct partitionTable {
             /**
              * Boot Indicator . Indicates whether the volume is the active
-             * partition.  Legal values include: 0X00. Do not use for booting.
-             * 0X80 Active partition.
+             * partition.  Legal values include: 0x00. Do not use for booting.
+             * 0x80 Active partition.
              */
     uint8_t  boot;
             /**
@@ -777,9 +777,9 @@
     uint16_t usuallyZero;
              /** Partition tables. */
     part_t   part[4];
-             /** First MBR signature byte. Must be 0X55 */
+             /** First MBR signature byte. Must be 0x55 */
     uint8_t  mbrSig0;
-             /** Second MBR signature byte. Must be 0XAA */
+             /** Second MBR signature byte. Must be 0xAA */
     uint8_t  mbrSig1;
   } PACK;
   /** Type name for masterBootRecord */
@@ -885,7 +885,7 @@
     uint8_t  driveNumber;
              /** used by Windows NT - should be zero for FAT */
     uint8_t  reserved1;
-             /** 0X29 if next three fields are valid */
+             /** 0x29 if next three fields are valid */
     uint8_t  bootSignature;
              /**
               * A random serial number created when formatting a disk,
@@ -905,9 +905,9 @@
     char     fileSystemType[8];
              /** X86 boot code */
     uint8_t  bootCode[448];
-             /** must be 0X55 */
+             /** must be 0x55 */
     uint8_t  bootSectorSig0;
-             /** must be 0XAA */
+             /** must be 0xAA */
     uint8_t  bootSectorSig1;
   } PACK;
   /** Type name for FAT Boot Sector */
@@ -1040,7 +1040,7 @@
     uint8_t  driveNumber;
              /** used by Windows NT - should be zero for FAT */
     uint8_t  reserved1;
-             /** 0X29 if next three fields are valid */
+             /** 0x29 if next three fields are valid */
     uint8_t  bootSignature;
              /**
               * A random serial number created when formatting a disk,
@@ -1059,9 +1059,9 @@
     char     fileSystemType[8];
              /** X86 boot code */
     uint8_t  bootCode[420];
-             /** must be 0X55 */
+             /** must be 0x55 */
     uint8_t  bootSectorSig0;
-             /** must be 0XAA */
+             /** must be 0xAA */
     uint8_t  bootSectorSig1;
   } PACK;
   /** Type name for FAT32 Boot Sector */
@@ -1078,11 +1078,11 @@
    *
    */
   struct fat32_fsinfo {
-             /** must be 0X52, 0X52, 0X61, 0X41 */
+             /** must be 0x52, 0x52, 0x61, 0x41 */
     uint32_t  leadSignature;
              /** must be zero */
     uint8_t  reserved1[480];
-             /** must be 0X72, 0X72, 0X41, 0X61 */
+             /** must be 0x72, 0x72, 0x41, 0x61 */
     uint32_t  structSignature;
             /**
              * Contains the last known free cluster count on the volume.
@@ -1101,7 +1101,7 @@
     uint32_t nextFree;
              /** must be zero */
     uint8_t  reserved2[12];
-             /** must be 0X00, 0X00, 0X55, 0XAA */
+             /** must be 0x00, 0x00, 0x55, 0xAA */
     uint8_t  tailSignature[4];
   } PACK;
   /** Type name for FAT32 FSINFO Sector */
@@ -1109,19 +1109,19 @@
   //------------------------------------------------------------------------------
   // End Of Chain values for FAT entries
   /** FAT12 end of chain value used by Microsoft. */
-  uint16_t const FAT12EOC = 0XFFF;
+  uint16_t const FAT12EOC = 0xFFF;
   /** Minimum value for FAT12 EOC.  Use to test for EOC. */
-  uint16_t const FAT12EOC_MIN = 0XFF8;
+  uint16_t const FAT12EOC_MIN = 0xFF8;
   /** FAT16 end of chain value used by Microsoft. */
-  uint16_t const FAT16EOC = 0XFFFF;
+  uint16_t const FAT16EOC = 0xFFFF;
   /** Minimum value for FAT16 EOC.  Use to test for EOC. */
-  uint16_t const FAT16EOC_MIN = 0XFFF8;
+  uint16_t const FAT16EOC_MIN = 0xFFF8;
   /** FAT32 end of chain value used by Microsoft. */
-  uint32_t const FAT32EOC = 0X0FFFFFFF;
+  uint32_t const FAT32EOC = 0x0FFFFFFF;
   /** Minimum value for FAT32 EOC.  Use to test for EOC. */
-  uint32_t const FAT32EOC_MIN = 0X0FFFFFF8;
+  uint32_t const FAT32EOC_MIN = 0x0FFFFFF8;
   /** Mask a for FAT32 entry. Entries are 28 bits. */
-  uint32_t const FAT32MASK = 0X0FFFFFFF;
+  uint32_t const FAT32MASK = 0x0FFFFFFF;
 
   // Reuse directory entries from deleted files
   #define SD_CARD_REUSE_FAT_ENTRIES true
@@ -1237,31 +1237,31 @@
   //
   /** Type name for directoryEntry */
   typedef struct directoryEntry dir_t;
-  /** escape for name[0] = 0XE5 */
-  uint8_t const DIR_NAME_0XE5 = 0X05;
+  /** escape for name[0] = 0xE5 */
+  uint8_t const DIR_NAME_0XE5 = 0x05;
   /** name[0] value for entry that is free after being "deleted" */
-  uint8_t const DIR_NAME_DELETED = 0XE5;
+  uint8_t const DIR_NAME_DELETED = 0xE5;
   /** name[0] value for entry that is free and no allocated entries follow */
-  uint8_t const DIR_NAME_FREE = 0X00;
+  uint8_t const DIR_NAME_FREE = 0x00;
   /** file is read-only */
-  uint8_t const DIR_ATT_READ_ONLY = 0X01;
+  uint8_t const DIR_ATT_READ_ONLY = 0x01;
   /** File should hidden in directory listings */
-  uint8_t const DIR_ATT_HIDDEN = 0X02;
+  uint8_t const DIR_ATT_HIDDEN = 0x02;
   /** Entry is for a system file */
-  uint8_t const DIR_ATT_SYSTEM = 0X04;
+  uint8_t const DIR_ATT_SYSTEM = 0x04;
   /** Directory entry contains the volume label */
-  uint8_t const DIR_ATT_VOLUME_ID = 0X08;
+  uint8_t const DIR_ATT_VOLUME_ID = 0x08;
   /** Entry is for a directory */
-  uint8_t const DIR_ATT_DIRECTORY = 0X10;
+  uint8_t const DIR_ATT_DIRECTORY = 0x10;
   /** Old DOS archive bit for backup support */
-  uint8_t const DIR_ATT_ARCHIVE = 0X20;
+  uint8_t const DIR_ATT_ARCHIVE = 0x20;
   /** Test value for long name entry.  Test is
     (d->attributes & DIR_ATT_LONG_NAME_MASK) == DIR_ATT_LONG_NAME. */
-  uint8_t const DIR_ATT_LONG_NAME = 0X0F;
+  uint8_t const DIR_ATT_LONG_NAME = 0x0F;
   /** Test mask for long name entry */
-  uint8_t const DIR_ATT_LONG_NAME_MASK = 0X3F;
+  uint8_t const DIR_ATT_LONG_NAME_MASK = 0x3F;
   /** defined attribute bits */
-  uint8_t const DIR_ATT_DEFINED_BITS = 0X3F;
+  uint8_t const DIR_ATT_DEFINED_BITS = 0x3F;
   /** Directory entry is part of a long name
    * \param[in] dir Pointer to a directory entry.
    *
@@ -1335,7 +1335,7 @@
      */
     cache_t* cacheClear() {
       if (!cacheSync()) return 0;
-      cacheBlockNumber_ = 0XFFFFFFFF;
+      cacheBlockNumber_ = 0xFFFFFFFF;
       return &cacheBuffer_;
     }
     /** Initialize a FAT volume.  Try partition one first then try super
@@ -1519,11 +1519,11 @@
 
   // use the gnu style oflag in open()
   /** open() oflag for reading */
-  uint8_t const O_READ = 0X01;
+  uint8_t const O_READ = 0x01;
   /** open() oflag - same as O_IN */
   uint8_t const O_RDONLY = O_READ;
   /** open() oflag for write */
-  uint8_t const O_WRITE = 0X02;
+  uint8_t const O_WRITE = 0x02;
   /** open() oflag - same as O_WRITE */
   uint8_t const O_WRONLY = O_WRITE;
   /** open() oflag for reading and writing */
@@ -1531,17 +1531,17 @@
   /** open() oflag mask for access modes */
   uint8_t const O_ACCMODE = (O_READ | O_WRITE);
   /** The file offset shall be set to the end of the file prior to each write. */
-  uint8_t const O_APPEND = 0X04;
+  uint8_t const O_APPEND = 0x04;
   /** synchronous writes - call sync() after each write */
-  uint8_t const O_SYNC = 0X08;
+  uint8_t const O_SYNC = 0x08;
   /** truncate the file to zero length */
-  uint8_t const O_TRUNC = 0X10;
+  uint8_t const O_TRUNC = 0x10;
   /** set the initial position at the end of the file */
-  uint8_t const O_AT_END = 0X20;
+  uint8_t const O_AT_END = 0x20;
   /** create the file if nonexistent */
-  uint8_t const O_CREAT = 0X40;
+  uint8_t const O_CREAT = 0x40;
   /** If O_CREAT and O_EXCL are set, open() shall fail if the file exists */
-  uint8_t const O_EXCL = 0X80;
+  uint8_t const O_EXCL = 0x80;
 
   // SdBaseFile class static and const definitions
   // flags for ls()
@@ -1598,7 +1598,7 @@
    * \return Extracted month [1,12]
    */
   static inline uint8_t FAT_MONTH(uint16_t fatDate) {
-    return (fatDate >> 5) & 0XF;
+    return (fatDate >> 5) & 0xF;
   }
   /** day part of FAT directory date field
    * \param[in] fatDate Date in packed dir format.
@@ -1606,7 +1606,7 @@
    * \return Extracted day [1,31]
    */
   static inline uint8_t FAT_DAY(uint16_t fatDate) {
-    return fatDate & 0X1F;
+    return fatDate & 0x1F;
   }
   /** time field for FAT directory entry
    * \param[in] hour [0,23]
@@ -1632,7 +1632,7 @@
    * \return Extracted minute [0,59]
    */
   static inline uint8_t FAT_MINUTE(uint16_t fatTime) {
-    return (fatTime >> 5) & 0X3F;
+    return (fatTime >> 5) & 0x3F;
   }
   /** second part of FAT directory time field
    * Note second/2 is stored in packed time.
@@ -1642,7 +1642,7 @@
    * \return Extracted second [0,58]
    */
   static inline uint8_t FAT_SECOND(uint16_t fatTime) {
-    return 2*(fatTime & 0X1F);
+    return 2*(fatTime & 0x1F);
   }
   /** Default date for file timestamps is 1 Jan 2000 */
   uint16_t const FAT_DEFAULT_DATE = ((2000 - 1980) << 9) | (1 << 5) | 1;
@@ -1823,10 +1823,10 @@
     // data time callback function
     static void (*dateTime_)(uint16_t* date, uint16_t* time);
     // bits defined in flags_
-    // should be 0X0F
+    // should be 0x0F
     static uint8_t const F_OFLAG = (O_ACCMODE | O_APPEND | O_SYNC);
     // sync of directory entry required
-    static uint8_t const F_FILE_DIR_DIRTY = 0X80;
+    static uint8_t const F_FILE_DIR_DIRTY = 0x80;
 
     // private data
     uint8_t   flags_;         // See above for definition of flags_ bits

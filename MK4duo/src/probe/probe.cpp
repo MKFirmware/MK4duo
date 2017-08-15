@@ -95,7 +95,7 @@ bool Probe::set_deployed(const bool deploy) {
   #elif ENABLED(BLTOUCH) && MECH(DELTA)
     if (set_bltouch_deployed(deploy)) return true;
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
-    servo[Z_ENDSTOP_SERVO_NR].move(z_servo_angle[deploy ? 0 : 1]);
+    MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[deploy ? 0 : 1]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
   #endif
@@ -357,7 +357,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
       thermalManager.pause(p);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
-      LOOP_FAN() fans[f].pause(p);
+      LOOP_FAN() fans.pause(f, p);
     #endif
     if (p) printer.safe_delay(25);
   }
@@ -366,7 +366,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 #if ENABLED(BLTOUCH)
 
   void Probe::bltouch_command(int angle) {
-    servo[Z_ENDSTOP_SERVO_NR].move(angle);  // Give the BL-Touch the command and wait
+    MOVE_SERVO(Z_ENDSTOP_SERVO_NR, angle);  // Give the BL-Touch the command and wait
     printer.safe_delay(BLTOUCH_DELAY);
   }
 

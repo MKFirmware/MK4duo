@@ -40,12 +40,10 @@ inline void gcode_M81(void) {
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      fans[f].setSpeed(0);
-      #if ENABLED(PROBING_FANS_OFF)
-        fans[f].paused = false;
-        fans[f].paused_Speed = 0;
-      #endif
+      fans.Speed[f] = 0;
+      fans.paused_Speed[f] = 0;
     }
+    fans.paused = false;
   #endif
 
   #if ENABLED(LASER)

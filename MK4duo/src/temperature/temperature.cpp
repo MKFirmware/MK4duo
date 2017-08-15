@@ -642,7 +642,7 @@ void Temperature::updatePID() {
     uint8_t f = 0;
     for (uint8_t fan = AUTO_FAN0_INDEX; fan < (AUTO_FAN0_INDEX + AUTO_FAN_COUNT); fan++) {
       if (!TEST(fanDone, fanBit[f])) {
-        fans[fan].Speed = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
+        fans.Speed[fan] = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
         SBI(fanDone, fanBit[f]);
         f++;
       }

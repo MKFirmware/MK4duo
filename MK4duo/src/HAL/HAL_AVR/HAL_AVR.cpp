@@ -145,7 +145,7 @@ void HAL::hwSetup() {
   // Initialize Fans
   #if FAN_COUNT > 0
     const Pin FAN_PINS[FAN_COUNT] = FANS_CHANNELS;
-    LOOP_FAN() fans[f].init(FAN_PINS[f], FAN_INVERTED);
+    LOOP_FAN() fans.init(f, FAN_PINS[f], FAN_INVERTED);
   #endif
 }
 
@@ -321,8 +321,8 @@ HAL_TEMP_TIMER_ISR {
   if (pwm_count_fan == 0) {
     #if FAN_COUNT >0
       LOOP_FAN() {
-        if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans[f].pin, FAN_ON);
+        if ((fans.pwm_pos[f] = (fans.Speed[f] & FAN_PWM_MASK)) > 0)
+          HAL::digitalWrite(fans.pin[f], FAN_ON);
       }
     #endif
   }
@@ -354,9 +354,9 @@ HAL_TEMP_TIMER_ISR {
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      if (fans[f].Kickstart == 0) {
-        if (fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-          HAL::digitalWrite(fans[f].pin, FAN_OFF);
+      if (fans.Kickstart[f] == 0) {
+        if (fans.pwm_pos[f] == pwm_count_fan && fans.pwm_pos[f] != FAN_PWM_MASK)
+          HAL::digitalWrite(fans.pin[f], FAN_OFF);
       }
     }
   #endif
@@ -368,7 +368,7 @@ HAL_TEMP_TIMER_ISR {
     HAL::execute_100ms = true;
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
       LOOP_FAN()
-        if (fans[f].Kickstart) fans[f].Kickstart--;
+        if (fans.Kickstart[f]) fans.Kickstart[f]--;
     #endif
   }
 

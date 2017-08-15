@@ -1109,16 +1109,16 @@ static void lcd_implementation_status_screen() {
       #if FAN_COUNT > 0
         if (0
           #if HAS_FAN0
-            || fans[0].Speed
+            || fans.Speed[0]
           #endif
           #if HAS_FAN1
-            || fans[1].Speed
+            || fans.Speed[1]
           #endif
           #if HAS_FAN2
-            || fans[2].Speed
+            || fans.Speed[2]
           #endif
           #if HAS_FAN3
-            || fans[3].Speed
+            || fans.Speed[3]
           #endif
         ) leds |= LED_C;
       #endif // FAN_COUNT > 0

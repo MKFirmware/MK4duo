@@ -51,19 +51,10 @@ inline void gcode_M42(void) {
   HAL::analogWrite(pin_number, pin_status);
 
   #if FAN_COUNT > 0
-    switch (pin_number) {
-      #if HAS_FAN0
-        case FAN_PIN: fans[0].setSpeed(pin_status); break;
-      #endif
-      #if HAS_FAN1
-        case FAN1_PIN: fans[1].setSpeed(pin_status); break;
-      #endif
-      #if HAS_FAN2
-        case FAN2_PIN: fans[2].setSpeed(pin_status); break;
-      #endif
-      #if HAS_FAN3
-        case FAN3_PIN: fans[3].setSpeed(pin_status); break;
-      #endif
+    LOOP_FAN() {
+      if (fans.pin[f] = pin_number) {
+        fans.Speed[f] = pin_status;
+      }
     }
   #endif
 }
