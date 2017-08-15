@@ -28,18 +28,6 @@
 
 #if MECH(MORGAN_SCARA)
 
-  bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
-    if (IsRunning()) {
-      forward_kinematics_SCARA(delta_a, delta_b);
-      mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(mechanics.cartesian_position[X_AXIS]);
-      mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(mechanics.cartesian_position[Y_AXIS]);
-      mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS];
-      mechanics.prepare_move_to_destination();
-      return true;
-    }
-    return false;
-  }
-
   #define CODE_M360
   #define CODE_M361
   #define CODE_M362
@@ -51,7 +39,7 @@
    */
   inline bool gcode_M360(void) {
     SERIAL_LM(ECHO, " Cal: Theta 0");
-    return SCARA_move_to_cal(0, 120);
+    return mechanics.move_to_cal(0, 120);
   }
 
   /**
@@ -59,7 +47,7 @@
    */
   inline bool gcode_M361(void) {
     SERIAL_LM(ECHO, " Cal: Theta 90");
-    return SCARA_move_to_cal(90, 130);
+    return mechanics.move_to_cal(90, 130);
   }
 
   /**
@@ -67,7 +55,7 @@
    */
   inline bool gcode_M362(void) {
     SERIAL_LM(ECHO, " Cal: Psi 0");
-    return SCARA_move_to_cal(60, 180);
+    return mechanics.move_to_cal(60, 180);
   }
 
   /**
@@ -75,7 +63,7 @@
    */
   inline bool gcode_M363(void) {
     SERIAL_LM(ECHO, " Cal: Psi 90");
-    return SCARA_move_to_cal(50, 90);
+    return mechanics.move_to_cal(50, 90);
   }
 
   /**
@@ -83,7 +71,7 @@
    */
   inline bool gcode_M364(void) {
     SERIAL_LM(ECHO, " Cal: Theta-Psi 90");
-    return SCARA_move_to_cal(45, 135);
+    return mechanics.move_to_cal(45, 135);
   }
 
 #endif // MECH(MORGAN_SCARA)

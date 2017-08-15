@@ -256,34 +256,16 @@
    * Prepare a single move and get ready for the next one
    * If Mesh Bed Leveling is enabled, perform a mesh move.
    */
-  void Core_Mechanics::prepare_move_to_destination() {
-
-    endstops.clamp_to_software_endstops(destination);
-    commands.refresh_cmd_timeout();
-
-    #if ENABLED(PREVENT_COLD_EXTRUSION)
-
-      if (!DEBUGGING(DRYRUN)) {
-        if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(tools.active_extruder))
-            current_position[E_AXIS] = destination[E_AXIS];
-          #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-            if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
-              current_position[E_AXIS] = destination[E_AXIS];
-              SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
-            }
-          #endif
-        }
-      }
-    #endif
+  bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (prepare_move_to_destination_dualx() || prepare_move_to_destination_cartesian()) return;
+      if (prepare_move_to_destination_dualx() || prepare_move_to_destination_cartesian()) return true;
     #else
-      if (prepare_move_to_destination_cartesian()) return;
+      if (prepare_move_to_destination_cartesian()) return true;
     #endif
 
     set_current_to_destination();
+    return false;
   }
 
   #if ENABLED(DUAL_X_CARRIAGE)

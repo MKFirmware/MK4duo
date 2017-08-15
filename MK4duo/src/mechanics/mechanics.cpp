@@ -142,6 +142,37 @@ void Mechanics::line_to_destination(float fr_mm_s) {
 }
 
 /**
+ * Prepare a single move and get ready for the next one
+ *
+ * This may result in several calls to planner.buffer_line to
+ * do smaller moves for DELTA, SCARA, mesh moves, etc.
+ */
+void Mechanics::prepare_move_to_destination() {
+  endstops.clamp_to_software_endstops(destination);
+  commands.refresh_cmd_timeout();
+
+  #if ENABLED(PREVENT_COLD_EXTRUSION)
+
+    if (!DEBUGGING(DRYRUN)) {
+      if (destination[E_AXIS] != current_position[E_AXIS]) {
+        if (thermalManager.tooColdToExtrude(tools.active_extruder))
+          current_position[E_AXIS] = destination[E_AXIS];
+        #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+          if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
+            current_position[E_AXIS] = destination[E_AXIS];
+            SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
+          }
+        #endif
+      }
+    }
+  #endif
+
+  if (prepare_move_to_destination_mech_specific()) return;
+
+  set_current_to_destination();
+}
+
+/**
  *  Plan a move to (X, Y, Z) and set the current_position
  *  The final current_position may not be the one that was requested
  */

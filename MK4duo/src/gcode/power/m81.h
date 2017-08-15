@@ -61,7 +61,7 @@ inline void gcode_M81(void) {
 
   #if HAS(SUICIDE)
     stepper.synchronize();
-    suicide();
+    printer.suicide();
   #elif HAS_POWER_SWITCH
     powerManager.power_off();
   #endif
