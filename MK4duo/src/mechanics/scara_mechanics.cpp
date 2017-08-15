@@ -34,8 +34,7 @@
   Scara_Mechanics mechanics;
 
   void Scara_Mechanics::Init() {
-      //TODO!!!
-
+    // TODO!!!
   }
 
    /**
@@ -268,4 +267,5 @@
   }
 
 #endif // MORGAN_SCARA
+
 #endif // IS_SCARA
