@@ -38,136 +38,136 @@
 
   }
 
- /**
- * Prepare a linear move in a SCARA setup.
- *
- * This calls planner.buffer_line several times, adding
- * small incremental moves for SCARA.
- */
- bool Scara_Mechanics::prepare_move_to_destination_mech_specific() {
+   /**
+   * Prepare a linear move in a SCARA setup.
+   *
+   * This calls planner.buffer_line several times, adding
+   * small incremental moves for SCARA.
+   */
+   bool Scara_Mechanics::prepare_move_to_destination_mech_specific() {
 
-  // Get the top feedrate of the move in the XY plane
-  const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+    // Get the top feedrate of the move in the XY plane
+    const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
 
-  // If the move is only in Z/E don't split up the move
-  if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
-    return false;
-  }
+    // If the move is only in Z/E don't split up the move
+    if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
+      return false;
+    }
 
-  // Fail if attempting move outside printable radius
-  if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
+    // Fail if attempting move outside printable radius
+    if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
 
-  // Get the cartesian distances moved in XYZE
-  const float difference[XYZE] = {
-    destination[X_AXIS] - current_position[X_AXIS],
-    destination[Y_AXIS] - current_position[Y_AXIS],
-    destination[Z_AXIS] - current_position[Z_AXIS],
-    destination[E_AXIS] - current_position[E_AXIS]
-  };
+    // Get the cartesian distances moved in XYZE
+    const float difference[XYZE] = {
+      destination[X_AXIS] - current_position[X_AXIS],
+      destination[Y_AXIS] - current_position[Y_AXIS],
+      destination[Z_AXIS] - current_position[Z_AXIS],
+      destination[E_AXIS] - current_position[E_AXIS]
+    };
 
-  // Get the linear distance in XYZ
-  float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
+    // Get the linear distance in XYZ
+    float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
-  // If the move is very short, check the E move distance
-  if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
+    // If the move is very short, check the E move distance
+    if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
 
-  // No E move either? Game over.
-  if (UNEAR_ZERO(cartesian_mm)) return true;
+    // No E move either? Game over.
+    if (UNEAR_ZERO(cartesian_mm)) return true;
 
-  // Minimum number of seconds to move the given distance
-  const float seconds = cartesian_mm / _feedrate_mm_s;
+    // Minimum number of seconds to move the given distance
+    const float seconds = cartesian_mm / _feedrate_mm_s;
 
-  // The number of segments-per-second times the duration
-  // gives the number of segments
-  uint16_t segments = delta_segments_per_second * seconds;
+    // The number of segments-per-second times the duration
+    // gives the number of segments
+    uint16_t segments = delta_segments_per_second * seconds;
 
-  // For SCARA minimum segment size is 0.25mm
-  NOMORE(segments, cartesian_mm * 4);
+    // For SCARA minimum segment size is 0.25mm
+    NOMORE(segments, cartesian_mm * 4);
 
-  // At least one segment is required
-  NOLESS(segments, 1);
+    // At least one segment is required
+    NOLESS(segments, 1);
 
-  // The approximate length of each segment
-  const float inv_segments = 1.0 / float(segments),
-              segment_distance[XYZE] = {
-                difference[X_AXIS] * inv_segments,
-                difference[Y_AXIS] * inv_segments,
-                difference[Z_AXIS] * inv_segments,
-                difference[E_AXIS] * inv_segments
-              };
+    // The approximate length of each segment
+    const float inv_segments = 1.0 / float(segments),
+                segment_distance[XYZE] = {
+                  difference[X_AXIS] * inv_segments,
+                  difference[Y_AXIS] * inv_segments,
+                  difference[Z_AXIS] * inv_segments,
+                  difference[E_AXIS] * inv_segments
+                };
 
-  // SERIAL_ECHOPAIR("mm=", cartesian_mm);
-  // SERIAL_ECHOPAIR(" seconds=", seconds);
-  // SERIAL_ECHOLNPAIR(" segments=", segments);
+    // SERIAL_ECHOPAIR("mm=", cartesian_mm);
+    // SERIAL_ECHOPAIR(" seconds=", seconds);
+    // SERIAL_ECHOLNPAIR(" segments=", segments);
 
-  #if ENABLED(SCARA_FEEDRATE_SCALING)
-    // SCARA needs to scale the feed rate from mm/s to degrees/s
-    const float inv_segment_length = min(10.0, float(segments) / cartesian_mm), // 1/mm/segs
-                feed_factor = inv_segment_length * _feedrate_mm_s;
-    float oldA = stepper.get_axis_position_degrees(A_AXIS),
-          oldB = stepper.get_axis_position_degrees(B_AXIS);
-  #endif
+    #if ENABLED(SCARA_FEEDRATE_SCALING)
+      // SCARA needs to scale the feed rate from mm/s to degrees/s
+      const float inv_segment_length = min(10.0, float(segments) / cartesian_mm), // 1/mm/segs
+                  feed_factor = inv_segment_length * _feedrate_mm_s;
+      float oldA = stepper.get_axis_position_degrees(A_AXIS),
+            oldB = stepper.get_axis_position_degrees(B_AXIS);
+    #endif
 
-  // Get the logical current position as starting point
-  float logical[XYZE];
-  COPY(logical, current_position);
+    // Get the logical current position as starting point
+    float logical[XYZE];
+    COPY(logical, current_position);
 
-  // Drop one segment so the last move is to the exact target.
-  // If there's only 1 segment, loops will be skipped entirely.
-  --segments;
+    // Drop one segment so the last move is to the exact target.
+    // If there's only 1 segment, loops will be skipped entirely.
+    --segments;
 
-  // Calculate and execute the segments
-  for (uint16_t s = segments + 1; --s;) {
-    LOOP_XYZE(i) logical[i] += segment_distance[i];
-    inverse_kinematics(logical);
+    // Calculate and execute the segments
+    for (uint16_t s = segments + 1; --s;) {
+      LOOP_XYZE(i) logical[i] += segment_distance[i];
+      inverse_kinematics(logical);
 
-    ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
+      ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
+
+      #if ENABLED(SCARA_FEEDRATE_SCALING)
+        // For SCARA scale the feed rate from mm/s to degrees/s
+        // Use ratio between the length of the move and the larger angle change
+        const float adiff = abs(delta[A_AXIS] - oldA),
+                    bdiff = abs(delta[B_AXIS] - oldB);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
+        oldA = delta[A_AXIS];
+        oldB = delta[B_AXIS];
+      #else
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder);
+      #endif
+    }
+
+    // Since segment_distance is only approximate,
+    // the final move must be to the exact destination.
 
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       // For SCARA scale the feed rate from mm/s to degrees/s
-      // Use ratio between the length of the move and the larger angle change
+      // With segments > 1 length is 1 segment, otherwise total length
+      inverse_kinematics(ltarget);
+      ADJUST_DELTA(ltarget);
       const float adiff = abs(delta[A_AXIS] - oldA),
                   bdiff = abs(delta[B_AXIS] - oldB);
       planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
-      oldA = delta[A_AXIS];
-      oldB = delta[B_AXIS];
     #else
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder);
+      planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder);
     #endif
+
+    return false;
   }
-
-  // Since segment_distance is only approximate,
-  // the final move must be to the exact destination.
-
-  #if ENABLED(SCARA_FEEDRATE_SCALING)
-    // For SCARA scale the feed rate from mm/s to degrees/s
-    // With segments > 1 length is 1 segment, otherwise total length
-    inverse_kinematics(ltarget);
-    ADJUST_DELTA(ltarget);
-    const float adiff = abs(delta[A_AXIS] - oldA),
-                bdiff = abs(delta[B_AXIS] - oldB);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
-  #else
-    planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder);
-  #endif
-
-  return false;
-}
-
-bool Scara_Mechanics::move_to_cal_SCARA(uint8_t delta_a, uint8_t delta_b) {
-  if (printer.IsRunning()) {
-    this.forward_kinematics_SCARA(delta_a, delta_b);
-    this.destination[X_AXIS] = LOGICAL_X_POSITION(this.cartesian_position[X_AXIS]);
-    this.destination[Y_AXIS] = LOGICAL_Y_POSITION(this.cartesian_position[Y_AXIS]);
-    this.destination[Z_AXIS] = this.current_position[Z_AXIS];
-    this.prepare_move_to_destination();
-    return true;
-  }
-  return false;
-}
 
 #if ENABLED(MORGAN_SCARA)
+
+  bool Scara_Mechanics::SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
+    if (printer.IsRunning()) {
+      forward_kinematics_SCARA(delta_a, delta_b);
+      destination[X_AXIS] = LOGICAL_X_POSITION(cartesian_position[X_AXIS]);
+      destination[Y_AXIS] = LOGICAL_Y_POSITION(cartesian_position[Y_AXIS]);
+      destination[Z_AXIS] = current_position[Z_AXIS];
+      prepare_move_to_destination();
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Morgan SCARA Forward Kinematics. Results in cartes[].

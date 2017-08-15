@@ -55,6 +55,11 @@
        */
       bool prepare_move_to_destination_mech_specific();
 
+      #if MECH(MORGAN_SCARA)
+        bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b);
+        void forward_kinematics_SCARA(const float &a, const float &b);
+      #endif
+
     private: /** Private Parameters */
 
      

@@ -39,7 +39,7 @@
    */
   inline bool gcode_M360(void) {
     SERIAL_LM(ECHO, " Cal: Theta 0");
-    return mechanics.move_to_cal_SCARA(0, 120);
+    return mechanics.SCARA_move_to_cal(0, 120);
   }
 
   /**
@@ -47,7 +47,7 @@
    */
   inline bool gcode_M361(void) {
     SERIAL_LM(ECHO, " Cal: Theta 90");
-    return mechanics.move_to_cal_SCARA(90, 130);
+    return mechanics.SCARA_move_to_cal(90, 130);
   }
 
   /**
@@ -55,7 +55,7 @@
    */
   inline bool gcode_M362(void) {
     SERIAL_LM(ECHO, " Cal: Psi 0");
-    return mechanics.move_to_cal_SCARA(60, 180);
+    return mechanics.SCARA_move_to_cal(60, 180);
   }
 
   /**
@@ -63,7 +63,7 @@
    */
   inline bool gcode_M363(void) {
     SERIAL_LM(ECHO, " Cal: Psi 90");
-    return mechanics.move_to_cal_SCARA(50, 90);
+    return mechanics.SCARA_move_to_cal(50, 90);
   }
 
   /**
@@ -71,7 +71,7 @@
    */
   inline bool gcode_M364(void) {
     SERIAL_LM(ECHO, " Cal: Theta-Psi 90");
-    return mechanics.move_to_cal_SCARA(45, 135);
+    return mechanics.SCARA_move_to_cal(45, 135);
   }
 
 #endif // MECH(MORGAN_SCARA)
