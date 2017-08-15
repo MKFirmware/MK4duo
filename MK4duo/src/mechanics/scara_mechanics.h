@@ -55,6 +55,11 @@
        */
       bool prepare_move_to_destination_mech_specific();
 
+      /**
+       * Calculate delta, start a line, and set current_position to destination
+       */
+      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+
       #if MECH(MORGAN_SCARA)
         bool SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b);
         void forward_kinematics_SCARA(const float &a, const float &b);

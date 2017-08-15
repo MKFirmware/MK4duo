@@ -155,6 +155,27 @@
     return false;
   }
 
+ /**
+   * Calculate delta, start a line, and set current_position to destination
+   */
+  void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
+    #endif
+
+    commands.refresh_cmd_timeout();
+
+    if ( current_position[X_AXIS] == destination[X_AXIS]
+      && current_position[Y_AXIS] == destination[Y_AXIS]
+      && current_position[Z_AXIS] == destination[Z_AXIS]
+      && current_position[E_AXIS] == destination[E_AXIS]
+    ) return;
+
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder);
+
+    set_current_to_destination();
+  }
+ 
 #if ENABLED(MORGAN_SCARA)
 
   bool Scara_Mechanics::SCARA_move_to_cal(uint8_t delta_a, uint8_t delta_b) {
