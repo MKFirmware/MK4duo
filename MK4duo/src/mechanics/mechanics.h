@@ -243,6 +243,23 @@ class Mechanics {
     FORCE_INLINE void line_to_destination() { line_to_destination(feedrate_mm_s); }
 
     /**
+     * Prepare a single move and get ready for the next one
+     *
+     * This may result in several calls to planner.buffer_line to
+     * do smaller moves for DELTA, SCARA, mesh moves, etc.
+     */
+    void Mechanics::prepare_move_to_destination();
+
+    /**
+     * Prepare a single move and get ready for the next one
+     *
+     * This function is specific to the mechanics of the machine,
+     * therefore is pure virtual and MUST be implemented in every
+     * Mechanics subclass!
+     */
+    virtual bool Mechanics::prepare_move_to_destination_mech_specific() = 0;
+
+    /**
      * Plan a move to (X, Y, Z) and set the current_position
      * The final current_position may not be the one that was requested
      */
@@ -332,8 +349,8 @@ class Mechanics {
 #elif IS_DELTA
   #include "delta_mechanics.h"
 #elif IS_SCARA
-  #error "This version not supoorted scara for now, please use old version"
-  //#include "scara_mechanism.h"
+  #error "This version does not support SCARA mechanics as for now, please use an older version of the firmware!"
+  //#include "scara_mechanics.h"
 #endif
 
 #endif /* _MECHANICS_H_ */

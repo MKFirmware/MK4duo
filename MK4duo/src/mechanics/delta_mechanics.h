@@ -87,7 +87,7 @@
        * This calls buffer_line several times, adding
        * small incremental moves for DELTA.
        */
-      void prepare_move_to_destination();
+      bool prepare_move_to_destination_mech_specific();
 
       /**
        *  Plan a move to (X, Y, Z) and set the current_position
