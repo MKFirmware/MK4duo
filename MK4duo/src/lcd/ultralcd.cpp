@@ -1310,7 +1310,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
       #if HOTENDS == 1
         #if HAS_TEMP_BED
-          MENU_ITEM(function, MSG_PREHEAT_1, lcd_preheat_m1_h0);
+          MENU_ITEM(function, MSG_PREHEAT_1_ALL, lcd_preheat_m1_h0);
           MENU_ITEM(function, MSG_PREHEAT_1_END, lcd_preheat_m1_h0_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_1, lcd_preheat_m1_h0_only);
@@ -1354,7 +1354,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
       #if HOTENDS == 1
         #if HAS_TEMP_BED
-          MENU_ITEM(function, MSG_PREHEAT_2, lcd_preheat_m2_h0);
+          MENU_ITEM(function, MSG_PREHEAT_2_ALL, lcd_preheat_m2_h0);
           MENU_ITEM(function, MSG_PREHEAT_2_END, lcd_preheat_m2_h0_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_2, lcd_preheat_m2_h0_only);
@@ -1398,7 +1398,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
       #if HOTENDS == 1
         #if HAS_TEMP_BED
-          MENU_ITEM(function, MSG_PREHEAT_3, lcd_preheat_m3_h0);
+          MENU_ITEM(function, MSG_PREHEAT_3_ALL, lcd_preheat_m3_h0);
           MENU_ITEM(function, MSG_PREHEAT_3_END, lcd_preheat_m3_h0_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_3, lcd_preheat_m3_h0_only);
