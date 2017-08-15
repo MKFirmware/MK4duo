@@ -64,10 +64,14 @@
 
   inline void servo_probe_test(){
     #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
+
       SERIAL_LM(ER, "SERVO not setup");
+
     #elif !HAS_Z_SERVO_PROBE
+
       SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
-    #else
+
+    #else // HAS_Z_SERVO_PROBE
 
       const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_ENDSTOP_SERVO_NR;
 
@@ -116,10 +120,10 @@
       SET_INPUT_PULLUP(PROBE_TEST_PIN);
       bool deploy_state, stow_state;
       for (uint8_t i = 0; i < 4; i++) {
-        servo[probe_index].move(probe.z_servo_angle[0]); // deploy
+        MOVE_SERVO(probe_index, z_servo_angle[0]); //deploy
         printer.safe_delay(500);
         deploy_state = digitalRead(PROBE_TEST_PIN);
-        servo[probe_index].move(probe.z_servo_angle[1]); // stow
+        MOVE_SERVO(probe_index, z_servo_angle[1]); //stow
         printer.safe_delay(500);
         stow_state = digitalRead(PROBE_TEST_PIN);
       }
@@ -142,8 +146,8 @@
         #endif
 
       }
-      else {                                              // measure active signal length
-        servo[probe_index].move(probe.z_servo_angle[0]);  // deploy
+      else {                                        // measure active signal length
+        MOVE_SERVO(probe_index, z_servo_angle[0]);  // deploy
         printer.safe_delay(500);
         SERIAL_EM("please trigger probe");
         uint16_t probe_counter = 0;
@@ -168,7 +172,7 @@
             else
               SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
 
-            servo[probe_index].move(probe.z_servo_angle[1]); // stow
+            MOVE_SERVO(probe_index, z_servo_angle[1]); //stow
 
           } // pulse detected
 
@@ -178,7 +182,7 @@
 
       } // measure active signal length
 
-    #endif
+    #endif // HAS_Z_SERVO_PROBE
 
   } // servo_probe_test
 

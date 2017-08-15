@@ -391,7 +391,7 @@ void Printer::setup() {
   #endif
 
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].setSpeed(0);
+    LOOP_FAN() fans.Speed[f] = 0;
   #endif
 }
 
@@ -575,7 +575,9 @@ void Printer::Stop() {
   thermalManager.disable_all_coolers();
 
   #if ENABLED(PROBING_FANS_OFF)
-    LOOP_FAN() if (fans[f].paused) fans[f].pause(false); // put things back the way they were
+    if (fans.paused) {
+      LOOP_FAN() fans.pause(f, false); // put things back the way they were
+    }
   #endif
 
   #if ENABLED(LASER)
@@ -1630,7 +1632,7 @@ void Printer::handle_Interrupt_Event() {
       thermalManager.disable_all_heaters();
       thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].setSpeed(0);
+        LOOP_FAN() fans.Speed[f] = 0;
       #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
       #if HAS_POWER_SWITCH

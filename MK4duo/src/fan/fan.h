@@ -39,31 +39,34 @@
 
     public: /** Public Parameters */
 
-      uint16_t  Speed;
-      uint8_t   paused_Speed,
-                Kickstart,
-                pwm_val,
-                pwm_pos;
-      bool      pwm_hardware,
-                hardwareInverted,
-                paused;
-      Pin       pin;
+      static uint16_t Speed[FAN_COUNT],
+                      paused_Speed[FAN_COUNT];
+      static uint8_t  Kickstart[FAN_COUNT],
+                      pwm_val[FAN_COUNT],
+                      pwm_pos[FAN_COUNT];
+      static bool     pwm_hardware[FAN_COUNT],
+                      hardwareInverted[FAN_COUNT],
+                      paused;
+      static Pin      pin[FAN_COUNT];
 
     public: /** Public Function */
 
-      void init(Pin p_pin, const bool hwInverted, const bool hardwarepwm=false);
-      void setSpeed(const uint8_t speed);
-      void pause(const bool p);
+      static void init(const uint8_t fan, Pin p_pin, const bool hwInverted, const bool hardwarepwm=false);
+      static void pause(const uint8_t fan, const bool p);
+
+      #if ENABLED(PWM_HARDWARE)
+        static void SetHardwarePwm();
+      #endif
 
     private: /** Private Parameters */
 
-      int16_t lastSpeed;
+      static int16_t lastSpeed[FAN_COUNT];
 
     private: /** Private Function */
 
   };
 
-  extern Fan fans[FAN_COUNT];
+  extern Fan fans;
 
 #endif // FAN_COUNT > 0
 

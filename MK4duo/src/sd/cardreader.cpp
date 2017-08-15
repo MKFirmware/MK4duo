@@ -434,9 +434,9 @@
 
       #if FAN_COUNT > 0
         LOOP_FAN() {
-          if (fans[f].Speed > 0) {
+          if (fans.Speed[f] > 0) {
             char fanSp[20];
-            sprintf(fanSp, "M106 S%i P%i\n", (int)fans[f].Speed, (int)f);
+            sprintf(fanSp, "M106 S%i P%i\n", (int)fans.Speed[f], (int)f);
             fileRestart.write(fanSp);
           }
         }
@@ -456,7 +456,7 @@
       thermalManager.disable_all_heaters();
       thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].setSpeed(0);
+        LOOP_FAN() fans.Speed[f] = 0;
       #endif
     }
   }
