@@ -98,25 +98,7 @@
    * This calls buffer_line several times, adding
    * small incremental moves for DELTA.
    */
-  void Delta_Mechanics::prepare_move_to_destination() {
-
-    endstops.clamp_to_software_endstops(destination);
-    commands.refresh_cmd_timeout();
-
-    #if ENABLED(PREVENT_COLD_EXTRUSION)
-      if (!DEBUGGING(DRYRUN)) {
-        if (destination[E_AXIS] != current_position[E_AXIS]) {
-          if (thermalManager.tooColdToExtrude(tools.active_extruder))
-            current_position[E_AXIS] = destination[E_AXIS];
-          #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-            if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
-              current_position[E_AXIS] = destination[E_AXIS];
-              SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
-            }
-          #endif
-        }
-      }
-    #endif
+  bool Delta_Mechanics::prepare_move_to_destination_mech_specific() {
 
     // Get the top feedrate of the move in the XY plane
     const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
@@ -125,11 +107,11 @@
     if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
       planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
       set_current_to_destination();
-      return;
+      return false;
     }
 
     // Fail if attempting move outside printable radius
-    if (!position_is_reachable_xy(destination[A_AXIS], destination[B_AXIS])) return;
+    if (!position_is_reachable_xy(destination[A_AXIS], destination[B_AXIS])) return true;
 
     // Get the cartesian distances moved in XYZE
     const float difference[XYZE] = {
@@ -146,7 +128,7 @@
     if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
 
     // No E move either? Game over.
-    if (UNEAR_ZERO(cartesian_mm)) return;
+    if (UNEAR_ZERO(cartesian_mm)) return true;
 
     // Minimum number of seconds to move the given distance
     float seconds = cartesian_mm / _feedrate_mm_s;
@@ -201,6 +183,7 @@
     planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
 
     set_current_to_destination();
+    return false;
   }
 
   /**

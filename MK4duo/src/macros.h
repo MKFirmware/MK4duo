@@ -55,13 +55,14 @@
 #define IS_SCARA      (MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA))
 #define IS_DELTA      (MECH(DELTA))
 #define IS_KINEMATIC  (IS_DELTA || IS_SCARA)
+#define IS_MUVE3D     (MECH(MUVE3D))
 
 #define CORE_IS_XY    (MECH(COREXY) || MECH(COREYX))
 #define CORE_IS_XZ    (MECH(COREXZ) || MECH(COREZX))
 #define CORE_IS_YZ    (MECH(COREYZ) || MECH(COREZY))
 #define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
 
-#define IS_CARTESIAN  (!IS_KINEMATIC && !IS_CORE)
+#define IS_CARTESIAN  (MECH(CARTESIAN))
 /********************************************************************/
 
 // Compiler warning on unused varable.

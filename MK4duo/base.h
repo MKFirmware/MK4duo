@@ -48,15 +48,15 @@
   #include "Configuration_Basic.h"
   #include "Configuration_Overall.h"
 
-  #if MECH(CARTESIAN)
+  #if IS_CARTESIAN
     #include "Configuration_Cartesian.h"
   #elif IS_CORE
     #include "Configuration_Core.h"
-  #elif MECH(DELTA)
+  #elif IS_DELTA
     #include "Configuration_Delta.h"
   #elif IS_SCARA
     #include "Configuration_Scara.h"
-  #elif MECH(MUVE3D)
+  #elif IS_MUVE3D
     #include "Configuration_Muve3D.h"
   #endif
 

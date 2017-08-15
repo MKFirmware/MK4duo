@@ -36,25 +36,25 @@
 
     if (parser.seenval('$')) {
       laser.raster_direction = parser.value_int();
-      mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+      mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // Increment Y axis
     }
 
     if (parser.seenval('@')) {
       laser.raster_direction = parser.value_int();
       #if ENABLED(LASER_RASTER_MANUAL_Y_FEED)
-        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS]; // Dont increment X axis
-        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS]; // Dont increment Y axis
+        mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS]; // Don't increment X axis
+        mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS]; // Don't increment Y axis
       #else
         switch(laser.raster_direction) {
           case 0:
           case 1:
           case 4:
-            mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment Y axis
+            mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // Increment Y axis
           break;
           case 2:
           case 3:
           case 5:
-            mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // increment X axis
+            mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + (laser.raster_mm_per_pulse * laser.raster_aspect_ratio); // Increment X axis
           break;
         }
       #endif
@@ -84,7 +84,7 @@
         mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         if (laser.diagnostics) SERIAL_EM("Negative X Positive Y 45deg Raster Line");
       break;
-      case 5: // Positive X Negarite Y 45deg
+      case 5: // Positive X Negative Y 45deg
         mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS] + ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS] - ((laser.raster_mm_per_pulse * laser.raster_num_pixels) * 0.707106);
         if (laser.diagnostics) SERIAL_EM("Positive X Negative Y 45deg Raster Line");
