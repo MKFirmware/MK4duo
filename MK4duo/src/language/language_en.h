@@ -106,7 +106,7 @@
   #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" All")
 #endif
 #ifndef MSG_PREHEAT_1_END
-  #define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" End")
+  #define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" Hotend")
 #endif
 #ifndef MSG_PREHEAT_1_BEDONLY
   #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Bed")
@@ -124,7 +124,7 @@
   #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" All")
 #endif
 #ifndef MSG_PREHEAT_2_END
-  #define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" End")
+  #define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" Hotend")
 #endif
 #ifndef MSG_PREHEAT_2_BEDONLY
   #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Bed")
@@ -142,7 +142,7 @@
   #define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3 _UxGT(" All")
 #endif
 #ifndef MSG_PREHEAT_3_END
-  #define MSG_PREHEAT_3_END                   MSG_PREHEAT_3 _UxGT(" End")
+  #define MSG_PREHEAT_3_END                   MSG_PREHEAT_3 _UxGT(" Hotend")
 #endif
 #ifndef MSG_PREHEAT_3_BEDONLY
   #define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3 _UxGT(" Bed")
