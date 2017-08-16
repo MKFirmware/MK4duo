@@ -260,6 +260,16 @@ class Mechanics {
     virtual bool prepare_move_to_destination_mech_specific();
 
     /**
+     * Compute a Bézier curve using the De Casteljau's algorithm (see
+     * https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm), which is
+     * easy to code and has good numerical stability (very important,
+     * since Arudino works with limited precision real numbers).
+     */
+    #if ENABLED(G5_BEZIER)
+      void plan_cubic_move(const float offset[4]);
+    #endif
+
+    /**
      * Plan a move to (X, Y, Z) and set the current_position
      * The final current_position may not be the one that was requested
      */
