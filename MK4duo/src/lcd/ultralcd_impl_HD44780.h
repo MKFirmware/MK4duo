@@ -865,7 +865,7 @@ static void lcd_implementation_status_screen() {
 
     // Draw the progress_bar bar if the message has shown long enough
     // or if there is no message set.
-    if (card.isFileOpen() && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
+    if (IS_SD_FILE_OPEN && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
       const uint8_t percent = card.percentDone();
       if (percent) return lcd_draw_progress_bar(percent);
     }

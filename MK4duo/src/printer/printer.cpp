@@ -962,7 +962,7 @@ void Printer::handle_Interrupt_Event() {
           filament_ran_out = true;
           stepper.synchronize();
           #if HAS_SDSUPPORT
-            if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
+            if (IS_SD_FILE_OPEN && IS_SD_PRINTING) {
               card.pauseSDPrint();
               print_job_counter.pause();
               SERIAL_LM(REQUEST_PAUSE, "SD pause");
@@ -1622,7 +1622,7 @@ void Printer::handle_Interrupt_Event() {
    * SD Stop & Store location
    */
   void Printer::stopSDPrint(const bool store_location) {
-    if (card.cardOK && card.isFileOpen() && IS_SD_PRINTING) {
+    if (IS_SD_FILE_OPEN && IS_SD_PRINTING) {
       if (store_location) SERIAL_EM("Close file and save restart.gcode");
       card.stopSDPrint(store_location);
       commands.clear_command_queue();
@@ -1773,32 +1773,25 @@ void Printer::handle_Interrupt_Event() {
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
       #endif
     }
-    stepper.synchronize();
 
     // Save current position
+    stepper.synchronize();
     COPY_ARRAY(resume_position, mechanics.current_position);
-    mechanics.set_destination_to_current();
 
     if (retract) {
       // Initial retract before move to filament change position
+      mechanics.set_destination_to_current();
       mechanics.destination[E_AXIS] += retract;
       RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
+      stepper.synchronize();
     }
 
     // Lift Z axis
-    if (z_lift > 0) {
-      mechanics.destination[Z_AXIS] += z_lift;
-      NOMORE(mechanics.destination[Z_AXIS], Z_MAX_POS);
-      RUNPLAN(PAUSE_PARK_Z_FEEDRATE);
-    }
+    if (z_lift > 0)
+      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + z_lift, PAUSE_PARK_Z_FEEDRATE);
 
     // Move XY axes to filament exchange position
-    mechanics.destination[X_AXIS] = x_pos;
-    mechanics.destination[Y_AXIS] = y_pos;
-
-    endstops.clamp_to_software_endstops(mechanics.destination);
-    RUNPLAN(PAUSE_PARK_XY_FEEDRATE);
-    stepper.synchronize();
+    mechanics.do_blocking_move_to_xy(x_pos, y_pos, PAUSE_PARK_XY_FEEDRATE);
 
     // Store in old temperature the target temperature for hotend and bed
     int16_t old_target_temperature[HOTENDS];
@@ -1828,6 +1821,7 @@ void Printer::handle_Interrupt_Event() {
       }
 
       // Unload filament
+      mechanics.set_destination_to_current();
       mechanics.destination[E_AXIS] += unload_length;
       RUNPLAN(PAUSE_PARK_UNLOAD_FEEDRATE);
       stepper.synchronize();
@@ -2051,24 +2045,13 @@ void Printer::handle_Interrupt_Event() {
     mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS];
     mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
 
-    #if IS_KINEMATIC
-      // Move XYZ to starting position
-      planner.buffer_line_kinematic(resume_position, PAUSE_PARK_XY_FEEDRATE, tools.active_extruder);
-    #else
-      // Move XY to starting position, then Z
-      mechanics.destination[X_AXIS] = resume_position[X_AXIS];
-      mechanics.destination[Y_AXIS] = resume_position[Y_AXIS];
-      RUNPLAN(PAUSE_PARK_XY_FEEDRATE);
-      mechanics.destination[Z_AXIS] = resume_position[Z_AXIS];
-      RUNPLAN(PAUSE_PARK_Z_FEEDRATE);
-    #endif
-    stepper.synchronize();
+    // Move XY to starting position, then Z
+    mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], PAUSE_PARK_XY_FEEDRATE);
+    mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], PAUSE_PARK_Z_FEEDRATE);
 
     #if ENABLED(FILAMENT_RUNOUT_SENSOR)
       filament_ran_out = false;
     #endif
-
-    mechanics.set_current_to_destination();
 
     #if HAS_LCD
       // Show status screen
@@ -2097,37 +2080,36 @@ void Printer::handle_Interrupt_Event() {
       ;
 
       // Lift Z axis
-      const float z_lift = parser.seen('Z') ? parser.value_linear_units() :
+      const float z_lift = parser.linearval('Z')
         #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
-          PAUSE_PARK_Z_ADD
-        #else
-          0
+          + PAUSE_PARK_Z_ADD
         #endif
       ;
 
       // Move XY axes to pause park position or given position
-      const float x_pos = parser.seen('X') ? parser.value_linear_units() : 0
-        #ifdef PAUSE_PARK_X_POS
+      const float x_pos = parser.linearval('X')
+        #if ENABLED(PAUSE_PARK_X_POS)
           + PAUSE_PARK_X_POS
         #endif
+        #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+          + (tools.active_extruder ? hotend_offset[X_AXIS][tools.active_extruder] : 0)
+        #endif
       ;
-      const float y_pos = parser.seen('Y') ? parser.value_linear_units() : 0
-        #ifdef PAUSE_PARK_Y_POS
+      const float y_pos = parser.linearval('Y')
+        #if ENABLED(PAUSE_PARK_Y_POS)
           + PAUSE_PARK_Y_POS
+        #endif
+        #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+          + (tools.active_extruder ? hotend_offset[Y_AXIS][tools.active_extruder] : 0)
         #endif
       ;
 
-      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-        if (tools.active_extruder > 0) {
-          if (!parser.seen('X')) x_pos += hotend_offset[X_AXIS][tools.active_extruder];
-          if (!parser.seen('Y')) y_pos += hotend_offset[Y_AXIS][tools.active_extruder];
-        }
+      #if DISABLED(SDSUPPORT)
+        const bool job_running = print_job_counter.isRunning();
       #endif
 
-      const bool job_running = print_job_counter.isRunning();
-
       if (pause_print(retract, 0, z_lift, x_pos, y_pos)) {
-        if (!IS_SD_PRINTING) {
+        #if DISABLED(SDSUPPORT)
           // Wait for lcd click or M108
           wait_for_filament_reload();
 
@@ -2135,7 +2117,7 @@ void Printer::handle_Interrupt_Event() {
           resume_print();
 
           if (job_running) print_job_counter.start();
-        }
+        #endif
       }
     }
 
