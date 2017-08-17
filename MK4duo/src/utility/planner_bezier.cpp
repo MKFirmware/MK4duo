@@ -136,17 +136,6 @@ void Bezier::cubic_b_spline(const float position[NUM_AXIS], const float target[N
       new_pos1 = candidate_pos1;
     }
 
-    // Check some postcondition; they are disabled in the actual
-    // Marlin build, but if you test the same code on a computer you
-    // may want to check they are respect.
-    /*
-      assert(new_t <= 1.0);
-      if (new_t < 1.0) {
-        assert(new_t - t >= (MIN_STEP) / 2.0);
-        assert(new_t - t <= (MAX_STEP) * 2.0);
-      }
-    */
-
     step = new_t - t;
     t = new_t;
 
