@@ -114,7 +114,7 @@
     WRITE(SS_PIN, HIGH);
   }
 
-  static void spiSend(const uint8_t* buf, size_t n) {
+  void spiSend(const uint8_t* buf, size_t n) {
     uint8_t response;
     if (n == 0) return;
     WRITE(SS_PIN, LOW);
