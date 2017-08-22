@@ -451,16 +451,6 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   return false;
 }
 
-bool Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
-  // Add 0.001 margin to deal with float imprecision
-  return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
-      && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
-}
-bool Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
-  // Add 0.001 margin to deal with float imprecision
-  return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
-      && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
-}
 bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
   return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 }

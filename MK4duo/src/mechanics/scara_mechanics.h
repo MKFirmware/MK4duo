@@ -39,6 +39,14 @@
 
     public: /** Public Parameters */
 
+      // Float constants for SCARA calculations
+      const float L1 = SCARA_LINKAGE_1, L2 = SCARA_LINKAGE_2,
+                  L1_2 = sq(float(L1)), L1_2_2 = 2.0 * L1_2,
+                  L2_2 = sq(float(L2));
+
+      float delta_segments_per_second = SCARA_SEGMENTS_PER_SECOND,
+            delta[ABC];
+
     public: /** Public Function */
 
       /**
@@ -58,6 +66,20 @@
        * Calculate delta, start a line, and set current_position to destination
        */
       void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+
+      /**
+       * Set an axis' current position to its home position (after homing).
+       *
+       * SCARA should wait until all XY homing is done before setting the XY
+       * current_position to home, because neither X nor Y is at home until
+       * both are at home. Z can however be homed individually.
+       *
+       * Callers must sync the planner position after calling this!
+       */
+      void set_axis_is_at_home(const AxisEnum axis);
+
+      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
+      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
       #if MECH(MORGAN_SCARA)
         bool move_to_cal(uint8_t delta_a, uint8_t delta_b);

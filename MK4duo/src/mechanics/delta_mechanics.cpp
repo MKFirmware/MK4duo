@@ -60,6 +60,17 @@
   void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
     _set_position_mm(lx, ly, lz, e);
   }
+
+  bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+    return HYPOT2(rx, ry) <= sq(DELTA_PRINTABLE_RADIUS);
+  }
+
+  bool Delta_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+    // Both the nozzle and the probe must be able to reach the point.
+    return position_is_reachable_raw_xy(rx, ry)
+        && position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
+  }
+
   void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
     #if HAS_LEVELING
       float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
