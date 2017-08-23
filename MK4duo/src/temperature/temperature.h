@@ -94,6 +94,10 @@ class Temperature {
 
     #endif
 
+    #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
+      static int lpq_len;
+    #endif
+
     #if ENABLED(PIDTEMPBED)
       static float bedKp, bedKi, bedKd;
     #endif
@@ -175,8 +179,7 @@ class Temperature {
         static float  cTerm[HOTENDS];
         static long   last_e_position,
                       lpq[LPQ_MAX_LEN];
-        static int    lpq_ptr,
-                      lpq_len;
+        static int    lpq_ptr;
       #endif
 
       static uint8_t pid_pointer[HOTENDS];
