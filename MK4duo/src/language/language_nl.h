@@ -164,7 +164,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
 #define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("Eerst")
-#define MSG_PROBE_OFFSET                  _UxGT("Probe Offset")  //accepted English term in Dutch
+#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")  //accepted English term in Dutch
 #define MSG_BABYSTEP_X                      _UxGT("Babystap X")
 #define MSG_BABYSTEP_Y                      _UxGT("Babystap Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Babystap Z")
@@ -220,7 +220,7 @@
 
 #define MSG_INFO_MIN_TEMP                   _UxGT("Min Temp")
 #define MSG_INFO_MAX_TEMP                   _UxGT("Max Temp")
-#define MSG_INFO_PSU                        _UxGT("Power Supply")  //accepted English term in Dutch
+#define MSG_INFO_PSU                        _UxGT("PSU")
 
 #define MSG_DRIVE_STRENGTH                  _UxGT("Motorstroom")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")  //accepted English term in Dutch

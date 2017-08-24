@@ -124,7 +124,7 @@ class Probe {
 
 extern Probe probe;
 
-#if IS_KINEMATIC
+#if IS_DELTA
   // Check for this in the code instead
   #define MIN_PROBE_X -(mechanics.delta_print_radius)
   #define MAX_PROBE_X  (mechanics.delta_print_radius)

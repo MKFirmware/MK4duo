@@ -78,7 +78,7 @@
         static bool abl_enabled;              // Flag that bed leveling is enabled
         static int xy_probe_feedrate_mm_s;
         #if ABL_PLANAR
-          static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
+          static matrix_3x3 matrix; // Transform to compensate for bed level
         #endif
       #endif
 
@@ -125,7 +125,7 @@
           #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
           #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
           #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
-          static void bed_level_virt_print();
+          static void print_bilinear_leveling_grid_virt();
           static void bed_level_virt_interpolate();
         #endif
       #endif

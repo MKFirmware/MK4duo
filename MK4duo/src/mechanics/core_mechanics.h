@@ -99,9 +99,6 @@
         float x_home_pos(const int extruder);
       #endif
 
-      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
-      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
-
     private: /** Private Parameters */
 
     private: /** Private Function */

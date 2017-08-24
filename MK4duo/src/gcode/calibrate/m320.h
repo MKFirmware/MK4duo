@@ -42,12 +42,12 @@
     // V to print the matrix
     if (parser.seen('V')) {
       #if ABL_PLANAR
-        bedlevel.bed_level_matrix.debug("Bed Level Correction Matrix:");
+        bedlevel.matrix.debug(PSTR("Bed Level Correction Matrix:"));
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         if (bedlevel.leveling_is_valid()) {
           bedlevel.print_bilinear_leveling_grid();
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bedlevel.bed_level_virt_print();
+            bedlevel.print_bilinear_leveling_grid_virt();
           #endif
         }
       #endif

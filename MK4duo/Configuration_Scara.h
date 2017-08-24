@@ -100,7 +100,7 @@
 #define PSI_HOMING_OFFSET   0
 
 // Radius around the center where the arm cannot reach
-#define MIDDLE_DEAD_ZONE_R 140 //mm
+#define MIDDLE_DEAD_ZONE_R 140 // mm
 
 /*****************************************************************************************/
 

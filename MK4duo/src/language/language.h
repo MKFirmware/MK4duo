@@ -220,10 +220,13 @@
 #define MSG_BAT                             " B@:"
 #define MSG_CAT                             " C@:"
 #define MSG_W                               " W:"
-#define MSG_PID_AUTOTUNE_FINISHED           MSG_PID_AUTOTUNE " finished! Put the last Kp, Ki and Kd constants from above into Configuration.h or send command M500 for save in EEPROM the new value!"
+#define MSG_PID_AUTOTUNE_FINISHED           MSG_PID_AUTOTUNE " finished! Put the last Kp, Ki and Kd constants from below into Configuration.h or send command M500 for save in EEPROM the new value!"
 #define MSG_PID_DEBUG                       " PID_DEBUG "
 #define MSG_PID_DEBUG_INPUT                 ": Input "
 #define MSG_PID_DEBUG_OUTPUT                " Output "
+#define MSG_PID_DEBUG_PTERM                 " pTerm "
+#define MSG_PID_DEBUG_ITERM                 " iTerm "
+#define MSG_PID_DEBUG_DTERM                 " dTerm "
 #define MSG_PID_DEBUG_CTERM                 " cTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
@@ -298,7 +301,8 @@
  && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_CN) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_TR) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_PL)
+ && DISABLED(DISPLAY_CHARSET_ISO10646_PL) \
+ && DISABLED(DISPLAY_CHARSET_ISO10646_CZ)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
 

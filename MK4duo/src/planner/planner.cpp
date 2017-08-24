@@ -123,7 +123,7 @@ void Planner::init() {
   ZERO(previous_speed);
   previous_nominal_speed = 0.0;
   #if ABL_PLANAR
-    bedlevel.bed_level_matrix.set_to_identity();
+    bedlevel.matrix.set_to_identity();
   #endif
 }
 

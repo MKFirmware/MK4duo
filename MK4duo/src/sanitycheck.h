@@ -555,9 +555,9 @@ static_assert(1 >= 0
  * Mesh Bed Leveling
  */
 #if ENABLED(MESH_BED_LEVELING)
-  #if MECH(DELTA)
+  #if IS_DELTA
     #error "MESH_BED_LEVELING does not yet support DELTA printers."
-  #elif IS_SCARA && DISABLED(AUTO_BED_LEVELING_BILINEAR)
+  #elif IS_SCARA
     #error "Only AUTO_BED_LEVELING_BILINEAR currently supports SCARA bed leveling."
   #elif GRID_MAX_POINTS_X > 9 || GRID_MAX_POINTS_Y > 9
     #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."

@@ -62,13 +62,13 @@
   }
 
   bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
-    return HYPOT2(rx, ry) <= sq(DELTA_PRINTABLE_RADIUS);
+    return HYPOT2(rx, ry) <= sq(delta_print_radius);
   }
 
   bool Delta_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
     // Both the nozzle and the probe must be able to reach the point.
     return position_is_reachable_raw_xy(rx, ry)
-        && position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
+        && position_is_reachable_raw_xy(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
   }
 
   void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {

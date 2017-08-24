@@ -87,15 +87,11 @@ class Temperature {
       static float    redundant_temperature;
     #endif
 
-    #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
-
+    #if ENABLED(PIDTEMP)
       static float Kp[HOTENDS], Ki[HOTENDS], Kd[HOTENDS], Kc[HOTENDS];
-      #define PID_PARAM(param, h) Temperature::param[h]
-
-    #endif
-
-    #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
-      static int lpq_len;
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        static int lpq_len;
+      #endif
     #endif
 
     #if ENABLED(PIDTEMPBED)
@@ -770,5 +766,7 @@ class Temperature {
 };
 
 extern Temperature thermalManager;
+
+#define PID_PARAM(param, h) Temperature::param[h]
 
 #endif // TEMPERATURE_H
