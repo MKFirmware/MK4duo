@@ -39,7 +39,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "Open"
+  #define BOARD_NAME "Final OMCA board"
 #endif
 //@@@
 
