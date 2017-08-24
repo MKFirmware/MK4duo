@@ -52,7 +52,7 @@
         parser.linearval('Q')
       };
 
-      plan_cubic_move(offset);
+      mechanics.plan_cubic_move(offset);
     }
   }
 

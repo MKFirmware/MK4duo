@@ -122,6 +122,10 @@
 
 #include "src/utility/hex_print_routines.h"
 
+#if ENABLED(G5_BEZIER)
+  #include "src/utility/planner_bezier.h"
+#endif
+
 #if ENABLED(BLINKM)
   #include "src/rgbled/blinkm.h"
 #elif ENABLED(PCA9632)

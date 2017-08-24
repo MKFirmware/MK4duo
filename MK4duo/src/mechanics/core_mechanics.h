@@ -88,7 +88,7 @@
       /**
        * Set an axis' current position to its home position (after homing).
        *
-       * For Cartesian robots this applies one-to-one when an
+       * For Core robots this applies one-to-one when an
        * individual axis has been homed.
        *
        * Callers must sync the planner position after calling this!
@@ -98,6 +98,9 @@
       #if ENABLED(DUAL_X_CARRIAGE)
         float x_home_pos(const int extruder);
       #endif
+
+      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
+      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
     private: /** Private Parameters */
 

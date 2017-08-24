@@ -33,16 +33,16 @@
   // M649 set laser options
   inline void gcode_M649(void) {
     // do this at the start so we can debug if needed!
-    if (parser.seen('D') && IsRunning()) laser.diagnostics = parser.value_bool();
+    if (parser.seen('D') && printer.IsRunning()) laser.diagnostics = parser.value_bool();
 
     // Wait for the rest
     // stepper.synchronize();
-    if (parser.seen('S') && IsRunning()) {
+    if (parser.seen('S') && printer.IsRunning()) {
       laser.intensity = parser.value_float();
       laser.rasterlaserpower =  laser.intensity;
     }
 
-    if (IsRunning()) {
+    if (printer.IsRunning()) {
       if (parser.seen('L')) laser.duration = parser.value_ulong();
       if (parser.seen('P')) laser.ppm = parser.value_float();
       if (parser.seen('B')) laser.set_mode(parser.value_int());
