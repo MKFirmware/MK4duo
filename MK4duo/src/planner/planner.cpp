@@ -123,7 +123,7 @@ void Planner::init() {
   ZERO(previous_speed);
   previous_nominal_speed = 0.0;
   #if ABL_PLANAR
-    bedlevel.bed_level_matrix.set_to_identity();
+    bedlevel.matrix.set_to_identity();
   #endif
 }
 
@@ -458,7 +458,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #if ENABLED(PREVENT_COLD_EXTRUSION)
     if (de
       #if HAS_MULTI_MODE
-        && printer_mode == PRINTER_MODE_FFF
+        && printer.mode == PRINTER_MODE_FFF
       #endif
     ) {
       #if ENABLED(NPR2)
@@ -581,7 +581,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->step_event_count = MAX4(block->steps[X_AXIS], block->steps[Y_AXIS], block->steps[Z_AXIS], esteps);
 
   #if HAS_MULTI_MODE
-    if (printer_mode != PRINTER_MODE_LASER)
+    if (printer.mode != PRINTER_MODE_LASER)
   #endif
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;

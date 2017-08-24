@@ -88,7 +88,7 @@
       /**
        * Set an axis' current position to its home position (after homing).
        *
-       * For Cartesian robots this applies one-to-one when an
+       * For Core robots this applies one-to-one when an
        * individual axis has been homed.
        *
        * Callers must sync the planner position after calling this!

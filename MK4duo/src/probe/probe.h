@@ -124,12 +124,18 @@ class Probe {
 
 extern Probe probe;
 
-#if IS_KINEMATIC
+#if IS_DELTA
   // Check for this in the code instead
   #define MIN_PROBE_X -(mechanics.delta_print_radius)
   #define MAX_PROBE_X  (mechanics.delta_print_radius)
   #define MIN_PROBE_Y -(mechanics.delta_print_radius)
   #define MAX_PROBE_Y  (mechanics.delta_print_radius)
+#elif IS_SCARA
+    #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
+    #define MIN_PROBE_X (X_CENTER - SCARA_PRINTABLE_RADIUS)
+    #define MAX_PROBE_X (X_CENTER + SCARA_PRINTABLE_RADIUS)
+    #define MIN_PROBE_Y (Y_CENTER - SCARA_PRINTABLE_RADIUS)
+    #define MAX_PROBE_Y (Y_CENTER + SCARA_PRINTABLE_RADIUS)
 #else
   // Boundaries for probing based on set limits
   #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))

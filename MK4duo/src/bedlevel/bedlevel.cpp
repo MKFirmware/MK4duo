@@ -39,7 +39,7 @@
   #endif
 
   #if ABL_PLANAR
-    matrix_3x3 Bed_level::bed_level_matrix; // Transform to compensate for bed level
+    matrix_3x3 Bed_level::matrix; // Transform to compensate for bed level
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -103,7 +103,7 @@
             dy = RAW_Y_POSITION(ly) - (Y_TILT_FULCRUM),
             dz = RAW_Z_POSITION(lz);
 
-      apply_rotation_xyz(bed_level_matrix, dx, dy, dz);
+      apply_rotation_xyz(matrix, dx, dy, dz);
 
       lx = LOGICAL_X_POSITION(dx + X_TILT_FULCRUM);
       ly = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
@@ -144,7 +144,7 @@
 
     #elif ABL_PLANAR
 
-      matrix_3x3 inverse = matrix_3x3::transpose(bed_level_matrix);
+      matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
       float dx = RAW_X_POSITION(logical[X_AXIS]) - (X_TILT_FULCRUM),
             dy = RAW_Y_POSITION(logical[Y_AXIS]) - (Y_TILT_FULCRUM),
@@ -366,7 +366,7 @@
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
 
-      void Bed_level::bed_level_virt_print() {
+      void Bed_level::print_bilinear_leveling_grid_virt() {
         SERIAL_LM(ECHO, "Subdivided with CATMULL ROM Leveling Grid:");
         print_2d_array(ABL_GRID_POINTS_VIRT_X, ABL_GRID_POINTS_VIRT_Y, 5,
           [](const uint8_t ix, const uint8_t iy){ return z_values_virt[ix][iy]; }
@@ -384,9 +384,15 @@
             ip = GRID_MAX_POINTS_X - 2;
           }
           if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
-            return LINEAR_EXTRAPOLATION(z_values[ep][y - 1], z_values[ip][y - 1]);
+            return LINEAR_EXTRAPOLATION(
+              z_values[ep][y - 1],
+              z_values[ip][y - 1]
+            );
           else
-            return LINEAR_EXTRAPOLATION(bed_level_virt_coord(ep + 1, y), bed_level_virt_coord(ip + 1, y));
+            return LINEAR_EXTRAPOLATION(
+              bed_level_virt_coord(ep + 1, y),
+              bed_level_virt_coord(ip + 1, y)
+            );
         }
         if (!y || y == ABL_TEMP_POINTS_Y - 1) {
           if (y) {
@@ -394,9 +400,15 @@
             ip = GRID_MAX_POINTS_Y - 2;
           }
           if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
-            return LINEAR_EXTRAPOLATION(z_values[x - 1][ep], z_values[x - 1][ip]);
+            return LINEAR_EXTRAPOLATION(
+              z_values[x - 1][ep],
+              z_values[x - 1][ip]
+            );
           else
-            return LINEAR_EXTRAPOLATION(bed_level_virt_coord(x, ep + 1), bed_level_virt_coord(x, ip + 1));
+            return LINEAR_EXTRAPOLATION(
+              bed_level_virt_coord(x, ep + 1),
+              bed_level_virt_coord(x, ip + 1)
+            );
         }
         return z_values[x - 1][y - 1];
       }
@@ -539,7 +551,7 @@
           if (DEBUGGING(LEVELING)) SERIAL_EM("Reset Bed Level");
         #endif
         #if ABL_PLANAR
-          bed_level_matrix.set_to_identity();
+          matrix.set_to_identity();
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           bilinear_start[X_AXIS] = bilinear_start[Y_AXIS] =
           bilinear_grid_spacing[X_AXIS] = bilinear_grid_spacing[Y_AXIS] = 0;

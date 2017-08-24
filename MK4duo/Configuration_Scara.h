@@ -99,7 +99,8 @@
 #define THETA_HOMING_OFFSET 0  
 #define PSI_HOMING_OFFSET   0
 
-#define MIDDLE_DEAD_ZONE_R  140       // For arm mounted to a central tower
+// Radius around the center where the arm cannot reach
+#define MIDDLE_DEAD_ZONE_R 140 // mm
 
 /*****************************************************************************************/
 

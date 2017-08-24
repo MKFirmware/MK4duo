@@ -513,6 +513,11 @@ uint16_t max_display_update_time = 0;
       lcd_return_to_status();
   }
 
+  void lcd_goto_previous_menu_no_defer() {
+    defer_return_to_status = false;
+    lcd_goto_previous_menu();
+  }
+
 #endif // ULTIPANEL
 
 /**
@@ -927,7 +932,7 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(BABYSTEPPING)
 
     void _lcd_babystep(const AxisEnum axis, const char* msg) {
-      if (lcd_clicked) { defer_return_to_status = false; return lcd_goto_previous_menu(); }
+      if (lcd_clicked) { return lcd_goto_previous_menu_no_defer(); }
       ENCODER_DIRECTION_NORMAL();
       if (encoderPosition) {
         const int16_t babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
@@ -1465,6 +1470,50 @@ void kill_screen(const char* lcd_msg) {
     static void lcd_refresh_zprobe_zoffset() { probe.refresh_offset(); }
   #endif
 
+  #if ENABLED(LEVEL_BED_CORNERS)
+
+    /**
+     * Level corners, starting in the front-left corner.
+     */
+    static int8_t bed_corner;
+    void _lcd_goto_next_corner() {
+      line_to_z(LOGICAL_Z_POSITION(4.0));
+      switch (bed_corner) {
+        case 0:
+          current_position[X_AXIS] = X_MIN_BED + 10;
+          current_position[Y_AXIS] = Y_MIN_BED + 10;
+          break;
+        case 1:
+          current_position[X_AXIS] = X_MAX_BED - 10;
+          break;
+        case 2:
+          current_position[Y_AXIS] = Y_MAX_BED - 10;
+          break;
+        case 3:
+          current_position[X_AXIS] = X_MIN_BED + 10;
+          break;
+      }
+      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), active_extruder);
+      line_to_z(LOGICAL_Z_POSITION(0.0));
+      if (++bed_corner > 3) bed_corner = 0;
+    }
+
+    void _lcd_corner_submenu() {
+      START_MENU();
+      MENU_ITEM(function, MSG_NEXT_CORNER, _lcd_goto_next_corner);
+      MENU_ITEM(function, MSG_BACK, lcd_goto_previous_menu_no_defer);
+      END_MENU();
+    }
+
+    void _lcd_level_bed_corners() {
+      defer_return_to_status = true;
+      lcd_goto_screen(_lcd_corner_submenu);
+      bed_corner = 0;
+      _lcd_goto_next_corner();
+    }
+
+  #endif // LEVEL_BED_CORNERS
+
   #if ENABLED(LCD_BED_LEVELING)
 
     /**
@@ -1697,15 +1746,17 @@ void kill_screen(const char* lcd_msg) {
 
     /**
      * Step 1: Bed Level entry-point
-     *  - Cancel
-     *  - Auto Home       (if homing needed)
-     *  - Leveling On/Off (if data exists, and homed)
-     *  - Level Bed >
-     *  - Fade Height     (Req: ENABLE_LEVELING_FADE_HEIGHT)
-     *  - Mesh Z Offset   (Req: MESH_BED_LEVELING)
-     *  - Z Probe Offset  (Req: HAS_BED_PROBE, Opt: BABYSTEP_ZPROBE_OFFSET)
-     *  - Load Settings   (Req: EEPROM_SETTINGS)
-     *  - Save Settings   (Req: EEPROM_SETTINGS)
+     *
+     * << Prepare
+     *    Auto Home           (if homing needed)
+     *    Leveling On/Off     (if data exists, and homed)
+     *    Fade Height: ---    (Req: ENABLE_LEVELING_FADE_HEIGHT)
+     *    Mesh Z Offset: ---  (Req: MESH_BED_LEVELING)
+     *    Z Probe Offset: --- (Req: HAS_BED_PROBE)
+     *    Level Bed >
+     *    Level Corners >     (if homed)
+     *    Load Settings       (Req: EEPROM_SETTINGS)
+     *    Save Settings       (Req: EEPROM_SETTINGS)
      */
     void lcd_bed_leveling() {
       START_MENU();
@@ -1735,6 +1786,12 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
+
+      #if ENABLED(LEVEL_BED_CORNERS)
+        // Move to the next corner for leveling
+        if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+          MENU_ITEM(function, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
+      #endif
 
       #if ENABLED(EEPROM_SETTINGS)
         MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
@@ -1789,8 +1846,14 @@ void kill_screen(const char* lcd_msg) {
         if (!bedlevel.g29_in_progress)
       #endif
       MENU_ITEM(submenu, MSG_BED_LEVELING, lcd_bed_leveling);
-    #elif HAS_LEVELING
-      MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));
+    #else
+      #if HAS_LEVELING
+        MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));
+      #endif
+      #if ENABLED(LEVEL_BED_CORNERS)
+        if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+          MENU_ITEM(function, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
+      #endif
     #endif
 
     #if HAS_M206_M408_COMMAND
@@ -1915,9 +1978,9 @@ void kill_screen(const char* lcd_msg) {
       lcd_goto_screen(_lcd_calibrate_homing);
     }
 
-    void _goto_tower_x() { mechanics.manual_goto_xy(COS(RADIANS(210)) * mechanics.delta_print_radius, SIN(RADIANS(210)) * mechanics.delta_print_radius); }
-    void _goto_tower_y() { mechanics.manual_goto_xy(COS(RADIANS(330)) * mechanics.delta_print_radius, SIN(RADIANS(330)) * mechanics.delta_print_radius); }
-    void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_print_radius, SIN(RADIANS( 90)) * mechanics.delta_print_radius); }
+    void _goto_tower_x() { mechanics.manual_goto_xy(COS(RADIANS(210)) * mechanics.delta_probe_radius, SIN(RADIANS(210)) * mechanics.delta_probe_radius); }
+    void _goto_tower_y() { mechanics.manual_goto_xy(COS(RADIANS(330)) * mechanics.delta_probe_radius, SIN(RADIANS(330)) * mechanics.delta_probe_radius); }
+    void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_probe_radius, SIN(RADIANS( 90)) * mechanics.delta_probe_radius); }
     void _goto_center()  { mechanics.manual_goto_xy(0,0); }
 
     void lcd_delta_settings() {

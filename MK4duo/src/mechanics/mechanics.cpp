@@ -172,6 +172,26 @@ void Mechanics::prepare_move_to_destination() {
   set_current_to_destination();
 }
 
+#if ENABLED(G5_BEZIER)
+
+  /**
+   * Compute a Bézier curve using the De Casteljau's algorithm (see
+   * https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm), which is
+   * easy to code and has good numerical stability (very important,
+   * since Arduino works with limited precision real numbers).
+   */
+  void Mechanics::plan_cubic_move(const float offset[4]) {
+    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.active_extruder);
+
+    // As far as the parser is concerned, the position is now == destination. In reality the
+    // motion control system might still be processing the action and the real tool position
+    // in any intermediate location.
+    set_current_to_destination();
+  }
+
+#endif // G5_BEZIER
+
+
 /**
  *  Plan a move to (X, Y, Z) and set the current_position
  *  The final current_position may not be the one that was requested

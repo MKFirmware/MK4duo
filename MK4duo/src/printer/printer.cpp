@@ -1211,7 +1211,7 @@ void Printer::handle_Interrupt_Event() {
               }
             #endif
 
-            offset_vec.apply_rotation(bedlevel.bed_level_matrix.transpose(bedlevel.bed_level_matrix));
+            offset_vec.apply_rotation(bedlevel.matrix.transpose(bedlevel.matrix));
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (DEBUGGING(LEVELING)) offset_vec.debug("offset_vec (AFTER)");

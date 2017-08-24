@@ -188,7 +188,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
 #endif
 
 #if ENABLED(Z_FOUR_STEPPER)
-  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); Z3_DIR_WRITE(v); Z4_DIR_WRITE(v); }
+  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v != INVERT_Z2_VS_Z_DIR); Z3_DIR_WRITE(v != INVERT_Z3_VS_Z_DIR); Z4_DIR_WRITE(v != INVERT_Z4_VS_Z_DIR); }
   #if ENABLED(Z_FOUR_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \
@@ -215,7 +215,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
     #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); Z3_STEP_WRITE(v); Z4_STEP_WRITE(v); }while(0)
   #endif
 #elif ENABLED(Z_THREE_STEPPER)
-  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v); Z3_DIR_WRITE(v); }
+  #define Z_APPLY_DIR(v,Q) { Z_DIR_WRITE(v); Z2_DIR_WRITE(v != INVERT_Z2_VS_Z_DIR); Z3_DIR_WRITE(v != INVERT_Z3_VS_Z_DIR); }
   #if ENABLED(Z_THREE_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \

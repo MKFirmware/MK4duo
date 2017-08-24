@@ -110,7 +110,7 @@
  * - M43 command for pins info and testing
  * - M115 Auto report temperatures
  * - Extend capabilities report
- * - Whatchdog
+ * - Watchdog
  * - Start / Stop Gcode
  * - User menu items
  *
@@ -838,6 +838,12 @@
 //#define Z_TWO_STEPPER
 //#define Z_THREE_STEPPER
 //#define Z_FOUR_STEPPER
+
+// Define directions of the Z2, Z3 and Z4 drives (if they're enabled) relative to the Z
+// drive direction
+#define INVERT_Z2_VS_Z_DIR false
+#define INVERT_Z3_VS_Z_DIR false
+#define INVERT_Z4_VS_Z_DIR false
 
 // Z TWO ENDSTOPS is a feature to enable the use of 2 endstops for both Z steppers
 //#define Z_TWO_ENDSTOPS

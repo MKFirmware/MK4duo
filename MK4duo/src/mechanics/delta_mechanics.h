@@ -124,8 +124,8 @@
        */
       void set_axis_is_at_home(const AxisEnum axis);
 
-      //bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
-      //bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
+      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
+      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
       #if HAS_DELTA_AUTO_CALIBRATION
         void auto_calibration();

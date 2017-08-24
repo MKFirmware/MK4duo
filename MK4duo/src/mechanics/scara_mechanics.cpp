@@ -154,6 +154,23 @@
     return false;
   }
 
+  bool Scara_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+    #if MIDDLE_DEAD_ZONE_R > 0
+      const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
+      return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
+    #else
+      return HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y) <= sq(L1 + L2);
+    #endif
+  }
+
+  bool Scara_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+    // Both the nozzle and the probe must be able to reach the point.
+    // This won't work on SCARA since the probe offset rotates with the arm.
+    // TODO: fix this
+    return position_is_reachable_raw_xy(rx, ry)
+        && position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_EXTRUDER, ry - Y_PROBE_OFFSET_FROM_EXTRUDER);
+  }
+
  /**
    * Calculate delta, start a line, and set current_position to destination
    */
@@ -175,6 +192,102 @@
     set_current_to_destination();
   }
  
+  /**
+   * Set an axis' current position to its home position (after homing).
+   *
+   * SCARA should wait until all XY homing is done before setting the XY
+   * current_position to home, because neither X nor Y is at home until
+   * both are at home. Z can however be homed individually.
+   *
+   * Callers must sync the planner position after calling this!
+   */ 
+  void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_ECHOPAIR(">>> set_axis_is_at_home(", axis_codes[axis]);
+        SERIAL_CHAR(')');
+        SERIAL_EOL();
+      }
+    #endif
+
+    axis_known_position[axis] = axis_homed[axis] = true;
+
+    #if ENABLED(MORGAN_SCARA)
+
+      /**
+       * Morgan SCARA homes XY at the same time
+       */
+      if (axis == X_AXIS || axis == Y_AXIS) {
+
+        float homeposition[XYZ];
+        LOOP_XYZ(i) homeposition[i] = LOGICAL_POSITION(base_home_pos((AxisEnum)i), i);
+
+        // SERIAL_ECHOPAIR("homeposition X:", homeposition[X_AXIS]);
+        // SERIAL_ECHOLNPAIR(" Y:", homeposition[Y_AXIS]);
+
+        /**
+         * Get Home position SCARA arm angles using inverse kinematics,
+         * and calculate homing offset using forward kinematics
+         */
+        inverse_kinematics(homeposition);
+        forward_kinematics_SCARA(delta[A_AXIS], delta[B_AXIS]);
+
+        // SERIAL_ECHOPAIR("Cartesian X:", cartes[X_AXIS]);
+        // SERIAL_ECHOLNPAIR(" Y:", cartes[Y_AXIS]);
+
+        current_position[axis] = LOGICAL_POSITION(cartes[axis], axis);
+
+        /**
+         * SCARA home positions are based on configuration since the actual
+         * limits are determined by the inverse kinematic transform.
+         */
+        soft_endstop_min[axis] = base_min_pos(axis); // + (cartes[axis] - base_home_pos(axis));
+        soft_endstop_max[axis] = base_max_pos(axis); // + (cartes[axis] - base_home_pos(axis));
+      }
+      else
+    #endif
+    {
+      current_position[axis] = LOGICAL_POSITION(base_home_pos(axis), axis);
+    }
+
+    /**
+     * Z Probe Z Homing? Account for the probe's Z offset.
+     */
+    #if HAS_BED_PROBE && Z_HOME_DIR < 0
+      if (axis == Z_AXIS) {
+        #if HOMING_Z_WITH_PROBE
+
+          current_position[Z_AXIS] -= zprobe_zoffset;
+
+          #if ENABLED(DEBUG_LEVELING_FEATURE)
+            if (DEBUGGING(LEVELING)) {
+              SERIAL_ECHOLNPGM("*** Z HOMED WITH PROBE (Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN) ***");
+              SERIAL_ECHOLNPAIR("> zprobe_zoffset = ", zprobe_zoffset);
+            }
+          #endif
+
+        #elif ENABLED(DEBUG_LEVELING_FEATURE)
+
+          if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPGM("*** Z HOMED TO ENDSTOP (Z_MIN_PROBE_ENDSTOP) ***");
+
+        #endif
+      }
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        #if HAS_HOME_OFFSET
+          SERIAL_ECHOPAIR("> home_offset[", axis_codes[axis]);
+          SERIAL_ECHOLNPAIR("] = ", home_offset[axis]);
+        #endif
+        DEBUG_POS("", current_position);
+        SERIAL_ECHOPAIR("<<< set_axis_is_at_home(", axis_codes[axis]);
+        SERIAL_CHAR(')');
+        SERIAL_EOL();
+      }
+    #endif
+  }
+
 #if ENABLED(MORGAN_SCARA)
 
   bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {

@@ -177,6 +177,12 @@
 #ifndef MSG_LEVEL_BED
   #define MSG_LEVEL_BED                       _UxGT("Level bed")
 #endif
+#ifndef MSG_LEVEL_CORNERS
+  #define MSG_LEVEL_CORNERS                   _UxGT("Level corners")
+#endif
+#ifndef MSG_NEXT_CORNER
+  #define MSG_NEXT_CORNER                     _UxGT("Next corner")
+#endif
 #ifndef MSG_EDITING_STOPPED
   #define MSG_EDITING_STOPPED                 _UxGT("Mesh Editing Stopped")
 #endif
@@ -345,6 +351,15 @@
 #endif
 #ifndef MSG_UBL_SAVE_MESH
   #define MSG_UBL_SAVE_MESH                   _UxGT("Save Bed Mesh")
+#endif
+#ifndef MSG_MESH_LOADED
+  #define MSG_MESH_LOADED                     _UxGT("Mesh %i loaded")
+#endif
+#ifndef MSG_MESH_SAVED
+  #define MSG_MESH_SAVED                      _UxGT("Mesh %i saved")
+#endif
+#ifndef MSG_NO_STORAGE
+  #define MSG_NO_STORAGE                      _UxGT("No storage")
 #endif
 #ifndef MSG_UBL_SAVE_ERROR
   #define MSG_UBL_SAVE_ERROR                  _UxGT("Err: UBL Save")
@@ -919,7 +934,7 @@
   #define MSG_INFO_MAX_TEMP                   _UxGT("Max Temp")
 #endif
 #ifndef MSG_INFO_PSU
-  #define MSG_INFO_PSU                        _UxGT("Power Supply")
+  #define MSG_INFO_PSU                        _UxGT("PSU")
 #endif
 #ifndef MSG_DRIVE_STRENGTH
   #define MSG_DRIVE_STRENGTH                  _UxGT("Drive Strength")

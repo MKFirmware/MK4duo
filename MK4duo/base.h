@@ -121,6 +121,7 @@
 #include "src/servo/servo.h"
 
 #include "src/utility/hex_print_routines.h"
+#include "src/utility/bezier.h"
 
 #if ENABLED(BLINKM)
   #include "src/rgbled/blinkm.h"

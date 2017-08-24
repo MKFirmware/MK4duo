@@ -611,7 +611,7 @@ void out_of_range_error(const char* p_edge) {
               planeNormal.y *= -1;
               planeNormal.z *= -1;
             }
-            bedlevel.bed_level_matrix = matrix_3x3::create_look_at(planeNormal);
+            bedlevel.matrix = matrix_3x3::create_look_at(planeNormal);
 
             // Can't re-enable (on error) until the new grid is written
             abl_should_enable = false;
@@ -716,7 +716,7 @@ void out_of_range_error(const char* p_edge) {
               planeNormal.y *= -1;
               planeNormal.z *= -1;
             }
-            bedlevel.bed_level_matrix = matrix_3x3::create_look_at(planeNormal);
+            bedlevel.matrix = matrix_3x3::create_look_at(planeNormal);
 
             // Can't re-enable (on error) until the new grid is written
             abl_should_enable = false;
@@ -764,7 +764,7 @@ void out_of_range_error(const char* p_edge) {
         bedlevel.refresh_bed_level();
 
         #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          bedlevel.bed_level_virt_print();
+          bedlevel.print_bilinear_leveling_grid_virt();
         #endif
 
       #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
@@ -798,7 +798,7 @@ void out_of_range_error(const char* p_edge) {
 
         // Create the matrix but don't correct the position yet
         if (!dryrun) {
-          bedlevel.bed_level_matrix = matrix_3x3::create_look_at(
+          bedlevel.matrix = matrix_3x3::create_look_at(
             vector_3(-plane_equation_coefficients[0], -plane_equation_coefficients[1], 1) // We can eleminate the '-' here and up above
           );
         }
@@ -828,7 +828,7 @@ void out_of_range_error(const char* p_edge) {
                     y_tmp = eqnAMatrix[ind + 1 * abl2],
                     z_tmp = 0;
 
-              apply_rotation_xyz(bedlevel.bed_level_matrix, x_tmp, y_tmp, z_tmp);
+              apply_rotation_xyz(bedlevel.matrix, x_tmp, y_tmp, z_tmp);
 
               NOMORE(min_diff, eqnBVector[ind] - z_tmp);
 
@@ -852,7 +852,7 @@ void out_of_range_error(const char* p_edge) {
                       y_tmp = eqnAMatrix[ind + 1 * abl2],
                       z_tmp = 0;
 
-                apply_rotation_xyz(bedlevel.bed_level_matrix, x_tmp, y_tmp, z_tmp);
+                apply_rotation_xyz(bedlevel.matrix, x_tmp, y_tmp, z_tmp);
 
                 float diff = eqnBVector[ind] - z_tmp - min_diff;
                 if (diff >= 0.0)
@@ -874,7 +874,7 @@ void out_of_range_error(const char* p_edge) {
         // For LINEAR and 3POINT leveling correct the current position
 
         if (verbose_level > 0)
-          bedlevel.bed_level_matrix.debug("\n\nBed Level Correction Matrix:");
+          bedlevel.matrix.debug("\n\nBed Level Correction Matrix:");
 
         if (!dryrun) {
           //
