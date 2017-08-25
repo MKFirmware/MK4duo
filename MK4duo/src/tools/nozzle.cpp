@@ -22,17 +22,17 @@
 
 #include "../../base.h"
 
-/**
- * @brief Stroke clean pattern
- * @details Wipes the nozzle back and forth in a linear movement
- *
- * @param start defining the starting point
- * @param end defining the ending point
- * @param strokes number of strokes to execute
- */
-void Nozzle::stroke(const float *start, const float *end, const uint8_t &strokes) {
+#if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  #if ENABLED(NOZZLE_CLEAN_FEATURE)
+  /**
+   * @brief Stroke clean pattern
+   * @details Wipes the nozzle back and forth in a linear movement
+   *
+   * @param start defining the starting point
+   * @param end defining the ending point
+   * @param strokes number of strokes to execute
+   */
+  void Nozzle::stroke(const float *start, const float *end, const uint8_t &strokes) {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
@@ -58,21 +58,18 @@ void Nozzle::stroke(const float *start, const float *end, const uint8_t &strokes
       mechanics.do_blocking_move_to(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
     #endif // NOZZLE_CLEAN_GOBACK
 
-  #endif // NOZZLE_CLEAN_FEATURE
-}
+  }
 
-/**
- * @brief Zig-zag clean pattern
- * @details Apply a zig-zag cleanning pattern
- *
- * @param start defining the starting point
- * @param end defining the ending point
- * @param strokes number of strokes to execute
- * @param objects number of objects to create
- */
-void Nozzle::zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects) {
-
-  #if ENABLED(NOZZLE_CLEAN_FEATURE)
+  /**
+   * @brief Zig-zag clean pattern
+   * @details Apply a zig-zag cleanning pattern
+   *
+   * @param start defining the starting point
+   * @param end defining the ending point
+   * @param strokes number of strokes to execute
+   * @param objects number of objects to create
+   */
+  void Nozzle::zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects) {
 
     const float A = nozzle_clean_horizontal ? nozzle_clean_height : nozzle_clean_length, // [twice the] Amplitude
                 P = (nozzle_clean_horizontal ? nozzle_clean_length : nozzle_clean_height) / (objects << 1); // Period
@@ -112,21 +109,18 @@ void Nozzle::zigzag(const float *start, const float *end, const uint8_t &strokes
       mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
     #endif // NOZZLE_CLEAN_GOBACK
 
-  #endif // NOZZLE_CLEAN_FEATURE
-}
+  }
 
-/**
- * @brief Circular clean pattern
- * @details Apply a circular cleaning pattern
- *
- * @param start defining the starting point
- * @param middle defining the middle of circle
- * @param strokes number of strokes to execute
- * @param radius of circle
- */
-void Nozzle::circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius) {
-
-  #if ENABLED(NOZZLE_CLEAN_FEATURE)
+  /**
+   * @brief Circular clean pattern
+   * @details Apply a circular cleaning pattern
+   *
+   * @param start defining the starting point
+   * @param middle defining the middle of circle
+   * @param strokes number of strokes to execute
+   * @param radius of circle
+   */
+  void Nozzle::circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius) {
 
     if (strokes == 0) return;
 
@@ -175,19 +169,16 @@ void Nozzle::circle(const float *start, const float *middle, const uint8_t &stro
       }
     #endif // NOZZLE_CLEAN_GOBACK
 
-  #endif // NOZZLE_CLEAN_FEATURE
-}
+  }
 
-/**
- * @brief Clean the nozzle
- * @details Starts the selected clean procedure pattern
- *
- * @param pattern one of the available patterns
- * @param argument depends on the cleaning pattern
- */
-void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects) {
-
-  #if ENABLED(NOZZLE_CLEAN_FEATURE)
+  /**
+   * @brief Clean the nozzle
+   * @details Starts the selected clean procedure pattern
+   *
+   * @param pattern one of the available patterns
+   * @param argument depends on the cleaning pattern
+   */
+  void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects) {
 
     const float start[] = NOZZLE_CLEAN_START_POINT,
                 end[]   = NOZZLE_CLEAN_END_POINT,
@@ -210,12 +201,14 @@ void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &
       default:
         Nozzle::stroke(start, end, strokes);
     }
-  #endif // NOZZLE_CLEAN_FEATURE
-}
+  }
 
-void Nozzle::park(const uint8_t &z_action) {
+#endif // ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  #if ENABLED(NOZZLE_PARK_FEATURE)
+#if ENABLED(NOZZLE_PARK_FEATURE)
+
+  void Nozzle::park(const uint8_t &z_action) {
+
     const float z       = mechanics.current_position[Z_AXIS],
                 park[]  = NOZZLE_PARK_POINT;
 
@@ -235,6 +228,6 @@ void Nozzle::park(const uint8_t &z_action) {
     }
 
     mechanics. do_blocking_move_to_xy(park[X_AXIS], park[Y_AXIS]);
+  }
 
-  #endif // NOZZLE_PARK_FEATURE
-}
+#endif // ENABLED(NOZZLE_PARK_FEATURE)

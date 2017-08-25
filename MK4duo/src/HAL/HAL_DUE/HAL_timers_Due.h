@@ -116,13 +116,13 @@ typedef struct {
 #define HAL_TEMP_TIMER_ISR    void TC3_Handler()
 #define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
-#define _ENABLE_ISRs() \
+#define HAL_ENABLE_ISRs() \
         do { \
           ENABLE_TEMP_INTERRUPT(); \
           ENABLE_STEPPER_INTERRUPT(); \
         } while(0)
 
-#define _DISABLE_ISRs() \
+#define HAL_DISABLE_ISRs() \
         do { \
           DISABLE_TEMP_INTERRUPT(); \
           DISABLE_STEPPER_INTERRUPT(); \

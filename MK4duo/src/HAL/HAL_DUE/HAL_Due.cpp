@@ -499,7 +499,7 @@ HAL_TEMP_TIMER_ISR {
   HAL_timer_isr_prologue(TEMP_TIMER);
 
   // Allow UART ISRs
-  _DISABLE_ISRs();
+  HAL_DISABLE_ISRs();
 
   static uint8_t  pwm_count_heater        = 0,
                   pwm_count_fan           = 0;
@@ -740,7 +740,7 @@ HAL_TEMP_TIMER_ISR {
     }
   #endif
 
-  _ENABLE_ISRs(); // re-enable ISRs
+  HAL_ENABLE_ISRs(); // re-enable ISRs
 
 }
 

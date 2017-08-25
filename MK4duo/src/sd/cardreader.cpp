@@ -97,7 +97,7 @@
 
   void CardReader::ls()  {
     root.openRoot(fat.vol());
-    root.ls(0, 0);
+    root.ls();
     workDir = root;
     curDir = &root;
   }

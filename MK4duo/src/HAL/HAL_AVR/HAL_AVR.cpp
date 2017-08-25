@@ -256,7 +256,7 @@ void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
 HAL_TEMP_TIMER_ISR {
 
   // Allow UART ISRs
-  _DISABLE_ISRs();
+  HAL_DISABLE_ISRs();
 
   TEMP_TIMER += 64;
 
@@ -440,7 +440,7 @@ HAL_TEMP_TIMER_ISR {
     }
   #endif
 
-  _ENABLE_ISRs(); // re-enable ISRs
+  HAL_ENABLE_ISRs(); // re-enable ISRs
 }
 
 #endif // ARDUINO_ARCH_AVR

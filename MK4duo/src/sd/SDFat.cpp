@@ -665,20 +665,6 @@ void SdBaseFile::getpos(FatPos_t* pos) {
   pos->position = curPosition_;
   pos->cluster = curCluster_;
 }
-//------------------------------------------------------------------------------
-/** List directory contents to stdOut.
- *
- * \param[in] flags The inclusive OR of
- *
- * LS_DATE - %Print file modification date
- *
- * LS_SIZE - %Print file size.
- *
- * LS_R - Recursive list of subdirectories.
- */
-void SdBaseFile::ls(uint8_t flags) {
-  ls(flags, 0);
-}
 
 uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFilename, SdBaseFile* pParentFound, bool isJson) {
   dir_t *p = NULL;
@@ -779,21 +765,9 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
 
 //------------------------------------------------------------------------------
 /** List directory contents.
- *
- * \param[in] pr Print stream for list.
- *
- * \param[in] flags The inclusive OR of
- *
- * LS_DATE - %Print file modification date
- *
- * LS_SIZE - %Print file size.
- *
- * LS_R - Recursive list of subdirectories.
- *
- * \param[in] indent Amount of space before file name. Used for recursive
  * list to indicate subdirectory level.
  */
-void SdBaseFile::ls(uint8_t flags, uint8_t indent) {
+void SdBaseFile::ls() {
   SdBaseFile parent;
   rewind();
   *card.fileName = 0;
@@ -1220,7 +1194,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
   uint8_t checksum;
 
   make83Name(newName, (uint8_t *)p->name, &tempPtr);
-  checksum = lfn_checksum(p->name);
+  checksum = lfn_checksum((unsigned char *)p->name);
   cbFilename = strlen(Filename);
 
   // Write Long File Name VFAT entries to file
@@ -1604,7 +1578,7 @@ void SdBaseFile::printDirName(const dir_t& dir, uint8_t width, bool printSlash) 
       SERIAL_CHR('.');
       w++;
     }
-    SERIAL_CHR(dir.name[i]);
+    SERIAL_CHR((char)dir.name[i]);
     w++;
   }
   if (DIR_IS_SUBDIR(&dir) && printSlash) {
@@ -1620,7 +1594,7 @@ void SdBaseFile::printDirName(const dir_t& dir, uint8_t width, bool printSlash) 
 // print uint8_t with width 2
 static void print2u(uint8_t v) {
   if (v < 10) SERIAL_CHR('0');
-  SERIAL_VAL(v);
+  SERIAL_VAL((int)v);
 }
 //------------------------------------------------------------------------------
 /** Print a file's creation date and time
@@ -1930,7 +1904,7 @@ FAIL:
 dir_t *SdBaseFile::getLongFilename(dir_t *dir, char *longFilename, int8_t cVFATNeeded, uint32_t *pwIndexPos) {
   int16_t n;
   uint8_t bLastPart = true;
-  uint8_t checksum;
+  uint8_t checksum  = 0;
 
   if (longFilename != NULL)
     *longFilename = 0;
@@ -1983,14 +1957,14 @@ dir_t *SdBaseFile::getLongFilename(dir_t *dir, char *longFilename, int8_t cVFATN
       }
     }
     else {
-      if ((dir->attributes & DIR_ATT_HIDDEN || dir->attributes & DIR_ATT_SYSTEM) || (dir->name[0] == '.' && dir->name[1] != '.')) {
+      if (((dir->attributes & DIR_ATT_HIDDEN) || (dir->attributes & DIR_ATT_SYSTEM)) || (dir->name[0] == '.' && dir->name[1] != '.')) {
         bLastPart = true;
         if (longFilename != NULL)
           *longFilename = 0;
         continue;
       }
       if (DIR_IS_FILE(dir) || DIR_IS_SUBDIR(dir)) {
-        if (longFilename && (bLastPart || checksum != lfn_checksum(dir->name))) {
+        if (longFilename && (bLastPart || checksum != lfn_checksum((unsigned char *)dir->name))) {
           card.createFilename(longFilename, *dir);
         }
         return dir;
