@@ -10,6 +10,13 @@ The work needed to clean-up **MK4duo** code isn't finished yet: this is the reas
 
 _Remember: a cleaner code is a **more robust** code!_
 
+### TODO tags
+If you feel that your contribution still needs some work, or that there are sections in the firmware code that need to be fixed/completed, please add a comment in the right place starting with the **TODO** tag, like this one:
+
+`// TODO: we should implement counterclockwise functionality for this function`.
+
+**TODO** tags can be pretty useful: it's possible, for example, to extract the complete list of TODOs simply by running a command like `git grep "TODO"` in the repository folder.
+
 ### Memory consumption and coding standards
 Try to minimize the number of variables used and to define them inside the function scope: this way, when the function will return, that memory will be freed. For coding standards you can refer to the good _Marlin_ documentation written by [thinkyhead](https://github.com/thinkyhead): [Coding Standards](https://github.com/MarlinFirmware/MarlinDocumentation/blob/master/_development/coding_standards.md).
 
