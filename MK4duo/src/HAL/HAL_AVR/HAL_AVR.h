@@ -269,14 +269,14 @@ typedef int8_t    Pin;
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)
 
-#define _ENABLE_ISRs() \
+#define HAL_ENABLE_ISRs() \
         do { \
           cli(); \
           ENABLE_TEMP_INTERRUPT(); \
           ENABLE_STEPPER_INTERRUPT(); \
         } while(0)
 
-#define _DISABLE_ISRs() \
+#define HAL_DISABLE_ISRs() \
         do { \
           DISABLE_TEMP_INTERRUPT(); \
           DISABLE_STEPPER_INTERRUPT(); \

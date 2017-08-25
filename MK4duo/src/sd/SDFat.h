@@ -1751,8 +1751,7 @@
     bool isRoot() const {
       return type_ == FAT_FILE_TYPE_ROOT_FIXED || type_ == FAT_FILE_TYPE_ROOT32;
     }
-    void ls(uint8_t flags = 0, uint8_t indent = 0);
-    void ls(uint8_t flags = 0);
+    void ls();
     bool mkdir(SdBaseFile* dir, const char* path, bool pFlag = true);
     // alias for backward compactability
     bool makeDir(SdBaseFile* dir, const char* path) {
@@ -2109,7 +2108,7 @@
     void initErrorPrint();
     void initErrorPrint(char const *msg);
     void initErrorPrint_P(PGM_P msg);
-    void ls(uint8_t flags = 0);
+    void ls();
     bool mkdir(const char* path, bool pFlag = true);
     bool remove(const char* path);
     bool rename(const char *oldPath, const char *newPath);

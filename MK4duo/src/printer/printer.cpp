@@ -594,7 +594,7 @@ void Printer::Stop() {
 
   if (IsRunning()) {
     Running = false;
-    commands.save_last_gcode; // Save last g_code for restart
+    commands.save_last_gcode(); // Save last g_code for restart
     SERIAL_LM(ER, MSG_ERR_STOPPED);
     SERIAL_STR(PAUSE);
     SERIAL_EOL();
@@ -889,7 +889,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(RFID_MODULE)
-    for (uint8_t e = 0; e < EXTRUDERS; e++) {
+    for (int8_t e = 0; e < EXTRUDERS; e++) {
       if (Spool_must_read[e]) {
         if (rfid522.getID(e)) {
           Spool_ID[e] = rfid522.RfidDataID[e].Spool_ID;

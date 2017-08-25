@@ -23,8 +23,6 @@
 #ifndef __NOZZLE_H__
 #define __NOZZLE_H__
 
-#include "../../base.h"
-
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
   constexpr float nozzle_clean_start_point[XYZ] = NOZZLE_CLEAN_START_POINT,
                   nozzle_clean_end_point[XYZ]   = NOZZLE_CLEAN_END_POINT,
@@ -33,59 +31,72 @@
   constexpr bool nozzle_clean_horizontal = nozzle_clean_length >= nozzle_clean_height; //whether to zig-zag horizontally or vertically
 #endif //NOZZLE_CLEAN_FEATURE
 
-/**
- * @brief Nozzle class
- *
- * @todo: Do not ignore the end.z value and allow XYZ movements
- */
-class Nozzle {
+#if ENABLED(NOZZLE_CLEAN_FEATURE) || ENABLED(NOZZLE_PARK_FEATURE)
 
-  private:
+  /**
+   * @brief Nozzle class
+   *
+   * @todo: Do not ignore the end.z value and allow XYZ movements
+   */
+  class Nozzle {
 
-    /**
-     * @brief Stroke clean pattern
-     * @details Wipes the nozzle back and forth in a linear movement
-     *
-     * @param start defining the starting point
-     * @param end defining the ending point
-     * @param strokes number of strokes to execute
-     */
-    static void stroke(const float *start, const float *end, const uint8_t &strokes);
+    public: /** Public Function */
 
-    /**
-     * @brief Zig-zag clean pattern
-     * @details Apply a zig-zag cleanning pattern
-     *
-     * @param start defining the starting point
-     * @param end defining the ending point
-     * @param strokes number of strokes to execute
-     * @param objects number of objects to create
-     */
-    static void zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects);
+      #if ENABLED(NOZZLE_CLEAN_FEATURE)
+        /**
+         * @brief Clean the nozzle
+         * @details Starts the selected clean procedure pattern
+         *
+         * @param pattern one of the available patterns
+         * @param argument depends on the cleaning pattern
+         */
+        static void clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects = 0);
+      #endif
 
-    /**
-     * @brief Circular clean pattern
-     * @details Apply a circular cleaning pattern
-     *
-     * @param start defining the starting point
-     * @param middle defining the middle of circle
-     * @param strokes number of strokes to execute
-     * @param radius of circle
-     */
-    static void circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius);
+      #if ENABLED(NOZZLE_PARK_FEATURE)
+        static void park(const uint8_t &z_action);
+      #endif
 
-  public:
-    /**
-     * @brief Clean the nozzle
-     * @details Starts the selected clean procedure pattern
-     *
-     * @param pattern one of the available patterns
-     * @param argument depends on the cleaning pattern
-     */
-    static void clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects = 0);
+    private: /** Private Function */
 
-    static void park(const uint8_t &z_action);
+      #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-};
+        /**
+         * @brief Stroke clean pattern
+         * @details Wipes the nozzle back and forth in a linear movement
+         *
+         * @param start defining the starting point
+         * @param end defining the ending point
+         * @param strokes number of strokes to execute
+         */
+        static void stroke(const float *start, const float *end, const uint8_t &strokes);
+
+        /**
+         * @brief Zig-zag clean pattern
+         * @details Apply a zig-zag cleanning pattern
+         *
+         * @param start defining the starting point
+         * @param end defining the ending point
+         * @param strokes number of strokes to execute
+         * @param objects number of objects to create
+         */
+        static void zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects);
+
+        /**
+         * @brief Circular clean pattern
+         * @details Apply a circular cleaning pattern
+         *
+         * @param start defining the starting point
+         * @param middle defining the middle of circle
+         * @param strokes number of strokes to execute
+         * @param radius of circle
+         */
+        static void circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius);
+
+      #endif
+
+  };
+
+#endif // ENABLED(NOZZLE_CLEAN_FEATURE) || ENABLED(NOZZLE_PARK_FEATURE)
 
 #endif /* __NOZZLE_H__ */
