@@ -169,7 +169,38 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(NEWPANEL)
+#if ENABLED(ULTRA_LCD)
+
+  #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+    #define LCD_PINS_RS       49 //CS chip select /SS chip slave select
+    #define LCD_PINS_ENABLE   51 //SID (MOSI)
+    #define LCD_PINS_D4       52 //SCK (CLK) clock
+  #elif ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
+    #define LCD_PINS_RS       40
+    #define LCD_PINS_ENABLE   42
+    #define LCD_PINS_D4       65
+    #define LCD_PINS_D5       66
+    #define LCD_PINS_D6       44
+    #define LCD_PINS_D7       64
+  #else
+    #define LCD_PINS_RS       16
+    #define LCD_PINS_ENABLE   17
+    #define LCD_PINS_D4       23
+    #define LCD_PINS_D5       25
+    #define LCD_PINS_D6       27
+    #define LCD_PINS_D7       29
+    #if DISABLED(NEWPANEL)
+      #define ORIG_BEEPER_PIN 33
+      // Buttons are attached to a shift register
+      // Not wired yet
+      //#define SHIFT_CLK 38
+      //#define SHIFT_LD 42
+      //#define SHIFT_OUT 40
+      //#define SHIFT_EN 17
+    #endif
+  #endif
+
+  #if ENABLED(NEWPANEL)
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
       #define ORIG_BEEPER_PIN   37
