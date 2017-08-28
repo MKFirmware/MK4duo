@@ -1679,6 +1679,8 @@ void Printer::handle_Interrupt_Event() {
       if(MIXING_STEPPERS >= 4) mixing_factor[3] = parser.seen('D') ? parser.value_float() : 0.0;
       if(MIXING_STEPPERS >= 5) mixing_factor[4] = parser.seen('H') ? parser.value_float() : 0.0;
       if(MIXING_STEPPERS == 6) mixing_factor[5] = parser.seen('I') ? parser.value_float() : 0.0;
+
+      for(uint8_t i = 0; i < MIXING_STEPPERS; ++i) NOLESS(mixing_factor[i], 0.0);
     }
 #endif
 
