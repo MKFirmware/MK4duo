@@ -43,7 +43,7 @@
     if (mix_index < MIXING_STEPPERS) {
       float mix_value = parser.seen('P') ? parser.value_float() : 0.0;
       NOLESS(mix_value, 0.0);
-      printer.mixing_factor[mix_index] = RECIPROCAL(mix_value);
+      printer.mixing_factor[mix_index] = mix_value;
     }
   }
 
@@ -60,7 +60,7 @@
     inline void gcode_M164(void) {
       int tool_index = parser.seen('S') ? parser.value_int() : 0;
       if (tool_index < MIXING_VIRTUAL_TOOLS) {
-        normalize_mix();
+        printer.normalize_mix();
         for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
           printer.mixing_virtual_tool_mix[tool_index][i] = printer.mixing_factor[i];
         }
@@ -74,7 +74,6 @@
   /**
    * M165: Set multiple mix factors for a mixing extruder.
    *       Factors that are left out will be set to 0.
-   *       All factors together must add up to 1.0.
    *
    *   A[factor] Mix factor for extruder stepper 1
    *   B[factor] Mix factor for extruder stepper 2
@@ -84,6 +83,6 @@
    *   I[factor] Mix factor for extruder stepper 6
    *
    */
-  inline void gcode_M165(void) { gcode_get_mix(); }
+  inline void gcode_M165(void) { printer.get_mix_from_command(); }
 
 #endif  // COLOR_MIXING_EXTRUDER

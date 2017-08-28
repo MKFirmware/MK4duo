@@ -182,6 +182,11 @@ class Printer {
       static void stopSDPrint(const bool store_location);
     #endif
 
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static void normalize_mix();
+      static void get_mix_from_command();
+    #endif
+
     #if ENABLED(FWRETRACT)
       static void retract(const bool retracting, const bool swapping=false);
     #endif
