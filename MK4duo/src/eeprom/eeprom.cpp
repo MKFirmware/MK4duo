@@ -719,7 +719,7 @@ void EEPROM::Postprocess() {
       #if HEATER_USES_AD595
         EEPROM_READ(thermalManager.ad595_offset);
         EEPROM_READ(thermalManager.ad595_gain);
-        for (int8_t h = 0; h < HOTENDS; h++)
+        for (uint8_t h = 0; h < HOTENDS; h++)
           if (thermalManager.ad595_gain[h] == 0) thermalManager.ad595_gain[h] == TEMP_SENSOR_AD595_GAIN;
       #endif
 
@@ -756,7 +756,7 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_preheat_fan_speed);
 
       #if ENABLED(PIDTEMP)
-        for (int8_t h = 0; h < HOTENDS; h++) {
+        for (uint8_t h = 0; h < HOTENDS; h++) {
           EEPROM_READ(PID_PARAM(Kp, h));
           EEPROM_READ(PID_PARAM(Ki, h));
           EEPROM_READ(PID_PARAM(Kd, h));
@@ -811,7 +811,7 @@ void EEPROM::Postprocess() {
 
       EEPROM_READ(tools.volumetric_enabled);
 
-      for (int8_t e = 0; e < EXTRUDERS; e++)
+      for (uint8_t e = 0; e < EXTRUDERS; e++)
         EEPROM_READ(tools.filament_size[e]);
 
       #if ENABLED(IDLE_OOZING_PREVENT)
@@ -1188,7 +1188,7 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M92 T", i);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS + i]), 3);
       }
@@ -1203,7 +1203,7 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M203 T", i);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS + i]), 3);
       }
@@ -1218,7 +1218,7 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M201 T", i);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]));
       }
@@ -1232,7 +1232,7 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+      for (uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
         SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[i]), 3);
       }
@@ -1250,7 +1250,7 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if (EXTRUDERS > 1)
-      for(int8_t i = 0; i < EXTRUDERS; i++) {
+      for(uint8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M205 T", i);
         SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
       }
@@ -1265,7 +1265,7 @@ void EEPROM::Factory_Settings() {
 
     #if HOTENDS > 1
       CONFIG_MSG_START("Hotend offset (mm):");
-      for (int8_t h = 1; h < HOTENDS; h++) {
+      for (uint8_t h = 1; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M218 H", h);
         SERIAL_MV(" X", LINEAR_UNIT(printer.hotend_offset[X_AXIS][h]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(printer.hotend_offset[Y_AXIS][h]), 3);
@@ -1308,7 +1308,7 @@ void EEPROM::Factory_Settings() {
 
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      for (int8_t h = 0; h < HOTENDS; h++) {
+      for (uint8_t h = 0; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M595 H", h);
         SERIAL_MV(" O", thermalManager.ad595_offset[h]);
         SERIAL_EMV(", S", thermalManager.ad595_gain[h]);
@@ -1360,7 +1360,7 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(ULTIPANEL)
       CONFIG_MSG_START("Material heatup parameters:");
-      for (int8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
         SERIAL_MV(" B", TEMP_UNIT(lcd_preheat_bed_temp[i]));
@@ -1385,7 +1385,7 @@ void EEPROM::Factory_Settings() {
             SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
           #endif
         #elif HOTENDS > 1
-          for (int8_t h = 0; h < HOTENDS; h++) {
+          for (uint8_t h = 0; h < HOTENDS; h++) {
             SERIAL_SMV(CFG, "  M301 H", h);
             SERIAL_MV(" P", PID_PARAM(Kp, h));
             SERIAL_MV(" I", PID_PARAM(Ki, h));
