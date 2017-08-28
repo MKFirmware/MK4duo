@@ -52,7 +52,7 @@ inline void gcode_M42(void) {
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      if (fans.pin[f] = pin_number) {
+      if (fans.pin[f] == pin_number) {
         fans.Speed[f] = pin_status;
       }
     }

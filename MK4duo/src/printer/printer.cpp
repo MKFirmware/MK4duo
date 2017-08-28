@@ -79,7 +79,7 @@ PrinterMode Printer::mode =
 PrintCounter Printer::print_job_counter = PrintCounter();
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  float Printer::mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
+  float Printer::mixing_factor[MIXING_STEPPERS]; // Mix proportion. 0.0 = off
   #if MIXING_VIRTUAL_TOOLS  > 1
     float Printer::mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
   #endif
@@ -368,10 +368,11 @@ void Printer::setup() {
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     // Initialize mixing to 100% color 1
-    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      mixing_factor[i] = (i == 0) ? 1.0 : 0.0;
-    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; t++)
-      for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+    mixing_factor[0] = 1.0;
+    for (uint8_t i = 1; i < MIXING_STEPPERS; ++i) mixing_factor[i] = 0.0;
+
+    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; ++t)
+      for (uint8_t i = 0; i < MIXING_STEPPERS; ++i)
         mixing_virtual_tool_mix[t][i] = mixing_factor[i];
   #endif
 
@@ -462,7 +463,7 @@ void Printer::get_destination_from_command() {
     print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    gcode_get_mix();
+    get_mix_from_command();
   #endif
 
   #if ENABLED(RFID_MODULE)
@@ -1642,6 +1643,46 @@ void Printer::handle_Interrupt_Event() {
   }
 
 #endif // HAS_SDSUPPORT
+
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+
+   /** Normalize mixing factors with a very simple math
+    *
+    *  F1 + ... + Fn == factors_sum
+    *
+    * (F1/factors_sum) + ... + (Fn/factors_sum) == (factors_sum/factors_sum) == 1.0
+    *
+    * This means that (F1/factors_sum), ... , (Fn/factors_sum) are normalized values!
+    *
+    * If factors_sum == 0, it means that F1 == ... == Fn == 0.0 (already normalized values)
+    */
+    void Printer::normalize_mix() {
+      float factors_sum = 0.0;
+
+      // We calculate the sum of all factors
+      for(uint8_t index= 0; index < MIXING_STEPPERS; ++index) {
+        factors_sum += mixing_factor[index];
+      }
+
+      if(factors_sum <= 0.0) return;
+
+      // We normalize values
+      for(uint8_t index= 0; index < MIXING_STEPPERS; ++index){
+        normalized_mixing_factor[index] = mixing_factor[index] / factors_sum;
+      }
+    }
+
+    void Printer::get_mix_from_command() {
+      if(MIXING_STEPPERS >= 1) mixing_factor[0] = parser.seen('A') ? parser.value_float() : 0.0;
+      if(MIXING_STEPPERS >= 2) mixing_factor[1] = parser.seen('B') ? parser.value_float() : 0.0;
+      if(MIXING_STEPPERS >= 3) mixing_factor[2] = parser.seen('C') ? parser.value_float() : 0.0;
+      if(MIXING_STEPPERS >= 4) mixing_factor[3] = parser.seen('D') ? parser.value_float() : 0.0;
+      if(MIXING_STEPPERS >= 5) mixing_factor[4] = parser.seen('H') ? parser.value_float() : 0.0;
+      if(MIXING_STEPPERS == 6) mixing_factor[5] = parser.seen('I') ? parser.value_float() : 0.0;
+
+      for(uint8_t i = 0; i < MIXING_STEPPERS; ++i) NOLESS(mixing_factor[i], 0.0);
+    }
+#endif
 
 #if ENABLED(FWRETRACT)
 

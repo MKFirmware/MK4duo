@@ -69,6 +69,7 @@ class Printer {
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       static float mixing_factor[MIXING_STEPPERS];
+      static float normalized_mixing_factor[MIXING_STEPPERS];
       #if MIXING_VIRTUAL_TOOLS  > 1
         float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
       #endif
@@ -180,6 +181,11 @@ class Printer {
 
     #if ENABLED(SDSUPPORT)
       static void stopSDPrint(const bool store_location);
+    #endif
+
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static void normalize_mix();
+      static void get_mix_from_command();
     #endif
 
     #if ENABLED(FWRETRACT)

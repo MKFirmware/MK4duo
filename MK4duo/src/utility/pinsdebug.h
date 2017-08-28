@@ -805,9 +805,7 @@ static bool pwm_status(uint8_t pin) {
       PWM_CASE(5C);
     #endif
 
-    case NOT_ON_TIMER:
-    default:
-      return false;
+    default: { UNUSED(buffer); return false; }
   }
   SERIAL_MSG("  ");
 } // pwm_status
@@ -976,7 +974,7 @@ static bool pwm_status(uint8_t pin) {
           break;
       #endif
 
-      case NOT_ON_TIMER: break;
+      default: { UNUSED(WGM); break; }
 
     }
     SERIAL_MSG("  ");
