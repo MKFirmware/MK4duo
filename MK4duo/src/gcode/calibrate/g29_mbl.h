@@ -62,7 +62,7 @@
     #endif
 
     const MeshLevelingState state = parser.seen('S') ? (MeshLevelingState)parser.value_byte() : MeshReport;
-    if (!WITHIN(state, 0, 5)) {
+    if (state > 5) {
       SERIAL_MSG("S out of range (0-5).");
       return;
     }
