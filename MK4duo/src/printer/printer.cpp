@@ -1668,7 +1668,7 @@ void Printer::handle_Interrupt_Event() {
 
       // We normalize values
       for(uint8_t index= 0; index < MIXING_STEPPERS; ++index){
-        mixing_factor[index] /= factors_sum;
+        normalized_mixing_factor[index] = mixing_factor[index] / factors_sum;
       }
     }
 

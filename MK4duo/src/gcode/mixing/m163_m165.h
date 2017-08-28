@@ -62,7 +62,7 @@
       if (tool_index < MIXING_VIRTUAL_TOOLS) {
         printer.normalize_mix();
         for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
-          printer.mixing_virtual_tool_mix[tool_index][i] = printer.mixing_factor[i];
+          printer.mixing_virtual_tool_mix[tool_index][i] = printer.normalized_mixing_factor[i];
         }
       }
     }
