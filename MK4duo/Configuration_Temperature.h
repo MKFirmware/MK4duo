@@ -75,13 +75,28 @@
  *   5 is 100K thermistor - ATC Semitec 104GT-2 (Used in ParCan & J-Head) (4.7k pullup)              *
  *   6 is 100k EPCOS - Not as accurate as table 1 (created using a fluke thermocouple) (4.7k pullup) *
  *   7 is 100k Honeywell thermistor 135-104LAG-J01 (4.7k pullup)                                     *
+ *  71 is 100k Honeywell thermistor 135-104LAF-J01 (4.7k pullup)                                     *
  *   8 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)                                        *
  *   9 is 100k GE Sensing AL03006-58.2K-97-G1 (4.7k pullup)                                          *
  *  10 is 100k RS thermistor 198-961 (4.7k pullup)                                                   *
  *  11 is 100k beta 3950 1% thermistor (4.7k pullup)                                                 *
  *  12 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)       *
  *  13 is 100k Hisens 3950 1% up to 300 degC for hotend "Simple ONE " & "Hotend "All In ONE"         *
- *  14 is the PT100 circuit found in the Ultimainboard V2.x                                          *
+ *  20 is the PT100 circuit found in the Ultimainboard V2.x                                          *
+ *  60 is 100k Maker's Tool Works Kapton Bed Thermistor beta=3950                                    *
+ *  66 is 4.7M High Temperature thermistor from Dyze Design                                          *
+ *  70 is 100K thermistor found in the bq Hephestos 2                                                *
+ *                                                                                                   *
+ *    1k ohm pullup tables - This is atypical, and requires changing out the 4.7k pullup for 1k.     *
+ *                           (but gives greater accuracy and more stable PID)                        *
+ *  51 is 100k thermistor - EPCOS (1k pullup)                                                        *
+ *  52 is 200k thermistor - ATC Semitec 204GT-2 (1k pullup)                                          *
+ *  55 is 100k thermistor - ATC Semitec 104GT-2 (Used in ParCan & J-Head) (1k pullup)                *
+ *                                                                                                   *
+ *  1047 is Pt1000 with 4k7 pullup                                                                   *
+ *  1010 is Pt1000 with 1k pullup (non standard)                                                     *
+ *  147 is Pt100 with 4k7 pullup                                                                     *
+ *  110 is Pt100 with 1k pullup (non standard)                                                       *
  *                                                                                                   *
  *         Use these for Testing or Development purposes. NEVER for production machine.              *
  *   998 : Dummy Table that ALWAYS reads 25 degC or the temperature defined below.                   *

@@ -230,13 +230,14 @@ int HAL::getFreeRam() {
       AnalogInputValues[i] = 0;
       adcSamplesMin[i] = 100000;
       adcSamplesMax[i] = 0;
-      #if ANALOG_INPUTS > 7
-        if (i >= 7)
-          adcEnable |= (0x1u << pinToAdcChannel(AnalogInputChannels[i - 7]));
+
+      #if ANALOG_INPUTS > HEATER_COUNT
+        if (i >= HEATER_COUNT)
+          adcEnable |= (0x1u << pinToAdcChannel(AnalogInputChannels[i]));
         else
       #endif
-      if (heaters[i].sensor_pin > -1)
         adcEnable |= (0x1u << pinToAdcChannel(heaters[i].sensor_pin));
+
       AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
       for (int j = 0; j < MEDIAN_COUNT; j++)
         AnalogSamples[i][j] = 2048;
@@ -578,12 +579,12 @@ HAL_TEMP_TIMER_ISR {
       adcCounter++;
       for (int i = 0; i < ANALOG_INPUTS; i++) {
         int32_t cur = 0;
-        #if ANALOG_INPUTS > 7
-          if (i >= 7)
-            cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i - 7])];
+
+        #if ANALOG_INPUTS > HEATER_COUNT
+          if (i >= HEATER_COUNT)
+            cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i])];
           else
         #endif
-        if (heaters[i].sensor_pin > -1)
           cur = ADC->ADC_CDR[HAL::pinToAdcChannel(heaters[i].sensor_pin)];
 
         if (i != MCU_ANALOG_INDEX) cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result

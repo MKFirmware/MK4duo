@@ -28,10 +28,10 @@
 
 Temperature thermalManager;
 
-constexpr uint8_t temp_residency_time[HEATER_COUNT] = { TEMP_RESIDENCY_TIME, TEMP_RESIDENCY_TIME, TEMP_RESIDENCY_TIME, TEMP_RESIDENCY_TIME, TEMP_BED_RESIDENCY_TIME, TEMP_CHAMBER_RESIDENCY_TIME, TEMP_COOLER_RESIDENCY_TIME },
-                  temp_hysteresis[HEATER_COUNT]     = { TEMP_HYSTERESIS, TEMP_HYSTERESIS, TEMP_HYSTERESIS, TEMP_HYSTERESIS, TEMP_BED_HYSTERESIS, TEMP_CHAMBER_HYSTERESIS, TEMP_COOLER_HYSTERESIS },
-                  temp_window[HEATER_COUNT]         = { TEMP_WINDOW, TEMP_WINDOW, TEMP_WINDOW, TEMP_WINDOW, TEMP_BED_WINDOW, TEMP_CHAMBER_WINDOW, TEMP_COOLER_WINDOW };
-constexpr bool    thermal_protection[HEATER_COUNT]  = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
+constexpr uint8_t temp_residency_time[HEATER_TYPE]  = { TEMP_RESIDENCY_TIME, TEMP_BED_RESIDENCY_TIME, TEMP_CHAMBER_RESIDENCY_TIME, TEMP_COOLER_RESIDENCY_TIME },
+                  temp_hysteresis[HEATER_TYPE]      = { TEMP_HYSTERESIS, TEMP_BED_HYSTERESIS, TEMP_CHAMBER_HYSTERESIS, TEMP_COOLER_HYSTERESIS },
+                  temp_window[HEATER_TYPE]          = { TEMP_WINDOW, TEMP_BED_WINDOW, TEMP_CHAMBER_WINDOW, TEMP_COOLER_WINDOW };
+constexpr bool    thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 // public:
 volatile bool Temperature::wait_for_heatup = true;
@@ -184,10 +184,10 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
     if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
       next_temp_ms = now + 1000UL;
       print_heaterstates();
-      if (temp_residency_time[h] > 0) {
+      if (temp_residency_time[heaters[h].type] > 0) {
         SERIAL_MSG(MSG_W);
         if (residency_start_ms)
-          SERIAL_VAL(long(((temp_residency_time[h] * 1000UL) - (now - residency_start_ms)) / 1000UL));
+          SERIAL_VAL(long(((temp_residency_time[heaters[h].type] * 1000UL) - (now - residency_start_ms)) / 1000UL));
         else
           SERIAL_CHR("?");
       }
@@ -234,15 +234,15 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
       }
     #endif
 
-    if (temp_residency_time[h] > 0) {
+    if (temp_residency_time[heaters[h].type] > 0) {
 
       float temp_diff = FABS(target_temp - temp);
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-        if (temp_diff < temp_window[h]) residency_start_ms = now;
+        if (temp_diff < temp_window[heaters[h].type]) residency_start_ms = now;
       }
-      else if (temp_diff > temp_hysteresis[h]) {
+      else if (temp_diff > temp_hysteresis[heaters[h].type]) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
         residency_start_ms = now;
       }
@@ -259,8 +259,8 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
       }
     }
 
-    if (temp_residency_time[h] > 0)
-      temp_conditions = (!residency_start_ms || PENDING(now, residency_start_ms + temp_residency_time[h] * 1000UL));
+    if (temp_residency_time[heaters[h].type] > 0)
+      temp_conditions = (!residency_start_ms || PENDING(now, residency_start_ms + temp_residency_time[heaters[h].type] * 1000UL));
     else
       temp_conditions = (wants_to_cool ? heaters[h].isCooling() : heaters[h].isHeating());
 
@@ -316,8 +316,8 @@ void Temperature::manage_temp_controller() {
   #endif
 
   LOOP_HEATER() {
-    if (heaters[h].current_temperature > heaters[h].maxtemp) max_temp_error(h);
-    if (heaters[h].current_temperature < heaters[h].mintemp) min_temp_error(h);
+    if (heaters[h].isON() && heaters[h].current_temperature > heaters[h].maxtemp) max_temp_error(h);
+    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].mintemp) min_temp_error(h);
   }
 
   #if WATCH_THE_HOTEND || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || (!PIDTEMPBED) || (!PIDTEMPCHAMBER) || (!PIDTEMPCOOLER) || HAS_AUTO_FAN || HEATER_IDLE_HANDLER
@@ -333,7 +333,7 @@ void Temperature::manage_temp_controller() {
 
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
-      if (thermal_protection[h])
+      if (thermal_protection[heaters[h].type])
         thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], heaters[h].current_temperature, heaters[h].target_temperature, h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
     #endif
 
@@ -662,7 +662,7 @@ void Temperature::disable_all_heaters() {
    * This is called when the temperature is set.
    */
   void Temperature::start_watching(const uint8_t h/*=0*/) {
-    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].target_temperature - (WATCH_TEMP_INCREASE + temp_hysteresis[h] + 1)) {
+    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].target_temperature - (WATCH_TEMP_INCREASE + temp_hysteresis[heaters[h].type] + 1)) {
       watch_target_temp[h] = heaters[h].current_temperature + WATCH_TEMP_INCREASE;
       watch_heater_next_ms[h] = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
     }
