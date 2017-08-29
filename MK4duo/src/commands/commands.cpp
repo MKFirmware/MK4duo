@@ -560,7 +560,7 @@ void Commands::process_next_command() {
   switch (parser.command_letter) {
 
     case 'G': {
-      const int code_num = parser.codenum;
+      const uint16_t code_num = parser.codenum;
       G_CODE_TYPE start   = 0,
                   middle  = 0,
                   end     = COUNT(GCode_Table) - 1;
@@ -585,7 +585,7 @@ void Commands::process_next_command() {
     break;
 
     case 'M': {
-      const int code_num = parser.codenum;
+      const uint16_t code_num = parser.codenum;
       M_CODE_TYPE start   = 0,
                   middle  = 0,
                   end     = COUNT(MCode_Table) - 1;

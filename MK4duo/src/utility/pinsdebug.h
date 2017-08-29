@@ -809,6 +809,7 @@ static bool pwm_status(uint8_t pin) {
     default:
       return false;
   }
+  UNUSED(buffer);
   SERIAL_MSG("  ");
 } // pwm_status
 
@@ -976,9 +977,10 @@ static bool pwm_status(uint8_t pin) {
           break;
       #endif
 
-      case NOT_ON_TIMER: break;
-
+      case NOT_ON_TIMER:
+      default: break;
     }
+    UNUSED(WGM);
     SERIAL_MSG("  ");
   }  // pwm_details
 
