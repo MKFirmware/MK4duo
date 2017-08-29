@@ -47,16 +47,16 @@
     const uint8_t speed = parser.byteval('S', 255),
                   fan   = parser.byteval('P', 0);
     
-    if (fan >= FAN_COUNT || fans.Speed[fan] == speed)
+    if (fan >= FAN_COUNT || fans[fan].Speed == speed)
       return;
 
     #if ENABLED(FAN_KICKSTART_TIME)
-      if (fans.Kickstart[fan] == 0 && speed > fans.Speed[fan] && speed < 85) {
-        if (fans.Speed[fan])  fans.Kickstart[fan] = FAN_KICKSTART_TIME / 100;
-        else                  fans.Kickstart[fan] = FAN_KICKSTART_TIME / 25;
+      if (fans[fan].Kickstart == 0 && speed > fans[fan].Speed && speed < 85) {
+        if (fans[fan].Speed)  fans[fan].Kickstart = FAN_KICKSTART_TIME / 100;
+        else                  fans[fan].Kickstart = FAN_KICKSTART_TIME / 25;
       }
     #endif
-    fans.Speed[fan] = CALC_FAN_SPEED();
+    fans[fan].Speed = CALC_FAN_SPEED();
   }
 
   /**
@@ -64,7 +64,7 @@
    */
   inline void gcode_M107(void) {
     uint16_t p = parser.seen('P') ? parser.value_ushort() : 0;
-    if (p < FAN_COUNT) fans.Speed[p] = 0;
+    if (p < FAN_COUNT) fans[p].Speed = 0;
   }
 
 #endif // FAN_COUNT > 0

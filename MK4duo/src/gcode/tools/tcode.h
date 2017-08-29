@@ -91,6 +91,4 @@ inline void gcode_T(void) {
       SERIAL_EM("<<< gcode_T");
     }
   #endif
-
-  UNUSED(tool_id);
 }

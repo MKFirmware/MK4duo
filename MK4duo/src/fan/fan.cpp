@@ -30,63 +30,53 @@
 
 #if FAN_COUNT > 0
 
-  Fan fans;
+  Fan fans[FAN_COUNT];
 
-  uint16_t  Fan::Speed[FAN_COUNT] = { 0 },
-            Fan::paused_Speed[FAN_COUNT] = { 0 };
-  uint8_t   Fan::Kickstart[FAN_COUNT] = { 0 },
-            Fan::pwm_val[FAN_COUNT]  = { 0 },
-            Fan::pwm_pos[FAN_COUNT] = { 0 };
-  bool      Fan::pwm_hardware[FAN_COUNT]  = { false },
-            Fan::hardwareInverted[FAN_COUNT] = { false },
-            Fan::paused = false;
-  Pin       Fan::pin[FAN_COUNT] = { -1 };
-  int16_t   Fan::lastSpeed[FAN_COUNT] = { -1 };
+  /**
+   * Initialize Fans
+   */
+  void fan_init() {
+    constexpr Pin fan_channel[] = FANS_CHANNELS;
+    LOOP_FAN() fans[f].init(fan_channel[f], FAN_INVERTED);
+  }
 
-  void Fan::init(const uint8_t fan, Pin p_pin, const bool hwInverted, const bool hardwarepwm/*=false*/) {
-    Speed[fan]             = 0;
-    paused_Speed[fan]      = 0;
-    Kickstart[fan]         = 0;
-    pwm_val[fan]           = 0;
-    pwm_pos[fan]           = 0;
-    pwm_hardware[fan]      = hardwarepwm;
-    hardwareInverted[fan]  = hwInverted;
-    pin[fan]               = p_pin;
-    lastSpeed[fan]         = -1;
+  void Fan::init(Pin p_pin, const bool hwInverted) {
+
+    this->pin               = p_pin;
+    this->hardwareInverted  = hwInverted;
+    this->pwm_hardware      = PWM_HARDWARE;
 
     HAL::pinMode(p_pin, OUTPUT);
   }
 
-  void Fan::pause(const uint8_t fan, const bool p) {
+  void Fan::pause(const bool p) {
 
-    if (p != paused) {
-      paused = p;
+    if (p != this->paused) {
+      this->paused = p;
       if (p) {
-        paused_Speed[fan] = Speed[fan];
-        Speed[fan] = 0;
+        this->paused_Speed = this->Speed;
+        this->Speed = 0;
       }
       else
-        Speed[fan] = paused_Speed[fan];
+        this->Speed = this->paused_Speed;
     }
   }
 
-  #if ENABLED(PWM_HARDWARE)
+  #if PWM_HARDWARE
 
     void Fan::SetHardwarePwm() {
+      uint8_t pwm_val = 0;
 
-      LOOP_FAN() {
-        if (pwm_hardware[f] && lastSpeed[f] != Speed[f]) {
+      if (this->pwm_hardware && this->lastSpeed != this->Speed) {
 
-          if (hardwareInverted[f])
-            pwm_val[f] = 255 - Speed[f];
-          else
-            pwm_val[f] = Speed[f];
+        if (this->hardwareInverted)
+          pwm_val = 255 - this->Speed;
+        else
+          pwm_val = this->Speed;
 
-          pwm_hardware[f] = HAL::analogWrite(fans.pin[f], fans.pwm_val[f], FAN_PWM_FREQ);
+        this->pwm_hardware = HAL::analogWrite(this->pin, pwm_val, FAN_PWM_FREQ);
 
-          lastSpeed[f] = Speed[f];
-
-        }
+        this->lastSpeed = this->Speed;
       }
     }
 

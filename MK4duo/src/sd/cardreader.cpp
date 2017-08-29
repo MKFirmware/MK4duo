@@ -409,9 +409,9 @@
       fileRestart.write(buffer_G92_Z);
 
       #if HAS_TEMP_BED
-        if (thermalManager.degTargetBed() > 0) {
+        if (heaters[BED_INDEX].target_temperature > 0) {
           char Bedtemp[15];
-          sprintf(Bedtemp, "M190 S%i\n", (int)thermalManager.degTargetBed());
+          sprintf(Bedtemp, "M190 S%i\n", (int)heaters[BED_INDEX].target_temperature);
           fileRestart.write(Bedtemp);
         }
       #endif
@@ -421,9 +421,9 @@
       fileRestart.write(CurrHotend);
 
       for (uint8_t h = 0; h < HOTENDS; h++) {
-        if (thermalManager.degTargetHotend(h) > 0) {
+        if (heaters[h].target_temperature > 0) {
           char Hotendtemp[15];
-          sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)thermalManager.degTargetHotend(h));
+          sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)heaters[h].target_temperature);
           fileRestart.write(Hotendtemp);
         }
       }
@@ -434,9 +434,9 @@
 
       #if FAN_COUNT > 0
         LOOP_FAN() {
-          if (fans.Speed[f] > 0) {
+          if (fans[f].Speed > 0) {
             char fanSp[20];
-            sprintf(fanSp, "M106 S%i P%i\n", (int)fans.Speed[f], (int)f);
+            sprintf(fanSp, "M106 S%i P%i\n", (int)fans[f].Speed, (int)f);
             fileRestart.write(fanSp);
           }
         }
@@ -454,9 +454,8 @@
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS]);
 
       thermalManager.disable_all_heaters();
-      thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        LOOP_FAN() fans.Speed[f] = 0;
+        LOOP_FAN() fans[f].Speed = 0;
       #endif
     }
   }

@@ -39,9 +39,9 @@
    *
    */
   inline void gcode_M163(void) {
-    int mix_index = parser.seen('S') ? parser.value_int() : 0;
+    const int mix_index = parser.intval('S');
     if (WITHIN(mix_index, 0, MIXING_STEPPERS)) {
-      float mix_value = parser.seen('P') ? parser.value_float() : 0.0;
+      float mix_value = parser.floatval('P');
       NOLESS(mix_value, 0.0);
       printer.mixing_factor[mix_index] = mix_value;
     }
@@ -58,7 +58,7 @@
      *
      */
     inline void gcode_M164(void) {
-      int tool_index = parser.seen('S') ? parser.value_int() : 0;
+      const int tool_index = parser.intval('S');
       if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS))
         printer.store_normalized_mixing_factors(tool_index);
     }

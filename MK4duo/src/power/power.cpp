@@ -101,17 +101,12 @@
 
   bool Power::is_power_needed() {
 
-    #if FAN_COUNT > 0
-      LOOP_FAN()
-        if (fans[f].Speed > 0) return true;
+    #if HEATER_COUNT > 0
+      LOOP_HEATER() if (heaters[h].target_temperature > 0) return true;
     #endif
 
-    LOOP_HOTEND() if (thermalManager.target_temperature[h] > 0) return true;
-
-    if (thermalManager.target_temperature_bed > 0) return true;
-
-    #if HAS_TEMP_CHAMBER
-      if (thermalManager.target_temperature_chamber > 0) return true;
+    #if FAN_COUNT > 0
+      LOOP_FAN() if (fans[f].Speed > 0) return true;
     #endif
 
     return false;

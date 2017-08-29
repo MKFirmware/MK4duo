@@ -367,39 +367,33 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
 }
 
-FORCE_INLINE void _draw_heater_status(const uint8_t x, const int8_t heater, const bool blink) {
+FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, const bool blink) {
 
   #if !HEATER_IDLE_HANDLER
     UNUSED(blink);
   #endif
 
   #if HAS_TEMP_BED
-    const bool isBed = heater < 0;
+    const bool isBed = (heater == BED_INDEX);
   #else
     const bool isBed = false;
   #endif
 
   if (PAGE_UNDER(7)) {
     #if HEATER_IDLE_HANDLER
-      const bool is_idle = (!isBed ? thermalManager.is_heater_idle(heater) :
-      #if HAS_TEMP_BED
-        thermalManager.is_bed_idle()
-      #else
-        false
-      #endif
-      );
+      const bool is_idle = thermalManager.is_heater_idle(heater);
 
       if (blink || !is_idle)
     #endif
-    _draw_centered_temp((isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater)) + 0.5, x, 7); }
+    _draw_centered_temp((isBed ? heaters[heater].target_temperature : heaters[heater].target_temperature) + 0.5, x, 7); }
 
   if (PAGE_CONTAINS(21, 28))
-    _draw_centered_temp((isBed ? thermalManager.degBed() : thermalManager.degHotend(heater)) + 0.5, x, 28);
+    _draw_centered_temp((isBed ? heaters[heater].current_temperature : heaters[heater].current_temperature) + 0.5, x, 28);
 
   if (PAGE_CONTAINS(17, 20)) {
     const uint8_t h = isBed ? 7 : 8,
                   y = isBed ? 18 : 17;
-    if (isBed ? thermalManager.isHeatingBed() : thermalManager.isHeatingHotend(heater)) {
+    if (heaters[heater].isHeating()) {
       u8g.setColorIndex(0); // white on black
       u8g.drawBox(x + h, y, 2, 2);
       u8g.setColorIndex(1); // black on white
@@ -498,7 +492,7 @@ static void lcd_implementation_status_screen() {
 
       u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
         #if HAS_FAN0
-          blink && fans.Speed[0] ? status_screen0_bmp : status_screen1_bmp
+          blink && fans[0].Speed ? status_screen0_bmp : status_screen1_bmp
         #else
           status_screen0_bmp
         #endif
@@ -518,13 +512,13 @@ static void lcd_implementation_status_screen() {
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(81, -1, blink);
+        _draw_heater_status(81, BED_INDEX, blink);
       #endif
 
       #if HAS_FAN0
         if (PAGE_CONTAINS(20, 27)) {
           // Fan
-          const int16_t per = ((fans.Speed[0] + 1) * 100) / 256;
+          const int16_t per = ((fans[0].Speed + 1) * 100) / 256;
           if (per) {
             u8g.setPrintPos(104, 27);
             lcd_print(itostr3(per));
@@ -791,11 +785,11 @@ static void lcd_implementation_status_screen() {
       lcd_print('E');
       lcd_print((char)('0' + tools.active_extruder));
       lcd_print(' ');
-      lcd_print(itostr3(thermalManager.degHotend(tools.active_extruder)));
+      lcd_print(itostr3(heaters[EXTRUDER_IDX].current_temperature));
       lcd_print('/');
 
-      if (lcd_blink() || !thermalManager.is_heater_idle(tools.active_extruder))
-        lcd_print(itostr3(thermalManager.degTargetHotend(tools.active_extruder)));
+      if (lcd_blink() || !thermalManager.is_heater_idle(EXTRUDER_IDX))
+        lcd_print(itostr3(heaters[EXTRUDER_IDX].target_temperature));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

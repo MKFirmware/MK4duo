@@ -31,6 +31,8 @@
 
 #if FAN_COUNT > 0
 
+  extern void fan_init();
+
   class Fan {
 
     public: /** Constructor */
@@ -39,34 +41,33 @@
 
     public: /** Public Parameters */
 
-      static uint16_t Speed[FAN_COUNT],
-                      paused_Speed[FAN_COUNT];
-      static uint8_t  Kickstart[FAN_COUNT],
-                      pwm_val[FAN_COUNT],
-                      pwm_pos[FAN_COUNT];
-      static bool     pwm_hardware[FAN_COUNT],
-                      hardwareInverted[FAN_COUNT],
-                      paused;
-      static Pin      pin[FAN_COUNT];
+      Pin       pin               = -1;
+      uint16_t  Speed             = 0,
+                paused_Speed      = 0;
+      uint8_t   Kickstart         = 0,
+                pwm_pos           = 0;
+      bool      pwm_hardware      = false,
+                hardwareInverted  = false,
+                paused            = false;
 
     public: /** Public Function */
 
-      static void init(const uint8_t fan, Pin p_pin, const bool hwInverted, const bool hardwarepwm=false);
-      static void pause(const uint8_t fan, const bool p);
+      void init(Pin p_pin, const bool hwInverted);
+      void pause(const bool p);
 
-      #if ENABLED(PWM_HARDWARE)
-        static void SetHardwarePwm();
+      #if PWM_HARDWARE
+        void SetHardwarePwm();
       #endif
 
     private: /** Private Parameters */
 
-      static int16_t lastSpeed[FAN_COUNT];
+      int16_t lastSpeed = -1;
 
     private: /** Private Function */
 
   };
 
-  extern Fan fans;
+  extern Fan fans[FAN_COUNT];
 
 #endif // FAN_COUNT > 0
 

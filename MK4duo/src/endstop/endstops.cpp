@@ -228,7 +228,6 @@ void Endstops::report_state() {
         card.closeFile();
         printer.quickstop_stepper();
         thermalManager.disable_all_heaters(); // switch off all heaters.
-        thermalManager.disable_all_coolers();
       }
     #endif
   }

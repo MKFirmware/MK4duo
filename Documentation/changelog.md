@@ -1,3 +1,8 @@
+### Version 4.3.27 dev
+* New Class Heater for 4 Hotend 1 Bed 1 Chamber 1 Cooler
+* Rewrite Temperature code
+* Fix and clear code
+
 ### Version 4.3.26 dev
 * Now Probe offset is a variable.
 * New command for compatibility with Marlin, M851 X Y Z for setting Probe Offset

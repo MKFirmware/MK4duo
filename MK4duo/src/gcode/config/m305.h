@@ -26,20 +26,20 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PIDTEMPCHAMBER)
+#if (PIDTEMPCHAMBER)
 
   #define CODE_M305
 
   // M305: Set chamber PID parameters P I and D
   inline void gcode_M305(void) {
-    if (parser.seen('P')) thermalManager.chamberKp = parser.value_float();
-    if (parser.seen('I')) thermalManager.chamberKi = parser.value_float();
-    if (parser.seen('D')) thermalManager.chamberKd = parser.value_float();
+    if (parser.seen('P')) heaters[CHAMBER_INDEX].Kp = parser.value_float();
+    if (parser.seen('I')) heaters[CHAMBER_INDEX].Ki = parser.value_float();
+    if (parser.seen('D')) heaters[CHAMBER_INDEX].Kd = parser.value_float();
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", thermalManager.chamberKp);
-    SERIAL_MV(" i:", thermalManager.chamberKi);
-    SERIAL_EMV(" d:", thermalManager.chamberKd);
+    SERIAL_SMV(OK, " p:", heaters[CHAMBER_INDEX].Kp);
+    SERIAL_MV(" i:", heaters[CHAMBER_INDEX].Ki);
+    SERIAL_EMV(" d:", heaters[CHAMBER_INDEX].Kd);
   }
 
 #endif // NABLED(PIDTEMPCHAMBER)

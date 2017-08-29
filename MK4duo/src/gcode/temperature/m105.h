@@ -35,25 +35,14 @@ inline void gcode_M105(void) {
 
   GET_TARGET_HOTEND(105);
 
-  #if HAS_TEMP_HOTEND || HAS_TEMP_BED || HAS_TEMP_CHAMBER || HAS_TEMP_COOLER || ENABLED(FLOWMETER_SENSOR) || (ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER))
+  #if HEATER_COUNT > 0
     SERIAL_STR(OK);
-    #if HAS_TEMP_HOTEND || HAS_TEMP_BED
-      thermalManager.print_heaterstates();
-    #endif
-    #if HAS_TEMP_CHAMBER
-      thermalManager.print_chamberstate();
-    #endif
-    #if HAS_TEMP_COOLER
-      thermalManager.print_coolerstate();
-    #endif
+    thermalManager.print_heaterstates();
     #if ENABLED(FLOWMETER_SENSOR)
       flowmeter.print_flow_rate_state();
     #endif
     #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
       cnc.print_Speed();
-    #endif
-    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      thermalManager.print_MCUstate();
     #endif
   #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);

@@ -360,6 +360,7 @@ class HAL {
 
     #if ANALOG_INPUTS > 0
       static int16_t AnalogInputValues[ANALOG_INPUTS];
+      static bool Analog_is_ready;
     #endif
 
     static bool execute_100ms;

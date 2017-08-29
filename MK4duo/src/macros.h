@@ -189,6 +189,7 @@
 #define LOOP_XYZE(VAR)          LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
 #define LOOP_XYZE_N(VAR)        LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
 #define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
+#define LOOP_HEATER()           LOOP_L_N(h, HEATER_COUNT)
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion

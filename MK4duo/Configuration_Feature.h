@@ -1810,7 +1810,7 @@
  * This function ability PWM hardware on SAM proccesor, tested only on ALLIGATOR! *
  *                                                                                *
  **********************************************************************************/
-//#define PWM_HARDWARE
+#define PWM_HARDWARE false
 /**********************************************************************************/
 
 

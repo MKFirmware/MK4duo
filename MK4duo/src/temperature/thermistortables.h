@@ -20,20 +20,10 @@
  *
  */
 
-#ifndef THERMISTORTABLES_H_
-#define THERMISTORTABLES_H_
+#ifndef _THERMISTORTABLES_H_
+#define _THERMISTORTABLES_H_
 
 #define ANY_THERMISTOR_IS(n) (THERMISTORHEATER_0 == n) || (THERMISTORHEATER_1 == n) || (THERMISTORHEATER_2 == n) || (THERMISTORHEATER_3 == n) || (THERMISTORBED == n) || (THERMISTORCHAMBER == n) || (THERMISTORCOOLER == n)
-
-// Pt1000 and Pt100 handling
-//
-// Rt=R0*(1+a*T+b*T*T) [for T>0]
-// a=3.9083E-3, b=-5.775E-7
-#define PtA 3.9083E-3
-#define PtB -5.775E-7
-#define PtRt(T,R0) ((R0)*(1.0+(PtA)*(T)+(PtB)*(T)*(T)))
-#define PtAdVal(T,R0,Rup) (short)(1024/(Rup/PtRt(T,R0)+1))
-#define PtLine(T,R0,Rup) { PtAdVal(T,R0,Rup)*OVERSAMPLENR, T },
 
 #if ANY_THERMISTOR_IS(1) // 100k bed thermistor
   #include "thermistortable/thermistortable_1.h"
@@ -56,9 +46,6 @@
 #if ANY_THERMISTOR_IS(7) // 100k Honeywell 135-104LAG-J01
   #include "thermistortable/thermistortable_7.h"
 #endif
-#if ANY_THERMISTOR_IS(71) // 100k Honeywell 135-104LAF-J01
-  #include "thermistortable/thermistortable_71.h"
-#endif
 #if ANY_THERMISTOR_IS(8) // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)
   #include "thermistortable/thermistortable_8.h"
 #endif
@@ -70,6 +57,9 @@
 #endif
 #if ANY_THERMISTOR_IS(11) // QU-BD silicone bed QWG-104F-3950 thermistor
   #include "thermistortable/thermistortable_11.h"
+#endif
+#if ANY_THERMISTOR_IS(12) // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)
+  #include "thermistortable/thermistortable_12.h"
 #endif
 #if ANY_THERMISTOR_IS(13) // Hisens thermistor B25/50 =3950 +/-1%
   #include "thermistortable/thermistortable_13.h"
@@ -92,11 +82,11 @@
 #if ANY_THERMISTOR_IS(66) // DyzeDesign 500°C Thermistor
   #include "thermistortable/thermistortable_66.h"
 #endif
-#if ANY_THERMISTOR_IS(12) // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)
-  #include "thermistortable/thermistortable_12.h"
-#endif
 #if ANY_THERMISTOR_IS(70) // bqh2 stock thermistor
   #include "thermistortable/thermistortable_70.h"
+#endif
+#if ANY_THERMISTOR_IS(71) // 100k Honeywell 135-104LAF-J01
+  #include "thermistortable/thermistortable_71.h"
 #endif
 #if ANY_THERMISTOR_IS(110) // Pt100 with 1k0 pullup
   #include "thermistortable/thermistortable_110.h"
@@ -117,135 +107,68 @@
   #include "thermistortable/thermistortable_999.h"
 #endif
 
-#define _TT_NAME(_N) temptable_ ## _N
-#define TT_NAME(_N) _TT_NAME(_N)
+#define _TT_NAME(_N)  temptable_ ## _N
+#define TT_NAME(_N)   _TT_NAME(_N)
 
 #ifdef THERMISTORHEATER_0
-  #define HEATER_0_TEMPTABLE TT_NAME(THERMISTORHEATER_0)
-  #define HEATER_0_TEMPTABLE_LEN COUNT(HEATER_0_TEMPTABLE)
-#elif ENABLED(HEATER_0_USES_THERMISTOR)
-  #error "No heater 0 thermistor table specified"
+  #define HEATER_0_TEMPTABLE      TT_NAME(THERMISTORHEATER_0)
+  #define HEATER_0_TEMPTABLE_LEN  COUNT(HEATER_0_TEMPTABLE)
 #else
-  #define HEATER_0_TEMPTABLE NULL
-  #define HEATER_0_TEMPTABLE_LEN 0
+  #define HEATER_0_TEMPTABLE      NULL
+  #define HEATER_0_TEMPTABLE_LEN  0
 #endif
 
 #ifdef THERMISTORHEATER_1
-  #define HEATER_1_TEMPTABLE TT_NAME(THERMISTORHEATER_1)
-  #define HEATER_1_TEMPTABLE_LEN COUNT(HEATER_1_TEMPTABLE)
-#elif ENABLED(HEATER_1_USES_THERMISTOR)
-  #error "No heater 1 thermistor table specified"
+  #define HEATER_1_TEMPTABLE      TT_NAME(THERMISTORHEATER_1)
+  #define HEATER_1_TEMPTABLE_LEN  COUNT(HEATER_1_TEMPTABLE)
 #else
-  #define HEATER_1_TEMPTABLE NULL
-  #define HEATER_1_TEMPTABLE_LEN 0
+  #define HEATER_1_TEMPTABLE      NULL
+  #define HEATER_1_TEMPTABLE_LEN  0
 #endif
 
 #ifdef THERMISTORHEATER_2
-  #define HEATER_2_TEMPTABLE TT_NAME(THERMISTORHEATER_2)
-  #define HEATER_2_TEMPTABLE_LEN COUNT(HEATER_2_TEMPTABLE)
-#elif ENABLED(HEATER_2_USES_THERMISTOR)
-  #error "No heater 2 thermistor table specified"
+  #define HEATER_2_TEMPTABLE      TT_NAME(THERMISTORHEATER_2)
+  #define HEATER_2_TEMPTABLE_LEN  COUNT(HEATER_2_TEMPTABLE)
 #else
-  #define HEATER_2_TEMPTABLE NULL
-  #define HEATER_2_TEMPTABLE_LEN 0
+  #define HEATER_2_TEMPTABLE      NULL
+  #define HEATER_2_TEMPTABLE_LEN  0
 #endif
 
 #ifdef THERMISTORHEATER_3
-  #define HEATER_3_TEMPTABLE TT_NAME(THERMISTORHEATER_3)
-  #define HEATER_3_TEMPTABLE_LEN COUNT(HEATER_3_TEMPTABLE)
-#elif ENABLED(HEATER_3_USES_THERMISTOR)
-  #error "No heater 3 thermistor table specified"
+  #define HEATER_3_TEMPTABLE      TT_NAME(THERMISTORHEATER_3)
+  #define HEATER_3_TEMPTABLE_LEN  COUNT(HEATER_3_TEMPTABLE)
 #else
-  #define HEATER_3_TEMPTABLE NULL
-  #define HEATER_3_TEMPTABLE_LEN 0
+  #define HEATER_3_TEMPTABLE      NULL
+  #define HEATER_3_TEMPTABLE_LEN  0
 #endif
 
 #ifdef THERMISTORBED
-  #define BEDTEMPTABLE TT_NAME(THERMISTORBED)
-  #define BEDTEMPTABLE_LEN COUNT(BEDTEMPTABLE)
-#elif ENABLED(BED_USES_THERMISTOR)
-  #error "No bed thermistor table specified"
+  #define BEDTEMPTABLE            TT_NAME(THERMISTORBED)
+  #define BEDTEMPTABLE_LEN        COUNT(BEDTEMPTABLE)
+#else
+  #define BEDTEMPTABLE            NULL
+  #define BEDTEMPTABLE_LEN        0
 #endif
 
 #ifdef THERMISTORCHAMBER
-  #define CHAMBERTEMPTABLE TT_NAME(THERMISTORCHAMBER)
-  #define CHAMBERTEMPTABLE_LEN COUNT(CHAMBERTEMPTABLE)
-#elif ENABLED(CHAMBER_USES_THERMISTOR)
-  #error No chamber thermistor table specified
+  #define CHAMBERTEMPTABLE        TT_NAME(THERMISTORCHAMBER)
+  #define CHAMBERTEMPTABLE_LEN    COUNT(CHAMBERTEMPTABLE)
+#else
+  #define CHAMBERTEMPTABLE        NULL
+  #define CHAMBERTEMPTABLE_LEN    0
 #endif
 
 #ifdef THERMISTORCOOLER
-  #define COOLERTEMPTABLE TT_NAME(THERMISTORCOOLER)
-  #define COOLERTEMPTABLE_LEN COUNT(COOLERTEMPTABLE)
-#elif ENABLED(COOLER_USES_THERMISTOR)
-  #error No Cooler thermistor table specified
+  #define COOLERTEMPTABLE         TT_NAME(THERMISTORCOOLER)
+  #define COOLERTEMPTABLE_LEN     COUNT(COOLERTEMPTABLE)
+#else
+  #define COOLERTEMPTABLE         NULL
+  #define COOLERTEMPTABLE_LEN     0
 #endif
 
-// Set the high and low raw values for the heaters
-// For thermistors the highest temperature results in the lowest ADC value
-// For thermocouples the highest temperature results in the highest ADC value
-#ifndef HEATER_0_RAW_HI_TEMP
-  #ifdef HEATER_0_USES_THERMISTOR
-    #define HEATER_0_RAW_HI_TEMP 0
-    #define HEATER_0_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_0_RAW_HI_TEMP 16383
-    #define HEATER_0_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef HEATER_1_RAW_HI_TEMP
-  #ifdef HEATER_1_USES_THERMISTOR
-    #define HEATER_1_RAW_HI_TEMP 0
-    #define HEATER_1_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_1_RAW_HI_TEMP 16383
-    #define HEATER_1_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef HEATER_2_RAW_HI_TEMP
-  #ifdef HEATER_2_USES_THERMISTOR
-    #define HEATER_2_RAW_HI_TEMP 0
-    #define HEATER_2_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_2_RAW_HI_TEMP 16383
-    #define HEATER_2_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef HEATER_3_RAW_HI_TEMP
-  #ifdef HEATER_3_USES_THERMISTOR
-    #define HEATER_3_RAW_HI_TEMP 0
-    #define HEATER_3_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_3_RAW_HI_TEMP 16383
-    #define HEATER_3_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef HEATER_BED_RAW_HI_TEMP
-  #ifdef BED_USES_THERMISTOR
-    #define HEATER_BED_RAW_HI_TEMP 0
-    #define HEATER_BED_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_BED_RAW_HI_TEMP 16383
-    #define HEATER_BED_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef HEATER_CHAMBER_RAW_HI_TEMP
-  #ifdef CHAMBER_USES_THERMISTOR
-    #define HEATER_CHAMBER_RAW_HI_TEMP 0
-    #define HEATER_CHAMBER_RAW_LO_TEMP 16383
-  #else
-    #define HEATER_CHAMBER_RAW_HI_TEMP 16383
-    #define HEATER_CHAMBER_RAW_LO_TEMP 0
-  #endif
-#endif
-#ifndef COOLER_RAW_HI_TEMP
-  #ifdef COOLER_USES_THERMISTOR
-    #define COOLER_RAW_HI_TEMP 0 
-    #define COOLER_RAW_LO_TEMP 16383
-  #else
-    #define COOLER_RAW_HI_TEMP 16383
-    #define COOLER_RAW_LO_TEMP 0
-  #endif
+#if HEATER_COUNT > 0
+  static void*    heater_ttbl_map[]     = { (void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE, (void*)BEDTEMPTABLE, (void*)CHAMBERTEMPTABLE, (void*)COOLERTEMPTABLE };
+  static uint8_t  heater_ttbllen_map[]  = { HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN, BEDTEMPTABLE_LEN, CHAMBERTEMPTABLE_LEN, COOLERTEMPTABLE_LEN };
 #endif
 
-#endif // THERMISTORTABLES_H_
+#endif /* _THERMISTORTABLES_H_ */

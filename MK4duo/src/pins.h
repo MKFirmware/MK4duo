@@ -337,9 +337,9 @@
                         PS_ON_PIN, HEATER_BED_PIN, FAN_PIN, \
                         _H0_PINS _H1_PINS _H2_PINS _H3_PINS \
                         _E0_PINS _E1_PINS _E2_PINS _E3_PINS _E4_PINS _E5_PINS \
-                        (int8_t) analogInputToDigitalPin(TEMP_BED_PIN), \
-                        (int8_t) analogInputToDigitalPin(TEMP_CHAMBER_PIN), \
-                        (int8_t) analogInputToDigitalPin(TEMP_COOLER_PIN), \
+                        analogInputToDigitalPin(TEMP_BED_PIN), \
+                        analogInputToDigitalPin(TEMP_CHAMBER_PIN), \
+                        analogInputToDigitalPin(TEMP_COOLER_PIN), \
                         COOLER_PIN, LASER_PWR_PIN, LASER_PWM_PIN, \
                         FLOWMETER_PIN \
                        }

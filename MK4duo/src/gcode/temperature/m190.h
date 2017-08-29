@@ -40,9 +40,9 @@
     LCD_MESSAGEPGM(MSG_BED_HEATING);
     const bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))
-      thermalManager.setTargetBed(parser.value_celsius());
+      heaters[BED_INDEX].target_temperature = parser.value_celsius();
 
-    thermalManager.wait_bed(no_wait_for_cooling);
+    thermalManager.wait_heater(BED_INDEX, no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_BED

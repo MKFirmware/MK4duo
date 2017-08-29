@@ -322,7 +322,7 @@ void Planner::recalculate() {
     static float oldt = 0;
 
     if (!autotemp_enabled) return;
-    if (thermalManager.degTargetHotend(0) + 2 < autotemp_min) return; // probably temperature set to zero.
+    if (heaters[0].target_temperature + 2 < autotemp_min) return; // probably temperature set to zero.
 
     float high = 0.0;
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -337,7 +337,7 @@ void Planner::recalculate() {
     t = constrain(t, autotemp_min, autotemp_max);
     if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
-    thermalManager.setTargetHotend(t, 0);
+    heaters[0].setTarget(t);
   }
 
 #endif //AUTOTEMP

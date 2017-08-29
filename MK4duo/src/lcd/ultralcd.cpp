@@ -418,7 +418,7 @@ uint16_t max_display_update_time = 0;
     uint8_t lcd_sd_status;
   #endif
 
-  #if ENABLED(PIDTEMP)
+  #if PIDTEMP
     float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
   #endif
 
@@ -968,8 +968,8 @@ void kill_screen(const char* lcd_msg) {
    * Watch temperature callbacks
    */
   #if HAS_TEMP_HOTEND
-    #if WATCH_HOTENDS
-      #define _WATCH_FUNC(N) thermalManager.start_watching_heater(N)
+    #if WATCH_THE_HOTEND
+      #define _WATCH_FUNC(N) thermalManager.start_watching(N)
     #else
       #define _WATCH_FUNC(N) NOOP
     #endif
@@ -987,19 +987,19 @@ void kill_screen(const char* lcd_msg) {
 
   void watch_temp_callback_bed() {
     #if WATCH_THE_BED
-      thermalManager.start_watching_bed();
+      thermalManager.start_watching(BED_INDEX);
     #endif
   }
 
   void watch_temp_callback_chamber() {
     #if WATCH_THE_CHAMBER
-      thermalManager.start_watching_chamber();
+      thermalManager.start_watching(CHAMBER_INDEX);
     #endif
   }
 
   void watch_temp_callback_cooler() {
     #if WATCH_THE_COOLER
-      thermalManager.start_watching_cooler();
+      thermalManager.start_watching(COOLER_INDEX);
     #endif
   }
 
@@ -1049,14 +1049,14 @@ void kill_screen(const char* lcd_msg) {
     // Nozzle [1-4]:
     //
     #if HOTENDS == 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &heaters[0].target_temperature, 0, heaters[0].maxtemp - 15, watch_temp_callback_E0);
     #elif HOTENDS > 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &thermalManager.target_temperature[1], 0, HEATER_1_MAXTEMP - 15, watch_temp_callback_E1);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &heaters[0].target_temperature, 0, heaters[0].maxtemp - 15, watch_temp_callback_E0);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &heaters[1].target_temperature, 0, heaters[1].maxtemp - 15, watch_temp_callback_E1);
       #if HOTENDS > 2
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &thermalManager.target_temperature[2], 0, HEATER_2_MAXTEMP - 15, watch_temp_callback_E2);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &heaters[2].target_temperature, 0, heaters[2].maxtemp - 15, watch_temp_callback_E2);
         #if HOTENDS > 3
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &thermalManager.target_temperature[3], 0, HEATER_3_MAXTEMP - 15, watch_temp_callback_E3);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &heaters[3].target_temperature, 0, heaters[3].maxtemp - 15, watch_temp_callback_E3);
         #endif // HOTENDS > 3
       #endif // HOTENDS > 2
     #endif // HOTENDS > 1
@@ -1065,21 +1065,21 @@ void kill_screen(const char* lcd_msg) {
     // Bed:
     //
     #if HAS_TEMP_BED
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &heaters[BED_INDEX].target_temperature, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
     //
     // Chamber:
     //
     #if HAS_TEMP_CHAMBER
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &thermalManager.target_temperature_chamber, 0, CHAMBER_MAXTEMP - 15, watch_temp_callback_chamber);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &heaters[CHAMBER_INDEX].target_temperature, 0, CHAMBER_MAXTEMP - 15, watch_temp_callback_chamber);
     #endif
 
     //
     // Cooler:
     //
     #if HAS_TEMP_COOLER
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &thermalManager.target_temperature_cooler, 0, COOLER_MAXTEMP - 15, watch_temp_callback_cooler);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &heaters[COOLER_INDEX].target_temperature, 0, COOLER_MAXTEMP - 15, watch_temp_callback_cooler);
     #endif
 
     //
@@ -1092,16 +1092,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans.Speed[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans.Speed[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans.Speed[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans.Speed[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -1182,8 +1182,6 @@ void kill_screen(const char* lcd_msg) {
     }
   #endif // EASY_LOAD
 
-  constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP);
-
   /**
    *
    * "Prepare" submenu items
@@ -1191,18 +1189,18 @@ void kill_screen(const char* lcd_msg) {
    */
   void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb, const int16_t fan) {
     #if HAS_TEMP_HOTEND
-      if (temph > 0) thermalManager.setTargetHotend(min(heater_maxtemp[endnum], temph), endnum);
+      if (temph > 0) heaters[endnum].setTarget(min(heaters[endnum].maxtemp, temph));
     #endif
     #if HAS_TEMP_BED
-      if (tempb >= 0) thermalManager.setTargetBed(tempb);
+      if (tempb >= 0) heaters[BED_INDEX].setTarget(tempb);
     #else
       UNUSED(tempb);
     #endif
     #if FAN_COUNT > 0
       #if FAN_COUNT > 1
-        fans.Speed[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0] = fan;
+        fans[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0].Speed = fan;
       #else
-        fans.Speed[0] = fan;
+        fans[0].Speed = fan;
       #endif
     #else
       UNUSED(fan);
@@ -1252,15 +1250,7 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     void lcd_preheat_m1_all() {
-      #if HOTENDS > 1
-        thermalManager.setTargetHotend(lcd_preheat_hotend_temp[0], 1);
-        #if HOTENDS > 2
-          thermalManager.setTargetHotend(lcd_preheat_hotend_temp[0], 2);
-          #if HOTENDS > 3
-            thermalManager.setTargetHotend(lcd_preheat_hotend_temp[0], 3);
-          #endif
-        #endif
-      #endif
+      LOOP_HOTEND() heaters[h].setTarget(lcd_preheat_hotend_temp[0]);
       #if HAS_TEMP_BED
         lcd_preheat_m1_h0();
       #else
@@ -1268,15 +1258,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
     }
     void lcd_preheat_m2_all() {
-      #if HOTENDS > 1
-        thermalManager.setTargetHotend(lcd_preheat_hotend_temp[1], 1);
-        #if HOTENDS > 2
-          thermalManager.setTargetHotend(lcd_preheat_hotend_temp[1], 2);
-          #if HOTENDS > 3
-            thermalManager.setTargetHotend(lcd_preheat_hotend_temp[1], 3);
-          #endif
-        #endif
-      #endif
+      LOOP_HOTEND() heaters[h].setTarget(lcd_preheat_hotend_temp[1]);
       #if HAS_TEMP_BED
         lcd_preheat_m2_h0();
       #else
@@ -1284,15 +1266,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
     }
     void lcd_preheat_m3_all() {
-      #if HOTENDS > 1
-        thermalManager.setTargetHotend(lcd_preheat_hotend_temp[2], 1);
-        #if HOTENDS > 2
-          thermalManager.setTargetHotend(lcd_preheat_hotend_temp[2], 2);
-          #if HOTENDS > 3
-            thermalManager.setTargetHotend(lcd_preheat_hotend_temp[2], 3);
-          #endif
-        #endif
-      #endif
+      LOOP_HOTEND() heaters[h].setTarget(lcd_preheat_hotend_temp[2]);
       #if HAS_TEMP_BED
         lcd_preheat_m3_h0();
       #else
@@ -1446,10 +1420,9 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_cooldown() {
     #if FAN_COUNT > 0
-      LOOP_FAN() fans.Speed[f] = 0;
+      LOOP_FAN() fans[f].Speed = 0;
     #endif
     thermalManager.disable_all_heaters();
-    thermalManager.disable_all_coolers();
     lcd_return_to_status();
   }
 
@@ -1885,17 +1858,8 @@ void kill_screen(const char* lcd_msg) {
         // Cooldown
         //
         bool has_heat = false;
-        #if HAS_TEMP_HOTEND
-          LOOP_HOTEND() if (thermalManager.target_temperature[h]) { has_heat = true; break; }
-        #endif
-        #if HAS_TEMP_BED
-          if (thermalManager.target_temperature_bed) has_heat = true;
-        #endif
-        #if HAS_TEMP_CHAMBER
-          if (thermalManager.target_temperature_chamber) has_heat = true;
-        #endif
-        #if HAS_TEMP_COOLER
-          if (thermalManager.target_temperature_cooler) has_heat = true;
+        #if HEATER_COUNT > 0
+          LOOP_HEATER() if (heaters[h].target_temperature) { has_heat = true; break; }
         #endif
         if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
 
@@ -2339,11 +2303,11 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(PID_AUTOTUNE_MENU)
 
-    #if ENABLED(PIDTEMP)
+    #if (PIDTEMP)
       int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(200);
     #endif
 
-    #if ENABLED(PIDTEMPBED)
+    #if (PIDTEMPBED)
       int16_t autotune_temp_bed = 60;
     #endif
 
@@ -2352,7 +2316,7 @@ void kill_screen(const char* lcd_msg) {
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h,
         #if HAS_PID_FOR_BOTH
           h < 0 ? autotune_temp_bed : autotune_temp[h]
-        #elif ENABLED(PIDTEMPBED)
+        #elif (PIDTEMPBED)
           autotune_temp_bed
         #else
           autotune_temp[h]
@@ -2363,16 +2327,16 @@ void kill_screen(const char* lcd_msg) {
 
   #endif //PID_AUTOTUNE_MENU
 
-  #if ENABLED(PIDTEMP)
+  #if (PIDTEMP)
 
     // Helpers for editing PID Ki & Kd values
     // grab the PID value out of the temp variable; scale it; then update the PID driver
     void copy_PID_i(int16_t h) {
-      PID_PARAM(Ki, h) = raw_Ki;
+      heaters[h].Ki = raw_Ki;
       thermalManager.updatePID();
     }
     void copy_PID_d(int16_t h) {
-      PID_PARAM(Kd, h) = raw_Kd;
+      heaters[h].Kd = raw_Kd;
       thermalManager.updatePID();
     }
     #define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
@@ -2418,14 +2382,14 @@ void kill_screen(const char* lcd_msg) {
     // Nozzle [1-4]:
     //
     #if HOTENDS == 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &heaters[0].target_temperature, 0, heaters[0].maxtemp - 15, watch_temp_callback_E0);
     #elif HOTENDS > 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &thermalManager.target_temperature[1], 0, HEATER_1_MAXTEMP - 15, watch_temp_callback_E1);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &heaters[0].target_temperature, 0, heaters[0].maxtemp - 15, watch_temp_callback_E0);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &heaters[1].target_temperature, 0, heaters[1].maxtemp - 15, watch_temp_callback_E1);
       #if HOTENDS > 2
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &thermalManager.target_temperature[2], 0, HEATER_2_MAXTEMP - 15, watch_temp_callback_E2);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &heaters[2].target_temperature, 0, heaters[2].maxtemp - 15, watch_temp_callback_E2);
         #if HOTENDS > 3
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &thermalManager.target_temperature[3], 0, HEATER_3_MAXTEMP - 15, watch_temp_callback_E3);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &heaters[3].target_temperature, 0, heaters[3].maxtemp - 15, watch_temp_callback_E3);
         #endif // HOTENDS > 3
       #endif // HOTENDS > 2
     #endif // HOTENDS > 1
@@ -2434,21 +2398,21 @@ void kill_screen(const char* lcd_msg) {
     // Bed:
     //
     #if HAS_TEMP_BED
-      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15);
+      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_BED, &heaters[BED_INDEX].target_temperature, 0, BED_MAXTEMP - 15);
     #endif
 
     //
     // Chamber:
     //
     #if HAS_TEMP_CHAMBER
-      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_CHAMBER, &thermalManager.target_temperature_chamber, 0, CHAMBER_MAXTEMP - 15);
+      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_CHAMBER, &heaters[CHAMBER_INDEX].target_temperature, 0, CHAMBER_MAXTEMP - 15);
     #endif
 
     //
     // Cooler:
     //
     #if HAS_TEMP_COOLER
-      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLER, &thermalManager.target_temperature_cooler, 0, COOLER_MAXTEMP - 15);
+      MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLER, &heaters[COOLER_INDEX].target_temperature, 0, COOLER_MAXTEMP - 15);
     #endif
 
     //
@@ -2461,16 +2425,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans.Speed[0], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans.Speed[1], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans.Speed[2], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans.Speed[3], 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -2479,8 +2443,8 @@ void kill_screen(const char* lcd_msg) {
     //
     #if ENABLED(AUTOTEMP) && (HAS_TEMP_0)
       MENU_ITEM_EDIT(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
-      MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, HEATER_0_MAXTEMP - 15);
-      MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, HEATER_0_MAXTEMP - 15);
+      MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, heaters[0].maxtemp - 15);
+      MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, heaters[0].maxtemp - 15);
       MENU_ITEM_EDIT(float32, MSG_FACTOR, &planner.autotemp_factor, 0.0, 1.0);
     #endif
 
@@ -2491,18 +2455,18 @@ void kill_screen(const char* lcd_msg) {
     // PID-P H3, PID-I H3, PID-D H3, PID-C H3, PID Autotune H3
     // PID-P H4, PID-I H4, PID-D H4, PID-C H4, PID Autotune H4
     //
-    #if ENABLED(PIDTEMP)
+    #if (PIDTEMP)
       #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-        raw_Ki = PID_PARAM(Ki, hindex); \
-        raw_Kd = PID_PARAM(Kd, hindex); \
-        MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &PID_PARAM(Kp, hindex), 1, 9990); \
+        raw_Ki = heaters[hindex].Ki; \
+        raw_Kd = heaters[hindex].Kd; \
+        MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].Kp, 1, 9990); \
         MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &raw_Ki, 0.01, 9990, copy_PID_i_H ## hindex); \
         MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_D HLABEL, &raw_Kd, 1, 9990, copy_PID_d_H ## hindex)
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         #define _PID_MENU_ITEMS(HLABEL, hindex) \
           _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
-          MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &PID_PARAM(Kc, hindex), 1, 9990)
+          MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &heaters[hindex].Kc, 1, 9990)
       #else
         #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
       #endif
@@ -2510,7 +2474,7 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(PID_AUTOTUNE_MENU)
         #define PID_MENU_ITEMS(HLABEL, hindex) \
           _PID_MENU_ITEMS(HLABEL, hindex); \
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, heater_maxtemp[hindex] - 15, lcd_autotune_callback_H ## hindex)
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, heaters[hindex].maxtemp - 15, lcd_autotune_callback_H ## hindex)
       #else
         #define PID_MENU_ITEMS(HLABEL, hindex) _PID_MENU_ITEMS(HLABEL, hindex)
       #endif
@@ -3116,8 +3080,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_0
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T0: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[0].mintemp), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[0].maxtemp), false);
       #endif
 
       #if HAS_TEMP_1
@@ -3125,8 +3089,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_1
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T1: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[1].mintemp), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[1].maxtemp), false);
       #endif
 
       #if HAS_TEMP_2
@@ -3134,8 +3098,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_2
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T2: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[2].mintemp), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[2].maxtemp), false);
       #endif
 
       #if HAS_TEMP_3
@@ -3143,8 +3107,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_3
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T3: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[3].mintemp), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[3].maxtemp), false);
       #endif
 
       #if HAS_TEMP_BED
@@ -3682,7 +3646,7 @@ void kill_screen(const char* lcd_msg) {
         #endif
         return true;
       }
-      else if (!HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX])
+      else if (!HAL::AnalogInputValues[ADC_KEYPAD_ANALOG_INDEX])
         adc_steps = 0; // reset stepping acceleration
 
       return false;
@@ -4344,7 +4308,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   };
 
   uint8_t get_ADC_keyValue(void) {
-    const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_SENSOR_INDEX] >> 2);
+    const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_ANALOG_INDEX] >> 2);
     #if ENABLED(ADC_KEYPAD_DEBUG)
       SERIAL_EV(currentkpADCValue);
     #endif

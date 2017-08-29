@@ -61,7 +61,7 @@
       static bool enable_soft_endstops;
     #endif
 
-    const MeshLevelingState state = parser.seen('S') ? (MeshLevelingState)parser.value_byte() : MeshReport;
+    const MeshLevelingState state = (MeshLevelingState)parser.byteval('S', (int8_t)MeshReport);
     if (state > 5) {
       SERIAL_MSG("S out of range (0-5).");
       return;

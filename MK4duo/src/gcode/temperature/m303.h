@@ -38,12 +38,12 @@
  */
 inline void gcode_M303(void) {
 
-  #if HAS_PID_HEATING || HAS_PID_COOLING
-    const int   h = parser.seen('H') ? parser.value_int() : 0,
-                c = parser.seen('C') ? parser.value_int() : 5;
-    const bool  u = parser.seen('U') && parser.value_bool() != 0;
+  #if HAS_PID || HAS_PID
+    const int   h = parser.intval('H'),
+                c = parser.intval('C', 5);
+    const bool  u = parser.boolval('U');
 
-    int16_t temp = parser.seen('S') ? parser.value_celsius() : (h < 0 ? 70 : 200);
+    int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
     if (WITHIN(h, 0, HOTENDS - 1)) tools.target_extruder = h;
 
@@ -51,7 +51,7 @@ inline void gcode_M303(void) {
       KEEPALIVE_STATE(NOT_BUSY);
     #endif
 
-    thermalManager.PID_autotune(temp, h, c, u);
+    thermalManager.PID_autotune(h, temp, c, u);
 
     #if DISABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(IN_HANDLER);

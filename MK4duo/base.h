@@ -111,6 +111,7 @@
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/stepper/stepper.h"
+#include "src/heater/heater.h"
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
