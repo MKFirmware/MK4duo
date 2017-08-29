@@ -273,7 +273,7 @@ const static PROGMEM byte feedrate[8] = {
   B00000
 };
 
-const static PROGMEM byte clock[8] = {
+const static PROGMEM byte time_clock[8] = {
   B00000,
   B01110,
   B10011,
@@ -349,7 +349,7 @@ static void lcd_set_custom_characters(
   createChar_P(LCD_DEGREE_CHAR, degree);
   createChar_P(LCD_STR_THERMOMETER[0], thermometer);
   createChar_P(LCD_FEEDRATE_CHAR, feedrate);
-  createChar_P(LCD_CLOCK_CHAR, clock);
+  createChar_P(LCD_CLOCK_CHAR, time_clock);
 
   #if HAS_SDSUPPORT
     #if ENABLED(LCD_PROGRESS_BAR)
@@ -610,20 +610,14 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
-FORCE_INLINE void _draw_heater_status(const int8_t heater, const char prefix, const bool blink) {
+FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, const bool blink) {
 
   #if !HEATER_IDLE_HANDLER
     UNUSED(blink);
   #endif
 
-  #if HAS_TEMP_BED
-    const bool isBed = heater < 0;
-  #else
-    const bool isBed = false;
-  #endif
-
-  const float t1 = (isBed ? thermalManager.degBed()       : thermalManager.degHotend(heater)),
-              t2 = (isBed ? thermalManager.degTargetBed() : thermalManager.degTargetHotend(heater));
+  const float t1 = (heaters[heater].current_temperature),
+              t2 = (heaters[heater].target_temperature);
 
   if (prefix >= 0) lcd.print(prefix);
 
@@ -631,13 +625,7 @@ FORCE_INLINE void _draw_heater_status(const int8_t heater, const char prefix, co
   lcd.write('/');
 
   #if HEATER_IDLE_HANDLER
-    const bool is_idle = (!isBed ? thermalManager.is_heater_idle(heater) :
-      #if HAS_TEMP_BED
-        thermalManager.is_bed_idle()
-      #else
-        false
-      #endif
-    );
+    const bool is_idle = thermalManager.is_heater_idle(heater);
 
     if (!blink && is_idle) {
       lcd.write(' ');
@@ -729,7 +717,7 @@ static void lcd_implementation_status_screen() {
         _draw_heater_status(1, -1, blink);
       #else
         lcd.print((char)LCD_BEDTEMP_CHAR);
-        _draw_heater_status(-1, -1, blink);
+        _draw_heater_status(BED_INDEX, -1, blink);
       #endif
 
     #endif // HOTENDS > 1 || HAS_TEMP_BED
@@ -751,7 +739,7 @@ static void lcd_implementation_status_screen() {
       #if HOTENDS > 1
         _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
       #else
-        _draw_heater_status(-1, LCD_BEDTEMP_CHAR, blink);
+        _draw_heater_status(BED_INDEX, LCD_BEDTEMP_CHAR, blink);
       #endif
 
     #endif // HOTENDS > 1 || HAS_TEMP_BED
@@ -785,7 +773,7 @@ static void lcd_implementation_status_screen() {
         // If we both have a 2nd hotend and a heated bed,
         // show the heated bed temp on the left,
         // since the first line is filled with extruder temps
-        _draw_heater_status(-1, LCD_BEDTEMP_CHAR, blink);
+        _draw_heater_status(BED_INDEX, LCD_BEDTEMP_CHAR, blink);
 
       #else
         // Before homing the axis letters are blinking 'X' <-> '?'.
@@ -1102,23 +1090,23 @@ static void lcd_implementation_status_screen() {
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      if (thermalManager.degTargetBed() > 0) leds |= LED_A;
+      if (heaters[BED_INDEX].target_temperature > 0) leds |= LED_A;
 
-      if (thermalManager.degTargetHotend(0) > 0) leds |= LED_B;
+      if (heaters[0].target_temperature > 0) leds |= LED_B;
 
       #if FAN_COUNT > 0
         if (0
           #if HAS_FAN0
-            || fans.Speed[0]
+            || fans[0].Speed
           #endif
           #if HAS_FAN1
-            || fans.Speed[1]
+            || fans[1].Speed
           #endif
           #if HAS_FAN2
-            || fans.Speed[2]
+            || fans[2].Speed
           #endif
           #if HAS_FAN3
-            || fans.Speed[3]
+            || fans[3].Speed
           #endif
         ) leds |= LED_C;
       #endif // FAN_COUNT > 0

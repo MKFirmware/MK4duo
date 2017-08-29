@@ -35,7 +35,7 @@
    */
   inline void gcode_M141(void) {
     if (DEBUGGING(DRYRUN)) return;
-    if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
+    if (parser.seenval('S')) heaters[CHAMBER_INDEX].setTarget(parser.value_celsius());
   }
 
 #endif

@@ -225,7 +225,7 @@
 #if DISABLED(MAX_COOLER_POWER)
   #error DEPENDENCY ERROR: Missing setting MAX_COOLER_POWER
 #endif
-#if ENABLED(PIDTEMP)
+#if (PIDTEMP)
   #if DISABLED(PID_OPENLOOP) && DISABLED(PID_FUNCTIONAL_RANGE) 
     #error DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE
   #endif
@@ -239,7 +239,7 @@
     #error DEPENDENCY ERROR: Missing setting DEFAULT_Kd
   #endif
 #endif
-#if ENABLED(PIDTEMPBED)
+#if (PIDTEMPBED)
   #if DISABLED(DEFAULT_bedKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKp
   #endif
@@ -250,7 +250,7 @@
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKd
   #endif
 #endif
-#if ENABLED(PIDTEMPCHAMBER)
+#if (PIDTEMPCHAMBER)
   #if DISABLED(DEFAULT_chamberKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_chamberKp
   #endif
@@ -262,7 +262,7 @@
   #endif
 
 #endif
-#if ENABLED(PIDTEMPCOOLER)
+#if (PIDTEMPCOOLER)
   #if DISABLED(DEFAULT_coolerKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_coolerKp
   #endif
@@ -297,7 +297,7 @@
     #error DEPENDENCY ERROR: Missing setting COOLER_CHECK_INTERVAL
   #endif
 #endif
-#if ENABLED(THERMAL_PROTECTION_HOTENDS)
+#if THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED || THERMAL_PROTECTION_CHAMBER || THERMAL_PROTECTION_COOLER
   #if DISABLED(THERMAL_PROTECTION_PERIOD)
     #error DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_PERIOD
   #endif
@@ -309,30 +309,6 @@
   #endif
   #if DISABLED(WATCH_TEMP_INCREASE)
     #error DEPENDENCY ERROR: Missing setting WATCH_TEMP_INCREASE
-  #endif
-#endif
-#if ENABLED(THERMAL_PROTECTION_BED)
-  #if DISABLED(THERMAL_PROTECTION_BED_PERIOD)
-    #error DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_BED_PERIOD
-  #endif
-  #if DISABLED(THERMAL_PROTECTION_BED_HYSTERESIS)
-    #error DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_BED_HYSTERESIS
-  #endif
-#endif
-#if ENABLED(THERMAL_PROTECTION_COOLER)
-  #if DISANLED(THERMAL_PROTECTION_COOLER_PERIOD)
-    #error DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_COOLER_PERIOD
-  #endif
-  #if DISABLED(THERMAL_PROTECTION_COOLER_HYSTERESIS)
-    #error DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_COOLER_HYSTERESIS
-  #endif
-  #if ENABLED(THERMAL_PROTECTION_COOLER_WATCHDOG)
-     #if DISABLED(WATCH_TEMP_COOLER_PERIOD)
-       #error DEPENDENCY ERROR: Missing setting WATCH_TEMP_COOLER_PERIOD
-     #endif
-     #if DISABLED(WATCH_TEMP_COOLER_DECREASE)
-       #error DEPENDENCY ERROR: Missing setting WATCH_TEMP_COOLER_DECREASE
-     #endif
   #endif
 #endif
 
@@ -1559,21 +1535,6 @@ static_assert(1 >= 0
 #endif
 
 /**
- * Options only for EXTRUDERS == 1
- */
-#if EXTRUDERS > 1
-
-  #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-    #error CONFLICT ERROR: EXTRUDERS must be 1 with TEMP_SENSOR_1_AS_REDUNDANT.
-  #endif
-
-  #if ENABLED(HEATERS_PARALLEL)
-    #error CONFLICT ERROR: EXTRUDERS must be 1 with HEATERS_PARALLEL.
-  #endif
-
-#endif // EXTRUDERS > 1
-
-/**
  * Limited number of servos
  */
 #if NUM_SERVOS > 4
@@ -1663,7 +1624,7 @@ static_assert(1 >= 0
   #if !HAS_HEATER_2
     #error DEPENDENCY ERROR: HEATER_2_PIN not EXIST for this board
   #endif
-#elif HOTENDS > 1 || ENABLED(HEATERS_PARALLEL)
+#elif HOTENDS > 1
   #if !HAS_HEATER_1
     #error DEPENDENCY ERROR: HEATER_1_PIN not EXIST for this board
   #endif

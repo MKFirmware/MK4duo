@@ -166,7 +166,7 @@
 #define HEATER_3_PIN        ORIG_HEATER_3_PIN
 #define HEATER_BED_PIN      ORIG_HEATER_BED_PIN
 #define HEATER_CHAMBER_PIN  -1
-#define COOLER_PIN          -1
+#define HEATER_COOLER_PIN   -1
 
 // TEMP pin
 #define TEMP_0_PIN          ORIG_TEMP_0_PIN

@@ -113,28 +113,28 @@
  *  M301  L               thermalManager.lpq_len
  *
  * PIDTEMPBED:
- *  M304      PID         bedKp, bedKi, bedKd                   (float x3)
+ *  M304      PID         Kp, Ki, Kd                            (float x3)
  * PIDTEMPCHAMBER
- *  M305      PID         chamberKp, chamberKi, chamberKd       (float x3)
+ *  M305      PID         Kp, Ki, Kd                            (float x3)
  * PIDTEMPCOOLER
- *  M306      PID         coolerKp, coolerKi, coolerKd          (float x3)
+ *  M306      PID         Kp, Ki, Kd                            (float x3)
  *
  * DOGLCD:
  *  M250  C               lcd_contrast                          (uint16_t)
  *
  * FWRETRACT:
- *  M209  S               tools.autoretract_enabled           (bool)
- *  M207  S               tools.retract_length                (float)
- *  M207  W               tools.retract_length_swap           (float)
- *  M207  F               tools.retract_feedrate_mm_s         (float)
- *  M207  Z               tools.retract_zlift                 (float)
- *  M208  S               tools.retract_recover_length        (float)
- *  M208  W               tools.retract_recover_length_swap   (float)
- *  M208  F               tools.retract_recover_feedrate_mm_s (float)
+ *  M209  S               tools.autoretract_enabled             (bool)
+ *  M207  S               tools.retract_length                  (float)
+ *  M207  W               tools.retract_length_swap             (float)
+ *  M207  F               tools.retract_feedrate_mm_s           (float)
+ *  M207  Z               tools.retract_zlift                   (float)
+ *  M208  S               tools.retract_recover_length          (float)
+ *  M208  W               tools.retract_recover_length_swap     (float)
+ *  M208  F               tools.retract_recover_feedrate_mm_s   (float)
  *
  * Volumetric Extrusion:
- *  M200  D               tools.volumetric_enabled            (bool)
- *  M200  T D             tools.filament_size                 (float x6)
+ *  M200  D               tools.volumetric_enabled              (bool)
+ *  M200  T D             tools.filament_size                   (float x6)
  *
  *  M???  S               printer.IDLE_OOZING_enabled
  *
@@ -180,7 +180,7 @@ void EEPROM::Postprocess() {
   // and init stepper.count[], planner.position[] with current_position
   mechanics.refresh_positioning();
 
-  #if ENABLED(PIDTEMP)
+  #if HAS_PID
     thermalManager.updatePID();
   #endif
 
@@ -373,8 +373,10 @@ void EEPROM::Postprocess() {
     #endif
 
     #if HEATER_USES_AD595
-      EEPROM_WRITE(thermalManager.ad595_offset);
-      EEPROM_WRITE(thermalManager.ad595_gain);
+      LOOP_HOTEND() {
+        EEPROM_WRITE(heaters[h].ad595_offset);
+        EEPROM_WRITE(heaters[h].ad595_gain);
+      }
     #endif
 
     #if MECH(DELTA)
@@ -411,34 +413,14 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(lcd_preheat_bed_temp);
     EEPROM_WRITE(lcd_preheat_fan_speed);
 
-    #if ENABLED(PIDTEMP)
-      for (uint8_t h = 0; h < HOTENDS; h++) {
-        EEPROM_WRITE(PID_PARAM(Kp, h));
-        EEPROM_WRITE(PID_PARAM(Ki, h));
-        EEPROM_WRITE(PID_PARAM(Kd, h));
-        EEPROM_WRITE(PID_PARAM(Kc, h));
-      }
-      #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        EEPROM_WRITE(thermalManager.lpq_len);
-      #endif
-    #endif
-
-    #if ENABLED(PIDTEMPBED)
-      EEPROM_WRITE(thermalManager.bedKp);
-      EEPROM_WRITE(thermalManager.bedKi);
-      EEPROM_WRITE(thermalManager.bedKd);
-    #endif
-
-    #if ENABLED(PIDTEMPCHAMBER)
-      EEPROM_WRITE(thermalManager.chamberKp);
-      EEPROM_WRITE(thermalManager.chamberKi);
-      EEPROM_WRITE(thermalManager.chamberKd);
-    #endif
-
-    #if ENABLED(PIDTEMPCOOLER)
-      EEPROM_WRITE(thermalManager.coolerKp);
-      EEPROM_WRITE(thermalManager.coolerKi);
-      EEPROM_WRITE(thermalManager.coolerKd);
+    LOOP_HEATER() {
+      EEPROM_WRITE(heaters[h].Kp);
+      EEPROM_WRITE(heaters[h].Ki);
+      EEPROM_WRITE(heaters[h].Kd);
+      EEPROM_WRITE(heaters[h].Kc);
+    }
+    #if ENABLED(PID_ADD_EXTRUSION_RATE)
+      EEPROM_WRITE(thermalManager.lpq_len);
     #endif
 
     #if !HAS_LCD_CONTRAST
@@ -717,10 +699,11 @@ void EEPROM::Postprocess() {
       #endif
 
       #if HEATER_USES_AD595
-        EEPROM_READ(thermalManager.ad595_offset);
-        EEPROM_READ(thermalManager.ad595_gain);
-        for (int8_t h = 0; h < HOTENDS; h++)
-          if (thermalManager.ad595_gain[h] == 0) thermalManager.ad595_gain[h] == TEMP_SENSOR_AD595_GAIN;
+        LOOP_HOTEND() {
+          EEPROM_READ(heaters[h].ad595_offset);
+          EEPROM_READ(heaters[h].ad595_gain);
+          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain == TEMP_SENSOR_AD595_GAIN;
+        }
       #endif
 
       #if MECH(DELTA)
@@ -755,34 +738,14 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_preheat_bed_temp);
       EEPROM_READ(lcd_preheat_fan_speed);
 
-      #if ENABLED(PIDTEMP)
-        for (int8_t h = 0; h < HOTENDS; h++) {
-          EEPROM_READ(PID_PARAM(Kp, h));
-          EEPROM_READ(PID_PARAM(Ki, h));
-          EEPROM_READ(PID_PARAM(Kd, h));
-          EEPROM_READ(PID_PARAM(Kc, h));
-        }
-        #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          EEPROM_READ(thermalManager.lpq_len);
-        #endif
-      #endif // PIDTEMP
-
-      #if ENABLED(PIDTEMPBED)
-        EEPROM_READ(thermalManager.bedKp);
-        EEPROM_READ(thermalManager.bedKi);
-        EEPROM_READ(thermalManager.bedKd);
-      #endif
-
-      #if ENABLED(PIDTEMPCHAMBER)
-        EEPROM_READ(thermalManager.chamberKp);
-        EEPROM_READ(thermalManager.chamberKi);
-        EEPROM_READ(thermalManager.chamberKd);
-      #endif
-
-      #if ENABLED(PIDTEMPCOOLER)
-        EEPROM_READ(thermalManager.coolerKp);
-        EEPROM_READ(thermalManager.coolerKi);
-        EEPROM_READ(thermalManager.coolerKd);
+      LOOP_HEATER() {
+        EEPROM_READ(heaters[h].Kp);
+        EEPROM_READ(heaters[h].Ki);
+        EEPROM_READ(heaters[h].Kd);
+        EEPROM_READ(heaters[h].Kc);
+      }
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        EEPROM_READ(thermalManager.lpq_len);
       #endif
 
       #if !HAS_LCD_CONTRAST
@@ -1021,34 +984,34 @@ void EEPROM::Factory_Settings() {
     lcd_contrast = DEFAULT_LCD_CONTRAST;
   #endif
 
-  #if ENABLED(PIDTEMP)
+  #if (PIDTEMP)
     LOOP_HOTEND() {
-      PID_PARAM(Kp, h) = tmp6[h];
-      PID_PARAM(Ki, h) = tmp7[h];
-      PID_PARAM(Kd, h) = tmp8[h];
-      PID_PARAM(Kc, h) = tmp9[h];
+      heaters[h].Kp = tmp6[h];
+      heaters[h].Ki = tmp7[h];
+      heaters[h].Kd = tmp8[h];
+      heaters[h].Kc = tmp9[h];
     }
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       thermalManager.lpq_len = 20; // default last-position-queue size
     #endif
   #endif // PIDTEMP
 
-  #if ENABLED(PIDTEMPBED)
-    thermalManager.bedKp = DEFAULT_bedKp;
-    thermalManager.bedKi = DEFAULT_bedKi;
-    thermalManager.bedKd = DEFAULT_bedKd;
+  #if (PIDTEMPBED)
+    heaters[BED_INDEX].Kp = DEFAULT_bedKp;
+    heaters[BED_INDEX].Ki = DEFAULT_bedKi;
+    heaters[BED_INDEX].Kd = DEFAULT_bedKd;
   #endif
 
-  #if ENABLED(PIDTEMPCHAMBER)
-    thermalManager.chamberKp = DEFAULT_chamberKp;
-    thermalManager.chamberKi = DEFAULT_chamberKi;
-    thermalManager.chamberKd = DEFAULT_chamberKd;
+  #if (PIDTEMPCHAMBER)
+    heaters[CHAMBER_INDEX].Kp = DEFAULT_chamberKp;
+    heaters[CHAMBER_INDEX].Ki = DEFAULT_chamberKi;
+    heaters[CHAMBER_INDEX].Kd = DEFAULT_chamberKd;
   #endif
 
-  #if ENABLED(PIDTEMPCOOLER)
-    thermalManager.coolerKp = DEFAULT_coolerKp;
-    thermalManager.coolerKi = DEFAULT_coolerKi;
-    thermalManager.coolerKd = DEFAULT_coolerKd;
+  #if (PIDTEMPCOOLER)
+    heaters[COOLER_INDEX].Kp = DEFAULT_coolerKp;
+    heaters[COOLER_INDEX].Ki = DEFAULT_coolerKi;
+    heaters[COOLER_INDEX].Kd = DEFAULT_coolerKd;
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -1308,10 +1271,10 @@ void EEPROM::Factory_Settings() {
 
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      for (int8_t h = 0; h < HOTENDS; h++) {
+      LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M595 H", h);
-        SERIAL_MV(" O", thermalManager.ad595_offset[h]);
-        SERIAL_EMV(", S", thermalManager.ad595_gain[h]);
+        SERIAL_MV(" O", heaters[h].ad595_offset);
+        SERIAL_EMV(", S", heaters[h].ad595_gain);
       }
     #endif // HEATER_USES_AD595
 
@@ -1369,16 +1332,16 @@ void EEPROM::Factory_Settings() {
       }
     #endif // ULTIPANEL
 
-    #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED) || ENABLED(PIDTEMPCHAMBER) || ENABLED(PIDTEMPCOOLER)
+    #if HAS_PID
       CONFIG_MSG_START("PID settings:");
-      #if ENABLED(PIDTEMP)
+      #if (PIDTEMP)
         #if HOTENDS == 1
           SERIAL_SM(CFG, "  M301 H0");
-          SERIAL_MV(" P", PID_PARAM(Kp, 0));
-          SERIAL_MV(" I", PID_PARAM(Ki, 0));
-          SERIAL_MV(" D", PID_PARAM(Kd, 0));
+          SERIAL_MV(" P", heaters[0].Kp);
+          SERIAL_MV(" I", heaters[0].Ki);
+          SERIAL_MV(" D", heaters[0].Kd);
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_MV(" C", PID_PARAM(Kc, 0));
+            SERIAL_MV(" C", heaters[0].Kc);
           #endif
           SERIAL_EOL();
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -1387,11 +1350,11 @@ void EEPROM::Factory_Settings() {
         #elif HOTENDS > 1
           for (int8_t h = 0; h < HOTENDS; h++) {
             SERIAL_SMV(CFG, "  M301 H", h);
-            SERIAL_MV(" P", PID_PARAM(Kp, h));
-            SERIAL_MV(" I", PID_PARAM(Ki, h));
-            SERIAL_MV(" D", PID_PARAM(Kd, h));
+            SERIAL_MV(" P", heaters[h].Kp);
+            SERIAL_MV(" I", heaters[h].Ki);
+            SERIAL_MV(" D", heaters[h].Kd);
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
-              SERIAL_MV(" C", PID_PARAM(Kc, h));
+              SERIAL_MV(" C", heaters[h].Kc);
             #endif
             SERIAL_EOL();
           }
@@ -1400,20 +1363,20 @@ void EEPROM::Factory_Settings() {
           #endif
         #endif
       #endif
-      #if ENABLED(PIDTEMPBED)
-        SERIAL_SMV(CFG, "  M304 P", thermalManager.bedKp);
-        SERIAL_MV(" I", thermalManager.bedKi);
-        SERIAL_EMV(" D", thermalManager.bedKd);
+      #if (PIDTEMPBED)
+        SERIAL_SMV(CFG, "  M304 P", heaters[BED_INDEX].Kp);
+        SERIAL_MV(" I", heaters[BED_INDEX].Ki);
+        SERIAL_EMV(" D", heaters[BED_INDEX].Kd);
       #endif
-      #if ENABLED(PIDTEMPCHAMBER)
-        SERIAL_SMV(CFG, "  M305 P", thermalManager.chamberKp);
-        SERIAL_MV(" I", thermalManager.chamberKi);
-        SERIAL_EMV(" D", thermalManager.chamberKd);
+      #if (PIDTEMPCHAMBER)
+        SERIAL_SMV(CFG, "  M305 P", heaters[CHAMBER_INDEX].Kp);
+        SERIAL_MV(" I", heaters[CHAMBER_INDEX].Ki);
+        SERIAL_EMV(" D", heaters[CHAMBER_INDEX].Kd);
       #endif
-      #if ENABLED(PIDTEMPCOOLER)
-        SERIAL_SMV(CFG, "  M306 P", thermalManager.coolerKp);
-        SERIAL_MV(" I", thermalManager.coolerKi);
-        SERIAL_EMV(" D", thermalManager.coolerKd);
+      #if (PIDTEMPCOOLER)
+        SERIAL_SMV(CFG, "  M306 P", heaters[COOLER_INDEX].Kp);
+        SERIAL_MV(" I", heaters[COOLER_INDEX].Ki);
+        SERIAL_EMV(" D", heaters[COOLER_INDEX].Kd);
       #endif
     #endif
 

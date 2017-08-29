@@ -39,7 +39,7 @@
 
     LCD_MESSAGEPGM(MSG_CHAMBER_HEATING);
     bool no_wait_for_cooling = parser.seen('S');
-    if (no_wait_for_cooling || parser.seen('R')) thermalManager.setTargetChamber(parser.value_celsius());
+    if (no_wait_for_cooling || parser.seen('R')) heaters[CHAMBER_INDEX].setTarget(parser.value_celsius());
 
     printer.wait_chamber(no_wait_for_cooling);
   }

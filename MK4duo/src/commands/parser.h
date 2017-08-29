@@ -73,7 +73,7 @@ class GCodeParser {
                 *string_arg;                // string of command line
 
     static char command_letter;             // G, M, or T
-    static int codenum;                     // 123
+    static uint16_t codenum;                // 123
     #if USE_GCODE_SUBCODES
       static uint8_t subcode;               // .1
     #endif

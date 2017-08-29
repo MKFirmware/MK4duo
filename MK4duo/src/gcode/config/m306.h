@@ -26,20 +26,20 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PIDTEMPCOOLER)
+#if (PIDTEMPCOOLER)
 
   #define CODE_M306
 
   // M306: Set cooler PID parameters P I and D
   inline void gcode_M306(void) {
-    if (parser.seen('P')) thermalManager.coolerKp = parser.value_float();
-    if (parser.seen('I')) thermalManager.coolerKi = parser.value_float();
-    if (parser.seen('D')) thermalManager.coolerKd = parser.value_float();
+    if (parser.seen('P')) heaters[COOLER_INDEX].Kp = parser.value_float();
+    if (parser.seen('I')) heaters[COOLER_INDEX].Ki = parser.value_float();
+    if (parser.seen('D')) heaters[COOLER_INDEX].Kd = parser.value_float();
 
     thermalManager.updatePID();
-    SERIAL_SMV(OK, " p:", thermalManager.coolerKp);
-    SERIAL_MV(" i:", thermalManager.coolerKi);
-    SERIAL_EMV(" d:", thermalManager.coolerKd);
+    SERIAL_SMV(OK, " p:", heaters[COOLER_INDEX].Kp);
+    SERIAL_MV(" i:", heaters[COOLER_INDEX].Ki);
+    SERIAL_EMV(" d:", heaters[COOLER_INDEX].Kd);
   }
 
-#endif // ENABLED(PIDTEMPCOOLER)
+#endif // (PIDTEMPCOOLER)

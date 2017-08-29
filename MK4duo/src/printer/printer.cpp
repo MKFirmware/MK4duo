@@ -79,7 +79,7 @@ PrinterMode Printer::mode =
 PrintCounter Printer::print_job_counter = PrintCounter();
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  float Printer::mixing_factor[MIXING_STEPPERS]; // Reciprocal of mix proportion. 0.0 = off, otherwise >= 1.0
+  float Printer::mixing_factor[MIXING_STEPPERS]; // Mix proportion. 0.0 = off
   #if MIXING_VIRTUAL_TOOLS  > 1
     float Printer::mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
   #endif
@@ -253,16 +253,22 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  thermalManager.init();    // Initialize temperature loop
+  LOOP_HEATER() heaters[h].init();  // Initialize all Heater
+
+  thermalManager.init();  // Initialize temperature loop
+
+  #if FAN_COUNT > 0
+    fan_init(); // Initialize Fans
+  #endif
 
   #if ENABLED(CNCROUTER)
     cnc.init();
   #endif
 
-  stepper.init();    // Initialize stepper, this enables interrupts!
-  
+  stepper.init(); // Initialize stepper, this enables interrupts!
+
   #if HAS_SERVOS
-    servo_init();
+    servo_init(); // Initialize all Servo
   #endif
 
   #if HAS_PHOTOGRAPH
@@ -368,10 +374,11 @@ void Printer::setup() {
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     // Initialize mixing to 100% color 1
-    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      mixing_factor[i] = (i == 0) ? 1.0 : 0.0;
-    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; t++)
-      for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+    mixing_factor[0] = 1.0;
+    for (uint8_t i = 1; i < MIXING_STEPPERS; ++i) mixing_factor[i] = 0.0;
+
+    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; ++t)
+      for (uint8_t i = 0; i < MIXING_STEPPERS; ++i)
         mixing_virtual_tool_mix[t][i] = mixing_factor[i];
   #endif
 
@@ -391,7 +398,7 @@ void Printer::setup() {
   #endif
 
   #if FAN_COUNT > 0
-    LOOP_FAN() fans.Speed[f] = 0;
+    LOOP_FAN() fans[f].Speed = 0;
   #endif
 }
 
@@ -399,7 +406,7 @@ void Printer::safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     HAL::delayMilliseconds(50);
-    thermalManager.manage_temp_controller();
+    if (HAL::Analog_is_ready) thermalManager.manage_temp_controller();
   }
   HAL::delayMilliseconds(ms);
 }
@@ -462,7 +469,7 @@ void Printer::get_destination_from_command() {
     print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    gcode_get_mix();
+    get_mix_from_command();
   #endif
 
   #if ENABLED(RFID_MODULE)
@@ -514,7 +521,6 @@ void Printer::kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
   thermalManager.disable_all_heaters();
-  thermalManager.disable_all_coolers();
   stepper.disable_all_steppers();
 
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
@@ -572,11 +578,10 @@ void Printer::Stop() {
   #endif
 
   thermalManager.disable_all_heaters();
-  thermalManager.disable_all_coolers();
 
   #if ENABLED(PROBING_FANS_OFF)
-    if (fans.paused) {
-      LOOP_FAN() fans.pause(f, false); // put things back the way they were
+    LOOP_FAN() {
+      if (fans[f].paused) fans[f].pause(false); // put things back the way they were
     }
   #endif
 
@@ -651,7 +656,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   if (HAL::execute_100ms) {
     // Event 100 Ms
     HAL::execute_100ms = false;
-    thermalManager.manage_temp_controller();
+    if (HAL::Analog_is_ready) thermalManager.manage_temp_controller();
     if (--cycle_1500ms == 0) {
       // Event 1500 Ms
       cycle_1500ms = 15;
@@ -802,7 +807,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && thermalManager.degHotend(tools.active_extruder) > EXTRUDER_RUNOUT_MINTEMP) {
+      && heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP) {
       bool oldstatus = 0;
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         oldstatus = E0_ENABLE_READ;
@@ -873,12 +878,12 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (planner.blocks_queued()) axis_last_activity = millis();
-    if (thermalManager.degHotend(tools.active_extruder) > IDLE_OOZING_MINTEMP && !(DEBUGGING(DRYRUN)) && IDLE_OOZING_enabled) {
+    if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !(DEBUGGING(DRYRUN)) && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
       {
-        if (thermalManager.degTargetHotend(tools.active_extruder) < IDLE_OOZING_MINTEMP) {
+        if (heaters[EXTRUDER_IDX].target_temperature < IDLE_OOZING_MINTEMP) {
           IDLE_OOZING_retract(false);
         }
         else if ((millis() - axis_last_activity) >  IDLE_OOZING_SECONDS * 1000UL) {
@@ -1630,9 +1635,8 @@ void Printer::handle_Interrupt_Event() {
       print_job_counter.stop();
       thermalManager.wait_for_heatup = false;
       thermalManager.disable_all_heaters();
-      thermalManager.disable_all_coolers();
       #if FAN_COUNT > 0
-        LOOP_FAN() fans.Speed[f] = 0;
+        LOOP_FAN() fans[f].Speed = 0;
       #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
       #if HAS_POWER_SWITCH
@@ -1642,6 +1646,46 @@ void Printer::handle_Interrupt_Event() {
   }
 
 #endif // HAS_SDSUPPORT
+
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+
+  /** Normalize mixing factors with a very simple math
+   *
+   *  F1 + ... + Fn == factors_sum
+   *
+   * (F1/factors_sum) + ... + (Fn/factors_sum) == (factors_sum/factors_sum) == 1.0
+   *
+   * This means that (F1/factors_sum), ... , (Fn/factors_sum) are normalized values!
+   *
+   * If factors_sum == 0, it means that F1 == ... == Fn == 0.0 (already normalized values)
+   */
+  void Printer::store_normalized_mixing_factors(uint8_t tool_index) {
+    float factors_sum = 0.0;
+
+    // We calculate the sum of all factors
+    for(uint8_t index= 0; index < MIXING_STEPPERS; ++index)
+      factors_sum += mixing_factor[index];
+
+    if(factors_sum <= 0.0001) return;
+
+    // We normalize values
+    for(uint8_t index= 0; index < MIXING_STEPPERS; ++index){
+      mixing_virtual_tool_mix[tool_index][index] = mixing_factor[index] / factors_sum;
+    }
+  }
+
+  void Printer::get_mix_from_command() {
+    if (MIXING_STEPPERS >= 1) mixing_factor[0] = parser.floatval('A');
+    if (MIXING_STEPPERS >= 2) mixing_factor[1] = parser.floatval('B');
+    if (MIXING_STEPPERS >= 3) mixing_factor[2] = parser.floatval('C');
+    if (MIXING_STEPPERS >= 4) mixing_factor[3] = parser.floatval('D');
+    if (MIXING_STEPPERS >= 5) mixing_factor[4] = parser.floatval('H');
+    if (MIXING_STEPPERS == 6) mixing_factor[5] = parser.floatval('I');
+
+    for (uint8_t i = 0; i < MIXING_STEPPERS; ++i) NOLESS(mixing_factor[i], 0.0);
+  }
+
+#endif // ENABLED(COLOR_MIXING_EXTRUDER)
 
 #if ENABLED(FWRETRACT)
 
@@ -1727,8 +1771,8 @@ void Printer::handle_Interrupt_Event() {
     while (thermalManager.wait_for_heatup && heaters_heating) {
       idle();
       heaters_heating = false;
-      LOOP_HOTEND() {
-        if (thermalManager.degTargetHotend(h) && abs(thermalManager.degHotend(h) - thermalManager.degTargetHotend(h)) > TEMP_HYSTERESIS) {
+      LOOP_HEATER() {
+        if (heaters[h].target_temperature && abs(heaters[h].current_temperature - heaters[h].target_temperature) > TEMP_HYSTERESIS) {
           heaters_heating = true;
           #if HAS_LCD
             lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
@@ -1795,14 +1839,14 @@ void Printer::handle_Interrupt_Event() {
 
     // Store in old temperature the target temperature for hotend and bed
     int16_t old_target_temperature[HOTENDS];
-    LOOP_HOTEND() old_target_temperature[h] = thermalManager.target_temperature[h]; // Save nozzle temps
+    LOOP_HOTEND() old_target_temperature[h] = heaters[h].target_temperature; // Save nozzle temps
 
     // Second retract filament with Cool Down
     if (retract2) {
       // Cool Down hotend
       #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
-        thermalManager.setTargetHotend(PAUSE_PARK_COOLDOWN_TEMP, tools.active_extruder);
+        heaters[tools.active_extruder].setTarget(PAUSE_PARK_COOLDOWN_TEMP);
         thermalManager.wait_heater(false);
       #endif
 
@@ -1853,11 +1897,11 @@ void Printer::handle_Interrupt_Event() {
 
     LOOP_HOTEND() {
       thermalManager.start_heater_idle_timer(h, nozzle_timeout);
-      thermalManager.setTargetHotend(old_target_temperature[h], h);
+      heaters[h].setTarget(old_target_temperature[h]);
     }
 
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-      thermalManager.start_bed_idle_timer(bed_timeout);
+      thermalManager.start_heater_idle_timer(BED_INDEX, bed_timeout);
     #endif
 
     return true;
@@ -1893,7 +1937,7 @@ void Printer::handle_Interrupt_Event() {
 
           if (!bed_timed_out) {
             #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-              bed_timed_out = thermalManager.is_bed_idle();
+              bed_timed_out = thermalManager.is_heater_idle(BED_INDEX);
             #endif
           }
           else {
@@ -1908,11 +1952,11 @@ void Printer::handle_Interrupt_Event() {
         // Re-enable the bed if they timed out
         #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
           if (bed_timed_out) {
-            thermalManager.reset_bed_idle_timer();
+            thermalManager.reset_heater_idle_timer(BED_INDEX);
             #if HAS_LCD
               lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
             #endif
-            thermalManager.wait_bed();
+            thermalManager.wait_heater(BED_INDEX);
           }
         #endif
 
@@ -1934,7 +1978,7 @@ void Printer::handle_Interrupt_Event() {
           thermalManager.start_heater_idle_timer(h, nozzle_timeout);
 
         #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-          thermalManager.start_bed_idle_timer(bed_timeout);
+          thermalManager.start_heater_idle_timer(BED_INDEX, bed_timeout);
         #endif
 
         wait_for_user = true; /* Wait for user to load filament */
@@ -1960,9 +2004,9 @@ void Printer::handle_Interrupt_Event() {
 
     // Re-enable the heaters if they timed out
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-      bed_timed_out = thermalManager.is_bed_idle();
-      thermalManager.reset_bed_idle_timer();
-      if (bed_timed_out) thermalManager.wait_bed();
+      bed_timed_out = thermalManager.is_heater_idle(BED_INDEX);
+      thermalManager.reset_heater_idle_timer(BED_INDEX);
+      if (bed_timed_out) thermalManager.wait_heater(BED_INDEX);
     #endif
 
     LOOP_HOTEND() {
@@ -2314,7 +2358,7 @@ void Printer::setup_powerhold() {
       }
 
       // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      fans[CONTROLLER_INDEX].setSpeed((!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED);
+      fans[CONTROLLER_INDEX].Speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
     }
   }
 
@@ -2422,10 +2466,10 @@ void Printer::invalid_extruder_error(const uint8_t e) {
       next_status_led_update_ms += 500; // Update every 0.5s
       float max_temp = 0.0;
         #if HAS_TEMP_BED
-          max_temp = MAX3(max_temp, thermalManager.degTargetBed(), thermalManager.degBed());
+          max_temp = MAX3(max_temp, heaters[BED_INDEX].target_temperature, heaters[BED_INDEX].current_temperature);
         #endif
       LOOP_HOTEND()
-        max_temp = MAX3(max_temp, thermalManager.degHotend(h), thermalManager.degTargetHotend(h));
+        max_temp = MAX3(max_temp, heaters[h].current_temperature, heaters[h].target_temperature);
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;

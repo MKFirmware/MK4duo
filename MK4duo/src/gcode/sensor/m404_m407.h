@@ -72,7 +72,10 @@
   /**
    * M406: Turn off filament sensor for control
    */
-  inline void gcode_M406(void) { printer.filament_sensor = false; }
+  inline void gcode_M406(void) {
+    printer.filament_sensor = false;
+    printer.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
+  }
 
   /**
    * M407: Get measured filament diameter on serial output

@@ -48,6 +48,13 @@ enum AxisEnum {
 };
 
 typedef enum {
+  IS_HOTEND   = 0,
+  IS_BED      = 1,
+  IS_CHAMBER  = 2,
+  IS_COOLER   = 3
+} Heater_type;
+
+typedef enum {
   LINEARUNIT_MM,
   LINEARUNIT_INCH
 } LinearUnit;

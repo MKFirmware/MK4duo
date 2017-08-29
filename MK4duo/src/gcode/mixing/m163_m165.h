@@ -39,11 +39,11 @@
    *
    */
   inline void gcode_M163(void) {
-    int mix_index = parser.seen('S') ? parser.value_int() : 0;
-    if (mix_index < MIXING_STEPPERS) {
-      float mix_value = parser.seen('P') ? parser.value_float() : 0.0;
+    const int mix_index = parser.intval('S');
+    if (WITHIN(mix_index, 0, MIXING_STEPPERS)) {
+      float mix_value = parser.floatval('P');
       NOLESS(mix_value, 0.0);
-      printer.mixing_factor[mix_index] = RECIPROCAL(mix_value);
+      printer.mixing_factor[mix_index] = mix_value;
     }
   }
 
@@ -58,13 +58,9 @@
      *
      */
     inline void gcode_M164(void) {
-      int tool_index = parser.seen('S') ? parser.value_int() : 0;
-      if (tool_index < MIXING_VIRTUAL_TOOLS) {
-        normalize_mix();
-        for (uint8_t i = 0; i < MIXING_STEPPERS; i++) {
-          printer.mixing_virtual_tool_mix[tool_index][i] = printer.mixing_factor[i];
-        }
-      }
+      const int tool_index = parser.intval('S');
+      if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS))
+        printer.store_normalized_mixing_factors(tool_index);
     }
 
   #endif
@@ -74,7 +70,6 @@
   /**
    * M165: Set multiple mix factors for a mixing extruder.
    *       Factors that are left out will be set to 0.
-   *       All factors together must add up to 1.0.
    *
    *   A[factor] Mix factor for extruder stepper 1
    *   B[factor] Mix factor for extruder stepper 2
@@ -84,6 +79,6 @@
    *   I[factor] Mix factor for extruder stepper 6
    *
    */
-  inline void gcode_M165(void) { gcode_get_mix(); }
+  inline void gcode_M165(void) { printer.get_mix_from_command(); }
 
 #endif  // COLOR_MIXING_EXTRUDER

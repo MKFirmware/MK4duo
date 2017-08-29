@@ -226,9 +226,8 @@ void Endstops::report_state() {
       if (stepper.abort_on_endstop_hit) {
         card.sdprinting = false;
         card.closeFile();
-        quickstop_stepper();
+        printer.quickstop_stepper();
         thermalManager.disable_all_heaters(); // switch off all heaters.
-        thermalManager.disable_all_coolers();
       }
     #endif
   }

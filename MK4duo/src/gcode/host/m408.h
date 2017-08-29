@@ -72,7 +72,7 @@
 
     #if FAN_COUNT > 0
       SERIAL_MSG(",\"fanPercent\":[");
-      SERIAL_VAL(fans.Speed[0]);
+      SERIAL_VAL(fans[0].Speed);
     #endif
 
     SERIAL_MV("],\"speedFactor\":", mechanics.feedrate_percentage);
@@ -88,31 +88,31 @@
 
     SERIAL_MSG("\"temps\": {");
     #if HAS_TEMP_BED
-      SERIAL_MV("\"bed\": {\"current\":", thermalManager.degBed(), 1);
-      SERIAL_MV(",\"active\":", thermalManager.degTargetBed());
+      SERIAL_MV("\"bed\": {\"current\":", heaters[BED_INDEX].current_temperature, 1);
+      SERIAL_MV(",\"active\":", heaters[BED_INDEX].target_temperature);
       SERIAL_MSG(",\"state\":");
-      SERIAL_CHR(thermalManager.degTargetBed() > 0 ? '2' : '1');
+      SERIAL_CHR(heaters[BED_INDEX].target_temperature > 0 ? '2' : '1');
       SERIAL_MSG("},");
     #endif
     SERIAL_MSG("\"heads\": {\"current\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(thermalManager.degHotend(h), 1);
+      SERIAL_VAL(heaters[h].current_temperature, 1);
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"active\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(thermalManager.degTargetHotend(h));
+      SERIAL_VAL(heaters[h].target_temperature);
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"state\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_CHR(thermalManager.degTargetHotend(h) > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
+      SERIAL_CHR(heaters[h].target_temperature > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
       firstOccurrence = false;
     }
 

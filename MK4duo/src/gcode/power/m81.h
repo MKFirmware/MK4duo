@@ -35,15 +35,14 @@
  */
 inline void gcode_M81(void) {
   thermalManager.disable_all_heaters();
-  thermalManager.disable_all_coolers();
   stepper.finish_and_disable();
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      fans.Speed[f] = 0;
-      fans.paused_Speed[f] = 0;
+      fans[f].Speed = 0;
+      fans[f].paused_Speed = 0;
+      fans[f].paused = false;
     }
-    fans.paused = false;
   #endif
 
   #if ENABLED(LASER)

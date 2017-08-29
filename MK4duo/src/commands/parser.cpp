@@ -41,7 +41,7 @@ char *GCodeParser::command_ptr,
      *GCodeParser::string_arg,
      *GCodeParser::value_ptr;
 char  GCodeParser::command_letter;
-int   GCodeParser::codenum;
+uint16_t GCodeParser::codenum;
 
 #if USE_GCODE_SUBCODES
   uint8_t GCodeParser::subcode;

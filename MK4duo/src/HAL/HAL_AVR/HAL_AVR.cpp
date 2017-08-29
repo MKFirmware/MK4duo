@@ -62,9 +62,9 @@
   int32_t AnalogInputRead[ANALOG_INPUTS];
   uint8_t adcCounter[ANALOG_INPUTS],
           adcSamplePos = 0;
-  bool    Analog_is_ready = false;
 
   int16_t HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+  bool    HAL::Analog_is_ready = false;
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
@@ -141,13 +141,7 @@ void HAL::showStartReason() {
   MCUSR = 0;
 }
 
-void HAL::hwSetup() {
-  // Initialize Fans
-  #if FAN_COUNT > 0
-    const Pin FAN_PINS[FAN_COUNT] = FANS_CHANNELS;
-    LOOP_FAN() fans.init(f, FAN_PINS[f], FAN_INVERTED);
-  #endif
-}
+void HAL::hwSetup() { }
 
 void HAL::analogStart() {
 
@@ -263,19 +257,6 @@ HAL_TEMP_TIMER_ISR {
   static uint8_t  pwm_count_heater        = 0,
                   pwm_count_fan           = 0;
 
-  #if HAS_TEMP_HOTEND
-    static uint8_t  pwm_heater_pos[HOTENDS] = { 0 };
-  #endif
-  #if HAS_HEATER_BED
-    static uint8_t  pwm_bed_pos = 0;
-  #endif
-  #if HAS_HEATER_CHAMBER
-    static uint8_t  pwm_chamber_pos = 0;
-  #endif
-  #if HAS_COOLER
-    static uint8_t  pwm_cooler_pos = 0;
-  #endif
-
   #if ENABLED(FILAMENT_SENSOR)
     static unsigned long raw_filwidth_value = 0;
   #endif
@@ -284,79 +265,35 @@ HAL_TEMP_TIMER_ISR {
    * Standard PWM modulation
    */
   if (pwm_count_heater == 0) {
-    #if HOTENDS > 0
-      if ((pwm_heater_pos[0] = (thermalManager.soft_pwm[0] & HEATER_PWM_MASK)) > 0)
-        WRITE_HEATER_0(HIGH);
-      #if HOTENDS > 1
-        if ((pwm_heater_pos[1] = (thermalManager.soft_pwm[1] & HEATER_PWM_MASK)) > 0)
-          WRITE_HEATER_1(HIGH);
-        #if HOTENDS > 2
-          if ((pwm_heater_pos[2] = (thermalManager.soft_pwm[2] & HEATER_PWM_MASK)) > 0)
-            WRITE_HEATER_2(HIGH);
-          #if HOTENDS > 3
-            if ((pwm_heater_pos[3] = (thermalManager.soft_pwm[3] & HEATER_PWM_MASK)) > 0)
-              WRITE_HEATER_0(HIGH);
-          #endif
-        #endif
-      #endif
+    #if HEATER_COUNT > 0
+      LOOP_HEATER() {
+        if (heaters[h].output_pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
+          HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? LOW : HIGH);
+      }
     #endif
-
-    #if HAS_HEATER_BED && HAS_TEMP_BED
-      if ((pwm_bed_pos = (thermalManager.soft_pwm_bed & HEATER_PWM_MASK)) > 0)
-        WRITE_HEATER_BED(HIGH);
-    #endif
-
-    #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
-      if ((pwm_chamber_pos = (thermalManager.soft_pwm_chamber & HEATER_PWM_MASK)) > 0)
-        WRITE_HEATER_CHAMBER(HIGH);
-    #endif
-
-    #if HAS_COOLER && HAS_TEMP_COOLER
-      if ((pwm_cooler_pos = (thermalManager.soft_pwm_cooler & HEATER_PWM_MASK)) > 0)
-        WRITE_COOLER(HIGH);
-    #endif
-
   }
 
   if (pwm_count_fan == 0) {
     #if FAN_COUNT >0
       LOOP_FAN() {
-        if ((fans.pwm_pos[f] = (fans.Speed[f] & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans.pin[f], FAN_ON);
+        if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
+          HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? LOW : HIGH);
       }
     #endif
   }
 
-  #if HOTENDS > 0
-    if (pwm_heater_pos[0] == pwm_count_heater && pwm_heater_pos[0] != HEATER_PWM_MASK) WRITE_HEATER_0(LOW);
-    #if HOTENDS > 1
-      if (pwm_heater_pos[1] == pwm_count_heater && pwm_heater_pos[1] != HEATER_PWM_MASK) WRITE_HEATER_1(LOW);
-      #if HOTENDS > 2
-        if (pwm_heater_pos[2] == pwm_count_heater && pwm_heater_pos[2] != HEATER_PWM_MASK) WRITE_HEATER_2(LOW);
-        #if HOTENDS > 3
-          if (pwm_heater_pos[3] == pwm_count_heater && pwm_heater_pos[3] != HEATER_PWM_MASK) WRITE_HEATER_3(LOW);
-        #endif
-      #endif
-    #endif
-  #endif
-
-  #if HAS_HEATER_BED
-    if (pwm_bed_pos == pwm_count_heater && pwm_bed_pos != HEATER_PWM_MASK) WRITE_HEATER_BED(LOW);
-  #endif
-
-  #if HAS_HEATER_CHAMBER && HAS_TEMP_CHAMBER
-    if (pwm_chamber_pos == pwm_count_heater && pwm_chamber_pos != HEATER_PWM_MASK) WRITE_HEATER_CHAMBER(LOW);
-  #endif
-
-  #if HAS_COOLER && HAS_TEMP_COOLER
-    if (pwm_cooler_pos == pwm_count_heater && pwm_cooler_pos != HEATER_PWM_MASK) WRITE_COOLER(LOW);
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() {
+      if (heaters[h].output_pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
+        HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
+    }
   #endif
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      if (fans.Kickstart[f] == 0) {
-        if (fans.pwm_pos[f] == pwm_count_fan && fans.pwm_pos[f] != FAN_PWM_MASK)
-          HAL::digitalWrite(fans.pin[f], FAN_OFF);
+      if (fans[f].Kickstart == 0) {
+        if (fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
+          HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
       }
     }
   #endif
@@ -368,7 +305,7 @@ HAL_TEMP_TIMER_ISR {
     HAL::execute_100ms = true;
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
       LOOP_FAN()
-        if (fans.Kickstart[f]) fans.Kickstart[f]--;
+        if (fans[f].Kickstart) fans[f].Kickstart--;
     #endif
   }
 
@@ -385,7 +322,7 @@ HAL_TEMP_TIMER_ISR {
         // Start next conversion
         if (++adcSamplePos >= ANALOG_INPUTS) {
           adcSamplePos = 0;
-          Analog_is_ready = true;
+          HAL::Analog_is_ready = true;
         }
         uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
         #if ENABLED(ADCSRB) && ENABLED(MUX5)
@@ -400,7 +337,7 @@ HAL_TEMP_TIMER_ISR {
     }
 
     // Update the raw values if they've been read. Else we could be updating them during reading.
-    if (Analog_is_ready) thermalManager.set_current_temp_raw();
+    if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
 
   #endif
 

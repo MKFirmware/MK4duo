@@ -180,7 +180,7 @@
     #define LCD_PINS_D6 		46
     #define LCD_PINS_D7 		47
 
-    #define BEEPER          41
+    #define ORIG_BEEPER_PIN 41
 
     #define BTN_EN1         50
     #define BTN_EN2         52
@@ -207,7 +207,7 @@
     #define BTN_EN1         50
     #define BTN_EN2         52
     #define BTN_ENC         48
-    #define BEEPER          41
+    #define ORIG_BEEPER_PIN 41
     #define LCD_SDSS        10
     #define SD_DETECT_PIN   14
     #define KILL_PIN        -1
@@ -222,8 +222,8 @@
     #define BTN_ENC         37
 
     #define KILL_PIN        -1
-    #undef BEEPER
-    #define BEEPER          -1
+    #undef ORIG_BEEPER_PIN
+    #define ORIG_BEEPER_PIN -1
 	#endif // SPARK_FULL_GRAPHICS
 #endif // ULTRA_LCD
 //@@@

@@ -933,29 +933,29 @@
     Ptemp.show();
     ZERO(buffer);
     if (ptr == &Hotend0) {
-      if (thermalManager.degTargetHotend(0) != 0) {
-        itoa(thermalManager.degTargetHotend(0), buffer, 10);
+      if (heaters[0].target_temperature != 0) {
+        itoa(heaters[0].target_temperature, buffer, 10);
       }
       theater.setValue(0);
     }
     if (ptr == &Hotend1) {
-      if (thermalManager.degTargetHotend(1) != 0) {
-        itoa(thermalManager.degTargetHotend(1), buffer, 10);
+      if (heaters[1].target_temperature != 0) {
+        itoa(heaters[1].target_temperature, buffer, 10);
       }
       theater.setValue(1);
     }
 
     #if HAS_TEMP_2
       if (ptr == &Hotend2) {
-        if (thermalManager.degTargetHotend(2) != 0) {
-          itoa(thermalManager.degTargetHotend(2), buffer, 10);
+        if (heaters[2].target_temperature != 0) {
+          itoa(heaters[2].target_temperature, buffer, 10);
         }
         theater.setValue(2);
       }
     #elif HAS_TEMP_BED
       if (ptr == &Hotend2) {
-        if (thermalManager.degTargetBed() != 0) {
-          itoa(thermalManager.degTargetBed(), buffer, 10);
+        if (heaters[BED_INDEX].target_temperature != 0) {
+          itoa(heaters[BED_INDEX].target_temperature, buffer, 10);
         }
         theater.setValue(4);
       }
@@ -991,11 +991,11 @@
 
     #if HAS_TEMP_BED
       if (Heater == 4)
-        thermalManager.setTargetBed(temperature);
+        heaters[BED_INDEX].setTarget(temperature);
       else
     #endif
     #if HAS_TEMP_HOTEND
-      thermalManager.setTargetHotend(temperature, (uint8_t)Heater);
+      heaters[(uint8_t)Heater].setTarget(temperature);
     #endif
 
     Pprinter.show();
@@ -1010,8 +1010,8 @@
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr) {
-      fans.Speed[0] = (fans.Speed[0] ? 0 : 255);
-      Fantimer.enable(fans.Speed[0] ? false : true);
+      fans[0].Speed = (fans[0].Speed ? 0 : 255);
+      Fantimer.enable(fans[0].Speed ? false : true);
     }
   #endif
 
@@ -1266,11 +1266,11 @@
         }
 
         #if FAN_COUNT > 0
-          if (PreviousfanSpeed != fans.Speed[0]) {
-            if (fans.Speed[0] > 0) {
+          if (PreviousfanSpeed != fans[0].Speed) {
+            if (fans[0].Speed > 0) {
               Fantimer.enable();
               ZERO(buffer);
-              temp = itostr3(((float)fans.Speed[0] / 255) * 100);
+              temp = itostr3(((float)fans[0].Speed / 255) * 100);
               strcat(buffer, temp);
               strcat(buffer, "%");
               Fanspeed.setText(buffer);
@@ -1279,7 +1279,7 @@
               Fantimer.enable(false);
               Fanspeed.setText("");
             }
-            PreviousfanSpeed = fans.Speed[0];
+            PreviousfanSpeed = fans[0].Speed;
           }
         #endif
 
@@ -1289,32 +1289,32 @@
         }
 
         #if HAS_TEMP_0
-          if (PreviousdegHeater[0] != thermalManager.degHotend(0)) {
-            PreviousdegHeater[0] = thermalManager.degHotend(0);
+          if (PreviousdegHeater[0] != heaters[0].current_temperature) {
+            PreviousdegHeater[0] = heaters[0].current_temperature;
             degtoLCD(0, PreviousdegHeater[0]);
           }
-          if (PrevioustargetdegHeater[0] != thermalManager.degTargetHotend(0)) {
-            PrevioustargetdegHeater[0] = thermalManager.degTargetHotend(0);
+          if (PrevioustargetdegHeater[0] != heaters[0].target_temperature) {
+            PrevioustargetdegHeater[0] = heaters[0].target_temperature;
             targetdegtoLCD(0, PrevioustargetdegHeater[0]);
           }
         #endif
         #if HAS_TEMP_1
-          if (PreviousdegHeater[1] != thermalManager.degHotend(1)) {
-            PreviousdegHeater[1] = thermalManager.degHotend(1);
+          if (PreviousdegHeater[1] != heaters[1].current_temperature) {
+            PreviousdegHeater[1] = heaters[1].current_temperature;
             degtoLCD(1, PreviousdegHeater[1]);
           }
-          if (PrevioustargetdegHeater[1] != thermalManager.degTargetHotend(1)) {
-            PrevioustargetdegHeater[1] = thermalManager.degTargetHotend(1);
+          if (PrevioustargetdegHeater[1] != heaters[1].target_temperature) {
+            PrevioustargetdegHeater[1] = heaters[1].target_temperature;
             targetdegtoLCD(1, PrevioustargetdegHeater[1]);
           }
         #endif
         #if HAS_TEMP_BED
-          if (PreviousdegHeater[2] != thermalManager.degBed()) {
-            PreviousdegHeater[2] = thermalManager.degBed();
+          if (PreviousdegHeater[2] != heaters[BED_INDEX].current_temperature) {
+            PreviousdegHeater[2] = heaters[BED_INDEX].current_temperature;
             degtoLCD(2, PreviousdegHeater[2]);
           }
-          if (PrevioustargetdegHeater[2] != thermalManager.degTargetBed()) {
-            PrevioustargetdegHeater[2] = thermalManager.degTargetBed();
+          if (PrevioustargetdegHeater[2] != heaters[BED_INDEX].target_temperature) {
+            PrevioustargetdegHeater[2] = heaters[BED_INDEX].target_temperature;
             targetdegtoLCD(2, PrevioustargetdegHeater[2]);
           }
         #endif

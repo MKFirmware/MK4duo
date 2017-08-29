@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PIDTEMP)
+#if HAS_PID
 
   #define CODE_M301
 
@@ -49,22 +49,22 @@
     int h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
 
     if (h < HOTENDS) { // catch bad input value
-      if (parser.seen('P')) PID_PARAM(Kp, h) = parser.value_float();
-      if (parser.seen('I')) PID_PARAM(Ki, h) = parser.value_float();
-      if (parser.seen('D')) PID_PARAM(Kd, h) = parser.value_float();
+      if (parser.seen('P')) heaters[h].Kp = parser.value_float();
+      if (parser.seen('I')) heaters[h].Ki = parser.value_float();
+      if (parser.seen('D')) heaters[h].Kd = parser.value_float();
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        if (parser.seen('C')) PID_PARAM(Kc, h) = parser.value_float();
+        if (parser.seen('C')) heaters[h].Kc = parser.value_float();
         if (parser.seen('L')) thermalManager.lpq_len = parser.value_float();
         NOMORE(thermalManager.lpq_len, LPQ_MAX_LEN);
       #endif
 
       thermalManager.updatePID();
       SERIAL_SMV(ECHO, "H", h);
-      SERIAL_MV(" P:", PID_PARAM(Kp, h));
-      SERIAL_MV(" I:", PID_PARAM(Ki, h));
-      SERIAL_MV(" D:", PID_PARAM(Kd, h));
+      SERIAL_MV(" P:", heaters[h].Kp);
+      SERIAL_MV(" I:", heaters[h].Ki);
+      SERIAL_MV(" D:", heaters[h].Kd);
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        SERIAL_MV(" C:", PID_PARAM(Kc, h));
+        SERIAL_MV(" C:", heaters[h].Kc);
       #endif
       SERIAL_EOL();
     }

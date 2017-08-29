@@ -29,8 +29,6 @@
  * - Thermistor type
  * - Temperature limits
  * - Automatic temperature
- * - Parallel heaters
- * - Redundant thermistor
  * - Temperature status LEDs
  * - PWM Heater Speed
  * - PID Settings - HOTEND
@@ -77,28 +75,13 @@
  *   5 is 100K thermistor - ATC Semitec 104GT-2 (Used in ParCan & J-Head) (4.7k pullup)              *
  *   6 is 100k EPCOS - Not as accurate as table 1 (created using a fluke thermocouple) (4.7k pullup) *
  *   7 is 100k Honeywell thermistor 135-104LAG-J01 (4.7k pullup)                                     *
- *  71 is 100k Honeywell thermistor 135-104LAF-J01 (4.7k pullup)                                     *
  *   8 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)                                        *
  *   9 is 100k GE Sensing AL03006-58.2K-97-G1 (4.7k pullup)                                          *
  *  10 is 100k RS thermistor 198-961 (4.7k pullup)                                                   *
  *  11 is 100k beta 3950 1% thermistor (4.7k pullup)                                                 *
  *  12 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)       *
  *  13 is 100k Hisens 3950 1% up to 300 degC for hotend "Simple ONE " & "Hotend "All In ONE"         *
- *  20 is the PT100 circuit found in the Ultimainboard V2.x                                          *
- *  60 is 100k Maker's Tool Works Kapton Bed Thermistor beta=3950                                    *
- *  66 is 4.7M High Temperature thermistor from Dyze Design                                          *
- *  70 is 100K thermistor found in the bq Hephestos 2                                                *
- *                                                                                                   *
- *    1k ohm pullup tables - This is atypical, and requires changing out the 4.7k pullup for 1k.     *
- *                           (but gives greater accuracy and more stable PID)                        *
- *  51 is 100k thermistor - EPCOS (1k pullup)                                                        *
- *  52 is 200k thermistor - ATC Semitec 204GT-2 (1k pullup)                                          *
- *  55 is 100k thermistor - ATC Semitec 104GT-2 (Used in ParCan & J-Head) (1k pullup)                *
- *                                                                                                   *
- *  1047 is Pt1000 with 4k7 pullup                                                                   *
- *  1010 is Pt1000 with 1k pullup (non standard)                                                     *
- *  147 is Pt100 with 4k7 pullup                                                                     *
- *  110 is Pt100 with 1k pullup (non standard)                                                       *
+ *  14 is the PT100 circuit found in the Ultimainboard V2.x                                          *
  *                                                                                                   *
  *         Use these for Testing or Development purposes. NEVER for production machine.              *
  *   998 : Dummy Table that ALWAYS reads 25 degC or the temperature defined below.                   *
@@ -125,17 +108,6 @@
 //Show Temperature ADC value
 //The M105 command return, besides traditional information, the ADC value read from temperature sensors.
 //#define SHOW_TEMP_ADC_VALUES
-
-// The number of consecutive low temperature errors that can occur
-// before a min_temp_error is triggered. (Shouldn't be more than 10.)
-//#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 0
-
-// The number of milliseconds a hotend will preheat before starting to check
-// the temperature. This value should NOT be set to the time it takes the
-// hot end to reach the target temperature, but the time it takes to reach
-// the minimum temperature your thermistor can read. The lower the better/safer.
-// This shouldn't need to be more than 30 seconds (30000)
-//#define MILLISECONDS_PREHEAT_TIME 0
 /*****************************************************************************************/
 
 
@@ -222,31 +194,6 @@
 
 
 /***********************************************************************
- ************************* Parallel heaters ****************************
- ***********************************************************************
- *                                                                     *
- * Control heater 0 and heater 1 in parallel.                          *
- *                                                                     *
- ***********************************************************************/
-//#define HEATERS_PARALLEL
-/***********************************************************************/
-
-
-/***********************************************************************
- ********************** Redundant thermistor ***************************
- ***********************************************************************
- *                                                                     *
- * This makes temp sensor 1 a redundant sensor for sensor 0.           *
- * If the temperatures difference between these sensors is to high     *
- * the print will be aborted.                                          *
- *                                                                     *
- ***********************************************************************/
-//#define TEMP_SENSOR_1_AS_REDUNDANT
-#define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10 // (degC)
-/***********************************************************************/
-
-
-/***********************************************************************
  ********************* Temperature status LEDs *************************
  ***********************************************************************
  *                                                                     *
@@ -282,8 +229,8 @@
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  *                                                                     *
  ***********************************************************************/
-// Comment the following line to disable PID and enable bang-bang.
-#define PIDTEMP
+// Put to false following line to disable PID and enable bang-bang.
+#define PIDTEMP true
 
 #define BANG_MAX  255       // Limits current to nozzle while in bang-bang mode; 255 = full current
 #define PID_MIN     0       // Limits min current to nozzle while PID is active;   0 = no current
@@ -291,7 +238,6 @@
 
 //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 //#define PID_DEBUG         // Sends debug data to the serial port.
-//#define PID_OPENLOOP 1    // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
 
 // If the temperature difference between the target temperature and the actual temperature
 // is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
@@ -319,15 +265,14 @@
  * If bang-bang, BED LIMIT SWITCHING will enable hysteresis            *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the bed. It uses the same frequency PWM as the hotend.
+// Put true to enable PID on the bed. It uses the same frequency PWM as the hotend.
 // which is fine for driving a square wave into a resistive load and does not significantly impact you FET heating.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use bed PID until someone else verifies your hardware works.
 // If this is enabled, find your own PID constants below.
-//#define PIDTEMPBED
+#define PIDTEMPBED false
 
-//#define BED_LIMIT_SWITCHING
 #define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T>target-BED_HYSTERESIS (works only if BED_LIMIT_SWITCHING is enabled)
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
@@ -345,8 +290,6 @@
 #define DEFAULT_bedKd  300.0
 
 // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
-
-//#define PID_BED_DEBUG // Sends debug data to the serial port.
 /***********************************************************************/
 
 
@@ -359,14 +302,13 @@
  * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis        *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the chamber. It uses the same frequency PWM as the hotend.
+// Put true to enable PID on the chamber. It uses the same frequency PWM as the hotend.
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use chamber PID until someone else verifies your hardware works.
 // If this is enabled, find your own PID constants below.
-//#define PIDTEMPCHAMBER
+#define PIDTEMPCHAMBER false
 
-//#define CHAMBER_LIMIT_SWITCHING
 #define CHAMBER_HYSTERESIS 2 //only disable heating if T>target+CHAMBER_HYSTERESIS and enable heating if T>target-CHAMBER_HYSTERESIS (works only if CHAMBER_LIMIT_SWITCHING is enabled)
 #define CHAMBER_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
 
@@ -384,8 +326,6 @@
 #define DEFAULT_chamberKd  300.0
 
 // FIND YOUR OWN: "M303 E-2 C8 S90" to run autotune on the chamber at 90 degreesC for 8 cycles.
-
-//#define PID_CHAMBER_DEBUG // Sends debug data to the serial port.
 /***********************************************************************/
 
 
@@ -398,18 +338,17 @@
  * If bang-bang, COOLER_LIMIT_SWITCHING will enable hysteresis         *
  *                                                                     *
  ***********************************************************************/
-// Uncomment this to enable PID on the cooler. It uses the same frequency PWM as the hotend.
+// Put true to enable PID on the cooler. It uses the same frequency PWM as the hotend.
 // if you use a software PWM or the frequency you select if using an hardware PWM
 // This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W cooler.
 // If your configuration is significantly different than this and you don't understand the issues involved, you probably
 // shouldn't use cooler PID until someone else verifies your hardware works.
 // If this is enabled, find your own PID constants below.
-//#define PIDTEMPCOOLER
+#define PIDTEMPCOOLER false
 
 // Enable fast PWM for cooler
 //#define FAST_PWM_COOLER
 
-//#define COOLER_LIMIT_SWITCHING
 #define COOLER_HYSTERESIS 2 //only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T<target+COOLER_HYSTERESIS (works only if COOLER_LIMIT_SWITCHING is enabled)
 #define COOLER_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
 
@@ -427,8 +366,6 @@
 #define DEFAULT_coolerKd 305.4
 
 // FIND YOUR OWN: "M303 E-3 C8 S90" to run autotune on the cooler at 90 degreesC for 8 cycles.
-
-//#define PID_COOLER_DEBUG // Sends debug data to the serial port.
 /***********************************************************************/
 
 
@@ -439,111 +376,53 @@
  * For inverted logical Heater, Bed, Chamber or Cooler pins                     *
  *                                                                              *
  ********************************************************************************/
-//#define INVERTED_HEATER_PINS
-//#define INVERTED_BED_PIN
-//#define INVERTED_CHAMBER_PIN
-//#define INVERTED_COOLER_PIN
+#define INVERTED_HEATER_PINS false
+#define INVERTED_BED_PIN false
+#define INVERTED_CHAMBER_PIN false
+#define INVERTED_COOLER_PIN false
 
 
-/********************************************************************************
- ************************ Thermal runaway protection ****************************
- ********************************************************************************
- *                                                                              *
- * This protects your printer from damage and fire if a thermistor              *
- * falls out or temperature sensors fail in any way.                            *
- *                                                                              *
- * The issue: If a thermistor falls out or a temperature sensor fails,          *
- * Marlin can no longer sense the actual temperature. Since a                   *
- * disconnected thermistor reads as a low temperature, the firmware             *
- * will keep the heater/cooler on.                                              *
- *                                                                              *
- * The solution: Once the temperature reaches the target, start                 *
- * observing. If the temperature stays too far below the                        *
- * target(hysteresis) for too long, the firmware will halt                      *
- * as a safety precaution.                                                      *
- *                                                                              *
- * Uncomment THERMAL PROTECTION HOTENDS to enable this feature for all hotends. *
- * Uncomment THERMAL PROTECTION BED to enable this feature for the heated bed.  *
- * Uncomment THERMAL PROTECTION CHAMBER to enable this feature for the chamber. *
- * Uncomment THERMAL PROTECTION COOLER to enable this feature for the cooler.   *
- *                                                                              *
- ********************************************************************************/
-//#define THERMAL_PROTECTION_HOTENDS
+/**********************************************************************************
+ ************************ Thermal runaway protection ******************************
+ **********************************************************************************
+ *                                                                                *
+ * This protects your printer from damage and fire if a thermistor                *
+ * falls out or temperature sensors fail in any way.                              *
+ *                                                                                *
+ * The issue: If a thermistor falls out or a temperature sensor fails,            *
+ * Marlin can no longer sense the actual temperature. Since a                     *
+ * disconnected thermistor reads as a low temperature, the firmware               *
+ * will keep the heater/cooler on.                                                *
+ *                                                                                *
+ * The solution: Once the temperature reaches the target, start                   *
+ * observing. If the temperature stays too far below the                          *
+ * target(hysteresis) for too long, the firmware will halt                        *
+ * as a safety precaution.                                                        *
+ *                                                                                *
+ * Put THERMAL PROTECTION HOTENDS at true to enable this feature for all hotends. *
+ * Put THERMAL PROTECTION BED at true to enable this feature for the heated bed.  *
+ * Put THERMAL PROTECTION CHAMBER at true to enable this feature for the chamber. *
+ * Put THERMAL PROTECTION COOLER at true to enable this feature for the cooler.   *
+ *                                                                                *
+ **********************************************************************************/
+#define THERMAL_PROTECTION_HOTENDS false
+#define THERMAL_PROTECTION_BED false
+#define THERMAL_PROTECTION_CHAMBER false
+#define THERMAL_PROTECTION_COOLER false
 
 #define THERMAL_PROTECTION_PERIOD    40     // Seconds
 #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
 
 /**
- * Whenever an M104 or M109 increases the target temperature the firmware will wait for the
+ * When ever increases the target temperature the firmware will wait for the
  * WATCH TEMP PERIOD to expire, and if the temperature hasn't increased by WATCH TEMP INCREASE
- * degrees, the machine is halted, requiring a hard reset. This test restarts with any M104/M109,
- * but only if the current temperature is far enough below the target for a reliable test.
+ * degrees, the machine is halted, requiring a hard reset.
  *
  * If you get false positives for "Heating failed" increase WATCH TEMP PERIOD and/or decrease WATCH TEMP INCREASE
  * WATCH TEMP INCREASE should not be below 2.
  */
 #define WATCH_TEMP_PERIOD  20               // Seconds
 #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
-
-/**
- * Thermal Protection parameters for the bed are just as above for hotends.
- */
-//#define THERMAL_PROTECTION_BED
-
-#define THERMAL_PROTECTION_BED_PERIOD    20 // Seconds
-#define THERMAL_PROTECTION_BED_HYSTERESIS 2 // Degrees Celsius
-
-/**
- * Whenever an M140 or M190 increases the target temperature the firmware will wait for the
- * WATCH BED TEMP PERIOD to expire, and if the temperature hasn't increased by WATCH BED TEMP INCREASE
- * degrees, the machine is halted, requiring a hard reset. This test restarts with any M140/M190,
- * but only if the current temperature is far enough below the target for a reliable test.
- *
- * If you get too many "Heating failed" errors, increase WATCH BED TEMP PERIOD and/or decrease
- * WATCH BED TEMP INCREASE. (WATCH BED TEMP INCREASE should not be below 2.)
- */
-#define WATCH_BED_TEMP_PERIOD  60           // Seconds
-#define WATCH_BED_TEMP_INCREASE 2           // Degrees Celsius
-
-/**
- * Thermal Protection parameters for the chamber
- */
-//#define THERMAL_PROTECTION_CHAMBER
-
-#define THERMAL_PROTECTION_CHAMBER_PERIOD    20 // Seconds
-#define THERMAL_PROTECTION_CHAMBER_HYSTERESIS 2 // Degrees Celsius
-
-/**
- * Whenever an M141 or M191 increases the target temperature the firmware will wait for the
- * WATCH CHAMBER TEMP PERIOD to expire, and if the temperature hasn't increased by WATCH CHAMBER TEMP INCREASE
- * degrees, the machine is halted, requiring a hard reset. This test restarts with any M141/M191,
- * but only if the current temperature is far enough below the target for a reliable test.
- *
- * If you get too many "Heating failed" errors, increase WATCH CHAMBER TEMP PERIOD and/or decrease
- * WATCH CHAMBER TEMP INCREASE. (WATCH CHAMBER TEMP INCREASE should not be below 2.)
- */
-#define WATCH_CHAMBER_TEMP_PERIOD  60           // Seconds
-#define WATCH_CHAMBER_TEMP_INCREASE 2           // Degrees Celsius
-
-/**
- * Thermal Protection parameters for the cooler.
- */
-//#define THERMAL_PROTECTION_COOLER
-
-#define THERMAL_PROTECTION_COOLER_PERIOD    30 // Seconds
-#define THERMAL_PROTECTION_COOLER_HYSTERESIS 3 // Degree Celsius
-
-/**
- * Whenever an M142 or M192 increases the target temperature the firmware will wait for the
- * WATCH COOLER TEMP PERIOD to expire, and if the temperature hasn't increased by WATCH COOLER TEMP INCREASE
- * degrees, the machine is halted, requiring a hard reset. This test restarts with any M142/M192,
- * but only if the current temperature is far enough below the target for a reliable test.
- *
- * If you get too many "Heating failed" errors, increase WATCH COOLER TEMP PERIOD and/or decrease
- * WATCH COOLER TEMP INCREASE. (WATCH COOLER TEMP INCREASE should not be below 2.)
- */
-#define WATCH_TEMP_COOLER_PERIOD 60          // Seconds
-#define WATCH_TEMP_COOLER_DECREASE 1         // Degree Celsius
 /********************************************************************************/
 
 

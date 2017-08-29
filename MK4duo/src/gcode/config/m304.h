@@ -26,20 +26,20 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(PIDTEMPBED)
+#if (PIDTEMPBED)
 
   #define CODE_M304
 
   // M304: Set bed PID parameters P I and D
   inline void gcode_M304(void) {
-    if (parser.seen('P')) thermalManager.bedKp = parser.value_float();
-    if (parser.seen('I')) thermalManager.bedKi = parser.value_float();
-    if (parser.seen('D')) thermalManager.bedKd = parser.value_float();
+    if (parser.seen('P')) heaters[BED_INDEX].Kp = parser.value_float();
+    if (parser.seen('I')) heaters[BED_INDEX].Ki = parser.value_float();
+    if (parser.seen('D')) heaters[BED_INDEX].Kd = parser.value_float();
 
     thermalManager.updatePID();
-    SERIAL_SMV(ECHO, " p:", thermalManager.bedKp);
-    SERIAL_MV(" i:", thermalManager.bedKi);
-    SERIAL_EMV(" d:", thermalManager.bedKd);
+    SERIAL_SMV(ECHO, " p:", heaters[BED_INDEX].Kp);
+    SERIAL_MV(" i:", heaters[BED_INDEX].Ki);
+    SERIAL_EMV(" d:", heaters[BED_INDEX].Kd);
   }
 
-#endif // ENABLED(PIDTEMPBED)
+#endif // (PIDTEMPBED)
