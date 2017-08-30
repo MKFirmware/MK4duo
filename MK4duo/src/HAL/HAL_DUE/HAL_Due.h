@@ -65,6 +65,7 @@
 typedef uint32_t  HAL_TIMER_TYPE;
 typedef uint32_t  millis_t;
 typedef int8_t    Pin;
+static const Pin  NoPin = -1;
 
 // --------------------------------------------------------------------------
 // Includes
@@ -223,6 +224,10 @@ class HAL {
     #if ANALOG_INPUTS > 0
       static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
       static bool Analog_is_ready;
+      static void analogStart();
+      static adc_channel_num_t PinToAdcChannel(Pin pin);
+
+      static void AdcEnableChannel(adc_channel_num_t adc_ch) { adc_enable_channel(ADC, adc_ch); }
     #endif
 
     static bool execute_100ms;
@@ -290,9 +295,6 @@ class HAL {
 
     static int getFreeRam();
     static void resetHardware();
-
-    static void analogStart();
-    static adc_channel_num_t pinToAdcChannel(int pin);
 
   protected:
   private:

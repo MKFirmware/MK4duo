@@ -31,7 +31,13 @@ Temperature thermalManager;
 constexpr uint8_t temp_residency_time[HEATER_TYPE]  = { TEMP_RESIDENCY_TIME, TEMP_BED_RESIDENCY_TIME, TEMP_CHAMBER_RESIDENCY_TIME, TEMP_COOLER_RESIDENCY_TIME },
                   temp_hysteresis[HEATER_TYPE]      = { TEMP_HYSTERESIS, TEMP_BED_HYSTERESIS, TEMP_CHAMBER_HYSTERESIS, TEMP_COOLER_HYSTERESIS },
                   temp_window[HEATER_TYPE]          = { TEMP_WINDOW, TEMP_BED_WINDOW, TEMP_CHAMBER_WINDOW, TEMP_COOLER_WINDOW };
+constexpr uint8_t temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr bool    thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
+
+#if HOTENDS > 0
+  static void*    heater_ttbl_map[HOTENDS]    = ARRAY_BY_HOTENDS_N((void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE);
+  static uint8_t  heater_ttbllen_map[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN);
+#endif
 
 // public:
 volatile bool Temperature::wait_for_heatup = true;
@@ -41,7 +47,7 @@ volatile bool Temperature::wait_for_heatup = true;
           Temperature::mcu_highest_temperature  = 0.0,
           Temperature::mcu_lowest_temperature   = 4096.0,
           Temperature::mcu_alarm_temperature    = 80.0;
-  int16_t Temperature::mcu_current_temperature_mcu;
+  int16_t Temperature::mcu_current_temperature_raw;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -291,7 +297,7 @@ void Temperature::set_current_temp_raw() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature_mcu = HAL::AnalogInputValues[MCU_ANALOG_INDEX];
+    mcu_current_temperature_raw = HAL::AnalogInputValues[MCU_ANALOG_INDEX];
   #endif
 
 }
@@ -320,9 +326,7 @@ void Temperature::manage_temp_controller() {
     if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].mintemp) min_temp_error(h);
   }
 
-  #if WATCH_THE_HOTEND || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER || (!PIDTEMPBED) || (!PIDTEMPCHAMBER) || (!PIDTEMPCOOLER) || HAS_AUTO_FAN || HEATER_IDLE_HANDLER
-    millis_t ms = millis();
-  #endif
+  millis_t ms = millis();
 
   LOOP_HEATER() {
 
@@ -340,11 +344,13 @@ void Temperature::manage_temp_controller() {
     if (heaters[h].use_pid)
       heaters[h].soft_pwm = heaters[h].tempisrange() ? (int)get_pid_output(h) : 0;
     else if (ELAPSED(ms, next_check_ms[h])) {
-      next_check_ms[h] = ms + BED_CHECK_INTERVAL;
+      next_check_ms[h] = ms + temp_check_interval[heaters[h].type];
       if (heaters[h].tempisrange())
         heaters[h].soft_pwm = heaters[h].isHeating() ? heaters[h].pid_max : 0;
-      else
+      else {
         heaters[h].soft_pwm = 0;
+        HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
+      }
     }
 
     #if WATCH_THE_HEATER
@@ -774,7 +780,7 @@ void Temperature::print_heaterstates() {
     SERIAL_MSG(", max");
     SERIAL_MV(MSG_C, mcu_highest_temperature, 1);
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" C->", mcu_current_temperature_mcu);
+      SERIAL_MV(" C->", mcu_current_temperature_raw);
     #endif
   #endif
 }
@@ -817,7 +823,7 @@ void Temperature::updateTemperaturesFromRawValues() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature = analog2tempMCU(mcu_current_temperature_mcu);
+    mcu_current_temperature = analog2tempMCU(mcu_current_temperature_raw);
     NOLESS(mcu_highest_temperature, mcu_current_temperature);
     NOMORE(mcu_lowest_temperature, mcu_current_temperature);
   #endif
@@ -841,26 +847,87 @@ float Temperature::analog2temp(const uint8_t h) {
   else if (type == -1)
     return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0)) * heaters[h].ad595_gain) + heaters[h].ad595_offset;
   else if (type > 0) {
-    if (heater_ttbl_map[h] != NULL) {
-      float celsius = 0;
-      uint8_t i;
-      short(*tt)[][2] = (short(*)[][2])(heater_ttbl_map[h]);
 
-      for (i = 1; i < heater_ttbllen_map[h]; i++) {
-        if (PGM_RD_W((*tt)[i][0]) > raw) {
-          celsius = PGM_RD_W((*tt)[i - 1][1]) +
-                    (raw - PGM_RD_W((*tt)[i - 1][0])) *
-                    (float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i - 1][1])) /
-                    (float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i - 1][0]));
-          break;
+    float celsius = 0;
+    uint8_t i;
+
+    #if HOTENDS > 0 
+      if (h < HOTENDS && heater_ttbl_map[h] != NULL) {
+        short(*tt)[][2] = (short(*)[][2])(heater_ttbl_map[h]);
+
+        for (i = 1; i < heater_ttbllen_map[h]; i++) {
+          if (PGM_RD_W((*tt)[i][0]) > raw) {
+            celsius = PGM_RD_W((*tt)[i - 1][1]) +
+                      (raw - PGM_RD_W((*tt)[i - 1][0])) *
+                      (float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i - 1][1])) /
+                      (float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i - 1][0]));
+            break;
+          }
         }
+
+        // Overflow: Set to last value in the table
+        if (i == heater_ttbllen_map[h]) celsius = PGM_RD_W((*tt)[i - 1][1]);
+
+        return celsius;
       }
+    #endif
 
-      // Overflow: Set to last value in the table
-      if (i == heater_ttbllen_map[h]) celsius = PGM_RD_W((*tt)[i - 1][1]);
+    #if HAS_TEMP_BED
+      if (h == BED_INDEX) {
+        for (i = 1; i < BEDTEMPTABLE_LEN; i++) {
+          if (PGM_RD_W(BEDTEMPTABLE[i][0]) > raw) {
+            celsius = PGM_RD_W(BEDTEMPTABLE[i - 1][1]) +
+                      (raw - PGM_RD_W(BEDTEMPTABLE[i - 1][0])) *
+                      (float)(PGM_RD_W(BEDTEMPTABLE[i][1]) - PGM_RD_W(BEDTEMPTABLE[i - 1][1])) /
+                      (float)(PGM_RD_W(BEDTEMPTABLE[i][0]) - PGM_RD_W(BEDTEMPTABLE[i - 1][0]));
+            break;
+          }
+        }
 
-      return celsius;
-    }
+        // Overflow: Set to last value in the table
+        if (i == BEDTEMPTABLE_LEN) celsius = PGM_RD_W(BEDTEMPTABLE[i - 1][1]);
+
+        return celsius;
+      }
+    #endif
+
+    #if HAS_TEMP_CHAMBER
+      if (h == CHAMBER_INDEX) {
+        for (i = 1; i < CHAMBERTEMPTABLE_LEN; i++) {
+          if (PGM_RD_W(CHAMBERTEMPTABLE[i][0]) > raw) {
+            celsius = PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1]) +
+                      (raw - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][0])) *
+                      (float)(PGM_RD_W(CHAMBERTEMPTABLE[i][1]) - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1])) /
+                      (float)(PGM_RD_W(CHAMBERTEMPTABLE[i][0]) - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][0]));
+            break;
+          }
+        }
+
+        // Overflow: Set to last value in the table
+        if (i == CHAMBERTEMPTABLE_LEN) celsius = PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1]);
+
+        return celsius;
+      }
+    #endif
+
+    #if HAS_TEMP_COOLER
+      if (h == COOLER_INDEX) {
+        for (i = 1; i < COOLERTEMPTABLE_LEN; i++) {
+          if (PGM_RD_W(COOLERTEMPTABLE[i][0]) > raw) {
+            celsius = PGM_RD_W(COOLERTEMPTABLE[i - 1][1]) +
+                      (raw - PGM_RD_W(COOLERTEMPTABLE[i - 1][0])) *
+                      (float)(PGM_RD_W(COOLERTEMPTABLE[i][1]) - PGM_RD_W(COOLERTEMPTABLE[i - 1][1])) /
+                      (float)(PGM_RD_W(COOLERTEMPTABLE[i][0]) - PGM_RD_W(COOLERTEMPTABLE[i - 1][0]));
+            break;
+          }
+        }
+
+        // Overflow: Set to last value in the table
+        if (i == COOLERTEMPTABLE_LEN) celsius = PGM_RD_W(COOLERTEMPTABLE[i - 1][1]);
+
+        return celsius;
+      }
+    #endif
   }
 
   return 25;
