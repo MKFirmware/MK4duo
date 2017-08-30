@@ -44,7 +44,7 @@ class Temperature {
                       mcu_highest_temperature,
                       mcu_lowest_temperature,
                       mcu_alarm_temperature;
-      static int16_t  mcu_current_temperature_mcu;
+      static int16_t  mcu_current_temperature_raw;
     #endif
 
     #if ENABLED(ADC_KEYPAD)

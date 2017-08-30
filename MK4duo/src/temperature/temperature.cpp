@@ -47,7 +47,7 @@ volatile bool Temperature::wait_for_heatup = true;
           Temperature::mcu_highest_temperature  = 0.0,
           Temperature::mcu_lowest_temperature   = 4096.0,
           Temperature::mcu_alarm_temperature    = 80.0;
-  int16_t Temperature::mcu_current_temperature_mcu;
+  int16_t Temperature::mcu_current_temperature_raw;
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -297,7 +297,7 @@ void Temperature::set_current_temp_raw() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature_mcu = HAL::AnalogInputValues[MCU_ANALOG_INDEX];
+    mcu_current_temperature_raw = HAL::AnalogInputValues[MCU_ANALOG_INDEX];
   #endif
 
 }
@@ -780,7 +780,7 @@ void Temperature::print_heaterstates() {
     SERIAL_MSG(", max");
     SERIAL_MV(MSG_C, mcu_highest_temperature, 1);
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      SERIAL_MV(" C->", mcu_current_temperature_mcu);
+      SERIAL_MV(" C->", mcu_current_temperature_raw);
     #endif
   #endif
 }
@@ -823,7 +823,7 @@ void Temperature::updateTemperaturesFromRawValues() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature = analog2tempMCU(mcu_current_temperature_mcu);
+    mcu_current_temperature = analog2tempMCU(mcu_current_temperature_raw);
     NOLESS(mcu_highest_temperature, mcu_current_temperature);
     NOMORE(mcu_lowest_temperature, mcu_current_temperature);
   #endif

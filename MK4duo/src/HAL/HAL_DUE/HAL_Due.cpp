@@ -199,15 +199,19 @@ int HAL::getFreeRam() {
 
 #if ANALOG_INPUTS > 0
 
-  // Convert an Arduino Due pin number to the corresponding ADC channel number
-  adc_channel_num_t HAL::pinToAdcChannel(int pin) {
+  // Convert an Arduino Due analog pin number to the corresponding ADC channel number
+  adc_channel_num_t HAL::PinToAdcChannel(Pin pin) {
     if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
+
+    // Arduino Due uses separate analog pin numbers
     if (pin < A0) pin += A0;
-    return (adc_channel_num_t) (int)g_APinDescription[pin].ulADCChannelNumber;
+    return (adc_channel_num_t)g_APinDescription[pin].ulADCChannelNumber;
   }
 
   // Initialize ADC channels
   void HAL::analogStart(void) {
+
+    adc_channel_num_t adc_ch;
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       PIO_Configure(
@@ -233,19 +237,20 @@ int HAL::getFreeRam() {
 
       #if ANALOG_INPUTS > HEATER_COUNT
         if (i >= HEATER_COUNT)
-          adcEnable |= (0x1u << pinToAdcChannel(AnalogInputChannels[i]));
+          adc_ch = PinToAdcChannel(AnalogInputChannels[i]);
         else
       #endif
-        adcEnable |= (0x1u << pinToAdcChannel(heaters[i].sensor_pin));
+        adc_ch = PinToAdcChannel(heaters[i].sensor_pin);
+
+      adc_enable_channel(ADC, adc_ch);
+      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
 
       AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
       for (int j = 0; j < MEDIAN_COUNT; j++)
         AnalogSamples[i][j] = 2048;
     }
 
-    // enable channels
-    ADC->ADC_CHER = adcEnable;
-    ADC->ADC_CHDR = !adcEnable;
+    adc_set_resolution(ADC, ADC_10_BITS); /* ADC 10-bit resolution */
 
     #if !MB(RADDS) // RADDS not have MCU Temperature
       // Enable MCU temperature
@@ -269,7 +274,6 @@ int HAL::getFreeRam() {
                   ADC_MR_TRANSFER(AD_TRANSFER_CYCLES);
 
     ADC->ADC_IER = 0;             // no ADC interrupts
-    ADC->ADC_CGR = 0;             // Gain = 1
     ADC->ADC_COR = 0;             // Single-ended, no offset
 
     // start first conversion
@@ -575,19 +579,24 @@ HAL_TEMP_TIMER_ISR {
   // read analog values
   #if ANALOG_INPUTS > 0
 
-    if ((ADC->ADC_ISR & adcEnable) == adcEnable) { // conversion finished?
+    adc_channel_num_t adc_ch;
+
+    if (adc_get_status(ADC)) { // conversion finished?
       adcCounter++;
       for (int i = 0; i < ANALOG_INPUTS; i++) {
-        int32_t cur = 0;
+        uint32_t cur = 0;
 
         #if ANALOG_INPUTS > HEATER_COUNT
           if (i >= HEATER_COUNT)
-            cur = ADC->ADC_CDR[HAL::pinToAdcChannel(AnalogInputChannels[i])];
+            adc_ch = HAL::PinToAdcChannel(AnalogInputChannels[i]);
           else
         #endif
-          cur = ADC->ADC_CDR[HAL::pinToAdcChannel(heaters[i].sensor_pin)];
+          adc_ch = HAL::PinToAdcChannel(heaters[i].sensor_pin);
 
-        if (i != MCU_ANALOG_INDEX) cur = (cur >> (2 - ANALOG_REDUCE_BITS)); // Convert to 10 bit result
+        cur = adc_get_channel_value(ADC, adc_ch);
+
+        if (i != MCU_ANALOG_INDEX) cur = (cur >> 2); // Convert to 10 bit result
+
         AnalogInputRead[i] += cur;
         adcSamplesMin[i] = min(adcSamplesMin[i], cur);
         adcSamplesMax[i] = max(adcSamplesMax[i], cur);
@@ -601,6 +610,7 @@ HAL_TEMP_TIMER_ISR {
           AnalogInputRead[i] = 0;
         } // adcCounter >= NUM_ADC_SAMPLES
       } // for i
+
       if (adcCounter >= NUM_ADC_SAMPLES) {
         adcCounter = 0;
         adcSamplePos++;
