@@ -47,7 +47,7 @@
     // If you have a switch on suicide pin, this is useful
     // if you want to start another print with suicide feature after
     // a print without suicide...
-    #if HAS(SUICIDE)
+    #if HAS_SUICIDE
       OUT_WRITE(SUICIDE_PIN, HIGH);
     #endif
 

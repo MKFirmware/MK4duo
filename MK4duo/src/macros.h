@@ -107,9 +107,6 @@
 #define ENABLED defined
 #define DISABLED !defined
 
-#define HAS(FE) (HAS_##FE)
-#define HASNT(FE) (!(HAS_##FE))
-
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
 #define DECIMAL(a)        (NUMERIC(a) || a == '.')

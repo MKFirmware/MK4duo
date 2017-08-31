@@ -1453,20 +1453,23 @@ void kill_screen(const char* lcd_msg) {
       line_to_z(LOGICAL_Z_POSITION(4.0));
       switch (bed_corner) {
         case 0:
-          current_position[X_AXIS] = X_MIN_BED + 10;
-          current_position[Y_AXIS] = Y_MIN_BED + 10;
+          mechanics.current_position[X_AXIS] = X_MIN_POS + 10;
+          mechanics.current_position[Y_AXIS] = Y_MIN_POS + 10;
           break;
         case 1:
-          current_position[X_AXIS] = X_MAX_BED - 10;
+          mechanics.current_position[X_AXIS] = X_MAX_POS - 10;
+          mechanics.current_position[Y_AXIS] = Y_MIN_POS + 10;
           break;
         case 2:
-          current_position[Y_AXIS] = Y_MAX_BED - 10;
+          mechanics.current_position[X_AXIS] = X_MAX_POS - 10;
+          mechanics.current_position[Y_AXIS] = Y_MAX_POS - 10;
           break;
         case 3:
-          current_position[X_AXIS] = X_MIN_BED + 10;
+          mechanics.current_position[X_AXIS] = X_MIN_POS + 10;
+          mechanics.current_position[Y_AXIS] = Y_MAX_POS - 10;
           break;
       }
-      planner.buffer_line_kinematic(current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), active_extruder);
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.active_extruder);
       line_to_z(LOGICAL_Z_POSITION(0.0));
       if (++bed_corner > 3) bed_corner = 0;
     }

@@ -33,22 +33,22 @@
       case 0:
         OUT_WRITE(SOL0_PIN, HIGH);
         break;
-        #if HAS(SOLENOID_1) && EXTRUDERS > 1
+        #if HAS_SOLENOID_1 && EXTRUDERS > 1
           case 1:
             OUT_WRITE(SOL1_PIN, HIGH);
             break;
         #endif
-        #if HAS(SOLENOID_2) && EXTRUDERS > 2
+        #if HAS_SOLENOID_2 && EXTRUDERS > 2
           case 2:
             OUT_WRITE(SOL2_PIN, HIGH);
             break;
         #endif
-        #if HAS(SOLENOID_3) && EXTRUDERS > 3
+        #if HAS_SOLENOID_3 && EXTRUDERS > 3
           case 3:
             OUT_WRITE(SOL3_PIN, HIGH);
             break;
         #endif
-        #if HAS(SOLENOID_4) && EXTRUDERS > 4
+        #if HAS_SOLENOID_4 && EXTRUDERS > 4
           case 4:
             OUT_WRITE(SOL4_PIN, HIGH);
             break;
@@ -63,16 +63,16 @@
 
   void disable_all_solenoids() {
     OUT_WRITE(SOL0_PIN, LOW);
-    #if HAS(SOLENOID_1) && EXTRUDERS > 1
+    #if HAS_SOLENOID_1 && EXTRUDERS > 1
       OUT_WRITE(SOL1_PIN, LOW);
     #endif
-    #if HAS(SOLENOID_2) && EXTRUDERS > 2
+    #if HAS_SOLENOID_2 && EXTRUDERS > 2
       OUT_WRITE(SOL2_PIN, LOW);
     #endif
-    #if HAS(SOLENOID_3) && EXTRUDERS > 3
+    #if HAS_SOLENOID_3 && EXTRUDERS > 3
       OUT_WRITE(SOL3_PIN, LOW);
     #endif
-    #if HAS(SOLENOID_4) && EXTRUDERS > 4
+    #if HAS_SOLENOID_4 && EXTRUDERS > 4
       OUT_WRITE(SOL4_PIN, LOW);
     #endif
   }

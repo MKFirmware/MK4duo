@@ -679,7 +679,7 @@ void Endstops::update() {
 
         #else
 
-          #if HAS_BED_PROBE && HASNT(Z_PROBE_PIN)
+          #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
             if (probe.enabled) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);

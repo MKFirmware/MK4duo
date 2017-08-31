@@ -1363,7 +1363,7 @@ void Stepper::init() {
   #endif
 
   #if HAS_Y_STEP
-    #if ENABLED(Y_TWO_STEPPER) && HAS(Y2_STEP)
+    #if ENABLED(Y_TWO_STEPPER) && HAS_Y2_STEP
       Y2_STEP_INIT;
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
@@ -1371,7 +1371,7 @@ void Stepper::init() {
   #endif
 
   #if HAS_Z_STEP
-    #if ENABLED(Z_TWO_STEPPER) && HAS(Z2_STEP)
+    #if ENABLED(Z_TWO_STEPPER) && HAS_Z2_STEP
       Z2_STEP_INIT;
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif

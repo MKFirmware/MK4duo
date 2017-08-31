@@ -344,7 +344,7 @@ void Commands::loop() {
           #if ENABLED(PRINTER_EVENT_LEDS)
             LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
             printer.set_led_color(0, 255, 0); // Green
-            #if HAS(RESUME_CONTINUE)
+            #if HAS_RESUME_CONTINUE
               enqueue_and_echo_commands_P(PSTR("M0")); // end of the queue!
             #else
               safe_delay(1000);

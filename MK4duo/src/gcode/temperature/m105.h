@@ -44,7 +44,7 @@ inline void gcode_M105(void) {
     #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
       cnc.print_Speed();
     #endif
-  #else // HASNT(TEMP_0) && HASNT(TEMP_BED)
+  #else // !HAS_TEMP_0 && !HAS_TEMP_BED
     SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
   #endif
 
