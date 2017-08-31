@@ -103,6 +103,7 @@
         void set_hysteresis_axis(uint8_t axis, float mm);
         void report_hysteresis();
         void insert_hysteresis_correction(const float x, const float y, const float z, const float e);
+        void calc_hysteresis_steps();
       #endif
 
       #if ENABLED(ZWOBBLE)
@@ -197,7 +198,6 @@
 
       #if ENABLED(HYSTERESIS)
         void set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
-        void calc_hysteresis_steps();
         uint8_t calc_direction_bits(const long *position, const long *target);
         uint8_t calc_move_bits(const long *position, const long *target);
       #endif

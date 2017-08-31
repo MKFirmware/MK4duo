@@ -247,6 +247,14 @@ class Planner {
       #if HAS_LEVELING && (IS_CARTESIAN || IS_CORE)
         bedlevel.apply_leveling(lx, ly, lz);
       #endif
+      #if ENABLED(ZWOBBLE)
+        // Calculate ZWobble
+        mechanics.insert_zwobble_correction(lz);
+      #endif
+      #if ENABLED(HYSTERESIS)
+        // Calculate Hysteresis
+        mechanics.insert_hysteresis_correction(lx, ly, lz, e);
+      #endif
       _buffer_line(lx, ly, lz, e, fr_mm_s, extruder);
     }
 
