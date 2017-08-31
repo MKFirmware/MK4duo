@@ -162,7 +162,7 @@
   #if DISABLED(CHAMBER_MINTEMP)
     #error DEPENDENCY ERROR: Missing setting CHAMBER_MINTEMP
   #endif
-  #if HASNT(HEATER_CHAMBER)
+  #if !HAS_HEATER_CHAMBER
     #error DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_CHAMBER and not HEATER_CHAMBER_PIN
   #endif
 #endif
@@ -173,7 +173,7 @@
   #if DISABLED(COOLER_MINTEMP)
     #error DEPENDENCY ERROR: Missing setting COOLER_MINTEMP
   #endif
-  #if HASNT(COOLER)
+  #if !HAS_COOLER
     #error DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_COOLER and not COOLER_PIN
   #endif
 #endif
@@ -1583,9 +1583,9 @@ static_assert(1 >= 0
     #error "DUAL_X_CARRIAGE requires 2 (or more) extruders."
   #elif MECH(COREXY) || MECH(COREXZ)
     #error "DUAL_X_CARRIAGE cannot be used with COREXY or COREXZ."
-  #elif HASNT(X2_ENABLE) || HASNT(X2_STEP) || HASNT(X2_DIR)
+  #elif !HAS_X2_ENABLE || !HAS_X2_STEP || !HAS_X2_DIR
     #error "DUAL_X_CARRIAGE requires X2 stepper pins to be defined."
-  #elif HASNT(X_MAX)
+  #elif !HAS_X_MAX
     #error "DUAL_X_CARRIAGE requires use a X Max Endstop."
   #elif DISABLED(X2_HOME_POS) || DISABLED(X2_MIN_POS) || DISABLED(X2_MAX_POS)
     #error "DUAL_X_CARRIAGE requires X2_HOME_POS, X2_MIN_POS, and X2_MAX_POS."

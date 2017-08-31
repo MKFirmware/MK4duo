@@ -54,7 +54,7 @@
         WRITE(PHOTOGRAPH_PIN, LOW);
         HAL::delayMilliseconds(PULSE_LENGTH);
       }
-    #endif // HASNT(CHDK) && HAS_PHOTOGRAPH
+    #endif // !HAS_CHDK && HAS_PHOTOGRAPH
   }
 
 #endif // HAS_CHDK || PHOTOGRAPH_PIN

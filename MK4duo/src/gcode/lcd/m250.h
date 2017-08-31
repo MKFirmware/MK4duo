@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS(LCD_CONTRAST)
+#if HAS_LCD_CONTRAST
 
   #define CODE_M250
 
@@ -38,4 +38,4 @@
     SERIAL_EMV("lcd contrast value: ", lcd_contrast);
   }
 
-#endif // HAS(LCD_CONTRAST)
+#endif // HAS_LCD_CONTRAST

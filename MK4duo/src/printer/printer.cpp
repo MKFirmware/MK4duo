@@ -557,7 +557,7 @@ void Printer::kill(const char* lcd_msg) {
     SET_INPUT(PS_ON_PIN);
   #endif
 
-  #if HAS(SUICIDE)
+  #if HAS_SUICIDE
     suicide();
   #endif
 

@@ -1469,10 +1469,7 @@ void kill_screen(const char* lcd_msg) {
           mechanics.current_position[Y_AXIS] = Y_MAX_POS - 10;
           break;
       }
-
-      const float feedrate = MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]);
-      planner.buffer_line_kinematic(mechanics.current_position, feedrate, tools.active_extruder);
-
+      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.active_extruder);
       line_to_z(LOGICAL_Z_POSITION(0.0));
       if (++bed_corner > 3) bed_corner = 0;
     }
