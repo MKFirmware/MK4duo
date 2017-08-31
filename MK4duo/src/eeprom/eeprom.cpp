@@ -198,6 +198,10 @@ void EEPROM::Postprocess() {
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     bedlevel.refresh_bed_level();
   #endif
+
+  #if ENABLED(HYSTERESIS)
+    mechanics.calc_hysteresis_steps();
+  #endif
 }
 
 #if HAS_EEPROM
