@@ -180,6 +180,7 @@
 #define BOARD_RAMPS_SMART_HHF 1414    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Fan)
 
 #define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
+#define BOARD_RAMPS4DUE_NEXTION  1434 // RAMPS4DUE with ARM 32 bit board + NEXTION on SERIAL 1
 
 #define BOARD_ALLIGATOR       1502    // ALLIGATOR R2 ARM 32 bit board
 #define BOARD_ALLIGATOR_V3    1503    // ALLIGATOR R3 ARM 32 bit board
