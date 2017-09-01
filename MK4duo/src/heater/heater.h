@@ -44,6 +44,7 @@
     public: /** Public Parameters */
 
       Heater_type type;
+      uint8_t     id;
       Pin         output_pin,
                   sensor_pin;
       int16_t     sensor_type;
@@ -68,7 +69,7 @@
 
     public: /** Public Function */
 
-      void init();
+      void init(uint8_t my_id);
 
       #if PWM_HARDWARE
         void SetHardwarePwm();

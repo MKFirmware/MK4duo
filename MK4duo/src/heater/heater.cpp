@@ -91,7 +91,7 @@
   /**
    * Initialize Heater
    */
-  void Heater::init() { HAL::pinMode(this->output_pin, OUTPUT); }
+  void Heater::init(uint8_t my_id) { id = my_id; HAL::pinMode(this->output_pin, OUTPUT); }
 
   void Heater::setTarget(const int16_t celsius) {
 
