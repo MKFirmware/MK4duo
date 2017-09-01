@@ -28,8 +28,13 @@
  *
  * Available chip select pins for HW SPI are 4 10 52 77
  */
-#if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
-  #if (SDSS == 4)
+#define RAMPS4DUE  ((MOTHERBOARD == BOARD_RAMPS4DUE) ||  (MOTHERBOARD == BOARD_RAMPS4DUE_NEXTION))
+#if (SDSS == 4) || (SDSS == 10) || (SDSS == 52)|| (SDSS == 59) || (SDSS == 60) || (SDSS == 77) || (RAMPS4DUE && (SDSS == 53))
+	#if (RAMPS4DUE && (SDSS == 53))
+	  // use same CS (spi_pin=D53) and CD (D49) as in mega2560+ramps1.4 configuration
+		#define SPI_PIN           53
+		#define SPI_CHAN          0
+  #elif (SDSS == 4)
     #define SPI_PIN         87
     #define SPI_CHAN        1
   #elif (SDSS == 10)
