@@ -232,7 +232,7 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
  */
 float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/, const int verbose_level/*=1*/, const bool printable/*=true*/) {
 
-  #if HAS_BED_PROBE
+  #if ENABLED(HAS_BED_PROBE)
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {

@@ -453,7 +453,7 @@
 
     void NexUpload::startUpload(void) {
       if (!_checkFile()) {
-        SERIAL_LM(ER, "The file is error");
+        SERIAL_LM(ER, "Error reading the file");
         return;
       }
       if (_getBaudrate() == 0) {
@@ -486,7 +486,7 @@
     bool NexUpload::_checkFile(void) {
       SERIAL_EMT("Start checkFile ", _file_name);
       if (!card.selectFile(_file_name)) {
-        SERIAL_LM(ER, "file is not exit");
+        SERIAL_LM(ER, "File does not exists");
         return false;
       }
       _unuploadByte = card.fileSize;
