@@ -1122,7 +1122,7 @@
 //#define SD_CHECK_AND_RETRY  // Use CRC checks and retries on the SD communication
 //#define SD_EXTENDED_DIR     // Show extended directory including file length. Don't use this with Pronterface
 
-// Decomment this if you are external SD without DETECT_PIN
+// Decomment this if you have external SD without DETECT_PIN
 //#define SD_DISABLED_DETECT
 // Some RAMPS and other boards don't detect when an SD card is inserted. You can work
 // around this by connecting a push button or single throw switch to the pin defined
@@ -1472,7 +1472,11 @@
 // Define Serial it use
 #define NEXTION_SERIAL 1
 // Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
-#define NEXTION_UPDATE_INTERVAL 3000
+#ifdef __SAM3X8E__
+  #define NEXTION_UPDATE_INTERVAL 1500
+#else
+  #define NEXTION_UPDATE_INTERVAL 3000
+#endif
 // For GFX preview visualization enable NEXTION GFX
 //#define NEXTION_GFX
 // Define name firmware file for Nextion on SD
@@ -1821,12 +1825,20 @@
 // THE BLOCK BUFFER SIZE NEEDS TO BE A POWER OF 2, i.g. 8,16,32 because shifts
 // and ors are used to do the ring-buffering.
 // For Arduino DUE setting BLOCK BUFFER SIZE to 32
-#define BLOCK_BUFFER_SIZE 16
+#ifdef __SAM3X8E__
+  #define BLOCK_BUFFER_SIZE 32
+#else
+  #define BLOCK_BUFFER_SIZE 16
+#endif
 
 // The ASCII buffer for receiving from the serial:
 #define MAX_CMD_SIZE 96
 // For Arduino DUE setting to 8
-#define BUFSIZE 4
+#ifdef __SAM3X8E__
+  #define BUFSIZE 8
+#else
+  #define BUFSIZE 4
+#endif
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
 // The values should not be less than 1

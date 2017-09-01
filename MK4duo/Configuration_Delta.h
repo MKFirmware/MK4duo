@@ -120,7 +120,7 @@
 // Horizontal offset of the universal joints on the carriages.
 #define DELTA_CARRIAGE_OFFSET 20.0          // mm
 
-// height from z=0.00 to home position
+// DELTA_HEIGHT: Distance between nozzle (when in maximal/home position) and print surface (z=0.00 mm).
 #define DELTA_HEIGHT 200                    // mm
 
 // Delta Printable radius
@@ -501,7 +501,24 @@
  *                                                                                       *
  *****************************************************************************************/
 // Default steps per unit               X,  Y,  Z,  E0...(per extruder)
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 80, 625, 625, 625, 625}
+//#define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 80, 625, 625, 625, 625}
+
+#define XYZ_FULL_STEPS_PER_ROTATION 400
+#define XYZ_MICROSTEPS 32
+#define XYZ_BELT_PITCH 2
+#define XYZ_PULLEY_TEETH 16
+#define XYZ_STEPS (double(XYZ_FULL_STEPS_PER_ROTATION) * XYZ_MICROSTEPS / XYZ_BELT_PITCH / XYZ_PULLEY_TEETH)
+
+// E_STEPS: The number of steps extruder stepper motor takes to extrude 1 mm of filament. 
+//          Usually all you need to do (after pluging your values below) is to calibrate E_HOBBED_GEAR_DIAMETER_CORRECTION parameter to match for instance moving of 100 mm of filament.
+#define E_FULL_STEPS_PER_ROTATION 200
+#define E_MICROSTEPS 32
+#define E_GEAR_RATIO 5.18
+#define E_HOBBED_GEAR_DIAMETER 12.0  // in mm
+#define E_HOBBED_GEAR_DIAMETER_CORRECTION  1.000  // this is a bit less then 1 f.e. 0.997 
+#define E_STEPS (double(E_FULL_STEPS_PER_ROTATION) * E_MICROSTEPS * E_GEAR_RATIO / ((E_HOBBED_GEAR_DIAMETER*E_HOBBED_GEAR_DIAMETER_CORRECTION) * 3.14159265358979))
+
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {XYZ_STEPS, XYZ_STEPS, XYZ_STEPS, E_STEPS, E_STEPS, E_STEPS, E_STEPS}
 /*****************************************************************************************/
 
 
@@ -548,11 +565,12 @@
  * value set here, it may happen instantaneously.                                        *
  *                                                                                       *
  *****************************************************************************************/
-#define DEFAULT_XJERK 20.0
-#define DEFAULT_YJERK 20.0
-#define DEFAULT_ZJERK 20.0
+#define DEFAULT_XYZ_JERK  20.0
+#define DEFAULT_XJERK     DEFAULT_XYZ_JERK
+#define DEFAULT_YJERK     DEFAULT_XYZ_JERK
+#define DEFAULT_ZJERK     DEFAULT_XYZ_JERK
 // E0... (mm/sec) per extruder
-#define DEFAULT_EJERK                   {5.0, 5.0, 5.0, 5.0}
+#define DEFAULT_EJERK     {5.0, 5.0, 5.0, 5.0}
 /*****************************************************************************************/
 
 
