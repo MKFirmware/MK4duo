@@ -43,6 +43,7 @@
 
     public: /** Public Parameters */
 
+      uint8_t     id;
       Heater_type type;
       uint8_t     id;
       Pin         output_pin,
@@ -75,7 +76,7 @@
         void SetHardwarePwm();
       #endif
 
-      void setTarget(const int16_t celsius);
+      void setTarget(int16_t celsius);
 
       bool isON()         { return this->sensor_type != 0; }
       bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }

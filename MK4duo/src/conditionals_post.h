@@ -1079,11 +1079,6 @@
  * Bed Probe dependencies
  */
 #if HAS_BED_PROBE
-  #if ENABLED(PROBE_MANUALLY)
-    #undef X_PROBE_OFFSET_FROM_NOZZLE
-    #undef Y_PROBE_OFFSET_FROM_NOZZLE
-    #undef Z_PROBE_OFFSET_FROM_NOZZLE
-  #endif
   #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
     #define X_PROBE_OFFSET_FROM_NOZZLE 0
   #endif
