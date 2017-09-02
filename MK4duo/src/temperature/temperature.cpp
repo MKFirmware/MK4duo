@@ -28,11 +28,11 @@
 
 Temperature thermalManager;
 
-constexpr uint8_t temp_residency_time[HEATER_TYPE]  = { TEMP_RESIDENCY_TIME, TEMP_BED_RESIDENCY_TIME, TEMP_CHAMBER_RESIDENCY_TIME, TEMP_COOLER_RESIDENCY_TIME },
-                  temp_hysteresis[HEATER_TYPE]      = { TEMP_HYSTERESIS, TEMP_BED_HYSTERESIS, TEMP_CHAMBER_HYSTERESIS, TEMP_COOLER_HYSTERESIS },
-                  temp_window[HEATER_TYPE]          = { TEMP_WINDOW, TEMP_BED_WINDOW, TEMP_CHAMBER_WINDOW, TEMP_COOLER_WINDOW };
-constexpr uint8_t temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
-constexpr bool    thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
+constexpr uint8_t   temp_residency_time[HEATER_TYPE]  = { TEMP_RESIDENCY_TIME, TEMP_BED_RESIDENCY_TIME, TEMP_CHAMBER_RESIDENCY_TIME, TEMP_COOLER_RESIDENCY_TIME },
+                    temp_hysteresis[HEATER_TYPE]      = { TEMP_HYSTERESIS, TEMP_BED_HYSTERESIS, TEMP_CHAMBER_HYSTERESIS, TEMP_COOLER_HYSTERESIS },
+                    temp_window[HEATER_TYPE]          = { TEMP_WINDOW, TEMP_BED_WINDOW, TEMP_CHAMBER_WINDOW, TEMP_COOLER_WINDOW };
+constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
+constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 #if HOTENDS > 0
   static void*    heater_ttbl_map[HOTENDS]    = ARRAY_BY_HOTENDS_N((void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE);
@@ -758,17 +758,17 @@ void Temperature::print_heaterstates() {
     );
   #endif
 
-  SERIAL_MV(MSG_AT ":", heaters[TRG_EXTRUDER_IDX].soft_pwm);
+  SERIAL_MV(MSG_AT ":", (int)heaters[TRG_EXTRUDER_IDX].soft_pwm);
 
   #if HAS_TEMP_BED
-    SERIAL_MV(MSG_BAT, heaters[BED_INDEX].soft_pwm);
+    SERIAL_MV(MSG_BAT, (int)heaters[BED_INDEX].soft_pwm);
   #endif
 
   #if HOTENDS > 1
     LOOP_HOTEND() {
       SERIAL_MV(MSG_AT, h);
       SERIAL_CHR(':');
-      SERIAL_VAL(heaters[h].soft_pwm);
+      SERIAL_VAL((int)heaters[h].soft_pwm);
     }
   #endif
 
