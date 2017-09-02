@@ -45,7 +45,6 @@
 
       uint8_t     id;
       Heater_type type;
-      uint8_t     id;
       Pin         output_pin,
                   sensor_pin;
       int16_t     sensor_type;
