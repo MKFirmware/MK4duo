@@ -616,6 +616,7 @@
     }
 
     void sdlistPopCallback(void *ptr) {
+      UNUSED(ptr);
       uint32_t number = 0;
       sdlist.getValue(&number);
       number = slidermaxval - number;
@@ -661,11 +662,14 @@
     }
 
     void sdfolderUpPopCallback(void *ptr) {
+      UNUSED(ptr);
       card.updir();
       setpageSD();
     }
 
     void PlayPausePopCallback(void *ptr) {
+      UNUSED(ptr);
+
       if (card.cardOK && card.isFileOpen()) {
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
@@ -965,7 +969,6 @@
   }
 
   void settempPopCallback(void *ptr) {
-
     ZERO(buffer);
     tset.getText(buffer, sizeof(buffer));
 
@@ -981,6 +984,8 @@
   }
 
   void sethotPopCallback(void *ptr) {
+    UNUSED(ptr);
+
     uint32_t Heater;
     char temp[5] = { 0 };
 
@@ -1002,6 +1007,7 @@
   }
 
   void setgcodePopCallback(void *ptr) {
+    UNUSED(ptr);
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
     Tgcode.setText("");
@@ -1010,12 +1016,14 @@
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr) {
+      UNUSED(ptr);
       fans[0].Speed = (fans[0].Speed ? 0 : 255);
       Fantimer.enable(fans[0].Speed ? false : true);
     }
   #endif
 
   void setmovePopCallback(void *ptr) {
+    UNUSED(ptr);
 
     #if EXTRUDERS > 1
       const uint8_t temp_extruder = tools.active_extruder;
@@ -1046,15 +1054,18 @@
   }
 
   void motoroffPopCallback(void *ptr) {
+    UNUSED(ptr);
     commands.enqueue_and_echo_commands_P(PSTR("M84"));
   }
 
   void sendPopCallback(void *ptr) {
+    UNUSED(ptr);
     lcd_clicked = true;
     printer.wait_for_user = false;
   }
 
   void filamentPopCallback(void *ptr) {
+    UNUSED(ptr);
     ZERO(buffer);
     Filgcode.getText(buffer, sizeof(buffer));
     commands.enqueue_and_echo_commands_P(PSTR("G91"));
@@ -1063,6 +1074,8 @@
   }
 
   void YesPopCallback(void *ptr) {
+    UNUSED(ptr);
+
     static uint32_t icon = 0;
     Vyes.getValue(&icon);
     switch(icon) {
@@ -1400,12 +1413,13 @@
   }
 
   void lcd_setstatus(const char* message, bool persist) {
+    UNUSED(persist);
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setstatusPGM(const char* message, uint8_t level) {
+  void lcd_setstatusPGM(const char* message, int8_t level) {
     if (level < 0) level = lcd_status_message_level = 0;
     if (level < lcd_status_message_level || !NextionON) return;
     strncpy_P(lcd_status_message, message, 30);

@@ -120,7 +120,7 @@
 // Horizontal offset of the universal joints on the carriages.
 #define DELTA_CARRIAGE_OFFSET 20.0          // mm
 
-// height from z=0.00 to home position
+// Delta Height: Distance between nozzle (when in maximal/home position) and print surface (z = 0.00 mm).
 #define DELTA_HEIGHT 200                    // mm
 
 // Delta Printable radius
@@ -552,7 +552,7 @@
 #define DEFAULT_YJERK 20.0
 #define DEFAULT_ZJERK 20.0
 // E0... (mm/sec) per extruder
-#define DEFAULT_EJERK                   {5.0, 5.0, 5.0, 5.0}
+#define DEFAULT_EJERK {5.0, 5.0, 5.0, 5.0}
 /*****************************************************************************************/
 
 

@@ -1122,7 +1122,7 @@
 //#define SD_CHECK_AND_RETRY  // Use CRC checks and retries on the SD communication
 //#define SD_EXTENDED_DIR     // Show extended directory including file length. Don't use this with Pronterface
 
-// Decomment this if you are external SD without DETECT_PIN
+// Decomment this if you have external SD without DETECT_PIN
 //#define SD_DISABLED_DETECT
 // Some RAMPS and other boards don't detect when an SD card is inserted. You can work
 // around this by connecting a push button or single throw switch to the pin defined
