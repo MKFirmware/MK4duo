@@ -69,7 +69,7 @@
 
     public: /** Public Function */
 
-      void init();
+      void init(uint8_t my_id);
 
       #if PWM_HARDWARE
         void SetHardwarePwm();

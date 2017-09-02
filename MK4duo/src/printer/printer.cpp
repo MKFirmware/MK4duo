@@ -253,7 +253,7 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  LOOP_HEATER() heaters[h].init();  // Initialize all Heater
+  LOOP_HEATER() heaters[h].init(h);  // Initialize all Heater
 
   thermalManager.init();  // Initialize temperature loop
 
