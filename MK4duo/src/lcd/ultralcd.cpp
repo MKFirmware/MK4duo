@@ -418,7 +418,7 @@ uint16_t max_display_update_time = 0;
     uint8_t lcd_sd_status;
   #endif
 
-  #if PIDTEMP
+  #if (PIDTEMP)
     float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
   #endif
 

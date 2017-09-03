@@ -432,6 +432,7 @@
     #define TARGET_EXTRUDER 0
   #elif EXTRUDERS == 0
     #undef PIDTEMP
+    #define PIDTEMP false
     #undef FWRETRACT
     #define XYZE_N    XYZ
     #define E_AXIS_N  0

@@ -73,4 +73,4 @@
     }
   }
 
-#endif // ENABLED(PIDTEMP)
+#endif // HAS_PID
