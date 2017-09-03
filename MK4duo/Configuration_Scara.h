@@ -102,7 +102,7 @@
 // Radius around the center where the arm cannot reach
 #define MIDDLE_DEAD_ZONE_R 140 // mm
 
-//Enable this if your SCARA uses 180° of total area
+// Enable this if your SCARA uses 180° of total area
 //#define EXTRAPOLATE_FROM_EDGE
 
 /*****************************************************************************************/

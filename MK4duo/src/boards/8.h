@@ -138,7 +138,7 @@
 #define ORIG_TEMP_COOLER_PIN -1
 
 //###FAN
-#define ORIG_FAN_PIN 22
+#define ORIG_FAN0_PIN 22
 #define ORIG_FAN1_PIN -1
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1
@@ -178,7 +178,7 @@
 //@@@
 
 //###IF_BLOCKS
-// You may need to change ORIG_FAN_PIN to 16 because Marlin isn't using fastio.h
+// You may need to change ORIG_FAN0_PIN to 16 because Marlin isn't using fastio.h
 // for the fan and Teensyduino uses a different pin mapping.
 #if MB(TEENSYLU)  // Teensylu
   #define X_STOP_PIN         13

@@ -132,7 +132,7 @@
 #define ORIG_TEMP_COOLER_PIN -1
 
 //###FAN
-#define ORIG_FAN_PIN -1
+#define ORIG_FAN0_PIN -1
 #define ORIG_FAN1_PIN -1
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1
@@ -174,11 +174,11 @@
 #if ENABLED(RAMPS_V_1_0) // RAMPS_V_1_0
   #define ORIG_HEATER_0_PIN     12    // RAMPS 1.0
   #define ORIG_HEATER_BED_PIN   -1    // RAMPS 1.0
-  #define ORIG_FAN_PIN          11    // RAMPS 1.0
+  #define ORIG_FAN0_PIN          11    // RAMPS 1.0
 #else // RAMPS_V_1_1 or RAMPS_V_1_2
   #define ORIG_HEATER_0_PIN     10    // RAMPS 1.1
   #define ORIG_HEATER_BED_PIN    8    // RAMPS 1.1
-  #define ORIG_FAN_PIN           9    // RAMPS 1.1
+  #define ORIG_FAN0_PIN           9    // RAMPS 1.1
 #endif
 
 // SPI for Max6675 Thermocouple
