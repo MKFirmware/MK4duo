@@ -78,6 +78,7 @@
        */
       void set_axis_is_at_home(const AxisEnum axis);
 
+      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
