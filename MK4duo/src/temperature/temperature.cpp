@@ -125,7 +125,7 @@ void Temperature::init() {
     MCUCR = _BV(JTD);
   #endif
 
-  #if ENABLED(PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
+  #if (PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
   #endif
 
@@ -574,7 +574,7 @@ void Temperature::PID_autotune(int8_t temp_controller, const float temp, int ncy
 
         SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
 
-        #if ENABLED(PIDTEMP)
+        #if (PIDTEMP)
           if (temp_controller >= 0) {
             SERIAL_MV(MSG_KP, workKp);
             SERIAL_MV(MSG_KI, workKi);

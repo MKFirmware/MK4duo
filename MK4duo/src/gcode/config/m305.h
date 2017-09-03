@@ -42,4 +42,4 @@
     SERIAL_EMV(" d:", heaters[CHAMBER_INDEX].Kd);
   }
 
-#endif // NABLED(PIDTEMPCHAMBER)
+#endif // PIDTEMPCHAMBER
