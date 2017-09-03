@@ -154,6 +154,46 @@
     return false;
   }
 
+  /**
+   *  Plan a move to (X, Y, Z) and set the current_position
+   *  The final current_position may not be the one that was requested
+   */
+  void Scara_Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) {
+    const float old_feedrate_mm_s = feedrate_mm_s;
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
+    #endif
+
+    if (!position_is_reachable_xy(lx, ly)) return;
+
+    set_destination_to_current();
+
+    // If Z needs to raise, do it before moving XY
+    if (destination[Z_AXIS] < lz) {
+      destination[Z_AXIS] = lz;
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+    }
+
+    destination[X_AXIS] = lx;
+    destination[Y_AXIS] = ly;
+    prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S);
+
+    // If Z needs to lower, do it after moving XY
+    if (destination[Z_AXIS] > lz) {
+      destination[Z_AXIS] = lz;
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+    }
+
+    stepper.synchronize();
+
+    feedrate_mm_s = old_feedrate_mm_s;
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_ECHOLNPGM("<<< do_blocking_move_to");
+    #endif
+  }
+
   bool Scara_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
