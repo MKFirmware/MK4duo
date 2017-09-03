@@ -31,7 +31,7 @@
 #define XYZ       3
 
 // Function macro
-#define FORCE_INLINE __attribute__((always_inline)) inline
+#define FORCE_INLINE  __attribute__((always_inline)) inline
 
 /**
  * Macros for mechanics type

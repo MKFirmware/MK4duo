@@ -691,12 +691,10 @@ void Temperature::disable_all_heaters() {
   void Temperature::pause(const bool p) {
     if (p != paused) {
       paused = p;
-      if (p) {
+      if (p)
         LOOP_HEATER() start_heater_idle_timer(h, 0); // timeout immediately
-      }
-      else {
+      else
         LOOP_HEATER() reset_heater_idle_timer(h);
-      }
     }
   }
 #endif // PROBING_HEATERS_OFF

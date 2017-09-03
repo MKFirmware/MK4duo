@@ -178,7 +178,7 @@
 #define TEMP_COOLER_PIN     -1
 
 // FAN pin
-#define FAN_PIN             ORIG_FAN_PIN
+#define FAN0_PIN            ORIG_FAN0_PIN
 #define FAN1_PIN            ORIG_FAN1_PIN
 #define FAN2_PIN            ORIG_FAN2_PIN
 #define FAN3_PIN            ORIG_FAN3_PIN

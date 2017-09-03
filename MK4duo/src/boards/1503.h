@@ -133,7 +133,7 @@
 #define ORIG_TEMP_COOLER_PIN -1
 
 //###FAN
-#define ORIG_FAN_PIN 92
+#define ORIG_FAN0_PIN 92
 #define ORIG_FAN1_PIN 31
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1

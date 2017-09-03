@@ -199,8 +199,8 @@
   #define Z2_MAX_PIN    -1
 #endif
 
-#if DISABLED(ORIG_FAN_PIN)
-  #define ORIG_FAN_PIN  -1
+#if DISABLED(ORIG_FAN0_PIN)
+  #define ORIG_FAN0_PIN  -1
 #endif
 #if DISABLED(ORIG_FAN1_PIN)
   #define ORIG_FAN1_PIN -1
@@ -334,7 +334,7 @@
                         X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN, \
                         Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN, \
                         Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN, Z_PROBE_PIN, \
-                        PS_ON_PIN, HEATER_BED_PIN, FAN_PIN, \
+                        PS_ON_PIN, HEATER_BED_PIN, FAN0_PIN, \
                         _H0_PINS _H1_PINS _H2_PINS _H3_PINS \
                         _E0_PINS _E1_PINS _E2_PINS _E3_PINS _E4_PINS _E5_PINS \
                         analogInputToDigitalPin(TEMP_BED_PIN), \

@@ -132,7 +132,7 @@
 #define ORIG_TEMP_COOLER_PIN -1
 
 //###FAN
-#define ORIG_FAN_PIN -1
+#define ORIG_FAN0_PIN -1
 #define ORIG_FAN1_PIN -1
 #define ORIG_FAN2_PIN -1
 #define ORIG_FAN3_PIN -1
@@ -174,8 +174,8 @@
 //###IF_BLOCKS
 #if (GEN7_VERSION >= 13)
   // Gen7 v1.3 removed the fan pin
-  #define ORIG_FAN_PIN -1
+  #define ORIG_FAN0_PIN -1
 #else
-  #define ORIG_FAN_PIN 31
+  #define ORIG_FAN0_PIN 31
 #endif
 //@@@
