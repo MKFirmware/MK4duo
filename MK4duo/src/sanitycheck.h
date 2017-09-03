@@ -240,6 +240,9 @@
   #endif
 #endif
 #if (PIDTEMPBED)
+  #if !HAS_TEMP_BED
+    #error DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED
+  #endif
   #if DISABLED(DEFAULT_bedKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_bedKp
   #endif
@@ -251,6 +254,9 @@
   #endif
 #endif
 #if (PIDTEMPCHAMBER)
+  #if !HAS_TEMP_CHAMBER
+    #error DEPENDENCY ERROR: Missing setting TEMP_SENSOR_CHAMBER
+  #endif
   #if DISABLED(DEFAULT_chamberKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_chamberKp
   #endif
@@ -263,6 +269,9 @@
 
 #endif
 #if (PIDTEMPCOOLER)
+  #if !HAS_TEMP_COOLER
+    #error DEPENDENCY ERROR: Missing setting TEMP_SENSOR_COOLER
+  #endif
   #if DISABLED(DEFAULT_coolerKp)
     #error DEPENDENCY ERROR: Missing setting DEFAULT_coolerKp
   #endif
