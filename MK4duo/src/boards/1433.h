@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
+  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
 #endif
 //@@@
 
@@ -167,6 +167,7 @@
   #endif
 #endif
 //@@@
+
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
