@@ -260,7 +260,6 @@
       #endif
     }
 
-    //#define EXTRAPOLATE_FROM_EDGE
     #if ENABLED(EXTRAPOLATE_FROM_EDGE)
       #if GRID_MAX_POINTS_X < GRID_MAX_POINTS_Y
         #define HALF_IN_X
