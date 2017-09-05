@@ -120,16 +120,16 @@
       SET_INPUT_PULLUP(PROBE_TEST_PIN);
       bool deploy_state, stow_state;
       for (uint8_t i = 0; i < 4; i++) {
-        MOVE_SERVO(probe_index, z_servo_angle[0]); //deploy
+        MOVE_SERVO(probe_index, probe.z_servo_angle[0]); //deploy
         printer.safe_delay(500);
         deploy_state = digitalRead(PROBE_TEST_PIN);
-        MOVE_SERVO(probe_index, z_servo_angle[1]); //stow
+        MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
         printer.safe_delay(500);
         stow_state = digitalRead(PROBE_TEST_PIN);
       }
       if (probe_inverting != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
-      refresh_cmd_timeout();
+      commands.refresh_cmd_timeout();
 
       if (deploy_state != stow_state) {
         SERIAL_EM("BLTouch clone detected");
@@ -147,7 +147,7 @@
 
       }
       else {                                        // measure active signal length
-        MOVE_SERVO(probe_index, z_servo_angle[0]);  // deploy
+        MOVE_SERVO(probe_index, probe.z_servo_angle[0]);  // deploy
         printer.safe_delay(500);
         SERIAL_EM("please trigger probe");
         uint16_t probe_counter = 0;
@@ -158,7 +158,7 @@
           printer.safe_delay(2);
 
           if (0 == j % (500 * 1)) // keep cmd_timeout happy
-            refresh_cmd_timeout();
+            commands.refresh_cmd_timeout();
 
           if (deploy_state != digitalRead(PROBE_TEST_PIN)) { // probe triggered
 
@@ -172,7 +172,7 @@
             else
               SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
 
-            MOVE_SERVO(probe_index, z_servo_angle[1]); //stow
+            MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
 
           } // pulse detected
 
