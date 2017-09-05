@@ -39,18 +39,18 @@
 
     public: /** Public Parameters */
 
-      float delta[ABC],
-            delta_diagonal_rod,
-            delta_radius,
-            delta_segments_per_second,
-            delta_print_radius,
-            delta_probe_radius,
-            delta_height,
-            delta_clip_start_height,
-            delta_diagonal_rod_adj[ABC],
-            delta_endstop_adj[ABC],
-            delta_tower_radius_adj[ABC],
-            delta_tower_pos_adj[ABC];
+      float delta[ABC]                  = { 0.0 },
+            delta_diagonal_rod          = 0.0,
+            delta_radius                = 0.0,
+            delta_segments_per_second   = 0.0,
+            delta_print_radius          = 0.0,
+            delta_probe_radius          = 0.0,
+            delta_height                = 0.0,
+            delta_clip_start_height     = 0.0,
+            delta_diagonal_rod_adj[ABC] = { 0.0 },
+            delta_endstop_adj[ABC]      = { 0.0 },
+            delta_tower_radius_adj[ABC] = { 0.0 },
+            delta_tower_pos_adj[ABC]    = { 0.0 };
 
       #if HAS_DELTA_AUTO_CALIBRATION
         bool g33_in_progress = false;
@@ -87,7 +87,7 @@
        * This calls buffer_line several times, adding
        * small incremental moves for DELTA.
        */
-      bool prepare_move_to_destination_mech_specific() override;
+      bool prepare_move_to_destination_mech_specific();
 
       /**
        *  Plan a move to (X, Y, Z) and set the current_position
@@ -139,13 +139,22 @@
     private: /** Private Parameters */
 
       // Derived values
-      float  delta_diagonal_rod_2[ABC],  // Diagonal rod 2
-                    towerX[ABC],                // The X coordinate of each tower
-                    towerY[ABC],                // The Y coordinate of each tower
-                    homed_Height,
-                    Xbc, Xca, Xab, Ybc, Yca, Yab,
-                    coreFa, coreFb, coreFc,
-                    Q, Q2, D2;
+      float delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
+            towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
+            towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
+            homed_Height              = 0.0,
+            Xbc                       = 0.0,
+            Xca                       = 0.0,
+            Xab                       = 0.0,
+            Ybc                       = 0.0,
+            Yca                       = 0.0,
+            Yab                       = 0.0,
+            coreFa                    = 0.0,
+            coreFb                    = 0.0,
+            coreFc                    = 0.0,
+            Q                         = 0.0,
+            Q2                        = 0.0,
+            D2                        = 0.0;
 
     private: /** Private Function */
       

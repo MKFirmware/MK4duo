@@ -60,7 +60,7 @@
        * This calls planner.buffer_line several times, adding
        * small incremental moves for SCARA.
        */
-      bool prepare_move_to_destination_mech_specific() override;
+      bool prepare_move_to_destination_mech_specific();
 
       /**
        * Calculate delta, start a line, and set current_position to destination

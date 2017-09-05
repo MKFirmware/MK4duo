@@ -83,7 +83,7 @@
        * Prepare a single move and get ready for the next one
        * If Mesh Bed Leveling is enabled, perform a mesh move.
        */
-      bool prepare_move_to_destination_mech_specific() override;
+      bool prepare_move_to_destination_mech_specific();
 
       /**
        * Set an axis' current position to its home position (after homing).
