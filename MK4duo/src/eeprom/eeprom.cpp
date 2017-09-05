@@ -38,7 +38,7 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV35"
+#define EEPROM_VERSION "MKV36"
 
 /**
  * MKV431 EEPROM Layout:
@@ -85,9 +85,6 @@
  * HAS_BED_PROBE:
  *  M851  XYZ             probe.offset                          (float x3)
  *
- * HOTENDS AD595:
- *  M595  H OS            Hotend AD595 Offset & Gain
- *
  * DELTA:
  *  M666  XYZ             mechanics.delta_endstop_adj           (float x3)
  *  M666  R               mechanics.delta_radius                (float)
@@ -104,6 +101,10 @@
  *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
  *  M145  S0  B           lcd_preheat_bed_temp                  (int x3)
  *  M145  S0  F           lcd_preheat_fan_speed                 (int x3)
+ *
+ *
+ * HEATERS AD595:
+ *  M595  H   OS          Heaters AD595 Offset & Gain
  *
  * PIDTEMP:
  *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0]            (float x4)
@@ -376,13 +377,6 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(probe.offset);
     #endif
 
-    #if HEATER_USES_AD595
-      LOOP_HOTEND() {
-        EEPROM_WRITE(heaters[h].ad595_offset);
-        EEPROM_WRITE(heaters[h].ad595_gain);
-      }
-    #endif
-
     #if MECH(DELTA)
       EEPROM_WRITE(mechanics.delta_endstop_adj);
       EEPROM_WRITE(mechanics.delta_radius);
@@ -418,6 +412,12 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(lcd_preheat_fan_speed);
 
     LOOP_HEATER() {
+
+      #if HEATER_USES_AD595
+        EEPROM_WRITE(heaters[h].ad595_offset);
+        EEPROM_WRITE(heaters[h].ad595_gain);
+      #endif
+
       EEPROM_WRITE(heaters[h].Kp);
       EEPROM_WRITE(heaters[h].Ki);
       EEPROM_WRITE(heaters[h].Kd);
@@ -702,14 +702,6 @@ void EEPROM::Postprocess() {
         EEPROM_READ(probe.offset);
       #endif
 
-      #if HEATER_USES_AD595
-        LOOP_HOTEND() {
-          EEPROM_READ(heaters[h].ad595_offset);
-          EEPROM_READ(heaters[h].ad595_gain);
-          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain == TEMP_SENSOR_AD595_GAIN;
-        }
-      #endif
-
       #if MECH(DELTA)
         EEPROM_READ(mechanics.delta_endstop_adj);
         EEPROM_READ(mechanics.delta_radius);
@@ -743,6 +735,13 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_preheat_fan_speed);
 
       LOOP_HEATER() {
+
+        #if HEATER_USES_AD595
+          EEPROM_READ(heaters[h].ad595_offset);
+          EEPROM_READ(heaters[h].ad595_gain);
+          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain == TEMP_SENSOR_AD595_GAIN;
+        #endif
+
         EEPROM_READ(heaters[h].Kp);
         EEPROM_READ(heaters[h].Ki);
         EEPROM_READ(heaters[h].Kd);
@@ -1273,15 +1272,6 @@ void EEPROM::Factory_Settings() {
 
     #endif
 
-    #if HEATER_USES_AD595
-      CONFIG_MSG_START("AD595 Offset and Gain:");
-      LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M595 H", h);
-        SERIAL_MV(" O", heaters[h].ad595_offset);
-        SERIAL_EMV(", S", heaters[h].ad595_gain);
-      }
-    #endif // HEATER_USES_AD595
-
     #if IS_DELTA
 
       CONFIG_MSG_START("Endstop adjustment:");
@@ -1335,6 +1325,15 @@ void EEPROM::Factory_Settings() {
         SERIAL_EOL();
       }
     #endif // ULTIPANEL
+    
+    #if HEATER_USES_AD595
+      CONFIG_MSG_START("AD595 Offset and Gain:");
+      LOOP_HEATER() {
+        SERIAL_SMV(CFG, "  M595 H", h);
+        SERIAL_MV(" O", heaters[h].ad595_offset);
+        SERIAL_EMV(", S", heaters[h].ad595_gain);
+      }
+    #endif // HEATER_USES_AD595
 
     #if HAS_PID
       CONFIG_MSG_START("PID settings:");

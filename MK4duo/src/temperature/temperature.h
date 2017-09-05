@@ -100,11 +100,6 @@ class Temperature {
 
     static millis_t next_check_ms[HEATER_COUNT];
 
-    #if WATCH_THE_HEATER
-      static uint16_t watch_target_temp[HEATER_COUNT];
-      static millis_t watch_heater_next_ms[HEATER_COUNT];
-    #endif
-
     #if ENABLED(FILAMENT_SENSOR)
       static int8_t   meas_shift_index;     // Index of a delayed sample in buffer
       static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
@@ -158,7 +153,7 @@ class Temperature {
     static void disable_all_heaters();
 
     #if WATCH_THE_HEATER
-      static void start_watching(const uint8_t h=0);
+      static void start_watching(Heater *act);
     #endif
 
     #if HAS_FILAMENT_SENSOR

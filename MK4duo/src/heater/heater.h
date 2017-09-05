@@ -43,7 +43,7 @@
 
     public: /** Public Parameters */
 
-      int         id;
+      uint8_t     id;
       Heater_type type;
       Pin         output_pin,
                   sensor_pin;
@@ -57,8 +57,6 @@
                   mintemp,
                   maxtemp;
       float       current_temperature,
-                  ad595_offset,
-                  ad595_gain,
                   Kp,
                   Ki,
                   Kd,
@@ -66,6 +64,16 @@
       bool        use_pid,
                   pwm_hardware,
                   hardwareInverted;
+
+      #if HEATER_USES_AD595
+        float     ad595_offset,
+                  ad595_gain;
+      #endif
+
+      #if WATCH_THE_HEATER
+        uint16_t  watch_target_temp;
+        millis_t  watch_next_ms;
+      #endif
 
     public: /** Public Function */
 

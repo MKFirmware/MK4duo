@@ -167,7 +167,7 @@ void Mechanics::prepare_move_to_destination() {
     }
   #endif
 
-  if (prepare_move_to_destination_mech_specific()) return;
+  if (mechanics.prepare_move_to_destination_mech_specific()) return;
 
   set_current_to_destination();
 }

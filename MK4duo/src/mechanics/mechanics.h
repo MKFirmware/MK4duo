@@ -86,9 +86,9 @@ class Mechanics {
      */
     float   feedrate_mm_s             = MMM_TO_MMS(1500.0),
             saved_feedrate_mm_s       = MMM_TO_MMS(1500.0),
-            min_feedrate_mm_s,
-            max_feedrate_mm_s[XYZE_N],        // Max speeds in mm per second
-            min_travel_feedrate_mm_s;
+            min_feedrate_mm_s         = 0.0,
+            max_feedrate_mm_s[XYZE_N] = { 0.0 },
+            min_travel_feedrate_mm_s  = 0.0;
     int16_t feedrate_percentage       = 100,
             saved_feedrate_percentage = 100;
 
@@ -102,25 +102,25 @@ class Mechanics {
     /**
      * Step per unit
      */
-    float axis_steps_per_mm[XYZE_N],
-          steps_to_mm[XYZE_N];
+    float axis_steps_per_mm[XYZE_N] = { 0.0 },
+          steps_to_mm[XYZE_N]       = { 0.0 };
 
     /**
      * Acceleration and Jerk
      */
-    float     acceleration,                         // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
-              retract_acceleration[EXTRUDERS],      // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
-              travel_acceleration,                  // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
-              max_jerk[XYZE_N];                     // The largest speed change requiring no acceleration
-    uint32_t  max_acceleration_steps_per_s2[XYZE_N],
-              max_acceleration_mm_per_s2[XYZE_N];   // Use M201 to override by software
+    float     acceleration                          = 0.0,
+              retract_acceleration[EXTRUDERS]       = { 0.0 },
+              travel_acceleration                   = 0.0,
+              max_jerk[XYZE_N]                      = { 0.0 };
+    uint32_t  max_acceleration_steps_per_s2[XYZE_N] = { 0 },
+              max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
 
     const signed char home_dir[XYZ]       = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
     /**
      * Min segment time
      */
-    millis_t  min_segment_time;
+    millis_t  min_segment_time = 0;
 
     /**
      * Cartesian Current Position
@@ -128,7 +128,7 @@ class Mechanics {
      *   Used by 'line_to_current_position' to do a move after changing it.
      *   Used by 'sync_plan_position' to update 'planner.position'.
      */
-    float current_position[XYZE];
+    float current_position[XYZE] = { 0.0 };
 
     /**
      * Cartesian Stored Position
@@ -136,12 +136,12 @@ class Mechanics {
      *   Used by G60 for stored.
      *   Used by G61 for move to.
      */
-    float stored_position[NUM_POSITON_SLOTS][XYZE];
+    float stored_position[NUM_POSITON_SLOTS][XYZE] = {{ 0.0 }};
 
     /**
      * Cartesian position
      */
-    float cartesian_position[XYZ];
+    float cartesian_position[XYZ] = { 0.0 };
 
     /**
      * Cartesian Destination
@@ -149,7 +149,7 @@ class Mechanics {
      *   Set with 'gcode_get_destination' or 'set_destination_to_current'.
      *   'line_to_destination' sets 'current_position' to 'destination'.
      */
-    float destination[XYZE];
+    float destination[XYZE] = { 0.0 };
 
     /**
      * axis_homed
@@ -160,21 +160,22 @@ class Mechanics {
      *   Flags that the position is known in each linear axis. Set when homed.
      *   Cleared whenever a stepper powers off, potentially losing its position.
      */
-    bool axis_homed[XYZ], axis_known_position[XYZ];
+    bool  axis_homed[XYZ]           = { false },
+          axis_known_position[XYZ]  = { false };
 
     /**
      * Workspace Offset
      */
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
       // The distance that XYZ has been offset by G92. Reset by G28.
-      float position_shift[XYZ] = { 0 };
+      float position_shift[XYZ] = { 0.0 };
 
       // This offset is added to the configured home position.
       // Set by M206, M428, or menu item. Saved to EEPROM.
-      float home_offset[XYZ] = { 0 };
+      float home_offset[XYZ] = { 0.0 };
 
       // The above two are combined to save on computes
-      float workspace_offset[XYZ] = { 0 };
+      float workspace_offset[XYZ] = { 0.0 };
     #endif
 
     #if ENABLED(CNC_WORKSPACE_PLANES)
@@ -249,15 +250,6 @@ class Mechanics {
      * do smaller moves for DELTA, SCARA, mesh moves, etc.
      */
     void prepare_move_to_destination();
-
-    /**
-     * Prepare a single move and get ready for the next one
-     *
-     * This function is specific to the mechanics of the machine,
-     * therefore is pure virtual and MUST be implemented in every
-     * Mechanics subclass!
-     */
-    virtual bool prepare_move_to_destination_mech_specific();
 
     /**
      * Compute a Bézier curve using the De Casteljau's algorithm (see

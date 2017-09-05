@@ -88,11 +88,6 @@ uint8_t Temperature::pid_pointer[HEATER_COUNT] = { 0 };
 
 millis_t Temperature::next_check_ms[HEATER_COUNT];
 
-#if WATCH_THE_HEATER
-  uint16_t Temperature::watch_target_temp[HEATER_COUNT];
-  millis_t Temperature::watch_heater_next_ms[HEATER_COUNT];
-#endif
-
 #if ENABLED(FILAMENT_SENSOR)
   int8_t    Temperature::meas_shift_index;          // Index of a delayed sample in buffer
   uint16_t  Temperature::current_raw_filwidth = 0;  // Measured filament diameter - one extruder only
@@ -321,14 +316,14 @@ void Temperature::manage_temp_controller() {
     if (heaters[0].current_temperature < max(HEATER_0_MINTEMP, MAX6675_TMIN + .01)) min_temp_error(0);
   #endif
 
-  LOOP_HEATER() {
-    if (heaters[h].isON() && heaters[h].current_temperature > heaters[h].maxtemp) max_temp_error(h);
-    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].mintemp) min_temp_error(h);
-  }
-
   millis_t ms = millis();
 
   LOOP_HEATER() {
+
+    Heater *act = &heaters[h];
+
+    if (act->isON() && act->current_temperature > act->maxtemp) max_temp_error(h);
+    if (act->isON() && act->current_temperature < act->mintemp) min_temp_error(h);
 
     #if HEATER_IDLE_HANDLER
       if (!heater_idle_timeout_exceeded[h] && heater_idle_timeout_ms[h] && ELAPSED(ms, heater_idle_timeout_ms[h]))
@@ -337,29 +332,29 @@ void Temperature::manage_temp_controller() {
 
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
-      if (thermal_protection[heaters[h].type])
-        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], heaters[h].current_temperature, heaters[h].target_temperature, h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
+      if (thermal_protection[act->type])
+        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], act->current_temperature, act->target_temperature, h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
     #endif
 
-    if (heaters[h].use_pid)
-      heaters[h].soft_pwm = heaters[h].tempisrange() ? (int)get_pid_output(h) : 0;
+    if (act->use_pid)
+      act->soft_pwm = act->tempisrange() ? (int)get_pid_output(h) : 0;
     else if (ELAPSED(ms, next_check_ms[h])) {
-      next_check_ms[h] = ms + temp_check_interval[heaters[h].type];
-      if (heaters[h].tempisrange())
-        heaters[h].soft_pwm = heaters[h].isHeating() ? heaters[h].pid_max : 0;
+      next_check_ms[h] = ms + temp_check_interval[act->type];
+      if (act->tempisrange())
+        act->soft_pwm = act->isHeating() ? act->pid_max : 0;
       else {
-        heaters[h].soft_pwm = 0;
-        HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
+        act->soft_pwm = 0;
+        HAL::digitalWrite(act->output_pin, act->hardwareInverted ? HIGH : LOW);
       }
     }
 
     #if WATCH_THE_HEATER
       // Make sure temperature is increasing
-      if (watch_heater_next_ms[h] && ELAPSED(ms, watch_heater_next_ms[h])) {
-        if (heaters[h].current_temperature < watch_target_temp[h])
+      if (act->watch_next_ms && ELAPSED(ms, act->watch_next_ms)) {
+        if (act->current_temperature < act->watch_target_temp)
           _temp_error(h, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
         else
-          start_watching(h); // Start again if the target is still far off
+          start_watching(act); // Start again if the target is still far off
       }
     #endif
 
@@ -667,13 +662,13 @@ void Temperature::disable_all_heaters() {
    * their target temperature by a configurable margin.
    * This is called when the temperature is set.
    */
-  void Temperature::start_watching(const uint8_t h/*=0*/) {
-    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].target_temperature - (WATCH_TEMP_INCREASE + temp_hysteresis[heaters[h].type] + 1)) {
-      watch_target_temp[h] = heaters[h].current_temperature + WATCH_TEMP_INCREASE;
-      watch_heater_next_ms[h] = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
+  void Temperature::start_watching(Heater *act) {
+    if (act->isON() && act->current_temperature < act->target_temperature - (WATCH_TEMP_INCREASE + temp_hysteresis[act->type] + 1)) {
+      act->watch_target_temp = act->current_temperature + WATCH_TEMP_INCREASE;
+      act->watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
     }
     else
-      watch_heater_next_ms[h] = 0;
+      act->watch_next_ms = 0;
   }
 #endif
 
@@ -842,8 +837,10 @@ float Temperature::analog2temp(const uint8_t h) {
 
   if (type == -2)
     return 0.25 * raw;
-  else if (type == -1)
-    return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0)) * heaters[h].ad595_gain) + heaters[h].ad595_offset;
+  #if HEATER_USES_AD595
+    else if (type == -1)
+      return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0)) * heaters[h].ad595_gain) + heaters[h].ad595_offset;
+  #endif
   else if (type > 0) {
 
     float celsius = 0;
