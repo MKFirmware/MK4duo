@@ -2176,9 +2176,9 @@ void Printer::handle_Interrupt_Event() {
     uint8_t case_light_bright = (uint8_t)case_light_brightness;
     if (case_light_on) {
       HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
-      WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
+      HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
     }
-    else WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
+    else HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
   }
   
 #endif
