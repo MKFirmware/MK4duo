@@ -108,7 +108,7 @@
       HAL::analogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
     #elif LASER_CONTROL == 2
       HAL::analogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
-      WRITE(LASER_PWR_PIN, LASER_ARM);
+      HAL::digitalWrite(LASER_PWR_PIN, LASER_ARM);
     #endif
 
     if (laser.diagnostics) SERIAL_EM("Laser fired");
@@ -132,7 +132,7 @@
         #else
           HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM);
         #endif
-        WRITE(LASER_PWR_PIN, LASER_UNARM);
+        HAL::digitalWrite(LASER_PWR_PIN, LASER_UNARM);
       #endif
 
       laser.time += millis() - (laser.last_firing / 1000);
@@ -157,17 +157,17 @@
   }
 
   #if ENABLED(LASER_PERIPHERALS)
-    bool Laser::peripherals_ok() { return !READ(LASER_PERIPHERALS_STATUS_PIN); }
+    bool Laser::peripherals_ok() { return !HAL::digitalRead(LASER_PERIPHERALS_STATUS_PIN); }
 
     void Laser::peripherals_on() {
-      WRITE(LASER_PERIPHERALS_PIN, LOW);
+      HAL::digitalWrite(LASER_PERIPHERALS_PIN, LOW);
       if (laser.diagnostics)
         SERIAL_EM("Laser Peripherals Enabled");
     }
 
     void Laser::peripherals_off() {
-      if (!READ(LASER_PERIPHERALS_STATUS_PIN)) {
-        WRITE(LASER_PERIPHERALS_PIN, HIGH);
+      if (!peripherals_ok()) {
+        HAL::digitalWrite(LASER_PERIPHERALS_PIN, HIGH);
         if (laser.diagnostics)
           SERIAL_EM("Laser Peripherals Disabled");
       }

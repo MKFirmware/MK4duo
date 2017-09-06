@@ -59,7 +59,7 @@
   void FlowMeter::flow_init() {
     flowrate = 0;
     flowrate_pulsecount = 0;
-    pinMode(FLOWMETER_PIN, INPUT);
+    HAL::pinMode(FLOWMETER_PIN, INPUT);
 
     attachInterrupt(digitalPinToInterrupt(FLOWMETER_PIN), flowrate_pulsecounter, FALLING);
   }

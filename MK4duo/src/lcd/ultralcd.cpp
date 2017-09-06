@@ -704,18 +704,14 @@ void kill_screen(const char* lcd_msg) {
 
   #if HAS_CASE_LIGHT
 
-    extern int case_light_brightness;
-    extern bool case_light_on;
-    extern void update_case_light();
-
     void case_light_menu() {
       START_MENU();
       //
       // ^ Main
       //
       MENU_BACK(MSG_MAIN);
-      MENU_ITEM_EDIT_CALLBACK(int3, MSG_CASE_LIGHT_BRIGHTNESS, &case_light_brightness, 0, 255, update_case_light, true);
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_CASE_LIGHT_BRIGHTNESS, &printer.case_light_brightness, 0, 255, printer.update_case_light, true);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&printer.case_light_on, printer.update_case_light);
       END_MENU();
     }
   #endif // HAS_CASE_LIGHT
@@ -969,7 +965,7 @@ void kill_screen(const char* lcd_msg) {
    */
   #if HAS_TEMP_HOTEND
     #if WATCH_THE_HOTEND
-      #define _WATCH_FUNC(N) thermalManager.start_watching(N)
+      #define _WATCH_FUNC(N) thermalManager.start_watching(&heaters[N])
     #else
       #define _WATCH_FUNC(N) NOOP
     #endif
@@ -987,19 +983,19 @@ void kill_screen(const char* lcd_msg) {
 
   void watch_temp_callback_bed() {
     #if WATCH_THE_BED
-      thermalManager.start_watching(BED_INDEX);
+      thermalManager.start_watching(&heaters[BED_INDEX]);
     #endif
   }
 
   void watch_temp_callback_chamber() {
     #if WATCH_THE_CHAMBER
-      thermalManager.start_watching(CHAMBER_INDEX);
+      thermalManager.start_watching(&heaters[CHAMBER_INDEX]);
     #endif
   }
 
   void watch_temp_callback_cooler() {
     #if WATCH_THE_COOLER
-      thermalManager.start_watching(COOLER_INDEX);
+      thermalManager.start_watching(&heaters[COOLER_INDEX]);
     #endif
   }
 

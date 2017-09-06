@@ -24,9 +24,6 @@
 #define ULTRALCD_H
 
 #if ENABLED(ULTRA_LCD)
-  #if HAS_BUZZER
-    #include "buzzer.h"
-  #endif
 
   #define BUTTON_EXISTS(BN) (ENABLED(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN) !READ(BTN_## BN)

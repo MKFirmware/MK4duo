@@ -115,7 +115,7 @@
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
-#include "src/lcd/buzzer.h"
+#include "src/buzzer/buzzer.h"
 #include "src/nextion/Nextion_lcd.h"
 #include "src/mfrc522/mfrc522.h"
 #include "src/sd/cardreader.h"

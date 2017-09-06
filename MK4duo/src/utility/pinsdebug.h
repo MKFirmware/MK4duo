@@ -995,8 +995,8 @@ inline void report_pin_state(int8_t pin) {
       SERIAL_MSG(" (protected)");
     else {
       SERIAL_MSG(" = ");
-      pinMode(pin, INPUT_PULLUP);
-      SERIAL_VAL(digitalRead(pin));
+      HAL::pinMode(pin, INPUT_PULLUP);
+      SERIAL_VAL(HAL::digitalRead(pin));
       if (IS_ANALOG(pin)) {
         SERIAL_CHR(' '); SERIAL_CHR('(');
         SERIAL_VAL(analogRead(pin - analogInputToDigitalPin(0)));
@@ -1049,7 +1049,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
     }
     else {
       if (!get_pinMode(pin)) {
-        pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
+        HAL::pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
         SERIAL_MT("Input  = ", digitalRead_mod(pin));
       }
       else if (pwm_status(pin)) {

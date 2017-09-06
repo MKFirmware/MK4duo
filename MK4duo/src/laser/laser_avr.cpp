@@ -70,8 +70,8 @@
 
   void Laser::timer3_init(Pin pin) {
 
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, HIGH);
+    HAL::pinMode(pin, OUTPUT);
+    HAL::digitalWrite(pin, HIGH);
 
     // Setup timer3 to fast PWM with OC w/ ICR3 as TOP
     noInterrupts();
@@ -100,8 +100,8 @@
 
   void Laser::timer4_init(Pin pin) {
 
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, HIGH);
+    HAL::pinMode(pin, OUTPUT);
+    HAL::digitalWrite(pin, HIGH);
 
     // Setup timer4 to fast PWM with OC w/ ICR4 as TOP
     noInterrupts();
@@ -298,17 +298,17 @@
 
   #if ENABLED(LASER_PERIPHERALS)
 
-    bool Laser::peripherals_ok() { return !digitalRead(LASER_PERIPHERALS_STATUS_PIN); }
+    bool Laser::peripherals_ok() { return !HAL::digitalRead(LASER_PERIPHERALS_STATUS_PIN); }
 
     void Laser::peripherals_on() {
-      digitalWrite(LASER_PERIPHERALS_PIN, LOW);
+      HAL::digitalWrite(LASER_PERIPHERALS_PIN, LOW);
       if (laser.diagnostics)
         SERIAL_LM(ECHO, "Laser Peripherals Enabled");
     }
 
     void Laser::peripherals_off() {
-      if (!digitalRead(LASER_PERIPHERALS_STATUS_PIN)) {
-        digitalWrite(LASER_PERIPHERALS_PIN, HIGH);
+      if (!peripherals_ok()) {
+        HAL::digitalWrite(LASER_PERIPHERALS_PIN, HIGH);
         if (laser.diagnostics)
           SERIAL_LM(ECHO, "Laser Peripherals Disabled");
       }

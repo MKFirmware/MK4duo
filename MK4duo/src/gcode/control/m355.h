@@ -30,19 +30,6 @@
 
   #define CODE_M355
 
-  int case_light_brightness;
-  bool case_light_on;
-
-  void update_case_light() {
-    pinMode(CASE_LIGHT_PIN, OUTPUT);
-    uint8_t case_light_bright = (uint8_t)case_light_brightness;
-    if (case_light_on) {
-      HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
-      WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
-    }
-    else WRITE(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
-  }
-
   /**
    * M355: Turn case light on/off and set brightness
    *
@@ -57,16 +44,16 @@
    */
   inline void gcode_M355(void) {
     uint8_t args = 0;
-    if (parser.seen('P')) ++args, case_light_brightness = parser.value_byte();
-    if (parser.seen('S')) ++args, case_light_on = parser.value_bool();
-    if (args) update_case_light();
+    if (parser.seen('P')) ++args, printer.case_light_brightness = parser.value_byte();
+    if (parser.seen('S')) ++args, printer.case_light_on = parser.value_bool();
+    if (args) printer.update_case_light();
 
     // always report case light status
     SERIAL_STR(ECHO);
-    if (!case_light_on)
+    if (!printer.case_light_on)
       SERIAL_EM("Case light: off");
     else
-      SERIAL_MV("Case light: ", case_light_brightness);
+      SERIAL_MV("Case light: ", printer.case_light_brightness);
   }
 
 #endif // HAS_CASE_LIGHT

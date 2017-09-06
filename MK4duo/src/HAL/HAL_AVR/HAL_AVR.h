@@ -374,7 +374,6 @@ class HAL {
     static void resetHardware();
 
     static void analogStart();
-    static void analogRead();
 
     static void setPwmFrequency(uint8_t pin, uint8_t val);
 
