@@ -403,7 +403,7 @@
     if (this->servoIndex >= MAX_SERVOS) return -1;
 
     if (pin > 0) servo_info[this->servoIndex].Pin.nbr = pin;
-    pinMode(servo_info[this->servoIndex].Pin.nbr, OUTPUT); // set servo pin to output
+    HAL::pinMode(servo_info[this->servoIndex].Pin.nbr, OUTPUT); // set servo pin to output
 
     // todo min/max check: abs(min - MIN_PULSE_WIDTH) /4 < 128
     this->min = (MIN_PULSE_WIDTH - min) / 4; //resolution of min/max is 4 uS

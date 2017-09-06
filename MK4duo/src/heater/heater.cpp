@@ -131,6 +131,7 @@
   void Heater::setTarget(int16_t celsius) {
 
     NOMORE(celsius, this->maxtemp);
+    NOLESS(celsius, this->mintemp);
     this->target_temperature = celsius;
 
     #if WATCH_THE_HEATER

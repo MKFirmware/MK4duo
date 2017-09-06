@@ -2172,7 +2172,7 @@ void Printer::handle_Interrupt_Event() {
 #if HAS_CASE_LIGHT
 
   void Printer::update_case_light() {
-    pinMode(CASE_LIGHT_PIN, OUTPUT);
+    HAL::pinMode(CASE_LIGHT_PIN, OUTPUT);
     uint8_t case_light_bright = (uint8_t)case_light_brightness;
     if (case_light_on) {
       HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );

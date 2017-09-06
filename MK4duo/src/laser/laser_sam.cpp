@@ -166,7 +166,7 @@
     }
 
     void Laser::peripherals_off() {
-      if (!READ(LASER_PERIPHERALS_STATUS_PIN)) {
+      if (peripherals_ok()) {
         WRITE(LASER_PERIPHERALS_PIN, HIGH);
         if (laser.diagnostics)
           SERIAL_EM("Laser Peripherals Disabled");
