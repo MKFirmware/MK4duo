@@ -307,7 +307,7 @@
     }
 
     void Laser::peripherals_off() {
-      if (peripherals_ok()) {
+      if (!peripherals_ok()) {
         HAL::digitalWrite(LASER_PERIPHERALS_PIN, HIGH);
         if (laser.diagnostics)
           SERIAL_LM(ECHO, "Laser Peripherals Disabled");

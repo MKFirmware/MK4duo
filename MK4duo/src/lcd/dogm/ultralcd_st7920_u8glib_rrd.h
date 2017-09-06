@@ -23,8 +23,6 @@
 #ifndef ULCDST7920_H
 #define ULCDST7920_H
 
-#if ENABLED(U8GLIB_ST7920)
-
 #define ST7920_CLK_PIN  LCD_PINS_D4
 #define ST7920_DAT_PIN  LCD_PINS_ENABLE
 #define ST7920_CS_PIN   LCD_PINS_RS
@@ -196,5 +194,4 @@ class U8GLIB_ST7920_128X64_RRD : public U8GLIB {
 
 #pragma GCC reset_options
 
-#endif // U8GLIB_ST7920
 #endif // ULCDST7920_H

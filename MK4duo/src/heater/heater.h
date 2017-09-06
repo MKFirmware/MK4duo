@@ -43,6 +43,7 @@
 
     public: /** Public Parameters */
 
+      uint8_t     id;
       Heater_type type;
       Pin         output_pin,
                   sensor_pin;

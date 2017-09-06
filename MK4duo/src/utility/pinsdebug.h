@@ -999,7 +999,7 @@ inline void report_pin_state(int8_t pin) {
       SERIAL_VAL(HAL::digitalRead(pin));
       if (IS_ANALOG(pin)) {
         SERIAL_CHR(' '); SERIAL_CHR('(');
-        SERIAL_VAL(HAL::analogRead(pin - analogInputToDigitalPin(0)));
+        SERIAL_VAL(analogRead(pin - analogInputToDigitalPin(0)));
         SERIAL_CHR(')');
       }
     }
@@ -1043,7 +1043,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
   else {
     if (analog_pin) {
       #if DISABLED(ARDUINO_ARCH_SAM)
-        sprintf(buffer, "Analog in =% 5d", HAL::analogRead(pin - analogInputToDigitalPin(0)));
+        sprintf(buffer, "Analog in =% 5d", analogRead(pin - analogInputToDigitalPin(0)));
         SERIAL_TXT(buffer);
       #endif
     }

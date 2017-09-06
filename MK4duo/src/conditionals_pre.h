@@ -258,7 +258,7 @@
   #endif
 
   #if ENABLED(DOGLCD)
-    /* Custom characters defined in font dogm_font_data_Marlin_symbols.h / Marlin_symbols.fon */
+    /* Custom characters defined in font dogm_font_data_mk4duo_symbols.h / Marlin_symbols.fon */
     // \x00 intentionally skipped to avoid problems in strings
     #define LCD_STR_REFRESH     "\x01"
     #define LCD_STR_FOLDER      "\x02"
