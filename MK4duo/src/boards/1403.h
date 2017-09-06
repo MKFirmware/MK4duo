@@ -173,10 +173,10 @@
 //@@@
 
 //###IF_BLOCKS
-#define INVERTED_HEATER_PINS
-#define INVERTED_BED_PIN
-#define INVERTED_CHAMBER_PIN
-#define INVERTED_COOLER_PIN
+#define INVERTED_HEATER_PINS    true
+#define INVERTED_BED_PIN        true
+#define INVERTED_CHAMBER_PIN    true
+#define INVERTED_COOLER_PIN     true
 #define INVERTED_FAN_PINS
 #define INVERTED_AUTO_FAN_PINS
 

@@ -995,11 +995,11 @@ inline void report_pin_state(int8_t pin) {
       SERIAL_MSG(" (protected)");
     else {
       SERIAL_MSG(" = ");
-      pinMode(pin, INPUT_PULLUP);
-      SERIAL_VAL(digitalRead(pin));
+      HAL::pinMode(pin, INPUT_PULLUP);
+      SERIAL_VAL(HAL::digitalRead(pin));
       if (IS_ANALOG(pin)) {
         SERIAL_CHR(' '); SERIAL_CHR('(');
-        SERIAL_VAL(analogRead(pin - analogInputToDigitalPin(0)));
+        SERIAL_VAL(HAL::analogRead(pin - analogInputToDigitalPin(0)));
         SERIAL_CHR(')');
       }
     }
@@ -1043,13 +1043,13 @@ inline void report_pin_state_extended(Pin pin, bool ignore) {
   else {
     if (analog_pin) {
       #if DISABLED(ARDUINO_ARCH_SAM)
-        sprintf(buffer, "Analog in =% 5d", analogRead(pin - analogInputToDigitalPin(0)));
+        sprintf(buffer, "Analog in =% 5d", HAL::analogRead(pin - analogInputToDigitalPin(0)));
         SERIAL_TXT(buffer);
       #endif
     }
     else {
       if (!get_pinMode(pin)) {
-        pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
+        HAL::pinMode(pin, INPUT_PULLUP);  // make sure input isn't floating
         SERIAL_MT("Input  = ", digitalRead_mod(pin));
       }
       else if (pwm_status(pin)) {
