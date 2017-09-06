@@ -209,10 +209,10 @@ class Temperature {
         heater_idle_timeout_ms[h] = 0;
         heater_idle_timeout_exceeded[h] = false;
         #if WATCH_THE_HOTEND
-          if (h < HOTENDS) start_watching(h);
+          if (h < HOTENDS) start_watching(&heaters[h]);
         #endif
         #if WATCH_THE_BED
-          if (h == BED_INDEX) start_watching(h);
+          if (h == BED_INDEX) start_watching(&heaters[BED_INDEX]);
         #endif
       }
 

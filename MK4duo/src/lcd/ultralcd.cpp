@@ -969,7 +969,7 @@ void kill_screen(const char* lcd_msg) {
    */
   #if HAS_TEMP_HOTEND
     #if WATCH_THE_HOTEND
-      #define _WATCH_FUNC(N) thermalManager.start_watching(N)
+      #define _WATCH_FUNC(N) thermalManager.start_watching(&heaters[N])
     #else
       #define _WATCH_FUNC(N) NOOP
     #endif
@@ -987,19 +987,19 @@ void kill_screen(const char* lcd_msg) {
 
   void watch_temp_callback_bed() {
     #if WATCH_THE_BED
-      thermalManager.start_watching(BED_INDEX);
+      thermalManager.start_watching(&heaters[BED_INDEX]);
     #endif
   }
 
   void watch_temp_callback_chamber() {
     #if WATCH_THE_CHAMBER
-      thermalManager.start_watching(CHAMBER_INDEX);
+      thermalManager.start_watching(&heaters[CHAMBER_INDEX]);
     #endif
   }
 
   void watch_temp_callback_cooler() {
     #if WATCH_THE_COOLER
-      thermalManager.start_watching(COOLER_INDEX);
+      thermalManager.start_watching(&heaters[COOLER_INDEX]);
     #endif
   }
 
