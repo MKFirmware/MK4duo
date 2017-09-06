@@ -167,6 +167,7 @@ uint16_t max_display_update_time = 0;
     typedef void _name##_void
 
   DECLARE_MENU_EDIT_TYPE(int16_t, int3);
+  DECLARE_MENU_EDIT_TYPE(uint16_t, uint3);
   DECLARE_MENU_EDIT_TYPE(uint8_t, int8);
   DECLARE_MENU_EDIT_TYPE(float, float3);
   DECLARE_MENU_EDIT_TYPE(float, float32);
@@ -1088,16 +1089,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -2424,16 +2425,16 @@ void kill_screen(const char* lcd_msg) {
         #else
           #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
         #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
       #endif
       #if HAS_FAN2
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
       #endif
       #if HAS_FAN3
-        MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(uint3, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 
@@ -3551,6 +3552,7 @@ void kill_screen(const char* lcd_msg) {
     typedef void _name
 
   DEFINE_MENU_EDIT_TYPE(int16_t, int3, itostr3, 1);
+  DEFINE_MENU_EDIT_TYPE(uint16_t, uint3, itostr3, 1);
   DEFINE_MENU_EDIT_TYPE(uint8_t, int8, i8tostr3, 1);
   DEFINE_MENU_EDIT_TYPE(float, float3, ftostr3, 1.0);
   DEFINE_MENU_EDIT_TYPE(float, float32, ftostr32, 100.0);
