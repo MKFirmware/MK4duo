@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0 && HAS_TEMP_HOTEND
+#if HAS_TEMP_HOTEND
 
   #define CODE_M104
 
@@ -62,4 +62,4 @@
 
   }
 
-#endif // EXTRUDERS > 0 && HAS_TEMP_HOTEND
+#endif

@@ -27,6 +27,7 @@
  */
 
 #if EXTRUDERS > 0
+
   #define CODE_M200
 
   /**
@@ -58,4 +59,5 @@
 
     printer.calculate_volumetric_multipliers();
   }
+
 #endif // EXTRUDERS > 0

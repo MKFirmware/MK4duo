@@ -27,6 +27,7 @@
  */
 
 #if EXTRUDERS > 0
+
   #define CODE_M222
 
   /**
@@ -43,4 +44,5 @@
       #endif
     }
   }
+
 #endif // EXTRUDERS > 0

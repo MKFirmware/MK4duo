@@ -27,6 +27,7 @@
  */
 
 #if EXTRUDERS > 0
+
   #define CODE_M221
 
   /**
@@ -37,4 +38,5 @@
     GET_TARGET_EXTRUDER(221);
     if (parser.seenval('S')) tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
   }
+
 #endif // EXTRUDERS > 0

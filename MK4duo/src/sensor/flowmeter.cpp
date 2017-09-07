@@ -49,11 +49,11 @@
   float     FlowMeter::flowrate             = 0.0;
   int       FlowMeter::flowrate_pulsecount  = 0;
   millis_t  FlowMeter::flowmeter_timer      = 0,
-            FlowMeter::astflow              = 0;
+            FlowMeter::lastflow             = 0;
 
-  void FlowMeter::flowrate_pulsecounter() {
+  void flowrate_pulsecounter() {
     // Increment the pulse counter
-    flowrate_pulsecount++;
+    flowmeter.flowrate_pulsecount++;
   }
 
   void FlowMeter::flow_init() {
