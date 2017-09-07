@@ -64,4 +64,4 @@
     thermalManager.wait_heater(EXTRUDER_IDX, no_wait_for_cooling);
   }
 
-#endif
+#endif // HAS_TEMP_HOTEND

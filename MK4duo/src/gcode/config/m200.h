@@ -26,34 +26,38 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define CODE_M200
+#if EXTRUDERS > 0
 
-/**
- * M200: Set filament diameter and set E axis units to cubic units
- *
- *    T<extruder> - Optional extruder number. Current extruder if omitted.
- *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
- */
-inline void gcode_M200(void) {
+  #define CODE_M200
 
-  GET_TARGET_EXTRUDER(200);
+  /**
+   * M200: Set filament diameter and set E axis units to cubic units
+   *
+   *    T<extruder> - Optional extruder number. Current extruder if omitted.
+   *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
+   */
+  inline void gcode_M200(void) {
 
-  if (parser.seen('D')) {
-    // setting any extruder filament size disables volumetric on the assumption that
-    // slicers either generate in extruder values as cubic mm or as as filament feeds
-    // for all extruders
-    tools.volumetric_enabled = (parser.value_linear_units() != 0.0);
-    if (tools.volumetric_enabled) {
-      tools.filament_size[TARGET_EXTRUDER] = parser.value_linear_units();
-      // make sure all extruders have some sane value for the filament size
-      for (int e = 0; e < EXTRUDERS; e++)
-        if (!tools.filament_size[e]) tools.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
+    GET_TARGET_EXTRUDER(200);
+
+    if (parser.seen('D')) {
+      // setting any extruder filament size disables volumetric on the assumption that
+      // slicers either generate in extruder values as cubic mm or as as filament feeds
+      // for all extruders
+      tools.volumetric_enabled = (parser.value_linear_units() != 0.0);
+      if (tools.volumetric_enabled) {
+        tools.filament_size[TARGET_EXTRUDER] = parser.value_linear_units();
+        // make sure all extruders have some sane value for the filament size
+        for (int e = 0; e < EXTRUDERS; e++)
+          if (!tools.filament_size[e]) tools.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
+      }
     }
-  }
-  else {
-    // reserved for setting filament diameter via UFID or filament measuring device
-    return;
+    else {
+      // reserved for setting filament diameter via UFID or filament measuring device
+      return;
+    }
+
+    printer.calculate_volumetric_multipliers();
   }
 
-  printer.calculate_volumetric_multipliers();
-}
+#endif // EXTRUDERS > 0

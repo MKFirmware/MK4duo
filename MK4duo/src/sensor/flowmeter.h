@@ -56,6 +56,7 @@
 
       static bool   flow_firstread;
       static float  flowrate;
+      static int flowrate_pulsecount;  
 
     public: /** Public Function */
 
@@ -65,7 +66,6 @@
 
     private: /** Private Parameters */
 
-      static int flowrate_pulsecount;  
       static millis_t flowmeter_timer,
                       lastflow;
 
@@ -75,6 +75,8 @@
 
   extern FlowMeter flowmeter;
 
-#endif
+  extern void flowrate_pulsecounter();
+
+#endif // ENABLED(FLOWMETER_SENSOR)
 
 #endif /* _FLOWMETER_H_ */
