@@ -50,7 +50,7 @@
  *  M203  XYZ E0 ...      mechanics.max_feedrate_mm_s X,Y,Z,E0 ... (float x9)
  *  M201  XYZ E0 ...      mechanics.max_acceleration_mm_per_s2 X,Y,Z,E0 ... (uint32_t x9)
  *  M204  P               mechanics.acceleration                (float)
- *  M204  R   E0 ...      mechanics.retract_acceleration        (float x6)
+ *  M204  R   E0 ...      Tools::retract_acceleration           (float x6)
  *  M204  T               mechanics.travel_acceleration         (float)
  *  M205  S               mechanics.min_feedrate_mm_s           (float)
  *  M205  T               mechanics.min_travel_feedrate_mm_s    (float)
@@ -315,7 +315,9 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(mechanics.max_feedrate_mm_s);
     EEPROM_WRITE(mechanics.max_acceleration_mm_per_s2);
     EEPROM_WRITE(mechanics.acceleration);
-    EEPROM_WRITE(mechanics.retract_acceleration);
+    #if EXTRUDERS > 0
+      EEPROM_WRITE(Tools::retract_acceleration);
+    #endif
     EEPROM_WRITE(mechanics.travel_acceleration);
     EEPROM_WRITE(mechanics.min_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
@@ -628,7 +630,9 @@ void EEPROM::Postprocess() {
       EEPROM_READ(mechanics.max_feedrate_mm_s);
       EEPROM_READ(mechanics.max_acceleration_mm_per_s2);
       EEPROM_READ(mechanics.acceleration);
-      EEPROM_READ(mechanics.retract_acceleration);
+      #if EXTRUDERS > 0
+        EEPROM_READ(Tools::retract_acceleration);
+      #endif
       EEPROM_READ(mechanics.travel_acceleration);
       EEPROM_READ(mechanics.min_feedrate_mm_s);
       EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
@@ -929,10 +933,12 @@ void EEPROM::Factory_Settings() {
     mechanics.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
   }
 
-  for (uint8_t i = 0; i < EXTRUDERS; i++) {
-    mechanics.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
-    mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
-  }
+  #if EXTRUDERS > 0
+    for (uint8_t i = 0; i < EXTRUDERS; i++) {
+      Tools::retract_acceleration[i]          = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
+      mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
+    }
+  #endif
 
   static_assert(
     tmp10[X_AXIS][0] == 0 && tmp10[Y_AXIS][0] == 0 && tmp10[Z_AXIS][0] == 0,
@@ -1194,13 +1200,13 @@ void EEPROM::Factory_Settings() {
     SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(mechanics.acceleration), 3);
     SERIAL_MV(" V", LINEAR_UNIT(mechanics.travel_acceleration), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 R", LINEAR_UNIT(mechanics.retract_acceleration[0]), 3);
+      SERIAL_MV(" T0 R", LINEAR_UNIT(Tools::retract_acceleration[0]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M204 T", i);
-        SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[i]), 3);
+        SERIAL_EMV(" R", LINEAR_UNIT(Tools::retract_acceleration[i]), 3);
       }
     #endif
 

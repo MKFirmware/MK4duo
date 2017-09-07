@@ -2662,23 +2662,23 @@ void kill_screen(const char* lcd_msg) {
 
     // M204 R Retract Acceleration
     #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.retract_acceleration[tools.active_extruder], 100, 99000);
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E1, &mechanics.retract_acceleration[0], 100, 99000);
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E2, &mechanics.retract_acceleration[1], 100, 99000);
+      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &Tools::retract_acceleration[Tools::active_extruder], 100, 99000);
+      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E1, &Tools::retract_acceleration[0], 100, 99000);
+      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E2, &Tools::retract_acceleration[1], 100, 99000);
       #if EXTRUDERS > 2
-        MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E3, &mechanics.retract_acceleration[2], 100, 99000);
+        MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E3, &Tools::retract_acceleration[2], 100, 99000);
         #if EXTRUDERS > 3
-          MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E4, &mechanics.retract_acceleration[3], 100, 99000);
+          MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E4, &Tools::retract_acceleration[3], 100, 99000);
           #if EXTRUDERS > 4
-            MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E5, &mechanics.retract_acceleration[4], 100, 99000);
-            #if EXTRUDERS > 4
-              MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E6, &mechanics.retract_acceleration[5], 100, 99000);
+            MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E5, &Tools::retract_acceleration[4], 100, 99000);
+            #if EXTRUDERS > 5
+              MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E6, &Tools::retract_acceleration[5], 100, 99000);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4
         #endif // EXTRUDERS > 3
       #endif // EXTRUDERS > 2
-    #else
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.retract_acceleration[0], 100, 99000);
+    #elif EXTRUDERS == 1
+      MENU_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &Tools::retract_acceleration[0], 100, 99000);
     #endif
 
     // M204 T Travel Acceleration
@@ -2699,7 +2699,7 @@ void kill_screen(const char* lcd_msg) {
           MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E4, &mechanics.max_acceleration_mm_per_s2[E_AXIS + 3], 100, 99000, _reset_e3_acceleration_rate);
           #if EXTRUDERS > 4
             MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E5, &mechanics.max_acceleration_mm_per_s2[E_AXIS + 4], 100, 99000, _reset_e4_acceleration_rate);
-            #if EXTRUDERS > 4
+            #if EXTRUDERS > 5
               MENU_ITEM_EDIT_CALLBACK(long5, MSG_AMAX MSG_E6, &mechanics.max_acceleration_mm_per_s2[E_AXIS + 5], 100, 99000, _reset_e5_acceleration_rate);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4
@@ -2735,7 +2735,7 @@ void kill_screen(const char* lcd_msg) {
           MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E4, &mechanics.max_jerk[E_AXIS + 3], 1, 990);
           #if EXTRUDERS > 4
             MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E5, &mechanics.max_jerk[E_AXIS + 4], 1, 990);
-            #if EXTRUDERS > 4
+            #if EXTRUDERS > 5
               MENU_ITEM_EDIT(float3, MSG_VE_JERK MSG_E6, &mechanics.max_jerk[E_AXIS + 5], 1, 990);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4

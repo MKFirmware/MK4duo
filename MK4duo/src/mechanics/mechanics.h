@@ -109,7 +109,6 @@ class Mechanics {
      * Acceleration and Jerk
      */
     float     acceleration                          = 0.0,
-              retract_acceleration[EXTRUDERS]       = { 0.0 },
               travel_acceleration                   = 0.0,
               max_jerk[XYZE_N]                      = { 0.0 };
     uint32_t  max_acceleration_steps_per_s2[XYZE_N] = { 0 },
