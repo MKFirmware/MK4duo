@@ -61,6 +61,8 @@
           Tools::retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE;
   #endif
 
+  float   Tools::retract_acceleration[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(0.0);
+
   #if HAS_EXT_ENCODER
     uint8_t Tools::encLastSignal[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(0);
     int8_t  Tools::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);

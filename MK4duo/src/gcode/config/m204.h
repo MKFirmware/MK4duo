@@ -49,10 +49,12 @@ inline void gcode_M204(void) {
     mechanics.acceleration = parser.value_linear_units();
     SERIAL_EMV("Setting Print acceleration: ", mechanics.acceleration );
   }
-  if (parser.seen('R')) {
-    mechanics.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
-    SERIAL_EMV("Setting Retract acceleration: ", mechanics.retract_acceleration[TARGET_EXTRUDER]);
-  }
+  #if EXTRUDERS > 0
+    if (parser.seen('R')) {
+      Tools::retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
+      SERIAL_EMV("Setting Retract acceleration: ", Tools::retract_acceleration[TARGET_EXTRUDER]);
+    }
+  #endif
   if (parser.seen('V')) {
     mechanics.travel_acceleration = parser.value_linear_units();
     SERIAL_EMV("Setting Travel acceleration: ", mechanics.travel_acceleration );

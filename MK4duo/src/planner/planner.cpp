@@ -1038,8 +1038,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   const float steps_per_mm = block->step_event_count * inverse_millimeters;
   uint32_t accel;
   if (!block->steps[X_AXIS] && !block->steps[Y_AXIS] && !block->steps[Z_AXIS]) {
-    // convert to: mechanics.acceleration steps/sec^2
-    accel = CEIL(mechanics.retract_acceleration[extruder] * steps_per_mm);
+    #if EXTRUDERS > 0
+      // convert to: mechanics.acceleration steps/sec^2
+      accel = CEIL(Tools::retract_acceleration[extruder] * steps_per_mm);
+    #endif
   }
   else {
     #define LIMIT_ACCEL_LONG(AXIS,INDX) do{ \

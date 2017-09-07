@@ -101,7 +101,7 @@
 #define MSG_VMIN                            _UxGT("最小进料速率")  //"Vmin"  min_feedrate_mm_s
 #define MSG_VTRAV_MIN                       _UxGT("最小移动速率")  //"VTrav min" min_travel_feedrate_mm_s, (target) speed of the move
 #define MSG_AMAX                            _UxGT("最大打印加速度")  //"Amax " max_acceleration_mm_per_s2, acceleration in units/s^2 for print moves
-#define MSG_A_RETRACT                       _UxGT("收进加速度")  //"A-retract" retract_acceleration, E acceleration in mm/s^2 for retracts
+#define MSG_A_RETRACT                       _UxGT("收进加速度")  //"A-retract" Tools::retract_acceleration, E acceleration in mm/s^2 for retracts
 #define MSG_A_TRAVEL                        _UxGT("非打印移动加速度")  //"A-travel" travel_acceleration, X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 #define MSG_STEPS_PER_MM                    _UxGT("轴步数/mm")  //"Steps/mm" axis_steps_per_mm, axis steps-per-unit G92
 #define MSG_XSTEPS                          _UxGT("X轴步数/mm")  //"Xsteps/mm" axis_steps_per_mm, axis steps-per-unit G92

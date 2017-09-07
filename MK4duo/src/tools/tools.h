@@ -55,9 +55,17 @@
         static bool   autoretract_enabled,
                       retracted[EXTRUDERS],
                       retracted_swap[EXTRUDERS];
-        static float  retract_length, retract_length_swap, retract_feedrate_mm_s, retract_zlift,
-                      retract_recover_length, retract_recover_length_swap, retract_recover_feedrate_mm_s;
+
+        static float  retract_length,
+                      retract_length_swap,
+                      retract_feedrate_mm_s,
+                      retract_zlift,
+                      retract_recover_length,
+                      retract_recover_length_swap,
+                      retract_recover_feedrate_mm_s;
       #endif
+
+      static float retract_acceleration[EXTRUDERS];
 
       #if HAS_EXT_ENCODER
         static uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
