@@ -90,8 +90,6 @@
     tmc2130_get_sgt(st, name);
   }
 
-  #define CODE_M906
-
   /**
    * M906: Set motor current in milliamps using axis codes X, Y, Z, E
    * Report driver currents when no axis specified

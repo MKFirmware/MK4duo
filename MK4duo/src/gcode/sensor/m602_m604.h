@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_EXT_ENCODER
+#if EXTRUDERS > 0 && HAS_EXT_ENCODER
 
   //#define CODE_M602
   #define CODE_M604
@@ -48,4 +48,4 @@
     SERIAL_EMV("Encoder Error Steps: ", tools.encErrorSteps[tools.target_extruder]);
   }
 
-#endif // HAS_EXT_ENCODER
+#endif // EXTRUDERS > 0 && HAS_EXT_ENCODER

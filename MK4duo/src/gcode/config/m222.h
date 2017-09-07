@@ -26,19 +26,21 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define CODE_M222
+#if EXTRUDERS > 0
+  #define CODE_M222
 
-/**
- * M222: Set density extrusion percentage (M222 T0 S95)
- */
-inline void gcode_M222(void) {
+  /**
+   * M222: Set density extrusion percentage (M222 T0 S95)
+   */
+  inline void gcode_M222(void) {
 
-  GET_TARGET_EXTRUDER(222);
+    GET_TARGET_EXTRUDER(222);
 
-  if (parser.seenval('S')) {
-    tools.density_percentage[TARGET_EXTRUDER] = parser.value_int();
-    #if ENABLED(RFID_MODULE)
-      rfid522.RfidData[TARGET_EXTRUDER].data.density = tools.density_percentage[TARGET_EXTRUDER];
-    #endif
+    if (parser.seenval('S')) {
+      tools.density_percentage[TARGET_EXTRUDER] = parser.value_int();
+      #if ENABLED(RFID_MODULE)
+        rfid522.RfidData[TARGET_EXTRUDER].data.density = tools.density_percentage[TARGET_EXTRUDER];
+      #endif
+    }
   }
-}
+#endif // EXTRUDERS > 0
