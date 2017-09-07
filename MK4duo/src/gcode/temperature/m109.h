@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_HOTEND
+#if EXTRUDERS > 0 && HAS_TEMP_HOTEND
 
   #define CODE_M109
 
@@ -64,4 +64,4 @@
     thermalManager.wait_heater(EXTRUDER_IDX, no_wait_for_cooling);
   }
 
-#endif
+#endif // EXTRUDERS > 0 && HAS_TEMP_HOTEND

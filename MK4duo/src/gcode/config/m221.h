@@ -26,13 +26,15 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define CODE_M221
+#if EXTRUDERS > 0
+  #define CODE_M221
 
-/**
- * M221: Set extrusion percentage (M221 T0 S95)
- */
-inline void gcode_M221(void) {
+  /**
+   * M221: Set extrusion percentage (M221 T0 S95)
+   */
+  inline void gcode_M221(void) {
 
-  GET_TARGET_EXTRUDER(221);
-  if (parser.seenval('S')) tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
-}
+    GET_TARGET_EXTRUDER(221);
+    if (parser.seenval('S')) tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
+  }
+#endif // EXTRUDERS > 0
