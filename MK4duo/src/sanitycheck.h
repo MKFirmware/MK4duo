@@ -1662,10 +1662,6 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if ENABLED(EEPROM_SD) && ENABLED(SD_SETTINGS)
-  #error CONFLICT ERROR: "One for EEPROM_SD and SD_SETTINGS can is enable"
-#endif
-
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
   #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
 #endif
