@@ -134,8 +134,8 @@ def main(argv):
     print tmp
     temps = range(max_temp, min_temp + tmp, tmp);
 
-    print "// Thermistor lookup table for Marlin"
-    print "// ./createTemperatureLookupMarlin.py --rp=%s --t1=%s:%s --t2=%s:%s --t3=%s:%s --num-temps=%s" % (rp, t1, r1, t2, r2, t3, r3, num_temps)
+    print "// Thermistor lookup table for MK4duo"
+    print "// ./createTemperatureLookupMK4duo.py --rp=%s --t1=%s:%s --t2=%s:%s --t3=%s:%s --num-temps=%s" % (rp, t1, r1, t2, r2, t3, r3, num_temps)
     print "// Steinhart-Hart Coefficients: %.15g, %.15g,  %.15g " % (t.c1, t.c2, t.c3)
     print "//#define NUMTEMPS %s" % (len(temps))
     print "const short temptable[NUMTEMPS][2] PROGMEM = {"

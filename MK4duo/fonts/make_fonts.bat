@@ -1,4 +1,4 @@
-.\bdf2u8g.exe -b 1 -e 9 Marlin_symbols.bdf Marlin_symbols dogm_font_data_Marlin_symbols.h
+.\bdf2u8g.exe -b 1 -e 9 MK4duo_symbols.bdf MK4duo_symbols dogm_font_data_mk4duo_symbols.h
 .\bdf2u8g.exe -b 16 -e 255 HD44780_W.bdf HD44780_W_5x7 dogm_font_data_HD44780_W.h
 .\bdf2u8g.exe -b 32 -e 255 HD44780_C.bdf HD44780_C_5x7 dogm_font_data_HD44780_C.h
 .\bdf2u8g.exe -b 32 -e 255 HD44780_J.bdf HD44780_J_5x7 dogm_font_data_HD44780_J.h
