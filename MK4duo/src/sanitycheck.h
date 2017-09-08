@@ -1643,12 +1643,22 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if DISABLED(SDSUPPORT)
-  #if ENABLED(SD_SETTINGS)
-    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+/**
+ * SDSUPPORT test
+ */
+#if ENABLED(SD_SETTINGS) && DISABLED(SDSUPPORT)
+  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+#endif
+
+/**
+ * EEPROM test
+ */
+#if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
+  #if DISABLED(SDSUPPORT)
+    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD
   #endif
-  #if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
-    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
+  #if ENABLED(SD_SETTINGS)
+    #error CONFLICT ERROR: "One for EEPROM_SD and SD_SETTINGS can is enable"
   #endif
 #endif
 

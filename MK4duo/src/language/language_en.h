@@ -776,6 +776,18 @@
 #ifndef MSG_BED_DONE
   #define MSG_BED_DONE                        _UxGT("Bed done.")
 #endif
+#ifndef MSG_CHAMBER_HEATING
+  #define MSG_CHAMBER_HEATING                 _UxGT("Chamber Heating.")
+#endif
+#ifndef MSG_CHAMBER_DONE
+  #define MSG_CHAMBER_DONE                    _UxGT("Chamber done.")
+#endif
+#ifndef MSG_COOLER_COOLING
+  #define MSG_COOLER_COOLING                  _UxGT("Cooler Cooling.")
+#endif
+#ifndef MSG_COOLER_DONE
+  #define MSG_COOLER_DONE                     _UxGT("Cooler done.")
+#endif
 #ifndef MSG_DELTA_CALIBRATE
   #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Calibration")
 #endif

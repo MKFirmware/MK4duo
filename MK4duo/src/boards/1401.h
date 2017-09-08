@@ -168,6 +168,9 @@
 #endif
 //@@@
 
+//###UNKNOWN_PINS
+#define I2C_EEPROM
+//@@@
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)

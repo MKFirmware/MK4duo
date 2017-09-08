@@ -41,7 +41,7 @@
     bool no_wait_for_heating = parser.seen('S');
     if (no_wait_for_heating || parser.seen('R')) heaters[COOLER_INDEX].setTarget(parser.value_celsius());
 
-    printer.wait_cooler(no_wait_for_heating);
+    thermalManager.wait_heater(COOLER_INDEX, no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_COOLER

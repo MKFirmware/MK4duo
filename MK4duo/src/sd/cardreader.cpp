@@ -212,7 +212,7 @@
         SERIAL_EM(MSG_SD_FILE_SELECTED);
       }
 
-      for (int c = 0; c < sizeof(fileName); c++)
+      for (uint16_t c = 0; c < sizeof(fileName); c++)
         const_cast<char&>(fileName[c]) = '\0';
       strncpy(fileName, filename, strlen(filename));
 
@@ -241,7 +241,7 @@
     if (!cardOK) return;
     file.close();
 
-    if(!file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+    if (!file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, filename);
     }
     else {
@@ -257,7 +257,7 @@
     if (!cardOK) return;
     sdprinting = false;
     file.close();
-    if(fat.remove(filename)) {
+    if (fat.remove(filename)) {
       SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
     }
     else {
@@ -269,11 +269,11 @@
   }
 
   void CardReader::finishWrite() {
-      if (!saving) return; // already closed or never opened
-      file.sync();
-      file.close();
-      saving = false;
-      SERIAL_EM(MSG_SD_FILE_SAVED);
+    //if (!saving) return; // already closed or never opened
+    file.sync();
+    file.close();
+    saving = false;
+    SERIAL_EM(MSG_SD_FILE_SAVED);
   }
 
   void CardReader::makeDirectory(char *filename) {
@@ -345,7 +345,6 @@
             buffer_G92_Z[50],
             buffer_G92_E[50],
             buffer_SDpos[11],
-            temp[50],
             old_file_name[50];
 
       const char* restart_name_File = "restart.gcode";
