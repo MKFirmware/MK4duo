@@ -670,7 +670,9 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
   dir_t *p = NULL;
   //uint8_t cnt=0;
   //char *oldpathend = pathend;
-  bool firstFile = true;
+  #if ENABLED(JSON_OUTPUT)
+    bool firstFile = true;
+  #endif
 
   parent->rewind();
 
@@ -686,7 +688,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
           SERIAL_TXT(card.fileName);
           SERIAL_CHR('/');
         }
-        #ifdef JSON_OUTPUT
+        #if ENABLED(JSON_OUTPUT)
           if (isJson) {
             if (!firstFile) SERIAL_CHR(',');
             SERIAL_CHR('"'); SERIAL_CHR('*');
@@ -740,7 +742,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
           SERIAL_TXT(card.fileName);
           SERIAL_CHR('/');
         }
-        #ifdef JSON_OUTPUT
+        #if ENABLED(JSON_OUTPUT)
           if (isJson) {
             if (!firstFile) SERIAL_CHR(',');
             SERIAL_CHR('"');
@@ -752,7 +754,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
         #endif
         {
           SERIAL_TXT(card.tempLongFilename);
-          #ifdef SD_EXTENDED_DIR
+          #if ENABLED(SD_EXTENDED_DIR)
             SERIAL_MV(" ", (long) p->fileSize);
           #endif
           SERIAL_EOL();
@@ -776,7 +778,7 @@ void SdBaseFile::ls() {
   lsRecursive(&parent, 0, NULL, NULL, false);
 }
 
-#ifdef JSON_OUTPUT
+#if ENABLED(JSON_OUTPUT)
 void SdBaseFile::lsJSON() {
   SdBaseFile parent;
   rewind();
@@ -842,7 +844,7 @@ bool SdBaseFile::make83Name(const char* str, uint8_t* name, const char** ptr) {
     }
     else {
       // illegal FAT characters
-      #ifdef ARDUINO_ARCH_AVR
+      #if ENABLED(ARDUINO_ARCH_AVR)
         // store chars in flash
         PGM_P p = PSTR("|<>^+=?/[];,*\"\\");
         uint8_t b;

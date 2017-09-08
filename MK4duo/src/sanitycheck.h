@@ -1643,12 +1643,22 @@ static_assert(1 >= 0
   #endif
 #endif
 
-#if DISABLED(SDSUPPORT)
-  #if ENABLED(SD_SETTINGS)
-    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
-  #endif
-  #if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
+/**
+ * SDSUPPORT test
+ */
+#if ENABLED(SD_SETTINGS) && DISABLED(SDSUPPORT)
+  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+#endif
+
+/**
+ * EEPROM test
+ */
+#if ENABLED(EEPROM_SETTINGS)
+  #if ENABLED(EEPROM_SD) && DISABLED(SDSUPPORT)
     #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
+  #endif
+  #if DISABLED(I2C_EEPROM) && DISABLED(SPI_EEPROM)
+    #error DEPENDENCY ERROR: Your board has no EEPROM support. Please disable EEPROM_SETTINGS!
   #endif
 #endif
 
