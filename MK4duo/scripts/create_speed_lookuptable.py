@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Generate the stepper delay lookup table for Marlin firmware. """
+""" Generate the stepper delay lookup table for MK4duo firmware. """
 
 import argparse
 
@@ -19,7 +19,7 @@ timer_freq = cpu_freq / args.divider
 print "#ifndef SPEED_LOOKUPTABLE_H"
 print "#define SPEED_LOOKUPTABLE_H"
 print
-print '#include "Marlin.h"'
+print '#include "../../base.h"'
 print
 
 print "const uint16_t speed_lookuptable_fast[256][2] PROGMEM = {"

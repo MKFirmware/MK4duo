@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-# This file is for preprocessing gcode and the new G29 Autobedleveling from Marlin
+# This file is for preprocessing gcode and the new G29 Autobedleveling from MK4duo
 # It will analyse the first 2 Layer and return the maximum size for this part
-# After this it will replace with g29_keyword = ';MarlinG29Script' with the new G29 LRFB
+# After this it will replace with g29_keyword = ';MK4duoG29Script' with the new G29 LRFB
 # the new file will be created in the same folder.
 
 # your gcode-file/folder
