@@ -212,7 +212,7 @@
         SERIAL_EM(MSG_SD_FILE_SELECTED);
       }
 
-      for (int c = 0; c < sizeof(fileName); c++)
+      for (uint16_t c = 0; c < sizeof(fileName); c++)
         const_cast<char&>(fileName[c]) = '\0';
       strncpy(fileName, filename, strlen(filename));
 
@@ -345,7 +345,6 @@
             buffer_G92_Z[50],
             buffer_G92_E[50],
             buffer_SDpos[11],
-            temp[50],
             old_file_name[50];
 
       const char* restart_name_File = "restart.gcode";

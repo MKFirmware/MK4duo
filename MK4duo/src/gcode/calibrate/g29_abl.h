@@ -165,12 +165,12 @@ void out_of_range_error(const char* p_edge) {
       #define ABL_VAR
     #endif
 
-    ABL_VAR int verbose_level;
-    ABL_VAR float xProbe, yProbe, measured_z;
-    ABL_VAR bool dryrun, abl_should_enable;
+    ABL_VAR int verbose_level = 0;
+    ABL_VAR float xProbe = 0.0, yProbe = 0.0, measured_z = 0.0;
+    ABL_VAR bool dryrun = false, abl_should_enable = false;
 
     #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)
-      ABL_VAR int abl_probe_index;
+      ABL_VAR int abl_probe_index = 0;
     #endif
 
     #if HAS_SOFTWARE_ENDSTOPS && ENABLED(PROBE_MANUALLY)
@@ -180,14 +180,14 @@ void out_of_range_error(const char* p_edge) {
     #if ABL_GRID
 
       #if ENABLED(PROBE_MANUALLY)
-        ABL_VAR uint8_t PR_OUTER_VAR;
-        ABL_VAR  int8_t PR_INNER_VAR;
+        ABL_VAR uint8_t PR_OUTER_VAR = 0;
+        ABL_VAR  int8_t PR_INNER_VAR = 0;
       #endif
 
-      ABL_VAR int left_probe_bed_position,
-                  right_probe_bed_position,
-                  front_probe_bed_position,
-                  back_probe_bed_position;
+      ABL_VAR int left_probe_bed_position  = 0.0,
+                  right_probe_bed_position = 0.0,
+                  front_probe_bed_position = 0.0,
+                  back_probe_bed_position  = 0.0;
 
       ABL_VAR float xGridSpacing = 0.0,
                     yGridSpacing = 0.0;
@@ -195,7 +195,7 @@ void out_of_range_error(const char* p_edge) {
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
         ABL_VAR uint8_t abl_grid_points_x = GRID_MAX_POINTS_X,
                         abl_grid_points_y = GRID_MAX_POINTS_Y;
-        ABL_VAR bool    do_topography_map;
+        ABL_VAR bool    do_topography_map = false;
       #else // Bilinear
         uint8_t constexpr abl_grid_points_x = GRID_MAX_POINTS_X,
                           abl_grid_points_y = GRID_MAX_POINTS_Y;
@@ -203,7 +203,7 @@ void out_of_range_error(const char* p_edge) {
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(PROBE_MANUALLY)
         #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-          ABL_VAR int abl2;
+          ABL_VAR int abl2 = 0;
         #else // Bilinear
           int constexpr abl2 = GRID_MAX_POINTS;
         #endif
@@ -211,7 +211,7 @@ void out_of_range_error(const char* p_edge) {
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        ABL_VAR float zoffset;
+        ABL_VAR float zoffset = 0.0;
 
       #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
 
