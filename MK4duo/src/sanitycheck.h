@@ -1653,13 +1653,17 @@ static_assert(1 >= 0
 /**
  * EEPROM test
  */
-#if ENABLED(EEPROM_SETTINGS)
-  #if ENABLED(EEPROM_SD) && DISABLED(SDSUPPORT)
-    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SETTINGS
+#if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
+  #if DISABLED(SDSUPPORT)
+    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD
   #endif
-  #if DISABLED(I2C_EEPROM) && DISABLED(SPI_EEPROM)
-    #error DEPENDENCY ERROR: Your board has no EEPROM support. Please disable EEPROM_SETTINGS!
+  #if ENABLED(SD_SETTINGS)
+    #error CONFLICT ERROR: "One for EEPROM_SD and SD_SETTINGS can is enable"
   #endif
+#endif
+
+#if ENABLED(EEPROM_SD) && ENABLED(SD_SETTINGS)
+  #error CONFLICT ERROR: "One for EEPROM_SD and SD_SETTINGS can is enable"
 #endif
 
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
