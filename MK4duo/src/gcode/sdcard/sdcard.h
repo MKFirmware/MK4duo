@@ -114,24 +114,18 @@
   /**
    * M27: Get SD Card status
    */
-  inline void gcode_M27(void) {
-    card.printStatus();
-  }
+  inline void gcode_M27(void) { card.printStatus(); }
 
   /**
    * M28: Start SD Write
    */
-  inline void gcode_M28(void) {
-    card.startWrite(parser.string_arg, false);
-  }
+  inline void gcode_M28(void) { card.startWrite(parser.string_arg, false); }
 
   /**
    * M29: Stop SD Write
    * Processed in write to file routine above
    */
-  inline void gcode_M29(void) {
-    // card.saving = false;
-  }
+  inline void gcode_M29(void) { card.saving = false; }
 
   /**
    * M30 <filename>: Delete SD Card file

@@ -69,7 +69,7 @@
     
     // Read the next entry from a directory
     while ((p = parent.getLongFilename(p, fileName, 0, NULL)) != NULL) {
-      char pn0 = p->name[0];
+      uint8_t pn0 = p->name[0];
       if (pn0 == DIR_NAME_FREE) break;
       if (pn0 == DIR_NAME_DELETED || pn0 == '.') continue;
       if (fileName[0] == '.') continue;
@@ -102,7 +102,7 @@
     curDir = &root;
   }
 
-  void CardReader::initsd() {
+  void CardReader::mount() {
     cardOK = false;
     if (root.isOpen()) root.close();
 
@@ -129,10 +129,6 @@
     root = *fat.vwd();
     workDir = root;
     curDir = &root;
-  }
-
-  void CardReader::mount() {
-    initsd();
   }
 
   void CardReader::unmount() {
@@ -162,7 +158,7 @@
     char* npos = 0;
     char* end = buf + strlen(buf) - 1;
 
-    file.writeError = false;
+    gcode_file.writeError = false;
     if ((npos = strchr(buf, 'N')) != NULL) {
       begin = strchr(npos, ' ') + 1;
       end = strchr(npos, '*') - 1;
@@ -170,60 +166,58 @@
     end[1] = '\r';
     end[2] = '\n';
     end[3] = '\0';
-    file.write(begin);
-    if (file.writeError) {
+    gcode_file.write(begin);
+    if (gcode_file.writeError) {
       SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
     }
   }
 
-  bool CardReader::write_data(const uint8_t value) {
-    file.writeError = false;
-    file.write(value);
-    if (file.writeError) {
-      SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
-      return false;
-    }
-    return true;
-  }
+  #if HAS_EEPROM_SD
 
-  uint8_t CardReader::read_data() {
-    return (char)get();
-  }
+    bool CardReader::write_data(SdFile *currentfile, const uint8_t value) {
+      currentfile->writeError = false;
+      currentfile->write(value);
+      if (currentfile->writeError) {
+        SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
+        return false;
+      }
+      return true;
+    }
+
+    uint8_t CardReader::read_data(SdFile *currentfile) { return (char)currentfile->read(); }
+
+  #endif
       
-  bool CardReader::selectFile(const char* filename, const bool silent/*=false*/) {
+  bool CardReader::selectFile(const char* filename) {
     const char *oldP = filename;
 
     if (!cardOK) return false;
 
-    file.close();
-
-    if (file.open(curDir, filename, O_READ)) {
+    if (gcode_file.open(curDir, filename, O_READ)) {
       if ((oldP = strrchr(filename, '/')) != NULL)
         oldP++;
       else
         oldP = filename;
 
-      fileSize = file.fileSize();
+      fileSize = gcode_file.fileSize();
       sdpos = 0;
 
-      if (!silent) {
-        SERIAL_MT(MSG_SD_FILE_OPENED, oldP);
-        SERIAL_EMV(MSG_SD_SIZE, fileSize);
-        SERIAL_EM(MSG_SD_FILE_SELECTED);
-      }
+      SERIAL_MT(MSG_SD_FILE_OPENED, oldP);
+      SERIAL_EMV(MSG_SD_SIZE, fileSize);
+      SERIAL_EM(MSG_SD_FILE_SELECTED);
 
       for (uint16_t c = 0; c < sizeof(fileName); c++)
         const_cast<char&>(fileName[c]) = '\0';
       strncpy(fileName, filename, strlen(filename));
 
       #if ENABLED(JSON_OUTPUT)
-        parsejson(file);
+        parsejson(gcode_file);
       #endif
 
       return true;
     }
     else {
-      if (!silent) SERIAL_EMT(MSG_SD_OPEN_FILE_FAIL, oldP);
+      SERIAL_EMT(MSG_SD_OPEN_FILE_FAIL, oldP);
       return false;
     }
   }
@@ -239,9 +233,8 @@
 
   void CardReader::startWrite(char *filename, const bool silent/*=false*/) {
     if (!cardOK) return;
-    file.close();
 
-    if (!file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+    if (!gcode_file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, filename);
     }
     else {
@@ -256,7 +249,7 @@
   void CardReader::deleteFile(char *filename) {
     if (!cardOK) return;
     sdprinting = false;
-    file.close();
+    gcode_file.close();
     if (fat.remove(filename)) {
       SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
     }
@@ -269,9 +262,8 @@
   }
 
   void CardReader::finishWrite() {
-    //if (!saving) return; // already closed or never opened
-    file.sync();
-    file.close();
+    gcode_file.sync();
+    gcode_file.close();
     saving = false;
     SERIAL_EM(MSG_SD_FILE_SAVED);
   }
@@ -279,7 +271,7 @@
   void CardReader::makeDirectory(char *filename) {
     if (!cardOK) return;
     sdprinting = false;
-    file.close();
+    gcode_file.close();
     if (fat.mkdir(filename)) {
       SERIAL_EM(MSG_SD_DIRECTORY_CREATED);
     }
@@ -335,9 +327,11 @@
   }
 
   void CardReader::closeFile(const bool store_location /*=false*/) {
-    file.sync();
-    file.close();
+    gcode_file.sync();
+    gcode_file.close();
     saving = false;
+
+    SdFile restart_file;
 
     if (store_location) {
       char  bufferFilerestart[100],
@@ -385,69 +379,69 @@
       dtostrf(mechanics.current_position[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
       strcat(buffer_G92_E, "\n");
 
-      if (!fileRestart.exists(restart_name_File)) {
-        fileRestart.createContiguous(&root, restart_name_File, 1);
-        fileRestart.close();
+      if (!restart_file.exists(restart_name_File)) {
+        restart_file.createContiguous(&root, restart_name_File, 1);
+        restart_file.close();
       }
 
-      fileRestart.open(&root, restart_name_File, O_WRITE);
-      fileRestart.truncate(0);
+      restart_file.open(&root, restart_name_File, O_WRITE);
+      restart_file.truncate(0);
 
       #if MECH(DELTA)
-        fileRestart.write("G28\n");
+        restart_file.write("G28\n");
       #else
-        fileRestart.write("G28 X Y\n");
+        restart_file.write("G28 X Y\n");
       #endif
 
       #if ENABLED(MESH_BED_LEVELING)
-        if (mbl.active()) fileRestart.write("M420 S1\n");
+        if (mbl.active()) restart_file.write("M420 S1\n");
       #elif HAS_ABL
-        if (bedlevel.abl_enabled) fileRestart.write("M320 S1\n");
+        if (bedlevel.abl_enabled) restart_file.write("M320 S1\n");
       #endif
 
-      fileRestart.write(buffer_G92_Z);
+      restart_file.write(buffer_G92_Z);
 
       #if HAS_TEMP_BED
         if (heaters[BED_INDEX].target_temperature > 0) {
           char Bedtemp[15];
           sprintf(Bedtemp, "M190 S%i\n", (int)heaters[BED_INDEX].target_temperature);
-          fileRestart.write(Bedtemp);
+          restart_file.write(Bedtemp);
         }
       #endif
 
       char CurrHotend[10];
       sprintf(CurrHotend, "T%i\n", tools.active_extruder);
-      fileRestart.write(CurrHotend);
+      restart_file.write(CurrHotend);
 
       for (uint8_t h = 0; h < HOTENDS; h++) {
         if (heaters[h].target_temperature > 0) {
           char Hotendtemp[15];
           sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)heaters[h].target_temperature);
-          fileRestart.write(Hotendtemp);
+          restart_file.write(Hotendtemp);
         }
       }
 
-      fileRestart.write("G92 E0\nG1 E10 F300\nG92 E0\n");
+      restart_file.write("G92 E0\nG1 E10 F300\nG92 E0\n");
 
-      fileRestart.write(buffer_G1);
+      restart_file.write(buffer_G1);
 
       #if FAN_COUNT > 0
         LOOP_FAN() {
           if (fans[f].Speed > 0) {
             char fanSp[20];
             sprintf(fanSp, "M106 S%i P%i\n", (int)fans[f].Speed, (int)f);
-            fileRestart.write(fanSp);
+            restart_file.write(fanSp);
           }
         }
       #endif
 
-      fileRestart.write(buffer_G92_E);
-      fileRestart.write("\n");
-      fileRestart.write(bufferFilerestart);
-      fileRestart.write("\n");
+      restart_file.write(buffer_G92_E);
+      restart_file.write("\n");
+      restart_file.write(bufferFilerestart);
+      restart_file.write("\n");
 
-      fileRestart.sync();
-      fileRestart.close();
+      restart_file.sync();
+      restart_file.close();
 
       mechanics.current_position[Z_AXIS] += 5;
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS]);
@@ -466,17 +460,17 @@
     autostart_stilltocheck = false;
 
     if (!cardOK) {
-      initsd();
+      mount();
       if (!cardOK) return; // fail
     }
 
     fat.chdir(true);
-    if(selectFile("init.g", true)) startFileprint();
+    if (selectFile("init.g")) startFileprint();
   }
 
   void CardReader::printingHasFinished() {
     stepper.synchronize();
-    file.close();
+    gcode_file.close();
     sdprinting = false;
     if (SD_FINISHED_STEPPERRELEASE) {
       commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
@@ -485,8 +479,8 @@
     }
   }
 
-  void CardReader::setroot(bool temporary /*=false*/) {
-    if (temporary) lastDir = workDir;
+  void CardReader::setroot() {
+    lastDir = workDir;
     workDir = root;
     curDir = &workDir;
   }
@@ -504,14 +498,14 @@
   // Copy date: 27 FEB 2016                                          //
   // --------------------------------------------------------------- //
 
-  void CardReader::parsejson(SdBaseFile &file) {
-    fileSize = file.fileSize();
+  void CardReader::parsejson(SdBaseFile &parser_file) {
+    fileSize = parser_file.fileSize();
     filamentNeeded    = 0.0;
     objectHeight      = 0.0;
     firstlayerHeight  = 0.0;
     layerHeight       = 0.0;
 
-    if (!file.isOpen()) return;
+    if (!parser_file.isOpen()) return;
 
     bool genByFound = false, firstlayerHeightFound = false, layerHeightFound = false, filamentNeedFound = false;
 
@@ -524,8 +518,8 @@
     // READ 4KB FROM THE BEGINNING
     char buf[GCI_BUF_SIZE];
     for (int i = 0; i < 4096; i += GCI_BUF_SIZE - 50) {
-      if(!file.seekSet(i)) break;
-      file.read(buf, GCI_BUF_SIZE);
+      if(!parser_file.seekSet(i)) break;
+      parser_file.read(buf, GCI_BUF_SIZE);
       if (!genByFound && findGeneratedBy(buf, generatedBy)) genByFound = true;
       if (!firstlayerHeightFound && findFirstLayerHeight(buf, firstlayerHeight)) firstlayerHeightFound = true;
       if (!layerHeightFound && findLayerHeight(buf, layerHeight)) layerHeightFound = true;
@@ -535,8 +529,8 @@
 
     // READ 4KB FROM END
     for (int i = 0; i < 4096; i += GCI_BUF_SIZE - 50) {
-      if(!file.seekEnd(-4096 + i)) break;
-      file.read(buf, GCI_BUF_SIZE);
+      if(!parser_file.seekEnd(-4096 + i)) break;
+      parser_file.read(buf, GCI_BUF_SIZE);
       if (!genByFound && findGeneratedBy(buf, generatedBy)) genByFound = true;
       if (!firstlayerHeightFound && findFirstLayerHeight(buf, firstlayerHeight)) firstlayerHeightFound = true;
       if (!layerHeightFound && findLayerHeight(buf, layerHeight)) layerHeightFound = true;
@@ -547,11 +541,11 @@
     get_objectHeight:
     // MOVE FROM END UP IN 1KB BLOCKS UP TO 30KB
     for (int i = GCI_BUF_SIZE; i < 30000; i += GCI_BUF_SIZE - 50) {
-      if(!file.seekEnd(-i)) break;
-      file.read(buf, GCI_BUF_SIZE);
+      if(!parser_file.seekEnd(-i)) break;
+      parser_file.read(buf, GCI_BUF_SIZE);
       if (findTotalHeight(buf, objectHeight)) break;
     }
-    file.seekSet(0);
+    parser_file.seekSet(0);
   }
 
   void CardReader::printEscapeChars(const char* s) {
@@ -769,19 +763,21 @@
      *
      */
     void CardReader::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
-      if (!cardOK || !isFileOpen()) {
+      if (!cardOK || !settings_file.isOpen()) {
         key[0] = value[0] = '\0';
         len_k = len_v = 0;
         return;
       }
+
       int ln_buf = 0;
       char ln_char;
       bool ln_space = false, ln_ignore = false, key_found = false;
-      while (!eof()) {   //READ KEY
-        ln_char = (char)get();
+
+      while (!(settings_file.curPosition() >= settings_file.fileSize())) {  // READ KEY
+        ln_char = (char)settings_file.read();
         if (ln_char == '\n') {
           ln_buf = 0;
-          ln_ignore = false;  //We've reached a new line try to find a key again
+          ln_ignore = false;  // We've reached a new line try to find a key again
           continue;
         }
         if (ln_ignore) continue;
@@ -803,22 +799,22 @@
         key[ln_buf] = ln_char;
         ln_buf++;
       }
-      if (!key_found) { //definitly there isn't no more key that can be readed in the file
+      if (!key_found) { // definitly there isn't no more key that can be readed in the file
         key[0] = value[0] = '\0';
         len_k = len_v = 0;
         return;
       }
       ln_buf = 0;
       ln_ignore = false;
-      while (!eof()) {   //READ VALUE
-        ln_char = (char)get();
+      while (!(settings_file.curPosition() >= settings_file.fileSize())) {   // READ VALUE
+        ln_char = (char)settings_file.read();
         if (ln_char == '\n') {
           value[ln_buf] = '\0';
           len_v = ln_buf;
-          break;  //new line reached, we can stop
+          break;  // new line reached, we can stop
         }
-        if (ln_ignore|| ln_char == ' ' && ln_buf == 0) continue; //ignore also initial spaces of the value
-        if (ln_char == ';' || ln_buf+1 >= len_v) { //comments reached or value len longer than len_v. Stop buffering and go to the next line.
+        if (ln_ignore|| ln_char == ' ' && ln_buf == 0) continue;  // ignore also initial spaces of the value
+        if (ln_char == ';' || ln_buf+1 >= len_v) {  // comments reached or value len longer than len_v. Stop buffering and go to the next line.
           ln_ignore = true;
           continue;
         }
@@ -828,31 +824,31 @@
     }
 
     void CardReader::unparseKeyLine(const char* key, char* value) {
-      if (!cardOK || !isFileOpen()) return;
-      file.writeError = false;
-      file.write(key);
-      if (file.writeError) {
+      if (!cardOK || !settings_file.isOpen()) return;
+      settings_file.writeError = false;
+      settings_file.write(key);
+      if (settings_file.writeError) {
         SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
         return;
       }
 
-      file.writeError = false;
-      file.write("=");
-      if (file.writeError) {
+      settings_file.writeError = false;
+      settings_file.write("=");
+      if (settings_file.writeError) {
         SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
         return;
       }
 
-      file.writeError = false;
-      file.write(value);
-      if (file.writeError) {
+      settings_file.writeError = false;
+      settings_file.write(value);
+      if (settings_file.writeError) {
         SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
         return;
       }
 
-      file.writeError = false;
-      file.write("\n");
-      if (file.writeError) {
+      settings_file.writeError = false;
+      settings_file.write("\n");
+      if (settings_file.writeError) {
         SERIAL_LM(ER, MSG_SD_ERR_WRITE_TO_FILE);
         return;
       }
@@ -870,91 +866,100 @@
     };
 
     void CardReader::StoreSettings() {
-      if (!IS_SD_INSERTED || isFileOpen() || sdprinting) return;
+      if (!IS_SD_INSERTED || sdprinting) return;
 
       set_sd_dot();
-      setroot(true);
-      startWrite((char *)"INFO.cfg", true);
-      char buff[CFG_SD_MAX_VALUE_LEN];
-      ltoa(printer.print_job_counter.data.finishedPrints, buff, 10);
-      unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
-      ltoa(printer.print_job_counter.data.filamentUsed, buff, 10);
-      unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
-      ltoa(printer.print_job_counter.data.totalPrints, buff, 10);
-      unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
-      #if HAS_POWER_CONSUMPTION_SENSOR
-        ltoa(powerManager.consumption_hour, buff, 10);
-        unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
-      #endif
-      ltoa(printer.print_job_counter.data.printer_usage, buff, 10);
-      unparseKeyLine(cfgSD_KEY[SD_CFG_TME], buff);
-      ltoa(printer.print_job_counter.data.printTime, buff, 10);
-      unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
+      setroot();
 
-      finishWrite();
-      //setlast();
+      if (settings_file.open(curDir, "INFO.cfg", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+        char buff[CFG_SD_MAX_VALUE_LEN];
+        ltoa(printer.print_job_counter.data.finishedPrints, buff, 10);
+        unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
+        ltoa(printer.print_job_counter.data.filamentUsed, buff, 10);
+        unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
+        ltoa(printer.print_job_counter.data.totalPrints, buff, 10);
+        unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
+        #if HAS_POWER_CONSUMPTION_SENSOR
+          ltoa(powerManager.consumption_hour, buff, 10);
+          unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
+        #endif
+        ltoa(printer.print_job_counter.data.printer_usage, buff, 10);
+        unparseKeyLine(cfgSD_KEY[SD_CFG_TME], buff);
+        ltoa(printer.print_job_counter.data.printTime, buff, 10);
+        unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
+
+        settings_file.sync();
+        settings_file.close();
+      }
+
+      setlast();
       unset_sd_dot();
     }
 
     void CardReader::RetrieveSettings(bool addValue) {
-      if (!IS_SD_INSERTED || isFileOpen() || sdprinting || !cardOK) return;
+      if (!IS_SD_INSERTED || sdprinting || !cardOK) return;
 
-      set_sd_dot();
       char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];
       int k_idx;
       int k_len, v_len;
-      setroot(true);
-      selectFile((char *)"INFO.cfg", true);
 
-      while (true) {
-        k_len = CFG_SD_MAX_KEY_LEN;
-        v_len = CFG_SD_MAX_VALUE_LEN;
-        parseKeyLine(key, value, k_len, v_len);
+      set_sd_dot();
+      setroot();
 
-        if (k_len == 0 || v_len == 0) break; // no valid key or value founded
+      if (settings_file.open(curDir, "INFO.cfg", O_READ)) {
 
-        k_idx = KeyIndex(key);
-        if (k_idx == -1) continue; // unknow key ignore it
+        while (true) {
+          k_len = CFG_SD_MAX_KEY_LEN;
+          v_len = CFG_SD_MAX_VALUE_LEN;
+          parseKeyLine(key, value, k_len, v_len);
 
-        switch (k_idx) {
-          case SD_CFG_CPR: {
-            if (addValue) printer.print_job_counter.data.finishedPrints += (unsigned long)atol(value);
-            else printer.print_job_counter.data.finishedPrints = (unsigned long)atol(value);
+          if (k_len == 0 || v_len == 0) break; // no valid key or value founded
+
+          k_idx = KeyIndex(key);
+          if (k_idx == -1) continue; // unknow key ignore it
+
+          switch (k_idx) {
+            case SD_CFG_CPR: {
+              if (addValue) printer.print_job_counter.data.finishedPrints += (unsigned long)atol(value);
+              else printer.print_job_counter.data.finishedPrints = (unsigned long)atol(value);
+            }
+            break;
+            case SD_CFG_FIL: {
+              if (addValue) printer.print_job_counter.data.filamentUsed += (unsigned long)atol(value);
+              else printer.print_job_counter.data.filamentUsed = (unsigned long)atol(value);
+            }
+            break;
+            case SD_CFG_NPR: {
+              if (addValue) printer.print_job_counter.data.totalPrints += (unsigned long)atol(value);
+              else printer.print_job_counter.data.totalPrints = (unsigned long)atol(value);
+            }
+            break;
+          #if HAS_POWER_CONSUMPTION_SENSOR
+            case SD_CFG_PWR: {
+              if (addValue) powerManager.consumption_hour += (unsigned long)atol(value);
+              else powerManager.consumption_hour = (unsigned long)atol(value);
+            }
+            break;
+          #endif
+            case SD_CFG_TME: {
+              if (addValue) printer.print_job_counter.data.printer_usage += (unsigned long)atol(value);
+              else printer.print_job_counter.data.printer_usage = (unsigned long)atol(value);
+            }
+            break;
+            case SD_CFG_TPR: {
+              if (addValue) printer.print_job_counter.data.printTime += (unsigned long)atol(value);
+              else printer.print_job_counter.data.printTime = (unsigned long)atol(value);
+            }
+            break;
           }
-          break;
-          case SD_CFG_FIL: {
-            if (addValue) printer.print_job_counter.data.filamentUsed += (unsigned long)atol(value);
-            else printer.print_job_counter.data.filamentUsed = (unsigned long)atol(value);
-          }
-          break;
-          case SD_CFG_NPR: {
-            if (addValue) printer.print_job_counter.data.totalPrints += (unsigned long)atol(value);
-            else printer.print_job_counter.data.totalPrints = (unsigned long)atol(value);
-          }
-          break;
-        #if HAS_POWER_CONSUMPTION_SENSOR
-          case SD_CFG_PWR: {
-            if (addValue) powerManager.consumption_hour += (unsigned long)atol(value);
-            else powerManager.consumption_hour = (unsigned long)atol(value);
-          }
-          break;
-        #endif
-          case SD_CFG_TME: {
-            if (addValue) printer.print_job_counter.data.printer_usage += (unsigned long)atol(value);
-            else printer.print_job_counter.data.printer_usage = (unsigned long)atol(value);
-          }
-          break;
-          case SD_CFG_TPR: {
-            if (addValue) printer.print_job_counter.data.printTime += (unsigned long)atol(value);
-            else printer.print_job_counter.data.printTime = (unsigned long)atol(value);
-          }
-          break;
         }
+        settings_file.sync();
+        settings_file.close();
       }
 
       printer.print_job_counter.loaded = true;
-      closeFile();
-      //setlast();
+
+      setlast();
       unset_sd_dot();
     }
 

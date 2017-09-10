@@ -442,6 +442,8 @@
    */
   #if HAS_SDSUPPORT
 
+    SdFile nextion_file;
+
     NexUpload::NexUpload(const char *file_name, uint32_t upload_baudrate) {
       _file_name = file_name;
       _upload_baudrate = upload_baudrate;
@@ -468,7 +470,8 @@
         SERIAL_LM(ER, "upload file error");
         return;
       }
-      card.closeFile();
+      nextion_file.sync();
+      nextion_file.close();
       SERIAL_EM("upload ok");
     }
 
@@ -485,11 +488,11 @@
 
     bool NexUpload::_checkFile(void) {
       SERIAL_EMT("Start checkFile ", _file_name);
-      if (!card.selectFile(_file_name)) {
+      if (!nextion_file.open(card.curDir, _file_name, O_READ)) {
         SERIAL_LM(ER, "file is not exit");
         return false;
       }
-      _unuploadByte = card.fileSize;
+      _unuploadByte = nextion_file.fileSize();
       return true;
     }
 
@@ -563,7 +566,7 @@
         if (send_timer == 1) {
           for (uint16_t j = 1; j <= 4096; j++) {
             if(j <= last_send_num) {
-              c = card.get();
+              c = (uint8_t)nextion_file.read();
               nexSerial.write(c);
             }
             else
@@ -572,7 +575,7 @@
         }
         else {
           for (uint16_t i = 1; i <= 4096; i++) {
-            c = card.get();
+            c = (uint8_t)nextion_file.read();
             nexSerial.write(c);
           }
         }

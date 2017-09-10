@@ -239,19 +239,6 @@ void Commands::loop() {
 
   get_available_commands();
 
-  #if HAS_EEPROM_SD
-    static uint8_t wait_for_host_init_string_to_finish = 1;
-    if (wait_for_host_init_string_to_finish) {
-      if (commands_in_queue != 0 && wait_for_host_init_string_to_finish == 1) wait_for_host_init_string_to_finish = 2;
-      if (commands_in_queue == 0 && wait_for_host_init_string_to_finish >= 2) wait_for_host_init_string_to_finish++;
-      if (wait_for_host_init_string_to_finish >= 250) {
-        wait_for_host_init_string_to_finish = 0;
-        // loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-        eeprom.Load_Settings();
-      }
-    }
-  #endif
-
   #if HAS_SDSUPPORT
     card.checkautostart(false);
   #endif
