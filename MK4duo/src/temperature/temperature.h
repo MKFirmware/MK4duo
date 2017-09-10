@@ -90,7 +90,7 @@ class Temperature {
                   pid_error[HEATER_COUNT];
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      static float  cTerm[HEATER_COUNT];
+      static float  cTerm[HOTENDS];
       static long   last_e_position,
                     lpq[LPQ_MAX_LEN];
       static int    lpq_ptr;
