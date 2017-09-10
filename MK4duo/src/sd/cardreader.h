@@ -38,13 +38,19 @@
   #include "SDFat.h"
 
   class CardReader {
+
   public:
+
     SdFat fat;
-    SdFile file;
-    SdFile fileRestart;
+    SdFile gcode_file;
+    SdBaseFile root, *curDir, workDir, lastDir, workDirParents[SD_MAX_FOLDER_DEPTH];
+
+    #if ENABLED(SD_SETTINGS)
+      SdFile settings_file;
+    #endif
+
     CardReader();
 
-    void initsd();
     void mount();
     void unmount();
     void ls();
@@ -53,9 +59,7 @@
     void openAndPrintFile(const char *name);
     void stopSDPrint(const bool store_location = false);
     void write_command(char* buf);
-    bool write_data(const uint8_t value);
-    uint8_t read_data();
-    bool selectFile(const char *filename, const bool silent=false);
+    bool selectFile(const char *filename);
     void printStatus();
     void startWrite(char* filename, const bool silent=false);
     void deleteFile(char* filename);
@@ -66,11 +70,17 @@
     void printingHasFinished();
     void chdir(const char* relpath);
     void updir();
-    void setroot(bool temporary = false);
+    void setroot();
     void setlast();
+
+    #if HAS_EEPROM_SD
+      bool write_data(SdFile *currentfile, const uint8_t value);
+      uint8_t read_data(SdFile *currentfile);
+    #endif
 
     void ResetDefault();
     void PrintSettings();
+
     #if ENABLED(SD_SETTINGS)
       #define CFG_SD_MAX_KEY_LEN    3+1         // icrease this if you add key name longer than the actual value.
       #define CFG_SD_MAX_VALUE_LEN  10+1        // this should be enought for int, long and float if you need to retrive strings increase this carefully
@@ -88,10 +98,10 @@
     uint16_t getnrfilenames();
 
     FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
-    FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; file.seekSet(sdpos); }
-    FORCE_INLINE bool isFileOpen() { return file.isOpen(); }
+    FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
+    FORCE_INLINE bool isFileOpen() { return gcode_file.isOpen(); }
     FORCE_INLINE bool eof() { return sdpos >= fileSize; }
-    FORCE_INLINE int16_t get() { sdpos = file.curPosition(); return (int16_t)file.read(); }
+    FORCE_INLINE int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
     FORCE_INLINE uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
     FORCE_INLINE char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
 
@@ -109,15 +119,16 @@
     static void printEscapeChars(const char* s);
 
   private:
-    SdBaseFile root, *curDir, workDir, lastDir, workDirParents[SD_MAX_FOLDER_DEPTH];
+
     Sd2Card card;
+
     uint16_t workDirDepth;
     millis_t next_autostart_ms;
     uint16_t nrFiles; // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
     LsAction lsAction; //stored for recursion.
     bool autostart_stilltocheck; //the sd start is delayed, because otherwise the serial cannot answer fast enought to make contact with the hostsoftware.
     void lsDive(SdBaseFile parent, const char* const match = NULL);
-    void parsejson(SdBaseFile &file);
+    void parsejson(SdBaseFile &parser_file);
     bool findGeneratedBy(char* buf, char* genBy);
     bool findFirstLayerHeight(char* buf, float &firstlayerHeight);
     bool findLayerHeight(char* buf, float &layerHeight);

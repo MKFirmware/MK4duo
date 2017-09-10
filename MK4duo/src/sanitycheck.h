@@ -1653,13 +1653,8 @@ static_assert(1 >= 0
 /**
  * EEPROM test
  */
-#if ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
-  #if DISABLED(SDSUPPORT)
-    #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD
-  #endif
-  #if ENABLED(SD_SETTINGS)
-    #error CONFLICT ERROR: "One for EEPROM_SD and SD_SETTINGS can is enable"
-  #endif
+#if DISABLED(SDSUPPORT) && ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
+  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD
 #endif
 
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)

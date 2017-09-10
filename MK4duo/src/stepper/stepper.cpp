@@ -1843,6 +1843,7 @@ void Stepper::report_positions() {
 #endif
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
   void Stepper::set_driver_current() {
     uint8_t digipot_motor = 0;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
@@ -1850,6 +1851,7 @@ void Stepper::report_positions() {
       ExternalDac::setValue(i, digipot_motor);
     }
   }
+
 #endif
 
 #if HAS_MICROSTEPS

@@ -164,6 +164,10 @@
 
 EEPROM eeprom;
 
+#if HAS_EEPROM_SD
+  SdFile eeprom_file;
+#endif
+
 /**
  * Post-process after Retrieve or Reset
  */
@@ -233,7 +237,7 @@ void EEPROM::Postprocess() {
       #if HAS_EEPROM_SD
 
         uint8_t v = *value;
-        if (!card.write_data(v)) {
+        if (!card.write_data(&eeprom_file, v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           eeprom_error = true;
           return;
@@ -266,7 +270,7 @@ void EEPROM::Postprocess() {
 
     do {
       #if HAS_EEPROM_SD
-        uint8_t c = card.read_data();
+        uint8_t c = card.read_data(&eeprom_file);
       #else
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
       #endif
@@ -299,8 +303,8 @@ void EEPROM::Postprocess() {
         return false;
       else {
         set_sd_dot();
-        card.setroot(true);
-        card.startWrite((char *)"EEPROM.bin", true);
+        card.setroot();
+        eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC);
         EEPROM_WRITE(version);
       }
     #else
@@ -568,8 +572,10 @@ void EEPROM::Postprocess() {
     }
 
     #if HAS_EEPROM_SD
-      card.finishWrite();
+      eeprom_file.sync();
+      eeprom_file.close();
       unset_sd_dot();
+      card.setlast();
     #endif
 
     return !eeprom_error;
@@ -598,8 +604,8 @@ void EEPROM::Postprocess() {
         return false;
       else {
         set_sd_dot();
-        card.setroot(true);
-        card.selectFile((char *)"EEPROM.bin", true);
+        card.setroot();
+        eeprom_file.open(card.curDir, "EEPROM.bin", O_READ);
         EEPROM_READ(stored_ver);
       }
     #else
@@ -850,8 +856,11 @@ void EEPROM::Postprocess() {
 
       #if HAS_EEPROM_SD
 
-        card.closeFile();
+        eeprom_file.sync();
+        eeprom_file.close();
         unset_sd_dot();
+        card.setlast();
+
         if (eeprom_error)
           Factory_Settings();
         else {
