@@ -1069,7 +1069,7 @@
 
       #if HOTENDS > 1
         const uint8_t old_tool_index = tools.active_extruder;
-        tool_change(0, 0, true);
+        printer.tool_change(0, 0, true);
         #define CALIBRATION_CLEANUP() Calibration_cleanup(old_tool_index)
       #else
         #define CALIBRATION_CLEANUP() Calibration_cleanup()
