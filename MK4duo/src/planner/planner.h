@@ -154,7 +154,7 @@ class Planner {
     static uint32_t cutoff_long;
 
     #if ENABLED(LIN_ADVANCE)
-      static float extruder_advance_k, advance_ed_ratio;
+      static float position_float[NUM_AXIS], extruder_advance_k, advance_ed_ratio;
     #endif
 
   private:
@@ -183,10 +183,6 @@ class Planner {
       static unsigned char old_direction_bits;
       // Segment times (in µs). Used for speed calculations
       static long axis_segment_time[2][3];
-    #endif
-
-    #if ENABLED(LIN_ADVANCE)
-      static float position_float[NUM_AXIS];
     #endif
 
     #if ENABLED(ULTRA_LCD)
