@@ -202,9 +202,4 @@
 
 void lcd_reset_status();
 
-#if HAS_SDSUPPORT
-  extern void set_sd_dot();
-  extern void unset_sd_dot();
-#endif
-
 #endif // ULTRALCD_H

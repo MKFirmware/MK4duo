@@ -4324,28 +4324,3 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   }
 
 #endif
-
-#if HAS_SDSUPPORT
-  void set_sd_dot() {
-    #if ENABLED(DOGLCD)
-      u8g.firstPage();
-      do {
-        u8g.setColorIndex(1);
-        u8g.drawPixel(0, 0); // draw sd dot
-        u8g.setColorIndex(1); // black on white
-        (*currentScreen)();
-      } while( u8g.nextPage() );
-    #endif
-  }
-  void unset_sd_dot() {
-    #if ENABLED(DOGLCD)
-      u8g.firstPage();
-      do {
-        u8g.setColorIndex(0);
-        u8g.drawPixel(0, 0); // draw sd dot
-        u8g.setColorIndex(1); // black on white
-        (*currentScreen)();
-      } while( u8g.nextPage() );
-    #endif
-  }
-#endif

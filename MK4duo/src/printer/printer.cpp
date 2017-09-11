@@ -233,15 +233,13 @@ void Printer::setup() {
   mechanics.Init();
 
   #if HAS_SDSUPPORT
+    card.mount();
     // loads custom configuration from SDCARD if available else uses defaults
     card.RetrieveSettings();
-    HAL::delayMilliseconds(500);
   #endif
 
   // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  #if !HAS_EEPROM_SD
-    eeprom.Load_Settings();
-  #endif
+  eeprom.Load_Settings();
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
