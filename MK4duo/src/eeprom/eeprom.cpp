@@ -302,9 +302,9 @@ void EEPROM::Postprocess() {
       else if (card.sdprinting || !card.cardOK)
         return false;
       else {
-        set_sd_dot();
         card.setroot();
         eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC);
+        eeprom_file.truncate(0);
         EEPROM_WRITE(version);
       }
     #else
@@ -557,7 +557,7 @@ void EEPROM::Postprocess() {
 
     if (!eeprom_error) {
       const int eeprom_size = eeprom_index;
-      
+
       const uint16_t final_crc = working_crc;
 
       // Write the EEPROM header
@@ -574,7 +574,6 @@ void EEPROM::Postprocess() {
     #if HAS_EEPROM_SD
       eeprom_file.sync();
       eeprom_file.close();
-      unset_sd_dot();
       card.setlast();
     #endif
 
@@ -603,7 +602,6 @@ void EEPROM::Postprocess() {
       else if (card.sdprinting || !card.cardOK)
         return false;
       else {
-        set_sd_dot();
         card.setroot();
         eeprom_file.open(card.curDir, "EEPROM.bin", O_READ);
         EEPROM_READ(stored_ver);
@@ -858,7 +856,6 @@ void EEPROM::Postprocess() {
 
         eeprom_file.sync();
         eeprom_file.close();
-        unset_sd_dot();
         card.setlast();
 
         if (eeprom_error)
