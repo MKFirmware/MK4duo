@@ -1430,15 +1430,6 @@ static_assert(1 >= 0
   #if DISABLED(TOWER_C_ENDSTOP_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_C_ENDSTOP_ADJ
   #endif
-  #if DISABLED(TOWER_A_POSITION_ADJ)
-    #error DEPENDENCY ERROR: Missing setting TOWER_A_POSITION_ADJ
-  #endif
-  #if DISABLED(TOWER_B_POSITION_ADJ)
-    #error DEPENDENCY ERROR: Missing setting TOWER_B_POSITION_ADJ
-  #endif
-  #if DISABLED(TOWER_C_POSITION_ADJ)
-    #error DEPENDENCY ERROR: Missing setting TOWER_C_POSITION_ADJ
-  #endif
   #if DISABLED(TOWER_A_RADIUS_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_A_RADIUS_ADJ
   #endif
@@ -1447,6 +1438,15 @@ static_assert(1 >= 0
   #endif
   #if DISABLED(TOWER_C_RADIUS_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_C_RADIUS_ADJ
+  #endif
+  #if DISABLED(TOWER_A_ANGLE_ADJ)
+    #error DEPENDENCY ERROR: Missing setting TOWER_A_ANGLE_ADJ
+  #endif
+  #if DISABLED(TOWER_B_ANGLE_ADJ)
+    #error DEPENDENCY ERROR: Missing setting TOWER_B_ANGLE_ADJ
+  #endif
+  #if DISABLED(TOWER_C_ANGLE_ADJ)
+    #error DEPENDENCY ERROR: Missing setting TOWER_C_ANGLE_ADJ
   #endif
   #if DISABLED(TOWER_A_DIAGROD_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_A_DIAGROD_ADJ

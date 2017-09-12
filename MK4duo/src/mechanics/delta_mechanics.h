@@ -49,8 +49,8 @@
             delta_clip_start_height     = 0.0,
             delta_diagonal_rod_adj[ABC] = { 0.0 },
             delta_endstop_adj[ABC]      = { 0.0 },
-            delta_tower_radius_adj[ABC] = { 0.0 },
-            delta_tower_pos_adj[ABC]    = { 0.0 };
+            delta_tower_angle_adj[ABC]  = { 0.0 },
+            delta_tower_radius_adj[ABC] = { 0.0 };
 
       #if HAS_DELTA_AUTO_CALIBRATION
         bool g33_in_progress = false;

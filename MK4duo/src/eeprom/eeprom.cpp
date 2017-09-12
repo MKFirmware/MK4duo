@@ -91,9 +91,9 @@
  *  M666  D               mechanics.delta_diagonal_rod          (float)
  *  M666  S               mechanics.delta_segments_per_second   (float)
  *  M666  H               mechanics.delta_height                (float)
- *  M666  ABC             mechanics.delta_tower_radius_adj      (float x3)
- *  M666  IJK             mechanics.delta_tower_pos_adj         (float x3)
- *  M666  UVW             mechanics.delta_diagonal_rod_adj      (float x3)
+ *  M666  ABC             mechanics.delta_diagonal_rod_adj      (float x3)
+ *  M666  IJK             mechanics.delta_tower_angle_adj       (float x3)
+ *  M666  UVW             mechanics.delta_tower_radius_adj      (float x3)
  *  M666  O               mechanics.delta_print_radius          (float)
  *  M666  P               mechanics.delta_probe_radius          (float)
  *
@@ -387,8 +387,8 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(mechanics.delta_diagonal_rod);
       EEPROM_WRITE(mechanics.delta_segments_per_second);
       EEPROM_WRITE(mechanics.delta_height);
+      EEPROM_WRITE(mechanics.delta_tower_angle_adj);
       EEPROM_WRITE(mechanics.delta_tower_radius_adj);
-      EEPROM_WRITE(mechanics.delta_tower_pos_adj);
       EEPROM_WRITE(mechanics.delta_diagonal_rod_adj);
       EEPROM_WRITE(mechanics.delta_print_radius);
       EEPROM_WRITE(mechanics.delta_probe_radius);
@@ -712,8 +712,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mechanics.delta_diagonal_rod);
         EEPROM_READ(mechanics.delta_segments_per_second);
         EEPROM_READ(mechanics.delta_height);
+        EEPROM_READ(mechanics.delta_tower_angle_adj);
         EEPROM_READ(mechanics.delta_tower_radius_adj);
-        EEPROM_READ(mechanics.delta_tower_pos_adj);
         EEPROM_READ(mechanics.delta_diagonal_rod_adj);
         EEPROM_READ(mechanics.delta_print_radius);
         EEPROM_READ(mechanics.delta_probe_radius);
@@ -1287,19 +1287,19 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" Z", LINEAR_UNIT(mechanics.delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_RADIUS_ADJ, UVW=TOWER_POSITION_ADJ");
+      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
       CONFIG_MSG_START("                     R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
       CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[1]), 3);
       SERIAL_MV(" C", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[2]), 3);
-      SERIAL_MV(" I", mechanics.delta_tower_radius_adj[0], 3);
-      SERIAL_MV(" J", mechanics.delta_tower_radius_adj[1], 3);
-      SERIAL_MV(" K", mechanics.delta_tower_radius_adj[2], 3);
-      SERIAL_MV(" U", LINEAR_UNIT(mechanics.delta_tower_pos_adj[0]), 3);
-      SERIAL_MV(" V", LINEAR_UNIT(mechanics.delta_tower_pos_adj[1]), 3);
-      SERIAL_MV(" W", LINEAR_UNIT(mechanics.delta_tower_pos_adj[2]), 3);
+      SERIAL_MV(" I", mechanics.delta_tower_angle_adj[0], 3);
+      SERIAL_MV(" J", mechanics.delta_tower_angle_adj[1], 3);
+      SERIAL_MV(" K", mechanics.delta_tower_angle_adj[2], 3);
+      SERIAL_MV(" U", LINEAR_UNIT(mechanics.delta_tower_radius_adj[0]), 3);
+      SERIAL_MV(" V", LINEAR_UNIT(mechanics.delta_tower_radius_adj[1]), 3);
+      SERIAL_MV(" W", LINEAR_UNIT(mechanics.delta_tower_radius_adj[2]), 3);
       SERIAL_MV(" R", LINEAR_UNIT(mechanics.delta_radius));
       SERIAL_MV(" D", LINEAR_UNIT(mechanics.delta_diagonal_rod));
       SERIAL_MV(" S", mechanics.delta_segments_per_second);
