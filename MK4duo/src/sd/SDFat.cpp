@@ -3083,7 +3083,7 @@ bool Sd2Card::erase(uint32_t firstBlock, uint32_t lastBlock) {
   }
 
   chipSelectHigh();
-  return err;
+  return !err;
 }
 //------------------------------------------------------------------------------
 /** Determine if card supports single block erase.
