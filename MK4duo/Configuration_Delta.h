@@ -131,15 +131,15 @@
 #define TOWER_B_ENDSTOP_ADJ  0.00  // Front Right Tower
 #define TOWER_C_ENDSTOP_ADJ  0.00  // Rear Tower
 
-// Tower Radius Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
-#define TOWER_A_RADIUS_ADJ   0.00  // Front Left Tower
-#define TOWER_B_RADIUS_ADJ   0.00  // Front Right Tower
-#define TOWER_C_RADIUS_ADJ   0.00  // Rear Tower
-
 // Tower Angular Adjustment - Adj x Degrees around delta radius (- move clockwise / + move anticlockwise)
 #define TOWER_A_ANGLE_ADJ    0.00  // Front Left Tower
 #define TOWER_B_ANGLE_ADJ    0.00  // Front Right Tower
 #define TOWER_C_ANGLE_ADJ    0.00  // Rear Tower
+
+// Tower Radius Adjustment - Adj x mm in/out from centre of printer (- move in / + move out)
+#define TOWER_A_RADIUS_ADJ   0.00  // Front Left Tower
+#define TOWER_B_RADIUS_ADJ   0.00  // Front Right Tower
+#define TOWER_C_RADIUS_ADJ   0.00  // Rear Tower
 
 // Diagonal Rod Adjustment - Adj diag rod for Tower by x mm from DELTA_DIAGONAL_ROD value
 #define TOWER_A_DIAGROD_ADJ  0.00  // Front Left Tower
