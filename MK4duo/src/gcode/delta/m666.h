@@ -36,18 +36,18 @@
    *    D = Diagonal Rod
    *    R = Delta Radius
    *    S = Segments per Second
-   *    A = Alpha (Tower 1) Diagonal Rod Adjust
-   *    B = Beta  (Tower 2) Diagonal Rod Adjust
-   *    C = Gamma (Tower 3) Diagonal Rod Adjust
-   *    I = Alpha (Tower 1) Tower Radius Adjust
-   *    J = Beta  (Tower 2) Tower Radius Adjust
-   *    K = Gamma (Tower 3) Tower Radius Adjust
-   *    U = Alpha (Tower 1) Tower Position Adjust
-   *    V = Beta  (Tower 2) Tower Position Adjust
-   *    W = Gamma (Tower 3) Tower Position Adjust
-   *    X = Alpha (Tower 1) Endstop Adjust
-   *    Y = Beta  (Tower 2) Endstop Adjust
-   *    Z = Gamma (Tower 3) Endstop Adjust
+   *    A = Tower A: Diagonal Rod Adjust
+   *    B = Tower B: Diagonal Rod Adjust
+   *    C = Tower C: Diagonal Rod Adjust
+   *    I = Tower A: Tower Angle Adjust
+   *    J = Tower B: Tower Angle Adjust
+   *    K = Tower C: Tower Angle Adjust
+   *    U = Tower A: Tower Radius Adjust
+   *    V = Tower B: Tower Radius Adjust
+   *    W = Tower C: Tower Radius Adjust
+   *    X = Tower A: Endstop Adjust
+   *    Y = Tower B: Endstop Adjust
+   *    Z = Tower C: Endstop Adjust
    *    O = Print radius
    *    P = Probe radius
    *    H = Z Height
@@ -66,12 +66,12 @@
     if (parser.seen('A')) mechanics.delta_diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
     if (parser.seen('B')) mechanics.delta_diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
     if (parser.seen('C')) mechanics.delta_diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('I')) mechanics.delta_tower_radius_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('J')) mechanics.delta_tower_radius_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('K')) mechanics.delta_tower_radius_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('U')) mechanics.delta_tower_pos_adj[A_AXIS]     = parser.value_linear_units();
-    if (parser.seen('V')) mechanics.delta_tower_pos_adj[B_AXIS]     = parser.value_linear_units();
-    if (parser.seen('W')) mechanics.delta_tower_pos_adj[C_AXIS]     = parser.value_linear_units();
+    if (parser.seen('I')) mechanics.delta_tower_angle_adj[A_AXIS]   = parser.value_linear_units();
+    if (parser.seen('J')) mechanics.delta_tower_angle_adj[B_AXIS]   = parser.value_linear_units();
+    if (parser.seen('K')) mechanics.delta_tower_angle_adj[C_AXIS]   = parser.value_linear_units();
+    if (parser.seen('U')) mechanics.delta_tower_radius_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('V')) mechanics.delta_tower_radius_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('W')) mechanics.delta_tower_radius_adj[C_AXIS]  = parser.value_linear_units();
     if (parser.seen('O')) mechanics.delta_print_radius              = parser.value_linear_units();
     if (parser.seen('P')) mechanics.delta_probe_radius              = parser.value_linear_units();
 
@@ -91,12 +91,12 @@
       SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[0], 3);
       SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[1], 3);
       SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  mechanics.delta_diagonal_rod_adj[2], 3);
-      SERIAL_LMV(CFG, "I (Tower A Radius Correction): ",        mechanics.delta_tower_radius_adj[0], 3);
-      SERIAL_LMV(CFG, "J (Tower B Radius Correction): ",        mechanics.delta_tower_radius_adj[1], 3);
-      SERIAL_LMV(CFG, "K (Tower C Radius Correction): ",        mechanics.delta_tower_radius_adj[2], 3);
-      SERIAL_LMV(CFG, "U (Tower A Position Correction): ",      mechanics.delta_tower_pos_adj[0], 3);
-      SERIAL_LMV(CFG, "V (Tower B Position Correction): ",      mechanics.delta_tower_pos_adj[1], 3);
-      SERIAL_LMV(CFG, "W (Tower C Position Correction): ",      mechanics.delta_tower_pos_adj[2], 3);
+      SERIAL_LMV(CFG, "I (Tower A Angle Correction): ",         mechanics.delta_tower_angle_adj[0], 3);
+      SERIAL_LMV(CFG, "J (Tower B Angle Correction): ",         mechanics.delta_tower_angle_adj[1], 3);
+      SERIAL_LMV(CFG, "K (Tower C Angle Correction): ",         mechanics.delta_tower_angle_adj[2], 3);
+      SERIAL_LMV(CFG, "U (Tower A Radius Correction): ",        mechanics.delta_tower_radius_adj[0], 3);
+      SERIAL_LMV(CFG, "V (Tower B Radius Correction): ",        mechanics.delta_tower_radius_adj[1], 3);
+      SERIAL_LMV(CFG, "W (Tower C Radius Correction): ",        mechanics.delta_tower_radius_adj[2], 3);
       SERIAL_LMV(CFG, "R (Delta Radius): ",                     mechanics.delta_radius, 4);
       SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.delta_diagonal_rod, 4);
       SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.delta_segments_per_second);

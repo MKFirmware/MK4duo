@@ -574,32 +574,32 @@
     <detect>M666.*C(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">X Tower Radius Adj.</description>
+    <description unit="[deg]">X Tower Angle Adj.</description>
     <set>M666 I@</set>
     <detect>M666.*I(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Y Tower Radius Adj.</description>
+    <description unit="[deg]">Y Tower Angle Adj.</description>
     <set>M666 J@</set>
     <detect>M666.*J(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Z Tower Radius Adj.</description>
+    <description unit="[deg]">Z Tower Angle Adj.</description>
     <set>M666 K@</set>
     <detect>M666.*K(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">X Tower Position Adj.</description>
+    <description unit="[mm]">X Tower Radius Adj.</description>
     <set>M666 U@</set>
     <detect>M666.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Y Tower Position Adj.</description>
+    <description unit="[mm]">Y Tower Radius Adj.</description>
     <set>M666 V@</set>
     <detect>M666.*V(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Z Tower Position Adj.</description>
+    <description unit="[mm]">Z Tower Radius Adj.</description>
     <set>M666 W@</set>
     <detect>M666.*W(-?\d*\.?\d*)</detect>
   </entry>
