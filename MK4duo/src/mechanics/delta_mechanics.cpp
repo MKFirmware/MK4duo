@@ -43,12 +43,12 @@
     delta_endstop_adj[A_AXIS]       = (float)TOWER_A_ENDSTOP_ADJ;
     delta_endstop_adj[B_AXIS]       = (float)TOWER_B_ENDSTOP_ADJ;
     delta_endstop_adj[C_AXIS]       = (float)TOWER_C_ENDSTOP_ADJ;
+    delta_tower_angle_adj[A_AXIS]   = (float)TOWER_A_ANGLE_ADJ;
+    delta_tower_angle_adj[B_AXIS]   = (float)TOWER_B_ANGLE_ADJ;
+    delta_tower_angle_adj[C_AXIS]   = (float)TOWER_C_ANGLE_ADJ;
     delta_tower_radius_adj[A_AXIS]  = (float)TOWER_A_RADIUS_ADJ;
     delta_tower_radius_adj[B_AXIS]  = (float)TOWER_B_RADIUS_ADJ;
     delta_tower_radius_adj[C_AXIS]  = (float)TOWER_C_RADIUS_ADJ;
-    delta_tower_pos_adj[A_AXIS]     = (float)TOWER_A_POSITION_ADJ;
-    delta_tower_pos_adj[B_AXIS]     = (float)TOWER_B_POSITION_ADJ;
-    delta_tower_pos_adj[C_AXIS]     = (float)TOWER_C_POSITION_ADJ;
     delta_diagonal_rod_adj[A_AXIS]  = (float)TOWER_A_DIAGROD_ADJ;
     delta_diagonal_rod_adj[B_AXIS]  = (float)TOWER_B_DIAGROD_ADJ;
     delta_diagonal_rod_adj[C_AXIS]  = (float)TOWER_C_DIAGROD_ADJ;
@@ -375,12 +375,12 @@
     delta_diagonal_rod_2[C_AXIS] = sq(delta_diagonal_rod + delta_diagonal_rod_adj[C_AXIS]);
 
     // Effective X/Y positions of the three vertical towers.
-    towerX[A_AXIS] = COS(RADIANS(210 + delta_tower_radius_adj[A_AXIS])) * (delta_radius + delta_tower_pos_adj[A_AXIS]); // front left tower
-    towerY[A_AXIS] = SIN(RADIANS(210 + delta_tower_radius_adj[A_AXIS])) * (delta_radius + delta_tower_pos_adj[A_AXIS]);
-    towerX[B_AXIS] = COS(RADIANS(330 + delta_tower_radius_adj[B_AXIS])) * (delta_radius + delta_tower_pos_adj[B_AXIS]); // front right tower
-    towerY[B_AXIS] = SIN(RADIANS(330 + delta_tower_radius_adj[B_AXIS])) * (delta_radius + delta_tower_pos_adj[B_AXIS]);
-    towerX[C_AXIS] = COS(RADIANS( 90 + delta_tower_radius_adj[C_AXIS])) * (delta_radius + delta_tower_pos_adj[C_AXIS]); // back middle tower
-    towerY[C_AXIS] = SIN(RADIANS( 90 + delta_tower_radius_adj[C_AXIS])) * (delta_radius + delta_tower_pos_adj[C_AXIS]);
+    towerX[A_AXIS] = COS(RADIANS(210.f + delta_tower_angle_adj[A_AXIS])) * (delta_radius + delta_tower_radius_adj[A_AXIS]); // front left tower
+    towerY[A_AXIS] = SIN(RADIANS(210.f + delta_tower_angle_adj[A_AXIS])) * (delta_radius + delta_tower_radius_adj[A_AXIS]);
+    towerX[B_AXIS] = COS(RADIANS(330.f + delta_tower_angle_adj[B_AXIS])) * (delta_radius + delta_tower_radius_adj[B_AXIS]); // front right tower
+    towerY[B_AXIS] = SIN(RADIANS(330.f + delta_tower_angle_adj[B_AXIS])) * (delta_radius + delta_tower_radius_adj[B_AXIS]);
+    towerX[C_AXIS] = COS(RADIANS( 90.f + delta_tower_angle_adj[C_AXIS])) * (delta_radius + delta_tower_radius_adj[C_AXIS]); // back middle tower
+    towerY[C_AXIS] = SIN(RADIANS( 90.f + delta_tower_angle_adj[C_AXIS])) * (delta_radius + delta_tower_radius_adj[C_AXIS]);
 
     Xbc = towerX[C_AXIS] - towerX[B_AXIS];
     Xca = towerX[A_AXIS] - towerX[C_AXIS];
@@ -947,9 +947,9 @@
       SERIAL_MV(" height ", delta_height, 3);
       SERIAL_MV(" diagonal rod ", delta_diagonal_rod, 3);
       SERIAL_MV(" delta radius ", delta_radius, 3);
-      SERIAL_MV(" Towers radius correction I", delta_tower_radius_adj[A_AXIS], 2);
-      SERIAL_MV(" J", delta_tower_radius_adj[B_AXIS], 2);
-      SERIAL_MV(" K", delta_tower_radius_adj[C_AXIS], 2);
+      SERIAL_MV(" Towers angle correction I", delta_tower_angle_adj[A_AXIS], 2);
+      SERIAL_MV(" J", delta_tower_angle_adj[B_AXIS], 2);
+      SERIAL_MV(" K", delta_tower_angle_adj[C_AXIS], 2);
       SERIAL_EOL();
 
       endstops.enable(true);
@@ -1042,8 +1042,8 @@
             },
             dr_old = delta_radius,
             dh_old = delta_height,
-            alpha_old = delta_tower_radius_adj[A_AXIS],
-            beta_old = delta_tower_radius_adj[B_AXIS];
+            alpha_old = delta_tower_angle_adj[A_AXIS],
+            beta_old = delta_tower_angle_adj[B_AXIS];
 
       if (!_1p_calibration) {  // test if the outer radius is reachable
         const float circles = (_7p_quadruple_circle ? 1.5 :
@@ -1162,8 +1162,8 @@
             COPY_ARRAY(e_old, delta_endstop_adj);
             dr_old = delta_radius;
             dh_old = delta_height;
-            alpha_old = delta_tower_radius_adj[A_AXIS];
-            beta_old = delta_tower_radius_adj[B_AXIS];
+            alpha_old = delta_tower_angle_adj[A_AXIS];
+            beta_old = delta_tower_angle_adj[B_AXIS];
           }
 
           float e_delta[XYZ] = { 0.0 }, r_delta = 0.0, t_alpha = 0.0, t_beta = 0.0;
@@ -1224,8 +1224,8 @@
 
           LOOP_XYZ(axis) delta_endstop_adj[axis] += e_delta[axis];
           delta_radius += r_delta;
-          delta_tower_radius_adj[A_AXIS] += t_alpha;
-          delta_tower_radius_adj[B_AXIS] += t_beta;
+          delta_tower_angle_adj[A_AXIS] += t_alpha;
+          delta_tower_angle_adj[B_AXIS] += t_beta;
 
           // adjust delta_height and endstops by the max amount
           const float z_temp = MAX3(delta_endstop_adj[A_AXIS], delta_endstop_adj[B_AXIS], delta_endstop_adj[C_AXIS]);
@@ -1238,8 +1238,8 @@
           COPY_ARRAY(delta_endstop_adj, e_old);
           delta_radius = dr_old;
           delta_height = dh_old;
-          delta_tower_radius_adj[A_AXIS] = alpha_old;
-          delta_tower_radius_adj[B_AXIS] = beta_old;
+          delta_tower_angle_adj[A_AXIS] = alpha_old;
+          delta_tower_angle_adj[B_AXIS] = beta_old;
 
           recalc_delta_settings();
         }
@@ -1347,9 +1347,9 @@
     SERIAL_EOL();
     if (tower_angles) {
       SERIAL_MSG(".Tower angle:   ");
-      print_signed_float(PSTR("Tx"), delta_tower_radius_adj[A_AXIS]);
-      print_signed_float(PSTR("Ty"), delta_tower_radius_adj[B_AXIS]);
-      print_signed_float(PSTR("Tz"), delta_tower_radius_adj[C_AXIS]);
+      print_signed_float(PSTR("Tx"), delta_tower_angle_adj[A_AXIS]);
+      print_signed_float(PSTR("Ty"), delta_tower_angle_adj[B_AXIS]);
+      print_signed_float(PSTR("Tz"), delta_tower_angle_adj[C_AXIS]);
       SERIAL_EOL();
     }
   }
@@ -1379,13 +1379,13 @@
         break;
 
       case 4:
-        hiParams.delta_tower_radius_adj[A_AXIS] += perturb;
-        loParams.delta_tower_radius_adj[A_AXIS] -= perturb;
+        hiParams.delta_tower_angle_adj[A_AXIS] += perturb;
+        loParams.delta_tower_angle_adj[A_AXIS] -= perturb;
         break;
 
       case 5:
-        hiParams.delta_tower_radius_adj[B_AXIS] += perturb;
-        loParams.delta_tower_radius_adj[B_AXIS] -= perturb;
+        hiParams.delta_tower_angle_adj[B_AXIS] += perturb;
+        loParams.delta_tower_angle_adj[B_AXIS] -= perturb;
         break;
 
       case 6:
@@ -1429,8 +1429,8 @@
       delta_radius += v[3];
 
       if (numFactors >= 6) {
-        delta_tower_radius_adj[A_AXIS] += v[4];
-        delta_tower_radius_adj[B_AXIS] += v[5];
+        delta_tower_angle_adj[A_AXIS] += v[4];
+        delta_tower_angle_adj[B_AXIS] += v[5];
 
         if (numFactors == 7) delta_diagonal_rod += v[6];
 

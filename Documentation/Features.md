@@ -232,19 +232,24 @@ M666 L view value in memory for Z-Probe Offset.
 
 For DELTA:
 M666 L   List all current configuration values , e.g.:
-Current Delta geometry values:
+Current Delta geometry/print values:
 * X (Endstop Adj): -3.05
 * Y (Endstop Adj): -1.83
 * Z (Endstop Adj): -2.69
-* P (Z-Probe Offset): X0.00 Y10.00 Z-5.60
-* A (Tower A Position Correction): -0.04
-* B (Tower B Position Correction): 0.05
-* C (Tower C Position Correction): -0.02
-* I (Tower A Radius Correction): 0.25
-* J (Tower B Radius Correction): -1.25
-* K (Tower C Radius Correction): -0.37
+* A (Tower A Diagonal Rod Correction): 0.04
+* B (Tower B Diagonal Rod Correction): 0.05
+* C (Tower C Diagonal Rod Correction): 0.00
+* I (Tower A Angle Correction): 0.25
+* J (Tower B Angle Correction): -1.25
+* K (Tower C Angle Correction): 0.00
+* U (Tower A Radius Correction): -0.04
+* V (Tower B Radius Correction): 0.05
+* W (Tower C Radius Correction): -0.02
 * R (Delta Radius): 109.60
 * D (Diagonal Rod Length): 224.59
+* S (Segments per Second): 200
+* O (Print Radius): 120.0
+* P (Probe radius): 100.0
 * H (Z-Height): 255.73
 
 All of these values can also be adjusted using the M666 command, e.g. to set the delta radius to 200mm, use:
