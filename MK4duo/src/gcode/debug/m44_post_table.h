@@ -38,27 +38,30 @@ inline void gcode_M44(void) {
 
   if (parser.seen('I')) {
     SERIAL_EMV("Number of G-codes available: ", (int)(COUNT(GCode_Table) + 2));
-    SERIAL_EM("Complete list of G-codes available for this machine:");
+    SERIAL_MV("G-code table static memory consumption: ", (int)sizeof(GCode_Table));
+    SERIAL_EM(" bytes.");
 
+    SERIAL_EM("Complete list of G-codes available for this machine:");
     SERIAL_EM("G0");
     SERIAL_EM("G1");
-
     for (G_CODE_TYPE index = 0; index < COUNT(GCode_Table); index++) {
       SERIAL_EMV("G", GCode_Table[index].code);
     }
   }
   else if (parser.seen('J')) {
     SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
-    SERIAL_EM("Complete list of M-codes available for this machine:");
+    SERIAL_MV("M-code table static memory consumption: ", (int)sizeof(MCode_Table));
+    SERIAL_EM(" bytes.");
 
+    SERIAL_EM("Complete list of M-codes available for this machine:");
     for (M_CODE_TYPE index = 0; index < (COUNT(MCode_Table) - 1); index++) {
       SERIAL_EMV("M", MCode_Table[index].code);
     }
 
   }
   else {
-    SERIAL_EM("Invalid parameter.");
-    SERIAL_EM("Please use the G or the M flag to choose between G-codes and M-codes.");
+    SERIAL_EM("Invalid or missing parameter.");
+    SERIAL_EM("Please use the I or the J flag to choose respectively between G-codes and M-codes.");
   }
 
 }
