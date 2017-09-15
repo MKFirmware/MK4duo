@@ -33,7 +33,7 @@
  */
 inline void gcode_M530(void) {
 
-  if (parser.seen('L')) printer.maxLayer = parser.value_long();
+  printer.maxLayer = parser.longval('L');
 
   if (parser.seen('S') && parser.value_bool()) {
     printer.print_job_counter.start();

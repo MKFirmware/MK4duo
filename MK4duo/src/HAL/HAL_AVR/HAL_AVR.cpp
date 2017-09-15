@@ -291,10 +291,8 @@ HAL_TEMP_TIMER_ISR {
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      if (fans[f].Kickstart == 0) {
-        if (fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-          HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
-      }
+      if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
+        HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
     }
   #endif
 
