@@ -55,11 +55,6 @@ typedef enum {
 } Heater_type;
 
 typedef enum {
-  LINEARUNIT_MM,
-  LINEARUNIT_INCH
-} LinearUnit;
-
-typedef enum {
   TEMPUNIT_C,
   TEMPUNIT_K,
   TEMPUNIT_F
