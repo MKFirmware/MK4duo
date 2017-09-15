@@ -47,17 +47,6 @@
     next_autostart_ms = millis() + BOOTSCREEN_TIMEOUT;
   }
 
-  char* CardReader::createFilename(char* buffer, const dir_t& p) { // buffer > 12characters
-    char* pos = buffer, *src = (char*)p.name;
-    for (uint8_t i = 0; i < 11; i++, src++) {
-      if (*src == ' ') continue;
-      if (i == 8) *pos++ = '.';
-      *pos++ = *src;
-    }
-    *pos = 0;
-    return pos;
-  }
-
   /**
    * Dive into a folder and recurse depth-first to perform a pre-set operation lsAction:
    *   LS_Count       - Add +1 to nrFiles for every file within the parent
@@ -71,9 +60,10 @@
     while ((p = parent.getLongFilename(p, fileName, 0, NULL)) != NULL) {
       uint8_t pn0 = p->name[0];
       if (pn0 == DIR_NAME_FREE) break;
+
+      // ignore hidden or deleted files:
       if (pn0 == DIR_NAME_DELETED || pn0 == '.') continue;
       if (fileName[0] == '.') continue;
-
       if (!DIR_IS_FILE_OR_SUBDIR(p) || (p->attributes & DIR_ATT_HIDDEN)) continue;
 
       filenameIsDir = DIR_IS_SUBDIR(p);

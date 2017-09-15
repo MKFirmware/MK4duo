@@ -1893,6 +1893,21 @@ FAIL:
   return -1;
 }
 
+/** 
+ * Convert the dir_t name field of the file (which contains blank fills)
+ * into a proper filename string without spaces inside.
+ *
+ * buffer MUST be at least a 13 char array!
+ */
+void SdBaseFile::createFilename(char* buffer, const dir_t &dirEntry) {
+  const uint8_t* src = dirEntry.name;
+  for (uint8_t i = 0; i < 11; i++, src++) {
+    if (*src == ' ') continue; // ignore spaces
+    if (i == 8) *buffer++ = '.';
+    *buffer++ = *src;
+  }
+  *buffer = 0; // close the string
+}
 
 //------------------------------------------------------------------------------
 /** Read the next directory entry from a directory file with the long filename
@@ -1967,7 +1982,7 @@ dir_t *SdBaseFile::getLongFilename(dir_t *dir, char *longFilename, int8_t cVFATN
       }
       if (DIR_IS_FILE(dir) || DIR_IS_SUBDIR(dir)) {
         if (longFilename && (bLastPart || checksum != lfn_checksum((unsigned char *)dir->name))) {
-          card.createFilename(longFilename, *dir);
+          createFilename(longFilename, *dir);
         }
         return dir;
       }
