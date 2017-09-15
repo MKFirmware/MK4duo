@@ -89,7 +89,6 @@
       void finishWrite();
       void makeDirectory(char* filename);
       void closeFile(const bool store_location = false);
-      void createFilename(char* buffer, const dir_t & dirEntry);
       void printingHasFinished();
       void chdir(const char* relpath);
       void updir();

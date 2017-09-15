@@ -46,22 +46,6 @@
 
     next_autostart_ms = millis() + BOOTSCREEN_TIMEOUT;
   }
-  
-/** 
- * Convert the dir_t name field of the file (which contains blank fills)
- * into a proper filename string without spaces inside.
- *
- * buffer MUST be at least a 13 char array!
- */
-  void CardReader::createFilename(char* buffer, const dir_t & dirEntry) {
-    const uint8_t* src = dirEntry.name;
-    for (uint8_t i = 0; i < 11; i++, src++) {
-      if (*src == ' ') continue; // ignore spaces
-      if (i == 8) *buffer++ = '.';
-      *buffer++ = *src;
-    }
-    *buffer = 0; // close the string
-  }
 
   /**
    * Dive into a folder and recurse depth-first to perform a pre-set operation lsAction:
