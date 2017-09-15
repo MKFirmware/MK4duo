@@ -61,7 +61,6 @@
       *buffer++ = *src;
     }
     *buffer = 0; // close the string
-    return pos;
   }
 
   /**
