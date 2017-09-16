@@ -35,7 +35,7 @@
 
     public: /** Constructor */
 
-      Delta_Mechanics() {};
+      Delta_Mechanics() {}
 
     public: /** Public Parameters */
 
@@ -55,6 +55,25 @@
       #if HAS_DELTA_AUTO_CALIBRATION
         bool g33_in_progress = false;
       #endif
+
+    private: /** Private Parameters */
+
+      float delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
+            towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
+            towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
+            homed_Height              = 0.0,
+            Xbc                       = 0.0,
+            Xca                       = 0.0,
+            Xab                       = 0.0,
+            Ybc                       = 0.0,
+            Yca                       = 0.0,
+            Yab                       = 0.0,
+            coreFa                    = 0.0,
+            coreFb                    = 0.0,
+            coreFc                    = 0.0,
+            Q                         = 0.0,
+            Q2                        = 0.0,
+            D2                        = 0.0;
 
     public: /** Public Function */
 
@@ -135,26 +154,6 @@
        * Report current position to host
        */
       void report_current_position_detail() override;
-
-    private: /** Private Parameters */
-
-      // Derived values
-      float delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
-            towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
-            towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
-            homed_Height              = 0.0,
-            Xbc                       = 0.0,
-            Xca                       = 0.0,
-            Xab                       = 0.0,
-            Ybc                       = 0.0,
-            Yca                       = 0.0,
-            Yab                       = 0.0,
-            coreFa                    = 0.0,
-            coreFb                    = 0.0,
-            coreFc                    = 0.0,
-            Q                         = 0.0,
-            Q2                        = 0.0,
-            D2                        = 0.0;
 
     private: /** Private Function */
       

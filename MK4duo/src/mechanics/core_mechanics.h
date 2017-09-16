@@ -35,7 +35,7 @@
 
     public: /** Constructor */
 
-      Core_Mechanics() {};
+      Core_Mechanics() {}
 
     public: /** Public Parameters */
 
@@ -98,8 +98,6 @@
       #if ENABLED(DUAL_X_CARRIAGE)
         float x_home_pos(const int extruder);
       #endif
-
-    private: /** Private Parameters */
 
     private: /** Private Function */
 

@@ -37,7 +37,7 @@
 
     public: /** Constructor */
 
-      Fan() {};
+      Fan() {}
 
     public: /** Public Parameters */
 
@@ -50,6 +50,10 @@
                 hardwareInverted  = false,
                 paused            = false;
 
+    private: /** Private Parameters */
+
+      int16_t lastSpeed = -1;
+
     public: /** Public Function */
 
       void init(Pin p_pin, const bool hwInverted);
@@ -58,12 +62,6 @@
       #if PWM_HARDWARE
         void SetHardwarePwm();
       #endif
-
-    private: /** Private Parameters */
-
-      int16_t lastSpeed = -1;
-
-    private: /** Private Function */
 
   };
 

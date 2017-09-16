@@ -30,7 +30,8 @@
 class Endstops {
 
   public: /** Constructor */
-    Endstops() {};
+
+    Endstops() {}
 
   public: /** Public Parameters */
 
@@ -112,8 +113,6 @@ class Endstops {
       static void setup_endstop_interrupts(void);
     #endif
 
-  private: /** Private Parameters */
-
   private: /** Private Function */
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -123,6 +122,7 @@ class Endstops {
     #elif ENABLED(Z_TWO_ENDSTOPS)
       static void test_two_z_endstops(EndstopEnum es1, EndstopEnum es2);
     #endif
+
 };
 
 extern Endstops endstops;

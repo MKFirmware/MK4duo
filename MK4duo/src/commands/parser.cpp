@@ -27,7 +27,7 @@
 #include "../../base.h"
 
 // Must be declared for allocation and to satisfy the linker
-// Zero values need no initialization.
+// Zero values need no initialisation.
 
 #if ENABLED(INCH_MODE_SUPPORT)
   float GCodeParser::linear_unit_factor, GCodeParser::volumetric_unit_factor;
@@ -55,27 +55,8 @@ uint16_t GCodeParser::codenum;
   char *GCodeParser::command_args; // start of parameters
 #endif
 
-// Create a global instance of the GCode parser singleton
+// Create a global instance of the GCodeParser singleton
 GCodeParser parser;
-
-/**
- * Clear all code-seen (and value pointers)
- *
- * Since each param is set/cleared on seen codes,
- * this may be optimized by commenting out ZERO(param)
- */
-void GCodeParser::reset() {
-  string_arg = NULL;                    // No whole line argument
-  command_letter = '?';                 // No command letter
-  codenum = 0;                          // No command code
-  #if USE_GCODE_SUBCODES
-    subcode = 0;                        // No command sub-code
-  #endif
-  #if ENABLED(FASTER_GCODE_PARSER)
-    ZERO(codebits);                     // No codes yet
-    //ZERO(param);                      // No parameters (should be safe to comment out this line)
-  #endif
-}
 
 // Populate all fields by parsing a single line of GCode
 // 58 bytes of SRAM are used to speed up seen/value
@@ -83,17 +64,16 @@ void GCodeParser::parse(char *p) {
 
   reset(); // No codes to report
 
-  // Skip spaces
-  while (*p == ' ') ++p;
+  while (*p == ' ') ++p;  // Skip spaces
 
   // Skip N[-0-9] if included in the command line
   if (*p == 'N' && NUMERIC_SIGNED(p[1])) {
     #if ENABLED(FASTER_GCODE_PARSER)
-      //set('N', p + 1);     // (optional) Set the 'N' parameter value
+      //set('N', p + 1);      // (optional) Set the 'N' parameter value
     #endif
-    p += 2;                  // skip N[-0-9]
-    while (NUMERIC(*p)) ++p; // skip [0-9]*
-    while (*p == ' ')   ++p; // skip [ ]*
+    p += 2;                   // skip N[-0-9]
+    while (NUMERIC(*p)) ++p;  // skip [0-9]*
+    while (*p == ' ') ++p;    // skip [ ]*
   }
 
   // *p now points to the current command, which should be G, M, or T
@@ -105,8 +85,8 @@ void GCodeParser::parse(char *p) {
   // Nullify asterisk and trailing whitespace
   char *starpos = strchr(p, '*');
   if (starpos) {
-    --starpos;                          // *
-    while (*starpos == ' ') --starpos;  // spaces...
+    --starpos;
+    while (*starpos == ' ') --starpos;  // remove previous spaces...
     starpos[1] = '\0';
   }
 
@@ -114,7 +94,7 @@ void GCodeParser::parse(char *p) {
   switch (letter) { case 'G': case 'M': case 'T': break; default: return; }
 
   // Skip spaces to get the numeric part
-  while (*p == ' ') p++;
+  while (*p == ' ') ++p;
 
   // Bail if there's no command code number
   if (!NUMERIC(*p)) return;
@@ -138,8 +118,8 @@ void GCodeParser::parse(char *p) {
     }
   #endif
 
-  // Skip all spaces to get to the first argument, or nul
-  while (*p == ' ') p++;
+  // Skip all spaces to get to the first argument, or null
+  while (*p == ' ') ++p;
 
   // The command parameters (if any) start here, for sure!
 
@@ -151,7 +131,7 @@ void GCodeParser::parse(char *p) {
   if (letter == 'M') switch (codenum) { case 23: case 28: case 30: case 117: case 118: case 928: string_arg = p; return; default: break; }
 
   #if ENABLED(DEBUG_GCODE_PARSER)
-    const bool debug = codenum == 800;
+    const bool debug = (codenum == 800);
   #endif
 
   /**
@@ -162,7 +142,7 @@ void GCodeParser::parse(char *p) {
    * This allows M0/M1 with expire time to work: "M0 S5 You Win!"
    */
   string_arg = NULL;
-  while (char code = *p++) {                    // Get the next parameter. A NUL ends the loop
+  while (char code = *p++) {                    // Get the next parameter. A '\0' ends the loop
 
     // Special handling for M32 [P] !/path/to/file.g#
     // The path must be the last parameter
@@ -182,7 +162,7 @@ void GCodeParser::parse(char *p) {
 
     if (PARAM_TEST) {
 
-      while (*p == ' ') p++;                    // skip spaces between parameters & values
+      while (*p == ' ') ++p;                    // skip spaces between parameters & values
       const bool has_num = DECIMAL_SIGNED(*p);  // The parameter has a number [-+0-9.]
 
       #if ENABLED(DEBUG_GCODE_PARSER)
@@ -221,7 +201,7 @@ void GCodeParser::parse(char *p) {
 
     if (!WITHIN(*p, 'A', 'Z')) {
       while (*p && NUMERIC(*p)) p++;            // Skip over the value section of a parameter
-      while (*p == ' ') p++;                    // Skip over all spaces
+      while (*p == ' ') ++p;                    // Skip over all spaces
     }
   }
 }

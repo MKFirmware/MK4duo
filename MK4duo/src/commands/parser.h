@@ -43,54 +43,54 @@
  *    - Parameter has value
  *    - Parameter value in different units and types
  */
+
+// Index so that 'X' falls on index 24
+#define PARAM_IND(N)  ((N) >> 3)
+#define PARAM_BIT(N)  ((N) & 0x7)
+#define LETTER_OFF(N) ((N) - 'A')
+#define LETTER_IND(N) PARAM_IND(LETTER_OFF(N))
+#define LETTER_BIT(N) PARAM_BIT(LETTER_OFF(N))
+    
 class GCodeParser {
 
-  private:
-
-    static char *value_ptr;           // Set by seen, used to fetch the value
-
-    #if ENABLED(FASTER_GCODE_PARSER)
-      static byte codebits[4];        // Parameters pre-scanned
-      static uint8_t param[26];       // For A-Z, offsets into command args
-    #else
-      static char *command_args;      // Args start here, for slow scan
-    #endif
-
-  public:
+  public: /** Public Parameters */
 
     // Global states for GCode-level units features
-
     #if ENABLED(INCH_MODE_SUPPORT)
-      static float linear_unit_factor, volumetric_unit_factor;
+      static float  linear_unit_factor,
+                    volumetric_unit_factor;
     #endif
-
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
       static TempUnit input_temp_units;
     #endif
 
     // Command line state
-    static char *command_ptr,               // The command, so it can be echoed
-                *string_arg;                // string of command line
+    static char *command_ptr,     // The command, so it can be echoed
+                *string_arg,      // string of command line
+                 command_letter;  // G, M, or T
 
-    static char command_letter;             // G, M, or T
-    static uint16_t codenum;                // 123
+    static uint16_t codenum;      // 123
+
     #if USE_GCODE_SUBCODES
-      static uint8_t subcode;               // .1
+      static uint8_t subcode;     // .1
     #endif
+
+  private: /** Private Parameters */
+
+    static char *value_ptr;       // Set by seen, used to fetch the value
+
+    #if ENABLED(FASTER_GCODE_PARSER)
+      static byte codebits[4];    // Parameters pre-scanned
+      static uint8_t param[26];   // For A-Z, offsets into command args
+    #else
+      static char *command_args;  // Args start here, for slow scan
+    #endif
+
+  public: /** Public Function */
 
     #if ENABLED(DEBUG_GCODE_PARSER)
       void debug();
     #endif
-
-    // Reset is done before parsing
-    static void reset();
-
-    // Index so that 'X' falls on index 24
-    #define PARAM_IND(N)  ((N) >> 3)
-    #define PARAM_BIT(N)  ((N) & 0x7)
-    #define LETTER_OFF(N) ((N) - 'A')
-    #define LETTER_IND(N) PARAM_IND(LETTER_OFF(N))
-    #define LETTER_BIT(N) PARAM_BIT(LETTER_OFF(N))
 
     #if ENABLED(FASTER_GCODE_PARSER)
 
@@ -124,7 +124,7 @@ class GCodeParser {
         return b;
       }
 
-      static bool seen_any() { return codebits[3] || codebits[2] || codebits[1] || codebits[0]; }
+      FORCE_INLINE static bool seen_any() { return codebits[3] || codebits[2] || codebits[1] || codebits[0]; }
 
       #define SEEN_TEST(L) TEST(codebits[LETTER_IND(L)], LETTER_BIT(L))
 
@@ -141,16 +141,14 @@ class GCodeParser {
         return b;
       }
 
-      static bool seen_any() { return *command_args == '\0'; }
+      FORCE_INLINE static bool seen_any() { return *command_args == '\0'; }
 
       #define SEEN_TEST(L) !!strchr(command_args, L)
 
     #endif // FASTER_GCODE_PARSER
 
     // Seen any axis parameter
-    static bool seen_axis() {
-      return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E');
-    }
+    FORCE_INLINE static bool seen_axis() { return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E') ; }
 
     // Populate all fields by parsing a single line of GCode
     // This uses 54 bytes of SRAM to speed up seen/value
@@ -160,7 +158,7 @@ class GCodeParser {
     FORCE_INLINE static bool has_value() { return value_ptr != NULL; }
 
     // Seen a parameter with a value
-    inline static bool seenval(const char c) { return seen(c) && has_value(); }
+    FORCE_INLINE static bool seenval(const char c) { return seen(c) && has_value(); }
 
     // Float removes 'E' to prevent scientific notation interpretation
     inline static float value_float() {
@@ -183,45 +181,37 @@ class GCodeParser {
     }
 
     // Code value as a long or ulong
-    inline static int32_t   value_long()  { return value_ptr ? strtol(value_ptr, NULL, 10) : 0L; }
-    inline static uint32_t  value_ulong() { return value_ptr ? strtoul(value_ptr, NULL, 10) : 0UL; }
+    FORCE_INLINE static int32_t   value_long()  { return value_ptr ? strtol(value_ptr, NULL, 10) : 0L; }
+    FORCE_INLINE static uint32_t  value_ulong() { return value_ptr ? strtoul(value_ptr, NULL, 10) : 0UL; }
 
     // Code value for use as time
     FORCE_INLINE static millis_t  value_millis()              { return value_ulong(); }
     FORCE_INLINE static millis_t  value_millis_from_seconds() { return value_float() * 1000UL; }
 
     // Reduce to fewer bits
-    FORCE_INLINE static int16_t   value_int()     { return (int)value_long(); }
-    FORCE_INLINE static uint16_t  value_ushort()  { return (uint16_t)value_long(); }
-    inline static uint8_t value_byte()            { return (uint8_t)(constrain(value_long(), 0, 255)); }
+    FORCE_INLINE static int16_t   value_int()     { return  (int16_t) value_long(); }
+    FORCE_INLINE static uint16_t  value_ushort()  { return (uint16_t) value_long(); }
+    FORCE_INLINE static uint8_t   value_byte()    { return  (uint8_t) constrain(value_long(), 0, 255); }
 
     // Bool is true with no value or non-zero
-    inline static bool value_bool() { return !has_value() || value_byte(); }
+    FORCE_INLINE static bool      value_bool()    { return !has_value() || value_byte(); }
 
     // Units modes: Inches, Fahrenheit, Kelvin
 
     #if ENABLED(INCH_MODE_SUPPORT)
 
-      inline static void set_input_linear_units(LinearUnit units) {
-        switch (units) {
-          case LINEARUNIT_INCH:
-            linear_unit_factor = 25.4;
-            break;
-          case LINEARUNIT_MM:
-          default:
-            linear_unit_factor = 1.0;
-            break;
-        }
+      FORCE_INLINE static void set_input_linear_units(float factor) {
+        linear_unit_factor = factor;
         volumetric_unit_factor = POW(linear_unit_factor, 3.0);
       }
 
-      inline static float axis_unit_factor(const AxisEnum axis) {
+      FORCE_INLINE static float axis_unit_factor(const AxisEnum axis) {
         return (axis >= E_AXIS && tools.volumetric_enabled ? volumetric_unit_factor : linear_unit_factor);
       }
 
-      inline static float value_linear_units()                     { return value_float() * linear_unit_factor; }
-      inline static float value_axis_units(const AxisEnum axis)    { return value_float() * axis_unit_factor(axis); }
-      inline static float value_per_axis_unit(const AxisEnum axis) { return value_float() / axis_unit_factor(axis); }
+      FORCE_INLINE static float value_linear_units()                     { return value_float() * linear_unit_factor; }
+      FORCE_INLINE static float value_axis_units(const AxisEnum axis)    { return value_float() * axis_unit_factor(axis); }
+      FORCE_INLINE static float value_per_axis_unit(const AxisEnum axis) { return value_float() / axis_unit_factor(axis); }
 
     #else
 
@@ -233,16 +223,18 @@ class GCodeParser {
 
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
 
-      inline static void set_input_temp_units(TempUnit units) { input_temp_units = units; }
+      FORCE_INLINE static void set_input_temp_units(TempUnit units) { input_temp_units = units; }
 
       #if ENABLED(ULTIPANEL) && DISABLED(DISABLE_M503)
 
         FORCE_INLINE static char temp_units_code() {
           return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';
         }
+
         FORCE_INLINE static char* temp_units_name() {
           return input_temp_units == TEMPUNIT_K ? PSTR("Kelvin") : input_temp_units == TEMPUNIT_F ? PSTR("Fahrenheit") : PSTR("Celsius");
         }
+
         inline static float to_temp_units(const float &f) {
           switch (input_temp_units) {
             case TEMPUNIT_F:
@@ -301,7 +293,33 @@ class GCodeParser {
     FORCE_INLINE static float    linearval(const char c, const float dval=0.0)  { return seenval(c) ? value_linear_units() : dval; }
     FORCE_INLINE static float    celsiusval(const char c, const float dval=0.0) { return seenval(c) ? value_celsius()      : dval; }
 
-  };
+  private: /** Private Function */
+
+    /**
+     * Clear all code-seen (and value pointers)
+     *
+     * Since each param is set/cleared on seen codes,
+     * this may be optimized by commenting out ZERO(param)
+     *
+     * Reset is done only before parsing!
+     */
+    FORCE_INLINE static void reset() {
+      string_arg = NULL;                  // No whole line argument
+      command_letter = '?';               // No command letter
+      codenum = 0;                        // No command code
+      #if USE_GCODE_SUBCODES
+        subcode = 0;                      // No command sub-code
+      #endif
+      #if ENABLED(FASTER_GCODE_PARSER)
+        ZERO(codebits);                   // No codes yet
+        //ZERO(param);                    // No parameters (should be safe to comment out this line)
+      #endif
+    }
+
+    FORCE_INLINE static void skip_spaces_forward(char *buffer)  { while (*buffer == ' ') ++buffer; }
+    FORCE_INLINE static void skip_spaces_backward(char *buffer) { while (*buffer == ' ') --buffer; }
+
+};
 
 extern GCodeParser parser;
 

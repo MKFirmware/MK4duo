@@ -26,7 +26,7 @@
   const int RIGHT   = 2;  // 0010
   const int BOTTOM  = 4;  // 0100
   const int TOP     = 8;  // 1000
- 
+
   int GFX::ComputeOutCode(const int x, const int y, const int w, const int h) {
     int code;
 
@@ -44,13 +44,13 @@
     return code;
   }
 
-  uint16_t GFX::r5g6b5(const float* color_a, const float* cinc, int pixel) {
+  uint16_t GFX::r5g6b5(const float *color_a, const float *cinc, int pixel) {
     return (((int)((color_a[0] + cinc[0] * pixel) * 31) & 0x1f) << 11) |
            (((int)((color_a[1] + cinc[1] * pixel) * 63) & 0x3f) << 5) |
            (((int)((color_a[2] + cinc[2] * pixel) * 31) & 0x1f) << 0);
   }
 
-  void GFX::fcolor(float* c, uint16_t r5g6b5, float y, float max_y) {
+  void GFX::fcolor(float *c, uint16_t r5g6b5, float y, float max_y) {
     float dim;
 
     max_y *= 1.5;
@@ -61,7 +61,7 @@
     c[2] = ((r5g6b5 >>  0) & 0x1f) / 31.0 * dim;
   }
 
-  void GFX::nextion_line2d_shade(const float* color_a, const struct point* a, const float* color_b, const struct point* b, bool shade) {
+  void GFX::nextion_line2d_shade(const float *color_a, const struct Point *a, const float *color_b, const struct Point *b, bool shade) {
     int x0, y0, x1, y1;
 
     x0 = a->x;
@@ -172,7 +172,8 @@
   }
 
   void GFX::line_to(const uint8_t color_index, const float *pos, bool shade) {
-    struct point loc;
+
+    struct Point loc;
 
     _flatten(pos, &loc);
 
@@ -183,8 +184,8 @@
       nextion_line2d_shade(color1, &_cursor.point, color2, &loc, shade);
     }
 
-    for (int i = 0; i < 3; i++)
-      _cursor.position[i] = pos[i];
+    for (int i = 0; i < 3; i++) _cursor.position[i] = pos[i];
+
     _cursor.point = loc;
   }
 

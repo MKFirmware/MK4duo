@@ -77,7 +77,7 @@ class Mechanics {
 
   public: /** Constructor */
 
-    Mechanics() {};
+    Mechanics() {}
 
   public: /** Public Parameters */
 
@@ -333,8 +333,6 @@ class Mechanics {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       void log_machine_info();
     #endif
-
-  private: /** Private Function */
 
   protected: /** Protected Function */
 

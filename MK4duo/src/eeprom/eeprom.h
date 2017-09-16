@@ -25,9 +25,11 @@
 
 class EEPROM {
 
-  public:
-  
-    EEPROM() { }
+  public: /** Constructor */
+
+    EEPROM() {}
+
+  public: /** Public Function */
 
     static void Factory_Settings();
     static bool Store_Settings();
@@ -44,7 +46,7 @@ class EEPROM {
       FORCE_INLINE static void Print_Settings(bool forReplay = false) { }
     #endif
 
-  private:
+  private: /** Private Function */
 
     static void Postprocess();
 

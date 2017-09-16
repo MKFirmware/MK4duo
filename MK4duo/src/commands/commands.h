@@ -35,7 +35,7 @@ class Commands {
 
   public: /** Constructor */
 
-    Commands() {};
+    Commands() {}
 
   public: /** Public Parameters */
 
@@ -48,6 +48,18 @@ class Commands {
     static uint8_t mk_debug_flags;
 
     static millis_t previous_cmd_ms;
+
+  private: /** Private Parameters */
+
+    static bool send_ok[BUFSIZE];
+
+    static uint8_t  commands_in_queue,
+                    cmd_queue_index_r,  // Ring buffer read position
+                    cmd_queue_index_w;  // Ring buffer write position
+
+    static int serial_count;
+
+    static const char *injected_commands_P;
 
   public: /** Public Function */
 
@@ -64,18 +76,6 @@ class Commands {
     FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
     FORCE_INLINE static void reset_send_ok()        { for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true; }
     FORCE_INLINE static void refresh_cmd_timeout()  { previous_cmd_ms = millis(); }
-
-  private: /** Private Parameters */
-
-    static bool send_ok[BUFSIZE];
-
-    static uint8_t  commands_in_queue,
-                    cmd_queue_index_r,  // Ring buffer read position
-                    cmd_queue_index_w;  // Ring buffer write position
-
-    static int serial_count;
-
-    static const char *injected_commands_P;
 
   private: /** Private Function */
 

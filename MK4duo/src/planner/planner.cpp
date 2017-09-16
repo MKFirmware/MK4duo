@@ -62,8 +62,6 @@
 
 Planner planner;
 
-// public:
-
 /**
  * A ring buffer of moves described in steps
  */
@@ -77,8 +75,6 @@ volatile uint8_t  Planner::block_buffer_head = 0, // Index of the next block to 
         Planner::autotemp_factor = 0.1;
   bool Planner::autotemp_enabled = false;
 #endif
-
-// private:
 
 long Planner::position[NUM_AXIS] = { 0 };
 
@@ -107,12 +103,6 @@ float Planner::previous_speed[NUM_AXIS],
 #if ENABLED(ULTRA_LCD)
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
-
-/**
- * Class and Instance Methods
- */
-
-Planner::Planner() { init(); }
 
 void Planner::init() {
   block_buffer_head = block_buffer_tail = 0;

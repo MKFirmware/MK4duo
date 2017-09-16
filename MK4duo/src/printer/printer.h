@@ -35,7 +35,7 @@ class Printer {
 
   public: /** Constructor */
 
-    Printer() {};
+    Printer() {}
 
   public: /** Public Parameters */
 
@@ -145,6 +145,18 @@ class Printer {
       static bool chdkActive;
     #endif
 
+  private: /** Private Parameters */
+
+    #if ENABLED(IDLE_OOZING_PREVENT)
+      static millis_t axis_last_activity;
+      static bool     IDLE_OOZING_retracted[EXTRUDERS];
+    #endif
+
+    #if ENABLED(CNCROUTER)
+      static uint8_t active_cnc_tool;
+      #define CNC_M6_TOOL_ID 255
+    #endif
+
   public: /** Public Function */
 
     static void setup();
@@ -227,18 +239,6 @@ class Printer {
     FORCE_INLINE static void setRunning(const bool run) { Running = run; }
     FORCE_INLINE static bool IsRunning() { return  Running; }
     FORCE_INLINE static bool IsStopped() { return !Running; }
-
-  private: /** Private Parameters */
-
-    #if ENABLED(IDLE_OOZING_PREVENT)
-      static millis_t axis_last_activity;
-      static bool     IDLE_OOZING_retracted[EXTRUDERS];
-    #endif
-
-    #if ENABLED(CNCROUTER)
-      static uint8_t active_cnc_tool;
-      #define CNC_M6_TOOL_ID 255
-    #endif
 
   private: /** Private Function */
 
