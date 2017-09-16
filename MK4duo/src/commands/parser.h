@@ -53,75 +53,44 @@
     
 class GCodeParser {
 
-  private: // PARAMETERS
-
-    static char *value_ptr;           // Set by seen, used to fetch the value
-
-    #if ENABLED(FASTER_GCODE_PARSER)
-      static byte codebits[4];        // Parameters pre-scanned
-      static uint8_t param[26];       // For A-Z, offsets into command args
-    #else
-      static char *command_args;      // Args start here, for slow scan
-    #endif
-
-  public: // PARAMETERS
+  public: /** Public Parameters */
 
     // Global states for GCode-level units features
-
     #if ENABLED(INCH_MODE_SUPPORT)
-      static float linear_unit_factor,
-                   volumetric_unit_factor;
+      static float  linear_unit_factor,
+                    volumetric_unit_factor;
     #endif
-
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
       static TempUnit input_temp_units;
     #endif
 
     // Command line state
-    static char *command_ptr,        // The command, so it can be echoed
-                *string_arg,         // string of command line
-                 command_letter;     // G, M, or T
+    static char *command_ptr,     // The command, so it can be echoed
+                *string_arg,      // string of command line
+                 command_letter;  // G, M, or T
 
-    static uint16_t codenum;         // 123
+    static uint16_t codenum;      // 123
 
     #if USE_GCODE_SUBCODES
-      static uint8_t subcode;        // .1
+      static uint8_t subcode;     // .1
     #endif
-    
-  public: //FUNCTIONS
-  
+
+  private: /** Private Parameters */
+
+    static char *value_ptr;       // Set by seen, used to fetch the value
+
+    #if ENABLED(FASTER_GCODE_PARSER)
+      static byte codebits[4];    // Parameters pre-scanned
+      static uint8_t param[26];   // For A-Z, offsets into command args
+    #else
+      static char *command_args;  // Args start here, for slow scan
+    #endif
+
+  public: /** Public Function */
+
     #if ENABLED(DEBUG_GCODE_PARSER)
       void debug();
     #endif
-
-    /**
-     * Clear all code-seen (and value pointers)
-     *
-     * Since each param is set/cleared on seen codes,
-     * this may be optimized by commenting out ZERO(param)
-     *
-     * Reset is done only before parsing!
-     */
-    FORCE_INLINE static void reset() {
-      string_arg = NULL;                    // No whole line argument
-      command_letter = '?';                 // No command letter
-      codenum = 0;                          // No command code
-      #if USE_GCODE_SUBCODES
-        subcode = 0;                        // No command sub-code
-      #endif
-      #if ENABLED(FASTER_GCODE_PARSER)
-        ZERO(codebits);                     // No codes yet
-        //ZERO(param);                      // No parameters (should be safe to comment out this line)
-      #endif
-    }
-
-    FORCE_INLINE static void skip_spaces_forward(const char * buffer) {
-      while (*buffer == ' ') ++buffer;
-    }
-
-    FORCE_INLINE static void skip_spaces_backward(const char * buffer) {
-      while (*buffer == ' ') --buffer;
-    }
 
     #if ENABLED(FASTER_GCODE_PARSER)
 
@@ -324,7 +293,33 @@ class GCodeParser {
     FORCE_INLINE static float    linearval(const char c, const float dval=0.0)  { return seenval(c) ? value_linear_units() : dval; }
     FORCE_INLINE static float    celsiusval(const char c, const float dval=0.0) { return seenval(c) ? value_celsius()      : dval; }
 
-  };
+  private: /** Private Function */
+
+    /**
+     * Clear all code-seen (and value pointers)
+     *
+     * Since each param is set/cleared on seen codes,
+     * this may be optimized by commenting out ZERO(param)
+     *
+     * Reset is done only before parsing!
+     */
+    FORCE_INLINE static void reset() {
+      string_arg = NULL;                  // No whole line argument
+      command_letter = '?';               // No command letter
+      codenum = 0;                        // No command code
+      #if USE_GCODE_SUBCODES
+        subcode = 0;                      // No command sub-code
+      #endif
+      #if ENABLED(FASTER_GCODE_PARSER)
+        ZERO(codebits);                   // No codes yet
+        //ZERO(param);                    // No parameters (should be safe to comment out this line)
+      #endif
+    }
+
+    FORCE_INLINE static void skip_spaces_forward(char *buffer)  { while (*buffer == ' ') ++buffer; }
+    FORCE_INLINE static void skip_spaces_backward(char *buffer) { while (*buffer == ' ') --buffer; }
+
+};
 
 extern GCodeParser parser;
 

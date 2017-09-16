@@ -27,7 +27,7 @@
 
   class Buzzer {
 
-    public:
+    public: /** Public Function */
 
       static void buzz(long duration, uint16_t freq);
 

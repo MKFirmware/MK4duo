@@ -64,16 +64,16 @@ void GCodeParser::parse(char *p) {
 
   reset(); // No codes to report
 
-  skip_spaces_forward(p); // Skip spaces
+  while (*p == ' ') ++p;  // Skip spaces
 
   // Skip N[-0-9] if included in the command line
   if (*p == 'N' && NUMERIC_SIGNED(p[1])) {
     #if ENABLED(FASTER_GCODE_PARSER)
-      //set('N', p + 1);     // (optional) Set the 'N' parameter value
+      //set('N', p + 1);      // (optional) Set the 'N' parameter value
     #endif
-    p += 2;                  // skip N[-0-9]
-    while (NUMERIC(*p)) ++p; // skip [0-9]*
-    skip_spaces_forward(p);  // skip [ ]*
+    p += 2;                   // skip N[-0-9]
+    while (NUMERIC(*p)) ++p;  // skip [0-9]*
+    while (*p == ' ') ++p;    // skip [ ]*
   }
 
   // *p now points to the current command, which should be G, M, or T
@@ -86,7 +86,7 @@ void GCodeParser::parse(char *p) {
   char *starpos = strchr(p, '*');
   if (starpos) {
     --starpos;
-    skip_spaces_backward(starpos);   // remove previous spaces...
+    while (*starpos == ' ') --starpos;  // remove previous spaces...
     starpos[1] = '\0';
   }
 
@@ -94,7 +94,7 @@ void GCodeParser::parse(char *p) {
   switch (letter) { case 'G': case 'M': case 'T': break; default: return; }
 
   // Skip spaces to get the numeric part
-  skip_spaces_forward(p);
+  while (*p == ' ') ++p;
 
   // Bail if there's no command code number
   if (!NUMERIC(*p)) return;
@@ -119,7 +119,7 @@ void GCodeParser::parse(char *p) {
   #endif
 
   // Skip all spaces to get to the first argument, or null
-  skip_spaces_forward(p);
+  while (*p == ' ') ++p;
 
   // The command parameters (if any) start here, for sure!
 
@@ -162,7 +162,7 @@ void GCodeParser::parse(char *p) {
 
     if (PARAM_TEST) {
 
-      skip_spaces_forward(p);                   // skip spaces between parameters & values
+      while (*p == ' ') ++p;                    // skip spaces between parameters & values
       const bool has_num = DECIMAL_SIGNED(*p);  // The parameter has a number [-+0-9.]
 
       #if ENABLED(DEBUG_GCODE_PARSER)
@@ -201,7 +201,7 @@ void GCodeParser::parse(char *p) {
 
     if (!WITHIN(*p, 'A', 'Z')) {
       while (*p && NUMERIC(*p)) p++;            // Skip over the value section of a parameter
-      skip_spaces_forward(p);                   // Skip over all spaces
+      while (*p == ' ') ++p;                    // Skip over all spaces
     }
   }
 }

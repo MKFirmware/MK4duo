@@ -133,7 +133,11 @@ typedef struct {
 
 class Planner {
 
-  public:
+  public: /** Constructor */
+
+    Planner() { init(); }
+
+  public: /** Public Parameters */
 
     /**
      * The current position of the tool in absolute steps
@@ -157,7 +161,7 @@ class Planner {
       static float position_float[NUM_AXIS], extruder_advance_k, advance_ed_ratio;
     #endif
 
-  private:
+  private: /** Private Parameters */
 
     /**
      * Speed of previous path line segment
@@ -189,13 +193,7 @@ class Planner {
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
 
-  public:
-
-    /**
-     * Instance Methods
-     */
-
-    Planner();
+  public: /** Public Function */
 
     void init();
 
@@ -363,7 +361,7 @@ class Planner {
       static void autotemp_M104_M109();
     #endif
 
-  private:
+  private: /** Private Function */
 
     /**
      * Get the index of the next / previous block in the ring buffer

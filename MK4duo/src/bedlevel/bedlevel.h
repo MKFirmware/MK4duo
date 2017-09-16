@@ -70,7 +70,7 @@
 
     public: /** Constructor */
 
-      Bed_level() {};
+      Bed_level() {}
 
     public: /** Public Parameters */
 
@@ -96,6 +96,14 @@
         static bool g29_in_progress;
       #else
         static const bool g29_in_progress;
+      #endif
+
+    private: /** Private Parameters */
+    
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(ABL_BILINEAR_SUBDIVISION)
+        static float  bilinear_grid_factor_virt[2],
+                      z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
+        static int    bilinear_grid_spacing_virt[2];
       #endif
 
     public: /** Public Function */
@@ -152,14 +160,6 @@
         #if ABL_PLANAR
           void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
         #endif
-      #endif
-
-    private: /** Private Parameters */
-    
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(ABL_BILINEAR_SUBDIVISION)
-        static float  bilinear_grid_factor_virt[2],
-                      z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-        static int    bilinear_grid_spacing_virt[2];
       #endif
 
     private: /** Private Function */

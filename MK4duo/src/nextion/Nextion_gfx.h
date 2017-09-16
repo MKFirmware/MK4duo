@@ -30,13 +30,28 @@
   #define NX_MAX          8
   #define NX_SCALE        4.0
 
-  struct point {
+  struct Point {
     uint16_t x, y;
   };
 
   class GFX {
 
-    private:
+    public: /** Constructor */
+
+      GFX(const uint16_t px=0, const uint16_t py=0, const uint16_t width=1, const uint16_t height=1) {
+
+        _left   = px;
+        _top    = py;
+        _width  = width;
+        _height = height;
+
+        for (uint8_t i = 0; i < 3; i++) _max[i] = 1000.0;
+        for (uint8_t i = 0; i < NX_MAX; i++) color_tool[i] = 65535;
+
+        color_tool[NX_BACKGROUND] = 0;
+      }
+
+    private: /** Private Parameters */
 
       /* Location of visualization in NEXTION LCD*/
       uint16_t _top, _left, _width, _height;
@@ -45,26 +60,11 @@
       uint16_t color_tool[NX_MAX];
 
       struct {
-        struct point point;
+        struct Point point;
         float position[3];
       } _cursor;
 
-    public:
-
-      GFX(const uint16_t px = 0, const uint16_t py = 0, const uint16_t width = 1, const uint16_t height = 1) {
-
-        _left   = px;
-        _top    = py;
-        _width  = width;
-        _height = height;
-
-        for (uint8_t i = 0; i < 3; i++)
-          _max[i] = 1000.0;
-
-        for (uint8_t i = 0; i < NX_MAX; i++)
-          color_tool[i] = 65535;
-        color_tool[NX_BACKGROUND] = 0;
-      }
+    public: /** Public Function */
 
       void set_position(const uint16_t px = 0, const uint16_t py = 0, const uint16_t width = 1, const uint16_t height = 1) {
         _left   = px;
@@ -86,9 +86,7 @@
         cursor_to(zero);
       }
 
-      void set_scale(const float scale) {
-        _scale = scale;
-      }
+      void set_scale(const float scale) { _scale = scale; }
 
       void clear(const float x_mm, const float y_mm, const float z_mm) {
         /* Bounding box for the build volume */
@@ -131,15 +129,15 @@
         line_to(color_index, pos, shade);
       }
 
-    private:
+    private: /** Private Function */
 
-      static int ComputeOutCode(const int x, const int y, const int w, const int h);
+      int ComputeOutCode(const int x, const int y, const int w, const int h);
 
-      static uint16_t r5g6b5(const float* color_a, const float* cinc, const int pixel);
+      uint16_t r5g6b5(const float *color_a, const float *cinc, const int pixel);
 
-      static void fcolor(float* c, uint16_t r5g6b5, float y, float max_y);
+      void fcolor(float *c, uint16_t r5g6b5, float y, float max_y);
 
-      void _flatten(const float* pos, struct point* pt) {
+      void _flatten(const float *pos, struct Point *pt) {
         pt->x = ((pos[X_AXIS] - _origin[X_AXIS]) +
                  (pos[Y_AXIS] - _origin[Y_AXIS]) / NX_SCALE) * _scale + 1;
         pt->y = (_height - 1) -
@@ -147,8 +145,8 @@
                  (pos[Y_AXIS] - _origin[Y_AXIS]) / NX_SCALE) * _scale - 1;
       }
 
-      void nextion_line2d_shade(const float* a_color, const struct point* a,
-                                const float* b_color, const struct point* b,
+      void nextion_line2d_shade(const float *a_color, const struct Point *a,
+                                const float *b_color, const struct Point *b,
                                 bool shade=false);
 
       void fill(const int x0, const int y0, const int x1, const int y1, uint16_t color) {

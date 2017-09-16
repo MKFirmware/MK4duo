@@ -35,7 +35,7 @@
 
     public: /** Constructor */
 
-      Cartesian_Mechanics() {};
+      Cartesian_Mechanics() {}
 
     public: /** Public Parameters */
 
@@ -53,6 +53,26 @@
         millis_t  delayed_move_time             = 0;                            // used in mode 1
         bool      active_hotend_parked          = false,                        // used in mode 1 & 2
                   hotend_duplication_enabled    = false;                        // used in mode 2
+      #endif
+
+    private: /** Private Parameters */
+
+      #if ENABLED(HYSTERESIS)
+        float   m_hysteresis_axis_shift[XYZE],
+                m_hysteresis_mm[XYZE];
+        long    m_hysteresis_steps[XYZE];
+        uint8_t m_hysteresis_prev_direction_bits,
+                m_hysteresis_bits;
+      #endif
+
+      #if ENABLED(ZWOBBLE)
+        float   m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
+                zwobble_zLut[STEPS_IN_ZLUT][2],
+                zwobble_lastZ, zwobble_lastZRod,
+                m_zwobble_scalingFactor;
+        bool    m_zwobble_consistent,
+                m_zwobble_sinusoidal;
+        int     zwobble_lutSize;
       #endif
 
     public: /** Public Function */
@@ -127,26 +147,6 @@
         void set_zwobble_sample(float zRod, float zActual);
         void set_zwobble_scaledsample(float zRod, float zScaledLength);
         void set_zwobble_scalingfactor(float zActualPerScaledLength);
-      #endif
-
-    private: /** Private Parameters */
-
-      #if ENABLED(HYSTERESIS)
-        float   m_hysteresis_axis_shift[XYZE],
-                m_hysteresis_mm[XYZE];
-        long    m_hysteresis_steps[XYZE];
-        uint8_t m_hysteresis_prev_direction_bits,
-                m_hysteresis_bits;
-      #endif
-
-      #if ENABLED(ZWOBBLE)
-        float   m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
-                zwobble_zLut[STEPS_IN_ZLUT][2],
-                zwobble_lastZ, zwobble_lastZRod,
-                m_zwobble_scalingFactor;
-        bool    m_zwobble_consistent,
-                m_zwobble_sinusoidal;
-        int     zwobble_lutSize;
       #endif
 
     private: /** Private Function */
