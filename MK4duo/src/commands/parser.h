@@ -316,9 +316,6 @@ class GCodeParser {
       #endif
     }
 
-    FORCE_INLINE static void skip_spaces_forward(char *buffer)  { while (*buffer == ' ') ++buffer; }
-    FORCE_INLINE static void skip_spaces_backward(char *buffer) { while (*buffer == ' ') --buffer; }
-
 };
 
 extern GCodeParser parser;
