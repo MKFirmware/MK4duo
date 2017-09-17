@@ -280,10 +280,8 @@
     current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
     planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
 
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 2; // just slightly over the bed
     planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), tools.active_extruder);
-
-    stepper.synchronize();
 
     #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
       lcd_wait_for_move = false;
