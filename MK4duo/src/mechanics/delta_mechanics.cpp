@@ -273,17 +273,15 @@
 
   void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
 
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT;
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_DEPLOY_HEIGHT;
     planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], tools.active_extruder);
 
     current_position[X_AXIS] = LOGICAL_X_POSITION(x);
     current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
     planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
 
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + 1; // just slightly over the bed
+    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT; // just slightly over the bed
     planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), tools.active_extruder);
-
-    stepper.synchronize();
 
     #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
       lcd_wait_for_move = false;

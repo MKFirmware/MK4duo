@@ -266,7 +266,6 @@ void Mechanics::manual_goto_xy(const float &x, const float &y) {
   #endif
 
   feedrate_mm_s = old_feedrate_mm_s;
-  stepper.synchronize();
 
   #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
     lcd_wait_for_move = false;

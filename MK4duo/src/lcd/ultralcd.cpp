@@ -241,7 +241,7 @@ uint16_t max_display_update_time = 0;
       _skipStatic = false; \
       _MENU_ITEM_PART_1(TYPE, ## __VA_ARGS__); \
       _MENU_ITEM_PART_2(TYPE, LABEL, ## __VA_ARGS__); \
-    } while(0)
+    }while(0)
 
   #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL, 0)
 
@@ -273,13 +273,13 @@ uint16_t max_display_update_time = 0;
         encoderRateMultiplierEnabled = true; \
         lastEncoderMovementMillis = 0; \
         _MENU_ITEM_PART_2(type, label, ## __VA_ARGS__); \
-      } while(0)
+      }while(0)
 
   #else // !ENCODER_RATE_MULTIPLIER
     #define ENCODER_RATE_MULTIPLY(F) NOOP
   #endif // !ENCODER_RATE_MULTIPLIER
 
-  #define MENU_ITEM_DUMMY() do { _thisItemNr++; } while(0)
+  #define MENU_ITEM_DUMMY() do { _thisItemNr++; }while(0)
   #define MENU_ITEM_EDIT(type, label, ...) MENU_ITEM(setting_edit_ ## type, label, PSTR(label), ## __VA_ARGS__)
   #define MENU_ITEM_EDIT_CALLBACK(type, label, ...) MENU_ITEM(setting_edit_callback_ ## type, label, PSTR(label), ## __VA_ARGS__)
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
@@ -1942,10 +1942,10 @@ void kill_screen(const char* lcd_msg) {
       lcd_goto_screen(_lcd_calibrate_homing);
     }
 
-    void _goto_tower_x() { mechanics.manual_goto_xy(COS(RADIANS(210)) * mechanics.delta_probe_radius, SIN(RADIANS(210)) * mechanics.delta_probe_radius); }
-    void _goto_tower_y() { mechanics.manual_goto_xy(COS(RADIANS(330)) * mechanics.delta_probe_radius, SIN(RADIANS(330)) * mechanics.delta_probe_radius); }
-    void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_probe_radius, SIN(RADIANS( 90)) * mechanics.delta_probe_radius); }
-    void _goto_center()  { mechanics.manual_goto_xy(0,0); }
+    void _goto_tower_x() { mechanics.manual_goto_xy(COS(RADIANS(210)) * mechanics.delta_probe_radius, SIN(RADIANS(210)) * mechanics.delta_probe_radius); lcd_move_z_probe(); }
+    void _goto_tower_y() { mechanics.manual_goto_xy(COS(RADIANS(330)) * mechanics.delta_probe_radius, SIN(RADIANS(330)) * mechanics.delta_probe_radius); lcd_move_z_probe(); }
+    void _goto_tower_z() { mechanics.manual_goto_xy(COS(RADIANS( 90)) * mechanics.delta_probe_radius, SIN(RADIANS( 90)) * mechanics.delta_probe_radius); lcd_move_z_probe(); }
+    void _goto_center()  { mechanics.manual_goto_xy(0,0); lcd_move_z_probe(); }
 
     void lcd_delta_settings() {
       START_MENU();
