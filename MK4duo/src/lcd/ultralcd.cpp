@@ -3201,7 +3201,7 @@ void kill_screen(const char* lcd_msg) {
         lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT; \
       } \
       ++_thisItemNr; \
-    } while(0)
+    }while(0)
 
     void lcd_advanced_pause_toocold_menu() {
       START_MENU();

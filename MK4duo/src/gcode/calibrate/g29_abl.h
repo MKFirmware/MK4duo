@@ -106,7 +106,11 @@ void out_of_range_error(const char* p_edge) {
    *
    *  A  Abort current leveling procedure
    *
+   * Extra parameters with BILINEAR only:
+   *
    *  W  Write a mesh point. (Ignored during leveling.)
+   *  I  X index for mesh point
+   *  J  Y index for mesh point
    *  X  Required X for mesh point
    *  Y  Required Y for mesh point
    *  Z  Required Z for mesh point
@@ -219,7 +223,7 @@ void out_of_range_error(const char* p_edge) {
 
         ABL_VAR float eqnAMatrix[GRID_MAX_POINTS * 3], // "A" matrix of the linear system of equations
                       eqnBVector[GRID_MAX_POINTS],     // "B" vector of Z points
-                      mean;
+                      mean = 0.0;
       #endif
 
     #elif ENABLED(AUTO_BED_LEVELING_3POINT)
@@ -332,6 +336,7 @@ void out_of_range_error(const char* p_edge) {
         }
 
         abl2 = abl_grid_points_x * abl_grid_points_y;
+        mean = 0.0;
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
@@ -341,7 +346,7 @@ void out_of_range_error(const char* p_edge) {
 
       #if ABL_GRID
 
-        bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.seen('S') ? parser.value_linear_units() : XY_PROBE_SPEED);
+        bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
 
         left_probe_bed_position   = (int)parser.linearval('L', LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION));
         right_probe_bed_position  = (int)parser.linearval('R', LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION));
@@ -414,26 +419,31 @@ void out_of_range_error(const char* p_edge) {
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        if ( xGridSpacing != bedlevel.bilinear_grid_spacing[X_AXIS]
-          || yGridSpacing != bedlevel.bilinear_grid_spacing[Y_AXIS]
-          || left_probe_bed_position != LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS])
-          || front_probe_bed_position != LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS])
-        ) {
-          if (dryrun) {
-            // Before reset bed level, re-enable to correct the position
-            bedlevel.abl_enabled = abl_should_enable;
+        #if ENABLED(PROBE_MANUALLY)
+          if (!no_action)
+        #endif
+        {
+          if ( xGridSpacing != bedlevel.bilinear_grid_spacing[X_AXIS]
+            || yGridSpacing != bedlevel.bilinear_grid_spacing[Y_AXIS]
+            || left_probe_bed_position != LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS])
+            || front_probe_bed_position != LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS])
+          ) {
+            if (dryrun) {
+              // Before reset bed level, re-enable to correct the position
+              bedlevel.abl_enabled = abl_should_enable;
+            }
+            // Reset grid to 0.0 or "not probed". (Also disables ABL)
+            bedlevel.reset_bed_level();
+
+            // Initialize a grid with the given dimensions
+            bedlevel.bilinear_grid_spacing[X_AXIS] = xGridSpacing;
+            bedlevel.bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
+            bedlevel.bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
+            bedlevel.bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
+
+            // Can't re-enable (on error) until the new grid is written
+            abl_should_enable = false;
           }
-          // Reset grid to 0.0 or "not probed". (Also disables ABL)
-          bedlevel.reset_bed_level();
-
-          // Initialize a grid with the given dimensions
-          bedlevel.bilinear_grid_spacing[X_AXIS] = xGridSpacing;
-          bedlevel.bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
-          bedlevel.bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
-          bedlevel.bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
-
-          // Can't re-enable (on error) until the new grid is written
-          abl_should_enable = false;
         }
 
       #endif // AUTO_BED_LEVELING_BILINEAR

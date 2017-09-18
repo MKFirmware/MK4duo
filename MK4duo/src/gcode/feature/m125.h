@@ -45,6 +45,6 @@
    *    Y = override Y
    *    Z = override Z raise
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M125(void) { (void)printer.park_head_on_pause(); }
 
 #endif

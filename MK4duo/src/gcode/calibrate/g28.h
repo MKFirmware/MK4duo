@@ -28,4 +28,4 @@
 
 #define CODE_G28
 
-inline void gcode_G28(void) { mechanics.Home(false); }
+inline void gcode_G28(void) { (void)mechanics.Home(false); }
