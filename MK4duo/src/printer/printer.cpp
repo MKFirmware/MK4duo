@@ -2150,7 +2150,7 @@ void Printer::handle_Interrupt_Event() {
         const bool job_running = print_job_counter.isRunning();
       #endif
 
-      if (pause_print(retract, 0, z_lift, x_pos, y_pos)) {
+      if (pause_print(retract, 0.0, z_lift, x_pos, y_pos)) {
         #if DISABLED(SDSUPPORT)
           // Wait for lcd click or M108
           wait_for_filament_reload();
