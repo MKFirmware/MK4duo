@@ -39,6 +39,7 @@
    *  Y[position] - Move to this Y position, with X
    *  U[distance] - Retract distance for removal (negative value) (manual reload)
    *  L[distance] - Extrude distance for insertion (positive value) (manual reload)
+   *  S[temp]     - New temperature for new filament
    *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
    *
    *  Default values are used for omitted arguments.
@@ -57,32 +58,30 @@
     ;
 
     // Second retract after cooldown hotend
-    const float retract2 = 0
+    const float retract2 = 0.0
       #if ENABLED(PAUSE_PARK_RETRACT_2_LENGTH) && PAUSE_PARK_RETRACT_2_LENGTH > 0
         - (PAUSE_PARK_RETRACT_2_LENGTH)
       #endif
     ;
 
     // Lift Z axis
-    const float z_lift = parser.seen('Z') ? parser.value_linear_units() :
+    const float z_lift = parser.linearval('Z', 0
       #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
-        PAUSE_PARK_Z_ADD
-      #else
-        0
+        + PAUSE_PARK_Z_ADD
       #endif
-    ;
+    );
 
     // Move XY axes to filament exchange position
-    const float x_pos = parser.seen('X') ? parser.value_linear_units() : 0
+    const float x_pos = parser.linearval('X', 0
       #if ENABLED(PAUSE_PARK_X_POS)
         + PAUSE_PARK_X_POS
       #endif
-    ;
-    const float y_pos = parser.seen('Y') ? parser.value_linear_units() : 0
+    );
+    const float y_pos = parser.linearval('Y', 0
       #if ENABLED(PAUSE_PARK_Y_POS)
         + PAUSE_PARK_Y_POS
       #endif
-    ;
+    );
 
     // Unload filament
     const float unload_length = parser.seen('U') ? parser.value_axis_units(E_AXIS) : 0
@@ -98,17 +97,20 @@
       #endif
     ;
 
-    const int beep_count = parser.seen('B') ? parser.value_int() :
+    int16_t temp = 0;
+    if (parser.seenval('S')) temp = parser.value_celsius();
+
+    const int beep_count = parser.intval('B',
       #if ENABLED(PAUSE_PARK_NUMBER_OF_ALERT_BEEPS)
         PAUSE_PARK_NUMBER_OF_ALERT_BEEPS
       #else
         -1
       #endif
-    ;
+    );
 
     const bool job_running = printer.print_job_counter.isRunning();
 
-    if (printer.pause_print(retract, retract2, z_lift, x_pos, y_pos, unload_length, beep_count, true)) {
+    if (printer.pause_print(retract, retract2, z_lift, x_pos, y_pos, unload_length, temp, beep_count, true)) {
       printer.wait_for_filament_reload(beep_count);
       printer.resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }
