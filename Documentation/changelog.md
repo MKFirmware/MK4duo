@@ -1,3 +1,7 @@
+### Version 4.3.27.2 dev
+* Add subcommand S to M600 for change temperature
+* Fix and clear code
+
 ### Version 4.3.27 dev
 * New Class Heater for 4 Hotend 1 Bed 1 Chamber 1 Cooler
 * Rewrite Temperature code

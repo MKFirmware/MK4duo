@@ -977,7 +977,9 @@ void Printer::handle_Interrupt_Event() {
             else
           #endif
           if (print_job_counter.isRunning()) {
-            #if ENABLED(PARK_HEAD_ON_PAUSE)
+            #if HAS_SDSUPPORT && ENABLED(ADVANCED_PAUSE_FEATURE)
+              commands.enqueue_and_echo_commands_P(PSTR("M600"));
+            #elif ENABLED(PARK_HEAD_ON_PAUSE)
               park_head_on_pause();
             #endif
           }
@@ -1769,7 +1771,7 @@ void Printer::handle_Interrupt_Event() {
     while (thermalManager.wait_for_heatup && heaters_heating) {
       idle();
       heaters_heating = false;
-      LOOP_HEATER() {
+      LOOP_HOTEND() {
         if (heaters[h].target_temperature && abs(heaters[h].current_temperature - heaters[h].target_temperature) > TEMP_HYSTERESIS) {
           heaters_heating = true;
           #if HAS_LCD
@@ -1782,7 +1784,7 @@ void Printer::handle_Interrupt_Event() {
   }
 
   bool Printer::pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
-                          const float &unload_length/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/) {
+                          const float &unload_length/*=0*/, const int16_t new_temp/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/) {
 
     if (move_away_flag) return false; // already paused
 
@@ -1793,7 +1795,6 @@ void Printer::handle_Interrupt_Event() {
           return false;
         }
       #endif
-
       ensure_safe_temperature(); // wait for hotend to heat up before unloading
     }
 
@@ -1837,22 +1838,24 @@ void Printer::handle_Interrupt_Event() {
 
     // Store in old temperature the target temperature for hotend and bed
     int16_t old_target_temperature[HOTENDS];
-    LOOP_HOTEND() old_target_temperature[h] = heaters[h].target_temperature; // Save nozzle temps
+    LOOP_HOTEND()
+      old_target_temperature[h] = (new_temp != 0) ? new_temp : heaters[h].target_temperature; // Save nozzle temps
 
     // Second retract filament with Cool Down
-    if (retract2) {
-      // Cool Down hotend
-      #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
+    #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
+      if (retract2) {
+        // Cool Down hotend
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
         heaters[tools.active_extruder].setTarget(PAUSE_PARK_COOLDOWN_TEMP);
         thermalManager.wait_heater(false);
-      #endif
 
-      // Second retract filament
-      mechanics.destination[E_AXIS] -= retract2;
-      RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
-      stepper.synchronize();
-    }
+        // Second retract filament
+        mechanics.set_destination_to_current();
+        mechanics.destination[E_AXIS] += retract2;
+        RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
+        stepper.synchronize();
+      }
+    #endif
 
     if (unload_length != 0) {
       if (show_lcd) {
@@ -1883,11 +1886,8 @@ void Printer::handle_Interrupt_Event() {
 
     idle();
 
-    // Disable extruders steppers for manual filament changing (only on boards that have separate ENABLE_PINS)
-    #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
-      stepper.disable_e_steppers();
-      safe_delay(100);
-    #endif
+    stepper.disable_e_steppers();
+    safe_delay(100);
 
     // Start the heater idle timers
     const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;

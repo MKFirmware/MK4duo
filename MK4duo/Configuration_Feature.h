@@ -1972,9 +1972,9 @@
 #define PAUSE_PARK_XY_FEEDRATE 100          // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
 #define PAUSE_PARK_Z_FEEDRATE 5             // Z axis feedrate in mm/s (not used for delta printers)
 #define PAUSE_PARK_RETRACT_FEEDRATE 20      // Initial retract feedrate in mm/s
-#define PAUSE_PARK_RETRACT_LENGTH 2         // Initial retract in mm
+#define PAUSE_PARK_RETRACT_LENGTH 5         // Initial retract in mm
                                             // It is a short retract used immediately after print interrupt before move to filament exchange position
-#define PAUSE_PARK_COOLDOWN_TEMP 160        // Temp for cooldown, if this parameter is equal to 0 no cooling.
+#define PAUSE_PARK_COOLDOWN_TEMP 0          // Cooling temperature, if this parameter is equal to 0 no cooling.
 #define PAUSE_PARK_RETRACT_2_FEEDRATE 20    // Second retract filament feedrate in mm/s - filament retract post cool down
 #define PAUSE_PARK_RETRACT_2_LENGTH 20      // Second retract filament length from hotend in mm
 #define PAUSE_PARK_UNLOAD_FEEDRATE 100      // Unload filament feedrate in mm/s - filament unloading can be fast

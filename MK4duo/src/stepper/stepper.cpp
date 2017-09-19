@@ -1563,12 +1563,15 @@ void Stepper::enable_all_steppers() {
 }
 
 void Stepper::disable_e_steppers() {
-  disable_E0();
-  disable_E1();
-  disable_E2();
-  disable_E3();
-  disable_E4();
-  disable_E5();
+  // Disable extruders steppers (only on boards that have separate ENABLE_PINS)
+  #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
+    disable_E0();
+    disable_E1();
+    disable_E2();
+    disable_E3();
+    disable_E4();
+    disable_E5();
+  #endif
 }
 
 void Stepper::disable_all_steppers() {
