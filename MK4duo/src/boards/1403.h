@@ -124,11 +124,11 @@
 #define ORIG_COOLER_PIN -1
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN 6
-#define ORIG_TEMP_1_PIN 5
-#define ORIG_TEMP_2_PIN 4
+#define ORIG_TEMP_0_PIN 1     //Analog pin, digital pin 6
+#define ORIG_TEMP_1_PIN 2     //Analog pin, digital pin 5
+#define ORIG_TEMP_2_PIN 3     //Analog pin, digital pin 4
 #define ORIG_TEMP_3_PIN -1
-#define ORIG_TEMP_BED_PIN 7
+#define ORIG_TEMP_BED_PIN 0   //Analog pin, digital pin 7
 #define ORIG_TEMP_CHAMBER_PIN -1
 #define ORIG_TEMP_COOLER_PIN -1
 
