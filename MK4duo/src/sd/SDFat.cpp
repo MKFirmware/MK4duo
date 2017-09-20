@@ -3262,6 +3262,7 @@ bool Sd2Card::readData(uint8_t* dst) {
 }
 //------------------------------------------------------------------------------
 bool Sd2Card::readData(uint8_t* dst, size_t count) {
+  uint16_t crc;
   // wait for start block token
   uint16_t t0 = HAL::timeInMilliseconds();
   while ((status_ = spiReceive()) == 0xFF) {
@@ -3278,19 +3279,14 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
   // transfer data
   spiRead(dst, count);
 
+  // get crc
+  crc = (spiReceive() << 8) | spiReceive();
   #if ENABLED(SD_CHECK_AND_RETRY)
-    uint16_t calcCrc = CRC_CCITT(dst, count);
-    uint16_t recvCrc = spiReceive() << 8;
-    recvCrc |= spiReceive();
-    if (calcCrc != recvCrc) {
-      error(SD_CARD_ERROR_CRC);
+    if (crc != CRC_CCITT(dst, count)) {
+      error(SD_CARD_ERROR_READ_CRC);
       goto FAIL;
     }
-  #else
-    // discard CRC
-    spiReceive();
-    spiReceive();
-  #endif  // SD_CHECK_AND_RETRY
+  #endif
 
   chipSelectHigh();
   // Send an additional dummy byte, required by Toshiba Flash Air SD Card
