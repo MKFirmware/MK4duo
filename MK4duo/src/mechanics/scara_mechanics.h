@@ -55,6 +55,14 @@
       void Init();
 
       /**
+       * Report current position to host
+       */
+      void report_current_position() override;
+      void report_current_position_detail() override;
+      
+      void get_cartesian_from_steppers() override;
+
+      /**
        * Prepare a linear move in a SCARA setup.
        *
        * This calls planner.buffer_line several times, adding

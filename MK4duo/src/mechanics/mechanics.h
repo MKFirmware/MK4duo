@@ -303,7 +303,7 @@ class Mechanics {
     /**
      * Report current position to host
      */
-            void report_current_position();
+    virtual void report_current_position();
     virtual void report_current_position_detail();
 
     FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }

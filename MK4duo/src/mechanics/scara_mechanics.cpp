@@ -37,6 +37,92 @@
     // TODO!!!
   }
 
+  /**
+   * Report current position to host
+   */
+  void Scara_Mechanics::report_current_position() {
+    SERIAL_MV( "X:", current_position[X_AXIS]);
+    SERIAL_MV(" Y:", current_position[Y_AXIS]);
+    SERIAL_MV(" Z:", current_position[Z_AXIS]);
+    SERIAL_MV(" E:", current_position[E_AXIS]);
+
+    stepper.report_positions();
+
+    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
+    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
+  }
+
+  void Scara_Mechanics::report_current_position_detail() {
+
+    stepper.synchronize();
+
+    SERIAL_MSG("\nLogical:");
+    report_xyze(current_position);
+
+    SERIAL_MSG("Raw:    ");
+    const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
+    report_xyz(raw);
+
+    float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+
+    #if HAS_LEVELING
+
+      SERIAL_MSG("Leveled:");
+      bedlevel.apply_leveling(leveled);
+      report_xyz(leveled);
+
+      SERIAL_MSG("UnLevel:");
+      float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
+      bedlevel.unapply_leveling(unleveled);
+      report_xyz(unleveled);
+
+    #endif
+
+    SERIAL_MSG("ScaraK: ");
+    inverse_kinematics_SCARA(leveled);  // writes delta[]
+    report_xyz(delta);
+
+    SERIAL_MSG("Stepper:");
+    const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+    report_xyze((float*)step_count, 4, 0);
+
+    SERIAL_MSG("Degrees:");
+    const float deg[XYZ] = { stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) };
+    report_xyze(deg, 2);
+
+    SERIAL_MSG("FromStp:");
+    get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+    report_xyze(from_steppers);
+
+    const float diff[XYZE] = {
+      from_steppers[X_AXIS] - leveled[X_AXIS],
+      from_steppers[Y_AXIS] - leveled[Y_AXIS],
+      from_steppers[Z_AXIS] - leveled[Z_AXIS],
+      from_steppers[E_AXIS] - current_position[E_AXIS]
+    };
+
+    SERIAL_MSG("Differ: ");
+    report_xyze(diff);
+
+  }
+
+  /**
+   * Get the stepper positions in the cartes[] array.
+   * Forward kinematics are applied for DELTA and SCARA.
+   *
+   * The result is in the current coordinate space with
+   * leveling applied. The coordinates need to be run through
+   * unapply_leveling to obtain the "ideal" coordinates
+   * suitable for current_position, etc.
+   */
+  void Scara_Mechanics::get_cartesian_from_steppers() {
+    forward_kinematics_SCARA( stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) );
+    cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
+    cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
+    cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
+  }
+
    /**
    * Prepare a linear move in a SCARA setup.
    *
