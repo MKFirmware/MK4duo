@@ -203,7 +203,6 @@ class Mechanics {
     virtual void set_position_mm(const float position[NUM_AXIS]);
     FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(AxisEnum(Z_AXIS), z); }
     FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
-    virtual void set_position_mm_kinematic(const float position[NUM_AXIS]);
 
     /**
      * Get the stepper positions in the cartes[] array.
@@ -285,7 +284,6 @@ class Mechanics {
      */
             void sync_plan_position();
             void sync_plan_position_e();
-    virtual void sync_plan_position_kinematic();
 
     /**
      * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
