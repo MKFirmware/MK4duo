@@ -38,10 +38,10 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV36"
+#define EEPROM_VERSION "MKV37"
 
 /**
- * MKV431 EEPROM Layout:
+ * MKV437 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -932,7 +932,7 @@ void EEPROM::Postprocess() {
         if (ubl.state.storage_slot >= 0) {
           load_mesh(ubl.state.storage_slot);
           #if ENABLED(EEPROM_CHITCHAT)
-            SERIAL_NV("Mesh ", ubl.state.storage_slot);
+            SERIAL_MV("Mesh ", ubl.state.storage_slot);
             SERIAL_EM(" loaded from storage.");
           #endif
         }

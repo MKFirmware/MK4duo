@@ -757,6 +757,10 @@ void Temperature::print_heaterstates() {
     SERIAL_MV(MSG_BAT, (int)heaters[BED_INDEX].soft_pwm);
   #endif
 
+  #if HAS_TEMP_CHAMBER
+    SERIAL_MV(MSG_CAT, (int)heaters[CHAMBER_INDEX].soft_pwm);
+  #endif
+  
   #if HOTENDS > 1
     LOOP_HOTEND() {
       SERIAL_MV(MSG_AT, h);
@@ -1244,11 +1248,11 @@ void Temperature::print_heater_state(const float &c, const int16_t &t,
   #endif
 
   #if HAS_TEMP_CHAMBER
-    if (h == CHAMBER_INDEX) SERIAL_CHR('CHAMBER');
+    if (h == CHAMBER_INDEX) SERIAL_CHR('C');
   #endif
 
   #if HAS_TEMP_COOLER
-    if (h == COOLER_INDEX) SERIAL_CHR('COOLER');
+    if (h == COOLER_INDEX) SERIAL_CHR('C');
   #endif
 
   SERIAL_CHR(':');
