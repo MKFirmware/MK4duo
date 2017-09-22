@@ -282,8 +282,8 @@ class Mechanics {
      * Set the planner/stepper positions directly from current_position with
      * no kinematic translation. Used for homing axes and cartesian/core syncing.
      */
-            void sync_plan_position();
-            void sync_plan_position_e();
+    void sync_plan_position();
+    void sync_plan_position_e();
 
     /**
      * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
