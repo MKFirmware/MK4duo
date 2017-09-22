@@ -39,9 +39,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
-#if ABL_PLANAR
+#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
 
 #include <math.h>
 

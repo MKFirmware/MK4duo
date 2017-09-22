@@ -33,13 +33,13 @@
   /**
    * G31: Deploy the Z probe
    */
-  inline void gcode_G31(void) { probe.set_deployed(true); }
+  inline void gcode_G31(void) { DEPLOY_PROBE(); }
 
   #define G32
 
   /**
    * G32: Stow the Z probe
    */
-  inline void gcode_G32(void) { probe.set_deployed(false); }
+  inline void gcode_G32(void) { STOW_PROBE(); }
 
 #endif // Z_PROBE_SLED

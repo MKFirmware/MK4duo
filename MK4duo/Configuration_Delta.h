@@ -409,21 +409,47 @@
  ******************************* Auto Bed Leveling (ABL) *********************************
  *****************************************************************************************
  *                                                                                       *
- * If you enabled Auto Bed Leveling (ABL) this add the support for auto bed level        *
- * To use ABL you must have a PROBE, please define you type probe.                       *
+ * - UBL (Unified Bed Leveling)                                                          *
+ *   A comprehensive bed leveling system combining the features and benefits             *
+ *   of other systems. UBL also includes integrated Mesh Generation, Mesh                *
+ *   Validation and Mesh Editing systems.                                                *
+ *                                                                                       * 
+ * - BILINEAR                                                                            *
+ *   Probe several points in a grid.                                                     *
+ *   You specify the rectangle and the density of sample points.                         *
+ *   The result is a mesh, best for large or uneven beds.                                *
  *                                                                                       *
  *****************************************************************************************/
-//#define AUTO_BED_LEVELING_FEATURE
+//#define AUTO_BED_LEVELING_UBL
+//#define AUTO_BED_LEVELING_BILINEAR
 
 // Enable detailed logging of G28, G29, G30, M48, etc.
 // Turn on with the command 'M111 S32'.
 // NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
+// Mesh inset margin on print area
+#define MESH_INSET 10
+
+/** START Unified Bed Leveling */
+// If this is defined, the currently active mesh will be saved in the
+// current slot on M500.
+#define UBL_SAVE_ACTIVE_ON_M500
+
+// Enable G26 mesh validation
+//#define UBL_G26_MESH_VALIDATION
+
+// Sophisticated users prefer no movement of nozzle
+#define UBL_MESH_EDIT_MOVES_Z
+/** END Unified Bed Leveling */
+
 // Set the number of grid points per dimension
 // Works best with 5 or more points in each dimension.
 #define GRID_MAX_POINTS_X 7
 #define GRID_MAX_POINTS_Y 7
+
+// The Z probe minimum outer margin (to validate G29 parameters).
+#define MIN_PROBE_EDGE 10
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST

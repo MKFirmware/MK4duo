@@ -74,6 +74,13 @@
 
   #if ENABLED(ULTIPANEL)
 
+    extern bool defer_return_to_status;
+
+    // Function pointer to menu functions.
+    typedef void (*screenFunc_t)();
+
+    void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder=0);
+
     #define BLEN_A 0
     #define BLEN_B 1
     // Encoder click is directly connected
@@ -100,7 +107,14 @@
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message);
-    #endif // ADVANCED_PAUSE_FEATURE
+    #endif
+
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      void lcd_mesh_edit_setup(float initial);
+      float lcd_mesh_edit();
+      void lcd_z_offset_edit_setup(float);
+      float lcd_z_offset_edit();
+    #endif
 
   #else
 

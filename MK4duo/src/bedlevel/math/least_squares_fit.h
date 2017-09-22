@@ -35,7 +35,7 @@
 #ifndef _LEAST_SQUARES_FIT_H_
 #define _LEAST_SQUARES_FIT_H_
 
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
+#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
 
   struct linear_fit_data {
     float xbar, ybar, zbar,

@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_ABL
+#if OLDSCHOOL_ABL
 
   #define CODE_M320
 
@@ -73,4 +73,4 @@
     SERIAL_LMV(ECHO, "ABL: ", new_status ? MSG_ON : MSG_OFF);
   }
 
-#endif // HAS_ABL
+#endif // OLDSCHOOL_ABL

@@ -54,13 +54,13 @@
         if (parser.seen('R')) mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
         SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
         SERIAL_CHR(' ');
-        SERIAL_VAL(printer.hotend_offset[X_AXIS][0]);
+        SERIAL_VAL(tools.hotend_offset[X_AXIS][0]);
         SERIAL_CHR(',');
-        SERIAL_VAL(printer.hotend_offset[Y_AXIS][0]);
+        SERIAL_VAL(tools.hotend_offset[Y_AXIS][0]);
         SERIAL_CHR(' ');
         SERIAL_VAL(mechanics.duplicate_hotend_x_offset);
         SERIAL_CHR(',');
-        SERIAL_EV(printer.hotend_offset[Y_AXIS][1]);
+        SERIAL_EV(tools.hotend_offset[Y_AXIS][1]);
         break;
       default:
         mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;

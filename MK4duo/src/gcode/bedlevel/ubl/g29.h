@@ -20,14 +20,16 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * gcode.h
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ */
 
-#define FIRMWARE_NAME "MK4duo"
-#define SHORT_BUILD_VERSION "4.3.28_dev"
-#define BUILD_VERSION FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE __DATE__ " " __TIME__    // build date and time
-// It might also be appropriate to define a location where additional information can be found
-#define FIRMWARE_URL  "marlinkimbra.it"
+#if ENABLED(AUTO_BED_LEVELING_UBL)
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+#define CODE_G29
+
+inline void gcode_G29(void) { ubl.G29(); }
+
+#endif // AUTO_BED_LEVELING_UBL

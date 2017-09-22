@@ -40,7 +40,7 @@
  * - Travel limits
  * - Axis relative mode
  * - Bed Leveling
- * - Leveling Fade Height (MBL or ABL)
+ * - Leveling Fade Height
  * - Safe Z homing
  * - Manual home positions
  * - Axis steps per unit
@@ -192,8 +192,7 @@
 #define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling without a probe.
-// Use G29 repeatedly, adjusting the Z height at each point with movement commands
-// or (with LCD BED LEVELING) the LCD controller.
+// Use Host or LCD for adjust Z height.
 //#define PROBE_MANUALLY
 
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
@@ -414,9 +413,16 @@
  *  highly recommended to enable Z SAFE HOMING also!                                     *
  *                                                                                       *
  * - MESH                                                                                *
- *   Probe several points in a grid.                                                     *
- *   You specify the rectangle and the density of sample points.                         *
- *   The result is a mesh.                                                               *
+ *   Probe a grid manually                                                               *
+ *   The result is a mesh, suitable for large or uneven beds. (See BILINEAR.)            *
+ *   For machines without a probe, Mesh Bed Leveling provides a method to perform        *
+ *   leveling in steps so you can manually adjust the Z height at each grid-point.       *
+ *   With an LCD controller the process is guided step-by-step.                          *
+ *                                                                                       *
+ * - UBL (Unified Bed Leveling)                                                          *
+ *   A comprehensive bed leveling system combining the features and benefits             *
+ *   of other systems. UBL also includes integrated Mesh Generation, Mesh                *
+ *   Validation and Mesh Editing systems.                                                *
  *                                                                                       *
  * - LINEAR                                                                              *
  *   Probe several points in a grid.                                                     *
@@ -435,6 +441,7 @@
  *                                                                                       *
  *****************************************************************************************/
 //#define MESH_BED_LEVELING
+//#define AUTO_BED_LEVELING_UBL
 //#define AUTO_BED_LEVELING_LINEAR
 //#define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_3POINT
@@ -444,27 +451,45 @@
 // NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
-/** START MESH BED LEVELING **/
 // Mesh inset margin on print area
 #define MESH_INSET 10
 
+/** START MESH BED LEVELING **/
 // Default mesh area is an area with an inset margin on the print area.
 // Below are the macros that are used to define the borders for the mesh
 // area, made available here for specialized needs.
-#define MESH_MIN_X (X_MIN_POS + MESH_INSET)
+#define MESH_MIN_X (X_MIN_POS + (MESH_INSET))
 #define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define MESH_MIN_Y (Y_MIN_POS + MESH_INSET)
+#define MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
 #define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
 
 // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
 /** END MESH BED LEVELING **/
 
-/** START MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+/** START UNIFIED BED LEVELING **/
+
+// Default mesh area is an area with an inset margin on the print area.
+// Below are the macros that are used to define the borders for the mesh area,
+// made available here for specialized needs, ie dual extruder setup.
+#define UBL_MESH_MIN_X (X_MIN_POS + (MESH_INSET))
+#define UBL_MESH_MAX_X (X_MAX_POS - (MESH_INSET))
+#define UBL_MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
+#define UBL_MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+
+// If this is defined, the currently active mesh will be saved in the
+// current slot on M500.
+#define UBL_SAVE_ACTIVE_ON_M500
+
+//#define UBL_G26_MESH_VALIDATION // Enable G26 mesh validation
+#define UBL_MESH_EDIT_MOVES_Z     // Sophisticated users prefer no movement of nozzle
+/** END UNIFIED BED LEVELING **/
+
+/** START MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR or UNIFIED BED LEVELING **/
 // Set the number of grid points per dimension
 #define GRID_MAX_POINTS_X 3
 #define GRID_MAX_POINTS_Y 3
-/** END MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
+/** END MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR or UNIFIED BED LEVELING **/
 
 /** START AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
 // Set the boundaries for probing (where the probe can reach).
@@ -489,12 +514,12 @@
 /** START AUTO_BED_LEVELING_3POINT **/
 // 3 arbitrary points to probe.
 // A simple cross-product is used to estimate the plane of the bed.
-#define ABL_PROBE_PT_1_X 15
-#define ABL_PROBE_PT_1_Y 180
-#define ABL_PROBE_PT_2_X 15
-#define ABL_PROBE_PT_2_Y 15
-#define ABL_PROBE_PT_3_X 180
-#define ABL_PROBE_PT_3_Y 15
+#define PROBE_PT_1_X 15
+#define PROBE_PT_1_Y 180
+#define PROBE_PT_2_X 15
+#define PROBE_PT_2_Y 15
+#define PROBE_PT_3_X 180
+#define PROBE_PT_3_Y 15
 /** END AUTO_BED_LEVELING_3POINT **/
 
 // Commands to execute at the end of G29 probing.

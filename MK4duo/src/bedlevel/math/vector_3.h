@@ -42,7 +42,7 @@
 #ifndef _VECTOR_3_H_
 #define _VECTOR_3_H_
 
-#if ABL_PLANAR
+#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
 
   class matrix_3x3;
 

@@ -26,15 +26,15 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_ABL
+#if OLDSCHOOL_ABL
 
   #define CODE_M322
 
   // M322: Reset auto leveling matrix
   inline void gcode_M322(void) {
-    bedlevel.reset_bed_level();
+    bedlevel.reset();
     if (parser.seen('S') && parser.value_bool())
       eeprom.Store_Settings();
   }
 
-#endif // HAS_ABL
+#endif // OLDSCHOOL_ABL

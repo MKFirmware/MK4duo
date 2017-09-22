@@ -158,7 +158,7 @@
         }
 
         if (parser.seenval('Z')) {
-          mbl.z_values[px][py] = parser.value_axis_units(Z_AXIS);
+          mbl.z_values[px][py] = parser.value_linear_units();
         }
         else {
           SERIAL_CHR('Z'); say_not_entered();
@@ -168,7 +168,7 @@
 
       case MeshSetZOffset:
         if (parser.seenval('Z')) {
-          mbl.zprobe_zoffset = parser.value_axis_units(Z_AXIS);
+          mbl.zprobe_zoffset = parser.value_linear_units();
         }
         else {
           SERIAL_CHR('Z'); say_not_entered();
@@ -177,7 +177,7 @@
         break;
 
       case MeshReset:
-        bedlevel.reset_bed_level();
+        bedlevel.reset();
         break;
 
     } // switch(state)

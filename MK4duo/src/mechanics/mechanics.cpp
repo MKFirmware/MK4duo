@@ -78,13 +78,13 @@ void Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
 
 }
 void Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-  #if HAS_LEVELING
+  #if PLANNER_LEVELING
     bedlevel.apply_leveling(lx, ly, lz);
   #endif
   _set_position_mm(lx, ly, lz, e);
 }
 void Mechanics::set_position_mm(const float position[NUM_AXIS]) {
-  #if HAS_LEVELING
+  #if PLANNER_LEVELING
     float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
     bedlevel.apply_leveling(lpos);
   #else
@@ -114,7 +114,7 @@ void Mechanics::get_cartesian_from_steppers() {
  */
 void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
   get_cartesian_from_steppers();
-  #if HAS_LEVELING
+  #if PLANNER_LEVELING
     bedlevel.unapply_leveling(cartesian_position);
   #endif
   if (axis == ALL_AXES)
@@ -167,7 +167,13 @@ void Mechanics::prepare_move_to_destination() {
     }
   #endif
 
-  if (mechanics.prepare_move_to_destination_mech_specific()) return;
+  if (
+    #if UBL_DELTA
+      ubl.prepare_segmented_line_to(destination, feedrate_mm_s)
+    #else
+      mechanics.prepare_move_to_destination_mech_specific()
+    #endif
+  ) return;
 
   set_current_to_destination();
 }
@@ -386,7 +392,7 @@ void Mechanics::report_current_position_detail() {
 
   float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
-  #if HAS_LEVELING
+  #if PLANNER_LEVELING
 
     SERIAL_MSG("Leveled:");
     bedlevel.apply_leveling(leveled);

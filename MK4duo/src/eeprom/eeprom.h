@@ -29,6 +29,23 @@ class EEPROM {
 
     EEPROM() {}
 
+  public: /** Public Parameters */
+
+  private: /** Private Parameters */
+
+    #if ENABLED(EEPROM_SETTINGS)
+
+      static bool eeprom_error;
+ 
+      #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
+                                         // That can store is enabled
+        static int meshes_begin;
+        const static int meshes_end = E2END - 128; // 128 is a placeholder for the size of the MAT; the MAT will always
+                                                   // live at the very end of the eeprom
+
+      #endif
+    #endif
+
   public: /** Public Function */
 
     static void Factory_Settings();
@@ -36,6 +53,18 @@ class EEPROM {
 
     #if ENABLED(EEPROM_SETTINGS)
       static bool Load_Settings();
+
+      #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
+                                         // That can store is enabled
+        FORCE_INLINE static int get_start_of_meshes() { return meshes_begin; }
+        FORCE_INLINE static int get_end_of_meshes() { return meshes_end; }
+        static int calc_num_meshes();
+        static void store_mesh(int8_t slot);
+        static void load_mesh(int8_t slot, void *into = 0);
+
+        //static void delete_mesh();    // necessary if we have a MAT
+        //static void defrag_meshes();  // "
+      #endif
     #else
       FORCE_INLINE static bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
     #endif
@@ -51,7 +80,6 @@ class EEPROM {
     static void Postprocess();
 
     #if ENABLED(EEPROM_SETTINGS)
-      static bool eeprom_error;
       static void write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
       static void read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc);
       static void crc16(uint16_t *crc, const void * const data, uint16_t cnt);

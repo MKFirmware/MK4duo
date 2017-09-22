@@ -415,7 +415,7 @@ void Probe::refresh_offset() {
             bedlevel.z_values[x][y] -= diff;
       }
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bedlevel.bed_level_virt_interpolate();
+        bedlevel.virt_interpolate();
       #endif
     #endif
 

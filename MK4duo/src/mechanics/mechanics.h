@@ -63,7 +63,7 @@
 
 #define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(mechanics.current_position[A##_AXIS])
 
-#if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+#if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
   #define ARG_X float lx
   #define ARG_Y float ly
   #define ARG_Z float lz

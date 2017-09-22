@@ -39,13 +39,14 @@
 
 #if HAS_LEVELING
 
-  #if ABL_PLANAR
-    #include "vector_3.h"
+  #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_UBL)
+    #include "math/vector_3.h"
+    #include "math/least_squares_fit.h"
   #endif
-  #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-    #include "least_squares_fit.h"
-  #elif ENABLED(MESH_BED_LEVELING)
-    #include "mesh_bed_leveling.h"
+  #if ENABLED(MESH_BED_LEVELING)
+    #include "mbl/mesh_bed_leveling.h"
+  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+    #include "ubl/ubl.h"
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -108,13 +109,15 @@
 
     public: /** Public Function */
 
-      /**
-       * Apply leveling to transform a cartesian position
-       * as it will be given to the planner and steppers.
-       */
-      static void apply_leveling(float &lx, float &ly, float &lz);
-      static void apply_leveling(float logical[XYZ]) { apply_leveling(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS]); }
-      static void unapply_leveling(float logical[XYZ]);
+      #if PLANNER_LEVELING
+        /**
+         * Apply leveling to transform a cartesian position
+         * as it will be given to the planner and steppers.
+         */
+        static void apply_leveling(float &lx, float &ly, float &lz);
+        static void apply_leveling(float logical[XYZ]) { apply_leveling(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS]); }
+        static void unapply_leveling(float logical[XYZ]);
+      #endif
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
         static float bilinear_z_offset(const float logical[XYZ]);
@@ -134,19 +137,17 @@
           #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
           #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
           static void print_bilinear_leveling_grid_virt();
-          static void bed_level_virt_interpolate();
+          static void virt_interpolate();
         #endif
       #endif
 
-      #if HAS_LEVELING
-        static bool leveling_is_valid();
-        static bool leveling_is_active();
-        static void set_bed_leveling_enabled(const bool enable=true);
-        static void reset_bed_level();
+      static bool leveling_is_valid();
+      static bool leveling_is_active();
+      static void set_bed_leveling_enabled(const bool enable=true);
+      static void reset();
 
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          static void set_z_fade_height(const float zfh);
-        #endif
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        static void set_z_fade_height(const float zfh);
       #endif
 
       #if ENABLED(MESH_BED_LEVELING)

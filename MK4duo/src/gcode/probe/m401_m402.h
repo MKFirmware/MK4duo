@@ -34,11 +34,11 @@
   /**
    * M401: Engage Z Servo endstop if available
    */
-  inline void gcode_M401(void) { probe.set_deployed(true); }
+  inline void gcode_M401(void) { DEPLOY_PROBE(); }
 
   /**
    * M402: Retract Z Servo endstop if enabled
    */
-  inline void gcode_M402(void) { probe.set_deployed(false); }
+  inline void gcode_M402(void) { STOW_PROBE(); }
 
 #endif // HAS_BED_PROBE
