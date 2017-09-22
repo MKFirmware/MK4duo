@@ -965,22 +965,14 @@ void Printer::handle_Interrupt_Event() {
           filament_ran_out = true;
           stepper.synchronize();
           #if HAS_SDSUPPORT
-            if (IS_SD_FILE_OPEN && IS_SD_PRINTING) {
-              card.pauseSDPrint();
-              print_job_counter.pause();
-              SERIAL_LM(REQUEST_PAUSE, "SD pause");
-
-              #if ENABLED(PARK_HEAD_ON_PAUSE)
-                park_head_on_pause();
-              #endif
+            if (IS_SD_PRINTING) {
+              commands.enqueue_and_echo_commands_P(PSTR("M25"));
             }
             else
           #endif
           if (print_job_counter.isRunning()) {
-            #if HAS_SDSUPPORT && ENABLED(ADVANCED_PAUSE_FEATURE)
+            #if ENABLED(ADVANCED_PAUSE_FEATURE)
               commands.enqueue_and_echo_commands_P(PSTR("M600"));
-            #elif ENABLED(PARK_HEAD_ON_PAUSE)
-              park_head_on_pause();
             #endif
           }
           SERIAL_LM(REQUEST_PAUSE, "Extruder jam detected");
