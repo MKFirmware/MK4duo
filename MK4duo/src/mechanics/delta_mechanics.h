@@ -160,7 +160,7 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis);
+      void homeaxis(const AxisEnum axis) override;
 
       /**
        * Calculate delta, start a line, and set current_position to destination

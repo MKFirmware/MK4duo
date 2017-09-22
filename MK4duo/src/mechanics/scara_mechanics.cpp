@@ -154,6 +154,102 @@
     return false;
   }
 
+  void Scara_Mechanics::homeaxis(const AxisEnum axis) {
+
+    // Only Z homing (with probe) is permitted
+    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    const int axis_home_dir =
+      #if ENABLED(DUAL_X_CARRIAGE)
+        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
+      #endif
+      home_dir[axis];
+
+    // Homing Z towards the bed? Deploy the Z probe or endstop.
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && probe.set_deployed(true)) return;
+    #endif
+
+    // Set a flag for Z motor locking
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) stepper.set_homing_flag(true);
+    #endif
+
+    // Fast move towards endstop until triggered
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
+    #endif
+
+    // Fast move towards endstop until triggered
+    do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
+
+    // When homing Z with probe respect probe clearance
+    const float bump = axis_home_dir * (
+      #if HOMING_Z_WITH_PROBE
+        (axis == Z_AXIS) ? max(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      #endif
+      home_bump_mm[axis]
+    );
+
+    // If a second homing move is configured...
+    if (bump) {
+      // Move away from the endstop by the axis HOME_BUMP_MM
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("Move Away:");
+      #endif
+      do_homing_move(axis, -bump);
+
+      // Slow move towards endstop until triggered
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("Home 2 Slow:");
+      #endif
+      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+    }
+
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) {
+        float adj = FABS(endstops.z2_endstop_adj);
+        bool lockZ1;
+        if (axis_home_dir > 0) {
+          adj = -adj;
+          lockZ1 = (endstops.z2_endstop_adj > 0);
+        }
+        else
+          lockZ1 = (endstops.z2_endstop_adj < 0);
+
+        if (lockZ1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+
+        // Move to the adjusted endstop height
+        do_homing_move(axis, adj);
+
+        if (lockZ1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
+        stepper.set_homing_flag(false);
+      } // Z_AXIS
+    #endif
+
+    set_axis_is_at_home(axis);
+    sync_plan_position_kinematic();
+
+    // Put away the Z probe
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && probe.set_deployed(false)) return;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+  }
+
   void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
