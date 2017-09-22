@@ -964,13 +964,9 @@ void Printer::handle_Interrupt_Event() {
         if (!filament_ran_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           filament_ran_out = true;
           stepper.synchronize();
-          #if HAS_SDSUPPORT
-            if (IS_SD_PRINTING) {
-              commands.enqueue_and_echo_commands_P(PSTR("M25"));
-            }
-            else
-          #endif
-          if (print_job_counter.isRunning()) {
+          if (IS_SD_PRINTING)
+            commands.enqueue_and_echo_commands_P(PSTR("M25"));
+          else if (print_job_counter.isRunning()) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
               commands.enqueue_and_echo_commands_P(PSTR("M600"));
             #endif
@@ -2083,7 +2079,7 @@ void Printer::handle_Interrupt_Event() {
     mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], PAUSE_PARK_XY_FEEDRATE);
     mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], PAUSE_PARK_Z_FEEDRATE);
 
-    #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+    #if HAS_FIL_RUNOUT || HAS_EXT_ENCODER
       filament_ran_out = false;
     #endif
 
