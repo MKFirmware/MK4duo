@@ -59,7 +59,7 @@ inline void gcode_T(void) {
       // Host manage position, don't raise Z
       if (parser.seen('Z')) raise_z = false;
 
-      tool_change_cnc(tool_id, wait, raise_z);
+      cnc.tool_change(tool_id, wait, raise_z);
     }
 
   #endif
@@ -73,11 +73,11 @@ inline void gcode_T(void) {
 
   #elif EXTRUDERS > 1 && (HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1))
 
-    if (printer.mode == PRINTER_MODE_FFF) printer.tool_change(tool_id);
+    if (printer.mode == PRINTER_MODE_FFF) tools.change(tool_id);
 
   #elif EXTRUDERS > 1 && HOTENDS > 1
 
-    if (printer.mode == PRINTER_MODE_FFF) printer.tool_change(
+    if (printer.mode == PRINTER_MODE_FFF) tools.change(
       tool_id,
       MMM_TO_MMS(parser.linearval('F')),
       (tool_id == tools.active_extruder) || parser.boolval('S')

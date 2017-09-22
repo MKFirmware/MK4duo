@@ -27,6 +27,29 @@
 #ifndef _ENDSTOPS_H_
 #define _ENDSTOPS_H_
 
+#if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
+  typedef uint16_t esbits_t;
+#else
+  typedef byte esbits_t;
+#endif
+
+enum EndstopEnum {
+  X_MIN,
+  Y_MIN,
+  Z_MIN,
+  Z_PROBE,
+  X_MAX,
+  Y_MAX,
+  Z_MAX,
+  Z2_MIN,
+  Z2_MAX,
+  Z3_MIN,
+  Z3_MAX,
+  Z4_MIN,
+  Z4_MAX,
+  E_MIN
+};
+
 class Endstops {
 
   public: /** Constructor */
@@ -57,12 +80,7 @@ class Endstops {
     static volatile uint8_t e_hit;  // Different from 0 when the endstops shall be tested in detail.
                                     // Must be reset to 0 by the test function when the tests are finished.
 
-    #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
-      static uint16_t
-    #else
-      static byte
-    #endif
-        current_endstop_bits, old_endstop_bits;
+    static esbits_t current_endstop_bits, old_endstop_bits;
 
   public: /** Public Function */
 
@@ -87,10 +105,10 @@ class Endstops {
     static void M119();
 
     // Enable / disable endstop checking globally
-    static void enable_globally(bool onoff = true) { enabled_globally = enabled = onoff; }
+    static void enable_globally(bool onoff=true) { enabled_globally = enabled = onoff; }
 
     // Enable / disable endstop checking
-    static void enable(bool onoff = true) { enabled = onoff; }
+    static void enable(bool onoff=true) { enabled = onoff; }
 
     // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     static void not_homing() { enabled = enabled_globally; }
@@ -116,11 +134,11 @@ class Endstops {
   private: /** Private Function */
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
-      static void test_four_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3, EndstopEnum es4);
+      static void test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4);
     #elif ENABLED(Z_THREE_ENDSTOPS)
-      static void test_three_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3);
+      static void test_three_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3);
     #elif ENABLED(Z_TWO_ENDSTOPS)
-      static void test_two_z_endstops(EndstopEnum es1, EndstopEnum es2);
+      static void test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2);
     #endif
 
 };

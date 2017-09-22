@@ -60,7 +60,7 @@
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
  *  M206  XYZ             mechanics.home_offset                 (float x3)
- *  M218  T   XY          printer.hotend_offset                 (float x6)
+ *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
  * Global Leveling:
  *                        z_fade_height                         (float)
@@ -73,7 +73,7 @@
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
- *                        bedlevel.matrix             (matrix_3x3 = float x9)
+ *                        bedlevel.matrix                       (matrix_3x3 = float x9)
  *
  * AUTO_BED_LEVELING_BILINEAR:
  *                        GRID_MAX_POINTS_X                     (uint8_t)
@@ -328,7 +328,7 @@ void EEPROM::Postprocess() {
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
     #endif
-    EEPROM_WRITE(printer.hotend_offset);
+    EEPROM_WRITE(tools.hotend_offset);
 
     //
     // General Leveling
@@ -641,7 +641,7 @@ void EEPROM::Postprocess() {
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
       #endif
-      EEPROM_READ(printer.hotend_offset);
+      EEPROM_READ(tools.hotend_offset);
 
       //
       // General Leveling
@@ -945,7 +945,7 @@ void EEPROM::Factory_Settings() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() printer.hotend_offset[i][h] = tmp10[i][h];
+    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp10[i][h];
   }
 
   mechanics.acceleration = DEFAULT_ACCELERATION;
@@ -1239,9 +1239,9 @@ void EEPROM::Factory_Settings() {
       CONFIG_MSG_START("Hotend offset (mm):");
       for (int8_t h = 1; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M218 H", h);
-        SERIAL_MV(" X", LINEAR_UNIT(printer.hotend_offset[X_AXIS][h]), 3);
-        SERIAL_MV(" Y", LINEAR_UNIT(printer.hotend_offset[Y_AXIS][h]), 3);
-        SERIAL_EMV(" Z", LINEAR_UNIT(printer.hotend_offset[Z_AXIS][h]), 3);
+        SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
+        SERIAL_MV(" Y", LINEAR_UNIT(tools.hotend_offset[Y_AXIS][h]), 3);
+        SERIAL_EMV(" Z", LINEAR_UNIT(tools.hotend_offset[Z_AXIS][h]), 3);
       }
     #endif
 

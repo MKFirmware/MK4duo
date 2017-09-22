@@ -90,7 +90,7 @@
     // Always home with tool 0 active
     #if HOTENDS > 1
       const uint8_t old_tool_index = tools.active_extruder;
-      printer.tool_change(0, 0, true);
+      tools.change(0, 0, true);
     #endif
 
     #if ENABLED(CNC_WORKSPACE_PLANES)
@@ -259,7 +259,7 @@
 
     // Restore the active tool after homing
     #if HOTENDS > 1
-      printer.tool_change(old_tool_index, 0, true);
+      tools.change(old_tool_index, 0, true);
     #endif
 
     lcd_refresh();
@@ -387,7 +387,7 @@
 
     // Homing Z towards the bed? Deploy the Z probe or endstop.
     #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && probe.set_deployed(true)) return;
+      if (axis == Z_AXIS && DEPLOY_PROBE()) return;
     #endif
 
     // Set a flag for Z motor locking
@@ -456,7 +456,7 @@
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && probe.set_deployed(false)) return;
+      if (axis == Z_AXIS && STOW_PROBE()) return;
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -835,7 +835,7 @@
         // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
         // This allow soft recalibration of the second extruder offset position without firmware reflash
         // (through the M218 command).
-        return LOGICAL_X_POSITION(printer.hotend_offset[X_AXIS][1] > 0 ? printer.hotend_offset[X_AXIS][1] : X2_HOME_POS);
+        return LOGICAL_X_POSITION(tools.hotend_offset[X_AXIS][1] > 0 ? tools.hotend_offset[X_AXIS][1] : X2_HOME_POS);
     }
 
   #endif

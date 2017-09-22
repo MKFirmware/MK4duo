@@ -298,12 +298,12 @@ class Mechanics {
     /**
      * Home an individual linear axis
      */
-    void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+    virtual void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
     /**
      * Report current position to host
      */
-            void report_current_position();
+    virtual void report_current_position();
     virtual void report_current_position_detail();
 
     FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
@@ -339,6 +339,13 @@ class Mechanics {
     void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
+
+  private: /** Private Function */
+
+    /**
+     *  Home axis
+     */
+    virtual void homeaxis(const AxisEnum axis) = 0;
 
 };
 

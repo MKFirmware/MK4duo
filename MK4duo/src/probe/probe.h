@@ -43,6 +43,14 @@
   #define STOW_Z_SERVO()   MOVE_SERVO(Z_ENDSTOP_SERVO_NR, probe.z_servo_angle[1])
 #endif
 
+#if HAS_BED_PROBE
+  #define DEPLOY_PROBE()  probe.set_deployed(true)
+  #define STOW_PROBE()    probe.set_deployed(false)
+#else
+  #define DEPLOY_PROBE()
+  #define STOW_PROBE()
+#endif
+
 class Probe {
 
   public: /** Constructor */

@@ -32,6 +32,12 @@
 
 // Function macro
 #define FORCE_INLINE  __attribute__((always_inline)) inline
+#define _UNUSED       __attribute__((unused))
+#define _O0           __attribute__((optimize("O0")))
+#define _Os           __attribute__((optimize("Os")))
+#define _O1           __attribute__((optimize("O1")))
+#define _O2           __attribute__((optimize("O2")))
+#define _O3           __attribute__((optimize("O3")))
 
 /**
  * Macros for mechanics type

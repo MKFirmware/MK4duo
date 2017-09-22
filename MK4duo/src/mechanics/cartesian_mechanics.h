@@ -154,7 +154,7 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis);
+      void homeaxis(const AxisEnum axis) override;
 
       /**
        * Prepare a linear move in a Cartesian setup.

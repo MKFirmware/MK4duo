@@ -60,13 +60,8 @@ volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_P
 volatile uint8_t Endstops::e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
                                       // Must be reset to 0 by the test function when the tests are finished.
 
-#if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
-  uint16_t
-#else
-  byte
-#endif
-    Endstops::current_endstop_bits = 0,
-    Endstops::old_endstop_bits = 0;
+esbits_t  Endstops::current_endstop_bits = 0,
+          Endstops::old_endstop_bits = 0;
 
 /**
  * Class and Instance Methods
@@ -332,8 +327,8 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
 
-        // In Dual X mode printer.hotend_offset[X] is T1's home position
-        float dual_max_x = max(printer.hotend_offset[X_AXIS][1], X2_MAX_POS);
+        // In Dual X mode tools.hotend_offset[X] is T1's home position
+        float dual_max_x = max(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
         if (tools.active_extruder != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
@@ -373,7 +368,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
 #if ENABLED(Z_FOUR_ENDSTOPS)
   // Pass the result of the endstop test
-  void Endstops::test_four_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3, EndstopEnum es4) {
+  void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2 | (TEST_ENDSTOP(es4) << 3); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3, bit 3 for Z4
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
       SBI(endstop_hit_bits, Z_MIN);
@@ -383,7 +378,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
   }
 #elif ENABLED(Z_THREE_ENDSTOPS)
   // Pass the result of the endstop test
-  void Endstops::test_four_z_endstops(EndstopEnum es1, EndstopEnum es2, EndstopEnum es3) {
+  void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
       SBI(endstop_hit_bits, Z_MIN);
@@ -393,7 +388,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
   }
 #elif ENABLED(Z_TWO_ENDSTOPS)
   // Pass the result of the endstop test
-  void Endstops::test_two_z_endstops(EndstopEnum es1, EndstopEnum es2) {
+  void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
       SBI(endstop_hit_bits, Z_MIN);

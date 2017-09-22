@@ -55,12 +55,25 @@
       void Init();
 
       /**
+       * Report current position to host
+       */
+      void report_current_position() override;
+      void report_current_position_detail() override;
+      
+      void get_cartesian_from_steppers() override;
+
+      /**
        * Prepare a linear move in a SCARA setup.
        *
        * This calls planner.buffer_line several times, adding
        * small incremental moves for SCARA.
        */
       bool prepare_move_to_destination_mech_specific();
+
+      /**
+       * Home an individual linear axis
+       */
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0) override;
 
       /**
        * Calculate delta, start a line, and set current_position to destination
@@ -78,6 +91,9 @@
        */
       void set_axis_is_at_home(const AxisEnum axis);
 
+      void set_position_mm_kinematic(const float position[NUM_AXIS]);
+      void sync_plan_position_kinematic();
+
       void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
@@ -85,7 +101,15 @@
       #if MECH(MORGAN_SCARA)
         bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
         void forward_kinematics_SCARA(const float &a, const float &b);
+        void inverse_kinematics_SCARA(const float logical[XYZ]);
       #endif
+
+    private: /** Private Function */
+
+      /**
+       *  Home axis
+       */
+      void homeaxis(const AxisEnum axis) override;
 
   };
 
