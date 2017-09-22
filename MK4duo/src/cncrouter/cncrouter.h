@@ -52,10 +52,26 @@
 
     public: /** Public Parameters */
 
+    private: /** Private Parameters */
+
+      static uint8_t active_tool;
+      #define CNC_M6_TOOL_ID 255
+
+      #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_target;
+        static millis_t next_speed_step; 
+      #endif
+
+      #if ENABLED(FAST_PWM_CNCROUTER)
+        static uint32_t rpm_instant;
+      #endif
+
     public: /** Public Function */
 
       static void init();    // initialize cnc router
       static void manage();  // management loop for CNC
+
+      static void tool_change(const uint8_t tool_id, bool wait=true, bool raise_z=true);
 
       #if ENABLED(FAST_PWM_CNCROUTER)
         static uint32_t get_Speed();
@@ -70,17 +86,6 @@
 
       static void setRouterSpeed(uint32_t rpm, bool clockwise=false);
       static void disable_router();
-
-    private: /** Private Parameters */
-
-      #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-        static uint32_t rpm_target;
-        static millis_t next_speed_step; 
-      #endif
-
-      #if ENABLED(FAST_PWM_CNCROUTER)
-        static uint32_t rpm_instant;
-      #endif
 
     private: /** Private Function */
 

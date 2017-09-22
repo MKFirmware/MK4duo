@@ -103,13 +103,14 @@
         void forward_kinematics_SCARA(const float &a, const float &b);
         void inverse_kinematics_SCARA(const float logical[XYZ]);
       #endif
-      
+
     private: /** Private Function */
-    
+
       /**
        *  Home axis
        */
       void homeaxis(const AxisEnum axis) override;
+
   };
 
   extern Scara_Mechanics mechanics;

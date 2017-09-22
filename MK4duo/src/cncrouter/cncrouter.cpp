@@ -45,6 +45,8 @@
 
   Cncrouter cnc;
 
+  uint8_t Cncrouter::active_tool = 0;
+
   #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
     uint32_t Cncrouter::rpm_target = 0;
     millis_t Cncrouter::next_speed_step = 0; 
@@ -71,6 +73,72 @@
         }
       }
     #endif
+  }
+
+  void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=true*/) {
+
+    #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+      unsigned long saved_speed;
+      float saved_z;
+    #endif
+
+    if (tool_id != active_tool) {
+
+      if (wait) {
+        SERIAL_STR(PAUSE);
+        SERIAL_EOL();
+      }
+
+      stepper.synchronize();
+
+      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+        if (raise_z) {
+          saved_speed = get_Speed();
+          saved_z = mechanics.current_position[Z_AXIS];
+          mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
+        }
+      #endif
+
+      disable_router();
+      printer.safe_delay(300);
+
+      if (wait) {
+        // LCD click or M108 will clear this
+        wait_for_user = true;
+
+        KEEPALIVE_STATE(PAUSED_FOR_USER);
+
+        #if HAS_BUZZER
+          millis_t next_buzz = millis();
+        #endif
+
+        while (wait_for_user) {
+          #if HAS_BUZZER
+            if (millis() - next_buzz > 60000) {
+              for (uint8_t i = 0; i < 3; i++) BUZZ(300, 1000);
+              next_buzz = millis();
+            }
+          #endif
+          printer.idle(true);
+        } // while (wait_for_user)
+      } // if (wait)
+
+      if (tool_id != CNC_M6_TOOL_ID) active_tool = tool_id;
+      #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
+        else cnc.setRouterSpeed(saved_speed);
+        if (raise_z)
+          mechanics.do_blocking_move_to_z(saved_z);
+      #endif
+
+      stepper.synchronize();
+
+      if (wait) {
+        KEEPALIVE_STATE(IN_HANDLER);
+
+        SERIAL_STR(RESUME);
+        SERIAL_EOL();
+      }
+    }
   }
 
   #if ENABLED(FAST_PWM_CNCROUTER)

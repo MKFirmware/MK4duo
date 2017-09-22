@@ -33,6 +33,6 @@
   /*
    * M6: CNC tool change
    */
-  inline void gcode_M6(void) { tool_change_cnc(CNC_M6_TOOL_ID); }
+  inline void gcode_M6(void) { cnc.tool_change(CNC_M6_TOOL_ID); }
 
 #endif // HAS_MULTI_MODE
