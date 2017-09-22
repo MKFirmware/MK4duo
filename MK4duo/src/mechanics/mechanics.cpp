@@ -326,6 +326,11 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
     }
   #endif
 
+  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
+    if (deploy_bltouch) probe.set_bltouch_deployed(true);
+  #endif
+
   #if QUIET_PROBING
     if (axis == Z_AXIS) probe.probing_pause(true);
   #endif
@@ -341,6 +346,10 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
   #if QUIET_PROBING
     if (axis == Z_AXIS) probe.probing_pause(false);
+  #endif
+
+  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    if (deploy_bltouch) probe.set_bltouch_deployed(false);
   #endif
 
   endstops.hit_on_purpose();

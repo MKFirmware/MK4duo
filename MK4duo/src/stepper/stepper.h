@@ -117,7 +117,7 @@ class Stepper {
     // SCARA AB axes are in degrees, not mm
     //
     #if IS_SCARA
-      static FORCE_INLINE float get_axis_position_degrees(AxisEnum axis) { return get_axis_position_mm(axis); }
+      static FORCE_INLINE float get_axis_position_degrees(AxisEnum axis) { return mechanics.get_axis_position_mm(axis); }
     #endif
 
     //

@@ -52,7 +52,7 @@
  *    G2 I10           ; CW circle centered at X+10
  *    G3 X20 Y12 R14   ; CCW circle with r=14 ending at X20 Y12
  */
-#if ENABLED(ARC_SUPPORT)
+#if ENABLED(ARC_SUPPORT) && !IS_SCARA
 
   #define CODE_G2
   #define CODE_G3
@@ -137,4 +137,4 @@
   inline void gcode_G2(void) { gcode_G2_G3(true); }
   inline void gcode_G3(void) { gcode_G2_G3(false); }
 
-#endif // ARC_SUPPORT
+#endif // ARC_SUPPORT && !IS_SCARA

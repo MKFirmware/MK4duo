@@ -1493,7 +1493,7 @@ void Stepper::synchronize() { while (planner.blocks_queued()) printer.idle(); }
  * The input is based on the typical per-axis XYZ steps.
  * For CORE machines XYZ needs to be translated to ABC.
  *
- * This allows get_axis_position_mm to correctly
+ * This allows mechanics.get_axis_position_mm to correctly
  * derive the current XYZ position later on.
  */
 void Stepper::set_position(const long &a, const long &b, const long &c, const long &e) {

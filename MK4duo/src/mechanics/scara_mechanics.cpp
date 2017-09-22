@@ -37,6 +37,92 @@
     // TODO!!!
   }
 
+  /**
+   * Report current position to host
+   */
+  void Scara_Mechanics::report_current_position() {
+    SERIAL_MV( "X:", current_position[X_AXIS]);
+    SERIAL_MV(" Y:", current_position[Y_AXIS]);
+    SERIAL_MV(" Z:", current_position[Z_AXIS]);
+    SERIAL_MV(" E:", current_position[E_AXIS]);
+
+    stepper.report_positions();
+
+    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
+    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
+  }
+
+  void Scara_Mechanics::report_current_position_detail() {
+
+    stepper.synchronize();
+
+    SERIAL_MSG("\nLogical:");
+    report_xyze(current_position);
+
+    SERIAL_MSG("Raw:    ");
+    const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
+    report_xyz(raw);
+
+    float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+
+    #if HAS_LEVELING
+
+      SERIAL_MSG("Leveled:");
+      bedlevel.apply_leveling(leveled);
+      report_xyz(leveled);
+
+      SERIAL_MSG("UnLevel:");
+      float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
+      bedlevel.unapply_leveling(unleveled);
+      report_xyz(unleveled);
+
+    #endif
+
+    SERIAL_MSG("ScaraK: ");
+    inverse_kinematics_SCARA(leveled);  // writes delta[]
+    report_xyz(delta);
+
+    SERIAL_MSG("Stepper:");
+    const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+    report_xyze((float*)step_count, 4, 0);
+
+    SERIAL_MSG("Degrees:");
+    const float deg[XYZ] = { stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) };
+    report_xyze(deg, 2);
+
+    SERIAL_MSG("FromStp:");
+    get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+    report_xyze(from_steppers);
+
+    const float diff[XYZE] = {
+      from_steppers[X_AXIS] - leveled[X_AXIS],
+      from_steppers[Y_AXIS] - leveled[Y_AXIS],
+      from_steppers[Z_AXIS] - leveled[Z_AXIS],
+      from_steppers[E_AXIS] - current_position[E_AXIS]
+    };
+
+    SERIAL_MSG("Differ: ");
+    report_xyze(diff);
+
+  }
+
+  /**
+   * Get the stepper positions in the cartes[] array.
+   * Forward kinematics are applied for DELTA and SCARA.
+   *
+   * The result is in the current coordinate space with
+   * leveling applied. The coordinates need to be run through
+   * unapply_leveling to obtain the "ideal" coordinates
+   * suitable for current_position, etc.
+   */
+  void Scara_Mechanics::get_cartesian_from_steppers() {
+    forward_kinematics_SCARA( stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) );
+    cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
+    cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
+    cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
+  }
+
    /**
    * Prepare a linear move in a SCARA setup.
    *
@@ -152,6 +238,169 @@
     #endif
 
     return false;
+  }
+
+  void Scara_Mechanics::homeaxis(const AxisEnum axis) {
+
+    // Only Z homing (with probe) is permitted
+    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    const int axis_home_dir =
+      #if ENABLED(DUAL_X_CARRIAGE)
+        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
+      #endif
+      home_dir[axis];
+
+    // Homing Z towards the bed? Deploy the Z probe or endstop.
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && probe.set_deployed(true)) return;
+    #endif
+
+    // Set a flag for Z motor locking
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) stepper.set_homing_flag(true);
+    #endif
+
+    // Fast move towards endstop until triggered
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
+    #endif
+
+    // Fast move towards endstop until triggered
+    do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
+
+    // When homing Z with probe respect probe clearance
+    const float bump = axis_home_dir * (
+      #if HOMING_Z_WITH_PROBE
+        (axis == Z_AXIS) ? max(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      #endif
+      home_bump_mm[axis]
+    );
+
+    // If a second homing move is configured...
+    if (bump) {
+      // Move away from the endstop by the axis HOME_BUMP_MM
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("Move Away:");
+      #endif
+      do_homing_move(axis, -bump);
+
+      // Slow move towards endstop until triggered
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (DEBUGGING(LEVELING)) SERIAL_EM("Home 2 Slow:");
+      #endif
+      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+    }
+
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) {
+        float adj = FABS(endstops.z2_endstop_adj);
+        bool lockZ1;
+        if (axis_home_dir > 0) {
+          adj = -adj;
+          lockZ1 = (endstops.z2_endstop_adj > 0);
+        }
+        else
+          lockZ1 = (endstops.z2_endstop_adj < 0);
+
+        if (lockZ1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+
+        // Move to the adjusted endstop height
+        do_homing_move(axis, adj);
+
+        if (lockZ1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
+        stepper.set_homing_flag(false);
+      } // Z_AXIS
+    #endif
+
+    set_axis_is_at_home(axis);
+    sync_plan_position_kinematic();
+
+    // Put away the Z probe
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && probe.set_deployed(false)) return;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+  }
+
+  void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
+        SERIAL_MV(", ", distance);
+        SERIAL_MV(", ", fr_mm_s);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
+      if (deploy_bltouch) probe.set_bltouch_deployed(true);
+    #endif
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(true);
+    #endif
+
+    // Tell the planner we're at Z=0
+    current_position[axis] = 0;
+
+    sync_plan_position_kinematic();
+    current_position[axis] = distance;
+    inverse_kinematics(current_position);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.active_extruder);
+
+    stepper.synchronize();
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(false);
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      if (deploy_bltouch) probe.set_bltouch_deployed(false);
+    #endif
+
+    endstops.hit_on_purpose();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+  }
+
+  void Scara_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
+    #if HAS_LEVELING
+      float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
+      bedlevel.apply_leveling(lpos);
+    #else
+      const float * const lpos = position;
+    #endif
+    
+    inverse_kinematics(lpos);
+    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+  }
+
+  void Scara_Mechanics::sync_plan_position_kinematic() {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
+    #endif
+    set_position_mm_kinematic(current_position);
   }
 
   /**
@@ -377,7 +626,7 @@
    * Maths and first version by QHARLEY.
    * Integrated into Marlin and slightly restructured by Joachim Cerny.
    */
-  void Scara_Mechanics::inverse_kinematics(const float logical[XYZ]) {
+  void Scara_Mechanics::inverse_kinematics_SCARA(const float logical[XYZ]) {
 
     static float C2, S2, SK1, SK2, THETA, PSI;
 

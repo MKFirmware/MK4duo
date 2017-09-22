@@ -44,7 +44,12 @@
       if (parser.seen('P')) set_home_offset(Y_AXIS, parser.value_linear_units()); // Psi
     #endif
 
-    mechanics.sync_plan_position();
+    #if IS_SCARA
+      mechanics.sync_plan_position_kinematic();
+    #else
+      mechanics.sync_plan_position();
+    #endif
+
     mechanics.report_current_position();
   }
 

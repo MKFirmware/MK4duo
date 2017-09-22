@@ -39,8 +39,9 @@
 
 char *GCodeParser::command_ptr,
      *GCodeParser::string_arg,
-     *GCodeParser::value_ptr;
-char  GCodeParser::command_letter;
+     *GCodeParser::value_ptr,
+      GCodeParser::command_letter;
+
 uint16_t GCodeParser::codenum;
 
 #if USE_GCODE_SUBCODES
