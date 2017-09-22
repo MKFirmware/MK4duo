@@ -26,16 +26,22 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+// Bedlevel Commands
+#include "bedlevel/abl/g29.h"             // ABL
+#include "bedlevel/abl/m320.h"            // Set ABL
+#include "bedlevel/abl/m321.h"            // Set Bilinear Bed Level Manual
+#include "bedlevel/abl/m322.h"            // Reset ABL
+#include "bedlevel/mbl/g29.h"             // MBL
+#include "bedlevel/mbl/m420_m421.h"       // Set MBL
+#include "bedlevel/ubl/g26.h"             // UBL Mesh Validation
+#include "bedlevel/ubl/g29.h"             // UBL
+#include "bedlevel/ubl/m49.h"             // UBL Mesh Validation
+#include "bedlevel/ubl/m420_m421.h"       // Set UBL
+#include "bedlevel/g42.h"                 // Move to mesh
+
 // Calibrate Commands
 #include "calibrate/g28.h"                // Home
-#include "calibrate/g29_mbl.h"            // MBL
-#include "calibrate/g29_abl.h"            // ABL
-#include "calibrate/g42.h"                // Move to mesh
 #include "calibrate/m48.h"                // Repeatability probe
-#include "calibrate/m320.h"               // Set ABL
-#include "calibrate/m321.h"               // Set Bilinear Bed Level Manual
-#include "calibrate/m322.h"               // Reset ABL
-#include "calibrate/m420_m421.h"          // Set MBL
 
 // Config Commands
 #include "config/m92.h"

@@ -238,7 +238,7 @@ class Planner {
      *  extruder    - target extruder
      */
     static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
-      #if HAS_LEVELING && (IS_CARTESIAN || IS_CORE)
+      #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
         bedlevel.apply_leveling(lx, ly, lz);
       #endif
       #if ENABLED(ZWOBBLE)
@@ -262,9 +262,9 @@ class Planner {
      *  extruder  - target extruder
      */
     static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
-      #if HAS_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+      #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
         float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if HAS_LEVELING
+        #if PLANNER_LEVELING
           bedlevel.apply_leveling(lpos);
         #endif
         #if ENABLED(ZWOBBLE)

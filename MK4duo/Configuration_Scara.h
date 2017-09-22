@@ -457,12 +457,12 @@
 /** START AUTO_BED_LEVELING_3POINT **/
 // 3 arbitrary points to probe.
 // A simple cross-product is used to estimate the plane of the bed.
-#define ABL_PROBE_PT_1_X 15
-#define ABL_PROBE_PT_1_Y 180
-#define ABL_PROBE_PT_2_X 15
-#define ABL_PROBE_PT_2_Y 15
-#define ABL_PROBE_PT_3_X 180
-#define ABL_PROBE_PT_3_Y 15
+#define PROBE_PT_1_X 15
+#define PROBE_PT_1_Y 180
+#define PROBE_PT_2_X 15
+#define PROBE_PT_2_Y 15
+#define PROBE_PT_3_X 180
+#define PROBE_PT_3_Y 15
 /** END AUTO_BED_LEVELING_3POINT **/
 
 // Commands to execute at the end of G29 probing.

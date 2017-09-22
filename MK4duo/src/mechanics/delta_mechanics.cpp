@@ -72,7 +72,7 @@
   }
 
   void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
-    #if HAS_LEVELING
+    #if PLANNER_LEVELING
       float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
       bedlevel.apply_leveling(lpos);
     #else
@@ -103,99 +103,103 @@
     cartesian_position[Z_AXIS] += LOGICAL_Z_POSITION(0);
   }
 
-  /**
-   * Prepare a linear move in a DELTA setup.
-   *
-   * This calls buffer_line several times, adding
-   * small incremental moves for DELTA.
-   */
-  bool Delta_Mechanics::prepare_move_to_destination_mech_specific() {
+  #if DISABLED(AUTO_BED_LEVELING_UBL)
 
-    // Get the top feedrate of the move in the XY plane
-    const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+    /**
+     * Prepare a linear move in a DELTA setup.
+     *
+     * This calls buffer_line several times, adding
+     * small incremental moves for DELTA.
+     */
+    bool Delta_Mechanics::prepare_move_to_destination_mech_specific() {
 
-    // If the move is only in Z/E don't split up the move
-    if (destination[A_AXIS] == current_position[A_AXIS] && destination[B_AXIS] == current_position[B_AXIS]) {
+      // Get the top feedrate of the move in the XY plane
+      const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
+
+      // If the move is only in Z/E don't split up the move
+      if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[B_AXIS]) {
+        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+        set_current_to_destination();
+        return false;
+      }
+
+      // Fail if attempting move outside printable radius
+      if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
+
+      // Get the cartesian distances moved in XYZE
+      const float difference[XYZE] = {
+        destination[X_AXIS] - current_position[X_AXIS],
+        destination[Y_AXIS] - current_position[Y_AXIS],
+        destination[Z_AXIS] - current_position[Z_AXIS],
+        destination[E_AXIS] - current_position[E_AXIS]
+      };
+
+      // Get the linear distance in XYZ
+      float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
+
+      // If the move is very short, check the E move distance
+      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
+
+      // No E move either? Game over.
+      if (UNEAR_ZERO(cartesian_mm)) return true;
+
+      // Minimum number of seconds to move the given distance
+      const float seconds = cartesian_mm / _feedrate_mm_s;
+
+      // The number of segments-per-second times the duration
+      // gives the number of segments we should produce
+      uint16_t segments = delta_segments_per_second * seconds;
+
+      // At least one segment is required
+      NOLESS(segments, 1);
+
+      // The approximate length of each segment
+      const float inv_segments = 1.0 / float(segments),
+                  segment_distance[XYZE] = {
+                    difference[X_AXIS] * inv_segments,
+                    difference[Y_AXIS] * inv_segments,
+                    difference[Z_AXIS] * inv_segments,
+                    difference[E_AXIS] * inv_segments
+                  };
+
+      //SERIAL_MV("mm=", cartesian_mm);
+      //SERIAL_MV(" seconds=", seconds);
+      //SERIAL_EMV(" segments=", segments);
+
+      // Get the logical current position as starting point
+      float logical[XYZE];
+      COPY_ARRAY(logical, current_position);
+
+      // Drop one segment so the last move is to the exact target.
+      // If there's only 1 segment, loops will be skipped entirely.
+      --segments;
+
+      // Calculate and execute the segments
+      for (uint16_t s = segments + 1; --s;) {
+        LOOP_XYZE(i) logical[i] += segment_distance[i];
+        Transform(logical);
+
+        // Adjust Z if bed leveling is enabled
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          if (bedlevel.abl_enabled) {
+            const float zadj = bedlevel.bilinear_z_offset(logical);
+            delta[A_AXIS] += zadj;
+            delta[B_AXIS] += zadj;
+            delta[C_AXIS] += zadj;
+          }
+        #endif
+
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, tools.active_extruder);
+
+      }
+
       planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+
       set_current_to_destination();
       return false;
     }
 
-    // Fail if attempting move outside printable radius
-    if (!position_is_reachable_xy(destination[A_AXIS], destination[B_AXIS])) return true;
-
-    // Get the cartesian distances moved in XYZE
-    const float difference[XYZE] = {
-      destination[A_AXIS] - current_position[A_AXIS],
-      destination[B_AXIS] - current_position[B_AXIS],
-      destination[C_AXIS] - current_position[C_AXIS],
-      destination[E_AXIS] - current_position[E_AXIS]
-    };
-
-    // Get the linear distance in XYZ
-    float cartesian_mm = SQRT(sq(difference[A_AXIS]) + sq(difference[B_AXIS]) + sq(difference[C_AXIS]));
-
-    // If the move is very short, check the E move distance
-    if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
-
-    // No E move either? Game over.
-    if (UNEAR_ZERO(cartesian_mm)) return true;
-
-    // Minimum number of seconds to move the given distance
-    float seconds = cartesian_mm / _feedrate_mm_s;
-
-    // The number of segments-per-second times the duration
-    // gives the number of segments we should produce
-    uint16_t segments = delta_segments_per_second * seconds;
-
-    // At least one segment is required
-    NOLESS(segments, 1);
-
-    // The approximate length of each segment
-    const float inv_segments = 1.0 / float(segments),
-                segment_distance[XYZE] = {
-                  difference[A_AXIS] * inv_segments,
-                  difference[B_AXIS] * inv_segments,
-                  difference[C_AXIS] * inv_segments,
-                  difference[E_AXIS] * inv_segments
-                };
-
-    //SERIAL_MV("mm=", cartesian_mm);
-    //SERIAL_MV(" seconds=", seconds);
-    //SERIAL_EMV(" segments=", segments);
-
-    // Get the logical current position as starting point
-    float logical[XYZE];
-    COPY_ARRAY(logical, current_position);
-
-    // Drop one segment so the last move is to the exact target.
-    // If there's only 1 segment, loops will be skipped entirely.
-    --segments;
-
-    // Calculate and execute the segments
-    for (uint16_t s = segments + 1; --s;) {
-      LOOP_XYZE(i) logical[i] += segment_distance[i];
-      Transform(logical);
-
-      // Adjust Z if bed leveling is enabled
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        if (bedlevel.abl_enabled) {
-          const float zadj = bedlevel.bilinear_z_offset(logical);
-          delta[A_AXIS] += zadj;
-          delta[B_AXIS] += zadj;
-          delta[C_AXIS] += zadj;
-        }
-      #endif
-
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, tools.active_extruder);
-
-    }
-
-    planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
-
-    set_current_to_destination();
-    return false;
-  }
+  #endif // DISABLED(AUTO_BED_LEVELING_UBL)
 
   /**
    *  Plan a move to (X, Y, Z) and set the current_position
@@ -767,7 +771,7 @@
       stepper.synchronize();
 
       #if HAS_LEVELING
-        bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
+        bedlevel.reset(); // After calibration bed-level data is no longer valid
       #endif
 
       #if HOTENDS > 1
@@ -1065,7 +1069,7 @@
       stepper.synchronize();
 
       #if HAS_LEVELING
-        bedlevel.reset_bed_level(); // After calibration bed-level data is no longer valid
+        bedlevel.reset(); // After calibration bed-level data is no longer valid
       #endif
 
       #if HOTENDS > 1
@@ -1471,7 +1475,7 @@
 
     float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
-    #if HAS_LEVELING
+    #if PLANNER_LEVELING
 
       SERIAL_MSG("Leveled:");
       bedlevel.apply_leveling(leveled);

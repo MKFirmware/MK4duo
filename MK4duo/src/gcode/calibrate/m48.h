@@ -242,7 +242,7 @@
       }  // End of probe loop
     }
 
-    probe.set_deployed(false);
+    STOW_PROBE();
 
     if (probing_good) {
       SERIAL_EM("Finished!");

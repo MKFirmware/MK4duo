@@ -62,6 +62,14 @@
       SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
     SERIAL_LMV(ECHO, "MBL: ", new_status ? MSG_ON : MSG_OFF);
+
+    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+      SERIAL_SM(ECHO, "Fade Height ");
+      if (bedlevel.z_fade_height > 0.0)
+        SERIAL_EV(bedlevel.z_fade_height);
+      else
+        SERIAL_EM(MSG_OFF);
+    #endif
   }
 
   /**

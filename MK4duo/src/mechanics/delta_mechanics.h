@@ -100,13 +100,15 @@
        */
       void get_cartesian_from_steppers() override;
 
-      /**
-       * Prepare a linear move in a DELTA setup.
-       *
-       * This calls buffer_line several times, adding
-       * small incremental moves for DELTA.
-       */
-      bool prepare_move_to_destination_mech_specific();
+      #if DISABLED(AUTO_BED_LEVELING_UBL)
+        /**
+         * Prepare a linear move in a DELTA setup.
+         *
+         * This calls buffer_line several times, adding
+         * small incremental moves for DELTA.
+         */
+        bool prepare_move_to_destination_mech_specific();
+      #endif
 
       /**
        *  Plan a move to (X, Y, Z) and set the current_position

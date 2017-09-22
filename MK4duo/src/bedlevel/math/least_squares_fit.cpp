@@ -32,9 +32,9 @@
  *
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
-#if ENABLED(AUTO_BED_LEVELING_LINEAR)
+#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
 
   #include "least_squares_fit.h"
 

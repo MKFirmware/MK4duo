@@ -28,66 +28,17 @@
 
 #if ENABLED(EXT_SOLENOID)
 
-  void enable_solenoid(uint8_t num) {
-    switch(num) {
-      case 0:
-        OUT_WRITE(SOL0_PIN, HIGH);
-        break;
-        #if HAS_SOLENOID_1 && EXTRUDERS > 1
-          case 1:
-            OUT_WRITE(SOL1_PIN, HIGH);
-            break;
-        #endif
-        #if HAS_SOLENOID_2 && EXTRUDERS > 2
-          case 2:
-            OUT_WRITE(SOL2_PIN, HIGH);
-            break;
-        #endif
-        #if HAS_SOLENOID_3 && EXTRUDERS > 3
-          case 3:
-            OUT_WRITE(SOL3_PIN, HIGH);
-            break;
-        #endif
-        #if HAS_SOLENOID_4 && EXTRUDERS > 4
-          case 4:
-            OUT_WRITE(SOL4_PIN, HIGH);
-            break;
-        #endif
-      default:
-        SERIAL_LM(ER, MSG_INVALID_SOLENOID);
-        break;
-    }
-  }
-
-  void enable_solenoid_on_active_extruder() { enable_solenoid(tools.active_extruder); }
-
-  void disable_all_solenoids() {
-    OUT_WRITE(SOL0_PIN, LOW);
-    #if HAS_SOLENOID_1 && EXTRUDERS > 1
-      OUT_WRITE(SOL1_PIN, LOW);
-    #endif
-    #if HAS_SOLENOID_2 && EXTRUDERS > 2
-      OUT_WRITE(SOL2_PIN, LOW);
-    #endif
-    #if HAS_SOLENOID_3 && EXTRUDERS > 3
-      OUT_WRITE(SOL3_PIN, LOW);
-    #endif
-    #if HAS_SOLENOID_4 && EXTRUDERS > 4
-      OUT_WRITE(SOL4_PIN, LOW);
-    #endif
-  }
-
   #define CODE_M380
   #define CODE_M381
 
   /**
    * M380: Enable solenoid on the active extruder
    */
-  inline void gcode_M380(void) { enable_solenoid_on_active_extruder(); }
+  inline void gcode_M380(void) { tools.enable_solenoid_on_active_extruder(); }
 
   /**
    * M381: Disable all solenoids
    */
-  inline void gcode_M381(void) { disable_all_solenoids(); }
+  inline void gcode_M381(void) { tools.disable_all_solenoids(); }
 
 #endif // ENABLED(EXT_SOLENOID)

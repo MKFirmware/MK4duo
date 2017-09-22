@@ -20,14 +20,33 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+#include "../../../base.h"
 
-#define FIRMWARE_NAME "MK4duo"
-#define SHORT_BUILD_VERSION "4.3.28_dev"
-#define BUILD_VERSION FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE __DATE__ " " __TIME__    // build date and time
-// It might also be appropriate to define a location where additional information can be found
-#define FIRMWARE_URL  "marlinkimbra.it"
+#if ENABLED(MESH_BED_LEVELING)
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+  #include "mesh_bed_leveling.h"
+
+  mesh_bed_leveling mbl;
+
+  uint8_t mesh_bed_leveling::status;
+
+  float mesh_bed_leveling::zprobe_zoffset,
+        mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
+        mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
+        mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y];
+
+  mesh_bed_leveling::mesh_bed_leveling() {
+    for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
+      index_to_xpos[i] = MESH_MIN_X + i * (MESH_X_DIST);
+    for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
+      index_to_ypos[i] = MESH_MIN_Y + i * (MESH_Y_DIST);
+    reset();
+  }
+
+  void mesh_bed_leveling::reset() {
+    status = MBL_STATUS_NONE;
+    zprobe_zoffset = 0;
+    ZERO(z_values);
+  }
+
+#endif  // MESH_BED_LEVELING

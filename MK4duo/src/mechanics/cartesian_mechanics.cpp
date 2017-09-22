@@ -475,26 +475,36 @@
         laser.status = LASER_OFF;
     #endif
 
-    // Do not use feedrate_percentage for E or Z only moves
-    if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS])
-      line_to_destination();
-    else {
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
       const float fr_scaled = MMS_SCALED(feedrate_mm_s);
-      #if ENABLED(MESH_BED_LEVELING)
-        if (mbl.active()) { // direct used of mbl.active() for speed
-          mesh_line_to_destination(fr_scaled);
-          return true;
-        }
-        else
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        if (bedlevel.abl_enabled) { // direct use of abl_enabled for speed
-          bilinear_line_to_destination(fr_scaled);
-          return true;
-        }
-        else
-      #endif
-          line_to_destination(fr_scaled);
-    }
+      if (ubl.state.active) { // direct use of ubl.state.active for speed
+        ubl.line_to_destination_cartesian(fr_scaled, tools.active_extruder);
+        return true;
+      }
+      else
+        line_to_destination(fr_scaled);
+    #else
+      // Do not use feedrate_percentage for E or Z only moves
+      if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS])
+        line_to_destination();
+      else {
+        const float fr_scaled = MMS_SCALED(feedrate_mm_s);
+        #if ENABLED(MESH_BED_LEVELING)
+          if (mbl.active()) { // direct used of mbl.active() for speed
+            mesh_line_to_destination(fr_scaled);
+            return true;
+          }
+          else
+        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          if (bedlevel.abl_enabled) { // direct use of abl_enabled for speed
+            bilinear_line_to_destination(fr_scaled);
+            return true;
+          }
+          else
+        #endif
+            line_to_destination(fr_scaled);
+      }
+    #endif
     return false;
   }
 

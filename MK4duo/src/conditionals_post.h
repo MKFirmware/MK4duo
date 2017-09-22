@@ -55,14 +55,107 @@
 #endif
 
 /**
+ * DELTA
+ */
+#if MECH(DELTA)
+  #undef SLOWDOWN       // DELTA not needs SLOWDOWN
+  #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
+
+  // DELTA must have same valour for 3 axis Home Feedrate
+  #define HOMING_FEEDRATE_X HOMING_FEEDRATE_XYZ
+  #define HOMING_FEEDRATE_Y HOMING_FEEDRATE_XYZ
+  #define HOMING_FEEDRATE_Z HOMING_FEEDRATE_XYZ
+
+  // DELTA must have same valour for 3 axis endstop hits
+  #define X_HOME_BUMP_MM XYZ_HOME_BUMP_MM
+  #define Y_HOME_BUMP_MM XYZ_HOME_BUMP_MM
+  #define Z_HOME_BUMP_MM XYZ_HOME_BUMP_MM
+  #define HOMING_BUMP_DIVISOR {XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR}
+
+  // Effective horizontal distance bridged by diagonal push rods.
+  #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
+
+  #if DISABLED(Z_PROBE_SPEED)
+    #define Z_PROBE_SPEED     (HOMING_FEEDRATE_XYZ / 2)
+  #endif
+
+  #define Z_PROBE_SPEED_FAST  Z_PROBE_SPEED
+  #define Z_PROBE_SPEED_SLOW  Z_PROBE_SPEED
+
+  // Set the rectangle in which to probe
+  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE)))
+  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
+  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
+  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
+  #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
+
+  #define X_MIN_POS -(mechanics.delta_print_radius)
+  #define X_MAX_POS  (mechanics.delta_print_radius)
+  #define Y_MIN_POS -(mechanics.delta_print_radius)
+  #define Y_MAX_POS  (mechanics.delta_print_radius)
+  #define Z_MAX_POS  (mechanics.delta_height)
+  #define Z_MIN_POS 0
+  #define E_MIN_POS 0
+
+  #define X_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
+  #define Y_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
+
+  #define UBL_PROBEABLE_RADIUS   (DELTA_PRINTABLE_RADIUS - MESH_INSET)
+  #define UBL_MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
+  #define UBL_MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
+  #define UBL_MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
+  #define UBL_MESH_MAX_Y         (UBL_PROBEABLE_RADIUS)
+
+  #define PROBE_PT_1_X 0
+  #define PROBE_PT_1_Y 0
+  #define PROBE_PT_2_X 0
+  #define PROBE_PT_2_Y 0
+  #define PROBE_PT_3_X 0
+  #define PROBE_PT_3_Y 0
+
+  #if ENABLED(WORKSPACE_OFFSETS)
+    #undef WORKSPACE_OFFSETS
+  #endif
+
+  #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
+
+#endif // MECH(DELTA)
+
+/**
  * Axis lengths and center
  */
 #define X_MAX_LENGTH (X_MAX_POS - (X_MIN_POS))
 #define Y_MAX_LENGTH (Y_MAX_POS - (Y_MIN_POS))
 #define Z_MAX_LENGTH (Z_MAX_POS - (Z_MIN_POS))
-#define X_CENTER float((X_MIN_POS + X_MAX_POS) * 0.5)
-#define Y_CENTER float((Y_MIN_POS + Y_MAX_POS) * 0.5)
-#define Z_CENTER float((Z_MIN_POS + Z_MAX_POS) * 0.5)
+
+// Require 0,0 bed center for Delta and SCARA
+#if IS_KINEMATIC
+  #define BED_CENTER_AT_0_0
+#endif
+
+// Defined only if the sanity-check is bypassed
+#ifndef X_BED_SIZE
+  #define X_BED_SIZE X_MAX_LENGTH
+#endif
+#ifndef Y_BED_SIZE
+  #define Y_BED_SIZE Y_MAX_LENGTH
+#endif
+
+// Define center values for future use
+#ifdef BED_CENTER_AT_0_0
+  #define X_CENTER 0
+  #define Y_CENTER 0
+#else
+  #define X_CENTER ((X_BED_SIZE) / 2)
+  #define Y_CENTER ((Y_BED_SIZE) / 2)
+#endif
+#define Z_CENTER ((Z_MIN_POS + Z_MAX_POS) / 2)
+
+// Get the linear boundaries of the bed
+#define X_MIN_BED (X_CENTER - (X_BED_SIZE) / 2)
+#define X_MAX_BED (X_CENTER + (X_BED_SIZE) / 2)
+#define Y_MIN_BED (Y_CENTER - (Y_BED_SIZE) / 2)
+#define Y_MAX_BED (Y_CENTER + (Y_BED_SIZE) / 2)
 
 /**
  * CoreXY, CoreXZ, and CoreYZ - and their reverse
@@ -458,62 +551,6 @@
 #endif
 
 /**
- * DELTA
- */
-#if MECH(DELTA)
-  #undef SLOWDOWN       // DELTA not needs SLOWDOWN
-  #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
-
-  // DELTA must have same valour for 3 axis Home Feedrate
-  #define HOMING_FEEDRATE_X HOMING_FEEDRATE_XYZ
-  #define HOMING_FEEDRATE_Y HOMING_FEEDRATE_XYZ
-  #define HOMING_FEEDRATE_Z HOMING_FEEDRATE_XYZ
-
-  // DELTA must have same valour for 3 axis endstop hits
-  #define X_HOME_BUMP_MM XYZ_HOME_BUMP_MM
-  #define Y_HOME_BUMP_MM XYZ_HOME_BUMP_MM
-  #define Z_HOME_BUMP_MM XYZ_HOME_BUMP_MM
-  #define HOMING_BUMP_DIVISOR {XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR, XYZ_BUMP_DIVISOR}
-
-  // Effective horizontal distance bridged by diagonal push rods.
-  #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
-
-  #if ENABLED(AUTO_BED_LEVELING_FEATURE)
-    #define AUTO_BED_LEVELING_BILINEAR
-    #define MIN_PROBE_EDGE 10
-  #endif
-
-  #if DISABLED(Z_PROBE_SPEED)
-    #define Z_PROBE_SPEED     (HOMING_FEEDRATE_XYZ / 2)
-  #endif
-
-  #define Z_PROBE_SPEED_FAST  Z_PROBE_SPEED
-  #define Z_PROBE_SPEED_SLOW  Z_PROBE_SPEED
-
-  // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE)))
-  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
-  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
-  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
-  #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
-
-  #define X_MIN_POS -(mechanics.delta_print_radius)
-  #define X_MAX_POS  (mechanics.delta_print_radius)
-  #define Y_MIN_POS -(mechanics.delta_print_radius)
-  #define Y_MAX_POS  (mechanics.delta_print_radius)
-  #define Z_MAX_POS  (mechanics.delta_height)
-  #define Z_MIN_POS 0
-  #define E_MIN_POS 0
-
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #undef WORKSPACE_OFFSETS
-  #endif
-
-  #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
-
-#endif // MECH(DELTA)
-
-/**
  * The BLTouch Probe emulates a servo probe
  */
 #if ENABLED(BLTOUCH)
@@ -528,10 +565,15 @@
  * Set granular options based on the specific type of leveling
  */
 
+#define UBL_DELTA             (ENABLED(AUTO_BED_LEVELING_UBL) && MECH(DELTA))
 #define ABL_PLANAR            (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
 #define ABL_GRID              (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
-#define HAS_ABL               (ABL_PLANAR || ABL_GRID)
+#define HAS_ABL               (ABL_PLANAR || ABL_GRID || ENABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_LEVELING          (HAS_ABL || ENABLED(MESH_BED_LEVELING))
+#define HAS_AUTOLEVEL         (HAS_ABL && DISABLED(PROBE_MANUALLY))
+#define OLDSCHOOL_ABL         (HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL))
+#define HAS_MESH              (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
+#define PLANNER_LEVELING      (ABL_PLANAR || ABL_GRID || ENABLED(MESH_BED_LEVELING) || UBL_DELTA)
 #define HAS_PROBING_PROCEDURE (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
 
 #if HAS_PROBING_PROCEDURE

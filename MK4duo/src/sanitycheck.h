@@ -530,11 +530,33 @@ static_assert(1 >= 0
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     + 1
   #endif
+  #if ENABLED(AUTO_BED_LEVELING_UBL)
+    + 1
+  #endif
   #if ENABLED(MESH_BED_LEVELING)
     + 1
   #endif
-  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT or AUTO_BED_LEVELING_BILINEAR."
+  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR or AUTO_BED_LEVELING_UBL."
 );
+
+/**
+ * Bed Leveling Requirements
+ */
+
+#if ENABLED(AUTO_BED_LEVELING_UBL)
+
+  /**
+   * Unified Bed Leveling
+   */
+
+  #if IS_SCARA
+    #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
+  #elif DISABLED(EEPROM_SETTINGS)
+    #error "AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS. Please update your configuration."
+  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
+    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+  #endif
+#endif
 
 /**
  * Mesh Bed Leveling
@@ -617,12 +639,18 @@ static_assert(1 >= 0
     #error "Probes need Z_PROBE_BETWEEN_HEIGHT >= 0."
   #endif
 
+  #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(PROBE_MANUALLY)
+    #error "Unified Bed Leveling requires a probe: FIX_MOUNTED_PROBE, BLTOUCH, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
+  #endif
+
 #else
 
   /**
    * Require some kind of probe for bed leveling and probe testing
    */
-  #if HAS_ABL
+  #if ENABLED(AUTO_BED_LEVELING_UBL)
+    #error "Unified Bed Leveling requires a probe: FIX_MOUNTED_PROBE, BLTOUCH, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
+  #elif HAS_ABL
     #error "Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
     #error "DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
