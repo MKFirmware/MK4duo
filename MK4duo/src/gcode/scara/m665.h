@@ -62,6 +62,7 @@
       else if (sumBTY > 1) {
         SERIAL_EM("Only one of B, T, or Y is allowed.");
         return;
+      }
     #endif // WORKSPACE_OFFSETS
   }
 #endif // IS_SCARA

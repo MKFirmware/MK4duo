@@ -154,7 +154,7 @@ class Planner {
 
     /**
      * Limit where 64bit math is necessary for acceleration calculation
- 	   */
+     */
     static uint32_t cutoff_long;
 
     #if ENABLED(LIN_ADVANCE)
