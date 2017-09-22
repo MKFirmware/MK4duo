@@ -540,7 +540,7 @@
    * Maths and first version by QHARLEY.
    * Integrated into Marlin and slightly restructured by Joachim Cerny.
    */
-  void Scara_Mechanics::inverse_kinematics(const float logical[XYZ]) {
+  void Scara_Mechanics::inverse_kinematics_SCARA(const float logical[XYZ]) {
 
     static float C2, S2, SK1, SK2, THETA, PSI;
 

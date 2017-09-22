@@ -93,6 +93,7 @@
       #if MECH(MORGAN_SCARA)
         bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
         void forward_kinematics_SCARA(const float &a, const float &b);
+        void inverse_kinematics_SCARA(const float logical[XYZ]);
       #endif
       
     private: /** Private Function */

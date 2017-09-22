@@ -176,6 +176,7 @@
 
 // Scara Commands
 #include "scara/m360_m364.h"
+#include "scara/m665.h"
 
 // SDCard Commands
 #include "sdcard/sdcard.h"
