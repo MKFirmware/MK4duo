@@ -203,6 +203,7 @@ class Mechanics {
     virtual void set_position_mm(const float position[NUM_AXIS]);
     FORCE_INLINE void set_z_position_mm(const float &z) { set_position_mm(AxisEnum(Z_AXIS), z); }
     FORCE_INLINE void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
+    virtual void set_position_mm_kinematic(const float position[NUM_AXIS]);
 
     /**
      * Get the stepper positions in the cartes[] array.
@@ -282,8 +283,9 @@ class Mechanics {
      * Set the planner/stepper positions directly from current_position with
      * no kinematic translation. Used for homing axes and cartesian/core syncing.
      */
-    void sync_plan_position();
-    void sync_plan_position_e();
+            void sync_plan_position();
+            void sync_plan_position_e();
+    virtual void sync_plan_position_kinematic();
 
     /**
      * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
@@ -298,7 +300,7 @@ class Mechanics {
     /**
      * Home an individual linear axis
      */
-    void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+    virtual void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
     /**
      * Report current position to host

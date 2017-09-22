@@ -63,6 +63,11 @@
       bool prepare_move_to_destination_mech_specific();
 
       /**
+       * Home an individual linear axis
+       */
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0) override;
+
+      /**
        * Calculate delta, start a line, and set current_position to destination
        */
       void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
@@ -77,6 +82,9 @@
        * Callers must sync the planner position after calling this!
        */
       void set_axis_is_at_home(const AxisEnum axis);
+
+      void set_position_mm_kinematic(const float position[NUM_AXIS]) override;
+      void sync_plan_position_kinematic() override;
 
       void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;

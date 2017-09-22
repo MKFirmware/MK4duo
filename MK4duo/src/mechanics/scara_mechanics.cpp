@@ -154,6 +154,73 @@
     return false;
   }
 
+  void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
+        SERIAL_MV(", ", distance);
+        SERIAL_MV(", ", fr_mm_s);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
+      if (deploy_bltouch) probe.set_bltouch_deployed(true);
+    #endif
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(true);
+    #endif
+
+    // Tell the planner we're at Z=0
+    current_position[axis] = 0;
+
+    sync_plan_position_kinematic();
+    current_position[axis] = distance;
+    inverse_kinematics(current_position);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.active_extruder);
+
+    stepper.synchronize();
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(false);
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      if (deploy_bltouch) probe.set_bltouch_deployed(false);
+    #endif
+
+    endstops.hit_on_purpose();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) {
+        SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+  }
+
+  void Scara_Mechanics::set_position_mm_kinematic(const float position[NUM_AXIS]) {
+    #if HAS_LEVELING
+      float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
+      bedlevel.apply_leveling(lpos);
+    #else
+      const float * const lpos = position;
+    #endif
+    
+    inverse_kinematics(lpos);
+    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+  }
+
+  void Scara_Mechanics::sync_plan_position_kinematic() {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
+    #endif
+    set_position_mm_kinematic(current_position);
+  }
+
   /**
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
