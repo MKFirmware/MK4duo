@@ -32,7 +32,7 @@
  * M111: Debug mode Repetier Host compatibile
  */
 inline void gcode_M111(void) {
-  commands.mk_debug_flags = parser.byteval('S', (uint8_t)DEBUG_NONE);
+  mk_debug_flags = parser.byteval('S', (uint8_t)DEBUG_NONE);
 
   const static char str_debug_1[]   PROGMEM = MSG_DEBUG_ECHO;
   const static char str_debug_2[]   PROGMEM = MSG_DEBUG_INFO;
@@ -51,10 +51,10 @@ inline void gcode_M111(void) {
   };
 
   SERIAL_SM(ECHO, MSG_DEBUG_PREFIX);
-  if (commands.mk_debug_flags) {
+  if (mk_debug_flags) {
     uint8_t comma = 0;
     for (uint8_t i = 0; i < COUNT(debug_strings); i++) {
-      if (TEST(commands.mk_debug_flags, i)) {
+      if (TEST(mk_debug_flags, i)) {
         if (comma++) SERIAL_CHR(',');
         SERIAL_PS((char*)pgm_read_word(&(debug_strings[i])));
       }

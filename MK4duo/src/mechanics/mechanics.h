@@ -29,12 +29,6 @@
 #ifndef _MECHANICS_H_
 #define _MECHANICS_H_
 
-// DEBUG LEVELING
-#if ENABLED(DEBUG_LEVELING_FEATURE)
-  #define DEBUG_POS(SUFFIX,VAR)       do{ \
-    bedlevel.print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); } while(0)
-#endif
-
 // Workspace offsets
 #if ENABLED(WORKSPACE_OFFSETS)
   #define WORKSPACE_OFFSET(AXIS) mechanics.workspace_offset[AXIS]
@@ -179,6 +173,11 @@ class Mechanics {
     #endif
 
     #if ENABLED(CNC_WORKSPACE_PLANES)
+      /**
+       * Workspace planes only apply to G2/G3 moves
+       * (and "canned cycles" - not a current feature)
+       */
+      enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
       WorkspacePlane workspace_plane = PLANE_XY;
     #endif
 

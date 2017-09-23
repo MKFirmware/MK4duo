@@ -23,8 +23,38 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
+/**
+ * Define debug bit-masks
+ */
+enum DebugFlags {
+  DEBUG_NONE          = 0,
+  DEBUG_ECHO          = _BV(0), ///< Echo commands in order as they are processed
+  DEBUG_INFO          = _BV(1), ///< Print messages for code that has debug output
+  DEBUG_ERRORS        = _BV(2), ///< Not implemented
+  DEBUG_DRYRUN        = _BV(3), ///< Ignore temperature setting and E movement commands
+  DEBUG_COMMUNICATION = _BV(4), ///< Not implemented
+  DEBUG_LEVELING      = _BV(5), ///< Print detailed output for homing and leveling
+  DEBUG_MESH_ADJUST   = _BV(6), ///< UBL bed leveling
+  DEBUG_ALL           = 0xFF
+};
+
+extern uint8_t mk_debug_flags;
+#define DEBUGGING(F)    (mk_debug_flags & (DEBUG_## F))
+
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
+  void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+  #if HAS_PLANAR
+    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+  #endif
+  #define DEBUG_POS(SUFFIX,VAR)       do{ \
+    print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
+#endif
+
 class Com {
+
   public:
+
     FSTRINGVAR(tStart)                    // start for host
     FSTRINGVAR(tOk)                       // ok answer for host
     FSTRINGVAR(tOkSpace)                  // ok space answer for host
@@ -59,10 +89,8 @@ class Com {
     static inline void print(double number) { printFloat(number, 6); }
     static inline void print(double number, uint8_t digits) { printFloat(number, digits); }
     static inline void println() { HAL::serialWriteByte('\r'); HAL::serialWriteByte('\n'); }
-    static inline void print_spaces(uint8_t count) { while (count--) HAL::serialWriteByte(' '); }
+    static inline void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) HAL::serialWriteByte(' '); }
 
-  protected:
-  private:
 };
 
 #define START           Com::tStart

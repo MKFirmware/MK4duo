@@ -209,7 +209,7 @@
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) bedlevel.print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
+      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
     #endif
 
     if (!position_is_reachable_xy(lx, ly)) return;

@@ -47,28 +47,6 @@ enum AxisEnum {
   ALL_AXES = 100
 };
 
-typedef enum {
-  TEMPUNIT_C,
-  TEMPUNIT_K,
-  TEMPUNIT_F
-} TempUnit;
-
-/**
- * Debug flags
- * Not yet widely applied
- */
-enum DebugFlags {
-  DEBUG_NONE          = 0,
-  DEBUG_ECHO          = _BV(0), ///< Echo commands in order as they are processed
-  DEBUG_INFO          = _BV(1), ///< Print messages for code that has debug output
-  DEBUG_ERRORS        = _BV(2), ///< Not implemented
-  DEBUG_DRYRUN        = _BV(3), ///< Ignore temperature setting and E movement commands
-  DEBUG_COMMUNICATION = _BV(4), ///< Not implemented
-  DEBUG_LEVELING      = _BV(5), ///< Print detailed output for homing and leveling
-  DEBUG_MESH_ADJUST   = _BV(6), ///< UBL bed leveling
-  DEBUG_ALL           = 0xFF
-};
-
 #if ENABLED(EMERGENCY_PARSER)
   enum e_parser_state {
     state_RESET,
@@ -147,14 +125,6 @@ enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
     DXC_AUTO_PARK_MODE,
     DXC_DUPLICATION_MODE
   };
-#endif
-
-/**
- * Workspace planes only apply to G2/G3 moves
- * (and "canned cycles" - not a current feature)
- */
-#if ENABLED(CNC_WORKSPACE_PLANES)
-  enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
 #endif
 
 #endif /* __ENUM_H__ */

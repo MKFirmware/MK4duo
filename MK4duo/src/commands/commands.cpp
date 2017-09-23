@@ -46,8 +46,6 @@ long  Commands::gcode_N             = 0,
 
 bool Commands::send_ok[BUFSIZE];
 
-uint8_t Commands::mk_debug_flags = DEBUG_NONE;
-
 char Commands::command_queue[BUFSIZE][MAX_CMD_SIZE];
 
 // Inactivity shutdown

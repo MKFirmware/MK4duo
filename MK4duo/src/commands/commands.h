@@ -45,8 +45,6 @@ class Commands {
                 gcode_LastN,
                 Stopped_gcode_LastN;
 
-    static uint8_t mk_debug_flags;
-
     static millis_t previous_cmd_ms;
 
   private: /** Private Parameters */

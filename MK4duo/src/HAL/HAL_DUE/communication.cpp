@@ -24,6 +24,8 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
+uint8_t mk_debug_flags = DEBUG_NONE;
+
 FSTRINGVALUE(Com::tStart,"start")
 FSTRINGVALUE(Com::tOk,"ok")
 FSTRINGVALUE(Com::tOkSpace,"ok ")
@@ -120,5 +122,31 @@ void Com::print(long value) {
   }
   printNumber(value);
 }
+
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+
+  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
+    SERIAL_PS(prefix);
+    SERIAL_CHR('(');
+    SERIAL_VAL(x);
+    SERIAL_MV(", ", y);
+    SERIAL_MV(", ", z);
+    SERIAL_CHR(")");
+
+    if (suffix) SERIAL_PS(suffix);
+    else SERIAL_EOL();
+  }
+
+  void print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
+    print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
+  }
+
+  #if HAS_PLANAR
+    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
+      print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
+    }
+  #endif
+
+#endif // ENABLED(DEBUG_LEVELING_FEATURE)
 
 #endif // ARDUINO_ARCH_SAM
