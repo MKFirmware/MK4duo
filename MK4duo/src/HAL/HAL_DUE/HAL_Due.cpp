@@ -140,7 +140,7 @@ void HAL::hwSetup(void) {
     #endif
 
     #if HAS_BUZZER
-      buzz(10,10);
+      BUZZ(10,10);
     #endif
 
   #elif MB(ULTRATRONICS)
