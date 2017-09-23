@@ -104,7 +104,7 @@
 
       if (wait) {
         // LCD click or M108 will clear this
-        wait_for_user = true;
+        printer.wait_for_user = true;
 
         KEEPALIVE_STATE(PAUSED_FOR_USER);
 
@@ -112,7 +112,7 @@
           millis_t next_buzz = millis();
         #endif
 
-        while (wait_for_user) {
+        while (printer.wait_for_user) {
           #if HAS_BUZZER
             if (millis() - next_buzz > 60000) {
               for (uint8_t i = 0; i < 3; i++) BUZZ(300, 1000);
@@ -120,7 +120,7 @@
             }
           #endif
           printer.idle(true);
-        } // while (wait_for_user)
+        } // while (printer.wait_for_user)
       } // if (wait)
 
       if (tool_id != CNC_M6_TOOL_ID) active_tool = tool_id;
