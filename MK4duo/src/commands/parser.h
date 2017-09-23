@@ -31,6 +31,19 @@
 
 //#define DEBUG_GCODE_PARSER
 
+// Index so that 'X' falls on index 24
+#define PARAM_IND(N)  ((N) >> 3)
+#define PARAM_BIT(N)  ((N) & 0x7)
+#define LETTER_OFF(N) ((N) - 'A')
+#define LETTER_IND(N) PARAM_IND(LETTER_OFF(N))
+#define LETTER_BIT(N) PARAM_BIT(LETTER_OFF(N))
+
+typedef enum {
+  TEMPUNIT_C,
+  TEMPUNIT_K,
+  TEMPUNIT_F
+} TempUnit;
+
 /**
  * Parser Gcode
  *
@@ -43,14 +56,6 @@
  *    - Parameter has value
  *    - Parameter value in different units and types
  */
-
-// Index so that 'X' falls on index 24
-#define PARAM_IND(N)  ((N) >> 3)
-#define PARAM_BIT(N)  ((N) & 0x7)
-#define LETTER_OFF(N) ((N) - 'A')
-#define LETTER_IND(N) PARAM_IND(LETTER_OFF(N))
-#define LETTER_BIT(N) PARAM_BIT(LETTER_OFF(N))
-    
 class GCodeParser {
 
   public: /** Public Parameters */
@@ -60,6 +65,7 @@ class GCodeParser {
       static float  linear_unit_factor,
                     volumetric_unit_factor;
     #endif
+
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
       static TempUnit input_temp_units;
     #endif

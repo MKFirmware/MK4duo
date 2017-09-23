@@ -127,13 +127,13 @@ inline void gcode_G29(void) {
   // G29 Q is also available if debugging
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     const bool query = parser.seen('Q');
-    const uint8_t old_debug_flags = commands.mk_debug_flags;
-    if (query) commands.mk_debug_flags |= DEBUG_LEVELING;
+    const uint8_t old_debug_flags = mk_debug_flags;
+    if (query) mk_debug_flags |= DEBUG_LEVELING;
     if (DEBUGGING(LEVELING)) {
       DEBUG_POS(">>> gcode_G29", mechanics.current_position);
       mechanics.log_machine_info();
     }
-    commands.mk_debug_flags = old_debug_flags;
+    mk_debug_flags = old_debug_flags;
     #if DISABLED(PROBE_MANUALLY)
       if (query) return;
     #endif

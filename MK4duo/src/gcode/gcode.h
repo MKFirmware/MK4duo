@@ -115,6 +115,7 @@
 #include "feature/m600.h"                 // Advanced Pause change filament
 
 // Geometry Commands
+#include "geometry/g17_g19.h"
 #include "geometry/g92.h"
 #include "geometry/m206.h"
 #include "geometry/m428.h"                // Set the home_offset
@@ -153,7 +154,6 @@
 
 // MultiMode Commands (Laser - CNC)
 #include "multimode/g7.h"
-#include "multimode/g17_g19.h"
 #include "multimode/m3_m4.h"
 #include "multimode/m5.h"
 #include "multimode/m6.h"

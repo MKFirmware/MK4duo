@@ -23,6 +23,24 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
+/**
+ * Define debug bit-masks
+ */
+enum DebugFlags {
+  DEBUG_NONE          = 0,
+  DEBUG_ECHO          = _BV(0), ///< Echo commands in order as they are processed
+  DEBUG_INFO          = _BV(1), ///< Print messages for code that has debug output
+  DEBUG_ERRORS        = _BV(2), ///< Not implemented
+  DEBUG_DRYRUN        = _BV(3), ///< Ignore temperature setting and E movement commands
+  DEBUG_COMMUNICATION = _BV(4), ///< Not implemented
+  DEBUG_LEVELING      = _BV(5), ///< Print detailed output for homing and leveling
+  DEBUG_MESH_ADJUST   = _BV(6), ///< UBL bed leveling
+  DEBUG_ALL           = 0xFF
+};
+
+extern uint8_t mk_debug_flags;
+#define DEBUGGING(F)    (mk_debug_flags & (DEBUG_## F))
+
 #define START           "start"               // start for host
 #define OK              "ok"                  // ok answer for host
 #define OKSPACE         "ok "                 // ok plus space 
@@ -44,13 +62,8 @@
 
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 
-// Things to write to serial from Program memory. Saves 400 to 2k of RAM.
-FORCE_INLINE void serialprintPGM(const char* str) {
-  while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);
-}
-FORCE_INLINE void serial_spaces(uint8_t count) {
-  while (count--) MKSERIAL.write(' ');
-}
+// Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
+void serialprintPGM(const char* str);
 
 #define SERIAL_PS(message)                  (serialprintPGM(message))
 #define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
@@ -98,16 +111,28 @@ FORCE_INLINE void serial_print(uint32_t v)      { MKSERIAL.print((long)v); }
 FORCE_INLINE void serial_print(bool v)          { MKSERIAL.print((int)v); }
 FORCE_INLINE void serial_print(void *v)         { MKSERIAL.print((int)v); }
 
-FORCE_INLINE void serial_print_pair(const char* msg, const char *v)   { serialprintPGM(msg); MKSERIAL.print(v); }
-FORCE_INLINE void serial_print_pair(const char* msg, char v)          { serialprintPGM(msg); MKSERIAL.print(v); }
-FORCE_INLINE void serial_print_pair(const char* msg, int v)           { serialprintPGM(msg); MKSERIAL.print(v); }
-FORCE_INLINE void serial_print_pair(const char* msg, long v)          { serialprintPGM(msg); MKSERIAL.print(v); }
-FORCE_INLINE void serial_print_pair(const char* msg, float v, int n)  { serialprintPGM(msg); MKSERIAL.print(v, n); }
-FORCE_INLINE void serial_print_pair(const char* msg, double v)        { serialprintPGM(msg); MKSERIAL.print(v); }
-FORCE_INLINE void serial_print_pair(const char* msg, uint8_t v)       { serial_print_pair(msg, (int)v); }
-FORCE_INLINE void serial_print_pair(const char* msg, uint16_t v)      { serial_print_pair(msg, (int)v); }
-FORCE_INLINE void serial_print_pair(const char* msg, uint32_t v)      { serial_print_pair(msg, (long)v); }
-FORCE_INLINE void serial_print_pair(const char* msg, bool v)          { serial_print_pair(msg, (int)v); }
-FORCE_INLINE void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg, (int)v); }
+void serial_print_pair(const char* msg, const char *v);
+void serial_print_pair(const char* msg, char v);
+void serial_print_pair(const char* msg, int v);
+void serial_print_pair(const char* msg, long v);
+void serial_print_pair(const char* msg, float v, int n);
+void serial_print_pair(const char* msg, double v);
+void serial_print_pair(const char* msg, uint8_t v);
+void serial_print_pair(const char* msg, uint16_t v);
+void serial_print_pair(const char* msg, uint32_t v);
+void serial_print_pair(const char* msg, bool v);
+void serial_print_pair(const char* msg, void *v);
 
+void serial_spaces(uint8_t count);
+
+#if ENABLED(DEBUG_LEVELING_FEATURE)
+  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
+  void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+  #if HAS_PLANAR
+    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+  #endif
+  #define DEBUG_POS(SUFFIX,VAR)       do{ \
+    print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
 #endif
+
+#endif /* COMMUNICATION_H */
