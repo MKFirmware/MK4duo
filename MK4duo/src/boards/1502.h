@@ -189,3 +189,23 @@
 #define E2END                 0x2000
 //@@@
 
+//###IF_BLOCKS
+// GLCD on expansion port
+#if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+
+  #define LCD_PINS_RS         18
+  #define LCD_PINS_ENABLE     15
+  #define LCD_PINS_D4         19
+  #define ORIG_BEEPER_PIN     64
+
+  #define BTN_EN1             14
+  #define BTN_EN2             16
+  #define BTN_ENC             17
+
+  #if UI_VOLTAGE_LEVEL != 1
+    #undef UI_VOLTAGE_LEVEL
+    #define UI_VOLTAGE_LEVEL  1
+  #endif
+
+#endif //REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+//@@@
