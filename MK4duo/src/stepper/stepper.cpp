@@ -48,7 +48,7 @@
 #include "../../base.h"
 #include "stepper.h"
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
   #include "speed_lookuptable.h"
 #endif
 

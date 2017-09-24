@@ -43,7 +43,7 @@
 #ifndef _STEPPER_H_
 #define _STEPPER_H_
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
   #include "speed_lookuptable.h"
 #endif
 
@@ -286,7 +286,7 @@ class Stepper {
 
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
 
-      #if ENABLED(ARDUINO_ARCH_AVR)
+      #if ENABLED(__AVR__)
         if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
           step_rate >>= 2;
           step_loops = 4;

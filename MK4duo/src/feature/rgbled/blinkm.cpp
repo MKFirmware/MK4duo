@@ -20,23 +20,27 @@
  *
  */
 
-#ifndef _HAL_ENDSTOP_INTERRUPTS_H_
-#define _HAL_ENDSTOP_INTERRUPTS_H_
+/**
+ * blinkm.cpp - Library for controlling a BlinkM over i2c
+ * Created by Tim Koster, August 21 2013.
+ */
 
-// This is what is really done inside the interrupts.
-FORCE_INLINE void endstop_ISR_worker( void ) {
-  endstops.e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
-}
+#include "../../../base.h"
 
-// One ISR for all EXT-Interrupts
-void endstop_ISR(void) { endstop_ISR_worker(); }
+#if ENABLED(BLINKM)
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #include "HAL_DUE/endstop_interrupts.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/endstop_interrupts.h"
-#else
-  #error "Unsupported Platform!"
-#endif
+  #include "blinkm.h"
+  #include <Wire.h>
 
-#endif /* _HAL_ENDSTOP_INTERRUPTS_H_ */
+  void SendColors(byte red, byte grn, byte blu) {
+    Wire.begin();
+    Wire.beginTransmission(0x09);
+    Wire.write('o');                    //to disable ongoing script, only needs to be used once
+    Wire.write('n');
+    Wire.write(red);
+    Wire.write(grn);
+    Wire.write(blu);
+    Wire.endTransmission();
+  }
+
+#endif // BLINKM

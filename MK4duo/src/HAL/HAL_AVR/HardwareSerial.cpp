@@ -44,7 +44,7 @@
 
 #include "../../../base.h"
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
 
 #include "HardwareSerial.h"
 
@@ -518,4 +518,4 @@
 
 #endif // !USBCON && (UBRRH || UBRR0H || UBRR1H || UBRR2H || UBRR3H)
 
-#endif // ARDUINO_ARCH_AVR
+#endif // __AVR__

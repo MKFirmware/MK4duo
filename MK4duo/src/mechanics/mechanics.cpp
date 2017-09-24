@@ -372,12 +372,10 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
  * Report current position to host
  */
 void Mechanics::report_current_position() {
-  SERIAL_MV( "X:", current_position[X_AXIS]);
-  SERIAL_MV(" Y:", current_position[Y_AXIS]);
-  SERIAL_MV(" Z:", current_position[Z_AXIS]);
-  SERIAL_MV(" E:", current_position[E_AXIS]);
-
-  stepper.report_positions();
+  SERIAL_MV( "X:", current_position[X_AXIS], 2);
+  SERIAL_MV(" Y:", current_position[Y_AXIS], 2);
+  SERIAL_MV(" Z:", current_position[Z_AXIS], 3);
+  SERIAL_EMV(" E:", current_position[E_AXIS], 4);
 }
 void Mechanics::report_current_position_detail() {
 

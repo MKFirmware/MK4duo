@@ -42,7 +42,7 @@
 
 #include "../../base.h"
 
-#if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(LASER) && ENABLED(__AVR__)
 
   #include <Arduino.h>
   #include <avr/interrupt.h>
@@ -332,4 +332,4 @@
 
   #endif // LASER_PERIPHERALS
 
-#endif // ENABLED(LASER) && ENABLED(ARDUINO_ARCH_AVR)
+#endif // ENABLED(LASER) && ENABLED(__AVR__)

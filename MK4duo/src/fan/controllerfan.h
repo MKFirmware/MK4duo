@@ -20,23 +20,17 @@
  *
  */
 
-#ifndef _HAL_ENDSTOP_INTERRUPTS_H_
-#define _HAL_ENDSTOP_INTERRUPTS_H_
+/**
+ * controllerfan.h
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ */
 
-// This is what is really done inside the interrupts.
-FORCE_INLINE void endstop_ISR_worker( void ) {
-  endstops.e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
-}
+#ifndef _CONTROLLERFAN_H_
+#define _CONTROLLERFAN_H_
 
-// One ISR for all EXT-Interrupts
-void endstop_ISR(void) { endstop_ISR_worker(); }
+  #if HAS_CONTROLLERFAN
+    void controllerFan();
+  #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #include "HAL_DUE/endstop_interrupts.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/endstop_interrupts.h"
-#else
-  #error "Unsupported Platform!"
-#endif
-
-#endif /* _HAL_ENDSTOP_INTERRUPTS_H_ */
+#endif /* _CONTROLLERFAN_H_ */

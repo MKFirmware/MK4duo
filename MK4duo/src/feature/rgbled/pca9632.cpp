@@ -25,7 +25,7 @@
  * Written by Robert Mendon Feb 2017.
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if ENABLED(PCA9632)
 

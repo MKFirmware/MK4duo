@@ -844,7 +844,7 @@ bool SdBaseFile::make83Name(const char* str, uint8_t* name, const char** ptr) {
     }
     else {
       // illegal FAT characters
-      #if ENABLED(ARDUINO_ARCH_AVR)
+      #if ENABLED(__AVR__)
         // store chars in flash
         PGM_P p = PSTR("|<>^+=?/[];,*\"\\");
         uint8_t b;
@@ -854,13 +854,13 @@ bool SdBaseFile::make83Name(const char* str, uint8_t* name, const char** ptr) {
             goto FAIL;
           }
         }
-      #else  // ARDUINO_ARCH_AVR
+      #else  // __AVR__
         // store chars in RAM
         if (strchr("|<>^+=?/[];,*\"\\", c)) {
           DBG_FAIL_MACRO;
           goto FAIL;
         }
-      #endif  // ARDUINO_ARCH_AVR
+      #endif  // __AVR__
       // check size and only allow ASCII printable characters
       if (i > n || c < 0x20 || c > 0x7E) {
         c = '_';

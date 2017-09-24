@@ -41,10 +41,10 @@
    * Report current position to host
    */
   void Scara_Mechanics::report_current_position() {
-    SERIAL_MV( "X:", current_position[X_AXIS]);
-    SERIAL_MV(" Y:", current_position[Y_AXIS]);
-    SERIAL_MV(" Z:", current_position[Z_AXIS]);
-    SERIAL_MV(" E:", current_position[E_AXIS]);
+    SERIAL_MV( "X:", current_position[X_AXIS], 2);
+    SERIAL_MV(" Y:", current_position[Y_AXIS], 2);
+    SERIAL_MV(" Z:", current_position[Z_AXIS], 3);
+    SERIAL_EMV(" E:", current_position[E_AXIS], 4);
 
     stepper.report_positions();
 

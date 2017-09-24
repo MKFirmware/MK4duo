@@ -22,7 +22,7 @@
 
 #include "../../../base.h"
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
 
 uint8_t mk_debug_flags = DEBUG_NONE;
 
@@ -71,4 +71,4 @@ void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (c
 
 #endif // ENABLED(DEBUG_LEVELING_FEATURE)
 
-#endif // ARDUINO_ARCH_AVR
+#endif // __AVR__

@@ -93,7 +93,7 @@ class Laser {
 
   private: /** Private Function */
 
-    #if ENABLED(ARDUINO_ARCH_AVR)
+    #if ENABLED(__AVR__)
       void timer3_init(Pin pin);
       void timer4_init(Pin pin);
     #endif
