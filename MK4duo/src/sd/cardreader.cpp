@@ -333,6 +333,22 @@
 
       const char* restart_name_File = "restart.gcode";
 
+      int16_t old_temp[HEATER_COUNT];
+      LOOP_HEATER() {
+        old_temp[h] = heaters[h].target_temperature;
+        heaters[h].target_temperature = 0;
+        heaters[h].soft_pwm = 0;
+      }
+
+      #if FAN_COUNT > 0
+        uint16_t old_fan[FAN_COUNT];
+        LOOP_FAN() {
+          old_fan[f] = fans[f].Speed;
+          fans[f].Speed = 0;
+          fans[f].pwm_pos = 0;
+        }
+      #endif
+
       sdprinting = false;
       stepper.synchronize();
 
@@ -392,9 +408,9 @@
       restart_file.write(buffer_G92_Z);
 
       #if HAS_TEMP_BED
-        if (heaters[BED_INDEX].target_temperature > 0) {
+        if (old_temp[BED_INDEX] > 0) {
           char Bedtemp[15];
-          sprintf(Bedtemp, "M190 S%i\n", (int)heaters[BED_INDEX].target_temperature);
+          sprintf(Bedtemp, "M190 S%i\n", (int)old_temp[BED_INDEX]);
           restart_file.write(Bedtemp);
         }
       #endif
@@ -404,9 +420,9 @@
       restart_file.write(CurrHotend);
 
       for (uint8_t h = 0; h < HOTENDS; h++) {
-        if (heaters[h].target_temperature > 0) {
+        if (old_temp[h] > 0) {
           char Hotendtemp[15];
-          sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)heaters[h].target_temperature);
+          sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)old_temp[h]);
           restart_file.write(Hotendtemp);
         }
       }
@@ -417,9 +433,9 @@
 
       #if FAN_COUNT > 0
         LOOP_FAN() {
-          if (fans[f].Speed > 0) {
+          if (old_fan[f] > 0) {
             char fanSp[20];
-            sprintf(fanSp, "M106 S%i P%i\n", (int)fans[f].Speed, (int)f);
+            sprintf(fanSp, "M106 S%i P%i\n", (int)old_fan[f], (int)f);
             restart_file.write(fanSp);
           }
         }
@@ -436,10 +452,6 @@
       mechanics.current_position[Z_AXIS] += 5;
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS]);
 
-      thermalManager.disable_all_heaters();
-      #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].Speed = 0;
-      #endif
     }
   }
 
