@@ -110,7 +110,6 @@
 #include "src/stepper/stepper.h"
 #include "src/heater/heater.h"
 #include "src/temperature/temperature.h"
-#include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
 #include "src/nextion/Nextion_lcd.h"
 #include "src/sd/cardreader.h"
@@ -124,6 +123,7 @@
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/caselight/caselight.h"
+#include "src/feature/flowmeter/flowmeter.h"
 #if ENABLED(BLINKM)
   #include "src/feature/rgbled/blinkm.h"
 #elif ENABLED(PCA9632)
