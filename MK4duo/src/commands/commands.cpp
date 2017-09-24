@@ -301,7 +301,7 @@ void Commands::loop() {
 
     #if HAS_POWER_CHECK
       if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
-        stopSDPrint(true);
+        printer.stopSDPrint(true);
         return;
       }
     #endif
