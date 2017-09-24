@@ -32,8 +32,8 @@
 
 inline void gcode_M49(void) {
   ubl.g26_debug_flag ^= true;
-  SERIAL_M("UBL Debug Flag turned ");
-  serialprintPGM(ubl.g26_debug_flag ? PSTR("on.") : PSTR("off."));
+  SERIAL_MSG("UBL Debug Flag turned ");
+  SERIAL_PS(ubl.g26_debug_flag ? PSTR("on.") : PSTR("off."));
 }
 
 #endif // UBL_G26_MESH_VALIDATION

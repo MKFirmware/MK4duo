@@ -75,11 +75,14 @@
     if (parser.seen('O')) mechanics.delta_print_radius              = parser.value_linear_units();
     if (parser.seen('P')) mechanics.delta_probe_radius              = parser.value_linear_units();
 
-    mechanics.recalc_delta_settings();
-
     LOOP_XYZ(i) {
-      if (parser.seen(axis_codes[i])) mechanics.delta_endstop_adj[i] = parser.value_linear_units();
+      if (parser.seen(axis_codes[i])) {
+        const float v = parser.value_linear_units();
+        if (v <= 0) mechanics.delta_endstop_adj[i] = v;
+      }
     }
+
+    mechanics.recalc_delta_settings();
 
     if (parser.seen('L')) {
       SERIAL_LM(CFG, "Current Delta geometry values:");
