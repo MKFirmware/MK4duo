@@ -40,4 +40,6 @@ inline void gcode_M114(void) {
 
   stepper.synchronize();
   mechanics.report_current_position();
+
+  if (parser.seen('S')) stepper.report_positions();
 }

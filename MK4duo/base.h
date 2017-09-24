@@ -32,7 +32,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#ifdef ARDUINO_ARCH_AVR
+#ifdef __AVR__
   #include <avr/pgmspace.h>
   #include <avr/eeprom.h>
   #include <avr/interrupt.h>
@@ -92,13 +92,10 @@
   #include "src/laser/laser.h"
 #endif
 
-#if ENABLED(CNCROUTER)
-  #include "src/cncrouter/cncrouter.h"
-#endif
-
 #include "src/tools/tools.h"
 #include "src/tools/nozzle.h"
 #include "src/fan/fan.h"
+#include "src/fan/controllerfan.h"
 #include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
 #include "src/probe/probe.h"
@@ -115,21 +112,24 @@
 #include "src/temperature/temperature.h"
 #include "src/sensor/flowmeter.h"
 #include "src/lcd/ultralcd.h"
-#include "src/buzzer/buzzer.h"
 #include "src/nextion/Nextion_lcd.h"
-#include "src/mfrc522/mfrc522.h"
 #include "src/sd/cardreader.h"
 #include "src/servo/servo.h"
 
 #include "src/utility/hex_print_routines.h"
 #include "src/utility/bezier.h"
 
+// Feature
+#include "src/feature/buzzer/buzzer.h"
+#include "src/feature/cncrouter/cncrouter.h"
+#include "src/feature/mfrc522/mfrc522.h"
+#include "src/feature/caselight/caselight.h"
 #if ENABLED(BLINKM)
-  #include "src/rgbled/blinkm.h"
+  #include "src/feature/rgbled/blinkm.h"
 #elif ENABLED(PCA9632)
-  #include "src/rgbled/pca9632.h"
+  #include "src/feature/rgbled/pca9632.h"
 #elif HAS_NEOPIXEL
-  #include "src/rgbled/Adafruit_NeoPixel.h"
+  #include "src/feature/rgbled/Adafruit_NeoPixel.h"
 #endif
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)

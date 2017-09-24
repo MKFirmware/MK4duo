@@ -133,11 +133,6 @@ class Printer {
                       Spool_must_write[EXTRUDERS];
     #endif
 
-    #if HAS_CASE_LIGHT
-      static int case_light_brightness;
-      static bool case_light_on;
-    #endif
-
     #if ENABLED(NPR2)
       static uint8_t old_color; // old color for system NPR2
     #endif
@@ -217,10 +212,6 @@ class Printer {
       #endif
     #endif
 
-    #if HAS_CASE_LIGHT
-      static void update_case_light();
-    #endif
-
     #if HAS_COLOR_LEDS
       static void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b
                                 #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
@@ -247,10 +238,6 @@ class Printer {
     #endif
 
     static void setup_powerhold();
-
-    #if HAS_CONTROLLERFAN
-      static void controllerFan();
-    #endif
 
     static float calculate_volumetric_multiplier(const float diameter);
 

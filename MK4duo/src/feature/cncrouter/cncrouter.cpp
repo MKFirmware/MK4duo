@@ -39,7 +39,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if ENABLED(CNCROUTER)
 
@@ -58,7 +58,7 @@
 
   void Cncrouter::init() {
     SET_OUTPUT(CNCROUTER_PIN);
-    #if ENABLED(FAST_PWM_CNCROUTER) && ENABLED(ARDUINO_ARCH_AVR)
+    #if ENABLED(FAST_PWM_CNCROUTER) && ENABLED(__AVR__)
       HAL::setPwmFrequency(CNCROUTER_PIN, 2); // No prescaling. Pwm frequency = F_CPU/256/64
     #endif
   }

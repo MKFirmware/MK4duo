@@ -242,11 +242,13 @@
   void spiSend(const uint8_t* buf, size_t n) {
     if (n == 0) return;
     for (size_t i = 0; i < n - 1; i++) {
+      // write buf with address
       SPI0->SPI_TDR = (uint32_t)buf[i] | SPI_PCS(SPI_CHAN);
+      // wait for transmit register empty
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
+      // wait for receive register
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       SPI0->SPI_RDR;
-      //delayMicroseconds(1U);
     }
     spiSend(buf[n - 1]);
   }
@@ -267,7 +269,9 @@
     for (int i = 0; i < (int)n - 1; i++) {
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       SPI0->SPI_TDR = (uint32_t)buf[i] | SPI_PCS(chan);
+      // wait for receive register
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
+      // clear status
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
     }
     spiSend(chan, buf[n - 1]);
@@ -279,11 +283,9 @@
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(SPI_CHAN) | SPI_TDR_LASTXFER;
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
-
     // wait for receive register
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
     // get byte from receive register
-    //delayMicroseconds(1U);
     return SPI0->SPI_RDR;
   }
 
@@ -291,10 +293,8 @@
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
-
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(chan) | SPI_TDR_LASTXFER;
-
     // wait for receive register
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
     // get byte from receive register
@@ -304,13 +304,11 @@
   // Read from SPI into buffer
   void spiRead(uint8_t* buf, uint16_t nbyte) {
     if (nbyte-- == 0) return;
-
     for (int i = 0; i < nbyte; i++) {
       //while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       SPI0->SPI_TDR = 0x000000FF | SPI_PCS(SPI_CHAN);
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       buf[i] = SPI0->SPI_RDR;
-      //delayMicroseconds(1U);
     }
     buf[nbyte] = spiReceive();
   }
@@ -326,7 +324,6 @@
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       SPI0->SPI_RDR;
-      //delayMicroseconds(1U);
     }
     spiSend(buf[511]);
   }

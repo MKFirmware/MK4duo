@@ -40,7 +40,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if ENABLED(RFID_MODULE)
 

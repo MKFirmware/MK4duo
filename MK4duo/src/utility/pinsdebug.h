@@ -564,7 +564,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
     PIN_SAY(SUICIDE_PIN);
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_AVR)
+  #if ENABLED(__AVR__)
     #if ENABLED(TC1) && TC1 >= 0
       ANALOG_PIN_SAY(TC1);
     #endif

@@ -44,16 +44,16 @@
    */
   inline void gcode_M355(void) {
     uint8_t args = 0;
-    if (parser.seen('P')) ++args, printer.case_light_brightness = parser.value_byte();
-    if (parser.seen('S')) ++args, printer.case_light_on = parser.value_bool();
-    if (args) printer.update_case_light();
+    if (parser.seen('P')) ++args, case_light_brightness = parser.value_byte();
+    if (parser.seen('S')) ++args, case_light_brightness = parser.value_bool();
+    if (args) update_case_light();
 
     // always report case light status
     SERIAL_STR(ECHO);
-    if (!printer.case_light_on)
+    if (!case_light_brightness)
       SERIAL_EM("Case light: off");
     else
-      SERIAL_MV("Case light: ", printer.case_light_brightness);
+      SERIAL_MV("Case light: ", case_light_brightness);
   }
 
 #endif // HAS_CASE_LIGHT

@@ -20,23 +20,25 @@
  *
  */
 
-#ifndef _HAL_ENDSTOP_INTERRUPTS_H_
-#define _HAL_ENDSTOP_INTERRUPTS_H_
+#include "../../../base.h"
 
-// This is what is really done inside the interrupts.
-FORCE_INLINE void endstop_ISR_worker( void ) {
-  endstops.e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
-}
+#if HAS_CASE_LIGHT
 
-// One ISR for all EXT-Interrupts
-void endstop_ISR(void) { endstop_ISR_worker(); }
+  uint8_t case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
+  bool case_light_on = CASE_LIGHT_DEFAULT_ON;
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #include "HAL_DUE/endstop_interrupts.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/endstop_interrupts.h"
-#else
-  #error "Unsupported Platform!"
-#endif
+  #if DISABLED(INVERT_CASE_LIGHT)
+    #define INVERT_CASE_LIGHT false
+  #endif
 
-#endif /* _HAL_ENDSTOP_INTERRUPTS_H_ */
+  void update_case_light() {
+    HAL::pinMode(CASE_LIGHT_PIN, OUTPUT);
+    uint8_t case_light_bright = (uint8_t)case_light_brightness;
+    if (case_light_on) {
+      HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
+      HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
+    }
+    else HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
+  }
+
+#endif // HAS_CASE_LIGHT

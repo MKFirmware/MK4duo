@@ -22,7 +22,7 @@
 
 #include "../../../base.h"
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
 
 #if ENABLED(USE_WATCHDOG)
 

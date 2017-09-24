@@ -25,7 +25,7 @@
  *
  * Supports platforms:
  *    ARDUINO_ARCH_SAM : For Arduino Due and other boards based on Atmel SAM3X8E
- *    ARDUINO_ARCH_AVR : For all Atmel AVR boards
+ *    __AVR__ : For all Atmel AVR boards
  */
 
 #ifndef _HAL_H_
@@ -53,7 +53,7 @@ void spiSendBlock(uint8_t token, const uint8_t* buf);
   #include "HAL_DUE/spi_pins_Due.h"
   #include "HAL_DUE/HAL_Due.h"
   #include "HAL_DUE/communication.h"
-#elif ENABLED(ARDUINO_ARCH_AVR)
+#elif ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins_AVR.h"
   #include "HAL_AVR/HAL_AVR.h"
   #include "HAL_AVR/communication.h"

@@ -112,11 +112,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
             Printer::Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if HAS_CASE_LIGHT
-  int   Printer::case_light_brightness;
-  bool  Printer::case_light_on;
-#endif
-
 #if ENABLED(NPR2)
   uint8_t Printer::old_color = 99;
 #endif
@@ -1472,20 +1467,6 @@ void Printer::handle_Interrupt_Event() {
 
 #endif // ADVANCED_PAUSE_FEATURE
 
-#if HAS_CASE_LIGHT
-
-  void Printer::update_case_light() {
-    HAL::pinMode(CASE_LIGHT_PIN, OUTPUT);
-    uint8_t case_light_bright = (uint8_t)case_light_brightness;
-    if (case_light_on) {
-      HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
-      HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
-    }
-    else HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
-  }
-  
-#endif
-
 #if HAS_COLOR_LEDS
 
   #if HAS_NEOPIXEL
@@ -1627,45 +1608,6 @@ void Printer::setup_powerhold() {
     #endif
   #endif
 }
-
-#if HAS_CONTROLLERFAN
-
-  void Printer::controllerFan() {
-    static millis_t lastMotorOn = 0,    // Last time a motor was turned on
-                    nextMotorCheck = 0; // Last time the state was checked
-    millis_t ms = millis();
-    if (ELAPSED(ms, nextMotorCheck)) {
-      nextMotorCheck = ms + 2500UL; // Not a time critical function, so only check every 2.5s
-      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
-        || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
-        #if EXTRUDERS > 1
-          || E1_ENABLE_READ == E_ENABLE_ON
-          #if HAS_X2_ENABLE
-            || X2_ENABLE_READ == X_ENABLE_ON
-          #endif
-          #if EXTRUDERS > 2
-            || E2_ENABLE_READ == E_ENABLE_ON
-            #if EXTRUDERS > 3
-              || E3_ENABLE_READ == E_ENABLE_ON
-              #if EXTRUDERS > 4
-                || E4_ENABLE_READ == E_ENABLE_ON
-                #if EXTRUDERS > 5
-                  || E5_ENABLE_READ == E_ENABLE_ON
-                #endif
-              #endif
-            #endif
-          #endif
-        #endif
-      ) {
-        lastMotorOn = ms; //... set time to NOW so the fan will turn on
-      }
-
-      // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-      fans[CONTROLLER_INDEX].Speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? 0 : CONTROLLERFAN_SPEED;
-    }
-  }
-
-#endif // HAS_CONTROLLERFAN
 
 float Printer::calculate_volumetric_multiplier(const float diameter) {
   if (!tools.volumetric_enabled || diameter == 0) return 1.0;

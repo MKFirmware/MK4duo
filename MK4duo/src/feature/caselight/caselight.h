@@ -20,27 +20,15 @@
  *
  */
 
-/**
- * blinkm.cpp - Library for controlling a BlinkM over i2c
- * Created by Tim Koster, August 21 2013.
- */
+#ifndef __CASELIGHT_H__
+#define __CASELIGHT_H__
 
-#include "../../base.h"
+#if HAS_CASE_LIGHT
 
-#if ENABLED(BLINKM)
+  extern uint8_t case_light_brightness;
+  extern bool case_light_on;
 
-  #include "blinkm.h"
-  #include <Wire.h>
+  void update_case_light();
 
-  void SendColors(byte red, byte grn, byte blu) {
-    Wire.begin();
-    Wire.beginTransmission(0x09);
-    Wire.write('o');                    //to disable ongoing script, only needs to be used once
-    Wire.write('n');
-    Wire.write(red);
-    Wire.write(grn);
-    Wire.write(blu);
-    Wire.endTransmission();
-  }
-
-#endif // BLINKM
+#endif // HAS_CASE_LIGHT
+#endif // __CASELIGHT_H__

@@ -56,7 +56,7 @@
 
 #include "../../../base.h"
 
-#if ENABLED(ARDUINO_ARCH_AVR)
+#if ENABLED(__AVR__)
 
 #if ANALOG_INPUTS > 0
   int32_t AnalogInputRead[ANALOG_INPUTS];
@@ -378,4 +378,4 @@ HAL_TEMP_TIMER_ISR {
   HAL_ENABLE_ISRs(); // re-enable ISRs
 }
 
-#endif // ARDUINO_ARCH_AVR
+#endif // __AVR__

@@ -116,7 +116,7 @@
           if (!WITHIN(circles_to_do, 0, 100))
             SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
           while (circles_to_do--)
-            mechanics.plan_arc(current_position, arc_offset, clockwise);
+            mechanics.plan_arc(mechanics.current_position, arc_offset, clockwise);
         #endif
 
         // Send an arc to the planner
