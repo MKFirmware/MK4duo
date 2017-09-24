@@ -1,9 +1,9 @@
 /**
- * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
- * Based on Sprinter and grbl.
+ * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,16 +12,16 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
- * Marlin Firmware -- G26 - Mesh Validation Tool
+ * MK4duo Firmware -- G26 - Mesh Validation Tool
  */
 
 #include "../../../base.h"
@@ -50,8 +50,8 @@
 /**
  *   G26 Mesh Validation Tool
  *
- *   G26 is a Mesh Validation Tool intended to provide support for the Marlin Unified Bed Leveling System.
- *   In order to fully utilize and benefit from the Marlin Unified Bed Leveling System an accurate Mesh must
+ *   G26 is a Mesh Validation Tool intended to provide support for the MK4duo Unified Bed Leveling System.
+ *   In order to fully utilize and benefit from the MK4duo Unified Bed Leveling System an accurate Mesh must
  *   be defined. G29 is designed to allow the user to quickly validate the correctness of her Mesh. It will
  *   first heat the bed and nozzle. It will then print lines and circles along the Mesh Cell boundaries and
  *   the intersections of those lines (respectively).
@@ -201,7 +201,7 @@ void unified_bed_leveling::G26_line_to_destination(const float &feed_rate) {
  * nozzle in a problem area and doing a G29 P4 R command.
  */
 void unified_bed_leveling::G26() {
-  SERIAL_ECHOLNPGM("G26 command started. Waiting for heater(s).");
+  SERIAL_EM("G26 command started. Waiting for heater(s).");
   float tmp, start_angle, end_angle;
   int   i, xi, yi;
   mesh_index_pair location;
@@ -210,8 +210,8 @@ void unified_bed_leveling::G26() {
   // or if the parameter parsing did not go OK, abort
   if (mechanics.axis_unhomed_error() || parse_G26_parameters()) return;
 
-  if (mechanics.current_position[Z_AXIS] < Z_CLEARANCE_BETWEEN_PROBES) {
-    mechanics.do_blocking_move_to_z(Z_CLEARANCE_BETWEEN_PROBES);
+  if (mechanics.current_position[Z_AXIS] < Z_PROBE_BETWEEN_HEIGHT) {
+    mechanics.do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
     stepper.synchronize();
     mechanics.set_current_to_destination();
   }
@@ -252,8 +252,8 @@ void unified_bed_leveling::G26() {
    */
   float sin_table[360 / 30 + 1], cos_table[360 / 30 + 1];
   for (i = 0; i <= 360 / 30; i++) {
-    cos_table[i] = SIZE_OF_INTERSECTION_CIRCLES * cos(RADIANS(valid_trig_angle(i * 30.0)));
-    sin_table[i] = SIZE_OF_INTERSECTION_CIRCLES * sin(RADIANS(valid_trig_angle(i * 30.0)));
+    cos_table[i] = SIZE_OF_INTERSECTION_CIRCLES * COS(RADIANS(valid_trig_angle(i * 30.0)));
+    sin_table[i] = SIZE_OF_INTERSECTION_CIRCLES * SIN(RADIANS(valid_trig_angle(i * 30.0)));
   }
 
   do {
@@ -267,7 +267,7 @@ void unified_bed_leveling::G26() {
 
       // If this mesh location is outside the printable_radius, skip it.
 
-      if (!position_is_reachable_raw_xy(circle_x, circle_y)) continue;
+      if (!mechanics.position_is_reachable_raw_xy(circle_x, circle_y)) continue;
 
       xi = location.x_index;  // Just to shrink the next few lines and make them easier to understand
       yi = location.y_index;
@@ -322,7 +322,7 @@ void unified_bed_leveling::G26() {
               ye = circle_y + sin_table[tmp_div_30 + 1];
         #if IS_KINEMATIC
           // Check to make sure this segment is entirely on the bed, skip if not.
-          if (!position_is_reachable_raw_xy(x, y) || !position_is_reachable_raw_xy(xe, ye)) continue;
+          if (!mechanics.position_is_reachable_raw_xy(x, y) || !mechanics.position_is_reachable_raw_xy(xe, ye)) continue;
         #else                                              // not, we need to skip
           x  = constrain(x, X_MIN_POS + 1, X_MAX_POS - 1); // This keeps us from bumping the endstops
           y  = constrain(y, Y_MIN_POS + 1, Y_MAX_POS - 1);
@@ -353,7 +353,7 @@ void unified_bed_leveling::G26() {
   lcd_setstatusPGM(PSTR("Leaving G26"), -1);
 
   retract_filament(mechanics.destination);
-  mechanics.destination[Z_AXIS] = Z_CLEARANCE_BETWEEN_PROBES;
+  mechanics.destination[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT;
 
   //debug_current_and_destination(PSTR("ready to do Z-Raise."));
   move_to(mechanics.destination, 0); // Raise the nozzle
@@ -361,7 +361,7 @@ void unified_bed_leveling::G26() {
 
   mechanics.destination[X_AXIS] = g26_x_pos;                                               // Move back to the starting position
   mechanics.destination[Y_AXIS] = g26_y_pos;
-  //destination[Z_AXIS] = Z_CLEARANCE_BETWEEN_PROBES;                        // Keep the nozzle where it is
+  //destination[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT;                        // Keep the nozzle where it is
 
   move_to(mechanics.destination, 0); // Move back to the starting position
   //debug_current_and_destination(PSTR("done doing X/Y move."));
@@ -447,7 +447,7 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
             sy = ey = constrain(mesh_index_to_ypos(j), Y_MIN_POS + 1, Y_MAX_POS - 1);
             ex = constrain(ex, X_MIN_POS + 1, X_MAX_POS - 1);
 
-            if (position_is_reachable_raw_xy(sx, sy) && position_is_reachable_raw_xy(ex, ey)) {
+            if (mechanics.position_is_reachable_raw_xy(sx, sy) && mechanics.position_is_reachable_raw_xy(ex, ey)) {
 
               if (g26_debug_flag) {
                 SERIAL_MV(" Connecting with horizontal line (sx=", sx);
@@ -529,7 +529,7 @@ void unified_bed_leveling::move_to(const float &x, const float &y, const float &
   // Yes: a 'normal' movement. No: a retract() or recover()
   feed_value = has_xy_component ? PLANNER_XY_FEEDRATE() / 10.0 : mechanics.max_feedrate_mm_s[E_AXIS] / 1.5;
 
-  if (g26_debug_flag) SERIAL_ECHOLNPAIR("in move_to() feed_value for XY:", feed_value);
+  if (g26_debug_flag) SERIAL_EMV("in move_to() feed_value for XY:", feed_value);
 
   mechanics.destination[X_AXIS] = x;
   mechanics.destination[Y_AXIS] = y;
@@ -725,9 +725,9 @@ bool unified_bed_leveling::parse_G26_parameters() {
     return UBL_ERR;
   }
 
-  g26_x_pos = parser.linearval('X', current_position[X_AXIS]);
-  g26_y_pos = parser.linearval('Y', current_position[Y_AXIS]);
-  if (!position_is_reachable_xy(g26_x_pos, g26_y_pos)) {
+  g26_x_pos = parser.linearval('X', mechanics.current_position[X_AXIS]);
+  g26_y_pos = parser.linearval('Y', mechanics.current_position[Y_AXIS]);
+  if (!mechanics.position_is_reachable_xy(g26_x_pos, g26_y_pos)) {
     SERIAL_EM("?Specified X,Y coordinate out of bounds.");
     return UBL_ERR;
   }
