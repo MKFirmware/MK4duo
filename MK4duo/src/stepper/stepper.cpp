@@ -348,7 +348,7 @@ volatile long Stepper::endstops_trigsteps[XYZ];
  *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
 void Stepper::wake_up() {
-  #if ENABLED(CPU_32_BIT)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     //
   #else
     //  TCNT1 = 0;
@@ -490,7 +490,7 @@ void Stepper::isr() {
 
       _NEXT_ISR(ocr_val);
 
-      #if ENABLED(CPU_32_BIT)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                         stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
         HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
@@ -515,7 +515,7 @@ void Stepper::isr() {
     return;
   }
 
-  #if ENABLED(CPU_32_BIT)
+  #if ENABLED(ARDUINO_ARCH_SAM)
     #if ENABLED(LASER)
       if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
         if (laser.diagnostics)
@@ -548,7 +548,7 @@ void Stepper::isr() {
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
 
       #if ENABLED(LASER)
-        #if ENABLED(CPU_32_BIT)
+        #if ENABLED(ARDUINO_ARCH_SAM)
           counter_L = 1000 * counter_X;
         #else
           counter_L = counter_X;
@@ -846,7 +846,7 @@ void Stepper::isr() {
           }
         #endif // LASER_RASTER
         
-        #if ENABLED(CPU_32_BIT)
+        #if ENABLED(ARDUINO_ARCH_SAM)
           counter_L -= 1000 * current_block->step_event_count;
         #else
           counter_L -= current_block->step_event_count;
@@ -1023,7 +1023,7 @@ void Stepper::isr() {
   }
 
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-    #if ENABLED(CPU_32_BIT)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
       NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US));
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count);
@@ -1037,7 +1037,7 @@ void Stepper::isr() {
     current_block = NULL;
     planner.discard_current_block();
 
-    #if ENABLED(CPU_32_BIT)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       #if ENABLED(LASER)
         laser.extinguish();
       #endif
@@ -1183,7 +1183,7 @@ void Stepper::isr() {
     }
   
     // Don't run the ISR faster than possible
-    #if ENABLED(CPU_32_BIT)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                       stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);

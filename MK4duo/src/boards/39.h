@@ -168,7 +168,7 @@
 //@@@
 
 //###UNKNOWN_PINS
-#define MAX6675_SS              66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+#define MAX6675_SS_PIN              66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
 //@@@
 
 //###IF_BLOCKS

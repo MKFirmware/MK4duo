@@ -126,7 +126,22 @@
   /**
    * Initialize Heater
    */
-  void Heater::init() { HAL::pinMode(this->output_pin, OUTPUT); }
+  void Heater::init() {
+    if (this->output_pin > -1)
+      HAL::pinMode(this->output_pin, OUTPUT);
+
+    #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+      if (this->sensor_type == -2 || this->sensor_type == -1) {
+        OUT_WRITE(SCK_PIN, LOW);
+        OUT_WRITE(MOSI_PIN, HIGH);
+        SET_INPUT_PULLUP(MISO_PIN);
+        OUT_WRITE(SS_PIN, HIGH);
+
+        HAL::pinMode(this->output_pin, OUTPUT);
+        HAL::digitalWrite(this->output_pin, HIGH);
+      }
+    #endif
+  }
 
   void Heater::setTarget(int16_t celsius) {
 

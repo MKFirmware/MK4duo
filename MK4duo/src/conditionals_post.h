@@ -703,14 +703,9 @@
  * Temp Sensor defines
  */
 #if TEMP_SENSOR_0 == -3
-  #define HEATER_0_USES_MAX6675
-  #define MAX6675_IS_MAX31855
-  #define MAX6675_TMIN -270
-  #define MAX6675_TMAX 1800
+  #define SUPPORT_MAX31855
 #elif TEMP_SENSOR_0 == -2
-  #define HEATER_0_USES_MAX6675
-  #define MAX6675_TMIN 0
-  #define MAX6675_TMAX 1024
+  #define SUPPORT_MAX6675
 #elif TEMP_SENSOR_0 == -1
   #define HEATER_0_USES_AD595
 #elif TEMP_SENSOR_0 > 0
@@ -718,8 +713,14 @@
   #define HEATER_0_USES_THERMISTOR
 #endif
 
-#if TEMP_SENSOR_1 <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_1"
+#if TEMP_SENSOR_1 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_1 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
 #elif TEMP_SENSOR_1 == -1
   #define HEATER_1_USES_AD595
 #elif TEMP_SENSOR_1 > 0
@@ -727,8 +728,14 @@
   #define HEATER_1_USES_THERMISTOR
 #endif
 
-#if TEMP_SENSOR_2 <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_2"
+#if TEMP_SENSOR_2 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_2 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
 #elif TEMP_SENSOR_2 == -1
   #define HEATER_2_USES_AD595
 #elif TEMP_SENSOR_2 > 0
@@ -736,8 +743,14 @@
   #define HEATER_2_USES_THERMISTOR
 #endif
 
-#if TEMP_SENSOR_3 <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_3"
+#if TEMP_SENSOR_3 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_3 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
 #elif TEMP_SENSOR_3 == -1
   #define HEATER_3_USES_AD595
 #elif TEMP_SENSOR_3 > 0
@@ -754,14 +767,18 @@
   #define BED_USES_THERMISTOR
 #endif
 
-#if TEMP_SENSOR_CHAMBER == -1
+#if TEMP_SENSOR_CHAMBER <= -2
+  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_CHAMBER"
+#elif TEMP_SENSOR_CHAMBER == -1
   #define CHAMBER_USES_AD595
 #elif TEMP_SENSOR_CHAMBER > 0
   #define THERMISTORCHAMBER TEMP_SENSOR_CHAMBER
   #define CHAMBER_USES_THERMISTOR
 #endif
 
-#if TEMP_SENSOR_COOLER == -1
+#if TEMP_SENSOR_COOLER <= -2
+  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_COOLER"
+#elif TEMP_SENSOR_COOLER == -1
   #define COOLER_USES_AD595
 #elif TEMP_SENSOR_COOLER > 0
   #define THERMISTORCOOLER TEMP_SENSOR_COOLER
@@ -1160,7 +1177,7 @@
   #define _Z_PROBE_DEPLOY_HEIGHT (Z_MAX_POS / 2)
 #endif
 
-#if ENABLED(CPU_32_BIT)
+#if ENABLED(ARDUINO_ARCH_SAM)
   // Add additional delay for between direction signal and pulse signal of stepper
   #if DISABLED(STEPPER_DIRECTION_DELAY)
     #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
