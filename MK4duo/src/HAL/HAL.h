@@ -49,7 +49,6 @@ void spiSend(const uint8_t* buf, size_t n);
 void spiSendBlock(uint8_t token, const uint8_t* buf);
 
 #if ENABLED(ARDUINO_ARCH_SAM)
-  #define CPU_32_BIT
   #include "HAL_DUE/spi_pins_Due.h"
   #include "HAL_DUE/HAL_Due.h"
   #include "HAL_DUE/communication.h"
