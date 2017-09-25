@@ -1040,7 +1040,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     HAL::digitalWrite(MAX6675_SS, 0);  // enable TT_MAX6675
 
     // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(CPU_32_BIT)
+    #if ENABLED(ARDUINO_ARCH_SAM)
       HAL::delayMicroseconds(1);
     #else
       asm("nop");//50ns on 20Mhz, 62.5ns on 16Mhz
@@ -1050,8 +1050,8 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     // Read a big-endian temperature value
     max6675_temp = 0;
     for (uint8_t i = sizeof(max6675_temp); i--;) {
-      #if ENABLED(CPU_32_BIT)
-        max6675_temp |= HAL::spiReceive();
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        max6675_temp |= spiReceive();
       #else
         SPDR = 0;
         for (;!TEST(SPSR, SPIF););

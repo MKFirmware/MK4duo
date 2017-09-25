@@ -1160,7 +1160,7 @@
   #define _Z_PROBE_DEPLOY_HEIGHT (Z_MAX_POS / 2)
 #endif
 
-#if ENABLED(CPU_32_BIT)
+#if ENABLED(ARDUINO_ARCH_SAM)
   // Add additional delay for between direction signal and pulse signal of stepper
   #if DISABLED(STEPPER_DIRECTION_DELAY)
     #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
