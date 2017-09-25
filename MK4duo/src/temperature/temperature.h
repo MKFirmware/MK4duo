@@ -243,8 +243,12 @@ class Temperature {
 
     static uint8_t get_pid_output(const int8_t h);
 
-    #if ENABLED(HEATER_0_USES_MAX6675)
-      static int read_max6675();
+    #if ENABLED(SUPPORT_MAX6675)
+      static int16_t read_max6675(const Pin ss_pin, const int8_t h);
+    #endif
+
+    #if ENABLED(SUPPORT_MAX31855)
+      static int16_t read_max31855(const Pin ss_pin);
     #endif
 
     static void checkExtruderAutoFans();

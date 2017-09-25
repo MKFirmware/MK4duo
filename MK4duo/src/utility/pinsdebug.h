@@ -449,8 +449,8 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(MAIN_VOLTAGE_MEASURE)
     PIN_SAY(MAIN_VOLTAGE_MEASURE_PIN);
   #endif
-  #if ENABLED(MAX6675_SS) && MAX6675_SS >= 0
-    PIN_SAY(MAX6675_SS);
+  #if PIN_EXISTS(MAX6675_SS)
+    PIN_SAY(MAX6675_SS_PIN);
   #endif
   #if PIN_EXISTS(MISO)
     PIN_SAY(MISO_PIN);

@@ -159,6 +159,8 @@ void HAL::analogStart() {
 
     uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
 
+    if (!WITHIN(channel, 0, 15)) channel = 0;
+
     #if ENABLED(ADCSRB) && ENABLED(MUX5)
       if (channel & 8)  // Reading channel 0-7 or 8-15?
         ADCSRB |= _BV(MUX5);
@@ -323,6 +325,7 @@ HAL_TEMP_TIMER_ISR {
           HAL::Analog_is_ready = true;
         }
         uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+        if (!WITHIN(channel, 0, 15)) channel = 0;
         #if ENABLED(ADCSRB) && ENABLED(MUX5)
           if (channel & 8)  // Reading channel 0-7 or 8-15?
             ADCSRB |= _BV(MUX5);
