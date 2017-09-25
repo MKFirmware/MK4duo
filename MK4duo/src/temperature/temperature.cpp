@@ -1051,7 +1051,8 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     max6675_temp = 0;
     for (uint8_t i = sizeof(max6675_temp); i--;) {
       #if ENABLED(CPU_32_BIT)
-        max6675_temp |= HAL::spiReceive();
+        // max6675_temp |= HAL::spiReceive();
+        max6675_temp |= spiReceive();
       #else
         SPDR = 0;
         for (;!TEST(SPSR, SPIF););
