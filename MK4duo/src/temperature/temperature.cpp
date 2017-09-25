@@ -1004,7 +1004,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     static millis_t last_max6675_read[HOTENDS]  = ARRAY_BY_HOTENDS(0);
     static int16_t  max6675_temp[HOTENDS]       = ARRAY_BY_HOTENDS(2000);
 
-    if (HAL::timeInMilliseconds() - last_max6675_read[idx] > 230) {
+    if (HAL::timeInMilliseconds() - last_max6675_read[h] > 230) {
 
       spiBegin();
       spiInit(2);
