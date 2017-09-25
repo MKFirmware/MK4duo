@@ -155,12 +155,12 @@ void HAL::hwSetup(void) {
     OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
 
     /* setup CS pins */
-    OUT_WRITE(MAX31855_SS0, HIGH);
-    OUT_WRITE(MAX31855_SS1, HIGH);
-    OUT_WRITE(MAX31855_SS2, HIGH);
-    OUT_WRITE(MAX31855_SS3, HIGH);
+    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
+    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
+    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
+    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
 
-    OUT_WRITE(ENC424_SS, HIGH);
+    OUT_WRITE(ENC424_SS_PIN, HIGH);
     OUT_WRITE(SS_PIN, HIGH);
 
     SET_INPUT(MISO);
@@ -236,14 +236,20 @@ int HAL::getFreeRam() {
       adcSamplesMax[i] = 0;
 
       #if ANALOG_INPUTS > HEATER_COUNT
-        if (i >= HEATER_COUNT)
+        if (i >= HEATER_COUNT) {
           adc_ch = PinToAdcChannel(AnalogInputChannels[i]);
+          adc_enable_channel(ADC, adc_ch);
+          adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+        }
         else
       #endif
-        adc_ch = PinToAdcChannel(heaters[i].sensor_pin);
-
-      adc_enable_channel(ADC, adc_ch);
-      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+      {
+        if (WITHIN(heaters[i].sensor_pin, 0, 15)) {
+          adc_ch = PinToAdcChannel(heaters[i].sensor_pin);
+          adc_enable_channel(ADC, adc_ch);
+          adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+        }
+      }
 
       AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
       for (int j = 0; j < MEDIAN_COUNT; j++)
@@ -585,13 +591,18 @@ HAL_TEMP_TIMER_ISR {
         uint32_t cur = 0;
 
         #if ANALOG_INPUTS > HEATER_COUNT
-          if (i >= HEATER_COUNT)
+          if (i >= HEATER_COUNT) {
             adc_ch = HAL::PinToAdcChannel(AnalogInputChannels[i]);
+            cur = adc_get_channel_value(ADC, adc_ch);
+          }
           else
         #endif
-          adc_ch = HAL::PinToAdcChannel(heaters[i].sensor_pin);
-
-        cur = adc_get_channel_value(ADC, adc_ch);
+        {
+          if (WITHIN(heaters[i].sensor_pin, 0, 15)) {
+            adc_ch = HAL::PinToAdcChannel(heaters[i].sensor_pin);
+            cur = adc_get_channel_value(ADC, adc_ch);
+          }
+        }
 
         if (i != MCU_ANALOG_INDEX) cur = (cur >> 2); // Convert to 10 bit result
 
