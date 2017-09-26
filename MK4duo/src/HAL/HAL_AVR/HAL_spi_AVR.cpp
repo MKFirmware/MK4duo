@@ -48,20 +48,52 @@
 // Public functions
 // --------------------------------------------------------------------------
 
-void spiBegin(void) {
-  #if SS_PIN >= 0
-    SET_INPUT(MISO_PIN);
-    SET_OUTPUT(MOSI_PIN);
-    SET_OUTPUT(SCK_PIN);
-    // SS must be in output mode even it is not chip select
-    SET_OUTPUT(SS_PIN);
-    // set SS high - may be chip select for another SPI device
-    WRITE(SS_PIN, HIGH);
-  #endif
-}
+#if ENABLED(SOFTWARE_SPI)
 
-//------------------------------------------------------------------------------
-#if DISABLED(SOFTWARE_SPI) // functions for hardware SPI
+  #include <SoftSPI.h>
+
+  static SoftSPI<SOFT_SPI_MISO_PIN, SOFT_SPI_MOSI_PIN, SOFT_SPI_SCK_PIN, 0> softSpiBus;
+
+  void HAL::spiBegin() { softSpiBus.begin(); }
+  
+  /** Set SPI rate */
+  void HAL::spiInit(uint8_t spiRate) { UNUSED(spiRate); }
+
+  /** Soft SPI receive byte */
+  uint8_t HAL::spiReceive(void) { return softSpiBus.receive(); }
+
+  /** Soft SPI read data */
+  uint8_t HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
+    for (size_t i = 0; i < nbyte; i++) {
+      buf[i] = spiReceive();
+    }
+    return 0;
+  }
+
+  /** Soft SPI send byte */
+  void HAL::spiSend(uint8_t b) { softSpiBus.send(b); }
+
+  /** Soft SPI send block */
+  void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
+    spiSend(token);
+    for (uint16_t i = 0; i < 512; i++) {
+      spiSend(buf[i]);
+    }
+  }
+
+#else // HARDWARE_SPI
+  
+  void HAL::spiBegin(void) {
+    #if SS_PIN >= 0
+      SET_INPUT(MISO_PIN);
+      SET_OUTPUT(MOSI_PIN);
+      SET_OUTPUT(SCK_PIN);
+      // SS must be in output mode even it is not chip select
+      SET_OUTPUT(SS_PIN);
+      // set SS high - may be chip select for another SPI device
+      WRITE(SS_PIN, HIGH);
+    #endif
+  }
 
   // make sure SPCR rate is in expected bits
   #if (SPR0 != 0 || SPR1 != 1)
@@ -72,7 +104,7 @@ void spiBegin(void) {
    * Initialize hardware SPI
    * Set SCK rate to F_CPU/pow(2, 1 + spiRate) for spiRate [0,6]
    */
-  void spiInit(uint8_t spiRate) {
+  void HAL::spiInit(uint8_t spiRate) {
     uint8_t r = 0;
     for (uint8_t b = 2; spiRate > b && r < 6; b <<= 1, r++);
 
@@ -91,32 +123,13 @@ void spiBegin(void) {
     SPSR = (r & 1 || r == 6 ? 0 : 1) << SPI2X;
   }
 
-  /** SPI receive a byte */
-  uint8_t spiReceive(void) {
-    SPDR = 0XFF;
-    while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
-    return SPDR;
-  }
-
-  /** SPI read data  */
-  void spiRead(uint8_t* buf, uint16_t nbyte) {
-    if (nbyte-- == 0) return;
-    SPDR = 0XFF;
-    for (uint16_t i = 0; i < nbyte; i++) {
-      while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
-      buf[i] = SPDR;
-      SPDR = 0XFF;
-    }
-    while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
-    buf[nbyte] = SPDR;
-  }
-
-  /** SPI send a byte */
-  void spiSend(uint8_t b) {
+   /** SPI send a byte */
+  void HAL::spiSend(byte b) {
     SPDR = b;
     while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
   }
-  void spiSend(const uint8_t* buf, size_t n) {
+
+  void HAL::spiSend(const uint8_t* buf, size_t n) {
     if (n == 0) return;
     SPDR = buf[0];
     if (n > 1) {
@@ -133,7 +146,7 @@ void spiBegin(void) {
   }
 
   /** SPI send block  */
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
+  void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
     SPDR = token;
     for (uint16_t i = 0; i < 512; i += 2) {
       while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
@@ -144,39 +157,26 @@ void spiBegin(void) {
     while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
   }
 
-#else  // SOFTWARE_SPI
-
-  #include <SoftSPI.h>
-
-  static SoftSPI<SOFT_SPI_MISO_PIN, SOFT_SPI_MOSI_PIN, SOFT_SPI_SCK_PIN, 0> softSpiBus;
-
-  void spiBegin() { softSpiBus.begin(); }
-  
-  /** Set SPI rate */
-  void spiInit(uint8_t spiRate) { UNUSED(spiRate); }
-
-  /** Soft SPI receive byte */
-  uint8_t spiReceive(void) { return softSpiBus.receive(); }
-
-  /** Soft SPI read data */
-  uint8_t spiRead(uint8_t* buf, size_t nbyte) {
-    for (size_t i = 0; i < nbyte; i++) {
-      buf[i] = spiReceive();
-    }
-    return 0;
+  /** SPI receive a byte */
+  uint8_t HAL::spiReceive(uint8_t send/*=0xFF*/) {
+    SPDR = send;
+    while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
+    return SPDR;
   }
 
-  /** Soft SPI send byte */
-  void spiSend(uint8_t data) { softSpiBus.send(data); }
-
-  /** Soft SPI send block */
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
-    spiSend(token);
-    for (uint16_t i = 0; i < 512; i++) {
-      spiSend(buf[i]);
+  /** SPI read data  */
+  void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
+    if (nbyte-- == 0) return;
+    SPDR = 0XFF;
+    for (uint16_t i = 0; i < nbyte; i++) {
+      while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
+      buf[i] = SPDR;
+      SPDR = 0XFF;
     }
+    while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
+    buf[nbyte] = SPDR;
   }
 
-#endif  // SOFTWARE_SPI
+#endif  // HARDWARE_SPI
 
 #endif // __AVR__

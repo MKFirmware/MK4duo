@@ -54,7 +54,7 @@
   // --------------------------------------------------------------------------
   // bitbanging transfer
   // run at ~100KHz (necessary for init)
-  static uint8_t spiTransfer(uint8_t b) { // using Mode 0
+  static uint8_t HAL::spiTransfer(uint8_t b) { // using Mode 0
     for (int bits = 0; bits < 8; bits++) {
       if (b & 0x80) {
         WRITE(MOSI_PIN, HIGH);
@@ -76,7 +76,7 @@
     return b;
   }
 
-  void spiBegin(void) {
+  void HAL::spiBegin(void) {
     SET_OUTPUT(SS_PIN);
     WRITE(SS_PIN, HIGH);
     SET_OUTPUT(SCK_PIN);
@@ -84,21 +84,21 @@
     SET_OUTPUT(MOSI_PIN);
   }
 
-  void spiInit(uint8_t spiRate) {
+  void HAL::spiInit(uint8_t spiRate) {
     UNUSED(spiRate);
     WRITE(SS_PIN, HIGH);
     WRITE(MOSI_PIN, HIGH);
     WRITE(SCK_PIN, LOW);
   }
 
-  uint8_t spiReceive(void) {
+  uint8_t HAL::spiReceive(void) {
     WRITE(SS_PIN, LOW);
     uint8_t b = spiTransfer(0xff);
     WRITE(SS_PIN, HIGH);
     return b;
   }
 
-  void spiRead(uint8_t* buf, uint16_t nbyte) {
+  void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
     if (nbyte == 0) return;
     WRITE(SS_PIN, LOW);
     for (int i = 0; i < nbyte; i++) {
@@ -107,14 +107,14 @@
     WRITE(SS_PIN, HIGH);
   }
 
-  void spiSend(uint8_t b) {
+  void HAL::spiSend(uint8_t b) {
     WRITE(SS_PIN, LOW);
     uint8_t response = spiTransfer(b);
     UNUSED(response);
     WRITE(SS_PIN, HIGH);
   }
 
-  void spiSend(const uint8_t* buf, size_t n) {
+  void HAL::spiSend(const uint8_t* buf, size_t n) {
     uint8_t response;
     if (n == 0) return;
     WRITE(SS_PIN, LOW);
@@ -125,7 +125,7 @@
     WRITE(SS_PIN, HIGH);
   }
 
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
+  void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
     uint8_t response;
 
     WRITE(SS_PIN, LOW);
@@ -146,7 +146,7 @@
   int spiDueDividors[] = { 10, 21, 42, 84, 168, 255, 255 };
   static bool spiInitMaded = false;
 
-  void spiBegin() {
+  void HAL::spiBegin() {
 
     if (spiInitMaded == false) {
 
@@ -201,7 +201,7 @@
     }
   }
 
-  void spiInit(uint8_t spiRate) {
+  void HAL::spiInit(uint8_t spiRate) {
     if (spiInitMaded == false) {
       if (spiRate > 6) spiRate = 1;
 
@@ -227,7 +227,7 @@
   }
 
   // Write single byte to SPI
-  void spiSend(byte b) {
+  void HAL::spiSend(byte b) {
     // write byte with address and end transmission flag
     SPI0->SPI_TDR = (uint32_t)b | SPI_PCS(SPI_CHAN) | SPI_TDR_LASTXFER;
     // wait for transmit register empty
@@ -239,7 +239,7 @@
     //delayMicroseconds(1U);
   }
 
-  void spiSend(const uint8_t* buf, size_t n) {
+  void HAL::spiSend(const uint8_t* buf, size_t n) {
     if (n == 0) return;
     for (size_t i = 0; i < n - 1; i++) {
       // write buf with address
@@ -253,7 +253,7 @@
     spiSend(buf[n - 1]);
   }
 
-  void spiSend(uint32_t chan, byte b) {
+  void HAL::spiSend(uint32_t chan, byte b) {
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     // write byte with address and end transmission flag
@@ -264,7 +264,7 @@
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
   }
 
-  void spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
+  void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
     if (n == 0) return;
     for (int i = 0; i < (int)n - 1; i++) {
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
@@ -278,7 +278,7 @@
   }
 
   // Read single byte from SPI
-  uint8_t spiReceive(void) {
+  uint8_t HAL::spiReceive(void) {
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(SPI_CHAN) | SPI_TDR_LASTXFER;
     // wait for transmit register empty
@@ -289,12 +289,18 @@
     return SPI0->SPI_RDR;
   }
 
-  uint8_t spiReceive(uint32_t chan) {
+  uint8_t HAL::spiReceive(uint32_t chan) {
+
+    uint8_t spirec_tmp;
+
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
-    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1) SPI0->SPI_RDR;
+    while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
+      spirec_tmp = SPI0->SPI_RDR;
+
     // write dummy byte with address and end transmission flag
     SPI0->SPI_TDR = 0x000000FF | SPI_PCS(chan) | SPI_TDR_LASTXFER;
+
     // wait for receive register
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
     // get byte from receive register
@@ -302,7 +308,7 @@
   }
 
   // Read from SPI into buffer
-  void spiRead(uint8_t* buf, uint16_t nbyte) {
+  void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
     if (nbyte-- == 0) return;
     for (int i = 0; i < nbyte; i++) {
       //while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
@@ -314,7 +320,7 @@
   }
 
   // Write from buffer to SPI
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
+  void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
     SPI0->SPI_TDR = (uint32_t)token | SPI_PCS(SPI_CHAN);
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     //while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
@@ -327,6 +333,7 @@
     }
     spiSend(buf[511]);
   }
+
 #endif // ENABLED(SOFTWARE_SPI)
 
 #endif // ARDUINO_ARCH_SAM
