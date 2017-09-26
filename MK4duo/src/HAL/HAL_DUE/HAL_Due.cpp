@@ -68,20 +68,19 @@ extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
 #if ANALOG_INPUTS > 0
-  int32_t   AnalogInputRead[ANALOG_INPUTS],
-            AnalogSamples[ANALOG_INPUTS][MEDIAN_COUNT],
-            AnalogSamplesSum[ANALOG_INPUTS],
-            adcSamplesMin[ANALOG_INPUTS],
-            adcSamplesMax[ANALOG_INPUTS];
+  int32_t   AnalogInputRead[NUM_ANALOG_INPUTS],
+            AnalogSamples[NUM_ANALOG_INPUTS][MEDIAN_COUNT],
+            AnalogSamplesSum[NUM_ANALOG_INPUTS],
+            adcSamplesMin[NUM_ANALOG_INPUTS],
+            adcSamplesMax[NUM_ANALOG_INPUTS];
   int       adcCounter = 0,
             adcSamplePos = 0;
   uint32_t  adcEnable = 0;
 
-  volatile int16_t  HAL::AnalogInputValues[ANALOG_INPUTS] = { 0 };
+  volatile int16_t  HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool              HAL::Analog_is_ready = false;
 #endif
 
-constexpr uint8_t AnalogInputChannels[] = ANALOG_INPUT_CHANNELS;
 static unsigned int cycle_100ms = 0;
 
 // disable interrupts
@@ -211,8 +210,6 @@ int HAL::getFreeRam() {
   // Initialize ADC channels
   void HAL::analogStart(void) {
 
-    adc_channel_num_t adc_ch;
-
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       PIO_Configure(
         g_APinDescription[58].pPort,
@@ -230,31 +227,40 @@ int HAL::getFreeRam() {
     ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
     pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-    for (int i = 0; i < ANALOG_INPUTS; i++) {
+    for (int i = 0; i < NUM_ANALOG_INPUTS; i++) {
       AnalogInputValues[i] = 0;
       adcSamplesMin[i] = 100000;
       adcSamplesMax[i] = 0;
-
-      #if ANALOG_INPUTS > HEATER_COUNT
-        if (i >= HEATER_COUNT) {
-          adc_ch = PinToAdcChannel(AnalogInputChannels[i]);
-          adc_enable_channel(ADC, adc_ch);
-          adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
-        }
-        else
-      #endif
-      {
-        if (WITHIN(heaters[i].sensor_pin, 0, 15)) {
-          adc_ch = PinToAdcChannel(heaters[i].sensor_pin);
-          adc_enable_channel(ADC, adc_ch);
-          adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
-        }
-      }
-
       AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
-      for (int j = 0; j < MEDIAN_COUNT; j++)
+      for (uint8_t j = 0; j < MEDIAN_COUNT; j++)
         AnalogSamples[i][j] = 2048;
     }
+
+    LOOP_HEATER() {
+      if (WITHIN(heaters[h].sensor_pin, 0, 15)) {
+        adc_channel_num_t adc_ch = PinToAdcChannel(heaters[h].sensor_pin);
+        AdcEnableChannel(adc_ch);
+        adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+      }
+    }
+
+    #if HAS_FILAMENT_SENSOR
+      adc_channel_num_t adc_ch = PinToAdcChannel(FILWIDTH_PIN);
+      AdcEnableChannel(adc_ch);
+      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+    #endif
+
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      adc_channel_num_t adc_ch = PinToAdcChannel(POWER_CONSUMPTION_PIN);
+      AdcEnableChannel(adc_ch);
+      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+    #endif
+
+    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+      adc_channel_num_t adc_ch = PinToAdcChannel(ADC_TEMPERATURE_SENSOR);
+      AdcEnableChannel(adc_ch);
+      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+    #endif
 
     adc_set_resolution(ADC, ADC_10_BITS); /* ADC 10-bit resolution */
 
@@ -495,6 +501,30 @@ bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) 
   return false;
 }
 
+void get_adc_value(const Pin s_pin) {
+
+  uint32_t cur = 0;
+
+  adc_channel_num_t adc_ch = HAL::PinToAdcChannel(s_pin);
+  cur = adc_get_channel_value(ADC, adc_ch);
+
+  if (s_pin != ADC_TEMPERATURE_SENSOR) cur = (cur >> 2); // Convert to 10 bit result
+
+  AnalogInputRead[s_pin] += cur;
+  adcSamplesMin[s_pin] = min(adcSamplesMin[s_pin], cur);
+  adcSamplesMax[s_pin] = max(adcSamplesMax[s_pin], cur);
+
+  if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
+    AnalogInputRead[s_pin] = AnalogInputRead[s_pin] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[s_pin] + adcSamplesMax[s_pin]);
+    adcSamplesMin[s_pin] = 100000;
+    adcSamplesMax[s_pin] = 0;
+    AnalogSamplesSum[s_pin] -= AnalogSamples[s_pin][adcSamplePos];
+    AnalogSamplesSum[s_pin] += (AnalogSamples[s_pin][adcSamplePos] = AnalogInputRead[s_pin] >> OVERSAMPLENR);
+    HAL::AnalogInputValues[s_pin] = AnalogSamplesSum[s_pin] / MEDIAN_COUNT;
+    AnalogInputRead[s_pin] = 0;
+  } // adcCounter >= NUM_ADC_SAMPLES
+}
+  
 /**
  * Timer 0 is is called 3906 timer per second.
  * It is used to update pwm values for heater and some other frequent jobs.
@@ -587,38 +617,23 @@ HAL_TEMP_TIMER_ISR {
 
     if (adc_get_status(ADC)) { // conversion finished?
       adcCounter++;
-      for (int i = 0; i < ANALOG_INPUTS; i++) {
-        uint32_t cur = 0;
 
-        #if ANALOG_INPUTS > HEATER_COUNT
-          if (i >= HEATER_COUNT) {
-            adc_ch = HAL::PinToAdcChannel(AnalogInputChannels[i]);
-            cur = adc_get_channel_value(ADC, adc_ch);
-          }
-          else
-        #endif
-        {
-          if (WITHIN(heaters[i].sensor_pin, 0, 15)) {
-            adc_ch = HAL::PinToAdcChannel(heaters[i].sensor_pin);
-            cur = adc_get_channel_value(ADC, adc_ch);
-          }
-        }
+      LOOP_HEATER() {
+        if (WITHIN(heaters[h].sensor_pin, 0, 15))
+          get_adc_value(heaters[h].sensor_pin);
+      }
 
-        if (i != MCU_ANALOG_INDEX) cur = (cur >> 2); // Convert to 10 bit result
+      #if HAS_FILAMENT_SENSOR
+        get_adc_value(FILWIDTH_PIN);
+      #endif
 
-        AnalogInputRead[i] += cur;
-        adcSamplesMin[i] = min(adcSamplesMin[i], cur);
-        adcSamplesMax[i] = max(adcSamplesMax[i], cur);
-        if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
-          AnalogInputRead[i] = AnalogInputRead[i] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[i] + adcSamplesMax[i]);
-          adcSamplesMin[i] = 100000;
-          adcSamplesMax[i] = 0;
-          AnalogSamplesSum[i] -= AnalogSamples[i][adcSamplePos];
-          AnalogSamplesSum[i] += (AnalogSamples[i][adcSamplePos] = AnalogInputRead[i] >> OVERSAMPLENR);
-          HAL::AnalogInputValues[i] = AnalogSamplesSum[i] / MEDIAN_COUNT;
-          AnalogInputRead[i] = 0;
-        } // adcCounter >= NUM_ADC_SAMPLES
-      } // for i
+      #if HAS_POWER_CONSUMPTION_SENSOR
+        get_adc_value(POWER_CONSUMPTION_PIN);
+      #endif
+
+      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+        get_adc_value(ADC_TEMPERATURE_SENSOR);
+      #endif
 
       if (adcCounter >= NUM_ADC_SAMPLES) {
         adcCounter = 0;

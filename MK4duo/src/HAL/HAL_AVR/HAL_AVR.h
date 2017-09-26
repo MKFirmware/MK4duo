@@ -362,7 +362,7 @@ class HAL {
   public: /** Public Parameters */
 
     #if ANALOG_INPUTS > 0
-      static int16_t AnalogInputValues[ANALOG_INPUTS];
+      static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
       static bool Analog_is_ready;
     #endif
 

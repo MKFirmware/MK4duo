@@ -195,6 +195,8 @@ static const Pin  NoPin = -1;
 // TEMPERATURE
 #undef analogInputToDigitalPin
 #define analogInputToDigitalPin(p) ((p < 12) ? (p) + 54 : -1)
+#undef NUM_ANALOG_INPUTS
+#define NUM_ANALOG_INPUTS 16
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
 #define ANALOG_REDUCE_BITS 0
@@ -225,7 +227,7 @@ class HAL {
   public: /** Public Parameters */
 
     #if ANALOG_INPUTS > 0
-      static volatile int16_t AnalogInputValues[ANALOG_INPUTS];
+      static volatile int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
       static bool Analog_is_ready;
       static adc_channel_num_t PinToAdcChannel(Pin pin);
     #endif
