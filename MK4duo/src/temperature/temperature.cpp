@@ -1006,8 +1006,8 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
     if (HAL::timeInMilliseconds() - last_max6675_read[h] > 230) {
 
-      spiBegin();
-      spiInit(2);
+      HAL::spiBegin();
+      HAL::spiInit(2);
 
       HAL::digitalWrite(ss_pin, LOW); // enable TT_MAX6675
 
@@ -1019,9 +1019,9 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
         asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
       #endif
 
-      max6675_temp[h] = spiReceive();
+      max6675_temp[h] = HAL::spiReceive(0);
       max6675_temp[h] <<= 8;
-      max6675_temp[h] |= spiReceive();
+      max6675_temp[h] |= HAL::spiReceive(0);
 
       HAL::digitalWrite(ss_pin, HIGH); // disable TT_MAX6675
       last_max6675_read[h] = millis();
@@ -1049,8 +1049,8 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     uint32_t data = 0;
     int16_t temperature;
 
-    spiBegin();
-    spiInit(2);
+    HAL::spiBegin();
+    HAL::spiInit(2);
 
     HAL::digitalWrite(ss_pin, LOW); // enable TT_MAX31855
 
@@ -1064,7 +1064,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
     for (uint16_t byte = 0; byte < 4; byte++) {
       data <<= 8;
-      data |= spiReceive();
+      data |= HAL::spiReceive();
     }
 
     HAL::digitalWrite(ss_pin, 1); // disable TT_MAX31855

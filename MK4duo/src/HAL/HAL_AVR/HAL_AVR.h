@@ -352,11 +352,14 @@ void HAL_stepper_timer_start();
 void HAL_temp_timer_start();
 
 class HAL {
-  public:
+
+  public: /** Constructor */
 
     HAL();
 
     virtual ~HAL();
+
+  public: /** Public Parameters */
 
     #if ANALOG_INPUTS > 0
       static int16_t AnalogInputValues[ANALOG_INPUTS];
@@ -364,6 +367,8 @@ class HAL {
     #endif
 
     static bool execute_100ms;
+
+  public: /** Public Function */
 
     // do any hardware-specific initialization here
     static void hwSetup();
@@ -416,8 +421,28 @@ class HAL {
       MKSERIAL.flush();
     }
 
-  protected:
-  private:
+    // SPI related functions
+    #if ENABLED(SOFTWARE_SPI)
+      static void spiBegin();
+      static void spiInit(uint8_t spiRate);
+      static uint8_t spiReceive(void);
+      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+      static void spiSend(uint8_t b);
+      static void spiSendBlock(uint8_t token, const uint8_t* buf);
+    #else
+      // Hardware setup
+      static void spiBegin();
+      static void spiInit(uint8_t spiRate);
+      // Write single byte to SPI
+      static void spiSend(byte b);
+      static void spiSend(const uint8_t* buf, size_t n);
+      // Read single byte from SPI
+      static uint8_t spiReceive(uint8_t send=0xFF);
+      // Read from SPI into buffer
+      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+      // Write from buffer to SPI
+      static void spiSendBlock(uint8_t token, const uint8_t* buf);
+    #endif
 
 };
 
