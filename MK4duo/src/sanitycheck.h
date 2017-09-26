@@ -102,6 +102,18 @@
     #define DUMMY_THERMISTOR_999_VALUE 25
   #endif
 #endif
+#if TEMP_SENSOR_0 < -1 && !PIN_EXISTS(TEMP_CS0)
+  #error DEPENDENCY ERROR: Missing setting TEMP_CS0_PIN
+#endif
+#if TEMP_SENSOR_1 < -1 && !PIN_EXISTS(TEMP_CS1)
+  #error DEPENDENCY ERROR: Missing setting TEMP_CS1_PIN
+#endif
+#if TEMP_SENSOR_2 < -1 && !PIN_EXISTS(TEMP_CS2)
+  #error DEPENDENCY ERROR: Missing setting TEMP_CS2_PIN
+#endif
+#if TEMP_SENSOR_3 < -1 && !PIN_EXISTS(TEMP_CS3)
+  #error DEPENDENCY ERROR: Missing setting TEMP_CS3_PIN
+#endif
 
 // Temperature
 /**

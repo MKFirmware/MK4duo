@@ -157,9 +157,7 @@ void HAL::analogStart() {
 
     while (ADCSRA & _BV(ADSC) ) {} // wait for conversion
 
-    uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-
-    if (!WITHIN(channel, 0, 15)) channel = 0;
+    const uint8_t channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
 
     #if ENABLED(ADCSRB) && ENABLED(MUX5)
       if (channel & 8)  // Reading channel 0-7 or 8-15?
