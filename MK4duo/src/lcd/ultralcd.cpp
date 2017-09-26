@@ -3754,8 +3754,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_0
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T0: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[0].mintemp), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[0].maxtemp), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_1
@@ -3763,8 +3763,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_1
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T1: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[1].mintemp), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[1].maxtemp), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_2
@@ -3772,8 +3772,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_2
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T2: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[2].mintemp), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[2].maxtemp), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_3
@@ -3781,8 +3781,8 @@ void kill_screen(const char* lcd_msg) {
         #define THERMISTOR_ID TEMP_SENSOR_3
         #include "../temperature/thermistornames.h"
         STATIC_ITEM("T3: " THERMISTOR_NAME, false, true);
-        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(heaters[3].mintemp), false);
-        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(heaters[3].maxtemp), false);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_BED
