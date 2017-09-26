@@ -177,6 +177,12 @@
 #define TEMP_CHAMBER_PIN    -1
 #define TEMP_COOLER_PIN     -1
 
+// TERMOCOUPLE CHIP SELECT pin
+#define TEMP_CS0_PIN        -1
+#define TEMP_CS1_PIN        -1
+#define TEMP_CS2_PIN        -1
+#define TEMP_CS3_PIN        -1
+
 // FAN pin
 #define FAN0_PIN            ORIG_FAN0_PIN
 #define FAN1_PIN            ORIG_FAN1_PIN

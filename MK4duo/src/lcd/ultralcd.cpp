@@ -4279,7 +4279,7 @@ void kill_screen(const char* lcd_msg) {
         #endif
         return true;
       }
-      else if (!HAL::AnalogInputValues[ADC_KEYPAD_ANALOG_INDEX])
+      else if (!HAL::AnalogInputValues[ADC_KEYPAD_PIN])
         adc_steps = 0; // reset stepping acceleration
 
       return false;
@@ -5017,7 +5017,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   };
 
   uint8_t get_ADC_keyValue(void) {
-    const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_ANALOG_INDEX] >> 2);
+    const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_PIN] >> 2);
     #if ENABLED(ADC_KEYPAD_DEBUG)
       SERIAL_EV(currentkpADCValue);
     #endif

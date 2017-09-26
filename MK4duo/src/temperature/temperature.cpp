@@ -274,14 +274,18 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
 
 void Temperature::set_current_temp_raw() {
 
-  LOOP_HEATER() heaters[h].current_temperature_raw = HAL::AnalogInputValues[h];
+  LOOP_HEATER() heaters[h].current_temperature_raw = HAL::AnalogInputValues[heaters[h].sensor_pin];
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_ANALOG_INDEX];
+    powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature_raw = HAL::AnalogInputValues[MCU_ANALOG_INDEX];
+    mcu_current_temperature_raw = HAL::AnalogInputValues[ADC_TEMPERATURE_SENSOR];
+  #endif
+
+  #if HAS_FILAMENT_SENSOR
+    current_raw_filwidth = HAL::AnalogInputValues[FILWIDTH_PIN];
   #endif
 
 }
@@ -821,11 +825,11 @@ float Temperature::analog2temp(const uint8_t h) {
 
   #if ENABLED(SUPPORT_MAX31855)
     if (type == -3)
-      return read_max31855(heaters[h].sensor_pin);
+      return read_max31855(heaters[h].sensor_cs_pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (type == -2)
-      return read_max6675(heaters[h].sensor_pin, h);
+      return read_max6675(heaters[h].sensor_cs_pin, h);
   #endif
   #if HEATER_USES_AD595
     if (type == -1)
@@ -999,7 +1003,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
   #define MAX6675_ERROR_MASK 4
   #define MAX6675_DISCARD_BITS 3
 
-  int16_t Temperature::read_max6675(const Pin ss_pin, const int8_t h) {
+  int16_t Temperature::read_max6675(const Pin cs_pin, const int8_t h) {
 
     static millis_t last_max6675_read[HOTENDS]  = ARRAY_BY_HOTENDS(0);
     static int16_t  max6675_temp[HOTENDS]       = ARRAY_BY_HOTENDS(2000);
@@ -1009,7 +1013,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
       HAL::spiBegin();
       HAL::spiInit(2);
 
-      HAL::digitalWrite(ss_pin, LOW); // enable TT_MAX6675
+      HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
 
       // ensure 100ns delay - a bit extra is fine
       #if ENABLED(ARDUINO_ARCH_SAM)
@@ -1023,7 +1027,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
       max6675_temp[h] <<= 8;
       max6675_temp[h] |= HAL::spiReceive(0);
 
-      HAL::digitalWrite(ss_pin, HIGH); // disable TT_MAX6675
+      HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
       last_max6675_read[h] = millis();
     }
 
@@ -1044,7 +1048,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
   #define MAX31855_DISCARD_BITS 18
 
-  int16_t Temperature::read_max31855(const Pin ss_pin) {
+  int16_t Temperature::read_max31855(const Pin cs_pin) {
 
     uint32_t data = 0;
     int16_t temperature;
@@ -1052,7 +1056,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
     HAL::spiBegin();
     HAL::spiInit(2);
 
-    HAL::digitalWrite(ss_pin, LOW); // enable TT_MAX31855
+    HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
 
     // ensure 100ns delay - a bit extra is fine
     #if ENABLED(ARDUINO_ARCH_SAM)
@@ -1067,7 +1071,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
       data |= HAL::spiReceive();
     }
 
-    HAL::digitalWrite(ss_pin, 1); // disable TT_MAX31855
+    HAL::digitalWrite(cs_pin, 1); // disable TT_MAX31855
 
     // Process temp
     if (data & 0x00010000)
