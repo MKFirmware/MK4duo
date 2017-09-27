@@ -96,7 +96,7 @@ class Probe {
       static bool set_bltouch_deployed(const bool deploy);
     #endif
 
-    static void refresh_offset();
+    static void refresh_offset(const bool no_babystep=false);
 
   private: /** Private Parameters */
 

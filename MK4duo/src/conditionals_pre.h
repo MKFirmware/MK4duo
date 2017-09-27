@@ -166,30 +166,36 @@
   /**
    * I2C PANELS
    */
+
   #if ENABLED(LCD_I2C_SAINSMART_YWROBOT)
+
     // This uses the LiquidCrystal_I2C library ( https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home )
     // Make sure it is placed in the Arduino libraries directory.
+
     #define LCD_I2C_TYPE_PCF8575
     #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
     #define ULTIPANEL
     #define NEWPANEL
-  #endif
+  #elif ENABLED(LCD_I2C_PANELOLU2)
 
-  // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
-  #if ENABLED(LCD_I2C_PANELOLU2)
+    // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
+
     #define LCD_I2C_TYPE_MCP23017
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
     #define LCD_USE_I2C_BUZZER //comment out to disable buzzer on LCD
     #define ULTIPANEL
     #define NEWPANEL
-  #endif
 
-  // Panucatt VIKI LCD with status LEDs, integrated click & L/R/U/P buttons, separate encoder inputs
-  #if ENABLED(LCD_I2C_VIKI)
-    // This uses the LiquidTWI2 library v1.2.3 or later ( https://github.com/lincomatic/LiquidTWI2 )
-    // Make sure the LiquidTWI2 directory is placed in the Arduino or Sketchbook libraries subdirectory.
-    // Note: The pause/stop/resume LCD button pin should be connected to the Arduino
-    //       BTN_ENC pin (or set BTN_ENC to -1 if not used)
+  #elif ENABLED(LCD_I2C_VIKI)
+
+    /**
+     * Panucatt VIKI LCD with status LEDs, integrated click & L/R/U/P buttons, separate encoder inputs
+     *
+     * This uses the LiquidTWI2 library v1.2.3 or later ( https://github.com/lincomatic/LiquidTWI2 )
+     * Make sure the LiquidTWI2 directory is placed in the Arduino or Sketchbook libraries subdirectory.
+     * Note: The pause/stop/resume LCD button pin should be connected to the Arduino
+     *       BTN_ENC pin (or set BTN_ENC to -1 if not used)
+     */
     #define LCD_I2C_TYPE_MCP23017
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
     #define LCD_USE_I2C_BUZZER //comment out to disable buzzer on LCD (requires LiquidTWI2 v1.2.3 or later)
@@ -198,23 +204,37 @@
 
     #define ENCODER_FEEDRATE_DEADZONE 4
 
-    #ifndef ENCODER_PULSES_PER_STEP
-      #define ENCODER_PULSES_PER_STEP 1
-    #endif
-    #ifndef ENCODER_STEPS_PER_MENU_ITEM
-      #define ENCODER_STEPS_PER_MENU_ITEM 2
-    #endif
+    #define STD_ENCODER_PULSES_PER_STEP 1
+    #define STD_ENCODER_STEPS_PER_MENU_ITEM 2
+
+  #elif ENABLED(G3D_PANEL)
+
+    #define STD_ENCODER_PULSES_PER_STEP 2
+    #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
+
+  #elif ENABLED(miniVIKI) || ENABLED(VIKI2) \
+     || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
+     || ENABLED(OLED_PANEL_TINYBOY2) \
+     || ENABLED(BQ_LCD_SMART_CONTROLLER) \
+     || ENABLED(LCD_I2C_PANELOLU2) \
+     || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
+
+    #define STD_ENCODER_PULSES_PER_STEP 4
+    #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
+
   #endif
 
-  // Set encoder detents for well-known controllers
-  #if ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
-   || ENABLED(BQ_LCD_SMART_CONTROLLER) || ENABLED(LCD_I2C_PANELOLU2) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
-    #ifndef ENCODER_PULSES_PER_STEP
-      #define ENCODER_PULSES_PER_STEP 4
-    #endif
-    #ifndef ENCODER_STEPS_PER_MENU_ITEM
-      #define ENCODER_STEPS_PER_MENU_ITEM 1
-    #endif
+  #ifndef STD_ENCODER_PULSES_PER_STEP
+    #define STD_ENCODER_PULSES_PER_STEP 5
+  #endif
+  #ifndef STD_ENCODER_STEPS_PER_MENU_ITEM
+    #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
+  #endif
+  #ifndef ENCODER_PULSES_PER_STEP
+    #define ENCODER_PULSES_PER_STEP STD_ENCODER_PULSES_PER_STEP
+  #endif
+  #ifndef ENCODER_STEPS_PER_MENU_ITEM
+    #define ENCODER_STEPS_PER_MENU_ITEM STD_ENCODER_STEPS_PER_MENU_ITEM
   #endif
 
   // Shift register panels

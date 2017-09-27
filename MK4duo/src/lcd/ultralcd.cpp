@@ -222,13 +222,7 @@ uint16_t max_display_update_time = 0;
   ////////////////////////////////////////////
 
   #ifndef ENCODER_FEEDRATE_DEADZONE
-    #define ENCODER_FEEDRATE_DEADZONE 10
-  #endif
-  #ifndef ENCODER_STEPS_PER_MENU_ITEM
-    #define ENCODER_STEPS_PER_MENU_ITEM 5
-  #endif
-  #ifndef ENCODER_PULSES_PER_STEP
-    #define ENCODER_PULSES_PER_STEP 1
+    #define ENCODER_FEEDRATE_DEADZONE 6
   #endif
 
   /**
@@ -977,7 +971,7 @@ void kill_screen(const char* lcd_msg) {
         const int16_t babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
         encoderPosition = 0;
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-        thermalManager.babystep_axis(axis, babystep_increment);
+        mechanics.babystep_axis(axis, babystep_increment);
         babysteps_done += babystep_increment;
       }
       if (lcdDrawUpdate)
@@ -985,13 +979,57 @@ void kill_screen(const char* lcd_msg) {
     }
 
     #if ENABLED(BABYSTEP_XY)
-      void _lcd_babystep_x() { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEPPING_X)); }
-      void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEPPING_Y)); }
+      void _lcd_babystep_x() { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEP_X)); }
+      void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEP_Y)); }
       void lcd_babystep_x() { lcd_goto_screen(_lcd_babystep_x); babysteps_done = 0; defer_return_to_status = true; }
       void lcd_babystep_y() { lcd_goto_screen(_lcd_babystep_y); babysteps_done = 0; defer_return_to_status = true; }
     #endif
 
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+
+      #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
+
+        void _lcd_babystep_zoffset_overlay(const float zprobe_zoffset) {
+          // Determine whether the user is raising or lowering the nozzle.
+          static int dir = 0;
+          static float old_zprobe_zoffset = 0;
+          if (zprobe_zoffset != old_zprobe_zoffset) {
+            dir = (zprobe_zoffset > old_zprobe_zoffset) ? 1 : -1;
+            old_zprobe_zoffset = zprobe_zoffset;
+          }
+
+          #if ENABLED(BABYSTEP_ZPROBE_GFX_REVERSE)
+            const unsigned char* rot_up   = ccw_bmp;
+            const unsigned char* rot_down = cw_bmp;
+          #else
+            const unsigned char* rot_up   = cw_bmp;
+            const unsigned char* rot_down = ccw_bmp;
+          #endif
+
+          #if ENABLED(USE_BIG_EDIT_FONT)
+            const int left   = 0,
+                      right  = 45,
+                      nozzle = 95;
+          #else
+            const int left   = 5,
+                      right  = 90,
+                      nozzle = 60;
+          #endif
+
+          // Draw a representation of the nozzle
+          if (PAGE_CONTAINS(3, 16))  u8g.drawBitmapP(nozzle + 6, 4 - dir, 2, 12, nozzle_bmp);
+          if (PAGE_CONTAINS(20, 20)) u8g.drawBitmapP(nozzle + 0, 20, 3, 1, offset_bedline_bmp);
+
+          // Draw cw/ccw indicator and up/down arrows.
+          if (PAGE_CONTAINS(47, 62)) {
+            u8g.drawBitmapP(left  + 0, 47, 3, 16, rot_down);
+            u8g.drawBitmapP(right + 0, 47, 3, 16, rot_up);
+            u8g.drawBitmapP(right + 20, 48 - dir, 2, 13, up_arrow_bmp);
+            u8g.drawBitmapP(left  + 20, 49 - dir, 2, 13, down_arrow_bmp);
+          }
+        }
+
+      #endif // BABYSTEP_ZPROBE_GFX_OVERLAY
 
       void lcd_babystep_zoffset() {
         if (lcd_clicked) { return lcd_goto_previous_menu_no_defer(); }
@@ -1001,24 +1039,28 @@ void kill_screen(const char* lcd_msg) {
           const int16_t babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
           encoderPosition = 0;
 
-          const float new_zoffset = zprobe_zoffset + planner.steps_to_mm[Z_AXIS] * babystep_increment;
+          const float new_zoffset = probe.offset[Z_AXIS] + mechanics.steps_to_mm[Z_AXIS] * babystep_increment;
           if (WITHIN(new_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
 
-            if (leveling_is_active())
-              thermalManager.babystep_axis(Z_AXIS, babystep_increment);
+            if (bedlevel.leveling_is_active())
+              mechanics.babystep_axis(Z_AXIS, babystep_increment);
 
-            zprobe_zoffset = new_zoffset;
-            refresh_zprobe_zoffset(true);
+            probe.offset[Z_AXIS] = new_zoffset;
+            probe.refresh_offset(true);
             lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
           }
         }
-        if (lcdDrawUpdate)
-          lcd_implementation_drawedit(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(zprobe_zoffset));
+        if (lcdDrawUpdate) {
+          lcd_implementation_drawedit(PSTR(MSG_PROBE_OFFSET), ftostr43sign(probe.offset[Z_AXIS]));
+          #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
+            _lcd_babystep_zoffset_overlay(probe.offset[Z_AXIS]);
+          #endif
+        }
       }
 
     #else // !BABYSTEP_ZPROBE_OFFSET
 
-      void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEPPING_Z)); }
+      void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEP_Z)); }
       void lcd_babystep_z() { lcd_goto_screen(_lcd_babystep_z); babysteps_done = 0; defer_return_to_status = true; }
 
     #endif // !BABYSTEP_ZPROBE_OFFSET
@@ -1266,7 +1308,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
       #endif
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-        MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
+        MENU_ITEM(submenu, MSG_PROBE_OFFSET, lcd_babystep_zoffset);
       #else
         MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
       #endif
@@ -3457,7 +3499,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_CONTROL);
 
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-      MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
+      MENU_ITEM(submenu, MSG_PROBE_OFFSET, lcd_babystep_zoffset);
     #elif HAS_BED_PROBE
       MENU_ITEM_EDIT(float32, MSG_PROBE_OFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif

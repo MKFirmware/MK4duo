@@ -346,15 +346,12 @@ HAL_TEMP_TIMER_ISR {
 
   #if ENABLED(BABYSTEPPING)
     LOOP_XYZ(axis) {
-      int curTodo = thermalManager.babystepsTodo[axis]; //get rid of volatile for performance
+      int curTodo = mechanics.babystepsTodo[axis]; // get rid of volatile for performance
 
-      if (curTodo > 0) {
-        stepper.babystep((AxisEnum)axis,/*fwd*/true);
-        thermalManager.babystepsTodo[axis]--; //fewer to do next time
-      }
-      else if (curTodo < 0) {
-        stepper.babystep((AxisEnum)axis,/*fwd*/false);
-        thermalManager.babystepsTodo[axis]++; //fewer to do next time
+      if (curTodo) {
+        stepper.babystep((AxisEnum)axis, curTodo > 0);
+        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
+                    else mechanics.babystepsTodo[axis]++;
       }
     }
   #endif //BABYSTEPPING

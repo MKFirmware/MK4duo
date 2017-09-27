@@ -47,8 +47,8 @@
       if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = 1.0;
 
       SERIAL_MV(" T", h);
-      SERIAL_MV(" Offset: ", heaters[h].ad595_offset);
-      SERIAL_EMV(", Gain: ", heaters[h].ad595_gain);
+      SERIAL_MV(" Offset: ", heaters[h].ad595_offset, 3);
+      SERIAL_EMV(", Gain: ", heaters[h].ad595_gain, 3);
     }
   }
 

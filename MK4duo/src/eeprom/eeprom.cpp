@@ -764,7 +764,7 @@ void EEPROM::Postprocess() {
         #if HEATER_USES_AD595
           EEPROM_READ(heaters[h].ad595_offset);
           EEPROM_READ(heaters[h].ad595_gain);
-          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain == TEMP_SENSOR_AD595_GAIN;
+          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = TEMP_SENSOR_AD595_GAIN;
         #endif
 
         EEPROM_READ(heaters[h].Kp);
@@ -1476,7 +1476,7 @@ void EEPROM::Factory_Settings() {
     
     #if HEATER_USES_AD595
       CONFIG_MSG_START("AD595 Offset and Gain:");
-      LOOP_HEATER() {
+      LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M595 H", h);
         SERIAL_MV(" O", heaters[h].ad595_offset);
         SERIAL_EMV(", S", heaters[h].ad595_gain);
