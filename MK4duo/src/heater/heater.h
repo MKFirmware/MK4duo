@@ -53,9 +53,6 @@ typedef enum {
       Heater_type type;
       Pin         output_pin,
                   sensor_pin;
-      #if HEATER_USES_MAX
-        Pin       sensor_cs_pin;
-      #endif
       int16_t     sensor_type;
       uint8_t     soft_pwm,
                   pwm_pos,

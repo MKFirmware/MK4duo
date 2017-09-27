@@ -825,11 +825,11 @@ float Temperature::analog2temp(const uint8_t h) {
 
   #if ENABLED(SUPPORT_MAX31855)
     if (type == -3)
-      return read_max31855(heaters[h].sensor_cs_pin);
+      return read_max31855(heaters[h].sensor_pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (type == -2)
-      return read_max6675(heaters[h].sensor_cs_pin, h);
+      return read_max6675(heaters[h].sensor_pin, h);
   #endif
   #if HEATER_USES_AD595
     if (type == -1)
