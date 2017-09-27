@@ -181,6 +181,10 @@ class Mechanics {
       WorkspacePlane workspace_plane = PLANE_XY;
     #endif
 
+    #if ENABLED(BABYSTEPPING)
+      int babystepsTodo[XYZ] = { 0 };
+    #endif
+
   public: /** Public Function */
 
     /**
@@ -331,6 +335,10 @@ class Mechanics {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       void log_machine_info();
+    #endif
+
+    #if ENABLED(BABYSTEPPING)
+      void babystep_axis(const AxisEnum axis, const int distance);
     #endif
 
   protected: /** Protected Function */

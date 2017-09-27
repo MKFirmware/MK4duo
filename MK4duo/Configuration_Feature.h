@@ -702,23 +702,34 @@
  ***************************** Babystepping *******************************
  **************************************************************************
  *                                                                        *
- * Babystepping enables the user to control the axis in tiny amounts,     *
- * independently from the normal printing process.                        *
- * It can e.g. be used to change z-positions in the print startup         *
- * phase in real-time.                                                    *
- * Does not respect endstops!                                             *
+ * Babystepping enables movement of the axes by tiny increments without   *
+ * changing the current position values. This feature is used primarily   *
+ * to adjust the Z axis in the first layer of a print in real-time.       *
+ *                                                                        *
+ * Warning: Does not respect endstops!                                    *
  *                                                                        *
  **************************************************************************/
 //#define BABYSTEPPING
 
-// not only z, but also XY in the menu. more clutter, more functions
-// not implemented for CoreXY and deltabots!
-#define BABYSTEP_XY  
+// Also enable X/Y Babystepping. Not supported on DELTA!
+//#define BABYSTEP_XY  
 
-// true for inverse movements in Z
+// Change if Z babysteps should go the other way
 #define BABYSTEP_INVERT_Z false
-// faster z movements
-#define BABYSTEP_MULTIPLICATOR 2
+// Babysteps are very small. Increase for faster motion.
+#define BABYSTEP_MULTIPLICATOR 100
+// Enable to combine M851 and Babystepping
+//#define BABYSTEP_ZPROBE_OFFSET
+// Double-click on the Status Screen for Z Babystepping.
+//#define DOUBLECLICK_FOR_Z_BABYSTEPPING
+// Maximum interval between clicks, in milliseconds.
+// Note: Extra time may be added to mitigate controller latency.
+#define DOUBLECLICK_MAX_INTERVAL 1250
+
+// Enable graphical overlay on Z-offset editor
+//#define BABYSTEP_ZPROBE_GFX_OVERLAY
+// Reverses the direction of the CW/CCW indicators 
+//#define BABYSTEP_ZPROBE_GFX_REVERSE
 /**************************************************************************/
 
 

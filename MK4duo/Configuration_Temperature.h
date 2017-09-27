@@ -64,8 +64,8 @@
  * Please choose the one that matches your setup and set to TEMP_SENSOR_.                            *
  *                                                                                                   *
  * Temperature sensor settings (4.7kohm PULLUP):                                                     *
- *  -3 is thermocouple with MAX31855 (only Hotends)                                             *
- *  -2 is thermocouple with MAX6675 (only Hotends)                                              *
+ *  -3 is thermocouple with MAX31855 (only Hotends)                                                  *
+ *  -2 is thermocouple with MAX6675 (only Hotends)                                                   *
  *  -1 is thermocouple with AD595 or AD597                                                           *
  *   0 is not used                                                                                   *
  *   1 is 100k thermistor - best choice for EPCOS 100k (4.7k pullup)                                 *

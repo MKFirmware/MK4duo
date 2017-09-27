@@ -244,7 +244,7 @@
 
     lcd_refresh();
 
-    report_current_position();
+    //report_current_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");

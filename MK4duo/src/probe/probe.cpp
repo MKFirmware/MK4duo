@@ -399,15 +399,17 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/
 
 #endif
 
-void Probe::refresh_offset() {
+void Probe::refresh_offset(const bool no_babystep/*=false*/) {
 
   static float last_z_offset = NAN;
 
   if (!isnan(last_z_offset)) {
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(BABYSTEP_ZPROBE_OFFSET) || MECH(DELTA)
       const float diff = offset[Z_AXIS] - last_z_offset;
+    #endif
 
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       // Correct bilinear grid for new probe offset
       if (diff) {
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
@@ -419,6 +421,12 @@ void Probe::refresh_offset() {
       #endif
     #endif
 
+    #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+      if (!no_babystep && bedlevel.leveling_is_active())
+        mechanics.babystep_axis(Z_AXIS, -LROUND(diff * mechanics.axis_steps_per_mm[Z_AXIS]));
+    #else
+      UNUSED(no_babystep);
+    #endif
   }
 
   last_z_offset = offset[Z_AXIS];

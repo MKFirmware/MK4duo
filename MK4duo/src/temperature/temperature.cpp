@@ -54,10 +54,6 @@ volatile bool Temperature::wait_for_heatup = true;
   float Temperature::redundant_temperature = 0.0;
 #endif
 
-#if ENABLED(BABYSTEPPING)
-  volatile int Temperature::babystepsTodo[XYZ] = { 0 };
-#endif
-
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
   bool    Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp   = EXTRUDE_MINTEMP;
