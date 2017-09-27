@@ -68,14 +68,9 @@ extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
 #if ANALOG_INPUTS > 0
-  int32_t   AnalogInputRead[NUM_ANALOG_INPUTS],
-            AnalogSamples[NUM_ANALOG_INPUTS][MEDIAN_COUNT],
-            AnalogSamplesSum[NUM_ANALOG_INPUTS],
-            adcSamplesMin[NUM_ANALOG_INPUTS],
-            adcSamplesMax[NUM_ANALOG_INPUTS];
-  int       adcCounter = 0,
-            adcSamplePos = 0;
-  uint32_t  adcEnable = 0;
+  static int      adcCounter = 0,
+                  adcSamplePos = 0;
+  static uint32_t adcEnable = 0;
 
   volatile int16_t  HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool              HAL::Analog_is_ready = false;
@@ -226,15 +221,6 @@ int HAL::getFreeRam() {
     // ensure we can write to ADC registers
     ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
     pmc_enable_periph_clk(ID_ADC);  // enable adc clock
-
-    for (int i = 0; i < NUM_ANALOG_INPUTS; i++) {
-      AnalogInputValues[i] = 0;
-      adcSamplesMin[i] = 100000;
-      adcSamplesMax[i] = 0;
-      AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
-      for (uint8_t j = 0; j < MEDIAN_COUNT; j++)
-        AnalogSamples[i][j] = 2048;
-    }
 
     LOOP_HEATER() {
       if (WITHIN(heaters[h].sensor_pin, 0, 15)) {
@@ -501,29 +487,51 @@ bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) 
   return false;
 }
 
-void get_adc_value(const Pin s_pin) {
+#if ANALOG_INPUTS > 0
 
-  uint32_t cur = 0;
+  void get_adc_value(const Pin s_pin) {
 
-  adc_channel_num_t adc_ch = HAL::PinToAdcChannel(s_pin);
-  cur = adc_get_channel_value(ADC, adc_ch);
+    static int32_t  AnalogInputRead[NUM_ANALOG_INPUTS],
+                    AnalogSamples[NUM_ANALOG_INPUTS][MEDIAN_COUNT],
+                    AnalogSamplesSum[NUM_ANALOG_INPUTS],
+                    adcSamplesMin[NUM_ANALOG_INPUTS],
+                    adcSamplesMax[NUM_ANALOG_INPUTS];
+    static bool     first_temp = true;
+    uint32_t        cur = 0;
 
-  if (s_pin != ADC_TEMPERATURE_SENSOR) cur = (cur >> 2); // Convert to 10 bit result
+    if (first_temp) {
+      for (int i = 0; i < NUM_ANALOG_INPUTS; i++) {
+        HAL::AnalogInputValues[i] = 0;
+        adcSamplesMin[i] = 100000;
+        adcSamplesMax[i] = 0;
+        AnalogSamplesSum[i] = 2048 * MEDIAN_COUNT;
+        for (uint8_t j = 0; j < MEDIAN_COUNT; j++)
+          AnalogSamples[i][j] = 2048;
+      }
+      first_temp = false;
+    }
 
-  AnalogInputRead[s_pin] += cur;
-  adcSamplesMin[s_pin] = min(adcSamplesMin[s_pin], cur);
-  adcSamplesMax[s_pin] = max(adcSamplesMax[s_pin], cur);
+    adc_channel_num_t adc_ch = HAL::PinToAdcChannel(s_pin);
+    cur = adc_get_channel_value(ADC, adc_ch);
 
-  if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
-    AnalogInputRead[s_pin] = AnalogInputRead[s_pin] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[s_pin] + adcSamplesMax[s_pin]);
-    adcSamplesMin[s_pin] = 100000;
-    adcSamplesMax[s_pin] = 0;
-    AnalogSamplesSum[s_pin] -= AnalogSamples[s_pin][adcSamplePos];
-    AnalogSamplesSum[s_pin] += (AnalogSamples[s_pin][adcSamplePos] = AnalogInputRead[s_pin] >> OVERSAMPLENR);
-    HAL::AnalogInputValues[s_pin] = AnalogSamplesSum[s_pin] / MEDIAN_COUNT;
-    AnalogInputRead[s_pin] = 0;
-  } // adcCounter >= NUM_ADC_SAMPLES
-}
+    if (s_pin != ADC_TEMPERATURE_SENSOR) cur = (cur >> 2); // Convert to 10 bit result
+
+    AnalogInputRead[s_pin] += cur;
+    adcSamplesMin[s_pin] = min(adcSamplesMin[s_pin], cur);
+    adcSamplesMax[s_pin] = max(adcSamplesMax[s_pin], cur);
+
+    if (adcCounter >= NUM_ADC_SAMPLES) { // store new conversion result
+      AnalogInputRead[s_pin] = AnalogInputRead[s_pin] + (1 << (OVERSAMPLENR - 1)) - (adcSamplesMin[s_pin] + adcSamplesMax[s_pin]);
+      adcSamplesMin[s_pin] = 100000;
+      adcSamplesMax[s_pin] = 0;
+      AnalogSamplesSum[s_pin] -= AnalogSamples[s_pin][adcSamplePos];
+      AnalogSamplesSum[s_pin] += (AnalogSamples[s_pin][adcSamplePos] = AnalogInputRead[s_pin] >> OVERSAMPLENR);
+      HAL::AnalogInputValues[s_pin] = AnalogSamplesSum[s_pin] / MEDIAN_COUNT;
+      AnalogInputRead[s_pin] = 0;
+    } // adcCounter >= NUM_ADC_SAMPLES
+  }
+
+#endif
   
 /**
  * Timer 0 is is called 3906 timer per second.
