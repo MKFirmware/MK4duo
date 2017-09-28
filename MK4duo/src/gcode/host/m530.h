@@ -36,7 +36,7 @@ inline void gcode_M530(void) {
   printer.maxLayer = parser.longval('L');
 
   if (parser.seen('S') && parser.value_bool()) {
-    printer.print_job_counter.start();
+    print_job_counter.start();
 
     SERIAL_MSG("Start Printing");
     if (printer.maxLayer > 0) SERIAL_EMV(" - MaxLayer:", printer.maxLayer);
@@ -56,7 +56,7 @@ inline void gcode_M530(void) {
     #endif
   }
   else {
-    printer.print_job_counter.stop();
+    print_job_counter.stop();
     SERIAL_EM("Stop Printing");
     #if ENABLED(STOP_GCODE)
       commands.enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));

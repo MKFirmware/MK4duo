@@ -26,43 +26,42 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../base.h"
-#include "bedlevel.h"
+#include "../../../base.h"
 
 #if HAS_LEVELING
 
-  Bed_level bedlevel;
+  Bedlevel bedlevel;
 
   #if HAS_ABL
-    bool  Bed_level::abl_enabled = false; // Flag that auto bed leveling is enabled
-    int   Bed_level::xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
+    bool  Bedlevel::abl_enabled = false; // Flag that auto bed leveling is enabled
+    int   Bedlevel::xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
   #endif
 
   #if ABL_PLANAR
-    matrix_3x3 Bed_level::matrix; // Transform to compensate for bed level
+    matrix_3x3 Bedlevel::matrix; // Transform to compensate for bed level
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    float Bed_level::z_fade_height,
-          Bed_level::inverse_z_fade_height;
+    float Bedlevel::z_fade_height,
+          Bedlevel::inverse_z_fade_height;
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    int   Bed_level::bilinear_grid_spacing[2], Bed_level::bilinear_start[2];
-    float Bed_level::bilinear_grid_factor[2],
-          Bed_level::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+    int   Bedlevel::bilinear_grid_spacing[2], Bedlevel::bilinear_start[2];
+    float Bedlevel::bilinear_grid_factor[2],
+          Bedlevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      float Bed_level::bilinear_grid_factor_virt[2] = { 0 },
-            Bed_level::z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-      int   Bed_level::bilinear_grid_spacing_virt[2] = { 0 };
+      float Bedlevel::bilinear_grid_factor_virt[2] = { 0 },
+            Bedlevel::z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
+      int   Bedlevel::bilinear_grid_spacing_virt[2] = { 0 };
     #endif
   #endif
 
   #if ENABLED(PROBE_MANUALLY)
-    bool Bed_level::g29_in_progress = false;
+    bool Bedlevel::g29_in_progress = false;
   #else
-    const bool Bed_level::g29_in_progress = false;
+    const bool Bedlevel::g29_in_progress = false;
   #endif
 
   #if PLANNER_LEVELING
@@ -70,7 +69,7 @@
     /**
      * lx, ly, lz - Logical (cartesian, not delta) positions in mm
      */
-    void Bed_level::apply_leveling(float &lx, float &ly, float &lz) {
+    void Bedlevel::apply_leveling(float &lx, float &ly, float &lz) {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
         if (!ubl.state.active) return;
@@ -134,7 +133,7 @@
       #endif
     }
 
-    void Bed_level::unapply_leveling(float logical[XYZ]) {
+    void Bedlevel::unapply_leveling(float logical[XYZ]) {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -221,7 +220,7 @@
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
     // Get the Z adjustment for non-linear bed leveling
-    float Bed_level::bilinear_z_offset(const float logical[XYZ]) {
+    float Bedlevel::bilinear_z_offset(const float logical[XYZ]) {
 
       static float  z1, d2, z3, d4, L, D, ratio_x, ratio_y,
                     last_x = -999.999, last_y = -999.999;
@@ -302,7 +301,7 @@
     }
 
     // Refresh after other values have been updated
-    void Bed_level::refresh_bed_level() {
+    void Bedlevel::refresh_bed_level() {
       bilinear_grid_factor[X_AXIS] = RECIPROCAL(bilinear_grid_spacing[X_AXIS]);
       bilinear_grid_factor[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing[Y_AXIS]);
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
@@ -322,7 +321,7 @@
      * Fill in the unprobed points (corners of circular print surface)
      * using linear extrapolation, away from the center.
      */
-    void Bed_level::extrapolate_unprobed_bed_level() {
+    void Bedlevel::extrapolate_unprobed_bed_level() {
       #if ENABLED(HALF_IN_X)
         constexpr uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
       #else
@@ -360,7 +359,7 @@
       }
     }
 
-    void Bed_level::print_bilinear_leveling_grid() {
+    void Bedlevel::print_bilinear_leveling_grid() {
       SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
       print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
         [](const uint8_t ix, const uint8_t iy){ return z_values[ix][iy]; }
@@ -370,7 +369,7 @@
     /**
      * Extrapolate a single point from its neighbors
      */
-    void Bed_level::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
+    void Bedlevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) {
           SERIAL_MSG("Extrapolate [");
@@ -415,7 +414,7 @@
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
 
-      void Bed_level::print_bilinear_leveling_grid_virt() {
+      void Bedlevel::print_bilinear_leveling_grid_virt() {
         SERIAL_LM(ECHO, "Subdivided with CATMULL ROM Leveling Grid:");
         print_2d_array(ABL_GRID_POINTS_VIRT_X, ABL_GRID_POINTS_VIRT_Y, 5,
           [](const uint8_t ix, const uint8_t iy){ return z_values_virt[ix][iy]; }
@@ -424,7 +423,7 @@
 
       #define LINEAR_EXTRAPOLATION(E, I) ((E) * 2 - (I))
 
-      float Bed_level::bed_level_virt_coord(const uint8_t x, const uint8_t y) {
+      float Bedlevel::bed_level_virt_coord(const uint8_t x, const uint8_t y) {
         uint8_t ep = 0, ip = 1;
 
         if (!x || x == ABL_TEMP_POINTS_X - 1) {
@@ -462,7 +461,7 @@
         return z_values[x - 1][y - 1];
       }
 
-      float Bed_level::bed_level_virt_cmr(const float p[4], const uint8_t i, const float t) {
+      float Bedlevel::bed_level_virt_cmr(const float p[4], const uint8_t i, const float t) {
         return (
             p[i-1] * -t * sq(1 - t)
           + p[i]   * (2 - 5 * sq(t) + 3 * t * sq(t))
@@ -471,7 +470,7 @@
         ) * 0.5;
       }
 
-      float Bed_level::bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty) {
+      float Bedlevel::bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty) {
         float row[4], column[4];
         for (uint8_t i = 0; i < 4; i++) {
           for (uint8_t j = 0; j < 4; j++) {
@@ -482,7 +481,7 @@
         return bed_level_virt_cmr(row, 1, tx);
       }
 
-      void Bed_level::virt_interpolate() {
+      void Bedlevel::virt_interpolate() {
         bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
         bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
         bilinear_grid_factor_virt[X_AXIS] = RECIPROCAL(bilinear_grid_spacing_virt[X_AXIS]);
@@ -509,7 +508,7 @@
     #endif // ABL_BILINEAR_SUBDIVISION
   #endif // AUTO_BED_LEVELING_BILINEAR
 
-  bool Bed_level::leveling_is_valid() {
+  bool Bedlevel::leveling_is_valid() {
     #if ENABLED(MESH_BED_LEVELING)
       return mbl.has_mesh();
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -521,7 +520,7 @@
     #endif
   }
 
-  bool Bed_level::leveling_is_active() {
+  bool Bedlevel::leveling_is_active() {
     #if ENABLED(MESH_BED_LEVELING)
       return mbl.active();
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -538,7 +537,7 @@
    * Disable: Current position = physical position
    *  Enable: Current position = "unleveled" physical position
    */
-  void Bed_level::set_bed_leveling_enabled(const bool enable/*=true*/) {
+  void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       const bool can_change = (!enable || leveling_is_valid());
@@ -607,7 +606,7 @@
   /**
    * Reset calibration results to zero.
    */
-  void Bed_level::reset() {
+  void Bedlevel::reset() {
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)
       if (leveling_is_valid()) {
@@ -632,7 +631,7 @@
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
-    void Bed_level::set_z_fade_height(const float zfh) {
+    void Bedlevel::set_z_fade_height(const float zfh) {
 
       const bool level_active = leveling_is_active();
 
@@ -666,7 +665,7 @@
 
   #if ENABLED(MESH_BED_LEVELING)
 
-    void Bed_level::mbl_mesh_report() {
+    void Bedlevel::mbl_mesh_report() {
       SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
       SERIAL_EMV("Z offset: ", mbl.zprobe_zoffset, 5);
       SERIAL_EM("Measured points:");
@@ -675,7 +674,7 @@
       );
     }
 
-    void Bed_level::mesh_probing_done() {
+    void Bedlevel::mesh_probing_done() {
       mbl.set_has_mesh(true);
       mechanics.Home(true);
       set_bed_leveling_enabled(true);
@@ -694,7 +693,7 @@
     /**
      * Print calibration results for plotting or manual frame adjustment.
      */
-    void Bed_level::print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
+    void Bedlevel::print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
 
       #if DISABLED(SCAD_MESH_OUTPUT)
         SERIAL_STR(ECHO);

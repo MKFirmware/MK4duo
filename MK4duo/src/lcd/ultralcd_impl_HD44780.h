@@ -838,7 +838,7 @@ static void lcd_implementation_status_screen() {
     #endif // LCD_WIDTH >= 20 && SDSUPPORT
 
     char buffer[10];
-    duration_t elapsed = printer.print_job_counter.duration();
+    duration_t elapsed = print_job_counter.duration();
     uint8_t len = elapsed.toDigital(buffer);
 
     lcd.setCursor(LCD_WIDTH - len - 1, 2);

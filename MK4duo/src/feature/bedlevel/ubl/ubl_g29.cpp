@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../base.h"
+#include "../../../../base.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 

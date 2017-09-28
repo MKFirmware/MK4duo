@@ -24,6 +24,7 @@
 #define __DURATION_T__
 
 struct duration_t {
+
   /**
    * @brief Duration is stored in seconds
    */

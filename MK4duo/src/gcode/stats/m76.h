@@ -31,4 +31,4 @@
 /**
  * M76: Pause print timer
  */
-inline void gcode_M76(void) { printer.print_job_counter.pause(); }
+inline void gcode_M76(void) { print_job_counter.pause(); }

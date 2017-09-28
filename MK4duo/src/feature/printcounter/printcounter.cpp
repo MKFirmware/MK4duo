@@ -20,7 +20,9 @@
  *
  */
 
-#include "../../base.h"
+#include "../../../base.h"
+
+PrintCounter print_job_counter = PrintCounter();
 
 PrintCounter::PrintCounter(): super() {
   this->initStats();

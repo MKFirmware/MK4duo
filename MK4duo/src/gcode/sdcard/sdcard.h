@@ -80,11 +80,11 @@
    */
   inline void gcode_M24(void) {
     #if ENABLED(PARK_HEAD_ON_PAUSE)
-      printer.resume_print();
+      resume_print();
     #endif
 
     card.startFileprint();
-    printer.print_job_counter.start();
+    print_job_counter.start();
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.startpower = powerManager.consumption_hour;
     #endif
@@ -95,7 +95,7 @@
    */
   void gcode_M25(void) {
     card.pauseSDPrint();
-    printer.print_job_counter.pause();
+    print_job_counter.pause();
     SERIAL_LM(REQUEST_PAUSE, "SD pause");
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
@@ -177,7 +177,7 @@
       mechanics.feedrate_mm_s       = 20.0; // 20 units/sec
       mechanics.feedrate_percentage = 100;  // 100% mechanics.feedrate_mm_s
       card.startFileprint();
-      printer.print_job_counter.start();
+      print_job_counter.start();
       #if HAS_POWER_CONSUMPTION_SENSOR
         powerManager.startpower = powerManager.consumption_hour;
       #endif

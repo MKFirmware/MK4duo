@@ -31,4 +31,4 @@
 /**
  * M75: Start print timer
  */
-inline void gcode_M75(void) { printer.print_job_counter.start(); }
+inline void gcode_M75(void) { print_job_counter.start(); }
