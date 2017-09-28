@@ -90,8 +90,8 @@
  * - Case Light
  * ADVANCED MOTION FEATURES:
  * - Stepper auto deactivation
+ * - Double / Quad Stepping
  * - Low speed stepper
- * - High speed stepper
  * - Microstepping
  * - Motor's current
  * - I2C DIGIPOT
@@ -1685,6 +1685,17 @@
 #define DISABLE_INACTIVE_Y
 #define DISABLE_INACTIVE_Z
 #define DISABLE_INACTIVE_E
+/***********************************************************************/
+
+
+/***********************************************************************
+ ********************** Double / Quad Stepping *************************
+ ***********************************************************************
+ *                                                                     *
+ * Disable double / quad stepping                                      *
+ *                                                                     *
+ ***********************************************************************/
+//#define DISABLE_DOUBLE_QUAD_STEPPING
 /***********************************************************************/
 
 

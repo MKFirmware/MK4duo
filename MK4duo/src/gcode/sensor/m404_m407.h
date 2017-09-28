@@ -38,10 +38,10 @@
    */
   inline void gcode_M404(void) {
     if (parser.seen('W')) {
-      printer.filament_width_nominal = parser.value_linear_units();
+      filament_width_nominal = parser.value_linear_units();
     }
     else {
-      SERIAL_EMV("Filament dia (nominal mm):", printer.filament_width_nominal);
+      SERIAL_EMV("Filament dia (nominal mm):", filament_width_nominal);
     }
   }
 
@@ -51,21 +51,21 @@
   inline void gcode_M405(void) {
     // This is technically a linear measurement, but since it's quantized to centimeters and is a different unit than
     // everything else, it uses parser.value_int() instead of parser.value_linear_units().
-    if (parser.seen('D')) printer.meas_delay_cm = parser.value_byte();
-    NOMORE(printer.meas_delay_cm, MAX_MEASUREMENT_DELAY);
+    if (parser.seen('D')) meas_delay_cm = parser.value_byte();
+    NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
 
-    if (printer.filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
+    if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
       const uint8_t temp_ratio = thermalManager.widthFil_to_size_ratio() - 100; // -100 to scale within a signed byte
 
-      for (uint8_t i = 0; i < COUNT(printer.measurement_delay); ++i)
-        printer.measurement_delay[i] = temp_ratio;
+      for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
+        measurement_delay[i] = temp_ratio;
 
-      printer.filwidth_delay_index[0] = printer.filwidth_delay_index[1] = 0;
+      filwidth_delay_index[0] = filwidth_delay_index[1] = 0;
     }
 
-    printer.filament_sensor = true;
+    filament_sensor = true;
 
-    //SERIAL_MV("Filament dia (measured mm):", printer.filament_width_meas);
+    //SERIAL_MV("Filament dia (measured mm):", filament_width_meas);
     //SERIAL_EMV("Extrusion ratio(%):", tools.flow_percentage[tools.active_extruder]);
   }
 
@@ -73,7 +73,7 @@
    * M406: Turn off filament sensor for control
    */
   inline void gcode_M406(void) {
-    printer.filament_sensor = false;
+    filament_sensor = false;
     printer.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
   }
 
@@ -81,7 +81,7 @@
    * M407: Get measured filament diameter on serial output
    */
   inline void gcode_M407(void) {
-    SERIAL_EMV("Filament dia (measured mm):", printer.filament_width_meas);
+    SERIAL_EMV("Filament dia (measured mm):", filament_width_meas);
   }
 
 #endif // ENABLED(FILAMENT_SENSOR)

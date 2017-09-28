@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
 

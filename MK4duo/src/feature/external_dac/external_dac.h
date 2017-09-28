@@ -20,14 +20,22 @@
  *
  */
 
-#ifndef _EXTERNAL_DAC_H
-  #define _EXTERNAL_DAC_H
+#ifndef _EXTERNAL_DAC_H_
+#define _EXTERNAL_DAC_H_
+
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
   class ExternalDac {
-    public:
+
+    public: /** Constructor */
+
       ExternalDac();
+
+    public: /** Public Function */
+
       static void begin(void);
       static void setValue(uint8_t channel, uint8_t value);
   };
 
-#endif //_EXTERNAL_DAC_H
+#endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#endif /* _EXTERNAL_DAC_H_ */

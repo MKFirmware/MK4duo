@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../base.h"
+#include "../../../../base.h"
 
 #if ENABLED(NEXTION)
 

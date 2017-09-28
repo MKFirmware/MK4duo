@@ -286,8 +286,10 @@ class Stepper {
 
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
 
-      #if ENABLED(__AVR__)
-        if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > 2*DOUBLE_STEP_FREQUENCY >> step 4 times
+      #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
+        step_loops = 1;
+      #else
+        if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
           step_rate >>= 2;
           step_loops = 4;
         }
@@ -296,17 +298,13 @@ class Stepper {
           step_loops = 2;
         }
         else
-      #endif
-        {
           step_loops = 1;
-        }
+      #endif
 
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        timer = HAL_STEPPER_TIMER_RATE / step_rate;
-        if (timer < (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2))) {
+      #if ENABLED(CPU_32_BIT)
+        timer = (uint32_t)HAL_STEPPER_TIMER_RATE / step_rate;
+        if (timer < (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2)))
           timer = (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2));
-          SERIAL_EMT(MSG_STEPPER_TOO_HIGH, step_rate);
-        }
       #else
         NOLESS(step_rate, F_CPU / 500000);
         step_rate -= F_CPU / 500000; // Correct for minimal speed
@@ -329,6 +327,7 @@ class Stepper {
           SERIAL_EMT(MSG_STEPPER_TOO_HIGH, step_rate);
         }
       #endif
+
       return timer;
     }
 

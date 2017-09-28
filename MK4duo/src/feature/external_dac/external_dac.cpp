@@ -26,15 +26,11 @@
  *
  ****************************************************************/
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
-  #include "external_dac.h"
-
-  ExternalDac::ExternalDac() {
-    return ;
-  }
+  ExternalDac::ExternalDac() { return; }
 
   void ExternalDac::begin() {
     uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off

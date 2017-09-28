@@ -39,7 +39,7 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 
 #if ENABLED(NEXTION)
 

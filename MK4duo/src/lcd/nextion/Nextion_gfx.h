@@ -15,10 +15,11 @@
  *
  */
 
-#ifndef NEXTION_GFX_H
-#define NEXTION_GFX_H
+#ifndef _NEXTION_GFX_H_
+#define _NEXTION_GFX_H_
 
 #if ENABLED(NEXTION_GFX)
+
   #include "nextion_lib/Nextion.h"
 
   #define NX_AXIS         0
@@ -215,4 +216,5 @@
   };
 
 #endif // NEXTION_GFX
-#endif // NEXTION_GFX_H
+
+#endif /* _NEXTION_GFX_H_ */
