@@ -171,7 +171,6 @@
 #define MSG_SD_SLASH                        "/"
 #define MSG_SD_MAX_DEPTH                    "trying to call sub-gcode files with too many levels. MAX level is:"
 
-#define MSG_STEPPER_TOO_HIGH                "Steprate too high: "
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           "cold extrusion prevented"
 #define MSG_ERR_LONG_EXTRUDE_STOP           "too long extrusion prevented"

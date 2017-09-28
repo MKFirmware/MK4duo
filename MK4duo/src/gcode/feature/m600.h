@@ -108,15 +108,15 @@
       #endif
     );
 
-    const bool job_running = printer.print_job_counter.isRunning();
+    const bool job_running = print_job_counter.isRunning();
 
-    if (printer.pause_print(retract, retract2, z_lift, x_pos, y_pos, unload_length, temp, beep_count, true)) {
-      printer.wait_for_filament_reload(beep_count);
-      printer.resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
+    if (pause_print(retract, retract2, z_lift, x_pos, y_pos, unload_length, temp, beep_count, true)) {
+      wait_for_filament_reload(beep_count);
+      resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }
 
     // Resume the print job timer if it was running
-    if (job_running) printer.print_job_counter.start();
+    if (job_running) print_job_counter.start();
 
   }
 

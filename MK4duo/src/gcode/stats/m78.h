@@ -34,6 +34,6 @@
 inline void gcode_M78(void) {
   // "M78 S78" will reset the statistics
   if (parser.seen('S') && parser.value_int() == 78)
-    printer.print_job_counter.initStats();
-  else printer.print_job_counter.showStats();
+    print_job_counter.initStats();
+  else print_job_counter.showStats();
 }

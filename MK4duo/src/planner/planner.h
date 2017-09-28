@@ -237,20 +237,7 @@ class Planner {
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
      */
-    static FORCE_INLINE void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
-      #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
-        bedlevel.apply_leveling(lx, ly, lz);
-      #endif
-      #if ENABLED(ZWOBBLE)
-        // Calculate ZWobble
-        mechanics.insert_zwobble_correction(lz);
-      #endif
-      #if ENABLED(HYSTERESIS)
-        // Calculate Hysteresis
-        mechanics.insert_hysteresis_correction(lx, ly, lz, e);
-      #endif
-      _buffer_line(lx, ly, lz, e, fr_mm_s, extruder);
-    }
+    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder);
 
     /**
      * Add a new linear movement to the buffer.
@@ -261,31 +248,7 @@ class Planner {
      *  fr_mm_s   - (target) speed of the move (mm/s)
      *  extruder  - target extruder
      */
-    static FORCE_INLINE void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
-      #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-        float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
-        #if PLANNER_LEVELING
-          bedlevel.apply_leveling(lpos);
-        #endif
-        #if ENABLED(ZWOBBLE)
-          // Calculate ZWobble
-          mechanics.insert_zwobble_correction(lpos[Z_AXIS]);
-        #endif
-        #if ENABLED(HYSTERESIS)
-          // Calculate Hysteresis
-          mechanics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
-        #endif
-      #else
-        const float * const lpos = ltarget;
-      #endif
-
-      #if IS_KINEMATIC
-        mechanics.Transform(lpos);
-        _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
-      #else
-        _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
-      #endif
-    }
+    static void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder);
 
     static FORCE_INLINE void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     static FORCE_INLINE void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }

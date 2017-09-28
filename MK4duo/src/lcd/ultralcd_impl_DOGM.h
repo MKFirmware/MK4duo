@@ -586,8 +586,8 @@ static void lcd_implementation_status_screen() {
 
       char buffer1[10];
       char buffer2[10];
-      duration_t elapsed  = printer.print_job_counter.duration();
-      duration_t finished = (printer.print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
+      duration_t elapsed  = print_job_counter.duration();
+      duration_t finished = (print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
       uint8_t len1 = elapsed.toDigital(buffer1, false),
               len2 = finished.toDigital(buffer2, false);
 

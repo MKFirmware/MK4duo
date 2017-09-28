@@ -713,7 +713,7 @@ void kill_screen(const char* lcd_msg) {
 
     void lcd_sdcard_pause() {
       card.pauseSDPrint();
-      printer.print_job_counter.pause();
+      print_job_counter.pause();
       #if ENABLED(PARK_HEAD_ON_PAUSE)
         commands.enqueue_and_echo_commands_P(PSTR("M125"));
       #endif
@@ -725,7 +725,7 @@ void kill_screen(const char* lcd_msg) {
         commands.enqueue_and_echo_commands_P(PSTR("M24"));
       #else
         card.startFileprint();
-        printer.print_job_counter.start();
+        print_job_counter.start();
       #endif
       lcd_reset_status();
     }
@@ -3749,21 +3749,21 @@ void kill_screen(const char* lcd_msg) {
       char printTime[20];
       char Filamentlung[20];
 
-      t       = printer.print_job_counter.data.printer_usage / 60;
+      t       = print_job_counter.data.printer_usage / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
       sprintf_P(lifeTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
-      t       = printer.print_job_counter.data.printTime / 60;
+      t       = print_job_counter.data.printTime / 60;
       day     = t / 60 / 24;
       hours   = (t / 60) % 24;
       minutes = t % 60;
       sprintf_P(printTime, PSTR("%ud %uh %um"), day, hours, minutes);
 
-      kmeter      = (long)printer.print_job_counter.data.filamentUsed / 1000 / 1000;
-      meter       = ((long)printer.print_job_counter.data.filamentUsed / 1000) % 1000;
-      centimeter  = ((long)printer.print_job_counter.data.filamentUsed / 10) % 100;
+      kmeter      = (long)print_job_counter.data.filamentUsed / 1000 / 1000;
+      meter       = ((long)print_job_counter.data.filamentUsed / 1000) % 1000;
+      centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
       sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
 
       #if HAS_POWER_CONSUMPTION_SENSOR
@@ -3772,8 +3772,8 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       START_SCREEN();
-      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(printer.print_job_counter.data.totalPrints));
-      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(printer.print_job_counter.data.finishedPrints));
+      STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(print_job_counter.data.totalPrints));
+      STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(print_job_counter.data.finishedPrints));
       STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
       STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
       STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
@@ -3940,11 +3940,11 @@ void kill_screen(const char* lcd_msg) {
     }
 
     void lcd_filament_change_resume_print() {
-      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
     }
 
     void lcd_filament_change_extrude_more() {
-      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     void lcd_advanced_pause_option_menu() {
@@ -4199,7 +4199,7 @@ void kill_screen(const char* lcd_msg) {
           break;
         case ADVANCED_PAUSE_MESSAGE_OPTION:
           defer_return_to_status = true;
-          printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+          advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
           lcd_goto_screen(lcd_advanced_pause_option_menu);
           break;
         case ADVANCED_PAUSE_MESSAGE_RESUME:

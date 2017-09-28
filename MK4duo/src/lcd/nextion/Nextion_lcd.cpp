@@ -673,11 +673,11 @@
       if (card.cardOK && card.isFileOpen()) {
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
-          printer.print_job_counter.pause();
+          print_job_counter.pause();
         }
         else {
           card.startFileprint();
-          printer.print_job_counter.start();
+          print_job_counter.start();
         }
       }
     }
@@ -700,12 +700,12 @@
     }
 
     static void lcd_filament_change_resume_print() {
-      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
     }
 
     static void lcd_filament_change_extrude_more() {
-      printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     static void lcd_advanced_pause_option_menu() {
@@ -837,7 +837,7 @@
             lcd_advanced_pause_wait_for_nozzles_to_heat();
             break;
           case ADVANCED_PAUSE_MESSAGE_OPTION:
-            printer.advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+            advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
             lcd_advanced_pause_option_menu();
             break;
           case ADVANCED_PAUSE_MESSAGE_RESUME:
@@ -1200,7 +1200,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(printer.print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1349,7 +1349,7 @@
                 // Progress bar solid part
                 sdbar.setValue(card.percentDone());
                 // Estimate End Time
-                uint16_t time = printer.print_job_counter.duration() / 60;
+                uint16_t time = print_job_counter.duration() / 60;
                 uint16_t end_time = (time * (100 - card.percentDone())) / card.percentDone();
                 if (end_time > (60 * 23) || end_time == 0) {
                   LcdTime.setText("S--:-- E--:--");
@@ -1459,7 +1459,7 @@
     }
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
         Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
@@ -1467,12 +1467,12 @@
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if (PageID == 2 && (printer.print_job_counter.isRunning() || IS_SD_PRINTING))
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING))
         gfx.line_to(NX_TOOL, x, y, z);
     }
 

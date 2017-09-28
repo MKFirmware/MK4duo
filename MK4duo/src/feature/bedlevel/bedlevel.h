@@ -67,11 +67,11 @@
 
   #endif
 
-  class Bed_level {
+  class Bedlevel {
 
     public: /** Constructor */
 
-      Bed_level() {}
+      Bedlevel() {}
 
     public: /** Public Parameters */
 
@@ -179,7 +179,7 @@
 
   };
 
-  extern Bed_level bedlevel;
+  extern Bedlevel bedlevel;
 
 #endif // HAS_LEVELING
 

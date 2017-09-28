@@ -81,7 +81,6 @@
 #include "src/pins.h"
 #include "src/conditionals_post.h"
 #include "src/sanitycheck.h"
-#include "src/lcd/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
@@ -98,11 +97,7 @@
 #include "src/fan/controllerfan.h"
 #include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
-#include "src/probe/probe.h"
-#include "src/bedlevel/bedlevel.h"
 #include "src/eeprom/eeprom.h"
-#include "src/printcounter/duration_t.h"
-#include "src/printcounter/printcounter.h"
 #include "src/printer/printer.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
@@ -111,6 +106,7 @@
 #include "src/temperature/temperature.h"
 
 // LCD
+#include "src/lcd/language/language.h"
 #include "src/lcd/ultralcd.h"
 #include "src/lcd/nextion/Nextion_lcd.h"
 
@@ -123,11 +119,16 @@
 #include "src/utility/bezier.h"
 
 // Feature
+#include "src/feature/printcounter/duration_t.h"
+#include "src/feature/printcounter/printcounter.h"
+#include "src/feature/probe/probe.h"
+#include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
 #include "src/feature/filament/filament.h"
+#include "src/feature/advanced_pause/advanced_pause.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/caselight/caselight.h"

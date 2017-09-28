@@ -637,7 +637,7 @@ void Temperature::disable_all_heaters() {
   #endif
 
   // If all heaters go down then for sure our print job has stopped
-  printer.print_job_counter.stop();
+  print_job_counter.stop();
 }
 
 #if WATCH_THE_HEATER

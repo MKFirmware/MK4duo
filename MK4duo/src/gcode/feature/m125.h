@@ -45,6 +45,55 @@
    *    Y = override Y
    *    Z = override Z raise
    */
-  inline void gcode_M125(void) { printer.park_head_on_pause(); }
+  inline void gcode_M125(void) {
 
-#endif
+    // Initial retract before move to pause park position
+    const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
+      #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
+        - (PAUSE_PARK_RETRACT_LENGTH)
+      #endif
+    ;
+
+    // Lift Z axis
+    const float z_lift = parser.linearval('Z')
+      #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
+        + PAUSE_PARK_Z_ADD
+      #endif
+    ;
+
+    // Move XY axes to pause park position or given position
+    const float x_pos = parser.linearval('X')
+      #if ENABLED(PAUSE_PARK_X_POS)
+        + PAUSE_PARK_X_POS
+      #endif
+      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+        + (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0)
+      #endif
+    ;
+    const float y_pos = parser.linearval('Y')
+      #if ENABLED(PAUSE_PARK_Y_POS)
+        + PAUSE_PARK_Y_POS
+      #endif
+      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+        + (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0)
+      #endif
+    ;
+
+    #if DISABLED(SDSUPPORT)
+      const bool job_running = print_job_counter.isRunning();
+    #endif
+
+    if (pause_print(retract, 0.0, z_lift, x_pos, y_pos)) {
+      #if DISABLED(SDSUPPORT)
+        // Wait for lcd click or M108
+        wait_for_filament_reload();
+
+        // Return to print position and continue
+        resume_print();
+
+        if (job_running) print_job_counter.start();
+      #endif
+    }
+  }
+
+#endif // ENABLED(PARK_HEAD_ON_PAUSE)

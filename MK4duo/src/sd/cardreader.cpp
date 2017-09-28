@@ -476,7 +476,7 @@
     sdprinting = false;
     if (SD_FINISHED_STEPPERRELEASE) {
       commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-      printer.print_job_counter.stop();
+      print_job_counter.stop();
       commands.enqueue_and_echo_commands_P(PSTR("M31"));
     }
   }
@@ -745,14 +745,14 @@
       SERIAL_EM(" Wh");
     #endif
 
-    printer.print_job_counter.showStats();
+    print_job_counter.showStats();
   }
 
   void CardReader::ResetDefault() {
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.consumption_hour = 0;
     #endif
-    printer.print_job_counter.initStats();
+    print_job_counter.initStats();
     SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
   }
 
@@ -874,19 +874,19 @@
 
       if (settings_file.open(curDir, "INFO.cfg", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
         char buff[CFG_SD_MAX_VALUE_LEN];
-        ltoa(printer.print_job_counter.data.finishedPrints, buff, 10);
+        ltoa(print_job_counter.data.finishedPrints, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
-        ltoa(printer.print_job_counter.data.filamentUsed, buff, 10);
+        ltoa(print_job_counter.data.filamentUsed, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_FIL], buff);
-        ltoa(printer.print_job_counter.data.totalPrints, buff, 10);
+        ltoa(print_job_counter.data.totalPrints, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
         #if HAS_POWER_CONSUMPTION_SENSOR
           ltoa(powerManager.consumption_hour, buff, 10);
           unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
         #endif
-        ltoa(printer.print_job_counter.data.printer_usage, buff, 10);
+        ltoa(print_job_counter.data.printer_usage, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_TME], buff);
-        ltoa(printer.print_job_counter.data.printTime, buff, 10);
+        ltoa(print_job_counter.data.printTime, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_TPR], buff);
 
         settings_file.sync();
@@ -919,18 +919,18 @@
 
           switch (k_idx) {
             case SD_CFG_CPR: {
-              if (addValue) printer.print_job_counter.data.finishedPrints += (unsigned long)atol(value);
-              else printer.print_job_counter.data.finishedPrints = (unsigned long)atol(value);
+              if (addValue) print_job_counter.data.finishedPrints += (unsigned long)atol(value);
+              else print_job_counter.data.finishedPrints = (unsigned long)atol(value);
             }
             break;
             case SD_CFG_FIL: {
-              if (addValue) printer.print_job_counter.data.filamentUsed += (unsigned long)atol(value);
-              else printer.print_job_counter.data.filamentUsed = (unsigned long)atol(value);
+              if (addValue) print_job_counter.data.filamentUsed += (unsigned long)atol(value);
+              else print_job_counter.data.filamentUsed = (unsigned long)atol(value);
             }
             break;
             case SD_CFG_NPR: {
-              if (addValue) printer.print_job_counter.data.totalPrints += (unsigned long)atol(value);
-              else printer.print_job_counter.data.totalPrints = (unsigned long)atol(value);
+              if (addValue) print_job_counter.data.totalPrints += (unsigned long)atol(value);
+              else print_job_counter.data.totalPrints = (unsigned long)atol(value);
             }
             break;
           #if HAS_POWER_CONSUMPTION_SENSOR
@@ -941,13 +941,13 @@
             break;
           #endif
             case SD_CFG_TME: {
-              if (addValue) printer.print_job_counter.data.printer_usage += (unsigned long)atol(value);
-              else printer.print_job_counter.data.printer_usage = (unsigned long)atol(value);
+              if (addValue) print_job_counter.data.printer_usage += (unsigned long)atol(value);
+              else print_job_counter.data.printer_usage = (unsigned long)atol(value);
             }
             break;
             case SD_CFG_TPR: {
-              if (addValue) printer.print_job_counter.data.printTime += (unsigned long)atol(value);
-              else printer.print_job_counter.data.printTime = (unsigned long)atol(value);
+              if (addValue) print_job_counter.data.printTime += (unsigned long)atol(value);
+              else print_job_counter.data.printTime = (unsigned long)atol(value);
             }
             break;
           }
@@ -956,7 +956,7 @@
         settings_file.close();
       }
 
-      printer.print_job_counter.loaded = true;
+      print_job_counter.loaded = true;
 
       setlast();
     }

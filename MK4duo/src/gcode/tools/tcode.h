@@ -66,7 +66,7 @@ inline void gcode_T(void) {
 
   #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    if (printer.mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || printer.print_job_counter.isRunning()) && tools.previous_extruder != tool_id) {
+    if (printer.mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || print_job_counter.isRunning()) && tools.previous_extruder != tool_id) {
       gcode_M600();
       tools.previous_extruder = tool_id;
     }
