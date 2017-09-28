@@ -81,7 +81,7 @@
 #include "src/pins.h"
 #include "src/conditionals_post.h"
 #include "src/sanitycheck.h"
-#include "src/language/language.h"
+#include "src/lcd/language/language.h"
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
@@ -103,23 +103,31 @@
 #include "src/eeprom/eeprom.h"
 #include "src/printcounter/duration_t.h"
 #include "src/printcounter/printcounter.h"
-#include "src/power/power.h"
 #include "src/printer/printer.h"
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/stepper/stepper.h"
 #include "src/heater/heater.h"
 #include "src/temperature/temperature.h"
-#include "src/lcd/ultralcd.h"
-#include "src/nextion/Nextion_lcd.h"
-#include "src/sd/cardreader.h"
-#include "src/servo/servo.h"
 
+// LCD
+#include "src/lcd/ultralcd.h"
+#include "src/lcd/nextion/Nextion_lcd.h"
+
+// SD
+#include "src/sd/cardreader.h"
+
+// Utility
+#include "src/utility/utility.h"
 #include "src/utility/hex_print_routines.h"
 #include "src/utility/bezier.h"
 
 // Feature
+#include "src/feature/external_dac/external_dac.h"
+#include "src/feature/servo/servo.h"
+#include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
+#include "src/feature/filament/filament.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/caselight/caselight.h"
@@ -130,10 +138,6 @@
   #include "src/feature/rgbled/pca9632.h"
 #elif HAS_NEOPIXEL
   #include "src/feature/rgbled/Adafruit_NeoPixel.h"
-#endif
-
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  #include "src/alligator/external_dac.h"
 #endif
 
 #if HAS_DIGIPOTSS

@@ -513,4 +513,4 @@ uint8_t Nextion_PageID();
 void setCurrentBrightness(uint8_t dimValue);
 void sendRefreshAll(void);
 
-#endif //__NEXTION_H__
+#endif /* __NEXTION_H__ */

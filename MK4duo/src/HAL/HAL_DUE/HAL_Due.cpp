@@ -222,28 +222,30 @@ int HAL::getFreeRam() {
     ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
     pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
+    adc_channel_num_t adc_ch;
+
     LOOP_HEATER() {
       if (WITHIN(heaters[h].sensor_pin, 0, 15)) {
-        adc_channel_num_t adc_ch = PinToAdcChannel(heaters[h].sensor_pin);
+        adc_ch = PinToAdcChannel(heaters[h].sensor_pin);
         AdcEnableChannel(adc_ch);
         adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
       }
     }
 
     #if HAS_FILAMENT_SENSOR
-      adc_channel_num_t adc_ch = PinToAdcChannel(FILWIDTH_PIN);
+      adc_ch = PinToAdcChannel(FILWIDTH_PIN);
       AdcEnableChannel(adc_ch);
       adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
     #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
-      adc_channel_num_t adc_ch = PinToAdcChannel(POWER_CONSUMPTION_PIN);
+      adc_ch = PinToAdcChannel(POWER_CONSUMPTION_PIN);
       AdcEnableChannel(adc_ch);
       adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
     #endif
 
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      adc_channel_num_t adc_ch = PinToAdcChannel(ADC_TEMPERATURE_SENSOR);
+      adc_ch = PinToAdcChannel(ADC_TEMPERATURE_SENSOR);
       AdcEnableChannel(adc_ch);
       adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
     #endif
@@ -620,8 +622,6 @@ HAL_TEMP_TIMER_ISR {
 
   // read analog values
   #if ANALOG_INPUTS > 0
-
-    adc_channel_num_t adc_ch;
 
     if (adc_get_status(ADC)) { // conversion finished?
       adcCounter++;

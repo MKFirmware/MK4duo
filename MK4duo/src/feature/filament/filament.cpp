@@ -21,29 +21,20 @@
  */
 
 /**
- * Description:
+ * filament.cpp
  *
- * Supports platforms:
- *    ARDUINO_ARCH_SAM : For Arduino Due and other boards based on Atmel SAM3X8E
- *    __AVR__ : For all Atmel AVR boards
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _HAL_H_
-#define _HAL_H_
+#include "../../../base.h"
 
-#include <stdint.h>
+#if ENABLED(FILAMENT_SENSOR)
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #define CPU_32_BIT
-  #include "HAL_DUE/spi_pins_Due.h"
-  #include "HAL_DUE/HAL_Due.h"
-  #include "HAL_DUE/communication.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/spi_pins_AVR.h"
-  #include "HAL_AVR/HAL_AVR.h"
-  #include "HAL_AVR/communication.h"
-#else
-  #error "Unsupported Platform!"
+  bool    filament_sensor        = false;                         // M405 turns on filament_sensor control, M406 turns it off
+  float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404
+          filament_width_meas    = DEFAULT_MEASURED_FILAMENT_DIA; // Measured filament diameter
+  uint8_t meas_delay_cm          = MEASUREMENT_DELAY_CM,          // Distance delay setting
+          measurement_delay[MAX_MEASUREMENT_DELAY + 1];           // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
+  int8_t  filwidth_delay_index[2] = { 0, -1 };                    // Indexes into ring buffer
+
 #endif
-
-#endif /* _HAL_H_ */

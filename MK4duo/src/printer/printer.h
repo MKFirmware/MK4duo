@@ -117,15 +117,6 @@ class Printer {
       static float motor_current[3 + DRIVER_EXTRUDERS];
     #endif
 
-    #if ENABLED(FILAMENT_SENSOR)
-      static bool     filament_sensor;          // Flag that filament sensor readings should control extrusion
-      static float    filament_width_nominal,   // Theoretical filament diameter i.e., 3.00 or 1.75
-                      filament_width_meas;      // Measured filament diameter
-      static uint8_t  meas_delay_cm,            // Delay distance
-                      measurement_delay[];      // Ring buffer to delay measurement
-      static int8_t   filwidth_delay_index[2];  // Ring buffer indexes. Used by planner, temperature, and main code
-    #endif
-
     #if ENABLED(RFID_MODULE)
       static uint32_t Spool_ID[EXTRUDERS];
       static bool     RFID_ON,

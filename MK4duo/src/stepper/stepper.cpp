@@ -1023,7 +1023,7 @@ void Stepper::isr() {
   }
 
   #if DISABLED(ADVANCE) && DISABLED(LIN_ADVANCE)
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       HAL_TIMER_TYPE stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
       NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US));
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count);
@@ -1551,6 +1551,11 @@ long Stepper::position(AxisEnum axis) {
 }
 
 void Stepper::enable_all_steppers() {
+
+  #if HAS_POWER_SWITCH 
+    powerManager.power_on();
+  #endif
+
   enable_X();
   enable_Y();
   enable_Z();

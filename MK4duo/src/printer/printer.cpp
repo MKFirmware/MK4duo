@@ -96,15 +96,6 @@ PrintCounter Printer::print_job_counter = PrintCounter();
   float Printer::motor_current[3 + DRIVER_EXTRUDERS];
 #endif
 
-#if ENABLED(FILAMENT_SENSOR)
-  bool    Printer::filament_sensor        = false;                          // M405 turns on filament_sensor control, M406 turns it off
-  float   Printer::filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,   // Nominal filament width. Change with M404
-          Printer::filament_width_meas    = DEFAULT_MEASURED_FILAMENT_DIA;  // Measured filament diameter
-  uint8_t Printer::meas_delay_cm          = MEASUREMENT_DELAY_CM,           // Distance delay setting
-          Printer::measurement_delay[MAX_MEASUREMENT_DELAY + 1];            // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
-  int8_t  Printer::filwidth_delay_index[2] = { 0, -1 };                     // Indexes into ring buffer
-#endif
-
 #if ENABLED(RFID_MODULE)
   uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
   bool      Printer::RFID_ON = false,
@@ -930,7 +921,7 @@ void Printer::handle_Interrupt_Event() {
 
   switch(event) {
     #if HAS_FIL_RUNOUT || HAS_DAV_SYSTEM
-      //case INTERRUPT_EVENT_FIL_RUNOUT:
+      case INTERRUPT_EVENT_FIL_RUNOUT:
       case INTERRUPT_EVENT_DAV_SYSTEM:
         if (!filament_ran_out) {
           filament_ran_out = true;
