@@ -32,8 +32,8 @@
  * M44: Codes debug - report codes available (and how many of them there are).
  *
  *  M44         - Report complete statistics of available gcodes.
- *                  G   Flag to show G-code statistics.
- *                  M   Flag to show M-code statistics.
+ *                  I   Flag to show G-code statistics.
+ *                  J   Flag to show M-code statistics.
  *
  */
 inline void gcode_M44(void);
