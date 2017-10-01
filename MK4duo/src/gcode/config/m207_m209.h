@@ -36,32 +36,30 @@
    * M207: Set firmware retraction values
    *
    *   S[+units]    retract_length
-   *   W[+units]    retract_length_swap (multi-extruder)
+   *   W[+units]    swap_retract_length (multi-extruder)
    *   F[units/min] retract_feedrate_mm_s
    *   Z[units]     retract_zlift
    */
   inline void gcode_M207(void) {
-    if (parser.seenval('S')) tools.retract_length = parser.value_axis_units(E_AXIS);
-    if (parser.seenval('F')) tools.retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
-    if (parser.seenval('Z')) tools.retract_zlift = parser.value_linear_units();
-    #if EXTRUDERS > 1
-      if (parser.seenval('W')) tools.retract_length_swap = parser.value_axis_units(E_AXIS);
-    #endif
+    if (parser.seenval('S')) fwretract.retract_length = parser.value_axis_units(E_AXIS);
+    if (parser.seenval('F')) fwretract.retract_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seenval('Z')) fwretract.retract_zlift = parser.value_linear_units();
+    if (parser.seenval('W')) fwretract.swap_retract_length = parser.value_axis_units(E_AXIS);
   }
 
   /**
    * M208: Set firmware un-retraction values
    *
    *   S[+units]    retract_recover_length (in addition to M207 S*)
-   *   W[+units]    retract_recover_length_swap (multi-extruder)
+   *   W[+units]    swap_retract_recover_length (multi-extruder)
    *   F[units/min] retract_recover_feedrate_mm_s
+   *   R[units/min] swap_retract_recover_feedrate_mm_s
    */
-  inline void gcode_M208() {
-    if (parser.seenval('S')) tools.retract_recover_length = parser.value_axis_units(E_AXIS);
-    if (parser.seenval('F')) tools.retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
-    #if EXTRUDERS > 1
-      if (parser.seenval('W')) tools.retract_recover_length_swap = parser.value_axis_units(E_AXIS);
-    #endif
+  inline void gcode_M208(void) {
+    if (parser.seen('S')) fwretract.retract_recover_length = parser.value_axis_units(E_AXIS);
+    if (parser.seen('F')) fwretract.retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seen('R')) fwretract.swap_retract_recover_feedrate_mm_s = MMM_TO_MMS(parser.value_axis_units(E_AXIS));
+    if (parser.seen('W')) fwretract.swap_retract_recover_length = parser.value_axis_units(E_AXIS);
   }
 
   /**
@@ -69,10 +67,11 @@
    *   For slicers that don't support G10/11, reversed extrude-only
    *   moves will be classified as retraction.
    */
-  inline void gcode_M209() {
-    if (parser.seenval('S')) {
-      tools.autoretract_enabled = parser.value_bool();
-      for (int i = 0; i < EXTRUDERS; i++) tools.retracted[i] = false;
+  inline void gcode_M209(void) {
+    if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {
+      if (parser.seen('S')) {
+        fwretract.autoretract_enabled = parser.value_bool();
+      }
     }
   }
 

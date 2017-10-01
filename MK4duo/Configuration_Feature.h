@@ -751,17 +751,18 @@
  * Note that M207 / M208 / M209 settings are saved to EEPROM.             *
  *                                                                        *
  **************************************************************************/
-//#define FWRETRACT                     // ONLY PARTIALLY TESTED
+//#define FWRETRACT                       // ONLY PARTIALLY TESTED
 
-#define MIN_RETRACT                 0.1 // A retract/recover of this length or longer can be converted to auto-retract
-#define RETRACT_LENGTH                3 // Default retract length (positive mm)
-#define RETRACT_LENGTH_SWAP          13 // Default swap retract length (positive mm), for extruder change
-#define RETRACT_FEEDRATE             45 // Default feedrate for retracting (mm/s)
-#define RETRACT_ZLIFT                 0 // Default retract Z-lift
-#define RETRACT_RECOVER_LENGTH        0 // Default additional recover length (mm, added to retract length when recovering)
-#define RETRACT_RECOVER_LENGTH_SWAP   0 // Default additional swap recover length (mm, added to retract length when recovering from extruder change)
-#define RETRACT_RECOVER_FEEDRATE      8 // Default feedrate for recovering from retraction (mm/s)
-#define RETRACT_RECOVER_FEEDRATE_SWAP 8 // Default feedrate for recovering from swap retraction (mm/s)
+#define MIN_AUTORETRACT               0.1 // When auto-retract is on, convert E moves of this length and over
+#define MAX_AUTORETRACT              10.0 // Upper limit for auto-retract conversion
+#define RETRACT_LENGTH                3   // Default retract length (positive mm)
+#define RETRACT_LENGTH_SWAP          13   // Default swap retract length (positive mm), for extruder change
+#define RETRACT_FEEDRATE             45   // Default feedrate for retracting (mm/s)
+#define RETRACT_ZLIFT                 0   // Default retract Z-lift
+#define RETRACT_RECOVER_LENGTH        0   // Default additional recover length (mm, added to retract length when recovering)
+#define RETRACT_RECOVER_LENGTH_SWAP   0   // Default additional swap recover length (mm, added to retract length when recovering from extruder change)
+#define RETRACT_RECOVER_FEEDRATE      8   // Default feedrate for recovering from retraction (mm/s)
+#define RETRACT_RECOVER_FEEDRATE_SWAP 8   // Default feedrate for recovering from swap retraction (mm/s)
 /**************************************************************************/
 
 

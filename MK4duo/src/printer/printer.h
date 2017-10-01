@@ -173,10 +173,6 @@ class Printer {
       static void stopSDPrint(const bool store_location);
     #endif
 
-    #if ENABLED(FWRETRACT)
-      static void retract(const bool retracting, const bool swapping=false);
-    #endif
-
     #if HAS_COLOR_LEDS
       static void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b
                                 #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)

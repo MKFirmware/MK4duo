@@ -57,19 +57,6 @@
     #endif
   #endif
 
-  #if ENABLED(FWRETRACT)
-    bool  Tools::autoretract_enabled            = false,
-          Tools::retracted[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(false),
-          Tools::retracted_swap[EXTRUDERS]      = ARRAY_BY_EXTRUDERS(false);
-    float Tools::retract_length                 = RETRACT_LENGTH,
-          Tools::retract_length_swap            = RETRACT_LENGTH_SWAP,
-          Tools::retract_feedrate_mm_s          = RETRACT_FEEDRATE,
-          Tools::retract_zlift                  = RETRACT_ZLIFT,
-          Tools::retract_recover_length         = RETRACT_RECOVER_LENGTH,
-          Tools::retract_recover_length_swap    = RETRACT_RECOVER_LENGTH_SWAP,
-          Tools::retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE;
-  #endif
-
   #if HAS_EXT_ENCODER
     uint8_t Tools::encLastSignal[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(0);
     int8_t  Tools::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);
