@@ -1150,13 +1150,16 @@
               z_at_pt[axis] /= (2 * offset_circles + 1);
             }
           }
+          if (_7p_intermed_points) // average intermediates to tower and opposites
+            for (uint8_t axis = 1; axis < 13; axis += 2)
+            z_at_pt[axis] = (z_at_pt[axis] + (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 2.0) / 2.0;
         }
 
         float S1  = z_at_pt[0],
               S2  = sq(z_at_pt[0]);
         int16_t N = 1;
-        if (!_1p_calibration) { // std dev from zero plane (4p - 7p)
-          for (uint8_t axis = (_4p_opposite_points ? 3 : 1); axis < 13; axis += (_4p_calibration ? 4 : _7p_half_circle ? 2 : 1)) {
+        if (!_1p_calibration) { // std dev from zero plane
+          for (uint8_t axis = (_4p_opposite_points ? 3 : 1); axis < 13; axis += (_4p_calibration ? 4 : 2)) {
             S1 += z_at_pt[axis];
             S2 += sq(z_at_pt[axis]);
             N++;
@@ -1192,22 +1195,19 @@
           #endif
 
           switch (probe_points) {
-            case 0:
-              break;
-
             case 1:
               test_precision = 0.00; // forced end
               LOOP_XYZ(i) e_delta[i] = Z1(0);
               break;
 
             case 2:
-              if (towers_set) { // 4 point calibartion matrix
+              if (towers_set) {
                 e_delta[A_AXIS] = (Z6(0) + Z4(1) - Z2(5) - Z2(9)) * h_factor;
                 e_delta[B_AXIS] = (Z6(0) - Z2(1) + Z4(5) - Z2(9)) * h_factor;
                 e_delta[C_AXIS] = (Z6(0) - Z2(1) - Z2(5) + Z4(9)) * h_factor;
                 r_delta         = (Z6(0) - Z2(1) - Z2(5) - Z2(9)) * r_factor;
               }
-              else {            // 4 point opposite calibration matrix
+              else {
                 e_delta[A_AXIS] = (Z6(0) - Z4(7) + Z2(11) + Z2(3)) * h_factor;
                 e_delta[B_AXIS] = (Z6(0) + Z2(7) - Z4(11) + Z2(3)) * h_factor;
                 e_delta[C_AXIS] = (Z6(0) + Z2(7) + Z2(11) - Z4(3)) * h_factor;
@@ -1215,24 +1215,16 @@
               }
               break;
 
-            default:            // 7 point calibration matrix / 7 point intermediate calibration matrix
+            default:
               e_delta[A_AXIS] = (Z6(0) + Z2(1) - Z1(5) - Z1(9) - Z2(7) + Z1(11) + Z1(3)) * h_factor;
               e_delta[B_AXIS] = (Z6(0) - Z1(1) + Z2(5) - Z1(9) + Z1(7) - Z2(11) + Z1(3)) * h_factor;
               e_delta[C_AXIS] = (Z6(0) - Z1(1) - Z1(5) + Z2(9) + Z1(7) + Z1(11) - Z2(3)) * h_factor;
               r_delta         = (Z6(0) - Z1(1) - Z1(5) - Z1(9) - Z1(7) - Z1(11) - Z1(3)) * r_factor;
 
-              if (towers_set) { // tower angle calibration matrix
-                if (_7p_intermed_points) // correct for saddle shape (intermediate tower angle matrix)
-                  for (uint8_t axis = 1; axis < 13; axis += 2)
-                    z_at_pt[axis] -= (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 8.0;
-
+              if (towers_set) {
                 t_delta[A_AXIS] = (            - Z1(5) + Z1(9)         - Z1(11) + Z1(3)) * a_factor;
                 t_delta[B_AXIS] = (      Z1(1)         - Z1(9) + Z1(7)          - Z1(3)) * a_factor;
                 t_delta[C_AXIS] = (    - Z1(1) + Z1(5)         - Z1(7) + Z1(11)        ) * a_factor;
-
-                if (_7p_intermed_points) // uncorrect for saddle shape (to print uncorrected values)
-                  for (uint8_t axis = 1; axis < 13; axis += 2)
-                    z_at_pt[axis] += (z_at_pt[axis + 1] + z_at_pt[(axis + 10) % 12 + 1]) / 8.0;
               }
               break;
           }
