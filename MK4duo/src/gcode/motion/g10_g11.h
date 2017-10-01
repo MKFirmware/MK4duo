@@ -33,22 +33,21 @@
 
   /**
    * G10 - Retract filament according to settings of M207
-   * G11 - Recover filament according to settings of M208
    */
-  void gcode_G10_G11(bool doRetract = false) {
+  inline void gcode_G10(void) {
     #if EXTRUDERS > 1
-      if (doRetract) {
-        tools.retracted_swap[tools.active_extruder] = (parser.seen('S') && parser.value_bool()); // checks for swap retract argument
-      }
+      const bool rs = parser.boolval('S');
     #endif
-    printer.retract(doRetract
-     #if EXTRUDERS > 1
-      , tools.retracted_swap[tools.active_extruder]
-     #endif
+    fwretract.retract(true
+      #if EXTRUDERS > 1
+        , rs
+      #endif
     );
   }
 
-  inline void gcode_G10(void) { gcode_G10_G11(true); }
-  inline void gcode_G11(void) { gcode_G10_G11(false); }
+  /**
+   * G11 - Recover filament according to settings of M208
+   */
+  inline void gcode_G11(void) { fwretract.retract(false); }
 
 #endif // FWRETRACT

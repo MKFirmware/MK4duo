@@ -128,6 +128,7 @@
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
 #include "src/feature/filament/filament.h"
+#include "src/feature/fwretract/fwretract.h"
 #include "src/feature/advanced_pause/advanced_pause.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"

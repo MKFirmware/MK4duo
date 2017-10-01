@@ -61,14 +61,6 @@
         #endif
       #endif
 
-      #if ENABLED(FWRETRACT)
-        static bool   autoretract_enabled,
-                      retracted[EXTRUDERS],
-                      retracted_swap[EXTRUDERS];
-        static float  retract_length, retract_length_swap, retract_feedrate_mm_s, retract_zlift,
-                      retract_recover_length, retract_recover_length_swap, retract_recover_feedrate_mm_s;
-      #endif
-
       #if HAS_EXT_ENCODER
         static uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
         static int8_t   encLastDir[EXTRUDERS];
