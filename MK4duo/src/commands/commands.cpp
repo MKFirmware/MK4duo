@@ -112,7 +112,7 @@ void Commands::get_serial_commands() {
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
-  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable() > 0) {
+  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable()) {
 
     char serial_char = HAL::serialReadByte();
 
@@ -214,7 +214,7 @@ void Commands::get_serial_commands() {
       // The command will be injected when EOL is reached
     }
     else if (serial_char == '\\') { // Handle escapes
-      if (HAL::serialByteAvailable() > 0) {
+      if (HAL::serialByteAvailable()) {
         // if we have one more character, copy it over
         serial_char = HAL::serialReadByte();
         if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
