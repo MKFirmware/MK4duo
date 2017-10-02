@@ -24,30 +24,55 @@
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(M100_FREE_MEMORY_WATCHER) || ENABLED(DEBUG_GCODE_PARSER)
 
-static char _hex[7] = "0x0000";
+  #ifdef CPU_32_BIT
+    constexpr int byte_start = 4;
+    static char _hex[] = "0x00000000";
+  #else
+    constexpr int byte_start = 0;
+    static char _hex[] = "0x0000";
+  #endif
 
-char* hex_byte(const uint8_t b) {
-  _hex[4] = hex_nybble(b >> 4);
-  _hex[5] = hex_nybble(b);
-  return &_hex[4];
-}
+  char* hex_byte(const uint8_t b) {
+    _hex[byte_start + 4] = hex_nybble(b >> 4);
+    _hex[byte_start + 5] = hex_nybble(b);
+    return &_hex[byte_start + 4];
+  }
 
-char* hex_word(const uint16_t w) {
-  _hex[2] = hex_nybble(w >> 12);
-  _hex[3] = hex_nybble(w >> 8);
-  _hex[4] = hex_nybble(w >> 4);
-  _hex[5] = hex_nybble(w);
-  return &_hex[2];
-}
+  inline void _hex_word(const uint16_t w) {
+    _hex[byte_start + 2] = hex_nybble(w >> 12);
+    _hex[byte_start + 3] = hex_nybble(w >> 8);
+    _hex[byte_start + 4] = hex_nybble(w >> 4);
+    _hex[byte_start + 5] = hex_nybble(w);
+  }
 
-char* hex_address(const void * const w) {
-  (void)hex_word((int)w);
-  return _hex;
-}
+  char* hex_word(const uint16_t w) {
+    _hex_word(w);
+    return &_hex[byte_start + 2];
+  }
 
-void print_hex_nybble(const uint8_t n)        { SERIAL_CHR(hex_nybble(n));  }
-void print_hex_byte(const uint8_t b)          { SERIAL_VAL(hex_byte(b));    }
-void print_hex_word(const uint16_t w)         { SERIAL_VAL(hex_word(w));    }
-void print_hex_address(const void * const w)  { SERIAL_VAL(hex_address(w)); }
+  #if ENABLED(CPU_32_BIT)
+    char* hex_long(const uint32_t l) {
+      _hex[2] = hex_nybble(l >> 28);
+      _hex[3] = hex_nybble(l >> 24);
+      _hex[4] = hex_nybble(l >> 20);
+      _hex[5] = hex_nybble(l >> 16);
+      _hex_word((uint16_t)(l & 0xFFFF));
+      return &_hex[2];
+    }
+  #endif
+
+  char* hex_address(const void * const w) {
+    #if ENABLED(CPU_32_BIT)
+      (void)hex_long((ptr_int_t)w);
+    #else
+      (void)hex_word((ptr_int_t)w);
+    #endif
+    return _hex;
+  }
+
+  void print_hex_nybble(const uint8_t n)       { SERIAL_CHR(hex_nybble(n));  }
+  void print_hex_byte(const uint8_t b)         { SERIAL_VAL(hex_byte(b));    }
+  void print_hex_word(const uint16_t w)        { SERIAL_VAL(hex_word(w));    }
+  void print_hex_address(const void * const w) { SERIAL_VAL(hex_address(w)); }
 
 #endif // M100_FREE_MEMORY_WATCHER

@@ -211,7 +211,6 @@
 #define MSG_KD                              " Kd: "
 #define MSG_T                               " T:"
 #define MSG_B                               " B:"
-#define MSG_C                               " C:"
 #define MSG_AT                              " @"
 #define MSG_BAT                             " B@:"
 #define MSG_CAT                             " C@:"

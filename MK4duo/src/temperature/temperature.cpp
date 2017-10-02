@@ -754,12 +754,9 @@ void Temperature::print_heaterstates() {
   #endif
 
   #if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
-    SERIAL_MSG(" MCU: min");
-    SERIAL_MV(MSG_C, mcu_lowest_temperature, 1);
-    SERIAL_MSG(", current");
-    SERIAL_MV(MSG_C, mcu_current_temperature, 1);
-    SERIAL_MSG(", max");
-    SERIAL_MV(MSG_C, mcu_highest_temperature, 1);
+    SERIAL_MV(" MCU min:", mcu_lowest_temperature, 1);
+    SERIAL_MV(", current:", mcu_current_temperature, 1);
+    SERIAL_MV(", max:", mcu_highest_temperature, 1);
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV(" C->", mcu_current_temperature_raw);
     #endif

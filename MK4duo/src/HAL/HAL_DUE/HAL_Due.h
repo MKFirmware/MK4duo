@@ -63,6 +63,7 @@
 // Types
 // --------------------------------------------------------------------------
 typedef uint32_t  HAL_TIMER_TYPE;
+typedef uint32_t  ptr_int_t;
 typedef uint32_t  millis_t;
 typedef int8_t    Pin;
 static const Pin  NoPin = -1;

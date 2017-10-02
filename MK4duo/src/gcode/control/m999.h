@@ -44,5 +44,5 @@ inline void gcode_M999(void) {
 
   if (parser.boolval('S')) return;
 
-  commands.FlushSerialRequestResend();
+  commands.flush_and_request_resend();
 }

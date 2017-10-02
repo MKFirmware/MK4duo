@@ -112,7 +112,7 @@ void Commands::get_serial_commands() {
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
-  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable() > 0) {
+  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable()) {
 
     char serial_char = HAL::serialReadByte();
 
@@ -214,7 +214,7 @@ void Commands::get_serial_commands() {
       // The command will be injected when EOL is reached
     }
     else if (serial_char == '\\') { // Handle escapes
-      if (HAL::serialByteAvailable() > 0) {
+      if (HAL::serialByteAvailable()) {
         // if we have one more character, copy it over
         serial_char = HAL::serialReadByte();
         if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
@@ -235,7 +235,7 @@ void Commands::get_serial_commands() {
  */
 void Commands::loop() {
 
-  get_available_commands();
+  if (commands_in_queue < BUFSIZE) get_available_commands();
 
   #if HAS_SDSUPPORT
     card.checkautostart(false);
@@ -332,7 +332,7 @@ void Commands::loop() {
             #if HAS_RESUME_CONTINUE
               enqueue_and_echo_commands_P(PSTR("M0")); // end of the queue!
             #else
-              safe_delay(1000);
+              printer.safe_delay(1000);
             #endif
             printer.set_led_color(0, 0, 0);   // OFF
           #endif
@@ -371,7 +371,7 @@ void Commands::loop() {
  * Send a "Resend: nnn" message to the host to
  * indicate that a command needs to be re-sent.
  */
-void Commands::FlushSerialRequestResend() {
+void Commands::flush_and_request_resend() {
   //char command_queue[cmd_queue_index_r][100]="Resend:";
   HAL::serialFlush();
   SERIAL_LV(RESEND, gcode_LastN + 1);
@@ -412,8 +412,6 @@ void Commands::ok_to_send() {
  *  - The SD card file being actively printed
  */
 void Commands::get_available_commands() {
-
-  if (commands_in_queue >= BUFSIZE) return;
 
   // if any immediate commands remain, don't get other commands yet
   if (drain_injected_commands_P()) return;
@@ -505,7 +503,7 @@ void Commands::gcode_line_error(const char* err, const bool doFlush/*=true*/) {
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
   //Serial.println(gcode_N);
-  if (doFlush) FlushSerialRequestResend();
+  if (doFlush) flush_and_request_resend();
   serial_count = 0;
 }
 
@@ -592,7 +590,7 @@ void Commands::process_next_command() {
     break;
 
     case 'T':
-      gcode_T();
+      gcode_T(parser.codenum); // Tn: Tool Change
     break;
 
     default: unknown_command_error();

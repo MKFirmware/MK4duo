@@ -326,6 +326,8 @@
       UNUSED(max_beep_count);
     #endif
 
+    mechanics.set_destination_to_current();
+
     if (load_length != 0) {
       #if HAS_LCD
         // Show "insert filament"
@@ -350,7 +352,6 @@
 
       // Load filament
       mechanics.destination[E_AXIS] += load_length;
-
       RUNPLAN(PAUSE_PARK_LOAD_FEEDRATE);
       stepper.synchronize();
     }
@@ -359,14 +360,6 @@
 
       float extrude_length = initial_extrude_length;
 
-      const float dest_x = mechanics.destination[X_AXIS],
-                  dest_y = mechanics.destination[Y_AXIS],
-                  dest_z = mechanics.destination[Z_AXIS];
-
-      mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS];
-      mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS];
-      mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS];
- 
       do {
         if (extrude_length > 0) {
           // "Wait for filament extrude"
@@ -389,11 +382,6 @@
 
         // Keep looping if "Extrude More" was selected
       } while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE);
-
-      mechanics.destination[X_AXIS] = dest_x;
-      mechanics.destination[Y_AXIS] = dest_y;
-      mechanics.destination[Z_AXIS] = dest_z;
-      stepper.synchronize();
 
     #endif
 

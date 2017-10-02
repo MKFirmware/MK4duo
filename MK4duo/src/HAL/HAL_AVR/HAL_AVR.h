@@ -73,6 +73,7 @@
 // Types
 // --------------------------------------------------------------------------
 typedef uint16_t  HAL_TIMER_TYPE;
+typedef uint16_t  ptr_int_t;
 typedef uint32_t  millis_t;
 typedef int8_t    Pin;
 

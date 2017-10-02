@@ -706,8 +706,11 @@ static_assert(1 >= 0
 
 // Firmware Retract
 #if ENABLED(FWRETRACT)
-  #if DISABLED(MIN_RETRACT)
-    #error DEPENDENCY ERROR: Missing setting MIN_RETRACT
+  #if DISABLED(MIN_AUTORETRACT)
+    #error DEPENDENCY ERROR: Missing setting MIN_AUTORETRACT
+  #endif
+  #if DISABLED(MAX_AUTORETRACT)
+    #error DEPENDENCY ERROR: Missing setting MAX_AUTORETRACT
   #endif
   #if DISABLED(RETRACT_LENGTH)
     #error DEPENDENCY ERROR: Missing setting RETRACT_LENGTH
@@ -729,6 +732,9 @@ static_assert(1 >= 0
   #endif
   #if DISABLED(RETRACT_RECOVER_FEEDRATE)
     #error DEPENDENCY ERROR: Missing setting RETRACT_RECOVER_FEEDRATE
+  #endif
+  #if DISABLED(RETRACT_RECOVER_FEEDRATE_SWAP)
+    #error DEPENDENCY ERROR: Missing setting RETRACT_RECOVER_FEEDRATE_SWAP
   #endif
 #endif
 

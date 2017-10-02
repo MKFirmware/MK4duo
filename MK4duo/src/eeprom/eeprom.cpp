@@ -129,14 +129,15 @@
  *  M250  C               lcd_contrast                          (uint16_t)
  *
  * FWRETRACT:
- *  M209  S               tools.autoretract_enabled             (bool)
- *  M207  S               tools.retract_length                  (float)
- *  M207  W               tools.retract_length_swap             (float)
- *  M207  F               tools.retract_feedrate_mm_s           (float)
- *  M207  Z               tools.retract_zlift                   (float)
- *  M208  S               tools.retract_recover_length          (float)
- *  M208  W               tools.retract_recover_length_swap     (float)
- *  M208  F               tools.retract_recover_feedrate_mm_s   (float)
+ *  M209  S               fwretract.autoretract_enabled                 (bool)
+ *  M207  S               fwretract.retract_length                      (float)
+ *  M207  F               fwretract.retract_feedrate_mm_s               (float)
+ *  M207  Z               fwretract.retract_zlift                       (float)
+ *  M208  S               fwretract.retract_recover_length              (float)
+ *  M208  F               fwretract.retract_recover_feedrate_mm_s       (float)
+ *  M207  W               fwretract.swap_retract_length                 (float)
+ *  M208  W               fwretract.swap_retract_recover_length         (float)
+ *  M208  R               fwretract.swap_retract_recover_feedrate_mm_s  (float)
  *
  * Volumetric Extrusion:
  *  M200  D               tools.volumetric_enabled              (bool)
@@ -452,23 +453,15 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(lcd_contrast);
 
     #if ENABLED(FWRETRACT)
-      EEPROM_WRITE(tools.autoretract_enabled);
-      EEPROM_WRITE(tools.retract_length);
-      #if EXTRUDERS > 1
-        EEPROM_WRITE(tools.retract_length_swap);
-      #else
-        const float dummy = 0.0f;
-        EEPROM_WRITE(dummy);
-      #endif
-      EEPROM_WRITE(tools.retract_feedrate_mm_s);
-      EEPROM_WRITE(tools.retract_zlift);
-      EEPROM_WRITE(tools.retract_recover_length);
-      #if EXTRUDERS > 1
-        EEPROM_WRITE(tools.retract_recover_length_swap);
-      #else
-        EEPROM_WRITE(dummy);
-      #endif
-      EEPROM_WRITE(tools.retract_recover_feedrate_mm_s);
+      EEPROM_WRITE(fwretract.autoretract_enabled);
+      EEPROM_WRITE(fwretract.retract_length);
+      EEPROM_WRITE(fwretract.retract_feedrate_mm_s);
+      EEPROM_WRITE(fwretract.retract_zlift);
+      EEPROM_WRITE(fwretract.retract_recover_length);
+      EEPROM_WRITE(fwretract.retract_recover_feedrate_mm_s);
+      EEPROM_WRITE(fwretract.swap_retract_length);
+      EEPROM_WRITE(fwretract.swap_retract_recover_length);
+      EEPROM_WRITE(fwretract.swap_retract_recover_feedrate_mm_s);
     #endif // FWRETRACT
 
     EEPROM_WRITE(tools.volumetric_enabled);
@@ -782,22 +775,16 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_contrast);
 
       #if ENABLED(FWRETRACT)
-        EEPROM_READ(tools.autoretract_enabled);
-        EEPROM_READ(tools.retract_length);
-        #if EXTRUDERS > 1
-          EEPROM_READ(tools.retract_length_swap);
-        #else
-          EEPROM_READ(dummy);
-        #endif
-        EEPROM_READ(tools.retract_feedrate_mm_s);
-        EEPROM_READ(tools.retract_zlift);
-        EEPROM_READ(tools.retract_recover_length);
-        #if EXTRUDERS > 1
-          EEPROM_READ(tools.retract_recover_length_swap);
-        #else
-          EEPROM_READ(dummy);
-        #endif
-        EEPROM_READ(tools.retract_recover_feedrate_mm_s);
+        EEPROM_READ(fwretract.autoretract_enabled);
+        EEPROM_READ(fwretract.retract_length);
+        EEPROM_READ(fwretract.retract_feedrate_mm_s);
+        EEPROM_READ(fwretract.retract_zlift);
+        EEPROM_READ(fwretract.retract_recover_length);
+        EEPROM_READ(fwretract.retract_recover_feedrate_mm_s);
+        EEPROM_READ(fwretract.swap_retract_length);
+        EEPROM_READ(fwretract.swap_retract_recover_length);
+        EEPROM_READ(fwretract.swap_retract_recover_feedrate_mm_s);
+
       #endif // FWRETRACT
 
       EEPROM_READ(tools.volumetric_enabled);
@@ -1166,18 +1153,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(FWRETRACT)
-    tools.autoretract_enabled = false;
-    tools.retract_length = RETRACT_LENGTH;
-    #if EXTRUDERS > 1
-      tools.retract_length_swap = RETRACT_LENGTH_SWAP;
-    #endif
-    tools.retract_feedrate_mm_s = RETRACT_FEEDRATE;
-    tools.retract_zlift = RETRACT_ZLIFT;
-    tools.retract_recover_length = RETRACT_RECOVER_LENGTH;
-    #if EXTRUDERS > 1
-      tools.retract_recover_length_swap = RETRACT_RECOVER_LENGTH_SWAP;
-    #endif
-    tools.retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
+    fwretract.reset();
   #endif
 
   #if ENABLED(VOLUMETRIC_DEFAULT_ON)
@@ -1532,23 +1508,19 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(FWRETRACT)
-      CONFIG_MSG_START("Retract: S=Length (mm) F:Speed (mm/m) Z: ZLift (mm)");
-      SERIAL_SMV(CFG, "  M207 S", tools.retract_length);
-      #if EXTRUDERS > 1
-        SERIAL_MV(" W", tools.retract_length_swap);
-      #endif
-      SERIAL_MV(" F", tools.retract_feedrate_mm_s * 60);
-      SERIAL_EMV(" Z", tools.retract_zlift);
+      CONFIG_MSG_START("Retract: S<length> F<units/m> Z<lift>");
+      SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.retract_length));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_length));
+      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_feedrate_mm_s)));
+      SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.retract_zlift));
 
-      CONFIG_MSG_START("Recover: S=Extra length (mm) F:Speed (mm/m)");
-      SERIAL_SMV(CFG, "  M208 S", tools.retract_recover_length);
-      #if EXTRUDERS > 1
-        SERIAL_MV(" W", tools.retract_recover_length_swap);
-      #endif
-      SERIAL_MV(" F", tools.retract_recover_feedrate_mm_s * 60);
+      CONFIG_MSG_START("Recover: S<length> F<units/m>");
+      SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.retract_recover_length));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_recover_length));
+      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_recover_feedrate_mm_s)));
 
-      CONFIG_MSG_START("Auto-Retract: S=0 to disable, 1 to interpret extrude-only moves as retracts or recoveries");
-      SERIAL_LMV(CFG, "  M209 S", tools.autoretract_enabled ? 1 : 0);
+      CONFIG_MSG_START("Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");
+      SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
     /**
