@@ -48,7 +48,8 @@ inline void gcode_M44(void) {
       SERIAL_EMV("G", GCode_Table[index].code);
     }
   }
-  else if (parser.seen('J')) {
+  
+  if (parser.seen('J')) {
     SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
     SERIAL_MV("M-code table static memory consumption: ", (int)sizeof(MCode_Table));
     SERIAL_EM(" bytes.");
@@ -57,11 +58,6 @@ inline void gcode_M44(void) {
     for (M_CODE_TYPE index = 0; index < (COUNT(MCode_Table) - 1); index++) {
       SERIAL_EMV("M", MCode_Table[index].code);
     }
-
-  }
-  else {
-    SERIAL_EM("Invalid or missing parameter.");
-    SERIAL_EM("Please use the I or the J flag to choose respectively between G-codes and M-codes.");
   }
 
 }

@@ -134,7 +134,7 @@ typedef int8_t    Pin;
 // Voltage for Pin
 #define HAL_VOLTAGE_PIN 5.0
 
-#define ADV_NEVER 65535
+#define ADV_NEVER 0xFFFF
 
 /**
  * Optimized math functions for AVR

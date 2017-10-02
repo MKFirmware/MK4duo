@@ -106,16 +106,14 @@ class Stepper {
       #define _NEXT_ISR(T) HAL_TIMER_SET_STEPPER_COUNT(T);
     #endif // ADVANCE or LIN_ADVANCE
 
+    static long acceleration_time, deceleration_time;
     // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
-    static HAL_TIMER_TYPE acceleration_time,
-                          deceleration_time,
-                          acc_step_rate, // needed for deceleration start point
+    static HAL_TIMER_TYPE acc_step_rate, // needed for deceleration start point
                           OCR1A_nominal;
 
-    static uint8_t step_loops, step_loops_nominal;
+    static uint8_t  step_loops, step_loops_nominal;
 
     static volatile long endstops_trigsteps[XYZ];
-    static volatile long endstops_stepsTotal, endstops_stepsDone;
 
     #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
       #ifndef PWM_MOTOR_CURRENT

@@ -146,15 +146,16 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
   #endif // LASER_RASTER
 #endif // LASER
 
-HAL_TIMER_TYPE  Stepper::acceleration_time,
-                Stepper::deceleration_time,
-                Stepper::acc_step_rate, // needed for deceleration start point
+long            Stepper::acceleration_time,
+                Stepper::deceleration_time;
+
+HAL_TIMER_TYPE  Stepper::acc_step_rate, // needed for deceleration start point
                 Stepper::OCR1A_nominal;
 
-uint8_t Stepper::step_loops,
-        Stepper::step_loops_nominal;
+uint8_t         Stepper::step_loops,
+                Stepper::step_loops_nominal;
 
-volatile long Stepper::endstops_trigsteps[XYZ];
+volatile long   Stepper::endstops_trigsteps[XYZ];
 
 #if ENABLED(X_TWO_STEPPER)
   #define X_APPLY_DIR(v,Q)  { X_DIR_WRITE(v); X2_DIR_WRITE(v != INVERT_X2_VS_X_DIR); }

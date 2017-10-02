@@ -784,7 +784,6 @@ void EEPROM::Postprocess() {
         EEPROM_READ(fwretract.swap_retract_length);
         EEPROM_READ(fwretract.swap_retract_recover_length);
         EEPROM_READ(fwretract.swap_retract_recover_feedrate_mm_s);
-
       #endif // FWRETRACT
 
       EEPROM_READ(tools.volumetric_enabled);
