@@ -63,7 +63,7 @@ class Commands {
 
     static void loop();
 
-    static void FlushSerialRequestResend();
+    static void flush_and_request_resend();
     static void ok_to_send();
     static void get_available_commands();
     static void clear_command_queue();
@@ -72,7 +72,7 @@ class Commands {
     static void enqueue_and_echo_commands_P(const char * const pgcode);
 
     FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
-    FORCE_INLINE static void reset_send_ok()        { for (int8_t i = 0; i < BUFSIZE; i++) send_ok[i] = true; }
+    FORCE_INLINE static void reset_send_ok()        { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
     FORCE_INLINE static void refresh_cmd_timeout()  { previous_cmd_ms = millis(); }
 
   private: /** Private Function */

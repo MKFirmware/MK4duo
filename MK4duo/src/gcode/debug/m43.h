@@ -118,15 +118,16 @@
 
       SERIAL_EM("Deploy & stow 4 times");
       SET_INPUT_PULLUP(PROBE_TEST_PIN);
+      uint8_t i = 0;
       bool deploy_state, stow_state;
-      for (uint8_t i = 0; i < 4; i++) {
+      do {
         MOVE_SERVO(probe_index, probe.z_servo_angle[0]); //deploy
         printer.safe_delay(500);
         deploy_state = digitalRead(PROBE_TEST_PIN);
         MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
         printer.safe_delay(500);
         stow_state = digitalRead(PROBE_TEST_PIN);
-      }
+      } while (++i < 4);
       if (probe_inverting != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
       commands.refresh_cmd_timeout();

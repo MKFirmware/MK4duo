@@ -2326,7 +2326,7 @@ FAIL:
  * the value zero, false, is returned for failure.
  */
 bool SdBaseFile::rmRfStar() {
-  uint16_t index;
+  uint32_t index;
   SdBaseFile f;
   rewind();
   while (curPosition_ < fileSize_) {
