@@ -86,24 +86,30 @@
 
 // Macros for bit masks
 #ifndef _BV
-  #define _BV(b) (1 << (b))
+  #define _BV(b)            (1 << (b))
 #endif
-#define TEST(n,b)   (((n)&_BV(b))!=0)
-#define SBI(n,b)    (n |= _BV(b))
-#define CBI(n,b)    (n &= ~_BV(b))
-#define SET_BIT(n,b,value) (n) ^= ((-value)^(n)) & (_BV(b))
+#define TEST(n,b)           (((n)&_BV(b))!=0)
+#define SBI(n,b)            (n |= _BV(b))
+#define CBI(n,b)            (n &= ~_BV(b))
+#define SET_BIT(n,b,value)  (n) ^= ((-value)^(n)) & (_BV(b))
 
 // Macros for maths shortcuts
 #ifndef M_PI 
-  #define M_PI 3.1415926536
+  #define M_PI      3.14159265358979323846
 #endif
 #define RADIANS(d)  ((d)*M_PI/180.0)
 #define DEGREES(r)  ((r)*180.0/M_PI)
 #define HYPOT2(x,y) (sq(x)+sq(y))
 #define HYPOT(x,y)  SQRT(HYPOT2(x,y))
 #define SQUARE(x)   ((x)*(x))
-#define SIN_60 0.8660254037844386
-#define COS_60 0.5
+#define SIN_60      0.8660254037844386
+#define COS_60      0.5
+
+#define CIRCLE_AREA(R)    (M_PI * sq(R))
+#define CIRCLE_CIRC(R)    (2.0 * M_PI * (R))
+
+#define SIGN(a)           ((a>0)-(a<0))
+#define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
 
 // Macros to contrain values
 #define NOLESS(v,n)       v = (v < n) ? n : v

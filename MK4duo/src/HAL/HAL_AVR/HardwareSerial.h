@@ -40,6 +40,7 @@
  *
  * Modified 28 September 2010 by Mark Sproul
  * Modified  3 March 2015 by MagoKimbra
+ * Modified 14 February 2016 by Andreas Hardtung (added tx buffer)
  */
 
 #ifndef HardwareSerial_H
@@ -65,21 +66,21 @@
 
 // Registers used by MarlinSerial class (these are expanded
 // depending on selected serial port
-#define M_UCSRxA SERIAL_REGNAME(UCSR,SERIAL_PORT,A) // defines M_UCSRxA to be UCSRnA where n is the serial port number
-#define M_UCSRxB SERIAL_REGNAME(UCSR,SERIAL_PORT,B)
-#define M_RXENx SERIAL_REGNAME(RXEN,SERIAL_PORT,)
-#define M_TXENx SERIAL_REGNAME(TXEN,SERIAL_PORT,)
-#define M_TXCx SERIAL_REGNAME(TXC,SERIAL_PORT,)
-#define M_RXCIEx SERIAL_REGNAME(RXCIE,SERIAL_PORT,)
-#define M_UDREx SERIAL_REGNAME(UDRE,SERIAL_PORT,)
-#define M_UDRIEx SERIAL_REGNAME(UDRIE,SERIAL_PORT,)
-#define M_UDRx SERIAL_REGNAME(UDR,SERIAL_PORT,)
-#define M_UBRRxH SERIAL_REGNAME(UBRR,SERIAL_PORT,H)
-#define M_UBRRxL SERIAL_REGNAME(UBRR,SERIAL_PORT,L)
-#define M_RXCx SERIAL_REGNAME(RXC,SERIAL_PORT,)
-#define M_USARTx_RX_vect SERIAL_REGNAME(USART,SERIAL_PORT,_RX_vect)
-#define M_U2Xx SERIAL_REGNAME(U2X,SERIAL_PORT,)
-#define M_USARTx_UDRE_vect SERIAL_REGNAME(USART,SERIAL_PORT,_UDRE_vect)
+#define M_UCSRxA            SERIAL_REGNAME(UCSR,SERIAL_PORT,A) // defines M_UCSRxA to be UCSRnA where n is the serial port number
+#define M_UCSRxB            SERIAL_REGNAME(UCSR,SERIAL_PORT,B)
+#define M_RXENx             SERIAL_REGNAME(RXEN,SERIAL_PORT,)
+#define M_TXENx             SERIAL_REGNAME(TXEN,SERIAL_PORT,)
+#define M_TXCx              SERIAL_REGNAME(TXC,SERIAL_PORT,)
+#define M_RXCIEx            SERIAL_REGNAME(RXCIE,SERIAL_PORT,)
+#define M_UDREx             SERIAL_REGNAME(UDRE,SERIAL_PORT,)
+#define M_UDRIEx            SERIAL_REGNAME(UDRIE,SERIAL_PORT,)
+#define M_UDRx              SERIAL_REGNAME(UDR,SERIAL_PORT,)
+#define M_UBRRxH            SERIAL_REGNAME(UBRR,SERIAL_PORT,H)
+#define M_UBRRxL            SERIAL_REGNAME(UBRR,SERIAL_PORT,L)
+#define M_RXCx              SERIAL_REGNAME(RXC,SERIAL_PORT,)
+#define M_USARTx_RX_vect    SERIAL_REGNAME(USART,SERIAL_PORT,_RX_vect)
+#define M_U2Xx              SERIAL_REGNAME(U2X,SERIAL_PORT,)
+#define M_USARTx_UDRE_vect  SERIAL_REGNAME(USART,SERIAL_PORT,_UDRE_vect)
 
 #define DEC 10
 #define HEX 16
@@ -88,97 +89,100 @@
 #define BYTE 0
 
 #ifndef USBCON
-// Define constants and variables for buffering incoming serial data.  We're
-// using a ring buffer (I think), in which rx_buffer_head is the index of the
-// location to which to write the next incoming character and rx_buffer_tail
-// is the index of the location from which to read.
-// 256 is the max limit due to uint8_t head and tail. Use only powers of 2. (...,16,32,64,128,256)
-#ifndef RX_BUFFER_SIZE
-  #define RX_BUFFER_SIZE 128
-#endif
-#ifndef TX_BUFFER_SIZE
-  #define TX_BUFFER_SIZE 32
-#endif
-#if !((RX_BUFFER_SIZE == 256) ||(RX_BUFFER_SIZE == 128) ||(RX_BUFFER_SIZE == 64) ||(RX_BUFFER_SIZE == 32) ||(RX_BUFFER_SIZE == 16) ||(RX_BUFFER_SIZE == 8) ||(RX_BUFFER_SIZE == 4) ||(RX_BUFFER_SIZE == 2))
-  #error "RX_BUFFER_SIZE has to be a power of 2 and >= 2"
-#endif
-#if !((TX_BUFFER_SIZE == 256) ||(TX_BUFFER_SIZE == 128) ||(TX_BUFFER_SIZE == 64) ||(TX_BUFFER_SIZE == 32) ||(TX_BUFFER_SIZE == 16) ||(TX_BUFFER_SIZE == 8) ||(TX_BUFFER_SIZE == 4) ||(TX_BUFFER_SIZE == 2) ||(TX_BUFFER_SIZE == 0))
-  #error TX_BUFFER_SIZE has to be a power of 2 or 0
-#endif
 
-struct ring_buffer_r {
-  unsigned char buffer[RX_BUFFER_SIZE];
-  volatile uint8_t head;
-  volatile uint8_t tail;
-};
+  // Define constants and variables for buffering incoming serial data.  We're
+  // using a ring buffer (I think), in which rx_buffer_head is the index of the
+  // location to which to write the next incoming character and rx_buffer_tail
+  // is the index of the location from which to read.
+  // 256 is the max limit due to uint8_t head and tail. Use only powers of 2. (...,16,32,64,128,256)
+  #ifndef RX_BUFFER_SIZE
+    #define RX_BUFFER_SIZE 128
+  #endif
+  #ifndef TX_BUFFER_SIZE
+    #define TX_BUFFER_SIZE 32
+  #endif
+  #if !((RX_BUFFER_SIZE == 256) ||(RX_BUFFER_SIZE == 128) ||(RX_BUFFER_SIZE == 64) ||(RX_BUFFER_SIZE == 32) ||(RX_BUFFER_SIZE == 16) ||(RX_BUFFER_SIZE == 8) ||(RX_BUFFER_SIZE == 4) ||(RX_BUFFER_SIZE == 2))
+    #error "RX_BUFFER_SIZE has to be a power of 2 and >= 2"
+  #endif
+  #if !((TX_BUFFER_SIZE == 256) ||(TX_BUFFER_SIZE == 128) ||(TX_BUFFER_SIZE == 64) ||(TX_BUFFER_SIZE == 32) ||(TX_BUFFER_SIZE == 16) ||(TX_BUFFER_SIZE == 8) ||(TX_BUFFER_SIZE == 4) ||(TX_BUFFER_SIZE == 2) ||(TX_BUFFER_SIZE == 0))
+    #error TX_BUFFER_SIZE has to be a power of 2 or 0
+  #endif
 
-#if TX_BUFFER_SIZE > 0
-  struct ring_buffer_t {
-    unsigned char buffer[TX_BUFFER_SIZE];
+  struct ring_buffer_r {
+    unsigned char buffer[RX_BUFFER_SIZE];
     volatile uint8_t head;
     volatile uint8_t tail;
   };
-#endif
 
-#if UART_PRESENT(SERIAL_PORT)
-  extern ring_buffer_r rx_buffer;
   #if TX_BUFFER_SIZE > 0
-    extern ring_buffer_t tx_buffer;
+    struct ring_buffer_t {
+      unsigned char buffer[TX_BUFFER_SIZE];
+      volatile uint8_t head;
+      volatile uint8_t tail;
+    };
   #endif
-#endif
 
-#if ENABLED(EMERGENCY_PARSER)
-  void emergency_parser(const unsigned char c);
-#endif
-
-class MKHardwareSerial { //: public Stream
-
-  public:
-    MKHardwareSerial() {};
-    static void begin(const long);
-    static void end();
-    static int peek(void);
-    static int read(void);
-    static void flush(void);
-    static uint8_t available(void);
-    static void checkRx(void);
-    static void write(const uint8_t c);
+  #if UART_PRESENT(SERIAL_PORT)
+    extern ring_buffer_r rx_buffer;
     #if TX_BUFFER_SIZE > 0
-      static uint8_t availableForWrite(void);
-      static void flushTX(void);
+      extern ring_buffer_t tx_buffer;
     #endif
+  #endif
 
-  private:
-    static void printNumber(unsigned long, const uint8_t);
-    static void printFloat(double, uint8_t);
+  class MKHardwareSerial { //: public Stream
 
-  public:
-    static FORCE_INLINE void write(const char* str) { while (*str) write(*str++); }
-    static FORCE_INLINE void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
-    static FORCE_INLINE void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
-    static FORCE_INLINE void print(const char* str) { write(str); }
+    public: /** Constructor */
 
-    static void print(char, int = BYTE);
-    static void print(unsigned char, int = BYTE);
-    static void print(int, int = DEC);
-    static void print(unsigned int, int = DEC);
-    static void print(long, int = DEC);
-    static void print(unsigned long, int = DEC);
-    static void print(double, int = 2);
+      MKHardwareSerial() {}
 
-    static void println(const String& s);
-    static void println(const char[]);
-    static void println(char, int = BYTE);
-    static void println(unsigned char, int = BYTE);
-    static void println(int, int = DEC);
-    static void println(unsigned int, int = DEC);
-    static void println(long, int = DEC);
-    static void println(unsigned long, int = DEC);
-    static void println(double, int = 2);
-    static void println(void);
-};
+    public: /** Public Function */
 
-extern MKHardwareSerial MKSerial;
+      static void begin(const long);
+      static void end();
+      static int peek(void);
+      static int read(void);
+      static void flush(void);
+      static uint8_t available(void);
+      static void checkRx(void);
+      static void write(const uint8_t c);
+      #if TX_BUFFER_SIZE > 0
+        static uint8_t availableForWrite(void);
+        static void flushTX(void);
+      #endif
+
+      static FORCE_INLINE void write(const char* str) { while (*str) write(*str++); }
+      static FORCE_INLINE void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
+      static FORCE_INLINE void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
+      static FORCE_INLINE void print(const char* str) { write(str); }
+
+      static void print(char, int = BYTE);
+      static void print(unsigned char, int = BYTE);
+      static void print(int, int = DEC);
+      static void print(unsigned int, int = DEC);
+      static void print(long, int = DEC);
+      static void print(unsigned long, int = DEC);
+      static void print(double, int = 2);
+
+      static void println(const String& s);
+      static void println(const char[]);
+      static void println(char, int = BYTE);
+      static void println(unsigned char, int = BYTE);
+      static void println(int, int = DEC);
+      static void println(unsigned int, int = DEC);
+      static void println(long, int = DEC);
+      static void println(unsigned long, int = DEC);
+      static void println(double, int = 2);
+      static void println(void);
+
+    private: /** Private Function */
+
+      static void printNumber(unsigned long, const uint8_t);
+      static void printFloat(double, uint8_t);
+
+  };
+
+  extern MKHardwareSerial MKSerial;
+
 #endif // !USBCON
 
 #endif // HardwareSerial_H

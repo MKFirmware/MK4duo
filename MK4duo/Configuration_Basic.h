@@ -57,7 +57,7 @@
  * 250000 works in most cases, but you might try a lower speed if
  * you commonly experience drop-outs during host printing.
  *
- * 2400,9600,19200,38400,57600,115200,250000
+ * 2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000
  */
 #define BAUDRATE 115200
 

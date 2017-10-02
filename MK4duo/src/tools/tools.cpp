@@ -439,7 +439,7 @@
 
   #elif ENABLED(MKR4)
 
-    void Tools::MK_multi_tool_change(const uint8_t &e) {
+    void Tools::MK_multi_tool_change(const uint8_t e) {
 
       stepper.synchronize(); // Finish all movement
       stepper.disable_e_steppers();
@@ -526,7 +526,7 @@
 
   #elif ENABLED(MKR6) || ENABLED(MKR12)
 
-    void Tools::MK_multi_tool_change(const uint8_t &e) {
+    void Tools::MK_multi_tool_change(const uint8_t e) {
 
       stepper.synchronize(); // Finish all movement
       stepper.disable_e_steppers();
