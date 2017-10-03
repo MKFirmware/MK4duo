@@ -49,7 +49,7 @@
                   newW = parser.seen('W') ? parser.value_float() : -1,
                   newH = parser.seen('H') ? parser.value_float() : -1;
       if (newD >= 0 && newW >= 0 && newH >= 0)
-        newR = newD ? (newW * newH) / (sq(newD * 0.5) * M_PI) : 0;
+        newR = newD ? (newW * newH) / CIRCLE_AREA(newD * 0.5) : 0;
     }
     if (newR >= 0) planner.advance_ed_ratio = newR;
 

@@ -571,11 +571,6 @@ void Printer::quickstop_stepper() {
   mechanics.sync_plan_position();
 }
 
-void Printer::calculate_volumetric_multipliers() {
-  for (uint8_t e = 0; e < EXTRUDERS; e++)
-    tools.volumetric_multiplier[e] = calculate_volumetric_multiplier(tools.filament_size[e]);
-}
-
 void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   static uint8_t cycle_1500ms = 15;
@@ -887,7 +882,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(HAVE_TMC2130)
-    checkOverTemp();
+    tmc2130_checkOverTemp();
   #endif
 
   planner.check_axes_activity();
@@ -1108,8 +1103,11 @@ void Printer::setup_powerhold() {
 
 float Printer::calculate_volumetric_multiplier(const float diameter) {
   if (!tools.volumetric_enabled || diameter == 0) return 1.0;
-  float d2 = diameter * 0.5;
-  return 1.0 / (M_PI * d2 * d2);
+  return 1.0 / CIRCLE_AREA(diameter * 0.5);
+}
+void Printer::calculate_volumetric_multipliers() {
+  for (uint8_t e = 0; e < EXTRUDERS; e++)
+    tools.volumetric_multiplier[e] = calculate_volumetric_multiplier(tools.filament_size[e]);
 }
 
 #if ENABLED(IDLE_OOZING_PREVENT)
@@ -1211,104 +1209,3 @@ float Printer::calculate_volumetric_multiplier(const float diameter) {
   }
 
 #endif
-
-#if ENABLED(HAVE_TMC2130)
-
-  void automatic_current_control(TMC2130Stepper &st, String axisID) {
-    // Check otpw even if we don't use automatic control. Allows for flag inspection.
-    const bool is_otpw = st.checkOT();
-
-    // Report if a warning was triggered
-    static bool previous_otpw = false;
-    if (is_otpw && !previous_otpw) {
-      char timestamp[10];
-      duration_t elapsed = print_job_counter.duration();
-      const bool has_days = (elapsed.value > 60*60*24L);
-      (void)elapsed.toDigital(timestamp, has_days);
-      SERIAL_TXT(timestamp);
-      SERIAL_TXT(": ");
-      SERIAL_TXT(axisID);
-      SERIAL_EM(" driver overtemperature warning!");
-    }
-    previous_otpw = is_otpw;
-
-    #if CURRENT_STEP > 0 && ENABLED(AUTOMATIC_CURRENT_CONTROL)
-      // Return if user has not enabled current control start with M906 S1.
-      if (!auto_current_control) return;
-
-      /**
-       * Decrease current if is_otpw is true.
-       * Bail out if driver is disabled.
-       * Increase current if OTPW has not been triggered yet.
-       */
-      uint16_t current = st.getCurrent();
-      if (is_otpw) {
-        st.setCurrent(current - CURRENT_STEP, R_SENSE, HOLD_MULTIPLIER);
-        #if ENABLED(REPORT_CURRENT_CHANGE)
-          SERIAL_TXT(axisID);
-          SERIAL_MV(" current decreased to ", st.getCurrent());
-        #endif
-      }
-
-      else if (!st.isEnabled())
-        return;
-
-      else if (!is_otpw && !st.getOTPW()) {
-        current += CURRENT_STEP;
-        if (current <= AUTO_ADJUST_MAX) {
-          st.setCurrent(current, R_SENSE, HOLD_MULTIPLIER);
-          #if ENABLED(REPORT_CURRENT_CHANGE)
-            SERIAL_TXT(axisID);
-            SERIAL_MV(" current increased to ", st.getCurrent());
-          #endif
-        }
-      }
-      SERIAL_EOL();
-    #endif
-  }
-
-  void Printer::checkOverTemp() {
-
-    static millis_t next_cOT = 0;
-    if (ELAPSED(millis(), next_cOT)) {
-      next_cOT = millis() + 5000;
-      #if ENABLED(X_IS_TMC2130)
-        automatic_current_control(stepperX, "X");
-      #endif
-      #if ENABLED(Y_IS_TMC2130)
-        automatic_current_control(stepperY, "Y");
-      #endif
-      #if ENABLED(Z_IS_TMC2130)
-        automatic_current_control(stepperZ, "Z");
-      #endif
-      #if ENABLED(X2_IS_TMC2130)
-        automatic_current_control(stepperX2, "X2");
-      #endif
-      #if ENABLED(Y2_IS_TMC2130)
-        automatic_current_control(stepperY2, "Y2");
-      #endif
-      #if ENABLED(Z2_IS_TMC2130)
-        automatic_current_control(stepperZ2, "Z2");
-      #endif
-      #if ENABLED(E0_IS_TMC2130)
-        automatic_current_control(stepperE0, "E0");
-      #endif
-      #if ENABLED(E1_IS_TMC2130)
-        automatic_current_control(stepperE1, "E1");
-      #endif
-      #if ENABLED(E2_IS_TMC2130)
-        automatic_current_control(stepperE2, "E2");
-      #endif
-      #if ENABLED(E3_IS_TMC2130)
-        automatic_current_control(stepperE3, "E3");
-      #endif
-      #if ENABLED(E4_IS_TMC2130)
-        automatic_current_control(stepperE4, "E4");
-      #endif
-      #if ENABLED(E5_IS_TMC2130)
-        automatic_current_control(stepperE5, "E5");
-      #endif
-    }
-  }
-
-#endif // HAVE_TMC2130

@@ -124,6 +124,7 @@
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
+#include "src/feature/tmc2130/tmc2130.h"
 #include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"

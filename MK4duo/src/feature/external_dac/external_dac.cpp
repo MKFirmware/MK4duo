@@ -48,7 +48,7 @@
     digitalWrite(SS_PIN, HIGH);
     HAL::spiBegin();
 
-    //init onboard DAC
+    // init onboard DAC
     HAL::delayMicroseconds(2U);
     digitalWrite(DAC0_SYNC, LOW);
     HAL::delayMicroseconds(2U);
@@ -60,7 +60,7 @@
     digitalWrite(DAC0_SYNC, HIGH);
 
     #if DRIVER_EXTRUDERS > 1
-      //init Piggy DAC
+      // init Piggy DAC
       HAL::delayMicroseconds(2U);
       digitalWrite(DAC1_SYNC, LOW);
       HAL::delayMicroseconds(2U);
@@ -106,7 +106,6 @@
       HAL::delayMicroseconds(2U);
       digitalWrite(DAC1_SYNC, LOW);
     }
-
     else { // DAC onboard X,Y,Z,E0
       digitalWrite(DAC0_SYNC , LOW);
       HAL::delayMicroseconds(2U);
