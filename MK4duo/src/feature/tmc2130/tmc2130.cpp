@@ -30,6 +30,10 @@
 
 #if ENABLED(HAVE_TMC2130)
 
+  #if ENABLED(AUTOMATIC_CURRENT_CONTROL)
+    bool auto_current_control = 0;
+  #endif
+
   void automatic_current_control(TMC2130Stepper &st, const char *axisID) {
     // Check otpw even if we don't use automatic control. Allows for flag inspection.
     const bool is_otpw = st.checkOT();

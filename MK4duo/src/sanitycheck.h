@@ -1195,7 +1195,8 @@ static_assert(1 >= 0
     #endif
   #endif
 #endif
-//buffer
+
+// Buffer
 #if DISABLED(BLOCK_BUFFER_SIZE)
   #error DEPENDENCY ERROR: Missing setting BLOCK_BUFFER_SIZE
 #endif
@@ -1221,7 +1222,7 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: Missing setting N_ARC_CORRECTION
 #endif
 
-//Machines
+// Machines
 #if DISABLED(X_MIN_ENDSTOP_LOGIC) && !IS_DELTA
   #error DEPENDENCY ERROR: Missing setting X_MIN_ENDSTOP_LOGIC
 #endif

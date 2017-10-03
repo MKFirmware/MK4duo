@@ -130,6 +130,10 @@ void Temperature::init() {
   // Wait for temperature measurement to settle
   HAL::delayMilliseconds(250);
 
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.init();
+  #endif
+
   #if ENABLED(PROBING_HEATERS_OFF)
     paused = false;
   #endif
@@ -349,6 +353,10 @@ void Temperature::manage_temp_controller() {
       checkExtruderAutoFans();
       next_auto_fan_check_ms = ms + 2500UL;
     }
+  #endif
+
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.Spin();
   #endif
 
   // Control the extruder rate based on the width sensor
@@ -760,6 +768,11 @@ void Temperature::print_heaterstates() {
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
       SERIAL_MV(" C->", mcu_current_temperature_raw);
     #endif
+  #endif
+
+  #if ENABLED(DHT_SENSOR)
+    SERIAL_MV(" DHT Temp:", dhtsensor.current_temperature, 1);
+    SERIAL_MV(", Humidity:", dhtsensor.current_humidity, 1);
   #endif
 }
 

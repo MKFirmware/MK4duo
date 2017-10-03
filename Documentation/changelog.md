@@ -1,5 +1,6 @@
 ### Version 4.3.28 dev
 * Add Unified Bed Level (UBL) for Cartesian, Core and Delta
+* Add support for DHT11, DHT21 and DHT22 Temperature/Humidity sensors (Only for test)
 * Fix and clear code
 
 ### Version 4.3.27.2 dev
