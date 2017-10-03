@@ -219,10 +219,6 @@ class Printer {
       static void handle_status_leds();
     #endif
 
-    #if ENABLED(HAVE_TMC2130)
-      static void checkOverTemp();
-    #endif
-
 };
 
 extern Printer printer;

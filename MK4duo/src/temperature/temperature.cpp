@@ -492,7 +492,7 @@ void Temperature::PID_autotune(int8_t temp_controller, const float temp, int ncy
             SERIAL_MV(MSG_T_MIN, minTemp);
             SERIAL_MV(MSG_T_MAX, maxTemp);
             if (cycles > 2) {
-              Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
+              Ku = (4.0 * d) / (CIRCLE_CIRC((maxTemp - minTemp) * 0.25));
               Tu = ((float)(t_low + t_high) * 0.001);
               SERIAL_MV(MSG_KU, Ku);
               SERIAL_EMV(MSG_TU, Tu);

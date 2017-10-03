@@ -48,7 +48,7 @@ inline void gcode_M44(void) {
       SERIAL_EMV("G", GCode_Table[index].code);
     }
   }
-  
+
   if (parser.seen('J')) {
     SERIAL_EMV("Number of M-codes available: ", (int)COUNT(MCode_Table));
     SERIAL_MV("M-code table static memory consumption: ", (int)sizeof(MCode_Table));
