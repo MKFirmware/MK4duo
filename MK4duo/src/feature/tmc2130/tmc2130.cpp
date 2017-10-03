@@ -30,7 +30,7 @@
 
 #if ENABLED(HAVE_TMC2130)
 
-  void automatic_current_control(TMC2130Stepper &st, String axisID) {
+  void automatic_current_control(TMC2130Stepper &st, const char *axisID) {
     // Check otpw even if we don't use automatic control. Allows for flag inspection.
     const bool is_otpw = st.checkOT();
 
@@ -43,7 +43,7 @@
       (void)elapsed.toDigital(timestamp, has_days);
       SERIAL_TXT(timestamp);
       SERIAL_TXT(": ");
-      MKSERIAL.print(axisID);
+      SERIAL_TXT(axisID);
       SERIAL_EM(" driver overtemperature warning!");
     }
     previous_otpw = is_otpw;
