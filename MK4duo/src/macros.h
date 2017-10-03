@@ -81,8 +81,8 @@
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
-#define FSTRINGVAR(var) static const char var[] PROGMEM;
-#define FSTRINGPARAM(var) PGM_P var
+#define FSTRINGVAR(var)         static const char var[] PROGMEM;
+#define FSTRINGPARAM(var)       PGM_P var
 
 // Macros for bit masks
 #ifndef _BV

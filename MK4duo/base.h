@@ -135,6 +135,7 @@
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/caselight/caselight.h"
 #include "src/feature/flowmeter/flowmeter.h"
+#include "src/feature/dhtsensor/dhtsensor.h"
 #if ENABLED(BLINKM)
   #include "src/feature/rgbled/blinkm.h"
 #elif ENABLED(PCA9632)

@@ -278,6 +278,10 @@
   #define NEOPIXEL_PIN  -1
 #endif
 
+#if ENABLED(DHT_SENSOR)
+  #define DHT_DATA_PIN -1
+#endif
+
 //============================================================================
 
 #endif /* _CONFIGURATION_PINS_H_ */
