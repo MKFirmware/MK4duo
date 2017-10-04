@@ -21,17 +21,19 @@
  */
 
 /**
- * blinkm.h
- * Library header file for BlinkM library
+ * neopixel.h
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _BLINKM_H_
-#define _BLINKM_H_
+#ifndef __NEOPIXEL_H__
+#define __NEOPIXEL_H__
 
-#if ENABLED(BLINKM)
+#if HAS_NEOPIXEL
 
+  void setup_neopixel();
   void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const bool isSequence=false);
 
-#endif
+#endif // HAS_NEOPIXEL
 
-#endif /* _BLINKM_H_ */
+#endif /* __NEOPIXEL_H__ */

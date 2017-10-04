@@ -128,6 +128,7 @@
 #include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
+#include "src/feature/mixing/mixing.h"
 #include "src/feature/filament/filament.h"
 #include "src/feature/fwretract/fwretract.h"
 #include "src/feature/advanced_pause/advanced_pause.h"
@@ -136,13 +137,10 @@
 #include "src/feature/caselight/caselight.h"
 #include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
-#if ENABLED(BLINKM)
-  #include "src/feature/rgbled/blinkm.h"
-#elif ENABLED(PCA9632)
-  #include "src/feature/rgbled/pca9632.h"
-#elif HAS_NEOPIXEL
-  #include "src/feature/rgbled/Adafruit_NeoPixel.h"
-#endif
+#include "src/feature/rgbled/led.h"
+#include "src/feature/rgbled/blinkm.h"
+#include "src/feature/rgbled/neopixel.h"
+#include "src/feature/rgbled/pca9632.h"
 
 #if HAS_DIGIPOTSS
   #include <SPI.h>

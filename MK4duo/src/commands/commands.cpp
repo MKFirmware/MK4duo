@@ -328,13 +328,13 @@ void Commands::loop() {
           card.printingHasFinished();
           #if ENABLED(PRINTER_EVENT_LEDS)
             LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
-            printer.set_led_color(0, 255, 0); // Green
+            set_led_color(0, 255, 0); // Green
             #if HAS_RESUME_CONTINUE
               enqueue_and_echo_commands_P(PSTR("M0")); // end of the queue!
             #else
               printer.safe_delay(1000);
             #endif
-            printer.set_led_color(0, 0, 0);   // OFF
+            set_led_color(0, 0, 0);   // OFF
           #endif
           card.checkautostart(true);
         }

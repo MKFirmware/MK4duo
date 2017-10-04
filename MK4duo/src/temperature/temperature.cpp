@@ -196,14 +196,7 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
           const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
           if (blue != old_blue) {
             old_blue = blue;
-            printer.set_led_color(255, 0, blue
-              #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0
-              #endif
-              #if HAS_NEOPIXEL
-                , true
-              #endif
-            );
+            set_led_color(255, 0, blue, 0, true);
           }
         }
         else if (h == BED_INDEX) {
@@ -211,14 +204,7 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
           const uint8_t red = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 0, 255);
           if (red != old_red) {
             old_red = red;
-            printer.set_led_color(red, 0, 255
-              #if ENABLED(NEOPIXEL_RGBW_LED)
-                , 0
-              #endif
-              #if HAS_NEOPIXEL
-                , true
-              #endif
-            );
+            set_led_color(red, 0, 255, 0, true);
           }
         }
       }
@@ -260,9 +246,9 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
     LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
     #if ENABLED(PRINTER_EVENT_LEDS)
       #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
-        printer.set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
+        set_led_color(0, 0, 0, 255);  // Turn on the WHITE LED
       #else
-        printer.set_led_color(255, 255, 255); // Set LEDs All On
+        set_led_color(255, 255, 255); // Set LEDs All On
       #endif
     #endif
   }

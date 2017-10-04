@@ -235,10 +235,11 @@ typedef int8_t    Pin;
 // Timer
 // --------------------------------------------------------------------------
 
-#define HAL_STEPPER_TIMER_RATE  ((F_CPU) / 8.0)
-#define TEMP_TIMER_FREQUENCY    ((F_CPU) / 64.0 / 64.0) // 3096 Hz
+#define HAL_STEPPER_TIMER_RATE      ((F_CPU) / 8.0)
+#define STEPPER_TIMER_PRESCALE      64
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)
 
-#define STEPPER_TIMER_PRESCALE  64
+#define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
 #define STEPPER_TIMER OCR1A
 #define STEPPER_TCCR  TCCR1A

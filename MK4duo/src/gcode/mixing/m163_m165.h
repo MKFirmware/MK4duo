@@ -43,7 +43,7 @@
     if (WITHIN(mix_index, 0, MIXING_STEPPERS)) {
       float mix_value = parser.floatval('P');
       NOLESS(mix_value, 0.0);
-      tools.mixing_factor[mix_index] = mix_value;
+      mixing_factor[mix_index] = mix_value;
     }
   }
 
@@ -59,8 +59,11 @@
      */
     inline void gcode_M164(void) {
       const int tool_index = parser.intval('S');
-      if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS))
-        tools.store_normalized_mixing_factors(tool_index);
+      if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS)) {
+        normalize_mix();
+        for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
+          mixing_virtual_tool_mix[tool_index][i] = mixing_factor[i];
+      }
     }
 
   #endif
@@ -79,6 +82,6 @@
    *   I[factor] Mix factor for extruder stepper 6
    *
    */
-  inline void gcode_M165(void) { tools.get_mix_from_command(); }
+  inline void gcode_M165(void) { get_mix_from_command(); }
 
 #endif  // COLOR_MIXING_EXTRUDER

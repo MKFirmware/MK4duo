@@ -457,8 +457,8 @@ void Stepper::isr() {
 
   HAL_TIMER_TYPE ocr_val;
 
-  #define ENDSTOP_NOMINAL_OCR_VAL 3000    // check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
-  #define OCR_VAL_TOLERANCE 1000          // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
+  #define ENDSTOP_NOMINAL_OCR_VAL (int)(1500 * STEPPER_TIMER_TICKS_PER_US) // check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
+  #define OCR_VAL_TOLERANCE       (int)(500 * STEPPER_TIMER_TICKS_PER_US)  // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
 
   #if DISABLED(ADVANCE) || DISABLED(LIN_ADVANCE)
     // Allow UART ISRs
