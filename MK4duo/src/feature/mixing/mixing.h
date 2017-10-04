@@ -21,17 +21,26 @@
  */
 
 /**
- * blinkm.h
- * Library header file for BlinkM library
+ * mixing.h
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _BLINKM_H_
-#define _BLINKM_H_
+#ifndef _MIXING_H_
+#define _MIXING_H_
 
-#if ENABLED(BLINKM)
+#if ENABLED(COLOR_MIXING_EXTRUDER)
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const bool isSequence=false);
+  extern float mixing_factor[MIXING_STEPPERS];
 
-#endif
+  #if MIXING_VIRTUAL_TOOLS  > 1
+    static float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
+    void mixing_tools_init();
+  #endif
 
-#endif /* _BLINKM_H_ */
+  void normalize_mix();
+  void get_mix_from_command();
+
+#endif // ENABLED(COLOR_MIXING_EXTRUDER)
+
+#endif /* _MIXING_H_ */

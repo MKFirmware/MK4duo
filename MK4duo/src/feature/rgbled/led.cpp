@@ -21,17 +21,34 @@
  */
 
 /**
- * blinkm.h
- * Library header file for BlinkM library
+ * led.cpp
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _BLINKM_H_
-#define _BLINKM_H_
+#include "../../../base.h"
 
-#if ENABLED(BLINKM)
+#if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const bool isSequence=false);
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const bool isSequence/*=false*/) {
 
-#endif
+    UNUSED(isSequence);
 
-#endif /* _BLINKM_H_ */
+    // This variant uses 3 separate pins for the RGB components.
+    // If the pins can do PWM then their intensity will be set.
+    WRITE(RGB_LED_R_PIN, r ? HIGH : LOW);
+    WRITE(RGB_LED_G_PIN, g ? HIGH : LOW);
+    WRITE(RGB_LED_B_PIN, b ? HIGH : LOW);
+    analogWrite(RGB_LED_R_PIN, r);
+    analogWrite(RGB_LED_G_PIN, g);
+    analogWrite(RGB_LED_B_PIN, b);
+
+    #if ENABLED(RGBW_LED)
+      WRITE(RGB_LED_W_PIN, w ? HIGH : LOW);
+      analogWrite(RGB_LED_W_PIN, w);
+    #else
+      UNUSED(w);
+    #endif
+  }
+
+#endif // ENABLED(RGB_LED) || ENABLED(RGBW_LED)

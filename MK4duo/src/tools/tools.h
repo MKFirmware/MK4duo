@@ -54,13 +54,6 @@
       // Hotend offset
       static float    hotend_offset[XYZ][HOTENDS];
 
-      #if ENABLED(COLOR_MIXING_EXTRUDER)
-        static float mixing_factor[MIXING_STEPPERS];
-        #if MIXING_VIRTUAL_TOOLS  > 1
-          static float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
-        #endif
-      #endif
-
       #if HAS_EXT_ENCODER
         static uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
         static int8_t   encLastDir[EXTRUDERS];
@@ -75,11 +68,6 @@
 
       #if HAS_MKMULTI_TOOLS
         static void MK_multi_tool_change(const uint8_t e);
-      #endif
-
-      #if ENABLED(COLOR_MIXING_EXTRUDER)
-        static void store_normalized_mixing_factors(uint8_t tool_index);
-        static void get_mix_from_command();
       #endif
 
       #if HAS_DONDOLO

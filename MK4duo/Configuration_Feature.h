@@ -1852,6 +1852,7 @@
 // For Arduino DUE setting to 8
 #define BUFSIZE 4
 
+/** START Function only for 8 bit proccesor */
 // Transmission to Host Buffer Size
 // To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
 // To buffer a simple "ok" you need 4 bytes.
@@ -1865,6 +1866,8 @@
 // To use flow control, set this buffer size to at least 1024 bytes.
 // 0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
 #define RX_BUFFER_SIZE 128
+
+/** END Function only for 8 bit proccesor */
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
 // The values should not be less than 1

@@ -330,13 +330,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-    // Initialize mixing to 100% color 1
-    mixing_factor[0] = 1.0;
-    for (uint8_t i = 1; i < MIXING_STEPPERS; ++i) mixing_factor[i] = 0.0;
-
-    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS; ++t)
-      for (uint8_t i = 0; i < MIXING_STEPPERS; ++i)
-        mixing_virtual_tool_mix[t][i] = mixing_factor[i];
+    mixing_tools_init();
   #endif
 
   #if ENABLED(BLTOUCH)
@@ -958,106 +952,6 @@ void Printer::handle_Interrupt_Event() {
   }
 
 #endif // HAS_SDSUPPORT
-
-#if HAS_COLOR_LEDS
-
-  #if HAS_NEOPIXEL
-
-    #if ENABLED(NEOPIXEL_RGB_LED)
-      Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
-    #else
-      Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRBW + NEO_KHZ800);
-    #endif
-
-    void Printer::set_neopixel_color(const uint32_t color) {
-      for (uint16_t i = 0; i < strip.numPixels(); ++i)
-        strip.setPixelColor(i, color);
-      strip.show();
-    }
-
-    void Printer::setup_neopixel() {
-      strip.setBrightness(255); // 0 - 255 range
-      strip.begin();
-      strip.show(); // initialize to all off
-
-      #if ENABLED(NEOPIXEL_STARTUP_TEST)
-        delay(2000);
-        set_neopixel_color(strip.Color(255, 0, 0, 0));  // red
-        delay(2000);
-        set_neopixel_color(strip.Color(0, 255, 0, 0));  // green
-        delay(2000);
-        set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
-        delay(2000);
-      #endif
-      set_neopixel_color(strip.Color(0, 0, 0, 255));    // white
-    }
-
-  #endif
-
-  void Printer::set_led_color(
-    const uint8_t r, const uint8_t g, const uint8_t b
-      #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
-        , const uint8_t w/*=0*/
-      #endif
-      #if HAS_NEOPIXEL
-        , bool isSequence/*=false*/
-      #endif
-  ) {
-
-    #if HAS_NEOPIXEL
-
-      #if ENABLED(NEOPIXEL_RGBW_LED)
-        const uint32_t color = strip.Color(r, g, b, w);
-      #else
-        const uint32_t color = strip.Color(r, g, b);
-      #endif
-
-      static uint16_t nextLed = 0;
-
-      if (!isSequence)
-        set_neopixel_color(color);
-      else {
-        strip.setPixelColor(nextLed, color);
-        strip.show();
-        if (++nextLed >= strip.numPixels()) nextLed = 0;
-        return;
-      }
-
-    #endif
-
-    #if ENABLED(BLINKM)
-
-      // This variant uses i2c to send the RGB components to the device.
-      SendColors(r, g, b);
-
-    #endif
-
-    #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
-
-      // This variant uses 3 separate pins for the RGB components.
-      // If the pins can do PWM then their intensity will be set.
-      WRITE(RGB_LED_R_PIN, r ? HIGH : LOW);
-      WRITE(RGB_LED_G_PIN, g ? HIGH : LOW);
-      WRITE(RGB_LED_B_PIN, b ? HIGH : LOW);
-      analogWrite(RGB_LED_R_PIN, r);
-      analogWrite(RGB_LED_G_PIN, g);
-      analogWrite(RGB_LED_B_PIN, b);
-
-      #if ENABLED(RGBW_LED)
-        WRITE(RGB_LED_W_PIN, w ? HIGH : LOW);
-        analogWrite(RGB_LED_W_PIN, w);
-      #endif
-
-    #endif
-
-    #if ENABLED(PCA9632)
-      // Update I2C LED driver
-      PCA9632_SetColor(r, g, b);
-    #endif
-
-  }
-
-#endif // HAS_COLOR_LEDS
 
 /**
  * Sensitive pin test for M42, M226

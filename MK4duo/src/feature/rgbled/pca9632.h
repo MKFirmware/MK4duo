@@ -28,9 +28,10 @@
 #ifndef __PCA9632_H__
 #define __PCA9632_H__
 
-#include "Arduino.h"
-#include "Wire.h"
+#if ENABLED(PCA9632)
 
-void PCA9632_SetColor(const byte r, const byte g, const byte  b);
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const bool isSequence=false);
 
-#endif // __PCA9632_H__
+#endif // ENABLED(PCA9632)
+
+#endif /* __PCA9632_H__ */

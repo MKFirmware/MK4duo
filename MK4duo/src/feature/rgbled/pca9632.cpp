@@ -29,7 +29,8 @@
 
 #if ENABLED(PCA9632)
 
-  #include "pca9632.h"
+  #include "Arduino.h"
+  #include <Wire.h>
 
   #define PCA9632_MODE1_VALUE   0b00000001 //(ALLCALL)
   #define PCA9632_MODE2_VALUE   0b00010101 //(DIMMING, INVERT, CHANGE ON STOP,TOTEM)
@@ -96,7 +97,11 @@
     return value;
   }
 
-  void PCA9632_SetColor(const byte r, const byte g, const byte b) {
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const bool isSequence/*=false*/) {
+
+    UNUSED(w);
+    UNUSED(isSequence);
+
     if (!PCA_init) {
       PCA_init = true;
       Wire.begin();
@@ -112,4 +117,4 @@
     PCA9632_WriteRegister(PCA9632_ADDRESS,PCA9632_LEDOUT, LEDOUT);
   }
 
-#endif // PCA9632
+#endif // ENABLED(PCA9632)
