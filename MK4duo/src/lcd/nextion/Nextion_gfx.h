@@ -20,7 +20,7 @@
 
 #if ENABLED(NEXTION_GFX)
 
-  #include "nextion_lib/Nextion.h"
+  #include "library/Nextion.h"
 
   #define NX_AXIS         0
   #define NX_MOVE         3

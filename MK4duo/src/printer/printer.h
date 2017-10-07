@@ -160,7 +160,6 @@ class Printer {
 
     static void kill(const char *);
     static void Stop();
-    static void quickstop_stepper();
 
     static void calculate_volumetric_multipliers();
 
