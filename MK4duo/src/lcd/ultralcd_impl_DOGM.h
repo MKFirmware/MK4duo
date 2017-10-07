@@ -38,6 +38,10 @@
 
 #include "../../base.h"
 
+/**
+ * Implementation of the LCD display routines for a DOGM128 graphic display.
+ * These are common LCD 128x64 pixel graphic displays.
+ */
 #include "ultralcd.h"
 
 #if ENABLED(U8GLIB_ST7565_64128N)
@@ -100,6 +104,9 @@
   #elif ENABLED(DISPLAY_CHARSET_ISO10646_CZ)
     #include "dogm/dogm_font_data_ISO10646_CZ.h"
     #define FONT_MENU_NAME ISO10646_CZ
+  #elif ENABLED(DISPLAY_CHARSET_ISO10646_SK)
+    #include "dogm/dogm_font_data_ISO10646_SK.h"
+    #define FONT_MENU_NAME ISO10646_SK
   #else // fall-back
     #include "dogm/dogm_font_data_ISO10646_1.h"
     #define FONT_MENU_NAME ISO10646_1_5x7
@@ -175,12 +182,10 @@
   // Based on the Adafruit ST7565 (http://www.adafruit.com/products/250)
   //U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
   U8GLIB_LM6059_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
-#elif ENABLED(U8GLIB_ST7565_64128N)
-  // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller 
-  //U8GLIB_ST7565_64128n_2x_VIKI u8g(0);  // using SW-SPI DOGLCD_MOSI != -1 && DOGLCD_SCK 
-  U8GLIB_ST7565_64128n_2x_VIKI u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);  // using SW-SPI 
+#elif ENABLED(MAKRPANEL) || ENABLED(VIKI2) || ENABLED(miniVIKI)
+  // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller as well
   //U8GLIB_NHD_C12864 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
-  //U8GLIB_NHD_C12864_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes  HWSPI
+  U8GLIB_NHD_C12864_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
 #elif ENABLED(U8GLIB_SSD1306)
   // Generic support for SSD1306 OLED I2C LCDs
   //U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE | U8G_I2C_OPT_FAST);  // 8 stripes
@@ -960,10 +965,11 @@ static void lcd_implementation_status_screen() {
       if (!PAGE_CONTAINS(row_y1, row_y2)) return;
 
       uint8_t n = LCD_WIDTH - (START_COL) - 1;
+      char c;
 
       if (isDir) lcd_print(LCD_STR_FOLDER[0]);
 
-      while (char c = *longFilename) {
+      while ((c = *longFilename) && n > 0) {
         n -= lcd_print_and_count(c);
         longFilename++;
       }

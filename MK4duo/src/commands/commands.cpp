@@ -199,7 +199,7 @@ void Commands::get_serial_commands() {
           #endif
         }
         if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) { printer.quickstop_stepper(); }
+        if (strcmp(command, "M410") == 0) { stepper.quickstop_stepper(); }
       #endif
 
       #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
@@ -250,6 +250,15 @@ void Commands::loop() {
         if (strstr_P(command, PSTR("M29"))) {
           // M29 closes the file
           card.finishWrite();
+
+          #if ENABLED(SERIAL_STATS_DROPPED_RX)
+            SERIAL_EMV("Dropped bytes: ", MKSERIAL.dropped());
+          #endif
+
+          #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+            SERIAL_EMV("Max RX Queue Size: ", MKSERIAL.rxMaxEnqueued());
+          #endif
+
           ok_to_send();
         }
         else {
