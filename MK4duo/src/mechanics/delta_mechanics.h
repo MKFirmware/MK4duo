@@ -46,22 +46,18 @@
             delta_print_radius          = 0.0,
             delta_probe_radius          = 0.0,
             delta_height                = 0.0,
+            homed_height                = 0.0,
             delta_clip_start_height     = 0.0,
             delta_diagonal_rod_adj[ABC] = { 0.0 },
             delta_endstop_adj[ABC]      = { 0.0 },
             delta_tower_angle_adj[ABC]  = { 0.0 },
             delta_tower_radius_adj[ABC] = { 0.0 };
 
-      #if HAS_DELTA_AUTO_CALIBRATION
-        bool g33_in_progress = false;
-      #endif
-
     private: /** Private Parameters */
 
       float delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
             towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
             towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
-            homed_Height              = 0.0,
             Xbc                       = 0.0,
             Xca                       = 0.0,
             Xab                       = 0.0,
@@ -148,14 +144,14 @@
       bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
 
-      #if HAS_DELTA_AUTO_CALIBRATION
-        void auto_calibration();
-      #endif
-
       /**
        * Report current position to host
        */
       void report_current_position_detail() override;
+
+      #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
+      #endif
 
     private: /** Private Function */
       
@@ -174,23 +170,6 @@
        * effector has the full range of XY motion.
        */
       void Set_clip_start_height();
-
-      void Adjust(const uint8_t numFactors, const float v[]);
-      void Convert_endstop_adj();
-      void NormaliseEndstopAdjustments();
-      float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-
-      void Calibration_cleanup(
-        #if HOTENDS > 1
-          const uint8_t old_tool_index
-        #endif
-      );
-
-      /**
-       * Print data
-       */
-      void print_signed_float(const char * const prefix, const float &f);
-      void print_G33_settings(const bool end_stops, const bool tower_angles);
 
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
         float Q_rsqrt(float number);

@@ -36,6 +36,6 @@
    * This will stop the carriages mid-move, so most likely they
    * will be out of sync with the stepper position after this.
    */
-  inline void gcode_M410(void) { printer.quickstop_stepper(); }
+  inline void gcode_M410(void) { stepper.quickstop_stepper(); }
 
 #endif

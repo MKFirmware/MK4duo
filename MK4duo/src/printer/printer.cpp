@@ -558,13 +558,6 @@ void Printer::Stop() {
   }
 }
 
-void Printer::quickstop_stepper() {
-  stepper.quick_stop();
-  stepper.synchronize();
-  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-  mechanics.sync_plan_position();
-}
-
 void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   static uint8_t cycle_1500ms = 15;
@@ -937,7 +930,7 @@ void Printer::handle_Interrupt_Event() {
       if (store_location) SERIAL_EM("Close file and save restart.gcode");
       card.stopSDPrint(store_location);
       commands.clear_command_queue();
-      quickstop_stepper();
+      stepper.quickstop_stepper();
       print_job_counter.stop();
       thermalManager.wait_for_heatup = false;
       thermalManager.disable_all_heaters();

@@ -1164,18 +1164,20 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *    en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr, gl, hr, it,                 *
- *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr                    *
+ *    en, an, bg, ca, cn, cz, cz_utf8, de, el, el-gr, es, eu, fi, fr, gl, hr, it,        *
+ *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr, uk, zh_CN, zh_TW  *
  *                                                                                       *
- * 'en':'English',          'an':'Aragonese',   'bg':'Bulgarian',       'ca':'Catalan',  *
- * 'cn':'Chinese',          'cz':'Czech',       'de':'German',          'el':'Greek',    *
- * 'el-gr':'Greek (Greece)' 'es':'Spanish',     'eu':'Basque-Euskera',  'fi':'Finnish',  *
- * 'fr':'French',           'gl':'Galician',    'hr':'Croatian',        'it':'Italian',  *
- * 'kana':'Japanese',       'kana_utf8':'Japanese (UTF8)'               'nl':'Dutch',    *
- * 'pl':'Polish',           'pt':'Portuguese',  'ru':'Russian',         'tr':'Turkish',  *
- * 'uk':'Ukrainian',        'pt_utf8':'Portuguese (UTF8)',              'hu':'Hungarian',*
- * 'pt-br':'Portuguese (Brazilian)',                                                     *
- * 'pt-br_utf8':'Portuguese (Brazilian UTF8)',                                           *
+ * 'en':'English',          'an':'Aragonese', 'bg':'Bulgarian',       'ca':'Catalan',    *
+ * 'cn':'Chinese',          'cz':'Czech',     'de':'German',          'el':'Greek',      *
+ * 'el-gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
+ * 'fr':'French',           'gl':'Galician',  'hr':'Croatian',        'it':'Italian',    *
+ * 'kana':'Japanese',       'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
+ * 'ru':'Russian',          'tr':'Turkish',   'uk':'Ukrainian',       'hu':'Hungarian',  *
+ * 'cz_utf8':'Czech (UTF8)'                                                              *
+ * 'kana_utf8':'Japanese (UTF8)'                                                         *
+ * 'pt_utf8':'Portuguese (UTF8)'                                                         *
+ * 'pt-br':'Portuguese (Brazilian)'                                                      *
+ * 'pt-br_utf8':'Portuguese (Brazilian UTF8)'                                            *
  *                                                                                       *
  *****************************************************************************************/
 #define LCD_LANGUAGE en
@@ -1863,10 +1865,22 @@
 #define TX_BUFFER_SIZE 32
 
 // Host Receive Buffer Size
+// Without XON/XOFF flow control (see SERIAL XON XOFF below) 32 bytes should be enough.
 // To use flow control, set this buffer size to at least 1024 bytes.
 // 0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
 #define RX_BUFFER_SIZE 128
 
+// Enable to have the controller send XON/XOFF control characters to
+// the host to signal the RX buffer is becoming full.
+//#define SERIAL_XON_XOFF
+
+// Enable this option to collect and display the maximum
+// RX queue usage after transferring a file to SD.
+//#define SERIAL_STATS_MAX_RX_QUEUED
+
+// Enable this option to collect and display the number
+// of dropped bytes after a file transfer to SD.
+//#define SERIAL_STATS_DROPPED_RX
 /** END Function only for 8 bit proccesor */
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)

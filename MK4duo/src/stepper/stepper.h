@@ -212,6 +212,7 @@ class Stepper {
     // Quickly stop all steppers and clear the blocks queue
     //
     static void quick_stop();
+    static void quickstop_stepper();
 
     //
     // The direction of a single motor

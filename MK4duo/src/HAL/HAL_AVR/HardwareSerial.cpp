@@ -22,34 +22,34 @@
 
 /**
  * HardwareSerial.cpp - Hardware serial library for Wiring
- * Copyright (c) 2006 Nicholas Zambetti.  All right reserved.
+ * Copyright (c) 2006 Nicholas Zambetti. All right reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Modified 28 September 2010 by Mark Sproul
- * Modified  3 March 2015 by MagoKimbra
+ * Modified 28 September  2010 by Mark Sproul
+ * Modified  3 March      2015 by MagoKimbra
+ * Modified 14 February   2016 by Andreas Hardtung (added tx buffer)
+ * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
  */
 
 #include "../../../base.h"
 
 #if ENABLED(__AVR__)
 
-#include "HardwareSerial.h"
-
 // Disable HardwareSerial.cpp to support chips without a UART (Attiny, etc.)
-#if DISABLED(USBCON) && (ENABLED(UBRRH) || ENABLED(UBRR0H) || ENABLED(UBRR1H) || ENABLED(UBRR2H) || ENABLED(UBRR3H))
+#if ENABLED(UBRRH) || ENABLED(UBRR0H) || ENABLED(UBRR1H) || ENABLED(UBRR2H) || ENABLED(UBRR3H)
+
+  #include "HardwareSerial.h"
+
+  struct ring_buffer_r {
+    unsigned char buffer[RX_BUFFER_SIZE];
+    volatile ring_buffer_pos_t head, tail;
+  };
+
+  #if TX_BUFFER_SIZE > 0
+    struct ring_buffer_t {
+      unsigned char buffer[TX_BUFFER_SIZE];
+      volatile uint8_t head, tail;
+    };
+  #endif
 
   #if UART_PRESENT(SERIAL_PORT)
     ring_buffer_r rx_buffer = { { 0 }, 0, 0 };
@@ -57,6 +57,23 @@
       ring_buffer_t tx_buffer = { { 0 }, 0, 0 };
       static bool _written;
     #endif
+  #endif
+
+  #if ENABLED(SERIAL_XON_XOFF)
+    constexpr uint8_t XON_XOFF_CHAR_SENT = 0x80;  // XON / XOFF Character was sent
+    constexpr uint8_t XON_XOFF_CHAR_MASK = 0x1F;  // XON / XOFF character to send
+    // XON / XOFF character definitions
+    constexpr uint8_t XON_CHAR  = 17;
+    constexpr uint8_t XOFF_CHAR = 19;
+    uint8_t xon_xoff_state = XON_XOFF_CHAR_SENT | XON_CHAR;
+  #endif
+
+  #if ENABLED(SERIAL_STATS_DROPPED_RX)
+    uint8_t rx_dropped_bytes = 0;
+  #endif
+
+  #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+    ring_buffer_pos_t rx_max_enqueued = 0;
   #endif
 
   #if ENABLED(EMERGENCY_PARSER)
@@ -136,7 +153,7 @@
                 printer.kill(PSTR(MSG_KILLED));
                 break;
               case state_M410:
-                printer.quickstop_stepper();
+                stepper.quickstop_stepper();
                 break;
               default:
                 break;
@@ -148,20 +165,79 @@
 
   #endif // EMERGENCY_PARSER
 
-  FORCE_INLINE void store_char(unsigned char c) {
-    CRITICAL_SECTION_START;
-      const uint8_t h = rx_buffer.head,
-                    i = (uint8_t)(h + 1) & (RX_BUFFER_SIZE - 1);
+  FORCE_INLINE void store_rxd_char() {
+    const ring_buffer_pos_t h = rx_buffer.head,
+                            i = (ring_buffer_pos_t)(h + 1) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
 
-      // if we should be storing the received character into the location
-      // just before the tail (meaning that the head would advance to the
-      // current location of the tail), we're about to overflow the buffer
-      // and so we don't write the character or advance the head.
-      if (i != rx_buffer.tail) {
-        rx_buffer.buffer[h] = c;
-        rx_buffer.head = i;
+    // If the character is to be stored at the index just before the tail
+    // (such that the head would advance to the current tail), the buffer is
+    // critical, so don't write the character or advance the head.
+    if (i != rx_buffer.tail) {
+      rx_buffer.buffer[h] = M_UDRx;
+      rx_buffer.head = i;
+    }
+    else {
+      (void)M_UDRx;
+      #if ENABLED(SERIAL_STATS_DROPPED_RX)
+        if (!++rx_dropped_bytes) ++rx_dropped_bytes;
+      #endif
+    }
+
+    #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+      // calculate count of bytes stored into the RX buffer
+      ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(rx_buffer.head - rx_buffer.tail) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
+      // Keep track of the maximum count of enqueued bytes
+      NOLESS(rx_max_enqueued, rx_count);
+    #endif
+
+    #if ENABLED(SERIAL_XON_XOFF)
+
+      // for high speed transfers, we can use XON/XOFF protocol to do
+      // software handshake and avoid overruns.
+      if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XON_CHAR) {
+
+        // calculate count of bytes stored into the RX buffer
+        ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(rx_buffer.head - rx_buffer.tail) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
+
+        // if we are above 12.5% of RX buffer capacity, send XOFF before
+        // we run out of RX buffer space .. We need 325 bytes @ 250kbits/s to
+        // let the host react and stop sending bytes. This translates to 13mS
+        // propagation time.
+        if (rx_count >= (RX_BUFFER_SIZE) / 8) {
+          // If TX interrupts are disabled and data register is empty,
+          // just write the byte to the data register and be done. This
+          // shortcut helps significantly improve the effective datarate
+          // at high (>500kbit/s) bitrates, where interrupt overhead
+          // becomes a slowdown.
+          if (!TEST(M_UCSRxB, M_UDRIEx) && TEST(M_UCSRxA, M_UDREx)) {
+            // Send an XOFF character
+            M_UDRx = XOFF_CHAR;
+            // clear the TXC bit -- "can be cleared by writing a one to its bit
+            // location". This makes sure flush() won't return until the bytes
+            // actually got written
+            SBI(M_UCSRxA, M_TXCx);
+            // And remember it was sent
+            xon_xoff_state = XOFF_CHAR | XON_XOFF_CHAR_SENT;
+          }
+          else {
+            // TX interrupts disabled, but buffer still not empty ... or
+            // TX interrupts enabled. Reenable TX ints and schedule XOFF
+            // character to be sent
+            #if TX_BUFFER_SIZE > 0
+              SBI(M_UCSRxB, M_UDRIEx);
+              xon_xoff_state = XOFF_CHAR;
+            #else
+              // We are not using TX interrupts, we will have to send this manually
+              while (!TEST(M_UCSRxA, M_UDREx)) { /* nada */ };
+              M_UDRx = XOFF_CHAR;
+              // And remember we already sent it
+              xon_xoff_state = XOFF_CHAR | XON_XOFF_CHAR_SENT;
+            #endif
+          }
+        }
       }
-    CRITICAL_SECTION_END;
+
+    #endif // SERIAL_XON_XOFF
 
     #if ENABLED(EMERGENCY_PARSER)
       emergency_parser(c);
@@ -172,12 +248,23 @@
 
     FORCE_INLINE void _tx_udr_empty_irq(void) {
       // If interrupts are enabled, there must be more data in the output
-      // buffer. Send the next byte
-      const uint8_t t = tx_buffer.tail,
-                    c = tx_buffer.buffer[t];
-      tx_buffer.tail = (t + 1) & (TX_BUFFER_SIZE - 1);
+      // buffer.
 
-      M_UDRx = c;
+      #if ENABLED(SERIAL_XON_XOFF)
+        // Do a priority insertion of an XON/XOFF char, if needed.
+        const uint8_t state = xon_xoff_state;
+        if (!(state & XON_XOFF_CHAR_SENT)) {
+          M_UDRx = state & XON_XOFF_CHAR_MASK;
+          xon_xoff_state = state | XON_XOFF_CHAR_SENT;
+        }
+        else
+      #endif
+      { // Send the next byte
+        const uint8_t t = tx_buffer.tail,
+                      c = tx_buffer.buffer[t];
+        tx_buffer.tail = (t + 1) & (TX_BUFFER_SIZE - 1);
+        M_UDRx = c;
+      }
 
       // clear the TXC bit -- "can be cleared by writing a one to its bit
       // location". This makes sure flush() won't return until the bytes
@@ -191,18 +278,13 @@
     }
 
     #ifdef M_USARTx_UDRE_vect
-      ISR(M_USARTx_UDRE_vect) {
-        _tx_udr_empty_irq();
-      }
+      ISR(M_USARTx_UDRE_vect) { _tx_udr_empty_irq(); }
     #endif
 
   #endif // TX_BUFFER_SIZE
 
   #ifdef M_USARTx_RX_vect
-    ISR(M_USARTx_RX_vect) {
-      const unsigned char c = M_UDRx;
-      store_char(c);
-    }
+    ISR(M_USARTx_RX_vect) { store_rxd_char(); }
   #endif
 
   // Public Methods
@@ -245,14 +327,15 @@
 
   void MKHardwareSerial::checkRx(void) {
     if (TEST(M_UCSRxA, M_RXCx)) {
-      const uint8_t c = M_UDRx;
-      store_char(c);
+      CRITICAL_SECTION_START;
+        store_rxd_char();
+      CRITICAL_SECTION_END;
     }
   }
 
   int MKHardwareSerial::peek(void) {
     CRITICAL_SECTION_START;
-      int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
+      const int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
     CRITICAL_SECTION_END;
     return v;
   }
@@ -266,17 +349,32 @@
       else {
         v = rx_buffer.buffer[t];
         rx_buffer.tail = (uint8_t)(t + 1) & (RX_BUFFER_SIZE - 1);
+
+        #if ENABLED(SERIAL_XON_XOFF)
+          if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
+            // Get count of bytes in the RX buffer
+            ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(rx_buffer.head - rx_buffer.tail) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
+            // When below 10% of RX buffer capacity, send XON before
+            // running out of RX buffer bytes
+            if (rx_count < (RX_BUFFER_SIZE) / 10) {
+              xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
+              CRITICAL_SECTION_END;       // End critical section before returning!
+              writeNoHandshake(XON_CHAR);
+              return v;
+            }
+          }
+        #endif
       }
     CRITICAL_SECTION_END;
     return v;
   }
 
-  uint8_t MKHardwareSerial::available(void) {
+  ring_buffer_pos_t MKHardwareSerial::available(void) {
     CRITICAL_SECTION_START;
-      const uint8_t h = rx_buffer.head,
-                    t = rx_buffer.tail;
+      const ring_buffer_pos_t h = rx_buffer.head,
+                              t = rx_buffer.tail;
     CRITICAL_SECTION_END;
-    return (uint8_t)(RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
+    return (ring_buffer_pos_t)(RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
   }
 
   void MKHardwareSerial::flush() {
@@ -289,18 +387,38 @@
     CRITICAL_SECTION_START;
       rx_buffer.head = rx_buffer.tail;
     CRITICAL_SECTION_END;
+
+    #if ENABLED(SERIAL_XON_XOFF)
+      if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
+        xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
+        writeNoHandshake(XON_CHAR);
+      }
+    #endif
   }
 
   #if TX_BUFFER_SIZE > 0
+
     uint8_t MKHardwareSerial::availableForWrite(void) {
       CRITICAL_SECTION_START;
-        uint8_t h = tx_buffer.head;
-        uint8_t t = tx_buffer.tail;
+        const uint8_t h = tx_buffer.head,
+                      t = tx_buffer.tail;
       CRITICAL_SECTION_END;
       return (uint8_t)(TX_BUFFER_SIZE + h - t) & (TX_BUFFER_SIZE - 1);
     }
 
     void MKHardwareSerial::write(const uint8_t c) {
+      #if ENABLED(SERIAL_XON_XOFF)
+        const uint8_t state = xon_xoff_state;
+        if (!(state & XON_XOFF_CHAR_SENT)) {
+          // Send 2 chars: XON/XOFF, then a user-specified char
+          writeNoHandshake(state & XON_XOFF_CHAR_MASK);
+          xon_xoff_state = state | XON_XOFF_CHAR_SENT;
+        }
+      #endif
+      writeNoHandshake(c);
+    }
+
+    void MKHardwareSerial::writeNoHandshake(const uint8_t c) {
       _written = true;
       CRITICAL_SECTION_START;
         bool emty = (tx_buffer.head == tx_buffer.tail);
@@ -328,7 +446,8 @@
           // space for us.
           if (TEST(M_UCSRxA, M_UDREx))
             _tx_udr_empty_irq();
-        } else {
+        }
+        else {
           // nop, the interrupt handler will free up space for us
         }
       }
@@ -360,20 +479,34 @@
       }
       // If we get here, nothing is queued anymore (DRIE is disabled) and
       // the hardware finished tranmission (TXC is set).
-  }
+    }
 
-  #else
-    void MKHardwareSerial::write(uint8_t c) {
-      while (!TEST(M_UCSRxA, M_UDREx))
-        ;
+  #else // TX_BUFFER_SIZE == 0
+
+    void MKHardwareSerial::write(const uint8_t c) {
+      while (!TEST(M_UCSRxA, M_UDREx)) { /* nada */ }
+      M_UDRx = c;
+      #if ENABLED(SERIAL_XON_XOFF)
+        // Do a priority insertion of an XON/XOFF char, if needed.
+        const uint8_t state = xon_xoff_state;
+        if (!(state & XON_XOFF_CHAR_SENT)) {
+          writeNoHandshake(state & XON_XOFF_CHAR_MASK);
+          xon_xoff_state = state | XON_XOFF_CHAR_SENT;
+        }
+      #endif
+      writeNoHandshake(c);
+    }
+    
+    void MKHardwareSerial::writeNoHandshake(const uint8_t c) {
+      while (!TEST(M_UCSRxA, M_UDREx)) { /* nada */ }
       M_UDRx = c;
     }
-  #endif
 
-  // end NEW
+  #endif // TX_BUFFER_SIZE == 0
 
-  /// imports from print.h
-
+  /**
+   * Imports from print.h
+   */
 
   void MKHardwareSerial::print(char c, int base) {
     print((long)c, base);
@@ -516,6 +649,6 @@
   // Preinstantiate Objects
   MKHardwareSerial MKSerial;
 
-#endif // !USBCON && (UBRRH || UBRR0H || UBRR1H || UBRR2H || UBRR3H)
+#endif // (UBRRH || UBRR0H || UBRR1H || UBRR2H || UBRR3H)
 
 #endif // __AVR__

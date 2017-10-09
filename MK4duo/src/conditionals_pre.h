@@ -47,13 +47,11 @@
     #define ENCODER_PULSES_PER_STEP 2
     #define ENCODER_STEPS_PER_MENU_ITEM 1
     #define ULTIPANEL
-    #define NEWPANEL
 
   #elif ENABLED(CARTESIO_UI)
 
     #define DOGLCD
     #define ULTIPANEL
-    #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 90
     #define LCD_CONTRAST_MIN 60
     #define LCD_CONTRAST_MAX 140
@@ -62,7 +60,6 @@
 
     #define DOGLCD
     #define ULTIPANEL
-    #define NEWPANEL
     #define DEFAULT_LCD_CONTRAST 17
 
   #elif ENABLED(ANET_KEYPAD_LCD)
@@ -71,8 +68,9 @@
     #define ADC_KEYPAD
     #define ADC_KEY_NUM 8
     #define ULTIPANEL
-    #define NEWPANEL
+
     // this helps to implement ADC_KEYPAD menus
+    #define ENCODER_PULSES_PER_STEP 1
     #define ENCODER_STEPS_PER_MENU_ITEM 1
     #define REVERSE_MENU_DIRECTION
 
@@ -104,19 +102,24 @@
       #define SD_DETECT_INVERTED
     #endif
 
+  #elif ENABLED(OLED_PANEL_TINYBOY2)
+
+    #define U8GLIB_SSD1306
+    #define ULTIPANEL
+    #define REVERSE_ENCODER_DIRECTION
+    #define REVERSE_MENU_DIRECTION
+
   #elif ENABLED(RA_CONTROL_PANEL)
 
     #define LCD_I2C_TYPE_PCA8574
     #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
     #define ULTIPANEL
-    #define NEWPANEL
 
   #elif ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
     #define DOGLCD
     #define U8GLIB_ST7920
     #define ULTIPANEL
-    #define NEWPANEL
 
   #elif ENABLED(WANHAO_D6_OLED)
 
@@ -153,7 +156,6 @@
    || ENABLED(G3D_PANEL)                        \
    || ENABLED(RIGIDBOT_PANEL)
     #define ULTIPANEL
-    #define NEWPANEL
   #endif
 
   #if ENABLED(REPRAPWORLD_KEYPAD)
@@ -175,7 +177,6 @@
     #define LCD_I2C_TYPE_PCF8575
     #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
     #define ULTIPANEL
-    #define NEWPANEL
   #elif ENABLED(LCD_I2C_PANELOLU2)
 
     // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
@@ -184,7 +185,6 @@
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
     #define LCD_USE_I2C_BUZZER //comment out to disable buzzer on LCD
     #define ULTIPANEL
-    #define NEWPANEL
 
   #elif ENABLED(LCD_I2C_VIKI)
 
@@ -200,7 +200,6 @@
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
     #define LCD_USE_I2C_BUZZER //comment out to disable buzzer on LCD (requires LiquidTWI2 v1.2.3 or later)
     #define ULTIPANEL
-    #define NEWPANEL
 
     #define ENCODER_FEEDRATE_DEADZONE 4
 
@@ -245,7 +244,6 @@
   #if ENABLED(SAV_3DLCD)
     #define SR_LCD_2W_NL    // Non latching 2 wire shift register
     #define ULTIPANEL
-    #define NEWPANEL
   #endif
 
   #if ENABLED(DOGLCD) // Change number of lines to match the DOG graphic display
@@ -258,7 +256,7 @@
   #endif
 
   #if ENABLED(ULTIPANEL)
-    #define NEWPANEL  // enable this if you have a click-encoder panel
+    #define NEWPANEL  // Disable this if you actually have no click-encoder panel
     #define ULTRA_LCD
     #if DISABLED(LCD_WIDTH)
       #define LCD_WIDTH 20

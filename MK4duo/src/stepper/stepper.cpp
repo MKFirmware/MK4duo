@@ -1595,7 +1595,12 @@ void Stepper::finish_and_disable() {
 }
 
 void Stepper::quick_stop() {
-  cleaning_buffer_counter = 5000;
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
+    if (!ubl.lcd_map_control)
+  #endif
+      cleaning_buffer_counter = 5000;
+
   DISABLE_STEPPER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
@@ -1603,6 +1608,13 @@ void Stepper::quick_stop() {
   #if ENABLED(ULTRA_LCD)
     planner.clear_block_buffer_runtime();
   #endif
+}
+
+void Stepper::quickstop_stepper() {
+  quick_stop();
+  synchronize();
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.sync_plan_position();
 }
 
 void Stepper::endstop_triggered(AxisEnum axis) {

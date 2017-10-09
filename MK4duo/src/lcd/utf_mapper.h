@@ -26,9 +26,9 @@
 #include  "language/language.h"
 
 #if ENABLED(DOGLCD)
-  #define HARDWARE_CHAR_OUT u8g.print
+  #define HARDWARE_CHAR_OUT(C) u8g.print((char)(C))
 #else
-  #define HARDWARE_CHAR_OUT lcd.write
+  #define HARDWARE_CHAR_OUT(C) lcd.write((char)(C))
 #endif
 
 #if DISABLED(SIMULATE_ROMFONT) && ENABLED(DOGLCD)
@@ -39,7 +39,7 @@
    || ENABLED(DISPLAY_CHARSET_ISO10646_TR)
     #define MAPPER_ONE_TO_ONE
   #endif
-#else // SIMULATE_ROMFONT
+#else // SIMULATE_ROMFONT || !DOGLCD
   #if DISPLAY_CHARSET_HD44780 == JAPANESE
     #if ENABLED(MAPPER_C2C3)
       const PROGMEM uint8_t utf_recode[] =
@@ -152,8 +152,8 @@
     static uint8_t utf_hi_char; // UTF-8 high part
     static bool seen_c2 = false;
     uint8_t d = c;
-    if ( d >= 0x80u ) { // UTF-8 handling
-      if ( (d >= 0xC0u) && (!seen_c2) ) {
+    if (d >= 0x80u) { // UTF-8 handling
+      if (d >= 0xC0u && !seen_c2) {
         utf_hi_char = d - 0xC2u;
         seen_c2 = true;
         return 0;
@@ -161,9 +161,9 @@
       else if (seen_c2) {
         d &= 0x3Fu;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0x80u + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0x80u + (utf_hi_char << 6) + d);
         #endif
       }
       else {
@@ -171,7 +171,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char) c );
+      HARDWARE_CHAR_OUT(c);
     }
     seen_c2 = false;
     return 1;
@@ -187,10 +187,10 @@
                 seen_c4 = false,
                 seen_c5 = false;
     uint8_t d = c;
-    if ( d >= 0x80u ) { // UTF-8 handling
-           if ( d == 0xC4u ) {seen_c4 = true; return 0;}
-      else if ( d == 0xC5u ) {seen_c5 = true; return 0;}
-      else if ( (d >= 0xC0u) && (!seen_c2) ) {
+    if (d >= 0x80u) { // UTF-8 handling
+           if (d == 0xC4u) { seen_c4 = true; return 0; }
+      else if (d == 0xC5u) { seen_c5 = true; return 0; }
+      else if (d >= 0xC0u && !seen_c2) {
         utf_hi_char = d - 0xC2u;
         seen_c2 = true;
         return 0;
@@ -203,7 +203,7 @@
           case 0xB1u: d = 0xFDu; break;
           default: d = '?';
         }
-        HARDWARE_CHAR_OUT((char)d) ;
+        HARDWARE_CHAR_OUT(d);
       }
       else if (seen_c5) {
         switch(d) {
@@ -211,14 +211,14 @@
           case 0x9Fu: d = 0xFEu; break;
           default: d = '?';
         }
-        HARDWARE_CHAR_OUT((char)d) ;
+        HARDWARE_CHAR_OUT(d);
       }
       else if (seen_c2) {
         d &= 0x3Fu;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0x80u + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0x80u + (utf_hi_char << 6) + d);
         #endif
       }
       else {
@@ -226,7 +226,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char) c );
+      HARDWARE_CHAR_OUT(c);
     }
     seen_c2 = seen_c4 = seen_c5 = false;
     return 1;
@@ -238,8 +238,8 @@
     static uint8_t utf_hi_char; // UTF-8 high part
     static bool seen_ce = false;
     uint8_t d = c;
-    if ( d >= 0x80 ) { // UTF-8 handling
-      if ( (d >= 0xC0) && (!seen_ce) ) {
+    if (d >= 0x80) { // UTF-8 handling
+      if (d >= 0xC0 && !seen_ce) {
         utf_hi_char = d - 0xCE;
         seen_ce = true;
         return 0;
@@ -247,9 +247,9 @@
       else if (seen_ce) {
         d &= 0x3F;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0x80 + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0x80 + (utf_hi_char << 6) + d);
         #endif
       }
       else {
@@ -257,7 +257,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char)c);
+      HARDWARE_CHAR_OUT(c);
     }
     seen_ce = false;
     return 1;
@@ -278,9 +278,9 @@
       else if (seen_ce) {
         d &= 0x3F;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0x80 + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0x80 + (utf_hi_char << 6) + d);
         #endif
       }
       else {
@@ -288,7 +288,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char) c );
+      HARDWARE_CHAR_OUT(c);
     }
     seen_ce = false;
     return 1;
@@ -311,13 +311,13 @@
       else if (seen_d5) {
         d &= 0x3F;
         if (!utf_hi_char && d == 1) {
-          HARDWARE_CHAR_OUT((char) 0xA2); // Ё
+          HARDWARE_CHAR_OUT(0xA2); // Ё
         }
         else if (utf_hi_char == 1 && d == 0x11) {
-          HARDWARE_CHAR_OUT((char)0xB5); // ё
+          HARDWARE_CHAR_OUT(0xB5); // ё
         }
         else {
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x10));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x10));
         }
       }
       else {
@@ -325,7 +325,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char) c );
+      HARDWARE_CHAR_OUT(c);
     }
     seen_d5 = false;
     return 1;
@@ -346,9 +346,9 @@
       else if (seen_d5) {
         d &= 0x3Fu;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0xA0u + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0xA0u + (utf_hi_char << 6) + d);
         #endif
       }
       else {
@@ -356,7 +356,7 @@
       }
     }
     else {
-      HARDWARE_CHAR_OUT((char) c );
+      HARDWARE_CHAR_OUT(c);
     }
     seen_d5 = false;
     return 1;
@@ -382,18 +382,17 @@
       else if (seen_e3 && seen_82_83) {
         d &= 0x3F;
         #ifndef MAPPER_ONE_TO_ONE
-          HARDWARE_CHAR_OUT((char)pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
+          HARDWARE_CHAR_OUT(pgm_read_byte_near(utf_recode + d + (utf_hi_char << 6) - 0x20));
         #else
-          HARDWARE_CHAR_OUT((char)(0x80 + (utf_hi_char << 6) + d)) ;
+          HARDWARE_CHAR_OUT(0x80 + (utf_hi_char << 6) + d);
         #endif
       }
-      else {
-        HARDWARE_CHAR_OUT((char) '?' );
-      }
+      else
+        HARDWARE_CHAR_OUT('?');
     }
-    else {
-      HARDWARE_CHAR_OUT((char) c );
-    }
+    else
+      HARDWARE_CHAR_OUT(c);
+
     seen_e3 = false;
     seen_82_83 = false;
     return 1;
@@ -401,42 +400,43 @@
 
 #elif ENABLED(MAPPER_C3C4C5_PL)
 
-  //Ą c4 84 = 80
-  //ą c4 85 = 81
-  //Ć c4 86 = 82
-  //ć c4 87 = 83
-  //Ę c4 98 = 84
-  //ę c4 99 = 85
-  //Ł c5 81 = 86
-  //ł c5 82 = 87
-  //Ń c5 83 = 88
-  //ń c5 84 = 89
-  //Ó c3 93 = 8a
-  //ó c3 b3 = 8b
-  //Ś c5 9a = 8c
-  //ś c5 9b = 8d
-  //Ź c5 b9 = 8e
-  //ź c5 ba = 8f
-  //Ż c5 bb = 90
-  //ż c5 bc = 91
+  /**
+   * Ą C4 84 = 80
+   * ą C4 85 = 81
+   * Ć C4 86 = 82
+   * ć C4 87 = 83
+   * Ę C4 98 = 84
+   * ę C4 99 = 85
+   * Ł C5 81 = 86
+   * ł C5 82 = 87
+   * Ń C5 83 = 88
+   * ń C5 84 = 89
+   * Ó C3 93 = 8A
+   * ó C3 B3 = 8B
+   * Ś C5 9A = 8C
+   * ś C5 9B = 8D
+   * Ź C5 B9 = 8E
+   * ź C5 BA = 8F
+   * Ż C5 BB = 90
+   * ż C5 BC = 91
+   */
 
   char charset_mapper(const char c) {
-    static uint8_t utf_hi_char; // UTF-8 high part
     static bool seen_c3 = false,
                 seen_c4 = false,
                 seen_c5 = false;
     uint8_t d = c;
-    if ( d >= 0x80u ) { // UTF-8 handling
-           if ( d == 0xC4u ) {seen_c4 = true; return 0;}
-      else if ( d == 0xC5u ) {seen_c5 = true; return 0;}
-      else if ( d == 0xC3u ) {seen_c3 = true; return 0;}
+    if (d >= 0x80u) { // UTF-8 handling
+           if (d == 0xC4u) { seen_c4 = true; return 0; }
+      else if (d == 0xC5u) { seen_c5 = true; return 0; }
+      else if (d == 0xC3u) { seen_c3 = true; return 0; }
       else if (seen_c4) {
         switch(d) {
           case 0x84u ... 0x87u: d -= 4; break;  //Ą - ć
           case 0x98u ... 0x99u: d -= 20; break; //Ę i ę
           default: d = '?';
         }
-        HARDWARE_CHAR_OUT((char)d) ;
+        HARDWARE_CHAR_OUT(d);
       }
       else if (seen_c5) {
         switch(d) {
@@ -445,21 +445,211 @@
           case 0xB9u ... 0xBCu: d -= 0x2Bu; break; //Ź - ż
           default: d = '?';
         }
-        HARDWARE_CHAR_OUT((char)d) ;
+        HARDWARE_CHAR_OUT(d);
       }
       else if (seen_c3) {
-    switch(d) {
+        switch(d) {
           case 0x93u: d = 0x8Au; break; //Ó
           case 0xB3u: d = 0x8Bu; break; //ó
           d = '?';
         }
-        HARDWARE_CHAR_OUT((char)d) ;
+        HARDWARE_CHAR_OUT(d);
       }
 
     }
-    else {
-      HARDWARE_CHAR_OUT((char) c );
+    else
+      HARDWARE_CHAR_OUT(c);
+
+    seen_c3 = seen_c4 = seen_c5 = false;
+    return 1;
+  }
+
+#elif ENABLED(MAPPER_C3C4C5_CZ)
+
+  /**
+   * Á C3 81 = 80
+   * É C3 89 = 81
+   * Í C3 8D = 82
+   * Ó C3 93 = 83
+   * Ú C3 9A = 84
+   * Ý C3 9D = 85
+   * á C3 A1 = 86
+   * é C3 A9 = 87
+   * í C3 AD = 88
+   * ó C3 B3 = 89
+   * ú C3 BA = 8A
+   * ý C3 BD = 8B
+   * Č C4 8C = 8C
+   * č C4 8D = 8D
+   * Ď C4 8E = 8E
+   * ď C4 8F = 8F
+   * Ě C4 9A = 90
+   * ě C4 9B = 91
+   * Ň C5 87 = 92
+   * ň C5 88 = 93
+   * Ř C5 98 = 94
+   * ř C5 99 = 95
+   * Š C5 A0 = 96
+   * š C5 A1 = 97
+   * Ť C5 A4 = 98
+   * ť C5 A5 = 99
+   * Ů C5 AE = 9A
+   * ů C5 AF = 9B
+   * Ž C5 BD = 9C
+   * ž C5 BE = 9D
+   */
+
+  char charset_mapper(const char c) {
+    static bool seen_c3 = false,
+                seen_c4 = false,
+                seen_c5 = false;
+    uint8_t d = c;
+    if (d >= 0x80u) { // UTF-8 handling
+           if (d == 0xC4u) { seen_c4 = true; return 0; }
+      else if (d == 0xC5u) { seen_c5 = true; return 0; }
+      else if (d == 0xC3u) { seen_c3 = true; return 0; }
+      else if (seen_c4) {
+        switch(d) {
+          case 0x8Cu ... 0x8Fu: break;          // ČčĎď Mapping 1:1
+          case 0x9Au ... 0x9Bu: d -= 10; break; // Ěě
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+      else if (seen_c5) {
+        switch(d) {
+          case 0x87u ... 0x88u: d += 0x0Bu; break;  // Ňň
+          case 0x98u ... 0x99u: d -= 0x04u; break;  // Řř
+          case 0xA0u ... 0xA1u: d -= 0x0Au; break;  // Šš
+          case 0xA4u ... 0xA5u: d -= 0x0Cu; break;  // Ťť
+          case 0xAEu ... 0xAFu: d -= 0x14u; break;  // Ůů
+          case 0xBDu ... 0xBEu: d -= 0x21u; break;  // Žž
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+      else if (seen_c3) {
+        switch(d) {
+          case 0x81u: d = 0x80u; break;  // Á
+          case 0x89u: d = 0x81u; break;  // É
+          case 0x8Du: d = 0x82u; break;  // Í
+          case 0x93u: d = 0x83u; break;  // Ó
+          case 0x9Au: d = 0x84u; break;  // Ú
+          case 0x9Du: d = 0x85u; break;  // Ý
+          case 0xA1u: d = 0x86u; break;  // á
+          case 0xA9u: d = 0x87u; break;  // é
+          case 0xADu: d = 0x88u; break;  // í
+          case 0xB3u: d = 0x89u; break;  // ó
+          case 0xBAu: d = 0x8Au; break;  // ú
+          case 0xBDu: d = 0x8Bu; break;  // ý
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+
     }
+    else
+      HARDWARE_CHAR_OUT(c);
+
+    seen_c3 = seen_c4 = seen_c5 = false;
+    return 1;
+  }
+
+#elif ENABLED(MAPPER_C3C4C5_SK)
+
+  /**
+   * Á C3 81 = 80
+   * Ä C3 84 = 81
+   * É C3 89 = 82
+   * Í C3 8D = 83
+   * Ó C3 93 = 84
+   * Ô C3 94 = 85
+   * Ú C3 9A = 86
+   * Ý C3 9D = 87
+   * á C3 A1 = 88
+   * ä C3 A4 = 89
+   * é C3 A9 = 8A
+   * í C3 AD = 8B
+   * ó C3 B3 = 8C
+   * ô C3 B4 = 8D
+   * ú C3 BA = 8E
+   * ý C3 BD = 8F
+   * Č C4 8C = 90
+   * č C4 8D = 91
+   * Ď C4 8E = 92
+   * ď C4 8F = 93
+   * Ĺ C4 B9 = 94
+   * ĺ C4 BA = 95
+   * Ľ C4 BD = 96
+   * ľ C4 BE = 97
+   * Ň C5 87 = 98
+   * ň C5 88 = 99
+   * Ŕ C5 94 = 9A
+   * ŕ C5 95 = 9B
+   * Š C5 A0 = 9C
+   * š C5 A1 = 9D
+   * Ť C5 A4 = 9E
+   * ť C5 A5 = 9F
+   * Ž C5 BD = A0
+   * ž C5 BE = A1
+   */
+
+  char charset_mapper(const char c) {
+    static bool seen_c3 = false,
+                seen_c4 = false,
+                seen_c5 = false;
+    uint8_t d = c;
+    if (d >= 0x80u) { // UTF-8 handling
+           if (d == 0xC4u) { seen_c4 = true; return 0; }
+      else if (d == 0xC5u) { seen_c5 = true; return 0; }
+      else if (d == 0xC3u) { seen_c3 = true; return 0; }
+      else if (seen_c4) {
+        switch(d) {
+          case 0x8Cu ... 0x8Fu: d += 0x04u; break;  // ČčĎď
+          case 0xB9u ... 0xBAu: d -= 0x25u; break;  // Ĺĺ
+          case 0xBDu ... 0xBEu: d -= 0x27u; break;  // Ľľ
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+      else if (seen_c5) {
+        switch(d) {
+          case 0x87u ... 0x88u: d += 0x11u; break;  // Ňň
+          case 0x94u ... 0x95u: d += 0x06u; break;  // Ŕŕ
+          case 0xA0u ... 0xA1u: d -= 0x04u; break;  // Šš
+          case 0xA4u ... 0xA5u: d -= 0x06u; break;  // Ťť
+          case 0xBDu ... 0xBEu: d -= 0x1Du; break;  // Žž
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+      else if (seen_c3) {
+        switch(d) {
+          case 0x81u: d = 0x80u; break;  // Á
+          case 0x84u: d = 0x81u; break;  // Ä
+          case 0x89u: d = 0x82u; break;  // É
+          case 0x8Du: d = 0x83u; break;  // Í
+          case 0x93u: d = 0x84u; break;  // Ó
+          case 0x94u: d = 0x85u; break;  // Ô
+          case 0x9Au: d = 0x86u; break;  // Ú
+          case 0x9Du: d = 0x87u; break;  // Ý
+          case 0xA1u: d = 0x88u; break;  // á
+          case 0xA4u: d = 0x89u; break;  // ä
+          case 0xA9u: d = 0x8Au; break;  // é
+          case 0xADu: d = 0x8Bu; break;  // í
+          case 0xB3u: d = 0x8Cu; break;  // ó
+          case 0xB4u: d = 0x8Du; break;  // ô
+          case 0xBAu: d = 0x8Eu; break;  // ú
+          case 0xBDu: d = 0x8Fu; break;  // ý
+          default: d = '?';
+        }
+        HARDWARE_CHAR_OUT(d);
+      }
+
+    }
+    else
+      HARDWARE_CHAR_OUT(c);
+
     seen_c3 = seen_c4 = seen_c5 = false;
     return 1;
   }
@@ -476,6 +666,6 @@
     return 1;
   }
 
-  #endif // code mappers
+#endif // code mappers
 
 #endif // UTF_MAPPER_H
