@@ -24,8 +24,8 @@
  * heater.h - heater object
  */
 
-#ifndef _HEATER_H
-#define _HEATER_H
+#ifndef _HEATER_H_
+#define _HEATER_H_
 
 #if HOTENDS <= 1
   #define HOTEND_INDEX      0
@@ -106,4 +106,4 @@ typedef enum {
 
 #endif // HEATER_COUNT > 0
 
-#endif /* _HEATER_H */
+#endif /* _HEATER_H_ */

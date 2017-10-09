@@ -965,11 +965,10 @@ static void lcd_implementation_status_screen() {
       if (!PAGE_CONTAINS(row_y1, row_y2)) return;
 
       uint8_t n = LCD_WIDTH - (START_COL) - 1;
-      char c;
 
       if (isDir) lcd_print(LCD_STR_FOLDER[0]);
 
-      while ((c = *longFilename) && n > 0) {
+      while (char c = *longFilename) {
         n -= lcd_print_and_count(c);
         longFilename++;
       }

@@ -42,7 +42,6 @@
  * - Extruder idle oozing prevention
  * - Extruder run-out prevention
  * - Bowden Filament management
- * - Extruder advance constant
  * - Extruder Advance Linear Pressure Control
  * MOTION FEATURES:
  * - Software endstops
@@ -442,28 +441,6 @@
 #define LCD_LOAD_FEEDRATE 8     // mm/s
 #define LCD_UNLOAD_FEEDRATE 8   // mm/s
 /***********************************************************************/
-
-
-/*****************************************************************************************
- ****************************** Extruder advance constant ********************************
- *****************************************************************************************
- *                                                                                       *
- * extruder advance constant (s2/mm3)                                                    *
- * advance (steps) = STEPS_PER_CUBIC_MM_E * EXTRUDER_ADVANCE_K * cubic mm per second ^ 2 *
- *                                                                                       *
- * Hooke's law says:    force = k * distance                                             *
- * Bernoulli's principle says:  v ^ 2 / 2 + g . h + pressure / density = constant        *
- * so: v ^ 2 is proportional to number of steps we advance the extruder                  *
- *                                                                                       *
- * This feature is obsolete needs update                                                 *
- * Uncomment ADVANCE to enable this feature                                              *
- *                                                                                       *
- *****************************************************************************************/
-//#define ADVANCE
-
-#define EXTRUDER_ADVANCE_K 0.0
-#define D_FILAMENT 1.75
-/*****************************************************************************************/
 
 
 /*****************************************************************************************

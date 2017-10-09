@@ -452,21 +452,6 @@
 #endif
 
 /**
- * Advance Extrusion
- */
-#if ENABLED(ADVANCE) && ENABLED(LIN_ADVANCE)
-  #error You can enable ADVANCE or LIN_ADVANCE, but not both.
-#endif
-#if ENABLED(ADVANCE)
-  #if DISABLED(EXTRUDER_ADVANCE_K)
-    #error DEPENDENCY ERROR: Missing setting EXTRUDER_ADVANCE_K
-  #endif
-  #if DISABLED(D_FILAMENT)
-    #error DEPENDENCY ERROR: Missing setting D_FILAMENT
-  #endif
-#endif
-
-/**
  * Progress Bar
  */
 #if ENABLED(LCD_PROGRESS_BAR)

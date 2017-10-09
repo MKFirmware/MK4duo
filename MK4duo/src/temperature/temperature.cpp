@@ -342,7 +342,7 @@ void Temperature::manage_temp_controller() {
   #endif
 
   #if ENABLED(DHT_SENSOR)
-    dhtsensor.Spin();
+    dhtsensor.Run();
   #endif
 
   // Control the extruder rate based on the width sensor
@@ -757,8 +757,8 @@ void Temperature::print_heaterstates() {
   #endif
 
   #if ENABLED(DHT_SENSOR)
-    SERIAL_MV(" DHT Temp:", dhtsensor.current_temperature, 1);
-    SERIAL_MV(", Humidity:", dhtsensor.current_humidity, 1);
+    SERIAL_MV(" DHT Temp:", dhtsensor.temperature, 1);
+    SERIAL_MV(", Humidity:", dhtsensor.humidity, 1);
   #endif
 }
 

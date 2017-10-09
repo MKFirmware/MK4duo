@@ -116,7 +116,7 @@
 #define NOMORE(v,n)       v = (v > n) ? n : v
 
 // Macros to support option testing
-#define ENABLED defined
+#define ENABLED   defined
 #define DISABLED !defined
 
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
@@ -167,9 +167,9 @@
 #define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
 #define ELAPSED(NOW,SOON) (!PENDING(NOW,SOON))
 
-#define NOOP do{}while(0)
+#define NOOP              do{}while(0)
 
-#define CEILING(x,y) (((x) + (y) - 1) / (y))
+#define CEILING(x,y)      (((x) + (y) - 1) / (y))
 
 #define MIN3(a, b, c)     min(min(a, b), c)
 #define MIN4(a, b, c, d)  min(min(a, b), min(c, d))

@@ -32,7 +32,9 @@
  * M119: Output endstop states to serial output
  */
 inline void gcode_M119(void) {
+
   SERIAL_EM(MSG_M119_REPORT);
+
   #if HAS_X_MIN
     SERIAL_EMT(MSG_X_MIN, ((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif

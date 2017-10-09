@@ -632,7 +632,7 @@
  * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
  */
 #if ENABLED(ARDUINO_ARCH_SAM)
-  #if ENABLED(ADVANCE) || ENABLED(LIN_ADVANCE)
+  #if ENABLED(LIN_ADVANCE)
     #define DOUBLE_STEP_FREQUENCY 60000 // 60KHz
   #else
     #define DOUBLE_STEP_FREQUENCY 80000 // 80Khz
@@ -663,16 +663,7 @@
 #endif
 
 /**
- * Advance calculated values
- */
-#if ENABLED(ADVANCE)
-  #define EXTRUSION_AREA (0.25 * (D_FILAMENT) * (D_FILAMENT) * M_PI)
-  #define STEPS_PER_CUBIC_MM_E (axis_steps_per_mm[E_AXIS + tools.active_extruder] / (EXTRUSION_AREA))
-#endif
-
-/**
  * SD DETECT
- *
  */
 #if ENABLED(SD_DISABLED_DETECT)
   #undef SD_DETECT_PIN
