@@ -41,12 +41,13 @@
 
     public: /** Public Parameters */
 
-      static float  current_temperature,
-                    current_humidity;
+      static float  temperature,
+                    humidity;
 
     private: /** Private Parameters */
 
       static DhtSensorType type;
+
       static millis_t lastReadTime,
                       lastOperationTime;
 
@@ -61,12 +62,12 @@
 
       static void init();
       static void Configure(const uint8_t dhtType);
-      static void Spin();
+      static void Run();
 
   };
 
   extern DhtSensor dhtsensor;
 
-#endif // DHT_SENSOR
+#endif // ENABLED(DHT_SENSOR)
 
 #endif /* _DHTSENSOR_H_ */

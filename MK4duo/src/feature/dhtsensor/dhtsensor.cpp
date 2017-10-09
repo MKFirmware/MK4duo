@@ -30,19 +30,19 @@
 
 #if ENABLED(DHT_SENSOR)
 
-  #define MinimumReadInterval 2000  // ms
-  #define MaximumReadTime      500  // ms
+  #define DHTMINREADINTERVAL 2000  // ms
+  #define DHTMAXREADTIME      500  // ms
 
   DhtSensor dhtsensor;
 
   DhtSensorType DhtSensor::type = DhtSensorType::Dht11;
 
-  millis_t DhtSensor::lastReadTime = 0;
-  float DhtSensor::current_temperature = 0.0;
-  float DhtSensor::current_humidity = 0.0;
+  millis_t  DhtSensor::lastReadTime = 0,
+            DhtSensor::lastOperationTime = 0;
+  float     DhtSensor::temperature = 0.0,
+            DhtSensor::humidity = 0.0;
 
   DhtSensor::SensorState DhtSensor::state = Initialising;
-  millis_t DhtSensor::lastOperationTime = 0;
 
   void DhtSensor::init() {
     OUT_WRITE(DHT_DATA_PIN, LOW);
@@ -66,9 +66,9 @@
     }
   }
 
-  // Pulse ISR
   millis_t  lastPulseTime,
             pulses[41];   // 1 start bit + 40 data bits 
+
   volatile uint8_t numPulses;
 
   void DhtDataTransition() {
@@ -84,10 +84,9 @@
     }
   }
 
-  // Keep this sensor running
-  void DhtSensor::Spin() {
+  void DhtSensor::Run() {
 
-    if ((millis() - lastReadTime) < MinimumReadInterval) return;
+    if ((millis() - lastReadTime) < DHTMINREADINTERVAL) return;
 
     switch (state) {
       case Initialising:
@@ -132,7 +131,7 @@
 
       case Reading:
         // Make sure we don't time out
-        if ((millis() - lastOperationTime) > MaximumReadTime) {
+        if ((millis() - lastOperationTime) > DHTMAXREADTIME) {
           detachInterrupt(DHT_DATA_PIN);
           state = Initialising;
           lastReadTime = millis();
@@ -165,20 +164,20 @@
         // Generate final results
         switch (type) {
           case DhtSensorType::Dht11:
-            current_humidity = data[0];
-            current_temperature = data[2];
+            humidity = data[0];
+            temperature = data[2];
             break;
 
           case DhtSensorType::Dht21:
           case DhtSensorType::Dht22:
-            current_humidity = ((data[0] * 256) + data[1]) * 0.1;
-            current_temperature = (((data[2] & 0x7F) * 256) + data[3]) * 0.1;
-            if (data[2] & 0x80) current_temperature *= -1.0;
+            humidity = ((data[0] * 256) + data[1]) * 0.1;
+            temperature = (((data[2] & 0x7F) * 256) + data[3]) * 0.1;
+            if (data[2] & 0x80) temperature *= -1.0;
             break;
 
           default:
-            current_humidity = 0.0;
-            current_temperature = 0.0;
+            humidity = 0.0;
+            temperature = 0.0;
             break;
         }
       break;

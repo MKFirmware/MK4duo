@@ -391,7 +391,6 @@
    */
   #if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends 
     #undef SINGLENOZZLE
-    #undef ADVANCE
     #undef EXTRUDERS
     #undef DRIVER_EXTRUDERS
     #define EXTRUDERS         2
@@ -399,7 +398,6 @@
     #define TOOL_E_INDEX      0
   #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
     #undef SINGLENOZZLE
-    #undef ADVANCE
     #undef EXTRUDERS
     #undef DRIVER_EXTRUDERS
     #define EXTRUDERS         2
