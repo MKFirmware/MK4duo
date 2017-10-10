@@ -42,7 +42,8 @@
    *   M150            ; Turn LED off
    *   M150 R U B      ; Turn LED white
    *   M150 W          ; Turn LED white using a white LED
-   *
+   *   M150 P127       ; Set LED 50% brightness
+   *   M150 P          ; Set LED full brightness
    */
   inline void gcode_M150(void) {
     set_led_color(
@@ -50,6 +51,9 @@
       parser.seen('U') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
       parser.seen('B') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
       parser.seen('W') ? (parser.has_value() ? parser.value_byte() : 255) : 0
+      #if ENABLED(NEOPIXEL_LED)
+        , parser.seen('P') ? (parser.has_value() ? parser.value_byte() : 255) : strip.getBrightness()
+      #endif
     );
   }
 

@@ -503,6 +503,33 @@ bool Commands::enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) 
   return false;
 }
 
+bool Commands::get_target_heater(int8_t &h) {
+
+  if (WITHIN(h, 0 , HOTENDS -1)) return true;
+  #if HAS_HEATER_BED
+    else if (h == -1) {
+      h = BED_INDEX;
+      return true;
+    }
+  #endif
+  #if HAS_HEATER_CHAMBER
+    else if (h == -2) {
+      h = CHAMBER_INDEX;
+      return true;
+    }
+  #endif
+  #if HAS_HEATER_COOLER
+    else if (h == -3) {
+      h = COOLER_INDEX;
+      return true;
+    }
+  #endif
+  else {
+    SERIAL_LM(ER, MSG_INVALID_HEATER);
+    return false;
+  }
+}
+
 /**
  * Private Function
  */
@@ -594,6 +621,12 @@ void Commands::process_next_command() {
           else
             end = middle - 1;
         }
+      }
+
+      // With M105 "ok" already sended
+      if (code_num == 105) {
+        KEEPALIVE_STATE(NOT_BUSY);
+        return;
       }
     }
     break;

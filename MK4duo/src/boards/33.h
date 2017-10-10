@@ -140,7 +140,6 @@
 
 //###MISC
 #define ORIG_PS_ON_PIN 12
-#define ORIG_BEEPER_PIN -1
 #define LED_PIN 13
 #define SDPOWER -1
 #define SD_DETECT_PIN -1
@@ -172,44 +171,91 @@
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
 
+  //
+  // LCD Display output pins
+  //
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-    #define LCD_PINS_RS       49 //CS chip select /SS chip slave select
-    #define LCD_PINS_ENABLE   51 //SID (MOSI)
-    #define LCD_PINS_D4       52 //SCK (CLK) clock
+
+    #define LCD_PINS_RS         49 // CS chip select /SS chip slave select
+    #define LCD_PINS_ENABLE     51 // SID (MOSI)
+    #define LCD_PINS_D4         52 // SCK (CLK) clock
+
   #elif ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
-    #define LCD_PINS_RS       40
-    #define LCD_PINS_ENABLE   42
-    #define LCD_PINS_D4       65
-    #define LCD_PINS_D5       66
-    #define LCD_PINS_D6       44
-    #define LCD_PINS_D7       64
+
+    #define LCD_PINS_RS         40
+    #define LCD_PINS_ENABLE     42
+    #define LCD_PINS_D4         65
+    #define LCD_PINS_D5         66
+    #define LCD_PINS_D6         44
+    #define LCD_PINS_D7         64
+
   #else
-    #define LCD_PINS_RS       16
-    #define LCD_PINS_ENABLE   17
-    #define LCD_PINS_D4       23
-    #define LCD_PINS_D5       25
-    #define LCD_PINS_D6       27
-    #define LCD_PINS_D7       29
+
+    #if ENABLED(CR10_STOCKDISPLAY)
+
+      #define LCD_PINS_RS       27
+      #define LCD_PINS_ENABLE   29
+      #define LCD_PINS_D4       25
+
+      #if DISABLED(NEWPANEL)
+        #define ORIG_BEEPER_PIN 37
+      #endif
+
+    #else
+
+      #if ENABLED(MKS_12864OLED)
+        #define LCD_PINS_DC     25 // Set as output on init
+        #define LCD_PINS_RS     27 // Pull low for 1s to init
+        // DOGM SPI LCD Support
+        #define DOGLCD_CS       16
+        #define DOGLCD_MOSI     17
+        #define DOGLCD_SCK      23
+        #define DOGLCD_A0       LCD_PINS_DC
+      #else
+        #define LCD_PINS_RS     16
+        #define LCD_PINS_ENABLE 17
+        #define LCD_PINS_D4     23
+        #define LCD_PINS_D5     25
+        #define LCD_PINS_D6     27
+      #endif
+
+      #define LCD_PINS_D7       29
+
+      #if DISABLED(NEWPANEL)
+        #define ORIG_BEEPER_PIN 33
+      #endif
+
+    #endif
+
     #if DISABLED(NEWPANEL)
-      #define ORIG_BEEPER_PIN 33
       // Buttons are attached to a shift register
       // Not wired yet
-      //#define SHIFT_CLK 38
-      //#define SHIFT_LD 42
-      //#define SHIFT_OUT 40
-      //#define SHIFT_EN 17
+      //#define SHIFT_CLK       38
+      //#define SHIFT_LD        42
+      //#define SHIFT_OUT       40
+      //#define SHIFT_EN        17
     #endif
+
   #endif
 
+  //
+  // LCD Display input pins
+  //
   #if ENABLED(NEWPANEL)
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
+
       #define ORIG_BEEPER_PIN   37
 
-      #define BTN_EN1           31
-      #define BTN_EN2           33
-      #define BTN_ENC           35
+      #if ENABLED(CR10_STOCKDISPLAY)
+        #define BTN_EN1         17
+        #define BTN_EN2         23
+      #else
+        #define BTN_EN1         31
+        #define BTN_EN2         33
+      #endif
 
+      #define BTN_ENC           35
       #define SD_DETECT_PIN     49
       #define KILL_PIN          41
 
@@ -218,105 +264,137 @@
       #endif
 
     #elif ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+
       #define BTN_EN1           64
       #define BTN_EN2           59
       #define BTN_ENC           63
       #define SD_DETECT_PIN     42
+
     #elif ENABLED(LCD_I2C_PANELOLU2)
-      #define BTN_EN1           47  // reverse if the encoder turns the wrong way.
+
+      #define BTN_EN1           47
       #define BTN_EN2           43
       #define BTN_ENC           32
       #define LCD_SDSS          53
-      #define SD_DETECT_PIN     -1
       #define KILL_PIN          41
+
     #elif ENABLED(LCD_I2C_VIKI)
-      #define BTN_EN1           22  // reverse if the encoder turns the wrong way.
-      #define BTN_EN2            7
+
+      #define BTN_EN1           22 // http://files.panucatt.com/datasheets/viki_wiring_diagram.pdf explains 40/42.
+      #define BTN_EN2            7 // 22/7 are unused on RAMPS_14. 22 is unused and 7 the SERVO0_PIN on RAMPS_13.
       #define BTN_ENC           -1
+
       #define LCD_SDSS          53
       #define SD_DETECT_PIN     49
-    #elif ENABLED(VIKI2) || ENABLED(miniVIKI)
-      #define ORIG_BEEPER_PIN   33
 
-      // Pins for DOGM SPI LCD Support
-      #define DOGLCD_A0         44
+    #elif ENABLED(VIKI2) || ENABLED(miniVIKI)
+
       #define DOGLCD_CS         45
+      #define DOGLCD_A0         44
       #define LCD_SCREEN_ROT_180
+
+      #define ORIG_BEEPER_PIN   33
+      #define STAT_LED_RED_PIN  32
+      #define STAT_LED_BLUE_PIN 35
 
       #define BTN_EN1           22
       #define BTN_EN2            7
       #define BTN_ENC           39
 
       #define SDSS              53
-      #define SD_DETECT_PIN     -1  // Pin 49 for display sd interface, 72 for easy adapter board
-
+      #define SD_DETECT_PIN     -1 // Pin 49 for display sd interface, 72 for easy adapter board
       #define KILL_PIN          31
 
-      #if ENABLED(TEMP_STAT_LEDS)
-        #define STAT_LED_RED_PIN  32
-        #define STAT_LED_BLUE_PIN 35
-      #endif
     #elif ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
-      #define BTN_EN1           35  // reverse if the encoder turns the wrong way.
-      #define BTN_EN2           37
-      #define BTN_ENC           31
-      #define SD_DETECT_PIN     49
-      #define LCD_SDSS          53
-      #define KILL_PIN          41
-      #define ORIG_BEEPER_PIN   23
+
       #define DOGLCD_CS         29
       #define DOGLCD_A0         27
-      #define LCD_BACKLIGHT_PIN 33
-    #elif ENABLED(MINIPANEL)
-      #define ORIG_BEEPER_PIN   42
-      // Pins for DOGM SPI LCD Support
-      #define DOGLCD_A0         44
-      #define DOGLCD_CS         66
-      #define LCD_BACKLIGHT_PIN 65 // backlight LED on A11/D65
-      #define SDSS              53
 
-      #define KILL_PIN          64
+      #define ORIG_BEEPER_PIN   23
+      #define LCD_BACKLIGHT_PIN 33
+
+      #define BTN_EN1           35
+      #define BTN_EN2           37
+      #define BTN_ENC           31
+
+      #define LCD_SDSS          53
+      #define SD_DETECT_PIN     49
+      #define KILL_PIN          41
+
+    #elif ENABLED(MKS_MINI_12864)  // Added in Marlin 1.1.6
+
+      #define DOGLCD_A0         27
+      #define DOGLCD_CS         25
+
       // GLCD features
-      //#define LCD_CONTRAST 190
+      //#define LCD_CONTRAST   190
       // Uncomment screen orientation
       //#define LCD_SCREEN_ROT_90
       //#define LCD_SCREEN_ROT_180
       //#define LCD_SCREEN_ROT_270
-      //The encoder and click button
+
+      #define ORIG_BEEPER_PIN   37
+      // not connected to a pin
+      #define LCD_BACKLIGHT_PIN 65 // backlight LED on A11/D65
+
+      #define BTN_EN1           31
+      #define BTN_EN2           33
+      #define BTN_ENC           35
+
+      #define SDSS              53
+      #define SD_DETECT_PIN     49
+      #define KILL_PIN          64
+
+    #elif ENABLED(MINIPANEL)
+
+      #define ORIG_BEEPER_PIN   42
+      // not connected to a pin
+      #define LCD_BACKLIGHT_PIN 65 // backlight LED on A11/D65
+
+      #define DOGLCD_A0         44
+      #define DOGLCD_CS         66
+
+      // GLCD features
+      //#define LCD_CONTRAST   190
+      // Uncomment screen orientation
+      //#define LCD_SCREEN_ROT_90
+      //#define LCD_SCREEN_ROT_180
+      //#define LCD_SCREEN_ROT_270
+
       #define BTN_EN1           40
       #define BTN_EN2           63
       #define BTN_ENC           59
-      //not connected to a pin
+
+      #define SDSS              53
       #define SD_DETECT_PIN     49
+      #define KILL_PIN          64
 
     #else
 
-      // arduino pin which triggers an piezzo beeper
-      #define ORIG_BEEPER_PIN   33  // Beeper on AUX-4
+      // Beeper on AUX-4
+      #define ORIG_BEEPER_PIN   33
 
-      // buttons are directly attached using AUX-2
+      // Buttons are directly attached using AUX-2
       #if ENABLED(REPRAPWORLD_KEYPAD)
-        #define BTN_EN1         64  // encoder
-        #define BTN_EN2         59  // encoder
-        #define BTN_ENC         63  // enter button
-        #define SHIFT_OUT       40  // shift register
-        #define SHIFT_CLK       44  // shift register
-        #define SHIFT_LD        42  // shift register
+        #define SHIFT_OUT       40
+        #define SHIFT_CLK       44
+        #define SHIFT_LD        42
+        #define BTN_EN1         64
+        #define BTN_EN2         59
+        #define BTN_ENC         63
       #elif ENABLED(PANEL_ONE)
-        #define BTN_EN1         59  // AUX2 PIN 3
-        #define BTN_EN2         63  // AUX2 PIN 4
-        #define BTN_ENC         49  // AUX3 PIN 7
+        #define BTN_EN1         59 // AUX2 PIN 3
+        #define BTN_EN2         63 // AUX2 PIN 4
+        #define BTN_ENC         49 // AUX3 PIN 7
       #else
         #define BTN_EN1         37
         #define BTN_EN2         35
-        #define BTN_ENC         31  // the click
+        #define BTN_ENC         31
       #endif
 
       #if ENABLED(G3D_PANEL)
         #define SD_DETECT_PIN   49
         #define KILL_PIN        41
-      #else
-        #define SD_DETECT_PIN   -1  // Ramps does not use this port
       #endif
 
     #endif

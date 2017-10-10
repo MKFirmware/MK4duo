@@ -20,34 +20,41 @@
  *
  */
 
-// mendel-parts
-const short temptable_3[][2] PROGMEM = {
-  {    1, 864 },
-  {   21, 300 },
-  {   25, 290 },
-  {   29, 280 },
-  {   33, 270 },
-  {   39, 260 },
-  {   46, 250 },
-  {   54, 240 },
-  {   64, 230 },
-  {   75, 220 },
-  {   90, 210 },
-  {  107, 200 },
-  {  128, 190 },
-  {  154, 180 },
-  {  184, 170 },
-  {  221, 160 },
-  {  265, 150 },
-  {  316, 140 },
-  {  375, 130 },
-  {  441, 120 },
-  {  513, 110 },
-  {  588, 100 },
-  {  734,  80 },
-  {  856,  60 },
-  {  938,  40 },
-  {  986,  20 },
-  { 1008,   0 },
-  { 1018, -20 }
+/**
+ * sensor.h - heater object
+ */
+
+#ifndef _SENSOR_H_
+#define _SENSOR_H_
+
+class TemperatureSensor {
+
+  public: /** Public Parameters */
+
+    Pin     pin;
+    int16_t type,
+            raw,
+            adcLowOffset,
+            adcHighOffset;
+    float   r25,
+            beta,
+            pullupR,
+            shA,
+            shB,
+            shC;
+
+    #if HEATER_USES_AD595
+      float     ad595_offset,
+                ad595_gain;
+    #endif
+
+  public: /** Public Function */
+
+    void CalcDerivedParameters();
+    float GetTemperature(const uint8_t h);
+
+  private: /** Private Function */
+
 };
+
+#endif /* _SENSOR_H_ */

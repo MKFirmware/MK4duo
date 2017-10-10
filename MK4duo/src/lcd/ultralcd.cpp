@@ -439,6 +439,13 @@ uint16_t max_display_update_time = 0;
     #define manual_move_e_index 0
   #endif
 
+  #if IS_KINEMATIC
+    bool processing_manual_move = false;
+    float manual_move_offset = 0.0;
+  #else
+    constexpr bool processing_manual_move = false;
+  #endif
+
   #if PIN_EXISTS(SD_DETECT)
     uint8_t lcd_sd_status;
   #endif
@@ -2698,9 +2705,45 @@ void kill_screen(const char* lcd_msg) {
    * and the planner can accept one, send immediately
    */
   inline void manage_manual_move() {
+
+    if (processing_manual_move) return;
+
     if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.active_extruder);
-      manual_move_axis = (int8_t)NO_AXIS;
+
+      #if IS_KINEMATIC
+
+        const float old_feedrate = mechanics.feedrate_mm_s;
+        mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
+
+        #if EXTRUDERS > 1
+          const int8_t old_extruder = tools.active_extruder;
+          tools.active_extruder = manual_move_e_index;
+        #endif
+
+        // Set movement on a single axis
+        mechanics.set_destination_to_current();
+        mechanics.destination[manual_move_axis] += manual_move_offset;
+
+        // Reset for the next move
+        manual_move_offset = 0.0;
+        manual_move_axis = (int8_t)NO_AXIS;
+
+        // Set a blocking flag so no new moves can be added until all segments are done
+        processing_manual_move = true;
+        mechanics.prepare_move_to_destination(); // will call set_current_to_destination
+        processing_manual_move = false;
+
+        mechanics.feedrate_mm_s = old_feedrate;
+        #if EXTRUDERS > 1
+          tools.active_extruder = old_extruder;
+        #endif
+
+      #else
+
+        planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.active_extruder);
+        manual_move_axis = (int8_t)NO_AXIS;
+
+      #endif
     }
   }
 
@@ -2722,7 +2765,7 @@ void kill_screen(const char* lcd_msg) {
   void _lcd_move_xyz(const char* name, AxisEnum axis) {
     if (lcd_clicked) { return lcd_goto_previous_menu(); }
     ENCODER_DIRECTION_NORMAL();
-    if (encoderPosition) {
+    if (encoderPosition && !processing_manual_move) {
       commands.refresh_cmd_timeout();
 
       float min = mechanics.current_position[axis] - 1000,
@@ -2740,29 +2783,42 @@ void kill_screen(const char* lcd_msg) {
         }
       #endif
 
-      // Get the new position
-      mechanics.current_position[axis] += float((int32_t)encoderPosition) * move_menu_scale;
-
       // Delta limits XY based on the current offset from center
       // This assumes the center is 0,0
       #if MECH(DELTA)
         if (axis != Z_AXIS) {
-          max = SQRT(sq((float)(DELTA_PRINTABLE_RADIUS)) - sq(mechanics.current_position[Y_AXIS - axis]));
+          max = SQRT(sq((float)(mechanics.delta_print_radius)) - sq(mechanics.current_position[Y_AXIS - axis]));
           min = -max;
         }
       #endif
 
-      // Limit only when trying to move towards the limit
-      if ((int32_t)encoderPosition < 0) NOLESS(mechanics.current_position[axis], min);
-      if ((int32_t)encoderPosition > 0) NOMORE(mechanics.current_position[axis], max);
+      // Get the new position
+      const float diff = float((int32_t)encoderPosition) * move_menu_scale;
+      #if IS_KINEMATIC
+        manual_move_offset += diff;
+        // Limit only when trying to move towards the limit
+        if ((int32_t)encoderPosition < 0) NOLESS(manual_move_offset, min - mechanics.current_position[axis]);
+        if ((int32_t)encoderPosition > 0) NOMORE(manual_move_offset, max - mechanics.current_position[axis]);
+      #else
+        mechanics.current_position[axis] += diff;
+        // Limit only when trying to move towards the limit
+        if ((int32_t)encoderPosition < 0) NOLESS(mechanics.current_position[axis], min);
+        if ((int32_t)encoderPosition > 0) NOMORE(mechanics.current_position[axis], max);
+      #endif
 
       manual_move_to_current(axis);
 
-      encoderPosition = 0;
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
-    if (lcdDrawUpdate)
-      lcd_implementation_drawedit(name, move_menu_scale >= 0.1 ? ftostr41sign(mechanics.current_position[axis]) : ftostr43sign(mechanics.current_position[axis]));
+    encoderPosition = 0;
+    if (lcdDrawUpdate && !processing_manual_move) {
+      const float pos = mechanics.current_position[axis]
+        #if IS_KINEMATIC
+          + manual_move_offset
+        #endif
+      ;
+      lcd_implementation_drawedit(name, move_menu_scale >= 0.1 ? ftostr41sign(pos) : ftostr43sign(pos));
+    }
   }
   void lcd_move_x() { _lcd_move_xyz(PSTR(MSG_MOVE_X), X_AXIS); }
   void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
@@ -2785,12 +2841,19 @@ void kill_screen(const char* lcd_msg) {
     }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition) {
-      mechanics.current_position[E_AXIS] += float((int32_t)encoderPosition) * move_menu_scale;
+      if (!processing_manual_move) {
+        const float diff = float((int32_t)encoderPosition) * move_menu_scale;
+        #if IS_KINEMATIC
+          manual_move_offset += diff;
+        #else
+          mechanics.current_position[E_AXIS] += diff;
+        #endif
+        manual_move_to_current(E_AXIS);
+        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+      }
       encoderPosition = 0;
-      manual_move_to_current(E_AXIS);
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
-    if (lcdDrawUpdate) {
+    if (lcdDrawUpdate && !processing_manual_move) {
       PGM_P pos_label;
       #if EXTRUDERS == 1
         pos_label = PSTR(MSG_MOVE_E);
@@ -2812,7 +2875,11 @@ void kill_screen(const char* lcd_msg) {
           #endif
         }
       #endif
-      lcd_implementation_drawedit(pos_label, ftostr41sign(mechanics.current_position[E_AXIS]));
+      lcd_implementation_drawedit(pos_label, ftostr41sign(mechanics.current_position[E_AXIS]
+        #if IS_KINEMATIC
+          + manual_move_offset
+        #endif
+      ));
     }
   }
 
@@ -3793,48 +3860,47 @@ void kill_screen(const char* lcd_msg) {
       START_SCREEN();
 
       #if HAS_TEMP_0
-        #define THERMISTOR_ID TEMP_SENSOR_0
-        #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T0: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM("T0: " HOT0_NAME, false, true);
         STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP), false);
         STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_1
-        #undef THERMISTOR_ID
-        #define THERMISTOR_ID TEMP_SENSOR_1
-        #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T1: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM("T1: " HOT1_NAME, false, true);
         STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP), false);
         STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_2
-        #undef THERMISTOR_ID
-        #define THERMISTOR_ID TEMP_SENSOR_2
-        #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T2: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM("T2: " HOT2_NAME, false, true);
         STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP), false);
         STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_3
-        #undef THERMISTOR_ID
-        #define THERMISTOR_ID TEMP_SENSOR_3
-        #include "../temperature/thermistornames.h"
-        STATIC_ITEM("T3: " THERMISTOR_NAME, false, true);
+        STATIC_ITEM("T3: " HOT3_NAME, false, true);
         STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP), false);
         STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP), false);
       #endif
 
       #if HAS_TEMP_BED
-        #undef THERMISTOR_ID
-        #define THERMISTOR_ID TEMP_SENSOR_BED
-        #include "../temperature/thermistornames.h"
-        STATIC_ITEM("TBed:" THERMISTOR_NAME, false, true);
+        STATIC_ITEM("TBed:" BED_NAME, false, true);
         STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(BED_MINTEMP), false);
         STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(BED_MAXTEMP), false);
       #endif
+
+      #if HAS_TEMP_CHAMBER
+        STATIC_ITEM("TChamber:" CHAMBER_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(CHAMBER_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(CHAMBER_MAXTEMP), false);
+      #endif
+
+      #if HAS_TEMP_COOLER
+        STATIC_ITEM("TCooler:" COOLER_NAME, false, true);
+        STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(COOLER_MINTEMP), false);
+        STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(COOLER_MAXTEMP), false);
+      #endif
+
       END_SCREEN();
     }
 

@@ -1031,7 +1031,7 @@ static void lcd_implementation_status_screen() {
       uint8_t n = LCD_WIDTH - concat;
       lcd.setCursor(0, row);
       lcd.print(sel ? '>' : ' ');
-      while (char c = *filename) {
+      while (char c = *longFilename) {
         n -= charset_mapper(c);
         longFilename++;
       }

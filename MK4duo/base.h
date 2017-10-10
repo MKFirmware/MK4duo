@@ -102,6 +102,7 @@
 #include "src/planner/planner.h"
 #include "src/endstop/endstops.h"
 #include "src/stepper/stepper.h"
+#include "src/heater/sensor/thermistor.h"
 #include "src/heater/heater.h"
 #include "src/temperature/temperature.h"
 

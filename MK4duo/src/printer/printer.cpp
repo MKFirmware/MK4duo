@@ -282,7 +282,7 @@ void Printer::setup() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if HAS_NEOPIXEL
+  #if ENABLED(NEOPIXEL_LED)
     SET_OUTPUT(NEOPIXEL_PIN);
     setup_neopixel();
   #endif

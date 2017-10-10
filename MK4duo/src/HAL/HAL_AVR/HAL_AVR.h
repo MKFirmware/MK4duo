@@ -229,7 +229,10 @@ typedef int8_t    Pin;
 #define ANALOG_REF_AVCC _BV(REFS0)
 #define ANALOG_REF ANALOG_REF_AVCC
 #define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define MAX_ANALOG_PIN_NUMBER 11
 #define OVERSAMPLENR 5
+#define ABS_ZERO  -273.15
+#define AD_RANGE  1023
 
 // --------------------------------------------------------------------------
 // Timer
@@ -372,15 +375,17 @@ class HAL {
 
   public: /** Public Function */
 
-    // do any hardware-specific initialization here
+    #if ANALOG_INPUTS > 0
+      static void analogStart();
+      static void AdcChangeChannel(const Pin old_pin, const Pin new_pin);
+    #endif
+
     static void hwSetup();
 
     static void showStartReason();
 
     static int getFreeRam();
     static void resetHardware();
-
-    static void analogStart();
 
     static void setPwmFrequency(uint8_t pin, uint8_t val);
 
@@ -472,5 +477,6 @@ class HAL {
 #define FMOD(x, y)  fmod(x, y)
 #define COS(x)      cos(x)
 #define SIN(x)      sin(x)
+#define LOG(x)      log(x)
 
 #endif // HAL_AVR_H

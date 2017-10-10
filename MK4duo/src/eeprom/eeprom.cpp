@@ -38,10 +38,10 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV37"
+#define EEPROM_VERSION "MKV38"
 
 /**
- * MKV437 EEPROM Layout:
+ * MKV438 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -107,23 +107,33 @@
  *  M145  S0  B           lcd_preheat_bed_temp                  (int x3)
  *  M145  S0  F           lcd_preheat_fan_speed                 (int x3)
  *
- *
- * HEATERS AD595:
- *  M595  H   OS          Heaters AD595 Offset & Gain
- *
- * PIDTEMP:
- *  M301  E0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0]            (float x4)
- *  M301  E1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]            (float x4)
- *  M301  E2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]            (float x4)
- *  M301  E3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]            (float x4)
+ * HEATER:
+ *  M301  H0  PIDC        Kp[0], Ki[0], Kd[0], Kc[0]            (float x4)
+ *  M301  H1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]            (float x4)
+ *  M301  H2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]            (float x4)
+ *  M301  H3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]            (float x4)
  *  M301  L               thermalManager.lpq_len
+ *  M301  H-1 PID         Kp, Ki, Kd                            (float x3)
+ *  M301  H-2 PID         Kp, Ki, Kd                            (float x3)
+ *  M301  H-1 PID         Kp, Ki, Kd                            (float x3)
  *
- * PIDTEMPBED:
- *  M304      PID         Kp, Ki, Kd                            (float x3)
- * PIDTEMPCHAMBER
- *  M305      PID         Kp, Ki, Kd                            (float x3)
- * PIDTEMPCOOLER
- *  M306      PID         Kp, Ki, Kd                            (float x3)
+ *  M305  H0              Hotend 0  Sensor parameters
+ *  M305  H1              Hotend 1  Sensor parameters
+ *  M305  H2              Hotend 2  Sensor parameters
+ *  M305  H3              Hotend 3  Sensor parameters
+ *  M305  H-1             BED       Sensor parameters
+ *  M305  H-2             CHAMBER   Sensor parameters
+ *  M306  H-3             COOLER    Sensor parameters
+ *
+ *  M306  H0              Hotend 0  parameters
+ *  M306  H1              Hotend 1  parameters
+ *  M306  H2              Hotend 2  parameters
+ *  M306  H3              Hotend 3  parameters
+ *  M306  H-1             BED       parameters
+ *  M306  H-2             CHAMBER   parameters
+ *  M306  H-3             COOLER    parameters
+ *
+ *  M595  H   OS          Heaters AD595 Offset & Gain
  *
  * DOGLCD:
  *  M250  C               lcd_contrast                          (uint16_t)
@@ -191,8 +201,11 @@ void EEPROM::Postprocess() {
   // and init stepper.count[], planner.position[] with current_position
   mechanics.refresh_positioning();
 
-  #if HAS_PID
-    thermalManager.updatePID();
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() heaters[h].init();
+    #if HAS_PID
+      thermalManager.updatePID();
+    #endif
   #endif
 
   printer.calculate_volumetric_multipliers();
@@ -432,17 +445,9 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(lcd_preheat_fan_speed);
 
     LOOP_HEATER() {
-
-      #if HEATER_USES_AD595
-        EEPROM_WRITE(heaters[h].ad595_offset);
-        EEPROM_WRITE(heaters[h].ad595_gain);
-      #endif
-
-      EEPROM_WRITE(heaters[h].Kp);
-      EEPROM_WRITE(heaters[h].Ki);
-      EEPROM_WRITE(heaters[h].Kd);
-      EEPROM_WRITE(heaters[h].Kc);
+      EEPROM_WRITE(heaters[h]);
     }
+
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       EEPROM_WRITE(thermalManager.lpq_len);
     #endif
@@ -753,18 +758,12 @@ void EEPROM::Postprocess() {
       EEPROM_READ(lcd_preheat_fan_speed);
 
       LOOP_HEATER() {
-
+        EEPROM_READ(heaters[h]);
         #if HEATER_USES_AD595
-          EEPROM_READ(heaters[h].ad595_offset);
-          EEPROM_READ(heaters[h].ad595_gain);
           if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = TEMP_SENSOR_AD595_GAIN;
         #endif
-
-        EEPROM_READ(heaters[h].Kp);
-        EEPROM_READ(heaters[h].Ki);
-        EEPROM_READ(heaters[h].Kd);
-        EEPROM_READ(heaters[h].Kc);
       }
+
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         EEPROM_READ(thermalManager.lpq_len);
       #endif
@@ -1031,15 +1030,15 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::Factory_Settings() {
-  const float     tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT,
-                  tmp2[] = DEFAULT_MAX_FEEDRATE;
-  const uint32_t  tmp3[] = DEFAULT_MAX_ACCELERATION,
-                  tmp4[] = DEFAULT_RETRACT_ACCELERATION;
-  const float     tmp5[] = DEFAULT_EJERK,
-                  tmp6[] = DEFAULT_Kp,
-                  tmp7[] = DEFAULT_Ki,
-                  tmp8[] = DEFAULT_Kd,
-                  tmp9[] = DEFAULT_Kc;
+  static const float    tmp1[] PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
+                        tmp2[] PROGMEM = DEFAULT_MAX_FEEDRATE;
+  static const uint32_t tmp3[] PROGMEM = DEFAULT_MAX_ACCELERATION,
+                        tmp4[] PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+  static const float    tmp5[] PROGMEM = DEFAULT_EJERK,
+                        tmp6[] PROGMEM = DEFAULT_Kp,
+                        tmp7[] PROGMEM = DEFAULT_Ki,
+                        tmp8[] PROGMEM = DEFAULT_Kd,
+                        tmp9[] PROGMEM = DEFAULT_Kc;
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
     constexpr float tmp10[XYZ][4] = {
@@ -1058,14 +1057,14 @@ void EEPROM::Factory_Settings() {
   #endif
 
   LOOP_XYZE_N(i) {
-    mechanics.axis_steps_per_mm[i]          = tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1];
-    mechanics.max_feedrate_mm_s[i]          = tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1];
-    mechanics.max_acceleration_mm_per_s2[i] = tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1];
+    mechanics.axis_steps_per_mm[i]          = pgm_read_float(&tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1]);
+    mechanics.max_feedrate_mm_s[i]          = pgm_read_float(&tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1]);
+    mechanics.max_acceleration_mm_per_s2[i] = pgm_read_dword_near(&tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1]);
   }
 
   for (uint8_t i = 0; i < EXTRUDERS; i++) {
-    mechanics.retract_acceleration[i]       = tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1];
-    mechanics.max_jerk[E_AXIS + i]          = tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1];
+    mechanics.retract_acceleration[i]       = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
+    mechanics.max_jerk[E_AXIS + i]          = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
   }
 
   static_assert(
@@ -1121,35 +1120,230 @@ void EEPROM::Factory_Settings() {
     lcd_contrast = DEFAULT_LCD_CONTRAST;
   #endif
 
-  #if (PIDTEMP)
-    LOOP_HOTEND() {
-      heaters[h].Kp = tmp6[h];
-      heaters[h].Ki = tmp7[h];
-      heaters[h].Kd = tmp8[h];
-      heaters[h].Kc = tmp9[h];
-    }
-    #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      thermalManager.lpq_len = 20; // default last-position-queue size
-    #endif
-  #endif // PIDTEMP
-
-  #if (PIDTEMPBED)
-    heaters[BED_INDEX].Kp = DEFAULT_bedKp;
-    heaters[BED_INDEX].Ki = DEFAULT_bedKi;
-    heaters[BED_INDEX].Kd = DEFAULT_bedKd;
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    thermalManager.lpq_len = 20; // default last-position-queue size
   #endif
 
-  #if (PIDTEMPCHAMBER)
-    heaters[CHAMBER_INDEX].Kp = DEFAULT_chamberKp;
-    heaters[CHAMBER_INDEX].Ki = DEFAULT_chamberKi;
-    heaters[CHAMBER_INDEX].Kd = DEFAULT_chamberKd;
-  #endif
+  // Heaters
+  #if HEATER_COUNT > 0
 
-  #if (PIDTEMPCOOLER)
-    heaters[COOLER_INDEX].Kp = DEFAULT_coolerKp;
-    heaters[COOLER_INDEX].Ki = DEFAULT_coolerKi;
-    heaters[COOLER_INDEX].Kd = DEFAULT_coolerKd;
-  #endif
+    Heater *h;
+
+    #if HAS_HEATER_0
+      // HOTEND 0
+      h = &heaters[0];
+      h->type             = IS_HOTEND;
+      h->output_pin       = HEATER_0_PIN;
+      h->mintemp          = HEATER_0_MINTEMP;
+      h->maxtemp          = HEATER_0_MAXTEMP;
+      h->pid_min          = PID_MIN;
+      h->pid_max          = PID_MAX;
+      h->use_pid          = PIDTEMP;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_HEATER_PINS;
+      h->Kp               = pgm_read_float(&tmp6[0]);
+      h->Ki               = pgm_read_float(&tmp7[0]);
+      h->Kd               = pgm_read_float(&tmp8[0]);
+      h->Kc               = pgm_read_float(&tmp9[0]);
+      // Sensor
+      h->sensor.pin           = TEMP_0_PIN;
+      h->sensor.type          = TEMP_SENSOR_0;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = HOT0_R25;
+      h->sensor.beta          = HOT0_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_0
+
+    #if HAS_HEATER_1
+      // HOTEND 1
+      h = &heaters[1];
+      h->type             = IS_HOTEND;
+      h->output_pin       = HEATER_1_PIN;
+      h->mintemp          = HEATER_1_MINTEMP;
+      h->maxtemp          = HEATER_1_MAXTEMP;
+      h->pid_min          = PID_MIN;
+      h->pid_max          = PID_MAX;
+      h->use_pid          = PIDTEMP;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_HEATER_PINS;
+      h->Kp               = pgm_read_float(&tmp6[1]);
+      h->Ki               = pgm_read_float(&tmp7[1]);
+      h->Kd               = pgm_read_float(&tmp8[1]);
+      h->Kc               = pgm_read_float(&tmp9[1]);
+      // Sensor
+      h->sensor.pin           = TEMP_1_PIN;
+      h->sensor.type          = TEMP_SENSOR_1;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = HOT1_R25;
+      h->sensor.beta          = HOT1_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_1
+
+    #if HAS_HEATER_2
+      // HOTEND 2
+      h = &heaters[2];
+      h->type             = IS_HOTEND;
+      h->output_pin       = HEATER_2_PIN;
+      h->mintemp          = HEATER_2_MINTEMP;
+      h->maxtemp          = HEATER_2_MAXTEMP;
+      h->pid_min          = PID_MIN;
+      h->pid_max          = PID_MAX;
+      h->use_pid          = PIDTEMP;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_HEATER_PINS;
+      h->Kp               = pgm_read_float(&tmp6[2]);
+      h->Ki               = pgm_read_float(&tmp7[2]);
+      h->Kd               = pgm_read_float(&tmp8[2]);
+      h->Kc               = pgm_read_float(&tmp9[2]);
+      // Sensor
+      h->sensor.pin           = TEMP_2_PIN;
+      h->sensor.type          = TEMP_SENSOR_2;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = HOT2_R25;
+      h->sensor.beta          = HOT2_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_2
+
+    #if HAS_HEATER_3
+      // HOTEND 3
+      h = &heaters[3];
+      h->type             = IS_HOTEND;
+      h->output_pin       = HEATER_3_PIN;
+      h->mintemp          = HEATER_3_MINTEMP;
+      h->maxtemp          = HEATER_3_MAXTEMP;
+      h->pid_min          = PID_MIN;
+      h->pid_max          = PID_MAX;
+      h->use_pid          = PIDTEMP;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_HEATER_PINS;
+      h->Kp               = pgm_read_float(&tmp6[3]);
+      h->Ki               = pgm_read_float(&tmp7[3]);
+      h->Kd               = pgm_read_float(&tmp8[3]);
+      h->Kc               = pgm_read_float(&tmp9[3]);
+      // Sensor
+      h->sensor.pin           = TEMP_3_PIN;
+      h->sensor.type          = TEMP_SENSOR_3;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = HOT3_R25;
+      h->sensor.beta          = HOT3_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_3
+
+    #if HAS_HEATER_BED
+      // BED
+      h = &heaters[BED_INDEX];
+      h->type             = IS_BED;
+      h->output_pin       = HEATER_BED_PIN;
+      h->mintemp          = BED_MINTEMP;
+      h->maxtemp          = BED_MAXTEMP;
+      h->pid_min          = MIN_BED_POWER;
+      h->pid_max          = MAX_BED_POWER;
+      h->use_pid          = PIDTEMPBED;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_BED_PIN;
+      h->Kp               = DEFAULT_bedKp;
+      h->Ki               = DEFAULT_bedKi;
+      h->Kd               = DEFAULT_bedKd;
+      // Sensor
+      h->sensor.pin           = TEMP_BED_PIN;
+      h->sensor.type          = TEMP_SENSOR_BED;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = BED_R25;
+      h->sensor.beta          = BED_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_BED
+
+    #if HAS_HEATER_CHAMBER
+      // CHAMBER
+      h = &heaters[CHAMBER_INDEX];
+      h->type             = IS_CHAMBER;
+      h->output_pin       = HEATER_CHAMBER_PIN;
+      h->mintemp          = CHAMBER_MINTEMP;
+      h->maxtemp          = CHAMBER_MAXTEMP;
+      h->pid_min          = MIN_CHAMBER_POWER;
+      h->pid_max          = MAX_CHAMBER_POWER;
+      h->use_pid          = PIDTEMPCHAMBER;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_CHAMBER_PIN;
+      h->Kp               = DEFAULT_chamberKp;
+      h->Ki               = DEFAULT_chamberKi;
+      h->Kd               = DEFAULT_chamberKd;
+      // Sensor
+      h->sensor.pin           = TEMP_CHAMBER_PIN;
+      h->sensor.type          = TEMP_SENSOR_CHAMBER;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = CHAMBER_R25;
+      h->sensor.beta          = CHAMBER_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_BED
+
+    #if HAS_HEATER_COOLER
+      // COOLER
+      h = &heaters[COOLER_INDEX];
+      h->type             = IS_COOLER;
+      h->output_pin       = HEATER_COOLER_PIN;
+      h->mintemp          = COOLER_MINTEMP;
+      h->maxtemp          = COOLER_MAXTEMP;
+      h->pid_min          = MIN_COOLER_POWER;
+      h->pid_max          = MAX_COOLER_POWER;
+      h->use_pid          = PIDTEMPCOOLER;
+      h->pwm_hardware     = PWM_HARDWARE;
+      h->hardwareInverted = INVERTED_COOLER_PIN;
+      h->Kp               = DEFAULT_coolerKp;
+      h->Ki               = DEFAULT_coolerKi;
+      h->Kd               = DEFAULT_coolerKd;
+      // Sensor
+      h->sensor.pin           = TEMP_COOLER_PIN;
+      h->sensor.type          = TEMP_SENSOR_COOLER;
+      h->sensor.adcLowOffset  = 0;
+      h->sensor.adcHighOffset = 0;
+      h->sensor.r25           = COOLER_R25;
+      h->sensor.beta          = COOLER_BETA;
+      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
+      h->sensor.shC           = 0.0;
+      #if HEATER_USES_AD595
+        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+    #endif // HAS_HEATER_BED
+
+  #endif // HEATER_COUNT > 0
 
   #if ENABLED(FWRETRACT)
     fwretract.reset();
@@ -1476,13 +1670,7 @@ void EEPROM::Factory_Settings() {
         #elif HOTENDS > 1
           for (int8_t h = 0; h < HOTENDS; h++) {
             SERIAL_SMV(CFG, "  M301 H", h);
-            SERIAL_MV(" P", heaters[h].Kp);
-            SERIAL_MV(" I", heaters[h].Ki);
-            SERIAL_MV(" D", heaters[h].Kd);
-            #if ENABLED(PID_ADD_EXTRUSION_RATE)
-              SERIAL_MV(" C", heaters[h].Kc);
-            #endif
-            SERIAL_EOL();
+            heaters[h].print_PID();
           }
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
@@ -1490,19 +1678,16 @@ void EEPROM::Factory_Settings() {
         #endif
       #endif
       #if (PIDTEMPBED)
-        SERIAL_SMV(CFG, "  M304 P", heaters[BED_INDEX].Kp);
-        SERIAL_MV(" I", heaters[BED_INDEX].Ki);
-        SERIAL_EMV(" D", heaters[BED_INDEX].Kd);
+        SERIAL_SM(CFG, "  M301 H-1");
+        heaters[BED_INDEX].print_PID();
       #endif
       #if (PIDTEMPCHAMBER)
-        SERIAL_SMV(CFG, "  M305 P", heaters[CHAMBER_INDEX].Kp);
-        SERIAL_MV(" I", heaters[CHAMBER_INDEX].Ki);
-        SERIAL_EMV(" D", heaters[CHAMBER_INDEX].Kd);
+        SERIAL_SM(CFG, "  M301 H-2");
+        heaters[CHAMBER_INDEX].print_PID();
       #endif
       #if (PIDTEMPCOOLER)
-        SERIAL_SMV(CFG, "  M306 P", heaters[COOLER_INDEX].Kp);
-        SERIAL_MV(" I", heaters[COOLER_INDEX].Ki);
-        SERIAL_EMV(" D", heaters[COOLER_INDEX].Kd);
+        SERIAL_SM(CFG, "  M301 H-3");
+        heaters[COOLER_INDEX].print_PID();
       #endif
     #endif
 

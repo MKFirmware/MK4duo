@@ -482,8 +482,6 @@
   #else // TX_BUFFER_SIZE == 0
 
     void MKHardwareSerial::write(const uint8_t c) {
-      while (!TEST(M_UCSRxA, M_UDREx)) { /* nada */ }
-      M_UDRx = c;
       #if ENABLED(SERIAL_XON_XOFF)
         // Do a priority insertion of an XON/XOFF char, if needed.
         const uint8_t state = xon_xoff_state;
@@ -494,7 +492,7 @@
       #endif
       writeNoHandshake(c);
     }
-    
+
     void MKHardwareSerial::writeNoHandshake(const uint8_t c) {
       while (!TEST(M_UCSRxA, M_UDREx)) { /* nada */ }
       M_UDRx = c;

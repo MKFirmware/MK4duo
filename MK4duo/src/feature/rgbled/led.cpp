@@ -30,9 +30,9 @@
 
 #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const bool isSequence/*=false*/) {
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t p/*=255*/) {
 
-    UNUSED(isSequence);
+    UNUSED(p);
 
     // This variant uses 3 separate pins for the RGB components.
     // If the pins can do PWM then their intensity will be set.

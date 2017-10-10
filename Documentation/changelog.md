@@ -1,3 +1,8 @@
+### Version 4.3.29 dev
+* New sistem termisotor calc
+* Add command M305 - Set thermistor and ADC parameters
+* Fix and clear code
+
 ### Version 4.3.28 dev
 * Add Unified Bed Level (UBL) for Cartesian, Core and Delta
 * Add support for DHT11, DHT21 and DHT22 Temperature/Humidity sensors (Only for test)

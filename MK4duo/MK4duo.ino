@@ -179,12 +179,15 @@
  * M250 - Set LCD contrast C<contrast value> (value 0..63)
  * M280 - Set servo position absolute. P: servo index, S: angle or microseconds
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
- * M301 - Set PID parameters P I D and C
+ * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ *          P[float] Kp term, I[float] Ki term, D[float] Kd term
+ *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S<temperature>.
- * M303 - PID relay autotune S<temperature> sets the target temperature (default target temperature = 150C). H<hotend> C<cycles> U<Apply result>
- * M304 - Set hot bed PID parameters P I and D
- * M305 - Set hot chamber PID parameters P I and D
- * M306 - Set cooler PID parameters P I and D
+ * M303 - PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ *        S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>.
+ * M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
+ *          L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin
  * M320 - Enable/Disable S1=enable S0=disable, V[bool] Print the leveling grid, Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M321 - Set a single Auto Bed Leveling Z coordinate - X<gridx> Y<gridy> Z<level val> S<level add>
  * M322 - Reset Auto Bed Leveling matrix

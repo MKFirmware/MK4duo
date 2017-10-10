@@ -27,8 +27,6 @@
 #ifndef _TEMPERATURE_H_
 #define _TEMPERATURE_H_
 
-#include "thermistortables.h"
-
 class Temperature {
 
   public: /** Constructor */
@@ -136,7 +134,7 @@ class Temperature {
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
-    static void PID_autotune(int8_t temp_controller, const float temp, int ncycles, bool storeValues=false);
+    static void PID_autotune(const int8_t temp_controller, const float temp, int ncycles, const bool storeValues=false);
 
     /**
      * Update the temp manager when PID values change
@@ -193,8 +191,6 @@ class Temperature {
 
     static void updateTemperaturesFromRawValues();
 
-    static float analog2temp(const uint8_t h);
-
     #if HAS_FILAMENT_SENSOR
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
     #endif
@@ -204,14 +200,6 @@ class Temperature {
     #endif
 
     static uint8_t get_pid_output(const int8_t h);
-
-    #if ENABLED(SUPPORT_MAX6675)
-      static int16_t read_max6675(const Pin cs_pin, const int8_t h);
-    #endif
-
-    #if ENABLED(SUPPORT_MAX31855)
-      static int16_t read_max31855(const Pin cs_pin);
-    #endif
 
     static void checkExtruderAutoFans();
 

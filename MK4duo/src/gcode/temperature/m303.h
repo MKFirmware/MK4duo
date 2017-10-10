@@ -38,14 +38,14 @@
  */
 inline void gcode_M303(void) {
 
-  #if HAS_PID || HAS_PID
-    const int   h = parser.intval('H'),
-                c = parser.intval('C', 5);
+  #if HAS_PID
+    int8_t      h = parser.intval('H');
+    const int   c = parser.intval('C', 5);
     const bool  u = parser.boolval('U');
 
     int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
-    if (WITHIN(h, 0, HOTENDS - 1)) tools.target_extruder = h;
+    if (!commands.get_target_heater(h)) return;
 
     #if DISABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(NOT_BUSY);
