@@ -23,27 +23,8 @@
 // PT100 with INA826 amp on Ultimaker v2.0 electronics
 // The PT100 in the Ultimaker v2.0 electronics has a high sample value for a high temperature.
 // This does not match the normal thermistor behaviour so we need to set the following defines
-#if (THERMISTORHEATER_0 == 20)
-  #define HEATER_0_RAW_HI_TEMP 16383
-  #define HEATER_0_RAW_LO_TEMP 0
-#endif
-#if (THERMISTORHEATER_1 == 20)
-  #define HEATER_1_RAW_HI_TEMP 16383
-  #define HEATER_1_RAW_LO_TEMP 0
-#endif
-#if (THERMISTORHEATER_2 == 20)
-  #define HEATER_2_RAW_HI_TEMP 16383
-  #define HEATER_2_RAW_LO_TEMP 0
-#endif
-#if (THERMISTORHEATER_3 == 20)
-  #define HEATER_3_RAW_HI_TEMP 16383
-  #define HEATER_3_RAW_LO_TEMP 0
-#endif
-#if (THERMISTORBED == 20)
-  #define HEATER_BED_RAW_HI_TEMP 16383
-  #define HEATER_BED_RAW_LO_TEMP 0
-#endif
-const short temptable_20[][2] PROGMEM = {
+
+const short temptable_amplifier[][2] PROGMEM = {
   {   0,    0 },
   { 227,    1 },
   { 236,   10 },

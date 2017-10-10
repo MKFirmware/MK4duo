@@ -29,11 +29,15 @@
 #ifndef __NEOPIXEL_H__
 #define __NEOPIXEL_H__
 
-#if HAS_NEOPIXEL
+#if ENABLED(NEOPIXEL_LED)
+
+  #include "library/Adafruit_NeoPixel.h"
 
   void setup_neopixel();
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const bool isSequence=false);
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const uint8_t brightness=255);
 
-#endif // HAS_NEOPIXEL
+  extern Adafruit_NeoPixel strip;
+
+#endif // ENABLED(NEOPIXEL_LED)
 
 #endif /* __NEOPIXEL_H__ */

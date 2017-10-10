@@ -41,13 +41,14 @@ class Commands {
 
     static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
-    static long gcode_N,
-                gcode_LastN,
+    static long gcode_LastN,
                 Stopped_gcode_LastN;
 
     static millis_t previous_cmd_ms;
 
   private: /** Private Parameters */
+
+    static long gcode_N;
 
     static bool send_ok[BUFSIZE];
 
@@ -70,6 +71,8 @@ class Commands {
 
     static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
     static void enqueue_and_echo_commands_P(const char * const pgcode);
+
+    static bool get_target_heater(int8_t &h);
 
     FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
     FORCE_INLINE static void reset_send_ok()        { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }

@@ -1457,6 +1457,40 @@
 //
 //#define SAV_3DLCD
 
+//
+// TinyBoy2 128x64 OLED / Encoder Panel
+//
+//#define OLED_PANEL_TINYBOY2
+
+//
+// Makeboard 3D Printer Parts 3D Printer Mini Display 1602 Mini Controller
+// https://www.aliexpress.com/item/Micromake-Makeboard-3D-Printer-Parts-3D-Printer-Mini-Display-1602-Mini-Controller-Compatible-with-Ramps-1/32765887917.html
+//
+//#define MAKEBOARD_MINI_2_LINE_DISPLAY_1602
+
+//
+// MKS MINI12864 with graphic controller and SD support
+// http://reprap.org/wiki/MKS_MINI_12864
+//
+//#define MKS_MINI_12864
+
+//
+// Factory display for Creality CR-10
+// https://www.aliexpress.com/item/Universal-LCD-12864-3D-Printer-Display-Screen-With-Encoder-For-CR-10-CR-7-Model/32833148327.html
+//
+// This is RAMPS-compatible using a single 10-pin connector.
+// (For CR-10 owners who want to replace the Melzi Creality board but retain the display)
+//
+//#define CR10_STOCKDISPLAY
+
+//
+// MKS OLED 1.3" 128 × 64 FULL GRAPHICS CONTROLLER
+// http://reprap.org/wiki/MKS_12864OLED
+//
+// Tiny, but very sharp OLED display
+//
+//#define MKS_12864OLED
+
 // CONTROLLER TYPE: Serial display
 
 // Nextion 4.3" HMI panel model NX4827T043_11
@@ -1551,7 +1585,20 @@
  ******************************** RGB LED *********************************
  **************************************************************************
  *                                                                        *
- * Support for an RGB LED using 3 separate pins with optional PWM         *
+ * Enable support for an RGB LED connected to 5V digital pins, or         *
+ * an RGB Strip connected to MOSFETs controlled by digital pins.          *
+ *                                                                        *
+ * Adds the M150 command to set the LED (or LED strip) color.             *
+ * If pins are PWM capable (e.g., 4, 5, 6, 11) then a range of            *
+ * luminance values can be set from 0 to 255.                             *
+ *                                                                        *
+ * *** CAUTION ***                                                        *
+ *  LED Strips require a MOFSET Chip between PWM lines and LEDs,          *
+ *  as the Arduino cannot handle the current the LEDs will require.       *
+ *  Failure to follow this precaution can destroy your Arduino!           *
+ * *** CAUTION ***                                                        *
+ *                                                                        *
+ * LED type. This options are mutualy exclusive. Uncomment only one.      *
  *                                                                        *
  **************************************************************************/
 //#define RGB_LED
@@ -1577,10 +1624,18 @@
  * Support for Adafruit Neopixel LED driver                               *
  *                                                                        *
  **************************************************************************/
-//#define NEOPIXEL_RGB_LED
-//#define NEOPIXEL_RGBW_LED
+//#define NEOPIXEL_LED
 
+// NEO_GRBW / NEO_GRB - four/three channel driver type
+// (defined in Adafruit_NeoPixel.h)
+#define NEOPIXEL_TYPE   NEO_GRB
+// Number of LEDs on strip
 #define NEOPIXEL_PIXELS 16
+// Sequential display for temperature change - LED by LED.
+// Comment out for all LEDs to change at once.
+#define NEOPIXEL_IS_SEQUENTIAL
+// Initial brightness 0-255
+#define NEOPIXEL_BRIGHTNESS 255
 // Cycle through colors at startup
 //#define NEOPIXEL_STARTUP_TEST
 /**************************************************************************/

@@ -141,11 +141,9 @@ void HAL::showStartReason() {
   MCUSR = 0;
 }
 
-void HAL::hwSetup() { }
+#if ANALOG_INPUTS > 0
 
-void HAL::analogStart() {
-
-  #if ANALOG_INPUTS > 0
+  void HAL::analogStart() {
 
     ADMUX = ANALOG_REF; // refernce voltage
     for (uint8_t i = 0; i < ANALOG_INPUTS; i++) {
@@ -169,8 +167,16 @@ void HAL::analogStart() {
     ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
     ADCSRA |= _BV(ADSC); // start conversion without interrupt!
 
-  #endif
-}
+  }
+
+  void HAL::AdcChangeChannel(const Pin old_pin, const Pin new_pin) {
+    UNUSED(old_pin);
+    UNUSED(old_pin);
+  }
+
+#endif
+
+void HAL::hwSetup() { }
 
 void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
   val &= 0x07;

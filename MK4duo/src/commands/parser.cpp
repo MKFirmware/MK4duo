@@ -39,8 +39,9 @@
 
 char *GCodeParser::command_ptr,
      *GCodeParser::string_arg,
-     *GCodeParser::value_ptr,
-      GCodeParser::command_letter;
+     *GCodeParser::value_ptr;
+
+char  GCodeParser::command_letter;
 
 uint16_t GCodeParser::codenum;
 
@@ -59,13 +60,32 @@ uint16_t GCodeParser::codenum;
 // Create a global instance of the GCodeParser singleton
 GCodeParser parser;
 
+/**
+ * Clear all code-seen (and value pointers)
+ *
+ * Since each param is set/cleared on seen codes,
+ * this may be optimized by commenting out ZERO(param)
+ */
+void GCodeParser::reset() {
+  string_arg = NULL;                  // No whole line argument
+  command_letter = '?';               // No command letter
+  codenum = 0;                        // No command code
+  #if USE_GCODE_SUBCODES
+    subcode = 0;                      // No command sub-code
+  #endif
+  #if ENABLED(FASTER_GCODE_PARSER)
+    ZERO(codebits);                   // No codes yet
+    //ZERO(param);                    // No parameters (should be safe to comment out this line)
+  #endif
+}
 // Populate all fields by parsing a single line of GCode
 // 58 bytes of SRAM are used to speed up seen/value
 void GCodeParser::parse(char *p) {
 
   reset(); // No codes to report
 
-  while (*p == ' ') ++p;  // Skip spaces
+  // Skip spaces
+  while (*p == ' ') ++p;
 
   // Skip N[-0-9] if included in the command line
   if (*p == 'N' && NUMERIC_SIGNED(p[1])) {

@@ -28,24 +28,24 @@
 
 #include "../../../base.h"
 
-#if HAS_NEOPIXEL
+#if ENABLED(NEOPIXEL_LED)
 
-  #include "library/Adafruit_NeoPixel.h"
-
-  #if ENABLED(NEOPIXEL_RGB_LED)
-    Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
+  #if NEOPIXEL_TYPE == NEO_RGB || NEOPIXEL_TYPE == NEO_RBG || NEOPIXEL_TYPE == NEO_GRB || NEOPIXEL_TYPE == NEO_GBR || NEOPIXEL_TYPE == NEO_BRG || NEOPIXEL_TYPE == NEO_BGR
+    #define NEO_WHITE 255, 255, 255
   #else
-    Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEO_GRBW + NEO_KHZ800);
+    #define NEO_WHITE 0, 0, 0, 255
   #endif
 
-  void Printer::set_neopixel_color(const uint32_t color) {
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEOPIXEL_TYPE + NEO_KHZ800);
+
+  void set_neopixel_color(const uint32_t color) {
     for (uint16_t i = 0; i < strip.numPixels(); ++i)
       strip.setPixelColor(i, color);
     strip.show();
   }
 
-  void Printer::setup_neopixel() {
-    strip.setBrightness(255); // 0 - 255 range
+  void setup_neopixel() {
+    strip.setBrightness(NEOPIXEL_BRIGHTNESS); // 0 - 255 range
     strip.begin();
     strip.show(); // initialize to all off
 
@@ -61,26 +61,25 @@
     set_neopixel_color(strip.Color(0, 0, 0, 255));    // white
   }
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const bool isSequence/*=false*/) {
+  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t brightness) {
 
-    #if ENABLED(NEOPIXEL_RGBW_LED)
-      const uint32_t color = strip.Color(r, g, b, w);
-    #else
-      UNUSED(w);
-      const uint32_t color = strip.Color(r, g, b);
-    #endif
+    uint32_t color;
 
-    static uint16_t nextLed = 0;
+    if (w == 255 || (r == 255 && g == 255 && b == 255))
+      color = strip.Color(NEO_WHITE);
+    else
+      color = strip.Color(r, g, b, w);
 
-    if (!isSequence)
+    strip.setBrightness(brightness);
+
+    #if DISABLED(NEOPIXEL_IS_SEQUENTIAL)
       set_neopixel_color(color);
-    else {
+    #else
+      static uint16_t nextLed = 0;
       strip.setPixelColor(nextLed, color);
       strip.show();
       if (++nextLed >= strip.numPixels()) nextLed = 0;
-      return true;
-    }
-    return false;
+    #endif
   }
 
-#endif // HAS_NEOPIXEL
+#endif // ENABLED(NEOPIXEL_LED)

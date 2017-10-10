@@ -55,11 +55,9 @@
 #include "config/m220.h"                  // Set speed percentage
 #include "config/m221.h"                  // Set extrusion percentage
 #include "config/m222.h"                  // Set density
-#include "config/m301.h"                  // Set PID parameters Hotends
+#include "config/m301.h"                  // Set PID parameters Heater
 #include "config/m302.h"                  // Allow cold extrudes
-#include "config/m304.h"                  // Set PID parameters Bed
-#include "config/m305.h"                  // Set PID parameters Chamber
-#include "config/m306.h"                  // Set PID parameters Cooler
+#include "config/m305.h"                  // Set thermistor and ADC parameters
 #include "config/m595.h"                  // Set AD595 offset & Gain
 #include "config/m900.h"                  // Set and/or Get advance K factor
 #include "config/m906.h"                  // Set Alliagtor motor currents or Set motor current in milliamps with have a TMC2130 driver

@@ -34,11 +34,6 @@ constexpr uint8_t   temp_residency_time[HEATER_TYPE]  = { TEMP_RESIDENCY_TIME, T
 constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
-#if HOTENDS > 0
-  static void*    heater_ttbl_map[HOTENDS]    = ARRAY_BY_HOTENDS_N((void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE);
-  static uint8_t  heater_ttbllen_map[HOTENDS] = ARRAY_BY_HOTENDS_N(HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN);
-#endif
-
 // public:
 volatile bool Temperature::wait_for_heatup = true;
 
@@ -260,7 +255,7 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
 
 void Temperature::set_current_temp_raw() {
 
-  LOOP_HEATER() heaters[h].current_temperature_raw = HAL::AnalogInputValues[heaters[h].sensor_pin];
+  LOOP_HEATER() heaters[h].sensor.raw = HAL::AnalogInputValues[heaters[h].sensor.pin];
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
@@ -360,20 +355,7 @@ void Temperature::manage_temp_controller() {
   #endif // FILAMENT_SENSOR
 }
 
-void Temperature::PID_autotune(int8_t temp_controller, const float temp, int ncycles, bool storeValues/*=false*/) {
-
-    if (!WITHIN(temp_controller, 0, HOTENDS)
-      #if HAS_TEMP_BED
-        && temp_controller != -1
-      #elif HAS_TEMP_CHAMBER
-        && temp_controller != -2
-      #elif HAS_TEMP_COOLER
-        && temp_controller != -3 
-      #endif
-    ) {
-      SERIAL_LM(ER, MSG_PID_BAD_TEMP_CONTROLLER_NUM);
-      return;
-    }
+void Temperature::PID_autotune(const int8_t temp_controller, const float temp, int ncycles, const bool storeValues/*=false*/) {
 
     float currentTemp = 0.0;
     int cycles = 0;
@@ -396,26 +378,19 @@ void Temperature::PID_autotune(int8_t temp_controller, const float temp, int ncy
 
     SERIAL_EM(MSG_PID_AUTOTUNE_START);
 
-    if (temp_controller >= 0) {
+    if (WITHIN(temp_controller, 0 , HOTENDS - 1))
       SERIAL_MV("Hotend: ", temp_controller);
-    }
     #if HAS_TEMP_BED
-      else if (temp_controller == -1) {
-        temp_controller = BED_INDEX;
+      else if (temp_controller == BED_INDEX)
         SERIAL_MSG("BED");
-      }
     #endif
     #if HAS_TEMP_CHAMBER
-      else if(temp_controller == -2) {
-        temp_controller = CHAMBER_INDEX;
+      else if(temp_controller == CHAMBER_INDEX)
         SERIAL_MSG("CHAMBER");
-      }
     #endif
     #if HAS_TEMP_COOLER
-      else if(temp_controller == -3) {
-        temp_controller = COOLER_INDEX;
+      else if(temp_controller == COOLER_INDEX)
         SERIAL_MSG("COOLER");
-      }
     #endif
     SERIAL_MV(" Temp: ", temp);
     SERIAL_MV(" Cycles: ", ncycles);
@@ -687,7 +662,7 @@ void Temperature::print_heaterstates() {
   #if HAS_TEMP_HOTEND
     print_heater_state(heaters[TRG_EXTRUDER_IDX].current_temperature, heaters[TRG_EXTRUDER_IDX].target_temperature,
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        heaters[TRG_EXTRUDER_IDX].current_temperature_raw,
+        heaters[TRG_EXTRUDER_IDX].sensor.raw,
       #endif
       -1
     );
@@ -696,7 +671,7 @@ void Temperature::print_heaterstates() {
   #if HAS_TEMP_BED
     print_heater_state(heaters[BED_INDEX].current_temperature, heaters[BED_INDEX].target_temperature,
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        heaters[BED_INDEX].current_temperature_raw,
+        heaters[BED_INDEX].sensor.raw,
       #endif
       BED_INDEX
     );
@@ -705,7 +680,7 @@ void Temperature::print_heaterstates() {
   #if HAS_TEMP_CHAMBER
     print_heater_state(heaters[CHAMBER_INDEX].current_temperature, heaters[CHAMBER_INDEX].target_temperature,
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        heaters[CHAMBER_INDEX].current_temperature_raw,
+        heaters[CHAMBER_INDEX].sensor.raw,
       #endif
       CHAMBER_INDEX
     );
@@ -714,7 +689,7 @@ void Temperature::print_heaterstates() {
   #if HAS_TEMP_COOLER
     print_heater_state(heaters[COOLER_INDEX].current_temperature, heaters[COOLER_INDEX].target_temperature,
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        heaters[COOLER_INDEX].current_temperature_raw,
+        heaters[COOLER_INDEX].sensor.raw,
       #endif
       COOLER_INDEX
     );
@@ -723,7 +698,7 @@ void Temperature::print_heaterstates() {
   #if HOTENDS > 1
     LOOP_HOTEND() print_heater_state(heaters[h].current_temperature, heaters[h].target_temperature,
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
-        heaters[h].current_temperature_raw,
+        heaters[h].sensor.raw,
       #endif
       h
     );
@@ -771,7 +746,7 @@ void Temperature::print_heaterstates() {
  */
 void Temperature::updateTemperaturesFromRawValues() {
 
-  LOOP_HEATER() heaters[h].current_temperature = analog2temp(h);
+  LOOP_HEATER() heaters[h].current_temperature = heaters[h].sensor.GetTemperature(h);
 
   #if ENABLED(FILAMENT_SENSOR)
     filament_width_meas = analog2widthFil();
@@ -806,112 +781,6 @@ void Temperature::updateTemperaturesFromRawValues() {
     watchdog_reset();
   #endif
 
-}
-
-float Temperature::analog2temp(const uint8_t h) {
-
-  #define PGM_RD_W(x)   (short)pgm_read_word(&x)
-
-  int16_t type  = heaters[h].sensor_type;
-  int16_t raw   = heaters[h].current_temperature_raw;
-
-  #if ENABLED(SUPPORT_MAX31855)
-    if (type == -3)
-      return read_max31855(heaters[h].sensor_pin);
-  #endif
-  #if ENABLED(SUPPORT_MAX6675)
-    if (type == -2)
-      return read_max6675(heaters[h].sensor_pin, h);
-  #endif
-  #if HEATER_USES_AD595
-    if (type == -1)
-      return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / 1024.0)) * heaters[h].ad595_gain) + heaters[h].ad595_offset;
-  #endif
-  if (type > 0) {
-
-    float celsius = 0;
-    uint8_t i;
-
-    #if HOTENDS > 0 
-      if (h < HOTENDS && heater_ttbl_map[h] != NULL) {
-        short(*tt)[][2] = (short(*)[][2])(heater_ttbl_map[h]);
-
-        for (i = 1; i < heater_ttbllen_map[h]; i++) {
-          if (PGM_RD_W((*tt)[i][0]) > raw) {
-            celsius = PGM_RD_W((*tt)[i - 1][1]) +
-                      (raw - PGM_RD_W((*tt)[i - 1][0])) *
-                      (float)(PGM_RD_W((*tt)[i][1]) - PGM_RD_W((*tt)[i - 1][1])) /
-                      (float)(PGM_RD_W((*tt)[i][0]) - PGM_RD_W((*tt)[i - 1][0]));
-            break;
-          }
-        }
-
-        // Overflow: Set to last value in the table
-        if (i == heater_ttbllen_map[h]) celsius = PGM_RD_W((*tt)[i - 1][1]);
-
-        return celsius;
-      }
-    #endif
-
-    #if HAS_TEMP_BED
-      if (h == BED_INDEX) {
-        for (i = 1; i < BEDTEMPTABLE_LEN; i++) {
-          if (PGM_RD_W(BEDTEMPTABLE[i][0]) > raw) {
-            celsius = PGM_RD_W(BEDTEMPTABLE[i - 1][1]) +
-                      (raw - PGM_RD_W(BEDTEMPTABLE[i - 1][0])) *
-                      (float)(PGM_RD_W(BEDTEMPTABLE[i][1]) - PGM_RD_W(BEDTEMPTABLE[i - 1][1])) /
-                      (float)(PGM_RD_W(BEDTEMPTABLE[i][0]) - PGM_RD_W(BEDTEMPTABLE[i - 1][0]));
-            break;
-          }
-        }
-
-        // Overflow: Set to last value in the table
-        if (i == BEDTEMPTABLE_LEN) celsius = PGM_RD_W(BEDTEMPTABLE[i - 1][1]);
-
-        return celsius;
-      }
-    #endif
-
-    #if HAS_TEMP_CHAMBER
-      if (h == CHAMBER_INDEX) {
-        for (i = 1; i < CHAMBERTEMPTABLE_LEN; i++) {
-          if (PGM_RD_W(CHAMBERTEMPTABLE[i][0]) > raw) {
-            celsius = PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1]) +
-                      (raw - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][0])) *
-                      (float)(PGM_RD_W(CHAMBERTEMPTABLE[i][1]) - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1])) /
-                      (float)(PGM_RD_W(CHAMBERTEMPTABLE[i][0]) - PGM_RD_W(CHAMBERTEMPTABLE[i - 1][0]));
-            break;
-          }
-        }
-
-        // Overflow: Set to last value in the table
-        if (i == CHAMBERTEMPTABLE_LEN) celsius = PGM_RD_W(CHAMBERTEMPTABLE[i - 1][1]);
-
-        return celsius;
-      }
-    #endif
-
-    #if HAS_TEMP_COOLER
-      if (h == COOLER_INDEX) {
-        for (i = 1; i < COOLERTEMPTABLE_LEN; i++) {
-          if (PGM_RD_W(COOLERTEMPTABLE[i][0]) > raw) {
-            celsius = PGM_RD_W(COOLERTEMPTABLE[i - 1][1]) +
-                      (raw - PGM_RD_W(COOLERTEMPTABLE[i - 1][0])) *
-                      (float)(PGM_RD_W(COOLERTEMPTABLE[i][1]) - PGM_RD_W(COOLERTEMPTABLE[i - 1][1])) /
-                      (float)(PGM_RD_W(COOLERTEMPTABLE[i][0]) - PGM_RD_W(COOLERTEMPTABLE[i - 1][0]));
-            break;
-          }
-        }
-
-        // Overflow: Set to last value in the table
-        if (i == COOLERTEMPTABLE_LEN) celsius = PGM_RD_W(COOLERTEMPTABLE[i - 1][1]);
-
-        return celsius;
-      }
-    #endif
-  }
-
-  return 25;
 }
 
 #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
@@ -989,99 +858,6 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
   return pid_output;
 }
-
-#if ENABLED(SUPPORT_MAX6675)
-
-  #define MAX6675_ERROR_MASK 4
-  #define MAX6675_DISCARD_BITS 3
-
-  int16_t Temperature::read_max6675(const Pin cs_pin, const int8_t h) {
-
-    static millis_t last_max6675_read[HOTENDS]  = ARRAY_BY_HOTENDS(0);
-    static int16_t  max6675_temp[HOTENDS]       = ARRAY_BY_HOTENDS(2000);
-
-    if (HAL::timeInMilliseconds() - last_max6675_read[h] > 230) {
-
-      HAL::spiBegin();
-      HAL::spiInit(2);
-
-      HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
-
-      // ensure 100ns delay - a bit extra is fine
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        HAL::delayMicroseconds(1);
-      #else
-        asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-        asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-      #endif
-
-      max6675_temp[h] = HAL::spiReceive(0);
-      max6675_temp[h] <<= 8;
-      max6675_temp[h] |= HAL::spiReceive(0);
-
-      HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
-      last_max6675_read[h] = millis();
-    }
-
-    if (max6675_temp[h] & MAX6675_ERROR_MASK) {
-      SERIAL_LM(ER, "MAX6675 Temp measurement error!");
-      max6675_temp[h] = 2000; // thermocouple open
-    }
-    else {
-      max6675_temp[h] >> MAX6675_DISCARD_BITS;
-    }
-
-    return max6675_temp[h];
-  }
-
-#endif //HEATER_0_USES_MAX6675
-
-#if ENABLED(SUPPORT_MAX31855)
-
-  #define MAX31855_DISCARD_BITS 18
-
-  int16_t Temperature::read_max31855(const Pin cs_pin) {
-
-    uint32_t data = 0;
-    int16_t temperature;
-
-    HAL::spiBegin();
-    HAL::spiInit(2);
-
-    HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
-
-    // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      HAL::delayMicroseconds(1);
-    #else
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-    #endif
-
-    for (uint16_t byte = 0; byte < 4; byte++) {
-      data <<= 8;
-      data |= HAL::spiReceive();
-    }
-
-    HAL::digitalWrite(cs_pin, 1); // disable TT_MAX31855
-
-    // Process temp
-    if (data & 0x00010000)
-      return 20000; // Some form of error.
-    else {
-      data = data >> MAX31855_DISCARD_BITS;
-      temperature = data & 0x00001FFF;
-
-      if (data & 0x00002000) {
-        data = ~data;
-        temperature = -1 * ((data & 0x00001FFF) + 1);
-      }
-    }
-
-    return temperature;
-  }
-
-#endif
 
 #if HAS_AUTO_FAN
 

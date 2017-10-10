@@ -40,6 +40,7 @@
 
   #if ENABLED(SAV_3DGLCD)
 
+    //#define U8GLIB_SSD1306
     #define U8GLIB_SH1106
 
   #elif ENABLED(RADDS_DISPLAY)
@@ -56,11 +57,9 @@
     #define LCD_CONTRAST_MIN 60
     #define LCD_CONTRAST_MAX 140
 
-  #elif ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+  #elif ENABLED(MAKRPANEL)
 
-    #define DOGLCD
-    #define ULTIPANEL
-    #define DEFAULT_LCD_CONTRAST 17
+    #define U8GLIB_ST7565_64128N
 
   #elif ENABLED(ANET_KEYPAD_LCD)
 
@@ -92,8 +91,12 @@
       #define LCD_CONTRAST_MIN  75
       #define LCD_CONTRAST_MAX 115
       #define DEFAULT_LCD_CONTRAST 95
+      #define U8GLIB_ST7565_64128N
     #elif ENABLED(VIKI2)
-      #define DEFAULT_LCD_CONTRAST 40
+      #define LCD_CONTRAST_MIN 0
+      #define LCD_CONTRAST_MAX 255
+      #define DEFAULT_LCD_CONTRAST 140
+      #define U8GLIB_ST7565_64128N
     #elif ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
       #define LCD_CONTRAST_MIN  90
       #define LCD_CONTRAST_MAX 130
@@ -129,10 +132,36 @@
     #define LCD_CONTRAST_MIN 10
     #define LCD_CONTRAST_MAX 255
     #define DEFAULT_LCD_CONTRAST 100
-    #define ULTRA_LCD  // general LCD support, also 16x2
-    #define DOGLCD // Support for I2C LCD 128x64
     #define ULTIPANEL
 
+  #elif ENABLED(CR10_STOCKDISPLAY)
+
+    #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
+    #ifndef ST7920_DELAY_1
+      #define ST7920_DELAY_1 DELAY_2_NOP
+    #endif
+    #ifndef ST7920_DELAY_2
+      #define ST7920_DELAY_2 DELAY_2_NOP
+    #endif
+    #ifndef ST7920_DELAY_3
+      #define ST7920_DELAY_3 DELAY_2_NOP
+    #endif
+
+  #elif ENABLED(MKS_12864OLED)
+
+    #define REPRAP_DISCOUNT_SMART_CONTROLLER
+    #define U8GLIB_SH1106
+
+  #elif ENABLED(MKS_MINI_12864)
+
+    #define MINIPANEL
+
+  #endif
+
+  #if ENABLED(MAKRPANEL) || ENABLED(MINIPANEL)
+    #define DOGLCD
+    #define ULTIPANEL
+    #define DEFAULT_LCD_CONTRAST 17
   #endif
 
   // Generic support for SSD1306 / SH1106 OLED based LCDs.
@@ -142,7 +171,15 @@
   #endif
 
   #if ENABLED(PANEL_ONE) || ENABLED(U8GLIB_SH1106)
+
     #define ULTIMAKERCONTROLLER
+
+  #elif ENABLED(MAKEBOARD_MINI_2_LINE_DISPLAY_1602)
+
+    #define REPRAP_DISCOUNT_SMART_CONTROLLER
+    #define LCD_WIDTH 16
+    #define LCD_HEIGHT 2
+
   #endif
 
   #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
@@ -177,6 +214,7 @@
     #define LCD_I2C_TYPE_PCF8575
     #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
     #define ULTIPANEL
+
   #elif ENABLED(LCD_I2C_PANELOLU2)
 
     // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
@@ -235,6 +273,9 @@
   #ifndef ENCODER_STEPS_PER_MENU_ITEM
     #define ENCODER_STEPS_PER_MENU_ITEM STD_ENCODER_STEPS_PER_MENU_ITEM
   #endif
+  #ifndef ENCODER_FEEDRATE_DEADZONE
+    #define ENCODER_FEEDRATE_DEADZONE 6
+  #endif
 
   // Shift register panels
   // ---------------------
@@ -264,14 +305,12 @@
     #if DISABLED(LCD_HEIGHT)
       #define LCD_HEIGHT 4
     #endif
-  #else //no panel but just LCD
-    #if ENABLED(ULTRA_LCD)
-      #if DISABLED(LCD_WIDTH)
-        #define LCD_WIDTH 16
-      #endif
-      #if DISABLED(LCD_HEIGHT)
-        #define LCD_HEIGHT 2
-      #endif
+  #elif ENABLED(ULTRA_LCD)  // no panel but just LCD
+    #ifndef LCD_WIDTH
+      #define LCD_WIDTH 16
+    #endif
+    #ifndef LCD_HEIGHT
+      #define LCD_HEIGHT 2
     #endif
   #endif
 
@@ -334,8 +373,6 @@
         #define DEFAULT_LCD_CONTRAST 32
       #endif
     #endif
-  #else
-    #define HAS_LCD_CONTRAST false
   #endif
 
   // Boot screens
@@ -347,37 +384,6 @@
 
   #define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
   #define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
-
-  /**
-   * The BLTouch Probe emulates a servo probe
-   */
-  #if ENABLED(BLTOUCH)
-    #if DISABLED(ENABLE_SERVOS)
-      #define ENABLE_SERVOS
-    #endif
-    #if Z_ENDSTOP_SERVO_NR < 0
-      #undef Z_ENDSTOP_SERVO_NR
-      #define Z_ENDSTOP_SERVO_NR 0
-    #endif
-    #if NUM_SERVOS < 1
-      #undef NUM_SERVOS
-      #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
-    #endif
-    #undef DEACTIVATE_SERVOS_AFTER_MOVE
-    #undef SERVO_DEACTIVATION_DELAY
-    #define SERVO_DEACTIVATION_DELAY 50
-    #if DISABLED(BLTOUCH_DELAY)
-      #define BLTOUCH_DELAY 375
-    #endif
-    #undef Z_ENDSTOP_SERVO_ANGLES
-    #define Z_ENDSTOP_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
-
-    #define BLTOUCH_DEPLOY    10
-    #define BLTOUCH_STOW      90
-    #define BLTOUCH_SELFTEST 120
-    #define BLTOUCH_RESET    160
-    #define _TEST_BLTOUCH(P) (READ(P##_PIN) != P##_ENDSTOP_INVERTING)
-  #endif
 
   /**
    * Extruders have some combination of stepper motors and hotends
@@ -469,8 +475,40 @@
   #define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
   #define HAS_RESUME_CONTINUE   (HAS_LCD || ENABLED(EMERGENCY_PARSER))
 
-  // RGB Leds
-  #define HAS_NEOPIXEL          (ENABLED(NEOPIXEL_RGB_LED) || ENABLED(NEOPIXEL_RGBW_LED))
-  #define HAS_COLOR_LEDS        (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_RGB_LED) || ENABLED(NEOPIXEL_RGBW_LED))
+  /**
+   * The BLTouch Probe emulates a servo probe
+   */
+  #if ENABLED(BLTOUCH)
+    #if DISABLED(ENABLE_SERVOS)
+      #define ENABLE_SERVOS
+    #endif
+    #if Z_ENDSTOP_SERVO_NR < 0
+      #undef Z_ENDSTOP_SERVO_NR
+      #define Z_ENDSTOP_SERVO_NR 0
+    #endif
+    #if NUM_SERVOS < 1
+      #undef NUM_SERVOS
+      #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
+    #endif
+    #undef DEACTIVATE_SERVOS_AFTER_MOVE
+    #undef SERVO_DEACTIVATION_DELAY
+    #define SERVO_DEACTIVATION_DELAY 50
+    #if DISABLED(BLTOUCH_DELAY)
+      #define BLTOUCH_DELAY 375
+    #endif
+    #undef Z_ENDSTOP_SERVO_ANGLES
+    #define Z_ENDSTOP_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
+
+    #define BLTOUCH_DEPLOY    10
+    #define BLTOUCH_STOW      90
+    #define BLTOUCH_SELFTEST 120
+    #define BLTOUCH_RESET    160
+    #define _TEST_BLTOUCH(P) (READ(P##_PIN) != P##_ENDSTOP_INVERTING)
+  #endif
+
+  /**
+   * RGB Leds
+   */
+  #define HAS_COLOR_LEDS  (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_RGB_LED) || ENABLED(NEOPIXEL_LED))
 
 #endif /* _CONDITIONALS_PRE_H_ */

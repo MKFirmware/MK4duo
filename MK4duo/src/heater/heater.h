@@ -44,6 +44,10 @@ typedef enum {
   IS_COOLER   = 3
 } Heater_type;
 
+#include "sensor/sensor.h"
+
+class TemperatureSensor;
+
 #if HEATER_COUNT > 0
 
   class Heater {
@@ -51,15 +55,12 @@ typedef enum {
     public: /** Public Parameters */
 
       Heater_type type;
-      Pin         output_pin,
-                  sensor_pin;
-      int16_t     sensor_type;
+      Pin         output_pin;
       uint8_t     soft_pwm,
                   pwm_pos,
                   pid_min,
                   pid_max;
-      int16_t     current_temperature_raw,
-                  target_temperature,
+      int16_t     target_temperature,
                   mintemp,
                   maxtemp;
       float       current_temperature,
@@ -71,15 +72,14 @@ typedef enum {
                   pwm_hardware,
                   hardwareInverted;
 
-      #if HEATER_USES_AD595
-        float     ad595_offset,
-                  ad595_gain;
-      #endif
-
       #if WATCH_THE_HEATER
         uint16_t  watch_target_temp;
         millis_t  watch_next_ms;
       #endif
+
+      TemperatureSensor sensor;
+
+    private: /** Private Parameters */
 
     public: /** Public Function */
 
@@ -90,13 +90,13 @@ typedef enum {
       #endif
 
       void setTarget(int16_t celsius);
+      void print_PID(const uint8_t h);
+      void sensor_print_parameters(const uint8_t h);
 
-      bool isON()         { return this->sensor_type != 0; }
+      bool isON()         { return (this->sensor.type != 0 && this->target_temperature > 0); }
       bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
       bool isHeating()    { return this->target_temperature > this->current_temperature; }
       bool isCooling()    { return this->target_temperature < this->current_temperature; }
-
-    private: /** Private Parameters */
 
     private: /** Private Function */
 
