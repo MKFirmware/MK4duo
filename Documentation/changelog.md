@@ -1,5 +1,5 @@
 ### Version 4.3.29 dev
-* New sistem termisotor calc
+* New calculation system for thermistors
 * Add command M305 - Set thermistor and ADC parameters
 * Fix and clear code
 
