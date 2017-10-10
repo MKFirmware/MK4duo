@@ -595,6 +595,12 @@ void Commands::process_next_command() {
             end = middle - 1;
         }
       }
+
+      // With M105 "ok" already sended
+      if (code_num == 105) {
+        KEEPALIVE_STATE(NOT_BUSY);
+        return;
+      }
     }
     break;
 
