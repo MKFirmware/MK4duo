@@ -52,7 +52,7 @@ class Commands {
 
     static bool send_ok[BUFSIZE];
 
-    static uint8_t  commands_in_queue,
+    static uint8_t  commands_in_queue,  // Count of commands in the queue
                     cmd_queue_index_r,  // Ring buffer read position
                     cmd_queue_index_w;  // Ring buffer write position
 
@@ -62,11 +62,10 @@ class Commands {
 
   public: /** Public Function */
 
-    static void loop();
-
     static void flush_and_request_resend();
     static void ok_to_send();
     static void get_available_commands();
+    static void advance_command_queue();
     static void clear_command_queue();
 
     static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);

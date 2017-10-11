@@ -64,7 +64,7 @@ millis_t Commands::previous_cmd_ms = 0;
  * the main loop. The process_next_command function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::commands_in_queue       = 0,
+uint8_t Commands::commands_in_queue       = 0,  // Count of commands in the queue
         Commands::cmd_queue_index_r       = 0,  // Ring buffer read position
         Commands::cmd_queue_index_w       = 0;  // Ring buffer write position
 
@@ -228,66 +228,6 @@ void Commands::get_serial_commands() {
   } // queue has space, serial has data
 }
 
-/**
- *  - Save or log commands to SD
- *  - Process available commands (if not saving)
- *  - Call idle
- */
-void Commands::loop() {
-
-  if (commands_in_queue < BUFSIZE) get_available_commands();
-
-  #if HAS_SDSUPPORT
-    card.checkautostart(false);
-  #endif
-
-  if (commands_in_queue) {
-
-    #if HAS_SDSUPPORT
-
-      if (card.saving) {
-        char* command = command_queue[cmd_queue_index_r];
-        if (strstr_P(command, PSTR("M29"))) {
-          // M29 closes the file
-          card.finishWrite();
-
-          #if ENABLED(SERIAL_STATS_DROPPED_RX)
-            SERIAL_EMV("Dropped bytes: ", MKSERIAL.dropped());
-          #endif
-
-          #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
-            SERIAL_EMV("Max RX Queue Size: ", MKSERIAL.rxMaxEnqueued());
-          #endif
-
-          ok_to_send();
-        }
-        else {
-          // Write the string from the read buffer to SD
-          card.write_command(command);
-          ok_to_send();
-        }
-      }
-      else
-        process_next_command();
-
-    #else
-
-      process_next_command();
-
-    #endif // SDSUPPORT
-
-    // The queue may be reset by a command handler or by code invoked by idle() within a handler
-    if (commands_in_queue) {
-      --commands_in_queue;
-      if (++cmd_queue_index_r >= BUFSIZE) cmd_queue_index_r = 0;
-    }
-  }
-
-  endstops.report_state();
-  printer.idle();
-
-}
-
 #if HAS_SDSUPPORT
 
   /**
@@ -422,6 +362,8 @@ void Commands::ok_to_send() {
  */
 void Commands::get_available_commands() {
 
+  if (commands_in_queue >= BUFSIZE) return;
+
   // if any immediate commands remain, don't get other commands yet
   if (drain_injected_commands_P()) return;
 
@@ -430,7 +372,53 @@ void Commands::get_available_commands() {
   #if HAS_SDSUPPORT
     get_sdcard_commands();
   #endif
+}
 
+/**
+ * Get the next command in the queue, optionally log it to SD, then dispatch it
+ */
+void Commands::advance_command_queue() {
+
+  if (!commands_in_queue) return;
+
+  #if HAS_SDSUPPORT
+
+    if (card.saving) {
+      char* command = command_queue[cmd_queue_index_r];
+      if (strstr_P(command, PSTR("M29"))) {
+        // M29 closes the file
+        card.finishWrite();
+
+        #if ENABLED(SERIAL_STATS_DROPPED_RX)
+          SERIAL_EMV("Dropped bytes: ", MKSERIAL.dropped());
+        #endif
+
+        #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+          SERIAL_EMV("Max RX Queue Size: ", MKSERIAL.rxMaxEnqueued());
+        #endif
+
+        ok_to_send();
+      }
+      else {
+        // Write the string from the read buffer to SD
+        card.write_command(command);
+        ok_to_send();
+      }
+    }
+    else
+      process_next_command();
+
+  #else // !HAS_SDSUPPORT
+
+    process_next_command();
+
+  #endif // !HAS_SDSUPPORT
+
+  // The queue may be reset by a command handler or by code invoked by idle() within a handler
+  if (commands_in_queue) {
+    --commands_in_queue;
+    if (++cmd_queue_index_r >= BUFSIZE) cmd_queue_index_r = 0;
+  }
 }
 
 /**

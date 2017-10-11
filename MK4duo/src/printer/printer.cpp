@@ -124,7 +124,7 @@ PrinterMode Printer::mode =
 
 /**
  * MK4duo entry-point: Set up before the program loop
- *  - Set up Alligator Board
+ *  - Set up Hardware Board
  *  - Set up the kill pin, filament runout, power hold
  *  - Start the serial port
  *  - Print startup messages and diagnostics
@@ -147,7 +147,7 @@ void Printer::setup() {
 
   HAL::hwSetup();
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if HAS_FIL_RUNOUT
     setup_filrunoutpin();
   #endif
 
@@ -351,6 +351,30 @@ void Printer::setup() {
   #if FAN_COUNT > 0
     LOOP_FAN() fans[f].Speed = 0;
   #endif
+}
+
+/**
+ * The main MK4duo program loop
+ *
+ *  - Save or log commands to SD
+ *  - Process available commands (if not saving)
+ *  - Call heater manager
+ *  - Call inactivity manager
+ *  - Call endstop manager
+ *  - Call LCD update
+ */
+void Printer::loop() {
+
+  commands.get_available_commands();
+
+  #if HAS_SDSUPPORT
+    card.checkautostart(false);
+  #endif
+
+  commands.advance_command_queue();
+
+  endstops.report_state();
+  idle();
 }
 
 void Printer::safe_delay(millis_t ms) {
