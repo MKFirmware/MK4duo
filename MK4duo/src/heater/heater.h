@@ -90,8 +90,8 @@ class TemperatureSensor;
       #endif
 
       void setTarget(int16_t celsius);
-      void print_PID(const uint8_t h);
-      void sensor_print_parameters(const uint8_t h);
+      void print_PID(const uint8_t h=0);
+      void sensor_print_parameters(const uint8_t h=0);
 
       bool isON()         { return (this->sensor.type != 0 && this->target_temperature > 0); }
       bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
