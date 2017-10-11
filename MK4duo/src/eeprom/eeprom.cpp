@@ -1656,21 +1656,10 @@ void EEPROM::Factory_Settings() {
       CONFIG_MSG_START("PID settings:");
       #if (PIDTEMP)
         #if HOTENDS == 1
-          SERIAL_SM(CFG, "  M301 H0");
-          SERIAL_MV(" P", heaters[0].Kp);
-          SERIAL_MV(" I", heaters[0].Ki);
-          SERIAL_MV(" D", heaters[0].Kd);
-          #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_MV(" C", heaters[0].Kc);
-          #endif
-          SERIAL_EOL();
-          #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
-          #endif
+          heaters[0].print_PID();
         #elif HOTENDS > 1
-          for (int8_t h = 0; h < HOTENDS; h++) {
-            SERIAL_SMV(CFG, "  M301 H", h);
-            heaters[h].print_PID();
+          for (uint8_t h = 0; h < HOTENDS; h++) {
+            heaters[h].print_PID(h);
           }
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
@@ -1678,15 +1667,12 @@ void EEPROM::Factory_Settings() {
         #endif
       #endif
       #if (PIDTEMPBED)
-        SERIAL_SM(CFG, "  M301 H-1");
         heaters[BED_INDEX].print_PID();
       #endif
       #if (PIDTEMPCHAMBER)
-        SERIAL_SM(CFG, "  M301 H-2");
         heaters[CHAMBER_INDEX].print_PID();
       #endif
       #if (PIDTEMPCOOLER)
-        SERIAL_SM(CFG, "  M301 H-3");
         heaters[COOLER_INDEX].print_PID();
       #endif
     #endif

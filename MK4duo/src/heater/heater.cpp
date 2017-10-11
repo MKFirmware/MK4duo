@@ -179,18 +179,18 @@
     #endif
   }
 
-  void Heater::print_PID(const uint8_t h) {
+  void Heater::print_PID(const uint8_t h/*=0*/) {
 
     if (this->type == IS_HOTEND)
-      SERIAL_SMV(CFG, " H", (int)h);
+      SERIAL_SMV(CFG, "  M301 H", (int)h);
     #if (PIDTEMPBED)
-      else if (this->type == IS_BED) SERIAL_SM(CFG, " BED");
+      else if (this->type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
     #endif
     #if (PIDTEMPCHAMBER)
-      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, " CHAMBER");
+      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
     #endif
     #if (PIDTEMPCOOLER)
-      else if (this->type == IS_COOLER) SERIAL_SM(CFG, " COOLER");
+      else if (this->type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
     #endif
     else return;
 
@@ -203,18 +203,18 @@
     SERIAL_EOL();
   }
 
-  void Heater::sensor_print_parameters(const uint8_t h) {
+  void Heater::sensor_print_parameters(const uint8_t h/*=0*/) {
 
     if (this->type == IS_HOTEND)
-      SERIAL_SMV(CFG, " H", (int)h);
+      SERIAL_SMV(CFG, "  M305 H", (int)h);
     #if HAS_HEATER_BED
-      else if (this->type == IS_BED) SERIAL_SM(CFG, " BED");
+      else if (this->type == IS_BED) SERIAL_SM(CFG, "  M305 H-1");
     #endif
     #if HAS_HEATER_CHAMBER
-      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, " CHAMBER");
+      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
     #endif
     #if HAS_HEATER_COOLER
-      else if (this->type == IS_COOLER) SERIAL_SM(CFG, " COOLER");
+      else if (this->type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
     #endif
     else return;
 
