@@ -148,7 +148,8 @@ class Printer {
 
   public: /** Public Function */
 
-    static void setup();
+    static void setup();  // Main setup
+    static void loop();   // Main loop
 
     static void safe_delay(millis_t ms);
 

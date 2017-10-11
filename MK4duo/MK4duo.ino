@@ -268,5 +268,5 @@ void setup() {
 }
 
 void loop() {
-  commands.loop();
+  printer.loop();
 }
