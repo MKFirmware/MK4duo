@@ -1,6 +1,7 @@
 ### Version 4.3.29 dev
 * New calculation system for thermistors
 * Add command M305 - Set thermistor and ADC parameters
+* Add EMERGENCY_PARSER to Due
 * Fix and clear code
 
 ### Version 4.3.28 dev
