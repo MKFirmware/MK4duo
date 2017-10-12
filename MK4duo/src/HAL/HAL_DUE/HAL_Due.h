@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 #include <stdint.h>
 #include <Arduino.h>
+#include "HardwareSerial_Due.h"
 
 // --------------------------------------------------------------------------
 // Types
@@ -114,25 +115,8 @@ static const Pin  NoPin = -1;
 // SERIAL
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
-#elif SERIAL_PORT == 0
-  #define MKSERIAL Serial
-#elif SERIAL_PORT == 1
-  #define MKSERIAL Serial1
-#elif SERIAL_PORT == 2
-  #define MKSERIAL Serial2
-#elif SERIAL_PORT == 3
-  #define MKSERIAL Serial3
-#endif
-
-#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
-  #undef MKSERIAL
-  #if BLUETOOTH_PORT == 1
-    #define MKSERIAL Serial1
-  #elif BLUETOOTH_PORT == 2
-    #define MKSERIAL Serial2
-  #elif BLUETOOTH_PORT == 3
-    #define MKSERIAL Serial3
-  #endif
+#elif SERIAL_PORT >= 0
+  #define MKSERIAL MKSerial
 #endif
 
 // EEPROM START
@@ -162,8 +146,8 @@ static const Pin  NoPin = -1;
 #define SIN(x)      sinf(x)
 #define LOG(x)      logf(x)
 
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
-#define CRITICAL_SECTION_END    if (primask==0) __enable_irq();
+#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq()
+#define CRITICAL_SECTION_END    if (!primask) __enable_irq()
 
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3

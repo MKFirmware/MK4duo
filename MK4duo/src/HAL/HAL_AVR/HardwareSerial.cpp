@@ -78,6 +78,21 @@
 
   #if ENABLED(EMERGENCY_PARSER)
 
+    enum e_parser_state {
+      state_RESET,
+      state_N,
+      state_M,
+      state_M1,
+      state_M10,
+      state_M108,
+      state_M11,
+      state_M112,
+      state_M4,
+      state_M41,
+      state_M410,
+      state_IGNORE // to '\n'
+    };
+
     // Currently looking for: M108, M112, M410
     // If you alter the parser please don't forget to update the capabilities in Conditionals_post.h
 
