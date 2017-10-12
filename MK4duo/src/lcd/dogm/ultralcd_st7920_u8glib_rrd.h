@@ -106,6 +106,9 @@
   #define ST7920_WRITE_BYTE(a)     { spiSend((uint8_t)((a)&0xF0u)); U8G_DELAY(); spiSend((uint8_t)((a)<<4u)); U8G_DELAY(); }
   #define ST7920_WRITE_BYTES(p,l)  { for (uint8_t i = l + 1; --i;) { spiSend(*p&0xF0); spiSend(*p<<4); p++; } U8G_DELAY(); }
 
+  #define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }
+  #define ST7920_NCS()             { WRITE(ST7920_CS_PIN,0); }
+
 #else
 
   #define ST7920_SND_BIT \
@@ -114,27 +117,26 @@
     WRITE(ST7920_CLK_PIN, HIGH);       ST7920_DELAY_3; \
     val <<= 1
 
-  static void ST7920_SWSPI_SND_8BIT(uint8_t val) {
-    ST7920_SND_BIT; // 1
-    ST7920_SND_BIT; // 2
-    ST7920_SND_BIT; // 3
-    ST7920_SND_BIT; // 4
-    ST7920_SND_BIT; // 5
-    ST7920_SND_BIT; // 6
-    ST7920_SND_BIT; // 7
-    ST7920_SND_BIT; // 8
-  }
+  #define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }
+  #define ST7920_NCS()             { WRITE(ST7920_CS_PIN,0); }
 
-  #define ST7920_SET_CMD()         { ST7920_SWSPI_SND_8BIT(0xF8); U8G_DELAY(); }
-  #define ST7920_SET_DAT()         { ST7920_SWSPI_SND_8BIT(0xFA); U8G_DELAY(); }
-  #define ST7920_WRITE_BYTE(a)     { ST7920_SWSPI_SND_8BIT((uint8_t)((a)&0xF0u)); ST7920_SWSPI_SND_8BIT((uint8_t)((a)<<4u)); U8G_DELAY(); }
-  #define ST7920_WRITE_BYTES(p,l)  { for (uint8_t i = l + 1; --i;) { ST7920_SWSPI_SND_8BIT(*p&0xF0); ST7920_SWSPI_SND_8BIT(*p<<4); p++; } U8G_DELAY(); }
 #endif
 
-#define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }
-#define ST7920_NCS()             { WRITE(ST7920_CS_PIN,0); }
+static void ST7920_SWSPI_SND_8BIT(uint8_t val) {
+  ST7920_SND_BIT; // 1
+  ST7920_SND_BIT; // 2
+  ST7920_SND_BIT; // 3
+  ST7920_SND_BIT; // 4
+  ST7920_SND_BIT; // 5
+  ST7920_SND_BIT; // 6
+  ST7920_SND_BIT; // 7
+  ST7920_SND_BIT; // 8
+}
 
-
+#define ST7920_SET_CMD()         { ST7920_SWSPI_SND_8BIT(0xF8); U8G_DELAY(); }
+#define ST7920_SET_DAT()         { ST7920_SWSPI_SND_8BIT(0xFA); U8G_DELAY(); }
+#define ST7920_WRITE_BYTE(a)     { ST7920_SWSPI_SND_8BIT((uint8_t)((a)&0xF0u)); ST7920_SWSPI_SND_8BIT((uint8_t)((a)<<4u)); U8G_DELAY(); }
+#define ST7920_WRITE_BYTES(p,l)  { for (uint8_t i = l + 1; --i;) { ST7920_SWSPI_SND_8BIT(*p&0xF0); ST7920_SWSPI_SND_8BIT(*p<<4); p++; } U8G_DELAY(); }
 
 uint8_t u8g_dev_rrd_st7920_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg) {
   uint8_t i, y;
