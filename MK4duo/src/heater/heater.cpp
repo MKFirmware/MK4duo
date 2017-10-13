@@ -151,6 +151,18 @@
    * Initialize Heater
    */
   void Heater::init() {
+
+    // Reset valor
+    this->target_temperature    = 0;
+    this->current_temperature   = 25.0;
+    this->soft_pwm              = 0;
+    this->pwm_pos               = 0;
+
+    #if WATCH_THE_HEATER
+      this->watch_target_temp   = 0;
+      this->watch_next_ms       = 0;
+    #endif
+
     if (this->output_pin > -1)
       HAL::pinMode(this->output_pin, OUTPUT);
 

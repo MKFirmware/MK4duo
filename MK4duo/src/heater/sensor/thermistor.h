@@ -136,6 +136,10 @@
   #define HOT0_NAME "AMPLIFIER"
   #define HOT0_R25  0.0
   #define HOT0_BETA 0.0
+#elif TEMP_SENSOR_0 == 998 || TEMP_SENSOR_0 == 999
+  #define HOT0_NAME "DUMMY SENSOR"
+  #define HOT0_R25  0.0
+  #define HOT0_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_1 == -3
@@ -156,6 +160,10 @@
   #define HOT1_BETA 0.0
 #elif TEMP_SENSOR_1 == 20
   #define HOT1_NAME "AMPLIFIER"
+  #define HOT1_R25  0.0
+  #define HOT1_BETA 0.0
+#elif TEMP_SENSOR_1 == 998 || TEMP_SENSOR_1 == 999
+  #define HOT1_NAME "DUMMY SENSOR"
   #define HOT1_R25  0.0
   #define HOT1_BETA 0.0
 #endif
@@ -180,6 +188,10 @@
   #define HOT2_NAME "AMPLIFIER"
   #define HOT2_R25  0.0
   #define HOT2_BETA 0.0
+#elif TEMP_SENSOR_2 == 998 || TEMP_SENSOR_2 == 999
+  #define HOT2_NAME "DUMMY SENSOR"
+  #define HOT2_R25  0.0
+  #define HOT2_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_3 == -3
@@ -200,6 +212,10 @@
   #define HOT3_BETA 0.0
 #elif TEMP_SENSOR_3 == 20
   #define HOT3_NAME "AMPLIFIER"
+  #define HOT3_R25  0.0
+  #define HOT3_BETA 0.0
+#elif TEMP_SENSOR_3 == 998 || TEMP_SENSOR_3 == 999
+  #define HOT3_NAME "DUMMY SENSOR"
   #define HOT3_R25  0.0
   #define HOT3_BETA 0.0
 #endif
@@ -224,6 +240,10 @@
   #define BED_NAME "AMPLIFIER"
   #define BED_R25  0.0
   #define BED_BETA 0.0
+#elif TEMP_SENSOR_BED == 998 || TEMP_SENSOR_BED == 999
+  #define BED_NAME "DUMMY SENSOR"
+  #define BED_R25  0.0
+  #define BED_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_CHAMBER == -3
@@ -246,6 +266,10 @@
   #define CHAMBER_NAME "AMPLIFIER"
   #define CHAMBER_R25  0.0
   #define CHAMBER_BETA 0.0
+#elif TEMP_SENSOR_CHAMBER == 998 || TEMP_SENSOR_CHAMBER == 999
+  #define CHAMBER_NAME "DUMMY SENSOR"
+  #define CHAMBER_R25  0.0
+  #define CHAMBER_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_COOLER == -3
@@ -266,6 +290,10 @@
   #define COOLER_BETA 0.0
 #elif TEMP_SENSOR_COOLER == 20
   #define COOLER_NAME "AMPLIFIER"
+  #define COOLER_R25  0.0
+  #define COOLER_BETA 0.0
+#elif TEMP_SENSOR_COOLER == 998 || TEMP_SENSOR_COOLER == 999
+  #define COOLER_NAME "DUMMY SENSOR"
   #define COOLER_R25  0.0
   #define COOLER_BETA 0.0
 #endif

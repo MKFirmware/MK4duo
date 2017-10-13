@@ -44,21 +44,21 @@
   #define SIZE_OF_LITTLE_RAISE 1
   #define BIG_RAISE_NOT_NEEDED 0
 
-  int    unified_bed_leveling::g29_verbose_level,
-         unified_bed_leveling::g29_phase_value,
-         unified_bed_leveling::g29_repetition_cnt,
-         unified_bed_leveling::g29_storage_slot = 0,
-         unified_bed_leveling::g29_map_type;
-  bool   unified_bed_leveling::g29_c_flag,
-         unified_bed_leveling::g29_x_flag,
-         unified_bed_leveling::g29_y_flag;
-  float  unified_bed_leveling::g29_x_pos,
-         unified_bed_leveling::g29_y_pos,
-         unified_bed_leveling::g29_card_thickness = 0.0,
-         unified_bed_leveling::g29_constant = 0.0;
+  int   unified_bed_leveling::g29_verbose_level,
+        unified_bed_leveling::g29_phase_value,
+        unified_bed_leveling::g29_repetition_cnt,
+        unified_bed_leveling::g29_storage_slot = 0,
+        unified_bed_leveling::g29_map_type;
+  bool  unified_bed_leveling::g29_c_flag,
+        unified_bed_leveling::g29_x_flag,
+        unified_bed_leveling::g29_y_flag;
+  float unified_bed_leveling::g29_x_pos,
+        unified_bed_leveling::g29_y_pos,
+        unified_bed_leveling::g29_card_thickness = 0.0,
+        unified_bed_leveling::g29_constant = 0.0;
 
   #if HAS_BED_PROBE
-    int  unified_bed_leveling::g29_grid_size;
+    int unified_bed_leveling::g29_grid_size;
   #endif
 
   /**
@@ -650,66 +650,7 @@
     if (parser.seen('T'))
       display_map(parser.has_value() ? parser.value_int() : 0);
 
-    /**
-     * This code may not be needed...  Prepare for its removal...
-     *
-     */
-    #if 0
-    if (parser.seen('Z')) {
-      if (parser.has_value())
-        state.z_offset = parser.value_float();   // do the simple case. Just lock in the specified value
-      else {
-        save_ubl_active_state_and_disable();
-        //float measured_z = probe.check_pt(g29_x_pos + probe.offset[X_AXIS], g29_y_pos + probe.offset[Y_AXIS], ProbeDeployAndStow, g29_verbose_level);
-
-        has_control_of_lcd_panel = true;     // Grab the LCD Hardware
-        float measured_z = 1.5;
-        mechanics.do_blocking_move_to_z(measured_z);  // Get close to the bed, but leave some space so we don't damage anything
-                                            // The user is not going to be locking in a new Z-Offset very often so
-                                            // it won't be that painful to spin the Encoder Wheel for 1.5mm
-        lcd_refresh();
-        lcd_z_offset_edit_setup(measured_z);
-
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
-
-        do {
-          measured_z = lcd_z_offset_edit();
-          printer.idle();
-          mechanics.do_blocking_move_to_z(measured_z);
-        } while (!ubl_lcd_clicked());
-
-        has_control_of_lcd_panel = true;   // There is a race condition for the encoder click.
-                                               // It could get detected in lcd_mesh_edit (actually _lcd_mesh_fine_tune)
-                                               // or here. So, until we are done looking for a long encoder press,
-                                               // we need to take control of the panel
-
-        KEEPALIVE_STATE(IN_HANDLER);
-
-        lcd_return_to_status();
-
-        const millis_t nxt = millis() + 1500UL;
-        while (ubl_lcd_clicked()) { // debounce and watch for abort
-          printer.idle();
-          if (ELAPSED(millis(), nxt)) {
-            SERIAL_EM("\nZ-Offset Adjustment Stopped.");
-            mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
-            LCD_MESSAGEPGM(MSG_UBL_Z_OFFSET_STOPPED);
-            restore_ubl_active_state_and_leave();
-            goto LEAVE;
-          }
-        }
-        has_control_of_lcd_panel = false;
-        printer.safe_delay(20); // We don't want any switch noise.
-
-        state.z_offset = measured_z;
-
-        lcd_refresh();
-        restore_ubl_active_state_and_leave();
-      }
-    }
-    #endif
-
-    LEAVE:
+  LEAVE:
 
     #if ENABLED(NEWPANEL)
       lcd_reset_alert_level();
@@ -725,12 +666,14 @@
   void unified_bed_leveling::find_mean_mesh_height() {
     float sum = 0.0;
     int n = 0;
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
         if (!isnan(z_values[x][y])) {
           sum += z_values[x][y];
           n++;
         }
+      }
+    }
 
     const float mean = sum / n;
 
@@ -738,10 +681,12 @@
     // Sum the squares of difference from mean
     //
     float sum_of_diff_squared = 0.0;
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
         if (!isnan(z_values[x][y]))
           sum_of_diff_squared += sq(z_values[x][y] - mean);
+      }
+    }
 
     SERIAL_EMV("# of samples: ", n);
     SERIAL_MV("Mean Mesh Height: ", mean, 6);
@@ -750,18 +695,23 @@
     const float sigma = SQRT(sum_of_diff_squared / (n + 1));
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
 
-    if (g29_c_flag)
-      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+    if (g29_c_flag) {
+      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
           if (!isnan(z_values[x][y]))
             z_values[x][y] -= mean + g29_constant;
+        }
+      }
+    }
   }
 
   void unified_bed_leveling::shift_mesh_height() {
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
         if (!isnan(z_values[x][y]))
           z_values[x][y] += g29_constant;
+      }
+    }
   }
 
   #if HAS_BED_PROBE

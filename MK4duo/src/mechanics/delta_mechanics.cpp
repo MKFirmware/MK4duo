@@ -303,13 +303,18 @@
 
     commands.refresh_cmd_timeout();
 
-    if ( current_position[A_AXIS] == destination[A_AXIS]
-      && current_position[B_AXIS] == destination[B_AXIS]
-      && current_position[C_AXIS] == destination[C_AXIS]
-      && current_position[E_AXIS] == destination[E_AXIS]
-    ) return;
+    #if UBL_DELTA
+      // ubl segmented line will do z-only moves in single segment
+      ubl.prepare_segmented_line_to(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
+    #else
+      if ( current_position[A_AXIS] == destination[A_AXIS]
+        && current_position[B_AXIS] == destination[B_AXIS]
+        && current_position[C_AXIS] == destination[C_AXIS]
+        && current_position[E_AXIS] == destination[E_AXIS]
+      ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+      planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+    #endif
 
     set_current_to_destination();
   }
