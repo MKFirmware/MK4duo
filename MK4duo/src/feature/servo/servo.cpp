@@ -438,9 +438,9 @@
       value = constrain(value, SERVO_MIN(), SERVO_MAX()) - TRIM_DURATION;
       value = usToTicks(value);  // convert to ticks after compensating for interrupt overhead
 
-      CRITICAL_SECTION_START;
-      servo_info[channel].ticks = value;
-      CRITICAL_SECTION_END;
+      CRITICAL_SECTION_START
+        servo_info[channel].ticks = value;
+      CRITICAL_SECTION_END
     }
   }
 

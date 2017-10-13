@@ -1424,53 +1424,52 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
 
   synchronize(); // Bad to set stepper counts in the middle of a move
 
-  CRITICAL_SECTION_START;
+  CRITICAL_SECTION_START
+    #if CORE_IS_XY
+      // corexy positioning
+      machine_position[A_AXIS] = a + (CORE_FACTOR) * b;
+      machine_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
+      machine_position[Z_AXIS] = c;
+    #elif CORE_IS_XZ
+      // corexz planning
+      machine_position[A_AXIS] = a + (CORE_FACTOR) * c;
+      machine_position[Y_AXIS] = b;
+      machine_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+    #elif CORE_IS_YZ
+      // coreyz planning
+      machine_position[X_AXIS] = a;
+      machine_position[B_AXIS] = b + (CORE_FACTOR) * c;
+      machine_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+    #else
+      // default non-h-bot planning
+      machine_position[X_AXIS] = a;
+      machine_position[Y_AXIS] = b;
+      machine_position[Z_AXIS] = c;
+    #endif
 
-  #if CORE_IS_XY
-    // corexy positioning
-    machine_position[A_AXIS] = a + (CORE_FACTOR) * b;
-    machine_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-    machine_position[Z_AXIS] = c;
-  #elif CORE_IS_XZ
-    // corexz planning
-    machine_position[A_AXIS] = a + (CORE_FACTOR) * c;
-    machine_position[Y_AXIS] = b;
-    machine_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
-  #elif CORE_IS_YZ
-    // coreyz planning
-    machine_position[X_AXIS] = a;
-    machine_position[B_AXIS] = b + (CORE_FACTOR) * c;
-    machine_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
-  #else
-    // default non-h-bot planning
-    machine_position[X_AXIS] = a;
-    machine_position[Y_AXIS] = b;
-    machine_position[Z_AXIS] = c;
-  #endif
-
-  machine_position[E_AXIS] = e;
-  CRITICAL_SECTION_END;
+    machine_position[E_AXIS] = e;
+  CRITICAL_SECTION_END
 }
 
 void Stepper::set_position(const AxisEnum &axis, const long &v) {
-  CRITICAL_SECTION_START;
-  machine_position[axis] = v;
-  CRITICAL_SECTION_END;
+  CRITICAL_SECTION_START
+    machine_position[axis] = v;
+  CRITICAL_SECTION_END
 }
 
 void Stepper::set_e_position(const long &e) {
-  CRITICAL_SECTION_START;
-  machine_position[E_AXIS] = e;
-  CRITICAL_SECTION_END;
+  CRITICAL_SECTION_START
+    machine_position[E_AXIS] = e;
+  CRITICAL_SECTION_END
 }
 
 /**
  * Get a stepper's position in steps.
  */
 long Stepper::position(AxisEnum axis) {
-  CRITICAL_SECTION_START;
-  const long machine_pos = machine_position[axis];
-  CRITICAL_SECTION_END;
+  CRITICAL_SECTION_START
+    const long machine_pos = machine_position[axis];
+  CRITICAL_SECTION_END
   return machine_pos;
 }
 
@@ -1557,11 +1556,11 @@ void Stepper::endstop_triggered(AxisEnum axis) {
 }
 
 void Stepper::report_positions() {
-  CRITICAL_SECTION_START;
-  const long  xpos = machine_position[X_AXIS],
-              ypos = machine_position[Y_AXIS],
-              zpos = machine_position[Z_AXIS];
-  CRITICAL_SECTION_END;
+  CRITICAL_SECTION_START
+    const long  xpos = machine_position[X_AXIS],
+                ypos = machine_position[Y_AXIS],
+                zpos = machine_position[Z_AXIS];
+  CRITICAL_SECTION_END
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
     SERIAL_MSG(MSG_COUNT_A);

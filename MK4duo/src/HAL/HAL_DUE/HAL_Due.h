@@ -146,8 +146,8 @@ static const Pin  NoPin = -1;
 #define SIN(x)      sinf(x)
 #define LOG(x)      logf(x)
 
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq()
-#define CRITICAL_SECTION_END    if (!primask) __enable_irq()
+#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+#define CRITICAL_SECTION_END    if (!primask) __enable_irq();
 
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3
