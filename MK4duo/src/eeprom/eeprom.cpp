@@ -38,10 +38,10 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV38"
+#define EEPROM_VERSION "MKV39"
 
 /**
- * MKV438 EEPROM Layout:
+ * MKV39 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -84,7 +84,6 @@
  *
  * AUTO_BED_LEVELING_UBL:
  *  G29 A                 ubl.state.active                      (bool)
- *  G29 Z                 ubl.state.z_offset                    (float)
  *  G29 S                 ubl.state.storage_slot                (int8_t)
  *
  * HAS_BED_PROBE:
@@ -402,7 +401,6 @@ void EEPROM::Postprocess() {
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)
       EEPROM_WRITE(ubl.state.active);
-      EEPROM_WRITE(ubl.state.z_offset);
       EEPROM_WRITE(ubl.state.storage_slot);
     #endif
 
@@ -717,7 +715,6 @@ void EEPROM::Postprocess() {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
         EEPROM_READ(ubl.state.active);
-        EEPROM_READ(ubl.state.z_offset);
         EEPROM_READ(ubl.state.storage_slot);
       #endif
 
@@ -1577,6 +1574,22 @@ void EEPROM::Factory_Settings() {
           SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][py]), 5);
         }
       }
+
+    #elif ENABLED(AUTO_BED_LEVELING_UBL)
+
+      CONFIG_MSG_START("Unified Bed Leveling:");
+      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_is_active() ? 1 : 0);
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        SERIAL_MV(" Z", bedlevel.z_fade_height);
+      #endif
+      SERIAL_EOL();
+
+      ubl.report_state();
+
+      SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.state.storage_slot);
+
+      SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
+      SERIAL_EM(" meshes.");
 
     #elif HAS_ABL
 
