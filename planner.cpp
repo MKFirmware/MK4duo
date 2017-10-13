@@ -149,14 +149,14 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
   // block->accelerate_until = accelerate_steps;
   // block->decelerate_after = accelerate_steps+plateau_steps;
 
-  CRITICAL_SECTION_START
-    if (!TEST(block->flag, BLOCK_BIT_BUSY)) { // Don't update variables if block is busy.
-      block->accelerate_until = accelerate_steps;
-      block->decelerate_after = accelerate_steps + plateau_steps;
-      block->initial_rate = initial_rate;
-      block->final_rate = final_rate;
-    }
-  CRITICAL_SECTION_END
+  CRITICAL_SECTION_START;  // Fill variables used by the stepper in a critical section
+  if (!TEST(block->flag, BLOCK_BIT_BUSY)) { // Don't update variables if block is busy.
+    block->accelerate_until = accelerate_steps;
+    block->decelerate_after = accelerate_steps + plateau_steps;
+    block->initial_rate = initial_rate;
+    block->final_rate = final_rate;
+  }
+  CRITICAL_SECTION_END;
 }
 
 // The kernel called by recalculate() when scanning the plan from last to first entry.
@@ -187,9 +187,9 @@ void Planner::reverse_pass() {
     block_t* block[3] = { NULL, NULL, NULL };
 
     // Make a local copy of block_buffer_tail, because the interrupt can alter it
-    //CRITICAL_SECTION_START
+    //CRITICAL_SECTION_START;
     uint8_t tail = block_buffer_tail;
-    //CRITICAL_SECTION_END
+    //CRITICAL_SECTION_END;
 
     uint8_t b = BLOCK_MOD(block_buffer_head - 3);
     while (b != tail) {
@@ -925,9 +925,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
 
   #if ENABLED(ULTRA_LCD)
-    CRITICAL_SECTION_START
+    CRITICAL_SECTION_START;
       block_buffer_runtime_us += segment_time;
-    CRITICAL_SECTION_END
+    CRITICAL_SECTION_END;
   #endif
 
   block->nominal_speed = block->millimeters * inverse_mm_s; // (mm/sec) Always > 0

@@ -1124,219 +1124,200 @@ void EEPROM::Factory_Settings() {
   // Heaters
   #if HEATER_COUNT > 0
 
-    Heater *h;
+    Heater *heat;
+    TemperatureSensor *sens;
+
+    #if HOTENDS > 0
+      LOOP_HOTEND() {
+        heat = &heaters[h];
+        heat->Kp  = pgm_read_float(&tmp6[h < COUNT(tmp6) ? h : COUNT(tmp6) - 1]);
+        heat->Ki  = pgm_read_float(&tmp7[h < COUNT(tmp7) ? h : COUNT(tmp7) - 1]);
+        heat->Kd  = pgm_read_float(&tmp8[h < COUNT(tmp8) ? h : COUNT(tmp8) - 1]);
+        heat->Kc  = pgm_read_float(&tmp9[h < COUNT(tmp9) ? h : COUNT(tmp9) - 1]);
+      }
+    #endif
 
     #if HAS_HEATER_0
       // HOTEND 0
-      h = &heaters[0];
-      h->type             = IS_HOTEND;
-      h->output_pin       = HEATER_0_PIN;
-      h->mintemp          = HEATER_0_MINTEMP;
-      h->maxtemp          = HEATER_0_MAXTEMP;
-      h->pid_min          = PID_MIN;
-      h->pid_max          = PID_MAX;
-      h->use_pid          = PIDTEMP;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_HEATER_PINS;
-      h->Kp               = pgm_read_float(&tmp6[0]);
-      h->Ki               = pgm_read_float(&tmp7[0]);
-      h->Kd               = pgm_read_float(&tmp8[0]);
-      h->Kc               = pgm_read_float(&tmp9[0]);
+      heat = &heaters[0];
+      sens = &heaters[0].sensor;
+      heat->type              = IS_HOTEND;
+      heat->output_pin        = HEATER_0_PIN;
+      heat->pid_min           = PID_MIN;
+      heat->pid_max           = PID_MAX;
+      heat->mintemp           = HEATER_0_MINTEMP;
+      heat->maxtemp           = HEATER_0_MAXTEMP;
+      heat->use_pid           = PIDTEMP;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
-      h->sensor.pin           = TEMP_0_PIN;
-      h->sensor.type          = TEMP_SENSOR_0;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = HOT0_R25;
-      h->sensor.beta          = HOT0_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_0_PIN;
+      sens->type              = TEMP_SENSOR_0;
+      sens->r25               = HOT0_R25;
+      sens->beta              = HOT0_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_0
 
     #if HAS_HEATER_1
       // HOTEND 1
-      h = &heaters[1];
-      h->type             = IS_HOTEND;
-      h->output_pin       = HEATER_1_PIN;
-      h->mintemp          = HEATER_1_MINTEMP;
-      h->maxtemp          = HEATER_1_MAXTEMP;
-      h->pid_min          = PID_MIN;
-      h->pid_max          = PID_MAX;
-      h->use_pid          = PIDTEMP;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_HEATER_PINS;
-      h->Kp               = pgm_read_float(&tmp6[1]);
-      h->Ki               = pgm_read_float(&tmp7[1]);
-      h->Kd               = pgm_read_float(&tmp8[1]);
-      h->Kc               = pgm_read_float(&tmp9[1]);
+      heat = &heaters[1];
+      sens = &heaters[1].sensor;
+      heat->type              = IS_HOTEND;
+      heat->output_pin        = HEATER_1_PIN;
+      heat->pid_min           = PID_MIN;
+      heat->pid_max           = PID_MAX;
+      heat->mintemp           = HEATER_1_MINTEMP;
+      heat->maxtemp           = HEATER_1_MAXTEMP;
+      heat->use_pid           = PIDTEMP;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
-      h->sensor.pin           = TEMP_1_PIN;
-      h->sensor.type          = TEMP_SENSOR_1;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = HOT1_R25;
-      h->sensor.beta          = HOT1_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_1_PIN;
+      sens->type              = TEMP_SENSOR_1;
+      sens->r25               = HOT1_R25;
+      sens->beta              = HOT1_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_1
 
     #if HAS_HEATER_2
       // HOTEND 2
-      h = &heaters[2];
-      h->type             = IS_HOTEND;
-      h->output_pin       = HEATER_2_PIN;
-      h->mintemp          = HEATER_2_MINTEMP;
-      h->maxtemp          = HEATER_2_MAXTEMP;
-      h->pid_min          = PID_MIN;
-      h->pid_max          = PID_MAX;
-      h->use_pid          = PIDTEMP;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_HEATER_PINS;
-      h->Kp               = pgm_read_float(&tmp6[2]);
-      h->Ki               = pgm_read_float(&tmp7[2]);
-      h->Kd               = pgm_read_float(&tmp8[2]);
-      h->Kc               = pgm_read_float(&tmp9[2]);
+      heat = &heaters[2];
+      sens = &heaters[2].sensor;
+      heat->type              = IS_HOTEND;
+      heat->output_pin        = HEATER_2_PIN;
+      heat->pid_min           = PID_MIN;
+      heat->pid_max           = PID_MAX;
+      heat->use_pid           = PIDTEMP;
+      heat->mintemp           = HEATER_2_MINTEMP;
+      heat->maxtemp           = HEATER_2_MAXTEMP;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
-      h->sensor.pin           = TEMP_2_PIN;
-      h->sensor.type          = TEMP_SENSOR_2;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = HOT2_R25;
-      h->sensor.beta          = HOT2_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_2_PIN;
+      sens->type              = TEMP_SENSOR_2;
+      sens->r25               = HOT2_R25;
+      sens->beta              = HOT2_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_2
 
     #if HAS_HEATER_3
       // HOTEND 3
-      h = &heaters[3];
-      h->type             = IS_HOTEND;
-      h->output_pin       = HEATER_3_PIN;
-      h->mintemp          = HEATER_3_MINTEMP;
-      h->maxtemp          = HEATER_3_MAXTEMP;
-      h->pid_min          = PID_MIN;
-      h->pid_max          = PID_MAX;
-      h->use_pid          = PIDTEMP;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_HEATER_PINS;
-      h->Kp               = pgm_read_float(&tmp6[3]);
-      h->Ki               = pgm_read_float(&tmp7[3]);
-      h->Kd               = pgm_read_float(&tmp8[3]);
-      h->Kc               = pgm_read_float(&tmp9[3]);
+      heat = &heaters[3];
+      sens = &heaters[3].sensor;
+      heat->type              = IS_HOTEND;
+      heat->output_pin        = HEATER_3_PIN;
+      heat->pid_min           = PID_MIN;
+      heat->pid_max           = PID_MAX;
+      heat->mintemp           = HEATER_3_MINTEMP;
+      heat->maxtemp           = HEATER_3_MAXTEMP;
+      heat->use_pid           = PIDTEMP;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
-      h->sensor.pin           = TEMP_3_PIN;
-      h->sensor.type          = TEMP_SENSOR_3;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = HOT3_R25;
-      h->sensor.beta          = HOT3_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_3_PIN;
+      sens->type              = TEMP_SENSOR_3;
+      sens->r25               = HOT3_R25;
+      sens->beta              = HOT3_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_3
 
     #if HAS_HEATER_BED
       // BED
-      h = &heaters[BED_INDEX];
-      h->type             = IS_BED;
-      h->output_pin       = HEATER_BED_PIN;
-      h->mintemp          = BED_MINTEMP;
-      h->maxtemp          = BED_MAXTEMP;
-      h->pid_min          = MIN_BED_POWER;
-      h->pid_max          = MAX_BED_POWER;
-      h->use_pid          = PIDTEMPBED;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_BED_PIN;
-      h->Kp               = DEFAULT_bedKp;
-      h->Ki               = DEFAULT_bedKi;
-      h->Kd               = DEFAULT_bedKd;
+      heat = &heaters[BED_INDEX];
+      sens = &heaters[BED_INDEX].sensor;
+      heat->type              = IS_BED;
+      heat->output_pin        = HEATER_BED_PIN;
+      heat->pid_min           = MIN_BED_POWER;
+      heat->pid_max           = MAX_BED_POWER;
+      heat->mintemp           = BED_MINTEMP;
+      heat->maxtemp           = BED_MAXTEMP;
+      heat->use_pid           = PIDTEMPBED;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_BED_PIN;
+      heat->Kp                = DEFAULT_bedKp;
+      heat->Ki                = DEFAULT_bedKi;
+      heat->Kd                = DEFAULT_bedKd;
       // Sensor
-      h->sensor.pin           = TEMP_BED_PIN;
-      h->sensor.type          = TEMP_SENSOR_BED;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = BED_R25;
-      h->sensor.beta          = BED_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_BED_PIN;
+      sens->type              = TEMP_SENSOR_BED;
+      sens->r25               = BED_R25;
+      sens->beta              = BED_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_BED
 
     #if HAS_HEATER_CHAMBER
       // CHAMBER
-      h = &heaters[CHAMBER_INDEX];
-      h->type             = IS_CHAMBER;
-      h->output_pin       = HEATER_CHAMBER_PIN;
-      h->mintemp          = CHAMBER_MINTEMP;
-      h->maxtemp          = CHAMBER_MAXTEMP;
-      h->pid_min          = MIN_CHAMBER_POWER;
-      h->pid_max          = MAX_CHAMBER_POWER;
-      h->use_pid          = PIDTEMPCHAMBER;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_CHAMBER_PIN;
-      h->Kp               = DEFAULT_chamberKp;
-      h->Ki               = DEFAULT_chamberKi;
-      h->Kd               = DEFAULT_chamberKd;
+      heat = &heaters[CHAMBER_INDEX];
+      sens = &heaters[CHAMBER_INDEX].sensor;
+      heat->type              = IS_CHAMBER;
+      heat->output_pin        = HEATER_CHAMBER_PIN;
+      heat->pid_min           = MIN_CHAMBER_POWER;
+      heat->pid_max           = MAX_CHAMBER_POWER;
+      heat->mintemp           = CHAMBER_MINTEMP;
+      heat->maxtemp           = CHAMBER_MAXTEMP;
+      heat->use_pid           = PIDTEMPCHAMBER;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_CHAMBER_PIN;
+      heat->Kp                = DEFAULT_chamberKp;
+      heat->Ki                = DEFAULT_chamberKi;
+      heat->Kd                = DEFAULT_chamberKd;
       // Sensor
-      h->sensor.pin           = TEMP_CHAMBER_PIN;
-      h->sensor.type          = TEMP_SENSOR_CHAMBER;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = CHAMBER_R25;
-      h->sensor.beta          = CHAMBER_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_CHAMBER_PIN;
+      sens->type              = TEMP_SENSOR_CHAMBER;
+      sens->r25               = CHAMBER_R25;
+      sens->beta              = CHAMBER_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_BED
 
     #if HAS_HEATER_COOLER
       // COOLER
-      h = &heaters[COOLER_INDEX];
-      h->type             = IS_COOLER;
-      h->output_pin       = HEATER_COOLER_PIN;
-      h->mintemp          = COOLER_MINTEMP;
-      h->maxtemp          = COOLER_MAXTEMP;
-      h->pid_min          = MIN_COOLER_POWER;
-      h->pid_max          = MAX_COOLER_POWER;
-      h->use_pid          = PIDTEMPCOOLER;
-      h->pwm_hardware     = PWM_HARDWARE;
-      h->hardwareInverted = INVERTED_COOLER_PIN;
-      h->Kp               = DEFAULT_coolerKp;
-      h->Ki               = DEFAULT_coolerKi;
-      h->Kd               = DEFAULT_coolerKd;
+      heat = &heaters[COOLER_INDEX];
+      sens = &heaters[COOLER_INDEX].sensor;
+      heat->type              = IS_COOLER;
+      heat->output_pin        = HEATER_COOLER_PIN;
+      heat->pid_min           = MIN_COOLER_POWER;
+      heat->pid_max           = MAX_COOLER_POWER;
+      heat->mintemp           = COOLER_MINTEMP;
+      heat->maxtemp           = COOLER_MAXTEMP;
+      heat->use_pid           = PIDTEMPCOOLER;
+      heat->pwm_hardware      = PWM_HARDWARE;
+      heat->hardwareInverted  = INVERTED_COOLER_PIN;
+      heat->Kp                = DEFAULT_coolerKp;
+      heat->Ki                = DEFAULT_coolerKi;
+      heat->Kd                = DEFAULT_coolerKd;
       // Sensor
-      h->sensor.pin           = TEMP_COOLER_PIN;
-      h->sensor.type          = TEMP_SENSOR_COOLER;
-      h->sensor.adcLowOffset  = 0;
-      h->sensor.adcHighOffset = 0;
-      h->sensor.r25           = COOLER_R25;
-      h->sensor.beta          = COOLER_BETA;
-      h->sensor.pullupR       = THERMISTOR_SERIES_RS;
-      h->sensor.shC           = 0.0;
+      sens->pin               = TEMP_COOLER_PIN;
+      sens->type              = TEMP_SENSOR_COOLER;
+      sens->r25               = COOLER_R25;
+      sens->beta              = COOLER_BETA;
+      sens->pullupR           = THERMISTOR_SERIES_RS;
       #if HEATER_USES_AD595
-        h->sensor.ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        h->sensor.ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+        sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
     #endif // HAS_HEATER_BED
 
@@ -1671,9 +1652,7 @@ void EEPROM::Factory_Settings() {
         #if HOTENDS == 1
           heaters[0].print_PID();
         #elif HOTENDS > 1
-          for (uint8_t h = 0; h < HOTENDS; h++) {
-            heaters[h].print_PID(h);
-          }
+          LOOP_HOTEND() heaters[h].print_PID(h);
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
           #endif

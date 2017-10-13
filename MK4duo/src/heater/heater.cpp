@@ -153,10 +153,14 @@
   void Heater::init() {
 
     // Reset valor
-    this->target_temperature    = 0;
-    this->current_temperature   = 25.0;
     this->soft_pwm              = 0;
     this->pwm_pos               = 0;
+    this->target_temperature    = 0;
+    this->current_temperature   = 25.0;
+    this->sensor.raw            = 0;
+    this->sensor.adcLowOffset   = 0;
+    this->sensor.adcHighOffset  = 0;
+    this->sensor.shC            = 0.0;
 
     #if WATCH_THE_HEATER
       this->watch_target_temp   = 0;

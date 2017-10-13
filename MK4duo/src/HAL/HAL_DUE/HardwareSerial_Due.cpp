@@ -174,9 +174,9 @@
 
     memcpy(&ram_tab, romtab, sizeof(ram_tab));
 
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       SCB->VTOR = (uint32_t) (&ram_tab);
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
 
     return (pfnISR_Handler*) (&ram_tab);
   }
@@ -185,12 +185,12 @@
 
     pfnISR_Handler* isrtab = get_relocated_table_addr();
 
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
 
       pfnISR_Handler oldHandler = isrtab[irq + 16];
       isrtab[irq + 16] = newHandler;
 
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
 
     return oldHandler;
   }
@@ -275,9 +275,9 @@
 
   void MKHardwareSerial::checkRx(void) {
     if ((_pUart->UART_SR & UART_SR_RXRDY) == UART_SR_RXRDY) {
-      CRITICAL_SECTION_START;
+      CRITICAL_SECTION_START
         _rx_buffer->store_char(_pUart->UART_RHR);
-      CRITICAL_SECTION_END;
+      CRITICAL_SECTION_END
     }
   }
 
@@ -303,36 +303,36 @@
   }
 
   int MKHardwareSerial::peek(void) {
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const int v = _rx_buffer->_iHead == _rx_buffer->_iTail ? -1 : _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return v;
   }
 
   int MKHardwareSerial::read(void) {
     int v;
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       if (_rx_buffer->_iHead == _rx_buffer->_iTail)
         v = -1;
       else {
         v = _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
         _rx_buffer->_iTail = (unsigned int)(_rx_buffer->_iTail + 1) % SERIAL_BUFFER_SIZE;
       }
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return v;
   }
 
   int MKHardwareSerial::available(void) {
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const uint8_t head = _rx_buffer->_iHead, tail = _rx_buffer->_iTail;
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return (uint32_t)(SERIAL_BUFFER_SIZE + head - tail) % SERIAL_BUFFER_SIZE;
   }
 
   int MKHardwareSerial::availableForWrite(void) {
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const uint8_t head = _tx_buffer->_iHead, tail = _tx_buffer->_iTail;
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
 
     if (head >= tail)
       return SERIAL_BUFFER_SIZE - 1 - head + tail;

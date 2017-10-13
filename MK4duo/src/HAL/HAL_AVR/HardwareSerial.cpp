@@ -340,22 +340,22 @@
 
   void MKHardwareSerial::checkRx(void) {
     if (TEST(M_UCSRxA, M_RXCx)) {
-      CRITICAL_SECTION_START;
+      CRITICAL_SECTION_START
         store_rxd_char();
-      CRITICAL_SECTION_END;
+      CRITICAL_SECTION_END
     }
   }
 
   int MKHardwareSerial::peek(void) {
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return v;
   }
 
   int MKHardwareSerial::read(void) {
     int v;
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const uint8_t t = rx_buffer.tail;
       if (rx_buffer.head == t)
         v = -1;
@@ -371,22 +371,22 @@
             // running out of RX buffer bytes
             if (rx_count < (RX_BUFFER_SIZE) / 10) {
               xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
-              CRITICAL_SECTION_END;       // End critical section before returning!
+              CRITICAL_SECTION_END       // End critical section before returning!
               writeNoHandshake(XON_CHAR);
               return v;
             }
           }
         #endif
       }
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return v;
   }
 
   ring_buffer_pos_t MKHardwareSerial::available(void) {
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       const ring_buffer_pos_t h = rx_buffer.head,
                               t = rx_buffer.tail;
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
     return (ring_buffer_pos_t)(RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
   }
 
@@ -397,9 +397,9 @@
     // the value to rx_buffer_tail; the previous value of rx_buffer_head
     // may be written to rx_buffer_tail, making it appear as if the buffer
     // were full, not empty.
-    CRITICAL_SECTION_START;
+    CRITICAL_SECTION_START
       rx_buffer.head = rx_buffer.tail;
-    CRITICAL_SECTION_END;
+    CRITICAL_SECTION_END
 
     #if ENABLED(SERIAL_XON_XOFF)
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
@@ -412,10 +412,10 @@
   #if TX_BUFFER_SIZE > 0
 
     uint8_t MKHardwareSerial::availableForWrite(void) {
-      CRITICAL_SECTION_START;
+      CRITICAL_SECTION_START
         const uint8_t h = tx_buffer.head,
                       t = tx_buffer.tail;
-      CRITICAL_SECTION_END;
+      CRITICAL_SECTION_END
       return (uint8_t)(TX_BUFFER_SIZE + h - t) & (TX_BUFFER_SIZE - 1);
     }
 
@@ -433,18 +433,18 @@
 
     void MKHardwareSerial::writeNoHandshake(const uint8_t c) {
       _written = true;
-      CRITICAL_SECTION_START;
+      CRITICAL_SECTION_START
         bool emty = (tx_buffer.head == tx_buffer.tail);
-      CRITICAL_SECTION_END;
+      CRITICAL_SECTION_END
       // If the buffer and the data register is empty, just write the byte
       // to the data register and be done. This shortcut helps
       // significantly improve the effective datarate at high (>
       // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
       if (emty && TEST(M_UCSRxA, M_UDREx)) {
-        CRITICAL_SECTION_START;
+        CRITICAL_SECTION_START
           M_UDRx = c;
           SBI(M_UCSRxA, M_TXCx);
-        CRITICAL_SECTION_END;
+        CRITICAL_SECTION_END
         return;
       }
       const uint8_t i = (tx_buffer.head + 1) & (TX_BUFFER_SIZE - 1);
@@ -466,10 +466,10 @@
       }
 
       tx_buffer.buffer[tx_buffer.head] = c;
-      { CRITICAL_SECTION_START;
+      { CRITICAL_SECTION_START
           tx_buffer.head = i;
           SBI(M_UCSRxB, M_UDRIEx);
-        CRITICAL_SECTION_END;
+        CRITICAL_SECTION_END
       }
       return;
     }
