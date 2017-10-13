@@ -170,6 +170,7 @@
 
 //###UNKNOWN_PINS
 #define I2C_EEPROM
+#define E2END 0x2000
 //@@@
 
 //###IF_BLOCKS
