@@ -445,7 +445,7 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(lcd_preheat_fan_speed);
     #endif
 
-    #if HEATERS > 0
+    #if HEATER_COUNT > 0
       LOOP_HEATER() {
         EEPROM_WRITE(heaters[h]);
       }
@@ -759,7 +759,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(lcd_preheat_fan_speed);
       #endif
 
-      #if HEATERS > 0
+      #if HEATER_COUNT > 0
         LOOP_HEATER() {
           EEPROM_READ(heaters[h]);
           #if HEATER_USES_AD595
