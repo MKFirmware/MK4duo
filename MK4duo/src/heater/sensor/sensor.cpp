@@ -149,7 +149,7 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
   }
   #if ENABLED(DHT_SENSOR)
     if (type == 11)
-      return dhtsensor.temperature;
+      return dhtsensor.readTemperature();
   #endif
   #if HEATER_USES_AMPLIFIER
     #define PGM_RD_W(x) (short)pgm_read_word(&x)

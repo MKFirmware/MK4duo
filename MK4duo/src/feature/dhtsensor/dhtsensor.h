@@ -41,29 +41,36 @@
 
     public: /** Public Parameters */
 
-      static float  temperature,
-                    humidity;
-
     private: /** Private Parameters */
 
-      static DhtSensorType type;
+      uint8_t data[5];
 
-      static millis_t lastReadTime,
-                      lastOperationTime;
+      DhtSensorType type = DhtSensorType::Dht11;
 
-      static enum SensorState	{
-        Initialising,
-        Starting,
-        Starting2,
-        Reading
-      } state;
+      uint32_t  lastreadtime,
+                maxcycles;
+
+      bool lastresult;
 
     public: /** Public Function */
 
-      static void init();
-      static void Configure(const uint8_t dhtType);
-      static void Run();
+      void init();
+      void Configure(const uint8_t dhtType);
 
+      float readTemperature(const bool force=false);
+      float readHumidity(const bool force=false);
+
+    private: /** Private Funtion */
+
+      bool read(const bool force=false);
+      uint32_t expectPulse(bool level);
+
+  };
+
+  class InterruptLock {
+    public:
+     InterruptLock()  { noInterrupts(); }
+     ~InterruptLock() { interrupts(); }
   };
 
   extern DhtSensor dhtsensor;
