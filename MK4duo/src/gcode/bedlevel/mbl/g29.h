@@ -72,8 +72,8 @@
     switch (state) {
       case MeshReport:
         if (bedlevel.leveling_is_valid()) {
-          SERIAL_EMT("State: ", bedlevel.leveling_is_active() ? MSG_ON : MSG_OFF);
-          bedlevel.mbl_mesh_report();
+          SERIAL_EMT("State: ", bedlevel.leveling_active ? MSG_ON : MSG_OFF);
+          bedlevel.mesh_report();
         }
         else
           SERIAL_EM("Mesh bed leveling has no data.");
@@ -128,7 +128,7 @@
           SERIAL_EM("Mesh probing done.");
           BUZZ(100, 659);
           BUZZ(100, 698);
-          bedlevel.mesh_probing_done();
+          mbl.probing_done();
         }
         break;
 
@@ -168,7 +168,7 @@
 
       case MeshSetZOffset:
         if (parser.seenval('Z')) {
-          mbl.zprobe_zoffset = parser.value_linear_units();
+          mbl.z_offset = parser.value_linear_units();
         }
         else {
           SERIAL_CHR('Z'); say_not_entered();

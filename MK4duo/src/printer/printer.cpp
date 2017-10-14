@@ -944,32 +944,6 @@ void Printer::handle_Interrupt_Event() {
   }
 }
 
-#if HAS_SDSUPPORT
-
-  /**
-   * SD Stop & Store location
-   */
-  void Printer::stopSDPrint(const bool store_location) {
-    if (IS_SD_FILE_OPEN && IS_SD_PRINTING) {
-      if (store_location) SERIAL_EM("Close file and save restart.gcode");
-      card.stopSDPrint(store_location);
-      commands.clear_command_queue();
-      stepper.quickstop_stepper();
-      print_job_counter.stop();
-      thermalManager.wait_for_heatup = false;
-      thermalManager.disable_all_heaters();
-      #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].Speed = 0;
-      #endif
-      lcd_setstatus(MSG_PRINT_ABORTED, true);
-      #if HAS_POWER_SWITCH
-        powerManager.power_off();
-      #endif
-    }
-  }
-
-#endif // HAS_SDSUPPORT
-
 /**
  * Sensitive pin test for M42, M226
  */
@@ -984,6 +958,12 @@ void Printer::suicide() {
   #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, LOW);
   #endif
+}
+
+char Printer::GetStatusCharacter(){
+  return  print_job_counter.isRunning() ? 'P'   // Printing
+        : print_job_counter.isPaused()  ? 'A'   // Paused / Stopped
+        :                                 'I';  // Idle
 }
 
 /**

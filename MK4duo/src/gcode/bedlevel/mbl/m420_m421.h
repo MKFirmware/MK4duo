@@ -39,24 +39,21 @@
    *    V[bool]   Verbose - Print the leveling grid
    */
   inline void gcode_M420(void) {
-    bool to_enable = false;
 
     // V to print the matrix or mesh
     if (parser.seen('V') && bedlevel.leveling_is_valid()) {
       SERIAL_EM("Mesh Bed Level data:");
-      bedlevel.mbl_mesh_report();
+      bedlevel.mesh_report();
     }
 
-    if (parser.seen('S')) {
-      to_enable = parser.value_bool();
-      bedlevel.set_bed_leveling_enabled(to_enable);
-    }
+    const bool to_enable = parser.boolval('S');
+    if (parser.seen('S')) bedlevel.set_bed_leveling_enabled(to_enable);
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       if (parser.seen('Z')) bedlevel.set_z_fade_height(parser.value_linear_units());
     #endif
 
-    const bool new_status = bedlevel.leveling_is_active();
+    const bool new_status = bedlevel.leveling_active;
 
     if (to_enable && !new_status)
       SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);

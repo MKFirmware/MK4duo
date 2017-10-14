@@ -25,10 +25,9 @@
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
   #include "ubl.h"
+  #include <math.h>
 
   unified_bed_leveling ubl;
-
-  #include <math.h>
 
   /**
    * These support functions allow the use of large bit arrays of flags that take very
@@ -47,7 +46,7 @@
   void unified_bed_leveling::report_state() {
     echo_name();
     SERIAL_MSG(" System v" UBL_VERSION " ");
-    if (!state.active) SERIAL_MSG("in");
+    if (!bedlevel.leveling_active) SERIAL_MSG("in");
     SERIAL_EM("active.");
     printer.safe_delay(50);
   }
@@ -58,10 +57,9 @@
     SERIAL_CHR(')');
   }
 
-  ubl_state unified_bed_leveling::state;
+  int8_t unified_bed_leveling::storage_slot;
 
-  float unified_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
-        unified_bed_leveling::last_specified_z;
+  float unified_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
   // 15 is the maximum nubmer of grid points supported + 1 safety margin for now,
   // until determinism prevails
@@ -84,12 +82,11 @@
 
   void unified_bed_leveling::reset() {
     bedlevel.set_bed_leveling_enabled(false);
-    state.storage_slot = -1;
+    storage_slot = -1;
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      bedlevel.z_fade_height = 10.0;
+      bedlevel.set_z_fade_height(10.0);
     #endif
     ZERO(z_values);
-    last_specified_z = -999.9;
   }
 
   void unified_bed_leveling::invalidate() {

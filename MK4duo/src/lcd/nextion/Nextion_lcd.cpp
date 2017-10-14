@@ -683,7 +683,7 @@
     }
 
     void StopPrint(const bool store_location = false) {
-      printer.stopSDPrint(store_location);
+      card.stopSDPrint(store_location);
     }
 
   #endif

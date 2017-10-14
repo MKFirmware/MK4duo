@@ -738,12 +738,12 @@ void kill_screen(const char* lcd_msg) {
     }
 
     void lcd_sdcard_stop() {
-      printer.stopSDPrint(false);
+      card.stopSDPrint(false);
       lcd_return_to_status();
     }
 
     void lcd_sdcard_stop_save() {
-      printer.stopSDPrint(true);
+      card.stopSDPrint(true);
       lcd_return_to_status();
     }
 
@@ -1049,7 +1049,7 @@ void kill_screen(const char* lcd_msg) {
           const float new_zoffset = probe.offset[Z_AXIS] + mechanics.steps_to_mm[Z_AXIS] * babystep_increment;
           if (WITHIN(new_zoffset, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
 
-            if (bedlevel.leveling_is_active())
+            if (bedlevel.leveling_active)
               mechanics.babystep_axis(Z_AXIS, babystep_increment);
 
             probe.offset[Z_AXIS] = new_zoffset;
@@ -1216,7 +1216,7 @@ void kill_screen(const char* lcd_msg) {
 
     // Manual bed leveling, Bed Z:
     #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
-      MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.zprobe_zoffset, -1, 1);
+      MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
     #endif
 
     //
@@ -1774,8 +1774,8 @@ void kill_screen(const char* lcd_msg) {
 
             _lcd_after_probing();
 
-            mbl.set_has_mesh(true);
-            bedlevel.mesh_probing_done();
+            mbl.has_mesh = true;
+            mbl.probing_done();
 
           #endif
 
@@ -1888,11 +1888,12 @@ void kill_screen(const char* lcd_msg) {
       commands.enqueue_and_echo_commands_P(PSTR("G28"));
     }
 
-    static bool _level_state;
-    void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(_level_state); }
+    static bool new_level_state;
+    void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(new_level_state); }
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      void _lcd_set_z_fade_height() { bedlevel.set_z_fade_height(bedlevel.z_fade_height); }
+      static float new_z_fade_height;
+      void _lcd_set_z_fade_height() { bedlevel.set_z_fade_height(new_z_fade_height); }
     #endif
 
     /**
@@ -1916,20 +1917,18 @@ void kill_screen(const char* lcd_msg) {
       if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS]))
         MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
       else if (bedlevel.leveling_is_valid()) {
-        _level_state = bedlevel.leveling_is_active();
-        MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &_level_state, _lcd_toggle_bed_leveling);
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
       }
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        bedlevel.set_z_fade_height(bedlevel.z_fade_height);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_Z_FADE_HEIGHT, &bedlevel.z_fade_height, 0.0, 100.0, _lcd_set_z_fade_height);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_Z_FADE_HEIGHT, &new_z_fade_height, 0.0, 100.0, _lcd_set_z_fade_height);
       #endif
 
       //
       // MBL Z Offset
       //
       #if ENABLED(MESH_BED_LEVELING)
-        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.zprobe_zoffset, -1, 1);
+        MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
       #endif
 
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
@@ -1951,6 +1950,16 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
       #endif
       END_MENU();
+    }
+
+    void _lcd_goto_bed_leveling() {
+      currentScreen = lcd_bed_leveling;
+      #if ENABLED(LCD_BED_LEVELING)
+        new_level_state = bedlevel.leveling_active;
+      #endif
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        new_z_fade_height = bedlevel.z_fade_height;
+      #endif
     }
 
   #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -2524,7 +2533,13 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(PROBE_MANUALLY)
         if (!bedlevel.g29_in_progress)
       #endif
-      MENU_ITEM(submenu, MSG_BED_LEVELING, lcd_bed_leveling);
+          MENU_ITEM(submenu, MSG_BED_LEVELING,
+            #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+              _lcd_goto_bed_leveling
+            #else
+              lcd_bed_leveling
+            #endif
+          );
     #else
       #if HAS_LEVELING
         MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));

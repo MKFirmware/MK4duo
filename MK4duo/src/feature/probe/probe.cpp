@@ -422,7 +422,7 @@ void Probe::refresh_offset(const bool no_babystep/*=false*/) {
     #endif
 
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-      if (!no_babystep && bedlevel.leveling_is_active())
+      if (!no_babystep && bedlevel.leveling_active)
         mechanics.babystep_axis(Z_AXIS, -LROUND(diff * mechanics.axis_steps_per_mm[Z_AXIS]));
     #else
       UNUSED(no_babystep);

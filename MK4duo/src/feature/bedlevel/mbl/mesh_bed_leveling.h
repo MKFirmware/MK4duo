@@ -34,12 +34,6 @@
     MeshReset
   };
 
-  enum MBLStatus {
-    MBL_STATUS_NONE = 0,
-    MBL_STATUS_HAS_MESH_BIT = 0,
-    MBL_STATUS_ACTIVE_BIT = 1
-  };
-
   #define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
   #define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
 
@@ -51,8 +45,8 @@
 
     public: /** Public Parameters */
 
-      static uint8_t status; // Has Mesh and Is Active bits
-      static float  zprobe_zoffset,
+      static bool has_mesh;
+      static float  z_offset,
                     z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
                     index_to_xpos[GRID_MAX_POINTS_X],
                     index_to_ypos[GRID_MAX_POINTS_Y];
@@ -63,10 +57,9 @@
 
       static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
 
-      static bool active()                          { return TEST(status, MBL_STATUS_ACTIVE_BIT); }
-      static void set_active(const bool onOff)      { onOff ? SBI(status, MBL_STATUS_ACTIVE_BIT) : CBI(status, MBL_STATUS_ACTIVE_BIT); }
-      static bool has_mesh()                        { return TEST(status, MBL_STATUS_HAS_MESH_BIT); }
-      static void set_has_mesh(const bool onOff)    { onOff ? SBI(status, MBL_STATUS_HAS_MESH_BIT) : CBI(status, MBL_STATUS_HAS_MESH_BIT); }
+      static void line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
+
+      static void probing_done();
 
       static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
         px = index % (GRID_MAX_POINTS_X);
@@ -116,7 +109,7 @@
                     z2 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy + 1], index_to_xpos[cx + 1], z_values[cx + 1][cy + 1]),
                     z0 = calc_z0(y0, index_to_ypos[cy], z1, index_to_ypos[cy + 1], z2);
 
-        return zprobe_zoffset + z0
+        return z_offset + z0
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             * factor
           #endif

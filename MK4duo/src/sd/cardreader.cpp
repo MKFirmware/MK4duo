@@ -138,9 +138,24 @@
     commands.enqueue_and_echo_commands_P(PSTR("M24"));
   }
 
-  void CardReader::stopSDPrint(const bool store_location /*=false*/) {
-    sdprinting = false;
-    if (isFileOpen()) closeFile(store_location);
+  void CardReader::stopSDPrint(const bool store_location/*=false*/) {
+    if (isFileOpen() && sdprinting) {
+      if (store_location) SERIAL_EM("Close file and save restart.gcode");
+      sdprinting = false;
+      closeFile(store_location);
+      commands.clear_command_queue();
+      stepper.quickstop_stepper();
+      print_job_counter.stop();
+      thermalManager.wait_for_heatup = false;
+      thermalManager.disable_all_heaters();
+      #if FAN_COUNT > 0
+        LOOP_FAN() fans[f].Speed = 0;
+      #endif
+      lcd_setstatus(MSG_PRINT_ABORTED, true);
+      #if HAS_POWER_SWITCH
+        powerManager.power_off();
+      #endif
+    }
   }
 
   void CardReader::write_command(char* buf) {
@@ -399,10 +414,10 @@
         restart_file.write("G28 X Y\n");
       #endif
 
-      #if ENABLED(MESH_BED_LEVELING)
-        if (mbl.active()) restart_file.write("M420 S1\n");
-      #elif HAS_ABL
-        if (bedlevel.abl_enabled) restart_file.write("M320 S1\n");
+      #if ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_UBL)
+        if (bedlevel.leveling_active) restart_file.write("M420 S1\n");
+      #elif OLD_ABL
+        if (bedlevel.leveling_active) restart_file.write("M320 S1\n");
       #endif
 
       restart_file.write(buffer_G92_Z);

@@ -181,7 +181,7 @@
 
         // Adjust Z if bed leveling is enabled
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (bedlevel.abl_enabled) {
+          if (bedlevel.leveling_active) {
             const float zadj = bedlevel.bilinear_z_offset(logical);
             delta[A_AXIS] += zadj;
             delta[B_AXIS] += zadj;
@@ -570,6 +570,9 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
+      #if ENABLED(AUTO_BED_LEVELING_UBL)
+        const bool ubl_state_at_entry = bedlevel.leveling_active;
+      #endif
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -669,6 +672,10 @@
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
       gfx_clear(delta_print_radius * 2, delta_print_radius * 2, delta_height);
       gfx_cursor_to(current_position[X_AXIS] + delta_print_radius, current_position[Y_AXIS] + delta_print_radius, current_position[Z_AXIS]);
+    #endif
+
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();

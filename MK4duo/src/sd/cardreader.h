@@ -80,7 +80,7 @@
       void getfilename(uint16_t nr, const char* const match = NULL);
       void startFileprint();
       void openAndPrintFile(const char* name);
-      void stopSDPrint(const bool store_location = false);
+      void stopSDPrint(const bool store_location=false);
       void write_command(char* buf);
       bool selectFile(const char* filename);
       void printStatus();

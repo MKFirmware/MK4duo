@@ -108,9 +108,9 @@
 
       /**
        * Prepare a linear move in a Cartesian setup.
-       * If Mesh Bed Leveling is enabled, perform a mesh move.
+       * Bed Leveling will be applied to the move if enabled.
        *
-       * Returns true if the caller didn't update current_position.
+       * Returns true if current_position[] was set to destination[]
        */
       bool prepare_move_to_destination_cartesian();
 
@@ -136,14 +136,6 @@
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
         void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
-      #endif
-
-      #if ENABLED(MESH_BED_LEVELING)
-        /**
-         * Prepare a mesh-leveled linear move in a Cartesian setup,
-         * splitting the move where it crosses mesh borders.
-         */
-        void mesh_line_to_destination(float fr_mm_s, uint8_t x_splits = 0xFF, uint8_t y_splits = 0xFF);
       #endif
 
   };

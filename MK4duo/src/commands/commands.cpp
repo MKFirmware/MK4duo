@@ -239,7 +239,7 @@ void Commands::get_serial_commands() {
     static bool stop_buffering = false,
                 sd_comment_mode = false;
 
-    if (!card.sdprinting) return;
+    if (!IS_SD_PRINTING) return;
 
     #if HAS_DOOR
       if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
@@ -250,7 +250,7 @@ void Commands::get_serial_commands() {
 
     #if HAS_POWER_CHECK
       if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
-        printer.stopSDPrint(true);
+        card.stopSDPrint(true);
         return;
       }
     #endif

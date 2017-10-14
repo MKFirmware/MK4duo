@@ -39,18 +39,11 @@
 
     if (parser.seen('S')) type = parser.value_byte();
 
+    char ch = printer.GetStatusCharacter();
     SERIAL_MSG("{\"status\":\"");
-    #if HAS_SDSUPPORT
-      if (!print_job_counter.isRunning() && !card.sdprinting) SERIAL_CHR('I'); // IDLING
-      else if (card.sdprinting) SERIAL_CHR('P');          // SD PRINTING
-      else SERIAL_MSG("B");                               // SOMETHING ELSE, BUT SOMETHIG
-    #else
-      if (!print_job_counter.isRunning()) SERIAL_CHR('I');                     // IDLING
-      else SERIAL_CHR('B');                               // SOMETHING ELSE, BUT SOMETHIG
-    #endif
+    SERIAL_CHR(ch);
 
-    SERIAL_MSG("\",\"coords\": {");
-    SERIAL_MSG("\"axesHomed\":[");
+    SERIAL_MSG("\",\"coords\": {\"axesHomed\":[");
     if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
       SERIAL_MSG("1, 1, 1");
     else

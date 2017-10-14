@@ -150,9 +150,7 @@
   /**
    * M33: Close File and store location in restart.gcode
    */
-  inline void gcode_M33(void) {
-    printer.stopSDPrint(true);
-  }
+  inline void gcode_M33(void) { card.stopSDPrint(true); }
 
   /**
    * M34: Select file and start SD print

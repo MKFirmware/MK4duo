@@ -278,7 +278,7 @@
 
               #if ENABLED(MESH_BED_LEVELING)
 
-                if (mbl.active()) {
+                if (bedlevel.leveling_active) {
                   #if ENABLED(DEBUG_LEVELING_FEATURE)
                     if (DEBUGGING(LEVELING)) SERIAL_MV("Z before MBL: ", mechanics.current_position[Z_AXIS]);
                   #endif
