@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if OLDSCHOOL_ABL
+#if OLD_ABL
 
   #define CODE_M320
 
@@ -66,11 +66,11 @@
       }
     #endif
 
-    const bool new_status = bedlevel.leveling_is_active();
+    const bool new_status = bedlevel.leveling_active;
     if (to_enable && !new_status)
       SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
 
     SERIAL_LMV(ECHO, "ABL: ", new_status ? MSG_ON : MSG_OFF);
   }
 
-#endif // OLDSCHOOL_ABL
+#endif // OLD_ABL

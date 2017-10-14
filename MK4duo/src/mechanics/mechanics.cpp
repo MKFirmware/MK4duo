@@ -704,8 +704,10 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
         SERIAL_MSG("BILINEAR");
       #elif ENABLED(AUTO_BED_LEVELING_3POINT)
         SERIAL_MSG("3POINT");
+      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+        SERIAL_MSG("UBL");
       #endif
-      if (bedlevel.leveling_is_active()) {
+      if (bedlevel.leveling_active) {
         SERIAL_EM(" (enabled)");
         #if ABL_PLANAR
           const float diff[XYZ] = {
@@ -722,6 +724,8 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
           SERIAL_MSG(" Z");
           if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
           SERIAL_VAL(diff[Z_AXIS]);
+        #elif ENABLED(AUTO_BED_LEVELING_UBL)
+          SERIAL_MV("UBL Adjustment Z", get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(current_position));
         #endif
@@ -734,7 +738,7 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
     #elif ENABLED(MESH_BED_LEVELING)
 
       SERIAL_MSG("Mesh Bed Leveling");
-      if (bedlevel.leveling_is_active()) {
+      if (bedlevel.leveling_active) {
         float lz = current_position[Z_AXIS];
         bedlevel.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], lz);
         SERIAL_EM(" (enabled)");

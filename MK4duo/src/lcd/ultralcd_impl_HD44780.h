@@ -809,7 +809,7 @@ static void lcd_implementation_status_screen() {
     lcd.print(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
 
     #if HAS_LEVELING
-      lcd.write(bedlevel.leveling_is_active() || blink ? '_' : ' ');
+      lcd.write(bedlevel.leveling_active || blink ? '_' : ' ');
     #endif
 
   #endif // LCD_HEIGHT > 2

@@ -32,6 +32,8 @@
   #define SERIAL_PORT 0
 #endif
 
+#define FORMAT_STRING_LENGTH 256
+
 #define DEC 10
 #define HEX 16
 #define OCT 8

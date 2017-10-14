@@ -84,6 +84,9 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
+      #if ENABLED(AUTO_BED_LEVELING_UBL)
+        const bool ubl_state_at_entry = bedlevel.leveling_active;
+      #endif
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -253,6 +256,10 @@
       gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
     #endif
 
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
+    #endif
+
     printer.clean_up_after_endstop_or_probe_move();
 
     stepper.synchronize();
@@ -274,7 +281,6 @@
 
   /**
    * Prepare a single move and get ready for the next one
-   * If Mesh Bed Leveling is enabled, perform a mesh move.
    */
   bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -487,7 +493,14 @@
     #endif
   }
 
+  /**
+   * Prepare a linear move in a Cartesian setup.
+   * Bed Leveling will be applied to the move if enabled.
+   *
+   * Returns true if current_position[] was set to destination[]
+   */
   bool Cartesian_Mechanics::prepare_move_to_destination_cartesian() {
+
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
       if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))
         laser.status = LASER_ON;
@@ -495,36 +508,25 @@
         laser.status = LASER_OFF;
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
+    if (current_position[X_AXIS] != destination[X_AXIS] || current_position[Y_AXIS] != destination[Y_AXIS]) {
       const float fr_scaled = MMS_SCALED(feedrate_mm_s);
-      if (ubl.state.active) { // direct use of ubl.state.active for speed
-        ubl.line_to_destination_cartesian(fr_scaled, tools.active_extruder);
-        return true;
-      }
-      else
-        line_to_destination(fr_scaled);
-    #else
-      // Do not use feedrate_percentage for E or Z only moves
-      if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS])
-        line_to_destination();
-      else {
-        const float fr_scaled = MMS_SCALED(feedrate_mm_s);
-        #if ENABLED(MESH_BED_LEVELING)
-          if (mbl.active()) { // direct used of mbl.active() for speed
-            mesh_line_to_destination(fr_scaled);
-            return true;
-          }
-          else
-        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (bedlevel.abl_enabled) { // direct use of abl_enabled for speed
+      #if HAS_MESH
+        if (bedlevel.leveling_active) {
+          #if ENABLED(AUTO_BED_LEVELING_UBL)
+            ubl.line_to_destination_cartesian(fr_scaled, tools.active_extruder);
+          #elif ENABLED(MESH_BED_LEVELING)
+            mbl.line_to_destination(fr_scaled);
+          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
             bilinear_line_to_destination(fr_scaled);
-            return true;
-          }
-          else
-        #endif
-            line_to_destination(fr_scaled);
-      }
-    #endif
+          #endif
+          return true;
+        }
+      #endif // HAS_MESH
+      line_to_destination(fr_scaled);
+    }
+    else
+      line_to_destination();
+
     return false;
   }
 
@@ -729,69 +731,6 @@
     }
 
   #endif // AUTO_BED_LEVELING_BILINEAR
-
-  #if ENABLED(MESH_BED_LEVELING)
-
-    /**
-     * Prepare a mesh-leveled linear move in a Cartesian setup,
-     * splitting the move where it crosses mesh borders.
-     */
-    void Cartesian_Mechanics::mesh_line_to_destination(float fr_mm_s, uint8_t x_splits/*= 0xFF*/, uint8_t y_splits/*= 0xFF*/) {
-      int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X)),
-          cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y)),
-          cx2 = mbl.cell_index_x(RAW_X_POSITION(destination[X_AXIS])),
-          cy2 = mbl.cell_index_y(RAW_Y_POSITION(destination[Y_AXIS]));
-      NOMORE(cx1, GRID_MAX_POINTS_X - 2);
-      NOMORE(cy1, GRID_MAX_POINTS_Y - 2);
-      NOMORE(cx2, GRID_MAX_POINTS_X - 2);
-      NOMORE(cy2, GRID_MAX_POINTS_Y - 2);
-
-      if (cx1 == cx2 && cy1 == cy2) {
-        // Start and end on same mesh square
-        line_to_destination(fr_mm_s);
-        set_current_to_destination();
-        return;
-      }
-
-      #define MBL_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
-
-      float normalized_dist, end[XYZE];
-
-      // Split at the left/front border of the right/top square
-      int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
-      if (cx2 != cx1 && TEST(x_splits, gcx)) {
-        COPY_ARRAY(end, destination);
-        destination[X_AXIS] = LOGICAL_X_POSITION(mbl.index_to_xpos[gcx]);
-        normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
-        destination[Y_AXIS] = MBL_SEGMENT_END(Y);
-        CBI(x_splits, gcx);
-      }
-      else if (cy2 != cy1 && TEST(y_splits, gcy)) {
-        COPY_ARRAY(end, destination);
-        destination[Y_AXIS] = LOGICAL_Y_POSITION(mbl.index_to_ypos[gcy]);
-        normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
-        destination[X_AXIS] = MBL_SEGMENT_END(X);
-        CBI(y_splits, gcy);
-      }
-      else {
-        // Already split on a border
-        line_to_destination(fr_mm_s);
-        set_current_to_destination();
-        return;
-      }
-
-      destination[Z_AXIS] = MBL_SEGMENT_END(Z);
-      destination[E_AXIS] = MBL_SEGMENT_END(E);
-
-      // Do the split and look for more borders
-      mesh_line_to_destination(fr_mm_s, x_splits, y_splits);
-
-      // Restore destination from stack
-      COPY_ARRAY(destination, end);
-      mesh_line_to_destination(fr_mm_s, x_splits, y_splits);  
-    }
-
-  #endif
 
   /**
    * Set an axis' current position to its home position (after homing).

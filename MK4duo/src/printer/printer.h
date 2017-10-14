@@ -169,17 +169,15 @@ class Printer {
     static void setInterruptEvent(const MK4duoInterruptEvent event);
     static void handle_Interrupt_Event();
 
-    #if ENABLED(SDSUPPORT)
-      static void stopSDPrint(const bool store_location);
-    #endif
-
     static bool pin_is_protected(uint8_t pin);
 
     static void suicide();
 
+    static char GetStatusCharacter();
+
     FORCE_INLINE static void setRunning(const bool run) { Running = run; }
-    FORCE_INLINE static bool IsRunning() { return  Running; }
-    FORCE_INLINE static bool IsStopped() { return !Running; }
+    FORCE_INLINE static bool IsRunning()  { return  Running; }
+    FORCE_INLINE static bool IsStopped()  { return !Running; }
 
   private: /** Private Function */
 

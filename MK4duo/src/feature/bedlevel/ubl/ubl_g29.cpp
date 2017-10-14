@@ -406,8 +406,8 @@
     #endif // HAS_BED_PROBE
 
     if (parser.seen('P')) {
-      if (WITHIN(g29_phase_value, 0, 1) && state.storage_slot == -1) {
-        state.storage_slot = 0;
+      if (WITHIN(g29_phase_value, 0, 1) && storage_slot == -1) {
+        storage_slot = 0;
         SERIAL_EM("Default storage slot 0 selected.");
       }
 
@@ -585,7 +585,7 @@
     //
 
     if (parser.seen('L')) {     // Load Current Mesh Data
-      g29_storage_slot = parser.has_value() ? parser.value_int() : state.storage_slot;
+      g29_storage_slot = parser.has_value() ? parser.value_int() : storage_slot;
 
       int16_t a = eeprom.calc_num_meshes();
 
@@ -601,7 +601,7 @@
       }
 
       eeprom.load_mesh(g29_storage_slot);
-      state.storage_slot = g29_storage_slot;
+      storage_slot = g29_storage_slot;
 
       SERIAL_EM("Done.");
     }
@@ -611,7 +611,7 @@
     //
 
     if (parser.seen('S')) {     // Store (or Save) Current Mesh Data
-      g29_storage_slot = parser.has_value() ? parser.value_int() : state.storage_slot;
+      g29_storage_slot = parser.has_value() ? parser.value_int() : storage_slot;
 
       if (g29_storage_slot == -1) {           // Special case, we are going to 'Export' the mesh to the
         SERIAL_EM("G29 I 999");               // host in a form it can be reconstructed on a different machine
@@ -642,7 +642,7 @@
       }
 
       eeprom.store_mesh(g29_storage_slot);
-      state.storage_slot = g29_storage_slot;
+      storage_slot = g29_storage_slot;
 
       SERIAL_EM("Done.");
     }
@@ -1120,7 +1120,7 @@
           SERIAL_EM("?(F)ade height for Bed Level Correction not plausible.\n");
           return UBL_ERR;
         }
-        set_z_fade_height(fh);
+        bedlevel.set_z_fade_height(fh);
       }
     #endif
 
@@ -1147,7 +1147,7 @@
 
       return;
     }
-    ubl_state_at_invocation = state.active;
+    ubl_state_at_invocation = bedlevel.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   }
 
@@ -1172,10 +1172,10 @@
   void unified_bed_leveling::g29_what_command() {
     report_state();
 
-    if (state.storage_slot == -1)
+    if (storage_slot == -1)
       SERIAL_MSG("No Mesh Loaded.");
     else {
-      SERIAL_MV("Mesh ", state.storage_slot);
+      SERIAL_MV("Mesh ", storage_slot);
       SERIAL_MSG(" Loaded.");
     }
     SERIAL_EOL();

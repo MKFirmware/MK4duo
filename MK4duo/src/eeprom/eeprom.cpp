@@ -66,10 +66,10 @@
  *                        z_fade_height                         (float)
  *
  * MESH_BED_LEVELING:
- *  M420  S               from mbl.status                       (bool)
- *                        mbl.zprobe_zoffset                    (float)
- *                        GRID_MAX_POINTS_X                     (uint8 as set in firmware)
- *                        GRID_MAX_POINTS_Y                     (uint8 as set in firmware)
+ *  M420  S               bedlevel.leveling_active              (bool)
+ *                        mbl.z_offset                          (float)
+ *                        GRID_MAX_POINTS_X                     (uint8)
+ *                        GRID_MAX_POINTS_Y                     (uint8)
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
@@ -83,8 +83,8 @@
  *                        bedlevel.z_values[][]                 (float x9, up to float x256)
  *
  * AUTO_BED_LEVELING_UBL:
- *  G29 A                 ubl.state.active                      (bool)
- *  G29 S                 ubl.state.storage_slot                (int8_t)
+ *  G29 A                 bedlevel.leveling_active              (bool)
+ *  G29 S                 ubl.storage_slot                      (int8_t)
  *
  * HAS_BED_PROBE:
  *  M851  XYZ             probe.offset                          (float x3)
@@ -183,6 +183,10 @@ EEPROM eeprom;
   SdFile eeprom_file;
 #endif
 
+#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+  float new_z_fade_height;
+#endif
+
 /**
  * Post-process after Retrieve or Reset
  */
@@ -215,11 +219,15 @@ void EEPROM::Postprocess() {
   #endif
 
   #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    bedlevel.set_z_fade_height(bedlevel.z_fade_height);
+    bedlevel.set_z_fade_height(new_z_fade_height);
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     bedlevel.refresh_bed_level();
+  #endif
+
+  #if ENABLED(FWRETRACT)
+    fwretract.refresh_autoretract();
   #endif
 
   #if ENABLED(HYSTERESIS)
@@ -321,7 +329,7 @@ void EEPROM::Postprocess() {
         SERIAL_LM(ER, MSG_NO_CARD);
         return false;
       }
-      else if (card.sdprinting || !card.cardOK)
+      else if (IS_SD_PRINTING || !card.cardOK)
         return false;
       else {
         card.setroot();
@@ -367,10 +375,9 @@ void EEPROM::Postprocess() {
         sizeof(mbl.z_values) == GRID_MAX_POINTS * sizeof(mbl.z_values[0][0]),
         "MBL Z array is the wrong size."
       );
-      const bool leveling_is_on = TEST(mbl.status, MBL_STATUS_HAS_MESH_BIT);
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(leveling_is_on);
-      EEPROM_WRITE(mbl.zprobe_zoffset);
+      EEPROM_WRITE(mbl.has_mesh);
+      EEPROM_WRITE(mbl.z_offset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
       EEPROM_WRITE(mbl.z_values);
@@ -400,8 +407,8 @@ void EEPROM::Postprocess() {
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)
-      EEPROM_WRITE(ubl.state.active);
-      EEPROM_WRITE(ubl.state.storage_slot);
+      EEPROM_WRITE(bedlevel.leveling_active);
+      EEPROM_WRITE(ubl.storage_slot);
     #endif
 
     #if HAS_BED_PROBE
@@ -432,19 +439,17 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(endstops.z2_endstop_adj);
     #endif
 
-    #if DISABLED(ULTIPANEL)
-      const int lcd_preheat_hotend_temp[3] = { PREHEAT_1_TEMP_HOTEND, PREHEAT_2_TEMP_HOTEND, PREHEAT_3_TEMP_HOTEND },
-                lcd_preheat_bed_temp[3] = { PREHEAT_1_TEMP_BED, PREHEAT_2_TEMP_BED, PREHEAT_3_TEMP_BED },
-                lcd_preheat_fan_speed[3] = { PREHEAT_1_FAN_SPEED, PREHEAT_2_FAN_SPEED, PREHEAT_3_FAN_SPEED };
+    #if ENABLED(ULTIPANEL)
+      EEPROM_WRITE(lcd_preheat_hotend_temp);
+      EEPROM_WRITE(lcd_preheat_bed_temp);
+      EEPROM_WRITE(lcd_preheat_fan_speed);
     #endif
 
-    EEPROM_WRITE(lcd_preheat_hotend_temp);
-    EEPROM_WRITE(lcd_preheat_bed_temp);
-    EEPROM_WRITE(lcd_preheat_fan_speed);
-
-    LOOP_HEATER() {
-      EEPROM_WRITE(heaters[h]);
-    }
+    #if HEATERS > 0
+      LOOP_HEATER() {
+        EEPROM_WRITE(heaters[h]);
+      }
+    #endif
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       EEPROM_WRITE(thermalManager.lpq_len);
@@ -582,6 +587,11 @@ void EEPROM::Postprocess() {
       SERIAL_EM(")");
     }
 
+    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
+      if (ubl.storage_slot >= 0)
+        store_mesh(ubl.storage_slot);
+    #endif
+
     #if HAS_EEPROM_SD
       eeprom_file.sync();
       eeprom_file.close();
@@ -610,7 +620,7 @@ void EEPROM::Postprocess() {
         SERIAL_LM(ER, MSG_NO_CARD);
         return false;
       }
-      else if (card.sdprinting || !card.cardOK)
+      else if (IS_SD_PRINTING || !card.cardOK)
         return false;
       else {
         card.setroot();
@@ -658,21 +668,18 @@ void EEPROM::Postprocess() {
       // General Leveling
       //
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        EEPROM_READ(bedlevel.z_fade_height);
+        EEPROM_READ(new_z_fade_height);
       #endif
 
       //
       // Mesh (Manual) Bed Leveling
       //
       #if ENABLED(MESH_BED_LEVELING)
-        bool leveling_is_on;
         uint8_t mesh_num_x = 0, mesh_num_y = 0;
-        EEPROM_READ(leveling_is_on);
-        EEPROM_READ(dummy);
+        EEPROM_READ(mbl.has_mesh);
+        EEPROM_READ(mbl.z_offset);
         EEPROM_READ(mesh_num_x);
         EEPROM_READ(mesh_num_y);
-        mbl.status = leveling_is_on ? _BV(MBL_STATUS_HAS_MESH_BIT) : 0;
-        mbl.zprobe_zoffset = dummy;
         if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
           // EEPROM data fits the current mesh
           EEPROM_READ(mbl.z_values);
@@ -714,8 +721,8 @@ void EEPROM::Postprocess() {
       #endif // AUTO_BED_LEVELING_BILINEAR
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        EEPROM_READ(ubl.state.active);
-        EEPROM_READ(ubl.state.storage_slot);
+        EEPROM_READ(bedlevel.leveling_active);
+        EEPROM_READ(ubl.storage_slot);
       #endif
 
       #if HAS_BED_PROBE
@@ -746,20 +753,20 @@ void EEPROM::Postprocess() {
         EEPROM_READ(endstops.z2_endstop_adj);
       #endif
 
-      #if DISABLED(ULTIPANEL)
-        int lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
+      #if ENABLED(ULTIPANEL)
+        EEPROM_READ(lcd_preheat_hotend_temp);
+        EEPROM_READ(lcd_preheat_bed_temp);
+        EEPROM_READ(lcd_preheat_fan_speed);
       #endif
 
-      EEPROM_READ(lcd_preheat_hotend_temp);
-      EEPROM_READ(lcd_preheat_bed_temp);
-      EEPROM_READ(lcd_preheat_fan_speed);
-
-      LOOP_HEATER() {
-        EEPROM_READ(heaters[h]);
-        #if HEATER_USES_AD595
-          if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = TEMP_SENSOR_AD595_GAIN;
-        #endif
-      }
+      #if HEATERS > 0
+        LOOP_HEATER() {
+          EEPROM_READ(heaters[h]);
+          #if HEATER_USES_AD595
+            if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = TEMP_SENSOR_AD595_GAIN;
+          #endif
+        }
+      #endif
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         EEPROM_READ(thermalManager.lpq_len);
@@ -911,10 +918,10 @@ void EEPROM::Postprocess() {
           ubl.reset();
         }
 
-        if (ubl.state.storage_slot >= 0) {
-          load_mesh(ubl.state.storage_slot);
+        if (ubl.storage_slot >= 0) {
+          load_mesh(ubl.storage_slot);
           #if ENABLED(EEPROM_CHITCHAT)
-            SERIAL_MV("Mesh ", ubl.state.storage_slot);
+            SERIAL_MV("Mesh ", ubl.storage_slot);
             SERIAL_EM(" loaded from storage.");
           #endif
         }
@@ -1012,9 +1019,6 @@ void EEPROM::Postprocess() {
       #endif
     }
 
-    //void MarlinSettings::delete_mesh() { return; }
-    //void MarlinSettings::defrag_meshes() { return; }
-
   #endif // AUTO_BED_LEVELING_UBL
 
 #else // !EEPROM_SETTINGS
@@ -1036,6 +1040,10 @@ void EEPROM::Factory_Settings() {
                         tmp7[] PROGMEM = DEFAULT_Ki,
                         tmp8[] PROGMEM = DEFAULT_Kd,
                         tmp9[] PROGMEM = DEFAULT_Kc;
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    new_z_fade_height = 0.0;
+  #endif
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
     constexpr float tmp10[XYZ][4] = {
@@ -1559,7 +1567,7 @@ void EEPROM::Factory_Settings() {
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
 
       CONFIG_MSG_START("Unified Bed Leveling:");
-      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_is_active() ? 1 : 0);
+      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_active ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", bedlevel.z_fade_height);
       #endif
@@ -1567,7 +1575,7 @@ void EEPROM::Factory_Settings() {
 
       ubl.report_state();
 
-      SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.state.storage_slot);
+      SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);
 
       SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
       SERIAL_EM(" meshes.");
@@ -1575,7 +1583,7 @@ void EEPROM::Factory_Settings() {
     #elif HAS_ABL
 
       CONFIG_MSG_START("Auto Bed Leveling:");
-      SERIAL_SMV(CFG, "  M320 S", bedlevel.leveling_is_active() ? 1 : 0);
+      SERIAL_SMV(CFG, "  M320 S", bedlevel.leveling_active ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(bedlevel.z_fade_height));
       #endif

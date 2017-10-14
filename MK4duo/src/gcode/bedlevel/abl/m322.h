@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if OLDSCHOOL_ABL
+#if OLD_ABL
 
   #define CODE_M322
 
@@ -37,4 +37,4 @@
       eeprom.Store_Settings();
   }
 
-#endif // OLDSCHOOL_ABL
+#endif // OLD_ABL
