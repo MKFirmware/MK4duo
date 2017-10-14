@@ -28,14 +28,14 @@
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-  #define CODE_M321
+  #define CODE_M421
 
   /**
-   * M321: Set Level bilinear manual
+   * M421: Set a single Mesh Bed Leveling Z coordinate
    *
    * Usage:
-   *   M321 I<xindex> J<yindex> Z<linear>
-   *   M321 I<xindex> J<yindex> Q<offset>
+   *   M421 I<xindex> J<yindex> Z<linear>
+   *   M421 I<xindex> J<yindex> Q<offset>
    */
   inline void gcode_M321(void) {
     int8_t ix = parser.intval('I', -1), iy = parser.intval('J', -1);
@@ -45,7 +45,7 @@
                 hasQ = !hasZ && parser.seen('Q');
 
     if (!hasI || !hasJ || !(hasZ || hasQ)) {
-      SERIAL_LM(ER, MSG_ERR_M321_PARAMETERS);
+      SERIAL_LM(ER, MSG_ERR_M421_PARAMETERS);
     }
       else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1)) {
       SERIAL_LM(ER, MSG_ERR_MESH_XY);

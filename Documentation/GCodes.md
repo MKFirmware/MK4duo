@@ -189,9 +189,9 @@
 *  M407 - Displays measured filament diameter
 *  M408 - Report JSON-style response
 *  M410 - Quickstop. Abort all the planned moves
-*  M420 - Enable/Disable Mesh Bed Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING)
-*         Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
-*  M421 - Set a single Mesh Bed Leveling Z coordinate. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm>
+*  M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
+*           Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
+*  M421 - Set a single Z coordinate in the Mesh Leveling grid. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm> (Requires MBL, UBL or ABL BILINEAR)
 *  M428 - Set the home_offset logically based on the current_position
 *  M450 - Report Printer Mode
 *  M451 - Select FFF Printer Mode

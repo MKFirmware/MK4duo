@@ -270,6 +270,17 @@ static void lcd_set_custom_characters(
     B01110
   };
 
+  const static PROGMEM byte Humidity[8] = {
+    B00100,
+    B00100,
+    B01010,
+    B10001,
+    B10001,
+    B01010,
+    B00000,
+    B00000
+  };
+
   const static PROGMEM byte uplevel[8] = {
     B00100,
     B01110,
@@ -357,7 +368,11 @@ static void lcd_set_custom_characters(
     #endif
   #endif
 
-  createChar_P(LCD_BEDTEMP_CHAR, bedTemp);
+  #if ENABLED(DHT_SENSOR)
+    createChar_P(LCD_BEDTEMP_CHAR, Humidity);
+  #else
+    createChar_P(LCD_BEDTEMP_CHAR, bedTemp);
+  #endif
   createChar_P(LCD_DEGREE_CHAR, degree);
   createChar_P(LCD_STR_THERMOMETER[0], thermometer);
   createChar_P(LCD_FEEDRATE_CHAR, feedrate);
@@ -624,6 +639,13 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
+#if ENABLED(DHT_SENSOR)
+  FORCE_INLINE void _draw_humidity_status() {
+    lcd.print((char)LCD_BEDTEMP_CHAR);
+    lcd.print(itostr3(dhtsensor.readHumidity() + 0.5));
+  }
+#endif
+
 FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, const bool blink) {
 
   const float t1 = (heaters[heater].current_temperature),
@@ -743,12 +765,14 @@ static void lcd_implementation_status_screen() {
     //
     // Hotend 1 or Bed Temperature
     //
-    #if HOTENDS > 1 || HAS_TEMP_BED
+    #if HOTENDS > 1 || HAS_TEMP_BED || ENABLED(DHT_SENSOR)
       lcd.setCursor(10, 0);
       #if HOTENDS > 1
         _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
-      #else
+      #elif HAS_TEMP_BED
         _draw_heater_status(BED_INDEX, LCD_BEDTEMP_CHAR, blink);
+      #else
+        _draw_humidity_status();
       #endif
 
     #endif // HOTENDS > 1 || HAS_TEMP_BED

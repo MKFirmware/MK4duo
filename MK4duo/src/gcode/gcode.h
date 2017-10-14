@@ -27,17 +27,16 @@
  */
 
 // Bedlevel Commands
+#include "bedlevel/g42.h"                 // Move to mesh
+#include "bedlevel/m420.h"                // Set ABL, MBL and UBL
 #include "bedlevel/abl/g29.h"             // ABL
-#include "bedlevel/abl/m320.h"            // Set ABL
-#include "bedlevel/abl/m321.h"            // Set Bilinear Bed Level Manual
-#include "bedlevel/abl/m322.h"            // Reset ABL
+#include "bedlevel/abl/m421.h"            // Set ABL Manual
 #include "bedlevel/mbl/g29.h"             // MBL
-#include "bedlevel/mbl/m420_m421.h"       // Set MBL
+#include "bedlevel/mbl/m421.h"            // Set MBL Manual
 #include "bedlevel/ubl/g26.h"             // UBL Mesh Validation
 #include "bedlevel/ubl/g29.h"             // UBL
 #include "bedlevel/ubl/m49.h"             // UBL Mesh Validation
-#include "bedlevel/ubl/m420_m421.h"       // Set UBL
-#include "bedlevel/g42.h"                 // Move to mesh
+#include "bedlevel/ubl/m421.h"            // Set UBL Manual
 
 // Calibrate Commands
 #include "calibrate/g28.h"                // Home

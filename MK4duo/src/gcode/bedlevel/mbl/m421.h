@@ -28,46 +28,7 @@
 
 #if ENABLED(MESH_BED_LEVELING)
 
-  #define CODE_M420
   #define CODE_M421
-
-  /**
-   * M420: Enable/Disable Bed Leveling and/or set the Z fade height.
-   *
-   *    S[bool]   Turns leveling on or off
-   *    Z[height] Sets the Z fade height (0 or none to disable)
-   *    V[bool]   Verbose - Print the leveling grid
-   */
-  inline void gcode_M420(void) {
-
-    // V to print the matrix or mesh
-    if (parser.seen('V') && bedlevel.leveling_is_valid()) {
-      SERIAL_EM("Mesh Bed Level data:");
-      bedlevel.mesh_report();
-    }
-
-    const bool to_enable = parser.boolval('S');
-    if (parser.seen('S')) bedlevel.set_bed_leveling_enabled(to_enable);
-
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      if (parser.seen('Z')) bedlevel.set_z_fade_height(parser.value_linear_units());
-    #endif
-
-    const bool new_status = bedlevel.leveling_active;
-
-    if (to_enable && !new_status)
-      SERIAL_LM(ER, MSG_ERR_M320_M420_FAILED);
-
-    SERIAL_LMV(ECHO, "MBL: ", new_status ? MSG_ON : MSG_OFF);
-
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      SERIAL_SM(ECHO, "Fade Height ");
-      if (bedlevel.z_fade_height > 0.0)
-        SERIAL_EV(bedlevel.z_fade_height);
-      else
-        SERIAL_EM(MSG_OFF);
-    #endif
-  }
 
   /**
    * M421: Set a single Mesh Bed Leveling Z coordinate

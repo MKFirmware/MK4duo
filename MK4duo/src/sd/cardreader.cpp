@@ -414,10 +414,8 @@
         restart_file.write("G28 X Y\n");
       #endif
 
-      #if ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_UBL)
+      #if HAS_LEVELING
         if (bedlevel.leveling_active) restart_file.write("M420 S1\n");
-      #elif OLD_ABL
-        if (bedlevel.leveling_active) restart_file.write("M320 S1\n");
       #endif
 
       restart_file.write(buffer_G92_Z);
