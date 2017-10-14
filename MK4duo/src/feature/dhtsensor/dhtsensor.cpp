@@ -46,7 +46,7 @@
 
   void DhtSensor::init() {
     OUT_WRITE(DHT_DATA_PIN, LOW);
-    Spin();
+    Run();
   }
 
   void DhtSensor::Configure(const uint8_t dhtType) {
