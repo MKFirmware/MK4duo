@@ -90,6 +90,7 @@
 *  M43 S       - Servo probe test
 *                  P<index> - Probe index (optional - defaults to 0
 *  M44  - Codes debug - report codes available (and how many of them there are)
+*           I G-code list, J M-code list
 *  M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 *  M70  - Power consumption sensor calibration
 *  M75  - Start the print job timer
@@ -172,9 +173,7 @@
 *  M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
 *           A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
 *           L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin
-*  M320 - Enable/Disable S1=enable S0=disable, V[bool] Print the leveling grid, Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
-*  M321 - Set a single Auto Bed Leveling Z coordinate - X<gridx> Y<gridy> Z<level val> S<level add>
-*  M322 - Reset Auto Bed Leveling matrix
+*         Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
 *  M350 - Set microstepping mode.
 *  M351 - Toggle MS1 MS2 pins directly.
 *  M355 - Turn case lights on/off
@@ -190,7 +189,7 @@
 *  M408 - Report JSON-style response
 *  M410 - Quickstop. Abort all the planned moves
 *  M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
-*           Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
+*         Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
 *  M421 - Set a single Z coordinate in the Mesh Leveling grid. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm> (Requires MBL, UBL or ABL BILINEAR)
 *  M428 - Set the home_offset logically based on the current_position
 *  M450 - Report Printer Mode

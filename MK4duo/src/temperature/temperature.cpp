@@ -125,10 +125,6 @@ void Temperature::init() {
   // Wait for temperature measurement to settle
   HAL::delayMilliseconds(250);
 
-  #if ENABLED(DHT_SENSOR)
-    dhtsensor.init();
-  #endif
-
   #if ENABLED(PROBING_HEATERS_OFF)
     paused = false;
   #endif

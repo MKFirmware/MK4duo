@@ -276,7 +276,7 @@ static void lcd_set_custom_characters(
     B01010,
     B10001,
     B10001,
-    B01010,
+    B01110,
     B00000,
     B00000
   };
