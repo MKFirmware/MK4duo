@@ -33,17 +33,33 @@
   /**
    * M305: Set thermistor and ADC parameters
    *
-   *   H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER
+   *  H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER
    *
-   *   A[float] Thermistor resistance at 25°C
-   *   B[float] BetaK
-   *   C[float] Steinhart-Hart C coefficien
-   *   R[float] Pullup resistor value
-   *   L[int]   ADC low offset correction
-   *   N[int]   ADC high offset correction
-   *   P[int]   Sensor Pin
+   *    A[float]  Thermistor resistance at 25°C
+   *    B[float]  BetaK
+   *    C[float]  Steinhart-Hart C coefficien
+   *    R[float]  Pullup resistor value
+   *    L[int]    ADC low offset correction
+   *    N[int]    ADC high offset correction
+   *    P[int]    Sensor Pin
+   *
+   *  D DHT parameters
+   *    S[int]    Type Sensor
+   *    P[int]    Sensor Pin
+   *
    */
   inline void gcode_M305(void) {
+
+    #if ENABLED(DHT_SENSOR)
+      if (parser.seen('D')) {
+        dhtsensor.pin = parser.intval('P', DHT_DATA_PIN);
+        if (parser.seen('S'))
+          dhtsensor.change_type(parser.value_int());
+        dhtsensor.init();
+        dhtsensor.print_parameters();
+        return;
+      }
+    #endif
 
     int8_t h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
 

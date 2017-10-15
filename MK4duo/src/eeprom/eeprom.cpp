@@ -38,10 +38,10 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV39"
+#define EEPROM_VERSION "MKV40"
 
 /**
- * MKV39 EEPROM Layout:
+ * MKV40 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -134,8 +134,11 @@
  *
  *  M595  H   OS          Heaters AD595 Offset & Gain
  *
+ * DHT SENSOR:
+ *  M305  D0  SP          DHT Sensor parameters
+ *
  * DOGLCD:
- *  M250  C               lcd_contrast                          (uint16_t)
+ *  M250  C               lcd_contrast                                  (uint16_t)
  *
  * FWRETRACT:
  *  M209  S               fwretract.autoretract_enabled                 (bool)
@@ -209,6 +212,10 @@ void EEPROM::Postprocess() {
     #if HAS_PID
       thermalManager.updatePID();
     #endif
+  #endif
+
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.init();
   #endif
 
   printer.calculate_volumetric_multipliers();
@@ -453,6 +460,11 @@ void EEPROM::Postprocess() {
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       EEPROM_WRITE(thermalManager.lpq_len);
+    #endif
+
+    #if ENABLED(DHT_SENSOR)
+      EEPROM_WRITE(dhtsensor.pin);
+      EEPROM_WRITE(dhtsensor.type);
     #endif
 
     #if !HAS_LCD_CONTRAST
@@ -770,6 +782,11 @@ void EEPROM::Postprocess() {
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         EEPROM_READ(thermalManager.lpq_len);
+      #endif
+
+      #if ENABLED(DHT_SENSOR)
+        EEPROM_READ(dhtsensor.pin);
+        EEPROM_READ(dhtsensor.type);
       #endif
 
       #if !HAS_LCD_CONTRAST
@@ -1331,6 +1348,11 @@ void EEPROM::Factory_Settings() {
 
   #endif // HEATER_COUNT > 0
 
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.pin   = DHT_DATA_PIN;
+    dhtsensor.type  = DHT_TYPE;
+  #endif
+
   #if ENABLED(FWRETRACT)
     fwretract.reset();
   #endif
@@ -1583,7 +1605,7 @@ void EEPROM::Factory_Settings() {
     #elif HAS_ABL
 
       CONFIG_MSG_START("Auto Bed Leveling:");
-      SERIAL_SMV(CFG, "  M320 S", bedlevel.leveling_active ? 1 : 0);
+      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_active ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(bedlevel.z_fade_height));
       #endif

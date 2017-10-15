@@ -1,6 +1,6 @@
 ### Version 4.3.29 dev
 * New calculation system for thermistors
-* Add command M305 - Set thermistor and ADC parameters
+* Add command M305 - Set thermistor and ADC parameters and DHT sensor parameters
 * Unified commands M320 and M420 in M420 for all Bed Level
 * Add EMERGENCY_PARSER to Due
 * Fix and clear code

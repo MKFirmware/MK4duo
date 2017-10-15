@@ -102,6 +102,32 @@
  * M35  - Upload Firmware to Nextion from SD
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
  * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
+ *
+ * M43         - report name and state of pin(s)
+ *                 P<pin>  Pin to read or watch. If omitted, reads all pins.
+ *                 I       Flag to ignore Marlin's pin protection.
+ *
+ * M43 W       - Watch pins -reporting changes- until reset, click, or M108.
+ *                 P<pin>  Pin to read or watch. If omitted, read/watch all pins.
+ *                 I       Flag to ignore Marlin's pin protection.
+ *
+ * M43 E<bool> - Enable / disable background endstop monitoring
+ *                 - Machine continues to operate
+ *                 - Reports changes to endstops
+ *                 - Toggles LED when an endstop changes
+ *                 - Can not reliably catch the 5mS pulse from BLTouch type probes
+ *
+ * M43 T       - Toggle pin(s) and report which pin is being toggled
+ *                 S<pin>  - Start Pin number.   If not given, will default to 0
+ *                 L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
+ *                 I       - Flag to ignore Marlin's pin protection.   Use with caution!!!!
+ *                 R       - Repeat pulses on each pin this number of times before continueing to next pin
+ *                 W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
+ *
+ * M43 S       - Servo probe test
+ *                 P<index> - Probe index (optional - defaults to 0
+ * M44  - Codes debug - report codes available (and how many of them there are)
+ *          I G-code list, J M-code list
  * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
  * M70  - Power consumption sensor calibration
  * M75  - Start the print job timer
@@ -188,7 +214,7 @@
  * M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
  *          L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin
- * M323 - Set Level bilinear manual - X<gridx> Y<gridy> Z<level val> S<level add>
+ *        Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Turn case lights on/off

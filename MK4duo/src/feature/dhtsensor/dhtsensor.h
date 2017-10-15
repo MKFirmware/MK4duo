@@ -31,39 +31,50 @@
 
 #if ENABLED(DHT_SENSOR)
 
-  enum class DhtSensorType { Dht11, Dht21, Dht22 };
+  // Define types of sensors.
+  #define DHT11 11
+  #define DHT21 21
+  #define DHT22 22
 
   class DhtSensor {
 
     public: /** Constructor */
 
-      DhtSensor() {}
+      DhtSensor(const Pin _pin, const uint8_t _type);
 
     public: /** Public Parameters */
+
+      Pin     pin;
+      uint8_t type;
 
     private: /** Private Parameters */
 
       uint8_t data[5];
 
-      DhtSensorType type = DhtSensorType::Dht11;
+      #if ENABLED(__AVR__)
+        // Use direct GPIO access on an 8-bit AVR so keep track of the port and bitmask
+        // for the digital pin connected to the DHT. Other platforms will use digitalRead.
+        uint8_t _bit, _port;
+      #endif
 
-      uint32_t  lastreadtime,
+      millis_t  lastreadtime,
                 maxcycles;
 
       bool lastresult;
 
     public: /** Public Function */
 
-      void init();
-      void Configure(const uint8_t dhtType);
+      void init(void);
+      void change_type(const uint8_t dhtType);
+      void print_parameters(void);
 
       float readTemperature(const bool force=false);
-      float readHumidity(const bool force=false);
+      float readHumidity();
 
     private: /** Private Funtion */
 
       bool read(const bool force=false);
-      uint32_t expectPulse(bool level);
+      uint32_t expectPulse(const bool level);
 
   };
 
