@@ -32,13 +32,7 @@
  * M532: X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  */
 inline void gcode_M532(void) {
-  if (parser.seen('X'))
-    printer.progress = parser.value_float();
-  if (printer.progress > 100.0)
-    printer.progress = 100.0;
-  else if (printer.progress < 0)
-    printer.progress = 0;
-
-  if (parser.seen('L'))
-    printer.currentLayer = parser.value_long();
+  printer.progress = parser.intval('X');
+  NOMORE(printer.progress, 100);
+  printer.currentLayer = parser.longval('L');
 }

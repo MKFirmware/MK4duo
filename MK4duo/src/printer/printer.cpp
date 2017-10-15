@@ -42,7 +42,7 @@ volatile bool Printer::wait_for_user = false;
 long    Printer::currentLayer  = 0,
         Printer::maxLayer      = -1;   // -1 = unknown
 char    Printer::printName[21] = "";   // max. 20 chars + 0
-float   Printer::progress      = 0.0;
+uint8_t Printer::progress      = 0;
 
 uint8_t Printer::host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
 

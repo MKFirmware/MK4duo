@@ -563,60 +563,46 @@ static void lcd_implementation_status_screen() {
       u8g.drawPixel(50, 43 - (TALL_FONT_CORRECTION));         // 43 (or 42)
     }
 
-    //
-    // Progress bar frame
-    //
+  #endif
 
-    #define PROGRESS_BAR_X 54
-    #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
+  //
+  // Progress bar frame
+  //
 
-    if (PAGE_CONTAINS(49, 52 - (TALL_FONT_CORRECTION)))       // 49-52 (or 49-51)
-      u8g.drawFrame(
-        PROGRESS_BAR_X, 49,
-        PROGRESS_BAR_WIDTH, 4 - (TALL_FONT_CORRECTION)
-      );
+  #define PROGRESS_BAR_X 54
+  #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
 
-    if (IS_SD_PRINTING) {
+  if (PAGE_CONTAINS(49, 52 - (TALL_FONT_CORRECTION)))       // 49-52 (or 49-51)
+    u8g.drawFrame(
+      PROGRESS_BAR_X, 49,
+      PROGRESS_BAR_WIDTH, 4 - (TALL_FONT_CORRECTION)
+    );
 
-      //
-      // Progress bar solid part
-      //
+  //
+  // Progress bar solid part
+  //
 
-      if (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION)))     // 50-51 (or just 50)
-        u8g.drawBox(
-          PROGRESS_BAR_X + 1, 50,
-          (uint16_t)((PROGRESS_BAR_WIDTH - 2) * card.percentDone() * 0.01), 2 - (TALL_FONT_CORRECTION)
-        );
-    }
+  if (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION)))     // 50-51 (or just 50)
+    u8g.drawBox(
+      PROGRESS_BAR_X + 1, 50,
+      (uint16_t)((PROGRESS_BAR_WIDTH - 2) * printer.progress * 0.01), 2 - (TALL_FONT_CORRECTION)
+    );
 
-    //
-    // Elapsed Time
-    //
+  //
+  // Elapsed Time
+  //
 
-    if (PAGE_CONTAINS(41, 48)) {
+  if (PAGE_CONTAINS(41, 48)) {
 
-      char buffer1[10];
-      char buffer2[10];
-      duration_t elapsed  = print_job_counter.duration();
-      duration_t finished = (print_job_counter.duration() * (100 - card.percentDone())) / (card.percentDone() + 0.1);
-      uint8_t len1 = elapsed.toDigital(buffer1, false),
-              len2 = finished.toDigital(buffer2, false);
+    char buffer1[10];
+    char buffer2[10];
+    duration_t elapsed  = print_job_counter.duration();
+    duration_t finished = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
+    uint8_t len1 = elapsed.toDigital(buffer1, false),
+            len2 = finished.toDigital(buffer2, false);
 
-      #if HAS_LCD_POWER_SENSOR
-        if (millis() < print_millis + 1000) {
-          u8g.setPrintPos(54, 48);
-          lcd_print('S');
-          lcd_print(buffer1);
-
-          u8g.setPrintPos(92, 48);
-          u8g.print('E');
-          lcd_print(buffer2);
-        }
-        else {
-          lcd_print(itostr4(powerManager.consumption_hour - powerManager.startpower));
-          lcd_print((char*)"Wh");
-        }
-      #else
+    #if HAS_LCD_POWER_SENSOR
+      if (millis() < print_millis + 1000) {
         u8g.setPrintPos(54, 48);
         lcd_print('S');
         lcd_print(buffer1);
@@ -624,10 +610,21 @@ static void lcd_implementation_status_screen() {
         u8g.setPrintPos(92, 48);
         u8g.print('E');
         lcd_print(buffer2);
-      #endif
-    }
+      }
+      else {
+        lcd_print(itostr4(powerManager.consumption_hour - powerManager.startpower));
+        lcd_print((char*)"Wh");
+      }
+    #else
+      u8g.setPrintPos(54, 48);
+      lcd_print('S');
+      lcd_print(buffer1);
 
-  #endif
+      u8g.setPrintPos(92, 48);
+      u8g.print('E');
+      lcd_print(buffer2);
+    #endif
+  }
 
   //
   // XYZ Coordinates

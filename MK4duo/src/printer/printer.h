@@ -67,10 +67,10 @@ class Printer {
     static bool relative_mode,
                 axis_relative_modes[];
 
-    static long   currentLayer,
-                  maxLayer;       // -1 = unknown
-    static char   printName[21];  // max. 20 chars + 0
-    static float  progress;
+    static long     currentLayer,
+                    maxLayer;       // -1 = unknown
+    static char     printName[21];  // max. 20 chars + 0
+    static uint8_t  progress;
 
     static millis_t max_inactive_time;
 
