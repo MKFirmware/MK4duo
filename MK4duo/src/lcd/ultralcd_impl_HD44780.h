@@ -791,7 +791,7 @@ static void lcd_implementation_status_screen() {
         lcd.setCursor(0, 2);
         lcd_printPGM(PSTR("SD"));
         if (IS_SD_PRINTING)
-          lcd.print(itostr3(card.percentDone()));
+          lcd.print(itostr3(printer.progress));
         else
           lcd_printPGM(PSTR("---"));
         lcd.write('%');
@@ -851,7 +851,7 @@ static void lcd_implementation_status_screen() {
       lcd.setCursor(7, 2);
       lcd_printPGM(PSTR("SD"));
       if (IS_SD_PRINTING)
-        lcd.print(itostr3(card.percentDone()));
+        lcd.print(itostr3(printer.progress));
       else
         lcd_printPGM(PSTR("---"));
       lcd.write('%');
@@ -890,10 +890,8 @@ static void lcd_implementation_status_screen() {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (IS_SD_FILE_OPEN && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])) {
-      const uint8_t percent = card.percentDone();
-      if (percent) return lcd_draw_progress_bar(percent);
-    }
+    if (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0])
+      if (printer.progress) return lcd_draw_progress_bar(printer.progress);
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
 

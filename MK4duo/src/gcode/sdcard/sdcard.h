@@ -71,7 +71,8 @@
    */
   inline void gcode_M23(void) {
     // Simplify3D includes the size, so zero out all spaces (#7227)
-    for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
+    // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere
+    //for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
     card.selectFile(parser.string_arg);
   }
 

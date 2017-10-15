@@ -312,6 +312,8 @@ void Commands::get_serial_commands() {
         if (!sd_comment_mode) command_queue[cmd_queue_index_w][sd_count++] = sd_char;
       }
     }
+
+    printer.progress = card.percentDone();
   }
 
 #endif // SDSUPPORT
