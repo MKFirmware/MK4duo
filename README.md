@@ -84,6 +84,8 @@ The new features are:
 * Added DAV system for filament runout
 * Added Extruder Encoder for control filament movement (Experimental)
 * Added Adafruit Neopixel LED
+* Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
+
 
 ## Credits
 
