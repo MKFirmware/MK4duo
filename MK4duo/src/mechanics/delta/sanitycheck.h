@@ -28,6 +28,7 @@
 
 // Delta requirements
 #if MECH(DELTA)
+
   #if ABL_GRID
     #if (GRID_MAX_POINTS_X & 1) == 0  || (GRID_MAX_POINTS_Y & 1) == 0
       #error "DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be odd numbers."
@@ -94,7 +95,7 @@
   #if DISABLED(TOWER_C_DIAGROD_ADJ)
     #error DEPENDENCY ERROR: Missing setting TOWER_C_DIAGROD_ADJ
   #endif
-  
+
   #if ENABLED(AUTO_BED_LEVELING_FEATURE)
     #if DISABLED(XY_PROBE_SPEED)
       #error DEPENDENCY ERROR: Missing setting XY_PROBE_SPEED
@@ -127,5 +128,12 @@
       #error DEPENDENCY ERROR: Missing setting Z_PROBE_BETWEEN_HEIGHT
     #endif
   #endif
-  
-#endif
+
+  /**
+   * Babystepping
+   */
+  #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_XY)
+    #error "BABYSTEPPING only implemented for Z axis on deltabots."
+  #endif
+
+#endif // MECH(DELTA)

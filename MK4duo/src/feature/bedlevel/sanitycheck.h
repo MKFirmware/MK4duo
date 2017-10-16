@@ -27,21 +27,6 @@
  */
 
 /**
- * Babystepping
- */
-#if ENABLED(BABYSTEPPING)
-  #if DISABLED(ULTRA_LCD)
-    #error "BABYSTEPPING requires an LCD controller."
-  #endif
-  #if IS_SCARA
-    #error "BABYSTEPPING is not implemented for SCARA yet."
-  #endif
-  #if MECH(DELTA) && ENABLED(BABYSTEP_XY)
-    #error "BABYSTEPPING only implemented for Z axis on deltabots."
-  #endif
-#endif
-
-/**
  * Allow only one bed leveling option to be defined
  */
 static_assert(1 >= 0
@@ -67,12 +52,10 @@ static_assert(1 >= 0
  * Bed Leveling Requirements
  */
 
+/**
+ * Unified Bed Leveling
+ */
 #if ENABLED(AUTO_BED_LEVELING_UBL)
-
-  /**
-   * Unified Bed Leveling
-   */
-
   #if IS_SCARA
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
   #elif DISABLED(EEPROM_SETTINGS)
@@ -94,7 +77,6 @@ static_assert(1 >= 0
     #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
   #endif
 #endif
-
 
 /**
  * ENABLE_LEVELING_FADE_HEIGHT requirements

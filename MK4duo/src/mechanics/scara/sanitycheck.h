@@ -28,6 +28,7 @@
 
 // Configuration settings
 #if IS_SCARA
+
   #if DISABLED(SCARA_LINKAGE_1)
     #error DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_1
   #endif
@@ -46,4 +47,12 @@
   #if DISABLED(PSI_HOMING_OFFSET)
     #error DEPENDENCY ERROR: Missing setting PSI_HOMING_OFFSET
   #endif
-#endif
+
+  /**
+   * Babystepping
+   */
+  #if ENABLED(BABYSTEPPING)
+    #error "BABYSTEPPING is not implemented for SCARA yet."
+  #endif
+  
+#endif // IS_SCARA

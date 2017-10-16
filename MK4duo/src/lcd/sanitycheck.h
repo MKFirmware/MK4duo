@@ -25,127 +25,6 @@
  *
  * Test configuration values for errors at compile-time.
  */
- 
-// Language
-#if DISABLED(LCD_LANGUAGE)
-  #error DEPENDENCY ERROR: Missing setting LCD_LANGUAGE
-#endif
-
-
-// Progress Bar
-#if ENABLED(LCD_PROGRESS_BAR)
-  #if ENABLED(DOGLCD)
-    #error "LCD_PROGRESS_BAR does not apply to graphical displays."
-  #elif ENABLED(FILAMENT_LCD_DISPLAY)
-    #error "LCD_PROGRESS_BAR and FILAMENT_LCD_DISPLAY are not fully compatible. Comment out this line to use both."
-  #endif
-#endif
-
-
-// Progress bar
-#if ENABLED(ULTIPANEL)
-  #if ENABLED(LCD_PROGRESS_BAR)
-    #if DISABLED(PROGRESS_BAR_BAR_TIME)
-      #error DEPENDENCY ERROR: Missing setting PROGRESS_BAR_BAR_TIME
-    #endif
-    #if DISABLED(PROGRESS_BAR_MSG_TIME)
-      #error DEPENDENCY ERROR: Missing setting PROGRESS_BAR_MSG_TIME
-    #endif
-    #if DISABLED(PROGRESS_MSG_EXPIRE)
-      #error DEPENDENCY ERROR: Missing setting PROGRESS_MSG_EXPIRE
-    #endif
-  #endif
-#endif
-
-
-// LCD_BED_LEVELING requirements
-#if ENABLED(LCD_BED_LEVELING)
-  #if !HAS_LCD
-    #error "LCD_BED_LEVELING requires an LCD controller."
-  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
-  #endif
-#endif
-
-
-// Bootscreen
-#if ENABLED(SHOW_BOOTSCREEN)
-  #if DISABLED(STRING_SPLASH_LINE1)
-    #error DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1
-  #endif
-  #if DISABLED(BOOTSCREEN_TIMEOUT)
-    #error DEPENDENCY ERROR: Missing setting BOOTSCREEN_TIMEOUT
-  #endif
-#endif
-
-
-// Encoder rate multipliers
-#if ENABLED(ULTIPANEL)
-  #if ENABLED(ENCODER_RATE_MULTIPLIER)
-    #if DISABLED(ENCODER_10X_STEPS_PER_SEC)
-      #error DEPENDENCY ERROR: Missing setting ENCODER_10X_STEPS_PER_SEC
-    #endif
-    #if DISABLED(ENCODER_100X_STEPS_PER_SEC)
-      #error DEPENDENCY ERROR: Missing setting ENCODER_100X_STEPS_PER_SEC
-    #endif
-  #endif
-#endif
-
-
-// RepRapWorld keypad move step
-#if ENABLED(REPRAPWORLD_KEYPAD)
-  #if DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
-    #error DEPENDENCY ERROR: Missing setting REPRAPWORLD_KEYPAD_MOVE_STEP
-  #endif
-#endif
-
-
-// Manual feedrate
-#if ENABLED(ULTIPANEL) && DISABLED(MANUAL_FEEDRATE)
-  #error DEPENDENCY ERROR: Missing setting MANUAL_FEEDRATE
-#endif
-
-
-// Required LCD language
-#if DISABLED(DOGLCD) && ENABLED(ULTRA_LCD) && DISABLED(DISPLAY_CHARSET_HD44780)
-  #error "You must set DISPLAY_CHARSET_HD44780 to JAPANESE, WESTERN or CYRILLIC for your LCD controller."
-#endif
-
-
-// ULTIPANEL encoder
-#if ENABLED(ULTIPANEL) && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
-  #error DEPENDENCY ERROR: ULTIPANEL requires some kind of encoder.
-#endif
-#if ENCODER_PULSES_PER_STEP < 0
-  #error "ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
-#endif
-
-
-// Easy load
-#if ENABLED(EASY_LOAD)
-  #if DISABLED(BOWDEN_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting BOWDEN_LENGTH
-  #endif
-  #if DISABLED(LCD_PURGE_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting LCD_PURGE_LENGTH
-  #endif
-  #if DISABLED(LCD_RETRACT_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting LCD_RETRACT_LENGTH
-  #endif
-  #if DISABLED(LCD_PURGE_FEEDRATE)
-    #error DEPENDENCY ERROR: Missing setting LCD_PURGE_FEEDRATE
-  #endif
-  #if DISABLED(LCD_RETRACT_FEEDRATE)
-    #error DEPENDENCY ERROR: Missing setting LCD_RETRACT_FEEDRATE
-  #endif
-  #if DISABLED(LCD_LOAD_FEEDRATE)
-    #error DEPENDENCY ERROR: Missing setting LCD_LOAD_FEEDRATE
-  #endif
-  #if DISABLED(LCD_UNLOAD_FEEDRATE)
-    #error DEPENDENCY ERROR: Missing setting LCD_UNLOAD_FEEDRATE
-  #endif
-#endif
-
 
 /**
  * Make sure only one display is enabled
@@ -268,3 +147,118 @@ static_assert(1 >= 0
   #endif
   , "Please select no more than one LCD controller option."
 );
+
+// Language
+#if DISABLED(LCD_LANGUAGE)
+  #error DEPENDENCY ERROR: Missing setting LCD_LANGUAGE
+#endif
+
+// Progress Bar
+#if ENABLED(LCD_PROGRESS_BAR)
+  #if ENABLED(DOGLCD)
+    #error "LCD_PROGRESS_BAR does not apply to graphical displays."
+  #elif ENABLED(FILAMENT_LCD_DISPLAY)
+    #error "LCD_PROGRESS_BAR and FILAMENT_LCD_DISPLAY are not fully compatible. Comment out this line to use both."
+  #endif
+#endif
+
+// Progress bar
+#if ENABLED(ULTIPANEL)
+  #if ENABLED(LCD_PROGRESS_BAR)
+    #if DISABLED(PROGRESS_BAR_BAR_TIME)
+      #error DEPENDENCY ERROR: Missing setting PROGRESS_BAR_BAR_TIME
+    #endif
+    #if DISABLED(PROGRESS_BAR_MSG_TIME)
+      #error DEPENDENCY ERROR: Missing setting PROGRESS_BAR_MSG_TIME
+    #endif
+    #if DISABLED(PROGRESS_MSG_EXPIRE)
+      #error DEPENDENCY ERROR: Missing setting PROGRESS_MSG_EXPIRE
+    #endif
+  #endif
+#endif
+
+// LCD_BED_LEVELING requirements
+#if ENABLED(LCD_BED_LEVELING)
+  #if !HAS_LCD
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
+  #endif
+#endif
+
+// Bootscreen
+#if ENABLED(SHOW_BOOTSCREEN)
+  #if DISABLED(STRING_SPLASH_LINE1)
+    #error DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1
+  #endif
+  #if DISABLED(BOOTSCREEN_TIMEOUT)
+    #error DEPENDENCY ERROR: Missing setting BOOTSCREEN_TIMEOUT
+  #endif
+#endif
+
+// Encoder rate multipliers
+#if ENABLED(ULTIPANEL)
+  #if ENABLED(ENCODER_RATE_MULTIPLIER)
+    #if DISABLED(ENCODER_10X_STEPS_PER_SEC)
+      #error DEPENDENCY ERROR: Missing setting ENCODER_10X_STEPS_PER_SEC
+    #endif
+    #if DISABLED(ENCODER_100X_STEPS_PER_SEC)
+      #error DEPENDENCY ERROR: Missing setting ENCODER_100X_STEPS_PER_SEC
+    #endif
+  #endif
+#endif
+
+// RepRapWorld keypad move step
+#if ENABLED(REPRAPWORLD_KEYPAD)
+  #if DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
+    #error DEPENDENCY ERROR: Missing setting REPRAPWORLD_KEYPAD_MOVE_STEP
+  #endif
+#endif
+
+// Manual feedrate
+#if ENABLED(ULTIPANEL) && DISABLED(MANUAL_FEEDRATE)
+  #error DEPENDENCY ERROR: Missing setting MANUAL_FEEDRATE
+#endif
+
+// Required LCD language
+#if DISABLED(DOGLCD) && ENABLED(ULTRA_LCD) && DISABLED(DISPLAY_CHARSET_HD44780)
+  #error "You must set DISPLAY_CHARSET_HD44780 to JAPANESE, WESTERN or CYRILLIC for your LCD controller."
+#endif
+
+// ULTIPANEL encoder
+#if ENABLED(ULTIPANEL) && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
+  #error DEPENDENCY ERROR: ULTIPANEL requires some kind of encoder.
+#endif
+#if ENCODER_PULSES_PER_STEP < 0
+  #error "ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
+#endif
+
+// Easy load
+#if ENABLED(EASY_LOAD)
+  #if DISABLED(BOWDEN_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting BOWDEN_LENGTH
+  #endif
+  #if DISABLED(LCD_PURGE_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting LCD_PURGE_LENGTH
+  #endif
+  #if DISABLED(LCD_RETRACT_LENGTH)
+    #error DEPENDENCY ERROR: Missing setting LCD_RETRACT_LENGTH
+  #endif
+  #if DISABLED(LCD_PURGE_FEEDRATE)
+    #error DEPENDENCY ERROR: Missing setting LCD_PURGE_FEEDRATE
+  #endif
+  #if DISABLED(LCD_RETRACT_FEEDRATE)
+    #error DEPENDENCY ERROR: Missing setting LCD_RETRACT_FEEDRATE
+  #endif
+  #if DISABLED(LCD_LOAD_FEEDRATE)
+    #error DEPENDENCY ERROR: Missing setting LCD_LOAD_FEEDRATE
+  #endif
+  #if DISABLED(LCD_UNLOAD_FEEDRATE)
+    #error DEPENDENCY ERROR: Missing setting LCD_UNLOAD_FEEDRATE
+  #endif
+#endif
+
+// Babystepping
+#if ENABLED(BABYSTEPPING) && DISABLED(ULTRA_LCD)
+  #error "BABYSTEPPING requires an LCD controller."
+#endif

@@ -44,7 +44,7 @@
 /**
  * Configuration settings loading
  */
- 
+
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
 

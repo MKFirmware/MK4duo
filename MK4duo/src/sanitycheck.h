@@ -86,8 +86,7 @@
 #include "feature/fwretract/sanitycheck.h"
 #include "feature/advanced_pause/sanitycheck.h"
 
-// PER @MAGOKIMBRA
-// CONTROLLI ANCORA DA RICOLLOCARE, NON SO BENE DOVE METTERLI:
+// CONTROLLI ANCORA DA RICOLLOCARE...
 
 // Alligatorboard
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
@@ -121,8 +120,6 @@
     #error DEPENDENCY ERROR: Missing setting CARTER_MOLTIPLICATOR
   #endif
 #endif
-
-
 
 /**
  * Filament Runout needs a pin and M600 command
@@ -158,8 +155,6 @@
 #if ENABLED(CHDK) && !PIN_EXISTS(CHDK)
   #error DEPENDENCY ERROR: You have to set CHDK_PIN to a valid pin if you enable CHDK
 #endif
-
-
 
 // Buffer
 #if DISABLED(BLOCK_BUFFER_SIZE)
