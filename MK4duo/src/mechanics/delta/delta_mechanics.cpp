@@ -26,7 +26,7 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../base.h"
+#include "../../../base.h"
 #include "delta_mechanics.h"
 
 #if IS_DELTA
@@ -402,7 +402,7 @@
     Q2 = sq(Q);
     D2 = sq(delta_diagonal_rod);
 
-    const float tempHeight = delta_diagonal_rod;		// any sensible height will do here, probably even zero
+    const float tempHeight = delta_diagonal_rod;    // any sensible height will do here, probably even zero
     float cartesian[ABC];
     InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
     homed_height = delta_height + tempHeight - cartesian[C_AXIS];
@@ -783,7 +783,7 @@
     // 6 = delta_diagonal_rod rod length
     // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
     float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
-      const float perturb = 0.2;			// perturbation amount in mm or degrees
+      const float perturb = 0.2;      // perturbation amount in mm or degrees
       Delta_Mechanics hiParams(*this), loParams(*this);
 
       switch(deriv) {
