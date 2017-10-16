@@ -1,0 +1,55 @@
+/**
+ * MK4duo Firmware for 3D Printer, Laser and CNC
+ *
+ * Based on Marlin, Sprinter and grbl
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * sanitycheck.h
+ *
+ * Test configuration values for errors at compile-time.
+ */
+
+ #if ENABLED(FILAMENT_SENSOR) && !PIN_EXISTS(FILWIDTH)
+  #error DEPENDENCY ERROR: You have to set FILWIDTH_PIN to a valid pin if you enable FILAMENT_SENSOR
+#endif
+ 
+#if ENABLED(FILAMENT_SENSOR)
+  #if DISABLED(FILAMENT_SENSOR_EXTRUDER_NUM)
+    #error DEPENDENCY ERROR: Missing setting FILAMENT_SENSOR_EXTRUDER_NUM
+  #endif
+  #if DISABLED(MEASUREMENT_DELAY_CM)
+    #error DEPENDENCY ERROR: Missing setting MEASUREMENT_DELAY_CM
+  #endif
+  #if DISABLED(DEFAULT_NOMINAL_FILAMENT_DIA)
+    #error DEPENDENCY ERROR: Missing setting DEFAULT_NOMINAL_FILAMENT_DIA 
+  #endif
+  #if DISABLED(MEASURED_UPPER_LIMIT)
+    #error DEPENDENCY ERROR: Missing setting MEASURED_UPPER_LIMIT
+  #endif
+  #if DISABLED(MEASURED_LOWER_LIMIT)
+    #error DEPENDENCY ERROR: Missing setting MEASURED_LOWER_LIMIT
+  #endif
+  #if DISABLED(MAX_MEASUREMENT_DELAY)
+    #error DEPENDENCY ERROR: Missing setting MAX_MEASUREMENT_DELAY
+  #endif
+  #if DISABLED(DEFAULT_MEASURED_FILAMENT_DIA)
+    #error DEPENDENCY ERROR: Missing setting DEFAULT_MEASURED_FILAMENT_DIA
+  #endif
+#endif

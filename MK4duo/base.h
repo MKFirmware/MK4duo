@@ -41,6 +41,10 @@
 #include "src/macros.h"
 #include "Boards.h"
 
+/**
+ * Configuration settings loading
+ */
+ 
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
 
@@ -84,6 +88,10 @@
 #include "src/HAL/HAL.h"
 #include "src/enum.h"
 
+/**
+ * Modules loading
+ */
+
 #if ENABLED(LASER)
   #if ENABLED(LASER_RASTER)
     #include "src/laser/base64/base64.h"
@@ -91,6 +99,7 @@
   #include "src/laser/laser.h"
 #endif
 
+// Core modules
 #include "src/tools/tools.h"
 #include "src/tools/nozzle.h"
 #include "src/fan/fan.h"
@@ -106,20 +115,20 @@
 #include "src/heater/heater.h"
 #include "src/temperature/temperature.h"
 
-// LCD
+// LCD modules
 #include "src/lcd/language/language.h"
 #include "src/lcd/ultralcd.h"
 #include "src/lcd/nextion/Nextion_lcd.h"
 
-// SD
+// SD modules
 #include "src/sd/cardreader.h"
 
-// Utility
+// Utility modules
 #include "src/utility/utility.h"
 #include "src/utility/hex_print_routines.h"
 #include "src/utility/bezier.h"
 
-// Feature
+// Feature modules
 #include "src/feature/printcounter/duration_t.h"
 #include "src/feature/printcounter/printcounter.h"
 #include "src/feature/probe/probe.h"
@@ -142,6 +151,10 @@
 #include "src/feature/rgbled/blinkm.h"
 #include "src/feature/rgbled/neopixel.h"
 #include "src/feature/rgbled/pca9632.h"
+
+/**
+ * External libraries loading
+ */
 
 #if HAS_DIGIPOTSS
   #include <SPI.h>
