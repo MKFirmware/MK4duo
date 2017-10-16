@@ -37,7 +37,7 @@
    *   M421 I<xindex> J<yindex> Z<linear>
    *   M421 I<xindex> J<yindex> Q<offset>
    */
-  inline void gcode_M321(void) {
+  inline void gcode_M421(void) {
     int8_t ix = parser.intval('I', -1), iy = parser.intval('J', -1);
     const bool  hasI = ix >= 0,
                 hasJ = iy >= 0,
