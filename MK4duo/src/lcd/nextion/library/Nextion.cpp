@@ -488,6 +488,7 @@
 
     bool NexUpload::_checkFile(void) {
       SERIAL_EMT("Start checkFile ", _file_name);
+      card.setroot();
       if (!nextion_file.open(card.curDir, _file_name, O_READ)) {
         SERIAL_LM(ER, "file is not exit");
         return false;

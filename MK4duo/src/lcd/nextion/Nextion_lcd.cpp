@@ -59,7 +59,9 @@
   const float manual_feedrate_mm_m[]  = MANUAL_FEEDRATE;
 
   #if HAS_SDSUPPORT
-    uint8_t SDstatus    = 0; // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
+    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
+    enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_PRINTING = 3 };
+    SDstatus_enum SDstatus    = NO_SD;
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
 
@@ -136,7 +138,7 @@
   NexObject Hotend2     = NexObject(2,  28, "t4");
   NexObject Fanspeed    = NexObject(2,  29, "t5");
   NexObject Wavetemp    = NexObject(2,  30, "s0");
-  NexObject sdbar       = NexObject(2,  31, "j0");
+  NexObject progressbar = NexObject(2,  31, "j0");
   NexObject LcdX        = NexObject(2,  32, "t6");
   NexObject LcdY        = NexObject(2,  33, "t7");
   NexObject LcdZ        = NexObject(2,  34, "t8");
@@ -438,9 +440,9 @@
     #if HAS_SDSUPPORT
       card.mount();
       if (card.cardOK)
-        SDstatus = 2;
+        SDstatus = SD_INSERT;
       else
-        SDstatus = 1;
+        SDstatus = SD_NO_INSERT;
       SD.setValue(SDstatus, "printer");
     #endif
 
@@ -521,7 +523,7 @@
   #if HAS_SDSUPPORT
 
     void UploadNewFirmware() {
-      if(IS_SD_INSERTED || card.cardOK) {
+      if (IS_SD_INSERTED || card.cardOK) {
         Firmware.startUpload();
         nexSerial.end();
         lcd_init();
@@ -602,14 +604,14 @@
       if (ptr == &sd_mount) {
         card.mount();
         if (card.cardOK)
-          SDstatus = 2;
+          SDstatus = SD_INSERT;
         else
-          SDstatus = 1;
+          SDstatus = SD_NO_INSERT;
         SD.setValue(SDstatus, "printer");
       }
       else {
         card.unmount();
-        SDstatus = 1;
+        SDstatus = SD_NO_INSERT;
         SD.setValue(SDstatus, "printer");
       }
       setpageSD();
@@ -1334,38 +1336,39 @@
 
         coordtoLCD();
 
+        if (PreviouspercentDone != printer.progress) {
+          // Progress bar solid part
+          progressbar.setValue(printer.progress);
+          // Estimate End Time
+          uint16_t time = print_job_counter.duration() / 60;
+          uint16_t end_time = (time * (100 - printer.progress)) / (printer.progress + 0.1);
+          if (end_time > (60 * 23) || end_time == 0) {
+            LcdTime.setText("S--:-- E--:--");
+          }
+          else {
+            char temp1[10], temp2[10];
+            sprintf_P(temp1, PSTR("S%i:%i"), time / 60, time%60);
+            sprintf_P(temp2, PSTR("E%i:%i"), end_time / 60, end_time%60);
+            ZERO(buffer);
+            strcat(buffer, temp1);
+            strcat(buffer, " ");
+            strcat(buffer, temp2);
+            LcdTime.setText(buffer);
+          }
+          PreviouspercentDone = printer.progress;
+        }
+
         #if HAS_SDSUPPORT
 
           if (card.isFileOpen()) {
-            if (SDstatus != 3) {
-              SDstatus = 3;
+            if (SDstatus != SD_PRINTING) {
+              SDstatus = SD_PRINTING;
               SD.setValue(SDstatus);
+            }
+            if (IS_SD_PRINTING) {
               NPlay.setPic(28);
               NStop.setPic(29);
               NSStop.setPic(177);
-            }
-            if (IS_SD_PRINTING) {
-              if (PreviouspercentDone != card.percentDone()) {
-                // Progress bar solid part
-                sdbar.setValue(card.percentDone());
-                // Estimate End Time
-                uint16_t time = print_job_counter.duration() / 60;
-                uint16_t end_time = (time * (100 - card.percentDone())) / card.percentDone();
-                if (end_time > (60 * 23) || end_time == 0) {
-                  LcdTime.setText("S--:-- E--:--");
-                }
-                else {
-                  char temp1[10], temp2[10];
-                  sprintf_P(temp1, PSTR("S%i:%i"), time / 60, time%60);
-                  sprintf_P(temp2, PSTR("E%i:%i"), end_time / 60, end_time%60);
-                  ZERO(buffer);
-                  strcat(buffer, temp1);
-                  strcat(buffer, " ");
-                  strcat(buffer, temp2);
-                  LcdTime.setText(buffer);
-                }
-                PreviouspercentDone = card.percentDone();
-              }
             }
             else {
               NPlay.setPic(26);
@@ -1373,15 +1376,15 @@
               NSStop.setPic(177);
             }
           }
-          else if (card.cardOK && SDstatus != 2) {
-            SDstatus = 2;
+          else if (card.cardOK && SDstatus != SD_INSERT) {
+            SDstatus = SD_INSERT;
             SD.setValue(SDstatus);
             NPlay.setPic(27);
             NStop.setPic(30);
             NSStop.setPic(178);
           }
-          else if (!card.cardOK && SDstatus != 1) {
-            SDstatus = 1;
+          else if (!card.cardOK && SDstatus != SD_NO_INSERT) {
+            SDstatus = SD_NO_INSERT;
             SD.setValue(SDstatus);
             NPlay.setPic(27);
             NStop.setPic(30);
