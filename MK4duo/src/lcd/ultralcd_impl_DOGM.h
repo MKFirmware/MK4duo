@@ -552,7 +552,7 @@ static void lcd_implementation_status_screen() {
     // SD Card Symbol
     //
 
-    if (PAGE_CONTAINS(42 - (TALL_FONT_CORRECTION), 51 - (TALL_FONT_CORRECTION))) {
+    if (card.isFileOpen() && PAGE_CONTAINS(42 - (TALL_FONT_CORRECTION), 51 - (TALL_FONT_CORRECTION))) {
       // Upper box
       u8g.drawBox(42, 42 - (TALL_FONT_CORRECTION), 8, 7);     // 42-48 (or 41-47)
       // Right edge
@@ -582,7 +582,7 @@ static void lcd_implementation_status_screen() {
   // Progress bar solid part
   //
 
-  if (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION)))     // 50-51 (or just 50)
+  if (printer.progress && (PAGE_CONTAINS(50, 51 - (TALL_FONT_CORRECTION))))     // 50-51 (or just 50)
     u8g.drawBox(
       PROGRESS_BAR_X + 1, 50,
       (uint16_t)((PROGRESS_BAR_WIDTH - 2) * printer.progress * 0.01), 2 - (TALL_FONT_CORRECTION)
