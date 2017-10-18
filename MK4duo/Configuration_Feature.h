@@ -99,7 +99,6 @@
  * - Trinamic TMC2130 motor drivers
  * - L6470 motor drivers
  * ADVANCED FEATURES:
- * - PWM Hardware
  * - Buffer stuff
  * - Nozzle Clean Feature
  * - Nozzle Park
@@ -139,9 +138,9 @@
 // before setting a PWM value.
 //#define FAN_KICKSTART_TIME 200
 
-// This defines the minimal speed for the main fan, run in PWM mode
-// to enable uncomment and set minimal PWM speed for reliable running (1-255)
-//#define FAN_MIN_PWM 50
+// This defines the minimal speed for the main fan
+// set minimal speed for reliable running (1-255)
+#define FAN_MIN_PWM 1
 
 // To reverse the logic of fan pins
 //#define INVERTED_FAN_PINS
@@ -162,7 +161,6 @@
 // the fan will turn on when any selected hotend is above the threshold.
 // You need to set HOTEND AUTO FAN PIN in Configuration_pins.h
 //#define HOTEND_AUTO_FAN
-//#define INVERTED_AUTO_FAN_PINS
 #define HOTEND_AUTO_FAN_TEMPERATURE  50
 #define HOTEND_AUTO_FAN_SPEED       255  // 255 = full speed
 #define HOTEND_AUTO_FAN_MIN_SPEED     0
@@ -1858,18 +1856,6 @@
 //===========================================================================
 //============================= ADVANCED FEATURES ===========================
 //===========================================================================
-
-
-/**********************************************************************************
- ********************************* PWM Hardware ***********************************
- **********************************************************************************
- *                                                                                *
- * Support PWM hardware for SAM processor                                         *
- * This function ability PWM hardware on SAM proccesor, tested only on ALLIGATOR! *
- *                                                                                *
- **********************************************************************************/
-#define PWM_HARDWARE false
-/**********************************************************************************/
 
 
 /****************************************************************************************

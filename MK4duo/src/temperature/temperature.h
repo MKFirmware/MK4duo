@@ -201,7 +201,7 @@ class Temperature {
 
     static uint8_t get_pid_output(const int8_t h);
 
-    static void checkExtruderAutoFans();
+    static void checkHotendAutoFans();
 
     static void _temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg);
     static void min_temp_error(const int8_t h);

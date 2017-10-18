@@ -40,31 +40,59 @@
   /**
    * M106: Set Fan Speed
    *
-   *  S<int>   Speed between 0-255
-   *  P<index> Fan index, if more than one fan
+   *  P<index>  Fan index, if more than one fan
+   *  S<int>    Speed between 0-255
+   *  F<int>    Fan Pin
+   *  L<int>    Min Speed
+   *  I<bool>   Inverted pin output
    */
   inline void gcode_M106(void) {
     const uint8_t speed = parser.byteval('S', 255),
-                  fan   = parser.byteval('P', 0);
-    
-    if (fan >= FAN_COUNT || fans[fan].Speed == speed)
-      return;
+                  f     = parser.byteval('P');
 
-    #if ENABLED(FAN_KICKSTART_TIME)
-      if (fans[fan].Kickstart == 0 && speed > fans[fan].Speed && speed < 85) {
-        if (fans[fan].Speed)  fans[fan].Kickstart = FAN_KICKSTART_TIME / 100;
-        else                  fans[fan].Kickstart = FAN_KICKSTART_TIME / 25;
+    if (f < FAN_COUNT) {
+
+      Fan *fan = &fans[f];
+
+      if (parser.seen('F')) {
+        // Put off the fan
+        fan->Speed = 0;
+        fan->pin = parser.value_int();
+        fan->init();
       }
-    #endif
-    fans[fan].Speed = CALC_FAN_SPEED();
+
+      fan->hardwareInverted = parser.boolval('I');
+      fan->min_Speed        = parser.byteval('L', FAN_MIN_PWM);
+
+      #if ENABLED(FAN_KICKSTART_TIME)
+        if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
+          if (fan->Speed) fan->Kickstart = FAN_KICKSTART_TIME / 100;
+          else            fan->Kickstart = FAN_KICKSTART_TIME / 25;
+        }
+      #endif
+
+      fan->Speed = fan->min_Speed + (speed * (255 - fan->min_Speed)) / 255;
+
+      if (!parser.seen('S')) {
+        char response[50];
+        sprintf_P(response, PSTR("Fan:%i pin:%i, min:%i inverted:%s"),
+            (int)f,
+            (int)fan->pin,
+            (int)fan->min_Speed,
+            (fan->hardwareInverted) ? "true" : "false"
+        );
+        SERIAL_TXT(response);
+        SERIAL_EOL();
+      }
+    }
   }
 
   /**
    * M107: Fan Off
    */
   inline void gcode_M107(void) {
-    uint16_t p = parser.seen('P') ? parser.value_ushort() : 0;
-    if (p < FAN_COUNT) fans[p].Speed = 0;
+    uint8_t f = parser.byteval('P');
+    if (f < FAN_COUNT) fans[f].Speed = 0;
   }
 
 #endif // FAN_COUNT > 0

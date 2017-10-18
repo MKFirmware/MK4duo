@@ -31,8 +31,6 @@
 
 #if FAN_COUNT > 0
 
-  extern void fan_init();
-
   class Fan {
 
     public: /** Constructor */
@@ -41,27 +39,19 @@
 
     public: /** Public Parameters */
 
-      Pin       pin               = -1;
-      uint16_t  Speed             = 0,
-                paused_Speed      = 0;
-      uint8_t   Kickstart         = 0,
-                pwm_pos           = 0;
-      bool      pwm_hardware      = false,
-                hardwareInverted  = false,
-                paused            = false;
-
-    private: /** Private Parameters */
-
-      int16_t lastSpeed = -1;
+      Pin     pin;
+      uint8_t Speed,
+              min_Speed,
+              paused_Speed,
+              Kickstart,
+              pwm_pos;
+      bool    hardwareInverted,
+              paused;
 
     public: /** Public Function */
 
-      void init(Pin p_pin, const bool hwInverted);
+      void init();
       void pause(const bool p);
-
-      #if PWM_HARDWARE
-        void SetHardwarePwm();
-      #endif
 
   };
 

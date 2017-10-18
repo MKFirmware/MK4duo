@@ -1429,12 +1429,4 @@
   #define ANALOG_INPUT_CHANNELS { }
 #endif
 
-/**
- * PWM Hardware
- */
-#if PWM_HARDWARE && DISABLED(ARDUINO_ARCH_SAM)
-  #undef PWM_HARDWARE
-  #define PWM_HARDWARE false
-#endif
-
 #endif /* _CONDITIONALS_POST_H_ */

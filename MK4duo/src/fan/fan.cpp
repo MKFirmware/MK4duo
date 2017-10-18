@@ -35,18 +35,16 @@
   /**
    * Initialize Fans
    */
-  void fan_init() {
-    constexpr Pin fan_channel[] = FANS_CHANNELS;
-    LOOP_FAN() fans[f].init(fan_channel[f], FAN_INVERTED);
-  }
+  void Fan::init() {
 
-  void Fan::init(Pin p_pin, const bool hwInverted) {
+    this->Speed             = 0;
+    this->paused_Speed      = 0;
+    this->Kickstart         = 0;
+    this->pwm_pos           = 0;
+    this->paused            = false;
 
-    this->pin               = p_pin;
-    this->hardwareInverted  = hwInverted;
-    this->pwm_hardware      = PWM_HARDWARE;
-
-    HAL::pinMode(p_pin, OUTPUT);
+    if (this->pin > 0)
+      HAL::pinMode(this->pin, OUTPUT);
   }
 
   void Fan::pause(const bool p) {
@@ -61,25 +59,5 @@
         this->Speed = this->paused_Speed;
     }
   }
-
-  #if PWM_HARDWARE
-
-    void Fan::SetHardwarePwm() {
-      uint8_t pwm_val = 0;
-
-      if (this->pwm_hardware && this->lastSpeed != this->Speed) {
-
-        if (this->hardwareInverted)
-          pwm_val = 255 - this->Speed;
-        else
-          pwm_val = this->Speed;
-
-        this->pwm_hardware = HAL::analogWrite(this->pin, pwm_val, FAN_PWM_FREQ);
-
-        this->lastSpeed = this->Speed;
-      }
-    }
-
-  #endif
 
 #endif // FAN_COUNT > 0
