@@ -37,20 +37,17 @@
   #define TRG_EXTRUDER_IDX  tools.target_extruder
 #endif
 
-typedef enum {
-  IS_HOTEND   = 0,
-  IS_BED      = 1,
-  IS_CHAMBER  = 2,
-  IS_COOLER   = 3
-} Heater_type;
-
 #include "sensor/sensor.h"
-
-class TemperatureSensor;
 
 #if HEATER_COUNT > 0
 
+  typedef enum { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 } Heater_type;
+
   class Heater {
+
+    public: /** Constructor */
+
+      Heater() {}
 
     public: /** Public Parameters */
 
@@ -69,7 +66,6 @@ class TemperatureSensor;
                   Kd,
                   Kc;
       bool        use_pid,
-                  pwm_hardware,
                   hardwareInverted;
 
       #if WATCH_THE_HEATER
@@ -84,10 +80,6 @@ class TemperatureSensor;
     public: /** Public Function */
 
       void init();
-
-      #if PWM_HARDWARE
-        void SetHardwarePwm();
-      #endif
 
       void setTarget(int16_t celsius);
       void print_PID(const uint8_t h=0);

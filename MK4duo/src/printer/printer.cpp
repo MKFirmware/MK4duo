@@ -210,13 +210,7 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  LOOP_HEATER() heaters[h].init();  // Initialize all Heater
-
   thermalManager.init();  // Initialize temperature loop
-
-  #if FAN_COUNT > 0
-    fan_init(); // Initialize Fans
-  #endif
 
   #if ENABLED(CNCROUTER)
     cnc.init();

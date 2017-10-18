@@ -327,7 +327,7 @@ void Temperature::manage_temp_controller() {
 
   #if HAS_AUTO_FAN
     if (ELAPSED(ms, next_auto_fan_check_ms)) { // only need to check fan state very infrequently
-      checkExtruderAutoFans();
+      checkHotendAutoFans();
       next_auto_fan_check_ms = ms + 2500UL;
     }
   #endif
@@ -414,7 +414,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
 
       #if HAS_AUTO_FAN
         if (ELAPSED(ms, next_auto_fan_check_ms)) {
-          checkExtruderAutoFans();
+          checkHotendAutoFans();
           next_auto_fan_check_ms = ms + 2500UL;
         }
       #endif
@@ -853,7 +853,7 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
 #if HAS_AUTO_FAN
 
-  void Temperature::checkExtruderAutoFans() {
+  void Temperature::checkHotendAutoFans() {
     const int fanBit[] = {
                     0,
       AUTO_1_IS_0 ? 0 :               1,

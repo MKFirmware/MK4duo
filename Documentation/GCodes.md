@@ -111,7 +111,7 @@
 *  M100 - Watch Free Memory (For Debugging Only)
 *  M104 - Set hotend target temp
 *  M105 - Read current temp
-*  M106 - S<speed> P<fan> Fan on
+*  M106 - P<fan> S<speed> F<pin> L<min speed> I<inverted logic>
 *  M107 - P<fan> Fan off
 *  M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating

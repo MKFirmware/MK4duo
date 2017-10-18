@@ -546,27 +546,12 @@ HAL_TEMP_TIMER_ISR {
   #endif
 
   /**
-   * Harware PWM or TC
-   */
-  #if PWM_HARDWARE
-
-    #if HEATER_COUNT > 0
-      LOOP_HEATER() heaters[h].SetHardwarePwm();
-    #endif
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].SetHardwarePwm();
-    #endif
-
-  #endif // PWM_HARDWARE
-
-  /**
    * Standard PWM modulation
    */
   if (pwm_count_heater == 0) {
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
-        if (heaters[h].output_pin > -1 && !heaters[h].pwm_hardware && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
+        if ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0)
           HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? LOW : HIGH);
       }
     #endif
@@ -575,7 +560,7 @@ HAL_TEMP_TIMER_ISR {
   if (pwm_count_fan == 0) {
     #if FAN_COUNT >0
       LOOP_FAN() {
-        if (!fans[f].pwm_hardware && ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0))
+        if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
           HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? LOW : HIGH);
       }
     #endif
@@ -583,14 +568,14 @@ HAL_TEMP_TIMER_ISR {
 
   #if HEATER_COUNT > 0
     LOOP_HEATER() {
-      if (heaters[h].output_pin > -1 && !heaters[h].pwm_hardware && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
+      if (heaters[h].output_pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
         HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
     }
   #endif
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      if (fans[f].Kickstart == 0 && !fans[f].pwm_hardware && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
+      if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
         HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
     }
   #endif

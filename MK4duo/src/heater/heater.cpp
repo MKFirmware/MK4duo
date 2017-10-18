@@ -29,123 +29,7 @@
 
 #if HEATER_COUNT > 0
 
-  Heater heaters[HEATER_COUNT] = {
-
-    #if HAS_HEATER_0
-      // Hotend 0
-      { IS_HOTEND, HEATER_0_PIN, 0, 0, PID_MIN, PID_MAX, 0,
-        HEATER_0_MINTEMP, HEATER_0_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMP, PWM_HARDWARE, INVERTED_HEATER_PINS
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_0_PIN, TEMP_SENSOR_0, 2048, 0, 0, HOT0_R25, HOT0_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_1
-      // Hotend 1
-      { IS_HOTEND, HEATER_1_PIN, 0, 0, PID_MIN, PID_MAX, 0,
-        HEATER_1_MINTEMP, HEATER_1_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMP, PWM_HARDWARE, INVERTED_HEATER_PINS
-        #if HEATER_USES_AD595
-          , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-        #endif
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_1_PIN, TEMP_SENSOR_1, 2048, 0, 0, HOT1_R25, HOT1_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_2
-      // Hotend 2
-      { IS_HOTEND, HEATER_2_PIN, 0, 0, PID_MIN, PID_MAX, 0,
-        HEATER_2_MINTEMP, HEATER_2_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMP, PWM_HARDWARE, INVERTED_HEATER_PINS
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_2_PIN, TEMP_SENSOR_2, 2048, 0, 0, HOT2_R25, HOT2_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_3
-      // Hotend 3
-      { IS_HOTEND, HEATER_3_PIN, 0, 0, PID_MIN, PID_MAX, 0,
-        HEATER_3_MINTEMP, HEATER_3_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMP, PWM_HARDWARE, INVERTED_HEATER_PINS
-        #if HEATER_USES_AD595
-          , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-        #endif
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_3_PIN, TEMP_SENSOR_3, 2048, 0, 0, HOT3_R25, HOT3_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_BED
-      // BED
-      { IS_BED, HEATER_BED_PIN, 0, 0, MIN_BED_POWER, MAX_BED_POWER, 0,
-        BED_MINTEMP, BED_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMPBED, PWM_HARDWARE, INVERTED_BED_PIN
-        #if HEATER_USES_AD595
-          , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-        #endif
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_BED_PIN, TEMP_SENSOR_BED, 2048, 0, 0, BED_R25, BED_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_CHAMBER
-      // CHAMBER
-      { IS_CHAMBER, HEATER_CHAMBER_PIN, 0, 0, MIN_CHAMBER_POWER, MAX_CHAMBER_POWER, 0,
-        CHAMBER_MINTEMP, CHAMBER_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMPCHAMBER, PWM_HARDWARE, INVERTED_CHAMBER_PIN
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_CHAMBER_PIN, TEMP_SENSOR_CHAMBER, 2048, 0, 0, BED_R25, BED_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      },
-    #endif
-
-    #if HAS_HEATER_COOLER
-      // COOLER
-      { IS_COOLER, HEATER_COOLER_PIN, 0, 0, MIN_COOLER_POWER, MAX_COOLER_POWER, 0,
-        COOLER_MINTEMP, COOLER_MAXTEMP, 25.0, 0.0, 0.0, 0.0, 0.0, PIDTEMPCOOLER, PWM_HARDWARE, INVERTED_COOLER_PIN
-        #if WATCH_THE_HEATER
-          , 0, 0
-        #endif
-        , { TEMP_COOLER_PIN, TEMP_SENSOR_COOLER, 2048, 0, 0, BED_R25, BED_BETA, THERMISTOR_SERIES_RS, 0.0, 0.0, 0.0
-          #if HEATER_USES_AD595
-            , TEMP_SENSOR_AD595_OFFSET, TEMP_SENSOR_AD595_GAIN
-          #endif
-        }
-      }
-    #endif
-
-  };
+  Heater heaters[HEATER_COUNT];
 
   /**
    * Initialize Heater
@@ -167,7 +51,7 @@
       this->watch_next_ms       = 0;
     #endif
 
-    if (this->output_pin > -1)
+    if (this->output_pin > 0)
       HAL::pinMode(this->output_pin, OUTPUT);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
@@ -244,23 +128,5 @@
     SERIAL_LMV(CFG, " ADC high offset correction: ", this->sensor.adcHighOffset);
 
   }
-
-  #if PWM_HARDWARE
-
-    void Heater::SetHardwarePwm() {
-      uint8_t pwm_val = 0;
-
-      if (this->pwm_hardware) {
-
-        if (this->hardwareInverted)
-          pwm_val = 255 - this->soft_pwm;
-        else
-          pwm_val = this->soft_pwm;
-
-        this->pwm_hardware = HAL::analogWrite(this->output_pin, pwm_val, HEATER_PWM_FREQ);
-      }
-    }
-
-  #endif
 
 #endif // HEATER_COUNT > 0

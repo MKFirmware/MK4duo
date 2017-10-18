@@ -38,10 +38,10 @@
 
 #include "../../base.h"
 
-#define EEPROM_VERSION "MKV40"
+#define EEPROM_VERSION "MKV41"
 
 /**
- * MKV40 EEPROM Layout:
+ * MKV41 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -137,6 +137,9 @@
  * DHT SENSOR:
  *  M305  D0  SP          DHT Sensor parameters
  *
+ * FANS:
+ *  M106  F   SPI         Fans parameters
+ *
  * DOGLCD:
  *  M250  C               lcd_contrast                                  (uint16_t)
  *
@@ -216,6 +219,10 @@ void EEPROM::Postprocess() {
 
   #if ENABLED(DHT_SENSOR)
     dhtsensor.init();
+  #endif
+
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].init();
   #endif
 
   printer.calculate_volumetric_multipliers();
@@ -465,6 +472,14 @@ void EEPROM::Postprocess() {
     #if ENABLED(DHT_SENSOR)
       EEPROM_WRITE(dhtsensor.pin);
       EEPROM_WRITE(dhtsensor.type);
+    #endif
+
+    #if FAN_COUNT > 0
+      LOOP_FAN() {
+        EEPROM_WRITE(fans[f].pin);
+        EEPROM_WRITE(fans[f].min_Speed);
+        EEPROM_WRITE(fans[f].hardwareInverted);
+      }
     #endif
 
     #if !HAS_LCD_CONTRAST
@@ -789,6 +804,14 @@ void EEPROM::Postprocess() {
         EEPROM_READ(dhtsensor.type);
       #endif
 
+      #if FAN_COUNT > 0
+        LOOP_FAN() {
+          EEPROM_READ(fans[f].pin);
+          EEPROM_READ(fans[f].min_Speed);
+          EEPROM_READ(fans[f].hardwareInverted);
+        }
+      #endif
+
       #if !HAS_LCD_CONTRAST
         uint16_t lcd_contrast;
       #endif
@@ -1048,34 +1071,38 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::Factory_Settings() {
-  static const float    tmp1[] PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
-                        tmp2[] PROGMEM = DEFAULT_MAX_FEEDRATE;
-  static const uint32_t tmp3[] PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp4[] PROGMEM = DEFAULT_RETRACT_ACCELERATION;
-  static const float    tmp5[] PROGMEM = DEFAULT_EJERK,
-                        tmp6[] PROGMEM = DEFAULT_Kp,
-                        tmp7[] PROGMEM = DEFAULT_Ki,
-                        tmp8[] PROGMEM = DEFAULT_Kd,
-                        tmp9[] PROGMEM = DEFAULT_Kc;
+  static const float    tmp1[] PROGMEM  = DEFAULT_AXIS_STEPS_PER_UNIT,
+                        tmp2[] PROGMEM  = DEFAULT_MAX_FEEDRATE;
+  static const uint32_t tmp3[] PROGMEM  = DEFAULT_MAX_ACCELERATION,
+                        tmp4[] PROGMEM  = DEFAULT_RETRACT_ACCELERATION;
+  static const float    tmp5[] PROGMEM  = DEFAULT_EJERK,
+                        tmp6[] PROGMEM  = DEFAULT_Kp,
+                        tmp7[] PROGMEM  = DEFAULT_Ki,
+                        tmp8[] PROGMEM  = DEFAULT_Kd,
+                        tmp9[] PROGMEM  = DEFAULT_Kc;
+
+  #if FAN_COUNT > 0
+    static const Pin    tmp10[] PROGMEM = FANS_CHANNELS;
+  #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     new_z_fade_height = 0.0;
   #endif
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    constexpr float tmp10[XYZ][4] = {
+    constexpr float tmp11[XYZ][4] = {
       HOTEND_OFFSET_X,
       HOTEND_OFFSET_Y,
       HOTEND_OFFSET_Z
     };
   #else
-    constexpr float tmp10[XYZ][HOTENDS] = { 0.0 };
+    constexpr float tmp11[XYZ][HOTENDS] = { 0.0 };
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    const float tmp11[] = MOTOR_CURRENT;
+    const float tmp12[] = MOTOR_CURRENT;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      printer.motor_current[i] = tmp11[i < COUNT(tmp11) ? i : COUNT(tmp11) - 1];
+      printer.motor_current[i] = tmp12[i < COUNT(tmp12) ? i : COUNT(tmp12) - 1];
   #endif
 
   LOOP_XYZE_N(i) {
@@ -1090,11 +1117,11 @@ void EEPROM::Factory_Settings() {
   }
 
   static_assert(
-    tmp10[X_AXIS][0] == 0 && tmp10[Y_AXIS][0] == 0 && tmp10[Z_AXIS][0] == 0,
+    tmp11[X_AXIS][0] == 0 && tmp11[Y_AXIS][0] == 0 && tmp11[Z_AXIS][0] == 0,
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp10[i][h];
+    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp11[i][h];
   }
 
   mechanics.acceleration = DEFAULT_ACCELERATION;
@@ -1173,7 +1200,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = HEATER_0_MINTEMP;
       heat->maxtemp           = HEATER_0_MAXTEMP;
       heat->use_pid           = PIDTEMP;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_0_PIN;
@@ -1198,7 +1224,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = HEATER_1_MINTEMP;
       heat->maxtemp           = HEATER_1_MAXTEMP;
       heat->use_pid           = PIDTEMP;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_1_PIN;
@@ -1223,7 +1248,6 @@ void EEPROM::Factory_Settings() {
       heat->use_pid           = PIDTEMP;
       heat->mintemp           = HEATER_2_MINTEMP;
       heat->maxtemp           = HEATER_2_MAXTEMP;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_2_PIN;
@@ -1248,7 +1272,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = HEATER_3_MINTEMP;
       heat->maxtemp           = HEATER_3_MAXTEMP;
       heat->use_pid           = PIDTEMP;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_3_PIN;
@@ -1273,7 +1296,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = BED_MINTEMP;
       heat->maxtemp           = BED_MAXTEMP;
       heat->use_pid           = PIDTEMPBED;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_BED_PIN;
       heat->Kp                = DEFAULT_bedKp;
       heat->Ki                = DEFAULT_bedKi;
@@ -1301,7 +1323,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = CHAMBER_MINTEMP;
       heat->maxtemp           = CHAMBER_MAXTEMP;
       heat->use_pid           = PIDTEMPCHAMBER;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_CHAMBER_PIN;
       heat->Kp                = DEFAULT_chamberKp;
       heat->Ki                = DEFAULT_chamberKi;
@@ -1329,7 +1350,6 @@ void EEPROM::Factory_Settings() {
       heat->mintemp           = COOLER_MINTEMP;
       heat->maxtemp           = COOLER_MAXTEMP;
       heat->use_pid           = PIDTEMPCOOLER;
-      heat->pwm_hardware      = PWM_HARDWARE;
       heat->hardwareInverted  = INVERTED_COOLER_PIN;
       heat->Kp                = DEFAULT_coolerKp;
       heat->Ki                = DEFAULT_coolerKi;
@@ -1347,6 +1367,15 @@ void EEPROM::Factory_Settings() {
     #endif // HAS_HEATER_BED
 
   #endif // HEATER_COUNT > 0
+
+  // Fans
+  #if FAN_COUNT > 0
+    LOOP_FAN() {
+      fans[f].pin               = pgm_read_dword_near(&tmp10[f]);
+      fans[f].min_Speed         = FAN_MIN_PWM;
+      fans[f].hardwareInverted  = FAN_INVERTED;
+    }
+  #endif
 
   #if ENABLED(DHT_SENSOR)
     dhtsensor.pin   = DHT_DATA_PIN;
@@ -1561,6 +1590,16 @@ void EEPROM::Factory_Settings() {
         SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(tools.hotend_offset[Y_AXIS][h]), 3);
         SERIAL_EMV(" Z", LINEAR_UNIT(tools.hotend_offset[Z_AXIS][h]), 3);
+      }
+    #endif
+
+    #if FAN_COUNT > 0
+      CONFIG_MSG_START("Fans:");
+      LOOP_FAN() {
+        SERIAL_SMV(CFG, "  M106 P", f);
+        SERIAL_MV(" pin:", fans[f].pin);
+        SERIAL_MV(" min:", fans[f].min_Speed);
+        SERIAL_EMT(" inverted:", fans[f].hardwareInverted ? "true" : "false");
       }
     #endif
 
