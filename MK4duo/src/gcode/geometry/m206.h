@@ -40,12 +40,10 @@
       }
     }
     #if MECH(MORGAN_SCARA)
-      if (parser.seen('T')) {
+      if (parser.seen('T'))
         mechanics.home_offset[X_AXIS] = parser.value_linear_units(); // Theta
-      }
-      if (parser.seen('P')) {
+      if (parser.seen('P'))
         mechanics.home_offset[Y_AXIS] = parser.value_linear_units(); // Psi
-      }
     #endif
 
     #if IS_SCARA
