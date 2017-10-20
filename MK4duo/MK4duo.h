@@ -103,13 +103,6 @@
  * Modules loading
  */
 
-#if ENABLED(LASER)
-  #if ENABLED(LASER_RASTER)
-    #include "src/laser/base64/base64.h"
-  #endif
-  #include "src/laser/laser.h"
-#endif
-
 // Core modules
 #include "src/tools/tools.h"
 #include "src/tools/nozzle.h"
@@ -153,6 +146,8 @@
 #include "src/feature/filament/filament.h"
 #include "src/feature/fwretract/fwretract.h"
 #include "src/feature/advanced_pause/advanced_pause.h"
+#include "src/feature/laser/base64/base64.h"
+#include "src/feature/laser/laser.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/caselight/caselight.h"
