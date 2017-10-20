@@ -49,15 +49,9 @@
   void Laser::Init() {
 
     #if LASER_CONTROL == 1
-      if (!HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM)) {
-        SERIAL_LM(ER, "LASER_PWR_PIN not PWM or TC pin, please select another pin!");
-        return;
-      }
+      HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM);
     #elif LASER_CONTROL == 2
-      if (!HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM)) {
-        SERIAL_LM(ER, "LASER_PWM_PIN not PWM or TC pin, please select another pin!");
-        return;
-      }
+      HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM);
     #endif
 
     #if ENABLED(LASER_PERIPHERALS)
