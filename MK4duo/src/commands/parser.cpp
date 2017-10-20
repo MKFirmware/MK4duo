@@ -24,7 +24,7 @@
  * parser.cpp - Parser for a GCode line, providing a parameter interface.
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 // Must be declared for allocation and to satisfy the linker
 // Zero values need no initialisation.
@@ -225,6 +225,11 @@ void GCodeParser::parse(char *p) {
       while (*p == ' ') ++p;                    // Skip over all spaces
     }
   }
+}
+
+Pin GCodeParser::value_pin() {
+  const Pin pin = (int8_t)value_int();
+  return printer.pin_is_protected(pin) ? NoPin : pin;
 }
 
 #if ENABLED(DEBUG_GCODE_PARSER)

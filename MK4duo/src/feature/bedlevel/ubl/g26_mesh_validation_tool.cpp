@@ -24,7 +24,7 @@
  * MK4duo Firmware -- G26 - Mesh Validation Tool
  */
 
-#include "../../../../base.h"
+#include "../../../../MK4duo.h"
 
 #if ENABLED(UBL_G26_MESH_VALIDATION)
 

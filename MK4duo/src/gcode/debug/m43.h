@@ -35,8 +35,8 @@
   inline void toggle_pins() {
     const bool  I_flag  = parser.boolval('I');
     const int   repeat  = parser.intval('R', 1),
-                start   = parser.intval('S'),
-                end     = parser.intval('E', LAST_PIN - 1),
+                start   = parser.byteval('S'),
+                end     = parser.byteval('E', LAST_PIN - 1),
                 wait    = parser.intval('W', 500);
 
     for (Pin pin = start; pin <= end; pin++) {
@@ -236,8 +236,8 @@
     }
 
     // Get the range of pins to test or watch
-    const uint8_t first_pin = parser.seen('P') ? parser.value_byte() : 0,
-                  last_pin = parser.seen('P') ? first_pin : LAST_PIN - 1;
+    const uint8_t first_pin = parser.pinval('P', 0),
+                  last_pin  = parser.pinval('P', LAST_PIN - 1);
 
     if (first_pin > last_pin) return;
 

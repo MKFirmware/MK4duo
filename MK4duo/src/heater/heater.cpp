@@ -24,7 +24,7 @@
  * heater.cpp - heater object
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 #include "sensor/thermistor.h"
 
 #if HEATER_COUNT > 0
@@ -51,7 +51,7 @@
       this->watch_next_ms       = 0;
     #endif
 
-    if (this->output_pin > 0)
+    if (this->output_pin > NoPin)
       HAL::pinMode(this->output_pin, OUTPUT);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
@@ -128,5 +128,18 @@
     SERIAL_LMV(CFG, " ADC high offset correction: ", this->sensor.adcHighOffset);
 
   }
+
+  #if HARDWARE_PWM
+    void Heater::SetHardwarePwm() {
+      uint8_t pwm_val = 0;
+
+      if (this->hardwareInverted)
+        pwm_val = 255 - this->soft_pwm;
+      else
+        pwm_val = this->soft_pwm;
+
+      HAL::analogWrite(this->output_pin, pwm_val, (this->type == IS_HOTEND) ? 250 : 10);
+    }
+  #endif
 
 #endif // HEATER_COUNT > 0

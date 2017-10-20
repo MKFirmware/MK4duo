@@ -39,18 +39,25 @@
 
     public: /** Public Parameters */
 
-      Pin     pin;
-      uint8_t Speed,
-              min_Speed,
-              paused_Speed,
-              Kickstart,
-              pwm_pos;
-      bool    hardwareInverted,
-              paused;
+      Pin       pin;
+      uint8_t   Speed,
+                min_Speed,
+                paused_Speed,
+                Kickstart,
+                pwm_pos;
+      uint16_t  freq;
+      int16_t   lastpwm;
+      bool      hardwareInverted,
+                paused;
 
     public: /** Public Function */
 
       void init();
+
+      #if HARDWARE_PWM
+        void SetHardwarePwm();
+      #endif
+
       void pause(const bool p);
 
   };

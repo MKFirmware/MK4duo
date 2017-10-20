@@ -54,7 +54,7 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(__AVR__)
 
@@ -178,7 +178,7 @@ void HAL::showStartReason() {
 
 void HAL::hwSetup() { }
 
-void HAL::setPwmFrequency(uint8_t pin, uint8_t val) {
+void HAL::setPwmFrequency(const Pin pin, uint8_t val) {
   val &= 0x07;
   switch(digitalPinToTimer(pin)) {
 

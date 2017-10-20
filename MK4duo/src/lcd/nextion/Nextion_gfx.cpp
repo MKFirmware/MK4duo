@@ -15,7 +15,7 @@
  *
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(NEXTION_GFX)
 

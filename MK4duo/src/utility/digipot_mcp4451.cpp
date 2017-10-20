@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #if ENABLED(DIGIPOT_I2C)
 

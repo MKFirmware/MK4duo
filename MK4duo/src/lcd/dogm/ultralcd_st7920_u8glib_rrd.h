@@ -23,7 +23,7 @@
 #ifndef ULCDST7920_H
 #define ULCDST7920_H
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(U8GLIB_ST7920)
 

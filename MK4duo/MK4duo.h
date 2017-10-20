@@ -1,4 +1,4 @@
-/**
+/******************************************************************************************
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
@@ -18,10 +18,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- */
+ * ----------------------------------------------------------------------------------------
+ *
+ * MK4duo - Main Include
+ * This includes all the other include files in the right order and defines some globals.
+ *
+ * Alberto Cotronei @MagoKimbra
+ * Blog: http://www.marlinkimbra.it
+ * WiKI: https://mk4duowiki.altervista.org/wiki/doku.php
+ *
+ * Licence: GPL
+ *
+ *******************************************************************************************/
 
-#ifndef _BASE_H_
-#define _BASE_H_
+#ifndef _MK4DUO_H_
+#define _MK4DUO_H_
 
 #include "Arduino.h"
 #include "pins_arduino.h"
@@ -193,4 +204,4 @@
   #endif
 #endif
 
-#endif /* _BASE_H_ */
+#endif /* _MK4DUO_H_ */

@@ -95,7 +95,7 @@
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
   #define E0_CS_PIN         ORIG_E0_CS_PIN
   #define SOL0_PIN          ORIG_SOL0_PIN
-  #define E0_ENC_PIN        -1
+  #define E0_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 1
@@ -104,7 +104,7 @@
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define E1_CS_PIN         ORIG_E1_CS_PIN
   #define SOL1_PIN          ORIG_SOL1_PIN
-  #define E1_ENC_PIN        -1
+  #define E1_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 2
@@ -113,7 +113,7 @@
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
   #define E2_CS_PIN         ORIG_E2_CS_PIN
   #define SOL2_PIN          ORIG_SOL2_PIN
-  #define E2_ENC_PIN        -1
+  #define E2_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 3
@@ -122,7 +122,7 @@
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
   #define E3_CS_PIN         ORIG_E3_CS_PIN
   #define SOL3_PIN          ORIG_SOL3_PIN
-  #define E3_ENC_PIN        -1
+  #define E3_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 4
@@ -131,7 +131,7 @@
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
   #define E4_CS_PIN         ORIG_E4_CS_PIN
   #define SOL4_PIN          ORIG_SOL4_PIN
-  #define E4_ENC_PIN        -1
+  #define E4_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 5
@@ -140,7 +140,7 @@
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
   #define E5_CS_PIN         ORIG_E5_CS_PIN
   #define SOL5_PIN          ORIG_SOL5_PIN
-  #define E5_ENC_PIN        -1
+  #define E5_ENC_PIN        NoPin
 #endif
 
 // ENDSTOP pin
@@ -150,14 +150,14 @@
 #define Y_MAX_PIN           ORIG_Y_MAX_PIN
 #define Z_MIN_PIN           ORIG_Z_MIN_PIN
 #define Z_MAX_PIN           ORIG_Z_MAX_PIN
-#define Z2_MIN_PIN          -1
-#define Z2_MAX_PIN          -1
-#define Z3_MIN_PIN          -1
-#define Z3_MAX_PIN          -1
-#define Z4_MIN_PIN          -1
-#define Z4_MAX_PIN          -1
-#define E_MIN_PIN           -1
-#define Z_PROBE_PIN         -1
+#define Z2_MIN_PIN          NoPin
+#define Z2_MAX_PIN          NoPin
+#define Z3_MIN_PIN          NoPin
+#define Z3_MAX_PIN          NoPin
+#define Z4_MIN_PIN          NoPin
+#define Z4_MAX_PIN          NoPin
+#define E_MIN_PIN           NoPin
+#define Z_PROBE_PIN         NoPin
 
 // HEATER pin
 #define HEATER_0_PIN        ORIG_HEATER_0_PIN
@@ -165,8 +165,8 @@
 #define HEATER_2_PIN        ORIG_HEATER_2_PIN
 #define HEATER_3_PIN        ORIG_HEATER_3_PIN
 #define HEATER_BED_PIN      ORIG_HEATER_BED_PIN
-#define HEATER_CHAMBER_PIN  -1
-#define HEATER_COOLER_PIN   -1
+#define HEATER_CHAMBER_PIN  NoPin
+#define HEATER_COOLER_PIN   NoPin
 
 // TEMP pin
 #define TEMP_0_PIN          ORIG_TEMP_0_PIN
@@ -174,8 +174,8 @@
 #define TEMP_2_PIN          ORIG_TEMP_2_PIN
 #define TEMP_3_PIN          ORIG_TEMP_3_PIN
 #define TEMP_BED_PIN        ORIG_TEMP_BED_PIN
-#define TEMP_CHAMBER_PIN    -1
-#define TEMP_COOLER_PIN     -1
+#define TEMP_CHAMBER_PIN    NoPin
+#define TEMP_COOLER_PIN     NoPin
 
 // FAN pin
 #define FAN0_PIN            ORIG_FAN0_PIN
@@ -194,92 +194,92 @@
 //================================= FEATURE ==================================
 
 #if ENABLED(MKR4)
-  #define E0E1_CHOICE_PIN -1
-  #define E0E2_CHOICE_PIN -1
-  #define E1E3_CHOICE_PIN -1
+  #define E0E1_CHOICE_PIN NoPin
+  #define E0E2_CHOICE_PIN NoPin
+  #define E1E3_CHOICE_PIN NoPin
 #elif ENABLED(MKR6) || ENABLED(MKR12)
-  #define EX1_CHOICE_PIN  -1
-  #define EX2_CHOICE_PIN  -1
+  #define EX1_CHOICE_PIN  NoPin
+  #define EX2_CHOICE_PIN  NoPin
 #endif
 
 #if ENABLED(LASER)
   #define LASER_PWR_PIN                   ORIG_LASER_PWR_PIN
   #define LASER_PWM_PIN                   ORIG_LASER_PWM_PIN
   #if ENABLED(LASER_PERIPHERALS)
-    #define LASER_PERIPHERALS_PIN         -1
-    #define LASER_PERIPHERALS_STATUS_PIN  -1
+    #define LASER_PERIPHERALS_PIN         NoPin
+    #define LASER_PERIPHERALS_STATUS_PIN  NoPin
   #endif
 #endif
 
 #if ENABLED(CNCROUTER)
-  #define CNCROUTER_PIN -1
+  #define CNCROUTER_PIN NoPin
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT_PIN -1
-  #define FIL_RUNOUT_DAV_PIN -1
+  #define FIL_RUNOUT_PIN      NoPin
+  #define FIL_RUNOUT_DAV_PIN  NoPin
 #endif
 
 #if ENABLED(FILAMENT_SENSOR)
-  #define FILWIDTH_PIN -1
+  #define FILWIDTH_PIN NoPin
 #endif
 
 #if ENABLED(FLOWMETER_SENSOR)
-  #define FLOWMETER_PIN -1
+  #define FLOWMETER_PIN NoPin
 #endif
 
 #if ENABLED(POWER_CONSUMPTION)
-  #define POWER_CONSUMPTION_PIN -1
+  #define POWER_CONSUMPTION_PIN NoPin
 #endif
 
 #if ENABLED(PHOTOGRAPH)
-  #define PHOTOGRAPH_PIN -1
+  #define PHOTOGRAPH_PIN NoPin
 #endif
 
 #if ENABLED(CHDK)
-  #define CHDK_PIN -1
+  #define CHDK_PIN NoPin
 #endif
 
 #if ENABLED(CASE_LIGHT)
-  #define CASE_LIGHT_PIN -1
+  #define CASE_LIGHT_PIN NoPin
 #endif
 
 #if ENABLED(DOOR_OPEN)
-  #define DOOR_PIN -1
+  #define DOOR_PIN NoPin
 #endif
 
 #if ENABLED(POWER_CHECK)
-  #define POWER_CHECK_PIN -1
+  #define POWER_CHECK_PIN NoPin
 #endif
 
 #if ENABLED(CONTROLLERFAN)
-  #define CONTROLLERFAN_PIN -1
+  #define CONTROLLERFAN_PIN NoPin
 #endif
 
 #if ENABLED(HOTEND_AUTO_FAN)
-  #define H0_AUTO_FAN_PIN -1
-  #define H1_AUTO_FAN_PIN -1
-  #define H2_AUTO_FAN_PIN -1
-  #define H3_AUTO_FAN_PIN -1
+  #define H0_AUTO_FAN_PIN NoPin
+  #define H1_AUTO_FAN_PIN NoPin
+  #define H2_AUTO_FAN_PIN NoPin
+  #define H3_AUTO_FAN_PIN NoPin
 #endif
 
 #if ENABLED(Z_PROBE_SLED)
-  #define SLED_PIN -1
+  #define SLED_PIN NoPin
 #endif
 
 #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
-  #define RGB_LED_R_PIN -1
-  #define RGB_LED_G_PIN -1
-  #define RGB_LED_B_PIN -1
-  #define RGB_LED_W_PIN -1
+  #define RGB_LED_R_PIN NoPin
+  #define RGB_LED_G_PIN NoPin
+  #define RGB_LED_B_PIN NoPin
+  #define RGB_LED_W_PIN NoPin
 #endif
 
 #if ENABLED(NEOPIXEL_LED)
-  #define NEOPIXEL_PIN -1
+  #define NEOPIXEL_PIN NoPin
 #endif
 
 #if ENABLED(DHT_SENSOR)
-  #define DHT_DATA_PIN -1
+  #define DHT_DATA_PIN NoPin
 #endif
 
 //============================================================================

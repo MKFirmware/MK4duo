@@ -131,13 +131,13 @@
       for (uint8_t n = 0; n < n_samples; n++) {
         if (n_legs) {
           const int dir = (random(0, 10) > 5.0) ? -1 : 1;  // clockwise or counter clockwise
-          float angle = random(0.0, 360.0);
+          float angle = random(0, 360);
           const float radius = random(
             #if MECH(DELTA)
-              0.1250000000 * mechanics.delta_probe_radius,
-              0.3333333333 * mechanics.delta_probe_radius
+              (int)(0.1250000000 * mechanics.delta_probe_radius),
+              (int)(0.3333333333 * mechanics.delta_probe_radius)
             #else
-              5, 0.125 * min(X_MAX_LENGTH, Y_MAX_LENGTH)
+              5, (int)(0.125 * min(X_MAX_LENGTH, Y_MAX_LENGTH))
             #endif
           );
 

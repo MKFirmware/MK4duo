@@ -500,8 +500,8 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(SD_DETECT)
     PIN_SAY(SD_DETECT_PIN);
   #endif
-  #if ENABLED(SDPOWER) && SDPOWER >= 0
-    PIN_SAY(SDPOWER);
+  #if PIN_EXISTS(SDPOWER)
+    PIN_SAY(SDPOWER_PIN);
   #endif
   #if PIN_EXISTS(SS_PIN)
     PIN_SAY(SS_PIN);

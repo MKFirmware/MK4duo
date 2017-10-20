@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../../base.h"
+#include "../../../../MK4duo.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -543,7 +543,7 @@
               z_x0y1 = z_values[cell_xi  ][cell_yi+1],  // z at lower right corner
               z_x1y1 = z_values[cell_xi+1][cell_yi+1];  // z at upper right corner
 
-        if (isnan(z_x0y0)) z_x0y0 = 0;              // ideally activating state.active (G29 A)
+        if (isnan(z_x0y0)) z_x0y0 = 0;              // ideally activating bedlevel.active (G29 A)
         if (isnan(z_x1y0)) z_x1y0 = 0;              //   should refuse if any invalid mesh points
         if (isnan(z_x0y1)) z_x0y1 = 0;              //   in order to avoid isnan tests per cell,
         if (isnan(z_x1y1)) z_x1y1 = 0;              //   thus guessing zero for undefined points

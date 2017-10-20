@@ -65,9 +65,6 @@
 // --------------------------------------------------------------------------
 typedef uint32_t  HAL_TIMER_TYPE;
 typedef uint32_t  ptr_int_t;
-typedef uint32_t  millis_t;
-typedef int8_t    Pin;
-static const Pin  NoPin = -1;
 
 // --------------------------------------------------------------------------
 // Includes
@@ -194,6 +191,7 @@ static const Pin  NoPin = -1;
 #define NUM_ADC_SAMPLES 32 // (2 + (1 << OVERSAMPLENR))
 #define ADC_TEMPERATURE_SENSOR 15
 
+#define HARDWARE_PWM true
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
@@ -231,19 +229,18 @@ class HAL {
 
     static void hwSetup(void);
 
-    static bool analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=50);
+    static void analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=1000);
 
-    static inline void digitalWrite(const Pin pin, const uint8_t value) {
-      WRITE_VAR(pin, value);
-    }
-    static inline uint8_t digitalRead(const Pin pin) {
-      return READ_VAR(pin);
-    }
+    static void Tick();
+
     static inline void pinMode(const Pin pin, const uint8_t mode) {
-      if (mode == INPUT) {
-        SET_INPUT(pin);
-      }
-      else SET_OUTPUT(pin);
+      ::pinMode(pin, mode);
+    }
+    static inline void digitalWrite(const Pin pin, const bool value) {
+      ::digitalWrite(pin, value);
+    }
+    static inline bool digitalRead(const Pin pin) {
+      return ::digitalRead(pin);
     }
 
     static FORCE_INLINE void delayMicroseconds(uint32_t usec) { // usec += 3;

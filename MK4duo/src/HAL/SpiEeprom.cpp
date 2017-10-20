@@ -25,7 +25,7 @@
  * Not platform dependent.
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #if ENABLED(SPI_EEPROM)
 

@@ -232,7 +232,7 @@
      * This uses the LiquidTWI2 library v1.2.3 or later ( https://github.com/lincomatic/LiquidTWI2 )
      * Make sure the LiquidTWI2 directory is placed in the Arduino or Sketchbook libraries subdirectory.
      * Note: The pause/stop/resume LCD button pin should be connected to the Arduino
-     *       BTN_ENC pin (or set BTN_ENC to -1 if not used)
+     *       BTN_ENC pin (or set BTN_ENC to NoPin if not used)
      */
     #define LCD_I2C_TYPE_MCP23017
     #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander

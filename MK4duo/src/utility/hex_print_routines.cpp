@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(M100_FREE_MEMORY_WATCHER) || ENABLED(DEBUG_GCODE_PARSER)
 

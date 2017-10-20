@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
 

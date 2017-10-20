@@ -80,8 +80,8 @@ class EEPROM {
     static void Postprocess();
 
     #if ENABLED(EEPROM_SETTINGS)
-      static void write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
-      static void read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc);
+      static bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
+      static bool read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc);
       static void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
     #endif
 

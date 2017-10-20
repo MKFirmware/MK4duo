@@ -30,7 +30,7 @@
  * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(__AVR__)
 

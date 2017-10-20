@@ -50,7 +50,7 @@
  * ARDUINO_ARCH_SAM
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
@@ -106,16 +106,16 @@ void HAL_timer_start (uint8_t timer_num, uint32_t frequency) {
 
 	pmc_set_writeprotect(false);
 	pmc_enable_periph_clk((uint32_t)irq);
-  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
 
   TC_Configure (tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1);
 
-	TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
+	TC_SetRC(tc, channel, VARIANT_MCK / 32 / frequency);
 	TC_Start(tc, channel);
 
 	// enable interrupt on RC compare
 	tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
 
+  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
 	NVIC_EnableIRQ(irq);
 }
 
@@ -133,7 +133,7 @@ void HAL_timer_disable_interrupt (const uint8_t timer_num) {
 static uint32_t tone_pin;
 unsigned long _nt_time; // Time note should end.
 
-void tone(uint8_t pin, int frequency, unsigned long duration) {
+void tone(const Pin pin, int frequency, unsigned long duration) {
   // set up timer counter 1 channel 0 to generate interrupts for
   // toggling output pin.  
   Tc *tc = TimerConfig [BEEPER_TIMER].pTimerRegs;
@@ -158,12 +158,12 @@ void tone(uint8_t pin, int frequency, unsigned long duration) {
   NVIC_EnableIRQ((IRQn_Type)irq);
 }
 
-void noTone(uint8_t pin) {
+void noTone(const Pin pin) {
   Tc *tc = TimerConfig [BEEPER_TIMER].pTimerRegs;
   uint32_t channel = TimerConfig [BEEPER_TIMER].channel;
 
   TC_Stop(tc, channel);
-  WRITE_VAR(pin, LOW);
+  HAL::digitalWrite(pin, LOW);
 }
 
 // IRQ handler for tone generator
@@ -173,7 +173,7 @@ HAL_BEEPER_TIMER_ISR {
   if (millis() >= _nt_time) noTone(tone_pin); // Check to see if it's time for the note to end.
 
   HAL_timer_isr_status(BEEPER_TIMER_COUNTER, BEEPER_TIMER_CHANNEL);
-  WRITE_VAR(tone_pin, toggle);
+  HAL::digitalWrite(tone_pin, toggle);
   toggle = !toggle;
 }
 

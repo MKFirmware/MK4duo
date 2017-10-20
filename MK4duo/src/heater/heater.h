@@ -81,6 +81,10 @@
 
       void init();
 
+      #if HARDWARE_PWM
+        void SetHardwarePwm();
+      #endif
+
       void setTarget(int16_t celsius);
       void print_PID(const uint8_t h=0);
       void sensor_print_parameters(const uint8_t h=0);

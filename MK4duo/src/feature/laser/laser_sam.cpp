@@ -40,7 +40,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)
 
@@ -62,7 +62,7 @@
 
     #if ENABLED(LASER_PERIPHERALS)
       OUT_WRITE(LASER_PERIPHERALS_PIN, HIGH); // Laser peripherals are active LOW, so preset the pin
-      PULLUP(LASER_PERIPHERALS_STATUS_PIN);   // Set the peripherals status pin to pull-up.
+      SET_INPUT_PULLUP(LASER_PERIPHERALS_STATUS_PIN);   // Set the peripherals status pin to pull-up.
     #endif // LASER_PERIPHERALS
 
     #if LASER_CONTROL == 2

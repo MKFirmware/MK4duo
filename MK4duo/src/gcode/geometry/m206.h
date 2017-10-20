@@ -35,9 +35,8 @@
    */
   inline void gcode_M206(void) {
     LOOP_XYZ(i) {
-      if (parser.seen(axis_codes[i])) {
+      if (parser.seen(axis_codes[i]))
         mechanics.home_offset[(AxisEnum)i] = parser.value_linear_units();
-      }
     }
     #if MECH(MORGAN_SCARA)
       if (parser.seen('T'))

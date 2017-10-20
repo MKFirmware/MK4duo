@@ -49,4 +49,4 @@ inline void gcode_M502(void) { (void)eeprom.Factory_Settings(); }
 /**
  * M503: print settings currently in memory
  */
-inline void gcode_M503(void) { (void)eeprom.Print_Settings(!parser.boolval('S', true)); }
+inline void gcode_M503(void) { (void)eeprom.Print_Settings(parser.boolval('S')); }

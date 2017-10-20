@@ -41,7 +41,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #ifndef _SDFAT_H_
 #define _SDFAT_H_
