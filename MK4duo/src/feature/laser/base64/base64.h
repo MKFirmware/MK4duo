@@ -26,7 +26,9 @@
  */
 
 #ifndef _BASE64_H
-  #define _BASE64_H
+#define _BASE64_H
+
+#if ENABLED(LASER) && ENABLED(LASER_RASTER)
 
   /* b64_alphabet:
    * 		Description: Base64 alphabet table, a mapping between integers
@@ -99,4 +101,6 @@
    */
   int base64_dec_len(char *input, int inputLen);
 
-#endif // _BASE64_H
+#endif // ENABLED(LASER) && ENABLED(LASER_RASTER)
+
+#endif /* _BASE64_H */

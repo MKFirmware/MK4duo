@@ -74,9 +74,6 @@
 // --------------------------------------------------------------------------
 typedef uint16_t  HAL_TIMER_TYPE;
 typedef uint16_t  ptr_int_t;
-typedef uint32_t  millis_t;
-typedef int8_t    Pin;
-
 
 // --------------------------------------------------------------------------
 // Includes
@@ -234,6 +231,7 @@ typedef int8_t    Pin;
 #define ABS_ZERO  -273.15
 #define AD_RANGE  1023
 
+#define HARDWARE_PWM false
 // --------------------------------------------------------------------------
 // Timer
 // --------------------------------------------------------------------------
@@ -387,7 +385,7 @@ class HAL {
     static int getFreeRam();
     static void resetHardware();
 
-    static void setPwmFrequency(uint8_t pin, uint8_t val);
+    static void setPwmFrequency(const Pin pin, uint8_t val);
 
     static inline void analogWrite(const Pin pin, const uint8_t value) {
       ::analogWrite(pin, value);

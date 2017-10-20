@@ -23,6 +23,17 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+// Types
+typedef uint32_t  millis_t;
+typedef int8_t    Pin;
+
+// NoPin
+#define NoPin     -1
+
+// Macros to support option testing
+#define ENABLED   defined
+#define DISABLED !defined
+
 // The axis order in all axis related arrays is X, Y, Z, E
 #define NUM_AXIS  4
 #define XYZE      4
@@ -115,10 +126,6 @@
 #define NOLESS(v,n)       v = (v < n) ? n : v
 #define NOMORE(v,n)       v = (v > n) ? n : v
 
-// Macros to support option testing
-#define ENABLED   defined
-#define DISABLED !defined
-
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
 #define DECIMAL(a)        (NUMERIC(a) || a == '.')
@@ -162,7 +169,7 @@
 #define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
 #define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
-#define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN >= 0)
+#define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN > NoPin)
 
 #define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
 #define ELAPSED(NOW,SOON) (!PENDING(NOW,SOON))

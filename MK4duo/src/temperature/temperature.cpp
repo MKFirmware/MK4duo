@@ -24,7 +24,7 @@
  * temperature.cpp - temperature control
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 Temperature thermalManager;
 
@@ -307,10 +307,8 @@ void Temperature::manage_temp_controller() {
       next_check_ms[h] = ms + temp_check_interval[act->type];
       if (act->tempisrange())
         act->soft_pwm = act->isHeating() ? act->pid_max : 0;
-      else {
+      else
         act->soft_pwm = 0;
-        HAL::digitalWrite(act->output_pin, act->hardwareInverted ? HIGH : LOW);
-      }
     }
 
     #if WATCH_THE_HEATER

@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
@@ -353,6 +353,7 @@ void Printer::setup() {
  *  - Save or log commands to SD
  *  - Process available commands (if not saving)
  *  - Call heater manager
+ *  - Call Fans manager
  *  - Call inactivity manager
  *  - Call endstop manager
  *  - Call LCD update
@@ -941,10 +942,10 @@ void Printer::handle_Interrupt_Event() {
 /**
  * Sensitive pin test for M42, M226
  */
-bool Printer::pin_is_protected(uint8_t pin) {
+bool Printer::pin_is_protected(const Pin pin) {
   static const int8_t sensitive_pins[] PROGMEM = SENSITIVE_PINS;
   for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
-    if (pin == (int8_t)pgm_read_byte(&sensitive_pins[i])) return true;
+    if (pin == pgm_read_byte(&sensitive_pins[i])) return true;
   return false;
 }
 

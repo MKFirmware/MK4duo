@@ -25,7 +25,7 @@
  * Copyright (c) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 

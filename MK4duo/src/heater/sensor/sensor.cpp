@@ -24,7 +24,7 @@
  * sensor.cpp - heater object
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(SUPPORT_MAX6675)
 

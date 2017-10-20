@@ -23,7 +23,7 @@
 #ifndef ULCDST7565_H
 #define ULCDST7565_H
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(U8GLIB_ST7565_64128N)
 

@@ -39,7 +39,7 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(NEXTION)
 

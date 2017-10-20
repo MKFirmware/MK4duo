@@ -38,8 +38,8 @@ inline void gcode_M42(void) {
   if (!parser.seenval('S')) return;
   const byte pin_status = parser.value_byte();
 
-  const Pin pin_number = parser.intval('P', LED_PIN);
-  if (pin_number < 0) return;
+  const Pin pin_number = parser.pinval('P');
+  if (pin_number == NoPin) return;
 
   if (printer.pin_is_protected(pin_number)) {
     SERIAL_LM(ER, MSG_ERR_PROTECTED_PIN);

@@ -31,18 +31,13 @@
   #define CODE_M106
   #define CODE_M107
 
-  #if ENABLED(FAN_MIN_PWM)
-    #define CALC_FAN_SPEED() (speed ? ( FAN_MIN_PWM + (speed * (255 - FAN_MIN_PWM)) / 255 ) : 0)
-  #else
-    #define CALC_FAN_SPEED() speed
-  #endif
-
   /**
    * M106: Set Fan Speed
    *
    *  P<index>  Fan index, if more than one fan
    *  S<int>    Speed between 0-255
-   *  F<int>    Fan Pin
+   *  F<int>    Set PWM frequency
+   *  U<int>    Fan Pin
    *  L<int>    Min Speed
    *  I<bool>   Inverted pin output
    */
@@ -54,15 +49,18 @@
 
       Fan *fan = &fans[f];
 
-      if (parser.seen('F')) {
+      if (parser.seen('U')) {
         // Put off the fan
         fan->Speed = 0;
-        fan->pin = parser.value_int();
+        fan->pin = parser.value_pin();
         fan->init();
       }
 
-      fan->hardwareInverted = parser.boolval('I');
-      fan->min_Speed        = parser.byteval('L', FAN_MIN_PWM);
+      if (parser.seen('I'))
+        fan->hardwareInverted = !fan->hardwareInverted;
+
+      fan->min_Speed        = parser.byteval('L', fan->min_Speed);
+      fan->freq             = parser.ushortval('F', fan->freq);
 
       #if ENABLED(FAN_KICKSTART_TIME)
         if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
@@ -75,9 +73,10 @@
 
       if (!parser.seen('S')) {
         char response[50];
-        sprintf_P(response, PSTR("Fan:%i pin:%i, min:%i inverted:%s"),
+        sprintf_P(response, PSTR("Fan:%i pin:%i, frequency:%uHz, min:%i inverted:%s"),
             (int)f,
             (int)fan->pin,
+            (uint16_t)fan->freq,
             (int)fan->min_Speed,
             (fan->hardwareInverted) ? "true" : "false"
         );

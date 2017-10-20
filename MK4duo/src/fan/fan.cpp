@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #if FAN_COUNT > 0
 
@@ -42,8 +42,9 @@
     this->Kickstart         = 0;
     this->pwm_pos           = 0;
     this->paused            = false;
+    this->lastpwm           = -1;
 
-    if (this->pin > 0)
+    if (this->pin > NoPin)
       HAL::pinMode(this->pin, OUTPUT);
   }
 
@@ -59,5 +60,21 @@
         this->Speed = this->paused_Speed;
     }
   }
+
+  #if HARDWARE_PWM
+    void Fan::SetHardwarePwm() {
+      if (this->pin > NoPin) {
+        if (this->hardwareInverted)
+          this->pwm_pos = 255 - this->Speed;
+        else
+          this->pwm_pos = this->Speed;
+
+        if (this->pwm_pos != this->lastpwm) {
+          this->lastpwm = this->pwm_pos;
+          HAL::analogWrite(this->pin, this->pwm_pos, this->freq);
+        }
+      }
+    }
+  #endif
 
 #endif // FAN_COUNT > 0

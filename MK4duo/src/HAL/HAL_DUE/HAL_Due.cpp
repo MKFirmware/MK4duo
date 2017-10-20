@@ -54,7 +54,7 @@
 // Includes
 // --------------------------------------------------------------------------
 
-#include "../../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
@@ -92,6 +92,12 @@ static inline void ConfigurePin(const PinDescription& pinDesc) {
   PIO_Configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 
+// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
+extern "C" int sysTickHook() {
+  HAL::Tick();
+  return 0;
+}
+
 HAL::HAL() {
   // ctor
 }
@@ -112,11 +118,8 @@ void HAL::hwSetup(void) {
 
   TimeTick_Configure(F_CPU);
 
-  // setup microsecond delay timer
-  pmc_enable_periph_clk(DELAY_TIMER_IRQ);
-  TC_Configure(DELAY_TIMER, DELAY_TIMER_CHANNEL, TC_CMR_WAVSEL_UP |
-               TC_CMR_WAVE | DELAY_TIMER_CLOCK);
-  TC_Start(DELAY_TIMER, DELAY_TIMER_CHANNEL);
+  NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
+  NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
@@ -343,7 +346,7 @@ static bool AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, c
     // We need to work around a bug in the SAM PWM channels. Enabling a channel is supposed to clear the counter, but it doesn't.
     // A further complication is that on the SAM3X, the update-period register doesn't appear to work.
     // So we need to make sure the counter is less than the new period before we change the period.
-    for (unsigned int j = 0; j < 5; ++j) {  // twice through should be enough, but just in case...
+    for (uint8_t j = 0; j < 5; ++j) {  // twice through should be enough, but just in case...
     
       PWMC_DisableChannel(PWM, chan);
       uint32_t oldCurrentVal = PWM->PWM_CH_NUM[chan].PWM_CCNT & 0xFFFF;
@@ -353,7 +356,7 @@ static bool AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, c
       PWM->PWM_CH_NUM[chan].PWM_CPRD = oldCurrentVal;				// change the period to be just greater than the counter
       PWM->PWM_CH_NUM[chan].PWM_CMR = PWM_CMR_CPRE_CLKB;			// use the fast clock to avoid waiting too long
       PWMC_EnableChannel(PWM, chan);
-      for (unsigned int i = 0; i < 1000; ++i) {
+      for (uint16_t i = 0; i < 1000; ++i) {
         const uint32_t newCurrentVal = PWM->PWM_CH_NUM[chan].PWM_CCNT & 0xFFFF;
         if (newCurrentVal < period || newCurrentVal > oldCurrentVal)
           break;    // get out when we have wrapped round, or failed to
@@ -487,20 +490,26 @@ static bool AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, co
   return true;
 }
 
-bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) {
+void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/) {
 
-  if (isnan(value)) return true;
+  if (isnan(value) || pin <= NoPin) return;
 
   const float ulValue = constrain((float)value / 255.0, 0.0, 1.0);
   const PinDescription& pinDesc = g_APinDescription[pin];
   const uint32_t attr = pinDesc.ulPinAttribute;
 
-  if ((attr & PIN_ATTR_PWM) != 0)
-    return AnalogWritePwm(pinDesc, ulValue, freq);
-  else if ((attr & PIN_ATTR_TIMER) != 0)
-    return AnalogWriteTc(pinDesc, ulValue, freq);
+  if ((attr & PIN_ATTR_PWM) != 0) {
+    if (AnalogWritePwm(pinDesc, ulValue, freq)) {
+      return;
+    }
+  }
+  else if ((attr & PIN_ATTR_TIMER) != 0) {
+    if (AnalogWriteTc(pinDesc, ulValue, freq)) {
+      return;
+    }
+  }
 
-  return false;
+  HAL::digitalWrite(pin, (ulValue < 0.5) ? LOW : HIGH);
 }
 
 #if ANALOG_INPUTS > 0
@@ -522,7 +531,7 @@ bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) 
 #endif
   
 /**
- * Timer 0 is is called 3906 timer per second.
+ * Tick is is called 1000 timer per second.
  * It is used to update pwm values for heater and some other frequent jobs.
  *
  *  - Manage PWM to all the heaters and fan
@@ -531,63 +540,22 @@ bool HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=50*/) 
  *  - For PINS_DEBUGGING, monitor and report endstop pins
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
-HAL_TEMP_TIMER_ISR {
-
-  HAL_timer_isr_prologue(TEMP_TIMER);
-
-  // Allow UART ISRs
-  HAL_DISABLE_ISRs();
-
-  static uint8_t  pwm_count_heater        = 0,
-                  pwm_count_fan           = 0;
+void HAL::Tick() {
 
   #if ENABLED(FILAMENT_SENSOR)
     static unsigned long raw_filwidth_value = 0;
   #endif
 
-  /**
-   * Standard PWM modulation
-   */
-  if (pwm_count_heater == 0) {
-    #if HEATER_COUNT > 0
-      LOOP_HEATER() {
-        if ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0)
-          HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? LOW : HIGH);
-      }
-    #endif
-  }
-
-  if (pwm_count_fan == 0) {
-    #if FAN_COUNT >0
-      LOOP_FAN() {
-        if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? LOW : HIGH);
-      }
-    #endif
-  }
-
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() {
-      if (heaters[h].output_pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
-        HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
-    }
-  #endif
-
-  #if FAN_COUNT > 0
-    LOOP_FAN() {
-      if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-        HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
-    }
-  #endif
-
   // Calculation cycle approximate a 100ms
   cycle_100ms++;
-  if (cycle_100ms >= 390) {
+  if (cycle_100ms >= 100) {
     cycle_100ms = 0;
-    HAL::execute_100ms = true;
-    #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
-      LOOP_FAN()
-        if (fans[f].Kickstart) fans[f].Kickstart--;
+    execute_100ms = true;
+    #if HEATER_COUNT > 0
+      LOOP_HEATER() heaters[h].SetHardwarePwm();
+    #endif
+    #if FAN_COUNT > 0
+      LOOP_FAN() fans[f].SetHardwarePwm();
     #endif
   }
 
@@ -626,9 +594,6 @@ HAL_TEMP_TIMER_ISR {
 
   #endif
 
-  pwm_count_heater  += HEATER_PWM_STEP;
-  pwm_count_fan     += FAN_PWM_STEP;
-
   #if ENABLED(BABYSTEPPING)
     LOOP_XYZ(axis) {
       int curTodo = mechanics.babystepsTodo[axis]; //get rid of volatile for performance
@@ -658,8 +623,6 @@ HAL_TEMP_TIMER_ISR {
       endstops.e_hit--;
     }
   #endif
-
-  HAL_ENABLE_ISRs(); // re-enable ISRs
 
 }
 

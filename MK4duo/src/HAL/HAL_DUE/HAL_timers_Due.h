@@ -76,19 +76,15 @@ typedef struct {
 
 #define NUM_HARDWARE_TIMERS 9
 
-#define DELAY_TIMER             TC1
-#define DELAY_TIMER_CHANNEL     1
-#define DELAY_TIMER_IRQ         ID_TC4  // IRQ not really used, needed for pmc id
-#define DELAY_TIMER_CLOCK       TC_CMR_TCCLKS_TIMER_CLOCK2
-#define DELAY_TIMER_PRESCALE    8
+#define NvicPriorityUart    1
+#define NvicPrioritySystick 2
 
-#define STEPPER_TIMER 2
+#define STEPPER_TIMER           3
 #define STEPPER_TIMER_PRESCALE  2
+#define STEPPER_FREQUENCY       60000
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
-
-#define TEMP_TIMER 3
-#define TEMP_TIMER_FREQUENCY 3906
+#define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
 #define BEEPER_TIMER 4
 #define BEEPER_TIMER_COUNTER TC1
@@ -100,20 +96,18 @@ typedef struct {
 
 #define ADC_ISR_EOC(channel)    (0x1u << channel)
 
-#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, 122)
-#define HAL_TEMP_TIMER_START()              HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY)
+#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, STEPPER_FREQUENCY)
+#define HAL_TEMP_TIMER_START()
 
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 
-#define ENABLE_TEMP_INTERRUPT()             HAL_timer_enable_interrupt (TEMP_TIMER)
-#define DISABLE_TEMP_INTERRUPT()            HAL_timer_disable_interrupt (TEMP_TIMER)
+#define ENABLE_TEMP_INTERRUPT()
+#define DISABLE_TEMP_INTERRUPT()
 
 #define HAL_TIMER_SET_STEPPER_COUNT(count)  HAL_timer_set_count(STEPPER_TIMER, count);
-#define HAL_TIMER_SET_TEMP_COUNT(count)     HAL_timer_set_count(TEMP_TIMER, count);
+#define HAL_TIMER_SET_TEMP_COUNT(count)
 
-#define HAL_STEP_TIMER_ISR    void TC2_Handler()
-#define HAL_TEMP_TIMER_ISR    void TC3_Handler()
 #define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
 #define HAL_ENABLE_ISRs() \
@@ -182,8 +176,8 @@ typedef struct {
 static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - [servo timer5]
   { TC0, 1, TC1_IRQn, 0 },  // 1
-  { TC0, 2, TC2_IRQn, 1 },  // 2 - stepper
-  { TC1, 0, TC3_IRQn, 15},  // 3 - temperature
+  { TC0, 2, TC2_IRQn, 0 },  // 2
+  { TC1, 0, TC3_IRQn, 3 },  // 3 - Stepper
   { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer3]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Adafruit Neopixel
@@ -230,7 +224,7 @@ inline void HAL_timer_isr_status(Tc* tc, uint32_t channel) {
   tc->TC_CHANNEL[channel].TC_SR; // clear status register
 }
 
-void tone(uint8_t pin, int frequency, unsigned long duration);
-void noTone(uint8_t pin);
+void tone(const Pin pin, int frequency, unsigned long duration);
+void noTone(const Pin pin);
 
 #endif // _HAL_TIMERS_DUE_H

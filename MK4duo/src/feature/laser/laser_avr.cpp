@@ -40,7 +40,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "../../base.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(LASER) && ENABLED(__AVR__)
 
@@ -77,7 +77,7 @@
     noInterrupts();
 
     TCCR3A = 0x00;
-    TCCR3B = 0x00;                  // stop Timer3 clock for register updates
+    TCCR3B = 0x00;                    // stop Timer3 clock for register updates
     ICR3 = labs(PWM_PULSE_FREQUENCY); // set clock cycles per PWM pulse (OC Top value)
 
     if (pin == 2) {

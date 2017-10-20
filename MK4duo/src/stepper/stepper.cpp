@@ -45,7 +45,7 @@
  * and Philipp Tiefenbacher.
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 #include "stepper.h"
 
 #if ENABLED(__AVR__)

@@ -36,7 +36,7 @@
 #ifndef ULTRALCD_IMPL_DOGM_H
 #define ULTRALCD_IMPL_DOGM_H
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 /**
  * Implementation of the LCD display routines for a DOGM128 graphic display.

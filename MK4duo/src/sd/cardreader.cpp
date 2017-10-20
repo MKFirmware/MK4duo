@@ -20,7 +20,7 @@
  *
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #if HAS_SDSUPPORT
 
@@ -39,10 +39,10 @@
 
     autostart_stilltocheck = true; // the SD start is delayed, because otherwise the serial cannot answer fast enough to make contact with the host software.
 
-    //power to SD reader
-    #if SDPOWER > -1
-      OUT_WRITE(SDPOWER, HIGH);
-    #endif // SDPOWER
+    // power to SD reader
+    #if PIN_EXISTS(SDPOWER)
+      OUT_WRITE(SDPOWER_PIN, HIGH);
+    #endif // SDPOWER_PIN
 
     next_autostart_ms = millis() + BOOTSCREEN_TIMEOUT;
   }
@@ -142,8 +142,8 @@
     if (isFileOpen() && sdprinting) {
       if (store_location) SERIAL_EM("Close file and save restart.gcode");
       sdprinting = false;
-      closeFile(store_location);
       commands.clear_command_queue();
+      closeFile(store_location);
       stepper.quickstop_stepper();
       print_job_counter.stop();
       thermalManager.wait_for_heatup = false;

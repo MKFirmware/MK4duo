@@ -205,6 +205,9 @@ class GCodeParser {
     // Bool is true with no value or non-zero
     inline static bool            value_bool()    { return !has_value() || value_byte(); }
 
+    // Pin value
+    static Pin value_pin();
+
     // Units modes: Inches, Fahrenheit, Kelvin
 
     #if ENABLED(INCH_MODE_SUPPORT)
@@ -292,15 +295,16 @@ class GCodeParser {
     FORCE_INLINE static float value_feedrate() { return value_linear_units(); }
 
     // Provide simple value accessors with default option
-    FORCE_INLINE static float    floatval(const char c, const float dval=0.0)   { return seenval(c) ? value_float()        : dval; }
-    FORCE_INLINE static bool     boolval(const char c, const bool dval=false)   { return seen(c)    ? value_bool()         : dval; }
-    FORCE_INLINE static uint8_t  byteval(const char c, const uint8_t dval=0)    { return seenval(c) ? value_byte()         : dval; }
-    FORCE_INLINE static int16_t  intval(const char c, const int16_t dval=0)     { return seenval(c) ? value_int()          : dval; }
-    FORCE_INLINE static uint16_t ushortval(const char c, const uint16_t dval=0) { return seenval(c) ? value_ushort()       : dval; }
-    FORCE_INLINE static int32_t  longval(const char c, const int32_t dval=0)    { return seenval(c) ? value_long()         : dval; }
-    FORCE_INLINE static uint32_t ulongval(const char c, const uint32_t dval=0)  { return seenval(c) ? value_ulong()        : dval; }
-    FORCE_INLINE static float    linearval(const char c, const float dval=0.0)  { return seenval(c) ? value_linear_units() : dval; }
-    FORCE_INLINE static float    celsiusval(const char c, const float dval=0.0) { return seenval(c) ? value_celsius()      : dval; }
+    FORCE_INLINE static float     floatval(const char c, const float dval=0.0)    { return seenval(c) ? value_float()         : dval; }
+    FORCE_INLINE static bool      boolval(const char c)                           { return seenval(c) ? value_bool()          : seen(c); }
+    FORCE_INLINE static uint8_t   byteval(const char c, const uint8_t dval=0)     { return seenval(c) ? value_byte()          : dval; }
+    FORCE_INLINE static int16_t   intval(const char c, const int16_t dval=0)      { return seenval(c) ? value_int()           : dval; }
+    FORCE_INLINE static uint16_t  ushortval(const char c, const uint16_t dval=0)  { return seenval(c) ? value_ushort()        : dval; }
+    FORCE_INLINE static int32_t   longval(const char c, const int32_t dval=0)     { return seenval(c) ? value_long()          : dval; }
+    FORCE_INLINE static uint32_t  ulongval(const char c, const uint32_t dval=0)   { return seenval(c) ? value_ulong()         : dval; }
+    FORCE_INLINE static float     linearval(const char c, const float dval=0.0)   { return seenval(c) ? value_linear_units()  : dval; }
+    FORCE_INLINE static float     celsiusval(const char c, const float dval=0.0)  { return seenval(c) ? value_celsius()       : dval; }
+    FORCE_INLINE static Pin       pinval(const char c, const uint8_t dval=NoPin)  { return seenval(c) ? value_pin()           : dval; }
 
   private: /** Private Function */
 

@@ -169,7 +169,7 @@ class Printer {
     static void setInterruptEvent(const MK4duoInterruptEvent event);
     static void handle_Interrupt_Event();
 
-    static bool pin_is_protected(uint8_t pin);
+    static bool pin_is_protected(const Pin pin);
 
     static void suicide();
 

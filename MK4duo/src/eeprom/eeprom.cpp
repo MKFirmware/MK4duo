@@ -36,7 +36,7 @@
  *
  */
 
-#include "../../base.h"
+#include "../../MK4duo.h"
 
 #define EEPROM_VERSION "MKV41"
 
@@ -273,8 +273,7 @@ void EEPROM::Postprocess() {
     }
   }
 
-  void EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-    if (eeprom_error) return;
+  bool EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
 
     while(size--) {
 
@@ -283,8 +282,7 @@ void EEPROM::Postprocess() {
         uint8_t v = *value;
         if (!card.write_data(&eeprom_file, v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-          eeprom_error = true;
-          return;
+          return true;
         }
 
       #else
@@ -297,8 +295,7 @@ void EEPROM::Postprocess() {
           eeprom_write_byte(p, v);
           if (eeprom_read_byte(p) != v) {
             SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-            eeprom_error = true;
-            return;
+            return true;
           }
         }
       #endif
@@ -307,11 +304,10 @@ void EEPROM::Postprocess() {
       pos++;
       value++;
     };
+    return false;
   }
 
-  void EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
-    if (eeprom_error) return;
-
+  bool EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
     do {
       #if HAS_EEPROM_SD
         uint8_t c = card.read_data(&eeprom_file);
@@ -323,6 +319,7 @@ void EEPROM::Postprocess() {
       pos++;
       value++;
     } while (--size);
+    return false;
   }
 
   /**
@@ -477,6 +474,7 @@ void EEPROM::Postprocess() {
     #if FAN_COUNT > 0
       LOOP_FAN() {
         EEPROM_WRITE(fans[f].pin);
+        EEPROM_WRITE(fans[f].freq);
         EEPROM_WRITE(fans[f].min_Speed);
         EEPROM_WRITE(fans[f].hardwareInverted);
       }
@@ -638,8 +636,6 @@ void EEPROM::Postprocess() {
 
     char stored_ver[6];
     uint16_t stored_crc;
-
-    eeprom_error = false;
 
     #if HAS_EEPROM_SD
       // EEPROM on SDCARD
@@ -807,6 +803,7 @@ void EEPROM::Postprocess() {
       #if FAN_COUNT > 0
         LOOP_FAN() {
           EEPROM_READ(fans[f].pin);
+          EEPROM_READ(fans[f].freq);
           EEPROM_READ(fans[f].min_Speed);
           EEPROM_READ(fans[f].hardwareInverted);
         }
@@ -907,15 +904,10 @@ void EEPROM::Postprocess() {
         eeprom_file.sync();
         eeprom_file.close();
         card.setlast();
-
-        if (eeprom_error)
-          Factory_Settings();
-        else {
-          Postprocess();
-          SERIAL_VAL(version);
-          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
-          SERIAL_EM(" bytes)");
-        }
+        Postprocess();
+        SERIAL_VAL(version);
+        SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+        SERIAL_EM(" bytes)");
 
       #else
 
@@ -1013,12 +1005,14 @@ void EEPROM::Postprocess() {
         uint16_t crc = 0;
         int pos = meshes_end - (slot + 1) * sizeof(ubl.z_values);
 
-        write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
+        bool status = write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
-        // Write crc to MAT along with other data, or just tack on to the beginning or end
+        if (status)
+          SERIAL_MSG("?Unable to save mesh data.\n");
 
         #if ENABLED(EEPROM_CHITCHAT)
-          SERIAL_EMV("Mesh saved in slot ", slot);
+          else
+            SERIAL_EMV("Mesh saved in slot ", slot);
         #endif
 
       #else
@@ -1044,12 +1038,15 @@ void EEPROM::Postprocess() {
         uint16_t crc = 0;
         int pos = meshes_end - (slot + 1) * sizeof(ubl.z_values);
         uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
-        read_data(pos, dest, sizeof(ubl.z_values), &crc);
 
-        // Compare crc with crc from MAT, or read from end
+        bool status = read_data(pos, dest, sizeof(ubl.z_values), &crc);
+
+        if (status)
+          SERIAL_MSG("?Unable to load mesh data.\n");
 
         #if ENABLED(EEPROM_CHITCHAT)
-          SERIAL_EMV("Mesh loaded from slot ", slot);
+          else
+            SERIAL_EMV("Mesh loaded from slot ", slot);
         #endif
 
       #else
@@ -1372,6 +1369,7 @@ void EEPROM::Factory_Settings() {
   #if FAN_COUNT > 0
     LOOP_FAN() {
       fans[f].pin               = pgm_read_dword_near(&tmp10[f]);
+      fans[f].freq              = 250;
       fans[f].min_Speed         = FAN_MIN_PWM;
       fans[f].hardwareInverted  = FAN_INVERTED;
     }
@@ -1597,9 +1595,10 @@ void EEPROM::Factory_Settings() {
       CONFIG_MSG_START("Fans:");
       LOOP_FAN() {
         SERIAL_SMV(CFG, "  M106 P", f);
-        SERIAL_MV(" pin:", fans[f].pin);
-        SERIAL_MV(" min:", fans[f].min_Speed);
-        SERIAL_EMT(" inverted:", fans[f].hardwareInverted ? "true" : "false");
+        SERIAL_MV(" F", fans[f].freq);
+        SERIAL_MV(" U", fans[f].pin);
+        SERIAL_MV(" L", fans[f].min_Speed);
+        SERIAL_EMT(" I", fans[f].hardwareInverted ? "1" : "0");
       }
     #endif
 
