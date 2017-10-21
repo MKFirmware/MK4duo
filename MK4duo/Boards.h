@@ -30,6 +30,7 @@
 *   41 BOARD_MKS_MINI           - MKS MINI 1.0
 *   47 BOARD_MKS_13             - MKS v1.3 or 1.4 (maybe higher)
 *   49 BOARD_TRIGORILLA         - TRIGORILLA (ANYCUBIC)
+*  431 BOARD_MAKEBOARD_MINI     - MakeBoard Mini v2.1.2 is a control board sold by MicroMake
 *
 *    5 BOARD_GEN6 - Gen6
 *   51 BOARD_GEN6_DELUXE        - Gen6 deluxe
@@ -128,6 +129,7 @@
 #define BOARD_MKS_MINI          41    // MKS MINI 1.0
 #define BOARD_MKS_13            47    // MKS v1.3 or 1.4 (maybe higher)
 #define BOARD_TRIGORILLA        49    // TRIGORILLA (ANYCUBIC)
+#define BOARD_MAKEBOARD_MINI   431    // MakeBoard Mini v2.1.2 is a control board sold by MicroMake
 
 #define BOARD_GEN6               5    // Gen6
 #define BOARD_GEN6_DELUXE       51    // Gen6 deluxe
