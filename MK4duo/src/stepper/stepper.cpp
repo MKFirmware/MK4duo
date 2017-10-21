@@ -1396,7 +1396,7 @@ void Stepper::init() {
   ENABLE_STEPPER_INTERRUPT();
 
   #if ENABLED(LIN_ADVANCE)
-    ZERO(e_steps);
+    for (uint8_t e = 0; e < COUNT(e_steps); e++) e_steps[e] = 0;
     ZERO(current_adv_steps);
   #endif // ENABLED(LIN_ADVANCE)
 
