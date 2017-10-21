@@ -1152,12 +1152,6 @@
 #else
   #define MANUAL_PROBE_HEIGHT MIN_Z_HEIGHT_FOR_HOMING
 #endif
-#if !HAS_BED_PROBE
-  #undef Z_PROBE_DEPLOY_HEIGHT
-  #undef Z_PROBE_BETWEEN_HEIGHT
-  #define Z_PROBE_DEPLOY_HEIGHT 0
-  #define Z_PROBE_BETWEEN_HEIGHT 0
-#endif
 
 /**
  * Servos
