@@ -195,30 +195,35 @@
     return oldHandler;
   }
 
+  /** 
+   * MKUARTCLASS
+   */
+
   // Constructors
-  MKHardwareSerial::MKHardwareSerial(Uart *pUart, IRQn_Type dwIrq, uint32_t dwId, MK_RingBuffer *pRx_buffer, MK_RingBuffer *pTx_buffer) {
+  MKUARTClass::MKUARTClass(Uart *pUart, IRQn_Type dwIrq, uint32_t dwId, MK_RingBuffer *pRx_buffer, MK_RingBuffer *pTx_buffer) {
     _rx_buffer = pRx_buffer;
     _tx_buffer = pTx_buffer;
 
-    _pUart = pUart;
-    _dwIrq = dwIrq;
-    _dwId = dwId;
+    _pUart  = pUart;
+    _dwIrq  = dwIrq;
+    _dwId   = dwId;
   }
 
   static void MK_UART_ISR(void) {
     MKSerial.IrqHandler();
   }
 
-  void MKHardwareSerial::begin(const uint32_t dwBaudRate) {
+  // Public Methods
+  void MKUARTClass::begin(const uint32_t dwBaudRate) {
     begin(dwBaudRate, Mode_8N1);
   }
 
-  void MKHardwareSerial::begin(const uint32_t dwBaudRate, const UARTModes config) {
+  void MKUARTClass::begin(const uint32_t dwBaudRate, const UARTModes config) {
     uint32_t modeReg = static_cast<uint32_t>(config) & 0x00000E00;
     init(dwBaudRate, modeReg | UART_MR_CHMODE_NORMAL);
   }
 
-  void MKHardwareSerial::init(const uint32_t dwBaudRate, const uint32_t modeReg) {
+  void MKUARTClass::init(const uint32_t dwBaudRate, const uint32_t modeReg) {
 
     // Disable UART interrupt in NVIC
     NVIC_DisableIRQ(_dwIrq);
@@ -253,7 +258,7 @@
 
   }
 
-  void MKHardwareSerial::end(void) {
+  void MKUARTClass::end(void) {
 
     // Clear any received data
     _rx_buffer->_iHead = _rx_buffer->_iTail;
@@ -267,13 +272,13 @@
     pmc_disable_periph_clk(_dwId);
   }
 
-  void MKHardwareSerial::flush(void) {
+  void MKUARTClass::flush(void) {
     while (_tx_buffer->_iHead != _tx_buffer->_iTail); // wait for transmit data to be sent
     // Wait for transmission to complete
     while ((_pUart->UART_SR & UART_SR_TXEMPTY) != UART_SR_TXEMPTY);
   }
 
-  void MKHardwareSerial::checkRx(void) {
+  void MKUARTClass::checkRx(void) {
     if ((_pUart->UART_SR & UART_SR_RXRDY) == UART_SR_RXRDY) {
       CRITICAL_SECTION_START
         _rx_buffer->store_char(_pUart->UART_RHR);
@@ -281,7 +286,7 @@
     }
   }
 
-  void MKHardwareSerial::write(const uint8_t uc_data) {
+  void MKUARTClass::write(const uint8_t uc_data) {
 
     // Is the hardware currently busy?
     if (((_pUart->UART_SR & UART_SR_TXRDY) != UART_SR_TXRDY) |
@@ -302,14 +307,14 @@
     }
   }
 
-  int MKHardwareSerial::peek(void) {
+  int MKUARTClass::peek(void) {
     CRITICAL_SECTION_START
       const int v = _rx_buffer->_iHead == _rx_buffer->_iTail ? -1 : _rx_buffer->_aucBuffer[_rx_buffer->_iTail];
     CRITICAL_SECTION_END
     return v;
   }
 
-  int MKHardwareSerial::read(void) {
+  int MKUARTClass::read(void) {
     int v;
     CRITICAL_SECTION_START
       if (_rx_buffer->_iHead == _rx_buffer->_iTail)
@@ -322,14 +327,14 @@
     return v;
   }
 
-  int MKHardwareSerial::available(void) {
+  int MKUARTClass::available(void) {
     CRITICAL_SECTION_START
       const uint8_t head = _rx_buffer->_iHead, tail = _rx_buffer->_iTail;
     CRITICAL_SECTION_END
     return (uint32_t)(SERIAL_BUFFER_SIZE + head - tail) % SERIAL_BUFFER_SIZE;
   }
 
-  int MKHardwareSerial::availableForWrite(void) {
+  int MKUARTClass::availableForWrite(void) {
     CRITICAL_SECTION_START
       const uint8_t head = _tx_buffer->_iHead, tail = _tx_buffer->_iTail;
     CRITICAL_SECTION_END
@@ -340,7 +345,7 @@
       return tail - head - 1;
   }
 
-  void MKHardwareSerial::IrqHandler(void) {
+  void MKUARTClass::IrqHandler(void) {
 
     uint32_t status = _pUart->UART_SR;
 
@@ -365,27 +370,23 @@
     }
   }
 
-  /**
-   * Imports from print.h
-   */
-
-  void MKHardwareSerial::print(char c, int base) {
+  void MKUARTClass::print(char c, int base) {
     print((long)c, base);
   }
 
-  void MKHardwareSerial::print(unsigned char b, int base) {
+  void MKUARTClass::print(unsigned char b, int base) {
     print((unsigned long)b, base);
   }
 
-  void MKHardwareSerial::print(int n, int base) {
+  void MKUARTClass::print(int n, int base) {
     print((long)n, base);
   }
 
-  void MKHardwareSerial::print(unsigned int n, int base) {
+  void MKUARTClass::print(unsigned int n, int base) {
     print((unsigned long)n, base);
   }
 
-  void MKHardwareSerial::print(long n, int base) {
+  void MKUARTClass::print(long n, int base) {
     if (base == 0)
       write(n);
     else if (base == 10) {
@@ -399,68 +400,68 @@
       printNumber(n, base);
   }
 
-  void MKHardwareSerial::print(unsigned long n, int base) {
+  void MKUARTClass::print(unsigned long n, int base) {
     if (base == 0) write(n);
     else printNumber(n, base);
   }
 
-  void MKHardwareSerial::print(double n, int digits) {
+  void MKUARTClass::print(double n, int digits) {
     printFloat(n, digits);
   }
 
-  void MKHardwareSerial::println(void) {
+  void MKUARTClass::println(void) {
     print('\r');
     print('\n');
   }
 
-  void MKHardwareSerial::println(const String& s) {
+  void MKUARTClass::println(const String& s) {
     print(s);
     println();
   }
 
-  void MKHardwareSerial::println(const char c[]) {
+  void MKUARTClass::println(const char c[]) {
     print(c);
     println();
   }
 
-  void MKHardwareSerial::println(char c, int base) {
+  void MKUARTClass::println(char c, int base) {
     print(c, base);
     println();
   }
 
-  void MKHardwareSerial::println(unsigned char b, int base) {
+  void MKUARTClass::println(unsigned char b, int base) {
     print(b, base);
     println();
   }
 
-  void MKHardwareSerial::println(int n, int base) {
+  void MKUARTClass::println(int n, int base) {
     print(n, base);
     println();
   }
 
-  void MKHardwareSerial::println(unsigned int n, int base) {
+  void MKUARTClass::println(unsigned int n, int base) {
     print(n, base);
     println();
   }
 
-  void MKHardwareSerial::println(long n, int base) {
+  void MKUARTClass::println(long n, int base) {
     print(n, base);
     println();
   }
 
-  void MKHardwareSerial::println(unsigned long n, int base) {
+  void MKUARTClass::println(unsigned long n, int base) {
     print(n, base);
     println();
   }
 
-  void MKHardwareSerial::println(double n, int digits) {
+  void MKUARTClass::println(double n, int digits) {
     print(n, digits);
     println();
   }
 
   // Private Methods
 
-  void MKHardwareSerial::printNumber(unsigned long n, uint8_t base) {
+  void MKUARTClass::printNumber(unsigned long n, uint8_t base) {
     if (n) {
       unsigned char buf[8 * sizeof(long)]; // Enough space for base 2
       int8_t i = 0;
@@ -475,7 +476,7 @@
       print('0');
   }
 
-  void MKHardwareSerial::printFloat(double number, uint8_t digits) {
+  void MKUARTClass::printFloat(double number, uint8_t digits) {
     // Handle negative numbers
     if (number < 0.0) {
       print('-');
@@ -507,18 +508,49 @@
     }
   }
 
+  /** 
+   * MKUSARTCLASS
+   */
+
+  // Constructors
+  MKUSARTClass::MKUSARTClass(Usart *pUsart, IRQn_Type dwIrq, uint32_t dwId, MK_RingBuffer *pRx_buffer, MK_RingBuffer *pTx_buffer)
+    : MKUARTClass((Uart*)pUsart, dwIrq, dwId, pRx_buffer, pTx_buffer)
+  {
+    _pUsart = pUsart;
+    _dwIrq  = dwIrq;
+    _dwId   = dwId;
+  }
+
+  // Public Methods
+  void MKUSARTClass::begin(const uint32_t dwBaudRate) {
+    begin(dwBaudRate, Mode_8N1);
+  }
+
+  void MKUSARTClass::begin(const uint32_t dwBaudRate, const UARTModes config) {
+    uint32_t modeReg = static_cast<uint32_t>(config);
+    modeReg |= US_MR_USART_MODE_NORMAL | US_MR_USCLKS_MCK | US_MR_CHMODE_NORMAL;
+    init(dwBaudRate, modeReg);
+  }
+
+  void MKUSARTClass::begin(const uint32_t dwBaudRate, const USARTModes config) {
+    uint32_t modeReg = static_cast<uint32_t>(config);
+    modeReg |= US_MR_USART_MODE_NORMAL | US_MR_USCLKS_MCK | US_MR_CHMODE_NORMAL;
+    init(dwBaudRate, modeReg);
+  }
+
+  // Construction MKSerial
   MK_RingBuffer MK_rx_buffer;
   MK_RingBuffer MK_tx_buffer;
 
   // Based on selected port, use the proper configuration
   #if SERIAL_PORT == 0
-    MKHardwareSerial MKSerial(UART, UART_IRQn, ID_UART, &MK_rx_buffer, &MK_tx_buffer);
+    MKUARTClass MKSerial(UART, UART_IRQn, ID_UART, &MK_rx_buffer, &MK_tx_buffer);
   #elif SERIAL_PORT == 1
-    MKHardwareSerial MKSerial(USART0, USART0_IRQn, ID_USART0, &MK_rx_buffer, &MK_tx_buffer);
+    MKUSARTClass MKSerial(USART0, USART0_IRQn, ID_USART0, &MK_rx_buffer, &MK_tx_buffer);
   #elif SERIAL_PORT == 2
-    MKHardwareSerial MKSerial(USART1, USART1_IRQn, ID_USART1, &MK_rx_buffer, &MK_tx_buffer);
+    MKUSARTClass MKSerial(USART1, USART1_IRQn, ID_USART1, &MK_rx_buffer, &MK_tx_buffer);
   #elif SERIAL_PORT == 3
-    MKHardwareSerial MKSerial(USART3, USART3_IRQn, ID_USART3, &MK_rx_buffer, &MK_tx_buffer);
+    MKUSARTClass MKSerial(USART3, USART3_IRQn, ID_USART3, &MK_rx_buffer, &MK_tx_buffer);
   #endif
 
 #endif // ARDUINO_ARCH_SAM
