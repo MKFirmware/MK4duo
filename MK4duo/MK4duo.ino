@@ -100,6 +100,7 @@
  * M33  - Stop printing, close file and save restart.gcode
  * M34  - Open file and start print
  * M35  - Upload Firmware to Nextion from SD
+ * M36  - Set SD Card Sorting Options
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
  * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  *

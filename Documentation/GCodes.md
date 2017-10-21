@@ -63,6 +63,7 @@
 *  M33  - Stop printing, close file and save restart.gcode
 *  M34  - Open file and start print
 *  M35  - Upload Firmware to Nextion from SD (Requires NEXTION)
+*  M36  - Set SD Card Sorting Options
 *  M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
 *  M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
 *
@@ -111,7 +112,7 @@
 *  M100 - Watch Free Memory (For Debugging Only)
 *  M104 - Set hotend target temp
 *  M105 - Read current temp
-*  M106 - P<fan> S<speed> F<pin> L<min speed> I<inverted logic>
+*  M106 - P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic>
 *  M107 - P<fan> Fan off
 *  M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
 *  M109 - S[xxx] Wait for hotend current temp to reach target temp. Waits only when heating
