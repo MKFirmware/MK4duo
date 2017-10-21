@@ -39,40 +39,101 @@
 
   class CardReader {
 
-    public: // PARAMETERS
+    public: /** Constructor */
+
+      CardReader();
+
+    public: /** Public Parameters */
 
       SdFat fat;
       SdFile gcode_file;
-      SdBaseFile root,
-                *curDir,
-                 workDir,
-                 lastDir,
-                 workDirParents[SD_MAX_FOLDER_DEPTH];
+      SdBaseFile  root,
+                 *curDir,
+                  workDir,
+                  lastDir,
+                  workDirParents[SD_MAX_FOLDER_DEPTH];
 
       #if ENABLED(SD_SETTINGS)
-        SdFile settings_file;
+        SdFile  settings_file;
       #endif
 
-      bool saving,
-           sdprinting,
-           cardOK,
-           filenameIsDir;
+      bool  saving,
+            sdprinting,
+            cardOK,
+            filenameIsDir;
 
-      uint32_t fileSize,
-               sdpos;
+      uint32_t  fileSize,
+                sdpos;
 
       float objectHeight,
             firstlayerHeight,
             layerHeight,
             filamentNeeded;
 
-      char fileName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1],
-           tempLongFilename[LONG_FILENAME_LENGTH + 1],
-           generatedBy[GENBY_SIZE];
+      char  fileName[LONG_FILENAME_LENGTH * SD_MAX_FOLDER_DEPTH + SD_MAX_FOLDER_DEPTH + 1],
+            tempLongFilename[LONG_FILENAME_LENGTH + 1],
+            generatedBy[GENBY_SIZE];
 
-    public: // FUNCTIONS
+    private: /** Private Parameters */
 
-      CardReader();
+      Sd2Card card;
+
+      uint16_t  workDirDepth;
+      millis_t  next_autostart_ms;
+      uint16_t  nrFiles;             // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
+      LsAction  lsAction;            // stored for recursion.
+      bool  autostart_stilltocheck;  // the sd start is delayed, because otherwise the serial cannot answer fast enought to make contact with the hostsoftware.
+
+      // Sort files and folders alphabetically.
+      #if ENABLED(SDCARD_SORT_ALPHA)
+        uint16_t sort_count;        // Count of sorted items in the current directory
+        #if ENABLED(SDSORT_GCODE)
+          bool sort_alpha;          // Flag to enable / disable the feature
+          int sort_folders;         // Flag to enable / disable folder sorting
+          //bool sort_reverse;      // Flag to enable / disable reverse sorting
+        #endif
+
+        // By default the sort index is static
+        #if ENABLED(SDSORT_DYNAMIC_RAM)
+          uint8_t *sort_order;
+        #else
+          uint8_t sort_order[SDSORT_LIMIT];
+        #endif
+
+        #if ENABLED(SDSORT_USES_RAM) && ENABLED(SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)
+          #define SORTED_LONGNAME_MAXLEN ((SDSORT_CACHE_VFATS) * (FILENAME_LENGTH) + 1)
+        #else
+          #define SORTED_LONGNAME_MAXLEN LONG_FILENAME_LENGTH
+        #endif
+
+        // Cache filenames to speed up SD menus.
+        #if ENABLED(SDSORT_USES_RAM)
+
+          // If using dynamic ram for names, allocate on the heap.
+          #if ENABLED(SDSORT_CACHE_NAMES)
+            #if ENABLED(SDSORT_DYNAMIC_RAM)
+              char **sortshort, **sortnames;
+            #else
+              char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+            #endif
+          #elif DISABLED(SDSORT_USES_STACK)
+            char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+          #endif
+
+          // Folder sorting uses an isDir array when caching items.
+          #if HAS_FOLDER_SORTING
+            #if ENABLED(SDSORT_DYNAMIC_RAM)
+              uint8_t *isDir;
+            #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
+              uint8_t isDir[(SDSORT_LIMIT+7)>>3];
+            #endif
+          #endif
+
+        #endif // SDSORT_USES_RAM
+
+      #endif // SDCARD_SORT_ALPHA
+
+    public: /** Public Function */
 
       void mount();
       void unmount();
@@ -94,6 +155,8 @@
       void updir();
       void setroot();
       void setlast();
+
+      uint16_t get_num_Files();
 
       #if HAS_EEPROM_SD
         bool write_data(SdFile* currentfile, const uint8_t value);
@@ -119,6 +182,16 @@
 
       uint16_t getnrfilenames();
 
+      #if ENABLED(SDCARD_SORT_ALPHA)
+        void presort();
+        void getfilename_sorted(const uint16_t nr);
+        #if ENABLED(SDSORT_GCODE)
+          FORCE_INLINE void setSortOn(bool b) { sort_alpha = b; presort(); }
+          FORCE_INLINE void setSortFolders(int i) { sort_folders = i; presort(); }
+          //FORCE_INLINE void setSortReverse(bool b) { sort_reverse = b; }
+        #endif
+      #endif
+
       FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
       FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
       FORCE_INLINE bool isFileOpen() { return gcode_file.isOpen(); }
@@ -133,17 +206,7 @@
 
       static void printEscapeChars(const char* s);
 
-    private: // PARAMETERS
-
-      Sd2Card card;
-
-      uint16_t workDirDepth;
-      millis_t next_autostart_ms;
-      uint16_t nrFiles; // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
-      LsAction lsAction; //stored for recursion.
-      bool autostart_stilltocheck; //the sd start is delayed, because otherwise the serial cannot answer fast enought to make contact with the hostsoftware.
-
-    private: // FUNCTIONS
+    private: /** Private Function */
 
       void lsDive(SdBaseFile parent, const char* const match = NULL);
       void parsejson(SdBaseFile &parser_file);
@@ -152,6 +215,11 @@
       bool findLayerHeight(char* buf, float &layerHeight);
       bool findFilamentNeed(char* buf, float &filament);
       bool findTotalHeight(char* buf, float &objectHeight);
+
+      #if ENABLED(SDCARD_SORT_ALPHA)
+        void flush_presort();
+      #endif
+
   };
 
   extern CardReader card;

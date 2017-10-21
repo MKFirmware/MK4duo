@@ -545,7 +545,7 @@
     }
 
     static void setrowsdcard(uint32_t number = 0) {
-      uint16_t fileCnt = card.getnrfilenames();
+      uint16_t fileCnt = card.get_num_Files();
       uint32_t i = 0;
       card.getWorkDirName();
 
@@ -559,13 +559,19 @@
         sdfolder.setText("");
       }
 
-      for (uint8_t row = 0; row < 6; row++) {
-        i = row + number;
-        if (i < fileCnt) {
-          card.getfilename(i);
-          printrowsd(row, card.filenameIsDir, card.fileName);
-        } else {
-          printrowsd(row, false, "");
+      if (fileCnt) {
+        for (uint8_t row = 0; row < 6; row++) {
+          i = row + number;
+          if (i < fileCnt) {
+            #if ENABLED(SDCARD_SORT_ALPHA)
+              card.getfilename_sorted(i);
+            #else
+              card.getfilename(i);
+            #endif
+            printrowsd(row, card.filenameIsDir, card.fileName);
+          } else {
+            printrowsd(row, false, "");
+          }
         }
       }
       sendCommand("ref 0");
@@ -582,7 +588,7 @@
     }
 
     void setpageSD() {
-      uint16_t fileCnt = card.getnrfilenames();
+      uint16_t fileCnt = card.get_num_Files();
 
       if (fileCnt <= 6)
         slidermaxval = 0;
