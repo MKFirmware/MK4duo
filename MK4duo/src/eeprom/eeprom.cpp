@@ -38,10 +38,10 @@
 
 #include "../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV41"
+#define EEPROM_VERSION "MKV42"
 
 /**
- * MKV41 EEPROM Layout:
+ * MKV42 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -138,7 +138,7 @@
  *  M305  D0  SP          DHT Sensor parameters
  *
  * FANS:
- *  M106  F   SPI         Fans parameters
+ *  M106  P   SFHULI      Fans parameters
  *
  * DOGLCD:
  *  M250  C               lcd_contrast                                  (uint16_t)
@@ -457,9 +457,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if HEATER_COUNT > 0
-      LOOP_HEATER() {
-        EEPROM_WRITE(heaters[h]);
-      }
+      LOOP_HEATER() EEPROM_WRITE(heaters[h]);
     #endif
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -477,6 +475,7 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(fans[f].freq);
         EEPROM_WRITE(fans[f].min_Speed);
         EEPROM_WRITE(fans[f].hardwareInverted);
+        EEPROM_WRITE(fans[f].autoMonitored);
       }
     #endif
 
@@ -806,6 +805,7 @@ void EEPROM::Postprocess() {
           EEPROM_READ(fans[f].freq);
           EEPROM_READ(fans[f].min_Speed);
           EEPROM_READ(fans[f].hardwareInverted);
+          EEPROM_READ(fans[f].autoMonitored);
         }
       #endif
 
@@ -1080,6 +1080,7 @@ void EEPROM::Factory_Settings() {
 
   #if FAN_COUNT > 0
     static const Pin    tmp10[] PROGMEM = FANS_CHANNELS;
+    static const int8_t tmp11[] PROGMEM = AUTO_FAN;
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -1087,19 +1088,19 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    constexpr float tmp11[XYZ][4] = {
+    constexpr float tmp12[XYZ][4] = {
       HOTEND_OFFSET_X,
       HOTEND_OFFSET_Y,
       HOTEND_OFFSET_Z
     };
   #else
-    constexpr float tmp11[XYZ][HOTENDS] = { 0.0 };
+    constexpr float tmp12[XYZ][HOTENDS] = { 0.0 };
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    const float tmp12[] = MOTOR_CURRENT;
+    const float tmp13[] = MOTOR_CURRENT;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      printer.motor_current[i] = tmp12[i < COUNT(tmp12) ? i : COUNT(tmp12) - 1];
+      printer.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif
 
   LOOP_XYZE_N(i) {
@@ -1114,11 +1115,11 @@ void EEPROM::Factory_Settings() {
   }
 
   static_assert(
-    tmp11[X_AXIS][0] == 0 && tmp11[Y_AXIS][0] == 0 && tmp11[Z_AXIS][0] == 0,
+    tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp11[i][h];
+    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp12[i][h];
   }
 
   mechanics.acceleration = DEFAULT_ACCELERATION;
@@ -1368,10 +1369,11 @@ void EEPROM::Factory_Settings() {
   // Fans
   #if FAN_COUNT > 0
     LOOP_FAN() {
-      fans[f].pin               = pgm_read_dword_near(&tmp10[f]);
+      fans[f].pin               = (int8_t)pgm_read_byte(&tmp10[f]);
       fans[f].freq              = 250;
       fans[f].min_Speed         = FAN_MIN_PWM;
       fans[f].hardwareInverted  = FAN_INVERTED;
+      fans[f].SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
     }
   #endif
 

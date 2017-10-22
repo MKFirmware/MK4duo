@@ -44,8 +44,10 @@
                 min_Speed,
                 paused_Speed,
                 Kickstart,
-                pwm_pos;
-      uint16_t  freq;
+                pwm_pos,
+                autoMonitored;
+      uint16_t  freq,
+                triggerTemperatures;
       int16_t   lastpwm;
       bool      hardwareInverted,
                 paused;
@@ -53,6 +55,8 @@
     public: /** Public Function */
 
       void init();
+      void SetAutoMonitored(const int8_t h);
+      void Check();
 
       #if HARDWARE_PWM
         void SetHardwarePwm();

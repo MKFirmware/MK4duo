@@ -148,9 +148,6 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if ENABLED(BTN_UP) && BTN_UP >= 0
     PIN_SAY(BTN_UP);
   #endif
-  #if PIN_EXISTS(CONTROLLERFAN)
-    PIN_SAY(CONTROLLERFAN_PIN);
-  #endif
   #if PIN_EXISTS(DAC_DISABLE)
     PIN_SAY(DAC_DISABLE_PIN);
   #endif
@@ -374,6 +371,15 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(FAN3)
     PIN_SAY(FAN3_PIN);
   #endif
+  #if PIN_EXISTS(FAN4)
+    PIN_SAY(FAN4_PIN);
+  #endif
+  #if PIN_EXISTS(FAN5)
+    PIN_SAY(FAN5_PIN);
+  #endif
+  #if PIN_EXISTS(FAN6)
+    PIN_SAY(FAN6_PIN);
+  #endif
   #if PIN_EXISTS(FIL_RUNOUT)
     PIN_SAY(FIL_RUNOUT_PIN);
   #endif
@@ -479,15 +485,6 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(PS_ON)
     PIN_SAY(PS_ON_PIN);
   #endif
-  #if PIN_EXISTS(RAMPS_D10)
-    PIN_SAY(RAMPS_D10_PIN);
-  #endif
-  #if PIN_EXISTS(RAMPS_D8)
-    PIN_SAY(RAMPS_D8_PIN);
-  #endif
-  #if PIN_EXISTS(RAMPS_D9)
-    PIN_SAY(RAMPS_D9_PIN);
-  #endif
   #if PIN_EXISTS(RX_ENABLE)
     PIN_SAY(RX_ENABLE_PIN);
   #endif
@@ -503,7 +500,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(SDPOWER)
     PIN_SAY(SDPOWER_PIN);
   #endif
-  #if PIN_EXISTS(SS_PIN)
+  #if PIN_EXISTS(SS)
     PIN_SAY(SS_PIN);
   #endif
   #if PIN_EXISTS(SERVO0)
@@ -541,15 +538,6 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #endif
   #if PIN_EXISTS(SOL2)
     PIN_SAY(SOL2_PIN);
-  #endif
-  #if PIN_EXISTS(SPINDLE_ENABLE)
-    PIN_SAY(SPINDLE_ENABLE_PIN);
-  #endif
-  #if PIN_EXISTS(SPINDLE_SPEED)
-    PIN_SAY(SPINDLE_SPEED_PIN);
-  #endif
-  #if PIN_EXISTS(SS)
-    PIN_SAY(SS_PIN);
   #endif
   #if PIN_EXISTS(STAT_LED_BLUE_PIN)
     PIN_SAY(STAT_LED_BLUE_PIN);

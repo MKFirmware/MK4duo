@@ -99,10 +99,6 @@ class Temperature {
       static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
     #endif
 
-    #if HAS_AUTO_FAN
-      static millis_t next_auto_fan_check_ms;
-    #endif
-
     #if ENABLED(PROBING_HEATERS_OFF)
       static bool paused;
     #endif
@@ -200,8 +196,6 @@ class Temperature {
     #endif
 
     static uint8_t get_pid_output(const int8_t h);
-
-    static void checkHotendAutoFans();
 
     static void _temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg);
     static void min_temp_error(const int8_t h);

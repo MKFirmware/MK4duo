@@ -107,7 +107,6 @@
 #include "src/tools/tools.h"
 #include "src/tools/nozzle.h"
 #include "src/fan/fan.h"
-#include "src/fan/controllerfan.h"
 #include "src/commands/commands.h"
 #include "src/mechanics/mechanics.h"
 #include "src/eeprom/eeprom.h"

@@ -182,6 +182,8 @@
 #define FAN1_PIN            ORIG_FAN1_PIN
 #define FAN2_PIN            ORIG_FAN2_PIN
 #define FAN3_PIN            ORIG_FAN3_PIN
+#define FAN4_PIN            ORIG_FAN4_PIN
+#define FAN5_PIN            ORIG_FAN5_PIN
 
 // PS ON pin
 #define PS_ON_PIN           ORIG_PS_ON_PIN
@@ -250,17 +252,6 @@
 
 #if ENABLED(POWER_CHECK)
   #define POWER_CHECK_PIN NoPin
-#endif
-
-#if ENABLED(CONTROLLERFAN)
-  #define CONTROLLERFAN_PIN NoPin
-#endif
-
-#if ENABLED(HOTEND_AUTO_FAN)
-  #define H0_AUTO_FAN_PIN NoPin
-  #define H1_AUTO_FAN_PIN NoPin
-  #define H2_AUTO_FAN_PIN NoPin
-  #define H3_AUTO_FAN_PIN NoPin
 #endif
 
 #if ENABLED(Z_PROBE_SLED)

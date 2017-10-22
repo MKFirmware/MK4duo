@@ -23,7 +23,9 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-// Types
+/**
+ * Types
+ */
 typedef uint32_t  millis_t;
 typedef int8_t    Pin;
 

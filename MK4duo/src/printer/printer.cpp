@@ -611,6 +611,8 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   print_job_counter.tick();
 
+  LOOP_FAN() fans[f].Check();
+
   if (HAL::execute_100ms) {
     // Event 100 Ms
     HAL::execute_100ms = false;
@@ -753,10 +755,6 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       else
         homeDebounceCount = 0;
     }
-  #endif
-
-  #if HAS_CONTROLLERFAN
-    controllerFan(); // Check if fan should be turned on to cool stepper drivers down
   #endif
 
   #if HAS_POWER_SWITCH
