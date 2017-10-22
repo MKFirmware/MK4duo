@@ -611,7 +611,9 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   print_job_counter.tick();
 
-  LOOP_FAN() fans[f].Check();
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].Check();
+  #endif
 
   if (HAL::execute_100ms) {
     // Event 100 Ms
