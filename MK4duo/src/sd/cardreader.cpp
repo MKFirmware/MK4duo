@@ -313,7 +313,7 @@
    * Get the name of a file in the current directory by index
    */
   void CardReader::getfilename(uint16_t nr, const char* const match/*=NULL*/) {
-    #if ENABLED(SDSORT_CACHE_NAMES)
+    #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_CACHE_NAMES)
       if (match != NULL) {
         while (nr < sort_count) {
           if (strcasecmp(match, sortshort[nr]) == 0) break;
