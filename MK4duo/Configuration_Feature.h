@@ -150,7 +150,8 @@
 // hotend temperature is above/below HOTEND AUTO FAN TEMPERATURE.
 // Or put 7 for controller fan
 // -1 disables auto mode.
-#define AUTO_FAN { -1, -1, -1, -1, -1, -1}
+// Default fan 1 is auto fan for Hotend 0
+#define AUTO_FAN { -1, 0, -1, -1, -1, -1}
 // Parameters for Hotend Fan
 #define HOTEND_AUTO_FAN_TEMPERATURE  50
 #define HOTEND_AUTO_FAN_SPEED       255 // 255 = full speed
