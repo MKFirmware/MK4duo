@@ -143,7 +143,7 @@
 #define ORIG_BEEPER_PIN NoPin
 #define LED_PIN 13
 #define SDPOWER_PIN NoPin
-#define SD_DETECT_PIN NoPin
+#define SD_DETECT_PIN 49
 #define SDSS 53
 #define KILL_PIN NoPin
 #define DEBUG_PIN NoPin

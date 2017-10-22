@@ -240,13 +240,18 @@ class HAL {
     static void Tick();
 
     static inline void pinMode(const Pin pin, const uint8_t mode) {
-      ::pinMode(pin, mode);
+      switch (mode) {
+        case INPUT:         SET_INPUT(pin);         break;
+        case OUTPUT:        SET_OUTPUT(pin);        break;
+        case INPUT_PULLUP:  SET_INPUT_PULLUP(pin);  break;
+        default:                                    break;
+      }
     }
-    static inline void digitalWrite(const Pin pin, const bool value) {
-      ::digitalWrite(pin, value);
+    static inline void digitalWrite(const Pin pin, const uint8_t value) {
+      WRITE_VAR(pin, value);
     }
     static inline bool digitalRead(const Pin pin) {
-      return ::digitalRead(pin);
+      return READ_VAR(pin);
     }
 
     static FORCE_INLINE void delayMicroseconds(uint32_t usec) { // usec += 3;
