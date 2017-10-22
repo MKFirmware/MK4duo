@@ -52,6 +52,11 @@
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+      #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
+      #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
+      #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
+      #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
+
       #define ABL_BG_SPACING(A) bedlevel.bilinear_grid_spacing_virt[A]
       #define ABL_BG_FACTOR(A)  bedlevel.bilinear_grid_factor_virt[A]
       #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
@@ -102,7 +107,7 @@
       #endif
 
     private: /** Private Parameters */
-    
+
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(ABL_BILINEAR_SUBDIVISION)
         static float  bilinear_grid_factor_virt[2],
                       z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
@@ -138,10 +143,6 @@
         static void print_bilinear_leveling_grid();
 
         #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
-          #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
-          #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
-          #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
           static void print_bilinear_leveling_grid_virt();
           static void virt_interpolate();
         #endif
@@ -151,7 +152,7 @@
       static void set_bed_leveling_enabled(const bool enable=true);
       static void reset();
 
-      #if ENABLED(MESH_BED_LEVELING) 
+      #if ENABLED(MESH_BED_LEVELING)
         static void mesh_report();
       #endif
 
