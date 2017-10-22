@@ -84,10 +84,6 @@ millis_t Temperature::next_check_ms[HEATER_COUNT];
   uint16_t  Temperature::current_raw_filwidth = 0;  // Measured filament diameter - one extruder only
 #endif
 
-#if HAS_AUTO_FAN
-  millis_t Temperature::next_auto_fan_check_ms = 0;
-#endif
-
 #if ENABLED(PROBING_HEATERS_OFF)
   bool Temperature::paused;
 #endif
@@ -323,13 +319,6 @@ void Temperature::manage_temp_controller() {
 
   } // LOOP_HEATER
 
-  #if HAS_AUTO_FAN
-    if (ELAPSED(ms, next_auto_fan_check_ms)) { // only need to check fan state very infrequently
-      checkHotendAutoFans();
-      next_auto_fan_check_ms = ms + 2500UL;
-    }
-  #endif
-
   // Control the extruder rate based on the width sensor
   #if ENABLED(FILAMENT_SENSOR)
     if (filament_sensor) {
@@ -361,10 +350,6 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
 
     NOLESS(ncycles, 5);
     NOMORE(ncycles, 20);
-
-    #if HAS_AUTO_FAN
-      next_auto_fan_check_ms = temp_ms + 2500UL;
-    #endif
 
     SERIAL_EM(MSG_PID_AUTOTUNE_START);
 
@@ -409,13 +394,6 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
 
       NOLESS(maxTemp, currentTemp);
       NOMORE(minTemp, currentTemp);
-
-      #if HAS_AUTO_FAN
-        if (ELAPSED(ms, next_auto_fan_check_ms)) {
-          checkHotendAutoFans();
-          next_auto_fan_check_ms = ms + 2500UL;
-        }
-      #endif
 
       if (heating && currentTemp > temp) {
         if (ELAPSED(ms, t2 + 2500UL)) {
@@ -848,35 +826,6 @@ uint8_t Temperature::get_pid_output(const int8_t h) {
 
   return pid_output;
 }
-
-#if HAS_AUTO_FAN
-
-  void Temperature::checkHotendAutoFans() {
-    const int fanBit[] = {
-                    0,
-      AUTO_1_IS_0 ? 0 :               1,
-      AUTO_2_IS_0 ? 0 : AUTO_2_IS_1 ? 1 :               2,
-      AUTO_3_IS_0 ? 0 : AUTO_3_IS_1 ? 1 : AUTO_3_IS_2 ? 2 : 3
-    };
-    uint8_t fanState = 0;
- 
-    LOOP_HOTEND() {
-      if (heaters[h].current_temperature > HOTEND_AUTO_FAN_TEMPERATURE)
-        SBI(fanState, fanBit[h]);
-    }
- 
-    uint8_t fanDone = 0;
-    uint8_t f = 0;
-    for (uint8_t fan = AUTO_FAN0_INDEX; fan < (AUTO_FAN0_INDEX + AUTO_FAN_COUNT); fan++) {
-      if (!TEST(fanDone, fanBit[f])) {
-        fans[fan].Speed = TEST(fanState, fanBit[f]) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
-        SBI(fanDone, fanBit[f]);
-        f++;
-      }
-    }
-  }
-
-#endif // HAS_AUTO_FAN
 
 // Temperature Error Handlers
 void Temperature::_temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg) {

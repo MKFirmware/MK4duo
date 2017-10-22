@@ -37,41 +37,99 @@
    */
   void Fan::init() {
 
-    this->Speed             = 0;
-    this->paused_Speed      = 0;
-    this->Kickstart         = 0;
-    this->pwm_pos           = 0;
-    this->paused            = false;
-    this->lastpwm           = -1;
+    Speed               = 0;
+    paused_Speed        = 0;
+    Kickstart           = 0;
+    pwm_pos             = 0;
+    paused              = false;
+    lastpwm             = -1;
+    triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
-    if (this->pin > NoPin)
-      HAL::pinMode(this->pin, OUTPUT);
+    if (pin > NoPin)
+      HAL::pinMode(pin, OUTPUT);
+  }
+
+  void Fan::SetAutoMonitored(const int8_t h) {
+    if (WITHIN(h, 0, HOTENDS -1) || h == 7)
+      SBI(autoMonitored, (unsigned int)h);
+    else      
+      autoMonitored = 0;
+    Check();
+  }
+
+  void Fan::Check() {
+    static millis_t next_auto_fan_check_ms  = 0,
+                    lastMotorOn             = 0;
+
+    millis_t ms = millis();
+
+    if (autoMonitored == 0) return;
+
+    if (ELAPSED(ms, next_auto_fan_check_ms)) {
+      // Check for Hotend temperature
+      LOOP_HOTEND() {
+        if (TEST(autoMonitored, h))
+          Speed = ((int)heaters[h].current_temperature > triggerTemperatures) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
+      }
+
+      // Check for Controller fan
+      if (TEST(autoMonitored, 7)) {
+        if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
+          || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+          #if EXTRUDERS > 1
+            || E1_ENABLE_READ == E_ENABLE_ON
+            #if HAS_X2_ENABLE
+              || X2_ENABLE_READ == X_ENABLE_ON
+            #endif
+            #if EXTRUDERS > 2
+              || E2_ENABLE_READ == E_ENABLE_ON
+              #if EXTRUDERS > 3
+                || E3_ENABLE_READ == E_ENABLE_ON
+                #if EXTRUDERS > 4
+                  || E4_ENABLE_READ == E_ENABLE_ON
+                  #if EXTRUDERS > 5
+                    || E5_ENABLE_READ == E_ENABLE_ON
+                  #endif
+                #endif
+              #endif
+            #endif
+          #endif
+        ) {
+          lastMotorOn = ms; // set time to NOW so the fan will turn on
+        }
+
+        // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
+        Speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
+      }
+
+      next_auto_fan_check_ms = ms + 2500UL; // Not a time critical function, so only check every 2.5s
+    }
   }
 
   void Fan::pause(const bool p) {
 
-    if (p != this->paused) {
-      this->paused = p;
+    if (p != paused) {
+      paused = p;
       if (p) {
-        this->paused_Speed = this->Speed;
-        this->Speed = 0;
+        paused_Speed = Speed;
+        Speed = 0;
       }
       else
-        this->Speed = this->paused_Speed;
+        Speed = paused_Speed;
     }
   }
 
   #if HARDWARE_PWM
     void Fan::SetHardwarePwm() {
-      if (this->pin > NoPin) {
-        if (this->hardwareInverted)
-          this->pwm_pos = 255 - this->Speed;
+      if (pin > NoPin) {
+        if (hardwareInverted)
+          pwm_pos = 255 - Speed;
         else
-          this->pwm_pos = this->Speed;
+          pwm_pos = Speed;
 
-        if (this->pwm_pos != this->lastpwm) {
-          this->lastpwm = this->pwm_pos;
-          HAL::analogWrite(this->pin, this->pwm_pos, this->freq);
+        if (pwm_pos != lastpwm) {
+          lastpwm = pwm_pos;
+          HAL::analogWrite(pin, pwm_pos, freq);
         }
       }
     }

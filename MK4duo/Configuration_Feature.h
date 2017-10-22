@@ -145,25 +145,20 @@
 // To reverse the logic of fan pins
 //#define INVERTED_FAN_PINS
 
-// This is for controlling a fan to cool down the stepper drivers
-// it will turn on when any driver is enabled
-// and turn off after the set amount of seconds from last driver being disabled again
-// You need to set CONTROLLERFAN_PIN in Configuration_pins.h
-//#define CONTROLLERFAN
-#define CONTROLLERFAN_SECS       60   // How many seconds, after all motors were disabled, the fan should run
-#define CONTROLLERFAN_SPEED     255   // 255 = full speed
-#define CONTROLLERFAN_MIN_SPEED   0
-
-// Hotend cooling fans
-// Configure fan pin outputs to automatically turn on/off when the associated
+// AUTO FAN - Fans for cooling Hotend or Controller Fan
+// Put number Hotend in fan to automatically turn on/off when the associated
 // hotend temperature is above/below HOTEND AUTO FAN TEMPERATURE.
-// Multiple hotends can be assigned to the same pin in which case
-// the fan will turn on when any selected hotend is above the threshold.
-// You need to set HOTEND AUTO FAN PIN in Configuration_pins.h
-//#define HOTEND_AUTO_FAN
+// Or put 7 for controller fan
+// -1 disables auto mode.
+#define AUTO_FAN { -1, -1, -1, -1, -1, -1}
+// Parameters for Hotend Fan
 #define HOTEND_AUTO_FAN_TEMPERATURE  50
-#define HOTEND_AUTO_FAN_SPEED       255  // 255 = full speed
+#define HOTEND_AUTO_FAN_SPEED       255 // 255 = full speed
 #define HOTEND_AUTO_FAN_MIN_SPEED     0
+// Parameters for Controller Fan
+#define CONTROLLERFAN_SECS           60 // How many seconds, after all motors were disabled, the fan should run
+#define CONTROLLERFAN_SPEED         255 // 255 = full speed
+#define CONTROLLERFAN_MIN_SPEED       0
 /**************************************************************************/
 
 

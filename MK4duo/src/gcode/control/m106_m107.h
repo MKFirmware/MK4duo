@@ -37,6 +37,7 @@
    *  P<index>  Fan index, if more than one fan
    *  S<int>    Speed between 0-255
    *  F<int>    Set PWM frequency
+   *  H<int>    Set Auto mode - H=7 for controller - H-1 for disabled
    *  U<int>    Fan Pin
    *  L<int>    Min Speed
    *  I<bool>   Inverted pin output
@@ -58,6 +59,9 @@
 
       if (parser.seen('I'))
         fan->hardwareInverted = !fan->hardwareInverted;
+
+      if (parser.seen('H'))
+        fan->SetAutoMonitored(parser.value_int());
 
       fan->min_Speed        = parser.byteval('L', fan->min_Speed);
       fan->freq             = parser.ushortval('F', fan->freq);

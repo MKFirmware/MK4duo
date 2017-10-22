@@ -112,8 +112,14 @@ typedef uint32_t  ptr_int_t;
 // SERIAL
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
-#elif SERIAL_PORT >= 0
+#elif SERIAL_PORT == 0
   #define MKSERIAL MKSerial
+#elif SERIAL_PORT == 1
+  #define MKSERIAL Serial1
+#elif SERIAL_PORT == 2
+  #define MKSERIAL Serial2
+#elif SERIAL_PORT == 3
+  #define MKSERIAL Serial3
 #endif
 
 // EEPROM START

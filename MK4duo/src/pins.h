@@ -211,6 +211,15 @@
 #if DISABLED(ORIG_FAN3_PIN)
   #define ORIG_FAN3_PIN NoPin
 #endif
+#if DISABLED(ORIG_FAN4_PIN)
+  #define ORIG_FAN4_PIN NoPin
+#endif
+#if DISABLED(ORIG_FAN5_PIN)
+  #define ORIG_FAN5_PIN NoPin
+#endif
+#if DISABLED(ORIG_FAN6_PIN)
+  #define ORIG_FAN6_PIN NoPin
+#endif
 
 #if DISABLED(ORIG_BEEPER_PIN)
   #define ORIG_BEEPER_PIN NoPin

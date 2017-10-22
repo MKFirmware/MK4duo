@@ -37,42 +37,42 @@
   void Heater::init() {
 
     // Reset valor
-    this->soft_pwm              = 0;
-    this->pwm_pos               = 0;
-    this->target_temperature    = 0;
-    this->current_temperature   = 25.0;
-    this->sensor.raw            = 0;
-    this->sensor.adcLowOffset   = 0;
-    this->sensor.adcHighOffset  = 0;
-    this->sensor.shC            = 0.0;
+    soft_pwm              = 0;
+    pwm_pos               = 0;
+    target_temperature    = 0;
+    current_temperature   = 25.0;
+    sensor.raw            = 0;
+    sensor.adcLowOffset   = 0;
+    sensor.adcHighOffset  = 0;
+    sensor.shC            = 0.0;
 
     #if WATCH_THE_HEATER
-      this->watch_target_temp   = 0;
-      this->watch_next_ms       = 0;
+      watch_target_temp   = 0;
+      watch_next_ms       = 0;
     #endif
 
-    if (this->output_pin > NoPin)
-      HAL::pinMode(this->output_pin, OUTPUT);
+    if (output_pin > NoPin)
+      HAL::pinMode(output_pin, OUTPUT);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
-      if (this->sensor.type == -2 || this->sensor.type == -1) {
+      if (sensor.type == -2 || sensor.type == -1) {
         OUT_WRITE(SCK_PIN, LOW);
         OUT_WRITE(MOSI_PIN, HIGH);
         SET_INPUT_PULLUP(MISO_PIN);
         OUT_WRITE(SS_PIN, HIGH);
 
-        HAL::pinMode(this->output_pin, OUTPUT);
-        HAL::digitalWrite(this->output_pin, HIGH);
+        HAL::pinMode(output_pin, OUTPUT);
+        HAL::digitalWrite(output_pin, HIGH);
       }
     #endif
 
-    this->sensor.CalcDerivedParameters();
+    sensor.CalcDerivedParameters();
   }
 
   void Heater::setTarget(int16_t celsius) {
 
-    NOMORE(celsius, this->maxtemp);
-    this->target_temperature = celsius;
+    NOMORE(celsius, maxtemp);
+    target_temperature = celsius;
 
     #if WATCH_THE_HEATER
       thermalManager.start_watching(this);
@@ -81,51 +81,51 @@
 
   void Heater::print_PID(const uint8_t h/*=0*/) {
 
-    if (this->type == IS_HOTEND)
+    if (type == IS_HOTEND)
       SERIAL_SMV(CFG, "  M301 H", (int)h);
     #if (PIDTEMPBED)
-      else if (this->type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
+      else if (type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
     #endif
     #if (PIDTEMPCHAMBER)
-      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
+      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
     #endif
     #if (PIDTEMPCOOLER)
-      else if (this->type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
+      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
     #endif
     else return;
 
-    SERIAL_MV(" P", this->Kp);
-    SERIAL_MV(" I", this->Ki);
-    SERIAL_MV(" D", this->Kd);
+    SERIAL_MV(" P", Kp);
+    SERIAL_MV(" I", Ki);
+    SERIAL_MV(" D", Kd);
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      SERIAL_MV(" C", this->Kc);
+      SERIAL_MV(" C", Kc);
     #endif
     SERIAL_EOL();
   }
 
   void Heater::sensor_print_parameters(const uint8_t h/*=0*/) {
 
-    if (this->type == IS_HOTEND)
+    if (type == IS_HOTEND)
       SERIAL_SMV(CFG, "  M305 H", (int)h);
     #if HAS_HEATER_BED
-      else if (this->type == IS_BED) SERIAL_SM(CFG, "  M305 H-1");
+      else if (type == IS_BED) SERIAL_SM(CFG, "  M305 H-1");
     #endif
     #if HAS_HEATER_CHAMBER
-      else if (this->type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
+      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
     #endif
     #if HAS_HEATER_COOLER
-      else if (this->type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
+      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
     #endif
     else return;
 
     SERIAL_EM(" Sensor");
-    SERIAL_LMV(CFG, " Pin: ", this->sensor.pin);
-    SERIAL_LMV(CFG, " Thermistor resistance at 25 C:", this->sensor.r25, 1);
-    SERIAL_LMV(CFG, " BetaK value: ", this->sensor.beta, 1);
-    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien: ", this->sensor.shC, 1);
-    SERIAL_LMV(CFG, " Pullup resistor value: ", this->sensor.pullupR, 1);
-    SERIAL_LMV(CFG, " ADC low offset correction: ", this->sensor.adcLowOffset);
-    SERIAL_LMV(CFG, " ADC high offset correction: ", this->sensor.adcHighOffset);
+    SERIAL_LMV(CFG, " Pin: ", sensor.pin);
+    SERIAL_LMV(CFG, " Thermistor resistance at 25 C:", sensor.r25, 1);
+    SERIAL_LMV(CFG, " BetaK value: ", sensor.beta, 1);
+    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien: ", sensor.shC, 1);
+    SERIAL_LMV(CFG, " Pullup resistor value: ", sensor.pullupR, 1);
+    SERIAL_LMV(CFG, " ADC low offset correction: ", sensor.adcLowOffset);
+    SERIAL_LMV(CFG, " ADC high offset correction: ", sensor.adcHighOffset);
 
   }
 
@@ -133,12 +133,12 @@
     void Heater::SetHardwarePwm() {
       uint8_t pwm_val = 0;
 
-      if (this->hardwareInverted)
-        pwm_val = 255 - this->soft_pwm;
+      if (hardwareInverted)
+        pwm_val = 255 - soft_pwm;
       else
-        pwm_val = this->soft_pwm;
+        pwm_val = soft_pwm;
 
-      HAL::analogWrite(this->output_pin, pwm_val, (this->type == IS_HOTEND) ? 250 : 10);
+      HAL::analogWrite(output_pin, pwm_val, (type == IS_HOTEND) ? 250 : 10);
     }
   #endif
 

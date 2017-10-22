@@ -45,10 +45,6 @@
 
   class Heater {
 
-    public: /** Constructor */
-
-      Heater() {}
-
     public: /** Public Parameters */
 
       Heater_type type;
