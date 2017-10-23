@@ -2,7 +2,7 @@
 
 __Please note:__ We need more feedback from users weather their board is actually working!
 
-Supported boards are listed under: [/MarlinKimbra/boards.h]
+Supported boards are listed under: [/MK3duo/boards.h]
 
 
 ##### RAMPS
@@ -115,4 +115,65 @@ http://reprap.org/wiki/RUMBA
 #define BOARD_ELEFU_3           21   // Elefu Ra Board (v3)
 #define BOARD_5DPRINT           88   // 5DPrint D8 Driver Board
 #define BOARD_LEAPFROG          999  // Leapfrog
+```
+
+## SAM3X8E processor
+
+##### Piccolo 3D
+
+```
+#define BOARD_PICCOLO_3D      1400    // PICCOLO_3D ARM 32 Arduino DUE
+```
+
+##### RADDS
+
+http://doku.radds.org/dokumentation/radds/
+
+```
+#define BOARD_RADDS           1401    // RADDS ARM 32 bit board
+```
+
+##### RAMPS FD V1 and V2
+
+http://reprap.org/wiki/RAMPS-FD
+
+```
+#define BOARD_RAMPS_FD_V1     1403    // RAMPS-FD V1 ARM 32 bit board
+#define BOARD_RAMPS_FD_V2     1404    // RAMPS-FD V2 ARM 32 bit board
+```
+
+##### RAMPS SMART
+
+http://reprap.org/wiki/SMART_RAMPS
+
+```
+#define BOARD_RAMPS_SMART_HFB 1411    // RAMPS-SMART (Power outputs: Hotend, Fan, Bed)
+#define BOARD_RAMPS_SMART_HHB 1412    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Bed)
+#define BOARD_RAMPS_SMART_HFF 1413    // RAMPS-SMART (Power outputs: Hotend, Fan0, Fan1)
+#define BOARD_RAMPS_SMART_HHF 1414    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Fan)
+```
+
+##### RAMPS4DUE
+
+http://forums.reprap.org/read.php?219,479626,page=1
+
+```
+#define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods
+```
+
+##### ALLIGATOR
+
+http://www.3dartists.org/
+
+```
+#define BOARD_ALLIGATOR       1502    // ALLIGATOR R2 ARM 32 bit board
+#define BOARD_ALLIGATOR_V3    1503    // ALLIGATOR R3 ARM 32 bit board
+```
+
+##### ULTRATRONICS
+
+https://reprapworld.com/documentation/datasheet_ultratronics10_05.pdf
+
+```
+#define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 ```
