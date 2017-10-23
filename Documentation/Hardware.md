@@ -117,7 +117,7 @@ http://reprap.org/wiki/RUMBA
 #define BOARD_LEAPFROG          999  // Leapfrog
 ```
 
-#### SAM3X8E processor
+## SAM3X8E processor
 
 ##### Piccolo 3D
 
