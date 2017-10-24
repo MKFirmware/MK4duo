@@ -85,7 +85,7 @@ class Probe {
      *   - Raise to the BETWEEN height
      * - Return the probed Z position
      */
-    static float check_pt(const float &lx, const float &ly, const bool stow=true, const int verbose_level=1, const bool printable=true);
+    static float check_pt(const float &lx, const float &ly, const bool stow, const int verbose_level, const bool printable=true);
 
     #if QUIET_PROBING
       static void probing_pause(const bool p);

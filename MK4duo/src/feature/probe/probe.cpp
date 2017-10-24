@@ -230,7 +230,7 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
  * - short_move Flag for a shorter probe move towards the bed
  * - Return the probed Z position
  */
-float Probe::check_pt(const float &lx, const float &ly, const bool stow/*=true*/, const int verbose_level/*=1*/, const bool printable/*=true*/) {
+float Probe::check_pt(const float &lx, const float &ly, const bool stow, const int verbose_level, const bool printable/*=true*/) {
 
   #if HAS_BED_PROBE
 
