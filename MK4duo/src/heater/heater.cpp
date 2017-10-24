@@ -51,8 +51,9 @@
       watch_next_ms       = 0;
     #endif
 
-    if (pin > NoPin)
-      HAL::pinModePWM(pin);
+    #if ENABLED(__AVR__)
+      if (pin > NoPin) HAL::pinMode(pin, OUTPUT);
+    #endif
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
       if (sensor.type == -2 || sensor.type == -1) {
@@ -60,9 +61,6 @@
         OUT_WRITE(MOSI_PIN, HIGH);
         SET_INPUT_PULLUP(MISO_PIN);
         OUT_WRITE(SS_PIN, HIGH);
-
-        HAL::pinMode(pin, OUTPUT);
-        HAL::digitalWrite(pin, HIGH);
       }
     #endif
 

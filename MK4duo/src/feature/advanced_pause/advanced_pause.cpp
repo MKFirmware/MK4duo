@@ -132,6 +132,7 @@
       mechanics.set_destination_to_current();
       mechanics.destination[E_AXIS] += retract;
       RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
+      mechanics.set_current_to_destination();
       stepper.synchronize();
     }
 
@@ -159,6 +160,7 @@
         mechanics.set_destination_to_current();
         mechanics.destination[E_AXIS] += retract2;
         RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
+        mechanics.set_current_to_destination();
         stepper.synchronize();
       }
     #endif
@@ -175,6 +177,7 @@
       mechanics.set_destination_to_current();
       mechanics.destination[E_AXIS] += unload_length;
       RUNPLAN(PAUSE_PARK_UNLOAD_FEEDRATE);
+      mechanics.set_current_to_destination();
       stepper.synchronize();
     }
 

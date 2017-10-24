@@ -310,4 +310,4 @@
   #endif
 #endif
 
-#endif // _STEPPER_SANITYCHECK_H_
+#endif /* _STEPPER_SANITYCHECK_H_ */

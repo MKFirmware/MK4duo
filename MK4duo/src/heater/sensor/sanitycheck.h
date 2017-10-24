@@ -62,4 +62,4 @@
   #endif
 #endif
 
-#endif // _TEMP_SENSOR_SANITYCHECK_H_
+#endif /* _TEMP_SENSOR_SANITYCHECK_H_ */
