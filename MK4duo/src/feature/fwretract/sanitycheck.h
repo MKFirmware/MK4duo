@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _FWRETRACT_SANITYCHECK_H_
+#define _FWRETRACT_SANITYCHECK_H_
+
 // Firmware Retract
 #if ENABLED(FWRETRACT)
   #if DISABLED(MIN_AUTORETRACT)
@@ -59,3 +62,5 @@
     #error DEPENDENCY ERROR: Missing setting RETRACT_RECOVER_FEEDRATE_SWAP
   #endif
 #endif
+
+#endif // _FWRETRACT_SANITYCHECK_H_

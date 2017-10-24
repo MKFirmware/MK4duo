@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _MECH_SCARA_SANITYCHECK_H_
+#define _MECH_SCARA_SANITYCHECK_H_
+
 // Configuration settings
 #if IS_SCARA
 
@@ -54,5 +57,7 @@
   #if ENABLED(BABYSTEPPING)
     #error "BABYSTEPPING is not implemented for SCARA yet."
   #endif
-  
+
 #endif // IS_SCARA
+
+#endif // _MECH_SCARA_SANITYCHECK_H_

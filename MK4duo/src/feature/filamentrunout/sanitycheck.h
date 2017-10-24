@@ -26,8 +26,23 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _MECH_CARTESIAN_SANITYCHECK_H_
-#define _MECH_CARTESIAN_SANITYCHECK_H_
-// There's nothing here...
+/**
+ * Filament Runout needs a pin and M600 command
+ */
+#ifndef _FIL_RUNOUT_SANITYCHECK_H_
+#define _FIL_RUNOUT_SANITYCHECK_H_
 
-#endif // _MECH_CARTESIAN_SANITYCHECK_H_
+#if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if DISABLED(FIL_RUNOUT_PIN_INVERTING)
+    #error DEPENDENCY ERROR: Missing setting FIL_RUNOUT_PIN_INVERTING
+  #elif DISABLED(FILAMENT_RUNOUT_SCRIPT)
+    #error DEPENDENCY ERROR: Missing setting FILAMENT_RUNOUT_SCRIPT
+  #elif DISABLED(ADVANCED_PAUSE_FEATURE)
+    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
+  #endif
+#endif
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
+  #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
+#endif
+
+#endif // _FIL_RUNOUT_SANITYCHECK_H_
