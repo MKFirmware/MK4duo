@@ -62,6 +62,10 @@ Stepper stepper; // Singleton
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  float Stepper::motor_current[3 + DRIVER_EXTRUDERS];
+#endif
+
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
   #if ENABLED(ABORT_ON_ENDSTOP_HIT_INIT)
     bool Stepper::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_INIT;
@@ -1790,7 +1794,7 @@ void Stepper::report_positions() {
   void Stepper::set_driver_current() {
     uint8_t digipot_motor = 0;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-      digipot_motor = 255 * printer.motor_current[i] / 3.3;
+      digipot_motor = 255 * motor_current[i] / 3.3;
       ExternalDac::setValue(i, digipot_motor);
     }
   }

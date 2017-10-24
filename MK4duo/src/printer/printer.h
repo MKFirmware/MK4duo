@@ -42,7 +42,6 @@ enum PrinterMode {
 enum MK4duoInterruptEvent {
   INTERRUPT_EVENT_NONE,
   INTERRUPT_EVENT_FIL_RUNOUT,
-  INTERRUPT_EVENT_DAV_SYSTEM,
   INTERRUPT_EVENT_ENC_DETECT
 };
 
@@ -97,13 +96,7 @@ class Printer {
       #define KEEPALIVE_STATE(n) NOOP
     #endif
 
-    #if HAS_FIL_RUNOUT || HAS_EXT_ENCODER
-      static bool filament_ran_out;
-    #endif
-
-    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      static float motor_current[3 + DRIVER_EXTRUDERS];
-    #endif
+    static bool filament_out;
 
     #if ENABLED(RFID_MODULE)
       static uint32_t Spool_ID[EXTRUDERS];
@@ -180,10 +173,6 @@ class Printer {
     FORCE_INLINE static bool IsStopped()  { return !Running; }
 
   private: /** Private Function */
-
-    #if HAS_FIL_RUNOUT
-      static void setup_filrunoutpin();
-    #endif
 
     static void setup_powerhold();
 

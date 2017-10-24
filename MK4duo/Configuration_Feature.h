@@ -1628,7 +1628,7 @@
  *  Failure to follow this precaution can destroy your Arduino!           *
  * *** CAUTION ***                                                        *
  *                                                                        *
- * LED type. This options are mutualy exclusive. Uncomment only one.      *
+ * LED type. These options are mutually-exclusive. Uncomment only one.    *
  *                                                                        *
  **************************************************************************/
 //#define RGB_LED

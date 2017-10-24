@@ -74,13 +74,7 @@ PrinterMode Printer::mode =
   Printer::MK4duoBusyState Printer::busy_state = NOT_BUSY;
 #endif
 
-#if HAS_FIL_RUNOUT || HAS_EXT_ENCODER
-  bool Printer::filament_ran_out = false;
-#endif
-
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  float Printer::motor_current[3 + DRIVER_EXTRUDERS];
-#endif
+bool Printer::filament_out = false;
 
 #if ENABLED(RFID_MODULE)
   uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
@@ -148,7 +142,7 @@ void Printer::setup() {
   HAL::hwSetup();
 
   #if HAS_FIL_RUNOUT
-    setup_filrunoutpin();
+    filamentrunout.Init();
   #endif
 
   #if HAS_KILL
@@ -645,24 +639,8 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
  */
 void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
-  #if HAS_FIL_RUNOUT && FILAMENT_RUNOUT_DOUBLE_CHECK > 0
-    static bool filament_double_check = false;
-    static millis_t filament_switch_time = 0;
-    if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING) {
-      if (filament_double_check) {
-        if (ELAPSED(millis(), filament_switch_time) {
-          setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
-          filament_double_check = false;
-        }
-      }
-      else {
-        filament_double_check = true;
-        filament_switch_time = millis() + FILAMENT_RUNOUT_DOUBLE_CHECK;
-      }
-    }
-  #elif HAS_FIL_RUNOUT
-    if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING)
-      setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
+  #if HAS_FIL_RUNOUT
+    filamentrunout.Check();
   #endif
 
   commands.get_available_commands();
@@ -907,11 +885,10 @@ void Printer::handle_Interrupt_Event() {
   interruptEvent = INTERRUPT_EVENT_NONE;
 
   switch(event) {
-    #if HAS_FIL_RUNOUT || HAS_DAV_SYSTEM
+    #if HAS_FIL_RUNOUT
       case INTERRUPT_EVENT_FIL_RUNOUT:
-      case INTERRUPT_EVENT_DAV_SYSTEM:
-        if (!filament_ran_out) {
-          filament_ran_out = true;
+        if (!filament_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+          filament_out = true;
           commands.enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
           SERIAL_LM(REQUEST_PAUSE, "End Filament detect");
           stepper.synchronize();
@@ -921,8 +898,8 @@ void Printer::handle_Interrupt_Event() {
 
     #if HAS_EXT_ENCODER
       case INTERRUPT_EVENT_ENC_DETECT:
-        if (!filament_ran_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
-          filament_ran_out = true;
+        if (!filament_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+          filament_out = true;
           stepper.synchronize();
 
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -964,15 +941,6 @@ char Printer::GetStatusCharacter(){
 /**
  * Private Function
  */
-#if HAS_FIL_RUNOUT
-  void Printer::setup_filrunoutpin() {
-    #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
-    #else
-      SET_INPUT(FIL_RUNOUT_PIN);
-    #endif
-  }
-#endif
 
 void Printer::setup_powerhold() {
   #if HAS_SUICIDE
