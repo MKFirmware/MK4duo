@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _MECH_CORE_SANITYCHECK_H_
+#define _MECH_CORE_SANITYCHECK_H_
+
 // Z late enable
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
   #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
@@ -37,3 +40,5 @@
     #error DEPENDENCY ERROR: Missing setting CORE_FACTOR
   #endif
 #endif
+
+#endif // _MECH_CORE_SANITYCHECK_H_

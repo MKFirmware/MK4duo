@@ -26,10 +26,13 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _FILAMENT_SANITYCHECK_H_
+#define _FILAMENT_SANITYCHECK_H_
+
  #if ENABLED(FILAMENT_SENSOR) && !PIN_EXISTS(FILWIDTH)
   #error DEPENDENCY ERROR: You have to set FILWIDTH_PIN to a valid pin if you enable FILAMENT_SENSOR
 #endif
- 
+
 #if ENABLED(FILAMENT_SENSOR)
   #if DISABLED(FILAMENT_SENSOR_EXTRUDER_NUM)
     #error DEPENDENCY ERROR: Missing setting FILAMENT_SENSOR_EXTRUDER_NUM
@@ -38,7 +41,7 @@
     #error DEPENDENCY ERROR: Missing setting MEASUREMENT_DELAY_CM
   #endif
   #if DISABLED(DEFAULT_NOMINAL_FILAMENT_DIA)
-    #error DEPENDENCY ERROR: Missing setting DEFAULT_NOMINAL_FILAMENT_DIA 
+    #error DEPENDENCY ERROR: Missing setting DEFAULT_NOMINAL_FILAMENT_DIA
   #endif
   #if DISABLED(MEASURED_UPPER_LIMIT)
     #error DEPENDENCY ERROR: Missing setting MEASURED_UPPER_LIMIT
@@ -53,3 +56,5 @@
     #error DEPENDENCY ERROR: Missing setting DEFAULT_MEASURED_FILAMENT_DIA
   #endif
 #endif
+
+#endif // _FILAMENT_SANITYCHECK_H_

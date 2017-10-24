@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _TEMPERATURE_SANITYCHECK_H_
+#define _TEMPERATURE_SANITYCHECK_H_
+
 // Temperature defines
 #if ENABLED(TEMP_RESIDENCY_TIME)
   #if DISABLED(TEMP_HYSTERESIS)
@@ -140,7 +143,7 @@
   #error DEPENDENCY ERROR: Missing setting MAX_COOLER_POWER
 #endif
 #if (PIDTEMP)
-  #if DISABLED(PID_OPENLOOP) && DISABLED(PID_FUNCTIONAL_RANGE) 
+  #if DISABLED(PID_OPENLOOP) && DISABLED(PID_FUNCTIONAL_RANGE)
     #error DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE
   #endif
   #if DISABLED(DEFAULT_Kp)
@@ -234,3 +237,5 @@
     #error DEPENDENCY ERROR: Missing setting WATCH_TEMP_INCREASE
   #endif
 #endif
+
+#endif // _TEMPERATURE_SANITYCHECK_H_

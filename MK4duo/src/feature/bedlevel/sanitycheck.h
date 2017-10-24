@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _BED_LEVELING_SANITYCHECK_H_
+#define _BED_LEVELING_SANITYCHECK_H_
+
 /**
  * Allow only one bed leveling option to be defined
  */
@@ -84,3 +87,5 @@ static_assert(1 >= 0
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
   #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
 #endif
+
+#endif // _BED_LEVELING_SANITYCHECK_H_

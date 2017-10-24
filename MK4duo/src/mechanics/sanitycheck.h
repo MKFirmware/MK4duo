@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _MECH_SANITYCHECK_H_
+#define _MECH_SANITYCHECK_H_
+
 // Mechanism
 #if DISABLED(MECHANISM)
   #error DEPENDENCY ERROR: Missing setting MECHANISM
@@ -390,3 +393,5 @@
 #if ENABLED(X2_IS_TMC) && (!PIN_EXISTS(X2_ENABLE) || !PIN_EXISTS(X2_STEP) || !PIN_EXISTS(X2_DIR))
   #error DEPENDENCY ERROR: You have to set X2_ENABLE_PIN, X2_STEP_PIN and X2_DIR_PIN to a valid pin if you enable X2_IS_TMC
 #endif
+
+#endif // _MECH_SANITYCHECK_H_

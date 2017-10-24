@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _POWER_SANITYCHECK_H_
+#define _POWER_SANITYCHECK_H_
+
 // Power supply
 #if DISABLED(POWER_SUPPLY)
   #define POWER_SUPPLY 0
@@ -44,15 +47,17 @@
     #error DEPENDENCY ERROR: Missing setting POWER_SENSITIVITY
   #endif
   #if DISABLED(POWER_OFFSET)
-    #error DEPENDENCY ERROR: Missing setting POWER_OFFSET 
+    #error DEPENDENCY ERROR: Missing setting POWER_OFFSET
   #endif
   #if DISABLED(POWER_ZERO)
-    #error DEPENDENCY ERROR: Missing setting POWER_ZERO 
+    #error DEPENDENCY ERROR: Missing setting POWER_ZERO
   #endif
   #if DISABLED(POWER_ERROR)
-    #error DEPENDENCY ERROR: Missing setting POWER_ERROR 
+    #error DEPENDENCY ERROR: Missing setting POWER_ERROR
   #endif
   #if DISABLED(POWER_EFFICIENCY)
-    #error DEPENDENCY ERROR: Missing setting POWER_EFFICIENCY 
+    #error DEPENDENCY ERROR: Missing setting POWER_EFFICIENCY
   #endif
 #endif
+
+#endif // _POWER_SANITYCHECK_H_

@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _ADVANCED_PAUSE_SANITYCHECK_H_
+#define _ADVANCED_PAUSE_SANITYCHECK_H_
+
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   #if EXTRUDERS == 0
     #error "ADVANCED_PAUSE_FEATURE currently requires extruders."
@@ -54,3 +57,5 @@
     #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
   #endif
 #endif
+
+#endif // _ADVANCED_PAUSE_SANITYCHECK_H_

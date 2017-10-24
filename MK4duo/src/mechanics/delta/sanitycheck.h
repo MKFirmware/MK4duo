@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _MECH_DELTA_SANITYCHECK_H_
+#define _MECH_DELTA_SANITYCHECK_H_
+
 // Delta requirements
 #if MECH(DELTA)
 
@@ -137,3 +140,5 @@
   #endif
 
 #endif // MECH(DELTA)
+
+#endif // _MECH_DELTA_SANITYCHECK_H_
