@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _SD_CARD_SANITYCHECK_H_
+#define _SD_CARD_SANITYCHECK_H_
+
 // SDSUPPORT test
 #if ENABLED(SD_SETTINGS) && DISABLED(SDSUPPORT)
   #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
@@ -50,3 +53,5 @@
     #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
   #endif
 #endif
+
+#endif /* _SD_CARD_SANITYCHECK_H_ */

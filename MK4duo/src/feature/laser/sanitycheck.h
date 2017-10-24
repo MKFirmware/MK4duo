@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _LASER_SANITYCHECK_H_
+#define _LASER_SANITYCHECK_H_
+
 #if ENABLED(LASER)
   #if ENABLED(LASER_PERIPHERALS)
     #if !PIN_EXISTS(LASER_PERIPHERALS)
@@ -49,3 +52,5 @@
     #endif
   #endif
 #endif
+
+#endif /* _LASER_SANITYCHECK_H_ */

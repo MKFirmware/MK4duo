@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _LCD_SANITYCHECK_H_
+#define _LCD_SANITYCHECK_H_
+
 /**
  * Make sure only one display is enabled
  *
@@ -262,3 +265,5 @@ static_assert(1 >= 0
 #if ENABLED(BABYSTEPPING) && DISABLED(ULTRA_LCD)
   #error "BABYSTEPPING requires an LCD controller."
 #endif
+
+#endif /* _LCD_SANITYCHECK_H_ */

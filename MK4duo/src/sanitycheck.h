@@ -29,6 +29,10 @@
 /**
  * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
  */
+
+#ifndef _SANITYCHECK_H_
+#define _SANITYCHECK_H_
+
 #if __cplusplus < 201103L
   #error "MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
@@ -53,6 +57,13 @@
 #endif
 #if DISABLED(KNOWN_BOARD)
   #error DEPENDENCY ERROR: You have to set a valid MOTHERBOARD.
+#endif
+
+// Alligatorboard
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #if DISABLED(UI_VOLTAGE_LEVEL)
+    #error DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL
+  #endif
 #endif
 
 // Other sanitycheck files
@@ -82,24 +93,18 @@
 #include "feature/probe/sanitycheck.h"
 #include "feature/bedlevel/sanitycheck.h"
 #include "feature/filament/sanitycheck.h"
+#include "feature/filamentrunout/sanitycheck.h"
 #include "feature/flowmeter/sanitycheck.h"
 #include "feature/fwretract/sanitycheck.h"
 #include "feature/advanced_pause/sanitycheck.h"
 
 // CONTROLLI ANCORA DA RICOLLOCARE...
 
-// Alligatorboard
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  #if DISABLED(UI_VOLTAGE_LEVEL)
-    #error DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL
-  #endif
-#endif
-
 #if ENABLED(DOOR_OPEN) && !PIN_EXISTS(DOOR)
   #error DEPENDENCY ERROR: You have to set DOOR_PIN to a valid pin if you enable DOOR_OPEN
 #endif
 
-
+// NPR2 multicolor extruder
 #if ENABLED(NPR2)
   #if DISABLED(COLOR_STEP)
     #error DEPENDENCY ERROR: Missing setting COLOR_STEP
@@ -120,24 +125,6 @@
     #error DEPENDENCY ERROR: Missing setting CARTER_MOLTIPLICATOR
   #endif
 #endif
-
-/**
- * Filament Runout needs a pin and M600 command
- */
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #if DISABLED(FIL_RUNOUT_PIN_INVERTING)
-    #error DEPENDENCY ERROR: Missing setting FIL_RUNOUT_PIN_INVERTING
-  #elif DISABLED(FILAMENT_RUNOUT_SCRIPT)
-    #error DEPENDENCY ERROR: Missing setting FILAMENT_RUNOUT_SCRIPT 
-  #elif DISABLED(ADVANCED_PAUSE_FEATURE)
-    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
-  #endif
-#endif
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
-  #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
-#endif
-
-
 
 // CHDK
 #if ENABLED(CHDK)
@@ -175,3 +162,5 @@
 #if DISABLED(SDSUPPORT) && ENABLED(SERIAL_STATS_DROPPED_RX)
   #error DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_DROPPED_RX
 #endif
+
+#endif /* _SANITYCHECK_H_ */

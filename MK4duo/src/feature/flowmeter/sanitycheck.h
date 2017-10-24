@@ -26,6 +26,11 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _FLOWMETER_SANITYCHECK_H_
+#define _FLOWMETER_SANITYCHECK_H_
+
 #if ENABLED(FLOWMETER_SENSOR) && !PIN_EXISTS(FLOWMETER)
   #error DEPENDENCY ERROR: You have to set FLOWMETER_PIN to a valid pin if you enable FLOWMETER_SENSOR
 #endif
+
+#endif /* _FLOWMETER_SANITYCHECK_H_ */

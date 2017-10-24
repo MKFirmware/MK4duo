@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _ENDSTOP_SANITYCHECK_H_
+#define _ENDSTOP_SANITYCHECK_H_
+
 // Endstop logic
 #if DISABLED(X_MIN_ENDSTOP_LOGIC) && !IS_DELTA
   #error DEPENDENCY ERROR: Missing setting X_MIN_ENDSTOP_LOGIC
@@ -69,3 +72,5 @@
 #if DISABLED(E_MIN_ENDSTOP_LOGIC)
   #error DEPENDENCY ERROR: Missing setting E_MIN_ENDSTOP_LOGIC
 #endif
+
+#endif /* _ENDSTOP_SANITYCHECK_H_ */

@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _HEATER_SANITYCHECK_H_
+#define _HEATER_SANITYCHECK_H_
+
 // Test required HEATER defines
 #if HOTENDS > 3
   #if !HAS_HEATER_3
@@ -44,3 +47,5 @@
     #error DEPENDENCY ERROR: HEATER_0_PIN not EXIST for this board
   #endif
 #endif
+
+#endif /* _HEATER_SANITYCHECK_H_ */

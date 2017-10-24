@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _PROBE_SANITYCHECK_H_
+#define _PROBE_SANITYCHECK_H_
+
 // Probes
 #if PROBE_SELECTED
 
@@ -124,3 +127,5 @@
     #error "G38_PROBE_TARGET requires a Cartesian machine."
   #endif
 #endif
+
+#endif /* _PROBE_SANITYCHECK_H_ */

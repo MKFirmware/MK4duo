@@ -26,19 +26,23 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _COLOR_MIXING_SANITYCHECK_H_
-#define _COLOR_MIXING_SANITYCHECK_H_
+/**
+ * Filament Runout needs a pin and M600 command
+ */
+#ifndef _FIL_RUNOUT_SANITYCHECK_H_
+#define _FIL_RUNOUT_SANITYCHECK_H_
 
-#if ENABLED(COLOR_MIXING_EXTRUDER)
-  #if EXTRUDERS > 1
-    #error COLOR_MIXING_EXTRUDER supports plus one extruder.
-  #endif
-  #if MIXING_STEPPERS < 2
-    #error You must set MIXING_STEPPERS >= 2 for a mixing extruder.
-  #endif
-  #if ENABLED(FILAMENT_SENSOR)
-    #error COLOR_MIXING_EXTRUDER is incompatible with FILAMENT_SENSOR. Comment out this line to use it anyway.
+#if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if DISABLED(FIL_RUNOUT_PIN_INVERTING)
+    #error DEPENDENCY ERROR: Missing setting FIL_RUNOUT_PIN_INVERTING
+  #elif DISABLED(FILAMENT_RUNOUT_SCRIPT)
+    #error DEPENDENCY ERROR: Missing setting FILAMENT_RUNOUT_SCRIPT
+  #elif DISABLED(ADVANCED_PAUSE_FEATURE)
+    static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   #endif
 #endif
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
+  #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
+#endif
 
-#endif /* _COLOR_MIXING_SANITYCHECK_H_ */
+#endif /* _FIL_RUNOUT_SANITYCHECK_H_ */
