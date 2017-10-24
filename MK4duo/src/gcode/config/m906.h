@@ -40,7 +40,7 @@
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
         const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-        printer.motor_current[a] = parser.value_float();
+        stepper.motor_current[a] = parser.value_float();
       }
     }
     stepper.set_driver_current();

@@ -494,8 +494,10 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
 
   if (isnan(value) || pin <= 0) return;
 
-  const float ulValue = constrain((float)value / 255.0, 0.0, 1.0);
   const PinDescription& pinDesc = g_APinDescription[pin];
+  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
+
+  const float ulValue = constrain((float)value / 255.0, 0.0, 1.0);
   const uint32_t attr = pinDesc.ulPinAttribute;
 
   if ((attr & PIN_ATTR_PWM) != 0) {
@@ -507,8 +509,10 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
     g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_TIMER;
   }
   else {
-    HAL::pinMode(pin, OUTPUT);
-    HAL::digitalWrite(pin, (ulValue < 0.5) ? LOW : HIGH);
+    if (ulValue < 0.5)
+      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+    else
+      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
   }
 }
 

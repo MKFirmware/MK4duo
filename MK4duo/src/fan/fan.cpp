@@ -45,7 +45,8 @@
     lastpwm             = -1;
     triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
-    if (pin > NoPin) SET_PWM_OUTPUT(pin);
+    if (pin > NoPin)
+      HAL::pinModePWM(pin);
   }
 
   void Fan::SetAutoMonitored(const int8_t h) {

@@ -399,6 +399,9 @@ class HAL {
     static inline void pinMode(const Pin pin, const uint8_t mode) {
       ::pinMode(pin, mode);
     }
+    static inline bool pinModePWM(const Pin pin) {
+      ::pinMode(pin, OUTPUT);
+    }
 
     static inline void delayMicroseconds(const uint16_t delayUs) {
       ::delayMicroseconds(delayUs);

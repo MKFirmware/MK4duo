@@ -1192,7 +1192,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[0];
       sens = &heaters[0].sensor;
       heat->type              = IS_HOTEND;
-      heat->output_pin        = HEATER_0_PIN;
+      heat->pin               = HEATER_0_PIN;
       heat->pid_min           = PID_MIN;
       heat->pid_max           = PID_MAX;
       heat->mintemp           = HEATER_0_MINTEMP;
@@ -1216,7 +1216,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[1];
       sens = &heaters[1].sensor;
       heat->type              = IS_HOTEND;
-      heat->output_pin        = HEATER_1_PIN;
+      heat->pin               = HEATER_1_PIN;
       heat->pid_min           = PID_MIN;
       heat->pid_max           = PID_MAX;
       heat->mintemp           = HEATER_1_MINTEMP;
@@ -1240,7 +1240,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[2];
       sens = &heaters[2].sensor;
       heat->type              = IS_HOTEND;
-      heat->output_pin        = HEATER_2_PIN;
+      heat->pin               = HEATER_2_PIN;
       heat->pid_min           = PID_MIN;
       heat->pid_max           = PID_MAX;
       heat->use_pid           = PIDTEMP;
@@ -1264,7 +1264,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[3];
       sens = &heaters[3].sensor;
       heat->type              = IS_HOTEND;
-      heat->output_pin        = HEATER_3_PIN;
+      heat->pin               = HEATER_3_PIN;
       heat->pid_min           = PID_MIN;
       heat->pid_max           = PID_MAX;
       heat->mintemp           = HEATER_3_MINTEMP;
@@ -1288,7 +1288,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[BED_INDEX];
       sens = &heaters[BED_INDEX].sensor;
       heat->type              = IS_BED;
-      heat->output_pin        = HEATER_BED_PIN;
+      heat->pin               = HEATER_BED_PIN;
       heat->pid_min           = MIN_BED_POWER;
       heat->pid_max           = MAX_BED_POWER;
       heat->mintemp           = BED_MINTEMP;
@@ -1315,7 +1315,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[CHAMBER_INDEX];
       sens = &heaters[CHAMBER_INDEX].sensor;
       heat->type              = IS_CHAMBER;
-      heat->output_pin        = HEATER_CHAMBER_PIN;
+      heat->pin               = HEATER_CHAMBER_PIN;
       heat->pid_min           = MIN_CHAMBER_POWER;
       heat->pid_max           = MAX_CHAMBER_POWER;
       heat->mintemp           = CHAMBER_MINTEMP;
@@ -1342,7 +1342,7 @@ void EEPROM::Factory_Settings() {
       heat = &heaters[COOLER_INDEX];
       sens = &heaters[COOLER_INDEX].sensor;
       heat->type              = IS_COOLER;
-      heat->output_pin        = HEATER_COOLER_PIN;
+      heat->pin               = HEATER_COOLER_PIN;
       heat->pid_min           = MIN_COOLER_POWER;
       heat->pid_max           = MAX_COOLER_POWER;
       heat->mintemp           = COOLER_MINTEMP;

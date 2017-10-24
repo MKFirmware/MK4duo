@@ -51,7 +51,8 @@
       watch_next_ms       = 0;
     #endif
 
-    if (output_pin > NoPin) SET_PWM_OUTPUT(output_pin);
+    if (pin > NoPin)
+      HAL::pinModePWM(pin);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
       if (sensor.type == -2 || sensor.type == -1) {
@@ -60,8 +61,8 @@
         SET_INPUT_PULLUP(MISO_PIN);
         OUT_WRITE(SS_PIN, HIGH);
 
-        HAL::pinMode(output_pin, OUTPUT);
-        HAL::digitalWrite(output_pin, HIGH);
+        HAL::pinMode(pin, OUTPUT);
+        HAL::digitalWrite(pin, HIGH);
       }
     #endif
 
@@ -137,7 +138,7 @@
       else
         pwm_val = soft_pwm;
 
-      HAL::analogWrite(output_pin, pwm_val, (type == IS_HOTEND) ? 250 : 10);
+      HAL::analogWrite(pin, pwm_val, (type == IS_HOTEND) ? 250 : 10);
     }
   #endif
 
