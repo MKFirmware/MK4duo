@@ -45,12 +45,15 @@ inline void gcode_M530(void) {
     #if ENABLED(START_GCODE)
       commands.enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
     #endif
+
+    printer.filament_out = false;
+
     #if HAS_FIL_RUNOUT
-      printer.filament_ran_out = false;
       SERIAL_EM("Filament runout activated.");
       SERIAL_STR(RESUME);
       SERIAL_EOL();
     #endif
+
     #if HAS_POWER_CONSUMPTION_SENSOR
       startpower = powerManager.consumption_hour;
     #endif
@@ -58,11 +61,14 @@ inline void gcode_M530(void) {
   else {
     print_job_counter.stop();
     SERIAL_EM("Stop Printing");
+
     #if ENABLED(STOP_GCODE)
       commands.enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
     #endif
+
+    printer.filament_out = false;
+
     #if HAS_FIL_RUNOUT
-      printer.filament_ran_out = false;
       SERIAL_EM("Filament runout deactivated.");
     #endif
   }

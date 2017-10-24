@@ -123,10 +123,10 @@
       do {
         MOVE_SERVO(probe_index, probe.z_servo_angle[0]); //deploy
         printer.safe_delay(500);
-        deploy_state = digitalRead(PROBE_TEST_PIN);
+        deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
         MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
         printer.safe_delay(500);
-        stow_state = digitalRead(PROBE_TEST_PIN);
+        stow_state = HAL::digitalRead(PROBE_TEST_PIN);
       } while (++i < 4);
       if (probe_inverting != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
@@ -161,9 +161,9 @@
           if (0 == j % (500 * 1)) // keep cmd_timeout happy
             commands.refresh_cmd_timeout();
 
-          if (deploy_state != digitalRead(PROBE_TEST_PIN)) { // probe triggered
+          if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) { // probe triggered
 
-            for (probe_counter = 1; probe_counter < 50 && (deploy_state != digitalRead(PROBE_TEST_PIN)); probe_counter ++)
+            for (probe_counter = 1; probe_counter < 50 && (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)); probe_counter ++)
               printer.safe_delay(2);
 
             if (probe_counter == 50)
@@ -253,7 +253,7 @@
         // if (IS_ANALOG(pin))
         //   pin_state[pin - first_pin] = analogRead(pin - analogInputToDigitalPin(0)); // int16_t pin_state[...]
         // else
-          pin_state[pin - first_pin] = digitalRead(pin);
+          pin_state[pin - first_pin] = HAL::digitalRead(pin);
       }
 
       #if HAS_RESUME_CONTINUE
@@ -268,7 +268,7 @@
           // if (IS_ANALOG(pin))
           //   val = analogRead(pin - analogInputToDigitalPin(0)); // int16_t val
           // else
-            val = digitalRead(pin);
+            val = HAL::digitalRead(pin);
           if (val != pin_state[pin - first_pin]) {
             report_pin_state(pin);
             pin_state[pin - first_pin] = val;

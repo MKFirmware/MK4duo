@@ -274,8 +274,8 @@ HAL_TEMP_TIMER_ISR {
   if (pwm_count_heater == 0) {
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
-        if (heaters[h].output_pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
-          HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? LOW : HIGH);
+        if (heaters[h].pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
+          HAL::digitalWrite(heaters[h].pin, heaters[h].hardwareInverted ? LOW : HIGH);
       }
     #endif
   }
@@ -291,8 +291,8 @@ HAL_TEMP_TIMER_ISR {
 
   #if HEATER_COUNT > 0
     LOOP_HEATER() {
-      if (heaters[h].output_pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
-        HAL::digitalWrite(heaters[h].output_pin, heaters[h].hardwareInverted ? HIGH : LOW);
+      if (heaters[h].pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
+        HAL::digitalWrite(heaters[h].pin, heaters[h].hardwareInverted ? HIGH : LOW);
     }
   #endif
 

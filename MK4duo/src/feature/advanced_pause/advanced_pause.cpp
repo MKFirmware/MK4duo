@@ -398,9 +398,7 @@
     mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], PAUSE_PARK_XY_FEEDRATE);
     mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], PAUSE_PARK_Z_FEEDRATE);
 
-    #if HAS_FIL_RUNOUT || HAS_EXT_ENCODER
-      printer.filament_ran_out = false;
-    #endif
+    printer.filament_out = false;
 
     #if HAS_LCD
       // Show status screen
