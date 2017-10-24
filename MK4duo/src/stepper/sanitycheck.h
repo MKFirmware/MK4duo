@@ -26,9 +26,6 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _STEPPER_SANITYCHECK_H_
-#define _STEPPER_SANITYCHECK_H_
-
 // Advanced motion
 #if ENABLED(USE_MICROSTEPS)
   #if DISABLED(MICROSTEP_MODES)
@@ -309,5 +306,3 @@
     #endif
   #endif
 #endif
-
-#endif // _STEPPER_SANITYCHECK_H_

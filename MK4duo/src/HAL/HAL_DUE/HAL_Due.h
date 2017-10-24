@@ -253,7 +253,6 @@ class HAL {
     static inline bool digitalRead(const Pin pin) {
       return READ_VAR(pin);
     }
-    static inline bool pinModePWM(const Pin pin) { }
 
     static FORCE_INLINE void delayMicroseconds(uint32_t usec) { // usec += 3;
       uint32_t n = usec * (F_CPU / 3000000);
