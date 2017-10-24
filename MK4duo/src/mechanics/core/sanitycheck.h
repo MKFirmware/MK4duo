@@ -41,4 +41,4 @@
   #endif
 #endif
 
-#endif // _MECH_CORE_SANITYCHECK_H_
+#endif /* _MECH_CORE_SANITYCHECK_H_ */

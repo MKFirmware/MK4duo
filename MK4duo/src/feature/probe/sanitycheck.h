@@ -128,4 +128,4 @@
   #endif
 #endif
 
-#endif // _PROBE_SANITYCHECK_H_
+#endif /* _PROBE_SANITYCHECK_H_ */

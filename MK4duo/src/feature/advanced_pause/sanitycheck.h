@@ -58,4 +58,4 @@
   #endif
 #endif
 
-#endif // _ADVANCED_PAUSE_SANITYCHECK_H_
+#endif /* _ADVANCED_PAUSE_SANITYCHECK_H_ */

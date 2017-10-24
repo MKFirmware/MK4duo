@@ -394,4 +394,4 @@
   #error DEPENDENCY ERROR: You have to set X2_ENABLE_PIN, X2_STEP_PIN and X2_DIR_PIN to a valid pin if you enable X2_IS_TMC
 #endif
 
-#endif // _MECH_SANITYCHECK_H_
+#endif /* _MECH_SANITYCHECK_H_ */

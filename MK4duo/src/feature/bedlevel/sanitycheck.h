@@ -88,4 +88,4 @@ static_assert(1 >= 0
   #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
 #endif
 
-#endif // _BED_LEVELING_SANITYCHECK_H_
+#endif /* _BED_LEVELING_SANITYCHECK_H_ */

@@ -41,4 +41,4 @@
   #endif
 #endif
 
-#endif // _COLOR_MIXING_SANITYCHECK_H_
+#endif /* _COLOR_MIXING_SANITYCHECK_H_ */

@@ -53,4 +53,4 @@
   #endif
 #endif
 
-#endif // _LASER_SANITYCHECK_H_
+#endif /* _LASER_SANITYCHECK_H_ */

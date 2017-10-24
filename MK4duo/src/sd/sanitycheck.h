@@ -54,4 +54,4 @@
   #endif
 #endif
 
-#endif // _SD_CARD_SANITYCHECK_H_
+#endif /* _SD_CARD_SANITYCHECK_H_ */

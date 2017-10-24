@@ -141,4 +141,4 @@
 
 #endif // MECH(DELTA)
 
-#endif // _MECH_DELTA_SANITYCHECK_H_
+#endif /* _MECH_DELTA_SANITYCHECK_H_ */

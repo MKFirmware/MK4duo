@@ -53,4 +53,4 @@
   #error DEPENDENCY ERROR: You have to set at least one SERVO?_PIN to a valid pin if you enable ENABLE_SERVOS
 #endif
 
-#endif // _SERVO_SANITYCHECK_H_
+#endif /* _SERVO_SANITYCHECK_H_ */

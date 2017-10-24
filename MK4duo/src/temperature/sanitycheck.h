@@ -238,4 +238,4 @@
   #endif
 #endif
 
-#endif // _TEMPERATURE_SANITYCHECK_H_
+#endif /* _TEMPERATURE_SANITYCHECK_H_ */

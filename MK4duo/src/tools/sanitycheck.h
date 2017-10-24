@@ -222,4 +222,4 @@ static_assert(1 >= 0
   #error DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO
 #endif
 
-#endif // _TOOLS_SANITYCHECK_H_
+#endif /* _TOOLS_SANITYCHECK_H_ */

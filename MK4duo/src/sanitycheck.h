@@ -163,4 +163,4 @@
   #error DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_DROPPED_RX
 #endif
 
-#endif // _SANITY_CHECK_H_
+#endif /* _SANITYCHECK_H_ */

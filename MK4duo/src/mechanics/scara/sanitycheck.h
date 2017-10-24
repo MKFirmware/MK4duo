@@ -60,4 +60,4 @@
 
 #endif // IS_SCARA
 
-#endif // _MECH_SCARA_SANITYCHECK_H_
+#endif /* _MECH_SCARA_SANITYCHECK_H_ */

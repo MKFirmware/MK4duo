@@ -73,4 +73,4 @@
   #error DEPENDENCY ERROR: Missing setting E_MIN_ENDSTOP_LOGIC
 #endif
 
-#endif // _ENDSTOP_SANITYCHECK_H_
+#endif /* _ENDSTOP_SANITYCHECK_H_ */

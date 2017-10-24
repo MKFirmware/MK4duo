@@ -57,4 +57,4 @@
   #endif
 #endif
 
-#endif // _FILAMENT_SANITYCHECK_H_
+#endif /* _FILAMENT_SANITYCHECK_H_ */

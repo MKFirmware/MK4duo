@@ -30,4 +30,4 @@
 #define _MECH_CARTESIAN_SANITYCHECK_H_
 // There's nothing here...
 
-#endif // _MECH_CARTESIAN_SANITYCHECK_H_
+#endif /* _MECH_CARTESIAN_SANITYCHECK_H_ */

@@ -49,4 +49,4 @@
   #error "PRINTER_EVENT_LEDS requires BLINKM, PCA9632, RGB_LED, RGBW_LED or NEOPIXEL_LED."
 #endif
 
-#endif // _RGBLED_SANITYCHECK_H_
+#endif /* _RGBLED_SANITYCHECK_H_ */

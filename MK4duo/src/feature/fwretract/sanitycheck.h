@@ -63,4 +63,4 @@
   #endif
 #endif
 
-#endif // _FWRETRACT_SANITYCHECK_H_
+#endif /* _FWRETRACT_SANITYCHECK_H_ */

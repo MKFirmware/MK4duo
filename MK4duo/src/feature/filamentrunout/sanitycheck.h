@@ -45,4 +45,4 @@
   #error DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR
 #endif
 
-#endif // _FIL_RUNOUT_SANITYCHECK_H_
+#endif /* _FIL_RUNOUT_SANITYCHECK_H_ */

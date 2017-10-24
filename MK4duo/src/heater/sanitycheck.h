@@ -48,4 +48,4 @@
   #endif
 #endif
 
-#endif // _HEATER_SANITYCHECK_H_
+#endif /* _HEATER_SANITYCHECK_H_ */

@@ -60,4 +60,4 @@
   #endif
 #endif
 
-#endif // _POWER_SANITYCHECK_H_
+#endif /* _POWER_SANITYCHECK_H_ */

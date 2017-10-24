@@ -50,4 +50,4 @@
   #error DEPENDENCY ERROR: Missing setting HOTEND_AUTO_FAN_MIN_SPEED
 #endif
 
-#endif // _FAN_SANITYCHECK_H_
+#endif /* _FAN_SANITYCHECK_H_ */

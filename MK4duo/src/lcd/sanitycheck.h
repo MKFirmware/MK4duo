@@ -266,4 +266,4 @@ static_assert(1 >= 0
   #error "BABYSTEPPING requires an LCD controller."
 #endif
 
-#endif // _LCD_SANITYCHECK_H_
+#endif /* _LCD_SANITYCHECK_H_ */
