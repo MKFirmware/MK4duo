@@ -26,6 +26,9 @@
  * Test configuration values for errors at compile-time.
  */
 
+#ifndef _TEMP_SENSOR_SANITYCHECK_H_
+#define _TEMP_SENSOR_SANITYCHECK_H_
+
 // Thermistors
 #if DISABLED(TEMP_SENSOR_0)
   #error DEPENDENCY ERROR: Missing setting TEMP_SENSOR_0
@@ -58,3 +61,5 @@
     #define DUMMY_THERMISTOR_999_VALUE 25
   #endif
 #endif
+
+#endif /* _TEMP_SENSOR_SANITYCHECK_H_ */
