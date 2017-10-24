@@ -473,13 +473,20 @@
  * Auto Calibration Delta system  G33 command                                            *
  * Three type of the calibration DELTA                                                   *
  *  1) Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points           ~3.2Kb *
- *  2) Algorithm based on Thinkyhead Marlin   4 points + iteration                ~4.5Kb *
+ *  2) Algorithm based on Thinkyhead Marlin 1 - 7 points + iteration              ~4.5Kb *
  *                                                                                       *
  * To use one of this you must have a PROBE, please define you type probe.               *
  *                                                                                       *
  *****************************************************************************************/
 //#define DELTA_AUTO_CALIBRATION_1
 //#define DELTA_AUTO_CALIBRATION_2
+
+#define DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS 4
+
+// Uncomment and get the factors from auto tune G33 A1
+//#define H_FACTOR 1.01
+//#define R_FACTOR 2.61
+//#define A_FACTOR 0.87
 /*****************************************************************************************/
 
 

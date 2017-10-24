@@ -61,6 +61,10 @@ class Stepper {
 
     static millis_t stepper_inactive_time;
 
+    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+      static float motor_current[3 + DRIVER_EXTRUDERS];
+    #endif
+
     #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
       static bool abort_on_endstop_hit;
     #endif

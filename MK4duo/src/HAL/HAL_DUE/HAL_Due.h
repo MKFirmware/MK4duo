@@ -247,7 +247,7 @@ class HAL {
         default:                                    break;
       }
     }
-    static inline void digitalWrite(const Pin pin, const uint8_t value) {
+    static inline void digitalWrite(const Pin pin, const bool value) {
       WRITE_VAR(pin, value);
     }
     static inline bool digitalRead(const Pin pin) {

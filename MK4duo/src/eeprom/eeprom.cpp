@@ -507,7 +507,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      EEPROM_WRITE(printer.motor_current);
+      EEPROM_WRITE(stepper.motor_current);
     #endif
 
     // Save TCM2130 Configuration, and placeholder values
@@ -836,7 +836,7 @@ void EEPROM::Postprocess() {
       #endif
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        EEPROM_READ(printer.motor_current);
+        EEPROM_READ(stepper.motor_current);
       #endif
 
       #if ENABLED(HAVE_TMC2130)
@@ -1100,7 +1100,7 @@ void EEPROM::Factory_Settings() {
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     const float tmp13[] = MOTOR_CURRENT;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      printer.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
+      stepper.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif
 
   LOOP_XYZE_N(i) {
@@ -1780,17 +1780,17 @@ void EEPROM::Factory_Settings() {
      */
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       CONFIG_MSG_START("Motor current:");
-      SERIAL_SMV(CFG, "  M906 X", printer.motor_current[X_AXIS], 2);
-      SERIAL_MV(" Y", printer.motor_current[Y_AXIS], 2);
-      SERIAL_MV(" Z", printer.motor_current[Z_AXIS], 2);
+      SERIAL_SMV(CFG, "  M906 X", stepper.motor_current[X_AXIS], 2);
+      SERIAL_MV(" Y", stepper.motor_current[Y_AXIS], 2);
+      SERIAL_MV(" Z", stepper.motor_current[Z_AXIS], 2);
       #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", printer.motor_current[E_AXIS], 2);
+        SERIAL_MV(" T0 E", stepper.motor_current[E_AXIS], 2);
       #endif
       SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
           SERIAL_SMV(CFG, "  M906 T", i);
-          SERIAL_EMV(" E", printer.motor_current[E_AXIS + i], 2);
+          SERIAL_EMV(" E", stepper.motor_current[E_AXIS + i], 2);
         }
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR

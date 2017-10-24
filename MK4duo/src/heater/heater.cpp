@@ -51,8 +51,7 @@
       watch_next_ms       = 0;
     #endif
 
-    if (output_pin > NoPin)
-      HAL::pinMode(output_pin, OUTPUT);
+    if (output_pin > NoPin) SET_PWM_OUTPUT(output_pin);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
       if (sensor.type == -2 || sensor.type == -1) {

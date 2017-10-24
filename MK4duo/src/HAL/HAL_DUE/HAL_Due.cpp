@@ -318,13 +318,13 @@ static inline uint32_t ConvertRange(const float f, const uint32_t top) { return 
 
 // AnalogWritePwm to a PWM pin
 // Return true if successful, false if we need to call software pwm
-static bool AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
+static void AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
 
   const uint32_t chan = pinDesc.ulPWMChannel;
 
   if (freq == 0) {
     PWMChanFreq[chan] = freq;
-    return false;
+    return;
   }
   else if (PWMChanFreq[chan] != freq) {
     if (!PWMEnabled) {
@@ -375,7 +375,7 @@ static bool AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, c
     const uint32_t ul_period = (uint32_t)PWMChanPeriod[chan];
     PWMC_SetDutyCycle(PWM, chan, ConvertRange(ulValue, ul_period));
   }
-  return true;
+  return;
 }
 
 // --------------------------------------------------------------------------
@@ -422,12 +422,12 @@ static inline uint32_t TC_read_rc(Tc *tc, uint32_t chan) {
 
 // AnalogWriteTc to a TC pin
 // Return true if successful, false if we need to call software pwm
-static bool AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
+static void AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
 
   const uint32_t chan = (uint32_t)pinDesc.ulTCChannel >> 1;
   if (freq == 0) {
     TCChanFreq[chan] = freq;
-    return false;
+    return;
   }
   else {
     Tc * const chTC = channelToTC[chan];
@@ -487,29 +487,29 @@ static bool AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, co
       TC_Start(chTC, chNo);
     }
   }
-  return true;
+  return;
 }
 
 void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/) {
 
-  if (isnan(value) || pin <= NoPin) return;
+  if (isnan(value) || pin <= 0) return;
 
   const float ulValue = constrain((float)value / 255.0, 0.0, 1.0);
   const PinDescription& pinDesc = g_APinDescription[pin];
   const uint32_t attr = pinDesc.ulPinAttribute;
 
   if ((attr & PIN_ATTR_PWM) != 0) {
-    if (AnalogWritePwm(pinDesc, ulValue, freq)) {
-      return;
-    }
+    AnalogWritePwm(pinDesc, ulValue, freq);
+    g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
   }
   else if ((attr & PIN_ATTR_TIMER) != 0) {
-    if (AnalogWriteTc(pinDesc, ulValue, freq)) {
-      return;
-    }
+    AnalogWriteTc(pinDesc, ulValue, freq);
+    g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_TIMER;
   }
-
-  HAL::digitalWrite(pin, (ulValue < 0.5) ? LOW : HIGH);
+  else {
+    HAL::pinMode(pin, OUTPUT);
+    HAL::digitalWrite(pin, (ulValue < 0.5) ? LOW : HIGH);
+  }
 }
 
 #if ANALOG_INPUTS > 0
