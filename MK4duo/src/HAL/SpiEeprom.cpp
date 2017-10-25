@@ -27,7 +27,7 @@
 
 #include "../../MK4duo.h"
 
-#if ENABLED(SPI_EEPROM)
+#if ENABLED(EEPROM_SETTINGS) && ENABLED(SPI_EEPROM)
 
 #include "HAL.h"
 
