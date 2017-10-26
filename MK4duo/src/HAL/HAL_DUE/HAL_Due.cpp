@@ -546,6 +546,8 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
  */
 void HAL::Tick() {
 
+  if (printer.IsStopped()) return;
+
   #if ENABLED(FILAMENT_SENSOR)
     static unsigned long raw_filwidth_value = 0;
   #endif

@@ -255,10 +255,12 @@ void HAL::setPwmFrequency(const Pin pin, uint8_t val) {
  */
 HAL_TEMP_TIMER_ISR {
 
+  TEMP_TIMER += 64;
+
+  if (printer.IsStopped()) return;
+
   // Allow UART ISRs
   HAL_DISABLE_ISRs();
-
-  TEMP_TIMER += 64;
 
   static uint8_t  pwm_count_heater        = 0,
                   pwm_count_fan           = 0,
@@ -309,8 +311,9 @@ HAL_TEMP_TIMER_ISR {
     cycle_100ms = 0;
     HAL::execute_100ms = true;
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
-      LOOP_FAN()
+      LOOP_FAN() {
         if (fans[f].Kickstart) fans[f].Kickstart--;
+      }
     #endif
   }
 

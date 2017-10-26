@@ -30,12 +30,6 @@
 
 #if ENABLED(NEOPIXEL_LED)
 
-  #if NEOPIXEL_TYPE == NEO_RGB || NEOPIXEL_TYPE == NEO_RBG || NEOPIXEL_TYPE == NEO_GRB || NEOPIXEL_TYPE == NEO_GBR || NEOPIXEL_TYPE == NEO_BRG || NEOPIXEL_TYPE == NEO_BGR
-    #define NEO_WHITE 255, 255, 255
-  #else
-    #define NEO_WHITE 0, 0, 0, 255
-  #endif
-
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEOPIXEL_TYPE + NEO_KHZ800);
 
   void set_neopixel_color(const uint32_t color) {
@@ -45,6 +39,9 @@
   }
 
   void setup_neopixel() {
+
+    SET_OUTPUT(NEOPIXEL_PIN);
+
     strip.setBrightness(NEOPIXEL_BRIGHTNESS); // 0 - 255 range
     strip.begin();
     strip.show(); // initialize to all off
@@ -58,7 +55,7 @@
       set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
       delay(2000);
     #endif
-    set_neopixel_color(strip.Color(0, 0, 0, 255));    // white
+    set_neopixel_color(strip.Color(NEO_WHITE));       // white
   }
 
   void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t brightness) {

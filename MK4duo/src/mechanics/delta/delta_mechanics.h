@@ -112,7 +112,7 @@
        */
       void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s=0.0) override;
 
-      void manual_goto_xy(const float &x, const float &y) override;
+      void manual_goto_xy(const float &lx, const float &ly) override;
 
       /**
        * Delta function
@@ -154,7 +154,7 @@
       #endif
 
     private: /** Private Function */
-      
+
       /**
        *  Home axis
        */

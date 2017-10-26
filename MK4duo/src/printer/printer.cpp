@@ -32,24 +32,24 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
-bool    Printer::Running        = true,
-        Printer::relative_mode  = false,
-        Printer::pos_saved      = false;
+bool  Printer::pos_saved              = false,
+      Printer::relative_mode          = false,
+      Printer::Running                = false,
+      Printer::axis_relative_modes[]  = AXIS_RELATIVE_MODES;
 
 volatile bool Printer::wait_for_user = false;
 
 // Print status related
 long    Printer::currentLayer  = 0,
         Printer::maxLayer      = -1;   // -1 = unknown
+
 char    Printer::printName[21] = "";   // max. 20 chars + 0
-uint8_t Printer::progress      = 0;
 
-uint8_t Printer::host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
-
-bool    Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
+uint8_t Printer::progress                 = 0,
+        Printer::host_keepalive_interval  = DEFAULT_KEEPALIVE_INTERVAL;
 
 // Inactivity shutdown
-millis_t  Printer::max_inactive_time      = 0;
+millis_t  Printer::max_inactive_time  = 0;
 
 // Interrupt Event
 MK4duoInterruptEvent Printer::interruptEvent = INTERRUPT_EVENT_NONE;
@@ -271,7 +271,6 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(NEOPIXEL_LED)
-    SET_OUTPUT(NEOPIXEL_PIN);
     setup_neopixel();
   #endif
 
@@ -563,7 +562,6 @@ void Printer::Stop() {
 
   if (IsRunning()) {
     Running = false;
-    commands.save_last_gcode(); // Save last g_code for restart
     SERIAL_LM(ER, MSG_ERR_STOPPED);
     SERIAL_STR(PAUSE);
     SERIAL_EOL();

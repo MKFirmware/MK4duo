@@ -197,6 +197,7 @@ EEPROM eeprom;
  * Post-process after Retrieve or Reset
  */
 void EEPROM::Postprocess() {
+
   // steps per s2 needs to be updated to agree with units per s2
   mechanics.reset_acceleration_rates();
 
@@ -247,6 +248,10 @@ void EEPROM::Postprocess() {
   #if ENABLED(HYSTERESIS)
     mechanics.calc_hysteresis_steps();
   #endif
+
+  // All Initialized set Running to true.
+  printer.setRunning(true);
+
 }
 
 #if HAS_EEPROM
@@ -457,7 +462,32 @@ void EEPROM::Postprocess() {
     #endif
 
     #if HEATER_COUNT > 0
-      LOOP_HEATER() EEPROM_WRITE(heaters[h]);
+      LOOP_HEATER() {
+        EEPROM_WRITE(heaters[h].type);
+        EEPROM_WRITE(heaters[h].pin);
+        EEPROM_WRITE(heaters[h].pid_min);
+        EEPROM_WRITE(heaters[h].pid_max);
+        EEPROM_WRITE(heaters[h].mintemp);
+        EEPROM_WRITE(heaters[h].maxtemp);
+        EEPROM_WRITE(heaters[h].Kp);
+        EEPROM_WRITE(heaters[h].Ki);
+        EEPROM_WRITE(heaters[h].Kd);
+        EEPROM_WRITE(heaters[h].Kc);
+        EEPROM_WRITE(heaters[h].use_pid);
+        EEPROM_WRITE(heaters[h].hardwareInverted);
+        EEPROM_WRITE(heaters[h].sensor.pin);
+        EEPROM_WRITE(heaters[h].sensor.type);
+        EEPROM_WRITE(heaters[h].sensor.adcLowOffset);
+        EEPROM_WRITE(heaters[h].sensor.adcHighOffset);
+        EEPROM_WRITE(heaters[h].sensor.r25);
+        EEPROM_WRITE(heaters[h].sensor.beta);
+        EEPROM_WRITE(heaters[h].sensor.pullupR);
+        EEPROM_WRITE(heaters[h].sensor.shC);
+        #if HEATER_USES_AD595
+          EEPROM_WRITE(heaters[h].sensor.ad595_offset);
+          EEPROM_WRITE(heaters[h].sensor.ad595_gain);
+        #endif
+      }
     #endif
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -629,6 +659,10 @@ void EEPROM::Postprocess() {
    * M501 - Load Configuration
    */
   bool EEPROM::Load_Settings() {
+
+    // Load Configuration put Running to false for lock the function.
+    printer.setRunning(false);
+
     uint16_t working_crc = 0;
 
     EEPROM_START();
@@ -783,8 +817,29 @@ void EEPROM::Postprocess() {
 
       #if HEATER_COUNT > 0
         LOOP_HEATER() {
-          EEPROM_READ(heaters[h]);
+          EEPROM_READ(heaters[h].type);
+          EEPROM_READ(heaters[h].pin);
+          EEPROM_READ(heaters[h].pid_min);
+          EEPROM_READ(heaters[h].pid_max);
+          EEPROM_READ(heaters[h].mintemp);
+          EEPROM_READ(heaters[h].maxtemp);
+          EEPROM_READ(heaters[h].Kp);
+          EEPROM_READ(heaters[h].Ki);
+          EEPROM_READ(heaters[h].Kd);
+          EEPROM_READ(heaters[h].Kc);
+          EEPROM_READ(heaters[h].use_pid);
+          EEPROM_READ(heaters[h].hardwareInverted);
+          EEPROM_READ(heaters[h].sensor.pin);
+          EEPROM_READ(heaters[h].sensor.type);
+          EEPROM_READ(heaters[h].sensor.adcLowOffset);
+          EEPROM_READ(heaters[h].sensor.adcHighOffset);
+          EEPROM_READ(heaters[h].sensor.r25);
+          EEPROM_READ(heaters[h].sensor.beta);
+          EEPROM_READ(heaters[h].sensor.pullupR);
+          EEPROM_READ(heaters[h].sensor.shC);
           #if HEATER_USES_AD595
+            EEPROM_READ(heaters[h].sensor.ad595_offset);
+            EEPROM_READ(heaters[h].sensor.ad595_gain);
             if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = TEMP_SENSOR_AD595_GAIN;
           #endif
         }
@@ -912,11 +967,11 @@ void EEPROM::Postprocess() {
       #else
 
         if (working_crc == stored_crc) {
-          Postprocess();
           SERIAL_VAL(version);
           SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_MV(" bytes; crc ", working_crc);
           SERIAL_EM(")");
+          Postprocess();
         }
         else {
           SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
@@ -1068,6 +1123,7 @@ void EEPROM::Postprocess() {
  * M502 - Reset Configuration
  */
 void EEPROM::Factory_Settings() {
+
   static const float    tmp1[] PROGMEM  = DEFAULT_AXIS_STEPS_PER_UNIT,
                         tmp2[] PROGMEM  = DEFAULT_MAX_FEEDRATE;
   static const uint32_t tmp3[] PROGMEM  = DEFAULT_MAX_ACCELERATION,

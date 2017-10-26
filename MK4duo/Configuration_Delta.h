@@ -428,6 +428,9 @@
 // NOTE: Requires a lot of PROGMEM!
 //#define DEBUG_LEVELING_FEATURE
 
+// enable a graphics overly while editing the mesh from auto-level
+//#define ENABLE_MESH_EDIT_GFX_OVERLAY
+
 // Mesh inset margin on print area
 #define MESH_INSET 10
 

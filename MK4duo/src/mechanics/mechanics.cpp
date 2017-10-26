@@ -237,19 +237,19 @@ void Mechanics::do_blocking_move_to(const float &lx, const float &ly, const floa
   #endif
 }
 void Mechanics::do_blocking_move_to(const float logical[XYZ], const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(logical[A_AXIS], logical[B_AXIS], logical[C_AXIS], fr_mm_s);
+  do_blocking_move_to(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS], fr_mm_s);
 }
 void Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(lx, current_position[B_AXIS], current_position[C_AXIS], fr_mm_s);
+  do_blocking_move_to(lx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
 }
 void Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position[A_AXIS], current_position[B_AXIS], lz, fr_mm_s);
+  do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], lz, fr_mm_s);
 }
 void Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(lx, ly, current_position[C_AXIS], fr_mm_s);
+  do_blocking_move_to(lx, ly, current_position[Z_AXIS], fr_mm_s);
 }
 
-void Mechanics::manual_goto_xy(const float &x, const float &y) {
+void Mechanics::manual_goto_xy(const float &lx, const float &ly) {
 
   const float old_feedrate_mm_s = feedrate_mm_s;
 
@@ -261,8 +261,8 @@ void Mechanics::manual_goto_xy(const float &x, const float &y) {
   #endif
 
   feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-  current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-  current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+  current_position[X_AXIS] = LOGICAL_X_POSITION(lx);
+  current_position[Y_AXIS] = LOGICAL_Y_POSITION(ly);
   line_to_current_position();
 
   #if MANUAL_PROBE_HEIGHT > 0
@@ -270,6 +270,8 @@ void Mechanics::manual_goto_xy(const float &x, const float &y) {
     current_position[Z_AXIS] = prev_z; // move back to the previous Z.
     line_to_current_position();
   #endif
+
+  stepper.synchronize();
 
   feedrate_mm_s = old_feedrate_mm_s;
 
@@ -344,9 +346,9 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
   // Tell the planner we're at Z=0
   current_position[axis] = 0;
 
-  set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
+  set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
   current_position[axis] = distance;
-  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
   stepper.synchronize();
 
@@ -445,9 +447,9 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !axis_homed[A_AXIS],
-              yy = y && !axis_homed[B_AXIS],
-              zz = z && !axis_homed[C_AXIS];
+  const bool  xx = x && !axis_homed[X_AXIS],
+              yy = y && !axis_homed[Y_AXIS],
+              zz = z && !axis_homed[Z_AXIS];
 
   if (xx || yy || zz) {
     SERIAL_SM(ECHO, MSG_HOME " ");
