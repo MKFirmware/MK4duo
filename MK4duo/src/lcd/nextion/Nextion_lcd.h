@@ -90,10 +90,13 @@
     void UploadNewFirmware();
   #endif
 
-  #if ENABLED(LCD_BED_LEVELING)
-    void bedlevelPopCallBack(void *ptr);
-    void LcdBedLevelOn();
-    void LcdBedLevelOff();
+  #if ENABLED(PROBE_MANUALLY)
+    void ProbelPopCallBack(void *ptr);
+    float lcd_probe_pt(const float &lx, const float &ly);
+    #if HAS_LEVELING
+      void Nextion_ProbeOn();
+      void Nextion_ProbeOff();
+    #endif
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)

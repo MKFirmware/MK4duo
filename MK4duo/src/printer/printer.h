@@ -55,21 +55,19 @@ class Printer {
 
   public: /** Public Parameters */
 
-    static bool Running,
-                pos_saved;
+    static volatile bool  wait_for_user;
 
-    static volatile bool  wait_for_heatup,
-                          wait_for_user;
-
-    static uint8_t host_keepalive_interval;
-
-    static bool relative_mode,
-                axis_relative_modes[];
+    static bool     pos_saved,
+                    relative_mode,
+                    axis_relative_modes[];
 
     static long     currentLayer,
                     maxLayer;       // -1 = unknown
+
     static char     printName[21];  // max. 20 chars + 0
-    static uint8_t  progress;
+
+    static uint8_t  progress,
+                    host_keepalive_interval;
 
     static millis_t max_inactive_time;
 
@@ -133,6 +131,8 @@ class Printer {
     #endif
 
   private: /** Private Parameters */
+
+    static bool Running;
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;

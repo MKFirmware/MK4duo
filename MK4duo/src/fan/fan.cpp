@@ -41,13 +41,14 @@
     paused_Speed        = 0;
     Kickstart           = 0;
     pwm_pos             = 0;
-    paused              = false;
     lastpwm             = -1;
+    paused              = false;
     triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
     #if ENABLED(__AVR__)
       if (pin > NoPin) HAL::pinMode(pin, OUTPUT);
     #endif
+
   }
 
   void Fan::SetAutoMonitored(const int8_t h) {

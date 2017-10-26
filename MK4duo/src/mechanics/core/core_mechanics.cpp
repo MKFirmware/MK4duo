@@ -55,10 +55,10 @@
     stepper.synchronize();
 
     // Cancel the active G29 session
-    #if ENABLED(PROBE_MANUALLY)
+    #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
       bedlevel.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
-        LcdBedLevelOff();
+        Nextion_ProbeOff();
       #endif
     #endif
 

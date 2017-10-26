@@ -256,7 +256,7 @@ inline void gcode_G29(void) {
     abl_should_enable = bedlevel.leveling_active;
 
     #if HAS_NEXTION_MANUAL_BED
-      LcdBedLevelOn();
+      Nextion_ProbeOn();
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -956,7 +956,7 @@ inline void gcode_G29(void) {
     #endif
 
     #if HAS_NEXTION_MANUAL_BED
-      LcdBedLevelOff();
+      Nextion_ProbeOff();
     #endif
 
     // Auto Bed Leveling is complete! Enable if possible.

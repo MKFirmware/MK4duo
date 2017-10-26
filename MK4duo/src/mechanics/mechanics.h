@@ -277,7 +277,7 @@ class Mechanics {
     /**
      * Manual goto xy for Mesh Bed level or Probe Manually
      */
-    virtual void manual_goto_xy(const float &x, const float &y);
+    virtual void manual_goto_xy(const float &lx, const float &ly);
 
     /**
      * sync_plan_position

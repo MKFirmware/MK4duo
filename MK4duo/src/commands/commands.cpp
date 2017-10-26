@@ -41,8 +41,7 @@ Commands commands;
  * M110 N<int> sets the current line number.
  */
 long  Commands::gcode_N             = 0,
-      Commands::gcode_LastN         = 0,
-      Commands::Stopped_gcode_LastN = 0;
+      Commands::gcode_LastN         = 0;
 
 bool Commands::send_ok[BUFSIZE];
 

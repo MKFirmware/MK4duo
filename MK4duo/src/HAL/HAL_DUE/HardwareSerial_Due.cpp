@@ -32,7 +32,7 @@
   #include "HardwareSerial_Due.h"
 
   MK_RingBuffer::MK_RingBuffer(void) {
-    memset( (void *)_aucBuffer, 0, SERIAL_BUFFER_SIZE ) ;
+    memset((void *)_aucBuffer, 0, SERIAL_BUFFER_SIZE);
     _iHead = 0;
     _iTail = 0;
   }
@@ -57,7 +57,7 @@
     // Currently looking for: M108, M112, M410
     // If you alter the parser please don't forget to update the capabilities in Conditionals_post.h
 
-    FORCE_INLINE void emergency_parser(const unsigned char c) {
+    FORCE_INLINE void emergency_parser(const uint8_t c) {
 
       static e_parser_state state = state_RESET;
 
@@ -141,7 +141,7 @@
 
   #endif // EMERGENCY_PARSER
 
-  void MK_RingBuffer::store_char(const unsigned char c) {
+  void MK_RingBuffer::store_char(const uint8_t c) {
 
     int i = (uint32_t)(_iHead + 1) % SERIAL_BUFFER_SIZE;
 
@@ -159,35 +159,46 @@
     #endif
   }
 
+  // The relocated Exception/Interrupt Table - Must be aligned to 128bytes,
+  // as bits 0-6 on VTOR register are reserved and must be set to 0
   __attribute__ ((aligned(128)))
   static DeviceVectors ram_tab = { NULL };
 
   static pfnISR_Handler* get_relocated_table_addr(void) {
+    // Get the address of the interrupt/exception table
     uint32_t isrtab = SCB->VTOR;
 
     // If already relocated, we are done!
     if (isrtab >= IRAM0_ADDR)
-      return (pfnISR_Handler*) isrtab;
+      return (pfnISR_Handler*)isrtab;
 
     // Get the address of the table stored in FLASH
-    const pfnISR_Handler*	romtab = (const pfnISR_Handler*) isrtab;
+    const pfnISR_Handler*	romtab = (const pfnISR_Handler*)isrtab;
 
+    // Copy it to SRAM
     memcpy(&ram_tab, romtab, sizeof(ram_tab));
 
     CRITICAL_SECTION_START
-      SCB->VTOR = (uint32_t) (&ram_tab);
+
+      // Set the vector table base address to the SRAM copy
+      SCB->VTOR = (uint32_t)(&ram_tab);
+
     CRITICAL_SECTION_END
 
-    return (pfnISR_Handler*) (&ram_tab);
+    return (pfnISR_Handler*)(&ram_tab);
   }
 
   pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler) {
 
+    // Get the address of the relocated table
     pfnISR_Handler* isrtab = get_relocated_table_addr();
 
     CRITICAL_SECTION_START
 
+      // Get the original handler
       pfnISR_Handler oldHandler = isrtab[irq + 16];
+
+      // Install the new one
       isrtab[irq + 16] = newHandler;
 
     CRITICAL_SECTION_END
@@ -508,36 +519,6 @@
     }
   }
 
-  /** 
-   * MKUSARTCLASS
-   */
-
-  // Constructors
-  MKUSARTClass::MKUSARTClass(Usart *pUsart, IRQn_Type dwIrq, uint32_t dwId, MK_RingBuffer *pRx_buffer, MK_RingBuffer *pTx_buffer)
-    : MKUARTClass((Uart*)pUsart, dwIrq, dwId, pRx_buffer, pTx_buffer)
-  {
-    _pUsart = pUsart;
-    _dwIrq  = dwIrq;
-    _dwId   = dwId;
-  }
-
-  // Public Methods
-  void MKUSARTClass::begin(const uint32_t dwBaudRate) {
-    begin(dwBaudRate, Mode_8N1);
-  }
-
-  void MKUSARTClass::begin(const uint32_t dwBaudRate, const UARTModes config) {
-    uint32_t modeReg = static_cast<uint32_t>(config);
-    modeReg |= US_MR_USART_MODE_NORMAL | US_MR_USCLKS_MCK | US_MR_CHMODE_NORMAL;
-    init(dwBaudRate, modeReg);
-  }
-
-  void MKUSARTClass::begin(const uint32_t dwBaudRate, const USARTModes config) {
-    uint32_t modeReg = static_cast<uint32_t>(config);
-    modeReg |= US_MR_USART_MODE_NORMAL | US_MR_USCLKS_MCK | US_MR_CHMODE_NORMAL;
-    init(dwBaudRate, modeReg);
-  }
-
   // Construction MKSerial
   MK_RingBuffer MK_rx_buffer;
   MK_RingBuffer MK_tx_buffer;
@@ -545,12 +526,6 @@
   // Based on selected port, use the proper configuration
   #if SERIAL_PORT == 0
     MKUARTClass MKSerial(UART, UART_IRQn, ID_UART, &MK_rx_buffer, &MK_tx_buffer);
-  #elif SERIAL_PORT == 1
-    MKUSARTClass MKSerial(USART0, USART0_IRQn, ID_USART0, &MK_rx_buffer, &MK_tx_buffer);
-  #elif SERIAL_PORT == 2
-    MKUSARTClass MKSerial(USART1, USART1_IRQn, ID_USART1, &MK_rx_buffer, &MK_tx_buffer);
-  #elif SERIAL_PORT == 3
-    MKUSARTClass MKSerial(USART3, USART3_IRQn, ID_USART3, &MK_rx_buffer, &MK_tx_buffer);
   #endif
 
 #endif // ARDUINO_ARCH_SAM

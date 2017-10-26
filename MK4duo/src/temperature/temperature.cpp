@@ -569,7 +569,7 @@ void Temperature::disable_all_heaters() {
   #endif
 
   // Unpause and reset everything
-  #if ENABLED(PROBING_HEATERS_OFF)
+  #if HAS_BED_PROBE && ENABLED(PROBING_HEATERS_OFF)
     probe.probing_pause(false);
   #endif
 

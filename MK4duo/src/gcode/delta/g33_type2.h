@@ -45,7 +45,7 @@
     #endif
   }
 
-  void print_signed_float(const char * const prefix, const float &f) {
+  void Report_signed_float(const char * const prefix, const float &f) {
     SERIAL_MSG("  ");
     SERIAL_PS(prefix);
     SERIAL_CHR(':');
@@ -53,31 +53,31 @@
     SERIAL_VAL(f, 2);
   }
 
-  void print_settings(const bool end_stops, const bool tower_angles) {
+  void Report_settings(const bool end_stops, const bool tower_angles) {
     SERIAL_MV(".Height:", mechanics.delta_height, 2);
     if (end_stops) {
-      print_signed_float(PSTR("  Ex"), mechanics.delta_endstop_adj[A_AXIS]);
-      print_signed_float(PSTR("Ey"), mechanics.delta_endstop_adj[B_AXIS]);
-      print_signed_float(PSTR("Ez"), mechanics.delta_endstop_adj[C_AXIS]);
+      Report_signed_float(PSTR("  Ex"), mechanics.delta_endstop_adj[A_AXIS]);
+      Report_signed_float(PSTR("Ey"), mechanics.delta_endstop_adj[B_AXIS]);
+      Report_signed_float(PSTR("Ez"), mechanics.delta_endstop_adj[C_AXIS]);
       SERIAL_MV("    Radius:", mechanics.delta_radius, 2);
     }
     SERIAL_EOL();
     if (tower_angles) {
       SERIAL_MSG(".Tower angle :  ");
-      print_signed_float(PSTR("Tx"), mechanics.delta_tower_angle_adj[A_AXIS]);
-      print_signed_float(PSTR("Ty"), mechanics.delta_tower_angle_adj[B_AXIS]);
-      print_signed_float(PSTR("Tz"), mechanics.delta_tower_angle_adj[C_AXIS]);
+      Report_signed_float(PSTR("Tx"), mechanics.delta_tower_angle_adj[A_AXIS]);
+      Report_signed_float(PSTR("Ty"), mechanics.delta_tower_angle_adj[B_AXIS]);
+      Report_signed_float(PSTR("Tz"), mechanics.delta_tower_angle_adj[C_AXIS]);
       SERIAL_EMV("       Rod:", mechanics.delta_diagonal_rod, 2);
     }
   }
 
-  static void print_results(const float z_at_pt[13], const bool tower_points, const bool opposite_points) {
+  static void Report_results(const float z_at_pt[13], const bool tower_points, const bool opposite_points) {
     SERIAL_MSG(".    ");
-    print_signed_float(PSTR("c"), z_at_pt[0]);
+    Report_signed_float(PSTR("c"), z_at_pt[0]);
     if (tower_points) {
-      print_signed_float(PSTR(" x"), z_at_pt[1]);
-      print_signed_float(PSTR(" y"), z_at_pt[5]);
-      print_signed_float(PSTR(" z"), z_at_pt[9]);
+      Report_signed_float(PSTR(" x"), z_at_pt[1]);
+      Report_signed_float(PSTR(" y"), z_at_pt[5]);
+      Report_signed_float(PSTR(" z"), z_at_pt[9]);
     }
     if (tower_points && opposite_points) {
       SERIAL_EOL();
@@ -85,9 +85,9 @@
       SERIAL_SP(13);
     }
     if (opposite_points) {
-      print_signed_float(PSTR("yz"), z_at_pt[7]);
-      print_signed_float(PSTR("zx"), z_at_pt[11]);
-      print_signed_float(PSTR("xy"), z_at_pt[3]);
+      Report_signed_float(PSTR("yz"), z_at_pt[7]);
+      Report_signed_float(PSTR("zx"), z_at_pt[11]);
+      Report_signed_float(PSTR("xy"), z_at_pt[3]);
     }
     SERIAL_EOL();
   }
@@ -162,7 +162,6 @@
 
       float z_at_pt[13]       = { 0.0 },
             z_at_pt_base[13]  = { 0.0 },
-            z_temp            = 0.0,
             h_fac             = 0.0,
             r_fac             = 0.0,
             a_fac             = 0.0,
@@ -177,7 +176,7 @@
 
       SERIAL_EM("AUTO TUNE baseline");
       probe_points(z_at_pt_base, 3, true, false);
-      print_results(z_at_pt_base, true, true);
+      Report_results(z_at_pt_base, true, true);
 
       // Tuning Endstop
       LOOP_XYZ(axis) {
@@ -196,25 +195,25 @@
 
         for (int8_t i = 0; i < 13; i++) z_at_pt[i] -= z_at_pt_base[i];
 
-        print_results(z_at_pt, true, true);
+        Report_results(z_at_pt, true, true);
 
         mechanics.delta_endstop_adj[axis] += 1.0;
 
         switch (axis) {
           case A_AXIS :
-            h_fac += 4.0 / (Z03(0) +Z01(1)                         +Z32(11) +Z32(3)); //displacement by X-tower end-stop
+            h_fac += 4.0 / (Z03(0) +Z01(1)                         +Z32(11) +Z32(3)); // Offset by X-tower end-stop
           break;
           case B_AXIS :
-            h_fac += 4.0 / (Z03(0)         +Z01(5)         +Z32(7)          +Z32(3)); //displacement by Y-tower end-stop
+            h_fac += 4.0 / (Z03(0)         +Z01(5)         +Z32(7)          +Z32(3)); // Offset by Y-tower end-stop
           break;
           case C_AXIS :
-            h_fac += 4.0 / (Z03(0)                 +Z01(9) +Z32(7) +Z32(11)        ); //displacement by Z-tower end-stop
+            h_fac += 4.0 / (Z03(0)                 +Z01(9) +Z32(7) +Z32(11)        ); // Offset by Z-tower end-stop
           break;
         }
       }
 
       h_fac /= 3.0;
-      h_fac *= norm; // normalize to 1.02 for Kossel mini
+      h_fac *= norm; // Normalize to 1.02 for Kossel mini
 
       // Tuning Radius
       for (int8_t zig_zag = -1; zig_zag < 2; zig_zag += 2) {
@@ -233,14 +232,14 @@
 
         for (int8_t i = 0; i < 13; i++) z_at_pt[i] -= z_at_pt_base[i];
 
-        print_results(z_at_pt, true, true);
+        Report_results(z_at_pt, true, true);
         mechanics.delta_radius -= 1.0 * zig_zag;
         mechanics.recalc_delta_settings();
-        r_fac -= zig_zag * 6.0 / (Z03(1) +Z03(5) +Z03(9) +Z03(7) +Z03(11) +Z03(3)); // displacement by delta radius
+        r_fac -= zig_zag * 6.0 / (Z03(1) + Z03(5) + Z03(9) + Z03(7) + Z03(11) + Z03(3));  // Offset by delta radius
       }
 
       r_fac /= 2.0;
-      r_fac *= 3 * norm; // normalize to 2.25 for Kossel mini
+      r_fac *= 3 * norm; // Normalize to 2.25 for Kossel mini
 
       // Tuning Tower
       LOOP_XYZ(axis) {
@@ -249,7 +248,7 @@
         mechanics.delta_endstop_adj[(axis + 1) % 3] -= 1.0 / 4.5;
         mechanics.delta_endstop_adj[(axis + 2) % 3] += 1.0 / 4.5;
 
-        z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
+        float z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
         mechanics.delta_height -= z_temp;
         LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
 
@@ -267,7 +266,7 @@
 
         for (int8_t i = 0; i < 13; i++) z_at_pt[i] -= z_at_pt_base[i];
 
-        print_results(z_at_pt, true, true);
+        Report_results(z_at_pt, true, true);
 
         mechanics.delta_tower_angle_adj[axis] -= 1.0;
         mechanics.delta_endstop_adj[(axis + 1) % 3] += 1.0 / 4.5;
@@ -281,29 +280,29 @@
 
         switch (axis) {
           case A_AXIS :
-            a_fac += 4.0 / (           Z06(5) - Z06(9)          + Z06(11) - Z06(3)); // displacement by alfa tower angle
+            a_fac += 4.0 / (           Z06(5) - Z06(9)          + Z06(11) - Z06(3)); // Offset by alfa tower angle
           break;
           case B_AXIS :
-            a_fac += 4.0 / (- Z06(1)          + Z06(9) - Z06(7)           + Z06(3)); // displacement by beta tower angle
+            a_fac += 4.0 / (- Z06(1)          + Z06(9) - Z06(7)           + Z06(3)); // Offset by beta tower angle
           break;
           case C_AXIS :
-            a_fac += 4.0 / (  Z06(1) - Z06(5)          + Z06(7) - Z06(11)         ); // displacement by gamma tower angle
+            a_fac += 4.0 / (  Z06(1) - Z06(5)          + Z06(7) - Z06(11)         ); // Offset by gamma tower angle
           break;
         }
       }
 
       a_fac /= 3.0;
-      a_fac *= norm; // normalize to 0.83 for Kossel mini
+      a_fac *= norm; // Normalize to 0.83 for Kossel mini
 
       endstops.enable(true);
       if (!mechanics.Home()) return;
       endstops.not_homing();
 
-      print_signed_float(PSTR( "H_FACTOR"), h_fac);
-      print_signed_float(PSTR(" R_FACTOR"), r_fac);
-      print_signed_float(PSTR(" A_FACTOR"), a_fac);
+      Report_signed_float(PSTR( "H_FACTOR"), h_fac);
+      Report_signed_float(PSTR(" R_FACTOR"), r_fac);
+      Report_signed_float(PSTR(" A_FACTOR"), a_fac);
       SERIAL_EOL();
-      SERIAL_MSG("Copy these values to Configuration.h");
+      SERIAL_MSG("Copy these values to Configuration_delta.h");
       SERIAL_EOL();
     }
 
@@ -328,6 +327,8 @@
    *   Cn.nn Calibration precision; when omitted calibrates to maximum precision
    *
    *   Fn  Force to run at least n iterations and takes the best result
+   *
+   *   A   Auto tune calibartion factors (set in Configuration_delta.h)
    *
    *   Vn Verbose level:
    *
@@ -446,14 +447,14 @@
       return;
     }
 
-    // print settings
+    // Report settings
 
     SERIAL_MSG(MSG_DELTA_CHECKING);
     if (verbose_level == 0) SERIAL_MSG(" (DRY-RUN)");
     SERIAL_EOL();
     LCD_MESSAGEPGM(MSG_DELTA_CHECKING);
 
-    print_settings(_endstop_results, _angle_results);
+    Report_settings(_endstop_results, _angle_results);
 
     do {
 
@@ -561,14 +562,14 @@
         COPY_ARRAY(mechanics.delta_tower_angle_adj, ta_old);
       }
       if (verbose_level != 0) {                                    // !dry run
-        // normalise angles to least squares
+        // Normalise angles to least squares
         if (_angle_results) {
           float a_sum = 0.0;
           LOOP_XYZ(axis) a_sum += mechanics.delta_tower_angle_adj[axis];
           LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] -= a_sum / 3.0;
         }
 
-        // adjust delta_height and endstops by the max amount
+        // Adjust delta_height and endstops by the max amount
         const float z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
         mechanics.delta_height -= z_temp;
         LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
@@ -576,9 +577,9 @@
       mechanics.recalc_delta_settings();
       NOMORE(zero_std_dev_min, zero_std_dev);
 
-      // print report
+      // Report results
       if (verbose_level != 1)
-        print_results(z_at_pt, _tower_results, _opposite_results);
+        Report_results(z_at_pt, _tower_results, _opposite_results);
 
       if (verbose_level != 0) {                                    // !dry run
         if ((zero_std_dev >= test_precision && iterations > force_iterations) || zero_std_dev <= calibration_precision) {  // end iterations
@@ -601,7 +602,7 @@
           else
             sprintf_P(&mess[15], PSTR("%03i.x"), (int)round(zero_std_dev_min));
           lcd_setstatus(mess);
-          print_settings(_endstop_results, _angle_results);
+          Report_settings(_endstop_results, _angle_results);
           SERIAL_PS(save_message);
           SERIAL_EOL();
         }
@@ -615,7 +616,7 @@
           SERIAL_SP(36);
           SERIAL_EMV("std dev:", zero_std_dev, 3);
           lcd_setstatus(mess);
-          print_settings(_endstop_results, _angle_results);
+          Report_settings(_endstop_results, _angle_results);
         }
       }
       else {

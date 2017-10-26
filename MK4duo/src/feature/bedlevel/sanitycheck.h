@@ -66,6 +66,9 @@ static_assert(1 >= 0
   #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
     #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
   #endif
+  #if ENABLED(ENABLE_MESH_EDIT_GFX_OVERLAY) && !ENABLED(DOGLCD)
+    #error "ENABLE_MESH_EDIT_GFX_OVERLAY requires a DOGLCD."
+  #endif
 #endif
 
 /**

@@ -275,17 +275,24 @@
     #endif
   }
 
-  void Delta_Mechanics::manual_goto_xy(const float &x, const float &y) {
+  void Delta_Mechanics::manual_goto_xy(const float &lx, const float &ly) {
 
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_DEPLOY_HEIGHT;
-    planner.buffer_line_kinematic(current_position, homing_feedrate_mm_s[Z_AXIS], tools.active_extruder);
+    const float old_feedrate_mm_s = feedrate_mm_s;
 
-    current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-    current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
+    set_destination_to_current();
 
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + Z_PROBE_BETWEEN_HEIGHT; // just slightly over the bed
-    planner.buffer_line_kinematic(current_position, MMM_TO_MMS(Z_PROBE_SPEED_SLOW), tools.active_extruder);
+    feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
+    destination[Z_AXIS] = (Z_PROBE_BETWEEN_HEIGHT);
+    prepare_move_to_destination(); // will call set_current_from_destination()
+
+    feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
+    destination[X_AXIS] = lx;
+    destination[Y_AXIS] = ly;
+    prepare_move_to_destination(); // will call set_current_from_destination()
+
+    stepper.synchronize();
+
+    feedrate_mm_s = old_feedrate_mm_s;
 
     #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
       lcd_wait_for_move = false;
@@ -561,10 +568,10 @@
     stepper.synchronize();
 
     // Cancel the active G29 session
-    #if ENABLED(PROBE_MANUALLY)
+    #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
       bedlevel.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
-        LcdBedLevelOff();
+        Nextion_ProbeOn();
       #endif
     #endif
 

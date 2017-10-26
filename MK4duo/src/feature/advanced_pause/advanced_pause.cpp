@@ -75,18 +75,22 @@
     }
   }
 
+  void do_pause_e_move(const float &length, const float fr) {
+    mechanics.current_position[E_AXIS] += length;
+    mechanics.set_destination_to_current();
+    #if IS_KINEMATIC
+      planner.buffer_line_kinematic(mechanics.destination, fr, tools.active_extruder);
+    #else
+      mechanics.line_to_destination(fr);
+    #endif
+    stepper.synchronize();
+  }
+
   // public function
 
   bool move_away_flag = false;
 
   AdvancedPauseMenuResponse advanced_pause_menu_response;
-
-  // Define runplan for move axes
-  #if IS_KINEMATIC
-    #define RUNPLAN(RATE_MM_S) planner.buffer_line_kinematic(mechanics.destination, RATE_MM_S, tools.active_extruder)
-  #else
-    #define RUNPLAN(RATE_MM_S) mechanics.line_to_destination(RATE_MM_S)
-  #endif
 
   bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
                    const float &unload_length/*=0*/, const int16_t new_temp/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/
@@ -127,14 +131,8 @@
     stepper.synchronize();
     COPY_ARRAY(resume_position, mechanics.current_position);
 
-    if (retract) {
-      // Initial retract before move to filament change position
-      mechanics.set_destination_to_current();
-      mechanics.destination[E_AXIS] += retract;
-      RUNPLAN(PAUSE_PARK_RETRACT_FEEDRATE);
-      mechanics.set_current_to_destination();
-      stepper.synchronize();
-    }
+    // Initial retract before move to filament change position
+    if (retract) do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
     // Lift Z axis
     if (z_lift > 0)
@@ -157,11 +155,7 @@
         thermalManager.wait_heater(false);
 
         // Second retract filament
-        mechanics.set_destination_to_current();
-        mechanics.destination[E_AXIS] += retract2;
-        RUNPLAN(PAUSE_PARK_RETRACT_2_FEEDRATE);
-        mechanics.set_current_to_destination();
-        stepper.synchronize();
+        do_pause_e_move(retract2, PAUSE_PARK_RETRACT_2_FEEDRATE);
       }
     #endif
 
@@ -174,11 +168,7 @@
       }
 
       // Unload filament
-      mechanics.set_destination_to_current();
-      mechanics.destination[E_AXIS] += unload_length;
-      RUNPLAN(PAUSE_PARK_UNLOAD_FEEDRATE);
-      mechanics.set_current_to_destination();
-      stepper.synchronize();
+      do_pause_e_move(unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);
     }
 
     if (show_lcd) {
@@ -354,9 +344,7 @@
       #endif
 
       // Load filament
-      mechanics.destination[E_AXIS] += load_length;
-      RUNPLAN(PAUSE_PARK_LOAD_FEEDRATE);
-      stepper.synchronize();
+      do_pause_e_move(load_length, PAUSE_PARK_LOAD_FEEDRATE);
     }
 
     #if HAS_LCD && ENABLED(PAUSE_PARK_EXTRUDE_LENGTH) && PAUSE_PARK_EXTRUDE_LENGTH > 0
@@ -369,9 +357,7 @@
           lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_EXTRUDE);
 
           // Extrude filament to get into hotend
-          mechanics.destination[E_AXIS] += extrude_length;
-          RUNPLAN(PAUSE_PARK_EXTRUDE_FEEDRATE);
-          stepper.synchronize();
+          do_pause_e_move(extrude_length, PAUSE_PARK_EXTRUDE_FEEDRATE);
         }
 
         // Show "Extrude More" / "Resume" menu and wait for reply

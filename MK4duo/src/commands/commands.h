@@ -41,8 +41,7 @@ class Commands {
 
     static char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
-    static long gcode_LastN,
-                Stopped_gcode_LastN;
+    static long gcode_LastN;
 
     static millis_t previous_cmd_ms;
 
@@ -73,7 +72,6 @@ class Commands {
 
     static bool get_target_heater(int8_t &h);
 
-    FORCE_INLINE static void save_last_gcode()      { Stopped_gcode_LastN = gcode_LastN; }
     FORCE_INLINE static void reset_send_ok()        { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
     FORCE_INLINE static void refresh_cmd_timeout()  { previous_cmd_ms = millis(); }
 

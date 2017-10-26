@@ -51,8 +51,6 @@
   #define SERIAL_PORT 0
 #endif
 
-#define FORMAT_STRING_LENGTH 256
-
 // The presence of the UBRRH register is used to detect a UART.
 #define UART_PRESENT(port) ((port == 0 && (ENABLED(UBRRH) || ENABLED(UBRR0H))) || \
                             (port == 1 && ENABLED(UBRR1H)) || (port == 2 && ENABLED(UBRR2H)) || \

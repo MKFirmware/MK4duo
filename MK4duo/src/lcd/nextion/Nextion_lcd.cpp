@@ -89,7 +89,7 @@
   NexObject Pyesno        = NexObject(12, 0,  "yesno");
   NexObject Pfilament     = NexObject(13, 0,  "filament");
   NexObject Pselect       = NexObject(14, 0,  "select");
-  NexObject PBedLevel     = NexObject(15, 0,  "bedlevel");
+  NexObject Pprobe        = NexObject(15, 0,  "probe");
   NexObject Poptions      = NexObject(16, 0,  "options");
   NexObject Ptime         = NexObject(17, 0,  "time");
   NexObject Pusertemp     = NexObject(18, 0,  "usertemp");
@@ -294,14 +294,14 @@
 
   /**
    *******************************************************************
-   * Nextion component for page:Bedlevel
+   * Nextion component for page:Probe
    *******************************************************************
    */
-  NexObject BedUp       = NexObject(15, 1,  "p0");
-  NexObject BedSend     = NexObject(15, 2,  "p1");
-  NexObject BedDown     = NexObject(15, 3,  "p2");
-  NexObject BedMsg      = NexObject(15, 4,  "t0");
-  NexObject BedZ        = NexObject(15, 5,  "t1");
+  NexObject ProbeUp     = NexObject(15, 1,  "p0");
+  NexObject ProbeSend   = NexObject(15, 2,  "p1");
+  NexObject ProbeDown   = NexObject(15, 3,  "p2");
+  NexObject ProbeMsg    = NexObject(15, 4,  "t0");
+  NexObject ProbeZ      = NexObject(15, 5,  "t1");
 
   NexObject *nex_listen_list[] =
   {
@@ -341,7 +341,7 @@
     &LcdSend,
     
     // Page 15 touch listen
-    &BedUp, &BedDown, &BedSend,
+    &ProbeUp, &ProbeDown, &ProbeSend,
 
     NULL
   };
@@ -900,44 +900,61 @@
     }
   #endif
 
-  #if ENABLED(LCD_BED_LEVELING)
+  #if ENABLED(PROBE_MANUALLY)
 
-    #if ENABLED(PROBE_MANUALLY)
-      bool lcd_wait_for_move;
-    #endif
+    void ProbelPopCallBack(void *ptr) {
 
-    void line_to_current(AxisEnum axis) {
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[axis]), tools.active_extruder);
-    }
+      if (ptr == &ProbeUp || ptr == &ProbeDown) {
 
-    void bedlevelPopCallBack(void *ptr) {
+        mechanics.set_destination_to_current();
 
-      if (ptr == &BedUp) {
-        mechanics.current_position[Z_AXIS] += (LCD_Z_STEP);
-        NOLESS(mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
-        line_to_current(Z_AXIS);
+        if (ptr == &ProbeUp)
+          mechanics.destination[Z_AXIS] += (LCD_Z_STEP);
+        else
+          mechanics.destination[Z_AXIS] -= (LCD_Z_STEP);
+
+        NOLESS(mechanics.destination[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
+        NOMORE(mechanics.destination[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
+
+        const float old_feedrate = mechanics.feedrate_mm_s;
+        mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]);
+        mechanics.prepare_move_to_destination(); // will call set_current_from_destination()
+        mechanics.feedrate_mm_s = old_feedrate;
+
+        stepper.synchronize();
       }
-      else if (ptr == &BedDown) {
-        mechanics.current_position[Z_AXIS] -= (LCD_Z_STEP);
-        NOLESS(mechanics.current_position[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
-        NOMORE(mechanics.current_position[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
-        line_to_current(Z_AXIS);
-      }
-      else if (ptr == &BedSend) {
-        #if ENABLED(PROBE_MANUALLY)
+      else if (ptr == &ProbeSend) {
+        #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
           if (bedlevel.g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
-          printer.wait_for_user = false;
         #endif
+        printer.wait_for_user = false;
       }
     }
 
-    void LcdBedLevelOn() {
-      PBedLevel.show();
-      BedMsg.setText(PSTR(MSG_MOVE_Z));
+    float lcd_probe_pt(const float &lx, const float &ly) {
+
+      #if HAS_LEVELING
+        bedlevel.reset(); // After calibration bed-level data is no longer valid
+      #endif
+
+      mechanics.manual_goto_xy(lx, ly);
+
+      Pprobe.show();
+      ProbeMsg.setText(PSTR(MSG_MOVE_Z));
+
+      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      printer.wait_for_user = true;
+      while (printer.wait_for_user) printer.idle();
+      KEEPALIVE_STATE(IN_HANDLER);
+
+      Pprinter.show();
+      return mechanics.current_position[Z_AXIS];
     }
 
-    void LcdBedLevelOff() { Pprinter.show(); }
+    #if HAS_LEVELING
+      void Nextion_ProbeOn()  { Pprobe.show(); }
+      void Nextion_ProbeOff() { Pprinter.show(); }
+    #endif
 
   #endif
 
@@ -1172,10 +1189,10 @@
         Fanpic.attachPop(setfanPopCallback,   &Fanpic);
       #endif
 
-      #if ENABLED(LCD_BED_LEVELING)
-        BedUp.attachPop(bedlevelPopCallBack, &BedUp);
-        BedSend.attachPop(bedlevelPopCallBack, &BedSend);
-        BedDown.attachPop(bedlevelPopCallBack, &BedDown);
+      #if ENABLED(PROBE_MANUALLY)
+        ProbeUp.attachPop(ProbelPopCallBack, &ProbeUp);
+        ProbeSend.attachPop(ProbelPopCallBack, &ProbeSend);
+        ProbeDown.attachPop(ProbelPopCallBack, &ProbeDown);
       #endif
 
       tenter.attachPop(sethotPopCallback,   &tenter);
@@ -1250,7 +1267,7 @@
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      BedZ.setText(ftostr43sign(FIXFLOAT(mechanics.current_position[Z_AXIS])));
+      ProbeZ.setText(ftostr43sign(FIXFLOAT(mechanics.current_position[Z_AXIS])));
     }
   }
 
