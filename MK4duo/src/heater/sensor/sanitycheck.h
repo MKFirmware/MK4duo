@@ -62,4 +62,23 @@
   #endif
 #endif
 
+// Every hotend needs a temp sensor
+#if HOTENDS > 3
+  #if !HAS_TEMP_3
+    #error DEPENDENCY ERROR: Hotend 3 needs a temp sensor!
+  #endif
+#elif HOTENDS > 2
+  #if !HAS_TEMP_2
+    #error DEPENDENCY ERROR: Hotend 2 needs a temp sensor!
+  #endif
+#elif HOTENDS > 1
+  #if !HAS_TEMP_1
+    #error DEPENDENCY ERROR: Hotend 1 needs a temp sensor!
+  #endif
+#elif HOTENDS > 0
+  #if !HAS_TEMP_0
+    #error DEPENDENCY ERROR: Hotend 0 needs a temp sensor!
+  #endif
+#endif
+
 #endif /* _TEMP_SENSOR_SANITYCHECK_H_ */
