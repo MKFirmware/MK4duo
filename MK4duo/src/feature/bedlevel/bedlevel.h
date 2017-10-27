@@ -194,7 +194,7 @@
           return 1.0;
         }
 
-        FORCE_INLINE static bool leveling_active_at_z(const float &lz) { return true; }
+        FORCE_INLINE static bool leveling_active_at_z(const float &lz) { UNUSED(lz); return true; }
 
       #endif
 

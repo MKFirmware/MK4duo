@@ -147,7 +147,7 @@
 #define MSG_ZPROBE_OUT                      _UxGT("Z探針在熱床之外")  //"Z probe out. bed" Z probe is not within the physical limits
 #define MSG_HOME                            _UxGT("歸位")  //"Home"  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("先")  //"first"
-#define MSG_PROBE_OFFSET                  _UxGT("Z偏移")  //"Z Offset"
+#define MSG_PROBE_OFFSET                    _UxGT("Z偏移")  //"Z Offset"
 #define MSG_BABYSTEP_X                      _UxGT("微量調整X軸")  //"Babystep X" lcd_babystep_x, Babystepping enables the user to control the axis in tiny amounts
 #define MSG_BABYSTEP_Y                      _UxGT("微量調整Y軸")  //"Babystep Y"
 #define MSG_BABYSTEP_Z                      _UxGT("微量調整Z軸")  //"Babystep Z"

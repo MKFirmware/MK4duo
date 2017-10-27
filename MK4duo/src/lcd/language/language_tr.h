@@ -169,7 +169,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Sıfırla BLTouch")                                    // Sıfırla BLTouch
 #define MSG_HOME                            _UxGT("Sıfırla")                                            // Sıfırla
 #define MSG_FIRST                           _UxGT("önce")                                               // Önce
-#define MSG_PROBE_OFFSET                  _UxGT("Probe Offset")                                           // Z Offset
+#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")                                           // Z Offset
 #define MSG_BABYSTEP_X                      _UxGT("Miniadım X")                                         // Miniadım X
 #define MSG_BABYSTEP_Y                      _UxGT("Miniadım Y")                                         // Miniadım Y
 #define MSG_BABYSTEP_Z                      _UxGT("Miniadım Z")                                         // Miniadım Z

@@ -30,7 +30,7 @@
 
 #if ENABLED(FWRETRACT)
 
-  FWRetract fwretract; // Single instance - this calls the constructor
+  FWRetract fwretract;
 
   // private:
   #if EXTRUDERS > 1
@@ -89,71 +89,69 @@
     #endif
   ) {
 
-    static float hop_height,        // Remember where the Z height started
-                 hop_amount = 0.0;  // Total amount lifted, for use in recover
+    static float hop_amount = 0.0;  // Total amount lifted, for use in recover
 
     // Simply never allow two retracts or recovers in a row
     if (retracted[tools.active_extruder] == retracting) return;
 
     #if EXTRUDERS > 1
+      // Allow G10 S1 only after G10
+      if (swapping && retracted_swap[tools.active_extruder] == retracting) return;
+      // G11 priority to recover the long retract if activated
       if (!retracting) swapping = retracted_swap[tools.active_extruder];
     #else
       const bool swapping = false;
     #endif
 
     const bool has_zhop = retract_zlift > 0.01;     // Is there a hop set?
-
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-    const int16_t old_flow = tools.flow_percentage[tools.active_extruder];
-
-    // Don't apply flow multiplication to retract/recover
-    tools.flow_percentage[tools.active_extruder] = 100;
 
     // The current position will be the destination for E and Z moves
     mechanics.set_destination_to_current();
-
     stepper.synchronize();  // Wait for buffered moves to complete
 
-    if (retracting) {
-      // Remember the Z height since G-code may include its own Z-hop
-      // For best results turn off Z hop if G-code already includes it
-      hop_height = mechanics.destination[Z_AXIS];
+    const float renormalize = 100.0
+                              / planner.flow_percentage[tools.active_extruder]
+                              / planner.volumetric_multiplier[tools.active_extruder];
 
+    if (retracting) {
       // Retract by moving from a faux E position back to the current E position
       mechanics.feedrate_mm_s = retract_feedrate_mm_s;
-      mechanics.current_position[E_AXIS] += (swapping ? swap_retract_length : retract_length) / tools.volumetric_multiplier[tools.active_extruder];
+      mechanics.current_position[E_AXIS] += (swapping ? swap_retract_length : retract_length) * renormalize;
       mechanics.sync_plan_position_e();
       mechanics.prepare_move_to_destination();
 
       // Is a Z hop set, and has the hop not yet been done?
-      if (has_zhop) {
-        hop_amount += retract_zlift;                // Carriage is raised for retraction hop
-        mechanics.current_position[Z_AXIS] -= retract_zlift;  // Pretend current pos is lower. Next move raises Z.
-        mechanics.sync_plan_position();             // Set the planner to the new position
-        mechanics.prepare_move_to_destination();              // Raise up to the old current pos
+      // No double zlifting
+      // Feedrate to the max
+      if (has_zhop && !hop_amount) {
+        hop_amount += retract_zlift;                                  // Carriage is raised for retraction hop
+        mechanics.feedrate_mm_s = planner.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
+        mechanics.current_position[Z_AXIS] -= retract_zlift;          // Pretend current pos is lower. Next move raises Z.
+        mechanics.sync_plan_position();                               // Set the planner to the new position
+        mechanics.prepare_move_to_destination();                      // Raise up to the old current pos
       }
     }
     else {
       // If a hop was done and Z hasn't changed, undo the Z hop
-      if (hop_amount && NEAR(hop_height, mechanics.destination[Z_AXIS])) {
-        mechanics.current_position[Z_AXIS] += hop_amount;     // Pretend current pos is higher. Next move lowers Z.
-        mechanics.sync_plan_position();             // Set the planner to the new position
-        mechanics.prepare_move_to_destination();              // Lower to the old current pos
-        hop_amount = 0.0;
+      if (hop_amount) {
+        mechanics.current_position[Z_AXIS] -= retract_zlift;          // Pretend current pos is lower. Next move raises Z.
+        mechanics.sync_plan_position();                               // Set the planner to the new position
+        mechanics.feedrate_mm_s = planner.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
+        mechanics.prepare_move_to_destination();                      // Raise up to the old current pos
+        hop_amount = 0.0;                                             // Clear hop
       }
 
       // A retract multiplier has been added here to get faster swap recovery
       mechanics.feedrate_mm_s = swapping ? swap_retract_recover_feedrate_mm_s : retract_recover_feedrate_mm_s;
 
       const float move_e = swapping ? swap_retract_length + swap_retract_recover_length : retract_length + retract_recover_length;
-      mechanics.current_position[E_AXIS] -= move_e / tools.volumetric_multiplier[tools.active_extruder];
+      mechanics.current_position[E_AXIS] -= move_e * renormalize;
       mechanics.sync_plan_position_e();
-
       mechanics.prepare_move_to_destination();  // Recover E
     }
 
-    // Restore flow and feedrate
-    tools.flow_percentage[tools.active_extruder] = old_flow;
+    // Restore feedrate
     mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
     // The active extruder is now retracted or recovered
