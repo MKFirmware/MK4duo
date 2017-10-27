@@ -143,7 +143,7 @@
 #define ORIG_BEEPER_PIN 44
 #define LED_PIN NoPin
 #define SDPOWER_PIN NoPin
-#define SD_DETECT_PIN NoPin
+#define SD_DETECT_PIN 14
 #define SDSS 4
 #define KILL_PIN NoPin
 #define DEBUG_PIN NoPin
@@ -207,7 +207,6 @@
     #define BTN_EN2             51
     #define BTN_ENC             30
 
-    #define SD_DETECT_PIN       14
    #endif 
 #endif // ULTRA_LCD
 //@@@
