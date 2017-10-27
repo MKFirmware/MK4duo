@@ -29,13 +29,12 @@
 #if ENABLED(Z_PROBE_SLED)
 
   #define CODE_G31
+  #define CODE_G32
 
   /**
    * G31: Deploy the Z probe
    */
   inline void gcode_G31(void) { DEPLOY_PROBE(); }
-
-  #define G32
 
   /**
    * G32: Stow the Z probe

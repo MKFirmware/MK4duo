@@ -170,7 +170,7 @@
 
 // Probe Commands
 #include "probe/g30.h"
-#include "probe/g31.h"
+#include "probe/g31_g32.h"
 #include "probe/g38.h"
 #include "probe/m401_m402.h"              // Lower e Raise probe
 #include "probe/m851.h"                   // Set probe offset
