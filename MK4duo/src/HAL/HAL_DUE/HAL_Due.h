@@ -58,7 +58,7 @@
 // --------------------------------------------------------------------------
 #include <stdint.h>
 #include <Arduino.h>
-#include "HardwareSerial_Due.h"
+//#include "HardwareSerial_Due.h"
 
 // --------------------------------------------------------------------------
 // Types
@@ -113,7 +113,7 @@ typedef uint32_t  ptr_int_t;
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
-  #define MKSERIAL MKSerial
+  #define MKSERIAL Serial
 #elif SERIAL_PORT == 1
   #define MKSERIAL Serial1
 #elif SERIAL_PORT == 2
