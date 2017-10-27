@@ -79,12 +79,12 @@ typedef struct {
 #define NvicPriorityUart    1
 #define NvicPrioritySystick 2
 
-#define STEPPER_TIMER           6
+#define STEPPER_TIMER           3
 #define STEPPER_TIMER_PRESCALE  2
 #define STEPPER_FREQUENCY       60000
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
-#define HAL_STEP_TIMER_ISR          void TC6_Handler()
+#define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
 #define BEEPER_TIMER 4
 #define BEEPER_TIMER_COUNTER TC1
@@ -174,15 +174,15 @@ typedef struct {
 // --------------------------------------------------------------------------
 
 static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
-  { TC0, 0, TC0_IRQn, 0 },  // 0 - [servo timer5]
-  { TC0, 1, TC1_IRQn, 0 },  // 1
-  { TC0, 2, TC2_IRQn, 0 },  // 2
-  { TC1, 0, TC3_IRQn, 3 },  // 3 
+  { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
+  { TC0, 1, TC1_IRQn, 0 },  // 1 - [servo timer1]
+  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 92
+  { TC1, 0, TC3_IRQn, 3 },  // 3 - Stepper
   { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
-  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer3]
-  { TC2, 0, TC6_IRQn, 3 },  // 6 - Stepper
-  { TC2, 1, TC7_IRQn, 0 },  // 7
-  { TC2, 2, TC8_IRQn, 0 },  // 8
+  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
+  { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
+  { TC2, 2, TC8_IRQn, 0 },  // 8 - Pin TC 11 - 12
 };
 
 // --------------------------------------------------------------------------
