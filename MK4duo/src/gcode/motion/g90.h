@@ -29,6 +29,6 @@
 #define CODE_G90
 
 /**
- * G90: Assolute mode
+ * G90: Absolute mode
  */
 inline void gcode_G90(void) { printer.relative_mode = false; }
