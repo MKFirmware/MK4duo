@@ -47,13 +47,13 @@
     strip.show(); // initialize to all off
 
     #if ENABLED(NEOPIXEL_STARTUP_TEST)
-      delay(2000);
+      printer.safe_delay(2000);
       set_neopixel_color(strip.Color(255, 0, 0, 0));  // red
-      delay(2000);
+      printer.safe_delay(2000);
       set_neopixel_color(strip.Color(0, 255, 0, 0));  // green
-      delay(2000);
+      printer.safe_delay(2000);
       set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
-      delay(2000);
+      printer.safe_delay(2000);
     #endif
     set_neopixel_color(strip.Color(NEO_WHITE));       // white
   }
