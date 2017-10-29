@@ -155,6 +155,7 @@
 #include "multimode/m3_m4.h"
 #include "multimode/m5.h"
 #include "multimode/m6.h"
+#include "multimode/m450_m453.h"
 #include "multimode/m649.h"               // Set laser options
 
 // Muve3D Commands
