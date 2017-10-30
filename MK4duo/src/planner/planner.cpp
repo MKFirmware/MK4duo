@@ -869,11 +869,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     // Calculate steps between laser firings (steps_l) and consider that when determining largest
     // interval between steps for X, Y, Z, E, L to feed to the motion control code.
     if (laser.mode == RASTER || laser.mode == PULSED) {
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          block->steps_l = labs(block->millimeters * laser.ppm * 1000);
-        else
-          block->steps_l = labs(block->millimeters * laser.ppm);
-        #endif
+      block->steps_l = labs(block->millimeters * laser.ppm * 1000);
       for (uint8_t i = 0; i < LASER_MAX_RASTER_LINE; i++) {
         // Scale the image intensity based on the raster power.
         // 100% power on a pixel basis is 255, convert back to 255 = 100.
