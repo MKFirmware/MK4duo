@@ -688,7 +688,7 @@
 // Change if Z babysteps should go the other way
 #define BABYSTEP_INVERT_Z false
 // Babysteps are very small. Increase for faster motion.
-#define BABYSTEP_MULTIPLICATOR 100
+#define BABYSTEP_MULTIPLICATOR 1
 // Enable to combine M851 and Babystepping
 //#define BABYSTEP_ZPROBE_OFFSET
 // Double-click on the Status Screen for Z Babystepping.

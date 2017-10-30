@@ -145,6 +145,12 @@ void HAL::showStartReason() {
 
   void HAL::analogStart() {
 
+    #if MB(RUMBA) && ((TEMP_SENSOR_0==-1)||(TEMP_SENSOR_1==-1)||(TEMP_SENSOR_2==-1)||(TEMP_SENSOR_BED==-1)||(TEMP_SENSOR_CHAMBER==-1)||(TEMP_SENSOR_COOLER==-1))
+      // disable RUMBA JTAG in case the thermocouple extension is plugged on top of JTAG connector
+      MCUCR = _BV(JTD);
+      MCUCR = _BV(JTD);
+    #endif
+
     ADMUX = ANALOG_REF; // refernce voltage
     for (uint8_t i = 0; i < ANALOG_INPUTS; i++) {
       adcCounter[i] = 0;
@@ -166,6 +172,11 @@ void HAL::showStartReason() {
 
     ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
     ADCSRA |= _BV(ADSC); // start conversion without interrupt!
+
+    // Use timer for temperature measurement
+    // Interleave temperature interrupt with millies interrupt
+    HAL_TEMP_TIMER_START();
+    ENABLE_TEMP_INTERRUPT();
 
   }
 

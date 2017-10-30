@@ -44,7 +44,8 @@ int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_spe
   millis_t print_millis = 0;
 #endif
 
-uint8_t lcd_status_message_level;
+uint8_t lcd_status_update_delay = 1, // First update one loop delayed
+        lcd_status_message_level;    // Higher level overrides lower
 char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kana with up to 3*LCD_WIDTH+1
 
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
@@ -4789,7 +4790,6 @@ void lcd_update() {
 
     // We arrive here every ~100ms when idling often enough.
     // Instead of tracking the changes simply redraw the Info Screen ~1 time a second.
-    static int8_t lcd_status_update_delay = 1; // first update one loop delayed
     if (
       #if ENABLED(ULTIPANEL)
         currentScreen == lcd_status_screen &&
@@ -4809,11 +4809,12 @@ void lcd_update() {
     uint16_t bbr2 = planner.block_buffer_runtime() >> 1;
 
     #if ENABLED(DOGLCD)
-      if ((lcdDrawUpdate || drawing_screen) && (!bbr2 || (bbr2 > max_display_update_time)))
+      #define IS_DRAWING drawing_screen
     #else
-      if (lcdDrawUpdate && (!bbr2 || (bbr2 > max_display_update_time)))
+      #define IS_DRAWING false
     #endif
-    {
+
+    if ((lcdDrawUpdate || IS_DRAWING) && (!bbr2 || bbr2 > max_display_update_time)) {
       #if ENABLED(DOGLCD)
         if (!drawing_screen)
       #endif
@@ -4889,7 +4890,7 @@ void lcd_update() {
   } // ELAPSED(ms, next_lcd_update_ms)
 }
 
-void pad_message_string() {
+inline void pad_message_string() {
   uint8_t i = 0, j = 0;
   char c;
   while ((c = lcd_status_message[i]) && j < LCD_WIDTH) {

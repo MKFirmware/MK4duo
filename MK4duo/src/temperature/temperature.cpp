@@ -101,22 +101,11 @@ millis_t Temperature::next_check_ms[HEATER_COUNT];
  */
 void Temperature::init() {
 
-  #if MB(RUMBA) && ((TEMP_SENSOR_0==-1)||(TEMP_SENSOR_1==-1)||(TEMP_SENSOR_2==-1)||(TEMP_SENSOR_BED==-1)||(TEMP_SENSOR_CHAMBER==-1)||(TEMP_SENSOR_COOLER==-1))
-    // disable RUMBA JTAG in case the thermocouple extension is plugged on top of JTAG connector
-    MCUCR = _BV(JTD);
-    MCUCR = _BV(JTD);
-  #endif
-
   #if (PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
   #endif
 
   HAL::analogStart();
-
-  // Use timer for temperature measurement
-  // Interleave temperature interrupt with millies interrupt
-  HAL_TEMP_TIMER_START();
-  ENABLE_TEMP_INTERRUPT();
 
   // Wait for temperature measurement to settle
   HAL::delayMilliseconds(250);
@@ -340,7 +329,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
     int cycles = 0;
     bool heating = true;
 
-    millis_t temp_ms = millis(), t1 = temp_ms, t2 = temp_ms;
+    millis_t next_temp_ms = millis(), t1 = next_temp_ms, t2 = next_temp_ms;
     int32_t t_high = 0, t_low = 0;
 
     int32_t bias, d;
@@ -387,8 +376,9 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
     // PID Tuning loop
     while (wait_for_heatup) {
 
+      const millis_t ms = millis();
+
       updateTemperaturesFromRawValues();
-      millis_t ms = millis();
 
       currentTemp = heaters[temp_controller].current_temperature;
 
@@ -464,26 +454,26 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         #endif
       ) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
-        return;
+        break;
       }
       #if HAS_TEMP_COOLER
         else if (currentTemp < temp + MAX_OVERSHOOT_PID_AUTOTUNE && temp_controller == COOLER_INDEX) {
           SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
-          return;
+          break;
         }
       #endif
 
-      // Every 1 seconds...
-      if (ELAPSED(ms, temp_ms + 1000UL)) {
+      // Every 2 seconds...
+      if (ELAPSED(ms, next_temp_ms)) {
         print_heaterstates();
         SERIAL_EOL();
-        temp_ms = ms;
+        next_temp_ms = ms + 2000UL;
       }
 
-      // Over 2 minutes?
-      if (((ms - t1) + (ms - t2)) > (10L * 60L * 1000L * 2L)) {
+      // Timeout after 20 minutes since the last undershoot/overshoot cycle
+      if (((ms - t1) + (ms - t2)) > (20L * 60L * 1000L)) {
         SERIAL_EM(MSG_PID_TIMEOUT);
-        return;
+        break;
       }
 
       if (cycles > ncycles) {
@@ -531,8 +521,14 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
 
         return;
       }
-    }
 
+      #if ENABLED(NEXTION)
+        lcd_key_touch_update();
+      #else
+        lcd_update();
+      #endif
+
+    }
     disable_all_heaters();
   }
 
@@ -544,7 +540,7 @@ void Temperature::updatePID() {
       temp_iState_max[h] = (float)heaters[h].pid_max * 10.0f / heaters[h].Ki;
     }
   }
-  
+
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     last_e_position = 0;
   #endif

@@ -97,28 +97,20 @@ typedef struct {
 #define ADC_ISR_EOC(channel)    (0x1u << channel)
 
 #define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, STEPPER_FREQUENCY)
-#define HAL_TEMP_TIMER_START()
-
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 
-#define ENABLE_TEMP_INTERRUPT()
-#define DISABLE_TEMP_INTERRUPT()
-
 #define HAL_TIMER_SET_STEPPER_COUNT(count)  HAL_timer_set_count(STEPPER_TIMER, count);
-#define HAL_TIMER_SET_TEMP_COUNT(count)
 
 #define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
 #define HAL_ENABLE_ISRs() \
         do { \
-          ENABLE_TEMP_INTERRUPT(); \
           ENABLE_STEPPER_INTERRUPT(); \
         } while(0)
 
 #define HAL_DISABLE_ISRs() \
         do { \
-          DISABLE_TEMP_INTERRUPT(); \
           DISABLE_STEPPER_INTERRUPT(); \
           sei(); \
         } while(0)
