@@ -45,9 +45,7 @@
     paused              = false;
     triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
-    #if ENABLED(__AVR__)
-      if (pin > NoPin) HAL::pinMode(pin, OUTPUT);
-    #endif
+    if (pin > 0) HAL::pinMode(pin, OUTPUT);
 
   }
 

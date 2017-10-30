@@ -190,7 +190,7 @@ typedef uint32_t  ptr_int_t;
 #define ANALOG_INPUT_BITS 12
 #define ANALOG_REDUCE_FACTOR 1
 #define ABS_ZERO  -273.15
-#define AD_RANGE  4096
+#define AD_RANGE  4095
 
 #define MAX_ANALOG_PIN_NUMBER 11
 #define OVERSAMPLENR 6

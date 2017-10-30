@@ -149,38 +149,23 @@ static FORCE_INLINE void WRITE_VAR(const uint8_t pin, const bool flag) {
 static FORCE_INLINE void SET_INPUT(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  // return if already configured in the right way
-  if ((g_pinStatus[pin] & 0xF) == PIN_STATUS_DIGITAL_INPUT) return;
   pmc_enable_periph_clk(pinDesc.ulPeripheralId);
   PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, 0);
-  g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_DIGITAL_INPUT;
 }
 
 // set pin as output
 static FORCE_INLINE void SET_OUTPUT(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  // return if already configured in the right way
-  if ((g_pinStatus[pin] & 0xF) == PIN_STATUS_DIGITAL_OUTPUT
-   || (g_pinStatus[pin] & 0xF) == PIN_STATUS_PWM
-   || (g_pinStatus[pin] & 0xF) == PIN_STATUS_TIMER) return;
   PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
-  g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_DIGITAL_OUTPUT;
-}
-static FORCE_INLINE void SET_PWM_OUTPUT(const Pin pin) {
-  // For Heaters and Fans
-  NOOP;
 }
 
 // set pin as input with pullup
 static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  // return if already configured in the right way
-  if ((g_pinStatus[pin] & 0xF) == PIN_STATUS_DIGITAL_INPUT_PULLUP) return;
   pmc_enable_periph_clk(pinDesc.ulPeripheralId);
   PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, PIO_PULLUP);
-  g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_DIGITAL_INPUT_PULLUP;
 }
 
 // Shorthand
