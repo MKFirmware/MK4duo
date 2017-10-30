@@ -35,6 +35,12 @@
     #define LASER_UNARM HIGH
   #endif
 
+  #if ENABLED(__AVR__)
+    #define PPM_MOLTIPLICATOR 1
+  #elif ENABLED(ARDUINO_ARCH_SAM)
+    #define PPM_MOLTIPLICATOR 1000
+  #endif
+
   // Laser constants
   #define LASER_OFF   0
   #define LASER_ON    1
