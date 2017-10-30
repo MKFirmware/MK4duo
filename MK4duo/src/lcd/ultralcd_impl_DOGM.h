@@ -53,7 +53,7 @@
 #include "dogm/dogm_bitmaps.h"
 
 #if ENABLED(LASER)
-  #include "../laser/laserbitmaps.h"
+  #include "../feature/laser/laserbitmaps.h"
 #endif
 
 #include <U8glib.h>
