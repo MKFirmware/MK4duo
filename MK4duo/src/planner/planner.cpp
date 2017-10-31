@@ -869,7 +869,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     // Calculate steps between laser firings (steps_l) and consider that when determining largest
     // interval between steps for X, Y, Z, E, L to feed to the motion control code.
     if (laser.mode == RASTER || laser.mode == PULSED) {
-      block->steps_l = labs(block->millimeters * laser.ppm * PPM_MOLTIPLICATOR);
+      block->steps_l = labs(block->millimeters * laser.ppm);
       for (uint8_t i = 0; i < LASER_MAX_RASTER_LINE; i++) {
         // Scale the image intensity based on the raster power.
         // 100% power on a pixel basis is 255, convert back to 255 = 100.
@@ -1034,7 +1034,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         if (accel * block->steps[AXIS] > comp) accel = comp / block->steps[AXIS]; \
       } \
     }while(0)
-	
+
     #define LIMIT_ACCEL_FLOAT(AXIS,INDX) do{ \
       if (block->steps[AXIS] && mechanics.max_acceleration_steps_per_s2[AXIS+INDX] < accel) { \
         const float comp = (float)mechanics.max_acceleration_steps_per_s2[AXIS+INDX] * (float)block->step_event_count; \
@@ -1225,11 +1225,11 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     // Use LIN_ADVANCE for blocks if all these are true:
     //
     // esteps                                          : We have E steps todo (a printing move)
-    // 
+    //
     // block->steps[X_AXIS] || block->steps[Y_AXIS]    : We have a movement in XY direction (i.e., not retract / prime).
-    // 
+    //
     // extruder_advance_k                              : There is an advance factor set.
-    // 
+    //
     // block->steps[E_AXIS] != block->step_event_count : A problem occurs if the move before a retract is too small.
     //                                                   In that case, the retract and move will be executed together.
     //                                                   This leads to too many advance steps due to a huge e_acceleration.
