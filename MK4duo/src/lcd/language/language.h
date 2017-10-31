@@ -250,6 +250,9 @@
 #define MSG_BED_LEVELING_Y                  " Y:"
 #define MSG_BED_LEVELING_Z                  "Z-probe:"
 
+// Pins
+#define MSG_CHANGE_PIN                      "For change pin please write in EEPROM and reset the printer."
+
 // Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"

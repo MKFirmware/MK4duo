@@ -54,7 +54,7 @@
  *  M204  T               mechanics.travel_acceleration         (float)
  *  M205  S               mechanics.min_feedrate_mm_s           (float)
  *  M205  T               mechanics.min_travel_feedrate_mm_s    (float)
- *  M205  B               mechanics.min_segment_time            (ulong)
+ *  M205  B               mechanics.min_segment_time_us         (ulong)
  *  M205  X               mechanics.max_jerk[X_AXIS]            (float)
  *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
@@ -369,7 +369,7 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(mechanics.travel_acceleration);
     EEPROM_WRITE(mechanics.min_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
-    EEPROM_WRITE(mechanics.min_segment_time);
+    EEPROM_WRITE(mechanics.min_segment_time_us);
     EEPROM_WRITE(mechanics.max_jerk);
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
@@ -713,7 +713,7 @@ void EEPROM::Postprocess() {
       EEPROM_READ(mechanics.travel_acceleration);
       EEPROM_READ(mechanics.min_feedrate_mm_s);
       EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
-      EEPROM_READ(mechanics.min_segment_time);
+      EEPROM_READ(mechanics.min_segment_time_us);
       EEPROM_READ(mechanics.max_jerk);
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
@@ -1181,7 +1181,7 @@ void EEPROM::Factory_Settings() {
   mechanics.acceleration = DEFAULT_ACCELERATION;
   mechanics.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
   mechanics.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
-  mechanics.min_segment_time = DEFAULT_MINSEGMENTTIME;
+  mechanics.min_segment_time_us = DEFAULT_MINSEGMENTTIME;
   mechanics.min_travel_feedrate_mm_s = DEFAULT_MINTRAVELFEEDRATE;
   mechanics.max_jerk[X_AXIS] = DEFAULT_XJERK;
   mechanics.max_jerk[Y_AXIS] = DEFAULT_YJERK;
@@ -1614,10 +1614,10 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    CONFIG_MSG_START("Advanced variables: S<min_feedrate> V<min_travel_feedrate> B<min_segment_time_ms> X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>");
+    CONFIG_MSG_START("Advanced variables: S<min_feedrate> V<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>");
     SERIAL_SMV(CFG, "  M205 S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
     SERIAL_MV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
-    SERIAL_MV(" B", mechanics.min_segment_time);
+    SERIAL_MV(" B", mechanics.min_segment_time_us);
     SERIAL_MV(" X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);

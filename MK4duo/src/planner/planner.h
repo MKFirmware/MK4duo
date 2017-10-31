@@ -108,7 +108,7 @@ typedef struct {
     uint32_t valve_pressure, e_to_p_pressure;
   #endif
 
-  uint32_t segment_time;
+  uint32_t segment_time_us;
 
   #if ENABLED(LASER)
     uint8_t laser_mode;         // CONTINUOUS, PULSED, RASTER
@@ -178,11 +178,11 @@ class Planner {
 
     #if ENABLED(XY_FREQUENCY_LIMIT)
       // Used for the frequency limit
-      #define MAX_FREQ_TIME long(1000000.0/XY_FREQUENCY_LIMIT)
+      #define MAX_FREQ_TIME_US (uint32_t)(1000000.0 / XY_FREQUENCY_LIMIT)
       // Old direction bits. Used for speed calculations
       static unsigned char old_direction_bits;
       // Segment times (in µs). Used for speed calculations
-      static long axis_segment_time[2][3];
+      static long axis_segment_time_us[2][3];
     #endif
 
     #if ENABLED(ULTRA_LCD)
@@ -277,7 +277,7 @@ class Planner {
       if (blocks_queued()) {
         block_t* block = &block_buffer[block_buffer_tail];
         #if ENABLED(ULTRA_LCD)
-          block_buffer_runtime_us -= block->segment_time; // We can't be sure how long an active block will take, so don't count it.
+          block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;

@@ -45,7 +45,7 @@ inline void gcode_M205(void) {
 
   if (parser.seen('S')) mechanics.min_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('V')) mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('B')) mechanics.min_segment_time = parser.value_millis();
+  if (parser.seen('B')) mechanics.min_segment_time_us = parser.value_ulong();
   if (parser.seen('X')) mechanics.max_jerk[X_AXIS] = parser.value_linear_units();
   if (parser.seen('Y')) mechanics.max_jerk[Y_AXIS] = parser.value_linear_units();
   if (parser.seen('Z')) mechanics.max_jerk[Z_AXIS] = parser.value_linear_units();
