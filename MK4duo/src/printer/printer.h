@@ -178,6 +178,8 @@ class Printer {
 
     static float calculate_volumetric_multiplier(const float diameter);
 
+    static void bracket_probe_move(const bool before);
+
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
     #endif

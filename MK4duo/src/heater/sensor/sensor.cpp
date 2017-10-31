@@ -121,34 +121,46 @@
 
 float TemperatureSensor::GetTemperature(const uint8_t h) {
 
-  int16_t type  = this->type;
-  int16_t raw   = this->raw;
+  int16_t s_type      = this->type;
+  int16_t adcReading  = this->raw;
 
   #if ENABLED(SUPPORT_MAX31855)
-    if (type == -3)
+    if (s_type == -3)
       return read_max31855(this->pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
-    if (type == -2)
+    if (s_type == -2)
       return read_max6675(this->pin, h);
   #else
     UNUSED(h);
   #endif
   #if HEATER_USES_AD595
-    if (type == -1)
-      return ((raw * (((HAL_VOLTAGE_PIN) * 100.0) / AD_RANGE)) * this->ad595_gain) + this->ad595_offset;
+    if (s_type == -1)
+      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / AD_RANGE)) * this->ad595_gain) + this->ad595_offset;
   #endif
-  if (WITHIN(type, 1, 9)) {
-    const float denom = (float)(AD_RANGE + (int)this->adcHighOffset - raw) - 0.5;
-    if (denom <= 0.0) return ABS_ZERO;
+  if (WITHIN(s_type, 1, 9)) {
+    const float denom = (float)(AD_RANGE + (int)this->adcHighOffset - adcReading) - 0.5;
+    if (denom <= 0.0) return (ABS_ZERO);
 
-    const float resistance = this->pullupR * ((float)(raw - (int)this->adcLowOffset) + 0.5) / denom;
+    const float resistance = this->pullupR * ((float)(adcReading - (int)this->adcLowOffset) + 0.5) / denom;
     const float logResistance = LOG(resistance);
     const float recipT = this->shA + this->shB * logResistance + this->shC * logResistance * logResistance * logResistance;
-    return (recipT > 0.0) ? (1.0 / recipT) + ABS_ZERO : 2000.0;
+
+    /*
+    SERIAL_MV("Debug denom:", denom, 5);
+    SERIAL_MV(" resistance:", resistance, 5);
+    SERIAL_MV(" logResistance:", logResistance, 5);
+    SERIAL_MV(" shA:", shA, 5);
+    SERIAL_MV(" shB:", shB, 5);
+    SERIAL_MV(" shC:", shC, 5);
+    SERIAL_MV(" recipT:", recipT, 5);
+    SERIAL_EOL();
+    */
+
+    return (recipT > 0.0) ? (1.0 / recipT) + (ABS_ZERO) : 2000.0;
   }
   #if ENABLED(DHT_SENSOR)
-    if (type == 11)
+    if (s_type == 11)
       return dhtsensor.readTemperature();
   #endif
   #if HEATER_USES_AMPLIFIER
@@ -157,11 +169,11 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
     float celsius = 0;
     uint8_t i;
 
-    if (type == 20) {
+    if (s_type == 20) {
       for (i = 1; i < ttbllen_map; i++) {
-        if (PGM_RD_W(temptable_amplifier[i][0]) > raw) {
+        if (PGM_RD_W(temptable_amplifier[i][0]) > adcReading) {
           celsius = PGM_RD_W(temptable_amplifier[i - 1][1]) +
-                    (raw - PGM_RD_W(temptable_amplifier[i - 1][0])) *
+                    (adcReading - PGM_RD_W(temptable_amplifier[i - 1][0])) *
                     (float)(PGM_RD_W(temptable_amplifier[i][1]) - PGM_RD_W(temptable_amplifier[i - 1][1])) /
                     (float)(PGM_RD_W(temptable_amplifier[i][0]) - PGM_RD_W(temptable_amplifier[i - 1][0]));
           break;
@@ -174,8 +186,8 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
       return celsius;
     }
   #endif
-  if (type == 998) return DUMMY_THERMISTOR_998_VALUE;
-  if (type == 999) return DUMMY_THERMISTOR_999_VALUE;
+  if (s_type == 998) return DUMMY_THERMISTOR_998_VALUE;
+  if (s_type == 999) return DUMMY_THERMISTOR_999_VALUE;
 
   return 25;
 }
@@ -183,5 +195,5 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
 void TemperatureSensor::CalcDerivedParameters() {
 	this->shB = 1.0 / this->beta;
 	const float lnR25 = LOG(this->r25);
-	this->shA = 1.0 / (25.0 - ABS_ZERO) - this->shB * lnR25 - this->shC * lnR25 * lnR25 * lnR25;
+	this->shA = 1.0 / (25.0 - (ABS_ZERO)) - (this->shB * lnR25) - (this->shC * lnR25 * lnR25 * lnR25);
 }

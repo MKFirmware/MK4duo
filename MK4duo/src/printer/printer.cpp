@@ -383,24 +383,27 @@ void Printer::safe_delay(millis_t ms) {
  *  - Reset the command timeout
  *  - Enable the endstops (for endstop moves)
  */
-void Printer::setup_for_endstop_or_probe_move() {
+void Printer::bracket_probe_move(const bool before) {
+  static float saved_feedrate_mm_s;
+  static int16_t saved_feedrate_percentage;
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("setup_for_endstop_or_probe_move", mechanics.current_position);
+    if (DEBUGGING(LEVELING)) DEBUG_POS("bracket_probe_move", mechanics.current_position);
   #endif
-  mechanics.saved_feedrate_mm_s = mechanics.feedrate_mm_s;
-  mechanics.saved_feedrate_percentage = mechanics.feedrate_percentage;
-  mechanics.feedrate_percentage = 100;
-  commands.refresh_cmd_timeout();
+  if (before) {
+    saved_feedrate_mm_s = mechanics.feedrate_mm_s;
+    saved_feedrate_percentage = mechanics.feedrate_percentage;
+    mechanics.feedrate_percentage = 100;
+    commands.refresh_cmd_timeout();
+  }
+  else {
+    mechanics.feedrate_mm_s = saved_feedrate_mm_s;
+    mechanics.feedrate_percentage = saved_feedrate_percentage;
+    commands.refresh_cmd_timeout();
+  }
 }
 
-void Printer::clean_up_after_endstop_or_probe_move() {
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("clean_up_after_endstop_or_probe_move", mechanics.current_position);
-  #endif
-  mechanics.feedrate_mm_s = mechanics.saved_feedrate_mm_s;
-  mechanics.feedrate_percentage = mechanics.saved_feedrate_percentage;
-  commands.refresh_cmd_timeout();
-}
+void Printer::setup_for_endstop_or_probe_move()       { bracket_probe_move(true); }
+void Printer::clean_up_after_endstop_or_probe_move()  { bracket_probe_move(false); }
 
 /**
  * Set XYZE mechanics.destination and mechanics.feedrate_mm_s from the current GCode command

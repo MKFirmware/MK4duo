@@ -32,23 +32,23 @@
 #define T1_R25    100000.0  // Resistance in Ohms @ 25°C
 #define T1_BETA     4036.0  // Beta Value (K)
 
-// 2 - ATC Semitec 204GT-2
-#define T2_NAME   "ATC 204GT-2"
-#define T2_R25    200000.0  // Resistance in Ohms @ 25°C
-#define T2_BETA     4338.0  // Beta Value (K)
+// 2 - NTC3950
+#define T2_NAME   "NTC3950"
+#define T2_R25    100000.0  // Resistance in Ohms @ 25°C
+#define T2_BETA     3950.0  // Beta Value (K)
 
-// 3 - ATC Semitec 104GT-2
-#define T3_NAME   "ATC 104GT-2"
-#define T3_R25    100000.0  // Resistance in Ohms @ 25°C
-#define T3_BETA     4267.0  // Beta Value (K)
+// 3 - ATC Semitec 204GT-2
+#define T3_NAME   "ATC 204GT-2"
+#define T3_R25    200000.0  // Resistance in Ohms @ 25°C
+#define T3_BETA     4338.0  // Beta Value (K)
 
-// 4 - Honeywell thermistor 135-104LAG-J01
-#define T4_NAME   "HW 104LAG"
+// 4 - ATC Semitec 104GT-2
+#define T4_NAME   "ATC 104GT-2"
 #define T4_R25    100000.0  // Resistance in Ohms @ 25°C
-#define T4_BETA     3974.0  // Beta Value (K)
+#define T4_BETA     4267.0  // Beta Value (K)
 
-// 5 - Honeywell thermistor 135-104LAF-J01
-#define T5_NAME   "HW 104LAF"
+// 5 - Honeywell thermistor 135-104LAG-J01
+#define T5_NAME   "HW 104LAG"
 #define T5_R25    100000.0  // Resistance in Ohms @ 25°C
 #define T5_BETA     3974.0  // Beta Value (K)
 

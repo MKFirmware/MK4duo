@@ -54,7 +54,7 @@
         // Put off the fan
         fan->Speed = 0;
         fan->pin = parser.value_pin();
-        fan->init();
+        SERIAL_LM(ECHO, MSG_CHANGE_PIN);
       }
 
       if (parser.seen('I'))

@@ -785,13 +785,13 @@ void Stepper::isr() {
     #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
 
     #if ENABLED(LASER)
-      counter_L += current_block->steps_l;
+      counter_L += current_block->steps_l * PPM_MULTIPLICATOR;
       if (counter_L > 0) {
         if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
           #if ENABLED(LASER_PULSE_METHOD)
             uint32_t ulValue = current_block->laser_raster_intensity_factor * 255;
             laser_pulse(ulValue, current_block->laser_duration);
-            laser.time += current_block->laser_duration / 1000; 
+            laser.time += current_block->laser_duration / 1000;
           #else
             laser.fire(current_block->laser_intensity);
           #endif
@@ -804,21 +804,21 @@ void Stepper::isr() {
         #if ENABLED(LASER_RASTER)
           if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
             #if ENABLED(LASER_PULSE_METHOD)
-              uint32_t ulValue = current_block->laser_raster_intensity_factor * 
+              uint32_t ulValue = current_block->laser_raster_intensity_factor *
                                  current_block->laser_raster_data[counter_raster];
               laser_pulse(ulValue, current_block->laser_duration);
               counter_raster++;
-              laser.time += current_block->laser_duration / 1000; 
+              laser.time += current_block->laser_duration / 1000;
             #else
               // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
               // going from darkened paper to burning through paper.
-              laser.fire(current_block->laser_raster_data[counter_raster]); 
+              laser.fire(current_block->laser_raster_data[counter_raster]);
             #endif
             if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
             counter_raster++;
           }
         #endif // LASER_RASTER
-        
+
         #if ENABLED(ARDUINO_ARCH_SAM)
           counter_L -= 1000 * current_block->step_event_count;
         #else
@@ -1092,7 +1092,7 @@ void Stepper::isr() {
 
     // Run Advance stepping ISR if flagged
     if (!nextAdvanceISR) advance_isr();
-  
+
     // Is the next advance ISR scheduled before the next main ISR?
     if (nextAdvanceISR <= nextMainISR) {
       // Set up the next interrupt
@@ -1111,7 +1111,7 @@ void Stepper::isr() {
       // Will call Stepper::isr on the next interrupt
       nextMainISR = 0;
     }
-  
+
     // Don't run the ISR faster than possible
     #if ENABLED(ARDUINO_ARCH_SAM)
       HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
@@ -1479,7 +1479,7 @@ long Stepper::position(AxisEnum axis) {
 
 void Stepper::enable_all_steppers() {
 
-  #if HAS_POWER_SWITCH 
+  #if HAS_POWER_SWITCH
     powerManager.power_on();
   #endif
 
@@ -1608,7 +1608,7 @@ void Stepper::report_positions() {
       WRITE(E1_STEP_PIN, INVERT_E_STEP_PIN);
       HAL::delayMicroseconds(COLOR_SLOWRATE);
     }
-  }  
+  }
 #endif //NPR2
 
 #if ENABLED(BABYSTEPPING)

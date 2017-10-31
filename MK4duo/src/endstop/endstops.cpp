@@ -232,7 +232,9 @@ void Endstops::report_state() {
  * Constrain the given coordinates to the software endstops.
  */
 void Endstops::clamp_to_software_endstops(float target[XYZ]) {
+
   if (!soft_endstops_enabled) return;
+
   #if HAS_SOFTWARE_ENDSTOPS
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
       #if NOMECH(DELTA)

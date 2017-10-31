@@ -36,9 +36,9 @@
   #endif
 
   #if ENABLED(__AVR__)
-    #define PPM_MOLTIPLICATOR 1
+    #define PPM_MULTIPLICATOR 1
   #elif ENABLED(ARDUINO_ARCH_SAM)
-    #define PPM_MOLTIPLICATOR 1000
+    #define PPM_MULTIPLICATOR 1000
   #endif
 
   // Laser constants
