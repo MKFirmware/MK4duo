@@ -79,12 +79,10 @@ class Mechanics {
      * Feedrate, min, max, travel
      */
     float   feedrate_mm_s             = MMM_TO_MMS(1500.0),
-            saved_feedrate_mm_s       = MMM_TO_MMS(1500.0),
             min_feedrate_mm_s         = 0.0,
             max_feedrate_mm_s[XYZE_N] = { 0.0 },
             min_travel_feedrate_mm_s  = 0.0;
-    int16_t feedrate_percentage       = 100,
-            saved_feedrate_percentage = 100;
+    int16_t feedrate_percentage       = 100;
 
     /**
      * Homing feed rates are often configured with mm/m
@@ -114,7 +112,7 @@ class Mechanics {
     /**
      * Min segment time
      */
-    millis_t  min_segment_time = 0;
+    millis_t  min_segment_time_us = 0;
 
     /**
      * Cartesian Current Position
