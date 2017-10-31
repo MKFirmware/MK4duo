@@ -388,8 +388,8 @@ static void AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, c
     }
 
     PWMC_ConfigureChannel(PWM, chan, ((useFastClock) ? PWM_CMR_CPRE_CLKB : PWM_CMR_CPRE_CLKA), 0, 0);
-    PWMC_SetDutyCycle(PWM, chan, duty);
     PWMC_SetPeriod(PWM, chan, period);
+    PWMC_SetDutyCycle(PWM, chan, duty);
     PWMC_EnableChannel(PWM, chan);
 
     // Now setup the PWM output pin for PWM this channel - do this after configuring the PWM to avoid glitches
