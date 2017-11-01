@@ -3829,16 +3829,11 @@ void kill_screen(const char* lcd_msg) {
       if (fileCnt) {
         for (uint16_t i = 0; i < fileCnt; i++) {
           if (_menuLineNr == _thisItemNr) {
-            const uint16_t nr =
-              #if ENABLED(SDCARD_RATHERRECENTFIRST) && DISABLED(SDCARD_SORT_ALPHA)
-                fileCnt - 1 -
-              #endif
-            i;
 
             #if ENABLED(SDCARD_SORT_ALPHA)
-              card.getfilename_sorted(nr);
+              card.getfilename_sorted(i);
             #else
-              card.getfilename(nr);
+              card.getfilename(i);
             #endif
 
             if (card.filenameIsDir)
