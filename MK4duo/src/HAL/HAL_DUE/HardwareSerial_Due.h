@@ -28,6 +28,15 @@
 #ifndef _HARDWARESERIAL_H_
 #define _HARDWARESERIAL_H_
 
+// Includes Atmel CMSIS
+#include <chip.h>
+
+#define SERIAL_8N1 UARTClass::Mode_8N1
+#define SERIAL_8E1 UARTClass::Mode_8E1
+#define SERIAL_8O1 UARTClass::Mode_8O1
+#define SERIAL_8M1 UARTClass::Mode_8M1
+#define SERIAL_8S1 UARTClass::Mode_8S1
+
 #ifndef SERIAL_PORT
   #define SERIAL_PORT 0
 #endif
@@ -97,35 +106,6 @@ class MKUARTClass {
     int availableForWrite(void);
 
     void IrqHandler(void);
-
-    FORCE_INLINE void write(const char* str) { while (*str) write(*str++); }
-    FORCE_INLINE void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
-    FORCE_INLINE void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
-    FORCE_INLINE void print(const char* str) { write(str); }
-
-    void print(char, int = BYTE);
-    void print(unsigned char, int = BYTE);
-    void print(int, int = DEC);
-    void print(unsigned int, int = DEC);
-    void print(long, int = DEC);
-    void print(unsigned long, int = DEC);
-    void print(double, int = 2);
-
-    void println(const String& s);
-    void println(const char[]);
-    void println(char, int = BYTE);
-    void println(unsigned char, int = BYTE);
-    void println(int, int = DEC);
-    void println(unsigned int, int = DEC);
-    void println(long, int = DEC);
-    void println(unsigned long, int = DEC);
-    void println(double, int = 2);
-    void println(void);
-
-  private: /** Private Function */
-
-    void printNumber(unsigned long, const uint8_t);
-    void printFloat(double, uint8_t);
 
   protected:
 

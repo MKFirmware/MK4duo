@@ -1,7 +1,15 @@
 /****************************************************************************************
 * 1502
 * Alligator R2
+*
+* The Alligator board requires Arduino Alligator addons installed.
+* Add the following URL to Arduino IDE's Additional Board Manager URLs
+* http://www.chew-z.it/download/alligator/dist/package_Alligator_index.json
+* In the Arduino IDE Board Manager search for Alligator and install the package.
+* Change your target board to "Alligator R2 native USB port".
+*
 * http://www.3dartists.org/
+*
 ****************************************************************************************/
 
 //###CHIP
@@ -170,7 +178,7 @@
 
 //###UNKNOWN_PINS
 #undef NUM_DIGITAL_PINS
-#define NUM_DIGITAL_PINS 100
+#define NUM_DIGITAL_PINS 111
 
 #define SPI_CHAN_DAC 1
 #define X_MS1_PIN             99  // PC10

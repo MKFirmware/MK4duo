@@ -1,12 +1,20 @@
 /****************************************************************************************
 * 1503
 * Alligator R3
+*
+* The Alligator board requires Arduino Alligator addons installed.
+* Add the following URL to Arduino IDE's Additional Board Manager URLs
+* http://www.chew-z.it/download/alligator/dist/package_Alligator_index.json
+* In the Arduino IDE Board Manager search for Alligator and install the package.
+* Change your target board to "Alligator R3 native USB port".
+*
 * http://www.3dartists.org/
+*
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
+  #error Oops! Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
 #endif
 //@@@
 
@@ -169,7 +177,7 @@
 //@@@
 
 //###UNKNOWN_PINS
-#define NUM_DIGITAL_PINS 110
+#define NUM_DIGITAL_PINS 111
 #define SPI_CHAN_DAC 1
 #define X_MS1_PIN             99
 #define Y_MS1_PIN             10
