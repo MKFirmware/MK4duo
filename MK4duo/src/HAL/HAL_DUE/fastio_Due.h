@@ -91,14 +91,30 @@ static constexpr Fastio_Param Fastio[111] = {
   // D80 to D89
   { PIOB, 12 }, { PIOA,  8 }, { PIOA, 11 }, { PIOA, 13 }, { PIOD,  4 }, { PIOB, 11 }, { PIOB, 21 }, { PIOA, 29 }, { PIOB, 15 }, { PIOB, 14 },
 
-  // D90 to D99
-  { PIOA,  1 }, { PIOB, 15 }, { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
-
-  // D100 to D109
-  { PIOC, 11 }, { PIOB, 0 }, { PIOB, 1 }, { PIOB, 2 }, { PIOB, 3 }, { PIOB, 4 }, { PIOB, 5 }, { PIOB, 6 }, { PIOB, 7 }, { PIOB, 8 },
+  // D90 to D91
+  { PIOA,  1 }, { PIOB, 15 },
   
-  // D110
-  { PIOB, 11 }
+  #if ENABLED(ARDUINO_SAM_ARCHIM)
+
+    // D92 to D99
+    { PIOC,  11 }, { PIOB, 2 }, { PIOB, 1 }, { PIOB, 0 }, { PIOC, 10 }, { PIOB, 24 }, { PIOB, 7 }, { PIOB, 6 },
+
+    // D100 to D107
+    { PIOB, 8 }, { PIOB, 5 }, { PIOB, 4 }, { PIOB, 3 }, { PIOC, 20 }, { PIOB, 22 }, { PIOC, 27 }, { PIOB, 10 },
+
+  #else
+
+    // D92 to D99
+    { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
+
+    // D100 to D107
+    { PIOC, 11 }, { PIOB, 0 }, { PIOB, 1 }, { PIOB, 2 }, { PIOB, 3 }, { PIOB, 4 }, { PIOB, 5 }, { PIOB, 6 },
+
+  #endif
+
+    // D108 to D110
+    { PIOB, 7 }, { PIOB, 8 }, { PIOB, 11 }
+
 };
 
 /**

@@ -29,6 +29,9 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <string.h>
   #include "HardwareSerial_Due.h"
 
   MK_RingBuffer::MK_RingBuffer(void) {
@@ -264,6 +267,10 @@
     // Enable UART interrupt in NVIC
     NVIC_EnableIRQ(_dwIrq);
 
+    // Make sure both ring buffers are initialized back to empty.
+    _rx_buffer->_iHead = _rx_buffer->_iTail = 0;
+    _tx_buffer->_iHead = _tx_buffer->_iTail = 0;
+
     // Enable receiver and transmitter
     _pUart->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
 
@@ -378,144 +385,6 @@
     if ((status & UART_SR_OVRE) == UART_SR_OVRE || (status & UART_SR_FRAME) == UART_SR_FRAME) {
       // TODO: error reporting outside ISR
       _pUart->UART_CR |= UART_CR_RSTSTA;
-    }
-  }
-
-  void MKUARTClass::print(char c, int base) {
-    print((long)c, base);
-  }
-
-  void MKUARTClass::print(unsigned char b, int base) {
-    print((unsigned long)b, base);
-  }
-
-  void MKUARTClass::print(int n, int base) {
-    print((long)n, base);
-  }
-
-  void MKUARTClass::print(unsigned int n, int base) {
-    print((unsigned long)n, base);
-  }
-
-  void MKUARTClass::print(long n, int base) {
-    if (base == 0)
-      write(n);
-    else if (base == 10) {
-      if (n < 0) {
-        print('-');
-        n = -n;
-      }
-      printNumber(n, 10);
-    }
-    else
-      printNumber(n, base);
-  }
-
-  void MKUARTClass::print(unsigned long n, int base) {
-    if (base == 0) write(n);
-    else printNumber(n, base);
-  }
-
-  void MKUARTClass::print(double n, int digits) {
-    printFloat(n, digits);
-  }
-
-  void MKUARTClass::println(void) {
-    print('\r');
-    print('\n');
-  }
-
-  void MKUARTClass::println(const String& s) {
-    print(s);
-    println();
-  }
-
-  void MKUARTClass::println(const char c[]) {
-    print(c);
-    println();
-  }
-
-  void MKUARTClass::println(char c, int base) {
-    print(c, base);
-    println();
-  }
-
-  void MKUARTClass::println(unsigned char b, int base) {
-    print(b, base);
-    println();
-  }
-
-  void MKUARTClass::println(int n, int base) {
-    print(n, base);
-    println();
-  }
-
-  void MKUARTClass::println(unsigned int n, int base) {
-    print(n, base);
-    println();
-  }
-
-  void MKUARTClass::println(long n, int base) {
-    print(n, base);
-    println();
-  }
-
-  void MKUARTClass::println(unsigned long n, int base) {
-    print(n, base);
-    println();
-  }
-
-  void MKUARTClass::println(double n, int digits) {
-    print(n, digits);
-    println();
-  }
-
-  // Private Methods
-
-  void MKUARTClass::printNumber(unsigned long n, uint8_t base) {
-    if (n) {
-      unsigned char buf[8 * sizeof(long)]; // Enough space for base 2
-      int8_t i = 0;
-      while (n) {
-        buf[i++] = n % base;
-        n /= base;
-      }
-      while (i--)
-        print((char)(buf[i] + (buf[i] < 10 ? '0' : 'A' - 10)));
-    }
-    else
-      print('0');
-  }
-
-  void MKUARTClass::printFloat(double number, uint8_t digits) {
-    // Handle negative numbers
-    if (number < 0.0) {
-      print('-');
-      number = -number;
-    }
-
-    // Round correctly so that print(1.999, 2) prints as "2.00"
-    double rounding = 0.5;
-    for (uint8_t i = 0; i < digits; ++i)
-      rounding *= 0.1;
-
-    number += rounding;
-
-    // Extract the integer part of the number and print it
-    unsigned long int_part = (unsigned long)number;
-    double remainder = number - (double)int_part;
-    print(int_part);
-
-    // Print the decimal point, but only if there are digits beyond
-    if (digits) {
-      print('.');
-      // Extract digits from the remainder one at a time
-      while (digits--) {
-        remainder *= 10.0;
-        int toPrint = int(remainder);
-        print(toPrint);
-        remainder -= toPrint;
-      }
     }
   }
 

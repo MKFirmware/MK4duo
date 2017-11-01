@@ -72,7 +72,7 @@ int Commands::serial_count = 0;
 /**
  * Next Injected Command pointer. NULL if no commands are being injected.
  * Used by MK4duo internally to ensure that commands initiated from within
- * are enqueued ahead of any pending serial or sd card 
+ * are enqueued ahead of any pending serial or sd card
  */
 const char *Commands::injected_commands_P = NULL;
 
@@ -102,8 +102,9 @@ void Commands::get_serial_commands() {
   #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
     static millis_t last_command_time = 0;
     millis_t ms = millis();
-    if (commands_in_queue == 0 && !HAL::serialByteAvailable() && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
-      SERIAL_L(WT);
+    if (commands_in_queue == 0 && !MKSERIAL.available() && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
+      SERIAL_STR(WT);
+      SERIAL_EOL();
       last_command_time = ms;
     }
   #endif
@@ -111,34 +112,34 @@ void Commands::get_serial_commands() {
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
-  while (commands_in_queue < BUFSIZE && HAL::serialByteAvailable()) {
+  int c;
+  while (commands_in_queue < BUFSIZE && (c = MKSERIAL.read()) >= 0) {
 
-    char serial_char = HAL::serialReadByte();
+    char serial_char = c;
 
     /**
      * If the character ends the line
      */
     if (serial_char == '\n' || serial_char == '\r') {
 
-      serial_comment_mode = false; // end of line == end of comment
+      serial_comment_mode = false;                      // end of line == end of comment
 
-      if (!serial_count) continue; // skip empty lines
+      if (!serial_count) continue;                      // Skip empty lines
 
-      serial_line_buffer[serial_count] = 0; // terminate string
-      serial_count = 0; // reset buffer
+      serial_line_buffer[serial_count] = 0;             // Terminate string
+      serial_count = 0;                                 // Reset buffer
 
-      char* command = serial_line_buffer;
+      char *command = serial_line_buffer;
 
-      while (*command == ' ') command++; // skip any leading spaces
-      char  *npos = (*command == 'N') ? command : NULL, // Require the N parameter to start the line
-            *apos = strchr(command, '*');
+      while (*command == ' ') command++;                // Skip leading spaces
 
+      char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
       if (npos) {
 
         bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
         if (M110) {
-          char* n2pos = strchr(command + 4, 'N');
+          char *n2pos = strchr(command + 4, 'N');
           if (n2pos) npos = n2pos;
         }
 
@@ -149,15 +150,14 @@ void Commands::get_serial_commands() {
           return;
         }
 
+        char *apos = strrchr(command, '*');
         if (apos) {
-          byte checksum = 0, count = 0;
-          while (command[count] != '*') checksum ^= command[count++];
-
+          uint8_t checksum = 0, count = uint8_t(apos - command);
+          while (count) checksum ^= command[--count];
           if (strtol(apos + 1, NULL, 10) != checksum) {
             gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH));
             return;
           }
-          // if no errors, continue parsing
         }
         else {
           gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
@@ -165,16 +165,11 @@ void Commands::get_serial_commands() {
         }
 
         gcode_LastN = gcode_N;
-        // if no errors, continue parsing
-      }
-      else if (apos) { // No '*' without 'N'
-        gcode_line_error(PSTR(MSG_ERR_NO_LINENUMBER_WITH_CHECKSUM), false);
-        return;
       }
 
       // Movement commands alert when stopped
       if (printer.IsStopped()) {
-        char* gpos = strchr(command, 'G');
+        char *gpos = strchr(command, 'G');
         if (gpos) {
           const int codenum = strtol(gpos + 1, NULL, 10);
           switch (codenum) {
@@ -213,12 +208,9 @@ void Commands::get_serial_commands() {
       // The command will be injected when EOL is reached
     }
     else if (serial_char == '\\') { // Handle escapes
-      if (HAL::serialByteAvailable()) {
-        // if we have one more character, copy it over
-        serial_char = HAL::serialReadByte();
-        if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
-      }
-      // otherwise do nothing
+      // if we have one more character, copy it over
+      if ((c = MKSERIAL.read()) >= 0 && !serial_comment_mode)
+        serial_line_buffer[serial_count++] = serial_char;
     }
     else { // its not a newline, carriage return or escape char
       if (serial_char == ';') serial_comment_mode = true;
