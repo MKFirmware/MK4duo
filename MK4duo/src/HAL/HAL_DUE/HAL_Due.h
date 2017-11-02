@@ -244,6 +244,8 @@ class HAL {
         case INPUT:         SET_INPUT(pin);         break;
         case OUTPUT:        SET_OUTPUT(pin);        break;
         case INPUT_PULLUP:  SET_INPUT_PULLUP(pin);  break;
+        case OUTPUT_LOW:    SET_OUTPUT(pin);        break;
+        case OUTPUT_HIGH:   SET_OUTPUT_HIGH(pin);   break;
         default:                                    break;
       }
     }

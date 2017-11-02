@@ -125,6 +125,9 @@ static constexpr Fastio_Param Fastio[111] = {
   #define MASK(PIN) (1 << PIN)
 #endif
 
+#define OUTPUT_LOW  0x3
+#define OUTPUT_HIGH 0x4
+
 /**
  * magic I/O routines
  * now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
@@ -175,6 +178,11 @@ static FORCE_INLINE void SET_OUTPUT(const Pin pin) {
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
   PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
+static FORCE_INLINE void SET_OUTPUT_HIGH(const Pin pin) {
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
+  PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+}
 
 // set pin as input with pullup
 static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
@@ -188,6 +196,14 @@ static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
 static FORCE_INLINE void OUT_WRITE(const Pin pin, const uint8_t flag) {
   SET_OUTPUT(pin);
   WRITE(pin, flag);
+}
+
+static FORCE_INLINE bool USEABLE_HARDWARE_PWM(const Pin pin) {
+  const uint32_t attr = g_APinDescription[pin].ulPinAttribute;
+  if ((attr & PIN_ATTR_PWM) != 0 || (attr & PIN_ATTR_TIMER) != 0)
+    return true;
+  else
+    return false;
 }
 
 #endif  // _HAL_FASTIO_DUE_H

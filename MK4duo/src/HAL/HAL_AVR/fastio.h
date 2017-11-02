@@ -37,6 +37,9 @@
   #define _BV(PIN) (1 << PIN)
 #endif
 
+#define OUTPUT_LOW  0x3
+#define OUTPUT_HIGH 0x4
+
 /**
  * Magic I/O routines
  *
@@ -92,6 +95,8 @@
 // Pullup
 #define PULLUP(IO)      _WRITE(IO, HIGH)
 #define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
+
+#define USEABLE_HARDWARE_PWM(p) digitalPinHasPWM(p)
 
 /**
  * Ports and Functions

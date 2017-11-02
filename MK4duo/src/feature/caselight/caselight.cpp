@@ -24,21 +24,36 @@
 
 #if HAS_CASE_LIGHT
 
-  uint8_t case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
-  bool case_light_on = CASE_LIGHT_DEFAULT_ON;
+  uint8_t case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS,
+          case_light_brightness_sav;
+
+  bool    case_light_on = CASE_LIGHT_DEFAULT_ON,
+          case_light_arg_flag;
 
   #if DISABLED(INVERT_CASE_LIGHT)
     #define INVERT_CASE_LIGHT false
   #endif
 
   void update_case_light() {
-    HAL::pinMode(CASE_LIGHT_PIN, OUTPUT);
-    uint8_t case_light_bright = (uint8_t)case_light_brightness;
+    SET_OUTPUT(CASE_LIGHT_PIN);
+
+    if (!(case_light_arg_flag && !case_light_on))
+      case_light_brightness_sav = case_light_brightness;  // save brightness except if this is an S0 arguement
+    if (case_light_arg_flag && case_light_on)
+      case_light_brightness = case_light_brightness_sav;  // restore last brightens if this is an S1 arguement
+
     if (case_light_on) {
-      HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness );
-      HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
+      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
+        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness);
+      else
+        HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
     }
-    else HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
+    else {
+      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
+        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 : 0);
+      else
+        HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
+    }
   }
 
 #endif // HAS_CASE_LIGHT

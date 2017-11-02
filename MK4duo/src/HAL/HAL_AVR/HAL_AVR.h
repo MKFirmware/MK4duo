@@ -397,7 +397,21 @@ class HAL {
       return ::digitalRead(pin);
     }
     static inline void pinMode(const Pin pin, const uint8_t mode) {
-      ::pinMode(pin, mode);
+      switch (mode) {
+        case INPUT:
+          ::pinMode(pin, INPUT); break;
+        case OUTPUT:
+          ::pinMode(pin, OUTPUT); break;
+        case OUTPUT_LOW:
+          ::pinMode(pin, OUTPUT);
+          ::digitalWrite(pin, LOW);
+          break;
+        case OUTPUT_HIGH:
+          ::pinMode(pin, OUTPUT);
+          ::digitalWrite(pin, HIGH);
+          break;
+        default: break;
+      }
     }
 
     static inline void delayMicroseconds(const uint16_t delayUs) {
