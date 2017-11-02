@@ -533,10 +533,7 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
     g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_TIMER;
   }
   else {
-    if (ulValue < 0.5)
-      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
-    else
-      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+    HAL::pinMode(pin, (ulValue < 0.5) ? OUTPUT_LOW : OUTPUT_HIGH);
   }
 }
 

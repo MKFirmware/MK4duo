@@ -910,7 +910,12 @@ void kill_screen(const char* lcd_msg) {
     // Set Case light on/off/brightness
     //
     #if HAS_CASE_LIGHT
-      MENU_ITEM(submenu, MSG_CASE_LIGHT, case_light_menu);
+      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN)) {
+        MENU_ITEM(submenu, MSG_CASE_LIGHT, case_light_menu);
+      }
+      else {
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
+      }
     #endif
 
     if (planner.movesplanned() || IS_SD_PRINTING) {

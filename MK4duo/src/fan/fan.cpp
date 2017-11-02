@@ -45,7 +45,7 @@
     paused              = false;
     triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
-    if (pin > 0) HAL::pinMode(pin, OUTPUT);
+    if (pin > 0) HAL::pinMode(pin, (hardwareInverted) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   }
 

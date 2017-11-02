@@ -25,8 +25,10 @@
 
 #if HAS_CASE_LIGHT
 
-  extern uint8_t case_light_brightness;
-  extern bool case_light_on;
+  extern uint8_t  case_light_brightness,
+                  case_light_brightness_sav;
+  extern bool     case_light_on,
+                  case_light_arg_flag;
 
   void update_case_light();
 

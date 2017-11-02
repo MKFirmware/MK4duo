@@ -51,7 +51,7 @@
       watch_next_ms       = 0;
     #endif
 
-    if (pin > 0) HAL::pinMode(pin, OUTPUT);
+    if (pin > 0) HAL::pinMode(pin, (hardwareInverted) ? OUTPUT_HIGH : OUTPUT_LOW);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
       if (sensor.type == -2 || sensor.type == -1) {
