@@ -68,12 +68,21 @@ extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
 #if ANALOG_INPUTS > 0
-  static int      adcCounter = 0,
-                  adcSamplePos = 0;
-  static uint32_t adcEnable = 0;
-
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool    HAL::Analog_is_ready = false;
+  ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];
+#endif
+
+#if HAS_FILAMENT_SENSOR
+  ADCAveragingFilter  HAL::filamentFilter;
+#endif
+
+#if HAS_POWER_CONSUMPTION_SENSOR
+  ADCAveragingFilter  HAL::powerFilter;
+#endif
+
+#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  ADCAveragingFilter  HAL::mcuFilter;
 #endif
 
 static unsigned int cycle_100ms = 0;
@@ -197,12 +206,50 @@ int HAL::getFreeRam() {
 #if ANALOG_INPUTS > 0
 
   // Convert an Arduino Due analog pin number to the corresponding ADC channel number
-  adc_channel_num_t HAL::PinToAdcChannel(Pin pin) {
+  adc_channel_num_t PinToAdcChannel(Pin pin) {
     if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
 
     // Arduino Due uses separate analog pin numbers
     if (pin < A0) pin += A0;
     return (adc_channel_num_t)g_APinDescription[pin].ulADCChannelNumber;
+  }
+
+  // Start converting the enabled channels
+  void AnalogInStartConversion() {
+    // Clear out any existing conversion complete bits in the status register
+    for (uint32_t chan = 0; chan < 16; ++chan) {
+      if ((adc_get_status(ADC) & (1 << chan)) != 0) {
+        (void)adc_get_channel_value(ADC, static_cast<adc_channel_num_t>(chan));
+      }
+    }
+    ADC->ADC_CR = ADC_CR_START;
+  }
+
+  // Enable or disable a channel.
+  void AnalogInEnablePin(const Pin r_pin, const bool enable) {
+    adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
+    if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS) {
+      if (enable) {
+        adc_enable_channel(ADC, adc_ch);
+        if (r_pin == ADC_TEMPERATURE_SENSOR)
+          ADC->ADC_ACR |= ADC_ACR_TSON;
+      }
+      else {
+        adc_disable_channel(ADC, adc_ch);
+        if (r_pin == ADC_TEMPERATURE_SENSOR)
+          ADC->ADC_ACR &= ~ADC_ACR_TSON;
+      }
+    }
+  }   
+
+  // Read the most recent 12-bit result from a pin
+  uint16_t AnalogInReadPin(const Pin r_pin) {
+
+    adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
+    if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS)
+      return adc_get_channel_value(ADC, adc_ch);
+    else
+      return 0;
   }
 
   // Initialize ADC channels
@@ -225,39 +272,26 @@ int HAL::getFreeRam() {
     ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
     pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-    adc_channel_num_t adc_ch;
-
     LOOP_HEATER() {
       if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
-        adc_ch = PinToAdcChannel(heaters[h].sensor.pin);
-        AdcEnableChannel(adc_ch);
-        adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+        AnalogInEnablePin(heaters[h].sensor.pin, true);
+        sensorFilters[h].Init(0);
       }
     }
 
     #if HAS_FILAMENT_SENSOR
-      adc_ch = PinToAdcChannel(FILWIDTH_PIN);
-      AdcEnableChannel(adc_ch);
-      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+      AnalogInEnablePin(FILWIDTH_PIN, true);
+      filamentFilter.Init(0);
     #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
-      adc_ch = PinToAdcChannel(POWER_CONSUMPTION_PIN);
-      AdcEnableChannel(adc_ch);
-      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+      AnalogInEnablePin(POWER_CONSUMPTION_PIN, true);
+      powerFilter.Init(0);
     #endif
 
     #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      adc_ch = PinToAdcChannel(ADC_TEMPERATURE_SENSOR);
-      AdcEnableChannel(adc_ch);
-      adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
-    #endif
-
-    //adc_set_resolution(ADC, ADC_12_BITS); /* ADC 10-bit resolution */
-
-    #if !MB(RADDS) // RADDS not have MCU Temperature
-      // Enable MCU temperature
-      ADC->ADC_ACR |= ADC_ACR_TSON;
+      AnalogInEnablePin(ADC_TEMPERATURE_SENSOR, true);
+      mcuFilter.Init(0);
     #endif
 
     // Initialize ADC mode register (some of the following params are not used here)
@@ -280,21 +314,12 @@ int HAL::getFreeRam() {
     ADC->ADC_COR = 0;             // Single-ended, no offset
 
     // start first conversion
-    ADC->ADC_CR = ADC_CR_START;
+    AnalogInStartConversion();
   }
 
-  void HAL::AdcChangeChannel(const Pin old_pin, const Pin new_pin) {
-
-    adc_channel_num_t adc_ch;
-
-    // Disable old Pin
-    adc_ch = PinToAdcChannel(old_pin);
-    AdcDisableChannel(adc_ch);
-
-    // Enable new Pin
-    adc_ch = PinToAdcChannel(new_pin);
-    AdcEnableChannel(adc_ch);
-    adc_set_channel_input_gain(ADC, adc_ch, ADC_GAINVALUE_0); // Gain = 1
+  void HAL::AdcChangePin(const Pin old_pin, const Pin new_pin) {
+    AnalogInEnablePin(old_pin, false);
+    AnalogInEnablePin(new_pin, true);
   }
 
 #endif
@@ -537,24 +562,6 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
   }
 }
 
-#if ANALOG_INPUTS > 0
-
-  void get_adc_value(const Pin s_pin) {
-
-    static uint32_t AnalogSamplesSum[NUM_ANALOG_INPUTS] = { 0 };
-    static uint16_t AnalogSamples[NUM_ANALOG_INPUTS][NUM_ADC_SAMPLES] = { 0 };
-    uint16_t        cur = 0;
-
-    adc_channel_num_t adc_ch = HAL::PinToAdcChannel(s_pin);
-    cur = adc_get_channel_value(ADC, adc_ch);
-
-    AnalogSamplesSum[s_pin] = AnalogSamplesSum[s_pin] - AnalogSamples[s_pin][adcCounter] + cur;
-    AnalogSamples[s_pin][adcCounter] = cur;
-    HAL::AnalogInputValues[s_pin] = AnalogSamplesSum[s_pin] / NUM_ADC_SAMPLES;
-  }
-
-#endif
-  
 /**
  * Tick is is called 1000 timer per second.
  * It is used to update pwm values for heater and some other frequent jobs.
@@ -566,6 +573,9 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 void HAL::Tick() {
+
+  static uint8_t  tickState = 0,
+                  currentHeater = 0;
 
   if (printer.IsStopped()) return;
 
@@ -591,30 +601,53 @@ void HAL::Tick() {
 
     if (adc_get_status(ADC)) { // conversion finished?
 
-      LOOP_HEATER() {
-        if (WITHIN(heaters[h].sensor.pin, 0, 15))
-          get_adc_value(heaters[h].sensor.pin);
+      switch (tickState) {
+        case 1:
+        case 3:
+          {
+            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[currentHeater]);
+            currentFilter.ProcessReading(AnalogInReadPin(heaters[currentHeater].sensor.pin));
+            if (currentFilter.IsValid())
+              AnalogInputValues[heaters[currentHeater].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+
+            if (++currentHeater == HEATER_COUNT) {
+              currentHeater = 0;
+              if (currentFilter.IsValid()) Analog_is_ready = true;
+            }
+
+            ++tickState;
+          }
+          break;
+        case 2:
+          {
+            #if HAS_FILAMENT_SENSOR
+              const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
+              if (filamentFilter.IsValid())
+                AnalogInputValues[FILWIDTH_PIN] = filamentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+            #endif
+
+            #if HAS_POWER_CONSUMPTION_SENSOR
+              const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
+              if (powerFilter.IsValid())
+                AnalogInputValues[POWER_CONSUMPTION_PIN] = powerFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+            #endif
+
+            #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+              const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
+              if (mcuFilter.IsValid())
+                thermalManager.mcu_current_temperature_raw = mcuFilter.GetSum();
+            #endif
+            ++tickState;
+          }
+          break;
+        case 0: // First state after initialization, no conversion
+        default:
+          tickState = 1;
+          break;
       }
-
-      #if HAS_FILAMENT_SENSOR
-        get_adc_value(FILWIDTH_PIN);
-      #endif
-
-      #if HAS_POWER_CONSUMPTION_SENSOR
-        get_adc_value(POWER_CONSUMPTION_PIN);
-      #endif
-
-      #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-        get_adc_value(ADC_TEMPERATURE_SENSOR);
-      #endif
-
-      adcCounter++;
-      if (adcCounter >= NUM_ADC_SAMPLES) {
-        adcCounter = 0;
-        HAL::Analog_is_ready = true;
-      }
-      ADC->ADC_CR = ADC_CR_START; // reread values
     }
+
+    AnalogInStartConversion();
 
     // Update the raw values if they've been read. Else we could be updating them during reading.
     if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();

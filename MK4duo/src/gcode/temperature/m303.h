@@ -43,7 +43,7 @@ inline void gcode_M303(void) {
     const int   c = parser.intval('C', 5);
     const bool  u = parser.boolval('U');
 
-    int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
+    const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
     if (!commands.get_target_heater(h)) return;
 
