@@ -188,13 +188,12 @@ typedef uint32_t  ptr_int_t;
 #define NUM_ANALOG_INPUTS 16
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
-#define ANALOG_REDUCE_FACTOR 1
-#define ABS_ZERO  -273.15
-#define AD_RANGE  4095
+#define OVERSAMPLENR 2
+#define AD_RANGE  (1 << (ANALOG_INPUT_BITS + OVERSAMPLENR))
 
+#define ABS_ZERO  -273.15
+#define NUM_ADC_SAMPLES 32
 #define MAX_ANALOG_PIN_NUMBER 11
-#define OVERSAMPLENR 6
-#define NUM_ADC_SAMPLES 32 // (2 + (1 << OVERSAMPLENR))
 #define ADC_TEMPERATURE_SENSOR 15
 
 #define HARDWARE_PWM true
@@ -205,6 +204,51 @@ typedef uint32_t  ptr_int_t;
 // reset reason set by bootloader
 extern uint8_t MCUSR;
 volatile static uint32_t debug_counter;
+
+// Class to perform averaging of values read from the ADC
+// numAveraged should be a power of 2 for best efficiency
+template <size_t numAveraged> class AveragingFilter {
+
+  public: /** Constructor */
+
+    AveragingFilter() { Init(0); }
+
+  private: /** Private Parameters */
+
+    uint16_t  readings[numAveraged];
+    size_t    index;
+    uint32_t  sum;
+    bool      isValid;
+
+  public: /** Public Function */
+
+    void Init(uint16_t val) volatile {
+
+      irqflags_t flags = cpu_irq_save();
+      sum = (uint32_t)val * (uint32_t)numAveraged;
+      index = 0;
+      isValid = false;
+      for (size_t i = 0; i < numAveraged; ++i)
+        readings[i] = val;
+      cpu_irq_restore(flags);
+    }
+
+    void ProcessReading(uint16_t r) {
+      sum = sum - readings[index] + r;
+      readings[index] = r;
+      if (++index == numAveraged) {
+        index = 0;
+        isValid = true;
+      }
+    }
+
+    uint32_t GetSum() const volatile { return sum; }
+
+    bool IsValid() const volatile	{ return isValid; }
+
+};
+
+typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
 
 class HAL {
 
@@ -219,18 +263,31 @@ class HAL {
     #if ANALOG_INPUTS > 0
       static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
       static bool Analog_is_ready;
-      static adc_channel_num_t PinToAdcChannel(Pin pin);
     #endif
 
     static bool execute_100ms;
+
+  private: /** Private Parameters */
+
+    static ADCAveragingFilter sensorFilters[HEATER_COUNT];
+
+    #if HAS_FILAMENT_SENSOR
+      static ADCAveragingFilter filamentFilter;
+    #endif
+
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      static ADCAveragingFilter powerFilter;
+    #endif
+
+    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+      static ADCAveragingFilter mcuFilter;
+    #endif
 
   public: /** Public Function */
 
     #if ANALOG_INPUTS > 0
       static void analogStart();
-      static void AdcEnableChannel(adc_channel_num_t adc_ch) { adc_enable_channel(ADC, adc_ch); }
-      static void AdcDisableChannel(adc_channel_num_t adc_ch) { adc_disable_channel(ADC, adc_ch); }
-      static void AdcChangeChannel(const Pin old_pin, const Pin new_pin);
+      static void AdcChangePin(const Pin old_pin, const Pin new_pin);
     #endif
 
     static void hwSetup(void);

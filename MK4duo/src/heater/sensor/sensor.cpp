@@ -136,7 +136,7 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
   #endif
   #if HEATER_USES_AD595
     if (s_type == -1)
-      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / AD_RANGE)) * this->ad595_gain) + this->ad595_offset;
+      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / (AD_RANGE))) * this->ad595_gain) + this->ad595_offset;
   #endif
   if (WITHIN(s_type, 1, 9)) {
     const float denom = (float)(AD_RANGE + (int)this->adcHighOffset - adcReading) - 0.5;

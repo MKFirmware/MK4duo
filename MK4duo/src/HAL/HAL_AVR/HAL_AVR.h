@@ -375,7 +375,7 @@ class HAL {
 
     #if ANALOG_INPUTS > 0
       static void analogStart();
-      static void AdcChangeChannel(const Pin old_pin, const Pin new_pin);
+      static void AdcChangePin(const Pin old_pin, const Pin new_pin);
     #endif
 
     static void hwSetup();

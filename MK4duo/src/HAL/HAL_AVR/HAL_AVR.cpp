@@ -180,9 +180,9 @@ void HAL::showStartReason() {
 
   }
 
-  void HAL::AdcChangeChannel(const Pin old_pin, const Pin new_pin) {
+  void HAL::AdcChangePin(const Pin old_pin, const Pin new_pin) {
     UNUSED(old_pin);
-    UNUSED(old_pin);
+    UNUSED(new_pin);
   }
 
 #endif

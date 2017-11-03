@@ -81,7 +81,7 @@
       if (WITHIN(new_pin, 0 , MAX_ANALOG_PIN_NUMBER)) {
         const Pin old_pin = heaters[h].sensor.pin;
         heaters[h].sensor.pin = new_pin;
-        HAL::AdcChangeChannel(old_pin, heaters[h].sensor.pin);
+        HAL::AdcChangePin(old_pin, heaters[h].sensor.pin);
       }
     }
 

@@ -130,7 +130,7 @@ class Temperature {
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
-    static void PID_autotune(const int8_t temp_controller, const float temp, int ncycles, const bool storeValues=false);
+    static void PID_autotune(const int8_t temp_controller, const float temp, int8_t ncycles, const bool storeValues=false);
 
     /**
      * Update the temp manager when PID values change

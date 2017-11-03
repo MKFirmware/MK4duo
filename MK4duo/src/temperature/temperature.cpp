@@ -242,10 +242,6 @@ void Temperature::set_current_temp_raw() {
     powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-    mcu_current_temperature_raw = HAL::AnalogInputValues[ADC_TEMPERATURE_SENSOR];
-  #endif
-
   #if HAS_FILAMENT_SENSOR
     current_raw_filwidth = HAL::AnalogInputValues[FILWIDTH_PIN];
   #endif
@@ -323,7 +319,7 @@ void Temperature::manage_temp_controller() {
   #endif // FILAMENT_SENSOR
 }
 
-void Temperature::PID_autotune(const int8_t temp_controller, const float temp, int ncycles, const bool storeValues/*=false*/) {
+void Temperature::PID_autotune(const int8_t temp_controller, const float temp, int8_t ncycles, const bool storeValues/*=false*/) {
 
     float currentTemp = 0.0;
     int cycles = 0;
@@ -333,9 +329,9 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
     int32_t t_high = 0, t_low = 0;
 
     int32_t bias, d;
-    float Ku, Tu;
-    float workKp = 0, workKi = 0, workKd = 0;
-    float maxTemp = 20, minTemp = 20;
+    float Ku, Tu,
+          workKp = 0, workKi = 0, workKd = 0,
+          maxTemp = 0.0, minTemp = 10000.0;
 
     NOLESS(ncycles, 5);
     NOMORE(ncycles, 20);
@@ -356,7 +352,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
       else if(temp_controller == COOLER_INDEX)
         SERIAL_MSG("COOLER");
     #endif
-    SERIAL_MV(" Temp: ", temp);
+    SERIAL_MV(" Temp: ", temp, 1);
     SERIAL_MV(" Cycles: ", ncycles);
     if (storeValues)
       SERIAL_EM(" Apply result");
@@ -379,6 +375,10 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
       const millis_t ms = millis();
 
       updateTemperaturesFromRawValues();
+
+      #if FAN_COUNT > 0
+        LOOP_FAN() fans[f].Check();
+      #endif
 
       currentTemp = heaters[temp_controller].current_temperature;
 
@@ -749,8 +749,8 @@ void Temperature::updateTemperaturesFromRawValues() {
 
 #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
   float Temperature::analog2tempMCU(const int raw) {
-    float mcutemp = (float)raw * (3.3 / 4096.0);
-    return (mcutemp - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
+    const float voltage = (float)raw * (3.3 / (float)(4096 * NUM_ADC_SAMPLES));
+    return (voltage - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
   }
 #endif
 
