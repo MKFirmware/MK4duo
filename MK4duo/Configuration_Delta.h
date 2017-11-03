@@ -476,7 +476,7 @@
  * Auto Calibration Delta system  G33 command                                            *
  * Three type of the calibration DELTA                                                   *
  *  1) Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points           ~3.2Kb *
- *  2) Algorithm based on Thinkyhead Marlin 1 - 7 points + iteration              ~4.5Kb *
+ *  2) Algorithm based on LVD-AC(Luc Van Daele) 1 - 7 points + iteration          ~4.5Kb *
  *                                                                                       *
  * To use one of this you must have a PROBE, please define you type probe.               *
  *                                                                                       *
