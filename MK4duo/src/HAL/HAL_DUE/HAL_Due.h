@@ -410,6 +410,8 @@ void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
 /** Read single byte from specified SPI channel */
 uint8_t spiReceive(uint32_t chan);
 
+// Tone for due
+void tone(const Pin t_pin, const uint16_t frequency, const uint16_t duration);
 
 // EEPROM
 uint8_t eeprom_read_byte(uint8_t* pos);
