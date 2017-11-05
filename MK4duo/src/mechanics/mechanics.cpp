@@ -30,13 +30,6 @@
 #include "mechanics.h"
 
 /**
- * Get an axis position according to stepper position(s)
- */
-float Mechanics::get_axis_position_mm(AxisEnum axis) {
-  return stepper.position(axis) * steps_to_mm[axis];
-}
-
-/**
  * Directly set the planner XYZ position (and stepper positions)
  * converting mm into steps.
  */
@@ -102,9 +95,9 @@ void Mechanics::set_position_mm(const float position[NUM_AXIS]) {
  * suitable for current_position, etc.
  */
 void Mechanics::get_cartesian_from_steppers() {
-  cartesian_position[X_AXIS] = get_axis_position_mm(X_AXIS);
-  cartesian_position[Y_AXIS] = get_axis_position_mm(Y_AXIS);
-  cartesian_position[Z_AXIS] = get_axis_position_mm(Z_AXIS);
+  cartesian_position[X_AXIS] = stepper.get_axis_position_mm(X_AXIS);
+  cartesian_position[Y_AXIS] = stepper.get_axis_position_mm(Y_AXIS);
+  cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
 }
 
 /**
@@ -411,7 +404,7 @@ void Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
   const float diff[XYZE] = {
@@ -713,9 +706,9 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
         SERIAL_EM(" (enabled)");
         #if ABL_PLANAR
           const float diff[XYZ] = {
-            get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
-            get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
-            get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
+            stepper.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
+            stepper.get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
+            stepper.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
           };
           SERIAL_MSG("ABL Adjustment X");
           if (diff[X_AXIS] > 0) SERIAL_CHR('+');
@@ -727,7 +720,7 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
           if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
           SERIAL_VAL(diff[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_UBL)
-          SERIAL_MV("UBL Adjustment Z", get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]);
+          SERIAL_MV("UBL Adjustment Z", stepper.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(current_position));
         #endif

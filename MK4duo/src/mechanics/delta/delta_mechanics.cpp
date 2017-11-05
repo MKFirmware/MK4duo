@@ -93,14 +93,11 @@
    */
   void Delta_Mechanics::get_cartesian_from_steppers() {
     InverseTransform(
-      get_axis_position_mm(A_AXIS),
-      get_axis_position_mm(B_AXIS),
-      get_axis_position_mm(C_AXIS),
+      stepper.get_axis_position_mm(A_AXIS),
+      stepper.get_axis_position_mm(B_AXIS),
+      stepper.get_axis_position_mm(C_AXIS),
       cartesian_position
     );
-    cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
-    cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
-    cartesian_position[Z_AXIS] += LOGICAL_Z_POSITION(0);
   }
 
   #if DISABLED(AUTO_BED_LEVELING_UBL)
@@ -764,7 +761,7 @@
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {
