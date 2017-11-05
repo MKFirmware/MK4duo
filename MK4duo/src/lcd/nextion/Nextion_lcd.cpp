@@ -1133,13 +1133,13 @@
       ZERO(buffer);
       getConnect(buffer, sizeof(buffer));
 
-      if (strstr(buffer, "NX4827T043") || strstr(buffer, "NX4827K043")) { // Model 4.3" Normal or Enhanced
+      if (strstr(buffer, "4827")) { // Model 4.3" Normal or Enhanced
         SERIAL_MSG(" 4.3");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "NX8048T070") || strstr(buffer, "NX8048K070")) { // Model 7" Normal or Enhanced
+      else if (strstr(buffer, "8048")) { // Model 7" Normal or Enhanced
         SERIAL_MSG(" 7");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(274, 213, 250, 155);
