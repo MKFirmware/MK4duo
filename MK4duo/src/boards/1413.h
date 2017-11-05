@@ -241,7 +241,7 @@
       #define LCD_SDSS 53
       #define SD_DETECT_PIN 49
     #elif ENABLED(VIKI2) || ENABLED(miniVIKI)
-      #define ORIG_BEEPER_PIN       33
+      #define ORIG_BEEPER_PIN  33
 
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0        44
