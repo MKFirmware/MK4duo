@@ -1477,6 +1477,35 @@ long Stepper::position(AxisEnum axis) {
   return machine_pos;
 }
 
+/**
+ * Get an axis position according to stepper position(s)
+ * For CORE machines apply translation from ABC to XYZ.
+ */
+float Stepper::get_axis_position_mm(AxisEnum axis) {
+
+  float axis_steps;
+
+  #if IS_CORE
+    // Requesting one of the "core" axes?
+    if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
+      CRITICAL_SECTION_START
+      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
+      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
+      axis_steps = 0.5f * (
+        axis == CORE_AXIS_2 ? CORESIGN(machine_position[CORE_AXIS_1] - machine_position[CORE_AXIS_2])
+                                     : machine_position[CORE_AXIS_1] + machine_position[CORE_AXIS_2]
+      );
+      CRITICAL_SECTION_END
+    }
+    else
+      axis_steps = position(axis);
+  #else
+    axis_steps = position(axis);
+  #endif
+
+  return axis_steps * mechanics.steps_to_mm[axis];
+}
+
 void Stepper::enable_all_steppers() {
 
   #if HAS_POWER_SWITCH

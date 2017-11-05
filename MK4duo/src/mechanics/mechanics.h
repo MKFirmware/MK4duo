@@ -186,11 +186,6 @@ class Mechanics {
   public: /** Public Function */
 
     /**
-     * Get the position (mm) of an axis based on stepper position(s)
-     */
-    float get_axis_position_mm(AxisEnum axis);
-
-    /**
      * Set the planner.position and individual stepper positions.
      * Used by G92, G28, G29, and other procedures.
      *
@@ -309,8 +304,6 @@ class Mechanics {
 
     FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
 
-    //float get_homing_bump_feedrate(const AxisEnum axis);
-
     bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
     virtual bool position_is_reachable_raw_xy(const float &rx, const float &ry);
@@ -350,7 +343,7 @@ class Mechanics {
     /**
      *  Home axis
      */
-    virtual void homeaxis(const AxisEnum axis) = 0;
+    virtual void homeaxis(const AxisEnum axis);
 
 };
 
