@@ -109,7 +109,7 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis) override;
+      void homeaxis(const AxisEnum axis);
 
   };
 
