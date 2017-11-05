@@ -86,10 +86,6 @@ typedef struct {
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
 #define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
-#define BEEPER_TIMER 4
-#define BEEPER_TIMER_COUNTER TC1
-#define BEEPER_TIMER_CHANNEL 1
-
 #define AD_PRESCALE_FACTOR      84  // 500 kHz ADC clock 
 #define AD_TRACKING_CYCLES      4   // 0 - 15     + 1 adc clock cycles
 #define AD_TRANSFER_CYCLES      1   // 0 - 3      * 2 + 3 adc clock cycles
@@ -101,8 +97,6 @@ typedef struct {
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 
 #define HAL_TIMER_SET_STEPPER_COUNT(count)  HAL_timer_set_count(STEPPER_TIMER, count);
-
-#define HAL_BEEPER_TIMER_ISR  void TC4_Handler()
 
 #define HAL_ENABLE_ISRs() \
         do { \
@@ -170,7 +164,7 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 1, TC1_IRQn, 0 },  // 1 - [servo timer1]
   { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 92
   { TC1, 0, TC3_IRQn, 3 },  // 3 - Stepper
-  { TC1, 1, TC4_IRQn, 0 },  // 4 - beeper
+  { TC1, 1, TC4_IRQn, 0 },  // 4 -
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
   { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
@@ -210,13 +204,5 @@ static FORCE_INLINE void HAL_timer_isr_prologue(uint8_t timer_num) {
   // Reading the status register clears the interrupt flag
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_SR;
 }
-
-// Tone
-inline void HAL_timer_isr_status(Tc* tc, uint32_t channel) {
-  tc->TC_CHANNEL[channel].TC_SR; // clear status register
-}
-
-void tone(const Pin pin, int frequency, unsigned long duration);
-void noTone(const Pin pin);
 
 #endif // _HAL_TIMERS_DUE_H
