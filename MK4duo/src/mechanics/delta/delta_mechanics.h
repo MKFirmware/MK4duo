@@ -158,7 +158,7 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis) override;
+      void homeaxis(const AxisEnum axis);
 
       /**
        * Calculate delta, start a line, and set current_position to destination

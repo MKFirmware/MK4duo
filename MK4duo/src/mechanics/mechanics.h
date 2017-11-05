@@ -340,11 +340,6 @@ class Mechanics {
 
   private: /** Private Function */
 
-    /**
-     *  Home axis
-     */
-    virtual void homeaxis(const AxisEnum axis);
-
 };
 
 #if IS_CARTESIAN
