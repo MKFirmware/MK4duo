@@ -68,7 +68,7 @@
       if (autoMonitored != 7)
         // Check for Hotend temperature
         Speed = ((int)heaters[autoMonitored].current_temperature > triggerTemperature) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
-      else
+      else {
         // Check for Controller fan
         if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
           || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
