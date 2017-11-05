@@ -168,9 +168,6 @@
 
 
 //###IF_BLOCKS
-#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
-    #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu.
-  #endif
 
   #if !MB(SANGUINOLOLU_11)
     #define SANGUINOLOLU_V_1_2
@@ -187,20 +184,6 @@
     #elif MB(STB_11)
       #define LCD_BACKLIGHT_PIN   17 // LCD backlight LED
     #endif
-  #endif
-
-  #if NUM_SERVOS > 0
-    #define SERVO0_PIN            NoPin
-    #if NUM_SERVOS > 1
-      #define SERVO1_PIN          NoPin
-      #if NUM_SERVOS > 2
-        #define SERVO2_PIN        NoPin
-        #if NUM_SERVOS > 3
-          #define SERVO3_PIN      NoPin
-        #endif
-      #endif
-    #endif
-  #endif
 
   #if ENABLED(SANGUINOLOLU_V_1_2)
 

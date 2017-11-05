@@ -189,7 +189,7 @@
 
   #if ENABLED(NEWPANEL)
    //arduino pin which triggers an piezzo beeper
-    #define BEEPER          23
+    #define ORIG_BEEPER_PIN 23
     #define LCD_PINS_RS     17
     #define LCD_PINS_ENABLE 24
     #define LCD_PINS_D4     69
