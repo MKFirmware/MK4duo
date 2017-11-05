@@ -235,7 +235,7 @@
       #define LCD_SDSS          53
       #define SD_DETECT_PIN     49
     #elif ENABLED(VIKI2) || ENABLED(miniVIKI)
-      #define BEEPER_PIN        33
+      #define ORIG_BEEPER_PIN   33
 
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0         44
@@ -267,7 +267,7 @@
       #define DOGLCD_A0         27
       #define LCD_BACKLIGHT_PIN 33
     #elif ENABLED(MINIPANEL)
-      #define BEEPER_PIN        42
+      #define ORIG_BEEPER_PIN   42
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0         44
       #define DOGLCD_CS         66
@@ -360,7 +360,7 @@
   #undef DOGLCD_A0
   #undef DOGLCD_CS
   #undef SD_DETECT_PIN
-  #undef BEEPER_PIN
+  #undef ORIG_BEEPER_PIN
   #undef KILL_PIN
 
   //
@@ -400,7 +400,7 @@
   #define KILL_PIN        23
 
   // green                BUZZER
-  #define BEEPER_PIN      25
+  #define ORIG_BEEPER_PIN 25
 
   // yellow               RED-LED
   #define STAT_LED_RED_PIN 16

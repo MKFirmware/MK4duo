@@ -194,7 +194,7 @@
     #define LCD_PINS_D6 27
     #define LCD_PINS_D7 29
     #if DISABLED(NEWPANEL)
-      #define BEEPER_PIN 33
+      #define ORIG_BEEPER_PIN 33
       // Buttons are attached to a shift register
       // Not wired yet
       //#define SHIFT_CLK 38
@@ -207,7 +207,7 @@
   #if ENABLED(NEWPANEL)
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
-      #define BEEPER_PIN 37
+      #define ORIG_BEEPER_PIN 37
 
       #define BTN_EN1 31
       #define BTN_EN2 33
@@ -241,7 +241,7 @@
       #define LCD_SDSS 53
       #define SD_DETECT_PIN 49
     #elif ENABLED(VIKI2) || ENABLED(miniVIKI)
-      #define BEEPER_PIN       33
+      #define ORIG_BEEPER_PIN  33
 
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0        44
@@ -267,12 +267,12 @@
       #define SD_DETECT_PIN 49
       #define LCD_SDSS 53
       #define KILL_PIN 41
-      #define BEEPER_PIN 23
+      #define ORIG_BEEPER_PIN 23
       #define DOGLCD_CS 29
       #define DOGLCD_A0 27
       #define LCD_BACKLIGHT_PIN 33
     #elif ENABLED(MINIPANEL)
-      #define BEEPER_PIN 42
+      #define ORIG_BEEPER_PIN 42
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0  44
       #define DOGLCD_CS  66
@@ -296,7 +296,7 @@
     #else
 
       // Beeper on AUX-4
-      #define BEEPER_PIN 33
+      #define ORIG_BEEPER_PIN 33
 
       // buttons are directly attached using AUX-2
       #if ENABLED(REPRAPWORLD_KEYPAD)

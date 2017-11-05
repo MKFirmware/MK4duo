@@ -197,7 +197,7 @@
     // display using an adapter board  // https://go.aisler.net/benlye/anet-lcd-adapter/pcb
     // See below for alternative pin definitions for use with https://www.thingiverse.com/thing:2103748
     #define SERVO0_PIN       29 // free for BLTouch/3D-Touch
-    #define BEEPER_PIN       17
+    #define ORIG_BEEPER_PIN  17
     #define LCD_PINS_RS      27
     #define LCD_PINS_ENABLE  28
     #define LCD_PINS_D4      30
