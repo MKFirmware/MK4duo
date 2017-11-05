@@ -178,15 +178,15 @@
 
 //###IF_BLOCKS
 //OE S2 S1 S0
-//L  L  L  L 	A port = B1 port EXTRUDER8
-//L  L  L  H 	A port = B2 port EXTRUDER7
-//L  L  H  L 	A port = B3 port EXTRUDER6
-//L  L  H  H 	A port = B4 port EXTRUDER5
-//L  H  L  L 	A port = B5 port EXTRUDER4
-//L  H  L  H 	A port = B6 port EXTRUDER3
-//L  H  H  L 	A port = B7 port EXTRUDER2
-//L  H  H  H 	A port = B8 port EXTRUDER1
-//H  X  X  X 	Disconnect
+//L  L  L  L  A port = B1 port EXTRUDER8
+//L  L  L  H  A port = B2 port EXTRUDER7
+//L  L  H  L  A port = B3 port EXTRUDER6
+//L  L  H  H  A port = B4 port EXTRUDER5
+//L  H  L  L  A port = B5 port EXTRUDER4
+//L  H  L  H  A port = B6 port EXTRUDER3
+//L  H  H  L  A port = B7 port EXTRUDER2
+//L  H  H  H  A port = B8 port EXTRUDER1
+//H  X  X  X  Disconnect
 //#define EXP_VOLTAGE_LEVEL_PIN    2 //(ADC1 pin A5)
 //#define DAC0_SYNC               53 // PB14
 //#define DAC1_SYNC                6 // PC24
@@ -201,7 +201,7 @@
     #define LCD_PINS_D6         49
     #define LCD_PINS_D7         43
 
-    #define BEEPER              44
+    #define ORIG_BEEPER_PIN     44
 
     #define BTN_EN1             52
     #define BTN_EN2             51

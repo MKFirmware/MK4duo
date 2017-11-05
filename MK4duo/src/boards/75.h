@@ -171,7 +171,7 @@
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
 
-  #define BEEPER_PIN       18
+  #define ORIG_BEEPER_PIN  18
 
   #if ENABLED(NEWPANEL)       
 
