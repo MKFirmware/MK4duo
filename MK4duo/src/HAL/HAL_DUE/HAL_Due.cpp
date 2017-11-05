@@ -97,6 +97,24 @@ void sei(void) {
   interrupts();
 }
 
+// Tone for due
+// input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
+void tone(const Pin t_pin, const uint16_t frequency, const uint16_t duration) {
+
+  millis_t endTime = millis() + duration;
+  const uint32_t halfPeriod = 1000000L / frequency / 2;
+
+  HAL::pinMode(t_pin, OUTPUT_LOW);
+
+  while (PENDING(millis(),  endTime)) {
+    HAL::digitalWrite(t_pin, HIGH);
+    HAL::delayMicroseconds(halfPeriod);
+    HAL::digitalWrite(t_pin, LOW);
+    HAL::delayMicroseconds(halfPeriod);
+  }
+  HAL::pinMode(t_pin, OUTPUT_LOW);
+}
+
 static inline void ConfigurePin(const PinDescription& pinDesc) {
   PIO_Configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
