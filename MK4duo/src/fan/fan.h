@@ -44,11 +44,11 @@
                 min_Speed,
                 paused_Speed,
                 Kickstart,
-                pwm_pos,
-                autoMonitored;
-      uint16_t  freq,
-                triggerTemperatures;
-      int16_t   lastpwm;
+                pwm_pos;
+      int8_t    autoMonitored;
+      uint16_t  freq;
+      int16_t   lastpwm,
+                triggerTemperature;
       bool      hardwareInverted,
                 paused;
 

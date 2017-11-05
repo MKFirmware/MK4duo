@@ -178,18 +178,6 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(E0_ATT)
     PIN_SAY(E0_ATT_PIN);
   #endif
-  #if PIN_EXISTS(H0_AUTO_FAN)
-    PIN_SAY(H0_AUTO_FAN_PIN);
-  #endif
-  #if PIN_EXISTS(H1_AUTO_FAN)
-    PIN_SAY(H1_AUTO_FAN_PIN);
-  #endif
-  #if PIN_EXISTS(H2_AUTO_FAN)
-    PIN_SAY(H2_AUTO_FAN_PIN);
-  #endif
-  #if PIN_EXISTS(H3_AUTO_FAN)
-    PIN_SAY(H3_AUTO_FAN_PIN);
-  #endif
   #if PIN_EXISTS(E0_DIR)
     PIN_SAY(E0_DIR_PIN);
   #endif
@@ -359,7 +347,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
     PIN_SAY(EXT_AUX_TX1_D3);
   #endif
 
-  #if PIN_EXISTS(FAN)
+  #if PIN_EXISTS(FAN0)
     PIN_SAY(FAN0_PIN);
   #endif
   #if PIN_EXISTS(FAN1)
@@ -377,9 +365,7 @@ static bool report_pin_name(int8_t pin, bool &pin_is_analog) {
   #if PIN_EXISTS(FAN5)
     PIN_SAY(FAN5_PIN);
   #endif
-  #if PIN_EXISTS(FAN6)
-    PIN_SAY(FAN6_PIN);
-  #endif
+
   #if PIN_EXISTS(FIL_RUNOUT)
     PIN_SAY(FIL_RUNOUT_PIN);
   #endif

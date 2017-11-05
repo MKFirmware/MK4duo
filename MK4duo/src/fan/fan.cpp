@@ -43,17 +43,15 @@
     pwm_pos             = 0;
     lastpwm             = -1;
     paused              = false;
-    triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
+    autoMonitored       = -1;
+    triggerTemperature  = (HOTEND_AUTO_FAN_TEMPERATURE);
 
     if (pin > 0) HAL::pinMode(pin, (hardwareInverted) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   }
 
   void Fan::SetAutoMonitored(const int8_t h) {
-    if (WITHIN(h, 0, HOTENDS -1) || h == 7)
-      SBI(autoMonitored, (unsigned int)h);
-    else      
-      autoMonitored = 0;
+    autoMonitored = (WITHIN(h, 0, HOTENDS -1) || h == 7) ? h : -1;
     Check();
   }
 
@@ -61,19 +59,17 @@
     static millis_t next_auto_fan_check_ms  = 0,
                     lastMotorOn             = 0;
 
+    if (autoMonitored == -1) return;
+
     millis_t ms = millis();
 
-    if (autoMonitored == 0) return;
-
     if (ELAPSED(ms, next_auto_fan_check_ms)) {
-      // Check for Hotend temperature
-      LOOP_HOTEND() {
-        if (TEST(autoMonitored, h))
-          Speed = ((int)heaters[h].current_temperature > triggerTemperatures) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
-      }
 
-      // Check for Controller fan
-      if (TEST(autoMonitored, 7)) {
+      if (autoMonitored != 7)
+        // Check for Hotend temperature
+        Speed = ((int)heaters[autoMonitored].current_temperature > triggerTemperature) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
+      else
+        // Check for Controller fan
         if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
           || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
           #if EXTRUDERS > 1
