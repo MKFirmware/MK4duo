@@ -184,6 +184,7 @@
     #elif MB(STB_11)
       #define LCD_BACKLIGHT_PIN   17 // LCD backlight LED
     #endif
+  #endif
 
   #if ENABLED(SANGUINOLOLU_V_1_2)
 
