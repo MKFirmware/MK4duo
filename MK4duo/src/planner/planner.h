@@ -104,9 +104,6 @@ typedef struct {
            final_rate,                          // The minimal rate at exit
            acceleration_steps_per_s2;           // acceleration steps/sec^2
 
-  // Pre-calculated division for the calculate_trapezoid_for_block() routine to run faster.
-  float speed_factor;
-
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
   #endif

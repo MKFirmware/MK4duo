@@ -124,14 +124,12 @@ void Planner::init() {
  * by the provided factors.
  */
 void Planner::calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor) {
-  uint32_t initial_rate = CEIL(entry_factor * block->speed_factor),
-           final_rate   = CEIL(exit_factor  * block->speed_factor); // (steps per second)
+  uint32_t initial_rate = CEIL(entry_factor * block->nominal_rate),
+           final_rate   = CEIL(exit_factor  * block->nominal_rate); // (steps per second)
 
   // Limit minimal step rate (Otherwise the timer will overflow.)
   NOLESS(initial_rate, MINIMAL_STEP_RATE);
-  NOMORE(initial_rate, block->nominal_rate);
   NOLESS(final_rate, MINIMAL_STEP_RATE);
-  NOMORE(final_rate, block->nominal_rate);
 
   int32_t accel = block->acceleration_steps_per_s2,
           accelerate_steps = CEIL(estimate_acceleration_distance(initial_rate, block->nominal_rate, accel)),
@@ -1249,10 +1247,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   #endif // LIN_ADVANCE
 
-  // Precalculate the division, so when all the trapezoids in the planner queue
-  // get recalculated, the division is not repeated.
-  block->speed_factor = block->nominal_rate / block->nominal_speed;
-  calculate_trapezoid_for_block(block, block->entry_speed, safe_speed);
+  calculate_trapezoid_for_block(block, block->entry_speed / block->nominal_speed, safe_speed / block->nominal_speed);
 
   // Move buffer head
   block_buffer_head = next_buffer_head;
