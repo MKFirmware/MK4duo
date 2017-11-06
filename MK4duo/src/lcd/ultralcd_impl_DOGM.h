@@ -661,9 +661,9 @@ static void lcd_implementation_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (page.page == 0) {
-    strcpy(xstring, ftostr4sign(mechanics.current_position[X_AXIS]));
-    strcpy(ystring, ftostr4sign(mechanics.current_position[Y_AXIS]));
-    strcpy(zstring, ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
+    strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
+    strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
+    strcpy(zstring, ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));

@@ -67,25 +67,25 @@
       return;
     }
 
+    const bool stow_probe_after_each = parser.seen('E');
+
     float X_current = mechanics.current_position[X_AXIS],
           Y_current = mechanics.current_position[Y_AXIS];
 
-    bool stow_probe_after_each = parser.seen('E');
-
-    float X_probe_location = parser.seen('X') ? parser.value_linear_units() : X_current + probe.offset[X_AXIS];
-    float Y_probe_location = parser.seen('Y') ? parser.value_linear_units() : Y_current + probe.offset[Y_AXIS];
+    const float X_probe_location = parser.linearval('X', X_current + probe.offset[X_AXIS]),
+                Y_probe_location = parser.linearval('Y', Y_current + probe.offset[Y_AXIS]);
 
     #if NOMECH(DELTA)
-      if (!WITHIN(X_probe_location, LOGICAL_X_POSITION(MIN_PROBE_X), LOGICAL_X_POSITION(MAX_PROBE_X))) {
+      if (!WITHIN(X_probe_location, MIN_PROBE_X, MAX_PROBE_X)) {
         out_of_range_error(PSTR("X"));
         return;
       }
-      if (!WITHIN(Y_probe_location, LOGICAL_Y_POSITION(MIN_PROBE_Y), LOGICAL_Y_POSITION(MAX_PROBE_Y))) {
+      if (!WITHIN(Y_probe_location, MIN_PROBE_Y, MAX_PROBE_Y)) {
         out_of_range_error(PSTR("Y"));
         return;
       }
     #else
-      if (!mechanics.position_is_reachable_by_probe_xy(X_probe_location, Y_probe_location)) {
+      if (!mechanics.position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
         SERIAL_LM(ER, "? (X,Y) location outside of probeable radius.");
         return;
       }
@@ -175,7 +175,7 @@
             #if MECH(DELTA)
               // If we have gone out too far, we can do a simple fix and scale the numbers
               // back in closer to the origin.
-              while (!mechanics.position_is_reachable_by_probe_xy(X_current, Y_current)) {
+              while (!mechanics.position_is_reachable_by_probe(X_current, Y_current)) {
                 X_current *= 0.8;
                 Y_current *= 0.8;
                 if (verbose_level > 3) {

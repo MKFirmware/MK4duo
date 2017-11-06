@@ -46,9 +46,9 @@
     LOOP_XYZ(i) {
       if (mechanics.axis_homed[i]) {
         const float base = (mechanics.current_position[i] > (endstops.soft_endstop_min[i] + endstops.soft_endstop_max[i]) * 0.5) ? mechanics.base_home_pos[(AxisEnum)i] : 0,
-                    diff = base - RAW_POSITION(mechanics.current_position[i], i);
+                    diff = base - mechanics.current_position[i];
         if (WITHIN(diff, -20, 20)) {
-          mechanics.home_offset[(AxisEnum)i] = diff;
+          mechanics.set_home_offset((AxisEnum)i, diff);
         }
         else {
           SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);

@@ -37,7 +37,7 @@ inline void gcode_G0_G1(
   #endif
 ) {
   if (printer.IsRunning()) {
-    printer.get_destination_from_command(); // For X Y Z E F
+    commands.get_destination(); // For X Y Z E F
 
     #if ENABLED(FWRETRACT)
       if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {

@@ -154,9 +154,9 @@
             switch (mechanics.dual_x_carriage_mode) {
               case DXC_FULL_CONTROL_MODE:
                 // New current position is the position of the activated hotend
-                mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(mechanics.inactive_hotend_x_pos);
+                mechanics.current_position[X_AXIS] = mechanics.inactive_hotend_x_pos;
                 // Save the inactive hotend's position (from the old mechanics.current_position)
-                mechanics.inactive_hotend_x_pos = RAW_X_POSITION(mechanics.destination[X_AXIS]);
+                mechanics.inactive_hotend_x_pos = mechanics.destination[X_AXIS];
                 break;
               case DXC_AUTO_PARK_MODE:
                 // record raised toolhead position for use by unpark
@@ -174,10 +174,10 @@
                 mechanics.active_hotend_parked = (active_extruder == 0);
 
                 if (mechanics.active_hotend_parked)
-                  mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(mechanics.inactive_hotend_x_pos);
+                  mechanics.current_position[X_AXIS] = mechanics.inactive_hotend_x_pos;
                 else
                   mechanics.current_position[X_AXIS] = mechanics.destination[X_AXIS] + mechanics.duplicate_hotend_x_offset;
-                mechanics.inactive_hotend_x_pos = RAW_X_POSITION(mechanics.destination[X_AXIS]);
+                mechanics.inactive_hotend_x_pos = mechanics.destination[X_AXIS];
                 mechanics.hotend_duplication_enabled = false;
                 #if ENABLED(DEBUG_LEVELING_FEATURE)
                   if (DEBUGGING(LEVELING)) {

@@ -46,8 +46,8 @@
       }
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        #define _GET_MESH_X(I) bedlevel.bilinear_start[X_AXIS] + I * bedlevel.bilinear_grid_spacing[X_AXIS]
-        #define _GET_MESH_Y(J) bedlevel.bilinear_start[Y_AXIS] + J * bedlevel.bilinear_grid_spacing[Y_AXIS]
+        #define _GET_MESH_X(I) abl.bilinear_start[X_AXIS] + I * abl.bilinear_grid_spacing[X_AXIS]
+        #define _GET_MESH_Y(J) abl.bilinear_start[Y_AXIS] + J * abl.bilinear_grid_spacing[Y_AXIS]
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
         #define _GET_MESH_X(I) ubl.mesh_index_to_xpos(I)
         #define _GET_MESH_Y(J) ubl.mesh_index_to_ypos(J)
@@ -57,8 +57,8 @@
       #endif
 
       mechanics.set_destination_to_current();
-      if (hasI) mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(_GET_MESH_X(ix));
-      if (hasJ) mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(_GET_MESH_Y(iy));
+      if (hasI) mechanics.destination[X_AXIS] = _GET_MESH_X(ix);
+      if (hasJ) mechanics.destination[Y_AXIS] = _GET_MESH_Y(iy);
       if (parser.boolval('P')) {
         if (hasI) mechanics.destination[X_AXIS] -= probe.offset[X_AXIS];
         if (hasJ) mechanics.destination[Y_AXIS] -= probe.offset[Y_AXIS];

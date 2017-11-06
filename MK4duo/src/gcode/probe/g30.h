@@ -48,7 +48,7 @@
     // Don't allow G30 without homing first
     if (mechanics.axis_unhomed_error()) return;
 
-    if (!mechanics.position_is_reachable_by_probe_xy(xpos, ypos)) return;
+    if (!mechanics.position_is_reachable_by_probe(xpos, ypos)) return;
 
     // Disable leveling so the planner won't mess with us
     #if HAS_LEVELING

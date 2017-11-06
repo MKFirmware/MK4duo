@@ -124,12 +124,14 @@ void Planner::init() {
  * by the provided factors.
  */
 void Planner::calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor) {
-  uint32_t initial_rate = CEIL(block->nominal_rate * entry_factor),
-           final_rate = CEIL(block->nominal_rate * exit_factor); // (steps per second)
+  uint32_t initial_rate = CEIL(entry_factor * block->speed_factor),
+           final_rate   = CEIL(exit_factor  * block->speed_factor); // (steps per second)
 
   // Limit minimal step rate (Otherwise the timer will overflow.)
   NOLESS(initial_rate, MINIMAL_STEP_RATE);
+  NOMORE(initial_rate, block->nominal_rate);
   NOLESS(final_rate, MINIMAL_STEP_RATE);
+  NOMORE(final_rate, block->nominal_rate);
 
   int32_t accel = block->acceleration_steps_per_s2,
           accelerate_steps = CEIL(estimate_acceleration_distance(initial_rate, block->nominal_rate, accel)),
@@ -1062,11 +1064,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   block->acceleration_steps_per_s2 = accel;
   block->acceleration = accel / steps_per_mm;
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    block->acceleration_rate = (long)(accel * (4294967296.0 / (HAL_STEPPER_TIMER_RATE)));
-  #else
-    block->acceleration_rate = (long)(accel * 16777216.0 / (HAL_STEPPER_TIMER_RATE));
-  #endif
+  block->acceleration_rate = (long)(accel * (HAL_ACCELERATION_RATE));
 
   // Initial limit on the segment entry velocity
   float vmax_junction;
@@ -1251,7 +1249,10 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   #endif // LIN_ADVANCE
 
-  calculate_trapezoid_for_block(block, block->entry_speed / block->nominal_speed, safe_speed / block->nominal_speed);
+  // Precalculate the division, so when all the trapezoids in the planner queue
+  // get recalculated, the division is not repeated.
+  block->speed_factor = block->nominal_rate / block->nominal_speed;
+  calculate_trapezoid_for_block(block, block->entry_speed, safe_speed);
 
   // Move buffer head
   block_buffer_head = next_buffer_head;
@@ -1279,23 +1280,23 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
  * Kinematic machines should call buffer_line_kinematic (for leveled moves).
  * (Cartesians may also call buffer_line_kinematic.)
  *
- *  lx,ly,lz,e  - target position in mm or degrees
- *  fr_mm_s     - (target) speed of the move (mm/s)
- *  extruder    - target extruder
+ *  rx,ry,rz,e   - target position in mm or degrees
+ *  fr_mm_s      - (target) speed of the move (mm/s)
+ *  extruder     - target extruder
  */
 void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
   #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
-    bedlevel.apply_leveling(lx, ly, lz);
+    bedlevel.apply_leveling(rx, ry, rz);
   #endif
   #if ENABLED(ZWOBBLE)
     // Calculate ZWobble
-    mechanics.insert_zwobble_correction(lz);
+    mechanics.insert_zwobble_correction(rz);
   #endif
   #if ENABLED(HYSTERESIS)
     // Calculate Hysteresis
-    mechanics.insert_hysteresis_correction(lx, ly, lz, e);
+    mechanics.insert_hysteresis_correction(rx, ry, rz, e);
   #endif
-  _buffer_line(lx, ly, lz, e, fr_mm_s, extruder);
+  _buffer_line(rx, ry, rz, e, fr_mm_s, extruder);
 }
 
 /**
@@ -1303,33 +1304,33 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
  * The target is cartesian, it's translated to delta/scara if
  * needed.
  *
- *  ltarget   - x,y,z,e CARTESIAN target in mm
+ *  rtarget   - x,y,z,e CARTESIAN target in mm
  *  fr_mm_s   - (target) speed of the move (mm/s)
  *  extruder  - target extruder
  */
-void Planner::buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line_kinematic(const float rtarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
   #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-    float lpos[XYZ]={ ltarget[X_AXIS], ltarget[Y_AXIS], ltarget[Z_AXIS] };
+    float rpos[XYZ]={ rtarget[X_AXIS], rtarget[Y_AXIS], rtarget[Z_AXIS] };
     #if PLANNER_LEVELING
-      bedlevel.apply_leveling(lpos);
+      bedlevel.apply_leveling(rpos);
     #endif
     #if ENABLED(ZWOBBLE)
       // Calculate ZWobble
-      mechanics.insert_zwobble_correction(lpos[Z_AXIS]);
+      mechanics.insert_zwobble_correction(rpos[Z_AXIS]);
     #endif
     #if ENABLED(HYSTERESIS)
       // Calculate Hysteresis
-      mechanics.insert_hysteresis_correction(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS]);
+      mechanics.insert_hysteresis_correction(rpos[X_AXIS], rpos[Y_AXIS], rpos[Z_AXIS], rtarget[E_AXIS]);
     #endif
   #else
-    const float * const lpos = ltarget;
+    const float * const rpos = rtarget;
   #endif
 
   #if IS_KINEMATIC
-    mechanics.Transform(lpos);
-    _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
+    mechanics.Transform(rpos);
+    _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], rtarget[E_AXIS], fr_mm_s, extruder);
   #else
-    _buffer_line(lpos[X_AXIS], lpos[Y_AXIS], lpos[Z_AXIS], ltarget[E_AXIS], fr_mm_s, extruder);
+    _buffer_line(rpos[X_AXIS], rpos[Y_AXIS], rpos[Z_AXIS], rtarget[E_AXIS], fr_mm_s, extruder);
   #endif
 }
 

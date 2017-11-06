@@ -72,9 +72,9 @@ void Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
 }
 void Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
   #if PLANNER_LEVELING
-    bedlevel.apply_leveling(lx, ly, lz);
+    bedlevel.apply_leveling(rx, ry, rz);
   #endif
-  _set_position_mm(lx, ly, lz, e);
+  _set_position_mm(rx, ry, rz, e);
 }
 void Mechanics::set_position_mm(const float position[NUM_AXIS]) {
   #if PLANNER_LEVELING
@@ -195,29 +195,29 @@ void Mechanics::prepare_move_to_destination() {
  *  Plan a move to (X, Y, Z) and set the current_position
  *  The final current_position may not be the one that was requested
  */
-void Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s /*=0.0*/) {
+void Mechanics::do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s /*=0.0*/) {
   const float old_feedrate_mm_s = feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
+    if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
   #endif
 
   // If Z needs to raise, do it before moving XY
-  if (current_position[Z_AXIS] < lz) {
+  if (current_position[Z_AXIS] < rz) {
     feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
-    current_position[Z_AXIS] = lz;
+    current_position[Z_AXIS] = rz;
     line_to_current_position();
   }
 
   feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
-  current_position[X_AXIS] = lx;
-  current_position[Y_AXIS] = ly;
+  current_position[X_AXIS] = rx;
+  current_position[Y_AXIS] = ry;
   line_to_current_position();
 
   // If Z needs to lower, do it after moving XY
-  if (current_position[Z_AXIS] > lz) {
+  if (current_position[Z_AXIS] > rz) {
     feedrate_mm_s = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
-    current_position[Z_AXIS] = lz;
+    current_position[Z_AXIS] = rz;
     line_to_current_position();
   }
 
@@ -229,33 +229,33 @@ void Mechanics::do_blocking_move_to(const float &lx, const float &ly, const floa
     if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
   #endif
 }
-void Mechanics::do_blocking_move_to(const float logical[XYZ], const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS], fr_mm_s);
+void Mechanics::do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s/*=0.0*/) {
+  do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
 }
-void Mechanics::do_blocking_move_to_x(const float &lx, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(lx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+void Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
+  do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
 }
-void Mechanics::do_blocking_move_to_z(const float &lz, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], lz, fr_mm_s);
+void Mechanics::do_blocking_move_to_z(const float &rz, const float &fr_mm_s/*=0.0*/) {
+  do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], rz, fr_mm_s);
 }
-void Mechanics::do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(lx, ly, current_position[Z_AXIS], fr_mm_s);
+void Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s/*=0.0*/) {
+  do_blocking_move_to(rx, ry, current_position[Z_AXIS], fr_mm_s);
 }
 
-void Mechanics::manual_goto_xy(const float &lx, const float &ly) {
+void Mechanics::manual_goto_xy(const float &rx, const float &ry) {
 
   const float old_feedrate_mm_s = feedrate_mm_s;
 
   #if MANUAL_PROBE_HEIGHT > 0
     const float prev_z = current_position[Z_AXIS];
     feedrate_mm_s = homing_feedrate_mm_s[Z_AXIS];
-    current_position[Z_AXIS] = LOGICAL_Z_POSITION(MANUAL_PROBE_HEIGHT);
+    current_position[Z_AXIS] = MANUAL_PROBE_HEIGHT;
     line_to_current_position();
   #endif
 
   feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-  current_position[X_AXIS] = LOGICAL_X_POSITION(lx);
-  current_position[Y_AXIS] = LOGICAL_Y_POSITION(ly);
+  current_position[X_AXIS] = rx;
+  current_position[Y_AXIS] = ry;
   line_to_current_position();
 
   #if MANUAL_PROBE_HEIGHT > 0
@@ -377,11 +377,15 @@ void Mechanics::report_current_position_detail() {
   stepper.synchronize();
 
   SERIAL_MSG("\nLogical:");
-  report_xyze(current_position);
+  const float logical[XYZ] = {
+    LOGICAL_X_POSITION(current_position[X_AXIS]),
+    LOGICAL_Y_POSITION(current_position[Y_AXIS]),
+    LOGICAL_Z_POSITION(current_position[Z_AXIS])
+  };
+  report_xyze(logical);
 
   SERIAL_MSG("Raw:    ");
-  const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
-  report_xyz(raw);
+  report_xyze(current_position);
 
   float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
@@ -399,8 +403,8 @@ void Mechanics::report_current_position_detail() {
   #endif
 
   SERIAL_MSG("Stepper:");
-  const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
-  report_xyze((float*)step_count, 4, 0);
+  const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+  report_xyze(step_count, 4, 0);
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
@@ -459,21 +463,15 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   return false;
 }
 
-bool Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+bool Mechanics::position_is_reachable(const float &rx, const float &ry) {
   // Add 0.001 margin to deal with float imprecision
   return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
       && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
 }
-bool Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
   // Add 0.001 margin to deal with float imprecision
   return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
       && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
-}
-bool Mechanics::position_is_reachable_xy(const float &lx, const float &ly) {
-  return position_is_reachable_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
-}
-bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &ly) {
-  return position_is_reachable_by_probe_raw_xy(RAW_X_POSITION(lx), RAW_Y_POSITION(ly));
 }
 
 #if ENABLED(ARC_SUPPORT)
@@ -493,7 +491,7 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
    * options for G2/G3 arc generation. In future these options may be GCode tunable.
    */
   void Mechanics::plan_arc(
-    float logical[XYZE],  // Destination position
+    float rtarget[XYZE],  // Destination position
     float *offset,        // Center of rotation relative to current_position
     uint8_t clockwise     // Clockwise?
   ) {
@@ -515,10 +513,10 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
     const float radius = HYPOT(r_P, r_Q),
                 center_P = current_position[p_axis] - r_P,
                 center_Q = current_position[q_axis] - r_Q,
-                rt_X = logical[p_axis] - center_P,
-                rt_Y = logical[q_axis] - center_Q,
-                linear_travel = logical[l_axis] - current_position[l_axis],
-                extruder_travel = logical[E_AXIS] - current_position[E_AXIS];
+                rt_X = rtarget[p_axis] - center_P,
+                rt_Y = rtarget[q_axis] - center_Q,
+                linear_travel = rtarget[l_axis] - current_position[l_axis],
+                extruder_travel = rtarget[E_AXIS] - current_position[E_AXIS];
 
     // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
     float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
@@ -526,7 +524,7 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
     if (clockwise) angular_travel -= RADIANS(360);
 
     // Make a circle if the angular rotation is 0
-    if (angular_travel == 0 && current_position[p_axis] == logical[p_axis] && current_position[q_axis] == logical[q_axis])
+    if (angular_travel == 0 && current_position[p_axis] == rtarget[p_axis] && current_position[q_axis] == rtarget[q_axis])
       angular_travel += RADIANS(360);
 
     float mm_of_travel = HYPOT(angular_travel * radius, FABS(linear_travel));
@@ -627,12 +625,30 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
     }
 
     // Ensure last segment arrives at target location.
-    planner.buffer_line_kinematic(logical, fr_mm_s, tools.active_extruder);
+    planner.buffer_line_kinematic(rtarget, fr_mm_s, tools.active_extruder);
 
     // As far as the parser is concerned, the position is now == target. In reality the
     // motion control system might still be processing the action and the real tool position
     // in any intermediate location.
     set_current_to_destination();
+  }
+
+#endif
+
+#if ENABLED(WORKSPACE_OFFSETS)
+
+  /**
+   * Change the home offset for an axis, update the current
+   * position and the software endstops to retain the same
+   * relative distance to the new home.
+   *
+   * Since this changes the current_position, code should
+   * call sync_plan_position soon after this.
+   */
+  void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
+    current_position[axis] += v - home_offset[axis];
+    home_offset[axis] = v;
+    endstops.update_software_endstops(axis);
   }
 
 #endif
@@ -722,7 +738,7 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
         #elif ENABLED(AUTO_BED_LEVELING_UBL)
           SERIAL_MV("UBL Adjustment Z", stepper.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          SERIAL_MV("ABL Adjustment Z", bedlevel.bilinear_z_offset(current_position));
+          SERIAL_MV("ABL Adjustment Z", abl.bilinear_z_offset(current_position));
         #endif
       }
       else
@@ -734,10 +750,10 @@ bool Mechanics::position_is_reachable_by_probe_xy(const float &lx, const float &
 
       SERIAL_MSG("Mesh Bed Leveling");
       if (bedlevel.leveling_active) {
-        float lz = current_position[Z_AXIS];
-        bedlevel.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], lz);
+        float rz = current_position[Z_AXIS];
+        bedlevel.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], rz);
         SERIAL_EM(" (enabled)");
-        SERIAL_MV("MBL Adjustment Z", lz);
+        SERIAL_MV("MBL Adjustment Z", rz);
       }
       else
         SERIAL_MSG(" (disabled)");

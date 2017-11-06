@@ -267,29 +267,29 @@ inline void gcode_G29(void) {
           return;
         }
 
-        const float z = parser.floatval('Z', RAW_CURRENT_POSITION(Z));
-        if (!WITHIN(z, -10, 10)) {
+        const float rz = parser.seenval('Z') ? RAW_Z_POSITION(parser.value_linear_units()) : mechanics.current_position[Z_AXIS];
+        if (!WITHIN(rz, -10, 10)) {
           SERIAL_LM(ER, "Bad Z value");
           return;
         }
 
-        const float x = parser.floatval('X', NAN),
-                    y = parser.floatval('Y', NAN);
-        int8_t      i = parser.byteval('I', -1),
-                    j = parser.byteval('J', -1);
+        const float rx  = RAW_X_POSITION(parser.linearval('X', NAN)),
+                    ry  = RAW_Y_POSITION(parser.linearval('Y', NAN));
+        int8_t      i   = parser.byteval('I', -1),
+                    j   = parser.byteval('J', -1);
 
-        if (!isnan(x) && !isnan(y)) {
+        if (!isnan(rx) && !isnan(ry)) {
           // Get nearest i / j from x / y
-          i = (x - LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS]) + 0.5 * xGridSpacing) / xGridSpacing;
-          j = (y - LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS]) + 0.5 * yGridSpacing) / yGridSpacing;
+          i = (rx - abl.bilinear_start[X_AXIS] + 0.5 * xGridSpacing) / xGridSpacing;
+          j = (ry - abl.bilinear_start[Y_AXIS] + 0.5 * yGridSpacing) / yGridSpacing;
           i = constrain(i, 0, GRID_MAX_POINTS_X - 1);
           j = constrain(j, 0, GRID_MAX_POINTS_Y - 1);
         }
         if (WITHIN(i, 0, GRID_MAX_POINTS_X - 1) && WITHIN(j, 0, GRID_MAX_POINTS_Y)) {
           bedlevel.set_bed_leveling_enabled(false);
-          bedlevel.z_values[i][j] = z;
+          abl.z_values[i][j] = rz;
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-            bedlevel.virt_interpolate();
+            abl.virt_interpolate();
           #endif
           bedlevel.set_bed_leveling_enabled(abl_should_enable);
         }
@@ -348,36 +348,36 @@ inline void gcode_G29(void) {
 
       bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
 
-      left_probe_bed_position   = (int)parser.linearval('L', LOGICAL_X_POSITION(LEFT_PROBE_BED_POSITION));
-      right_probe_bed_position  = (int)parser.linearval('R', LOGICAL_X_POSITION(RIGHT_PROBE_BED_POSITION));
-      front_probe_bed_position  = (int)parser.linearval('F', LOGICAL_Y_POSITION(FRONT_PROBE_BED_POSITION));
-      back_probe_bed_position   = (int)parser.linearval('B', LOGICAL_Y_POSITION(BACK_PROBE_BED_POSITION));
+      left_probe_bed_position  = parser.seenval('L') ? (int)RAW_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION;
+      right_probe_bed_position = parser.seenval('R') ? (int)RAW_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION;
+      front_probe_bed_position = parser.seenval('F') ? (int)RAW_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION;
+      back_probe_bed_position  = parser.seenval('B') ? (int)RAW_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
-      const bool left_out_l   = left_probe_bed_position < LOGICAL_X_POSITION(MIN_PROBE_X),
+      const bool left_out_l   = left_probe_bed_position < MIN_PROBE_X,
                  left_out     = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),
-                 right_out_r  = right_probe_bed_position > LOGICAL_X_POSITION(MAX_PROBE_X),
+                 right_out_r  = right_probe_bed_position > MAX_PROBE_X,
                  right_out    = right_out_r || right_probe_bed_position < left_probe_bed_position + MIN_PROBE_EDGE,
-                 front_out_f  = front_probe_bed_position < LOGICAL_Y_POSITION(MIN_PROBE_Y),
+                 front_out_f  = front_probe_bed_position < MIN_PROBE_Y,
                  front_out    = front_out_f || front_probe_bed_position > back_probe_bed_position - (MIN_PROBE_EDGE),
-                 back_out_b   = back_probe_bed_position > LOGICAL_Y_POSITION(MAX_PROBE_Y),
+                 back_out_b   = back_probe_bed_position > MAX_PROBE_Y,
                  back_out     = back_out_b || back_probe_bed_position < front_probe_bed_position + MIN_PROBE_EDGE;
 
       if (left_out || right_out || front_out || back_out) {
         if (left_out) {
           out_of_range_error(PSTR("(L)eft"));
-          left_probe_bed_position = left_out_l ? LOGICAL_X_POSITION(MIN_PROBE_X) : right_probe_bed_position - (MIN_PROBE_EDGE);
+          left_probe_bed_position = left_out_l ? MIN_PROBE_X : right_probe_bed_position - (MIN_PROBE_EDGE);
         }
         if (right_out) {
           out_of_range_error(PSTR("(R)ight"));
-          right_probe_bed_position = right_out_r ? LOGICAL_Y_POSITION(MAX_PROBE_X) : left_probe_bed_position + MIN_PROBE_EDGE;
+          right_probe_bed_position = right_out_r ? MAX_PROBE_X : left_probe_bed_position + MIN_PROBE_EDGE;
         }
         if (front_out) {
           out_of_range_error(PSTR("(F)ront"));
-          front_probe_bed_position = front_out_f ? LOGICAL_Y_POSITION(MIN_PROBE_Y) : back_probe_bed_position - (MIN_PROBE_EDGE);
+          front_probe_bed_position = front_out_f ? MIN_PROBE_Y : back_probe_bed_position - (MIN_PROBE_EDGE);
         }
         if (back_out) {
           out_of_range_error(PSTR("(B)ack"));
-          back_probe_bed_position = back_out_b ? LOGICAL_Y_POSITION(MAX_PROBE_Y) : front_probe_bed_position + MIN_PROBE_EDGE;
+          back_probe_bed_position = back_out_b ? MAX_PROBE_Y : front_probe_bed_position + MIN_PROBE_EDGE;
         }
         return;
       }
@@ -423,10 +423,10 @@ inline void gcode_G29(void) {
         if (!no_action)
       #endif
       {
-        if ( xGridSpacing != bedlevel.bilinear_grid_spacing[X_AXIS]
-          || yGridSpacing != bedlevel.bilinear_grid_spacing[Y_AXIS]
-          || left_probe_bed_position != LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS])
-          || front_probe_bed_position != LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS])
+        if ( xGridSpacing != abl.bilinear_grid_spacing[X_AXIS]
+          || yGridSpacing != abl.bilinear_grid_spacing[Y_AXIS]
+          || left_probe_bed_position != abl.bilinear_start[X_AXIS]
+          || front_probe_bed_position != abl.bilinear_start[Y_AXIS]
         ) {
           if (dryrun) {
             // Before reset bed level, re-enable to correct the position
@@ -436,10 +436,10 @@ inline void gcode_G29(void) {
           bedlevel.reset();
 
           // Initialize a grid with the given dimensions
-          bedlevel.bilinear_grid_spacing[X_AXIS] = xGridSpacing;
-          bedlevel.bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
-          bedlevel.bilinear_start[X_AXIS] = RAW_X_POSITION(left_probe_bed_position);
-          bedlevel.bilinear_start[Y_AXIS] = RAW_Y_POSITION(front_probe_bed_position);
+          abl.bilinear_grid_spacing[X_AXIS] = xGridSpacing;
+          abl.bilinear_grid_spacing[Y_AXIS] = yGridSpacing;
+          abl.bilinear_start[X_AXIS] = left_probe_bed_position;
+          abl.bilinear_start[Y_AXIS] = front_probe_bed_position;
 
           // Can't re-enable (on error) until the new grid is written
           abl_should_enable = false;
@@ -519,13 +519,13 @@ inline void gcode_G29(void) {
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
+        abl.z_values[xCount][yCount] = measured_z + zoffset;
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) {
             SERIAL_MV("Save X", xCount);
             SERIAL_MV(" Y", yCount);
-            SERIAL_EMV(" Z", bedlevel.z_values[xCount][yCount]);
+            SERIAL_EMV(" Z", abl.z_values[xCount][yCount]);
           }
         #endif
 
@@ -565,7 +565,7 @@ inline void gcode_G29(void) {
         #endif
 
         // Keep looping till a reachable point is found
-        if (mechanics.position_is_reachable_xy(xProbe, yProbe)) break;
+        if (mechanics.position_is_reachable(xProbe, yProbe)) break;
         ++abl_probe_index;
       }
 
@@ -595,8 +595,8 @@ inline void gcode_G29(void) {
 
       // Probe at 3 arbitrary points
       if (abl_probe_index < 3) {
-        xProbe = LOGICAL_X_POSITION(points[abl_probe_index].x);
-        yProbe = LOGICAL_Y_POSITION(points[abl_probe_index].y);
+        xProbe = points[abl_probe_index].x;
+        yProbe = points[abl_probe_index].y;
         #if HAS_SOFTWARE_ENDSTOPS
           // Disable software endstops to allow manual adjustment
           // If G29 is not completed, they will not be re-enabled
@@ -673,7 +673,7 @@ inline void gcode_G29(void) {
 
           #if IS_KINEMATIC
             // Avoid probing outside the round or hexagonal area
-            if (!mechanics.position_is_reachable_by_probe_xy(xProbe, yProbe)) continue;
+            if (!mechanics.position_is_reachable_by_probe(xProbe, yProbe)) continue;
           #endif
 
           measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
@@ -695,7 +695,7 @@ inline void gcode_G29(void) {
 
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-            bedlevel.z_values[xCount][yCount] = measured_z + zoffset;
+            abl.z_values[xCount][yCount] = measured_z + zoffset;
 
           #endif
 
@@ -711,8 +711,8 @@ inline void gcode_G29(void) {
 
       for (uint8_t i = 0; i < 3; ++i) {
         // Retain the last probe position
-        xProbe = LOGICAL_X_POSITION(points[i].x);
-        yProbe = LOGICAL_Y_POSITION(points[i].y);
+        xProbe = points[i].x;
+        yProbe = points[i].y;
         measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
         if (isnan(measured_z)) {
           bedlevel.leveling_active = abl_should_enable;
@@ -769,13 +769,13 @@ inline void gcode_G29(void) {
   if (!isnan(measured_z)) {
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-      if (!dryrun) bedlevel.extrapolate_unprobed_bed_level();
-      bedlevel.print_bilinear_leveling_grid();
+      if (!dryrun) abl.extrapolate_unprobed_bed_level();
+      abl.print_bilinear_leveling_grid();
 
-      bedlevel.refresh_bed_level();
+      abl.refresh_bed_level();
 
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bedlevel.print_bilinear_leveling_grid_virt();
+        abl.print_bilinear_leveling_grid_virt();
       #endif
 
     #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
@@ -935,7 +935,7 @@ inline void gcode_G29(void) {
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z
-        mechanics.current_position[Z_AXIS] -= bedlevel.bilinear_z_offset(mechanics.current_position);
+        mechanics.current_position[Z_AXIS] -= abl.bilinear_z_offset(mechanics.current_position);
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) SERIAL_EMV(" corrected Z:", mechanics.current_position[Z_AXIS]);

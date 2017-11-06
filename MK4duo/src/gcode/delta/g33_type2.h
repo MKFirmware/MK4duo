@@ -170,8 +170,8 @@
                         interpol = FMOD(axis, 1);
             float z_temp = probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1);
             // split probe point to neighbouring calibration points
-            z_at_pt[round(axis - interpol + NPP - 1) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
-            z_at_pt[round(axis - interpol) % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
+            z_at_pt[uint8_t(round(axis - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
+            z_at_pt[uint8_t(round(axis - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
           }
           zig_zag = !zig_zag;
         }
@@ -443,7 +443,7 @@
       LOOP_CAL_RAD(axis) {
         const float a = RADIANS(210 + (360 / NPP) * (axis - 1)),
                     r = mechanics.delta_probe_radius * (1 + (_7p_9_centre ? 0.1 : 0.0));
-        if (!mechanics.position_is_reachable_by_probe_xy(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS])) {
+        if (!mechanics.position_is_reachable_by_probe(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS])) {
           SERIAL_EM("?(M666 P)robe radius is implausible.");
           return;
         }

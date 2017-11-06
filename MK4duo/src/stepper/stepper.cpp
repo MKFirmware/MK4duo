@@ -108,7 +108,7 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 #if ENABLED(LIN_ADVANCE)
 
-  HAL_TIMER_TYPE  Stepper::nextMainISR = 0,
+  hal_timer_t  Stepper::nextMainISR = 0,
                   Stepper::nextAdvanceISR = ADV_NEVER,
                   Stepper::eISR_Rate = ADV_NEVER;
 
@@ -118,9 +118,9 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
       Stepper::current_estep_rate[DRIVER_EXTRUDERS],
       Stepper::current_adv_steps[DRIVER_EXTRUDERS];
 
-  FORCE_INLINE HAL_TIMER_TYPE adv_rate(const int steps, const HAL_TIMER_TYPE timer, const uint8_t loops) {
+  FORCE_INLINE hal_timer_t adv_rate(const int steps, const hal_timer_t timer, const uint8_t loops) {
     if (steps) {
-      const HAL_TIMER_TYPE rate = (timer * loops) / abs(steps);
+      const hal_timer_t rate = (timer * loops) / abs(steps);
       //return constrain(rate, 1, ADV_NEVER - 1)
       return rate ? rate : 1;
     }
@@ -146,7 +146,7 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 long            Stepper::acceleration_time,
                 Stepper::deceleration_time;
 
-HAL_TIMER_TYPE  Stepper::acc_step_rate, // needed for deceleration start point
+hal_timer_t  Stepper::acc_step_rate, // needed for deceleration start point
                 Stepper::OCR1A_nominal;
 
 uint8_t         Stepper::step_loops,
@@ -452,7 +452,7 @@ HAL_STEP_TIMER_ISR {
 
 void Stepper::isr() {
 
-  HAL_TIMER_TYPE ocr_val;
+  hal_timer_t ocr_val;
 
   #define ENDSTOP_NOMINAL_OCR_VAL (int)(1500 * STEPPER_TIMER_TICKS_PER_US) // check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
   #define OCR_VAL_TOLERANCE       (int)(500 * STEPPER_TIMER_TICKS_PER_US)  // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
@@ -462,7 +462,7 @@ void Stepper::isr() {
     HAL_DISABLE_ISRs();
   #endif
 
-  #define _SPLIT(L) (ocr_val = (HAL_TIMER_TYPE)L)
+  #define _SPLIT(L) (ocr_val = (hal_timer_t)L)
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     #define SPLIT(L) _SPLIT(L)
   #else                 // sample endstops in between step pulses
@@ -470,9 +470,9 @@ void Stepper::isr() {
     #define SPLIT(L) do { \
       _SPLIT(L); \
       if (ENDSTOPS_ENABLED && L > ENDSTOP_NOMINAL_OCR_VAL) { \
-        const HAL_TIMER_TYPE remainder = (HAL_TIMER_TYPE)L % (ENDSTOP_NOMINAL_OCR_VAL); \
+        const hal_timer_t remainder = (hal_timer_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
         ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
-        step_remaining = (HAL_TIMER_TYPE)L - ocr_val; \
+        step_remaining = (hal_timer_t)L - ocr_val; \
       } \
     } while(0)
 
@@ -491,7 +491,7 @@ void Stepper::isr() {
       _NEXT_ISR(ocr_val);
 
       #if ENABLED(ARDUINO_ARCH_SAM)
-        HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+        hal_timer_t  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                         stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
         HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
       #else
@@ -877,7 +877,7 @@ void Stepper::isr() {
     NOMORE(acc_step_rate, current_block->nominal_rate);
 
     // step_rate to timer interval
-    const HAL_TIMER_TYPE timer = calc_timer(acc_step_rate);
+    const hal_timer_t timer = calc_timer(acc_step_rate);
 
     SPLIT(timer);  // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
@@ -900,7 +900,7 @@ void Stepper::isr() {
     #endif // ENABLED(LIN_ADVANCE)
   }
   else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
-    HAL_TIMER_TYPE step_rate;
+    hal_timer_t step_rate;
     HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
     if (step_rate < acc_step_rate) {
@@ -912,7 +912,7 @@ void Stepper::isr() {
     }
 
     // step_rate to timer interval
-    const HAL_TIMER_TYPE timer = calc_timer(step_rate);
+    const hal_timer_t timer = calc_timer(step_rate);
 
     SPLIT(timer); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
@@ -954,7 +954,7 @@ void Stepper::isr() {
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
-      HAL_TIMER_TYPE stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
       NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US));
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count);
     #else
@@ -1114,7 +1114,7 @@ void Stepper::isr() {
 
     // Don't run the ISR faster than possible
     #if ENABLED(ARDUINO_ARCH_SAM)
-      HAL_TIMER_TYPE  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
+      hal_timer_t  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
                       stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
     #else

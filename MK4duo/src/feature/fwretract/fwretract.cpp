@@ -51,15 +51,15 @@
         FWRetract::swap_retract_recover_feedrate_mm_s;  // M208 R - G11 Swap Recover feedrate
 
   void FWRetract::reset() {
-    autoretract_enabled = false;
-    retract_length = RETRACT_LENGTH;
-    retract_feedrate_mm_s = RETRACT_FEEDRATE;
-    retract_zlift = RETRACT_ZLIFT;
-    retract_recover_length = RETRACT_RECOVER_LENGTH;
-    retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE;
-    swap_retract_length = RETRACT_LENGTH_SWAP;
-    swap_retract_recover_length = RETRACT_RECOVER_LENGTH_SWAP;
-    swap_retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE_SWAP;
+    autoretract_enabled                 = false;
+    retract_length                      = RETRACT_LENGTH;
+    retract_feedrate_mm_s               = RETRACT_FEEDRATE;
+    retract_zlift                       = RETRACT_ZLIFT;
+    retract_recover_length              = RETRACT_RECOVER_LENGTH;
+    retract_recover_feedrate_mm_s       = RETRACT_RECOVER_FEEDRATE;
+    swap_retract_length                 = RETRACT_LENGTH_SWAP;
+    swap_retract_recover_length         = RETRACT_RECOVER_LENGTH_SWAP;
+    swap_retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE_SWAP;
 
     for (uint8_t e = 0; e < EXTRUDERS; ++e) {
       retracted[e] = false;
@@ -135,7 +135,7 @@
     else {
       // If a hop was done and Z hasn't changed, undo the Z hop
       if (hop_amount) {
-        mechanics.current_position[Z_AXIS] -= retract_zlift;          // Pretend current pos is lower. Next move raises Z.
+        mechanics.current_position[Z_AXIS] += retract_zlift;          // Pretend current pos is lower. Next move raises Z.
         mechanics.sync_plan_position();                               // Set the planner to the new position
         mechanics.feedrate_mm_s = planner.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
         mechanics.prepare_move_to_destination();                      // Raise up to the old current pos

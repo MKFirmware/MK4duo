@@ -92,7 +92,7 @@
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {
@@ -118,8 +118,6 @@
    */
   void Scara_Mechanics::get_cartesian_from_steppers() {
     forward_kinematics_SCARA( stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) );
-    cartesian_position[X_AXIS] += LOGICAL_X_POSITION(0);
-    cartesian_position[Y_AXIS] += LOGICAL_Y_POSITION(0);
     cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
   }
 
@@ -141,7 +139,7 @@
     }
 
     // Fail if attempting move outside printable radius
-    if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
+    if (!position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
     // Get the cartesian distances moved in XYZE
     const float difference[XYZE] = {
@@ -194,9 +192,9 @@
             oldB = stepper.get_axis_position_degrees(B_AXIS);
     #endif
 
-    // Get the logical current position as starting point
-    float logical[XYZE];
-    COPY(logical, current_position);
+    // Get the current position as starting point
+    float raw[XYZE];
+    COPY(raw, current_position);
 
     // Drop one segment so the last move is to the exact target.
     // If there's only 1 segment, loops will be skipped entirely.
@@ -204,21 +202,25 @@
 
     // Calculate and execute the segments
     for (uint16_t s = segments + 1; --s;) {
-      LOOP_XYZE(i) logical[i] += segment_distance[i];
-      inverse_kinematics(logical);
+      LOOP_XYZE(i) raw[i] += segment_distance[i];
+      inverse_kinematics(raw);
 
-      ADJUST_DELTA(logical); // Adjust Z if bed leveling is enabled
+      // Adjust Z if bed leveling is enabled
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        if (bedlevel.leveling_active)
+          delta[Z_AXIS] += abl.bilinear_z_offset(raw);
+      #endif
 
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         // For SCARA scale the feed rate from mm/s to degrees/s
         // Use ratio between the length of the move and the larger angle change
         const float adiff = abs(delta[A_AXIS] - oldA),
                     bdiff = abs(delta[B_AXIS] - oldB);
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
         oldA = delta[A_AXIS];
         oldB = delta[B_AXIS];
       #else
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, active_extruder);
       #endif
     }
 
@@ -228,13 +230,13 @@
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       // For SCARA scale the feed rate from mm/s to degrees/s
       // With segments > 1 length is 1 segment, otherwise total length
-      inverse_kinematics(ltarget);
-      ADJUST_DELTA(ltarget);
+      inverse_kinematics(rtarget);
+      ADJUST_DELTA(rtarget);
       const float adiff = abs(delta[A_AXIS] - oldA),
                   bdiff = abs(delta[B_AXIS] - oldB);
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
     #else
-      planner.buffer_line_kinematic(ltarget, _feedrate_mm_s, active_extruder);
+      planner.buffer_line_kinematic(rtarget, _feedrate_mm_s, active_extruder);
     #endif
 
     return false;
@@ -414,7 +416,7 @@
       if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
     #endif
 
-    if (!position_is_reachable_xy(lx, ly)) return;
+    if (!position_is_reachable(lx, ly)) return;
 
     set_destination_to_current();
 
@@ -443,7 +445,7 @@
     #endif
   }
 
-  bool Scara_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+  bool Scara_Mechanics::position_is_reachable(const float &rx, const float &ry) {
     #if MIDDLE_DEAD_ZONE_R > 0
       const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
       return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
@@ -452,12 +454,12 @@
     #endif
   }
 
-  bool Scara_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+  bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     // Both the nozzle and the probe must be able to reach the point.
     // This won't work on SCARA since the probe offset rotates with the arm.
     // TODO: fix this
-    return position_is_reachable_raw_xy(rx, ry)
-        && position_is_reachable_raw_xy(rx - X_PROBE_OFFSET_FROM_EXTRUDER, ry - Y_PROBE_OFFSET_FROM_EXTRUDER);
+    return position_is_reachable(rx, ry)
+        && position_is_reachable(rx - X_PROBE_OFFSET_FROM_EXTRUDER, ry - Y_PROBE_OFFSET_FROM_EXTRUDER);
   }
 
  /**
@@ -582,8 +584,8 @@
   bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     if (printer.IsRunning()) {
       forward_kinematics_SCARA(delta_a, delta_b);
-      destination[X_AXIS] = LOGICAL_X_POSITION(cartesian_position[X_AXIS]);
-      destination[Y_AXIS] = LOGICAL_Y_POSITION(cartesian_position[Y_AXIS]);
+      destination[X_AXIS] = cartesian_position[X_AXIS];
+      destination[Y_AXIS] = cartesian_position[Y_AXIS];
       destination[Z_AXIS] = current_position[Z_AXIS];
       prepare_move_to_destination();
       return true;

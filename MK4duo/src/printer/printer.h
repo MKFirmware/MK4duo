@@ -149,9 +149,6 @@ class Printer {
     static void setup_for_endstop_or_probe_move();
     static void clean_up_after_endstop_or_probe_move();
 
-    static void get_destination_from_command();
-    static bool get_target_tool_from_command(const uint16_t code);
-
     static void kill(const char *);
     static void Stop();
 

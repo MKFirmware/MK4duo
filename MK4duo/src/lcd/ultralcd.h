@@ -117,7 +117,7 @@
       float lcd_z_offset_edit();
     #endif
 
-    float lcd_probe_pt(const float &lx, const float &ly);
+    float lcd_probe_pt(const float &rx, const float &ry);
 
   #else
 

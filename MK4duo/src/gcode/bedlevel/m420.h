@@ -91,9 +91,9 @@
       #else
         if (bedlevel.leveling_is_valid()) {
           #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            bedlevel.print_bilinear_leveling_grid();
+            abl.print_bilinear_leveling_grid();
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-              bedlevel.print_bilinear_leveling_grid_virt();
+              abl.print_bilinear_leveling_grid_virt();
             #endif
           #elif ENABLED(MESH_BED_LEVELING)
             SERIAL_EM("Mesh Bed Level data:");

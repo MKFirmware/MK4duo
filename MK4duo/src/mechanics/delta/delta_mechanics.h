@@ -119,8 +119,8 @@
        */
       void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
       void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
-      void Transform(const float logical[ABC]);
-      void Transform_segment_raw(const float rx, const float ry, const float rz, const float le, const float fr);
+      void Transform(const float raw[ABC]);
+      void Transform_segment_raw(const float rx, const float ry, const float rz, const float re, const float fr);
       void recalc_delta_settings();
 
       /**
@@ -141,8 +141,8 @@
        */
       void set_axis_is_at_home(const AxisEnum axis);
 
-      bool position_is_reachable_raw_xy(const float &rx, const float &ry) override;
-      bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) override;
+      bool position_is_reachable(const float &rx, const float &ry) override;
+      bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
 
       /**
        * Report current position to host

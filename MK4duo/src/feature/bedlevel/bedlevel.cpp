@@ -46,19 +46,7 @@
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     float Bedlevel::z_fade_height,
           Bedlevel::inverse_z_fade_height,
-          Bedlevel::last_raw_lz;
-  #endif
-
-  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    int   Bedlevel::bilinear_grid_spacing[2], Bedlevel::bilinear_start[2];
-    float Bedlevel::bilinear_grid_factor[2],
-          Bedlevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
-
-    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      float Bedlevel::bilinear_grid_factor_virt[2] = { 0 },
-            Bedlevel::z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-      int   Bedlevel::bilinear_grid_spacing_virt[2] = { 0 };
-    #endif
+          Bedlevel::last_fade_z;
   #endif
 
   #if ENABLED(PROBE_MANUALLY)
@@ -70,14 +58,14 @@
   #if PLANNER_LEVELING
 
     /**
-     * lx, ly, lz - Logical (cartesian, not delta) positions in mm
+     * rx, ry, rz - Cartesian positions in mm
      */
-    void Bedlevel::apply_leveling(float &lx, float &ly, float &lz) {
+    void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
 
       if (!leveling_active) return;
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        const float fade_scaling_factor = fade_scaling_factor_for_z(lz);
+        const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
         if (!fade_scaling_factor) return;
       #else
         constexpr float fade_scaling_factor = 1.0;
@@ -85,11 +73,11 @@
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-        lz += ubl.get_z_correction(lx, ly) * fade_scaling_factor;
+        rz += ubl.get_z_correction(rx, ry) * fade_scaling_factor;
 
       #elif ENABLED(MESH_BED_LEVELING)
 
-        lz += mbl.get_z(RAW_X_POSITION(lx), RAW_Y_POSITION(ly)
+        rz += mbl.get_z(RAW_X_POSITION(rx), RAW_Y_POSITION(ry)
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif
@@ -99,42 +87,38 @@
 
         UNUSED(fade_scaling_factor);
 
-        float dx = RAW_X_POSITION(lx) - (X_TILT_FULCRUM),
-              dy = RAW_Y_POSITION(ly) - (Y_TILT_FULCRUM),
-              dz = RAW_Z_POSITION(lz);
+        float dx = rx - (X_TILT_FULCRUM),
+              dy = ry - (Y_TILT_FULCRUM);
 
-        apply_rotation_xyz(matrix, dx, dy, dz);
+        apply_rotation_xyz(matrix, dx, dy, rz);
 
-        lx = LOGICAL_X_POSITION(dx + X_TILT_FULCRUM);
-        ly = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
-        lz = LOGICAL_Z_POSITION(dz);
+        rx = dx + X_TILT_FULCRUM;
+        ry = dy + Y_TILT_FULCRUM;
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-        float tmp[XYZ] = { lx, ly, 0 };
-        lz += bilinear_z_offset(tmp) * fade_scaling_factor;
+        float tmp[XYZ] = { rx, ry, 0 };
+        rz += abl.bilinear_z_offset(tmp) * fade_scaling_factor;
 
       #endif
     }
 
-    void Bedlevel::unapply_leveling(float logical[XYZ]) {
+    void Bedlevel::unapply_leveling(float raw[XYZ]) {
 
       if (!leveling_active) return;
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        if (z_fade_height && RAW_Z_POSITION(logical[Z_AXIS]) >= z_fade_height) return;
+        if (z_fade_height && raw[Z_AXIS] >= z_fade_height) return;
       #endif
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-        const float z_physical = RAW_Z_POSITION(logical[Z_AXIS]),
-                    z_correct = ubl.get_z_correction(logical[X_AXIS], logical[Y_AXIS]),
-                    z_virtual = z_physical - z_correct;
-              float z_logical = LOGICAL_Z_POSITION(z_virtual);
+        const float z_correct = ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]);
+              float z_raw = raw[Z_AXIS] - z_correct;
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
-          // for P=physical_z, L=logical_z, M=mesh_z, H=fade_height,
+          // for P=physical_z, L=raw_z, M=mesh_z, H=fade_height,
           // Given P=L+M(1-L/H) (faded mesh correction formula for L<H)
           //  then L=P-M(1-L/H)
           //    so L=P-M+ML/H
@@ -143,46 +127,46 @@
           //    so L=(P-M)/(1-M/H) for L<H
 
           if (z_fade_height) {
-            if (z_logical >= z_fade_height)
-              z_logical = LOGICAL_Z_POSITION(z_physical);
+            if (z_raw >= z_fade_height)
+              z_raw = raw[Z_AXIS];
             else
-              z_logical /= 1.0 - z_correct * inverse_z_fade_height;
+              z_raw /= 1.0 - z_correct * inverse_z_fade_height;
           }
 
         #endif // ENABLE_LEVELING_FADE_HEIGHT
 
-        logical[Z_AXIS] = z_logical;
+        raw[Z_AXIS] = z_raw;
 
       #elif ENABLED(MESH_BED_LEVELING)
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          const float c = mbl.get_z(RAW_X_POSITION(logical[X_AXIS]), RAW_Y_POSITION(logical[Y_AXIS]), 1.0);
-          logical[Z_AXIS] = (z_fade_height * (RAW_Z_POSITION(logical[Z_AXIS]) - c)) / (z_fade_height - c);
+          const float c = mbl.get_z(raw[X_AXIS], raw[Y_AXIS], 1.0);
+          raw[Z_AXIS] = (z_fade_height * (raw[Z_AXIS] - c)) / (z_fade_height - c);
         #else
-          logical[Z_AXIS] -= mbl.get_z(RAW_X_POSITION(logical[X_AXIS]), RAW_Y_POSITION(logical[Y_AXIS]));
+          raw[Z_AXIS] -= mbl.get_z(raw[X_AXIS], raw[Y_AXIS]);
         #endif
 
       #elif ABL_PLANAR
 
         matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
-        float dx = RAW_X_POSITION(logical[X_AXIS]) - (X_TILT_FULCRUM),
-              dy = RAW_Y_POSITION(logical[Y_AXIS]) - (Y_TILT_FULCRUM),
-              dz = RAW_Z_POSITION(logical[Z_AXIS]);
+        float dx = raw[X_AXIS] - (X_TILT_FULCRUM),
+              dy = raw[Y_AXIS] - (Y_TILT_FULCRUM),
+              dz = raw[Z_AXIS];
 
         apply_rotation_xyz(inverse, dx, dy, dz);
 
-        logical[X_AXIS] = LOGICAL_X_POSITION(dx + X_TILT_FULCRUM);
-        logical[Y_AXIS] = LOGICAL_Y_POSITION(dy + Y_TILT_FULCRUM);
-        logical[Z_AXIS] = LOGICAL_Z_POSITION(dz);
+        raw[X_AXIS] = dx + X_TILT_FULCRUM;
+        raw[Y_AXIS] = dy + Y_TILT_FULCRUM;
+        raw[Z_AXIS] = dz;
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          const float c = bilinear_z_offset(logical);
-          logical[Z_AXIS] = (z_fade_height * (RAW_Z_POSITION(logical[Z_AXIS]) - c)) / (z_fade_height - c);
+          const float c = abl.bilinear_z_offset(raw);
+          raw[Z_AXIS] = (z_fade_height * (raw[Z_AXIS] - c)) / (z_fade_height - c);
         #else
-          logical[Z_AXIS] -= bilinear_z_offset(logical);
+          raw[Z_AXIS] -= abl.bilinear_z_offset(raw);
         #endif
 
       #endif
@@ -190,302 +174,11 @@
 
   #endif // PLANNER_LEVELING
 
-  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-    // Get the Z adjustment for non-linear bed leveling
-    float Bedlevel::bilinear_z_offset(const float logical[XYZ]) {
-
-      static float  z1, d2, z3, d4, L, D, ratio_x, ratio_y,
-                    last_x = -999.999, last_y = -999.999;
-
-      // Whole units for the grid line indices. Constrained within bounds.
-      static int8_t gridx, gridy, nextx, nexty,
-                    last_gridx = -99, last_gridy = -99;
-
-      // XY relative to the probed area
-      const float x = RAW_X_POSITION(logical[X_AXIS]) - bilinear_start[X_AXIS],
-                  y = RAW_Y_POSITION(logical[Y_AXIS]) - bilinear_start[Y_AXIS];
-
-      if (last_x != x) {
-        last_x = x;
-        ratio_x = x * ABL_BG_FACTOR(X_AXIS);
-        const float gx = constrain(floor(ratio_x), 0, ABL_BG_POINTS_X - 1);
-        ratio_x -= gx;      // Subtract whole to get the ratio within the grid box
-        NOLESS(ratio_x, 0); // Never < 0.0. (> 1.0 is ok when nextx==gridx.)
-        gridx = gx;
-        nextx = min(gridx + 1, ABL_BG_POINTS_X - 1);
-      }
-
-      if (last_y != y || last_gridx != gridx) {
-
-        if (last_y != y) {
-          last_y = y;
-          ratio_y = y * ABL_BG_FACTOR(Y_AXIS);
-          const float gy = constrain(floor(ratio_y), 0, ABL_BG_POINTS_Y - 1);
-          ratio_y -= gy;
-          NOLESS(ratio_y, 0);
-          gridy = gy;
-          nexty = min(gridy + 1, ABL_BG_POINTS_Y - 1);
-        }
-
-        if (last_gridx != gridx || last_gridy != gridy) {
-          last_gridx = gridx;
-          last_gridy = gridy;
-          // Z at the box corners
-          z1 = ABL_BG_GRID(gridx, gridy);       // left-front
-          d2 = ABL_BG_GRID(gridx, nexty) - z1;  // left-back (delta)
-          z3 = ABL_BG_GRID(nextx, gridy);       // right-front
-          d4 = ABL_BG_GRID(nextx, nexty) - z3;  // right-back (delta)
-        }
-
-        // Bilinear interpolate. Needed since y or gridx has changed.
-                    L = z1 + d2 * ratio_y;   // Linear interp. LF -> LB
-        const float R = z3 + d4 * ratio_y;   // Linear interp. RF -> RB
-
-        D = R - L;
-      }
-
-      const float offset = L + ratio_x * D;   // the offset almost always changes
-
-      /*
-      static float last_offset = 0;
-      if (FABS(last_offset - offset) > 0.2) {
-        SERIAL_MSG("Sudden Shift at ");
-        SERIAL_MV("x=", x);
-        SERIAL_MV(" / ", ABL_BG_SPACING(X_AXIS));
-        SERIAL_EMV(" -> gridx=", gridx);
-        SERIAL_MV(" y=", y);
-        SERIAL_MV(" / ", ABL_BG_SPACING(Y_AXIS));
-        SERIAL_EMV(" -> gridy=", gridy);
-        SERIAL_MV(" ratio_x=", ratio_x);
-        SERIAL_EMV(" ratio_y=", ratio_y);
-        SERIAL_MV(" z1=", z1);
-        SERIAL_MV(" d2=", d2);
-        SERIAL_MV(" z3=", z3);
-        SERIAL_EMV(" d4=", d4);
-        SERIAL_MV(" L=", L);
-        SERIAL_MV(" R=", R);
-        SERIAL_EMV(" offset=", offset);
-      }
-      last_offset = offset;
-      */
-
-      return offset;
-    }
-
-    // Refresh after other values have been updated
-    void Bedlevel::refresh_bed_level() {
-      bilinear_grid_factor[X_AXIS] = RECIPROCAL(bilinear_grid_spacing[X_AXIS]);
-      bilinear_grid_factor[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing[Y_AXIS]);
-      #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        virt_interpolate();
-      #endif
-    }
-
-    #if ENABLED(EXTRAPOLATE_FROM_EDGE)
-      #if GRID_MAX_POINTS_X < GRID_MAX_POINTS_Y
-        #define HALF_IN_X
-      #elif GRID_MAX_POINTS_Y < GRID_MAX_POINTS_X
-        #define HALF_IN_Y
-      #endif
-    #endif
-
-    /**
-     * Fill in the unprobed points (corners of circular print surface)
-     * using linear extrapolation, away from the center.
-     */
-    void Bedlevel::extrapolate_unprobed_bed_level() {
-      #if ENABLED(HALF_IN_X)
-        constexpr uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
-      #else
-        constexpr uint8_t ctrx1 = (GRID_MAX_POINTS_X - 1) * 0.5, // left-of-center
-                          ctrx2 = GRID_MAX_POINTS_X * 0.5,       // right-of-center
-                          xlen = ctrx1;
-      #endif
-
-      #if ENABLED(HALF_IN_Y)
-        constexpr uint8_t ctry2 = 0, ylen = GRID_MAX_POINTS_Y - 1;
-      #else
-        constexpr uint8_t ctry1 = (GRID_MAX_POINTS_Y - 1) * 0.5, // top-of-center
-                          ctry2 = GRID_MAX_POINTS_Y * 0.5,       // bottom-of-center
-                          ylen = ctry1;
-      #endif
-
-      for (uint8_t xo = 0; xo <= xlen; xo++) {
-        for (uint8_t yo = 0; yo <= ylen; yo++) {
-          uint8_t x2 = ctrx2 + xo, y2 = ctry2 + yo;
-          #if DISABLED(HALF_IN_X)
-            const uint8_t x1 = ctrx1 - xo;
-          #endif
-          #if DISABLED(HALF_IN_Y)
-            const uint8_t y1 = ctry1 - yo;
-            #if DISABLED(HALF_IN_X)
-              extrapolate_one_point(x1, y1, +1, +1);   //  left-below + +
-            #endif
-            extrapolate_one_point(x2, y1, -1, +1);     // right-below - +
-          #endif
-          #if DISABLED(HALF_IN_X)
-            extrapolate_one_point(x1, y2, +1, -1);     //  left-above + -
-          #endif
-          extrapolate_one_point(x2, y2, -1, -1);       // right-above - -
-        }
-      }
-    }
-
-    void Bedlevel::print_bilinear_leveling_grid() {
-      SERIAL_LM(ECHO, "Bilinear Leveling Grid:");
-      print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
-        [](const uint8_t ix, const uint8_t iy){ return z_values[ix][iy]; }
-      );
-    }
-
-    /**
-     * Extrapolate a single point from its neighbors
-     */
-    void Bedlevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) {
-          SERIAL_MSG("Extrapolate [");
-          if (x < 10) SERIAL_CHR(' ');
-          SERIAL_VAL((int)x);
-          SERIAL_CHR(xdir ? (xdir > 0 ? '+' : '-') : ' ');
-          SERIAL_CHR(' ');
-          if (y < 10) SERIAL_CHR(' ');
-          SERIAL_VAL((int)y);
-          SERIAL_CHR(ydir ? (ydir > 0 ? '+' : '-') : ' ');
-          SERIAL_CHR(']');
-        }
-      #endif
-      if (!isnan(z_values[x][y])) {
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
-        #endif
-        return;  // Don't overwrite good values.
-      }
-      SERIAL_EOL();
-
-      // Get X neighbors, Y neighbors, and XY neighbors
-      const uint8_t x1 = x + xdir, y1 = y + ydir, x2 = x1 + xdir, y2 = y1 + ydir;
-      float a1 = z_values[x1][y ], a2 = z_values[x2][y ],
-            b1 = z_values[x ][y1], b2 = z_values[x ][y2],
-            c1 = z_values[x1][y1], c2 = z_values[x2][y2];
-
-      // Treat far unprobed points as zero, near as equal to far
-      if (isnan(a2)) a2 = 0.0; if (isnan(a1)) a1 = a2;
-      if (isnan(b2)) b2 = 0.0; if (isnan(b1)) b1 = b2;
-      if (isnan(c2)) c2 = 0.0; if (isnan(c1)) c1 = c2;
-
-      const float a = 2 * a1 - a2, b = 2 * b1 - b2, c = 2 * c1 - c2;
-
-      // Take the average instead of the median
-      z_values[x][y] = (a + b + c) / 3.0;
-
-      // Median is robust (ignores outliers).
-      // z_values[x][y] = (a < b) ? ((b < c) ? b : (c < a) ? a : c)
-      //                                : ((c < b) ? b : (a < c) ? a : c);
-    }
-
-    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-
-      void Bedlevel::print_bilinear_leveling_grid_virt() {
-        SERIAL_LM(ECHO, "Subdivided with CATMULL ROM Leveling Grid:");
-        print_2d_array(ABL_GRID_POINTS_VIRT_X, ABL_GRID_POINTS_VIRT_Y, 5,
-          [](const uint8_t ix, const uint8_t iy){ return z_values_virt[ix][iy]; }
-        );
-      }
-
-      #define LINEAR_EXTRAPOLATION(E, I) ((E) * 2 - (I))
-
-      float Bedlevel::bed_level_virt_coord(const uint8_t x, const uint8_t y) {
-        uint8_t ep = 0, ip = 1;
-
-        if (!x || x == ABL_TEMP_POINTS_X - 1) {
-          if (x) {
-            ep = GRID_MAX_POINTS_X - 1;
-            ip = GRID_MAX_POINTS_X - 2;
-          }
-          if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
-            return LINEAR_EXTRAPOLATION(
-              z_values[ep][y - 1],
-              z_values[ip][y - 1]
-            );
-          else
-            return LINEAR_EXTRAPOLATION(
-              bed_level_virt_coord(ep + 1, y),
-              bed_level_virt_coord(ip + 1, y)
-            );
-        }
-        if (!y || y == ABL_TEMP_POINTS_Y - 1) {
-          if (y) {
-            ep = GRID_MAX_POINTS_Y - 1;
-            ip = GRID_MAX_POINTS_Y - 2;
-          }
-          if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
-            return LINEAR_EXTRAPOLATION(
-              z_values[x - 1][ep],
-              z_values[x - 1][ip]
-            );
-          else
-            return LINEAR_EXTRAPOLATION(
-              bed_level_virt_coord(x, ep + 1),
-              bed_level_virt_coord(x, ip + 1)
-            );
-        }
-        return z_values[x - 1][y - 1];
-      }
-
-      float Bedlevel::bed_level_virt_cmr(const float p[4], const uint8_t i, const float t) {
-        return (
-            p[i-1] * -t * sq(1 - t)
-          + p[i]   * (2 - 5 * sq(t) + 3 * t * sq(t))
-          + p[i+1] * t * (1 + 4 * t - 3 * sq(t))
-          - p[i+2] * sq(t) * (1 - t)
-        ) * 0.5;
-      }
-
-      float Bedlevel::bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty) {
-        float row[4], column[4];
-        for (uint8_t i = 0; i < 4; i++) {
-          for (uint8_t j = 0; j < 4; j++) {
-            column[j] = bed_level_virt_coord(i + x - 1, j + y - 1);
-          }
-          row[i] = bed_level_virt_cmr(column, 1, ty);
-        }
-        return bed_level_virt_cmr(row, 1, tx);
-      }
-
-      void Bedlevel::virt_interpolate() {
-        bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
-        bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
-        bilinear_grid_factor_virt[X_AXIS] = RECIPROCAL(bilinear_grid_spacing_virt[X_AXIS]);
-        bilinear_grid_factor_virt[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing_virt[Y_AXIS]);
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-          for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-            for (uint8_t ty = 0; ty < BILINEAR_SUBDIVISIONS; ty++) {
-              for (uint8_t tx = 0; tx < BILINEAR_SUBDIVISIONS; tx++) {
-                if ((ty && y == GRID_MAX_POINTS_Y - 1) || (tx && x == GRID_MAX_POINTS_X - 1))
-                  continue;
-                z_values_virt[x * (BILINEAR_SUBDIVISIONS) + tx][y * (BILINEAR_SUBDIVISIONS) + ty] =
-                  bed_level_virt_2cmr(
-                    x + 1,
-                    y + 1,
-                    (float)tx / (BILINEAR_SUBDIVISIONS),
-                    (float)ty / (BILINEAR_SUBDIVISIONS)
-                  );
-              }
-            }
-          }
-        }
-      }
-
-    #endif // ABL_BILINEAR_SUBDIVISION
-  #endif // AUTO_BED_LEVELING_BILINEAR
-
   bool Bedlevel::leveling_is_valid() {
     #if ENABLED(MESH_BED_LEVELING)
       return mbl.has_mesh;
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      return !!bilinear_grid_spacing[X_AXIS];
+      return !!abl.bilinear_grid_spacing[X_AXIS];
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
       return true;
     #else // 3POINT, LINEAR
@@ -539,9 +232,9 @@
       #else // OLD_ABL
 
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          // Force bilinear_z_offset to re-calculate next time
+          // Force abl.bilinear_z_offset to re-calculate next time
           const float reset[XYZ] = { -9999.999, -9999.999, 0 };
-          (void)bilinear_z_offset(reset);
+          (void)abl.bilinear_z_offset(reset);
         #endif
 
         // Enable or disable leveling compensation in the planner
@@ -614,11 +307,11 @@
       #if ABL_PLANAR
         matrix.set_to_identity();
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        bilinear_start[X_AXIS] = bilinear_start[Y_AXIS] =
-        bilinear_grid_spacing[X_AXIS] = bilinear_grid_spacing[Y_AXIS] = 0;
+        abl.bilinear_start[X_AXIS] = abl.bilinear_start[Y_AXIS] =
+        abl.bilinear_grid_spacing[X_AXIS] = abl.bilinear_grid_spacing[Y_AXIS] = 0;
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
           for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            z_values[x][y] = NAN;
+            abl.z_values[x][y] = NAN;
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
         ubl.reset();
       #endif

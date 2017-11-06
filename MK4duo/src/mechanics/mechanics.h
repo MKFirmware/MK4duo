@@ -36,35 +36,32 @@
   #define WORKSPACE_OFFSET(AXIS) 0
 #endif
 
-#define LOGICAL_POSITION(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
-#define RAW_POSITION(POS, AXIS)     ((POS) - WORKSPACE_OFFSET(AXIS))
+#define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
+#define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - WORKSPACE_OFFSET(AXIS))
 
 #if ENABLED(WORKSPACE_OFFSETS)
-  #define LOGICAL_X_POSITION(POS)   LOGICAL_POSITION(POS, X_AXIS)
-  #define LOGICAL_Y_POSITION(POS)   LOGICAL_POSITION(POS, Y_AXIS)
-  #define LOGICAL_Z_POSITION(POS)   LOGICAL_POSITION(POS, Z_AXIS)
-  #define RAW_X_POSITION(POS)       RAW_POSITION(POS, X_AXIS)
-  #define RAW_Y_POSITION(POS)       RAW_POSITION(POS, Y_AXIS)
-  #define RAW_Z_POSITION(POS)       RAW_POSITION(POS, Z_AXIS)
+  #define LOGICAL_X_POSITION(POS)   NATIVE_TO_LOGICAL(POS, X_AXIS)
+  #define LOGICAL_Y_POSITION(POS)   NATIVE_TO_LOGICAL(POS, Y_AXIS)
+  #define RAW_X_POSITION(POS)       LOGICAL_TO_NATIVE(POS, X_AXIS)
+  #define RAW_Y_POSITION(POS)       LOGICAL_TO_NATIVE(POS, Y_AXIS)
 #else
   #define LOGICAL_X_POSITION(POS)   (POS)
   #define LOGICAL_Y_POSITION(POS)   (POS)
-  #define LOGICAL_Z_POSITION(POS)   (POS)
   #define RAW_X_POSITION(POS)       (POS)
   #define RAW_Y_POSITION(POS)       (POS)
-  #define RAW_Z_POSITION(POS)       (POS)
 #endif
 
-#define RAW_CURRENT_POSITION(A)     RAW_##A##_POSITION(mechanics.current_position[A##_AXIS])
+#define LOGICAL_Z_POSITION(POS)     NATIVE_TO_LOGICAL(POS, Z_AXIS)
+#define RAW_Z_POSITION(POS)         LOGICAL_TO_NATIVE(POS, Z_AXIS)
 
 #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-  #define ARG_X float lx
-  #define ARG_Y float ly
-  #define ARG_Z float lz
+  #define ARG_X float rx
+  #define ARG_Y float ry
+  #define ARG_Z float rz
 #else
-  #define ARG_X const float &lx
-  #define ARG_Y const float &ly
-  #define ARG_Z const float &lz
+  #define ARG_X const float &rx
+  #define ARG_Y const float &ry
+  #define ARG_Z const float &rz
 #endif
 
 class Mechanics {
@@ -116,7 +113,7 @@ class Mechanics {
 
     /**
      * Cartesian Current Position
-     *   Used to track the logical position as moves are queued.
+     *   Used to track the native machine position as moves are queued.
      *   Used by 'line_to_current_position' to do a move after changing it.
      *   Used by 'sync_plan_position' to update 'planner.position'.
      */
@@ -124,7 +121,7 @@ class Mechanics {
 
     /**
      * Cartesian Stored Position
-     *   Used to save logical position as moves are queued.
+     *   Used to save native machine position as moves are queued.
      *   Used by G60 for stored.
      *   Used by G61 for move to.
      */
@@ -261,16 +258,16 @@ class Mechanics {
      * Plan a move to (X, Y, Z) and set the current_position
      * The final current_position may not be the one that was requested
      */
-    virtual void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s=0.0);
-            void do_blocking_move_to(const float logical[ABC], const float &fr_mm_s=0.0);
-            void do_blocking_move_to_x(const float &lx, const float &fr_mm_s=0.0);
-            void do_blocking_move_to_z(const float &lz, const float &fr_mm_s=0.0);
-            void do_blocking_move_to_xy(const float &lx, const float &ly, const float &fr_mm_s=0.0);
+    virtual void do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s=0.0);
+            void do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s=0.0);
+            void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+            void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
+            void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
     /**
      * Manual goto xy for Mesh Bed level or Probe Manually
      */
-    virtual void manual_goto_xy(const float &lx, const float &ly);
+    virtual void manual_goto_xy(const float &rx, const float &ry);
 
     /**
      * sync_plan_position
@@ -306,10 +303,11 @@ class Mechanics {
 
     bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
-    virtual bool position_is_reachable_raw_xy(const float &rx, const float &ry);
-    virtual bool position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry);
-    bool position_is_reachable_xy(const float &lx, const float &ly);
-    bool position_is_reachable_by_probe_xy(const float &lx, const float &ly);
+    /**
+     * position_is_reachable family of functions
+     */
+    virtual bool position_is_reachable(const float &rx, const float &ry);
+    virtual bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
     /**
      * Plan an arc in 2 dimensions
@@ -322,6 +320,18 @@ class Mechanics {
      */
     #if ENABLED(ARC_SUPPORT)
       void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
+    #endif
+
+    #if ENABLED(WORKSPACE_OFFSETS)
+      /**
+       * Change the home offset for an axis, update the current
+       * position and the software endstops to retain the same
+       * relative distance to the new home.
+       *
+       * Since this changes the current_position, code should
+       * call sync_plan_position soon after this.
+       */
+      void set_home_offset(const AxisEnum axis, const float v);
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
