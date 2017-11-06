@@ -169,6 +169,10 @@ class Printer {
     FORCE_INLINE static bool IsRunning()  { return  Running; }
     FORCE_INLINE static bool IsStopped()  { return !Running; }
 
+    #if ENABLED(IDLE_OOZING_PREVENT)
+      static void IDLE_OOZING_retract(bool retracting);
+    #endif
+
   private: /** Private Function */
 
     static void setup_powerhold();
@@ -176,10 +180,6 @@ class Printer {
     static float calculate_volumetric_multiplier(const float diameter);
 
     static void bracket_probe_move(const bool before);
-
-    #if ENABLED(IDLE_OOZING_PREVENT)
-      static void IDLE_OOZING_retract(bool retracting);
-    #endif
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static void host_keepalive();

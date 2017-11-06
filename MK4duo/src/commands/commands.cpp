@@ -494,7 +494,7 @@ bool Commands::enqueue_and_echo_command(const char* cmd, bool say_ok/*=false*/) 
 void Commands::get_destination() {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (parser.seen('E')) IDLE_OOZING_retract(false);
+    if (parser.seen('E')) printer.IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {
