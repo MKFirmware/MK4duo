@@ -92,7 +92,7 @@ class Stepper {
 
     #if ENABLED(LIN_ADVANCE)
 
-      static HAL_TIMER_TYPE nextMainISR, nextAdvanceISR, eISR_Rate;
+      static hal_timer_t nextMainISR, nextAdvanceISR, eISR_Rate;
       #define _NEXT_ISR(T) nextMainISR = T
 
       static volatile int e_steps[DRIVER_EXTRUDERS];
@@ -109,7 +109,7 @@ class Stepper {
 
     static long acceleration_time, deceleration_time;
     // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
-    static HAL_TIMER_TYPE acc_step_rate, // needed for deceleration start point
+    static hal_timer_t acc_step_rate, // needed for deceleration start point
                           OCR1A_nominal;
 
     static uint8_t  step_loops, step_loops_nominal;
@@ -287,8 +287,8 @@ class Stepper {
 
   private: /** Private Function */
 
-    static FORCE_INLINE HAL_TIMER_TYPE calc_timer(HAL_TIMER_TYPE step_rate) {
-      HAL_TIMER_TYPE timer;
+    static FORCE_INLINE hal_timer_t calc_timer(hal_timer_t step_rate) {
+      hal_timer_t timer;
 
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
 

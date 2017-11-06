@@ -210,7 +210,7 @@ class Planner {
     /**
      * Planner::_buffer_line
      *
-     * Add a new linear movement to the buffer.
+     * Add a new direct linear movement to the buffer.
      * Doesn't apply the leveling.
      *
      * Leveling and kinematics should be applied ahead of this.
@@ -229,9 +229,9 @@ class Planner {
      * Kinematic machines should call buffer_line_kinematic (for leveled moves).
      * (Cartesians may also call buffer_line_kinematic.)
      *
-     *  lx,ly,lz,e  - target position in mm or degrees
-     *  fr_mm_s     - (target) speed of the move (mm/s)
-     *  extruder    - target extruder
+     *  rx,ry,rz,e   - target position in mm or degrees
+     *  fr_mm_s      - (target) speed of the move (mm/s)
+     *  extruder     - target extruder
      */
     static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder);
 
@@ -240,11 +240,11 @@ class Planner {
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  ltarget   - x,y,z,e CARTESIAN target in mm
+     *  rtarget   - x,y,z,e CARTESIAN target in mm
      *  fr_mm_s   - (target) speed of the move (mm/s)
      *  extruder  - target extruder
      */
-    static void buffer_line_kinematic(const float ltarget[XYZE], const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line_kinematic(const float rtarget[XYZE], const float &fr_mm_s, const uint8_t extruder);
 
     static FORCE_INLINE void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     static FORCE_INLINE void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }

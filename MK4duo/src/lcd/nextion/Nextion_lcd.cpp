@@ -1241,33 +1241,33 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr4sign(mechanics.current_position[X_AXIS]));
-      LcdY.setText(ftostr4sign(mechanics.current_position[Y_AXIS]));
-      LcdZ.setText(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
+      LcdX.setText(ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
+      LcdY.setText(ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
+      LcdZ.setText(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
     else if (PageID == 5) {
       strcat(buffer, (mechanics.axis_homed[X_AXIS] ? "X" : "?"));
       if (mechanics.axis_homed[X_AXIS]) {
-        valuetemp = ftostr4sign(mechanics.current_position[X_AXIS]);
+        valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       strcat(buffer, (mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
       if (mechanics.axis_homed[Y_AXIS]) {
-        valuetemp = ftostr4sign(mechanics.current_position[Y_AXIS]);
+        valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
         strcat(buffer, valuetemp);
       }
 
       strcat(buffer, (mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
       if (mechanics.axis_homed[Z_AXIS]) {
-        valuetemp = ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS]));
+        valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
         strcat(buffer, valuetemp);
       }
 
       LedCoord5.setText(buffer);
     }
     else if (PageID == 15) {
-      ProbeZ.setText(ftostr43sign(FIXFLOAT(mechanics.current_position[Z_AXIS])));
+      ProbeZ.setText(ftostr43sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
   }
 

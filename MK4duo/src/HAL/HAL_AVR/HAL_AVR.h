@@ -72,7 +72,7 @@
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
-typedef uint16_t  HAL_TIMER_TYPE;
+typedef uint16_t  hal_timer_t;
 typedef uint16_t  ptr_int_t;
 
 // --------------------------------------------------------------------------
@@ -237,6 +237,7 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / 8.0)
+#define HAL_ACCELERATION_RATE       (16777216.0 / (HAL_STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_PRESCALE      64
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)
 

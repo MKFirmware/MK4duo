@@ -127,7 +127,7 @@
 
       if (home_all || homeX || homeY) {
         // Raise Z before homing any other axes and z is not already high enough (never lower z)
-        destination[Z_AXIS] = LOGICAL_Z_POSITION(MIN_Z_HEIGHT_FOR_HOMING);
+        destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
         if (destination[Z_AXIS] > current_position[Z_AXIS]) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING))
@@ -316,13 +316,13 @@
             if (tools.active_extruder == 0) {
               #if ENABLED(DEBUG_LEVELING_FEATURE)
                 if (DEBUGGING(LEVELING)) {
-                  SERIAL_MV("Set planner X", LOGICAL_X_POSITION(inactive_hotend_x_pos));
+                  SERIAL_MV("Set planner X", inactive_hotend_x_pos);
                   SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_hotend_x_offset);
                 }
               #endif
               // move duplicate extruder into correct duplication position.
               set_position_mm(
-                LOGICAL_X_POSITION(inactive_hotend_x_pos),
+                inactive_hotend_x_pos,
                 current_position[Y_AXIS],
                 current_position[Z_AXIS],
                 current_position[E_AXIS]
@@ -498,7 +498,7 @@
           #elif ENABLED(MESH_BED_LEVELING)
             mbl.line_to_destination(fr_scaled);
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            bilinear_line_to_destination(fr_scaled);
+            abl.bilinear_line_to_destination(fr_scaled);
           #endif
           return true;
         }
@@ -557,8 +557,8 @@
       /**
        * Move the Z probe (or just the nozzle) to the safe homing point
        */
-      destination[X_AXIS] = LOGICAL_X_POSITION(Z_SAFE_HOMING_X_POINT);
-      destination[Y_AXIS] = LOGICAL_Y_POSITION(Z_SAFE_HOMING_Y_POINT);
+      destination[X_AXIS] = Z_SAFE_HOMING_X_POINT;
+      destination[Y_AXIS] = Z_SAFE_HOMING_Y_POINT;
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HOMING_Z_WITH_PROBE
@@ -566,7 +566,7 @@
         destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
-      if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
+      if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("Z_SAFE_HOMING", destination);
@@ -612,8 +612,8 @@
       /**
        * Move the Z probe (or just the nozzle) to the safe homing point
        */
-      destination[X_AXIS] = LOGICAL_X_POSITION(DOUBLE_Z_HOMING_X_POINT);
-      destination[Y_AXIS] = LOGICAL_Y_POSITION(DOUBLE_Z_HOMING_Y_POINT);
+      destination[X_AXIS] = DOUBLE_Z_HOMING_X_POINT;
+      destination[Y_AXIS] = DOUBLE_Z_HOMING_Y_POINT;
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HAS_BED_PROBE
@@ -621,7 +621,7 @@
         destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
-      if (position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) {
+      if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("DOUBLE_Z_HOMING", destination);
@@ -646,72 +646,6 @@
     }
 
   #endif
-
-  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-    #define CELL_INDEX(A,V) ((RAW_##A##_POSITION(V) - bedlevel.bilinear_start[A##_AXIS]) * ABL_BG_FACTOR(A##_AXIS))
-
-    /**
-     * Prepare a bilinear-leveled linear move on Cartesian,
-     * splitting the move where it crosses mesh borders.
-     */
-    void Core_Mechanics::bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
-
-      int cx1 = CELL_INDEX(X, current_position[X_AXIS]),
-          cy1 = CELL_INDEX(Y, current_position[Y_AXIS]),
-          cx2 = CELL_INDEX(X, destination[X_AXIS]),
-          cy2 = CELL_INDEX(Y, destination[Y_AXIS]);
-      cx1 = constrain(cx1, 0, ABL_BG_POINTS_X - 2);
-      cy1 = constrain(cy1, 0, ABL_BG_POINTS_Y - 2);
-      cx2 = constrain(cx2, 0, ABL_BG_POINTS_X - 2);
-      cy2 = constrain(cy2, 0, ABL_BG_POINTS_Y - 2);
-
-      if (cx1 == cx2 && cy1 == cy2) {
-        // Start and end on same mesh square
-        line_to_destination(fr_mm_s);
-        set_current_to_destination();
-        return;
-      }
-
-      #define LINE_SEGMENT_END(A) (current_position[A ##_AXIS] + (destination[A ##_AXIS] - current_position[A ##_AXIS]) * normalized_dist)
-
-      float normalized_dist, end[XYZE];
-
-      // Split at the left/front border of the right/top square
-      int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
-      if (cx2 != cx1 && TEST(x_splits, gcx)) {
-        COPY_ARRAY(end, destination);
-        destination[X_AXIS] = LOGICAL_X_POSITION(bedlevel.bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx);
-        normalized_dist = (destination[X_AXIS] - current_position[X_AXIS]) / (end[X_AXIS] - current_position[X_AXIS]);
-        destination[Y_AXIS] = LINE_SEGMENT_END(Y);
-        CBI(x_splits, gcx);
-      }
-      else if (cy2 != cy1 && TEST(y_splits, gcy)) {
-        COPY_ARRAY(end, destination);
-        destination[Y_AXIS] = LOGICAL_Y_POSITION(bedlevel.bilinear_start[Y_AXIS] + ABL_BG_SPACING(Y_AXIS) * gcy);
-        normalized_dist = (destination[Y_AXIS] - current_position[Y_AXIS]) / (end[Y_AXIS] - current_position[Y_AXIS]);
-        destination[X_AXIS] = LINE_SEGMENT_END(X);
-        CBI(y_splits, gcy);
-      }
-      else {
-        // Already split on a border
-        line_to_destination(fr_mm_s);
-        set_current_to_destination();
-        return;
-      }
-
-      destination[Z_AXIS] = LINE_SEGMENT_END(Z);
-      destination[E_AXIS] = LINE_SEGMENT_END(E);
-
-      // Do the split and look for more borders
-      bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
-
-      // Restore destination from stack
-      COPY_ARRAY(destination, end);
-      bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
-    }
-
-  #endif // AUTO_BED_LEVELING_BILINEAR
 
   /**
    * Set an axis' current position to its home position (after homing).
@@ -744,7 +678,7 @@
       }
     #endif
 
-    current_position[axis] = LOGICAL_POSITION(base_home_pos[axis], axis);
+    current_position[axis] = base_home_pos[axis];
 
     /**
      * Z Probe Z Homing? Account for the probe's Z offset.
@@ -779,13 +713,13 @@
 
     float Core_Mechanics::x_home_pos(const int extruder) {
       if (extruder == 0)
-        return LOGICAL_X_POSITION(base_home_pos[X_AXIS]);
+        return base_home_pos[X_AXIS];
       else
         // In dual carriage mode the extruder offset provides an override of the
         // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
         // This allow soft recalibration of the second extruder offset position without firmware reflash
         // (through the M218 command).
-        return LOGICAL_X_POSITION(tools.hotend_offset[X_AXIS][1] > 0 ? tools.hotend_offset[X_AXIS][1] : X2_HOME_POS);
+        return tools.hotend_offset[X_AXIS][1] > 0 ? tools.hotend_offset[X_AXIS][1] : X2_HOME_POS;
     }
 
   #endif

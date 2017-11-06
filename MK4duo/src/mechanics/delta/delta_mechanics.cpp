@@ -58,17 +58,16 @@
   }
 
   void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-    _set_position_mm(lx, ly, lz, e);
+    _set_position_mm(rx, ry, rz, e);
   }
 
-  bool Delta_Mechanics::position_is_reachable_raw_xy(const float &rx, const float &ry) {
+  bool Delta_Mechanics::position_is_reachable(const float &rx, const float &ry) {
     return HYPOT2(rx, ry) <= sq(delta_print_radius);
   }
-
-  bool Delta_Mechanics::position_is_reachable_by_probe_raw_xy(const float &rx, const float &ry) {
+  bool Delta_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     // Both the nozzle and the probe must be able to reach the point.
-    return position_is_reachable_raw_xy(rx, ry)
-        && position_is_reachable_raw_xy(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
+    return position_is_reachable(rx, ry)
+        && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
   }
 
   void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
@@ -121,7 +120,7 @@
       }
 
       // Fail if attempting move outside printable radius
-      if (!position_is_reachable_xy(destination[X_AXIS], destination[Y_AXIS])) return true;
+      if (!position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
       // Get the cartesian distances moved in XYZE
       const float difference[XYZE] = {
@@ -163,9 +162,9 @@
       //SERIAL_MV(" seconds=", seconds);
       //SERIAL_EMV(" segments=", segments);
 
-      // Get the logical current position as starting point
-      float logical[XYZE];
-      COPY_ARRAY(logical, current_position);
+      // Get the current position as starting point
+      float raw[XYZE];
+      COPY_ARRAY(raw, current_position);
 
       // Drop one segment so the last move is to the exact target.
       // If there's only 1 segment, loops will be skipped entirely.
@@ -173,20 +172,20 @@
 
       // Calculate and execute the segments
       for (uint16_t s = segments + 1; --s;) {
-        LOOP_XYZE(i) logical[i] += segment_distance[i];
-        Transform(logical);
+        LOOP_XYZE(i) raw[i] += segment_distance[i];
+        Transform(raw);
 
         // Adjust Z if bed leveling is enabled
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
           if (bedlevel.leveling_active) {
-            const float zadj = bedlevel.bilinear_z_offset(logical);
+            const float zadj = abl.bilinear_z_offset(raw);
             delta[A_AXIS] += zadj;
             delta[B_AXIS] += zadj;
             delta[C_AXIS] += zadj;
           }
         #endif
 
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], logical[E_AXIS], _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder);
 
       }
 
@@ -202,14 +201,14 @@
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void Delta_Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s /*=0.0*/) {
+  void Delta_Mechanics::do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, lx, ly, lz);
+      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
-    if (!position_is_reachable_xy(lx, ly)) return;
+    if (!position_is_reachable(rx, ry)) return;
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
@@ -221,10 +220,10 @@
 
     // when in the danger zone
     if (current_position[C_AXIS] > delta_clip_start_height) {
-      if (lz > delta_clip_start_height) {   // staying in the danger zone
-        destination[A_AXIS] = lx;           // move directly (uninterpolated)
-        destination[B_AXIS] = ly;
-        destination[C_AXIS] = lz;
+      if (rz > delta_clip_start_height) {   // staying in the danger zone
+        destination[A_AXIS] = rx;           // move directly (uninterpolated)
+        destination[B_AXIS] = ry;
+        destination[C_AXIS] = rz;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) DEBUG_POS("danger zone move", current_position);
@@ -240,23 +239,23 @@
       }
     }
 
-    if (lz > current_position[C_AXIS]) {    // raising?
-      destination[C_AXIS] = lz;
+    if (rz > current_position[C_AXIS]) {    // raising?
+      destination[C_AXIS] = rz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", current_position);
       #endif
     }
 
-    destination[A_AXIS] = lx;
-    destination[B_AXIS] = ly;
+    destination[A_AXIS] = rx;
+    destination[B_AXIS] = ry;
     prepare_move_to_destination();         // set_current_to_destination
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) DEBUG_POS("xy move", current_position);
     #endif
 
-    if (lz < current_position[C_AXIS]) {    // lowering?
-      destination[C_AXIS] = lz;
+    if (rz < current_position[C_AXIS]) {    // lowering?
+      destination[C_AXIS] = rz;
       prepare_uninterpolated_move_to_destination();   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", current_position);
@@ -272,7 +271,7 @@
     #endif
   }
 
-  void Delta_Mechanics::manual_goto_xy(const float &lx, const float &ly) {
+  void Delta_Mechanics::manual_goto_xy(const float &rx, const float &ry) {
 
     const float old_feedrate_mm_s = feedrate_mm_s;
 
@@ -283,8 +282,8 @@
     prepare_move_to_destination(); // will call set_current_from_destination()
 
     feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-    destination[X_AXIS] = lx;
-    destination[Y_AXIS] = ly;
+    destination[X_AXIS] = rx;
+    destination[Y_AXIS] = ry;
     prepare_move_to_destination(); // will call set_current_from_destination()
 
     stepper.synchronize();
@@ -448,41 +447,32 @@
   /**
    * Delta Transform
    *
-   * Calculate the tower positions for a given logical
+   * Calculate the tower positions for a given machine
    * position, storing the result in the delta[] array.
    *
    * This is an expensive calculation, requiring 3 square
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void Delta_Mechanics::Transform(const float logical[XYZ]) {
-    const float raw[XYZ] = {  RAW_X_POSITION(logical[A_AXIS]),
-                              RAW_Y_POSITION(logical[B_AXIS]),
-                              RAW_Z_POSITION(logical[C_AXIS])
-    };
-
+  void Delta_Mechanics::Transform(const float raw[ABC]) {
     delta[A_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[A_AXIS], towerY[A_AXIS] - raw[B_AXIS]));
     delta[B_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[A_AXIS], towerY[B_AXIS] - raw[B_AXIS]));
     delta[C_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[A_AXIS], towerY[C_AXIS] - raw[B_AXIS]));
   }
 
-  void Delta_Mechanics::Transform_segment_raw(const float rx, const float ry, const float rz, const float le, const float fr) {
+  void Delta_Mechanics::Transform_segment_raw(const float rx, const float ry, const float rz, const float re, const float fr) {
     const float delta_A = rz + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - rx, towerY[A_AXIS] - ry ));
     const float delta_B = rz + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - rx, towerY[B_AXIS] - ry ));
     const float delta_C = rz + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - rx, towerY[C_AXIS] - ry ));
 
-    planner._buffer_line(delta_A, delta_B, delta_C, le, fr, tools.active_extruder);
+    planner._buffer_line(delta_A, delta_B, delta_C, re, fr, tools.active_extruder);
   }
 
   void Delta_Mechanics::Set_clip_start_height() {
-    float cartesian[XYZ] = {
-      LOGICAL_X_POSITION(0),
-      LOGICAL_Y_POSITION(0),
-      LOGICAL_Z_POSITION(0)
-    };
+    float cartesian[ABC] = { 0, 0, 0 };
     Transform(cartesian);
     float distance = delta[A_AXIS];
-    cartesian[Y_AXIS] = LOGICAL_Y_POSITION(delta_print_radius);
+    cartesian[Y_AXIS] = delta_print_radius;
     Transform(cartesian);
     delta_clip_start_height = delta_height - FABS(distance - delta[A_AXIS]);
   }
@@ -729,18 +719,13 @@
 
     stepper.synchronize();
 
-    SERIAL_MSG("\nLogical:");
+    SERIAL_MSG("\nRaw:    ");
     report_xyze(current_position);
-
-    SERIAL_MSG("Raw:    ");
-    const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
-    report_xyz(raw);
-
-    float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
     #if PLANNER_LEVELING
 
       SERIAL_MSG("Leveled:");
+      float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
       bedlevel.apply_leveling(leveled);
       report_xyz(leveled);
 
@@ -756,8 +741,8 @@
     report_xyz(delta);
 
     SERIAL_MSG("Stepper:");
-    const long step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
-    report_xyze((float*)step_count, 4, 0);
+    const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
+    report_xyze(step_count, 4, 0);
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)

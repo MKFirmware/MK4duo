@@ -24,6 +24,12 @@
 
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
+  constexpr float nozzle_clean_start_point[XYZ] = NOZZLE_CLEAN_START_POINT, // One corner of the wipe area
+                  nozzle_clean_end_point[XYZ]   = NOZZLE_CLEAN_END_POINT,   // Opposite corner of the wipe area
+                  nozzle_clean_length           = FABS(nozzle_clean_start_point[X_AXIS] - nozzle_clean_end_point[X_AXIS]),  // X size of wipe area
+                  nozzle_clean_height           = FABS(nozzle_clean_start_point[Y_AXIS] - nozzle_clean_end_point[Y_AXIS]);  // Y size of wipe area
+  constexpr bool  nozzle_clean_horizontal       = nozzle_clean_length >= nozzle_clean_height;                               // whether to zig-zag horizontally or vertically
+
   /**
    * @brief Stroke clean pattern
    * @details Wipes the nozzle back and forth in a linear movement
@@ -44,8 +50,7 @@
     #endif // NOZZLE_CLEAN_GOBACK
 
     // Move to the starting point
-    mechanics.do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
-    mechanics.do_blocking_move_to_z(start[Z_AXIS]);
+    mechanics.do_blocking_move_to(start[X_AXIS], start[Y_AXIS], start[Z_AXIS]);
 
     // Start the stroke pattern
     for (uint8_t i = 0; i < (strokes >>1); i++) {
@@ -71,11 +76,10 @@
    */
   void Nozzle::zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects) {
 
-    const float A = nozzle_clean_horizontal ? nozzle_clean_height : nozzle_clean_length, // [twice the] Amplitude
-                P = (nozzle_clean_horizontal ? nozzle_clean_length : nozzle_clean_height) / (objects << 1); // Period
-
-    // Don't allow impossible triangles
-    if (A <= 0.0f || P <= 0.0f ) return;
+    const float diffx = end[X_AXIS] - start[X_AXIS],
+                diffy = end[Y_AXIS] - start[Y_AXIS];
+    
+    if (!diffx || !diffy) return;
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
@@ -86,27 +90,34 @@
       };
     #endif // NOZZLE_CLEAN_GOBACK
 
-    for (uint8_t j = 0; j < strokes; j++) {
-      for (uint8_t i = 0; i < (objects << 1); i++) {
-        const float x = start[X_AXIS] + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - FABS(FMOD((i * P), (2 * P)) - P)) ),
-                    y = start[Y_AXIS] + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - FABS(FMOD((i * P), (2 * P)) - P)) );
+    mechanics.do_blocking_move_to(start[X_AXIS], start[Y_AXIS], start[Z_AXIS]);
 
-        mechanics.do_blocking_move_to_xy(x, y);
-        if (i == 0) mechanics.do_blocking_move_to_z(start[Z_AXIS]);
+    const uint8_t zigs = objects << 1;
+    const bool horiz = FABS(diffx) >= FABS(diffy);    // Do a horizontal wipe?
+    const float P = (horiz ? diffx : diffy) / zigs;   // Period of each zig / zag
+    float side[XYZ];
+
+    for (uint8_t j = 0; j < strokes; j++) {
+      for (int8_t i = 0; i < zigs; i++) {
+        (i & 1) ? COPY_ARRAY(side, end) : COPY_ARRAY(side, start);
+        if (horiz)
+          mechanics.do_blocking_move_to_xy(start[X_AXIS] + i * P, side[Y_AXIS]);
+        else
+          mechanics.do_blocking_move_to_xy(side[X_AXIS], start[Y_AXIS] + i * P);
       }
 
-      for (int i = (objects << 1); i > -1; i--) {
-        const float x = start[X_AXIS] + ( nozzle_clean_horizontal ? i * P : (A / P) * (P - FABS(FMOD((i * P), (2 * P)) - P)) ),
-                    y = start[Y_AXIS] + (!nozzle_clean_horizontal ? i * P : (A / P) * (P - FABS(FMOD((i * P), (2 * P)) - P)) );
-
-        mechanics.do_blocking_move_to_xy(x, y);
+      for (int8_t i = zigs; i >= 0; i--) {
+        (i & 1) ? COPY_ARRAY(side, end) : COPY_ARRAY(side, start);
+        if (horiz)
+          mechanics.do_blocking_move_to_xy(start[X_AXIS] + i * P, side[Y_AXIS]);
+        else
+          mechanics.do_blocking_move_to_xy(side[X_AXIS], start[Y_AXIS] + i * P);
       }
     }
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      mechanics.do_blocking_move_to_z(initial[Z_AXIS]);
-      mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
+      mechanics.do_blocking_move_to(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
     #endif // NOZZLE_CLEAN_GOBACK
 
   }
@@ -133,23 +144,14 @@
       };
     #endif // NOZZLE_CLEAN_GOBACK
 
-    if (start[Z_AXIS] <= mechanics.current_position[Z_AXIS]) {
-      // Order of movement is pretty darn important here
-      mechanics.do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
-      mechanics.do_blocking_move_to_z(start[Z_AXIS]);
-    }
-    else {
-      mechanics.do_blocking_move_to_z(start[Z_AXIS]);
-      mechanics.do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
-    }
+    mechanics.do_blocking_move_to(start[X_AXIS], start[Y_AXIS], start[Z_AXIS]);
 
-    float x, y;
     for (uint8_t s = 0; s < strokes; s++) {
       for (uint8_t i = 0; i < NOZZLE_CLEAN_CIRCLE_FN; i++) {
-        x = middle[X_AXIS] + sin((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
-        y = middle[Y_AXIS] + cos((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius;
-
-        mechanics.do_blocking_move_to_xy(x, y);
+        mechanics.do_blocking_move_to_xy(
+          middle[X_AXIS] + SIN((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius,
+          middle[Y_AXIS] + COS((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius
+        );
       }
     }
 
@@ -157,17 +159,8 @@
     mechanics.do_blocking_move_to_xy(start[X_AXIS], start[Y_AXIS]);
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
-      // Move the nozzle to the initial point
-      if (start[Z_AXIS] <= initial[Z_AXIS]) {
-        // As above order is important
-        mechanics.do_blocking_move_to_z(initial[Z_AXIS]);
-        mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
-      }
-      else {
-        mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS]);
-        mechanics.do_blocking_move_to_z(initial[Z_AXIS]);
-      }
-    #endif // NOZZLE_CLEAN_GOBACK
+      mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
+    #endif
 
   }
 
@@ -209,8 +202,7 @@
 
   void Nozzle::park(const uint8_t &z_action) {
 
-    const float z       = mechanics.current_position[Z_AXIS],
-                park[]  = NOZZLE_PARK_POINT;
+    const float park[]  = NOZZLE_PARK_POINT;
 
     switch(z_action) {
       case 1: // force Z-park height
@@ -218,16 +210,14 @@
         break;
 
       case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(
-          (z + park[Z_AXIS] > Z_MAX_POS) ? Z_MAX_POS : z + park[Z_AXIS]);
+        mechanics.do_blocking_move_to_z(min(mechanics.current_position[Z_AXIS] + park[Z_AXIS], Z_MAX_POS));
         break;
 
       default: // Raise to Z-park height if lower
-        if (mechanics.current_position[Z_AXIS] < park[Z_AXIS])
-          mechanics.do_blocking_move_to_z(park[Z_AXIS]);
+        mechanics.do_blocking_move_to_z(max(park[Z_AXIS], mechanics.current_position[Z_AXIS] < park[Z_AXIS]));
     }
 
-    mechanics. do_blocking_move_to_xy(park[X_AXIS], park[Y_AXIS]);
+    mechanics.do_blocking_move_to_xy(park[X_AXIS], park[Y_AXIS]);
   }
 
 #endif // ENABLED(NOZZLE_PARK_FEATURE)

@@ -78,9 +78,9 @@
  * AUTO_BED_LEVELING_BILINEAR:
  *                        GRID_MAX_POINTS_X                     (uint8_t)
  *                        GRID_MAX_POINTS_Y                     (uint8_t)
- *                        bedlevel.bilinear_grid_spacing        (int x2)   from G29: (B-F)/X, (R-L)/Y
- *  G29   L F             bedlevel.bilinear_start               (int x2)
- *                        bedlevel.z_values[][]                 (float x9, up to float x256)
+ *                        abl.bilinear_grid_spacing        (int x2)   from G29: (B-F)/X, (R-L)/Y
+ *  G29   L F             abl.bilinear_start               (int x2)
+ *                        abl.z_values[][]                 (float x9, up to float x256)
  *
  * AUTO_BED_LEVELING_UBL:
  *  G29 A                 bedlevel.leveling_active              (bool)
@@ -238,7 +238,7 @@ void EEPROM::Postprocess() {
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    bedlevel.refresh_bed_level();
+    abl.refresh_bed_level();
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -411,15 +411,15 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       static_assert(
-        sizeof(bedlevel.z_values) == GRID_MAX_POINTS * sizeof(bedlevel.z_values[0][0]),
+        sizeof(abl.z_values) == GRID_MAX_POINTS * sizeof(abl.z_values[0][0]),
         "Bilinear Z array is the wrong size."
       );
       const uint8_t grid_max_x = GRID_MAX_POINTS_X, grid_max_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(grid_max_x);             // 1 byte
       EEPROM_WRITE(grid_max_y);             // 1 byte
-      EEPROM_WRITE(bedlevel.bilinear_grid_spacing);  // 2 ints
-      EEPROM_WRITE(bedlevel.bilinear_start);         // 2 ints
-      EEPROM_WRITE(bedlevel.z_values);               // 9-256 floats
+      EEPROM_WRITE(abl.bilinear_grid_spacing);  // 2 ints
+      EEPROM_WRITE(abl.bilinear_start);         // 2 ints
+      EEPROM_WRITE(abl.z_values);               // 9-256 floats
     #endif // AUTO_BED_LEVELING_BILINEAR
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -763,9 +763,9 @@ void EEPROM::Postprocess() {
         EEPROM_READ(grid_max_y);              // 1 byte
         if (grid_max_x == GRID_MAX_POINTS_X && grid_max_y == GRID_MAX_POINTS_Y) {
           bedlevel.set_bed_leveling_enabled(false);
-          EEPROM_READ(bedlevel.bilinear_grid_spacing); // 2 ints
-          EEPROM_READ(bedlevel.bilinear_start);        // 2 ints
-          EEPROM_READ(bedlevel.z_values);              // 9 to 256 floats
+          EEPROM_READ(abl.bilinear_grid_spacing); // 2 ints
+          EEPROM_READ(abl.bilinear_start);        // 2 ints
+          EEPROM_READ(abl.z_values);              // 9 to 256 floats
         }
         else { // EEPROM data is stale
           // Skip past disabled (or stale) Bilinear Grid data

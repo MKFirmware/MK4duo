@@ -54,10 +54,10 @@
    * splitting the move where it crosses mesh borders.
    */
   void mesh_bed_leveling::line_to_destination(float fr_mm_s, uint8_t x_splits/*= 0xFF*/, uint8_t y_splits/*= 0xFF*/) {
-    int cx1 = mbl.cell_index_x(RAW_CURRENT_POSITION(X)),
-        cy1 = mbl.cell_index_y(RAW_CURRENT_POSITION(Y)),
-        cx2 = mbl.cell_index_x(RAW_X_POSITION(mechanics.destination[X_AXIS])),
-        cy2 = mbl.cell_index_y(RAW_Y_POSITION(mechanics.destination[Y_AXIS]));
+    int cx1 = mbl.cell_index_x(mechanics.current_position[X_AXIS]),
+        cy1 = mbl.cell_index_y(mechanics.current_position[Y_AXIS]),
+        cx2 = mbl.cell_index_x(mechanics.destination[X_AXIS]),
+        cy2 = mbl.cell_index_y(mechanics.destination[Y_AXIS]);
     NOMORE(cx1, GRID_MAX_POINTS_X - 2);
     NOMORE(cy1, GRID_MAX_POINTS_Y - 2);
     NOMORE(cx2, GRID_MAX_POINTS_X - 2);
@@ -75,17 +75,17 @@
     float normalized_dist, end[XYZE];
 
     // Split at the left/front border of the right/top square
-    int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+    const int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
     if (cx2 != cx1 && TEST(x_splits, gcx)) {
       COPY_ARRAY(end, mechanics.destination);
-      mechanics.destination[X_AXIS] = LOGICAL_X_POSITION(index_to_xpos[gcx]);
+      mechanics.destination[X_AXIS] = index_to_xpos[gcx];
       normalized_dist = (mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS]) / (end[X_AXIS] - mechanics.current_position[X_AXIS]);
       mechanics.destination[Y_AXIS] = MBL_SEGMENT_END(Y);
       CBI(x_splits, gcx);
     }
     else if (cy2 != cy1 && TEST(y_splits, gcy)) {
       COPY_ARRAY(end, mechanics.destination);
-      mechanics.destination[Y_AXIS] = LOGICAL_Y_POSITION(index_to_ypos[gcy]);
+      mechanics.destination[Y_AXIS] = index_to_ypos[gcy];
       normalized_dist = (mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS]) / (end[Y_AXIS] - mechanics.current_position[Y_AXIS]);
       mechanics.destination[X_AXIS] = MBL_SEGMENT_END(X);
       CBI(y_splits, gcy);
@@ -113,7 +113,7 @@
     mechanics.Home(true);
     bedlevel.set_bed_leveling_enabled(true);
     #if ENABLED(MESH_G28_REST_ORIGIN)
-      mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS);
+      mechanics.current_position[Z_AXIS] = Z_MIN_POS;
       mechanics.set_destination_to_current();
       mechanics.line_to_destination(mechanics.homing_feedrate_mm_s[Z_AXIS]);
       stepper.synchronize();

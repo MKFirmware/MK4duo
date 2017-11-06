@@ -70,6 +70,8 @@ class Commands {
     static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
     static void enqueue_and_echo_commands_P(const char * const pgcode);
 
+    static void get_destination();
+    static bool get_target_tool(const uint16_t code);
     static bool get_target_heater(int8_t &h);
 
     FORCE_INLINE static void reset_send_ok()        { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }

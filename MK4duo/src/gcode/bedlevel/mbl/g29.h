@@ -119,7 +119,7 @@
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
-          mechanics.current_position[Z_AXIS] = LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT;
+          mechanics.current_position[Z_AXIS] = Z_MIN_POS + MANUAL_PROBE_HEIGHT;
           mechanics.line_to_current_position();
           stepper.synchronize();
 

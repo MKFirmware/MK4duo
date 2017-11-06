@@ -36,13 +36,11 @@
   inline void gcode_M206(void) {
     LOOP_XYZ(i) {
       if (parser.seen(axis_codes[i]))
-        mechanics.home_offset[(AxisEnum)i] = parser.value_linear_units();
+        mechanics.set_home_offset((AxisEnum)i, parser.value_linear_units());
     }
     #if MECH(MORGAN_SCARA)
-      if (parser.seen('T'))
-        mechanics.home_offset[X_AXIS] = parser.value_linear_units(); // Theta
-      if (parser.seen('P'))
-        mechanics.home_offset[Y_AXIS] = parser.value_linear_units(); // Psi
+      if (parser.seen('T')) mechanics.set_home_offset(A_AXIS, parser.value_linear_units()); // Theta
+      if (parser.seen('P')) mechanics.set_home_offset(Y_AXIS, parser.value_linear_units()); // Psi
     #endif
 
     #if IS_SCARA

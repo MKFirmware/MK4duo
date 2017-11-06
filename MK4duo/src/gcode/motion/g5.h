@@ -43,7 +43,7 @@
   inline void gcode_G5(void) {
     if (printer.IsRunning()) {
 
-      printer.get_destination_from_command();
+      commands.get_destination();
 
       const float offset[] = {
         parser.linearval('I'),

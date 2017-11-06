@@ -206,7 +206,7 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
     // move down slowly to find bed
     if (move_to_z(-10 + (short_move ? 0 : -(Z_MAX_LENGTH)), Z_PROBE_SPEED_SLOW)) return NAN;
 
-    probe_z += RAW_CURRENT_POSITION(Z);
+    probe_z += mechanics.current_position[Z_AXIS];
 
     if (r + 1 < Z_PROBE_REPETITIONS) {
       // move up to probe between height
@@ -230,27 +230,27 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
  * - short_move Flag for a shorter probe move towards the bed
  * - Return the probed Z position
  */
-float Probe::check_pt(const float &lx, const float &ly, const bool stow, const int verbose_level, const bool printable/*=true*/) {
+float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool printable/*=true*/) {
 
   #if HAS_BED_PROBE
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
-        SERIAL_MV(">>> check_pt(", lx);
-        SERIAL_MV(", ", ly);
+        SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
+        SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
         SERIAL_MV(", ", stow ? "" : "no ");
         SERIAL_EM("stow)");
         DEBUG_POS("", mechanics.current_position);
       }
     #endif
 
-    const float dx = lx - offset[X_AXIS],
-                dy = ly - offset[Y_AXIS];
+    const float nx = rx - offset[X_AXIS],
+                ny = ry - offset[Y_AXIS];
 
-    if (printable) {
-      if (!mechanics.position_is_reachable_by_probe_xy(lx, ly)) return NAN;
-    }
-    else if (!mechanics.position_is_reachable_xy(dx, dy)) return NAN;
+    if (printable
+      ? !mechanics.position_is_reachable(nx, ny)
+      : !mechanics.position_is_reachable_by_probe(rx, ry)
+    ) return NAN;
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
@@ -268,7 +268,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow, const i
     mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
     // Move the probe to the given XY
-    mechanics.do_blocking_move_to_xy(dx, dy);
+    mechanics.do_blocking_move_to_xy(nx, ny);
 
     float measured_z = NAN;
     if (!set_deployed(true)) {
@@ -287,8 +287,8 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow, const i
 
     if (verbose_level > 2) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, lx, 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, ly, 3);
+      SERIAL_MV(MSG_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
+      SERIAL_MV(MSG_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
       SERIAL_EOL();
     }
 
@@ -319,7 +319,7 @@ float Probe::check_pt(const float &lx, const float &ly, const bool stow, const i
       endstops.soft_endstops_enabled = false;
     #endif
 
-    measured_z = lcd_probe_pt(lx, ly);
+    measured_z = lcd_probe_pt(rx, ry);
 
     // Restore the soft endstop status
     #if HAS_SOFTWARE_ENDSTOPS
@@ -395,10 +395,10 @@ void Probe::refresh_offset(const bool no_babystep/*=false*/) {
       if (diff) {
         for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
           for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            bedlevel.z_values[x][y] -= diff;
+            abl.z_values[x][y] -= diff;
       }
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        bedlevel.virt_interpolate();
+        abl.virt_interpolate();
       #endif
     #endif
 

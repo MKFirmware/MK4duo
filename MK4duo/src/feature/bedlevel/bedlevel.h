@@ -43,33 +43,12 @@
     #include "math/vector_3.h"
     #include "math/least_squares_fit.h"
   #endif
-  #if ENABLED(MESH_BED_LEVELING)
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    #include "abl/abl.h"
+  #elif ENABLED(MESH_BED_LEVELING)
     #include "mbl/mesh_bed_leveling.h"
   #elif ENABLED(AUTO_BED_LEVELING_UBL)
     #include "ubl/ubl.h"
-  #endif
-
-  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
-    #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-      #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
-      #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
-      #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
-      #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
-
-      #define ABL_BG_SPACING(A) bedlevel.bilinear_grid_spacing_virt[A]
-      #define ABL_BG_FACTOR(A)  bedlevel.bilinear_grid_factor_virt[A]
-      #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
-      #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
-      #define ABL_BG_GRID(X,Y)  bedlevel.z_values_virt[X][Y]
-    #else
-      #define ABL_BG_SPACING(A) bedlevel.bilinear_grid_spacing[A]
-      #define ABL_BG_FACTOR(A)  bedlevel.bilinear_grid_factor[A]
-      #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
-      #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
-      #define ABL_BG_GRID(X,Y)  bedlevel.z_values[X][Y]
-    #endif
-
   #endif
 
   class Bedlevel {
@@ -94,12 +73,6 @@
         static float z_fade_height, inverse_z_fade_height;
       #endif
 
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        static int    bilinear_grid_spacing[2], bilinear_start[2];
-        static float  bilinear_grid_factor[2],
-                      z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
-      #endif
-
       #if ENABLED(PROBE_MANUALLY)
         static bool g29_in_progress;
       #else
@@ -108,14 +81,8 @@
 
     private: /** Private Parameters */
 
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(ABL_BILINEAR_SUBDIVISION)
-        static float  bilinear_grid_factor_virt[2],
-                      z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-        static int    bilinear_grid_spacing_virt[2];
-      #endif
-
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        static float last_raw_lz;
+        static float last_fade_z;
       #endif
 
     public: /** Public Function */
@@ -125,27 +92,9 @@
          * Apply leveling to transform a cartesian position
          * as it will be given to the planner and steppers.
          */
-        static void apply_leveling(float &lx, float &ly, float &lz);
-        static void apply_leveling(float logical[XYZ]) { apply_leveling(logical[X_AXIS], logical[Y_AXIS], logical[Z_AXIS]); }
-        static void unapply_leveling(float logical[XYZ]);
-      #endif
-
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        static float bilinear_z_offset(const float logical[XYZ]);
-        static void refresh_bed_level();
-
-        /**
-         * Fill in the unprobed points (corners of circular print surface)
-         * using linear extrapolation, away from the center.
-         */
-        static void extrapolate_unprobed_bed_level();
-
-        static void print_bilinear_leveling_grid();
-
-        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          static void print_bilinear_leveling_grid_virt();
-          static void virt_interpolate();
-        #endif
+        static void apply_leveling(float &rx, float &ry, float &rz);
+        static void apply_leveling(float raw[XYZ]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+        static void unapply_leveling(float raw[XYZ]);
       #endif
 
       static bool leveling_is_valid();
@@ -167,50 +116,34 @@
          *  Returns 1.0 if planner.z_fade_height is 0.0.
          *  Returns 0.0 if Z is past the specified 'Fade Height'.
          */
-        inline static float fade_scaling_factor_for_z(const float &lz) {
+        inline static float fade_scaling_factor_for_z(const float &rz) {
           static float z_fade_factor = 1.0;
           if (z_fade_height) {
-            const float raw_lz = RAW_Z_POSITION(lz);
-            if (raw_lz >= z_fade_height) return 0.0;
-            if (last_raw_lz != raw_lz) {
-              last_raw_lz = raw_lz;
-              z_fade_factor = 1.0 - raw_lz * inverse_z_fade_height;
+            if (rz >= z_fade_height) return 0.0;
+            if (last_fade_z != rz) {
+              last_fade_z = rz;
+              z_fade_factor = 1.0 - rz * inverse_z_fade_height;
             }
             return z_fade_factor;
           }
           return 1.0;
         }
 
-        FORCE_INLINE static void force_fade_recalc() { last_raw_lz = -999.999; }
+        FORCE_INLINE static void force_fade_recalc() { last_fade_z = -999.999; }
 
-        FORCE_INLINE static bool leveling_active_at_z(const float &lz) {
-          return !z_fade_height || RAW_Z_POSITION(lz) < z_fade_height;
+        FORCE_INLINE static bool leveling_active_at_z(const float &rz) {
+          return !z_fade_height || rz < z_fade_height;
         }
 
       #else
 
-        FORCE_INLINE static float fade_scaling_factor_for_z(const float &lz) {
-          UNUSED(lz);
+        FORCE_INLINE static float fade_scaling_factor_for_z(const float &rz) {
+          UNUSED(rz);
           return 1.0;
         }
 
-        FORCE_INLINE static bool leveling_active_at_z(const float &lz) { UNUSED(lz); return true; }
+        FORCE_INLINE static bool leveling_active_at_z(const float &rz) { UNUSED(rz); return true; }
 
-      #endif
-
-    private: /** Private Function */
-
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        /**
-         * Extrapolate a single point from its neighbors
-         */
-        static void extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir);
-
-        #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-          static float bed_level_virt_coord(const uint8_t x, const uint8_t y);
-          static float bed_level_virt_cmr(const float p[4], const uint8_t i, const float t);
-          static float bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const float &tx, const float &ty);
-        #endif
       #endif
 
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)

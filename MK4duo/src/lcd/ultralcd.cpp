@@ -1640,7 +1640,7 @@ void kill_screen(const char* lcd_msg) {
      */
     static int8_t bed_corner;
     void _lcd_goto_next_corner() {
-      line_to_z(LOGICAL_Z_POSITION(4.0));
+      line_to_z(4.0);
       switch (bed_corner) {
         case 0:
           mechanics.current_position[X_AXIS] = X_MIN_BED + 10;
@@ -1657,7 +1657,7 @@ void kill_screen(const char* lcd_msg) {
           break;
       }
       planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.active_extruder);
-      line_to_z(LOGICAL_Z_POSITION(0.0));
+      line_to_z(0.0);
       if (++bed_corner > 3) bed_corner = 0;
     }
 
@@ -1703,7 +1703,7 @@ void kill_screen(const char* lcd_msg) {
     //
     void _lcd_after_probing() {
       #if MANUAL_PROBE_HEIGHT > 0
-        line_to_z(LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT);
+        line_to_z(Z_MIN_POS + MANUAL_PROBE_HEIGHT);
       #endif
       // Display "Done" screen and wait for moves to complete
       #if MANUAL_PROBE_HEIGHT > 0 || ENABLED(MESH_BED_LEVELING)
@@ -1717,13 +1717,13 @@ void kill_screen(const char* lcd_msg) {
     #if ENABLED(MESH_BED_LEVELING)
 
       // Utility to go to the next mesh point
-      inline void _manual_probe_goto_xy(float x, float y) {
+      inline void _manual_probe_goto_xy(const float &rx, const float &ry) {
         #if MANUAL_PROBE_HEIGHT > 0
           const float prev_z = mechanics.current_position[Z_AXIS];
-          line_to_z(LOGICAL_Z_POSITION(Z_MIN_POS) + MANUAL_PROBE_HEIGHT);
+          line_to_z(Z_MIN_POS + MANUAL_PROBE_HEIGHT);
         #endif
-        mechanics.current_position[X_AXIS] = LOGICAL_X_POSITION(x);
-        mechanics.current_position[Y_AXIS] = LOGICAL_Y_POSITION(y);
+        mechanics.current_position[X_AXIS] = rx;
+        mechanics.current_position[Y_AXIS] = ry;
         planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
         #if MANUAL_PROBE_HEIGHT > 0
           line_to_z(prev_z);
@@ -1853,10 +1853,7 @@ void kill_screen(const char* lcd_msg) {
         mbl.zigzag(manual_probe_index, px, py);
 
         // Controls the loop until the move is done
-        _manual_probe_goto_xy(
-          LOGICAL_X_POSITION(mbl.index_to_xpos[px]),
-          LOGICAL_Y_POSITION(mbl.index_to_ypos[py])
-        );
+        _manual_probe_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
 
         // After the blocking function returns, change menus
         lcd_goto_screen(_lcd_level_bed_get_z);
@@ -2665,18 +2662,18 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_move_z();
 
-  void _man_probe_pt(const float &lx, const float &ly) {
+  void _man_probe_pt(const float &rx, const float &ry) {
     #if HAS_LEVELING
       bedlevel.reset(); // After calibration bed-level data is no longer valid
     #endif
 
-    mechanics.manual_goto_xy(lx, ly);
+    mechanics.manual_goto_xy(rx, ry);
     move_menu_scale = LCD_Z_STEP;
     lcd_goto_screen(lcd_move_z);
   }
 
-  float lcd_probe_pt(const float &lx, const float &ly) {
-    _man_probe_pt(lx, ly);
+  float lcd_probe_pt(const float &rx, const float &ry) {
+    _man_probe_pt(rx, ry);
     KEEPALIVE_STATE(PAUSED_FOR_USER);
     defer_return_to_status = true;
     printer.wait_for_user = true;

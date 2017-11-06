@@ -267,7 +267,7 @@ void unified_bed_leveling::G26() {
 
       // If this mesh location is outside the printable_radius, skip it.
 
-      if (!mechanics.position_is_reachable_raw_xy(circle_x, circle_y)) continue;
+      if (!mechanics.position_is_reachable(circle_x, circle_y)) continue;
 
       xi = location.x_index;  // Just to shrink the next few lines and make them easier to understand
       yi = location.y_index;
@@ -316,16 +316,16 @@ void unified_bed_leveling::G26() {
         if (tmp_div_30 < 0) tmp_div_30 += 360 / 30;
         if (tmp_div_30 > 11) tmp_div_30 -= 360 / 30;
 
-        float x = circle_x + cos_table[tmp_div_30],    // for speed, these are now a lookup table entry
-              y = circle_y + sin_table[tmp_div_30],
+        float rx = circle_x + cos_table[tmp_div_30],    // for speed, these are now a lookup table entry
+              ry = circle_y + sin_table[tmp_div_30],
               xe = circle_x + cos_table[tmp_div_30 + 1],
               ye = circle_y + sin_table[tmp_div_30 + 1];
         #if IS_KINEMATIC
           // Check to make sure this segment is entirely on the bed, skip if not.
-          if (!mechanics.position_is_reachable_raw_xy(x, y) || !mechanics.position_is_reachable_raw_xy(xe, ye)) continue;
-        #else                                              // not, we need to skip
-          x  = constrain(x, X_MIN_POS + 1, X_MAX_POS - 1); // This keeps us from bumping the endstops
-          y  = constrain(y, Y_MIN_POS + 1, Y_MAX_POS - 1);
+          if (!mechanics.position_is_reachable(rx, ry) || !mechanics.position_is_reachable(xe, ye)) continue;
+        #else                                               // not, we need to skip
+          rx = constrain(rx, X_MIN_POS + 1, X_MAX_POS - 1); // This keeps us from bumping the endstops
+          ry = constrain(ry, Y_MIN_POS + 1, Y_MAX_POS - 1);
           xe = constrain(xe, X_MIN_POS + 1, X_MAX_POS - 1);
           ye = constrain(ye, Y_MIN_POS + 1, Y_MAX_POS - 1);
         #endif
@@ -341,7 +341,7 @@ void unified_bed_leveling::G26() {
         //  debug_current_and_destination(seg_msg);
         //}
 
-        print_line_from_here_to_there(LOGICAL_X_POSITION(x), LOGICAL_Y_POSITION(y), g26_layer_height, LOGICAL_X_POSITION(xe), LOGICAL_Y_POSITION(ye), g26_layer_height);
+        print_line_from_here_to_there(rx, ry, g26_layer_height, xe, ye, g26_layer_height);
 
       }
       if (look_for_lines_to_connect())
@@ -447,7 +447,7 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
             sy = ey = constrain(mesh_index_to_ypos(j), Y_MIN_POS + 1, Y_MAX_POS - 1);
             ex = constrain(ex, X_MIN_POS + 1, X_MAX_POS - 1);
 
-            if (mechanics.position_is_reachable_raw_xy(sx, sy) && mechanics.position_is_reachable_raw_xy(ex, ey)) {
+            if (mechanics.position_is_reachable(sx, sy) && mechanics.position_is_reachable(ex, ey)) {
 
               if (g26_debug_flag) {
                 SERIAL_MV(" Connecting with horizontal line (sx=", sx);
@@ -459,7 +459,7 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
                 //debug_current_and_destination(PSTR("Connecting horizontal line."));
               }
 
-              print_line_from_here_to_there(LOGICAL_X_POSITION(sx), LOGICAL_Y_POSITION(sy), g26_layer_height, LOGICAL_X_POSITION(ex), LOGICAL_Y_POSITION(ey), g26_layer_height);
+              print_line_from_here_to_there(sx, sy, g26_layer_height, ex, ey, g26_layer_height);
             }
             bit_set(horizontal_mesh_line_flags, i, j);   // Mark it as done so we don't do it again, even if we skipped it
           }
@@ -481,7 +481,7 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
               sy = constrain(sy, Y_MIN_POS + 1, Y_MAX_POS - 1);
               ey = constrain(ey, Y_MIN_POS + 1, Y_MAX_POS - 1);
 
-              if (mechanics.position_is_reachable_raw_xy(sx, sy) && mechanics.position_is_reachable_raw_xy(ex, ey)) {
+              if (mechanics.position_is_reachable(sx, sy) && mechanics.position_is_reachable(ex, ey)) {
 
                 if (g26_debug_flag) {
                   SERIAL_MV(" Connecting with vertical line (sx=", sx);
@@ -492,7 +492,7 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
                   SERIAL_EOL();
                   debug_current_and_destination(PSTR("Connecting vertical line."));
                 }
-                print_line_from_here_to_there(LOGICAL_X_POSITION(sx), LOGICAL_Y_POSITION(sy), g26_layer_height, LOGICAL_X_POSITION(ex), LOGICAL_Y_POSITION(ey), g26_layer_height);
+                print_line_from_here_to_there(sx, sy, g26_layer_height, ex, ey, g26_layer_height);
               }
               bit_set(vertical_mesh_line_flags, i, j);   // Mark it as done so we don't do it again, even if skipped
             }
@@ -504,19 +504,19 @@ bool unified_bed_leveling::look_for_lines_to_connect() {
   return false;
 }
 
-void unified_bed_leveling::move_to(const float &x, const float &y, const float &z, const float &e_delta) {
+void unified_bed_leveling::move_to(const float &rx, const float &ry, const float &rz, const float &e_delta) {
   float feed_value;
   static float last_z = -999.99;
 
-  bool has_xy_component = (x != mechanics.current_position[X_AXIS] || y != mechanics.current_position[Y_AXIS]); // Check if X or Y is involved in the movement.
+  bool has_xy_component = (rx != mechanics.current_position[X_AXIS] || ry != mechanics.current_position[Y_AXIS]); // Check if X or Y is involved in the movement.
 
-  if (z != last_z) {
-    last_z = z;
-    feed_value = mechanics.max_feedrate_mm_s[Z_AXIS] / 3.0; // Base the feed rate off of the configured Z_AXIS feed rate
+  if (rz != last_z) {
+    last_z = rz;
+    feed_value = mechanics.max_feedrate_mm_s[Z_AXIS] / 3.0;             // Base the feed rate off of the configured Z_AXIS feed rate
 
     mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS];
     mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS];
-    mechanics.destination[Z_AXIS] = z;                      // We know the last_z==z or we wouldn't be in this block of code.
+    mechanics.destination[Z_AXIS] = rz;                                 // We know the last_z==z or we wouldn't be in this block of code.
     mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS];
 
     G26_line_to_destination(feed_value);
@@ -531,8 +531,8 @@ void unified_bed_leveling::move_to(const float &x, const float &y, const float &
 
   if (g26_debug_flag) SERIAL_EMV("in move_to() feed_value for XY:", feed_value);
 
-  mechanics.destination[X_AXIS] = x;
-  mechanics.destination[Y_AXIS] = y;
+  mechanics.destination[X_AXIS] = rx;
+  mechanics.destination[Y_AXIS] = ry;
   mechanics.destination[E_AXIS] += e_delta;
 
   G26_line_to_destination(feed_value);
@@ -725,9 +725,9 @@ bool unified_bed_leveling::parse_G26_parameters() {
     return UBL_ERR;
   }
 
-  g26_x_pos = parser.linearval('X', mechanics.current_position[X_AXIS]);
-  g26_y_pos = parser.linearval('Y', mechanics.current_position[Y_AXIS]);
-  if (!mechanics.position_is_reachable_xy(g26_x_pos, g26_y_pos)) {
+  g26_x_pos = parser.seenval('X') ? RAW_X_POSITION(parser.value_linear_units()) : mechanics.current_position[X_AXIS];
+  g26_y_pos = parser.seenval('Y') ? RAW_X_POSITION(parser.value_linear_units()) : mechanics.current_position[Y_AXIS];
+  if (!mechanics.position_is_reachable(g26_x_pos, g26_y_pos)) {
     SERIAL_EM("?Specified X,Y coordinate out of bounds.");
     return UBL_ERR;
   }

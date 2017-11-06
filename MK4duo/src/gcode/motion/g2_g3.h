@@ -66,7 +66,7 @@
         printer.relative_mode = true;
       #endif
 
-      printer.get_destination_from_command();
+      commands.get_destination();
 
       #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
         #if ENABLED(INTENSITY_IN_BYTE)

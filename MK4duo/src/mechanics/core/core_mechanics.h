@@ -134,10 +134,6 @@
         void double_home_z();
       #endif
 
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
-      #endif
-
   };
 
   extern Core_Mechanics mechanics;

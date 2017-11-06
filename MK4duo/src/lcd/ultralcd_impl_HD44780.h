@@ -656,7 +656,9 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, c
   lcd.print(itostr3(t1 + 0.5));
   lcd.write('/');
 
-  #if HEATER_IDLE_HANDLER
+  #if !HEATER_IDLE_HANDLER
+    UNUSED(blink);
+  #else
     const bool is_idle = thermalManager.is_heater_idle(heater);
 
     if (!blink && is_idle) {
@@ -814,12 +816,12 @@ static void lcd_implementation_status_screen() {
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
-        lcd.print(ftostr4sign(mechanics.current_position[X_AXIS]));
+        lcd.print(ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
 
         lcd.write(' ');
 
         _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
-        lcd.print(ftostr4sign(mechanics.current_position[Y_AXIS]));
+        lcd.print(ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
 
       #endif // HOTENDS > 1 || HAS_TEMP_BED
 
@@ -827,7 +829,7 @@ static void lcd_implementation_status_screen() {
 
     lcd.setCursor(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd.print(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
+    lcd.print(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
 
     #if HAS_LEVELING
       lcd.write(bedlevel.leveling_active || blink ? '_' : ' ');
@@ -1205,9 +1207,9 @@ static void lcd_implementation_status_screen() {
       return ret_val;
     }
 
-    coordinate pixel_location(uint8_t x, uint8_t y) { return pixel_location((int16_t)x, (int16_t)y); }
+    inline coordinate pixel_location(const uint8_t x, const uint8_t y) { return pixel_location((int16_t)x, (int16_t)y); }
 
-    void lcd_implementation_ubl_plot(uint8_t x, uint8_t inverted_y) {
+    void lcd_implementation_ubl_plot(const uint8_t x, const uint8_t inverted_y) {
 
       #if LCD_WIDTH >= 20
         #define _LCD_W_POS 12

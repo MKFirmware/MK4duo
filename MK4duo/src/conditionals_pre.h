@@ -444,7 +444,7 @@
     #define XYZE_N    3 + EXTRUDERS
     #define E_AXIS_N  (E_AXIS + extruder)
     #define E_INDEX   (E_AXIS + tools.active_extruder)
-    #define GET_TARGET_EXTRUDER(CMD) if (printer.get_target_tool_from_command(CMD)) return
+    #define GET_TARGET_EXTRUDER(CMD) if (commands.get_target_tool(CMD)) return
     #define TARGET_EXTRUDER tools.target_extruder
   #elif EXTRUDERS == 1
     #define XYZE_N    XYZE
@@ -467,7 +467,7 @@
    * Multi-hotends support
    */
   #if HOTENDS > 1
-    #define GET_TARGET_HOTEND(CMD) if (printer.get_target_tool_from_command(CMD)) return
+    #define GET_TARGET_HOTEND(CMD) if (commands.get_target_tool(CMD)) return
   #else
     #define GET_TARGET_HOTEND(CMD) NOOP
   #endif

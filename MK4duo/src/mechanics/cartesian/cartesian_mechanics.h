@@ -184,10 +184,6 @@
         void double_home_z();
       #endif
 
-      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
-      #endif
-
       #if ENABLED(HYSTERESIS)
         void set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
         uint8_t calc_direction_bits(const long *position, const long *target);

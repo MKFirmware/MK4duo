@@ -83,6 +83,7 @@ typedef struct {
 #define STEPPER_TIMER_PRESCALE  2
 #define STEPPER_FREQUENCY       60000
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
+#define HAL_ACCELERATION_RATE       (4294967296.0 / (HAL_STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
 #define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
@@ -177,13 +178,13 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
-static FORCE_INLINE void HAL_timer_set_count (uint8_t timer_num, uint32_t count) {
+static FORCE_INLINE void HAL_timer_set_count(uint8_t timer_num, uint32_t count) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
 
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
 }
 
-static FORCE_INLINE HAL_TIMER_TYPE HAL_timer_get_count (uint8_t timer_num) {
+static FORCE_INLINE hal_timer_t HAL_timer_get_count(uint8_t timer_num) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];
 
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
