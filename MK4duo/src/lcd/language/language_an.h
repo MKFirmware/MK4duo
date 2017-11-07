@@ -31,6 +31,7 @@
 #define LANGUAGE_AN_H
 
 #define DISPLAY_CHARSET_ISO10646_1
+#define NOT_EXTENDED_ISO10646_1_5X7
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" parada.")
 #define MSG_SD_INSERTED                     _UxGT("Tarcheta mesa")
@@ -157,7 +158,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
 #define MSG_HOME                            _UxGT("Home") // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("first")
-#define MSG_PROBE_OFFSET                    _UxGT("Desfase Z")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Desfase Z")
 #define MSG_BABYSTEP_X                      _UxGT("Micropaso X")
 #define MSG_BABYSTEP_Y                      _UxGT("Micropaso Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Micropaso Z")

@@ -31,6 +31,7 @@
 #define LANGUAGE_EU_H
 
 #define DISPLAY_CHARSET_ISO10646_1
+#define NOT_EXTENDED_ISO10646_1_5X7
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" prest.")
 #define MSG_BACK                            _UxGT("Atzera")
@@ -165,7 +166,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("BLTouch berrabia.")
 #define MSG_HOME                            _UxGT("Etxera")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("lehenengo")
-#define MSG_PROBE_OFFSET                    _UxGT("Z Konpentsatu")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Konpentsatu")
 #define MSG_BABYSTEP_X                      _UxGT("Mikro-urratsa X")
 #define MSG_BABYSTEP_Y                      _UxGT("Mikro-urratsa Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Mikro-urratsa Z")

@@ -153,7 +153,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
 #define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("first")
-#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Offset Z")
 #define MSG_BABYSTEP_X                      _UxGT("Babystep X")
 #define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Babystep Z")
@@ -243,4 +243,4 @@
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wznowienie...")
 #endif // LCD_HEIGHT < 4
 
-#endif /* LANGUAGE_PL_DOGM_H */
+#endif  // LANGUAGE_PL_DOGM_H

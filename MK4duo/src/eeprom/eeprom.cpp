@@ -1745,7 +1745,7 @@ void EEPROM::Factory_Settings() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      CONFIG_MSG_START(MSG_PROBE_OFFSET ":");
+      CONFIG_MSG_START("Probe Offset:");
       SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
       SERIAL_MV(" Z", LINEAR_UNIT(probe.offset[Z_AXIS]), 3);

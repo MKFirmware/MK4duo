@@ -248,7 +248,7 @@
 #define MSG_BLTOUCH_STOW                    _UxGT("Ritrai BLTouch")
 #define MSG_HOME                            _UxGT("Home")
 #define MSG_FIRST                           _UxGT("prima")
-#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
 #define MSG_BABYSTEP                        _UxGT("Babystep")
 #define MSG_BABYSTEP_X                      MSG_BABYSTEP _UxGT(" ") MSG_X
 #define MSG_BABYSTEP_Y                      MSG_BABYSTEP _UxGT(" ") MSG_Y

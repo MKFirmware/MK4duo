@@ -161,6 +161,7 @@ void GCodeParser::parse(char *p) {
    * Most codes ignore 'string_arg', but those that want a string will get the right pointer.
    * The following loop assigns the first "parameter" having no numeric value to 'string_arg'.
    * This allows M0/M1 with expire time to work: "M0 S5 You Win!"
+   * For 'M118' you must use 'E1' and 'A1' rather than just 'E' or 'A'
    */
   string_arg = NULL;
   while (char code = *p++) {                    // Get the next parameter. A '\0' ends the loop

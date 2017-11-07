@@ -177,7 +177,7 @@
 #define MSG_BLTOUCH_STOW                    _UxGT("BLTouch einfahren")
 #define MSG_HOME                            _UxGT("Vorher")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("homen")
-#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Versatz")
 #define MSG_BABYSTEP_X                      _UxGT("Babystep X")
 #define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Babystep Z")
