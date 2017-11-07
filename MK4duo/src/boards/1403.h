@@ -200,7 +200,7 @@
       #define BTN_EN1           33
       #define BTN_EN2           31
       #define BTN_ENC           35
-      
+
       #undef SD_DETECT_PIN
       #define SD_DETECT_PIN     49
     #endif
