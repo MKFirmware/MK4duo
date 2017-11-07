@@ -194,12 +194,14 @@
     #define LCD_PINS_D7         29
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
+      #undef ORIG_BEEPER_PIN
       #define ORIG_BEEPER_PIN   37
 
       #define BTN_EN1           33
       #define BTN_EN2           31
       #define BTN_ENC           35
 
+      #undef SD_DETECT_PIN
       #define SD_DETECT_PIN     49
     #endif
   #endif
