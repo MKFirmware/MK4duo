@@ -32,34 +32,40 @@
  * G92: Set current position to given X Y Z E
  */
 inline void gcode_G92(void) {
-  bool didXYZ = false,
-       didE = parser.seenval('E');
 
-  if (!didE) stepper.synchronize();
+  bool  didXYZ = false,
+        didE = false;
+
+  stepper.synchronize();
 
   LOOP_XYZE(i) {
     if (parser.seenval(axis_codes[i])) {
-      #if IS_SCARA
-        mechanics.current_position[i] = parser.value_axis_units((AxisEnum)i);
-        if (i != E_AXIS) didXYZ = true;
-      #else
-        #if ENABLED(WORKSPACE_OFFSETS)
-          const float p = mechanics.current_position[i];
-        #endif
-        float v = parser.value_axis_units((AxisEnum)i);
+      const float l = parser.value_axis_units((AxisEnum)i),
+                  v = (i == E_AXIS) ? l : LOGICAL_TO_NATIVE(l, i),
+                  d = v - mechanics.current_position[i];
 
-        mechanics.current_position[i] = v;
-
-        if (i != E_AXIS) {
+      if (!NEAR_ZERO(d)) {
+        if (i == E_AXIS)
+          didE = true;
+        else
           didXYZ = true;
-          #if ENABLED(WORKSPACE_OFFSETS)
-            mechanics.position_shift[i] += v - p; // Offset the coordinate space
+
+        #if IS_SCARA
+          mechanics.current_position[i] = v;        // For SCARA just set the position directly
+        #elif ENABLED(WORKSPACE_OFFSETS)
+          if (i == E_AXIS)
+            mechanics.current_position[E_AXIS] = v; // When using coordinate spaces, only E is set directly
+          else {
+            mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
             endstops.update_software_endstops((AxisEnum)i);
-          #endif
-        }
-      #endif
+          }
+        #else
+          mechanics.current_position[i] = v;
+        #endif
+      }
     }
   }
+
   if (didXYZ)
     mechanics.sync_plan_position();
   else if (didE)

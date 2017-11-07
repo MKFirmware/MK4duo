@@ -269,7 +269,9 @@ class HAL {
 
   private: /** Private Parameters */
 
-    static ADCAveragingFilter sensorFilters[HEATER_COUNT];
+    #if HEATER_COUNT > 0
+      static ADCAveragingFilter sensorFilters[HEATER_COUNT];
+    #endif
 
     #if HAS_FILAMENT_SENSOR
       static ADCAveragingFilter filamentFilter;
@@ -285,10 +287,8 @@ class HAL {
 
   public: /** Public Function */
 
-    #if ANALOG_INPUTS > 0
-      static void analogStart();
-      static void AdcChangePin(const Pin old_pin, const Pin new_pin);
-    #endif
+    static void analogStart();
+    static void AdcChangePin(const Pin old_pin, const Pin new_pin);
 
     static void hwSetup(void);
 
