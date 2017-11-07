@@ -234,7 +234,7 @@
 #define MSG_BLTOUCH_STOW                    _UxGT("Набивка BLTouch")
 #define MSG_HOME                            _UxGT("Паркуй")
 #define MSG_FIRST                           _UxGT("первый")
-#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Смещение Z")
 #define MSG_BABYSTEP_X                      _UxGT("Микрошаг X")
 #define MSG_BABYSTEP_Y                      _UxGT("Микрошаг Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Микрошаг Z")

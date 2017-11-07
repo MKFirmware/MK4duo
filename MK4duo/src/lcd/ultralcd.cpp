@@ -1068,7 +1068,7 @@ void kill_screen(const char* lcd_msg) {
           }
         }
         if (lcdDrawUpdate) {
-          lcd_implementation_drawedit(PSTR(MSG_PROBE_OFFSET), ftostr43sign(probe.offset[Z_AXIS]));
+          lcd_implementation_drawedit(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.offset[Z_AXIS]));
           #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
             _lcd_zoffset_overlay_gfx(probe.offset[Z_AXIS]);
           #endif
@@ -1329,7 +1329,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
       #endif
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-        MENU_ITEM(submenu, MSG_PROBE_OFFSET, lcd_babystep_zoffset);
+        MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
       #else
         MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
       #endif
@@ -1943,9 +1943,9 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-        MENU_ITEM(submenu, MSG_PROBE_OFFSET, lcd_babystep_zoffset);
+        MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
       #elif HAS_BED_PROBE
-        MENU_ITEM_EDIT_CALLBACK(float32, MSG_PROBE_OFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
       #endif
 
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
@@ -3614,9 +3614,9 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_CONTROL);
 
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-      MENU_ITEM(submenu, MSG_PROBE_OFFSET, lcd_babystep_zoffset);
+      MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #elif HAS_BED_PROBE
-      MENU_ITEM_EDIT(float32, MSG_PROBE_OFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+      MENU_ITEM_EDIT(float32, MSG_ZPROBE_ZOFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
     #endif
 
     // M203 / M205 - Feedrate items

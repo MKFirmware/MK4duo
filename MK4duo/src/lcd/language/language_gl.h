@@ -32,6 +32,7 @@
 
 #define MAPPER_C2C3
 #define DISPLAY_CHARSET_ISO10646_1
+#define NOT_EXTENDED_ISO10646_1_5X7
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" lista.")
 #define MSG_SD_INSERTED                     _UxGT("Tarxeta inserida")
@@ -157,7 +158,7 @@
 #define MSG_BLTOUCH_SELFTEST                _UxGT("Comprobar BLTouch")
 #define MSG_BLTOUCH_RESET                   _UxGT("Iniciar BLTouch")
 #define MSG_FIRST                           _UxGT("first")
-#define MSG_PROBE_OFFSET                    _UxGT("Offset Z")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Offset Z")
 #define MSG_BABYSTEP_X                      _UxGT("Micropaso X")
 #define MSG_BABYSTEP_Y                      _UxGT("Micropaso Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Micropaso Z")

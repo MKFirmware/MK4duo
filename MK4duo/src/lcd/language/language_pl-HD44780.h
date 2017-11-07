@@ -27,6 +27,8 @@
 #ifndef LANGUAGE_PL_HD44780_H
 #define LANGUAGE_PL_HD44780_H
 
+#define NOT_EXTENDED_ISO10646_1_5X7
+
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" gotowy.")
 #define MSG_SD_INSERTED                     _UxGT("Karta wlozona")
 #define MSG_SD_REMOVED                      _UxGT("Karta usunieta")
@@ -153,7 +155,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
 #define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("first")
-#define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#define MSG_ZPROBE_ZOFFSET                  _UxGT("Offset Z")
 #define MSG_BABYSTEP_X                      _UxGT("Babystep X")
 #define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")
 #define MSG_BABYSTEP_Z                      _UxGT("Babystep Z")
@@ -268,4 +270,4 @@
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wznowienie...")
 #endif // LCD_HEIGHT < 4
 
-#endif /* LANGUAGE_PL_HD44780_H */
+#endif  // LANGUAGE_PL_HD44780_H

@@ -31,6 +31,7 @@
 #define LANGUAGE_PT_BR_H
 
 #define DISPLAY_CHARSET_ISO10646_1
+#define NOT_EXTENDED_ISO10646_1_5X7
 
 #define WELCOME_MSG                         MACHINE_NAME " pronto."
 #define MSG_SD_INSERTED                     "Cartao inserido"
@@ -146,7 +147,7 @@
 #define MSG_ZPROBE_OUT                      "Son. fora da mesa"
 #define MSG_HOME                            "Home"  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           "first"
-#define MSG_PROBE_OFFSET                    "Probe Offset"
+#define MSG_ZPROBE_ZOFFSET                  "Deslocamento no Z"
 #define MSG_BABYSTEP_X                      "Passinho X"
 #define MSG_BABYSTEP_Y                      "Passinho Y"
 #define MSG_BABYSTEP_Z                      "Passinho Z"

@@ -30,6 +30,12 @@
 #ifndef LANGUAGE_EN_H
 #define LANGUAGE_EN_H
 
+#define en 1234
+#if LCD_LANGUAGE == en
+  #define NOT_EXTENDED_ISO10646_1_5X7
+#endif
+#undef en
+
 #ifndef WELCOME_MSG
   #define WELCOME_MSG                         MACHINE_NAME _UxGT(" ready.")
 #endif
@@ -425,6 +431,9 @@
 #ifndef MSG_FAN_SPEED
   #define MSG_FAN_SPEED                       _UxGT("Fan speed")
 #endif
+#ifndef MSG_EXTRA_FAN_SPEED
+  #define MSG_EXTRA_FAN_SPEED                 _UxGT("Extra fan speed")
+#endif
 #ifndef MSG_FLOW
   #define MSG_FLOW                            _UxGT("Flow")
 #endif
@@ -689,8 +698,8 @@
 #ifndef MSG_FIRST
   #define MSG_FIRST                           _UxGT("first")
 #endif
-#ifndef MSG_PROBE_OFFSET
-  #define MSG_PROBE_OFFSET                    _UxGT("Probe Offset")
+#ifndef MSG_ZPROBE_ZOFFSET
+  #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
 #endif
 #ifndef MSG_BABYSTEP_X
   #define MSG_BABYSTEP_X                      _UxGT("Babystep X")

@@ -344,18 +344,17 @@
 
   #if !IS_KINEMATIC
 
-    #define CELL_INDEX(A,V) ((RAW_##A##_POSITION(V) - bilinear_start[A##_AXIS]) * ABL_BG_FACTOR(A##_AXIS))
-
     /**
      * Prepare a bilinear-leveled linear move on Cartesian,
      * splitting the move where it crosses mesh borders.
      */
     void AutoBedLevel::bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
 
-      int cx1 = CELL_INDEX(X, mechanics.current_position[X_AXIS]),
-          cy1 = CELL_INDEX(Y, mechanics.current_position[Y_AXIS]),
-          cx2 = CELL_INDEX(X, mechanics.destination[X_AXIS]),
-          cy2 = CELL_INDEX(Y, mechanics.destination[Y_AXIS]);
+      int cx1 = (mechanics.current_position[X_AXIS] - bilinear_start[X_AXIS]) * ABL_BG_FACTOR[X_AXIS],
+          cy1 = (mechanics.current_position[Y_AXIS] - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR[Y_AXIS],
+          cx2 = (mechanics.destination[X_AXIS]      - bilinear_start[X_AXIS]) * ABL_BG_FACTOR[X_AXIS],
+          cy2 = (mechanics.destination[Y_AXIS]      - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR[Y_AXIS];
+
       cx1 = constrain(cx1, 0, ABL_BG_POINTS_X - 2);
       cy1 = constrain(cy1, 0, ABL_BG_POINTS_Y - 2);
       cx2 = constrain(cx2, 0, ABL_BG_POINTS_X - 2);

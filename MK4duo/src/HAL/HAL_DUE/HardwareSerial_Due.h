@@ -28,8 +28,7 @@
 #ifndef _HARDWARESERIAL_H_
 #define _HARDWARESERIAL_H_
 
-// Includes Atmel CMSIS
-#include <chip.h>
+#include <WString.h>
 
 #define SERIAL_8N1 UARTClass::Mode_8N1
 #define SERIAL_8E1 UARTClass::Mode_8E1

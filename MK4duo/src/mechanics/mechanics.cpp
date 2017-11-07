@@ -499,6 +499,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
     #if ENABLED(CNC_WORKSPACE_PLANES)
       AxisEnum p_axis, q_axis, l_axis;
       switch (workspace_plane) {
+        default:
         case PLANE_XY: p_axis = X_AXIS; q_axis = Y_AXIS; l_axis = Z_AXIS; break;
         case PLANE_ZX: p_axis = Z_AXIS; q_axis = X_AXIS; l_axis = Y_AXIS; break;
         case PLANE_YZ: p_axis = Y_AXIS; q_axis = Z_AXIS; l_axis = X_AXIS; break;
@@ -677,8 +678,8 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
     #endif
 
     #if HAS_BED_PROBE
-      SERIAL_SM(ECHO, MSG_PROBE_OFFSET);
-      SERIAL_MV(MSG_PROBE_OFFSET " X:", probe.offset[X_AXIS]);
+      SERIAL_SM(ECHO, "Probe Offset");
+      SERIAL_MV(" X:", probe.offset[X_AXIS]);
       SERIAL_MV(" Y:", probe.offset[Y_AXIS]);
       SERIAL_MV(" Z:", probe.offset[Z_AXIS]);
 

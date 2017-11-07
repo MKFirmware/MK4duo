@@ -31,8 +31,8 @@
 /**
  * M118: Display a message in the host console.
  *
- *  A  Append '// ' for an action command, as in OctoPrint
- *  E  Have the host 'echo:' the text
+ *  A1  Append '// ' for an action command, as in OctoPrint
+ *  E1  Have the host 'echo:' the text
  */
 inline void gcode_M118(void) {
   if (parser.boolval('E')) SERIAL_STR(ECHO);
