@@ -369,7 +369,7 @@ void Printer::safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     HAL::delayMilliseconds(50);
-    if (HAL::Analog_is_ready) thermalManager.manage_temp_controller();
+    thermalManager.manage_temp_controller();
   }
   HAL::delayMilliseconds(ms);
 }
@@ -539,7 +539,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   if (HAL::execute_100ms) {
     // Event 100 Ms
     HAL::execute_100ms = false;
-    if (HAL::Analog_is_ready) thermalManager.manage_temp_controller();
+    thermalManager.manage_temp_controller();
     if (--cycle_1500ms == 0) {
       // Event 1500 Ms
       cycle_1500ms = 15;

@@ -70,6 +70,9 @@ uint8_t MCUSR;
 #if ANALOG_INPUTS > 0
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool    HAL::Analog_is_ready = false;
+#endif
+
+#if HEATER_COUNT > 0
   ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];
 #endif
 
@@ -221,126 +224,124 @@ int HAL::getFreeRam() {
   return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
 }
 
-#if ANALOG_INPUTS > 0
+// Convert an Arduino Due analog pin number to the corresponding ADC channel number
+adc_channel_num_t PinToAdcChannel(Pin pin) {
+  if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
 
-  // Convert an Arduino Due analog pin number to the corresponding ADC channel number
-  adc_channel_num_t PinToAdcChannel(Pin pin) {
-    if (pin == ADC_TEMPERATURE_SENSOR) return (adc_channel_num_t)ADC_TEMPERATURE_SENSOR; // MCU TEMPERATURE SENSOR
+  // Arduino Due uses separate analog pin numbers
+  if (pin < A0) pin += A0;
+  return (adc_channel_num_t)g_APinDescription[pin].ulADCChannelNumber;
+}
 
-    // Arduino Due uses separate analog pin numbers
-    if (pin < A0) pin += A0;
-    return (adc_channel_num_t)g_APinDescription[pin].ulADCChannelNumber;
-  }
-
-  // Start converting the enabled channels
-  void AnalogInStartConversion() {
-    // Clear out any existing conversion complete bits in the status register
-    for (uint32_t chan = 0; chan < 16; ++chan) {
-      if ((adc_get_status(ADC) & (1 << chan)) != 0) {
-        (void)adc_get_channel_value(ADC, static_cast<adc_channel_num_t>(chan));
-      }
+// Start converting the enabled channels
+void AnalogInStartConversion() {
+  // Clear out any existing conversion complete bits in the status register
+  for (uint32_t chan = 0; chan < 16; ++chan) {
+    if ((adc_get_status(ADC) & (1 << chan)) != 0) {
+      (void)adc_get_channel_value(ADC, static_cast<adc_channel_num_t>(chan));
     }
-    ADC->ADC_CR = ADC_CR_START;
   }
+  ADC->ADC_CR = ADC_CR_START;
+}
 
-  // Enable or disable a channel.
-  void AnalogInEnablePin(const Pin r_pin, const bool enable) {
-    adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
-    if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS) {
-      if (enable) {
-        adc_enable_channel(ADC, adc_ch);
-        if (r_pin == ADC_TEMPERATURE_SENSOR)
-          ADC->ADC_ACR |= ADC_ACR_TSON;
-      }
-      else {
-        adc_disable_channel(ADC, adc_ch);
-        if (r_pin == ADC_TEMPERATURE_SENSOR)
-          ADC->ADC_ACR &= ~ADC_ACR_TSON;
-      }
+// Enable or disable a channel.
+void AnalogInEnablePin(const Pin r_pin, const bool enable) {
+  adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
+  if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS) {
+    if (enable) {
+      adc_enable_channel(ADC, adc_ch);
+      if (r_pin == ADC_TEMPERATURE_SENSOR)
+        ADC->ADC_ACR |= ADC_ACR_TSON;
     }
-  }   
-
-  // Read the most recent 12-bit result from a pin
-  uint16_t AnalogInReadPin(const Pin r_pin) {
-
-    adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
-    if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS)
-      return adc_get_channel_value(ADC, adc_ch);
-    else
-      return 0;
+    else {
+      adc_disable_channel(ADC, adc_ch);
+      if (r_pin == ADC_TEMPERATURE_SENSOR)
+        ADC->ADC_ACR &= ~ADC_ACR_TSON;
+    }
   }
+}   
 
-  // Initialize ADC channels
-  void HAL::analogStart(void) {
+// Read the most recent 12-bit result from a pin
+uint16_t AnalogInReadPin(const Pin r_pin) {
 
-    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      PIO_Configure(
-        g_APinDescription[58].pPort,
-        g_APinDescription[58].ulPinType,
-        g_APinDescription[58].ulPin,
-        g_APinDescription[58].ulPinConfiguration);
-      PIO_Configure(
-        g_APinDescription[59].pPort,
-        g_APinDescription[59].ulPinType,
-        g_APinDescription[59].ulPin,
-        g_APinDescription[59].ulPinConfiguration);
-    #endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  adc_channel_num_t adc_ch = PinToAdcChannel(r_pin);
+  if ((unsigned int)adc_ch < NUM_ANALOG_INPUTS)
+    return adc_get_channel_value(ADC, adc_ch);
+  else
+    return 0;
+}
 
-    // ensure we can write to ADC registers
-    ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
-    pmc_enable_periph_clk(ID_ADC);  // enable adc clock
+// Initialize ADC channels
+void HAL::analogStart(void) {
 
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+    PIO_Configure(
+      g_APinDescription[58].pPort,
+      g_APinDescription[58].ulPinType,
+      g_APinDescription[58].ulPin,
+      g_APinDescription[58].ulPinConfiguration);
+    PIO_Configure(
+      g_APinDescription[59].pPort,
+      g_APinDescription[59].ulPinType,
+      g_APinDescription[59].ulPin,
+      g_APinDescription[59].ulPinConfiguration);
+  #endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
+  // ensure we can write to ADC registers
+  ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
+  pmc_enable_periph_clk(ID_ADC);  // enable adc clock
+
+  #if HEATER_COUNT > 0
     LOOP_HEATER() {
       if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
         AnalogInEnablePin(heaters[h].sensor.pin, true);
         sensorFilters[h].Init(0);
       }
     }
+  #endif
 
-    #if HAS_FILAMENT_SENSOR
-      AnalogInEnablePin(FILWIDTH_PIN, true);
-      filamentFilter.Init(0);
-    #endif
+  #if HAS_FILAMENT_SENSOR
+    AnalogInEnablePin(FILWIDTH_PIN, true);
+    filamentFilter.Init(0);
+  #endif
 
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      AnalogInEnablePin(POWER_CONSUMPTION_PIN, true);
-      powerFilter.Init(0);
-    #endif
+  #if HAS_POWER_CONSUMPTION_SENSOR
+    AnalogInEnablePin(POWER_CONSUMPTION_PIN, true);
+    powerFilter.Init(0);
+  #endif
 
-    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
-      AnalogInEnablePin(ADC_TEMPERATURE_SENSOR, true);
-      mcuFilter.Init(0);
-    #endif
+  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    AnalogInEnablePin(ADC_TEMPERATURE_SENSOR, true);
+    mcuFilter.Init(0);
+  #endif
 
-    // Initialize ADC mode register (some of the following params are not used here)
-    // HW trigger disabled, use external Trigger, 12 bit resolution
-    // core and ref voltage stays on, normal sleep mode, normal not free-run mode
-    // startup time 16 clocks, settling time 17 clocks, no changes on channel switch
-    // convert channels in numeric order
-    // set prescaler rate  MCK/((PRESCALE+1) * 2)
-    // set tracking time  (TRACKTIM+1) * clock periods
-    // set transfer period  (TRANSFER * 2 + 3)
-    ADC->ADC_MR = ADC_MR_TRGEN_DIS | ADC_MR_TRGSEL_ADC_TRIG0 | ADC_MR_LOWRES_BITS_12 |
-                  ADC_MR_SLEEP_NORMAL | ADC_MR_FWUP_OFF | ADC_MR_FREERUN_OFF |
-                  ADC_MR_STARTUP_SUT64 | ADC_MR_SETTLING_AST17 | ADC_MR_ANACH_NONE |
-                  ADC_MR_USEQ_NUM_ORDER |
-                  ADC_MR_PRESCAL(AD_PRESCALE_FACTOR) |
-                  ADC_MR_TRACKTIM(AD_TRACKING_CYCLES) |
-                  ADC_MR_TRANSFER(AD_TRANSFER_CYCLES);
+  // Initialize ADC mode register (some of the following params are not used here)
+  // HW trigger disabled, use external Trigger, 12 bit resolution
+  // core and ref voltage stays on, normal sleep mode, normal not free-run mode
+  // startup time 16 clocks, settling time 17 clocks, no changes on channel switch
+  // convert channels in numeric order
+  // set prescaler rate  MCK/((PRESCALE+1) * 2)
+  // set tracking time  (TRACKTIM+1) * clock periods
+  // set transfer period  (TRANSFER * 2 + 3)
+  ADC->ADC_MR = ADC_MR_TRGEN_DIS | ADC_MR_TRGSEL_ADC_TRIG0 | ADC_MR_LOWRES_BITS_12 |
+                ADC_MR_SLEEP_NORMAL | ADC_MR_FWUP_OFF | ADC_MR_FREERUN_OFF |
+                ADC_MR_STARTUP_SUT64 | ADC_MR_SETTLING_AST17 | ADC_MR_ANACH_NONE |
+                ADC_MR_USEQ_NUM_ORDER |
+                ADC_MR_PRESCAL(AD_PRESCALE_FACTOR) |
+                ADC_MR_TRACKTIM(AD_TRACKING_CYCLES) |
+                ADC_MR_TRANSFER(AD_TRANSFER_CYCLES);
 
-    ADC->ADC_IER = 0;             // no ADC interrupts
-    ADC->ADC_COR = 0;             // Single-ended, no offset
+  ADC->ADC_IER = 0;             // no ADC interrupts
+  ADC->ADC_COR = 0;             // Single-ended, no offset
 
-    // start first conversion
-    AnalogInStartConversion();
-  }
+  // start first conversion
+  AnalogInStartConversion();
+}
 
-  void HAL::AdcChangePin(const Pin old_pin, const Pin new_pin) {
-    AnalogInEnablePin(old_pin, false);
-    AnalogInEnablePin(new_pin, true);
-  }
-
-#endif
+void HAL::AdcChangePin(const Pin old_pin, const Pin new_pin) {
+  AnalogInEnablePin(old_pin, false);
+  AnalogInEnablePin(new_pin, true);
+}
 
 // Reset peripherals and cpu
 void HAL::resetHardware() {
@@ -623,15 +624,19 @@ void HAL::Tick() {
         case 1:
         case 3:
           {
-            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[currentHeater]);
-            currentFilter.ProcessReading(AnalogInReadPin(heaters[currentHeater].sensor.pin));
-            if (currentFilter.IsValid())
-              AnalogInputValues[heaters[currentHeater].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+            #if HEATER_COUNT > 0
+              if (WITHIN(heaters[currentHeater].sensor.pin, 0, 15)) {
+                ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[currentHeater]);
+                currentFilter.ProcessReading(AnalogInReadPin(heaters[currentHeater].sensor.pin));
+                if (currentFilter.IsValid())
+                  AnalogInputValues[heaters[currentHeater].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
 
-            if (++currentHeater == HEATER_COUNT) {
-              currentHeater = 0;
-              if (currentFilter.IsValid()) Analog_is_ready = true;
-            }
+                if (++currentHeater == HEATER_COUNT) {
+                  currentHeater = 0;
+                  if (currentFilter.IsValid()) Analog_is_ready = true;
+                }
+              }
+            #endif
 
             ++tickState;
           }
