@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#define MCODE_M17
+#define CODE_M17
 
 /**
  * M17: Enable power on all stepper motors
