@@ -267,14 +267,14 @@ inline void gcode_G29(void) {
           return;
         }
 
-        const float rz = parser.seenval('Z') ? RAW_Z_POSITION(parser.value_linear_units()) : mechanics.current_position[Z_AXIS];
+        const float rz = parser.seenval('Z') ? NATIVE_Z_POSITION(parser.value_linear_units()) : mechanics.current_position[Z_AXIS];
         if (!WITHIN(rz, -10, 10)) {
           SERIAL_LM(ER, "Bad Z value");
           return;
         }
 
-        const float rx  = RAW_X_POSITION(parser.linearval('X', NAN)),
-                    ry  = RAW_Y_POSITION(parser.linearval('Y', NAN));
+        const float rx  = NATIVE_X_POSITION(parser.linearval('X', NAN)),
+                    ry  = NATIVE_Y_POSITION(parser.linearval('Y', NAN));
         int8_t      i   = parser.byteval('I', -1),
                     j   = parser.byteval('J', -1);
 
@@ -348,10 +348,10 @@ inline void gcode_G29(void) {
 
       bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
 
-      left_probe_bed_position  = parser.seenval('L') ? (int)RAW_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION;
-      right_probe_bed_position = parser.seenval('R') ? (int)RAW_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION;
-      front_probe_bed_position = parser.seenval('F') ? (int)RAW_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION;
-      back_probe_bed_position  = parser.seenval('B') ? (int)RAW_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
+      left_probe_bed_position  = parser.seenval('L') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION;
+      right_probe_bed_position = parser.seenval('R') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION;
+      front_probe_bed_position = parser.seenval('F') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION;
+      back_probe_bed_position  = parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
       const bool left_out_l   = left_probe_bed_position < MIN_PROBE_X,
                  left_out     = left_out_l || left_probe_bed_position > right_probe_bed_position - (MIN_PROBE_EDGE),

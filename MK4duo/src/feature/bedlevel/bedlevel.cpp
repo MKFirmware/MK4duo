@@ -77,7 +77,7 @@
 
       #elif ENABLED(MESH_BED_LEVELING)
 
-        rz += mbl.get_z(RAW_X_POSITION(rx), RAW_Y_POSITION(ry)
+        rz += mbl.get_z(NATIVE_X_POSITION(rx), NATIVE_Y_POSITION(ry)
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif

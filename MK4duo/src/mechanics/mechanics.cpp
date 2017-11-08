@@ -652,6 +652,20 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
     endstops.update_software_endstops(axis);
   }
 
+  float Mechanics::native_to_logical(const float pos, const AxisEnum axis) {
+    if (axis == E_AXIS)
+      return pos;
+    else
+      return pos + workspace_offset[axis];
+  }
+
+  float Mechanics::logical_to_native(const float pos, const AxisEnum axis) {
+    if (axis == E_AXIS)
+      return pos;
+    else
+      return pos - workspace_offset[axis];
+  }
+
 #endif
 
 #if ENABLED(DEBUG_LEVELING_FEATURE)

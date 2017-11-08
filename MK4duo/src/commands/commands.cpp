@@ -499,7 +499,7 @@ void Commands::get_destination() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i]))
-      mechanics.destination[i] = LOGICAL_TO_NATIVE(parser.value_axis_units((AxisEnum)i) + (printer.axis_relative_modes[i] || printer.relative_mode ? mechanics.current_position[i] : 0), i);
+      mechanics.destination[i] = mechanics.logical_to_native(parser.value_axis_units((AxisEnum)i) + (printer.axis_relative_modes[i] || printer.relative_mode ? mechanics.current_position[i] : 0), (AxisEnum)i);
     else
       mechanics.destination[i] = mechanics.current_position[i];
   }

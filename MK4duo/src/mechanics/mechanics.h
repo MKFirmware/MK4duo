@@ -29,30 +29,12 @@
 #ifndef _MECHANICS_H_
 #define _MECHANICS_H_
 
-// Workspace offsets
-#if ENABLED(WORKSPACE_OFFSETS)
-  #define WORKSPACE_OFFSET(AXIS) mechanics.workspace_offset[AXIS]
-#else
-  #define WORKSPACE_OFFSET(AXIS) 0
-#endif
-
-#define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + WORKSPACE_OFFSET(AXIS))
-#define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - WORKSPACE_OFFSET(AXIS))
-
-#if ENABLED(WORKSPACE_OFFSETS)
-  #define LOGICAL_X_POSITION(POS)   NATIVE_TO_LOGICAL(POS, X_AXIS)
-  #define LOGICAL_Y_POSITION(POS)   NATIVE_TO_LOGICAL(POS, Y_AXIS)
-  #define RAW_X_POSITION(POS)       LOGICAL_TO_NATIVE(POS, X_AXIS)
-  #define RAW_Y_POSITION(POS)       LOGICAL_TO_NATIVE(POS, Y_AXIS)
-#else
-  #define LOGICAL_X_POSITION(POS)   (POS)
-  #define LOGICAL_Y_POSITION(POS)   (POS)
-  #define RAW_X_POSITION(POS)       (POS)
-  #define RAW_Y_POSITION(POS)       (POS)
-#endif
-
-#define LOGICAL_Z_POSITION(POS)     NATIVE_TO_LOGICAL(POS, Z_AXIS)
-#define RAW_Z_POSITION(POS)         LOGICAL_TO_NATIVE(POS, Z_AXIS)
+#define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
+#define LOGICAL_Y_POSITION(POS) mechanics.native_to_logical(POS, Y_AXIS)
+#define LOGICAL_Z_POSITION(POS) mechanics.native_to_logical(POS, Z_AXIS)
+#define NATIVE_X_POSITION(POS)  mechanics.logical_to_native(POS, X_AXIS)
+#define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
+#define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
 #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
   #define ARG_X float rx
@@ -98,8 +80,8 @@ class Mechanics {
      * Acceleration and Jerk
      */
     float     acceleration                          = 0.0,
-              retract_acceleration[EXTRUDERS]       = { 0.0 },
               travel_acceleration                   = 0.0,
+              retract_acceleration[EXTRUDERS]       = { 0.0 },
               max_jerk[XYZE_N]                      = { 0.0 };
     uint32_t  max_acceleration_steps_per_s2[XYZE_N] = { 0 },
               max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
@@ -332,6 +314,12 @@ class Mechanics {
        * call sync_plan_position soon after this.
        */
       void set_home_offset(const AxisEnum axis, const float v);
+
+      float native_to_logical(const float pos, const AxisEnum axis);
+      float logical_to_native(const float pos, const AxisEnum axis);
+    #else
+      FORCE_INLINE float native_to_logical(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
+      FORCE_INLINE float logical_to_native(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
