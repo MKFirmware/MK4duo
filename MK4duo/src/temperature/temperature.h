@@ -37,7 +37,7 @@ class Temperature {
 
     static volatile bool wait_for_heatup;
 
-    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
                       mcu_highest_temperature,
                       mcu_lowest_temperature,
@@ -191,7 +191,7 @@ class Temperature {
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
     #endif
 
-    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    #if HAS_MCU_TEMPERATURE
       static float analog2tempMCU(const int raw);
     #endif
 

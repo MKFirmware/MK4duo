@@ -37,7 +37,7 @@ constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOT
 // public:
 volatile bool Temperature::wait_for_heatup = true;
 
-#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+#if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0,
           Temperature::mcu_highest_temperature  = 0.0,
           Temperature::mcu_lowest_temperature   = 4096.0,
@@ -688,7 +688,7 @@ void Temperature::print_heaterstates() {
     }
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  #if HAS_MCU_TEMPERATURE
     SERIAL_MV(" MCU min:", mcu_lowest_temperature, 1);
     SERIAL_MV(", current:", mcu_current_temperature, 1);
     SERIAL_MV(", max:", mcu_highest_temperature, 1);
@@ -736,7 +736,7 @@ void Temperature::updateTemperaturesFromRawValues() {
     last_update = temp_last_update;
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  #if HAS_MCU_TEMPERATURE
     mcu_current_temperature = analog2tempMCU(mcu_current_temperature_raw);
     NOLESS(mcu_highest_temperature, mcu_current_temperature);
     NOMORE(mcu_lowest_temperature, mcu_current_temperature);
@@ -749,7 +749,7 @@ void Temperature::updateTemperaturesFromRawValues() {
 
 }
 
-#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+#if HAS_MCU_TEMPERATURE
   float Temperature::analog2tempMCU(const int raw) {
     const float voltage = (float)raw * (3.3 / (float)(4096 * NUM_ADC_SAMPLES));
     return (voltage - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C

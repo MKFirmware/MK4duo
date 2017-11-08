@@ -281,7 +281,7 @@ class HAL {
       static ADCAveragingFilter powerFilter;
     #endif
 
-    #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+    #if HAS_MCU_TEMPERATURE
       static ADCAveragingFilter mcuFilter;
     #endif
 
