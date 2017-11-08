@@ -195,6 +195,7 @@
 #define SPI_EEPROM2_CS        26  // PD1
 #define SPI_FLASH_CS          23  // PA14
 #define E2END                 0x2000
+#define HAVE_MCU_TEMPERATURE
 //@@@
 
 //###IF_BLOCKS

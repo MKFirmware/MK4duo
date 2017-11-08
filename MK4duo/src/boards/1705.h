@@ -175,6 +175,7 @@
 #define MAX31855_SS2_PIN  51
 #define MAX31855_SS3_PIN  50
 #define ENC424_SS_PIN     61
+#define HAVE_MCU_TEMPERATURE
 //@@@
 
 //###IF_BLOCKS

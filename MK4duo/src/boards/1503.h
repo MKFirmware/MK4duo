@@ -210,6 +210,7 @@
 #define EXP3_J19_4            13
 #define EXP3_J19_2            72
 #define EXP3_J19_1            28
+#define HAVE_MCU_TEMPERATURE
 //@@@
 
 //###IF_BLOCKS

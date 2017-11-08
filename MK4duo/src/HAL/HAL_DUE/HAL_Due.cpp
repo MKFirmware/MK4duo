@@ -84,7 +84,7 @@ uint8_t MCUSR;
   ADCAveragingFilter  HAL::powerFilter;
 #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+#if HAS_MCU_TEMPERATURE
   ADCAveragingFilter  HAL::mcuFilter;
 #endif
 
@@ -310,7 +310,7 @@ void HAL::analogStart(void) {
     powerFilter.Init(0);
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+  #if HAS_MCU_TEMPERATURE
     AnalogInEnablePin(ADC_TEMPERATURE_SENSOR, true);
     mcuFilter.Init(0);
   #endif
@@ -655,7 +655,7 @@ void HAL::Tick() {
                 AnalogInputValues[POWER_CONSUMPTION_PIN] = powerFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
             #endif
 
-            #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
+            #if HAS_MCU_TEMPERATURE
               const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
               if (mcuFilter.IsValid())
                 thermalManager.mcu_current_temperature_raw = mcuFilter.GetSum();
