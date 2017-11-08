@@ -41,7 +41,7 @@ inline void gcode_G92(void) {
   LOOP_XYZE(i) {
     if (parser.seenval(axis_codes[i])) {
       const float l = parser.value_axis_units((AxisEnum)i),
-                  v = (i == E_AXIS) ? l : LOGICAL_TO_NATIVE(l, i),
+                  v = (i == E_AXIS) ? l : mechanics.logical_to_native(l, (AxisEnum)i),
                   d = v - mechanics.current_position[i];
 
       if (!NEAR_ZERO(d)) {

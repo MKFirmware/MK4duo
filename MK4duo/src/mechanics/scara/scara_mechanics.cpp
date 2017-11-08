@@ -60,7 +60,7 @@
     report_xyze(current_position);
 
     SERIAL_MSG("Raw:    ");
-    const float raw[XYZ] = { RAW_X_POSITION(current_position[X_AXIS]), RAW_Y_POSITION(current_position[Y_AXIS]), RAW_Z_POSITION(current_position[Z_AXIS]) };
+    const float raw[XYZ] = { NATIVE_X_POSITION(current_position[X_AXIS]), NATIVE_Y_POSITION(current_position[Y_AXIS]), NATIVE_Z_POSITION(current_position[Z_AXIS]) };
     report_xyz(raw);
 
     float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
@@ -632,8 +632,8 @@
 
     static float C2, S2, SK1, SK2, THETA, PSI;
 
-    float sx = RAW_X_POSITION(logical[X_AXIS]) - SCARA_OFFSET_X,  // Translate SCARA to standard X Y
-          sy = RAW_Y_POSITION(logical[Y_AXIS]) - SCARA_OFFSET_Y;  // With scaling factor.
+    float sx = NATIVE_X_POSITION(logical[X_AXIS]) - SCARA_OFFSET_X,  // Translate SCARA to standard X Y
+          sy = NATIVE_Y_POSITION(logical[Y_AXIS]) - SCARA_OFFSET_Y;  // With scaling factor.
 
     if (L1 == L2)
       C2 = HYPOT2(sx, sy) / L1_2_2 - 1;

@@ -196,7 +196,7 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
 
   // If the nozzle is above the travel height then
   // move down quickly before doing the slow probe
-  float z = LOGICAL_Z_POSITION(Z_PROBE_BETWEEN_HEIGHT);
+  float z = Z_PROBE_BETWEEN_HEIGHT;
   if (offset[Z_AXIS] < 0) z -= offset[Z_AXIS];
   if (z < mechanics.current_position[Z_AXIS])
     mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));

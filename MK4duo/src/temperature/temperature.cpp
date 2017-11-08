@@ -236,7 +236,9 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
 
 void Temperature::set_current_temp_raw() {
 
-  LOOP_HEATER() heaters[h].sensor.raw = HAL::AnalogInputValues[heaters[h].sensor.pin];
+  #if ANALOG_INPUTS > 0
+    LOOP_HEATER() heaters[h].sensor.raw = HAL::AnalogInputValues[heaters[h].sensor.pin];
+  #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
@@ -686,7 +688,7 @@ void Temperature::print_heaterstates() {
     }
   #endif
 
-  #if ENABLED(ARDUINO_ARCH_SAM)&& !MB(RADDS)
+  #if ENABLED(ARDUINO_ARCH_SAM) && !MB(RADDS)
     SERIAL_MV(" MCU min:", mcu_lowest_temperature, 1);
     SERIAL_MV(", current:", mcu_current_temperature, 1);
     SERIAL_MV(", max:", mcu_highest_temperature, 1);

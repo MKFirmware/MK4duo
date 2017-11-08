@@ -161,7 +161,7 @@
         homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
-        inactive_hotend_x_pos = RAW_X_POSITION(current_position[X_AXIS]);
+        inactive_hotend_x_pos = NATIVE_X_POSITION(current_position[X_AXIS]);
 
         // Home the 1st (left) extruder
         tools.active_extruder = 0;
