@@ -59,7 +59,7 @@
 #include "config/m305.h"                  // Set thermistor and ADC parameters
 #include "config/m595.h"                  // Set AD595 offset & Gain
 #include "config/m900.h"                  // Set and/or Get advance K factor
-#include "config/m906.h"                  // Set Alliagtor motor currents or Set motor current in milliamps with have a TMC2130 driver
+#include "config/m906.h"                  // Set Alligator motor currents or Set motor current in milliamps with have a TMC2130 driver
 #include "config/m907.h"                  // Set digital trimpot motor current
 #include "config/m908.h"                  // Control digital trimpot directly
 #include "config/m911_m914.h"             // Set TMC2130 driver
@@ -190,7 +190,7 @@
 #include "sensor/m70.h"
 #include "sensor/m404_m407.h"             // Filament Sensor
 #include "sensor/m512.h"                  // Extruder Encoder read pin
-#include "sensor/m602_m604.h"             // Extruder Encoder settings
+#include "sensor/m602_m604.h"             // Extruder Encoder settings (M602 still TODO)
 
 // Stats Commands
 #include "stats/m31.h"
