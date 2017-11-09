@@ -72,7 +72,7 @@
         SERIAL_MV("  New delta height = ", mechanics.delta_height, 3);
       }
       else if (parser.boolval('P')) {
-        probe.offset[Z_AXIS] += endstops.soft_endstop_min[Z_AXIS] - measured_z;
+        probe.offset[Z_AXIS] -= measured_z;
         SERIAL_MV("  New Z probe offset = ", probe.offset[Z_AXIS], 3);
       }
     #endif

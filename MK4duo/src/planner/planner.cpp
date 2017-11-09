@@ -1299,33 +1299,33 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
  * The target is cartesian, it's translated to delta/scara if
  * needed.
  *
- *  rtarget   - x,y,z,e CARTESIAN target in mm
+ *  cart      - x,y,z,e CARTESIAN target in mm
  *  fr_mm_s   - (target) speed of the move (mm/s)
  *  extruder  - target extruder
  */
-void Planner::buffer_line_kinematic(const float rtarget[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder) {
   #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
-    float rpos[XYZ]={ rtarget[X_AXIS], rtarget[Y_AXIS], rtarget[Z_AXIS] };
+    float raw[XYZ]={ cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
     #if PLANNER_LEVELING
-      bedlevel.apply_leveling(rpos);
+      bedlevel.apply_leveling(raw);
     #endif
     #if ENABLED(ZWOBBLE)
       // Calculate ZWobble
-      mechanics.insert_zwobble_correction(rpos[Z_AXIS]);
+      mechanics.insert_zwobble_correction(raw[Z_AXIS]);
     #endif
     #if ENABLED(HYSTERESIS)
       // Calculate Hysteresis
-      mechanics.insert_hysteresis_correction(rpos[X_AXIS], rpos[Y_AXIS], rpos[Z_AXIS], rtarget[E_AXIS]);
+      mechanics.insert_hysteresis_correction(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS]);
     #endif
   #else
-    const float * const rpos = rtarget;
+    const float * const raw = cart;
   #endif
 
   #if IS_KINEMATIC
-    mechanics.Transform(rpos);
-    _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], rtarget[E_AXIS], fr_mm_s, extruder);
+    mechanics.Transform(raw);
+    _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder);
   #else
-    _buffer_line(rpos[X_AXIS], rpos[Y_AXIS], rpos[Z_AXIS], rtarget[E_AXIS], fr_mm_s, extruder);
+    _buffer_line(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder);
   #endif
 }
 

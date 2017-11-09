@@ -37,8 +37,12 @@ Endstops endstops;
 
 // public:
 
-float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-      Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
+#if IS_KINEMATIC
+  float Endstops::soft_endstop_radius_2 = 0.0;
+#else
+  float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+        Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
+#endif
 
 bool  Endstops::enabled = true,
       Endstops::soft_endstops_enabled = true,
@@ -235,23 +239,26 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
   if (!soft_endstops_enabled) return;
 
-  #if HAS_SOFTWARE_ENDSTOPS
+  #if IS_KINEMATIC
+    const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
+    if (dist_2 > soft_endstop_radius_2) {
+      const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
+      target[X_AXIS] *= ratio;
+      target[Y_AXIS] *= ratio;
+    }
+    NOLESS(target[Z_AXIS], 0);
+    NOMORE(target[Z_AXIS], mechanics.delta_height);
+  #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-      #if NOMECH(DELTA)
-        NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
-        NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
-      #endif
+      NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
+      NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
       NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
     #endif
     #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-      #if NOMECH(DELTA)
-        NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
-        NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
-      #endif
+      NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
+      NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
       NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
     #endif
-  #else
-    UNUSED(target);
   #endif
 }
 

@@ -375,10 +375,8 @@
 
   void Delta_Mechanics::recalc_delta_settings() {
 
-    LOOP_XYZ(axis) {
-      endstops.soft_endstop_min[axis] = (axis == C_AXIS ? 0 : -delta_print_radius);
-      endstops.soft_endstop_max[axis] = (axis == C_AXIS ? delta_height : delta_print_radius);
-    }
+    // Get a minimum radius for clamping
+    endstops.soft_endstop_radius_2 = sq(delta_print_radius);
 
     delta_diagonal_rod_2[A_AXIS] = sq(delta_diagonal_rod + delta_diagonal_rod_adj[A_AXIS]);
     delta_diagonal_rod_2[B_AXIS] = sq(delta_diagonal_rod + delta_diagonal_rod_adj[B_AXIS]);

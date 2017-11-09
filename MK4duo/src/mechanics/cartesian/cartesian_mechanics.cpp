@@ -508,25 +508,29 @@
         laser.status = LASER_OFF;
     #endif
 
-    if (current_position[X_AXIS] != destination[X_AXIS] || current_position[Y_AXIS] != destination[Y_AXIS]) {
-      const float fr_scaled = MMS_SCALED(feedrate_mm_s);
-      #if HAS_MESH
-        if (bedlevel.leveling_active) {
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
-            ubl.line_to_destination_cartesian(fr_scaled, tools.active_extruder);
-          #elif ENABLED(MESH_BED_LEVELING)
-            mbl.line_to_destination(fr_scaled);
-          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.bilinear_line_to_destination(fr_scaled);
-          #endif
+    #if HAS_MESH
+      if (bedlevel.leveling_active) {
+        #if ENABLED(AUTO_BED_LEVELING_UBL)
+          ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.active_extruder);
           return true;
-        }
-      #endif // HAS_MESH
-      line_to_destination(fr_scaled);
-    }
-    else
-      line_to_destination();
+        #else
+          /**
+           * For MBL and ABL-BILINEAR only segment moves when X or Y are involved.
+           * Otherwise fall through to do a direct single move.
+           */
+          if (current_position[X_AXIS] != destination[X_AXIS] || current_position[Y_AXIS] != destination[Y_AXIS]) {
+            #if ENABLED(MESH_BED_LEVELING)
+              mbl.line_to_destination(MMS_SCALED(feedrate_mm_s));
+            #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+              abl.bilinear_line_to_destination(MMS_SCALED(feedrate_mm_s));
+            #endif
+            return true;
+          }
+        #endif
+      }
+    #endif // HAS_MESH
 
+    line_to_destination(MMS_SCALED(feedrate_mm_s));
     return false;
   }
 

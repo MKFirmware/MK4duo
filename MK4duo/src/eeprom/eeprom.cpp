@@ -672,13 +672,7 @@ void EEPROM::Postprocess() {
 
     #if HAS_EEPROM_SD
       // EEPROM on SDCARD
-      if (!IS_SD_INSERTED) {
-        SERIAL_LM(ER, MSG_NO_CARD);
-        return false;
-      }
-      else if (IS_SD_PRINTING || !card.cardOK)
-        return false;
-      else {
+      if (IS_SD_INSERTED || card.cardOK) {
         card.setroot();
         eeprom_file.open(card.curDir, "EEPROM.bin", O_READ);
         EEPROM_READ(stored_ver);
@@ -956,6 +950,11 @@ void EEPROM::Postprocess() {
 
       #if HAS_EEPROM_SD
 
+        // Read last two field
+        uint16_t temp_crc;
+        read_data(eeprom_index, (uint8_t*)&stored_ver, sizeof(stored_ver), &temp_crc);
+        read_data(eeprom_index, (uint8_t*)&stored_crc, sizeof(stored_crc), &temp_crc);
+
         eeprom_file.sync();
         eeprom_file.close();
         card.setlast();
@@ -964,23 +963,21 @@ void EEPROM::Postprocess() {
         SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
         SERIAL_EM(" bytes)");
 
-      #else
-
-        if (working_crc == stored_crc) {
-          SERIAL_VAL(version);
-          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
-          SERIAL_MV(" bytes; crc ", working_crc);
-          SERIAL_EM(")");
-          Postprocess();
-        }
-        else {
-          SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
-          SERIAL_MV(" != ", working_crc);
-          SERIAL_EM(" (calculated)!");
-          Factory_Settings();
-        }
-
       #endif
+
+      if (working_crc == stored_crc) {
+        SERIAL_VAL(version);
+        SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+        SERIAL_MV(" bytes; crc ", working_crc);
+        SERIAL_EM(")");
+        Postprocess();
+      }
+      else {
+        SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
+        SERIAL_MV(" != ", working_crc);
+        SERIAL_EM(" (calculated)!");
+        Factory_Settings();
+      }
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 

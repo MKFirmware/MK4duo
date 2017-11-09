@@ -58,8 +58,12 @@ class Endstops {
 
   public: /** Public Parameters */
 
-    static float  soft_endstop_min[XYZ],
-                  soft_endstop_max[XYZ];
+    #if IS_KINEMATIC
+      static float  soft_endstop_radius_2;
+    #else
+      static float  soft_endstop_min[XYZ],
+                    soft_endstop_max[XYZ];
+    #endif
 
     static bool enabled, enabled_globally,
                 soft_endstops_enabled;
