@@ -240,11 +240,11 @@ class Planner {
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  rtarget   - x,y,z,e CARTESIAN target in mm
+     *  cart      - x,y,z,e CARTESIAN target in mm
      *  fr_mm_s   - (target) speed of the move (mm/s)
      *  extruder  - target extruder
      */
-    static void buffer_line_kinematic(const float rtarget[XYZE], const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder);
 
     static FORCE_INLINE void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     static FORCE_INLINE void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }

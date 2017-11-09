@@ -44,13 +44,15 @@ inline void gcode_M122(void) {
     SERIAL_MSG(MSG_OFF);
   #endif
 
-  SERIAL_MSG(MSG_SOFT_MIN);
-  SERIAL_MV(    MSG_X, endstops.soft_endstop_min[X_AXIS]);
-  SERIAL_MV(" " MSG_Y, endstops.soft_endstop_min[Y_AXIS]);
-  SERIAL_MV(" " MSG_Z, endstops.soft_endstop_min[Z_AXIS]);
-  SERIAL_MSG(MSG_SOFT_MAX);
-  SERIAL_MV(    MSG_X, endstops.soft_endstop_max[X_AXIS]);
-  SERIAL_MV(" " MSG_Y, endstops.soft_endstop_max[Y_AXIS]);
-  SERIAL_MV(" " MSG_Z, endstops.soft_endstop_max[Z_AXIS]);
-  SERIAL_EOL();
+  #if !(IS_KINEMATIC)
+    SERIAL_MSG(MSG_SOFT_MIN);
+    SERIAL_MV(    MSG_X, endstops.soft_endstop_min[X_AXIS]);
+    SERIAL_MV(" " MSG_Y, endstops.soft_endstop_min[Y_AXIS]);
+    SERIAL_MV(" " MSG_Z, endstops.soft_endstop_min[Z_AXIS]);
+    SERIAL_MSG(MSG_SOFT_MAX);
+    SERIAL_MV(    MSG_X, endstops.soft_endstop_max[X_AXIS]);
+    SERIAL_MV(" " MSG_Y, endstops.soft_endstop_max[Y_AXIS]);
+    SERIAL_MV(" " MSG_Z, endstops.soft_endstop_max[Z_AXIS]);
+    SERIAL_EOL();
+  #endif
 }
