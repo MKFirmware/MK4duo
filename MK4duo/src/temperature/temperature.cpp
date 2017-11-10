@@ -115,7 +115,7 @@ void Temperature::init() {
   #endif
 }
 
-void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/) {
+void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 
   millis_t residency_start_ms = 0;
 
@@ -131,17 +131,17 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
   #endif
 
   #if ENABLED(PRINTER_EVENT_LEDS)
-    const float start_temp = heaters[h].current_temperature;
+    const float start_temp = act->current_temperature;
     uint8_t old_blue = 0;
     uint8_t old_red  = 255;
   #endif
 
   do {
     // Target temperature might be changed during the loop
-    if (target_temp != heaters[h].target_temperature)
-      target_temp = heaters[h].target_temperature;
+    if (target_temp != act->target_temperature)
+      target_temp = act->target_temperature;
 
-    wants_to_cool = heaters[h].isCooling();
+    wants_to_cool = act->isCooling();
 
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
@@ -150,10 +150,10 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
     if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
       next_temp_ms = now + 1000UL;
       print_heaterstates();
-      if (temp_residency_time[heaters[h].type] > 0) {
+      if (temp_residency_time[act->type] > 0) {
         SERIAL_MSG(MSG_W);
         if (residency_start_ms)
-          SERIAL_VAL(long(((temp_residency_time[heaters[h].type] * 1000UL) - (now - residency_start_ms)) / 1000UL));
+          SERIAL_VAL(long(((temp_residency_time[act->type] * 1000UL) - (now - residency_start_ms)) / 1000UL));
         else
           SERIAL_CHR("?");
       }
@@ -163,11 +163,11 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
     printer.idle();
     commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
 
-    const float temp = heaters[h].current_temperature;
+    const float temp = act->current_temperature;
 
     #if ENABLED(PRINTER_EVENT_LEDS)
       if (!wants_to_cool) {
-        if (h < HOTENDS) {
+        if (act->type == IS_HOTEND) {
           // Gradually change LED strip from violet to red as nozzle heats up
           const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
           if (blue != old_blue) {
@@ -175,7 +175,7 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
             set_led_color(255, 0, blue, 0, true);
           }
         }
-        else if (h == BED_INDEX) {
+        else if (act->type == IS_BED) {
           // Gradually change LED strip from blue to violet as bed heats up
           const uint8_t red = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 0, 255);
           if (red != old_red) {
@@ -186,15 +186,15 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
       }
     #endif
 
-    if (temp_residency_time[heaters[h].type] > 0) {
+    if (temp_residency_time[act->type] > 0) {
 
       float temp_diff = FABS(target_temp - temp);
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-        if (temp_diff < temp_window[heaters[h].type]) residency_start_ms = now;
+        if (temp_diff < temp_window[act->type]) residency_start_ms = now;
       }
-      else if (temp_diff > temp_hysteresis[heaters[h].type]) {
+      else if (temp_diff > temp_hysteresis[act->type]) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
         residency_start_ms = now;
       }
@@ -211,10 +211,10 @@ void Temperature::wait_heater(const uint8_t h, bool no_wait_for_cooling/*=true*/
       }
     }
 
-    if (temp_residency_time[heaters[h].type] > 0)
-      temp_conditions = (!residency_start_ms || PENDING(now, residency_start_ms + temp_residency_time[heaters[h].type] * 1000UL));
+    if (temp_residency_time[act->type] > 0)
+      temp_conditions = (!residency_start_ms || PENDING(now, residency_start_ms + temp_residency_time[act->type] * 1000UL));
     else
-      temp_conditions = (wants_to_cool ? heaters[h].isCooling() : heaters[h].isHeating());
+      temp_conditions = (wants_to_cool ? act->isCooling() : act->isHeating());
 
   } while (wait_for_heatup && temp_conditions);
 
@@ -321,7 +321,7 @@ void Temperature::manage_temp_controller() {
   #endif // FILAMENT_SENSOR
 }
 
-void Temperature::PID_autotune(const int8_t temp_controller, const float temp, int8_t ncycles, const bool storeValues/*=false*/) {
+void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const bool storeValues/*=false*/) {
 
     float currentTemp = 0.0;
     int cycles = 0;
@@ -335,36 +335,10 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
           workKp = 0, workKi = 0, workKd = 0,
           maxTemp = 0.0, minTemp = 10000.0;
 
-    NOLESS(ncycles, 5);
-    NOMORE(ncycles, 20);
-
-    SERIAL_EM(MSG_PID_AUTOTUNE_START);
-
-    if (WITHIN(temp_controller, 0 , HOTENDS - 1))
-      SERIAL_MV("Hotend: ", temp_controller);
-    #if HAS_TEMP_BED
-      else if (temp_controller == BED_INDEX)
-        SERIAL_MSG("BED");
-    #endif
-    #if HAS_TEMP_CHAMBER
-      else if(temp_controller == CHAMBER_INDEX)
-        SERIAL_MSG("CHAMBER");
-    #endif
-    #if HAS_TEMP_COOLER
-      else if(temp_controller == COOLER_INDEX)
-        SERIAL_MSG("COOLER");
-    #endif
-    SERIAL_MV(" Temp: ", temp, 1);
-    SERIAL_MV(" Cycles: ", ncycles);
-    if (storeValues)
-      SERIAL_EM(" Apply result");
-    else
-      SERIAL_EOL();
-
     disable_all_heaters(); // switch off all heaters.
 
-    const uint8_t pidMax = heaters[temp_controller].pid_max;
-    heaters[temp_controller].soft_pwm = pidMax;
+    const uint8_t pidMax = act->pid_max;
+    act->soft_pwm = pidMax;
 
     bias = pidMax >> 1;
     d = pidMax >> 1;
@@ -382,7 +356,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         LOOP_FAN() fans[f].Check();
       #endif
 
-      currentTemp = heaters[temp_controller].current_temperature;
+      currentTemp = act->current_temperature;
 
       NOLESS(maxTemp, currentTemp);
       NOMORE(minTemp, currentTemp);
@@ -391,13 +365,13 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         if (ELAPSED(ms, t2 + 2500UL)) {
           heating = false;
 
-          heaters[temp_controller].soft_pwm = (bias - d);
+          act->soft_pwm = (bias - d);
 
           t1 = ms;
           t_high = t1 - t2;
 
           #if HAS_TEMP_COOLER
-            if (temp_controller == COOLER_INDEX)
+            if (act->type == IS_COOLER)
               minTemp = temp;
             else
           #endif
@@ -436,12 +410,12 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
             }
           }
 
-          heaters[temp_controller].soft_pwm = (bias + d);
+          act->soft_pwm = (bias + d);
 
           cycles++;
 
           #if HAS_TEMP_COOLER
-            if (temp_controller == COOLER_INDEX)
+            if (act->type == IS_COOLER)
               maxTemp = temp;
             else
           #endif
@@ -452,14 +426,14 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
       #define MAX_OVERSHOOT_PID_AUTOTUNE 40
       if (currentTemp > temp + MAX_OVERSHOOT_PID_AUTOTUNE
         #if HAS_TEMP_COOLER
-          && temp_controller != COOLER_INDEX
+          && act->type != IS_COOLER
         #endif
       ) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
         break;
       }
       #if HAS_TEMP_COOLER
-        else if (currentTemp < temp + MAX_OVERSHOOT_PID_AUTOTUNE && temp_controller == COOLER_INDEX) {
+        else if (currentTemp < temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->type == IS_COOLER) {
           SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
           break;
         }
@@ -483,7 +457,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
 
         #if (PIDTEMP)
-          if (temp_controller >= 0) {
+          if (act->type == IS_HOTEND) {
             SERIAL_MV(MSG_KP, workKp);
             SERIAL_MV(MSG_KI, workKi);
             SERIAL_EMV(MSG_KD, workKd);
@@ -491,7 +465,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         #endif
 
         #if (PIDTEMPBED)
-          if (temp_controller == BED_INDEX) {
+          if (act->type == IS_BED) {
             SERIAL_EMV("#define DEFAULT_bedKp ", workKp);
             SERIAL_EMV("#define DEFAULT_bedKi ", workKi);
             SERIAL_EMV("#define DEFAULT_bedKd ", workKd);
@@ -499,7 +473,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         #endif
 
         #if (PIDTEMPCHAMBER)
-          if (temp_controller == -2) {
+          if (act->type == IS_CHAMBER) {
             SERIAL_EMV("#define DEFAULT_chamberKp ", workKp);
             SERIAL_EMV("#define DEFAULT_chamberKi ", workKi);
             SERIAL_EMV("#define DEFAULT_chamberKd ", workKd);
@@ -507,7 +481,7 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         #endif
 
         #if (PIDTEMPCOOLER)
-          if (temp_controller == -3) {
+          if (act->type == IS_COOLER) {
             SERIAL_EMV("#define DEFAULT_coolerKp ", workKp);
             SERIAL_EMV("#define DEFAULT_coolerKi ", workKi);
             SERIAL_EMV("#define DEFAULT_coolerKd ", workKd);
@@ -515,9 +489,9 @@ void Temperature::PID_autotune(const int8_t temp_controller, const float temp, i
         #endif
 
         if (storeValues) {
-          heaters[temp_controller].Kp = workKp;
-          heaters[temp_controller].Ki = workKi;
-          heaters[temp_controller].Kd = workKd;
+          act->Kp = workKp;
+          act->Ki = workKi;
+          act->Kd = workKd;
           updatePID();
         }
 

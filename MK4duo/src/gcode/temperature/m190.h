@@ -42,7 +42,7 @@
     if (no_wait_for_cooling || parser.seen('R'))
       heaters[BED_INDEX].target_temperature = parser.value_celsius();
 
-    thermalManager.wait_heater(BED_INDEX, no_wait_for_cooling);
+    thermalManager.wait_heater(&heaters[BED_INDEX], no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_BED
