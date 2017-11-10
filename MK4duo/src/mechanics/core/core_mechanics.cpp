@@ -480,7 +480,7 @@
    *
    * Returns true if current_position[] was set to destination[]
    */
-  bool Cartesian_Mechanics::prepare_move_to_destination_cartesian() {
+  bool Core_Mechanics::prepare_move_to_destination_cartesian() {
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
       if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))

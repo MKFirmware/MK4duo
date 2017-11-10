@@ -39,7 +39,7 @@
 
 #if HAS_LEVELING
 
-  #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_UBL)
+  #if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
     #include "math/vector_3.h"
     #include "math/least_squares_fit.h"
   #endif
