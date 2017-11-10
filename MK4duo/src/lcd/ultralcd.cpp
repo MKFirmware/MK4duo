@@ -2823,18 +2823,6 @@ void kill_screen(const char* lcd_msg) {
       float min = mechanics.current_position[axis] - 1000,
             max = mechanics.current_position[axis] + 1000;
 
-      #if HAS_SOFTWARE_ENDSTOPS
-        // Limit to software endstops, if enabled
-        if (endstops.soft_endstops_enabled) {
-          #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-            min = endstops.soft_endstop_min[axis];
-          #endif
-          #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            max = endstops.soft_endstop_max[axis];
-          #endif
-        }
-      #endif
-
       // Delta limits XY based on the current offset from center
       // This assumes the center is 0,0
       #if MECH(DELTA)
@@ -2842,6 +2830,18 @@ void kill_screen(const char* lcd_msg) {
           max = SQRT(sq((float)(mechanics.delta_print_radius)) - sq(mechanics.current_position[Y_AXIS - axis]));
           min = -max;
         }
+      #else
+        #if HAS_SOFTWARE_ENDSTOPS
+          // Limit to software endstops, if enabled
+          if (endstops.soft_endstops_enabled) {
+            #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+              min = endstops.soft_endstop_min[axis];
+            #endif
+            #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+              max = endstops.soft_endstop_max[axis];
+            #endif
+          }
+        #endif
       #endif
 
       // Get the new position
