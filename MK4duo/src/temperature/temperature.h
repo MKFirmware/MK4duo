@@ -115,7 +115,7 @@ class Temperature {
     /**
      * Static (class) methods
      */
-    static void wait_heater(const uint8_t h, bool no_wait_for_cooling=true);
+    static void wait_heater(Heater *act, bool no_wait_for_cooling=true);
 
     /**
      * Called from the Temperature ISR
@@ -130,7 +130,7 @@ class Temperature {
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
-    static void PID_autotune(const int8_t temp_controller, const float temp, int8_t ncycles, const bool storeValues=false);
+    static void PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const bool storeValues=false);
 
     /**
      * Update the temp manager when PID values change

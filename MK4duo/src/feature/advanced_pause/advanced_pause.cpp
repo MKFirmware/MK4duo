@@ -152,7 +152,7 @@
         // Cool Down hotend
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
         heaters[tools.active_extruder].setTarget(PAUSE_PARK_COOLDOWN_TEMP);
-        thermalManager.wait_heater(false);
+        thermalManager.wait_heater(&heaters[tools.active_extruder], false);
 
         // Second retract filament
         do_pause_e_move(retract2, PAUSE_PARK_RETRACT_2_FEEDRATE);
@@ -253,7 +253,7 @@
             #if HAS_LCD
               lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
             #endif
-            thermalManager.wait_heater(BED_INDEX);
+            thermalManager.wait_heater(&heaters[BED_INDEX]);
           }
         #endif
 
@@ -303,7 +303,7 @@
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
       bed_timed_out = thermalManager.is_heater_idle(BED_INDEX);
       thermalManager.reset_heater_idle_timer(BED_INDEX);
-      if (bed_timed_out) thermalManager.wait_heater(BED_INDEX);
+      if (bed_timed_out) thermalManager.wait_heater(&heaters[BED_INDEX]);
     #endif
 
     LOOP_HOTEND() {

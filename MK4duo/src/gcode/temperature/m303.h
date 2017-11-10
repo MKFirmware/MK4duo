@@ -39,9 +39,9 @@
 inline void gcode_M303(void) {
 
   #if HAS_PID
-    int8_t      h = parser.intval('H');
-    const int   c = parser.intval('C', 5);
-    const bool  u = parser.boolval('U');
+    int8_t      h     = parser.intval('H');
+    uint8_t     cycle = parser.intval('C', 5);
+    const bool  store = parser.boolval('U');
 
     const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
@@ -51,7 +51,34 @@ inline void gcode_M303(void) {
       KEEPALIVE_STATE(NOT_BUSY);
     #endif
 
-    thermalManager.PID_autotune(h, temp, c, u);
+    SERIAL_EM(MSG_PID_AUTOTUNE_START);
+
+    if (heaters[h].type == IS_HOTEND)
+      SERIAL_MV("Hotend:", h);
+    #if HAS_TEMP_BED
+      else if (heaters[h].type == IS_BED)
+        SERIAL_MSG("BED");
+    #endif
+    #if HAS_TEMP_CHAMBER
+      else if(heaters[h].type == IS_CHAMBER)
+        SERIAL_MSG("CHAMBER");
+    #endif
+    #if HAS_TEMP_COOLER
+      else if(heaters[h].type == IS_COOLER)
+        SERIAL_MSG("COOLER");
+    #endif
+
+    NOLESS(cycle, 5);
+    NOMORE(cycle, 20);
+
+    SERIAL_MV(" Temp: ", temp);
+    SERIAL_MV(" Cycles: ", cycle);
+    if (store)
+      SERIAL_EM(" Apply result");
+    else
+      SERIAL_EOL();
+
+    thermalManager.PID_autotune(&heaters[h], temp, cycle, store);
 
     #if DISABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(IN_HANDLER);

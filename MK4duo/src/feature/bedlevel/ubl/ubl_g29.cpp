@@ -1638,7 +1638,7 @@
               SERIAL_CHR('(');
               SERIAL_VAL(LOGICAL_X_POSITION(rx), 7);
               SERIAL_CHR(',');
-              SERIAL_VAL(LOGICAL_X_POSITION(ry), 7);
+              SERIAL_VAL(LOGICAL_Y_POSITION(ry), 7);
               SERIAL_MSG(")   measured: ");
               SERIAL_VAL(measured_z, 7);
               SERIAL_MSG("   correction: ");

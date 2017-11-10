@@ -41,7 +41,7 @@
     bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R')) heaters[CHAMBER_INDEX].setTarget(parser.value_celsius());
 
-    thermalManager.wait_heater(CHAMBER_INDEX, no_wait_for_cooling);
+    thermalManager.wait_heater(&heaters[CHAMBER_INDEX], no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_CHAMBER
