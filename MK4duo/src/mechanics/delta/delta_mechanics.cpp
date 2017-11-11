@@ -720,10 +720,11 @@
     SERIAL_MSG("\nRaw:    ");
     report_xyze(current_position);
 
+    float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+
     #if PLANNER_LEVELING
 
       SERIAL_MSG("Leveled:");
-      float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
       bedlevel.apply_leveling(leveled);
       report_xyz(leveled);
 
@@ -735,7 +736,7 @@
     #endif
 
     SERIAL_MSG("DeltaK: ");
-    Transform(leveled);  // writes delta[]
+    Transform(leveled);
     report_xyz(delta);
 
     SERIAL_MSG("Stepper:");
@@ -743,7 +744,7 @@
     report_xyze(step_count, 4, 0);
 
     SERIAL_MSG("FromStp:");
-    get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+    get_cartesian_from_steppers();
     const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
