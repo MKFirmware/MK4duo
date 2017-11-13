@@ -76,7 +76,7 @@
   }
 
   void do_pause_e_move(const float &length, const float fr) {
-    mechanics.current_position[E_AXIS] += length;
+    mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.active_extruder];
     mechanics.set_destination_to_current();
     #if IS_KINEMATIC
       planner.buffer_line_kinematic(mechanics.destination, fr, tools.active_extruder);
@@ -193,12 +193,12 @@
     const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
 
     LOOP_HOTEND() {
-      thermalManager.start_heater_idle_timer(h, nozzle_timeout);
+      heaters[h].start_idle_timer(nozzle_timeout);
       heaters[h].setTarget(old_target_temperature[h]);
     }
 
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-      thermalManager.start_heater_idle_timer(BED_INDEX, bed_timeout);
+      heaters[BED_INDEX].start_idle_timer(bed_timeout);
     #endif
 
     return true;
@@ -221,7 +221,7 @@
 
       if (!nozzle_timed_out)
         LOOP_HOTEND()
-          nozzle_timed_out |= thermalManager.is_heater_idle(h);
+          nozzle_timed_out |= heaters[h].is_idle();
 
       if (nozzle_timed_out) {
 
@@ -234,7 +234,7 @@
 
           if (!bed_timed_out) {
             #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-              bed_timed_out = thermalManager.is_heater_idle(BED_INDEX);
+              bed_timed_out = heaters[BED_INDEX].is_idle();
             #endif
           }
           else {
@@ -249,7 +249,7 @@
         // Re-enable the bed if they timed out
         #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
           if (bed_timed_out) {
-            thermalManager.reset_heater_idle_timer(BED_INDEX);
+            heaters[BED_INDEX].reset_idle_timer();
             #if HAS_LCD
               lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT);
             #endif
@@ -258,7 +258,7 @@
         #endif
 
         // Re-enable the heaters if they timed out
-        LOOP_HOTEND() thermalManager.reset_heater_idle_timer(h);
+        LOOP_HOTEND() heaters[h].reset_idle_timer();
 
         // Wait for the heaters to reach the target temperatures
         ensure_safe_temperature();
@@ -272,10 +272,10 @@
         const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
 
         LOOP_HOTEND()
-          thermalManager.start_heater_idle_timer(h, nozzle_timeout);
+          heaters[h].start_idle_timer(nozzle_timeout);
 
         #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-          thermalManager.start_heater_idle_timer(BED_INDEX, bed_timeout);
+          heaters[BED_INDEX].start_idle_timer(bed_timeout);
         #endif
 
         printer.wait_for_user = true; /* Wait for user to load filament */
@@ -301,14 +301,14 @@
 
     // Re-enable the heaters if they timed out
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-      bed_timed_out = thermalManager.is_heater_idle(BED_INDEX);
-      thermalManager.reset_heater_idle_timer(BED_INDEX);
+      bed_timed_out = heaters[BED_INDEX].is_idle();
+      heaters[BED_INDEX].reset_idle_timer();
       if (bed_timed_out) thermalManager.wait_heater(&heaters[BED_INDEX]);
     #endif
 
     LOOP_HOTEND() {
-      nozzle_timed_out |= thermalManager.is_heater_idle(h);
-      thermalManager.reset_heater_idle_timer(h);
+      nozzle_timed_out |= heaters[h].is_idle();
+      heaters[h].reset_idle_timer();
     }
 
     if (nozzle_timed_out) ensure_safe_temperature();

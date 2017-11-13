@@ -74,7 +74,7 @@
    */
   inline void gcode_M406(void) {
     filament_sensor = false;
-    printer.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
+    tools.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
   }
 
   /**

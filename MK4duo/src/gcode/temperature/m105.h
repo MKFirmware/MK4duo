@@ -37,7 +37,7 @@ inline void gcode_M105(void) {
 
   #if HEATER_COUNT > 0
     SERIAL_STR(OK);
-    thermalManager.print_heaterstates();
+    thermalManager.print_heaters_state();
     #if ENABLED(FLOWMETER_SENSOR)
       flowmeter.print_flow_rate_state();
     #endif

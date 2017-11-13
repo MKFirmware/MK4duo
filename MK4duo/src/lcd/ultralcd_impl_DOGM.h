@@ -398,7 +398,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
 
   if (PAGE_UNDER(7)) {
     #if HEATER_IDLE_HANDLER
-      const bool is_idle = thermalManager.is_heater_idle(heater);
+      const bool is_idle = heaters[heater].is_idle();
 
       if (blink || !is_idle)
     #endif
@@ -802,7 +802,7 @@ static void lcd_implementation_status_screen() {
       lcd_print(itostr3(heaters[EXTRUDER_IDX].current_temperature));
       lcd_print('/');
 
-      if (lcd_blink() || !thermalManager.is_heater_idle(EXTRUDER_IDX))
+      if (lcd_blink() || !heaters[EXTRUDER_IDX].is_idle())
         lcd_print(itostr3(heaters[EXTRUDER_IDX].target_temperature));
     }
 

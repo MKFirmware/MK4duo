@@ -57,7 +57,7 @@
       return;
     }
 
-    printer.calculate_volumetric_multipliers();
+    tools.calculate_volumetric_multipliers();
   }
 
 #endif // EXTRUDERS > 0

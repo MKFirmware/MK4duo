@@ -16,7 +16,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops! Make sure you have 'Archim' selected from the 'Tools -> Boards' menu.
+  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
 #endif
 //@@@
 
@@ -148,6 +148,12 @@
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
 
+//###SERVO
+#define SERVO0_PIN                 NoPin
+#define SERVO1_PIN                 NoPin
+#define SERVO2_PIN                 NoPin
+#define SERVO3_PIN                 NoPin
+
 //###MISC
 #define ORIG_PS_ON_PIN             NoPin
 #define ORIG_BEEPER_PIN            NoPin
@@ -163,20 +169,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-//###SERVOS
-#if NUM_SERVOS > 0
-  #define SERVO0_PIN                 NoPin
-  #if NUM_SERVOS > 1
-    #define SERVO1_PIN                 NoPin
-    #if NUM_SERVOS > 2
-      #define SERVO2_PIN                 NoPin
-      #if NUM_SERVOS > 3
-        #define SERVO3_PIN                 NoPin
-      #endif
-    #endif
-  #endif
-#endif
-//@@@
 
 //###UNKNOWN_PINS
 #undef NUM_DIGITAL_PINS

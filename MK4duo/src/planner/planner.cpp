@@ -463,7 +463,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
         }
 
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (labs(de) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
+        if (labs(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
           #if ENABLED(EASY_LOAD)
             if (!printer.allow_lengthy_extrude_once) {
           #endif
@@ -521,7 +521,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   #endif
   if (de < 0) SBI(dirb, E_AXIS);
 
-  const float esteps_float = de * tools.volumetric_multiplier[extruder] * tools.flow_percentage[extruder] * 0.01;
+  const float esteps_float = de * tools.e_factor[extruder];
   const int32_t esteps = abs(esteps_float) + 0.5;
 
   // Calculate the buffer head after we push this byte

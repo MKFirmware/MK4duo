@@ -60,9 +60,17 @@
                   Kp,
                   Ki,
                   Kd,
-                  Kc;
+                  Kc,
+                  tempIState,
+                  tempIStateLimitMin,
+                  tempIStateLimitMax;
       bool        use_pid,
                   hardwareInverted;
+
+      #if HEATER_IDLE_HANDLER
+        millis_t  idle_timeout_ms;
+        bool      idle_timeout_exceeded;
+      #endif
 
       #if WATCH_THE_HEATER
         uint16_t  watch_target_temp;
@@ -89,6 +97,16 @@
       bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
       bool isHeating()    { return this->target_temperature > this->current_temperature; }
       bool isCooling()    { return this->target_temperature < this->current_temperature; }
+
+      #if WATCH_THE_HEATER
+        void start_watching();
+      #endif
+
+      #if HEATER_IDLE_HANDLER
+        void start_idle_timer(const millis_t timeout_ms);
+        void reset_idle_timer();
+        bool is_idle() { return idle_timeout_exceeded; }
+      #endif
 
     private: /** Private Function */
 

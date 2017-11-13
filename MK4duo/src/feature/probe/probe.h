@@ -115,10 +115,9 @@ class Probe {
      * @details Used by check_pt to do a single Z probe.
      *          Leaves current_position[Z_AXIS] at the height where the probe triggered.
      *
-     * @param  short_move Flag for a shorter probe move towards the bed
      * @return The raw Z position where the probe was triggered
      */
-    static float run_z_probe(const bool short_move=true);
+    static float run_z_probe();
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();

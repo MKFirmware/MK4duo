@@ -92,7 +92,6 @@
 
     while (t < 1.0) {
 
-      thermalManager.manage_temp_controller();
       millis_t now = millis();
       if (ELAPSED(now, next_idle_ms)) {
         next_idle_ms = now + 200UL;

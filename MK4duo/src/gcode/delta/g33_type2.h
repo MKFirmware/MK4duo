@@ -144,7 +144,7 @@
         I_LOOP_CAL_PT(axis, start, steps) {
           const float a = RADIANS(210 + (360 / NPP) *  (axis - 1)),
                       r = mechanics.delta_probe_radius * 0.1;
-          z_at_pt[CEN] += probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1);
+          z_at_pt[CEN] += probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1, false);
         }
         z_at_pt[CEN] /= float(_7p_2_intermediates ? 7 : num_points);
       }
@@ -168,7 +168,7 @@
             const float a = RADIANS(210 + (360 / NPP) *  (axis - 1)),
                         r = mechanics.delta_probe_radius * (1 + 0.1 * (zig_zag ? circle : - circle)),
                         interpol = FMOD(axis, 1);
-            float z_temp = probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1);
+            float z_temp = probe.check_pt(COS(a) * r + probe.offset[X_AXIS], SIN(a) * r + probe.offset[Y_AXIS], stow_after_each, 1, false);
             // split probe point to neighbouring calibration points
             z_at_pt[uint8_t(round(axis - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
             z_at_pt[uint8_t(round(axis - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
@@ -224,6 +224,7 @@
       LOOP_XYZ(axis) {
 
         mechanics.delta_endstop_adj[axis] -= 1.0;
+        mechanics.recalc_delta_settings();
 
         endstops.enable(true);
         if (!mechanics.Home()) return;
@@ -234,12 +235,10 @@
         SERIAL_EOL();
 
         probe_points(z_at_pt, 3, true, false);
-
         LOOP_CAL_ALL(axis) z_at_pt[axis] -= z_at_pt_base[axis];
-
         Report_results(z_at_pt, true, true);
-
         mechanics.delta_endstop_adj[axis] += 1.0;
+        mechanics.recalc_delta_settings();
 
         switch (axis) {
           case A_AXIS :
@@ -293,7 +292,6 @@
         float z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
         mechanics.delta_height -= z_temp;
         LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
-
         mechanics.recalc_delta_settings();
 
         endstops.enable(true);
@@ -305,9 +303,7 @@
         SERIAL_EOL();
 
         probe_points(z_at_pt, 3, true, false);
-
         LOOP_CAL_ALL(axis) z_at_pt[axis] -= z_at_pt_base[axis];
-
         Report_results(z_at_pt, true, true);
 
         mechanics.delta_tower_angle_adj[axis] -= 1.0;
@@ -317,7 +313,6 @@
         z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
         mechanics.delta_height -= z_temp;
         LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
-
         mechanics.recalc_delta_settings();
 
         switch (axis) {

@@ -151,7 +151,7 @@ void Mechanics::prepare_move_to_destination() {
         if (thermalManager.tooColdToExtrude(tools.active_extruder))
           current_position[E_AXIS] = destination[E_AXIS];
         #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-          if (destination[E_AXIS] - current_position[E_AXIS] > EXTRUDE_MAXLENGTH) {
+          if (FABS(destination[E_AXIS] - current_position[E_AXIS]) * tools.e_factor[tools.active_extruder] > (EXTRUDE_MAXLENGTH)) {
             current_position[E_AXIS] = destination[E_AXIS];
             SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
           }
@@ -357,9 +357,9 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
  * Report current position to host
  */
 void Mechanics::report_current_position() {
-  SERIAL_MV( "X:", current_position[X_AXIS], 2);
-  SERIAL_MV(" Y:", current_position[Y_AXIS], 2);
-  SERIAL_MV(" Z:", current_position[Z_AXIS], 3);
+  SERIAL_MV( "X:", LOGICAL_X_POSITION(current_position[X_AXIS]), 2);
+  SERIAL_MV(" Y:", LOGICAL_Y_POSITION(current_position[Y_AXIS]), 2);
+  SERIAL_MV(" Z:", LOGICAL_Z_POSITION(current_position[Z_AXIS]), 3);
   SERIAL_EMV(" E:", current_position[E_AXIS], 4);
 }
 void Mechanics::report_current_position_detail() {
@@ -574,7 +574,6 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
     for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
-      thermalManager.manage_temp_controller();
       if (ELAPSED(millis(), next_idle_ms)) {
         next_idle_ms = millis() + 200UL;
         printer.idle();
