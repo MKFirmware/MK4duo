@@ -659,7 +659,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, c
   #if !HEATER_IDLE_HANDLER
     UNUSED(blink);
   #else
-    const bool is_idle = thermalManager.is_heater_idle(heater);
+    const bool is_idle = heaters[heater].is_idle();
 
     if (!blink && is_idle) {
       lcd.write(' ');

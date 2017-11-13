@@ -152,8 +152,6 @@ class Printer {
     static void kill(const char *);
     static void Stop();
 
-    static void calculate_volumetric_multipliers();
-
     static void idle(bool no_stepper_sleep=false);
     static void manage_inactivity(bool ignore_stepper_queue=false);
     static void setInterruptEvent(const MK4duoInterruptEvent event);
@@ -176,8 +174,6 @@ class Printer {
   private: /** Private Function */
 
     static void setup_powerhold();
-
-    static float calculate_volumetric_multiplier(const float diameter);
 
     static void bracket_probe_move(const bool before);
 

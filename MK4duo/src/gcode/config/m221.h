@@ -36,7 +36,10 @@
   inline void gcode_M221(void) {
 
     GET_TARGET_EXTRUDER(221);
-    if (parser.seenval('S')) tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
+    if (parser.seenval('S')) {
+      tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
+      tools.refresh_e_factor(TARGET_EXTRUDER);
+    }
   }
 
 #endif // EXTRUDERS > 0

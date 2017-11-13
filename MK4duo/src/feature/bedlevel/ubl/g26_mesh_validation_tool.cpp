@@ -765,7 +765,7 @@ bool unified_bed_leveling::turn_on_heaters() {
 
           if (ELAPSED(millis(), next)) {
             next = millis() + 5000UL;
-            thermalManager.print_heaterstates();
+            thermalManager.print_heaters_state();
             SERIAL_EOL();
           }
           printer.idle();
@@ -787,7 +787,7 @@ bool unified_bed_leveling::turn_on_heaters() {
 
     if (ELAPSED(millis(), next)) {
       next = millis() + 5000UL;
-      thermalManager.print_heaterstates();
+      thermalManager.print_heaters_state();
       SERIAL_EOL();
     }
     printer.idle();

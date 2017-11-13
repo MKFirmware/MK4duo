@@ -42,31 +42,26 @@
    *       Use M206 to set these values directly.
    */
   inline void gcode_M428(void) {
-    bool err = false;
+    if (mechanics.axis_unhomed_error()) return;
+
+    float diff[XYZ];
     LOOP_XYZ(i) {
-      if (mechanics.axis_homed[i]) {
-        const float base = (mechanics.current_position[i] > (endstops.soft_endstop_min[i] + endstops.soft_endstop_max[i]) * 0.5) ? mechanics.base_home_pos[(AxisEnum)i] : 0,
-                    diff = base - mechanics.current_position[i];
-        if (WITHIN(diff, -20, 20)) {
-          mechanics.set_home_offset((AxisEnum)i, diff);
-        }
-        else {
-          SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
-          LCD_ALERTMESSAGEPGM("Err: Too far!");
-          BUZZ(200, 40);
-          err = true;
-          break;
-        }
+      diff[i] = mechanics.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
+      if (WITHIN(diff, -20, 20) && mechanics.home_dir[(AxisEnum)i] > 0)
+        diff[i] = -mechanics.current_position[i];
+      if (!WITHIN(diff[i], -20, 20)) {
+        SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
+        LCD_ALERTMESSAGEPGM("Err: Too far!");
+        BUZZ(200, 40);
+        return;
       }
     }
 
-    if (!err) {
-      mechanics.sync_plan_position();
-      mechanics.report_current_position();
-      LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-      BUZZ(100, 659);
-      BUZZ(100, 698);
-    }
+    LOOP_XYZ(i) mechanics.set_home_offset((AxisEnum)i, diff[i]);
+    mechanics.report_current_position();
+    LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
+    BUZZ(100, 659);
+    BUZZ(100, 698);
   }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)

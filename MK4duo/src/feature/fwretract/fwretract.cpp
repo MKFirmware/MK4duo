@@ -110,9 +110,7 @@
     mechanics.set_destination_to_current();
     stepper.synchronize();  // Wait for buffered moves to complete
 
-    const float renormalize = 100.0
-                              / planner.flow_percentage[tools.active_extruder]
-                              / planner.volumetric_multiplier[tools.active_extruder];
+    const float renormalize = 1.0 / planner.e_factor[active_extruder];
 
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position

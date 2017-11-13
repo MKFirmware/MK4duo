@@ -369,7 +369,7 @@ void Printer::safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     HAL::delayMilliseconds(50);
-    thermalManager.manage_temp_controller();
+    thermalManager.spin();
   }
   HAL::delayMilliseconds(ms);
 }
@@ -539,7 +539,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   if (HAL::execute_100ms) {
     // Event 100 Ms
     HAL::execute_100ms = false;
-    thermalManager.manage_temp_controller();
+    thermalManager.spin();
     if (--cycle_1500ms == 0) {
       // Event 1500 Ms
       cycle_1500ms = 15;
@@ -766,7 +766,8 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
             Spool_must_read[e] = false;
             tools.density_percentage[e] = rfid522.RfidData[e].data.density;
             tools.filament_size[e] = rfid522.RfidData[e].data.size;
-            calculate_volumetric_multipliers();
+            tools.calculate_volumetric_multipliers();
+            tools.refresh_e_factor(e);
             rfid522.printInfo(e);
           }
         }
@@ -880,15 +881,6 @@ void Printer::setup_powerhold() {
       powerManager.power_on();
     #endif
   #endif
-}
-
-float Printer::calculate_volumetric_multiplier(const float diameter) {
-  if (!tools.volumetric_enabled || diameter == 0) return 1.0;
-  return 1.0 / CIRCLE_AREA(diameter * 0.5);
-}
-void Printer::calculate_volumetric_multipliers() {
-  for (uint8_t e = 0; e < EXTRUDERS; e++)
-    tools.volumetric_multiplier[e] = calculate_volumetric_multiplier(tools.filament_size[e]);
 }
 
 #if ENABLED(IDLE_OOZING_PREVENT)

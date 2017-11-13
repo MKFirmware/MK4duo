@@ -45,7 +45,8 @@
 
   int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
           Tools::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
-  float   Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
+  float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0),
+          Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
           Tools::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
 
   float   Tools::hotend_offset[XYZ][HOTENDS] = { 0.0 };
@@ -377,6 +378,18 @@
       SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 
     #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+  }
+
+  float Tools::calculate_volumetric_multiplier(const float diameter) {
+    if (!volumetric_enabled || diameter == 0) return 1.0;
+    return 1.0 / CIRCLE_AREA(diameter * 0.5);
+  }
+
+  void Tools::calculate_volumetric_multipliers() {
+    for (uint8_t e = 0; e < EXTRUDERS; e++) {
+      volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
+      refresh_e_factor(e);
+    }
   }
 
   #if ENABLED(NPR2)

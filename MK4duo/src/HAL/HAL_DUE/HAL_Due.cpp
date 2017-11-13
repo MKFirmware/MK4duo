@@ -88,8 +88,6 @@ uint8_t MCUSR;
   ADCAveragingFilter  HAL::mcuFilter;
 #endif
 
-static unsigned int cycle_100ms = 0;
-
 // disable interrupts
 void cli(void) {
   noInterrupts();
@@ -593,7 +591,8 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
  */
 void HAL::Tick() {
 
-  static uint8_t  tickState = 0,
+  static uint8_t  cycle_100ms = 0,
+                  tickState = 0,
                   currentHeater = 0;
 
   if (printer.IsStopped()) return;

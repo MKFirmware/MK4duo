@@ -226,7 +226,7 @@ void EEPROM::Postprocess() {
     LOOP_FAN() fans[f].init();
   #endif
 
-  printer.calculate_volumetric_multipliers();
+  tools.calculate_volumetric_multipliers();
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
     // Software endstops depend on home_offset

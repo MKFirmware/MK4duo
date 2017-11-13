@@ -77,11 +77,7 @@ class Temperature {
 
   private: /** Private Parameters */
 
-    static float  temp_iState[HEATER_COUNT],
-                  temp_dState[HEATER_COUNT][4],
-                  temp_iState_min[HEATER_COUNT],
-                  temp_iState_max[HEATER_COUNT],
-                  pid_error[HEATER_COUNT];
+    static uint8_t cycle_1_second;
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       static float  cTerm[HOTENDS];
@@ -103,11 +99,6 @@ class Temperature {
       static bool paused;
     #endif
 
-    #if HEATER_IDLE_HANDLER
-      static millis_t heater_idle_timeout_ms[HEATER_COUNT];
-      static bool heater_idle_timeout_exceeded[HEATER_COUNT];
-    #endif
-
   public: /** Public Function */
 
     void init();
@@ -123,9 +114,9 @@ class Temperature {
     static void set_current_temp_raw();
 
     /**
-     * Call periodically to manage temp controller
+     * Call periodically to HAL isr
      */
-    static void manage_temp_controller();
+    static void spin();
 
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
@@ -142,10 +133,6 @@ class Temperature {
      */
     static void disable_all_heaters();
 
-    #if WATCH_THE_HEATER
-      static void start_watching(Heater *act);
-    #endif
-
     #if HAS_FILAMENT_SENSOR
       static int widthFil_to_size_ratio(); // Convert raw Filament Width to an extrusion ratio
     #endif    
@@ -155,33 +142,11 @@ class Temperature {
       static bool is_paused() { return paused; }
     #endif
 
-    #if HEATER_IDLE_HANDLER
-      static void start_heater_idle_timer(const uint8_t h, const millis_t timeout_ms) {
-        heater_idle_timeout_ms[h] = millis() + timeout_ms;
-        heater_idle_timeout_exceeded[h] = false;
-      }
-
-      static void reset_heater_idle_timer(const uint8_t h) {
-        heater_idle_timeout_ms[h] = 0;
-        heater_idle_timeout_exceeded[h] = false;
-        #if WATCH_THE_HOTEND
-          if (h < HOTENDS) start_watching(&heaters[h]);
-        #endif
-        #if WATCH_THE_BED
-          if (h == BED_INDEX) start_watching(&heaters[BED_INDEX]);
-        #endif
-      }
-
-      static bool is_heater_idle(uint8_t h) {
-        return heater_idle_timeout_exceeded[h];
-      }
-    #endif
-
     #if ENABLED(AUTO_REPORT_TEMPERATURES)
       static void auto_report_temperatures();
     #endif
 
-    static void print_heaterstates();
+    static void print_heaters_state();
 
   private:
 
@@ -195,17 +160,17 @@ class Temperature {
       static float analog2tempMCU(const int raw);
     #endif
 
-    static uint8_t get_pid_output(const int8_t h);
+    static uint8_t get_pid_output(const uint8_t h);
 
-    static void _temp_error(const int8_t tc, const char * const serial_msg, const char * const lcd_msg);
-    static void min_temp_error(const int8_t h);
-    static void max_temp_error(const int8_t h);
+    static void _temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg);
+    static void min_temp_error(const uint8_t h);
+    static void max_temp_error(const uint8_t h);
 
     #if HAS_THERMALLY_PROTECTED_HEATER
 
       typedef enum TRState { TRInactive, TRFirstHeating, TRStable, TRRunaway } TRstate;
 
-      static void thermal_runaway_protection(TRState* state, millis_t* timer, float temperature, float target_temperature, uint8_t temp_controller_id, int period_seconds, int hysteresis_degc);
+      static void thermal_runaway_protection(TRState* state, millis_t* timer, float temperature, float target_temperature, const uint8_t h, int period_seconds, int hysteresis_degc);
 
       static TRState thermal_runaway_state_machine[HEATER_COUNT];
       static millis_t thermal_runaway_timer[HEATER_COUNT];

@@ -48,7 +48,8 @@
 
       static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                       density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
-      static float    filament_size[EXTRUDERS],         // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+      static float    e_factor[EXTRUDERS],              // The flow percentage and volumetric multiplier combine to scale E movement
+                      filament_size[EXTRUDERS],         // cross-sectional area of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
                       volumetric_multiplier[EXTRUDERS]; // reciprocal of cross-sectional area of filament (in square millimeters), stored this way to reduce computational burden in planner
 
       // Hotend offset
@@ -65,6 +66,12 @@
     public: /** Public Function */
 
       static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
+
+      static void calculate_volumetric_multipliers();
+
+      FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
+        e_factor[e] = volumetric_multiplier[e] * flow_percentage[e] * 0.01;
+      }
 
       #if HAS_MKMULTI_TOOLS
         static void MK_multi_tool_change(const uint8_t e);
@@ -83,6 +90,8 @@
     private: /** Private Function */
 
       static void invalid_extruder_error(const uint8_t e);
+
+      static float calculate_volumetric_multiplier(const float diameter);
 
   };
 

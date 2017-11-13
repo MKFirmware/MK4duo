@@ -116,29 +116,15 @@
 /******************************************************************************************************
  ************************************** Temperature limits ********************************************
  ******************************************************************************************************/
-// Hotend temperature must be close to target for this long before M109 returns success
+// Temperature must be close to target for this long before M109-M190-M191-M192 returns success
 #define TEMP_RESIDENCY_TIME 10  // (seconds)
 #define TEMP_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
-// Bed temperature must be close to target for this long before M190 returns success
-#define TEMP_BED_RESIDENCY_TIME 0   // (seconds)
-#define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
-#define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
-
-// Chamber temperature must be close to target for this long before M190 returns success
-#define TEMP_CHAMBER_RESIDENCY_TIME 0   // (seconds)
-#define TEMP_CHAMBER_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
-#define TEMP_CHAMBER_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
-
-// Cooler temperature must be close to target for this long before M190 returns success
-#define TEMP_COOLER_RESIDENCY_TIME 0    // (seconds)
-#define TEMP_COOLER_HYSTERESIS 1        // (degC) range of +/- temperatures considered "close" to the target one
-#define TEMP_COOLER_WINDOW     1        // (degC) Window around target to start the residency timer x degC early.
-
 // When temperature exceeds max temp, your heater will be switched off.
 // When temperature exceeds max temp, your cooler cannot be activaed.
-// This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
+// This feature exists to protect your hotend from overheating accidentally,
+// but *NOT* from thermistor short/failure!
 // You should use MINTEMP for thermistor short/failure protection.
 #define HEATER_0_MAXTEMP 275 // (degC)
 #define HEATER_1_MAXTEMP 275 // (degC)
@@ -160,7 +146,7 @@
 #define CHAMBER_MINTEMP  5 // (degC)
 #define COOLER_MINTEMP  10 // (degC) 
 
-//Preheat Constants
+// Preheat Constants
 #define PREHEAT_1_TEMP_HOTEND 190
 #define PREHEAT_1_TEMP_BED     60
 #define PREHEAT_1_FAN_SPEED   255   // Insert Value between 0 and 255

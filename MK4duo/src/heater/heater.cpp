@@ -46,6 +46,10 @@
     sensor.adcHighOffset  = 0;
     sensor.shC            = 0.0;
 
+    #if HEATER_IDLE_HANDLER
+      idle_timeout_exceeded = false;
+    #endif
+
     #if WATCH_THE_HEATER
       watch_target_temp   = 0;
       watch_next_ms       = 0;
@@ -71,7 +75,7 @@
     target_temperature = celsius;
 
     #if WATCH_THE_HEATER
-      thermalManager.start_watching(this);
+      start_watching();
     #endif
   }
 
@@ -135,6 +139,40 @@
         pwm_val = soft_pwm;
 
       HAL::analogWrite(pin, pwm_val, (type == IS_HOTEND) ? 250 : 10);
+    }
+  #endif
+
+  #if WATCH_THE_HEATER
+    /**
+     * Start Heating Sanity Check for heaters that are below
+     * their target temperature by a configurable margin.
+     * This is called when the temperature is set.
+     */
+    void Heater::start_watching() {
+      if (isON() && current_temperature < target_temperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
+        watch_target_temp = current_temperature + WATCH_TEMP_INCREASE;
+        watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
+      }
+      else
+        watch_next_ms = 0;
+    }
+  #endif
+
+  #if HEATER_IDLE_HANDLER
+    void Heater::start_idle_timer(const millis_t timeout_ms) {
+      idle_timeout_ms = millis() + timeout_ms;
+      idle_timeout_exceeded = false;
+    }
+
+    void Heater::reset_idle_timer() {
+      idle_timeout_ms = 0;
+      idle_timeout_exceeded = false;
+      #if WATCH_THE_HOTEND
+        if (type == IS_HOTEND) start_watching();
+      #endif
+      #if WATCH_THE_BED
+        if (type == IS_BED) start_watching();
+      #endif
     }
   #endif
 

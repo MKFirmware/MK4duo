@@ -1160,7 +1160,7 @@ void kill_screen(const char* lcd_msg) {
    */
   #if HAS_TEMP_HOTEND
     #if WATCH_THE_HOTEND
-      #define _WATCH_FUNC(N) thermalManager.start_watching(&heaters[N])
+      #define _WATCH_FUNC(N) heaters[N].start_watching()
     #else
       #define _WATCH_FUNC(N) NOOP
     #endif
@@ -1211,6 +1211,25 @@ void kill_screen(const char* lcd_msg) {
     }
 
   #endif
+
+  // Refresh the E factor after changing flow
+  inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
+  #if EXTRUDERS > 1
+    inline void _lcd_refresh_e_factor() { tools.refresh_e_factor(tools.active_extruder); }
+    inline void _lcd_refresh_e_factor_1() { tools.refresh_e_factor(1); }
+    #if EXTRUDERS > 2
+      inline void _lcd_refresh_e_factor_2() { tools.refresh_e_factor(2); }
+      #if EXTRUDERS > 3
+        inline void _lcd_refresh_e_factor_3() { tools.refresh_e_factor(3); }
+        #if EXTRUDERS > 4
+          inline void _lcd_refresh_e_factor_4() { tools.refresh_e_factor(4); }
+          #if EXTRUDERS > 5
+            inline void _lcd_refresh_e_factor_5() { tools.refresh_e_factor(5); }
+          #endif // EXTRUDERS > 5
+        #endif // EXTRUDERS > 4
+      #endif // EXTRUDERS > 3
+    #endif // EXTRUDERS > 2
+  #endif // EXTRUDERS > 1
 
   /**
    *
@@ -1301,19 +1320,19 @@ void kill_screen(const char* lcd_msg) {
     // Flow [1-6]:
     //
     #if EXTRUDERS == 1
-      MENU_ITEM_EDIT(int3, MSG_FLOW, &tools.flow_percentage[0], 10, 999);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
     #else // EXTRUDERS > 1
-      MENU_ITEM_EDIT(int3, MSG_FLOW, &tools.flow_percentage[tools.active_extruder], 10, 999);
-      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N1, &tools.flow_percentage[0], 10, 999);
-      MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N2, &tools.flow_percentage[1], 10, 999);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[tools.active_extruder], 10, 999, _lcd_refresh_e_factor);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N1, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
+      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N2, &tools.flow_percentage[1], 10, 999, _lcd_refresh_e_factor_1);
       #if EXTRUDERS > 2
-        MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N3, &tools.flow_percentage[2], 10, 999);
+        MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N3, &tools.flow_percentage[2], 10, 999, _lcd_refresh_e_factor_2);
         #if EXTRUDERS > 3
-          MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N4, &tools.flow_percentage[3], 10, 999);
+          MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N4, &tools.flow_percentage[3], 10, 999, _lcd_refresh_e_factor_3);
           #if EXTRUDERS > 4
-            MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N5, &tools.flow_percentage[4], 10, 999);
+            MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N5, &tools.flow_percentage[4], 10, 999, _lcd_refresh_e_factor_4);
             #if EXTRUDERS > 5
-              MENU_ITEM_EDIT(int3, MSG_FLOW MSG_N6, &tools.flow_percentage[5], 10, 999);
+              MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N6, &tools.flow_percentage[5], 10, 999, _lcd_refresh_e_factor_5);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4
         #endif // EXTRUDERS > 3
@@ -3655,22 +3674,22 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_k, 0, 999);
     #endif
 
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &tools.volumetric_enabled, printer.calculate_volumetric_multipliers);
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &tools.volumetric_enabled, tools.calculate_volumetric_multipliers);
 
     if (tools.volumetric_enabled) {
       #if EXTRUDERS == 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
       #else // EXTRUDERS > 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.filament_size[1], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.filament_size[0], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.filament_size[1], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
         #if EXTRUDERS > 2
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.filament_size[2], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.filament_size[2], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
           #if EXTRUDERS > 3
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.filament_size[3], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.filament_size[3], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
             #if EXTRUDERS > 4
-              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.filament_size[4], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.filament_size[4], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
               #if EXTRUDERS > 5
-                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.filament_size[5], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, printer.calculate_volumetric_multipliers);
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.filament_size[5], DEFAULT_NOMINAL_FILAMENT_DIA - .5, DEFAULT_NOMINAL_FILAMENT_DIA + .5, tools.calculate_volumetric_multipliers);
               #endif // EXTRUDERS > 5
             #endif // EXTRUDERS > 4
           #endif // EXTRUDERS > 3

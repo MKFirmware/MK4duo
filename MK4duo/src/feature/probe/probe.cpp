@@ -180,10 +180,9 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
  * @details Used by check_pt to do a single Z probe.
  *          Leaves current_position[Z_AXIS] at the height where the probe triggered.
  *
- * @param  short_move Flag for a shorter probe move towards the bed
  * @return The raw Z position where the probe was triggered
  */
-float Probe::run_z_probe(const bool short_move/*=true*/) {
+float Probe::run_z_probe() {
 
   float probe_z = 0.0;
 
@@ -196,15 +195,17 @@ float Probe::run_z_probe(const bool short_move/*=true*/) {
 
   // If the nozzle is above the travel height then
   // move down quickly before doing the slow probe
-  float z = Z_PROBE_BETWEEN_HEIGHT;
+  float z = Z_PROBE_DEPLOY_HEIGHT;
   if (offset[Z_AXIS] < 0) z -= offset[Z_AXIS];
-  if (z < mechanics.current_position[Z_AXIS])
-    mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+  if (z < mechanics.current_position[Z_AXIS]) {
+    if (!move_to_z(z, Z_PROBE_SPEED_FAST))
+      mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+  }
 
   for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
 
     // move down slowly to find bed
-    if (move_to_z(-10 + (short_move ? 0 : -(Z_MAX_LENGTH)), Z_PROBE_SPEED_SLOW)) return NAN;
+    if (move_to_z(-10, Z_PROBE_SPEED_SLOW)) return NAN;
 
     probe_z += mechanics.current_position[Z_AXIS];
 
@@ -247,7 +248,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     const float nx = rx - offset[X_AXIS],
                 ny = ry - offset[Y_AXIS];
 
-    if (printable
+    if (!printable
       ? !mechanics.position_is_reachable(nx, ny)
       : !mechanics.position_is_reachable_by_probe(rx, ry)
     ) return NAN;
@@ -259,12 +260,6 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
         mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
     #endif
 
-    #if HAS_SOFTWARE_ENDSTOPS
-      // Store the status of the soft endstops and disable if we're probing a non-printable location
-      const bool old_enable_soft_endstops = endstops.soft_endstops_enabled;
-      if (!printable) endstops.soft_endstops_enabled = false;
-    #endif
-
     mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
     // Move the probe to the given XY
@@ -272,18 +267,13 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
 
     float measured_z = NAN;
     if (!set_deployed(true)) {
-      measured_z = run_z_probe(printable);
+      measured_z = run_z_probe();
 
       if (!stow)
         mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       else
         if (set_deployed(false)) measured_z = NAN;
     }
-
-    #if HAS_SOFTWARE_ENDSTOPS
-      // Restore the soft endstop status
-      endstops.soft_endstops_enabled = old_enable_soft_endstops;
-    #endif
 
     if (verbose_level > 2) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);

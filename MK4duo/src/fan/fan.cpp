@@ -76,18 +76,18 @@
       if (TEST(autoMonitored, 7)) {
         if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
           || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
-          #if EXTRUDERS > 1
+          #if DRIVER_EXTRUDERS > 1
             || E1_ENABLE_READ == E_ENABLE_ON
             #if HAS_X2_ENABLE
               || X2_ENABLE_READ == X_ENABLE_ON
             #endif
-            #if EXTRUDERS > 2
+            #if DRIVER_EXTRUDERS > 2
               || E2_ENABLE_READ == E_ENABLE_ON
-              #if EXTRUDERS > 3
+              #if DRIVER_EXTRUDERS > 3
                 || E3_ENABLE_READ == E_ENABLE_ON
-                #if EXTRUDERS > 4
+                #if DRIVER_EXTRUDERS > 4
                   || E4_ENABLE_READ == E_ENABLE_ON
-                  #if EXTRUDERS > 5
+                  #if DRIVER_EXTRUDERS > 5
                     || E5_ENABLE_READ == E_ENABLE_ON
                   #endif
                 #endif

@@ -68,7 +68,6 @@
 #endif
 
 const uint8_t AnalogInputChannels[] PROGMEM = ANALOG_INPUT_CHANNELS;
-static unsigned int cycle_100ms = 0;
 
 HAL::HAL() {
   // ctor
@@ -273,9 +272,11 @@ HAL_TEMP_TIMER_ISR {
   // Allow UART ISRs
   HAL_DISABLE_ISRs();
 
-  static uint8_t  pwm_count_heater        = 0,
-                  pwm_count_fan           = 0,
-                  channel                 = 0;
+  static uint16_t cycle_100ms       = 0;
+
+  static uint8_t  pwm_count_heater  = 0,
+                  pwm_count_fan     = 0,
+                  channel           = 0;
 
   #if ENABLED(FILAMENT_SENSOR)
     static unsigned long raw_filwidth_value = 0;
