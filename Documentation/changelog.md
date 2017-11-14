@@ -1,9 +1,9 @@
 ### Version 4.3.29 dev
 * New calculation system for thermistors
 * Add command M305 - Set thermistor and ADC parameters and DHT sensor parameters
+* Add M303 R<Method> 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
 * Unified commands M320 and M420 in M420 for all Bed Level
 * Add subcode to M106 - P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic>
-* Add EMERGENCY_PARSER to Due
 * Add option for SD card SDCARD_SORT_ALPHA (By Marlin)
 * Add M36 - Set SD Card Sorting Options
 * Fix and clear code

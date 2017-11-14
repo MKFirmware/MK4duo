@@ -42,23 +42,23 @@
 |   M6 | CNCROUTERS | Tool change CNC
 |  M17 | - | Enable/Power all stepper motors
 |  M18 | - | Disable all stepper motors; same as M84
-|  M20 | ? | List SD card
-|  M21 | ? | Init SD card
-|  M22 | ? | Release SD card
-|  M23 | ? | Select SD file (M23 filename.g)
-|  M24 | ? | Start/resume SD print
-|  M25 | ? | Pause SD print
-|  M26 | ? | Set SD position in bytes (M26 S12345)
-|  M27 | ? | Report SD print status
-|  M28 | ? | Start SD write (M28 filename.g)
-|  M29 | ? | Stop SD write
-|  M30 | ? | Delete file from SD (M30 filename.g)
-|  M31 | ? | Output time since last M109 or SD card start to serial
-|  M32 | ? | Make directory
-|  M33 | ? | Stop printing, close file and save restart.gcode
-|  M34 | ? | Open file and start print
+|  M20 | SDCARD | List SD card
+|  M21 | SDCARD | Init SD card
+|  M22 | SDCARD | Release SD card
+|  M23 | SDCARD | Select SD file (M23 filename.g)
+|  M24 | SDCARD | Start/resume SD print
+|  M25 | SDCARD | Pause SD print
+|  M26 | SDCARD | Set SD position in bytes (M26 S12345)
+|  M27 | SDCARD | Report SD print status
+|  M28 | SDCARD | Start SD write (M28 filename.g)
+|  M29 | SDCARD | Stop SD write
+|  M30 | SDCARD | Delete file from SD (M30 filename.g)
+|  M31 | SDCARD | Output time since last M109 or SD card start to serial
+|  M32 | SDCARD | Make directory
+|  M33 | SDCARD | Stop printing, close file and save restart.gcode
+|  M34 | SDCARD | Open file and start print
 |  M35 | NEXTION | Upload Firmware to Nextion from SD
-|  M36 | ? | Set SD Card Sorting Options
+|  M36 | SDCARD | Set SD Card Sorting Options
 |  M42 | ? | Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
 |  M43 | ? | Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins<br/>Report name and state of pin(s)<br/>```P<pin> - Pin to read or watch. If omitted, reads all pins```<br/>```I - Flag to ignore Marlin's pin protection```<br/>`W` - Watch pins -reporting changes- until reset, click, or M108<br/>```P<pin> - Pin to read or watch. If omitted, read/watch all pins```<br/>```I - Flag to ignore Marlin's pin protection```<br/>`E<bool>` - Enable / disable background endstop monitoring<br/>- Machine continues to operate<br/>- Reports changes to endstops<br/>- Toggles LED when an endstop changes<br/>- Can not reliably catch the 5mS pulse from BLTouch type probes<br/>`T` - Toggle pin(s) and report which pin is being toggled<br/>```S<pin> - Start Pin number.   If not given, will default to 0```<br/>```L<pin> - End Pin number.   If not given, will default to last pin defined for this board```<br/>```I - Flag to ignore Marlin's pin protection``` **Use with caution!!!**<br/>```R - Repeat pulses on each pin this number of times before continueing to next pin```<br/>```W - Wait time (in miliseconds) between pulses.  If not given will default to 500```<br/>`S` - Servo probe test<br/>```P<index> - Probe index (optional - defaults to 0```<br/>
 |  M44 | ? | Codes debug - report codes available (and how many of them there are)<br/>```I - G-code list```<br/>```J - M-code list```
@@ -132,11 +132,11 @@
 | M300 | ? | Play beep sound S[frequency Hz] P[duration ms]
 | M301 | ? | Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, P[float] Kp term, I[float] Ki term, D[float] Kd term. With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
 | M302 | ? | Allow cold extrudes, or set the minimum extrude S<temperature>.
-| M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>.
+| M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S<temperature> sets the target temperature (default target temperature = 200C), C<cycles>, R<method>, U<Apply result>.
 | M305 | ? | Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value, L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin. Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
 | M350 | ? | Set microstepping mode.
 | M351 | ? | Toggle MS1 MS2 pins directly.
-| M355 | ? | Turn case lights on/off
+| M355 | ? | Turn case lights on/off S<bool> on-off, P<brightness>
 | M360 | MECH_?_SCARA | Move to cal-position ThetaA (0 deg calibration)
 | M361 | MECH_?_SCARA | Move to cal-position ThetaB (90 deg calibration - steps per degree)
 | M362 | MECH_?_SCARA | Move to cal-position PsiA (0 deg calibration)
