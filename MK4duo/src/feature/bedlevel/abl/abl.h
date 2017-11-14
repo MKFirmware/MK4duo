@@ -42,6 +42,11 @@
       static float  bilinear_grid_factor[2];
 
       #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+        #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
+        #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
+        #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
+        #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
+
         static float  bilinear_grid_factor_virt[2],
                       z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
         static int    bilinear_grid_spacing_virt[2];
