@@ -1190,9 +1190,9 @@
       SERIAL_EMV("bedlevel.z_fade_height : ", bedlevel.z_fade_height, 4);
     #endif
 
-    #if HAS_BED_PROBE
-      SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);
-    #endif
+    find_mean_mesh_height();
+
+    SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);
 
     SERIAL_EMV("UBL_MESH_MIN_X  " STRINGIFY(UBL_MESH_MIN_X) "=", UBL_MESH_MIN_X);
     SERIAL_EMV("UBL_MESH_MIN_Y  " STRINGIFY(UBL_MESH_MIN_Y) "=", UBL_MESH_MIN_Y);

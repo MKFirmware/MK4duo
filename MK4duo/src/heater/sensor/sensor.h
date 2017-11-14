@@ -44,8 +44,8 @@ class TemperatureSensor {
             shC;
 
     #if HEATER_USES_AD595
-      float     ad595_offset,
-                ad595_gain;
+      float ad595_offset,
+            ad595_gain;
     #endif
 
   public: /** Public Function */

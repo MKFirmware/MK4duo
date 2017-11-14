@@ -1065,7 +1065,7 @@ void kill_screen(const char* lcd_msg) {
               mechanics.babystep_axis(Z_AXIS, babystep_increment);
 
             probe.offset[Z_AXIS] = new_zoffset;
-            probe.refresh_offset(true);
+            probe.refresh_zoffset(true);
             lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
           }
         }
@@ -1650,8 +1650,8 @@ void kill_screen(const char* lcd_msg) {
     static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
   #endif
 
-  #if HAS_BED_PROBE && DISABLED(BABYSTEP_ZPROBE_OFFSET)
-    static void lcd_refresh_zprobe_zoffset() { probe.refresh_offset(); }
+  #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
+    static void lcd_refresh_probe_zoffset() { probe.refresh_zoffset(); }
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)
@@ -1965,8 +1965,8 @@ void kill_screen(const char* lcd_msg) {
 
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
         MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
-      #elif HAS_BED_PROBE
-        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_zprobe_zoffset);
+      #else
+        MENU_ITEM_EDIT_CALLBACK(float32, MSG_ZPROBE_ZOFFSET, &probe.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX, lcd_refresh_probe_zoffset);
       #endif
 
       MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);

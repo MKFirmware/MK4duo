@@ -58,9 +58,9 @@
 #define ORIG_SOL2_PIN              NoPin
 
 //###EXTRUDER_3
-#define ORIG_E3_STEP_PIN           NoPin
-#define ORIG_E3_DIR_PIN            NoPin
-#define ORIG_E3_ENABLE_PIN         NoPin
+#define ORIG_E3_STEP_PIN           14
+#define ORIG_E3_DIR_PIN            15
+#define ORIG_E3_ENABLE_PIN         61
 #define ORIG_E3_CS_PIN             NoPin
 #define ORIG_SOL3_PIN              NoPin
 
@@ -97,7 +97,7 @@
 #define ORIG_X_MAX_PIN             39
 #define ORIG_Y_MIN_PIN             46
 #define ORIG_Y_MAX_PIN             41
-#define ORIG_Z_MIN_PIN             49
+#define ORIG_Z_MIN_PIN             47
 #define ORIG_Z_MAX_PIN             43
 #define ORIG_Z2_MIN_PIN            NoPin
 #define ORIG_Z2_MAX_PIN            NoPin
@@ -119,7 +119,7 @@
 #define ORIG_HEATER_2_PIN          11
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN         7
-#define ORIG_HEATER_CHAMBER_PIN    NoPin
+#define ORIG_HEATER_CHAMBER_PIN     6
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
@@ -146,7 +146,7 @@
 //###MISC
 #define ORIG_PS_ON_PIN             NoPin
 #define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    13
+#define LED_PIN                    -1
 #define SDPOWER_PIN                NoPin
 #define SD_DETECT_PIN              NoPin
 #define SDSS                        4
@@ -161,6 +161,8 @@
 
 //###UNKNOWN_PINS
 #define I2C_EEPROM
+#define MAX31855_SS0_PIN            5
+#define MAX31855_SS1_PIN            6
 //@@@
 
 //###IF_BLOCKS
@@ -183,8 +185,8 @@
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
-    #define LCD_PINS_RS     52
-    #define LCD_PINS_ENABLE 53
+    #define LCD_PINS_RS     63
+    #define LCD_PINS_ENABLE 64
     #define LCD_PINS_D4     48
     #define LCD_PINS_D5     50
     #define LCD_PINS_D6     52
@@ -205,7 +207,7 @@
     #define SD_DETECT_PIN   51
 
     #define ORIG_BEEPER_PIN 62
-    #define LCD_SDSS        10
+    #define LCD_SDSS         4
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
 

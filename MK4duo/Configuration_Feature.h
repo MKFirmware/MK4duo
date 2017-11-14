@@ -28,7 +28,7 @@
  * EXTRUDER FEATURES:
  * - Fan configuration
  * - Volumetric extrusion
- * - Extrusion settings
+ * - Filament Diameter
  * - Single nozzle
  * - BariCUDA paste extruder
  * - Solenoid extruder
@@ -179,32 +179,13 @@
 
 
 /***********************************************************************
- ************************* Extrusion settings **************************
+ ************************* Filament Diameter ***************************
  ***********************************************************************
  *                                                                     *
- * Basic settings for extrusion and hotend.                            *
- *                                                                     *
- * (mm) Diameter of the filament generally used (3.0 or 1.75mm),       *
- *  also used in the slicer. Used to validate sensor reading.          *
- *                                                                     *
- * (mm) Diameter of primary nozzle.                                    *
- *  Used by G26 Mesh Validation Pattern tool.                          *
- *                                                                     *
- * (mm) Default layer height that will produce usable results by the   *
- *  printer. Used by G26 Mesh Validation Pattern tool.                 *
- *                                                                     *
- * (c) Default nozzle temperature that will produce usable results     *
- *  by the printer. Used by G26 Mesh Validation Pattern tool.          *
- *                                                                     *
- * (c)  Default bed temperature that will produce usable results by    *
- *  the printer. Used by G26 Mesh Validation Pattern tool.             *
- *                                                                     *
+ * Generally expected filament diameter (1.75, 2.85, 3.0, ...)         *
+ * Used for Volumetric, Filament Width Sensor, etc.                    *
  ***********************************************************************/
 #define DEFAULT_NOMINAL_FILAMENT_DIA 1.75
-#define DEFAULT_NOZZLE_SIZE           .4
-#define DEFAULT_LAYER_HEIGHT          .2
-#define DEFAULT_HOTEND_TEMP        200.0
-#define DEFAULT_BED_TEMP            60.0
 /***********************************************************************/
 
 

@@ -34,14 +34,16 @@
  *       S<temperature> sets the target temperature. (default target temperature = 150C)
  *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
  *       C<cycles>
+ *       R<method> (0 - 3)
  *       U<bool> with a non-zero value will apply the result to current settings
  */
 inline void gcode_M303(void) {
 
   #if HAS_PID
-    int8_t      h     = parser.intval('H');
-    uint8_t     cycle = parser.intval('C', 5);
-    const bool  store = parser.boolval('U');
+    int8_t      h       = parser.intval('H');
+    uint8_t     cycle   = parser.intval('C', 5);
+    uint8_t     method  = parser.intval('R', 0);
+    const bool  store   = parser.boolval('U');
 
     const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
@@ -71,14 +73,16 @@ inline void gcode_M303(void) {
     NOLESS(cycle, 5);
     NOMORE(cycle, 20);
 
-    SERIAL_MV(" Temp: ", temp);
-    SERIAL_MV(" Cycles: ", cycle);
-    if (store)
-      SERIAL_EM(" Apply result");
-    else
-      SERIAL_EOL();
+    NOLESS(method, 0);
+    NOMORE(method, 3);
 
-    thermalManager.PID_autotune(&heaters[h], temp, cycle, store);
+    SERIAL_MV(" Temp:", temp);
+    SERIAL_MV(" Cycles:", cycle);
+    SERIAL_MV(" Method:", method);
+    if (store) SERIAL_MSG(" Apply result");
+    SERIAL_EOL();
+
+    thermalManager.PID_autotune(&heaters[h], temp, cycle, method, store);
 
     #if DISABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(IN_HANDLER);

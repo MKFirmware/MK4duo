@@ -319,7 +319,7 @@ void Temperature::spin() {
  * Alternately heat and cool the nozzle, observing its behavior to
  * determine the best PID values to achieve a stable temperature.
  */
-void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const bool storeValues/*=false*/) {
+void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const uint8_t method, const bool storeValues/*=false*/) {
 
   float currentTemp = 0.0;
   int cycles = 0;
@@ -391,22 +391,41 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
           SERIAL_MV(MSG_BIAS, bias);
           SERIAL_MV(MSG_D, d);
           SERIAL_MV(MSG_T_MIN, minTemp);
-          SERIAL_MV(MSG_T_MAX, maxTemp);
+          SERIAL_EMV(MSG_T_MAX, maxTemp);
           if (cycles > 2) {
-            Ku = (4.0 * d) / (CIRCLE_CIRC((maxTemp - minTemp) * 0.25));
+            Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
             Tu = ((float)(t_low + t_high) * 0.001);
             SERIAL_MV(MSG_KU, Ku);
             SERIAL_EMV(MSG_TU, Tu);
-            workKp = 0.6 * Ku;
-            workKi = 2 * workKp / Tu;
-            workKd = workKp * Tu * 0.125;
-            
-            SERIAL_EM(MSG_CLASSIC_PID);
-            SERIAL_MV(MSG_KP, workKp);
-            SERIAL_MV(MSG_KI, workKi);
-            SERIAL_MV(MSG_KD, workKd);
+
+            if (method == 0) {
+              workKp = 0.6 * Ku;
+              workKi = 2.0 * workKp / Tu;
+              workKd = workKp * Tu * 0.125;
+              SERIAL_EM(MSG_CLASSIC_PID);
+            }
+            else if (method == 1) {
+              workKp = 0.33 * Ku;
+              workKi = 2.0 * workKp / Tu;
+              workKd = workKp * Tu / 3.0;
+              SERIAL_EM(MSG_SOME_OVERSHOOT_PID);
+            }
+            else if (method == 2) {
+              workKp = 0.2 * Ku;
+              workKi = 2.0 * workKp / Tu;
+              workKd = workKp * Tu / 3.0;
+              SERIAL_EM(MSG_NO_OVERSHOOT_PID);
+            }
+            else if (method == 3) {
+              workKp = 0.7 * Ku;
+              workKi = 2.5 * workKp / Tu;
+              workKd = workKp * Tu * 3.0 / 20.0;
+              SERIAL_EM(MSG_PESSEN_PID);
+            }
+            SERIAL_EMV(MSG_KP, workKp);
+            SERIAL_EMV(MSG_KI, workKi);
+            SERIAL_EMV(MSG_KD, workKd);
           }
-          SERIAL_EOL();
         }
 
         act->soft_pwm = (bias + d);
@@ -492,6 +511,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
         act->Ki = workKi;
         act->Kd = workKd;
         updatePID();
+        eeprom.Store_Settings();
       }
 
       return;
