@@ -370,7 +370,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
 
 #endif
 
-void Probe::refresh_offset(const bool no_babystep/*=false*/) {
+void Probe::refresh_zoffset(const bool no_babystep/*=false*/) {
 
   static float last_z_offset = NAN;
 
@@ -397,6 +397,10 @@ void Probe::refresh_offset(const bool no_babystep/*=false*/) {
         mechanics.babystep_axis(Z_AXIS, -LROUND(diff * mechanics.axis_steps_per_mm[Z_AXIS]));
     #else
       UNUSED(no_babystep);
+    #endif
+
+    #if MECH(DELTA)
+      mechanics.delta_height -= diff;
     #endif
   }
 

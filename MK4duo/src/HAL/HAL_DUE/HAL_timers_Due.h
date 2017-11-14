@@ -81,7 +81,7 @@ typedef struct {
 
 #define STEPPER_TIMER           3
 #define STEPPER_TIMER_PRESCALE  2
-#define STEPPER_FREQUENCY       60000
+#define STEPPER_FREQUENCY       244
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
 #define HAL_ACCELERATION_RATE       (4294967296.0 / (HAL_STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
@@ -93,7 +93,7 @@ typedef struct {
 
 #define ADC_ISR_EOC(channel)    (0x1u << channel)
 
-#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, STEPPER_FREQUENCY)
+#define HAL_STEPPER_TIMER_START()           HAL_timer_start(STEPPER_TIMER, STEPPER_TIMER_PRESCALE, STEPPER_FREQUENCY)
 #define ENABLE_STEPPER_INTERRUPT()          HAL_timer_enable_interrupt (STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT()         HAL_timer_disable_interrupt (STEPPER_TIMER)
 
@@ -164,7 +164,7 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
   { TC0, 1, TC1_IRQn, 0 },  // 1 - [servo timer1]
   { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 92
-  { TC1, 0, TC3_IRQn, 3 },  // 3 - Stepper
+  { TC1, 0, TC3_IRQn, 2 },  // 3 - Stepper
   { TC1, 1, TC4_IRQn, 0 },  // 4 -
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
@@ -176,7 +176,7 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 // Public functions
 // --------------------------------------------------------------------------
 
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
+void HAL_timer_start(const uint8_t timer_num, const uint8_t prescaler, const uint32_t frequency);
 
 static FORCE_INLINE void HAL_timer_set_count(uint8_t timer_num, uint32_t count) {
   const tTimerConfig *pConfig = &TimerConfig[timer_num];

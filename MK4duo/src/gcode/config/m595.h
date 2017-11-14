@@ -37,18 +37,18 @@
 
     GET_TARGET_HOTEND(595);
 
-    heaters[TARGET_EXTRUDER].ad595_offset = parser.floatval('O');
-    heaters[TARGET_EXTRUDER].ad595_gain   = parser.floatval('S', 1);
+    heaters[TARGET_EXTRUDER].sensor.ad595_offset = parser.floatval('O');
+    heaters[TARGET_EXTRUDER].sensor.ad595_gain   = parser.floatval('S', 1);
 
     SERIAL_EM(MSG_AD595);
 
     LOOP_HOTEND() {
 
-      if (heaters[h].ad595_gain == 0) heaters[h].ad595_gain = 1.0;
+      if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = 1.0;
 
       SERIAL_MV(" T", h);
-      SERIAL_MV(" Offset: ", heaters[h].ad595_offset, 3);
-      SERIAL_EMV(", Gain: ", heaters[h].ad595_gain, 3);
+      SERIAL_MV(" Offset: ", heaters[h].sensor.ad595_offset, 3);
+      SERIAL_EMV(", Gain: ", heaters[h].sensor.ad595_gain, 3);
     }
   }
 
