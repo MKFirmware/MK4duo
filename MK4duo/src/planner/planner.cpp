@@ -796,6 +796,8 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     #elif ENABLED(NPR2)
       enable_E0();
       enable_E1();
+    #elif ENABLED(DONDOLO_SINGLE_MOTOR)
+      enable_E0();
     #endif
   }
 
