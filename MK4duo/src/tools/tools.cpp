@@ -63,7 +63,6 @@
 
     #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
 
-      // T0-T15: Switch virtual tool by changing the mix
       if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
         return invalid_extruder_error(tmp_extruder);
 
@@ -202,21 +201,12 @@
             #if HAS_DONDOLO
               // <0 if the new nozzle is higher, >0 if lower. A bigger raise when lower.
               float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
-                    z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
-                    z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
+                    z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0);
 
-              // Always raise by some amount (mechanics.destination copied from current_position earlier)
-              mechanics.destination[Z_AXIS] += z_raise;
-              planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
-              stepper.synchronize();
-
+              // Always raise by some amount
+              mechanics.current_position[Z_AXIS] += z_raise;
+              planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
               move_extruder_servo(tmp_extruder);
-              HAL::delayMilliseconds(500);
-
-              // Move back down
-              mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS] - z_back;
-              planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
-              stepper.synchronize();
             #endif
 
             /**
@@ -310,16 +300,9 @@
             // The newly-selected extruder XY is actually at...
             mechanics.current_position[X_AXIS] += xydiff[X_AXIS];
             mechanics.current_position[Y_AXIS] += xydiff[Y_AXIS];
-            #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-              LOOP_XY(i) {
-                mechanics.position_shift[i] += xydiff[i];
-                endstops.update_software_endstops((AxisEnum)i);
-              }
-            #endif
 
             // Set the new active extruder
             previous_extruder = active_extruder;
-
             #if ENABLED(DONDOLO_SINGLE_MOTOR)
               active_extruder = tmp_extruder;
               active_driver = 0;
@@ -338,12 +321,25 @@
 
           // Move to the "old position" (move the extruder into place)
           if (!no_move && printer.IsRunning()) {
+            #if HAS_DONDOLO
+              if (z_raise != z_diff)
+                mechanics.destination[Z_AXIS] += z_diff;  // Include the Z restore with the "move back"
+            #endif
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", mechanics.destination);
             #endif
-            mechanics.prepare_move_to_destination();
+            // Move back to the original (or tweaked) position
+            mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
           }
-
+          #if HAS_DONDOLO
+            // Move back down, if needed. (Including when the new tool is higher.)
+            else if (z_raise != z_diff) {
+              mechanics.set_destination_to_current(); // Prevent any XY move
+              mechanics.destination[Z_AXIS] += z_diff;
+              feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];
+              mechanics.prepare_move_to_destination();
+            }
+          #endif
         } // (tmp_extruder != active_extruder)
 
         stepper.synchronize();
@@ -628,8 +624,8 @@
 
     void Tools::move_extruder_servo(const uint8_t e) {
       const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
+      stepper.synchronize();
       MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
-
       #if (DONDOLO_SERVO_DELAY > 0)
         printer.safe_delay(DONDOLO_SERVO_DELAY);
       #endif
