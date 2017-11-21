@@ -336,7 +336,7 @@
             else if (z_raise != z_diff) {
               mechanics.set_destination_to_current(); // Prevent any XY move
               mechanics.destination[Z_AXIS] += z_diff;
-              feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];
+              mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];
               mechanics.prepare_move_to_destination();
             }
           #endif
