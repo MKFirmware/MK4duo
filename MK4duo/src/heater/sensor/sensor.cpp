@@ -28,36 +28,59 @@
 
 #if ENABLED(SUPPORT_MAX6675)
 
-  #define MAX6675_ERROR_MASK 4
-  #define MAX6675_DISCARD_BITS 3
+  #define MAX6675_HEAT_INTERVAL 250u
+  #define MAX6675_ERROR_MASK      4
+  #define MAX6675_DISCARD_BITS    3
 
   int16_t read_max6675(const Pin cs_pin, const int8_t h) {
 
-    static millis_t last_max6675_read[HOTENDS]  = ARRAY_BY_HOTENDS(0);
-    static int16_t  max6675_temp[HOTENDS]       = ARRAY_BY_HOTENDS(2000);
+    static millis_t next_max6675_ms[HOTENDS]  = ARRAY_BY_HOTENDS(0);
+    static int16_t  max6675_temp[HOTENDS]     = ARRAY_BY_HOTENDS(0);
 
-    if (HAL::timeInMilliseconds() - last_max6675_read[h] > 230) {
+    millis_t ms = millis();
 
+    if (PENDING(ms, next_max6675_ms[h])) return max6675_temp[h];
+
+    next_max6675_ms[h] = ms + MAX6675_HEAT_INTERVAL;
+
+    #if ENABLED(CPU_32_BIT)
       HAL::spiBegin();
       HAL::spiInit(2);
+    #else
+      CBI(
+        #ifdef PRR
+          PRR
+        #elif defined(PRR0)
+          PRR0
+        #endif
+          , PRSPI);
+      SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
+    #endif
 
-      HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
+    HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
 
-      // ensure 100ns delay - a bit extra is fine
-      #if ENABLED(ARDUINO_ARCH_SAM)
-        HAL::delayMicroseconds(1);
+    // ensure 100ns delay - a bit extra is fine
+    #if ENABLED(ARDUINO_ARCH_SAM)
+      HAL::delayMicroseconds(1);
+    #else
+      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
+      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
+    #endif
+
+    // Read a big-endian temperature value
+    max6675_temp[h] = 0;
+    for (uint8_t i = sizeof(max6675_temp[h]); i--;) {
+      #if ENABLED(CPU_32_BIT)
+        max6675_temp[h] |= HAL::spiReceive();
       #else
-        asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-        asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
+        SPDR = 0;
+        for (;!TEST(SPSR, SPIF););
+        max6675_temp[h] |= SPDR;
       #endif
-
-      max6675_temp[h] = HAL::spiReceive(0);
-      max6675_temp[h] <<= 8;
-      max6675_temp[h] |= HAL::spiReceive(0);
-
-      HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
-      last_max6675_read[h] = millis();
+      if (i > 0) max6675_temp[h] <<= 8; // shift left if not the last byte
     }
+
+    HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
 
     if (max6675_temp[h] & MAX6675_ERROR_MASK) {
       SERIAL_LM(ER, "MAX6675 Temp measurement error!");
