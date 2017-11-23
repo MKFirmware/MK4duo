@@ -63,6 +63,7 @@
         OUT_WRITE(MOSI_PIN, HIGH);
         SET_INPUT_PULLUP(MISO_PIN);
         OUT_WRITE(SS_PIN, HIGH);
+        HAL::pinMode(sensor.pin, OUTPUT_HIGH);
       }
     #endif
 
