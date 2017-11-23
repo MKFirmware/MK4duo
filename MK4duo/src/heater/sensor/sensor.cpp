@@ -34,12 +34,12 @@
 
   int16_t read_max6675(const Pin cs_pin, const int8_t h) {
 
-    static millis_t next_max6675_ms[HOTENDS]  = ARRAY_BY_HOTENDS(0);
-    static int16_t  max6675_temp[HOTENDS]     = ARRAY_BY_HOTENDS(0);
+    static millis_t next_max6675_ms[HOTENDS] = ARRAY_BY_HOTENDS(0);
+    static uint16_t max6675_temp = 2000;
 
     millis_t ms = millis();
 
-    if (PENDING(ms, next_max6675_ms[h])) return max6675_temp[h];
+    if (PENDING(ms, next_max6675_ms[h])) return (int)max6675_temp;
 
     next_max6675_ms[h] = ms + MAX6675_HEAT_INTERVAL;
 
@@ -68,29 +68,29 @@
     #endif
 
     // Read a big-endian temperature value
-    max6675_temp[h] = 0;
-    for (uint8_t i = sizeof(max6675_temp[h]); i--;) {
+    max6675_temp = 0;
+    for (uint8_t i = sizeof(max6675_temp); i--;) {
       #if ENABLED(CPU_32_BIT)
-        max6675_temp[h] |= HAL::spiReceive();
+        max6675_temp |= HAL::spiReceive();
       #else
         SPDR = 0;
         for (;!TEST(SPSR, SPIF););
-        max6675_temp[h] |= SPDR;
+        max6675_temp |= SPDR;
       #endif
-      if (i > 0) max6675_temp[h] <<= 8; // shift left if not the last byte
+      if (i > 0) max6675_temp <<= 8; // shift left if not the last byte
     }
 
     HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
 
-    if (max6675_temp[h] & MAX6675_ERROR_MASK) {
+    if (max6675_temp & MAX6675_ERROR_MASK) {
       SERIAL_LM(ER, "MAX6675 Temp measurement error!");
-      max6675_temp[h] = 2000; // thermocouple open
+      max6675_temp = 2000; // thermocouple open
     }
     else {
-      max6675_temp[h] >> MAX6675_DISCARD_BITS;
+      max6675_temp >>= MAX6675_DISCARD_BITS;
     }
 
-    return max6675_temp[h];
+    return (int)max6675_temp;
   }
 
 #endif //HEATER_0_USES_MAX6675
@@ -153,7 +153,7 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (s_type == -2)
-      return read_max6675(this->pin, h);
+      return 0.25 * read_max6675(this->pin, h);
   #else
     UNUSED(h);
   #endif
