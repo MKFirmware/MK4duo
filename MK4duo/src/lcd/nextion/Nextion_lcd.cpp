@@ -1133,7 +1133,13 @@
       ZERO(buffer);
       getConnect(buffer, sizeof(buffer));
 
-      if (strstr(buffer, "4827")) { // Model 4.3" Normal or Enhanced
+      if (strstr(buffer, "3224")) { // Model 2.4" or 2.8" Normal or Enhanced
+        SERIAL_MSG(" 2.4");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "4827")) { // Model 4.3" Normal or Enhanced
         SERIAL_MSG(" 4.3");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
