@@ -817,7 +817,7 @@ bool unified_bed_leveling::prime_nozzle() {
 
       mechanics.set_destination_to_current();
 
-      recover_filament(destination); // Make sure G26 doesn't think the filament is retracted().
+      recover_filament(mechanics.destination); // Make sure G26 doesn't think the filament is retracted().
 
       while (!ubl_lcd_clicked()) {
         chirp_at_user();
