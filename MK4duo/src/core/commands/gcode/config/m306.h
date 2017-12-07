@@ -1,0 +1,75 @@
+/**
+ * MK4duo Firmware for 3D Printer, Laser and CNC
+ *
+ * Based on Marlin, Sprinter and grbl
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * mcode
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ */
+
+#if HEATER_COUNT > 0
+
+  #define CODE_M306
+
+  /**
+   * M306: Set Heaters parameters
+   *
+   *  H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER
+   *
+   *    A[int]    Pid Drive Min
+   *    B[int]    Pid Drive Max
+   *    C[int]    Pid Max
+   *    L[int]    Min temperature
+   *    N[int]    Max temperature
+   *    U[bool]   Use Pid/bang bang
+   *    I[bool]   Hardware Inverted
+   *    P[int]    Sensor Pin
+   *
+   */
+  inline void gcode_M306(void) {
+
+    int8_t h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
+
+    if (!commands.get_target_heater(h)) return;
+
+    heaters[h].pidDriveMin  = parser.intval('A', heaters[h].pidDriveMin);
+    heaters[h].pidDriveMax  = parser.intval('B', heaters[h].pidDriveMax);
+    heaters[h].pidMax       = parser.intval('C', heaters[h].pidMax);
+    heaters[h].mintemp      = parser.intval('R', heaters[h].mintemp);
+    heaters[h].maxtemp      = parser.intval('L', heaters[h].maxtemp);
+
+    if (parser.seen('U'))
+      heaters[h].use_pid = parser.value_bool();
+    if (parser.seen('I'))
+      heaters[h].hardwareInverted = parser.value_bool();
+
+    if (parser.seen('P')) {
+      // Put off the heaters
+      heaters[h].setTarget(0);
+      heaters[h].pin = parser.value_pin();
+    }
+
+    heaters[h].print_parameters();
+
+ }
+
+#endif // HEATER_COUNT > 0

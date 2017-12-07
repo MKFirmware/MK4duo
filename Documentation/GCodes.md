@@ -16,6 +16,7 @@
 |  G12 | Nozzle Clean
 |  G20 | Set input units to inches
 |  G21 | Set input units to millimeters
+|  G26 | Mesh Validation Pattern. (Requires G26_MESH_VALIDATION & **AUTO_BED_LEVELING_UBL** or **MESH_BED_LEVELING** or **AUTO_BED_LEVELING_BILINEAR**) 
 |  G27 | Nozzle Park
 |  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
 |  G29 | Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.<br/>`G29   Fyyy Lxxx Rxxx Byyy` for customer grid.
@@ -56,13 +57,14 @@
 |  M31 | SDCARD | Output time since last M109 or SD card start to serial
 |  M32 | SDCARD | Make directory
 |  M33 | SDCARD | Stop printing, close file and save restart.gcode
-|  M34 | SDCARD | Open file and start print
+|  M34 | SDCARD | Set SD Card Sorting Options
 |  M35 | NEXTION | Upload Firmware to Nextion from SD
 |  M36 | SDCARD | Set SD Card Sorting Options
 |  M42 | ? | Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
 |  M43 | ? | Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins<br/>Report name and state of pin(s)<br/>```P<pin> - Pin to read or watch. If omitted, reads all pins```<br/>```I - Flag to ignore Marlin's pin protection```<br/>`W` - Watch pins -reporting changes- until reset, click, or M108<br/>```P<pin> - Pin to read or watch. If omitted, read/watch all pins```<br/>```I - Flag to ignore Marlin's pin protection```<br/>`E<bool>` - Enable / disable background endstop monitoring<br/>- Machine continues to operate<br/>- Reports changes to endstops<br/>- Toggles LED when an endstop changes<br/>- Can not reliably catch the 5mS pulse from BLTouch type probes<br/>`T` - Toggle pin(s) and report which pin is being toggled<br/>```S<pin> - Start Pin number.   If not given, will default to 0```<br/>```L<pin> - End Pin number.   If not given, will default to last pin defined for this board```<br/>```I - Flag to ignore Marlin's pin protection``` **Use with caution!!!**<br/>```R - Repeat pulses on each pin this number of times before continueing to next pin```<br/>```W - Wait time (in miliseconds) between pulses.  If not given will default to 500```<br/>`S` - Servo probe test<br/>```P<index> - Probe index (optional - defaults to 0```<br/>
 |  M44 | ? | Codes debug - report codes available (and how many of them there are)<br/>```I - G-code list```<br/>```J - M-code list```
 |  M48 | ? | Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
+|  M48 | G26_MESH_VALIDATION | Turn on or off G26 debug flag for verbose output.
 |  M70 | ? | Power consumption sensor calibration
 |  M75 | ? | Start the print job timer
 |  M76 | ? | Pause the print job timer
@@ -132,8 +134,9 @@
 | M300 | ? | Play beep sound S[frequency Hz] P[duration ms]
 | M301 | ? | Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, P[float] Kp term, I[float] Ki term, D[float] Kd term. With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
 | M302 | ? | Allow cold extrudes, or set the minimum extrude S<temperature>.
-| M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S<temperature> sets the target temperature (default target temperature = 200C), C<cycles>, R<method>, U<Apply result>.
+| M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S<temperature> sets the target temperature (default target temperature = 200C), C<cycles>, R<method>, U<Apply result>, R<Method> 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid.
 | M305 | ? | Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value, L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin. Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
+| M306 | ? | Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max, L[int] Min temperature, N[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, P[int] Pin
 | M350 | ? | Set microstepping mode.
 | M351 | ? | Toggle MS1 MS2 pins directly.
 | M355 | ? | Turn case lights on/off S<bool> on-off, P<brightness>

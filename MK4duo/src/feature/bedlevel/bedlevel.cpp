@@ -49,6 +49,12 @@
           Bedlevel::last_fade_z;
   #endif
 
+  #if ENABLED(G26_MESH_VALIDATION)
+    bool Bedlevel::g26_debug_flag = false;
+  #else
+    const bool Bedlevel::g26_debug_flag = false;
+  #endif
+
   #if ENABLED(PROBE_MANUALLY)
     bool Bedlevel::g29_in_progress = false;
   #else
@@ -59,33 +65,13 @@
 
     /**
      * rx, ry, rz - Cartesian positions in mm
+     *              Leveled XYZ on completion
      */
     void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
 
       if (!leveling_active) return;
 
-      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
-        if (!fade_scaling_factor) return;
-      #else
-        constexpr float fade_scaling_factor = 1.0;
-      #endif
-
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-
-        rz += ubl.get_z_correction(rx, ry) * fade_scaling_factor;
-
-      #elif ENABLED(MESH_BED_LEVELING)
-
-        rz += mbl.get_z(NATIVE_X_POSITION(rx), NATIVE_Y_POSITION(ry)
-          #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-            , fade_scaling_factor
-          #endif
-        );
-
-      #elif ABL_PLANAR
-
-        UNUSED(fade_scaling_factor);
+      #if ABL_PLANAR
 
         float dx = rx - (X_TILT_FULCRUM),
               dy = ry - (Y_TILT_FULCRUM);
@@ -95,10 +81,34 @@
         rx = dx + X_TILT_FULCRUM;
         ry = dy + Y_TILT_FULCRUM;
 
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      #else
 
-        float tmp[XYZ] = { rx, ry, 0 };
-        rz += abl.bilinear_z_offset(tmp) * fade_scaling_factor;
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
+          if (!fade_scaling_factor) return;
+        #elif HAS_MESH
+          constexpr float fade_scaling_factor = 1.0;
+        #endif
+
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          const float raw[XYZ] = { rx, ry, 0 };
+        #endif
+
+        rz += (
+          #if ENABLED(AUTO_BED_LEVELING_UBL)
+            ubl.get_z_correction(rx, ry) * fade_scaling_factor
+          #elif ENABLED(MESH_BED_LEVELING)
+            mbl.get_z(rx, ry
+              #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+                , fade_scaling_factor
+              #endif
+            )
+          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+            abl.bilinear_z_offset(raw) * fade_scaling_factor
+          #else
+            0
+          #endif
+        );
 
       #endif
     }
@@ -107,67 +117,42 @@
 
       if (!leveling_active) return;
 
-      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        if (z_fade_height && raw[Z_AXIS] >= z_fade_height) return;
-      #endif
-
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-
-        const float z_correct = ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]);
-              float z_raw = raw[Z_AXIS] - z_correct;
-
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-
-          // for P=physical_z, L=raw_z, M=mesh_z, H=fade_height,
-          // Given P=L+M(1-L/H) (faded mesh correction formula for L<H)
-          //  then L=P-M(1-L/H)
-          //    so L=P-M+ML/H
-          //    so L-ML/H=P-M
-          //    so L(1-M/H)=P-M
-          //    so L=(P-M)/(1-M/H) for L<H
-
-          if (z_fade_height) {
-            if (z_raw >= z_fade_height)
-              z_raw = raw[Z_AXIS];
-            else
-              z_raw /= 1.0 - z_correct * inverse_z_fade_height;
-          }
-
-        #endif // ENABLE_LEVELING_FADE_HEIGHT
-
-        raw[Z_AXIS] = z_raw;
-
-      #elif ENABLED(MESH_BED_LEVELING)
-
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          const float c = mbl.get_z(raw[X_AXIS], raw[Y_AXIS], 1.0);
-          raw[Z_AXIS] = (z_fade_height * (raw[Z_AXIS] - c)) / (z_fade_height - c);
-        #else
-          raw[Z_AXIS] -= mbl.get_z(raw[X_AXIS], raw[Y_AXIS]);
-        #endif
-
-      #elif ABL_PLANAR
+      #if ABL_PLANAR
 
         matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
         float dx = raw[X_AXIS] - (X_TILT_FULCRUM),
-              dy = raw[Y_AXIS] - (Y_TILT_FULCRUM),
-              dz = raw[Z_AXIS];
+              dy = raw[Y_AXIS] - (Y_TILT_FULCRUM);
 
-        apply_rotation_xyz(inverse, dx, dy, dz);
+        apply_rotation_xyz(inverse, dx, dy, raw[Z_AXIS]);
 
         raw[X_AXIS] = dx + X_TILT_FULCRUM;
         raw[Y_AXIS] = dy + Y_TILT_FULCRUM;
-        raw[Z_AXIS] = dz;
 
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      #else
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          const float c = abl.bilinear_z_offset(raw);
-          raw[Z_AXIS] = (z_fade_height * (raw[Z_AXIS] - c)) / (z_fade_height - c);
-        #else
-          raw[Z_AXIS] -= abl.bilinear_z_offset(raw);
+          const float fade_scaling_factor = fade_scaling_factor_for_z(raw[Z_AXIS]);
+          if (!fade_scaling_factor) return;
+        #elif HAS_MESH
+          constexpr float fade_scaling_factor = 1.0;
         #endif
+
+        raw[Z_AXIS] -= (
+          #if ENABLED(AUTO_BED_LEVELING_UBL)
+            ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]) * fade_scaling_factor
+          #elif ENABLED(MESH_BED_LEVELING)
+            mbl.get_z(raw[X_AXIS], raw[Y_AXIS]
+              #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+                , fade_scaling_factor
+              #endif
+            )
+          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+            abl.bilinear_z_offset(raw) * fade_scaling_factor
+          #else
+            0
+          #endif
+        );
 
       #endif
     }
@@ -396,5 +381,28 @@
     }
 
   #endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+
+  #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+
+    void Bedlevel::manual_goto_xy(const float &rx, const float &ry) {
+
+      #if MANUAL_PROBE_HEIGHT > 0
+        const float prev_z = mechanics.current_position[Z_AXIS];
+        mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
+        mechanics.do_blocking_move_to_z(prev_z);
+      #else
+        mechanics.do_blocking_move_to_xy(rx, ry);
+      #endif
+
+      mechanics.current_position[X_AXIS] = rx;
+      mechanics.current_position[Y_AXIS] = ry;
+
+      #if ENABLED(LCD_BED_LEVELING)
+        lcd_wait_for_move = false;
+      #endif
+
+    }
+
+  #endif
 
 #endif // HAS_LEVELING

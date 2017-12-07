@@ -46,12 +46,14 @@
 
 #if ENABLED(NEXTION)
 
-  void hotPopCallback(void *ptr);
   void sethotPopCallback(void *ptr);
-  void settempPopCallback(void *ptr);
 
   #if FAN_COUNT > 0
     void setfanPopCallback(void *ptr);
+  #endif
+
+  #if HAS_CASE_LIGHT
+    void setlightPopCallback(void *ptr);
   #endif
 
   void setmovePopCallback(void *ptr);
@@ -67,6 +69,7 @@
   void lcd_setalertstatusPGM(const char * const message);
   void lcd_reset_alert_level();
   void lcd_scrollinfo(const char* titolo, const char* message);
+  void lcd_yesno(const char* msg1="", const char* msg2="", const char* msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);
@@ -100,6 +103,20 @@
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    enum AdvancedPauseMessage {
+      ADVANCED_PAUSE_MESSAGE_INIT,
+      ADVANCED_PAUSE_MESSAGE_COOLDOWN,
+      ADVANCED_PAUSE_MESSAGE_UNLOAD,
+      ADVANCED_PAUSE_MESSAGE_INSERT,
+      ADVANCED_PAUSE_MESSAGE_LOAD,
+      ADVANCED_PAUSE_MESSAGE_EXTRUDE,
+      ADVANCED_PAUSE_MESSAGE_OPTION,
+      ADVANCED_PAUSE_MESSAGE_RESUME,
+      ADVANCED_PAUSE_MESSAGE_STATUS,
+      ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+      ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
+      ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
+    };
     void lcd_advanced_pause_show_message(AdvancedPauseMessage message);
   #endif
 

@@ -25,10 +25,30 @@
 
 #if ENABLED(ULTRA_LCD)
 
+  enum LCDViewAction {
+    LCDVIEW_NONE,
+    LCDVIEW_REDRAW_NOW,
+    LCDVIEW_CALL_REDRAW_NEXT,
+    LCDVIEW_CLEAR_CALL_REDRAW,
+    LCDVIEW_CALL_NO_REDRAW
+  };
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+    extern bool lcd_external_control;
+  #else
+    constexpr bool lcd_external_control = false;
+  #endif
+
   #define BUTTON_EXISTS(BN) (ENABLED(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN) !READ(BTN_## BN)
 
   extern int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
+
+  #if ENABLED(LCD_BED_LEVELING)
+    extern bool lcd_wait_for_move;
+  #else
+    constexpr bool lcd_wait_for_move = false;
+  #endif
 
   int16_t lcd_strlen(const char* s);
   int16_t lcd_strlen_P(const char* s);
@@ -48,10 +68,6 @@
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
   extern void lcd_move_z_probe();
-
-  #if ENABLED(PROBE_MANUALLY) && ENABLED(LCD_BED_LEVELING)
-    extern bool lcd_wait_for_move;
-  #endif
 
   #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
     void dontExpireStatus();
@@ -107,7 +123,25 @@
     void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      enum AdvancedPauseMessage {
+        ADVANCED_PAUSE_MESSAGE_INIT,
+        ADVANCED_PAUSE_MESSAGE_COOLDOWN,
+        ADVANCED_PAUSE_MESSAGE_UNLOAD,
+        ADVANCED_PAUSE_MESSAGE_INSERT,
+        ADVANCED_PAUSE_MESSAGE_LOAD,
+        ADVANCED_PAUSE_MESSAGE_EXTRUDE,
+        ADVANCED_PAUSE_MESSAGE_OPTION,
+        ADVANCED_PAUSE_MESSAGE_RESUME,
+        ADVANCED_PAUSE_MESSAGE_STATUS,
+        ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+        ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
+        ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
+      };
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message);
+    #endif
+
+    #if ENABLED(G26_MESH_VALIDATION)
+      void lcd_chirp();
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -117,7 +151,9 @@
       float lcd_z_offset_edit();
     #endif
 
-    float lcd_probe_pt(const float &rx, const float &ry);
+    #if ENABLED(PROBE_MANUALLY)
+      float lcd_probe_pt(const float &rx, const float &ry);
+    #endif
 
   #else
 
@@ -197,7 +233,14 @@
     #define LCD_CLICKED false
   #endif
 
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+    bool is_lcd_clicked();
+    void wait_for_release();
+  #endif
+
 #elif DISABLED(NEXTION)
+
+  constexpr bool lcd_wait_for_move = false;
 
   inline void lcd_update() {}
   inline void lcd_init() {}

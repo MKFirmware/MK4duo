@@ -66,8 +66,8 @@ static_assert(1 >= 0
   #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
     #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
   #endif
-  #if ENABLED(ENABLE_MESH_EDIT_GFX_OVERLAY) && !ENABLED(DOGLCD)
-    #error "ENABLE_MESH_EDIT_GFX_OVERLAY requires a DOGLCD."
+  #if ENABLED(MESH_EDIT_GFX_OVERLAY) && !ENABLED(DOGLCD)
+    #error "MESH_EDIT_GFX_OVERLAY requires a DOGLCD."
   #endif
 #endif
 
@@ -89,6 +89,14 @@ static_assert(1 >= 0
  */
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
   #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
+#endif
+
+#if !HAS_MESH && ENABLED(G26_MESH_VALIDATION)
+  #error "G26_MESH_VALIDATION requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL."
+#endif
+
+#if ENABLED(MESH_EDIT_GFX_OVERLAY) && (DISABLED(AUTO_BED_LEVELING_UBL) || DISABLED(DOGLCD))
+  #error "MESH_EDIT_GFX_OVERLAY requires AUTO_BED_LEVELING_UBL and a Graphical LCD."
 #endif
 
 #endif /* _BED_LEVELING_SANITYCHECK_H_ */

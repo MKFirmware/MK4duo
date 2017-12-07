@@ -150,6 +150,7 @@
       #endif
 
       st.diag1_stall(enable ? 1 : 0);
+      st.diag1_active_high(1);
     }
   #endif // SENSORLESS_HOMING
 

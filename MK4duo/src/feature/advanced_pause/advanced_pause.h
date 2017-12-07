@@ -31,6 +31,12 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
+  enum AdvancedPauseMenuResponse {
+    ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
+    ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
+    ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
+  };
+
   extern AdvancedPauseMenuResponse advanced_pause_menu_response;
 
   extern bool move_away_flag;

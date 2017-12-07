@@ -85,7 +85,7 @@ class Probe {
      *   - Raise to the BETWEEN height
      * - Return the probed Z position
      */
-    static float check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool printable=true);
+    static float check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative=true);
 
     #if QUIET_PROBING
       static void probing_pause(const bool p);
@@ -94,9 +94,13 @@ class Probe {
     #if ENABLED(BLTOUCH)
       static void bltouch_command(int angle);
       static bool set_bltouch_deployed(const bool deploy);
+      FORCE_INLINE void bltouch_init() {
+        // Make sure any BLTouch error condition is cleared
+        bltouch_command(BLTOUCH_RESET);
+        set_bltouch_deployed(true);
+        set_bltouch_deployed(false);
+      }
     #endif
-
-    static void refresh_zoffset(const bool no_babystep=false);
 
   private: /** Private Parameters */
 

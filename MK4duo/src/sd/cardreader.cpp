@@ -100,7 +100,7 @@
     root.openRoot(fat.vol());
     root.ls();
     workDir = root;
-    curDir = &root;
+    curDir = &workDir;
   }
 
   void CardReader::mount() {
@@ -128,11 +128,7 @@
     }
     fat.chdir(true);
     root = *fat.vwd();
-    workDir = root;
-    curDir = &root;
-    #if ENABLED(SDCARD_SORT_ALPHA)
-      presort();
-    #endif
+    setroot();
   }
 
   void CardReader::unmount() {
@@ -157,12 +153,12 @@
     commands.enqueue_and_echo_commands_P(PSTR("M24"));
   }
 
-  void CardReader::stopSDPrint(const bool store_location/*=false*/) {
+  void CardReader::stopSDPrint() {
     if (isFileOpen() && sdprinting) {
-      if (store_location) SERIAL_EM("Close file and save restart.gcode");
+      SERIAL_EM("Close file and save restart.gcode");
       sdprinting = false;
       commands.clear_command_queue();
-      closeFile(store_location);
+      closeFile(true);
       stepper.quickstop_stepper();
       print_job_counter.stop();
       thermalManager.wait_for_heatup = false;
@@ -216,6 +212,8 @@
     const char *oldP = filename;
 
     if (!cardOK) return false;
+
+    curDir = &workDir; // Relative paths start in current directory
 
     if (gcode_file.open(curDir, filename, O_READ)) {
       if ((oldP = strrchr(filename, '/')) != NULL)
@@ -364,32 +362,19 @@
     }
   }
 
-  void CardReader::updir() {
-    if (workDirDepth > 0) {
-      --workDirDepth;
-      workDir = workDirParents[0];
-      for (uint16_t d = 0; d < workDirDepth; d++)
-        workDirParents[d] = workDirParents[d + 1];
-      #if ENABLED(SDCARD_SORT_ALPHA)
-        presort();
-      #endif
-    }
-  }
-
-  void CardReader::closeFile(const bool store_location /*=false*/) {
+  void CardReader::closeFile(const bool store_position/*=false*/) {
     gcode_file.sync();
     gcode_file.close();
     saving = false;
 
     SdFile restart_file;
 
-    if (store_location) {
+    if (store_position) {
       char  bufferFilerestart[100],
             buffer_G1[50],
             buffer_G92_Z[50],
             buffer_G92_E[50],
-            buffer_SDpos[11],
-            old_file_name[50];
+            buffer_SDpos[11];
 
       const char* restart_name_File = "restart.gcode";
 
@@ -414,16 +399,10 @@
 
       snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", (unsigned long)sdpos);
 
-      strcpy(old_file_name, fileName);
-
-      getWorkDirName();
-
-      strcpy(bufferFilerestart, "M34 S");
+      strcpy(bufferFilerestart, "M32 S");
       strcat(bufferFilerestart, buffer_SDpos);
-      strcat(bufferFilerestart, " @");
+      strcat(bufferFilerestart, " ");
       strcat(bufferFilerestart, fileName);
-      strcat(bufferFilerestart, "/");
-      strcat(bufferFilerestart, old_file_name);
 
       strcpy(buffer_G1, "G1 X");
       dtostrf(mechanics.current_position[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
@@ -772,6 +751,16 @@
     }
 
   #endif // SDCARD_SORT_ALPHA
+
+  int8_t CardReader::updir() {
+    if (workDirDepth > 0) {                                               // At least 1 dir has been saved
+      workDir = --workDirDepth ? workDirParents[workDirDepth - 1] : root; // Use parent, or root if none
+      #if ENABLED(SDCARD_SORT_ALPHA)
+        presort();
+      #endif
+    }
+    return workDirDepth;
+  }
 
   uint16_t CardReader::get_num_Files() {
     return

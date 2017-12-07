@@ -217,7 +217,7 @@ float Probe::run_z_probe() {
 
   probe_z /= (float)Z_PROBE_REPETITIONS;
 
-  return probe_z + offset[Z_AXIS];
+  return probe_z;
 }
 
 /**
@@ -231,7 +231,7 @@ float Probe::run_z_probe() {
  * - short_move Flag for a shorter probe move towards the bed
  * - Return the probed Z position
  */
-float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool printable/*=true*/) {
+float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative/*=true*/) {
 
   #if HAS_BED_PROBE
 
@@ -245,21 +245,24 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
       }
     #endif
 
-    const float nx = rx - offset[X_AXIS],
-                ny = ry - offset[Y_AXIS];
+    float nx = rx, ny = ry;
+    if (probe_relative) {
+      if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
+      nx -= offset[X_AXIS];
+      ny -= offset[Y_AXIS];
+    }
+    else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
 
-    if (!printable
-      ? !mechanics.position_is_reachable(nx, ny)
-      : !mechanics.position_is_reachable_by_probe(rx, ry)
-    ) return NAN;
+    const float nz = 
+      #if MECH(DELTA)
+        // Move below clip height or xy move will be aborted by do_blocking_move_to
+        min(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
+      #else
+        mechanics.current_position[Z_AXIS]
+      #endif
+    ;
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-
-    #if MECH(DELTA)
-      if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
-        mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
-    #endif
-
     mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
     // Move the probe to the given XY
@@ -267,7 +270,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
 
     float measured_z = NAN;
     if (!set_deployed(true)) {
-      measured_z = run_z_probe();
+      measured_z = run_z_probe() + offset[Z_AXIS];
 
       if (!stow)
         mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
@@ -299,7 +302,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
 
     UNUSED(stow);
     UNUSED(verbose_level);
-    UNUSED(printable);
+    UNUSED(probe_relative);
 
     float measured_z = NAN;
 
@@ -369,43 +372,6 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
   }
 
 #endif
-
-void Probe::refresh_zoffset(const bool no_babystep/*=false*/) {
-
-  static float last_z_offset = NAN;
-
-  if (!isnan(last_z_offset)) {
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(BABYSTEP_ZPROBE_OFFSET) || MECH(DELTA)
-      const float diff = offset[Z_AXIS] - last_z_offset;
-    #endif
-
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      // Correct bilinear grid for new probe offset
-      if (diff) {
-        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-          for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            abl.z_values[x][y] -= diff;
-      }
-      #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-        abl.virt_interpolate();
-      #endif
-    #endif
-
-    #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-      if (!no_babystep && bedlevel.leveling_active)
-        mechanics.babystep_axis(Z_AXIS, -LROUND(diff * mechanics.axis_steps_per_mm[Z_AXIS]));
-    #else
-      UNUSED(no_babystep);
-    #endif
-
-    #if MECH(DELTA)
-      mechanics.delta_height -= diff;
-    #endif
-  }
-
-  last_z_offset = offset[Z_AXIS];
-}
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)
 

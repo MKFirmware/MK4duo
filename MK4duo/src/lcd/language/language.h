@@ -127,6 +127,7 @@
 #define MSG_Z4_MAX                          "z4_max: "
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_E_MIN                           "e_min: "
+#define MSG_PROBE_Z_OFFSET                  "Probe Z Offset"
 #define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
 #define MSG_DOOR_SENSOR                     "door: "
 #define MSG_POWER_CHECK_SENSOR              "power check: "

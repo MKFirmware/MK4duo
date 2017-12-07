@@ -84,7 +84,7 @@ typedef struct {
 #define STEPPER_FREQUENCY       244
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / STEPPER_TIMER_PRESCALE)  // 42 MHz
 #define HAL_ACCELERATION_RATE       (4294967296.0 / (HAL_STEPPER_TIMER_RATE))
-#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us
 #define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
 #define AD_PRESCALE_FACTOR      84  // 500 kHz ADC clock 

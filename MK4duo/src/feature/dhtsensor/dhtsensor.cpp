@@ -31,23 +31,43 @@
 #if ENABLED(DHT_SENSOR)
 
   #define DHTMINREADINTERVAL 2000  // ms
+  #define DHTMAXREADTIME       50  // ms
+
+  DhtSensor dhtsensor(DHT_DATA_PIN, DHT_TYPE);
+
+  millis_t  DhtSensor::lastReadTime       = 0,
+            DhtSensor::lastOperationTime  = 0;
+
+  float DhtSensor::Temperature  = 20,
+        DhtSensor::Humidity     = 10;
+
+  DhtSensor::SensorState DhtSensor::state = Init;
+
+  // ISR
+  uint32_t  lastPulseTime, pulses[41];  // 1 start bit + 40 data bits
+  volatile uint8_t numPulses;
+
+  void DHT_ISR() {
+    const uint32_t now = micros();
+    if (HAL::digitalRead(dhtsensor.pin) == HIGH) {
+      lastPulseTime = now;
+    }
+    else if (lastPulseTime > 0) {
+      pulses[numPulses++] = now - lastPulseTime;
+      if (numPulses == COUNT(pulses)) {
+        detachInterrupt(dhtsensor.pin);
+      }
+    }
+  }
 
   DhtSensor::DhtSensor(const Pin _pin, const uint8_t _type) {
     pin   = _pin;
     type  = _type;
-
-    #if ENABLED(__AVR__)
-      _bit = digitalPinToBitMask(pin);
-      _port = digitalPinToPort(pin);
-    #endif
-
-    maxcycles = microsecondsToClockCycles(1000);  // 1 millisecond timeout for
-                                                  // reading pulses from DHT sensor.
   }
 
   void DhtSensor::init(void) {
-    HAL::pinMode(pin, INPUT_PULLUP);
-    lastreadtime = -DHTMINREADINTERVAL;
+    HAL::pinMode(pin, OUTPUT_LOW);
+    state = Init;
   }
 
   void DhtSensor::change_type(const uint8_t dhtType) {
@@ -72,170 +92,100 @@
     SERIAL_EMV(" Type:DHT", type);
   }
 
-  float DhtSensor::readTemperature(const bool force/*=false*/) {
-    float f = 0.0;
+  void DhtSensor::spin() {
 
-    if (read(force)) {
-      switch (type) {
-        case DHT11:
-          f = data[2];
-          break;
-        case DHT22:
-        case DHT21:
-          f = data[2] & 0x7F;
-          f *= 256;
-          f += data[3];
-          f *= 0.1;
-          if (data[2] & 0x80) f *= -1;
-          break;
-      }
-    }
-    return f;
-  }
+    if ((millis() - lastReadTime) < DHTMINREADINTERVAL) return;
 
-  float DhtSensor::readHumidity() {
-    float u = 0.0;
+    switch (state) {
 
-    if (read()) {
-      switch (type) {
-        case DHT11:
-          u = data[0];
-          break;
-        case DHT22:
-        case DHT21:
-          u = data[0];
-          u *= 256;
-          u += data[1];
-          u *= 0.1;
-          break;
-      }
-    }
-    return u;
-  }
+      case Init:
+        HAL::digitalWrite(pin, HIGH);
+        state = Wait_250ms;
+        lastOperationTime = millis();
+        break;
 
-  bool DhtSensor::read(const bool force/*=false*/) {
-    // Check if sensor was read less than two seconds ago and return early
-    // to use last reading.
-    millis_t currenttime = millis();
-    if (!force && ((currenttime - lastreadtime) < 2000)) {
-      return lastresult; // return last correct measurement
-    }
-    lastreadtime = currenttime;
-
-    // Reset 40 bits of received data to zero.
-    data[0] = data[1] = data[2] = data[3] = data[4] = 0;
-
-    // Send start signal.  See DHT datasheet for full signal diagram:
-    //   http://www.adafruit.com/datasheets/Digital%20humidity%20and%20temperature%20sensor%20AM2302.pdf
-
-    // Go into high impedence state to let pull-up raise data line level and
-    // start the reading process.
-    HAL::digitalWrite(pin, HIGH);
-    HAL::delayMicroseconds(150);
-
-    // First set data line low for 20 milliseconds.
-    HAL::pinMode(pin, OUTPUT);
-    HAL::digitalWrite(pin, LOW);
-    delay(20);
-
-    uint32_t cycles[80];
-
-    // Turn off interrupts temporarily because the next sections are timing critical
-    // and we don't want any interruptions.
-    InterruptLock lock;
-
-    // End the start signal by setting data line high for 40 microseconds.
-    HAL::digitalWrite(pin, HIGH);
-    HAL::delayMicroseconds(40);
-
-    // Now start reading the data line to get the value from the DHT sensor.
-    HAL::pinMode(pin, INPUT_PULLUP);
-    HAL::delayMicroseconds(10);  // Delay a bit to let sensor pull data line low.
-
-    // First expect a low signal for ~80 microseconds followed by a high signal
-    // for ~80 microseconds again.
-    if (expectPulse(LOW) == 0) {
-      lastresult = false;
-      return lastresult;
-    }
-    if (expectPulse(HIGH) == 0) {
-      lastresult = false;
-      return lastresult;
-    }
-
-    // Now read the 40 bits sent by the sensor.  Each bit is sent as a 50
-    // microsecond low pulse followed by a variable length high pulse.  If the
-    // high pulse is ~28 microseconds then it's a 0 and if it's ~70 microseconds
-    // then it's a 1.  We measure the cycle count of the initial 50us low pulse
-    // and use that to compare to the cycle count of the high pulse to determine
-    // if the bit is a 0 (high state cycle count < low state cycle count), or a
-    // 1 (high state cycle count > low state cycle count). Note that for speed all
-    // the pulses are read into a array and then examined in a later step.
-    for (int i = 0; i < 80; i += 2) {
-      cycles[i]   = expectPulse(LOW);
-      cycles[i + 1] = expectPulse(HIGH);
-    }
-    // Timing critical code is now complete.
-
-    // Inspect pulses and determine which ones are 0 (high state cycle count < low
-    // state cycle count), or 1 (high state cycle count > low state cycle count).
-    for (int i = 0; i < 40; ++i) {
-      uint32_t lowCycles  = cycles[2 * i];
-      uint32_t highCycles = cycles[2 * i + 1];
-      if ((lowCycles == 0) || (highCycles == 0)) {
-        lastresult = false;
-        return lastresult;
-      }
-      data[i/8] <<= 1;
-      // Now compare the low and high cycle times to see if the bit is a 0 or 1.
-      if (highCycles > lowCycles) {
-        // High cycles are greater than 50us low cycle count, must be a 1.
-        data[i/8] |= 1;
-      }
-      // Else high cycles are less than (or equal to, a weird case) the 50us low
-      // cycle count so this must be a zero.  Nothing needs to be changed in the
-      // stored data.
-    }
-
-    // Check we read 40 bits and that the checksum matches.
-    if (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) {
-      lastresult = true;
-      return lastresult;
-    }
-    else {
-      lastresult = false;
-      return lastresult;
-    }
-  }
-
-  uint32_t DhtSensor::expectPulse(bool level) {
-
-    uint32_t count = 0;
-
-    // On AVR platforms use direct GPIO port access as it's much faster and better
-    // for catching pulses that are 10's of microseconds in length:
-    #if ENABLED(__AVR__)
-
-      uint8_t portState = level ? _bit : 0;
-      while ((*portInputRegister(_port) & _bit) == portState) {
-        if (count++ >= maxcycles) {
-          return 0; // Exceeded timeout, fail.
+      case Wait_250ms:
+        if (millis() - lastOperationTime >= 250) {
+          HAL::pinMode(pin, OUTPUT_LOW);
+          HAL::digitalWrite(pin, LOW);
+          state = Wait_20ms;
+          lastOperationTime = millis();
         }
-      }
+        break;
 
-    #else
+      case Wait_20ms:
+        if (millis() - lastOperationTime >= 20) {
 
-      while (HAL::digitalRead(pin) == level) {
-        if (count++ >= maxcycles) {
-          return 0; // Exceeded timeout, fail.
+          // End the start signal by setting data line high for 40 microseconds
+          HAL::digitalWrite(pin, HIGH);
+          HAL::delayMicroseconds(40);
+
+          // Now start reading the data line to get the value from the DHT sensor
+          HAL::pinMode(pin, INPUT_PULLUP);
+          HAL::delayMicroseconds(10);
+
+          // Read from the DHT sensor using an DHT_ISR
+          numPulses = 0;
+          lastPulseTime = 0;
+          attachInterrupt(pin, DHT_ISR, CHANGE);
+
+          // Wait for the next operation to complete
+          state = Read;
+          lastOperationTime = millis();
         }
-      }
+        break;
 
-    #endif
+      case Read:
+        // Make sure we don't time out
+        if (millis() - lastOperationTime > DHTMAXREADTIME) {
+          detachInterrupt(pin);
+          state = Init;
+          lastReadTime = millis();
+          break;
+        }
 
-    return count;
+        // Wait for the reading to complete (1 start bit + 40 data bits)
+        if (numPulses != 41) break;
+
+        // We're reading now - reset the state
+        state = Init;
+        lastReadTime = millis();
+
+        // Check start bit
+        if (pulses[0] < 40) break;
+
+        // Reset 40 bits of received data to zero
+        uint8_t data[5] = { 0, 0, 0, 0, 0 };
+
+        // Inspect each high pulse and determine which ones
+        // are 0 (less than 40us) or 1 (more than 40us)
+        for (uint8_t i = 0; i < 40; ++i) {
+          data[i / 8] <<= 1;
+          if (pulses[i + 1] > 40)
+            data[i / 8] |= 1;
+        }
+
+        // Verify checksum
+        if (((data[0] + data[1] + data[2] + data[3]) & 0xFF) != data[4])
+          break;
+
+        // Generate final results
+        switch (type) {
+          case DHT11:
+            Humidity = data[0];
+            Temperature = data[2];
+            break;
+          case DHT21:
+          case DHT22:
+            Humidity = ((data[0] * 256) + data[1]) * 0.1;
+            Temperature = (((data[2] & 0x7F) * 256) + data[3]) * 0.1;
+            if (data[2] & 0x80) Temperature *= -1.0;
+            break;
+          default:
+            break;
+        }
+        break;
+    }
   }
-
-  DhtSensor dhtsensor(DHT_DATA_PIN, DHT_TYPE);
 
 #endif // ENABLED(DHT_SENSOR)

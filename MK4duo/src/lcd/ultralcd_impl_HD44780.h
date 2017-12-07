@@ -64,27 +64,27 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
     #define B_I2C_BTN_OFFSET 3 // (the first three bit positions reserved for EN_A, EN_B, EN_C)
 
     // button and encoder bit positions within 'buttons'
-    #define B_LE (BUTTON_LEFT<<B_I2C_BTN_OFFSET)    // The remaining normalized buttons are all read via I2C
-    #define B_UP (BUTTON_UP<<B_I2C_BTN_OFFSET)
-    #define B_MI (BUTTON_SELECT<<B_I2C_BTN_OFFSET)
-    #define B_DW (BUTTON_DOWN<<B_I2C_BTN_OFFSET)
-    #define B_RI (BUTTON_RIGHT<<B_I2C_BTN_OFFSET)
+    #define B_LE (BUTTON_LEFT   << B_I2C_BTN_OFFSET)    // The remaining normalized buttons are all read via I2C
+    #define B_UP (BUTTON_UP     << B_I2C_BTN_OFFSET)
+    #define B_MI (BUTTON_SELECT << B_I2C_BTN_OFFSET)
+    #define B_DW (BUTTON_DOWN   << B_I2C_BTN_OFFSET)
+    #define B_RI (BUTTON_RIGHT  << B_I2C_BTN_OFFSET)
 
     #if BUTTON_EXISTS(ENC)
       // the pause/stop/restart button is connected to BTN_ENC when used
-      #define B_ST (EN_C)                            // Map the pause/stop/resume button into its normalized functional name
+      #define B_ST (EN_C)                                 // Map the pause/stop/resume button into its normalized functional name
       #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
-        #define LCD_CLICKED !(buttons&(B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
+        #define LCD_CLICKED !(buttons & (B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
       #else
-        #define LCD_CLICKED (buttons&(B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
+        #define LCD_CLICKED  (buttons & (B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
       #endif
     #else
       #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
-        #define LCD_CLICKED !(buttons&(B_MI|B_RI))
+        #define LCD_CLICKED !(buttons & (B_MI|B_RI))
       #else
-        #define LCD_CLICKED (buttons&(B_MI|B_RI))
+        #define LCD_CLICKED  (buttons & (B_MI|B_RI))
       #endif
     #endif
 
@@ -97,13 +97,13 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
 
       #define B_I2C_BTN_OFFSET 3 // (the first three bit positions reserved for EN_A, EN_B, EN_C)
 
-      #define B_MI (PANELOLU2_ENCODER_C<<B_I2C_BTN_OFFSET) // requires LiquidTWI2 library v1.2.3 or later
+      #define B_MI (PANELOLU2_ENCODER_C << B_I2C_BTN_OFFSET) // requires LiquidTWI2 library v1.2.3 or later
 
       #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
         #define LCD_CLICKED !(buttons & B_MI)
       #else
-        #define LCD_CLICKED (buttons & B_MI)
+        #define LCD_CLICKED  (buttons & B_MI)
       #endif
 
       // I2C buttons take too long to read inside an interrupt context and so we read them during lcd_update
@@ -127,9 +127,9 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
     #define B_ST (_BV(BL_ST))
 
     #if ENABLED(INVERT_CLICK_BUTTON)
-      #define LCD_CLICKED !((buttons & B_MI) || (buttons & B_ST))
+      #define LCD_CLICKED !(buttons & (B_MI|B_ST))
     #else
-      #define LCD_CLICKED ((buttons & B_MI) || (buttons & B_ST))
+      #define LCD_CLICKED  (buttons & (B_MI|B_ST))
     #endif
   #endif
 
@@ -232,11 +232,57 @@ static void createChar_P(const char c, const byte * const ptr) {
   lcd.createChar(c, temp);
 }
 
+#define CHARSET_MENU 0
+#define CHARSET_INFO 1
+#define CHARSET_BOOT 2
+
 static void lcd_set_custom_characters(
-  #if ENABLED(LCD_PROGRESS_BAR)
-    const bool info_screen_charset = true
+  #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
+    const uint8_t screen_charset=CHARSET_INFO
   #endif
 ) {
+  // CHARSET_BOOT
+  #if ENABLED(SHOW_BOOTSCREEN)
+    const static PROGMEM byte corner[4][8] = { {
+      B00000,
+      B00000,
+      B00000,
+      B00000,
+      B00001,
+      B00010,
+      B00100,
+      B00100
+    }, {
+      B00000,
+      B00000,
+      B00000,
+      B11100,
+      B11100,
+      B01100,
+      B00100,
+      B00100
+    }, {
+      B00100,
+      B00010,
+      B00001,
+      B00000,
+      B00000,
+      B00000,
+      B00000,
+      B00000
+    }, {
+      B00100,
+      B01000,
+      B10000,
+      B00000,
+      B00000,
+      B00000,
+      B00000,
+      B00000
+    } };
+  #endif // SHOW_BOOTSCREEN
+
+  // CHARSET_INFO
   const static PROGMEM byte bedTemp[8] = {
     B00000,
     B11111,
@@ -315,6 +361,8 @@ static void lcd_set_custom_characters(
   };
 
   #if HAS_SDSUPPORT
+
+    // CHARSET_MENU
     const static PROGMEM byte refresh[8] = {
       B00000,
       B00110,
@@ -337,6 +385,8 @@ static void lcd_set_custom_characters(
     };
 
     #if ENABLED(LCD_PROGRESS_BAR)
+
+      // CHARSET_INFO
       const static PROGMEM byte progress[3][8] = { {
         B00000,
         B10000,
@@ -365,47 +415,65 @@ static void lcd_set_custom_characters(
         B10101,
         B00000
       } };
-    #endif
-  #endif
 
-  #if ENABLED(DHT_SENSOR)
-    createChar_P(LCD_BEDTEMP_CHAR, Humidity);
+    #endif // LCD_PROGRESS_BAR
+
+  #endif // SDSUPPORT
+
+  #if ENABLED(SHOW_BOOTSCREEN) || ENABLED(LCD_PROGRESS_BAR)
+    static uint8_t char_mode = CHARSET_MENU;
+    #define CHAR_COND (screen_charset != char_mode)
   #else
-    createChar_P(LCD_BEDTEMP_CHAR, bedTemp);
+    #define CHAR_COND true
   #endif
-  createChar_P(LCD_DEGREE_CHAR, degree);
-  createChar_P(LCD_STR_THERMOMETER[0], thermometer);
-  createChar_P(LCD_FEEDRATE_CHAR, feedrate);
-  createChar_P(LCD_CLOCK_CHAR, time_clock);
 
-  #if HAS_SDSUPPORT
-    #if ENABLED(LCD_PROGRESS_BAR)
-      static bool char_mode = false;
-      if (info_screen_charset != char_mode) {
-        char_mode = info_screen_charset;
-        if (info_screen_charset) { // Progress bar characters for info screen
-          for (int16_t i = 3; i--;) createChar_P(LCD_STR_PROGRESS[i], progress[i]);
+  if (CHAR_COND) {
+    #if ENABLED(SHOW_BOOTSCREEN) || ENABLED(LCD_PROGRESS_BAR)
+      char_mode = screen_charset;
+      #if ENABLED(SHOW_BOOTSCREEN)
+        // Set boot screen corner characters
+        if (screen_charset == CHARSET_BOOT) {
+          for (uint8_t i = 4; i--;)
+            createChar_P(i, corner[i]);
         }
-        else { // Custom characters for submenus
-          createChar_P(LCD_UPLEVEL_CHAR, uplevel);
-          createChar_P(LCD_STR_REFRESH[0], refresh);
-          createChar_P(LCD_STR_FOLDER[0], folder);
-        }
-      }
-    #else
-      createChar_P(LCD_UPLEVEL_CHAR, uplevel);
-      createChar_P(LCD_STR_REFRESH[0], refresh);
-      createChar_P(LCD_STR_FOLDER[0], folder);
+        else
+      #endif
     #endif
+        { // Info Screen uses 5 special characters
+          #if ENABLED(DHT_SENSOR)
+            createChar_P(LCD_BEDTEMP_CHAR, Humidity);
+          #else
+            createChar_P(LCD_BEDTEMP_CHAR, bedTemp);
+          #endif
+          createChar_P(LCD_DEGREE_CHAR, degree);
+          createChar_P(LCD_STR_THERMOMETER[0], thermometer);
+          createChar_P(LCD_FEEDRATE_CHAR, feedrate);
+          createChar_P(LCD_CLOCK_CHAR, clock);
 
-  #else
-    createChar_P(LCD_UPLEVEL_CHAR, uplevel);
-  #endif
+          #if ENABLED(SDSUPPORT)
+            #if ENABLED(LCD_PROGRESS_BAR)
+              if (screen_charset == CHARSET_INFO) { // 3 Progress bar characters for info screen
+                for (int16_t i = 3; i--;)
+                  createChar_P(LCD_STR_PROGRESS[i], progress[i]);
+              }
+              else
+            #endif
+              { // SD Card sub-menu special characters
+                createChar_P(LCD_UPLEVEL_CHAR, uplevel);
+                createChar_P(LCD_STR_REFRESH[0], refresh);
+                createChar_P(LCD_STR_FOLDER[0], folder);
+              }
+          #else
+            // With no SD support, only need the uplevel character
+            createChar_P(LCD_UPLEVEL_CHAR, uplevel);
+          #endif
+        }
+  }
 }
 
 static void lcd_implementation_init(
   #if ENABLED(LCD_PROGRESS_BAR)
-    const bool info_screen_charset = true
+    const uint8_t screen_charset=CHARSET_INFO
   #endif
 ) {
 
@@ -440,7 +508,7 @@ static void lcd_implementation_init(
 
   lcd_set_custom_characters(
     #if ENABLED(LCD_PROGRESS_BAR)
-      info_screen_charset
+      screen_charset
     #endif
   );
 
@@ -492,46 +560,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
   }
 
   void lcd_bootscreen() {
-    const static PROGMEM byte corner[4][8] = { {
-      B00000,
-      B00000,
-      B00000,
-      B00000,
-      B00001,
-      B00010,
-      B00100,
-      B00100
-    }, {
-      B00000,
-      B00000,
-      B00000,
-      B11100,
-      B11100,
-      B01100,
-      B00100,
-      B00100
-    }, {
-      B00100,
-      B00010,
-      B00001,
-      B00000,
-      B00000,
-      B00000,
-      B00000,
-      B00000
-    }, {
-      B00100,
-      B01000,
-      B10000,
-      B00000,
-      B00000,
-      B00000,
-      B00000,
-      B00000
-    } };
-    for (uint8_t i = 0; i < 4; i++)
-      createChar_P(i, corner[i]);
-
+    lcd_set_custom_characters(CHARSET_BOOT);
     lcd.clear();
 
     #define LCD_EXTRA_SPACE (LCD_WIDTH-8)
@@ -599,14 +628,9 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
     #endif
 
     lcd.clear();
-
     printer.safe_delay(100);
-
-    lcd_set_custom_characters(
-      #if ENABLED(LCD_PROGRESS_BAR)
-        false
-      #endif
-    );
+    lcd_set_custom_characters();
+    lcd.clear();
   }
 
 #endif // SHOW_BOOTSCREEN
@@ -642,7 +666,7 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
 #if ENABLED(DHT_SENSOR)
   FORCE_INLINE void _draw_humidity_status() {
     lcd.print((char)LCD_BEDTEMP_CHAR);
-    lcd.print(itostr3(dhtsensor.readHumidity() + 0.5));
+    lcd.print(itostr3(dhtsensor.Humidity));
   }
 #endif
 
@@ -829,7 +853,7 @@ static void lcd_implementation_status_screen() {
 
     lcd.setCursor(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd.print(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
+    lcd.print(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
 
     #if HAS_LEVELING
       lcd.write(bedlevel.leveling_active || blink ? '_' : ' ');
@@ -904,8 +928,12 @@ static void lcd_implementation_status_screen() {
         lcd_printPGM(PSTR("Dia "));
         lcd.print(ftostr12ns(filament_width_meas));
         lcd_printPGM(PSTR(" V"));
-        lcd.print(itostr3(100.0 * tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
-        lcd.write('%');
+        if (tools.volumetric_enabled) {
+          lcd.print(itostr3(100.0 * tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+          lcd.write('%');
+        }
+        else
+          lcd_printPGM(PSTR("--- "));
         return;
       }
     #endif

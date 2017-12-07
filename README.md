@@ -1,7 +1,7 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
-Version 4.3.2x development.
+Version 4.3.3 Stable.
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
@@ -54,8 +54,7 @@ The new features are:
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
 * Added commands to facilitate purging of hotend. 
 * Added Delta Auto Calibration Algorithm of Minor Squares based on DC42 RepRapFirmware 7 points
-* Added Delta Auto Calibration Algorithm based on Thinkyhead Marlin
-* Added Delta Auto Calibration Algorithm based on Rich Cattell Marlin
+* Added Delta Auto Calibration Algorithm based on LVD-AC(Luc Van Daele) 1 - 7 points + iteration
 * Added Debug Dryrun used by repetier.
 * Added total Power on time writed in SD CARD.
 * Added total Power consumption writed in SD CARD.
@@ -85,6 +84,7 @@ The new features are:
 * Added Extruder Encoder for control filament movement (Experimental)
 * Added Adafruit Neopixel LED
 * Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
+* Added Universal Bed Leveling (UBL) by Official Marlin
 
 
 ## Credits
@@ -96,9 +96,6 @@ More features have been added by:
   - Mr.Goblin
   - [iosonopersia](https://github.com/iosonopersia)
   - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
-  - [Wurstnase](https://github.com/Wurstnase)
-  - Giutrec
-  - Drakelive
 
 ## License
 

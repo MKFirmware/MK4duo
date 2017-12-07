@@ -49,7 +49,7 @@
   #include <avr/interrupt.h>
 #endif
 
-#include "src/macros.h"
+#include "src/inc/macros.h"
 #include "Boards.h"
 
 /**
@@ -92,31 +92,33 @@
   #include "Configuration_Motor_Driver.h"
 #endif
 
-#include "src/conditionals_pre.h"
-#include "src/pins.h"
-#include "src/conditionals_post.h"
-#include "src/sanitycheck.h"
-#include "src/HAL/HAL.h"
-#include "src/enum.h"
-
 /**
  * Modules loading
  */
 
+// Include modules
+#include "src/inc/conditionals_pre.h"
+#include "src/inc/pins.h"
+#include "src/inc/conditionals_post.h"
+#include "src/inc/sanitycheck.h"
+
+// HAL Modules
+#include "src/HAL/HAL.h"
+
 // Core modules
-#include "src/tools/tools.h"
-#include "src/tools/nozzle.h"
-#include "src/fan/fan.h"
-#include "src/commands/commands.h"
-#include "src/mechanics/mechanics.h"
-#include "src/eeprom/eeprom.h"
-#include "src/printer/printer.h"
-#include "src/planner/planner.h"
-#include "src/endstop/endstops.h"
-#include "src/stepper/stepper.h"
-#include "src/heater/sensor/thermistor.h"
-#include "src/heater/heater.h"
-#include "src/temperature/temperature.h"
+#include "src/core/mechanics/mechanics.h"
+#include "src/core/tools/tools.h"
+#include "src/core/tools/nozzle.h"
+#include "src/core/fan/fan.h"
+#include "src/core/commands/commands.h"
+#include "src/core/eeprom/eeprom.h"
+#include "src/core/printer/printer.h"
+#include "src/core/planner/planner.h"
+#include "src/core/endstop/endstops.h"
+#include "src/core/stepper/stepper.h"
+#include "src/core/heater/sensor/thermistor.h"
+#include "src/core/heater/heater.h"
+#include "src/core/temperature/temperature.h"
 
 // LCD modules
 #include "src/lcd/language/language.h"

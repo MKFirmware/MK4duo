@@ -25,6 +25,21 @@
 
 #if HAS_SDSUPPORT
 
+  /**
+   * SD Settings
+   */
+  enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
+    SD_CFG_CPR,
+    SD_CFG_FIL,
+    SD_CFG_NPR,
+  #if HAS_POWER_CONSUMPTION_SENSOR
+    SD_CFG_PWR,
+  #endif
+    SD_CFG_TME,
+    SD_CFG_TPR,
+    SD_CFG_END // Leave this always as the last
+  };
+
   #define SD_MAX_FOLDER_DEPTH 10     // Maximum folder depth
   #define MAX_VFAT_ENTRIES (2)
   #define FILENAME_LENGTH 13
@@ -138,10 +153,10 @@
       void mount();
       void unmount();
       void ls();
-      void getfilename(uint16_t nr, const char* const match = NULL);
+      void getfilename(uint16_t nr, const char* const match=NULL);
       void startFileprint();
       void openAndPrintFile(const char* name);
-      void stopSDPrint(const bool store_location=false);
+      void stopSDPrint();
       void write_command(char* buf);
       bool selectFile(const char* filename);
       void printStatus();
@@ -149,13 +164,13 @@
       void deleteFile(char* filename);
       void finishWrite();
       void makeDirectory(char* filename);
-      void closeFile(const bool store_location = false);
+      void closeFile(const bool store_position=false);
       void printingHasFinished();
       void chdir(const char* relpath);
-      void updir();
       void setroot();
       void setlast();
 
+      int8_t updir();
       uint16_t get_num_Files();
 
       #if HAS_EEPROM_SD
