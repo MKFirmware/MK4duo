@@ -591,14 +591,16 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
  */
 void HAL::Tick() {
 
-  static uint8_t  cycle_100ms = 0,
-                  tickState = 0,
-                  currentHeater = 0;
+  static uint8_t  cycle_100ms = 0;
 
   if (printer.IsStopped()) return;
 
-  #if ENABLED(FILAMENT_SENSOR)
-    static unsigned long raw_filwidth_value = 0;
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() heaters[h].SetHardwarePwm();
+  #endif
+
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].SetHardwarePwm();
   #endif
 
   // Calculation cycle approximate a 100ms
@@ -606,12 +608,6 @@ void HAL::Tick() {
   if (cycle_100ms >= 100) {
     cycle_100ms = 0;
     execute_100ms = true;
-    #if HEATER_COUNT > 0
-      LOOP_HEATER() heaters[h].SetHardwarePwm();
-    #endif
-    #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].SetHardwarePwm();
-    #endif
   }
 
   // read analog values
@@ -619,54 +615,37 @@ void HAL::Tick() {
 
     if (adc_get_status(ADC)) { // conversion finished?
 
-      switch (tickState) {
-        case 1:
-        case 3:
-          {
-            #if HEATER_COUNT > 0
-              if (WITHIN(heaters[currentHeater].sensor.pin, 0, 15)) {
-                ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[currentHeater]);
-                currentFilter.ProcessReading(AnalogInReadPin(heaters[currentHeater].sensor.pin));
-                if (currentFilter.IsValid())
-                  AnalogInputValues[heaters[currentHeater].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
-
-                if (++currentHeater == HEATER_COUNT) {
-                  currentHeater = 0;
-                  if (currentFilter.IsValid()) Analog_is_ready = true;
-                }
-              }
-            #endif
-
-            ++tickState;
+      #if HEATER_COUNT > 0
+        for (uint8_t h = 0; h < HEATER_COUNT; h++) {
+          if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
+            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
+            currentFilter.ProcessReading(AnalogInReadPin(heaters[h].sensor.pin));
+            if (currentFilter.IsValid()) {
+              AnalogInputValues[heaters[h].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+              Analog_is_ready = true;
+            }
           }
-          break;
-        case 2:
-          {
-            #if HAS_FILAMENT_SENSOR
-              const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
-              if (filamentFilter.IsValid())
-                AnalogInputValues[FILWIDTH_PIN] = filamentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
-            #endif
+        }
+      #endif
 
-            #if HAS_POWER_CONSUMPTION_SENSOR
-              const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
-              if (powerFilter.IsValid())
-                AnalogInputValues[POWER_CONSUMPTION_PIN] = powerFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
-            #endif
+      #if HAS_FILAMENT_SENSOR
+        const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
+        if (filamentFilter.IsValid())
+          AnalogInputValues[FILWIDTH_PIN] = filamentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+      #endif
 
-            #if HAS_MCU_TEMPERATURE
-              const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
-              if (mcuFilter.IsValid())
-                thermalManager.mcu_current_temperature_raw = mcuFilter.GetSum();
-            #endif
-            ++tickState;
-          }
-          break;
-        case 0: // First state after initialization, no conversion
-        default:
-          tickState = 1;
-          break;
-      }
+      #if HAS_POWER_CONSUMPTION_SENSOR
+        const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
+        if (powerFilter.IsValid())
+          AnalogInputValues[POWER_CONSUMPTION_PIN] = powerFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+      #endif
+
+      #if HAS_MCU_TEMPERATURE
+        const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
+        if (mcuFilter.IsValid())
+          thermalManager.mcu_current_temperature_raw = mcuFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+      #endif
+
     }
 
     AnalogInStartConversion();

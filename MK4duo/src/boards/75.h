@@ -163,39 +163,39 @@
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
 
-  #define ORIG_BEEPER_PIN  18
+  #define ORIG_BEEPER_PIN     18
 
-  #if ENABLED(NEWPANEL)       
+  #if ENABLED(NEWPANEL)
 
-    #define LCD_PINS_RS    20
-    #define LCD_PINS_ENABLE 17
-    #define LCD_PINS_D4    16
-    #define LCD_PINS_D5    21
-    #define LCD_PINS_D6     5
-    #define LCD_PINS_D7     6
+    #define LCD_PINS_RS       20
+    #define LCD_PINS_ENABLE   17
+    #define LCD_PINS_D4       16
+    #define LCD_PINS_D5       21
+    #define LCD_PINS_D6        5
+    #define LCD_PINS_D7        6
 
     // Buttons are directly attached
-    #define BTN_EN1        42
-    #define BTN_EN2        40
-    #define BTN_ENC        19
-    
-    #define SD_DETECT_PIN  38
+    #define BTN_EN1           42
+    #define BTN_EN2           40
+    #define BTN_ENC           19
+
+    #define SD_DETECT_PIN     38
 
   #else // !NEWPANEL
 
-    #define SHIFT_CLK      38
-    #define SHIFT_LD       42
-    #define SHIFT_OUT      40
-    #define SHIFT_EN       17
+    #define SHIFT_CLK         38
+    #define SHIFT_LD          42
+    #define SHIFT_OUT         40
+    #define SHIFT_EN          17
 
-    #define LCD_PINS_RS    16
-    #define LCD_PINS_ENABLE 5
-    #define LCD_PINS_D4     6
-    #define LCD_PINS_D5    21
-    #define LCD_PINS_D6    20
-    #define LCD_PINS_D7    19
+    #define LCD_PINS_RS       16
+    #define LCD_PINS_ENABLE    5
+    #define LCD_PINS_D4        6
+    #define LCD_PINS_D5       21
+    #define LCD_PINS_D6       20
+    #define LCD_PINS_D7       19
 
-    #define SD_DETECT_PIN  NoPin
+    #define SD_DETECT_PIN     NoPin
 
   #endif // !NEWPANEL
 

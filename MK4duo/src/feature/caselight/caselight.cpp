@@ -35,7 +35,6 @@
   #endif
 
   void update_case_light() {
-    SET_OUTPUT(CASE_LIGHT_PIN);
 
     if (!(case_light_arg_flag && !case_light_on))
       case_light_brightness_sav = case_light_brightness;  // save brightness except if this is an S0 arguement

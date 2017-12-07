@@ -55,7 +55,7 @@
       set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
       printer.safe_delay(2000);
     #endif
-    set_neopixel_color(strip.Color(NEO_WHITE));       // white
+    set_neopixel_color(strip.Color(NEO_BLACK));       // black
   }
 
   void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t brightness) {

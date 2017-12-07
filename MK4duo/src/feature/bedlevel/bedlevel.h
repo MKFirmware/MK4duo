@@ -37,7 +37,23 @@
   #define XY_PROBE_FEEDRATE_MM_S PLANNER_XY_FEEDRATE()
 #endif
 
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+  #define _GET_MESH_X(I) abl.bilinear_start[X_AXIS] + I * abl.bilinear_grid_spacing[X_AXIS]
+  #define _GET_MESH_Y(J) abl.bilinear_start[Y_AXIS] + J * abl.bilinear_grid_spacing[Y_AXIS]
+#elif ENABLED(AUTO_BED_LEVELING_UBL)
+  #define _GET_MESH_X(I) ubl.mesh_index_to_xpos(I)
+  #define _GET_MESH_Y(J) ubl.mesh_index_to_ypos(J)
+#elif ENABLED(MESH_BED_LEVELING)
+  #define _GET_MESH_X(I) mbl.index_to_xpos[I]
+  #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
+#endif
+
 #if HAS_LEVELING
+
+  typedef struct {
+    int8_t x_index, y_index;
+    float distance;
+  } mesh_index_pair;
 
   #if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
     #include "math/vector_3.h"
@@ -71,6 +87,12 @@
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         static float z_fade_height, inverse_z_fade_height;
+      #endif
+
+      #if ENABLED(G26_MESH_VALIDATION)
+        static bool g26_debug_flag;
+      #else
+        static const bool g26_debug_flag;
       #endif
 
       #if ENABLED(PROBE_MANUALLY)
@@ -153,6 +175,13 @@
          */
         static void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t));
 
+      #endif
+
+      #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+        /**
+         * Manual goto xy for Mesh Bed level or Probe Manually
+         */
+        void manual_goto_xy(const float &rx, const float &ry);
       #endif
 
   };

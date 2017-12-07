@@ -1,3 +1,9 @@
+### Version 4.3.3 Stable
+* Add command M306 - Set Heaters parameters.
+* Add G26 Mesh validation
+* Update Nextion Firmware with new graphics by Mr Goblin.
+* Minor Fix.
+
 ### Version 4.3.29 dev
 * New calculation system for thermistors
 * Add command M305 - Set thermistor and ADC parameters and DHT sensor parameters

@@ -230,7 +230,7 @@
 // Enable if probing seems unreliable. Heaters and/or fans - consistent with the
 // options selected below - will be disabled during probing so as to minimize
 // potential EM interference by quieting/silencing the source of the 'noise' (the change
-// in current flowing through the wires).  This is likely most useful to users of the
+// in current flowing through the wires). This is likely most useful to users of the
 // BLTouch probe, but may also help those with inductive or other probe types.
 //#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 //#define PROBING_FANS_OFF          // Turn fans off when probing
@@ -432,10 +432,17 @@
 //#define DEBUG_LEVELING_FEATURE
 
 // enable a graphics overly while editing the mesh from auto-level
-//#define ENABLE_MESH_EDIT_GFX_OVERLAY
+//#define MESH_EDIT_GFX_OVERLAY
 
 // Mesh inset margin on print area
 #define MESH_INSET 10
+
+// Enable the G26 Mesh Validation Pattern tool.
+//#define G26_MESH_VALIDATION
+#define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
+#define MESH_TEST_LAYER_HEIGHT   0.2  // (mm) Default layer height for the G26 Mesh Validation Tool.
+#define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
+#define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
 
 /** START MESH BED LEVELING **/
 // Default mesh area is an area with an inset margin on the print area.
@@ -462,13 +469,6 @@
 // If this is defined, the currently active mesh will be saved in the
 // current slot on M500.
 #define UBL_SAVE_ACTIVE_ON_M500
-
-// Enable G26 mesh validation
-//#define UBL_G26_MESH_VALIDATION
-#define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
-#define MESH_TEST_LAYER_HEIGHT   0.2  // (mm) Default layer height for the G26 Mesh Validation Tool.
-#define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
-#define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
 
 // Sophisticated users prefer no movement of nozzle
 #define UBL_MESH_EDIT_MOVES_Z

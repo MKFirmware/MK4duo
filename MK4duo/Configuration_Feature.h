@@ -1257,6 +1257,9 @@
 // The normal delay is 10µs. Use the lowest value that still gives a reliable display.
 //#define DOGM_SPI_DELAY_US 5
 
+// Swap the CW/CCW indicators in the graphics overlay
+//#define OVERLAY_GFX_REVERSE
+
 // ENCODER SETTINGS
 
 // This option overrides the default number of encoder pulses needed to
@@ -1313,8 +1316,8 @@
 
 // Note: Test audio output with the G-Code:
 //  M300 S<frequency Hz> P<duration ms>
-//#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
-//#define LCD_FEEDBACK_FREQUENCY_HZ 1000
+//#define LCD_FEEDBACK_FREQUENCY_DURATION_MS 2
+//#define LCD_FEEDBACK_FREQUENCY_HZ 5000
 
 //Display Voltage Logic Selector on Alligator Board
 //#define UI_VOLTAGE_LEVEL 0 // 3.3 V
@@ -1887,7 +1890,7 @@
  ************************************** Buffer stuff ************************************
  ****************************************************************************************/
 // The number of linear motions that can be in the plan at any give time.
-// THE BLOCK BUFFER SIZE NEEDS TO BE A POWER OF 2, i.g. 8,16,32 because shifts
+// THE BLOCK BUFFER SIZE NEEDS TO BE A POWER OF 2 (i.g. 8, 16, 32) because shifts
 // and ors are used to do the ring-buffering.
 // For Arduino DUE setting BLOCK BUFFER SIZE to 32
 #define BLOCK_BUFFER_SIZE 16

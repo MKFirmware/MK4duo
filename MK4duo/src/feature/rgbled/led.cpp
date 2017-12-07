@@ -39,13 +39,13 @@
     WRITE(RGB_LED_R_PIN, r ? HIGH : LOW);
     WRITE(RGB_LED_G_PIN, g ? HIGH : LOW);
     WRITE(RGB_LED_B_PIN, b ? HIGH : LOW);
-    analogWrite(RGB_LED_R_PIN, r);
-    analogWrite(RGB_LED_G_PIN, g);
-    analogWrite(RGB_LED_B_PIN, b);
+    HAL::analogWrite(RGB_LED_R_PIN, r);
+    HAL::analogWrite(RGB_LED_G_PIN, g);
+    HAL::analogWrite(RGB_LED_B_PIN, b);
 
     #if ENABLED(RGBW_LED)
       WRITE(RGB_LED_W_PIN, w ? HIGH : LOW);
-      analogWrite(RGB_LED_W_PIN, w);
+      HAL::analogWrite(RGB_LED_W_PIN, w);
     #else
       UNUSED(w);
     #endif

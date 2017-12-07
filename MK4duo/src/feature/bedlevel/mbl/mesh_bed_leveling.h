@@ -59,8 +59,6 @@
 
       static void line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
 
-      static void probing_done();
-
       static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
         px = index % (GRID_MAX_POINTS_X);
         py = index / (GRID_MAX_POINTS_X);

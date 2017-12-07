@@ -38,7 +38,7 @@
 
     // if the title message starts with a '!' it is so important, we are going to
     // ignore the status of the g26_debug_flag
-    if (*title != '!' && !ubl.g26_debug_flag) return;
+    if (*title != '!' && !bedlevel.g26_debug_flag) return;
 
     const float de = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
 
@@ -100,7 +100,7 @@
               cell_dest_xi  = get_cell_index_x(end[X_AXIS]),
               cell_dest_yi  = get_cell_index_y(end[Y_AXIS]);
 
-    if (g26_debug_flag) {
+    if (bedlevel.g26_debug_flag) {
       SERIAL_MV(" ubl.line_to_destination(xe=", end[X_AXIS]);
       SERIAL_MV(", ye=", end[Y_AXIS]);
       SERIAL_MV(", ze=", end[Z_AXIS]);
@@ -126,7 +126,7 @@
         planner._buffer_line(end[X_AXIS], end[Y_AXIS], end[Z_AXIS], end[E_AXIS], feed_rate, extruder);
         mechanics.set_current_to_destination();
 
-        if (g26_debug_flag)
+        if (bedlevel.g26_debug_flag)
           debug_current_and_destination(PSTR("out of bounds in ubl.line_to_destination()"));
 
         return;
@@ -169,7 +169,7 @@
 
       planner._buffer_line(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z0, end[E_AXIS], feed_rate, extruder);
 
-      if (g26_debug_flag)
+      if (bedlevel.g26_debug_flag)
         debug_current_and_destination(PSTR("FINAL_MOVE in ubl.line_to_destination()"));
 
       mechanics.set_current_to_destination();
@@ -274,7 +274,7 @@
         } //else printf("FIRST MOVE PRUNED  ");
       }
 
-      if (g26_debug_flag)
+      if (bedlevel.g26_debug_flag)
         debug_current_and_destination(PSTR("vertical move done in ubl.line_to_destination()"));
 
       //
@@ -337,7 +337,7 @@
         } //else printf("FIRST MOVE PRUNED  ");
       }
 
-      if (g26_debug_flag)
+      if (bedlevel.g26_debug_flag)
         debug_current_and_destination(PSTR("horizontal move done in ubl.line_to_destination()"));
 
       if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
@@ -431,7 +431,7 @@
       if (xi_cnt < 0 || yi_cnt < 0) break; // we've gone too far, so exit the loop and move on to FINAL_MOVE
     }
 
-    if (g26_debug_flag)
+    if (bedlevel.g26_debug_flag)
       debug_current_and_destination(PSTR("generic move done in ubl.line_to_destination()"));
 
     if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])

@@ -106,10 +106,6 @@
 // Use it for Testing or Development purposes. NEVER for production machine.
 #define DUMMY_THERMISTOR_998_VALUE 25
 #define DUMMY_THERMISTOR_999_VALUE 25
-
-//Show Temperature ADC value
-//The M105 command return, besides traditional information, the ADC value read from temperature sensors.
-//#define SHOW_TEMP_ADC_VALUES
 /*****************************************************************************************/
 
 
@@ -220,9 +216,9 @@
 // Put to false following line to disable PID and enable bang-bang.
 #define PIDTEMP true
 
-#define BANG_MAX  255       // Limits current to nozzle while in bang-bang mode; 255 = full current
-#define PID_MIN     0       // Limits min current to nozzle while PID is active;   0 = no current
-#define PID_MAX   255       // Limits max current to nozzle while PID is active; 255 = full current
+#define PID_MAX       255   // Limits current to nozzle while in PID mode;        255 = full current
+#define PID_DRIVE_MIN  40   // Limits min current to nozzle while PID is active;    0 = no current
+#define PID_DRIVE_MAX 230   // Limits max current to nozzle while PID is active;  255 = full current
 
 //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
 //#define PID_DEBUG         // Sends debug data to the serial port.
@@ -268,8 +264,9 @@
 // all forms of bed control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the bed,
 // so you shouldn't use it unless you are OK with PWM on your bed. (see the comment on enabling PIDTEMPBED)
-#define MIN_BED_POWER   0 // Limits duty cycle to bed;   0 = no current
-#define MAX_BED_POWER 255 // Limits duty cycle to bed; 255 = full current
+#define BED_PID_MAX       255   // Limits current to bed while in PID mode;       255 = full current
+#define BED_PID_DRIVE_MIN  80   // Limits min current to bed while PID is active;   0 = no current
+#define BED_PID_DRIVE_MAX 255   // Limits max current to bed while PID is active; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -304,8 +301,9 @@
 // all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the chamber,
 // so you shouldn't use it unless you are OK with PWM on your chamber.  (see the comment on enabling PIDTEMPCHAMBER)
-#define MIN_CHAMBER_POWER   0 // Limits duty cycle to chamber;   0 = no current
-#define MAX_CHAMBER_POWER 255 // Limits duty cycle to chamber; 255 = full current
+#define CHAMBER_PID_MAX       255   // Limits current to chamber while in PID mode;       255 = full current
+#define CHAMBER_PID_DRIVE_MIN  80   // Limits min current to chamber while PID is active;   0 = no current
+#define CHAMBER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -344,8 +342,9 @@
 // all forms of cooler control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the cooler,
 // so you shouldn't use it unless you are OK with PWM on your cooler.  (see the comment on enabling PIDTEMPCOOLER)
-#define MIN_COOLER_POWER   0 // Limits duty cycle to cooler;   0 = no current
-#define MAX_COOLER_POWER 255 // Limits duty cycle to cooler; 255 = full current
+#define COOLER_PID_MAX       255  // Limits current to cooler while in PID mode;        255 = full current
+#define COOLER_PID_DRIVE_MIN  80  // Limits min current to cooler while PID is active;    0 = no current
+#define COOLER_PID_DRIVE_MAX 255  // Limits max current to cooler while PID is active;  255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)

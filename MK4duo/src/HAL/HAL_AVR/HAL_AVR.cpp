@@ -278,10 +278,6 @@ HAL_TEMP_TIMER_ISR {
                   pwm_count_fan     = 0,
                   channel           = 0;
 
-  #if ENABLED(FILAMENT_SENSOR)
-    static unsigned long raw_filwidth_value = 0;
-  #endif
-
   /**
    * Standard PWM modulation
    */

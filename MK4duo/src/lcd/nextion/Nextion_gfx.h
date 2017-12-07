@@ -87,7 +87,10 @@
         cursor_to(zero);
       }
 
-      void set_scale(const float scale) { _scale = scale; }
+      void set_scale(const float scale) {
+        _scale = scale;
+        clear();
+      }
 
       void clear(const float x_mm, const float y_mm, const float z_mm) {
         /* Bounding box for the build volume */
@@ -99,7 +102,6 @@
         _max[Z_AXIS] = z_mm;
 
         set_scale(scale_x > scale_y ? scale_y : scale_x);
-        clear();
       }
 
       void origin(const float x, const float y, const float z) {

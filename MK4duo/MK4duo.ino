@@ -45,6 +45,7 @@
  * G19  - Select Plane YZ (Requires CNC_WORKSPACE_PLANES)
  * G20  - Set input units to inches
  * G21  - Set input units to millimeters
+ * G26  - Mesh Validation Pattern (Requires G26_MESH_VALIDATION) 
  * G27  - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
  * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
  * G29  - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
@@ -96,11 +97,10 @@
  * M29  - Stop SD write. (Requires SDSUPPORT)
  * M30  - Delete file from SD (M30 filename.g). (Requires SDSUPPORT)
  * M31  - Output time since last M109 or SD card start to serial
- * M32  - Make directory
+ * M32  - Open file and start print
  * M33  - Stop printing, close file and save restart.gcode
- * M34  - Open file and start print
+ * M34  - Set SD Card Sorting Options
  * M35  - Upload Firmware to Nextion from SD
- * M36  - Set SD Card Sorting Options
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
  * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  *
@@ -130,6 +130,7 @@
  * M44  - Codes debug - report codes available (and how many of them there are)
  *          I G-code list, J M-code list
  * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
+ * M49  - Turn on or off G26 debug flag for verbose output (Requires G26_MESH_VALIDATION)
  * M70  - Power consumption sensor calibration
  * M75  - Start the print job timer
  * M76  - Pause the print job timer
@@ -205,17 +206,22 @@
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C<contrast value> (value 0..63)
  * M280 - Set servo position absolute. P: servo index, S: angle or microseconds
+ * M290 - Babystepping (Requires BABYSTEPPING)
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
  * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          P[float] Kp term, I[float] Ki term, D[float] Kd term
  *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S<temperature>.
  * M303 - PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
- *        S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>.
+ *        S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>,
+ *        R<Method> 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
  * M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
  *          L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin
  *        Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
+ * M306 - Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ *          A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
+ *          L[int] Min temperature, N[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, P[int] Pin
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Turn case lights on/off

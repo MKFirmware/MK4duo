@@ -23,7 +23,7 @@
 #ifndef UTF_MAPPER_H
 #define UTF_MAPPER_H
 
-#include  "language/language.h"
+#include "../../MK4duo.h"
 
 #if ENABLED(DOGLCD)
   #define HARDWARE_CHAR_OUT(C) u8g.print((char)(C))

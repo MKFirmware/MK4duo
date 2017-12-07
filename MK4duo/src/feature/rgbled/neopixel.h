@@ -41,6 +41,7 @@
   #else
     #define NEO_WHITE 0, 0, 0, 255
   #endif
+  #define NEO_BLACK   0, 0, 0, 0
 
   void setup_neopixel();
   void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const uint8_t brightness=255);

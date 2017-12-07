@@ -233,9 +233,9 @@ template <size_t numAveraged> class AveragingFilter {
       cpu_irq_restore(flags);
     }
 
-    void ProcessReading(uint16_t r) {
-      sum = sum - readings[index] + r;
-      readings[index] = r;
+    void ProcessReading(const uint16_t read) {
+      sum = sum - readings[index] + read;
+      readings[index] = read;
       if (++index == numAveraged) {
         index = 0;
         isValid = true;

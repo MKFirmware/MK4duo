@@ -47,41 +47,27 @@
       Pin     pin;
       uint8_t type;
 
+      static float  Temperature,
+                    Humidity;
     private: /** Private Parameters */
 
-      uint8_t data[5];
+      static millis_t lastReadTime,
+                      lastOperationTime;
 
-      #if ENABLED(__AVR__)
-        // Use direct GPIO access on an 8-bit AVR so keep track of the port and bitmask
-        // for the digital pin connected to the DHT. Other platforms will use digitalRead.
-        uint8_t _bit, _port;
-      #endif
-
-      millis_t  lastreadtime,
-                maxcycles;
-
-      bool lastresult;
-
+      static enum SensorState {
+        Init,
+        Wait_250ms,
+        Wait_20ms,
+        Read
+      } state;
+  
     public: /** Public Function */
 
       void init(void);
       void change_type(const uint8_t dhtType);
       void print_parameters(void);
+      void spin();
 
-      float readTemperature(const bool force=false);
-      float readHumidity();
-
-    private: /** Private Funtion */
-
-      bool read(const bool force=false);
-      uint32_t expectPulse(const bool level);
-
-  };
-
-  class InterruptLock {
-    public:
-     InterruptLock()  { noInterrupts(); }
-     ~InterruptLock() { interrupts(); }
   };
 
   extern DhtSensor dhtsensor;

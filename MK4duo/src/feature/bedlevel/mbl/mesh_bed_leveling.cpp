@@ -108,16 +108,4 @@
     line_to_destination(fr_mm_s, x_splits, y_splits);  
   }
 
-  void mesh_bed_leveling::probing_done() {
-    has_mesh = true;
-    mechanics.Home(true);
-    bedlevel.set_bed_leveling_enabled(true);
-    #if ENABLED(MESH_G28_REST_ORIGIN)
-      mechanics.current_position[Z_AXIS] = Z_MIN_POS;
-      mechanics.set_destination_to_current();
-      mechanics.line_to_destination(mechanics.homing_feedrate_mm_s[Z_AXIS]);
-      stepper.synchronize();
-    #endif
-  }
-
 #endif  // MESH_BED_LEVELING
