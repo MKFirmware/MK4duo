@@ -177,7 +177,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
 }
 
 /**
- * @details Used by check_pt to do a single Z probe.
+ * @details Used by check_pt to do a single Z probe at the current position.
  *          Leaves current_position[Z_AXIS] at the height where the probe triggered.
  *
  * @return The raw Z position where the probe was triggered
@@ -202,22 +202,20 @@ float Probe::run_z_probe() {
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
   }
 
-  for (int8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
+  for (uint8_t r = Z_PROBE_REPETITIONS + 1; --r;) {
 
     // move down slowly to find bed
     if (move_to_z(-10, Z_PROBE_SPEED_SLOW)) return NAN;
 
     probe_z += mechanics.current_position[Z_AXIS];
 
-    if (r + 1 < Z_PROBE_REPETITIONS) {
+    if (r > 1) {
       // move up to probe between height
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
     }
   }
 
-  probe_z /= (float)Z_PROBE_REPETITIONS;
-
-  return probe_z;
+  return probe_z * (1.0 / (Z_PROBE_REPETITIONS));
 }
 
 /**

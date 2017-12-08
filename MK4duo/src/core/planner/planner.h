@@ -256,9 +256,9 @@ class Planner {
      */
     static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder);
 
-    static FORCE_INLINE void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
-    static FORCE_INLINE void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
-    static FORCE_INLINE void zero_previous_speed() { ZERO(previous_speed); }
+    FORCE_INLINE static void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
+    FORCE_INLINE static void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
+    FORCE_INLINE static void zero_previous_speed() { ZERO(previous_speed); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)

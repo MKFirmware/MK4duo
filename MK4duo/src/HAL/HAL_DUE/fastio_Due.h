@@ -135,10 +135,10 @@ static constexpr Fastio_Param Fastio[111] = {
 
 // NOT CHANGE uint8_t in Pin, ALLIGATOR board crashed!!!
 // Read a pin
-static FORCE_INLINE bool READ(const uint8_t pin) {
+FORCE_INLINE static bool READ(const uint8_t pin) {
   return (bool)(Fastio[pin].base_address -> PIO_PDSR & (MASK(Fastio[pin].shift_count)));
 }
-static FORCE_INLINE bool READ_VAR(const uint8_t pin) {
+FORCE_INLINE static bool READ_VAR(const uint8_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
 	if (pinDesc.ulPinType == PIO_NOT_A_PIN) return false;
   if (pinDesc.pPort->PIO_PDSR & pinDesc.ulPin)
@@ -148,13 +148,13 @@ static FORCE_INLINE bool READ_VAR(const uint8_t pin) {
 }
 // write to a pin
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
-static FORCE_INLINE void WRITE(const uint8_t pin, const bool flag) {
+FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
   if (flag)
     Fastio[pin].base_address -> PIO_SODR = MASK(Fastio[pin].shift_count);
   else
     Fastio[pin].base_address -> PIO_CODR = MASK(Fastio[pin].shift_count);
 }
-static FORCE_INLINE void WRITE_VAR(const uint8_t pin, const bool flag) {
+FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
     if (flag)
@@ -165,7 +165,7 @@ static FORCE_INLINE void WRITE_VAR(const uint8_t pin, const bool flag) {
 }
 
 // set pin as input
-static FORCE_INLINE void SET_INPUT(const Pin pin) {
+FORCE_INLINE static void SET_INPUT(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
   pmc_enable_periph_clk(pinDesc.ulPeripheralId);
@@ -173,19 +173,19 @@ static FORCE_INLINE void SET_INPUT(const Pin pin) {
 }
 
 // set pin as output
-static FORCE_INLINE void SET_OUTPUT(const Pin pin) {
+FORCE_INLINE static void SET_OUTPUT(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
   PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
-static FORCE_INLINE void SET_OUTPUT_HIGH(const Pin pin) {
+FORCE_INLINE static void SET_OUTPUT_HIGH(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
   PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 
 // set pin as input with pullup
-static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
+FORCE_INLINE static void SET_INPUT_PULLUP(const Pin pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
   pmc_enable_periph_clk(pinDesc.ulPeripheralId);
@@ -193,12 +193,12 @@ static FORCE_INLINE void SET_INPUT_PULLUP(const Pin pin) {
 }
 
 // Shorthand
-static FORCE_INLINE void OUT_WRITE(const Pin pin, const uint8_t flag) {
+FORCE_INLINE static void OUT_WRITE(const Pin pin, const uint8_t flag) {
   SET_OUTPUT(pin);
   WRITE(pin, flag);
 }
 
-static FORCE_INLINE bool USEABLE_HARDWARE_PWM(const Pin pin) {
+FORCE_INLINE static bool USEABLE_HARDWARE_PWM(const Pin pin) {
   const uint32_t attr = g_APinDescription[pin].ulPinAttribute;
   if ((attr & PIN_ATTR_PWM) != 0 || (attr & PIN_ATTR_TIMER) != 0)
     return true;

@@ -201,7 +201,7 @@ class Stepper {
     // SCARA AB axes are in degrees, not mm
     //
     #if IS_SCARA
-      static FORCE_INLINE float get_axis_position_degrees(AxisEnum axis) { return get_axis_position_mm(axis); }
+      FORCE_INLINE static float get_axis_position_degrees(AxisEnum axis) { return get_axis_position_mm(axis); }
     #endif
 
     //
@@ -224,7 +224,7 @@ class Stepper {
     //
     // The direction of a single motor
     //
-    static FORCE_INLINE bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
+    FORCE_INLINE static bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
     static void enable_all_steppers();
     static void disable_e_steppers();
@@ -242,20 +242,20 @@ class Stepper {
     #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
-      static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
-      static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
-      static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }
-      static FORCE_INLINE void set_z3_lock(bool state) { locked_z3_motor = state; }
-      static FORCE_INLINE void set_z4_lock(bool state) { locked_z4_motor = state; }
+      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
+      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
+      FORCE_INLINE static void set_z3_lock(bool state) { locked_z3_motor = state; }
+      FORCE_INLINE static void set_z4_lock(bool state) { locked_z4_motor = state; }
     #elif ENABLED(Z_THREE_ENDSTOPS)
-      static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
-      static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
-      static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }
-      static FORCE_INLINE void set_z3_lock(bool state) { locked_z3_motor = state; }
+      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
+      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
+      FORCE_INLINE static void set_z3_lock(bool state) { locked_z3_motor = state; }
     #elif ENABLED(Z_TWO_ENDSTOPS)
-      static FORCE_INLINE void set_homing_flag(bool state) { performing_homing = state; }
-      static FORCE_INLINE void set_z_lock(bool state) { locked_z_motor = state; }
-      static FORCE_INLINE void set_z2_lock(bool state) { locked_z2_motor = state; }
+      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
+      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
     #endif
 
     #if ENABLED(BABYSTEPPING)
@@ -274,7 +274,7 @@ class Stepper {
     //
     // Triggered position of an axis in mm (not core-savvy)
     //
-    static FORCE_INLINE float triggered_position_mm(AxisEnum axis) {
+    FORCE_INLINE static float triggered_position_mm(AxisEnum axis) {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
 
@@ -288,7 +288,7 @@ class Stepper {
 
   private: /** Private Function */
 
-    static FORCE_INLINE hal_timer_t calc_timer(hal_timer_t step_rate) {
+    FORCE_INLINE static hal_timer_t calc_timer(hal_timer_t step_rate) {
       hal_timer_t timer;
 
       NOMORE(step_rate, MAX_STEP_FREQUENCY);
@@ -341,7 +341,7 @@ class Stepper {
 
     // Initializes the trapezoid generator from the current block. Called whenever a new
     // block begins.
-    static FORCE_INLINE void trapezoid_generator_reset() {
+    FORCE_INLINE static void trapezoid_generator_reset() {
 
       static int8_t last_extruder = -1;
 
