@@ -68,8 +68,8 @@
  * MESH_BED_LEVELING:
  *  M420  S               bedlevel.leveling_active              (bool)
  *                        mbl.z_offset                          (float)
- *                        GRID_MAX_POINTS_X                     (uint8)
- *                        GRID_MAX_POINTS_Y                     (uint8)
+ *                        GRID_MAX_POINTS_X                     (uint8_t)
+ *                        GRID_MAX_POINTS_Y                     (uint8_t)
  *  G29   S3  XYZ         z_values[][]                          (float x9, by default, up to float x 81) +288
  *
  * ABL_PLANAR:
@@ -78,9 +78,9 @@
  * AUTO_BED_LEVELING_BILINEAR:
  *                        GRID_MAX_POINTS_X                     (uint8_t)
  *                        GRID_MAX_POINTS_Y                     (uint8_t)
- *                        abl.bilinear_grid_spacing        (int x2)   from G29: (B-F)/X, (R-L)/Y
- *  G29   L F             abl.bilinear_start               (int x2)
- *                        abl.z_values[][]                 (float x9, up to float x256)
+ *                        abl.bilinear_grid_spacing             (int x2)   from G29: (B-F)/X, (R-L)/Y
+ *  G29   L F             abl.bilinear_start                    (int x2)
+ *                        abl.z_values[][]                      (float x9, up to float x256)
  *
  * AUTO_BED_LEVELING_UBL:
  *  G29 A                 bedlevel.leveling_active              (bool)
@@ -518,7 +518,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if !HAS_LCD_CONTRAST
-      const uint16_t lcd_contrast = 32;
+      const uint8_t lcd_contrast = 32;
     #endif
     EEPROM_WRITE(lcd_contrast);
 
