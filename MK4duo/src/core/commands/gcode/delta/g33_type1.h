@@ -55,7 +55,6 @@
     const float min_endstop = MIN3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
     LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= min_endstop;
     mechanics.delta_height += min_endstop;
-    mechanics.homed_height += min_endstop;
   }
 
   // Perform 3, 4, 6, 7 - factor adjustment.
@@ -67,7 +66,7 @@
   //  Diagonal rod length adjustment
   void Adjust(const uint8_t numFactors, const float v[]) {
 
-    const float oldHeightA = mechanics.homed_height + mechanics.delta_endstop_adj[A_AXIS];
+    const float oldHeightA = mechanics.delta_height + mechanics.delta_endstop_adj[A_AXIS];
 
     // Update endstop adjustments
     mechanics.delta_endstop_adj[A_AXIS] += v[0];
@@ -88,9 +87,6 @@
     }
 
     mechanics.recalc_delta_settings();
-    const float heightError = mechanics.homed_height + mechanics.delta_endstop_adj[A_AXIS] - oldHeightA - v[0];
-    mechanics.delta_height -= heightError;
-    mechanics.homed_height -= heightError;
 
   }
 
