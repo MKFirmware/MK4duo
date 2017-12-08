@@ -520,7 +520,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
   block_t* block = &block_buffer[block_buffer_head];
 
   // Clear the block flags
-  block->flag = 0;
+  block->flag = 0x00;
 
   // Set direction bits
   block->direction_bits = dirb;
@@ -1247,7 +1247,9 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
     };
     DISABLE_STEPPER_INTERRUPT();
     buffer_steps(midway, fr_mm_s, extruder);
+    const uint8_t next = block_buffer_head;
     buffer_steps(target, fr_mm_s, extruder);
+    SBI(block_buffer[next].flag, BLOCK_BIT_CONTINUED);
     ENABLE_STEPPER_INTERRUPT();
   }
   else
