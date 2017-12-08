@@ -23,7 +23,7 @@
 // NOTE - the HAL version of the rrd device uses a generic ST7920 device.  See the
 // file u8g_dev_st7920_128x64_HAL.cpp for the HAL version.
 
-#include "../../../mk4duo.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(U8GLIB_ST7920)
 

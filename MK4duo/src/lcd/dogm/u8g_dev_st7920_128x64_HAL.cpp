@@ -56,7 +56,7 @@
 
 */
 
-#include "../../../mk4duo.h"
+#include "../../../MK4duo.h"
 
 #if ENABLED(DOGLCD)
 
