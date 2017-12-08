@@ -556,7 +556,7 @@
     #endif
     endstops.enable(true); // Enable endstops for next homing move
 
-    bool come_back = parser.seen('B');
+    bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];
     float old_feedrate_mm_s;
     if (come_back) {
