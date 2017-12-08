@@ -3076,7 +3076,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(submenu, MSG_FILAMENT, lcd_control_filament_menu);
 
     #if HAS_LCD_CONTRAST
-      MENU_ITEM_EDIT_CALLBACK(int3, MSG_CONTRAST, &lcd_contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
+      MENU_ITEM_EDIT_CALLBACK(int8, MSG_CONTRAST, &lcd_contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
     #endif
     #if ENABLED(FWRETRACT)
       MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
@@ -4944,7 +4944,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
 #if HAS_LCD_CONTRAST
 
-  void set_lcd_contrast(const uint16_t value) {
+  void set_lcd_contrast(const uint8_t value) {
     lcd_contrast = constrain(value, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX);
     u8g.setContrast(lcd_contrast);
   }
