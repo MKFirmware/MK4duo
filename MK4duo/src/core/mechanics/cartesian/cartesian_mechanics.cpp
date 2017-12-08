@@ -90,14 +90,14 @@
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
+    #if ENABLED(CNC_WORKSPACE_PLANES)
+      workspace_plane = PLANE_XY;
+    #endif
+
     // Always home with tool 0 active
     #if HOTENDS > 1
       const uint8_t old_tool_index = tools.active_extruder;
       tools.change(0, 0, true);
-    #endif
-
-    #if ENABLED(CNC_WORKSPACE_PLANES)
-      workspace_plane = PLANE_XY;
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -110,7 +110,7 @@
     #endif
     endstops.enable(true); // Enable endstops for next homing move
 
-    bool come_back = parser.seen('B');
+    bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];
     float old_feedrate_mm_s;
     if (come_back) {
@@ -181,7 +181,7 @@
         homeaxis(X_AXIS);
 
         // Remember this extruder's position for later tool change
-        inactive_hotend_x_pos = NATIVE_X_POSITION(current_position[X_AXIS]);
+        inactive_hotend_x_pos = current_position[X_AXIS];
 
         // Home the 1st (left) extruder
         tools.active_extruder = 0;
