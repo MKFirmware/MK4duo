@@ -146,11 +146,21 @@ class Planner {
     static int32_t position[NUM_AXIS];
 
     /**
-     * A ring buffer of moves described in steps
+     * The move buffer, calculated in stepper steps
+     *
+     * block_buffer is a ring buffer...
+     *
+     *             head,tail : indexes for write,read
+     *            head==tail : the buffer is empty
+     *            head!=tail : blocks are in the buffer
+     *   head==(tail-1)%size : the buffer is full
+     *
+     *  Writer of head is Planner::_buffer_line().
+     *  Reader of tail is Stepper::isr(). Always consider tail busy / read-only
      */
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,  // Index of the next block to be pushed
-                            block_buffer_tail;
+                            block_buffer_tail;  // Index of the busy block, if any
 
     /**
      * Limit where 64bit math is necessary for acceleration calculation
@@ -207,9 +217,9 @@ class Planner {
     /**
      * Number of moves currently in the planner
      */
-    static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
+    FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
 
-    static bool is_full() { return (block_buffer_tail == BLOCK_MOD(block_buffer_head + 1)); }
+    FORCE_INLINE static bool is_full() { return (block_buffer_tail == next_block_index(block_buffer_head)); }
 
     /**
      * Planner::buffer_steps
@@ -350,8 +360,8 @@ class Planner {
     /**
      * Get the index of the next / previous block in the ring buffer
      */
-    static int8_t next_block_index(const int8_t block_index) { return BLOCK_MOD(block_index + 1); }
-    static int8_t prev_block_index(const int8_t block_index) { return BLOCK_MOD(block_index - 1); }
+    static constexpr int8_t next_block_index(const int8_t block_index) { return BLOCK_MOD(block_index + 1); }
+    static constexpr int8_t prev_block_index(const int8_t block_index) { return BLOCK_MOD(block_index - 1); }
 
     /**
      * Calculate the distance (not time) it takes to accelerate
@@ -384,10 +394,10 @@ class Planner {
       return SQRT(sq(target_velocity) - 2 * accel * distance);
     }
 
-    static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
+    static void calculate_trapezoid_for_block(block_t * const block, const float &entry_factor, const float &exit_factor);
 
-    static void reverse_pass_kernel(block_t* const current, const block_t *next);
-    static void forward_pass_kernel(const block_t *previous, block_t* const current);
+    static void reverse_pass_kernel(block_t * const current, const block_t * const next);
+    static void forward_pass_kernel(const block_t * const previous, block_t * const current);
 
     static void reverse_pass();
     static void forward_pass();

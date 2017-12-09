@@ -109,9 +109,9 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 #if ENABLED(LIN_ADVANCE)
 
-  hal_timer_t  Stepper::nextMainISR = 0,
-                  Stepper::nextAdvanceISR = ADV_NEVER,
-                  Stepper::eISR_Rate = ADV_NEVER;
+  hal_timer_t Stepper::nextMainISR = 0,
+              Stepper::nextAdvanceISR = ADV_NEVER,
+              Stepper::eISR_Rate = ADV_NEVER;
 
   volatile int  Stepper::e_steps[DRIVER_EXTRUDERS];
 
@@ -147,7 +147,7 @@ volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 long            Stepper::acceleration_time,
                 Stepper::deceleration_time;
 
-hal_timer_t  Stepper::acc_step_rate, // needed for deceleration start point
+hal_timer_t     Stepper::acc_step_rate,     // needed for deceleration start point
                 Stepper::OCR1A_nominal;
 
 uint8_t         Stepper::step_loops,
@@ -479,6 +479,9 @@ void Stepper::isr() {
   // Time remaining before the next step?
   if (step_remaining) {
 
+    // Make sure endstops are updated
+    if (ENDSTOPS_ENABLED) endstops.update();
+
     // Next ISR either for endstops or stepping
     ocr_val = step_remaining <= ENDSTOP_NOMINAL_OCR_VAL ? step_remaining : ENDSTOP_NOMINAL_OCR_VAL;
     step_remaining -= ocr_val;
@@ -539,8 +542,7 @@ void Stepper::isr() {
   // If there is no current block, attempt to pop one from the buffer
   if (!current_block) {
     // Anything in the buffer?
-    current_block = planner.get_current_block();
-    if (current_block) {
+    if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
 
       #if STEPPER_DIRECTION_DELAY > 0
@@ -618,48 +620,6 @@ void Stepper::isr() {
     #endif
   #endif
 
-  #define _COUNTER(AXIS) counter_## AXIS
-  #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
-  #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
-
-  // Advance the Bresenham counter; start a pulse if the axis needs a step
-  #define PULSE_START(AXIS) \
-    _COUNTER(AXIS) += current_block->steps[AXIS ##_AXIS]; \
-    if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
-
-  // Stop an active pulse, reset the Bresenham counter, update the position
-  #define PULSE_STOP(AXIS) \
-    if (_COUNTER(AXIS) > 0) { \
-      _COUNTER(AXIS) -= current_block->step_event_count; \
-      machine_position[AXIS ##_AXIS] += count_direction[AXIS ##_AXIS]; \
-      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
-    }
-
-  #define _COUNT_STEPPERS_0 0
-  #if HAS_X_STEP
-    #define _COUNT_STEPPERS_1 (_COUNT_STEPPERS_0 + 1)
-  #else
-    #define _COUNT_STEPPERS_1 _COUNT_STEPPERS_0
-  #endif
-  #if HAS_Y_STEP
-    #define _COUNT_STEPPERS_2 (_COUNT_STEPPERS_1 + 1)
-  #else
-    #define _COUNT_STEPPERS_2 _COUNT_STEPPERS_1
-  #endif
-  #if HAS_Z_STEP
-    #define _COUNT_STEPPERS_3 (_COUNT_STEPPERS_2 + 1)
-  #else
-    #define _COUNT_STEPPERS_3 _COUNT_STEPPERS_2
-  #endif
-  #if DISABLED(LIN_ADVANCE)
-    #define _COUNT_STEPPERS_4 (_COUNT_STEPPERS_3 + 1)
-  #else
-    #define _COUNT_STEPPERS_4 _COUNT_STEPPERS_3
-  #endif
-
-  #define CYCLES_EATEN_XYZE (_COUNT_STEPPERS_4 * 5)
-  #define EXTRA_CYCLES_XYZE (STEP_PULSE_CYCLES - (CYCLES_EATEN_XYZE))
-
   // Take multiple steps per interrupt (For high speed moves)
   bool all_steps_done = false;
   for (uint8_t i = step_loops; i--;) {
@@ -689,9 +649,88 @@ void Stepper::isr() {
 
     #endif // LIN_ADVANCE
 
-    // If a minimum pulse time was specified get the CPU clock
+    #define _COUNTER(AXIS) counter_## AXIS
+    #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
+    #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
+
+    // Advance the Bresenham counter; start a pulse if the axis needs a step
+    #define PULSE_START(AXIS) \
+      _COUNTER(AXIS) += current_block->steps[AXIS ##_AXIS]; \
+      if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
+
+    // Stop an active pulse, reset the Bresenham counter, update the position
+    #define PULSE_STOP(AXIS) \
+      if (_COUNTER(AXIS) > 0) { \
+        _COUNTER(AXIS) -= current_block->step_event_count; \
+        machine_position[AXIS ##_AXIS] += count_direction[AXIS ##_AXIS]; \
+        _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
+      }
+
+    /**
+     * Estimate the number of cycles that the stepper logic already takes
+     * up between the start and stop of the X stepper pulse.
+     *
+     * Currently this uses very modest estimates of around 5 cycles.
+     * True values may be derived by careful testing.
+     *
+     * Once any delay is added, the cost of the delay code itself
+     * may be subtracted from this value to get a more accurate delay.
+     * Delays under 20 cycles (1.25µs) will be very accurate, using NOPs.
+     * Longer delays use a loop. The resolution is 8 cycles.
+     */
+    #if HAS_X_STEP
+      #define _CYCLE_APPROX_1 5
+    #else
+      #define _CYCLE_APPROX_1 0
+    #endif
+    #if ENABLED(X_TWO_STEPPER)
+      #define _CYCLE_APPROX_2 _CYCLE_APPROX_1 + 4
+    #else
+      #define _CYCLE_APPROX_2 _CYCLE_APPROX_1
+    #endif
+    #if HAS_Y_STEP
+      #define _CYCLE_APPROX_3 _CYCLE_APPROX_2 + 5
+    #else
+      #define _CYCLE_APPROX_3 _CYCLE_APPROX_2
+    #endif
+    #if ENABLED(Y_TWO_STEPPER)
+      #define _CYCLE_APPROX_4 _CYCLE_APPROX_3 + 4
+    #else
+      #define _CYCLE_APPROX_4 _CYCLE_APPROX_3
+    #endif
+    #if HAS_Z_STEP
+      #define _CYCLE_APPROX_5 _CYCLE_APPROX_4 + 5
+    #else
+      #define _CYCLE_APPROX_5 _CYCLE_APPROX_4
+    #endif
+    #if ENABLED(Z_TWO_STEPPER)
+      #define _CYCLE_APPROX_6 _CYCLE_APPROX_5 + 4
+    #else
+      #define _CYCLE_APPROX_6 _CYCLE_APPROX_5
+    #endif
+    #if DISABLED(LIN_ADVANCE)
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        #define _CYCLE_APPROX_7 _CYCLE_APPROX_6 + (MIXING_STEPPERS) * 6
+      #else
+        #define _CYCLE_APPROX_7 _CYCLE_APPROX_6 + 5
+      #endif
+    #else
+      #define _CYCLE_APPROX_7 _CYCLE_APPROX_6
+    #endif
+
+    #define CYCLES_EATEN_XYZE _CYCLE_APPROX_7
+    #define EXTRA_CYCLES_XYZE (STEP_PULSE_CYCLES - (CYCLES_EATEN_XYZE))
+
+    /**
+     * If a minimum pulse time was specified get the timer 0 value.
+     *
+     * On AVR the TCNT0 timer has an 8x prescaler, so it increments every 8 cycles.
+     * That's every 0.5µs on 16MHz and every 0.4µs on 20MHz.
+     * 20 counts of TCNT0 -by itself- is a good pulse delay.
+     * 10µs = 160 or 200 cycles.
+     */
     #if EXTRA_CYCLES_XYZE > 20
-      uint32_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+      hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
     #endif
 
     #if HAS_X_STEP
@@ -753,7 +792,7 @@ void Stepper::isr() {
 
     // For a minimum pulse time wait before stopping pulses
     #if EXTRA_CYCLES_XYZE > 20
-      while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
+      while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* noop */ }
       pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
     #elif EXTRA_CYCLES_XYZE > 0
       DELAY_NOPS(EXTRA_CYCLES_XYZE);
@@ -880,12 +919,12 @@ void Stepper::isr() {
     NOMORE(acc_step_rate, current_block->nominal_rate);
 
     // step_rate to timer interval
-    const hal_timer_t timer = calc_timer(acc_step_rate);
+    const hal_timer_t interval = calc_timer_interval(acc_step_rate);
 
-    SPLIT(timer);  // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
+    SPLIT(interval);  // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
 
-    acceleration_time += timer;
+    acceleration_time += interval;
 
     #if ENABLED(LIN_ADVANCE)
 
@@ -898,7 +937,7 @@ void Stepper::isr() {
         #endif
       }
 
-      eISR_Rate = adv_rate(e_steps[TOOL_E_INDEX], timer, step_loops);
+      eISR_Rate = adv_rate(e_steps[TOOL_E_INDEX], interval, step_loops);
 
     #endif // ENABLED(LIN_ADVANCE)
   }
@@ -915,12 +954,11 @@ void Stepper::isr() {
     }
 
     // step_rate to timer interval
-    const hal_timer_t timer = calc_timer(step_rate);
+    const hal_timer_t interval = calc_timer_interval(step_rate);
 
-    SPLIT(timer); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
+    SPLIT(interval); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
-
-    deceleration_time += timer;
+    deceleration_time += interval;
 
     #if ENABLED(LIN_ADVANCE)
 
@@ -933,7 +971,7 @@ void Stepper::isr() {
         #endif
       }
 
-      eISR_Rate = adv_rate(e_steps[TOOL_E_INDEX], timer, step_loops);
+      eISR_Rate = adv_rate(e_steps[TOOL_E_INDEX], interval, step_loops);
 
     #endif // ENABLED(LIN_ADVANCE)
   }
@@ -950,7 +988,6 @@ void Stepper::isr() {
 
     SPLIT(OCR1A_nominal); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
-
     // ensure we're running at the correct step rate, even if we just came off an acceleration
     step_loops = step_loops_nominal;
   }
@@ -989,6 +1026,9 @@ void Stepper::isr() {
 
 #if ENABLED(LIN_ADVANCE)
 
+  #define CYCLES_EATEN_E (DRIVER_EXTRUDERS * 5)
+  #define EXTRA_CYCLES_E (STEP_PULSE_CYCLES - (CYCLES_EATEN_E))
+
   // Timer interrupt for E. e_steps is set in the main routine;
   void Stepper::advance_isr() {
 
@@ -1023,14 +1063,11 @@ void Stepper::isr() {
       #endif
     #endif
 
-    #define CYCLES_EATEN_E (DRIVER_EXTRUDERS * 5)
-    #define EXTRA_CYCLES_E (STEP_PULSE_CYCLES - (CYCLES_EATEN_E))
-
     // Step all E steppers that have steps
     for (uint8_t i = step_loops; i--;) {
 
       #if EXTRA_CYCLES_E > 20
-        uint32_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+        hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
       #endif
 
       START_E_PULSE(0);
@@ -1052,7 +1089,7 @@ void Stepper::isr() {
 
       // For a minimum pulse time wait before stopping pulses
       #if EXTRA_CYCLES_E > 20
-        while (EXTRA_CYCLES_E > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
+        while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
         pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
       #elif EXTRA_CYCLES_E > 0
         DELAY_NOPS(EXTRA_CYCLES_E);
@@ -1077,7 +1114,7 @@ void Stepper::isr() {
 
       // For a minimum pulse time wait before stopping low pulses
       #if EXTRA_CYCLES_E > 20
-        if (i) while (EXTRA_CYCLES_E > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
+        if (i) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
       #elif EXTRA_CYCLES_E > 0
         if (i) DELAY_NOPS(EXTRA_CYCLES_E);
       #endif
@@ -1654,8 +1691,8 @@ void Stepper::report_positions() {
   #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
 
   #if EXTRA_CYCLES_BABYSTEP > 20
-    #define _SAVE_START const uint32_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
+    #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
+    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
   #else
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0

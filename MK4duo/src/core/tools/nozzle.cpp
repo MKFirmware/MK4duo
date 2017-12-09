@@ -149,8 +149,8 @@
     for (uint8_t s = 0; s < strokes; s++) {
       for (uint8_t i = 0; i < NOZZLE_CLEAN_CIRCLE_FN; i++) {
         mechanics.do_blocking_move_to_xy(
-          middle[X_AXIS] + SIN((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius,
-          middle[Y_AXIS] + COS((M_2_PI / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius
+          middle[X_AXIS] + SIN((RADIANS(360) / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius,
+          middle[Y_AXIS] + COS((RADIANS(360) / NOZZLE_CLEAN_CIRCLE_FN) * i) * radius
         );
       }
     }
