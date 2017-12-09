@@ -276,7 +276,6 @@ class Mechanics {
      * The final current_position may not be the one that was requested
      */
     virtual void do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s=0.0);
-            void do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s=0.0);
             void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
             void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
             void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);

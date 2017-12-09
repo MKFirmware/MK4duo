@@ -224,9 +224,6 @@ void Mechanics::do_blocking_move_to(const float &rx, const float &ry, const floa
     if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
   #endif
 }
-void Mechanics::do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
-}
 void Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
 }
