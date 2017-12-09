@@ -517,10 +517,9 @@ void EEPROM::Postprocess() {
       }
     #endif
 
-    #if !HAS_LCD_CONTRAST
-      const uint8_t lcd_contrast = 32;
+    #if HAS_LCD_CONTRAST
+      EEPROM_WRITE(lcd_contrast);
     #endif
-    EEPROM_WRITE(lcd_contrast);
 
     #if ENABLED(FWRETRACT)
       EEPROM_WRITE(fwretract.autoretract_enabled);
@@ -871,10 +870,9 @@ void EEPROM::Postprocess() {
         }
       #endif
 
-      #if !HAS_LCD_CONTRAST
-        uint16_t lcd_contrast;
+      #if HAS_LCD_CONTRAST
+        EEPROM_READ(lcd_contrast);
       #endif
-      EEPROM_READ(lcd_contrast);
 
       #if ENABLED(FWRETRACT)
         EEPROM_READ(fwretract.autoretract_enabled);
