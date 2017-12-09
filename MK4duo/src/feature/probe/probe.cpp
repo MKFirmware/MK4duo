@@ -37,6 +37,43 @@ bool  Probe::enabled  = false;
   const int Probe::z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
 #endif
 
+#if ENABLED(Z_PROBE_ALLEN_KEY)
+
+  FORCE_INLINE void do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s/*=0.0*/) {
+    mechanics.do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+  }
+
+  void Probe::run_deploy_moves_script() {
+
+    const float z_probe_deploy_start_location[]  = Z_PROBE_DEPLOY_START_LOCATION,
+                z_probe_deploy_end_location[]    = Z_PROBE_DEPLOY_END_LOCATION;
+
+    // Move to the start position to initiate deployment
+    do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+
+    // Move to engage deployment
+    do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+
+    // Move to trigger deployment
+    do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+  }
+  void run_stow_moves_script() {
+
+    const float z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
+                z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
+
+    // Move to the start position to initiate retraction
+    do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+
+    // Move the nozzle down to push the Z probe into retracted position
+    do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+
+    // Move up for safety
+    do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+  }
+
+#endif
+
 // returns false for ok and true for failure
 bool Probe::set_deployed(const bool deploy) {
 
@@ -108,7 +145,7 @@ bool Probe::set_deployed(const bool deploy) {
         SERIAL_LM(ER, "Z-Probe failed");
         LCD_ALERTMESSAGEPGM("Err: ZPROBE");
       }
-      stop();
+      printer.Stop();
       return true;
     }
   #endif
@@ -367,39 +404,6 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     #endif
 
     return false;
-  }
-
-#endif
-
-#if ENABLED(Z_PROBE_ALLEN_KEY)
-
-  void Probe::run_deploy_moves_script() {
-
-    const float z_probe_deploy_start_location[] = Z_PROBE_DEPLOY_START_LOCATION,
-                z_probe_deploy_end_location[] = Z_PROBE_DEPLOY_END_LOCATION;
-
-    // Move to the start position to initiate deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
-
-    // Move to engage deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
-
-    // Move to trigger deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
-  }
-  void run_stow_moves_script() {
-
-    const float z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
-                z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
-
-    // Move to the start position to initiate retraction
-    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
-
-    // Move the nozzle down to push the Z probe into retracted position
-    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
-
-    // Move up for safety
-    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
 
 #endif
