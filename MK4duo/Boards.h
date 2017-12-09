@@ -66,7 +66,8 @@
 #define BOARD_MKS_MINI          41    // MKS MINI 1.0
 #define BOARD_MEGATRONICS       70    // Megatronics
 #define BOARD_RAMBO            301    // Rambo
-#define BOARD_MINIRAMBO        302    // Mini-Rambo
+#define BOARD_MINIRAMBO_10A    302    // Mini-Rambo 1.0a
+#define BOARD_MINIRAMBO        303    // Mini-Rambo
 #define BOARD_PIBOT            316    // PiBot Controller Rev2.0
 #define BOARD_MEGATRONICS_2    701    // Megatronics v2.0
 #define BOARD_MEGATRONICS_3    703    // Megatronics v3.0
