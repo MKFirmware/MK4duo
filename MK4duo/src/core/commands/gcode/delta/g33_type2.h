@@ -241,9 +241,7 @@
 
         if (!home_delta()) return false;
 
-        SERIAL_MSG("Tuning E");
-        SERIAL_CHR(tolower(axis_codes[axis]));
-        SERIAL_EOL();
+        SERIAL_EMT("Tuning E", axis_codes[axis]);
 
         if (isnan(probe_points(z_at_pt, 3, true, false))) return false;
         LOOP_CAL_ALL(axis) z_at_pt[axis] -= z_at_pt_base[axis];
@@ -305,9 +303,7 @@
 
         if (!home_delta()) return false;
 
-        SERIAL_MSG("Tuning T");
-        SERIAL_CHR(tolower(axis_codes[axis]));
-        SERIAL_EOL();
+        SERIAL_EMT("Tuning T", axis_codes[axis]);
 
         if (isnan(probe_points(z_at_pt, 3, true, false))) return false;
         LOOP_CAL_ALL(i) z_at_pt[i] -= z_at_pt_base[i];
