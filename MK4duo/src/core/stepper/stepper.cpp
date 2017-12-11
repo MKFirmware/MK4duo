@@ -540,10 +540,13 @@ void Stepper::isr() {
   #endif
 
   // If there is no current block, attempt to pop one from the buffer
+  bool first_step = false;
   if (!current_block) {
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
+      HAL_timer_set_current_count(PULSE_TIMER_NUM, 0);
+      first_step = true;
 
       #if STEPPER_DIRECTION_DELAY > 0
         HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
@@ -730,7 +733,7 @@ void Stepper::isr() {
      * 10µs = 160 or 200 cycles.
      */
     #if EXTRA_CYCLES_XYZE > 20
-      hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+      hal_timer_t pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
     #endif
 
     #if HAS_X_STEP
@@ -792,8 +795,8 @@ void Stepper::isr() {
 
     // For a minimum pulse time wait before stopping pulses
     #if EXTRA_CYCLES_XYZE > 20
-      while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* noop */ }
-      pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+      while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* noop */ }
+      pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
     #elif EXTRA_CYCLES_XYZE > 0
       DELAY_NOPS(EXTRA_CYCLES_XYZE);
     #endif
@@ -883,7 +886,7 @@ void Stepper::isr() {
 
     // For minimum pulse time wait before stopping pulses
     #if EXTRA_CYCLES_XYZE > 20
-      if (i) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
+      if (i) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
     #elif EXTRA_CYCLES_XYZE > 0
       if (i) DELAY_NOPS(EXTRA_CYCLES_XYZE);
     #endif
@@ -912,8 +915,14 @@ void Stepper::isr() {
   // Calculate new timer value
   if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
 
-    HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-    acc_step_rate += current_block->initial_rate;
+    if (first_step) {
+      acc_step_rate = current_block->initial_rate;
+      acceleration_time = 0;
+    }
+    else {
+      HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
+      acc_step_rate += current_block->initial_rate;
+    }
 
     // upper limit
     NOMORE(acc_step_rate, current_block->nominal_rate);
@@ -994,9 +1003,9 @@ void Stepper::isr() {
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
-      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US));
-      HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count);
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
+      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US));
+      HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
@@ -1067,7 +1076,7 @@ void Stepper::isr() {
     for (uint8_t i = step_loops; i--;) {
 
       #if EXTRA_CYCLES_E > 20
-        hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+        hal_timer_t pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
       #endif
 
       START_E_PULSE(0);
@@ -1089,8 +1098,8 @@ void Stepper::isr() {
 
       // For a minimum pulse time wait before stopping pulses
       #if EXTRA_CYCLES_E > 20
-        while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
-        pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
+        while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
+        pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
       #elif EXTRA_CYCLES_E > 0
         DELAY_NOPS(EXTRA_CYCLES_E);
       #endif
@@ -1114,7 +1123,7 @@ void Stepper::isr() {
 
       // For a minimum pulse time wait before stopping low pulses
       #if EXTRA_CYCLES_E > 20
-        if (i) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * STEPPER_TIMER_PRESCALE) { /* noop */ }
+        if (i) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
       #elif EXTRA_CYCLES_E > 0
         if (i) DELAY_NOPS(EXTRA_CYCLES_E);
       #endif
@@ -1136,7 +1145,7 @@ void Stepper::isr() {
     // Is the next advance ISR scheduled before the next main ISR?
     if (nextAdvanceISR <= nextMainISR) {
       // Set up the next interrupt
-      HAL_TIMER_SET_STEPPER_COUNT(nextAdvanceISR);
+      HAL_timer_set_count(STEPPER_TIMER, nextAdvanceISR);
       // New interval for the next main ISR
       if (nextMainISR) nextMainISR -= nextAdvanceISR;
       // Will call Stepper::advance_isr on the next interrupt
@@ -1144,7 +1153,7 @@ void Stepper::isr() {
     }
     else {
       // The next main ISR comes first
-      HAL_TIMER_SET_STEPPER_COUNT(nextMainISR);
+      HAL_timer_set_count(STEPPER_TIMER, nextMainISR);
       // New interval for the next advance ISR, if any
       if (nextAdvanceISR && nextAdvanceISR != ADV_NEVER)
         nextAdvanceISR -= nextMainISR;
@@ -1154,9 +1163,9 @@ void Stepper::isr() {
 
     // Don't run the ISR faster than possible
     #if ENABLED(ARDUINO_ARCH_SAM)
-      hal_timer_t  stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER),
-                      stepper_timer_current_count = HAL_timer_get_current_count(STEPPER_TIMER) + 8 * STEPPER_TIMER_TICKS_PER_US;
-      HAL_TIMER_SET_STEPPER_COUNT(stepper_timer_count < stepper_timer_current_count ? stepper_timer_current_count : stepper_timer_count);
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
+                  stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
+      HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
     #else
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
@@ -1692,7 +1701,7 @@ void Stepper::report_positions() {
 
   #if EXTRA_CYCLES_BABYSTEP > 20
     #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
+    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
   #else
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0

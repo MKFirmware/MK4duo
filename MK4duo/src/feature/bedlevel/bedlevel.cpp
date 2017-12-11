@@ -240,13 +240,17 @@
           // so compensation will give the right stepper counts.
           unapply_leveling(mechanics.current_position);
 
+        mechanics.sync_plan_position();
+
       #endif // ABL
     }
   }
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
-    void Bedlevel::set_z_fade_height(const float zfh) {
+    void Bedlevel::set_z_fade_height(const float zfh, const bool do_report/*=true*/) {
+
+      if (z_fade_height == zfh) return;
 
       const bool level_active = leveling_active;
 
@@ -259,6 +263,12 @@
       force_fade_recalc();
 
       if (level_active) {
+        const float oldpos[] = {
+          mechanics.current_position[X_AXIS],
+          mechanics.current_position[Y_AXIS],
+          mechanics.current_position[Z_AXIS]
+        };
+
         #if ENABLED(AUTO_BED_LEVELING_UBL)
           set_bed_leveling_enabled(true);  // turn back on after changing fade height
         #else
@@ -269,7 +279,11 @@
               Z_AXIS
             #endif
           );
+          mechanics.sync_plan_position();
         #endif
+
+        if (do_report && memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+          mechanics.report_current_position();
       }
     }
 
