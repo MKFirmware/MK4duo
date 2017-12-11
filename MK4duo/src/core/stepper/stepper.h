@@ -185,7 +185,7 @@ class Stepper {
     //
     // Get the position of a stepper, in steps
     //
-    static long position(AxisEnum axis);
+    static long position(const AxisEnum axis);
 
     //
     // Report the positions of the steppers, in steps
@@ -195,13 +195,13 @@ class Stepper {
     //
     // Get the position (mm) of an axis based on stepper position(s)
     //
-    static float get_axis_position_mm(AxisEnum axis);
+    static float get_axis_position_mm(const AxisEnum axis);
 
     //
     // SCARA AB axes are in degrees, not mm
     //
     #if IS_SCARA
-      FORCE_INLINE static float get_axis_position_degrees(AxisEnum axis) { return get_axis_position_mm(axis); }
+      FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
     #endif
 
     //
@@ -224,7 +224,7 @@ class Stepper {
     //
     // The direction of a single motor
     //
-    FORCE_INLINE static bool motor_direction(AxisEnum axis) { return TEST(last_direction_bits, axis); }
+    FORCE_INLINE static bool motor_direction(const AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
     static void enable_all_steppers();
     static void disable_e_steppers();
@@ -269,7 +269,7 @@ class Stepper {
     //
     // Handle a triggered endstop
     //
-    static void endstop_triggered(AxisEnum axis);
+    static void endstop_triggered(const AxisEnum axis);
 
     //
     // Triggered position of an axis in mm (not core-savvy)

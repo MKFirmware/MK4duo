@@ -174,7 +174,7 @@
     uint8_t error_flag = 0;
 
     if (eeprom.calc_num_meshes() < 1) {
-      SERIAL_EM("?Insufficient EEPROM storage for a mesh of this size.");
+      SERIAL_EM("?Mesh too big for EEPROM.");
       error_flag++;
     }
 

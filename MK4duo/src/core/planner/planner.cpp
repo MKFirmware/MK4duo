@@ -1185,7 +1185,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
 } // buffer_steps()
 
 /**
- * Planner::_buffer_line
+ * Planner::buffer_segment
  *
  * Add a new linear movement to the buffer in axis units.
  *
@@ -1195,7 +1195,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
  *  fr_mm_s   - (target) speed of the move
  *  extruder  - target extruder
  */
-void Planner::_buffer_line(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder) {
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
@@ -1207,7 +1207,7 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
   };
 
   /* <-- add a slash to enable
-    SERIAL_MV("  _buffer_line FR:", fr_mm_s);
+    SERIAL_MV("  buffer_segment FR:", fr_mm_s);
     #if IS_KINEMATIC
       SERIAL_MV(" A:", a);
       SERIAL_MV(" (", position[A_AXIS]);
@@ -1240,25 +1240,30 @@ void Planner::_buffer_line(const float &a, const float &b, const float &c, const
 
   // Always split the first move into two (if not homing or probing)
   if (!blocks_queued()) {
+
+    DISABLE_STEPPER_INTERRUPT();
+
     const int32_t midway[XYZE] = {
       (position[X_AXIS] + target[X_AXIS]) >> 1,
       (position[Y_AXIS] + target[Y_AXIS]) >> 1,
       (position[Z_AXIS] + target[Z_AXIS]) >> 1,
       (position[E_AXIS] + target[E_AXIS]) >> 1
     };
-    DISABLE_STEPPER_INTERRUPT();
+
     buffer_steps(midway, fr_mm_s, extruder);
     const uint8_t next = block_buffer_head;
     buffer_steps(target, fr_mm_s, extruder);
     SBI(block_buffer[next].flag, BLOCK_BIT_CONTINUED);
+
     ENABLE_STEPPER_INTERRUPT();
+
   }
   else
     buffer_steps(target, fr_mm_s, extruder);
 
   stepper.wake_up();
 
-} // _buffer_line()
+} // buffer_segment()
 
 /**
  * Add a new linear movement to the buffer.
@@ -1284,7 +1289,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
     // Calculate Hysteresis
     mechanics.insert_hysteresis_correction(rx, ry, rz, e);
   #endif
-  _buffer_line(rx, ry, rz, e, fr_mm_s, extruder);
+  buffer_segment(rx, ry, rz, e, fr_mm_s, extruder);
 }
 
 /**
@@ -1316,9 +1321,9 @@ void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s
 
   #if IS_KINEMATIC
     mechanics.Transform(raw);
-    _buffer_line(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder);
   #else
-    _buffer_line(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder);
   #endif
 }
 
