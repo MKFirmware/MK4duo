@@ -92,6 +92,12 @@ void Mechanics::get_cartesian_from_steppers() {
  * Set the current_position for an axis based on
  * the stepper positions, removing any leveling that
  * may have been applied.
+ *
+ * To prevent small shifts in axis position always call
+ * SYNC_PLAN_POSITION_KINEMATIC after updating axes with this.
+ *
+ * To keep hosts in sync, always call report_current_position
+ * after updating the current_position.
  */
 void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
   get_cartesian_from_steppers();

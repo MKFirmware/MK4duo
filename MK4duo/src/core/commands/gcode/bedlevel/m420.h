@@ -43,6 +43,12 @@
    */
   inline void gcode_M420(void) {
 
+    const float oldpos[] = {
+      mechanics.current_position[X_AXIS],
+      mechanics.current_position[Y_AXIS],
+      mechanics.current_position[Z_AXIS]
+    };
+
     #if ENABLED(AUTO_BED_LEVELING_UBL)
 
       // L to load a mesh from the EEPROM
@@ -103,12 +109,15 @@
       #endif
     }
 
-    const bool to_enable = parser.boolval('S');
-    if (parser.seen('S')) bedlevel.set_bed_leveling_enabled(to_enable);
-
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       if (parser.seen('Z')) bedlevel.set_z_fade_height(parser.value_linear_units());
     #endif
+
+    bool to_enable = false;
+    if (parser.seen('S')) {
+      to_enable = parser.value_bool();
+      bedlevel.set_bed_leveling_enabled(to_enable);
+    }
 
     const bool new_status = bedlevel.leveling_active;
 
@@ -124,6 +133,11 @@
       else
         SERIAL_EM(MSG_OFF);
     #endif
+
+    // Report change in position
+    if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+      mechanics.report_current_position();
+
   }
 
 #endif // HAS_LEVELING

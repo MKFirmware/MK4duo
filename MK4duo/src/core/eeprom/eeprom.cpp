@@ -201,6 +201,12 @@ EEPROM eeprom;
  */
 void EEPROM::Postprocess() {
 
+  const float oldpos[] = {
+    mechanics.current_position[X_AXIS],
+    mechanics.current_position[Y_AXIS],
+    mechanics.current_position[Z_AXIS]
+  };
+
   // steps per s2 needs to be updated to agree with units per s2
   mechanics.reset_acceleration_rates();
 
@@ -209,10 +215,6 @@ void EEPROM::Postprocess() {
   #if MECH(DELTA)
     mechanics.recalc_delta_settings();
   #endif
-
-  // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
-  // and init stepper.count[], planner.position[] with current_position
-  mechanics.refresh_positioning();
 
   #if HEATER_COUNT > 0
     LOOP_HEATER() heaters[h].init();
@@ -237,7 +239,7 @@ void EEPROM::Postprocess() {
   #endif
 
   #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    bedlevel.set_z_fade_height(new_z_fade_height);
+    bedlevel.set_z_fade_height(new_z_fade_height, false);
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -251,6 +253,13 @@ void EEPROM::Postprocess() {
   #if ENABLED(HYSTERESIS)
     mechanics.calc_hysteresis_steps();
   #endif
+
+  // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
+  // and init stepper.count[], planner.position[] with current_position
+  mechanics.refresh_positioning();
+
+  if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+    mechanics.report_current_position();
 
   // All Initialized set Running to true.
   printer.setRunning(true);
@@ -703,7 +712,7 @@ void EEPROM::Postprocess() {
     else {
       float dummy = 0;
 
-      working_crc = 0; // clear before reading first "real data"
+      working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
       // version number match
       EEPROM_READ(mechanics.axis_steps_per_mm);

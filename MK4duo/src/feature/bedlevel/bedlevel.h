@@ -129,7 +129,7 @@
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
-        static void set_z_fade_height(const float zfh);
+        static void set_z_fade_height(const float zfh, const bool do_report=true);
 
         /**
          * Get the Z leveling fade factor based on the given Z height,

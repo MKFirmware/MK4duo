@@ -292,6 +292,7 @@ inline void gcode_G29(void) {
             abl.virt_interpolate();
           #endif
           bedlevel.set_bed_leveling_enabled(abl_should_enable);
+          if (abl_should_enable) mechanics.report_current_position();
         }
         return;
       } // parser.seen('W')

@@ -64,17 +64,19 @@
   volatile int unified_bed_leveling::encoder_diff;
 
   unified_bed_leveling::unified_bed_leveling() {
-    ubl_cnt++;  // Debug counter to insure we only have one UBL object present in memory.  We can eliminate this (and all references to ubl_cnt) very soon.
+    ubl_cnt++;  // Debug counter to ensure we only have one UBL object present in memory.  We can eliminate this (and all references to ubl_cnt) very soon.
     reset();
   }
 
   void unified_bed_leveling::reset() {
+    const bool was_enabled = bedlevel.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       bedlevel.set_z_fade_height(10.0);
     #endif
     ZERO(z_values);
+    if (was_enabled) mechanics.report_current_position();
   }
 
   void unified_bed_leveling::invalidate() {

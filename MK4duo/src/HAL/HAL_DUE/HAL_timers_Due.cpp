@@ -99,23 +99,23 @@
   Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-void HAL_timer_start (const uint8_t timer_num, const uint8_t prescaler, const uint32_t frequency) {
+void HAL_timer_start (const uint8_t timer_num, const uint32_t frequency) {
 	Tc *tc = TimerConfig [timer_num].pTimerRegs;
 	IRQn_Type irq = TimerConfig [timer_num].IRQ_Id;
 	uint32_t channel = TimerConfig [timer_num].channel;
 
 	pmc_set_writeprotect(false);
 	pmc_enable_periph_clk((uint32_t)irq);
+  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
 
   TC_Configure (tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1);
 
-	TC_SetRC(tc, channel, VARIANT_MCK / prescaler / frequency);
+	TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
 	TC_Start(tc, channel);
 
 	// enable interrupt on RC compare
 	tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
 
-  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
 	NVIC_EnableIRQ(irq);
 }
 
