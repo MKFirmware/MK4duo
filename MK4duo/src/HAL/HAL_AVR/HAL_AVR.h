@@ -255,10 +255,10 @@ typedef uint16_t  ptr_int_t;
 #define TEMP_TCCR             TCCR0B
 #define TEMP_TIMSK            TIMSK0
 #define TEMP_OCIE             OCIE0B
+#define TEMP_COUNTER_OCR0B    TCNT0
 
 #define PULSE_TIMER_NUM       STEPPER_TIMER
-#define TIMER_COUNTER_0       TCNT0
-#define PULSE_TIMER_PRESCALE  INT0_PRESCALER
+#define PULSE_TIMER_PRESCALE  8
 
 #define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
 #define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
@@ -270,10 +270,11 @@ typedef uint16_t  ptr_int_t;
 #define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
 
 #define HAL_timer_start(timer_num, frequency)
+
 #define HAL_timer_set_count(timer, count)         timer = (count)
 #define HAL_timer_get_count(timer)                timer
-#define HAL_timer_set_current_count(timer, count) STEPPER_COUNTER_ ## timer = count
-#define HAL_timer_get_current_count(timer)        STEPPER_COUNTER_ ## timer
+#define HAL_timer_set_current_count(timer, count) STEPPER_COUNTER_OCR1A = count
+#define HAL_timer_get_current_count(timer)        STEPPER_COUNTER_OCR1A
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
