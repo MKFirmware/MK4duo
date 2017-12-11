@@ -254,12 +254,16 @@ typedef uint16_t  ptr_int_t;
 #define TEMP_TCCR             TCCR0B
 #define TEMP_TIMSK            TIMSK0
 #define TEMP_OCIE             OCIE0B
+#define TEMP_COUNTER_OCR0B    TCNT0
 
+<<<<<<< HEAD
 #define TIMER_OCR_0           OCR0A
 #define TIMER_OCR_1           OCR1A
 #define TIMER_COUNTER_0       TCNT0
 #define TIMER_COUNTER_1       TCNT1
 
+=======
+>>>>>>> origin/master
 #define PULSE_TIMER_NUM       STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE  8
 
@@ -274,11 +278,18 @@ typedef uint16_t  ptr_int_t;
 
 #define HAL_timer_start(timer_num, frequency)
 
+<<<<<<< HEAD
 #define _CAT(a, ...) a ## __VA_ARGS__
 #define HAL_timer_set_count(timer, count)         (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                _CAT(TIMER_OCR_, timer)
 #define HAL_timer_set_current_count(timer, count) (_CAT(TIMER_COUNTER_, timer) = count)
 #define HAL_timer_get_current_count(timer)        _CAT(TIMER_COUNTER_, timer)
+=======
+#define HAL_timer_set_count(timer, count)         timer = (count)
+#define HAL_timer_get_count(timer)                timer
+#define HAL_timer_set_current_count(timer, count) STEPPER_COUNTER_OCR1A = count
+#define HAL_timer_get_current_count(timer)        STEPPER_COUNTER_OCR1A
+>>>>>>> origin/master
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
