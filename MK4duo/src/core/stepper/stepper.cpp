@@ -545,7 +545,7 @@ void Stepper::isr() {
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
-      HAL_timer_set_current_count(PULSE_TIMER_NUM, 0);
+      HAL_timer_set_current_count(STEPPER_TIMER, 0);
       first_step = true;
 
       #if STEPPER_DIRECTION_DELAY > 0
@@ -1519,7 +1519,7 @@ void Stepper::set_e_position(const long &e) {
 /**
  * Get a stepper's position in steps.
  */
-long Stepper::position(AxisEnum axis) {
+long Stepper::position(const AxisEnum axis) {
   CRITICAL_SECTION_START
     const long machine_pos = machine_position[axis];
   CRITICAL_SECTION_END
@@ -1530,7 +1530,7 @@ long Stepper::position(AxisEnum axis) {
  * Get an axis position according to stepper position(s)
  * For CORE machines apply translation from ABC to XYZ.
  */
-float Stepper::get_axis_position_mm(AxisEnum axis) {
+float Stepper::get_axis_position_mm(const AxisEnum axis) {
 
   float axis_steps;
 
@@ -1614,7 +1614,7 @@ void Stepper::quickstop_stepper() {
   mechanics.sync_plan_position();
 }
 
-void Stepper::endstop_triggered(AxisEnum axis) {
+void Stepper::endstop_triggered(const AxisEnum axis) {
 
   #if IS_CORE
 

@@ -239,14 +239,14 @@ float Probe::run_z_probe() {
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
   }
 
-  for (uint8_t r = Z_PROBE_REPETITIONS + 1; --r;) {
+  for (uint8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
 
     // move down slowly to find bed
     if (move_to_z(-10, Z_PROBE_SPEED_SLOW)) return NAN;
 
     probe_z += mechanics.current_position[Z_AXIS];
 
-    if (r > 1) {
+    if (r + 1 < Z_PROBE_REPETITIONS) {
       // move up to probe between height
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
     }

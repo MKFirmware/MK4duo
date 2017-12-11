@@ -260,10 +260,10 @@
 //#define Z_PROBE_ALLEN_KEY
 
 // Start and end location values are used to deploy/retract the probe (will move from start to end and back again)
-#define Z_PROBE_DEPLOY_START_LOCATION {0, 0, 30}   // X, Y, Z, start location for z-probe deployment sequence
-#define Z_PROBE_DEPLOY_END_LOCATION {0, 0, 30}     // X, Y, Z, end location for z-probe deployment sequence
-#define Z_PROBE_RETRACT_START_LOCATION {0, 0, 30}  // X, Y, Z, start location for z-probe retract sequence
-#define Z_PROBE_RETRACT_END_LOCATION {0, 0, 30}    // X, Y, Z, end location for z-probe retract sequence
+#define Z_PROBE_DEPLOY_START_LOCATION   {0, 0, 30}  // X, Y, Z, start location for z-probe deployment sequence
+#define Z_PROBE_DEPLOY_END_LOCATION     {0, 0, 30}  // X, Y, Z, end location for z-probe deployment sequence
+#define Z_PROBE_RETRACT_START_LOCATION  {0, 0, 30}  // X, Y, Z, start location for z-probe retract sequence
+#define Z_PROBE_RETRACT_END_LOCATION    {0, 0, 30}  // X, Y, Z, end location for z-probe retract sequence
 
 // Offsets to the probe relative to the nozzle tip (Nozzle - Probe)
 // X and Y offsets MUST be INTEGERS

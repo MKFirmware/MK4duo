@@ -245,20 +245,23 @@ typedef uint16_t  ptr_int_t;
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
-#define STEPPER_TIMER         OCR1A
+#define STEPPER_TIMER         1
 #define STEPPER_TCCR          TCCR1A
 #define STEPPER_TIMSK         TIMSK1
 #define STEPPER_OCIE          OCIE1A
-#define STEPPER_COUNTER_OCR1A TCNT1
 
-#define TEMP_TIMER            OCR0B
+#define TEMP_TIMER            0
 #define TEMP_TCCR             TCCR0B
 #define TEMP_TIMSK            TIMSK0
 #define TEMP_OCIE             OCIE0B
 
-#define PULSE_TIMER_NUM       STEPPER_TIMER
+#define TIMER_OCR_0           OCR0A
+#define TIMER_OCR_1           OCR1A
 #define TIMER_COUNTER_0       TCNT0
-#define PULSE_TIMER_PRESCALE  INT0_PRESCALER
+#define TIMER_COUNTER_1       TCNT1
+
+#define PULSE_TIMER_NUM       STEPPER_TIMER
+#define PULSE_TIMER_PRESCALE  8
 
 #define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
 #define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
@@ -270,10 +273,12 @@ typedef uint16_t  ptr_int_t;
 #define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
 
 #define HAL_timer_start(timer_num, frequency)
-#define HAL_timer_set_count(timer, count)         timer = (count)
-#define HAL_timer_get_count(timer)                timer
-#define HAL_timer_set_current_count(timer, count) STEPPER_COUNTER_ ## timer = count
-#define HAL_timer_get_current_count(timer)        STEPPER_COUNTER_ ## timer
+
+#define _CAT(a, ...) a ## __VA_ARGS__
+#define HAL_timer_set_count(timer, count)         (_CAT(TIMER_OCR_, timer) = count)
+#define HAL_timer_get_count(timer)                _CAT(TIMER_OCR_, timer)
+#define HAL_timer_set_current_count(timer, count) (_CAT(TIMER_COUNTER_, timer) = count)
+#define HAL_timer_get_current_count(timer)        _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)

@@ -316,7 +316,7 @@ class Mechanics {
     virtual void report_current_position();
     virtual void report_current_position_detail();
 
-    FORCE_INLINE void report_xyz(const float pos[XYZ]) { report_xyze(pos, 3); }
+    FORCE_INLINE void report_xyz(const float pos[]) { report_xyze(pos, 3); }
 
     bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
@@ -367,7 +367,7 @@ class Mechanics {
 
   protected: /** Protected Function */
 
-    void report_xyze(const float pos[XYZE], const uint8_t n=4, const uint8_t precision=3);
+    void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);
 
     float get_homing_bump_feedrate(const AxisEnum axis);
 

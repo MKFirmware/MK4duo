@@ -356,7 +356,6 @@ void Mechanics::report_current_position_detail() {
   float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
   #if PLANNER_LEVELING
-
     SERIAL_MSG("Leveled:");
     bedlevel.apply_leveling(leveled);
     report_xyz(leveled);
@@ -365,12 +364,16 @@ void Mechanics::report_current_position_detail() {
     float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
     bedlevel.unapply_leveling(unleveled);
     report_xyz(unleveled);
-
   #endif
 
   SERIAL_MSG("Stepper:");
-  const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
-  report_xyze(step_count, 4, 0);
+  LOOP_XYZE(i) {
+    SERIAL_CHR(' ');
+    SERIAL_CHR(axis_codes[i]);
+    SERIAL_CHR(':');
+    SERIAL_TXT(stepper.position((AxisEnum)i));
+  }
+  SERIAL_EOL();
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
@@ -389,7 +392,7 @@ void Mechanics::report_current_position_detail() {
 
 }
 
-void Mechanics::report_xyze(const float pos[XYZE], const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
+void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
   for (uint8_t i = 0; i < n; i++) {
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
