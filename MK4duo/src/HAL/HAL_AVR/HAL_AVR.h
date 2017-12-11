@@ -223,16 +223,16 @@ typedef uint16_t  ptr_int_t;
 #define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU24X32toH16(intRes, longIn1, longIn2)
 
 // TEMPERATURE
-#define ANALOG_REF_AREF 0
-#define ANALOG_REF_AVCC _BV(REFS0)
-#define ANALOG_REF ANALOG_REF_AVCC
-#define ANALOG_PRESCALER _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
+#define ANALOG_REF_AREF       0
+#define ANALOG_REF_AVCC       _BV(REFS0)
+#define ANALOG_REF            ANALOG_REF_AVCC
+#define ANALOG_PRESCALER      _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define MAX_ANALOG_PIN_NUMBER 11
-#define OVERSAMPLENR 5
-#define ABS_ZERO  -273.15
-#define AD_RANGE  1023
+#define OVERSAMPLENR          5
+#define ABS_ZERO              -273.15
+#define AD_RANGE              1023
 
-#define HARDWARE_PWM false
+#define HARDWARE_PWM          false
 
 // --------------------------------------------------------------------------
 // Timer
