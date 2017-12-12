@@ -209,7 +209,7 @@
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
+      if (printer.debugLeveling()) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
     const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
@@ -221,7 +221,7 @@
     set_destination_to_current();          // sync destination at the start
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("set_destination_to_current", destination);
+      if (printer.debugLeveling()) DEBUG_POS("set_destination_to_current", destination);
     #endif
 
     // when in the danger zone
@@ -232,14 +232,14 @@
         destination[C_AXIS] = rz;
         prepare_uninterpolated_move_to_destination(); // set_current_to_destination
         #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (DEBUGGING(LEVELING)) DEBUG_POS("danger zone move", current_position);
+          if (printer.debugLeveling()) DEBUG_POS("danger zone move", current_position);
         #endif
         return;
       }
       destination[C_AXIS] = delta_clip_start_height;
       prepare_uninterpolated_move_to_destination(); // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) DEBUG_POS("zone border move", current_position);
+        if (printer.debugLeveling()) DEBUG_POS("zone border move", current_position);
       #endif
     }
 
@@ -247,7 +247,7 @@
       destination[C_AXIS] = rz;
       prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) DEBUG_POS("z raise move", current_position);
+        if (printer.debugLeveling()) DEBUG_POS("z raise move", current_position);
       #endif
     }
 
@@ -255,14 +255,14 @@
     destination[B_AXIS] = ry;
     prepare_move_to_destination();         // set_current_to_destination
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("xy move", current_position);
+      if (printer.debugLeveling()) DEBUG_POS("xy move", current_position);
     #endif
 
     if (rz < current_position[C_AXIS]) {    // lowering?
       destination[C_AXIS] = rz;
       prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) DEBUG_POS("z lower move", current_position);
+        if (printer.debugLeveling()) DEBUG_POS("z lower move", current_position);
       #endif
     }
 
@@ -271,7 +271,7 @@
     feedrate_mm_s = old_feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
+      if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
   }
 
@@ -280,7 +280,7 @@
    */
   void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s/*=0.0*/) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
+      if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
     #endif
 
     commands.refresh_cmd_timeout();
@@ -457,12 +457,12 @@
     if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
 
-      if (DEBUGGING(LEVELING)) SERIAL_EM("Home 1 Fast:");
+      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
     #endif
     
     // Fast move towards endstop until triggered
@@ -475,13 +475,13 @@
     if (bump) {
       // Move away from the endstop by the axis HOME_BUMP_MM
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM("Move Away:");
+        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
       #endif
       do_homing_move(axis, -bump);
 
       // Slow move towards endstop until triggered
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM("Home 2 Slow:");
+        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
       #endif
       do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
     }
@@ -493,13 +493,13 @@
     // retrace by the amount specified in delta_endstop_adj + additional 0.1mm in order to have minimum steps
     if (delta_endstop_adj[axis] < 0) {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM("delta_endstop_adj:");
+        if (printer.debugLeveling()) SERIAL_EM("delta_endstop_adj:");
       #endif
       do_homing_move(axis, delta_endstop_adj[axis] - 0.1);
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -514,7 +514,7 @@
     UNUSED(always_home_all);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_EM(">>> gcode_G28");
         log_machine_info();
       }
@@ -551,7 +551,7 @@
 
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("> endstops.enable(true)");
+      if (printer.debugLeveling()) SERIAL_EM("> endstops.enable(true)");
     #endif
     endstops.enable(true); // Enable endstops for next homing move
 
@@ -564,7 +564,7 @@
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS(">>> home_delta", current_position);
+      if (printer.debugLeveling()) DEBUG_POS(">>> home_delta", current_position);
     #endif
 
     // Init the current position of all carriages to 0,0,0
@@ -605,7 +605,7 @@
     sync_plan_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) DEBUG_POS("<<< home_delta", current_position);
+      if (printer.debugLeveling()) DEBUG_POS("<<< home_delta", current_position);
     #endif
 
     #if ENABLED(NPR2)
@@ -659,7 +659,7 @@
     report_current_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< gcode_G28");
+      if (printer.debugLeveling()) SERIAL_EM("<<< gcode_G28");
     #endif
 
     return true;
@@ -668,7 +668,7 @@
   void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -679,7 +679,7 @@
     current_position[axis] = (axis == C_AXIS ? delta_height : 0.0);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         DEBUG_POS("", current_position);
         SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();

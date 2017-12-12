@@ -34,7 +34,6 @@ Printer printer;
 
 bool  Printer::pos_saved              = false,
       Printer::relative_mode          = false,
-      Printer::Running                = false,
       Printer::axis_relative_modes[]  = AXIS_RELATIVE_MODES;
 
 volatile bool Printer::wait_for_user = false;
@@ -111,6 +110,11 @@ bool Printer::filament_out = false;
   millis_t  Printer::chdkHigh   = 0;
   bool      Printer::chdkActive = false;
 #endif
+
+// Private
+
+uint8_t Printer::mk_flag_1 = DEBUG_NONE,
+        Printer::mk_flag_2 = 0;
 
 /**
  * Public Function
@@ -377,7 +381,7 @@ void Printer::bracket_probe_move(const bool before) {
   static float saved_feedrate_mm_s;
   static int16_t saved_feedrate_percentage;
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("bracket_probe_move", mechanics.current_position);
+    if (printer.debugLeveling()) DEBUG_POS("bracket_probe_move", mechanics.current_position);
   #endif
   if (before) {
     saved_feedrate_mm_s = mechanics.feedrate_mm_s;
@@ -480,7 +484,7 @@ void Printer::Stop() {
   #endif
 
   if (IsRunning()) {
-    Running = false;
+    setRunning(false);
     SERIAL_LM(ER, MSG_ERR_STOPPED);
     SERIAL_STR(PAUSE);
     SERIAL_EOL();
@@ -490,7 +494,8 @@ void Printer::Stop() {
 
 void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
-  static uint8_t cycle_1500ms = 15;
+  static uint8_t cycle_1000ms = 10; // Event 1.0  second
+  static uint8_t cycle_1500ms = 15; // Event 1.5  second
 
   // Start event periodical
 
@@ -502,10 +507,6 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
     host_keepalive();
-  #endif
-
-  #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-    thermalManager.auto_report_temperatures();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
@@ -534,8 +535,16 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
     // Event 100 Ms
     HAL::execute_100ms = false;
     thermalManager.spin();
+    if (--cycle_1000ms == 0) {
+      // Event 1 Second
+      cycle_1000ms = 10;
+      if (isAutoreportTemp()) {
+        thermalManager.report_temperatures();
+        SERIAL_EOL();
+      }
+    }
     if (--cycle_1500ms == 0) {
-      // Event 1500 Ms
+      // Event 1.5 Second
       cycle_1500ms = 15;
       #if ENABLED(NEXTION)
         nextion_draw_update();
@@ -735,7 +744,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (planner.blocks_queued()) axis_last_activity = millis();
-    if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !(DEBUGGING(DRYRUN)) && IDLE_OOZING_enabled) {
+    if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
@@ -905,6 +914,20 @@ void Printer::setup_powerhold() {
   }
 
 #endif
+
+/**
+ * Flags Function
+ */
+void Printer::setDebugLevel(const uint8_t newLevel) {
+  if (newLevel != mk_flag_1) {
+    mk_flag_1 = newLevel;
+    if (debugDryrun()) {
+      // Disable all heaters in case they were on
+      thermalManager.disable_all_heaters();
+    }
+  }
+  SERIAL_EMV("DebugLevel:", (int)mk_flag_1);
+}
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
 

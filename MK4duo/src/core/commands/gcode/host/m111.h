@@ -32,36 +32,13 @@
  * M111: Debug mode Repetier Host compatibile
  */
 inline void gcode_M111(void) {
-  mk_debug_flags = parser.byteval('S', (uint8_t)DEBUG_NONE);
-
-  const static char str_debug_1[]   PROGMEM = MSG_DEBUG_ECHO;
-  const static char str_debug_2[]   PROGMEM = MSG_DEBUG_INFO;
-  const static char str_debug_4[]   PROGMEM = MSG_DEBUG_ERRORS;
-  const static char str_debug_8[]   PROGMEM = MSG_DEBUG_DRYRUN;
-  const static char str_debug_16[]  PROGMEM = MSG_DEBUG_COMMUNICATION;
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    const static char str_debug_32[] PROGMEM = MSG_DEBUG_LEVELING;
-  #endif
-
-  const static char* const debug_strings[] PROGMEM = {
-    str_debug_1, str_debug_2, str_debug_4, str_debug_8, str_debug_16,
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      str_debug_32
-    #endif
-  };
-
-  SERIAL_SM(ECHO, MSG_DEBUG_PREFIX);
-  if (mk_debug_flags) {
-    uint8_t comma = 0;
-    for (uint8_t i = 0; i < COUNT(debug_strings); i++) {
-      if (TEST(mk_debug_flags, i)) {
-        if (comma++) SERIAL_CHR(',');
-        SERIAL_PS((char*)pgm_read_word(&(debug_strings[i])));
-      }
-    }
+  if (parser.seenval('S'))
+    printer.setDebugLevel(parser.value_byte());
+  if (parser.seenval('P')) {
+    const int flag = parser.value_int();
+    if (flag > 0)
+      printer.debugSet(flag);
+    else
+      printer.debugReset(-flag);
   }
-  else {
-    SERIAL_MSG(MSG_DEBUG_OFF);
-  }
-  SERIAL_EOL();
 }

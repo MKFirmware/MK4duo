@@ -238,16 +238,6 @@
 #define MSG_T_MAXTEMP                       "MAXTEMP triggered"
 #define MSG_T_MINTEMP                       "MINTEMP triggered"
 
-// Debug
-#define MSG_DEBUG_PREFIX                    "DEBUG:"
-#define MSG_DEBUG_OFF                       "off"
-#define MSG_DEBUG_ECHO                      "ECHO"
-#define MSG_DEBUG_INFO                      "INFO"
-#define MSG_DEBUG_ERRORS                    "ERRORS"
-#define MSG_DEBUG_DRYRUN                    "DRYRUN"
-#define MSG_DEBUG_COMMUNICATION             "COMMUNICATION"
-#define MSG_DEBUG_LEVELING                  "LEVELING"
-
 // other
 #define MSG_BED_LEVELING_X                  " X:"
 #define MSG_BED_LEVELING_Y                  " Y:"

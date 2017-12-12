@@ -109,7 +109,7 @@
 | M142 | ? | Set cooler target temp
 | M145 | ? | Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
 | M150 | BLINKM, RGB_LED, RGBW_LED, or PCA9632 | Set Status LED Color as R<red> U<green> B<blue>. Values 0-255.
-| M155 | ? | Set temperature auto-report interval
+| M155 | ? | S<1/0> Enable/disable auto report temperatures.
 | M163 | COLOR_MIXING_EXTRUDER | Set a single proportion for a mixing extruder 
 | M164 | COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS | Save the mix as a virtual extruder 
 | M165 | COLOR_MIXING_EXTRUDER | Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors

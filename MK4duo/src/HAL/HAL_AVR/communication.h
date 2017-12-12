@@ -23,24 +23,6 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-/**
- * Define debug bit-masks
- */
-enum DebugFlags {
-  DEBUG_NONE          = 0,
-  DEBUG_ECHO          = _BV(0), ///< Echo commands in order as they are processed
-  DEBUG_INFO          = _BV(1), ///< Print messages for code that has debug output
-  DEBUG_ERRORS        = _BV(2), ///< Not implemented
-  DEBUG_DRYRUN        = _BV(3), ///< Ignore temperature setting and E movement commands
-  DEBUG_COMMUNICATION = _BV(4), ///< Not implemented
-  DEBUG_LEVELING      = _BV(5), ///< Print detailed output for homing and leveling
-  DEBUG_MESH_ADJUST   = _BV(6), ///< UBL bed leveling
-  DEBUG_ALL           = 0xFF
-};
-
-extern uint8_t mk_debug_flags;
-#define DEBUGGING(F)    (mk_debug_flags & (DEBUG_## F))
-
 #define START           "start"               // start for host
 #define OK              "ok"                  // ok answer for host
 #define OKSPACE         "ok "                 // ok plus space 

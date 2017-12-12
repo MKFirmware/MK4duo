@@ -24,8 +24,6 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
-uint8_t mk_debug_flags = DEBUG_NONE;
-
 FSTRINGVALUE(Com::tStart,"start")
 FSTRINGVALUE(Com::tOk,"ok")
 FSTRINGVALUE(Com::tOkSpace,"ok ")

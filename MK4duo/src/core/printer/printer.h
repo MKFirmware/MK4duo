@@ -29,6 +29,17 @@
 #ifndef _PRINTER_H_
 #define _PRINTER_H_
 
+#define DEBUG_NONE                    0
+#define DEBUG_ECHO                    1
+#define DEBUG_INFO                    2
+#define DEBUG_ERROR                   4
+#define DEBUG_DRYRUN                  8
+#define DEBUG_COMMUNICATION           16
+#define DEBUG_LEVELING                32
+#define DEBUG_MESH_ADJUST             64
+#define PRINTER_FLAG2_RUNNING         1
+#define PRINTER_FLAG2_AUTOREPORT_TEMP 2
+
 enum PrinterMode {
   PRINTER_MODE_FFF,           // M450 S0 or M451
   PRINTER_MODE_LASER,         // M450 S1 or M452
@@ -132,7 +143,8 @@ class Printer {
 
   private: /** Private Parameters */
 
-    static bool Running;
+    static uint8_t  mk_flag_1,  // For debug
+                    mk_flag_2;  // For various
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -161,13 +173,41 @@ class Printer {
 
     static char GetStatusCharacter();
 
-    FORCE_INLINE static void setRunning(const bool run) { Running = run; }
-    FORCE_INLINE static bool IsRunning()  { return  Running; }
-    FORCE_INLINE static bool IsStopped()  { return !Running; }
-
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
     #endif
+
+    // Flags function
+    static void setDebugLevel(const uint8_t newLevel);
+    FORCE_INLINE static uint8_t getDebugFlags()   { return mk_flag_1; }
+    FORCE_INLINE static bool debugEcho()          { return ((mk_flag_1 & DEBUG_ECHO) != 0); }
+    FORCE_INLINE static bool debugInfo()          { return ((mk_flag_1 & DEBUG_INFO) != 0); }
+    FORCE_INLINE static bool debugError()         { return ((mk_flag_1 & DEBUG_ERROR) != 0); }
+    FORCE_INLINE static bool debugDryrun()        { return ((mk_flag_1 & DEBUG_DRYRUN) != 0); }
+    FORCE_INLINE static bool debugCommunication() { return ((mk_flag_1 & DEBUG_COMMUNICATION) != 0); }
+    FORCE_INLINE static bool debugLeveling()      { return ((mk_flag_1 & DEBUG_LEVELING) != 0); }
+    FORCE_INLINE static bool debugMesh()          { return ((mk_flag_1 & DEBUG_MESH_ADJUST) != 0); }
+
+    FORCE_INLINE static bool debugFlag(const uint8_t flag) {
+      return (mk_flag_1 & flag);
+    }
+    FORCE_INLINE static void debugSet(const uint8_t flag) {
+      setDebugLevel(mk_flag_1 | flag);
+    }
+    FORCE_INLINE static void debugReset(const uint8_t flag) {
+      setDebugLevel(mk_flag_1 & ~flag);
+    }
+
+    FORCE_INLINE static void setRunning(const bool run) {
+      mk_flag_2 = (run ? mk_flag_2 | PRINTER_FLAG2_RUNNING : mk_flag_2 & ~PRINTER_FLAG2_RUNNING);
+    }
+    FORCE_INLINE static bool IsRunning()  { return mk_flag_2 & PRINTER_FLAG2_RUNNING; }
+    FORCE_INLINE static bool IsStopped()  { return !(mk_flag_2 & PRINTER_FLAG2_RUNNING); }
+
+    FORCE_INLINE static void setAutoreportTemp(const bool val) {
+      mk_flag_2 = (val ? mk_flag_2 | PRINTER_FLAG2_AUTOREPORT_TEMP : mk_flag_2 & ~PRINTER_FLAG2_AUTOREPORT_TEMP);
+    }
+    FORCE_INLINE static bool isAutoreportTemp() { return mk_flag_2 & PRINTER_FLAG2_AUTOREPORT_TEMP; }
 
   private: /** Private Function */
 

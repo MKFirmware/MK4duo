@@ -45,11 +45,7 @@ inline void gcode_M115(void) {
     #endif
 
     // AUTOREPORT_TEMP (M155)
-    #if ENABLED(AUTO_REPORT_TEMPERATURES)
-      SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
-    #else
-      SERIAL_LM(CAP, "AUTOREPORT_TEMP:0");
-    #endif
+    SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
 
     // PROGRESS (M530 S L, M531 <file>, M532 X L)
     SERIAL_LM(CAP, "PROGRESS:1");

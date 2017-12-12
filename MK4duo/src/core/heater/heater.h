@@ -99,7 +99,7 @@
       bool isON()         { return (this->sensor.type != 0 && this->target_temperature > 0); }
       bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
       bool isHeating()    { return this->target_temperature > this->current_temperature; }
-      bool isCooling()    { return this->target_temperature < this->current_temperature; }
+      bool isCooling()    { return this->target_temperature <= this->current_temperature; }
 
       #if WATCH_THE_HEATER
         void start_watching();

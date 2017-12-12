@@ -34,7 +34,7 @@
    * M142: Set Cooler temperature
    */
   inline void gcode_M142(void) {
-    if (DEBUGGING(DRYRUN)) return;
+    if (printer.debugDryrun()) return;
     if (parser.seenval('S')) heaters[COOLER_INDEX].setTarget(parser.value_celsius());
   }
 

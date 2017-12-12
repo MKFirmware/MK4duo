@@ -98,7 +98,7 @@
 
     if (move_away_flag) return false; // already paused
 
-    if (!DEBUGGING(DRYRUN) && (unload_length != 0 || retract != 0 || retract2 != 0)) {
+    if (!printer.debugDryrun() && (unload_length != 0 || retract != 0 || retract2 != 0)) {
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         if (thermalManager.tooColdToExtrude(tools.active_extruder)) {
           SERIAL_LM(ER, MSG_TOO_COLD_FOR_M600);

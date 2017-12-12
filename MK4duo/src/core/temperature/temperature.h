@@ -70,11 +70,6 @@ class Temperature {
       static bool tooColdToExtrude(uint8_t h) { UNUSED(h); return false; }
     #endif
 
-    #if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-      static uint8_t auto_report_temp_interval;
-      static millis_t next_temp_report_ms;
-    #endif
-
   private: /** Private Parameters */
 
     static uint8_t cycle_1_second;
@@ -142,10 +137,6 @@ class Temperature {
       static bool is_paused() { return paused; }
     #endif
 
-    #if ENABLED(AUTO_REPORT_TEMPERATURES)
-      static void auto_report_temperatures();
-    #endif
-
     static void report_temperatures(const bool showRaw=false);
 
   private:
@@ -178,7 +169,7 @@ class Temperature {
     #endif // HAS_THERMALLY_PROTECTED_HEATER
 
     #if HEATER_COUNT > 0
-      static void print_heater_state(Heater *act, const bool showRaw=false);
+      static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);
     #endif
 
 };

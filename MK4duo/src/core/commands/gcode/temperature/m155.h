@@ -26,19 +26,10 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
+#define CODE_M155
 
-  #define CODE_M155
-
-  /**
-   * M155: Set temperature auto-report interval. M155 S<seconds>
-   */
-  inline void gcode_M155(void) {
-    if (parser.seenval('S')) {
-      thermalManager.auto_report_temp_interval = parser.value_byte();
-      NOMORE(thermalManager.auto_report_temp_interval, 60);
-      thermalManager.next_temp_report_ms = millis() + 1000UL * thermalManager.auto_report_temp_interval;
-    }
-  }
-
-#endif // AUTO_REPORT_TEMPERATURES
+/**
+ * M155: S<1/0> Enable/disable auto report temperatures.
+ *       When enabled firmware will report temperatures every second.
+ */
+inline void gcode_M155(void) { printer.setAutoreportTemp(parser.boolval('S')); }
