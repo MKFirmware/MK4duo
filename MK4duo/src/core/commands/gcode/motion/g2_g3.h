@@ -62,8 +62,8 @@
     if (printer.IsRunning()) {
 
       #if ENABLED(SF_ARC_FIX)
-        const bool relative_mode_backup = printer.relative_mode;
-        printer.relative_mode = true;
+        const bool relative_mode_backup = printer.isRelativeMode();
+        printer.setRelativeMode(true);
       #endif
 
       commands.get_destination();
@@ -83,7 +83,7 @@
       #endif
 
       #if ENABLED(SF_ARC_FIX)
-        printer.relative_mode = relative_mode_backup;
+        printer.setRelativeMode(relative_mode_backup);
       #endif
 
       float arc_offset[2] = { 0.0, 0.0 };

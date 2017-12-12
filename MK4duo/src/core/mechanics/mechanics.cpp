@@ -138,27 +138,6 @@ void Mechanics::prepare_move_to_destination() {
   endstops.clamp_to_software_endstops(destination);
   commands.refresh_cmd_timeout();
 
-  #if ENABLED(PREVENT_COLD_EXTRUSION) || ENABLED(PREVENT_LENGTHY_EXTRUDE)
-
-    if (!printer.debugDryrun()) {
-      if (destination[E_AXIS] != current_position[E_AXIS]) {
-        #if ENABLED(PREVENT_COLD_EXTRUSION)
-          if (thermalManager.tooColdToExtrude(tools.active_extruder)) {
-            current_position[E_AXIS] = destination[E_AXIS];
-            SERIAL_LM(ECHO, MSG_ERR_COLD_EXTRUDE_STOP);
-          }
-        #endif // PREVENT_COLD_EXTRUSION
-        #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-          if (FABS(destination[E_AXIS] - current_position[E_AXIS]) * tools.e_factor[tools.active_extruder] > (EXTRUDE_MAXLENGTH)) {
-            current_position[E_AXIS] = destination[E_AXIS];
-            SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
-          }
-        #endif
-      }
-    }
-
-  #endif // PREVENT_COLD_EXTRUSION || PREVENT_LENGTHY_EXTRUDE
-
   if (
     #if UBL_DELTA
       ubl.prepare_segmented_line_to(destination, feedrate_mm_s)

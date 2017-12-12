@@ -36,7 +36,7 @@
  */
 inline void gcode_G61(void) {
 
-  if (!printer.pos_saved) return;
+  if (!printer.isPosSaved()) return;
 
   const uint8_t slot = parser.byteval('S');
 

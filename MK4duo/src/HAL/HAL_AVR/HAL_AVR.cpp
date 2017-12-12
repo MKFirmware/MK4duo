@@ -267,7 +267,7 @@ HAL_TEMP_TIMER_ISR {
 
   TIMER_OCR_0 += 64;
 
-  if (printer.IsStopped()) return;
+  if (!printer.IsRunning()) return;
 
   // Allow UART ISRs
   HAL_DISABLE_ISRs();

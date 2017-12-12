@@ -29,16 +29,22 @@
 #ifndef _PRINTER_H_
 #define _PRINTER_H_
 
-#define DEBUG_NONE                    0
-#define DEBUG_ECHO                    1
-#define DEBUG_INFO                    2
-#define DEBUG_ERROR                   4
-#define DEBUG_DRYRUN                  8
-#define DEBUG_COMMUNICATION           16
-#define DEBUG_LEVELING                32
-#define DEBUG_MESH_ADJUST             64
-#define PRINTER_FLAG2_RUNNING         1
-#define PRINTER_FLAG2_AUTOREPORT_TEMP 2
+#define DEBUG_NONE                        0
+#define DEBUG_ECHO                        1
+#define DEBUG_INFO                        2
+#define DEBUG_ERROR                       4
+#define DEBUG_DRYRUN                      8
+#define DEBUG_COMMUNICATION               16
+#define DEBUG_LEVELING                    32
+#define DEBUG_MESH_ADJUST                 64
+#define PRINTER_FLAG1_RUNNING             1
+#define PRINTER_FLAG1_POS_SAVED           2
+#define PRINTER_FLAG1_RELATIVE_MODE       4
+#define PRINTER_FLAG1_WAIT_FOR_USER       8
+#define PRINTER_FLAG1_WAIT_FOR_HEATUP     16
+#define PRINTER_FLAG1_FILAMENT_OUT        32
+#define PRINTER_FLAG1_ALLOW_COLD_EXTRUDE  64
+#define PRINTER_FLAG1_AUTOREPORT_TEMP     128
 
 enum PrinterMode {
   PRINTER_MODE_FFF,           // M450 S0 or M451
@@ -66,11 +72,7 @@ class Printer {
 
   public: /** Public Parameters */
 
-    static volatile bool  wait_for_user;
-
-    static bool     pos_saved,
-                    relative_mode,
-                    axis_relative_modes[];
+    static bool     axis_relative_modes[];
 
     static long     currentLayer,
                     maxLayer;       // -1 = unknown
@@ -104,8 +106,6 @@ class Printer {
     #else
       #define KEEPALIVE_STATE(n) NOOP
     #endif
-
-    static bool filament_out;
 
     #if ENABLED(RFID_MODULE)
       static uint32_t Spool_ID[EXTRUDERS];
@@ -143,8 +143,8 @@ class Printer {
 
   private: /** Private Parameters */
 
-    static uint8_t  mk_flag_1,  // For debug
-                    mk_flag_2;  // For various
+    static uint8_t  mk_debug_flag,  // For debug
+                    mk_1_flag;      // For various
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -179,35 +179,64 @@ class Printer {
 
     // Flags function
     static void setDebugLevel(const uint8_t newLevel);
-    FORCE_INLINE static uint8_t getDebugFlags()   { return mk_flag_1; }
-    FORCE_INLINE static bool debugEcho()          { return ((mk_flag_1 & DEBUG_ECHO) != 0); }
-    FORCE_INLINE static bool debugInfo()          { return ((mk_flag_1 & DEBUG_INFO) != 0); }
-    FORCE_INLINE static bool debugError()         { return ((mk_flag_1 & DEBUG_ERROR) != 0); }
-    FORCE_INLINE static bool debugDryrun()        { return ((mk_flag_1 & DEBUG_DRYRUN) != 0); }
-    FORCE_INLINE static bool debugCommunication() { return ((mk_flag_1 & DEBUG_COMMUNICATION) != 0); }
-    FORCE_INLINE static bool debugLeveling()      { return ((mk_flag_1 & DEBUG_LEVELING) != 0); }
-    FORCE_INLINE static bool debugMesh()          { return ((mk_flag_1 & DEBUG_MESH_ADJUST) != 0); }
+    FORCE_INLINE static uint8_t getDebugFlags()   { return mk_debug_flag; }
+    FORCE_INLINE static bool debugEcho()          { return mk_debug_flag & DEBUG_ECHO; }
+    FORCE_INLINE static bool debugInfo()          { return mk_debug_flag & DEBUG_INFO; }
+    FORCE_INLINE static bool debugError()         { return mk_debug_flag & DEBUG_ERROR; }
+    FORCE_INLINE static bool debugDryrun()        { return mk_debug_flag & DEBUG_DRYRUN; }
+    FORCE_INLINE static bool debugCommunication() { return mk_debug_flag & DEBUG_COMMUNICATION; }
+    FORCE_INLINE static bool debugLeveling()      { return mk_debug_flag & DEBUG_LEVELING; }
+    FORCE_INLINE static bool debugMesh()          { return mk_debug_flag & DEBUG_MESH_ADJUST; }
 
     FORCE_INLINE static bool debugFlag(const uint8_t flag) {
-      return (mk_flag_1 & flag);
+      return (mk_debug_flag & flag);
     }
     FORCE_INLINE static void debugSet(const uint8_t flag) {
-      setDebugLevel(mk_flag_1 | flag);
+      setDebugLevel(mk_debug_flag | flag);
     }
     FORCE_INLINE static void debugReset(const uint8_t flag) {
-      setDebugLevel(mk_flag_1 & ~flag);
+      setDebugLevel(mk_debug_flag & ~flag);
     }
 
     FORCE_INLINE static void setRunning(const bool run) {
-      mk_flag_2 = (run ? mk_flag_2 | PRINTER_FLAG2_RUNNING : mk_flag_2 & ~PRINTER_FLAG2_RUNNING);
+      mk_1_flag = (run ? mk_1_flag | PRINTER_FLAG1_RUNNING : mk_1_flag & ~PRINTER_FLAG1_RUNNING);
     }
-    FORCE_INLINE static bool IsRunning()  { return mk_flag_2 & PRINTER_FLAG2_RUNNING; }
-    FORCE_INLINE static bool IsStopped()  { return !(mk_flag_2 & PRINTER_FLAG2_RUNNING); }
+    FORCE_INLINE static bool IsRunning()  { return mk_1_flag & PRINTER_FLAG1_RUNNING; }
+
+    FORCE_INLINE static void setPosSaved(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_POS_SAVED : mk_1_flag & ~PRINTER_FLAG1_POS_SAVED);
+    }
+    FORCE_INLINE static bool isPosSaved() { return mk_1_flag & PRINTER_FLAG1_POS_SAVED; }
+
+    FORCE_INLINE static void setRelativeMode(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_RELATIVE_MODE : mk_1_flag & ~PRINTER_FLAG1_RELATIVE_MODE);
+    }
+    FORCE_INLINE static bool isRelativeMode() { return mk_1_flag & PRINTER_FLAG1_RELATIVE_MODE; }
+
+    FORCE_INLINE static void setWaitForUser(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_WAIT_FOR_USER : mk_1_flag & ~PRINTER_FLAG1_WAIT_FOR_USER);
+    }
+    FORCE_INLINE static bool isWaitForUser() { return mk_1_flag & PRINTER_FLAG1_WAIT_FOR_USER; }
+
+    FORCE_INLINE static void setWaitForHeatUp(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_WAIT_FOR_HEATUP : mk_1_flag & ~PRINTER_FLAG1_WAIT_FOR_HEATUP);
+    }
+    FORCE_INLINE static bool isWaitForHeatUp() { return mk_1_flag & PRINTER_FLAG1_WAIT_FOR_HEATUP; }
+
+    FORCE_INLINE static void setFilamentOut(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_FILAMENT_OUT : mk_1_flag & ~PRINTER_FLAG1_FILAMENT_OUT);
+    }
+    FORCE_INLINE static bool isFilamentOut() { return mk_1_flag & PRINTER_FLAG1_FILAMENT_OUT; }
+
+    FORCE_INLINE static void setAllowColdExtrude(const bool val) {
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_ALLOW_COLD_EXTRUDE : mk_1_flag & ~PRINTER_FLAG1_ALLOW_COLD_EXTRUDE);
+    }
+    FORCE_INLINE static bool isAllowColdExtrude() { return mk_1_flag & PRINTER_FLAG1_ALLOW_COLD_EXTRUDE; }
 
     FORCE_INLINE static void setAutoreportTemp(const bool val) {
-      mk_flag_2 = (val ? mk_flag_2 | PRINTER_FLAG2_AUTOREPORT_TEMP : mk_flag_2 & ~PRINTER_FLAG2_AUTOREPORT_TEMP);
+      mk_1_flag = (val ? mk_1_flag | PRINTER_FLAG1_AUTOREPORT_TEMP : mk_1_flag & ~PRINTER_FLAG1_AUTOREPORT_TEMP);
     }
-    FORCE_INLINE static bool isAutoreportTemp() { return mk_flag_2 & PRINTER_FLAG2_AUTOREPORT_TEMP; }
+    FORCE_INLINE static bool isAutoreportTemp() { return mk_1_flag & PRINTER_FLAG1_AUTOREPORT_TEMP; }
 
   private: /** Private Function */
 

@@ -33,6 +33,6 @@
   /**
    * M108: Cancel heatup and wait for the hotend and bed, this G-code is asynchronously handled in the get_serial_commands() parser
    */
-  inline void gcode_M108(void) { thermalManager.wait_for_heatup = false; }
+  inline void gcode_M108(void) { printer.setWaitForHeatUp(false); }
 
 #endif

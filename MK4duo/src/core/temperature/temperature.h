@@ -35,8 +35,6 @@ class Temperature {
 
   public: /** Public Parameters */
 
-    static volatile bool wait_for_heatup;
-
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
                       mcu_highest_temperature,
@@ -58,13 +56,12 @@ class Temperature {
     #endif
 
     #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
-      static bool allow_cold_extrude;
       static int16_t extrude_min_temp;
       static bool tooColdToExtrude(uint8_t h) {
         #if HOTENDS <= 1
           UNUSED(h);
         #endif
-        return allow_cold_extrude ? false : heaters[HOTEND_INDEX].current_temperature < extrude_min_temp;
+        return printer.isAllowColdExtrude() ? false : heaters[HOTEND_INDEX].current_temperature < extrude_min_temp;
       }
     #else
       static bool tooColdToExtrude(uint8_t h) { UNUSED(h); return false; }

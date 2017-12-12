@@ -41,7 +41,7 @@ inline void gcode_G60(void) {
     return;
   } 
   COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position);
-  printer.pos_saved = true;
+  printer.setPosSaved(true);
 
   SERIAL_MSG(MSG_SAVED_POS);
   SERIAL_MV(" S", slot);

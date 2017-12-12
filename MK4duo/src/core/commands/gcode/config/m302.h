@@ -49,14 +49,14 @@
     bool seen_S = parser.seen('S');
     if (seen_S) {
       thermalManager.extrude_min_temp = parser.value_celsius();
-      thermalManager.allow_cold_extrude = (thermalManager.extrude_min_temp == 0);
+      printer.setAllowColdExtrude(thermalManager.extrude_min_temp == 0);
     }
 
     if (parser.seen('P'))
-      thermalManager.allow_cold_extrude = (thermalManager.extrude_min_temp == 0) || parser.value_bool();
+      printer.setAllowColdExtrude((thermalManager.extrude_min_temp == 0) || parser.value_bool());
     else if (!seen_S) {
       // Report current state
-      SERIAL_MV("Cold extrudes are ", (thermalManager.allow_cold_extrude ? "en" : "dis"));
+      SERIAL_MV("Cold extrudes are ", (printer.isAllowColdExtrude() ? "en" : "dis"));
       SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
       SERIAL_EM("C)");
     }

@@ -168,7 +168,7 @@ void Commands::get_serial_commands() {
       }
 
       // Movement commands alert when stopped
-      if (printer.IsStopped()) {
+      if (!printer.IsRunning()) {
         char *gpos = strchr(command, 'G');
         if (gpos) {
           const int codenum = strtol(gpos + 1, NULL, 10);
@@ -187,9 +187,9 @@ void Commands::get_serial_commands() {
       #if DISABLED(EMERGENCY_PARSER)
         // If command was e-stop process now
         if (strcmp(command, "M108") == 0) {
-          thermalManager.wait_for_heatup = false;
+          printer.setWaitForHeatUp(false);
           #if ENABLED(ULTIPANEL)
-            printer.wait_for_user = false;
+            printer.setWaitForUser(false);
           #endif
         }
         if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
@@ -506,7 +506,7 @@ void Commands::get_destination() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i]))
-      mechanics.destination[i] = mechanics.logical_to_native(parser.value_axis_units((AxisEnum)i) + (printer.axis_relative_modes[i] || printer.relative_mode ? mechanics.current_position[i] : 0), (AxisEnum)i);
+      mechanics.destination[i] = mechanics.logical_to_native(parser.value_axis_units((AxisEnum)i) + (printer.axis_relative_modes[i] || printer.isRelativeMode() ? mechanics.current_position[i] : 0), (AxisEnum)i);
     else
       mechanics.destination[i] = mechanics.current_position[i];
   }

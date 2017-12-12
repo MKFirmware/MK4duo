@@ -32,11 +32,7 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
-bool  Printer::pos_saved              = false,
-      Printer::relative_mode          = false,
-      Printer::axis_relative_modes[]  = AXIS_RELATIVE_MODES;
-
-volatile bool Printer::wait_for_user = false;
+bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
 // Print status related
 long    Printer::currentLayer  = 0,
@@ -72,8 +68,6 @@ PrinterMode Printer::mode =
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   Printer::MK4duoBusyState Printer::busy_state = NOT_BUSY;
 #endif
-
-bool Printer::filament_out = false;
 
 #if ENABLED(RFID_MODULE)
   uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
@@ -113,8 +107,8 @@ bool Printer::filament_out = false;
 
 // Private
 
-uint8_t Printer::mk_flag_1 = DEBUG_NONE,
-        Printer::mk_flag_2 = 0;
+uint8_t Printer::mk_debug_flag = DEBUG_NONE,
+        Printer::mk_1_flag = 0;
 
 /**
  * Public Function
@@ -818,8 +812,8 @@ void Printer::handle_Interrupt_Event() {
   switch(event) {
     #if HAS_FIL_RUNOUT
       case INTERRUPT_EVENT_FIL_RUNOUT:
-        if (!filament_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
-          filament_out = true;
+        if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+          setFilamentOut(true);
           commands.enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
           SERIAL_LM(REQUEST_PAUSE, "End Filament detect");
           stepper.synchronize();
@@ -829,8 +823,8 @@ void Printer::handle_Interrupt_Event() {
 
     #if HAS_EXT_ENCODER
       case INTERRUPT_EVENT_ENC_DETECT:
-        if (!filament_out && (IS_SD_PRINTING || print_job_counter.isRunning())) {
-          filament_out = true;
+        if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+          setFilamentOut(true);
           stepper.synchronize();
 
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -919,14 +913,14 @@ void Printer::setup_powerhold() {
  * Flags Function
  */
 void Printer::setDebugLevel(const uint8_t newLevel) {
-  if (newLevel != mk_flag_1) {
-    mk_flag_1 = newLevel;
+  if (newLevel != mk_debug_flag) {
+    mk_debug_flag = newLevel;
     if (debugDryrun()) {
       // Disable all heaters in case they were on
       thermalManager.disable_all_heaters();
     }
   }
-  SERIAL_EMV("DebugLevel:", (int)mk_flag_1);
+  SERIAL_EMV("DebugLevel:", (int)mk_debug_flag);
 }
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)

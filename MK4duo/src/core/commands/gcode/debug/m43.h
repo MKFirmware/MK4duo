@@ -257,7 +257,7 @@
       }
 
       #if HAS_RESUME_CONTINUE
-        printer.wait_for_user = true;
+        printer.setWaitForUser(true);
         KEEPALIVE_STATE(PAUSED_FOR_USER);
       #endif
 
@@ -276,7 +276,7 @@
         }
 
         #if HAS_RESUME_CONTINUE
-          if (!printer.wait_for_user) {
+          if (!printer.isWaitForUser()) {
             KEEPALIVE_STATE(IN_HANDLER);
             break;
           }
