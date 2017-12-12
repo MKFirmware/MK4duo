@@ -144,8 +144,8 @@
 
 float TemperatureSensor::GetTemperature(const uint8_t h) {
 
-  int16_t s_type      = this->type;
-  int16_t adcReading  = this->raw;
+  const int16_t s_type      = this->type,
+                adcReading  = this->raw;
 
   #if ENABLED(SUPPORT_MAX31855)
     if (s_type == -3)

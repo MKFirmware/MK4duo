@@ -96,17 +96,18 @@ typedef struct {
   #endif
 
   // Fields used by the motion planner to manage acceleration
-  float nominal_speed,                          // The nominal speed for this block in mm/sec
-        entry_speed,                            // Entry speed at previous-current junction in mm/sec
-        max_entry_speed,                        // Maximum allowable junction entry speed in mm/sec
-        millimeters,                            // The total travel of this block in mm
-        acceleration;                           // acceleration mm/sec^2
+  float nominal_speed,                      // The nominal speed for this block in mm/sec
+        entry_speed,                        // Entry speed at previous-current junction in mm/sec
+        max_entry_speed,                    // Maximum allowable junction entry speed in mm/sec
+        millimeters,                        // The total travel of this block in mm
+        acceleration,                       // acceleration mm/sec^2
+        min_axis_accel_ratio;               // ratio between nominal speed and startup speed
 
   // Settings for the trapezoid generator
-  uint32_t  nominal_rate,                       // The nominal step rate for this block in step_events/sec
-            initial_rate,                       // The jerk-adjusted step rate at start of block
-            final_rate,                         // The minimal rate at exit
-            acceleration_steps_per_s2;          // acceleration steps/sec^2
+  uint32_t  nominal_rate,                   // The nominal step rate for this block in step_events/sec
+            initial_rate,                   // The jerk-adjusted step rate at start of block
+            final_rate,                     // The minimal rate at exit
+            acceleration_steps_per_s2;      // acceleration steps/sec^2
 
   #if ENABLED(BARICUDA)
     uint32_t valve_pressure, e_to_p_pressure;
@@ -369,7 +370,9 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 1.7);  // 1.7 - fudge factor to get most of stepper
+                                                                    // decel ramps to hit the final rate - overkill
+                                                                    // for accel ramps but doesn't matter
     }
 
     /**

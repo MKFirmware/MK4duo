@@ -245,9 +245,14 @@ void Planner::forward_pass() {
  * Recalculate the trapezoid speed profiles for all blocks in the plan
  * according to the entry_factor for each junction. Must be called by
  * recalculate() after updating the blocks.
+ *
+ * If there is a direction change then the final_rate of the current block
+ * is set to that block's jerk limited rate and the init_rate of the next
+ * block is set to that block's jerk limited rate.
  */
 void Planner::recalculate_trapezoids() {
   int8_t block_index = block_buffer_tail;
+  bool direction_change = false;
   block_t *current, *next = NULL;
 
   while (block_index != block_buffer_head) {
@@ -256,20 +261,24 @@ void Planner::recalculate_trapezoids() {
     if (current) {
       // Recalculate if current block entry or exit junction speed has changed.
       if (TEST(current->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
+        LOOP_XYZE(axis) {
+          if (current->steps[axis] && TEST(current->direction_bits ^ next->direction_bits, axis))
+            direction_change = true;
+        }
+
         // NOTE: Entry and exit factors always > 0 by all previous logic operations.
         const float nomr = 1.0 / current->nominal_speed;
-        calculate_trapezoid_for_block(current, current->entry_speed * nomr, next->entry_speed * nomr);
+        calculate_trapezoid_for_block(current, current->entry_speed * nomr, direction_change ? current->min_axis_accel_ratio : next->entry_speed * nomr);
         CBI(current->flag, BLOCK_BIT_RECALCULATE); // Reset current only to ensure next trapezoid is computed
       }
     }
     block_index = next_block_index(block_index);
   }
+
   // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
-  if (next) {
-    const float nomr = 1.0 / next->nominal_speed;
-    calculate_trapezoid_for_block(next, next->entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
-    CBI(next->flag, BLOCK_BIT_RECALCULATE);
-  }
+  const float nomr = 1.0 / next->nominal_speed;
+  calculate_trapezoid_for_block(next, direction_change ? next->min_axis_accel_ratio : next->entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
+  CBI(next->flag, BLOCK_BIT_RECALCULATE);
 }
 
 /**
@@ -964,6 +973,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
     if (cs > mechanics.max_feedrate_mm_s[i])
       NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
   }
+  block->min_axis_accel_ratio = min_axis_accel_ratio;
 
   // Max segment time in µs.
   #if ENABLED(XY_FREQUENCY_LIMIT)

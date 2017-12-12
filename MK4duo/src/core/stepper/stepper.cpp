@@ -954,13 +954,9 @@ void Stepper::isr() {
     hal_timer_t step_rate;
     HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
-    if (step_rate < acc_step_rate) {
-      step_rate = acc_step_rate - step_rate; // Decelerate from acceleration end point.
-      NOLESS(step_rate, current_block->final_rate);
-    }
-    else {
-      step_rate = current_block->final_rate;
-    }
+    NOMORE(step_rate, acc_step_rate);             // make sure final step rate doesn't go negative
+    step_rate =  acc_step_rate - step_rate;       // now we have the real step rate
+    NOLESS(step_rate, current_block->final_rate);
 
     // step_rate to timer interval
     const hal_timer_t interval = calc_timer_interval(step_rate);
