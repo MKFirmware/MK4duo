@@ -140,7 +140,7 @@ void Mechanics::prepare_move_to_destination() {
 
   #if ENABLED(PREVENT_COLD_EXTRUSION) || ENABLED(PREVENT_LENGTHY_EXTRUDE)
 
-    if (!DEBUGGING(DRYRUN)) {
+    if (!printer.debugDryrun()) {
       if (destination[E_AXIS] != current_position[E_AXIS]) {
         #if ENABLED(PREVENT_COLD_EXTRUSION)
           if (thermalManager.tooColdToExtrude(tools.active_extruder)) {
@@ -198,7 +198,7 @@ void Mechanics::do_blocking_move_to(const float &rx, const float &ry, const floa
   const float old_feedrate_mm_s = feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
+    if (printer.debugLeveling()) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
   #endif
 
   const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
@@ -227,7 +227,7 @@ void Mechanics::do_blocking_move_to(const float &rx, const float &ry, const floa
   feedrate_mm_s = old_feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) SERIAL_EM("<<< do_blocking_move_to");
+    if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
   #endif
 }
 void Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
@@ -248,7 +248,7 @@ void Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const f
  */
 void Mechanics::sync_plan_position() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position_kinematic", current_position);
+    if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_kinematic", current_position);
   #endif
   set_position_mm(current_position);
 }
@@ -285,7 +285,7 @@ void Mechanics::refresh_positioning() {
 void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) {
+    if (printer.debugLeveling()) {
       SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
       SERIAL_MV(", ", distance);
       SERIAL_MV(", ", fr_mm_s);
@@ -322,7 +322,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
   endstops.hit_on_purpose();
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) {
+    if (printer.debugLeveling()) {
       SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
       SERIAL_CHR(')'); SERIAL_EOL();
     }

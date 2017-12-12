@@ -517,7 +517,7 @@ void Commands::get_destination() {
   if (parser.seen('P'))
     mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.previous_extruder] / 100) + mechanics.current_position[E_AXIS];
 
-  if(!DEBUGGING(DRYRUN))
+  if (!printer.debugDryrun())
     print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -525,18 +525,18 @@ void Commands::get_destination() {
   #endif
 
   #if ENABLED(RFID_MODULE)
-    if(!DEBUGGING(DRYRUN))
+    if (!printer.debugDryrun())
       rfid522.RfidData[tools.active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
-      if((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
+      if ((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
         gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
       else
         gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
     #else
-      if((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
+      if ((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
         gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
       else
         gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
@@ -630,7 +630,7 @@ void Commands::process_next_command() {
 
   char * const current_command = command_queue[cmd_queue_index_r];
 
-  if (DEBUGGING(ECHO)) SERIAL_LV(ECHO, current_command);
+  if (printer.debugEcho()) SERIAL_LV(ECHO, current_command);
 
   KEEPALIVE_STATE(IN_HANDLER);
 

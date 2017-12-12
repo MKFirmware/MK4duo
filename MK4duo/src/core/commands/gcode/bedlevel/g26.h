@@ -404,9 +404,10 @@
    */
   inline bool turn_on_heaters() {
 
-    if (DEBUGGING(DRYRUN)) return false;
+    if (printer.debugDryrun()) return false;
 
-    millis_t next = millis() + 5000UL;
+    const bool oldReport = printer.isAutoreportTemp();
+    printer.setAutoreportTemp(true);
 
     #if HAS_TEMP_BED
       if (g26_bed_temp > 25) {
@@ -417,16 +418,9 @@
         #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
         while (abs(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
-
           #if ENABLED(NEWPANEL)
             if (is_lcd_clicked()) return exit_from_g26();
           #endif
-
-          if (ELAPSED(millis(), next)) {
-            next = millis() + 5000UL;
-            thermalManager.report_temperatures();
-            SERIAL_EOL();
-          }
           printer.idle();
         }
       }
@@ -441,16 +435,9 @@
     // Start heating the nozzle and wait for it to reach temperature.
     heaters[0].setTarget(g26_hotend_temp);
     while (abs(heaters[0].current_temperature - g26_hotend_temp) > 3) {
-
       #if ENABLED(NEWPANEL)
         if (is_lcd_clicked()) return exit_from_g26();
       #endif
-
-      if (ELAPSED(millis(), next)) {
-        next = millis() + 5000UL;
-        thermalManager.report_temperatures();
-        SERIAL_EOL();
-      }
       printer.idle();
     }
 
@@ -458,6 +445,8 @@
       lcd_reset_status();
       lcd_quick_feedback();
     #endif
+
+    printer.setAutoreportTemp(oldReport);
 
     return G26_OK;
   }

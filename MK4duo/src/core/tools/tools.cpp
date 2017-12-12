@@ -96,7 +96,7 @@
           #if ENABLED(DUAL_X_CARRIAGE)
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) {
+              if (printer.debugLeveling()) {
                 SERIAL_MSG("Dual X Carriage Mode ");
                 switch (mechanics.dual_x_carriage_mode) {
                   case DXC_DUPLICATION_MODE: SERIAL_EM("DXC_DUPLICATION_MODE"); break;
@@ -116,7 +116,7 @@
                 NOMORE(raised_z, endstops.soft_endstop_max[Z_AXIS]);
               #endif
               #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (DEBUGGING(LEVELING)) {
+                if (printer.debugLeveling()) {
                   SERIAL_EMV("Raise to ", raised_z);
                   SERIAL_EMV("MoveX to ", xhome);
                   SERIAL_EMV("Lower to ", mechanics.current_position[Z_AXIS]);
@@ -146,7 +146,7 @@
             mechanics.set_axis_is_at_home(X_AXIS);
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) DEBUG_POS("New Extruder", mechanics.current_position);
+              if (printer.debugLeveling()) DEBUG_POS("New Extruder", mechanics.current_position);
             #endif
 
             // Only when auto-parking are carriages safe to move
@@ -181,7 +181,7 @@
                 mechanics.inactive_hotend_x_pos = mechanics.destination[X_AXIS];
                 mechanics.hotend_duplication_enabled = false;
                 #if ENABLED(DEBUG_LEVELING_FEATURE)
-                  if (DEBUGGING(LEVELING)) {
+                  if (printer.debugLeveling()) {
                     SERIAL_EMV("Set inactive_hotend_x_pos=", mechanics.inactive_hotend_x_pos);
                     SERIAL_EM("Clear hotend_duplication_enabled");
                   }
@@ -190,7 +190,7 @@
             }
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) {
+              if (printer.debugLeveling()) {
                 SERIAL_EMV("Active hotend parked: ", mechanics.active_hotend_parked ? "yes" : "no");
                 DEBUG_POS("New hotend (parked)", mechanics.current_position);
               }
@@ -244,7 +244,7 @@
                        offset_vec = tmp_offset_vec - act_offset_vec;
 
               #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (DEBUGGING(LEVELING)) {
+                if (printer.debugLeveling()) {
                   tmp_offset_vec.debug("tmp_offset_vec");
                   act_offset_vec.debug("act_offset_vec");
                   offset_vec.debug("offset_vec (BEFORE)");
@@ -254,7 +254,7 @@
               offset_vec.apply_rotation(bedlevel.matrix.transpose(bedlevel.matrix));
 
               #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (DEBUGGING(LEVELING)) offset_vec.debug("offset_vec (AFTER)");
+                if (printer.debugLeveling()) offset_vec.debug("offset_vec (AFTER)");
               #endif
 
               // Adjustments to the current position
@@ -272,7 +272,7 @@
 
                 if (bedlevel.leveling_active) {
                   #if ENABLED(DEBUG_LEVELING_FEATURE)
-                    if (DEBUGGING(LEVELING)) SERIAL_MV("Z before MBL: ", mechanics.current_position[Z_AXIS]);
+                    if (printer.debugLeveling()) SERIAL_MV("Z before MBL: ", mechanics.current_position[Z_AXIS]);
                   #endif
                   float x2 = mechanics.current_position[X_AXIS] + xydiff[X_AXIS],
                         y2 = mechanics.current_position[Y_AXIS] + xydiff[Y_AXIS],
@@ -281,7 +281,7 @@
                   bedlevel.apply_leveling(x2, y2, z2);
                   mechanics.current_position[Z_AXIS] += z2 - z1;
                   #if ENABLED(DEBUG_LEVELING_FEATURE)
-                    if (DEBUGGING(LEVELING))
+                    if (printer.debugLeveling())
                       SERIAL_EMV(" after: ", mechanics.current_position[Z_AXIS]);
                   #endif
                 }
@@ -291,7 +291,7 @@
             #endif // !AUTO_BED_LEVELING_FEATURE
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) {
+              if (printer.debugLeveling()) {
                 SERIAL_MV("Offset Tool XY by { ", xydiff[X_AXIS]);
                 SERIAL_MV(", ", xydiff[Y_AXIS]);
                 SERIAL_EM(" }");
@@ -314,7 +314,7 @@
           #endif // !DUAL_X_CARRIAGE
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) DEBUG_POS("Sync After Toolchange", mechanics.current_position);
+            if (printer.debugLeveling()) DEBUG_POS("Sync After Toolchange", mechanics.current_position);
           #endif
 
           // Tell the planner the new "current position"
@@ -326,7 +326,7 @@
           #endif
           if (!no_move && printer.IsRunning()) {
             #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", mechanics.destination);
+              if (printer.debugLeveling()) DEBUG_POS("Move back", mechanics.destination);
             #endif
             // Move back to the original (or tweaked) position
             mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);

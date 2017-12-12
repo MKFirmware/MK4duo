@@ -32,7 +32,7 @@ constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL,
 constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 // public:
-volatile bool Temperature::wait_for_heatup = true;
+volatile bool Temperature::wait_for_heatup  = true;
 
 #if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0,
@@ -49,11 +49,6 @@ volatile bool Temperature::wait_for_heatup = true;
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
   bool    Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp   = EXTRUDE_MINTEMP;
-#endif
-
-#if ENABLED(AUTO_REPORT_TEMPERATURES) && (HAS_TEMP_HOTEND || HAS_TEMP_BED)
-  uint8_t   Temperature::auto_report_temp_interval  = 0;
-  millis_t  Temperature::next_temp_report_ms        = 0;
 #endif
 
 // private:
@@ -116,10 +111,12 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
             old_temp            = 9999.0;
   bool      wants_to_cool       = false;
   millis_t  now,
-            next_temp_ms        = 0,
             next_cool_check_ms  = 0;
 
   wait_for_heatup = true;
+
+  const bool oldReport = printer.isAutoreportTemp();
+  printer.setAutoreportTemp(true);
 
   #if DISABLED(BUSY_WHILE_HEATING)
     KEEPALIVE_STATE(NOT_BUSY);
@@ -136,20 +133,6 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     wants_to_cool = act->isCooling();
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
-
-    now = millis();
-    if (ELAPSED(now, next_temp_ms)) { // Print temp & remaining time every 1s while waiting
-      next_temp_ms = now + 1000UL;
-      report_temperatures();
-      #if TEMP_RESIDENCY_TIME > 0
-        SERIAL_MSG(MSG_W);
-        if (residency_start_ms)
-          SERIAL_VAL(long((((TEMP_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL));
-        else
-          SERIAL_CHR('?');
-      #endif
-      SERIAL_EOL();
-    }
 
     #if ENABLED(BUSY_WHILE_HEATING)
       KEEPALIVE_STATE(WAIT_HEATER);
@@ -196,7 +179,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 
     #endif
 
-    // Prevent a wait-forever situation if R is misused i.e. M109 R0
+    // Prevent a wait-forever situation if R is misused i.e. M190 R0
     if (wants_to_cool) {
       // Break after 60 seconds
       // if the temperature did not drop at least 1.5
@@ -223,6 +206,8 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   #if DISABLED(BUSY_WHILE_HEATING)
     KEEPALIVE_STATE(IN_HANDLER);
   #endif
+
+  printer.setAutoreportTemp(oldReport);
 }
 
 void Temperature::set_current_temp_raw() {
@@ -330,14 +315,22 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   int cycles = 0;
   bool heating = true;
 
+  const bool oldReport = printer.isAutoreportTemp();
+  printer.setAutoreportTemp(true);
+
   disable_all_heaters(); // switch off all heaters.
 
-  millis_t next_temp_ms = millis(), t1 = next_temp_ms, t2 = next_temp_ms;
-  int32_t t_high = 0, t_low = 0;
-
-  float Ku, Tu,
-        workKp = 0, workKi = 0, workKd = 0,
-        maxTemp = 20.0, minTemp = 20.0;
+  millis_t  t1 = millis(),
+            t2 = t1;
+  int32_t   t_high = 0,
+            t_low = 0;
+  float     Ku,
+            Tu,
+            workKp = 0,
+            workKi = 0,
+            workKd = 0,
+            maxTemp = 20.0,
+            minTemp = 20.0;
 
   const uint8_t pidMax = act->pidMax;
   act->soft_pwm = pidMax;
@@ -466,13 +459,6 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       }
     #endif
 
-    // Every 2 seconds...
-    if (ELAPSED(ms, next_temp_ms)) {
-      report_temperatures();
-      SERIAL_EOL();
-      next_temp_ms = ms + 2000UL;
-    }
-
     // Timeout after 20 minutes since the last undershoot/overshoot cycle
     if (((ms - t1) + (ms - t2)) > (20L * 60L * 1000L)) {
       SERIAL_EM(MSG_PID_TIMEOUT);
@@ -525,7 +511,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
         eeprom.Store_Settings();
       }
 
-      return;
+      break;
     }
 
     #if ENABLED(NEXTION)
@@ -535,6 +521,8 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
     #endif
 
   }
+
+  printer.setAutoreportTemp(oldReport);
   disable_all_heaters();
 }
 
@@ -603,50 +591,33 @@ void Temperature::disable_all_heaters() {
   }
 #endif // PROBING_HEATERS_OFF
 
-#if ENABLED(AUTO_REPORT_TEMPERATURES)
-  void Temperature::auto_report_temperatures() {
-    if (auto_report_temp_interval && ELAPSED(millis(), next_temp_report_ms)) {
-      next_temp_report_ms = millis() + 1000UL * auto_report_temp_interval;
-      report_temperatures();
-      SERIAL_EOL();
-    }
-  }
-#endif // AUTO_REPORT_TEMPERATURES
-
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if HAS_TEMP_HOTEND
-    print_heater_state(&heaters[TRG_EXTRUDER_IDX], showRaw);
+    print_heater_state(&heaters[TRG_EXTRUDER_IDX], false, showRaw);
   #endif
 
   #if HAS_TEMP_BED
-    print_heater_state(&heaters[BED_INDEX], showRaw);
-  #endif
-
-  #if HAS_TEMP_CHAMBER
-    print_heater_state(&heaters[CHAMBER_INDEX], showRaw);
-  #endif
-
-  #if HAS_TEMP_COOLER
-    print_heater_state(&heaters[COOLER_INDEX], showRaw);
-  #endif
-
-  #if HOTENDS > 1
-    LOOP_HOTEND() print_heater_state(&heaters[h], showRaw);
-  #endif
-
-  SERIAL_MV(" @:", (int)heaters[TRG_EXTRUDER_IDX].soft_pwm);
-
-  #if HAS_TEMP_BED
+    print_heater_state(&heaters[BED_INDEX], false, showRaw);
     SERIAL_MV(MSG_BAT, (int)heaters[BED_INDEX].soft_pwm);
   #endif
 
   #if HAS_TEMP_CHAMBER
+    print_heater_state(&heaters[CHAMBER_INDEX], false, showRaw);
     SERIAL_MV(MSG_CAT, (int)heaters[CHAMBER_INDEX].soft_pwm);
   #endif
-  
+
+  #if HAS_TEMP_COOLER
+    print_heater_state(&heaters[COOLER_INDEX], false, showRaw);
+  #endif
+
+  #if HAS_TEMP_HOTEND
+    SERIAL_MV(" @:", (int)heaters[TRG_EXTRUDER_IDX].soft_pwm);
+  #endif
+
   #if HOTENDS > 1
     LOOP_HOTEND() {
+      print_heater_state(&heaters[h], true, showRaw);
       SERIAL_MV(MSG_AT, h);
       SERIAL_CHR(':');
       SERIAL_VAL((int)heaters[h].soft_pwm);
@@ -928,7 +899,7 @@ void Temperature::max_temp_error(const uint8_t h) {
 
 #endif // THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED
 
-void Temperature::print_heater_state(Heater *act, const bool showRaw/*=false*/) {
+void Temperature::print_heater_state(Heater *act, const bool print_ID, const bool showRaw) {
 
   SERIAL_CHR(' ');
 
@@ -936,7 +907,7 @@ void Temperature::print_heater_state(Heater *act, const bool showRaw/*=false*/) 
     if (act->type == IS_HOTEND) {
       SERIAL_CHR('T');
       #if HOTENDS > 1
-        SERIAL_VAL((int)act->ID);
+        if (print_ID) SERIAL_VAL((int)act->ID);
       #endif
     }
   #endif

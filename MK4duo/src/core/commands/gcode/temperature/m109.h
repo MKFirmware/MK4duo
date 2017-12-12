@@ -37,7 +37,7 @@
   inline void gcode_M109(void) {
 
     GET_TARGET_EXTRUDER(109);
-    if (DEBUGGING(DRYRUN)) return;
+    if (printer.debugDryrun()) return;
 
     #if ENABLED(SINGLENOZZLE)
       if (TARGET_EXTRUDER != tools.active_extruder) return;

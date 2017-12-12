@@ -301,7 +301,7 @@
       }
     #else
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM("Reset Bed Level");
+        if (printer.debugLeveling()) SERIAL_EM("Reset Bed Level");
       #endif
       #if ABL_PLANAR
         matrix.set_to_identity();

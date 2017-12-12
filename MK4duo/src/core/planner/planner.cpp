@@ -1245,7 +1245,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
   //*/
 
   // DRYRUN ignores all temperature constraints and assures that the extruder is instantly satisfied
-  if (DEBUGGING(DRYRUN))
+  if (printer.debugDryrun())
     position[E_AXIS] = target[E_AXIS];
 
   // Always split the first move into two (if not homing or probing)

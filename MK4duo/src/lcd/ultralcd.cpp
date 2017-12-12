@@ -1185,7 +1185,7 @@ void kill_screen(const char* lcd_msg) {
     void lcd_enqueue_filament_change() {
 
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(tools.active_extruder)) {
+        if (!printer.debugDryrun() && thermalManager.tooColdToExtrude(tools.active_extruder)) {
           lcd_save_previous_screen();
           lcd_goto_screen(lcd_advanced_pause_toocold_menu);
           return;

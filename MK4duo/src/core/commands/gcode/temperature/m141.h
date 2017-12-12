@@ -34,7 +34,7 @@
    * M141: Set Chamber temperature
    */
   inline void gcode_M141(void) {
-    if (DEBUGGING(DRYRUN)) return;
+    if (printer.debugDryrun()) return;
     if (parser.seenval('S')) heaters[CHAMBER_INDEX].setTarget(parser.value_celsius());
   }
 

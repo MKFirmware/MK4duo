@@ -845,7 +845,7 @@
       }
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) {
+        if (printer.debugLeveling()) {
           SERIAL_EMV("d from 1st point: ", d, 6);
           t = normal.x * (PROBE_PT_2_X) + normal.y * (PROBE_PT_2_Y);
           d = t + normal.z * z2;
@@ -862,7 +862,7 @@
                 y_tmp = mesh_index_to_ypos(j),
                 z_tmp = z_values[i][j];
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_MSG("before rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -875,7 +875,7 @@
           #endif
           apply_rotation_xyz(rotation, x_tmp, y_tmp, z_tmp);
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_MSG("after rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -1627,7 +1627,7 @@
           const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
           float measured_z = probe.check_pt(rx, ry, parser.seen('E'), g29_verbose_level); // TODO: Needs error handling
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_CHR('(');
               SERIAL_VAL(rx, 7);
               SERIAL_CHR(',');
@@ -1647,7 +1647,7 @@
           measured_z -= get_z_correction(rx, ry);
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_MSG("   final >>>---> ");
               SERIAL_VAL(measured_z, 7);
               SERIAL_EOL();
@@ -1696,7 +1696,7 @@
                 z_tmp = z_values[i][j];
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_MSG("before rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -1711,7 +1711,7 @@
           apply_rotation_xyz(rotation, x_tmp, y_tmp, z_tmp);
 
           #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (DEBUGGING(LEVELING)) {
+            if (printer.debugLeveling()) {
               SERIAL_MSG("after rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -1728,7 +1728,7 @@
       }
 
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) {
+        if (printer.debugLeveling()) {
           rotation.debug(PSTR("rotation matrix:"));
           SERIAL_MSG("LSF Results A=");
           SERIAL_VAL(lsf_results.A, 7);

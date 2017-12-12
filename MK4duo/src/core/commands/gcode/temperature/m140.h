@@ -34,7 +34,7 @@
    * M140: Set Bed temperature
    */
   inline void gcode_M140(void) {
-    if (DEBUGGING(DRYRUN)) return;
+    if (printer.debugDryrun()) return;
     if (parser.seenval('S')) heaters[BED_INDEX].setTarget(parser.value_celsius());
   }
 

@@ -78,7 +78,7 @@ bool  Probe::enabled  = false;
 bool Probe::set_deployed(const bool deploy) {
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) {
+    if (printer.debugLeveling()) {
       DEBUG_POS("probe.set_deployed", mechanics.current_position);
       SERIAL_EMV("deploy: ", deploy);
     }
@@ -89,7 +89,7 @@ bool Probe::set_deployed(const bool deploy) {
   // Make room for probe
   float z_dest = _Z_PROBE_DEPLOY_HEIGHT;
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) {
+    if (printer.debugLeveling()) {
       SERIAL_MV("raise(", z_dest);
       SERIAL_CHR(')'); SERIAL_EOL();
     }
@@ -164,7 +164,7 @@ bool Probe::set_deployed(const bool deploy) {
  */
 bool Probe::move_to_z(const float z, const float fr_mm_m) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS(">>> move_to_z", mechanics.current_position);
+    if (printer.debugLeveling()) DEBUG_POS(">>> move_to_z", mechanics.current_position);
   #endif
 
   // Deploy BLTouch at the start of any probe
@@ -207,7 +207,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
   mechanics.sync_plan_position();
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS("<<< move_to_z", mechanics.current_position);
+    if (printer.debugLeveling()) DEBUG_POS("<<< move_to_z", mechanics.current_position);
   #endif
 
   return !probe_triggered;
@@ -224,7 +224,7 @@ float Probe::run_z_probe() {
   float probe_z = 0.0;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", mechanics.current_position);
+    if (printer.debugLeveling()) DEBUG_POS(">>> run_z_probe", mechanics.current_position);
   #endif
 
   // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
@@ -271,7 +271,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
   #if HAS_BED_PROBE
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
         SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
         SERIAL_MV(", ", stow ? "" : "no ");
@@ -321,7 +321,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) SERIAL_EM("<<< check_pt");
+      if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
     #endif
 
     mechanics.feedrate_mm_s = old_feedrate_mm_s;
@@ -397,7 +397,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV("set_bltouch_deployed(", deploy);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -422,7 +422,7 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
    */
   void Probe::dock_sled(bool stow) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV("dock_sled(", stow);
         SERIAL_CHR(')'); SERIAL_EOL();
       }

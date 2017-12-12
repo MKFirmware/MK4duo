@@ -24,8 +24,6 @@
 
 #if ENABLED(__AVR__)
 
-uint8_t mk_debug_flags = DEBUG_NONE;
-
 // Things to write to serial from Program memory. Saves 400 to 2k of RAM.
 void serialprintPGM(const char* str) {
   while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);

@@ -339,7 +339,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MV("For ", axis_codes[axis]);
         SERIAL_MV(" axis:\n home_offset = ", mechanics.home_offset[axis]);
         SERIAL_MV("\n position_shift = ", mechanics.position_shift[axis]);

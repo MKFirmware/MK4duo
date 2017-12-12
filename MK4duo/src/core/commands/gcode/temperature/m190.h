@@ -35,7 +35,7 @@
    *       Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
    */
   inline void gcode_M190(void) {
-    if (DEBUGGING(DRYRUN)) return;
+    if (printer.debugDryrun()) return;
 
     LCD_MESSAGEPGM(MSG_BED_HEATING);
     const bool no_wait_for_cooling = parser.seen('S');

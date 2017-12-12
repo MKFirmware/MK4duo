@@ -36,7 +36,7 @@
    */
   void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (DEBUGGING(LEVELING)) {
+      if (printer.debugLeveling()) {
         SERIAL_MSG("Extrapolate [");
         if (x < 10) SERIAL_CHR(' ');
         SERIAL_VAL((int)x);
@@ -50,7 +50,7 @@
     #endif
     if (!isnan(z_values[x][y])) {
       #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (DEBUGGING(LEVELING)) SERIAL_EM(" (done)");
+        if (printer.debugLeveling()) SERIAL_EM(" (done)");
       #endif
       return;  // Don't overwrite good values.
     }

@@ -43,7 +43,7 @@
 
   void set_workspace_plane(const Mechanics::WorkspacePlane plane) {
     mechanics.workspace_plane = plane;
-    if (DEBUGGING(INFO)) report_workspace_plane();
+    if (printer.debugInfo()) report_workspace_plane();
   }
 
   /**
