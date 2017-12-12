@@ -162,7 +162,8 @@
           if (c == '\n') {
             switch (state) {
               case state_M108:
-                printer.wait_for_user = thermalManager.wait_for_heatup = false;
+                printer.setWaitForUser(false);
+                printer.setWaitForHeatUp(false);
                 break;
               case state_M112:
                 printer.kill(PSTR(MSG_KILLED));

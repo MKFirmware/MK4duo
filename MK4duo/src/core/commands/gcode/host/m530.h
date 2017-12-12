@@ -46,7 +46,7 @@ inline void gcode_M530(void) {
       commands.enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
     #endif
 
-    printer.filament_out = false;
+    printer.setFilamentOut(false);
 
     #if HAS_FIL_RUNOUT
       SERIAL_EM("Filament runout activated.");
@@ -66,7 +66,7 @@ inline void gcode_M530(void) {
       commands.enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
     #endif
 
-    printer.filament_out = false;
+    printer.setFilamentOut(false);
 
     #if HAS_FIL_RUNOUT
       SERIAL_EM("Filament runout deactivated.");

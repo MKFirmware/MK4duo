@@ -161,7 +161,7 @@
       closeFile(true);
       stepper.quickstop_stepper();
       print_job_counter.stop();
-      thermalManager.wait_for_heatup = false;
+      printer.setWaitForHeatUp(false);
       thermalManager.disable_all_heaters();
       #if FAN_COUNT > 0
         LOOP_FAN() fans[f].Speed = 0;

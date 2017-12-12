@@ -149,7 +149,7 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
 
   #if ENABLED(SUPPORT_MAX31855)
     if (s_type == -3)
-      return read_max31855(this->pin);
+      return 0.25 * read_max31855(this->pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (s_type == -2)

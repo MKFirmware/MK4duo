@@ -2642,8 +2642,8 @@ void kill_screen(const char* lcd_msg) {
       _man_probe_pt(rx, ry);
       KEEPALIVE_STATE(PAUSED_FOR_USER);
       defer_return_to_status = true;
-      printer.wait_for_user = true;
-      while (printer.wait_for_user) printer.idle();
+      printer.setWaitForUser(true);
+      while (printer.isWaitForUser()) printer.idle();
       KEEPALIVE_STATE(IN_HANDLER);
       lcd_goto_previous_menu_no_defer();
       return mechanics.current_position[Z_AXIS];
@@ -4657,8 +4657,8 @@ void lcd_update() {
     if (UBL_CONDITION && LCD_CLICKED) {
       if (!wait_for_unclick) {                // If not waiting for a debounce release:
         wait_for_unclick = true;              // Set debounce flag to ignore continous clicks
-        lcd_clicked = !printer.wait_for_user; // Keep the click if not waiting for a user-click
-        printer.wait_for_user = false;        // Any click clears wait for user
+        lcd_clicked = !printer.isWaitForUser(); // Keep the click if not waiting for a user-click
+        printer.setWaitForUser(false);        // Any click clears wait for user
         lcd_quick_feedback();                 // Always make a click sound
       }
     }

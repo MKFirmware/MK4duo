@@ -59,8 +59,8 @@
   static void ensure_safe_temperature() {
     bool heaters_heating = true;
 
-    thermalManager.wait_for_heatup = true;
-    while (thermalManager.wait_for_heatup && heaters_heating) {
+    printer.setWaitForHeatUp(true);
+    while (printer.isWaitForHeatUp() && heaters_heating) {
       printer.idle();
       heaters_heating = false;
       LOOP_HOTEND() {
@@ -210,8 +210,8 @@
 
     // Wait for filament insert by user and press button
     KEEPALIVE_STATE(PAUSED_FOR_USER);
-    printer.wait_for_user = true;    // LCD click or M108 will clear this
-    while (printer.wait_for_user) {
+    printer.setWaitForUser(true);    // LCD click or M108 will clear this
+    while (printer.isWaitForUser()) {
 
       #if HAS_BUZZER
         filament_change_beep(max_beep_count);
@@ -230,7 +230,7 @@
         #endif
 
         // Wait for LCD click or M108
-        while (printer.wait_for_user) {
+        while (printer.isWaitForUser()) {
 
           if (!bed_timed_out) {
             #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
@@ -278,7 +278,7 @@
           heaters[BED_INDEX].start_idle_timer(bed_timeout);
         #endif
 
-        printer.wait_for_user = true; /* Wait for user to load filament */
+        printer.setWaitForUser(true); /* Wait for user to load filament */
         nozzle_timed_out = false;
         bed_timed_out = false;
 
@@ -329,8 +329,8 @@
       #endif
 
       KEEPALIVE_STATE(PAUSED_FOR_USER);
-      printer.wait_for_user = true;    // LCD click or M108 will clear this
-      while (printer.wait_for_user && nozzle_timed_out) {
+      printer.setWaitForUser(true);    // LCD click or M108 will clear this
+      while (printer.isWaitForUser() && nozzle_timed_out) {
         #if HAS_BUZZER
           filament_change_beep(max_beep_count);
         #endif
@@ -362,7 +362,7 @@
 
         // Show "Extrude More" / "Resume" menu and wait for reply
         KEEPALIVE_STATE(PAUSED_FOR_USER);
-        printer.wait_for_user = false;
+        printer.setWaitForUser(false);
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_OPTION);
         while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
         KEEPALIVE_STATE(IN_HANDLER);
@@ -387,7 +387,7 @@
     mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], PAUSE_PARK_XY_FEEDRATE);
     mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], PAUSE_PARK_Z_FEEDRATE);
 
-    printer.filament_out = false;
+    printer.setFilamentOut(false);
 
     #if HAS_LCD
       // Show status screen

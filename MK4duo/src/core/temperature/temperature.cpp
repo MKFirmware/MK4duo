@@ -32,7 +32,6 @@ constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL,
 constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 // public:
-volatile bool Temperature::wait_for_heatup  = true;
 
 #if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0,
@@ -47,7 +46,6 @@ volatile bool Temperature::wait_for_heatup  = true;
 #endif
 
 #if HAS_TEMP_HOTEND && ENABLED(PREVENT_COLD_EXTRUSION)
-  bool    Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp   = EXTRUDE_MINTEMP;
 #endif
 
@@ -113,7 +111,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   millis_t  now,
             next_cool_check_ms  = 0;
 
-  wait_for_heatup = true;
+  printer.setWaitForHeatUp(true);
 
   const bool oldReport = printer.isAutoreportTemp();
   printer.setAutoreportTemp(true);
@@ -190,9 +188,9 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
       }
     }
 
-  } while (wait_for_heatup && TEMP_CONDITIONS);
+  } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
-  if (wait_for_heatup) {
+  if (printer.isWaitForHeatUp()) {
     LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
     #if ENABLED(PRINTER_EVENT_LEDS)
       #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
@@ -338,11 +336,11 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   int32_t bias  = pidMax >> 1;
   int32_t d     = pidMax >> 1;
 
-  wait_for_heatup = true;
+  printer.setWaitForHeatUp(true);
   pid_pointer = act->ID;
 
   // PID Tuning loop
-  while (wait_for_heatup) {
+  while (printer.isWaitForHeatUp()) {
 
     printer.idle();
 

@@ -934,7 +934,7 @@
         #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
           if (bedlevel.g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
         #endif
-        printer.wait_for_user = false;
+        printer.setWaitForUser(false);
       }
     }
 
@@ -950,8 +950,8 @@
       ProbeMsg.setText(PSTR(MSG_MOVE_Z));
 
       KEEPALIVE_STATE(PAUSED_FOR_USER);
-      printer.wait_for_user = true;
-      while (printer.wait_for_user) printer.idle();
+      printer.setWaitForUser(true);
+      while (printer.isWaitForUser()) printer.idle();
       KEEPALIVE_STATE(IN_HANDLER);
 
       Pprinter.show();
@@ -1054,7 +1054,7 @@
   void sendPopCallback(void *ptr) {
     UNUSED(ptr);
     lcd_clicked = true;
-    printer.wait_for_user = false;
+    printer.setWaitForUser(false);
   }
 
   void filamentPopCallback(void *ptr) {
@@ -1084,7 +1084,7 @@
           UploadNewFirmware(); break;
       #endif
       case 4: // Unconditional stop
-        printer.wait_for_user = false;
+        printer.setWaitForUser(false);
         Pprinter.show();
         break;
       default: break;

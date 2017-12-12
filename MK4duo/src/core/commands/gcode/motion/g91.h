@@ -31,4 +31,4 @@
 /**
  * G91: Relative mode
  */
-inline void gcode_G91(void) { printer.relative_mode = true; }
+inline void gcode_G91(void) { printer.setRelativeMode(true); }
