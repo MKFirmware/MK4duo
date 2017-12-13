@@ -52,11 +52,13 @@
   inline void gcode_M405(void) {
     // This is technically a linear measurement, but since it's quantized to centimeters and is a different unit than
     // everything else, it uses parser.value_int() instead of parser.value_linear_units().
-    if (parser.seen('D')) meas_delay_cm = parser.value_byte();
-    NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
+    if (parser.seen('D')) {
+      meas_delay_cm = parser.value_byte();
+      NOMORE(meas_delay_cm, MAX_MEASUREMENT_DELAY);
+    }
 
     if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
-      const uint8_t temp_ratio = thermalManager.widthFil_to_size_ratio() - 100; // -100 to scale within a signed byte
+      const uint8_t temp_ratio = thermalManager.widthFil_to_size_ratio();
 
       for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
         measurement_delay[i] = temp_ratio;
@@ -65,9 +67,6 @@
     }
 
     filament_sensor = true;
-
-    //SERIAL_MV("Filament dia (measured mm):", filament_width_meas);
-    //SERIAL_EMV("Extrusion ratio(%):", tools.flow_percentage[tools.active_extruder]);
   }
 
   /**

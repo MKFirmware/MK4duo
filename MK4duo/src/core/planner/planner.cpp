@@ -951,7 +951,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
         // If the index has changed (must have gone forward)...
         if (filwidth_delay_index[0] != filwidth_delay_index[1]) {
           filwidth_e_count = 0; // Reset the E movement counter
-          const uint8_t meas_sample = thermalManager.widthFil_to_size_ratio() - 100; // Subtract 100 to reduce magnitude - to store in a signed char
+          const uint8_t meas_sample = thermalManager.widthFil_to_size_ratio();
           do {
             filwidth_delay_index[1] = (filwidth_delay_index[1] + 1) % MMD_CM; // The next unused slot
             measurement_delay[filwidth_delay_index[1]] = meas_sample;         // Store the measurement
@@ -1248,28 +1248,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
   if (printer.debugDryrun())
     position[E_AXIS] = target[E_AXIS];
 
-  // Always split the first move into two (if not homing or probing)
-  if (!blocks_queued()) {
-
-    DISABLE_STEPPER_INTERRUPT();
-
-    const int32_t midway[XYZE] = {
-      (position[X_AXIS] + target[X_AXIS]) >> 1,
-      (position[Y_AXIS] + target[Y_AXIS]) >> 1,
-      (position[Z_AXIS] + target[Z_AXIS]) >> 1,
-      (position[E_AXIS] + target[E_AXIS]) >> 1
-    };
-
-    buffer_steps(midway, fr_mm_s, extruder);
-    const uint8_t next = block_buffer_head;
-    buffer_steps(target, fr_mm_s, extruder);
-    SBI(block_buffer[next].flag, BLOCK_BIT_CONTINUED);
-
-    ENABLE_STEPPER_INTERRUPT();
-
-  }
-  else
-    buffer_steps(target, fr_mm_s, extruder);
+  buffer_steps(target, fr_mm_s, extruder);
 
   stepper.wake_up();
 

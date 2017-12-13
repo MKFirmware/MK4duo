@@ -489,7 +489,6 @@ void Printer::Stop() {
 void Printer::idle(bool no_stepper_sleep/*=false*/) {
 
   static uint8_t cycle_1000ms = 10; // Event 1.0  second
-  static uint8_t cycle_1500ms = 15; // Event 1.5  second
 
   // Start event periodical
 
@@ -536,10 +535,6 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
         thermalManager.report_temperatures();
         SERIAL_EOL();
       }
-    }
-    if (--cycle_1500ms == 0) {
-      // Event 1.5 Second
-      cycle_1500ms = 15;
       #if ENABLED(NEXTION)
         nextion_draw_update();
       #endif
