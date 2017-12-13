@@ -571,6 +571,8 @@ void Temperature::disable_all_heaters() {
   print_job_counter.stop();
 
   pid_pointer = 255;
+
+  printer.safe_delay(10);
 }
 
 #if ENABLED(FILAMENT_SENSOR)
@@ -808,13 +810,15 @@ void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, co
   }
 
   #if DISABLED(BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE)
+
+    disable_all_heaters();
+
     if (!killed) {
       printer.setRunning(false);
       killed = true;
       printer.kill(lcd_msg);
     }
-    else
-      disable_all_heaters();
+
   #endif
 }
 void Temperature::min_temp_error(const uint8_t h) {
