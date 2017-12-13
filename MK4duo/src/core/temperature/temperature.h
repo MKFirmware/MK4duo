@@ -126,7 +126,7 @@ class Temperature {
     static void disable_all_heaters();
 
     #if HAS_FILAMENT_SENSOR
-      static int widthFil_to_size_ratio(); // Convert raw Filament Width to an extrusion ratio
+      static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio
     #endif    
 
     #if ENABLED(PROBING_HEATERS_OFF)

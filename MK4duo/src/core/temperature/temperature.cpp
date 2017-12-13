@@ -292,10 +292,16 @@ void Temperature::spin() {
       if (meas_shift_index < 0) meas_shift_index += MAX_MEASUREMENT_DELAY + 1;  //loop around buffer if needed
       meas_shift_index = constrain(meas_shift_index, 0, MAX_MEASUREMENT_DELAY);
 
-      // Get the delayed info and add 100 to reconstitute to a percent of
-      // the nominal filament diameter then square it to get an area
-      const float vmroot = measurement_delay[meas_shift_index] * 0.01 + 1.0;
-      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = vmroot <= 0.1 ? 0.01 : sq(vmroot);
+      // Convert the ratio value given by the filament width sensor
+      // into a volumetric multiplier. Conversion differs when using
+      // linear extrusion vs volumetric extrusion.
+      const float nom_meas_ratio = 1.0 + 0.01 * measurement_delay[meas_shift_index],
+                  ratio_2 = sq(nom_meas_ratio);
+
+      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = tools.volumetric_enabled
+        ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5) // Volumetric uses a true volumetric multiplier
+        : ratio_2;                                            // Linear squares the ratio, which scales the volume
+
       tools.refresh_e_factor(FILAMENT_SENSOR_EXTRUDER_NUM);
     }
   #endif // FILAMENT_SENSOR
@@ -568,13 +574,26 @@ void Temperature::disable_all_heaters() {
 }
 
 #if ENABLED(FILAMENT_SENSOR)
-  // Convert raw Filament Width to a ratio
-  int Temperature::widthFil_to_size_ratio() {
-    float temp = filament_width_meas;
-    if (temp < MEASURED_LOWER_LIMIT) temp = filament_width_nominal;  // assume sensor cut out
-    else NOMORE(temp, MEASURED_UPPER_LIMIT);
-    return filament_width_nominal / temp * 100;
+
+  // Convert raw Filament Width to millimeters
+  float Temperature::analog2widthFil() {
+    return current_raw_filwidth * (HAL_VOLTAGE_PIN) * (1.0 / 16383.0);
   }
+
+  /**
+   * Convert Filament Width (mm) to a simple ratio
+   * and reduce to an 8 bit value.
+   *
+   * A nominal width of 1.75 and measured width of 1.73
+   * gives (100 * 1.75 / 1.73) for a ratio of 101 and
+   * a return value of 1.
+   */
+  int8_t Temperature::widthFil_to_size_ratio() {
+    if (WITHIN(filament_width_meas, MEASURED_LOWER_LIMIT, MEASURED_UPPER_LIMIT))
+      return int(100.0 * filament_width_nominal / filament_width_meas) - 100;
+    return 0;
+  }
+
 #endif
 
 #if ENABLED(PROBING_HEATERS_OFF)
@@ -684,16 +703,8 @@ void Temperature::updateTemperaturesFromRawValues() {
 
 #if HAS_MCU_TEMPERATURE
   float Temperature::analog2tempMCU(const int raw) {
-    const float voltage = (float)raw * (3.3 / (float)16384);
+    const float voltage = (float)raw * ((HAL_VOLTAGE_PIN) / (float)16384);
     return (voltage - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
-  }
-#endif
-
-#if ENABLED(FILAMENT_SENSOR)
-  // Convert raw Filament Width to millimeters
-  float Temperature::analog2widthFil() {
-    return current_raw_filwidth * 5.0 * (1.0 / 16383.0);
-    //return current_raw_filwidth;
   }
 #endif
 

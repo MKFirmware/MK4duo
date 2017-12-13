@@ -26,7 +26,7 @@
 /**
  * Define SPI Pins: SCK, MISO, MOSI, SS
  *
- * Available chip select pins for HW SPI are 4 10 52 77
+ * Available chip select pins for HW SPI are 4 10 52 53 59 60 77
  */
 #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52) || (SDSS == 53) || (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
   #if (SDSS == 4)
