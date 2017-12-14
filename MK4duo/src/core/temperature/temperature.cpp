@@ -657,6 +657,17 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 }
 
+#if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+  bool Temperature::tooColdToExtrude(const uint8_t h) {
+    #if HOTENDS <= 1
+      UNUSED(h);
+    #endif
+    return printer.isAllowColdExtrude() ? false : heaters[HOTEND_INDEX].current_temperature < extrude_min_temp;
+  }
+#else
+  bool Temperature::tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
+#endif
+
 // Private function
 /**
  * Get the raw values into the actual temperatures.
@@ -810,15 +821,13 @@ void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, co
   }
 
   #if DISABLED(BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE)
-
-    disable_all_heaters();
-
     if (!killed) {
       printer.setRunning(false);
       killed = true;
       printer.kill(lcd_msg);
     }
-
+    else
+      disable_all_heaters();
   #endif
 }
 void Temperature::min_temp_error(const uint8_t h) {

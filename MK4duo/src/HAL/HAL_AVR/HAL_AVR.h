@@ -299,7 +299,7 @@ typedef uint16_t  ptr_int_t;
         } while(0)
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000) // 16 or 20
+#define CYCLES_PER_US ((F_CPU) / 1000000L) // 16 or 20
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
 

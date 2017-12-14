@@ -31,7 +31,6 @@
 Probe probe;
 
 float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE };
-bool  Probe::enabled  = false;
 
 #if HAS_Z_SERVO_PROBE
   const int Probe::z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
@@ -84,7 +83,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  if (enabled == deploy) return false;
+  if (printer.IsProbeEndstop() == deploy) return false;
 
   // Make room for probe
   float z_dest = _Z_PROBE_DEPLOY_HEIGHT;
@@ -123,8 +122,8 @@ bool Probe::set_deployed(const bool deploy) {
                                                         // Would a goto be less ugly?
       //while (!_TRIGGERED_WHEN_STOWED_TEST) { printer.idle();  // would offer the opportunity
                                                         // for a triggered when stowed manual probe.
-      if (!deploy) set_enable(false); // Switch off triggered when stowed probes early
-                                          // otherwise an Allen-Key probe can't be stowed.
+      if (!deploy) printer.setProbeEndstop(false);  // Switch off triggered when stowed probes early
+                                                    // otherwise an Allen-Key probe can't be stowed.
   #endif
 
   #if ENABLED(Z_PROBE_SLED)
@@ -151,7 +150,7 @@ bool Probe::set_deployed(const bool deploy) {
   #endif
 
   mechanics.do_blocking_move_to(oldXpos, oldYpos, mechanics.current_position[Z_AXIS]); // return to position before deploy
-  set_enable(deploy);
+  printer.setProbeEndstop(deploy);
   return false;
 }
 
@@ -343,15 +342,15 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
 
     // Disable software endstops to allow manual adjustment
     #if HAS_SOFTWARE_ENDSTOPS
-      const bool old_enable_soft_endstops = endstops.soft_endstops_enabled;
-      endstops.soft_endstops_enabled = false;
+      const bool old_enable_soft_endstops = printer.IsSoftEndstop();
+      printer.setSoftEndstop(false);
     #endif
 
     measured_z = lcd_probe_pt(rx, ry);
 
     // Restore the soft endstop status
     #if HAS_SOFTWARE_ENDSTOPS
-      endstops.soft_endstops_enabled = old_enable_soft_endstops;
+      printer.setSoftEndstop(old_enable_soft_endstops);
     #endif
 
     return measured_z;

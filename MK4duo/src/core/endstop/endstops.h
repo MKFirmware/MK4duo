@@ -54,7 +54,7 @@ class Endstops {
 
   public: /** Constructor */
 
-    Endstops() { enable_globally(true); }
+    Endstops() { printer.setEndstopGlobally(true); }
 
   public: /** Public Parameters */
 
@@ -64,9 +64,6 @@ class Endstops {
       static float  soft_endstop_min[XYZ],
                     soft_endstop_max[XYZ];
     #endif
-
-    static bool enabled, enabled_globally,
-                soft_endstops_enabled;
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
       static float  z2_endstop_adj,
@@ -103,14 +100,8 @@ class Endstops {
      */
     static void report_state(); // call from somewhere to create an serial error message with the locations the endstops where hit, in case they were triggered
 
-    // Enable / disable endstop checking globally
-    static void enable_globally(bool onoff=true) { enabled_globally = enabled = onoff; }
-
-    // Enable / disable endstop checking
-    static void enable(bool onoff=true) { enabled = onoff; }
-
     // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-    static void not_homing() { enabled = enabled_globally; }
+    static void not_homing() { printer.setEndstopEnabled(printer.IsEndstopGlobally()); }
 
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
     static void hit_on_purpose() { endstop_hit_bits = 0; }
@@ -145,9 +136,9 @@ class Endstops {
 extern Endstops endstops;
 
 #if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (endstops.enabled || probe.enabled)
+  #define ENDSTOPS_ENABLED  (printer.IsEndstopEnabled() || printer.IsProbeEndstop())
 #else
-  #define ENDSTOPS_ENABLED  endstops.enabled
+  #define ENDSTOPS_ENABLED  printer.IsEndstopEnabled()
 #endif
 
 #endif /* _ENDSTOPS_H_ */

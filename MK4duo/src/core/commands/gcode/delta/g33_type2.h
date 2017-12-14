@@ -113,7 +113,7 @@
   }
 
   static bool home_delta() {
-    endstops.enable(true);
+    printer.setEndstopEnabled(true);
     if (!mechanics.Home()) return false;
     endstops.not_homing();
     return true;
@@ -477,7 +477,7 @@
     }
 
     printer.setup_for_endstop_or_probe_move();
-    endstops.enable(true);
+    printer.setEndstopEnabled(true);
     if (!_0p_calibration) {
       if (!mechanics.Home()) return;
       endstops.not_homing();

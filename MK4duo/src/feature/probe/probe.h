@@ -60,18 +60,12 @@ class Probe {
   public: /** Public Parameters */
 
     static float  offset[XYZ];
-    static bool   enabled;
 
     #if HAS_Z_SERVO_PROBE
       static const int z_servo_angle[2];
     #endif
 
   public: /** Public Function */
-
-    /**
-     * Enable / disable endstop z-probe checking
-     */
-    static void set_enable(bool onoff = true) { enabled = onoff; }
 
     static bool set_deployed(const bool deploy);
 

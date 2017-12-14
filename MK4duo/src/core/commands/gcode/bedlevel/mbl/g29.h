@@ -94,14 +94,14 @@
         if (mbl_probe_index == 0) {
           #if HAS_SOFTWARE_ENDSTOPS
             // For the initial G29 S2 save software endstop state
-            enable_soft_endstops = endstops.soft_endstops_enabled;
+            enable_soft_endstops = printer.IsSoftEndstop();
           #endif
         }
         else {
           // For G29 S2 after adjusting Z.
           mbl.set_zigzag_z(mbl_probe_index - 1, mechanics.current_position[Z_AXIS]);
           #if HAS_SOFTWARE_ENDSTOPS
-            endstops.soft_endstops_enabled = enable_soft_endstops;
+            printer.setSoftEndstop(enable_soft_endstops);
           #endif
         }
         // If there's another point to sample, move there with optional lift.
@@ -112,7 +112,7 @@
           #if HAS_SOFTWARE_ENDSTOPS
             // Disable software endstops to allow manual adjustment
             // If G29 is not completed, they will not be re-enabled
-            endstops.soft_endstops_enabled = false;
+            printer.setSoftEndstop(false);
           #endif
 
           mbl_probe_index++;

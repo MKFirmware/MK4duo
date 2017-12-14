@@ -373,11 +373,20 @@
     #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
   }
 
+  /**
+   * Get a volumetric multiplier from a filament diameter.
+   * This is the reciprocal of the circular cross-section area.
+   * Return 1.0 with volumetric off or a diameter of 0.0.
+   */
   float Tools::calculate_volumetric_multiplier(const float diameter) {
     if (!volumetric_enabled || diameter == 0) return 1.0;
     return 1.0 / CIRCLE_AREA(diameter * 0.5);
   }
 
+  /**
+   * Convert the filament sizes into volumetric multipliers.
+   * The multiplier converts a given E value into a length.
+   */
   void Tools::calculate_volumetric_multipliers() {
     for (uint8_t e = 0; e < EXTRUDERS; e++) {
       volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);

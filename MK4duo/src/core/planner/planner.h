@@ -100,8 +100,7 @@ typedef struct {
         entry_speed,                        // Entry speed at previous-current junction in mm/sec
         max_entry_speed,                    // Maximum allowable junction entry speed in mm/sec
         millimeters,                        // The total travel of this block in mm
-        acceleration,                       // acceleration mm/sec^2
-        min_axis_accel_ratio;               // ratio between nominal speed and startup speed
+        acceleration;                       // acceleration mm/sec^2
 
   // Settings for the trapezoid generator
   uint32_t  nominal_rate,                   // The nominal step rate for this block in step_events/sec
@@ -230,8 +229,9 @@ class Planner {
      *  target      - target position in steps units
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
+     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder);
+    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
 
     /**
      * Planner::buffer_segment
@@ -240,11 +240,12 @@ class Planner {
      *
      * Leveling and kinematics should be applied ahead of calling this.
      *
-     *  a,b,c,e   - target positions in mm and/or degrees
-     *  fr_mm_s   - (target) speed of the move
-     *  extruder  - target extruder
+     *  a,b,c,e     - target positions in mm and/or degrees
+     *  fr_mm_s     - (target) speed of the move
+     *  extruder    - target extruder
+     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
 
     /**
      * Add a new linear movement to the buffer.
@@ -254,22 +255,24 @@ class Planner {
      * Kinematic machines should call buffer_line_kinematic (for leveled moves).
      * (Cartesians may also call buffer_line_kinematic.)
      *
-     *  rx,ry,rz,e   - target position in mm or degrees
-     *  fr_mm_s      - (target) speed of the move (mm/s)
-     *  extruder     - target extruder
+     *  rx,ry,rz,e  - target position in mm or degrees
+     *  fr_mm_s     - (target) speed of the move (mm/s)
+     *  extruder    - target extruder
+     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
 
     /**
      * Add a new linear movement to the buffer.
      * The target is cartesian, it's translated to delta/scara if
      * needed.
      *
-     *  cart      - x,y,z,e CARTESIAN target in mm
-     *  fr_mm_s   - (target) speed of the move (mm/s)
-     *  extruder  - target extruder
+     *  cart        - x,y,z,e CARTESIAN target in mm
+     *  fr_mm_s     - (target) speed of the move (mm/s)
+     *  extruder    - target extruder
+     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
 
     FORCE_INLINE static void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     FORCE_INLINE static void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
@@ -370,9 +373,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 1.7);  // 1.7 - fudge factor to get most of stepper
-                                                                    // decel ramps to hit the final rate - overkill
-                                                                    // for accel ramps but doesn't matter
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
     }
 
     /**

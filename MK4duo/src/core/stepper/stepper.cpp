@@ -109,9 +109,9 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 #if ENABLED(LIN_ADVANCE)
 
-  hal_timer_t Stepper::nextMainISR = 0,
+  hal_timer_t Stepper::nextMainISR    = 0,
               Stepper::nextAdvanceISR = ADV_NEVER,
-              Stepper::eISR_Rate = ADV_NEVER;
+              Stepper::eISR_Rate      = ADV_NEVER;
 
   volatile int  Stepper::e_steps[DRIVER_EXTRUDERS];
 
@@ -349,11 +349,7 @@ volatile long   Stepper::endstops_trigsteps[XYZ];
  *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
 void Stepper::wake_up() {
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    //
-  #else
-    //  TCNT1 = 0;
-  #endif
+  //  TCNT1 = 0;
   ENABLE_STEPPER_INTERRUPT();
 }
 
@@ -464,13 +460,11 @@ void Stepper::isr() {
   hal_timer_t ocr_val;
   static uint32_t step_remaining = 0;  // SPLIT function always runs.  This allows 16 bit timers to be
                                        // used to generate the stepper ISR.
-  #define _SPLIT(L) (ocr_val = (hal_timer_t)L)
-
   #define SPLIT(L) do { \
     if (L > ENDSTOP_NOMINAL_OCR_VAL) { \
-      const hal_timer_t remainder = (hal_timer_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
+      const uint32_t remainder = (uint32_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
       ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
-      step_remaining = (hal_timer_t)L - ocr_val; \
+      step_remaining = (uint32_t)L - ocr_val; \
     } \
     else \
       ocr_val = L;\
@@ -954,9 +948,12 @@ void Stepper::isr() {
     hal_timer_t step_rate;
     HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
-    NOMORE(step_rate, acc_step_rate);             // make sure final step rate doesn't go negative
-    step_rate =  acc_step_rate - step_rate;       // now we have the real step rate
-    NOLESS(step_rate, current_block->final_rate);
+    if (step_rate < acc_step_rate) { // Still decelerating?
+      step_rate = acc_step_rate - step_rate;
+      NOLESS(step_rate, current_block->final_rate);
+    }
+    else
+      step_rate = current_block->final_rate;
 
     // step_rate to timer interval
     const hal_timer_t interval = calc_timer_interval(step_rate);
@@ -999,9 +996,9 @@ void Stepper::isr() {
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
-      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US));
-      HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
+                  stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
+      HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
     #else
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
@@ -1449,7 +1446,7 @@ void Stepper::init() {
     ZERO(current_adv_steps);
   #endif // ENABLED(LIN_ADVANCE)
 
-  endstops.enable(true); // Start with endstops active. After homing they can be disabled
+  printer.setEndstopEnabled(true); // Start with endstops active. After homing they can be disabled
   sei();
 
   set_directions(); // Init directions to last_direction_bits = 0
