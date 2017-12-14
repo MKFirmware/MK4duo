@@ -36,9 +36,9 @@
 inline void gcode_M122(void) {
 
   #if HAS_SOFTWARE_ENDSTOPS
-    if (parser.seen('S')) endstops.soft_endstops_enabled = parser.value_bool();
+    if (parser.seen('S')) printer.setSoftEndstop(parser.value_bool());
     SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
-    SERIAL_PS(endstops.soft_endstops_enabled ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+    SERIAL_PS(printer.IsSoftEndstop() ? PSTR(MSG_ON) : PSTR(MSG_OFF));
   #else
     SERIAL_MSG(MSG_SOFT_ENDSTOPS);
     SERIAL_MSG(MSG_OFF);

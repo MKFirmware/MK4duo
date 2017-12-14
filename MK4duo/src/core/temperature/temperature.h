@@ -57,14 +57,6 @@ class Temperature {
 
     #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
       static int16_t extrude_min_temp;
-      static bool tooColdToExtrude(uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        return printer.isAllowColdExtrude() ? false : heaters[HOTEND_INDEX].current_temperature < extrude_min_temp;
-      }
-    #else
-      static bool tooColdToExtrude(uint8_t h) { UNUSED(h); return false; }
     #endif
 
   private: /** Private Parameters */
@@ -135,6 +127,8 @@ class Temperature {
     #endif
 
     static void report_temperatures(const bool showRaw=false);
+
+    static bool tooColdToExtrude(const uint8_t h);
 
   private:
 

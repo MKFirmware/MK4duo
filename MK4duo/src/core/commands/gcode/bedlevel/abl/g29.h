@@ -128,7 +128,7 @@ inline void gcode_G29(void) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     const bool query = parser.seen('Q');
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (query) printer.debugSet(DEBUG_LEVELING);
+    if (query) printer.debugSet(debug_leveling);
     if (printer.debugLeveling()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();
@@ -475,7 +475,7 @@ inline void gcode_G29(void) {
     if (seenA && bedlevel.g29_in_progress) {
       SERIAL_EM("Manual G29 aborted");
       #if HAS_SOFTWARE_ENDSTOPS
-        endstops.soft_endstops_enabled = enable_soft_endstops;
+        printer.setSoftEndstop(enable_soft_endstops);
       #endif
       bedlevel.leveling_active = abl_should_enable;
       bedlevel.g29_in_progress = false;
@@ -500,7 +500,7 @@ inline void gcode_G29(void) {
     if (abl_probe_index == 0) {
       // For the initial G29 save software endstop state
       #if HAS_SOFTWARE_ENDSTOPS
-        enable_soft_endstops = endstops.soft_endstops_enabled;
+        enable_soft_endstops = printer.IsSoftEndstop();
       #endif
     }
     else {
@@ -576,7 +576,7 @@ inline void gcode_G29(void) {
         #if HAS_SOFTWARE_ENDSTOPS
           // Disable software endstops to allow manual adjustment
           // If G29 is not completed, they will not be re-enabled
-          endstops.soft_endstops_enabled = false;
+          printer.setSoftEndstop(false);
         #endif
         return;
       }
@@ -588,7 +588,7 @@ inline void gcode_G29(void) {
 
         // Re-enable software endstops, if needed
         #if HAS_SOFTWARE_ENDSTOPS
-          endstops.soft_endstops_enabled = enable_soft_endstops;
+          printer.setSoftEndstop(enable_soft_endstops);
         #endif
       }
 
@@ -601,7 +601,7 @@ inline void gcode_G29(void) {
         #if HAS_SOFTWARE_ENDSTOPS
           // Disable software endstops to allow manual adjustment
           // If G29 is not completed, they will not be re-enabled
-          endstops.soft_endstops_enabled = false;
+          printer.setSoftEndstop(false);
         #endif
         return;
       }
@@ -611,7 +611,7 @@ inline void gcode_G29(void) {
 
         // Re-enable software endstops, if needed
         #if HAS_SOFTWARE_ENDSTOPS
-          endstops.soft_endstops_enabled = enable_soft_endstops;
+          printer.setSoftEndstop(enable_soft_endstops);
         #endif
 
         if (!dryrun) {

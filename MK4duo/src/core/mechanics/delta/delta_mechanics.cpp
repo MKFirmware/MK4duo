@@ -153,6 +153,7 @@
 
       // The approximate length of each segment
       const float inv_segments = 1.0 / float(segments),
+                  segment_mm = cartesian_mm * inv_segments,
                   segment_distance[XYZE] = {
                     difference[X_AXIS] * inv_segments,
                     difference[Y_AXIS] * inv_segments,
@@ -163,6 +164,7 @@
       //SERIAL_MV("mm=", cartesian_mm);
       //SERIAL_MV(" seconds=", seconds);
       //SERIAL_EMV(" segments=", segments);
+      //SERIAL_EMV(" segments_mm=", segment_mm);
 
       // Get the current position as starting point
       float raw[XYZE];
@@ -190,11 +192,11 @@
           }
         #endif
 
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, segment_mm);
 
       }
 
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder, segment_mm);
 
       return false;
     }
@@ -551,9 +553,9 @@
 
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("> endstops.enable(true)");
+      if (printer.debugLeveling()) SERIAL_EM("> printer.setEndstopEnabled(true)");
     #endif
-    endstops.enable(true); // Enable endstops for next homing move
+    printer.setEndstopEnabled(true); // Enable endstops for next homing move
 
     bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];

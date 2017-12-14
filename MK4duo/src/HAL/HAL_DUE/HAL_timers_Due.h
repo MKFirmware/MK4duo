@@ -111,7 +111,7 @@ typedef struct {
         } while(0)
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000) // 84
+#define CYCLES_PER_US ((F_CPU) / 1000000L) // 84
 // Stepper pulse duration, in cycles
 #define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
 

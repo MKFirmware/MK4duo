@@ -80,11 +80,6 @@ PrinterMode Printer::mode =
   uint8_t Printer::old_color = 99;
 #endif
 
-#if ENABLED(G38_PROBE_TARGET)
-  bool  Printer::G38_move         = false,
-        Printer::G38_endstop_hit  = false;
-#endif
-
 #if ENABLED(BARICUDA)
   int Printer::baricuda_valve_pressure  = 0,
       Printer::baricuda_e_to_p_pressure = 0;
@@ -107,8 +102,9 @@ PrinterMode Printer::mode =
 
 // Private
 
-uint8_t Printer::mk_debug_flag = DEBUG_NONE,
-        Printer::mk_1_flag = 0;
+uint8_t Printer::mk_debug_flag  = 0,
+        Printer::mk_1_flag      = 0,
+        Printer::mk_2_flag      = 0;
 
 /**
  * Public Function
@@ -242,7 +238,7 @@ void Printer::setup() {
   #endif
 
   #if HAS_BED_PROBE
-    probe.set_enable(false);
+    setProbeEndstop(false);
   #endif
 
   #if HAS_STEPPER_RESET
@@ -341,6 +337,8 @@ void Printer::setup() {
  */
 void Printer::loop() {
 
+  KEEPALIVE_STATE(NOT_BUSY);
+
   commands.get_available_commands();
 
   #if HAS_SDSUPPORT
@@ -357,7 +355,7 @@ void Printer::safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     HAL::delayMilliseconds(50);
-    thermalManager.spin();
+    idle(true);
   }
   HAL::delayMilliseconds(ms);
 }
@@ -402,7 +400,7 @@ void Printer::kill(const char* lcd_msg) {
 
   thermalManager.disable_all_heaters();
   stepper.disable_all_steppers();
-
+  
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
   #endif

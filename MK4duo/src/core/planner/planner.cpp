@@ -245,14 +245,9 @@ void Planner::forward_pass() {
  * Recalculate the trapezoid speed profiles for all blocks in the plan
  * according to the entry_factor for each junction. Must be called by
  * recalculate() after updating the blocks.
- *
- * If there is a direction change then the final_rate of the current block
- * is set to that block's jerk limited rate and the init_rate of the next
- * block is set to that block's jerk limited rate.
  */
 void Planner::recalculate_trapezoids() {
   int8_t block_index = block_buffer_tail;
-  bool direction_change = false;
   block_t *current, *next = NULL;
 
   while (block_index != block_buffer_head) {
@@ -261,24 +256,20 @@ void Planner::recalculate_trapezoids() {
     if (current) {
       // Recalculate if current block entry or exit junction speed has changed.
       if (TEST(current->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
-        LOOP_XYZE(axis) {
-          if (current->steps[axis] && TEST(current->direction_bits ^ next->direction_bits, axis))
-            direction_change = true;
-        }
-
         // NOTE: Entry and exit factors always > 0 by all previous logic operations.
         const float nomr = 1.0 / current->nominal_speed;
-        calculate_trapezoid_for_block(current, current->entry_speed * nomr, direction_change ? current->min_axis_accel_ratio : next->entry_speed * nomr);
+        calculate_trapezoid_for_block(current, current->entry_speed * nomr, next->entry_speed * nomr);
         CBI(current->flag, BLOCK_BIT_RECALCULATE); // Reset current only to ensure next trapezoid is computed
       }
     }
     block_index = next_block_index(block_index);
   }
-
   // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
-  const float nomr = 1.0 / next->nominal_speed;
-  calculate_trapezoid_for_block(next, direction_change ? next->min_axis_accel_ratio : next->entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
-  CBI(next->flag, BLOCK_BIT_RECALCULATE);
+  if (next) {
+    const float nomr = 1.0 / next->nominal_speed;
+    calculate_trapezoid_for_block(next, next->entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
+    CBI(next->flag, BLOCK_BIT_RECALCULATE);
+  }
 }
 
 /**
@@ -418,8 +409,9 @@ void Planner::check_axes_activity() {
  *  target      - target position in steps units
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
+ *  segment_mm  - the length of the movement, if known
  */
-void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float segment_mm/*=0.0*/) {
 
   const int32_t dx = target[X_AXIS] - position[X_AXIS],
                 dy = target[Y_AXIS] - position[Y_AXIS],
@@ -839,7 +831,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
   if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = FABS(delta_mm[E_AXIS]);
   }
-  else {
+  else if (NEAR_ZERO(segment_mm)) {
     block->millimeters = SQRT(
       #if CORE_IS_XY
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
@@ -852,6 +844,8 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
       #endif
     );
   }
+  else
+    block->millimeters = segment_mm;
 
   #if ENABLED(LASER)
 
@@ -973,7 +967,6 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
     if (cs > mechanics.max_feedrate_mm_s[i])
       NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
   }
-  block->min_axis_accel_ratio = min_axis_accel_ratio;
 
   // Max segment time in µs.
   #if ENABLED(XY_FREQUENCY_LIMIT)
@@ -1067,7 +1060,6 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
   }
   block->acceleration_steps_per_s2 = accel;
   block->acceleration = accel / steps_per_mm;
-
   block->acceleration_rate = (long)(accel * (HAL_ACCELERATION_RATE));
 
   // Initial limit on the segment entry velocity
@@ -1201,11 +1193,12 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
  *
  * Leveling and kinematics should be applied ahead of calling this.
  *
- *  a,b,c,e   - target positions in mm and/or degrees
- *  fr_mm_s   - (target) speed of the move
- *  extruder  - target extruder
+ *  a,b,c,e     - target positions in mm and/or degrees
+ *  fr_mm_s     - (target) speed of the move
+ *  extruder    - target extruder
+ *  segment_mm  - the length of the movement, if known
  */
-void Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm/*=0.0*/) {
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
@@ -1248,7 +1241,27 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
   if (printer.debugDryrun())
     position[E_AXIS] = target[E_AXIS];
 
-  buffer_steps(target, fr_mm_s, extruder);
+  // Always split the first move into two (if not homing or probing)
+  if (!blocks_queued()) {
+
+    const int32_t midway[XYZE] = {
+      (position[X_AXIS] + target[X_AXIS]) >> 1,
+      (position[Y_AXIS] + target[Y_AXIS]) >> 1,
+      (position[Z_AXIS] + target[Z_AXIS]) >> 1,
+      (position[E_AXIS] + target[E_AXIS]) >> 1
+    };
+    const float half_mm = segment_mm * 0.5;
+
+    DISABLE_STEPPER_INTERRUPT();
+      buffer_steps(midway, fr_mm_s, extruder, half_mm);
+      const uint8_t next = block_buffer_head;
+      buffer_steps(target, fr_mm_s, extruder, half_mm);
+      SBI(block_buffer[next].flag, BLOCK_BIT_CONTINUED);
+    ENABLE_STEPPER_INTERRUPT();
+
+  }
+  else
+    buffer_steps(target, fr_mm_s, extruder, segment_mm);
 
   stepper.wake_up();
 
@@ -1266,7 +1279,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
  *  fr_mm_s      - (target) speed of the move (mm/s)
  *  extruder     - target extruder
  */
-void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm/*=0.0*/) {
   #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
     bedlevel.apply_leveling(rx, ry, rz);
   #endif
@@ -1278,7 +1291,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
     // Calculate Hysteresis
     mechanics.insert_hysteresis_correction(rx, ry, rz, e);
   #endif
-  buffer_segment(rx, ry, rz, e, fr_mm_s, extruder);
+  buffer_segment(rx, ry, rz, e, fr_mm_s, extruder, segment_mm);
 }
 
 /**
@@ -1290,7 +1303,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
  *  fr_mm_s   - (target) speed of the move (mm/s)
  *  extruder  - target extruder
  */
-void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float segment_mm/*=0.0*/) {
   #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
     float raw[XYZ]={ cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
     #if PLANNER_LEVELING
@@ -1310,9 +1323,9 @@ void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s
 
   #if IS_KINEMATIC
     mechanics.Transform(raw);
-    buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder, segment_mm);
   #else
-    buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder, segment_mm);
   #endif
 }
 

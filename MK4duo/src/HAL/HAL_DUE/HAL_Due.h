@@ -174,8 +174,9 @@ typedef uint32_t  ptr_int_t;
 #undef HIGH
 #define HIGH        1
 
-#define MultiU16X8toH16(intRes, charIn1, intIn2)   intRes = ((charIn1) * (intIn2)) >> 16
 #define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
+#define MultiU32X24toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24
+
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
 

@@ -44,10 +44,6 @@ Endstops endstops;
         Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 #endif
 
-bool  Endstops::enabled = true,
-      Endstops::soft_endstops_enabled = true,
-      Endstops::enabled_globally;
-
 #if ENABLED(Z_FOUR_ENDSTOPS)
   float Endstops::z2_endstop_adj = 0,
         Endstops::z3_endstop_adj = 0,
@@ -269,7 +265,7 @@ void Endstops::report_state() {
  */
 void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
-  if (!soft_endstops_enabled) return;
+  if (!printer.IsSoftEndstop()) return;
 
   #if IS_KINEMATIC
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
@@ -465,13 +461,13 @@ void Endstops::update() {
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
-    if (printer.G38_move) {
+    if (printer.IsG38Move()) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
         if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X, MIN); stepper.endstop_triggered(X_AXIS); }
         else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y, MIN); stepper.endstop_triggered(Y_AXIS); }
         else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z, MIN); stepper.endstop_triggered(Z_AXIS); }
-        printer.G38_endstop_hit = true;
+        printer.setG38EndstopHit(true);
       }
     }
   #endif
@@ -641,7 +637,7 @@ void Endstops::update() {
         #else
 
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (probe.enabled) UPDATE_ENDSTOP(Z, MIN);
+            if (printer.IsProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
@@ -652,7 +648,7 @@ void Endstops::update() {
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (probe.enabled) {
+        if (printer.IsProbeEndstop()) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
         }

@@ -1482,7 +1482,7 @@ void EEPROM::Factory_Settings() {
   for (uint8_t q = 0; q < COUNT(tools.filament_size); q++)
     tools.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
 
-  endstops.enable_globally(
+  printer.setEndstopGlobally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
       (false)
     #else

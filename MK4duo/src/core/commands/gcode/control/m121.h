@@ -31,4 +31,4 @@
 /**
  * M121: Disable endstops and set non-homing endstop state to "disabled"
  */
-inline void gcode_M121(void) { endstops.enable_globally(false); }
+inline void gcode_M121(void) { printer.setEndstopGlobally(false); }

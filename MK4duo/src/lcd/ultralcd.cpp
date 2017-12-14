@@ -2582,7 +2582,7 @@ void kill_screen(const char* lcd_msg) {
     //
     #if ENABLED(BLTOUCH)
       MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
-      if (!probe.enabled && TEST_BLTOUCH())
+      if (!printer.IsProbeEndstop() && TEST_BLTOUCH())
         MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
     #endif
 
@@ -2802,7 +2802,7 @@ void kill_screen(const char* lcd_msg) {
       #else
         #if HAS_SOFTWARE_ENDSTOPS
           // Limit to software endstops, if enabled
-          if (endstops.soft_endstops_enabled) {
+          if (printer.IsSoftEndstop()) {
             #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
               min = endstops.soft_endstop_min[axis];
             #endif
