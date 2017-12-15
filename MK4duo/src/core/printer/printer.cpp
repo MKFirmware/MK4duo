@@ -237,8 +237,8 @@ void Printer::setup() {
     #endif
   #endif
 
-  #if HAS_BED_PROBE
-    setProbeEndstop(false);
+  #if HAS_SOFTWARE_ENDSTOPS
+    setSoftEndstop(true);
   #endif
 
   #if HAS_STEPPER_RESET

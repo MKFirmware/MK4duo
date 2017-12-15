@@ -54,7 +54,15 @@ class Endstops {
 
   public: /** Constructor */
 
-    Endstops() { printer.setEndstopGlobally(true); }
+    Endstops() {
+      printer.setEndstopGlobally(
+        #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
+          false
+        #else
+          true
+        #endif
+      );
+    };
 
   public: /** Public Parameters */
 
