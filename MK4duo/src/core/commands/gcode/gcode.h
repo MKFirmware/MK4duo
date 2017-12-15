@@ -63,7 +63,6 @@
 #include "config/m906.h"                  // Set Alligator motor currents or Set motor current in milliamps with have a TMC2130 driver
 #include "config/m907.h"                  // Set digital trimpot motor current
 #include "config/m908.h"                  // Control digital trimpot directly
-#include "config/m911_m914.h"             // Set TMC2130 driver
 
 // Control Commands
 #include "control/m17.h"
@@ -112,6 +111,8 @@
 #include "feature/m150.h"
 #include "feature/m240.h"                 // Photo Camera
 #include "feature/m600.h"                 // Advanced Pause change filament
+#include "feature/m911_m915.h"            // Set TMC2130 driver
+#include "feature/m922.h"                 // TMC DEBUG
 
 // Geometry Commands
 #include "geometry/g17_g19.h"

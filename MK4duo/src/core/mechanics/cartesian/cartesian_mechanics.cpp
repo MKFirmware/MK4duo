@@ -404,10 +404,10 @@
     // Disable stealthChop if used. Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
       #if ENABLED(X_IS_TMC2130)
-        if (axis == X_AXIS) tmc2130_sensorless_homing(stepperX);
+        if (axis == X_AXIS) tmc_sensorless_homing(stepperX);
       #endif
       #if ENABLED(Y_IS_TMC2130)
-        if (axis == Y_AXIS) tmc2130_sensorless_homing(stepperY);
+        if (axis == Y_AXIS) tmc_sensorless_homing(stepperY);
       #endif
     #endif
 
@@ -473,10 +473,10 @@
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
       #if ENABLED(X_IS_TMC2130)
-        if (axis == X_AXIS) tmc2130_sensorless_homing(stepperX, false);
+        if (axis == X_AXIS) tmc_sensorless_homing(stepperX, false);
       #endif
       #if ENABLED(Y_IS_TMC2130)
-        if (axis == Y_AXIS) tmc2130_sensorless_homing(stepperY, false);
+        if (axis == Y_AXIS) tmc_sensorless_homing(stepperY, false);
       #endif
     #endif
 

@@ -88,7 +88,7 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
-#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_L6470DRIVER)
+#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_TMC2208) || ENABLED(HAVE_L6470DRIVER)
   #include "Configuration_Motor_Driver.h"
 #endif
 
@@ -139,7 +139,8 @@
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
-#include "src/feature/tmc2130/tmc2130.h"
+#include "src/feature/tmc/tmc_macros.h"
+#include "src/feature/tmc/tmc.h"
 #include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
@@ -173,9 +174,12 @@
   #include <TMC26XStepper.h>
 #endif
 
-#if ENABLED(HAVE_TMC2130DRIVER)
-  #include <SPI.h>
+#if ENABLED(HAVE_TMC2130)
   #include <TMC2130Stepper.h>
+#endif
+
+#if ENABLED(HAVE_TMC2208)
+  #include <TMC2208Stepper.h>
 #endif
 
 #if ENABLED(HAVE_L6470DRIVER)

@@ -136,7 +136,7 @@ uint8_t u8g_dev_rrd_st7920_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, vo
       ST7920_NCS();
     }
     break;
-    
+
     case U8G_DEV_MSG_STOP: break;
 
     case U8G_DEV_MSG_PAGE_NEXT: {
