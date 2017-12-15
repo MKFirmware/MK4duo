@@ -1241,27 +1241,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
   if (printer.debugDryrun())
     position[E_AXIS] = target[E_AXIS];
 
-  // Always split the first move into two (if not homing or probing)
-  if (!blocks_queued()) {
-
-    const int32_t midway[XYZE] = {
-      (position[X_AXIS] + target[X_AXIS]) >> 1,
-      (position[Y_AXIS] + target[Y_AXIS]) >> 1,
-      (position[Z_AXIS] + target[Z_AXIS]) >> 1,
-      (position[E_AXIS] + target[E_AXIS]) >> 1
-    };
-    const float half_mm = segment_mm * 0.5;
-
-    DISABLE_STEPPER_INTERRUPT();
-      buffer_steps(midway, fr_mm_s, extruder, half_mm);
-      const uint8_t next = block_buffer_head;
-      buffer_steps(target, fr_mm_s, extruder, half_mm);
-      SBI(block_buffer[next].flag, BLOCK_BIT_CONTINUED);
-    ENABLE_STEPPER_INTERRUPT();
-
-  }
-  else
-    buffer_steps(target, fr_mm_s, extruder, segment_mm);
+  buffer_steps(target, fr_mm_s, extruder, segment_mm);
 
   stepper.wake_up();
 

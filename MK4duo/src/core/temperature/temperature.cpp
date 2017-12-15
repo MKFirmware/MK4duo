@@ -554,6 +554,9 @@ void Temperature::disable_all_heaters() {
     LOOP_HEATER() {
       heaters[h].target_temperature = 0;
       heaters[h].soft_pwm = 0;
+      #if WATCH_THE_HEATER
+        heaters[h].start_watching();
+      #endif
     }
   #endif
 
@@ -572,7 +575,6 @@ void Temperature::disable_all_heaters() {
 
   pid_pointer = 255;
 
-  printer.safe_delay(10);
 }
 
 #if ENABLED(FILAMENT_SENSOR)
