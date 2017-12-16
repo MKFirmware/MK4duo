@@ -84,6 +84,7 @@
 #include "../sd/sanitycheck.h"
 
 #include "../feature/laser/sanitycheck.h"
+#include "../feature/cncrouter/sanitycheck.h"
 #include "../feature/mixing/sanitycheck.h"
 #include "../feature/power/sanitycheck.h"
 #include "../feature/rgbled/sanitycheck.h"
