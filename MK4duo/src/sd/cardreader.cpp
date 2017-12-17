@@ -167,9 +167,6 @@
         LOOP_FAN() fans[f].Speed = 0;
       #endif
       lcd_setstatus(MSG_PRINT_ABORTED, true);
-      #if HAS_POWER_SWITCH
-        powerManager.power_off();
-      #endif
     }
   }
 

@@ -1471,10 +1471,17 @@
 //
 //#define SAV_3DGLCD
 
-// ANET DISPLAY
 //
-//#define ANET_KEYPAD_LCD
-//#define ANET_FULL_GRAPHICS_LCD
+// ANET and Tronxy Controller supported displays.
+//
+//#define ZONESTAR_LCD            // Requires ADC_KEYPAD_PIN to be assigned to an analog pin.
+                                  // This LCD is known to be susceptible to electrical interference
+                                  // which scrambles the display.  Pressing any button clears it up.
+                                  // This is a LCD2004 display with 5 analog buttons.
+
+//#define ANET_FULL_GRAPHICS_LCD  // Anet 128x64 full graphics lcd with rotary encoder as used on Anet A6
+                                  // A clone of the RepRapDiscount full graphics display but with
+                                  // different pins/wiring (see pins_ANET_10.h).
 
 // CONTROLLER TYPE: Shift register panels
 //
@@ -1510,12 +1517,14 @@
 //#define CR10_STOCKDISPLAY
 
 //
-// MKS OLED 1.3" 128 × 64 FULL GRAPHICS CONTROLLER
+// MKS OLED 1.3" 128x64 FULL GRAPHICS CONTROLLER
 // http://reprap.org/wiki/MKS_12864OLED
 //
 // Tiny, but very sharp OLED display
+// If there is a pixel shift, try the other controller.
 //
-//#define MKS_12864OLED
+//#define MKS_12864OLED          // Uses the SH1106 controller (default)
+//#define MKS_12864OLED_SSD1306  // Uses the SSD1306 controller
 
 // CONTROLLER TYPE: Serial display
 

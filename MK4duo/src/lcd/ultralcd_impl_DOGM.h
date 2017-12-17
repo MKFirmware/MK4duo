@@ -165,7 +165,6 @@
   #else
     U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // 2 stripes, HW SPI (shared with SD card)
   #endif
-
 #elif ENABLED(U8GLIB_ST7920) && defined(__arm__)
   // RepRap Discount Full Graphics Smart Controller on an ARM target
     U8GLIB_ST7920_128X64_CUSTOM_SW_SPI u8g;
@@ -177,6 +176,7 @@
     U8GLIB_ST7920_128X64_RRD u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Number of stripes can be adjusted in ultralcd_st7920_u8glib_rrd.h with PAGE_HEIGHT
                                                                            // AVR version ignores these pin settings
                                                                            // HAL version uses these pin settings
+
 #elif ENABLED(CARTESIO_UI)
   // The CartesioUI display
     //U8GLIB_DOGM128_2X u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0); // 4 stripes
@@ -186,11 +186,15 @@
   // Based on the Adafruit ST7565 (http://www.adafruit.com/products/250)
     //U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
     U8GLIB_LM6059_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
-
 #elif ENABLED(U8GLIB_ST7565_64128N)
   // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller
     //U8GLIB_64128N_2X_HAL u8g(DOGLCD_CS, DOGLCD_A0);  // using HW-SPI
     U8GLIB_64128N_2X_HAL u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);  // using SW-SPI
+
+#elif ENABLED(MKS_12864OLED_SSD1306)
+  // MKS 128x64 (SSD1306) OLED I2C LCD
+    U8GLIB_SSD1306_128X64 u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);      // 8 stripes
+    //U8GLIB_SSD1306_128X64_2X u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0); // 4 stripes
 
 #elif ENABLED(U8GLIB_SSD1306)
   // Generic support for SSD1306 OLED I2C LCDs

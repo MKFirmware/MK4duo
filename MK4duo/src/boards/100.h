@@ -165,7 +165,7 @@
  * LCD / Controller
  *
  * Only the following displays are supported:
- *  ANET_KEYPAD_LCD
+ *  ZONESTAR_LCD
  *  ANET_FULL_GRAPHICS_LCD
  *  REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
 */
