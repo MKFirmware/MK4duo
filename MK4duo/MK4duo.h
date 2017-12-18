@@ -139,7 +139,6 @@
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
-#include "src/feature/tmc/tmc_macros.h"
 #include "src/feature/tmc/tmc.h"
 #include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"

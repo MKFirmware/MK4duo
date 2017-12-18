@@ -29,7 +29,7 @@
 #if HAS_TRINAMIC
 
   #define CODE_M911
-  
+
   /**
    * M911: Report TMC stepper driver overtemperature pre-warn flag
    * The flag is held by the library and persist until manually cleared by M912
