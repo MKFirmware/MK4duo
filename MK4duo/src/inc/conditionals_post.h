@@ -1179,13 +1179,6 @@
   #define _Z_PROBE_DEPLOY_HEIGHT (Z_MAX_POS / 2)
 #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  // Add additional delay for between direction signal and pulse signal of stepper
-  #if DISABLED(STEPPER_DIRECTION_DELAY)
-    #define STEPPER_DIRECTION_DELAY 0 // time in microseconds
-  #endif
-#endif
-
 // Add commands that need sub-codes to this list
 #define USE_GCODE_SUBCODES ENABLED(G38_PROBE_TARGET)
 

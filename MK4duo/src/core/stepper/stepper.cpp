@@ -534,17 +534,10 @@ void Stepper::isr() {
   #endif
 
   // If there is no current block, attempt to pop one from the buffer
-  bool first_step = false;
   if (!current_block) {
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
-      HAL_timer_set_current_count(STEPPER_TIMER, 0);
-      first_step = true;
-
-      #if STEPPER_DIRECTION_DELAY > 0
-        HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
-      #endif
 
       // Initialize Bresenham counters to 1/2 the ceiling
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
@@ -904,19 +897,13 @@ void Stepper::isr() {
     // If we have esteps to execute, fire the next advance_isr "now"
     if (e_steps[TOOL_E_INDEX]) nextAdvanceISR = 0;
 
-  #endif
+  #endif // LIN_ADVANCE
 
   // Calculate new timer value
   if (step_events_completed <= (uint32_t)current_block->accelerate_until) {
 
-    if (first_step) {
-      acc_step_rate = current_block->initial_rate;
-      acceleration_time = 0;
-    }
-    else {
-      HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
-      acc_step_rate += current_block->initial_rate;
-    }
+    HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
+    acc_step_rate += current_block->initial_rate;
 
     // upper limit
     NOMORE(acc_step_rate, current_block->nominal_rate);

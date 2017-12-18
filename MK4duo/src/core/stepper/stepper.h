@@ -357,6 +357,10 @@ class Stepper {
       // make a note of the number of step loops required at nominal speed
       step_loops_nominal = step_loops;
 
+      acc_step_rate = current_block->initial_rate;
+      acceleration_time = calc_timer_interval(acc_step_rate);
+      _NEXT_ISR(acceleration_time);
+ 
       #if ENABLED(LIN_ADVANCE)
         if (current_block->use_advance_lead) {
           current_estep_rate[current_block->active_extruder] = ((unsigned long)acc_step_rate * current_block->abs_adv_steps_multiplier8) >> 17;
@@ -365,8 +369,13 @@ class Stepper {
       #endif
     }
 
-    static void digipot_init();
-    static void microstep_init();
+    #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
+      static void digipot_init();
+    #endif
+
+    #if HAS_MICROSTEPS
+      static void microstep_init();
+    #endif
 
     #if HAS_STEPPER_RESET
       /**
