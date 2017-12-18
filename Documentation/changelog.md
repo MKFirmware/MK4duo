@@ -1,7 +1,8 @@
 ### Version 4.3.3 Stable
 * Add command M306 - Set Heaters parameters.
-* Add G26 Mesh validation
+* Add G26 Mesh validation.
 * Update Nextion Firmware with new graphics by Mr Goblin.
+* Add support for TMC2208
 * Minor Fix.
 
 ### Version 4.3.29 dev

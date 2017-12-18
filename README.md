@@ -76,12 +76,13 @@ The new features are:
 * Added save in EEPROM ABL or MBL
 * Added Door switch
 * Added TMC2130 motor driver
+* Added TMC2208 motor driver
 * Added Power Check for Stop and Save
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD
 * Added DAV system for filament runout
-* Added Extruder Encoder for control filament movement (Experimental)
+* Added Extruder Encoder for control filament movement
 * Added Adafruit Neopixel LED
 * Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
 * Added Universal Bed Leveling (UBL) by Official Marlin
