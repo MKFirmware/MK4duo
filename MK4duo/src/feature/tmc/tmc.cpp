@@ -30,51 +30,47 @@
 
 #if HAS_TRINAMIC
 
-  template<typename TMC>
   void tmc_get_current(TMC &st, const char name[]) {
     SERIAL_TXT(name);
     SERIAL_MSG(" axis driver current: ");
     SERIAL_EV(st.getCurrent());
   }
-  template<typename TMC>
+
   void tmc_set_current(TMC &st, const char name[], const int mA) {
     st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
     tmc_get_current(st, name);
   }
 
-  template<typename TMC>
   void tmc_report_otpw(TMC &st, const char name[]) {
     SERIAL_TXT(name);
     SERIAL_MSG(" axis temperature prewarn triggered: ");
-    serialprintPGM(st.getOTPW() ? PSTR("true") : PSTR("false"));
+    SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
     SERIAL_EOL();
   }
-  template<typename TMC>
+
   void tmc_clear_otpw(TMC &st, const char name[]) {
     st.clear_otpw();
     SERIAL_TXT(name);
     SERIAL_EM(" prewarn flag cleared");
   }
 
-  template<typename TMC>
   void tmc_get_pwmthrs(TMC &st, const char name[], const uint16_t spmm) {
     SERIAL_TXT(name);
     SERIAL_MSG(" stealthChop max speed set to ");
     SERIAL_EV(12650000UL * st.microsteps() / (256 * st.TPWMTHRS() * spmm));
   }
-  template<typename TMC>
+
   void tmc_set_pwmthrs(TMC &st, const char name[], const int32_t thrs, const uint32_t spmm) {
     st.TPWMTHRS(12650000UL * st.microsteps() / (256 * thrs * spmm));
     tmc_get_pwmthrs(st, name, spmm);
   }
 
-  template<typename TMC>
   void tmc_get_sgt(TMC &st, const char name[]) {
     SERIAL_TXT(name);
     SERIAL_MSG(" driver homing sensitivity set to ");
     SERIAL_EV(st.sgt());
   }
-  template<typename TMC>
+
   void tmc_set_sgt(TMC &st, const char name[], const int8_t sgt_val) {
     st.sgt(sgt_val);
     tmc_get_sgt(st, name);

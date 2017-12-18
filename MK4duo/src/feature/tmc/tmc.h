@@ -31,6 +31,12 @@
 
 #if HAS_TRINAMIC
 
+  #if ENABLED(HAVE_TMC2130)
+    #define TMC TMC2130Stepper
+  #elif ENABLED(HAVE_TMC2208)
+    #define TMC TMC2208Stepper
+  #endif
+
   static bool report_tmc_status = false;
   const char extended_axis_codes[12][3] = { "X", "X2", "Y", "Y2", "Z", "Z2", "E0", "E1", "E2", "E3", "E4", "E5" };
   enum TMC_AxisEnum {
@@ -38,24 +44,15 @@
     TMC_E0, TMC_E1, TMC_E2, TMC_E3, TMC_E4, TMC_E5
   };
 
-  template<typename TMC>
   void tmc_get_current(TMC &st, const char name[]);
-  template<typename TMC>
   void tmc_set_current(TMC &st, const char name[], const int mA);
-  template<typename TMC>
   void tmc_report_otpw(TMC &st, const char name[]);
-  template<typename TMC>
   void tmc_clear_otpw(TMC &st, const char name[]);
-  template<typename TMC>
   void tmc_get_pwmthrs(TMC &st, const char name[], const uint16_t spmm);
-  template<typename TMC>
   void tmc_set_pwmthrs(TMC &st, const char name[], const int32_t thrs, const uint32_t spmm);
-  template<typename TMC>
   void tmc_get_sgt(TMC &st, const char name[]);
-  template<typename TMC>
   void tmc_set_sgt(TMC &st, const char name[], const int8_t sgt_val);
 
-  void _M122();
   void monitor_tmc_driver();
 
   /**

@@ -194,18 +194,12 @@
   void tmc2130_init() {
     #if ENABLED(X_IS_TMC2130)
       _TMC2130_INIT( X, mechanics.axis_steps_per_mm[X_AXIS]);
-      #if ENABLED(SENSORLESS_HOMING)
-        stepperX.sg_stall_value(X_HOMING_SENSITIVITY);
-      #endif
     #endif
     #if ENABLED(X2_IS_TMC2130)
       _TMC2130_INIT(X2, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
     #if ENABLED(Y_IS_TMC2130)
       _TMC2130_INIT( Y, mechanics.axis_steps_per_mm[Y_AXIS]);
-      #if ENABLED(SENSORLESS_HOMING)
-        stepperY.sg_stall_value(Y_HOMING_SENSITIVITY);
-      #endif
     #endif
     #if ENABLED(Y2_IS_TMC2130)
       _TMC2130_INIT(Y2, mechanics.axis_steps_per_mm[Y_AXIS]);
