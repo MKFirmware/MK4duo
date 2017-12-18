@@ -3,6 +3,7 @@
 * Add G26 Mesh validation
 * Update Nextion Firmware with new graphics by Mr Goblin.
 * Minor Fix.
+* Added Support for TMC2208
 
 ### Version 4.3.29 dev
 * New calculation system for thermistors
