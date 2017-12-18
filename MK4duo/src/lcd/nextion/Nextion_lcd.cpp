@@ -141,8 +141,8 @@
   NexObject progressbar = NexObject(2, 94,  "j0");
   NexObject Wavetemp    = NexObject(2, 95,  "s0");
   NexObject Hot0Touch   = NexObject(2, 96,  "m0");
-  NexObject Hot1Touch   = NexObject(2, 97,  "m0");
-  NexObject Hot2Touch   = NexObject(2, 98,  "m0");
+  NexObject Hot1Touch   = NexObject(2, 97,  "m1");
+  NexObject Hot2Touch   = NexObject(2, 98,  "m2");
   NexObject FanTouch    = NexObject(2, 99,  "m3");
   
   
@@ -169,8 +169,8 @@
   NexObject sdfolder    = NexObject(3,  16, "t6");
   NexObject ScrollUp    = NexObject(3,  18, "p7");
   NexObject ScrollDown  = NexObject(3,  19, "p8");
-  NexObject sd_mount    = NexObject(3,  22, "p12");
-  NexObject sd_dismount = NexObject(3,  23, "p13");
+  NexObject sd_mount    = NexObject(3,  21, "p12");
+  NexObject sd_dismount = NexObject(3,  22, "p13");
 
   /**
    *******************************************************************
@@ -194,13 +194,13 @@
   NexObject movecmd     = NexObject(5,  11, "vacmd");
   NexObject LedCoord5   = NexObject(5,  12, "t0");
   NexObject MotorOff    = NexObject(5,  17, "p0");
-  NexObject ext         = NexObject(5,  19, "va0");
-  NexObject Extrude     = NexObject(5,  20, "p12");
-  NexObject Retract     = NexObject(5,  22, "p14");
-  NexObject SpeedX      = NexObject(5,  23, "vafrx");
-  NexObject SpeedY      = NexObject(5,  24, "vafry");
-  NexObject SpeedZ      = NexObject(5,  25, "vafrz");
-  NexObject SpeedE      = NexObject(5,  26, "vafre");
+  NexObject ext         = NexObject(5,  18, "va0");
+  NexObject Extrude     = NexObject(5,  19, "p12");
+  NexObject Retract     = NexObject(5,  21, "p14");
+  NexObject SpeedX      = NexObject(5,  22, "vafrx");
+  NexObject SpeedY      = NexObject(5,  23, "vafry");
+  NexObject SpeedZ      = NexObject(5,  24, "vafrz");
+  NexObject SpeedE      = NexObject(5,  25, "vafre");
 
   /**
    *******************************************************************
@@ -290,7 +290,7 @@
   NexObject LcdUp       = NexObject(14,  6, "p0");
   NexObject LcdSend     = NexObject(14,  7, "p1");
   NexObject LcdDown     = NexObject(14,  8, "p2");
-  NexObject LcdMin      = NexObject(14,  9, "max");
+  NexObject LcdMin      = NexObject(14,  9, "min");
   NexObject LcdMax      = NexObject(14, 10, "max");
   NexObject LcdPos      = NexObject(14, 11, "pos");
 
