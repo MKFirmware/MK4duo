@@ -523,8 +523,9 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   #endif
 
   if (HAL::execute_100ms) {
-    // Event 100 Ms
+    // Event 100 Ms - 10Hz
     HAL::execute_100ms = false;
+    planner.check_axes_activity();
     thermalManager.spin();
     if (--cycle_1000ms == 0) {
       // Event 1 Second
@@ -783,11 +784,10 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     handle_status_leds();
   #endif
 
-  #if ENABLED(HAVE_TMC2130)
-    tmc2130_checkOverTemp();
+  #if ENABLED(MONITOR_DRIVER_STATUS)
+    monitor_tmc_driver();
   #endif
 
-  planner.check_axes_activity();
 }
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
