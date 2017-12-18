@@ -25,7 +25,7 @@ M118 .      aprecision eprecision rprecision i d t s (requires delta_auto_calibr
 M118 g38 - probe target - similar to g28 except it uses the z_min endstop for all three axes
 M118 g60 - save current position coordinates (all axes, for active extruder).
 M118 .      sslot - specifies memory slot n (0-based) to save into (default 0).
-M118 g61 - apply/restore saved coordinates to the active extruder.
+M118 g61 - apply/restore saved coordinates to the active tools.
 M118 .      x y z e - value to add at stored coordinates.
 M118 .      fspeed - set feedrate.
 M118 .      sslot - specifies memory slot n (0-based) to restore from (default 0).
@@ -107,9 +107,9 @@ M118 m145 - set the heatup state hhotend bbed ffan speed for smaterial (0=pla, 1
 M118 m149 - set temperature units
 M118 m150 - set blinkm color output or rgb led r red0-255 u green0-255 b blue0-255 over i2c, g for green does not work.
 M118 m155 - auto-report temperatures with interval of sseconds. (requires auto_report_temperatures)
-M118 m163 - set a single proportion for a mixing extruder. (requires mixing_extruder)
-M118 m164 - save the mix as a virtual extruder. (requires mixing_extruder and mixing_virtual_tools)
-M118 m165 - set the proportions for a mixing extruder. use parameters abcdhi to set the mixing factors. (requires mixing_extruder)
+M118 m163 - set a single proportion for a mixing tools. (requires mixing_extruder)
+M118 m164 - save the mix as a virtual tools. (requires mixing_extruder and mixing_virtual_tools)
+M118 m165 - set the proportions for a mixing tools. use parameters abcdhi to set the mixing factors. (requires mixing_extruder)
 M118 m190 - sxxx wait for bed current temp to reach target temp. waits only when heating
 M118 .      rxxx wait for bed current temp to reach target temp. waits when heating and cooling
 M118 m191 - sxxx wait for chamber current temp to reach target temp. waits only when heating
