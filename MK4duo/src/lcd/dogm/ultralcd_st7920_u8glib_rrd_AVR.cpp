@@ -94,18 +94,15 @@
 
   static void ST7920_WRITE_BYTE(uint8_t val) {
     for (uint8_t i = 0; i < 8; i++) {
-      HAL::digitalWrite(ST7920_DAT_PIN, val & 0x80);
-      ST7920_DELAY_1;
-      HAL::digitalWrite(ST7920_CLK_PIN, HIGH);
-      ST7920_DELAY_2;
-      HAL::digitalWrite(ST7920_CLK_PIN, LOW);
-      ST7920_DELAY_3;
+      digitalWrite(ST7920_CLK_PIN, LOW);        ST7920_DELAY_1;
+      digitalWrite(ST7920_DAT_PIN, val & 0x80); ST7920_DELAY_2;
+      digitalWrite(ST7920_CLK_PIN, HIGH);       ST7920_DELAY_3;
       val <<= 1;
     }
   }
 
-  #define ST7920_CS()              { HAL::digitalWrite(ST7920_CS_PIN, 1); u8g_10MicroDelay(); }
-  #define ST7920_NCS()             { HAL::digitalWrite(ST7920_CS_PIN, 0); }
+  #define ST7920_CS()              { digitalWrite(ST7920_CS_PIN, 1); u8g_10MicroDelay(); }
+  #define ST7920_NCS()             { digitalWrite(ST7920_CS_PIN, 0); }
 
 #else
 

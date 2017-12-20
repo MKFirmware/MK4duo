@@ -23,7 +23,7 @@
 |  G30 | Single Z Probe, probes bed at current XY location.
 |  G31 | Dock Z Probe sled (if enabled)
 |  G32 | Undock Z Probe sled (if enabled)
-|  G33 | Delta geometry Autocalibration<br/>```F<nfactor> P<npoint> Q<debugging>``` (Requires **DELTA_AUTO_CALIBRATION_1**)<br/>```P<npoints> V<nverbose>``` (Requires **DELTA_AUTO_CALIBRATION_2**)<br/>```A<precision> E<precision> R<precision> I D T S``` (Requires **DELTA_AUTO_CALIBRATION_3**)
+|  G33 | Delta geometry Autocalibration<br/>```F<nfactor> P<npoint> Q<debugging>``` (Requires **DELTA_AUTO_CALIBRATION_1**)<br/>```P<npoints> V<nverbose>``` (Requires **DELTA_AUTO_CALIBRATION_2**)
 |  G38 | Probe target - similar to **G28** except it uses the Z_MIN endstop for all three axes
 |  G42 | Coordinated move to a mesh point. (Requires **MESH_BED_LEVELING** or **AUTO_BED_LEVELING_BILINEAR**)
 |  G60 | Save current position coordinates (all axes, for active extruder).<br/>```S<SLOT> - specifies memory slot # (0-based) to save into (default 0)```

@@ -215,6 +215,9 @@ class Printer {
     }
     FORCE_INLINE static bool IsEndstopGlobally()  { return mk_1_flag & flag1_endstop_globally; }
 
+    // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
+    FORCE_INLINE static void setNotHoming() { setEndstopEnabled(IsEndstopGlobally()); }
+
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_soft_endstop : mk_1_flag & ~flag1_soft_endstop);
     }

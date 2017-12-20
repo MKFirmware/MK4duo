@@ -50,6 +50,21 @@
   #define LOOP_CAL_RAD(VAR) LOOP_CAL_PT(VAR, __A, _7P_STEP)
   #define LOOP_CAL_ACT(VAR, _4P, _OP) LOOP_CAL_PT(VAR, _OP ? _AB : __A, _4P ? _4P_STEP : _7P_STEP)
 
+  static void Calibration_cleanup(
+    #if HOTENDS > 1
+      const uint8_t old_tool_index
+    #endif
+  ) {
+    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
+      mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
+    #endif
+    STOW_PROBE();
+    printer.clean_up_after_endstop_or_probe_move();
+    #if HOTENDS > 1
+      tools.change(old_tool_index, 0, true);
+    #endif
+  }
+
   static void Report_signed_float(const char * const prefix, const float &f) {
     SERIAL_MSG("  ");
     SERIAL_PS(prefix);
@@ -58,6 +73,9 @@
     SERIAL_VAL(f, 2);
   }
 
+  /**
+   * Print the delta settings
+   */
   static void Report_settings(const bool end_stops, const bool tower_angles) {
     SERIAL_MV(".Height:", mechanics.delta_height, 2);
     if (end_stops) {
@@ -76,13 +94,16 @@
     }
   }
 
-  static void Report_results(const float z_at_pt[NPP + 1], const bool tower_points, const bool opposite_points) {
+  /**
+   * Print the probe results
+   */
+  static void Report_results(const float z_pt[NPP + 1], const bool tower_points, const bool opposite_points) {
     SERIAL_MSG(".    ");
-    Report_signed_float(PSTR("c"), z_at_pt[CEN]);
+    Report_signed_float(PSTR("c"), z_pt[CEN]);
     if (tower_points) {
-      Report_signed_float(PSTR(" x"), z_at_pt[__A]);
-      Report_signed_float(PSTR(" y"), z_at_pt[__B]);
-      Report_signed_float(PSTR(" z"), z_at_pt[__C]);
+      Report_signed_float(PSTR(" x"), z_pt[__A]);
+      Report_signed_float(PSTR(" y"), z_pt[__B]);
+      Report_signed_float(PSTR(" z"), z_pt[__C]);
     }
     if (tower_points && opposite_points) {
       SERIAL_EOL();
@@ -90,77 +111,74 @@
       SERIAL_SP(13);
     }
     if (opposite_points) {
-      Report_signed_float(PSTR("yz"), z_at_pt[_BC]);
-      Report_signed_float(PSTR("zx"), z_at_pt[_CA]);
-      Report_signed_float(PSTR("xy"), z_at_pt[_AB]);
+      Report_signed_float(PSTR("yz"), z_pt[_BC]);
+      Report_signed_float(PSTR("zx"), z_pt[_CA]);
+      Report_signed_float(PSTR("xy"), z_pt[_AB]);
     }
     SERIAL_EOL();
   }
 
-  static void Calibration_cleanup(
-    #if HOTENDS > 1
-      const uint8_t old_tool_index
-    #endif
-  ) {
-    #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
-      mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
-    #endif
-    STOW_PROBE();
-    printer.clean_up_after_endstop_or_probe_move();
-    #if HOTENDS > 1
-      tools.change(old_tool_index, 0, true);
-    #endif
+  /**
+   * Calculate the standard deviation from the zero plane
+   */
+  static float std_dev_points(float z_pt[NPP + 1], const bool _0p_cal, const bool _1p_cal, const bool _4p_cal, const bool _4p_opp) {
+    if (!_0p_cal) {
+      LOOP_CAL_ALL(rad) z_pt[rad] += probe.offset[Z_AXIS];
+      float S2 = sq(z_pt[CEN]);
+      int16_t N = 1;
+      if (!_1p_cal) { // std dev from zero plane
+        LOOP_CAL_ACT(rad, _4p_cal, _4p_opp) {
+          S2 += sq(z_pt[rad]);
+          N++;
+        }
+        return round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001;
+      }
+    }
+    return 0.00001;
   }
 
-  static bool home_delta() {
-    printer.setEndstopEnabled(true);
-    if (!mechanics.Home()) return false;
-    endstops.not_homing();
-    return true;
-  }
+  static bool probe_calibration_points(float z_pt[NPP + 1], const int8_t probe_points, const bool towers_set, const bool stow_after_each) {
 
-  static float probe_points(float z_at_pt[NPP + 1], const int8_t num_points, const bool towers_set, const bool stow_after_each) {
-
-    const bool  _0p_calibration      = num_points == 0,
-                _1p_calibration      = num_points == 1,
-                _4p_calibration      = num_points == 2,
+    const bool  _0p_calibration      = probe_points == 0,
+                _1p_calibration      = probe_points == 1 || probe_points == -1,
+                _4p_calibration      = probe_points == 2,
                 _4p_opposite_points  = _4p_calibration && !towers_set,
-                _7p_calibration      = num_points >= 3 || num_points == 0,
-                _7p_no_intermediates = num_points == 3,
-                _7p_1_intermediates  = num_points == 4,
-                _7p_2_intermediates  = num_points == 5,
-                _7p_4_intermediates  = num_points == 6,
-                _7p_6_intermediates  = num_points == 7,
-                _7p_8_intermediates  = num_points == 8,
-                _7p_11_intermediates = num_points == 9,
-                _7p_14_intermediates = num_points == 10,
-                _7p_intermed_points  = num_points >= 4,
-                _7p_6_centre         = num_points >= 5 && num_points <= 7,
-                _7p_9_centre         = num_points >= 8;
+                _7p_calibration      = probe_points >= 3 || probe_points == 0,
+                _7p_no_intermediates = probe_points == 3,
+                _7p_1_intermediates  = probe_points == 4,
+                _7p_2_intermediates  = probe_points == 5,
+                _7p_4_intermediates  = probe_points == 6,
+                _7p_6_intermediates  = probe_points == 7,
+                _7p_8_intermediates  = probe_points == 8,
+                _7p_11_intermediates = probe_points == 9,
+                _7p_14_intermediates = probe_points == 10,
+                _7p_intermed_points  = probe_points >= 4,
+                _7p_6_centre         = probe_points >= 5 && probe_points <= 7,
+                _7p_9_centre         = probe_points >= 8;
 
-    LOOP_CAL_ALL(axis) z_at_pt[axis] = 0.0;
+    LOOP_CAL_ALL(rad) z_pt[rad] = 0.0;
 
     if (!_0p_calibration) {
 
       if (!_7p_no_intermediates && !_7p_4_intermediates && !_7p_11_intermediates) { // probe the center
-        z_at_pt[CEN] += probe.check_pt(0, 0, stow_after_each, 1, false);
-        if (isnan(z_at_pt[CEN])) return NAN;
+        z_pt[CEN] += probe.check_pt(0, 0, stow_after_each, 0, false);
+        if (isnan(z_pt[CEN])) return false;
       }
 
       if (_7p_calibration) {  // probe extra center points
         const float start  = _7p_9_centre ? _CA + _7P_STEP / 3.0 : _7p_6_centre ? _CA : __C,
                     steps  = _7p_9_centre ? _4P_STEP / 3.0 : _7p_6_centre ? _7P_STEP : _4P_STEP;
-        I_LOOP_CAL_PT(axis, start, steps) {
-          const float a = RADIANS(210 + (360 / NPP) *  (axis - 1)),
+        I_LOOP_CAL_PT(rad, start, steps) {
+          const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                       r = mechanics.delta_probe_radius * 0.1;
-          z_at_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 1, false);
-          if (isnan(z_at_pt[CEN])) return NAN;
+          z_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+          if (isnan(z_pt[CEN])) return false;
         }
-        z_at_pt[CEN] /= float(_7p_2_intermediates ? 7 : num_points);
+        z_pt[CEN] /= float(_7p_2_intermediates ? 7 : probe_points);
       }
 
       if (!_1p_calibration) {   // probe the radius
-        const CalEnum start  =  _4p_opposite_points ? _AB : __A;
+        const CalEnum start  =  _4p_opposite_points  ? _AB : __A;
         const float   steps  =  _7p_14_intermediates ? _7P_STEP / 15.0 : // 15r * 6 + 10c = 100
                                 _7p_11_intermediates ? _7P_STEP / 12.0 : // 12r * 6 +  9c = 81
                                 _7p_8_intermediates  ? _7P_STEP /  9.0 : //  9r * 6 + 10c = 64
@@ -172,184 +190,142 @@
                                 _4P_STEP;                                // .5r * 6 +  1c = 4
 
         bool zig_zag = true;
-        F_LOOP_CAL_PT(axis, start, _7p_9_centre ? steps * 3 : steps) {
-          const int8_t offset = _7p_9_centre ? 1 : 0;
-          for (int8_t circle = -offset; circle <= offset; circle++) {
-            const float a = RADIANS(210 + (360 / NPP) *  (axis - 1)),
-                        r = mechanics.delta_probe_radius * (1 + 0.1 * (zig_zag ? circle : - circle)),
-                        interpol = FMOD(axis, 1);
-            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 1, false);
-            if (isnan(z_temp)) return NAN;
+        F_LOOP_CAL_PT(rad, start, _7p_9_centre ? steps * 3 : steps) {
+          const int8_t offset = _7p_9_centre ? 2 : 0;
+          for (int8_t circle = 0; circle <= offset; circle++) {
+            const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
+                        r = mechanics.delta_probe_radius * (1 - 0.1 * (zig_zag ? offset - circle : circle)),
+                        interpol = FMOD(rad, 1);
+            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+            if (isnan(z_temp)) return false;
             // split probe point to neighbouring calibration points
-            z_at_pt[uint8_t(round(axis - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
-            z_at_pt[uint8_t(round(axis - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
+            z_pt[uint8_t(round(rad - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
+            z_pt[uint8_t(round(rad - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
           }
           zig_zag = !zig_zag;
         }
 
         if (_7p_intermed_points) {
-          LOOP_CAL_RAD(axis) {
-            z_at_pt[axis] /= _7P_STEP / steps;
+          LOOP_CAL_RAD(rad) {
+            z_pt[rad] /= _7P_STEP / steps;
           }
         }
-      }
 
-      float S1  = z_at_pt[CEN],
-            S2  = sq(z_at_pt[CEN]);
-      int16_t N = 1;
-      if (!_1p_calibration) { // std dev from zero plane
-        LOOP_CAL_ACT(axis, _4p_calibration, _4p_opposite_points) {
-          S1 += z_at_pt[axis];
-          S2 += sq(z_at_pt[axis]);
-          N++;
-        }
-        return round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001;
+        // goto centre
+        const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+        mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+        mechanics.do_blocking_move_to_xy(0, 0);
+        mechanics.feedrate_mm_s = old_feedrate_mm_s;
       }
     }
-
-    return 0.00001;
+    return true;
   }
 
-  #if HAS_BED_PROBE
+  /**
+   * kinematics routines and auto tune matrix scaling parameters:
+   * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
+   *  - formulae for approximative forward kinematics in the end-stop displacement matrix
+   *  - definition of the matrix scaling parameters
+   */
+  static void reverse_kinematics_probe_points(float z_pt[NPP + 1], float mm_at_pt_axis[NPP + 1][ABC]) {
+    float pos[XYZ] = { 0.0 };
 
-    static bool tune() {
-
-      float z_at_pt[NPP + 1]      = { 0.0 },
-            z_at_pt_base[NPP + 1] = { 0.0 },
-            z_temp                = 0.0,
-            h_fac                 = 0.0,
-            r_fac                 = 0.0,
-            a_fac                 = 0.0,
-            norm                  = 0.8;
-
-      #define ZP(N,I) ((N) * z_at_pt[I])
-      #define Z06(I)  ZP(6, I)
-      #define Z03(I)  ZP(3, I)
-      #define Z02(I)  ZP(2, I)
-      #define Z01(I)  ZP(1, I)
-      #define Z32(I)  ZP(3/2, I)
-
-      SERIAL_EM("AUTO TUNE baseline");
-      if (isnan(probe_points(z_at_pt_base, 3, true, false))) return false;
-      Report_results(z_at_pt_base, true, true);
-
-      // Tuning Endstop
-      LOOP_XYZ(axis) {
-
-        mechanics.delta_endstop_adj[axis] -= 1.0;
-        mechanics.recalc_delta_settings();
-
-        if (!home_delta()) return false;
-
-        SERIAL_EMT("Tuning E", axis_codes[axis]);
-
-        if (isnan(probe_points(z_at_pt, 3, true, false))) return false;
-        LOOP_CAL_ALL(axis) z_at_pt[axis] -= z_at_pt_base[axis];
-        Report_results(z_at_pt, true, true);
-        mechanics.delta_endstop_adj[axis] += 1.0;
-        mechanics.recalc_delta_settings();
-
-        switch (axis) {
-          case A_AXIS :
-            h_fac += 4.0 / (Z03(CEN) +Z01(__A)                           +Z32(_CA) +Z32(_AB)); // Offset by X-tower end-stop
-            break;
-          case B_AXIS :
-            h_fac += 4.0 / (Z03(CEN)         +Z01(__B)         +Z32(_BC)           +Z32(_AB)); // Offset by Y-tower end-stop
-            break;
-          case C_AXIS :
-            h_fac += 4.0 / (Z03(CEN)                 +Z01(__C) +Z32(_BC) +Z32(_CA)          ); // Offset by Z-tower end-stop
-            break;
-        }
-      }
-
-      h_fac /= 3.0;
-      h_fac *= norm; // Normalize to 1.02 for Kossel mini
-
-      // Tuning Radius
-      for (int8_t zig_zag = -1; zig_zag < 2; zig_zag += 2) {
-        mechanics.delta_radius += 1.0 * zig_zag;
-        mechanics.recalc_delta_settings();
-
-        if (!home_delta()) return false;
-
-        SERIAL_MSG("Tuning R");
-        SERIAL_TXT(zig_zag == -1 ? "-" : "+");
-        SERIAL_EOL();
-
-        if (isnan(probe_points(z_at_pt, 3, true, false))) return false;
-
-        LOOP_CAL_ALL(axis) z_at_pt[axis] -= z_at_pt_base[axis];
-
-        Report_results(z_at_pt, true, true);
-        mechanics.delta_radius -= 1.0 * zig_zag;
-        mechanics.recalc_delta_settings();
-        r_fac -= zig_zag * 6.0 / (Z03(__A) +Z03(__B) +Z03(__C) +Z03(_BC) +Z03(_CA) +Z03(_AB)); // Offset by delta radius
-      }
-
-      r_fac /= 2.0;
-      r_fac *= 3 * norm; // Normalize to 2.25 for Kossel mini
-
-      // Tuning Tower
-      LOOP_XYZ(axis) {
-
-        mechanics.delta_tower_angle_adj[axis] += 1.0;
-        mechanics.delta_endstop_adj[(axis + 1) % 3] -= 1.0 / 4.5;
-        mechanics.delta_endstop_adj[(axis + 2) % 3] += 1.0 / 4.5;
-
-        z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
-        mechanics.delta_height -= z_temp;
-        LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
-        mechanics.recalc_delta_settings();
-
-        if (!home_delta()) return false;
-
-        SERIAL_EMT("Tuning T", axis_codes[axis]);
-
-        if (isnan(probe_points(z_at_pt, 3, true, false))) return false;
-        LOOP_CAL_ALL(i) z_at_pt[i] -= z_at_pt_base[i];
-        Report_results(z_at_pt, true, true);
-
-        mechanics.delta_tower_angle_adj[axis] -= 1.0;
-        mechanics.delta_endstop_adj[(axis + 1) % 3] += 1.0 / 4.5;
-        mechanics.delta_endstop_adj[(axis + 2) % 3] -= 1.0 / 4.5;
-
-        z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
-        mechanics.delta_height -= z_temp;
-        LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= z_temp;
-        mechanics.recalc_delta_settings();
-
-        switch (axis) {
-          case A_AXIS :
-            a_fac += 4.0 / (          Z06(__B) -Z06(__C)           +Z06(_CA) -Z06(_AB)); // Offset by alpha tower angle
-            break;
-          case B_AXIS :
-            a_fac += 4.0 / (-Z06(__A)          +Z06(__C) -Z06(_BC)           +Z06(_AB)); // Offset by beta tower angle
-            break;
-          case C_AXIS :
-            a_fac += 4.0 / (Z06(__A) -Z06(__B)           +Z06(_BC) -Z06(_CA)          ); // Offset by gamma tower angle
-            break;
-        }
-      }
-
-      a_fac /= 3.0;
-      a_fac *= norm; // Normalize to 0.83 for Kossel mini
-
-      if (!home_delta()) return false;
-
-      Report_signed_float(PSTR( "H_FACTOR"), h_fac);
-      Report_signed_float(PSTR(" R_FACTOR"), r_fac);
-      Report_signed_float(PSTR(" A_FACTOR"), a_fac);
-      SERIAL_EOL();
-      SERIAL_MSG("Copy these values to Configuration");
-      SERIAL_EOL();
-      mechanics.delta_h_factor = h_fac;
-      mechanics.delta_r_factor = r_fac;
-      mechanics.delta_a_factor = a_fac;
-      eeprom.Store_Settings();
-      return true;
+    LOOP_CAL_ALL(rad) {
+      const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
+                  r = (rad == CEN ? 0.0 : mechanics.delta_probe_radius);
+      pos[X_AXIS] = cos(a) * r;
+      pos[Y_AXIS] = sin(a) * r;
+      pos[Z_AXIS] = z_pt[rad];
+      mechanics.Transform(pos);
+      LOOP_XYZ(axis) mm_at_pt_axis[rad][axis] = mechanics.delta[axis];           
     }
+  }
 
-  #endif // HAS_BED_PROBE
+  static void forward_kinematics_probe_points(float mm_at_pt_axis[NPP + 1][ABC], float z_pt[NPP + 1]) {
+    const float r_quot = mechanics.delta_probe_radius / mechanics.delta_radius;
+
+    #define ZPP(N,I,A) ((1 / 3.0 + r_quot * (N) / 3.0 ) * mm_at_pt_axis[I][A])
+    #define Z00(I, A) ZPP( 0, I, A)
+    #define Zp1(I, A) ZPP(+1, I, A)
+    #define Zm1(I, A) ZPP(-1, I, A)
+    #define Zp2(I, A) ZPP(+2, I, A)
+    #define Zm2(I, A) ZPP(-2, I, A)
+
+    z_pt[CEN] = Z00(CEN, A_AXIS) + Z00(CEN, B_AXIS) + Z00(CEN, C_AXIS);
+    z_pt[__A] = Zp2(__A, A_AXIS) + Zm1(__A, B_AXIS) + Zm1(__A, C_AXIS);
+    z_pt[__B] = Zm1(__B, A_AXIS) + Zp2(__B, B_AXIS) + Zm1(__B, C_AXIS);
+    z_pt[__C] = Zm1(__C, A_AXIS) + Zm1(__C, B_AXIS) + Zp2(__C, C_AXIS);
+    z_pt[_BC] = Zm2(_BC, A_AXIS) + Zp1(_BC, B_AXIS) + Zp1(_BC, C_AXIS);
+    z_pt[_CA] = Zp1(_CA, A_AXIS) + Zm2(_CA, B_AXIS) + Zp1(_CA, C_AXIS);
+    z_pt[_AB] = Zp1(_AB, A_AXIS) + Zp1(_AB, B_AXIS) + Zm2(_AB, C_AXIS);
+  }
+
+  static void calc_kinematics_diff_probe_points(float z_pt[NPP + 1], float delta_e[ABC], float delta_r, float delta_t[ABC]) {
+    const float z_center = z_pt[CEN];
+    float diff_mm_at_pt_axis[NPP + 1][ABC],
+          new_mm_at_pt_axis[NPP + 1][ABC];
+
+    reverse_kinematics_probe_points(z_pt, diff_mm_at_pt_axis);
+
+    mechanics.delta_radius += delta_r;
+    LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] += delta_t[axis];
+    mechanics.recalc_delta_settings();
+    reverse_kinematics_probe_points(z_pt, new_mm_at_pt_axis);
+
+    LOOP_XYZ(axis) LOOP_CAL_ALL(rad) diff_mm_at_pt_axis[rad][axis] -= new_mm_at_pt_axis[rad][axis] + delta_e[axis];
+    forward_kinematics_probe_points(diff_mm_at_pt_axis, z_pt);
+
+    LOOP_CAL_RAD(rad) z_pt[rad] -= z_pt[CEN] - z_center;
+    z_pt[CEN] = z_center;
+
+    mechanics.delta_radius -= delta_r;
+    LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] -= delta_t[axis];
+    mechanics.recalc_delta_settings();
+  }
+
+  static float auto_tune_h() {
+    const float r_quot = mechanics.delta_probe_radius / mechanics.delta_radius;
+
+    float h_fac = r_quot / (2.0 / 3.0);
+    h_fac = 1.0 / h_fac; // (2/3)/CR
+
+    return h_fac;
+  }
+
+  static float auto_tune_r() {
+    const float diff    = 0.01;
+    float r_fac         = 0.0,
+          delta_r       = diff,
+          z_pt[NPP + 1] = { 0.0 },
+          delta_e[ABC]  = { 0.0 },
+          delta_t[ABC]  = { 0.0 };
+
+    calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
+    r_fac = -(z_pt[__A] + z_pt[__B] + z_pt[__C] + z_pt[_BC] + z_pt[_CA] + z_pt[_AB]) / 6.0;
+    r_fac = diff / r_fac / 3.0; // 1/(3*delta_Z)
+
+    return r_fac;
+  }
+
+  static float auto_tune_a() {
+    const float diff = 0.01;
+    float a_fac = 0.0,
+          z_pt[NPP + 1] = { 0.0 },
+          delta_e[ABC] = {0.0},
+          delta_r = {0.0},
+          delta_t[ABC] = {0.0};
+
+    LOOP_XYZ(axis) {
+      LOOP_XYZ(axis_2) delta_t[axis_2] = 0.0;
+      delta_t[axis] = diff;
+      calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
+      a_fac += z_pt[uint8_t((axis * _4P_STEP) - _7P_STEP + NPP) % NPP + 1] / 6.0;
+      a_fac -= z_pt[uint8_t((axis * _4P_STEP) + 1 + _7P_STEP)] / 6.0;
+    }
+    a_fac = diff / a_fac / 3.0; // 1/(3*delta_Z)
+
+    return a_fac;
+  }
 
   /**
    * Delta AutoCalibration Algorithm based on Luc Van Daele LVD-AC
@@ -358,21 +334,19 @@
    * Parameters:
    *
    *   Pn Number of probe points:
-   *      P0     No probe. Normalize only.
-   *      P1     Probe center and set height only.
-   *      P2     Probe center and towers. Set height, endstops, and delta radius.
-   *      P3     Probe all positions: center, towers and opposite towers. Set all.
-   *      P4-P10 Probe all positions + at different itermediate locations and average them.
+   *      P0     Normalizes settings without probing.
+   *      P1     Calibrates height only with center probe.
+   *      P2     Probe center and towers. Calibrate height, endstops and delta radius.
+   *      P3     Probe all positions: center, towers and opposite towers. Calibrate all.
+   *      P4-P10 Probe all positions at different itermediate locations and average them.
    *
-   *   T0  Don't calibrate tower angle corrections
+   *   T   Don't calibrate tower angle corrections
    *
-   *   Cn.nn Calibration precision; when omitted calibrates to maximum precision
+   *   Cn.nn  Calibration precision; when omitted calibrates to maximum precision
    *
    *   Fn  Force to run at least n iterations and takes the best result
    *
-   *   A   Auto tune calibartion factors (set in Configuration_delta.h)
-   *
-   *   Vn Verbose level:
+   *   Vn  Verbose level:
    *      V0  Dry-run mode. Report settings and probe results. No calibration.
    *      V1  Report start and end settings only
    *      V2  Report settings at each iteration
@@ -382,9 +356,9 @@
    */
   inline void gcode_G33(void) {
 
-    const int8_t num_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
-    if (!WITHIN(num_points, 0, 7)) {
-      SERIAL_EM("?(P)oints is implausible (0-7).");
+    const int8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
+    if (!WITHIN(probe_points, 0, 10)) {
+      SERIAL_EM("?(P)oints is implausible (0-10).");
       return;
     }
 
@@ -406,19 +380,17 @@
       return;
     }
 
-    const bool  towers_set            = !parser.boolval('T'),
-                auto_tune             = parser.boolval('A'),
-                stow_after_each       = parser.boolval('E'),
-                _0p_calibration       = num_points == 0,
-                _1p_calibration       = num_points == 1,
-                _4p_calibration       = num_points == 2,
-                _7p_9_centre          = num_points >= 8,
-                _tower_results        = (_4p_calibration && towers_set)
-                                        || num_points >= 3 || num_points == 0,
-                _opposite_results     = (_4p_calibration && !towers_set)
-                                        || num_points >= 3 || num_points == 0,
-                _endstop_results      = num_points != 1,
-                _angle_results        = (num_points >= 3 || num_points == 0) && towers_set;
+    const bool  towers_set          = !parser.boolval('T'),
+                stow_after_each     = parser.boolval('E'),
+                _0p_calibration     = probe_points == 0,
+                _1p_calibration     = probe_points == 1,
+                _4p_calibration     = probe_points == 2,
+                _4p_opposite_points = _4p_calibration && !towers_set,
+                _7p_9_centre        = probe_points >= 8,
+                _tower_results      = (_4p_calibration && towers_set) || probe_points >= 3,
+                _opposite_results   = (_4p_calibration && !towers_set) || probe_points >= 3,
+                _endstop_results    = probe_points != 1 && probe_points != -1 && probe_points != 0,
+                _angle_results      = probe_points >= 3  && towers_set;
 
     const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
 
@@ -426,14 +398,18 @@
     float test_precision,
           zero_std_dev = (verbose_level ? 999.0 : 0.0), // 0.0 in dry-run mode : forced end
           zero_std_dev_min = zero_std_dev,
+          zero_std_dev_old = zero_std_dev,
+          h_factor,
+          r_factor,
+          a_factor,
           e_old[ABC] = {
             mechanics.delta_endstop_adj[A_AXIS],
             mechanics.delta_endstop_adj[B_AXIS],
             mechanics.delta_endstop_adj[C_AXIS]
           },
-          dr_old = mechanics.delta_radius,
-          dh_old = mechanics.delta_height,
-          ta_old[ABC] = {
+          r_old = mechanics.delta_radius,
+          h_old = mechanics.delta_height,
+          a_old[ABC] = {
             mechanics.delta_tower_angle_adj[A_AXIS],
             mechanics.delta_tower_angle_adj[B_AXIS],
             mechanics.delta_tower_angle_adj[C_AXIS]
@@ -444,15 +420,13 @@
     if (!_1p_calibration && !_0p_calibration) {  // test if the outer radius is reachable
       LOOP_CAL_RAD(axis) {
         const float a = RADIANS(210 + (360 / NPP) * (axis - 1)),
-                    r = mechanics.delta_probe_radius * (1 + (_7p_9_centre ? 0.1 : 0.0));
+                    r = mechanics.delta_probe_radius;
         if (!mechanics.position_is_reachable(COS(a) * r, SIN(a) * r)) {
           SERIAL_EM("?(M666 P)robe radius is implausible.");
           return;
         }
       }
     }
-
-    stepper.synchronize();
 
     #if HAS_LEVELING
       bedlevel.reset(); // After calibration bed-level data is no longer valid
@@ -466,26 +440,7 @@
       #define CALIBRATION_CLEANUP() Calibration_cleanup()
     #endif
 
-    if (auto_tune) {
-      #if HAS_BED_PROBE
-        if (!tune()) SERIAL_EM("Calibrate printer first");
-      #else
-        SERIAL_EM("A probe is needed for auto-tune");
-      #endif
-      CALIBRATION_CLEANUP();
-      return;
-    }
-
-    printer.setup_for_endstop_or_probe_move();
-    printer.setEndstopEnabled(true);
-    if (!_0p_calibration) {
-      if (!mechanics.Home()) return;
-      endstops.not_homing();
-      DEPLOY_PROBE();
-    }
-
     // Report settings
-
     SERIAL_MSG(MSG_DELTA_CHECKING);
     if (verbose_level == 0) SERIAL_MSG(" (DRY-RUN)");
     SERIAL_EOL();
@@ -493,102 +448,118 @@
 
     Report_settings(_endstop_results, _angle_results);
 
+    stepper.synchronize();
+    printer.setup_for_endstop_or_probe_move();
+    if (!_0p_calibration && !mechanics.Home()) return;
+
+    // start iterations
     do {
 
       float z_at_pt[NPP + 1] = { 0.0 };
 
-      test_precision = zero_std_dev;
+      test_precision = zero_std_dev_old != 999.0 ? (zero_std_dev + zero_std_dev_old) / 2 : zero_std_dev;
 
       iterations++;
 
       // Probe the points
-
-      zero_std_dev = probe_points(z_at_pt, num_points, towers_set, stow_after_each);
-      if (isnan(zero_std_dev)) {
+      zero_std_dev_old = zero_std_dev;
+      if (!probe_calibration_points(z_at_pt, probe_points, towers_set, stow_after_each)) {
         SERIAL_EM("Correct delta_radius with M666 R or end-stops with M666 X Y Z");
         CALIBRATION_CLEANUP();
         return;
       }
+      zero_std_dev = std_dev_points(z_at_pt, _0p_calibration, _1p_calibration, _4p_calibration, _4p_opposite_points);
 
       // Solve matrices
 
       if ((zero_std_dev < test_precision || iterations <= force_iterations) && zero_std_dev > calibration_precision) {
-        if (zero_std_dev < zero_std_dev_min) {
-          COPY_ARRAY(e_old, mechanics.delta_endstop_adj);
-          dr_old = mechanics.delta_radius;
-          dh_old = mechanics.delta_height;
-          COPY_ARRAY(ta_old, mechanics.delta_tower_angle_adj);
-        }
 
-        float e_delta[ABC] = { 0.0 }, r_delta = 0.0, t_delta[ABC] = { 0.0 };
-        const float r_diff = mechanics.delta_radius - mechanics.delta_probe_radius,
-                    h_factor = 1 / 6.0 *   mechanics.delta_h_factor,
-                    r_factor = 1 / 6.0 * (-mechanics.delta_r_factor),
-                    a_factor = 1 / 6.0 *   mechanics.delta_a_factor;
-
-        #define ZP(N,I) ((N) * z_at_pt[I])
-        #define Z6(I)   ZP(6, I)
-        #define Z4(I)   ZP(4, I)
-        #define Z2(I)   ZP(2, I)
-        #define Z1(I)   ZP(1, I)
-
-        #if ENABLED(PROBE_MANUALLY)
+        #if !HAS_BED_PROBE
           test_precision = 0.00; // forced end
         #endif
 
-        switch (num_points) {
+        if (zero_std_dev < zero_std_dev_min) {
+          // set roll-back point
+          COPY_ARRAY(e_old, mechanics.delta_endstop_adj);
+          r_old = mechanics.delta_radius;
+          h_old = mechanics.delta_height;
+          COPY_ARRAY(a_old, mechanics.delta_tower_angle_adj);
+        }
+
+        float e_delta[ABC] = { 0.0 }, r_delta = 0.0, t_delta[ABC] = { 0.0 };
+
+        /**
+         * convergence matrices:
+         * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
+         *  - definition of the matrix scaling parameters
+         *  - matrices for 4 and 7 point calibration
+         */
+        #define ZP(N,I) ((N) * z_at_pt[I] / 4.0) // 4.0 = divider to normalize to integers
+        #define Z12(I) ZP(12, I)
+        #define Z4(I) ZP(4, I)
+        #define Z2(I) ZP(2, I)
+        #define Z1(I) ZP(1, I)
+        #define Z0(I) ZP(0, I)
+
+        const float cr_old = mechanics.delta_probe_radius;
+        if (_7p_9_centre) mechanics.delta_probe_radius *= 0.9;
+        h_factor = auto_tune_h();
+        r_factor = auto_tune_r();
+        a_factor = auto_tune_a();
+        mechanics.delta_probe_radius = cr_old;
+
+        switch (probe_points) {
           case 0:
             test_precision = 0.00; // forced end
             break;
 
           case 1:
             test_precision = 0.00; // forced end
-            LOOP_XYZ(i) e_delta[i] = Z1(CEN);
+            LOOP_XYZ(axis) e_delta[axis] = +Z4(CEN);
             break;
 
           case 2:
-            if (towers_set) {
-              e_delta[A_AXIS] = (Z6(CEN) +Z4(__A) -Z2(__B) -Z2(__C)) * h_factor;
-              e_delta[B_AXIS] = (Z6(CEN) -Z2(__A) +Z4(__B) -Z2(__C)) * h_factor;
-              e_delta[C_AXIS] = (Z6(CEN) -Z2(__A) -Z2(__B) +Z4(__C)) * h_factor;
-              r_delta         = (Z6(CEN) -Z2(__A) -Z2(__B) -Z2(__C)) * r_factor;
+            if (towers_set) { // see 4 point calibration (towers) matrix
+              e_delta[A_AXIS] = (+Z4(__A) -Z2(__B) -Z2(__C)) * h_factor  +Z4(CEN);
+              e_delta[B_AXIS] = (-Z2(__A) +Z4(__B) -Z2(__C)) * h_factor  +Z4(CEN);
+              e_delta[C_AXIS] = (-Z2(__A) -Z2(__B) +Z4(__C)) * h_factor  +Z4(CEN);
+              r_delta         = (+Z4(__A) +Z4(__B) +Z4(__C) -Z12(CEN)) * r_factor;
             }
-            else {
-              e_delta[A_AXIS] = (Z6(CEN) -Z4(_BC) +Z2(_CA) +Z2(_AB)) * h_factor;
-              e_delta[B_AXIS] = (Z6(CEN) +Z2(_BC) -Z4(_CA) +Z2(_AB)) * h_factor;
-              e_delta[C_AXIS] = (Z6(CEN) +Z2(_BC) +Z2(_CA) -Z4(_AB)) * h_factor;
-              r_delta         = (Z6(CEN) -Z2(_BC) -Z2(_CA) -Z2(_AB)) * r_factor;
+            else { // see 4 point calibration (opposites) matrix
+              e_delta[A_AXIS] = (-Z4(_BC) +Z2(_CA) +Z2(_AB)) * h_factor  +Z4(CEN);
+              e_delta[B_AXIS] = (+Z2(_BC) -Z4(_CA) +Z2(_AB)) * h_factor  +Z4(CEN);
+              e_delta[C_AXIS] = (+Z2(_BC) +Z2(_CA) -Z4(_AB)) * h_factor  +Z4(CEN);
+              r_delta         = (+Z4(_BC) +Z4(_CA) +Z4(_AB) -Z12(CEN)) * r_factor;
             }
             break;
 
-          default:
-            e_delta[A_AXIS] = (Z6(CEN) +Z2(__A) -Z1(__B) -Z1(__C) -Z2(_BC) +Z1(_CA) +Z1(_AB)) * h_factor;
-            e_delta[B_AXIS] = (Z6(CEN) -Z1(__A) +Z2(__B) -Z1(__C) +Z1(_BC) -Z2(_CA) +Z1(_AB)) * h_factor;
-            e_delta[C_AXIS] = (Z6(CEN) -Z1(__A) -Z1(__B) +Z2(__C) +Z1(_BC) +Z1(_CA) -Z2(_AB)) * h_factor;
-            r_delta         = (Z6(CEN) -Z1(__A) -Z1(__B) -Z1(__C) -Z1(_BC) -Z1(_CA) -Z1(_AB)) * r_factor;
+          default: // see 7 point calibration (towers & opposites) matrix
+            e_delta[A_AXIS] = (+Z2(__A) -Z1(__B) -Z1(__C) -Z2(_BC) +Z1(_CA) +Z1(_AB)) * h_factor  +Z4(CEN);
+            e_delta[B_AXIS] = (-Z1(__A) +Z2(__B) -Z1(__C) +Z1(_BC) -Z2(_CA) +Z1(_AB)) * h_factor  +Z4(CEN);
+            e_delta[C_AXIS] = (-Z1(__A) -Z1(__B) +Z2(__C) +Z1(_BC) +Z1(_CA) -Z2(_AB)) * h_factor  +Z4(CEN);
+            r_delta         = (+Z2(__A) +Z2(__B) +Z2(__C) +Z2(_BC) +Z2(_CA) +Z2(_AB) -Z12(CEN)) * r_factor;
 
-            if (towers_set) {
-              t_delta[A_AXIS] = (         -Z4(__B) +Z4(__C)          -Z4(_CA) +Z4(_AB)) * a_factor;
-              t_delta[B_AXIS] = ( Z4(__A)          -Z4(__C) +Z4(_BC)          -Z4(_AB)) * a_factor;
-              t_delta[C_AXIS] = (-Z4(__A) +Z4(__B)          -Z4(_BC) +Z4(_CA)         ) * a_factor;
-              e_delta[A_AXIS] += (t_delta[B_AXIS] - t_delta[C_AXIS]) / 4.5;
-              e_delta[B_AXIS] += (t_delta[C_AXIS] - t_delta[A_AXIS]) / 4.5;
-              e_delta[C_AXIS] += (t_delta[A_AXIS] - t_delta[B_AXIS]) / 4.5;
+            if (towers_set) { // see 7 point tower angle calibration (towers & opposites) matrix
+              t_delta[A_AXIS] = (+Z0(__A) -Z4(__B) +Z4(__C) +Z0(_BC) -Z4(_CA) +Z4(_AB) +Z0(CEN)) * a_factor;
+              t_delta[B_AXIS] = (+Z4(__A) +Z0(__B) -Z4(__C) +Z4(_BC) +Z0(_CA) -Z4(_AB) +Z0(CEN)) * a_factor;
+              t_delta[C_AXIS] = (-Z4(__A) +Z4(__B) +Z0(__C) -Z4(_BC) +Z4(_CA) +Z0(_AB) +Z0(CEN)) * a_factor;
             }
             break;
         }
-
         LOOP_XYZ(axis) mechanics.delta_endstop_adj[axis] += e_delta[axis];
         mechanics.delta_radius += r_delta;
         LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] += t_delta[axis];
       }
-      else if (zero_std_dev >= test_precision) {   // step one back
+      else if (zero_std_dev >= test_precision) {
+        // roll back
         COPY_ARRAY(mechanics.delta_endstop_adj, e_old);
-        mechanics.delta_radius = dr_old;
-        mechanics.delta_height = dh_old;
-        COPY_ARRAY(mechanics.delta_tower_angle_adj, ta_old);
+        mechanics.delta_radius = r_old;
+        mechanics.delta_height = h_old;
+        COPY_ARRAY(mechanics.delta_tower_angle_adj, a_old);
       }
+
       if (verbose_level != 0) {                                    // !dry run
+
         // Normalise angles to least squares
         if (_angle_results) {
           float a_sum = 0.0;
@@ -613,7 +584,7 @@
           SERIAL_MSG("Calibration OK");
           SERIAL_SP(36);
           #if HAS_BED_PROBE
-            if (zero_std_dev >= test_precision && !_1p_calibration)
+            if (zero_std_dev >= test_precision && !_1p_calibration && !_0p_calibration)
               SERIAL_MSG("rolling back.");
             else
           #endif
@@ -647,7 +618,7 @@
             Report_settings(_endstop_results, _angle_results);
         }
       }
-      else {
+      else { // dry run
         const char *enddryrun = PSTR("End DRY-RUN");
         SERIAL_PS(enddryrun);
         SERIAL_SP(35);
@@ -663,7 +634,7 @@
         lcd_setstatus(mess);
       }
 
-      if (!home_delta()) return;
+      if (!mechanics.Home()) return;
 
     } while (((zero_std_dev < test_precision && iterations < 31) || iterations <= force_iterations) && zero_std_dev > calibration_precision);
 

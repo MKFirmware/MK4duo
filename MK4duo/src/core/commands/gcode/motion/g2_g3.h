@@ -54,6 +54,11 @@
  */
 #if ENABLED(ARC_SUPPORT) && !IS_SCARA
 
+  #if N_ARC_CORRECTION < 1
+    #undef N_ARC_CORRECTION
+    #define N_ARC_CORRECTION 1
+  #endif
+
   #define CODE_G2
   #define CODE_G3
 
@@ -112,7 +117,7 @@
 
         #if ENABLED(ARC_P_CIRCLES)
           // P indicates number of circles to do
-          int8_t circles_to_do = parser.seen('P') ? parser.value_byte() : 0;
+          int8_t circles_to_do = parser.byteval('P');
           if (!WITHIN(circles_to_do, 0, 100))
             SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
           while (circles_to_do--)

@@ -222,7 +222,7 @@
       }
     #endif
 
-    endstops.not_homing();
+    printer.setNotHoming();
 
     if (come_back) {
       feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];

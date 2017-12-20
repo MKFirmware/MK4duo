@@ -108,9 +108,6 @@ class Endstops {
      */
     static void report_state(); // call from somewhere to create an serial error message with the locations the endstops where hit, in case they were triggered
 
-    // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-    static void not_homing() { printer.setEndstopEnabled(printer.IsEndstopGlobally()); }
-
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
     static void hit_on_purpose() { endstop_hit_bits = 0; }
 
