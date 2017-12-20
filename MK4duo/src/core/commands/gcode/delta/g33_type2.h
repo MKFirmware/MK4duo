@@ -123,7 +123,6 @@
    */
   static float std_dev_points(float z_pt[NPP + 1], const bool _0p_cal, const bool _1p_cal, const bool _4p_cal, const bool _4p_opp) {
     if (!_0p_cal) {
-      //LOOP_CAL_ALL(rad) z_pt[rad] += probe.offset[Z_AXIS];
       float S2 = sq(z_pt[CEN]);
       int16_t N = 1;
       if (!_1p_cal) { // std dev from zero plane
@@ -495,11 +494,11 @@
          *  - matrices for 4 and 7 point calibration
          */
         #define ZP(N,I) ((N) * z_at_pt[I] / 4.0) // 4.0 = divider to normalize to integers
-        #define Z12(I) ZP(12, I)
-        #define Z4(I) ZP(4, I)
-        #define Z2(I) ZP(2, I)
-        #define Z1(I) ZP(1, I)
-        #define Z0(I) ZP(0, I)
+        #define Z12(I)  ZP(12, I)
+        #define Z4(I)   ZP(4, I)
+        #define Z2(I)   ZP(2, I)
+        #define Z1(I)   ZP(1, I)
+        #define Z0(I)   ZP(0, I)
 
         const float cr_old = mechanics.delta_probe_radius;
         if (_7p_9_centre) mechanics.delta_probe_radius *= 0.9;
