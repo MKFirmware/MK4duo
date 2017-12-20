@@ -40,9 +40,6 @@
     delta_print_radius              = (float)DELTA_PRINTABLE_RADIUS;
     delta_probe_radius              = (float)DELTA_PROBEABLE_RADIUS;
     delta_height                    = (float)DELTA_HEIGHT;
-    delta_h_factor                  = (float)H_FACTOR;
-    delta_r_factor                  = (float)R_FACTOR;
-    delta_a_factor                  = (float)A_FACTOR;
     delta_endstop_adj[A_AXIS]       = (float)TOWER_A_ENDSTOP_ADJ;
     delta_endstop_adj[B_AXIS]       = (float)TOWER_B_ENDSTOP_ADJ;
     delta_endstop_adj[C_AXIS]       = (float)TOWER_C_ENDSTOP_ADJ;
@@ -624,7 +621,7 @@
       }
     #endif
 
-    endstops.not_homing();
+    printer.setNotHoming();
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area

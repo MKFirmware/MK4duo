@@ -336,7 +336,7 @@ class Mechanics {
      * options for G2/G3 arc generation. In future these options may be GCode tunable.
      */
     #if ENABLED(ARC_SUPPORT)
-      void plan_arc(float target[NUM_AXIS], float* offset, uint8_t clockwise);
+      void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise);
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)

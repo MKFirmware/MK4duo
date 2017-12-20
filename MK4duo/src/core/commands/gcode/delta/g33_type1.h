@@ -150,7 +150,7 @@
     printer.setup_for_endstop_or_probe_move();
     printer.setEndstopEnabled(true);
     if (!mechanics.Home()) return;
-    endstops.not_homing();
+    printer.setNotHoming();
     DEPLOY_PROBE();
 
     const float dx = (probe.offset[X_AXIS]),
@@ -321,7 +321,7 @@
 
     printer.setEndstopEnabled(true);
     if (!mechanics.Home()) return;
-    endstops.not_homing();
+    printer.setNotHoming();
 
     CALIBRATION_CLEANUP();
 

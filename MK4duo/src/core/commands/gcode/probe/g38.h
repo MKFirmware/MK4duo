@@ -83,7 +83,7 @@
     }
 
     endstops.hit_on_purpose();
-    endstops.not_homing();
+    printer.setNotHoming();
     return G38_pass_fail;
   }
 
