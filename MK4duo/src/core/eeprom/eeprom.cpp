@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV43"
+#define EEPROM_VERSION "MKV44"
 
 /**
- * MKV43 EEPROM Layout:
+ * MKV44 EEPROM Layout:
  *
  *  Version (char x6)
  *  EEPROM Checksum (uint16_t)
@@ -100,9 +100,6 @@
  *  M666  UVW             mechanics.delta_tower_radius_adj      (float x3)
  *  M666  O               mechanics.delta_print_radius          (float)
  *  M666  P               mechanics.delta_probe_radius          (float)
- *                        mechanics.delta_h_factor              (float)
- *                        mechanics.delta_r_factor              (float)
- *                        mechanics.delta_a_factor              (float)
  *
  * ULTIPANEL:
  *  M145  S0  H           lcd_preheat_hotend_temp               (int x3)
@@ -235,7 +232,9 @@ void EEPROM::Postprocess() {
     LOOP_FAN() fans[f].init();
   #endif
 
-  tools.calculate_volumetric_multipliers();
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    tools.calculate_volumetric_multipliers();
+  #endif
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
     // Software endstops depend on home_offset
@@ -458,9 +457,6 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(mechanics.delta_diagonal_rod_adj);
       EEPROM_WRITE(mechanics.delta_print_radius);
       EEPROM_WRITE(mechanics.delta_probe_radius);
-      EEPROM_WRITE(mechanics.delta_h_factor);
-      EEPROM_WRITE(mechanics.delta_r_factor);
-      EEPROM_WRITE(mechanics.delta_a_factor);
     #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -546,11 +542,19 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(fwretract.swap_retract_recover_feedrate_mm_s);
     #endif // FWRETRACT
 
-    EEPROM_WRITE(tools.volumetric_enabled);
+    //
+    // Volumetric & Filament Size
+    //
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-    // Save filament sizes
-    for (uint8_t e = 0; e < EXTRUDERS; e++)
-      EEPROM_WRITE(tools.filament_size[e]);
+      const bool volumetric_enabled = printer.isVolumetric();
+      EEPROM_WRITE(volumetric_enabled);
+
+      // Save filament sizes
+      for (uint8_t e = 0; e < EXTRUDERS; e++)
+        EEPROM_WRITE(tools.filament_size[e]);
+
+    #endif
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       EEPROM_WRITE(printer.IDLE_OOZING_enabled);
@@ -829,9 +833,6 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mechanics.delta_diagonal_rod_adj);
         EEPROM_READ(mechanics.delta_print_radius);
         EEPROM_READ(mechanics.delta_probe_radius);
-        EEPROM_READ(mechanics.delta_h_factor);
-        EEPROM_READ(mechanics.delta_r_factor);
-        EEPROM_READ(mechanics.delta_a_factor);
       #endif
 
       #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -918,10 +919,19 @@ void EEPROM::Postprocess() {
         EEPROM_READ(fwretract.swap_retract_recover_feedrate_mm_s);
       #endif // FWRETRACT
 
-      EEPROM_READ(tools.volumetric_enabled);
+      //
+      // Volumetric & Filament Size
+      //
+      #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-      for (int8_t e = 0; e < EXTRUDERS; e++)
-        EEPROM_READ(tools.filament_size[e]);
+        bool volumetric_enabled;
+        EEPROM_READ(volumetric_enabled);
+        printer.setVolumetric(volumetric_enabled);
+
+        for (int8_t e = 0; e < EXTRUDERS; e++)
+          EEPROM_READ(tools.filament_size[e]);
+
+      #endif
 
       #if ENABLED(IDLE_OOZING_PREVENT)
         EEPROM_READ(printer.IDLE_OOZING_enabled);
@@ -1522,14 +1532,18 @@ void EEPROM::Factory_Settings() {
     fwretract.reset();
   #endif
 
-  #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-    tools.volumetric_enabled = true;
-  #else
-    tools.volumetric_enabled = false;
-  #endif
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-  for (uint8_t q = 0; q < COUNT(tools.filament_size); q++)
-    tools.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
+    #if ENABLED(VOLUMETRIC_DEFAULT_ON)
+      printer.setVolumetric(true);
+    #else
+      printer.setVolumetric(false);
+    #endif
+
+    for (uint8_t q = 0; q < COUNT(tools.filament_size); q++)
+      tools.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
+
+  #endif
 
   printer.setEndstopGlobally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
@@ -1819,15 +1833,6 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" H", LINEAR_UNIT(mechanics.delta_height), 3);
       SERIAL_EOL();
 
-      #if ENABLED(DELTA_AUTO_CALIBRATION_2)
-        CONFIG_MSG_START("Calibration factor:");
-        SERIAL_STR(CFG);
-        SERIAL_MV(" H:", mechanics.delta_h_factor, 2);
-        SERIAL_MV(" R:", mechanics.delta_r_factor, 2);
-        SERIAL_MV(" A:", mechanics.delta_a_factor, 2);
-        SERIAL_EOL();
-      #endif
-
     #endif // IS_DELTA
 
     /**
@@ -1900,25 +1905,28 @@ void EEPROM::Factory_Settings() {
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
-    /**
-     * Volumetric extrusion M200
-     */
-    if (!forReplay) {
-      SERIAL_SM(CFG, "Filament settings:");
-      if (tools.volumetric_enabled)
-        SERIAL_EOL();
-      else
-        SERIAL_EM(" Disabled");
-    }
-    #if EXTRUDERS == 1
-      SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
-    #endif
-    #if EXTRUDERS > 1
-      for (uint8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M200 T", (int)i);
-        SERIAL_EMV(" D", tools.filament_size[i], 3);
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+
+      /**
+       * Volumetric extrusion M200
+       */
+      if (!forReplay) {
+        SERIAL_SM(CFG, "Filament settings:");
+        if (printer.isVolumetric())
+          SERIAL_EOL();
+        else
+          SERIAL_EM(" Disabled");
       }
-    #endif
+      #if EXTRUDERS == 1
+        SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
+      #elif EXTRUDERS > 1
+        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+          SERIAL_SMV(CFG, "  M200 T", (int)i);
+          SERIAL_EMV(" D", tools.filament_size[i], 3);
+        }
+      #endif
+
+    #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**
      * Alligator current drivers M906

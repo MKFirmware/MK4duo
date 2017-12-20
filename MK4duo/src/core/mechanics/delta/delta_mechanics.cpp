@@ -325,7 +325,7 @@
    *
    * The result is stored in the cartesian[] array.
    */
-  void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]) {
+  void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]) {
 
     const float Fa = coreFa + sq(Ha);
     const float Fb = coreFb + sq(Hb);
@@ -346,9 +346,9 @@
 
     const float z = (minusHalfB - SQRT(sq(minusHalfB) - A * C)) / A;
 
-    cartesian[A_AXIS] = (U * z - S) / Q;
-    cartesian[B_AXIS] = (P - R * z) / Q;
-    cartesian[C_AXIS] = z;
+    cartesian[X_AXIS] = (U * z - S) / Q;
+    cartesian[Y_AXIS] = (P - R * z) / Q;
+    cartesian[Z_AXIS] = z;
   }
 
   void Delta_Mechanics::recalc_delta_settings() {
@@ -427,21 +427,19 @@
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void Delta_Mechanics::Transform(const float raw[ABC]) {
-    delta[A_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[A_AXIS], towerY[A_AXIS] - raw[B_AXIS]));
-    delta[B_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[A_AXIS], towerY[B_AXIS] - raw[B_AXIS]));
-    delta[C_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[A_AXIS], towerY[C_AXIS] - raw[B_AXIS]));
+  void Delta_Mechanics::Transform(const float raw[]) {
+    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[X_AXIS], towerY[A_AXIS] - raw[Y_AXIS]));
+    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[X_AXIS], towerY[B_AXIS] - raw[Y_AXIS]));
+    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[X_AXIS], towerY[C_AXIS] - raw[Y_AXIS]));
   }
 
-  void Delta_Mechanics::Transform_buffer_segment(const float raw[XYZE], const float fr) {
-    delta[A_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[A_AXIS], towerY[A_AXIS] - raw[B_AXIS]));
-    delta[B_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[A_AXIS], towerY[B_AXIS] - raw[B_AXIS]));
-    delta[C_AXIS] = raw[C_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[A_AXIS], towerY[C_AXIS] - raw[B_AXIS]));
+  void Delta_Mechanics::Transform_buffer_segment(const float raw[], const float fr) {
+    Transform(raw);
     planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], fr, tools.active_extruder);
   }
 
   void Delta_Mechanics::Set_clip_start_height() {
-    float cartesian[ABC] = { 0, 0, 0 };
+    float cartesian[XYZ] = { 0, 0, 0 };
     Transform(cartesian);
     float distance = delta[A_AXIS];
     cartesian[Y_AXIS] = delta_print_radius;

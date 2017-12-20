@@ -69,11 +69,11 @@
       if (parser.boolval('Z')) {
         mechanics.delta_height -= measured_z;
         mechanics.recalc_delta_settings();
-        SERIAL_MV("  New delta height = ", mechanics.delta_height, 3);
+        SERIAL_MV("  New delta height:", mechanics.delta_height, 3);
       }
       else if (parser.boolval('P')) {
         probe.offset[Z_AXIS] -= measured_z;
-        SERIAL_MV("  New Z probe offset = ", probe.offset[Z_AXIS], 3);
+        SERIAL_MV("  New Z probe offset:", probe.offset[Z_AXIS], 3);
       }
     #endif
 

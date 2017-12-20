@@ -2505,10 +2505,8 @@ void kill_screen(const char* lcd_msg) {
               lcd_bed_leveling
             #endif
           );
-    #else
-      #if PLANNER_LEVELING
-        MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));
-      #endif
+    #elif PLANNER_LEVELING && DISABLED(PROBE_MANUALLY)
+      MENU_ITEM(gcode, MSG_BED_LEVELING, PSTR("G28\nG29"));
     #endif
 
     #if ENABLED(LEVEL_BED_CORNERS) && DISABLED(LCD_BED_LEVELING)
@@ -3624,29 +3622,33 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_k, 0, 999);
     #endif
 
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &tools.volumetric_enabled, tools.calculate_volumetric_multipliers);
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-    if (tools.volumetric_enabled) {
-      #if EXTRUDERS == 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[0], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-      #else // EXTRUDERS > 1
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[tools.active_extruder], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.filament_size[0], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.filament_size[1], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-        #if EXTRUDERS > 2
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.filament_size[2], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-          #if EXTRUDERS > 3
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.filament_size[3], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-            #if EXTRUDERS > 4
-              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.filament_size[4], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-              #if EXTRUDERS > 5
-                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.filament_size[5], 1.5, 3.5, tools.calculate_volumetric_multipliers);
-              #endif // EXTRUDERS > 5
-            #endif // EXTRUDERS > 4
-          #endif // EXTRUDERS > 3
-        #endif // EXTRUDERS > 2
-      #endif // EXTRUDERS > 1
-    }
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &tools.volumetric_enabled, tools.calculate_volumetric_multipliers);
+
+      if (printer.isVolumetric()) {
+        #if EXTRUDERS == 1
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[0], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+        #else // EXTRUDERS > 1
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[tools.active_extruder], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.filament_size[0], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.filament_size[1], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+          #if EXTRUDERS > 2
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.filament_size[2], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+            #if EXTRUDERS > 3
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.filament_size[3], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+              #if EXTRUDERS > 4
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.filament_size[4], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+                #if EXTRUDERS > 5
+                  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.filament_size[5], 1.5, 3.5, tools.calculate_volumetric_multipliers);
+                #endif // EXTRUDERS > 5
+              #endif // EXTRUDERS > 4
+            #endif // EXTRUDERS > 3
+          #endif // EXTRUDERS > 2
+        #endif // EXTRUDERS > 1
+      }
+
+    #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     END_MENU();
   }
