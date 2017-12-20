@@ -101,7 +101,7 @@
     SERIAL_MSG(".    ");
     Report_signed_float(PSTR("c"), z_pt[CEN]);
     if (tower_points) {
-      Report_signed_float(PSTR(" x"), z_pt[__A]);
+      Report_signed_float(PSTR("   x"), z_pt[__A]);
       Report_signed_float(PSTR(" y"), z_pt[__B]);
       Report_signed_float(PSTR(" z"), z_pt[__C]);
     }
@@ -111,7 +111,7 @@
       SERIAL_SP(13);
     }
     if (opposite_points) {
-      Report_signed_float(PSTR("yz"), z_pt[_BC]);
+      Report_signed_float(PSTR("  yz"), z_pt[_BC]);
       Report_signed_float(PSTR("zx"), z_pt[_CA]);
       Report_signed_float(PSTR("xy"), z_pt[_AB]);
     }
@@ -123,7 +123,7 @@
    */
   static float std_dev_points(float z_pt[NPP + 1], const bool _0p_cal, const bool _1p_cal, const bool _4p_cal, const bool _4p_opp) {
     if (!_0p_cal) {
-      LOOP_CAL_ALL(rad) z_pt[rad] += probe.offset[Z_AXIS];
+      //LOOP_CAL_ALL(rad) z_pt[rad] += probe.offset[Z_AXIS];
       float S2 = sq(z_pt[CEN]);
       int16_t N = 1;
       if (!_1p_cal) { // std dev from zero plane

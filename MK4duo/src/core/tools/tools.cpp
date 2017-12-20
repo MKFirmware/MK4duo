@@ -37,18 +37,15 @@
           Tools::target_extruder    = 0,
           Tools::active_driver      = 0;
 
-  #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-    bool  Tools::volumetric_enabled = true;
-  #else
-    bool  Tools::volumetric_enabled = false;
-  #endif
-
   int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
           Tools::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
-  float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0),
-          Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
+  float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0);
+  
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    float Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
           Tools::volumetric_area_nominal          = CIRCLE_AREA((DEFAULT_NOMINAL_FILAMENT_DIA) * 0.5),
           Tools::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
+  #endif
 
   float   Tools::hotend_offset[XYZ][HOTENDS] = { 0.0 };
 
@@ -373,26 +370,30 @@
     #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
   }
 
-  /**
-   * Get a volumetric multiplier from a filament diameter.
-   * This is the reciprocal of the circular cross-section area.
-   * Return 1.0 with volumetric off or a diameter of 0.0.
-   */
-  float Tools::calculate_volumetric_multiplier(const float diameter) {
-    if (!volumetric_enabled || diameter == 0) return 1.0;
-    return 1.0 / CIRCLE_AREA(diameter * 0.5);
-  }
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-  /**
-   * Convert the filament sizes into volumetric multipliers.
-   * The multiplier converts a given E value into a length.
-   */
-  void Tools::calculate_volumetric_multipliers() {
-    for (uint8_t e = 0; e < EXTRUDERS; e++) {
-      volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
-      refresh_e_factor(e);
+    /**
+     * Get a volumetric multiplier from a filament diameter.
+     * This is the reciprocal of the circular cross-section area.
+     * Return 1.0 with volumetric off or a diameter of 0.0.
+     */
+    float Tools::calculate_volumetric_multiplier(const float diameter) {
+      if (!printer.isVolumetric() || diameter == 0) return 1.0;
+      return 1.0 / CIRCLE_AREA(diameter * 0.5);
     }
-  }
+
+    /**
+     * Convert the filament sizes into volumetric multipliers.
+     * The multiplier converts a given E value into a length.
+     */
+    void Tools::calculate_volumetric_multipliers() {
+      for (uint8_t e = 0; e < EXTRUDERS; e++) {
+        volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
+        refresh_e_factor(e);
+      }
+    }
+
+  #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
   #if ENABLED(NPR2)
 

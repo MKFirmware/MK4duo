@@ -45,11 +45,12 @@ constexpr const uint8_t flag1_g38_move            = 32;
 constexpr const uint8_t flag1_g38_endstop_hit     = 64;
 constexpr const uint8_t flag2_pos_saved           = 1;
 constexpr const uint8_t flag2_relative_mode       = 2;
-constexpr const uint8_t flag2_wait_for_user       = 4;
-constexpr const uint8_t flag2_wait_for_heatup     = 8;
-constexpr const uint8_t flag2_filament_out        = 16;
-constexpr const uint8_t flag2_allow_cold_extrude  = 32;
-constexpr const uint8_t flag2_autoreport_temp     = 64;
+constexpr const uint8_t flag2_volumetric_enabled  = 4;
+constexpr const uint8_t flag2_wait_for_user       = 8;
+constexpr const uint8_t flag2_wait_for_heatup     = 16;
+constexpr const uint8_t flag2_filament_out        = 32;
+constexpr const uint8_t flag2_allow_cold_extrude  = 64;
+constexpr const uint8_t flag2_autoreport_temp     = 128;
 
 enum PrinterMode {
   PRINTER_MODE_FFF,           // M450 S0 or M451
@@ -247,6 +248,11 @@ class Printer {
       mk_2_flag = (onoff ? mk_2_flag | flag2_relative_mode : mk_2_flag & ~flag2_relative_mode);
     }
     FORCE_INLINE static bool isRelativeMode() { return mk_2_flag & flag2_relative_mode; }
+
+    FORCE_INLINE static void setVolumetric(const bool onoff) {
+      mk_2_flag = (onoff ? mk_2_flag | flag2_volumetric_enabled : mk_2_flag & ~flag2_volumetric_enabled);
+    }
+    FORCE_INLINE static bool isVolumetric() { return mk_2_flag & flag2_volumetric_enabled; }
 
     FORCE_INLINE static void setWaitForUser(const bool onoff) {
       mk_2_flag = (onoff ? mk_2_flag | flag2_wait_for_user : mk_2_flag & ~flag2_wait_for_user);

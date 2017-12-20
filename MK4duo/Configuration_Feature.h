@@ -174,6 +174,7 @@
  * M200 D0 to disable, M200 Dn to set a new diameter.                  *
  *                                                                     *
  ***********************************************************************/
+//#define VOLUMETRIC_EXTRUSION
 //#define VOLUMETRIC_DEFAULT_ON
 /***********************************************************************/
 
@@ -902,13 +903,12 @@
  **********************************************************************************/
 //#define FILAMENT_SENSOR
 
-#define FILAMENT_SENSOR_EXTRUDER_NUM  0     //The number of the extruder that has the filament sensor (0,1,2,3)
-#define MEASUREMENT_DELAY_CM         14     //measurement delay in cm.  This is the distance from filament sensor to middle of barrel
-#define MEASURED_UPPER_LIMIT          2.00  //upper limit factor used for sensor reading validation in mm
-#define MEASURED_LOWER_LIMIT          1.35  //lower limit factor for sensor reading validation in mm
-#define MAX_MEASUREMENT_DELAY        20     //delay buffer size in bytes (1 byte = 1cm)- limits maximum measurement delay allowable (must be larger than MEASUREMENT_DELAY_CM  and lower number saves RAM)
+#define FILAMENT_SENSOR_EXTRUDER_NUM  0   // Index of the extruder that has the filament sensor. :[0,1,2,3,4,5]
+#define MEASUREMENT_DELAY_CM         14   // (cm) The distance from the filament sensor to the melting chamber
 
-//defines used in the code
+#define FILWIDTH_ERROR_MARGIN        1.0  // (mm) If a measurement differs too much from nominal width ignore it
+#define MAX_MEASUREMENT_DELAY        20   // (bytes) Buffer size for stored measurements (1 byte per cm). Must be larger than MEASUREMENT_DELAY_CM.
+
 #define DEFAULT_MEASURED_FILAMENT_DIA  DEFAULT_NOMINAL_FILAMENT_DIA  //set measured to nominal initially
 
 //When using an LCD, uncomment the line below to display the Filament sensor data on the last line instead of status.  Status will appear for 5 sec.

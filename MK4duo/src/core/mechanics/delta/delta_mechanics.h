@@ -114,10 +114,10 @@
       /**
        * Delta function
        */
-      void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[ABC]);
-      void InverseTransform(const float point[ABC], float cartesian[ABC]) { InverseTransform(point[A_AXIS], point[B_AXIS], point[C_AXIS], cartesian); }
-      void Transform(const float raw[ABC]);
-      void Transform_buffer_segment(const float raw[XYZE], const float fr);
+      void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
+      void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
+      void Transform(const float raw[]);
+      void Transform_buffer_segment(const float raw[], const float fr);
       void recalc_delta_settings();
 
       /**

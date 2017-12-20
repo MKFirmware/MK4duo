@@ -30,12 +30,12 @@
 #define _FILAMENT_H_
 
 #if ENABLED(FILAMENT_SENSOR)
-  extern bool     filament_sensor;                              // Flag that filament sensor readings should control extrusion
-  extern float    filament_width_nominal,                       // Theoretical filament diameter i.e., 3.00 or 1.75
+  extern bool     filament_sensor;                              // M405/M406 turns filament sensor control ON/OFF.
+  extern float    filament_width_nominal,                       // Nominal filament width. Change with M404.
                   filament_width_meas;                          // Measured filament diameter
-  extern uint8_t  meas_delay_cm,                                // Delay distance
-                  measurement_delay[MAX_MEASUREMENT_DELAY + 1]; // Ring buffer to delay measurement
-  extern int8_t   filwidth_delay_index[2];                      // Ring buffer indexes. Used by planner, temperature, and main code
+  extern uint8_t  meas_delay_cm;                                // Distance delay setting
+  extern int8_t   measurement_delay[MAX_MEASUREMENT_DELAY + 1], // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
+                  filwidth_delay_index[2];                      // Indexes into ring buffer
 #endif
 
 #endif /* _FILAMENT_H_ */

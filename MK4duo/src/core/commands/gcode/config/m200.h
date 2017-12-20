@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0
+#if EXTRUDERS > 0 && ENABLED(VOLUMETRIC_EXTRUSION)
 
   #define CODE_M200
 
@@ -44,19 +44,10 @@
       // setting any extruder filament size disables volumetric on the assumption that
       // slicers either generate in extruder values as cubic mm or as as filament feeds
       // for all extruders
-      tools.volumetric_enabled = (parser.value_linear_units() != 0.0);
-      if (tools.volumetric_enabled) {
-        tools.filament_size[TARGET_EXTRUDER] = parser.value_linear_units();
-        // make sure all extruders have some sane value for the filament size
-        for (int e = 0; e < EXTRUDERS; e++)
-          if (!tools.filament_size[e]) tools.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
-      }
+      printer.setVolumetric(parser.value_linear_units() != 0.0);
+      if (printer.isVolumetric())
+        tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
     }
-    else {
-      // reserved for setting filament diameter via UFID or filament measuring device
-      return;
-    }
-
     tools.calculate_volumetric_multipliers();
   }
 

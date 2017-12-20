@@ -322,6 +322,7 @@ void Printer::setup() {
   #if FAN_COUNT > 0
     LOOP_FAN() fans[f].Speed = 0;
   #endif
+
 }
 
 /**
