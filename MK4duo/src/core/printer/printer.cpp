@@ -758,7 +758,9 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
             Spool_must_read[e] = false;
             tools.density_percentage[e] = rfid522.RfidData[e].data.density;
             tools.filament_size[e] = rfid522.RfidData[e].data.size;
-            tools.calculate_volumetric_multipliers();
+            #if ENABLED(VOLUMETRIC_EXTRUSION)
+              tools.calculate_volumetric_multipliers();
+            #endif
             tools.refresh_e_factor(e);
             rfid522.printInfo(e);
           }
@@ -877,10 +879,17 @@ void Printer::setup_powerhold() {
 #if ENABLED(IDLE_OOZING_PREVENT)
 
   void Printer::IDLE_OOZING_retract(bool retracting) {
+
     if (retracting && !IDLE_OOZING_retracted[tools.active_extruder]) {
+
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+
       mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH / tools.volumetric_multiplier[tools.active_extruder];
+      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH
+        #if ENABLED(VOLUMETRIC_EXTRUSION)
+          / tools.volumetric_multiplier[tools.active_extruder]
+        #endif
+      ;
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
       mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
@@ -889,9 +898,16 @@ void Printer::setup_powerhold() {
       //SERIAL_EM("-");
     }
     else if (!retracting && IDLE_OOZING_retracted[tools.active_extruder]) {
+
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+
       mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH+IDLE_OOZING_RECOVER_LENGTH) / tools.volumetric_multiplier[tools.active_extruder];
+      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
+        #if ENABLED(VOLUMETRIC_EXTRUSION)
+          / tools.volumetric_multiplier[tools.active_extruder]
+        #endif
+      ;
+
       mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
       mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
