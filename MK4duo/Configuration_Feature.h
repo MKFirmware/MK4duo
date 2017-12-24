@@ -470,6 +470,8 @@
  * Slic3r (including Prusa Slic3r) produces Gcode compatible with the automatic mode.    *
  * Cura (as of this writing) may produce Gcode incompatible with the automatic mode.     *
  *                                                                                       *
+ * LIN ADVANCE is only compatible with Cartesian                                         *
+ *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE
 

@@ -109,7 +109,7 @@ typedef struct {
             acceleration_steps_per_s2;      // acceleration steps/sec^2
 
   #if ENABLED(BARICUDA)
-    uint32_t valve_pressure, e_to_p_pressure;
+    uint8_t valve_pressure, e_to_p_pressure;
   #endif
 
   uint32_t segment_time_us;
@@ -168,7 +168,11 @@ class Planner {
     static uint32_t cutoff_long;
 
     #if ENABLED(LIN_ADVANCE)
-      static float extruder_advance_k, advance_ed_ratio;
+      static float  extruder_advance_k,
+                    advance_ed_ratio,
+                    position_float[XYZE],
+                    lin_dist_xy,
+                    lin_dist_e;
     #endif
 
   private: /** Private Parameters */
@@ -229,9 +233,8 @@ class Planner {
      *  target      - target position in steps units
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
-     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
+    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder);
 
     /**
      * Planner::buffer_segment
@@ -243,9 +246,8 @@ class Planner {
      *  a,b,c,e     - target positions in mm and/or degrees
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
-     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
+    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder);
 
     /**
      * Add a new linear movement to the buffer.
@@ -258,9 +260,8 @@ class Planner {
      *  rx,ry,rz,e  - target position in mm or degrees
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
-     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
+    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder);
 
     /**
      * Add a new linear movement to the buffer.
@@ -270,9 +271,8 @@ class Planner {
      *  cart        - x,y,z,e CARTESIAN target in mm
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
-     *  segment_mm  - the length of the movement, if known
      */
-    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float segment_mm=0.0);
+    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder);
 
     FORCE_INLINE static void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     FORCE_INLINE static void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
@@ -336,8 +336,8 @@ class Planner {
           millis_t bbru = block_buffer_runtime_us;
         CRITICAL_SECTION_END
         // To translate µs to ms a division by 1000 would be required.
-        // We introduce 2.4% error her by dividing by 1024.
-        // Does not matter because block_buffer_runtime_us is already an, too small, estimation.
+        // We introduce 2.4% error here by dividing by 1024.
+        // Doesn't matter because block_buffer_runtime_us is already too small an estimation.
         bbru >>= 10;
         // limit to about a minute.
         NOMORE(bbru, 0xFFFFul);
@@ -373,7 +373,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
     }
 
     /**
