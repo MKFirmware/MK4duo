@@ -295,6 +295,11 @@
   #endif
 #endif
 
+// Linear Advance
+#if ENABLED(LIN_ADVANCE) && !IS_CARTESIAN
+  #error "Sorry! LIN_ADVANCE is only compatible with Cartesian."
+#endif
+
 // Pin definitions
 #if !PIN_EXISTS(X_STEP)
   #error DEPENDENCY ERROR: X_STEP_PIN is not defined for your board. You have to define it yourself.

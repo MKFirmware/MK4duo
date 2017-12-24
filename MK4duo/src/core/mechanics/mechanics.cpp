@@ -40,6 +40,13 @@ void Mechanics::_set_position_mm(const float &a, const float &b, const float &c,
   planner.position[Z_AXIS] = LROUND(c * axis_steps_per_mm[Z_AXIS]),
   planner.position[E_AXIS] = LROUND(e * axis_steps_per_mm[E_INDEX]);
 
+  #if ENABLED(LIN_ADVANCE)
+    planner.position_float[X_AXIS] = a;
+    planner.position_float[Y_AXIS] = b;
+    //planner.position_float[Z_AXIS] = c;
+    planner.position_float[E_AXIS] = e;
+  #endif
+
   stepper.set_position(planner.position[X_AXIS], planner.position[Y_AXIS], planner.position[Z_AXIS], planner.position[E_AXIS]);
   planner.zero_previous_nominal_speed();
   planner.zero_previous_speed();
@@ -54,6 +61,9 @@ void Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
   #endif
 
   planner.position[axis] = LROUND(v * axis_steps_per_mm[axis_index]);
+  #if ENABLED(LIN_ADVANCE)
+    planner.position_float[axis] = v;
+  #endif
   stepper.set_position(axis, v);
   planner.zero_previous_speed(axis);
 

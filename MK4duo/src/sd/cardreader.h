@@ -221,6 +221,8 @@
 
       static void printEscapeChars(const char* s);
 
+      Sd2Card& getSd2Card() { return card; }
+
     private: /** Private Function */
 
       void lsDive(SdBaseFile parent, const char* const match = NULL);

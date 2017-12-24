@@ -690,6 +690,11 @@ void Commands::process_next_command() {
         KEEPALIVE_STATE(NOT_BUSY);
         return;
       }
+
+      #if ENABLED(ARDUINO_ARCH_SAM)
+        // Banzai code for erase bootloader on DUE
+        if (code_num == 9999) initiateReset(1000);
+      #endif
     }
     break;
 
