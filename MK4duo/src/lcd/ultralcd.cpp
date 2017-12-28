@@ -1189,7 +1189,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    void lcd_enqueue_filament_change() {
+    void lcd_enqueue_filament_change(
       #if EXTRUDERS > 1
         const uint8_t extruder
       #endif
