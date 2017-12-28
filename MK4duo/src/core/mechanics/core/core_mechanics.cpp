@@ -232,8 +232,7 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
-      gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+      Nextion_gfx_clear();
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)

@@ -299,15 +299,11 @@ inline void gcode_G29(void) {
 
     #endif
 
-    #if HAS_LEVELING
-
-      // Jettison bed leveling data
-      if (parser.seen('J')) {
-        bedlevel.reset();
-        return;
-      }
-
-    #endif
+    // Jettison bed leveling data
+    if (parser.seen('J')) {
+      bedlevel.reset();
+      return;
+    }
 
     verbose_level = parser.intval('V');
     if (!WITHIN(verbose_level, 0, 4)) {
@@ -390,23 +386,16 @@ inline void gcode_G29(void) {
     #endif // ABL_GRID
 
     if (verbose_level > 0) {
-      SERIAL_EM("G29 Auto Bed Leveling");
-      if (dryrun) SERIAL_EM("Running in DRY-RUN mode");
+      SERIAL_MSG("G29 Auto Bed Leveling");
+      if (dryrun) SERIAL_MSG(" (DRYRUN)");
+      SERIAL_EOL();
     }
 
     stepper.synchronize();
 
-    // Disable auto bed leveling during G29
+    // Disable auto bed leveling during G29.
+    // Be formal so G29 can be done successively without G28.
     bedlevel.leveling_active = false;
-
-    if (!dryrun) {
-      // Re-orient the current position without leveling
-      // based on where the steppers are positioned.
-      mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-
-      // Sync the planner to where the steppers stopped
-      mechanics.sync_plan_position();
-    }
 
     #if HAS_BED_PROBE
       // Deploy the probe. Probe will raise if needed.
@@ -429,10 +418,6 @@ inline void gcode_G29(void) {
           || left_probe_bed_position != abl.bilinear_start[X_AXIS]
           || front_probe_bed_position != abl.bilinear_start[Y_AXIS]
         ) {
-          if (dryrun) {
-            // Before reset bed level, re-enable to correct the position
-            bedlevel.leveling_active = abl_should_enable;
-          }
           // Reset grid to 0.0 or "not probed". (Also disables ABL)
           bedlevel.reset();
 

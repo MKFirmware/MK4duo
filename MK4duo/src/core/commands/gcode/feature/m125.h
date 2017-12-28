@@ -54,36 +54,25 @@
       #endif
     ;
 
-    // Lift Z axis
-    const float z_lift = parser.linearval('Z')
-      #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
-        + PAUSE_PARK_Z_ADD
-      #endif
-    ;
+    point_t park_point = NOZZLE_PARK_POINT;
 
-    // Move XY axes to pause park position or given position
-    const float x_pos = parser.linearval('X')
-      #if ENABLED(PAUSE_PARK_X_POS)
-        + PAUSE_PARK_X_POS
-      #endif
-      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-        + (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0)
-      #endif
-    ;
-    const float y_pos = parser.linearval('Y')
-      #if ENABLED(PAUSE_PARK_Y_POS)
-        + PAUSE_PARK_Y_POS
-      #endif
-      #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-        + (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0)
-      #endif
-    ;
+    // Move XY axes to filament change position or given position
+    if (parser.seenval('X')) park_point.x = parser.linearval('X');
+    if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
+
+    // Lift Z axis
+    if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
+
+    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+      park_point.x += (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0);
+      park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
+    #endif
 
     #if DISABLED(SDSUPPORT)
       const bool job_running = print_job_counter.isRunning();
     #endif
 
-    if (pause_print(retract, 0.0, z_lift, x_pos, y_pos)) {
+    if (pause_print(retract, 0.0, park_point)) {
       #if DISABLED(SDSUPPORT)
         // Wait for lcd click or M108
         wait_for_filament_reload();

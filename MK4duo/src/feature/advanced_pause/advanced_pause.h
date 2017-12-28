@@ -41,8 +41,8 @@
 
   extern bool move_away_flag;
 
-  bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
-                   const float &unload_length=0, const int16_t new_temp=0, const int8_t max_beep_count=0, const bool show_lcd=false);
+  bool pause_print(const float &retract, const float &retract2, const point_t &park_point, const float &unload_length=0,
+                   const int16_t new_temp=0, const int8_t max_beep_count=0, const bool show_lcd=false);
 
   void wait_for_filament_reload(const int8_t max_beep_count=0);
 

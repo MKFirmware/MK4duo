@@ -112,15 +112,6 @@
       // Get the top feedrate of the move in the XY plane
       const float _feedrate_mm_s = MMS_SCALED(feedrate_mm_s);
 
-      // If the move is only in Z/E don't split up the move
-      if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
-        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
-        return false;
-      }
-
-      // Fail if attempting move outside printable radius
-      if (!position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
-
       // Get the cartesian distances moved in XYZE
       const float difference[XYZE] = {
         destination[X_AXIS] - current_position[X_AXIS],
@@ -128,6 +119,15 @@
         destination[Z_AXIS] - current_position[Z_AXIS],
         destination[E_AXIS] - current_position[E_AXIS]
       };
+
+      // If the move is only in Z/E don't split up the move
+      if (!difference[X_AXIS] && !difference[Y_AXIS]) {
+        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+        return false; // caller will update current_position
+      }
+
+      // Fail if attempting move outside printable radius
+      if (!position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
       // Get the linear distance in XYZ
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
@@ -193,7 +193,7 @@
 
       planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
 
-      return false;
+      return false; // caller will update current_position
     }
 
   #endif // DISABLED(AUTO_BED_LEVELING_UBL)
@@ -632,8 +632,7 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      gfx_clear(delta_print_radius * 2, delta_print_radius * 2, delta_height);
-      gfx_cursor_to(current_position[X_AXIS] + delta_print_radius, current_position[Y_AXIS] + delta_print_radius, current_position[Z_AXIS]);
+      Nextion_gfx_clear();
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -787,5 +786,14 @@
     }
   
   #endif // ENABLED(DELTA_AUTO_CALIBRATION_1)
+
+  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+
+    void Delta_Mechanics::Nextion_gfx_clear() {
+      gfx_clear(delta_print_radius * 2, delta_print_radius * 2, delta_height);
+      gfx_cursor_to(current_position[X_AXIS] + delta_print_radius, current_position[Y_AXIS] + delta_print_radius, current_position[Z_AXIS]);
+    }
+
+  #endif
 
 #endif // IS_DELTA

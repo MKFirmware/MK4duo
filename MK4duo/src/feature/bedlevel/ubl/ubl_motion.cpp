@@ -187,6 +187,8 @@
 
         } // segment loop
       } // cell loop
+
+      return false; // caller will update current_position
     }
 
   #else !UBL_DELTA

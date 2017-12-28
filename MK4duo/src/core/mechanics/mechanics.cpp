@@ -770,3 +770,12 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
   }
 
 #endif // BABYSTEPPING
+
+#if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+
+  void Mechanics::Nextion_gfx_clear() {
+    gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
+    gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+  }
+
+#endif

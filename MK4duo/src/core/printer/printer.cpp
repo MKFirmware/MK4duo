@@ -599,6 +599,9 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     #if ENABLED(DISABLE_INACTIVE_E)
       stepper.disable_e_steppers();
     #endif
+    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
+      ubl.lcd_map_control = defer_return_to_status = false;
+    #endif
     #if ENABLED(LASER)
       if (laser.time / 60000 > 0) {
         laser.lifetime += laser.time / 60000; // convert to minutes
@@ -811,7 +814,6 @@ void Printer::handle_Interrupt_Event() {
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
           commands.enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-          SERIAL_LM(REQUEST_PAUSE, "End Filament detect");
           stepper.synchronize();
         }
         break;
@@ -826,8 +828,6 @@ void Printer::handle_Interrupt_Event() {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             commands.enqueue_and_echo_commands_P(PSTR("M600"));
           #endif
-
-          SERIAL_LM(REQUEST_PAUSE, "Extruder jam detected");
         }
         break;
     #endif

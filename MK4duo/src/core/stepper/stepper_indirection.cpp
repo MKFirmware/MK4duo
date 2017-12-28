@@ -481,9 +481,12 @@
   #if ENABLED(E3_IS_L6470)
     _L6470_DEFINE(E3);
   #endif
+  #if ENABLED(E4_IS_L6470)
+    _L6470_DEFINE(E4);
+  #endif
 
   #define _L6470_INIT(A) do{ \
-    stepper##A.init(A##_K_VAL); \
+    stepper##A.init(); \
     stepper##A.softFree(); \
     stepper##A.setMicroSteps(A##_MICROSTEPS); \
     stepper##A.setOverCurrent(A##_OVERCURRENT); \
@@ -520,6 +523,9 @@
     #endif
     #if ENABLED(E3_IS_L6470)
       _L6470_INIT(E3);
+    #endif
+    #if ENABLED(E4_IS_L6470)
+      _L6470_INIT(E4);
     #endif
   }
 

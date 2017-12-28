@@ -150,6 +150,10 @@
         float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       #endif
 
+      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+        void Nextion_gfx_clear() override;
+      #endif
+
     private: /** Private Function */
 
       /**

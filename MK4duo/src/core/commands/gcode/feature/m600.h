@@ -41,14 +41,29 @@
    *  L[distance] - Extrude distance for insertion (positive value) (manual reload)
    *  S[temp]     - New temperature for new filament
    *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
+   *  T[toolhead] - Select extruder for filament change
    *
    *  Default values are used for omitted arguments.
    *
    */
   inline void gcode_M600(void) {
 
+    point_t park_point = NOZZLE_PARK_POINT;
+
     // Homing first
     if (mechanics.axis_unhomed_error()) mechanics.Home(true);
+
+    #if EXTRUDERS > 1
+      // Change toolhead if specified
+      uint8_t active_extruder_before_filament_change = -1;
+      if (parser.seen('T')) {
+        const uint8_t extruder = parser.value_byte();
+        if (tools.active_extruder != extruder) {
+          active_extruder_before_filament_change = tools.active_extruder;
+          tools.change(extruder, 0, true);
+        }
+      }
+    #endif
 
     // Initial retract before move to pause park position
     const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
@@ -64,24 +79,17 @@
       #endif
     ;
 
-    // Lift Z axis
-    const float z_lift = parser.linearval('Z', 0
-      #if ENABLED(PAUSE_PARK_Z_ADD) && PAUSE_PARK_Z_ADD > 0
-        + PAUSE_PARK_Z_ADD
-      #endif
-    );
+    // Move XY axes to filament change position or given position
+    if (parser.seenval('X')) park_point.x = parser.linearval('X');
+    if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
-    // Move XY axes to filament exchange position
-    const float x_pos = parser.linearval('X', 0
-      #if ENABLED(PAUSE_PARK_X_POS)
-        + PAUSE_PARK_X_POS
-      #endif
-    );
-    const float y_pos = parser.linearval('Y', 0
-      #if ENABLED(PAUSE_PARK_Y_POS)
-        + PAUSE_PARK_Y_POS
-      #endif
-    );
+    // Lift Z axis
+    if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
+
+    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+      park_point.x += (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0);
+      park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
+    #endif
 
     // Unload filament
     const float unload_length = parser.seen('U') ? parser.value_axis_units(E_AXIS) : 0
@@ -110,10 +118,16 @@
 
     const bool job_running = print_job_counter.isRunning();
 
-    if (pause_print(retract, retract2, z_lift, x_pos, y_pos, unload_length, temp, beep_count, true)) {
+    if (pause_print(retract, retract2, park_point, unload_length, temp, beep_count, true)) {
       wait_for_filament_reload(beep_count);
       resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }
+
+    #if EXTRUDERS > 1
+    // Restore toolhead if it was changed
+      if (active_extruder_before_filament_change >= 0)
+        tools.change(active_extruder_before_filament_change, 0, true);
+    #endif
 
     // Resume the print job timer if it was running
     if (job_running) print_job_counter.start();

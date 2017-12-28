@@ -234,6 +234,9 @@ void EEPROM::Postprocess() {
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     tools.calculate_volumetric_multipliers();
+  #else
+    for (uint8_t i = COUNT(tools.e_factor); i--;)
+      tools.refresh_e_factor(i);
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)

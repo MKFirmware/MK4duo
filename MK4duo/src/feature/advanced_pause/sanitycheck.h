@@ -35,17 +35,10 @@
   #endif
   #if !HAS_LCD
     #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
+  #elif DISABLED(NOZZLE_PARK_FEATURE)
+    #error "ADVANCED_PAUSE_FEATURE currently requires NOZZLE_PARK_FEATURE."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
     #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
-  #endif
-  #if DISABLED(PAUSE_PARK_X_POS)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_X_POS
-  #endif
-  #if DISABLED(PAUSE_PARK_Y_POS)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Y_POS
-  #endif
-  #if DISABLED(PAUSE_PARK_Z_ADD)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_Z_ADD
   #endif
   #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
     #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH

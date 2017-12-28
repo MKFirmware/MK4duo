@@ -101,6 +101,7 @@
 #include "src/inc/pins.h"
 #include "src/inc/conditionals_post.h"
 #include "src/inc/sanitycheck.h"
+#include "src/inc/point_t.h"
 
 // HAL Modules
 #include "src/HAL/HAL.h"

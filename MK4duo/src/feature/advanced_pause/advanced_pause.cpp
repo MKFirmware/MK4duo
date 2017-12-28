@@ -92,13 +92,16 @@
 
   AdvancedPauseMenuResponse advanced_pause_menu_response;
 
-  bool pause_print(const float &retract, const float &retract2, const float &z_lift, const float &x_pos, const float &y_pos,
-                   const float &unload_length/*=0*/, const int16_t new_temp/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/
+  bool pause_print(const float &retract, const float &retract2, const point_t &park_point, const float &unload_length/*=0*/,
+                   const int16_t new_temp/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/
   ) {
 
     if (move_away_flag) return false; // already paused
 
-    if (!printer.debugDryrun() && (unload_length != 0 || retract != 0 || retract2 != 0)) {
+    SERIAL_STR(PAUSE);
+    SERIAL_EOL();
+
+    if (!printer.debugDryrun() && unload_length != 0) {
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         if (thermalManager.tooColdToExtrude(tools.active_extruder)) {
           SERIAL_LM(ER, MSG_TOO_COLD_FOR_M600);
@@ -132,14 +135,11 @@
     COPY_ARRAY(resume_position, mechanics.current_position);
 
     // Initial retract before move to filament change position
-    if (retract) do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
+    if (retract && !thermalManager.tooColdToExtrude(tools.active_extruder))
+      do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
-    // Lift Z axis
-    if (z_lift > 0)
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + z_lift, PAUSE_PARK_Z_FEEDRATE);
-
-    // Move XY axes to filament exchange position
-    mechanics.do_blocking_move_to_xy(x_pos, y_pos, PAUSE_PARK_XY_FEEDRATE);
+    // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
+    Nozzle::park(2, park_point);
 
     // Store in old temperature the target temperature for hotend and bed
     int16_t old_target_temperature[HOTENDS];
@@ -148,7 +148,7 @@
 
     // Second retract filament with Cool Down
     #if ENABLED(PAUSE_PARK_COOLDOWN_TEMP) && PAUSE_PARK_COOLDOWN_TEMP > 0
-      if (retract2) {
+      if (retract2 && !thermalManager.tooColdToExtrude(tools.active_extruder)) {
         // Cool Down hotend
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_COOLDOWN);
         heaters[tools.active_extruder].setTarget(PAUSE_PARK_COOLDOWN_TEMP);
@@ -347,30 +347,32 @@
       do_pause_e_move(load_length, PAUSE_PARK_LOAD_FEEDRATE);
     }
 
-    #if HAS_LCD && ENABLED(PAUSE_PARK_EXTRUDE_LENGTH) && PAUSE_PARK_EXTRUDE_LENGTH > 0
+    #if HAS_LCD && PAUSE_PARK_EXTRUDE_LENGTH > 0
 
-      float extrude_length = initial_extrude_length;
+      if (!thermalManager.tooColdToExtrude(tools.active_extruder)) {
+        float extrude_length = initial_extrude_length;
 
-      do {
-        if (extrude_length > 0) {
-          // "Wait for filament extrude"
-          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_EXTRUDE);
+        do {
+          if (extrude_length > 0) {
+            // "Wait for filament extrude"
+            lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_EXTRUDE);
 
-          // Extrude filament to get into hotend
-          do_pause_e_move(extrude_length, PAUSE_PARK_EXTRUDE_FEEDRATE);
-        }
+            // Extrude filament to get into hotend
+            do_pause_e_move(extrude_length, PAUSE_PARK_EXTRUDE_FEEDRATE);
+          }
 
-        // Show "Extrude More" / "Resume" menu and wait for reply
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
-        printer.setWaitForUser(false);
-        lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_OPTION);
-        while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
-        KEEPALIVE_STATE(IN_HANDLER);
+          // Show "Extrude More" / "Resume" menu and wait for reply
+          KEEPALIVE_STATE(PAUSED_FOR_USER);
+          printer.setWaitForUser(false);
+          lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_OPTION);
+          while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
+          KEEPALIVE_STATE(IN_HANDLER);
 
-        extrude_length = PAUSE_PARK_EXTRUDE_LENGTH;
+          extrude_length = PAUSE_PARK_EXTRUDE_LENGTH;
 
-        // Keep looping if "Extrude More" was selected
-      } while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE);
+          // Keep looping if "Extrude More" was selected
+        } while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE);
+      }
 
     #endif
 
@@ -380,12 +382,11 @@
     #endif
 
     // Set extruder to saved position
-    mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS];
-    mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
+    mechanics.set_e_position_mm((mechanics.current_position[E_AXIS] = resume_position[E_AXIS]));
 
     // Move XY to starting position, then Z
-    mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], PAUSE_PARK_XY_FEEDRATE);
-    mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], PAUSE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
+    mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
 
     printer.setFilamentOut(false);
 
@@ -393,6 +394,13 @@
       // Show status screen
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
+
+    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      mechanics.Nextion_gfx_clear();
+    #endif
+
+    SERIAL_STR(RESUME);
+    SERIAL_EOL();
 
     #if HAS_SDSUPPORT
       if (sd_print_paused) {

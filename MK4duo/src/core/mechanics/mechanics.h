@@ -365,6 +365,10 @@ class Mechanics {
       void babystep_axis(const AxisEnum axis, const int distance);
     #endif
 
+    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      virtual void Nextion_gfx_clear();
+    #endif
+
   protected: /** Protected Function */
 
     void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);

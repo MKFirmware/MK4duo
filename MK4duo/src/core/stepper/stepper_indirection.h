@@ -51,7 +51,6 @@
   void tmc_init();
 #endif
 
-// TMC130 drivers have STEP/DIR/ENABLE on normal pins
 #if ENABLED(HAVE_TMC2130)
   #include <TMC2130Stepper.h>
   void tmc2130_init();
@@ -475,7 +474,7 @@
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(E4_IS_L6470)
   extern L6470 stepperE4;
   #define E4_ENABLE_INIT NOOP
-  #define E4_ENABLE_WRITE(STATE) do{if(STATE) stepperE4.Step_Clock(stepperE4.getStatus() & STATUS_HIZ); else stepperE4.softFree();}while(0)
+  #define E4_ENABLE_WRITE(STATE) do{ if (STATE) stepperE4.Step_Clock(stepperE4.getStatus() & STATUS_HIZ); else stepperE4.softFree(); }while(0)
   #define E4_ENABLE_READ (stepperE4.getStatus() & STATUS_HIZ)
   #define E4_DIR_INIT NOOP
   #define E4_DIR_WRITE(STATE) stepperE4.Step_Clock(STATE)

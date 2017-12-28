@@ -73,7 +73,7 @@ class Stepper {
       static bool performing_homing;
     #endif
 
-    static int16_t cleaning_buffer_counter;
+    static uint16_t cleaning_buffer_counter;
 
   private: /** Private Parameters */
 
@@ -127,7 +127,7 @@ class Stepper {
     //
     // Positions of stepper motors, in step units
     //
-    static volatile long machine_position[NUM_AXIS];
+    static volatile long count_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)

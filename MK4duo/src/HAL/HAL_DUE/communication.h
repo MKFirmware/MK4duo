@@ -92,7 +92,6 @@ class Com {
 #define PAUSE           Com::tPauseCommunication
 #define RESUME          Com::tContinueCommunication
 #define DISCONNECT      Com::tDisconnectCommunication
-#define REQUEST_PAUSE   Com::tRequestPauseCommunication
 
 #define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
 

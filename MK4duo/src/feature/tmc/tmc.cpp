@@ -30,6 +30,9 @@
 
 #if HAS_TRINAMIC
 
+  bool report_tmc_status = false;
+  char extended_axis_codes[12][3] = { "X", "X2", "Y", "Y2", "Z", "Z2", "E0", "E1", "E2", "E3", "E4", "E5" };
+
   void tmc_get_current(TMC &st, const char name[]) {
     SERIAL_TXT(name);
     SERIAL_MSG(" axis driver current: ");

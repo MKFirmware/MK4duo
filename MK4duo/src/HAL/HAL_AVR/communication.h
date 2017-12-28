@@ -23,24 +23,23 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#define START           "start"               // start for host
-#define OK              "ok"                  // ok answer for host
-#define OKSPACE         "ok "                 // ok plus space 
-#define ER              "Error:"              // error for host
-#define WT              "wait"                // wait for host
-#define ECHO            "Echo:"               // message for user
-#define CFG             "Config:"             // config for host
-#define CAP             "Cap:"                // capabilities for host
-#define INFO            "Info:"               // info for host
-#define BUSY            "busy:"               // buys for host
-#define RESEND          "Resend:"             // resend for host
-#define WARNING         "Warning:"            // warning for host
-#define TNAN            "NAN"                 // NAN for host
-#define TINF            "INF"                 // INF for host
-#define PAUSE           "//action:pause"      // command for host that support action
-#define RESUME          "//action:resume"     // command for host that support action
-#define DISCONNECT      "//action:disconnect" // command for host that support action
-#define REQUEST_PAUSE   "RequestPause:"       // command for host that support action
+#define START       "start"                 // start for host
+#define OK          "ok"                    // ok answer for host
+#define OKSPACE     "ok "                   // ok plus space 
+#define ER          "Error:"                // error for host
+#define WT          "wait"                  // wait for host
+#define ECHO        "Echo:"                 // message for user
+#define CFG         "Config:"               // config for host
+#define CAP         "Cap:"                  // capabilities for host
+#define INFO        "Info:"                 // info for host
+#define BUSY        "busy:"                 // buys for host
+#define RESEND      "Resend:"               // resend for host
+#define WARNING     "Warning:"              // warning for host
+#define TNAN        "NAN"                   // NAN for host
+#define TINF        "INF"                   // INF for host
+#define PAUSE       "// action:pause"       // command for host that support action
+#define RESUME      "// action:resume"      // command for host that support action
+#define DISCONNECT  "// action:disconnect"  // command for host that support action
 
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 
