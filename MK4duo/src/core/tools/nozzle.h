@@ -41,7 +41,7 @@
       #endif
 
       #if ENABLED(NOZZLE_PARK_FEATURE)
-        static void park(const uint8_t &z_action);
+        static void park(const uint8_t &z_action, const point_t &park=NOZZLE_PARK_POINT) _Os;
       #endif
 
     private: /** Private Function */
@@ -56,7 +56,7 @@
          * @param end defining the ending point
          * @param strokes number of strokes to execute
          */
-        static void stroke(const float *start, const float *end, const uint8_t &strokes);
+        static void stroke(const point_t &start, const point_t &end, const uint8_t &strokes) _Os;
 
         /**
          * @brief Zig-zag clean pattern
@@ -67,7 +67,7 @@
          * @param strokes number of strokes to execute
          * @param objects number of objects to create
          */
-        static void zigzag(const float *start, const float *end, const uint8_t &strokes, const uint8_t &objects);
+        static void zigzag(const point_t &start, const point_t &end, const uint8_t &strokes, const uint8_t &objects) _Os;
 
         /**
          * @brief Circular clean pattern
@@ -78,7 +78,7 @@
          * @param strokes number of strokes to execute
          * @param radius of circle
          */
-        static void circle(const float *start, const float *middle, const uint8_t &strokes, const float &radius);
+        static void circle(const point_t &start, const point_t &middle, const uint8_t &strokes, const float &radius) _Os;
 
       #endif
 

@@ -23,7 +23,7 @@
 /**
  * planner.cpp
  *
- * Buffer movement commands and manage the mechanics.acceleration profile plan
+ * Buffer movement commands and manage the acceleration profile plan
  *
  * Derived from Grbl
  * Copyright (c) 2009-2011 Simen Svale Skogsrud
@@ -33,17 +33,17 @@
  *
  * Reasoning behind the mathematics in this module (in the key of 'Mathematica'):
  *
- * s == speed, a == mechanics.acceleration, t == time, d == distance
+ * s == speed, a == acceleration, t == time, d == distance
  *
  * Basic definitions:
  *   Speed[s_, a_, t_] := s + (a*t)
  *   Travel[s_, a_, t_] := Integrate[Speed[s, a, t], t]
  *
- * Distance to reach a specific speed with a constant mechanics.acceleration:
+ * Distance to reach a specific speed with a constant acceleration:
  *   Solve[{Speed[s, a, t] == m, Travel[s, a, t] == d}, d, t]
  *   d -> (m^2 - s^2)/(2 a) --> estimate_acceleration_distance()
  *
- * Speed after a given distance of travel with constant mechanics.acceleration:
+ * Speed after a given distance of travel with constant acceleration:
  *   Solve[{Speed[s, a, t] == m, Travel[s, a, t] == d}, m, t]
  *   m -> Sqrt[2 a d + s^2]
  *
@@ -130,7 +130,7 @@ void Planner::init() {
  * Calculate trapezoid parameters, multiplying the entry- and exit-speeds
  * by the provided factors.
  */
-void Planner::calculate_trapezoid_for_block(block_t * const block, const float &entry_factor, const float &exit_factor) {
+void Planner::calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor) {
   uint32_t initial_rate = CEIL(entry_factor * block->nominal_rate),
            final_rate   = CEIL(exit_factor  * block->nominal_rate); // (steps per second)
 
@@ -171,10 +171,10 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const float &
 }
 
 // The kernel called by recalculate() when scanning the plan from last to first entry.
-void Planner::reverse_pass_kernel(block_t * const current, const block_t * const next) {
+void Planner::reverse_pass_kernel(block_t* const current, const block_t * const next) {
   if (!current || !next) return;
   // If entry speed is already at the maximum entry speed, no need to recheck. Block is cruising.
-  // If not, block in state of mechanics.acceleration or deceleration. Reset entry speed to maximum and
+  // If not, block in state of acceleration or deceleration. Reset entry speed to maximum and
   // check for maximum allowable speed reductions to ensure maximum possible planned speed.
   float max_entry_speed = current->max_entry_speed;
   if (current->entry_speed != max_entry_speed) {
@@ -210,10 +210,10 @@ void Planner::reverse_pass() {
 }
 
 // The kernel called by recalculate() when scanning the plan from first to last entry.
-void Planner::forward_pass_kernel(const block_t * const previous, block_t * const current) {
+void Planner::forward_pass_kernel(const block_t * const previous, block_t* const current) {
   if (!previous) return;
 
-  // If the previous block is an mechanics.acceleration block, but it is not long enough to complete the
+  // If the previous block is an acceleration block, but it is not long enough to complete the
   // full speed change within the block, we need to adjust the entry speed accordingly. Entry
   // speeds have already been reset, maximized, and reverse planned by reverse planner.
   // If nominal length is true, max junction speed is guaranteed to be reached. No need to recheck.
@@ -563,7 +563,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
     // Bail if this is a zero-length block
     if (block->step_event_count < MIN_STEPS_PER_SEGMENT) return;
 
-  // For a mixing extruder, get steps for each
+  // For a mixing extruder, get a magnified step_event_count for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
       block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
@@ -827,7 +827,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
       delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm[C_AXIS];
     #endif
   #else
-    float delta_mm[E_AXIS + 1];
+    float delta_mm[XYZE];
     delta_mm[X_AXIS] = dx * mechanics.steps_to_mm[X_AXIS];
     delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
     delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
@@ -1105,7 +1105,6 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
       // Limit an axis. We have to differentiate: coasting, reversal of an axis, full stop.
       float v_exit = previous_speed[axis] * smaller_speed_factor,
             v_entry = current_speed[axis];
-
       if (limited) {
         v_exit *= v_factor;
         v_entry *= v_factor;

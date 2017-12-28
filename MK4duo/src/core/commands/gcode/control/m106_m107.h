@@ -94,7 +94,7 @@
    * M107: Fan Off
    */
   inline void gcode_M107(void) {
-    uint8_t f = parser.byteval('P');
+    const uint8_t f = parser.byteval('P');
     if (f < FAN_COUNT) fans[f].Speed = 0;
   }
 

@@ -36,7 +36,7 @@
   inline void gcode_G27(void) {
     // Don't allow nozzle parking without homing first
     if (mechanics.axis_unhomed_error()) { return; }
-    Nozzle::park(parser.seen('P') ? parser.value_ushort() : 0);
+    Nozzle::park(parser.ushortval('P'));
   }
 
 #endif // NOZZLE_PARK_FEATURE

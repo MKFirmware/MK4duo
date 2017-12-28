@@ -45,18 +45,14 @@ enum BlockFlagBit {
   BLOCK_BIT_START_FROM_FULL_HALT,
 
   // The block is busy
-  BLOCK_BIT_BUSY,
-
-  // The block is segment 2+ of a longer move
-  BLOCK_BIT_CONTINUED
+  BLOCK_BIT_BUSY
 };
 
 enum BlockFlag {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_START_FROM_FULL_HALT = _BV(BLOCK_BIT_START_FROM_FULL_HALT),
-  BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
-  BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED)
+  BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY)
 };
 
 /**
@@ -75,7 +71,7 @@ typedef struct {
   unsigned char active_extruder;            // The extruder to move (if E move)
   unsigned char active_driver;              // Selects the active driver for E
 
-  // Fields used by the bresenham algorithm for tracing the line
+  // Fields used by the Bresenham algorithm for tracing the line
   int32_t steps[NUM_AXIS];                  // Step count along each axis
   uint32_t step_event_count;                // The number of step events required to complete this block
 
@@ -223,7 +219,7 @@ class Planner {
      */
     FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
 
-    FORCE_INLINE static bool is_full() { return (block_buffer_tail == next_block_index(block_buffer_head)); }
+    FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
     /**
      * Planner::buffer_steps
@@ -298,16 +294,6 @@ class Planner {
     }
 
     /**
-     * "Discard" the next block if it's continued.
-     * Called after an interrupted move to throw away the rest of the move.
-     */
-    FORCE_INLINE static bool discard_continued_block() {
-      const bool discard = blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
-      if (discard) discard_current_block();
-      return discard;
-    }
-
-    /**
      * The current block. NULL if the buffer is empty.
      * This also marks the block as busy.
      * WARNING: Called from Stepper ISR context!
@@ -353,7 +339,7 @@ class Planner {
     #endif
 
     #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-      static float autotemp_max, autotemp_min, autotemp_factor;
+      static float autotemp_min, autotemp_max, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();
       static void autotemp_M104_M109();
@@ -373,7 +359,7 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
     }
 
     /**
@@ -386,7 +372,7 @@ class Planner {
      */
     static float intersection_distance(const float &initial_rate, const float &final_rate, const float &accel, const float &distance) {
       if (accel == 0) return 0; // accel was 0, set intersection distance to 0
-      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4.0);
+      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4);
     }
 
     /**
@@ -398,10 +384,10 @@ class Planner {
       return SQRT(sq(target_velocity) - 2 * accel * distance);
     }
 
-    static void calculate_trapezoid_for_block(block_t * const block, const float &entry_factor, const float &exit_factor);
+    static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
 
-    static void reverse_pass_kernel(block_t * const current, const block_t * const next);
-    static void forward_pass_kernel(const block_t * const previous, block_t * const current);
+    static void reverse_pass_kernel(block_t* const current, const block_t * const next);
+    static void forward_pass_kernel(const block_t * const previous, block_t* const current);
 
     static void reverse_pass();
     static void forward_pass();

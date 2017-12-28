@@ -80,7 +80,7 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 
 millis_t Stepper::stepper_inactive_time  = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL;
 
-int16_t Stepper::cleaning_buffer_counter = 0;
+uint16_t Stepper::cleaning_buffer_counter = 0;
 
 // private:
 
@@ -130,7 +130,7 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
 
 #endif // LIN_ADVANCE
 
-volatile long Stepper::machine_position[NUM_AXIS] = { 0 };
+volatile long Stepper::count_position[NUM_AXIS] = { 0 };
 volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -497,21 +497,14 @@ void Stepper::isr() {
   // When cleaning, discard the current block and run fast
   //
   if (cleaning_buffer_counter) {
-    if (cleaning_buffer_counter < 0) {                    // Count up for endstop hit
-      if (current_block) planner.discard_current_block(); // Discard the active block that led to the trigger
-      if (!planner.discard_continued_block())             // Discard next CONTINUED block
-        cleaning_buffer_counter = 0;                      // Keep discarding until non-CONTINUED
-    }
-    else {
-      planner.discard_current_block();
-      --cleaning_buffer_counter;                          // Count down for abort print
-      #if ENABLED(SD_FINISHED_RELEASECOMMAND)
-        if (!cleaning_buffer_counter && (SD_FINISHED_STEPPERRELEASE)) commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-      #endif
-    }
-    current_block = NULL;                       // Prep to get a new block after cleaning
+    --cleaning_buffer_counter;
+    current_block = NULL;
+    planner.discard_current_block();
+    #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
+      if (!cleaning_buffer_counter) commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+    #endif
     _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000);  // Run at max speed - 10 KHz
-    HAL_ENABLE_ISRs();
+    HAL_ENABLE_ISRs(); // re-enable ISRs
     return;
   }
 
@@ -620,7 +613,7 @@ void Stepper::isr() {
         counter_E -= current_block->step_event_count;
         #if DISABLED(COLOR_MIXING_EXTRUDER)
           // Don't step E here for mixing extruder
-          machine_position[E_AXIS] += count_direction[E_AXIS];
+          count_position[E_AXIS] += count_direction[E_AXIS];
           motor_direction(E_AXIS) ? --e_steps[TOOL_E_INDEX] : ++e_steps[TOOL_E_INDEX];
         #endif
       }
@@ -645,14 +638,14 @@ void Stepper::isr() {
 
     // Advance the Bresenham counter; start a pulse if the axis needs a step
     #define PULSE_START(AXIS) \
-      _COUNTER(AXIS) += current_block->steps[AXIS ##_AXIS]; \
-      if (_COUNTER(AXIS) > 0) _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0);
+      _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
+      if (_COUNTER(AXIS) > 0) { _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); }
 
     // Stop an active pulse, reset the Bresenham counter, update the position
     #define PULSE_STOP(AXIS) \
       if (_COUNTER(AXIS) > 0) { \
         _COUNTER(AXIS) -= current_block->step_event_count; \
-        machine_position[AXIS ##_AXIS] += count_direction[AXIS ##_AXIS]; \
+        count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
         _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
       }
 
@@ -803,7 +796,7 @@ void Stepper::isr() {
         // Always step the single E axis
         if (counter_E > 0) {
           counter_E -= current_block->step_event_count;
-          machine_position[E_AXIS] += count_direction[E_AXIS];
+          count_position[E_AXIS] += count_direction[E_AXIS];
         }
         MIXING_STEPPERS_LOOP(j) {
           if (counter_m[j] > 0) {
@@ -871,7 +864,7 @@ void Stepper::isr() {
       break;
     }
 
-    // For minimum pulse time wait before stopping pulses
+    // For minimum pulse time wait after stopping pulses also
     #if EXTRA_CYCLES_XYZE > 20
       if (i) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
     #elif EXTRA_CYCLES_XYZE > 0
@@ -983,6 +976,7 @@ void Stepper::isr() {
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
+      // Make sure stepper interrupt does not monopolise CPU by adjusting count to give about 8 us room
       hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
                   stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
@@ -1031,7 +1025,7 @@ void Stepper::isr() {
 
     #define STOP_E_PULSE(INDEX) \
       if (e_steps[INDEX]) { \
-        e_steps[INDEX] <= 0 ? ++e_steps[INDEX] : --e_steps[INDEX]; \
+        e_steps[INDEX] < 0 ? ++e_steps[INDEX] : --e_steps[INDEX]; \
         E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); \
       }
 
@@ -1076,7 +1070,7 @@ void Stepper::isr() {
         #endif
       #endif
 
-      // For a minimum pulse time wait before stopping pulses
+      // For minimum pulse time wait before stopping pulses
       #if EXTRA_CYCLES_E > 20
         while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
         pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
@@ -1101,7 +1095,7 @@ void Stepper::isr() {
         #endif
       #endif
 
-      // For a minimum pulse time wait before stopping low pulses
+      // For minimum pulse time wait before looping
       #if EXTRA_CYCLES_E > 20
         if (i) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
       #elif EXTRA_CYCLES_E > 0
@@ -1143,6 +1137,7 @@ void Stepper::isr() {
 
     // Don't run the ISR faster than possible
     #if ENABLED(ARDUINO_ARCH_SAM)
+      // Make sure stepper interrupt does not monopolise CPU by adjusting count to give about 8 us room
       hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
                   stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
       HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
@@ -1150,7 +1145,8 @@ void Stepper::isr() {
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
 
-    HAL_ENABLE_ISRs(); // re-enable ISRs
+    // Restore original ISR settings
+    HAL_ENABLE_ISRs();
   }
 
 #endif // ENABLED(LIN_ADVANCE)
@@ -1171,7 +1167,7 @@ void Stepper::init() {
     microstep_init();
   #endif
 
-  // initialise TMC Steppers
+  // Init TMC Steppers
   #if ENABLED(HAVE_TMCDRIVER)
     tmc_init();
   #endif
@@ -1188,15 +1184,15 @@ void Stepper::init() {
 
   // TRAMS, TMC2130 and TMC2208 advanced settings
   #if HAS_TRINAMIC
-    TMC_ADV();
+    TMC_ADV()
   #endif
 
-  // initialise L6470 Steppers
+  // Init L6470 Steppers
   #if ENABLED(HAVE_L6470DRIVER)
     L6470_init();
   #endif
 
-  // Initialize Dir Pins
+  // Init Dir Pins
   #if HAS_X_DIR
     X_DIR_INIT;
   #endif
@@ -1234,8 +1230,7 @@ void Stepper::init() {
     E5_DIR_INIT;
   #endif
 
-  //Initialize Enable Pins - steppers default to disabled.
-
+  // Init Enable Pins - steppers default to disabled.
   #if HAS_X_ENABLE
     X_ENABLE_INIT;
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
@@ -1244,17 +1239,14 @@ void Stepper::init() {
       if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
     #endif
   #endif
-
   #if HAS_Y_ENABLE
     Y_ENABLE_INIT;
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
-
     #if ENABLED(Y_TWO_STEPPER) && HAS_Y2_ENABLE
       Y2_ENABLE_INIT;
       if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
     #endif
   #endif
-
   #if HAS_Z_ENABLE
     Z_ENABLE_INIT;
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
@@ -1263,7 +1255,6 @@ void Stepper::init() {
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
   #endif
-
   #if HAS_E0_ENABLE
     E0_ENABLE_INIT;
     if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
@@ -1308,7 +1299,7 @@ void Stepper::init() {
     #endif
   #endif
 
-  // Init endstops and pullups here
+  // Init endstops and pullups
   endstops.init();
 
   #define _STEP_INIT(AXIS) AXIS ##_STEP_INIT
@@ -1441,7 +1432,7 @@ void Stepper::init() {
   #if ENABLED(LIN_ADVANCE)
     for (uint8_t e = 0; e < COUNT(e_steps); e++) e_steps[e] = 0;
     ZERO(current_adv_steps);
-  #endif // ENABLED(LIN_ADVANCE)
+  #endif
 
   printer.setEndstopEnabled(true); // Start with endstops active. After homing they can be disabled
   sei();
@@ -1452,7 +1443,7 @@ void Stepper::init() {
 /**
  * Block until all buffered steps are executed / cleaned
  */
-void Stepper::synchronize() { while (planner.blocks_queued() || cleaning_buffer_counter) printer.idle(); }
+void Stepper::synchronize() { while (planner.blocks_queued()) printer.idle(); }
 
 /**
  * Set the stepper positions directly in steps
@@ -1470,39 +1461,39 @@ void Stepper::set_position(const long &a, const long &b, const long &c, const lo
   CRITICAL_SECTION_START
     #if CORE_IS_XY
       // corexy positioning
-      machine_position[A_AXIS] = a + (CORE_FACTOR) * b;
-      machine_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-      machine_position[Z_AXIS] = c;
+      count_position[A_AXIS] = a + (CORE_FACTOR) * b;
+      count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
+      count_position[Z_AXIS] = c;
     #elif CORE_IS_XZ
       // corexz planning
-      machine_position[A_AXIS] = a + (CORE_FACTOR) * c;
-      machine_position[Y_AXIS] = b;
-      machine_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+      count_position[A_AXIS] = a + (CORE_FACTOR) * c;
+      count_position[Y_AXIS] = b;
+      count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
     #elif CORE_IS_YZ
       // coreyz planning
-      machine_position[X_AXIS] = a;
-      machine_position[B_AXIS] = b + (CORE_FACTOR) * c;
-      machine_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+      count_position[X_AXIS] = a;
+      count_position[B_AXIS] = b + (CORE_FACTOR) * c;
+      count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
     #else
       // default non-h-bot planning
-      machine_position[X_AXIS] = a;
-      machine_position[Y_AXIS] = b;
-      machine_position[Z_AXIS] = c;
+      count_position[X_AXIS] = a;
+      count_position[Y_AXIS] = b;
+      count_position[Z_AXIS] = c;
     #endif
 
-    machine_position[E_AXIS] = e;
+    count_position[E_AXIS] = e;
   CRITICAL_SECTION_END
 }
 
 void Stepper::set_position(const AxisEnum &axis, const long &v) {
   CRITICAL_SECTION_START
-    machine_position[axis] = v;
+    count_position[axis] = v;
   CRITICAL_SECTION_END
 }
 
 void Stepper::set_e_position(const long &e) {
   CRITICAL_SECTION_START
-    machine_position[E_AXIS] = e;
+    count_position[E_AXIS] = e;
   CRITICAL_SECTION_END
 }
 
@@ -1511,7 +1502,7 @@ void Stepper::set_e_position(const long &e) {
  */
 long Stepper::position(const AxisEnum axis) {
   CRITICAL_SECTION_START
-    const long machine_pos = machine_position[axis];
+    const long machine_pos = count_position[axis];
   CRITICAL_SECTION_END
   return machine_pos;
 }
@@ -1531,8 +1522,8 @@ float Stepper::get_axis_position_mm(const AxisEnum axis) {
       // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
       // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
       axis_steps = 0.5f * (
-        axis == CORE_AXIS_2 ? CORESIGN(machine_position[CORE_AXIS_1] - machine_position[CORE_AXIS_2])
-                                     : machine_position[CORE_AXIS_1] + machine_position[CORE_AXIS_2]
+        axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
+                            : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
       );
       CRITICAL_SECTION_END
     }
@@ -1609,25 +1600,24 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   #if IS_CORE
 
     endstops_trigsteps[axis] = 0.5f * (
-      axis == CORE_AXIS_2 ? CORESIGN(machine_position[CORE_AXIS_1] - machine_position[CORE_AXIS_2])
-                          : machine_position[CORE_AXIS_1] + machine_position[CORE_AXIS_2]
+      axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
+                          : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
     );
 
   #else // !COREXY && !COREXZ && !COREYZ
 
-    endstops_trigsteps[axis] = machine_position[axis];
+    endstops_trigsteps[axis] = count_position[axis];
 
   #endif // !COREXY && !COREXZ && !COREYZ
 
   kill_current_block();
-  cleaning_buffer_counter = -1; // Discard the rest of the move
 }
 
 void Stepper::report_positions() {
   CRITICAL_SECTION_START
-    const long  xpos = machine_position[X_AXIS],
-                ypos = machine_position[Y_AXIS],
-                zpos = machine_position[Z_AXIS];
+    const long  xpos = count_position[X_AXIS],
+                ypos = count_position[Y_AXIS],
+                zpos = count_position[Z_AXIS];
   CRITICAL_SECTION_END
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
@@ -1710,6 +1700,7 @@ void Stepper::report_positions() {
       _ENABLE(AXIS);                                        \
       _SAVE_START;                                          \
       _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
+      _PULSE_WAIT;                                          \
       _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true);     \
       _PULSE_WAIT;                                          \
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true);      \
@@ -1805,15 +1796,18 @@ void Stepper::report_positions() {
 
   void Stepper::digipot_init() {
     #if HAS_DIGIPOTSS
-      const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
+      static const uint8_t digipot_motor_current[] = DIGIPOT_MOTOR_CURRENT;
 
       SPI.begin();
       SET_OUTPUT(DIGIPOTSS_PIN);
+
       for (uint8_t i = 0; i < COUNT(digipot_motor_current); i++) {
         //digitalPotWrite(digipot_ch[i], digipot_motor_current[i]);
         digipot_current(i, digipot_motor_current[i]);
       }
+
     #elif HAS_MOTOR_CURRENT_PWM
+
       #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
         SET_OUTPUT(MOTOR_CURRENT_PWM_XY_PIN);
         digipot_current(0, motor_current_setting[0]);

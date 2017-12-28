@@ -255,7 +255,8 @@ uint16_t max_display_update_time = 0;
    */
   #define _MENU_ITEM_PART_1(TYPE, ...) \
     if (_menuLineNr == _thisItemNr) { \
-      if (lcd_clicked && encoderLine == _thisItemNr) {
+      if (encoderLine == _thisItemNr && lcd_clicked) { \
+        lcd_clicked = false
 
   #define _MENU_ITEM_PART_2(TYPE, LABEL, ...) \
         menu_action_ ## TYPE(__VA_ARGS__); \
@@ -459,6 +460,12 @@ uint16_t max_display_update_time = 0;
     float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
   #endif
 
+  inline bool use_click() {
+    const bool click = lcd_clicked;
+    lcd_clicked = false;
+    return click;
+  }
+
   /**
    * General function to go directly to a screen
    */
@@ -622,7 +629,7 @@ void lcd_status_screen() {
 
   #if ENABLED(ULTIPANEL)
 
-    if (lcd_clicked) {
+    if (use_click()) {
       #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
         previous_lcd_status_ms = millis();  // get status message to show up for a while
       #endif
@@ -790,7 +797,7 @@ void kill_screen(const char* lcd_msg) {
 
     static void progress_bar_test() {
       static int8_t bar_percent = 0;
-      if (lcd_clicked) {
+      if (use_click()) {
         lcd_goto_previous_menu();
         lcd_set_custom_characters(CHARSET_MENU);
         return;
@@ -1015,7 +1022,7 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(BABYSTEPPING)
 
     void _lcd_babystep(const AxisEnum axis, const char* msg) {
-      if (lcd_clicked) { return lcd_goto_previous_menu_no_defer(); }
+      if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
       ENCODER_DIRECTION_NORMAL();
       if (encoderPosition) {
         const int16_t babystep_increment = (int32_t)encoderPosition * (BABYSTEP_MULTIPLICATOR);
@@ -1038,7 +1045,7 @@ void kill_screen(const char* lcd_msg) {
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
 
       void lcd_babystep_zoffset() {
-        if (lcd_clicked) { return lcd_goto_previous_menu_no_defer(); }
+        if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
         defer_return_to_status = true;
         ENCODER_DIRECTION_NORMAL();
         if (encoderPosition) {
@@ -1183,6 +1190,10 @@ void kill_screen(const char* lcd_msg) {
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
     void lcd_enqueue_filament_change() {
+      #if EXTRUDERS > 1
+        const uint8_t extruder
+      #endif
+    ) {
 
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         if (!printer.debugDryrun() && thermalManager.tooColdToExtrude(tools.active_extruder)) {
@@ -1193,10 +1204,49 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
-      commands.enqueue_and_echo_commands_P(PSTR("M600 B0"));
+      
+      #if EXTRUDERS <= 1
+        enqueue_and_echo_commands_P(PSTR("M600 B0"));
+      #else
+        char *command_M600;
+        switch (extruder) {
+          case 0: command_M600 = PSTR("M600 B0 T0"); break;
+          case 1: command_M600 = PSTR("M600 B0 T1"); break;
+          #if EXTRUDERS > 2
+            case 2: command_M600 = PSTR("M600 B0 T2"); break;
+            #if EXTRUDERS > 3
+              case 3: command_M600 = PSTR("M600 B0 T3"); break;
+              #if EXTRUDERS > 4
+                case 4: command_M600 = PSTR("M600 B0 T4"); break;
+                #if EXTRUDERS > 5
+                  case 5: command_M600 = PSTR("M600 B0 T5"); break;
+                #endif // EXTRUDERS > 5
+              #endif // EXTRUDERS > 4
+            #endif // EXTRUDERS > 3
+          #endif // EXTRUDERS > 2
+        }
+        enqueue_and_echo_commands_P(command_M600);
+      #endif // EXTRUDERS > 1
     }
 
-  #endif
+    #if EXTRUDERS > 1
+      void lcd_enqueue_filament_change_e0() { lcd_enqueue_filament_change(0); }
+      void lcd_enqueue_filament_change_e1() { lcd_enqueue_filament_change(1); }
+      #if EXTRUDERS > 2
+        void lcd_enqueue_filament_change_e2() { lcd_enqueue_filament_change(2); }
+        #if EXTRUDERS > 3
+          void lcd_enqueue_filament_change_e3() { lcd_enqueue_filament_change(3); }
+          #if EXTRUDERS > 4
+            void lcd_enqueue_filament_change_e4() { lcd_enqueue_filament_change(4); }
+            #if EXTRUDERS > 5
+              void lcd_enqueue_filament_change_e5() { lcd_enqueue_filament_change(5); }
+            #endif // EXTRUDERS > 5
+          #endif // EXTRUDERS > 4
+        #endif // EXTRUDERS > 3
+      #endif // EXTRUDERS > 2
+    #endif // EXTRUDERS > 1
+
+  #endif // ADVANCED_PAUSE_FEATURE
 
   // Refresh the E factor after changing flow
   inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
@@ -1348,8 +1398,31 @@ void kill_screen(const char* lcd_msg) {
     // Change filament
     //
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      if (!thermalManager.tooColdToExtrude(tools.active_extruder) && !IS_SD_FILE_OPEN)
-        MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
+      #if EXTRUDERS > 1
+        if (!thermalManager.tooColdToExtrude(0))
+          MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E1, lcd_enqueue_filament_change_e0);
+        if (!thermalManager.tooColdToExtrude(1))
+          MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E2, lcd_enqueue_filament_change_e1);
+        #if EXTRUDERS > 2
+          if (!thermalManager.tooColdToExtrude(2))
+            MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E3, lcd_enqueue_filament_change_e2);
+          #if EXTRUDERS > 3
+            if (!thermalManager.tooColdToExtrude(3))
+              MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E4, lcd_enqueue_filament_change_e3);
+            #if EXTRUDERS > 4
+              if (!thermalManager.tooColdToExtrude(4))
+                MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E5, lcd_enqueue_filament_change_e4);
+              #if EXTRUDERS > 5
+                if (!thermalManager.tooColdToExtrude(5))
+                  MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E6, lcd_enqueue_filament_change_e5);
+              #endif // EXTRUDERS > 4
+            #endif // EXTRUDERS > 4
+          #endif // EXTRUDERS > 3
+        #endif // EXTRUDERS > 2
+      #else
+        if (!thermalManager.tooColdToExtrude(tools.active_extruder))
+          MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
+      #endif
     #endif
 
     END_MENU();
@@ -1735,7 +1808,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_level_bed_get_z() {
       ENCODER_DIRECTION_NORMAL();
 
-      if (lcd_clicked) {
+      if (use_click()) {
 
         //
         // Save the current Z position and move
@@ -1815,7 +1888,7 @@ void kill_screen(const char* lcd_msg) {
      */
     void _lcd_level_bed_homing_done() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_WAITING));
-      if (lcd_clicked) {
+      if (use_click()) {
         manual_probe_index = 0;
         _lcd_level_goto_next_point();
       }
@@ -2303,7 +2376,7 @@ void kill_screen(const char* lcd_msg) {
       if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS]))
         return lcd_goto_screen(_lcd_ubl_map_homing);
 
-      if (lcd_clicked) return _lcd_ubl_map_lcd_edit_cmd();
+      if (use_click()) return _lcd_ubl_map_lcd_edit_cmd();
       ENCODER_DIRECTION_NORMAL();
 
       if (encoderPosition) {
@@ -2533,9 +2606,34 @@ void kill_screen(const char* lcd_msg) {
       // Change filament
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        if (!thermalManager.tooColdToExtrude(tools.active_extruder) && !IS_SD_PRINTING)
-          MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
-      #endif
+      if (!IS_SD_FILE_OPEN) {
+        #if EXTRUDERS > 1
+          if (!thermalManager.tooColdToExtrude(0))
+            MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E1, lcd_enqueue_filament_change_e0);
+          if (!thermalManager.tooColdToExtrude(1))
+            MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E2, lcd_enqueue_filament_change_e1);
+          #if EXTRUDERS > 2
+            if (!thermalManager.tooColdToExtrude(2))
+              MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E3, lcd_enqueue_filament_change_e2);
+            #if EXTRUDERS > 3
+              if (!thermalManager.tooColdToExtrude(3))
+                MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E4, lcd_enqueue_filament_change_e3);
+              #if EXTRUDERS > 4
+                if (!thermalManager.tooColdToExtrude(4))
+                  MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E5, lcd_enqueue_filament_change_e4);
+                #if EXTRUDERS > 5
+                  if (!thermalManager.tooColdToExtrude(5))
+                    MENU_ITEM(function, MSG_FILAMENTCHANGE " " MSG_E6, lcd_enqueue_filament_change_e5);
+                #endif // EXTRUDERS > 5
+              #endif // EXTRUDERS > 4
+            #endif // EXTRUDERS > 3
+          #endif // EXTRUDERS > 2
+        #else
+          if (!thermalManager.tooColdToExtrude(tools.active_extruder))
+            MENU_ITEM(function, MSG_FILAMENTCHANGE, lcd_enqueue_filament_change);
+        #endif
+      }
+    #endif // ADVANCED_PAUSE_FEATURE
 
       #if HAS_TEMP_0
 
@@ -2781,7 +2879,7 @@ void kill_screen(const char* lcd_msg) {
    */
 
   void _lcd_move_xyz(const char* name, AxisEnum axis) {
-    if (lcd_clicked) { return lcd_goto_previous_menu(); }
+    if (use_click()) { return lcd_goto_previous_menu(); }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition && !processing_manual_move) {
       commands.refresh_cmd_timeout();
@@ -2852,7 +2950,7 @@ void kill_screen(const char* lcd_msg) {
       old_extruder = tools.active_extruder;
       tools.change(eindex, 0.0, true);
     #endif
-    if (lcd_clicked) {
+    if (use_click()) {
       #if EXTRUDERS > 1
         tools.change(old_extruder, 0.0, true);
       #endif
@@ -2942,7 +3040,7 @@ void kill_screen(const char* lcd_msg) {
     _manual_move_func_ptr = func;
     START_MENU();
     if (LCD_HEIGHT >= 4) {
-      switch(axis) {
+      switch (axis) {
         case X_AXIS:
           STATIC_ITEM(MSG_MOVE_X, true, true); break;
         case Y_AXIS:
@@ -3836,7 +3934,7 @@ void kill_screen(const char* lcd_msg) {
      */
 
     void lcd_info_stats_menu() {
-      if (lcd_clicked) { return lcd_goto_previous_menu(); }
+      if (use_click()) { return lcd_goto_previous_menu(); }
 
       uint16_t day, hours, minutes, kmeter, meter, centimeter;
       millis_t t;
@@ -3884,7 +3982,7 @@ void kill_screen(const char* lcd_msg) {
      *
      */
     void lcd_info_thermistors_menu() {
-      if (lcd_clicked) { return lcd_goto_previous_menu(); }
+      if (use_click()) { return lcd_goto_previous_menu(); }
       START_SCREEN();
 
       #if HAS_TEMP_0
@@ -3938,7 +4036,7 @@ void kill_screen(const char* lcd_msg) {
      *
      */
     void lcd_info_board_menu() {
-      if (lcd_clicked) { return lcd_goto_previous_menu(); }
+      if (use_click()) { return lcd_goto_previous_menu(); }
       START_SCREEN();
       STATIC_ITEM(BOARD_NAME, true, true);                           // MyPrinterController
       STATIC_ITEM(MSG_INFO_BAUDRATE ": " STRINGIFY(BAUDRATE), true); // Baud: 250000
@@ -3959,7 +4057,7 @@ void kill_screen(const char* lcd_msg) {
      *
      */
     void lcd_info_firmware_menu() {
-      if (lcd_clicked) { return lcd_goto_previous_menu(); }
+      if (use_click()) { return lcd_goto_previous_menu(); }
       START_SCREEN();
       STATIC_ITEM(FIRMWARE_NAME, true, true);
       STATIC_ITEM(SHORT_BUILD_VERSION, true);
@@ -4697,7 +4795,7 @@ void lcd_update() {
     #if ENABLED(DOGLCD)
       || drawing_screen
     #endif
-    ) {
+  ) {
 
     next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
 
@@ -4788,12 +4886,13 @@ void lcd_update() {
 
     if ((lcdDrawUpdate || IS_DRAWING) && (!bbr2 || bbr2 > max_display_update_time)) {
 
+      // Change state of drawing flag between screen updates
       if (!IS_DRAWING) switch (lcdDrawUpdate) {
         case LCDVIEW_CALL_NO_REDRAW:
           lcdDrawUpdate = LCDVIEW_NONE;
           break;
-        case LCDVIEW_CLEAR_CALL_REDRAW: // set by handlers, then altered after (rarely occurs here)
-        case LCDVIEW_CALL_REDRAW_NEXT:  // set by handlers, then altered after (never occurs here?)
+        case LCDVIEW_CLEAR_CALL_REDRAW:
+        case LCDVIEW_CALL_REDRAW_NEXT:
           lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
         case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
         case LCDVIEW_NONE:
@@ -4805,7 +4904,7 @@ void lcd_update() {
       #endif
 
       #if ENABLED(ULTIPANEL)
-        #define CURRENTSCREEN() (*currentScreen)(), lcd_clicked = false
+        #define CURRENTSCREEN() (*currentScreen)()
       #else
         #define CURRENTSCREEN() lcd_status_screen()
       #endif
@@ -4830,6 +4929,10 @@ void lcd_update() {
         CURRENTSCREEN();
       #endif
 
+      #if ENABLED(ULTIPANEL)
+        lcd_clicked = false;
+      #endif
+
       // Keeping track of the longest time for an individual LCD update.
       // Used to do screen throttling when the planner starts to fill up.
       NOLESS(max_display_update_time, millis() - ms);
@@ -4845,17 +4948,16 @@ void lcd_update() {
 
     #endif // ULTIPANEL
 
+    // Change state of drawing flag between screen updates
     if (!IS_DRAWING) switch (lcdDrawUpdate) {
       case LCDVIEW_CLEAR_CALL_REDRAW:
-        lcd_implementation_clear();
-      case LCDVIEW_CALL_REDRAW_NEXT:
-        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-        break;
+        lcd_implementation_clear(); break;
       case LCDVIEW_REDRAW_NOW:
         lcdDrawUpdate = LCDVIEW_NONE;
-        break;
       case LCDVIEW_NONE:
-        break;
+      case LCDVIEW_CALL_REDRAW_NEXT:
+      case LCDVIEW_CALL_NO_REDRAW:
+      default: break;
     } // switch
 
   } // ELAPSED(ms, next_lcd_update_ms)

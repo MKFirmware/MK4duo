@@ -96,7 +96,8 @@
   void gcode_M25(void) {
     card.pauseSDPrint();
     print_job_counter.pause();
-    SERIAL_LM(REQUEST_PAUSE, "SD pause");
+    SERIAL_STR(PAUSE);
+    SERIAL_EOL();
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
       commands.enqueue_and_echo_commands_P(PSTR("M125")); // Must be enqueued with pauseSDPrint set to be last in the buffer

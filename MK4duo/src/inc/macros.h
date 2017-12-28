@@ -43,6 +43,8 @@ typedef int8_t    Pin;
 #define ABC       3
 #define XYZ       3
 
+#define _AXIS(AXIS) AXIS ##_AXIS
+
 // Function macro
 #define _FORCE_INLINE_  __attribute__((__always_inline__)) __inline__
 #define  FORCE_INLINE   __attribute__((always_inline)) inline
