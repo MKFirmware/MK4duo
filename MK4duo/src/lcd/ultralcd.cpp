@@ -1206,7 +1206,7 @@ void kill_screen(const char* lcd_msg) {
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
       
       #if EXTRUDERS <= 1
-        enqueue_and_echo_commands_P(PSTR("M600 B0"));
+        commands.enqueue_and_echo_commands_P(PSTR("M600 B0"));
       #else
         char *command_M600;
         switch (extruder) {
@@ -1225,7 +1225,7 @@ void kill_screen(const char* lcd_msg) {
             #endif // EXTRUDERS > 3
           #endif // EXTRUDERS > 2
         }
-        enqueue_and_echo_commands_P(command_M600);
+        commands.enqueue_and_echo_commands_P(command_M600);
       #endif // EXTRUDERS > 1
     }
 
