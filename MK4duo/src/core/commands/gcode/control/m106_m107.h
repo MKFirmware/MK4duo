@@ -77,7 +77,7 @@
 
       if (!parser.seen('S')) {
         char response[50];
-        sprintf_P(response, PSTR("Fan:%i pin:%i, frequency:%uHz, min:%i inverted:%s"),
+        sprintf_P(response, PSTR("Fan:%i pin:%i frequency:%uHz min:%i inverted:%s"),
             (int)f,
             (int)fan->pin,
             (uint16_t)fan->freq,
