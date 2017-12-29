@@ -165,9 +165,6 @@
   #else
     U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // 2 stripes, HW SPI (shared with SD card)
   #endif
-#elif ENABLED(U8GLIB_ST7920) && defined(__arm__)
-  // RepRap Discount Full Graphics Smart Controller on an ARM target
-    U8GLIB_ST7920_128X64_CUSTOM_SW_SPI u8g;
 
 #elif ENABLED(U8GLIB_ST7920)
   // RepRap Discount Full Graphics Smart Controller
@@ -981,15 +978,32 @@ static void lcd_implementation_status_screen() {
 
       if (!PAGE_CONTAINS(row_y1, row_y2)) return;
 
-      uint8_t n = LCD_WIDTH - (START_COL) - 1;
+      constexpr uint8_t maxlen = LCD_WIDTH - (START_COL) - 1;
+      const char *outstr = longFilename;
+      #if ENABLED(SCROLL_LONG_FILENAMES)
+        if (isSelected) {
+          uint8_t name_hash = row;
+          for (uint8_t l = FILENAME_LENGTH; l--;)
+            name_hash = ((name_hash << 1) | (name_hash >> 7)) ^ longFilename[l];  // rotate, xor
+          if (filename_scroll_hash != name_hash) {                                // If the hash changed...
+            filename_scroll_hash = name_hash;                                     // Save the new hash
+            filename_scroll_max = max(0, lcd_strlen(longFilename) - maxlen);      // Update the scroll limit
+            filename_scroll_pos = 0;                                              // Reset scroll to the start
+            lcd_status_update_delay = 8;                                          // Don't scroll right away
+          }
+          outstr += filename_scroll_pos;
+        }
+      #endif
 
       if (isDir) lcd_print(LCD_STR_FOLDER[0]);
 
-      while (char c = *longFilename) {
+      char c;
+      uint8_t n = maxlen;
+      while (n && (c = *outstr)) {
         n -= lcd_print_and_count(c);
-        longFilename++;
+        ++outstr;
       }
-      while (n--) u8g.print(' ');
+      while (n) { --n; u8g.print(' '); }
     }
 
     #define lcd_implementation_drawmenu_sdfile(sel, row, pstr, longFilename) _drawmenu_sd(sel, row, pstr, longFilename, false)

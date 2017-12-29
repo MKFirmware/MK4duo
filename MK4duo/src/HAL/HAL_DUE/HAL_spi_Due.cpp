@@ -316,7 +316,7 @@
     return b;
   }
 
-  // Pointers to generic functions
+  // Pointers to generic functions for byte transfers
   static pfnSpiTransfer spiTransferTx = spiTransferX;
   static pfnSpiTransfer spiTransferRx = spiTransferX;
 
@@ -641,11 +641,11 @@
       if (spiRate > 6) spiRate = 1;
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-        // Set SPI mode 1, clock, select not active after transfer, with delay between transfers  
+        // Set SPI mode 1, clock, select not active after transfer, with delay between transfers
         SPI_ConfigureNPCS(SPI0, SPI_CHAN_DAC,
                           SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiRate]) |
                           SPI_CSR_DLYBCT(1));
-        // Set SPI mode 0, clock, select not active after transfer, with delay between transfers 
+        // Set SPI mode 0, clock, select not active after transfer, with delay between transfers
         SPI_ConfigureNPCS(SPI0, SPI_CHAN_EEPROM1, SPI_CSR_NCPHA |
                           SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiRate]) |
                           SPI_CSR_DLYBCT(1));
@@ -731,14 +731,11 @@
   }
 
   uint8_t HAL::spiReceive(uint32_t chan) {
-
     uint8_t spirec_tmp;
-
     // wait for transmit register empty
     while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
     while ((SPI0->SPI_SR & SPI_SR_RDRF) == 1)
       spirec_tmp = SPI0->SPI_RDR;
-
     UNUSED(spirec_tmp);
 
     // write dummy byte with address and end transmission flag
@@ -753,6 +750,7 @@
   // Read from SPI into buffer
   void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
     if (nbyte-- == 0) return;
+
     for (int i = 0; i < nbyte; i++) {
       //while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
       SPI0->SPI_TDR = 0x000000FF | SPI_PCS(SPI_CHAN);
