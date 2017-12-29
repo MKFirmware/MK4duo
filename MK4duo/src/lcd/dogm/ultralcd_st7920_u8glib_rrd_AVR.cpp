@@ -27,7 +27,7 @@
 
 #if ENABLED(U8GLIB_ST7920)
 
-#ifndef U8G_HAL_LINKS
+#if !(ENABLED(U8G_HAL_LINKS) || ENABLED(__SAM3X8E__))
 
 #define ST7920_CLK_PIN  LCD_PINS_D4
 #define ST7920_DAT_PIN  LCD_PINS_ENABLE
@@ -90,40 +90,23 @@
   #define U8G_DELAY() u8g_10MicroDelay()
 #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-
-  static void ST7920_WRITE_BYTE(uint8_t val) {
-    for (uint8_t i = 0; i < 8; i++) {
-      digitalWrite(ST7920_CLK_PIN, LOW);        ST7920_DELAY_1;
-      digitalWrite(ST7920_DAT_PIN, val & 0x80); ST7920_DELAY_2;
-      digitalWrite(ST7920_CLK_PIN, HIGH);       ST7920_DELAY_3;
-      val <<= 1;
-    }
+static void ST7920_WRITE_BYTE(uint8_t val) {
+  for (uint8_t i = 0; i < 8; i++) {
+    WRITE(ST7920_DAT_PIN, val & 0x80);
+    WRITE(ST7920_CLK_PIN, HIGH);
+    WRITE(ST7920_CLK_PIN, LOW);
+    val <<= 1;
   }
+}
 
-  #define ST7920_CS()              { digitalWrite(ST7920_CS_PIN, 1); u8g_10MicroDelay(); }
-  #define ST7920_NCS()             { digitalWrite(ST7920_CS_PIN, 0); }
+#define ST7920_SET_CMD()         { ST7920_WRITE_BYTE(0xF8); U8G_DELAY(); }
+#define ST7920_SET_DAT()         { ST7920_WRITE_BYTE(0xFA); U8G_DELAY(); }
+#define ST7920_WRITE_NIBBLES(a)  { ST7920_WRITE_BYTE((uint8_t)((a)&0xF0u)); ST7920_WRITE_BYTE((uint8_t)((a)<<4u)); U8G_DELAY(); }
+#define ST7920_WRITE_NIBBLES_P(p,l)  { for (uint8_t i = l + 1; --i;) { ST7920_WRITE_BYTE(*p&0xF0); ST7920_WRITE_BYTE(*p<<4); p++; } U8G_DELAY(); }
 
-#else
 
-  static void ST7920_WRITE_BYTE(uint8_t val) {
-    for (uint8_t i = 0; i < 8; i++) {
-      WRITE(ST7920_DAT_PIN, val & 0x80);
-      WRITE(ST7920_CLK_PIN, HIGH);
-      WRITE(ST7920_CLK_PIN, LOW);
-      val <<= 1;
-    }
-  }
-
-  #define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }
-  #define ST7920_NCS()             { WRITE(ST7920_CS_PIN,0); }
-
-#endif
-
-#define ST7920_SET_CMD()            { ST7920_WRITE_BYTE(0xF8); U8G_DELAY(); }
-#define ST7920_SET_DAT()            { ST7920_WRITE_BYTE(0xFA); U8G_DELAY(); }
-#define ST7920_WRITE_NIBBLES(a)     { ST7920_WRITE_BYTE((uint8_t)((a)&0xF0u)); ST7920_WRITE_BYTE((uint8_t)((a)<<4u)); U8G_DELAY(); }
-#define ST7920_WRITE_NIBBLES_P(p,l) { for (uint8_t i = l + 1; --i;) { ST7920_WRITE_BYTE(*p&0xF0); ST7920_WRITE_BYTE(*p<<4); p++; } U8G_DELAY(); }
+#define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }
+#define ST7920_NCS()             { WRITE(ST7920_CS_PIN,0); }
 
 uint8_t u8g_dev_rrd_st7920_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg) {
   uint8_t i, y;
