@@ -1118,6 +1118,9 @@
 
 //#define MENU_ADDAUTOSTART
 
+// Enable this option to scroll long filenames in the SD card menu
+//#define SCROLL_LONG_FILENAMES
+
 /**
  * Sort SD file listings in alphabetical order.
  *

@@ -794,7 +794,12 @@ static void lcd_implementation_status_screen() {
       #if HOTENDS > 1
         _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
       #elif HAS_TEMP_BED
-        _draw_heater_status(BED_INDEX, LCD_BEDTEMP_CHAR, blink);
+        _draw_heater_status(BED_INDEX, (
+          #if HAS_LEVELING
+            bedlevel.leveling_active && blink ? '_' :
+          #endif
+          LCD_BEDTEMP_CHAR
+        ), blink);
       #else
         _draw_humidity_status();
       #endif
@@ -825,16 +830,27 @@ static void lcd_implementation_status_screen() {
 
       lcd.setCursor(0, 1);
 
-      #if HOTENDS > 1 && HAS_TEMP_BED
+      // If the first line has two extruder temps,
+      // show more temperatures on the next line
+      // instead of
 
-        // If we both have a 2nd hotend and a heated bed,
-        // show the heated bed temp on the left,
-        // since the first line is filled with extruder temps
-        _draw_heater_status(BED_INDEX, LCD_BEDTEMP_CHAR, blink);
+      #if HOTENDS > 2 || (HOTENDS > 1 && HAS_TEMP_BED)
 
-      #else
+        #if HOTENDS > 2
+          _draw_heater_status(2, LCD_STR_THERMOMETER[0], blink);
+          lcd.setCursor(10, 1);
+        #endif
+
+        _draw_heater_status(BED_INDEX, (
+          #if HAS_LEVELING
+            bedlevel.leveling_active && blink ? '_' :
+          #endif
+          LCD_BEDTEMP_CHAR
+        ), blink);
+
+      #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
         // Before homing the axis letters are blinking 'X' <-> '?'.
-        // When axis is homed but mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+        // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
@@ -845,7 +861,7 @@ static void lcd_implementation_status_screen() {
         _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
         lcd.print(ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
 
-      #endif // HOTENDS > 1 || HAS_TEMP_BED
+      #endif // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
 
     #endif // LCD_WIDTH >= 20
 
@@ -853,7 +869,7 @@ static void lcd_implementation_status_screen() {
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
     lcd.print(ftostr52sp(FIXFLOAT(mechanics.current_position[Z_AXIS])));
 
-    #if HAS_LEVELING
+    #if HAS_LEVELING && !HAS_TEMP_BED
       lcd.write(bedlevel.leveling_active || blink ? '_' : ' ');
     #endif
 
@@ -1076,15 +1092,33 @@ static void lcd_implementation_status_screen() {
 
     static void lcd_implementation_drawmenu_sd(const bool sel, const uint8_t row, const char* const pstr, const char* longFilename, const uint8_t concat, const char post_char) {
       UNUSED(pstr);
-      char c;
-      uint8_t n = LCD_WIDTH - concat;
       lcd.setCursor(0, row);
       lcd.print(sel ? '>' : ' ');
-      while ((c = *longFilename) && n > 0) {
+
+      uint8_t n = LCD_WIDTH - concat;
+      const char *outstr = longFilename;
+      #if ENABLED(SCROLL_LONG_FILENAMES)
+        if (sel) {
+          uint8_t name_hash = row;
+          for (uint8_t l = FILENAME_LENGTH; l--;)
+            name_hash = ((name_hash << 1) | (name_hash >> 7)) ^ longFilename[l];  // rotate, xor
+          if (filename_scroll_hash != name_hash) {                                // If the hash changed...
+            filename_scroll_hash = name_hash;                                     // Save the new hash
+            filename_scroll_max = max(0, lcd_strlen(longFilename) - n);           // Update the scroll limit
+            filename_scroll_pos = 0;                                              // Reset scroll to the start
+            lcd_status_update_delay = 8;                                          // Don't scroll right away
+          }
+          outstr += filename_scroll_pos;
+        }
+      #endif
+
+      char c;
+      while (n && (c = *outstr)) {
         n -= charset_mapper(c);
-        longFilename++;
+        ++outstr;
       }
-      while (n--) lcd.print(' ');
+      while (n) { --n; lcd.write(' '); }
+
       lcd.print(post_char);
     }
 

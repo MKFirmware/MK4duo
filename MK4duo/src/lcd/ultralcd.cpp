@@ -56,6 +56,10 @@ char lcd_status_message[3 * (LCD_WIDTH) + 1] = WELCOME_MSG; // worst case is kan
   uint8_t status_scroll_pos = 0;
 #endif
 
+#if ENABLED(SCROLL_LONG_FILENAMES)
+  uint8_t filename_scroll_pos, filename_scroll_max, filename_scroll_hash;
+#endif
+
 #if ENABLED(DOGLCD)
   #include "ultralcd_impl_DOGM.h"
   #include <U8glib.h>
