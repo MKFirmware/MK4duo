@@ -152,7 +152,9 @@
     SERIAL_LMV(CFG, " Pin:", sensor.pin);
     SERIAL_LMV(CFG, " Thermistor resistance at 25 C:", sensor.r25, 1);
     SERIAL_LMV(CFG, " BetaK value:", sensor.beta, 1);
-    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien:", sensor.shC, 1);
+    SERIAL_LMV(CFG, " Steinhart-Hart A coefficien:", sensor.shA, 10);
+    SERIAL_LMV(CFG, " Steinhart-Hart B coefficien:", sensor.shB, 10);
+    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien:", sensor.shC, 10);
     SERIAL_LMV(CFG, " Pullup resistor value:", sensor.pullupR, 1);
     SERIAL_LMV(CFG, " ADC low offset correction:", sensor.adcLowOffset);
     SERIAL_LMV(CFG, " ADC high offset correction:", sensor.adcHighOffset);

@@ -308,11 +308,11 @@ class Stepper {
           step_loops = 1;
       #endif
 
-      #if ENABLED(CPU_32_BIT)
+      #if ENABLED(ARDUINO_ARCH_SAM)
         // In case of high-performance processor, it is able to calculate in real-time
-        constexpr uint32_t MIN_TIME_PER_STEP = (HAL_STEPPER_TIMER_RATE) / ((DOUBLE_STEP_FREQUENCY) * 2);
         timer = (uint32_t)HAL_STEPPER_TIMER_RATE / step_rate;
-        NOLESS(timer, MIN_TIME_PER_STEP);
+        if (timer < (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2)))
+          timer = (HAL_STEPPER_TIMER_RATE / (DOUBLE_STEP_FREQUENCY * 2));
       #else
         NOLESS(step_rate, F_CPU / 500000);
         step_rate -= F_CPU / 500000; // Correct for minimal speed

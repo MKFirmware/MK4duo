@@ -80,7 +80,7 @@ typedef struct {
 #define NvicPrioritySystick 2
 
 #define STEPPER_TIMER               3
-#define STEPPER_TIMER_PRESCALE      1.0
+#define STEPPER_TIMER_PRESCALE      2.0
 #define HAL_STEPPER_TIMER_RATE      ((F_CPU) / 2)  // 42 MHz
 #define HAL_ACCELERATION_RATE       (4294967296.0 / (HAL_STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us

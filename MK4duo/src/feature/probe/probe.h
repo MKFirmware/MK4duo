@@ -59,7 +59,7 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float  offset[XYZ];
+    static float offset[XYZ];
 
     #if HAS_Z_SERVO_PROBE
       static const int z_servo_angle[2];

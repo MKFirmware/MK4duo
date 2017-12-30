@@ -144,30 +144,30 @@
 
 float TemperatureSensor::GetTemperature(const uint8_t h) {
 
-  const int16_t s_type      = this->type,
-                adcReading  = this->raw;
+  const int16_t s_type      = type,
+                adcReading  = raw;
 
   #if ENABLED(SUPPORT_MAX31855)
     if (s_type == -3)
-      return 0.25 * read_max31855(this->pin);
+      return 0.25 * read_max31855(pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (s_type == -2)
-      return 0.25 * read_max6675(this->pin, h);
+      return 0.25 * read_max6675(pin, h);
   #else
     UNUSED(h);
   #endif
   #if HEATER_USES_AD595
     if (s_type == -1)
-      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / (AD_RANGE))) * this->ad595_gain) + this->ad595_offset;
+      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / (AD_RANGE))) * ad595_gain) + ad595_offset;
   #endif
   if (WITHIN(s_type, 1, 9)) {
-    const float denom = (float)(AD_RANGE + (int)this->adcHighOffset - adcReading) - 0.5;
-    if (denom <= 0.0) return (ABS_ZERO);
+    const float denom = (float)(AD_RANGE + (int)adcHighOffset - adcReading) - 0.5;
+    if (denom <= 0.0) return ABS_ZERO;
 
-    const float resistance = this->pullupR * ((float)(adcReading - (int)this->adcLowOffset) + 0.5) / denom;
+    const float resistance = pullupR * ((float)(adcReading - (int)adcLowOffset) + 0.5) / denom;
     const float logResistance = LOG(resistance);
-    const float recipT = this->shA + this->shB * logResistance + this->shC * logResistance * logResistance * logResistance;
+    const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 
     /*
     SERIAL_MV("Debug denom:", denom, 5);
@@ -216,7 +216,15 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
 }
 
 void TemperatureSensor::CalcDerivedParameters() {
-	this->shB = 1.0 / this->beta;
-	const float lnR25 = LOG(this->r25);
-	this->shA = 1.0 / (25.0 - (ABS_ZERO)) - (this->shB * lnR25) - (this->shC * lnR25 * lnR25 * lnR25);
+	shB = 1.0 / beta;
+	const float lnR25 = LOG(r25);
+	shA = 1.0 / (25.0 - ABS_ZERO) - shB * lnR25 - shC * lnR25 * lnR25 * lnR25;
+
+  /*
+  SERIAL_EMV(" R25:", r25, 2);
+  SERIAL_EMV(" lnR25:", lnR25, 2);
+  SERIAL_EMV(" shA:", shA, 15);
+  SERIAL_EMV(" shB:", shB, 15);
+  SERIAL_EMV(" shC:", shC, 15);
+  */
 }
