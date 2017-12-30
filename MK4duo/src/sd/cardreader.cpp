@@ -1146,7 +1146,7 @@
     };
 
     void CardReader::StoreSettings() {
-      if (!IS_SD_INSERTED || sdprinting) return;
+      if (!IS_SD_INSERTED || sdprinting || print_job_counter.isRunning()) return;
 
       setroot();
 

@@ -45,7 +45,7 @@
 // 4 - ATC Semitec 104GT-2
 #define T4_NAME   "ATC 104GT-2"
 #define T4_R25    100000.0  // Resistance in Ohms @ 25°C
-#define T4_BETA     4267.0  // Beta Value (K)
+#define T4_BETA     4725.0  // Beta Value (K)
 
 // 5 - Honeywell thermistor 135-104LAG-J01
 #define T5_NAME   "HW 104LAG"

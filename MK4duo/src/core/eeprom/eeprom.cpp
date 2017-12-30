@@ -931,7 +931,7 @@ void EEPROM::Postprocess() {
         EEPROM_READ(volumetric_enabled);
         printer.setVolumetric(volumetric_enabled);
 
-        for (int8_t e = 0; e < EXTRUDERS; e++)
+        for (uint8_t e = 0; e < EXTRUDERS; e++)
           EEPROM_READ(tools.filament_size[e]);
 
       #endif
