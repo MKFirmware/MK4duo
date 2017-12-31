@@ -1342,6 +1342,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT0_R25;
       sens->beta              = HOT0_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1368,6 +1371,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT1_R25;
       sens->beta              = HOT1_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1394,6 +1400,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT2_R25;
       sens->beta              = HOT2_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1420,6 +1429,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT3_R25;
       sens->beta              = HOT3_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1449,6 +1461,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = BED_R25;
       sens->beta              = BED_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1478,6 +1493,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = CHAMBER_R25;
       sens->beta              = CHAMBER_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1507,6 +1525,9 @@ void EEPROM::Factory_Settings() {
       sens->r25               = COOLER_R25;
       sens->beta              = COOLER_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
+      sens->shC               = 0.0;
+      sens->adcLowOffset      = 0;
+      sens->adcHighOffset     = 0;
       #if HEATER_USES_AD595
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
@@ -1635,23 +1656,6 @@ void EEPROM::Factory_Settings() {
       SERIAL_LM(CFG, "  G21 ; Units in mm");
     #endif
 
-    #if ENABLED(ULTIPANEL)
-
-      // Temperature units - for Ultipanel temperature options
-
-      #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-        #define TEMP_UNIT(N) parser.to_temp_units(N)
-        SERIAL_SM(CFG, "  M149 ");
-        SERIAL_CHR(parser.temp_units_code);
-        SERIAL_MSG(" ; Units in ");
-        SERIAL_PS(parser.temp_units_name());
-      #else
-        #define TEMP_UNIT(N) N
-        SERIAL_LM(CFG, "  M149 C ; Units in Celsius");
-      #endif
-
-    #endif
-
     CONFIG_MSG_START("Steps per unit:");
     SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(mechanics.axis_steps_per_mm[X_AXIS]), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(mechanics.axis_steps_per_mm[Y_AXIS]), 3);
@@ -1729,12 +1733,89 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    #if ENABLED(WORKSPACE_OFFSETS)
-      CONFIG_MSG_START("Home offset:");
-      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(mechanics.home_offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.home_offset[Y_AXIS]), 3);
-      SERIAL_EMV(" Z", LINEAR_UNIT(mechanics.home_offset[Z_AXIS]), 3);
+    #if HOTENDS > 0
+      CONFIG_MSG_START("Hotend Sensor parameters: H<Hotend> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>");
+      LOOP_HOTEND() {
+        SERIAL_SMV(CFG, "  M305 H", h);
+        SERIAL_MV(" P", heaters[h].sensor.pin);
+        SERIAL_MV(" A", heaters[h].sensor.r25, 1);
+        SERIAL_MV(" B", heaters[h].sensor.beta, 1);
+        SERIAL_MV(" C", heaters[h].sensor.shC, 10);
+        SERIAL_MV(" R", heaters[h].sensor.pullupR, 1);
+        SERIAL_MV(" L", heaters[h].sensor.adcLowOffset);
+        SERIAL_EMV(" O", heaters[h].sensor.adcHighOffset);
+      }
+
+      CONFIG_MSG_START("Hotend Heater parameters: H<Hotend> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>");
+      LOOP_HOTEND() {
+        SERIAL_SMV(CFG, "  M306 H", h);
+        SERIAL_MV(" P", heaters[h].pin);
+        SERIAL_MV(" A", heaters[h].pidDriveMin);
+        SERIAL_MV(" B", heaters[h].pidDriveMax);
+        SERIAL_MV(" C", heaters[h].pidMax);
+        SERIAL_MV(" L", heaters[h].mintemp);
+        SERIAL_MV(" O", heaters[h].maxtemp);
+        SERIAL_MV(" U", heaters[h].use_pid);
+        SERIAL_EMV(" I", heaters[h].hardwareInverted);
+      }
     #endif
+
+    #if HAS_TEMP_BED
+      CONFIG_MSG_START("Bed Sensor parameters: P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>");
+      SERIAL_SM(CFG, "  M305 H-1");
+      SERIAL_MV(" P", heaters[BED_INDEX].sensor.pin);
+      SERIAL_MV(" A", heaters[BED_INDEX].sensor.r25, 1);
+      SERIAL_MV(" B", heaters[BED_INDEX].sensor.beta, 1);
+      SERIAL_MV(" C", heaters[BED_INDEX].sensor.shC, 10);
+      SERIAL_MV(" R", heaters[BED_INDEX].sensor.pullupR, 1);
+      SERIAL_MV(" L", heaters[BED_INDEX].sensor.adcLowOffset);
+      SERIAL_EMV(" O", heaters[BED_INDEX].sensor.adcHighOffset);
+
+      CONFIG_MSG_START("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>");
+      LOOP_HOTEND() {
+        SERIAL_SM(CFG, "  M306 H-1");
+        SERIAL_MV(" P", heaters[BED_INDEX].pin);
+        SERIAL_MV(" A", heaters[BED_INDEX].pidDriveMin);
+        SERIAL_MV(" B", heaters[BED_INDEX].pidDriveMax);
+        SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
+        SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
+        SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
+        SERIAL_MV(" U", heaters[BED_INDEX].use_pid);
+        SERIAL_EMV(" I", heaters[BED_INDEX].hardwareInverted);
+      }
+    #endif
+
+    #if HAS_PID
+      CONFIG_MSG_START("PID settings:");
+      #if (PIDTEMP)
+        #if HOTENDS == 1
+          heaters[0].print_PID();
+        #elif HOTENDS > 1
+          LOOP_HOTEND() heaters[h].print_PID();
+          #if ENABLED(PID_ADD_EXTRUSION_RATE)
+            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
+          #endif
+        #endif
+      #endif
+      #if (PIDTEMPBED)
+        heaters[BED_INDEX].print_PID();
+      #endif
+      #if (PIDTEMPCHAMBER)
+        heaters[CHAMBER_INDEX].print_PID();
+      #endif
+      #if (PIDTEMPCOOLER)
+        heaters[COOLER_INDEX].print_PID();
+      #endif
+    #endif
+
+    #if HEATER_USES_AD595
+      CONFIG_MSG_START("AD595 Offset and Gain:");
+      LOOP_HOTEND() {
+        SERIAL_SMV(CFG, "  M595 H", h);
+        SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
+        SERIAL_EMV(", S", heaters[h].sensor.ad595_gain);
+      }
+    #endif // HEATER_USES_AD595
 
     #if HOTENDS > 1
       CONFIG_MSG_START("Hotend offset (mm):");
@@ -1747,14 +1828,38 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if FAN_COUNT > 0
-      CONFIG_MSG_START("Fans:");
+      CONFIG_MSG_START("Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> I<Hardware Inverted 0-1>");
       LOOP_FAN() {
         SERIAL_SMV(CFG, "  M106 P", f);
-        SERIAL_MV(" F", fans[f].freq);
         SERIAL_MV(" U", fans[f].pin);
         SERIAL_MV(" L", fans[f].min_Speed);
-        SERIAL_EMT(" I", fans[f].hardwareInverted ? "1" : "0");
+        SERIAL_MV(" F", fans[f].freq);
+        SERIAL_EMV(" I", fans[f].hardwareInverted);
       }
+    #endif
+
+    #if ENABLED(WORKSPACE_OFFSETS)
+      CONFIG_MSG_START("Home offset:");
+      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(mechanics.home_offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.home_offset[Y_AXIS]), 3);
+      SERIAL_EMV(" Z", LINEAR_UNIT(mechanics.home_offset[Z_AXIS]), 3);
+    #endif
+
+    #if ENABLED(ULTIPANEL)
+
+      // Temperature units - for Ultipanel temperature options
+
+      #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
+        #define TEMP_UNIT(N) parser.to_temp_units(N)
+        SERIAL_SM(CFG, "  M149 ");
+        SERIAL_CHR(parser.temp_units_code);
+        SERIAL_MSG(" ; Units in ");
+        SERIAL_PS(parser.temp_units_name());
+      #else
+        #define TEMP_UNIT(N) N
+        SERIAL_LM(CFG, "  M149 C ; Units in Celsius");
+      #endif
+
     #endif
 
     #if HAS_LCD_CONTRAST
@@ -1859,38 +1964,6 @@ void EEPROM::Factory_Settings() {
         SERIAL_EOL();
       }
     #endif // ULTIPANEL
-    
-    #if HEATER_USES_AD595
-      CONFIG_MSG_START("AD595 Offset and Gain:");
-      LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M595 H", h);
-        SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
-        SERIAL_EMV(", S", heaters[h].sensor.ad595_gain);
-      }
-    #endif // HEATER_USES_AD595
-
-    #if HAS_PID
-      CONFIG_MSG_START("PID settings:");
-      #if (PIDTEMP)
-        #if HOTENDS == 1
-          heaters[0].print_PID();
-        #elif HOTENDS > 1
-          LOOP_HOTEND() heaters[h].print_PID();
-          #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
-          #endif
-        #endif
-      #endif
-      #if (PIDTEMPBED)
-        heaters[BED_INDEX].print_PID();
-      #endif
-      #if (PIDTEMPCHAMBER)
-        heaters[CHAMBER_INDEX].print_PID();
-      #endif
-      #if (PIDTEMPCOOLER)
-        heaters[COOLER_INDEX].print_PID();
-      #endif
-    #endif
 
     #if ENABLED(FWRETRACT)
       CONFIG_MSG_START("Retract: S<length> F<units/m> Z<lift>");

@@ -157,7 +157,7 @@ class GCodeParser {
     #endif // FASTER_GCODE_PARSER
 
     // Seen any axis parameter
-    static bool seen_axis() { return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E') ; }
+    static bool seen_axis() { return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E'); }
 
     // Populate all fields by parsing a single line of GCode
     // This uses 54 bytes of SRAM to speed up seen/value

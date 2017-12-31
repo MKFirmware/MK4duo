@@ -39,7 +39,7 @@
    *    B[int]    Pid Drive Max
    *    C[int]    Pid Max
    *    L[int]    Min temperature
-   *    N[int]    Max temperature
+   *    O[int]    Max temperature
    *    U[bool]   Use Pid/bang bang
    *    I[bool]   Hardware Inverted
    *    P[int]    Sensor Pin
@@ -54,8 +54,8 @@
     heaters[h].pidDriveMin  = parser.intval('A', heaters[h].pidDriveMin);
     heaters[h].pidDriveMax  = parser.intval('B', heaters[h].pidDriveMax);
     heaters[h].pidMax       = parser.intval('C', heaters[h].pidMax);
-    heaters[h].mintemp      = parser.intval('R', heaters[h].mintemp);
-    heaters[h].maxtemp      = parser.intval('L', heaters[h].maxtemp);
+    heaters[h].mintemp      = parser.intval('L', heaters[h].mintemp);
+    heaters[h].maxtemp      = parser.intval('O', heaters[h].maxtemp);
 
     if (parser.seen('U'))
       heaters[h].use_pid = parser.value_bool();

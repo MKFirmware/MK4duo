@@ -217,11 +217,11 @@
  *        R<Method> 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
  * M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
- *          L[int] ADC low offset correction, N[int] ADC high offset correction, P[int] Sensor Pin
+ *          L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin
  *        Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
  * M306 - Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
- *          L[int] Min temperature, N[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, P[int] Pin
+ *          L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, P[int] Pin
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Turn case lights on/off

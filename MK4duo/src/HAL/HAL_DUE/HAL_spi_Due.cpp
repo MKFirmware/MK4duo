@@ -583,7 +583,7 @@
 
   void HAL::spiBegin() {
 
-    if (spiInitMaded == false) {
+    if (!spiInitMaded) {
 
       // Configure SPI pins
       PIO_Configure(

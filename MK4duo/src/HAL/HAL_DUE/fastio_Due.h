@@ -63,7 +63,7 @@ typedef struct {
  * pins
  */
 
-static constexpr Fastio_Param Fastio[111] = {
+static constexpr Fastio_Param Fastio[] = {
   // D0 to D9
   { PIOA,  8 }, { PIOA,  9 }, { PIOB, 25 }, { PIOC, 28 }, { PIOC, 26 }, { PIOC, 25 }, { PIOC, 24 }, { PIOC, 23 }, { PIOC, 22 }, { PIOC, 21 },
 
@@ -102,18 +102,29 @@ static constexpr Fastio_Param Fastio[111] = {
     // D100 to D107
     { PIOB, 8 }, { PIOB, 5 }, { PIOB, 4 }, { PIOB, 3 }, { PIOC, 20 }, { PIOB, 22 }, { PIOC, 27 }, { PIOB, 10 },
 
-  #else
+    // D108 to D110
+    { PIOB, 7 }, { PIOB, 8 }, { PIOB, 11 }
+
+  #elif MB(ALLIGATOR)
 
     // D92 to D99
     { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
 
     // D100 to D107
-    { PIOC, 11 }, { PIOB, 0 }, { PIOB, 1 }, { PIOB, 2 }, { PIOB, 3 }, { PIOB, 4 }, { PIOB, 5 }, { PIOB, 6 },
+    { PIOC, 11 }
+
+  #elif MB(ALIGATOR_V3)
+
+    // D92 to D99
+    { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
+
+    // D100 to D107
+    { PIOC, 11 }, { PIOB, 4 }, { PIOB, 5 }, { PIOB, 6 }, { PIOB, 7 }, { PIOB, 8 }, { PIOB, 9 }, { PIOB, 10 },
+
+    // D108 to D111
+    { PIOB, 0 }, { PIOB, 1 }, { PIOB, 2 }, { PIOB, 3 }
 
   #endif
-
-    // D108 to D110
-    { PIOB, 7 }, { PIOB, 8 }, { PIOB, 11 }
 
 };
 

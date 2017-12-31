@@ -42,9 +42,6 @@
     target_temperature    = 0;
     current_temperature   = 25.0;
     sensor.raw            = 0;
-    sensor.adcLowOffset   = 0;
-    sensor.adcHighOffset  = 0;
-    sensor.shC            = 0.0;
 
     #if HEATER_IDLE_HANDLER
       idle_timeout_exceeded = false;

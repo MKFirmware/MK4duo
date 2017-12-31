@@ -198,6 +198,11 @@ typedef uint32_t  ptr_int_t;
 #define ADC_TEMPERATURE_SENSOR 15
 
 #define HARDWARE_PWM true
+
+#define GET_PIN_MAP_PIN(index) index
+#define GET_PIN_MAP_INDEX(pin) pin
+#define PARSED_PIN_INDEX(code, dval) parser.intval(code, dval)
+
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
@@ -293,11 +298,14 @@ class HAL {
 
     static void hwSetup(void);
 
+    static bool pwm_status(const Pin pin);
+    static bool tc_status(const Pin pin);
+
     static void analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=1000);
 
     static void Tick();
 
-    static inline void pinMode(const Pin pin, const uint8_t mode) {
+    FORCE_INLINE static void pinMode(const Pin pin, const uint8_t mode) {
       switch (mode) {
         case INPUT:         SET_INPUT(pin);         break;
         case OUTPUT:        SET_OUTPUT(pin);        break;
@@ -307,10 +315,10 @@ class HAL {
         default:                                    break;
       }
     }
-    static inline void digitalWrite(const Pin pin, const bool value) {
+    FORCE_INLINE static void digitalWrite(const Pin pin, const bool value) {
       WRITE_VAR(pin, value);
     }
-    static inline bool digitalRead(const Pin pin) {
+    FORCE_INLINE static bool digitalRead(const Pin pin) {
       return READ_VAR(pin);
     }
 
@@ -323,7 +331,7 @@ class HAL {
         : "+r" (n) :
       );
     }
-    static inline void delayMilliseconds(uint16_t delayMs) {
+    FORCE_INLINE static void delayMilliseconds(uint16_t delayMs) {
       uint16_t del;
       while (delayMs > 0) {
         del = delayMs > 100 ? 100 : delayMs;
@@ -331,28 +339,28 @@ class HAL {
         delayMs -= del;
       }
     }
-    static inline unsigned long timeInMilliseconds() {
+    FORCE_INLINE static unsigned long timeInMilliseconds() {
       return millis();
     }
 
     // Serial communication
-    static inline char readFlashByte(PGM_P ptr) {
+    FORCE_INLINE static char readFlashByte(PGM_P ptr) {
       return pgm_read_byte(ptr);
     }
-    static inline void serialSetBaudrate(long baud) {
+    FORCE_INLINE static void serialSetBaudrate(long baud) {
       MKSERIAL.begin(baud);
       HAL::delayMilliseconds(1);
     }
-    static inline bool serialByteAvailable() {
+    FORCE_INLINE static bool serialByteAvailable() {
       return MKSERIAL.available() > 0;
     }
-    static inline uint8_t serialReadByte() {
+    FORCE_INLINE static uint8_t serialReadByte() {
       return MKSERIAL.read();
     }
-    static inline void serialWriteByte(char c) {
+    FORCE_INLINE static void serialWriteByte(char c) {
       MKSERIAL.write(c);
     }
-    static inline void serialFlush() {
+    FORCE_INLINE static void serialFlush() {
       MKSERIAL.flush();
     }
 
