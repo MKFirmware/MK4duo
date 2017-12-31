@@ -40,7 +40,7 @@
    *    C[float]  Steinhart-Hart C coefficien
    *    R[float]  Pullup resistor value
    *    L[int]    ADC low offset correction
-   *    N[int]    ADC high offset correction
+   *    O[int]    ADC high offset correction
    *    P[int]    Sensor Pin
    *
    *  D DHT parameters
@@ -71,7 +71,7 @@
     heaters[h].sensor.shC           = parser.floatval('C', heaters[h].sensor.shC);
     heaters[h].sensor.pullupR       = parser.floatval('R', heaters[h].sensor.pullupR);
     heaters[h].sensor.adcLowOffset  = parser.intval('L', heaters[h].sensor.adcLowOffset);
-    heaters[h].sensor.adcHighOffset = parser.intval('N', heaters[h].sensor.adcHighOffset);
+    heaters[h].sensor.adcHighOffset = parser.intval('O', heaters[h].sensor.adcHighOffset);
 
     if (parser.seen('P')) {
       // Put off the heaters

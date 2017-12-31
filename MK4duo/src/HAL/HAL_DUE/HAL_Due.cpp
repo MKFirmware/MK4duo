@@ -556,6 +556,20 @@ static void AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, co
   return;
 }
 
+bool HAL::pwm_status(const Pin pin) {
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  const uint32_t attr = pinDesc.ulPinAttribute;
+  if (attr & PIN_ATTR_PWM) return true;
+  else return false;
+}
+  
+bool HAL::tc_status(const Pin pin) {
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  const uint32_t attr = pinDesc.ulPinAttribute;
+  if (attr & PIN_ATTR_TIMER) return true;
+  else return false;
+}
+
 void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/) {
 
   if (isnan(value) || pin <= 0) return;
@@ -566,11 +580,11 @@ void HAL::analogWrite(Pin pin, const uint8_t value, const uint16_t freq/*=1000*/
   const float ulValue = constrain((float)value / 255.0, 0.0, 1.0);
   const uint32_t attr = pinDesc.ulPinAttribute;
 
-  if ((attr & PIN_ATTR_PWM) != 0) {
+  if (attr & PIN_ATTR_PWM) {
     AnalogWritePwm(pinDesc, ulValue, freq);
     g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
   }
-  else if ((attr & PIN_ATTR_TIMER) != 0) {
+  else if (attr & PIN_ATTR_TIMER) {
     AnalogWriteTc(pinDesc, ulValue, freq);
     g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_TIMER;
   }

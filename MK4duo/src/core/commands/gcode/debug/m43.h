@@ -36,30 +36,30 @@
     const bool  I_flag  = parser.boolval('I');
     const int   repeat  = parser.intval('R', 1),
                 start   = parser.byteval('S'),
-                end     = parser.byteval('E', LAST_PIN - 1),
+                end     = parser.byteval('E', NUMBER_PINS_TOTAL - 1),
                 wait    = parser.intval('W', 500);
 
-    for (Pin pin = start; pin <= end; pin++) {
-
+    for (uint8_t i = start; i <= end; i++) {
+      Pin pin = GET_PIN_MAP_PIN(i);
+      //report_pin_state_extended(pin, I_flag, false);
+      if (!VALID_PIN(pin)) continue;
       if (!I_flag && printer.pin_is_protected(pin)) {
-        SERIAL_MV("Sensitive Pin: ", pin);
-        SERIAL_EM(" untouched.");
+        report_pin_state_extended(pin, I_flag, true, "Untouched ");
+        SERIAL_EOL();
       }
       else {
-        SERIAL_MV("Pulsing Pin: ", pin);
+        report_pin_state_extended(pin, I_flag, true, "Pulsing   ");
         HAL::pinMode(pin, OUTPUT);
         for (int16_t j = 0; j < repeat; j++) {
-          HAL::digitalWrite(pin, 0);
-          printer.safe_delay(wait);
-          HAL::digitalWrite(pin, 1);
-          printer.safe_delay(wait);
-          HAL::digitalWrite(pin, 0);
-          printer.safe_delay(wait);
+          HAL::digitalWrite(pin, 0); printer.safe_delay(wait);
+          HAL::digitalWrite(pin, 1); printer.safe_delay(wait);
+          HAL::digitalWrite(pin, 0); printer.safe_delay(wait);
         }
       }
       SERIAL_EOL();
     }
-    SERIAL_EM("Done");
+    SERIAL_EM("Done.");
+
   } // toggle_pins
 
   inline void servo_probe_test(){
@@ -236,20 +236,23 @@
     }
 
     // Get the range of pins to test or watch
-    const uint8_t first_pin = parser.pinval('P', 0),
-                  last_pin  = parser.pinval('P', LAST_PIN - 1);
+    const uint8_t first_pin = PARSED_PIN_INDEX('P', 0),
+                  last_pin = parser.seenval('P') ? first_pin : NUM_DIGITAL_PINS - 1;
 
     if (first_pin > last_pin) return;
 
-    const bool ignore_protection = parser.seen('I') && parser.value_bool();
+    const bool ignore_protection = parser.boolval('I');
 
     // Watch until click, M108, or reset
-    if (parser.seen('W') && parser.value_bool()) { // watch digital pins
+    if (parser.boolval('W')) {
       SERIAL_EM("Watching pins");
-      byte pin_state[last_pin - first_pin + 1];
-      for (int8_t pin = first_pin; pin <= last_pin; pin++) {
+      uint8_t pin_state[last_pin - first_pin + 1];
+      for (uint8_t i = first_pin; i <= last_pin; i++) {
+        Pin pin = GET_PIN_MAP_PIN(i);
+        if (!VALID_PIN(pin)) continue;
         if (printer.pin_is_protected(pin) && !ignore_protection) continue;
         HAL::pinMode(pin, INPUT_PULLUP);
+        delay(1);
         // if (IS_ANALOG(pin))
         //   pin_state[pin - first_pin] = analogRead(pin - analogInputToDigitalPin(0)); // int16_t pin_state[...]
         // else
@@ -262,7 +265,9 @@
       #endif
 
       for(;;) {
-        for (int8_t pin = first_pin; pin <= last_pin; pin++) {
+        for (uint8_t i = first_pin; i <= last_pin; i++) {
+          Pin pin = GET_PIN_MAP_PIN(i);
+          if (!VALID_PIN(pin)) continue;
           if (printer.pin_is_protected(pin)) continue;
           byte val;
           // if (IS_ANALOG(pin))
@@ -270,7 +275,7 @@
           // else
             val = HAL::digitalRead(pin);
           if (val != pin_state[pin - first_pin]) {
-            report_pin_state(pin);
+            report_pin_state_extended(pin, ignore_protection, false);
             pin_state[pin - first_pin] = val;
           }
         }
@@ -288,8 +293,10 @@
     }
 
     // Report current state of selected pin(s)
-    for (uint8_t pin = first_pin; pin <= last_pin; pin++)
-      report_pin_state_extended(pin, ignore_protection);
+    for (uint8_t i = first_pin; i <= last_pin; i++) {
+      Pin pin = GET_PIN_MAP_PIN(i);
+      if (VALID_PIN(pin)) report_pin_state_extended(pin, ignore_protection, true);
+    }
   }
 
 #endif // ENABLED(PINS_DEBUGGING)
