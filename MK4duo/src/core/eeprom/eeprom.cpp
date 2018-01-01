@@ -740,7 +740,6 @@ void EEPROM::Postprocess() {
       Factory_Settings();
     }
     else {
-      float dummy = 0;
 
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
@@ -1956,7 +1955,7 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(ULTIPANEL)
       CONFIG_MSG_START("Material heatup parameters:");
-      for (int8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
         SERIAL_MV(" B", TEMP_UNIT(lcd_preheat_bed_temp[i]));
