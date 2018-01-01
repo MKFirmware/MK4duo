@@ -676,7 +676,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
 
   parent->rewind();
 
-  while ((p = parent->getLongFilename(p, card.tempLongFilename, 0, NULL))) {
+  while ((p = parent->getLongFilename(p, card.tempLongFilename))) {
     //HAL::pingWatchdog();
     if (! (DIR_IS_FILE(p) || DIR_IS_SUBDIR(p))) continue;
     if (strcmp(card.tempLongFilename, "..") == 0) continue;
@@ -1131,7 +1131,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
     cVFATNeeded = (cb / 13) + (cb % 13 == 0 ? 0 : 1);
   }
 
-  while ((p = dirFile->getLongFilename(p, card.tempLongFilename, cVFATNeeded, &wIndexPos))) {
+  while ((p = dirFile->getLongFilename(p, card.tempLongFilename))) {
     //HAL::pingWatchdog();
     index = (0xF & ((dirFile->curPosition_ - 31) >> 5));
     if (RFstricmp(card.tempLongFilename, (char *)dname) == 0) {
@@ -1490,7 +1490,7 @@ bool SdBaseFile::openParent(SdBaseFile* dir) {
   }
   // search for parent in '../..'
   do {
-    if (file.readDir(&entry, NULL) != 32) {
+    if (file.readDir(&entry) != 32) {
       DBG_FAIL_MACRO;
       goto FAIL;
     }
@@ -1918,7 +1918,8 @@ void SdBaseFile::createFilename(char* buffer, const dir_t &dirEntry) {
  * \return For success getLongFilename() returns a pointer to dir_t
  * A value of zero will be returned if end of file is reached.
  */
-dir_t *SdBaseFile::getLongFilename(dir_t *dir, char *longFilename, int8_t cVFATNeeded, uint32_t *pwIndexPos) {
+dir_t *SdBaseFile::getLongFilename(dir_t *dir, char *longFilename) {
+  
   int16_t n;
   uint8_t bLastPart = true;
   uint8_t checksum  = 0;
@@ -2038,7 +2039,7 @@ bool SdBaseFile::findSpace(dir_t *dir, int8_t cVFATNeeded, int8_t *pcVFATFound, 
  * a directory file or an I/O error occurred.
  */
 
-int8_t SdBaseFile::readDir(dir_t* dir, char* longFilename) {
+int8_t SdBaseFile::readDir(dir_t* dir) {
   int16_t n;
   // if not a directory file or miss-positioned return an error
   if (!isDir() || (0x1F & curPosition_)) return -1;

@@ -157,6 +157,8 @@
         // Second retract filament
         do_pause_e_move(retract2, PAUSE_PARK_RETRACT_2_FEEDRATE);
       }
+    #else
+      UNUSED(retract2);
     #endif
 
     if (unload_length != 0) {

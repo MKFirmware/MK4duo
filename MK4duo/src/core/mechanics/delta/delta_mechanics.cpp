@@ -709,8 +709,13 @@
     report_xyz(delta);
 
     SERIAL_MSG("Stepper:");
-    const float step_count[XYZE] = { stepper.position(X_AXIS), stepper.position(Y_AXIS), stepper.position(Z_AXIS), stepper.position(E_AXIS) };
-    report_xyze(step_count, 4, 0);
+    LOOP_XYZE(i) {
+      SERIAL_CHR(' ');
+      SERIAL_CHR(axis_codes[i]);
+      SERIAL_CHR(':');
+      SERIAL_VAL(stepper.position((AxisEnum)i));
+    }
+    SERIAL_EOL();
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();

@@ -1772,7 +1772,7 @@
     bool open(const char* path, uint8_t oflag = O_READ);
     bool openNext(SdBaseFile* dirFile, uint8_t oflag);
     bool openRoot(SdVolume* vol);
-    int8_t readDir(dir_t& dir, char *longfilename) {return readDir(&dir, longfilename);}
+    int8_t readDir(dir_t& dir) { return readDir(&dir); }
     int peek();
     bool printCreateDateTime();
     static void printFatDate(uint16_t fatDate);
@@ -1785,7 +1785,7 @@
     bool printName();
     int16_t read();
     int read(void* buf, size_t nbyte);
-    int8_t readDir(dir_t* dir, char *longfilename);
+    int8_t readDir(dir_t* dir);
 
     static bool remove(SdBaseFile* dirFile, const char* path);
     bool remove();
@@ -1863,7 +1863,7 @@
     bool openCachedEntry(uint8_t cacheIndex, uint8_t oflags);
     dir_t* readDirCache();
     dir_t* readDirCacheSpecial();
-    dir_t *getLongFilename(dir_t *dir, char *longFilename, int8_t cVFATNeeded, uint32_t *pwIndexPos);
+    dir_t *getLongFilename(dir_t *dir, char *longFilename);
     bool findSpace(dir_t *dir, int8_t cVFATNeeded, int8_t *pcVFATFound, uint32_t *pwIndexPos);
     uint8_t lsRecursive(SdBaseFile *parent, uint8_t level, char *findFilename, SdBaseFile *pParentFound, bool isJson);
     bool setDirSize();
@@ -1962,12 +1962,12 @@
      * \param[in] vol The FAT volume containing the root directory to be opened.
      * \return true for success or false for failure.
      */
-    bool openRoot(SdVolume& vol) {return openRoot(&vol);}  // NOLINT
+    bool openRoot(SdVolume& vol) { return openRoot(&vol); }  // NOLINT
     /** \deprecated Use: int8_t readDir(dir_t* dir);
      * \param[out] dir The dir_t struct that will receive the data.
      * \return bytes read for success zero for eof or -1 for failure.
      */
-    int8_t readDir(dir_t& dir) {return readDir(&dir);}  // NOLINT
+    int8_t readDir(dir_t& dir) { return readDir(&dir); }  // NOLINT
     /** \deprecated Use:
      * static uint8_t remove(SdBaseFile* dirFile, const char* path);
      * \param[in] dirFile The directory that contains the file.
@@ -2012,8 +2012,6 @@
       __attribute__((error("use open(&dirFile, index, oflag)")));
     bool openRoot(SdVolume& vol)  // NOLINT
       __attribute__((error("use openRoot(&vol)")));
-    int8_t readDir(dir_t& dir)  // NOLINT
-      __attribute__((error("use readDir(&dir)")));
     static bool remove(SdBaseFile& dirFile, const char* path)  // NOLINT
       __attribute__((error("use remove(&dirFile, path)")));
   #endif  // ALLOW_DEPRECATED_FUNCTIONS

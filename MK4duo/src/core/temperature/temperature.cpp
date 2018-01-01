@@ -932,6 +932,8 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
       SERIAL_CHR('T');
       #if HOTENDS > 1
         if (print_ID) SERIAL_VAL((int)act->ID);
+      #else
+        UNUSED(print_ID);
       #endif
     }
   #endif

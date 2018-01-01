@@ -150,7 +150,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore, bool extended = fals
           #endif
           {
             if (!GET_ARRAY_IS_DIGITAL(pin)) {
-              sprintf_P(buffer, PSTR("Analog in = %5d"), analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
+              sprintf_P(buffer, PSTR("Analog in = %5i"), (int)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
               SERIAL_PS(buffer);
             }
             else {
@@ -183,7 +183,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore, bool extended = fals
     PRINT_PIN(pin);
     PRINT_PORT(pin);
     if (IS_ANALOG(pin)) {
-      sprintf_P(buffer, PSTR(" (A%2d)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
+      sprintf_P(buffer, PSTR(" (A%2i)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
       SERIAL_PS(buffer);
     }
     else
@@ -212,7 +212,7 @@ inline void report_pin_state_extended(Pin pin, bool ignore, bool extended = fals
         }
         else {
           if (IS_ANALOG(pin)) {
-            sprintf_P(buffer, PSTR("   Analog in = %5d"), analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
+            sprintf_P(buffer, PSTR("   Analog in = %5i"), (int)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
             SERIAL_PS(buffer);
             SERIAL_MSG("   ");
           }

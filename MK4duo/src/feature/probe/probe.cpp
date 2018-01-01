@@ -299,8 +299,8 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
     mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
-    // Move the probe to the given XY
-    mechanics.do_blocking_move_to_xy(nx, ny);
+    // Move the probe to the starting XYZ
+    mechanics.do_blocking_move_to(nx, ny, nz);
 
     float measured_z = NAN;
     if (!set_deployed(true)) {
@@ -354,6 +354,10 @@ float Probe::check_pt(const float &rx, const float &ry, const bool stow, const i
     #endif
 
     return measured_z;
+
+  #else // HASNT PROBE
+
+    return NAN;
 
   #endif // ENABLED(PROBE_MANUALLY)
 

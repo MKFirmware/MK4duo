@@ -1989,6 +1989,8 @@ void Stepper::report_positions() {
           case 8: WRITE(E5_MS2_PIN, ms2); break;
         #endif
       }
+    #else
+      UNUSED(ms2);
     #endif
   }
 
