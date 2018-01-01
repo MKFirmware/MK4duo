@@ -155,17 +155,15 @@
 
   void CardReader::stopSDPrint() {
     if (isFileOpen() && sdprinting) {
-      SERIAL_EM("Close file and save restart.gcode");
       sdprinting = false;
       commands.clear_command_queue();
       closeFile(true);
       stepper.quickstop_stepper();
-      print_job_counter.stop();
-      printer.setWaitForHeatUp(false);
       thermalManager.disable_all_heaters();
       #if FAN_COUNT > 0
         LOOP_FAN() fans[f].Speed = 0;
       #endif
+      printer.setWaitForHeatUp(false);
       lcd_setstatus(MSG_PRINT_ABORTED, true);
     }
   }
@@ -364,9 +362,12 @@
     gcode_file.close();
     saving = false;
 
-    SdFile restart_file;
-
     if (store_position) {
+
+      SERIAL_EM("Save restart.gcode");
+
+      SdFile restart_file;
+
       char  bufferFilerestart[100],
             buffer_G1[50],
             buffer_G92_Z[50],
@@ -391,7 +392,6 @@
         }
       #endif
 
-      sdprinting = false;
       stepper.synchronize();
 
       snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", (unsigned long)sdpos);
@@ -482,10 +482,11 @@
 
       restart_file.sync();
       restart_file.close();
-
-      mechanics.current_position[Z_AXIS] += 5;
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS]);
-
+      saving = false;
+/*
+      planner.discard_current_block();
+      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + 5);
+*/
     }
   }
 
