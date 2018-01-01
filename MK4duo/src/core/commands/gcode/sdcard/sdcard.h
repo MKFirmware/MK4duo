@@ -170,8 +170,6 @@
    */
   inline void gcode_M33(void) { card.stopSDPrint(); }
 
-  
-
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
 
     #define CODE_M34

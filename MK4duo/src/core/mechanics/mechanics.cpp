@@ -126,7 +126,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position() {
-  planner.buffer_line(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS], feedrate_mm_s, tools.active_extruder);
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, tools.active_extruder);
 }
 
 /**
@@ -135,7 +135,7 @@ void Mechanics::line_to_current_position() {
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
 void Mechanics::line_to_destination(float fr_mm_s) {
-  planner.buffer_line(destination[A_AXIS], destination[B_AXIS], destination[C_AXIS], destination[E_AXIS], fr_mm_s, tools.active_extruder);
+  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, tools.active_extruder);
 }
 
 /**

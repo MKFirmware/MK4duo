@@ -218,7 +218,6 @@
 #define MSG_PAUSE_PRINT                     _UxGT("Pausa")
 #define MSG_RESUME_PRINT                    _UxGT("Riprendi stampa")
 #define MSG_STOP_PRINT                      _UxGT("Arresta stampa")
-#define MSG_STOP_SAVE_PRINT                 _UxGT("Arresta e Salva")
 #define MSG_CARD_MENU                       _UxGT("Stampa da SD")
 #define MSG_NO_CARD                         _UxGT("SD non presente")
 #define MSG_DWELL                           _UxGT("Sospensione...")

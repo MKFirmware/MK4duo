@@ -69,17 +69,21 @@ class Probe {
 
     static bool set_deployed(const bool deploy);
 
-    /**
-     * Check Pt (ex probe_pt)
-     * - Move to the given XY
-     * - Deploy the probe, if not already deployed
-     * - Probe the bed, get the Z position
-     * - Depending on the 'stow' flag
-     *   - Stow the probe, or
-     *   - Raise to the BETWEEN height
-     * - Return the probed Z position
-     */
-    static float check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative=true);
+    #if HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
+
+      /**
+       * Check Pt (ex probe_pt)
+       * - Move to the given XY
+       * - Deploy the probe, if not already deployed
+       * - Probe the bed, get the Z position
+       * - Depending on the 'stow' flag
+       *   - Stow the probe, or
+       *   - Raise to the BETWEEN height
+       * - Return the probed Z position
+       */
+      static float check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative=true);
+
+    #endif
 
     #if QUIET_PROBING
       static void probing_pause(const bool p);
