@@ -545,7 +545,7 @@
       if (folder) {
         folder_list[row]->SetVisibility(true);
         row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
-      } else if (filename == NULL) {
+      } else if (filename == "") {
         folder_list[row]->SetVisibility(false);
         row_list[row]->detachPop();
       } else {
@@ -1260,7 +1260,6 @@
                     PreviouspercentDone = 0;
     static float    PreviousdegHeater[3] = { 0.0 },
                     PrevioustargetdegHeater[3] = { 0.0 };
-    char* temp;
 
     if (!NextionON) return;
 

@@ -604,8 +604,8 @@ static void lcd_implementation_status_screen() {
     char buffer2[10];
     duration_t elapsed  = print_job_counter.duration();
     duration_t finished = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
-    uint8_t len1 = elapsed.toDigital(buffer1, false),
-            len2 = finished.toDigital(buffer2, false);
+    elapsed.toDigital(buffer1, false);
+    finished.toDigital(buffer2, false);
 
     #if HAS_LCD_POWER_SENSOR
       if (millis() < print_millis + 1000) {
