@@ -32,16 +32,14 @@
 
   constexpr uint8_t _7P_STEP = 1,              // 7-point step - to change number of calibration points
                     _4P_STEP = _7P_STEP * 2,   // 4-point step
-                    NPP      = _7P_STEP * 6;   // number of calibration points on the radius
-  enum CalEnum {                               // the 7 main calibration points - add definitions if needed
-    CEN      = 0,
-    __A      = 1,
-    _AB      = __A + _7P_STEP,
-    __B      = _AB + _7P_STEP,
-    _BC      = __B + _7P_STEP,
-    __C      = _BC + _7P_STEP,
-    _CA      = __C + _7P_STEP,
-  };
+                    NPP      = _7P_STEP * 6,   // number of calibration points on the radius
+                    CEN      = 0,
+                    __A      = 1,
+                    _AB      = __A + _7P_STEP,
+                    __B      = _AB + _7P_STEP,
+                    _BC      = __B + _7P_STEP,
+                    __C      = _BC + _7P_STEP,
+                    _CA      = __C + _7P_STEP;
 
   #define LOOP_CAL_PT(VAR, S, N) for (uint8_t VAR=S; VAR<=NPP; VAR+=N)
   #define F_LOOP_CAL_PT(VAR, S, N) for (float VAR=S; VAR<NPP+0.9999; VAR+=N)
@@ -177,7 +175,7 @@
       }
 
       if (!_1p_calibration) {   // probe the radius
-        const CalEnum start  =  _4p_opposite_points  ? _AB : __A;
+        const uint8_t start  =  _4p_opposite_points  ? _AB : __A;
         const float   steps  =  _7p_14_intermediates ? _7P_STEP / 15.0 : // 15r * 6 + 10c = 100
                                 _7p_11_intermediates ? _7P_STEP / 12.0 : // 12r * 6 +  9c = 81
                                 _7p_8_intermediates  ? _7P_STEP /  9.0 : //  9r * 6 + 10c = 64

@@ -177,7 +177,7 @@
 
     _flatten(pos, &loc);
 
-    if (color_index >= 0 && color_index < NX_MAX) {
+    if (color_index < NX_MAX) {
       float color1[3], color2[3];
       fcolor(color1, color_tool[color_index], _cursor.position[Y_AXIS], _max[Y_AXIS]);
       fcolor(color2, color_tool[color_index], pos[Y_AXIS], _max[Y_AXIS]);

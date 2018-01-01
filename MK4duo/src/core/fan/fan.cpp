@@ -69,7 +69,7 @@
       // Check for Hotend temperature
       LOOP_HOTEND() {
         if (TEST(autoMonitored, h))
-          Speed = ((int)heaters[h].current_temperature > triggerTemperatures) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
+          Speed = (static_cast<uint16_t>(heaters[h].current_temperature) > triggerTemperatures) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
       }
 
       // Check for Controller fan

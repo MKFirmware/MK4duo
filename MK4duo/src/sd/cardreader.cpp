@@ -64,11 +64,11 @@
   uint16_t nrFile_index;
 
   void CardReader::lsDive(SdBaseFile parent, const char* const match/*=NULL*/) {
-    dir_t* p;
+    dir_t* p    = NULL;
     uint8_t cnt = 0;
-    
+
     // Read the next entry from a directory
-    while ((p = parent.getLongFilename(p, fileName, 0, NULL)) != NULL) {
+    while ((p = parent.getLongFilename(p, fileName)) != NULL) {
       uint8_t pn0 = p->name[0];
       if (pn0 == DIR_NAME_FREE) break;
 
@@ -1071,7 +1071,7 @@
           key_found = true;
           break; //key finded and buffered
         }
-        if (ln_char == ';' || ln_buf+1 >= len_k || ln_space && ln_buf > 0) { //comments on key is not allowd. Also key len can't be longer than len_k or contain spaces. Stop buffering and try the next line
+        if (ln_char == ';' || (ln_buf+1 >= len_k) || (ln_space && ln_buf > 0)) { //comments on key is not allowd. Also key len can't be longer than len_k or contain spaces. Stop buffering and try the next line
           ln_ignore = true;
           continue;
         }
@@ -1093,7 +1093,7 @@
           len_v = ln_buf;
           break;  // new line reached, we can stop
         }
-        if (ln_ignore|| ln_char == ' ' && ln_buf == 0) continue;  // ignore also initial spaces of the value
+        if (ln_ignore || (ln_char == ' ' && ln_buf == 0)) continue;  // ignore also initial spaces of the value
         if (ln_char == ';' || ln_buf+1 >= len_v) {  // comments reached or value len longer than len_v. Stop buffering and go to the next line.
           ln_ignore = true;
           continue;

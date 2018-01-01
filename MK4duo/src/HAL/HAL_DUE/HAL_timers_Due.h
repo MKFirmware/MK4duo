@@ -79,21 +79,22 @@ typedef struct {
 #define NvicPriorityUart    1
 #define NvicPrioritySystick 2
 
+constexpr uint32_t  HAL_STEPPER_TIMER_RATE  = ((F_CPU) / 2); // 42 MHz
+constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER_RATE));
+
 #define STEPPER_TIMER               3
 #define STEPPER_TIMER_PRESCALE      2.0
-#define HAL_STEPPER_TIMER_RATE      ((F_CPU) / 2)  // 42 MHz
-#define HAL_ACCELERATION_RATE       (4294967296.0 / (HAL_STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us
 #define HAL_STEP_TIMER_ISR          void TC3_Handler()
 
 #define PULSE_TIMER_NUM             STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
-#define AD_PRESCALE_FACTOR      84  // 500 kHz ADC clock 
-#define AD_TRACKING_CYCLES      4   // 0 - 15     + 1 adc clock cycles
-#define AD_TRANSFER_CYCLES      1   // 0 - 3      * 2 + 3 adc clock cycles
+#define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
+#define AD_TRACKING_CYCLES          4   // 0 - 15     + 1 adc clock cycles
+#define AD_TRANSFER_CYCLES          1   // 0 - 3      * 2 + 3 adc clock cycles
 
-#define ADC_ISR_EOC(channel)    (0x1u << channel)
+#define ADC_ISR_EOC(channel)        (0x1u << channel)
 
 #define HAL_STEPPER_TIMER_START()   HAL_timer_start(STEPPER_TIMER)
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
@@ -103,9 +104,9 @@ typedef struct {
 #define HAL_DISABLE_ISRs()          DISABLE_STEPPER_INTERRUPT()
 
 // Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000L) // 84
+#define CYCLES_PER_US               ((F_CPU) / 1000000L) // 84
 // Stepper pulse duration, in cycles
-#define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
+#define STEP_PULSE_CYCLES           ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
 
 // Highly granular delays for step pulses, etc.
 #define DELAY_0_NOP   NOOP

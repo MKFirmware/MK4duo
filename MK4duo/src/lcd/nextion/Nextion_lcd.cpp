@@ -545,7 +545,7 @@
       if (folder) {
         folder_list[row]->SetVisibility(true);
         row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
-      } else if (filename == "") {
+      } else if (filename == NULL) {
         folder_list[row]->SetVisibility(false);
         row_list[row]->detachPop();
       } else {
