@@ -754,7 +754,7 @@ void kill_screen(const char* lcd_msg) {
       lcd_reset_status();
     }
 
-    void lcd_sdcard_stop_save() {
+    void lcd_sdcard_stop() {
       card.stopSDPrint();
       lcd_return_to_status();
     }
@@ -944,7 +944,7 @@ void kill_screen(const char* lcd_msg) {
             MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
           else
             MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
-          MENU_ITEM(function, MSG_STOP_SAVE_PRINT, lcd_sdcard_stop_save);
+          MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
         }
         else {
           MENU_ITEM(submenu, MSG_CARD_MENU, lcd_sdcard_menu);

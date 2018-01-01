@@ -156,8 +156,8 @@
   void CardReader::stopSDPrint() {
     if (isFileOpen() && sdprinting) {
       sdprinting = false;
-      commands.clear_command_queue();
       closeFile(true);
+      commands.clear_command_queue();
       stepper.quickstop_stepper();
       thermalManager.disable_all_heaters();
       #if FAN_COUNT > 0

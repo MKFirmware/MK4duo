@@ -605,9 +605,6 @@
 #ifndef MSG_STOP_PRINT
   #define MSG_STOP_PRINT                      _UxGT("Stop print")
 #endif
-#ifndef MSG_STOP_SAVE_PRINT
-  #define MSG_STOP_SAVE_PRINT                 _UxGT("Stop and Save")
-#endif
 #ifndef MSG_CARD_MENU
   #define MSG_CARD_MENU                       _UxGT("Print from SD")
 #endif

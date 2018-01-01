@@ -254,114 +254,115 @@ float Probe::run_z_probe() {
   return probe_z * (1.0 / (Z_PROBE_REPETITIONS));
 }
 
-/**
- * Check Pt (ex probe_pt)
- * - Move to the given XY
- * - Deploy the probe, if not already deployed
- * - Probe the bed, get the Z position
- * - Depending on the 'stow' flag
- *   - Stow the probe, or
- *   - Raise to the BETWEEN height
- * - short_move Flag for a shorter probe move towards the bed
- * - Return the probed Z position
- */
-float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative/*=true*/) {
+#if HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
 
-  #if HAS_BED_PROBE
+  /**
+   * Check Pt (ex probe_pt)
+   * - Move to the given XY
+   * - Deploy the probe, if not already deployed
+   * - Probe the bed, get the Z position
+   * - Depending on the 'stow' flag
+   *   - Stow the probe, or
+   *   - Raise to the BETWEEN height
+   * - short_move Flag for a shorter probe move towards the bed
+   * - Return the probed Z position
+   */
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
-        SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
-        SERIAL_MV(", ", stow ? "" : "no ");
-        SERIAL_EM("stow)");
-        DEBUG_POS("", mechanics.current_position);
-      }
-    #endif
+  float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative/*=true*/) {
 
-    float nx = rx, ny = ry;
-    if (probe_relative) {
-      if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
-      nx -= offset[X_AXIS];
-      ny -= offset[Y_AXIS];
-    }
-    else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
+    #if HAS_BED_PROBE
 
-    const float nz = 
-      #if MECH(DELTA)
-        // Move below clip height or xy move will be aborted by do_blocking_move_to
-        min(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
-      #else
-        mechanics.current_position[Z_AXIS]
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) {
+          SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
+          SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
+          SERIAL_MV(", ", stow ? "" : "no ");
+          SERIAL_EM("stow)");
+          DEBUG_POS("", mechanics.current_position);
+        }
       #endif
-    ;
 
-    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-    mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+      float nx = rx, ny = ry;
+      if (probe_relative) {
+        if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
+        nx -= offset[X_AXIS];
+        ny -= offset[Y_AXIS];
+      }
+      else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
 
-    // Move the probe to the starting XYZ
-    mechanics.do_blocking_move_to(nx, ny, nz);
+      const float nz = 
+        #if MECH(DELTA)
+          // Move below clip height or xy move will be aborted by do_blocking_move_to
+          min(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
+        #else
+          mechanics.current_position[Z_AXIS]
+        #endif
+      ;
 
-    float measured_z = NAN;
-    if (!set_deployed(true)) {
-      measured_z = run_z_probe() + offset[Z_AXIS];
+      const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+      mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
-      if (!stow)
-        mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-      else
-        if (set_deployed(false)) measured_z = NAN;
-    }
+      // Move the probe to the starting XYZ
+      mechanics.do_blocking_move_to(nx, ny, nz);
 
-    if (verbose_level > 2) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
-      SERIAL_EOL();
-    }
+      float measured_z = NAN;
+      if (!set_deployed(true)) {
+        measured_z = run_z_probe() + offset[Z_AXIS];
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
-    #endif
+        if (!stow)
+          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        else
+          if (set_deployed(false)) measured_z = NAN;
+      }
 
-    mechanics.feedrate_mm_s = old_feedrate_mm_s;
+      if (verbose_level > 2) {
+        SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
+        SERIAL_MV(MSG_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
+        SERIAL_MV(MSG_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
+        SERIAL_EOL();
+      }
 
-    if (isnan(measured_z)) {
-      LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
-      SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
-    }
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
+      #endif
 
-    return measured_z;
+      mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
-  #elif ENABLED(PROBE_MANUALLY)
+      if (isnan(measured_z)) {
+        LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
+        SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
+      }
 
-    UNUSED(stow);
-    UNUSED(verbose_level);
-    UNUSED(probe_relative);
+      return measured_z;
 
-    float measured_z = NAN;
+    #elif ENABLED(PROBE_MANUALLY)
 
-    // Disable software endstops to allow manual adjustment
-    #if HAS_SOFTWARE_ENDSTOPS
-      const bool old_enable_soft_endstops = printer.IsSoftEndstop();
-      printer.setSoftEndstop(false);
-    #endif
+      UNUSED(stow);
+      UNUSED(verbose_level);
+      UNUSED(probe_relative);
 
-    measured_z = lcd_probe_pt(rx, ry);
+      float measured_z = NAN;
 
-    // Restore the soft endstop status
-    #if HAS_SOFTWARE_ENDSTOPS
-      printer.setSoftEndstop(old_enable_soft_endstops);
-    #endif
+      // Disable software endstops to allow manual adjustment
+      #if HAS_SOFTWARE_ENDSTOPS
+        const bool old_enable_soft_endstops = printer.IsSoftEndstop();
+        printer.setSoftEndstop(false);
+      #endif
 
-    return measured_z;
+      measured_z = lcd_probe_pt(rx, ry);
 
-  #else // HASNT PROBE
+      // Restore the soft endstop status
+      #if HAS_SOFTWARE_ENDSTOPS
+        printer.setSoftEndstop(old_enable_soft_endstops);
+      #endif
 
-    return NAN;
+      return measured_z;
 
-  #endif // ENABLED(PROBE_MANUALLY)
+    #endif // ENABLED(PROBE_MANUALLY)
 
-}
+  }
+
+#endif // HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
 
 #if QUIET_PROBING
   void Probe::probing_pause(const bool p) {
