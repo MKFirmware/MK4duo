@@ -262,7 +262,7 @@ void Commands::get_serial_commands() {
       char sd_char = (char)n;
       card_eof = card.eof();
       if (card_eof || n == -1
-          || sd_char == '\n' || sd_char == '\r'
+          || sd_char == '\n'  || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
       ) {
         if (card_eof) {
@@ -295,6 +295,8 @@ void Commands::get_serial_commands() {
         if (!sd_count) continue; // skip empty lines (and comment lines)
 
         command_queue[cmd_queue_index_w][sd_count] = '\0'; // terminate string
+        planner.add_command_length(sd_count);
+
         sd_count = 0; // clear sd line buffer
 
         commit_command(false);
