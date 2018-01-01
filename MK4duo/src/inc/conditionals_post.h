@@ -655,12 +655,12 @@
  */
 #if ENABLED(ARDUINO_ARCH_SAM)
   #if ENABLED(LIN_ADVANCE)
-    #define DOUBLE_STEP_FREQUENCY 60000 // 60KHz
+    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 60000; // 60KHz
   #else
-    #define DOUBLE_STEP_FREQUENCY 80000 // 80Khz
+    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 80000; // 80Khz
   #endif
 #else
-  #define DOUBLE_STEP_FREQUENCY 10000
+  constexpr uint32_t DOUBLE_STEP_FREQUENCY = 10000;
 #endif
 
 /**
