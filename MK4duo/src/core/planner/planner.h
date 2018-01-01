@@ -123,6 +123,8 @@ typedef struct {
     #endif
   #endif
 
+  uint16_t command_len;
+
 } block_t;
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))
@@ -291,6 +293,36 @@ class Planner {
     FORCE_INLINE static void discard_current_block() {
       if (blocks_queued())
         block_buffer_tail = BLOCK_MOD(block_buffer_tail + 1);
+    }
+
+    /**
+     * length of commands in planner
+     */
+    FORCE_INLINE uint16_t command_in_planner_len() {
+      uint8_t _block_buffer_head = block_buffer_head;
+      uint8_t _block_buffer_tail = block_buffer_tail;
+      uint16_t command_len = 0;
+
+      while (_block_buffer_head != _block_buffer_tail) {
+        command_len += block_buffer[_block_buffer_tail].command_len;
+        _block_buffer_tail = (_block_buffer_tail + 1) & (BLOCK_BUFFER_SIZE - 1);
+      }
+      return command_len;
+    }
+
+    /**
+     * Number of block in planner
+     */
+    FORCE_INLINE uint8_t number_of_blocks() {
+      return (block_buffer_head + BLOCK_BUFFER_SIZE - block_buffer_tail) & (BLOCK_BUFFER_SIZE - 1);
+    }
+
+    FORCE_INLINE void add_command_length(uint16_t command_len) {
+      if (block_buffer_head != block_buffer_tail) {
+        // The planner buffer is not empty. Get the index of the last buffer line entered,
+        // which is (block_buffer_head - 1) modulo BLOCK_BUFFER_SIZE.
+        block_buffer[prev_block_index(block_buffer_head)].command_len += command_len;
+      }
     }
 
     /**

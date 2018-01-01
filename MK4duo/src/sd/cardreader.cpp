@@ -358,6 +358,7 @@
   }
 
   void CardReader::closeFile(const bool store_position/*=false*/) {
+
     gcode_file.sync();
     gcode_file.close();
     saving = false;
@@ -366,35 +367,65 @@
 
       SERIAL_EM("Save restart.gcode");
 
-      SdFile restart_file;
+      CRITICAL_SECTION_START
 
-      char  bufferFilerestart[100],
-            buffer_G1[50],
-            buffer_G92_Z[50],
-            buffer_G92_E[50],
-            buffer_SDpos[11];
+        SdFile restart_file;
 
-      const char* restart_name_File = "restart.gcode";
+        char  bufferFilerestart[100],
+              buffer_G1[50],
+              buffer_G92_Z[50],
+              buffer_G92_E[50],
+              buffer_SDpos[11];
 
-      int16_t old_temp[HEATER_COUNT];
-      LOOP_HEATER() {
-        old_temp[h] = heaters[h].target_temperature;
-        heaters[h].target_temperature = 0;
-        heaters[h].soft_pwm = 0;
-      }
+        uint32_t saved_sdpos = 0;
 
-      #if FAN_COUNT > 0
-        uint16_t old_fan[FAN_COUNT];
-        LOOP_FAN() {
-          old_fan[f] = fans[f].Speed;
-          fans[f].Speed = 0;
-          fans[f].pwm_pos = 0;
+        float saved_pos[4] = {0.0, 0.0, 0.0, 0.0};
+
+        const char* restart_name_File = "restart.gcode";
+
+        int16_t old_temp[HEATER_COUNT];
+        LOOP_HEATER() {
+          old_temp[h] = heaters[h].target_temperature;
+          heaters[h].target_temperature = 0;
+          heaters[h].soft_pwm = 0;
         }
-      #endif
 
-      stepper.synchronize();
+        #if FAN_COUNT > 0
+          uint16_t old_fan[FAN_COUNT];
+          LOOP_FAN() {
+            old_fan[f] = fans[f].Speed;
+            fans[f].Speed = 0;
+            fans[f].pwm_pos = 0;
+          }
+        #endif
 
-      snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", (unsigned long)sdpos);
+        //const uint8_t nplanner_blocks = planner.number_of_blocks();
+        saved_sdpos  = sdpos + 1;
+        const uint16_t planner_len = planner.command_in_planner_len();
+        saved_sdpos -= planner_len;
+
+        snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", saved_sdpos);
+
+        planner.discard_current_block();
+        commands.clear_command_queue(); // Empty command queue
+
+        memcpy(saved_pos, mechanics.current_position, sizeof(saved_pos));
+
+        #if 0
+          SERIAL_EMV("SDPOS:", sdpos + 1);
+          SERIAL_EMV("PLANNER LENGHT:", planner_len);
+          SERIAL_EMV("PLANNER BLOCKS:", nplanner_blocks);
+          SERIAL_EMV("SAVED_SDPOS:", saved_sdpos);
+        #endif
+
+      CRITICAL_SECTION_END
+
+      // Raise Z + 5mm
+      //saved_pos[Z_AXIS] += 5;
+      //planner.buffer_line_kinematic(saved_pos, mechanics.homing_feedrate_mm_s[Z_AXIS], tools.active_extruder);
+      //stepper.synchronize(); // wait moving
+      //memcpy(mechanics.current_position, saved_pos, sizeof(saved_pos));
+      //mechanics.set_destination_to_current();
 
       strcpy(bufferFilerestart, "M32 S");
       strcat(bufferFilerestart, buffer_SDpos);
@@ -402,31 +433,31 @@
       strcat(bufferFilerestart, fileName);
 
       strcpy(buffer_G1, "G1 X");
-      dtostrf(mechanics.current_position[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+      dtostrf(saved_pos[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
       strcat(buffer_G1, " Y");
-      dtostrf(mechanics.current_position[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+      dtostrf(saved_pos[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
       strcat(buffer_G1, " Z");
-      dtostrf(mechanics.current_position[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+      dtostrf(saved_pos[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
       strcat(buffer_G1, " F3600\n");
 
       #if MECH(DELTA)
         strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
       #else
         strcpy(buffer_G92_Z, "G92 Z");
-        dtostrf(mechanics.current_position[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+        dtostrf(saved_pos[Z_AXIS] + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
         strcat(buffer_G92_Z, "\n\n");
       #endif
 
       strcpy(buffer_G92_E, "G92 E");
-      dtostrf(mechanics.current_position[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
+      dtostrf(saved_pos[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
       strcat(buffer_G92_E, "\n");
 
       if (!restart_file.exists(restart_name_File)) {
-        restart_file.createContiguous(&root, restart_name_File, 1);
+        restart_file.createContiguous(&workDir, restart_name_File, 1);
         restart_file.close();
       }
 
-      restart_file.open(&root, restart_name_File, O_WRITE);
+      restart_file.open(&workDir, restart_name_File, O_WRITE);
       restart_file.truncate(0);
 
       #if MECH(DELTA)
@@ -483,10 +514,7 @@
       restart_file.sync();
       restart_file.close();
       saving = false;
-/*
-      planner.discard_current_block();
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + 5);
-*/
+
     }
   }
 
