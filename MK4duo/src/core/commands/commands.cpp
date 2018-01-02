@@ -295,7 +295,7 @@ void Commands::get_serial_commands() {
         if (!sd_count) continue; // skip empty lines (and comment lines)
 
         command_queue[cmd_queue_index_w][sd_count] = '\0'; // terminate string
-        planner.add_command_length(sd_count);
+        planner.add_block_length(sd_count);
 
         sd_count = 0; // clear sd line buffer
 
@@ -455,7 +455,7 @@ void Commands::enqueue_and_echo_commands_P(const char * const pgcode) {
  * Clear the MK4duo command queue
  */
 void Commands::clear_command_queue() {
-  cmd_queue_index_r = cmd_queue_index_w;
+  cmd_queue_index_r = cmd_queue_index_w = 0;
   commands_in_queue = 0;
 }
 
@@ -632,7 +632,7 @@ void Commands::process_next_command() {
 
   char * const current_command = command_queue[cmd_queue_index_r];
 
-  if (printer.debugEcho()) SERIAL_LV(ECHO, current_command);
+  if (printer.debugEcho()) SERIAL_LT(ECHO, current_command);
 
   KEEPALIVE_STATE(IN_HANDLER);
 
