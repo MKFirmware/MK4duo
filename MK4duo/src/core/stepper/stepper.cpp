@@ -1577,8 +1577,8 @@ void Stepper::finish_and_disable() {
   disable_all_steppers();
 }
 
-void Stepper::quick_stop() {
-  cleaning_buffer_counter = 5000;
+void Stepper::quick_stop(bool clear_buffer/*=true*/) {
+  if (clear_buffer) cleaning_buffer_counter = 5000;
   DISABLE_STEPPER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
@@ -1589,7 +1589,7 @@ void Stepper::quick_stop() {
 }
 
 void Stepper::quickstop_stepper() {
-  quick_stop();
+  quick_stop(false);
   synchronize();
   mechanics.set_current_from_steppers_for_axis(ALL_AXES);
   mechanics.sync_plan_position();

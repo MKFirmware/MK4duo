@@ -40,7 +40,7 @@
     SD_CFG_END // Leave this always as the last
   };
 
-  #define SD_MAX_FOLDER_DEPTH 10     // Maximum folder depth
+  #define SD_MAX_FOLDER_DEPTH 5     // Maximum folder depth
   // Number of VFAT entries used. Each entry has 13 UTF-16 characters
   #if ENABLED(SCROLL_LONG_FILENAMES)
     #define MAX_VFAT_ENTRIES (5)
@@ -145,7 +145,7 @@
             #if ENABLED(SDSORT_DYNAMIC_RAM)
               uint8_t *isDir;
             #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
-              uint8_t isDir[(SDSORT_LIMIT+7)>>3];
+              uint8_t isDir[(SDSORT_LIMIT + 7)>>3];
             #endif
           #endif
 
