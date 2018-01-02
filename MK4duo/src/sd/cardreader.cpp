@@ -157,13 +157,7 @@
     if (isFileOpen() && sdprinting) {
       sdprinting = false;
       closeFile(true);
-      commands.clear_command_queue();
-      stepper.quickstop_stepper();
-      thermalManager.disable_all_heaters();
-      #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].Speed = 0;
-      #endif
-      printer.setWaitForHeatUp(false);
+      commands.clear_command_queue(); // Empty command queue
       lcd_setstatus(MSG_PRINT_ABORTED, true);
     }
   }
@@ -367,65 +361,65 @@
 
       SERIAL_EM("Save restart.gcode");
 
+      SdFile restart_file;
+
+      char  bufferFilerestart[100],
+            buffer_G1[50],
+            buffer_G92_Z[50],
+            buffer_G92_E[50],
+            buffer_SDpos[11];
+
+      uint32_t saved_sdpos = 0;
+
+      float saved_pos[XYZE] = { 0.0, 0.0, 0.0, 0.0 };
+
+      const char* restart_name_File = "restart.gcode";
+
+      int16_t old_temp[HEATER_COUNT];
+      LOOP_HEATER() {
+        old_temp[h] = heaters[h].target_temperature;
+        heaters[h].target_temperature = 0;
+        heaters[h].soft_pwm = 0;
+      }
+
+      #if FAN_COUNT > 0
+        uint16_t old_fan[FAN_COUNT];
+        LOOP_FAN() {
+          old_fan[f] = fans[f].Speed;
+          fans[f].Speed = 0;
+          fans[f].pwm_pos = 0;
+        }
+      #endif
+
       CRITICAL_SECTION_START
 
-        SdFile restart_file;
-
-        char  bufferFilerestart[100],
-              buffer_G1[50],
-              buffer_G92_Z[50],
-              buffer_G92_E[50],
-              buffer_SDpos[11];
-
-        uint32_t saved_sdpos = 0;
-
-        float saved_pos[4] = {0.0, 0.0, 0.0, 0.0};
-
-        const char* restart_name_File = "restart.gcode";
-
-        int16_t old_temp[HEATER_COUNT];
-        LOOP_HEATER() {
-          old_temp[h] = heaters[h].target_temperature;
-          heaters[h].target_temperature = 0;
-          heaters[h].soft_pwm = 0;
-        }
-
-        #if FAN_COUNT > 0
-          uint16_t old_fan[FAN_COUNT];
-          LOOP_FAN() {
-            old_fan[f] = fans[f].Speed;
-            fans[f].Speed = 0;
-            fans[f].pwm_pos = 0;
-          }
-        #endif
-
-        //const uint8_t nplanner_blocks = planner.number_of_blocks();
+        // Saved position of SD file
         saved_sdpos  = sdpos + 1;
-        const uint16_t planner_len = planner.command_in_planner_len();
-        saved_sdpos -= planner_len;
-
+        saved_sdpos -= planner.command_in_planner_len();
         snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", saved_sdpos);
 
-        planner.discard_current_block();
+        // Clear all movement in planned
+        stepper.kill_current_block();
+        stepper.quickstop_stepper();
+        planner.abort();
+        COPY_ARRAY(saved_pos, mechanics.current_position);
+
         commands.clear_command_queue(); // Empty command queue
-
-        memcpy(saved_pos, mechanics.current_position, sizeof(saved_pos));
-
-        #if 0
-          SERIAL_EMV("SDPOS:", sdpos + 1);
-          SERIAL_EMV("PLANNER LENGHT:", planner_len);
-          SERIAL_EMV("PLANNER BLOCKS:", nplanner_blocks);
-          SERIAL_EMV("SAVED_SDPOS:", saved_sdpos);
-        #endif
+        sdprinting = false;
 
       CRITICAL_SECTION_END
 
-      // Raise Z + 5mm
-      //saved_pos[Z_AXIS] += 5;
-      //planner.buffer_line_kinematic(saved_pos, mechanics.homing_feedrate_mm_s[Z_AXIS], tools.active_extruder);
-      //stepper.synchronize(); // wait moving
-      //memcpy(mechanics.current_position, saved_pos, sizeof(saved_pos));
-      //mechanics.set_destination_to_current();
+      float zx = saved_pos[Z_AXIS] + 5;
+      mechanics.do_blocking_move_to_z(zx);
+      stepper.finish_and_disable();
+
+      #if 0
+        SERIAL_EMV("SDPOS:", sdpos + 1);
+        SERIAL_EMV("PLANNER LENGHT:", planner.command_in_planner_len());
+        SERIAL_EMV("PLANNER BLOCKS:", planner.number_of_blocks());
+        SERIAL_EMV("SAVED_SDPOS:", saved_sdpos);
+        SERIAL_EMT("FILENAME:", fileName);
+      #endif
 
       strcpy(bufferFilerestart, "M32 S");
       strcat(bufferFilerestart, buffer_SDpos);
@@ -444,7 +438,7 @@
         strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
       #else
         strcpy(buffer_G92_Z, "G92 Z");
-        dtostrf(saved_pos[Z_AXIS] + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+        dtostrf(zx + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
         strcat(buffer_G92_Z, "\n\n");
       #endif
 
@@ -514,6 +508,7 @@
       restart_file.sync();
       restart_file.close();
       saving = false;
+      sdprinting = false;
 
     }
   }

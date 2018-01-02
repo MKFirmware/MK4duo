@@ -218,7 +218,7 @@ class Stepper {
     //
     // Quickly stop all steppers and clear the blocks queue
     //
-    static void quick_stop();
+    static void quick_stop(const bool clear_buffer=true);
     static void quickstop_stepper();
 
     //
