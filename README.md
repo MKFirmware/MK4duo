@@ -4,7 +4,7 @@
 
 ## Version 4.3.3 Stable.
 
-### Please donate for support this project https://www.paypal.me/MagoKimbra
+#### Please donate to support this project https://www.paypal.me/MagoKimbra
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
@@ -37,7 +37,7 @@
 
 ## Configurator Tool Online
 
-http://marlinkimbra.it
+http://www.marlinkimbra.it
 
 
 ## Quick Information
