@@ -120,7 +120,7 @@
         SERIAL_CHR('|');                      // Point out non test bytes
         for (uint8_t i = 0; i < 16; i++) {
           char ccc = (char)ptr[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
-          if (&ptr[i] >= (const char*)commands.command_queue && &ptr[i] < (const char*)(commands.command_queue + sizeof(commands.command_queue))) { // Print out ASCII in the command buffer area
+          if (&ptr[i] >= (const char*)commands.queue && &ptr[i] < (const char*)(commands.queue + sizeof(commands.queue))) { // Print out ASCII in the command buffer area
             if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
           }
           else { // If not in the command buffer area, flag bytes that don't match the test byte

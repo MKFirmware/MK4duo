@@ -100,7 +100,7 @@
     SERIAL_EOL();
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
-      commands.enqueue_and_echo_commands_P(PSTR("M125")); // Must be enqueued with pauseSDPrint set to be last in the buffer
+      commands.enqueue_and_echo_P(PSTR("M125")); // Must be enqueued with pauseSDPrint set to be last in the buffer
     #endif
   }
 
@@ -145,7 +145,6 @@
     if (card.sdprinting) stepper.synchronize();
 
     if (card.cardOK) {
-      commands.clear_command_queue();
       card.closeFile();
 
       char* namestartpos = parser.string_arg ; // default name position

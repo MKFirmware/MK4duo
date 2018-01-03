@@ -82,7 +82,7 @@
       case MeshStart:
         mbl.reset();
         mbl_probe_index = 0;
-        commands.enqueue_and_echo_commands_P(lcd_wait_for_move ? PSTR("G29 S2") : PSTR("G28\nG29 S2"));
+        commands.enqueue_and_echo_P(lcd_wait_for_move ? PSTR("G29 S2") : PSTR("G28\nG29 S2"));
         break;
 
       case MeshNext:

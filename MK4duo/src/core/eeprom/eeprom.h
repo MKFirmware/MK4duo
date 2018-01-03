@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef EEPROM_H
-#define EEPROM_H
+#ifndef _EEPROM_H_
+#define _EEPROM_H_
 
 class EEPROM {
 
@@ -47,6 +47,21 @@ class EEPROM {
     #endif
 
   public: /** Public Function */
+
+    FORCE_INLINE static bool Init() {
+      bool success = true;
+      Factory_Settings();
+      #if ENABLED(EEPROM_SETTINGS)
+        if ((success = Store_Settings())) {
+          #if ENABLED(AUTO_BED_LEVELING_UBL)
+            success = Load_Settings(); // UBL uses load() to know the end of EEPROM
+          #elif ENABLED(EEPROM_CHITCHAT)
+            Print_Settings();
+          #endif
+        }
+      #endif
+      return success;
+    }
 
     static void Factory_Settings();
     static bool Store_Settings();
@@ -89,4 +104,4 @@ class EEPROM {
 
 extern EEPROM eeprom;
 
-#endif //CONFIGURATION_STORE_H
+#endif /* _EEPROM_H_ */

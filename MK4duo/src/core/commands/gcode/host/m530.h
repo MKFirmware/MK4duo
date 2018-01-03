@@ -43,7 +43,7 @@ inline void gcode_M530(void) {
     else SERIAL_EOL();
 
     #if ENABLED(START_GCODE)
-      commands.enqueue_and_echo_commands_P(PSTR(START_PRINTING_SCRIPT));
+      commands.enqueue_and_echo_P(PSTR(START_PRINTING_SCRIPT));
     #endif
 
     printer.setFilamentOut(false);
@@ -63,7 +63,7 @@ inline void gcode_M530(void) {
     SERIAL_EM("Stop Printing");
 
     #if ENABLED(STOP_GCODE)
-      commands.enqueue_and_echo_commands_P(PSTR(STOP_PRINTING_SCRIPT));
+      commands.enqueue_and_echo_P(PSTR(STOP_PRINTING_SCRIPT));
     #endif
 
     printer.setFilamentOut(false);

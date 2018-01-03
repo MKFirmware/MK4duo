@@ -149,15 +149,15 @@
     char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
     sprintf_P(cmd, PSTR("M23 %s"), name);
     for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
-    commands.enqueue_and_echo_command(cmd);
-    commands.enqueue_and_echo_commands_P(PSTR("M24"));
+    commands.enqueue_and_echo_now(cmd);
+    commands.enqueue_and_echo_P(PSTR("M24"));
   }
 
   void CardReader::stopSDPrint() {
     if (isFileOpen() && sdprinting) {
       sdprinting = false;
       closeFile(true);
-      commands.clear_command_queue(); // Empty command queue
+
       lcd_setstatus(MSG_PRINT_ABORTED, true);
     }
   }
@@ -234,7 +234,7 @@
   }
 
   void CardReader::printStatus() {
-    if (cardOK) {
+    if (isFileOpen() && sdprinting) {
       SERIAL_MV(MSG_SD_PRINTING_BYTE, sdpos);
       SERIAL_EMV(MSG_SD_SLASH, fileSize);
     }
@@ -404,13 +404,14 @@
         planner.abort();
         COPY_ARRAY(saved_pos, mechanics.current_position);
 
-        commands.clear_command_queue(); // Empty command queue
+        commands.clear_queue(); // Empty command queue
         sdprinting = false;
 
       CRITICAL_SECTION_END
 
-      float zx = saved_pos[Z_AXIS] + 5;
-      mechanics.do_blocking_move_to_z(zx);
+      mechanics.destination[Z_AXIS] = saved_pos[Z_AXIS] + 5;
+      mechanics.destination[E_AXIS] = saved_pos[E_AXIS] - 1;
+      mechanics.prepare_move_to_destination();
       stepper.finish_and_disable();
 
       #if 0
@@ -438,7 +439,7 @@
         strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
       #else
         strcpy(buffer_G92_Z, "G92 Z");
-        dtostrf(zx + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+        dtostrf(saved_pos[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
         strcat(buffer_G92_Z, "\n\n");
       #endif
 
@@ -540,7 +541,7 @@
     print_job_counter.stop();
 
     if (print_job_counter.duration() > 60)
-      commands.enqueue_and_echo_commands_P(PSTR("M31"));
+      commands.enqueue_and_echo_P(PSTR("M31"));
 
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();

@@ -39,7 +39,7 @@
 
   extern AdvancedPauseMenuResponse advanced_pause_menu_response;
 
-  extern bool move_away_flag;
+  extern uint8_t did_pause_print;
 
   bool pause_print(const float &retract, const float &retract2, const point_t &park_point, const float &unload_length=0,
                    const int16_t new_temp=0, const int8_t max_beep_count=0, const bool show_lcd=false);

@@ -896,7 +896,7 @@
         temp += "W";
 
       temp.toCharArray(buffer, sizeof(buffer));
-      commands.enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo(buffer);
     }
 
     void rfid_setText(const char* message, uint32_t color /* = 65535 */) {
@@ -932,7 +932,7 @@
       }
       else if (ptr == &ProbeSend) {
         #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
-          if (bedlevel.g29_in_progress) commands.enqueue_and_echo_commands_P(PSTR("G29"));
+          if (bedlevel.g29_in_progress) commands.enqueue_and_echo_P(PSTR("G29"));
         #endif
         printer.setWaitForUser(false);
       }
@@ -996,7 +996,7 @@
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer));
     Tgcode.setText("");
-    commands.enqueue_and_echo_command(buffer);
+    commands.enqueue_and_echo(buffer);
   }
 
   #if FAN_COUNT > 0
@@ -1028,27 +1028,27 @@
       itoa(new_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      commands.enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo(buffer);
     #endif
 
     ZERO(buffer);
     movecmd.getText(buffer, sizeof(buffer));
-    commands.enqueue_and_echo_commands_P(PSTR("G91"));
-    commands.enqueue_and_echo_command(buffer);
-    commands.enqueue_and_echo_commands_P(PSTR("G90"));
+    commands.enqueue_and_echo_P(PSTR("G91"));
+    commands.enqueue_and_echo(buffer);
+    commands.enqueue_and_echo_P(PSTR("G90"));
 
     #if EXTRUDERS > 1
       ZERO(buffer);
       itoa(temp_extruder, temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
-      commands.enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo(buffer);
     #endif
   }
 
   void motoroffPopCallback(void *ptr) {
     UNUSED(ptr);
-    commands.enqueue_and_echo_commands_P(PSTR("M84"));
+    commands.enqueue_and_echo_P(PSTR("M84"));
   }
 
   void sendPopCallback(void *ptr) {
@@ -1061,11 +1061,11 @@
     ZERO(buffer);
     Filgcode.getText(buffer, sizeof(buffer));
     if (ptr == &FilExtr)
-      commands.enqueue_and_echo_command(buffer);
+      commands.enqueue_and_echo(buffer);
     else {
-      commands.enqueue_and_echo_commands_P(PSTR("G91"));
-      commands.enqueue_and_echo_command(buffer);
-      commands.enqueue_and_echo_commands_P(PSTR("G90"));
+      commands.enqueue_and_echo_P(PSTR("G91"));
+      commands.enqueue_and_echo(buffer);
+      commands.enqueue_and_echo_P(PSTR("G90"));
     }
   }
 

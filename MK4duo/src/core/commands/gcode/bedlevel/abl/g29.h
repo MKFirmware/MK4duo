@@ -937,7 +937,7 @@ inline void gcode_G29(void) {
           SERIAL_EM(Z_PROBE_END_SCRIPT);
         }
       #endif
-      commands.enqueue_and_echo_commands_P(PSTR(Z_PROBE_END_SCRIPT));
+      commands.enqueue_and_echo_P(PSTR(Z_PROBE_END_SCRIPT));
       stepper.synchronize();
     #endif
 

@@ -501,7 +501,7 @@ void Stepper::isr() {
     current_block = NULL;
     planner.discard_current_block();
     #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
-      if (!cleaning_buffer_counter) commands.enqueue_and_echo_commands_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+      if (!cleaning_buffer_counter) commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
     _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000);  // Run at max speed - 10 KHz
     HAL_ENABLE_ISRs(); // re-enable ISRs
@@ -1592,6 +1592,7 @@ void Stepper::quickstop_stepper() {
   quick_stop(false);
   synchronize();
   mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.set_destination_to_current();
   mechanics.sync_plan_position();
 }
 
