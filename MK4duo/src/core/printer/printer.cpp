@@ -171,7 +171,7 @@ void Printer::setup() {
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
   // Send "ok" after commands by default
-  commands.reset_send_ok();
+  commands.setup();
 
   #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
     DLPSerial.begin(PROJECTOR_BAUDRATE);
@@ -340,13 +340,13 @@ void Printer::loop() {
 
   KEEPALIVE_STATE(NOT_BUSY);
 
-  commands.get_available_commands();
+  commands.get_available();
 
   #if HAS_SDSUPPORT
     card.checkautostart(false);
   #endif
 
-  commands.advance_command_queue();
+  commands.advance_queue();
 
   endstops.report_state();
   idle();
@@ -562,7 +562,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     filamentrunout.Check();
   #endif
 
-  commands.get_available_commands();
+  commands.get_available();
 
   const millis_t ms = millis();
 
@@ -573,7 +573,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   // Prevent steppers timing-out in the middle of M600
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
-    #define MOVE_AWAY_TEST !move_away_flag
+    #define MOVE_AWAY_TEST !did_pause_print
   #else
     #define MOVE_AWAY_TEST true
   #endif
@@ -649,7 +649,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     const int HOME_DEBOUNCE_DELAY = 750;
     if (!IS_SD_PRINTING && !READ(HOME_PIN)) {
       if (!homeDebounceCount) {
-        commands.enqueue_and_echo_commands_P(PSTR("G28"));
+        commands.enqueue_and_echo_P(PSTR("G28"));
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
       }
       if (homeDebounceCount < HOME_DEBOUNCE_DELAY)
@@ -813,7 +813,7 @@ void Printer::handle_Interrupt_Event() {
       case INTERRUPT_EVENT_FIL_RUNOUT:
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
-          commands.enqueue_and_echo_commands_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+          commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
           stepper.synchronize();
         }
         break;
@@ -826,7 +826,7 @@ void Printer::handle_Interrupt_Event() {
           stepper.synchronize();
 
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
-            commands.enqueue_and_echo_commands_P(PSTR("M600"));
+            commands.enqueue_and_echo_P(PSTR("M600"));
           #endif
         }
         break;

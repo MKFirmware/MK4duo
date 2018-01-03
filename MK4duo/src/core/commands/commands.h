@@ -39,7 +39,7 @@ class Commands {
 
   public: /** Public Parameters */
 
-    static char command_queue[BUFSIZE][MAX_CMD_SIZE];
+    static char queue[BUFSIZE][MAX_CMD_SIZE];
 
     static long gcode_LastN;
 
@@ -51,9 +51,9 @@ class Commands {
 
     static bool send_ok[BUFSIZE];
 
-    static uint8_t  commands_in_queue,  // Count of commands in the queue
-                    cmd_queue_index_r,  // Ring buffer read position
-                    cmd_queue_index_w;  // Ring buffer write position
+    static uint8_t  queue_count,    // Count of commands in the queue
+                    queue_index_r,  // Ring buffer read position
+                    queue_index_w;  // Ring buffer write position
 
     static int serial_count;
 
@@ -63,34 +63,36 @@ class Commands {
 
     static void flush_and_request_resend();
     static void ok_to_send();
-    static void get_available_commands();
-    static void advance_command_queue();
-    static void clear_command_queue();
+    static void get_available();
+    static void advance_queue();
+    static void clear_queue();
 
-    static bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
-    static void enqueue_and_echo_commands_P(const char * const pgcode);
+    static bool enqueue_and_echo(const char* cmd, bool say_ok=false);
+    static void enqueue_and_echo_P(const char * const pgcode);
+    static void enqueue_and_echo_now(const char* cmd, bool say_ok=false);
+    static void enqueue_and_echo_P_now(const char * const pgcode);
 
     static void get_destination();
     static bool get_target_tool(const uint16_t code);
     static bool get_target_heater(int8_t &h);
 
-    FORCE_INLINE static void reset_send_ok()        { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
-    FORCE_INLINE static void refresh_cmd_timeout()  { previous_cmd_ms = millis(); }
+    FORCE_INLINE static void setup() { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
+    FORCE_INLINE static void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
   private: /** Private Function */
 
-    static void get_serial_commands();
+    static void get_serial();
     #if HAS_SDSUPPORT
-      static void get_sdcard_commands();
+      static void get_sdcard();
     #endif
 
-    static void process_next_command();
-    static void commit_command(bool say_ok);
-    static void unknown_command_error();
+    static void process_next();
+    static void commit(bool say_ok);
+    static void unknown_error();
     static void gcode_line_error(const char* err, const bool doFlush=true);
 
-    static bool enqueue_command(const char* cmd, bool say_ok=false);
-    static bool drain_injected_commands_P();
+    static bool enqueue(const char* cmd, bool say_ok=false);
+    static bool drain_injected_P();
 
 };
 

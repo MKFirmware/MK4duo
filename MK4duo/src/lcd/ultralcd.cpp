@@ -140,6 +140,8 @@ uint16_t max_display_update_time = 0;
     #define TALL_FONT_CORRECTION 0
   #endif
 
+  bool no_reentry = false;
+
   ////////////////////////////////////////////
   ///////////////// Menu Tree ////////////////
   ////////////////////////////////////////////
@@ -536,7 +538,6 @@ uint16_t max_display_update_time = 0;
   // done. ** This blocks the command queue! **
   //
   void _lcd_synchronize() {
-    static bool no_reentry = false;
     if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, sync_message);
     if (no_reentry) return;
     // Make this the current handler till all moves are done
@@ -739,14 +740,14 @@ void kill_screen(const char* lcd_msg) {
       card.pauseSDPrint();
       print_job_counter.pause();
       #if ENABLED(PARK_HEAD_ON_PAUSE)
-        commands.enqueue_and_echo_commands_P(PSTR("M125"));
+        commands.enqueue_and_echo_P(PSTR("M125"));
       #endif
       lcd_setstatusPGM(PSTR(MSG_PRINT_PAUSED), -1);
     }
 
     void lcd_sdcard_resume() {
       #if ENABLED(PARK_HEAD_ON_PAUSE)
-        commands.enqueue_and_echo_commands_P(PSTR("M24"));
+        commands.enqueue_and_echo_P(PSTR("M24"));
       #else
         card.startFileprint();
         print_job_counter.start();
@@ -847,7 +848,7 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     void _lcd_user_gcode(const char * const cmd) {
-      commands.enqueue_and_echo_commands_P(cmd);
+      commands.enqueue_and_echo_P(cmd);
       lcd_completion_feedback();
     }
 
@@ -980,7 +981,7 @@ void kill_screen(const char* lcd_msg) {
      */
     void lcd_set_home_offsets() {
       // M428 Command
-      commands.enqueue_and_echo_commands_P(PSTR("M428"));
+      commands.enqueue_and_echo_P(PSTR("M428"));
       lcd_return_to_status();
     }
   #endif
@@ -1085,9 +1086,9 @@ void kill_screen(const char* lcd_msg) {
 
   void lcd_tune_fixstep() {
     #if MECH(DELTA)
-      commands.enqueue_and_echo_commands_P(PSTR("G28 B"));
+      commands.enqueue_and_echo_P(PSTR("G28 B"));
     #else
-      commands.enqueue_and_echo_commands_P(PSTR("G28 X Y B"));
+      commands.enqueue_and_echo_P(PSTR("G28 X Y B"));
     #endif
   }
 
@@ -1210,7 +1211,7 @@ void kill_screen(const char* lcd_msg) {
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
       
       #if EXTRUDERS <= 1
-        commands.enqueue_and_echo_commands_P(PSTR("M600 B0"));
+        commands.enqueue_and_echo_P(PSTR("M600 B0"));
       #else
         char *command_M600;
         switch (extruder) {
@@ -1229,7 +1230,7 @@ void kill_screen(const char* lcd_msg) {
             #endif // EXTRUDERS > 3
           #endif // EXTRUDERS > 2
         }
-        commands.enqueue_and_echo_commands_P(command_M600);
+        commands.enqueue_and_echo_P(command_M600);
       #endif // EXTRUDERS > 1
     }
 
@@ -1700,6 +1701,26 @@ void kill_screen(const char* lcd_msg) {
     lcd_return_to_status();
   }
 
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)
+
+    /**
+     * If the queue is full, the command will fail, so we have to loop
+     * with idle() to make sure the command has been enqueued.
+     */
+    void lcd_enqueue_command(char * const cmd) {
+      no_reentry = true;
+      commands.enqueue_and_echo_now(cmd);
+      no_reentry = false;
+    }
+
+    void lcd_enqueue_commands_P(const char * const cmd) {
+      no_reentry = true;
+      commands.enqueue_and_echo_P_now(cmd);
+      no_reentry = false;
+    }
+
+  #endif
+
   #if HAS_SDSUPPORT && ENABLED(MENU_ADDAUTOSTART)
 
     void lcd_autostart_sd() {
@@ -1826,9 +1847,9 @@ void kill_screen(const char* lcd_msg) {
           lcd_wait_for_move = true;
           lcd_goto_screen(_lcd_level_bed_done);
           #if ENABLED(PROBE_MANUALLY)
-            commands.enqueue_and_echo_commands_P(PSTR("G29 V1"));
+            commands.enqueue_and_echo_P(PSTR("G29 V1"));
           #elif ENABLED(MESH_BED_LEVELING)
-            commands.enqueue_and_echo_commands_P(PSTR("G29 S2"));
+            commands.enqueue_and_echo_P(PSTR("G29 S2"));
           #endif
         }
         else
@@ -1880,9 +1901,9 @@ void kill_screen(const char* lcd_msg) {
       // G29 Records Z, moves, and signals when it pauses
       lcd_wait_for_move = true;
       #if ENABLED(PROBE_MANUALLY)
-        commands.enqueue_and_echo_commands_P(PSTR("G29 V1"));
+        commands.enqueue_and_echo_P(PSTR("G29 V1"));
       #elif ENABLED(MESH_BED_LEVELING)
-        commands.enqueue_and_echo_commands_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
+        commands.enqueue_and_echo_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
       #endif
     }
 
@@ -1915,7 +1936,7 @@ void kill_screen(const char* lcd_msg) {
       defer_return_to_status = true;
       mechanics.axis_homed[X_AXIS] = mechanics.axis_homed[Y_AXIS] = mechanics.axis_homed[Z_AXIS] = false;
       lcd_goto_screen(_lcd_level_bed_homing);
-      commands.enqueue_and_echo_commands_P(PSTR("G28"));
+      commands.enqueue_and_echo_P(PSTR("G28"));
     }
 
     static bool new_level_state;
@@ -2015,14 +2036,14 @@ void kill_screen(const char* lcd_msg) {
      */
     void _lcd_ubl_build_custom_mesh() {
       char UBL_LCD_GCODE[20];
-      commands.enqueue_and_echo_commands_P(PSTR("G28"));
+      commands.enqueue_and_echo_P(PSTR("G28"));
       #if HAS_TEMP_BED
         sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
-        commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+        lcd_enqueue_command(UBL_LCD_GCODE);
       #endif
       sprintf_P(UBL_LCD_GCODE, PSTR("M109 S%i"), custom_hotend_temp);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
-      commands.enqueue_and_echo_commands_P(PSTR("G29 P1"));
+      lcd_enqueue_command(UBL_LCD_GCODE);
+      commands.enqueue_and_echo_P(PSTR("G29 P1"));
     }
 
     /**
@@ -2052,7 +2073,7 @@ void kill_screen(const char* lcd_msg) {
       const int ind = ubl_height_amount < 0 ? 9 : 10;
       strcpy_P(UBL_LCD_GCODE, PSTR("G29 P6 C -"));
       sprintf_P(&UBL_LCD_GCODE[ind], PSTR(".%i"), abs(ubl_height_amount));
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2102,8 +2123,9 @@ void kill_screen(const char* lcd_msg) {
           0
         #endif
       ;
-      sprintf_P(UBL_LCD_GCODE, PSTR("G28\nG26 C B%i H%i P"), temp, custom_hotend_temp);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      sprintf_P(UBL_LCD_GCODE, PSTR("G26 C B%i H%i P"), temp, custom_hotend_temp);
+      lcd_enqueue_commands_P(PSTR("G28"));
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2136,7 +2158,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_grid_level_cmd() {
       char UBL_LCD_GCODE[10];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 J%i"), side_points);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2177,16 +2199,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_fillin_amount_cmd() {
       char UBL_LCD_GCODE[16];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 P3 R C.%i"), ubl_fillin_amount);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
-    }
-
-    /**
-     * UBL Smart Fill-in Command
-     */
-    void _lcd_ubl_smart_fillin_cmd() {
-      char UBL_LCD_GCODE[12];
-      sprintf_P(UBL_LCD_GCODE, PSTR("G29 P3 T0"));
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2203,7 +2216,7 @@ void kill_screen(const char* lcd_msg) {
       START_MENU();
       MENU_BACK(MSG_UBL_BUILD_MESH_MENU);
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_UBL_FILLIN_AMOUNT, &ubl_fillin_amount, 0, 9, _lcd_ubl_fillin_amount_cmd);
-      MENU_ITEM(function, MSG_UBL_SMART_FILLIN, _lcd_ubl_smart_fillin_cmd);
+      MENU_ITEM(gcode, MSG_UBL_SMART_FILLIN, PSTR("G29 P3 T0"));
       MENU_ITEM(gcode, MSG_UBL_MANUAL_FILLIN, PSTR("G29 P2 B T0"));
       MENU_ITEM(function, MSG_WATCH, lcd_return_to_status);
       END_MENU();
@@ -2278,9 +2291,8 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_load_mesh_cmd() {
       char UBL_LCD_GCODE[25];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 L%i"), ubl_storage_slot);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
-      sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_LOADED "."), ubl_storage_slot);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      lcd_enqueue_command(UBL_LCD_GCODE);
+      commands.enqueue_and_echo(PSTR("M117 " MSG_MESH_LOADED "."));
     }
 
     /**
@@ -2289,9 +2301,8 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_save_mesh_cmd() {
       char UBL_LCD_GCODE[25];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 S%i"), ubl_storage_slot);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
-      sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_SAVED "."), ubl_storage_slot);
-      commands.enqueue_and_echo_command(UBL_LCD_GCODE);
+      lcd_enqueue_command(UBL_LCD_GCODE);
+      commands.enqueue_and_echo(PSTR("M117 " MSG_MESH_SAVED "."));
     }
 
     /**
@@ -2338,11 +2349,10 @@ void kill_screen(const char* lcd_msg) {
      */
     void _lcd_ubl_map_lcd_edit_cmd() {
       char ubl_lcd_gcode [50], str[10], str2[10];
-
       dtostrf(pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]), 0, 2, str);
       dtostrf(pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]), 0, 2, str2);
       snprintf_P(ubl_lcd_gcode, sizeof(ubl_lcd_gcode), PSTR("G29 P4 X%s Y%s R%i"), str, str2, n_edit_pts);
-      commands.enqueue_and_echo_command(ubl_lcd_gcode);
+      lcd_enqueue_command(ubl_lcd_gcode);
     }
 
     /**
@@ -2431,7 +2441,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_output_map_lcd_cmd() {
       if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS])) {
         mechanics.axis_homed[X_AXIS] = mechanics.axis_homed[Y_AXIS] = mechanics.axis_homed[Z_AXIS] = false;
-        commands.enqueue_and_echo_commands_P(PSTR("G28"));
+        commands.enqueue_and_echo_P(PSTR("G28"));
       }
       lcd_goto_screen(_lcd_ubl_map_homing);
     }
@@ -2491,7 +2501,7 @@ void kill_screen(const char* lcd_msg) {
       START_MENU();
       MENU_BACK(MSG_UBL_LEVEL_BED);
       MENU_ITEM(gcode, "1 " MSG_UBL_BUILD_COLD_MESH, PSTR("G28\nG29 P1"));
-      MENU_ITEM(function, "2 " MSG_UBL_SMART_FILLIN, _lcd_ubl_smart_fillin_cmd);
+      MENU_ITEM(gcode, "2 " MSG_UBL_SMART_FILLIN, PSTR("G29 P3 T0"));
       MENU_ITEM(submenu, "3 " MSG_UBL_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
       MENU_ITEM(gcode, "4 " MSG_UBL_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
       MENU_ITEM(submenu, "5 " MSG_UBL_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
@@ -2765,7 +2775,7 @@ void kill_screen(const char* lcd_msg) {
         bedlevel.reset(); // After calibration bed-level data is no longer valid
       #endif
 
-      commands.enqueue_and_echo_commands_P(PSTR("G28"));
+      commands.enqueue_and_echo_P(PSTR("G28"));
       lcd_goto_screen(_lcd_calibrate_homing);
     }
 
@@ -3166,6 +3176,22 @@ void kill_screen(const char* lcd_msg) {
     lcd_completion_feedback();
   }
 
+  #if ENABLED(EEPROM_SETTINGS)
+
+    static void lcd_init_eeprom() {
+      lcd_completion_feedback(eeprom.Init());
+      lcd_goto_previous_menu();
+    }
+
+    static void lcd_init_eeprom_confirm() {
+      START_MENU();
+      MENU_BACK(MSG_CONTROL);
+      MENU_ITEM(function, MSG_INIT_EEPROM, lcd_init_eeprom);
+      END_MENU();
+    }
+
+  #endif
+
   void lcd_control_menu() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
@@ -3189,9 +3215,11 @@ void kill_screen(const char* lcd_msg) {
       MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
       MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
     #endif
+
     MENU_ITEM(function, MSG_RESTORE_FAILSAFE, lcd_factory_settings);
+
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(gcode, MSG_INIT_EEPROM, PSTR("M502\nM500")); // TODO: Add "Are You Sure?" step
+      MENU_ITEM(submenu, MSG_INIT_EEPROM, lcd_init_eeprom_confirm);
     #endif
 
     END_MENU();
@@ -3224,7 +3252,7 @@ void kill_screen(const char* lcd_msg) {
           autotune_temp[h]
         #endif
       );
-      commands.enqueue_and_echo_command(cmd);
+      lcd_enqueue_command(cmd);
     }
 
   #endif //PID_AUTOTUNE_MENU
@@ -3815,8 +3843,8 @@ void kill_screen(const char* lcd_msg) {
        END_MENU();
     }
 
-    void action_laser_acc_on() { commands.enqueue_and_echo_commands_P(PSTR("M80")); }
-    void action_laser_acc_off() { commands.enqueue_and_echo_commands_P(PSTR("M81")); }
+    void action_laser_acc_on() { commands.enqueue_and_echo_P(PSTR("M80")); }
+    void action_laser_acc_off() { commands.enqueue_and_echo_P(PSTR("M81")); }
     void action_laser_test_weak() { laser.fire(0.3); }
     void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
     void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
@@ -3825,7 +3853,7 @@ void kill_screen(const char* lcd_msg) {
     void action_laser_test_warm() { laser_test_fire(15, 2000); }
 
     void laser_test_fire(uint8_t power, int dwell) {
-      commands.enqueue_and_echo_commands_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
+      commands.enqueue_and_echo_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
       laser.fire(power);
       delay(dwell);
       laser.extinguish();
@@ -3857,14 +3885,14 @@ void kill_screen(const char* lcd_msg) {
 
     void laser_set_focus(float f_length) {
       if (!mechanics.axis_homed[Z_AXIS]) {
-        commands.enqueue_and_echo_commands_P(PSTR("G28 Z F150"));
+        commands.enqueue_and_echo_P(PSTR("G28 Z F150"));
       }
       focalLength = f_length;
       float focus = LASER_FOCAL_HEIGHT - f_length;
       char cmd[20];
 
       sprintf_P(cmd, PSTR("G0 Z%s F150"), ftostr52sign(focus));
-      commands.enqueue_and_echo_commands_P(cmd);
+      commands.enqueue_and_echo_P(cmd);
     }
 
   #endif // LASER
@@ -4539,7 +4567,7 @@ void kill_screen(const char* lcd_msg) {
     void reprapworld_keypad_move_x_right() { _reprapworld_keypad_move(X_AXIS,  1); }
     void reprapworld_keypad_move_y_up()    { _reprapworld_keypad_move(Y_AXIS, -1); }
     void reprapworld_keypad_move_y_down()  { _reprapworld_keypad_move(Y_AXIS,  1); }
-    void reprapworld_keypad_move_home()    { commands.enqueue_and_echo_commands_P(PSTR("G28")); } // move all axes home and wait
+    void reprapworld_keypad_move_home()    { commands.enqueue_and_echo_P(PSTR("G28")); } // move all axes home and wait
     void reprapworld_keypad_move_menu()    { lcd_goto_screen(lcd_move_menu); }
 
     inline void handle_reprapworld_keypad() {
@@ -4583,7 +4611,7 @@ void kill_screen(const char* lcd_msg) {
    */
   void _menu_action_back() { lcd_goto_previous_menu(); }
   void menu_action_submenu(screenFunc_t func) { lcd_save_previous_screen(); lcd_goto_screen(func); }
-  void menu_action_gcode(const char* pgcode) { commands.enqueue_and_echo_commands_P(pgcode); }
+  void menu_action_gcode(const char* pgcode) { commands.enqueue_and_echo_P(pgcode); }
   void menu_action_function(screenFunc_t func) { (*func)(); }
 
   #if HAS_SDSUPPORT
@@ -4759,11 +4787,11 @@ void lcd_update() {
 
     // If the action button is pressed...
     if (UBL_CONDITION && LCD_CLICKED) {
-      if (!wait_for_unclick) {                // If not waiting for a debounce release:
-        wait_for_unclick = true;              // Set debounce flag to ignore continous clicks
-        lcd_clicked = !printer.isWaitForUser(); // Keep the click if not waiting for a user-click
-        printer.setWaitForUser(false);        // Any click clears wait for user
-        lcd_quick_feedback();                 // Always make a click sound
+      if (!wait_for_unclick) {                                  // If not waiting for a debounce release:
+        wait_for_unclick = true;                                // Set debounce flag to ignore continous clicks
+        lcd_clicked = !printer.isWaitForUser() && !no_reentry;  // Keep the click if not waiting for a user-click
+        printer.setWaitForUser(false);                          // Any click clears wait for user
+        lcd_quick_feedback();                                   // Always make a click sound
       }
     }
     else wait_for_unclick = false;

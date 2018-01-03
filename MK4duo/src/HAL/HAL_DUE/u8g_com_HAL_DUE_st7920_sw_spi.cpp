@@ -110,7 +110,7 @@ static void spiSend_sw_DUE(uint8_t val) { // 800KHz
     __delay_4cycles(1);
     SCK_pPio->PIO_SODR = SCK_dwMask;
     __delay_4cycles(19);
-    val = val << 1;
+    val <<= 1;
     SCK_pPio->PIO_CODR = SCK_dwMask;
   }
 }
@@ -120,21 +120,21 @@ static uint8_t rs_last_state = 255;
 static void u8g_com_DUE_st7920_write_byte_sw_spi(uint8_t rs, uint8_t val) {
   uint8_t i;
 
-  if ( rs != rs_last_state) {  // time to send a command/data byte
+  if (rs != rs_last_state) {  // time to send a command/data byte
     rs_last_state = rs;
 
-    if ( rs == 0 )
+    if (rs == 0)
       /* command */
-      spiSend_sw_DUE(0x0f8);
+      spiSend_sw_DUE(0x0F8);
     else
        /* data */
-      spiSend_sw_DUE(0x0fa);
+      spiSend_sw_DUE(0x0FA);
 
-    for( i = 0; i < 4; i++ )   // give the controller some time to process the data
-      u8g_10MicroDelay();      // 2 is bad, 3 is OK, 4 is safe
+    for (i = 0; i < 4; i++)   // give the controller some time to process the data
+      u8g_10MicroDelay();     // 2 is bad, 3 is OK, 4 is safe
   }
 
-  spiSend_sw_DUE(val & 0x0f0);
+  spiSend_sw_DUE(val & 0x0F0);
   spiSend_sw_DUE(val << 4);
 }
 

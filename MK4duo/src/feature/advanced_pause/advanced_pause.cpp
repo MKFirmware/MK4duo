@@ -32,10 +32,6 @@
 
   static float  resume_position[XYZE];
 
-  #if HAS_SDSUPPORT
-    static bool sd_print_paused = false;
-  #endif
-
   #if HAS_BUZZER
 
     static void filament_change_beep(const int8_t max_beep_count, const bool init=false) {
@@ -88,7 +84,7 @@
 
   // public function
 
-  bool move_away_flag = false;
+  uint8_t did_pause_print = 0;
 
   AdvancedPauseMenuResponse advanced_pause_menu_response;
 
@@ -96,7 +92,7 @@
                    const int16_t new_temp/*=0*/, const int8_t max_beep_count/*=0*/, const bool show_lcd/*=false*/
   ) {
 
-    if (move_away_flag) return false; // already paused
+    if (did_pause_print) return false; // already paused
 
     SERIAL_STR(PAUSE);
     SERIAL_EOL();
@@ -112,13 +108,13 @@
     }
 
     // Indicate that the printer is paused
-    move_away_flag = true;
+    ++did_pause_print;
 
     // Pause the print job and timer
     #if HAS_SDSUPPORT
       if (card.sdprinting) {
         card.pauseSDPrint();
-        sd_print_paused = true;
+        ++did_pause_print;
       }
     #endif
     print_job_counter.pause();
@@ -299,7 +295,7 @@
     bool  nozzle_timed_out  = false,
           bed_timed_out     = false;
 
-    if (!move_away_flag) return;
+    if (!did_pause_print) return;
 
     // Re-enable the heaters if they timed out
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
@@ -404,14 +400,15 @@
     SERIAL_STR(RESUME);
     SERIAL_EOL();
 
+    --did_pause_print;
+
     #if HAS_SDSUPPORT
-      if (sd_print_paused) {
+      if (did_pause_print) {
         card.startFileprint();
-        sd_print_paused = false;
+        --did_pause_print;
       }
     #endif
 
-    move_away_flag = false;
   }
 
 #endif // ENABLED(ADVANCED_PAUSE_FEATURE)
