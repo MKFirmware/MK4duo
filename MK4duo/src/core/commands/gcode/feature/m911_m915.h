@@ -175,7 +175,7 @@
       uint16_t _rms = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT;
       uint16_t _z = parser.seenval('Z') ? parser.value_int() : CALIBRATION_EXTRA_HEIGHT;
 
-      if (!axis_known_position[Z_AXIS]) {
+      if (!printer.isZKnownPosition()) {
         SERIAL_EM("\nPlease home Z axis first");
         return;
       }

@@ -650,10 +650,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!mechanics.axis_homed[axis])
+    if (!printer.isAxisHomed(axis))
       lcd.write('?');
     else {
-      if (!mechanics.axis_known_position[axis])
+      if (!printer.isAxisKnownPosition(axis))
         lcd.write(' ');
       else
         lcd_printPGM(pstr);
@@ -850,7 +850,7 @@ static void lcd_implementation_status_screen() {
 
       #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
         // Before homing the axis letters are blinking 'X' <-> '?'.
-        // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+        // When axis is homed but axis known position is false the axis letters are blinking 'X' <-> ' '.
         // When everything is ok you see a constant 'X'.
 
         _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);

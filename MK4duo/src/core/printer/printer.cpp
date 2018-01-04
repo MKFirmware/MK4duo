@@ -104,7 +104,8 @@ PrinterMode Printer::mode =
 
 uint8_t Printer::mk_debug_flag  = 0,
         Printer::mk_1_flag      = 0,
-        Printer::mk_2_flag      = 0;
+        Printer::mk_2_flag      = 0,
+        Printer::mk_3_flag      = 0;
 
 /**
  * Public Function

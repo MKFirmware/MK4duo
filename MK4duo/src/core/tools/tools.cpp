@@ -255,12 +255,12 @@
               #endif
 
               // Adjustments to the current position
-              float xydiff[2] = { offset_vec.x, offset_vec.y };
+              const float xydiff[2] = { offset_vec.x, offset_vec.y };
               mechanics.current_position[Z_AXIS] += offset_vec.z;
 
             #else // !ABL_PLANAR
 
-              float xydiff[2] = {
+              const float xydiff[2] = {
                 hotend_offset[X_AXIS][tmp_extruder] - hotend_offset[X_AXIS][active_extruder],
                 hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][active_extruder]
               };
@@ -630,7 +630,7 @@
   #if HAS_DONDOLO
 
     void Tools::move_extruder_servo(const uint8_t e) {
-      const int angles[2] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
+      constexpr int16_t angles[] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
       stepper.synchronize();
       MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
       #if (DONDOLO_SERVO_DELAY > 0)

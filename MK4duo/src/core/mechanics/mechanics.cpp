@@ -402,9 +402,9 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !axis_homed[X_AXIS],
-              yy = y && !axis_homed[Y_AXIS],
-              zz = z && !axis_homed[Z_AXIS];
+  const bool  xx = x && !printer.isXHomed(),
+              yy = y && !printer.isYHomed(),
+              zz = z && !printer.isZHomed();
 
   if (xx || yy || zz) {
     SERIAL_SM(ECHO, MSG_HOME " ");
@@ -740,7 +740,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
   void Mechanics::babystep_axis(const AxisEnum axis, const int distance) {
 
-    if (axis_known_position[axis]) {
+    if (printer.isAxisKnownPosition(axis)) {
       #if IS_CORE
         #if ENABLED(BABYSTEP_XY)
           switch (axis) {

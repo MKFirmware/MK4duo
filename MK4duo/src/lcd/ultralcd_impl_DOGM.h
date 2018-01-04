@@ -183,6 +183,7 @@
   // Based on the Adafruit ST7565 (http://www.adafruit.com/products/250)
     //U8GLIB_LM6059 u8g(DOGLCD_CS, DOGLCD_A0);  // 8 stripes
     U8GLIB_LM6059_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
+
 #elif ENABLED(U8GLIB_ST7565_64128N)
   // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller
     //U8GLIB_64128N_2X_HAL u8g(DOGLCD_CS, DOGLCD_A0);  // using HW-SPI
@@ -430,10 +431,10 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   if (blink)
     lcd_printPGM(pstr);
   else {
-    if (!mechanics.axis_homed[axis])
+    if (!printer.isAxisHomed(axis))
       u8g.print('?');
     else {
-      if (!mechanics.axis_known_position[axis])
+      if (!printer.isAxisKnownPosition(axis))
         u8g.print(' ');
       else
         lcd_printPGM(pstr);
@@ -657,7 +658,7 @@ static void lcd_implementation_status_screen() {
   #endif
 
   // Before homing the axis letters are blinking 'X' <-> '?'.
-  // When axis is homed but mechanics.axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+  // When axis is homed but axis known position is false the axis letters are blinking 'X' <-> ' '.
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];

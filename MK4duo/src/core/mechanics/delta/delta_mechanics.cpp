@@ -381,7 +381,7 @@
 
     NOMORE(delta_probe_radius, delta_print_radius);
 
-    axis_homed[X_AXIS] = axis_homed[Y_AXIS] = axis_homed[Z_AXIS] = false;
+    printer.unsetHomedAll();
 
     Set_clip_start_height();
 
@@ -668,7 +668,8 @@
       }
     #endif
 
-    axis_known_position[axis] = axis_homed[axis] = true;
+    printer.setAxisKnownPosition(axis, true);
+    printer.setAxisHomed(axis, true);
 
     current_position[axis] = (axis == C_AXIS ? delta_height : 0.0);
 
