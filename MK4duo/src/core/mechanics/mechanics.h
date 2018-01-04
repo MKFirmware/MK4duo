@@ -158,18 +158,6 @@ class Mechanics {
     float destination[XYZE] = { 0.0 };
 
     /**
-     * axis_homed
-     *   Flags that each linear axis was homed.
-     *   XYZ on cartesian.
-     *
-     * axis_known_position
-     *   Flags that the position is known in each linear axis. Set when homed.
-     *   Cleared whenever a stepper powers off, potentially losing its position.
-     */
-    bool  axis_homed[XYZ]           = { false },
-          axis_known_position[XYZ]  = { false };
-
-    /**
      * Workspace Offset
      */
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)

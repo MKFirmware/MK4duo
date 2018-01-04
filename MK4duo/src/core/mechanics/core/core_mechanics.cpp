@@ -545,7 +545,7 @@
     void Core_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
+      if (!printer.isXKnownPosition() || !printer.isYKnownPosition()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -600,7 +600,7 @@
     void Core_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS]) {
+      if (!printer.isXKnownPosition() || !printer.isYKnownPosition()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -667,7 +667,8 @@
       }
     #endif
 
-    axis_known_position[axis] = axis_homed[axis] = true;
+    printer.setAxisKnownPosition(axis, true);
+    printer.setAxisHomed(axis, true);
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;

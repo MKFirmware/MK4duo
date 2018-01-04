@@ -37,12 +37,13 @@ constexpr const uint8_t debug_communication       = 16;
 constexpr const uint8_t debug_leveling            = 32;
 constexpr const uint8_t debug_mesh_adjust         = 64;
 constexpr const uint8_t flag1_running             = 1;
-constexpr const uint8_t flag1_endstop_enabled     = 2;
-constexpr const uint8_t flag1_endstop_globally    = 4;
-constexpr const uint8_t flag1_soft_endstop        = 8;
-constexpr const uint8_t flag1_probe_endstop       = 16;
-constexpr const uint8_t flag1_g38_move            = 32;
-constexpr const uint8_t flag1_g38_endstop_hit     = 64;
+constexpr const uint8_t flag1_printing            = 2;
+constexpr const uint8_t flag1_endstop_enabled     = 4;
+constexpr const uint8_t flag1_endstop_globally    = 8;
+constexpr const uint8_t flag1_soft_endstop        = 16;
+constexpr const uint8_t flag1_probe_endstop       = 32;
+constexpr const uint8_t flag1_g38_move            = 64;
+constexpr const uint8_t flag1_g38_endstop_hit     = 128;
 constexpr const uint8_t flag2_pos_saved           = 1;
 constexpr const uint8_t flag2_relative_mode       = 2;
 constexpr const uint8_t flag2_volumetric_enabled  = 4;
@@ -51,6 +52,13 @@ constexpr const uint8_t flag2_wait_for_heatup     = 16;
 constexpr const uint8_t flag2_filament_out        = 32;
 constexpr const uint8_t flag2_allow_cold_extrude  = 64;
 constexpr const uint8_t flag2_autoreport_temp     = 128;
+constexpr const uint8_t flag3_all_homed           = 1;
+constexpr const uint8_t flag3_x_homed             = 2;
+constexpr const uint8_t flag3_y_homed             = 4;
+constexpr const uint8_t flag3_z_homed             = 8;
+constexpr const uint8_t flag3_x_known_position    = 16;
+constexpr const uint8_t flag3_y_known_position    = 32;
+constexpr const uint8_t flag3_z_known_position    = 64;
 
 enum PrinterMode {
   PRINTER_MODE_FFF,           // M450 S0 or M451
@@ -146,7 +154,8 @@ class Printer {
 
     static uint8_t  mk_debug_flag,  // For debug
                     mk_1_flag,      // For Endstop
-                    mk_2_flag;      // For various
+                    mk_2_flag,      // For various
+                    mk_3_flag;      // For Homed
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -278,6 +287,80 @@ class Printer {
       mk_2_flag = (onoff ? mk_2_flag | flag2_autoreport_temp : mk_2_flag & ~flag2_autoreport_temp);
     }
     FORCE_INLINE static bool isAutoreportTemp() { return mk_2_flag & flag2_autoreport_temp; }
+
+    FORCE_INLINE static void unsetHomedAll() {
+      mk_3_flag &= ~flag3_all_homed;
+      mk_3_flag &= ~(flag3_x_homed | flag3_y_homed | flag3_z_homed);
+    }
+    FORCE_INLINE static void updateHomedAll() {
+      bool onoff = isXHomed() && isYHomed() && isZHomed();
+      mk_3_flag = (onoff ? mk_3_flag | flag3_all_homed : mk_3_flag & ~flag3_all_homed);
+    }
+    FORCE_INLINE static bool isHomedAll() { return mk_3_flag & flag3_all_homed; }
+
+    FORCE_INLINE static void setXHomed(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_x_homed : mk_3_flag & ~flag3_x_homed);
+      updateHomedAll();
+    }
+    FORCE_INLINE static bool isXHomed() { return mk_3_flag & flag3_x_homed; }
+
+    FORCE_INLINE static void setYHomed(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_y_homed : mk_3_flag & ~flag3_y_homed);
+      updateHomedAll();
+    }
+    FORCE_INLINE static bool isYHomed() { return mk_3_flag & flag3_y_homed; }
+
+    FORCE_INLINE static void setZHomed(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_z_homed : mk_3_flag & ~flag3_z_homed);
+      updateHomedAll();
+    }
+    FORCE_INLINE static bool isZHomed() { return mk_3_flag & flag3_z_homed; }
+
+    FORCE_INLINE static void setAxisHomed(const AxisEnum axis, const bool onoff) {
+      switch (axis) {
+        case X_AXIS: setXHomed(onoff); break;
+        case Y_AXIS: setYHomed(onoff); break;
+        case Z_AXIS: setZHomed(onoff); break;
+      }
+      updateHomedAll();
+    }
+    FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
+      switch (axis) {
+        case X_AXIS: return isXHomed(); break;
+        case Y_AXIS: return isYHomed(); break;
+        case Z_AXIS: return isZHomed(); break;
+      }
+    }
+
+    FORCE_INLINE static void setXKnownPosition(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_x_known_position : mk_3_flag & ~flag3_x_known_position);
+    }
+    FORCE_INLINE static bool isXKnownPosition() { return mk_3_flag & flag3_x_known_position; }
+
+    FORCE_INLINE static void setYKnownPosition(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_y_known_position : mk_3_flag & ~flag3_y_known_position);
+    }
+    FORCE_INLINE static bool isYKnownPosition() { return mk_3_flag & flag3_y_known_position; }
+
+    FORCE_INLINE static void setZKnownPosition(const bool onoff) {
+      mk_3_flag = (onoff ? mk_3_flag | flag3_z_known_position : mk_3_flag & ~flag3_z_known_position);
+    }
+    FORCE_INLINE static bool isZKnownPosition() { return mk_3_flag & flag3_z_known_position; }
+
+    FORCE_INLINE static void setAxisKnownPosition(const AxisEnum axis, const bool onoff) {
+      switch (axis) {
+        case X_AXIS: setXKnownPosition(onoff); break;
+        case Y_AXIS: setYKnownPosition(onoff); break;
+        case Z_AXIS: setZKnownPosition(onoff); break;
+      }
+    }
+    FORCE_INLINE static bool isAxisKnownPosition(const AxisEnum axis) {
+      switch (axis) {
+        case X_AXIS: return isXKnownPosition(); break;
+        case Y_AXIS: return isYKnownPosition(); break;
+        case Z_AXIS: return isZKnownPosition(); break;
+      }
+    }
 
   private: /** Private Function */
 

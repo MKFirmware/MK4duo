@@ -1222,23 +1222,29 @@
       LcdZ.setText(ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
     else if (PageID == 5) {
-      strcat(buffer, (mechanics.axis_homed[X_AXIS] ? "X" : "?"));
-      if (mechanics.axis_homed[X_AXIS]) {
+      if (printer.isXHomed()) {
         valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
+        strcat(buffer, "X");
         strcat(buffer, valuetemp);
       }
+      else
+        strcat(buffer, "?");
 
-      strcat(buffer, (mechanics.axis_homed[Y_AXIS] ? " Y" : " ?"));
-      if (mechanics.axis_homed[Y_AXIS]) {
+      if (printer.isYHomed()) {
         valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
+        strcat(buffer, " Y");
         strcat(buffer, valuetemp);
       }
+      else
+        strcat(buffer, " ?");
 
-      strcat(buffer, (mechanics.axis_homed[Z_AXIS] ? " Z " : " ? "));
-      if (mechanics.axis_homed[Z_AXIS]) {
+      if (printer.isZHomed()) {
         valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
+        strcat(buffer, " Z");
         strcat(buffer, valuetemp);
       }
+      else
+        strcat(buffer, " ?");
 
       LedCoord5.setText(buffer);
     }

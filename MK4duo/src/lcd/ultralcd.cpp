@@ -1925,7 +1925,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_level_bed_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_LEVEL_BED_HOMING), NULL);
       lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW;
-      if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+      if (printer.isHomedAll())
         lcd_goto_screen(_lcd_level_bed_homing_done);
     }
 
@@ -1934,7 +1934,7 @@ void kill_screen(const char* lcd_msg) {
      */
     void _lcd_level_bed_continue() {
       defer_return_to_status = true;
-      mechanics.axis_homed[X_AXIS] = mechanics.axis_homed[Y_AXIS] = mechanics.axis_homed[Z_AXIS] = false;
+      printer.unsetHomedAll();
       lcd_goto_screen(_lcd_level_bed_homing);
       commands.enqueue_and_echo_P(PSTR("G28"));
     }
@@ -1966,7 +1966,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
 
       #if DISABLED(MESH_BED_LEVELING)
-        if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS]))
+        if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition()))
           MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
         else
       #endif
@@ -1996,7 +1996,7 @@ void kill_screen(const char* lcd_msg) {
 
       #if ENABLED(LEVEL_BED_CORNERS)
         // Move to the next corner for leveling
-        if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+        if (printer.isHomedAll())
           MENU_ITEM(submenu, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
       #endif
 
@@ -2338,7 +2338,7 @@ void kill_screen(const char* lcd_msg) {
       defer_return_to_status = true;
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT < 3 ? 0 : (LCD_HEIGHT > 4 ? 2 : 1), PSTR(MSG_LEVEL_BED_HOMING));
       lcdDrawUpdate = LCDVIEW_CALL_NO_REDRAW;
-      if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS]) {
+      if (printer.isHomedAll()) {
         ubl.lcd_map_control = true; // Return to the map screen
         lcd_goto_screen(_lcd_ubl_output_map_lcd);
       }
@@ -2387,7 +2387,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_output_map_lcd() {
       static int16_t step_scaler = 0;
 
-      if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS]))
+      if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition()))
         return lcd_goto_screen(_lcd_ubl_map_homing);
 
       if (use_click()) return _lcd_ubl_map_lcd_edit_cmd();
@@ -2439,8 +2439,8 @@ void kill_screen(const char* lcd_msg) {
      * UBL Homing before LCD map
      */
     void _lcd_ubl_output_map_lcd_cmd() {
-      if (!(mechanics.axis_known_position[X_AXIS] && mechanics.axis_known_position[Y_AXIS] && mechanics.axis_known_position[Z_AXIS])) {
-        mechanics.axis_homed[X_AXIS] = mechanics.axis_homed[Y_AXIS] = mechanics.axis_homed[Z_AXIS] = false;
+      if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition())) {
+        printer.unsetHomedAll();
         commands.enqueue_and_echo_P(PSTR("G28"));
       }
       lcd_goto_screen(_lcd_ubl_map_homing);
@@ -2558,7 +2558,7 @@ void kill_screen(const char* lcd_msg) {
     // Move Axis
     //
     #if MECH(DELTA)
-      if (mechanics.axis_homed[Z_AXIS])
+      if (printer.isZHomed())
     #endif
         MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
 
@@ -2597,7 +2597,7 @@ void kill_screen(const char* lcd_msg) {
     #endif
 
     #if ENABLED(LEVEL_BED_CORNERS) && DISABLED(LCD_BED_LEVELING)
-      if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+      if (printer.isHomedAll())
         MENU_ITEM(function, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
     #endif
 
@@ -2766,7 +2766,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_calibrate_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
-      if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+      if (printer.isHomedAll())
         lcd_goto_previous_menu();
     }
 
@@ -2819,7 +2819,7 @@ void kill_screen(const char* lcd_msg) {
         #endif
       #endif
       MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
-      if (mechanics.axis_homed[Z_AXIS]) {
+      if (printer.isZHomed()) {
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
         MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
@@ -3099,7 +3099,7 @@ void kill_screen(const char* lcd_msg) {
    */
 
   #if IS_KINEMATIC
-    #define _MOVE_XYZ_ALLOWED (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+    #define _MOVE_XYZ_ALLOWED (printer.isHomedAll())
     #if MECH(DELTA)
       #define _MOVE_XY_ALLOWED (mechanics.current_position[Z_AXIS] <= mechanics.delta_clip_start_height)
       void lcd_lower_z_to_clip_height() {
@@ -3884,7 +3884,7 @@ void kill_screen(const char* lcd_msg) {
     void action_laser_focus_7mm() { laser_set_focus(7); }
 
     void laser_set_focus(float f_length) {
-      if (!mechanics.axis_homed[Z_AXIS]) {
+      if (!printer.isZHomed() ) {
         commands.enqueue_and_echo_P(PSTR("G28 Z F150"));
       }
       focalLength = f_length;
@@ -4586,7 +4586,7 @@ void kill_screen(const char* lcd_msg) {
           if (REPRAPWORLD_KEYPAD_MOVE_Z_UP)     reprapworld_keypad_move_z_up();
         #endif
 
-        if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS]) {
+        if (printer.isHomedAll()) {
           #if MECH(DELTA) || Z_HOME_DIR != -1
             if (REPRAPWORLD_KEYPAD_MOVE_Z_UP)   reprapworld_keypad_move_z_up();
           #endif

@@ -44,7 +44,7 @@
     SERIAL_CHR(ch);
 
     SERIAL_MSG("\",\"coords\": {\"axesHomed\":[");
-    if (mechanics.axis_homed[X_AXIS] && mechanics.axis_homed[Y_AXIS] && mechanics.axis_homed[Z_AXIS])
+    if (printer.isHomedAll())
       SERIAL_MSG("1, 1, 1");
     else
       SERIAL_MSG("0, 0, 0");

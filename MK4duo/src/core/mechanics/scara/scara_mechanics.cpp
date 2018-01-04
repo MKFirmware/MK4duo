@@ -501,7 +501,8 @@
       }
     #endif
 
-    axis_known_position[axis] = axis_homed[axis] = true;
+    printer.setAxisKnownPosition(axis, true);
+    printer.setAxisHomed(axis, true);
 
     #if ENABLED(MORGAN_SCARA)
 
