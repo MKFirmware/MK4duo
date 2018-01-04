@@ -33,29 +33,29 @@
 #if IS_SCARA
 
   #if DISABLED(SCARA_LINKAGE_1)
-    #error DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_1
+    #error "DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_1."
   #endif
   #if DISABLED(SCARA_LINKAGE_2)
-    #error DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_2
+    #error "DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_2."
   #endif
   #if DISABLED(SCARA_OFFSET_X)
-    #error DEPENDENCY ERROR: Missing setting SCARA_OFFSET_X
+    #error "DEPENDENCY ERROR: Missing setting SCARA_OFFSET_X."
   #endif
   #if DISABLED(SCARA_OFFSET_Y)
-    #error DEPENDENCY ERROR: Missing setting SCARA_OFFSET_Y
+    #error "DEPENDENCY ERROR: Missing setting SCARA_OFFSET_Y."
   #endif
   #if DISABLED(THETA_HOMING_OFFSET)
-    #error DEPENDENCY ERROR: Missing setting THETA_HOMING_OFFSET
+    #error "DEPENDENCY ERROR: Missing setting THETA_HOMING_OFFSET."
   #endif
   #if DISABLED(PSI_HOMING_OFFSET)
-    #error DEPENDENCY ERROR: Missing setting PSI_HOMING_OFFSET
+    #error "DEPENDENCY ERROR: Missing setting PSI_HOMING_OFFSET."
   #endif
 
   /**
    * Babystepping
    */
   #if ENABLED(BABYSTEPPING)
-    #error "BABYSTEPPING is not implemented for SCARA yet."
+    #error "DEPENDENCY ERROR: BABYSTEPPING is not implemented for SCARA yet."
   #endif
 
 #endif // IS_SCARA

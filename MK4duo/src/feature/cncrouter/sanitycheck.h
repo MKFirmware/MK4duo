@@ -30,7 +30,7 @@
 #define _CNCROUTER_SANITYCHECK_H_
 
 #if ENABLED(CNCROUTER) && !PIN_EXISTS(CNCROUTER)
-  #error DEPENDENCY ERROR: You have to set CNCROUTER_PIN to a valid pin if you enable CNCROUTER
+  #error "DEPENDENCY ERROR: You have to set CNCROUTER_PIN to a valid pin if you enable CNCROUTER."
 #endif
 
 #endif /* _CNCROUTER_SANITYCHECK_H_ */
