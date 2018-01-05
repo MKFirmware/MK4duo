@@ -31,21 +31,21 @@
 
 // Limited number of servos
 #if NUM_SERVOS > 4
-  #error CONFLICT ERROR: The maximum number of SERVOS in MK4duo is 4.
+  #error "DEPENDENCY ERROR: The maximum number of SERVOS in MK4duo is 4."
 #endif
 #if ENABLED(ENABLE_SERVOS)
   #if NUM_SERVOS < 1
-    #error CONFLICT ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS
+    #error "DEPENDENCY ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS."
   #endif
   #if Z_ENDSTOP_SERVO_NR >= 0
     #if Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
-      #error CONFLICT ERROR: Z_ENDSTOP_SERVO_NR must be smaller than NUM_SERVOS.
+      #error "DEPENDENCY ERROR: Z_ENDSTOP_SERVO_NR must be smaller than NUM_SERVOS."
     #endif
   #endif
 #endif
 
 #if ((ENABLED(ENABLE_SERVOS) && NUM_SERVOS > 0) && !(HAS_SERVO_0 || HAS_SERVO_1 || HAS_SERVO_2 || HAS_SERVO_3))
-  #error DEPENDENCY ERROR: You have to set at least one SERVO?_PIN to a valid pin if you enable ENABLE_SERVOS
+  #error "DEPENDENCY ERROR: You have to set at least one SERVO?_PIN to a valid pin if you enable ENABLE_SERVOS."
 #endif
 
 #endif /* _SERVO_SANITYCHECK_H_ */

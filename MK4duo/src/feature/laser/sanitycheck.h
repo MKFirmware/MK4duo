@@ -32,22 +32,22 @@
 #if ENABLED(LASER)
   #if ENABLED(LASER_PERIPHERALS)
     #if !PIN_EXISTS(LASER_PERIPHERALS)
-      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_PIN to a valid pin if you enable LASER_PERIPHERALS
+      #error "DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_PIN to a valid pin if you enable LASER_PERIPHERALS."
     #endif
     #if !PIN_EXISTS(LASER_PERIPHERALS_STATUS)
-      #error DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_STATUS_PIN to a valid pin if you enable LASER_PERIPHERALS
+      #error "DEPENDENCY ERROR: You have to set LASER_PERIPHERALS_STATUS_PIN to a valid pin if you enable LASER_PERIPHERALS."
     #endif
   #endif
   #if (DISABLED(LASER_CONTROL) || ((LASER_CONTROL != 1) && (LASER_CONTROL != 2)))
-     #error DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2
+     #error "DEPENDENCY ERROR: You have to set LASER_CONTROL to 1 or 2."
   #else
     #if(LASER_CONTROL == 1)
       #if(!HAS_LASER_POWER)
-        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN
+        #error "DEPENDENCY ERROR: You have to set LASER_PWR_PIN."
       #endif
     #else
       #if(!HAS_LASER_POWER || !HAS_LASER_PWM)
-        #error DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_PWM_PIN to a valid pin if you enable LASER
+        #error "DEPENDENCY ERROR: You have to set LASER_PWR_PIN and LASER_PWM_PIN to a valid pin if you enable LASER."
       #endif
     #endif
   #endif

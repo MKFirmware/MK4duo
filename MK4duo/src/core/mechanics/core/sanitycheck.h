@@ -31,13 +31,13 @@
 
 // Z late enable
 #if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
-  #error CONFLICT ERROR: "Z_LATE_ENABLE can't be used with COREXZ."
+  #error "DEPENDENCY ERROR: Z_LATE_ENABLE can't be used with COREXZ."
 #endif
 
 // Core factor
 #if IS_CORE
   #if DISABLED(CORE_FACTOR)
-    #error DEPENDENCY ERROR: Missing setting CORE_FACTOR
+    #error "DEPENDENCY ERROR: Missing setting CORE_FACTOR."
   #endif
 #endif
 

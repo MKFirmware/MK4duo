@@ -48,7 +48,7 @@ static_assert(1 >= 0
   #if ENABLED(MESH_BED_LEVELING)
     + 1
   #endif
-  , "Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR or AUTO_BED_LEVELING_UBL."
+  , "DEPENDENCY ERROR: Select only one of: MESH_BED_LEVELING, AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR or AUTO_BED_LEVELING_UBL."
 );
 
 /**
@@ -60,14 +60,14 @@ static_assert(1 >= 0
  */
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #if IS_SCARA
-    #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
+    #error "DEPENDENCY ERROR: AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
   #elif DISABLED(EEPROM_SETTINGS)
-    #error "AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS. Please update your configuration."
+    #error "DEPENDENCY ERROR: AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS. Please update your configuration."
   #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+    #error "DEPENDENCY ERROR: GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
   #endif
   #if ENABLED(MESH_EDIT_GFX_OVERLAY) && !ENABLED(DOGLCD)
-    #error "MESH_EDIT_GFX_OVERLAY requires a DOGLCD."
+    #error "DEPENDENCY ERROR: MESH_EDIT_GFX_OVERLAY requires a DOGLCD."
   #endif
 #endif
 
@@ -76,11 +76,11 @@ static_assert(1 >= 0
  */
 #if ENABLED(MESH_BED_LEVELING)
   #if IS_DELTA
-    #error "MESH_BED_LEVELING does not yet support DELTA printers."
+    #error "DEPENDENCY ERROR: MESH_BED_LEVELING does not yet support DELTA printers."
   #elif IS_SCARA
-    #error "Only AUTO_BED_LEVELING_BILINEAR currently supports SCARA bed leveling."
+    #error "DEPENDENCY ERROR: Only AUTO_BED_LEVELING_BILINEAR currently supports SCARA bed leveling."
   #elif GRID_MAX_POINTS_X > 9 || GRID_MAX_POINTS_Y > 9
-    #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
+    #error "DEPENDENCY ERROR: GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10."
   #endif
 #endif
 
@@ -88,15 +88,15 @@ static_assert(1 >= 0
  * ENABLE_LEVELING_FADE_HEIGHT requirements
  */
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT) && !HAS_LEVELING
-  #error "ENABLE_LEVELING_FADE_HEIGHT requires Bed Level"
+  #error "DEPENDENCY ERROR: ENABLE_LEVELING_FADE_HEIGHT requires Bed Level."
 #endif
 
 #if !HAS_MESH && ENABLED(G26_MESH_VALIDATION)
-  #error "G26_MESH_VALIDATION requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL."
+  #error "DEPENDENCY ERROR: G26_MESH_VALIDATION requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL."
 #endif
 
 #if ENABLED(MESH_EDIT_GFX_OVERLAY) && (DISABLED(AUTO_BED_LEVELING_UBL) || DISABLED(DOGLCD))
-  #error "MESH_EDIT_GFX_OVERLAY requires AUTO_BED_LEVELING_UBL and a Graphical LCD."
+  #error "DEPENDENCY ERROR: MESH_EDIT_GFX_OVERLAY requires AUTO_BED_LEVELING_UBL and a Graphical LCD."
 #endif
 
 #endif /* _BED_LEVELING_SANITYCHECK_H_ */

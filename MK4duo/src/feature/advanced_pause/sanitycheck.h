@@ -31,23 +31,23 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   #if EXTRUDERS == 0
-    #error "ADVANCED_PAUSE_FEATURE currently requires extruders."
+    #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires extruders."
   #endif
   #if !HAS_LCD
-    #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
+    #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
   #elif DISABLED(NOZZLE_PARK_FEATURE)
-    #error "ADVANCED_PAUSE_FEATURE currently requires NOZZLE_PARK_FEATURE."
+    #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires NOZZLE_PARK_FEATURE."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    #error "EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
+    #error "DEPENDENCY ERROR: EXTRUDER_RUNOUT_PREVENT is incompatible with ADVANCED_PAUSE_FEATURE."
   #endif
   #if DISABLED(PAUSE_PARK_RETRACT_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH
+    #error "DEPENDENCY ERROR: Missing setting PAUSE_PARK_RETRACT_LENGTH."
   #endif
   #if DISABLED(PAUSE_PARK_UNLOAD_LENGTH)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH
+    #error "DEPENDENCY ERROR: Missing setting PAUSE_PARK_UNLOAD_LENGTH."
   #endif
   #if DISABLED(PAUSE_PARK_PRINTER_OFF)
-    #error DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF
+    #error "DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF."
   #endif
 #endif
 
