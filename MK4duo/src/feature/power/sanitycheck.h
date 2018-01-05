@@ -36,27 +36,27 @@
 
 // Power consumption sensor
 #if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
-  #error DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION
+  #error "DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION."
 #endif
 
 #if ENABLED(POWER_CONSUMPTION)
   #if DISABLED(POWER_VOLTAGE)
-    #error DEPENDENCY ERROR: Missing setting POWER_VOLTAGE
+    #error "DEPENDENCY ERROR: Missing setting POWER_VOLTAGE."
   #endif
   #if DISABLED(POWER_SENSITIVITY)
-    #error DEPENDENCY ERROR: Missing setting POWER_SENSITIVITY
+    #error "DEPENDENCY ERROR: Missing setting POWER_SENSITIVITY."
   #endif
   #if DISABLED(POWER_OFFSET)
-    #error DEPENDENCY ERROR: Missing setting POWER_OFFSET
+    #error "DEPENDENCY ERROR: Missing setting POWER_OFFSET."
   #endif
   #if DISABLED(POWER_ZERO)
-    #error DEPENDENCY ERROR: Missing setting POWER_ZERO
+    #error "DEPENDENCY ERROR: Missing setting POWER_ZERO."
   #endif
   #if DISABLED(POWER_ERROR)
-    #error DEPENDENCY ERROR: Missing setting POWER_ERROR
+    #error "DEPENDENCY ERROR: Missing setting POWER_ERROR."
   #endif
   #if DISABLED(POWER_EFFICIENCY)
-    #error DEPENDENCY ERROR: Missing setting POWER_EFFICIENCY
+    #error "DEPENDENCY ERROR: Missing setting POWER_EFFICIENCY."
   #endif
 #endif
 

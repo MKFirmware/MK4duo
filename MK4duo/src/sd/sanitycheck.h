@@ -31,26 +31,26 @@
 
 // SDSUPPORT test
 #if ENABLED(SD_SETTINGS) && DISABLED(SDSUPPORT)
-  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS
+  #error "DEPENDENCY ERROR: You have to enable SDSUPPORT to use SD_SETTINGS."
 #endif
 
 /**
  * EEPROM test
  */
 #if DISABLED(SDSUPPORT) && ENABLED(EEPROM_SETTINGS) && ENABLED(EEPROM_SD)
-  #error DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD
+  #error "DEPENDENCY ERROR: You have to enable SDSUPPORT to use EEPROM_SD."
 #endif
 
 // addon
 #if HAS_SDSUPPORT
   #if DISABLED(SD_FINISHED_STEPPERRELEASE)
-    #error DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE
+    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE."
   #endif
   #if DISABLED(SD_FINISHED_RELEASECOMMAND)
-    #error DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND
+    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND."
   #endif
   #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
-    #error DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS
+    #error "DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS."
   #endif
 #endif
 

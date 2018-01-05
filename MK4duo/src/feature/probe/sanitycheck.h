@@ -52,58 +52,58 @@
     #if ENABLED(Z_PROBE_SLED)
       + 1
     #endif
-    , "Please enable only one probe: FIX_MOUNTED_PROBE, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
+    , "DEPENDENCY ERROR: Please enable only one probe: FIX_MOUNTED_PROBE, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
   );
 
   // Z_PROBE_SLED is incompatible with DELTA
   #if ENABLED(Z_PROBE_SLED) && MECH(DELTA)
-    #error "You cannot use Z_PROBE_SLED with DELTA."
+    #error "DEPENDENCY ERROR: You cannot use Z_PROBE_SLED with DELTA."
   #endif
 
   // NUM_SERVOS is required for a Z servo probe
   #if HAS_Z_SERVO_PROBE
     #ifndef NUM_SERVOS
-      #error "You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
+      #error "DEPENDENCY ERROR: You must set NUM_SERVOS for a Z servo probe (Z_ENDSTOP_SERVO_NR)."
     #elif Z_ENDSTOP_SERVO_NR >= NUM_SERVOS
-      #error "Z_ENDSTOP_SERVO_NR must be less than NUM_SERVOS."
+      #error "DEPENDENCY ERROR: Z_ENDSTOP_SERVO_NR must be less than NUM_SERVOS."
     #endif
   #endif
 
   // A probe needs a pin
   #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
-    #error "A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
+    #error "DEPENDENCY ERROR: A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
   #endif
 
   // Make sure Z raise values are set
   #if DISABLED(Z_PROBE_DEPLOY_HEIGHT)
-    #error "You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
+    #error "DEPENDENCY ERROR: You must define Z_PROBE_DEPLOY_HEIGHT in your configuration."
   #elif DISABLED(Z_PROBE_BETWEEN_HEIGHT)
-    #error "You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
+    #error "DEPENDENCY ERROR: You must define Z_PROBE_BETWEEN_HEIGHT in your configuration."
   #elif Z_PROBE_DEPLOY_HEIGHT < 0
-    #error "Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."
+    #error "DEPENDENCY ERROR: Probes need Z_PROBE_DEPLOY_HEIGHT >= 0."
   #elif Z_PROBE_BETWEEN_HEIGHT < 0
-    #error "Probes need Z_PROBE_BETWEEN_HEIGHT >= 0."
+    #error "DEPENDENCY ERROR: Probes need Z_PROBE_BETWEEN_HEIGHT >= 0."
   #endif
 
 #else
 
   // Require some kind of probe for bed leveling and probe testing
   #if HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL)
-    #error "Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
-    #error "DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_2)
-    #error "DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+    #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_2 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #endif
 
 #endif
 
 #if (!HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)) && ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-  #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
+  #error "DEPENDENCY ERROR: Z_MIN_PROBE_REPEATABILITY_TEST requires a probe! Define a Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
 #endif
 
 #if ENABLED(Z_PROBE_SLED) && !PIN_EXISTS(SLED)
-  #error DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable Z_PROBE_SLED
+  #error "DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable Z_PROBE_SLED."
 #endif
 
 // Check auto bed leveling sub-options, especially probe points
@@ -112,9 +112,9 @@
   #if DISABLED(DELTA_PROBEABLE_RADIUS)
     // Be sure points are in the right order
     #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
-      #error "LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
+      #error "DEPENDENCY ERROR: LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
     #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
-      #error "FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
+      #error "DEPENDENCY ERROR: FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
     #endif
   #endif
 #endif
@@ -122,9 +122,9 @@
 // G38 Probe Target
 #if ENABLED(G38_PROBE_TARGET)
   #if !HAS_BED_PROBE
-    #error "G38_PROBE_TARGET requires a bed probe."
+    #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a bed probe."
   #elif !IS_CARTESIAN
-    #error "G38_PROBE_TARGET requires a Cartesian machine."
+    #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a Cartesian machine."
   #endif
 #endif
 
