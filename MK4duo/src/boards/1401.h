@@ -161,7 +161,7 @@
 
 
 //###UNKNOWN_PINS
-#define I2C_EEPROM
+#define EEPROM_I2C
 #define E2END 0x2000
 //@@@
 

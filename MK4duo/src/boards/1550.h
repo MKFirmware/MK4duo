@@ -160,7 +160,7 @@
 
 
 //###UNKNOWN_PINS
-#define I2C_EEPROM
+#define EEPROM_I2C
 #define MAX31855_SS0_PIN            5
 #define MAX31855_SS1_PIN            6
 //@@@

@@ -181,7 +181,7 @@
 #define EXP_VOLTAGE_LEVEL_PIN 65
 #define DAC0_SYNC             53  // PB14
 #define DAC1_SYNC              6  // PC24
-#define SPI_EEPROM
+#define EEPROM_SPI
 #define SPI_CHAN_EEPROM1       2
 #define SPI_EEPROM1_CS        25  // PD0
 #define SPI_EEPROM2_CS        26  // PD1

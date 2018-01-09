@@ -179,7 +179,7 @@
 #define MOTOR_FAULT_PIGGY_PIN  7
 #define DAC0_SYNC             27
 #define DAC1_SYNC              6
-#define SPI_EEPROM
+#define EEPROM_SPI
 #define SPI_CHAN_EEPROM1       2
 #define SPI_EEPROM1_CS        25
 #define SPI_EEPROM2_CS        26

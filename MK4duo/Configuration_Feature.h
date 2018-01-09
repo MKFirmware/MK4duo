@@ -1084,12 +1084,14 @@
  * Uncomment EEPROM SETTINGS to enable this feature.                                                                    *
  * Uncomment EEPROM CHITCHAT to enable EEPROM Serial responses.                                                         *
  * Uncomment EEPROM SD for use writing EEPROM on SD                                                                     *
+ * Uncomment EEPROM FLASH for use writing EEPROM on Flash Memory (Only for DUE)                                         *
  *                                                                                                                      *
  ************************************************************************************************************************/
 //#define EEPROM_SETTINGS
 
 //#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_SD
+//#define EEPROM_FLASH
 //#define DISABLE_M503
 /************************************************************************************************************************/
 

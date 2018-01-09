@@ -73,7 +73,7 @@
       case MeshReport:
         if (bedlevel.leveling_is_valid()) {
           SERIAL_EMT("State: ", bedlevel.leveling_active ? MSG_ON : MSG_OFF);
-          bedlevel.mesh_report();
+          mbl.report_mesh();
         }
         else
           SERIAL_EM("Mesh bed leveling has no data.");
@@ -128,7 +128,6 @@
           SERIAL_EM("Mesh probing done.");
           BUZZ(100, 659);
           BUZZ(100, 698);
-          mbl.has_mesh = true;
 
           mechanics.Home(true);
           bedlevel.set_bed_leveling_enabled(true);
@@ -178,6 +177,7 @@
           SERIAL_CHR('Z'); say_not_entered();
           return;
         }
+
         break;
 
       case MeshSetZOffset:

@@ -27,7 +27,7 @@
 
 #include "../../MK4duo.h"
 
-#if ENABLED(EEPROM_SETTINGS) && ENABLED(I2C_EEPROM)
+#if HAS_EEPROM_I2C
 
 // --------------------------------------------------------------------------
 // Includes
@@ -129,7 +129,6 @@ void eeprom_update_block(const void* pos, void* eeprom_address, size_t n) {
   }
 }
 
-
 uint8_t eeprom_read_byte(uint8_t* pos) {
   byte data = 0xFF;
   unsigned eeprom_address = (unsigned) pos;
@@ -159,6 +158,4 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n) {
     if (Wire.available()) *((uint8_t*)pos + c) = Wire.read();
 }
 
-
-#endif // ENABLED(I2C_EEPROM)
-
+#endif // HAS_EEPROM_I2C

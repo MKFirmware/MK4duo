@@ -316,6 +316,9 @@ void Printer::setup() {
     endstops.setup_endstop_interrupts();
   #endif
 
+  // All Initialized set Running to true.
+  setRunning(true);
+
   #if ENABLED(DELTA_HOME_ON_POWER)
     mechanics.Home(true);
   #endif

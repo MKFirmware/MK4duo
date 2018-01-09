@@ -103,7 +103,7 @@
             #endif
           #elif ENABLED(MESH_BED_LEVELING)
             SERIAL_EM("Mesh Bed Level data:");
-            bedlevel.mesh_report();
+            mbl.report_mesh();
           #endif
         }
       #endif

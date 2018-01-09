@@ -162,7 +162,7 @@
 
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN             53
-#define I2C_EEPROM
+#define EEPROM_I2C
 //@@@
 
 //###IF_BLOCKS
