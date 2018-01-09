@@ -30,16 +30,12 @@
   bool    case_light_on = CASE_LIGHT_DEFAULT_ON,
           case_light_arg_flag;
 
-  #if DISABLED(INVERT_CASE_LIGHT)
-    #define INVERT_CASE_LIGHT false
-  #endif
-
   void update_case_light() {
 
     if (!(case_light_arg_flag && !case_light_on))
-      case_light_brightness_sav = case_light_brightness;  // save brightness except if this is an S0 arguement
+      case_light_brightness_sav = case_light_brightness;  // save brightness except if this is an S0 argument
     if (case_light_arg_flag && case_light_on)
-      case_light_brightness = case_light_brightness_sav;  // restore last brightens if this is an S1 arguement
+      case_light_brightness = case_light_brightness_sav;  // restore last brightness if this is an S1 argument
 
     if (case_light_on) {
       if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))

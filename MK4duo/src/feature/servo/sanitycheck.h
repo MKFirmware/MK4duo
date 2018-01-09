@@ -33,6 +33,7 @@
 #if NUM_SERVOS > 4
   #error "DEPENDENCY ERROR: The maximum number of SERVOS in MK4duo is 4."
 #endif
+
 #if ENABLED(ENABLE_SERVOS)
   #if NUM_SERVOS < 1
     #error "DEPENDENCY ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS."
@@ -44,8 +45,19 @@
   #endif
 #endif
 
-#if ((ENABLED(ENABLE_SERVOS) && NUM_SERVOS > 0) && !(HAS_SERVO_0 || HAS_SERVO_1 || HAS_SERVO_2 || HAS_SERVO_3))
-  #error "DEPENDENCY ERROR: You have to set at least one SERVO?_PIN to a valid pin if you enable ENABLE_SERVOS."
+#if ENABLED(ENABLE_SERVOS)
+  #if NUM_SERVOS > 0 && !(HAS_SERVO_0)
+    #error "DEPENDENCY ERROR: You have to set SERVO0_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 1 && !(HAS_SERVO_1)
+    #error "DEPENDENCY ERROR: You have to set SERVO1_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 2 && !(HAS_SERVO_2)
+    #error "DEPENDENCY ERROR: You have to set SERVO2_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 3 && !(HAS_SERVO_3)
+    #error "DEPENDENCY ERROR: You have to set SERVO3_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
 #endif
 
 #endif /* _SERVO_SANITYCHECK_H_ */

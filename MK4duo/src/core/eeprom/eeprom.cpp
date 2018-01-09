@@ -43,8 +43,8 @@
 /**
  * MKV44 EEPROM Layout:
  *
- *  Version (char x6)
- *  EEPROM Checksum (uint16_t)
+ *  Version                                                     (char x6)
+ *  EEPROM Checksum                                             (uint16_t)
  *
  *  M92   XYZ E0 ...      mechanics.axis_steps_per_mm X,Y,Z,E0 ... (float x9)
  *  M203  XYZ E0 ...      mechanics.max_feedrate_mm_s X,Y,Z,E0 ... (float x9)
@@ -58,7 +58,7 @@
  *  M205  X               mechanics.max_jerk[X_AXIS]            (float)
  *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
- *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRDURES](float x6)
+ *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRUDERS](float x6)
  *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
@@ -185,6 +185,13 @@
  *  M900  K               planner.extruder_advance_k            (float)
  *  M900  WHD             planner.advance_ed_ratio              (float)
  *
+ * ========================================================================
+ * meshes_begin (between max and min end-point, directly above)
+ * -- MESHES --
+ * meshes_end
+ * -- MAT (Mesh Allocation Table) --                128 bytes (placeholder size)
+ * mat_end = E2END (0xFFF)
+ *
  */
 
 EEPROM eeprom;
@@ -267,83 +274,25 @@ void EEPROM::Postprocess() {
   if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
     mechanics.report_current_position();
 
-  // All Initialized set Running to true.
-  printer.setRunning(true);
-
 }
 
 #if HAS_EEPROM
 
-  #define EEPROM_START()    int eeprom_index = EEPROM_OFFSET
-  #define EEPROM_SKIP(VAR)  eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR) write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_READ(VAR)  read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(true)
+  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(false)
+  #define EEPROM_FINISH()       access_finish()
+  #define EEPROM_SKIP(VAR)      eeprom_index += sizeof(VAR)
+  #define EEPROM_WRITE(VAR)     eeprom_error = write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_READ(VAR)      eeprom_error = read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_FINISH()       access_finish()
 
   const char version[6] = EEPROM_VERSION;
 
   bool EEPROM::eeprom_error = false;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
-    int EEPROM::meshes_begin = 0;
+    int16_t EEPROM::meshes_begin = 0;
   #endif
-
-  void EEPROM::crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
-    uint8_t *ptr = (uint8_t *)data;
-    while (cnt--) {
-      *crc = (uint16_t)(*crc ^ (uint16_t)(((uint16_t)*ptr++) << 8));
-      for (uint8_t x = 0; x < 8; x++)
-        *crc = (uint16_t)((*crc & 0x8000) ? ((uint16_t)(*crc << 1) ^ 0x1021) : (*crc << 1));
-    }
-  }
-
-  bool EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-
-    while(size--) {
-
-      #if HAS_EEPROM_SD
-
-        uint8_t v = *value;
-        if (!card.write_data(&eeprom_file, v)) {
-          SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-          return true;
-        }
-
-      #else
-
-        uint8_t * const p = (uint8_t * const)pos;
-        uint8_t v = *value;
-        // EEPROM has only ~100,000 write cycles,
-        // so only write bytes that have changed!
-        if (v != eeprom_read_byte(p)) {
-          eeprom_write_byte(p, v);
-          if (eeprom_read_byte(p) != v) {
-            SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-            return true;
-          }
-        }
-      #endif
-
-      crc16(crc, &v, 1);
-      pos++;
-      value++;
-    };
-    return false;
-  }
-
-  bool EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
-    do {
-      #if HAS_EEPROM_SD
-        uint8_t c = card.read_data(&eeprom_file);
-      #else
-        uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      #endif
-      *value = c;
-      crc16(crc, &c, 1);
-      pos++;
-      value++;
-    } while (--size);
-    return false;
-  }
 
   /**
    * M500 - Store Configuration
@@ -353,28 +302,16 @@ void EEPROM::Postprocess() {
 
     uint16_t working_crc = 0;
 
-    EEPROM_START();
+    EEPROM_WRITE_START();
 
-    eeprom_error = false;
-
-    #if HAS_EEPROM_SD
-      // EEPROM on SDCARD
-      if (!IS_SD_INSERTED) {
-        SERIAL_LM(ER, MSG_NO_CARD);
-        return false;
-      }
-      else if (IS_SD_PRINTING || !card.cardOK)
-        return false;
-      else {
-        card.setroot();
-        eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC);
-        eeprom_file.truncate(0);
-        EEPROM_WRITE(version);
-      }
-    #else
-      // EEPROM on SPI or IC2
+    #if HAS_EEPROM_FLASH
+      EEPROM_SKIP(ver);         // Flash doesn't allow rewriting without erase
+      EEPROM_SKIP(working_crc); // Skip the checksum slot
+    #elif HAS_EEPROM_SPI || HAS_EEPROM_I2C
       EEPROM_WRITE(ver);        // invalidate data first
       EEPROM_SKIP(working_crc); // Skip the checksum slot
+    #elif HAS_EEPROM_SD
+      EEPROM_WRITE(version);
     #endif
 
     working_crc = 0; // clear before first "real data"
@@ -410,7 +347,6 @@ void EEPROM::Postprocess() {
         "MBL Z array is the wrong size."
       );
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(mbl.has_mesh);
       EEPROM_WRITE(mbl.z_offset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
@@ -567,81 +503,73 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(stepper.motor_current);
     #endif
 
+    //
     // Save TMC2130 or TMC2208 Configuration, and placeholder values
+    //
     #if HAS_TRINAMIC
-      uint16_t val;
-      #if X_IS_TRINAMIC
-        val = stepperX.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if Y_IS_TRINAMIC
-        val = stepperY.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if Z_IS_TRINAMIC
-        val = stepperZ.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if X2_IS_TRINAMIC
-        val = stepperX2.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if Y2_IS_TRINAMIC
-        val = stepperY2.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if Z2_IS_TRINAMIC
-        val = stepperZ2.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E0_IS_TRINAMIC
-        val = stepperE0.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E1_IS_TRINAMIC
-        val = stepperE1.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E2_IS_TRINAMIC
-        val = stepperE2.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E3_IS_TRINAMIC
-        val = stepperE3.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E4_IS_TRINAMIC
-        val = stepperE4.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
-      #if E5_IS_TRINAMIC
-        val = stepperE5.getCurrent();
-      #else
-        val = 0;
-      #endif
-      EEPROM_WRITE(val);
+      uint16_t currents[11] = {
+        #if X_IS_TRINAMIC
+          stepperX.getCurrent(),
+        #else
+          0,
+        #endif
+        #if Y_IS_TRINAMIC
+          stepperY.getCurrent(),
+        #else
+          0,
+        #endif
+        #if Z_IS_TRINAMIC
+          stepperZ.getCurrent(),
+        #else
+          0,
+        #endif
+        #if X2_IS_TRINAMIC
+          stepperX2.getCurrent(),
+        #else
+          0,
+        #endif
+        #if Y2_IS_TRINAMIC
+          stepperY2.getCurrent(),
+        #else
+          0,
+        #endif
+        #if Z2_IS_TRINAMIC
+          stepperZ2.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E0_IS_TRINAMIC
+          stepperE0.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E1_IS_TRINAMIC
+          stepperE1.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E2_IS_TRINAMIC
+          stepperE2.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E3_IS_TRINAMIC
+          stepperE3.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E4_IS_TRINAMIC
+          stepperE4.getCurrent(),
+        #else
+          0,
+        #endif
+        #if E5_IS_TRINAMIC
+          stepperE5.getCurrent()
+        #else
+          0
+        #endif
+      };
+      EEPROM_WRITE(currents);
     #endif
 
     //
@@ -678,13 +606,16 @@ void EEPROM::Postprocess() {
 
       // Write the EEPROM header
       eeprom_index = EEPROM_OFFSET;
+
       EEPROM_WRITE(version);
       EEPROM_WRITE(final_crc);
 
       // Report storage size
-      SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
-      SERIAL_MV(" bytes; crc ", final_crc);
-      SERIAL_EM(")");
+      #if ENABLED(EEPROM_CHITCHAT)
+        SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
+        SERIAL_MV(" bytes; crc ", final_crc);
+        SERIAL_EM(")");
+      #endif
     }
 
     #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
@@ -692,11 +623,7 @@ void EEPROM::Postprocess() {
         store_mesh(ubl.storage_slot);
     #endif
 
-    #if HAS_EEPROM_SD
-      eeprom_file.sync();
-      eeprom_file.close();
-      card.setlast();
-    #endif
+    EEPROM_FINISH();
 
     return !eeprom_error;
   }
@@ -706,26 +633,18 @@ void EEPROM::Postprocess() {
    */
   bool EEPROM::Load_Settings() {
 
-    // Load Configuration put Running to false for lock the function.
-    printer.setRunning(false);
-
-    uint16_t working_crc = 0;
-
-    EEPROM_START();
+    uint16_t  working_crc = 0,
+              stored_crc  = 0;
 
     char stored_ver[6];
-    uint16_t stored_crc;
 
-    #if HAS_EEPROM_SD
-      // EEPROM on SDCARD
-      if (IS_SD_INSERTED || card.cardOK) {
-        card.setroot();
-        eeprom_file.open(card.curDir, "EEPROM.bin", O_READ);
-        EEPROM_READ(stored_ver);
-      }
-    #else
+    EEPROM_READ_START();
+
+    #if HAS_EEPROM_SPI || HAS_EEPROM_I2C || HAS_EEPROM_FLASH
       EEPROM_READ(stored_ver);
       EEPROM_READ(stored_crc);
+    #elif HAS_EEPROM_SD
+      EEPROM_READ(stored_ver);
     #endif
 
     if (strncmp(version, stored_ver, 5) != 0) {
@@ -734,10 +653,13 @@ void EEPROM::Postprocess() {
         stored_ver[1] = '?';
         stored_ver[2] = '\0';
       }
-      SERIAL_SM(ECHO, "EEPROM version mismatch ");
-      SERIAL_MT("(EEPROM=", stored_ver);
-      SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
+      #if ENABLED(EEPROM_CHITCHAT)
+        SERIAL_SM(ECHO, "EEPROM version mismatch ");
+        SERIAL_MT("(EEPROM=", stored_ver);
+        SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
+      #endif
       Factory_Settings();
+      eeprom_error = true;
     }
     else {
 
@@ -773,7 +695,6 @@ void EEPROM::Postprocess() {
       //
       #if ENABLED(MESH_BED_LEVELING)
         uint8_t mesh_num_x = 0, mesh_num_y = 0;
-        EEPROM_READ(mbl.has_mesh);
         EEPROM_READ(mbl.z_offset);
         EEPROM_READ(mesh_num_x);
         EEPROM_READ(mesh_num_y);
@@ -949,54 +870,44 @@ void EEPROM::Postprocess() {
       // TMC2130 or TMC2208 Stepper Current
       //
       #if HAS_TRINAMIC
-        uint16_t val;
+        #define SET_CURR(N,Q) stepper##Q.setCurrent(val[N] ? val[N] : Q##_CURRENT, R_SENSE, HOLD_MULTIPLIER)
+        uint16_t val[12];
         EEPROM_READ(val);
         #if X_IS_TRINAMIC
-          stepperX.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(0, X);
         #endif
-        EEPROM_READ(val);
         #if Y_IS_TRINAMIC
-          stepperY.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(1, Y);
         #endif
-        EEPROM_READ(val);
         #if Z_IS_TRINAMIC
-          stepperZ.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(2, Z);
         #endif
-        EEPROM_READ(val);
         #if X2_IS_TRINAMIC
-          stepperX2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(3, X2);
         #endif
-        EEPROM_READ(val);
         #if Y2_IS_TRINAMIC
-          stepperY2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(4, Y2);
         #endif
-        EEPROM_READ(val);
         #if Z2_IS_TRINAMIC
-          stepperZ2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(5, Z2);
         #endif
-        EEPROM_READ(val);
         #if E0_IS_TRINAMIC
-          stepperE0.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(6, E0);
         #endif
-        EEPROM_READ(val);
         #if E1_IS_TRINAMIC
-          stepperE1.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(7, E1);
         #endif
-        EEPROM_READ(val);
         #if E2_IS_TRINAMIC
-          stepperE2.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(8, E2);
         #endif
-        EEPROM_READ(val);
         #if E3_IS_TRINAMIC
-          stepperE3.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(9, E3);
         #endif
-        EEPROM_READ(val);
         #if E4_IS_TRINAMIC
-          stepperE4.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(10, E4);
         #endif
-        EEPROM_READ(val);
         #if E5_IS_TRINAMIC
-          stepperE5.setCurrent(val, R_SENSE, HOLD_MULTIPLIER);
+          SET_CURR(11, E5);
         #endif
       #endif
 
@@ -1032,41 +943,36 @@ void EEPROM::Postprocess() {
       #endif
 
       #if HAS_EEPROM_SD
-
         // Read last two field
         uint16_t temp_crc;
         read_data(eeprom_index, (uint8_t*)&stored_ver, sizeof(stored_ver), &temp_crc);
         read_data(eeprom_index, (uint8_t*)&stored_crc, sizeof(stored_crc), &temp_crc);
-
-        eeprom_file.sync();
-        eeprom_file.close();
-        card.setlast();
-        Postprocess();
-        SERIAL_VAL(version);
-        SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
-        SERIAL_EM(" bytes)");
-
       #endif
 
       if (working_crc == stored_crc) {
-        SERIAL_VAL(version);
-        SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
-        SERIAL_MV(" bytes; crc ", working_crc);
-        SERIAL_EM(")");
+        #if ENABLED(EEPROM_CHITCHAT)
+          SERIAL_VAL(version);
+          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+          SERIAL_MV(" bytes; crc ", working_crc);
+          SERIAL_EM(")");
+        #endif
         Postprocess();
       }
       else {
-        SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
-        SERIAL_MV(" != ", working_crc);
-        SERIAL_EM(" (calculated)!");
+        eeprom_error = true;
+        #if ENABLED(EEPROM_CHITCHAT)
+          SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
+          SERIAL_MV(" != ", working_crc);
+          SERIAL_EM(" (calculated)!");
+        #endif
         Factory_Settings();
       }
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-        meshes_begin = (eeprom_index + 32) & 0xFFF8;  // Pad the end of configuration data so it
-                                                      // can float up or down a little bit without
-                                                      // disrupting the mesh data
+        meshes_begin = (eeprom_index + 32) & 0xFFF8;  // Pad the end of configuration data so it can float up
+                                                      // or down a little bit without disrupting the mesh data
+
         ubl.report_state();
 
         if (!ubl.sanity_check()) {
@@ -1105,6 +1011,8 @@ void EEPROM::Postprocess() {
       Print_Settings();
     #endif
 
+    EEPROM_FINISH();
+
     return !eeprom_error;
   }
 
@@ -1118,15 +1026,15 @@ void EEPROM::Postprocess() {
       }
     #endif
 
-    int EEPROM::calc_num_meshes() {
+    uint16_t EEPROM::calc_num_meshes() {
       if (meshes_begin <= 0) return 0;
       return (meshes_end - meshes_begin) / sizeof(ubl.z_values);
     }
 
-    void EEPROM::store_mesh(int8_t slot) {
+    void EEPROM::store_mesh(const int8_t slot) {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        const int a = calc_num_meshes();
+        const int16_t a = calc_num_meshes();
         if (!WITHIN(slot, 0, a - 1)) {
           #if ENABLED(EEPROM_CHITCHAT)
             ubl_invalid_slot(a);
@@ -1157,7 +1065,7 @@ void EEPROM::Postprocess() {
       #endif
     }
 
-    void EEPROM::load_mesh(int8_t slot, void *into /* = 0 */) {
+    void EEPROM::load_mesh(const int8_t slot, void * const into/*=NULL*/) {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -1193,11 +1101,11 @@ void EEPROM::Postprocess() {
 
   #endif // AUTO_BED_LEVELING_UBL
 
-#else // !EEPROM_SETTINGS
+#else // !HAS_EEPROM
 
   bool EEPROM::Store_Settings() { SERIAL_LM(ER, "EEPROM disabled"); return false; }
 
-#endif // EEPROM_SETTINGS
+#endif // HAS_EEPROM
 
 /**
  * M502 - Reset Configuration

@@ -45,6 +45,8 @@
     paused              = false;
     triggerTemperatures = (HOTEND_AUTO_FAN_TEMPERATURE);
 
+    if (printer.IsRunning()) return; // All running not reinitialize
+
     if (pin > 0) HAL::pinMode(pin, (hardwareInverted) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   }

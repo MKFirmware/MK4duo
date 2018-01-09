@@ -96,6 +96,7 @@
 #include "../feature/flowmeter/sanitycheck.h"
 #include "../feature/fwretract/sanitycheck.h"
 #include "../feature/advanced_pause/sanitycheck.h"
+#include "../feature/caselight/sanitycheck.h"
 
 // CONTROLLI ANCORA DA RICOLLOCARE...
 

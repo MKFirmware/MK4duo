@@ -27,7 +27,7 @@
 
 #include "../../MK4duo.h"
 
-#if ENABLED(EEPROM_SETTINGS) && ENABLED(SPI_EEPROM)
+#if HAS_EEPROM_SPI
 
 #include "HAL.h"
 
@@ -116,4 +116,4 @@ void eeprom_update_block(const void* pos, void* eeprom_address, size_t n) {
   HAL::delayMilliseconds(7);  // wait for page write to complete
 }
 
-#endif // ENABLED(SPI_EEPROM)
+#endif // HAS_EEPROM_SPI

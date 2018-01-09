@@ -212,18 +212,18 @@ class Printer {
     FORCE_INLINE static void setRunning(const bool run) {
       mk_1_flag = (run ? mk_1_flag | flag1_running : mk_1_flag & ~flag1_running);
     }
-    FORCE_INLINE static bool IsRunning()  { return mk_1_flag & flag1_running; }
+    FORCE_INLINE static bool IsRunning() { return mk_1_flag & flag1_running; }
 
     FORCE_INLINE static void setEndstopEnabled(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_endstop_enabled : mk_1_flag & ~flag1_endstop_enabled);
     }
-    FORCE_INLINE static bool IsEndstopEnabled()  { return mk_1_flag & flag1_endstop_enabled; }
+    FORCE_INLINE static bool IsEndstopEnabled() { return mk_1_flag & flag1_endstop_enabled; }
 
     FORCE_INLINE static void setEndstopGlobally(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_endstop_globally : mk_1_flag & ~flag1_endstop_globally);
       setEndstopEnabled(onoff);
     }
-    FORCE_INLINE static bool IsEndstopGlobally()  { return mk_1_flag & flag1_endstop_globally; }
+    FORCE_INLINE static bool IsEndstopGlobally() { return mk_1_flag & flag1_endstop_globally; }
 
     // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     FORCE_INLINE static void setNotHoming() { setEndstopEnabled(IsEndstopGlobally()); }
@@ -231,22 +231,22 @@ class Printer {
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_soft_endstop : mk_1_flag & ~flag1_soft_endstop);
     }
-    FORCE_INLINE static bool IsSoftEndstop()  { return mk_1_flag & flag1_soft_endstop; }
+    FORCE_INLINE static bool IsSoftEndstop() { return mk_1_flag & flag1_soft_endstop; }
 
     FORCE_INLINE static void setProbeEndstop(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_probe_endstop : mk_1_flag & ~flag1_probe_endstop);
     }
-    FORCE_INLINE static bool IsProbeEndstop()  { return mk_1_flag & flag1_probe_endstop; }
+    FORCE_INLINE static bool IsProbeEndstop() { return mk_1_flag & flag1_probe_endstop; }
 
     FORCE_INLINE static void setG38Move(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_g38_move : mk_1_flag & ~flag1_g38_move);
     }
-    FORCE_INLINE static bool IsG38Move()  { return mk_1_flag & flag1_g38_move; }
+    FORCE_INLINE static bool IsG38Move() { return mk_1_flag & flag1_g38_move; }
 
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
       mk_1_flag = (onoff ? mk_1_flag | flag1_g38_endstop_hit : mk_1_flag & ~flag1_g38_endstop_hit);
     }
-    FORCE_INLINE static bool IsG38EndstopHit()  { return mk_1_flag & flag1_g38_endstop_hit; }
+    FORCE_INLINE static bool IsG38EndstopHit() { return mk_1_flag & flag1_g38_endstop_hit; }
 
     FORCE_INLINE static void setPosSaved(const bool onoff) {
       mk_2_flag = (onoff ? mk_2_flag | flag2_pos_saved : mk_2_flag & ~flag2_pos_saved);

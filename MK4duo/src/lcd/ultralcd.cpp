@@ -2292,7 +2292,8 @@ void kill_screen(const char* lcd_msg) {
       char UBL_LCD_GCODE[25];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 L%i"), ubl_storage_slot);
       lcd_enqueue_command(UBL_LCD_GCODE);
-      commands.enqueue_and_echo(PSTR("M117 " MSG_MESH_LOADED "."));
+      sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_LOADED), ubl_storage_slot);
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2302,7 +2303,8 @@ void kill_screen(const char* lcd_msg) {
       char UBL_LCD_GCODE[25];
       sprintf_P(UBL_LCD_GCODE, PSTR("G29 S%i"), ubl_storage_slot);
       lcd_enqueue_command(UBL_LCD_GCODE);
-      commands.enqueue_and_echo(PSTR("M117 " MSG_MESH_SAVED "."));
+      sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_SAVED), ubl_storage_slot);
+      lcd_enqueue_command(UBL_LCD_GCODE);
     }
 
     /**
@@ -2319,7 +2321,6 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_UBL_LEVEL_BED);
       if (!WITHIN(ubl_storage_slot, 0, a - 1)) {
         STATIC_ITEM(MSG_NO_STORAGE);
-        STATIC_ITEM(MSG_INIT_EEPROM);
       }
       else {
         MENU_ITEM_EDIT(int3, MSG_UBL_STORAGE_SLOT, &ubl_storage_slot, 0, a - 1);
@@ -4803,6 +4804,7 @@ void lcd_update() {
     if (sd_status != lcd_sd_status && lcd_detected()) {
 
       if (sd_status) {
+        printer.safe_delay(1000);
         card.mount();
         if (lcd_sd_status != 2) LCD_MESSAGEPGM(MSG_SD_INSERTED);
       }

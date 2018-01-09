@@ -52,6 +52,10 @@
       watch_next_ms       = 0;
     #endif
 
+    sensor.CalcDerivedParameters();
+
+    if (printer.IsRunning()) return; //All running not reinitialize
+
     if (pin > 0) HAL::pinMode(pin, (hardwareInverted) ? OUTPUT_HIGH : OUTPUT_LOW);
 
     #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
@@ -64,7 +68,6 @@
       }
     #endif
 
-    sensor.CalcDerivedParameters();
   }
 
   void Heater::setTarget(int16_t celsius) {
