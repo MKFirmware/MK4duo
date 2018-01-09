@@ -144,8 +144,8 @@
   NexObject Hot1Touch   = NexObject(2, 97,  "m1");
   NexObject Hot2Touch   = NexObject(2, 98,  "m2");
   NexObject FanTouch    = NexObject(2, 99,  "m3");
-  
-  
+
+
 
   /**
    *******************************************************************
@@ -341,7 +341,7 @@
 
     // Page 14 touch listen
     &LcdSend,
-    
+
     // Page 15 touch listen
     &ProbeUp, &ProbeDown, &ProbeSend,
 
@@ -460,7 +460,7 @@
     #endif
 
     #if HAS_CASE_LIGHT
-      LightStatus.setValue(case_light_on ? 2 : 1, "printer");
+      LightStatus.setValue(caselight.status ? 2 : 1, "printer");
     #endif
 
     #if ENABLED(RFID_MODULE)
@@ -862,7 +862,7 @@
             Pprinter.show();
             break;
         }
-        
+
         old_message = message;
       }
     }
@@ -889,7 +889,7 @@
         temp += "T4 ";
       else if (ptr == &Rfid5)
         temp += "T5 ";
-      
+
       if(Rfid_read)
         temp += "R";
       else
@@ -1010,8 +1010,8 @@
   #if HAS_CASE_LIGHT
     void setlightPopCallback(void *ptr) {
       UNUSED(ptr);
-      case_light_on = !case_light_on;
-      update_case_light();
+      caselight.status = !caselight.status;
+      caselight.update();
     }
   #endif
 
@@ -1292,7 +1292,7 @@
         #endif
 
         #if HAS_CASE_LIGHT
-          LightStatus.setValue(case_light_on ? 2 : 1);
+          LightStatus.setValue(caselight.status ? 2 : 1);
         #endif
 
         if (Previousfeedrate != mechanics.feedrate_percentage) {
