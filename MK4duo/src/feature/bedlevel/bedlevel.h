@@ -123,10 +123,6 @@
       static void set_bed_leveling_enabled(const bool enable=true);
       static void reset();
 
-      #if ENABLED(MESH_BED_LEVELING)
-        static void mesh_report();
-      #endif
-
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
         static void set_z_fade_height(const float zfh, const bool do_report=true);
