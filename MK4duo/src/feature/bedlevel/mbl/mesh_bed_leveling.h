@@ -45,7 +45,6 @@
 
     public: /** Public Parameters */
 
-      static bool has_mesh;
       static float  z_offset,
                     z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
                     index_to_xpos[GRID_MAX_POINTS_X],
@@ -58,6 +57,15 @@
       static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
 
       static void line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
+
+      static void report_mesh();
+
+      FORCE_INLINE static bool has_mesh() {
+        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+          for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+            if (z_values[x][y]) return true;
+        return false;
+      }
 
       static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
         px = index % (GRID_MAX_POINTS_X);

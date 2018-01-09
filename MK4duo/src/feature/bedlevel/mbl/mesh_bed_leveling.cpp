@@ -28,8 +28,6 @@
 
   mesh_bed_leveling mbl;
 
-  bool mesh_bed_leveling::has_mesh;
-
   float mesh_bed_leveling::z_offset,
         mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
         mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
@@ -44,7 +42,6 @@
   }
 
   void mesh_bed_leveling::reset() {
-    has_mesh = false;
     z_offset = 0;
     ZERO(z_values);
   }
@@ -54,10 +51,10 @@
    * splitting the move where it crosses mesh borders.
    */
   void mesh_bed_leveling::line_to_destination(float fr_mm_s, uint8_t x_splits/*= 0xFF*/, uint8_t y_splits/*= 0xFF*/) {
-    int cx1 = mbl.cell_index_x(mechanics.current_position[X_AXIS]),
-        cy1 = mbl.cell_index_y(mechanics.current_position[Y_AXIS]),
-        cx2 = mbl.cell_index_x(mechanics.destination[X_AXIS]),
-        cy2 = mbl.cell_index_y(mechanics.destination[Y_AXIS]);
+    int cx1 = cell_index_x(mechanics.current_position[X_AXIS]),
+        cy1 = cell_index_y(mechanics.current_position[Y_AXIS]),
+        cx2 = cell_index_x(mechanics.destination[X_AXIS]),
+        cy2 = cell_index_y(mechanics.destination[Y_AXIS]);
     NOMORE(cx1, GRID_MAX_POINTS_X - 2);
     NOMORE(cy1, GRID_MAX_POINTS_Y - 2);
     NOMORE(cx2, GRID_MAX_POINTS_X - 2);
@@ -73,25 +70,30 @@
     #define MBL_SEGMENT_END(A) (mechanics.current_position[A ##_AXIS] + (mechanics.destination[A ##_AXIS] - mechanics.current_position[A ##_AXIS]) * normalized_dist)
 
     float normalized_dist, end[XYZE];
-
-    // Split at the left/front border of the right/top square
     const int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+
+    // Crosses on the X and not already split on this X?
+    // The x_splits flags are insurance against rounding errors.
     if (cx2 != cx1 && TEST(x_splits, gcx)) {
+      // Split on the X grid line
+      CBI(x_splits, gcx);
       COPY_ARRAY(end, mechanics.destination);
       mechanics.destination[X_AXIS] = index_to_xpos[gcx];
       normalized_dist = (mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS]) / (end[X_AXIS] - mechanics.current_position[X_AXIS]);
       mechanics.destination[Y_AXIS] = MBL_SEGMENT_END(Y);
-      CBI(x_splits, gcx);
     }
+    // Crosses on the Y and not already split on this Y?
     else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+      // Split on the Y grid line
+      CBI(y_splits, gcy);
       COPY_ARRAY(end, mechanics.destination);
       mechanics.destination[Y_AXIS] = index_to_ypos[gcy];
       normalized_dist = (mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS]) / (end[Y_AXIS] - mechanics.current_position[Y_AXIS]);
       mechanics.destination[X_AXIS] = MBL_SEGMENT_END(X);
-      CBI(y_splits, gcy);
     }
     else {
-      // Already split on a border
+      // Must already have been split on these border(s)
+      // This should be a rare case.
       mechanics.line_to_destination(fr_mm_s);
       mechanics.set_current_to_destination();
       return;
@@ -106,6 +108,15 @@
     // Restore destination from stack
     COPY_ARRAY(mechanics.destination, end);
     line_to_destination(fr_mm_s, x_splits, y_splits);  
+  }
+
+  void mesh_bed_leveling::report_mesh() {
+    SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
+    SERIAL_EMV("Z offset: ", z_offset, 5);
+    SERIAL_EM("Measured points:");
+    bedlevel.print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
+      [](const uint8_t ix, const uint8_t iy) { return z_values[ix][iy]; }
+    );
   }
 
 #endif  // MESH_BED_LEVELING

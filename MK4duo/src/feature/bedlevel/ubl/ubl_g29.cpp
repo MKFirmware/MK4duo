@@ -1243,8 +1243,8 @@
       SERIAL_EOL();
       printer.safe_delay(50);
 
-      SERIAL_MV("Meshes go from ", hex_address((void*)eeprom.get_start_of_meshes()));
-      SERIAL_EMV(" to ", hex_address((void*)eeprom.get_end_of_meshes()));
+      SERIAL_MV("Meshes go from ", hex_address((void*)eeprom.meshes_start_index()));
+      SERIAL_EMV(" to ", hex_address((void*)eeprom.meshes_end_index()));
       printer.safe_delay(50);
 
       SERIAL_EMV("sizeof(ubl) :  ", (int)sizeof(ubl));
@@ -1253,7 +1253,7 @@
       SERIAL_EOL();
       printer.safe_delay(25);
 
-      SERIAL_EMV("EEPROM free for UBL: ", hex_address((void*)(eeprom.get_end_of_meshes() - eeprom.get_start_of_meshes())));
+      SERIAL_EMV("EEPROM free for UBL: ", hex_address((void*)(eeprom.meshes_end_index() - eeprom.meshes_start_index())));
       printer.safe_delay(50);
 
       SERIAL_MV("EEPROM can hold ", eeprom.calc_num_meshes());

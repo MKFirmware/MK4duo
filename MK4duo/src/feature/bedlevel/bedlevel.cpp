@@ -161,7 +161,7 @@
 
   bool Bedlevel::leveling_is_valid() {
     #if ENABLED(MESH_BED_LEVELING)
-      return mbl.has_mesh;
+      return mbl.has_mesh();
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
       return !!abl.bilinear_grid_spacing[X_AXIS];
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -293,40 +293,24 @@
    * Reset calibration results to zero.
    */
   void Bedlevel::reset() {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) SERIAL_EM("Reset Bed Level");
+    #endif
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)
-      if (leveling_is_valid()) {
-        mbl.reset();
-        mbl.has_mesh = false;
-      }
-    #else
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Reset Bed Level");
-      #endif
-      #if ABL_PLANAR
-        matrix.set_to_identity();
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        abl.bilinear_start[X_AXIS] = abl.bilinear_start[Y_AXIS] =
-        abl.bilinear_grid_spacing[X_AXIS] = abl.bilinear_grid_spacing[Y_AXIS] = 0;
-        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-          for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-            abl.z_values[x][y] = NAN;
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.reset();
-      #endif
+      mbl.reset();
+    #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      ubl.reset();
+    #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      abl.bilinear_start[X_AXIS] = abl.bilinear_start[Y_AXIS] =
+      abl.bilinear_grid_spacing[X_AXIS] = abl.bilinear_grid_spacing[Y_AXIS] = 0;
+      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+          abl.z_values[x][y] = NAN;
+    #elif ABL_PLANAR
+      matrix.set_to_identity();
     #endif
   }
-
-  #if ENABLED(MESH_BED_LEVELING) 
-    void Bedlevel::mesh_report() {
-      SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
-      SERIAL_EMV("Z offset: ", mbl.z_offset, 5);
-      SERIAL_EM("Measured points:");
-      bedlevel.print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
-        [](const uint8_t ix, const uint8_t iy) { return mbl.z_values[ix][iy]; }
-      );
-    }
-  #endif
 
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
