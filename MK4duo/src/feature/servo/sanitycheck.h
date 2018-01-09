@@ -58,4 +58,6 @@
   #if NUM_SERVOS > 3 && !(HAS_SERVO_3)
     #error "DEPENDENCY ERROR: You have to set SERVO3_PIN to a valid pin if you enable ENABLE_SERVOS."
   #endif
+#endif
+
 #endif /* _SERVO_SANITYCHECK_H_ */
