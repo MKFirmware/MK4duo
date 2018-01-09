@@ -40,14 +40,14 @@
  */
 
 /**
-  A servo is activated by creating an instance of the Servo class passing 
+  A servo is activated by creating an instance of the Servo class passing
   the desired pin to the attach() method.
-  The servos are pulsed in the background using the value most recently 
+  The servos are pulsed in the background using the value most recently
   written using the write() method.
 
-  Note that analogWrite of PWM on pins associated with the timer are 
+  Note that analogWrite of PWM on pins associated with the timer are
   disabled when the first servo is attached.
-  Timers are seized as needed in groups of 12 servos - 24 servos use two 
+  Timers are seized as needed in groups of 12 servos - 24 servos use two
   timers, 48 servos will use four.
   The sequence used to sieze timers is defined in timers.h
 
@@ -57,13 +57,13 @@
 
     attach(pin )  - Attaches a servo motor to an i/o pin.
     attach(pin, min, max  ) - Attaches to a pin setting min and max values in microseconds
-    default min is 544, max is 2400  
- 
+    default min is 544, max is 2400
+
     write()     - Sets the servo angle in degrees.  (invalid angle that is valid as pulse in microseconds is treated as microseconds)
-    writeMicroseconds() - Sets the servo pulse width in microseconds 
-    read()      - Gets the last written servo pulse width as an angle between 0 and 180. 
+    writeMicroseconds() - Sets the servo pulse width in microseconds
+    read()      - Gets the last written servo pulse width as an angle between 0 and 180.
     readMicroseconds()   - Gets the last written servo pulse width in microseconds. (was read_us() in first release)
-    attached()  - Returns true if there is a servo attached. 
+    attached()  - Returns true if there is a servo attached.
     detach()    - Stops an attached servos from pulsing its i/o pin.
     move(angle) - Sequence of attach(0), write(angle),
                     With DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DELAY and detach.
@@ -75,7 +75,7 @@
 #if HAS_SERVOS
 
   #include <inttypes.h>
-  #include "servotimers.h"
+  #include "../../HAL/HAL_servotimers.h"
 
   /**
    * Defines for 16 bit timers used with  Servo library
