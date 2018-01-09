@@ -45,8 +45,10 @@
   inline void gcode_M355(void) {
 
     if (parser.seen('P')) caselight.brightness = parser.value_byte();
-    if (parser.seen('S')) caselight.status     = parser.value_bool();
-    caselight.update();
+
+    if (parser.seen('S')) caselight.status = parser.value_bool();
+
+    if (parser.seen('P') || parser.seen('S')) caselight.update();
 
     // Always report case light status
     caselight.report();
