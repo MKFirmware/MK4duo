@@ -217,9 +217,7 @@ void Printer::setup() {
 
   #if HAS_CASE_LIGHT
     SET_OUTPUT(CASE_LIGHT_PIN);
-    case_light_on = CASE_LIGHT_DEFAULT_ON;
-    case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
-    update_case_light();
+    caselight.update();
   #endif
 
   #if HAS_DOOR
@@ -405,7 +403,7 @@ void Printer::kill(const char* lcd_msg) {
 
   thermalManager.disable_all_heaters();
   stepper.disable_all_steppers();
-  
+
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
   #endif
@@ -943,7 +941,7 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
 
   /**
    * Output a "busy" message at regular intervals
-   * while the machine is not accepting 
+   * while the machine is not accepting
    */
   void Printer::host_keepalive() {
     const millis_t now = millis();

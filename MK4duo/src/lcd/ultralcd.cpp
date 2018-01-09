@@ -770,8 +770,8 @@ void kill_screen(const char* lcd_msg) {
       // ^ Main
       //
       MENU_BACK(MSG_MAIN);
-      MENU_ITEM_EDIT_CALLBACK(int8, MSG_CASE_LIGHT_BRIGHTNESS, &case_light_brightness, 0, 255, update_case_light, true);
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
+      MENU_ITEM_EDIT_CALLBACK(int8, MSG_CASE_LIGHT_BRIGHTNESS, &caselight.brightness, 0, 255, caselight.update, true);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
       END_MENU();
     }
   #endif // HAS_CASE_LIGHT
@@ -926,7 +926,7 @@ void kill_screen(const char* lcd_msg) {
         MENU_ITEM(submenu, MSG_CASE_LIGHT, case_light_menu);
       }
       else {
-        MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&case_light_on, update_case_light);
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
       }
     #endif
 
@@ -1209,7 +1209,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT);
-      
+
       #if EXTRUDERS <= 1
         commands.enqueue_and_echo_P(PSTR("M600 B0"));
       #else
@@ -5265,7 +5265,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
       BUZZ(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
     }
   #endif
-  
+
   #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
     bool is_lcd_clicked() { return LCD_CLICKED; }
     void wait_for_release() {

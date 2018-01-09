@@ -24,22 +24,16 @@
 
 #if HAS_CASE_LIGHT
 
-  uint8_t case_light_brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS,
-          case_light_brightness_sav;
+  CaseLight caselight;
 
-  bool    case_light_on = CASE_LIGHT_DEFAULT_ON,
-          case_light_arg_flag;
+  uint8_t CaseLight::brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
+  bool    CaseLight::status     = CASE_LIGHT_DEFAULT_ON;
 
-  void update_case_light() {
+  void CaseLight::update() {
 
-    if (!(case_light_arg_flag && !case_light_on))
-      case_light_brightness_sav = case_light_brightness;  // save brightness except if this is an S0 argument
-    if (case_light_arg_flag && case_light_on)
-      case_light_brightness = case_light_brightness_sav;  // restore last brightness if this is an S1 argument
-
-    if (case_light_on) {
+    if (status) {
       if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
-        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 - case_light_brightness : case_light_brightness);
+        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? (255 - brightness) : brightness);
       else
         HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
     }
@@ -49,6 +43,17 @@
       else
         HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
     }
+  }
+
+  void CaseLight::report() {
+
+    SERIAL_SM(ECHO, "Case light:");
+
+    if (status) {
+      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN)) SERIAL_EV((int) brightness);
+      else SERIAL_EM("on");
+    }
+    else SERIAL_EM("off");
   }
 
 #endif // HAS_CASE_LIGHT
