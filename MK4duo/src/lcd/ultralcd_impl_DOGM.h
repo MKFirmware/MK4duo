@@ -299,7 +299,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
           ( 64 - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2,
           CEILING(CUSTOM_BOOTSCREEN_BMPWIDTH, 8), CUSTOM_BOOTSCREEN_BMPHEIGHT, custom_start_bmp);
       } while (u8g.nextPage());
-      printer.safe_delay(CUSTOM_BOOTSCREEN_TIMEOUT);
+      HAL::delayMilliseconds(CUSTOM_BOOTSCREEN_TIMEOUT);
     }
 
   #endif // SHOW_CUSTOM_BOOTSCREEN
@@ -330,7 +330,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
         u8g.drawStr(txt2X, u8g.getHeight() - (DOG_CHAR_HEIGHT) * 1 / 2, STRING_SPLASH_LINE2);
       #endif
     } while (u8g.nextPage());
-    printer.safe_delay(BOOTSCREEN_TIMEOUT);
+    HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
   }
 
 #endif // SHOW_BOOTSCREEN
