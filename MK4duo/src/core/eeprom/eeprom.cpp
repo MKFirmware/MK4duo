@@ -307,11 +307,11 @@ void EEPROM::Postprocess() {
     #if HAS_EEPROM_FLASH
       EEPROM_SKIP(ver);         // Flash doesn't allow rewriting without erase
       EEPROM_SKIP(working_crc); // Skip the checksum slot
-    #elif HAS_EEPROM_SPI || HAS_EEPROM_I2C
-      EEPROM_WRITE(ver);        // invalidate data first
-      EEPROM_SKIP(working_crc); // Skip the checksum slot
     #elif HAS_EEPROM_SD
       EEPROM_WRITE(version);
+    #else
+      EEPROM_WRITE(ver);        // invalidate data first
+      EEPROM_SKIP(working_crc); // Skip the checksum slot
     #endif
 
     working_crc = 0; // clear before first "real data"
@@ -640,11 +640,11 @@ void EEPROM::Postprocess() {
 
     EEPROM_READ_START();
 
-    #if HAS_EEPROM_SPI || HAS_EEPROM_I2C || HAS_EEPROM_FLASH
+    #if HAS_EEPROM_SD
+      EEPROM_READ(stored_ver);
+    #else
       EEPROM_READ(stored_ver);
       EEPROM_READ(stored_crc);
-    #elif HAS_EEPROM_SD
-      EEPROM_READ(stored_ver);
     #endif
 
     if (strncmp(version, stored_ver, 5) != 0) {
