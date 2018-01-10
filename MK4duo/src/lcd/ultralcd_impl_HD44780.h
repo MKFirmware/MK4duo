@@ -568,7 +568,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       if (strlen(STRING) <= LCD_WIDTH) { \
         lcd.setCursor((LCD_WIDTH - lcd_strlen_P(PSTR(STRING))) / 2, 3); \
         lcd_printPGM(PSTR(STRING)); \
-        printer.safe_delay(DELAY); \
+        HAL::delayMilliseconds(DELAY); \
       } \
       else { \
         lcd_scroll(0, 3, PSTR(STRING), LCD_WIDTH, DELAY); \
@@ -584,9 +584,9 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
         //
         logo_lines(PSTR(STRING_SPLASH_LINE1));
         #if ENABLED(STRING_SPLASH_LINE2)
-          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, 2000);
+          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
         #else
-          printer.safe_delay(2000);
+          HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
         #endif
       }
       else {
@@ -595,14 +595,14 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
         // After a delay show splash line 2, if it exists
         //
         #if ENABLED(STRING_SPLASH_LINE2)
-          #define _SPLASH_WAIT_1 1500
+          #define _SPLASH_WAIT_1 (BOOTSCREEN_TIMEOUT - 500)
         #else
-          #define _SPLASH_WAIT_1 2000
+          #define _SPLASH_WAIT_1 BOOTSCREEN_TIMEOUT
         #endif
         logo_lines(PSTR(""));
         CENTER_OR_SCROLL(STRING_SPLASH_LINE1, _SPLASH_WAIT_1);
         #if ENABLED(STRING_SPLASH_LINE2)
-          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, 1500);
+          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, _SPLASH_WAIT_1);
         #endif
       }
     #elif ENABLED(STRING_SPLASH_LINE2)
@@ -611,22 +611,22 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       //
       if (LCD_EXTRA_SPACE >= strlen(STRING_SPLASH_LINE2) + 1) {
         logo_lines(PSTR(" " STRING_SPLASH_LINE2));
-        printer.safe_delay(2000);
+        HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
       }
       else {
         logo_lines(PSTR(""));
-        CENTER_OR_SCROLL(STRING_SPLASH_LINE2, 2000);
+        CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
       }
     #else
       //
       // Show only the MK4duo logo
       //
       logo_lines(PSTR(""));
-      printer.safe_delay(2000);
+      HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
     #endif
 
     lcd.clear();
-    printer.safe_delay(100);
+    HAL::delayMilliseconds(100);
     lcd_set_custom_characters();
     lcd.clear();
   }
