@@ -68,7 +68,6 @@ class EEPROM {
 
     #if HAS_EEPROM
       static bool Load_Settings();  // Return 'true' if data was loaded ok
-      static bool Validate();       // Return 'true' if EEPROM data is ok
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled

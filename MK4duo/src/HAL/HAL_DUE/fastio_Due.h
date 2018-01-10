@@ -161,9 +161,9 @@ FORCE_INLINE static bool READ_VAR(const uint8_t pin) {
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
 FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
   if (flag)
-    Fastio[pin].base_address -> PIO_SODR = MASK(Fastio[pin].shift_count);
+    Fastio[pin].base_address->PIO_SODR = MASK(Fastio[pin].shift_count);
   else
-    Fastio[pin].base_address -> PIO_CODR = MASK(Fastio[pin].shift_count);
+    Fastio[pin].base_address->PIO_CODR = MASK(Fastio[pin].shift_count);
 }
 FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
   const PinDescription& pinDesc = g_APinDescription[pin];

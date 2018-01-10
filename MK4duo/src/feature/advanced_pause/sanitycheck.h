@@ -49,6 +49,10 @@
   #if DISABLED(PAUSE_PARK_PRINTER_OFF)
     #error "DEPENDENCY ERROR: Missing setting PAUSE_PARK_PRINTER_OFF."
   #endif
+#else
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    #error "DEPENDENCY ERROR: PARK_HEAD_ON_PAUSE currently requires ADVANCED_PAUSE_FEATURE."
+  #endif
 #endif
 
 #endif /* _ADVANCED_PAUSE_SANITYCHECK_H_ */
