@@ -35,29 +35,29 @@
   bool EEPROM::access_start(const bool read) {
 
     #if HAS_EEPROM_SD
+
+      if (!IS_SD_INSERTED || !card.cardOK) {
+        SERIAL_LM(ER, MSG_NO_CARD);
+        return true;
+      }
+
+      card.setroot();
       if (read) {
-        // EEPROM on SDCARD
-        if (IS_SD_INSERTED || card.cardOK) {
-          card.setroot();
-          eeprom_file.open(card.curDir, "EEPROM.bin", O_READ);
-        }
-        else
+        if (!eeprom_file.open(card.curDir, "EEPROM.bin", O_READ)) {
+          SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
+          SERIAL_EM("EEPROM.bin");
           return true;
+        }
       }
       else {
-        // EEPROM on SDCARD
-        if (!IS_SD_INSERTED || !card.cardOK) {
-          SERIAL_LM(ER, MSG_NO_CARD);
+        if (!eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+          SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
+          SERIAL_EM("EEPROM.bin");
           return true;
-        }
-        else if (IS_SD_PRINTING)
-          return true;
-        else {
-          card.setroot();
-          eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC);
-          eeprom_file.truncate(0);
+        //eeprom_file.truncate(0);
         }
       }
+
     #else
       UNUSED(read);
     #endif
