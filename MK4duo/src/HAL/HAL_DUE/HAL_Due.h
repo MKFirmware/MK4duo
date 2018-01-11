@@ -322,8 +322,8 @@ class HAL {
       return READ_VAR(pin);
     }
 
-    FORCE_INLINE static void delayMicroseconds(uint32_t usec) { // usec += 3;
-      uint32_t n = usec * (F_CPU / 3000000);
+    FORCE_INLINE static void delayMicroseconds(uint32_t delayUs) {
+      uint32_t n = delayUs * (F_CPU / 3000000);
       asm volatile(
         "L2_%=_delayMicroseconds:"       "\n\t"
         "subs   %0, #1"                 "\n\t"

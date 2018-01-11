@@ -434,8 +434,13 @@ class HAL {
     static inline void delayMicroseconds(const uint16_t delayUs) {
       ::delayMicroseconds(delayUs);
     }
-    static inline void delayMilliseconds(const uint16_t delayMs) {
-      ::delay(delayMs);
+    static inline void delayMilliseconds(uint16_t delayMs) {
+      uint16_t del;
+      while (delayMs > 0) {
+        del = delayMs > 100 ? 100 : delayMs;
+        delay(del);
+        delayMs -= del;
+      }
     }
     static inline uint32_t timeInMilliseconds() {
       return millis();

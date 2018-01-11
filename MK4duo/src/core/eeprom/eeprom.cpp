@@ -507,7 +507,7 @@ void EEPROM::Postprocess() {
     // Save TMC2130 or TMC2208 Configuration, and placeholder values
     //
     #if HAS_TRINAMIC
-      uint16_t currents[11] = {
+      uint16_t currents[12] = {
         #if X_IS_TRINAMIC
           stepperX.getCurrent(),
         #else
