@@ -25,12 +25,22 @@
 
 #if HAS_CASE_LIGHT
 
-  extern uint8_t  case_light_brightness,
-                  case_light_brightness_sav;
-  extern bool     case_light_on,
-                  case_light_arg_flag;
+  class CaseLight {
 
-  void update_case_light();
+    public: /* PUBLIC PARAMETERS */
+
+      static uint8_t  brightness;
+      static bool     status;
+
+    public: /* PUBLIC FUNCTIONS */
+
+      static void update();
+      static void report();
+
+  };
+
+  extern CaseLight caselight;
 
 #endif // HAS_CASE_LIGHT
-#endif // __CASELIGHT_H__
+
+#endif /* __CASELIGHT_H__ */

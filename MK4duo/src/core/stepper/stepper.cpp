@@ -871,7 +871,7 @@ void Stepper::isr() {
       if (i) DELAY_NOPS(EXTRA_CYCLES_XYZE);
     #endif
 
-  } // steps_loop
+  } // step_loops
 
   #if ENABLED(LIN_ADVANCE)
 
@@ -1102,7 +1102,7 @@ void Stepper::isr() {
         if (i) DELAY_NOPS(EXTRA_CYCLES_E);
       #endif
 
-    } // steps_loop
+    } // step_loops
   }
 
   void Stepper::advance_isr_scheduler() {
@@ -1657,7 +1657,7 @@ void Stepper::report_positions() {
     // setup new step
     WRITE(E1_DIR_PIN,(INVERT_E1_DIR)^direction);
     // perform step
-    for (long i = 0; i <= csteps; i++){
+    for (uint32_t step = 0; step <= csteps; step++){
       WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
       HAL::delayMicroseconds(COLOR_SLOWRATE);
       WRITE(E1_STEP_PIN, INVERT_E_STEP_PIN);

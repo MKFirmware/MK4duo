@@ -43,26 +43,15 @@
    *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
    */
   inline void gcode_M355(void) {
-    uint8_t args = 0;
 
-    if (parser.seen('P')) {
-      ++args, case_light_brightness = parser.value_byte();
-      case_light_arg_flag = false;
-    }
-    if (parser.seen('S')) {
-      ++args, case_light_on = parser.value_bool();
-      case_light_arg_flag = true;
-    }
-    if (args) update_case_light();
+    if (parser.seen('P')) caselight.brightness = parser.value_byte();
 
-    // always report case light status
-    SERIAL_SM(ECHO, "Case light:");
-    if (!case_light_on)
-      SERIAL_EM("off");
-    else {
-      if (!USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN)) SERIAL_EM("on");
-      else SERIAL_EV((int)case_light_brightness);
-    }
+    if (parser.seen('S')) caselight.status = parser.value_bool();
+
+    if (parser.seen('P') || parser.seen('S')) caselight.update();
+
+    // Always report case light status
+    caselight.report();
   }
 
 #endif // HAS_CASE_LIGHT
