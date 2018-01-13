@@ -992,8 +992,8 @@
   void setgcodePopCallback(void *ptr) {
     UNUSED(ptr);
     ZERO(buffer);
-    Tgcode.getText(buffer, sizeof(buffer));
-    Tgcode.setText("");
+    Tgcode.getText(buffer, sizeof(buffer), "gcode");
+    Tgcode.setText("", "gcode");
     commands.enqueue_and_echo_P(buffer);
   }
 
