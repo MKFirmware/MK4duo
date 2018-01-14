@@ -65,7 +65,7 @@
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
         Nextion_gfx_clear();
       #endif
-      return true;
+      return;
     }
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
