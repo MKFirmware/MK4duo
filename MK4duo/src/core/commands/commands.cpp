@@ -63,9 +63,9 @@ millis_t Commands::previous_cmd_ms = 0;
  * the main loop. The process_next function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::queue_count       = 0,  // Count of commands in the queue
-        Commands::queue_index_r       = 0,  // Ring buffer read position
-        Commands::queue_index_w       = 0;  // Ring buffer write position
+uint8_t Commands::queue_count   = 0,  // Count of commands in the queue
+        Commands::queue_index_r = 0,  // Ring buffer read position
+        Commands::queue_index_w = 0;  // Ring buffer write position
 
 int Commands::serial_count = 0;
 
@@ -535,7 +535,7 @@ void Commands::get_destination() {
   if (parser.seen('P'))
     mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.previous_extruder] / 100) + mechanics.current_position[E_AXIS];
 
-  if (!printer.debugDryrun())
+  if (!printer.debugDryrun() && !printer.debugSimulation())
     print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -543,7 +543,7 @@ void Commands::get_destination() {
   #endif
 
   #if ENABLED(RFID_MODULE)
-    if (!printer.debugDryrun())
+    if (!printer.debugDryrun() && !printer.debugSimulation())
       rfid522.RfidData[tools.active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 

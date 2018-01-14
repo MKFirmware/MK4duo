@@ -36,6 +36,7 @@ constexpr const uint8_t debug_dryrun              = 8;
 constexpr const uint8_t debug_communication       = 16;
 constexpr const uint8_t debug_leveling            = 32;
 constexpr const uint8_t debug_mesh_adjust         = 64;
+constexpr const uint8_t debug_simulation          = 128;
 constexpr const uint8_t flag1_running             = 1;
 constexpr const uint8_t flag1_printing            = 2;
 constexpr const uint8_t flag1_endstop_enabled     = 4;
@@ -198,6 +199,7 @@ class Printer {
     FORCE_INLINE static bool debugCommunication() { return mk_debug_flag & debug_communication; }
     FORCE_INLINE static bool debugLeveling()      { return mk_debug_flag & debug_leveling; }
     FORCE_INLINE static bool debugMesh()          { return mk_debug_flag & debug_mesh_adjust; }
+    FORCE_INLINE static bool debugSimulation()    { return mk_debug_flag & debug_simulation; }
 
     FORCE_INLINE static bool debugFlag(const uint8_t flag) {
       return (mk_debug_flag & flag);

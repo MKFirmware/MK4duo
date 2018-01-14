@@ -404,7 +404,7 @@
    */
   inline bool turn_on_heaters() {
 
-    if (printer.debugDryrun()) return false;
+    if (printer.debugDryrun() || printer.debugSimulation()) return false;
 
     const bool oldReport = printer.isAutoreportTemp();
     printer.setAutoreportTemp(true);

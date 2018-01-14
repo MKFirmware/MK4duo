@@ -60,6 +60,14 @@
    */
   void Cartesian_Mechanics::Home(const bool always_home_all) {
 
+    if (printer.debugSimulation()) {
+      LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
+      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+        Nextion_gfx_clear();
+      #endif
+      return true;
+    }
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) {
         SERIAL_EM(">>> gcode_G28");

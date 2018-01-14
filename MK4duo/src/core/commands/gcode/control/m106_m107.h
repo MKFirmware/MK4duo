@@ -43,6 +43,9 @@
    *  I<bool>   Inverted pin output
    */
   inline void gcode_M106(void) {
+
+    if (printer.debugSimulation()) return;
+
     const uint8_t speed = parser.byteval('S', 255),
                   f     = parser.byteval('P');
 

@@ -148,13 +148,15 @@ void Mechanics::prepare_move_to_destination() {
   endstops.clamp_to_software_endstops(destination);
   commands.refresh_cmd_timeout();
 
-  if (
-    #if UBL_DELTA
-      ubl.prepare_segmented_line_to(destination, feedrate_mm_s)
-    #else
-      mechanics.prepare_move_to_destination_mech_specific()
-    #endif
-  ) return;
+  if (!printer.debugSimulation()) { // Simulation Mode no movement
+    if (
+      #if UBL_DELTA
+        ubl.prepare_segmented_line_to(destination, feedrate_mm_s)
+      #else
+        mechanics.prepare_move_to_destination_mech_specific()
+      #endif
+    ) return;
+  }
 
   set_current_to_destination();
 }

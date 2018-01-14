@@ -37,7 +37,7 @@
 
     GET_TARGET_EXTRUDER(104);
 
-    if (printer.debugDryrun()) return;
+    if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     #if ENABLED(SINGLENOZZLE)
       if (TARGET_EXTRUDER != tools.active_extruder) return;
