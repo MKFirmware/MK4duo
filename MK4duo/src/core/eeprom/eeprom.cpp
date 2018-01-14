@@ -1490,42 +1490,55 @@ void EEPROM::Factory_Settings() {
     printer.IDLE_OOZING_enabled = true;
   #endif
 
-  #if ENABLED(HAVE_TMC2130)
+  #if X_IS_TRINAMIC
+    stepperX.setCurrent(X_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if Y_IS_TRINAMIC
+    stepperY.setCurrent(Y_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if Z_IS_TRINAMIC
+    stepperZ.setCurrent(Z_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if X2_IS_TRINAMIC
+    stepperX2.setCurrent(X2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if Y2_IS_TRINAMIC
+    stepperY2.setCurrent(Y2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if Z2_IS_TRINAMIC
+    stepperZ2.setCurrent(Z2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E0_IS_TRINAMIC
+    stepperE0.setCurrent(E0_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E1_IS_TRINAMIC
+    stepperE1.setCurrent(E1_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E2_IS_TRINAMIC
+    stepperE2.setCurrent(E2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E3_IS_TRINAMIC
+    stepperE3.setCurrent(E3_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E4_IS_TRINAMIC
+    stepperE4.setCurrent(E4_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+  #if E5_IS_TRINAMIC
+    stepperE5.setCurrent(E5_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+  #endif
+
+  #if ENABLED(SENSORLESS_HOMING)
     #if ENABLED(X_IS_TMC2130)
-      stepperX.setCurrent(X_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(Y_IS_TMC2130)
-      stepperY.setCurrent(Y_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(Z_IS_TMC2130)
-      stepperZ.setCurrent(Z_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+      stepperX.sgt(X_HOMING_SENSITIVITY);
     #endif
     #if ENABLED(X2_IS_TMC2130)
-      stepperX2.setCurrent(X2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+      stepperX2.sgt(X_HOMING_SENSITIVITY);
+    #endif
+    #if ENABLED(Y_IS_TMC2130)
+      stepperY.sgt(Y_HOMING_SENSITIVITY);
     #endif
     #if ENABLED(Y2_IS_TMC2130)
-      stepperY2.setCurrent(Y2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(Z2_IS_TMC2130)
-      stepperZ2.setCurrent(Z2_MAX_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E0_IS_TMC2130)
-      stepperE0.setCurrent(E0_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E1_IS_TMC2130)
-      stepperE1.setCurrent(E1_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E2_IS_TMC2130)
-      stepperE2.setCurrent(E2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E3_IS_TMC2130)
-      stepperE3.setCurrent(E3_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E4_IS_TMC2130)
-      stepperE4.setCurrent(E4_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-    #endif
-    #if ENABLED(E5_IS_TMC2130)
-      stepperE5.setCurrent(E5_CURRENT, R_SENSE, HOLD_MULTIPLIER);
+      stepperY2.sgt(Y_HOMING_SENSITIVITY);
     #endif
   #endif
 
