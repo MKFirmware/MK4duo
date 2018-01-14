@@ -927,9 +927,16 @@ void Printer::setup_powerhold() {
 void Printer::setDebugLevel(const uint8_t newLevel) {
   if (newLevel != mk_debug_flag) {
     mk_debug_flag = newLevel;
-    if (debugDryrun()) {
+    if (debugDryrun() || debugSimulation()) {
       // Disable all heaters in case they were on
       thermalManager.disable_all_heaters();
+    }
+    if (debugSimulation()) {
+      // Disable stepper interrupt
+      HAL_DISABLE_ISRs();
+    }
+    else {
+      HAL_ENABLE_ISRs();
     }
   }
   SERIAL_EMV("DebugLevel:", (int)mk_debug_flag);

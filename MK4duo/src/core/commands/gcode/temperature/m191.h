@@ -35,7 +35,7 @@
    *       Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
    */
   inline void gcode_M191(void) {
-    if (printer.debugDryrun()) return;
+    if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     LCD_MESSAGEPGM(MSG_CHAMBER_HEATING);
     bool no_wait_for_cooling = parser.seen('S');
