@@ -113,8 +113,7 @@
       if (data.is_otpw && otpw_cnt == 0) {
         char timestamp[10];
         duration_t elapsed = print_job_counter.duration();
-        const bool has_days = (elapsed.value > 60*60*24L);
-        (void)elapsed.toDigital(timestamp, has_days);
+        (void)elapsed.toDigital(timestamp, true);
         SERIAL_EOL();
         SERIAL_TXT(timestamp);
         SERIAL_MSG(": ");

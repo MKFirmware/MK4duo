@@ -54,7 +54,7 @@
   uint8_t     PageID                    = 0,
               lcd_status_message_level  = 0;
   uint16_t    slidermaxval              = 20;
-  char        buffer[100]               = { 0 };
+  char        buffer[50]                = { 0 };
   char        lcd_status_message[30]    = WELCOME_MSG;
   const float manual_feedrate_mm_m[]    = MANUAL_FEEDRATE;
 
@@ -1349,21 +1349,21 @@
           // Progress bar solid part
           progressbar.setValue(printer.progress);
           // Estimate End Time
-          uint16_t time = print_job_counter.duration() / 60;
-          uint16_t end_time = (time * (100 - printer.progress)) / (printer.progress + 0.1);
-          if (end_time > (60 * 23) || end_time == 0) {
-            LcdTime.setText("S--:-- E--:--");
-          }
-          else {
-            char temp1[10], temp2[10];
-            sprintf_P(temp1, PSTR("S%i:%i"), time / 60, time%60);
-            sprintf_P(temp2, PSTR("E%i:%i"), end_time / 60, end_time%60);
-            ZERO(buffer);
-            strcat(buffer, temp1);
-            strcat(buffer, " ");
-            strcat(buffer, temp2);
-            LcdTime.setText(buffer);
-          }
+          ZERO(buffer);
+          char buffer1[10];
+          uint8_t digit;
+          duration_t Time = print_job_counter.duration();
+          digit = Time.toDigital(buffer1, true);
+          strcat(buffer, "S");
+          strcat(buffer, buffer1);
+          Time = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
+          digit += Time.toDigital(buffer1, true);
+          if (digit > 13)
+            strcat(buffer, "E");
+          else
+            strcat(buffer, " E");
+          strcat(buffer, buffer1);
+          LcdTime.setText(buffer);
           PreviouspercentDone = printer.progress;
         }
 
