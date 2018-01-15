@@ -347,7 +347,7 @@ class HAL {
     FORCE_INLINE static char readFlashByte(PGM_P ptr) {
       return pgm_read_byte(ptr);
     }
-    FORCE_INLINE static void serialSetBaudrate(long baud) {
+    FORCE_INLINE static void serialSetBaudrate(const long baud) {
       MKSERIAL.begin(baud);
       HAL::delayMilliseconds(1);
     }

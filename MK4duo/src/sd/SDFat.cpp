@@ -2915,7 +2915,11 @@ void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
 #define FAST_CRC 1
 
 #if ENABLED(SD_CHECK_AND_RETRY)
-  #ifdef FAST_CRC
+
+  static bool crcSupported = true;
+
+  #if ENABLED(FAST_CRC)
+
     static const uint8_t crctab7[] PROGMEM = {
       0x00,0x09,0x12,0x1b,0x24,0x2d,0x36,0x3f,0x48,0x41,0x5a,0x53,0x6c,0x65,0x7e,0x77,
       0x19,0x10,0x0b,0x02,0x3d,0x34,0x2f,0x26,0x51,0x58,0x43,0x4a,0x75,0x7c,0x67,0x6e,
@@ -2943,7 +2947,9 @@ void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
       }
       return (crc << 1) | 1;
     }
-  #else
+
+  #else // DISABLED(FAST_CRC)
+
     static uint8_t CRC7(const uint8_t* data, uint8_t n) {
       uint8_t crc = 0;
       for (uint8_t i = 0; i < n; i++) {
@@ -2956,8 +2962,10 @@ void (*SdBaseFile::oldDateTime_)(uint16_t &date, uint16_t &time) = 0;  // NOLINT
       crc = (crc << 1) ^ (crc << 4) ^ (crc & 0x70) ^ ((crc >> 3) & 0x0f);
       return crc | 1;
     }
-  #endif
-#endif
+
+  #endif // // DISABLED(FAST_CRC)
+
+#endif // ENABLED(SD_CHECK_AND_RETRY)
 
 //==============================================================================
 // Sd2Card member functions
@@ -3149,10 +3157,7 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   }
 
   #if ENABLED(SD_CHECK_AND_RETRY)
-    if (cardCommand(CMD59, 1) != R1_IDLE_STATE) {
-      error(SD_CARD_ERROR_CMD59);
-      goto FAIL;
-    }
+    crcSupported = (cardCommand(CMD59, 1) == R1_IDLE_STATE);
   #endif
 
   // check SD version
@@ -3219,21 +3224,22 @@ bool Sd2Card::readBlock(uint32_t blockNumber, uint8_t* dst) {
       else if (readData(dst, 512))
         return true;
 
+      chipDeselect();
       if (!--retryCnt) break;
 
-      chipDeselect();
       cardCommand(CMD12, 0); // Try sending a stop command, ignore the result.
       errorCode_ = 0;
     }
+    return false;
   #else
-    if (cardCommand(CMD17, blockNumber))
+    if (cardCommand(CMD17, blockNumber)) {
       error(SD_CARD_ERROR_CMD17);
+      chipDeselect();
+      return false;
+    }
     else
       return readData(dst, 512);
   #endif
-
-  chipDeselect();
-  return false;
 }
 
 /** Read one data block in a multiple block read sequence
@@ -3330,7 +3336,7 @@ bool Sd2Card::readData(uint8_t* dst, size_t count) {
   #if ENABLED(SD_CHECK_AND_RETRY)
     {
       uint16_t recvCrc = (HAL::spiReceive() << 8) | HAL::spiReceive();
-      if (recvCrc != CRC_CCITT(dst, count)) {
+      if (crcSupported && recvCrc != CRC_CCITT(dst, count)) {
         error(SD_CARD_ERROR_READ_CRC);
         goto FAIL;
       }

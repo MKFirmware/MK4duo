@@ -82,14 +82,7 @@ typedef uint16_t  ptr_int_t;
 #include "fastio.h"
 #include "watchdog_AVR.h"
 
-// BLUETOOTH
-#if ENABLED(BLUETOOTH) && BLUETOOTH_PORT > 0
-  #undef SERIAL_PORT
-  #undef BAUDRATE
-  #define SERIAL_PORT BLUETOOTH_PORT
-  #define BAUDRATE    BLUETOOTH_BAUD
-#endif
-
+// Serial
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
   #include "HardwareSerial.h"
@@ -273,6 +266,7 @@ constexpr float     HAL_ACCELERATION_RATE   = (16777216.0 / (HAL_STEPPER_TIMER_R
 
 #define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define STEPPER_ISR_ENABLED()         TEST(STEPPER_TIMSK, STEPPER_OCIE)
 
 #define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
 #define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
@@ -440,6 +434,9 @@ class HAL {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
         delayMs -= del;
+        #if ENABLED(USE_WATCHDOG)
+          watchdog_reset();
+        #endif
       }
     }
     static inline uint32_t timeInMilliseconds() {
@@ -448,6 +445,7 @@ class HAL {
 
     static inline void serialSetBaudrate(const uint16_t baud) {
       MKSERIAL.begin(baud);
+      HAL::delayMilliseconds(1);
     }
     static inline bool serialByteAvailable() {
       return MKSERIAL.available() > 0;

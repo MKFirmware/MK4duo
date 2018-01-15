@@ -99,6 +99,7 @@ constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER
 #define HAL_STEPPER_TIMER_START()   HAL_timer_start(STEPPER_TIMER)
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
+#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
 
 #define HAL_ENABLE_ISRs()           ENABLE_STEPPER_INTERRUPT()
 #define HAL_DISABLE_ISRs()          DISABLE_STEPPER_INTERRUPT()
@@ -172,28 +173,29 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 void HAL_timer_start(const uint8_t timer_num);
 void HAL_timer_enable_interrupt(const uint8_t timer_num);
 void HAL_timer_disable_interrupt(const uint8_t timer_num);
+bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num);
 
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, hal_timer_t count) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
+  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
 }
 
 FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
+  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
 }
 
 FORCE_INLINE static void HAL_timer_set_current_count(const uint8_t timer_num, const hal_timer_t count) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
+  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV = count;
 }
 
 FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
+  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
 }
 FORCE_INLINE static void HAL_timer_isr_prologue(uint8_t timer_num) {
-  const tTimerConfig *pConfig = &TimerConfig[timer_num];
+  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   // Reading the status register clears the interrupt flag
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_SR;
 }
