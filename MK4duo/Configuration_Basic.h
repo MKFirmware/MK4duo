@@ -43,7 +43,7 @@
  ********************** Serial comunication type ***********************
  ***********************************************************************/
 /**
- * Select which serial port on the board will be used for communication with the host.
+ * Select a primary serial port on the board will be used for communication with the host.
  * This allows the connection of wireless adapters (for instance) to non-default port pins.
  * Serial port 0 is always used by the Arduino bootloader regardless of this setting.
  *
@@ -60,14 +60,7 @@
  *
  * 2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000
  */
-#define BAUDRATE 115200
-
-/**
- * Enable the Bluetooth serial interface
- */
-//#define BLUETOOTH
-#define BLUETOOTH_PORT 1
-#define BLUETOOTH_BAUD 115200
+#define BAUDRATE 250000
 
 /**
  * User-specified version info of this build to display in [Pronterface, etc] terminal window during

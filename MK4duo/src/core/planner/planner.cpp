@@ -332,7 +332,7 @@ void Planner::recalculate() {
     heaters[0].setTarget(t);
   }
 
-#endif //AUTOTEMP
+#endif // AUTOTEMP
 
 /**
  * Maintain fans, paste extruder pressure,
@@ -1144,7 +1144,9 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
 
   // Initialize block entry speed. Compute based on deceleration to user-defined MINIMUM_PLANNER_SPEED.
   const float v_allowable = max_allowable_speed(-block->acceleration, MINIMUM_PLANNER_SPEED, block->millimeters);
-  block->entry_speed = min(vmax_junction, v_allowable);
+  // If stepper ISR is disabled, this indicates buffer_segment wants to add a split block.
+  // In this case start with the max. allowed speed to avoid an interrupted first move.
+  block->entry_speed = STEPPER_ISR_ENABLED() ? MINIMUM_PLANNER_SPEED : min(vmax_junction, v_allowable);
 
   // Initialize planner efficiency flags
   // Set flag if block will always reach maximum junction speed regardless of entry/exit speeds.
@@ -1154,7 +1156,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
   // block nominal speed limits both the current and next maximum junction speeds. Hence, in both
   // the reverse and forward planners, the corresponding block junction speed will always be at the
   // the maximum junction speed and may always be ignored for any speed reduction checks.
-  block->flag |= BLOCK_FLAG_RECALCULATE | (block->nominal_speed <= v_allowable ? BLOCK_FLAG_NOMINAL_LENGTH : 0);
+  block->flag |= block->nominal_speed <= v_allowable ? BLOCK_FLAG_RECALCULATE | BLOCK_FLAG_NOMINAL_LENGTH : BLOCK_FLAG_RECALCULATE;
 
   // Update previous path unit_vector and nominal speed
   COPY_ARRAY(previous_speed, current_speed);
@@ -1191,9 +1193,6 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
       );
 
   #endif // LIN_ADVANCE
-
-  const float bnsr = 1.0 / block->nominal_speed;
-  calculate_trapezoid_for_block(block, block->entry_speed * bnsr, safe_speed * bnsr);
 
   // Move buffer head
   block_buffer_head = next_buffer_head;
@@ -1256,12 +1255,18 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
     SERIAL_EM(")");
   //*/
 
-  // DRYRUN prevents E moves from taking place
-  if (printer.debugDryrun()) {
+  // DRYRUN or Simulation prevents E moves from taking place
+  if (printer.debugDryrun() || printer.debugSimulation()) {
     position[E_AXIS] = target[E_AXIS];
     #if ENABLED(LIN_ADVANCE)
       position_float[E_AXIS] = e;
     #endif
+  }
+
+  // Simulation Mode no movement
+  if (printer.debugSimulation()) {
+    LOOP_XYZ(axis)
+      position[axis] = target[axis];
   }
 
   #if ENABLED(LIN_ADVANCE)

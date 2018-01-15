@@ -559,7 +559,8 @@
   /** init() not called */
   uint8_t const SD_CARD_ERROR_INIT_NOT_CALLED = 0x19;
   /** card returned an error for CMD59 (CRC_ON_OFF) */
-  uint8_t const SD_CARD_ERROR_CMD59 = 0x1A;
+  // 0x1A is unused now, it was: card returned an error for CMD59 (CRC_ON_OFF)
+  //uint8_t const SD_CARD_ERROR_CMD59 = 0x1A;
   /** invalid read CRC */
   uint8_t const SD_CARD_ERROR_READ_CRC = 0x1B;
   /** SPI DMA error */

@@ -284,7 +284,6 @@ void EEPROM::Postprocess() {
   #define EEPROM_SKIP(VAR)      eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR)     eeprom_error = write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ(VAR)      eeprom_error = read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_FINISH()       access_finish()
 
   const char version[6] = EEPROM_VERSION;
 

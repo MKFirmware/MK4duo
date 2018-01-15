@@ -320,7 +320,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
 
     u8g.firstPage();
     do {
-      u8g.drawBitmapP(offx, offy, START_BMPBYTEWIDTH, START_BMPHEIGHT, start_bmp);
+      u8g.drawBitmapP(offx, offy, (START_BMPWIDTH + 7) / 8, START_BMPHEIGHT, start_bmp);
       lcd_setFont(FONT_MENU);
       #if DISABLED(STRING_SPLASH_LINE2)
         u8g.drawStr(txt1X, u8g.getHeight() - (DOG_CHAR_HEIGHT), STRING_SPLASH_LINE1);
@@ -361,7 +361,6 @@ static void lcd_implementation_init() {
   #elif ENABLED(LCD_SCREEN_ROT_270)
     u8g.setRot270();  // Rotate screen by 270°
   #endif
-
 }
 
 // The kill screen is displayed for unrecoverable conditions
@@ -514,7 +513,9 @@ static void lcd_implementation_status_screen() {
     //
     if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
-      u8g.drawBitmapP(9, 1, STATUS_SCREENBYTEWIDTH, STATUS_SCREENHEIGHT,
+      u8g.drawBitmapP(
+        STATUS_SCREEN_X, 1,
+        (STATUS_SCREENWIDTH + 7) / 8, STATUS_SCREENHEIGHT,
         #if HAS_FAN0
           blink && fans[0].Speed ? status_screen0_bmp : status_screen1_bmp
         #else
@@ -532,11 +533,11 @@ static void lcd_implementation_status_screen() {
 
     if (PAGE_UNDER(28)) {
       // Hotends
-      LOOP_HOTEND() _draw_heater_status(5 + h * 25, h, blink);
+      LOOP_HOTEND() _draw_heater_status(STATUS_SCREEN_HOTEND_TEXT_X(h), h, blink);
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(81, BED_INDEX, blink);
+        _draw_heater_status(STATUS_SCREEN_BED_TEXT_X, -1, blink);
       #endif
 
       #if HAS_FAN0
@@ -544,7 +545,7 @@ static void lcd_implementation_status_screen() {
           // Fan
           const int16_t per = ((fans[0].Speed + 1) * 100) / 256;
           if (per) {
-            u8g.setPrintPos(104, 27);
+            u8g.setPrintPos(STATUS_SCREEN_FAN_TEXT_X, 27);
             lcd_print(itostr3(per));
             u8g.print('%');
           }
@@ -674,9 +675,9 @@ static void lcd_implementation_status_screen() {
     #if HAS_LCD_FILAMENT_SENSOR
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * (
-        parser.volumetric_enabled
-          ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
-          : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+          parser.volumetric_enabled
+            ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+            : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )
       ));
     #endif

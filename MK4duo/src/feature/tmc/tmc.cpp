@@ -374,8 +374,11 @@
           break;
         case TMC_TPWMTHRS_MMS: {
             uint32_t tpwmthrs_val = st.TPWMTHRS();
-            tpwmthrs_val ? SERIAL_VAL(12650000UL * st.microsteps() / (256 * tpwmthrs_val * spmm)) : SERIAL_CHR('-');
-          }
+              if (tpwmthrs_val)
+                SERIAL_VAL(12650000UL * st.microsteps() / (256 * tpwmthrs_val * spmm));
+              else
+                SERIAL_CHR('-');
+            }
           break;
         case TMC_OTPW: SERIAL_PS(st.otpw() ? PSTR("true") : PSTR("false")); break;
         case TMC_OTPW_TRIGGERED: SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false")); break;

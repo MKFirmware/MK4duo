@@ -605,7 +605,7 @@ void Stepper::isr() {
 
   // Take multiple steps per interrupt (For high speed moves)
   bool all_steps_done = false;
-  for (uint8_t i = step_loops; i--;) {
+  for (uint8_t step = step_loops; step--;) {
     #if ENABLED(LIN_ADVANCE)
 
       counter_E += current_block->steps[E_AXIS];
@@ -866,9 +866,9 @@ void Stepper::isr() {
 
     // For minimum pulse time wait after stopping pulses also
     #if EXTRA_CYCLES_XYZE > 20
-      if (i) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+      if (step) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
     #elif EXTRA_CYCLES_XYZE > 0
-      if (i) DELAY_NOPS(EXTRA_CYCLES_XYZE);
+      if (step) DELAY_NOPS(EXTRA_CYCLES_XYZE);
     #endif
 
   } // step_loops
@@ -924,8 +924,10 @@ void Stepper::isr() {
 
     #endif // ENABLED(LIN_ADVANCE)
   }
-  else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
+  else if (step_events_completed > (uint32_t)current_block->decelerate_after && current_block->step_event_count != (uint32_t)current_block->decelerate_after) {
     hal_timer_t step_rate;
+    // If we are entering the deceleration phase for the first time, we have to see how long we have been decelerating up to now. Equals last acceleration time interval.
+    if (!deceleration_time) deceleration_time = calc_timer_interval(acc_step_rate);
     HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
     if (step_rate < acc_step_rate) { // Still decelerating?
@@ -977,9 +979,9 @@ void Stepper::isr() {
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
       // Make sure stepper interrupt does not monopolise CPU by adjusting count to give about 8 us room
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
-                  stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
-      HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
+      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US));
+      HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
@@ -1047,7 +1049,7 @@ void Stepper::isr() {
     #endif
 
     // Step all E steppers that have steps
-    for (uint8_t i = step_loops; i--;) {
+    for (uint8_t step = step_loops; step--;) {
 
       #if EXTRA_CYCLES_E > 20
         hal_timer_t pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
@@ -1097,9 +1099,9 @@ void Stepper::isr() {
 
       // For minimum pulse time wait before looping
       #if EXTRA_CYCLES_E > 20
-        if (i) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
+        if (step) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * PULSE_TIMER_PRESCALE) { /* noop */ }
       #elif EXTRA_CYCLES_E > 0
-        if (i) DELAY_NOPS(EXTRA_CYCLES_E);
+        if (step) DELAY_NOPS(EXTRA_CYCLES_E);
       #endif
 
     } // step_loops

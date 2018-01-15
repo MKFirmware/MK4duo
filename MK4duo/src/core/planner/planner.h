@@ -335,6 +335,16 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t * const block = &block_buffer[block_buffer_tail];
+
+        // If the block has no trapezoid calculated, it's unsafe to execute.
+        if (movesplanned() > 1) {
+          const block_t * const next = &block_buffer[next_block_index(block_buffer_tail)];
+          if (TEST(block->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE))
+            return NULL;
+        }
+        else if (TEST(block->flag, BLOCK_BIT_RECALCULATE))
+          return NULL;
+
         #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif
@@ -393,11 +403,11 @@ class Planner {
      */
     static float estimate_acceleration_distance(const float &initial_rate, const float &target_rate, const float &accel) {
       if (accel == 0) return 0; // accel was 0, set acceleration distance to 0
-      return (sq(target_rate) - sq(initial_rate)) / (accel * 2);
+      return (sq(target_rate) - sq(initial_rate)) / (accel * 2.0);
     }
 
     /**
-     * Return the point at which you must start braking (at the rate of -'accel') if
+     * Return the point at which you must start braking (at the rate of -'acceleration') if
      * you start at 'initial_rate', accelerate (until reaching the point), and want to end at
      * 'final_rate' after traveling 'distance'.
      *
@@ -406,7 +416,7 @@ class Planner {
      */
     static float intersection_distance(const float &initial_rate, const float &final_rate, const float &accel, const float &distance) {
       if (accel == 0) return 0; // accel was 0, set intersection distance to 0
-      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4);
+      return (accel * 2 * distance - sq(initial_rate) + sq(final_rate)) / (accel * 4.0);
     }
 
     /**
