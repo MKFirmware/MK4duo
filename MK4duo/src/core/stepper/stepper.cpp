@@ -924,12 +924,8 @@ void Stepper::isr() {
 
     #endif // ENABLED(LIN_ADVANCE)
   }
-  else if (step_events_completed >= (uint32_t)current_block->decelerate_after && current_block->step_event_count != (uint32_t)current_block->decelerate_after) {
+  else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
     hal_timer_t step_rate;
-
-    // If we are entering the deceleration phase for the first time, we have to see how long we have been decelerating up to now. Equals last acceleration time interval.
-    if (!deceleration_time)
-      deceleration_time = calc_timer_interval(acc_step_rate);
 
     HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
 
