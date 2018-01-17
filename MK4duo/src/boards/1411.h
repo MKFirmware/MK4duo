@@ -145,6 +145,8 @@
 #define SERVO3_PIN                  4
 
 //###MISC
+#define EEPROM_I2C
+#define E2END 0x2000
 #define ORIG_PS_ON_PIN             12
 #define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    13
