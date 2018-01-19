@@ -147,7 +147,7 @@ static constexpr Fastio_Param Fastio[] = {
 // NOT CHANGE uint8_t in Pin, ALLIGATOR board crashed!!!
 // Read a pin
 FORCE_INLINE static bool READ(const uint8_t pin) {
-  return (bool)(Fastio[pin].base_address -> PIO_PDSR & (MASK(Fastio[pin].shift_count)));
+  return (bool)(Fastio[pin].base_address->PIO_PDSR & (MASK(Fastio[pin].shift_count)));
 }
 FORCE_INLINE static bool READ_VAR(const uint8_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
