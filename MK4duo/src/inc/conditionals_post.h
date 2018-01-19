@@ -223,7 +223,7 @@
 /**
  * Auto Bed Leveling and Z Probe Repeatability Test
  */
-#define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0)
+#define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0 && DISABLED(Z_TWO_ENDSTOPS))
 
 /**
  * Shorthand for pin tests, used wherever needed

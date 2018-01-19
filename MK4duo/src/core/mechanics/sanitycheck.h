@@ -230,6 +230,10 @@
   #elif X_HOME_DIR != -1 || X2_HOME_DIR != 1
     #error "DEPENDENCY ERROR: DUAL_X_CARRIAGE requires X_HOME_DIR -1 and X2_HOME_DIR 1."
   #endif
+
+  #if ENABLED(X_TWO_STEPPER)
+    #error "DEPENDENCY ERROR: DUAL_X_CARRIAGE or X_TWO_STEPPER can be set"
+  #endif
 #endif
 
 

@@ -3763,6 +3763,7 @@ void kill_screen(const char* lcd_msg) {
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
 
+      lcd_volumetric_enabled = printer.isVolumetric();
       MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &lcd_volumetric_enabled, lcd_set_volumetric);
 
       if (printer.isVolumetric()) {
