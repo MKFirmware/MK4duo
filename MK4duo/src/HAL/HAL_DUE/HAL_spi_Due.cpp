@@ -116,12 +116,9 @@
 
   /* ---------------- Macros to be able to access definitions from asm */
 
-  #define _PORT(IO) DIO ##  IO ## _WPORT
-  #define _PIN_MASK(IO) MASK(DIO ## IO ## _PIN)
-  #define _PIN_SHIFT(IO) DIO ## IO ## _PIN
-  #define PORT(IO) _PORT(IO)
-  #define PIN_MASK(IO) _PIN_MASK(IO)
-  #define PIN_SHIFT(IO) _PIN_SHIFT(IO)
+  #define PORT(IO)      Fastio[IO].base_address
+  #define PIN_MASK(IO)  MASK(Fastio[IO].shift_count)
+  #define PIN_SHIFT(IO) Fastio[IO].shift_count
 
   // run at ~8 .. ~10Mhz - Tx version (Rx data discarded)
   static uint8_t spiTransferTx0(uint8_t bout) { // using Mode 0
@@ -492,7 +489,7 @@
   static pfnSpiTxBlock spiTxBlock = spiTxBlockX;
   static pfnSpiRxBlock spiRxBlock = spiRxBlockX;
 
-  void spiBegin() {
+  void HAL::spiBegin() {
     SET_OUTPUT(SS_PIN);
     WRITE(SS_PIN, HIGH);
     SET_OUTPUT(SCK_PIN);
@@ -500,7 +497,7 @@
     SET_OUTPUT(MOSI_PIN);
   }
 
-  uint8_t spiRec() {
+  uint8_t HAL::spiReceive(void) {
     WRITE(SS_PIN, LOW);
     WRITE(MOSI_PIN, 1); /* Output 1s 1*/
     uint8_t b = spiTransferRx(0xFF);
@@ -508,7 +505,7 @@
     return b;
   }
 
-  void spiRead(uint8_t* buf, uint16_t nbyte) {
+  void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
     uint32_t todo = nbyte;
     if (todo == 0) return;
 
@@ -518,14 +515,13 @@
     WRITE(SS_PIN, HIGH);
   }
 
-  void spiSend(uint8_t b) {
+  void HAL::spiSend(uint8_t b) {
     WRITE(SS_PIN, LOW);
     (void) spiTransferTx(b);
     WRITE(SS_PIN, HIGH);
   }
 
-  void spiSendBlock(uint8_t token, const uint8_t* buf) {
-
+  void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
     WRITE(SS_PIN, LOW);
     (void) spiTransferTx(token);
     spiTxBlock(buf,512);
@@ -542,7 +538,7 @@
    *  5 :  250 - 312 kHz
    *  6 :  125 - 156 kHz
    */
-  void spiInit(uint8_t spiRate) {
+  void HAL::spiInit(uint8_t spiRate) {
     switch (spiRate) {
       case 0:
         spiTransferTx = spiTransferTx0;
