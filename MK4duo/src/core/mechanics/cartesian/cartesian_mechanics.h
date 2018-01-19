@@ -169,7 +169,7 @@
        */
       #if ENABLED(DUAL_X_CARRIAGE)
         bool  prepare_move_to_destination_dualx();
-        int   x_home_dir(const int extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
+        int   x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
       #endif
 
       #if ENABLED(QUICK_HOME)

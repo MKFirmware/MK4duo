@@ -1358,7 +1358,7 @@
           strcat(buffer, buffer1);
           Time = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
           digit += Time.toDigital(buffer1, true);
-          if (digit > 13)
+          if (digit > 14)
             strcat(buffer, "E");
           else
             strcat(buffer, " E");
