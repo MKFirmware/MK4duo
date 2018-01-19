@@ -143,12 +143,12 @@
         const uint32_t pwm_scale = get_pwm_scale(st);
         SERIAL_TXT(axisID);
         SERIAL_MV(":", pwm_scale);
-        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st), BIN);
+        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st));
         SERIAL_MSG("| ");
         if (data.is_error) SERIAL_CHR('E');
         else if (data.is_ot) SERIAL_CHR('O');
         else if (data.is_otpw) SERIAL_CHR('W');
-        else if (otpw_cnt > 0) SERIAL_VAL(otpw_cnt, DEC);
+        else if (otpw_cnt > 0) SERIAL_VAL(otpw_cnt);
         else if (st.flag_otpw) SERIAL_CHR('F');
         SERIAL_CHR('\t');
       }
@@ -236,7 +236,7 @@
   void _tmc_say_sgt(const char name[], const uint32_t sgt) {
     SERIAL_TXT(name);
     SERIAL_MSG(" driver homing sensitivity set to ");
-    SERIAL_EV(sgt, DEC);
+    SERIAL_EV(sgt);
   }
 
   #if ENABLED(TMC_DEBUG)
@@ -291,21 +291,21 @@
       SERIAL_TXT(name);
       SERIAL_MSG(" = 0x");
       for (int B = 24; B >= 8; B -= 8){
-        SERIAL_VAL((drv_status >> (B + 4)) & 0xF, HEX);
-        SERIAL_VAL((drv_status >> B) & 0xF, HEX);
+        SERIAL_VAL((drv_status >> (B + 4)) & 0xF);
+        SERIAL_VAL((drv_status >> B) & 0xF);
         SERIAL_CHR(':');
       }
-      SERIAL_VAL((drv_status >> 4) & 0xF, HEX);
-      SERIAL_VAL(drv_status & 0xF, HEX);
+      SERIAL_VAL((drv_status >> 4) & 0xF);
+      SERIAL_VAL(drv_status & 0xF);
       SERIAL_EOL();
     }
 
     #if ENABLED(HAVE_TMC2130)
       static void tmc_status(TMC2130Stepper &st, const TMC_debug_enum i) {
         switch(i) {
-          case TMC_PWM_SCALE: SERIAL_VAL(st.PWM_SCALE(), DEC); break;
+          case TMC_PWM_SCALE: SERIAL_VAL(st.PWM_SCALE()); break;
           case TMC_TSTEP: SERIAL_TXT(st.TSTEP()); break;
-          case TMC_SGT: SERIAL_VAL(st.sgt(), DEC); break;
+          case TMC_SGT: SERIAL_VAL(st.sgt()); break;
           case TMC_STEALTHCHOP: SERIAL_PS(st.stealthChop() ? PSTR("true") : PSTR("false")); break;
           default: break;
         }
@@ -313,7 +313,7 @@
       static void tmc_parse_drv_status(TMC2130Stepper &st, const TMC_drv_status_enum i) {
         switch(i) {
           case TMC_STALLGUARD: if (st.stallguard()) SERIAL_CHR('X'); break;
-          case TMC_SG_RESULT:  SERIAL_VAL(st.sg_result(), DEC);   break;
+          case TMC_SG_RESULT:  SERIAL_VAL(st.sg_result());   break;
           case TMC_FSACTIVE:   if (st.fsactive())   SERIAL_CHR('X'); break;
           default: break;
         }
@@ -323,7 +323,7 @@
       static void tmc_status(TMC2208Stepper &st, const TMC_debug_enum i) {
         switch(i) {
           case TMC_TSTEP: { uint32_t data = 0; st.TSTEP(&data); SERIAL_VAL(data); break; }
-          case TMC_PWM_SCALE: SERIAL_VAL(st.pwm_scale_sum(), DEC); break;
+          case TMC_PWM_SCALE: SERIAL_VAL(st.pwm_scale_sum()); break;
           case TMC_STEALTHCHOP: SERIAL_PS(st.stealth() ? PSTR("true") : PSTR("false")); break;
           case TMC_S2VSA: if (st.s2vsa()) SERIAL_CHR('X'); break;
           case TMC_S2VSB: if (st.s2vsb()) SERIAL_CHR('X'); break;
@@ -351,15 +351,15 @@
         case TMC_RMS_CURRENT: SERIAL_VAL(st.rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st.rms_current() * 1.41, 0); break;
         case TMC_IRUN:
-          SERIAL_VAL(st.irun(), DEC);
+          SERIAL_VAL(st.irun());
           SERIAL_MSG("/31");
           break;
         case TMC_IHOLD:
-          SERIAL_VAL(st.ihold(), DEC);
+          SERIAL_VAL(st.ihold());
           SERIAL_MSG("/31");
           break;
         case TMC_CS_ACTUAL:
-          SERIAL_VAL(st.cs_actual(), DEC);
+          SERIAL_VAL(st.cs_actual());
           SERIAL_MSG("/31");
           break;
 
@@ -381,10 +381,10 @@
           break;
         case TMC_OTPW: SERIAL_PS(st.otpw() ? PSTR("true") : PSTR("false")); break;
         case TMC_OTPW_TRIGGERED: SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false")); break;
-        case TMC_TOFF: SERIAL_VAL(st.toff(), DEC); break;
-        case TMC_TBL: SERIAL_VAL(st.blank_time(), DEC); break;
-        case TMC_HEND: SERIAL_VAL(st.hysterisis_end(), DEC); break;
-        case TMC_HSTRT: SERIAL_VAL(st.hysterisis_start(), DEC); break;
+        case TMC_TOFF: SERIAL_VAL(st.toff()); break;
+        case TMC_TBL: SERIAL_VAL(st.blank_time()); break;
+        case TMC_HEND: SERIAL_VAL(st.hysterisis_end()); break;
+        case TMC_HSTRT: SERIAL_VAL(st.hysterisis_start()); break;
         default: tmc_status(st, i); break;
       }
     }
@@ -401,7 +401,7 @@
         case TMC_S2GA:          if (st.s2ga())         SERIAL_CHR('X'); break;
         case TMC_DRV_OTPW:      if (st.otpw())         SERIAL_CHR('X'); break;
         case TMC_OT:            if (st.ot())           SERIAL_CHR('X'); break;
-        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st.cs_actual(), DEC);       break;
+        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st.cs_actual());             break;
         case TMC_DRV_STATUS_HEX:drv_status_print_hex(extended_axis_codes[axis], st.DRV_STATUS()); break;
         default: tmc_parse_drv_status(st, i); break;
       }
