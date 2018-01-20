@@ -87,6 +87,9 @@
   #define Z_MIN_POS 0
   #define E_MIN_POS 0
 
+  #define X_MIN_POS_ZERO (X_MIN_POS)
+  #define Y_MIN_POS_ZERO (Y_MIN_POS)
+
   #define X_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
   #define Y_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
 
@@ -109,21 +112,24 @@
 
   #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
 
-#endif // MECH(DELTA)
+#else // !MECH(DELTA)
+
+  #if ((X_MIN_POS) <= 0)
+    #define X_MIN_POS_ZERO 0
+  #else
+    #define X_MIN_POS_ZERO (X_MIN_POS)
+  #endif
+  #if ((Y_MIN_POS) <= 0)
+    #define Y_MIN_POS_ZERO 0
+  #else
+    #define Y_MIN_POS_ZERO (Y_MIN_POS)
+  #endif
+
+#endif // !MECH(DELTA)
 
 /**
  * Axis lengths and center
  */
-#if (X_MIN_POS <= 0)
-  #define X_MIN_POS_ZERO 0
-#else
-  #define X_MIN_POS_ZERO (X_MIN_POS)
-#endif
-#if (Y_MIN_POS <= 0)
-  #define Y_MIN_POS_ZERO 0
-#else
-  #define Y_MIN_POS_ZERO (Y_MIN_POS)
-#endif
 #define X_MAX_LENGTH (X_MAX_POS - (X_MIN_POS_ZERO))
 #define Y_MAX_LENGTH (Y_MAX_POS - (Y_MIN_POS_ZERO))
 #define Z_MAX_LENGTH (Z_MAX_POS - (Z_MIN_POS))
