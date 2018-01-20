@@ -153,7 +153,7 @@
 #endif
 #if (PIDTEMPBED)
   #if !HAS_TEMP_BED
-    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED."
+    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED for use PIDTEMPBED."
   #endif
   #if DISABLED(BED_PID_MAX)
     #error "DEPENDENCY ERROR: Missing setting BED_PID_MAX."

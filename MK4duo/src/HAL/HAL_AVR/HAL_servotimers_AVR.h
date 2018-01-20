@@ -51,28 +51,36 @@
  * --------------------
  */
 
-// Say which 16 bit timers can be used and in what order
-#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
-  #define _useTimer5
-  #define _useTimer3
-  #define _useTimer4
-  typedef enum { _timer5, _timer3, _timer4, _Nbr_16timers } timer16_Sequence_t;
-
-#elif ENABLED(__AVR_ATmega32U4__)
-  #define _useTimer3
-  typedef enum { _timer3, _Nbr_16timers } timer16_Sequence_t;
-
-#elif ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB1286__)
-  #define _useTimer3
-  typedef enum { _timer3, _Nbr_16timers } timer16_Sequence_t;
-
-#elif ENABLED(__AVR_ATmega128__) || ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega1284P__) || ENABLED(__AVR_ATmega2561__)
-  #define _useTimer3
-  typedef enum { _timer3, _Nbr_16timers } timer16_Sequence_t;
-
-#else  // everything else
-  typedef enum { _Nbr_16timers } timer16_Sequence_t;
-#endif
-
 #define TRIM_DURATION         2 // compensation ticks to trim adjust for digitalWrite delays
 #define SERVO_TIMER_PRESCALER 8 // timer prescaler
+
+// Say which 16 bit timers can be used and in what order
+#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
+  #define _useTimer3
+  #define _useTimer4
+  #define _useTimer5
+#elif ENABLED(__AVR_ATmega32U4__)
+  #define _useTimer3
+#elif ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB1286__)
+  #define _useTimer3
+#elif ENABLED(__AVR_ATmega128__) || ENABLED(__AVR_ATmega1281__) || ENABLED(__AVR_ATmega1284P__) || ENABLED(__AVR_ATmega2561__)
+  #define _useTimer3
+#else
+  // everything else
+#endif
+
+typedef enum {
+  #if ENABLED(_useTimer1)
+    _timer1,
+  #endif
+  #if ENABLED(_useTimer3)
+    _timer3,
+  #endif
+  #if ENABLED(_useTimer4)
+    _timer4,
+  #endif
+  #if ENABLED(_useTimer5)
+    _timer5,
+  #endif
+  _Nbr_16timers
+} timer16_Sequence_t;
