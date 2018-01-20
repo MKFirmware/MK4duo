@@ -268,7 +268,7 @@ void Temperature::spin() {
     else if (ELAPSED(ms, next_check_ms[h])) {
       next_check_ms[h] = ms + temp_check_interval[act->type];
       if (act->tempisrange())
-        act->soft_pwm = act->isHeating() ? act->pidDriveMax : 0;
+        act->soft_pwm = act->isHeating() ? act->pidMax : 0;
       else
         act->soft_pwm = 0;
     }

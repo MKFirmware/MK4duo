@@ -43,12 +43,12 @@ FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
 FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
 
 void Com::printInfoLN(FSTRINGPARAM(text)) {
-  PS_PGM(tInfo);
-  PS_PGM(text);
+  serialprintPGM(tInfo);
+  serialprintPGM(text);
   println();
 }
 
-void Com::PS_PGM(FSTRINGPARAM(ptr)) {
+void Com::serialprintPGM(FSTRINGPARAM(ptr)) {
   char c;
   while ((c = HAL::readFlashByte(ptr++)) != 0)
     HAL::serialWriteByte(c);
@@ -69,11 +69,11 @@ void Com::printNumber(uint32_t n) {
 
 void Com::printFloat(float number, uint8_t digits) {
   if (isnan(number)) {
-    PS_PGM(TNAN);
+    serialprintPGM(TNAN);
     return;
   }
   if (isinf(number)) {
-    PS_PGM(TINF);
+    serialprintPGM(TINF);
     return;
   }
   // Handle negative numbers

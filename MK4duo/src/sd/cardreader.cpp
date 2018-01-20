@@ -154,9 +154,14 @@
   }
 
   void CardReader::stopSDPrint() {
-    if (isFileOpen() && sdprinting) {
-      sdprinting = false;
-      closeFile(true);
+    if (isFileOpen()) {
+
+      if (sdprinting) {
+        sdprinting = false;
+        closeFile(true);
+      }
+      else
+        closeFile(false);
 
       lcd_setstatus(MSG_PRINT_ABORTED, true);
     }

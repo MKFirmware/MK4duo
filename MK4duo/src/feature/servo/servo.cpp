@@ -287,7 +287,6 @@
     
     #endif // !WIRING
 
-
     static void initISR(timer16_Sequence_t timer) {
       #if ENABLED(_useTimer1)
         if (timer == _timer1) {

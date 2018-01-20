@@ -57,7 +57,7 @@ class Com {
     FSTRINGVAR(tRequestPauseCommunication)// command for host that support action
 
     static void printInfoLN(FSTRINGPARAM(text));
-    static void PS_PGM(FSTRINGPARAM(text));
+    static void serialprintPGM(FSTRINGPARAM(text));
     static void printNumber(uint32_t n);
     static void printFloat(float number, uint8_t digits);
     static void print(const char* text);
@@ -95,11 +95,11 @@ class Com {
 
 #define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
 
-#define SERIAL_PS(message)                  (Com::PS_PGM(message))
-#define SERIAL_PGM(message)                 (Com::PS_PGM(PSTR(message)))
+#define SERIAL_PS(message)                  (Com::serialprintPGM(message))
+#define SERIAL_PGM(message)                 (Com::serialprintPGM(PSTR(message)))
 
-#define SERIAL_STR(str)                     (Com::PS_PGM(str))
-#define SERIAL_MSG(msg)                     (Com::PS_PGM(PSTR(msg)))
+#define SERIAL_STR(str)                     (Com::serialprintPGM(str))
+#define SERIAL_MSG(msg)                     (Com::serialprintPGM(PSTR(msg)))
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
 #define SERIAL_CHR(c)                       (Com::print(c))
