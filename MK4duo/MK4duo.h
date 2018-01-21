@@ -153,13 +153,10 @@
 #include "src/feature/laser/laser.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
-#include "src/feature/caselight/caselight.h"
 #include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
-#include "src/feature/rgbled/blinkm.h"
-#include "src/feature/rgbled/neopixel.h"
-#include "src/feature/rgbled/pca9632.h"
+#include "src/feature/caselight/caselight.h"
 
 /**
  * External libraries loading

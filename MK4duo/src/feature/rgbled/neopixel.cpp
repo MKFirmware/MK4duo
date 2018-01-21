@@ -30,6 +30,8 @@
 
 #if ENABLED(NEOPIXEL_LED)
 
+  #include "neopixel.h"
+
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEOPIXEL_TYPE + NEO_KHZ800);
 
   void set_neopixel_color(const uint32_t color) {
@@ -56,27 +58,6 @@
       printer.safe_delay(2000);
     #endif
     set_neopixel_color(strip.Color(NEO_BLACK));       // black
-  }
-
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t brightness) {
-
-    uint32_t color;
-
-    if (w == 255 || (r == 255 && g == 255 && b == 255))
-      color = strip.Color(NEO_WHITE);
-    else
-      color = strip.Color(r, g, b, w);
-
-    strip.setBrightness(brightness);
-
-    #if DISABLED(NEOPIXEL_IS_SEQUENTIAL)
-      set_neopixel_color(color);
-    #else
-      static uint16_t nextLed = 0;
-      strip.setPixelColor(nextLed, color);
-      strip.show();
-      if (++nextLed >= strip.numPixels()) nextLed = 0;
-    #endif
   }
 
 #endif // ENABLED(NEOPIXEL_LED)

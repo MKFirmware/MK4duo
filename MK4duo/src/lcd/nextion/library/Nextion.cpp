@@ -595,17 +595,42 @@
 
   #endif  // SDSUPPORT
 
+  bool getConnect(char* buffer) {
+    HAL::delayMilliseconds(100);
+    sendCommand("");
+    HAL::delayMilliseconds(100);
+    sendCommand("connect");
+    HAL::delayMilliseconds(100);
+
+    uint8_t   c   = 0;
+    String temp   = String("");
+
+    while (nexSerial.available()) {
+      c = nexSerial.read();
+      temp += (char)c;
+    }
+
+    strncpy(buffer, temp.c_str(), 70);
+
+    if (strstr(buffer, "comok")) return true;
+
+    return false;
+  }
+
   //
   // PUBBLIC FUNCTION
   //
 
-  bool nexInit() {
+  bool nexInit(char *buffer) {
 
     // Try default baudrate
     nexSerial.begin(9600);
 
+    ZERO(buffer);
+    bool connect = getConnect(buffer);
+
     // If baudrate is 9600 set to 115200 and reconnect
-    if (nexSerial) {
+    if (connect) {
       sendCommand("baud=115200");
       nexSerial.end();
       HAL::delayMilliseconds(1000);
@@ -616,32 +641,12 @@
       nexSerial.end();
       HAL::delayMilliseconds(1000);
       nexSerial.begin(115200);
-      if (nexSerial) return true;
+      connect = getConnect(buffer);
+      if (connect) return true;
     }
     return false;
   }
-
-  void getConnect(char *buffer, uint16_t len) {
-    HAL::delayMilliseconds(100);
-    sendCommand("");
-    HAL::delayMilliseconds(100);
-    sendCommand("connect");
-    HAL::delayMilliseconds(100);
-
-    uint16_t ret = 0;
-    String temp = String("");
-    uint8_t c = 0;
-
-    while (nexSerial.available()) {
-      c = nexSerial.read();
-      temp += (char)c;
-    }
-
-    ret = temp.length();
-    ret = ret > len ? len : ret;
-    strncpy(buffer, temp.c_str(), ret);
-  }
-    
+  
   void nexLoop(NexObject *nex_listen_list[]) {
     static uint8_t __buffer[10];
     uint16_t i;

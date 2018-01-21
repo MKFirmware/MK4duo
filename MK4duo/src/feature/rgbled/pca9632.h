@@ -30,7 +30,10 @@
 
 #if ENABLED(PCA9632)
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w=0, const uint8_t p=255);
+  struct LEDColor;
+  typedef LEDColor LEDColor;
+
+  void pca9632_set_led_color(const LEDColor &color);
 
 #endif // ENABLED(PCA9632)
 

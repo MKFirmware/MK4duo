@@ -54,7 +54,7 @@
   uint8_t     PageID                    = 0,
               lcd_status_message_level  = 0;
   uint16_t    slidermaxval              = 20;
-  char        buffer[50]                = { 0 };
+  char        buffer[70]                = { 0 };
   char        lcd_status_message[30]    = WELCOME_MSG;
   const float manual_feedrate_mm_m[]    = MANUAL_FEEDRATE;
 
@@ -1093,20 +1093,19 @@
     HAL::delayMilliseconds(2000);
 
     for (uint8_t i = 0; i < 10; i++) {
-      NextionON = nexInit();
+      ZERO(buffer);
+      NextionON = nexInit(buffer);
       if (NextionON) break;
       HAL::delayMilliseconds(1000);
     }
 
     if (!NextionON) {
-      SERIAL_EM("Nextion LCD not connected!");
+      SERIAL_LM(ER, "Nextion not connected!");
       return;
     }
     else {
-      SERIAL_MSG("Nextion LCD");
+      SERIAL_MSG("Nextion");
       // Get Model
-      ZERO(buffer);
-      getConnect(buffer, sizeof(buffer));
 
       if (strstr(buffer, "3224")) {       // Model 2.4" or 2.8" Normal or Enhanced
         SERIAL_MSG(" 2.4");
