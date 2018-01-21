@@ -274,13 +274,13 @@ void Commands::get_serial() {
           else {
             #if ENABLED(PRINTER_EVENT_LEDS)
               LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
-              set_led_color(0, 255, 0); // Green
+              leds.set_green();
               #if HAS_RESUME_CONTINUE
                 enqueue_and_echo_P(PSTR("M0")); // end of the queue!
               #else
                 printer.safe_delay(1000);
               #endif
-              set_led_color(0, 0, 0);   // OFF
+              leds.set_off();
             #endif
             card.checkautostart(true);
           }
@@ -523,8 +523,12 @@ void Commands::get_destination() {
   #endif
 
   LOOP_XYZE(i) {
-    if (parser.seen(axis_codes[i]))
-      mechanics.destination[i] = mechanics.logical_to_native(parser.value_axis_units((AxisEnum)i) + (printer.axis_relative_modes[i] || printer.isRelativeMode() ? mechanics.current_position[i] : 0), (AxisEnum)i);
+    if (parser.seen(axis_codes[i])) {
+      const float v = parser.value_axis_units((AxisEnum)i);
+      mechanics.destination[i] = (printer.axis_relative_modes[i] || printer.isRelativeMode())
+        ? mechanics.current_position[i] + v
+        : (i == E_AXIS) ? v : mechanics.logical_to_native(v, (AxisEnum)i);
+    }
     else
       mechanics.destination[i] = mechanics.current_position[i];
   }
@@ -535,16 +539,16 @@ void Commands::get_destination() {
   if (parser.seen('P'))
     mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.previous_extruder] / 100) + mechanics.current_position[E_AXIS];
 
-  if (!printer.debugDryrun() && !printer.debugSimulation())
-    print_job_counter.data.filamentUsed += (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
+  if (!printer.debugDryrun() && !printer.debugSimulation()) {
+    const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
+    print_job_counter.data.filamentUsed += diff;
+    #if ENABLED(RFID_MODULE)
+      rfid522.RfidData[tools.active_extruder].data.lenght -= diff;
+    #endif
+  }
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     get_mix_from_command();
-  #endif
-
-  #if ENABLED(RFID_MODULE)
-    if (!printer.debugDryrun() && !printer.debugSimulation())
-      rfid522.RfidData[tools.active_extruder].data.lenght -= (mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS]);
   #endif
 
   #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)

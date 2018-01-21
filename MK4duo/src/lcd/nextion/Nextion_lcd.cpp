@@ -106,6 +106,7 @@
    * Nextion component for page:menu
    *******************************************************************
    */
+  NexObject Version     = NexObject(1, 10,  "t0");
 
   /**
    *******************************************************************
@@ -418,6 +419,8 @@
 
   void setpagePrinter() {
     char temp[10] = { 0 };
+
+    Version.setText(SHORT_BUILD_VERSION, "menu");
 
     #if HOTENDS > 0
       Hotend00.setValue(1, "printer");

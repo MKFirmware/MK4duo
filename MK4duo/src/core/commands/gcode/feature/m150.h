@@ -32,6 +32,7 @@
 
   /**
    * M150: Set Status LED Color - Use R-U-B-W for R-G-B-W
+   *       and Brightness       - Use P (for NEOPIXEL only)
    *
    * Always sets all 3 or 4 components. If a component is left out, set to 0.
    *
@@ -52,20 +53,18 @@
         const uint8_t red   = random(256);
         const uint8_t green = random(256);
         const uint8_t blue  = random(256);
-        set_led_color(red, green, blue, 0);
+        leds.set_color(MakeLEDColor(red, green, blue, 0, 255));
         printer.safe_delay(100);
       } while (PENDING(millis(), end));
     } 
     else {
-      set_led_color(
+      leds.set_color(MakeLEDColor(
         parser.seen('R') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
         parser.seen('U') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
         parser.seen('B') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
-        parser.seen('W') ? (parser.has_value() ? parser.value_byte() : 255) : 0
-        #if ENABLED(NEOPIXEL_LED)
-          , parser.seen('P') ? (parser.has_value() ? parser.value_byte() : 255) : strip.getBrightness()
-        #endif
-      );
+        parser.seen('W') ? (parser.has_value() ? parser.value_byte() : 255) : 0,
+        parser.seen('P') ? (parser.has_value() ? parser.value_byte() : 255) : leds.getBrightness()
+      ));
     }
   }
 

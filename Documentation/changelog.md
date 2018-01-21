@@ -1,3 +1,7 @@
+### Version 4.3.4 Stable
+* CaseLight use Neopixel by Original Marlin
+* Fix and clear code
+
 ### Version 4.3.3 Stable
 * Add command M306 - Set Heaters parameters.
 * Add G26 Mesh validation.

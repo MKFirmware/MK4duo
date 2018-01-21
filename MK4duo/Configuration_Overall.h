@@ -24,7 +24,7 @@
  * Here you can define all your custom settings and they will overwrite configurations in the main configuration files.
  */
 
-/********************************
- * Firmware Version V4.3.3      *
- ********************************/
+/*******************************
+ *   Firmware Version V4.3.4   *
+ *******************************/
 
