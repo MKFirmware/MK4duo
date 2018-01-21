@@ -31,19 +31,16 @@
 
   #include "Arduino.h"
   #include <Wire.h>
+  #include "blinkm.h"
 
-  void set_led_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t w/*=0*/, const uint8_t p/*=255*/) {
-
-    UNUSED(w);
-    UNUSED(p);
-
+  void blinkm_set_led_color(const LEDColor &color) {
     Wire.begin();
     Wire.beginTransmission(0x09);
-    Wire.write('o');                    //to disable ongoing script, only needs to be used once
+    Wire.write('o');                    // to disable ongoing script, only needs to be used once
     Wire.write('n');
-    Wire.write(r);
-    Wire.write(g);
-    Wire.write(b);
+    Wire.write(color.r);
+    Wire.write(color.g);
+    Wire.write(color.b);
     Wire.endTransmission();
   }
 

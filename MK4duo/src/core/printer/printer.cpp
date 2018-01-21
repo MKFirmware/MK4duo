@@ -216,7 +216,9 @@ void Printer::setup() {
   #endif
 
   #if HAS_CASE_LIGHT
-    SET_OUTPUT(CASE_LIGHT_PIN);
+    #if DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+      SET_OUTPUT(CASE_LIGHT_PIN);
+    #endif
     caselight.update();
   #endif
 
@@ -256,25 +258,16 @@ void Printer::setup() {
     SET_INPUT_PULLUP(HOME_PIN);
   #endif
 
-  #if PIN_EXISTS(STAT_LED_RED_PIN)
+  #if PIN_EXISTS(STAT_LED_RED)
     OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
   #endif
 
-  #if PIN_EXISTS(STAT_LED_BLUE_PIN)
+  #if PIN_EXISTS(STAT_LED_BLUE)
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
-  #if ENABLED(NEOPIXEL_LED)
-    setup_neopixel();
-  #endif
-
-  #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
-    SET_OUTPUT(RGB_LED_R_PIN);
-    SET_OUTPUT(RGB_LED_G_PIN);
-    SET_OUTPUT(RGB_LED_B_PIN);
-    #if ENABLED(RGBW_LED)
-      SET_OUTPUT(RGB_LED_W_PIN);
-    #endif
+  #if HAS_COLOR_LEDS
+    leds.setup();
   #endif
 
   #if ENABLED(LASER)

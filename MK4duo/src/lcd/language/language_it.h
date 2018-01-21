@@ -144,6 +144,31 @@
 #define MSG_UBL_Z_OFFSET_STOPPED            _UxGT("Z-Offset Fermato")
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("UBL passo passo")
 
+#define MSG_LED_CONTROL                     _UxGT("Controllo LED")
+#define MSG_LEDS_ON                         _UxGT("Luce On")
+#define MSG_LEDS_OFF                        _UxGT("Luce Off")
+#define MSG_LED_PRESETS                     _UxGT("Luce Presets")
+#define MSG_SET_LEDS_RED                    _UxGT("Rosso")
+#define MSG_SET_LEDS_ORANGE                 _UxGT("Arancio")
+#define MSG_SET_LEDS_YELLOW                 _UxGT("Giallo")
+#define MSG_SET_LEDS_GREEN                  _UxGT("Verde")
+#define MSG_SET_LEDS_BLUE                   _UxGT("Blu")
+#define MSG_SET_LEDS_INDIGO                 _UxGT("Indigo")
+#define MSG_SET_LEDS_VIOLET                 _UxGT("Viola")
+#define MSG_SET_LEDS_WHITE                  _UxGT("Bianco")
+#define MSG_SET_LEDS_DEFAULT                _UxGT("Default")
+#define MSG_CUSTOM_LEDS                     _UxGT("Custom Lights")
+#define MSG_INTENSITY_R                     _UxGT("Rosso Intensita")
+#define MSG_INTENSITY_G                     _UxGT("Verde Intensita")
+#define MSG_INTENSITY_B                     _UxGT("Blu Intensita")
+
+#ifndef MSG_INTENSITY_W
+  #define MSG_INTENSITY_W                     _UxGT("White Intensity")
+#endif
+#ifndef MSG_LED_BRIGHTNESS
+  #define MSG_LED_BRIGHTNESS                  _UxGT("Brightness")
+#endif
+
 #define MSG_MOVING                          _UxGT("In movimento...")
 #define MSG_FREE_XY                         _UxGT("XY liberi")
 #define MSG_MOVE_X                          _UxGT("Muovi X")

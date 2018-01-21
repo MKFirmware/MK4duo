@@ -29,20 +29,32 @@
   uint8_t CaseLight::brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
   bool    CaseLight::status     = CASE_LIGHT_DEFAULT_ON;
 
+  #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
+    LEDColor case_light_color = CASE_LIGHT_NEOPIXEL_COLOR;
+  #endif
+
   void CaseLight::update() {
 
-    if (status) {
+    const uint8_t onoff     = status ? brightness : 0,
+                  intensity = INVERT_CASE_LIGHT ? 255 - onoff : onoff;
+
+    #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
+
+      leds.set_color(
+        MakeLEDColor(case_light_color.r, case_light_color.g, case_light_color.b, case_light_color.w, intensity),
+        false
+      );
+
+    #else // !CASE_LIGHT_USE_NEOPIXEL
+
       if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
-        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? (255 - brightness) : brightness);
-      else
-        HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? LOW : HIGH);
-    }
-    else {
-      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
-        HAL::analogWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? 255 : 0);
-      else
-        HAL::digitalWrite(CASE_LIGHT_PIN, INVERT_CASE_LIGHT ? HIGH : LOW);
-    }
+        HAL::analogWrite(CASE_LIGHT_PIN, intensity);
+      else {
+        const bool s = status ? !INVERT_CASE_LIGHT : INVERT_CASE_LIGHT;
+        HAL::digitalWrite(CASE_LIGHT_PIN, s ? HIGH : LOW);
+      }
+
+    #endif // !CASE_LIGHT_USE_NEOPIXEL
   }
 
   void CaseLight::report() {

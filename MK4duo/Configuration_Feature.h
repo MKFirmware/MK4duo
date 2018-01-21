@@ -1342,6 +1342,17 @@
 // The timeout (in ms) to return to the status screen from sub-menus
 //#define LCD_TIMEOUT_TO_STATUS 15000
 
+// LED Control Menu
+// Enable this feature to add LED Control to the LCD menu
+//#define LED_CONTROL_MENU
+//#define LED_COLOR_PRESETS             // Enable the Preset Color menu option
+//#define LED_USER_PRESET_STARTUP       // Have the printer display the user preset color on startup
+#define LED_USER_PRESET_RED        255  // User defined RED value
+#define LED_USER_PRESET_GREEN      255  // User defined GREEN value
+#define LED_USER_PRESET_BLUE       255  // User defined BLUE value
+#define LED_USER_PRESET_WHITE      255  // User defined WHITE value
+#define LED_USER_PRESET_BRIGHTNESS 255  // User defined intensity
+
 // CONTROLLER TYPE: Standard
 
 // MK4duo supports a wide variety of controllers.
@@ -1739,7 +1750,11 @@
 #define CASE_LIGHT_DEFAULT_ON false
 // set power up brightness 0-255 ( only used if on PWM
 // and if CASE_LIGHT_DEFAULT is set to on)
-#define CASE_LIGHT_DEFAULT_BRIGHTNESS 255   
+#define CASE_LIGHT_DEFAULT_BRIGHTNESS 255
+// Use Neopixel LED as case light, requires NEOPIXEL LED.
+//#define CASE_LIGHT_USE_NEOPIXEL
+// { Red, Green, Blue, White }
+#define CASE_LIGHT_NEOPIXEL_COLOR { 255, 255, 255, 255 }
 /**************************************************************************/
 
 
