@@ -1383,7 +1383,7 @@ void Planner::sync_from_steppers() {
   LOOP_XYZE(i) {
     position[i] = stepper.position((AxisEnum)i);
     #if ENABLED(LIN_ADVANCE)
-      position_float[i] = position[i] * steps_to_mm[i + (i == E_AXIS ? tools.active_extruder : 0)];
+      position_float[i] = position[i] * mechanics.steps_to_mm[i + (i == E_AXIS ? tools.active_extruder : 0)];
     #endif
   }
 }
