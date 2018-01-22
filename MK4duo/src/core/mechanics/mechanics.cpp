@@ -598,15 +598,10 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 #if ENABLED(WORKSPACE_OFFSETS)
 
   /**
-   * Change the home offset for an axis, update the current
-   * position and the software endstops to retain the same
-   * relative distance to the new home.
-   *
-   * Since this changes the current_position, code should
-   * call sync_plan_position soon after this.
+   * Change the home offset for an axis.
+   * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
-    current_position[axis] += v - home_offset[axis];
     home_offset[axis] = v;
     endstops.update_software_endstops(axis);
   }
