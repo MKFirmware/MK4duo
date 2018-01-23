@@ -136,6 +136,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
       KEEPALIVE_STATE(WAIT_HEATER);
     #endif
 
+    now = millis();
     printer.idle();
     commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
 
