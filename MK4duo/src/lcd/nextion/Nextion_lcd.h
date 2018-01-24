@@ -129,6 +129,8 @@
   FORCE_INLINE void lcd_draw_update() {}
   FORCE_INLINE void lcd_refresh() {}
 
+  constexpr bool lcd_wait_for_move = false;
+
 #endif // ENABLED(NEXTION)
 
 #endif /* _NEXTION_LCD_H_ */
