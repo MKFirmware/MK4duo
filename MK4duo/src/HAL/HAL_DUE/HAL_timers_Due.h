@@ -82,10 +82,10 @@ typedef struct {
 constexpr uint32_t  HAL_STEPPER_TIMER_RATE  = ((F_CPU) / 2); // 42 MHz
 constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER_RATE));
 
-#define STEPPER_TIMER               3
+#define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us
-#define HAL_STEP_TIMER_ISR          void TC3_Handler()
+#define HAL_STEP_TIMER_ISR          void TC4_Handler()
 
 #define PULSE_TIMER_NUM             STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
@@ -158,8 +158,8 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
   { TC0, 1, TC1_IRQn, 0 },  // 1 - [servo timer1]
   { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 92
-  { TC1, 0, TC3_IRQn, 2 },  // 3 - Stepper
-  { TC1, 1, TC4_IRQn, 0 },  // 4 -
+  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
+  { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
   { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10

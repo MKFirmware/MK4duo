@@ -33,12 +33,12 @@
   /**
    * M600: Pause Park and filament change
    *
-   *  E[distance] - Retract the filament this far (negative value)
+   *  E[distance] - Retract the filament this far
    *  Z[distance] - Move the Z axis by this distance
    *  X[position] - Move to this X position, with Y
    *  Y[position] - Move to this Y position, with X
-   *  U[distance] - Retract distance for removal (negative value) (manual reload)
-   *  L[distance] - Extrude distance for insertion (positive value) (manual reload)
+   *  U[distance] - Retract distance for removal (manual reload)
+   *  L[distance] - Extrude distance for insertion (manual reload)
    *  S[temp]     - New temperature for new filament
    *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
    *  T[toolhead] - Select extruder for filament change

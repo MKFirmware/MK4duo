@@ -126,7 +126,6 @@ typedef uint32_t  ptr_int_t;
 #define EEPROM_OFFSET 10
 
 // MATH
-#define MATH_USE_HAL
 #undef ATAN2
 #undef FABS
 #undef POW

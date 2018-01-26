@@ -101,6 +101,10 @@
       bool isHeating()    { return this->target_temperature > this->current_temperature; }
       bool isCooling()    { return this->target_temperature <= this->current_temperature; }
 
+      bool wait_for_heating() {
+        return this->isON() && this->target_temperature > (this->current_temperature + TEMP_HYSTERESIS);
+      }
+
       #if WATCH_THE_HEATER
         void start_watching();
       #endif
