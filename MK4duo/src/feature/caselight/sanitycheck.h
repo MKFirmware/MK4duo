@@ -30,7 +30,7 @@
 #define _CASELIGHT_SANITYCHECK_H_
 
   #if ENABLED(CASE_LIGHT)
-    #if !PIN_EXISTS(CASE_LIGHT)
+    #if !PIN_EXISTS(CASE_LIGHT) && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
       #error "DEPENDENCY ERROR: You have to set CASE_LIGHT_PIN to a valid pin if you enable CASE_LIGHT."
     #endif
     #if DISABLED(INVERT_CASE_LIGHT)
