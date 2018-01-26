@@ -98,7 +98,7 @@ class Com {
 #define SERIAL_PS(message)                  (Com::serialprintPGM(message))
 #define SERIAL_PGM(message)                 (Com::serialprintPGM(PSTR(message)))
 
-#define SERIAL_STR(str)                     (Com::serialprintPGM(str))
+#define SERIAL_STR(str)                     (Com::serialprintPGM(PSTR(str)))
 #define SERIAL_MSG(msg)                     (Com::serialprintPGM(PSTR(msg)))
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))

@@ -666,17 +666,6 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 }
 
-#if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
-  bool Temperature::tooColdToExtrude(const uint8_t h) {
-    #if HOTENDS <= 1
-      UNUSED(h);
-    #endif
-    return printer.isAllowColdExtrude() ? false : heaters[HOTEND_INDEX].current_temperature < extrude_min_temp;
-  }
-#else
-  bool Temperature::tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
-#endif
-
 // Private function
 /**
  * Get the raw values into the actual temperatures.

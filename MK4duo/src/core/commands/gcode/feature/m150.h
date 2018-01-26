@@ -53,7 +53,11 @@
         const uint8_t red   = random(256);
         const uint8_t green = random(256);
         const uint8_t blue  = random(256);
-        leds.set_color(MakeLEDColor(red, green, blue, 0, 255));
+        leds.set_color(MakeLEDColor(red, green, blue, 0, 255)
+          #if ENABLED(NEOPIXEL_LED) && ENABLED(NEOPIXEL_IS_SEQUENTIAL)
+            , true
+          #endif
+        );
         printer.safe_delay(100);
       } while (PENDING(millis(), end));
     } 

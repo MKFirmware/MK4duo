@@ -496,7 +496,7 @@
     }
 
     /**
-     * M122 report functions
+     * M922 report functions
      */
     void tmc_set_report_status(const bool status) {
       if ((report_tmc_status = status))

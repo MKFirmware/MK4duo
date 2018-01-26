@@ -128,7 +128,29 @@ class Temperature {
 
     static void report_temperatures(const bool showRaw=false);
 
-    static bool tooColdToExtrude(const uint8_t h);
+    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+      FORCE_INLINE static bool tooCold(const int16_t temp) {
+        return printer.isAllowColdExtrude() ? false : temp < extrude_min_temp;
+      }
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) {
+        #if HOTENDS <= 1
+          UNUSED(h);
+        #endif
+        return tooCold(heaters[HOTEND_INDEX].current_temperature);
+      }
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
+        #if HOTENDS == 1
+          UNUSED(h);
+        #endif
+        return tooCold(heaters[HOTEND_INDEX].target_temperature);
+      }
+    #else
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
+    #endif
+
+    FORCE_INLINE static bool hotEnoughToExtrude(const uint8_t h) { return !tooColdToExtrude(h); }
+    FORCE_INLINE static bool targetHotEnoughToExtrude(const uint8_t h) { return !targetTooColdToExtrude(h); }
 
   private:
 

@@ -57,10 +57,6 @@
     recalc_delta_settings();
   }
 
-  void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-    _set_position_mm(rx, ry, rz, e);
-  }
-
   bool Delta_Mechanics::position_is_reachable(const float &rx, const float &ry) {
     return HYPOT2(rx, ry) <= sq(delta_print_radius);
   }
@@ -68,6 +64,10 @@
     // Both the nozzle and the probe must be able to reach the point.
     return position_is_reachable(rx, ry)
         && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
+  }
+
+  void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
+    _set_position_mm(rx, ry, rz, e);
   }
 
   void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
@@ -387,7 +387,7 @@
 
   }
 
-  #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
+  #if ENABLED(DELTA_FAST_SQRT) && ENABLED(__AVR__)
 
     /**
      * Fast inverse SQRT from Quake III Arena
@@ -696,7 +696,12 @@
     stepper.synchronize();
 
     SERIAL_MSG("\nLogical:");
-    report_xyze(current_position);
+    const float logical[XYZ] = {
+      LOGICAL_X_POSITION(current_position[X_AXIS]),
+      LOGICAL_Y_POSITION(current_position[Y_AXIS]),
+      LOGICAL_Z_POSITION(current_position[Z_AXIS])
+    };
+    report_xyz(logical);
 
     float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 

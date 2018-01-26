@@ -134,7 +134,7 @@
 
     // If the move is only in Z/E don't split up the move
     if (destination[X_AXIS] == current_position[X_AXIS] && destination[Y_AXIS] == current_position[Y_AXIS]) {
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, active_extruder);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
       return false;
     }
 
@@ -216,11 +216,11 @@
         // Use ratio between the length of the move and the larger angle change
         const float adiff = abs(delta[A_AXIS] - oldA),
                     bdiff = abs(delta[B_AXIS] - oldB);
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, tools.active_extruder);
         oldA = delta[A_AXIS];
         oldB = delta[B_AXIS];
       #else
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder);
       #endif
     }
 
@@ -234,9 +234,9 @@
       ADJUST_DELTA(rtarget);
       const float adiff = abs(delta[A_AXIS] - oldA),
                   bdiff = abs(delta[B_AXIS] - oldB);
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, active_extruder);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, tools.active_extruder);
     #else
-      planner.buffer_line_kinematic(rtarget, _feedrate_mm_s, active_extruder);
+      planner.buffer_line_kinematic(rtarget, _feedrate_mm_s, tools.active_extruder);
     #endif
 
     return false;
@@ -256,7 +256,7 @@
 
     const int axis_home_dir =
       #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
+        (axis == X_AXIS) ? x_home_dir(tools.tools.active_extruder) :
       #endif
       home_dir[axis];
 
@@ -364,7 +364,7 @@
     sync_plan_position_kinematic();
     current_position[axis] = distance;
     inverse_kinematics(current_position);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.active_extruder);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.tools.active_extruder);
 
     stepper.synchronize();
 
@@ -478,7 +478,7 @@
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), active_extruder);
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
 
     set_current_to_destination();
   }
