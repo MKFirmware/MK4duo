@@ -105,8 +105,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     #define TEMP_CONDITIONS (wants_to_cool ? act->isCooling() : act->isHeating())
   #endif
 
-  float     target_temp         = -1.0,
-            old_temp            = 9999.0;
+  float     old_temp            = 9999.0;
   bool      wants_to_cool       = false;
   millis_t  now,
             next_cool_check_ms  = 0;
@@ -146,7 +145,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
       if (!wants_to_cool) {
         if (act->type == IS_HOTEND) {
           // Gradually change LED strip from violet to red as nozzle heats up
-          const uint8_t blue = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 255, 0);
+          const uint8_t blue = map(constrain(temp, start_temp, act->target_temperature), start_temp, act->target_temperature, 255, 0);
           if (blue != old_blue) {
             old_blue = blue;
             leds.set_color(
@@ -159,7 +158,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
         }
         else if (act->type == IS_BED) {
           // Gradually change LED strip from blue to violet as bed heats up
-          const uint8_t red = map(constrain(temp, start_temp, target_temp), start_temp, target_temp, 0, 255);
+          const uint8_t red = map(constrain(temp, start_temp, act->target_temperature), start_temp, act->target_temperature, 0, 255);
           if (red != old_red) {
             old_red = red;
             leds.set_color(
@@ -175,7 +174,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 
     #if TEMP_RESIDENCY_TIME > 0
 
-      const float temp_diff = FABS(target_temp - temp);
+      const float temp_diff = FABS(act->target_temperature - temp);
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
