@@ -188,9 +188,6 @@ void HAL::hwSetup(void) {
     OUT_WRITE(ENC424_SS_PIN, HIGH);
     OUT_WRITE(SS_PIN, HIGH);
 
-    SET_INPUT(MISO);
-    SET_OUTPUT(MOSI);
-
   #endif
 }
 
