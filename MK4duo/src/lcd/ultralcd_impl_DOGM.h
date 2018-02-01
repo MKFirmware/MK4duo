@@ -295,9 +295,10 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       u8g.firstPage();
       do {
         u8g.drawBitmapP(
-          (128 - (CUSTOM_BOOTSCREEN_BMPWIDTH))  / 2,
-          ( 64 - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2,
-          CEILING(CUSTOM_BOOTSCREEN_BMPWIDTH, 8), CUSTOM_BOOTSCREEN_BMPHEIGHT, custom_start_bmp);
+          (LCD_PIXEL_WIDTH  - (CUSTOM_BOOTSCREEN_BMPWIDTH))  / 2,
+          (LCD_PIXEL_HEIGHT - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2,
+          CEILING(CUSTOM_BOOTSCREEN_BMPWIDTH, 8), CUSTOM_BOOTSCREEN_BMPHEIGHT, custom_start_bmp
+        );
       } while (u8g.nextPage());
       HAL::delayMilliseconds(CUSTOM_BOOTSCREEN_TIMEOUT);
     }
@@ -309,25 +310,29 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       lcd_custom_bootscreen();
     #endif
 
-    #if ENABLED(START_BMPHIGH)
-      constexpr uint8_t offy = 0;
-    #else
-      constexpr uint8_t offy = DOG_CHAR_HEIGHT;
-    #endif
+    constexpr uint8_t offy =
+      #if ENABLED(START_BMPHIGH)
+        (LCD_PIXEL_HEIGHT - (START_BMPHEIGHT)) / 2
+      #else
+        DOG_CHAR_HEIGHT
+      #endif
+    ;
 
-    const uint8_t offx  = (u8g.getWidth() - (START_BMPWIDTH)) / 2,
-                  txt1X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH)) / 2;
+    const uint8_t width = u8g.getWidth(), height = u8g.getHeight(),
+                  offx = (width - (START_BMPWIDTH)) / 2;
 
     u8g.firstPage();
     do {
       u8g.drawBitmapP(offx, offy, (START_BMPWIDTH + 7) / 8, START_BMPHEIGHT, start_bmp);
       lcd_setFont(FONT_MENU);
       #if DISABLED(STRING_SPLASH_LINE2)
-        u8g.drawStr(txt1X, u8g.getHeight() - (DOG_CHAR_HEIGHT), STRING_SPLASH_LINE1);
+        const uint8_t txt1X = width - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH);
+        u8g.drawStr(txt1X, (height + DOG_CHAR_HEIGHT) / 2, STRING_SPLASH_LINE1);
       #else
-        const uint8_t txt2X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * (DOG_CHAR_WIDTH)) / 2;
-        u8g.drawStr(txt1X, u8g.getHeight() - (DOG_CHAR_HEIGHT) * 3 / 2, STRING_SPLASH_LINE1);
-        u8g.drawStr(txt2X, u8g.getHeight() - (DOG_CHAR_HEIGHT) * 1 / 2, STRING_SPLASH_LINE2);
+        const uint8_t txt1X = (width - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH)) / 2,
+                      txt2X = (width - (sizeof(STRING_SPLASH_LINE2) - 1) * (DOG_CHAR_WIDTH)) / 2;
+        u8g.drawStr(txt1X, height - (DOG_CHAR_HEIGHT) * 3 / 2, STRING_SPLASH_LINE1);
+        u8g.drawStr(txt2X, height - (DOG_CHAR_HEIGHT) * 1 / 2, STRING_SPLASH_LINE2);
       #endif
     } while (u8g.nextPage());
     HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
@@ -365,14 +370,15 @@ static void lcd_implementation_init() {
 
 // The kill screen is displayed for unrecoverable conditions
 void lcd_kill_screen() {
+  const uint8_t h4 = u8g.getHeight() / 4;
   u8g.firstPage();
   do {
     lcd_setFont(FONT_MENU);
-    u8g.setPrintPos(0, u8g.getHeight()/4*1);
+    u8g.setPrintPos(0, h4 * 1);
     lcd_print_utf(lcd_status_message);
-    u8g.setPrintPos(0, u8g.getHeight()/4*2);
+    u8g.setPrintPos(0, h4 * 2);
     lcd_printPGM(PSTR(MSG_HALTED));
-    u8g.setPrintPos(0, u8g.getHeight()/4*3);
+    u8g.setPrintPos(0, h4 * 3);
     lcd_printPGM(PSTR(MSG_PLEASE_RESET));
   } while (u8g.nextPage());
 }
@@ -384,11 +390,15 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 //
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
-  const uint8_t degsize = 6 * (temp >= 100 ? 3 : temp >= 10 ? 2 : 1); // number's pixel width
-  u8g.setPrintPos(x - (18 - degsize) / 2, y); // move left if shorter
-  lcd_print(itostr3(temp));
+  const char * const str = itostr3(temp);
+  u8g.setPrintPos(x - (str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1) * DOG_CHAR_WIDTH / 2, y);
+  lcd_print(str);
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
 }
+
+#ifndef HEAT_INDICATOR_X
+  #define HEAT_INDICATOR_X 8
+#endif
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, const bool blink) {
   #if !HEATER_IDLE_HANDLER
@@ -398,7 +408,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
   #if HAS_TEMP_BED
     const bool isBed = (heater == BED_INDEX);
   #else
-    const bool isBed = false;
+    constexpr bool isBed = false;
   #endif
 
   if (PAGE_UNDER(7)) {
@@ -413,7 +423,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
     _draw_centered_temp((isBed ? heaters[heater].current_temperature : heaters[heater].current_temperature) + 0.5, x, 28);
 
   if (PAGE_CONTAINS(17, 20)) {
-    const uint8_t h = isBed ? 7 : 8,
+    const uint8_t h = isBed ? 7 : HEAT_INDICATOR_X,
                   y = isBed ? 18 : 17;
     if (heaters[heater].isHeating()) {
       u8g.setColorIndex(0); // white on black
@@ -508,19 +518,50 @@ static void lcd_implementation_status_screen() {
   #endif
 
   {
+    #if FAN_ANIM_FRAMES > 2
+      static bool old_blink;
+      static uint8_t fan_frame;
+      if (old_blink != blink) {
+        old_blink = blink;
+        if (!fans[0].Speed || ++fan_frame >= FAN_ANIM_FRAMES) fan_frame = 0;
+      }
+    #endif
+
     //
     // Fan Animation
+    //
+    // Draws the whole heading image as a B/W bitmap rather than
+    // drawing the elements separately.
+    // This was done as an optimization, as it was slower to draw
+    // multiple parts compared to a single bitmap.
+    //
+    // The bitmap:
+    // - May be offset in X
+    // - Includes all nozzle(s), bed(s), and the fan.
+    //
+    // TODO:
+    //
+    // - Only draw the whole header on the first
+    //   entry to the status screen. Nozzle, bed, and
+    //   fan outline bits don't change.
     //
     if (PAGE_UNDER(STATUS_SCREENHEIGHT + 1)) {
 
       u8g.drawBitmapP(
-        STATUS_SCREEN_X, 1,
+        STATUS_SCREEN_X, STATUS_SCREEN_Y,
         (STATUS_SCREENWIDTH + 7) / 8, STATUS_SCREENHEIGHT,
         #if HAS_FAN0
-          blink && fans[0].Speed ? status_screen0_bmp : status_screen1_bmp
-        #else
-          status_screen0_bmp
+          #if FAN_ANIM_FRAMES > 2
+            fan_frame == 1 ? status_screen1_bmp :
+            fan_frame == 2 ? status_screen2_bmp :
+            #if FAN_ANIM_FRAMES > 3
+              fan_frame == 3 ? status_screen3_bmp :
+            #endif
+          #else
+            blink && fans[0].Speed ? status_screen1_bmp :
+          #endif
         #endif
+        status_screen0_bmp
       );
     }
   }
@@ -1080,8 +1121,8 @@ static void lcd_implementation_status_screen() {
       }
 
       // Print plot position
-      if (PAGE_CONTAINS(64 - (INFO_FONT_HEIGHT - 1), 64)) {
-        u8g.setPrintPos(5, 64);
+      if (PAGE_CONTAINS(LCD_PIXEL_HEIGHT - (INFO_FONT_HEIGHT - 1), LCD_PIXEL_HEIGHT)) {
+        u8g.setPrintPos(5, LCD_PIXEL_HEIGHT);
         lcd_print('(');
         u8g.print(x_plot);
         lcd_print(',');
@@ -1089,7 +1130,7 @@ static void lcd_implementation_status_screen() {
         lcd_print(')');
 
         // Show the location value
-        u8g.setPrintPos(74, 64);
+        u8g.setPrintPos(74, LCD_PIXEL_HEIGHT);
         lcd_print("Z:");
         if (!isnan(ubl.z_values[x_plot][y_plot]))
           lcd_print(ftostr43sign(ubl.z_values[x_plot][y_plot]));

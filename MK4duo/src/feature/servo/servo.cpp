@@ -393,11 +393,11 @@
     }
   }
 
-  int8_t Servo::attach(int pin) {
+  int8_t Servo::attach(const pin_t pin) {
     return this->attach(pin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
   }
 
-  int8_t Servo::attach(int pin, int min, int max) {
+  int8_t Servo::attach(const pin_t pin, int min, int max) {
 
     if (this->servoIndex >= MAX_SERVOS) return -1;
 

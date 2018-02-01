@@ -154,7 +154,7 @@ class GCodeParser {
 
       #define SEEN_TEST(L) !!strchr(command_args, L)
 
-    #endif // FASTER_GCODE_PARSER
+    #endif // !FASTER_GCODE_PARSER
 
     // Seen any axis parameter
     static bool seen_axis() { return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E'); }
@@ -203,10 +203,10 @@ class GCodeParser {
     inline static uint8_t         value_byte()    { return  (uint8_t)constrain(value_long(), 0, 255); }
 
     // Bool is true with no value or non-zero
-    inline static bool            value_bool()    { return !has_value() || value_byte(); }
+    inline static bool            value_bool()    { return !has_value() || !!value_byte(); }
 
     // Pin value
-    static Pin value_pin();
+    static pin_t value_pin();
 
     // Units modes: Inches, Fahrenheit, Kelvin
 
@@ -304,7 +304,7 @@ class GCodeParser {
     FORCE_INLINE static uint32_t  ulongval(const char c, const uint32_t dval=0)   { return seenval(c) ? value_ulong()         : dval; }
     FORCE_INLINE static float     linearval(const char c, const float dval=0.0)   { return seenval(c) ? value_linear_units()  : dval; }
     FORCE_INLINE static float     celsiusval(const char c, const float dval=0.0)  { return seenval(c) ? value_celsius()       : dval; }
-    FORCE_INLINE static Pin       pinval(const char c, const uint8_t dval=NoPin)  { return seenval(c) ? value_pin()           : dval; }
+    FORCE_INLINE static pin_t     pinval(const char c, const uint8_t dval=NoPin)  { return seenval(c) ? value_pin()           : dval; }
 
   private: /** Private Function */
 

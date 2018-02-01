@@ -77,7 +77,7 @@
 #define DIGITAL_PIN_TO_ANALOG_PIN(p) int(p - analogInputToDigitalPin(0))
 #define IS_ANALOG(P)        (((P) >= analogInputToDigitalPin(0)) && ((P) <= analogInputToDigitalPin(NUM_ANALOG_INPUTS - 1)))
 
-bool GET_PINMODE(Pin pin) {  // 1: output, 0: input
+bool GET_PINMODE(const pin_t pin) {  // 1: output, 0: input
   volatile Pio* port = g_APinDescription[pin].pPort;
   uint32_t mask = g_APinDescription[pin].ulPin;
   uint8_t pin_status = g_pinStatus[pin] & 0xF;
@@ -87,7 +87,7 @@ bool GET_PINMODE(Pin pin) {  // 1: output, 0: input
           || HAL::tc_status(pin));
 }
 
-bool GET_ARRAY_IS_DIGITAL(Pin pin) {
+bool GET_ARRAY_IS_DIGITAL(const pin_t pin) {
   const uint8_t pin_status = g_pinStatus[pin] & 0xF;
   return  !(pin_status == PIN_STATUS_ANALOG);
 }

@@ -40,7 +40,7 @@
                 wait    = parser.intval('W', 500);
 
     for (uint8_t i = start; i <= end; i++) {
-      Pin pin = GET_PIN_MAP_PIN(i);
+      pin_t pin = GET_PIN_MAP_PIN(i);
       //report_pin_state_extended(pin, I_flag, false);
       if (!VALID_PIN(pin)) continue;
       if (!I_flag && printer.pin_is_protected(pin)) {
@@ -248,7 +248,7 @@
       SERIAL_EM("Watching pins");
       uint8_t pin_state[last_pin - first_pin + 1];
       for (uint8_t i = first_pin; i <= last_pin; i++) {
-        Pin pin = GET_PIN_MAP_PIN(i);
+        pin_t pin = GET_PIN_MAP_PIN(i);
         if (!VALID_PIN(pin)) continue;
         if (printer.pin_is_protected(pin) && !ignore_protection) continue;
         HAL::pinMode(pin, INPUT_PULLUP);
@@ -266,7 +266,7 @@
 
       for(;;) {
         for (uint8_t i = first_pin; i <= last_pin; i++) {
-          Pin pin = GET_PIN_MAP_PIN(i);
+          pin_t pin = GET_PIN_MAP_PIN(i);
           if (!VALID_PIN(pin)) continue;
           if (printer.pin_is_protected(pin)) continue;
           byte val;
@@ -294,7 +294,7 @@
 
     // Report current state of selected pin(s)
     for (uint8_t i = first_pin; i <= last_pin; i++) {
-      Pin pin = GET_PIN_MAP_PIN(i);
+      pin_t pin = GET_PIN_MAP_PIN(i);
       if (VALID_PIN(pin)) report_pin_state_extended(pin, ignore_protection, true);
     }
   }

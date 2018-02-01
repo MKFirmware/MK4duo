@@ -40,11 +40,11 @@
 
     public: /** Constructor */
 
-      DhtSensor(const Pin _pin, const uint8_t _type);
+      DhtSensor(const pin_t _pin, const uint8_t _type);
 
     public: /** Public Parameters */
 
-      Pin     pin;
+      pin_t   pin;
       uint8_t type;
 
       static float  Temperature,

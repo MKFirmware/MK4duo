@@ -60,7 +60,7 @@
     }
   }
 
-  DhtSensor::DhtSensor(const Pin _pin, const uint8_t _type) {
+  DhtSensor::DhtSensor(const pin_t _pin, const uint8_t _type) {
     pin   = _pin;
     type  = _type;
   }

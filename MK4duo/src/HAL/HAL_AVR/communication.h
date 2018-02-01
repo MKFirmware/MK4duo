@@ -90,7 +90,7 @@ FORCE_INLINE void serial_print(uint8_t v)       { MKSERIAL.print((int)v); }
 FORCE_INLINE void serial_print(uint16_t v)      { MKSERIAL.print((int)v); }
 FORCE_INLINE void serial_print(uint32_t v)      { MKSERIAL.print((long)v); }
 FORCE_INLINE void serial_print(bool v)          { MKSERIAL.print((int)v); }
-FORCE_INLINE void serial_print(void *v)         { MKSERIAL.print((int)v); }
+FORCE_INLINE void serial_print(void *v)         { MKSERIAL.print((long)v); }
 
 void serial_print_pair(const char* msg, const char *v);
 void serial_print_pair(const char* msg, char v);

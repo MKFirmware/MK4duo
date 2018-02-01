@@ -173,8 +173,8 @@ typedef uint32_t  ptr_int_t;
 #undef HIGH
 #define HIGH        1
 
-#define MultiU32X32toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x80000000) >> 32
-#define MultiU32X24toH32(intRes, longIn1, longIn2) intRes = ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24
+#define MultiU32X32toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2) >> 32
+#define MultiU32X24toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24
 
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
@@ -293,18 +293,18 @@ class HAL {
   public: /** Public Function */
 
     static void analogStart();
-    static void AdcChangePin(const Pin old_pin, const Pin new_pin);
+    static void AdcChangePin(const pin_t old_pin, const pin_t new_pin);
 
     static void hwSetup(void);
 
-    static bool pwm_status(const Pin pin);
-    static bool tc_status(const Pin pin);
+    static bool pwm_status(const pin_t pin);
+    static bool tc_status(const pin_t pin);
 
-    static void analogWrite(const Pin pin, const uint8_t value, const uint16_t freq=1000);
+    static void analogWrite(const pin_t pin, const uint8_t value, const uint16_t freq=1000);
 
     static void Tick();
 
-    FORCE_INLINE static void pinMode(const Pin pin, const uint8_t mode) {
+    FORCE_INLINE static void pinMode(const pin_t pin, const uint8_t mode) {
       switch (mode) {
         case INPUT:         SET_INPUT(pin);         break;
         case OUTPUT:        SET_OUTPUT(pin);        break;
@@ -314,10 +314,10 @@ class HAL {
         default:                                    break;
       }
     }
-    FORCE_INLINE static void digitalWrite(const Pin pin, const bool value) {
+    FORCE_INLINE static void digitalWrite(const pin_t pin, const bool value) {
       WRITE_VAR(pin, value);
     }
-    FORCE_INLINE static bool digitalRead(const Pin pin) {
+    FORCE_INLINE static bool digitalRead(const pin_t pin) {
       return READ_VAR(pin);
     }
 
@@ -419,7 +419,7 @@ void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
 uint8_t spiReceive(uint32_t chan);
 
 // Tone for due
-void tone(const Pin t_pin, const uint16_t frequency, const uint16_t duration);
+void tone(const pin_t t_pin, const uint16_t frequency, const uint16_t duration);
 
 // EEPROM
 uint8_t eeprom_read_byte(uint8_t* pos);

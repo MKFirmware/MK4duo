@@ -261,7 +261,8 @@ inline void gcode_G29(void) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-      if (parser.seen('W')) {
+      const bool seen_w = parser.seen('W');
+      if (seen_w) {
         if (!bedlevel.leveling_is_valid()) {
           SERIAL_LM(ER, "No bilinear grid");
           return;
@@ -297,10 +298,12 @@ inline void gcode_G29(void) {
         return;
       } // parser.seen('W')
 
+    #else
+      constexpr bool seen_w = false;
     #endif
 
     // Jettison bed leveling data
-    if (parser.seen('J')) {
+    if (!seen_w && parser.seen('J')) {
       bedlevel.reset();
       return;
     }

@@ -29,13 +29,25 @@
 
     public: /** Constructor */
 
-      ExternalDac();
+      ExternalDac() {}
+
+    public: /** Public Parameters */
+
+      static float motor_current[3 + DRIVER_EXTRUDERS];
 
     public: /** Public Function */
 
       static void begin(void);
+      static void set_driver_current();
+
+    private: /** Private Function */
+
       static void setValue(uint8_t channel, uint8_t value);
+
   };
 
+  extern ExternalDac externaldac;
+
 #endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
 #endif /* _EXTERNAL_DAC_H_ */

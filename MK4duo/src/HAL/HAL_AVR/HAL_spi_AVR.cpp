@@ -88,10 +88,8 @@
       SET_INPUT(MISO_PIN);
       SET_OUTPUT(MOSI_PIN);
       SET_OUTPUT(SCK_PIN);
-      // SS must be in output mode even it is not chip select
-      SET_OUTPUT(SS_PIN);
       // set SS high - may be chip select for another SPI device
-      WRITE(SS_PIN, HIGH);
+      OUT_WRITE(SS_PIN, HIGH);
     #endif
   }
 

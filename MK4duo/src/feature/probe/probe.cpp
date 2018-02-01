@@ -388,7 +388,7 @@ float Probe::run_z_probe() {
       bltouch_command(BLTOUCH_RESET);    // try to reset it.
       bltouch_command(BLTOUCH_DEPLOY);   // Also needs to deploy and stow to
       bltouch_command(BLTOUCH_STOW);     // clear the triggered condition.
-      printer.safe_delay(1500);                  // wait for internal self test to complete
+      printer.safe_delay(1500);          // wait for internal self test to complete
                                          //   measured completion time was 0.65 seconds
                                          //   after reset, deploy & stow sequence
       if (TEST_BLTOUCH()) {              // If it still claims to be triggered...

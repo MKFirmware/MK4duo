@@ -238,8 +238,8 @@ void GCodeParser::parse(char *p) {
   }
 }
 
-Pin GCodeParser::value_pin() {
-  const Pin pin = (int8_t)value_int();
+pin_t GCodeParser::value_pin() {
+  const pin_t pin = (int8_t)value_int();
   return printer.pin_is_protected(pin) ? NoPin : pin;
 }
 
@@ -257,7 +257,7 @@ Pin GCodeParser::value_pin() {
     #else
       SERIAL_MV(" args: \"", command_args);
     #endif
-    SERIAL_MSG("\"");
+    SERIAL_CHR('"');
     if (string_arg) {
       SERIAL_MSG(" string: \"");
       SERIAL_TXT(string_arg);

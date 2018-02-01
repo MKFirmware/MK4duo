@@ -31,7 +31,7 @@ class TemperatureSensor {
 
   public: /** Public Parameters */
 
-    Pin     pin;
+    pin_t   pin;
     int16_t type,
             raw,
             adcLowOffset,

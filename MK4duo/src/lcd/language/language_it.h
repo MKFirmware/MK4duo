@@ -184,7 +184,7 @@
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
 #define MSG_COOLER                          _UxGT("Raffreddamento")
-#define MSG_FAN_SPEED                       _UxGT("Velocità ventola")
+#define MSG_FAN_SPEED                       _UxGT("Vel. ventola")
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
 #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")

@@ -30,22 +30,13 @@
 
 #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
-  ExternalDac::ExternalDac() { return; }
+  ExternalDac externaldac;
+
+  float ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
 
   void ExternalDac::begin() {
     uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
 
-    // All SPI chip-select HIGH
-    HAL::pinMode(DAC0_SYNC, OUTPUT);
-    HAL::digitalWrite(DAC0_SYNC, HIGH);
-    #if DRIVER_EXTRUDERS > 1
-      HAL::pinMode(DAC1_SYNC, OUTPUT);
-      HAL::digitalWrite(DAC1_SYNC, HIGH);
-    #endif
-    HAL::digitalWrite(SPI_EEPROM1_CS, HIGH);
-    HAL::digitalWrite(SPI_EEPROM2_CS, HIGH);
-    HAL::digitalWrite(SPI_FLASH_CS, HIGH);
-    HAL::digitalWrite(SS_PIN, HIGH);
     HAL::spiBegin();
 
     // init onboard DAC
@@ -75,6 +66,14 @@
     return;
   }
 
+  void ExternalDac::set_driver_current() {
+    uint8_t digipot_motor = 0;
+    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
+      digipot_motor = 255 * motor_current[i] / 3.3;
+      setValue(i, digipot_motor);
+    }
+  }
+
   void ExternalDac::setValue(uint8_t channel, uint8_t value) {
     if(channel >= 7) // max channel (X,Y,Z,E0,E1,E2,E3)
       return;
@@ -88,16 +87,6 @@
 
     externalDac_buf[0] |= (value >> 4);
     externalDac_buf[1] |= (value << 4);
-
-    // All SPI chip-select HIGH
-    HAL::digitalWrite(DAC0_SYNC, HIGH);
-    #if DRIVER_EXTRUDERS > 1
-      HAL::digitalWrite(DAC1_SYNC, HIGH);
-    #endif
-    HAL::digitalWrite(SPI_EEPROM1_CS, HIGH);
-    HAL::digitalWrite(SPI_EEPROM2_CS, HIGH);
-    HAL::digitalWrite(SPI_FLASH_CS, HIGH);
-    HAL::digitalWrite(SS_PIN, HIGH);
 
     if (channel > 3) { // DAC Piggy E1,E2,E3
       HAL::digitalWrite(DAC1_SYNC, LOW);

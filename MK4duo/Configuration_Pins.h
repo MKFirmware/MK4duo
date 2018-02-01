@@ -273,6 +273,12 @@
   #define DHT_DATA_PIN NoPin
 #endif
 
+#if ENABLED(HAVE_TMC2130) && ENABLED(SOFT_SPI_TMC2130)
+  #define SOFT_MOSI_PIN 51
+  #define SOFT_MISO_PIN 50
+  #define SOFT_SCK_PIN  52
+#endif
+
 //============================================================================
 
 #endif /* _CONFIGURATION_PINS_H_ */

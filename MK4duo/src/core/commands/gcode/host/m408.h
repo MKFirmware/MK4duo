@@ -222,14 +222,14 @@
 
         #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
           SERIAL_MSG("\"currents\":[");
-          SERIAL_VAL(stepper.motor_current[X_AXIS]);
+          SERIAL_VAL(externaldac.motor_current[X_AXIS]);
           SERIAL_CHR(',');
-          SERIAL_VAL(stepper.motor_current[Y_AXIS]);
+          SERIAL_VAL(externaldac.motor_current[Y_AXIS]);
           SERIAL_CHR(',');
-          SERIAL_VAL(stepper.motor_current[Z_AXIS]);
+          SERIAL_VAL(externaldac.motor_current[Z_AXIS]);
           for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
             SERIAL_CHR(',');
-            SERIAL_VAL(stepper.motor_current[E_AXIS + i]);
+            SERIAL_VAL(externaldac.motor_current[E_AXIS + i]);
           }
           SERIAL_EM("],");
         #endif

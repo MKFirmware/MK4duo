@@ -32,7 +32,7 @@
   #define MAX6675_ERROR_MASK      4
   #define MAX6675_DISCARD_BITS    3
 
-  int16_t read_max6675(const Pin cs_pin, const int8_t h) {
+  int16_t read_max6675(const pin_t cs_pin, const int8_t h) {
 
     static millis_t next_max6675_ms[HOTENDS] = ARRAY_BY_HOTENDS(0);
     static uint16_t max6675_temp = 2000;
@@ -45,7 +45,6 @@
 
     #if ENABLED(CPU_32_BIT)
       HAL::spiBegin();
-      HAL::spiInit(2);
     #else
       CBI(
         #ifdef PRR
@@ -99,13 +98,12 @@
 
   #define MAX31855_DISCARD_BITS 18
 
-  int16_t read_max31855(const Pin cs_pin) {
+  int16_t read_max31855(const pin_t cs_pin) {
 
     uint32_t data = 0;
     int16_t temperature;
 
     HAL::spiBegin();
-    HAL::spiInit(2);
 
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
 
@@ -122,7 +120,7 @@
       data |= HAL::spiReceive();
     }
 
-    HAL::digitalWrite(cs_pin, 1); // disable TT_MAX31855
+    HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX31855
 
     // Process temp
     if (data & 0x00010000)

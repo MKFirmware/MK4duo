@@ -23,12 +23,6 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-/**
- * Types
- */
-typedef uint32_t  millis_t;
-typedef int8_t    Pin;
-
 // NoPin
 #define NoPin     -1
 
@@ -101,13 +95,16 @@ typedef int8_t    Pin;
 #define FSTRINGPARAM(var)       PGM_P var
 
 // Macros for bit masks
-#ifndef _BV
-  #define _BV(n)            (1<<(n))
-#endif
-#define TEST(n,b)           (((n)&_BV(b))!=0)
-#define SBI(n,b)            (n |= _BV(b))
-#define CBI(n,b)            (n &= ~_BV(b))
-#define SET_BIT(n,b,value)  (n) ^= ((-value)^(n)) & (_BV(b))
+#undef _BV
+#define _BV(b)                  (1 << (b))
+#define TEST(n,b)               !!((n) & _BV(b))
+#define SBI(n,b)                (n |= _BV(b))
+#define CBI(n,b)                (n &= ~_BV(b))
+#define SET_BIT(n,b,value)      (n) ^= ((-value)^(n)) & (_BV(b))
+#define _BV32(b)                (1UL << (b))
+#define TEST32(n,b)             !!((n) & _BV32(b))
+#define SBI32(n,b)              (n |= _BV32(b))
+#define CBI32(n,b)              (n &= ~_BV32(b))
 
 // Macros for maths shortcuts
 #ifndef M_PI 
@@ -128,8 +125,9 @@ typedef int8_t    Pin;
 #define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
 
 // Macros to contrain values
-#define NOLESS(v,n)       v = (v < n) ? n : v
-#define NOMORE(v,n)       v = (v > n) ? n : v
+#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
+#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
+#define LIMIT(v,n1,n2)    do{ if (v < n1) v = n1; else if (v > n2) v = n2; }while(0)
 
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
@@ -206,6 +204,9 @@ typedef int8_t    Pin;
 #define LOOP_XYZ(VAR)           LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
 #define LOOP_XYZE(VAR)          LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
 #define LOOP_XYZE_N(VAR)        LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
+#define LOOP_ABC(VAR)           LOOP_S_LE_N(VAR, A_AXIS, C_AXIS)
+#define LOOP_ABCE(VAR)          LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)
+#define LOOP_ABCE_N(VAR)        LOOP_S_L_N(VAR, A_AXIS, XYZE_N)
 #define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
 #define LOOP_HEATER()           LOOP_L_N(h, HEATER_COUNT)
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
