@@ -77,9 +77,9 @@
       // Put off the heaters
       heaters[h].setTarget(0);
 
-      const Pin new_pin = parser.value_pin();
+      const pin_t new_pin = parser.value_pin();
       if (WITHIN(new_pin, 0 , MAX_ANALOG_PIN_NUMBER)) {
-        const Pin old_pin = heaters[h].sensor.pin;
+        const pin_t old_pin = heaters[h].sensor.pin;
         heaters[h].sensor.pin = new_pin;
         HAL::AdcChangePin(old_pin, heaters[h].sensor.pin);
       }

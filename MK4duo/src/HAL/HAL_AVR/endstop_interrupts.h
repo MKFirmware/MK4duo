@@ -73,7 +73,7 @@
 #endif
 
 // Install Pin change interrupt for a pin. Can be called multiple times.
-void pciSetup(Pin pin) {
+void pciSetup(const pin_t pin) {
   *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
   PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
   PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group

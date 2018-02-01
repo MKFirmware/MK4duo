@@ -152,10 +152,12 @@ uint16_t max_display_update_time = 0;
   void lcd_move_menu();
   void lcd_control_menu();
   void lcd_control_temperature_menu();
+  void lcd_control_motion_menu();
+
   void lcd_control_temperature_preheat_material1_settings_menu();
   void lcd_control_temperature_preheat_material2_settings_menu();
   void lcd_control_temperature_preheat_material3_settings_menu();
-  void lcd_control_motion_menu();
+
   void lcd_control_filament_menu();
 
   #if ENABLED(LCD_INFO_MENU)
@@ -268,36 +270,40 @@ uint16_t max_display_update_time = 0;
       if (encoderLine == _thisItemNr && lcd_clicked) { \
         lcd_clicked = false
 
-  #define _MENU_ITEM_PART_2(TYPE, LABEL, ...) \
+  #define _MENU_ITEM_PART_2(TYPE, PLABEL, ...) \
         menu_action_ ## TYPE(__VA_ARGS__); \
         if (screen_changed) return; \
       } \
       if (lcdDrawUpdate) \
-        lcd_implementation_drawmenu_ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PSTR(LABEL), ## __VA_ARGS__); \
+        lcd_implementation_drawmenu_ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PLABEL, ## __VA_ARGS__); \
     } \
     ++_thisItemNr
 
-  #define MENU_ITEM(TYPE, LABEL, ...) do { \
+  #define MENU_ITEM_P(TYPE, PLABEL, ...) do { \
       _skipStatic = false; \
       _MENU_ITEM_PART_1(TYPE, ## __VA_ARGS__); \
-      _MENU_ITEM_PART_2(TYPE, LABEL, ## __VA_ARGS__); \
+      _MENU_ITEM_PART_2(TYPE, PLABEL, ## __VA_ARGS__); \
     }while(0)
+
+  #define MENU_ITEM(TYPE, LABEL, ...) MENU_ITEM_P(TYPE, PSTR(LABEL), ## __VA_ARGS__)
 
   #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL, 0)
 
   // Used to print static text with no visible cursor.
   // Parameters: label [, bool center [, bool invert [, char *value] ] ]
-  #define STATIC_ITEM(LABEL, ...) \
+  #define STATIC_ITEM_P(LABEL, ...) \
     if (_menuLineNr == _thisItemNr) { \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
         encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
         ++encoderLine; \
       } \
       if (lcdDrawUpdate) \
-        lcd_implementation_drawmenu_static(_lcdLineNr, PSTR(LABEL), ## __VA_ARGS__); \
+        lcd_implementation_drawmenu_static(_lcdLineNr, LABEL, ## __VA_ARGS__); \
     } \
     ++_thisItemNr
 
+  #define STATIC_ITEM(LABEL, ...) STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
+    
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
 
     bool encoderRateMultiplierEnabled;
@@ -308,11 +314,11 @@ uint16_t max_display_update_time = 0;
     /**
      * MENU_MULTIPLIER_ITEM generates drawing and handling code for a multiplier menu item
      */
-    #define MENU_MULTIPLIER_ITEM(type, label, ...) do { \
-        _MENU_ITEM_PART_1(type, ## __VA_ARGS__); \
+    #define MENU_MULTIPLIER_ITEM(TYPE, LABEL, ...) do { \
+        _MENU_ITEM_PART_1(TYPE, ## __VA_ARGS__); \
         encoderRateMultiplierEnabled = true; \
         lastEncoderMovementMillis = 0; \
-        _MENU_ITEM_PART_2(type, label, ## __VA_ARGS__); \
+        _MENU_ITEM_PART_2(TYPE, PSTR(LABEL), ## __VA_ARGS__); \
       }while(0)
 
   #else // !ENCODER_RATE_MULTIPLIER
@@ -3359,12 +3365,7 @@ void kill_screen(const char* lcd_msg) {
     //
     #if FAN_COUNT > 0
       #if HAS_FAN0
-        #if FAN_COUNT > 1
-          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 0"
-        #else
-          #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
-        #endif
-        MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
+        MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_FAN_SPEED " 0", &fans[0].Speed, 0, 255);
       #endif
       #if HAS_FAN1
         MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
@@ -3374,6 +3375,12 @@ void kill_screen(const char* lcd_msg) {
       #endif
       #if HAS_FAN3
         MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+      #endif
+      #if HAS_FAN4
+        MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_FAN_SPEED " 4", &fans[4].Speed, 0, 255);
+      #endif
+      #if HAS_FAN5
+        MENU_MULTIPLIER_ITEM_EDIT(int8, MSG_FAN_SPEED " 5", &fans[5].Speed, 0, 255);
       #endif
     #endif // FAN_COUNT > 0
 

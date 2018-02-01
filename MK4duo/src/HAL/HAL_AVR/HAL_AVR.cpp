@@ -179,7 +179,7 @@ void HAL::showStartReason() {
 
   }
 
-  void HAL::AdcChangePin(const Pin old_pin, const Pin new_pin) {
+  void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
     UNUSED(old_pin);
     UNUSED(new_pin);
   }
@@ -188,7 +188,7 @@ void HAL::showStartReason() {
 
 void HAL::hwSetup() { }
 
-void HAL::setPwmFrequency(const Pin pin, uint8_t val) {
+void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   val &= 0x07;
   switch(digitalPinToTimer(pin)) {
 

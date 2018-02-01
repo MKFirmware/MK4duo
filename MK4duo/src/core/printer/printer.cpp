@@ -180,6 +180,8 @@ void Printer::setup() {
 
   mechanics.Init();
 
+  stepper.init(); // Initialize stepper, this enables interrupts!
+
   #if HAS_SDSUPPORT
     card.mount();
     // loads custom configuration from SDCARD if available else uses defaults
@@ -201,11 +203,14 @@ void Printer::setup() {
 
   thermalManager.init();  // Initialize temperature loop
 
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+    externaldac.begin();
+    externaldac.set_driver_current();
+  #endif
+
   #if ENABLED(CNCROUTER)
     cnc.init();
   #endif
-
-  stepper.init(); // Initialize stepper, this enables interrupts!
 
   #if HAS_SERVOS
     servo_init(); // Initialize all Servo
@@ -835,7 +840,7 @@ void Printer::handle_Interrupt_Event() {
 /**
  * Sensitive pin test for M42, M226
  */
-bool Printer::pin_is_protected(const Pin pin) {
+bool Printer::pin_is_protected(const pin_t pin) {
   static const int8_t sensitive_pins[] PROGMEM = SENSITIVE_PINS;
   for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
     if (pin == pgm_read_byte(&sensitive_pins[i])) return true;

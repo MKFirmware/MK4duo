@@ -179,7 +179,7 @@ class Printer {
     static void idle(bool no_stepper_sleep=false);
     static void setInterruptEvent(const MK4duoInterruptEvent event);
 
-    static bool pin_is_protected(const Pin pin);
+    static bool pin_is_protected(const pin_t pin);
 
     static void suicide();
 

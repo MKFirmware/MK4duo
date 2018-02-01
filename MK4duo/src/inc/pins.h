@@ -193,6 +193,18 @@
 #if DISABLED(Z2_MAX_PIN)
   #define Z2_MAX_PIN    NoPin
 #endif
+#if DISABLED(Z3_MIN_PIN)
+  #define Z3_MIN_PIN    NoPin
+#endif
+#if DISABLED(Z3_MAX_PIN)
+  #define Z3_MAX_PIN    NoPin
+#endif
+#if DISABLED(Z4_MIN_PIN)
+  #define Z4_MIN_PIN    NoPin
+#endif
+#if DISABLED(Z4_MAX_PIN)
+  #define Z4_MAX_PIN    NoPin
+#endif
 
 #if DISABLED(ORIG_FAN0_PIN)
   #define ORIG_FAN0_PIN  NoPin

@@ -48,7 +48,7 @@
     public: /** Public Parameters */
 
       Heater_type type;
-      Pin         pin;
+      pin_t       pin;
       uint8_t     ID,
                   soft_pwm,
                   pwm_pos,

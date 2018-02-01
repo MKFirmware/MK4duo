@@ -61,10 +61,6 @@ class Stepper {
 
     static millis_t stepper_inactive_time;
 
-    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      static float motor_current[3 + DRIVER_EXTRUDERS];
-    #endif
-
     #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
       static bool abort_on_endstop_hit;
     #endif
@@ -109,9 +105,9 @@ class Stepper {
     #endif // LIN_ADVANCE
 
     static long acceleration_time, deceleration_time;
-    // unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
-    static hal_timer_t acc_step_rate, // needed for deceleration start point
-                          OCR1A_nominal;
+
+    static hal_timer_t  acc_step_rate, // needed for deceleration start point
+                        OCR1A_nominal;
 
     static uint8_t  step_loops, step_loops_nominal;
 
@@ -280,10 +276,6 @@ class Stepper {
 
     #if ENABLED(NPR2) // Multiextruder
       static void colorstep(long csteps, const bool direction);
-    #endif
-
-    #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      static void set_driver_current();
     #endif
 
   private: /** Private Function */

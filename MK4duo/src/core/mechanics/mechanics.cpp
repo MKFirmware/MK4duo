@@ -339,7 +339,7 @@ void Mechanics::report_current_position_detail() {
     LOGICAL_Y_POSITION(current_position[Y_AXIS]),
     LOGICAL_Z_POSITION(current_position[Z_AXIS])
   };
-  report_xyze(logical);
+  report_xyz(logical);
 
   SERIAL_MSG("Raw:    ");
   report_xyze(current_position);
@@ -488,7 +488,8 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
     if (angular_travel == 0 && current_position[p_axis] == cart[p_axis] && current_position[q_axis] == cart[q_axis])
       angular_travel += RADIANS(360);
 
-    const float mm_of_travel = HYPOT(angular_travel * radius, FABS(linear_travel));
+    const float flat_mm = radius * angular_travel,
+                mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : flat_mm;
     if (mm_of_travel < 0.001) return;
 
     uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
@@ -687,6 +688,10 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
       #endif
       if (bedlevel.leveling_active) {
         SERIAL_EM(" (enabled)");
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          if (bedlevel.z_fade_height)
+            SERIAL_MV("Z Fade: ", bedlevel.z_fade_height);
+        #endif
         #if ABL_PLANAR
           const float diff[XYZ] = {
             stepper.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
@@ -702,10 +707,21 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
           SERIAL_MSG(" Z");
           if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
           SERIAL_VAL(diff[Z_AXIS]);
-        #elif ENABLED(AUTO_BED_LEVELING_UBL)
-          SERIAL_MV("UBL Adjustment Z", stepper.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]);
-        #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          SERIAL_MV("ABL Adjustment Z", abl.bilinear_z_offset(current_position));
+        #else
+          #if ENABLED(AUTO_BED_LEVELING_UBL)
+            SERIAL_MSG("UBL Adjustment Z");
+            const float rz = ubl.get_z_correction(current_position[X_AXIS], current_position[Y_AXIS]);
+          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+            SERIAL_MSG("ABL Adjustment Z");
+            const float rz = abl.bilinear_z_offset(current_position);
+          #endif
+          SERIAL_VAL(ftostr43sign(rz, '+'));
+          #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+            if (bedlevel.z_fade_height) {
+              SERIAL_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS])));
+              SERIAL_MSG("+)");
+            }
+          #endif
         #endif
       }
       else
@@ -717,10 +733,16 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
       SERIAL_MSG("Mesh Bed Leveling");
       if (bedlevel.leveling_active) {
-        float rz = current_position[Z_AXIS];
-        bedlevel.apply_leveling(current_position[X_AXIS], current_position[Y_AXIS], rz);
         SERIAL_EM(" (enabled)");
-        SERIAL_MV("MBL Adjustment Z", rz);
+        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS], 1.0)));
+        SERIAL_CHR('+');
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          if (bedlevel.z_fade_height) {
+            SERIAL_MV(" (", ftostr43sign(
+              mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS], bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS]))));
+            SERIAL_MSG("+)");
+          }
+        #endif
       }
       else
         SERIAL_MSG(" (disabled)");

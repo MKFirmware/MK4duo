@@ -94,4 +94,4 @@
 
 #endif // ULTRA_LCD || NEXTION
 
-#endif // __UTILITY_H__
+#endif /* __UTILITY_H__ */

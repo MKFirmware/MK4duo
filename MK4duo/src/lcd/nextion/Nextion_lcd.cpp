@@ -516,12 +516,14 @@
 
   #define MENU_BACK(LABEL) MENU_ITEM(back, LABEL)
 
-  #define STATIC_ITEM(LABEL) \
+  #define STATIC_ITEM_P(LABEL) \
       if (lcdDrawUpdate) { \
-        lcd_row_list[_lcdLineNr]->setText(PSTR(LABEL)); \
+        lcd_row_list[_lcdLineNr]->setText(LABEL); \
         LcdMin.setValue(_lcdLineNr + 1); \
       } \
       ++_lcdLineNr \
+
+  #define STATIC_ITEM(LABEL) STATIC_ITEM_P(PSTR(LABEL))
 
   #define END_MENU() \
       printer.idle(); \

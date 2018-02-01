@@ -117,8 +117,8 @@
 
       Servo();
 
-      int8_t attach(int pin);             // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
-      int8_t attach(int pin, int min, int max); // as above but also sets min and max values for writes.
+      int8_t attach(const pin_t pin);                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
+      int8_t attach(const pin_t pin, int min, int max); // as above but also sets min and max values for writes.
       void detach();
       void write(int value);              // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
       void writeMicroseconds(int value);  // Write pulse width in microseconds

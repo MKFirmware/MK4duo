@@ -39,7 +39,7 @@
 
     public: /** Public Parameters */
 
-      Pin       pin;
+      pin_t     pin;
       uint8_t   Speed,
                 min_Speed,
                 paused_Speed,

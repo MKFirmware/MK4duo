@@ -40,10 +40,10 @@
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
         const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-        stepper.motor_current[a] = parser.value_float();
+        externaldac.motor_current[a] = parser.value_float();
       }
     }
-    stepper.set_driver_current();
+    externaldac.set_driver_current();
   }
 
 #elif HAS_TRINAMIC

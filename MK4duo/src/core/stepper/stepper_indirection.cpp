@@ -39,7 +39,6 @@
 //
 #if ENABLED(HAVE_TMCDRIVER)
 
-  #include <SPI.h>
   #include <TMC26XStepper.h>
 
   #define _TMC_DEFINE(ST) TMC26XStepper stepper##ST(200, ST##_ENABLE_PIN, ST##_STEP_PIN, ST##_DIR_PIN, ST##_MAX_CURRENT, ST##_SENSE_RESISTOR)
@@ -126,10 +125,13 @@
 //
 #if ENABLED(HAVE_TMC2130)
 
-  #include <SPI.h>
   #include <TMC2130Stepper.h>
 
-  #define _TMC2130_DEFINE(ST) TMC2130Stepper stepper##ST = TMC2130Stepper(ST##_ENABLE_PIN, ST##_DIR_PIN, ST##_STEP_PIN, ST##_CS_PIN)
+  #if ENABLED(SOFT_SPI_TMC2130)
+    #define _TMC2130_DEFINE(ST) TMC2130Stepper stepper##ST = TMC2130Stepper(ST##_ENABLE_PIN, ST##_DIR_PIN, ST##_STEP_PIN, ST##_CS_PIN, SOFT_MOSI_PIN, SOFT_MISO_PIN, SOFT_SCK_PIN)
+  #else
+    #define _TMC2130_DEFINE(ST) TMC2130Stepper stepper##ST = TMC2130Stepper(ST##_ENABLE_PIN, ST##_DIR_PIN, ST##_STEP_PIN, ST##_CS_PIN)
+  #endif
 
   // Stepper objects of TMC2130 steppers used
   #if ENABLED(X_IS_TMC2130)
@@ -172,9 +174,9 @@
   // Use internal reference voltage for current calculations. This is the default.
   // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
   // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
-  void tmc2130_init(TMC2130Stepper &st, const uint16_t microsteps, const uint32_t thrs, const float spmm) {
+  void tmc2130_init(TMC2130Stepper &st, const uint16_t microsteps, const uint16_t mA, const uint32_t thrs, const float spmm) {
     st.begin();
-    st.setCurrent(st.getCurrent(), R_SENSE, HOLD_MULTIPLIER);
+    st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.blank_time(24);
     st.off_time(5); // Only enables the driver if used with stealthChop
@@ -201,7 +203,7 @@
     st.GSTAT(); // Clear GSTAT
   }
 
-  #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM)
+  #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_MICROSTEPS, ST##_CURRENT, ST##_HYBRID_THRESHOLD, SPMM)
 
   void tmc2130_init() {
     #if ENABLED(X_IS_TMC2130)
@@ -467,7 +469,6 @@
 //
 #if ENABLED(HAVE_L6470DRIVER)
 
-  #include <SPI.h>
   #include <L6470.h>
 
   #define _L6470_DEFINE(ST) L6470 stepper##ST(ST##_ENABLE_PIN)

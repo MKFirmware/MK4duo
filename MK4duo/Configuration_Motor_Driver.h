@@ -104,6 +104,9 @@
  **********************************************************************************/
 #if ENABLED(HAVE_TMC2130)
 
+  // Select this if use software SPI. Choose pins in Configuration_pins.h
+  //#define SOFT_SPI_TMC2130
+
   // CHOOSE YOUR MOTORS HERE, THIS IS MANDATORY
   //#define X_IS_TMC2130
   //#define X2_IS_TMC2130
@@ -343,7 +346,7 @@
    * Use Trinamic's ultra quiet stepping mode.
    * When disabled, MK4duo will use spreadCycle stepping mode.
    */
-  #define STEALTHCHOP
+  //#define STEALTHCHOP
 
   /**
    * Monitor Trinamic TMC2208 drivers for error conditions,
@@ -385,8 +388,8 @@
   #define E4_HYBRID_THRESHOLD     30
 
   /**
-   * Enable M122 debugging command for TMC stepper drivers.
-   * M122 S0/1 will enable continous reporting.
+   * Enable M922 debugging command for TMC stepper drivers.
+   * M922 S0/1 will enable continous reporting.
    */
   //#define TMC_DEBUG
 

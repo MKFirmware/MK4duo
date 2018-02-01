@@ -68,7 +68,7 @@
 
   Laser laser;
 
-  void Laser::timer3_init(Pin pin) {
+  void Laser::timer3_init(const pin_t pin) {
 
     HAL::pinMode(pin, OUTPUT);
     HAL::digitalWrite(pin, HIGH);
@@ -98,7 +98,7 @@
     interrupts();
   }
 
-  void Laser::timer4_init(Pin pin) {
+  void Laser::timer4_init(const pin_t pin) {
 
     HAL::pinMode(pin, OUTPUT);
     HAL::digitalWrite(pin, HIGH);

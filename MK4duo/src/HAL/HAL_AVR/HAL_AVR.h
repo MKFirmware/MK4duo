@@ -386,7 +386,7 @@ class HAL {
 
     #if ANALOG_INPUTS > 0
       static void analogStart();
-      static void AdcChangePin(const Pin old_pin, const Pin new_pin);
+      static void AdcChangePin(const pin_t old_pin, const pin_t new_pin);
     #endif
 
     static void hwSetup();
@@ -396,18 +396,18 @@ class HAL {
     static int getFreeRam();
     static void resetHardware();
 
-    static void setPwmFrequency(const Pin pin, uint8_t val);
+    static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static inline void analogWrite(const Pin pin, const uint8_t value) {
+    static inline void analogWrite(const pin_t pin, const uint8_t value) {
       ::analogWrite(pin, value);
     }
-    static inline void digitalWrite(const Pin pin, const uint8_t value) {
+    static inline void digitalWrite(const pin_t pin, const uint8_t value) {
       ::digitalWrite(pin, value);
     }
-    static inline uint8_t digitalRead(const Pin pin) {
+    static inline uint8_t digitalRead(const pin_t pin) {
       return ::digitalRead(pin);
     }
-    static inline void pinMode(const Pin pin, const uint8_t mode) {
+    static inline void pinMode(const pin_t pin, const uint8_t mode) {
       switch (mode) {
         case INPUT:
           ::pinMode(pin, INPUT); break;

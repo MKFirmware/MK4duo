@@ -49,6 +49,15 @@
   #include <avr/interrupt.h>
 #endif
 
+#include <SPI.h>
+
+/**
+ * Types
+ */
+typedef uint32_t  millis_t;
+typedef int8_t    pin_t;
+
+
 #include "src/inc/macros.h"
 #include "Boards.h"
 
@@ -162,12 +171,7 @@
  * External libraries loading
  */
 
-#if HAS_DIGIPOTSS
-  #include <SPI.h>
-#endif
-
 #if ENABLED(HAVE_TMCDRIVER)
-  #include <SPI.h>
   #include <TMC26XStepper.h>
 #endif
 
@@ -180,7 +184,6 @@
 #endif
 
 #if ENABLED(HAVE_L6470DRIVER)
-  #include <SPI.h>
   #include <L6470.h>
 #endif
 

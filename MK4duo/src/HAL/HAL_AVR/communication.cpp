@@ -39,7 +39,7 @@ void serial_print_pair(const char* msg, uint8_t v)       { serial_print_pair(msg
 void serial_print_pair(const char* msg, uint16_t v)      { serial_print_pair(msg, (int)v); }
 void serial_print_pair(const char* msg, uint32_t v)      { serial_print_pair(msg, (long)v); }
 void serial_print_pair(const char* msg, bool v)          { serial_print_pair(msg, (int)v); }
-void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg, (int)v); }
+void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg, (uint32_t)v); }
 
 void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
 

@@ -35,7 +35,7 @@
  *  E1  Have the host 'echo:' the text
  */
 inline void gcode_M118(void) {
-  if (parser.boolval('E')) SERIAL_STR(ECHO);
-  if (parser.boolval('A')) SERIAL_MSG("// ");
+  if (parser.seenval('E') && parser.value_bool()) SERIAL_STR(ECHO);
+  if (parser.seenval('A') && parser.value_bool()) SERIAL_MSG("// ");
   SERIAL_ET(parser.string_arg);
 }

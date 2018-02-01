@@ -102,8 +102,8 @@
     private: /** Private Function */
 
       #if ENABLED(__AVR__)
-        void timer3_init(Pin pin);
-        void timer4_init(Pin pin);
+        void timer3_init(const pin_t pin);
+        void timer4_init(const pin_t pin);
       #endif
   };
 

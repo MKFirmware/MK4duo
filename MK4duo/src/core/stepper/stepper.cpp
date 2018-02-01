@@ -52,19 +52,11 @@
   #include "speed_lookuptable.h"
 #endif
 
-#if HAS_DIGIPOTSS
-  #include <SPI.h>
-#endif
-
 Stepper stepper; // Singleton
 
 // public:
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
-
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  float Stepper::motor_current[3 + DRIVER_EXTRUDERS];
-#endif
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
   #if ENABLED(ABORT_ON_ENDSTOP_HIT_INIT)
@@ -458,17 +450,28 @@ void Stepper::isr() {
   #endif
 
   hal_timer_t ocr_val;
-  static uint32_t step_remaining = 0;  // SPLIT function always runs.  This allows 16 bit timers to be
-                                       // used to generate the stepper ISR.
-  #define SPLIT(L) do { \
-    if (L > ENDSTOP_NOMINAL_OCR_VAL) { \
-      const uint32_t remainder = (uint32_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
-      ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
-      step_remaining = (uint32_t)L - ocr_val; \
-    } \
-    else \
-      ocr_val = L;\
-  } while(0)
+  static uint32_t step_remaining = 0; // SPLIT function always runs.  This allows 16 bit timers to be
+                                      // used to generate the stepper ISR.
+
+  #define _SPLIT(L) (ocr_val = (hal_timer_t)L)
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    #define SPLIT(L) _SPLIT(L)
+  #else                 // sample endstops in between step pulses
+    #define SPLIT(L) do { \
+      if (L > ENDSTOP_NOMINAL_OCR_VAL) { \
+        const hal_timer_t remainder = (hal_timer_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
+        ocr_val = (remainder < OCR_VAL_TOLERANCE) ? ENDSTOP_NOMINAL_OCR_VAL + remainder : ENDSTOP_NOMINAL_OCR_VAL; \
+        step_remaining = (hal_timer_t)L - ocr_val; \
+      } \
+      else \
+        ocr_val = L;\
+    } while(0)
+  #endif
+
+  #if ENABLED(MOVE_DEBUG)
+		++numInterruptsExecuted;
+		lastInterruptTime = HAL_timer_get_count(PULSE_TIMER_NUM);
+  #endif
 
   // Time remaining before the next step?
   if (step_remaining) {
@@ -483,7 +486,9 @@ void Stepper::isr() {
 
     #if DISABLED(LIN_ADVANCE)
       #if ENABLED(CPU_32_BIT)
-        HAL_timer_set_count(STEPPER_TIMER, ocr_val);
+        hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
+        NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + STEPPER_TIMER_TICKS_PER_US));
+        HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
       #else
         NOLESS(OCR1A, TCNT1 + 16);
       #endif
@@ -532,11 +537,15 @@ void Stepper::isr() {
     if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
 
+      #if STEPPER_DIRECTION_DELAY > 0
+        HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
+      #endif
+
       // Initialize Bresenham counters to 1/2 the ceiling
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
 
       #if ENABLED(LASER)
-        #if ENABLED(ARDUINO_ARCH_SAM)
+        #if ENABLED(CPU_32_BIT)
           counter_L = 1000 * counter_X;
         #else
           counter_L = counter_X;
@@ -649,73 +658,6 @@ void Stepper::isr() {
         _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS),0); \
       }
 
-    /**
-     * Estimate the number of cycles that the stepper logic already takes
-     * up between the start and stop of the X stepper pulse.
-     *
-     * Currently this uses very modest estimates of around 5 cycles.
-     * True values may be derived by careful testing.
-     *
-     * Once any delay is added, the cost of the delay code itself
-     * may be subtracted from this value to get a more accurate delay.
-     * Delays under 20 cycles (1.25µs) will be very accurate, using NOPs.
-     * Longer delays use a loop. The resolution is 8 cycles.
-     */
-    #if HAS_X_STEP
-      #define _CYCLE_APPROX_1 5
-    #else
-      #define _CYCLE_APPROX_1 0
-    #endif
-    #if ENABLED(X_TWO_STEPPER)
-      #define _CYCLE_APPROX_2 _CYCLE_APPROX_1 + 4
-    #else
-      #define _CYCLE_APPROX_2 _CYCLE_APPROX_1
-    #endif
-    #if HAS_Y_STEP
-      #define _CYCLE_APPROX_3 _CYCLE_APPROX_2 + 5
-    #else
-      #define _CYCLE_APPROX_3 _CYCLE_APPROX_2
-    #endif
-    #if ENABLED(Y_TWO_STEPPER)
-      #define _CYCLE_APPROX_4 _CYCLE_APPROX_3 + 4
-    #else
-      #define _CYCLE_APPROX_4 _CYCLE_APPROX_3
-    #endif
-    #if HAS_Z_STEP
-      #define _CYCLE_APPROX_5 _CYCLE_APPROX_4 + 5
-    #else
-      #define _CYCLE_APPROX_5 _CYCLE_APPROX_4
-    #endif
-    #if ENABLED(Z_TWO_STEPPER)
-      #define _CYCLE_APPROX_6 _CYCLE_APPROX_5 + 4
-    #else
-      #define _CYCLE_APPROX_6 _CYCLE_APPROX_5
-    #endif
-    #if DISABLED(LIN_ADVANCE)
-      #if ENABLED(COLOR_MIXING_EXTRUDER)
-        #define _CYCLE_APPROX_7 _CYCLE_APPROX_6 + (MIXING_STEPPERS) * 6
-      #else
-        #define _CYCLE_APPROX_7 _CYCLE_APPROX_6 + 5
-      #endif
-    #else
-      #define _CYCLE_APPROX_7 _CYCLE_APPROX_6
-    #endif
-
-    #define CYCLES_EATEN_XYZE _CYCLE_APPROX_7
-    #define EXTRA_CYCLES_XYZE (STEP_PULSE_CYCLES - (CYCLES_EATEN_XYZE))
-
-    /**
-     * If a minimum pulse time was specified get the timer 0 value.
-     *
-     * On AVR the TCNT0 timer has an 8x prescaler, so it increments every 8 cycles.
-     * That's every 0.5µs on 16MHz and every 0.4µs on 20MHz.
-     * 20 counts of TCNT0 -by itself- is a good pulse delay.
-     * 10µs = 160 or 200 cycles.
-     */
-    #if EXTRA_CYCLES_XYZE > 20
-      hal_timer_t pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
-    #endif
-
     #if HAS_X_STEP
       PULSE_START(X);
     #endif
@@ -774,11 +716,8 @@ void Stepper::isr() {
     #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
 
     // For a minimum pulse time wait before stopping pulses
-    #if EXTRA_CYCLES_XYZE > 20
-      while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* noop */ }
-      pulse_start = HAL_timer_get_current_count(PULSE_TIMER_NUM);
-    #elif EXTRA_CYCLES_XYZE > 0
-      DELAY_NOPS(EXTRA_CYCLES_XYZE);
+    #if MINIMUM_STEPPER_PULSE > 0
+      HAL::delayMicroseconds(MINIMUM_STEPPER_PULSE);
     #endif
 
     #if HAS_X_STEP
@@ -863,13 +802,6 @@ void Stepper::isr() {
       all_steps_done = true;
       break;
     }
-
-    // For minimum pulse time wait after stopping pulses also
-    #if EXTRA_CYCLES_XYZE > 20
-      if (step) while (EXTRA_CYCLES_XYZE > (uint32_t)(HAL_timer_get_current_count(PULSE_TIMER_NUM) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
-    #elif EXTRA_CYCLES_XYZE > 0
-      if (step) DELAY_NOPS(EXTRA_CYCLES_XYZE);
-    #endif
 
   } // step_loops
 
@@ -978,9 +910,8 @@ void Stepper::isr() {
 
   #if DISABLED(LIN_ADVANCE)
     #if ENABLED(CPU_32_BIT)
-      // Make sure stepper interrupt does not monopolise CPU by adjusting count to give about 8 us room
       hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
-      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US));
+      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + STEPPER_TIMER_TICKS_PER_US));
       HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
@@ -1139,10 +1070,9 @@ void Stepper::isr() {
 
     // Don't run the ISR faster than possible
     #if ENABLED(ARDUINO_ARCH_SAM)
-      // Make sure stepper interrupt does not monopolise CPU by adjusting count to give about 8 us room
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM),
-                  stepper_timer_current_count = HAL_timer_get_current_count(PULSE_TIMER_NUM) + 8 * STEPPER_TIMER_TICKS_PER_US;
-      HAL_timer_set_count(PULSE_TIMER_NUM, max(stepper_timer_count, stepper_timer_current_count));
+      hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
+      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + STEPPER_TIMER_TICKS_PER_US));
+      HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
     #else
       NOLESS(OCR1A, TCNT1 + 16);
     #endif
@@ -1159,10 +1089,6 @@ void Stepper::init() {
   #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
     digipot_init();
   #endif
-
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    set_driver_current();
-  #endif // MB(ALLIGATOR)
 
   // Init Microstepping Pins
   #if HAS_MICROSTEPS
@@ -1846,18 +1772,6 @@ void Stepper::report_positions() {
         #endif
       }
     #endif
-  }
-
-#endif
-
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-
-  void Stepper::set_driver_current() {
-    uint8_t digipot_motor = 0;
-    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-      digipot_motor = 255 * motor_current[i] / 3.3;
-      ExternalDac::setValue(i, digipot_motor);
-    }
   }
 
 #endif
