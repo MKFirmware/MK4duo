@@ -842,7 +842,7 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static void lcd_implementation_hotend_status(const uint8_t row) {
+    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t extruder=tools.active_extruder) {
       row_y1 = row * row_height + 1;
       row_y2 = row_y1 + row_height - 1;
 
@@ -852,11 +852,11 @@ static void lcd_implementation_status_screen() {
       lcd_print('H');
       lcd_print((char)('0' + tools.active_extruder));
       lcd_print(' ');
-      lcd_print(itostr3(heaters[EXTRUDER_IDX].current_temperature));
+      lcd_print(itostr3(heaters[extruder].current_temperature));
       lcd_print('/');
 
-      if (lcd_blink() || !heaters[EXTRUDER_IDX].is_idle())
-        lcd_print(itostr3(heaters[EXTRUDER_IDX].target_temperature));
+      if (lcd_blink() || !heaters[extruder].is_idle())
+        lcd_print(itostr3(heaters[extruder].target_temperature));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

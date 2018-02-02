@@ -216,7 +216,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudiraj više")
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("Extrudiraj više")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Nastavi print")
 
 #if LCD_HEIGHT >= 4
@@ -231,8 +231,8 @@
   #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("za nastavak...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Pričekaj")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("filament load")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Pričekaj")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("filament extrude")
+  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Pričekaj")
+  #define MSG_FILAMENT_CHANGE_PURGE_2       _UxGT("filament extrude")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wait for print")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("to resume")
 #else // LCD_HEIGHT < 4
@@ -241,7 +241,7 @@
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Ejecting...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insert and Click")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Loading...")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Extrudiranje...")
+  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Extrudiranje...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Nastavljam...")
 #endif // LCD_HEIGHT < 4
 

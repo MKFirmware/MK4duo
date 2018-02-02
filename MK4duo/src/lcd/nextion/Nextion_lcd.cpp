@@ -708,53 +708,48 @@
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    void lcd_advanced_pause_toocold_menu() {
-      START_MENU();
-      STATIC_ITEM(MSG_HEATING_FAILED_LCD);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_MINTEMP STRINGIFY(EXTRUDE_MINTEMP) ".");
-      MENU_BACK(MSG_BACK);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_NOZZLE);
-      END_MENU();
+    static AdvancedPauseMode advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
+
+    static const char* advanced_pause_header() {
+      switch (advanced_pause_mode) {
+        case ADVANCED_PAUSE_MODE_LOAD_FILAMENT:
+          return PSTR(MSG_FILAMENT_CHANGE_HEADER_LOAD);
+        case ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT:
+          return PSTR(MSG_FILAMENT_CHANGE_HEADER_UNLOAD);
+        default: break;
+      }
+      return PSTR(MSG_FILAMENT_CHANGE_HEADER_PAUSE);
     }
 
-    static void lcd_filament_change_resume_print() {
+    static void lcd_advanced_pause_resume_print() {
       advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
     }
 
-    static void lcd_filament_change_extrude_more() {
+    static void lcd_advanced_pause_extrude_more() {
       advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     static void lcd_advanced_pause_option_menu() {
       START_MENU();
       STATIC_ITEM(MSG_FILAMENT_CHANGE_OPTION_HEADER);
-      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_filament_change_resume_print);
-      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_EXTRUDE, lcd_filament_change_extrude_more);
+      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_advanced_pause_resume_print);
+      MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_PURGE, lcd_advanced_pause_extrude_more);
       END_MENU();
     }
 
     static void lcd_advanced_pause_init_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_2);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INIT_3);
       END_SCREEN();
     }
 
-    static void lcd_advanced_pause_cool_message() {
-      START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_1);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_2);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_COOL_3);
-      END_SCREEN();
-    }
-
     static void lcd_advanced_pause_unload_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_2);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_UNLOAD_3);
@@ -763,7 +758,7 @@
 
     static void lcd_advanced_pause_wait_for_nozzles_to_heat() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_2);
       END_SCREEN();
@@ -771,7 +766,7 @@
 
     static void lcd_advanced_pause_heat_nozzle() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEAT_2);
       END_SCREEN();
@@ -779,7 +774,7 @@
 
     static void lcd_advanced_pause_printer_off() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_ZZZ_2);
       END_SCREEN();
@@ -787,7 +782,7 @@
 
     static void lcd_advanced_pause_insert_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_2);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_INSERT_3);
@@ -796,42 +791,45 @@
 
     static void lcd_advanced_pause_load_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_2);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_LOAD_3);
       END_SCREEN();
     }
 
-    static void lcd_advanced_pause_extrude_message() {
+    static void lcd_advanced_pause_purge_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_1);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_2);
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_EXTRUDE_3);
+      STATIC_ITEM_P(advanced_pause_header());
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_PURGE_1);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_PURGE_2);
+      STATIC_ITEM(MSG_FILAMENT_CHANGE_PURGE_3);
       END_SCREEN();
     }
 
     static void lcd_advanced_pause_resume_message() {
       START_SCREEN();
-      STATIC_ITEM(MSG_FILAMENT_CHANGE_HEADER);
+      STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_1);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_2);
       STATIC_ITEM(MSG_FILAMENT_CHANGE_RESUME_3);
       END_SCREEN();
     }
 
-    void lcd_advanced_pause_show_message(AdvancedPauseMessage message) {
+    void lcd_advanced_pause_show_message(
+      const AdvancedPauseMessage message,
+      const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
+      const uint8_t extruder/*=active_extruder*/
+    ) {
 
+      UNUSED(extruder);
       static AdvancedPauseMessage old_message;
+      advanced_pause_mode = mode;
 
       if (old_message != message) {
         switch (message) {
           case ADVANCED_PAUSE_MESSAGE_INIT:
             lcd_advanced_pause_init_message();
-            break;
-          case ADVANCED_PAUSE_MESSAGE_COOLDOWN:
-            lcd_advanced_pause_cool_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_UNLOAD:
             lcd_advanced_pause_unload_message();
@@ -842,8 +840,11 @@
           case ADVANCED_PAUSE_MESSAGE_LOAD:
             lcd_advanced_pause_load_message();
             break;
-          case ADVANCED_PAUSE_MESSAGE_EXTRUDE:
-            lcd_advanced_pause_extrude_message();
+          case ADVANCED_PAUSE_MESSAGE_PURGE:
+            lcd_advanced_pause_purge_message();
+            break;
+          case ADVANCED_PAUSE_MESSAGE_RESUME:
+            lcd_advanced_pause_resume_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
             lcd_advanced_pause_heat_nozzle();
@@ -858,10 +859,8 @@
             advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
             lcd_advanced_pause_option_menu();
             break;
-          case ADVANCED_PAUSE_MESSAGE_RESUME:
-            lcd_advanced_pause_resume_message();
-            break;
           case ADVANCED_PAUSE_MESSAGE_STATUS:
+          default:
             Pprinter.show();
             break;
         }

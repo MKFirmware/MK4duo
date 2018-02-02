@@ -176,10 +176,13 @@
 | M532 | ? | ```X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L```
 | M540 | ABORT_ON_ENDSTOP_HIT _FEATURE_ENABLED | Use S[0\|1] to enable or disable the stop print on endstop hit
 | M595 | ? | Set hotend AD595 offset and gain
-| M600 | ? | Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+| M600 | ADVANCED_PAUSE_FEATURE | Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift] E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
+| M603 | ADVANCED_PAUSE_FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
 | M605 | ? | Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 | M649 | ? | Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
 | M666 | ? | Delta geometry adjustment.
+| M701 | ADVANCED_PAUSE_FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
+| M702 | ADVANCED_PAUSE_FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)
 | M900 | ? | K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
 | M906 | ALLIGATOR or HAVE_TMC2130 | Set motor currents XYZ T0-4 E _or_ Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires )

@@ -85,10 +85,6 @@ PrinterMode Printer::mode =
       Printer::baricuda_e_to_p_pressure = 0;
 #endif
 
-#if ENABLED(EASY_LOAD)
-  bool Printer::allow_lengthy_extrude_once = false; // for load/unload
-#endif
-
 #if ENABLED(IDLE_OOZING_PREVENT)
   millis_t  Printer::axis_last_activity   = 0;
   bool      Printer::IDLE_OOZING_enabled  = true,

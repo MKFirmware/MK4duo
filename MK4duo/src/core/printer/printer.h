@@ -139,10 +139,6 @@ class Printer {
       static int baricuda_e_to_p_pressure;
     #endif
 
-    #if ENABLED(EASY_LOAD)
-      static bool allow_lengthy_extrude_once; // for load/unload
-    #endif
-
     #if ENABLED(IDLE_OOZING_PREVENT)
       static bool IDLE_OOZING_enabled;
     #endif

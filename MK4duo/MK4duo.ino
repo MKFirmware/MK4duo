@@ -257,11 +257,15 @@
  * M532 - X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M595 - Set hotend AD595 O<offset> and S<gain>
- * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
+ * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
+ *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
+ * M603 - Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
  * M604 - Set data Extruder Encoder S[Error steps] (requires EXTRUDER ENCODER)
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Delta geometry adjustment
+ * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
+ * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
  * M851 - Set X Y Z Probe Offset in current units. (Requires Probe)
  * M900 - Get and/or Set advance K factor and WH/D ratio. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
