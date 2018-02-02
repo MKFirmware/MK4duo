@@ -44,9 +44,9 @@
     stepper.synchronize();  // wait until the machine is idle
 
     // Move until mechanics.destination reached or target hit
-    printer.setEndstopEnabled(true);
+    endstops.setEndstopEnabled(true);
     printer.setG38Move(true);
-    printer.setG38EndstopHit(false);
+    endstops.setG38EndstopHit(false);
     mechanics.prepare_move_to_destination();
     stepper.synchronize();
     printer.setG38Move(false);
@@ -56,14 +56,14 @@
     mechanics.sync_plan_position();
 
     // Only do remaining moves if target was hit
-    if (printer.IsG38EndstopHit()) {
+    if (endstops.IsG38EndstopHit()) {
 
       G38_pass_fail = true;
 
       // Move away by the retract distance
       mechanics.set_destination_to_current();
       LOOP_XYZ(i) mechanics.destination[i] += retract_mm[i];
-      printer.setEndstopEnabled(false);
+      endstops.setEndstopEnabled(false);
       mechanics.prepare_move_to_destination();
       stepper.synchronize();
 
@@ -72,7 +72,7 @@
       // Bump the target more slowly
       LOOP_XYZ(i) mechanics.destination[i] -= retract_mm[i] * 2;
 
-      printer.setEndstopEnabled(true);
+      endstops.setEndstopEnabled(true);
       printer.setG38Move(true);
       mechanics.prepare_move_to_destination();
       stepper.synchronize();

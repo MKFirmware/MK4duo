@@ -78,9 +78,6 @@
 #if DISABLED(Z_HOME_DIR)
   #error "DEPENDENCY ERROR: Missing setting Z_HOME_DIR."
 #endif
-#if DISABLED(E_HOME_DIR)
-  #error "DEPENDENCY ERROR: Missing setting E_HOME_DIR."
-#endif
 
 
 // Manual home position

@@ -69,8 +69,5 @@
 #if DISABLED(Z_PROBE_ENDSTOP_LOGIC)
   #error "DEPENDENCY ERROR: Missing setting Z_PROBE_ENDSTOP_LOGIC."
 #endif
-#if DISABLED(E_MIN_ENDSTOP_LOGIC)
-  #error "DEPENDENCY ERROR: Missing setting E_MIN_ENDSTOP_LOGIC."
-#endif
 
 #endif /* _ENDSTOP_SANITYCHECK_H_ */

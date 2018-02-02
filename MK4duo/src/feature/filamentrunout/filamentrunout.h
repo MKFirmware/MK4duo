@@ -39,7 +39,6 @@
 
     public: /** Public Function */
 
-      static void Init();
       static void Check();
 
   };

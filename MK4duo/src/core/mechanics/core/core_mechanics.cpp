@@ -94,9 +94,9 @@
 
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("> printer.setEndstopEnabled(true)");
+      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEndstopEnabled(true)");
     #endif
-    printer.setEndstopEnabled(true); // Enable endstops for next homing move
+    endstops.setEndstopEnabled(true); // Enable endstops for next homing move
 
     bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];

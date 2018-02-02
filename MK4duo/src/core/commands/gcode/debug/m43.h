@@ -80,39 +80,37 @@
       SERIAL_EMV(".  Deploy angle: ", probe.z_servo_angle[0]);
       SERIAL_EMV(".  Stow angle:   ", probe.z_servo_angle[1]);
 
-      bool probe_inverting;
+      bool probe_logic;
 
       #if HAS_Z_PROBE_PIN
 
         #define PROBE_TEST_PIN Z_PROBE_PIN
 
         SERIAL_EMV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-        SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_INVERTING (ignores Z_MIN_ENDSTOP_INVERTING)");
-        SERIAL_MSG(".  Z_PROBE_ENDSTOP_INVERTING: ");
+        SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
+        SERIAL_MSG(".  Z_PROBE_ENDSTOP_LOGIC: ");
 
-        #if Z_PROBE_ENDSTOP_INVERTING
+        if (endstops.Is_logic(Z_PROBE))
           SERIAL_EM("true");
-        #else
+        else
           SERIAL_EM("false");
-        #endif
 
-        probe_inverting = Z_PROBE_ENDSTOP_INVERTING;
+        probe_logic = endstops.Is_logic(Z_PROBE);
 
       #elif HAS_Z_MIN
 
         #define PROBE_TEST_PIN Z_MIN_PIN
 
         SERIAL_EMV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
-        SERIAL_EM(".  Uses Z_MIN_ENDSTOP_INVERTING (ignores Z_PROBE_ENDSTOP_INVERTING)");
-        SERIAL_MSG(".  Z_MIN_ENDSTOP_INVERTING: ");
+        SERIAL_EM(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
+        SERIAL_MSG(".  Z_MIN_ENDSTOP_LOGIC: ");
 
-        #if Z_MIN_ENDSTOP_INVERTING
+        if (endstops.Is_logic(Z_MIN))
           SERIAL_EM("true");
-        #else
+        else
           SERIAL_EM("false");
-        #endif
 
-        probe_inverting = Z_MIN_ENDSTOP_INVERTING;
+        probe_logic = endstops.Is_logic(Z_MIN);
 
       #endif
 
@@ -128,7 +126,7 @@
         printer.safe_delay(500);
         stow_state = HAL::digitalRead(PROBE_TEST_PIN);
       } while (++i < 4);
-      if (probe_inverting != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
+      if (probe_logic != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
       commands.refresh_cmd_timeout();
 

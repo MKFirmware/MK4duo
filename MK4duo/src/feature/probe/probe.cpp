@@ -83,7 +83,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  if (printer.IsProbeEndstop() == deploy) return false;
+  if (endstops.IsProbeEndstop() == deploy) return false;
 
   // Make room for probe
   float z_dest = _Z_PROBE_DEPLOY_HEIGHT;
@@ -122,7 +122,7 @@ bool Probe::set_deployed(const bool deploy) {
                                                         // Would a goto be less ugly?
       //while (!_TRIGGERED_WHEN_STOWED_TEST) { printer.idle();  // would offer the opportunity
                                                         // for a triggered when stowed manual probe.
-      if (!deploy) printer.setProbeEndstop(false);  // Switch off triggered when stowed probes early
+      if (!deploy) endstops.setProbeEndstop(false);  // Switch off triggered when stowed probes early
                                                     // otherwise an Allen-Key probe can't be stowed.
   #endif
 
@@ -150,7 +150,7 @@ bool Probe::set_deployed(const bool deploy) {
   #endif
 
   mechanics.do_blocking_move_to(oldXpos, oldYpos, mechanics.current_position[Z_AXIS]); // return to position before deploy
-  printer.setProbeEndstop(deploy);
+  endstops.setProbeEndstop(deploy);
   return false;
 }
 
@@ -173,6 +173,15 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
 
   #if QUIET_PROBING
     probing_pause(true);
+  #endif
+
+  #if MECH(DELTA)
+    const float z_start = mechanics.current_position[Z_AXIS];
+    const long steps_start[ABC] = {
+      stepper.position(A_AXIS),
+      stepper.position(B_AXIS),
+      stepper.position(C_AXIS)
+    };
   #endif
 
   // Move down until probe triggered
@@ -199,11 +208,21 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
   // Clear endstop flags
   endstops.hit_on_purpose();
 
-  // Get Z where the steppers were interrupted
-  mechanics.set_current_from_steppers_for_axis(Z_AXIS);
+  if (probe_triggered) {
+    // Get Z where the steppers were interrupted
+    #if MECH(DELTA)
+      float z_dist = 0.0;
+      LOOP_ABC(i)
+        z_dist += FABS(steps_start[i] - stepper.position((AxisEnum)i)) / mechanics.axis_steps_per_mm[i];
 
-  // Tell the planner where we actually are
-  mechanics.sync_plan_position();
+      mechanics.current_position[Z_AXIS] = z_start - (z_dist / ABC);
+    #else
+      mechanics.set_current_from_steppers_for_axis(Z_AXIS);
+    #endif
+
+    // Tell the planner where we actually are
+    mechanics.sync_plan_position();
+  }
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) DEBUG_POS("<<< move_to_z", mechanics.current_position);
@@ -345,15 +364,15 @@ float Probe::run_z_probe() {
 
       // Disable software endstops to allow manual adjustment
       #if HAS_SOFTWARE_ENDSTOPS
-        const bool old_enable_soft_endstops = printer.IsSoftEndstop();
-        printer.setSoftEndstop(false);
+        const bool old_enable_soft_endstops = endstops.IsSoftEndstop();
+        endstops.setSoftEndstop(false);
       #endif
 
       measured_z = lcd_probe_pt(rx, ry);
 
       // Restore the soft endstop status
       #if HAS_SOFTWARE_ENDSTOPS
-        printer.setSoftEndstop(old_enable_soft_endstops);
+        endstops.setSoftEndstop(old_enable_soft_endstops);
       #endif
 
       return measured_z;

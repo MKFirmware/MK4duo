@@ -323,27 +323,6 @@
 
 
 /***********************************************************************
- *********************** Multiextruder NPr2 ****************************
- ***********************************************************************
- *                                                                     *
- * Setting for color meccanism NPr2 by NicolaP (www.3dmakerlab.it)     *
- * Find angle setting by g-Code "M997 Cxxx"                            *
- *                                                                     *
- * Uncomment NPR2 to enable this feature                               *
- * You also need to set E_MIN_PIN in Configuration_pins.h              *
- *                                                                     *
- ***********************************************************************/
-//#define NPR2
-#define COLOR_STEP {0, 10, 20, 30}   // CARTER ANGLE
-#define COLOR_SLOWRATE 170           // MICROSECOND delay for carter motor routine (Carter Motor Feedrate: upper value-slow feedrate)  
-#define COLOR_HOMERATE 4             // FEEDRATE for carter home
-#define MOTOR_ANGLE 1.8              // Nema angle for single step 
-#define DRIVER_MICROSTEP 4           // Microstep moltiplicator driver (set jumper MS1-2-3) off-on-off 1/4 microstepping.
-#define CARTER_MOLTIPLICATOR 14.22   // CARTER MOLTIPLICATOR (gear ratio 13/31-10/31)
-/***********************************************************************/
-
-
-/***********************************************************************
  ********************* Dual Extruder DONDOLO ***************************
  ***********************************************************************
  *                                                                     *
@@ -942,9 +921,9 @@
 //#define FILAMENT_RUNOUT_DAV_SYSTEM
 
 // Set true or false should assigned
-#define FIL_RUNOUT_PIN_INVERTING true
-// Uncomment to use internal pullup for pin if the sensor is defined
-//#define ENDSTOPPULLUP_FIL_RUNOUT
+#define FIL_RUNOUT_LOGIC true
+// Put true for use internal pullup for pin if the sensor is defined
+#define ENDSTOPPULLUP_FIL_RUNOUT false
 // Time for double check switch in millisecond. Set 0 for disabled
 #define FILAMENT_RUNOUT_DOUBLE_CHECK 0
 // Script execute when filament run out
@@ -1045,8 +1024,8 @@
 
 // Set true or false should assigned
 #define DOOR_OPEN_LOGIC false
-// Uncomment to use internal pullup for pin if the sensor is defined.
-//#define DOOR_OPEN_PULLUP
+// Put true for use internal pullup for pin if the sensor is defined.
+#define ENDSTOPPULLUP_DOOR_OPEN false
 /**************************************************************************/
 
 
@@ -1062,8 +1041,8 @@
 
 // Set true or false should assigned
 #define POWER_CHECK_LOGIC false
-// Uncomment to use internal pullup for pin if the sensor is defined.
-//#define POWER_CHECK_PULLUP
+// Put true for use internal pullup for pin if the sensor is defined.
+#define ENDSTOPPULLUP_POWER_CHECK false
 /**************************************************************************/
 
 

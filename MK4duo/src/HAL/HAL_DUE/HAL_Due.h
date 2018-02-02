@@ -66,6 +66,18 @@
 typedef uint32_t  hal_timer_t;
 typedef uint32_t  ptr_int_t;
 
+
+//#define MOVE_DEBUG
+#if ENABLED(MOVE_DEBUG)
+  extern unsigned int numInterruptsScheduled,
+                      numInterruptsExecuted;
+  extern uint32_t     nextInterruptTime,
+                      nextInterruptScheduledAt,
+                      lastInterruptTime,
+                      acceleration_step_rate,
+                      deceleration_step_rate;
+#endif
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------

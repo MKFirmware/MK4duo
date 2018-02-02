@@ -102,25 +102,19 @@
  * disable the endstop pullup resistors                                                  *
  *                                                                                       *
  *****************************************************************************************/
-#define ENDSTOPPULLUPS
-
-#if DISABLED(ENDSTOPPULLUPS)
-// fine endstop settings: Individual pullups. will be ignored if ENDSTOPPULLUPS is defined
-//#define ENDSTOPPULLUP_XMIN
-//#define ENDSTOPPULLUP_YMIN
-//#define ENDSTOPPULLUP_ZMIN
-//#define ENDSTOPPULLUP_Z2MIN
-//#define ENDSTOPPULLUP_Z3MIN
-//#define ENDSTOPPULLUP_Z4MIN
-//#define ENDSTOPPULLUP_XMAX
-//#define ENDSTOPPULLUP_YMAX
-//#define ENDSTOPPULLUP_ZMAX
-//#define ENDSTOPPULLUP_Z2MAX
-//#define ENDSTOPPULLUP_Z3MAX
-//#define ENDSTOPPULLUP_Z4MAX
-//#define ENDSTOPPULLUP_ZPROBE
-//#define ENDSTOPPULLUP_EMIN
-#endif
+#define ENDSTOPPULLUP_XMIN    false
+#define ENDSTOPPULLUP_YMIN    false
+#define ENDSTOPPULLUP_ZMIN    false
+#define ENDSTOPPULLUP_Z2MIN   false
+#define ENDSTOPPULLUP_Z3MIN   false
+#define ENDSTOPPULLUP_Z4MIN   false
+#define ENDSTOPPULLUP_XMAX    false
+#define ENDSTOPPULLUP_YMAX    false
+#define ENDSTOPPULLUP_ZMAX    false
+#define ENDSTOPPULLUP_Z2MAX   false
+#define ENDSTOPPULLUP_Z3MAX   false
+#define ENDSTOPPULLUP_Z4MAX   false
+#define ENDSTOPPULLUP_ZPROBE  false
 /*****************************************************************************************/
 
 
@@ -145,7 +139,6 @@
 #define Z3_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z4_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the probe.
-#define E_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 /*****************************************************************************************/
 
 
@@ -252,7 +245,7 @@
 // Enable if probing seems unreliable. Heaters and/or fans - consistent with the
 // options selected below - will be disabled during probing so as to minimize
 // potential EM interference by quieting/silencing the source of the 'noise' (the change
-// in current flowing through the wires).  This is likely most useful to users of the
+// in current flowing through the wires). This is likely most useful to users of the
 // BLTouch probe, but may also help those with inductive or other probe types.
 //#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 //#define PROBING_FANS_OFF          // Turn fans off when probing
@@ -278,7 +271,6 @@
 #define X_HOME_DIR -1
 #define Y_HOME_DIR -1
 #define Z_HOME_DIR -1
-#define E_HOME_DIR -1
 /*****************************************************************************************/
 
 
@@ -522,7 +514,7 @@
 #define BILINEAR_SUBDIVISIONS 3
 /** END AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 
-/** START AUTO_BED_LEVELING_3POINT **/
+/** START AUTO_BED_LEVELING_3POINT or UNIFIED BED LEVELING **/
 // 3 arbitrary points to probe.
 // A simple cross-product is used to estimate the plane of the bed.
 #define PROBE_PT_1_X 15
@@ -531,7 +523,7 @@
 #define PROBE_PT_2_Y 15
 #define PROBE_PT_3_X 180
 #define PROBE_PT_3_Y 15
-/** END AUTO_BED_LEVELING_3POINT **/
+/** END AUTO_BED_LEVELING_3POINT or UNIFIED BED LEVELING **/
 
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.
@@ -651,11 +643,13 @@
 #define HOMING_FEEDRATE_Y (50*60)
 #define HOMING_FEEDRATE_Z (2*60)
 
-// homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
+// Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 5
 #define Y_HOME_BUMP_MM 5
 #define Z_HOME_BUMP_MM 2
-#define HOMING_BUMP_DIVISOR {5, 5, 2}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+
+// Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR {5, 5, 2}
 /*****************************************************************************************/
 
 

@@ -515,7 +515,6 @@
     #define BLTOUCH_STOW      90
     #define BLTOUCH_SELFTEST 120
     #define BLTOUCH_RESET    160
-    #define _TEST_BLTOUCH(P) (READ(P##_PIN) != P##_ENDSTOP_INVERTING)
   #endif
 
   /**

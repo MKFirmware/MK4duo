@@ -44,6 +44,7 @@
 
 // Config Commands
 #include "config/m92.h"
+#include "config/m123_m124.h"             // Set Logic or Pullup endstop
 #include "config/m200.h"
 #include "config/m201.h"
 #include "config/m203.h"
