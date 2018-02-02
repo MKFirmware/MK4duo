@@ -2,6 +2,10 @@
 * CaseLight use Neopixel by Original Marlin
 * Add command M123 - Set Logic Endstop
 * Add command M124 - Set Pullup Endstop
+* Add command M603 - Set filament change
+* Add command M701 - Load Filament
+* Add command M702 - Unload Filament
+* Replaced easy bowden with filament change load & unload
 * Save Logic and Endstop to EEPROM
 * Fix and clear code
 

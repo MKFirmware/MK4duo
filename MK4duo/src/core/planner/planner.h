@@ -335,7 +335,7 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t * const block = &block_buffer[block_buffer_tail];
-
+//-----> check this part
         // If the block has no trapezoid calculated, it's unsafe to execute.
         if (movesplanned() > 1) {
           const block_t * const next = &block_buffer[next_block_index(block_buffer_tail)];
@@ -344,7 +344,7 @@ class Planner {
         }
         else if (TEST(block->flag, BLOCK_BIT_RECALCULATE))
           return NULL;
-
+//-----> check this part
         #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif

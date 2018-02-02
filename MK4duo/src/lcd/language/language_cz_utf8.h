@@ -308,7 +308,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Ještě vytlačit")
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("Ještě vytlačit")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Obnovit tisk")
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Min. teplota je ")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Tryska: ")
@@ -331,9 +331,9 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Čekejte prosím")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("na zavedení")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("filamentu")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Čekejte prosím")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("na vytlačení")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_3       _UxGT("filamentu")
+  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Čekejte prosím")
+  #define MSG_FILAMENT_CHANGE_PURGE_2       _UxGT("na vytlačení")
+  #define MSG_FILAMENT_CHANGE_PURGE_3       _UxGT("filamentu")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Čekejte prosím")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("na pokračování")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("tisku")
@@ -344,7 +344,7 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Vložte, klikněte")
   #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Nahřívání...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Zavádění...")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Vytlačování...")
+  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Vytlačování...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Pokračování...")
 #endif // LCD_HEIGHT < 4
 

@@ -50,32 +50,29 @@
 
     point_t park_point = NOZZLE_PARK_POINT;
 
-    // Homing first
-    if (mechanics.axis_unhomed_error()) mechanics.Home(true);
+    if (commands.get_target_tool(600)) return;
+
+    // Show initial "wait for start" message
+    #if HAS_LCD
+      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.target_extruder);
+    #endif
+
+    #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
+      // Don't allow filament change without homing first
+      if (mechanics.axis_unhomed_error()) mechanics.Home(true);
+    #endif
 
     #if EXTRUDERS > 1
       // Change toolhead if specified
-      uint8_t active_extruder_before_filament_change = -1;
-      if (parser.seen('T')) {
-        const uint8_t extruder = parser.value_byte();
-        if (tools.active_extruder != extruder) {
-          active_extruder_before_filament_change = tools.active_extruder;
-          tools.change(extruder, 0, true);
-        }
-      }
+      uint8_t active_extruder_before_filament_change = active_extruder;
+      if (tools.active_extruder != tools.active_extruder)
+        tools.change(extruder, 0, true);
     #endif
 
     // Initial retract before move to pause park position
-    const float retract = parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0
+    const float retract = FABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0)
       #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
-        - (PAUSE_PARK_RETRACT_LENGTH)
-      #endif
-    ;
-
-    // Second retract after cooldown hotend
-    const float retract2 = 0.0
-      #if ENABLED(PAUSE_PARK_RETRACT_2_LENGTH) && PAUSE_PARK_RETRACT_2_LENGTH > 0
-        - (PAUSE_PARK_RETRACT_2_LENGTH)
+        + (PAUSE_PARK_RETRACT_LENGTH)
       #endif
     ;
 
@@ -92,18 +89,12 @@
     #endif
 
     // Unload filament
-    const float unload_length = parser.seen('U') ? parser.value_axis_units(E_AXIS) : 0
-      #if ENABLED(PAUSE_PARK_UNLOAD_LENGTH) && PAUSE_PARK_UNLOAD_LENGTH > 0
-        - (PAUSE_PARK_UNLOAD_LENGTH)
-      #endif
-    ;
+    const float unload_length = FABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+                                                       : filament_change_unload_length[tools.active_extruder]);
 
     // Load filament
-    const float load_length = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
-      #if ENABLED(PAUSE_PARK_LOAD_LENGTH)
-        + PAUSE_PARK_LOAD_LENGTH
-      #endif
-    ;
+    const float load_length   = FABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+                                                      : filament_change_load_length[tools.active_extruder]);
 
     int16_t temp = 0;
     if (parser.seenval('S')) temp = parser.value_celsius();
@@ -118,14 +109,14 @@
 
     const bool job_running = print_job_counter.isRunning();
 
-    if (pause_print(retract, retract2, park_point, unload_length, temp, beep_count, true)) {
+    if (pause_print(retract, park_point, unload_length, temp, true)) {
       wait_for_filament_reload(beep_count);
       resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }
 
     #if EXTRUDERS > 1
     // Restore toolhead if it was changed
-      if (active_extruder_before_filament_change >= 0)
+      if (active_extruder_before_filament_change != tools.active_extruder)
         tools.change(active_extruder_before_filament_change, 0, true);
     #endif
 

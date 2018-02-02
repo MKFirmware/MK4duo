@@ -25,6 +25,10 @@
 
 #if ENABLED(ULTRA_LCD)
 
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #include "../feature/advanced_pause/advanced_pause.h"
+  #endif
+
   enum LCDViewAction {
     LCDVIEW_NONE,
     LCDVIEW_REDRAW_NOW,
@@ -123,21 +127,9 @@
     void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      enum AdvancedPauseMessage {
-        ADVANCED_PAUSE_MESSAGE_INIT,
-        ADVANCED_PAUSE_MESSAGE_COOLDOWN,
-        ADVANCED_PAUSE_MESSAGE_UNLOAD,
-        ADVANCED_PAUSE_MESSAGE_INSERT,
-        ADVANCED_PAUSE_MESSAGE_LOAD,
-        ADVANCED_PAUSE_MESSAGE_EXTRUDE,
-        ADVANCED_PAUSE_MESSAGE_OPTION,
-        ADVANCED_PAUSE_MESSAGE_RESUME,
-        ADVANCED_PAUSE_MESSAGE_STATUS,
-        ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
-        ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
-        ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
-      };
-      void lcd_advanced_pause_show_message(const AdvancedPauseMessage message);
+      void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
+                                           const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
+                                           const uint8_t extruder=tools.active_extruder);
     #endif
 
     #if ENABLED(G26_MESH_VALIDATION)

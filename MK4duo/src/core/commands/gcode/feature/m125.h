@@ -48,7 +48,7 @@
   inline void gcode_M125(void) {
 
     // Initial retract before move to pause park position
-    const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
+    const float retract = -FABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0)
       #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         - (PAUSE_PARK_RETRACT_LENGTH)
       #endif
@@ -72,7 +72,7 @@
       const bool job_running = print_job_counter.isRunning();
     #endif
 
-    if (pause_print(retract, 0.0, park_point)) {
+    if (pause_print(retract, park_point)) {
       #if DISABLED(SDSUPPORT)
         // Wait for lcd click or M108
         wait_for_filament_reload();

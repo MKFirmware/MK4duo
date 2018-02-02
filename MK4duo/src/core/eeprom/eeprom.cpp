@@ -189,6 +189,10 @@
  *  M900  K               planner.extruder_advance_k            (float)
  *  M900  WHD             planner.advance_ed_ratio              (float)
  *
+ * ADVANCED_PAUSE_FEATURE:
+ *  M603 U                filament_change_unload_length         (float)
+ *  M603 L                filament_change_load_length           (float)
+ *
  * ========================================================================
  * meshes_begin (between max and min end-point, directly above)
  * -- MESHES --
@@ -611,6 +615,14 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(planner.advance_ed_ratio);
     #endif
 
+    //
+    // Advanced Pause
+    //
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      EEPROM_WRITE(filament_change_unload_length);
+      EEPROM_WRITE(filament_change_load_length);
+    #endif
+
     if (!eeprom_error) {
       const int eeprom_size = eeprom_index;
 
@@ -960,6 +972,14 @@ void EEPROM::Postprocess() {
         EEPROM_READ(planner.advance_ed_ratio);
       #endif
 
+      //
+      // Advanced Pause
+      //
+      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+        EEPROM_READ(filament_change_unload_length);
+        EEPROM_READ(filament_change_load_length);
+      #endif
+    
       #if HAS_EEPROM_SD
         // Read last two field
         uint16_t temp_crc;
@@ -1565,6 +1585,13 @@ void EEPROM::Factory_Settings() {
     planner.advance_ed_ratio = LIN_ADVANCE_E_D_RATIO;
   #endif
 
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    for (uint8_t e = 0; e < DRIVER_EXTRUDERS; e++) {
+      filament_change_unload_length[e] = PAUSE_PARK_UNLOAD_LENGTH;
+      filament_change_load_length[e] = PAUSE_PARK_LOAD_LENGTH;
+    }
+  #endif
+
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     endstops.setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MIN, !Y_MIN_ENDSTOP_LOGIC);
@@ -2091,6 +2118,23 @@ void EEPROM::Factory_Settings() {
       SERIAL_SMV(CFG, "  M900 K", planner.extruder_advance_k);
       SERIAL_EMV(" R", planner.advance_ed_ratio);
     #endif
+
+    /**
+     * Advanced Pause filament load & unload lengths
+     */
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      CONFIG_MSG_START("Filament load/unload lengths:");
+      #if EXTRUDERS == 1
+        SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(filament_change_load_length[0]), 2);
+        SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[0]), 2);
+      #else // EXTRUDERS != 1
+        for (uint8_t e = 0; e < EXTRUDERS; e++) {
+          SERIAL_SMV(CFG, "  M603 T", (int)e);
+          SERIAL_MV(" L", LINEAR_UNIT(filament_change_load_length[e]), 2);
+          SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[e]), 2);
+        }
+      #endif // EXTRUDERS != 1
+    #endif // ADVANCED_PAUSE_FEATURE
 
     #if HAS_SDSUPPORT
       card.PrintSettings();

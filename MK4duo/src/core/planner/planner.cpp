@@ -458,16 +458,9 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
         }
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         if (labs(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
-          #if ENABLED(EASY_LOAD)
-            if (!printer.allow_lengthy_extrude_once) {
-          #endif
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           de = 0; // no difference
           SERIAL_LM(ER, MSG_ERR_LONG_EXTRUDE_STOP);
-          #if ENABLED(EASY_LOAD)
-            }
-            printer.allow_lengthy_extrude_once = false;
-          #endif
         }
       #endif // PREVENT_LENGTHY_EXTRUDE
     }
