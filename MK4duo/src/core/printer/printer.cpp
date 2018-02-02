@@ -102,10 +102,10 @@ PrinterMode Printer::mode =
 
 // Private
 
-uint8_t Printer::mk_debug_flag  = 0,
-        Printer::mk_1_flag      = 0,
-        Printer::mk_2_flag      = 0,
-        Printer::mk_3_flag      = 0;
+uint8_t   Printer::mk_debug_flag  = 0, // For debug
+          Printer::mk_1_flag      = 0; // For Homed
+
+uint16_t  Printer::mk_2_flag      = 0; // For various
 
 /**
  * Public Function
@@ -135,10 +135,6 @@ uint8_t Printer::mk_debug_flag  = 0,
 void Printer::setup() {
 
   HAL::hwSetup();
-
-  #if HAS_FIL_RUNOUT
-    filamentrunout.Init();
-  #endif
 
   #if HAS_KILL
     SET_INPUT_PULLUP(KILL_PIN);
@@ -227,24 +223,8 @@ void Printer::setup() {
     caselight.update();
   #endif
 
-  #if HAS_DOOR
-    #if ENABLED(DOOR_OPEN_PULLUP)
-      SET_INPUT_PULLUP(DOOR_PIN);
-    #else
-      SET_INPUT(DOOR_PIN);
-    #endif
-  #endif
-
-  #if HAS_POWER_CHECK && HAS_SDSUPPORT
-    #if ENABLED(POWER_CHECK_PULLUP)
-      SET_INPUT_PULLUP(POWER_CHECK_PIN);
-    #else
-      SET_INPUT(POWER_CHECK_PIN);
-    #endif
-  #endif
-
   #if HAS_SOFTWARE_ENDSTOPS
-    setSoftEndstop(true);
+    endstops.setSoftEndstop(true);
   #endif
 
   #if HAS_STEPPER_RESET
@@ -540,6 +520,14 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
       #endif
     }
   }
+
+  #if ENABLED(MOVE_DEBUG)
+    char buf[100] = { 0 };
+    sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
+      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(PULSE_TIMER_NUM));
+    SERIAL_PS(buf);
+    SERIAL_EOL();
+  #endif
 }
 
 /**
@@ -857,6 +845,11 @@ char Printer::GetStatusCharacter(){
   return  print_job_counter.isRunning() ? 'P'   // Printing
         : print_job_counter.isPaused()  ? 'A'   // Paused / Stopped
         :                                 'I';  // Idle
+}
+
+// Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
+void Printer::setNotHoming() {
+  endstops.setEndstopEnabled(endstops.IsEndstopGlobally());
 }
 
 /**
