@@ -1,5 +1,8 @@
 ### Version 4.3.4 Stable
 * CaseLight use Neopixel by Original Marlin
+* Add command M123 - Set Logic Endstop
+* Add command M123 - Set Pullup Endstop
+* Save Logic and Endstop to EEPROM
 * Fix and clear code
 
 ### Version 4.3.3 Stable

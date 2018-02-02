@@ -91,7 +91,7 @@ void Commands::get_serial() {
   static bool serial_comment_mode = false;
 
   #if HAS_DOOR
-    if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
+    if (READ(DOOR_PIN) != endstops.Is_logic(DOOR_OPEN)) {
       KEEPALIVE_STATE(DOOR_OPEN);
       return;  // do nothing while door is open
     }
@@ -233,14 +233,14 @@ void Commands::get_serial() {
     if (!IS_SD_PRINTING) return;
 
     #if HAS_DOOR
-      if (READ(DOOR_PIN) != DOOR_PIN_INVERTING) {
+      if (READ(DOOR_PIN) != endstops.Is_logic(DOOR_OPEN)) {
         KEEPALIVE_STATE(DOOR_OPEN);
         return;  // do nothing while door is open
       }
     #endif
 
     #if HAS_POWER_CHECK
-      if (READ(POWER_CHECK_PIN) != POWER_CHECK_PIN_INVERTING) {
+      if (READ(POWER_CHECK_PIN) != endstops.Is_logic(POWEER_CHECK)) {
         card.stopSDPrint();
         return;
       }

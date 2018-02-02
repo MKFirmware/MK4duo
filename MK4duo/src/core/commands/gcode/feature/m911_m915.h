@@ -179,7 +179,7 @@
 
       SERIAL_MV("\nCalibration current: Z", _rms);
 
-      printer.setSoftEndstop(false);
+      endstops.setSoftEndstop(false);
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS+_z);
 
@@ -191,7 +191,7 @@
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS);
-      printer.setSoftEndstop(true);
+      endstops.setSoftEndstop(true);
 
       SERIAL_EM("\nHoming Z because we lost steps");
       commands.enqueue_and_echo_P(PSTR("G28 Z"));

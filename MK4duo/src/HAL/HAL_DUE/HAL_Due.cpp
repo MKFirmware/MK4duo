@@ -64,6 +64,16 @@
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
+#if ENABLED(MOVE_DEBUG)
+  unsigned int  numInterruptsScheduled    = 0,
+                numInterruptsExecuted     = 0;
+  uint32_t      nextInterruptTime         = 0,
+                nextInterruptScheduledAt  = 0,
+                lastInterruptTime         = 0,
+                acceleration_step_rate    = 0,
+                deceleration_step_rate    = 0;
+#endif
+
 extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 

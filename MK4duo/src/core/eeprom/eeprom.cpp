@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV44"
+#define EEPROM_VERSION "MKV45"
 
 /**
- * MKV44 EEPROM Layout:
+ * MKV45 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -61,6 +61,10 @@
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRUDERS](float x6)
  *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          tools.hotend_offset                   (float x6)
+ *
+ * ENDSTOPS:
+ *                        endstops.logic_bits                   (uint16_t)
+ *                        endstops.pullup_bits                  (uint16_t)
  *
  * Global Leveling:
  *                        z_fade_height                         (float)
@@ -177,7 +181,7 @@
  *  M906  E4              stepperE4 current                     (uint16_t)
  *  M906  E5              stepperE5 current                     (uint16_t)
  *
- * SENSORLESS HOMING
+ * SENSORLESS HOMING:
  *  M914  X               Stepper X and X2 threshold            (int16_t)
  *  M914  Y               Stepper Y and Y2 threshold            (int16_t)
  *
@@ -271,6 +275,9 @@ void EEPROM::Postprocess() {
   // and init stepper.count[], planner.position[] with current_position
   mechanics.refresh_positioning();
 
+  // Init endstops and pullups
+  endstops.init();
+
   if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
     mechanics.report_current_position();
 
@@ -329,6 +336,12 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(mechanics.home_offset);
     #endif
     EEPROM_WRITE(tools.hotend_offset);
+
+    //
+    // Endstops bit
+    //
+    EEPROM_WRITE(endstops.logic_bits);
+    EEPROM_WRITE(endstops.pullup_bits);
 
     //
     // General Leveling
@@ -681,6 +694,12 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mechanics.home_offset);
       #endif
       EEPROM_READ(tools.hotend_offset);
+
+      //
+      // Endstops bit
+      //
+      EEPROM_READ(endstops.logic_bits);
+      EEPROM_READ(endstops.pullup_bits);
 
       //
       // General Leveling
@@ -1477,7 +1496,7 @@ void EEPROM::Factory_Settings() {
 
   #endif
 
-  printer.setEndstopGlobally(
+  endstops.setEndstopGlobally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
       (false)
     #else
@@ -1545,6 +1564,59 @@ void EEPROM::Factory_Settings() {
     planner.extruder_advance_k = LIN_ADVANCE_K;
     planner.advance_ed_ratio = LIN_ADVANCE_E_D_RATIO;
   #endif
+
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+    endstops.setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Y_MIN, !Y_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_MIN, !Z_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
+    endstops.setLogic(X_MAX, !X_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Y_MAX, !Y_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_MAX, !Z_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z2_MIN, !Z2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z3_MIN, !Z3_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z3_MAX, !Z3_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z4_MIN, !Z4_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z4_MAX, !Z4_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
+    endstops.setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
+  #else
+    endstops.setLogic(X_MIN, X_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Y_MIN, Y_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_MIN, Z_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
+    endstops.setLogic(X_MAX, X_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Y_MAX, Y_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_MAX, Z_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z2_MIN, Z2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z3_MIN, Z3_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z3_MAX, Z3_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z4_MIN, Z4_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Z4_MAX, Z4_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
+    endstops.setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
+  #endif
+
+  endstops.setPullup(X_MIN, ENDSTOPPULLUP_XMIN);
+  endstops.setPullup(Y_MIN, ENDSTOPPULLUP_YMIN);
+  endstops.setPullup(Z_MIN, ENDSTOPPULLUP_ZMIN);
+  endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
+  endstops.setPullup(X_MAX, ENDSTOPPULLUP_XMAX);
+  endstops.setPullup(Y_MAX, ENDSTOPPULLUP_YMAX);
+  endstops.setPullup(Z_MAX, ENDSTOPPULLUP_ZMAX);
+  endstops.setPullup(Z2_MIN, ENDSTOPPULLUP_Z2MIN);
+  endstops.setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
+  endstops.setPullup(Z3_MIN, ENDSTOPPULLUP_Z3MIN);
+  endstops.setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
+  endstops.setPullup(Z4_MIN, ENDSTOPPULLUP_Z4MIN);
+  endstops.setPullup(Z4_MAX, ENDSTOPPULLUP_Z4MAX);
+  endstops.setPullup(FIL_RUNOUT, ENDSTOPPULLUP_FIL_RUNOUT);
+  endstops.setPullup(DOOR_OPEN, ENDSTOPPULLUP_DOOR_OPEN);
+  endstops.setPullup(POWER_CHECK, ENDSTOPPULLUP_POWER_CHECK);
 
   Postprocess();
 

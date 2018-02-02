@@ -27,12 +27,14 @@
 #ifndef _ENDSTOPS_H_
 #define _ENDSTOPS_H_
 
-#if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS) || ENABLED(Z_FOUR_ENDSTOPS) || ENABLED(NPR2)
-  typedef uint16_t esbits_t;
-#else
-  typedef byte esbits_t;
-#endif
-
+enum Flag1Enum {
+  flag1_endstop_enabled,
+  flag1_endstop_globally,
+  flag1_soft_endstop,
+  flag1_probe_endstop,
+  flag1_g38_endstop_hit
+};
+  
 enum EndstopEnum {
   X_MIN,
   Y_MIN,
@@ -47,7 +49,9 @@ enum EndstopEnum {
   Z3_MAX,
   Z4_MIN,
   Z4_MAX,
-  E_MIN
+  FIL_RUNOUT,
+  DOOR_OPEN,
+  POWER_CHECK
 };
 
 class Endstops {
@@ -55,7 +59,7 @@ class Endstops {
   public: /** Constructor */
 
     Endstops() {
-      printer.setEndstopGlobally(
+      setEndstopGlobally(
         #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
           false
         #else
@@ -89,7 +93,14 @@ class Endstops {
     static volatile uint8_t e_hit;  // Different from 0 when the endstops shall be tested in detail.
                                     // Must be reset to 0 by the test function when the tests are finished.
 
-    static esbits_t current_endstop_bits, old_endstop_bits;
+    static uint16_t logic_bits,
+                    pullup_bits,
+                    current_bits,
+                    old_bits;
+
+  private: /** Private Parameters */
+
+    static uint8_t  flag1_bits;
 
   public: /** Public Function */
 
@@ -102,6 +113,11 @@ class Endstops {
      * Update the endstops bits from the pins
      */
     static void update();
+
+    /**
+     * Print logicl and pullup
+     */
+    static void report();
 
     /**
      * Print an error message reporting the position when the endstops were last hit.
@@ -126,6 +142,42 @@ class Endstops {
       static void setup_endstop_interrupts(void);
     #endif
 
+    FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
+      SET_BIT(logic_bits, endstop, logic);
+    }
+    FORCE_INLINE static bool Is_logic(const EndstopEnum endstop) { return TEST(logic_bits, endstop); }
+
+    FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
+      SET_BIT(pullup_bits, endstop, pullup);
+    }
+    FORCE_INLINE static bool Is_pullup(const EndstopEnum endstop) { return TEST(pullup_bits, endstop); }
+
+    FORCE_INLINE static void setEndstopEnabled(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_endstop_enabled, onoff);
+    }
+    FORCE_INLINE static bool IsEndstopEnabled() { return TEST(flag1_bits, flag1_endstop_enabled); }
+
+    FORCE_INLINE static void setEndstopGlobally(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_endstop_globally, onoff);
+      setEndstopEnabled(onoff);
+    }
+    FORCE_INLINE static bool IsEndstopGlobally() { return TEST(flag1_bits, flag1_endstop_globally); }
+
+    FORCE_INLINE static void setSoftEndstop(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_soft_endstop, onoff);
+    }
+    FORCE_INLINE static bool IsSoftEndstop() { return TEST(flag1_bits, flag1_soft_endstop); }
+
+    FORCE_INLINE static void setProbeEndstop(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_probe_endstop, onoff);
+    }
+    FORCE_INLINE static bool IsProbeEndstop() { return TEST(flag1_bits, flag1_probe_endstop); }
+
+    FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_g38_endstop_hit, onoff);
+    }
+    FORCE_INLINE static bool IsG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
+
   private: /** Private Function */
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
@@ -141,9 +193,9 @@ class Endstops {
 extern Endstops endstops;
 
 #if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (printer.IsEndstopEnabled() || printer.IsProbeEndstop())
+  #define ENDSTOPS_ENABLED  (endstops.IsEndstopEnabled() || endstops.IsProbeEndstop())
 #else
-  #define ENDSTOPS_ENABLED  printer.IsEndstopEnabled()
+  #define ENDSTOPS_ENABLED  endstops.IsEndstopEnabled()
 #endif
 
 #endif /* _ENDSTOPS_H_ */

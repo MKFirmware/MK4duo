@@ -463,7 +463,7 @@ inline void gcode_G29(void) {
     if (seenA && bedlevel.g29_in_progress) {
       SERIAL_EM("Manual G29 aborted");
       #if HAS_SOFTWARE_ENDSTOPS
-        printer.setSoftEndstop(enable_soft_endstops);
+        endstops.setSoftEndstop(enable_soft_endstops);
       #endif
       bedlevel.leveling_active = abl_should_enable;
       bedlevel.g29_in_progress = false;
@@ -488,7 +488,7 @@ inline void gcode_G29(void) {
     if (abl_probe_index == 0) {
       // For the initial G29 save software endstop state
       #if HAS_SOFTWARE_ENDSTOPS
-        enable_soft_endstops = printer.IsSoftEndstop();
+        enable_soft_endstops = endstops.IsSoftEndstop();
       #endif
     }
     else {
@@ -564,7 +564,7 @@ inline void gcode_G29(void) {
         #if HAS_SOFTWARE_ENDSTOPS
           // Disable software endstops to allow manual adjustment
           // If G29 is not completed, they will not be re-enabled
-          printer.setSoftEndstop(false);
+          endstops.setSoftEndstop(false);
         #endif
         return;
       }
@@ -576,7 +576,7 @@ inline void gcode_G29(void) {
 
         // Re-enable software endstops, if needed
         #if HAS_SOFTWARE_ENDSTOPS
-          printer.setSoftEndstop(enable_soft_endstops);
+          endstops.setSoftEndstop(enable_soft_endstops);
         #endif
       }
 
@@ -589,7 +589,7 @@ inline void gcode_G29(void) {
         #if HAS_SOFTWARE_ENDSTOPS
           // Disable software endstops to allow manual adjustment
           // If G29 is not completed, they will not be re-enabled
-          printer.setSoftEndstop(false);
+          endstops.setSoftEndstop(false);
         #endif
         return;
       }
@@ -599,7 +599,7 @@ inline void gcode_G29(void) {
 
         // Re-enable software endstops, if needed
         #if HAS_SOFTWARE_ENDSTOPS
-          printer.setSoftEndstop(enable_soft_endstops);
+          endstops.setSoftEndstop(enable_soft_endstops);
         #endif
 
         if (!dryrun) {

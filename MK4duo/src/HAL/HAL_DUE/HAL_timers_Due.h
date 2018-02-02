@@ -183,6 +183,12 @@ FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, hal_timer_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
+
+  #if ENABLED(MOVE_DEBUG)
+		++numInterruptsScheduled;
+		nextInterruptTime = count;
+		nextInterruptScheduledAt = HAL_timer_get_count(PULSE_TIMER_NUM);
+  #endif
 }
 
 FORCE_INLINE static void HAL_timer_set_current_count(const uint8_t timer_num, const hal_timer_t count) {

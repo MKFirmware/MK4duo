@@ -186,16 +186,16 @@ volatile long   Stepper::endstops_trigsteps[XYZ];
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \
       if (Z_HOME_DIR > 0) {\
-        if (!(TEST(endstops.old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z4_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z4_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
       } \
       else { \
-        if (!(TEST(endstops.old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z4_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z4_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z4_motor) Z4_STEP_WRITE(v); \
       } \
     } \
     else { \
@@ -213,14 +213,14 @@ volatile long   Stepper::endstops_trigsteps[XYZ];
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \
       if (Z_HOME_DIR > 0) {\
-        if (!(TEST(endstops.old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z3_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
       } \
       else { \
-        if (!(TEST(endstops.old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z3_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z3_motor) Z3_STEP_WRITE(v); \
       } \
     } \
     else { \
@@ -237,12 +237,12 @@ volatile long   Stepper::endstops_trigsteps[XYZ];
     #define Z_APPLY_STEP(v,Q) \
     if (performing_homing) { \
       if (Z_HOME_DIR > 0) {\
-        if (!(TEST(endstops.old_endstop_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MAX) && (count_direction[Z_AXIS] > 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
       } \
       else { \
-        if (!(TEST(endstops.old_endstop_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
-        if (!(TEST(endstops.old_endstop_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z_motor) Z_STEP_WRITE(v); \
+        if (!(TEST(endstops.old_bits, Z2_MIN) && (count_direction[Z_AXIS] < 0)) && !locked_z2_motor) Z2_STEP_WRITE(v); \
       } \
     } \
     else { \
@@ -833,6 +833,10 @@ void Stepper::isr() {
     // upper limit
     NOMORE(acc_step_rate, current_block->nominal_rate);
 
+    #if ENABLED(MOVE_DEBUG)
+      acceleration_step_rate = acc_step_rate;
+    #endif
+
     // step_rate to timer interval
     const hal_timer_t interval = calc_timer_interval(acc_step_rate);
 
@@ -867,6 +871,10 @@ void Stepper::isr() {
     }
     else
       step_rate = current_block->final_rate;
+
+    #if ENABLED(MOVE_DEBUG)
+      deceleration_step_rate = step_rate;
+    #endif
 
     // step_rate to timer interval
     const hal_timer_t interval = calc_timer_interval(step_rate);
@@ -1227,9 +1235,6 @@ void Stepper::init() {
     #endif
   #endif
 
-  // Init endstops and pullups
-  endstops.init();
-
   #define _STEP_INIT(AXIS) AXIS ##_STEP_INIT
   #define _WRITE_STEP(AXIS, HIGHLOW) AXIS ##_STEP_WRITE(HIGHLOW)
   #define _DISABLE(AXIS) disable_## AXIS()
@@ -1362,7 +1367,7 @@ void Stepper::init() {
     ZERO(current_adv_steps);
   #endif
 
-  printer.setEndstopEnabled(true); // Start with endstops active. After homing they can be disabled
+  endstops.setEndstopEnabled(true); // Start with endstops active. After homing they can be disabled
   sei();
 
   set_directions(); // Init directions to last_direction_bits = 0

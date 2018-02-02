@@ -148,7 +148,7 @@
     #endif
 
     printer.setup_for_endstop_or_probe_move();
-    printer.setEndstopEnabled(true);
+    endstops.setEndstopEnabled(true);
     if (!mechanics.Home()) return;
     printer.setNotHoming();
     DEPLOY_PROBE();
@@ -319,7 +319,7 @@
     SERIAL_MV(" K", mechanics.delta_tower_angle_adj[C_AXIS], 2);
     SERIAL_EOL();
 
-    printer.setEndstopEnabled(true);
+    endstops.setEndstopEnabled(true);
     if (!mechanics.Home()) return;
     printer.setNotHoming();
 

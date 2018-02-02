@@ -32,20 +32,12 @@
 
   FilamentRunOut filamentrunout;
 
-  void FilamentRunOut::Init() {
-    #if ENABLED(ENDSTOPPULLUP_FIL_RUNOUT)
-      SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
-    #else
-      SET_INPUT(FIL_RUNOUT_PIN);
-    #endif
-  }
-
   void FilamentRunOut::Check() {
 
     #if FILAMENT_RUNOUT_DOUBLE_CHECK > 0
       static bool filament_double_check = false;
       static millis_t filament_switch_time = 0;
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING) {
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.Is_logic(FIL_RUNOUT)) {
         if (filament_double_check) {
           if (ELAPSED(millis(), filament_switch_time) {
             printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
@@ -58,7 +50,7 @@
         }
       }
     #else
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_PIN_INVERTING)
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.Is_logic(FIL_RUNOUT))
         printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
     #endif
 
