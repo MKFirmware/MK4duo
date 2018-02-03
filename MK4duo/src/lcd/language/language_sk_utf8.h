@@ -307,7 +307,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PAUZA TLAČE")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("MOŽN. POKRAČ.:")
-#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("Ešte vytlačiť")
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("Ešte vytlačiť")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Obnoviť tlač")
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Min. teplota je ")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Tryska: ")
@@ -330,9 +330,9 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Čakajte prosím")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("na zavedenie")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("filamentu")
-  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Čakajte prosím")
-  #define MSG_FILAMENT_CHANGE_PURGE_2       _UxGT("na vytlačenie")
-  #define MSG_FILAMENT_CHANGE_PURGE_3       _UxGT("filamentu")
+  #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Čakajte prosím")
+  #define MSG_FILAMENT_CHANGE_PURGE_2         _UxGT("na vytlačenie")
+  #define MSG_FILAMENT_CHANGE_PURGE_3         _UxGT("filamentu")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Čakajte prosím")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("na pokračovanie")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("tlače")
@@ -343,7 +343,7 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Vložte, kliknite")
   #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Ohrev...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Zavádzanie...")
-  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Vytlačovanie...")
+  #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Vytlačovanie...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Pokračovanie...")
 #endif // LCD_HEIGHT < 4
 
