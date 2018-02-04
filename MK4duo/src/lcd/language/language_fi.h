@@ -24,7 +24,7 @@
  * Finnish
  *
  * LCD Menu Messages
- * See also documentation/LCDLanguageFont.md
+ * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
 #ifndef LANGUAGE_FI_H
@@ -87,9 +87,15 @@
 #define MSG_PID_C                           _UxGT("PID-C")
 #define MSG_ACC                             _UxGT("Kiihtyv")
 #define MSG_JERK                            _UxGT("Jerk")
-#define MSG_VX_JERK                         _UxGT("Vx-jerk")
-#define MSG_VY_JERK                         _UxGT("Vy-jerk")
-#define MSG_VZ_JERK                         _UxGT("Vz-jerk")
+#if IS_KINEMATIC
+  #define MSG_VX_JERK                       _UxGT("Va-jerk")
+  #define MSG_VY_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+#else
+  #define MSG_VX_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VY_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+#endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VMAX                            _UxGT("Vmax ")
 #define MSG_VMIN                            _UxGT("Vmin")
@@ -98,9 +104,15 @@
 #define MSG_AMAX                            _UxGT("Amax ")
 #define MSG_A_RETRACT                       _UxGT("A-peruuta")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
-#define MSG_XSTEPS                          _UxGT("Xsteps/mm")
-#define MSG_YSTEPS                          _UxGT("Ysteps/mm")
-#define MSG_ZSTEPS                          _UxGT("Zsteps/mm")
+#if IS_KINEMATIC
+  #define MSG_XSTEPS                        _UxGT("Asteps/mm")
+  #define MSG_YSTEPS                        _UxGT("Bsteps/mm")
+  #define MSG_ZSTEPS                        _UxGT("Csteps/mm")
+#else
+  #define MSG_XSTEPS                        _UxGT("Xsteps/mm")
+  #define MSG_YSTEPS                        _UxGT("Ysteps/mm")
+  #define MSG_ZSTEPS                        _UxGT("Zsteps/mm")
+#endif
 #define MSG_ESTEPS                          _UxGT("Esteps/mm")
 #define MSG_E1STEPS                         _UxGT("E1steps/mm")
 #define MSG_E2STEPS                         _UxGT("E2steps/mm")

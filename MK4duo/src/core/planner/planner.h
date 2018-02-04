@@ -231,8 +231,9 @@ class Planner {
      *  target      - target position in steps units
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
      */
-    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder);
+    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
 
     /**
      * Planner::buffer_segment
@@ -244,8 +245,9 @@ class Planner {
      *  a,b,c,e     - target positions in mm and/or degrees
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
      */
-    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
 
     /**
      * Add a new linear movement to the buffer.
@@ -258,8 +260,9 @@ class Planner {
      *  rx,ry,rz,e  - target position in mm or degrees
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
      */
-    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
     /**
      * Add a new linear movement to the buffer.
@@ -269,8 +272,9 @@ class Planner {
      *  cart        - x,y,z,e CARTESIAN target in mm
      *  fr_mm_s     - (target) speed of the move (mm/s)
      *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
      */
-    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder);
+    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
     FORCE_INLINE static void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
     FORCE_INLINE static void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
