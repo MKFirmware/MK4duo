@@ -227,7 +227,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("HARIZPIA ALDATU")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("ALDAKETA AUKERAK:")
-#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("Gehiago estruitu")
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("Gehiago estruitu")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Inprima. jarraitu")
 
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Tenp Minimoa ")

@@ -64,9 +64,9 @@
 
     #if EXTRUDERS > 1
       // Change toolhead if specified
-      uint8_t active_extruder_before_filament_change = active_extruder;
-      if (tools.active_extruder != tools.active_extruder)
-        tools.change(extruder, 0, true);
+      uint8_t active_extruder_before_filament_change = tools.active_extruder;
+      if (tools.active_extruder != tools.target_extruder)
+        tools.change(tools.target_extruder, 0, true);
     #endif
 
     // Initial retract before move to pause park position

@@ -203,7 +203,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("擠出更多")  //"Extrude more"
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("擠出更多")  //"Extrude more"
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("恢複列印")  //"Resume print"
 
 #if LCD_HEIGHT >= 4
@@ -219,9 +219,9 @@
 #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("等待")  //"Wait for"
 #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("進料")  //"filament load"
 #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("")  //""
-#define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("等待")  //"Wait for"
-#define MSG_FILAMENT_CHANGE_PURGE_2       _UxGT("絲料擠出")  //"filament extrude"
-#define MSG_FILAMENT_CHANGE_PURGE_3       _UxGT("")  //""
+#define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("等待")  //"Wait for"
+#define MSG_FILAMENT_CHANGE_PURGE_2         _UxGT("絲料擠出")  //"filament extrude"
+#define MSG_FILAMENT_CHANGE_PURGE_3         _UxGT("")  //""
 #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("等待列印")  //"Wait for print"
 #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("恢複")  //"to resume"
 #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("")  //""
@@ -231,7 +231,7 @@
 #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("退出中 ...")  //"Ejecting..."
 #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("插入並單擊")  //"Insert and Click"
 #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("裝載中 ...")  //"Loading..."
-#define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("擠出中 ...")  //"Extruding..."
+#define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("擠出中 ...")  //"Extruding..."
 #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("恢複中 ...")  //"Resuming..."
 #endif // LCD_HEIGHT < 4
 
