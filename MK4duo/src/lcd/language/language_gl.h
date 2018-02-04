@@ -216,7 +216,7 @@
 
 #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
 #define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_PURGE  _UxGT("Extruir mais")
+#define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("Extruir mais")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Segue traballo")
 
 #if LCD_HEIGHT >= 4
@@ -233,9 +233,9 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Agarde pola")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("carga do")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("filamento")
-  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Agarde pola")
-  #define MSG_FILAMENT_CHANGE_PURGE_2       _UxGT("extrusion do")
-  #define MSG_FILAMENT_CHANGE_PURGE_3       _UxGT("filamento")
+  #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Agarde pola")
+  #define MSG_FILAMENT_CHANGE_PURGE_2         _UxGT("extrusion do")
+  #define MSG_FILAMENT_CHANGE_PURGE_3         _UxGT("filamento")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Agarde para")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("seguir co")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("traballo")
@@ -245,7 +245,7 @@
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Descargando...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Introduza e click")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Cargando...")
-  #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Extruindo...")
+  #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Extruindo...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Seguindo...")
 #endif // LCD_HEIGHT < 4
 
