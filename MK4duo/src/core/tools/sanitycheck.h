@@ -109,9 +109,6 @@
 
 // Allow only multy tools option to be defined
 static_assert(1 >= 0
-  #if ENABLED(NPR2)
-    + 1
-  #endif
   #if ENABLED(MKR4)
     + 1
   #endif
@@ -124,7 +121,7 @@ static_assert(1 >= 0
   #if ENABLED(MKSE6)
     + 1
   #endif
-  , "DEPENDENCY ERROR: Please enable only one Multy tools function: NPR2, MKR4, MKR6, MKR12 or MKSE6."
+  , "DEPENDENCY ERROR: Please enable only one Multy tools function: MKR4, MKR6, MKR12 or MKSE6."
 );
 
 #if ENABLED(MKR4)
@@ -204,10 +201,6 @@ static_assert(1 >= 0
   #if DISABLED(SINGLENOZZLE)
     #error "DEPENDENCY ERROR: You must enabled SINGLENOZZLE for MKSE6 MULTI EXTRUDER."
   #endif
-#endif
-
-#if ENABLED(NPR2) && !PIN_EXISTS(E_MIN)
-  #error "DEPENDENCY ERROR: You have to set E_MIN_PIN to a valid pin if you enable NPR2."
 #endif
 
 #if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && !HAS_SERVOS

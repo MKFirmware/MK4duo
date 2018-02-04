@@ -156,7 +156,6 @@
 #define Z3_MAX_PIN          NoPin
 #define Z4_MIN_PIN          NoPin
 #define Z4_MAX_PIN          NoPin
-#define E_MIN_PIN           NoPin
 #define Z_PROBE_PIN         NoPin
 
 // HEATER pin

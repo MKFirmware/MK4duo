@@ -395,34 +395,7 @@
 
   #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
-  #if ENABLED(NPR2)
-
-    void Tools::MK_multi_tool_change(const uint8_t e) {
-
-      const float color_position[] = COLOR_STEP,
-                  color_step_moltiplicator = (DRIVER_MICROSTEP / MOTOR_ANGLE) * CARTER_MOLTIPLICATOR;
-
-      if (e != old_color) {
-        long csteps;
-        stepper.synchronize(); // Finish all movement
-
-        if (old_color == 99)
-          csteps = (color_position[e]) * color_step_moltiplicator;
-        else
-          csteps = (color_position[e] - color_position[old_color]) * color_step_moltiplicator;
-
-        if (csteps < 0) stepper.colorstep(-csteps, false);
-        if (csteps > 0) stepper.colorstep(csteps, true);
-
-        // Set the new active extruder
-        previous_extruder = active_extruder;
-        old_color = active_extruder = e;
-        active_driver = 0;
-        SERIAL_EMV(MSG_ACTIVE_COLOR, (int)active_extruder);
-      }
-    }
-
-  #elif ENABLED(MKSE6)
+  #if ENABLED(MKSE6)
 
     void Tools::MK_multi_tool_change(const uint8_t e) {
 

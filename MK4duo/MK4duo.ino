@@ -288,7 +288,6 @@
  * M928 - Start SD logging (M928 filename.g) - ended by M29
  * M995 - X Y Z Set origin for graphic in NEXTION
  * M996 - S<scale> Set scale for graphic in NEXTION
- * M997 - NPR2 Color rotate
  * M999 - Restart after being stopped by error
  *
  * "T" Codes

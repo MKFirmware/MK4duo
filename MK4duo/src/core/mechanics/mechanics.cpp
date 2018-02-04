@@ -384,11 +384,12 @@ void Mechanics::report_current_position_detail() {
 }
 
 void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
+  char str[12];
   for (uint8_t i = 0; i < n; i++) {
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
-    SERIAL_VAL(pos[i], precision);
+    SERIAL_VAL(dtostrf(pos[i], 9, precision, str));
   }
   SERIAL_EOL();
 }

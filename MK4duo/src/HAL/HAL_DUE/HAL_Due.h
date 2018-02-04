@@ -66,7 +66,6 @@
 typedef uint32_t  hal_timer_t;
 typedef uint32_t  ptr_int_t;
 
-
 //#define MOVE_DEBUG
 #if ENABLED(MOVE_DEBUG)
   extern unsigned int numInterruptsScheduled,
@@ -221,6 +220,9 @@ typedef uint32_t  ptr_int_t;
 // reset reason set by bootloader
 extern uint8_t MCUSR;
 volatile static uint32_t debug_counter;
+
+extern "C" char *sbrk(int i);
+extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
 
 // Class to perform averaging of values read from the ADC
 // numAveraged should be a power of 2 for best efficiency

@@ -772,9 +772,6 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
           enable_E1();
         break;
       }
-    #elif ENABLED(NPR2)
-      enable_E0();
-      enable_E1();
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
       enable_E0();
     #endif

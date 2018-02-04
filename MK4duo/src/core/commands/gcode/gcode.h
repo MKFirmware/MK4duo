@@ -84,7 +84,6 @@
 #include "control/m410.h"                 // Quickstop
 #include "control/m540.h"                 // Enable/disable SD card abort on endstop hit
 #include "control/m605.h"                 // Set dual x-carriage movement mode
-#include "control/m997.h"                 // NPr2 Move Carter xx gradi
 #include "control/m999.h"                 // Restart after being stopped
 
 // Debug Commands
