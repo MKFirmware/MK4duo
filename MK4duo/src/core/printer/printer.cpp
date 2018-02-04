@@ -76,10 +76,6 @@ PrinterMode Printer::mode =
             Printer::Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 #endif
 
-#if ENABLED(NPR2)
-  uint8_t Printer::old_color = 99;
-#endif
-
 #if ENABLED(BARICUDA)
   int Printer::baricuda_valve_pressure  = 0,
       Printer::baricuda_e_to_p_pressure = 0;

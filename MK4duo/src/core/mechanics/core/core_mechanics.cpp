@@ -109,16 +109,14 @@
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
       const bool  homeZ = always_home_all || parser.seen('Z'),
                   homeX = always_home_all || homeZ || parser.seen('X'),
-                  homeY = always_home_all || homeZ || parser.seen('Y'),
-                  homeE = always_home_all || parser.seen('E');
+                  homeY = always_home_all || homeZ || parser.seen('Y');
     #else
       const bool  homeX = always_home_all || parser.seen('X'),
                   homeY = always_home_all || parser.seen('Y'),
-                  homeZ = always_home_all || parser.seen('Z'),
-                  homeE = always_home_all || parser.seen('E');
+                  homeZ = always_home_all || parser.seen('Z');
     #endif
 
-    const bool home_all = (!homeX && !homeY && !homeZ && !homeE) || (homeX && homeY && homeZ);
+    const bool home_all = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
 
     set_destination_to_current();
 
@@ -215,21 +213,6 @@
     #endif
 
     sync_plan_position();
-
-    #if ENABLED(NPR2)
-      if ((home_all) || (parser.seen('E'))) {
-        set_destination_to_current();
-        destination[E_AXIS] = -200;
-        tools.active_driver = tools.active_extruder = 1;
-        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, tools.active_extruder);
-        stepper.synchronize();
-        printer.old_color = 99;
-        tools.active_driver = tools.active_extruder = 0;
-        current_position[E_AXIS] = 0;
-        sync_plan_position_e();
-      }
-    #endif
-
     printer.setNotHoming();
 
     if (come_back) {

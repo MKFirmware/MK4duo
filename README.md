@@ -52,7 +52,6 @@ The new features are:
 * System Management MKr4 for 4 extruders width just two drivers and 8 relay.
 * System Management MKr6 for 6 extruders width just two drivers and 8 relay.
 * System Management MKr12 for 12 extruders width just four drivers and 16 relay.
-* Management Multyextruder NPr2, 4/6 extruders with only two engines.
 * Management Dual Extruder DONDOLO.
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
 * Added commands to facilitate purging of hotend. 

@@ -104,28 +104,6 @@
   #error "DEPENDENCY ERROR: You have to set DOOR_PIN to a valid pin if you enable DOOR_OPEN."
 #endif
 
-// NPR2 multicolor extruder
-#if ENABLED(NPR2)
-  #if DISABLED(COLOR_STEP)
-    #error "DEPENDENCY ERROR: Missing setting COLOR_STEP."
-  #endif
-  #if DISABLED(COLOR_SLOWRATE)
-    #error "DEPENDENCY ERROR: Missing setting COLOR_SLOWRATE."
-  #endif
-  #if DISABLED(COLOR_HOMERATE)
-    #error "DEPENDENCY ERROR: Missing setting COLOR_HOMERATE."
-  #endif
-  #if DISABLED(MOTOR_ANGLE)
-    #error "DEPENDENCY ERROR: Missing setting MOTOR_ANGLE."
-  #endif
-  #if DISABLED(DRIVER_MICROSTEP)
-    #error "DEPENDENCY ERROR: Missing setting DRIVER_MICROSTEP."
-  #endif
-  #if DISABLED(CARTER_MOLTIPLICATOR)
-    #error "DEPENDENCY ERROR: Missing setting CARTER_MOLTIPLICATOR."
-  #endif
-#endif
-
 // CHDK
 #if ENABLED(CHDK)
   #if DISABLED(CHDK_DELAY)

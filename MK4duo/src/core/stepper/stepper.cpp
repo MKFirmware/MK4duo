@@ -1584,21 +1584,6 @@ void Stepper::report_positions() {
   SERIAL_EOL();
 }
 
-#if ENABLED(NPR2)
-  void Stepper::colorstep(long csteps, const bool direction) {
-    enable_E1();
-    // setup new step
-    WRITE(E1_DIR_PIN,(INVERT_E1_DIR)^direction);
-    // perform step
-    for (uint32_t step = 0; step <= csteps; step++){
-      WRITE(E1_STEP_PIN, !INVERT_E_STEP_PIN);
-      HAL::delayMicroseconds(COLOR_SLOWRATE);
-      WRITE(E1_STEP_PIN, INVERT_E_STEP_PIN);
-      HAL::delayMicroseconds(COLOR_SLOWRATE);
-    }
-  }
-#endif //NPR2
-
 #if ENABLED(BABYSTEPPING)
 
   #if ENABLED(DELTA)

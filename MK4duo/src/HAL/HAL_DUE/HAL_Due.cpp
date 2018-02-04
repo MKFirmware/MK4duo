@@ -74,7 +74,6 @@
                 deceleration_step_rate    = 0;
 #endif
 
-extern "C" char *sbrk(int i);
 uint8_t MCUSR;
 
 #if ANALOG_INPUTS > 0

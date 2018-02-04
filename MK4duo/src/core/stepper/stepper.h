@@ -274,10 +274,6 @@ class Stepper {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
 
-    #if ENABLED(NPR2) // Multiextruder
-      static void colorstep(long csteps, const bool direction);
-    #endif
-
   private: /** Private Function */
 
     FORCE_INLINE static hal_timer_t calc_timer_interval(hal_timer_t step_rate) {

@@ -609,20 +609,6 @@
       if (printer.debugLeveling()) DEBUG_POS("<<< home_delta", current_position);
     #endif
 
-    #if ENABLED(NPR2)
-      if ((home_all) || (parser.seen('E'))) {
-        set_destination_to_current();
-        destination[E_AXIS] = -200;
-        tools.active_driver = tools.active_extruder = 1;
-        planner.buffer_line_kinematic(destination, COLOR_HOMERATE, tools.active_extruder);
-        stepper.synchronize();
-        printer.old_color = 99;
-        tools.active_driver = tools.active_extruder = 0;
-        current_position[E_AXIS] = 0;
-        sync_plan_position_e();
-      }
-    #endif
-
     printer.setNotHoming();
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
@@ -726,6 +712,7 @@
       SERIAL_CHR(axis_codes[i]);
       SERIAL_CHR(':');
       SERIAL_VAL(stepper.position((AxisEnum)i));
+      SERIAL_MSG("    ");
     }
     SERIAL_EOL();
 

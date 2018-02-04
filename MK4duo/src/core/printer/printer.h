@@ -130,10 +130,6 @@ class Printer {
                       Spool_must_write[EXTRUDERS];
     #endif
 
-    #if ENABLED(NPR2)
-      static uint8_t old_color; // old color for system NPR2
-    #endif
-
     #if ENABLED(BARICUDA)
       static int baricuda_valve_pressure;
       static int baricuda_e_to_p_pressure;
