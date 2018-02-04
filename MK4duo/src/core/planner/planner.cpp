@@ -415,7 +415,7 @@ void Planner::check_axes_activity() {
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
  */
-void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/) {
 
   const int32_t dx = target[X_AXIS] - position[X_AXIS],
                 dy = target[Y_AXIS] - position[Y_AXIS],
@@ -444,18 +444,13 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
         && printer.mode == PRINTER_MODE_FFF
       #endif
     ) {
-      #if ENABLED(NPR2)
-        if (extruder != 1)
-      #endif
-        {
-          #if ENABLED(PREVENT_COLD_EXTRUSION)
-            if (thermalManager.tooColdToExtrude(extruder)) {
-              position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
-              de = 0; // no difference
-              SERIAL_LM(ER, MSG_ERR_COLD_EXTRUDE_STOP);
-            }
-          #endif
+      #if ENABLED(PREVENT_COLD_EXTRUSION)
+        if (thermalManager.tooColdToExtrude(extruder)) {
+          position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
+          de = 0; // no difference
+          SERIAL_LM(ER, MSG_ERR_COLD_EXTRUDE_STOP);
         }
+      #endif
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         if (labs(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
@@ -830,7 +825,7 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
   if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = FABS(delta_mm[E_AXIS]);
   }
-  else {
+  else if (!millimeters) {
     block->millimeters = SQRT(
       #if CORE_IS_XY
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
@@ -843,6 +838,8 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
       #endif
     );
   }
+  else
+    block->millimeters = millimeters;
 
   #if ENABLED(LASER)
 
@@ -1208,8 +1205,9 @@ void Planner::buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const u
  *  a,b,c,e     - target positions in mm and/or degrees
  *  fr_mm_s     - (target) speed of the move
  *  extruder    - target extruder
+ *  millimeters - the length of the movement, if known
  */
-void Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/) {
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
@@ -1294,7 +1292,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
       lin_dist_xy = HYPOT(a - position_float[X_AXIS], b - position_float[Y_AXIS]);
   #endif
 
-  buffer_steps(target, fr_mm_s, extruder);
+  buffer_steps(target, fr_mm_s, extruder, millimeters);
 
   stepper.wake_up();
 
@@ -1318,8 +1316,9 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
  *  rx,ry,rz,e   - target position in mm or degrees
  *  fr_mm_s      - (target) speed of the move (mm/s)
  *  extruder     - target extruder
+ *  millimeters  - the length of the movement, if known
  */
-void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters/*=0.0*/) {
   #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
     bedlevel.apply_leveling(rx, ry, rz);
   #endif
@@ -1331,7 +1330,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
     // Calculate Hysteresis
     mechanics.insert_hysteresis_correction(rx, ry, rz, e);
   #endif
-  buffer_segment(rx, ry, rz, e, fr_mm_s, extruder);
+  buffer_segment(rx, ry, rz, e, fr_mm_s, extruder, millimeters);
 }
 
 /**
@@ -1343,7 +1342,7 @@ void Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
  *  fr_mm_s   - (target) speed of the move (mm/s)
  *  extruder  - target extruder
  */
-void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder) {
+void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters/*= 0.0*/) {
   #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
     float raw[XYZ]={ cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
     #if PLANNER_LEVELING
@@ -1363,9 +1362,9 @@ void Planner::buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s
 
   #if IS_KINEMATIC
     mechanics.Transform(raw);
-    buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters);
   #else
-    buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder);
+    buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters);
   #endif
 }
 

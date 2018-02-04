@@ -202,9 +202,15 @@
 #define MSG_SELECT                          _UxGT("Seleziona")
 #define MSG_ACC                             _UxGT("Accel")
 #define MSG_JERK                            _UxGT("Jerk")
-#define MSG_VX_JERK                         _UxGT("Vx-jerk")
-#define MSG_VY_JERK                         _UxGT("Vy-jerk")
-#define MSG_VZ_JERK                         _UxGT("Vz-jerk")
+#if IS_KINEMATIC
+  #define MSG_VX_JERK                       _UxGT("Va-jerk")
+  #define MSG_VY_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+#else
+  #define MSG_VX_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VY_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+#endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VELOCITY                        _UxGT("Velocità")
 #define MSG_VMAX                            _UxGT("Vmax ")
@@ -215,9 +221,15 @@
 #define MSG_A_RETRACT                       _UxGT("A-retract")
 #define MSG_A_TRAVEL                        _UxGT("A-Spostamento")
 #define MSG_STEPS_PER_MM                    _UxGT("Passi/mm")
-#define MSG_XSTEPS                          _UxGT("Xpassi/mm")
-#define MSG_YSTEPS                          _UxGT("Ypassi/mm")
-#define MSG_ZSTEPS                          _UxGT("Zpassi/mm")
+#if IS_KINEMATIC
+  #define MSG_XSTEPS                        _UxGT("Apassi/mm")
+  #define MSG_YSTEPS                        _UxGT("Bpassi/mm")
+  #define MSG_ZSTEPS                        _UxGT("Cpassi/mm")
+#else
+  #define MSG_XSTEPS                        _UxGT("Xpassi/mm")
+  #define MSG_YSTEPS                        _UxGT("Ypassi/mm")
+  #define MSG_ZSTEPS                        _UxGT("Zpassi/mm")
+#endif
 #define MSG_ESTEPS                          _UxGT("Epassi/mm")
 #define MSG_E1STEPS                         _UxGT("E1passi/mm")
 #define MSG_E2STEPS                         _UxGT("E2passi/mm")

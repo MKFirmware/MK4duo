@@ -195,7 +195,6 @@
 #ifndef MSG_USER_MENU
   #define MSG_USER_MENU                       _UxGT("Custom Commands")
 #endif
-
 #ifndef MSG_UBL_DOING_G29
   #define MSG_UBL_DOING_G29                   _UxGT("Doing G29")
 #endif
@@ -540,14 +539,26 @@
 #ifndef MSG_JERK
   #define MSG_JERK                            _UxGT("Jerk")
 #endif
-#ifndef MSG_VX_JERK
-  #define MSG_VX_JERK                         _UxGT("Vx-jerk")
-#endif
-#ifndef MSG_VY_JERK
-  #define MSG_VY_JERK                         _UxGT("Vy-jerk")
-#endif
-#ifndef MSG_VZ_JERK
-  #define MSG_VZ_JERK                         _UxGT("Vz-jerk")
+#if IS_KINEMATIC
+  #ifndef MSG_VX_JERK
+    #define MSG_VX_JERK                       _UxGT("Va-jerk")
+  #endif
+  #ifndef MSG_VY_JERK
+    #define MSG_VY_JERK                       _UxGT("Vb-jerk")
+  #endif
+  #ifndef MSG_VZ_JERK
+    #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+  #endif
+#else
+  #ifndef MSG_VX_JERK
+    #define MSG_VX_JERK                       _UxGT("Vx-jerk")
+  #endif
+  #ifndef MSG_VY_JERK
+    #define MSG_VY_JERK                       _UxGT("Vy-jerk")
+  #endif
+  #ifndef MSG_VZ_JERK
+    #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+  #endif
 #endif
 #ifndef MSG_VE_JERK
   #define MSG_VE_JERK                         _UxGT("Ve-jerk")
@@ -579,14 +590,26 @@
 #ifndef MSG_STEPS_PER_MM
   #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #endif
-#ifndef MSG_XSTEPS
-  #define MSG_XSTEPS                          _UxGT("Xsteps/mm")
-#endif
-#ifndef MSG_YSTEPS
-  #define MSG_YSTEPS                          _UxGT("Ysteps/mm")
-#endif
-#ifndef MSG_ZSTEPS
-  #define MSG_ZSTEPS                          _UxGT("Zsteps/mm")
+#if IS_KINEMATIC
+  #ifndef MSG_XSTEPS
+    #define MSG_XSTEPS                        _UxGT("Asteps/mm")
+  #endif
+  #ifndef MSG_YSTEPS
+    #define MSG_YSTEPS                        _UxGT("Bsteps/mm")
+  #endif
+  #ifndef MSG_ZSTEPS
+    #define MSG_ZSTEPS                        _UxGT("Csteps/mm")
+  #endif
+#else
+  #ifndef MSG_XSTEPS
+    #define MSG_XSTEPS                        _UxGT("Xsteps/mm")
+  #endif
+  #ifndef MSG_YSTEPS
+    #define MSG_YSTEPS                        _UxGT("Ysteps/mm")
+  #endif
+  #ifndef MSG_ZSTEPS
+    #define MSG_ZSTEPS                        _UxGT("Zsteps/mm")
+  #endif
 #endif
 #ifndef MSG_ESTEPS
   #define MSG_ESTEPS                          _UxGT("Esteps/mm")
@@ -897,8 +920,8 @@
 #ifndef MSG_DELTA_HEIGHT_CALIBRATE
   #define MSG_DELTA_HEIGHT_CALIBRATE          _UxGT("Set Delta Height")
 #endif
-#ifndef MSG_DELTA_DIAG_ROG
-  #define MSG_DELTA_DIAG_ROG                  _UxGT("Diag Rod")
+#ifndef MSG_DELTA_DIAG_ROD
+  #define MSG_DELTA_DIAG_ROD                  _UxGT("Diag Rod")
 #endif
 #ifndef MSG_DELTA_HEIGHT
   #define MSG_DELTA_HEIGHT                    _UxGT("Height")
@@ -1058,10 +1081,7 @@
   #define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("Purge more")
 #endif
 #ifndef MSG_FILAMENT_CHANGE_OPTION_RESUME
-  #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Resume print")
-#endif
-#ifndef MSG_FILAMENT_CHANGE_MINTEMP
-  #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Minimum Temp is ")
+  #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Continue")
 #endif
 #ifndef MSG_FILAMENT_CHANGE_NOZZLE
   #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Nozzle: ")
@@ -1071,6 +1091,9 @@
 #endif
 #ifndef MSG_ERR_PROBING_FAILED
   #define MSG_ERR_PROBING_FAILED              _UxGT("Probing failed")
+#endif
+#ifndef MSG_M600_TOO_COLD
+  #define MSG_M600_TOO_COLD                   _UxGT("M600: Too cold")
 #endif
 
 //
@@ -1137,7 +1160,7 @@
     #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Loading...")
   #endif
   #ifndef MSG_FILAMENT_CHANGE_PURGE_1
-    #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Extruding...")
+    #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Purging...")
   #endif
   #ifndef MSG_FILAMENT_CHANGE_RESUME_1
     #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Resuming...")

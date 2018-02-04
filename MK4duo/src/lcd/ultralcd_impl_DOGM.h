@@ -160,19 +160,22 @@
 
 // LCD selection
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-  #if ENABLED(CPU_32_BIT)
-    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
-  #else
+  #if DISABLED(SDSUPPORT) && (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
     U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // 2 stripes, HW SPI (shared with SD card)
+  #else
+    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
   #endif
 
 #elif ENABLED(U8GLIB_ST7920)
   // RepRap Discount Full Graphics Smart Controller
-    //U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_RS); // 2 stripes, HW SPI (shared with SD card, on AVR does not use standard LCD adapter)
+  #if DISABLED(SDSUPPORT) && (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
+    U8GLIB_ST7920_128X64_4X_HAL u8g(LCD_PINS_RS); // 2 stripes, HW SPI (shared with SD card, on AVR does not use standard LCD adapter)
+  #else
     //U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
     U8GLIB_ST7920_128X64_RRD u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Number of stripes can be adjusted in ultralcd_st7920_u8glib_rrd.h with PAGE_HEIGHT
                                                                            // AVR version ignores these pin settings
                                                                            // HAL version uses these pin settings
+  #endif
 
 #elif ENABLED(CARTESIO_UI)
   // The CartesioUI display
@@ -186,8 +189,11 @@
 
 #elif ENABLED(U8GLIB_ST7565_64128N)
   // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller
-    //U8GLIB_64128N_2X_HAL u8g(DOGLCD_CS, DOGLCD_A0);  // using HW-SPI
+  #if DISABLED(SDSUPPORT) && (DOGLCD_SCK == SCK_PIN) && (DOGLCD_MOSI == MOSI_PIN)
+    U8GLIB_64128N_2X_HAL u8g(DOGLCD_CS, DOGLCD_A0);  // using HW-SPI
+  #else
     U8GLIB_64128N_2X_HAL u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);  // using SW-SPI
+  #endif
 
 #elif ENABLED(MKS_12864OLED_SSD1306)
   // MKS 128x64 (SSD1306) OLED I2C LCD
@@ -316,19 +322,21 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
       constexpr uint8_t offy = DOG_CHAR_HEIGHT;
     #endif
 
-    const uint8_t offx  = (u8g.getWidth() - (START_BMPWIDTH)) / 2,
-                  txt1X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH)) / 2;
+    const uint8_t width = u8g.getWidth(), height = u8g.getHeight(),
+                  offx = (width - (START_BMPWIDTH)) / 2;
 
     u8g.firstPage();
     do {
       u8g.drawBitmapP(offx, offy, (START_BMPWIDTH + 7) / 8, START_BMPHEIGHT, start_bmp);
       lcd_setFont(FONT_MENU);
-      #if DISABLED(STRING_SPLASH_LINE2)
-        u8g.drawStr(txt1X, u8g.getHeight() - (DOG_CHAR_HEIGHT), STRING_SPLASH_LINE1);
+      #ifndef STRING_SPLASH_LINE2
+        const uint8_t txt1X = width - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH);
+        u8g.drawStr(txt1X, (height + DOG_CHAR_HEIGHT) / 2, STRING_SPLASH_LINE1);
       #else
-        const uint8_t txt2X = (u8g.getWidth() - (sizeof(STRING_SPLASH_LINE2) - 1) * (DOG_CHAR_WIDTH)) / 2;
-        u8g.drawStr(txt1X, u8g.getHeight() - (DOG_CHAR_HEIGHT) * 3 / 2, STRING_SPLASH_LINE1);
-        u8g.drawStr(txt2X, u8g.getHeight() - (DOG_CHAR_HEIGHT) * 1 / 2, STRING_SPLASH_LINE2);
+        const uint8_t txt1X = (width - (sizeof(STRING_SPLASH_LINE1) - 1) * (DOG_CHAR_WIDTH)) / 2,
+                      txt2X = (width - (sizeof(STRING_SPLASH_LINE2) - 1) * (DOG_CHAR_WIDTH)) / 2;
+        u8g.drawStr(txt1X, height - (DOG_CHAR_HEIGHT) * 3 / 2, STRING_SPLASH_LINE1);
+        u8g.drawStr(txt2X, height - (DOG_CHAR_HEIGHT) * 1 / 2, STRING_SPLASH_LINE2);
       #endif
     } while (u8g.nextPage());
     HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
@@ -386,11 +394,15 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 //
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
-  const uint8_t degsize = 6 * (temp >= 100 ? 3 : temp >= 10 ? 2 : 1); // number's pixel width
-  u8g.setPrintPos(x - (18 - degsize) / 2, y); // move left if shorter
-  lcd_print(itostr3(temp));
+  const char * const str = itostr3(temp);
+  u8g.setPrintPos(x - (str[0] != ' ' ? 0 : str[1] != ' ' ? 1 : 2) * DOG_CHAR_WIDTH / 2, y);
+  lcd_print(str);
   lcd_printPGM(PSTR(LCD_STR_DEGREE " "));
 }
+
+#if DISABLED(HEAT_INDICATOR_X)
+  #define HEAT_INDICATOR_X 8
+#endif
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, const bool blink) {
   #if !HEATER_IDLE_HANDLER
@@ -415,7 +427,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
     _draw_centered_temp((isBed ? heaters[heater].current_temperature : heaters[heater].current_temperature) + 0.5, x, 28);
 
   if (PAGE_CONTAINS(17, 20)) {
-    const uint8_t h = isBed ? 7 : 8,
+    const uint8_t h = isBed ? 7 : HEAT_INDICATOR_X,
                   y = isBed ? 18 : 17;
     if (heaters[heater].isHeating()) {
       u8g.setColorIndex(0); // white on black
@@ -482,6 +494,15 @@ inline void lcd_implementation_status_message(const bool blink) {
 static void lcd_implementation_status_screen() {
 
   const bool blink = lcd_blink();
+
+  #if FAN_ANIM_FRAMES > 2
+    static bool old_blink;
+    static uint8_t fan_frame;
+    if (old_blink != blink) {
+      old_blink = blink;
+      if (!fans[0].Speed || ++fan_frame >= FAN_ANIM_FRAMES) fan_frame = 0;
+    }
+  #endif
 
   // Status Menu Font
   lcd_setFont(FONT_STATUSMENU);

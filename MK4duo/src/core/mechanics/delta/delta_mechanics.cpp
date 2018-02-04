@@ -133,7 +133,7 @@
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
       // If the move is very short, check the E move distance
-      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = abs(difference[E_AXIS]);
+      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
 
       // No E move either? Game over.
       if (UNEAR_ZERO(cartesian_mm)) return true;
@@ -150,6 +150,7 @@
 
       // The approximate length of each segment
       const float inv_segments = 1.0 / float(segments),
+                  cartesian_segment_mm = cartesian_mm * inv_segments,
                   segment_distance[XYZE] = {
                     difference[X_AXIS] * inv_segments,
                     difference[Y_AXIS] * inv_segments,
@@ -160,17 +161,14 @@
       //SERIAL_MV("mm=", cartesian_mm);
       //SERIAL_MV(" seconds=", seconds);
       //SERIAL_EMV(" segments=", segments);
+      //SERIAL_EMV(" segment_mm=", cartesian_segment_mm);
 
       // Get the current position as starting point
       float raw[XYZE];
       COPY_ARRAY(raw, current_position);
 
-      // Drop one segment so the last move is to the exact target.
-      // If there's only 1 segment, loops will be skipped entirely.
-      --segments;
-
       // Calculate and execute the segments
-      for (uint16_t s = segments + 1; --s;) {
+      while (--segments) {
 
         if (HAL::execute_100ms) printer.idle();
 
@@ -187,11 +185,11 @@
           }
         #endif
 
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
 
       }
 
-      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
 
       return false; // caller will update current_position
     }
