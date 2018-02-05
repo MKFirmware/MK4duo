@@ -389,7 +389,9 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   printer.safe_delay(600);  // Wait a short time (allows messages to get out before shutting down.
-  cli(); // Stop interrupts
+  #if DISABLED(CPU_32_BIT)
+    cli(); // Stop interrupts
+  #endif
 
   printer.safe_delay(250);  // Wait to ensure all interrupts routines stopped
   thermalManager.disable_all_heaters(); // Turn off heaters again
