@@ -199,12 +199,21 @@
             #if HAS_DONDOLO
               // <0 if the new nozzle is higher, >0 if lower. A bigger raise when lower.
               float z_diff = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder],
-                    z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0);
+                    z_raise = 0.3 + (z_diff > 0.0 ? z_diff : 0.0),
+                    z_back  = 0.3 - (z_diff < 0.0 ? z_diff : 0.0);
 
-              // Always raise by some amount
-              mechanics.current_position[Z_AXIS] += z_raise;
-              planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+               // Always raise by some amount (destination copied from current_position earlier)
+              mechanics.destination[Z_AXIS] += z_raise;
+              planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              stepper.synchronize();
+
               move_extruder_servo(tmp_extruder);
+              HAL::delayMilliseconds(500);
+
+              // Move back down
+              mechanics.destination[Z_AXIS] = mechanics.current_position[Z_AXIS] - z_back;
+              planner.buffer_line_kinematic(mechanics.destination, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              stepper.synchronize();
             #endif
 
             /**
@@ -318,22 +327,13 @@
           mechanics.sync_plan_position();
 
           // Move to the "old position" (move the extruder into place)
-          #if HAS_DONDOLO
-            mechanics.destination[Z_AXIS] += z_diff;  // Include the Z restore with the "move back"
-          #endif
           if (!no_move && printer.IsRunning()) {
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (printer.debugLeveling()) DEBUG_POS("Move back", mechanics.destination);
             #endif
-            // Move back to the original (or tweaked) position
-            mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+            mechanics.prepare_move_to_destination();
           }
-          #if HAS_DONDOLO
-            else {
-              // Move back down, if needed. (Including when the new tool is higher.)
-              mechanics.do_blocking_move_to_z(mechanics.destination[Z_AXIS], mechanics.max_feedrate_mm_s[Z_AXIS]);
-            }
-          #endif
+
         } // (tmp_extruder != active_extruder)
 
         stepper.synchronize();
