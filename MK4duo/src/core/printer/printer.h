@@ -39,7 +39,6 @@ constexpr const uint8_t debug_mesh_adjust         = 64;
 constexpr const uint8_t debug_simulation          = 128;
 
 enum Flag1HomeEnum {
-  flag1_all_homed,
   flag1_x_homed,
   flag1_y_homed,
   flag1_z_homed,
@@ -207,33 +206,18 @@ class Printer {
       setDebugLevel(mk_debug_flag & ~flag);
     }
 
-    FORCE_INLINE static void unsetHomedAll() {
-      CBI(mk_1_flag, flag1_all_homed);
-      CBI(mk_1_flag, flag1_x_homed);
-      CBI(mk_1_flag, flag1_y_homed);
-      CBI(mk_1_flag, flag1_z_homed);
-    }
-    FORCE_INLINE static void updateHomedAll() {
-      bool onoff = isXHomed() && isYHomed() && isZHomed();
-      SET_BIT(mk_1_flag, flag1_all_homed, onoff);
-    }
-    FORCE_INLINE static bool isHomedAll() { TEST(mk_1_flag, flag1_all_homed); }
-
     FORCE_INLINE static void setXHomed(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_x_homed, onoff);
-      updateHomedAll();
     }
     FORCE_INLINE static bool isXHomed() { return TEST(mk_1_flag, flag1_x_homed); }
 
     FORCE_INLINE static void setYHomed(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_y_homed, onoff);
-      updateHomedAll();
     }
     FORCE_INLINE static bool isYHomed() { return TEST(mk_1_flag, flag1_y_homed); }
 
     FORCE_INLINE static void setZHomed(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_z_homed, onoff);
-      updateHomedAll();
     }
     FORCE_INLINE static bool isZHomed() { return TEST(mk_1_flag, flag1_z_homed); }
 
@@ -243,7 +227,6 @@ class Printer {
         case Y_AXIS: setYHomed(onoff); break;
         case Z_AXIS: setZHomed(onoff); break;
       }
-      updateHomedAll();
     }
     FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
       switch (axis) {
@@ -252,6 +235,13 @@ class Printer {
         case Z_AXIS: return isZHomed(); break;
       }
     }
+
+    FORCE_INLINE static void unsetHomedAll() {
+      CBI(mk_1_flag, flag1_x_homed);
+      CBI(mk_1_flag, flag1_y_homed);
+      CBI(mk_1_flag, flag1_z_homed);
+    }
+    FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
 
     FORCE_INLINE static void setXKnownPosition(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_x_known_position, onoff);

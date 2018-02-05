@@ -177,7 +177,7 @@ void Printer::setup() {
   #endif
 
   // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  eeprom.Load_Settings();
+  const bool eeprom_loaded = eeprom.Load_Settings();
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
@@ -295,6 +295,7 @@ void Printer::setup() {
     LOOP_FAN() fans[f].Speed = 0;
   #endif
 
+  if (!eeprom_loaded) lcd_eeprom_allert();
 }
 
 /**
@@ -387,10 +388,10 @@ void Printer::kill(const char* lcd_msg) {
     UNUSED(lcd_msg);
   #endif
 
-  HAL::delayMilliseconds(600);  // Wait a short time (allows messages to get out before shutting down.
+  printer.safe_delay(600);  // Wait a short time (allows messages to get out before shutting down.
   cli(); // Stop interrupts
 
-  HAL::delayMilliseconds(250);  // Wait to ensure all interrupts routines stopped
+  printer.safe_delay(250);  // Wait to ensure all interrupts routines stopped
   thermalManager.disable_all_heaters(); // Turn off heaters again
 
   #if ENABLED(LASER)
@@ -401,7 +402,7 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   #if ENABLED(CNCROUTER)
-     cnc.disable_router();
+    cnc.disable_router();
   #endif
 
   #if HAS_POWER_SWITCH
