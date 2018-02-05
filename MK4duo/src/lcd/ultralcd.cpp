@@ -5491,9 +5491,8 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
       }
       #if ENABLED(AUTO_BED_LEVELING_UBL)
         if (lcd_external_control) {
-          ubl.encoder_diff = encoderDiff;   // Make the encoder's rotation available to G29's Mesh Editor
-          encoderDiff = 0;                  // We are going to lie to the LCD Panel and claim the encoder
-                                            // knob has not turned.
+          ubl.encoder_diff = encoderDiff;   // Make encoder rotation available to UBL G29 mesh editing.
+          encoderDiff = 0;                  // Hide the encoder event from the current screen handler.
         }
       #endif
       lastEncoderBits = enc;
@@ -5519,6 +5518,26 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
       printer.safe_delay(50);
     }
   #endif
+
+  void eeprom_allert() {
+    START_SCREEN();
+    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_1);
+    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_2);
+    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_3);
+    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_4);
+    END_SCREEN();
+  }
+
+  void lcd_eeprom_allert() {
+    lcd_goto_screen(eeprom_allert);
+    lcd_completion_feedback(true);
+    KEEPALIVE_STATE(PAUSED_FOR_USER);
+    defer_return_to_status = true;
+    printer.setWaitForUser(true);
+    while (printer.isWaitForUser()) printer.idle();
+    KEEPALIVE_STATE(IN_HANDLER);
+    lcd_return_to_status();
+  }
 
 #endif // ULTIPANEL
 

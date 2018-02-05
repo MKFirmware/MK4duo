@@ -230,6 +230,8 @@
     void wait_for_release();
   #endif
 
+  void lcd_eeprom_allert();
+
 #elif DISABLED(NEXTION)
 
   constexpr bool lcd_wait_for_move = false;
@@ -245,6 +247,7 @@
   inline void lcd_reset_alert_level() {}
   inline bool lcd_detected() { return true; }
   inline void lcd_refresh() {}
+  inline void lcd_eeprom_allert() {}
 
 #endif // ULTRA_LCD
 

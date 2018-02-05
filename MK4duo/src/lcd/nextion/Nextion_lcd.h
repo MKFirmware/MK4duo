@@ -120,6 +120,7 @@
   FORCE_INLINE bool lcd_hasstatus() { return false; }
   FORCE_INLINE void lcd_draw_update() {}
   FORCE_INLINE void lcd_refresh() {}
+  FORCE_INLINE void lcd_eeprom_allert() {}
 
   constexpr bool lcd_wait_for_move = false;
 

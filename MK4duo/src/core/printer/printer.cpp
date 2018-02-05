@@ -177,7 +177,7 @@ void Printer::setup() {
   #endif
 
   // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
-  eeprom.Load_Settings();
+  const bool eeprom_loaded = eeprom.Load_Settings();
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
@@ -295,6 +295,7 @@ void Printer::setup() {
     LOOP_FAN() fans[f].Speed = 0;
   #endif
 
+  if (!eeprom_loaded) lcd_eeprom_allert();
 }
 
 /**

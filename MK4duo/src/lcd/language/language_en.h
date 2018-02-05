@@ -1222,4 +1222,18 @@
   #define MSG_RFID_SPOOL_LENGHT               _UxGT("Spool Lenght: ")
 #endif
 
+// EEPROM Allert
+#ifndef MSG_EEPROM_CHANGED_ALLERT_1
+  #define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENTION!!!")
+#endif
+#ifndef MSG_EEPROM_CHANGED_ALLERT_2
+  #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Changed.")
+#endif
+#ifndef MSG_EEPROM_CHANGED_ALLERT_3
+  #define MSG_EEPROM_CHANGED_ALLERT_3         _UxGT("Press button")
+#endif
+#ifndef MSG_EEPROM_CHANGED_ALLERT_4
+  #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("to continue...")
+#endif
+
 #endif // LANGUAGE_EN_H
