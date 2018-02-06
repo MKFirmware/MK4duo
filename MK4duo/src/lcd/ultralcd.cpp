@@ -2587,7 +2587,7 @@ void kill_screen(const char* lcd_msg) {
     // Switch power on/off
     //
     #if HAS_POWER_SWITCH
-      if (powerManager.powersupply_on)
+      if (powerManager.lastPowerOn)
         MENU_ITEM(gcode, MSG_SWITCH_PS_OFF, PSTR("M81"));
       else
         MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));

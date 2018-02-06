@@ -643,7 +643,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if HAS_POWER_SWITCH
-    if (!powerManager.powersupply_on) powerManager.check(); // Check Power
+    if (!powerManager.lastPowerOn) powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
@@ -856,7 +856,7 @@ void Printer::setup_powerhold() {
     OUT_WRITE(SUICIDE_PIN, HIGH);
   #endif
   #if HAS_POWER_SWITCH
-    #if ENABLED(PS_DEFAULT_OFF)
+    #if PS_DEFAULT_OFF
       powerManager.power_off();
     #else
       powerManager.power_on();
