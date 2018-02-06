@@ -26,13 +26,7 @@
 
   Power powerManager;
 
-  bool Power::powersupply_on = 
-    #if ENABLED(PS_DEFAULT_OFF)
-      false
-    #else
-      true
-    #endif
-  ;
+  millis_t Power::lastPowerOn;
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     int16_t       Power::current_raw_powconsumption = 0;  // Holds measured power consumption
@@ -46,20 +40,23 @@
     millis_t ms = millis();
 
     if (ELAPSED(ms, nextPowerCheck)) {
-      nextPowerCheck = ms + 2000UL;
-      if (is_power_needed()) power_on();
+      nextPowerCheck = ms + 2500UL;
+      if (is_power_needed())
+        power_on();
+      else if (!lastPowerOn || ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL))
+        power_off();
     }
   }
 
   void Power::power_on() {
+    lastPowerOn = millis();
     OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
-    HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000L);
-    powersupply_on = true;
+    HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
   }
 
   void Power::power_off() {
     OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-    powersupply_on = false;
+    lastPowerOn = 0;
   }
 
   #if HAS_POWER_CONSUMPTION_SENSOR
@@ -108,6 +105,28 @@
     #if FAN_COUNT > 0
       LOOP_FAN() if (fans[f].Speed > 0) return true;
     #endif
+
+    if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON ||
+        || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+        #if E_STEPPERS > 1
+          || E1_ENABLE_READ == E_ENABLE_ON
+          #if HAS_X2_ENABLE
+            || X2_ENABLE_READ == X_ENABLE_ON
+          #endif
+          #if E_STEPPERS > 2
+            || E2_ENABLE_READ == E_ENABLE_ON
+            #if E_STEPPERS > 3
+              || E3_ENABLE_READ == E_ENABLE_ON
+              #if E_STEPPERS > 4
+                || E4_ENABLE_READ == E_ENABLE_ON
+                #if E_STEPPERS > 5
+                  || E5_ENABLE_READ == E_ENABLE_ON
+                #endif
+              #endif
+            #endif
+          #endif
+        #endif
+    ) return true;
 
     return false;
   }

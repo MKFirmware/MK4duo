@@ -33,7 +33,7 @@
 
     public: /** Public Parameters */
 
-      static bool powersupply_on;
+      static millis_t lastPowerOn;
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         static int16_t  current_raw_powconsumption;

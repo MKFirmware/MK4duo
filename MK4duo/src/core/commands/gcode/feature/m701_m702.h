@@ -82,7 +82,7 @@
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
       if (active_extruder_before_filament_change != tools.active_extruder)
-        tool.change(active_extruder_before_filament_change, 0, true);
+        tools.change(active_extruder_before_filament_change, 0, true);
     #endif
 
     // Show status screen
