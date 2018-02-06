@@ -272,16 +272,19 @@ void Printer::setup() {
     #endif
   #endif
 
+  // Init endstops and pullups
+  endstops.init();
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    endstops.setup_endstop_interrupts();
+  #endif
+
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     mixing_tools_init();
   #endif
 
   #if ENABLED(BLTOUCH)
     probe.bltouch_init();
-  #endif
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    endstops.setup_endstop_interrupts();
   #endif
 
   // All Initialized set Running to true.

@@ -138,18 +138,16 @@
 #define FONT_MENU 4
 
 // DOGM parameters (size in pixels)
-#define DOG_CHAR_WIDTH         6
-#define DOG_CHAR_HEIGHT        12
+#define DOG_CHAR_WIDTH           6
+#define DOG_CHAR_HEIGHT         12
 #if ENABLED(USE_BIG_EDIT_FONT)
-  #define FONT_MENU_EDIT_NAME u8g_font_9x18
-  #define DOG_CHAR_WIDTH_EDIT  9
-  #define DOG_CHAR_HEIGHT_EDIT 13
-  #define LCD_WIDTH_EDIT       14
+  #define FONT_MENU_EDIT_NAME   u8g_font_9x18
+  #define DOG_CHAR_WIDTH_EDIT    9
+  #define DOG_CHAR_HEIGHT_EDIT  18
 #else
-  #define FONT_MENU_EDIT_NAME FONT_MENU_NAME
-  #define DOG_CHAR_WIDTH_EDIT  6
-  #define DOG_CHAR_HEIGHT_EDIT 12
-  #define LCD_WIDTH_EDIT       22
+  #define FONT_MENU_EDIT_NAME   FONT_MENU_NAME
+  #define DOG_CHAR_WIDTH_EDIT   DOG_CHAR_WIDTH
+  #define DOG_CHAR_HEIGHT_EDIT  DOG_CHAR_HEIGHT
 #endif
 
 #ifndef TALL_FONT_CORRECTION
@@ -967,16 +965,18 @@ static void lcd_implementation_status_screen() {
   #define DRAW_BOOL_SETTING(sel, row, pstr, data) lcd_implementation_drawmenu_setting_edit_generic_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
   void lcd_implementation_drawedit(const char* const pstr, const char* const value=NULL) {
-    const uint8_t labellen = lcd_strlen_P(pstr),
-                  vallen = lcd_strlen(value);
+    const uint8_t labellen  = lcd_strlen_P(pstr),
+                  vallen    = lcd_strlen(value);
+
+    constexpr uint8_t lcd_width_edit = (LCD_WIDTH) / (DOG_CHAR_WIDTH_EDIT);
 
     uint8_t rows = (labellen > LCD_WIDTH - 2 - vallen) ? 2 : 1;
 
     #if ENABLED(USE_BIG_EDIT_FONT)
       uint8_t lcd_width, char_width;
-      if (labellen <= LCD_WIDTH_EDIT - 1) {
-        if (labellen + vallen + 2 >= LCD_WIDTH_EDIT) rows = 2;
-        lcd_width = LCD_WIDTH_EDIT + 1;
+      if (labellen <= lcd_width_edit - 1) {
+        if (labellen + vallen + 2 >= lcd_width_edit) rows = 2;
+        lcd_width = lcd_width_edit + 1;
         char_width = DOG_CHAR_WIDTH_EDIT;
         lcd_setFont(FONT_MENU_EDIT);
       }
@@ -986,8 +986,8 @@ static void lcd_implementation_status_screen() {
         lcd_setFont(FONT_MENU);
       }
     #else
-      constexpr uint8_t lcd_width = LCD_WIDTH - (START_COL),
-                        char_width = DOG_CHAR_WIDTH;
+      constexpr uint8_t lcd_width   = LCD_WIDTH - (START_COL),
+                        char_width  = DOG_CHAR_WIDTH;
     #endif
 
     // Center either one or two rows

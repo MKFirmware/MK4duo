@@ -45,6 +45,15 @@
     #endif
   }
 
+  // Homed height
+  float homed_height;
+  void Calc_homed_height() {
+    const float tempHeight = mechanics.delta_diagonal_rod;		// any sensible height will do here, probably even zero
+    float cartesian[ABC];
+    mechanics.InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
+    homed_height = mechanics.delta_height + tempHeight - cartesian[Z_AXIS];
+  }
+
   // Convert delta_endstop_adj
   void Convert_endstop_adj() {
     LOOP_XYZ(i) mechanics.delta_endstop_adj[i] *= -1;
@@ -55,6 +64,7 @@
     const float min_endstop = MIN3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
     LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= min_endstop;
     mechanics.delta_height += min_endstop;
+    homed_height += min_endstop;
   }
 
   // Perform 3, 4, 6, 7 - factor adjustment.
@@ -66,7 +76,7 @@
   //  Diagonal rod length adjustment
   void Adjust(const uint8_t numFactors, const float v[]) {
 
-    const float oldHeightA = mechanics.delta_height + mechanics.delta_endstop_adj[A_AXIS];
+    const float oldHeightA = homed_height + mechanics.delta_endstop_adj[A_AXIS];
 
     // Update endstop adjustments
     mechanics.delta_endstop_adj[A_AXIS] += v[0];
@@ -87,6 +97,10 @@
     }
 
     mechanics.recalc_delta_settings();
+    Calc_homed_height();
+    const float heightError = homed_height + mechanics.delta_endstop_adj[A_AXIS] - oldHeightA - v[0];
+    mechanics.delta_height -= heightError;
+    homed_height -= heightError;
 
   }
 
@@ -153,31 +167,30 @@
     printer.setNotHoming();
     DEPLOY_PROBE();
 
-    const float dx = (probe.offset[X_AXIS]),
-                dy = (probe.offset[Y_AXIS]);
+    Calc_homed_height();
 
     for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
       xBedProbePoints[probe_index] = mechanics.delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
       yBedProbePoints[probe_index] = mechanics.delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
-      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + probe.offset[X_AXIS], yBedProbePoints[probe_index] + probe.offset[Y_AXIS], false, 4);
+      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
       if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
     }
     if (probe_points >= 10) {
       for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
         xBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
         yBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
-        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index] + probe.offset[X_AXIS], yBedProbePoints[probe_index] + probe.offset[Y_AXIS], false, 4);
+        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
         if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
       }
       xBedProbePoints[9] = 0.0;
       yBedProbePoints[9] = 0.0;
-      zBedProbePoints[9] = probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], true, 4, false);
+      zBedProbePoints[9] = probe.check_pt(0.0, 0.0, true, 4);
       if (isnan(zBedProbePoints[9])) return CALIBRATION_CLEANUP();
     }
     else {
       xBedProbePoints[6] = 0.0;
       yBedProbePoints[6] = 0.0;
-      zBedProbePoints[6] = probe.check_pt(probe.offset[X_AXIS], probe.offset[Y_AXIS], true, 4, false);
+      zBedProbePoints[6] = probe.check_pt(0.0, 0.0, true, 4);
       if (isnan(zBedProbePoints[6])) return CALIBRATION_CLEANUP();
     }
 
@@ -192,11 +205,7 @@
     // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
     for (uint8_t i = 0; i < probe_points; ++i) {
       corrections[i] = 0.0;
-      float machinePos[ABC];
-
-      machinePos[A_AXIS] = xBedProbePoints[i];
-      machinePos[B_AXIS] = yBedProbePoints[i];
-      machinePos[C_AXIS] = 0.0;
+      float machinePos[ABC] = { xBedProbePoints[i], yBedProbePoints[i], 0.0 };
 
       mechanics.Transform(machinePos);
 
