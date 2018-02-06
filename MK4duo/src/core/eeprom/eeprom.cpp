@@ -279,9 +279,6 @@ void EEPROM::Postprocess() {
   // and init stepper.count[], planner.position[] with current_position
   mechanics.refresh_positioning();
 
-  // Init endstops and pullups
-  endstops.init();
-
   if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
     mechanics.report_current_position();
 

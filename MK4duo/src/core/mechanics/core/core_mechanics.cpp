@@ -56,7 +56,7 @@
     #endif
 
     #if HAS_POWER_SWITCH
-      if (!powerManager.powersupply_on) powerManager.power_on(); // Power On if power is off
+      if (!powerManager.lastPowerOn) powerManager.power_on(); // Power On if power is off
     #endif
 
     // Wait for planner moves to finish!
