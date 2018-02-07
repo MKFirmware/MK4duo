@@ -106,7 +106,7 @@
       LOOP_FAN() if (fans[f].Speed > 0) return true;
     #endif
 
-    if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON ||
+    if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
         || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
         #if E_STEPPERS > 1
           || E1_ENABLE_READ == E_ENABLE_ON
