@@ -86,7 +86,7 @@ inline void gcode_M123(void) {
   #endif
 
   #if HAS_Z4_MIN || HAS_Z4_MAX
-    if (parser.seen('Z')) {
+    if (parser.seen('K')) {
       if (mechanics.home_dir[Z_AXIS] == -1)
         endstops.setLogic(Z4_MIN, parser.value_bool());
       else
@@ -95,7 +95,7 @@ inline void gcode_M123(void) {
   #endif
 
   #if HAS_Z_PROBE_PIN
-    if (parser.seen('Z')) endstops.setLogic(Z_PROBE, parser.value_bool());
+    if (parser.seen('P')) endstops.setLogic(Z_PROBE, parser.value_bool());
   #endif
   
   #if HAS_FIL_RUNOUT
@@ -170,7 +170,7 @@ inline void gcode_M124(void) {
   #endif
 
   #if HAS_Z4_MIN || HAS_Z4_MAX
-    if (parser.seen('Z')) {
+    if (parser.seen('K')) {
       if (mechanics.home_dir[Z_AXIS] == -1)
         endstops.setPullup(Z4_MIN, parser.value_bool());
       else
@@ -179,7 +179,7 @@ inline void gcode_M124(void) {
   #endif
 
   #if HAS_Z_PROBE_PIN
-    if (parser.seen('Z')) endstops.setPullup(Z_PROBE, parser.value_bool());
+    if (parser.seen('P')) endstops.setPullup(Z_PROBE, parser.value_bool());
   #endif
   
   #if HAS_FIL_RUNOUT
