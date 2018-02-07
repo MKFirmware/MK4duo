@@ -6,7 +6,7 @@
 * Add command M701 - Load Filament
 * Add command M702 - Unload Filament
 * Replaced easy bowden with filament change load & unload
-* Save Logic and Endstop to EEPROM
+* Save Logic and Pullup Endstop to EEPROM
 * Fix and clear code
 
 ### Version 4.3.3 Stable
