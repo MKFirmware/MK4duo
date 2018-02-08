@@ -1638,9 +1638,9 @@ void EEPROM::Factory_Settings() {
   endstops.setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
   endstops.setPullup(Z4_MIN, ENDSTOPPULLUP_Z4MIN);
   endstops.setPullup(Z4_MAX, ENDSTOPPULLUP_Z4MAX);
-  endstops.setPullup(FIL_RUNOUT, ENDSTOPPULLUP_FIL_RUNOUT);
-  endstops.setPullup(DOOR_OPEN, ENDSTOPPULLUP_DOOR_OPEN);
-  endstops.setPullup(POWER_CHECK, ENDSTOPPULLUP_POWER_CHECK);
+  endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
+  endstops.setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
+  endstops.setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
 
   Postprocess();
 

@@ -151,12 +151,13 @@ FORCE_INLINE static bool READ(const uint8_t pin) {
 }
 FORCE_INLINE static bool READ_VAR(const uint8_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
-	if (pinDesc.ulPinType == PIO_NOT_A_PIN) return false;
-  if (pinDesc.pPort->PIO_PDSR & pinDesc.ulPin)
-    return true;
-  else
-    return false;
+	if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+    if (pinDesc.pPort->PIO_PDSR & pinDesc.ulPin)
+      return true;
+  }
+  return false;
 }
+
 // write to a pin
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
 FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
@@ -178,29 +179,31 @@ FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
 // set pin as input
 FORCE_INLINE static void SET_INPUT(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  pmc_enable_periph_clk(pinDesc.ulPeripheralId);
-  PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, 0);
+  if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+    pmc_enable_periph_clk(pinDesc.ulPeripheralId);
+    PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, 0);
+  }
 }
 
 // set pin as output
 FORCE_INLINE static void SET_OUTPUT(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+    PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+    PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 
 // set pin as input with pullup
 FORCE_INLINE static void SET_INPUT_PULLUP(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
-  pmc_enable_periph_clk(pinDesc.ulPeripheralId);
-  PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, PIO_PULLUP);
+  if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+    pmc_enable_periph_clk(pinDesc.ulPeripheralId);
+    PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, PIO_PULLUP);
+  }
 }
 
 // Shorthand

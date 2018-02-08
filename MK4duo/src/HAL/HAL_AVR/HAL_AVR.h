@@ -424,6 +424,9 @@ class HAL {
         default: break;
       }
     }
+    static inline void setInputPullup(const pin_t pin, const bool onoff) {
+      ::digitalWrite(pin, onoff);
+    }
 
     static inline void delayMicroseconds(const uint16_t delayUs) {
       ::delayMicroseconds(delayUs);

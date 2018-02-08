@@ -246,7 +246,7 @@
 #endif
 
 #if ENABLED(DOOR_OPEN)
-  #define DOOR_PIN NoPin
+  #define DOOR_OPEN_PIN NoPin
 #endif
 
 #if ENABLED(POWER_CHECK)

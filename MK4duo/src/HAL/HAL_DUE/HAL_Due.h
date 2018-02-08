@@ -334,6 +334,15 @@ class HAL {
     FORCE_INLINE static bool digitalRead(const pin_t pin) {
       return READ_VAR(pin);
     }
+    FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
+      const PinDescription& pinDesc = g_APinDescription[pin];
+      if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+        if (onoff)
+          pinDesc.pPort->PIO_PUER = pinDesc.ulPin;
+        else
+          pinDesc.pPort->PIO_PUDR = pinDesc.ulPin;
+      }
+    }
 
     FORCE_INLINE static void delayMicroseconds(uint32_t delayUs) {
       uint32_t n = delayUs * (F_CPU / 3000000);

@@ -91,7 +91,7 @@ void Commands::get_serial() {
   static bool serial_comment_mode = false;
 
   #if HAS_DOOR
-    if (READ(DOOR_PIN) != endstops.Is_logic(DOOR_OPEN)) {
+    if (READ(DOOR_OPEN_PIN) != endstops.Is_logic(DOOR_OPEN)) {
       KEEPALIVE_STATE(DOOR_OPEN);
       return;  // do nothing while door is open
     }
@@ -193,7 +193,7 @@ void Commands::get_serial() {
           #endif
         }
         if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) { stepper.quickstop_stepper(); }
+        if (strcmp(command, "M410") == 0) stepper.quickstop_stepper();
       #endif
 
       #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
@@ -233,7 +233,7 @@ void Commands::get_serial() {
     if (!IS_SD_PRINTING) return;
 
     #if HAS_DOOR
-      if (READ(DOOR_PIN) != endstops.Is_logic(DOOR_OPEN)) {
+      if (READ(DOOR_OPEN_PIN) != endstops.Is_logic(DOOR_OPEN)) {
         KEEPALIVE_STATE(DOOR_OPEN);
         return;  // do nothing while door is open
       }

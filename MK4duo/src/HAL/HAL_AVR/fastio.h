@@ -78,19 +78,18 @@
 #define _GET_OUTPUT(IO) ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) != 0)
 #define _GET_TIMER(IO)  (DIO ## IO ## _PWM)
 
-#define READ(IO)    _READ(IO)
-#define WRITE(IO,V) _WRITE(IO,V)
-#define TOGGLE(IO)  _TOGGLE(IO)
+#define READ(IO)        _READ(IO)
+#define WRITE(IO,V)     _WRITE(IO,V)
+#define TOGGLE(IO)      _TOGGLE(IO)
 
-#define SET_INPUT(IO)         _SET_INPUT(IO)
-#define SET_INPUT_PULLUP(IO)  do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
-#define SET_OUTPUT(IO)        _SET_OUTPUT(IO)
+#define SET_INPUT(IO)   _SET_INPUT(IO)
+#define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
 
 #define GET_INPUT(IO)   _GET_INPUT(IO)
 #define GET_OUTPUT(IO)  _GET_OUTPUT(IO)
 #define GET_TIMER(IO)   _GET_TIMER(IO)
 
-#define OUT_WRITE(IO, v) do{ SET_OUTPUT(IO); WRITE(IO, v); }while(0)
+#define OUT_WRITE(IO, v)  do{ SET_OUTPUT(IO); WRITE(IO, v); }while(0)
 
 // Pullup
 #define PULLUP(IO)      _WRITE(IO, HIGH)

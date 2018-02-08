@@ -174,9 +174,9 @@ void Endstops::init() {
 
   #if HAS_DOOR
     if (Is_pullup(DOOR_OPEN))
-      SET_INPUT_PULLUP(DOOR_PIN);
+      SET_INPUT_PULLUP(DOOR_OPEN_PIN);
     else
-      SET_INPUT(DOOR_PIN);
+      SET_INPUT(DOOR_OPEN_PIN);
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT

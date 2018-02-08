@@ -903,7 +903,7 @@
 // Set true or false should assigned
 #define FIL_RUNOUT_LOGIC true
 // Put true for use internal pullup for pin if the sensor is defined
-#define ENDSTOPPULLUP_FIL_RUNOUT false
+#define PULLUP_FIL_RUNOUT false
 // Time for double check switch in millisecond. Set 0 for disabled
 #define FILAMENT_RUNOUT_DOUBLE_CHECK 0
 // Script execute when filament run out
@@ -997,7 +997,7 @@
  **************************************************************************
  *                                                                        *
  * A triggered door will prevent new commands from serial or sd card.     *
- * Setting DOOR PIN in Configuration_Pins.h                               *
+ * Setting DOOR OPEN PIN in Configuration_Pins.h                          *
  *                                                                        *
  **************************************************************************/
 //#define DOOR_OPEN
@@ -1005,7 +1005,7 @@
 // Set true or false should assigned
 #define DOOR_OPEN_LOGIC false
 // Put true for use internal pullup for pin if the sensor is defined.
-#define ENDSTOPPULLUP_DOOR_OPEN false
+#define PULLUP_DOOR_OPEN false
 /**************************************************************************/
 
 
@@ -1022,7 +1022,7 @@
 // Set true or false should assigned
 #define POWER_CHECK_LOGIC false
 // Put true for use internal pullup for pin if the sensor is defined.
-#define ENDSTOPPULLUP_POWER_CHECK false
+#define PULLUP_POWER_CHECK false
 /**************************************************************************/
 
 
