@@ -184,6 +184,7 @@
  * SENSORLESS HOMING:
  *  M914  X               Stepper X and X2 threshold            (int16_t)
  *  M914  Y               Stepper Y and Y2 threshold            (int16_t)
+ *  M914  Z               Stepper Z and Z2 threshold            (int16_t)
  *
  * LIN_ADVANCE:
  *  M900  K               planner.extruder_advance_k            (float)
@@ -274,6 +275,9 @@ void EEPROM::Postprocess() {
   #if ENABLED(HYSTERESIS)
     mechanics.calc_hysteresis_steps();
   #endif
+
+  // Setup Endstops pullup
+  endstops.setup_pullup();
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
@@ -590,14 +594,20 @@ void EEPROM::Postprocess() {
     //
     #if ENABLED(SENSORLESS_HOMING)
       int16_t thrs;
-      #if ENABLED(X_IS_TMC2130)
+      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
         thrs = stepperX.sgt();
       #else
         thrs = 0;
       #endif
       EEPROM_WRITE(thrs);
-      #if ENABLED(Y_IS_TMC2130)
+      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
         thrs = stepperY.sgt();
+      #else
+        thrs = 0;
+      #endif
+      EEPROM_WRITE(thrs);
+      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+        thrs = stepperZ.sgt();
       #else
         thrs = 0;
       #endif
@@ -946,18 +956,31 @@ void EEPROM::Postprocess() {
       #if ENABLED(SENSORLESS_HOMING)
         int16_t thrs;
         EEPROM_READ(thrs);
-        #if ENABLED(X_IS_TMC2130)
-          stepperX.sgt(thrs);
-        #endif
-        #if ENABLED(X2_IS_TMC2130)
-          stepperX2.sgt(thrs);
+        #if ENABLED(X_HOMING_SENSITIVITY)
+          #if ENABLED(X_IS_TMC2130)
+            stepperX.sgt(thrs);
+          #endif
+          #if ENABLED(X2_IS_TMC2130)
+            stepperX2.sgt(thrs);
+          #endif
         #endif
         EEPROM_READ(thrs);
-        #if ENABLED(Y_IS_TMC2130)
-          stepperY.sgt(thrs);
+        #if ENABLED(Y_HOMING_SENSITIVITY)
+          #if ENABLED(Y_IS_TMC2130)
+            stepperY.sgt(thrs);
+          #endif
+          #if ENABLED(Y2_IS_TMC2130)
+            stepperY2.sgt(thrs);
+          #endif
         #endif
-        #if ENABLED(Y2_IS_TMC2130)
-          stepperY2.sgt(thrs);
+        EEPROM_READ(thrs);
+        #if ENABLED(Z_HOMING_SENSITIVITY)
+          #if ENABLED(Z_IS_TMC2130)
+            stepperZ.sgt(thrs);
+          #endif
+          #if ENABLED(Z2_IS_TMC2130)
+            stepperZ2.sgt(thrs);
+          #endif
         #endif
       #endif
 
@@ -1563,17 +1586,29 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(SENSORLESS_HOMING)
-    #if ENABLED(X_IS_TMC2130)
-      stepperX.sgt(X_HOMING_SENSITIVITY);
+    #if ENABLED(X_HOMING_SENSITIVITY)
+      #if ENABLED(X_IS_TMC2130)
+        stepperX.sgt(X_HOMING_SENSITIVITY);
+      #endif
+      #if ENABLED(X2_IS_TMC2130)
+        stepperX2.sgt(X_HOMING_SENSITIVITY);
+      #endif
     #endif
-    #if ENABLED(X2_IS_TMC2130)
-      stepperX2.sgt(X_HOMING_SENSITIVITY);
+    #if ENABLED(Y_HOMING_SENSITIVITY)
+      #if ENABLED(Y_IS_TMC2130)
+        stepperY.sgt(Y_HOMING_SENSITIVITY);
+      #endif
+      #if ENABLED(Y2_IS_TMC2130)
+        stepperY2.sgt(Y_HOMING_SENSITIVITY);
+      #endif
     #endif
-    #if ENABLED(Y_IS_TMC2130)
-      stepperY.sgt(Y_HOMING_SENSITIVITY);
-    #endif
-    #if ENABLED(Y2_IS_TMC2130)
-      stepperY2.sgt(Y_HOMING_SENSITIVITY);
+    #if ENABLED(Z_HOMING_SENSITIVITY)
+      #if ENABLED(Z_IS_TMC2130)
+        stepperZ.sgt(Z_HOMING_SENSITIVITY);
+      #endif
+      #if ENABLED(Z2_IS_TMC2130)
+        stepperZ2.sgt(Z_HOMING_SENSITIVITY);
+      #endif
     #endif
   #endif
 
@@ -2092,17 +2127,29 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(HAVE_TMC2130) && ENABLED(SENSORLESS_HOMING)
       CONFIG_MSG_START("Sensorless homing threshold:");
       SERIAL_SM(CFG, "  M914");
-      #if ENABLED(X_IS_TMC2130)
-        SERIAL_MV(" X", stepperX.sgt());
+      #if ENABLED(X_HOMING_SENSITIVITY)
+        #if ENABLED(X_IS_TMC2130)
+          SERIAL_MV(" X", stepperX.sgt());
+        #endif
+        #if ENABLED(X2_IS_TMC2130)
+          SERIAL_MV(" X2 ", stepperX2.sgt());
+        #endif
       #endif
-      #if ENABLED(X2_IS_TMC2130)
-        SERIAL_MV(" X2 ", stepperX2.sgt());
+      #if ENABLED(Y_HOMING_SENSITIVITY)
+        #if ENABLED(Y_IS_TMC2130)
+          SERIAL_MV(" Y", stepperY.sgt());
+        #endif
+        #if ENABLED(X2_IS_TMC2130)
+          SERIAL_MV(" Y2 ", stepperY2.sgt());
+        #endif
       #endif
-      #if ENABLED(Y_IS_TMC2130)
-        SERIAL_MV(" Y", stepperY.sgt());
-      #endif
-      #if ENABLED(X2_IS_TMC2130)
-        SERIAL_MV(" Y2 ", stepperY2.sgt());
+      #if ENABLED(Z_HOMING_SENSITIVITY)
+        #if ENABLED(Z_IS_TMC2130)
+          SERIAL_MV(" Z ", stepperZ.sgt());
+        #endif
+        #if ENABLED(Z2_IS_TMC2130)
+          SERIAL_MV(" Z2 ", stepperZ2.sgt());
+        #endif
       #endif
       SERIAL_EOL();
     #endif

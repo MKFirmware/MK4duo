@@ -90,7 +90,7 @@ void Commands::get_serial() {
   static char serial_line_buffer[MAX_CMD_SIZE];
   static bool serial_comment_mode = false;
 
-  #if HAS_DOOR
+  #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.Is_logic(DOOR_OPEN)) {
       KEEPALIVE_STATE(DOOR_OPEN);
       return;  // do nothing while door is open
@@ -232,7 +232,7 @@ void Commands::get_serial() {
 
     if (!IS_SD_PRINTING) return;
 
-    #if HAS_DOOR
+    #if HAS_DOOR_OPEN
       if (READ(DOOR_OPEN_PIN) != endstops.Is_logic(DOOR_OPEN)) {
         KEEPALIVE_STATE(DOOR_OPEN);
         return;  // do nothing while door is open

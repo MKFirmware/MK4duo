@@ -572,11 +572,37 @@
     ZERO(current_position);
     set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
 
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
+      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperX);
+      #endif
+      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperY);
+      #endif
+      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperZ);
+      #endif
+    #endif
+
     // Move all carriages together linearly until an endstop is hit.
     current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
     line_to_current_position();
     stepper.synchronize();
+
+    // Re-enable stealthChop if used. Disable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
+      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperX, false);
+      #endif
+      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperY, false);
+      #endif
+      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+        tmc_sensorless_homing(stepperZ, false);
+      #endif
+    #endif
 
     // If an endstop was not hit, then damage can occur if homing is continued.
     // This can occur if the delta height is

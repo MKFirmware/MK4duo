@@ -170,6 +170,9 @@ void Printer::setup() {
 
   stepper.init(); // Initialize stepper, this enables interrupts!
 
+  // Init endstops and pullups
+  endstops.init();
+
   #if HAS_SDSUPPORT
     card.mount();
     // loads custom configuration from SDCARD if available else uses defaults
@@ -270,13 +273,6 @@ void Printer::setup() {
     #if ENABLED(DOGLCD) || ENABLED(ULTRA_LCD)
       lcd_bootscreen(); // Show MK4duo boot screen
     #endif
-  #endif
-
-  // Init endstops and pullups
-  endstops.init();
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    endstops.setup_endstop_interrupts();
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1

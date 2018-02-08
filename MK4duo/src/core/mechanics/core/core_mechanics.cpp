@@ -372,16 +372,6 @@
       if (axis == Z_AXIS) stepper.set_homing_flag(true);
     #endif
 
-    // Disable stealthChop if used. Enable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(X_IS_TMC2130)
-        if (axis == X_AXIS) tmc_sensorless_homing(stepperX);
-      #endif
-      #if ENABLED(Y_IS_TMC2130)
-        if (axis == Y_AXIS) tmc_sensorless_homing(stepperY);
-      #endif
-    #endif
-
     // Fast move towards endstop until triggered
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
@@ -440,16 +430,6 @@
     sync_plan_position();
 
     destination[axis] = current_position[axis];
-
-    // Re-enable stealthChop if used. Disable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(X_IS_TMC2130)
-        if (axis == X_AXIS) tmc_sensorless_homing(stepperX, false);
-      #endif
-      #if ENABLED(Y_IS_TMC2130)
-        if (axis == Y_AXIS) tmc_sensorless_homing(stepperY, false);
-      #endif
-    #endif
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE

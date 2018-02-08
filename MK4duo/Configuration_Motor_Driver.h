@@ -42,6 +42,8 @@
   //#define E1_IS_TMC
   //#define E2_IS_TMC
   //#define E3_IS_TMC
+  //#define E4_IS_TMC
+  //#define E5_IS_TMC
 
   #define X_CURRENT         1000 // in mA
   #define X_SENSE_RESISTOR    91 // in mOhms
@@ -82,6 +84,14 @@
   #define E3_CURRENT        1000
   #define E3_SENSE_RESISTOR   91
   #define E3_MICROSTEPS       16
+
+  #define E4_CURRENT        1000
+  #define E4_SENSE_RESISTOR   91
+  #define E4_MICROSTEPS       16
+
+  #define E5_CURRENT        1000
+  #define E5_SENSE_RESISTOR   91
+  #define E5_MICROSTEPS       16
 
 #endif
 
@@ -202,31 +212,33 @@
   #define X2_HYBRID_THRESHOLD    100
   #define Y_HYBRID_THRESHOLD     100
   #define Y2_HYBRID_THRESHOLD    100
-  #define Z_HYBRID_THRESHOLD       3
-  #define Z2_HYBRID_THRESHOLD      3
+  #define Z_HYBRID_THRESHOLD       2
+  #define Z2_HYBRID_THRESHOLD      2
   #define E0_HYBRID_THRESHOLD     30
   #define E1_HYBRID_THRESHOLD     30
   #define E2_HYBRID_THRESHOLD     30
   #define E3_HYBRID_THRESHOLD     30
   #define E4_HYBRID_THRESHOLD     30
+  #define E5_HYBRID_THRESHOLD     30
 
   /**
    * Use stallGuard2 to sense an obstacle and trigger an endstop.
    * You need to place a wire from the driver's DIAG1 pin to the X/Y endstop pin.
-   * If used along with STEALTHCHOP, the movement will be louder when homing. This is normal.
+   * X, Y and Z homing will always be done in spreadCycle mode.
    *
-   * X/Y_HOMING_SENSITIVITY is used for tuning the trigger sensitivity.
+   * X/Y/Z HOMING SENSITIVITY is used for tuning the trigger sensitivity.
    * Higher values make the system LESS sensitive.
    * Lower value make the system MORE sensitive.
    * Too low values can lead to false positives, while too high values will collide the axis without triggering.
-   * It is advised to set X/Y_HOME_BUMP_MM to 0.
-   * M914 X/Y to live tune the setting
+   * It is advised to set X/Y/Z HOME BUMP MM to 0.
+   * M914 X/Y/Z to live tune the setting
    */
   //#define SENSORLESS_HOMING
 
   #if ENABLED(SENSORLESS_HOMING)
     #define X_HOMING_SENSITIVITY  8
     #define Y_HOMING_SENSITIVITY  8
+    #define Z_HOMING_SENSITIVITY  8
   #endif
 
   /**
@@ -379,8 +391,8 @@
   #define X2_HYBRID_THRESHOLD    100
   #define Y_HYBRID_THRESHOLD     100
   #define Y2_HYBRID_THRESHOLD    100
-  #define Z_HYBRID_THRESHOLD       3
-  #define Z2_HYBRID_THRESHOLD      3
+  #define Z_HYBRID_THRESHOLD       2
+  #define Z2_HYBRID_THRESHOLD      2
   #define E0_HYBRID_THRESHOLD     30
   #define E1_HYBRID_THRESHOLD     30
   #define E2_HYBRID_THRESHOLD     30
@@ -454,6 +466,8 @@
   #define E3_SERIAL_RX_PIN  NoPin
   #define E4_SERIAL_TX_PIN  NoPin
   #define E4_SERIAL_RX_PIN  NoPin
+  #define E5_SERIAL_TX_PIN  NoPin
+  #define E5_SERIAL_RX_PIN  NoPin
 
 #endif // ENABLED(HAVE_TMC2208)
 

@@ -110,6 +110,11 @@ class Endstops {
     void init();
 
     /**
+     * Setup Pullup
+     */
+    void setup_pullup();
+
+    /**
      * Update the endstops bits from the pins
      */
     static void update();
@@ -136,10 +141,6 @@ class Endstops {
 
     #if ENABLED(PINS_DEBUGGING)
       static void endstop_monitor();
-    #endif
-
-    #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-      static void setup_endstop_interrupts(void);
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
@@ -179,6 +180,10 @@ class Endstops {
     FORCE_INLINE static bool IsG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
 
   private: /** Private Function */
+
+    #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+      static void setup_endstop_interrupts(void);
+    #endif
 
     #if ENABLED(Z_FOUR_ENDSTOPS)
       static void test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4);

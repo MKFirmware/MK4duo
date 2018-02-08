@@ -60,20 +60,41 @@
     #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS) || (ENABLED(X_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX))
       if (clearX || clearAll) tmc_clear_otpw(stepperX, extended_axis_codes[TMC_X]);
     #endif
-    #if ENABLED(X2_IS_TMC2130) || (ENABLED(X2_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX))
-      if (clearX || clearAll) tmc_clear_otpw(stepperX, extended_axis_codes[TMC_X]);
+    #if ENABLED(X2_IS_TMC2130) || (ENABLED(X2_IS_TMC2208) && PIN_EXISTS(X2_SERIAL_RX))
+      if (clearX || clearAll) tmc_clear_otpw(stepperX2, extended_axis_codes[TMC_X2]);
     #endif
 
     #if ENABLED(Y_IS_TMC2130) || (ENABLED(Y_IS_TMC2208) && PIN_EXISTS(Y_SERIAL_RX))
       if (clearY || clearAll) tmc_clear_otpw(stepperY, extended_axis_codes[TMC_Y]);
     #endif
+    #if ENABLED(Y2_IS_TMC2130) || (ENABLED(Y2_IS_TMC2208) && PIN_EXISTS(Y2_SERIAL_RX))
+      if (clearY || clearAll) tmc_clear_otpw(stepperY2, extended_axis_codes[TMC_Y2]);
+    #endif
 
     #if ENABLED(Z_IS_TMC2130) || (ENABLED(Z_IS_TMC2208) && PIN_EXISTS(Z_SERIAL_RX))
       if (clearZ || clearAll) tmc_clear_otpw(stepperZ, extended_axis_codes[TMC_Z]);
     #endif
+    #if ENABLED(Z2_IS_TMC2130) || (ENABLED(Z2_IS_TMC2208) && PIN_EXISTS(Z2_SERIAL_RX))
+      if (clearZ || clearAll) tmc_clear_otpw(stepperZ2, extended_axis_codes[TMC_Z2]);
+    #endif
 
     #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX))
       if (clearE || clearAll) tmc_clear_otpw(stepperE0, extended_axis_codes[TMC_E0]);
+    #endif
+    #if ENABLED(E1_IS_TMC2130) || (ENABLED(E1_IS_TMC2208) && PIN_EXISTS(E1_SERIAL_RX))
+      if (clearE || clearAll) tmc_clear_otpw(stepperE1, extended_axis_codes[TMC_E1]);
+    #endif
+    #if ENABLED(E2_IS_TMC2130) || (ENABLED(E2_IS_TMC2208) && PIN_EXISTS(E2_SERIAL_RX))
+      if (clearE || clearAll) tmc_clear_otpw(stepperE2, extended_axis_codes[TMC_E2]);
+    #endif
+    #if ENABLED(E3_IS_TMC2130) || (ENABLED(E3_IS_TMC2208) && PIN_EXISTS(E3_SERIAL_RX))
+      if (clearE || clearAll) tmc_clear_otpw(stepperE3, extended_axis_codes[TMC_E3]);
+    #endif
+    #if ENABLED(E4_IS_TMC2130) || (ENABLED(E4_IS_TMC2208) && PIN_EXISTS(E4_SERIAL_RX))
+      if (clearE || clearAll) tmc_clear_otpw(stepperE4, extended_axis_codes[TMC_E4]);
+    #endif
+    #if ENABLED(E5_IS_TMC2130) || (ENABLED(E5_IS_TMC2208) && PIN_EXISTS(E5_SERIAL_RX))
+      if (clearE || clearAll) tmc_clear_otpw(stepperE5, extended_axis_codes[TMC_E5]);
     #endif
   }
 
@@ -81,8 +102,11 @@
    * M913: Set HYBRID_THRESHOLD speed.
    */
   #if ENABLED(HYBRID_THRESHOLD)
-    #define CODE_M913
+
+    #define CODE_M9134
+
     inline void gcode_M913(void) {
+
       uint16_t values[XYZE];
       LOOP_XYZE(i) values[i] = parser.intval(axis_codes[i]);
 
@@ -126,40 +150,64 @@
       #if E5_IS_TRINAMIC
         TMC_SET_GET_PWMTHRS(E,E5);
       #endif
+
     }
+
   #endif // HYBRID_THRESHOLD
 
   /**
    * M914: Set SENSORLESS_HOMING sensitivity.
    */
   #if ENABLED(SENSORLESS_HOMING)
+
     #define CODE_M914
+
     inline void gcode_M914(void) {
+
       #define TMC_SET_GET_SGT(P,Q) do { \
         if (parser.seen(axis_codes[P##_AXIS])) tmc_set_sgt(stepper##Q, extended_axis_codes[TMC_##Q], parser.value_int()); \
         else tmc_get_sgt(stepper##Q, extended_axis_codes[TMC_##Q]); } while(0)
 
-      #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-        TMC_SET_GET_SGT(X,X);
+      #if ENABLED(X_HOMING_SENSITIVITY)
+        #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+          TMC_SET_GET_SGT(X,X);
+        #endif
+        #if ENABLED(X2_IS_TMC2130)
+          TMC_SET_GET_SGT(X,X2);
+        #endif
       #endif
-      #if ENABLED(X2_IS_TMC2130)
-        TMC_SET_GET_SGT(X,X2);
+
+      #if ENABLED(Y_HOMING_SENSITIVITY)
+        #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+          TMC_SET_GET_SGT(Y,Y);
+        #endif
+        #if ENABLED(Y2_IS_TMC2130)
+          TMC_SET_GET_SGT(Y,Y2);
+        #endif
       #endif
-      #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-        TMC_SET_GET_SGT(Y,Y);
+
+      #if ENABLED(Z_HOMING_SENSITIVITY)
+        #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+          TMC_SET_GET_SGT(Z,Z);
+        #endif
+        #if ENABLED(Z2_IS_TMC2130)
+          TMC_SET_GET_SGT(Z,Z2);
+        #endif
       #endif
-      #if ENABLED(Y2_IS_TMC2130)
-        TMC_SET_GET_SGT(Y,Y2);
-      #endif
+
     }
+
   #endif // SENSORLESS_HOMING
 
   /**
    * TMC Z axis calibration routine
    */
   #if ENABLED(TMC_Z_CALIBRATION)
+
     #define CODE_M915
+
     inline void gcode_M915(void) {
+
       uint16_t _rms = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT;
       uint16_t _z = parser.seenval('Z') ? parser.value_int() : CALIBRATION_EXTRA_HEIGHT;
 
@@ -196,6 +244,7 @@
       SERIAL_EM("\nHoming Z because we lost steps");
       commands.enqueue_and_echo_P(PSTR("G28 Z"));
     }
+
   #endif
 
 #endif // HAS_TRINAMIC

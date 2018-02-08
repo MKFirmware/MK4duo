@@ -75,115 +75,139 @@ uint8_t   Endstops::flag1_bits    = 0;
 void Endstops::init() {
 
   #if HAS_X_MIN
-    if (Is_pullup(X_MIN))
-      SET_INPUT_PULLUP(X_MIN_PIN);
-    else
-      SET_INPUT(X_MIN_PIN);
+    SET_INPUT(X_MIN_PIN);
   #endif
 
   #if HAS_Y_MIN
-    if (Is_pullup(Y_MIN))
-      SET_INPUT_PULLUP(Y_MIN_PIN);
-    else
-      SET_INPUT(Y_MIN_PIN);
+    SET_INPUT(Y_MIN_PIN);
   #endif
 
   #if HAS_Z_MIN
-    if (Is_pullup(Z_MIN))
-      SET_INPUT_PULLUP(Z_MIN_PIN);
-    else
-      SET_INPUT(Z_MIN_PIN);
+    SET_INPUT(Z_MIN_PIN);
   #endif
 
   #if HAS_Z2_MIN
-    if (Is_pullup(Z2_MIN))
-      SET_INPUT_PULLUP(Z2_MIN_PIN);
-    else
-      SET_INPUT(Z2_MIN_PIN);
+    SET_INPUT(Z2_MIN_PIN);
   #endif
 
   #if HAS_Z3_MIN
-    if (Is_pullup(Z3_MIN))
-      SET_INPUT_PULLUP(Z3_MIN_PIN);
-    else
-      SET_INPUT(Z3_MIN_PIN);
+    SET_INPUT(Z3_MIN_PIN);
   #endif
 
   #if HAS_Z4_MIN
-    if (Is_pullup(Z4_MIN))
-      SET_INPUT_PULLUP(Z4_MIN_PIN);
-    else
-      SET_INPUT(Z4_MIN_PIN);
+    SET_INPUT(Z4_MIN_PIN);
   #endif
 
   #if HAS_X_MAX
-    if (Is_pullup(X_MAX))
-      SET_INPUT_PULLUP(X_MAX_PIN);
-    else
-      SET_INPUT(X_MAX_PIN);
+    SET_INPUT(X_MAX_PIN);
   #endif
 
   #if HAS_Y_MAX
-    if (Is_pullup(Y_MAX))
-      SET_INPUT_PULLUP(Y_MAX_PIN);
-    else
-      SET_INPUT(Y_MAX_PIN);
+    SET_INPUT(Y_MAX_PIN);
   #endif
 
   #if HAS_Z_MAX
-    if (Is_pullup(Z_MAX))
-      SET_INPUT_PULLUP(Z_MAX_PIN);
-    else
-      SET_INPUT(Z_MAX_PIN);
+    SET_INPUT(Z_MAX_PIN);
   #endif
 
   #if HAS_Z2_MAX
-    if (Is_pullup(Z2_MAX))
-      SET_INPUT_PULLUP(Z2_MAX_PIN);
-    else
-      SET_INPUT(Z2_MAX_PIN);
+    SET_INPUT(Z2_MAX_PIN);
   #endif
 
   #if HAS_Z3_MAX
-    if (Is_pullup(Z3_MAX))
-      SET_INPUT_PULLUP(Z3_MAX_PIN);
-    else
-      SET_INPUT(Z3_MAX_PIN);
+    SET_INPUT(Z3_MAX_PIN);
   #endif
 
   #if HAS_Z4_MAX
-    if (Is_pullup(Z4_MAX))
-      SET_INPUT_PULLUP(Z4_MAX_PIN);
-    else
-      SET_INPUT(Z4_MAX_PIN);
+    SET_INPUT(Z4_MAX_PIN);
   #endif
 
   #if HAS_Z_PROBE_PIN
-    if (Is_pullup(Z_PROBE))
-      SET_INPUT_PULLUP(Z_PROBE_PIN);
-    else
-      SET_INPUT(Z_PROBE_PIN);
+    SET_INPUT(Z_PROBE_PIN);
   #endif
 
   #if HAS_FIL_RUNOUT
-    if (Is_pullup(FIL_RUNOUT))
-      SET_INPUT_PULLUP(FIL_RUNOUT_PIN);
-    else
-      SET_INPUT(FIL_RUNOUT_PIN);
+    SET_INPUT(FIL_RUNOUT_PIN);
   #endif
 
-  #if HAS_DOOR
-    if (Is_pullup(DOOR_OPEN))
-      SET_INPUT_PULLUP(DOOR_OPEN_PIN);
-    else
-      SET_INPUT(DOOR_OPEN_PIN);
+  #if HAS_DOOR_OPEN
+    SET_INPUT(DOOR_OPEN_PIN);
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
-    if (Is_pullup(POWER_CHECK))
-      SET_INPUT_PULLUP(POWER_CHECK_PIN);
-    else
-      SET_INPUT(POWER_CHECK_PIN);
+    SET_INPUT(POWER_CHECK_PIN);
+  #endif
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    setup_endstop_interrupts();
+  #endif
+
+}
+
+void Endstops::setup_pullup() {
+
+  #if HAS_X_MIN
+    HAL::setInputPullup(X_MIN_PIN, Is_pullup(X_MIN));
+  #endif
+
+  #if HAS_Y_MIN
+    HAL::setInputPullup(Y_MIN_PIN, Is_pullup(Y_MIN));
+  #endif
+
+  #if HAS_Z_MIN
+    HAL::setInputPullup(Z_MIN_PIN, Is_pullup(Z_MIN));
+  #endif
+
+  #if HAS_Z2_MIN
+    HAL::setInputPullup(Z2_MIN_PIN, Is_pullup(Z2_MIN));
+  #endif
+
+  #if HAS_Z3_MIN
+    HAL::setInputPullup(Z3_MIN_PIN, Is_pullup(Z3_MIN));
+  #endif
+
+  #if HAS_Z4_MIN
+    HAL::setInputPullup(Z4_MIN_PIN, Is_pullup(Z4_MIN));
+  #endif
+
+  #if HAS_X_MAX
+    HAL::setInputPullup(X_MAX_PIN, Is_pullup(X_MAX));
+  #endif
+
+  #if HAS_Y_MAX
+    HAL::setInputPullup(Y_MAX_PIN, Is_pullup(Y_MAX));
+  #endif
+
+  #if HAS_Z_MAX
+    HAL::setInputPullup(Z_MAX_PIN, Is_pullup(Z_MAX));
+  #endif
+
+  #if HAS_Z2_MAX
+    HAL::setInputPullup(Z2_MAX_PIN, Is_pullup(Z2_MAX));
+  #endif
+
+  #if HAS_Z3_MAX
+    HAL::setInputPullup(Z3_MAX_PIN, Is_pullup(Z3_MAX));
+  #endif
+
+  #if HAS_Z4_MAX
+    HAL::setInputPullup(Z4_MAX_PIN, Is_pullup(Z4_MAX));
+  #endif
+
+  #if HAS_Z_PROBE_PIN
+    HAL::setInputPullup(Z_PROBE_PIN, Is_pullup(Z_PROBE));
+  #endif
+
+  #if HAS_FIL_RUNOUT
+    HAL::setInputPullup(FIL_RUNOUT_PIN, Is_pullup(FIL_RUNOUT));
+  #endif
+
+  #if HAS_DOOR_OPEN
+    HAL::setInputPullup(DOOR_OPEN_PIN, Is_pullup(DOOR_OPEN));
+  #endif
+
+  #if HAS_POWER_CHECK && HAS_SDSUPPORT
+    HAL::setInputPullup(POWER_CHECK_PIN, Is_pullup(POWER_CHECK));
   #endif
 
 }
@@ -259,7 +283,7 @@ void Endstops::report() {
     SERIAL_EMV(" Pullup:", Is_pullup(FIL_RUNOUT) ? "true" : "false");
   #endif
 
-  #if HAS_DOOR
+  #if HAS_DOOR_OPEN
     // Door Open
     SERIAL_MV("Endstop DOOR OPEN Logic:", Is_logic(DOOR_OPEN) ? "true" : "false");
     SERIAL_EMV(" Pullup:", Is_pullup(DOOR_OPEN) ? "true" : "false");

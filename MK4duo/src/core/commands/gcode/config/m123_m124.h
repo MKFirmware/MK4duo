@@ -102,7 +102,7 @@ inline void gcode_M123(void) {
     if (parser.seen('F')) endstops.setLogic(FIL_RUNOUT, parser.value_bool());
   #endif
 
-  #if HAS_DOOR
+  #if HAS_DOOR_OPEN
     if (parser.seen('D')) endstops.setLogic(DOOR_OPEN, parser.value_bool());
   #endif
 
@@ -186,7 +186,7 @@ inline void gcode_M124(void) {
     if (parser.seen('F')) endstops.setPullup(FIL_RUNOUT, parser.value_bool());
   #endif
 
-  #if HAS_DOOR
+  #if HAS_DOOR_OPEN
     if (parser.seen('D')) endstops.setPullup(DOOR_OPEN, parser.value_bool());
   #endif
 
@@ -194,5 +194,6 @@ inline void gcode_M124(void) {
     if (parser.seen('W')) endstops.setPullup(POWER_CHECK, parser.value_bool());
   #endif
 
+  endstops.setup_pullup();
   endstops.report();
 }
