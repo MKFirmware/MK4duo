@@ -418,6 +418,7 @@
 
   void Servo::detach() {
     servo_info[this->servoIndex].Pin.isActive = false;
+    digitalWrite(servo_info[this->servoIndex].Pin.nbr, LOW);
     timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(servoIndex);
     if (!isTimerActive(timer)) finISR(timer);
   }
