@@ -1647,7 +1647,7 @@
 // Comment out for all LEDs to change at once.
 #define NEOPIXEL_IS_SEQUENTIAL
 // Initial brightness 0-255
-#define NEOPIXEL_BRIGHTNESS 255
+#define NEOPIXEL_BRIGHTNESS 127
 // Cycle through colors at startup
 //#define NEOPIXEL_STARTUP_TEST
 /**************************************************************************/

@@ -642,17 +642,19 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if HAS_POWER_SWITCH
-    if (!powerManager.lastPowerOn) powerManager.check(); // Check Power
+    powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    if (ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP) {
-      bool oldstatus = 0;
+    if (heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP
+      && ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
+      && !planner.blocks_queued()
+    ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
-        oldstatus = E0_ENABLE_READ;
+        const bool oldstatus = E0_ENABLE_READ;
         enable_E0();
       #else // !DONDOLO_SINGLE_MOTOR
+        bool oldstatus;
         switch (tools.active_extruder) {
           case 0: oldstatus = E0_ENABLE_READ; enable_E0(); break;
           #if DRIVER_EXTRUDERS > 1

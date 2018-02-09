@@ -171,9 +171,6 @@
 #ifndef MSG_RETRACT
   #define MSG_RETRACT                         _UxGT("Retract")
 #endif
-#ifndef MSG_PURGE
-  #define MSG_PURGE                           _UxGT("Purge")
-#endif
 #ifndef MSG_MOVE_AXIS
   #define MSG_MOVE_AXIS                       _UxGT("Move axis")
 #endif

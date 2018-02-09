@@ -99,7 +99,7 @@ void Commands::get_serial() {
 
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
-  #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
+  #if NO_TIMEOUTS > 0
     static millis_t last_command_time = 0;
     millis_t ms = millis();
     if (queue_count == 0 && !MKSERIAL.available() && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
@@ -112,8 +112,9 @@ void Commands::get_serial() {
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
-  int c;
-  while (queue_count < BUFSIZE && (c = MKSERIAL.read()) >= 0) {
+  while (queue_count < BUFSIZE && HAL::serialByteAvailable()) {
+    int c;
+    if ((c = MKSERIAL.read()) < 0) continue;
 
     char serial_char = c;
 
@@ -124,7 +125,8 @@ void Commands::get_serial() {
 
       serial_comment_mode = false;                      // end of line == end of comment
 
-      if (!serial_count) continue;                      // Skip empty lines
+      // Skip empty lines and comments
+      if (!serial_count) { thermalManager.spin(); continue; }
 
       serial_line_buffer[serial_count] = 0;             // Terminate string
       serial_count = 0;                                 // Reset buffer
@@ -210,7 +212,7 @@ void Commands::get_serial() {
     else if (serial_char == '\\') { // Handle escapes
       // if we have one more character, copy it over
       if ((c = MKSERIAL.read()) >= 0 && !serial_comment_mode)
-        serial_line_buffer[serial_count++] = serial_char;
+        serial_line_buffer[serial_count++] = (char)c;
     }
     else { // its not a newline, carriage return or escape char
       if (serial_char == ';') serial_comment_mode = true;
@@ -292,7 +294,8 @@ void Commands::get_serial() {
 
         sd_comment_mode = false; // for new command
 
-        if (!sd_count) continue; // skip empty lines (and comment lines)
+        // Skip empty lines and comments
+        if (!sd_count) { thermalManager.spin(); continue; }
 
         queue[queue_index_w][sd_count] = '\0'; // terminate string
         planner.add_block_length(sd_count);
