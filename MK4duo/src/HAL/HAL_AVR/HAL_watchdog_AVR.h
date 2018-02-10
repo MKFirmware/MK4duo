@@ -20,16 +20,27 @@
  *
  */
 
-#ifndef WATCHDOG_AVR_H
-#define WATCHDOG_AVR_H
+#ifndef _WATCHDOG_AVR_H_
+#define _WATCHDOG_AVR_H_
 
 #include <avr/wdt.h>
 
-// Initialize watchdog with a 4 second interrupt time
-void watchdog_init();
+class Watchdog {
 
-// Reset watchdog. MUST be called at least every 4 seconds after the
-// first watchdog_init or AVR will go into emergency procedures.
-inline void watchdog_reset() { wdt_reset(); }
+  public: /** Constructor */
 
-#endif
+    Watchdog() {}
+
+  public: /** Public Function */
+
+    // Initialize watchdog with a 4 second interrupt time
+    static void init(void);
+
+    // Reset watchdog. MUST be called at least every 4 seconds.
+    static void reset(void);
+
+};
+
+extern Watchdog watchdog;
+
+#endif /* _WATCHDOG_AVR_H_ */

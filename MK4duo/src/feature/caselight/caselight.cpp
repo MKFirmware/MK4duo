@@ -40,10 +40,18 @@
 
     #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
 
-      leds.set_color(
-        MakeLEDColor(case_light_color.r, case_light_color.g, case_light_color.b, case_light_color.w, intensity),
-        false
-      );
+      if (status) {
+        leds.set_color(
+          MakeLEDColor(case_light_color.r, case_light_color.g, case_light_color.b, case_light_color.w, brightness),
+          false
+        );
+      }
+      else {
+        leds.set_color(
+          MakeLEDColor(0, 0, 0, 0, brightness),
+          false
+        );
+      }
 
     #else // !CASE_LIGHT_USE_NEOPIXEL
 

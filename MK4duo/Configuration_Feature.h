@@ -2179,9 +2179,11 @@
  *****************************************************************************************/
 //#define USE_WATCHDOG
 
-// If you have a watchdog reboot in an ArduinoMega2560 then the device will hang forever, as a watchdog reset will leave the watchdog on.
+// If you have a watchdog reboot in an ArduinoMega2560 then the device will hang forever,
+// as a watchdog reset will leave the watchdog on.
 // The "WATCHDOG_RESET_MANUAL" goes around this by not using the hardware reset.
-// However, THIS FEATURE IS UNSAFE!, as it will only work if interrupts are disabled. And the code could hang in an interrupt routine with interrupts disabled.
+// However, THIS FEATURE IS UNSAFE!, as it will only work if interrupts are disabled.
+// And the code could hang in an interrupt routine with interrupts disabled.
 //#define WATCHDOG_RESET_MANUAL
 /*****************************************************************************************/
 

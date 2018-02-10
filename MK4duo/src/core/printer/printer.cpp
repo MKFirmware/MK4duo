@@ -138,9 +138,7 @@ void Printer::setup() {
     stepper.disableStepperDrivers();
   #endif
 
-  #if ENABLED(USE_WATCHDOG)
-    watchdog_init();
-  #endif
+  watchdog.init();
 
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
@@ -414,11 +412,8 @@ void Printer::kill(const char* lcd_msg) {
     suicide();
   #endif
 
-  while(1) {
-    #if ENABLED(USE_WATCHDOG)
-      watchdog_reset();
-    #endif
-  } // Wait for reset
+  while(1) { watchdog.reset(); } // Wait for reset
+
 }
 
 /**

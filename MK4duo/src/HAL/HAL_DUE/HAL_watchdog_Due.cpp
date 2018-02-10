@@ -20,16 +20,22 @@
  *
  */
 
-#ifndef WATCHDOG_DUE_H
-#define WATCHDOG_DUE_H
+#include "../../../MK4duo.h"
 
-// Arduino Due core now has watchdog support
+#if ENABLED(ARDUINO_ARCH_SAM)
 
-// Initialize watchdog with a 4 second interrupt time
-void watchdog_init();
-  
-// Reset watchdog. MUST be called at least every 4 seconds after the
-// first watchdog_init or AVR will go into emergency procedures.
-inline void watchdog_reset() { watchdogReset(); }
+  void Watchdog::init(void) {
+    #if ENABLED(USE_WATCHDOG)
+      watchdogEnable(4000);
+    #endif
+  }
 
-#endif // WATCHDOG_DUE_H
+  void Watchdog::reset(void) {
+    #if ENABLED(USE_WATCHDOG)
+      watchdogReset();
+    #endif
+  }
+
+  Watchdog watchdog;
+
+#endif

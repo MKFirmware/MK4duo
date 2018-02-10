@@ -52,7 +52,7 @@
   }
 
   void Fan::SetAutoMonitored(const int8_t h) {
-    if (WITHIN(h, 0, HOTENDS -1) || h == 7)
+    if (WITHIN(h, 0, HOTENDS - 1) || h == 7)
       SBI(autoMonitored, (uint8_t)h);
     else      
       autoMonitored = 0;

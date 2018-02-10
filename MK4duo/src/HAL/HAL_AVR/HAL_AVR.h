@@ -80,7 +80,7 @@ typedef uint16_t  ptr_int_t;
 // Includes
 // --------------------------------------------------------------------------
 #include "fastio.h"
-#include "watchdog_AVR.h"
+#include "HAL_watchdog_AVR.h"
 
 // Serial
 //#define EXTERNALSERIAL  // Force using arduino serial
@@ -437,9 +437,7 @@ class HAL {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
         delayMs -= del;
-        #if ENABLED(USE_WATCHDOG)
-          watchdog_reset();
-        #endif
+        watchdog.reset();
       }
     }
     static inline uint32_t timeInMilliseconds() {

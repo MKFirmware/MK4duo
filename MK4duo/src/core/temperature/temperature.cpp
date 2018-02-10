@@ -234,9 +234,8 @@ void Temperature::set_current_temp_raw() {
  * Spin Manage heating activities for heaters, bed, chamber and cooler
  *  - Is called every 100ms.
  *  - Acquire updated temperature readings
- *  - Also resets the watchdog timer
+ *    - Also resets the watchdog timer
  *  - Invoke thermal runaway protection
- *  - Manage extruder auto-fan
  *  - Apply filament width to the extrusion rate (may move)
  *  - Update the heated bed PID output value
  */
@@ -704,10 +703,8 @@ void Temperature::updateTemperaturesFromRawValues() {
     NOMORE(mcu_lowest_temperature, mcu_current_temperature);
   #endif
 
-  #if ENABLED(USE_WATCHDOG)
-    // Reset the watchdog after we know we have a temperature measurement.
-    watchdog_reset();
-  #endif
+  // Reset the watchdog after we know we have a temperature measurement.
+  watchdog.reset();
 
 }
 

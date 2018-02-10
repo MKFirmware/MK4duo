@@ -3133,9 +3133,7 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
 
   // If init takes more than 4s it could trigger
   // watchdog leading to a reboot loop.
-  #if ENABLED(USE_WATCHDOG)
-    watchdog_reset();
-  #endif
+  watchdog.reset();
 
   HAL::pinMode(chipSelectPin_, OUTPUT);
   HAL::digitalWrite(chipSelectPin_, HIGH);

@@ -46,13 +46,8 @@ inline void gcode_M42(void) {
     return;
   }
 
-  HAL::pinMode(pin_number, OUTPUT);
-  HAL::digitalWrite(pin_number, pin_status);
-  HAL::analogWrite(pin_number, pin_status);
+  pinMode(pin_number, OUTPUT);
+  digitalWrite(pin_number, pin_status);
+  analogWrite(pin_number, pin_status);
 
-  #if FAN_COUNT > 0
-    LOOP_FAN() {
-      if (fans[f].pin == pin_number) fans[f].Speed = pin_status;
-    }
-  #endif
 }

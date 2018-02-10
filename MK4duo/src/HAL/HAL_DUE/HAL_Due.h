@@ -81,7 +81,7 @@ typedef uint32_t  ptr_int_t;
 // Includes
 // --------------------------------------------------------------------------
 #include "fastio_Due.h"
-#include "watchdog_Due.h"
+#include "HAL_watchdog_Due.h"
 #include "HAL_timers_Due.h"
 
 // --------------------------------------------------------------------------
@@ -359,9 +359,7 @@ class HAL {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
         delayMs -= del;
-        #if ENABLED(USE_WATCHDOG)
-          watchdogReset();
-        #endif
+        watchdog.reset();
       }
     }
     FORCE_INLINE static unsigned long timeInMilliseconds() {
