@@ -198,7 +198,9 @@ void HAL::hwSetup(void) {
 
   #endif
 
-  OUT_WRITE(SS_PIN, HIGH);
+  #if PIN_EXISTS(SS_PIN)
+    OUT_WRITE(SS_PIN, HIGH);
+  #endif
 
   #if HAS_MAX31855_SS0
     OUT_WRITE(MAX31855_SS0_PIN, HIGH);

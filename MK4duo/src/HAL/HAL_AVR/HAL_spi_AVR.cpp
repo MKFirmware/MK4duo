@@ -89,7 +89,6 @@
       SET_OUTPUT(MOSI_PIN);
       SET_OUTPUT(SCK_PIN);
       // set SS high - may be chip select for another SPI device
-      OUT_WRITE(SS_PIN, HIGH);
     #endif
   }
 

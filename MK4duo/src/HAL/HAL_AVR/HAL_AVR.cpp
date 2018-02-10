@@ -186,7 +186,26 @@ void HAL::showStartReason() {
 
 #endif
 
-void HAL::hwSetup() { }
+void HAL::hwSetup() {
+
+  #if PIN_EXISTS(SS_PIN)
+    OUT_WRITE(SS_PIN, HIGH);
+  #endif
+
+  #if HAS_MAX31855_SS0
+    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS1
+    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS2
+    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS3
+    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
+  #endif
+
+}
 
 void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   val &= 0x07;
