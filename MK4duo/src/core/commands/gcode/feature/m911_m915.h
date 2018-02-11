@@ -103,7 +103,7 @@
    */
   #if ENABLED(HYBRID_THRESHOLD)
 
-    #define CODE_M9134
+    #define CODE_M913
 
     inline void gcode_M913(void) {
 

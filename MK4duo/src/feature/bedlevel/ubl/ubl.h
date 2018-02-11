@@ -48,7 +48,7 @@ extern uint8_t ubl_cnt;
 
 #if ENABLED(ULTRA_LCD)
   extern char lcd_status_message[];
-  void lcd_quick_feedback();
+  void lcd_quick_feedback(const bool clear_buttons);
 #endif
 
 #define MESH_X_DIST (float(UBL_MESH_MAX_X - (UBL_MESH_MIN_X)) / float(GRID_MAX_POINTS_X - 1))
@@ -75,7 +75,7 @@ class unified_bed_leveling {
     #if ENABLED(NEWPANEL)
       static void move_z_with_encoder(const float &multiplier);
       static float measure_point_with_encoder();
-      static float measure_business_card_thickness(const float&);
+      static float measure_business_card_thickness(float in_height);
       static void manually_probe_remaining_mesh(const float&, const float&, const float&, const float&, const bool);
       static void fine_tune_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map);
     #endif
@@ -84,7 +84,6 @@ class unified_bed_leveling {
     static void find_mean_mesh_height();
     static void shift_mesh_height();
     static void probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, bool do_furthest);
-    static void tilt_mesh_based_on_3pts(const float &z1, const float &z2, const float &z3);
     static void tilt_mesh_based_on_probed_grid(const bool do_ubl_mesh_map);
     static void g29_what_command();
     static void g29_eeprom_dump();
