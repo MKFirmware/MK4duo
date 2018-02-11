@@ -1221,7 +1221,7 @@
 
 // EEPROM Allert
 #ifndef MSG_EEPROM_CHANGED_ALLERT_1
-  #define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENTION!!!")
+  #define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENTION...")
 #endif
 #ifndef MSG_EEPROM_CHANGED_ALLERT_2
   #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Changed.")

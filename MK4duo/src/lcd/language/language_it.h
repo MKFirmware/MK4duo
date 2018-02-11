@@ -439,7 +439,7 @@
 #define MSG_RFID_DENSITY                    _UxGT("Densità: ")
 #define MSG_RFID_SPOOL_LENGHT               _UxGT("Lunghezza bobina: ")
 
-#define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENZIONE!!!")
+#define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENZIONE...")
 #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Cambiata.")
 #define MSG_EEPROM_CHANGED_ALLERT_3         _UxGT("Premere il bottone")
 #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("per continuare...")

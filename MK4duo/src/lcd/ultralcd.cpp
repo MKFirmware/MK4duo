@@ -5527,7 +5527,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
     }
   #endif
 
-  void eeprom_allert() {
+  void _lcd_eeprom_allert() {
     START_SCREEN();
     STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_1);
     STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_2);
@@ -5537,7 +5537,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   }
 
   void lcd_eeprom_allert() {
-    lcd_goto_screen(eeprom_allert);
+    lcd_goto_screen(_lcd_eeprom_allert);
     lcd_completion_feedback(true);
     KEEPALIVE_STATE(PAUSED_FOR_USER);
     defer_return_to_status = true;

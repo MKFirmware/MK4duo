@@ -481,11 +481,6 @@
 //#define DELTA_AUTO_CALIBRATION_2
 
 #define DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS 4
-
-// Get the factors from auto tune G33 A1
-#define H_FACTOR 1.01
-#define R_FACTOR 2.61
-#define A_FACTOR 0.87
 /*****************************************************************************************/
 
 
