@@ -156,8 +156,8 @@ constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER
 
 static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
-  { TC0, 1, TC1_IRQn, 0 },  // 1 - [servo timer1]
-  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 92
+  { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
+  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
   { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
   { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
@@ -180,7 +180,7 @@ FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
 }
 
-FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, hal_timer_t count) {
+FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_timer_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
 
@@ -191,15 +191,11 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, hal_timer_
   #endif
 }
 
-FORCE_INLINE static void HAL_timer_set_current_count(const uint8_t timer_num, const hal_timer_t count) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV = count;
-}
-
 FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
 }
+
 FORCE_INLINE static void HAL_timer_isr_prologue(uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   // Reading the status register clears the interrupt flag

@@ -52,7 +52,7 @@
  */
 
 // For SAM3X:
-#define _useTimer1
+//#define _useTimer1
 //#define _useTimer2
 //#define _useTimer3
 //#define _useTimer4
@@ -106,7 +106,7 @@
   #define HANDLER_FOR_TIMER5  TC5_Handler
 #endif
 
-typedef enum { _timer1, _timer5, _Nbr_16timers } timer16_Sequence_t;
+typedef enum { _timer5, _Nbr_16timers } timer16_Sequence_t;
 
 #define TRIM_DURATION          2 // compensation ticks to trim adjust for digitalWrite delays
 #define SERVO_TIMER_PRESCALER 32 // timer prescaler

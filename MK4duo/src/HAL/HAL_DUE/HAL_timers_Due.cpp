@@ -128,7 +128,7 @@ void HAL_timer_disable_interrupt (const uint8_t timer_num) {
 
 bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IER == TC_IER_CPCS;
+  return (pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IMR & TC_IMR_CPCS);
 }
 
 #endif // ARDUINO_ARCH_SAM

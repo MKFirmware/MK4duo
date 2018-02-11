@@ -276,7 +276,6 @@ constexpr float     HAL_ACCELERATION_RATE   = (16777216.0 / (HAL_STEPPER_TIMER_R
 #define _CAT(a, ...) a ## __VA_ARGS__
 #define HAL_timer_set_count(timer, count)         (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                _CAT(TIMER_OCR_, timer)
-#define HAL_timer_set_current_count(timer, count) (_CAT(TIMER_COUNTER_, timer) = count)
 #define HAL_timer_get_current_count(timer)        _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_isr_prologue(timer_num)
 
