@@ -37,12 +37,6 @@
     this->__cbpush_ptr = NULL;
   }
 
-  uint8_t NexObject::getObjPid(void) { return __pid; }
-
-  uint8_t NexObject::getObjCid(void) { return __cid; }
-
-  const char* NexObject::getObjName(void) { return __name; }
-
   bool NexObject::getObjVis(void) { return __vis; }
 
   void NexObject::attachPush(NexTouchEventCb push, void *ptr) {
@@ -76,7 +70,7 @@
     if (NULL == list) return;
 
     for (i = 0; (e = list[i]) != NULL; i++) {
-      if (e->getObjPid() == pid && e->getObjCid() == cid) {
+      if (e->__pid == pid && e->__cid == cid) {
         if (NEX_EVENT_PUSH == event)
           e->push();
         else if (NEX_EVENT_POP == event)
@@ -93,14 +87,14 @@
   void NexObject::show() {
     String cmd;
     cmd += "page ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
   void NexObject::enable(const bool en /* true */) {
     String cmd;
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".en=";
     cmd += en ? "1" : "0";
     sendCommand(cmd.c_str());
@@ -114,7 +108,7 @@
       cmd += pname;
       cmd += ".";
     }
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".txt";
     sendCommand(cmd.c_str());
     recvRetString(buffer, len);
@@ -126,7 +120,7 @@
       cmd += pname;
       cmd += ".";
     }
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".txt=\"";
     cmd += buffer;
     cmd += "\"";
@@ -134,20 +128,20 @@
     recvRetCommandFinished();
   }
 
-  void NexObject::getValue(uint32_t *number, const char *pname) {
+  uint16_t NexObject::getValue(const char *pname) {
     String cmd;
     cmd += "get ";
     if (pname) {
       cmd += pname;
       cmd += ".";
     }
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".val";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setValue(uint32_t number, const char *pname) {
+  void NexObject::setValue(const uint16_t number, const char *pname) {
     char buf[10] = {0};
     String cmd;
     utoa(number, buf, 10);
@@ -156,7 +150,7 @@
       cmd += pname;
       cmd += ".";
     }
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".val=";
     cmd += buf;
 
@@ -167,258 +161,258 @@
   void NexObject::addValue(const uint8_t ch, const uint8_t number) {
     char buf[15] = {0};
     if (ch > 3) return;
-    sprintf(buf, "add %u,%u,%u", getObjCid(), ch, number);
+    sprintf(buf, "add %u,%u,%u", this->__cid, ch, number);
     sendCommand(buf);
   }
 
-  void NexObject::Get_cursor_height_hig(uint32_t *number) {
+  uint16_t NexObject::Get_cursor_height_hig() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".hig";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::Set_cursor_height_hig(const uint32_t number) {
+  void NexObject::Set_cursor_height_hig(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".hig=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::getMaxval(uint32_t *number) {
+  uint16_t NexObject::getMaxval() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".maxval";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setMaxval(const uint32_t number) {
+  void NexObject::setMaxval(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".maxval=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::getMinval(uint32_t *number) {
+  uint16_t NexObject::getMinval() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".minval";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setMinval(const uint32_t number) {
+  void NexObject::setMinval(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".minval=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::Get_background_color_bco(uint32_t *number) {
+  uint16_t NexObject::Get_background_color_bco() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".bco";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::Set_background_color_bco(uint32_t number) {
+  void NexObject::Set_background_color_bco(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".bco=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd="";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::Get_font_color_pco(uint32_t *number) {
+  uint16_t NexObject::Get_font_color_pco() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".pco";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::Set_font_color_pco(uint32_t number) {
+  void NexObject::Set_font_color_pco(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".pco=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::Get_place_xcen(uint32_t *number) {
+  uint16_t NexObject::Get_place_xcen() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".xcen";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::Set_place_xcen(uint32_t number) {
+  void NexObject::Set_place_xcen(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".xcen=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::Get_place_ycen(uint32_t *number) {
+  uint16_t NexObject::Get_place_ycen() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".ycen";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::Set_place_ycen(uint32_t number) {
+  void NexObject::Set_place_ycen(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".ycen=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::getFont(uint32_t *number) {
+  uint16_t NexObject::getFont() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".font";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setFont(uint32_t number) {
+  void NexObject::setFont(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".font=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::getCropPic(uint32_t *number) {
+  uint16_t NexObject::getCropPic() {
     String cmd;
     cmd += "get ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".picc";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setCropPic(uint32_t number) {
+  void NexObject::setCropPic(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".picc=";
     cmd += buf;
     sendCommand(cmd.c_str());
 
     cmd = "";
     cmd += "ref ";
-    cmd += getObjName();
+    cmd += this->__name;
     sendCommand(cmd.c_str());
     recvRetCommandFinished();
   }
 
-  void NexObject::getPic(uint32_t *number) {
+  uint16_t NexObject::getPic() {
     String cmd = String("get ");
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".pic";
     sendCommand(cmd.c_str());
-    recvRetNumber(number);
+    return recvRetNumber();
   }
 
-  void NexObject::setPic(uint32_t number) {
+  void NexObject::setPic(const uint16_t number) {
     char buf[10] = {0};
     String cmd;
 
     utoa(number, buf, 10);
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ".pic=";
     cmd += buf;
 
@@ -426,10 +420,10 @@
     recvRetCommandFinished();
   }
 
-  void NexObject::SetVisibility(bool visible) {
+  void NexObject::SetVisibility(const bool visible) {
     String cmd;
     cmd += "vis ";
-    cmd += getObjName();
+    cmd += this->__name;
     cmd += ',';
     cmd += (visible ? '1' : '0');
     __vis = visible;
@@ -476,7 +470,7 @@
     }
 
     uint16_t NexUpload::_getBaudrate(void) {
-      uint32_t baudrate_array[7] = {115200, 57600, 38400, 19200, 9600, 4800, 2400};
+      const uint32_t baudrate_array[7] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400 };
       for (uint8_t i = 0; i < 7; i++) {
         if (_searchBaudrate(baudrate_array[i])) {
           _baudrate = baudrate_array[i];
@@ -669,21 +663,20 @@
     }
   }
 
-  void recvRetNumber(uint32_t *number) {
+  uint16_t recvRetNumber() {
     uint8_t temp[8] = {0};
-
-    if (!number) return;
 
     nexSerial.setTimeout(NEX_TIMEOUT);
     if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-      return;
+      return NULL;
 
     if (temp[0] == NEX_RET_NUMBER_HEAD
         && temp[5] == 0xFF
         && temp[6] == 0xFF
         && temp[7] == 0xFF
     )
-      *number = ((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]);
+
+    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
   }
 
   void recvRetString(char *buffer, uint16_t len) {

@@ -40,7 +40,15 @@ inline void gcode_M203(void) {
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      mechanics.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
+      #if MECH(DELTA)
+        const float value = parser.value_per_axis_unit((AxisEnum)a);
+        if (i == E_AXIS)
+          mechanics.max_feedrate_mm_s[a] = value;
+        else
+          LOOP_XYZ(axis) mechanics.max_feedrate_mm_s[axis] = value;
+      #else
+        mechanics.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
+      #endif
     }
   }
 }

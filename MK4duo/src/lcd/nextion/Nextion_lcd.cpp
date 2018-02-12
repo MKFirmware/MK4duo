@@ -496,11 +496,11 @@
 
   #define START_MENU() \
     start_menu(true, true); \
-    uint32_t encoderLine; \
+    uint16_t encoderLine; \
     uint8_t _lcdLineNr = 0; \
     do { \
       _lcdLineNr = 0; \
-      LcdPos.getValue(&encoderLine); \
+      encoderLine = LcdPos.getValue(); \
       HAL::delayMilliseconds(200)
 
   #define MENU_ITEM(TYPE, LABEL, ...) \
@@ -639,9 +639,7 @@
 
     void sdlistPopCallback(void *ptr) {
       UNUSED(ptr);
-      uint32_t number = 0;
-      sdlist.getValue(&number);
-      number = slidermaxval - number;
+      uint16_t number = slidermaxval - sdlist.getValue();
       setrowsdcard(number);
     }
 
@@ -876,8 +874,7 @@
       ZERO(buffer);
 
       String temp = "M522 ";
-      uint32_t Rfid_read = 0;
-      RfidR.getValue(&Rfid_read);
+      uint16_t Rfid_read = RfidR.getValue();
 
       if (ptr == &Rfid0)
         temp += "T0 ";
@@ -970,11 +967,8 @@
   void sethotPopCallback(void *ptr) {
     UNUSED(ptr);
 
-    uint32_t  Heater,
-              temperature;
-
-    theater.getValue(&Heater);
-    tset.getValue(&temperature);
+    uint16_t  Heater      = theater.getValue(),
+              temperature = tset.getValue();
 
     #if HAS_TEMP_BED
       if (Heater == 2)
@@ -1022,12 +1016,10 @@
 
     #if EXTRUDERS > 1
       const uint8_t temp_extruder = tools.active_extruder;
-      uint32_t new_extruder;
-      char temp[5] = {0};
+      char temp[5] = { 0 };
 
       ZERO(buffer);
-      ext.getValue(&new_extruder);
-      itoa(new_extruder, temp, 2);
+      itoa(ext.getValue(), temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
       commands.enqueue_and_echo(buffer);
@@ -1074,9 +1066,7 @@
   void YesPopCallback(void *ptr) {
     UNUSED(ptr);
 
-    static uint32_t icon = 0;
-    Vyes.getValue(&icon);
-    switch(icon) {
+    switch(Vyes.getValue()) {
       #if HAS_SDSUPPORT
         case 1: // Stop Print
           card.stopSDPrint();
@@ -1409,9 +1399,7 @@
         coordtoLCD();
         break;
       case 6:
-        static uint32_t temp_feedrate = 0;
-        VSpeed.getValue(&temp_feedrate, "printer");
-        Previousfeedrate = mechanics.feedrate_percentage = (int)temp_feedrate;
+        Previousfeedrate = mechanics.feedrate_percentage = (int)VSpeed.getValue("printer");
         break;
       case 15:
         coordtoLCD();

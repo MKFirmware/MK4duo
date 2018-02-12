@@ -24,6 +24,8 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
+  #include <watchdog.h>
+
   void Watchdog::init(void) {
     #if ENABLED(USE_WATCHDOG)
       watchdogEnable(4000);

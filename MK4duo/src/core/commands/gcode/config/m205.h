@@ -46,8 +46,19 @@ inline void gcode_M205(void) {
   if (parser.seen('S')) mechanics.min_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('V')) mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('B')) mechanics.min_segment_time_us = parser.value_ulong();
-  if (parser.seen('X')) mechanics.max_jerk[X_AXIS] = parser.value_linear_units();
-  if (parser.seen('Y')) mechanics.max_jerk[Y_AXIS] = parser.value_linear_units();
-  if (parser.seen('Z')) mechanics.max_jerk[Z_AXIS] = parser.value_linear_units();
-  if (parser.seen('E')) mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] = parser.value_linear_units();
+
+  LOOP_XYZE(i) {
+    if (parser.seen(axis_codes[i])) {
+      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+      #if MECH(DELTA)
+        const float value = parser.value_per_axis_unit((AxisEnum)a);
+        if (i == E_AXIS)
+          mechanics.max_jerk[a] = value;
+        else
+          LOOP_XYZ(axis) mechanics.max_jerk[axis] = value;
+      #else
+        mechanics.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
+      #endif
+    }
+  }
 }

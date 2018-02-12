@@ -40,18 +40,24 @@ inline void gcode_M92(void) {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
+      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+      const float value = parser.value_per_axis_unit((AxisEnum)a);
       if (i == E_AXIS) {
-        const float value = parser.value_per_axis_unit((AxisEnum)(E_AXIS + TARGET_EXTRUDER));
         if (value < 20.0) {
-          float factor = mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] / value; // increase e constants if M92 E14 is given for netfab.
-          mechanics.max_jerk[E_AXIS + TARGET_EXTRUDER] *= factor;
-          mechanics.max_feedrate_mm_s[E_AXIS + TARGET_EXTRUDER] *= factor;
-          mechanics.max_acceleration_steps_per_s2[E_AXIS + TARGET_EXTRUDER] *= factor;
+          float factor = mechanics.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
+          mechanics.max_jerk[a] *= factor;
+          mechanics.max_feedrate_mm_s[a] *= factor;
+          mechanics.max_acceleration_steps_per_s2[a] *= factor;
         }
-        mechanics.axis_steps_per_mm[E_AXIS + TARGET_EXTRUDER] = value;
+        mechanics.axis_steps_per_mm[a] = value;
       }
       else {
-        mechanics.axis_steps_per_mm[i] = parser.value_per_axis_unit((AxisEnum)i);
+        #if MECH(DELTA)
+          LOOP_XYZ(axis)
+            mechanics.axis_steps_per_mm[axis] = value;
+        #else
+          mechanics.axis_steps_per_mm[a] = value;
+        #endif
       }
     }
   }

@@ -166,7 +166,7 @@ class NexObject {
      * @param number - buffer storing data return
      * @param pname  - To set page name
      */
-    void getValue(uint32_t *number, const char *pname=NULL);
+    uint16_t getValue(const char *pname=NULL);
 
     /**
      * Set val attribute of component
@@ -174,7 +174,7 @@ class NexObject {
      * @param number - To set up the data
      * @param pname  - To set page name
      */
-    void setValue(uint32_t number, const char *pname=NULL);
+    void setValue(const uint16_t number, const char *pname=NULL);
 
     /**
      * Add value to show.
@@ -189,140 +189,140 @@ class NexObject {
      *
      * @param number - buffer storing data return
      */
-    void Get_cursor_height_hig(uint32_t *number);	
+    uint16_t Get_cursor_height_hig();	
 
     /**
      * Set hig attribute of component
      *
      * @param number - To set up the data
      */
-    void Set_cursor_height_hig(const uint32_t number);
+    void Set_cursor_height_hig(const uint16_t number);
 
     /**
      * Get maxval attribute of component
      *
      * @param number - buffer storing data return
      */
-    void getMaxval(uint32_t *number);
+    uint16_t getMaxval();
 
     /**
      * Set maxval attribute of component
      *
      * @param number - To set up the data
      */
-    void setMaxval(const uint32_t number);
+    void setMaxval(const uint16_t number);
 
     /**
      * Get minval attribute of component
      *
      * @param number - buffer storing data return
      */
-    void getMinval(uint32_t *number);
+    uint16_t getMinval();
 
     /**
      * Set minval attribute of component
      *
      * @param number - To set up the data
      */
-    void setMinval(const uint32_t number);
+    void setMinval(const uint16_t number);
 
     /**
      * Get bco attribute of component
      *
      * @param number - buffer storing data return
      */
-    void Get_background_color_bco(uint32_t *number);
+    uint16_t Get_background_color_bco();
 
     /**
      * Set bco attribute of component
      *
      * @param number - To set up the data
      */
-    void Set_background_color_bco(uint32_t number);
+    void Set_background_color_bco(const uint16_t number);
 
     /**
      * Get pco attribute of component
      *
      * @param number - buffer storing data return
      */
-    void Get_font_color_pco(uint32_t *number); 
+    uint16_t Get_font_color_pco(); 
 
     /**
      * Set pco attribute of component
      *
      * @param number - To set up the data
      */
-    void Set_font_color_pco(uint32_t number);			
+    void Set_font_color_pco(const uint16_t number);			
 
     /**
      * Get xcen attribute of component
      *
      * @param number - buffer storing data return
      */
-    void Get_place_xcen(uint32_t *number);
+    uint16_t Get_place_xcen();
 
     /**
      * Set xcen attribute of component
      *
      * @param number - To set up the data
      */
-    void Set_place_xcen(uint32_t number);
+    void Set_place_xcen(const uint16_t number);
 
     /**
      * Get ycen attribute of component
      *
      * @param number - buffer storing data return
      */
-    void Get_place_ycen(uint32_t *number);
+    uint16_t Get_place_ycen();
 
     /**
      * Set ycen attribute of component
      *
      * @param number - To set up the data
      */
-    void Set_place_ycen(uint32_t number);
+    void Set_place_ycen(const uint16_t number);
 
     /**
      * Get font attribute of component
      *
      * @param number - buffer storing data return
      */
-    void getFont(uint32_t *number);
+    uint16_t getFont();
 
     /**
      * Set font attribute of component
      *
      * @param number - To set up the data
      */
-    void setFont(uint32_t number);
+    void setFont(const uint16_t number);
 
     /**
      * Get Crop pic attribute of component
      *
      * @param number - buffer storing data return
      */
-    void getCropPic(uint32_t *number);	
+    uint16_t getCropPic();	
 
     /**
      * Set Crop pic attribute of component
      *
      * @param number - To set up the data
      */
-    void setCropPic(uint32_t number);
+    void setCropPic(const uint16_t number);
 
     /**
      * Get pic attribute of component
      *
      * @param number - buffer storing data return
      */
-    void getPic(uint32_t *number);
+    uint16_t getPic();
 
     /**
      * Set pic attribute of component
      *
      * @param number - To set up the data
      */
-    void setPic(uint32_t number);
+    void setPic(const uint16_t number);
 
     /**
      * Get componet vis.
@@ -336,30 +336,7 @@ class NexObject {
      *
      * @param visible - To set visible or invisible
      */
-    void SetVisibility(bool visible);
-
-  protected:
-
-    /**
-     * Get componet page id.
-     *
-     * @return the id of page.
-     */
-    uint8_t getObjPid(void);
-
-    /**
-     * Get component id.
-     *
-     * @return the id of component.
-     */
-    uint8_t getObjCid(void);
-
-    /**
-     * Get component name.
-     *
-     * @return the name of component.
-     */
-    const char *getObjName(void);
+    void SetVisibility(const bool visible);
 
   private:
 
@@ -502,10 +479,11 @@ bool nexInit(char *buffer);
  */
 void nexLoop(NexObject *nex_listen_list[]);
 
-void recvRetNumber(uint32_t *number);
 void recvRetString(char *buffer, uint16_t len);
 void sendCommand(const char* cmd);
 void recvRetCommandFinished();
+
+uint16_t recvRetNumber();
 
 uint8_t Nextion_PageID();
 void setCurrentBrightness(uint8_t dimValue);
