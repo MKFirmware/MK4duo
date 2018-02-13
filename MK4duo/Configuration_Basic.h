@@ -107,9 +107,9 @@
  *
  * When enabled MK4duo will send a busy status message to the host
  * every couple of seconds when it can't accept commands.
- * Disable this if your host doesn't like keepalive messages
  */
-//#define HOST_KEEPALIVE_FEATURE
+// Disable this if your host doesn't like keepalive messages
+#define HOST_KEEPALIVE_FEATURE
 // Number of seconds between "busy" messages. Set with M113.
 #define DEFAULT_KEEPALIVE_INTERVAL 2
 // Some hosts require "busy" messages even during heating

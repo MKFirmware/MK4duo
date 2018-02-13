@@ -29,7 +29,7 @@
   extern void eeprom_flush(void);
 
   #if HAS_EEPROM_SD
-    extern SdFile eeprom_file;
+    SdFile eeprom_file;
   #endif
 
   bool EEPROM::access_start(const bool read) {

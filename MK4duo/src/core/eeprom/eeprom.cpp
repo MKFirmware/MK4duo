@@ -205,10 +205,6 @@
 
 EEPROM eeprom;
 
-#if HAS_EEPROM_SD
-  SdFile eeprom_file;
-#endif
-
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
   float new_z_fade_height;
 #endif
