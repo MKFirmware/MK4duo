@@ -23,6 +23,8 @@
 #ifndef _UNIFIED_BED_LEVELING_H_
 #define _UNIFIED_BED_LEVELING_H_
 
+//#define UBL_DEVEL_DEBUGGING
+
 #define UBL_VERSION "1.01"
 #define UBL_OK false
 #define UBL_ERR true
@@ -30,9 +32,13 @@
 #define USE_NOZZLE_AS_REFERENCE 0
 #define USE_PROBE_AS_REFERENCE 1
 
-// ubl_motion.cpp
+// ubl.cpp
 
-void debug_current_and_destination(const char * const title);
+#if ENABLED(UBL_DEVEL_DEBUGGING)
+  void debug_current_and_destination(const char * const title);
+#else
+  FORCE_INLINE void debug_current_and_destination(const char * const title) { UNUSED(title); }
+#endif
 
 // ubl_G29.cpp
 
@@ -206,7 +212,15 @@ class unified_bed_leveling {
             SERIAL_EOL();
           }
         #endif
-        return NAN;
+
+        // The requested location is off the mesh. Return UBL_Z_RAISE_WHEN_OFF_MESH or NAN.
+        return (
+          #if ENABLED(UBL_Z_RAISE_WHEN_OFF_MESH)
+            UBL_Z_RAISE_WHEN_OFF_MESH
+          #else
+            NAN
+          #endif
+        );
       }
 
       const float xratio  = (rx0 - mesh_index_to_xpos(x1_i)) * (1.0 / (MESH_X_DIST)),
@@ -232,7 +246,15 @@ class unified_bed_leveling {
             SERIAL_EOL();
           }
         #endif
-        return NAN;
+
+        // The requested location is off the mesh. Return UBL_Z_RAISE_WHEN_OFF_MESH or NAN.
+        return (
+          #if ENABLED(UBL_Z_RAISE_WHEN_OFF_MESH)
+            UBL_Z_RAISE_WHEN_OFF_MESH
+          #else
+            NAN
+          #endif
+        );
       }
 
       const float yratio  = (ry0 - mesh_index_to_ypos(y1_i)) * (1.0 / (MESH_Y_DIST)),
@@ -252,6 +274,15 @@ class unified_bed_leveling {
     static float get_z_correction(const float &rx0, const float &ry0) {
       const int8_t cx = get_cell_index_x(rx0),
                    cy = get_cell_index_y(ry0); // return values are clamped
+
+      /**
+       * Check if the requested location is off the mesh.  If so, and
+       * UBL_Z_RAISE_WHEN_OFF_MESH is specified, that value is returned.
+       */
+      #if ENABLED(UBL_Z_RAISE_WHEN_OFF_MESH)
+        if (!WITHIN(rx0, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(ry0, 0, GRID_MAX_POINTS_Y - 1))
+          return UBL_Z_RAISE_WHEN_OFF_MESH;
+      #endif
 
       const float z1 = calc_z0(rx0,
                                mesh_index_to_xpos(cx), z_values[cx][cy],

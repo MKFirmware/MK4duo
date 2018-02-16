@@ -62,7 +62,7 @@ uint8_t lcd_status_update_delay = 1, // First update one loop delayed
   #define MAX_MESSAGE_LENGTH CHARSIZE * (LCD_WIDTH)
 #endif
 
-char lcd_status_message[MAX_MESSAGE_LENGTH + 1] = WELCOME_MSG;
+char lcd_status_message[MAX_MESSAGE_LENGTH + 1];
 
 #if ENABLED(SCROLL_LONG_FILENAMES)
   uint8_t filename_scroll_pos, filename_scroll_max, filename_scroll_hash;
@@ -2839,12 +2839,12 @@ void kill_screen(const char* lcd_msg) {
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
     encoderPosition = 0;
-    if (lcdDrawUpdate && !processing_manual_move) {
-      const float pos = mechanics.current_position[axis]
+    if (lcdDrawUpdate) {
+      const float pos = (processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
         #if IS_KINEMATIC
           + manual_move_offset
         #endif
-      ;
+      );
       lcd_implementation_drawedit(name, move_menu_scale >= 0.1 ? ftostr41sign(pos) : ftostr43sign(pos));
     }
   }

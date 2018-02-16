@@ -27,13 +27,6 @@
   #include "ubl.h"
   #include <math.h>
 
-  static void debug_echo_axis(const AxisEnum axis) {
-    if (mechanics.current_position[axis] == mechanics.destination[axis])
-      SERIAL_MSG("-------------");
-    else
-      SERIAL_VAL(mechanics.destination[X_AXIS], 6);
-  }
-
   #if UBL_DELTA
 
     #define DELTA_SEGMENT_MIN_LENGTH 0.10 // mm (still subject to DELTA_SEGMENTS_PER_SECOND)
@@ -199,18 +192,8 @@
        * as possible to determine if this is the case. If this move is within the same cell, we will
        * just do the required Z-Height correction, call the Planner's buffer_line() routine, and leave
        */
-      const float start[XYZE] = {
-                    mechanics.current_position[X_AXIS],
-                    mechanics.current_position[Y_AXIS],
-                    mechanics.current_position[Z_AXIS],
-                    mechanics.current_position[E_AXIS]
-                  },
-                  end[XYZE] = {
-                    mechanics.destination[X_AXIS],
-                    mechanics.destination[Y_AXIS],
-                    mechanics.destination[Z_AXIS],
-                    mechanics.destination[E_AXIS]
-                  };
+      const float (&start)[XYZE] = mechanics.current_position,
+                    (&end)[XYZE] = mechanics.destination;
 
       const int cell_start_xi = get_cell_index_x(start[X_AXIS]),
                 cell_start_yi = get_cell_index_y(start[Y_AXIS]),
@@ -224,6 +207,7 @@
         SERIAL_MV(", ee=", end[E_AXIS]);
         SERIAL_CHR(')');
         SERIAL_EOL();
+        debug_current_and_destination(PSTR("Start of ubl.line_to_destination_cartesian()"));
       }
 
       if (cell_start_xi == cell_dest_xi && cell_start_yi == cell_dest_yi) { // if the whole move is within the same cell,
@@ -237,10 +221,18 @@
         if (!WITHIN(cell_dest_xi, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(cell_dest_yi, 0, GRID_MAX_POINTS_Y - 1)) {
 
           // Note: There is no Z Correction in this case. We are off the grid and don't know what
-          // a reasonable correction would be.
-
-          planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS], end[E_AXIS], feed_rate, extruder);
+          // a reasonable correction would be.  If the user has specified a UBL_Z_RAISE_WHEN_OFF_MESH
+          // value, that will be used instead of a calculated (Bi-Linear interpolation) correction.
+          const float z_raise = 0.0
+            #if ENABLED(UBL_Z_RAISE_WHEN_OFF_MESH)
+              + UBL_Z_RAISE_WHEN_OFF_MESH
+            #endif
+          ;
+          planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z_raise, end[E_AXIS], feed_rate, extruder);
           mechanics.set_current_to_destination();
+
+          if (bedlevel.g26_debug_flag) {
+            debug_current_and_destination(PSTR("out of bounds in ubl.line_to_destination_cartesian()"));
 
           return;
         }
@@ -281,6 +273,9 @@
         if (isnan(z0)) z0 = 0.0;
 
         planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z0, end[E_AXIS], feed_rate, extruder);
+
+        if (bedlevel.g26_debug_flag) {
+          debug_current_and_destination(PSTR("FINAL_MOVE in ubl.line_to_destination_cartesian()"));
 
         mechanics.set_current_to_destination();
         return;
@@ -383,6 +378,9 @@
             planner.buffer_segment(rx, ry, z_position + z0, e_position, feed_rate, extruder);
           } //else printf("FIRST MOVE PRUNED  ");
         }
+
+        if (bedlevel.g26_debug_flag) {
+          debug_current_and_destination(PSTR("vertical move done in ubl.line_to_destination_cartesian()"));
 
         //
         // Check if we are at the final mechanics.destination. Usually, we won't be, but if it is on a Y Mesh Line, we are done.
@@ -534,6 +532,9 @@
 
         if (xi_cnt < 0 || yi_cnt < 0) break; // we've gone too far, so exit the loop and move on to FINAL_MOVE
       }
+
+      if (bedlevel.g26_debug_flag) {
+        debug_current_and_destination(PSTR("generic move done in ubl.line_to_destination_cartesian()"));
 
       if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
         goto FINAL_MOVE;

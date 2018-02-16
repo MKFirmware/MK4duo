@@ -158,63 +158,6 @@ void HAL::hwSetup(void) {
   NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
   NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
 
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-
-    // All SPI chip-select HIGH
-    OUT_WRITE(DAC0_SYNC, HIGH);
-    #if EXTRUDERS > 1
-      OUT_WRITE(DAC1_SYNC, HIGH);
-    #endif
-    OUT_WRITE(SPI_EEPROM1_CS, HIGH);
-    OUT_WRITE(SPI_EEPROM2_CS, HIGH);
-    OUT_WRITE(SPI_FLASH_CS, HIGH);
-    SET_INPUT(MOTOR_FAULT_PIN);
-    #if MB(ALLIGATOR_V3)
-      SET_INPUT(MOTOR_FAULT_PIGGY_PIN);
-      SET_INPUT(FTDI_COM_RESET_PIN);
-      SET_INPUT(ESP_WIFI_MODULE_RESET_PIN);
-      OUT_WRITE(EXP1_OUT_ENABLE_PIN, HIGH);
-    #elif MB(ALLIGATOR)
-      // Init Expansion Port Voltage logic Selector
-      OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
-    #endif
-
-    #if HAS_BUZZER
-      BUZZ(10,10);
-    #endif
-
-  #elif MB(ULTRATRONICS)
-
-    /* avoid floating pins */
-    OUT_WRITE(ORIG_FAN0_PIN, LOW);
-    OUT_WRITE(ORIG_FAN1_PIN, LOW);
-
-    OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
-
-    OUT_WRITE(ENC424_SS_PIN, HIGH);
-
-  #endif
-
-  #if PIN_EXISTS(SS)
-    OUT_WRITE(SS_PIN, HIGH);
-  #endif
-
-  #if HAS_MAX31855_SS0
-    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
-  #endif
-  #if HAS_MAX31855_SS1
-    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
-  #endif
-  #if HAS_MAX31855_SS2
-    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
-  #endif
-  #if HAS_MAX31855_SS3
-    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
-  #endif
-
 }
 
 // Print apparent cause of start/restart

@@ -48,6 +48,54 @@
     printer.safe_delay(10);
   }
 
+  #if ENABLED(UBL_DEVEL_DEBUGGING)
+
+    static void debug_echo_axis(const AxisEnum axis) {
+      if (mechanics.current_position[axis] == mechanics.destination[axis])
+        SERIAL_MSG("-------------");
+      else
+        SERIAL_VAL(mechanics.destination[X_AXIS], 6);
+    }
+
+    void debug_current_and_destination(const char *title) {
+
+      // if the title message starts with a '!' it is so important, we are going to
+      // ignore the status of the bedlevel.g26_debug_flag
+      if (*title != '!' && !bedlevel.g26_debug_flag) return;
+
+      const float de = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
+
+      if (de == 0.0) return; // Printing moves only
+
+      const float dx = mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS],
+                  dy = mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS],
+                  xy_dist = HYPOT(dx, dy);
+
+      if (xy_dist == 0.0) return;
+
+      const float fpmm = de / xy_dist;
+      SERIAL_MV("   fpmm=", fpmm, 6);
+
+      SERIAL_MV("    current=( ", mechanics.current_position[X_AXIS], 6);
+      SERIAL_MV(", ", mechanics.current_position[Y_AXIS], 6);
+      SERIAL_MV(", ", mechanics.current_position[Z_AXIS], 6);
+      SERIAL_MV(", ", mechanics.current_position[E_AXIS], 6);
+      SERIAL_MSG(" )   destination=( ");
+      debug_echo_axis(X_AXIS);
+      SERIAL_MSG(", ");
+      debug_echo_axis(Y_AXIS);
+      SERIAL_MSG(", ");
+      debug_echo_axis(Z_AXIS);
+      SERIAL_MSG(", ");
+      debug_echo_axis(E_AXIS);
+      SERIAL_MSG(" )   ");
+      SERIAL_STR(title);
+      SERIAL_EOL();
+
+    }
+
+  #endif // UBL_DEVEL_DEBUGGING
+
   int8_t unified_bed_leveling::storage_slot;
 
   float unified_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];

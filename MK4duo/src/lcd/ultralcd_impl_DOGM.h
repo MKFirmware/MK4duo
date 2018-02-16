@@ -704,7 +704,7 @@ static void lcd_implementation_status_screen() {
   // When everything is ok you see a constant 'X'.
 
   static char xstring[5], ystring[5], zstring[7];
-  #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
+  #if HAS_LCD_FILAMENT_SENSOR
     static char wstring[5], mstring[4];
   #endif
 

@@ -175,8 +175,6 @@ class Printer {
 
     static void suicide();
 
-    static char GetStatusCharacter();
-
     // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     static void setNotHoming();
 
@@ -326,10 +324,10 @@ class Printer {
 
   private: /** Private Function */
 
+    static void setup_pinout();
+
     static void manage_inactivity(bool ignore_stepper_queue=false);
     static void handle_Interrupt_Event();
-
-    static void setup_powerhold();
 
     static void bracket_probe_move(const bool before);
 

@@ -758,7 +758,7 @@
           const float measured_z = probe.check_pt(rawx, rawy, stow_probe, g29_verbose_level); // TODO: Needs error handling
           z_values[location.x_index][location.y_index] = measured_z;
         }
-
+        HAL::serialFlush(); // Prevent host M105 buffer overrun.
       } while (location.x_index >= 0 && --max_iterations);
 
       STOW_PROBE();
@@ -895,6 +895,7 @@
           SERIAL_VAL(z_values[location.x_index][location.y_index], 6);
           SERIAL_EOL();
         }
+        HAL::serialFlush(); // Prevent host M105 buffer overrun.
       } while (location.x_index >= 0 && location.y_index >= 0);
 
       if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
@@ -1400,6 +1401,7 @@
             mechanics.do_blocking_move_to_z(h_offset + new_z); // Move the nozzle as the point is edited
           #endif
           printer.idle();
+          HAL::serialFlush(); // Prevent host M105 buffer overrun.
         } while (!is_lcd_clicked());
 
         if (!lcd_map_control) lcd_return_to_status();

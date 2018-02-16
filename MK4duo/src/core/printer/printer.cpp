@@ -128,11 +128,15 @@ void Printer::setup() {
 
   HAL::hwSetup();
 
-  #if HAS_KILL
-    SET_INPUT_PULLUP(KILL_PIN);
-  #endif
+  setup_pinout();
 
-  setup_powerhold();
+  #if HAS_POWER_SWITCH
+    #if PS_DEFAULT_OFF
+      powerManager.power_off();
+    #else
+      powerManager.power_on();
+    #endif
+  #endif
 
   #if HAS_STEPPER_RESET
     stepper.disableStepperDrivers();
@@ -205,14 +209,7 @@ void Printer::setup() {
     servo_init(); // Initialize all Servo
   #endif
 
-  #if HAS_PHOTOGRAPH
-    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
-  #endif
-
   #if HAS_CASE_LIGHT
-    #if DISABLED(CASE_LIGHT_USE_NEOPIXEL)
-      SET_OUTPUT(CASE_LIGHT_PIN);
-    #endif
     caselight.update();
   #endif
 
@@ -226,22 +223,6 @@ void Printer::setup() {
 
   #if ENABLED(DIGIPOT_I2C)
     digipot_i2c_init();
-  #endif
-
-  #if HAS_Z_PROBE_SLED
-    OUT_WRITE(SLED_PIN, LOW); // turn it off
-  #endif
-
-  #if HAS_HOME
-    SET_INPUT_PULLUP(HOME_PIN);
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_RED)
-    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_BLUE)
-    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
   #if HAS_COLOR_LEDS
@@ -266,6 +247,7 @@ void Printer::setup() {
   #endif
 
   lcd_init();
+  LCD_MESSAGEPGM(WELCOME_MSG);
 
   #if ENABLED(SHOW_BOOTSCREEN)
     #if ENABLED(DOGLCD) || ENABLED(ULTRA_LCD)
@@ -832,12 +814,6 @@ void Printer::suicide() {
   #endif
 }
 
-char Printer::GetStatusCharacter(){
-  return  print_job_counter.isRunning() ? 'P'   // Printing
-        : print_job_counter.isPaused()  ? 'A'   // Paused / Stopped
-        :                                 'I';  // Idle
-}
-
 // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
 void Printer::setNotHoming() {
   endstops.setEndstopEnabled(endstops.IsEndstopGlobally());
@@ -847,17 +823,97 @@ void Printer::setNotHoming() {
  * Private Function
  */
 
-void Printer::setup_powerhold() {
+void Printer::setup_pinout() {
+
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+
+    // All SPI chip-select HIGH
+    OUT_WRITE(DAC0_SYNC, HIGH);
+    #if EXTRUDERS > 1
+      OUT_WRITE(DAC1_SYNC, HIGH);
+    #endif
+    OUT_WRITE(SPI_EEPROM1_CS, HIGH);
+    OUT_WRITE(SPI_EEPROM2_CS, HIGH);
+    OUT_WRITE(SPI_FLASH_CS, HIGH);
+    SET_INPUT(MOTOR_FAULT_PIN);
+    #if MB(ALLIGATOR_V3)
+      SET_INPUT(MOTOR_FAULT_PIGGY_PIN);
+      SET_INPUT(FTDI_COM_RESET_PIN);
+      SET_INPUT(ESP_WIFI_MODULE_RESET_PIN);
+      OUT_WRITE(EXP1_OUT_ENABLE_PIN, HIGH);
+    #elif MB(ALLIGATOR)
+      // Init Expansion Port Voltage logic Selector
+      OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
+    #endif
+
+    #if HAS_BUZZER
+      BUZZ(10,10);
+    #endif
+
+  #elif MB(ULTRATRONICS)
+
+    /* avoid floating pins */
+    OUT_WRITE(ORIG_FAN0_PIN, LOW);
+    OUT_WRITE(ORIG_FAN1_PIN, LOW);
+
+    OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
+    OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
+
+    OUT_WRITE(ENC424_SS_PIN, HIGH);
+
+  #endif
+
+  #if PIN_EXISTS(SS)
+    OUT_WRITE(SS_PIN, HIGH);
+  #endif
+
+  #if HAS_MAX31855_SS0
+    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS1
+    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS2
+    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
+  #endif
+  #if HAS_MAX31855_SS3
+    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
+  #endif
+
   #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, HIGH);
   #endif
-  #if HAS_POWER_SWITCH
-    #if PS_DEFAULT_OFF
-      powerManager.power_off();
-    #else
-      powerManager.power_on();
-    #endif
+
+  #if HAS_KILL
+    SET_INPUT_PULLUP(KILL_PIN);
   #endif
+
+  #if HAS_PHOTOGRAPH
+    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
+  #endif
+
+  #if HAS_CASE_LIGHT && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+    SET_OUTPUT(CASE_LIGHT_PIN);
+  #endif
+
+  #if HAS_Z_PROBE_SLED
+    OUT_WRITE(SLED_PIN, LOW); // turn it off
+  #endif
+
+  #if HAS_HOME
+    SET_INPUT_PULLUP(HOME_PIN);
+  #endif
+
+  #if PIN_EXISTS(STAT_LED_RED)
+    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
+  #endif
+
+  #if PIN_EXISTS(STAT_LED_BLUE)
+    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
+  #endif
+
 }
 
 #if ENABLED(IDLE_OOZING_PREVENT)

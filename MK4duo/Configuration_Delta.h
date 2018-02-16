@@ -164,8 +164,7 @@
  ************************* Endstop pullup resistors **************************************
  *****************************************************************************************
  *                                                                                       *
- * Comment this out (using // at the start of the line) to                               *
- * disable the endstop pullup resistors                                                  *
+ * Put true for enable or put false for disable the endstop pullup resistors             *
  *                                                                                       *
  *****************************************************************************************/
 #define ENDSTOPPULLUP_XMAX    false
@@ -434,12 +433,14 @@
 #define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
 
 /** START Unified Bed Leveling */
-// If this is defined, the currently active mesh will be saved in the
-// current slot on M500.
-#define UBL_SAVE_ACTIVE_ON_M500
-
 // Sophisticated users prefer no movement of nozzle
 #define UBL_MESH_EDIT_MOVES_Z
+
+// Save the currently active mesh in the current slot on M500
+#define UBL_SAVE_ACTIVE_ON_M500
+
+// When the nozzle is off the mesh, this value is used as the Z-Height correction value.
+//#define UBL_Z_RAISE_WHEN_OFF_MESH 2.5
 /** END Unified Bed Leveling */
 
 // Set the number of grid points per dimension

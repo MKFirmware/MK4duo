@@ -193,8 +193,8 @@ static_assert(1 >= 0
 
 // LCD_BED_LEVELING requirements
 #if ENABLED(LCD_BED_LEVELING)
-  #if !HAS_LCD
-    #error "DEPENDENCY ERROR: LCD_BED_LEVELING requires an LCD controller."
+  #if DISABLED(NEWPANEL)
+    #error "DEPENDENCY ERROR: LCD_BED_LEVELING requires an LCD Normal controller."
   #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
     #error "DEPENDENCY ERROR: LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
   #endif

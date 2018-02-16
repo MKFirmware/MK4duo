@@ -110,7 +110,7 @@
     mechanics.set_destination_to_current();
     stepper.synchronize();  // Wait for buffered moves to complete
 
-    const float renormalize = 1.0 / planner.e_factor[tools.active_extruder];
+    const float renormalize = 1.0 / tools.e_factor[tools.active_extruder];
 
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position
@@ -123,21 +123,21 @@
       // No double zlifting
       // Feedrate to the max
       if (has_zhop && !hop_amount) {
-        hop_amount += retract_zlift;                                  // Carriage is raised for retraction hop
-        mechanics.feedrate_mm_s = planner.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
-        mechanics.current_position[Z_AXIS] -= retract_zlift;          // Pretend current pos is lower. Next move raises Z.
-        mechanics.sync_plan_position();                               // Set the planner to the new position
-        mechanics.prepare_move_to_destination();                      // Raise up to the old current pos
+        hop_amount += retract_zlift;                                    // Carriage is raised for retraction hop
+        mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
+        mechanics.current_position[Z_AXIS] -= retract_zlift;            // Pretend current pos is lower. Next move raises Z.
+        mechanics.sync_plan_position();                                 // Set the planner to the new position
+        mechanics.prepare_move_to_destination();                        // Raise up to the old current pos
       }
     }
     else {
       // If a hop was done and Z hasn't changed, undo the Z hop
       if (hop_amount) {
-        mechanics.current_position[Z_AXIS] += retract_zlift;          // Pretend current pos is higher. Next move lowers Z.
-        mechanics.sync_plan_position();                               // Set the planner to the new position
-        mechanics.feedrate_mm_s = planner.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
-        mechanics.prepare_move_to_destination();                      // Lower down to the old current pos
-        hop_amount = 0.0;                                             // Clear hop
+        mechanics.current_position[Z_AXIS] += retract_zlift;            // Pretend current pos is higher. Next move lowers Z.
+        mechanics.sync_plan_position();                                 // Set the planner to the new position
+        mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
+        mechanics.prepare_move_to_destination();                        // Lower down to the old current pos
+        hop_amount = 0.0;                                               // Clear hop
       }
 
       // A retract multiplier has been added here to get faster swap recovery

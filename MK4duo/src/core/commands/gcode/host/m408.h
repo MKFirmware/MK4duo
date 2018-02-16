@@ -30,6 +30,12 @@
 
   #define CODE_M408
 
+  char GetStatusCharacter(){
+    return  print_job_counter.isRunning() ? 'P'   // Printing
+          : print_job_counter.isPaused()  ? 'A'   // Paused / Stopped
+          :                                 'I';  // Idle
+  }
+
   /**
    * M408: JSON STATUS OUTPUT
    */
@@ -39,7 +45,7 @@
 
     if (parser.seen('S')) type = parser.value_byte();
 
-    char ch = printer.GetStatusCharacter();
+    char ch = GetStatusCharacter();
     SERIAL_MSG("{\"status\":\"");
     SERIAL_CHR(ch);
 

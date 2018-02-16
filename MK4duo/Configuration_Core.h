@@ -98,8 +98,7 @@
  ************************* Endstop pullup resistors **************************************
  *****************************************************************************************
  *                                                                                       *
- * Comment this out (using // at the start of the line) to                               *
- * disable the endstop pullup resistors                                                  *
+ * Put true for enable or put false for disable the endstop pullup resistors             *
  *                                                                                       *
  *****************************************************************************************/
 #define ENDSTOPPULLUP_XMIN    false
@@ -480,12 +479,14 @@
 #define UBL_MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
 #define UBL_MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
 
-// If this is defined, the currently active mesh will be saved in the
-// current slot on M500.
-#define UBL_SAVE_ACTIVE_ON_M500
-
 // Sophisticated users prefer no movement of nozzle
 #define UBL_MESH_EDIT_MOVES_Z
+
+// Save the currently active mesh in the current slot on M500
+#define UBL_SAVE_ACTIVE_ON_M500
+
+// When the nozzle is off the mesh, this value is used as the Z-Height correction value.
+//#define UBL_Z_RAISE_WHEN_OFF_MESH 2.5
 /** END UNIFIED BED LEVELING **/
 
 /** START MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR or UNIFIED BED LEVELING **/

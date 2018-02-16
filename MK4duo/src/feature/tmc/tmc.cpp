@@ -233,10 +233,10 @@
     SERIAL_TXT(name);
     SERIAL_EMV(" stealthChop max speed set to ", thrs);
   }
-  void _tmc_say_sgt(const char name[], const uint32_t sgt) {
+  void _tmc_say_sgt(const char name[], const int8_t sgt) {
     SERIAL_TXT(name);
     SERIAL_MSG(" driver homing sensitivity set to ");
-    SERIAL_EV(sgt);
+    SERIAL_EV((int)sgt);
   }
 
   #if ENABLED(TMC_DEBUG)
