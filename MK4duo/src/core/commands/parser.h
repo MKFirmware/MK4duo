@@ -152,7 +152,7 @@ class GCodeParser {
       static bool seen(const char c) {
         char *p = strchr(command_args, c);
         const bool b = !!p;
-        if (b) value_ptr = valid_float(&p[1]) ? (char*)&p[1] : (char*)NULL;
+        if (b) value_ptr = valid_float(&p[1]) ? &p[1] : (char*)NULL;
         return b;
       }
 

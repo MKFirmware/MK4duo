@@ -89,7 +89,7 @@ class Commands {
     static void process_next();
     static void commit(bool say_ok);
     static void unknown_error();
-    static void gcode_line_error(const char* err, const bool doFlush=true);
+    static void gcode_line_error(const char* err);
 
     static bool enqueue(const char* cmd, bool say_ok=false);
     static bool drain_injected_P();

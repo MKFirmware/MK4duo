@@ -326,10 +326,8 @@ void Commands::get_serial() {
  * indicate that a command needs to be re-sent.
  */
 void Commands::flush_and_request_resend() {
-  //char queue[queue_index_r][100]="Resend:";
   HAL::serialFlush();
   SERIAL_LV(RESEND, gcode_LastN + 1);
-  ok_to_send();
 }
 
 /**
@@ -621,12 +619,11 @@ bool Commands::get_target_heater(int8_t &h) {
  * Private Function
  */
 
-void Commands::gcode_line_error(const char* err, const bool doFlush/*=true*/) {
+void Commands::gcode_line_error(const char* err) {
   SERIAL_STR(ER);
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
-  //Serial.println(gcode_N);
-  if (doFlush) flush_and_request_resend();
+  flush_and_request_resend();
   serial_count = 0;
 }
 
