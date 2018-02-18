@@ -34,7 +34,7 @@
    * M908: Control digital trimpot directly (M908 P<pin> S<current>)
    */
   inline void gcode_M908(void) {
-    digitalPotWrite(
+    stepper.digitalPotWrite(
       parser.intval('P'),
       parser.intval('S')
     );
