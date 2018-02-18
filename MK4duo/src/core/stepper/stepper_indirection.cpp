@@ -243,6 +243,45 @@
       { _TMC2130_INIT(E5, mechanics.axis_steps_per_mm[E_AXIS + 5]); }
     #endif
   }
+
+  #define SET_CS_PIN(st) OUT_WRITE(st##_CS_PIN, HIGH)
+
+  void tmc_init_cs_pins() {
+    #if ENABLED(X_IS_TMC2130)
+      SET_CS_PIN(X);
+    #endif
+    #if ENABLED(Y_IS_TMC2130)
+      SET_CS_PIN(Y);
+    #endif
+    #if ENABLED(Z_IS_TMC2130)
+      SET_CS_PIN(Z);
+    #endif
+    #if ENABLED(X2_IS_TMC2130)
+      SET_CS_PIN(X2);
+    #endif
+    #if ENABLED(Y2_IS_TMC2130)
+      SET_CS_PIN(Y2);
+    #endif
+    #if ENABLED(Z2_IS_TMC2130)
+      SET_CS_PIN(Z2);
+    #endif
+    #if ENABLED(E0_IS_TMC2130)
+      SET_CS_PIN(E0);
+    #endif
+    #if ENABLED(E1_IS_TMC2130)
+      SET_CS_PIN(E1);
+    #endif
+    #if ENABLED(E2_IS_TMC2130)
+      SET_CS_PIN(E2);
+    #endif
+    #if ENABLED(E3_IS_TMC2130)
+      SET_CS_PIN(E3);
+    #endif
+    #if ENABLED(E4_IS_TMC2130)
+      SET_CS_PIN(E4);
+    #endif
+  }
+
 #endif // HAVE_TMC2130
 
 //

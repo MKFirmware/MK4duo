@@ -28,7 +28,6 @@
 
 Temperature thermalManager;
 
-constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 // public:
@@ -62,8 +61,6 @@ uint8_t Temperature::cycle_1_second = 0;
 #endif
 
 uint8_t Temperature::pid_pointer = 255;
-
-millis_t Temperature::next_check_ms[HEATER_COUNT];
 
 #if ENABLED(FILAMENT_SENSOR)
   int8_t    Temperature::meas_shift_index;          // Index of a delayed sample in buffer
@@ -251,14 +248,6 @@ void Temperature::spin() {
 
     Heater *act = &heaters[h];
 
-    if (act->isON() && act->current_temperature > act->maxtemp) max_temp_error(h);
-    if (act->isON() && act->current_temperature < act->mintemp) min_temp_error(h);
-
-    #if HEATER_IDLE_HANDLER
-      if (!act->is_idle() && act->idle_timeout_ms && ELAPSED(ms, act->idle_timeout_ms))
-        act->idle_timeout_exceeded = true;
-    #endif
-
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
       if (thermal_protection[act->type])
@@ -268,15 +257,7 @@ void Temperature::spin() {
     // Ignore heater we are currently testing
     if (pid_pointer == act->ID) continue;
 
-    if (act->use_pid)
-      act->soft_pwm = act->tempisrange() ? get_pid_output(h) : 0;
-    else if (ELAPSED(ms, next_check_ms[h])) {
-      next_check_ms[h] = ms + temp_check_interval[act->type];
-      if (act->tempisrange())
-        act->soft_pwm = act->isHeating() ? act->pidMax : 0;
-      else
-        act->soft_pwm = 0;
-    }
+    act->get_pid_output(cycle_1_second);
 
     #if WATCH_THE_HEATER
       // Make sure temperature is increasing
@@ -349,6 +330,9 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
   printer.setWaitForHeatUp(true);
   pid_pointer = act->ID;
+
+  lcd_reset_alert_level();
+  LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 
   // PID Tuning loop
   while (printer.isWaitForHeatUp()) {
@@ -457,12 +441,14 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       #endif
     ) {
       SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
+      LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_HIGH);
       pid_pointer = 255;
       break;
     }
     #if HAS_TEMP_COOLER
       else if (currentTemp < temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
+        LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
         pid_pointer = 255;
         break;
       }
@@ -470,7 +456,8 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
     // Timeout after 20 minutes since the last undershoot/overshoot cycle
     if (((ms - t1) + (ms - t2)) > (20L * 60L * 1000L)) {
-      SERIAL_EM(MSG_PID_TIMEOUT);
+      SERIAL_LM(ER, MSG_PID_TIMEOUT);
+      LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
       pid_pointer = 255;
       break;
     }
@@ -512,13 +499,13 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
         }
       #endif
 
-      if (storeValues) {
-        act->Kp = workKp;
-        act->Ki = workKi;
-        act->Kd = workKd;
-        updatePID();
-        eeprom.Store_Settings();
-      }
+      act->Kp = workKp;
+      act->Ki = workKi;
+      act->Kd = workKd;
+      act->setTuning(true);
+      updatePID();
+
+      if (storeValues) eeprom.Store_Settings();
 
       break;
     }
@@ -531,6 +518,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
   }
 
+  LCD_MESSAGEPGM(WELCOME_MSG);
   printer.setAutoreportTemp(oldReport);
   disable_all_heaters();
 }
@@ -538,7 +526,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 void Temperature::updatePID() {
 
   LOOP_HEATER() {
-    if (heaters[h].use_pid && heaters[h].Ki != 0) {
+    if (heaters[h].isUsePid() && heaters[h].Ki != 0) {
       heaters[h].tempIStateLimitMin = (float)heaters[h].pidDriveMin * 10.0f / heaters[h].Ki;
       heaters[h].tempIStateLimitMax = (float)heaters[h].pidDriveMax * 10.0f / heaters[h].Ki;
     }
@@ -673,7 +661,11 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
  */
 void Temperature::updateTemperaturesFromRawValues() {
 
-  LOOP_HEATER() heaters[h].current_temperature = heaters[h].sensor.GetTemperature(h);
+  LOOP_HEATER() {
+    heaters[h].current_temperature = heaters[h].sensor.GetTemperature(h);
+    if (heaters[h].isON() && heaters[h].current_temperature > heaters[h].maxtemp) max_temp_error(h);
+    if (heaters[h].isON() && heaters[h].current_temperature < heaters[h].mintemp) min_temp_error(h);
+  }
 
   #if ENABLED(FILAMENT_SENSOR)
     filament_width_meas = analog2widthFil();
@@ -715,80 +707,9 @@ void Temperature::updateTemperaturesFromRawValues() {
   }
 #endif
 
-uint8_t Temperature::get_pid_output(const uint8_t h) {
-
-  static float  last_temperature[HEATER_COUNT]  = { 0.0 },
-                temperature_1s[HEATER_COUNT]    = { 0.0 };
-
-  uint8_t pid_output = 0;
-
-  Heater *act = &heaters[h];
-
-  float error = (float)act->target_temperature - act->current_temperature;
-
-  #if HEATER_IDLE_HANDLER
-    if (act->is_idle()) {
-      pid_output = 0;
-      act->tempIState = 0;
-    }
-    else
-  #endif
-  if (error > PID_FUNCTIONAL_RANGE) {
-    pid_output = act->pidMax;
-  }
-  else if (error < -(PID_FUNCTIONAL_RANGE) || act->target_temperature == 0 
-    #if HEATER_IDLE_HANDLER
-      || act->is_idle()
-    #endif
-  ) {
-    pid_output = 0;
-  }
-  else {
-    float pidTerm = act->Kp * error;
-    act->tempIState = constrain(act->tempIState + error, act->tempIStateLimitMin, act->tempIStateLimitMax);
-    pidTerm += act->Ki * act->tempIState * 0.1; // 0.1 = 10Hz
-    float dgain = act->Kd * (last_temperature[h] - temperature_1s[h]);
-    pidTerm += dgain;
-
-    #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      cTerm[h] = 0;
-      if (h == EXTRUDER_IDX) {
-        long e_position = stepper.position(E_AXIS);
-        if (e_position > last_e_position) {
-          lpq[lpq_ptr] = e_position - last_e_position;
-          last_e_position = e_position;
-        }
-        else {
-          lpq[lpq_ptr] = 0;
-        }
-        if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
-        cTerm[h] = (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS]) * act->Kc;
-        pidTerm += cTerm[h];
-      }
-    #endif // PID_ADD_EXTRUSION_RATE
-
-    pid_output = constrain((int)pidTerm, 0, PID_MAX);
-
-    if (cycle_1_second == 0) {
-      last_temperature[h] = temperature_1s[h];
-      temperature_1s[h] = act->current_temperature;
-    }
-
-  }
-
-  #if ENABLED(PID_DEBUG)
-    SERIAL_SMV(ECHO, MSG_PID_DEBUG, HOTEND_INDEX);
-    SERIAL_MV(MSG_PID_DEBUG_INPUT, act->current_temperature);
-    SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, pid_output);
-  #endif // PID_DEBUG
-
-  return pid_output;
-}
-
 // Temperature Error Handlers
 void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg) {
-  static bool killed = false;
-  if (printer.IsRunning()) {
+  if (!heaters[h].isIdle()) {
     SERIAL_ST(ER, serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
     switch (heaters[h].type) {
@@ -814,20 +735,14 @@ void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, co
     }
   }
 
-  #if DISABLED(BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE)
-    if (!killed) {
-      printer.setRunning(false);
-      killed = true;
-      printer.kill(lcd_msg);
-    }
-    else
-      disable_all_heaters();
-  #endif
+  lcd_setstatusPGM(lcd_msg);
+  heaters[h].setIdle(true);
+
 }
 void Temperature::min_temp_error(const uint8_t h) {
   switch (heaters[h].type) {
     case IS_HOTEND:
-      _temp_error(HOTEND_INDEX, PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
+      _temp_error(h, PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
       break;
     #if HAS_TEMP_BED
       case IS_BED:
@@ -845,7 +760,7 @@ void Temperature::min_temp_error(const uint8_t h) {
 void Temperature::max_temp_error(const uint8_t h) {
   switch (heaters[h].type) {
     case IS_HOTEND:
-      _temp_error(HOTEND_INDEX, PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
+      _temp_error(h, PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
       break;
     #if HAS_TEMP_BED
       case IS_BED:
@@ -881,7 +796,7 @@ void Temperature::max_temp_error(const uint8_t h) {
    
     #if HEATER_IDLE_HANDLER
       // If the heater idle timeout expires, restart
-      if (heaters[h].is_idle()) {
+      if (heaters[h].isIdle()) {
         *state = TRInactive;
         tr_target_temperature[h] = 0;
       }

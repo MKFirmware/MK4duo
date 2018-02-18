@@ -52,6 +52,7 @@
 
 #if ENABLED(HAVE_TMC2130)
   #include <TMC2130Stepper.h>
+  void tmc_init_cs_pins();
   void tmc2130_init();
 #endif
 

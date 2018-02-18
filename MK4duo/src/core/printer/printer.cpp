@@ -142,14 +142,28 @@ void Printer::setup() {
     stepper.disableStepperDrivers();
   #endif
 
-  watchdog.init();
-
+  // Init Serial for HOST
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
+
+  // Init TMC stepper drivers CS or Serial
+  #if ENABLED(HAVE_TMC2130)
+    tmc_init_cs_pins();
+  #endif
+  #if ENABLED(HAVE_TMC2208)
+    tmc2208_serial_begin();
+  #endif
+
+  #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
+    DLPSerial.begin(PROJECTOR_BAUDRATE);
+  #endif
 
   // Check startup
   SERIAL_STR(INFO);
   HAL::showStartReason();
+
+  // Init Watchdog
+  watchdog.init();
 
   SERIAL_LM(ECHO, BUILD_VERSION);
 
@@ -164,8 +178,10 @@ void Printer::setup() {
   // Send "ok" after commands by default
   commands.setup();
 
-  #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
-    DLPSerial.begin(PROJECTOR_BAUDRATE);
+  #if HAS_SDSUPPORT
+    card.mount();
+    // loads custom configuration from SDCARD if available else uses defaults
+    card.RetrieveSettings();
   #endif
 
   mechanics.Init();
@@ -174,12 +190,6 @@ void Printer::setup() {
 
   // Init endstops and pullups
   endstops.init();
-
-  #if HAS_SDSUPPORT
-    card.mount();
-    // loads custom configuration from SDCARD if available else uses defaults
-    card.RetrieveSettings();
-  #endif
 
   // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
   const bool eeprom_loaded = eeprom.Load_Settings();
@@ -411,7 +421,7 @@ void Printer::Stop() {
 
   #if ENABLED(PROBING_FANS_OFF)
     LOOP_FAN() {
-      if (fans[f].paused) fans[f].pause(false); // put things back the way they were
+      if (fans[f].isIdle()) fans[f].setIdle(false); // put things back the way they were
     }
   #endif
 
@@ -427,7 +437,7 @@ void Printer::Stop() {
      cnc.disable_router();
   #endif
 
-  if (IsRunning()) {
+  if (isRunning()) {
     setRunning(false);
     SERIAL_LM(ER, MSG_ERR_STOPPED);
     SERIAL_STR(PAUSE);
@@ -687,7 +697,7 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && IsRunning()) {
+    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && isRunning()) {
       // travel moves have been received so enact them
       mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
       mechanics.set_destination_to_current();
@@ -828,9 +838,9 @@ void Printer::setup_pinout() {
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
 
     // All SPI chip-select HIGH
-    OUT_WRITE(DAC0_SYNC, HIGH);
+    OUT_WRITE(DAC0_SYNC_PIN, HIGH);
     #if EXTRUDERS > 1
-      OUT_WRITE(DAC1_SYNC, HIGH);
+      OUT_WRITE(DAC1_SYNC_PIN, HIGH);
     #endif
     OUT_WRITE(SPI_EEPROM1_CS, HIGH);
     OUT_WRITE(SPI_EEPROM2_CS, HIGH);
@@ -867,6 +877,10 @@ void Printer::setup_pinout() {
 
   #if PIN_EXISTS(SS)
     OUT_WRITE(SS_PIN, HIGH);
+  #endif
+
+  #if HAS_MAX6675_SS
+    OUT_WRITE(MAX6675_SS_PIN, HIGH);
   #endif
 
   #if HAS_MAX31855_SS0

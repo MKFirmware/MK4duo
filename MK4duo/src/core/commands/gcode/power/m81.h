@@ -41,7 +41,7 @@ inline void gcode_M81(void) {
     LOOP_FAN() {
       fans[f].Speed = 0;
       fans[f].paused_Speed = 0;
-      fans[f].paused = false;
+      fans[f].setIdle(false);
     }
   #endif
 

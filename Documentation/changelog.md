@@ -1,3 +1,7 @@
+### Version 4.3.5 Stable
+* Now if a heater does not have a sensor or fails, it will not be used, but it will not kill.
+* Fix and clear code
+
 ### Version 4.3.4 Stable
 * CaseLight use Neopixel by Original Marlin
 * Add command M123 - Set Logic Endstop

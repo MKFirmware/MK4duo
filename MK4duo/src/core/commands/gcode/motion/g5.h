@@ -41,7 +41,7 @@
    * G5: Cubic B-spline
    */
   inline void gcode_G5(void) {
-    if (printer.IsRunning()) {
+    if (printer.isRunning()) {
 
       commands.get_destination();
 

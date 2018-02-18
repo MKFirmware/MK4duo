@@ -550,7 +550,7 @@ void HAL::Tick() {
 
   static uint8_t  cycle_100ms = 0;
 
-  if (!printer.IsRunning()) return;
+  if (!printer.isRunning()) return;
 
   #if HEATER_COUNT > 0
     LOOP_HEATER() heaters[h].SetHardwarePwm();

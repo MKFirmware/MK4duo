@@ -34,7 +34,7 @@
    * G42: Move X & Y axes to mesh coordinates (I & J)
    */
   inline void gcode_G42(void) {
-    if (printer.IsRunning()) {
+    if (printer.isRunning()) {
       const bool hasI = parser.seenval('I');
       const int8_t ix = hasI ? parser.value_int() : 0;
       const bool hasJ = parser.seenval('J');

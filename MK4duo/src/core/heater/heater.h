@@ -41,7 +41,16 @@
 
 #if HEATER_COUNT > 0
 
+  enum FlagHeaters {
+    heater_flag_use_pid,
+    heater_flag_tuning,
+    heater_flag_hardware_inverted,
+    heater_flag_idle
+  };
+
   typedef enum { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 } Heater_type;
+
+  constexpr uint16_t temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 
   class Heater {
 
@@ -65,13 +74,14 @@
                   Kc,
                   tempIState,
                   tempIStateLimitMin,
-                  tempIStateLimitMax;
-      bool        use_pid,
-                  hardwareInverted;
+                  tempIStateLimitMax,
+                  last_temperature,
+                  temperature_1s;
+      millis_t    next_check_ms;
+      uint8_t     HeaterFlag;
 
       #if HEATER_IDLE_HANDLER
         millis_t  idle_timeout_ms;
-        bool      idle_timeout_exceeded;
       #endif
 
       #if WATCH_THE_HEATER
@@ -87,21 +97,23 @@
 
       void init();
 
-      #if HARDWARE_PWM
-        void SetHardwarePwm();
-      #endif
-
       void setTarget(int16_t celsius);
+      void get_pid_output(const uint8_t cycle_1s);
       void print_PID();
       void print_parameters();
       void sensor_print_parameters();
 
-      bool isON()         { return (this->sensor.type != 0 && this->target_temperature > 0); }
-      bool tempisrange()  { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
-      bool isHeating()    { return this->target_temperature > this->current_temperature; }
-      bool isCooling()    { return this->target_temperature <= this->current_temperature; }
+      #if HARDWARE_PWM
+        void SetHardwarePwm();
+      #endif
 
-      bool wait_for_heating() {
+      FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > 0); }
+      FORCE_INLINE bool isOFF()       { return (!isON()); }
+      FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
+      FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
+      FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
+
+      FORCE_INLINE bool wait_for_heating() {
         return this->isON() && this->target_temperature > (this->current_temperature + TEMP_HYSTERESIS);
       }
 
@@ -109,10 +121,29 @@
         void start_watching();
       #endif
 
+      FORCE_INLINE void setUsePid(const bool onoff) {
+        SET_BIT(HeaterFlag, heater_flag_use_pid, onoff);
+      }
+      FORCE_INLINE bool isUsePid() { return TEST(HeaterFlag, heater_flag_use_pid); }
+
+      FORCE_INLINE void setTuning(const bool onoff) {
+        SET_BIT(HeaterFlag, heater_flag_tuning, onoff);
+      }
+      FORCE_INLINE bool isTuning() { return TEST(HeaterFlag, heater_flag_tuning); }
+
+      FORCE_INLINE void setHWInverted(const bool onoff) {
+        SET_BIT(HeaterFlag, heater_flag_hardware_inverted, onoff);
+      }
+      FORCE_INLINE bool isHWInverted() { return TEST(HeaterFlag, heater_flag_hardware_inverted); }
+
+      FORCE_INLINE void setIdle(const bool onoff) {
+        SET_BIT(HeaterFlag, heater_flag_idle, onoff);
+      }
+      FORCE_INLINE bool isIdle() { return TEST(HeaterFlag, heater_flag_idle); }
+
       #if HEATER_IDLE_HANDLER
         void start_idle_timer(const millis_t timeout_ms);
         void reset_idle_timer();
-        bool is_idle() { return idle_timeout_exceeded; }
       #endif
 
     private: /** Private Function */

@@ -267,7 +267,7 @@ HAL_TEMP_TIMER_ISR {
 
   TIMER_OCR_0 += 64;
 
-  if (!printer.IsRunning()) return;
+  if (!printer.isRunning()) return;
 
   // Allow UART ISRs
   HAL_DISABLE_ISRs();
@@ -285,7 +285,7 @@ HAL_TEMP_TIMER_ISR {
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
         if (heaters[h].pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
-          HAL::digitalWrite(heaters[h].pin, heaters[h].hardwareInverted ? LOW : HIGH);
+          HAL::digitalWrite(heaters[h].pin, heaters[h].isHWInverted() ? LOW : HIGH);
       }
     #endif
   }
@@ -294,7 +294,7 @@ HAL_TEMP_TIMER_ISR {
     #if FAN_COUNT >0
       LOOP_FAN() {
         if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? LOW : HIGH);
+          HAL::digitalWrite(fans[f].pin, fans[f].isHWInverted() ? LOW : HIGH);
       }
     #endif
   }
@@ -302,14 +302,14 @@ HAL_TEMP_TIMER_ISR {
   #if HEATER_COUNT > 0
     LOOP_HEATER() {
       if (heaters[h].pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
-        HAL::digitalWrite(heaters[h].pin, heaters[h].hardwareInverted ? HIGH : LOW);
+        HAL::digitalWrite(heaters[h].pin, heaters[h].isHWInverted() ? HIGH : LOW);
     }
   #endif
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
       if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-        HAL::digitalWrite(fans[f].pin, fans[f].hardwareInverted ? HIGH : LOW);
+        HAL::digitalWrite(fans[f].pin, fans[f].isHWInverted() ? HIGH : LOW);
     }
   #endif
 

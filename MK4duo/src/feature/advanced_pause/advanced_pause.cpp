@@ -357,7 +357,7 @@
 
       if (!nozzle_timed_out)
         LOOP_HOTEND()
-          nozzle_timed_out |= heaters[h].is_idle();
+          nozzle_timed_out |= heaters[h].isIdle();
 
       if (nozzle_timed_out) {
         #if HAS_LCD
@@ -376,7 +376,7 @@
 
           if (!bed_timed_out) {
             #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-              bed_timed_out = heaters[BED_INDEX].is_idle();
+              bed_timed_out = heaters[BED_INDEX].isIdle();
             #endif
           }
           else {
@@ -463,12 +463,12 @@
           bed_timed_out     = false;
 
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-      bed_timed_out |= heaters[BED_INDEX].is_idle();
+      bed_timed_out |= heaters[BED_INDEX].isIdle();
       heaters[BED_INDEX].reset_idle_timer();
     #endif
 
     LOOP_HOTEND() {
-      nozzle_timed_out |= heaters[h].is_idle();
+      nozzle_timed_out |= heaters[h].isIdle();
       heaters[h].reset_idle_timer();
     }
 

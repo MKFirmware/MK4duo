@@ -442,8 +442,7 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(heaters[h].Ki);
         EEPROM_WRITE(heaters[h].Kd);
         EEPROM_WRITE(heaters[h].Kc);
-        EEPROM_WRITE(heaters[h].use_pid);
-        EEPROM_WRITE(heaters[h].hardwareInverted);
+        EEPROM_WRITE(heaters[h].HeaterFlag);
         EEPROM_WRITE(heaters[h].sensor.pin);
         EEPROM_WRITE(heaters[h].sensor.type);
         EEPROM_WRITE(heaters[h].sensor.adcLowOffset);
@@ -473,8 +472,8 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(fans[f].pin);
         EEPROM_WRITE(fans[f].freq);
         EEPROM_WRITE(fans[f].min_Speed);
-        EEPROM_WRITE(fans[f].hardwareInverted);
         EEPROM_WRITE(fans[f].autoMonitored);
+        EEPROM_WRITE(fans[f].FanFlag);
       }
     #endif
 
@@ -824,8 +823,7 @@ void EEPROM::Postprocess() {
           EEPROM_READ(heaters[h].Ki);
           EEPROM_READ(heaters[h].Kd);
           EEPROM_READ(heaters[h].Kc);
-          EEPROM_READ(heaters[h].use_pid);
-          EEPROM_READ(heaters[h].hardwareInverted);
+          EEPROM_READ(heaters[h].HeaterFlag);
           EEPROM_READ(heaters[h].sensor.pin);
           EEPROM_READ(heaters[h].sensor.type);
           EEPROM_READ(heaters[h].sensor.adcLowOffset);
@@ -856,8 +854,8 @@ void EEPROM::Postprocess() {
           EEPROM_READ(fans[f].pin);
           EEPROM_READ(fans[f].freq);
           EEPROM_READ(fans[f].min_Speed);
-          EEPROM_READ(fans[f].hardwareInverted);
           EEPROM_READ(fans[f].autoMonitored);
+          EEPROM_READ(fans[f].FanFlag);
         }
       #endif
 
@@ -1297,8 +1295,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_0_MINTEMP;
       heat->maxtemp           = HEATER_0_MAXTEMP;
-      heat->use_pid           = PIDTEMP;
-      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_0_PIN;
       sens->type              = TEMP_SENSOR_0;
@@ -1312,6 +1308,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMP);
+      heat->setHWInverted(INVERTED_HEATER_PINS);
     #endif // HAS_HEATER_0
 
     #if HAS_HEATER_1
@@ -1326,8 +1324,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_1_MINTEMP;
       heat->maxtemp           = HEATER_1_MAXTEMP;
-      heat->use_pid           = PIDTEMP;
-      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_1_PIN;
       sens->type              = TEMP_SENSOR_1;
@@ -1341,6 +1337,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMP);
+      heat->setHWInverted(INVERTED_HEATER_PINS);
     #endif // HAS_HEATER_1
 
     #if HAS_HEATER_2
@@ -1353,10 +1351,8 @@ void EEPROM::Factory_Settings() {
       heat->pidDriveMin       = PID_DRIVE_MIN;
       heat->pidDriveMax       = PID_DRIVE_MAX;
       heat->pidMax            = PID_MAX;
-      heat->use_pid           = PIDTEMP;
       heat->mintemp           = HEATER_2_MINTEMP;
       heat->maxtemp           = HEATER_2_MAXTEMP;
-      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_2_PIN;
       sens->type              = TEMP_SENSOR_2;
@@ -1370,6 +1366,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMP);
+      heat->setHWInverted(INVERTED_HEATER_PINS);
     #endif // HAS_HEATER_2
 
     #if HAS_HEATER_3
@@ -1384,8 +1382,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_3_MINTEMP;
       heat->maxtemp           = HEATER_3_MAXTEMP;
-      heat->use_pid           = PIDTEMP;
-      heat->hardwareInverted  = INVERTED_HEATER_PINS;
       // Sensor
       sens->pin               = TEMP_3_PIN;
       sens->type              = TEMP_SENSOR_3;
@@ -1399,6 +1395,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMP);
+      heat->setHWInverted(INVERTED_HEATER_PINS);
     #endif // HAS_HEATER_3
 
     #if HAS_HEATER_BED
@@ -1413,8 +1411,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = BED_PID_MAX;
       heat->mintemp           = BED_MINTEMP;
       heat->maxtemp           = BED_MAXTEMP;
-      heat->use_pid           = PIDTEMPBED;
-      heat->hardwareInverted  = INVERTED_BED_PIN;
       heat->Kp                = DEFAULT_bedKp;
       heat->Ki                = DEFAULT_bedKi;
       heat->Kd                = DEFAULT_bedKd;
@@ -1431,6 +1427,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMPBED);
+      heat->setHWInverted(INVERTED_BED_PIN);
     #endif // HAS_HEATER_BED
 
     #if HAS_HEATER_CHAMBER
@@ -1445,8 +1443,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = CHAMBER_PID_MAX;
       heat->mintemp           = CHAMBER_MINTEMP;
       heat->maxtemp           = CHAMBER_MAXTEMP;
-      heat->use_pid           = PIDTEMPCHAMBER;
-      heat->hardwareInverted  = INVERTED_CHAMBER_PIN;
       heat->Kp                = DEFAULT_chamberKp;
       heat->Ki                = DEFAULT_chamberKi;
       heat->Kd                = DEFAULT_chamberKd;
@@ -1463,6 +1459,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMPCHAMBER);
+      heat->setHWInverted(INVERTED_CHAMBER_PIN);
     #endif // HAS_HEATER_BED
 
     #if HAS_HEATER_COOLER
@@ -1477,8 +1475,6 @@ void EEPROM::Factory_Settings() {
       heat->pidMax            = COOLER_PID_MAX;
       heat->mintemp           = COOLER_MINTEMP;
       heat->maxtemp           = COOLER_MAXTEMP;
-      heat->use_pid           = PIDTEMPCOOLER;
-      heat->hardwareInverted  = INVERTED_COOLER_PIN;
       heat->Kp                = DEFAULT_coolerKp;
       heat->Ki                = DEFAULT_coolerKi;
       heat->Kd                = DEFAULT_coolerKd;
@@ -1495,6 +1491,8 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->setUsePid(PIDTEMPCOOLER);
+      heat->setHWInverted(INVERTED_COOLER_PIN);
     #endif // HAS_HEATER_BED
 
   #endif // HEATER_COUNT > 0
@@ -1505,8 +1503,8 @@ void EEPROM::Factory_Settings() {
       fans[f].pin               = (int8_t)pgm_read_byte(&tmp10[f]);
       fans[f].freq              = 250;
       fans[f].min_Speed         = FAN_MIN_PWM;
-      fans[f].hardwareInverted  = FAN_INVERTED;
       fans[f].SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
+      fans[f].setHWInverted(FAN_INVERTED);
     }
   #endif
 
@@ -1803,8 +1801,8 @@ void EEPROM::Factory_Settings() {
         SERIAL_MV(" C", heaters[h].pidMax);
         SERIAL_MV(" L", heaters[h].mintemp);
         SERIAL_MV(" O", heaters[h].maxtemp);
-        SERIAL_MV(" U", heaters[h].use_pid);
-        SERIAL_EMV(" I", heaters[h].hardwareInverted);
+        SERIAL_MV(" U", heaters[h].isUsePid());
+        SERIAL_EMV(" I", heaters[h].isHWInverted());
       }
     #endif
 
@@ -1828,8 +1826,8 @@ void EEPROM::Factory_Settings() {
         SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
         SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
         SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
-        SERIAL_MV(" U", heaters[BED_INDEX].use_pid);
-        SERIAL_EMV(" I", heaters[BED_INDEX].hardwareInverted);
+        SERIAL_MV(" U", heaters[BED_INDEX].isUsePid());
+        SERIAL_EMV(" I", heaters[BED_INDEX].isHWInverted());
       }
     #endif
 
@@ -1876,13 +1874,17 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if FAN_COUNT > 0
-      CONFIG_MSG_START("Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> I<Hardware Inverted 0-1>");
+      CONFIG_MSG_START("Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> H<Auto mode> I<Hardware Inverted 0-1>");
       LOOP_FAN() {
         SERIAL_SMV(CFG, "  M106 P", f);
         SERIAL_MV(" U", fans[f].pin);
         SERIAL_MV(" L", fans[f].min_Speed);
         SERIAL_MV(" F", fans[f].freq);
-        SERIAL_EMV(" I", fans[f].hardwareInverted);
+        LOOP_HOTEND() {
+          if (TEST(fans[f].autoMonitored, h)) SERIAL_MV(" H", (int)h);
+        }
+        if (TEST(fans[f].autoMonitored, 7)) SERIAL_MSG(" H7");
+        SERIAL_EMV(" I", fans[f].isHWInverted());
       }
     #endif
 

@@ -47,7 +47,7 @@
 
       #if ENABLED(LASER) && ENABLED(LASER_FIRE_SPINDLE)
         case PRINTER_MODE_LASER: {
-          if (printer.IsRunning()) {
+          if (printer.isRunning()) {
             #if ENABLED(INTENSITY_IN_BYTE)
               if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
             #else

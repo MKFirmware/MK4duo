@@ -51,24 +51,26 @@
 
     if (!commands.get_target_heater(h)) return;
 
-    heaters[h].pidDriveMin  = parser.intval('A', heaters[h].pidDriveMin);
-    heaters[h].pidDriveMax  = parser.intval('B', heaters[h].pidDriveMax);
-    heaters[h].pidMax       = parser.intval('C', heaters[h].pidMax);
-    heaters[h].mintemp      = parser.intval('L', heaters[h].mintemp);
-    heaters[h].maxtemp      = parser.intval('O', heaters[h].maxtemp);
+    Heater *act = &heaters[h];
+
+    act->pidDriveMin  = parser.intval('A', act->pidDriveMin);
+    act->pidDriveMax  = parser.intval('B', act->pidDriveMax);
+    act->pidMax       = parser.intval('C', act->pidMax);
+    act->mintemp      = parser.intval('L', act->mintemp);
+    act->maxtemp      = parser.intval('O', act->maxtemp);
 
     if (parser.seen('U'))
-      heaters[h].use_pid = parser.value_bool();
+      act->setUsePid(parser.value_bool());
     if (parser.seen('I'))
-      heaters[h].hardwareInverted = parser.value_bool();
+      act->setHWInverted(parser.value_bool());
 
     if (parser.seen('P')) {
       // Put off the heaters
-      heaters[h].setTarget(0);
-      heaters[h].pin = parser.value_pin();
+      act->setTarget(0);
+      act->pin = parser.value_pin();
     }
 
-    heaters[h].print_parameters();
+    act->print_parameters();
 
  }
 

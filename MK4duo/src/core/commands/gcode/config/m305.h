@@ -65,28 +65,29 @@
 
     if (!commands.get_target_heater(h)) return;
 
-    //if (parser.seen('S'))           heaters[h].sensor.name = parser.string_arg;
-    heaters[h].sensor.r25           = parser.floatval('A', heaters[h].sensor.r25);
-    heaters[h].sensor.beta          = parser.floatval('B', heaters[h].sensor.beta);
-    heaters[h].sensor.shC           = parser.floatval('C', heaters[h].sensor.shC);
-    heaters[h].sensor.pullupR       = parser.floatval('R', heaters[h].sensor.pullupR);
-    heaters[h].sensor.adcLowOffset  = parser.intval('L', heaters[h].sensor.adcLowOffset);
-    heaters[h].sensor.adcHighOffset = parser.intval('O', heaters[h].sensor.adcHighOffset);
+    Heater *act = &heaters[h];
+
+    act->sensor.r25           = parser.floatval('A', act->sensor.r25);
+    act->sensor.beta          = parser.floatval('B', act->sensor.beta);
+    act->sensor.shC           = parser.floatval('C', act->sensor.shC);
+    act->sensor.pullupR       = parser.floatval('R', act->sensor.pullupR);
+    act->sensor.adcLowOffset  = parser.intval('L', act->sensor.adcLowOffset);
+    act->sensor.adcHighOffset = parser.intval('O', act->sensor.adcHighOffset);
 
     if (parser.seen('P')) {
       // Put off the heaters
-      heaters[h].setTarget(0);
+      act->setTarget(0);
 
       const pin_t new_pin = parser.value_pin();
       if (WITHIN(new_pin, 0 , MAX_ANALOG_PIN_NUMBER)) {
-        const pin_t old_pin = heaters[h].sensor.pin;
-        heaters[h].sensor.pin = new_pin;
-        HAL::AdcChangePin(old_pin, heaters[h].sensor.pin);
+        const pin_t old_pin = act->sensor.pin;
+        act->sensor.pin = new_pin;
+        HAL::AdcChangePin(old_pin, act->sensor.pin);
       }
     }
 
-    heaters[h].sensor.CalcDerivedParameters();
-    heaters[h].sensor_print_parameters();
+    act->sensor.CalcDerivedParameters();
+    act->sensor_print_parameters();
 
  }
 

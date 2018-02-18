@@ -36,7 +36,7 @@ inline void gcode_G0_G1(
     bool lfire = false
   #endif
 ) {
-  if (printer.IsRunning()) {
+  if (printer.isRunning()) {
     commands.get_destination(); // For X Y Z E F
 
     #if ENABLED(FWRETRACT)

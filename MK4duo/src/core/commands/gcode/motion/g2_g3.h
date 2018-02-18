@@ -64,7 +64,7 @@
 
   void gcode_G2_G3(bool clockwise) {
 
-    if (printer.IsRunning()) {
+    if (printer.isRunning()) {
 
       #if ENABLED(SF_ARC_FIX)
         const bool relative_mode_backup = printer.isRelativeMode();

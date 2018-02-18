@@ -1193,7 +1193,9 @@
     }
   }
 
-  static void degtoLCD(const uint8_t h, const float temp) {
+  static void degtoLCD(const uint8_t h, float temp) {
+
+    NOMORE(temp, 999);
 
     heater_list0[h]->setValue(temp);
 

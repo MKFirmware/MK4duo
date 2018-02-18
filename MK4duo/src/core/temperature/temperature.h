@@ -164,8 +164,6 @@ class Temperature {
       static float analog2tempMCU(const int raw);
     #endif
 
-    static uint8_t get_pid_output(const uint8_t h);
-
     static void _temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg);
     static void min_temp_error(const uint8_t h);
     static void max_temp_error(const uint8_t h);

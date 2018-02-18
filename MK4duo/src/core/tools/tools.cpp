@@ -105,7 +105,7 @@
 
             const float xhome = mechanics.x_home_pos(active_extruder);
             if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
-                && printer.IsRunning()
+                && printer.isRunning()
                 && (mechanics.delayed_move_time || mechanics.current_position[X_AXIS] != xhome)
             ) {
               float raised_z = mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
@@ -325,7 +325,7 @@
           // Tell the planner the new "current position"
           mechanics.sync_plan_position();
 
-          if (!no_move && printer.IsRunning()) {
+          if (!no_move && printer.isRunning()) {
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (printer.debugLeveling()) DEBUG_POS("Move back", mechanics.destination);
             #endif

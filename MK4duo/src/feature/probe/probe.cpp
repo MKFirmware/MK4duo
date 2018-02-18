@@ -140,7 +140,7 @@ bool Probe::set_deployed(const bool deploy) {
     } // opened before the probe specific actions
 
     if (_TRIGGERED_WHEN_STOWED_TEST == deploy) {
-      if (printer.IsRunning()) {
+      if (printer.isRunning()) {
         SERIAL_LM(ER, "Z-Probe failed");
         LCD_ALERTMESSAGEPGM("Err: ZPROBE");
       }
@@ -384,14 +384,14 @@ float Probe::run_z_probe() {
 #endif // HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
 
 #if QUIET_PROBING
-  void Probe::probing_pause(const bool p) {
+  void Probe::probing_pause(const bool onoff) {
     #if ENABLED(PROBING_HEATERS_OFF)
-      thermalManager.pause(p);
+      thermalManager.pause(onoff);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
-      LOOP_FAN() fans[f].pause(p);
+      LOOP_FAN() fans[f].setIdle(onoff);
     #endif
-    if (p) printer.safe_delay(25);
+    if (onoff) printer.safe_delay(25);
   }
 #endif // QUIET_PROBING
 

@@ -41,26 +41,26 @@
 
     // init onboard DAC
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC, LOW);
+    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC, HIGH);
+    HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC, LOW);
+    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
 
     HAL::spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
-    HAL::digitalWrite(DAC0_SYNC, HIGH);
+    HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
 
     #if DRIVER_EXTRUDERS > 1
       // init Piggy DAC
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC, LOW);
+      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC, HIGH);
+      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC, LOW);
+      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
 
       HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
-      HAL::digitalWrite(DAC1_SYNC, HIGH);
+      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
     #endif
 
     return;
@@ -89,18 +89,18 @@
     externalDac_buf[1] |= (value << 4);
 
     if (channel > 3) { // DAC Piggy E1,E2,E3
-      HAL::digitalWrite(DAC1_SYNC, LOW);
+      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC, HIGH);
+      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC, LOW);
+      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
     }
     else { // DAC onboard X,Y,Z,E0
-      HAL::digitalWrite(DAC0_SYNC, LOW);
+      HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC0_SYNC, HIGH);
+      HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
       HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC0_SYNC, LOW);
+      HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
     }
 
     HAL::delayMicroseconds(2U);

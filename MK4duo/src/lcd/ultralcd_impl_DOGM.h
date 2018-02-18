@@ -415,9 +415,9 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
 
   if (PAGE_UNDER(7)) {
     #if HEATER_IDLE_HANDLER
-      const bool is_idle = heaters[heater].is_idle();
+      const bool isIdle = heaters[heater].isIdle();
 
-      if (blink || !is_idle)
+      if (blink || !isIdle)
     #endif
     _draw_centered_temp((isBed ? heaters[heater].target_temperature : heaters[heater].target_temperature) + 0.5, x, 7); }
 
@@ -856,7 +856,7 @@ static void lcd_implementation_status_screen() {
       lcd_print(itostr3(heaters[extruder].current_temperature));
       lcd_print('/');
 
-      if (lcd_blink() || !heaters[extruder].is_idle())
+      if (lcd_blink() || !heaters[extruder].isIdle())
         lcd_print(itostr3(heaters[extruder].target_temperature));
     }
 

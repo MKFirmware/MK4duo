@@ -31,6 +31,11 @@
 
 #if FAN_COUNT > 0
 
+  enum FlagFans {
+    fan_flag_hardware_inverted,
+    fan_flag_idle
+  };
+
   class Fan {
 
     public: /** Constructor */
@@ -49,8 +54,7 @@
       uint16_t  freq,
                 triggerTemperatures;
       int16_t   lastpwm;
-      bool      hardwareInverted,
-                paused;
+      uint8_t   FanFlag;
 
     public: /** Public Function */
 
@@ -58,11 +62,27 @@
       void SetAutoMonitored(const int8_t h);
       void Check();
 
+      FORCE_INLINE void setHWInverted(const bool onoff) {
+        SET_BIT(FanFlag, fan_flag_hardware_inverted, onoff);
+      }
+      FORCE_INLINE bool isHWInverted() { return TEST(FanFlag, fan_flag_hardware_inverted); }
+
+      FORCE_INLINE void setIdle(const bool onoff) {
+        if (onoff != isIdle()) {
+          SET_BIT(FanFlag, fan_flag_idle, onoff);
+          if (onoff) {
+            paused_Speed = Speed;
+            Speed = 0;
+          }
+          else
+            Speed = paused_Speed;
+        }
+      }
+      FORCE_INLINE bool isIdle() { return TEST(FanFlag, fan_flag_idle); }
+
       #if HARDWARE_PWM
         void SetHardwarePwm();
       #endif
-
-      void pause(const bool p);
 
   };
 

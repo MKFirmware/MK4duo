@@ -177,8 +177,8 @@
 #define E0_MS1_PIN            45
 #define MOTOR_FAULT_PIN       22
 #define MOTOR_FAULT_PIGGY_PIN  7
-#define DAC0_SYNC             27
-#define DAC1_SYNC              6
+#define DAC0_SYNC_PIN         27
+#define DAC1_SYNC_PIN          6
 #define EEPROM_SPI
 #define SPI_CHAN_EEPROM1       2
 #define SPI_EEPROM1_CS        25

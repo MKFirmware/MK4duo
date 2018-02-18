@@ -61,13 +61,13 @@
       }
 
       if (parser.seen('I'))
-        fan->hardwareInverted = !fan->hardwareInverted;
+        fan->setHWInverted(parser.value_bool());
 
       if (parser.seen('H'))
         fan->SetAutoMonitored(parser.value_int());
 
-      fan->min_Speed        = parser.byteval('L', fan->min_Speed);
-      fan->freq             = parser.ushortval('F', fan->freq);
+      fan->min_Speed  = parser.byteval('L', fan->min_Speed);
+      fan->freq       = parser.ushortval('F', fan->freq);
 
       #if ENABLED(FAN_KICKSTART_TIME)
         if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
@@ -85,7 +85,7 @@
             (int)fan->pin,
             (uint16_t)fan->freq,
             (int)fan->min_Speed,
-            (fan->hardwareInverted) ? "true" : "false"
+            (fan->isHWInverted()) ? "true" : "false"
         );
         SERIAL_TXT(response);
         SERIAL_EOL();

@@ -161,8 +161,8 @@
 
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN            13
-#define SAFETY_TRIGGERED_PIN      28  // PIN to detect the safety circuit has triggered
-#define MAIN_VOLTAGE_MEASURE_PIN  14  // Analogue PIN to measure the main voltage, with a 100k - 4k7 resitor divider.
+#define SAFETY_TRIGGERED_PIN      28
+#define MAIN_VOLTAGE_MEASURE_PIN  14
 #define MOTOR_CURRENT_PWM_XY_PIN  44
 #define MOTOR_CURRENT_PWM_Z_PIN   45
 #define MOTOR_CURRENT_PWM_E_PIN   46
@@ -176,7 +176,7 @@
 #define LCD_PINS_D7                6
 #define BTN_EN1                   40
 #define BTN_EN2                   41
-#define BTN_ENC                   19  // the click
+#define BTN_ENC                   19
 #define BLEN_C 2
 #define BLEN_B 1
 #define BLEN_A 0

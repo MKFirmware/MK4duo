@@ -170,7 +170,7 @@ void Commands::get_serial() {
       }
 
       // Movement commands alert when stopped
-      if (!printer.IsRunning()) {
+      if (!printer.isRunning()) {
         char *gpos = strchr(command, 'G');
         if (gpos) {
           const int codenum = strtol(gpos + 1, NULL, 10);

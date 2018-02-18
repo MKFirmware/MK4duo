@@ -86,7 +86,7 @@ class Probe {
     #endif
 
     #if QUIET_PROBING
-      static void probing_pause(const bool p);
+      static void probing_pause(const bool onoff);
     #endif
 
     #if ENABLED(BLTOUCH)

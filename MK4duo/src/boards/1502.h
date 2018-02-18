@@ -173,19 +173,19 @@
 #define NUM_DIGITAL_PINS 111
 
 #define SPI_CHAN_DAC 1
-#define X_MS1_PIN             99  // PC10
-#define Y_MS1_PIN             10  // PC29
-#define Z_MS1_PIN             44  // PC19
-#define E0_MS1_PIN            45  // PC18
-#define MOTOR_FAULT_PIN       22  // PB26 , motor X-Y-Z-E0 motor FAULT
+#define X_MS1_PIN             99
+#define Y_MS1_PIN             10
+#define Z_MS1_PIN             44
+#define E0_MS1_PIN            45
+#define MOTOR_FAULT_PIN       22
 #define EXP_VOLTAGE_LEVEL_PIN 65
-#define DAC0_SYNC             53  // PB14
-#define DAC1_SYNC              6  // PC24
+#define DAC0_SYNC_PIN         53
+#define DAC1_SYNC_PIN          6
 #define EEPROM_SPI
 #define SPI_CHAN_EEPROM1       2
-#define SPI_EEPROM1_CS        25  // PD0
-#define SPI_EEPROM2_CS        26  // PD1
-#define SPI_FLASH_CS          23  // PA14
+#define SPI_EEPROM1_CS        25
+#define SPI_EEPROM2_CS        26
+#define SPI_FLASH_CS          23
 #define E2END                 0x2000
 #define HAVE_MCU_TEMPERATURE
 //@@@

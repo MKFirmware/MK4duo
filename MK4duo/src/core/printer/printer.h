@@ -274,7 +274,7 @@ class Printer {
     FORCE_INLINE static void setRunning(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_running, onoff);
     }
-    FORCE_INLINE static bool IsRunning() { return TEST(mk_2_flag, flag2_running); }
+    FORCE_INLINE static bool isRunning() { return TEST(mk_2_flag, flag2_running); }
 
     FORCE_INLINE static void setPosSaved(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_pos_saved, onoff);

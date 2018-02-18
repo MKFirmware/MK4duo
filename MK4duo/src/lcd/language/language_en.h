@@ -1183,6 +1183,9 @@
 #ifndef MSG_INVALID_POS_SLOT
   #define MSG_INVALID_POS_SLOT                _UxGT("Invalid slot, total slots: ")
 #endif
+#ifndef MSG_NEED_TUNE_PID
+  #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID.")
+#endif
 
 // Rfid module
 #ifndef MSG_RFID_SPOOL

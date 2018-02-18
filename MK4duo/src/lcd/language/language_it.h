@@ -425,6 +425,7 @@
 #define MSG_SAVED_POS                       _UxGT("Posizione Salvata")
 #define MSG_RESTORING_POS                   _UxGT("Ripristino posizione")
 #define MSG_INVALID_POS_SLOT                _UxGT("Slot invalido, slot totali: ")
+#define MSG_NEED_TUNE_PID                   _UxGT("Necessita Tune PID.")
 
 // Rfid module
 #define MSG_RFID_SPOOL                      _UxGT("Bobina su E")
