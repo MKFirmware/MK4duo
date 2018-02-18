@@ -1,4 +1,4 @@
-/**
+543/**
  * Marlin 3D Printer Firmware
  * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
@@ -231,7 +231,7 @@
           planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z_raise, end[E_AXIS], feed_rate, extruder);
           mechanics.set_current_to_destination();
 
-          if (bedlevel.g26_debug_flag) {
+          if (bedlevel.g26_debug_flag)
             debug_current_and_destination(PSTR("out of bounds in ubl.line_to_destination_cartesian()"));
 
           return;
@@ -274,7 +274,7 @@
 
         planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z0, end[E_AXIS], feed_rate, extruder);
 
-        if (bedlevel.g26_debug_flag) {
+        if (bedlevel.g26_debug_flag)
           debug_current_and_destination(PSTR("FINAL_MOVE in ubl.line_to_destination_cartesian()"));
 
         mechanics.set_current_to_destination();
@@ -379,7 +379,7 @@
           } //else printf("FIRST MOVE PRUNED  ");
         }
 
-        if (bedlevel.g26_debug_flag) {
+        if (bedlevel.g26_debug_flag)
           debug_current_and_destination(PSTR("vertical move done in ubl.line_to_destination_cartesian()"));
 
         //
@@ -533,7 +533,7 @@
         if (xi_cnt < 0 || yi_cnt < 0) break; // we've gone too far, so exit the loop and move on to FINAL_MOVE
       }
 
-      if (bedlevel.g26_debug_flag) {
+      if (bedlevel.g26_debug_flag)
         debug_current_and_destination(PSTR("generic move done in ubl.line_to_destination_cartesian()"));
 
       if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
