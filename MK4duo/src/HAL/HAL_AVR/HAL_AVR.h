@@ -258,7 +258,6 @@ constexpr float     HAL_ACCELERATION_RATE   = (16777216.0 / (HAL_STEPPER_TIMER_R
 #define TIMER_COUNTER_0       TCNT0
 #define TIMER_COUNTER_1       TCNT1
 
-#define PULSE_TIMER_NUM       STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE  8
 
 #define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()

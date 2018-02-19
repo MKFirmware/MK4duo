@@ -31,6 +31,12 @@
 
   Heater heaters[HEATER_COUNT];
 
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    static long last_e_position   = 0,
+                lpq[LPQ_MAX_LEN]  = { 0 };
+    static int  lpq_ptr           = 0;
+  #endif
+
   /**
    * Initialize Heater
    */
@@ -80,6 +86,13 @@
     #endif
   }
 
+  void Heater::updatePID() {
+    if (isUsePid() && Ki != 0) {
+      tempIStateLimitMin = (float)pidDriveMin * 10.0f / Ki;
+      tempIStateLimitMax = (float)pidDriveMax * 10.0f / Ki;
+    }
+  }
+
   void Heater::get_pid_output(const uint8_t cycle_1s) {
 
     const float difference = (float)target_temperature - current_temperature;
@@ -111,8 +124,7 @@
         pidTerm += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          cTerm[h] = 0;
-          if (h == EXTRUDER_IDX) {
+          if (ID == EXTRUDER_IDX) {
             long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;
@@ -121,9 +133,8 @@
             else {
               lpq[lpq_ptr] = 0;
             }
-            if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
-            cTerm[h] = (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS]) * Kc;
-            pidTerm += cTerm[h];
+            if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
+            pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
 
@@ -153,26 +164,21 @@
 
   void Heater::print_PID() {
 
-    if (type == IS_HOTEND)
-      SERIAL_SMV(CFG, "  M301 H", (int)ID);
-    #if (PIDTEMPBED)
+    if (isUsePid()) {
+      if (type == IS_HOTEND) SERIAL_SMV(CFG, "  M301 H", (int)ID);
       else if (type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
-    #endif
-    #if (PIDTEMPCHAMBER)
       else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
-    #endif
-    #if (PIDTEMPCOOLER)
       else if (type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
-    #endif
-    else return;
+      else return;
 
-    SERIAL_MV(" P", Kp);
-    SERIAL_MV(" I", Ki);
-    SERIAL_MV(" D", Kd);
-    #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      SERIAL_MV(" C", Kc);
-    #endif
-    SERIAL_EOL();
+      SERIAL_MV(" P", Kp);
+      SERIAL_MV(" I", Ki);
+      SERIAL_MV(" D", Kd);
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        SERIAL_MV(" C", Kc);
+      #endif
+      SERIAL_EOL();
+    }
   }
 
   void Heater::print_parameters() {

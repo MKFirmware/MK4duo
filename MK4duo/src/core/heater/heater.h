@@ -98,6 +98,7 @@
       void init();
 
       void setTarget(int16_t celsius);
+      void updatePID();
       void get_pid_output(const uint8_t cycle_1s);
       void print_PID();
       void print_parameters();

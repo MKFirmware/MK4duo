@@ -32,9 +32,9 @@
 // TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
 #if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
   #if HAS_Z_PROBE_PIN
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != endstops.Is_logic(Z_PROBE))
+    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
   #else
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != endstops.Is_logic(Z_MIN))
+    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
   #endif
 #endif
 

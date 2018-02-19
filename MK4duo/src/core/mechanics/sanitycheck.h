@@ -296,10 +296,6 @@
   #endif
 #endif
 
-// Linear Advance
-#if ENABLED(LIN_ADVANCE) && !IS_CARTESIAN
-  #error "DEPENDENCY ERROR: Sorry! LIN_ADVANCE is only compatible with Cartesian."
-#endif
 
 // Pin definitions
 #if !PIN_EXISTS(X_STEP)

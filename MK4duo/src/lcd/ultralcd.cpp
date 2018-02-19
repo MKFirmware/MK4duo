@@ -2589,7 +2589,7 @@ void kill_screen(const char* lcd_msg) {
     //
     #if ENABLED(BLTOUCH)
       MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
-      if (!endstops.IsProbeEndstop() && TEST_BLTOUCH())
+      if (!endstops.isProbeEndstop() && TEST_BLTOUCH())
         MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_ENDSTOP_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
     #endif
 
@@ -2809,7 +2809,7 @@ void kill_screen(const char* lcd_msg) {
       #else
         #if HAS_SOFTWARE_ENDSTOPS
           // Limit to software endstops, if enabled
-          if (endstops.IsSoftEndstop()) {
+          if (endstops.isSoftEndstop()) {
             #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
               min = endstops.soft_endstop_min[axis];
             #endif
@@ -3100,7 +3100,7 @@ void kill_screen(const char* lcd_msg) {
       #if ENABLED(VOLUMETRIC_EXTRUSION) || ENABLED(ADVANCED_PAUSE_FEATURE)
         MENU_ITEM(submenu, MSG_FILAMENT, lcd_control_filament_menu);
       #elif ENABLED(LIN_ADVANCE)
-        MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_k, 0, 999);
+        MENU_ITEM_EDIT(float32, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
       #endif
     }
 
@@ -3166,11 +3166,11 @@ void kill_screen(const char* lcd_msg) {
     // grab the PID value out of the temp variable; scale it; then update the PID driver
     void copy_PID_i(int16_t h) {
       heaters[h].Ki = raw_Ki;
-      thermalManager.updatePID();
+      heaters[h].updatePID();
     }
     void copy_PID_d(int16_t h) {
       heaters[h].Kd = raw_Kd;
-      thermalManager.updatePID();
+      heaters[h].updatePID();
     }
     #define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
       void copy_PID_i_H ## N() { copy_PID_i(N); } \
@@ -3696,7 +3696,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_CONTROL);
 
       #if ENABLED(LIN_ADVANCE)
-        MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_k, 0, 999);
+        MENU_ITEM_EDIT(float3, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
       #endif
 
       #if ENABLED(VOLUMETRIC_EXTRUSION)

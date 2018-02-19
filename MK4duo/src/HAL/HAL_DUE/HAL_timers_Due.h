@@ -87,7 +87,6 @@ constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us
 #define HAL_STEP_TIMER_ISR          void TC4_Handler()
 
-#define PULSE_TIMER_NUM             STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
@@ -187,7 +186,7 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_
   #if ENABLED(MOVE_DEBUG)
 		++numInterruptsScheduled;
 		nextInterruptTime = count;
-		nextInterruptScheduledAt = HAL_timer_get_count(PULSE_TIMER_NUM);
+		nextInterruptScheduledAt = HAL_timer_get_count(STEPPER_TIMER);
   #endif
 }
 

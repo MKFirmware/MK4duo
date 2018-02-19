@@ -31,33 +31,17 @@
   #define CODE_M900
 
   /**
-   * M900: Set and/or Get advance K factor and WH/D ratio
+   * M900: Set and/or Get advance K factor
    *
-   *  K<factor>                  Set advance K factor
-   *  R<ratio>                   Set ratio directly (overrides WH/D)
-   *  W<width> H<height> D<diam> Set ratio from WH/D
+   *  K<factor> Set advance K factor
    */
   inline void gcode_M900(void) {
     stepper.synchronize();
 
-    const float newK = parser.seen('K') ? parser.value_float() : -1;
-    if (newK >= 0) planner.extruder_advance_k = newK;
+    const float newK = parser.floatval('K', -1);
+    if (newK >= 0) planner.extruder_advance_K = newK;
 
-    float newR = parser.seen('R') ? parser.value_float() : -1;
-    if (newR < 0) {
-      const float newD = parser.seen('D') ? parser.value_float() : -1,
-                  newW = parser.seen('W') ? parser.value_float() : -1,
-                  newH = parser.seen('H') ? parser.value_float() : -1;
-      if (newD >= 0 && newW >= 0 && newH >= 0)
-        newR = newD ? (newW * newH) / CIRCLE_AREA(newD * 0.5) : 0;
-    }
-    if (newR >= 0) planner.advance_ed_ratio = newR;
-
-    SERIAL_SMV(ECHO, "Advance K=", planner.extruder_advance_k);
-    SERIAL_MSG(" E/D=");
-    if (planner.advance_ed_ratio) SERIAL_VAL(planner.advance_ed_ratio);
-    else SERIAL_MSG("Auto");
-    SERIAL_EOL();
+    SERIAL_LMV(ECHO, "Advance K=", planner.extruder_advance_K);
   }
 
 #endif // ENABLED(LIN_ADVANCE)

@@ -43,7 +43,7 @@ void Mechanics::_set_position_mm(const float &a, const float &b, const float &c,
   #if ENABLED(LIN_ADVANCE)
     planner.position_float[X_AXIS] = a;
     planner.position_float[Y_AXIS] = b;
-    //planner.position_float[Z_AXIS] = c;
+    planner.position_float[Z_AXIS] = c;
     planner.position_float[E_AXIS] = e;
   #endif
 

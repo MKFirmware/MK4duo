@@ -147,67 +147,67 @@ void Endstops::init() {
 void Endstops::setup_pullup() {
 
   #if HAS_X_MIN
-    HAL::setInputPullup(X_MIN_PIN, Is_pullup(X_MIN));
+    HAL::setInputPullup(X_MIN_PIN, isPullup(X_MIN));
   #endif
 
   #if HAS_Y_MIN
-    HAL::setInputPullup(Y_MIN_PIN, Is_pullup(Y_MIN));
+    HAL::setInputPullup(Y_MIN_PIN, isPullup(Y_MIN));
   #endif
 
   #if HAS_Z_MIN
-    HAL::setInputPullup(Z_MIN_PIN, Is_pullup(Z_MIN));
+    HAL::setInputPullup(Z_MIN_PIN, isPullup(Z_MIN));
   #endif
 
   #if HAS_Z2_MIN
-    HAL::setInputPullup(Z2_MIN_PIN, Is_pullup(Z2_MIN));
+    HAL::setInputPullup(Z2_MIN_PIN, isPullup(Z2_MIN));
   #endif
 
   #if HAS_Z3_MIN
-    HAL::setInputPullup(Z3_MIN_PIN, Is_pullup(Z3_MIN));
+    HAL::setInputPullup(Z3_MIN_PIN, isPullup(Z3_MIN));
   #endif
 
   #if HAS_Z4_MIN
-    HAL::setInputPullup(Z4_MIN_PIN, Is_pullup(Z4_MIN));
+    HAL::setInputPullup(Z4_MIN_PIN, isPullup(Z4_MIN));
   #endif
 
   #if HAS_X_MAX
-    HAL::setInputPullup(X_MAX_PIN, Is_pullup(X_MAX));
+    HAL::setInputPullup(X_MAX_PIN, isPullup(X_MAX));
   #endif
 
   #if HAS_Y_MAX
-    HAL::setInputPullup(Y_MAX_PIN, Is_pullup(Y_MAX));
+    HAL::setInputPullup(Y_MAX_PIN, isPullup(Y_MAX));
   #endif
 
   #if HAS_Z_MAX
-    HAL::setInputPullup(Z_MAX_PIN, Is_pullup(Z_MAX));
+    HAL::setInputPullup(Z_MAX_PIN, isPullup(Z_MAX));
   #endif
 
   #if HAS_Z2_MAX
-    HAL::setInputPullup(Z2_MAX_PIN, Is_pullup(Z2_MAX));
+    HAL::setInputPullup(Z2_MAX_PIN, isPullup(Z2_MAX));
   #endif
 
   #if HAS_Z3_MAX
-    HAL::setInputPullup(Z3_MAX_PIN, Is_pullup(Z3_MAX));
+    HAL::setInputPullup(Z3_MAX_PIN, isPullup(Z3_MAX));
   #endif
 
   #if HAS_Z4_MAX
-    HAL::setInputPullup(Z4_MAX_PIN, Is_pullup(Z4_MAX));
+    HAL::setInputPullup(Z4_MAX_PIN, isPullup(Z4_MAX));
   #endif
 
   #if HAS_Z_PROBE_PIN
-    HAL::setInputPullup(Z_PROBE_PIN, Is_pullup(Z_PROBE));
+    HAL::setInputPullup(Z_PROBE_PIN, isPullup(Z_PROBE));
   #endif
 
   #if HAS_FIL_RUNOUT
-    HAL::setInputPullup(FIL_RUNOUT_PIN, Is_pullup(FIL_RUNOUT));
+    HAL::setInputPullup(FIL_RUNOUT_PIN, isPullup(FIL_RUNOUT));
   #endif
 
   #if HAS_DOOR_OPEN
-    HAL::setInputPullup(DOOR_OPEN_PIN, Is_pullup(DOOR_OPEN));
+    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN));
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
-    HAL::setInputPullup(POWER_CHECK_PIN, Is_pullup(POWER_CHECK));
+    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK));
   #endif
 
 }
@@ -231,30 +231,30 @@ void Endstops::report() {
   #endif
 
   if (mechanics.home_dir[X_AXIS] == -1) {
-    x_logic   = Is_logic(X_MIN);
-    x_pullup  = Is_pullup(X_MIN);
+    x_logic   = isLogic(X_MIN);
+    x_pullup  = isPullup(X_MIN);
   }
   else {
-    x_logic   = Is_logic(X_MAX);
-    x_pullup  = Is_pullup(X_MAX);
+    x_logic   = isLogic(X_MAX);
+    x_pullup  = isPullup(X_MAX);
   }
 
   if (mechanics.home_dir[Y_AXIS] == -1) {
-    y_logic   = Is_logic(Y_MIN);
-    y_pullup  = Is_pullup(Y_MIN);
+    y_logic   = isLogic(Y_MIN);
+    y_pullup  = isPullup(Y_MIN);
   }
   else {
-    y_logic   = Is_logic(Y_MAX);
-    y_pullup  = Is_pullup(Y_MAX);
+    y_logic   = isLogic(Y_MAX);
+    y_pullup  = isPullup(Y_MAX);
   }
 
   if (mechanics.home_dir[Z_AXIS] == -1) {
-    z_logic   = Is_logic(Z_MIN);
-    z_pullup  = Is_pullup(Z_MIN);
+    z_logic   = isLogic(Z_MIN);
+    z_pullup  = isPullup(Z_MIN);
   }
   else {
-    z_logic   = Is_logic(Z_MAX);
-    z_pullup  = Is_pullup(Z_MAX);
+    z_logic   = isLogic(Z_MAX);
+    z_pullup  = isPullup(Z_MAX);
   }
 
   SERIAL_EM("Reporting endstop logic and pullup");
@@ -273,26 +273,26 @@ void Endstops::report() {
 
   #if HAS_Z_PROBE_PIN
     // Probe Endstop
-    SERIAL_MV("Endstop PROBE Logic:", Is_logic(Z_PROBE) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", Is_pullup(Z_PROBE) ? "true" : "false");
+    SERIAL_MV("Endstop PROBE Logic:", isLogic(Z_PROBE) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(Z_PROBE) ? "true" : "false");
   #endif
 
   #if HAS_FIL_RUNOUT
     // FIL RUNOUT
-    SERIAL_MV("Endstop FIL_RUNOUT Logic:", Is_logic(FIL_RUNOUT) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", Is_pullup(FIL_RUNOUT) ? "true" : "false");
+    SERIAL_MV("Endstop FIL_RUNOUT Logic:", isLogic(FIL_RUNOUT) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(FIL_RUNOUT) ? "true" : "false");
   #endif
 
   #if HAS_DOOR_OPEN
     // Door Open
-    SERIAL_MV("Endstop DOOR OPEN Logic:", Is_logic(DOOR_OPEN) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", Is_pullup(DOOR_OPEN) ? "true" : "false");
+    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN) ? "true" : "false");
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
     // Power Check
-    SERIAL_MV("Endstop Power Check Logic:", Is_logic(POWER_CHECK) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", Is_pullup(POWER_CHECK) ? "true" : "false");
+    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK) ? "true" : "false");
   #endif
 
 }
@@ -379,7 +379,7 @@ void Endstops::report_state() {
  */
 void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
-  if (!IsSoftEndstop()) return;
+  if (!isSoftEndstop()) return;
 
   #if IS_KINEMATIC
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
@@ -569,7 +569,7 @@ void Endstops::update() {
 
   #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
   #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_LOGIC(AXIS, MINMAX) Is_logic(AXIS ##_## MINMAX)
+  #define _ENDSTOP_LOGIC(AXIS, MINMAX) isLogic(AXIS ##_## MINMAX)
   #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(endstop_hit_bits, _ENDSTOP(AXIS, MINMAX))
 
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
@@ -763,7 +763,7 @@ void Endstops::update() {
         #else
 
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (endstops.IsProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
+            if (endstops.isProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
@@ -774,7 +774,7 @@ void Endstops::update() {
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (endstops.IsProbeEndstop()) {
+        if (endstops.isProbeEndstop()) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
         }

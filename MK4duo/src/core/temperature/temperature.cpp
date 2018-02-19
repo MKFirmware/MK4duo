@@ -52,14 +52,6 @@ constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOT
 
 uint8_t Temperature::cycle_1_second = 0;
 
-#if ENABLED(PID_ADD_EXTRUSION_RATE)
-  float Temperature::cTerm[HOTENDS];
-  long  Temperature::last_e_position,
-        Temperature::lpq[LPQ_MAX_LEN];
-  int   Temperature::lpq_ptr = 0,
-        Temperature::lpq_len = 20;
-#endif
-
 uint8_t Temperature::pid_pointer = 255;
 
 #if ENABLED(FILAMENT_SENSOR)
@@ -77,10 +69,6 @@ uint8_t Temperature::pid_pointer = 255;
  * Initialize the temperature manager
  */
 void Temperature::init() {
-
-  #if (PIDTEMP) && ENABLED(PID_ADD_EXTRUSION_RATE)
-    last_e_position = 0;
-  #endif
 
   HAL::analogStart();
 
@@ -503,7 +491,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       act->Ki = workKi;
       act->Kd = workKd;
       act->setTuning(true);
-      updatePID();
+      act->updatePID();
 
       if (storeValues) eeprom.Store_Settings();
 
@@ -521,20 +509,6 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   LCD_MESSAGEPGM(WELCOME_MSG);
   printer.setAutoreportTemp(oldReport);
   disable_all_heaters();
-}
-
-void Temperature::updatePID() {
-
-  LOOP_HEATER() {
-    if (heaters[h].isUsePid() && heaters[h].Ki != 0) {
-      heaters[h].tempIStateLimitMin = (float)heaters[h].pidDriveMin * 10.0f / heaters[h].Ki;
-      heaters[h].tempIStateLimitMax = (float)heaters[h].pidDriveMax * 10.0f / heaters[h].Ki;
-    }
-  }
-
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    last_e_position = 0;
-  #endif
 }
 
 void Temperature::disable_all_heaters() {

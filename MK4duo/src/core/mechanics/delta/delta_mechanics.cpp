@@ -127,7 +127,7 @@
       }
 
       // Fail if attempting move outside printable radius
-      if (endstops.IsSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
+      if (endstops.isSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
       // Get the linear distance in XYZ
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
@@ -552,9 +552,9 @@
 
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEndstopEnabled(true)");
+      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEnabled(true)");
     #endif
-    endstops.setEndstopEnabled(true); // Enable endstops for next homing move
+    endstops.setEnabled(true); // Enable endstops for next homing move
 
     bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];
