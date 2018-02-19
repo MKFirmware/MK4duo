@@ -26,7 +26,7 @@
 
   Power powerManager;
 
-  millis_t Power::lastPowerOn;
+  millis_t Power::lastPowerOn = 0;
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     int16_t       Power::current_raw_powconsumption = 0;  // Holds measured power consumption
@@ -41,10 +41,12 @@
 
     if (ELAPSED(ms, nextPowerCheck)) {
       nextPowerCheck = ms + 2500UL;
-      if (is_power_needed())
-        power_on();
-      else if (!lastPowerOn || ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL))
-        power_off();
+      if (is_power_needed()) {
+        if (!lastPowerOn) power_on();
+      }
+      else if (ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
+        if (lastPowerOn) power_off();
+      }
     }
   }
 
