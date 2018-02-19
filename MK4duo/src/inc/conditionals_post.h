@@ -342,6 +342,11 @@
 #define E4_IS_TRINAMIC      (ENABLED(E4_IS_TMC2130) || ENABLED(E4_IS_TMC2208))
 #define E5_IS_TRINAMIC      (ENABLED(E5_IS_TMC2130) || ENABLED(E5_IS_TMC2208))
 
+// Disable Z axis sensorless homing if a probe is used to home the Z axis
+#if ENABLED(SENSORLESS_HOMING) && HOMING_Z_WITH_PROBE
+  #undef Z_HOMING_SENSITIVITY
+#endif
+
 // Endstops and bed probe
 #define HAS_X_MIN           (PIN_EXISTS(X_MIN))
 #define HAS_X_MAX           (PIN_EXISTS(X_MAX))
@@ -632,9 +637,9 @@
  */
 #if ENABLED(BLTOUCH)
   #if HAS_Z_PROBE_PIN
-    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.Is_logic(Z_PROBE))
+    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
   #else
-    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.Is_logic(Z_MIN))
+    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
   #endif
 #endif
 

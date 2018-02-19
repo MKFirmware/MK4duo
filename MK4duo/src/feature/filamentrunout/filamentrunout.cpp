@@ -37,7 +37,7 @@
     #if FILAMENT_RUNOUT_DOUBLE_CHECK > 0
       static bool filament_double_check = false;
       static millis_t filament_switch_time = 0;
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.Is_logic(FIL_RUNOUT)) {
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.isLogic(FIL_RUNOUT)) {
         if (filament_double_check) {
           if (ELAPSED(millis(), filament_switch_time) {
             printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
@@ -50,7 +50,7 @@
         }
       }
     #else
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.Is_logic(FIL_RUNOUT))
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.isLogic(FIL_RUNOUT))
         printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
     #endif
 

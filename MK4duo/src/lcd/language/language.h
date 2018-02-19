@@ -233,7 +233,6 @@
 #define MSG_PID_DEBUG_PTERM                 " pTerm "
 #define MSG_PID_DEBUG_ITERM                 " iTerm "
 #define MSG_PID_DEBUG_DTERM                 " dTerm "
-#define MSG_PID_DEBUG_CTERM                 " cTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
 #define MSG_STOPPED_HEATER                  ", heater stopped! Heater_ID: "

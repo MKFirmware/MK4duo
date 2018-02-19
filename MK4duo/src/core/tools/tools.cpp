@@ -57,6 +57,10 @@
             Tools::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
   #endif
 
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    int Tools::lpq_len = 20;
+  #endif
+
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
     #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1

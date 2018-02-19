@@ -94,9 +94,9 @@
 
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEndstopEnabled(true)");
+      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEnabled(true)");
     #endif
-    endstops.setEndstopEnabled(true); // Enable endstops for next homing move
+    endstops.setEnabled(true); // Enable endstops for next homing move
 
     bool come_back = parser.boolval('B');
     float lastpos[NUM_AXIS];
@@ -549,6 +549,10 @@
         // This causes the carriage on Dual X to unpark
         #if ENABLED(DUAL_X_CARRIAGE)
           active_hotend_parked = false;
+        #endif
+
+        #if ENABLED(SENSORLESS_HOMING)
+          printer.safe_delay(500);
         #endif
 
         do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);

@@ -115,10 +115,10 @@
  *  M301  H1  PIDC        Kp[1], Ki[1], Kd[1], Kc[1]            (float x4)
  *  M301  H2  PIDC        Kp[2], Ki[2], Kd[2], Kc[2]            (float x4)
  *  M301  H3  PIDC        Kp[3], Ki[3], Kd[3], Kc[3]            (float x4)
- *  M301  L               thermalManager.lpq_len
+ *  M301  L               lpq_len                               (int   x1)
  *  M301  H-1 PID         Kp, Ki, Kd                            (float x3)
  *  M301  H-2 PID         Kp, Ki, Kd                            (float x3)
- *  M301  H-1 PID         Kp, Ki, Kd                            (float x3)
+ *  M301  H-3 PID         Kp, Ki, Kd                            (float x3)
  *
  *  M305  H0              Hotend 0  Sensor parameters
  *  M305  H1              Hotend 1  Sensor parameters
@@ -187,8 +187,7 @@
  *  M914  Z               Stepper Z and Z2 threshold            (int16_t)
  *
  * LIN_ADVANCE:
- *  M900  K               planner.extruder_advance_k            (float)
- *  M900  WHD             planner.advance_ed_ratio              (float)
+ *  M900  K               planner.extruder_advance_K            (float)
  *
  * ADVANCED_PAUSE_FEATURE:
  *  M603 U                filament_change_unload_length         (float)
@@ -230,10 +229,10 @@ void EEPROM::Postprocess() {
   #endif
 
   #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].init();
-    #if HAS_PID
-      thermalManager.updatePID();
-    #endif
+    LOOP_HEATER() {
+      heaters[h].init();
+      heaters[h].updatePID();
+    }
   #endif
 
   #if ENABLED(DHT_SENSOR)
@@ -459,7 +458,7 @@ void EEPROM::Postprocess() {
     #endif
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      EEPROM_WRITE(thermalManager.lpq_len);
+      EEPROM_WRITE(tools.lpq_len);
     #endif
 
     #if ENABLED(DHT_SENSOR)
@@ -613,8 +612,7 @@ void EEPROM::Postprocess() {
     // Linear Advance
     //
     #if ENABLED(LIN_ADVANCE)
-      EEPROM_WRITE(planner.extruder_advance_k);
-      EEPROM_WRITE(planner.advance_ed_ratio);
+      EEPROM_WRITE(planner.extruder_advance_K);
     #endif
 
     //
@@ -841,7 +839,7 @@ void EEPROM::Postprocess() {
       #endif
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        EEPROM_READ(thermalManager.lpq_len);
+        EEPROM_READ(tools.lpq_len);
       #endif
 
       #if ENABLED(DHT_SENSOR)
@@ -982,8 +980,7 @@ void EEPROM::Postprocess() {
       // Linear Advance
       //
       #if ENABLED(LIN_ADVANCE)
-        EEPROM_READ(planner.extruder_advance_k);
-        EEPROM_READ(planner.advance_ed_ratio);
+        EEPROM_READ(planner.extruder_advance_K);
       #endif
 
       //
@@ -1264,7 +1261,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    thermalManager.lpq_len = 20; // default last-position-queue size
+    tools.lpq_len = 20; // default last-position-queue size
   #endif
 
   // Heaters
@@ -1530,7 +1527,7 @@ void EEPROM::Factory_Settings() {
 
   #endif
 
-  endstops.setEndstopGlobally(
+  endstops.setGlobally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
       (false)
     #else
@@ -1607,8 +1604,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(LIN_ADVANCE)
-    planner.extruder_advance_k = LIN_ADVANCE_K;
-    planner.advance_ed_ratio = LIN_ADVANCE_E_D_RATIO;
+    planner.extruder_advance_K = LIN_ADVANCE_K;
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -1831,27 +1827,23 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    #if HAS_PID
-      CONFIG_MSG_START("PID settings:");
-      #if (PIDTEMP)
-        #if HOTENDS == 1
-          heaters[0].print_PID();
-        #elif HOTENDS > 1
-          LOOP_HOTEND() heaters[h].print_PID();
-          #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            SERIAL_LMV(CFG, "  M301 L", thermalManager.lpq_len);
-          #endif
-        #endif
+    CONFIG_MSG_START("PID settings:");
+    #if HOTENDS == 1
+      heaters[0].print_PID();
+    #elif HOTENDS > 1
+      LOOP_HOTEND() heaters[h].print_PID();
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        SERIAL_LMV(CFG, "  M301 L", tools.lpq_len);
       #endif
-      #if (PIDTEMPBED)
-        heaters[BED_INDEX].print_PID();
-      #endif
-      #if (PIDTEMPCHAMBER)
-        heaters[CHAMBER_INDEX].print_PID();
-      #endif
-      #if (PIDTEMPCOOLER)
-        heaters[COOLER_INDEX].print_PID();
-      #endif
+    #endif
+    #if (HAS_HEATER_BED)
+      heaters[BED_INDEX].print_PID();
+    #endif
+    #if (HAS_HEATER_CHAMBER)
+      heaters[CHAMBER_INDEX].print_PID();
+    #endif
+    #if (HAS_HEATER_COOLER)
+      heaters[COOLER_INDEX].print_PID();
     #endif
 
     #if HEATER_USES_AD595
@@ -2157,8 +2149,7 @@ void EEPROM::Factory_Settings() {
      */
     #if ENABLED(LIN_ADVANCE)
       CONFIG_MSG_START("Linear Advance:");
-      SERIAL_SMV(CFG, "  M900 K", planner.extruder_advance_k);
-      SERIAL_EMV(" R", planner.advance_ed_ratio);
+      SERIAL_LMV(CFG, "  M900 K", planner.extruder_advance_K);
     #endif
 
     /**

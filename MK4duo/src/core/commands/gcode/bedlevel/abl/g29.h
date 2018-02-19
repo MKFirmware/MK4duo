@@ -492,7 +492,7 @@ inline void gcode_G29(void) {
     if (abl_probe_index == 0) {
       // For the initial G29 save software endstop state
       #if HAS_SOFTWARE_ENDSTOPS
-        enable_soft_endstops = endstops.IsSoftEndstop();
+        enable_soft_endstops = endstops.isSoftEndstop();
       #endif
     }
     else {

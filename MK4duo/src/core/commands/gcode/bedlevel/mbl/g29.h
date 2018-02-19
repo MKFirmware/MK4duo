@@ -94,7 +94,7 @@
         if (mbl_probe_index == 0) {
           #if HAS_SOFTWARE_ENDSTOPS
             // For the initial G29 S2 save software endstop state
-            enable_soft_endstops = endstops.IsSoftEndstop();
+            enable_soft_endstops = endstops.isSoftEndstop();
           #endif
         }
         else {

@@ -89,20 +89,28 @@ class Stepper {
 
     #if ENABLED(LIN_ADVANCE)
 
-      static hal_timer_t nextMainISR, nextAdvanceISR, eISR_Rate;
+      static uint32_t     LA_decelerate_after;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
+
+      static hal_timer_t  nextMainISR,
+                          nextAdvanceISR,
+                          eISR_Rate;
+
+      static uint16_t     current_adv_steps,
+                          final_adv_steps,
+                          max_adv_steps;        // Copy from current executed block. Needed because current_block is set to NULL "too early".
+
       #define _NEXT_ISR(T) nextMainISR = T
 
-      static volatile int e_steps[DRIVER_EXTRUDERS];
+      static int8_t       e_steps,
+                          LA_active_extruder;   // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-      static int  final_estep_rate,
-                  current_estep_rate[DRIVER_EXTRUDERS], // Actual extruder speed [steps/s]
-                  current_adv_steps[DRIVER_EXTRUDERS];  // The amount of current added esteps due to advance.
-                                                        // i.e., the current amount of pressure applied
-                                                        // to the spring (=filament).
+      static bool         use_advance_lead;
 
-    #else
+    #else // !LIN_ADVANCE
+
       #define _NEXT_ISR(T) HAL_timer_set_count(STEPPER_TIMER, T);
-    #endif // LIN_ADVANCE
+
+    #endif // !LIN_ADVANCE
 
     static long acceleration_time, deceleration_time;
 
@@ -320,7 +328,7 @@ class Stepper {
 
         if (timer < 100) { // (20kHz this should never happen)
           timer = 100;
-          SERIAL_EMT("Steprate too high: ", step_rate);
+          SERIAL_EMV("Steprate too high: ", step_rate);
         }
       #endif
 
@@ -333,6 +341,22 @@ class Stepper {
 
       static int8_t last_extruder = -1;
 
+      #if ENABLED(LIN_ADVANCE)
+        if (current_block->active_extruder != last_extruder) {
+          current_adv_steps = 0; // If the now active extruder wasn't in use during the last move, its pressure is most likely gone.
+          LA_active_extruder = current_block->active_extruder;
+        }
+
+        if (current_block->use_advance_lead) {
+          LA_decelerate_after = current_block->decelerate_after;
+          final_adv_steps = current_block->final_adv_steps;
+          max_adv_steps = current_block->max_adv_steps;
+          use_advance_lead = true;
+        }
+        else
+          use_advance_lead = false;
+      #endif
+
       if (current_block->direction_bits != last_direction_bits || current_block->active_extruder != last_extruder) {
         last_direction_bits = current_block->direction_bits;
         last_extruder = current_block->active_extruder;
@@ -344,17 +368,10 @@ class Stepper {
       OCR1A_nominal = calc_timer_interval(current_block->nominal_rate);
       // make a note of the number of step loops required at nominal speed
       step_loops_nominal = step_loops;
-
       acc_step_rate = current_block->initial_rate;
       acceleration_time = calc_timer_interval(acc_step_rate);
       _NEXT_ISR(acceleration_time);
- 
-      #if ENABLED(LIN_ADVANCE)
-        if (current_block->use_advance_lead) {
-          current_estep_rate[current_block->active_extruder] = ((unsigned long)acc_step_rate * current_block->abs_adv_steps_multiplier8) >> 17;
-          final_estep_rate = (current_block->nominal_rate * current_block->abs_adv_steps_multiplier8) >> 17;
-        }
-      #endif
+
     }
 
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM

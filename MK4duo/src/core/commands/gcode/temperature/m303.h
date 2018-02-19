@@ -39,58 +39,51 @@
  */
 inline void gcode_M303(void) {
 
-  #if HAS_PID
-    int8_t      h       = parser.intval('H');
-    uint8_t     cycle   = parser.intval('C', 5);
-    uint8_t     method  = parser.intval('R', 0);
-    const bool  store   = parser.boolval('U');
+  int8_t      h       = parser.intval('H');
+  uint8_t     cycle   = parser.intval('C', 5);
+  uint8_t     method  = parser.intval('R', 0);
+  const bool  store   = parser.boolval('U');
 
-    const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
+  const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
 
-    if (!commands.get_target_heater(h)) return;
+  if (!commands.get_target_heater(h)) return;
 
-    #if DISABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(NOT_BUSY);
-    #endif
+  #if DISABLED(BUSY_WHILE_HEATING)
+    KEEPALIVE_STATE(NOT_BUSY);
+  #endif
 
-    SERIAL_EM(MSG_PID_AUTOTUNE_START);
+  SERIAL_EM(MSG_PID_AUTOTUNE_START);
 
-    if (heaters[h].type == IS_HOTEND)
-      SERIAL_MV("Hotend:", h);
-    #if HAS_TEMP_BED
-      else if (heaters[h].type == IS_BED)
-        SERIAL_MSG("BED");
-    #endif
-    #if HAS_TEMP_CHAMBER
-      else if(heaters[h].type == IS_CHAMBER)
-        SERIAL_MSG("CHAMBER");
-    #endif
-    #if HAS_TEMP_COOLER
-      else if(heaters[h].type == IS_COOLER)
-        SERIAL_MSG("COOLER");
-    #endif
+  if (heaters[h].type == IS_HOTEND)
+    SERIAL_MV("Hotend:", h);
+  #if HAS_TEMP_BED
+    else if (heaters[h].type == IS_BED)
+      SERIAL_MSG("BED");
+  #endif
+  #if HAS_TEMP_CHAMBER
+    else if(heaters[h].type == IS_CHAMBER)
+      SERIAL_MSG("CHAMBER");
+  #endif
+  #if HAS_TEMP_COOLER
+    else if(heaters[h].type == IS_COOLER)
+      SERIAL_MSG("COOLER");
+  #endif
 
-    NOLESS(cycle, 5);
-    NOMORE(cycle, 20);
+  NOLESS(cycle, 5);
+  NOMORE(cycle, 20);
 
-    NOMORE(method, 3);
+  NOMORE(method, 3);
 
-    SERIAL_MV(" Temp:", temp);
-    SERIAL_MV(" Cycles:", cycle);
-    SERIAL_MV(" Method:", method);
-    if (store) SERIAL_MSG(" Apply result");
-    SERIAL_EOL();
+  SERIAL_MV(" Temp:", temp);
+  SERIAL_MV(" Cycles:", cycle);
+  SERIAL_MV(" Method:", method);
+  if (store) SERIAL_MSG(" Apply result");
+  SERIAL_EOL();
 
-    thermalManager.PID_autotune(&heaters[h], temp, cycle, method, store);
+  thermalManager.PID_autotune(&heaters[h], temp, cycle, method, store);
 
-    #if DISABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(IN_HANDLER);
-    #endif
-
-  #else
-
-    SERIAL_LM(ER, MSG_ERR_M303_DISABLED);
-
+  #if DISABLED(BUSY_WHILE_HEATING)
+    KEEPALIVE_STATE(IN_HANDLER);
   #endif
 
 }

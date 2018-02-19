@@ -83,7 +83,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  if (endstops.IsProbeEndstop() == deploy) return false;
+  if (endstops.isProbeEndstop() == deploy) return false;
 
   // Make room for probe
   float z_dest = _Z_PROBE_DEPLOY_HEIGHT;
@@ -364,7 +364,7 @@ float Probe::run_z_probe() {
 
       // Disable software endstops to allow manual adjustment
       #if HAS_SOFTWARE_ENDSTOPS
-        const bool old_enable_soft_endstops = endstops.IsSoftEndstop();
+        const bool old_enable_soft_endstops = endstops.isSoftEndstop();
         endstops.setSoftEndstop(false);
       #endif
 

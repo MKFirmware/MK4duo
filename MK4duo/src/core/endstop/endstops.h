@@ -59,7 +59,7 @@ class Endstops {
   public: /** Constructor */
 
     Endstops() {
-      setEndstopGlobally(
+      setGlobally(
         #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
           false
         #else
@@ -146,38 +146,38 @@ class Endstops {
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
       SET_BIT(logic_bits, endstop, logic);
     }
-    FORCE_INLINE static bool Is_logic(const EndstopEnum endstop) { return TEST(logic_bits, endstop); }
+    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_bits, endstop); }
 
     FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
       SET_BIT(pullup_bits, endstop, pullup);
     }
-    FORCE_INLINE static bool Is_pullup(const EndstopEnum endstop) { return TEST(pullup_bits, endstop); }
+    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_bits, endstop); }
 
-    FORCE_INLINE static void setEndstopEnabled(const bool onoff) {
+    FORCE_INLINE static void setEnabled(const bool onoff) {
       SET_BIT(flag1_bits, flag1_endstop_enabled, onoff);
     }
-    FORCE_INLINE static bool IsEndstopEnabled() { return TEST(flag1_bits, flag1_endstop_enabled); }
+    FORCE_INLINE static bool isEnabled() { return TEST(flag1_bits, flag1_endstop_enabled); }
 
-    FORCE_INLINE static void setEndstopGlobally(const bool onoff) {
+    FORCE_INLINE static void setGlobally(const bool onoff) {
       SET_BIT(flag1_bits, flag1_endstop_globally, onoff);
-      setEndstopEnabled(onoff);
+      setEnabled(onoff);
     }
-    FORCE_INLINE static bool IsEndstopGlobally() { return TEST(flag1_bits, flag1_endstop_globally); }
+    FORCE_INLINE static bool isGlobally() { return TEST(flag1_bits, flag1_endstop_globally); }
 
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
       SET_BIT(flag1_bits, flag1_soft_endstop, onoff);
     }
-    FORCE_INLINE static bool IsSoftEndstop() { return TEST(flag1_bits, flag1_soft_endstop); }
+    FORCE_INLINE static bool isSoftEndstop() { return TEST(flag1_bits, flag1_soft_endstop); }
 
     FORCE_INLINE static void setProbeEndstop(const bool onoff) {
       SET_BIT(flag1_bits, flag1_probe_endstop, onoff);
     }
-    FORCE_INLINE static bool IsProbeEndstop() { return TEST(flag1_bits, flag1_probe_endstop); }
+    FORCE_INLINE static bool isProbeEndstop() { return TEST(flag1_bits, flag1_probe_endstop); }
 
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
       SET_BIT(flag1_bits, flag1_g38_endstop_hit, onoff);
     }
-    FORCE_INLINE static bool IsG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
+    FORCE_INLINE static bool isG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
 
   private: /** Private Function */
 
@@ -198,9 +198,9 @@ class Endstops {
 extern Endstops endstops;
 
 #if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (endstops.IsEndstopEnabled() || endstops.IsProbeEndstop())
+  #define ENDSTOPS_ENABLED  (endstops.isEnabled() || endstops.isProbeEndstop())
 #else
-  #define ENDSTOPS_ENABLED  endstops.IsEndstopEnabled()
+  #define ENDSTOPS_ENABLED  endstops.isEnabled()
 #endif
 
 #endif /* _ENDSTOPS_H_ */

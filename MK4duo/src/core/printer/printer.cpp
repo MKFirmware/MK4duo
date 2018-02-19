@@ -505,7 +505,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
   #if ENABLED(MOVE_DEBUG)
     char buf[100] = { 0 };
     sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
-      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(PULSE_TIMER_NUM));
+      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(STEPPER_TIMER));
     SERIAL_PS(buf);
     SERIAL_EOL();
   #endif
@@ -826,7 +826,7 @@ void Printer::suicide() {
 
 // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
 void Printer::setNotHoming() {
-  endstops.setEndstopEnabled(endstops.IsEndstopGlobally());
+  endstops.setEnabled(endstops.isGlobally());
 }
 
 /**

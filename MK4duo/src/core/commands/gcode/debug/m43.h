@@ -90,12 +90,12 @@
         SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
         SERIAL_MSG(".  Z_PROBE_ENDSTOP_LOGIC: ");
 
-        if (endstops.Is_logic(Z_PROBE))
+        if (endstops.isLogic(Z_PROBE))
           SERIAL_EM("true");
         else
           SERIAL_EM("false");
 
-        probe_logic = endstops.Is_logic(Z_PROBE);
+        probe_logic = endstops.isLogic(Z_PROBE);
 
       #elif HAS_Z_MIN
 
@@ -105,12 +105,12 @@
         SERIAL_EM(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
         SERIAL_MSG(".  Z_MIN_ENDSTOP_LOGIC: ");
 
-        if (endstops.Is_logic(Z_MIN))
+        if (endstops.isLogic(Z_MIN))
           SERIAL_EM("true");
         else
           SERIAL_EM("false");
 
-        probe_logic = endstops.Is_logic(Z_MIN);
+        probe_logic = endstops.isLogic(Z_MIN);
 
       #endif
 

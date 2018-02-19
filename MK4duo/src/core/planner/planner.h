@@ -45,14 +45,18 @@ enum BlockFlagBit {
   BLOCK_BIT_START_FROM_FULL_HALT,
 
   // The block is busy
-  BLOCK_BIT_BUSY
+  BLOCK_BIT_BUSY,
+
+  // The block is segment 2+ of a longer move
+  BLOCK_BIT_CONTINUED
 };
 
 enum BlockFlag {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_START_FROM_FULL_HALT = _BV(BLOCK_BIT_START_FROM_FULL_HALT),
-  BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY)
+  BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
+  BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED)
 };
 
 /**
@@ -87,8 +91,11 @@ typedef struct {
 
   // Advance extrusion
   #if ENABLED(LIN_ADVANCE)
-    bool use_advance_lead;
-    uint32_t abs_adv_steps_multiplier8;     // Factorised by 2^8 to avoid float
+    bool      use_advance_lead;
+    uint16_t  advance_speed,                // Timer value for extruder speed offset
+              max_adv_steps,                // max. advance steps to get cruising speed pressure (not always nominal_speed!)
+              final_adv_steps;              // advance steps due to exit speed
+    float     e_D_ratio;
   #endif
 
   // Fields used by the motion planner to manage acceleration
@@ -166,11 +173,8 @@ class Planner {
     static uint32_t cutoff_long;
 
     #if ENABLED(LIN_ADVANCE)
-      static float  extruder_advance_k,
-                    advance_ed_ratio,
-                    position_float[XYZE],
-                    lin_dist_xy,
-                    lin_dist_e;
+      static float  extruder_advance_K,
+                    position_float[XYZE];
     #endif
 
   private: /** Private Parameters */
@@ -233,7 +237,11 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
+    #if ENABLED(LIN_ADVANCE)
+      static void buffer_steps(const int32_t (&target)[XYZE], const float (&target_float)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
+    #else
+      static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
+    #endif
 
     /**
      * Planner::buffer_segment
@@ -300,6 +308,16 @@ class Planner {
     }
 
     /**
+     * "Discard" the next block if it's continued.
+     * Called after an interrupted move to throw away the rest of the move.
+     */
+    FORCE_INLINE static bool discard_continued_block() {
+      const bool discard = blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
+      if (discard) discard_current_block();
+      return discard;
+    }
+
+    /**
      * length of commands in planner
      */
     FORCE_INLINE static uint16_t command_in_planner_len() {
@@ -339,7 +357,7 @@ class Planner {
     static block_t* get_current_block() {
       if (blocks_queued()) {
         block_t * const block = &block_buffer[block_buffer_tail];
-//-----> check this part
+
         // If the block has no trapezoid calculated, it's unsafe to execute.
         if (movesplanned() > 1) {
           const block_t * const next = &block_buffer[next_block_index(block_buffer_tail)];
@@ -348,7 +366,7 @@ class Planner {
         }
         else if (TEST(block->flag, BLOCK_BIT_RECALCULATE))
           return NULL;
-//-----> check this part
+
         #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif

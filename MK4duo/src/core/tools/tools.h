@@ -66,6 +66,10 @@
                         encErrorSteps[EXTRUDERS];
       #endif
 
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        static int lpq_len;
+      #endif
+
     public: /** Public Function */
 
       static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
