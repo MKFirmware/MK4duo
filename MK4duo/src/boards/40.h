@@ -160,8 +160,8 @@
 
 
 //###UNKNOWN_PINS
-#define PS_ON_PIN               12
-#define MAX6675_SS_PIN              66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+#define PS_ON_PIN                   12
+#define MAX6675_SS_PIN              66
 //@@@
 
 //###IF_BLOCKS
@@ -198,20 +198,20 @@
 
       #define SD_DETECT_PIN     49
     #elif ENABLED(LCD_I2C_PANELOLU2)
-      #define BTN_EN1           47  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           47
       #define BTN_EN2           43
       #define BTN_ENC           32
       #define LCD_SDSS          53
       #define SD_DETECT_PIN     NoPin
       #define KILL_PIN          41
     #elif ENABLED(LCD_I2C_VIKI)
-      #define BTN_EN1           22  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           22
       #define BTN_EN2           7
       #define BTN_ENC           NoPin
       #define LCD_SDSS          53
       #define SD_DETECT_PIN     49
     #elif ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
-      #define BTN_EN1           35  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           35
       #define BTN_EN2           37
       #define BTN_ENC           31
       #define SD_DETECT_PIN     49
@@ -223,37 +223,37 @@
       #define LCD_BACKLIGHT_PIN 33
     #else
       // arduino pin which triggers an piezzo beeper
-      #define ORIG_BEEPER_PIN   33  // Beeper on AUX-4
+      #define ORIG_BEEPER_PIN   33
 
       // buttons are directly attached using AUX-2
       #if ENABLED(REPRAPWORLD_KEYPAD)
-        #define BTN_EN1         64  // encoder
-        #define BTN_EN2         59  // encoder
-        #define BTN_ENC         63  // enter button
-        #define SHIFT_OUT       40  // shift register
-        #define SHIFT_CLK       44  // shift register
-        #define SHIFT_LD        42  // shift register
+        #define BTN_EN1         64
+        #define BTN_EN2         59
+        #define BTN_ENC         63
+        #define SHIFT_OUT       40
+        #define SHIFT_CLK       44
+        #define SHIFT_LD        42
       #elif ENABLED(PANEL_ONE)
-        #define BTN_EN1         59  // AUX2 PIN 3
-        #define BTN_EN2         63  // AUX2 PIN 4
-        #define BTN_ENC         49  // AUX3 PIN 7
+        #define BTN_EN1         59
+        #define BTN_EN2         63
+        #define BTN_ENC         49
       #else
         #define BTN_EN1         37
         #define BTN_EN2         35
-        #define BTN_ENC         31  // the click
+        #define BTN_ENC         31
       #endif
 
       #if ENABLED(G3D_PANEL)
         #define SD_DETECT_PIN   49
       #else
-        #define SD_DETECT_PIN   NoPin  // Ramps does not use this port
+        #define SD_DETECT_PIN   NoPin
       #endif
 
     #endif
 
   #else // old style panel with shift register
     // arduino pin witch triggers an piezo beeper
-    #define ORIG_BEEPER_PIN     33  // No Beeper added
+    #define ORIG_BEEPER_PIN     33
 
     //buttons are attached to a shift register
     // Not wired this yet
