@@ -397,48 +397,28 @@
  ****************** Extruder Advance Linear Pressure Control *****************************
  *****************************************************************************************
  *                                                                                       *
- * Assumption: advance = k * (delta velocity)                                            *
+ * Linear Pressure Control v1.5                                                          *
+ *                                                                                       *
+ * Assumption: advance [steps] = k * (delta velocity [steps/s])                          *
  * K=0 means advance disabled.                                                           *
- * To get a rough start value for calibration, measure your "free filament length"       *
- * between the hobbed bolt and the nozzle (in cm). Use the formula below that fits       *
- * your setup, where L is the "free filament length":                                    *
  *                                                                                       *
- * Filament diameter           |   1.75mm  |    3.0mm   |                                *
- * ----------------------------|-----------|------------|                                *
- * Stiff filament (PLA)        | K=47*L/10 | K=139*L/10 |                                *
- * Softer filament (ABS, nGen) | K=88*L/10 | K=260*L/10 |                                *
+ * NOTE: K values for LIN_ADVANCE 1.5 differ from earlier versions!                      *
  *                                                                                       *
- * Some Slicers produce Gcode with randomly jumping extrusion widths occasionally.       *
- * For example within a 0.4mm perimeter it may produce a single segment of 0.05mm width. *
- * While this is harmless for normal printing (the fluid nature of the filament will     *
- * close this very, very tiny gap), it throws off the LIN ADVANCE pressure adaption.     *
- *                                                                                       *
- * For this case LIN ADVANCE E D RATIO can be used to set the extrusion:distance ratio   *
- * to a fixed value. Note that using a fixed ratio will lead to wrong nozzle pressures   *
- * if the slicer is using variable widths or layer heights within one print!             *
- *                                                                                       *
- * This option sets the default E:D ratio at startup. Use `M905` to override this value. *
- *                                                                                       *
- * Example: `M905 W0.4 H0.2 D1.75`, where:                                               *
- *   - W is the extrusion width in mm                                                    *
- *   - H is the layer height in mm                                                       *
- *   - D is the filament diameter in mm                                                  *
- *                                                                                       *
- * Set to 0 to auto-detect the ratio based on given Gcode G1 print moves.                *
- *                                                                                       *
- * Slic3r (including Prusa Slic3r) produces Gcode compatible with the automatic mode.    *
- * Cura (as of this writing) may produce Gcode incompatible with the automatic mode.     *
- *                                                                                       *
- * LIN ADVANCE is only compatible with Cartesian                                         *
+ * Set K around 0.22 for 3mm PLA Direct Drive with ~6.5cm between the                    *
+ * drive gear and heatbreak.                                                             *
+ * Larger K values will be needed for flexible filament and greater distances.           *
+ * If this algorithm produces a higher speed offset than the                             *
+ * extruder can handle (compared to E jerk)                                              *
+ * print acceleration will be reduced during the affected moves to keep within the limit.*
  *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE
 
-#define LIN_ADVANCE_K 75
+// Unit: mm compression per 1mm/s extruder speed
+#define LIN_ADVANCE_K 0.22
 
-// The calculated ratio (or 0) according to the formula W * H / ((D / 2) ^ 2 * PI)
-// Example: 0.4 * 0.2 / ((1.75 / 2) ^ 2 * PI) = 0.033260135
-#define LIN_ADVANCE_E_D_RATIO 0
+// If enabled, this will generate debug information output over Serial.
+//#define LA_DEBUG
 /*****************************************************************************************/
 
 
