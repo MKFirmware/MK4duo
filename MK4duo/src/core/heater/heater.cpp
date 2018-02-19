@@ -52,9 +52,7 @@
 
     setIdle(false);
 
-    #if HAS_EEPROM
-      setTuning(false);
-    #else
+    #if !HAS_EEPROM
       setTuning(true);
     #endif
 
