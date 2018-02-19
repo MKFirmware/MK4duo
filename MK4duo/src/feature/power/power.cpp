@@ -43,20 +43,24 @@
       nextPowerCheck = ms + 2500UL;
       if (is_power_needed())
         power_on();
-      else if (!lastPowerOn || ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL))
+      else if (ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL))
         power_off();
     }
   }
 
   void Power::power_on() {
-    lastPowerOn = millis();
-    OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
-    HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
+    if (!lastPowerOn) {
+      lastPowerOn = millis();
+      OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+      HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
+    }
   }
 
   void Power::power_off() {
-    OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-    lastPowerOn = 0;
+    if (lastPowerOn) {
+      OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+      lastPowerOn = 0;
+    }
   }
 
   #if HAS_POWER_CONSUMPTION_SENSOR
