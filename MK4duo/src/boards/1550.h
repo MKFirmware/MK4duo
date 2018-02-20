@@ -148,7 +148,7 @@
 #define E2END 0x3FFFF
 #define ORIG_PS_ON_PIN             NoPin
 #define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    -1
+#define LED_PIN                    NoPin
 #define SDPOWER_PIN                NoPin
 #define SD_DETECT_PIN              NoPin
 #define SDSS                        4

@@ -161,22 +161,21 @@
 
 
 //###IF_BLOCKS
-// Uncomment the following line for RAMPS v1.0
 //#define RAMPS_V_1_0
-#if ENABLED(RAMPS_V_1_0) // RAMPS_V_1_0
-  #define ORIG_HEATER_0_PIN     12    // RAMPS 1.0
-  #define ORIG_HEATER_BED_PIN   NoPin    // RAMPS 1.0
-  #define ORIG_FAN0_PIN          11    // RAMPS 1.0
-#else // RAMPS_V_1_1 or RAMPS_V_1_2
-  #define ORIG_HEATER_0_PIN     10    // RAMPS 1.1
-  #define ORIG_HEATER_BED_PIN    8    // RAMPS 1.1
-  #define ORIG_FAN0_PIN           9    // RAMPS 1.1
+#if ENABLED(RAMPS_V_1_0)
+  #define ORIG_HEATER_0_PIN        12
+  #define ORIG_HEATER_BED_PIN      NoPin
+  #define ORIG_FAN0_PIN            11
+#else
+  #define ORIG_HEATER_0_PIN        10
+  #define ORIG_HEATER_BED_PIN       8
+  #define ORIG_FAN0_PIN             9
 #endif
 
 // SPI for Max6675 Thermocouple
 #if DISABLED(SDSUPPORT)
-  #define MAX6675_SS_PIN            66  // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+  #define MAX6675_SS_PIN            66
 #else
-  #define MAX6675_SS_PIN            66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+  #define MAX6675_SS_PIN            66
 #endif
 //@@@
