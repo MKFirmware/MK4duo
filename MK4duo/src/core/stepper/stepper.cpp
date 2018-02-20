@@ -482,9 +482,7 @@ void Stepper::isr() {
 
     #if DISABLED(LIN_ADVANCE)
       #if ENABLED(CPU_32_BIT)
-        hal_timer_t stepper_timer_count = HAL_timer_get_count(PULSE_TIMER_NUM);
-        NOLESS(stepper_timer_count, (HAL_timer_get_current_count(PULSE_TIMER_NUM) + STEPPER_TIMER_TICKS_PER_US));
-        HAL_timer_set_count(PULSE_TIMER_NUM, stepper_timer_count);
+        HAL_timer_set_count(STEPPER_TIMER, ocr_val);
       #else
         NOLESS(OCR1A, TCNT1 + 16);
       #endif
