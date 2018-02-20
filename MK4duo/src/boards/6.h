@@ -161,29 +161,29 @@
 
 //###IF_BLOCKS
 #if MB(AZTEEG_X1) || MB(STB_11) || MB(MELZI)
-  #define ORIG_FAN0_PIN           4 // Works for Panelolu2 too
+  #define ORIG_FAN0_PIN           4
   #if MB(MELZI)
     #define LED_PIN             27
   #elif MB(STB_11)
-    #define LCD_BACKLIGHT_PIN   17 // LCD backlight LED
+    #define LCD_BACKLIGHT_PIN   17
   #endif
 #endif
 
 #if ENABLED(SANGUINOLOLU_V_1_2)
 
-  #define ORIG_HEATER_BED_PIN   12 // (bed)
+  #define ORIG_HEATER_BED_PIN   12
   #define ORIG_X_ENABLE_PIN     14
   #define ORIG_Y_ENABLE_PIN     14
   #define ORIG_Z_ENABLE_PIN     26
   #define ORIG_E0_ENABLE_PIN    14
 
   #if ENABLED(LCD_I2C_PANELOLU2)
-    #define ORIG_FAN0_PIN         4 // Uses Transistor1 (PWM) on Panelolu2's Sanguino Adapter Board to drive the fan
+    #define ORIG_FAN0_PIN         4
   #endif
 
 #else
 
-  #define ORIG_HEATER_BED_PIN   14  // (bed)
+  #define ORIG_HEATER_BED_PIN   14
   #define ORIG_X_ENABLE_PIN     NoPin
   #define ORIG_Y_ENABLE_PIN     NoPin
   #define ORIG_Z_ENABLE_PIN     NoPin
@@ -202,12 +202,12 @@
   #if ENABLED(DOGLCD)
 
     #if ENABLED(U8GLIB_ST7920) //SPI GLCD 12864 ST7920 ( like [www.digole.com] ) For Melzi V2.0
-      #if MB(MELZI) // Melzi board
-        #define LCD_PINS_RS     30 //CS chip select /SS chip slave select
-        #define LCD_PINS_ENABLE 29 //SID (MOSI)
-        #define LCD_PINS_D4     17 //SCK (CLK) clock
-        #define ORIG_BEEPER_PIN 27 // Pin 27 is taken by LED_PIN, but Melzi LED does nothing with Marlin so this can be used for ORIG_BEEPER_PIN. You can use this pin with M42 instead of ORIG_BEEPER_PIN.
-      #else         // Sanguinololu 1.3
+      #if MB(MELZI)
+        #define LCD_PINS_RS     30
+        #define LCD_PINS_ENABLE 2
+        #define LCD_PINS_D4     17
+        #define ORIG_BEEPER_PIN 27
+      #else
         #define LCD_PINS_RS      4
         #define LCD_PINS_ENABLE 17
         #define LCD_PINS_D4     30
@@ -243,13 +243,13 @@
   #if ENABLED(LCD_I2C_PANELOLU2)
     #if MB(MELZI)
       #define BTN_ENC           29
-      #define LCD_SDSS          30 // Panelolu2 SD card reader rather than the Melzi
+      #define LCD_SDSS          30
     #else
       #define BTN_ENC           30
     #endif
   #else
     #define BTN_ENC             16
-    #define LCD_SDSS            28 // Smart Controller SD card reader rather than the Melzi
+    #define LCD_SDSS            28
   #endif //Panelolu2
 
   #define SD_DETECT_PIN         NoPin
@@ -260,7 +260,7 @@
   // Pins for DOGM SPI LCD Support
   #define DOGLCD_A0             30
   #define DOGLCD_CS             17
-  #define LCD_BACKLIGHT_PIN     28 // backlight LED on PA3
+  #define LCD_BACKLIGHT_PIN     28
   // GLCD features
   #define LCD_CONTRAST           1
   // Uncomment screen orientation

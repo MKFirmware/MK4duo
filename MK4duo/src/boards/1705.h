@@ -173,9 +173,9 @@
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
-  #define LCD_PINS_RS         62  // CS chip select / SS chip slave select
-  #define LCD_PINS_ENABLE     75  // SID (MOSI)
-  #define LCD_PINS_D4         76  // SCK (CLK) clock
+  #define LCD_PINS_RS         62
+  #define LCD_PINS_ENABLE     75
+  #define LCD_PINS_D4         76
   #define ORIG_BEEPER_PIN     NoPin
 
   #define BTN_EN1             20
