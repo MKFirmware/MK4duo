@@ -164,7 +164,7 @@
     printer.setup_for_endstop_or_probe_move();
     endstops.setEnabled(true);
     if (!mechanics.Home()) return;
-    printer.setNotHoming();
+    endstops.setNotHoming();
     DEPLOY_PROBE();
 
     Calc_homed_height();
@@ -330,7 +330,7 @@
 
     endstops.setEnabled(true);
     if (!mechanics.Home()) return;
-    printer.setNotHoming();
+    endstops.setNotHoming();
 
     CALIBRATION_CLEANUP();
 

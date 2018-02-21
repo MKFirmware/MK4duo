@@ -175,9 +175,6 @@ class Printer {
 
     static void suicide();
 
-    // Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-    static void setNotHoming();
-
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
     #endif

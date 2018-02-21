@@ -167,7 +167,6 @@
 #define S1_MUX            40
 #define S2_MUX            50
 #define MOTOR_FAULT_PIN   10
-#define EEPROM_I2C
 //@@@
 
 //###IF_BLOCKS

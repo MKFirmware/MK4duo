@@ -58,10 +58,6 @@
 
     setIdle(false);
 
-    #if !HAS_EEPROM
-      setTuning(true);
-    #endif
-
     sensor.CalcDerivedParameters();
 
     if (printer.isRunning()) return; // All running not reinitialize
