@@ -179,6 +179,9 @@ class Endstops {
     }
     FORCE_INLINE static bool isG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
 
+    // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
+    FORCE_INLINE static void setNotHoming() { setEnabled(isGlobally()); }
+
   private: /** Private Function */
 
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)

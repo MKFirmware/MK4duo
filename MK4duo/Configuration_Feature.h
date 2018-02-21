@@ -1392,9 +1392,12 @@
 //
 //#define RA_CONTROL_PANEL
 
-// Sainsmart YW Robot (LCM1602) LCD Display
 //
-//#define LCD_I2C_SAINSMART_YWROBOT
+// These require F.Malpartida's LiquidCrystal_I2C library
+// https://bitbucket.org/fmalpartida/new-liquidcrystal/wiki/Home
+//
+//#define LCD_SAINSMART_I2C_1602
+//#define LCD_SAINSMART_I2C_2004
 
 // Generic LCM1602 LCD adapter
 //

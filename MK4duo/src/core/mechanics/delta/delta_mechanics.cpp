@@ -568,22 +568,16 @@
       if (printer.debugLeveling()) DEBUG_POS(">>> home_delta", current_position);
     #endif
 
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+    #if HAVE_TMC2130 && ENABLED(SENSORLESS_HOMING)
+      tmc_sensorless_homing(stepperX);
+      tmc_sensorless_homing(stepperY);
+      tmc_sensorless_homing(stepperZ);
+    #endif
+
     // Init the current position of all carriages to 0,0,0
     ZERO(current_position);
     set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
-
-    // Disable stealthChop if used. Enable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperX);
-      #endif
-      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperY);
-      #endif
-      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperZ);
-      #endif
-    #endif
 
     // Move all carriages together linearly until an endstop is hit.
     current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
@@ -592,16 +586,10 @@
     stepper.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperX, false);
-      #endif
-      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperY, false);
-      #endif
-      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
-        tmc_sensorless_homing(stepperZ, false);
-      #endif
+    #if HAVE_TMC2130 && ENABLED(SENSORLESS_HOMING)
+      tmc_sensorless_homing(stepperX, false);
+      tmc_sensorless_homing(stepperY, false);
+      tmc_sensorless_homing(stepperZ, false);
     #endif
 
     // If an endstop was not hit, then damage can occur if homing is continued.
@@ -635,7 +623,7 @@
       if (printer.debugLeveling()) DEBUG_POS("<<< home_delta", current_position);
     #endif
 
-    printer.setNotHoming();
+    endstops.setNotHoming();
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area

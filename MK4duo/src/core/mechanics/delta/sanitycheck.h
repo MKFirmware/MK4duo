@@ -139,6 +139,15 @@
     #error "DEPENDENCY ERROR: BABYSTEPPING only implemented for Z axis on deltabots."
   #endif
 
+  /**
+   * TMC2130
+   */
+  #if ENABLED(HAVE_TMC2130)
+    #if DISABLED(X_IS_TMC2130) || DISABLED(Y_IS_TMC2130) || DISABLED(Z_IS_TMC2130)
+      #error "DEPENDENCY ERROR: For delta there must be all three XYZ TMC2130 drivers"
+    #endif
+  #endif
+
 #endif // MECH(DELTA)
 
 #endif /* _MECH_DELTA_SANITYCHECK_H_ */

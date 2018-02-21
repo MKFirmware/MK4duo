@@ -824,11 +824,6 @@ void Printer::suicide() {
   #endif
 }
 
-// Disable / Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-void Printer::setNotHoming() {
-  endstops.setEnabled(endstops.isGlobally());
-}
-
 /**
  * Private Function
  */

@@ -812,8 +812,20 @@ void Planner::check_axes_activity() {
    * So we need to create other 2 "AXIS", named X_HEAD and Y_HEAD, meaning the real displacement of the Head.
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
-  #if IS_CORE
-    float delta_mm[Z_HEAD + 1];
+  float delta_mm[
+    #if IS_CORE
+      Z_HEAD + 1
+    #else
+      XYZE
+    #endif
+  ];
+
+  #if ENABLED(LIN_ADVANCE)
+    delta_mm[A_AXIS] = target_float[X_AXIS] - position_float[X_AXIS];
+    delta_mm[B_AXIS] = target_float[Y_AXIS] - position_float[Y_AXIS];
+    delta_mm[C_AXIS] = target_float[Z_AXIS] - position_float[Z_AXIS];
+    delta_mm[E_AXIS] = target_float[E_AXIS] - position_float[E_AXIS];
+  #else
     #if CORE_IS_XY
       delta_mm[X_HEAD] = dx * mechanics.steps_to_mm[A_AXIS];
       delta_mm[Y_HEAD] = dy * mechanics.steps_to_mm[B_AXIS];
@@ -832,28 +844,27 @@ void Planner::check_axes_activity() {
       delta_mm[Z_HEAD] = dz * mechanics.steps_to_mm[C_AXIS];
       delta_mm[B_AXIS] = db * mechanics.steps_to_mm[B_AXIS];
       delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm[C_AXIS];
+    #else
+      delta_mm[X_AXIS] = dx * mechanics.steps_to_mm[X_AXIS];
+      delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
+      delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
     #endif
-  #else
-    float delta_mm[XYZE];
-    delta_mm[X_AXIS] = dx * mechanics.steps_to_mm[X_AXIS];
-    delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
-    delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
+    delta_mm[E_AXIS] = esteps_float * mechanics.steps_to_mm[E_AXIS_N];
   #endif
-  delta_mm[E_AXIS] = esteps_float * mechanics.steps_to_mm[E_AXIS_N];
 
   if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = FABS(delta_mm[E_AXIS]);
   }
   else if (!millimeters) {
     block->millimeters = SQRT(
-      #if CORE_IS_XY
+      #if ENABLED(LIN_ADVANCE) || !IS_CORE
+        sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_AXIS])
+      #elif CORE_IS_XY
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
       #elif CORE_IS_XZ
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_HEAD])
       #elif CORE_IS_YZ
         sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_HEAD])
-      #else
-        sq(delta_mm[X_AXIS]) + sq(delta_mm[Y_AXIS]) + sq(delta_mm[Z_AXIS])
       #endif
     );
   }
