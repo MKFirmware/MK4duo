@@ -1,7 +1,7 @@
 /****************************************************************************************
 * 1407
 * Arduino Due pin assignment
-* for ULTIMAKER4DUE (https://iworld4us.com/diy-3d-printer.html)
+* ULTIMAKER4DUE 
 ****************************************************************************************/
 
 //###CHIP
@@ -155,7 +155,7 @@
 #define SDSS                       53
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin//54
+#define SUICIDE_PIN                NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
