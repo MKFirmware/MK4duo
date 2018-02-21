@@ -122,6 +122,7 @@
 #define BOARD_RADDS           1401    // RADDS ARM 32 bit board
 #define BOARD_RAMPS_FD_V1     1403    // RAMPS-FD V1 ARM 32 bit board
 #define BOARD_RAMPS_FD_V2     1404    // RAMPS-FD V2 ARM 32 bit board
+#define BOARD_ULTIMAKER4DUE   1407    // Ultimaker Shield + Arduino DUE Aleksandr Varaksa mods (https://iworld4us.com/diy-3d-printer.html)
 #define BOARD_RAMPS_SMART_HFB 1411    // RAMPS-SMART (Power outputs: Hotend, Fan, Bed)
 #define BOARD_RAMPS_SMART_HHB 1412    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Bed)
 #define BOARD_RAMPS_SMART_HFF 1413    // RAMPS-SMART (Power outputs: Hotend, Fan0, Fan1)
