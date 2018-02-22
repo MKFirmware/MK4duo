@@ -114,20 +114,20 @@
 #define Z_STOP_PIN                 NoPin
 
 //###HEATER
-#define ORIG_HEATER_0_PIN          NoPin
-#define ORIG_HEATER_1_PIN          NoPin
-#define ORIG_HEATER_2_PIN          NoPin
+#define ORIG_HEATER_0_PIN           2
+#define ORIG_HEATER_1_PIN           3
+#define ORIG_HEATER_2_PIN           6
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN        NoPin
+#define ORIG_HEATER_BED_PIN         9
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN            NoPin
-#define ORIG_TEMP_1_PIN            NoPin
-#define ORIG_TEMP_2_PIN            NoPin
+#define ORIG_TEMP_0_PIN            15
+#define ORIG_TEMP_1_PIN            14
+#define ORIG_TEMP_2_PIN            13
 #define ORIG_TEMP_3_PIN            NoPin
-#define ORIG_TEMP_BED_PIN          NoPin
+#define ORIG_TEMP_BED_PIN          11
 #define ORIG_TEMP_CHAMBER_PIN      NoPin
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
@@ -169,54 +169,4 @@
 #define BTN_EN1            11
 #define BTN_EN2            12
 #define BTN_ENC            43
-//@@@
-
-//###IF_BLOCKS
-#if (TEMP_SENSOR_0==0)
- #define ORIG_TEMP_0_PIN             NoPin
- #define ORIG_HEATER_0_PIN           NoPin
-#else
- #define ORIG_HEATER_0_PIN           2    // EXTRUDER 1
- #if (TEMP_SENSOR_0==-1)
-  #define ORIG_TEMP_0_PIN            6    // ANALOG NUMBERING - connector *K1* on RUMBA thermocouple ADD ON is used
- #else
-  #define ORIG_TEMP_0_PIN            15   // ANALOG NUMBERING - default connector for thermistor *T0* on rumba board is used
- #endif
-#endif
-
-#if (TEMP_SENSOR_1==0)
- #define ORIG_TEMP_1_PIN             NoPin
- #define ORIG_HEATER_1_PIN           NoPin
-#else
- #define ORIG_HEATER_1_PIN           3    // EXTRUDER 2
- #if (TEMP_SENSOR_1==-1)
-  #define ORIG_TEMP_1_PIN            5    // ANALOG NUMBERING - connector *K2* on RUMBA thermocouple ADD ON is used
- #else
-  #define ORIG_TEMP_1_PIN            14   // ANALOG NUMBERING - default connector for thermistor *T1* on rumba board is used
- #endif
-#endif
-
-#if (TEMP_SENSOR_2==0)
- #define ORIG_TEMP_2_PIN         NoPin
- #define ORIG_HEATER_2_PIN       NoPin
-#else
- #define ORIG_HEATER_2_PIN        6    // EXTRUDER 3
- #if (TEMP_SENSOR_2==-1)
-  #define ORIG_TEMP_2_PIN         7    // ANALOG NUMBERING - connector *K3* on RUMBA thermocouple ADD ON is used <-- this can not be used when TEMP_SENSOR_BED is defined as thermocouple
- #else
-  #define ORIG_TEMP_2_PIN         13   // ANALOG NUMBERING - default connector for thermistor *T2* on rumba board is used
- #endif
-#endif
-
-#if (TEMP_SENSOR_BED==0)
- #define ORIG_TEMP_BED_PIN       NoPin
- #define ORIG_HEATER_BED_PIN     NoPin
-#else
- #define ORIG_HEATER_BED_PIN      9    // BED
- #if (TEMP_SENSOR_BED==-1)
-  #define ORIG_TEMP_BED_PIN       7    // ANALOG NUMBERING - connector *K3* on RUMBA thermocouple ADD ON is used <-- this can not be used when TEMP_SENSOR_2 is defined as thermocouple
- #else
-  #define ORIG_TEMP_BED_PIN       11   // ANALOG NUMBERING - default connector for thermistor *THB* on rumba board is used
- #endif
-#endif
 //@@@

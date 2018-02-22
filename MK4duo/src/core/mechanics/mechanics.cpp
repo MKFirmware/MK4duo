@@ -762,7 +762,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
       SERIAL_MSG("Mesh Bed Leveling");
       if (bedlevel.leveling_active) {
         SERIAL_EM(" (enabled)");
-        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS], 1.0)));
+        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS])));
         SERIAL_CHR('+');
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (bedlevel.z_fade_height) {

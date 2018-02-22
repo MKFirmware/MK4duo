@@ -1492,8 +1492,7 @@ void Stepper::finish_and_disable() {
   disable_all_steppers();
 }
 
-void Stepper::quick_stop(bool clear_buffer/*=true*/) {
-  if (clear_buffer) cleaning_buffer_counter = 5000;
+void Stepper::quick_stop() {
   DISABLE_STEPPER_INTERRUPT();
   while (planner.blocks_queued()) planner.discard_current_block();
   current_block = NULL;
@@ -1504,10 +1503,9 @@ void Stepper::quick_stop(bool clear_buffer/*=true*/) {
 }
 
 void Stepper::quickstop_stepper() {
-  quick_stop(false);
+  quick_stop();
   synchronize();
   mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-  mechanics.set_destination_to_current();
   mechanics.sync_plan_position();
 }
 
