@@ -294,6 +294,11 @@ class Planner {
     static void sync_from_steppers();
 
     /**
+     * Abort Printing
+     */
+    void abort();
+
+    /**
      * Does the buffer have any blocks queued?
      */
     FORCE_INLINE static bool blocks_queued() { return (block_buffer_head != block_buffer_tail); }
@@ -342,11 +347,6 @@ class Planner {
     FORCE_INLINE void add_block_length(uint16_t block_len) {
       if (block_buffer_head != block_buffer_tail)
         block_buffer[prev_block_index(block_buffer_head)].block_len += block_len;
-    }
-
-    FORCE_INLINE void abort() {
-      block_buffer_head = block_buffer_tail = 0;
-      ZERO(block_buffer);
     }
 
     /**

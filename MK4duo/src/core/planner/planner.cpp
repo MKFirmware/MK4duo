@@ -1406,6 +1406,31 @@ void Planner::sync_from_steppers() {
   }
 }
 
+/**
+ * Abort Printing
+ */
+void Planner::abort() {
+
+  // Abort the stepper routine
+  DISABLE_STEPPER_INTERRUPT();
+
+  // First update the planner's current position in the physical motor steps.
+  sync_from_steppers();
+
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.set_destination_to_current();
+
+  stepper.quick_stop();
+
+  // Resets planner junction speeds. Assumes start from rest.
+  previous_nominal_speed = 0.0;
+  LOOP_XYZE(i)
+    previous_speed[i] = 0.0;
+
+  block_buffer_head = block_buffer_tail = 0;
+  ZERO(block_buffer);
+}
+
 #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
