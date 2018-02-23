@@ -41,8 +41,8 @@
     static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   #endif
 #endif
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT)
-  #error "DEPENDENCY ERROR: You have to set FIL_RUNOUT_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR."
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT0)
+  #error "DEPENDENCY ERROR: You have to set FIL_RUNOUT0_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR."
 #endif
 
 #endif /* _FIL_RUNOUT_SANITYCHECK_H_ */
