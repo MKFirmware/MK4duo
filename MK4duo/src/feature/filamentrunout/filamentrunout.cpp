@@ -32,12 +32,50 @@
 
   FilamentRunOut filamentrunout;
 
-  void FilamentRunOut::Check() {
+  void FilamentRunoutSensor::init() {
+    SET_INPUT(FIL_RUNOUT0_PIN);
+    #if HAS_FIL_RUNOUT1
+      SET_INPUT(FIL_RUNOUT1_PIN);
+      #if HAS_FIL_RUNOUT2
+        SET_INPUT(FIL_RUNOUT2_PIN);
+        #if HAS_FIL_RUNOUT3
+          SET_INPUT(FIL_RUNOUT3_PIN);
+          #if HAS_FIL_RUNOUT4
+            SET_INPUT(FIL_RUNOUT4_PIN);
+            #if HAS_FIL_RUNOUT5
+              SET_INPUT(FIL_RUNOUT5_PIN);
+            #endif
+          #endif
+        #endif
+      #endif
+    #endif
+  }
+
+  void FilamentRunOut::setup_pullup(const bool onoff) {
+    HAL::setInputPullup(FIL_RUNOUT0_PIN, onoff);
+    #if HAS_FIL_RUNOUT1
+      HAL::setInputPullup(FIL_RUNOUT1_PIN, onoff);
+      #if HAS_FIL_RUNOUT2
+        HAL::setInputPullup(FIL_RUNOUT2_PIN, onoff);
+        #if HAS_FIL_RUNOUT3
+          HAL::setInputPullup(FIL_RUNOUT3_PIN, onoff);
+          #if HAS_FIL_RUNOUT4
+            HAL::setInputPullup(FIL_RUNOUT4_PIN, onoff);
+            #if HAS_FIL_RUNOUT5
+              HAL::setInputPullup(FIL_RUNOUT5_PIN, onoff);
+            #endif
+          #endif
+        #endif
+      #endif
+    #endif
+  }
+
+  void FilamentRunOut::check() {
 
     #if FILAMENT_RUNOUT_DOUBLE_CHECK > 0
       static bool filament_double_check = false;
       static millis_t filament_switch_time = 0;
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.isLogic(FIL_RUNOUT)) {
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && read()) {
         if (filament_double_check) {
           if (ELAPSED(millis(), filament_switch_time) {
             printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
@@ -50,7 +88,7 @@
         }
       }
     #else
-      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && READ(FIL_RUNOUT_PIN) == endstops.isLogic(FIL_RUNOUT))
+      if ((IS_SD_PRINTING || print_job_counter.isRunning()) && read())
         printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
     #endif
 

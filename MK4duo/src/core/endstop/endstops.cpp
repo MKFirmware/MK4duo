@@ -127,7 +127,7 @@ void Endstops::init() {
   #endif
 
   #if HAS_FIL_RUNOUT
-    SET_INPUT(FIL_RUNOUT_PIN);
+    filamentrunout.init();
   #endif
 
   #if HAS_DOOR_OPEN
@@ -199,7 +199,7 @@ void Endstops::setup_pullup() {
   #endif
 
   #if HAS_FIL_RUNOUT
-    HAL::setInputPullup(FIL_RUNOUT_PIN, isPullup(FIL_RUNOUT));
+    filamentrunout.setup_pullup(isPullup(FIL_RUNOUT));
   #endif
 
   #if HAS_DOOR_OPEN

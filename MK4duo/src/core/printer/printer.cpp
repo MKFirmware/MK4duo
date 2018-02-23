@@ -528,7 +528,7 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
 void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
 
   #if HAS_FIL_RUNOUT
-    filamentrunout.Check();
+    filamentrunout.check();
   #endif
 
   commands.get_available();
