@@ -481,10 +481,6 @@ uint16_t max_display_update_time = 0;
     uint8_t lcd_sd_status;
   #endif
 
-  #if PIDTEMP
-    float raw_Ki, raw_Kd; // place-holders for Ki and Kd edits
-  #endif
-
   inline bool use_click() {
     const bool click = lcd_clicked;
     lcd_clicked = false;
@@ -3136,21 +3132,15 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(PID_AUTOTUNE_MENU)
 
-    #if (PIDTEMP)
-      int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(200);
-    #endif
-
-    #if (PIDTEMPBED)
-      int16_t autotune_temp_bed = 60;
-    #endif
+    int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(200);
+    int16_t autotune_temp_bed = 60;
 
     void _lcd_autotune(int16_t h) {
       char cmd[30];
+
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h,
-        #if HAS_PID_FOR_BOTH
+        #if HAS_HEATER_BED
           h < 0 ? autotune_temp_bed : autotune_temp[h]
-        #elif (PIDTEMPBED)
-          autotune_temp_bed
         #else
           autotune_temp[h]
         #endif
@@ -3160,42 +3150,37 @@ void kill_screen(const char* lcd_msg) {
 
   #endif //PID_AUTOTUNE_MENU
 
-  #if (PIDTEMP)
+  #define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
+    void updatePID_H ## N() { heaters[N].updatePID(); } \
 
-    // Helpers for editing PID Ki & Kd values
-    // grab the PID value out of the temp variable; scale it; then update the PID driver
-    void copy_PID_i(int16_t h) {
-      heaters[h].Ki = raw_Ki;
-      heaters[h].updatePID();
-    }
-    void copy_PID_d(int16_t h) {
-      heaters[h].Kd = raw_Kd;
-      heaters[h].updatePID();
-    }
-    #define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
-      void copy_PID_i_H ## N() { copy_PID_i(N); } \
-      void copy_PID_d_H ## N() { copy_PID_d(N); }
-
-    #if ENABLED(PID_AUTOTUNE_MENU)
-      #define DEFINE_PIDTEMP_FUNCS(N) \
-        _DEFINE_PIDTEMP_BASE_FUNCS(N); \
-        void lcd_autotune_callback_H ## N() { _lcd_autotune(N); } typedef void _pid_##N##_void
-    #else
-      #define DEFINE_PIDTEMP_FUNCS(N) _DEFINE_PIDTEMP_BASE_FUNCS(N) typedef void _pid_##N##_void
+  #if ENABLED(PID_AUTOTUNE_MENU)
+    #if HAS_HEATER_BED
+      #define DEFINE_PIDBED_FUNCS() \
+        _DEFINE_PIDTEMP_BASE_FUNCS(BED_INDEX); \
+        void lcd_autotune_callback_BED() { _lcd_autotune(-1); }
     #endif
 
-    DEFINE_PIDTEMP_FUNCS(0);
-    #if HOTENDS > 1
-      DEFINE_PIDTEMP_FUNCS(1);
-      #if HOTENDS > 2
-        DEFINE_PIDTEMP_FUNCS(2);
-        #if HOTENDS > 3
-          DEFINE_PIDTEMP_FUNCS(3);
-        #endif // HOTENDS > 3
-      #endif // HOTENDS > 2
-    #endif // HOTENDS > 1
+    #define DEFINE_PIDTEMP_FUNCS(N) \
+      _DEFINE_PIDTEMP_BASE_FUNCS(N); \
+      void lcd_autotune_callback_H ## N() { _lcd_autotune(N); } typedef void _pid_##N##_void
+  #else
+    #define DEFINE_PIDTEMP_FUNCS(N) _DEFINE_PIDTEMP_BASE_FUNCS(N) typedef void _pid_##N##_void
+  #endif
 
-  #endif // PIDTEMP
+  DEFINE_PIDTEMP_FUNCS(0);
+  #if HOTENDS > 1
+    DEFINE_PIDTEMP_FUNCS(1);
+    #if HOTENDS > 2
+      DEFINE_PIDTEMP_FUNCS(2);
+      #if HOTENDS > 3
+        DEFINE_PIDTEMP_FUNCS(3);
+      #endif // HOTENDS > 3
+    #endif // HOTENDS > 2
+  #endif // HOTENDS > 1
+
+  #if HAS_HEATER_BED
+    DEFINE_PIDBED_FUNCS();
+  #endif
 
   /**
    *
@@ -3289,41 +3274,48 @@ void kill_screen(const char* lcd_msg) {
     // PID-P H3, PID-I H3, PID-D H3, PID-C H3, PID Autotune H3
     // PID-P H4, PID-I H4, PID-D H4, PID-C H4, PID Autotune H4
     //
-    #if (PIDTEMP)
-      #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-        raw_Ki = heaters[hindex].Ki; \
-        raw_Kd = heaters[hindex].Kd; \
-        MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].Kp, 1, 9990); \
-        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &raw_Ki, 0.01, 9990, copy_PID_i_H ## hindex); \
-        MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_D HLABEL, &raw_Kd, 1, 9990, copy_PID_d_H ## hindex)
+    #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
+      MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].Kp, 1, 9990); \
+      MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &heaters[hindex].Ki, 0.01, 9990, updatePID_H ## hindex); \
+      MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &heaters[hindex].Kd, 1, 9990)
 
-      #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        #define _PID_MENU_ITEMS(HLABEL, hindex) \
-          _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
-          MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &heaters[hindex].Kc, 1, 9990)
-      #else
-        #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
+    #if ENABLED(PID_ADD_EXTRUSION_RATE)
+      #define _PID_MENU_ITEMS(HLABEL, hindex) \
+        _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
+        MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &heaters[hindex].Kc, 1, 9990)
+    #else
+      #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
+    #endif
+
+    #if ENABLED(PID_AUTOTUNE_MENU)
+      #define PID_MENU_ITEMS(HLABEL, hindex) \
+        _PID_MENU_ITEMS(HLABEL, hindex); \
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, heaters[hindex].maxtemp - 15, lcd_autotune_callback_H ## hindex)
+
+      #if HAS_TEMP_BED
+        #define PID_BED_MENU_ITEMS() \
+          _PID_BASE_MENU_ITEMS(" BED", BED_INDEX); \
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE " BED", &autotune_temp_bed, 30, heaters[BED_INDEX].maxtemp - 15, lcd_autotune_callback_BED)
       #endif
+    #else
+      #define PID_MENU_ITEMS(HLABEL, hindex)  _PID_MENU_ITEMS(HLABEL, hindex)
+      #define PID_BED_MENU_ITEMS()            _PID_BASE_MENU_ITEMS("BED", BED_INDEX)
+    #endif
 
-      #if ENABLED(PID_AUTOTUNE_MENU)
-        #define PID_MENU_ITEMS(HLABEL, hindex) \
-          _PID_MENU_ITEMS(HLABEL, hindex); \
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, heaters[hindex].maxtemp - 15, lcd_autotune_callback_H ## hindex)
-      #else
-        #define PID_MENU_ITEMS(HLABEL, hindex) _PID_MENU_ITEMS(HLABEL, hindex)
-      #endif
+    if (heaters[0].isUsePid()) { PID_MENU_ITEMS("", 0); }
+    #if HOTENDS > 1
+      if (heaters[1].isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
+      #if HOTENDS > 2
+        if (heaters[0].isUsePid()) { PID_MENU_ITEMS(MSG_H2, 2); }
+        #if HOTENDS > 3
+          if (heaters[0].isUsePid()) { PID_MENU_ITEMS(MSG_H3, 3); }
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
 
-      PID_MENU_ITEMS("", 0);
-      #if HOTENDS > 1
-        PID_MENU_ITEMS(MSG_H1, 1);
-        #if HOTENDS > 2
-          PID_MENU_ITEMS(MSG_H2, 2);
-          #if HOTENDS > 3
-            PID_MENU_ITEMS(MSG_H3, 3);
-          #endif // HOTENDS > 3
-        #endif // HOTENDS > 2
-      #endif // HOTENDS > 1
-    #endif // PIDTEMP
+    #if HAS_TEMP_BED
+      if (heaters[BED_INDEX].isUsePid()) { PID_BED_MENU_ITEMS(); }
+    #endif
 
     //
     // Idle oozing
