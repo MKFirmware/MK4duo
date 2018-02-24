@@ -3164,6 +3164,10 @@ void kill_screen(const char* lcd_msg) {
       _DEFINE_PIDTEMP_BASE_FUNCS(N); \
       void lcd_autotune_callback_H ## N() { _lcd_autotune(N); } typedef void _pid_##N##_void
   #else
+    #if HAS_HEATER_BED
+      #define DEFINE_PIDBED_FUNCS() _DEFINE_PIDTEMP_BASE_FUNCS(BED_INDEX)
+    #endif
+
     #define DEFINE_PIDTEMP_FUNCS(N) _DEFINE_PIDTEMP_BASE_FUNCS(N) typedef void _pid_##N##_void
   #endif
 
