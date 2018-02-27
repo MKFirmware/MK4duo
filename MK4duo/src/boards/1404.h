@@ -198,6 +198,4 @@
     #endif
   #endif
 #endif //ULTRA_LCD
-
-
 //@@@
