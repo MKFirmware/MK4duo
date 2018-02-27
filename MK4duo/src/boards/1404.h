@@ -167,6 +167,17 @@
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
+
+  #if ENABLED(MKS_12864OLED) || ENABLED(MKS_12864OLED_SSD1306)
+    #define LCD_PINS_DC     25
+    #define LCD_PINS_RS     27
+    // DOGM SPI LCD Support
+    #define DOGLCD_CS       16
+    #define DOGLCD_MOSI     17
+    #define DOGLCD_SCK      23
+    #define DOGLCD_A0       LCD_PINS_DC
+  #endif
+
   #if ENABLED(NEWPANEL)
     // ramps-fd lcd adaptor
     #define LCD_PINS_RS         16
@@ -187,4 +198,6 @@
     #endif
   #endif
 #endif //ULTRA_LCD
+
+
 //@@@
