@@ -87,7 +87,7 @@
 
     public: /** Public Function */
 
-      void Init();
+      void init();
       void fire(float intensity=100.0);
       void extinguish();
       void set_mode(uint8_t mode);

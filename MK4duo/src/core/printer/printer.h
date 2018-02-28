@@ -41,10 +41,7 @@ constexpr const uint8_t debug_simulation          = 128;
 enum Flag1HomeEnum {
   flag1_x_homed,
   flag1_y_homed,
-  flag1_z_homed,
-  flag1_x_known_position,
-  flag1_y_known_position,
-  flag1_z_known_position
+  flag1_z_homed
 };
 
 enum Flag2VariousEnum {
@@ -237,36 +234,6 @@ class Printer {
       CBI(mk_1_flag, flag1_z_homed);
     }
     FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
-
-    FORCE_INLINE static void setXKnownPosition(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_x_known_position, onoff);
-    }
-    FORCE_INLINE static bool isXKnownPosition() { return TEST(mk_1_flag, flag1_x_known_position); }
-
-    FORCE_INLINE static void setYKnownPosition(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_y_known_position, onoff);
-    }
-    FORCE_INLINE static bool isYKnownPosition() { return TEST(mk_1_flag, flag1_y_known_position); }
-
-    FORCE_INLINE static void setZKnownPosition(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_z_known_position, onoff);
-    }
-    FORCE_INLINE static bool isZKnownPosition() { return TEST(mk_1_flag, flag1_z_known_position); }
-
-    FORCE_INLINE static void setAxisKnownPosition(const AxisEnum axis, const bool onoff) {
-      switch (axis) {
-        case X_AXIS: setXKnownPosition(onoff); break;
-        case Y_AXIS: setYKnownPosition(onoff); break;
-        case Z_AXIS: setZKnownPosition(onoff); break;
-      }
-    }
-    FORCE_INLINE static bool isAxisKnownPosition(const AxisEnum axis) {
-      switch (axis) {
-        case X_AXIS: return isXKnownPosition(); break;
-        case Y_AXIS: return isYKnownPosition(); break;
-        case Z_AXIS: return isZKnownPosition(); break;
-      }
-    }
 
     FORCE_INLINE static void setRunning(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_running, onoff);

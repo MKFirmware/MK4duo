@@ -80,7 +80,7 @@
       /**
        * Initialize Cartesian parameters
        */
-      void Init();
+      void init();
 
       /**
        * Home all axes according to settings
@@ -97,7 +97,7 @@
        *  Z   Home to the Z endstop
        *
        */
-      void Home(const bool always_home_all);
+      void home(const bool always_home_all);
 
       /**
        * Prepare a single move and get ready for the next one

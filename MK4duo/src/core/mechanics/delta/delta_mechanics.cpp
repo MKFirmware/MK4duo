@@ -33,7 +33,7 @@
 
   Delta_Mechanics mechanics;
 
-  void Delta_Mechanics::Init() {
+  void Delta_Mechanics::init() {
     delta_diagonal_rod              = (float)DELTA_DIAGONAL_ROD;
     delta_radius                    = (float)DELTA_RADIUS;
     delta_segments_per_second       = (float)DELTA_SEGMENTS_PER_SECOND;
@@ -502,7 +502,7 @@
   /**
    * Home Delta
    */
-  bool Delta_Mechanics::Home(const bool always_home_all) {
+  bool Delta_Mechanics::home(const bool always_home_all) {
 
     UNUSED(always_home_all);
 
@@ -674,7 +674,6 @@
       }
     #endif
 
-    printer.setAxisKnownPosition(axis, true);
     printer.setAxisHomed(axis, true);
 
     current_position[axis] = (axis == C_AXIS ? delta_height : 0.0);

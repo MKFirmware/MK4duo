@@ -33,12 +33,12 @@
 
   Core_Mechanics mechanics;
 
-  void Core_Mechanics::Init() { }
+  void Core_Mechanics::init() { }
 
   /**
    * Home Core
    */
-  void Core_Mechanics::Home(const bool always_home_all) {
+  void Core_Mechanics::home(const bool always_home_all) {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
@@ -535,7 +535,7 @@
     void Core_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXKnownPosition() || !printer.isYKnownPosition()) {
+      if (!printer.isXHomed() || !printer.isYKnownPosition()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -594,7 +594,7 @@
     void Core_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXKnownPosition() || !printer.isYKnownPosition()) {
+      if (!printer.isXHomed() || !printer.isYKnownPosition()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -661,7 +661,6 @@
       }
     #endif
 
-    printer.setAxisKnownPosition(axis, true);
     printer.setAxisHomed(axis, true);
 
     #if ENABLED(WORKSPACE_OFFSETS)

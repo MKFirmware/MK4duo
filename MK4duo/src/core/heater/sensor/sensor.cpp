@@ -32,16 +32,16 @@
   #define MAX6675_ERROR_MASK      4
   #define MAX6675_DISCARD_BITS    3
 
-  int16_t read_max6675(const pin_t cs_pin, const int8_t h) {
+  int16_t TemperatureSensor::read_max6675(const pin_t cs_pin) {
 
-    static millis_t next_max6675_ms[HOTENDS] = ARRAY_BY_HOTENDS(0);
+    static millis_t next_max6675_ms = 0;
     static uint16_t max6675_temp = 2000;
 
     millis_t ms = millis();
 
-    if (PENDING(ms, next_max6675_ms[h])) return (int)max6675_temp;
+    if (PENDING(ms, next_max6675_ms)) return (int)max6675_temp;
 
-    next_max6675_ms[h] = ms + MAX6675_HEAT_INTERVAL;
+    next_max6675_ms = ms + MAX6675_HEAT_INTERVAL;
 
     #if ENABLED(CPU_32_BIT)
       HAL::spiBegin();
@@ -59,7 +59,7 @@
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
 
     // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(ARDUINO_ARCH_SAM)
+    #if ENABLED(CPU_32_BIT)
       HAL::delayMicroseconds(1);
     #else
       asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
@@ -98,7 +98,7 @@
 
   #define MAX31855_DISCARD_BITS 18
 
-  int16_t read_max31855(const pin_t cs_pin) {
+  int16_t TemperatureSensor::read_max31855(const pin_t cs_pin) {
 
     uint32_t data = 0;
     int16_t temperature;
@@ -140,7 +140,7 @@
 
 #endif
 
-float TemperatureSensor::GetTemperature(const uint8_t h) {
+float TemperatureSensor::getTemperature() {
 
   const int16_t s_type      = type,
                 adcReading  = raw;
@@ -151,14 +151,13 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
   #endif
   #if ENABLED(SUPPORT_MAX6675)
     if (s_type == -2)
-      return 0.25 * read_max6675(pin, h);
-  #else
-    UNUSED(h);
+      return 0.25 * read_max6675(pin);
   #endif
   #if HEATER_USES_AD595
     if (s_type == -1)
       return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / (AD_RANGE))) * ad595_gain) + ad595_offset;
   #endif
+
   if (WITHIN(s_type, 1, 9)) {
     const float denom = (float)(AD_RANGE + (int)adcHighOffset - adcReading) - 0.5;
     if (denom <= 0.0) return ABS_ZERO;
@@ -180,11 +179,14 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
 
     return (recipT > 0.0) ? (1.0 / recipT) + (ABS_ZERO) : 2000.0;
   }
+
   #if ENABLED(DHT_SENSOR)
     if (s_type == 11)
       return dhtsensor.Temperature;
   #endif
+
   #if HEATER_USES_AMPLIFIER
+
     #define PGM_RD_W(x) (short)pgm_read_word(&x)
     static uint8_t  ttbllen_map = COUNT(temptable_amplifier);
     float celsius = 0;
@@ -206,7 +208,9 @@ float TemperatureSensor::GetTemperature(const uint8_t h) {
 
       return celsius;
     }
-  #endif
+
+  #endif // HEATER_USES_AMPLIFIER
+
   if (s_type == 998) return DUMMY_THERMISTOR_998_VALUE;
   if (s_type == 999) return DUMMY_THERMISTOR_999_VALUE;
 

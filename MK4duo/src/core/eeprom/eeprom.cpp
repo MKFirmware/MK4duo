@@ -1242,7 +1242,7 @@ void EEPROM::Factory_Settings() {
     probe.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
-  mechanics.Init();
+  mechanics.init();
 
   #if ENABLED(ULTIPANEL)
     lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
@@ -1531,12 +1531,15 @@ void EEPROM::Factory_Settings() {
 
   // Fans
   #if FAN_COUNT > 0
+    Fan *fan;
     LOOP_FAN() {
-      fans[f].pin               = (int8_t)pgm_read_byte(&tmp10[f]);
-      fans[f].freq              = 250;
-      fans[f].min_Speed         = FAN_MIN_PWM;
-      fans[f].SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
-      fans[f].setHWInverted(FAN_INVERTED);
+      fan = &fans[f];
+      fan->pin            = (int8_t)pgm_read_byte(&tmp10[f]);
+      fan->freq           = 250;
+      fan->min_Speed      = FAN_MIN_PWM;
+      fan->autoMonitored  = 0;
+      fan->SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
+      fan->setHWInverted(FAN_INVERTED);
     }
   #endif
 
@@ -1944,49 +1947,61 @@ void EEPROM::Factory_Settings() {
       SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
     #endif
 
-    #if ENABLED(MESH_BED_LEVELING)
+    /**
+     * Bed Leveling
+     */
+    #if HAS_LEVELING
 
-      CONFIG_MSG_START("Mesh Bed Leveling:");
+      #if ENABLED(MESH_BED_LEVELING)
+        CONFIG_MSG_START("Mesh Bed Leveling:");
+      #elif ENABLED(AUTO_BED_LEVELING_UBL)
+        CONFIG_MSG_START("Unified Bed Leveling:");
+      #elif HAS_ABL
+        CONFIG_MSG_START("Auto Bed Leveling:");
+      #endif
+
       SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_is_valid() ? 1 : 0);
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_MV(" Z", LINEAR_UNIT(bedlevel.z_fade_height));
       #endif
       SERIAL_EOL();
 
-      for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
-        for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
-          SERIAL_SMV(CFG, "  G29 S3 X", (int)px + 1);
-          SERIAL_MV(" Y", (int)py + 1);
-          SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][py]), 5);
+      #if ENABLED(MESH_BED_LEVELING)
+
+        if (bedlevel.leveling_is_valid()) {
+          for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
+            for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
+              SERIAL_SMV(CFG, "  G29 S3 X", (int)px + 1);
+              SERIAL_MV(" Y", (int)py + 1);
+              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][py]), 5);
+            }
+          }
         }
-      }
 
-    #elif ENABLED(AUTO_BED_LEVELING_UBL)
+      #elif ENABLED(AUTO_BED_LEVELING_UBL)
 
-      CONFIG_MSG_START("Unified Bed Leveling:");
-      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_active ? 1 : 0);
-      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        SERIAL_MV(" Z", bedlevel.z_fade_height);
+        ubl.report_state();
+        SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);
+        SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
+        SERIAL_EM(" meshes.");
+        ubl.report_current_mesh();
+
+      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+        if (bedlevel.leveling_is_valid()) {
+          for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
+            for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
+              SERIAL_SMV(CFG, "  G29 W I", (int)px + 1);
+              SERIAL_MV(" J", (int)py + 1);
+              SERIAL_MV(" Z", LINEAR_UNIT(abl.z_values[px][py]), 5);
+              SERIAL_EOL();
+            }
+          }
+        }
+
       #endif
-      SERIAL_EOL();
 
-      ubl.report_state();
-
-      SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);
-
-      SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
-      SERIAL_EM(" meshes.");
-
-    #elif HAS_ABL
-
-      CONFIG_MSG_START("Auto Bed Leveling:");
-      SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_active ? 1 : 0);
-      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        SERIAL_MV(" Z", LINEAR_UNIT(bedlevel.z_fade_height));
-      #endif
-      SERIAL_EOL();
-
-    #endif
+    #endif // HAS_LEVELING
 
     #if IS_DELTA
 

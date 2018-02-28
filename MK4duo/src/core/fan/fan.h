@@ -50,11 +50,11 @@
                 paused_Speed,
                 Kickstart,
                 pwm_pos,
-                autoMonitored;
+                autoMonitored,
+                FanFlag;
       uint16_t  freq,
                 triggerTemperatures;
       int16_t   lastpwm;
-      uint8_t   FanFlag;
 
     public: /** Public Function */
 

@@ -26,8 +26,8 @@
 
 #include "../../../MK4duo.h"
 
-#ifndef _PINSDEBUG_AVR_8_BIT_
-#define _PINSDEBUG_AVR_8_BIT_
+#ifndef _HAL_PINSDEBUG_AVR_H_
+#define _HAL_PINSDEBUG_AVR_H_
 
 #define digitalPinToTimer_DEBUG(p) digitalPinToTimer(p)
 #define digitalPinToBitMask_DEBUG(p) digitalPinToBitMask(p)
@@ -377,4 +377,4 @@ static void pwm_details(uint8_t pin) {
 
 #define PRINT_PIN(p) do {sprintf_P(buffer, PSTR("%3d "), p); SERIAL_PS(buffer);} while (0)
 
-#endif // _PINSDEBUG_AVR_8_BIT_
+#endif /* _HAL_PINSDEBUG_AVR_H_ */

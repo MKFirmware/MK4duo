@@ -154,7 +154,7 @@ inline void gcode_G29(void) {
   #if MECH(DELTA)
     if (!bedlevel.g29_in_progress) {
       // Homing
-      mechanics.Home(true);
+      mechanics.home(true);
       mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
     }
   #else

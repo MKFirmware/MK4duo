@@ -67,6 +67,22 @@
   #error "DEPENDENCY ERROR: Missing setting HOMING_BUMP_DIVISOR."
 #endif
 
+// Make sure Z_SAFE_HOMING point is reachable
+#if ENABLED(Z_SAFE_HOMING)
+  #if !WITHIN(Z_SAFE_HOMING_X_POINT, MIN_PROBE_X, MAX_PROBE_X)
+    #if HAS_BED_PROBE
+      #error "Z_SAFE_HOMING_X_POINT can't be reached by the Z probe."
+    #else
+      #error "Z_SAFE_HOMING_X_POINT can't be reached by the nozzle."
+    #endif
+  #elif !WITHIN(Z_SAFE_HOMING_Y_POINT, MIN_PROBE_Y, MAX_PROBE_Y)
+    #if HAS_BED_PROBE
+      #error "Z_SAFE_HOMING_Y_POINT can't be reached by the Z probe."
+    #else
+      #error "Z_SAFE_HOMING_Y_POINT can't be reached by the nozzle."
+    #endif
+  #endif
+#endif // Z_SAFE_HOMING
 
 // Home direction
 #if DISABLED(X_HOME_DIR)
