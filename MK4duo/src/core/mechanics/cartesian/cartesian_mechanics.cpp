@@ -554,7 +554,7 @@
     void Cartesian_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXHomed() || !printer.isYKnownPosition()) {
+      if (!printer.isXHomed() || !printer.isYHomed()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -613,7 +613,7 @@
     void Cartesian_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXHomed() || !printer.isYKnownPosition()) {
+      if (!printer.isXHomed() || !printer.isYHomed()) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;

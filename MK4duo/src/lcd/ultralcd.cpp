@@ -1885,7 +1885,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
 
       #if DISABLED(MESH_BED_LEVELING)
-        if (!(printer.isXHomed() && printer.isYHomed() && printer.isZKnownPosition()))
+        if (!(printer.isXHomed() && printer.isYHomed() && printer.isZHomed()))
           MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
         else
       #endif
@@ -2307,7 +2307,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_output_map_lcd() {
       static int16_t step_scaler = 0;
 
-      if (!(printer.isXHomed() && printer.isYHomed() && printer.isZKnownPosition()))
+      if (!(printer.isXHomed() && printer.isYHomed() && printer.isZHomed()))
         return lcd_goto_screen(_lcd_ubl_map_homing);
 
       if (use_click()) return _lcd_ubl_map_lcd_edit_cmd();
@@ -2359,7 +2359,7 @@ void kill_screen(const char* lcd_msg) {
      * UBL Homing before LCD map
      */
     void _lcd_ubl_output_map_lcd_cmd() {
-      if (!(printer.isXHomed() && printer.isYHomed() && printer.isZKnownPosition())) {
+      if (!(printer.isXHomed() && printer.isYHomed() && printer.isZHomed())) {
         printer.unsetHomedAll();
         commands.enqueue_and_echo_P(PSTR("G28"));
       }
