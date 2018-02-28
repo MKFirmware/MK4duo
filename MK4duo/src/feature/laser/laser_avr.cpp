@@ -131,7 +131,7 @@
     
   }
 
-  void Laser::Init() {
+  void Laser::init() {
 
     // Initialize timers for laser intensity control
     #if LASER_CONTROL == 1

@@ -787,7 +787,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
   void Mechanics::babystep_axis(const AxisEnum axis, const int distance) {
 
-    if (printer.isAxisKnownPosition(axis)) {
+    if (printer.isAxisHomed(axis)) {
       #if IS_CORE
         #if ENABLED(BABYSTEP_XY)
           switch (axis) {

@@ -447,7 +447,7 @@
 
     stepper.synchronize();
     printer.setup_for_endstop_or_probe_move();
-    if (!_0p_calibration && !mechanics.Home()) return;
+    if (!_0p_calibration && !mechanics.home()) return;
 
     // start iterations
     do {
@@ -631,7 +631,7 @@
         lcd_setstatus(mess);
       }
 
-      if (!mechanics.Home()) return;
+      if (!mechanics.home()) return;
 
     } while (((zero_std_dev < test_precision && iterations < 31) || iterations <= force_iterations) && zero_std_dev > calibration_precision);
 

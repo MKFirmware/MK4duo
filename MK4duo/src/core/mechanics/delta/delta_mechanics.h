@@ -75,7 +75,7 @@
       /**
        * Initialize Delta parameters
        */
-      void Init();
+      void init();
 
       /**
        * Set the planner.position and individual stepper positions.
@@ -123,7 +123,7 @@
       /**
        * Home Delta
        */
-      bool Home(const bool always_home_all=true);
+      bool home(const bool always_home_all=true);
 
       /**
        * Set an axis' current position to its home position (after homing).

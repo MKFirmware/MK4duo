@@ -297,7 +297,7 @@
     if (mechanics.axis_unhomed_error()) {
       const int8_t p_val = parser.intval('P', -1);
       if (p_val == 1 || p_val == 2 || p_val == 4 || parser.seen('J'))
-        mechanics.Home(true);
+        mechanics.home(true);
     }
 
     // Invalidate Mesh Points. This command is a little bit asymmetrical because
@@ -585,20 +585,8 @@
     if (parser.seen('S')) {     // Store (or Save) Current Mesh Data
       g29_storage_slot = parser.has_value() ? parser.value_int() : storage_slot;
 
-      if (g29_storage_slot == -1) {           // Special case, we are going to 'Export' the mesh to the
-        SERIAL_EM("G29 I 999");               // host in a form it can be reconstructed on a different machine
-        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-          for (uint8_t y = 0;  y < GRID_MAX_POINTS_Y; y++)
-            if (!isnan(z_values[x][y])) {
-              SERIAL_MV("M421 I ", x);
-              SERIAL_MV(" J ", y);
-              SERIAL_MV(" Z ", z_values[x][y], 6);
-              SERIAL_MV(" ; X ", LOGICAL_X_POSITION(mesh_index_to_xpos(x)));
-              SERIAL_MV(", Y ", LOGICAL_Y_POSITION(mesh_index_to_ypos(y)));
-              SERIAL_EOL();
-            }
-        return;
-      }
+      if (g29_storage_slot == -1)                     // Special case, we are going to 'Export' the mesh to the
+        return report_current_mesh();
 
       int16_t a = eeprom.calc_num_meshes();
 
@@ -654,8 +642,9 @@
     float sum_of_diff_squared = 0.0;
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
       for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-        if (!isnan(z_values[x][y]))
+        if (!isnan(z_values[x][y])) {
           sum_of_diff_squared += sq(z_values[x][y] - mean);
+        }
       }
     }
 
@@ -717,7 +706,7 @@
      * Probe all invalidated locations of the mesh that can be reached by the probe.
      * This attempts to fill in locations closest to the nozzle's start location first.
      */
-    void unified_bed_leveling::probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, bool close_or_far) {
+    void unified_bed_leveling::probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) {
       mesh_index_pair location;
 
       #if ENABLED(NEWPANEL)
@@ -727,7 +716,7 @@
       save_ubl_active_state_and_disable();   // we don't do bed level correction because we want the raw data when we probe
       DEPLOY_PROBE();
 
-      uint16_t max_iterations = GRID_MAX_POINTS;
+      uint16_t count = GRID_MAX_POINTS;
 
       do {
         if (do_ubl_mesh_map) display_map(g29_map_type);
@@ -746,7 +735,7 @@
           }
         #endif
 
-        if (close_or_far)
+        if (do_furthest)
           location = find_furthest_invalid_mesh_point();
         else
           location = find_closest_mesh_point_of_type(INVALID, rx, ry, USE_PROBE_AS_REFERENCE, NULL);
@@ -759,7 +748,7 @@
           z_values[location.x_index][location.y_index] = measured_z;
         }
         HAL::serialFlush(); // Prevent host M105 buffer overrun.
-      } while (location.x_index >= 0 && --max_iterations);
+      } while (location.x_index >= 0 && --count);
 
       STOW_PROBE();
       restore_ubl_active_state_and_leave();
@@ -1665,7 +1654,7 @@
             }
           #endif
 
-          z_values[i][j] += z_tmp - lsf_results.D;
+          z_values[i][j] = z_tmp - lsf_results.D;
         }
       }
 

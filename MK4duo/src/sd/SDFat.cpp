@@ -3128,15 +3128,15 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   errorCode_ = type_ = 0;
   chipSelectPin_ = chipSelectPin;
   // 16-bit init start time allows over a minute
-  uint16_t t0 = (uint16_t)HAL::timeInMilliseconds();
+  uint16_t t0 = (uint16_t)millis();
   uint32_t arg;
 
   // If init takes more than 4s it could trigger
   // watchdog leading to a reboot loop.
   watchdog.reset();
 
-  HAL::pinMode(chipSelectPin_, OUTPUT);
-  HAL::digitalWrite(chipSelectPin_, HIGH);
+  pinMode(chipSelectPin_, OUTPUT);
+  digitalWrite(chipSelectPin_, HIGH);
   HAL::spiBegin();
 
   // set SCK rate for initialization commands
@@ -3148,7 +3148,7 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
 
   // command to go idle in SPI mode
   while (cardCommand(CMD0, 0) != R1_IDLE_STATE) {
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) > SD_INIT_TIMEOUT) {
+    if (((uint16_t)millis() - t0) > SD_INIT_TIMEOUT) {
       error(SD_CARD_ERROR_CMD0);
       goto FAIL;
     }
@@ -3159,17 +3159,19 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   #endif
 
   // check SD version
-  while (1) {
+  for (;;) {
     if (cardCommand(CMD8, 0x1AA) == (R1_ILLEGAL_COMMAND | R1_IDLE_STATE)) {
       type(SD_CARD_TYPE_SD1);
       break;
     }
+
     for (uint8_t i = 0; i < 4; i++) status_ = HAL::spiReceive();
     if (status_ == 0xAA) {
       type(SD_CARD_TYPE_SD2);
       break;
     }
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) > SD_INIT_TIMEOUT) {
+
+    if (((uint16_t)millis() - t0) > SD_INIT_TIMEOUT) {
       error(SD_CARD_ERROR_CMD8);
       goto FAIL;
     }
@@ -3179,7 +3181,7 @@ bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   arg = type() == SD_CARD_TYPE_SD2 ? 0x40000000 : 0;
   while ((status_ = cardAcmd(ACMD41, arg)) != R1_READY_STATE) {
     // check for timeout
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) > SD_INIT_TIMEOUT) {
+    if (((uint16_t)millis() - t0) > SD_INIT_TIMEOUT) {
       error(SD_CARD_ERROR_ACMD41);
       goto FAIL;
     }
@@ -3317,9 +3319,9 @@ bool Sd2Card::readData(uint8_t* dst) {
 
 bool Sd2Card::readData(uint8_t* dst, size_t count) {
   // wait for start block token
-  uint16_t t0 = HAL::timeInMilliseconds();
+  uint16_t t0 = millis();
   while ((status_ = HAL::spiReceive()) == 0xFF) {
-    if (((uint16_t)HAL::timeInMilliseconds() - t0) > SD_READ_TIMEOUT) {
+    if (((uint16_t)millis() - t0) > SD_READ_TIMEOUT) {
       error(SD_CARD_ERROR_READ_TIMEOUT);
       goto FAIL;
     }
@@ -3427,9 +3429,9 @@ bool Sd2Card::setSckRate(uint8_t sckRateID) {
 
 // wait for card to go not busy
 bool Sd2Card::waitNotBusy(uint32_t timeoutMillis) {
-  uint32_t t0 = HAL::timeInMilliseconds();
+  uint32_t t0 = millis();
   while (HAL::spiReceive() != 0xFF) {
-    if (((uint32_t)HAL::timeInMilliseconds() - t0) >= timeoutMillis) return false;
+    if (((uint32_t)millis() - t0) >= timeoutMillis) return false;
   }
   return true;
 }

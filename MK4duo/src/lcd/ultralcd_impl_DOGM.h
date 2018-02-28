@@ -444,12 +444,8 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   else {
     if (!printer.isAxisHomed(axis))
       u8g.print('?');
-    else {
-      if (!printer.isAxisKnownPosition(axis))
-        u8g.print(' ');
-      else
-        lcd_printPGM(pstr);
-    }
+    else
+      lcd_printPGM(pstr);
   }
 }
 

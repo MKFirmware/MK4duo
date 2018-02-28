@@ -57,8 +57,6 @@ class Temperature {
 
   private: /** Private Parameters */
 
-    static uint8_t cycle_1_second;
-
     static uint8_t pid_pointer;
 
     static millis_t next_check_ms[HEATER_COUNT];
@@ -137,8 +135,6 @@ class Temperature {
     FORCE_INLINE static bool targetHotEnoughToExtrude(const uint8_t h) { return !targetTooColdToExtrude(h); }
 
   private:
-
-    static void updateTemperaturesFromRawValues();
 
     #if HAS_FILAMENT_SENSOR
       static float analog2widthFil(); // Convert raw Filament Width to millimeters

@@ -89,7 +89,7 @@
     }
   }
 
-  void Heater::get_pid_output(const uint8_t cycle_1s) {
+  void Heater::get_pid_output(const bool cycle_1s) {
 
     const float difference = (float)target_temperature - current_temperature;
 
@@ -108,8 +108,10 @@
         LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
         setTarget(0);
       }
-      else if (difference > PID_FUNCTIONAL_RANGE)
+      else if (difference > PID_FUNCTIONAL_RANGE) {
         soft_pwm = pidMax;
+        tempIState = tempIStateLimitMin;
+      }
       else if (difference < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0)
         soft_pwm = 0;
       else {
@@ -135,11 +137,11 @@
         #endif // PID_ADD_EXTRUSION_RATE
 
         soft_pwm = constrain((int)pidTerm, 0, PID_MAX);
+      }
 
-        if (cycle_1s == 0) {
-          last_temperature = temperature_1s;
-          temperature_1s = current_temperature;
-        }
+      if (cycle_1s) {
+        last_temperature = temperature_1s;
+        temperature_1s = current_temperature;
       }
     }
     else if (ELAPSED(ms, next_check_ms)) {

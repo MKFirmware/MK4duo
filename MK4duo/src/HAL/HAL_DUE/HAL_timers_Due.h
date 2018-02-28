@@ -80,7 +80,7 @@ typedef struct {
 #define NvicPrioritySystick 2
 
 constexpr uint32_t  HAL_STEPPER_TIMER_RATE  = ((F_CPU) / 2); // 42 MHz
-constexpr float     HAL_ACCELERATION_RATE   = (4294967296.0 / (HAL_STEPPER_TIMER_RATE));
+constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 * 256.0 / (HAL_STEPPER_TIMER_RATE));
 
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0

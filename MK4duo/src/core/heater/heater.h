@@ -99,7 +99,7 @@
 
       void setTarget(int16_t celsius);
       void updatePID();
-      void get_pid_output(const uint8_t cycle_1s);
+      void get_pid_output(const bool cycle_1s);
       void print_PID();
       void print_parameters();
       void sensor_print_parameters();
@@ -108,6 +108,7 @@
         void SetHardwarePwm();
       #endif
 
+      FORCE_INLINE void updateCurrentTemperature() { this->current_temperature = this->sensor.getTemperature(); }
       FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > 0); }
       FORCE_INLINE bool isOFF()       { return (!isON()); }
       FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }

@@ -184,7 +184,7 @@ void Printer::setup() {
     card.RetrieveSettings();
   #endif
 
-  mechanics.Init();
+  mechanics.init();
 
   stepper.init(); // Initialize stepper, this enables interrupts!
 
@@ -240,7 +240,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(LASER)
-    laser.Init();
+    laser.init();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
@@ -277,7 +277,7 @@ void Printer::setup() {
   setRunning(true);
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    mechanics.Home(true);
+    mechanics.home(true);
   #endif
 
   #if FAN_COUNT > 0
@@ -386,7 +386,7 @@ void Printer::kill(const char* lcd_msg) {
   thermalManager.disable_all_heaters(); // Turn off heaters again
 
   #if ENABLED(LASER)
-    laser.Init();
+    laser.init();
     #if ENABLED(LASER_PERIPHERALS)
       laser.peripherals_off();
     #endif

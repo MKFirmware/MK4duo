@@ -82,14 +82,14 @@ class unified_bed_leveling {
       static void move_z_with_encoder(const float &multiplier);
       static float measure_point_with_encoder();
       static float measure_business_card_thickness(float in_height);
-      static void manually_probe_remaining_mesh(const float&, const float&, const float&, const float&, const bool);
-      static void fine_tune_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map);
+      static void manually_probe_remaining_mesh(const float&, const float&, const float&, const float&, const bool) _O0;
+      static void fine_tune_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map) _O0;
     #endif
 
-    static bool g29_parameter_parsing();
+    static bool g29_parameter_parsing() _O0;
     static void find_mean_mesh_height();
     static void shift_mesh_height();
-    static void probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, bool do_furthest);
+    static void probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) _O0;
     static void tilt_mesh_based_on_probed_grid(const bool do_ubl_mesh_map);
     static void g29_what_command();
     static void g29_eeprom_dump();
@@ -100,12 +100,13 @@ class unified_bed_leveling {
   public:
 
     static void echo_name();
+    static void report_current_mesh();
     static void report_state();
     static void save_ubl_active_state_and_disable();
     static void restore_ubl_active_state_and_leave();
-    static void display_map(const int);
-    static mesh_index_pair find_closest_mesh_point_of_type(const MeshPointType, const float&, const float&, const bool, uint16_t[16]);
-    static mesh_index_pair find_furthest_invalid_mesh_point();
+    static void display_map(const int) _O0;
+    static mesh_index_pair find_closest_mesh_point_of_type(const MeshPointType, const float&, const float&, const bool, uint16_t[16]) _O0;
+    static mesh_index_pair find_furthest_invalid_mesh_point() _O0;
     static void reset();
     static void invalidate();
     static void set_all_mesh_points_to_value(const float value);

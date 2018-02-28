@@ -72,7 +72,7 @@ inline void gcode_M303(void) {
   NOLESS(cycle, 5);
   NOMORE(cycle, 20);
 
-  NOMORE(method, 3);
+  NOMORE(method, 4);
 
   SERIAL_MV(" Temp:", temp);
   SERIAL_MV(" Cycles:", cycle);

@@ -423,7 +423,12 @@
 
 // Sensors
 #define HAS_FILAMENT_SENSOR           (ENABLED(FILAMENT_SENSOR) && PIN_EXISTS(FILWIDTH))
-#define HAS_FIL_RUNOUT                (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT))
+#define HAS_FIL_RUNOUT                (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT0))
+#define HAS_FIL_RUNOUT1               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT1))
+#define HAS_FIL_RUNOUT2               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT2))
+#define HAS_FIL_RUNOUT3               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT3))
+#define HAS_FIL_RUNOUT4               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT4))
+#define HAS_FIL_RUNOUT5               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT5))
 #define HAS_DAV_SYSTEM                (ENABLED(FILAMENT_RUNOUT_DAV_SYSTEM) && PIN_EXISTS(FIL_RUNOUT_DAV))
 #define HAS_POWER_CONSUMPTION_SENSOR  (ENABLED(POWER_CONSUMPTION) && PIN_EXISTS(POWER_CONSUMPTION))
 
@@ -526,12 +531,6 @@
  */
 #define HAS_LCD_FILAMENT_SENSOR (HAS_FILAMENT_SENSOR && ENABLED(FILAMENT_LCD_DISPLAY))
 #define HAS_LCD_POWER_SENSOR    (HAS_POWER_CONSUMPTION_SENSOR && ENABLED(POWER_CONSUMPTION_LCD_DISPLAY))
-
-/**
- * Flags for PID handling
- */
-#define HAS_PID           ((PIDTEMP) || (PIDTEMPBED) || (PIDTEMPCHAMBER) || (PIDTEMPCOOLER))
-#define HAS_PID_FOR_BOTH  ((PIDTEMP) && (PIDTEMPBED))
 
 /**
  * Trinamic Stepper Drivers
@@ -661,6 +660,30 @@
 #if HAS_PROBING_PROCEDURE
   #define PROBE_BED_WIDTH     abs(RIGHT_PROBE_BED_POSITION - (LEFT_PROBE_BED_POSITION))
   #define PROBE_BED_HEIGHT    abs(BACK_PROBE_BED_POSITION - (FRONT_PROBE_BED_POSITION))
+#endif
+
+/**
+ * Bed Probing rectangular bounds
+ * These can be further constrained in code for Delta and SCARA
+ */
+#if IS_DELTA
+  // Check for this in the code instead
+  #define MIN_PROBE_X -(mechanics.delta_print_radius)
+  #define MAX_PROBE_X  (mechanics.delta_print_radius)
+  #define MIN_PROBE_Y -(mechanics.delta_print_radius)
+  #define MAX_PROBE_Y  (mechanics.delta_print_radius)
+#elif IS_SCARA
+    #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
+    #define MIN_PROBE_X (X_CENTER - SCARA_PRINTABLE_RADIUS)
+    #define MAX_PROBE_X (X_CENTER + SCARA_PRINTABLE_RADIUS)
+    #define MIN_PROBE_Y (Y_CENTER - SCARA_PRINTABLE_RADIUS)
+    #define MAX_PROBE_Y (Y_CENTER + SCARA_PRINTABLE_RADIUS)
+#else
+  // Boundaries for probing based on set limits
+  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
 #endif
 
 /**

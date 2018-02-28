@@ -70,6 +70,7 @@
       act->pin = parser.value_pin();
     }
 
+    act->updatePID();
     act->print_parameters();
 
  }

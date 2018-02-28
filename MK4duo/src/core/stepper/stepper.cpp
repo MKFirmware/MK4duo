@@ -931,8 +931,6 @@ void Stepper::isr() {
   // Timer interrupt for E. e_steps is set in the main routine;
   void Stepper::advance_isr() {
 
-    nextAdvanceISR = eISR_Rate;
-
     #define SET_E_STEP_DIR(INDEX) \
       if (e_steps) E## INDEX ##_DIR_WRITE(e_steps < 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR)
 

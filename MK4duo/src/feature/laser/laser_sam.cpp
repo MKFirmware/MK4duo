@@ -46,7 +46,7 @@
 
   Laser laser;
 
-  void Laser::Init() {
+  void Laser::init() {
 
     #if LASER_CONTROL == 1
       HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM);

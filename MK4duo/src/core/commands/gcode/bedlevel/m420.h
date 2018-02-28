@@ -84,8 +84,8 @@
       // L or V display the map info
       if (parser.seen('L') || parser.seen('V')) {
         ubl.display_map(0);  // Currently only supports one map type
-        SERIAL_MV("ubl.mesh_is_valid = ", ubl.mesh_is_valid());
-        SERIAL_MV("ubl.storage_slot = ", ubl.storage_slot);
+        SERIAL_EMV("ubl.mesh_is_valid = ", ubl.mesh_is_valid());
+        SERIAL_EMV("ubl.storage_slot = ", ubl.storage_slot);
       }
 
     #endif

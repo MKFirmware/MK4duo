@@ -1885,7 +1885,7 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_PREPARE);
 
       #if DISABLED(MESH_BED_LEVELING)
-        if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition()))
+        if (!(printer.isXHomed() && printer.isYHomed() && printer.isZHomed()))
           MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
         else
       #endif
@@ -2307,7 +2307,7 @@ void kill_screen(const char* lcd_msg) {
     void _lcd_ubl_output_map_lcd() {
       static int16_t step_scaler = 0;
 
-      if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition()))
+      if (!printer.isHomedAll())
         return lcd_goto_screen(_lcd_ubl_map_homing);
 
       if (use_click()) return _lcd_ubl_map_lcd_edit_cmd();
@@ -2359,10 +2359,8 @@ void kill_screen(const char* lcd_msg) {
      * UBL Homing before LCD map
      */
     void _lcd_ubl_output_map_lcd_cmd() {
-      if (!(printer.isXKnownPosition() && printer.isYKnownPosition() && printer.isZKnownPosition())) {
-        printer.unsetHomedAll();
+      if (!printer.isHomedAll())
         commands.enqueue_and_echo_P(PSTR("G28"));
-      }
       lcd_goto_screen(_lcd_ubl_map_homing);
     }
 
@@ -2854,12 +2852,15 @@ void kill_screen(const char* lcd_msg) {
   ) {
     #if EXTRUDERS > 1
       static uint8_t old_extruder = 0;
-      old_extruder = tools.active_extruder;
-      tools.change(eindex, 0.0, true);
+      if (tools.active_extruder != eindex) {
+        old_extruder = tools.active_extruder;
+        tools.change(eindex, 0.0, true);
+      }
     #endif
     if (use_click()) {
       #if EXTRUDERS > 1
-        tools.change(old_extruder, 0.0, true);
+        if (tools.active_extruder != old_extruder)
+          tools.change(old_extruder, 0.0, true);
       #endif
       return lcd_goto_previous_menu();
     }
@@ -4921,7 +4922,6 @@ void lcd_init() {
   lcd_implementation_init();
 
   #if ENABLED(NEWPANEL)
-
     #if BUTTON_EXISTS(EN1)
       SET_INPUT_PULLUP(BTN_EN1);
     #endif
@@ -5072,6 +5072,14 @@ void lcd_update() {
       }
     }
     else wait_for_unclick = false;
+
+    #if BUTTON_EXISTS(BACK)
+      if (LCD_BACK_CLICKED) {
+        lcd_quick_feedback();
+        lcd_goto_previous_menu();
+      }
+    #endif
+
   #endif
 
   #if HAS_SDSUPPORT && PIN_EXISTS(SD_DETECT)
@@ -5417,13 +5425,14 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
         #if BUTTON_EXISTS(EN1)
           if (BUTTON_PRESSED(EN1)) newbutton |= EN_A;
         #endif
-
         #if BUTTON_EXISTS(EN2)
           if (BUTTON_PRESSED(EN2)) newbutton |= EN_B;
         #endif
-
         #if BUTTON_EXISTS(ENC)
           if (BUTTON_PRESSED(ENC)) newbutton |= EN_C;
+        #endif
+        #if BUTTON_EXISTS(BACK)
+          if (BUTTON_PRESSED(BACK)) newbutton |= EN_D;
         #endif
 
         //

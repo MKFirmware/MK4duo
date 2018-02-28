@@ -584,6 +584,11 @@ void Planner::check_axes_activity() {
 
   block->active_extruder = extruder;
 
+  #if HAS_POWER_SWITCH
+    if (block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS])
+      powerManager.power_on();
+  #endif
+
   #if HAS_MKMULTI_TOOLS
     block->active_driver = tools.active_driver;
   #else
@@ -621,6 +626,10 @@ void Planner::check_axes_activity() {
 
   // Enable extruder(s)
   if (esteps) {
+
+    #if HAS_POWER_SWITCH
+      powerManager.power_on();
+    #endif
 
     #if !HAS_MKMULTI_TOOLS
 
@@ -1110,7 +1119,7 @@ void Planner::check_axes_activity() {
   block->acceleration_rate = (long)(accel * (HAL_ACCELERATION_RATE));
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = ((F_CPU) * 0.125) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N]);
+      block->advance_speed = (HAL_STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N]);
       #if ENABLED(LA_DEBUG)
         if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < block->nominal_speed * block->e_D_ratio)
           SERIAL_EM("More than 2 steps per eISR loop executed.");

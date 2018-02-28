@@ -33,6 +33,24 @@
 
   void unified_bed_leveling::echo_name() { SERIAL_MSG("Unified Bed Leveling"); }
 
+  void unified_bed_leveling::report_current_mesh() {
+    if (!bedlevel.leveling_is_valid()) return;
+    SERIAL_LM(ECHO, "  G29 I 999");
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+      for (uint8_t y = 0;  y < GRID_MAX_POINTS_Y; y++) {
+        if (!isnan(z_values[x][y])) {
+          SERIAL_SMV(ECHO, "  M421 I", x);
+          SERIAL_MV(" J", y);
+          SERIAL_MV(" Z", z_values[x][y], 6);
+          SERIAL_MV(" ; X", LOGICAL_X_POSITION(mesh_index_to_xpos(x)));
+          SERIAL_MV(", Y", LOGICAL_Y_POSITION(mesh_index_to_ypos(y)));
+          SERIAL_EOL();
+          printer.safe_delay(75);
+        }
+      }
+    }
+  }
+
   void unified_bed_leveling::report_state() {
     echo_name();
     SERIAL_MSG(" System v" UBL_VERSION " ");

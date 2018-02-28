@@ -109,20 +109,20 @@ void sei(void) {
 
 // Tone for due
 // input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
-void tone(const pin_t t_pin, const uint16_t frequency, const uint16_t duration) {
+void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration) {
 
   millis_t endTime = millis() + duration;
   const uint32_t halfPeriod = 1000000L / frequency / 2;
 
-  HAL::pinMode(t_pin, OUTPUT_LOW);
+  HAL::pinMode(_pin, OUTPUT_LOW);
 
   while (PENDING(millis(),  endTime)) {
-    HAL::digitalWrite(t_pin, HIGH);
+    HAL::digitalWrite(_pin, HIGH);
     HAL::delayMicroseconds(halfPeriod);
-    HAL::digitalWrite(t_pin, LOW);
+    HAL::digitalWrite(_pin, LOW);
     HAL::delayMicroseconds(halfPeriod);
   }
-  HAL::pinMode(t_pin, OUTPUT_LOW);
+  HAL::pinMode(_pin, OUTPUT_LOW);
 }
 
 static inline void ConfigurePin(const PinDescription& pinDesc) {
@@ -162,20 +162,12 @@ void HAL::hwSetup(void) {
 
 // Print apparent cause of start/restart
 void HAL::showStartReason() {
-
-  int mcu = (RSTC->RSTC_SR & RSTC_SR_RSTTYP_Msk) >> RSTC_SR_RSTTYP_Pos;
-  switch (mcu) {
-    case 0:
-      SERIAL_EM(MSG_POWERUP); break;
-    case 1:
-      // this is return from backup mode on SAM
-      SERIAL_EM(MSG_BROWNOUT_RESET); break;
-    case 2:
-      SERIAL_EM(MSG_WATCHDOG_RESET); break;
-    case 3:
-      SERIAL_EM(MSG_SOFTWARE_RESET); break;
-    case 4:
-      SERIAL_EM(MSG_EXTERNAL_RESET); break;
+  switch ((RSTC->RSTC_SR >> 8) & 7) {
+    case 0: SERIAL_EM(MSG_POWERUP); break;
+    case 1: SERIAL_EM(MSG_BROWNOUT_RESET); break;
+    case 2: SERIAL_EM(MSG_WATCHDOG_RESET); break;
+    case 3: SERIAL_EM(MSG_SOFTWARE_RESET); break;
+    case 4: SERIAL_EM(MSG_EXTERNAL_RESET); break;
   }
 }
 

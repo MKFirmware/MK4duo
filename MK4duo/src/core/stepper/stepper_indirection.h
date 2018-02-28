@@ -688,10 +688,10 @@
 
 #if HAS_X2_ENABLE
   #define  enable_X() do{ X_ENABLE_WRITE( X_ENABLE_ON); X2_ENABLE_WRITE( X_ENABLE_ON); }while(0)
-  #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); X2_ENABLE_WRITE(!X_ENABLE_ON); printer.setXKnownPosition(false); }while(0)
+  #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); X2_ENABLE_WRITE(!X_ENABLE_ON); printer.setXHomed(false); }while(0)
 #elif HAS_X_ENABLE
   #define  enable_X() X_ENABLE_WRITE( X_ENABLE_ON)
-  #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); printer.setXKnownPosition(false); }while(0)
+  #define disable_X() do{ X_ENABLE_WRITE(!X_ENABLE_ON); printer.setXHomed(false); }while(0)
 #else
   #define  enable_X() NOOP
   #define disable_X() NOOP
@@ -699,10 +699,10 @@
 
 #if HAS_Y2_ENABLE
   #define  enable_Y() do{ Y_ENABLE_WRITE( Y_ENABLE_ON); Y2_ENABLE_WRITE(Y_ENABLE_ON); }while(0)
-  #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); Y2_ENABLE_WRITE(!Y_ENABLE_ON); printer.setYKnownPosition(false); }while(0)
+  #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); Y2_ENABLE_WRITE(!Y_ENABLE_ON); printer.setYHomed(false); }while(0)
 #elif HAS_Y_ENABLE
   #define  enable_Y() Y_ENABLE_WRITE( Y_ENABLE_ON)
-  #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); printer.setYKnownPosition(false); }while(0)
+  #define disable_Y() do{ Y_ENABLE_WRITE(!Y_ENABLE_ON); printer.setYHomed(false); }while(0)
 #else
   #define  enable_Y() NOOP
   #define disable_Y() NOOP
@@ -710,16 +710,16 @@
 
 #if HAS_Z4_ENABLE
   #define  enable_Z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON);   Z3_ENABLE_WRITE(Z_ENABLE_ON);   Z4_ENABLE_WRITE(Z_ENABLE_ON);}while(0)
-  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON);  Z4_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZKnownPosition(false); }while(0)
+  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON);  Z4_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZHomed(false); }while(0)
 #elif HAS_Z3_ENABLE
   #define  enable_Z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON);   Z3_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
-  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZKnownPosition(false); }while(0)
+  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON);  Z3_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZHomed(false); }while(0)
 #elif HAS_Z2_ENABLE
   #define  enable_Z() do{ Z_ENABLE_WRITE( Z_ENABLE_ON); Z2_ENABLE_WRITE(Z_ENABLE_ON); }while(0)
-  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZKnownPosition(false); }while(0)
+  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); Z2_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZHomed(false); }while(0)
 #elif HAS_Z_ENABLE
   #define  enable_Z() Z_ENABLE_WRITE( Z_ENABLE_ON)
-  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZKnownPosition(false); }while(0)
+  #define disable_Z() do{ Z_ENABLE_WRITE(!Z_ENABLE_ON); printer.setZHomed(false); }while(0)
 #else
   #define  enable_Z() NOOP
   #define disable_Z() NOOP

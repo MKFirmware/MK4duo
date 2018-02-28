@@ -70,17 +70,16 @@ extern volatile uint8_t buttons;  //an extended version of the last checked butt
     #define B_DW (BUTTON_DOWN   << B_I2C_BTN_OFFSET)
     #define B_RI (BUTTON_RIGHT  << B_I2C_BTN_OFFSET)
 
+    #undef LCD_CLICKED
     #if BUTTON_EXISTS(ENC)
       // the pause/stop/restart button is connected to BTN_ENC when used
       #define B_ST (EN_C)                                 // Map the pause/stop/resume button into its normalized functional name
-      #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
         #define LCD_CLICKED !(buttons & (B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
       #else
         #define LCD_CLICKED  (buttons & (B_MI|B_RI|B_ST)) // pause/stop button also acts as click until we implement proper pause/stop.
       #endif
     #else
-      #undef LCD_CLICKED
       #if ENABLED(INVERT_CLICK_BUTTON)
         #define LCD_CLICKED !(buttons & (B_MI|B_RI))
       #else
@@ -360,6 +359,40 @@ static void lcd_set_custom_characters(
     B00000
   };
 
+  #if ENABLED(LCD_PROGRESS_BAR)
+
+    // CHARSET_INFO
+    const static PROGMEM byte progress[3][8] = { {
+      B00000,
+      B10000,
+      B10000,
+      B10000,
+      B10000,
+      B10000,
+      B10000,
+      B00000
+    }, {
+      B00000,
+      B10100,
+      B10100,
+      B10100,
+      B10100,
+      B10100,
+      B10100,
+      B00000
+    }, {
+      B00000,
+      B10101,
+      B10101,
+      B10101,
+      B10101,
+      B10101,
+      B10101,
+      B00000
+    } };
+
+  #endif // LCD_PROGRESS_BAR
+
   #if HAS_SDSUPPORT
 
     // CHARSET_MENU
@@ -383,40 +416,6 @@ static void lcd_set_custom_characters(
       B00000,
       B00000
     };
-
-    #if ENABLED(LCD_PROGRESS_BAR)
-
-      // CHARSET_INFO
-      const static PROGMEM byte progress[3][8] = { {
-        B00000,
-        B10000,
-        B10000,
-        B10000,
-        B10000,
-        B10000,
-        B10000,
-        B00000
-      }, {
-        B00000,
-        B10100,
-        B10100,
-        B10100,
-        B10100,
-        B10100,
-        B10100,
-        B00000
-      }, {
-        B00000,
-        B10101,
-        B10101,
-        B10101,
-        B10101,
-        B10101,
-        B10101,
-        B00000
-      } };
-
-    #endif // LCD_PROGRESS_BAR
 
   #endif // SDSUPPORT
 
@@ -654,12 +653,8 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   else {
     if (!printer.isAxisHomed(axis))
       lcd.write('?');
-    else {
-      if (!printer.isAxisKnownPosition(axis))
-        lcd.write(' ');
-      else
-        lcd_printPGM(pstr);
-    }
+    else
+      lcd_printPGM(pstr);
   }
 }
 
