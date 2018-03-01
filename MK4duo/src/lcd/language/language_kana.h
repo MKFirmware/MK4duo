@@ -24,7 +24,6 @@
  * Japanese (Kana)
  *
  * LCD Menu Messages
- * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
 

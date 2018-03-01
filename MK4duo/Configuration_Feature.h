@@ -1110,20 +1110,24 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *    en, an, bg, ca, cn, cz, cz_utf8, de, el, el-gr, es, eu, fi, fr, gl, hr, it,        *
- *    kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, ru, tr, uk, zh_CN, zh_TW  *
+ *  en, an, bg, ca, cn, cz, cz_utf8, de, el, el-gr, es, es_utf8, eu, fi, fr, fr_utf8,    *
+ *  gl, hr, it, kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, sk_utf8 ru,     *
+ *  tr, uk, zh_CN, zh_TW                                                                 *
  *                                                                                       *
  * 'en':'English',          'an':'Aragonese', 'bg':'Bulgarian',       'ca':'Catalan',    *
  * 'cn':'Chinese',          'cz':'Czech',     'de':'German',          'el':'Greek',      *
  * 'el-gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
  * 'fr':'French',           'gl':'Galician',  'hr':'Croatian',        'it':'Italian',    *
  * 'kana':'Japanese',       'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
- * 'ru':'Russian',          'tr':'Turkish',   'uk':'Ukrainian',       'hu':'Hungarian',  *
+ * 'ru':'Russian',          'tr':'Turkish',   'uk':'Ukrainian',                          *
+ * 'fr_utf8':'French (UTF8)                                                              *
  * 'cz_utf8':'Czech (UTF8)'                                                              *
  * 'kana_utf8':'Japanese (UTF8)'                                                         *
+ * 'es_utf8':'Spanish (UTF8)'                                                            *
  * 'pt_utf8':'Portuguese (UTF8)'                                                         *
  * 'pt-br':'Portuguese (Brazilian)'                                                      *
  * 'pt-br_utf8':'Portuguese (Brazilian UTF8)'                                            *
+ * 'sk_utf8':'Slovak (UTF8)'                                                             *
  *                                                                                       *
  *****************************************************************************************/
 #define LCD_LANGUAGE en

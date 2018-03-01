@@ -2829,16 +2829,15 @@ void kill_screen(const char* lcd_msg) {
       #endif
 
       manual_move_to_current(axis);
-
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
     encoderPosition = 0;
     if (lcdDrawUpdate) {
-      const float pos = (processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
+      const float pos = mechanics.native_to_logical(processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
         #if IS_KINEMATIC
           + manual_move_offset
         #endif
-      );
+      , axis);
       lcd_implementation_drawedit(name, move_menu_scale >= 0.1 ? ftostr41sign(pos) : ftostr43sign(pos));
     }
   }
@@ -2878,7 +2877,7 @@ void kill_screen(const char* lcd_msg) {
       }
       encoderPosition = 0;
     }
-    if (lcdDrawUpdate && !processing_manual_move) {
+    if (lcdDrawUpdate) {
       PGM_P pos_label;
       #if EXTRUDERS == 1
         pos_label = PSTR(MSG_MOVE_E);
@@ -5075,7 +5074,7 @@ void lcd_update() {
 
     #if BUTTON_EXISTS(BACK)
       if (LCD_BACK_CLICKED) {
-        lcd_quick_feedback();
+        lcd_quick_feedback(true);
         lcd_goto_previous_menu();
       }
     #endif

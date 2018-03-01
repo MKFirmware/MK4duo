@@ -24,7 +24,6 @@
  * Aragonese
  *
  * LCD Menu Messages
- * See also documentation/LCDLanguageFont.md
  *
  */
 #ifndef LANGUAGE_AN_H

@@ -25,7 +25,6 @@
  * UTF-8 for Graphical Display
  *
  * LCD Menu Messages
- * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
 
@@ -34,6 +33,7 @@
 
 #define MAPPER_E382E383
 #define DISPLAY_CHARSET_ISO10646_KANA
+#define CHARSIZE 3
 
 // This just to show the potential benefit of unicode.
 // This translation can be improved by using the full charset of unicode codeblock U+30A0 to U+30FF.

@@ -24,7 +24,6 @@
  * English
  *
  * LCD Menu Messages
- * See also documentation/LCDLanguageFont.md
  *
  */
 #ifndef LANGUAGE_EN_H
@@ -35,6 +34,10 @@
   #define NOT_EXTENDED_ISO10646_1_5X7
 #endif
 #undef en
+
+#ifndef CHARSIZE
+  #define CHARSIZE 1
+#endif
 
 #ifndef WELCOME_MSG
   #define WELCOME_MSG                         MACHINE_NAME _UxGT(" ready.")

@@ -24,7 +24,6 @@
  * Bulgarian
  *
  * LCD Menu Messages
- * See also documentation/LCDLanguageFont.md
  *
  */
 #ifndef LANGUAGE_BG_H
