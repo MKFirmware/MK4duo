@@ -24,7 +24,6 @@
  * Chinese
  *
  * LCD Menu Messages
- * See also documentation/LCDLanguageFont.md
  *
  */
 #ifndef LANGUAGE_CN_H

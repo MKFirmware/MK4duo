@@ -25,7 +25,6 @@
  * UTF-8 for Graphical Display
  *
  * LCD Menu Messages
- * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  * Translated by Petr Zahradnik, Computer Laboratory
  * Blog and video blog Zahradnik se bavi
@@ -37,6 +36,7 @@
 
 #define MAPPER_C3C4C5_CZ
 #define DISPLAY_CHARSET_ISO10646_CZ
+#define CHARSIZE 2
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" připraven.")
 #define MSG_BACK                            _UxGT("Zpět")

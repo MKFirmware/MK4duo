@@ -24,7 +24,6 @@
  * Danish
  *
  * LCD Menu Messages
- * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
 #ifndef LANGUAGE_DA_H
