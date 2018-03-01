@@ -31,9 +31,9 @@
   #define CODE_M900
 
   /**
-   * M900: Set and/or Get advance K factor
+   * M900: Set Linear Advance K-factor
    *
-   *  K<factor> Set advance K factor
+   *  K<factor>   Set advance K factor
    */
   inline void gcode_M900(void) {
     if (parser.seenval('K')) {

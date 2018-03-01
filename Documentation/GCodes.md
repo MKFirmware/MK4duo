@@ -184,7 +184,7 @@
 | M701 | ADVANCED_PAUSE_FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED_PAUSE_FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)
-| M900 | ? | K<factor> R<ratio> W<width> H<height> D<diam> - Set and/or Get advance K factor and WH/D ratio
+| M900 | LIN_ADVANCE | K<factor> Set Linear Advance K-factor.
 | M906 | ALLIGATOR or HAVE_TMC2130 | Set motor currents XYZ T0-4 E _or_ Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires )
 | M907 | a board with digital trimpots | Set digital trimpot motor current using axis codes
 | M908 | DIGIPOTSS_PIN | Control digital trimpot directly
