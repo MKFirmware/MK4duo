@@ -655,12 +655,13 @@
  * With auto-retract enabled, all G1 E moves over the MIN_RETRACT length  *
  * will be converted to firmware-based retract/recover moves.             *
  *                                                                        *
- * Be sure to turn off auto-retract during filament change.               *
+ * Note: Be sure to turn off auto-retract during filament change.         *
+ * Note: Current status (Retract / Swap / Zlift) isn't reset by G28.      *
  *                                                                        *
  * Note that M207 / M208 / M209 settings are saved to EEPROM.             *
  *                                                                        *
  **************************************************************************/
-//#define FWRETRACT                       // ONLY PARTIALLY TESTED
+//#define FWRETRACT
 
 #define MIN_AUTORETRACT               0.1 // When auto-retract is on, convert E moves of this length and over
 #define MAX_AUTORETRACT              10.0 // Upper limit for auto-retract conversion
