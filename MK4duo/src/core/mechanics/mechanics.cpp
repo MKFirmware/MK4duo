@@ -296,7 +296,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_homing_per_axis(axis);
+    mechanics.sensorless_homing_per_axis(axis);
   #endif
 
   // Tell the planner we're at Z=0
@@ -320,7 +320,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_homing_per_axis(axis, false);
+    mechanics.sensorless_homing_per_axis(axis, false);
   #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -811,44 +811,3 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
 #endif
 
-#if ENABLED(SENSORLESS_HOMING)
-
-  /**
-   * Set sensorless homing if the axis has it, accounting for Core Kinematics.
-   */
-  void Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
-    switch (axis) {
-      #if X_SENSORLESS
-        case X_AXIS:
-          tmc_sensorless_homing(stepperX, enable);
-          #if CORE_IS_XY && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
-          #elif CORE_IS_XZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
-          #endif
-          break;
-      #endif
-      #if Y_SENSORLESS
-        case Y_AXIS:
-          tmc_sensorless_homing(stepperY, enable);
-          #if CORE_IS_XY && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
-          #elif CORE_IS_YZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
-          #endif
-          break;
-      #endif
-      #if Z_SENSORLESS
-        case Z_AXIS:
-          tmc_sensorless_homing(stepperZ, enable);
-          #if CORE_IS_XZ && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
-          #elif CORE_IS_YZ && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
-          #endif
-          break;
-      #endif
-    }
-  }
-
-#endif // SENSORLESS_HOMING

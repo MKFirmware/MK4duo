@@ -99,6 +99,13 @@
         float x_home_pos(const int extruder);
       #endif
 
+      /**
+       * Set sensorless homing if the axis has it.
+       */
+      #if ENABLED(SENSORLESS_HOMING)
+        void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true);
+      #endif
+
     private: /** Private Function */
 
       /**
