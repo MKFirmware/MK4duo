@@ -36,12 +36,17 @@
    *  K<factor> Set advance K factor
    */
   inline void gcode_M900(void) {
-    stepper.synchronize();
-
-    const float newK = parser.floatval('K', -1);
-    if (newK >= 0) planner.extruder_advance_K = newK;
-
-    SERIAL_LMV(ECHO, "Advance K=", planner.extruder_advance_K);
+    if (parser.seenval('K')) {
+      const float newK = parser.floatval('K');
+      if (WITHIN(newK, 0, 10)) {
+        stepper.synchronize();
+        planner.extruder_advance_K = newK;
+      }
+      else
+        SERIAL_EM("?K value out of range (0-10).");
+    }
+    else
+      SERIAL_LMV(ECHO, "Advance K=", planner.extruder_advance_K);
   }
 
 #endif // ENABLED(LIN_ADVANCE)

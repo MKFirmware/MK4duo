@@ -363,13 +363,6 @@ class Mechanics {
 
     float get_homing_bump_feedrate(const AxisEnum axis);
 
-    /**
-     * Set sensorless homing if the axis has it.
-     */
-    #if ENABLED(SENSORLESS_HOMING)
-      void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true);
-    #endif
-
 };
 
 #if IS_CARTESIAN

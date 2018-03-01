@@ -395,4 +395,15 @@
   #error "DEPENDENCY ERROR: You have to set X2_ENABLE_PIN, X2_STEP_PIN and X2_DIR_PIN to a valid pin if you enable X2_IS_TMC."
 #endif
 
+
+/**
+ * Linear Advance 1.5 - Check K value range
+ */
+#if ENABLED(LIN_ADVANCE)
+  static_assert(
+    WITHIN(LIN_ADVANCE_K, 0, 10),
+    "LIN_ADVANCE_K must be a value from 0 to 10."
+  );
+#endif
+
 #endif /* _MECH_SANITYCHECK_H_ */

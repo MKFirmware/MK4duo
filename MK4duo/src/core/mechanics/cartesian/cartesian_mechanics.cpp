@@ -732,6 +732,21 @@
 
   #endif
 
+  #if ENABLED(SENSORLESS_HOMING)
+
+    /**
+     * Set sensorless homing if the axis has it.
+     */
+    void Cartesian_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
+      switch (axis) {
+        case X_AXIS: tmc_sensorless_homing(stepperX, enable); break;
+        case Y_AXIS: tmc_sensorless_homing(stepperY, enable); break;
+        case Z_AXIS: tmc_sensorless_homing(stepperZ, enable); break;
+      }
+    }
+
+  #endif // SENSORLESS_HOMING
+
   #if ENABLED(HYSTERESIS)
 
     void Cartesian_Mechanics::set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm) {
