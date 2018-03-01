@@ -569,10 +569,10 @@
     #endif
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
-    #if HAVE_TMC2130 && ENABLED(SENSORLESS_HOMING)
-      tmc_sensorless_homing(stepperX);
-      tmc_sensorless_homing(stepperY);
-      tmc_sensorless_homing(stepperZ);
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_homing_per_axis(A_AXIS);
+      sensorless_homing_per_axis(B_AXIS);
+      sensorless_homing_per_axis(C_AXIS);
     #endif
 
     // Init the current position of all carriages to 0,0,0
@@ -586,10 +586,10 @@
     stepper.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
-    #if HAVE_TMC2130 && ENABLED(SENSORLESS_HOMING)
-      tmc_sensorless_homing(stepperX, false);
-      tmc_sensorless_homing(stepperY, false);
-      tmc_sensorless_homing(stepperZ, false);
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_homing_per_axis(A_AXIS, false);
+      sensorless_homing_per_axis(B_AXIS, false);
+      sensorless_homing_per_axis(C_AXIS, false);
     #endif
 
     // If an endstop was not hit, then damage can occur if homing is continued.
