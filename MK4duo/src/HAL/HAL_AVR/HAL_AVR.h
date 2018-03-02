@@ -249,7 +249,8 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TI
 #define STEPPER_OCIE          OCIE1A
 
 #define TEMP_TIMER            0
-#define TEMP_TCCR             TCCR0B
+#define TEMP_OCR              OCR0B
+#define TEMP_TCCR             TCCR0A
 #define TEMP_TIMSK            TIMSK0
 #define TEMP_OCIE             OCIE0B
 
