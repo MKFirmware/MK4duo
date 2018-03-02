@@ -159,10 +159,14 @@ float TemperatureSensor::getTemperature() {
   #endif
 
   if (WITHIN(s_type, 1, 9)) {
-    const float denom = (float)(AD_RANGE + (int)adcHighOffset - adcReading) - 0.5;
+    const int32_t averagedVssaReading = 2 * adcLowOffset,
+                  averagedVrefReading = AD_RANGE + 2 * adcHighOffset;
+
+    // Calculate the resistance
+    const float denom = (float)(averagedVrefReading - adcReading) - 0.5;
     if (denom <= 0.0) return ABS_ZERO;
 
-    const float resistance = pullupR * ((float)(adcReading - (int)adcLowOffset) + 0.5) / denom;
+    const float resistance = pullupR * ((float)(adcReading - averagedVssaReading) + 0.5) / denom;
     const float logResistance = LOG(resistance);
     const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 
