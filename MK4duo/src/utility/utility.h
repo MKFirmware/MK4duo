@@ -37,7 +37,7 @@
 
 #endif
 
-#if ENABLED(ULTRA_LCD) || ENABLED(NEXTION)
+#if ENABLED(ULTRA_LCD) || ENABLED(NEXTION) || ENABLED(DEBUG_LEVELING_FEATURE)
 
   // Convert uint8_t to string with 123 format
   char* i8tostr3(const uint8_t x);
