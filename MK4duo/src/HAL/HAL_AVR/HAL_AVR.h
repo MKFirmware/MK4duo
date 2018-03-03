@@ -221,7 +221,7 @@ typedef uint16_t  ptr_int_t;
 #define ANALOG_REF            ANALOG_REF_AVCC
 #define ANALOG_PRESCALER      _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define MAX_ANALOG_PIN_NUMBER 15
-#define OVERSAMPLENR          5
+#define OVERSAMPLENR          16
 #define ABS_ZERO              -273.15
 #define AD_RANGE              1023
 
