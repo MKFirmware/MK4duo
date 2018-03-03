@@ -22,7 +22,7 @@
 
 #include "../../MK4duo.h"
 
-#if HAS_LCD
+#if ENABLED(ULTRA_LCD) || ENABLED(NEXTION) || ENABLED(DEBUG_LEVELING_FEATURE)
 
   char conv[8] = { 0 };
 
