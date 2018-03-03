@@ -333,9 +333,8 @@ HAL_TEMP_TIMER_ISR {
     if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
       channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
       AnalogInputRead[adcSamplePos] += ADCW;
-      if (++adcCounter[adcSamplePos] >= _BV(OVERSAMPLENR)) {
-        HAL::AnalogInputValues[channel] =
-          AnalogInputRead[adcSamplePos] >> (OVERSAMPLENR);
+      if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
+        HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
         AnalogInputRead[adcSamplePos] = 0;
         adcCounter[adcSamplePos] = 0;
         // Start next conversion
