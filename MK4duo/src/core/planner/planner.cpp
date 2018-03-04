@@ -189,18 +189,22 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t * const 
  * Once in reverse and once forward. This implements the reverse pass.
  */
 void Planner::reverse_pass() {
-  if (movesplanned() > 3) {
-    const uint8_t endnr = BLOCK_MOD(block_buffer_tail + 2); // tail is running. tail+1 shouldn't be altered because it's connected to the running block.
-                                                            // tail+2 because the index is not yet advanced when checked
+  if (movesplanned() > 2) {
+    const uint8_t endnr = BLOCK_MOD(block_buffer_tail + 1);
     uint8_t blocknr     = prev_block_index(block_buffer_head);
     block_t* current    = &block_buffer[blocknr];
 
+    float max_entry_speed = current->max_entry_speed;
+    if (current->entry_speed != max_entry_speed) {
+      current->entry_speed = (TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH))
+        ? max_entry_speed
+        : min(max_entry_speed, max_allowable_speed(-current->acceleration, MINIMUM_PLANNER_SPEED, current->millimeters));
+      SBI(current->flag, BLOCK_BIT_RECALCULATE);
+    }
     do {
       const block_t * const next = current;
       blocknr = prev_block_index(blocknr);
       current = &block_buffer[blocknr];
-      if (TEST(current->flag, BLOCK_BIT_START_FROM_FULL_HALT)) // Up to this every block is already optimized.
-        break;
       reverse_pass_kernel(current, next);
     } while (blocknr != endnr);
   }
@@ -1201,12 +1205,10 @@ void Planner::check_axes_activity() {
     if (previous_safe_speed > vmax_junction_threshold && safe_speed > vmax_junction_threshold) {
       // Not coasting. The machine will stop and start the movements anyway,
       // better to start the segment from start.
-      SBI(block->flag, BLOCK_BIT_START_FROM_FULL_HALT);
       vmax_junction = safe_speed;
     }
   }
   else {
-    SBI(block->flag, BLOCK_BIT_START_FROM_FULL_HALT);
     vmax_junction = safe_speed;
   }
 
@@ -1430,8 +1432,7 @@ void Planner::abort() {
 #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
   void Planner::autotemp_M104_M109() {
-    autotemp_enabled = parser.seen('F');
-    if (autotemp_enabled) autotemp_factor = parser.value_celsius_diff();
+    if ((autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
     if (parser.seen('S')) autotemp_min = parser.value_celsius();
     if (parser.seen('B')) autotemp_max = parser.value_celsius();
   }

@@ -436,6 +436,12 @@
       if (axis == Z_AXIS && STOW_PROBE()) return;
     #endif
 
+    // Clear retracted status if homing the Z axis
+    #if ENABLED(FWRETRACT)
+      if (axis == Z_AXIS)
+        for (uint8_t i = 0; i < EXTRUDERS; i++) fwretract.retracted[i] = false;
+    #endif
+
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
