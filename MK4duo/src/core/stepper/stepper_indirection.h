@@ -93,7 +93,7 @@
     #define X_ENABLE_WRITE(STATE) WRITE(X_ENABLE_PIN,STATE)
     #define X_ENABLE_READ READ(X_ENABLE_PIN)
   #endif
-  #if X_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(X_IS_TMC2130)
     #define X_DIR_INIT NOOP
     #define X_DIR_WRITE(STATE) stepperX.shaft_dir(STATE)
     #define X_DIR_READ stepperX.shaft_dir()
@@ -132,7 +132,7 @@
     #define Y_ENABLE_WRITE(STATE) WRITE(Y_ENABLE_PIN,STATE)
     #define Y_ENABLE_READ READ(Y_ENABLE_PIN)
   #endif
-  #if Y_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(Y_IS_TMC2130)
     #define Y_DIR_INIT NOOP
     #define Y_DIR_WRITE(STATE) stepperY.shaft_dir(STATE)
     #define Y_DIR_READ stepperY.shaft_dir()
@@ -171,7 +171,7 @@
     #define Z_ENABLE_WRITE(STATE) WRITE(Z_ENABLE_PIN,STATE)
     #define Z_ENABLE_READ READ(Z_ENABLE_PIN)
   #endif
-  #if Z_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(Z_IS_TMC2130)
     #define Z_DIR_INIT NOOP
     #define Z_DIR_WRITE(STATE) stepperZ.shaft_dir(STATE)
     #define Z_DIR_READ stepperZ.shaft_dir()
@@ -211,7 +211,7 @@
       #define X2_ENABLE_WRITE(STATE) WRITE(X2_ENABLE_PIN,STATE)
       #define X2_ENABLE_READ READ(X2_ENABLE_PIN)
     #endif
-    #if X2_IS_TRINAMIC
+    #if ENABLED(HAVE_TMC2130) && ENABLED(X2_IS_TMC2130)
       #define X2_DIR_INIT NOOP
       #define X2_DIR_WRITE(STATE) stepperX2.shaft_dir(STATE)
       #define X2_DIR_READ stepperX2.shaft_dir()
@@ -252,7 +252,7 @@
       #define Y2_ENABLE_WRITE(STATE) WRITE(Y2_ENABLE_PIN,STATE)
       #define Y2_ENABLE_READ READ(Y2_ENABLE_PIN)
     #endif
-    #if Y2_IS_TRINAMIC
+    #if ENABLED(HAVE_TMC2130) && ENABLED(Y2_IS_TMC2130)
       #define Y2_DIR_INIT NOOP
       #define Y2_DIR_WRITE(STATE) stepperY2.shaft_dir(STATE)
       #define Y2_DIR_READ stepperY2.shaft_dir()
@@ -296,7 +296,7 @@
       #define Z2_ENABLE_WRITE(STATE) WRITE(Z2_ENABLE_PIN,STATE)
       #define Z2_ENABLE_READ READ(Z2_ENABLE_PIN)
     #endif
-    #if Z2_IS_TRINAMIC
+    #if ENABLED(HAVE_TMC2130) && ENABLED(Z2_IS_TMC2130)
       #define Z2_DIR_INIT NOOP
       #define Z2_DIR_WRITE(STATE) stepperZ2.shaft_dir(STATE)
       #define Z2_DIR_READ stepperZ2.shaft_dir()
@@ -407,7 +407,7 @@
     #define E0_ENABLE_WRITE(STATE) WRITE(E0_ENABLE_PIN,STATE)
     #define E0_ENABLE_READ READ(E0_ENABLE_PIN)
   #endif
-  #if E0_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E0_IS_TMC2130)
     #define E0_DIR_INIT NOOP
     #define E0_DIR_WRITE(STATE) stepperE0.shaft_dir(STATE)
     #define E0_DIR_READ stepperE0.shaft_dir()
@@ -452,7 +452,7 @@
     #define E1_ENABLE_WRITE(STATE) WRITE(E1_ENABLE_PIN,STATE)
     #define E1_ENABLE_READ READ(E1_ENABLE_PIN)
   #endif
-  #if E1_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E1_IS_TMC2130)
     #define E1_DIR_INIT NOOP
     #define E1_DIR_WRITE(STATE) stepperE1.shaft_dir(STATE)
     #define E1_DIR_READ stepperE1.shaft_dir()
@@ -491,7 +491,7 @@
     #define E2_ENABLE_WRITE(STATE) WRITE(E2_ENABLE_PIN,STATE)
     #define E2_ENABLE_READ READ(E2_ENABLE_PIN)
   #endif
-  #if E2_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E2_IS_TMC2130)
     #define E2_DIR_INIT NOOP
     #define E2_DIR_WRITE(STATE) stepperE2.shaft_dir(STATE)
     #define E2_DIR_READ stepperE2.shaft_dir()
@@ -530,7 +530,7 @@
     #define E3_ENABLE_WRITE(STATE) WRITE(E3_ENABLE_PIN,STATE)
     #define E3_ENABLE_READ READ(E3_ENABLE_PIN)
   #endif
-  #if E3_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E3_IS_TMC2130)
     #define E3_DIR_INIT NOOP
     #define E3_DIR_WRITE(STATE) stepperE3.shaft_dir(STATE)
     #define E3_DIR_READ stepperE3.shaft_dir()
@@ -569,7 +569,7 @@
     #define E4_ENABLE_WRITE(STATE) WRITE(E4_ENABLE_PIN,STATE)
     #define E4_ENABLE_READ READ(E4_ENABLE_PIN)
   #endif
-  #if E4_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E4_IS_TMC2130)
     #define E4_DIR_INIT NOOP
     #define E4_DIR_WRITE(STATE) stepperE4.shaft_dir(STATE)
     #define E4_DIR_READ stepperE4.shaft_dir()
@@ -608,7 +608,7 @@
     #define E5_ENABLE_WRITE(STATE) WRITE(E5_ENABLE_PIN,STATE)
     #define E5_ENABLE_READ READ(E5_ENABLE_PIN)
   #endif
-  #if E5_IS_TRINAMIC
+  #if ENABLED(HAVE_TMC2130) && ENABLED(E5_IS_TMC2130)
     #define E5_DIR_INIT NOOP
     #define E5_DIR_WRITE(STATE) stepperE5.shaft_dir(STATE)
     #define E5_DIR_READ stepperE5.shaft_dir()
