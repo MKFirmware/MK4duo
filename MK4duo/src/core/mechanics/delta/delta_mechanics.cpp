@@ -170,7 +170,7 @@
       // Calculate and execute the segments
       while (--segments) {
 
-        if (HAL::execute_100ms) printer.idle();
+        printer.check_periodical_actions();
 
         LOOP_XYZE(i) raw[i] += segment_distance[i];
         Transform(raw);

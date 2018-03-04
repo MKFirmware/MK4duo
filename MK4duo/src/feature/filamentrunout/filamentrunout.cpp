@@ -70,7 +70,7 @@
     #endif
   }
 
-  void FilamentRunOut::check() {
+  void FilamentRunOut::spin() {
 
     #if FILAMENT_RUNOUT_DOUBLE_CHECK > 0
       static bool filament_double_check = false;

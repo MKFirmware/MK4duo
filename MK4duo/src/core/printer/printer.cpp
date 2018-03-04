@@ -314,13 +314,44 @@ void Printer::loop() {
   idle();
 }
 
+void Printer::check_periodical_actions() {
+
+  static uint8_t cycle_1000ms  = 10;  // Event 1.0 Second
+
+  // Control interrupt events
+  handle_interrupt_events();
+
+  // Tick timer job counter
+  print_job_counter.tick();
+
+  // Event 100 Ms - 10Hz
+  if (HAL::execute_100ms) {
+    HAL::execute_100ms = false;
+    planner.check_axes_activity();
+    thermalManager.spin();
+    if (--cycle_1000ms == 0) {
+      // Event 1.0 Second
+      cycle_1000ms = 10;
+      if (isAutoreportTemp()) {
+        thermalManager.report_temperatures();
+        SERIAL_EOL();
+      }
+      #if ENABLED(NEXTION)
+        nextion_draw_update();
+      #endif
+    }
+  }
+
+}
+
 void Printer::safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     HAL::delayMilliseconds(50);
-    idle(true);
+    check_periodical_actions();
   }
   HAL::delayMilliseconds(ms);
+  check_periodical_actions();
 }
 
 /**
@@ -446,75 +477,15 @@ void Printer::Stop() {
   }
 }
 
-void Printer::idle(bool no_stepper_sleep/*=false*/) {
-
-  static uint8_t cycle_1000ms = 10; // Event 1.0  second
-
-  // Start event periodical
-
-  #if ENABLED(NEXTION)
-    lcd_key_touch_update();
-  #else
-    lcd_update();
-  #endif
-
-  #if ENABLED(HOST_KEEPALIVE_FEATURE)
-    host_keepalive();
-  #endif
-
-  #if ENABLED(FLOWMETER_SENSOR)
-    flowmeter.flowrate_manage();
-  #endif
-
-  #if ENABLED(CNCROUTER)
-    cnc.manage();
-  #endif
-
-  manage_inactivity(no_stepper_sleep);
-
-  handle_Interrupt_Event();
-
-  print_job_counter.tick();
-
-  #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].Check();
-  #endif
-
-  #if ENABLED(DHT_SENSOR)
-    dhtsensor.spin();
-  #endif
-
-  if (HAL::execute_100ms) {
-    // Event 100 Ms - 10Hz
-    HAL::execute_100ms = false;
-    planner.check_axes_activity();
-    thermalManager.spin();
-    if (--cycle_1000ms == 0) {
-      // Event 1 Second
-      cycle_1000ms = 10;
-      if (isAutoreportTemp()) {
-        thermalManager.report_temperatures();
-        SERIAL_EOL();
-      }
-      #if ENABLED(NEXTION)
-        nextion_draw_update();
-      #endif
-    }
-  }
-
-  #if ENABLED(MOVE_DEBUG)
-    char buf[100] = { 0 };
-    sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
-      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(STEPPER_TIMER));
-    SERIAL_PS(buf);
-    SERIAL_EOL();
-  #endif
-}
-
 /**
  * Manage several activities:
- *  - Check for Filament Runout
+ *  - Lcd update
+ *  - Check periodical actions
  *  - Keep the command buffer full
+ *  - Host Keepalive
+ *  - Check Flow meter sensor
+ *  - Cnc manage
+ *  - Check for Filament Runout
  *  - Check for maximum inactive time between commands
  *  - Check for maximum inactive time between stepper commands
  *  - Check if pin CHDK needs to go LOW
@@ -525,33 +496,67 @@ void Printer::idle(bool no_stepper_sleep/*=false*/) {
  *  - Check oozing prevent
  *  - Read o Write Rfid
  */
-void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
-
-  #if HAS_FIL_RUNOUT
-    filamentrunout.check();
-  #endif
-
-  commands.get_available();
+void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   const millis_t ms = millis();
+
+  #if ENABLED(NEXTION)
+    lcd_key_touch_update();
+  #else
+    lcd_update();
+  #endif
+
+  check_periodical_actions();
+
+  commands.get_available();
 
   if (max_inactive_time && ELAPSED(ms, commands.previous_cmd_ms + max_inactive_time)) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
 
+  #if ENABLED(HOST_KEEPALIVE_FEATURE)
+    host_keepalive();
+  #endif
+
+  #if HAS_POWER_SWITCH
+    powerManager.spin();
+  #endif
+
+  #if ENABLED(CNCROUTER)
+    cnc.manage();
+  #endif
+
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].spin();
+  #endif
+
+  #if HAS_FIL_RUNOUT
+    filamentrunout.spin();
+  #endif
+
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.spin();
+  #endif
+
+  #if ENABLED(FLOWMETER_SENSOR)
+
+    flowmeter.flowrate_manage();
+
+    #if ENABLED(MINFLOW_PROTECTION)
+      if (flowmeter.flow_firstread && print_job_counter.isRunning() && (flowmeter.flowrate < (float)MINFLOW_PROTECTION)) {
+        flowmeter.flow_firstread = false;
+        kill(PSTR(MSG_KILLED));
+      }
+    #endif
+
+  #endif // ENABLED(FLOWMETER_SENSOR)
+
   // Prevent steppers timing-out in the middle of M600
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
     #define MOVE_AWAY_TEST !did_pause_print
   #else
     #define MOVE_AWAY_TEST true
-  #endif
-
-  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    if (flowmeter.flow_firstread && print_job_counter.isRunning() && (flowmeter.flowrate < (float)MINFLOW_PROTECTION)) {
-      flowmeter.flow_firstread = false;
-      kill(PSTR(MSG_KILLED));
-    }
   #endif
 
   if (MOVE_AWAY_TEST && stepper.stepper_inactive_time && ELAPSED(ms, commands.previous_cmd_ms + stepper.stepper_inactive_time)
@@ -626,10 +631,6 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
       else
         homeDebounceCount = 0;
     }
-  #endif
-
-  #if HAS_POWER_SWITCH
-    powerManager.check(); // Check Power
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
@@ -765,6 +766,14 @@ void Printer::manage_inactivity(bool ignore_stepper_queue/*=false*/) {
     monitor_tmc_driver();
   #endif
 
+  #if ENABLED(MOVE_DEBUG)
+    char buf[100] = { 0 };
+    sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
+      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(STEPPER_TIMER));
+    SERIAL_PS(buf);
+    SERIAL_EOL();
+  #endif
+
 }
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
@@ -772,7 +781,7 @@ void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
     interruptEvent = event;
 }
 
-void Printer::handle_Interrupt_Event() {
+void Printer::handle_interrupt_events() {
 
   if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
 

@@ -557,6 +557,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
     for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
+      printer.check_periodical_actions();
       if (ELAPSED(millis(), next_idle_ms)) {
         next_idle_ms = millis() + 200UL;
         printer.idle();

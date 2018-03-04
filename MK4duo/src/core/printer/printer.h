@@ -157,6 +157,7 @@ class Printer {
     static void setup();  // Main setup
     static void loop();   // Main loop
 
+    static void check_periodical_actions();
     static void safe_delay(millis_t ms);
 
     static void setup_for_endstop_or_probe_move();
@@ -165,7 +166,7 @@ class Printer {
     static void kill(const char *);
     static void Stop();
 
-    static void idle(bool no_stepper_sleep=false);
+    static void idle(const bool ignore_stepper_queue=false);
     static void setInterruptEvent(const MK4duoInterruptEvent event);
 
     static bool pin_is_protected(const pin_t pin);
@@ -290,8 +291,7 @@ class Printer {
 
     static void setup_pinout();
 
-    static void manage_inactivity(bool ignore_stepper_queue=false);
-    static void handle_Interrupt_Event();
+    static void handle_interrupt_events();
 
     static void bracket_probe_move(const bool before);
 

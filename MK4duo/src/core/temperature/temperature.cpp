@@ -373,7 +373,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
     act->updateCurrentTemperature();
 
     #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].Check();
+      LOOP_FAN() fans[f].spin();
     #endif
 
     const millis_t time = millis();

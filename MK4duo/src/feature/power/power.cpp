@@ -35,7 +35,7 @@
                   Power::startpower                 = 0;
   #endif
 
-  void Power::check() {
+  void Power::spin() {
     static millis_t nextPowerCheck = 0;
     millis_t ms = millis();
 
