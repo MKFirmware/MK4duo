@@ -32,7 +32,7 @@
 
   FilamentRunOut filamentrunout;
 
-  void FilamentRunoutSensor::init() {
+  void FilamentRunOut::init() {
     SET_INPUT(FIL_RUNOUT0_PIN);
     #if HAS_FIL_RUNOUT1
       SET_INPUT(FIL_RUNOUT1_PIN);
