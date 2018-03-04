@@ -186,8 +186,6 @@ void Printer::setup() {
 
   mechanics.init();
 
-  stepper.init(); // Initialize stepper, this enables interrupts!
-
   // Init endstops and pullups
   endstops.init();
 
@@ -205,6 +203,8 @@ void Printer::setup() {
   mechanics.sync_plan_position();
 
   thermalManager.init();  // Initialize temperature loop
+
+  stepper.init(); // Initialize stepper, this enables interrupts!
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
     externaldac.begin();
