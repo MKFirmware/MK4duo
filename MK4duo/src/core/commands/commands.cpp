@@ -45,7 +45,7 @@ long  Commands::gcode_N             = 0,
 
 bool Commands::send_ok[BUFSIZE];
 
-char Commands::queue[BUFSIZE][MAX_CMD_SIZE];
+char Commands::buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
 // Inactivity shutdown
 millis_t Commands::previous_cmd_ms = 0;
@@ -55,7 +55,7 @@ millis_t Commands::previous_cmd_ms = 0;
  */
 
 /**
- * GCode Command Queue
+ * GCode Command Buffer Ring
  * A simple ring buffer of BUFSIZE command strings.
  *
  * Commands are copied into this buffer by the command injectors
@@ -63,11 +63,14 @@ millis_t Commands::previous_cmd_ms = 0;
  * the main loop. The process_next function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::queue_count   = 0,  // Count of commands in the queue
-        Commands::queue_index_r = 0,  // Ring buffer read position
-        Commands::queue_index_w = 0;  // Ring buffer write position
+uint8_t Commands::buffer_index_r = 0, // Read position in Buffer Ring
+        Commands::buffer_index_w = 0; // Write position in Buffer Ring
+
+volatile uint8_t Commands::buffer_lenght = 0; // Number of commands in the Buffer Ring
 
 int Commands::serial_count = 0;
+
+millis_t Commands::last_command_time = 0;
 
 /**
  * Next Injected Command pointer. NULL if no commands are being injected.
@@ -89,6 +92,7 @@ void Commands::get_serial() {
 
   static char serial_line_buffer[MAX_CMD_SIZE];
   static bool serial_comment_mode = false;
+  millis_t time = millis();
 
   #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
@@ -97,23 +101,30 @@ void Commands::get_serial() {
     }
   #endif
 
+  // Buffer Ring is full
+  if (buffer_lenght >= BUFSIZE) {
+    KEEPALIVE_STATE(IN_PROCESS);
+    return;
+  }
+
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    static millis_t last_command_time = 0;
-    millis_t ms = millis();
-    if (queue_count == 0 && !MKSERIAL.available() && ELAPSED(ms, last_command_time + NO_TIMEOUTS)) {
+    if (buffer_lenght == 0 && !MKSERIAL.available() && ELAPSED(time, last_command_time + NO_TIMEOUTS)) {
       SERIAL_STR(WT);
       SERIAL_EOL();
-      last_command_time = ms;
+      last_command_time = time;
     }
   #endif
 
   /**
-   * Loop while serial characters are incoming and the queue is not full
+   * Loop while serial characters are incoming and the buffer_ring is not full
    */
-  while (queue_count < BUFSIZE && HAL::serialByteAvailable()) {
+  while (buffer_lenght < BUFSIZE && HAL::serialByteAvailable()) {
     int c;
+
+    last_command_time = time;
+
     if ((c = MKSERIAL.read()) < 0) continue;
 
     char serial_char = c;
@@ -198,11 +209,7 @@ void Commands::get_serial() {
         if (strcmp(command, "M410") == 0) stepper.quickstop_stepper();
       #endif
 
-      #if ENABLED(NO_TIMEOUTS) && NO_TIMEOUTS > 0
-        last_command_time = ms;
-      #endif
-
-      // Add the command to the queue
+      // Add the command to the buffer_ring
       enqueue(serial_line_buffer, true);
     }
     else if (serial_count >= MAX_CMD_SIZE - 1) {
@@ -218,7 +225,7 @@ void Commands::get_serial() {
       if (serial_char == ';') serial_comment_mode = true;
       if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
     }
-  } // queue has space, serial has data
+  }
 }
 
 #if HAS_SDSUPPORT
@@ -255,14 +262,15 @@ void Commands::get_serial() {
      * due to checksums, however, no checksums are used in SD printing.
      */
 
-    if (queue_count == 0) stop_buffering = false;
+    if (buffer_lenght == 0) stop_buffering = false;
 
     uint16_t sd_count = 0;
     bool card_eof = card.eof();
-    while (queue_count < BUFSIZE && !card_eof && !stop_buffering) {
+    while (buffer_lenght < BUFSIZE && !card_eof && !stop_buffering) {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
+      last_command_time = millis();
       if (card_eof || n == -1
           || sd_char == '\n'  || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
@@ -278,7 +286,7 @@ void Commands::get_serial() {
               LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
               leds.set_green();
               #if HAS_RESUME_CONTINUE
-                enqueue_and_echo_P(PSTR("M0")); // end of the queue!
+                enqueue_and_echo_P(PSTR("M0"));
               #else
                 printer.safe_delay(1000);
               #endif
@@ -297,7 +305,7 @@ void Commands::get_serial() {
         // Skip empty lines and comments
         if (!sd_count) { printer.check_periodical_actions(); continue; }
 
-        queue[queue_index_w][sd_count] = '\0'; // terminate string
+        buffer_ring[buffer_index_w][sd_count] = '\0'; // terminate string
         planner.add_block_length(sd_count);
 
         sd_count = 0; // clear sd line buffer
@@ -312,7 +320,7 @@ void Commands::get_serial() {
       }
       else {
         if (sd_char == ';') sd_comment_mode = true;
-        if (!sd_comment_mode) queue[queue_index_w][sd_count++] = sd_char;
+        if (!sd_comment_mode) buffer_ring[buffer_index_w][sd_count++] = sd_char;
       }
     }
 
@@ -341,10 +349,10 @@ void Commands::flush_and_request_resend() {
  */
 void Commands::ok_to_send() {
   refresh_cmd_timeout();
-  if (!send_ok[queue_index_r]) return;
+  if (!send_ok[buffer_index_r]) return;
   SERIAL_STR(OK);
   #if ENABLED(ADVANCED_OK)
-    char* p = queue[queue_index_r];
+    char* p = buffer_ring[buffer_index_r];
     if (*p == 'N') {
       SERIAL_CHR(' ');
       SERIAL_CHR(*p++);
@@ -352,20 +360,20 @@ void Commands::ok_to_send() {
         SERIAL_CHR(*p++);
     }
     SERIAL_MV(" P", (int)(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
-    SERIAL_MV(" B", BUFSIZE - queue_count);
+    SERIAL_MV(" B", BUFSIZE - buffer_lenght);
   #endif
   SERIAL_EOL();
 }
 
 /**
- * Add to the circular command queue the next command from:
+ * Add to the buffer ring the next command from:
  *  - The command-injection queue (injected_commands_P)
  *  - The active serial input (usually USB)
  *  - The SD card file being actively printed
  */
 void Commands::get_available() {
 
-  if (queue_count >= BUFSIZE) return;
+  if (buffer_lenght >= BUFSIZE) return;
 
   // if any immediate commands remain, don't get other commands yet
   if (drain_injected_P()) return;
@@ -378,16 +386,16 @@ void Commands::get_available() {
 }
 
 /**
- * Get the next command in the queue, optionally log it to SD, then dispatch it
+ * Get the next command in the buffer_ring, optionally log it to SD, then dispatch it
  */
 void Commands::advance_queue() {
 
-  if (!queue_count) return;
+  if (!buffer_lenght) return;
 
   #if HAS_SDSUPPORT
 
     if (card.saving) {
-      char* command = queue[queue_index_r];
+      char* command = buffer_ring[buffer_index_r];
       if (strstr_P(command, PSTR("M29"))) {
         // M29 closes the file
         card.finishWrite();
@@ -417,10 +425,10 @@ void Commands::advance_queue() {
 
   #endif // !HAS_SDSUPPORT
 
-  // The queue may be reset by a command handler or by code invoked by idle() within a handler
-  if (queue_count) {
-    --queue_count;
-    if (++queue_index_r >= BUFSIZE) queue_index_r = 0;
+  // The buffer_ring may be reset by a command handler or by code invoked by idle() within a handler
+  if (buffer_lenght) {
+    --buffer_lenght;
+    if (++buffer_index_r >= BUFSIZE) buffer_index_r = 0;
   }
 }
 
@@ -463,21 +471,21 @@ void Commands::enqueue_and_echo_P_now(const char * const pgcode) {
 }
 
 /**
- * Clear the MK4duo command queue
+ * Clear the MK4duo command buffer_ring
  */
 void Commands::clear_queue() {
-  queue_index_r = queue_index_w = 0;
-  queue_count = 0;
-  ZERO(queue[queue_index_r]);
+  buffer_index_r = buffer_index_w = 0;
+  buffer_lenght = 0;
+  ZERO(buffer_ring[buffer_index_r]);
 }
 
 /**
  * Once a new command is in the ring buffer, call this to commit it
  */
 void Commands::commit(bool say_ok) {
-  send_ok[queue_index_w] = say_ok;
-  if (++queue_index_w >= BUFSIZE) queue_index_w = 0;
-  queue_count++;
+  send_ok[buffer_index_w] = say_ok;
+  if (++buffer_index_w >= BUFSIZE) buffer_index_w = 0;
+  buffer_lenght++;
 }
 
 /**
@@ -486,14 +494,14 @@ void Commands::commit(bool say_ok) {
  * Return false for a full buffer, or if the 'command' is a comment.
  */
 bool Commands::enqueue(const char* cmd, bool say_ok/*=false*/) {
-  if (*cmd == ';' || queue_count >= BUFSIZE) return false;
-  strcpy(queue[queue_index_w], cmd);
+  if (*cmd == ';' || buffer_lenght >= BUFSIZE) return false;
+  strcpy(buffer_ring[buffer_index_w], cmd);
   commit(say_ok);
   return true;
 }
 
 /**
- * Inject the next "immediate" command, when possible, onto the front of the queue.
+ * Inject the next "immediate" command, when possible, onto the front of the buffer_ring.
  * Return true if any immediate commands remain to inject.
  */
 bool Commands::drain_injected_P() {
@@ -650,13 +658,13 @@ void Commands::unknown_error() {
  */
 void Commands::process_next() {
 
-  char * const current_command = queue[queue_index_r];
+  char * const current_command = buffer_ring[buffer_index_r];
 
   if (printer.debugEcho()) SERIAL_LT(ECHO, current_command);
 
   KEEPALIVE_STATE(IN_HANDLER);
 
-  // Parse the next command in the queue
+  // Parse the next command in the buffer_ring
   parser.parse(current_command);
 
   // Handle a known G, M, or T

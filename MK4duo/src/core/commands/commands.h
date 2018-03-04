@@ -39,7 +39,7 @@ class Commands {
 
   public: /** Public Parameters */
 
-    static char queue[BUFSIZE][MAX_CMD_SIZE];
+    static char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
     static long gcode_LastN;
 
@@ -51,13 +51,16 @@ class Commands {
 
     static bool send_ok[BUFSIZE];
 
-    static uint8_t  queue_count,    // Count of commands in the queue
-                    queue_index_r,  // Ring buffer read position
-                    queue_index_w;  // Ring buffer write position
+    static uint8_t  buffer_index_r, // Read position in Buffer Ring
+                    buffer_index_w; // Write position in Buffer Ring
+
+    static volatile uint8_t buffer_lenght; // Number of commands in the Buffer Ring
 
     static int serial_count;
 
     static const char *injected_commands_P;
+
+    static millis_t last_command_time;
 
   public: /** Public Function */
 
