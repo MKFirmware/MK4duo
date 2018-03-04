@@ -60,7 +60,7 @@
 
       void init();
       void SetAutoMonitored(const int8_t h);
-      void Check();
+      void spin();
 
       FORCE_INLINE void setHWInverted(const bool onoff) {
         SET_BIT(FanFlag, fan_flag_hardware_inverted, onoff);

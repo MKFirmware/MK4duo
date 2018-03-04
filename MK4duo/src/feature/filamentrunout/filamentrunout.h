@@ -41,7 +41,7 @@
 
       static void init();
       static void setup_pullup(const bool onoff);
-      static void check();
+      static void spin();
 
     private: /** Private Function */
 

@@ -30,7 +30,7 @@
 // 1 - EPCOS 100k
 #define T1_NAME   "EPCOS 100K"
 #define T1_R25    100000.0  // Resistance in Ohms @ 25°C
-#define T1_BETA     4036.0  // Beta Value (K)
+#define T1_BETA     4092.0  // Beta Value (K)
 
 // 2 - NTC3950
 #define T2_NAME   "NTC3950"

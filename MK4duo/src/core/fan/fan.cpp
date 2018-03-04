@@ -57,10 +57,10 @@
       SBI(autoMonitored, (uint8_t)h);
     else      
       autoMonitored = 0;
-    Check();
+    spin();
   }
 
-  void Fan::Check() {
+  void Fan::spin() {
     static millis_t next_auto_fan_check_ms  = 0,
                     lastMotorOn             = 0;
 

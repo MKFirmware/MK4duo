@@ -126,7 +126,7 @@ void Commands::get_serial() {
       serial_comment_mode = false;                      // end of line == end of comment
 
       // Skip empty lines and comments
-      if (!serial_count) { watchdog.reset(); continue; }
+      if (!serial_count) { printer.check_periodical_actions(); continue; }
 
       serial_line_buffer[serial_count] = 0;             // Terminate string
       serial_count = 0;                                 // Reset buffer
@@ -295,7 +295,7 @@ void Commands::get_serial() {
         sd_comment_mode = false; // for new command
 
         // Skip empty lines and comments
-        if (!sd_count) { watchdog.reset(); continue; }
+        if (!sd_count) { printer.check_periodical_actions(); continue; }
 
         queue[queue_index_w][sd_count] = '\0'; // terminate string
         planner.add_block_length(sd_count);

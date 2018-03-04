@@ -44,7 +44,7 @@
 
     public: /** Public Function */
 
-      static void check();
+      static void spin();
       static void power_on();
       static void power_off();
 
@@ -56,8 +56,6 @@
                       analog2error(float current),
                       analog2efficiency(float watt);
       #endif
-
-    private: /** Private Parameters */
 
     private: /** Private Function */
 
