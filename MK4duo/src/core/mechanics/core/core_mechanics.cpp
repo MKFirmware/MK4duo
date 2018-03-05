@@ -459,9 +459,9 @@
   bool Core_Mechanics::prepare_move_to_destination_cartesian() {
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
-      if (current_position[E_AXIS] != destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))
+      if (current_position[E_AXIS] < destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))
         laser.status = LASER_ON;
-      if (current_position[E_AXIS] == destination[E_AXIS])
+      else
         laser.status = LASER_OFF;
     #endif
 

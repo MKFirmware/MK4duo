@@ -194,6 +194,7 @@ void Planner::reverse_pass() {
     uint8_t blocknr     = prev_block_index(block_buffer_head);
     block_t* current    = &block_buffer[blocknr];
 
+    // Last/newest block in buffer:
     float max_entry_speed = current->max_entry_speed;
     if (current->entry_speed != max_entry_speed) {
       current->entry_speed = (TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH))
@@ -347,7 +348,7 @@ void Planner::recalculate() {
     heaters[0].setTarget(t);
   }
 
-#endif // AUTOTEMP
+#endif // HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
 /**
  * Maintain fans, paste extruder pressure,
@@ -883,24 +884,26 @@ void Planner::check_axes_activity() {
     // interval between steps for X, Y, Z, E, L to feed to the motion control code.
     if (laser.mode == RASTER || laser.mode == PULSED) {
       block->steps_l = labs(block->millimeters * laser.ppm);
-      for (uint8_t i = 0; i < LASER_MAX_RASTER_LINE; i++) {
-        // Scale the image intensity based on the raster power.
-        // 100% power on a pixel basis is 255, convert back to 255 = 100.
-        #if ENABLED(LASER_REMAP_INTENSITY)
-          const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
-          float     NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0) + LASER_REMAP_INTENSITY);
-        #else
-          const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0);
-          float     NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0));
-        #endif
+      #if ENABLED(LASER_RASTER)
+        for (uint8_t i = 0; i < LASER_MAX_RASTER_LINE; i++) {
+          // Scale the image intensity based on the raster power.
+          // 100% power on a pixel basis is 255, convert back to 255 = 100.
+          #if ENABLED(LASER_REMAP_INTENSITY)
+            const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0 - LASER_REMAP_INTENSITY);
+            float     NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0) + LASER_REMAP_INTENSITY);
+          #else
+            const int NewRange = (laser.rasterlaserpower * 255.0 / 100.0);
+            float     NewValue = (float)(((((float)laser.raster_data[i] - 0) * NewRange) / 255.0));
+          #endif
 
-        #if ENABLED(LASER_REMAP_INTENSITY)
-          // If less than 7%, turn off the laser tube.
-          if (NewValue <= LASER_REMAP_INTENSITY) NewValue = 0;
-        #endif
+          #if ENABLED(LASER_REMAP_INTENSITY)
+            // If less than 7%, turn off the laser tube.
+            if (NewValue <= LASER_REMAP_INTENSITY) NewValue = 0;
+          #endif
 
-        block->laser_raster_data[i] = NewValue;
-      }
+          block->laser_raster_data[i] = NewValue;
+        }
+      #endif
     }
     else
       block->steps_l = 0;
@@ -1202,15 +1205,11 @@ void Planner::check_axes_activity() {
     // Now the transition velocity is known, which maximizes the shared exit / entry velocity while
     // respecting the jerk factors, it may be possible, that applying separate safe exit / entry velocities will achieve faster prints.
     const float vmax_junction_threshold = vmax_junction * 0.99f;
-    if (previous_safe_speed > vmax_junction_threshold && safe_speed > vmax_junction_threshold) {
-      // Not coasting. The machine will stop and start the movements anyway,
-      // better to start the segment from start.
+    if (previous_safe_speed > vmax_junction_threshold && safe_speed > vmax_junction_threshold)
       vmax_junction = safe_speed;
-    }
   }
-  else {
+  else
     vmax_junction = safe_speed;
-  }
 
   // Max entry speed of this block equals the max exit speed of the previous block.
   block->max_entry_speed = vmax_junction;
