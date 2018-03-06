@@ -161,7 +161,7 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
                 print_input_or_output(false);
                 SERIAL_VAL(digitalRead_mod(pin));
               }
-              else if (HAL::pwm_status(pin) || HAL::tc_status(pin)) {
+              else if (pwm_status(pin)) {
                 // do nothing
               }
               else {

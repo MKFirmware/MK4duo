@@ -29,16 +29,42 @@
 #ifndef _HAL_PINSDEBUG_AVR_H_
 #define _HAL_PINSDEBUG_AVR_H_
 
-#define digitalPinToTimer_DEBUG(p) digitalPinToTimer(p)
-#define digitalPinToBitMask_DEBUG(p) digitalPinToBitMask(p)
-#define digitalPinToPort_DEBUG(p) digitalPinToPort(p)
-bool GET_PINMODE(int8_t pin) {return *portModeRegister(digitalPinToPort_DEBUG(pin)) & digitalPinToBitMask_DEBUG(pin); }
-#define GET_ARRAY_PIN(p) pgm_read_byte(&pin_array[p].pin)
+#define NUMBER_PINS_TOTAL NUM_DIGITAL_PINS
 
-#define VALID_PIN(pin)                (pin >= 0 && pin < NUM_DIGITAL_PINS ? 1 : 0)
-#define DIGITAL_PIN_TO_ANALOG_PIN(p)  int(p - analogInputToDigitalPin(0))
-#define IS_ANALOG(P)                  ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(7)))
-#define GET_ARRAY_PIN(p)              pgm_read_byte(&pin_array[p].pin)
+#if AVR_AT90USB1286_FAMILY
+  // Working with Teensyduino extension so need to re-define some things
+  #include "pinsDebug_Teensyduino.h"
+  // Can't use the "digitalPinToPort" function from the Teensyduino type IDEs
+  // portModeRegister takes a different argument
+  #define digitalPinToTimer_DEBUG(p) digitalPinToTimer(p)
+  #define digitalPinToBitMask_DEBUG(p) digitalPinToBitMask(p)
+  #define digitalPinToPort_DEBUG(p) digitalPinToPort_Teensy(p)
+  #define GET_PINMODE(pin) (*portModeRegister(pin) & digitalPinToBitMask_DEBUG(pin))
+#elif AVR_ATmega2560_FAMILY_PLUS_70   // So we can access/display all the pins on boards using more than 70
+  #include "pinsDebug_plus_70.h"
+  #define digitalPinToTimer_DEBUG(p) digitalPinToTimer_plus_70(p)
+  #define digitalPinToBitMask_DEBUG(p) digitalPinToBitMask_plus_70(p)
+  #define digitalPinToPort_DEBUG(p) digitalPinToPort_plus_70(p)
+  bool GET_PINMODE(int8_t pin) {return *portModeRegister(digitalPinToPort_DEBUG(pin)) & digitalPinToBitMask_DEBUG(pin); }
+
+#else
+  #define digitalPinToTimer_DEBUG(p) digitalPinToTimer(p)
+  #define digitalPinToBitMask_DEBUG(p) digitalPinToBitMask(p)
+  #define digitalPinToPort_DEBUG(p) digitalPinToPort(p)
+  bool GET_PINMODE(int8_t pin) {return *portModeRegister(digitalPinToPort_DEBUG(pin)) & digitalPinToBitMask_DEBUG(pin); }
+  #define GET_ARRAY_PIN(p) pgm_read_byte(&pin_array[p].pin)
+#endif
+
+#define VALID_PIN(pin) (pin >= 0 && pin < NUM_DIGITAL_PINS ? 1 : 0)
+#if AVR_ATmega1284_FAMILY
+  #define DIGITAL_PIN_TO_ANALOG_PIN(P) int(analogInputToDigitalPin(0) - (P))
+  #define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(7) && (P) <= analogInputToDigitalPin(0))
+#else
+  #define DIGITAL_PIN_TO_ANALOG_PIN(P) int((P) - analogInputToDigitalPin(0))
+  #define IS_ANALOG(P) ((P) >= analogInputToDigitalPin(0) && ((P) <= analogInputToDigitalPin(15) || (P) <= analogInputToDigitalPin(7)))
+#endif
+#define GET_ARRAY_PIN(p) pgm_read_byte(&pin_array[p].pin)
+#define MULTI_NAME_PAD 26 // space needed to be pretty if not first name assigned to a pin
 
 void PRINT_ARRAY_NAME(uint8_t x) {
   char *name_mem_pointer = (char*)pgm_read_ptr(&pin_array[x].name);
@@ -350,7 +376,7 @@ static void pwm_details(uint8_t pin) {
       #else
         x = digitalPinToPort_DEBUG(pin) + 64;
       #endif
-      SERIAL_CHAR(x);
+      SERIAL_CHR(x);
 
       #if AVR_AT90USB1286_FAMILY
         if (pin == 46)
@@ -365,7 +391,7 @@ static void pwm_details(uint8_t pin) {
         uint8_t temp = digitalPinToBitMask_DEBUG(pin);
         for (x = '0'; x < '9' && temp != 1; x++) temp >>= 1;
       #endif
-      SERIAL_CHAR(x);
+      SERIAL_CHR(x);
     #else
       SERIAL_SP(10);
     #endif
