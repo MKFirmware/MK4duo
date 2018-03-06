@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef __DURATION_T__
-#define __DURATION_T__
+#ifndef _DURATION_T_H_
+#define _DURATION_T_H_
 
 struct duration_t {
 
@@ -165,4 +165,4 @@ struct duration_t {
   }
 };
 
-#endif // __DURATION_T__
+#endif /* _DURATION_T_H_ */

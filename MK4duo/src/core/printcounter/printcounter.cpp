@@ -22,20 +22,24 @@
 
 #include "../../../MK4duo.h"
 
-PrintCounter print_job_counter = PrintCounter();
+PrintCounter print_job_counter;
 
-PrintCounter::PrintCounter(): super() {
-  this->initStats();
-}
+printStatistics PrintCounter::data;
+
+const uint16_t  PrintCounter::updateInterval  = 10,
+                PrintCounter::saveInterval    = (SD_CFG_SECONDS);
+
+millis_t PrintCounter::lastDuration;
+bool PrintCounter::loaded = false;
 
 millis_t PrintCounter::deltaDuration() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
     PrintCounter::debug(PSTR("deltaDuration"));
   #endif
 
-  millis_t tmp = this->lastDuration;
-  this->lastDuration = this->duration();
-  return this->lastDuration - tmp;
+  millis_t tmp = lastDuration;
+  lastDuration = duration();
+  return lastDuration - tmp;
 }
 
 void PrintCounter::initStats() {
@@ -43,7 +47,7 @@ void PrintCounter::initStats() {
     PrintCounter::debug(PSTR("initStats"));
   #endif
 
-  this->data = { 0, 0, 0, 0, 0.0 };
+  data = { 0, 0, 0, 0, 0.0 };
 }
 
 void PrintCounter::loadStats() {
@@ -65,7 +69,7 @@ void PrintCounter::saveStats() {
   #endif
 
   // Refuses to save data is object is not loaded
-  if (!this->loaded) return;
+  if (!loaded) return;
 
   #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
     card.StoreSettings();
@@ -77,26 +81,26 @@ void PrintCounter::showStats() {
   duration_t elapsed;
 
   SERIAL_MSG(MSG_STATS);
-  SERIAL_MV("Total: ", this->data.totalPrints);
-  SERIAL_MV(", Finished: ", this->data.finishedPrints);
+  SERIAL_MV("Total: ", data.totalPrints);
+  SERIAL_MV(", Finished: ", data.finishedPrints);
   SERIAL_MSG(", Failed: "); // Note: Removes 1 from failures with an active counter
-  SERIAL_EV (this->data.totalPrints - this->data.finishedPrints -
-            ((this->isRunning() || this->isPaused()) ? 1 : 0));
+  SERIAL_EV (data.totalPrints - data.finishedPrints -
+            ((isRunning() || isPaused()) ? 1 : 0));
 
   SERIAL_MSG(MSG_STATS);
-  elapsed = this->data.printTime;
+  elapsed = data.printTime;
   elapsed.toString(buffer);
   SERIAL_MT("Total print time: ", buffer);
-  elapsed = this->data.printer_usage;
+  elapsed = data.printer_usage;
   elapsed.toString(buffer);
   SERIAL_EMT(", Power on time: ", buffer);
 
   SERIAL_MSG(MSG_STATS);
 
-  uint16_t  kmeter = (long)this->data.filamentUsed / 1000 / 1000,
-            meter = ((long)this->data.filamentUsed / 1000) % 1000,
-            centimeter = ((long)this->data.filamentUsed / 10) % 100,
-            millimeter = ((long)this->data.filamentUsed) % 10;
+  uint16_t  kmeter = (long)data.filamentUsed / 1000 / 1000,
+            meter = ((long)data.filamentUsed / 1000) % 1000,
+            centimeter = ((long)data.filamentUsed / 10) % 100,
+            millimeter = ((long)data.filamentUsed) % 10;
   sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), kmeter, meter, centimeter, millimeter);
 
   SERIAL_EMT("Filament used: ", buffer);
@@ -110,30 +114,26 @@ void PrintCounter::tick() {
   millis_t now = millis();
 
   // Trying to get the amount of calculations down to the bare min
-  const static uint16_t i = this->updateInterval * 1000UL;
+  const static uint16_t interval = updateInterval * 1000;
 
-  if (now - update_last >= i) {
-    this->data.printer_usage += this->updateInterval;
-
-    if (this->isRunning())
-      this->data.printTime += this->deltaDuration();
-
-    update_last = now;
-
+  if (now - update_last >= interval) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
-      PrintCounter::debug(PSTR("tick"));
+      debug(PSTR("tick"));
     #endif
+    data.printer_usage += updateInterval;
+    data.printTime += deltaDuration();
+    update_last = now;
   }
 
   #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
-    const static millis_t j = this->saveInterval * 1000UL;
-    if (!this->loaded) {
-      this->loadStats();
-      this->saveStats();
+    const static millis_t sdinterval = saveInterval * 1000;
+    if (!loaded) {
+      loadStats();
+      saveStats();
     }
-    else if (now - config_last >= j) {
+    else if (now - config_last >= sdinterval) {
       config_last = now;
-      this->saveStats();
+      saveStats();
     }
   #endif
 }
@@ -143,12 +143,12 @@ bool PrintCounter::start() {
     PrintCounter::debug(PSTR("start"));
   #endif
 
-  bool paused = this->isPaused();
+  bool paused = isPaused();
 
   if (super::start()) {
     if (!paused) {
-      this->data.totalPrints++;
-      this->lastDuration = 0;
+      data.totalPrints++;
+      lastDuration = 0;
     }
     return true;
   }
@@ -161,9 +161,9 @@ bool PrintCounter::stop() {
   #endif
 
   if (super::stop()) {
-    this->data.finishedPrints++;
-    this->data.printTime += this->deltaDuration();
-    this->saveStats();
+    data.finishedPrints++;
+    data.printTime += deltaDuration();
+    saveStats();
     return true;
   }
   else return false;
@@ -175,7 +175,7 @@ void PrintCounter::reset() {
   #endif
 
   super::reset();
-  this->lastDuration = 0;
+  lastDuration = 0;
 }
 
 #if ENABLED(DEBUG_PRINTCOUNTER)

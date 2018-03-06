@@ -40,11 +40,11 @@ long    Printer::currentLayer  = 0,
 
 char    Printer::printName[21] = "";   // max. 20 chars + 0
 
-uint8_t Printer::progress                 = 0,
-        Printer::host_keepalive_interval  = DEFAULT_KEEPALIVE_INTERVAL;
+uint8_t Printer::progress = 0;
 
 // Inactivity shutdown
-millis_t  Printer::max_inactive_time  = 0;
+millis_t  Printer::max_inactive_time        = 0,
+          Printer::host_keepalive_interval  = DEFAULT_KEEPALIVE_INTERVAL;
 
 // Interrupt Event
 MK4duoInterruptEvent Printer::interruptEvent = INTERRUPT_EVENT_NONE;
@@ -64,10 +64,6 @@ PrinterMode Printer::mode =
   #else
     PRINTER_MODE_FFF;
   #endif
-
-#if ENABLED(HOST_KEEPALIVE_FEATURE)
-  Printer::MK4duoBusyState Printer::busy_state = NOT_BUSY;
-#endif
 
 #if ENABLED(RFID_MODULE)
   uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
@@ -180,16 +176,17 @@ void Printer::setup() {
 
   #if HAS_SDSUPPORT
     card.mount();
-    // loads custom configuration from SDCARD if available else uses defaults
-    card.RetrieveSettings();
   #endif
+
+  print_job_counter.init();
 
   mechanics.init();
 
   // Init endstops and pullups
   endstops.init();
 
-  // Loads data from EEPROM if available else uses defaults (and resets step acceleration rate)
+  // Load data from EEPROM if available (or use defaults)
+  // This also updates variables in the planner, elsewhere
   const bool eeprom_loaded = eeprom.Load_Settings();
 
   #if ENABLED(WORKSPACE_OFFSETS)
@@ -300,7 +297,7 @@ void Printer::setup() {
  */
 void Printer::loop() {
 
-  KEEPALIVE_STATE(NOT_BUSY);
+  printer.keepalive(NotBusy);
 
   commands.get_available();
 
@@ -514,10 +511,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
-
-  #if ENABLED(HOST_KEEPALIVE_FEATURE)
-    host_keepalive();
-  #endif
 
   #if HAS_POWER_SWITCH
     powerManager.spin();
@@ -999,32 +992,32 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
    * Output a "busy" message at regular intervals
    * while the machine is not accepting
    */
-  void Printer::host_keepalive() {
+  void Printer::keepalive(const MK4duoBusyState state) {
     const millis_t now = millis();
-    if (host_keepalive_interval && busy_state != NOT_BUSY) {
-      if (PENDING(now, next_busy_signal_ms)) return;
-      switch (busy_state) {
-        case IN_HANDLER:
-        case IN_PROCESS:
+    if (host_keepalive_interval && state != NotBusy) {
+      if (now - next_busy_signal_ms < host_keepalive_interval * 1000UL) return;
+      switch (state) {
+        case InHandler:
+        case InProcess:
           SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
           break;
-        case WAIT_HEATER:
+        case WaitHeater:
           SERIAL_LM(BUSY, MSG_BUSY_WAIT_HEATER);
           break;
-        case DOOR_OPEN:
+        case DoorOpen:
           SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
           break;
-        case PAUSED_FOR_USER:
+        case PausedforUser:
           SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
           break;
-        case PAUSED_FOR_INPUT:
+        case PausedforInput:
           SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_INPUT);
           break;
         default:
           break;
       }
     }
-    next_busy_signal_ms = now + host_keepalive_interval * 1000UL;
+    next_busy_signal_ms = now;
   }
 
 #endif // HOST_KEEPALIVE_FEATURE

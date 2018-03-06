@@ -48,10 +48,6 @@ inline void gcode_M303(void) {
 
   if (!commands.get_target_heater(h)) return;
 
-  #if DISABLED(BUSY_WHILE_HEATING)
-    KEEPALIVE_STATE(NOT_BUSY);
-  #endif
-
   SERIAL_EM(MSG_PID_AUTOTUNE_START);
 
   if (heaters[h].type == IS_HOTEND)
@@ -81,9 +77,5 @@ inline void gcode_M303(void) {
   SERIAL_EOL();
 
   thermalManager.PID_autotune(&heaters[h], temp, cycle, method, store);
-
-  #if DISABLED(BUSY_WHILE_HEATING)
-    KEEPALIVE_STATE(IN_HANDLER);
-  #endif
 
 }

@@ -23,18 +23,19 @@
 #include "../../../MK4duo.h"
 #include "stopwatch.h"
 
-Stopwatch::Stopwatch() {
-  this->reset();
-}
+Stopwatch::State Stopwatch::state;
+millis_t Stopwatch::accumulator;
+millis_t Stopwatch::startTimestamp;
+millis_t Stopwatch::stopTimestamp;
 
 bool Stopwatch::stop() {
   #if ENABLED(DEBUG_STOPWATCH)
     Stopwatch::debug(PSTR("stop"));
   #endif
 
-  if (this->isRunning() || this->isPaused()) {
-    this->state = STOPWATCH_STOPPED;
-    this->stopTimestamp = millis();
+  if (isRunning() || isPaused()) {
+    state = STOPPED;
+    stopTimestamp = millis();
     return true;
   }
   else return false;
@@ -45,9 +46,9 @@ bool Stopwatch::pause() {
     Stopwatch::debug(PSTR("pause"));
   #endif
 
-  if (this->isRunning()) {
-    this->state = STOPWATCH_PAUSED;
-    this->stopTimestamp = millis();
+  if (isRunning()) {
+    state = PAUSED;
+    stopTimestamp = millis();
     return true;
   }
   else return false;
@@ -58,12 +59,12 @@ bool Stopwatch::start() {
     Stopwatch::debug(PSTR("start"));
   #endif
 
-  if (!this->isRunning()) {
-    if (this->isPaused()) this->accumulator = this->duration();
-    else this->reset();
+  if (!isRunning()) {
+    if (isPaused()) accumulator = duration();
+    else reset();
 
-    this->state = STOPWATCH_RUNNING;
-    this->startTimestamp = millis();
+    state = RUNNING;
+    startTimestamp = millis();
     return true;
   }
   else return false;
@@ -74,30 +75,28 @@ void Stopwatch::reset() {
     Stopwatch::debug(PSTR("reset"));
   #endif
 
-  this->state = STOPWATCH_STOPPED;
-  this->startTimestamp = 0;
-  this->stopTimestamp = 0;
-  this->accumulator = 0;
+  state = STOPPED;
+  startTimestamp = 0;
+  stopTimestamp = 0;
+  accumulator = 0;
 }
 
 bool Stopwatch::isRunning() {
-  return (this->state == STOPWATCH_RUNNING) ? true : false;
+  return (state == RUNNING) ? true : false;
 }
 
 bool Stopwatch::isPaused() {
-  return (this->state == STOPWATCH_PAUSED) ? true : false;
+  return (state == PAUSED) ? true : false;
 }
 
 millis_t Stopwatch::duration() {
-  return (((this->isRunning()) ? millis() : this->stopTimestamp)
-          - this->startTimestamp) / 1000UL + this->accumulator;
+  return (((isRunning()) ? millis() : stopTimestamp)
+          - startTimestamp) / 1000UL + accumulator;
 }
 
 #if ENABLED(DEBUG_STOPWATCH)
   void Stopwatch::debug(const char func[]) {
-    if (printer.debugInfo()) {
-      SERIAL_MV("Stopwatch:", func);
-      SERIAL_EM("()");
-    }
+    SERIAL_MT("Stopwatch:", func);
+    SERIAL_EM("()");
   }
 #endif

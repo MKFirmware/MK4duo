@@ -23,14 +23,7 @@
 #ifndef _STOPWATCH_H_
 #define _STOPWATCH_H_
 
-// Print debug messages with M111 S2 (Uses 156 bytes of PROGMEM)
 //#define DEBUG_STOPWATCH
-
-enum StopwatchState {
-  STOPWATCH_STOPPED,
-  STOPWATCH_RUNNING,
-  STOPWATCH_PAUSED
-};
 
 /**
  * @brief Stopwatch class
@@ -39,18 +32,25 @@ enum StopwatchState {
  */
 class Stopwatch {
 
-  public: /** Constructor */
-
-    Stopwatch();
-
   private: /** Private Parameters */
 
-    StopwatchState state;
-    millis_t accumulator;
-    millis_t startTimestamp;
-    millis_t stopTimestamp;
+    enum State {
+      STOPPED,
+      RUNNING,
+      PAUSED
+    };
+
+    static Stopwatch::State state;
+    static millis_t accumulator;
+    static millis_t startTimestamp;
+    static millis_t stopTimestamp;
 
   public: /** Public Function */
+
+    /**
+     * @brief Initialize the stopwatch
+     */
+    FORCE_INLINE static void init() { reset(); }
 
     /**
      * @brief Stops the stopwatch
@@ -58,7 +58,7 @@ class Stopwatch {
      * no timer is currently running.
      * @return true is method was successful
      */
-    bool stop();
+    static bool stop();
 
     /**
      * @brief Pauses the stopwatch
@@ -66,7 +66,7 @@ class Stopwatch {
      * no timer is currently running.
      * @return true is method was successful
      */
-    bool pause();
+    static bool pause();
 
     /**
      * @brief Starts the stopwatch
@@ -74,34 +74,34 @@ class Stopwatch {
      * timer is already running.
      * @return true is method was successful
      */
-    bool start();
+    static bool start();
 
     /**
      * @brief Resets the stopwatch
      * @details Resets all settings to their default values.
      */
-    void reset();
+    static void reset();
 
     /**
      * @brief Checks if the timer is running
      * @details Returns true if the timer is currently running, false otherwise.
      * @return true if stopwatch is running
      */
-    bool isRunning();
+    static bool isRunning();
 
     /**
      * @brief Checks if the timer is paused
      * @details Returns true if the timer is currently paused, false otherwise.
      * @return true if stopwatch is paused
      */
-    bool isPaused();
+    static bool isPaused();
 
     /**
      * @brief Gets the running time
      * @details Returns the total number of seconds the timer has been running.
      * @return the delta since starting the stopwatch
      */
-    millis_t duration();
+    static millis_t duration();
 
     #if ENABLED(DEBUG_STOPWATCH)
 

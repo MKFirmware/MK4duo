@@ -965,7 +965,7 @@ inline void gcode_G29(void) {
 
   mechanics.report_current_position();
 
-  KEEPALIVE_STATE(IN_HANDLER);
+  printer.keepalive(InHandler);
 
   if (bedlevel.leveling_active)
     mechanics.sync_plan_position();

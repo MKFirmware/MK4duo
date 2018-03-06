@@ -55,12 +55,7 @@
 
     #else // !CASE_LIGHT_USE_NEOPIXEL
 
-      if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
-        HAL::analogWrite(CASE_LIGHT_PIN, intensity);
-      else {
-        const bool s = status ? !INVERT_CASE_LIGHT : INVERT_CASE_LIGHT;
-        HAL::digitalWrite(CASE_LIGHT_PIN, s ? HIGH : LOW);
-      }
+      HAL::analogWrite(CASE_LIGHT_PIN, intensity);
 
     #endif // !CASE_LIGHT_USE_NEOPIXEL
   }

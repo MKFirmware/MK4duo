@@ -130,6 +130,7 @@ typedef int8_t    pin_t;
 #include "src/core/heater/sensor/thermistor.h"
 #include "src/core/heater/heater.h"
 #include "src/core/temperature/temperature.h"
+#include "src/core/printcounter/printcounter.h"
 
 // LCD modules
 #include "src/lcd/language/language.h"
@@ -145,8 +146,6 @@ typedef int8_t    pin_t;
 #include "src/utility/bezier.h"
 
 // Feature modules
-#include "src/feature/printcounter/duration_t.h"
-#include "src/feature/printcounter/printcounter.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"

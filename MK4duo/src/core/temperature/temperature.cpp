@@ -98,10 +98,6 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   const bool oldReport = printer.isAutoreportTemp();
   printer.setAutoreportTemp(true);
 
-  #if DISABLED(BUSY_WHILE_HEATING)
-    KEEPALIVE_STATE(NOT_BUSY);
-  #endif
-
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = act->current_temperature;
     uint8_t old_blue = 0;
@@ -114,12 +110,9 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
 
-    #if ENABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(WAIT_HEATER);
-    #endif
-
     now = millis();
     printer.idle();
+    printer.keepalive(WaitHeater);
     commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
 
     const float temp = act->current_temperature;
@@ -189,10 +182,6 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
       leds.set_white();
     #endif
   }
-
-  #if DISABLED(BUSY_WHILE_HEATING)
-    KEEPALIVE_STATE(IN_HANDLER);
-  #endif
 
   printer.setAutoreportTemp(oldReport);
 }
@@ -365,10 +354,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
     watchdog.reset(); // Reset the watchdog
     printer.idle();
-
-    #if ENABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(WAIT_HEATER);
-    #endif
+    printer.keepalive(WaitHeater);
 
     act->updateCurrentTemperature();
 

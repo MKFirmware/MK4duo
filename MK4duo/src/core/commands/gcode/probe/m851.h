@@ -41,7 +41,7 @@ inline void gcode_M851(void) {
       probe.offset[Z_AXIS] = value;
     }
     else {
-      SERIAL_EM(" " MSG_Z_MIN STRINGIFY(Z_PROBE_OFFSET_RANGE_MIN) " " MSG_Z_MAX STRINGIFY(Z_PROBE_OFFSET_RANGE_MAX));
+      SERIAL_LM(ER, "?Z out of range (" STRINGIFY(Z_PROBE_OFFSET_RANGE_MIN) " to " STRINGIFY(Z_PROBE_OFFSET_RANGE_MAX));
       return;
     }
   }

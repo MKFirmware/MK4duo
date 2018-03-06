@@ -514,22 +514,12 @@ void Stepper::isr() {
     return;
   }
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    #if ENABLED(LASER)
-      if (laser.firing == LASER_ON && laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
-        if (laser.diagnostics)
-          SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
-        laser.extinguish();
-      }
-    #endif
-  #else
-    #if ENABLED(LASER)
-      if (laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
-        if (laser.diagnostics)
-          SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
-        laser.extinguish();
-      }
-    #endif
+  #if ENABLED(LASER)
+    if (laser.dur != 0 && (laser.last_firing + laser.dur < micros())) {
+      if (laser.diagnostics)
+        SERIAL_EM("Laser firing duration elapsed, in interrupt handler");
+      laser.extinguish();
+    }
   #endif
 
   // If there is no current block, attempt to pop one from the buffer
@@ -546,11 +536,7 @@ void Stepper::isr() {
       counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
 
       #if ENABLED(LASER)
-        #if ENABLED(CPU_32_BIT)
-          counter_L = 1000 * counter_X;
-        #else
-          counter_L = counter_X;
-        #endif
+        counter_L = counter_X;
         laser.dur = current_block->laser_duration;
       #endif
 
@@ -764,11 +750,7 @@ void Stepper::isr() {
           }
         #endif // LASER_RASTER
 
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          counter_L -= 1000 * current_block->step_event_count;
-        #else
-          counter_L -= current_block->step_event_count;
-        #endif
+        counter_L -= current_block->step_event_count;
       }
       if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
         if (laser.diagnostics)
@@ -1329,7 +1311,12 @@ void Stepper::init() {
 /**
  * Block until all buffered steps are executed / cleaned
  */
-void Stepper::synchronize() { while (planner.blocks_queued()) printer.idle(); }
+void Stepper::synchronize() {
+  while (planner.blocks_queued()) {
+    printer.idle();
+    printer.keepalive(InProcess);
+  }
+}
 
 /**
  * Set the stepper positions directly in steps
