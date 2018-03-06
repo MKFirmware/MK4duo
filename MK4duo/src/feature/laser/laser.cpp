@@ -42,16 +42,49 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(LASER) && ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(LASER)
 
   Laser laser;
+
+  float     Laser::ppm          = 0.0;
+
+  uint8_t   Laser::intensity    = 255,
+            Laser::mode         = CONTINUOUS;
+
+  uint32_t  Laser::duration     = 0,
+            Laser::dur          = 0;
+
+  bool      Laser::status       = LASER_OFF,
+            Laser::firing       = LASER_OFF,
+            Laser::diagnostics  = false;
+
+  millis_t  Laser::last_firing  = 0;
+  
+  uint16_t  Laser::time         = 0,
+            Laser::lifetime     = 0;
+
+  #if ENABLED(LASER_RASTER)
+
+    unsigned char Laser::raster_data[LASER_MAX_RASTER_LINE] = { 0 },
+                  Laser::rasterlaserpower                   = 0;
+
+    float         Laser::raster_aspect_ratio  = 0.0,
+                  Laser::raster_mm_per_pulse  = 0.0;
+
+    int           Laser::raster_raw_length    = 0,
+                  Laser::raster_num_pixels    = 0;
+
+    uint8_t       Laser::raster_direction     = 0;
+
+  #endif
 
   void Laser::init() {
 
     #if LASER_CONTROL == 1
-      HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM);
+      HAL::pinMode(LASER_PWR_PIN, OUTPUT);
     #elif LASER_CONTROL == 2
-      HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM);
+      HAL::pinMode(LASER_PWR_PIN, OUTPUT);
+      HAL::pinMode(LASER_PWM_PIN, OUTPUT);
     #endif
 
     #if ENABLED(LASER_PERIPHERALS)
@@ -63,45 +96,28 @@
       OUT_WRITE(LASER_PWR_PIN, LASER_UNARM);  // Laser FIRING is active LOW, so preset the pin
     #endif
 
-    // initialize state to some sane defaults
-    laser.intensity = 100.0;
-    laser.ppm = 0.0;
-    laser.duration = 0;
-    laser.status = LASER_OFF;
-    laser.firing = LASER_ON;
-    laser.mode = CONTINUOUS;
-    laser.last_firing = 0;
-    laser.diagnostics = false;
-    laser.time = 0;
-
     #if ENABLED(LASER_RASTER)
       laser.raster_aspect_ratio = LASER_RASTER_ASPECT_RATIO;
       laser.raster_mm_per_pulse = LASER_RASTER_MM_PER_PULSE;
       laser.raster_direction = 1;
     #endif // LASER_RASTER
-    
-    #if DISABLED(LASER_PULSE_METHOD)
-      laser.extinguish();
-    #endif
+
+    laser.extinguish();
   }
 
-  void Laser::fire(float intensity/*=100.0*/) {
+  void Laser::fire(uint8_t intensity/*=255*/) {
 
     laser.firing = LASER_ON;
     laser.last_firing = micros(); // microseconds of last laser firing
 
-    // restrict intensity between 0 and 100
-    NOMORE(intensity, 100.0);
-    NOLESS(intensity, 0.0);
-
     #if ENABLED(LASER_PWM_INVERT)
-      intensity = 100 - intensity;
+      intensity = 255 - intensity;
     #endif
 
     #if LASER_CONTROL == 1
-      HAL::analogWrite(LASER_PWR_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      HAL::analogWrite(LASER_PWR_PIN, intensity); // Range 0-255
     #elif LASER_CONTROL == 2
-      HAL::analogWrite(LASER_PWM_PIN, (255 * intensity * 0.01), LASER_PWM); // Range 0-255
+      HAL::analogWrite(LASER_PWM_PIN, intensity); // Range 0-255
       HAL::digitalWrite(LASER_PWR_PIN, LASER_ARM);
     #endif
 
@@ -116,15 +132,15 @@
 
       #if LASER_CONTROL == 1
         #if ENABLED(LASER_PWM_INVERT)
-          HAL::analogWrite(LASER_PWR_PIN, 255, LASER_PWM);
+          HAL::analogWrite(LASER_PWR_PIN, 255);
         #else
-          HAL::analogWrite(LASER_PWR_PIN, 0, LASER_PWM);
+          HAL::analogWrite(LASER_PWR_PIN, 0);
         #endif
       #elif LASER_CONTROL == 2
         #if ENABLED(LASER_PWM_INVERT)
-          HAL::analogWrite(LASER_PWM_PIN, 255, LASER_PWM);
+          HAL::analogWrite(LASER_PWM_PIN, 255);
         #else
-          HAL::analogWrite(LASER_PWM_PIN, 0, LASER_PWM);
+          HAL::analogWrite(LASER_PWM_PIN, 0);
         #endif
         HAL::digitalWrite(LASER_PWR_PIN, LASER_UNARM);
       #endif

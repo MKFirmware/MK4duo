@@ -49,9 +49,9 @@
         case PRINTER_MODE_LASER: {
           if (printer.isRunning()) {
             #if ENABLED(INTENSITY_IN_BYTE)
-              if (parser.seenval('S')) laser.intensity = (float)(parser.value_byte() / 255) * 100.0;
+              if (parser.seenval('S')) laser.intensity = parser.value_byte();
             #else
-              if (parser.seenval('S')) laser.intensity = parser.value_float();
+              if (parser.seenval('S')) laser.intensity = 255 * parser.value_float() * 0.01;
             #endif
             if (parser.seenval('L')) laser.duration = parser.value_ulong();
             if (parser.seenval('P')) laser.ppm = parser.value_float();
