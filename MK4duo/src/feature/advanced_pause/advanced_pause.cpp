@@ -136,7 +136,7 @@
         UNUSED(max_beep_count);
       #endif
 
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      printer.keepalive(PausedforUser);
       printer.setWaitForUser(true);    // LCD click or M108 will clear this
       while (printer.isWaitForUser()) {
         #if HAS_BUZZER
@@ -144,7 +144,7 @@
         #endif
         printer.idle(true);
       }
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
     }
 
     #if HAS_LCD
@@ -170,11 +170,11 @@
       // Show "Purge More" / "Resume" menu and wait for reply
       #if HAS_LCD
         if (show_lcd) {
-          KEEPALIVE_STATE(PAUSED_FOR_USER);
+          printer.keepalive(PausedforUser);
           printer.setWaitForUser(false);
           lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_OPTION, mode);
           while (advanced_pause_menu_response == ADVANCED_PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
-          KEEPALIVE_STATE(IN_HANDLER);
+          printer.keepalive(InHandler);
         }
       #endif
 
@@ -348,7 +348,7 @@
     #endif
 
     // Wait for filament insert by user and press button
-    KEEPALIVE_STATE(PAUSED_FOR_USER);
+    printer.keepalive(PausedforUser);
     printer.setWaitForUser(true); // LCD click or M108 will clear this
     while (printer.isWaitForUser()) {
       #if HAS_BUZZER
@@ -434,7 +434,7 @@
 
       printer.idle(true);
     }
-    KEEPALIVE_STATE(IN_HANDLER);
+    printer.keepalive(InHandler);
   }
 
   /**

@@ -75,7 +75,7 @@
     #endif
 
     printer.setWaitForUser(true);
-    KEEPALIVE_STATE(PAUSED_FOR_USER);
+    printer.keepalive(PausedforUser);
 
     stepper.synchronize();
     commands.refresh_cmd_timeout();
@@ -96,7 +96,7 @@
     }
 
     printer.setWaitForUser(false);
-    KEEPALIVE_STATE(IN_HANDLER);
+    printer.keepalive(InHandler);
   }
 
 #endif // HAS_RESUME_CONTINUE

@@ -24,34 +24,30 @@
 #define _PRINTCOUNTER_H_
 
 #include "stopwatch.h"
+#include "duration_t.h"
 
-// Print debug messages with M111 S2
 //#define DEBUG_PRINTCOUNTER
 
 struct printStatistics {
-  uint16_t totalPrints;     // Number of prints
-  uint16_t finishedPrints;  // Number of complete prints
-  uint32_t printTime;       // Accumulated printing time
-  uint32_t printer_usage;   // Printer usage ON
-  double filamentUsed;      // Accumulated filament consumed in mm
+  uint16_t  totalPrints;    // Number of prints
+  uint16_t  finishedPrints; // Number of complete prints
+  uint32_t  printTime;      // Accumulated printing time
+  uint32_t  printer_usage;  // Printer usage ON
+  double    filamentUsed;   // Accumulated filament consumed in mm
 };
 
 class PrintCounter: public Stopwatch {
 
-  public: /** Constructor */
-
-    PrintCounter();
-
   public: /** Public Parameters */
 
-    printStatistics data;
+    static printStatistics data;
 
     /**
      * @brief Stats were loaded from SDCARD
      * @details If set to true it indicates if the statistical data was already
      * loaded from the SDCARD.
      */
-    bool loaded = false;
+    static bool loaded;
 
   private: /** Private Parameters */
 
@@ -60,44 +56,52 @@ class PrintCounter: public Stopwatch {
   public: /** Public Function */
 
     /**
+     * @brief Initialize the print counter
+     */
+    static inline void init() {
+      super::init();
+      loadStats();
+    }
+
+    /**
      * @brief Resets the Print Statistics
      * @details Resets the statistics to zero
      * also the magic header.
      */
-    void initStats();
+    static void initStats();
 
     /**
      * @brief Loads the Print Statistics
      * @details Loads the statistics from SDCARD
      */
-    void loadStats();
+    static void loadStats();
 
     /**
      * @brief Saves the Print Statistics
      * @details Saves the statistics to SDCARD
      */
-    void saveStats();
+    static void saveStats();
 
     /**
      * @brief Serial output the Print Statistics
      * @details This function may change in the future, for now it directly
      * prints the statistical data to serial.
      */
-    void showStats();
+    static void showStats();
 
     /**
      * @brief Loop function
      * @details This function should be called at loop, it will take care of
      * periodically save the statistical data to SDCARD and do time keeping.
      */
-    void tick();
+    static void tick();
 
     /**
      * The following functions are being overridden
      */
-    bool start();
-    bool stop();
-    void reset();
+    static bool start();
+    static bool stop();
+    static void reset();
 
     #if ENABLED(DEBUG_PRINTCOUNTER)
 
@@ -116,20 +120,20 @@ class PrintCounter: public Stopwatch {
      * @details This const value defines what will be the time between each
      * accumulator update.
      */
-    const uint16_t updateInterval = 10;
+    static const uint16_t updateInterval;
 
     /**
      * @brief Interval in seconds between SDCARD saves
      * @details This const value defines what will be the time between each
      */
-    const uint16_t saveInterval = (SD_CFG_SECONDS);
+    static const uint16_t saveInterval;
 
     /**
      * @brief Timestamp of the last call to deltaDuration()
      * @details Stores the timestamp of the last deltaDuration(), this is
      * required due to the updateInterval cycle.
      */
-    millis_t lastDuration;
+    static millis_t lastDuration;
 
   protected: /** Protected Parameters */
 
@@ -139,7 +143,7 @@ class PrintCounter: public Stopwatch {
      * used internally for print statistics accounting is not intended to be a
      * user callable function.
      */
-    millis_t deltaDuration();
+    static millis_t deltaDuration();
 
 };
 

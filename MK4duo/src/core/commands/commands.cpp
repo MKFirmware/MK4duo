@@ -96,14 +96,14 @@ void Commands::get_serial() {
 
   #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
-      KEEPALIVE_STATE(DOOR_OPEN);
+      printer.keepalive(DoorOpen);
       return;  // do nothing while door is open
     }
   #endif
 
   // Buffer Ring is full
   if (buffer_lenght >= BUFSIZE) {
-    KEEPALIVE_STATE(IN_PROCESS);
+    printer.keepalive(InProcess);
     return;
   }
 
@@ -243,7 +243,7 @@ void Commands::get_serial() {
 
     #if HAS_DOOR_OPEN
       if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
-        KEEPALIVE_STATE(DOOR_OPEN);
+        printer.keepalive(DoorOpen);
         return;  // do nothing while door is open
       }
     #endif
@@ -662,7 +662,7 @@ void Commands::process_next() {
 
   if (printer.debugEcho()) SERIAL_LT(ECHO, current_command);
 
-  KEEPALIVE_STATE(IN_HANDLER);
+  printer.keepalive(InHandler);
 
   // Parse the next command in the buffer_ring
   parser.parse(current_command);
@@ -717,7 +717,7 @@ void Commands::process_next() {
 
       // With M105 "ok" already sended
       if (code_num == 105) {
-        KEEPALIVE_STATE(NOT_BUSY);
+        printer.keepalive(NotBusy);
         return;
       }
 
@@ -735,7 +735,7 @@ void Commands::process_next() {
     default: unknown_error();
   }
 
-  KEEPALIVE_STATE(NOT_BUSY);
+  printer.keepalive(NotBusy);
 
   ok_to_send();
 }

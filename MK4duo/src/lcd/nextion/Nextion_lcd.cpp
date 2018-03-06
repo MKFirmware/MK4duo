@@ -948,10 +948,10 @@
       Pprobe.show();
       ProbeMsg.setText(PSTR(MSG_MOVE_Z));
 
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      printer.keepalive(PausedforUser);
       printer.setWaitForUser(true);
       while (printer.isWaitForUser()) printer.idle();
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
 
       Pprinter.show();
       return mechanics.current_position[Z_AXIS];

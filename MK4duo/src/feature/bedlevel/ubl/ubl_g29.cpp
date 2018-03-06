@@ -776,9 +776,9 @@
     }
 
     float unified_bed_leveling::measure_point_with_encoder() {
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      printer.keepalive(PausedforUser);
       move_z_with_encoder(0.01);
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
       return mechanics.current_position[Z_AXIS];
     }
 
@@ -827,7 +827,7 @@
       SERIAL_EM("\nMesh only partially populated.");
       mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
       lcd_external_control = false;
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
       lcd_quick_feedback(true);
       ubl.restore_ubl_active_state_and_leave();
     }
@@ -857,7 +857,7 @@
         mechanics.do_blocking_move_to(xProbe, yProbe, Z_PROBE_BETWEEN_HEIGHT);
         mechanics.do_blocking_move_to_z(z_clearance);
 
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
+        printer.keepalive(PausedforUser);
         lcd_external_control = true;
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
@@ -873,7 +873,7 @@
           SERIAL_EM("\nMesh only partially populated.");
           mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
           lcd_external_control = false;
-          KEEPALIVE_STATE(IN_HANDLER);
+          printer.keepalive(InHandler);
           restore_ubl_active_state_and_leave();
           return;
         }
@@ -890,7 +890,7 @@
       if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
       restore_ubl_active_state_and_leave();
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
       mechanics.do_blocking_move_to(rx, ry, Z_PROBE_DEPLOY_HEIGHT);
     }
 
@@ -1371,7 +1371,7 @@
 
         mechanics.do_blocking_move_to(rawx, rawy, Z_PROBE_BETWEEN_HEIGHT); // Move the nozzle to the edit point
 
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
+        printer.keepalive(PausedforUser);
         lcd_external_control = true;
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show the user which point is being adjusted
@@ -1414,7 +1414,7 @@
       FINE_TUNE_EXIT:
 
       lcd_external_control = false;
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
 
       if (do_ubl_mesh_map) display_map(g29_map_type);
       restore_ubl_active_state_and_leave();

@@ -106,7 +106,7 @@
         // LCD click or M108 will clear this
         printer.setWaitForUser(true);
 
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
+        printer.keepalive(PausedforUser);
 
         #if HAS_BUZZER
           millis_t next_buzz = millis();
@@ -133,7 +133,7 @@
       stepper.synchronize();
 
       if (wait) {
-        KEEPALIVE_STATE(IN_HANDLER);
+        printer.keepalive(InHandler);
 
         SERIAL_STR(RESUME);
         SERIAL_EOL();

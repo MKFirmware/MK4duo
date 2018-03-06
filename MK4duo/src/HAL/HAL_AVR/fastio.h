@@ -72,7 +72,7 @@
 #define _TOGGLE(IO)     do {DIO ## IO ## _RPORT ^= _BV(DIO ## IO ## _PIN); } while (0)
 
 #define _SET_INPUT(IO)  do {DIO ## IO ## _DDR &= ~_BV(DIO ## IO ## _PIN); } while (0)
-#define _SET_OUTPUT(IO) do {DIO ## IO ## _DDR |= _BV(DIO ## IO ## _PIN); } while (0)
+#define _SET_OUTPUT(IO) do {DIO ## IO ## _DDR |=  _BV(DIO ## IO ## _PIN); } while (0)
 
 #define _GET_INPUT(IO)  ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) == 0)
 #define _GET_OUTPUT(IO) ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) != 0)
@@ -95,6 +95,7 @@
 #define PULLUP(IO)      _WRITE(IO, HIGH)
 #define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
 
+// define which hardware PWMs are available for the current CPU
 #define USEABLE_HARDWARE_PWM(p) digitalPinHasPWM(p)
 
 /**

@@ -259,7 +259,7 @@
 
       #if HAS_RESUME_CONTINUE
         printer.setWaitForUser(true);
-        KEEPALIVE_STATE(PAUSED_FOR_USER);
+        printer.keepalive(PausedforUser);
       #endif
 
       for(;;) {
@@ -280,7 +280,7 @@
 
         #if HAS_RESUME_CONTINUE
           if (!printer.isWaitForUser()) {
-            KEEPALIVE_STATE(IN_HANDLER);
+            printer.keepalive(InHandler);
             break;
           }
         #endif

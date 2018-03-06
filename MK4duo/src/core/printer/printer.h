@@ -74,6 +74,20 @@ enum MK4duoInterruptEvent {
   INTERRUPT_EVENT_ENC_DETECT
 };
 
+/**
+ * States for managing MK4duo and host communication
+ * MK4duo sends messages if blocked or busy
+ */
+enum MK4duoBusyState {
+  NotBusy,          // Not in a handler
+  InHandler,        // Processing a GCode
+  InProcess,        // Known to be blocking command input (as in G29)
+  WaitHeater,       // Wait heater
+  PausedforUser,    // Blocking pending any input
+  PausedforInput,   // Blocking pending text input
+  DoorOpen          // Door open
+};
+      
 extern const char axis_codes[NUM_AXIS];
 
 class Printer {
@@ -91,33 +105,13 @@ class Printer {
 
     static char     printName[21];  // max. 20 chars + 0
 
-    static uint8_t  progress,
-                    host_keepalive_interval;
+    static uint8_t  progress;
 
-    static millis_t max_inactive_time;
+    static millis_t max_inactive_time,
+                    host_keepalive_interval;
 
     static MK4duoInterruptEvent interruptEvent;
     static PrinterMode          mode;
-
-    #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      /**
-       * States for managing MK4duo and host communication
-       * MK4duo sends messages if blocked or busy
-       */
-      enum MK4duoBusyState {
-        NOT_BUSY,           // Not in a handler
-        IN_HANDLER,         // Processing a GCode
-        IN_PROCESS,         // Known to be blocking command input (as in G29)
-        WAIT_HEATER,        // Wait heater
-        PAUSED_FOR_USER,    // Blocking pending any input
-        PAUSED_FOR_INPUT,   // Blocking pending text input (concept)
-        DOOR_OPEN           // Door open
-      };
-      static MK4duoBusyState busy_state;
-      #define KEEPALIVE_STATE(n) do{ printer.busy_state = printer.n; }while(0)
-    #else
-      #define KEEPALIVE_STATE(n) NOOP
-    #endif
 
     #if ENABLED(RFID_MODULE)
       static uint32_t Spool_ID[EXTRUDERS];
@@ -175,6 +169,12 @@ class Printer {
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
+    #endif
+
+    #if ENABLED(HOST_KEEPALIVE_FEATURE)
+      static void keepalive(const MK4duoBusyState state);
+    #else
+      FORCE_INLINE static void keepalive(const MK4duoBusyState state) { UNUSED(state); }
     #endif
 
     // Flags function
@@ -294,10 +294,6 @@ class Printer {
     static void handle_interrupt_events();
 
     static void bracket_probe_move(const bool before);
-
-    #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      static void host_keepalive();
-    #endif
 
     #if ENABLED(TEMP_STAT_LEDS)
       static void handle_status_leds();

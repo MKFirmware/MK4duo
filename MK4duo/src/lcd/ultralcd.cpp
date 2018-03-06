@@ -2641,11 +2641,11 @@ void kill_screen(const char* lcd_msg) {
 
     float lcd_probe_pt(const float &rx, const float &ry) {
       _man_probe_pt(rx, ry);
-      KEEPALIVE_STATE(PAUSED_FOR_USER);
+      printer.keepalive(PausedforUser);
       defer_return_to_status = true;
       printer.setWaitForUser(true);
       while (printer.isWaitForUser()) printer.idle();
-      KEEPALIVE_STATE(IN_HANDLER);
+      printer.keepalive(InHandler);
       lcd_goto_previous_menu_no_defer();
       return mechanics.current_position[Z_AXIS];
     }
@@ -5579,11 +5579,11 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   void lcd_eeprom_allert() {
     lcd_goto_screen(_lcd_eeprom_allert);
     lcd_completion_feedback(true);
-    KEEPALIVE_STATE(PAUSED_FOR_USER);
+    printer.keepalive(PausedforUser);
     defer_return_to_status = true;
     printer.setWaitForUser(true);
     while (printer.isWaitForUser()) printer.idle();
-    KEEPALIVE_STATE(IN_HANDLER);
+    printer.keepalive(InHandler);
     lcd_return_to_status();
   }
 
