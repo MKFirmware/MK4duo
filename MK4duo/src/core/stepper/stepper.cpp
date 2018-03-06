@@ -730,7 +730,7 @@ void Stepper::isr() {
     #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
 
     #if ENABLED(LASER)
-      counter_L += current_block->steps_l * PPM_MULTIPLICATOR;
+      counter_L += current_block->steps_l;
       if (counter_L > 0) {
         if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
           laser.fire(current_block->laser_intensity);
