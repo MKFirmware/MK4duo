@@ -333,6 +333,9 @@ void Printer::check_periodical_actions() {
         thermalManager.report_temperatures();
         SERIAL_EOL();
       }
+      #if HAS_SDSUPPORT
+        if (isAutoreportSD()) card.printStatus();
+      #endif
       #if ENABLED(NEXTION)
         nextion_draw_update();
       #endif

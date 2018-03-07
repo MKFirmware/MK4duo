@@ -54,6 +54,7 @@ enum Flag2VariousEnum {
   flag2_wait_for_heatup,
   flag2_allow_cold_extrude,
   flag2_autoreport_temp,
+  flag2_autoreport_sd,
   flag2_filament_out,
   flag2_g38_move
 };
@@ -275,6 +276,11 @@ class Printer {
       SET_BIT(mk_2_flag, flag2_autoreport_temp, onoff);
     }
     FORCE_INLINE static bool isAutoreportTemp() { return TEST(mk_2_flag, flag2_autoreport_temp); }
+
+    FORCE_INLINE static void setAutoreportSD(const bool onoff) {
+      SET_BIT(mk_2_flag, flag2_autoreport_sd, onoff);
+    }
+    FORCE_INLINE static bool isAutoreportSD() { return TEST(mk_2_flag, flag2_autoreport_sd); }
 
     FORCE_INLINE static void setFilamentOut(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_filament_out, onoff);
