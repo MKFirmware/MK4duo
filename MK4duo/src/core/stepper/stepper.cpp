@@ -886,17 +886,19 @@ void Stepper::isr() {
   // Timer interrupt for E. e_steps is set in the main routine;
   void Stepper::advance_isr() {
 
-    #define SET_E_STEP_DIR(INDEX) \
-      if (e_steps) E## INDEX ##_DIR_WRITE(e_steps < 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR)
+    #if ENABLED(DUAL_X_CARRIAGE)
+      #define SET_E_STEP_DIR(INDEX) do{ if (e_steps) { if (e_steps < 0) REV_E_DIR(); else NORM_E_DIR(); } }while(0)
+    #else
+      #define SET_E_STEP_DIR(INDEX) do{ if (e_steps) E## INDEX ##_DIR_WRITE(e_steps < 0 ? INVERT_E## INDEX ##_DIR : !INVERT_E## INDEX ##_DIR); }while(0)
+    #endif
 
-    #define START_E_PULSE(INDEX) \
-      if (e_steps) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN)
-
-    #define STOP_E_PULSE(INDEX) \
-      if (e_steps) { \
-        e_steps < 0 ? ++e_steps : --e_steps; \
-        E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); \
-      }
+    #if ENABLED(DUAL_X_CARRIAGE)
+      #define START_E_PULSE(INDEX) do{ if (e_steps) E_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
+      #define STOP_E_PULSE(INDEX) do{ if (e_steps) { E_STEP_WRITE(INVERT_E_STEP_PIN); e_steps < 0 ? ++e_steps : --e_steps; } }while(0)
+    #else
+      #define START_E_PULSE(INDEX) do{ if (e_steps) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
+      #define STOP_E_PULSE(INDEX) do { if (e_steps) { E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); e_steps < 0 ? ++e_steps : --e_steps; } }while(0)
+    #endif
 
     if (use_advance_lead) {
       if (step_events_completed > LA_decelerate_after && current_adv_steps > final_adv_steps) {
