@@ -1497,8 +1497,6 @@
 //#define NEXTION
 // Define Serial it use
 #define NEXTION_SERIAL 1
-// Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
-#define NEXTION_UPDATE_INTERVAL 3000
 // For GFX preview visualization enable NEXTION GFX
 //#define NEXTION_GFX
 // Define name firmware file for Nextion on SD
