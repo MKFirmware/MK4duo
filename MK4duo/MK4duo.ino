@@ -92,7 +92,7 @@
  * M24  - Start/resume SD print. (Requires SDSUPPORT)
  * M25  - Pause SD print. (Requires SDSUPPORT)
  * M26  - Set SD position in bytes (M26 S12345). (Requires SDSUPPORT)
- * M27  - Report SD print status. (Requires SDSUPPORT)
+ * M27  - Report SD print status. With 'S<bool>' set the SD status auto-report. (Requires SDSUPPORT) 
  * M28  - Start SD write (M28 filename.g). (Requires SDSUPPORT)
  * M29  - Stop SD write. (Requires SDSUPPORT)
  * M30  - Delete file from SD (M30 filename.g). (Requires SDSUPPORT)
