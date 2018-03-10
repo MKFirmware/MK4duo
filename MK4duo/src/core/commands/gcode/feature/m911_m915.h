@@ -36,16 +36,16 @@
    */
   inline void gcode_M911(void) {
     #if ENABLED(X_IS_TMC2130) || (ENABLED(X_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX)) || ENABLED(IS_TRAMS)
-      tmc_report_otpw(stepperX, extended_axis_codes[TMC_X]);
+      tmc_report_otpw(stepperX, TMC_X);
     #endif
     #if ENABLED(Y_IS_TMC2130) || (ENABLED(Y_IS_TMC2208) && PIN_EXISTS(Y_SERIAL_RX)) || ENABLED(IS_TRAMS)
-      tmc_report_otpw(stepperY, extended_axis_codes[TMC_Y]);
+      tmc_report_otpw(stepperY, TMC_Y);
     #endif
     #if ENABLED(Z_IS_TMC2130) || (ENABLED(Z_IS_TMC2208) && PIN_EXISTS(Z_SERIAL_RX)) || ENABLED(IS_TRAMS)
-      tmc_report_otpw(stepperZ, extended_axis_codes[TMC_Z]);
+      tmc_report_otpw(stepperZ, TMC_Z);
     #endif
     #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX)) || ENABLED(IS_TRAMS)
-      tmc_report_otpw(stepperE0, extended_axis_codes[TMC_E0]);
+      tmc_report_otpw(stepperE0, TMC_E0);
     #endif
   }
 
@@ -58,43 +58,43 @@
     const bool clearX = parser.seen(axis_codes[X_AXIS]), clearY = parser.seen(axis_codes[Y_AXIS]), clearZ = parser.seen(axis_codes[Z_AXIS]), clearE = parser.seen(axis_codes[E_AXIS]),
              clearAll = (!clearX && !clearY && !clearZ && !clearE) || (clearX && clearY && clearZ && clearE);
     #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS) || (ENABLED(X_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX))
-      if (clearX || clearAll) tmc_clear_otpw(stepperX, extended_axis_codes[TMC_X]);
+      if (clearX || clearAll) tmc_clear_otpw(stepperX, TMC_X);
     #endif
     #if ENABLED(X2_IS_TMC2130) || (ENABLED(X2_IS_TMC2208) && PIN_EXISTS(X2_SERIAL_RX))
-      if (clearX || clearAll) tmc_clear_otpw(stepperX2, extended_axis_codes[TMC_X2]);
+      if (clearX || clearAll) tmc_clear_otpw(stepperX2, TMC_X2);
     #endif
 
     #if ENABLED(Y_IS_TMC2130) || (ENABLED(Y_IS_TMC2208) && PIN_EXISTS(Y_SERIAL_RX))
-      if (clearY || clearAll) tmc_clear_otpw(stepperY, extended_axis_codes[TMC_Y]);
+      if (clearY || clearAll) tmc_clear_otpw(stepperY, TMC_Y);
     #endif
     #if ENABLED(Y2_IS_TMC2130) || (ENABLED(Y2_IS_TMC2208) && PIN_EXISTS(Y2_SERIAL_RX))
-      if (clearY || clearAll) tmc_clear_otpw(stepperY2, extended_axis_codes[TMC_Y2]);
+      if (clearY || clearAll) tmc_clear_otpw(stepperY2, TMC_Y2);
     #endif
 
     #if ENABLED(Z_IS_TMC2130) || (ENABLED(Z_IS_TMC2208) && PIN_EXISTS(Z_SERIAL_RX))
-      if (clearZ || clearAll) tmc_clear_otpw(stepperZ, extended_axis_codes[TMC_Z]);
+      if (clearZ || clearAll) tmc_clear_otpw(stepperZ, TMC_Z);
     #endif
     #if ENABLED(Z2_IS_TMC2130) || (ENABLED(Z2_IS_TMC2208) && PIN_EXISTS(Z2_SERIAL_RX))
       if (clearZ || clearAll) tmc_clear_otpw(stepperZ2, extended_axis_codes[TMC_Z2]);
     #endif
 
     #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE0, extended_axis_codes[TMC_E0]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE0, TMC_E0);
     #endif
     #if ENABLED(E1_IS_TMC2130) || (ENABLED(E1_IS_TMC2208) && PIN_EXISTS(E1_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE1, extended_axis_codes[TMC_E1]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE1, TMC_E1);
     #endif
     #if ENABLED(E2_IS_TMC2130) || (ENABLED(E2_IS_TMC2208) && PIN_EXISTS(E2_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE2, extended_axis_codes[TMC_E2]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE2, TMC_E2);
     #endif
     #if ENABLED(E3_IS_TMC2130) || (ENABLED(E3_IS_TMC2208) && PIN_EXISTS(E3_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE3, extended_axis_codes[TMC_E3]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE3, TMC_E3);
     #endif
     #if ENABLED(E4_IS_TMC2130) || (ENABLED(E4_IS_TMC2208) && PIN_EXISTS(E4_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE4, extended_axis_codes[TMC_E4]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE4, TMC_E4);
     #endif
     #if ENABLED(E5_IS_TMC2130) || (ENABLED(E5_IS_TMC2208) && PIN_EXISTS(E5_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE5, extended_axis_codes[TMC_E5]);
+      if (clearE || clearAll) tmc_clear_otpw(stepperE5, TMC_E5);
     #endif
   }
 
@@ -111,8 +111,8 @@
       LOOP_XYZE(i) values[i] = parser.intval(axis_codes[i]);
 
       #define TMC_SET_GET_PWMTHRS(P,Q) do { \
-        if (values[P##_AXIS]) tmc_set_pwmthrs(stepper##Q, extended_axis_codes[TMC_##Q], values[P##_AXIS], mechanics.axis_steps_per_mm[P##_AXIS]); \
-        else tmc_get_pwmthrs(stepper##Q, extended_axis_codes[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS]); } while(0)
+        if (values[P##_AXIS]) tmc_set_pwmthrs(stepper##Q, TMC_##Q, values[P##_AXIS], planner.axis_steps_per_mm[P##_AXIS]); \
+        else tmc_get_pwmthrs(stepper##Q, TMC_##Q, planner.axis_steps_per_mm[P##_AXIS]); } while(0)
 
       #if X_IS_TRINAMIC
         TMC_SET_GET_PWMTHRS(X,X);
@@ -165,8 +165,8 @@
     inline void gcode_M914(void) {
 
       #define TMC_SET_GET_SGT(P,Q) do { \
-        if (parser.seen(axis_codes[P##_AXIS])) tmc_set_sgt(stepper##Q, extended_axis_codes[TMC_##Q], parser.value_int()); \
-        else tmc_get_sgt(stepper##Q, extended_axis_codes[TMC_##Q]); } while(0)
+        if (parser.seen(axis_codes[P##_AXIS])) tmc_set_sgt(stepper##Q, TMC_##Q, parser.value_int()); \
+        else tmc_get_sgt(stepper##Q, TMC_##Q); } while(0)
 
       #if ENABLED(X_HOMING_SENSITIVITY)
         #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
@@ -229,7 +229,7 @@
 
       endstops.setSoftEndstop(false);
 
-      mechanics.do_blocking_move_to_z(Z_MAX_POS+_z);
+      mechanics.do_blocking_move_to_z(Z_MAX_POS + _z);
 
       #if Z_IS_TRINAMIC
         stepperZ.setCurrent(Z_current_1, R_SENSE, HOLD_MULTIPLIER);
