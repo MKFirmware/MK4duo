@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -145,8 +144,6 @@
 #define SERVO3_PIN                  4
 
 //###MISC
-#define EEPROM_I2C
-#define E2END 0x2000
 #define ORIG_PS_ON_PIN             12
 #define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    13
@@ -163,6 +160,9 @@
 
 
 //###UNKNOWN_PINS
+// I2C EEPROM with 4K of space
+#define EEPROM_I2C
+#define E2END 0xFFF
 #define MAX6675_SS_PIN            66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
 //@@@
 

@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -168,6 +167,14 @@
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
 
+  #if ENABLED(DOGLCD)
+      #define ORIG_BEEPER_PIN   37
+      #define BTN_EN1           33
+      #define BTN_EN2           31
+      #define BTN_ENC           35
+      #define SD_DETECT_PIN     49
+  #endif
+
   #if ENABLED(MKS_12864OLED) || ENABLED(MKS_12864OLED_SSD1306)
     #define LCD_PINS_DC     25
     #define LCD_PINS_RS     27
@@ -186,16 +193,7 @@
     #define LCD_PINS_D5         25
     #define LCD_PINS_D6         27
     #define LCD_PINS_D7         29
-
-    #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
-      #define ORIG_BEEPER_PIN   37
-
-      #define BTN_EN1           33
-      #define BTN_EN2           31
-      #define BTN_ENC           35
-
-      #define SD_DETECT_PIN     49
-    #endif
   #endif
+
 #endif //ULTRA_LCD
 //@@@

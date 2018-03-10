@@ -1019,8 +1019,7 @@ void EEPROM::Postprocess() {
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-        meshes_begin = (eeprom_index + 32) & 0xFFF8;  // Pad the end of configuration data so it can float up
-                                                      // or down a little bit without disrupting the mesh data
+        meshes_begin = (eeprom_index + EEPROM_OFFSET + 32) & 0xFFF8;
 
         ubl.report_state();
 
@@ -1076,8 +1075,11 @@ void EEPROM::Postprocess() {
     #endif
 
     uint16_t EEPROM::calc_num_meshes() {
-      if (meshes_begin <= 0) return 0;
-      return (meshes_end - meshes_begin) / sizeof(ubl.z_values);
+      return (meshes_end - meshes_start_index()) / sizeof(ubl.z_values);
+    }
+
+    int EEPROM::mesh_slot_offset(const int8_t slot) {
+      return meshes_end - (slot + 1) * sizeof(ubl.z_values);
     }
 
     void EEPROM::store_mesh(const int8_t slot) {
@@ -1095,9 +1097,9 @@ void EEPROM::Postprocess() {
         }
 
         uint16_t crc = 0;
-        int pos = meshes_end - (slot + 1) * sizeof(ubl.z_values);
+        int pos = mesh_slot_offset(slot);
 
-        bool status = write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
+        const bool status = write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
         if (status)
           SERIAL_MSG("?Unable to save mesh data.\n");
@@ -1128,10 +1130,10 @@ void EEPROM::Postprocess() {
         }
 
         uint16_t crc = 0;
-        int pos = meshes_end - (slot + 1) * sizeof(ubl.z_values);
+        int pos = mesh_slot_offset(slot);
         uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
 
-        bool status = read_data(pos, dest, sizeof(ubl.z_values), &crc);
+        const bool status = read_data(pos, dest, sizeof(ubl.z_values), &crc);
 
         if (status)
           SERIAL_MSG("?Unable to load mesh data.\n");

@@ -88,7 +88,7 @@ class Endstops {
       static float  z2_endstop_adj;
     #endif
 
-    static volatile char endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
+    static volatile char hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
     static volatile uint8_t e_hit;  // Different from 0 when the endstops shall be tested in detail.
                                     // Must be reset to 0 by the test function when the tests are finished.
@@ -130,7 +130,7 @@ class Endstops {
     static void report_state(); // call from somewhere to create an serial error message with the locations the endstops where hit, in case they were triggered
 
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
-    static void hit_on_purpose() { endstop_hit_bits = 0; }
+    static void hit_on_purpose() { hit_bits = 0; }
 
     // Constrain the given coordinates to the software endstops.
     void clamp_to_software_endstops(float target[XYZ]);

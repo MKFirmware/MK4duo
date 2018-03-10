@@ -596,13 +596,24 @@
     sendCommand("connect");
     HAL::delayMilliseconds(100);
 
-    uint8_t   c   = 0;
-    String temp   = String("");
+    uint8_t   c = 0;
+    String temp = String("");
+
+    #if ENABLED(NEXTION_CONNECT_DEBUG)
+      SERIAL_MSG(" NEXTION Debug Connect receveid:");
+    #endif
 
     while (nexSerial.available()) {
       c = nexSerial.read();
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_CHR((char)c);
+      #endif
       temp += (char)c;
     }
+
+    #if ENABLED(NEXTION_CONNECT_DEBUG)
+      SERIAL_EOL();
+    #endif
 
     strncpy(buffer, temp.c_str(), 70);
 

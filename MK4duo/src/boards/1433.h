@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -145,8 +144,6 @@
 #define SERVO3_PIN                 NoPin
 
 //###MISC
-#define EEPROM_I2C
-#define E2END 0x2000
 #define ORIG_PS_ON_PIN             12
 #define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    13
@@ -162,6 +159,10 @@
 #define ORIG_LASER_PWM_PIN         NoPin
 
 
+//###UNKNOWN_PINS
+#define EEPROM_I2C
+#define E2END 0x2000
+//@@@
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)

@@ -481,12 +481,8 @@ void Stepper::isr() {
     _NEXT_ISR(ocr_val);
 
     #if DISABLED(LIN_ADVANCE)
-      #if ENABLED(CPU_32_BIT)
-        HAL_timer_set_count(STEPPER_TIMER, ocr_val);
-      #else
-        NOLESS(OCR1A, TCNT1 + 16);
-      #endif
-      HAL_ENABLE_ISRs(); // re-enable ISRs
+      HAL_timer_restricts(STEPPER_TIMER, STEPPER_TIMER_MIN_INTERVAL * STEPPER_TIMER_TICKS_PER_US);
+      HAL_ENABLE_ISRs();
     #endif
 
     return;
@@ -852,18 +848,13 @@ void Stepper::isr() {
 
     SPLIT(OCR1A_nominal); // split step into multiple ISRs if larger than ENDSTOP_NOMINAL_OCR_VAL
     _NEXT_ISR(ocr_val);
+
     // ensure we're running at the correct step rate, even if we just came off an acceleration
     step_loops = step_loops_nominal;
   }
 
   #if DISABLED(LIN_ADVANCE)
-    #if ENABLED(CPU_32_BIT)
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
-      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + STEPPER_TIMER_TICKS_PER_US));
-      HAL_timer_set_count(STEPPER_TIMER, stepper_timer_count);
-    #else
-      NOLESS(OCR1A, TCNT1 + 16);
-    #endif
+    HAL_timer_restricts(STEPPER_TIMER, STEPPER_TIMER_MIN_INTERVAL * STEPPER_TIMER_TICKS_PER_US);
   #endif
 
   // If current block is finished, reset pointer
@@ -893,11 +884,11 @@ void Stepper::isr() {
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      #define START_E_PULSE(INDEX) do{ if (e_steps) E_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
-      #define STOP_E_PULSE(INDEX) do{ if (e_steps) { E_STEP_WRITE(INVERT_E_STEP_PIN); e_steps < 0 ? ++e_steps : --e_steps; } }while(0)
+      #define START_E_PULSE(INDEX)  do{ if (e_steps) E_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
+      #define STOP_E_PULSE(INDEX)   do{ if (e_steps) { E_STEP_WRITE(INVERT_E_STEP_PIN); e_steps < 0 ? ++e_steps : --e_steps; } }while(0)
     #else
-      #define START_E_PULSE(INDEX) do{ if (e_steps) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
-      #define STOP_E_PULSE(INDEX) do { if (e_steps) { E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); e_steps < 0 ? ++e_steps : --e_steps; } }while(0)
+      #define START_E_PULSE(INDEX)  do{ if (e_steps) E## INDEX ##_STEP_WRITE(!INVERT_E_STEP_PIN); }while(0)
+      #define STOP_E_PULSE(INDEX)   do{ if (e_steps) { e_steps < 0 ? ++e_steps : --e_steps; E## INDEX ##_STEP_WRITE(INVERT_E_STEP_PIN); } }while(0)
     #endif
 
     if (use_advance_lead) {
@@ -1019,13 +1010,7 @@ void Stepper::isr() {
     }
 
     // Don't run the ISR faster than possible
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      hal_timer_t stepper_timer_count = HAL_timer_get_count(STEPPER_TIMER);
-      NOLESS(stepper_timer_count, (HAL_timer_get_current_count(STEPPER_TIMER) + STEPPER_TIMER_TICKS_PER_US));
-      HAL_timer_set_count(STEPPER_TIMER, stepper_timer_count);
-    #else
-      NOLESS(OCR1A, TCNT1 + 16);
-    #endif
+    HAL_timer_restricts(STEPPER_TIMER, STEPPER_TIMER_MIN_INTERVAL * STEPPER_TIMER_TICKS_PER_US);
 
     // Restore original ISR settings
     HAL_ENABLE_ISRs();
