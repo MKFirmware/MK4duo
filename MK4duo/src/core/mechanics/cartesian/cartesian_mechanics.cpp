@@ -151,9 +151,11 @@
 
     #else
 
-      if (home_all || homeX || homeY) {
+      const float z_homing_height = printer.isZHomed() ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+
+      if (z_homing_height && (home_all || homeX || homeY)) {
         // Raise Z before homing any other axes and z is not already high enough (never lower z)
-        destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
+        destination[Z_AXIS] = z_homing_height;
         if (destination[Z_AXIS] > current_position[Z_AXIS]) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (printer.debugLeveling())

@@ -240,43 +240,45 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TI
 
 #define STEPPER_TIMER_PRESCALE      8
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)
+#define STEPPER_TIMER_MIN_INTERVAL  8 // minimum time in µs between stepper interrupts
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
-#define STEPPER_TIMER         1
-#define STEPPER_TCCR          TCCR1A
-#define STEPPER_TIMSK         TIMSK1
-#define STEPPER_OCIE          OCIE1A
+#define STEPPER_TIMER               1
+#define STEPPER_TCCR                TCCR1A
+#define STEPPER_TIMSK               TIMSK1
+#define STEPPER_OCIE                OCIE1A
 
-#define TEMP_TIMER            0
-#define TEMP_OCR              OCR0B
-#define TEMP_TCCR             TCCR0A
-#define TEMP_TIMSK            TIMSK0
-#define TEMP_OCIE             OCIE0B
+#define TEMP_TIMER                  0
+#define TEMP_OCR                    OCR0B
+#define TEMP_TCCR                   TCCR0A
+#define TEMP_TIMSK                  TIMSK0
+#define TEMP_OCIE                   OCIE0B
 
-#define TIMER_OCR_0           OCR0A
-#define TIMER_OCR_1           OCR1A
-#define TIMER_COUNTER_0       TCNT0
-#define TIMER_COUNTER_1       TCNT1
+#define TIMER_OCR_0                 OCR0A
+#define TIMER_OCR_1                 OCR1A
+#define TIMER_COUNTER_0             TCNT0
+#define TIMER_COUNTER_1             TCNT1
 
-#define PULSE_TIMER_PRESCALE  8
+#define PULSE_TIMER_PRESCALE        8
 
-#define HAL_STEPPER_TIMER_START()     HAL_stepper_timer_start()
-#define HAL_TEMP_TIMER_START()        HAL_temp_timer_start()
+#define HAL_STEPPER_TIMER_START()   HAL_stepper_timer_start()
+#define HAL_TEMP_TIMER_START()      HAL_temp_timer_start()
 
-#define ENABLE_STEPPER_INTERRUPT()    SBI(STEPPER_TIMSK, STEPPER_OCIE)
-#define DISABLE_STEPPER_INTERRUPT()   CBI(STEPPER_TIMSK, STEPPER_OCIE)
-#define STEPPER_ISR_ENABLED()         TEST(STEPPER_TIMSK, STEPPER_OCIE)
+#define ENABLE_STEPPER_INTERRUPT()  SBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define DISABLE_STEPPER_INTERRUPT() CBI(STEPPER_TIMSK, STEPPER_OCIE)
+#define STEPPER_ISR_ENABLED()       TEST(STEPPER_TIMSK, STEPPER_OCIE)
 
-#define ENABLE_TEMP_INTERRUPT()       SBI(TEMP_TIMSK, TEMP_OCIE)
-#define DISABLE_TEMP_INTERRUPT()      CBI(TEMP_TIMSK, TEMP_OCIE)
+#define ENABLE_TEMP_INTERRUPT()     SBI(TEMP_TIMSK, TEMP_OCIE)
+#define DISABLE_TEMP_INTERRUPT()    CBI(TEMP_TIMSK, TEMP_OCIE)
 
 #define HAL_timer_start(timer_num, frequency)
 
 #define _CAT(a, ...) a ## __VA_ARGS__
-#define HAL_timer_set_count(timer, count)         (_CAT(TIMER_OCR_, timer) = count)
-#define HAL_timer_get_count(timer)                _CAT(TIMER_OCR_, timer)
-#define HAL_timer_get_current_count(timer)        _CAT(TIMER_COUNTER_, timer)
+#define HAL_timer_set_count(timer, count)           (_CAT(TIMER_OCR_, timer) = count)
+#define HAL_timer_get_count(timer)                  _CAT(TIMER_OCR_, timer)
+#define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
+#define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 #define HAL_timer_isr_prologue(timer_num)
 
 #define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
@@ -325,7 +327,7 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TI
     case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
   }
 
-#if CYCLES_PER_MICROSECOND == 16
+#if CYCLES_PER_US == 16
   #define DELAY_1US DELAY_10_NOP; DELAY_5_NOP; DELAY_1_NOP
 #else
   #define DELAY_1US DELAY_20_NOP

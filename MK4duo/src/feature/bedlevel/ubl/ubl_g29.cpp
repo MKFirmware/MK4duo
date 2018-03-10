@@ -768,6 +768,7 @@
       wait_for_release();
       while (!is_lcd_clicked()) {
         printer.idle();
+        commands.refresh_cmd_timeout();
         if (encoder_diff) {
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
           encoder_diff = 0;
@@ -1151,13 +1152,13 @@
     unsigned int  kkkk;  // Needs to be of unspecfied size to compile clean on all platforms
 
     SERIAL_LM(ECHO, "EEPROM Dump:");
-    for (uint16_t i = 0; i < E2END + 1; i += 16) {
+    for (uint16_t i = 0; i <= E2END; i += 16) {
       if (!(i & 0x3)) printer.idle();
       print_hex_word(i);
       SERIAL_MSG(": ");
       for (uint16_t j = 0; j < 16; j++) {
         kkkk = i + j;
-        eeprom_read_block(&cccc, (const void *) kkkk, sizeof(unsigned char));
+        eeprom_read_block(&cccc, (const void *)kkkk, sizeof(unsigned char));
         print_hex_byte(cccc);
         SERIAL_CHR(' ');
       }

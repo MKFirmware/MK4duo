@@ -55,7 +55,7 @@ Endstops endstops;
   float Endstops::z2_endstop_adj = 0;
 #endif
 
-volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+volatile char Endstops::hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 volatile uint8_t Endstops::e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
                                       // Must be reset to 0 by the test function when the tests are finished.
@@ -298,7 +298,7 @@ void Endstops::report() {
 }
     
 void Endstops::report_state() {
-  if (endstop_hit_bits) {
+  if (hit_bits) {
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -311,7 +311,7 @@ void Endstops::report_state() {
       _SET_STOP_CHAR(A,C); }while(0)
 
     #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(endstop_hit_bits, A ##_MIN) || TEST(endstop_hit_bits, A ##_MAX)) \
+      if (TEST(hit_bits, A ##_MIN) || TEST(hit_bits, A ##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
     SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
@@ -321,7 +321,7 @@ void Endstops::report_state() {
 
     #if HAS_Z_PROBE_PIN
       #define P_AXIS Z_AXIS
-      if (TEST(endstop_hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+      if (TEST(hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
     SERIAL_EOL();
 
@@ -347,7 +347,7 @@ void Endstops::report_state() {
   void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2 | (TEST_ENDSTOP(es4) << 3); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3, bit 3 for Z4
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
+      SBI(hit_bits, Z_MIN);
       if (!stepper.performing_homing || (z_test == 0xf))  //if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
@@ -357,7 +357,7 @@ void Endstops::report_state() {
   void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
+      SBI(hit_bits, Z_MIN);
       if (!stepper.performing_homing || (z_test == 0x7))  //if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
@@ -367,7 +367,7 @@ void Endstops::report_state() {
   void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
+      SBI(hit_bits, Z_MIN);
       if (!stepper.performing_homing || (z_test == 0x3))  //if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
@@ -569,17 +569,16 @@ void Endstops::update() {
 
   #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
   #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_LOGIC(AXIS, MINMAX) isLogic(AXIS ##_## MINMAX)
-  #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(endstop_hit_bits, _ENDSTOP(AXIS, MINMAX))
+  #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(hit_bits, _ENDSTOP(AXIS, MINMAX))
 
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
-  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_LOGIC(AXIS, MINMAX)))
+  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
   #define COPY_BIT(DST, SRC_BIT, DST_BIT) SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
 
   #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[AXIS ##_AXIS] > 0) { \
+      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
         _ENDSTOP_HIT(AXIS, MINMAX); \
         stepper.endstop_triggered(AXIS ##_AXIS); \
       } \
@@ -776,7 +775,7 @@ void Endstops::update() {
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
         if (endstops.isProbeEndstop()) {
           UPDATE_ENDSTOP(Z, PROBE);
-          if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
+          if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_bits, Z_PROBE);
         }
       #endif
     }

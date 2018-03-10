@@ -72,7 +72,7 @@
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(X_IS_L6470)
   extern L6470 stepperX;
   #define X_ENABLE_INIT NOOP
-  #define X_ENABLE_WRITE(STATE) do{if(STATE) stepperX.Step_Clock(stepperX.getStatus() & STATUS_HIZ); else stepperX.softFree();}while(0)
+  #define X_ENABLE_WRITE(STATE) do{ if(STATE) stepperX.Step_Clock(stepperX.getStatus() & STATUS_HIZ); else stepperX.softFree(); }while(0)
   #define X_ENABLE_READ (stepperX.getStatus() & STATUS_HIZ)
   #define X_DIR_INIT NOOP
   #define X_DIR_WRITE(STATE) stepperX.Step_Clock(STATE)
@@ -111,7 +111,7 @@
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Y_IS_L6470)
   extern L6470 stepperY;
   #define Y_ENABLE_INIT NOOP
-  #define Y_ENABLE_WRITE(STATE) do{if(STATE) stepperY.Step_Clock(stepperY.getStatus() & STATUS_HIZ); else stepperY.softFree();}while(0)
+  #define Y_ENABLE_WRITE(STATE) do{ if(STATE) stepperY.Step_Clock(stepperY.getStatus() & STATUS_HIZ); else stepperY.softFree(); }while(0)
   #define Y_ENABLE_READ (stepperY.getStatus() & STATUS_HIZ)
   #define Y_DIR_INIT NOOP
   #define Y_DIR_WRITE(STATE) stepperY.Step_Clock(STATE)
@@ -150,7 +150,7 @@
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z_IS_L6470)
   extern L6470 stepperZ;
   #define Z_ENABLE_INIT NOOP
-  #define Z_ENABLE_WRITE(STATE) do{if(STATE) stepperZ.Step_Clock(stepperZ.getStatus() & STATUS_HIZ); else stepperZ.softFree();}while(0)
+  #define Z_ENABLE_WRITE(STATE) do{ if(STATE) stepperZ.Step_Clock(stepperZ.getStatus() & STATUS_HIZ); else stepperZ.softFree(); }while(0)
   #define Z_ENABLE_READ (stepperZ.getStatus() & STATUS_HIZ)
   #define Z_DIR_INIT NOOP
   #define Z_DIR_WRITE(STATE) stepperZ.Step_Clock(STATE)
@@ -190,7 +190,7 @@
   #if ENABLED(HAVE_L6470DRIVER) && ENABLED(X2_IS_L6470)
     extern L6470 stepperX2;
     #define X2_ENABLE_INIT NOOP
-    #define X2_ENABLE_WRITE(STATE) do{if(STATE) stepperX2.Step_Clock(stepperX2.getStatus() & STATUS_HIZ); else stepperX2.softFree();}while(0)
+    #define X2_ENABLE_WRITE(STATE) do{ if(STATE) stepperX2.Step_Clock(stepperX2.getStatus() & STATUS_HIZ); else stepperX2.softFree(); }while(0)
     #define X2_ENABLE_READ (stepperX2.getStatus() & STATUS_HIZ)
     #define X2_DIR_INIT NOOP
     #define X2_DIR_WRITE(STATE) stepperX2.Step_Clock(STATE)
@@ -231,7 +231,7 @@
   #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Y2_IS_L6470)
     extern L6470 stepperY2;
     #define Y2_ENABLE_INIT NOOP
-    #define Y2_ENABLE_WRITE(STATE) do{if(STATE) stepperY2.Step_Clock(stepperY2.getStatus() & STATUS_HIZ); else stepperY2.softFree();}while(0)
+    #define Y2_ENABLE_WRITE(STATE) do{ if(STATE) stepperY2.Step_Clock(stepperY2.getStatus() & STATUS_HIZ); else stepperY2.softFree(); }while(0)
     #define Y2_ENABLE_READ (stepperY2.getStatus() & STATUS_HIZ)
     #define Y2_DIR_INIT NOOP
     #define Y2_DIR_WRITE(STATE) stepperY2.Step_Clock(STATE)
@@ -275,7 +275,7 @@
   #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z2_IS_L6470)
     extern L6470 stepperZ2;
     #define Z2_ENABLE_INIT NOOP
-    #define Z2_ENABLE_WRITE(STATE) do{if(STATE) stepperZ2.Step_Clock(stepperZ2.getStatus() & STATUS_HIZ); else stepperZ2.softFree();}while(0)
+    #define Z2_ENABLE_WRITE(STATE) do{ if(STATE) stepperZ2.Step_Clock(stepperZ2.getStatus() & STATUS_HIZ); else stepperZ2.softFree(); }while(0)
     #define Z2_ENABLE_READ (stepperZ2.getStatus() & STATUS_HIZ)
     #define Z2_DIR_INIT NOOP
     #define Z2_DIR_WRITE(STATE) stepperZ2.Step_Clock(STATE)
@@ -316,7 +316,7 @@
   #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z2_IS_L6470)
     extern L6470 stepperZ3;
     #define Z3_ENABLE_INIT NOOP
-    #define Z3_ENABLE_WRITE(STATE) do{if(STATE) stepperZ3.Step_Clock(stepperZ3.getStatus() & STATUS_HIZ); else stepperZ3.softFree();}while(0)
+    #define Z3_ENABLE_WRITE(STATE) do{ if(STATE) stepperZ3.Step_Clock(stepperZ3.getStatus() & STATUS_HIZ); else stepperZ3.softFree(); }while(0)
     #define Z3_ENABLE_READ (stepperZ3.getStatus() & STATUS_HIZ)
     #define Z3_DIR_INIT NOOP
     #define Z3_DIR_WRITE(STATE) stepperZ3.Step_Clock(STATE)
@@ -352,7 +352,7 @@
   #if ENABLED(HAVE_L6470DRIVER) && ENABLED(Z4_IS_L6470)
     extern L6470 stepperZ4;
     #define Z4_ENABLE_INIT NOOP
-    #define Z4_ENABLE_WRITE(STATE) do{if(STATE) stepperZ4.Step_Clock(stepperZ4.getStatus() & STATUS_HIZ); else stepperZ4.softFree();}while(0)
+    #define Z4_ENABLE_WRITE(STATE) do{ if(STATE) stepperZ4.Step_Clock(stepperZ4.getStatus() & STATUS_HIZ); else stepperZ4.softFree(); }while(0)
     #define Z4_ENABLE_READ (stepperZ4.getStatus() & STATUS_HIZ)
     #define Z4_DIR_INIT NOOP
     #define Z4_DIR_WRITE(STATE) stepperZ4.Step_Clock(STATE)
@@ -386,7 +386,7 @@
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(E0_IS_L6470)
   extern L6470 stepperE0;
   #define E0_ENABLE_INIT NOOP
-  #define E0_ENABLE_WRITE(STATE) do{if(STATE) stepperE0.Step_Clock(stepperE0.getStatus() & STATUS_HIZ); else stepperE0.softFree();}while(0)
+  #define E0_ENABLE_WRITE(STATE) do{ if(STATE) stepperE0.Step_Clock(stepperE0.getStatus() & STATUS_HIZ); else stepperE0.softFree(); }while(0)
   #define E0_ENABLE_READ (stepperE0.getStatus() & STATUS_HIZ)
   #define E0_DIR_INIT NOOP
   #define E0_DIR_WRITE(STATE) stepperE0.Step_Clock(STATE)
@@ -418,13 +418,13 @@
   #endif
 #endif
 #if HAS_DAV_SYSTEM
-  #define E0_STEP_INIT SET_OUTPUT(E0_STEP_PIN); SET_OUTPUT(FIL_RUNOUT_DAV_PIN)
-  #define E0_STEP_WRITE(STATE) WRITE(E0_STEP_PIN,STATE); WRITE(FIL_RUNOUT_DAV_PIN,STATE)
-  #define E0_STEP_READ READ(E0_STEP_PIN)
+  #define E0_STEP_INIT          SET_OUTPUT(E0_STEP_PIN); SET_OUTPUT(FIL_RUNOUT_DAV_PIN)
+  #define E0_STEP_WRITE(STATE)  WRITE(E0_STEP_PIN,STATE); WRITE(FIL_RUNOUT_DAV_PIN,STATE)
+  #define E0_STEP_READ          READ(E0_STEP_PIN)
 #else
-  #define E0_STEP_INIT SET_OUTPUT(E0_STEP_PIN)
-  #define E0_STEP_WRITE(STATE) WRITE(E0_STEP_PIN,STATE)
-  #define E0_STEP_READ READ(E0_STEP_PIN)
+  #define E0_STEP_INIT          SET_OUTPUT(E0_STEP_PIN)
+  #define E0_STEP_WRITE(STATE)  WRITE(E0_STEP_PIN,STATE)
+  #define E0_STEP_READ          READ(E0_STEP_PIN)
 #endif
 
 // E1 Stepper
