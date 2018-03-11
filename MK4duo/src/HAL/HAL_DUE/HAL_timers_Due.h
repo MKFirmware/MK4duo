@@ -84,8 +84,8 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 * 256.0 / (HAL_ST
 
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
-#define STEPPER_TIMER_TICKS_PER_US  ((HAL_STEPPER_TIMER_RATE) / 1000000)  // 42 - stepper timer ticks per µs
-#define STEPPER_TIMER_MIN_INTERVAL  2 // minimum time in µs between stepper interrupts
+#define STEPPER_TIMER_TICKS_PER_US  ((HAL_STEPPER_TIMER_RATE) / 1000000)  // 42 - stepper timer ticks per Âµs
+#define STEPPER_TIMER_MIN_INTERVAL  2 // minimum time in Âµs between stepper interrupts
 #define HAL_STEP_TIMER_ISR          void TC4_Handler()
 
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE

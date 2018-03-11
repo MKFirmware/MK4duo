@@ -41,7 +41,8 @@ constexpr const uint8_t debug_simulation          = 128;
 enum Flag1HomeEnum {
   flag1_x_homed,
   flag1_y_homed,
-  flag1_z_homed
+  flag1_z_homed,
+  flag1_homing
 };
 
 enum Flag2VariousEnum {
@@ -178,7 +179,7 @@ class Printer {
       FORCE_INLINE static void keepalive(const MK4duoBusyState state) { UNUSED(state); }
     #endif
 
-    // Flags function
+    // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);
     FORCE_INLINE static uint8_t getDebugFlags()   { return mk_debug_flag; }
     FORCE_INLINE static bool debugEcho()          { return mk_debug_flag & debug_echo; }
@@ -200,6 +201,7 @@ class Printer {
       setDebugLevel(mk_debug_flag & ~flag);
     }
 
+    // Flag1 Home function
     FORCE_INLINE static void setXHomed(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_x_homed, onoff);
     }
@@ -237,6 +239,12 @@ class Printer {
     }
     FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
 
+    FORCE_INLINE static void setHoming(const bool onoff) {
+      SET_BIT(mk_1_flag, flag1_homing, onoff);
+    }
+    FORCE_INLINE static bool isHoming() { return TEST(mk_1_flag, flag1_homing); }
+
+    // Flag2 Various function
     FORCE_INLINE static void setRunning(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_running, onoff);
     }

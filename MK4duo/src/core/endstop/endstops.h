@@ -43,12 +43,12 @@ enum EndstopEnum {
   X_MAX,
   Y_MAX,
   Z_MAX,
+  X2_MIN,
+  X2_MAX,
+  Y2_MIN,
+  Y2_MAX,
   Z2_MIN,
   Z2_MAX,
-  Z3_MIN,
-  Z3_MAX,
-  Z4_MIN,
-  Z4_MAX,
   FIL_RUNOUT,
   DOOR_OPEN,
   POWER_CHECK
@@ -77,15 +77,14 @@ class Endstops {
                     soft_endstop_max[XYZ];
     #endif
 
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      static float  z2_endstop_adj,
-                    z3_endstop_adj,
-                    z4_endstop_adj;
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      static float  z2_endstop_adj,
-                    z3_endstop_adj;
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-      static float  z2_endstop_adj;
+    #if ENABLED(X_TWO_ENDSTOPS)
+      static float x_endstop_adj;
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      static float y_endstop_adj;
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      static float z_endstop_adj;
     #endif
 
     static volatile char hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
@@ -188,11 +187,13 @@ class Endstops {
       static void setup_endstop_interrupts(void);
     #endif
 
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      static void test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4);
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      static void test_three_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3);
-    #elif ENABLED(Z_TWO_ENDSTOPS)
+    #if ENABLED(X_TWO_ENDSTOPS)
+      static void test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2);
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      static void test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2);
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
       static void test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2);
     #endif
 

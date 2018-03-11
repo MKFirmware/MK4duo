@@ -410,15 +410,14 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(mechanics.delta_probe_radius);
     #endif
 
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      EEPROM_WRITE(endstops.z2_endstop_adj);
-      EEPROM_WRITE(endstops.z3_endstop_adj);
-      EEPROM_WRITE(endstops.z4_endstop_adj);
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      EEPROM_WRITE(endstops.z3_endstop_adj);
-      EEPROM_WRITE(endstops.z4_endstop_adj);
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.z2_endstop_adj);
+    #if ENABLED(X_TWO_ENDSTOPS)
+      EEPROM_WRITE(endstops.x_endstop_adj);
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      EEPROM_WRITE(endstops.y_endstop_adj);
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      EEPROM_WRITE(endstops.z_endstop_adj);
     #endif
 
     #if ENABLED(ULTIPANEL)
@@ -790,15 +789,14 @@ void EEPROM::Postprocess() {
         EEPROM_READ(mechanics.delta_probe_radius);
       #endif
 
-      #if ENABLED(Z_FOUR_ENDSTOPS)
-        EEPROM_READ(endstops.z2_endstop_adj);
-        EEPROM_READ(endstops.z3_endstop_adj);
-        EEPROM_READ(endstops.z4_endstop_adj);
-      #elif ENABLED(Z_THREE_ENDSTOPS)
-        EEPROM_READ(endstops.z3_endstop_adj);
-        EEPROM_READ(endstops.z4_endstop_adj);
-      #elif ENABLED(Z_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.z2_endstop_adj);
+      #if ENABLED(X_TWO_ENDSTOPS)
+        EEPROM_READ(endstops.x_endstop_adj);
+      #endif
+      #if ENABLED(Y_TWO_ENDSTOPS)
+        EEPROM_READ(endstops.y_endstop_adj);
+      #endif
+      #if ENABLED(Z_TWO_ENDSTOPS)
+        EEPROM_READ(endstops.z_endstop_adj);
       #endif
 
       #if ENABLED(ULTIPANEL)
@@ -1575,6 +1573,16 @@ void EEPROM::Factory_Settings() {
     #endif
   );
 
+  #if ENABLED(X_TWO_ENDSTOPS)
+    endstops.x_endstop_adj = 0.0;
+  #endif
+  #if ENABLED(Y_TWO_ENDSTOPS)
+    endstops.y_endstop_adj = 0.0;
+  #endif
+  #if ENABLED(Z_TWO_ENDSTOPS)
+    endstops.z_endstop_adj = 0.0;
+  #endif
+
   #if ENABLED(IDLE_OOZING_PREVENT)
     printer.IDLE_OOZING_enabled = true;
   #endif
@@ -1658,16 +1666,16 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MIN, !Y_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Z_MIN, !Z_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(X_MAX, !X_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MAX, !Y_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_MAX, !Z_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(X2_MIN, !X2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Y2_MIN, !Y2_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Z2_MIN, !Z2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(X2_MAX, !X2_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Y2_MAX, !Y2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z3_MIN, !Z3_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z3_MAX, !Z3_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z4_MIN, !Z4_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z4_MAX, !Z4_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
     endstops.setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
     endstops.setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
@@ -1675,16 +1683,16 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(X_MIN, X_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MIN, Y_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Z_MIN, Z_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(X_MAX, X_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MAX, Y_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_MAX, Z_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(X2_MIN, X2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(Y2_MIN, Y2_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Z2_MIN, Z2_MIN_ENDSTOP_LOGIC);
+    endstops.setLogic(X2_MAX, X2_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Y2_MAX, Y2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z3_MIN, Z3_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z3_MAX, Z3_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z4_MIN, Z4_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z4_MAX, Z4_MAX_ENDSTOP_LOGIC);
+    endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
     endstops.setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
     endstops.setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
@@ -1693,16 +1701,16 @@ void EEPROM::Factory_Settings() {
   endstops.setPullup(X_MIN, ENDSTOPPULLUP_XMIN);
   endstops.setPullup(Y_MIN, ENDSTOPPULLUP_YMIN);
   endstops.setPullup(Z_MIN, ENDSTOPPULLUP_ZMIN);
-  endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   endstops.setPullup(X_MAX, ENDSTOPPULLUP_XMAX);
   endstops.setPullup(Y_MAX, ENDSTOPPULLUP_YMAX);
   endstops.setPullup(Z_MAX, ENDSTOPPULLUP_ZMAX);
+  endstops.setPullup(X2_MIN, ENDSTOPPULLUP_X2MIN);
+  endstops.setPullup(Y2_MIN, ENDSTOPPULLUP_Y2MIN);
   endstops.setPullup(Z2_MIN, ENDSTOPPULLUP_Z2MIN);
+  endstops.setPullup(X2_MAX, ENDSTOPPULLUP_X2MAX);
+  endstops.setPullup(Y2_MAX, ENDSTOPPULLUP_Y2MAX);
   endstops.setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
-  endstops.setPullup(Z3_MIN, ENDSTOPPULLUP_Z3MIN);
-  endstops.setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
-  endstops.setPullup(Z4_MIN, ENDSTOPPULLUP_Z4MIN);
-  endstops.setPullup(Z4_MAX, ENDSTOPPULLUP_Z4MAX);
+  endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
   endstops.setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
   endstops.setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
@@ -2036,6 +2044,23 @@ void EEPROM::Factory_Settings() {
       SERIAL_EOL();
 
     #endif // IS_DELTA
+
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+
+      CONFIG_MSG_START("Endstop adjustment:");
+      SERIAL_SM(CFG, "  M666");
+      #if ENABLED(X_TWO_ENDSTOPS)
+        SERIAL_MV(" X", LINEAR_UNIT(endstops.x_endstop_adj));
+      #endif
+      #if ENABLED(Y_TWO_ENDSTOPS)
+        SERIAL_MV(" Y", LINEAR_UNIT(endstops.y_endstop_adj));
+      #endif
+      #if ENABLED(Z_TWO_ENDSTOPS)
+        SERIAL_MV(" Z", LINEAR_UNIT(endstops.z_endstop_adj));
+      #endif
+      SERIAL_EOL();
+
+    #endif // [XYZ]_TWO_ENDSTOPS
 
     /**
      * Auto Bed Leveling
