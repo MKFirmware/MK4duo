@@ -35,9 +35,9 @@
  *  X<bool> - Endstop X min or max dependent HOME DIR set false or true
  *  Y<bool> - Endstop Y min or max dependent HOME DIR set false or true
  *  Z<bool> - Endstop Z min or max dependent HOME DIR set false or true
- *  I<bool> - Endstop Z2 min or max dependent HOME DIR set false or true
- *  J<bool> - Endstop Z3 min or max dependent HOME DIR set false or true
- *  K<bool> - Endstop Z4 min or max dependent HOME DIR set false or true
+ *  I<bool> - Endstop X2 min or max dependent HOME DIR set false or true
+ *  J<bool> - Endstop Y2 min or max dependent HOME DIR set false or true
+ *  K<bool> - Endstop Z2 min or max dependent HOME DIR set false or true
  *  P<bool> - Endstop Probe set false or true
  *  D<bool> - Endstop Door set false or true
  *  F<bool> - Endstop Fil Runout set false or true
@@ -67,30 +67,30 @@ inline void gcode_M123(void) {
       endstops.setLogic(Z_MAX, parser.value_bool());
   }
 
-  #if HAS_Z2_MIN || HAS_Z2_MAX
+  #if HAS_X2_MIN || HAS_X2_MAX
     if (parser.seen('I')) {
+      if (mechanics.home_dir[X_AXIS] == -1)
+        endstops.setLogic(X2_MIN, parser.value_bool());
+      else
+        endstops.setLogic(X2_MAX, parser.value_bool());
+    }
+  #endif
+
+  #if HAS_Y2_MIN || HAS_Y2_MAX
+    if (parser.seen('J')) {
+      if (mechanics.home_dir[Y_AXIS] == -1)
+        endstops.setLogic(Y2_MIN, parser.value_bool());
+      else
+        endstops.setLogic(Y2_MAX, parser.value_bool());
+    }
+  #endif
+
+  #if HAS_Z2_MIN || HAS_Z2_MAX
+    if (parser.seen('K')) {
       if (mechanics.home_dir[Z_AXIS] == -1)
         endstops.setLogic(Z2_MIN, parser.value_bool());
       else
         endstops.setLogic(Z2_MAX, parser.value_bool());
-    }
-  #endif
-
-  #if HAS_Z3_MIN || HAS_Z3_MAX
-    if (parser.seen('J')) {
-      if (mechanics.home_dir[Z_AXIS] == -1)
-        endstops.setLogic(Z3_MIN, parser.value_bool());
-      else
-        endstops.setLogic(Z3_MAX, parser.value_bool());
-    }
-  #endif
-
-  #if HAS_Z4_MIN || HAS_Z4_MAX
-    if (parser.seen('K')) {
-      if (mechanics.home_dir[Z_AXIS] == -1)
-        endstops.setLogic(Z4_MIN, parser.value_bool());
-      else
-        endstops.setLogic(Z4_MAX, parser.value_bool());
     }
   #endif
 
@@ -119,9 +119,9 @@ inline void gcode_M123(void) {
  *  X<bool> - Endstop X min or max dependent HOME DIR set false or true
  *  Y<bool> - Endstop Y min or max dependent HOME DIR set false or true
  *  Z<bool> - Endstop Z min or max dependent HOME DIR set false or true
- *  I<bool> - Endstop Z2 min or max dependent HOME DIR set false or true
- *  J<bool> - Endstop Z3 min or max dependent HOME DIR set false or true
- *  K<bool> - Endstop Z4 min or max dependent HOME DIR set false or true
+ *  I<bool> - Endstop X2 min or max dependent HOME DIR set false or true
+ *  J<bool> - Endstop Y2 min or max dependent HOME DIR set false or true
+ *  K<bool> - Endstop Z2 min or max dependent HOME DIR set false or true
  *  P<bool> - Endstop Probe set false or true
  *  D<bool> - Endstop Door set false or true
  *  F<bool> - Endstop Fil Runout set false or true
@@ -151,30 +151,30 @@ inline void gcode_M124(void) {
       endstops.setPullup(Z_MAX, parser.value_bool());
   }
 
-  #if HAS_Z2_MIN || HAS_Z2_MAX
+  #if HAS_X2_MIN || HAS_X2_MAX
     if (parser.seen('I')) {
+      if (mechanics.home_dir[X_AXIS] == -1)
+        endstops.setPullup(X2_MIN, parser.value_bool());
+      else
+        endstops.setPullup(X2_MAX, parser.value_bool());
+    }
+  #endif
+
+  #if HAS_Y2_MIN || HAS_Y2_MAX
+    if (parser.seen('J')) {
+      if (mechanics.home_dir[Y_AXIS] == -1)
+        endstops.setPullup(Y2_MIN, parser.value_bool());
+      else
+        endstops.setPullup(Y2_MAX, parser.value_bool());
+    }
+  #endif
+
+  #if HAS_Z2_MIN || HAS_Z2_MAX
+    if (parser.seen('K')) {
       if (mechanics.home_dir[Z_AXIS] == -1)
         endstops.setPullup(Z2_MIN, parser.value_bool());
       else
         endstops.setPullup(Z2_MAX, parser.value_bool());
-    }
-  #endif
-
-  #if HAS_Z3_MIN || HAS_Z3_MAX
-    if (parser.seen('J')) {
-      if (mechanics.home_dir[Z_AXIS] == -1)
-        endstops.setPullup(Z3_MIN, parser.value_bool());
-      else
-        endstops.setPullup(Z3_MAX, parser.value_bool());
-    }
-  #endif
-
-  #if HAS_Z4_MIN || HAS_Z4_MAX
-    if (parser.seen('K')) {
-      if (mechanics.home_dir[Z_AXIS] == -1)
-        endstops.setPullup(Z4_MIN, parser.value_bool());
-      else
-        endstops.setPullup(Z4_MAX, parser.value_bool());
     }
   #endif
 

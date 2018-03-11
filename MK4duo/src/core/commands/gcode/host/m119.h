@@ -38,14 +38,26 @@ inline void gcode_M119(void) {
   #if HAS_X_MIN
     SERIAL_EMT(MSG_X_MIN, ((READ(X_MIN_PIN)^endstops.isLogic(X_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
+  #if HAS_X2_MIN
+    SERIAL_EMT(MSG_X2_MIN, ((READ(X2_MIN_PIN)^endstops.isLogic(X2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #endif
   #if HAS_X_MAX
     SERIAL_EMT(MSG_X_MAX, ((READ(X_MAX_PIN)^endstops.isLogic(X_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #endif
+  #if HAS_X2_MAX
+    SERIAL_EMT(MSG_X2_MAX, ((READ(X2_MAX_PIN)^endstops.isLogic(X2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS_Y_MIN
     SERIAL_EMT(MSG_Y_MIN, ((READ(Y_MIN_PIN)^endstops.isLogic(Y_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
+  #if HAS_Y2_MIN
+    SERIAL_EMT(MSG_Y2_MIN, ((READ(Y2_MIN_PIN)^endstops.isLogic(Y2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #endif
   #if HAS_Y_MAX
     SERIAL_EMT(MSG_Y_MAX, ((READ(Y_MAX_PIN)^endstops.isLogic(Y_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #endif
+  #if HAS_Y2_MAX
+    SERIAL_EMT(MSG_Y2_MAX, ((READ(Y2_MAX_PIN)^endstops.isLogic(Y2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS_Z_MIN
     SERIAL_EMT(MSG_Z_MIN, ((READ(Z_MIN_PIN)^endstops.isLogic(Z_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
@@ -53,23 +65,11 @@ inline void gcode_M119(void) {
   #if HAS_Z2_MIN
     SERIAL_EMT(MSG_Z2_MIN, ((READ(Z2_MIN_PIN)^endstops.isLogic(Z2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
-  #if HAS_Z3_MIN
-    SERIAL_EMT(MSG_Z3_MIN, ((READ(Z3_MIN_PIN)^endstops.isLogic(Z3_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
-  #endif
-  #if HAS_Z4_MIN
-    SERIAL_EMT(MSG_Z4_MIN, ((READ(Z4_MIN_PIN)^endstops.isLogic(Z4_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
-  #endif
   #if HAS_Z_MAX
     SERIAL_EMT(MSG_Z_MAX, ((READ(Z_MAX_PIN)^endstops.isLogic(Z_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS_Z2_MAX
     SERIAL_EMT(MSG_Z2_MAX, ((READ(Z2_MAX_PIN)^endstops.isLogic(Z2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
-  #endif
-  #if HAS_Z3_MAX
-    SERIAL_EMT(MSG_Z3_MAX, ((READ(Z3_MAX_PIN)^endstops.isLogic(Z3_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
-  #endif
-  #if HAS_Z4_MAX
-    SERIAL_EMT(MSG_Z4_MAX, ((READ(Z4_MAX_PIN)^endstops.isLogic(Z4_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
   #endif
   #if HAS_Z_PROBE_PIN
     SERIAL_EMT(MSG_Z_PROBE, ((READ(Z_PROBE_PIN)^endstops.isLogic(Z_PROBE)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));

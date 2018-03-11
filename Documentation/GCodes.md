@@ -99,8 +99,8 @@
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
 | M122 | MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS | S<1=true/0=false> Enable or disable check software endstop
-| M123 | ENDSTOP | Set Endstop Logic X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
-| M124 | ENDSTOP | Set Endstop Pullup X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
+| M123 | ENDSTOP | Set Endstop Logic X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
+| M124 | ENDSTOP | Set Endstop Pullup X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
 | M125 | PARK_HEAD_ON_PAUSE | Save current position and move to pause park position 
 | M126 | ? | Solenoid Air Valve Open (BariCUDA support by jmil)
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -180,7 +180,8 @@
 | M603 | ADVANCED_PAUSE_FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
 | M605 | ? | Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 | M649 | ? | Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
-| M666 | ? | Delta geometry adjustment.
+| M666 | DELTA | Delta geometry adjustment.
+| M666 | TWO ENDSTOPS | Set Two Endstops offsets for X, Y, and/or Z. X<float> Y<float> Z<float>
 | M701 | ADVANCED_PAUSE_FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED_PAUSE_FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)

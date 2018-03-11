@@ -145,6 +145,12 @@
 #if DISABLED(INVERT_E3_DIR)
   #error "DEPENDENCY ERROR: Missing setting INVERT_E3_DIR."
 #endif
+#if DISABLED(INVERT_E4_DIR)
+  #error "DEPENDENCY ERROR: Missing setting INVERT_E4_DIR."
+#endif
+#if DISABLED(INVERT_E5_DIR)
+  #error "DEPENDENCY ERROR: Missing setting INVERT_E5_DIR."
+#endif
 
 
 // Disable axis
@@ -227,8 +233,8 @@
     #error "DEPENDENCY ERROR: DUAL_X_CARRIAGE requires X_HOME_DIR -1 and X2_HOME_DIR 1."
   #endif
 
-  #if ENABLED(X_TWO_STEPPER)
-    #error "DEPENDENCY ERROR: DUAL_X_CARRIAGE or X_TWO_STEPPER can be set"
+  #if ENABLED(X_TWO_STEPPER_DRIVERS)
+    #error "DEPENDENCY ERROR: DUAL_X_CARRIAGE or X_TWO_STEPPER_DRIVERS can be set"
   #endif
 #endif
 
@@ -277,24 +283,26 @@
   #error "DEPENDENCY ERROR: Missing setting DEFAULT_ZJERK."
 #endif
 
-
-// Two or more Z steppers
-#if ENABLED(Z_TWO_STEPPER)
-  #if ENABLED(Z_THREE_STEPPER) || ENABLED(Z_FOUR_STEPPER)
-    #error "DEPENDENCY ERROR: You cannot have two Z stepper and three or four drivers."
+// Two X steppers
+#if ENABLED(X_TWO_STEPPER_DRIVERS)
+  #if DISABLED(INVERT_X2_VS_X_DIR)
+    #error "DEPENDENCY ERROR: Missing setting INVERT_X2_VS_X_DIR."
   #endif
-#elif ENABLED(Z_THREE_STEPPER) && ENABLED(Z_FOUR_STEPPER)
-  #error "DEPENDENCY ERROR: You cannot have three Z stepper and four drivers."
 #endif
 
-
 // Two Y steppers
-#if ENABLED(Y_TWO_STEPPER)
+#if ENABLED(Y_TWO_STEPPER_DRIVERS)
   #if DISABLED(INVERT_Y2_VS_Y_DIR)
     #error "DEPENDENCY ERROR: Missing setting INVERT_Y2_VS_Y_DIR."
   #endif
 #endif
 
+// Two Z steppers
+#if ENABLED(Z_TWO_STEPPER_DRIVERS)
+  #if DISABLED(INVERT_Z2_VS_Z_DIR)
+    #error "DEPENDENCY ERROR: Missing setting INVERT_Z2_VS_Z_DIR."
+  #endif
+#endif
 
 // Pin definitions
 #if !PIN_EXISTS(X_STEP)
