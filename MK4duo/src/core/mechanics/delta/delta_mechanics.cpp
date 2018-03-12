@@ -201,7 +201,7 @@
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void Delta_Mechanics::do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s /*=0.0*/) {
+  void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
