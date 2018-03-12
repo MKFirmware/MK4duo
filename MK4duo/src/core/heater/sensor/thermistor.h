@@ -72,6 +72,11 @@
 #define T9_R25    100000.0  // Resistance in Ohms @ 25°C
 #define T9_BETA     4036.0  // Beta Value (K)
 
+// 40 -  10k Carel NTC015WH01 or ELIWELL SN8T6A1502 (4.7k pullup)
+#define T40_NAME  "Carel NTC015WH01"
+#define T40_R25   10000.0   // Resistance in Ohms @ 25°C
+#define T40_BETA   3435.0  // Beta Value (K)
+
 #define _THERMISTOR_NAME_IS(n)  T ## n ## _NAME
 #define _THERMISTOR_R25_IS(n)   T ## n ## _R25
 #define _THERMISTOR_BETA_IS(n)  T ## n ## _BETA
