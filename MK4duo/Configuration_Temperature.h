@@ -76,6 +76,7 @@
  *   9 User configuration                                                                            *
  *  11 DHT probe sensor DHT11, DHT21 or DHT22 (ENABLE DHT SENSOR below)                              *
  *  20 is the PT100 circuit amplifier found in Ultimainboard V2.x and Wanhao D6                      *
+ *  40 is 10k Carel NTC015WH01 NTC (4.7k pullup)                                                                                              *
  *                                                                                                   *
  *       Use these for Testing or Development purposes. NEVER for production machine.                *
  * 998 : Dummy Table that ALWAYS reads 25 degC or the temperature defined below.                     *
