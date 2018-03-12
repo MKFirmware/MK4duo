@@ -109,7 +109,7 @@
        *  Plan a move to (X, Y, Z) and set the current_position
        *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s=0.0) override;
+      void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0) override;
 
       /**
        * Delta function
