@@ -98,7 +98,7 @@
 | M119 | ? | Output Endstop status to serial port
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
-| M122 | MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS | S<1=true/0=false> Enable or disable check software endstop
+| M122 | MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS | ```S<bool> Enable or disable check software endstop```
 | M123 | ENDSTOP | Set Endstop Logic <br/>```X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>```
 | M124 | ENDSTOP | Set Endstop Pullup <br/>```X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>```
 | M125 | PARK_HEAD_ON_PAUSE | Save current position and move to pause park position 
