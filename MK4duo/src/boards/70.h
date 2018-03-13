@@ -158,6 +158,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+//###FLOWMETER
+#define ORIG_FLOMETER_PIN          NoPin
 
 
 //###IF_BLOCKS

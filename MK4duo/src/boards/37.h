@@ -121,7 +121,7 @@
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN        NoPin
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
-#define ORIG_COOLER_PIN            NoPin
+#define ORIG_COOLER_PIN             2
 
 //###TEMPERATURE
 #define ORIG_TEMP_0_PIN            13
@@ -158,6 +158,9 @@
 //###LASER
 #define ORIG_LASER_PWR_PIN          5
 #define ORIG_LASER_PWM_PIN          6
+
+//###FLOWMETER
+#define ORIG_FLOMETER_PIN          21
 
 
 

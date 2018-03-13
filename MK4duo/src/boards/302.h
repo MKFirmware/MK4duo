@@ -158,6 +158,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN          9
 
+//###FLOWMETER
+#define ORIG_FLOMETER_PIN          NoPin
 
 //###UNKNOWN_PINS
 // Microstepping pins - Mapping not from fastio.h (?)
