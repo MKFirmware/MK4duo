@@ -78,8 +78,8 @@
   #define FONT_STATUSMENU_NAME FONT_MENU_NAME
 #endif
 
-#include "dogm/dogm_font_data_mk4duo_symbols.h"   // The Marlin special symbols
-#define FONT_SPECIAL_NAME Marlin_symbols
+#include "dogm/dogm_font_data_mk4duo_symbols.h"   // The MK4duo special symbols
+#define FONT_SPECIAL_NAME MK4duo_symbols
 
 #if DISABLED(SIMULATE_ROMFONT)
   #if ENABLED(DISPLAY_CHARSET_ISO10646_1)
@@ -362,12 +362,22 @@ static void lcd_implementation_init() {
     OUT_WRITE(LCD_BACKLIGHT_PIN, HIGH);
   #endif
 
+  #if ENABLED(MKS_12864OLED) || ENABLED(MKS_12864OLED_SSD1306)
+    SET_OUTPUT(LCD_PINS_DC);
+    OUT_WRITE(LCD_PINS_RS, LOW);
+    HAL::delayMilliseconds(500);
+    WRITE(LCD_PINS_RS, HIGH);
+  #endif
+
   #if PIN_EXISTS(LCD_RESET)
     OUT_WRITE(LCD_RESET_PIN, LOW); // perform a clean hardware reset
     HAL::delayMilliseconds(5);
     OUT_WRITE(LCD_RESET_PIN, HIGH);
     HAL::delayMilliseconds(5); // delay to allow the display to initalize
-    u8g.begin(); // re-initialize the display
+  #endif
+
+  #if PIN_EXISTS(LCD_RESET) || ENABLED(MKS_12864OLED) || ENABLED(MKS_12864OLED_SSD1306)
+    u8g.begin();
   #endif
 
   #if DISABLED(MINIPANEL) // setContrast not working for Mini Panel
