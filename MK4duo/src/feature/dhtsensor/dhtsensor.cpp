@@ -66,7 +66,7 @@
   }
 
   void DhtSensor::init(void) {
-    HAL::pinMode(pin, OUTPUT_LOW);
+    HAL::pinMode(pin, OUTPUT);
     state = Init;
   }
 
@@ -106,7 +106,7 @@
 
       case Wait_250ms:
         if (millis() - lastOperationTime >= 250) {
-          HAL::pinMode(pin, OUTPUT_LOW);
+          HAL::pinMode(pin, OUTPUT);
           HAL::digitalWrite(pin, LOW);
           state = Wait_20ms;
           lastOperationTime = millis();
@@ -121,13 +121,13 @@
           HAL::delayMicroseconds(40);
 
           // Now start reading the data line to get the value from the DHT sensor
-          HAL::pinMode(pin, INPUT_PULLUP);
+          HAL::pinMode(pin, INPUT);
           HAL::delayMicroseconds(10);
 
           // Read from the DHT sensor using an DHT_ISR
           numPulses = 0;
           lastPulseTime = 0;
-          attachInterrupt(pin, DHT_ISR, CHANGE);
+          attachInterrupt(digitalPinToInterrupt(pin), DHT_ISR, CHANGE);
 
           // Wait for the next operation to complete
           state = Read;
