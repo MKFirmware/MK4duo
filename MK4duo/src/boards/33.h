@@ -159,6 +159,8 @@
 #define ORIG_LASER_PWR_PIN          5
 #define ORIG_LASER_PWM_PIN          6
 
+//###FLOWMETER
+#define ORIG_FLOMETER_PIN          21
 
 
 //###IF_BLOCKS
