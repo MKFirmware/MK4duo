@@ -44,9 +44,11 @@
       if (is_power_needed()) {
         if (!lastPowerOn) power_on();
       }
-      else if (ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
-        if (lastPowerOn) power_off();
-      }
+      #if (POWER_TIMEOUT > 0)
+        else if (ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
+          if (lastPowerOn) power_off();
+        }
+      #endif
     }
   }
 

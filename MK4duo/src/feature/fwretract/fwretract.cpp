@@ -48,7 +48,8 @@
         FWRetract::retract_recover_feedrate_mm_s,       // M208 F - G11 Recover feedrate
         FWRetract::swap_retract_length,                 // M207 W - G10 Swap Retract length
         FWRetract::swap_retract_recover_length,         // M208 W - G11 Swap Recover length
-        FWRetract::swap_retract_recover_feedrate_mm_s;  // M208 R - G11 Swap Recover feedrate
+        FWRetract::swap_retract_recover_feedrate_mm_s,  // M208 R - G11 Swap Recover feedrate
+        FWRetract::hop_amount;
 
   void FWRetract::reset() {
     autoretract_enabled                 = false;
@@ -60,6 +61,7 @@
     swap_retract_length                 = RETRACT_LENGTH_SWAP;
     swap_retract_recover_length         = RETRACT_RECOVER_LENGTH_SWAP;
     swap_retract_recover_feedrate_mm_s  = RETRACT_RECOVER_FEEDRATE_SWAP;
+    hop_amount                          = 0.0;
 
     for (uint8_t e = 0; e < EXTRUDERS; ++e) {
       retracted[e] = false;
@@ -88,8 +90,6 @@
       , bool swapping /* =false */
     #endif
   ) {
-
-    static float hop_amount = 0.0;  // Total amount lifted, for use in recover
 
     // Simply never allow two retracts or recovers in a row
     if (retracted[tools.active_extruder] == retracting) return;
