@@ -192,6 +192,7 @@
       #define LCD_PINS_D4       25
 
       #if DISABLED(NEWPANEL)
+        #undef ORIG_BEEPER_PIN
         #define ORIG_BEEPER_PIN 37
       #endif
 
@@ -259,7 +260,9 @@
       #endif
 
       #define BTN_ENC           35
+      #undef SD_DETECT_PIN
       #define SD_DETECT_PIN     49
+      #undef KILL_PIN
       #define KILL_PIN          41
 
       #if ENABLED(BQ_LCD_SMART_CONTROLLER)
