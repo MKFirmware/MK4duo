@@ -128,7 +128,7 @@
 #define ORIG_TEMP_3_PIN            NoPin
 #define ORIG_TEMP_BED_PIN           2
 #define ORIG_TEMP_CHAMBER_PIN      NoPin
-#define ORIG_TEMP_COOLER_PIN       NoPin
+#define ORIG_TEMP_COOLER_PIN       ORIG_TEMP_0_PIN
 
 //###FAN
 #define ORIG_FAN0_PIN              NoPin
