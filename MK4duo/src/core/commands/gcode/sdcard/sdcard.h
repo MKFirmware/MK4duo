@@ -113,9 +113,17 @@
   }
 
   /**
-   * M27: Get SD Card status
+   * M27: Get SD Card status or set the SD status auto-report interval.
    */
-  inline void gcode_M27(void) { card.printStatus(); }
+  inline void gcode_M27(void) {
+    bool to_enable = false;
+    if (parser.seenval('S')) {
+      to_enable = parser.value_bool();
+      printer.setAutoreportSD(to_enable);
+    }
+    else
+      card.printStatus();
+  }
 
   /**
    * M28: Start SD Write

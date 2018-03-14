@@ -84,9 +84,9 @@
 | M100 | ? | Watch Free Memory (For Debugging Only)
 | M104 | ? | Set hotend target temp
 | M105 | ? | Read current temp
-| M106 | ? | P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic>
-| M107 | ? | P<fan> Fan off
-| M108 | ? | Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
+| M106 | ? | ```P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic> H<int> Set Auto mode - H=7 for controller - H-1 for disabled```
+| M107 | ? | ```P<fan> Fan off```
+| M108 | EMERGENCY_PARSER | Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1.
 | M109 | ? | ```S[xxx] - Wait for hotend current temp to reach target temp. Waits only when heating```<br/>```R[xxx] - Wait for hotend current temp to reach target temp. Waits when heating and cooling```<br/>```IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F```
 | M110 | ? | Set the current line number
 | M111 | ? | Set debug flags with S<mask>.
@@ -98,9 +98,9 @@
 | M119 | ? | Output Endstop status to serial port
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
-| M122 | MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS | S<1=true/0=false> Enable or disable check software endstop
-| M123 | ENDSTOP | Set Endstop Logic X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
-| M124 | ENDSTOP | Set Endstop Pullup X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
+| M122 | MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS | ```S<bool> Enable or disable check software endstop```
+| M123 | ENDSTOP | Set Endstop Logic<br/>```X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>```
+| M124 | ENDSTOP | Set Endstop Pullup<br/>```X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>```
 | M125 | PARK_HEAD_ON_PAUSE | Save current position and move to pause park position 
 | M126 | ? | Solenoid Air Valve Open (BariCUDA support by jmil)
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -109,9 +109,9 @@
 | M140 | ? | Set hot bed target temp
 | M141 | ? | Set hot chamber target temp
 | M142 | ? | Set cooler target temp
-| M145 | ? | Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
-| M150 | BLINKM, RGB_LED, RGBW_LED, or PCA9632 | Set Status LED Color as R<red> U<green> B<blue>. Values 0-255.
-| M155 | ? | S<1/0> Enable/disable auto report temperatures.
+| M145 | ? | Set the heatup state ```H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS, 2=GUM)```
+| M150 | BLINKM, RGB_LED, RGBW_LED, or PCA9632 | Set Status LED Color as ```R<red> U<green> B<blue> values 0-255```
+| M155 | ? | Auto report temperatures ```S<bool> Enable/disable```
 | M163 | COLOR_MIXING_EXTRUDER | Set a single proportion for a mixing extruder 
 | M164 | COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS | Save the mix as a virtual extruder 
 | M165 | COLOR_MIXING_EXTRUDER | Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors
@@ -180,7 +180,8 @@
 | M603 | ADVANCED_PAUSE_FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
 | M605 | ? | Set dual x-carriage movement mode: Smode [ X<duplication x-offset> Rduplication temp offset ]
 | M649 | ? | Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
-| M666 | ? | Delta geometry adjustment.
+| M666 | DELTA | Delta geometry adjustment.
+| M666 | TWO ENDSTOPS | Set Two Endstops offsets for X, Y, and/or Z. X<float> Y<float> Z<float>
 | M701 | ADVANCED_PAUSE_FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED_PAUSE_FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)

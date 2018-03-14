@@ -105,7 +105,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -144,8 +143,6 @@
 #define SERVO3_PIN                 NoPin
 
 //###MISC
-#define EEPROM_I2C
-#define E2END 0x3FFFF
 #define ORIG_PS_ON_PIN             NoPin
 #define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    NoPin
@@ -164,7 +161,9 @@
 #define ORIG_FLOMETER_PIN          NoPin
 
 //###UNKNOWN_PINS
+// I2C EEPROM with 32K of space
 #define EEPROM_I2C
+#define E2END 0x7FFF
 #define MAX31855_SS0_PIN            5
 #define MAX31855_SS1_PIN            6
 //@@@

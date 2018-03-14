@@ -58,7 +58,7 @@
  * - Dual X-carriage
  * - X-axis two driver
  * - Y-axis two driver
- * - Z-axis two - three - four driver
+ * - Z-axis two driver
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
@@ -724,14 +724,19 @@
  ********************************** X-axis two driver ************************************
  *****************************************************************************************
  *                                                                                       *
- * A single X stepper driver is usually used to drive 2 stepper motors.                  *
+ * This section will allow you to use extra drivers to drive a second motor for X        *
  * Uncomment this define to utilize a separate stepper driver for each X axis motor.     *
+ * If the motors need to spin in opposite directions set INVERT X2 VS X DIR.             *
+ * If the second motor needs its own endstop set X TWO ENDSTOPS.                         *
+ * Extra endstops will appear in the output of 'M119'.                                   *
+ *                                                                                       *
+ * ONLY Cartesian                                                                        *
  *                                                                                       *
  *****************************************************************************************/
-//#define X_TWO_STEPPER
+//#define X_TWO_STEPPER_DRIVERS
 
-// Define if the two X drives need to rotate in opposite directions
 #define INVERT_X2_VS_X_DIR false
+//#define X_TWO_ENDSTOPS
 /*****************************************************************************************/
 
 
@@ -739,41 +744,39 @@
  ********************************** Y-axis two driver ************************************
  *****************************************************************************************
  *                                                                                       *
- * A single Y stepper driver is usually used to drive 2 stepper motors.                  *
+ * This section will allow you to use extra drivers to drive a second motor for Y        *
  * Uncomment this define to utilize a separate stepper driver for each Y axis motor.     *
+ * If the motors need to spin in opposite directions set INVERT Y2 VS Y DIR.             *
+ * If the second motor needs its own endstop set Y TWO ENDSTOPS.                         *
+ * Extra endstops will appear in the output of 'M119'.                                   *
+ *                                                                                       *
+ * ONLY Cartesian                                                                        *
  *                                                                                       *
  *****************************************************************************************/
-//#define Y_TWO_STEPPER
+//#define Y_TWO_STEPPER_DRIVERS
 
-// Define if the two Y drives need to rotate in opposite directions
 #define INVERT_Y2_VS_Y_DIR false
+//#define Y_TWO_ENDSTOPS
 /*****************************************************************************************/
 
 
 /*****************************************************************************************
- ************************** Z-axis two - three - four  driver ****************************
+ ********************************** Z-axis two driver ************************************
  *****************************************************************************************
  *                                                                                       *
- * A single Z stepper driver is usually used to drive 2 stepper motors.                  *
+ * This section will allow you to use extra drivers to drive a second motor for Z        *
  * Uncomment this define to utilize a separate stepper driver for each Z axis motor.     *
+ * If the motors need to spin in opposite directions set INVERT Z2 VS Z DIR.             *
+ * If the second motor needs its own endstop set Z TWO ENDSTOPS.                         *
+ * Extra endstops will appear in the output of 'M119'.                                   *
+ *                                                                                       *
+ * Only Cartesian & Core                                                                 *
  *                                                                                       *
  *****************************************************************************************/
-//#define Z_TWO_STEPPER
-//#define Z_THREE_STEPPER
-//#define Z_FOUR_STEPPER
+//#define Z_TWO_STEPPER_DRIVERS
 
-// Define directions of the Z2, Z3 and Z4 drives (if they're enabled) relative to the Z
-// drive direction
 #define INVERT_Z2_VS_Z_DIR false
-#define INVERT_Z3_VS_Z_DIR false
-#define INVERT_Z4_VS_Z_DIR false
-
-// Z TWO ENDSTOPS is a feature to enable the use of 2 endstops for both Z steppers
 //#define Z_TWO_ENDSTOPS
-// Z THREE ENDSTOPS is a feature to enable the use of 3 endstops for three Z steppers
-//#define Z_THREE_ENDSTOPS
-// Z FOUR ENDSTOPS is a feature to enable the use of 4 endstops for four Z steppers
-//#define Z_FOUR_ENDSTOPS
 /*****************************************************************************************/
 
 
@@ -1497,8 +1500,6 @@
 //#define NEXTION
 // Define Serial it use
 #define NEXTION_SERIAL 1
-// Define ms for update display (for 8 the default value is best, for 32 bit 1500 is best)
-#define NEXTION_UPDATE_INTERVAL 3000
 // For GFX preview visualization enable NEXTION GFX
 //#define NEXTION_GFX
 // Define name firmware file for Nextion on SD

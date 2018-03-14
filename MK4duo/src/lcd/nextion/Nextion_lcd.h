@@ -44,6 +44,9 @@
 
 #define LCD_DECIMAL_SMALL_XY
 
+// For debug Connect
+//#define NEXTION_CONNECT_DEBUG
+
 #if ENABLED(NEXTION)
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)

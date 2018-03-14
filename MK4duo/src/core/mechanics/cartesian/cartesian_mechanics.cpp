@@ -151,9 +151,11 @@
 
     #else
 
-      if (home_all || homeX || homeY) {
+      const float z_homing_height = printer.isZHomed() ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+
+      if (z_homing_height && (home_all || homeX || homeY)) {
         // Raise Z before homing any other axes and z is not already high enough (never lower z)
-        destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
+        destination[Z_AXIS] = z_homing_height;
         if (destination[Z_AXIS] > current_position[Z_AXIS]) {
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (printer.debugLeveling())
@@ -386,9 +388,9 @@
       if (axis == Z_AXIS && DEPLOY_PROBE()) return;
     #endif
 
-    // Set a flag for Z motor locking
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      if (axis == Z_AXIS) stepper.set_homing_flag(true);
+    // Set flags for X, Y, Z motor locking
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+      printer.setHoming(true);
     #endif
 
     // Fast move towards endstop until triggered
@@ -422,25 +424,41 @@
       do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
     }
 
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      if (axis == Z_AXIS) {
-        float adj = FABS(endstops.z2_endstop_adj);
-        bool lockZ1;
-        if (axis_home_dir > 0) {
-          adj = -adj;
-          lockZ1 = (endstops.z2_endstop_adj > 0);
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+      const bool pos_dir = axis_home_dir > 0;
+      #if ENABLED(X_TWO_ENDSTOPS)
+        if (axis == X_AXIS) {
+          const bool lock_x1 = pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0);
+          float adj = FABS(endstops.x_endstop_adj);
+          if (pos_dir) adj = -adj;
+          if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+          do_homing_move(axis, adj);
+          if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
+          printer.setHoming(false);
         }
-        else
-          lockZ1 = (endstops.z2_endstop_adj < 0);
-
-        if (lockZ1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-
-        // Move to the adjusted endstop height
-        do_homing_move(axis, adj);
-
-        if (lockZ1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
-        stepper.set_homing_flag(false);
-      } // Z_AXIS
+      #endif
+      #if ENABLED(Y_TWO_ENDSTOPS)
+        if (axis == Y_AXIS) {
+          const bool lock_y1 = pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0);
+          float adj = FABS(endstops.y_endstop_adj);
+          if (pos_dir) adj = -adj;
+          if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+          do_homing_move(axis, adj);
+          if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
+          printer.setHoming(false);
+        }
+      #endif
+      #if ENABLED(Z_TWO_ENDSTOPS)
+        if (axis == Z_AXIS) {
+          const bool lock_z1 = pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0);
+          float adj = FABS(endstops.z_endstop_adj);
+          if (pos_dir) adj = -adj;
+          if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+          do_homing_move(axis, adj);
+          if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
+          printer.setHoming(false);
+        }
+      #endif
     #endif
 
     // For cartesian machines,

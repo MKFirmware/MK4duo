@@ -188,7 +188,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
   mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(fr_mm_m));
 
   // Check to see if the probe was triggered
-  const bool probe_triggered = TEST(endstops.endstop_hit_bits,
+  const bool probe_triggered = TEST(endstops.hit_bits,
     #if HAS_Z_PROBE_PIN
       Z_PROBE
     #else

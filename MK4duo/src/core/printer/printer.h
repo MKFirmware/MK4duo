@@ -41,7 +41,8 @@ constexpr const uint8_t debug_simulation          = 128;
 enum Flag1HomeEnum {
   flag1_x_homed,
   flag1_y_homed,
-  flag1_z_homed
+  flag1_z_homed,
+  flag1_homing
 };
 
 enum Flag2VariousEnum {
@@ -54,6 +55,7 @@ enum Flag2VariousEnum {
   flag2_wait_for_heatup,
   flag2_allow_cold_extrude,
   flag2_autoreport_temp,
+  flag2_autoreport_sd,
   flag2_filament_out,
   flag2_g38_move
 };
@@ -177,7 +179,7 @@ class Printer {
       FORCE_INLINE static void keepalive(const MK4duoBusyState state) { UNUSED(state); }
     #endif
 
-    // Flags function
+    // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);
     FORCE_INLINE static uint8_t getDebugFlags()   { return mk_debug_flag; }
     FORCE_INLINE static bool debugEcho()          { return mk_debug_flag & debug_echo; }
@@ -199,6 +201,7 @@ class Printer {
       setDebugLevel(mk_debug_flag & ~flag);
     }
 
+    // Flag1 Home function
     FORCE_INLINE static void setXHomed(const bool onoff) {
       SET_BIT(mk_1_flag, flag1_x_homed, onoff);
     }
@@ -236,6 +239,12 @@ class Printer {
     }
     FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
 
+    FORCE_INLINE static void setHoming(const bool onoff) {
+      SET_BIT(mk_1_flag, flag1_homing, onoff);
+    }
+    FORCE_INLINE static bool isHoming() { return TEST(mk_1_flag, flag1_homing); }
+
+    // Flag2 Various function
     FORCE_INLINE static void setRunning(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_running, onoff);
     }
@@ -275,6 +284,11 @@ class Printer {
       SET_BIT(mk_2_flag, flag2_autoreport_temp, onoff);
     }
     FORCE_INLINE static bool isAutoreportTemp() { return TEST(mk_2_flag, flag2_autoreport_temp); }
+
+    FORCE_INLINE static void setAutoreportSD(const bool onoff) {
+      SET_BIT(mk_2_flag, flag2_autoreport_sd, onoff);
+    }
+    FORCE_INLINE static bool isAutoreportSD() { return TEST(mk_2_flag, flag2_autoreport_sd); }
 
     FORCE_INLINE static void setFilamentOut(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_filament_out, onoff);

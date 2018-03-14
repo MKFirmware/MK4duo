@@ -44,18 +44,17 @@ Endstops endstops;
         Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 #endif
 
-#if ENABLED(Z_FOUR_ENDSTOPS)
-  float Endstops::z2_endstop_adj = 0,
-        Endstops::z3_endstop_adj = 0,
-        Endstops::z4_endstop_adj = 0;
-#elif ENABLED(Z_THREE_ENDSTOPS)
-  float Endstops::z2_endstop_adj = 0,
-        Endstops::z3_endstop_adj = 0;
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  float Endstops::z2_endstop_adj = 0;
+#if ENABLED(X_TWO_ENDSTOPS)
+  float Endstops::x_endstop_adj = 0.0;
+#endif
+#if ENABLED(Y_TWO_ENDSTOPS)
+  float Endstops::y_endstop_adj = 0.0;
+#endif
+#if ENABLED(Z_TWO_ENDSTOPS)
+  float Endstops::z_endstop_adj = 0.0;
 #endif
 
-volatile char Endstops::endstop_hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+volatile char Endstops::hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 volatile uint8_t Endstops::e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
                                       // Must be reset to 0 by the test function when the tests are finished.
@@ -77,49 +76,43 @@ void Endstops::init() {
   #if HAS_X_MIN
     SET_INPUT(X_MIN_PIN);
   #endif
+  #if HAS_X2_MIN
+    SET_INPUT(X2_MIN_PIN);
+  #endif
 
   #if HAS_Y_MIN
     SET_INPUT(Y_MIN_PIN);
+  #endif
+  #if HAS_Y2_MIN
+    SET_INPUT(Y2_MIN_PIN);
   #endif
 
   #if HAS_Z_MIN
     SET_INPUT(Z_MIN_PIN);
   #endif
-
   #if HAS_Z2_MIN
     SET_INPUT(Z2_MIN_PIN);
-  #endif
-
-  #if HAS_Z3_MIN
-    SET_INPUT(Z3_MIN_PIN);
-  #endif
-
-  #if HAS_Z4_MIN
-    SET_INPUT(Z4_MIN_PIN);
   #endif
 
   #if HAS_X_MAX
     SET_INPUT(X_MAX_PIN);
   #endif
+  #if HAS_X2_MAX
+    SET_INPUT(X2_MAX_PIN);
+  #endif
 
   #if HAS_Y_MAX
     SET_INPUT(Y_MAX_PIN);
+  #endif
+  #if HAS_Y2_MAX
+    SET_INPUT(Y2_MAX_PIN);
   #endif
 
   #if HAS_Z_MAX
     SET_INPUT(Z_MAX_PIN);
   #endif
-
   #if HAS_Z2_MAX
     SET_INPUT(Z2_MAX_PIN);
-  #endif
-
-  #if HAS_Z3_MAX
-    SET_INPUT(Z3_MAX_PIN);
-  #endif
-
-  #if HAS_Z4_MAX
-    SET_INPUT(Z4_MAX_PIN);
   #endif
 
   #if HAS_Z_PROBE_PIN
@@ -149,49 +142,43 @@ void Endstops::setup_pullup() {
   #if HAS_X_MIN
     HAL::setInputPullup(X_MIN_PIN, isPullup(X_MIN));
   #endif
+  #if HAS_X2_MIN
+    HAL::setInputPullup(X2_MIN_PIN, isPullup(X2_MIN));
+  #endif
 
   #if HAS_Y_MIN
     HAL::setInputPullup(Y_MIN_PIN, isPullup(Y_MIN));
+  #endif
+  #if HAS_Y2_MIN
+    HAL::setInputPullup(Y2_MIN_PIN, isPullup(Y2_MIN));
   #endif
 
   #if HAS_Z_MIN
     HAL::setInputPullup(Z_MIN_PIN, isPullup(Z_MIN));
   #endif
-
   #if HAS_Z2_MIN
     HAL::setInputPullup(Z2_MIN_PIN, isPullup(Z2_MIN));
-  #endif
-
-  #if HAS_Z3_MIN
-    HAL::setInputPullup(Z3_MIN_PIN, isPullup(Z3_MIN));
-  #endif
-
-  #if HAS_Z4_MIN
-    HAL::setInputPullup(Z4_MIN_PIN, isPullup(Z4_MIN));
   #endif
 
   #if HAS_X_MAX
     HAL::setInputPullup(X_MAX_PIN, isPullup(X_MAX));
   #endif
+  #if HAS_X2_MAX
+    HAL::setInputPullup(X2_MAX_PIN, isPullup(X2_MAX));
+  #endif
 
   #if HAS_Y_MAX
     HAL::setInputPullup(Y_MAX_PIN, isPullup(Y_MAX));
+  #endif
+  #if HAS_Y2_MAX
+    HAL::setInputPullup(Y2_MAX_PIN, isPullup(Y2_MAX));
   #endif
 
   #if HAS_Z_MAX
     HAL::setInputPullup(Z_MAX_PIN, isPullup(Z_MAX));
   #endif
-
   #if HAS_Z2_MAX
     HAL::setInputPullup(Z2_MAX_PIN, isPullup(Z2_MAX));
-  #endif
-
-  #if HAS_Z3_MAX
-    HAL::setInputPullup(Z3_MAX_PIN, isPullup(Z3_MAX));
-  #endif
-
-  #if HAS_Z4_MAX
-    HAL::setInputPullup(Z4_MAX_PIN, isPullup(Z4_MAX));
   #endif
 
   #if HAS_Z_PROBE_PIN
@@ -214,62 +201,67 @@ void Endstops::setup_pullup() {
 
 void Endstops::report() {
 
-  bool  x_logic, x_pullup,
-        y_logic, y_pullup,
-        z_logic, z_pullup;
-
-  #if HAS_Z2_MIN || HAS_Z2_MAX
-    bool z2_logic, z2_pullup;
-  #endif
-
-  #if HAS_Z3_MIN || HAS_Z3_MAX
-    bool z3_logic, z3_pullup;
-  #endif
-
-  #if HAS_Z4_MIN || HAS_Z4_MAX
-    bool z4_logic, z4_pullup;
-  #endif
-
-  if (mechanics.home_dir[X_AXIS] == -1) {
-    x_logic   = isLogic(X_MIN);
-    x_pullup  = isPullup(X_MIN);
-  }
-  else {
-    x_logic   = isLogic(X_MAX);
-    x_pullup  = isPullup(X_MAX);
-  }
-
-  if (mechanics.home_dir[Y_AXIS] == -1) {
-    y_logic   = isLogic(Y_MIN);
-    y_pullup  = isPullup(Y_MIN);
-  }
-  else {
-    y_logic   = isLogic(Y_MAX);
-    y_pullup  = isPullup(Y_MAX);
-  }
-
-  if (mechanics.home_dir[Z_AXIS] == -1) {
-    z_logic   = isLogic(Z_MIN);
-    z_pullup  = isPullup(Z_MIN);
-  }
-  else {
-    z_logic   = isLogic(Z_MAX);
-    z_pullup  = isPullup(Z_MAX);
-  }
-
   SERIAL_EM("Reporting endstop logic and pullup");
 
   // X Endstop
-  SERIAL_MV("Endstop X Logic:", x_logic ? "true" : "false");
-  SERIAL_EMV(" Pullup:", x_pullup ? "true" : "false");
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir[X_AXIS] == -1) {
+    SERIAL_MT(" X Logic:",  isLogic(X_MIN)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(X_MIN) ? "true" : "false");
+    #if HAS_X2_MIN
+      SERIAL_MT(" X2 Logic:",   isLogic(X2_MIN)   ? "true" : "false");
+      SERIAL_MT(" X2 Pullup:",  isPullup(X2_MIN)  ? "true" : "false");
+    #endif
+  }
+  else {
+    SERIAL_MT(" X Logic:",  isLogic(X_MAX)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(X_MAX) ? "true" : "false");
+    #if HAS_X2_MAX
+      SERIAL_MT(" X2 Logic:",   isLogic(X2_MAX)   ? "true" : "false");
+      SERIAL_MT(" X2 Pullup:",  isPullup(X2_MAX)  ? "true" : "false");
+    #endif
+  }
+  SERIAL_EOL();
 
   // Y Endstop
-  SERIAL_MV("Endstop Y Logic:", y_logic ? "true" : "false");
-  SERIAL_EMV(" Pullup:", y_pullup ? "true" : "false");
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir[Y_AXIS] == -1) {
+    SERIAL_MT(" Y Logic:",  isLogic(Y_MIN)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(Y_MIN) ? "true" : "false");
+    #if HAS_Y2_MIN
+      SERIAL_MT(" Y2 Logic:",   isLogic(Y2_MIN)   ? "true" : "false");
+      SERIAL_MT(" Y2 Pullup:",  isPullup(Y2_MIN)  ? "true" : "false");
+    #endif
+  }
+  else {
+    SERIAL_MT(" Y Logic:",  isLogic(Y_MAX)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(Y_MAX) ? "true" : "false");
+    #if HAS_Y2_MAX
+      SERIAL_MT(" Y2 Logic:",   isLogic(Y2_MAX)   ? "true" : "false");
+      SERIAL_MT(" Y2 Pullup:",  isPullup(Y2_MAX)  ? "true" : "false");
+    #endif
+  }
+  SERIAL_EOL();
 
   // Z Endstop
-  SERIAL_MV("Endstop Z Logic:", z_logic ? "true" : "false");
-  SERIAL_EMV(" Pullup:", z_pullup ? "true" : "false");
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir[Z_AXIS] == -1) {
+    SERIAL_MT(" Z Logic:",  isLogic(Z_MIN)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(Z_MIN) ? "true" : "false");
+    #if HAS_Z2_MIN
+      SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MIN)   ? "true" : "false");
+      SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MIN)  ? "true" : "false");
+    #endif
+  }
+  else {
+    SERIAL_MT(" Z Logic:",  isLogic(Z_MAX)  ? "true" : "false");
+    SERIAL_MT(" Pullup:",   isPullup(Z_MAX) ? "true" : "false");
+    #if HAS_Z2_MAX
+      SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MAX)   ? "true" : "false");
+      SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MAX)  ? "true" : "false");
+    #endif
+  }
+  SERIAL_EOL();
 
   #if HAS_Z_PROBE_PIN
     // Probe Endstop
@@ -298,7 +290,7 @@ void Endstops::report() {
 }
     
 void Endstops::report_state() {
-  if (endstop_hit_bits) {
+  if (hit_bits) {
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -311,7 +303,7 @@ void Endstops::report_state() {
       _SET_STOP_CHAR(A,C); }while(0)
 
     #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(endstop_hit_bits, A ##_MIN) || TEST(endstop_hit_bits, A ##_MAX)) \
+      if (TEST(hit_bits, A ##_MIN) || TEST(hit_bits, A ##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
     SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
@@ -321,7 +313,7 @@ void Endstops::report_state() {
 
     #if HAS_Z_PROBE_PIN
       #define P_AXIS Z_AXIS
-      if (TEST(endstop_hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+      if (TEST(hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
     SERIAL_EOL();
 
@@ -342,33 +334,32 @@ void Endstops::report_state() {
   }
 } // Endstops::report_state
 
-#if ENABLED(Z_FOUR_ENDSTOPS)
-  // Pass the result of the endstop test
-  void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3, const EndstopEnum es4) {
-    byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2 | (TEST_ENDSTOP(es4) << 3); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3, bit 3 for Z4
-    if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
-      if (!stepper.performing_homing || (z_test == 0xf))  //if not performing home or if both endstops were trigged during homing...
+#if ENABLED(X_TWO_ENDSTOPS)
+  void Endstops::test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2) {
+    const byte x_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for X, bit 1 for X2
+    if (x_test && stepper.current_block->steps[X_AXIS] > 0) {
+      SBI(hit_bits, X_MIN);
+      if (!printer.isHoming() || (x_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
   }
-#elif ENABLED(Z_THREE_ENDSTOPS)
-  // Pass the result of the endstop test
-  void Endstops::test_four_z_endstops(const EndstopEnum es1, const EndstopEnum es2, const EndstopEnum es3) {
-    byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1 | (TEST_ENDSTOP(es3) << 2); // bit 0 for Z, bit 1 for Z2, bit 2 for Z3
-    if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
-      if (!stepper.performing_homing || (z_test == 0x7))  //if not performing home or if both endstops were trigged during homing...
+#endif
+#if ENABLED(Y_TWO_ENDSTOPS)
+  void Endstops::test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2) {
+    const byte y_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Y, bit 1 for Y2
+    if (y_test && stepper.current_block->steps[Y_AXIS] > 0) {
+      SBI(hit_bits, Y_MIN);
+      if (!printer.isHoming() || (y_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
   }
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  // Pass the result of the endstop test
+#endif
+#if ENABLED(Z_TWO_ENDSTOPS)
   void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
-    byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
+    const byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
     if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(endstop_hit_bits, Z_MIN);
-      if (!stepper.performing_homing || (z_test == 0x3))  //if not performing home or if both endstops were trigged during homing...
+      SBI(hit_bits, Z_MIN);
+      if (!printer.isHoming() || (z_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
         stepper.kill_current_block();
     }
   }
@@ -497,23 +488,23 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
     #if HAS_Z_PROBE_PIN
       if (READ(Z_PROBE_PIN)) SBI(current_bits_local, Z_PROBE);
     #endif
+    #if HAS_X2_MIN
+      if (READ(X2_MIN_PIN)) SBI(current_bits_local, X2_MIN);
+    #endif
+    #if HAS_X2_MAX
+      if (READ(X2_MAX_PIN)) SBI(current_bits_local, X2_MAX);
+    #endif
+    #if HAS_Y2_MIN
+      if (READ(Y2_MIN_PIN)) SBI(current_bits_local, Y2_MIN);
+    #endif
+    #if HAS_Y2_MAX
+      if (READ(Y2_MAX_PIN)) SBI(current_bits_local, Y2_MAX);
+    #endif
     #if HAS_Z2_MIN
       if (READ(Z2_MIN_PIN)) SBI(current_bits_local, Z2_MIN);
     #endif
     #if HAS_Z2_MAX
       if (READ(Z2_MAX_PIN)) SBI(current_bits_local, Z2_MAX);
-    #endif
-    #if HAS_Z3_MIN
-      if (READ(Z3_MIN_PIN)) SBI(current_bits_local, Z3_MIN);
-    #endif
-    #if HAS_Z3_MAX
-      if (READ(Z3_MAX_PIN)) SBI(current_bits_local, Z3_MAX);
-    #endif
-    #if HAS_Z4_MIN
-      if (READ(Z4_MIN_PIN)) SBI(current_bits_local, Z4_MIN);
-    #endif
-    #if HAS_Z4_MAX
-      if (READ(Z4_MAX_PIN)) SBI(current_bits_local, Z4_MAX);
     #endif
 
     uint16_t endstop_change = current_bits_local ^ old_bits_local;
@@ -540,23 +531,23 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
       #if HAS_Z_PROBE_PIN
         if (TEST(endstop_change, Z_PROBE)) SERIAL_MV("  PROBE:", TEST(current_bits_local, Z_PROBE));
       #endif
+      #if HAS_X2_MIN
+        if (TEST(endstop_change, X2_MIN)) SERIAL_MV("  X2_MIN:", TEST(current_bits_local, X2_MIN));
+      #endif
+      #if HAS_X2_MAX
+        if (TEST(endstop_change, X2_MAX)) SERIAL_MV("  X2_MAX:", TEST(current_bits_local, X2_MAX));
+      #endif
+      #if HAS_Y2_MIN
+        if (TEST(endstop_change, Y2_MIN)) SERIAL_MV("  Y2_MIN:", TEST(current_bits_local, Y2_MIN));
+      #endif
+      #if HAS_Y2_MAX
+        if (TEST(endstop_change, Y2_MAX)) SERIAL_MV("  Y2_MAX:", TEST(current_bits_local, Y2_MAX));
+      #endif
       #if HAS_Z2_MIN
         if (TEST(endstop_change, Z2_MIN)) SERIAL_MV("  Z2_MIN:", TEST(current_bits_local, Z2_MIN));
       #endif
       #if HAS_Z2_MAX
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", TEST(current_bits_local, Z2_MAX));
-      #endif
-      #if HAS_Z3_MIN
-        if (TEST(endstop_change, Z3_MIN)) SERIAL_MV("  Z3_MIN:", TEST(current_bits_local, Z3_MIN));
-      #endif
-      #if HAS_Z3_MAX
-        if (TEST(endstop_change, Z3_MAX)) SERIAL_MV("  Z3_MAX:", TEST(current_bits_local, Z3_MAX));
-      #endif
-      #if HAS_Z4_MIN
-        if (TEST(endstop_change, Z4_MIN)) SERIAL_MV("  Z4_MIN:", TEST(current_bits_local, Z4_MIN));
-      #endif
-      #if HAS_Z4_MAX
-        if (TEST(endstop_change, Z4_MAX)) SERIAL_MV("  Z4_MAX:", TEST(current_bits_local, Z4_MAX));
       #endif
       SERIAL_MSG("\n\n");
       old_bits_local = current_bits_local;
@@ -569,17 +560,16 @@ void Endstops::update() {
 
   #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
   #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_LOGIC(AXIS, MINMAX) isLogic(AXIS ##_## MINMAX)
-  #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(endstop_hit_bits, _ENDSTOP(AXIS, MINMAX))
+  #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(hit_bits, _ENDSTOP(AXIS, MINMAX))
 
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
-  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_LOGIC(AXIS, MINMAX)))
+  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
   #define COPY_BIT(DST, SRC_BIT, DST_BIT) SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
 
   #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX)) && stepper.current_block->steps[AXIS ##_AXIS] > 0) { \
+      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
         _ENDSTOP_HIT(AXIS, MINMAX); \
         stepper.endstop_triggered(AXIS ##_AXIS); \
       } \
@@ -683,15 +673,33 @@ void Endstops::update() {
 
   if (X_MOVE_TEST) {
     if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
-      if (X_MIN_TEST) {
-        #if HAS_X_MIN
-          UPDATE_ENDSTOP(X, MIN);
+      #if HAS_X_MIN
+        #if ENABLED(X_TWO_ENDSTOPS)
+          UPDATE_ENDSTOP_BIT(X, MIN);
+          #if HAS_X2_MIN
+            UPDATE_ENDSTOP_BIT(X2, MIN);
+          #else
+            COPY_BIT(current_bits, X_MIN, X2_MIN);
+          #endif
+          test_two_x_endstops(X_MIN, X2_MIN);
+        #else
+          if (X_MIN_TEST) UPDATE_ENDSTOP(X, MIN);
         #endif
-      }
+      #endif
     }
-    else if (X_MAX_TEST) {                      // +direction
+    else {  // +direction
       #if HAS_X_MAX
-        UPDATE_ENDSTOP(X, MAX);
+        #if ENABLED(X_TWO_ENDSTOPS)
+          UPDATE_ENDSTOP_BIT(X, MAX);
+          #if HAS_X2_MAX
+            UPDATE_ENDSTOP_BIT(X2, MAX);
+          #else
+            COPY_BIT(current_bits, X_MAX, X2_MAX);
+          #endif
+          test_two_x_endstops(X_MAX, X2_MAX);
+        #else
+          if (X_MAX_TEST) UPDATE_ENDSTOP(X, MAX);
+        #endif
       #endif
     }
   }
@@ -699,12 +707,32 @@ void Endstops::update() {
   if (Y_MOVE_TEST) {
     if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
       #if HAS_Y_MIN
-        UPDATE_ENDSTOP(Y, MIN);
+        #if ENABLED(Y_TWO_ENDSTOPS)
+          UPDATE_ENDSTOP_BIT(Y, MIN);
+          #if HAS_Y2_MIN
+            UPDATE_ENDSTOP_BIT(Y2, MIN);
+          #else
+            COPY_BIT(current_bits, Y_MIN, Y2_MIN);
+          #endif
+          test_two_y_endstops(Y_MIN, Y2_MIN);
+        #else
+          UPDATE_ENDSTOP(Y, MIN);
+        #endif
       #endif
     }
-    else {                                      // +direction
+    else {  // +direction
       #if HAS_Y_MAX
-        UPDATE_ENDSTOP(Y, MAX);
+        #if ENABLED(Y_TWO_ENDSTOPS)
+          UPDATE_ENDSTOP_BIT(Y, MAX);
+          #if HAS_Y2_MAX
+            UPDATE_ENDSTOP_BIT(Y2, MAX);
+          #else
+            COPY_BIT(current_bits, Y_MAX, Y2_MAX);
+          #endif
+          test_two_y_endstops(Y_MAX, Y2_MAX);
+        #else
+          UPDATE_ENDSTOP(Y, MAX);
+        #endif
       #endif
     }
   }
@@ -712,132 +740,46 @@ void Endstops::update() {
   if (Z_MOVE_TEST) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
       #if HAS_Z_MIN
-        #if ENABLED(Z_FOUR_ENDSTOPS)
-
+        #if ENABLED(Z_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Z, MIN);
           #if HAS_Z2_MIN
             UPDATE_ENDSTOP_BIT(Z2, MIN);
           #else
             COPY_BIT(current_bits, Z_MIN, Z2_MIN);
           #endif
-          #if HAS_Z3_MIN
-            UPDATE_ENDSTOP_BIT(Z3, MIN);
-          #else
-            COPY_BIT(current_bits, Z_MIN, Z3_MIN);
-          #endif
-          #if HAS_Z4_MIN
-            UPDATE_ENDSTOP_BIT(Z4, MIN);
-          #else
-            COPY_BIT(current_bits, Z_MIN, Z4_MIN);
-          #endif
-
-          test_four_z_endstops(Z_MIN, Z2_MIN, Z3_MIN, Z4_MIN);
-
-        #elif ENABLED(Z_THREE_ENDSTOPS)
-
-          UPDATE_ENDSTOP_BIT(Z, MIN);
-          #if HAS_Z2_MIN
-            UPDATE_ENDSTOP_BIT(Z2, MIN);
-          #else
-            COPY_BIT(current_bits, Z_MIN, Z2_MIN);
-          #endif
-          #if HAS_Z3_MIN
-            UPDATE_ENDSTOP_BIT(Z3, MIN);
-          #else
-            COPY_BIT(current_bits, Z_MIN, Z3_MIN);
-          #endif
-
-          test_three_z_endstops(Z_MIN, Z2_MIN, Z3_MIN);
-
-        #elif ENABLED(Z_TWO_ENDSTOPS)
-
-          UPDATE_ENDSTOP_BIT(Z, MIN);
-          #if HAS_Z2_MIN
-            UPDATE_ENDSTOP_BIT(Z2, MIN);
-          #else
-            COPY_BIT(current_bits, Z_MIN, Z2_MIN);
-          #endif
-
           test_two_z_endstops(Z_MIN, Z2_MIN);
-
         #else
-
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (endstops.isProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
+            if (isProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
-
-        #endif // Z_FOUR_ENDSTOPS
-
-      #endif // HAS_Z_MIN
+        #endif
+      #endif
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (endstops.isProbeEndstop()) {
+        if (isProbeEndstop()) {
           UPDATE_ENDSTOP(Z, PROBE);
-          if (TEST_ENDSTOP(Z_PROBE)) SBI(endstop_hit_bits, Z_PROBE);
+          if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_bits, Z_PROBE);
         }
       #endif
     }
     else { // Z +direction. Gantry up, bed down.
       #if HAS_Z_MAX
-
-        // Check both Z dual endstops
-        #if ENABLED(Z_FOUR_ENDSTOPS)
-
+        // Check both Z two endstops
+        #if ENABLED(Z_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Z, MAX);
           #if HAS_Z2_MAX
             UPDATE_ENDSTOP_BIT(Z2, MAX);
           #else
             COPY_BIT(current_bits, Z_MAX, Z2_MAX);
           #endif
-          #if HAS_Z3_MAX
-            UPDATE_ENDSTOP_BIT(Z3, MAX);
-          #else
-            COPY_BIT(current_bits, Z_MAX, Z3_MAX);
-          #endif
-          #if HAS_Z4_MAX
-            UPDATE_ENDSTOP_BIT(Z4, MAX);
-          #else
-            COPY_BIT(current_bits, Z_MAX, Z4_MAX);
-          #endif
-
-          test_four_z_endstops(Z_MAX, Z2_MAX, Z3_MAX, Z4_MAX);
-
-        #elif ENABLED(Z_THREE_ENDSTOPS)
-
-          UPDATE_ENDSTOP_BIT(Z, MAX);
-          #if HAS_Z2_MAX
-            UPDATE_ENDSTOP_BIT(Z2, MAX);
-          #else
-            COPY_BIT(current_bits, Z_MAX, Z2_MAX);
-          #endif
-          #if HAS_Z3_MAX
-            UPDATE_ENDSTOP_BIT(Z3, MAX);
-          #else
-            COPY_BIT(current_bits, Z_MAX, Z3_MAX);
-          #endif
-
-          test_three_z_endstops(Z_MAX, Z2_MAX, Z3_MAX);
-
-        #elif ENABLED(Z_TWO_ENDSTOPS)
-
-          UPDATE_ENDSTOP_BIT(Z, MAX);
-          #if HAS_Z2_MAX
-            UPDATE_ENDSTOP_BIT(Z2, MAX);
-          #else
-            COPY_BIT(current_bits, Z_MAX, Z2_MAX);
-          #endif
-
           test_two_z_endstops(Z_MAX, Z2_MAX);
-
         #else
-
           UPDATE_ENDSTOP(Z, MAX);
-
-        #endif // Z_FOUR_ENDSTOPS
-      #endif // Z_MAX_PIN
+        #endif
+      #endif
     }
   }
 

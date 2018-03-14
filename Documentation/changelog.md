@@ -2,6 +2,10 @@
 * Now if a heater does not have a sensor or fails, it will not be used, but it will not kill.
 * If the PID autotune is not done, the firmware will not switch the heater on until the autotune is performed. Only if have EEPROM.
 * Update Nextion Firmware 4.3" and 7"
+* Add firmware for 4.3 Enanched and 5" Enanched
+* Add X2 and Y2 endstop if enabled X2 two stepper drivers or Y2 two stepper drivers
+* Add M666 Set Two Endstops offsets for X, Y, and/or Z
+* Delete Z3 and Z4 stepper driver
 * Fix and clear code
 
 ### Version 4.3.4 Stable

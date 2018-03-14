@@ -57,11 +57,12 @@
     recalc_delta_settings();
   }
 
+  // Return true if the given point is within the printable area
   bool Delta_Mechanics::position_is_reachable(const float &rx, const float &ry) {
     return HYPOT2(rx, ry) <= sq(delta_print_radius);
   }
+  // Return true if the both nozzle and the probe can reach the given point.
   bool Delta_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
-    // Both the nozzle and the probe must be able to reach the point.
     return position_is_reachable(rx, ry)
         && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
   }
@@ -200,7 +201,7 @@
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void Delta_Mechanics::do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s /*=0.0*/) {
+  void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -601,9 +602,9 @@
     // If an endstop was not hit, then damage can occur if homing is continued.
     // This can occur if the delta height is
     // not set correctly.
-    if (!(TEST(endstops.endstop_hit_bits, X_MAX) ||
-          TEST(endstops.endstop_hit_bits, Y_MAX) ||
-          TEST(endstops.endstop_hit_bits, Z_MAX))) {
+    if (!(TEST(endstops.hit_bits, X_MAX) ||
+          TEST(endstops.hit_bits, Y_MAX) ||
+          TEST(endstops.hit_bits, Z_MAX))) {
       LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
       SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
       return false;

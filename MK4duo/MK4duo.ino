@@ -92,7 +92,7 @@
  * M24  - Start/resume SD print. (Requires SDSUPPORT)
  * M25  - Pause SD print. (Requires SDSUPPORT)
  * M26  - Set SD position in bytes (M26 S12345). (Requires SDSUPPORT)
- * M27  - Report SD print status. (Requires SDSUPPORT)
+ * M27  - Report SD print status. With 'S<bool>' set the SD status auto-report. (Requires SDSUPPORT) 
  * M28  - Start SD write (M28 filename.g). (Requires SDSUPPORT)
  * M29  - Stop SD write. (Requires SDSUPPORT)
  * M30  - Delete file from SD (M30 filename.g). (Requires SDSUPPORT)
@@ -151,7 +151,7 @@
  * M100 - Watch Free Memory (For Debugging Only)
  * M104 - Set hotend target temp
  * M105 - Read current temp
- * M106 - P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic>
+ * M106 - P<fan> S<speed> F<frequency> U<pin> L<min speed> I<inverted logic> H<int> Set Auto mode - H=7 for controller - H-1 for disabled
  * M107 - P<fan> Fan off
  * M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
  * M109 - Sxxx Wait for hotend current temp to reach target temp. Waits only when heating
@@ -168,8 +168,8 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S<1=true|0=false> Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
- * M123 - Set Endstop Logic X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
- * M124 - Set Endstop Pullup X<bool> Y<bool> Z<bool> I<Z2 bool> J<Z3 bool> K<Z4 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
+ * M123 - Set Endstop Logic X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
+ * M124 - Set Endstop Pullup X<bool> Y<bool> Z<bool> I<X2 bool> J<Y2 bool> K<Z2 bool> P<Probe bool> D<Door bool> F<Filrunout bool> W<Power Check bool>
  * M125 - Save current position and move to pause park position. (Requires PARK_HEAD_ON_PAUSE)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -265,6 +265,7 @@
  * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
  * M649 - Set laser options. S<intensity> L<duration> P<ppm> B<set mode> R<raster mm per pulse> F<feedrate>
  * M666 - Delta geometry adjustment
+ * M666 - Set Two Endstops offsets for X, Y, and/or Z (requires TWO ENDSTOPS)
  * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
  * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
  * M851 - Set X Y Z Probe Offset in current units. (Requires Probe)

@@ -79,7 +79,7 @@
       fan->Speed = fan->min_Speed + (speed * (255 - fan->min_Speed)) / 255;
 
       if (!parser.seen('S')) {
-        char response[50];
+        char response[70];
         sprintf_P(response, PSTR("Fan: %i pin: %i frequency: %uHz min: %i inverted: %s"),
             (int)f,
             (int)fan->pin,

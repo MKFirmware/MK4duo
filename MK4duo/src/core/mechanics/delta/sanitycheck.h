@@ -148,6 +148,20 @@
     #endif
   #endif
 
+  /**
+   * TWO STEPPER DRIVERS
+   */
+  #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(Y_TWO_STEPPER_DRIVERS) || ENABLED(Z_TWO_STEPPER_DRIVERS)
+    #error "DEPENDENCY ERROR: TWO Stepper Driver for Delta is imposible"
+  #endif
+
+  /**
+   * TWO ENDSTOPS
+   */
+  #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+    #error "DEPENDENCY ERROR: TWO ENDSTOPS for Delta is imposible"
+  #endif
+
 #endif // MECH(DELTA)
 
 #endif /* _MECH_DELTA_SANITYCHECK_H_ */

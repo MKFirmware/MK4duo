@@ -98,14 +98,14 @@
             #endif
           #endif
         ) {
-          lastMotorOn = ms; // set time to NOW so the fan will turn on
+          lastMotorOn = ms;
         }
 
         // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
         Speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
       }
 
-      next_auto_fan_check_ms = ms + 2500UL; // Not a time critical function, so only check every 2.5s
+      next_auto_fan_check_ms = ms + 2500UL;
     }
   }
 

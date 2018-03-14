@@ -185,7 +185,7 @@ void Mechanics::prepare_move_to_destination() {
  *  Plan a move to (X, Y, Z) and set the current_position
  *  The final current_position may not be the one that was requested
  */
-void Mechanics::do_blocking_move_to(const float &rx, const float &ry, const float &rz, const float &fr_mm_s /*=0.0*/) {
+void Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
   const float old_feedrate_mm_s = feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -435,15 +435,20 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   return false;
 }
 
+// Return true if the given position is within the machine bounds.
 bool Mechanics::position_is_reachable(const float &rx, const float &ry) {
   // Add 0.001 margin to deal with float imprecision
   return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
       && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
 }
+// Return whether the given position is within the bed, and whether the nozzle
+//  can reach the position required to put the probe at the given position.
 bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
-  // Add 0.001 margin to deal with float imprecision
-  return WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
-      && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
+  const float nx = rx - probe.offset[X_AXIS],
+              ny = ry - probe.offset[Y_AXIS];
+  return position_is_reachable(nx, ny)
+      && WITHIN(rx, X_MIN_BED - 0.001, X_MAX_BED + 0.001)
+      && WITHIN(ry, Y_MIN_BED - 0.001, Y_MAX_BED + 0.001);
 }
 
 #if ENABLED(ARC_SUPPORT)

@@ -84,7 +84,8 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 * 256.0 / (HAL_ST
 
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
-#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)  // 42 stepper timer ticks per us
+#define STEPPER_TIMER_TICKS_PER_US  ((HAL_STEPPER_TIMER_RATE) / 1000000)  // 42 - stepper timer ticks per µs
+#define STEPPER_TIMER_MIN_INTERVAL  2 // minimum time in µs between stepper interrupts
 #define HAL_STEP_TIMER_ISR          void TC4_Handler()
 
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
@@ -193,6 +194,11 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_
 FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
+}
+
+FORCE_INLINE static void HAL_timer_restricts(const uint8_t timer_num, const uint16_t interval_ticks) {
+  const hal_timer_t mincmp = HAL_timer_get_count(timer_num) + interval_ticks;
+  if (HAL_timer_get_current_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
 }
 
 FORCE_INLINE static void HAL_timer_isr_prologue(uint8_t timer_num) {

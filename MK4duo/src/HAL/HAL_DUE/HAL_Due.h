@@ -314,7 +314,7 @@ class HAL {
     static bool pwm_status(const pin_t pin);
     static bool tc_status(const pin_t pin);
 
-    static void analogWrite(const pin_t pin, const uint8_t value, const uint16_t freq=1000);
+    static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq=1000);
 
     static void Tick();
 

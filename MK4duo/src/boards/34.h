@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -195,6 +194,15 @@
       #if DISABLED(NEWPANEL)
         #define ORIG_BEEPER_PIN 37
       #endif
+
+    #elif ENABLED(ZONESTAR_LCD)
+
+      #define LCD_PINS_RS       64
+      #define LCD_PINS_ENABLE   44
+      #define LCD_PINS_D4       63
+      #define LCD_PINS_D5       40
+      #define LCD_PINS_D6       42
+      #define LCD_PINS_D7       65
 
     #else
 
@@ -317,7 +325,6 @@
       #define KILL_PIN          41
 
     #elif ENABLED(MKS_MINI_12864)
-
       #define DOGLCD_A0         27
       #define DOGLCD_CS         25
 
@@ -398,9 +405,5 @@
 #endif // ULTRA_LCD
 
 // SPI for Max6675 or Max31855 Thermocouple
-#if DISABLED(SDSUPPORT)
-  #define MAX6675_SS_PIN            66
-#else
-  #define MAX6675_SS_PIN            66
-#endif
+#define MAX6675_SS_PIN         66
 //@@@

@@ -36,9 +36,25 @@
 
 // Core factor
 #if IS_CORE
+
   #if DISABLED(CORE_FACTOR)
     #error "DEPENDENCY ERROR: Missing setting CORE_FACTOR."
   #endif
-#endif
+
+  /**
+   * TWO STEPPER DRIVERS
+   */
+  #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(Y_TWO_STEPPER_DRIVERS)
+    #error "DEPENDENCY ERROR: TWO Stepper Driver XY for Core is imposible"
+  #endif
+
+  /**
+   * TWO ENDSTOPS
+   */
+  #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS)
+    #error "DEPENDENCY ERROR: TWO ENDSTOPS XY for Core is imposible"
+  #endif
+
+#endif // IS_CORE
 
 #endif /* _MECH_CORE_SANITYCHECK_H_ */

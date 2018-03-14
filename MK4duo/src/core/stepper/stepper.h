@@ -65,21 +65,19 @@ class Stepper {
       static bool abort_on_endstop_hit;
     #endif
 
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      static bool performing_homing;
-    #endif
-
     static uint16_t cleaning_buffer_counter;
 
   private: /** Private Parameters */
 
     static uint8_t last_direction_bits;        // The next stepping-bits to be output
 
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor, locked_z3_motor, locked_z4_motor;
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor, locked_z3_motor;
-    #elif ENABLED(Z_TWO_ENDSTOPS)
+    #if ENABLED(X_TWO_ENDSTOPS)
+      static bool locked_x_motor, locked_x2_motor;
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      static bool locked_y_motor, locked_y2_motor;
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
       static bool locked_z_motor, locked_z2_motor;
     #endif
 
@@ -245,21 +243,17 @@ class Stepper {
       static void microstep_readings();
     #endif
 
-    #if ENABLED(Z_FOUR_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
-      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
-      FORCE_INLINE static void set_z3_lock(bool state) { locked_z3_motor = state; }
-      FORCE_INLINE static void set_z4_lock(bool state) { locked_z4_motor = state; }
-    #elif ENABLED(Z_THREE_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
-      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
-      FORCE_INLINE static void set_z3_lock(bool state) { locked_z3_motor = state; }
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag(bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_z_lock(bool state) { locked_z_motor = state; }
-      FORCE_INLINE static void set_z2_lock(bool state) { locked_z2_motor = state; }
+    #if ENABLED(X_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_x_lock(const bool state) { locked_x_motor = state; }
+      FORCE_INLINE static void set_x2_lock(const bool state) { locked_x2_motor = state; }
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_y_lock(const bool state) { locked_y_motor = state; }
+      FORCE_INLINE static void set_y2_lock(const bool state) { locked_y2_motor = state; }
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_z_lock(const bool state) { locked_z_motor = state; }
+      FORCE_INLINE static void set_z2_lock(const bool state) { locked_z2_motor = state; }
     #endif
 
     #if ENABLED(BABYSTEPPING)

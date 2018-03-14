@@ -41,6 +41,7 @@
 // Calibrate Commands
 #include "calibrate/g28.h"                // Home
 #include "calibrate/m48.h"                // Repeatability probe
+#include "calibrate/m666.h"               // Set Two Endstops offsets
 
 // Config Commands
 #include "config/m92.h"

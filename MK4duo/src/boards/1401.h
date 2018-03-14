@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -164,8 +163,9 @@
 
 
 //###UNKNOWN_PINS
+// I2C EEPROM with 8K of space
 #define EEPROM_I2C
-#define E2END 0x2000
+#define E2END 0x1FFF
 //@@@
 
 //###IF_BLOCKS

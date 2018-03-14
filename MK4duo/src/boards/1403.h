@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -179,26 +178,24 @@
 #define INVERTED_COOLER_PIN true
 
 #if ENABLED(ULTRA_LCD)
+  // ramps-fd lcd adaptor
+
+  #if ENABLED(DOGLCD)
+    #define BEEPER_PIN          37
+    #define BTN_EN1             33
+    #define BTN_EN2             31
+    #define BTN_ENC             35
+    #define SD_DETECT_PIN       49
+  #endif
+
   #if ENABLED(NEWPANEL)
-    // ramps-fd lcd adaptor
     #define LCD_PINS_RS         16
     #define LCD_PINS_ENABLE     17
     #define LCD_PINS_D4         23
     #define LCD_PINS_D5         25
     #define LCD_PINS_D6         27
     #define LCD_PINS_D7         29
-
-    #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
-      #undef ORIG_BEEPER_PIN
-      #define ORIG_BEEPER_PIN   37
-
-      #define BTN_EN1           33
-      #define BTN_EN2           31
-      #define BTN_ENC           35
-
-      #undef SD_DETECT_PIN
-      #define SD_DETECT_PIN     49
-    #endif
   #endif
+
 #endif //ULTRA_LCD
 //@@@

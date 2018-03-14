@@ -31,7 +31,6 @@
 #if HAS_TRINAMIC
 
   bool report_tmc_status = false;
-  char extended_axis_codes[12][3] = { "X", "X2", "Y", "Y2", "Z", "Z2", "E0", "E1", "E2", "E3", "E4", "E5" };
 
   /*
    * Check for over temperature or short to ground error flags.
@@ -90,18 +89,17 @@
     #endif
 
     template<typename TMC>
-    void monitor_tmc_driver(TMC &st, const char axisID, uint8_t &otpw_cnt) {
+    void monitor_tmc_driver(TMC &st, const TMC_AxisEnum axis, uint8_t &otpw_cnt) {
       TMC_driver_data data = get_driver_data(st);
 
       #if ENABLED(STOP_ON_ERROR)
         if (data.is_error) {
           SERIAL_EOL();
-          SERIAL_TXT(axisID);
+          _tmc_say_axis(axis);
           SERIAL_MSG(" driver error detected:");
-          if (data.is_ot) SERIAL_MSG("\novertemperature");
-          if (st.s2ga()) SERIAL_MSG("\nshort to ground (coil A)");
-          if (st.s2gb()) SERIAL_MSG("\nshort to ground (coil B)");
-          SERIAL_EOL();
+          if (data.is_ot) SERIAL_EM("overtemperature");
+          if (st.s2ga()) SERIAL_EM("short to ground (coil A)");
+          if (st.s2gb()) SERIAL_EM("short to ground (coil B)");
           #if ENABLED(TMC_DEBUG)
             tmc_report_all();
           #endif
@@ -117,7 +115,7 @@
         SERIAL_EOL();
         SERIAL_TXT(timestamp);
         SERIAL_MSG(": ");
-        SERIAL_TXT(axisID);
+        _tmc_say_axis(axis);
         SERIAL_MSG(" driver overtemperature warning! (");
         SERIAL_VAL(st.getCurrent());
         SERIAL_EM("mA)");
@@ -127,7 +125,7 @@
         if (data.is_otpw && !st.isEnabled() && otpw_cnt > 4) {
           st.setCurrent(st.getCurrent() - CURRENT_STEP_DOWN, R_SENSE, HOLD_MULTIPLIER);
           #if ENABLED(REPORT_CURRENT_CHANGE)
-            SERIAL_TXT(axisID);
+            _tmc_say_axis(axis);
             SERIAL_EMV(" current decreased to ", st.getCurrent());
           #endif
         }
@@ -141,9 +139,9 @@
 
       if (report_tmc_status) {
         const uint32_t pwm_scale = get_pwm_scale(st);
-        SERIAL_TXT(axisID);
+        _tmc_say_axis(axis);
         SERIAL_MV(":", pwm_scale);
-        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st));
+        SERIAL_MV(" |0b", get_status_response(st));
         SERIAL_MSG("| ");
         if (data.is_error) SERIAL_CHR('E');
         else if (data.is_ot) SERIAL_CHR('O');
@@ -162,51 +160,51 @@
         next_cOT = millis() + 500;
         #if HAS_HW_COMMS(X) || ENABLED(IS_TRAMS)
           static uint8_t x_otpw_cnt = 0;
-          monitor_tmc_driver(stepperX, axis_codes[X_AXIS], x_otpw_cnt);
+          monitor_tmc_driver(stepperX, TMC_X, x_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(Y) || ENABLED(IS_TRAMS)
           static uint8_t y_otpw_cnt = 0;
-          monitor_tmc_driver(stepperY, axis_codes[Y_AXIS], y_otpw_cnt);
+          monitor_tmc_driver(stepperY, TMC_Y, y_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(Z) || ENABLED(IS_TRAMS)
           static uint8_t z_otpw_cnt = 0;
-          monitor_tmc_driver(stepperZ, axis_codes[Z_AXIS], z_otpw_cnt);
+          monitor_tmc_driver(stepperZ, TMC_Z, z_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(X2)
           static uint8_t x2_otpw_cnt = 0;
-          monitor_tmc_driver(stepperX2, axis_codes[X_AXIS], x2_otpw_cnt);
+          monitor_tmc_driver(stepperX2, TMC_X, x2_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(Y2)
           static uint8_t y2_otpw_cnt = 0;
-          monitor_tmc_driver(stepperY2, axis_codes[Y_AXIS], y2_otpw_cnt);
+          monitor_tmc_driver(stepperY2, TMC_Y, y2_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(Z2)
           static uint8_t z2_otpw_cnt = 0;
-          monitor_tmc_driver(stepperZ2, axis_codes[Z_AXIS], z2_otpw_cnt);
+          monitor_tmc_driver(stepperZ2, TMC_Z, z2_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E0) || ENABLED(IS_TRAMS)
           static uint8_t e0_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE0, axis_codes[E_AXIS], e0_otpw_cnt);
+          monitor_tmc_driver(stepperE0, TMC_E0, e0_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E1)
           static uint8_t e1_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE1, axis_codes[E_AXIS], e1_otpw_cnt);
+          monitor_tmc_driver(stepperE1, TMC_E1, e1_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E2)
           static uint8_t e2_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE2, axis_codes[E_AXIS], e2_otpw_cnt);
+          monitor_tmc_driver(stepperE2, TMC_E2, e2_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E3)
           static uint8_t e3_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE3, axis_codes[E_AXIS], e3_otpw_cnt);
+          monitor_tmc_driver(stepperE3, TMC_E3, e3_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E4)
           static uint8_t e4_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE4, axis_codes[E_AXIS], e4_otpw_cnt);
+          monitor_tmc_driver(stepperE4, TMC_E4, e4_otpw_cnt);
         #endif
         #if HAS_HW_COMMS(E5)
           static uint8_t e5_otpw_cnt = 0;
-          monitor_tmc_driver(stepperE5, axis_codes[E_AXIS], e5_otpw_cnt);
+          monitor_tmc_driver(stepperE5, TMC_E5, e5_otpw_cnt);
         #endif
 
         if (report_tmc_status) SERIAL_EOL();
@@ -215,33 +213,43 @@
 
   #endif // MONITOR_DRIVER_STATUS
 
-  void _tmc_say_current(const char name[], const uint16_t curr) {
-    SERIAL_TXT(name);
+  void _tmc_say_axis(const TMC_AxisEnum axis) {
+    const static char ext_X[]  PROGMEM = "X",  ext_X2[] PROGMEM = "X2",
+                      ext_Y[]  PROGMEM = "Y",  ext_Y2[] PROGMEM = "Y2",
+                      ext_Z[]  PROGMEM = "Z",  ext_Z2[] PROGMEM = "Z2",
+                      ext_E0[] PROGMEM = "E0", ext_E1[] PROGMEM = "E1",
+                      ext_E2[] PROGMEM = "E2", ext_E3[] PROGMEM = "E3",
+                      ext_E4[] PROGMEM = "E4", ext_E5[] PROGMEM = "E5";
+    const static char* const tmc_axes[] PROGMEM = { ext_X, ext_X2, ext_Y, ext_Y2, ext_Z, ext_Z2, ext_E0, ext_E1, ext_E2, ext_E3, ext_E4, ext_E5 };
+    SERIAL_PS((char*)pgm_read_word(&tmc_axes[axis]));
+  }
+  void _tmc_say_current(const TMC_AxisEnum axis, const uint16_t curr) {
+    _tmc_say_axis(axis);
     SERIAL_EMV(" axis driver current: ", curr);
   }
-  void _tmc_say_otpw(const char name[], const bool otpw) {
-    SERIAL_TXT(name);
+  void _tmc_say_otpw(const TMC_AxisEnum axis, const bool otpw) {
+    _tmc_say_axis(axis);
     SERIAL_MSG(" axis temperature prewarn triggered: ");
     SERIAL_PS(otpw ? PSTR("true") : PSTR("false"));
     SERIAL_EOL();
   }
-  void _tmc_say_otpw_cleared(const char name[]) {
-    SERIAL_TXT(name);
+  void _tmc_say_otpw_cleared(const TMC_AxisEnum axis) {
+    _tmc_say_axis(axis);
     SERIAL_EM(" prewarn flag cleared");
   }
-  void _tmc_say_pwmthrs(const char name[], const uint32_t thrs) {
-    SERIAL_TXT(name);
+  void _tmc_say_pwmthrs(const TMC_AxisEnum axis, const uint32_t thrs) {
+    _tmc_say_axis(axis);
     SERIAL_EMV(" stealthChop max speed set to ", thrs);
   }
-  void _tmc_say_sgt(const char name[], const int8_t sgt) {
-    SERIAL_TXT(name);
+  void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
+    _tmc_say_axis(axis);
     SERIAL_MSG(" driver homing sensitivity set to ");
     SERIAL_EV((int)sgt);
   }
 
   #if ENABLED(TMC_DEBUG)
 
-    enum TMC_debug_enum {
+    enum TMC_debug_enum : char {
       TMC_CODES,
       TMC_ENABLED,
       TMC_CURRENT,
@@ -265,7 +273,7 @@
       TMC_HSTRT,
       TMC_SGT
     };
-    enum TMC_drv_status_enum {
+    enum TMC_drv_status_enum : char {
       TMC_DRV_CODES,
       TMC_STST,
       TMC_OLB,
@@ -287,8 +295,8 @@
       TMC_S2VSB,
       TMC_S2VSA
     };
-    static void drv_status_print_hex(const char name[], const uint32_t drv_status) {
-      SERIAL_TXT(name);
+    static void drv_status_print_hex(const TMC_AxisEnum axis, const uint32_t drv_status) {
+      _tmc_say_axis(axis);
       SERIAL_MSG(" = 0x");
       for (int B = 24; B >= 8; B -= 8){
         SERIAL_VAL((drv_status >> (B + 4)) & 0xF);
@@ -342,10 +350,10 @@
     #endif
 
     template <typename TMC>
-    static void tmc_status(TMC &st, TMC_AxisEnum axis, const TMC_debug_enum i, const float spmm) {
+    static void tmc_status(TMC &st, const TMC_AxisEnum axis, const TMC_debug_enum i, const float spmm) {
       SERIAL_CHR('\t');
       switch(i) {
-        case TMC_CODES: SERIAL_TXT(extended_axis_codes[axis]); break;
+        case TMC_CODES: _tmc_say_axis(axis); break;
         case TMC_ENABLED: SERIAL_PS(st.isEnabled() ? PSTR("true") : PSTR("false")); break;
         case TMC_CURRENT: SERIAL_VAL(st.getCurrent()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st.rms_current()); break;
@@ -390,10 +398,10 @@
     }
 
     template <typename TMC>
-    static void tmc_parse_drv_status(TMC &st, TMC_AxisEnum axis, const TMC_drv_status_enum i) {
+    static void tmc_parse_drv_status(TMC &st, const TMC_AxisEnum axis, const TMC_drv_status_enum i) {
       SERIAL_CHR('\t');
       switch(i) {
-        case TMC_DRV_CODES:     SERIAL_TXT(extended_axis_codes[axis]);  break;
+        case TMC_DRV_CODES:     _tmc_say_axis(axis);                    break;
         case TMC_STST:          if (st.stst())         SERIAL_CHR('X'); break;
         case TMC_OLB:           if (st.olb())          SERIAL_CHR('X'); break;
         case TMC_OLA:           if (st.ola())          SERIAL_CHR('X'); break;
@@ -402,7 +410,7 @@
         case TMC_DRV_OTPW:      if (st.otpw())         SERIAL_CHR('X'); break;
         case TMC_OT:            if (st.ot())           SERIAL_CHR('X'); break;
         case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st.cs_actual());             break;
-        case TMC_DRV_STATUS_HEX:drv_status_print_hex(extended_axis_codes[axis], st.DRV_STATUS()); break;
+        case TMC_DRV_STATUS_HEX:drv_status_print_hex(axis, st.DRV_STATUS()); break;
         default: tmc_parse_drv_status(st, i); break;
       }
     }
@@ -504,7 +512,7 @@
     }
 
     void tmc_report_all() {
-      #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL);  tmc_debug_loop(ITEM); }while(0)
+      #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); tmc_debug_loop(ITEM);  }while(0)
       #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); drv_status_loop(ITEM); }while(0)
       TMC_REPORT("\t",                 TMC_CODES);
       TMC_REPORT("Enabled\t",          TMC_ENABLED);

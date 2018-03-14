@@ -336,6 +336,7 @@ void Commands::get_serial() {
 void Commands::flush_and_request_resend() {
   HAL::serialFlush();
   SERIAL_LV(RESEND, gcode_LastN + 1);
+  ok_to_send();
 }
 
 /**
