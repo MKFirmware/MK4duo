@@ -473,10 +473,9 @@
       if (axis == Z_AXIS && STOW_PROBE()) return;
     #endif
 
-    // Clear retracted status if homing the Z axis
+    // Clear z_lift if homing the Z axis
     #if ENABLED(FWRETRACT)
-      if (axis == Z_AXIS)
-        for (uint8_t i = 0; i < EXTRUDERS; i++) fwretract.retracted[i] = false;
+      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -763,9 +762,16 @@
      */
     void Cartesian_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
       switch (axis) {
-        case X_AXIS: tmc_sensorless_homing(stepperX, enable); break;
-        case Y_AXIS: tmc_sensorless_homing(stepperY, enable); break;
-        case Z_AXIS: tmc_sensorless_homing(stepperZ, enable); break;
+        default: break;
+        #if X_SENSORLESS
+          case X_AXIS: tmc_sensorless_homing(stepperX, enable); break;
+        #endif
+        #if Y_SENSORLESS
+          case Y_AXIS: tmc_sensorless_homing(stepperY, enable); break;
+        #endif
+        #if Z_SENSORLESS
+          case Z_AXIS: tmc_sensorless_homing(stepperZ, enable); break;
+        #endif
       }
     }
 

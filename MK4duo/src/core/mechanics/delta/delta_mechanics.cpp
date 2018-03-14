@@ -492,10 +492,9 @@
       do_homing_move(axis, delta_endstop_adj[axis] - 0.1);
     }
 
-    // Clear retracted status if homing the Z axis
+    // Clear z_lift if homing the Z axis
     #if ENABLED(FWRETRACT)
-      if (axis == Z_AXIS)
-        for (uint8_t i = 0; i < EXTRUDERS; i++) fwretract.retracted[i] = false;
+      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
