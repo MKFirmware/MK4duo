@@ -612,7 +612,7 @@ bool Commands::get_target_heater(int8_t &h) {
       return true;
     }
   #endif
-  #if HAS_HEATER_COOLER
+  #if HAS_COOLER
     else if (h == -3) {
       h = COOLER_INDEX;
       return true;

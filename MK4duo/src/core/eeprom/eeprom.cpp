@@ -1490,12 +1490,12 @@ void EEPROM::Factory_Settings() {
       #endif
     #endif // HAS_HEATER_BED
 
-    #if HAS_HEATER_COOLER
+    #if HAS_COOLER
       // COOLER
       heat = &heaters[COOLER_INDEX];
       sens = &heaters[COOLER_INDEX].sensor;
       heat->type              = IS_COOLER;
-      heat->pin               = HEATER_COOLER_PIN;
+      heat->pin               = COOLER_PIN;
       heat->ID                = COOLER_INDEX;
       heat->pidDriveMin       = COOLER_PID_DRIVE_MIN;
       heat->pidDriveMax       = COOLER_PID_DRIVE_MAX;
@@ -1890,7 +1890,7 @@ void EEPROM::Factory_Settings() {
     #if (HAS_HEATER_CHAMBER)
       heaters[CHAMBER_INDEX].print_PID();
     #endif
-    #if (HAS_HEATER_COOLER)
+    #if (HAS_COOLER)
       heaters[COOLER_INDEX].print_PID();
     #endif
 

@@ -189,7 +189,7 @@
     #if HAS_HEATER_CHAMBER
       else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M306 H-2");
     #endif
-    #if HAS_HEATER_COOLER
+    #if HAS_COOLER
       else if (type == IS_COOLER) SERIAL_SM(CFG, "  M306 H-3");
     #endif
     else return;
@@ -220,7 +220,7 @@
     #if HAS_HEATER_CHAMBER
       else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
     #endif
-    #if HAS_HEATER_COOLER
+    #if HAS_COOLER
       else if (type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
     #endif
     else return;

@@ -687,7 +687,7 @@ void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, co
       #endif
       #if HAS_TEMP_COOLER
         case IS_COOLER:
-          SERIAL_EM(MSG_HEATER_COOLER);
+          SERIAL_EM(MSG_COOLER);
           break;
       #endif
       default: break;
