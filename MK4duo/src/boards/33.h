@@ -159,7 +159,7 @@
 #define ORIG_LASER_PWM_PIN          6
 
 //###FLOWMETER
-#define ORIG_FLOMETER_PIN          21
+#define ORIG_FLOWMETER_PIN          21
 
 
 //###IF_BLOCKS

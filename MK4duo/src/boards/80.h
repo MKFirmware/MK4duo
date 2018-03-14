@@ -159,7 +159,7 @@
 
 
 //###FLOWMETER
-#define ORIG_FLOMETER_PIN          NoPin
+#define ORIG_FLOWMETER_PIN          NoPin
 
 //###UNKNOWN_PINS
 #define LCD_PINS_RS        19

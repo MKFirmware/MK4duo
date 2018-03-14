@@ -159,7 +159,7 @@
 #define ORIG_LASER_PWM_PIN         NoPin
 
 //###FLOWMETER
-#define ORIG_FLOMETER_PIN          NoPin
+#define ORIG_FLOWMETER_PIN          NoPin
 
 
 //###UNKNOWN_PINS

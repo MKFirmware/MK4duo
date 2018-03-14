@@ -158,7 +158,7 @@
 #define ORIG_LASER_PWM_PIN         NoPin
 
 //###FLOWMETER
-#define ORIG_FLOMETER_PIN          NoPin
+#define ORIG_FLOWMETER_PIN          NoPin
 
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN          66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
