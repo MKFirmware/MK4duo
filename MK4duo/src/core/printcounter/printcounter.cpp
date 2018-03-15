@@ -114,7 +114,7 @@ void PrintCounter::tick() {
   millis_t now = millis();
 
   // Trying to get the amount of calculations down to the bare min
-  const static uint16_t interval = updateInterval * 1000;
+  const static uint16_t interval = updateInterval * 1000UL;
 
   if (now - update_last >= interval) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
@@ -126,7 +126,7 @@ void PrintCounter::tick() {
   }
 
   #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
-    const static millis_t sdinterval = saveInterval * 1000;
+    const static millis_t sdinterval = saveInterval * 1000UL;
     if (!loaded) {
       loadStats();
       saveStats();
