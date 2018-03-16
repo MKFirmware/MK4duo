@@ -208,6 +208,10 @@ EEPROM eeprom;
   float new_z_fade_height;
 #endif
 
+#if HAS_TRINAMIC
+  #define TMC_GET_PWMTHRS(P,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), mechanics.axis_steps_per_mm[P##_AXIS])
+#endif
+
 /**
  * Post-process after Retrieve or Reset
  */
@@ -517,7 +521,8 @@ void EEPROM::Postprocess() {
     // Save TMC2130 or TMC2208 Configuration, and placeholder values
     //
     #if HAS_TRINAMIC
-      uint16_t currents[12] = {
+
+      uint16_t tmc_stepper_current[TMC_AXES] = {
         #if X_IS_TRINAMIC
           stepperX.getCurrent(),
         #else
@@ -579,33 +584,102 @@ void EEPROM::Postprocess() {
           0
         #endif
       };
-      EEPROM_WRITE(currents);
-    #endif
+      EEPROM_WRITE(tmc_stepper_current);
 
-    //
-    // TMC2130 Sensorless homing threshold
-    //
-    #if ENABLED(SENSORLESS_HOMING)
-      int16_t thrs;
-      #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
-        thrs = stepperX.sgt();
-      #else
-        thrs = 0;
-      #endif
-      EEPROM_WRITE(thrs);
-      #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
-        thrs = stepperY.sgt();
-      #else
-        thrs = 0;
-      #endif
-      EEPROM_WRITE(thrs);
-      #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
-        thrs = stepperZ.sgt();
-      #else
-        thrs = 0;
-      #endif
-      EEPROM_WRITE(thrs);
-    #endif
+      //
+      // Save TMC2130 or TMC2208 Hybrid Threshold, and placeholder values
+      //
+      uint16_t tmc_hybrid_threshold[TMC_AXES] = {
+        #if X_IS_TRINAMIC
+          TMC_GET_PWMTHRS(X, X),
+        #else
+          X_HYBRID_THRESHOLD,
+        #endif
+        #if Y_IS_TRINAMIC
+          TMC_GET_PWMTHRS(Y, Y),
+        #else
+          Y_HYBRID_THRESHOLD,
+        #endif
+        #if Z_IS_TRINAMIC
+          TMC_GET_PWMTHRS(Z, Z),
+        #else
+          Z_HYBRID_THRESHOLD,
+        #endif
+        #if X2_IS_TRINAMIC
+          TMC_GET_PWMTHRS(X, X2),
+        #else
+          X2_HYBRID_THRESHOLD,
+        #endif
+        #if Y2_IS_TRINAMIC
+          TMC_GET_PWMTHRS(Y, Y2),
+        #else
+          Y2_HYBRID_THRESHOLD,
+        #endif
+        #if Z2_IS_TRINAMIC
+          TMC_GET_PWMTHRS(Z, Z2),
+        #else
+          Z2_HYBRID_THRESHOLD,
+        #endif
+        #if E0_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E0),
+        #else
+          E0_HYBRID_THRESHOLD,
+        #endif
+        #if E1_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E1),
+        #else
+          E1_HYBRID_THRESHOLD,
+        #endif
+        #if E2_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E2),
+        #else
+          E2_HYBRID_THRESHOLD,
+        #endif
+        #if E3_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E3),
+        #else
+          E3_HYBRID_THRESHOLD,
+        #endif
+        #if E4_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E4)
+        #else
+          E4_HYBRID_THRESHOLD
+        #endif
+        #if E5_IS_TRINAMIC
+          TMC_GET_PWMTHRS(E, E5)
+        #else
+          E5_HYBRID_THRESHOLD
+        #endif
+      };
+      EEPROM_WRITE(tmc_hybrid_threshold);
+
+      //
+      // TMC2130 Sensorless homing threshold
+      //
+      int16_t tmc_sgt[XYZ] = {
+        #if ENABLED(SENSORLESS_HOMING)
+          #if ENABLED(X_IS_TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
+            stepperX.sgt(),
+          #else
+            0,
+          #endif
+          #if ENABLED(Y_IS_TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
+            stepperY.sgt(),
+          #else
+            0,
+          #endif
+          #if ENABLED(Z_IS_TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+            stepperZ.sgt()
+          #else
+            0
+          #endif
+        #else
+          0
+        #endif
+      };
+      EEPROM_WRITE(tmc_sgt);
+
+    #endif // HAS_TRINAMIC
 
     //
     // Linear Advance
@@ -897,82 +971,122 @@ void EEPROM::Postprocess() {
       // TMC2130 or TMC2208 Stepper Current
       //
       #if HAS_TRINAMIC
-        #define SET_CURR(N,Q) stepper##Q.setCurrent(val[N] ? val[N] : Q##_CURRENT, R_SENSE, HOLD_MULTIPLIER)
-        uint16_t val[12];
-        EEPROM_READ(val);
+
+        #define SET_CURR(Q) stepper##Q.setCurrent(currents[TMC_##Q] ? currents[TMC_##Q] : Q##_CURRENT, R_SENSE, HOLD_MULTIPLIER)
+        uint16_t currents[TMC_AXES];
+        EEPROM_READ(currents);
         #if X_IS_TRINAMIC
-          SET_CURR(0, X);
+          SET_CURR(X);
         #endif
         #if Y_IS_TRINAMIC
-          SET_CURR(1, Y);
+          SET_CURR(Y);
         #endif
         #if Z_IS_TRINAMIC
-          SET_CURR(2, Z);
+          SET_CURR(Z);
         #endif
         #if X2_IS_TRINAMIC
-          SET_CURR(3, X2);
+          SET_CURR(X2);
         #endif
         #if Y2_IS_TRINAMIC
-          SET_CURR(4, Y2);
+          SET_CURR(Y2);
         #endif
         #if Z2_IS_TRINAMIC
-          SET_CURR(5, Z2);
+          SET_CURR(Z2);
         #endif
         #if E0_IS_TRINAMIC
-          SET_CURR(6, E0);
+          SET_CURR(E0);
         #endif
         #if E1_IS_TRINAMIC
-          SET_CURR(7, E1);
+          SET_CURR(E1);
         #endif
         #if E2_IS_TRINAMIC
-          SET_CURR(8, E2);
+          SET_CURR(E2);
         #endif
         #if E3_IS_TRINAMIC
-          SET_CURR(9, E3);
+          SET_CURR(E3);
         #endif
         #if E4_IS_TRINAMIC
-          SET_CURR(10, E4);
+          SET_CURR(E4);
         #endif
         #if E5_IS_TRINAMIC
-          SET_CURR(11, E5);
+          SET_CURR(E5);
         #endif
-      #endif
 
-      /*
-       * TMC2130 Sensorless homing threshold.
-       * X and X2 use the same value
-       * Y and Y2 use the same value
-       */
-      #if ENABLED(SENSORLESS_HOMING)
-        int16_t thrs;
-        EEPROM_READ(thrs);
-        #if ENABLED(X_HOMING_SENSITIVITY)
-          #if ENABLED(X_IS_TMC2130)
-            stepperX.sgt(thrs);
+        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
+        uint16_t tmc_hybrid_threshold[TMC_AXES];
+        EEPROM_READ(tmc_hybrid_threshold);
+        #if X_IS_TRINAMIC
+          TMC_SET_PWMTHRS(X, X);
+        #endif
+        #if Y_IS_TRINAMIC
+          TMC_SET_PWMTHRS(Y, Y);
+        #endif
+        #if Z_IS_TRINAMIC
+          TMC_SET_PWMTHRS(Z, Z);
+        #endif
+        #if X2_IS_TRINAMIC
+          TMC_SET_PWMTHRS(X, X2);
+        #endif
+        #if Y2_IS_TRINAMIC
+          TMC_SET_PWMTHRS(Y, Y2);
+        #endif
+        #if Z2_IS_TRINAMIC
+          TMC_SET_PWMTHRS(Z, Z2);
+        #endif
+        #if E0_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E0);
+        #endif
+        #if E1_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E1);
+        #endif
+        #if E2_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E2);
+        #endif
+        #if E3_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E3);
+        #endif
+        #if E4_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E4);
+        #endif
+        #if E4_IS_TRINAMIC
+          TMC_SET_PWMTHRS(E, E5);
+        #endif
+
+        /*
+         * TMC2130 Sensorless homing threshold.
+         * X and X2 use the same value
+         * Y and Y2 use the same value
+         */
+        int16_t tmc_sgt[XYZ];
+        EEPROM_READ(tmc_sgt);
+        #if ENABLED(SENSORLESS_HOMING)
+          #if ENABLED(X_HOMING_SENSITIVITY)
+            #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+              stepperX.sgt(tmc_sgt[0]);
+            #endif
+            #if ENABLED(X2_IS_TMC2130)
+              stepperX2.sgt(tmc_sgt[0]);
+            #endif
           #endif
-          #if ENABLED(X2_IS_TMC2130)
-            stepperX2.sgt(thrs);
+          #if ENABLED(Y_HOMING_SENSITIVITY)
+            #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+              stepperY.sgt(tmc_sgt[1]);
+            #endif
+            #if ENABLED(Y2_IS_TMC2130)
+              stepperY2.sgt(tmc_sgt[1]);
+            #endif
+          #endif
+          #if ENABLED(Z_HOMING_SENSITIVITY)
+            #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+              stepperZ.sgt(tmc_sgt[2]);
+            #endif
+            #if ENABLED(Z2_IS_TMC2130)
+              stepperZ2.sgt(tmc_sgt[2]);
+            #endif
           #endif
         #endif
-        EEPROM_READ(thrs);
-        #if ENABLED(Y_HOMING_SENSITIVITY)
-          #if ENABLED(Y_IS_TMC2130)
-            stepperY.sgt(thrs);
-          #endif
-          #if ENABLED(Y2_IS_TMC2130)
-            stepperY2.sgt(thrs);
-          #endif
-        #endif
-        EEPROM_READ(thrs);
-        #if ENABLED(Z_HOMING_SENSITIVITY)
-          #if ENABLED(Z_IS_TMC2130)
-            stepperZ.sgt(thrs);
-          #endif
-          #if ENABLED(Z2_IS_TMC2130)
-            stepperZ2.sgt(thrs);
-          #endif
-        #endif
-      #endif
+        
+      #endif // HAS_TRINAMIC
 
       //
       // Linear Advance
@@ -1624,9 +1738,47 @@ void EEPROM::Factory_Settings() {
     stepperE5.setCurrent(E5_CURRENT, R_SENSE, HOLD_MULTIPLIER);
   #endif
 
+  #define TMC_INIT_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, Q##_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[P##_AXIS])
+  #if X_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperX, TMC_X, X_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[X_AXIS]);
+  #endif
+  #if Y_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperY, TMC_Y, Y_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Y_AXIS]);
+  #endif
+  #if Z_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperZ, TMC_Z, Z_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Z_AXIS]);
+  #endif
+  #if X2_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperX2, TMC_X2, X2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[X_AXIS]);
+  #endif
+  #if Y2_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperY2, TMC_Y2, Y2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Y_AXIS]);
+  #endif
+  #if Z2_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperZ2, TMC_Z2, Z2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Z_AXIS]);
+  #endif
+  #if E0_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE0, TMC_E0, E0_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 0]);
+  #endif
+  #if E1_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE1, TMC_E1, E1_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 1]);
+  #endif
+  #if E2_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE2, TMC_E2, E2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 2]);
+  #endif
+  #if E3_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE3, TMC_E3, E3_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 3]);
+  #endif
+  #if E4_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE4, TMC_E4, E4_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 4]);
+  #endif
+  #if E5_IS_TRINAMIC
+    tmc_set_pwmthrs(stepperE5, TMC_E5, E5_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 5]);
+  #endif
+
   #if ENABLED(SENSORLESS_HOMING)
     #if ENABLED(X_HOMING_SENSITIVITY)
-      #if ENABLED(X_IS_TMC2130)
+      #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
         stepperX.sgt(X_HOMING_SENSITIVITY);
       #endif
       #if ENABLED(X2_IS_TMC2130)
@@ -1634,7 +1786,7 @@ void EEPROM::Factory_Settings() {
       #endif
     #endif
     #if ENABLED(Y_HOMING_SENSITIVITY)
-      #if ENABLED(Y_IS_TMC2130)
+      #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
         stepperY.sgt(Y_HOMING_SENSITIVITY);
       #endif
       #if ENABLED(Y2_IS_TMC2130)
@@ -1642,7 +1794,7 @@ void EEPROM::Factory_Settings() {
       #endif
     #endif
     #if ENABLED(Z_HOMING_SENSITIVITY)
-      #if ENABLED(Z_IS_TMC2130)
+      #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
         stepperZ.sgt(Z_HOMING_SENSITIVITY);
       #endif
       #if ENABLED(Z2_IS_TMC2130)
@@ -2143,83 +2295,128 @@ void EEPROM::Factory_Settings() {
       #endif // DRIVER_EXTRUDERS > 1
     #endif // ALLIGATOR
 
-    /**
-     * TMC2130 or TMC2208 stepper driver current
-     */
     #if HAS_TRINAMIC
+
+      /**
+       * TMC2130 or TMC2208 stepper driver current
+       */
       CONFIG_MSG_START("Stepper driver current:");
       SERIAL_SM(CFG, "  M906");
-      #if ENABLED(X_IS_TMC2130) || ENABLED(X_IS_TMC2208)
+      #if X_IS_TRINAMIC
         SERIAL_MV(" X", stepperX.getCurrent());
       #endif
-      #if ENABLED(Y_IS_TMC2130) || ENABLED(Y_IS_TMC2208)
+      #if X2_IS_TRINAMIC
+        SERIAL_MV(" I1 X", stepperX2.getCurrent());
+      #endif
+      #if Y_IS_TRINAMIC
         SERIAL_MV(" Y", stepperY.getCurrent());
       #endif
-      #if ENABLED(Z_IS_TMC2130) || ENABLED(Z_IS_TMC2208)
+      #if Y2_IS_TRINAMIC
+        SERIAL_MV(" I1 Y", stepperY2.getCurrent());
+      #endif
+      #if Z_IS_TRINAMIC
         SERIAL_MV(" Z", stepperZ.getCurrent());
       #endif
-      #if ENABLED(X2_IS_TMC2130) || ENABLED(X2_IS_TMC2208)
-        SERIAL_MV(" X2", stepperX2.getCurrent());
+      #if Z2_IS_TRINAMIC
+        SERIAL_MV(" I1 Z", stepperZ2.getCurrent());
       #endif
-      #if ENABLED(Y2_IS_TMC2130) || ENABLED(Y2_IS_TMC2208)
-        SERIAL_MV(" Y2", stepperY2.getCurrent());
+      #if E0_IS_TRINAMIC
+        SERIAL_MV(" T0 E", stepperE0.getCurrent());
       #endif
-      #if ENABLED(Z2_IS_TMC2130) || ENABLED(Z2_IS_TMC2208)
-        SERIAL_MV(" Z2", stepperZ2.getCurrent());
+      #if E1_IS_TRINAMIC
+        SERIAL_MV(" T1 E", stepperE1.getCurrent());
       #endif
-      #if ENABLED(E0_IS_TMC2130) || ENABLED(E0_IS_TMC2208)
-        SERIAL_MV(" E0", stepperE0.getCurrent());
+      #if E2_IS_TRINAMIC
+        SERIAL_MV(" T2 E", stepperE2.getCurrent());
       #endif
-      #if ENABLED(E1_IS_TMC2130) || ENABLED(E1_IS_TMC2208)
-        SERIAL_MV(" E1", stepperE1.getCurrent());
+      #if E3_IS_TRINAMIC
+        SERIAL_MV(" T3 E", stepperE3.getCurrent());
       #endif
-      #if ENABLED(E2_IS_TMC2130) || ENABLED(E2_IS_TMC2208)
-        SERIAL_MV(" E2", stepperE2.getCurrent());
+      #if E4_IS_TRINAMIC
+        SERIAL_MV(" T4 E", stepperE4.getCurrent());
       #endif
-      #if ENABLED(E3_IS_TMC2130) || ENABLED(E3_IS_TMC2208)
-        SERIAL_MV(" E3", stepperE3.getCurrent());
-      #endif
-      #if ENABLED(E4_IS_TMC2130) || ENABLED(E4_IS_TMC2208)
-        SERIAL_MV(" E4", stepperE4.getCurrent());
-      #endif
-      #if ENABLED(E5_IS_TMC2130) || ENABLED(E5_IS_TMC2208)
-        SERIAL_MV(" E5", stepperE5.getCurrent());
+      #if E5_IS_TRINAMIC
+        SERIAL_MV(" T5 E", stepperE5.getCurrent());
       #endif
       SERIAL_EOL();
-    #endif
 
-    /**
-     * TMC2130 Sensorless homing thresholds
-     */
-    #if ENABLED(HAVE_TMC2130) && ENABLED(SENSORLESS_HOMING)
-      CONFIG_MSG_START("Sensorless homing threshold:");
-      SERIAL_SM(CFG, "  M914");
-      #if ENABLED(X_HOMING_SENSITIVITY)
-        #if ENABLED(X_IS_TMC2130)
-          SERIAL_MV(" X", stepperX.sgt());
-        #endif
-        #if ENABLED(X2_IS_TMC2130)
-          SERIAL_MV(" X2 ", stepperX2.sgt());
-        #endif
+      /**
+       * TMC2130 or TMC2208 Hybrid Threshold
+       */
+      CONFIG_MSG_START("Hybrid Threshold:");
+      SERIAL_SM(CFG, "  M913");
+      #if X_IS_TRINAMIC
+        SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
       #endif
-      #if ENABLED(Y_HOMING_SENSITIVITY)
-        #if ENABLED(Y_IS_TMC2130)
-          SERIAL_MV(" Y", stepperY.sgt());
-        #endif
-        #if ENABLED(X2_IS_TMC2130)
-          SERIAL_MV(" Y2 ", stepperY2.sgt());
-        #endif
+      #if X2_IS_TRINAMIC
+        SERIAL_MV(" I1 X", TMC_GET_PWMTHRS(X, X2));
       #endif
-      #if ENABLED(Z_HOMING_SENSITIVITY)
-        #if ENABLED(Z_IS_TMC2130)
-          SERIAL_MV(" Z ", stepperZ.sgt());
-        #endif
-        #if ENABLED(Z2_IS_TMC2130)
-          SERIAL_MV(" Z2 ", stepperZ2.sgt());
-        #endif
+      #if Y_IS_TRINAMIC
+        SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
+      #endif
+      #if Y2_IS_TRINAMIC
+        SERIAL_MV(" I1 Y", TMC_GET_PWMTHRS(Y, Y2));
+      #endif
+      #if Z_IS_TRINAMIC
+        SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
+      #endif
+      #if Z2_IS_TRINAMIC
+        SERIAL_MV(" I1 Z", TMC_GET_PWMTHRS(Z, Z2));
+      #endif
+      #if E0_IS_TRINAMIC
+        SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E, E0));
+      #endif
+      #if E1_IS_TRINAMIC
+        SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E, E1));
+      #endif
+      #if E2_IS_TRINAMIC
+        SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E, E2));
+      #endif
+      #if E3_IS_TRINAMIC
+        SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E, E3));
+      #endif
+      #if E4_IS_TRINAMIC
+        SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E, E4));
+      #endif
+      #if E5_IS_TRINAMIC
+        SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E, E5));
       #endif
       SERIAL_EOL();
-    #endif
+
+      /**
+       * TMC2130 Sensorless homing thresholds
+       */
+      #if ENABLED(SENSORLESS_HOMING)
+        CONFIG_MSG_START("Sensorless homing threshold:");
+        SERIAL_SM(CFG, "  M914");
+        #if ENABLED(X_HOMING_SENSITIVITY)
+          #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+            SERIAL_MV(" X", stepperX.sgt());
+          #endif
+          #if ENABLED(X2_IS_TMC2130)
+            SERIAL_MV(" I1 X", stepperX2.sgt());
+          #endif
+        #endif
+        #if ENABLED(Y_HOMING_SENSITIVITY)
+          #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+            SERIAL_MV(" Y", stepperY.sgt());
+          #endif
+          #if ENABLED(X2_IS_TMC2130)
+            SERIAL_MV(" I1 Y", stepperY2.sgt());
+          #endif
+        #endif
+        #if ENABLED(Z_HOMING_SENSITIVITY)
+          #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+            SERIAL_MV(" Z", stepperZ.sgt());
+          #endif
+          #if ENABLED(Z2_IS_TMC2130)
+            SERIAL_MV(" I1 Z", stepperZ2.sgt());
+          #endif
+        #endif
+        SERIAL_EOL();
+      #endif
+
+    #endif // HAS_TRINAMIC
 
     /**
      * Linear Advance

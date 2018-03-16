@@ -107,50 +107,112 @@
 
     inline void gcode_M913(void) {
 
-      uint16_t values[XYZE];
-      LOOP_XYZE(i) values[i] = parser.intval(axis_codes[i]);
+      GET_TARGET_EXTRUDER(913);
 
-      #define TMC_SET_GET_PWMTHRS(P,Q) do { \
-        if (values[P##_AXIS]) tmc_set_pwmthrs(stepper##Q, TMC_##Q, values[P##_AXIS], planner.axis_steps_per_mm[P##_AXIS]); \
-        else tmc_get_pwmthrs(stepper##Q, TMC_##Q, planner.axis_steps_per_mm[P##_AXIS]); } while(0)
+      #define TMC_SAY_PWMTHRS(P,Q) tmc_get_pwmthrs(stepper##Q, TMC_##Q, mechanics.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SAY_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_get_pwmthrs(stepperE##E, TMC_E##E, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
+      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_set_pwmthrs(stepperE##E, TMC_E##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
 
-      #if X_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(X,X);
-      #endif
-      #if X2_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(X,X2);
-      #endif
-      #if Y_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(Y,Y);
-      #endif
-      #if Y2_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(Y,Y2);
-      #endif
-      #if Z_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(Z,Z);
-      #endif
-      #if Z2_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(Z,Z2);
-      #endif
-      #if E0_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E0);
-      #endif
-      #if E1_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E1);
-      #endif
-      #if E2_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E2);
-      #endif
-      #if E3_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E3);
-      #endif
-      #if E4_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E4);
-      #endif
-      #if E5_IS_TRINAMIC
-        TMC_SET_GET_PWMTHRS(E,E5);
-      #endif
+      const uint8_t index = parser.byteval('I');
+      LOOP_XYZE(i) {
+        if (uint16_t value = parser.intval(axis_codes[i])) {
+          switch (i) {
+            case X_AXIS:
+              #if X_IS_TRINAMIC
+                if (index == 0) TMC_SET_PWMTHRS(X,X);
+              #endif
+              #if X2_IS_TRINAMIC
+                if (index == 1) TMC_SET_PWMTHRS(X,X2);
+              #endif
+              break;
+            case Y_AXIS:
+              #if Y_IS_TRINAMIC
+                if (index == 0) TMC_SET_PWMTHRS(Y,Y);
+              #endif
+              #if Y2_IS_TRINAMIC
+                if (index == 1) TMC_SET_PWMTHRS(Y,Y2);
+              #endif
+              break;
+            case Z_AXIS:
+              #if Z_IS_TRINAMIC
+                if (index == 0) TMC_SET_PWMTHRS(Z,Z);
+              #endif
+              #if Z2_IS_TRINAMIC
+                if (index == 1) TMC_SET_PWMTHRS(Z,Z2);
+              #endif
+              break;
+            case E_AXIS: {
+              switch (tools.target_extruder) {
+                #if E0_IS_TRINAMIC
+                  case 0: TMC_SET_PWMTHRS_E(0); break;
+                #endif
+                #if E1_IS_TRINAMIC
+                  case 1: TMC_SET_PWMTHRS_E(1); break;
+                #endif
+                #if E2_IS_TRINAMIC
+                  case 2: TMC_SET_PWMTHRS_E(2); break;
+                #endif
+                #if E3_IS_TRINAMIC
+                  case 3: TMC_SET_PWMTHRS_E(3); break;
+                #endif
+                #if E4_IS_TRINAMIC
+                  case 4: TMC_SET_PWMTHRS_E(4); break;
+                #endif
+                #if E5_IS_TRINAMIC
+                  case 5: TMC_SET_PWMTHRS_E(5); break;
+                #endif
+              }
+            } break;
+          }
+        }
+      }
 
+      LOOP_XYZE(i) {
+        switch (i) {
+          case X_AXIS:
+            #if X_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(X,X);
+            #endif
+            #if X2_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(X,X2);
+            #endif
+            break;
+          case Y_AXIS:
+            #if Y_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(Y,Y);
+            #endif
+            #if Y2_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(Y,Y2);
+            #endif
+            break;
+          case Z_AXIS:
+            #if Z_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(Z,Z);
+            #endif
+            #if Z2_IS_TRINAMIC
+              TMC_SAY_PWMTHRS(Z,Z2);
+            #endif
+            break;
+          case E_AXIS:
+            #if E0_IS_TRINAMIC
+              TMC_SAY_PWMTHRS_E(0);
+            #endif
+            #if E_STEPPERS > 1 && E1_IS_TRINAMIC
+              TMC_SAY_PWMTHRS_E(1);
+            #endif
+            #if E_STEPPERS > 2 && E2_IS_TRINAMIC
+              TMC_SAY_PWMTHRS_E(2);
+            #endif
+            #if E_STEPPERS > 3 && E3_IS_TRINAMIC
+              TMC_SAY_PWMTHRS_E(3);
+            #endif
+            #if E_STEPPERS > 4 && E4_IS_TRINAMIC
+              TMC_SAY_PWMTHRS_E(4);
+            #endif
+            break;
+        }
+      }
     }
 
   #endif // HYBRID_THRESHOLD
@@ -164,37 +226,70 @@
 
     inline void gcode_M914(void) {
 
-      #define TMC_SET_GET_SGT(P,Q) do { \
-        if (parser.seen(axis_codes[P##_AXIS])) tmc_set_sgt(stepper##Q, TMC_##Q, parser.value_int()); \
-        else tmc_get_sgt(stepper##Q, TMC_##Q); } while(0)
+      #define TMC_SAY_SGT(Q) tmc_get_sgt(stepper##Q, TMC_##Q)
+      #define TMC_SET_SGT(Q) tmc_set_sgt(stepper##Q, TMC_##Q, value)
 
-      #if ENABLED(X_HOMING_SENSITIVITY)
-        #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SET_GET_SGT(X,X);
-        #endif
-        #if ENABLED(X2_IS_TMC2130)
-          TMC_SET_GET_SGT(X,X2);
-        #endif
-      #endif
+      const uint8_t index = parser.byteval('I');
+      LOOP_XYZ(i) {
+        if (parser.seen(axis_codes[i])) {
+          const uint8_t value = parser.value_int();
+          switch (i) {
+            case X_AXIS:
+              #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+                if (index == 0) TMC_SET_SGT(X);
+              #endif
+              #if ENABLED(X2_IS_TMC2130)
+                if (index == 1) TMC_SET_SGT(X2);
+              #endif
+              break;
+            case Y_AXIS:
+              #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+                if (index == 0) TMC_SET_SGT(Y);
+              #endif
+              #if ENABLED(Y2_IS_TMC2130)
+                if (index == 1) TMC_SET_SGT(Y2);
+              #endif
+              break;
+            case Z_AXIS:
+              #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+                if (index == 0) TMC_SET_SGT(Z);
+              #endif
+              #if ENABLED(Z2_IS_TMC2130)
+                if (index == 1) TMC_SET_SGT(Z2);
+              #endif
+              break;
+          }
+        }
+      }
 
-      #if ENABLED(Y_HOMING_SENSITIVITY)
-        #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SET_GET_SGT(Y,Y);
-        #endif
-        #if ENABLED(Y2_IS_TMC2130)
-          TMC_SET_GET_SGT(Y,Y2);
-        #endif
-      #endif
-
-      #if ENABLED(Z_HOMING_SENSITIVITY)
-        #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SET_GET_SGT(Z,Z);
-        #endif
-        #if ENABLED(Z2_IS_TMC2130)
-          TMC_SET_GET_SGT(Z,Z2);
-        #endif
-      #endif
-
+      LOOP_XYZ(i) {
+        switch (i) {
+          case X_AXIS:
+            #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+              TMC_SAY_SGT(X);
+            #endif
+            #if ENABLED(X2_IS_TMC2130)
+              TMC_SAY_SGT(X2);
+            #endif
+            break;
+          case Y_AXIS:
+            #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+              TMC_SAY_SGT(Y);
+            #endif
+            #if ENABLED(Y2_IS_TMC2130)
+              TMC_SAY_SGT(Y2);
+            #endif
+            break;
+          case Z_AXIS:
+            #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+              TMC_SAY_SGT(Z);
+            #endif
+            #if ENABLED(Z2_IS_TMC2130)
+              TMC_SAY_SGT(Z2);
+            #endif
+            break;
+        }
+      }
     }
 
   #endif // SENSORLESS_HOMING
