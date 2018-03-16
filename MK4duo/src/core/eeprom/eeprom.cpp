@@ -641,9 +641,9 @@ void EEPROM::Postprocess() {
           E3_HYBRID_THRESHOLD,
         #endif
         #if E4_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E4)
+          TMC_GET_PWMTHRS(E, E4),
         #else
-          E4_HYBRID_THRESHOLD
+          E4_HYBRID_THRESHOLD,
         #endif
         #if E5_IS_TRINAMIC
           TMC_GET_PWMTHRS(E, E5)
