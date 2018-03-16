@@ -37,11 +37,12 @@
     #include <TMC2208Stepper.h>
   #endif
 
+  #define TMC_AXES (12)
+
   extern bool report_tmc_status;
 
   enum TMC_AxisEnum : char {
-    TMC_X, TMC_X2, TMC_Y, TMC_Y2, TMC_Z, TMC_Z2,
-    TMC_E0, TMC_E1, TMC_E2, TMC_E3, TMC_E4, TMC_E5
+    TMC_X, TMC_Y, TMC_Z, TMC_X2, TMC_Y2, TMC_Z2, TMC_E0, TMC_E1, TMC_E2, TMC_E3, TMC_E4, TMC_E5
   };
 
   constexpr uint32_t _tmc_thrs(const uint16_t msteps, const int32_t thrs, const uint32_t spmm) {
@@ -62,7 +63,6 @@
   template<typename TMC>
   void tmc_set_current(TMC &st, const TMC_AxisEnum axis, const int mA) {
     st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
-    tmc_get_current(st, axis);
   }
   template<typename TMC>
   void tmc_report_otpw(TMC &st, const TMC_AxisEnum axis) {
@@ -80,7 +80,6 @@
   template<typename TMC>
   void tmc_set_pwmthrs(TMC &st, const TMC_AxisEnum axis, const int32_t thrs, const uint32_t spmm) {
     st.TPWMTHRS(_tmc_thrs(st.microsteps(), thrs, spmm));
-    tmc_get_pwmthrs(st, axis, spmm);
   }
   template<typename TMC>
   void tmc_get_sgt(TMC &st, const TMC_AxisEnum axis) {
@@ -89,7 +88,6 @@
   template<typename TMC>
   void tmc_set_sgt(TMC &st, const TMC_AxisEnum axis, const int8_t sgt_val) {
     st.sgt(sgt_val);
-    tmc_get_sgt(st, axis);
   }
 
   void monitor_tmc_driver();
