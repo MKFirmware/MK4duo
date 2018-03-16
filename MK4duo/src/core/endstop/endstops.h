@@ -50,8 +50,8 @@ enum EndstopEnum {
   Z2_MIN,
   Z2_MAX,
   FIL_RUNOUT,
-  DOOR_OPEN,
-  POWER_CHECK
+  DOOR_OPEN_SENSOR,
+  POWER_CHECK_SENSOR
 };
 
 class Endstops {

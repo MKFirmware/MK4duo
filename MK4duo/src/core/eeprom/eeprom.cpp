@@ -1829,8 +1829,8 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
+    endstops.setLogic(DOOR_OPEN_SENSOR, !DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK_SENSOR, !POWER_CHECK_LOGIC);
   #else
     endstops.setLogic(X_MIN, X_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MIN, Y_MIN_ENDSTOP_LOGIC);
@@ -1846,8 +1846,8 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
+    endstops.setLogic(DOOR_OPEN_SENSOR, DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK_SENSOR, POWER_CHECK_LOGIC);
   #endif
 
   endstops.setPullup(X_MIN, ENDSTOPPULLUP_XMIN);
@@ -1864,8 +1864,8 @@ void EEPROM::Factory_Settings() {
   endstops.setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
   endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
-  endstops.setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
-  endstops.setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
+  endstops.setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
+  endstops.setPullup(POWER_CHECK_SENSOR, PULLUP_POWER_CHECK);
 
   Postprocess();
 

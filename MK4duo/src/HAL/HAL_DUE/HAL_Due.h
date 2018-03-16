@@ -362,7 +362,7 @@ class HAL {
         watchdog.reset();
       }
     }
-    FORCE_INLINE static unsigned long timeInMilliseconds() {
+    FORCE_INLINE static uint32_t timeInMilliseconds() {
       return millis();
     }
 

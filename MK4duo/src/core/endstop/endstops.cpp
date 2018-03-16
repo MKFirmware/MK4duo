@@ -190,11 +190,11 @@ void Endstops::setup_pullup() {
   #endif
 
   #if HAS_DOOR_OPEN
-    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN));
+    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN_SENSOR));
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
-    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK));
+    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK_SENSOR));
   #endif
 
 }
@@ -277,14 +277,14 @@ void Endstops::report() {
 
   #if HAS_DOOR_OPEN
     // Door Open
-    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN) ? "true" : "false");
+    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN_SENSOR) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN_SENSOR) ? "true" : "false");
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
     // Power Check
-    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK) ? "true" : "false");
+    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK_SENSOR) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK_SENSOR) ? "true" : "false");
   #endif
 
 }
