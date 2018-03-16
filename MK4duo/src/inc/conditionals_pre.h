@@ -28,6 +28,10 @@
 #ifndef _CONDITIONALS_PRE_H_
 #define _CONDITIONALS_PRE_H_
 
+#if DISABLED(STRING_CONFIG_H_AUTHOR)
+  #define STRING_CONFIG_H_AUTHOR "(none, default config)"
+#endif
+
 #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 #if ENABLED(NEXTION)
@@ -416,7 +420,7 @@
  *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
  *
  */
-#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends 
+#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends
   #undef SINGLENOZZLE
   #undef EXTRUDERS
   #undef DRIVER_EXTRUDERS

@@ -44,9 +44,6 @@
 #if DISABLED(BAUDRATE)
   #error "DEPENDENCY ERROR: Missing setting BAUDRATE."
 #endif
-#if DISABLED(STRING_CONFIG_H_AUTHOR)
-  #define STRING_CONFIG_H_AUTHOR "(none, default config)"
-#endif
 #if DISABLED(MACHINE_UUID)
   #error "DEPENDENCY ERROR: Missing setting MACHINE_UUID."
 #endif
