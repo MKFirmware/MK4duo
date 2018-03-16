@@ -143,6 +143,8 @@
       }
       FORCE_INLINE bool isIdle() { return TEST(HeaterFlag, heater_flag_idle); }
 
+      FORCE_INLINE bool resetFlag() { HeaterFlag = 0; }
+
       #if HEATER_IDLE_HANDLER
         void start_idle_timer(const millis_t timeout_ms);
         void reset_idle_timer();

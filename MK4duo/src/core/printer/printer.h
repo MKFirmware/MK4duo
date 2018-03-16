@@ -301,6 +301,9 @@ class Printer {
     }
     FORCE_INLINE static bool IsG38Move() { return mk_2_flag & flag2_g38_move; }
 
+    FORCE_INLINE static bool resetFlag1() { mk_1_flag = 0; }
+    FORCE_INLINE static bool resetFlag2() { mk_2_flag = 0; }
+
   private: /** Private Function */
 
     static void setup_pinout();
