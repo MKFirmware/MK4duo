@@ -113,7 +113,7 @@
 #define Z_STOP_PIN                 NoPin
 
 //###HEATER
-#define ORIG_HEATER_0_PIN          NoPin
+#define ORIG_HEATER_0_PIN          12
 #define ORIG_HEATER_1_PIN          NoPin
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
@@ -131,7 +131,7 @@
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN              NoPin
+#define ORIG_FAN0_PIN              11
 #define ORIG_FAN1_PIN              NoPin
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
@@ -157,24 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
-
-//###IF_BLOCKS
-//#define RAMPS_V_1_0
-#if ENABLED(RAMPS_V_1_0)
-  #define ORIG_HEATER_0_PIN        12
-  #define ORIG_HEATER_BED_PIN      NoPin
-  #define ORIG_FAN0_PIN            11
-#else
-  #define ORIG_HEATER_0_PIN        10
-  #define ORIG_HEATER_BED_PIN       8
-  #define ORIG_FAN0_PIN             9
-#endif
-
-// SPI for Max6675 Thermocouple
-#if DISABLED(SDSUPPORT)
-  #define MAX6675_SS_PIN            66
-#else
-  #define MAX6675_SS_PIN            66
-#endif
+//###UNKNOWN_PINS
+#define MAX6675_SS_PIN             66
 //@@@
