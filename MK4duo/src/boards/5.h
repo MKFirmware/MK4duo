@@ -156,15 +156,3 @@
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
-
-
-
-//###IF_BLOCKS
-#if MOTHERBOARD == 5
-  #define ORIG_HEATER_BED_PIN  NoPin
-  #define ORIG_TEMP_BED_PIN    NoPin
-#else
-  #define ORIG_HEATER_BED_PIN   1
-  #define ORIG_TEMP_BED_PIN     0
-#endif
-//@@@
