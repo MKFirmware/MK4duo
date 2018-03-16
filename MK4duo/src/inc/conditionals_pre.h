@@ -407,9 +407,6 @@
   #define BOOTSCREEN_TIMEOUT 2500
 #endif
 
-#define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
-#define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
-
 /**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
@@ -497,9 +494,6 @@
   #define GET_TARGET_HOTEND(CMD) NOOP
 #endif
 
-#define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
-#define HAS_RESUME_CONTINUE   (HAS_LCD || ENABLED(EMERGENCY_PARSER))
-
 /**
  * The BLTouch Probe emulates a servo probe
  */
@@ -529,10 +523,5 @@
   #define BLTOUCH_SELFTEST 120
   #define BLTOUCH_RESET    160
 #endif
-
-/**
- * RGB Leds
- */
-#define HAS_COLOR_LEDS  (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_LED))
 
 #endif /* _CONDITIONALS_PRE_H_ */
