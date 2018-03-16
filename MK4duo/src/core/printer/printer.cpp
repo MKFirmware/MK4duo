@@ -313,7 +313,7 @@ void Printer::loop() {
 
 void Printer::check_periodical_actions() {
 
-  static uint8_t cycle_1000ms  = 10;  // Event 1.0 Second
+  static uint8_t cycle_1000ms = 10;  // Event 1.0 Second
 
   // Control interrupt events
   handle_interrupt_events();

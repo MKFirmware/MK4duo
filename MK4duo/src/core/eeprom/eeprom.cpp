@@ -1378,6 +1378,10 @@ void EEPROM::Factory_Settings() {
     tools.lpq_len = 20; // default last-position-queue size
   #endif
 
+  // Reset Printer Flag
+  printer.resetFlag1();
+  printer.resetFlag2();
+
   // Heaters
   #if HEATER_COUNT > 0
 
@@ -1419,6 +1423,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1453,6 +1458,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1487,6 +1493,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1521,6 +1528,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1558,6 +1566,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPBED);
       heat->setHWInverted(INVERTED_BED_PIN);
       #if HAS_EEPROM
@@ -1595,6 +1604,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPCHAMBER);
       heat->setHWInverted(INVERTED_CHAMBER_PIN);
       #if HAS_EEPROM
@@ -1632,6 +1642,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPCOOLER);
       heat->setHWInverted(INVERTED_COOLER_PIN);
       #if HAS_EEPROM
@@ -1652,6 +1663,7 @@ void EEPROM::Factory_Settings() {
       fan->freq           = 250;
       fan->min_Speed      = FAN_MIN_PWM;
       fan->autoMonitored  = 0;
+      fan->FanFlag        = 0;
       fan->SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
       fan->setHWInverted(FAN_INVERTED);
     }
