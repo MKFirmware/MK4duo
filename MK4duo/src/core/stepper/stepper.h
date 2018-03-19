@@ -61,7 +61,7 @@ class Stepper {
 
     static millis_t stepper_inactive_time;
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
       static bool abort_on_endstop_hit;
     #endif
 

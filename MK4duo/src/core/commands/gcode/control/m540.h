@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+#if ENABLED(ABORT_ON_ENDSTOP_HIT)
 
   #define CODE_M540
 
@@ -37,4 +37,4 @@
     if (parser.seen('S')) stepper.abort_on_endstop_hit = parser.value_bool();
   }
 
-#endif // ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+#endif // ENABLED(ABORT_ON_ENDSTOP_HIT)

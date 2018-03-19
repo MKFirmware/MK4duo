@@ -114,7 +114,7 @@
  * Basic-settings can be found in Configuration_Basic.h
  * Mechanisms-settings can be found in Configuration_Xxxxxx.h (where Xxxxxx can be: Cartesian - Delta - Core - Scara)
  * Pins-settings can be found in "Configuration_Pins.h"
- * 
+ *
  */
 
 #ifndef _CONFIGURATION_FEATURE_H_
@@ -466,19 +466,18 @@
 
 
 /**************************************************************************
- ******************** Abort on endstop hit feature ************************
+ ************************ Abort on endstop hit ****************************
  **************************************************************************
  *                                                                        *
  * This option allows you to abort printing when any endstop is triggered.*
  * This feature must be enabled with "M540 S1" or from the LCD menu or    *
- * by define ABORT ON ENDSTOP HIT INIT true.                              *
+ * by define ABORT ON ENDSTOP HIT DEFAULT true.                           *
  * To have any effect, endstops must be enabled during SD printing.       *
  * With ENDSTOPS ONLY FOR HOMING you must send "M120" to enable endstops. *
  *                                                                        *
  **************************************************************************/
-//#define ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
-
-#define ABORT_ON_ENDSTOP_HIT_INIT true
+//#define ABORT_ON_ENDSTOP_HIT
+//#define ABORT_ON_ENDSTOP_HIT_DEFAULT true
 /**************************************************************************/
 
 
@@ -621,7 +620,7 @@
 //#define BABYSTEPPING
 
 // Also enable X/Y Babystepping. Not supported on DELTA!
-//#define BABYSTEP_XY  
+//#define BABYSTEP_XY
 
 // Change if Z babysteps should go the other way
 #define BABYSTEP_INVERT_Z false
@@ -637,7 +636,7 @@
 
 // Enable graphical overlay on Z-offset editor
 //#define BABYSTEP_ZPROBE_GFX_OVERLAY
-// Reverses the direction of the CW/CCW indicators 
+// Reverses the direction of the CW/CCW indicators
 //#define BABYSTEP_ZPROBE_GFX_REVERSE
 /**************************************************************************/
 
@@ -825,7 +824,7 @@
  **********************************************************************************/
 //#define EXTRUDER_ENCODER_CONTROL
 
-// Enc error step is step for error detect 
+// Enc error step is step for error detect
 #define ENC_ERROR_STEPS     500
 // Enc min step It must be the minimum number of steps that the extruder does
 // to get a signal from the encoder
@@ -972,7 +971,7 @@
 #define FLOWMETER_MAXFREQ  55       // frequency of pulses at max flow
 
 // uncomment this to kill print job under the min flow rate, in liters/minute
-//#define MINFLOW_PROTECTION 4      
+//#define MINFLOW_PROTECTION 4
 /**************************************************************************/
 
 
@@ -1162,7 +1161,7 @@
 // :['JAPANESE', 'WESTERN', 'CYRILLIC']
 //
 #define DISPLAY_CHARSET_HD44780 JAPANESE
- 
+
 #define SHOW_BOOTSCREEN
 //#define SHOW_CUSTOM_BOOTSCREEN
 #define STRING_SPLASH_LINE1 "v" SHORT_BUILD_VERSION       // will be shown during bootup in line 1
@@ -1183,12 +1182,12 @@
 
 
 // Additional options for Graphical Displays
-// 
+//
 // Use the optimizations here to improve printing performance,
 // which can be adversely affected by graphical display drawing,
 // especially when doing several short moves, and when printing
 // on DELTA and SCARA machines.
-// 
+//
 // Some of these options may result in the display lagging behind
 // controller events, as there is a trade-off between reliable
 // printing performance versus fast display updates.
@@ -2206,7 +2205,7 @@
 #define PROPORTIONAL_FONT_RATIO 1
 /*****************************************************************************************/
 
- 
+
 /*****************************************************************************************
  *********************************** User menu items *************************************
  *****************************************************************************************
