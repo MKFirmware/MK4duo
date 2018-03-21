@@ -407,7 +407,7 @@ void Stepper::isr() {
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     #define SPLIT(L) (ocr_val = (hal_timer_t)L)
-  #else                                         // sample endstops in between step pulses
+  #else                               // sample endstops in between step pulses
     #define SPLIT(L) do { \
       if (L > ENDSTOP_NOMINAL_OCR_VAL) { \
         const hal_timer_t remainder = (hal_timer_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
