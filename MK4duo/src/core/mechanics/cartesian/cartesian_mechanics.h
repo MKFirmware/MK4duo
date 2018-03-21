@@ -119,13 +119,6 @@
         float x_home_pos(const int extruder);
       #endif
 
-      /**
-       * Set sensorless homing if the axis has it.
-       */
-      #if ENABLED(SENSORLESS_HOMING)
-        void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true);
-      #endif
-
       #if ENABLED(HYSTERESIS)
         void set_hysteresis_axis(uint8_t axis, float mm);
         void report_hysteresis();

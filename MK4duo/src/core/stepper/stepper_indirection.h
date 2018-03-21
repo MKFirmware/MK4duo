@@ -47,26 +47,29 @@
 // TMC26X drivers have STEP/DIR on normal pins, but ENABLE via SPI
 #if ENABLED(HAVE_TMCDRIVER)
   #include <TMC26XStepper.h>
-  void tmc_init();
+  void tmc26x_init_to_defaults();
 #endif
 
 #if ENABLED(HAVE_TMC2130)
   #include <TMC2130Stepper.h>
   void tmc_init_cs_pins();
-  void tmc2130_init();
+  void tmc2130_init_to_defaults();
 #endif
 
 #if ENABLED(HAVE_TMC2208)
   #include <TMC2208Stepper.h>
   void tmc2208_serial_begin();
-  void tmc2208_init();
+  void tmc2208_init_to_defaults();
 #endif
 
 // L6470 has STEP on normal pins, but DIR/ENABLE via SPI
 #if ENABLED(HAVE_L6470DRIVER)
   #include <L6470.h>
-  void L6470_init();
+  void L6470_init_to_defaults();
 #endif
+
+void restore_stepper_drivers();  // Called by PSU_ON
+void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // X Stepper
 #if ENABLED(HAVE_L6470DRIVER) && ENABLED(X_IS_L6470)

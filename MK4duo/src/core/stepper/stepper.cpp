@@ -68,7 +68,7 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 
 millis_t Stepper::stepper_inactive_time  = (DEFAULT_STEPPER_DEACTIVE_TIME) * 1000UL;
 
-uint16_t Stepper::cleaning_buffer_counter = 0;
+int16_t Stepper::cleaning_buffer_counter = 0;
 
 // private:
 
@@ -383,7 +383,7 @@ void Stepper::set_directions() {
  *  2000     1 KHz - sleep rate
  *  4000   500  Hz - init rate
  */
-HAL_STEP_TIMER_ISR {
+STEPPER_TIMER_ISR {
   HAL_timer_isr_prologue(STEPPER_TIMER);
   #if ENABLED(LIN_ADVANCE)
     Stepper::advance_isr_scheduler();
@@ -394,11 +394,10 @@ HAL_STEP_TIMER_ISR {
 
 void Stepper::isr() {
 
-  #define ENDSTOP_NOMINAL_OCR_VAL (int)(1500 * STEPPER_TIMER_TICKS_PER_US)  // Check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
-  #define OCR_VAL_TOLERANCE       (int)( 500 * STEPPER_TIMER_TICKS_PER_US)  // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
+  #define ENDSTOP_NOMINAL_OCR_VAL 1500 * STEPPER_TIMER_TICKS_PER_US  // Check endstops every 1.5ms to guarantee two stepper ISRs within 5ms for BLTouch
+  #define OCR_VAL_TOLERANCE        500 * STEPPER_TIMER_TICKS_PER_US  // First max delay is 2.0ms, last min delay is 0.5ms, all others 1.5ms
 
   #if DISABLED(LIN_ADVANCE)
-    // Allow UART ISRs
     HAL_DISABLE_ISRs();
   #endif
 
@@ -406,10 +405,9 @@ void Stepper::isr() {
   static uint32_t step_remaining = 0; // SPLIT function always runs.  This allows 16 bit timers to be
                                       // used to generate the stepper ISR.
 
-  #define _SPLIT(L) (ocr_val = (hal_timer_t)L)
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    #define SPLIT(L) _SPLIT(L)
-  #else                 // sample endstops in between step pulses
+    #define SPLIT(L) (ocr_val = (hal_timer_t)L)
+  #else                                         // sample endstops in between step pulses
     #define SPLIT(L) do { \
       if (L > ENDSTOP_NOMINAL_OCR_VAL) { \
         const hal_timer_t remainder = (hal_timer_t)L % (ENDSTOP_NOMINAL_OCR_VAL); \
@@ -462,8 +460,8 @@ void Stepper::isr() {
       #endif
     }
     current_block = NULL;                       // Prep to get a new block after cleaning
-    _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 10000);  // Run at max speed - 10 KHz
-    HAL_ENABLE_ISRs();                          // re-enable ISRs
+    _NEXT_ISR(HAL_TIMER_RATE / 10000);          // Run at max speed - 10 KHz
+    HAL_ENABLE_ISRs();
     return;
   }
 
@@ -508,8 +506,8 @@ void Stepper::isr() {
       #if ENABLED(Z_LATE_ENABLE)
         if (current_block->steps[Z_AXIS] > 0) {
           enable_Z();
-          _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
-          HAL_ENABLE_ISRs(); // re-enable ISRs
+          _NEXT_ISR(HAL_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+          HAL_ENABLE_ISRs();
           return;
         }
       #endif
@@ -520,8 +518,8 @@ void Stepper::isr() {
 
     }
     else {
-      _NEXT_ISR(HAL_STEPPER_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
-      HAL_ENABLE_ISRs(); // re-enable ISRs
+      _NEXT_ISR(HAL_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
+      HAL_ENABLE_ISRs();
       return;
     }
   }
@@ -998,17 +996,17 @@ void Stepper::init() {
 
   // Init TMC Steppers
   #if ENABLED(HAVE_TMCDRIVER)
-    tmc_init();
+    tmc26x_init_to_defaults();
   #endif
 
   // Init TMC2130 Steppers
   #if ENABLED(HAVE_TMC2130)
-    tmc2130_init();
+    tmc2130_init_to_defaults();
   #endif
 
   // Init TMC2208 Steppers
   #if ENABLED(HAVE_TMC2208)
-    tmc2208_init();
+    tmc2208_init_to_defaults();
   #endif
 
   // TRAMS, TMC2130 and TMC2208 advanced settings
@@ -1018,7 +1016,7 @@ void Stepper::init() {
 
   // Init L6470 Steppers
   #if ENABLED(HAVE_L6470DRIVER)
-    L6470_init();
+    L6470_init_to_defaults();
   #endif
 
   // Init Dir Pins
@@ -1265,7 +1263,7 @@ void Stepper::init() {
  * Block until all buffered steps are executed / cleaned
  */
 void Stepper::synchronize() {
-  while (planner.blocks_queued()) {
+  while (planner.blocks_queued() || cleaning_buffer_counter) {
     printer.idle();
     printer.keepalive(InProcess);
   }
@@ -1436,6 +1434,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   #endif // !COREXY && !COREXZ && !COREYZ
 
   kill_current_block();
+  cleaning_buffer_counter = -1; // Discard the rest of the move
 }
 
 void Stepper::report_positions() {
@@ -1482,7 +1481,7 @@ void Stepper::report_positions() {
   #else
     #define CYCLES_EATEN_BABYSTEP 0
   #endif
-  #define EXTRA_CYCLES_BABYSTEP (STEP_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
+  #define EXTRA_CYCLES_BABYSTEP (STEPPER_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
 
   #define _ENABLE(AXIS) enable_## AXIS()
   #define _READ_DIR(AXIS) AXIS ##_DIR_READ
@@ -1496,7 +1495,7 @@ void Stepper::report_positions() {
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0
       #define _PULSE_WAIT DELAY_NOPS(EXTRA_CYCLES_BABYSTEP)
-    #elif STEP_PULSE_CYCLES > 0
+    #elif STEPPER_PULSE_CYCLES > 0
       #define _PULSE_WAIT NOOP
     #elif ENABLED(DELTA)
       #define _PULSE_WAIT HAL::delayMicroseconds(2);
@@ -1505,16 +1504,16 @@ void Stepper::report_positions() {
     #endif
   #endif
 
-  #define BABYSTEP_AXIS(AXIS, INVERT) {                     \
-      const uint8_t old_dir = _READ_DIR(AXIS);              \
-      _ENABLE(AXIS);                                        \
-      _SAVE_START;                                          \
-      _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^direction^INVERT); \
-      _PULSE_WAIT;                                          \
-      _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true);     \
-      _PULSE_WAIT;                                          \
-      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true);      \
-      _APPLY_DIR(AXIS, old_dir);                            \
+  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {            \
+      const uint8_t old_dir = _READ_DIR(AXIS);          \
+      _ENABLE(AXIS);                                    \
+      _SAVE_START;                                      \
+      _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^DIR^INVERT);   \
+      _PULSE_WAIT;                                      \
+      _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
+      _PULSE_WAIT;                                      \
+      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true);  \
+      _APPLY_DIR(AXIS, old_dir);                        \
     }
 
   // MUST ONLY BE CALLED BY AN ISR,
@@ -1527,20 +1526,43 @@ void Stepper::report_positions() {
       #if ENABLED(BABYSTEP_XY)
 
         case X_AXIS:
-          BABYSTEP_AXIS(X, false);
+          #if CORE_IS_XY
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Y, false, direction);
+          #elif CORE_IS_XZ
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Z, false, direction);
+          #else
+            BABYSTEP_AXIS(X, false, direction);
+          #endif
           break;
 
         case Y_AXIS:
-          BABYSTEP_AXIS(Y, false);
+          #if CORE_IS_XY
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Y, false, direction^(CORESIGN(1)<0));
+          #elif CORE_IS_YZ
+            BABYSTEP_AXIS(Y, false, direction);
+            BABYSTEP_AXIS(Z, false, direction^(CORESIGN(1)<0));
+          #else
+            BABYSTEP_AXIS(Y, false, direction);
+          #endif
           break;
 
       #endif
 
       case Z_AXIS: {
 
-        #if NOMECH(DELTA)
+        #if CORE_IS_XZ
+          BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
 
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z);
+        #elif CORE_IS_YZ
+          BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+
+        #elif DISABLED(DELTA)
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
 
         #else // DELTA
 

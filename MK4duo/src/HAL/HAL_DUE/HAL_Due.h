@@ -195,8 +195,6 @@ typedef uint32_t  ptr_int_t;
 // TEMPERATURE
 #undef analogInputToDigitalPin
 #define analogInputToDigitalPin(p) ((p < 12) ? (p) + 54 : -1)
-#undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS 16
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
 #define OVERSAMPLENR 2
@@ -204,7 +202,6 @@ typedef uint32_t  ptr_int_t;
 
 #define ABS_ZERO  -273.15
 #define NUM_ADC_SAMPLES 32
-#define MAX_ANALOG_PIN_NUMBER 11
 #define ADC_TEMPERATURE_SENSOR 15
 
 #define HARDWARE_PWM true
@@ -279,10 +276,10 @@ class HAL {
 
   public: /** Public Parameters */
 
-    #if ANALOG_INPUTS > 0
-      static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
-      static bool Analog_is_ready;
-    #endif
+    static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
+    static bool Analog_is_ready;
+
+
 
     static bool execute_100ms;
 

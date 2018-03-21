@@ -574,29 +574,20 @@
       if (printer.debugLeveling()) DEBUG_POS(">>> home_delta", current_position);
     #endif
 
-    // Disable stealthChop if used. Enable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(A_AXIS);
-      sensorless_homing_per_axis(B_AXIS);
-      sensorless_homing_per_axis(C_AXIS);
-    #endif
-
     // Init the current position of all carriages to 0,0,0
     ZERO(current_position);
     set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
+
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_homing();
+    #endif
 
     // Move all carriages together linearly until an endstop is hit.
     current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
     line_to_current_position();
     stepper.synchronize();
-
-    // Re-enable stealthChop if used. Disable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(A_AXIS, false);
-      sensorless_homing_per_axis(B_AXIS, false);
-      sensorless_homing_per_axis(C_AXIS, false);
-    #endif
 
     // If an endstop was not hit, then damage can occur if homing is continued.
     // This can occur if the delta height is
@@ -606,6 +597,9 @@
           TEST(endstops.hit_bits, Z_MAX))) {
       LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
       SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
+      #if ENABLED(SENSORLESS_HOMING)
+        sensorless_homing(false);
+      #endif
       return false;
     }
 
@@ -616,6 +610,11 @@
     homeaxis(A_AXIS);
     homeaxis(B_AXIS);
     homeaxis(C_AXIS);
+
+    // Re-enable stealthChop if used. Disable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_homing(false);
+    #endif
 
     // Set all carriages to their home positions
     // Do this here all at once for Delta, because
@@ -822,14 +821,12 @@
   #if ENABLED(SENSORLESS_HOMING)
 
     /**
-     * Set sensorless homing if the axis has it.
+     * Set sensorless homing.
      */
-    void Delta_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
-      switch (axis) {
-        case X_AXIS: tmc_sensorless_homing(stepperX, enable); break;
-        case Y_AXIS: tmc_sensorless_homing(stepperY, enable); break;
-        case Z_AXIS: tmc_sensorless_homing(stepperZ, enable); break;
-      }
+    void Delta_Mechanics::sensorless_homing(const bool on/*=true*/) {
+      sensorless_homing_per_axis(A_AXIS, on);
+      sensorless_homing_per_axis(B_AXIS, on);
+      sensorless_homing_per_axis(C_AXIS, on);
     }
 
   #endif // SENSORLESS_HOMING

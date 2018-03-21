@@ -65,7 +65,7 @@ class Stepper {
       static bool abort_on_endstop_hit;
     #endif
 
-    static uint16_t cleaning_buffer_counter;
+    static int16_t cleaning_buffer_counter;
 
   private: /** Private Parameters */
 
@@ -300,8 +300,8 @@ class Stepper {
 
       #if ENABLED(ARDUINO_ARCH_SAM)
         // In case of high-performance processor, it is able to calculate in real-time
-        constexpr uint32_t MIN_TIME_PER_STEP = (HAL_STEPPER_TIMER_RATE) / (MAX_STEP_FREQUENCY);
-        timer = (uint32_t)HAL_STEPPER_TIMER_RATE / step_rate;
+        constexpr uint32_t MIN_TIME_PER_STEP = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
+        timer = (uint32_t)HAL_TIMER_RATE / step_rate;
         NOLESS(timer, MIN_TIME_PER_STEP);
       #else
         NOLESS(step_rate, F_CPU / 500000);

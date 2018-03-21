@@ -79,7 +79,7 @@
       act->setTarget(0);
 
       const pin_t new_pin = parser.value_pin();
-      if (WITHIN(new_pin, 0 , MAX_ANALOG_PIN_NUMBER)) {
+      if (WITHIN(new_pin, 0 , NUM_ANALOG_INPUTS)) {
         const pin_t old_pin = act->sensor.pin;
         act->sensor.pin = new_pin;
         HAL::AdcChangePin(old_pin, act->sensor.pin);

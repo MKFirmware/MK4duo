@@ -357,6 +357,13 @@ class Mechanics {
       virtual void Nextion_gfx_clear();
     #endif
 
+    /**
+     * Set sensorless homing if the axis has it.
+     */
+    #if ENABLED(SENSORLESS_HOMING)
+      virtual void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true);
+    #endif
+
   protected: /** Protected Function */
 
     void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);
