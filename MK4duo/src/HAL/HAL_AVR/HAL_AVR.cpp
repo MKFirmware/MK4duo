@@ -265,7 +265,7 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
  *  - For PINS_DEBUGGING, monitor and report endstop pins
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
-HAL_TEMP_TIMER_ISR {
+TEMP_TIMER_ISR {
 
   TEMP_OCR += 64;
 

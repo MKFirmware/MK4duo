@@ -51,17 +51,15 @@
       OUT_WRITE(SUICIDE_PIN, HIGH);
     #endif
 
-    #if ENABLED(HAVE_TMC2130)
-      delay(100);
-      tmc2130_init(); // Settings only stick when the driver has power
-    #endif
-
-    LCD_MESSAGEPGM(WELCOME_MSG);
+    HAL::delayMilliseconds(100); // Wait for power to settle
+    restore_stepper_drivers();
 
     #if ENABLED(LASER) && ENABLED(LASER_PERIPHERALS)
       laser.peripherals_on();
       laser.wait_for_peripherals();
     #endif
+
+    LCD_MESSAGEPGM(WELCOME_MSG);
   }
 
 #endif // HAS_POWER_SWITCH

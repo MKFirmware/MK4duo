@@ -76,10 +76,9 @@
 
 uint8_t MCUSR;
 
-#if ANALOG_INPUTS > 0
-  int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
-  bool    HAL::Analog_is_ready = false;
-#endif
+int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
+bool    HAL::Analog_is_ready = false;
+
 
 #if HEATER_COUNT > 0
   ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];

@@ -455,7 +455,9 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       }
     }
 
-    #define MAX_OVERSHOOT_PID_AUTOTUNE 40
+    #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
+      #define MAX_OVERSHOOT_PID_AUTOTUNE 20
+    #endif
     if (currentTemp > temp + MAX_OVERSHOOT_PID_AUTOTUNE
       #if HAS_TEMP_COOLER
         && act->type != IS_COOLER
@@ -475,8 +477,11 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       }
     #endif
 
-    // Timeout after 20 minutes since the last undershoot/overshoot cycle
-    if (((time - t1) + (time - t2)) > (20L * 60L * 1000L)) {
+    // Timeout after MAX_CYCLE_TIME_PID_AUTOTUNE minutes since the last undershoot/overshoot cycle
+    #if DISABLED(MAX_CYCLE_TIME_PID_AUTOTUNE)
+      #define MAX_CYCLE_TIME_PID_AUTOTUNE 20L
+    #endif
+    if (((time - t1) + (time - t2)) > (MAX_CYCLE_TIME_PID_AUTOTUNE * 60L * 1000L)) {
       SERIAL_LM(ER, MSG_PID_TIMEOUT);
       LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
       pid_pointer = 255;

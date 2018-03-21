@@ -220,7 +220,6 @@ typedef uint16_t  ptr_int_t;
 #define ANALOG_REF_AVCC       _BV(REFS0)
 #define ANALOG_REF            ANALOG_REF_AVCC
 #define ANALOG_PRESCALER      _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
-#define MAX_ANALOG_PIN_NUMBER 15
 #define OVERSAMPLENR          16
 #define ABS_ZERO              -273.15
 #define AD_RANGE              1023
@@ -235,12 +234,16 @@ typedef uint16_t  ptr_int_t;
 // Timer
 // --------------------------------------------------------------------------
 
-constexpr uint32_t  HAL_STEPPER_TIMER_RATE  = ((F_CPU) / 8);
-constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TIMER_RATE));
+constexpr uint32_t  HAL_TIMER_RATE        = ((F_CPU) / 8);
+constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE));
+
+// Clock speed factor
+#define CYCLES_PER_US               ((F_CPU) / 1000000L) // 16 or 20
 
 #define STEPPER_TIMER_PRESCALE      8
-#define STEPPER_TIMER_TICKS_PER_US  (HAL_STEPPER_TIMER_RATE / 1000000)
-#define STEPPER_TIMER_MIN_INTERVAL  8 // minimum time in µs between stepper interrupts
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
+#define STEPPER_TIMER_MIN_INTERVAL  8                                         // minimum time in µs between stepper interrupts
+#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US) // Stepper pulse duration, in cycles
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
@@ -281,8 +284,8 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TI
 #define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 #define HAL_timer_isr_prologue(timer_num)
 
-#define HAL_STEP_TIMER_ISR  ISR(TIMER1_COMPA_vect)
-#define HAL_TEMP_TIMER_ISR  ISR(TIMER0_COMPB_vect)
+#define STEPPER_TIMER_ISR ISR(TIMER1_COMPA_vect)
+#define TEMP_TIMER_ISR    ISR(TIMER0_COMPB_vect)
 
 #define HAL_ENABLE_ISRs() \
         do { \
@@ -297,11 +300,6 @@ constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 / (HAL_STEPPER_TI
           DISABLE_STEPPER_INTERRUPT(); \
           sei(); \
         } while(0)
-
-// Clock speed factor
-#define CYCLES_PER_US ((F_CPU) / 1000000L) // 16 or 20
-// Stepper pulse duration, in cycles
-#define STEP_PULSE_CYCLES ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
 
 // Highly granular delays for step pulses, etc.
 #define DELAY_0_NOP   NOOP

@@ -428,7 +428,7 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   #if HAS_POWER_SWITCH
-    SET_INPUT(PS_ON_PIN);
+    powerManager.power_off();
   #endif
 
   #if HAS_SUICIDE
