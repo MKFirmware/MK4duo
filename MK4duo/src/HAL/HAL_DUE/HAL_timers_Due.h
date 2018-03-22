@@ -196,8 +196,8 @@ FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_
 }
 
 FORCE_INLINE static void HAL_timer_restricts(const uint8_t timer_num, const uint16_t interval_ticks) {
-  const hal_timer_t mincmp = HAL_timer_get_count(timer_num) + interval_ticks;
-  if (HAL_timer_get_current_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
+  const hal_timer_t mincmp = HAL_timer_get_current_count(timer_num) + interval_ticks;
+  if (HAL_timer_get_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
 }
 
 FORCE_INLINE static void HAL_timer_isr_prologue(uint8_t timer_num) {
