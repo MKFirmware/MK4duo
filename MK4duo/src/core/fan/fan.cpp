@@ -71,12 +71,21 @@
     if (ELAPSED(ms, next_auto_fan_check_ms)) {
       // Check for Hotend temperature
       LOOP_HOTEND() {
-        if (TEST(autoMonitored, h))
-          Speed = (static_cast<uint16_t>(heaters[h].current_temperature) > triggerTemperatures) ? HOTEND_AUTO_FAN_SPEED : HOTEND_AUTO_FAN_MIN_SPEED;
+        if (TEST(autoMonitored, h)) {
+          if (heaters[h].current_temperature > triggerTemperatures) {
+            Speed = HOTEND_AUTO_FAN_SPEED;
+            break;
+          }
+          else
+            Speed = HOTEND_AUTO_FAN_MIN_SPEED;
+        }
       }
 
       // Check for Controller fan
       if (TEST(autoMonitored, 7)) {
+        LOOP_HEATER() {
+          if (heaters[h].isON()) lastMotorOn = ms;
+        }
         if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
           || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
           #if DRIVER_EXTRUDERS > 1
