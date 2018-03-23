@@ -556,7 +556,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   if (MOVE_AWAY_TEST && stepper.stepper_inactive_time && ELAPSED(ms, commands.previous_cmd_ms + stepper.stepper_inactive_time)
-      && !ignore_stepper_queue && !planner.blocks_queued()) {
+      && !ignore_stepper_queue && !planner.has_blocks_queued()) {
     #if ENABLED(DISABLE_INACTIVE_X)
       disable_X();
     #endif
@@ -632,7 +632,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP
       && ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && !planner.blocks_queued()
+      && !planner.has_blocks_queued()
     ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         const bool oldstatus = E0_ENABLE_READ;
@@ -703,7 +703,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (planner.blocks_queued()) axis_last_activity = millis();
+    if (planner.has_blocks_queued()) axis_last_activity = millis();
     if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
