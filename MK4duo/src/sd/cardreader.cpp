@@ -522,6 +522,7 @@
     restart_file.close();
     saving = false;
     sdprinting = false;
+
   }
 
   void CardReader::checkautostart(bool force) {

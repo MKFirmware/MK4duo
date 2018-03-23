@@ -127,10 +127,8 @@
    *                    a subsequent G or T leveling operation for backward compatibility.
    *
    *   P1    Phase 1    Invalidate entire Mesh and continue with automatic generation of the Mesh data using
-   *                    the Z-Probe. Usually the probe can't reach all areas that the nozzle can reach. On
-   *                    Cartesian printers, points within the X_PROBE_OFFSET_FROM_EXTRUDER and Y_PROBE_OFFSET_FROM_EXTRUDER
-   *                    area cannot be automatically probed. For Delta printers the area in which DELTA_PROBEABLE_RADIUS
-   *                    and DELTA_PRINTABLE_RADIUS do not overlap will not be automatically probed.
+   *                    the Z-Probe. Usually the probe can't reach all areas that the nozzle can reach. For delta
+   *                    printers only the areas where the probe and nozzle can both reach will be automatically probed.
    *
    *                    Unreachable points will be handled in Phase 2 and Phase 3.
    *
@@ -494,7 +492,7 @@
           }
           else {
             const float cvf = parser.value_float();
-            switch((int)truncf(cvf * 10.0) - 30) {   // 3.1 -> 1
+            switch ((int)truncf(cvf * 10.0) - 30) {   // 3.1 -> 1
               #if ENABLED(UBL_G29_P31)
                 case 1: {
 
@@ -554,6 +552,9 @@
 
     if (parser.seen('L')) {     // Load Current Mesh Data
       g29_storage_slot = parser.has_value() ? parser.value_int() : storage_slot;
+
+      if (g29_storage_slot == -1)                     // Special case, the user wants to 'Export' the mesh to the
+        return report_current_mesh();                 // host program to be saved on the user's computer
 
       int16_t a = eeprom.calc_num_meshes();
 
@@ -747,6 +748,11 @@
       } while (location.x_index >= 0 && --count);
 
       STOW_PROBE();
+
+      #if Z_PROBE_AFTER_PROBING > 0
+        probe.move_z_after_probing();
+      #endif
+
       restore_ubl_active_state_and_leave();
 
       mechanics.do_blocking_move_to_xy(
@@ -1221,7 +1227,7 @@
 
           found_a_NAN = true;
 
-          int8_t closest_x=-1, closest_y=-1;
+          int8_t closest_x = -1, closest_y = -1;
           float d1, d2 = 99999.9;
           for (int8_t k = 0; k < GRID_MAX_POINTS_X; k++) {
             for (int8_t l = 0; l < GRID_MAX_POINTS_Y; l++) {
@@ -1347,8 +1353,7 @@
 
       LCD_MESSAGEPGM(MSG_UBL_FINE_TUNE_MESH);
 
-      mechanics.do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
-      mechanics.do_blocking_move_to_xy(rx, ry);
+      mechanics.do_blocking_move_to(rx, ry, Z_PROBE_BETWEEN_HEIGHT);
 
       uint16_t not_done[16];
       memset(not_done, 0xFF, sizeof(not_done));

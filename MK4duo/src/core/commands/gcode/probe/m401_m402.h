@@ -39,6 +39,11 @@
   /**
    * M402: Retract Z Servo endstop if enabled
    */
-  inline void gcode_M402(void) { STOW_PROBE(); }
+  inline void gcode_M402(void) {
+    STOW_PROBE();
+    #if Z_PROBE_AFTER_PROBING > 0
+      probe.move_z_after_probing();
+    #endif
+  }
 
 #endif // HAS_BED_PROBE

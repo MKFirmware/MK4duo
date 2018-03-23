@@ -69,6 +69,10 @@ class Probe {
 
     static bool set_deployed(const bool deploy);
 
+    #if Z_PROBE_AFTER_PROBING > 0
+      static void move_z_after_probing();
+    #endif
+
     #if HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
 
       /**

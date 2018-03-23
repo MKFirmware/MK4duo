@@ -360,7 +360,7 @@ void Planner::check_axes_activity() {
     #endif
   #endif
 
-  if (blocks_queued()) {
+  if (has_blocks_queued()) {
 
     block_t* block;
 

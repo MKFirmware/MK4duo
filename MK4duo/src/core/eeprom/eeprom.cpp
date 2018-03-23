@@ -2058,7 +2058,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);
         SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
         SERIAL_EM(" meshes.");
-        ubl.report_current_mesh();
+        //ubl.report_current_mesh();
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 

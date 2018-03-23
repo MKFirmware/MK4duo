@@ -206,7 +206,10 @@
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (printer.debugLeveling()) DEBUG_POS("> (home_all || homeZ) > final", current_position);
         #endif
-      }
+      } // home_all || homeZ
+      #if HOMING_Z_WITH_PROBE && Z_PROBE_AFTER_PROBING > 0
+        probe.move_z_after_probing();
+      #endif
     #elif ENABLED(DOUBLE_Z_HOMING)
       if (home_all || homeZ)
         double_home_z();

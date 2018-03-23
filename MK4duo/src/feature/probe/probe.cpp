@@ -154,6 +154,16 @@ bool Probe::set_deployed(const bool deploy) {
   return false;
 }
 
+#if Z_PROBE_AFTER_PROBING > 0
+  // After probing move to a preferred Z position
+  void Probe::move_z_after_probing() {
+    if (mechanics.current_position[Z_AXIS] != Z_PROBE_AFTER_PROBING) {
+      mechanics.do_blocking_move_to_z(Z_PROBE_AFTER_PROBING);
+      mechanics.current_position[Z_AXIS] = Z_PROBE_AFTER_PROBING;
+    }
+  }
+#endif
+
 /**
  * @brief Used by run_z_probe to do a single Z probe move.
  *

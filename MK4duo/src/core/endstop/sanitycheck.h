@@ -29,14 +29,6 @@
 #ifndef _ENDSTOP_SANITYCHECK_H_
 #define _ENDSTOP_SANITYCHECK_H_
 
-  #if ENABLED(ABORT_ON_ENDSTOP_HIT) && ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-    #error "DEPENDENCY ERROR: ABORT_ON_ENDSTOP_HIT cannot work if ENDSTOPS_ONLY_FOR_HOMING is enabled"
-  #endif
-
-  #if DISABLED(ABORT_ON_ENDSTOP_HIT) && DISABLED(ENDSTOPS_ONLY_FOR_HOMING)
-    #error "DEPENDENCY ERROR: if ENDSTOPS_ONLY_FOR_HOMING is disabled, disabling also ABORT_ON_ENDSTOP_HIT may be dangerous for your machine. If you're fine with this, comment out this line"
-  #endif
-
   #if ENABLED(X_TWO_ENDSTOPS) && DISABLED(X_TWO_STEPPER_DRIVERS)
     #error "DEPENDENCY ERROR: X_TWO_ENDSTOPS requires X_TWO_STEPPER_DRIVERS"
   #endif

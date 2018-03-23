@@ -81,6 +81,10 @@
 
     printer.clean_up_after_endstop_or_probe_move();
 
+    #if Z_PROBE_AFTER_PROBING > 0
+      probe.move_z_after_probing();
+    #endif
+
     mechanics.report_current_position();
   }
 

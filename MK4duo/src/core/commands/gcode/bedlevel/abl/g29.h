@@ -124,31 +124,38 @@ void out_of_range_error(const char* p_edge) {
  */
 inline void gcode_G29(void) {
 
+  #if ENABLED(DEBUG_LEVELING_FEATURE) || ENABLED(PROBE_MANUALLY)
+    const bool seenQ = parser.seen('Q');
+  #else
+    constexpr bool seenQ = false;
+  #endif
+
   // G29 Q is also available if debugging
   #if ENABLED(DEBUG_LEVELING_FEATURE)
-    const bool query = parser.seen('Q');
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (query) printer.debugSet(debug_leveling);
+    if (seenQ) printer.debugSet(debug_leveling);
     if (printer.debugLeveling()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();
     }
     printer.setDebugLevel(old_debug_flags);
     #if DISABLED(PROBE_MANUALLY)
-      if (query) return;
+      if (seenQ) return;
     #endif
   #endif
 
   #if ENABLED(PROBE_MANUALLY)
-    const bool seenA = parser.seen('A'), seenQ = parser.seen('Q'), no_action = seenA || seenQ;
+    const bool seenA = parser.seen('A');
+  #else
+    constexpr bool seenA = false;
   #endif
+
+  const bool no_action = seenA || seenQ;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE) && DISABLED(PROBE_MANUALLY)
     const bool faux = parser.boolval('C');
-  #elif ENABLED(PROBE_MANUALLY)
-    const bool faux = no_action;
   #else
-    bool constexpr faux = false;
+    const bool faux = no_action;
   #endif
 
   #if MECH(DELTA)
@@ -402,12 +409,12 @@ inline void gcode_G29(void) {
 
     // Disable auto bed leveling during G29.
     // Be formal so G29 can be done successively without G28.
-    bedlevel.leveling_active = false;
+    if (!no_action) bedlevel.set_bed_leveling_enabled(false);
 
     #if HAS_BED_PROBE
       // Deploy the probe. Probe will raise if needed.
       if (DEPLOY_PROBE()) {
-        bedlevel.leveling_active = abl_should_enable;
+        bedlevel.set_bed_leveling_enabled(abl_should_enable);
         return;
       }
     #endif
@@ -469,7 +476,7 @@ inline void gcode_G29(void) {
       #if HAS_SOFTWARE_ENDSTOPS
         endstops.setSoftEndstop(enable_soft_endstops);
       #endif
-      bedlevel.leveling_active = abl_should_enable;
+      bedlevel.set_bed_leveling_enabled(abl_should_enable);
       bedlevel.g29_in_progress = false;
       #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
         lcd_wait_for_move = false;
@@ -672,7 +679,7 @@ inline void gcode_G29(void) {
           measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, stow_probe_after_each, verbose_level);
 
           if (isnan(measured_z)) {
-            bedlevel.leveling_active = abl_should_enable;
+            bedlevel.set_bed_leveling_enabled(abl_should_enable);
             break;
           }
 
@@ -969,6 +976,11 @@ inline void gcode_G29(void) {
 
   if (bedlevel.leveling_active)
     mechanics.sync_plan_position();
+
+  #if HAS_BED_PROBE && Z_PROBE_AFTER_PROBING > 0
+    probe.move_z_after_probing();
+  #endif
+
 }
 
 #endif // OLD_ABL

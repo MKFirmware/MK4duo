@@ -472,12 +472,12 @@
  * This option allows you to abort printing when any endstop is triggered.*
  * This feature must be enabled with "M540 S1" or from the LCD menu or    *
  * by define ABORT ON ENDSTOP HIT DEFAULT true.                           *
- * To have any effect, endstops must be enabled during SD printing.       *
  * With ENDSTOPS ONLY FOR HOMING you must send "M120" to enable endstops. *
  *                                                                        *
  **************************************************************************/
 //#define ABORT_ON_ENDSTOP_HIT
-//#define ABORT_ON_ENDSTOP_HIT_DEFAULT true
+
+#define ABORT_ON_ENDSTOP_HIT_DEFAULT true
 /**************************************************************************/
 
 
