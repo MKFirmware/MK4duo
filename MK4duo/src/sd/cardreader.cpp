@@ -201,7 +201,7 @@
     uint8_t CardReader::read_data(SdFile *currentfile) { return (char)currentfile->read(); }
 
   #endif
-      
+
   bool CardReader::selectFile(const char* filename) {
     const char *oldP = filename;
 
@@ -358,172 +358,170 @@
 
   void CardReader::closeFile(const bool store_position/*=false*/) {
 
-    if (store_position) {
-
-      SERIAL_EM("Save restart.gcode");
-
-      SdFile restart_file;
-
-      char  bufferFilerestart[100],
-            buffer_G1[50],
-            buffer_G92_Z[50],
-            buffer_G92_E[50],
-            buffer_SDpos[11];
-
-      uint32_t saved_sdpos = 0;
-
-      float saved_pos[XYZE] = { 0.0, 0.0, 0.0, 0.0 };
-
-      uint8_t saved_active_extruder = 0;
-
-      const char* restart_name_File = "restart.gcode";
-
-      int16_t old_temp[HEATER_COUNT];
-      LOOP_HEATER() {
-        old_temp[h] = heaters[h].target_temperature;
-        heaters[h].target_temperature = 0;
-        heaters[h].soft_pwm = 0;
-      }
-
-      #if FAN_COUNT > 0
-        uint16_t old_fan[FAN_COUNT];
-        LOOP_FAN() {
-          old_fan[f] = fans[f].Speed;
-          fans[f].Speed = 0;
-          fans[f].pwm_pos = 0;
-        }
-      #endif
-
-      CRITICAL_SECTION_START
-
-        // Saved position of SD file
-        saved_sdpos  = sdpos + 1;
-        saved_sdpos -= planner.command_in_planner_len();
-        snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", saved_sdpos);
-
-        // Clear all movement in planned and abort printing
-        stepper.kill_current_block();
-        planner.abort();
-        COPY_ARRAY(saved_pos, mechanics.current_position);
-        saved_active_extruder = tools.active_extruder;
-
-        commands.clear_queue(); // Empty command queue
-        sdprinting = false;
-
-      CRITICAL_SECTION_END
-
-      mechanics.destination[Z_AXIS] = saved_pos[Z_AXIS] + 5;
-      mechanics.destination[E_AXIS] = saved_pos[E_AXIS] - 1;
-      mechanics.prepare_move_to_destination();
-      stepper.finish_and_disable();
-
-      #if 0
-        SERIAL_EMV("SDPOS:", sdpos + 1);
-        SERIAL_EMV("PLANNER LENGHT:", planner.command_in_planner_len());
-        SERIAL_EMV("PLANNER BLOCKS:", planner.number_of_blocks());
-        SERIAL_EMV("SAVED_SDPOS:", saved_sdpos);
-        SERIAL_EMT("FILENAME:", fileName);
-      #endif
-
-      strcpy(bufferFilerestart, "M32 S");
-      strcat(bufferFilerestart, buffer_SDpos);
-      strcat(bufferFilerestart, " ");
-      strcat(bufferFilerestart, fileName);
-
-      strcpy(buffer_G1, "G1 X");
-      dtostrf(saved_pos[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
-      strcat(buffer_G1, " Y");
-      dtostrf(saved_pos[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
-      strcat(buffer_G1, " Z");
-      dtostrf(saved_pos[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
-      strcat(buffer_G1, " F3600\n");
-
-      #if MECH(DELTA)
-        strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
-      #else
-        strcpy(buffer_G92_Z, "G92 Z");
-        dtostrf(saved_pos[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
-        strcat(buffer_G92_Z, "\n\n");
-      #endif
-
-      strcpy(buffer_G92_E, "G92 E");
-      dtostrf(saved_pos[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
-      strcat(buffer_G92_E, "\n");
-
+    if (!store_position) {
       gcode_file.sync();
       gcode_file.close();
       saving = false;
+      return;
+    }
 
-      if (!restart_file.exists(restart_name_File)) {
-        restart_file.createContiguous(&workDir, restart_name_File, 1);
-        restart_file.close();
+    SERIAL_EM("Save restart.gcode");
+
+    SdFile restart_file;
+
+    char  bufferFilerestart[100],
+          buffer_G1[50],
+          buffer_G92_Z[50],
+          buffer_G92_E[50],
+          buffer_SDpos[11];
+
+    uint32_t saved_sdpos = 0;
+
+    float saved_pos[XYZE] = { 0.0, 0.0, 0.0, 0.0 };
+
+    uint8_t saved_active_extruder = 0;
+
+    const char* restart_name_File = "restart.gcode";
+
+    int16_t old_temp[HEATER_COUNT];
+    LOOP_HEATER() {
+      old_temp[h] = heaters[h].target_temperature;
+      heaters[h].target_temperature = 0;
+      heaters[h].soft_pwm = 0;
+    }
+
+    #if FAN_COUNT > 0
+      uint16_t old_fan[FAN_COUNT];
+      LOOP_FAN() {
+        old_fan[f] = fans[f].Speed;
+        fans[f].Speed = 0;
+        fans[f].pwm_pos = 0;
       }
+    #endif
 
-      restart_file.open(&workDir, restart_name_File, O_WRITE);
-      restart_file.truncate(0);
+    CRITICAL_SECTION_START
 
-      #if MECH(DELTA)
-        restart_file.write("G28\n");
-      #else
-        restart_file.write("G28 X Y\n");
-      #endif
+      // Saved position of SD file
+      saved_sdpos  = sdpos + 1;
+      saved_sdpos -= planner.command_in_planner_len();
+      snprintf(buffer_SDpos, sizeof buffer_SDpos, "%lu", saved_sdpos);
 
-      #if HAS_LEVELING
-        if (bedlevel.leveling_active) restart_file.write("M420 S1\n");
-      #endif
+      // Clear all movement in planned and abort printing
+      stepper.kill_current_block();
+      planner.abort();
+      COPY_ARRAY(saved_pos, mechanics.current_position);
+      saved_active_extruder = tools.active_extruder;
 
-      restart_file.write(buffer_G92_Z);
-
-      #if HAS_TEMP_BED
-        if (old_temp[BED_INDEX] > 0) {
-          char Bedtemp[15];
-          sprintf(Bedtemp, "M190 S%i\n", (int)old_temp[BED_INDEX]);
-          restart_file.write(Bedtemp);
-        }
-      #endif
-
-      char CurrHotend[10];
-      sprintf(CurrHotend, "T%i\n", saved_active_extruder);
-      restart_file.write(CurrHotend);
-
-      for (uint8_t h = 0; h < HOTENDS; h++) {
-        if (old_temp[h] > 0) {
-          char Hotendtemp[15];
-          sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)old_temp[h]);
-          restart_file.write(Hotendtemp);
-        }
-      }
-
-      restart_file.write("G92 E0\nG1 E10 F300\nG92 E0\n");
-
-      restart_file.write(buffer_G1);
-
-      #if FAN_COUNT > 0
-        LOOP_FAN() {
-          if (old_fan[f] > 0) {
-            char fanSp[20];
-            sprintf(fanSp, "M106 S%i P%i\n", (int)old_fan[f], (int)f);
-            restart_file.write(fanSp);
-          }
-        }
-      #endif
-
-      restart_file.write(buffer_G92_E);
-      restart_file.write("\n");
-      restart_file.write(bufferFilerestart);
-      restart_file.write("\n");
-
-      restart_file.sync();
-      restart_file.close();
-      saving = false;
+      commands.clear_queue(); // Empty command queue
       sdprinting = false;
 
+    CRITICAL_SECTION_END
+
+    mechanics.destination[Z_AXIS] = saved_pos[Z_AXIS] + 5;
+    mechanics.destination[E_AXIS] = saved_pos[E_AXIS] - 1;
+    mechanics.prepare_move_to_destination();
+    stepper.finish_and_disable();
+
+    #if 0
+      SERIAL_EMV("SDPOS:", sdpos + 1);
+      SERIAL_EMV("PLANNER LENGHT:", planner.command_in_planner_len());
+      SERIAL_EMV("PLANNER BLOCKS:", planner.number_of_blocks());
+      SERIAL_EMV("SAVED_SDPOS:", saved_sdpos);
+      SERIAL_EMT("FILENAME:", fileName);
+    #endif
+
+    strcpy(bufferFilerestart, "M32 S");
+    strcat(bufferFilerestart, buffer_SDpos);
+    strcat(bufferFilerestart, " ");
+    strcat(bufferFilerestart, fileName);
+
+    strcpy(buffer_G1, "G1 X");
+    dtostrf(saved_pos[X_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " Y");
+    dtostrf(saved_pos[Y_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " Z");
+    dtostrf(saved_pos[Z_AXIS], 1, 3, &buffer_G1[strlen(buffer_G1)]);
+    strcat(buffer_G1, " F3600\n");
+
+    #if MECH(DELTA)
+      strcpy(buffer_G92_Z, "; Nothing for delta\n\n");
+    #else
+      strcpy(buffer_G92_Z, "G92 Z");
+      dtostrf(saved_pos[Z_AXIS] + 5 + MIN_Z_HEIGHT_FOR_HOMING, 1, 3, &buffer_G92_Z[strlen(buffer_G92_Z)]);
+      strcat(buffer_G92_Z, "\n\n");
+    #endif
+
+    strcpy(buffer_G92_E, "G92 E");
+    dtostrf(saved_pos[E_AXIS], 1, 3, &buffer_G92_E[strlen(buffer_G92_E)]);
+    strcat(buffer_G92_E, "\n");
+
+    gcode_file.sync();
+    gcode_file.close();
+    saving = false;
+
+    if (!restart_file.exists(restart_name_File)) {
+      restart_file.createContiguous(&workDir, restart_name_File, 1);
+      restart_file.close();
     }
-    else {
-      gcode_file.sync();
-      gcode_file.close();
-      saving = false;
+
+    restart_file.open(&workDir, restart_name_File, O_WRITE);
+    restart_file.truncate(0);
+
+    #if MECH(DELTA)
+      restart_file.write("G28\n");
+    #else
+      restart_file.write("G28 X Y\n");
+    #endif
+
+    #if HAS_LEVELING
+      if (bedlevel.leveling_active) restart_file.write("M420 S1\n");
+    #endif
+
+    restart_file.write(buffer_G92_Z);
+
+    #if HAS_TEMP_BED
+      if (old_temp[BED_INDEX] > 0) {
+        char Bedtemp[15];
+        sprintf(Bedtemp, "M190 S%i\n", (int)old_temp[BED_INDEX]);
+        restart_file.write(Bedtemp);
+      }
+    #endif
+
+    char CurrHotend[10];
+    sprintf(CurrHotend, "T%i\n", saved_active_extruder);
+    restart_file.write(CurrHotend);
+
+    for (uint8_t h = 0; h < HOTENDS; h++) {
+      if (old_temp[h] > 0) {
+        char Hotendtemp[15];
+        sprintf(Hotendtemp, "M109 T%i S%i\n", (int)h, (int)old_temp[h]);
+        restart_file.write(Hotendtemp);
+      }
     }
+
+    restart_file.write("G92 E0\nG1 E10 F300\nG92 E0\n");
+
+    restart_file.write(buffer_G1);
+
+    #if FAN_COUNT > 0
+      LOOP_FAN() {
+        if (old_fan[f] > 0) {
+          char fanSp[20];
+          sprintf(fanSp, "M106 S%i P%i\n", (int)old_fan[f], (int)f);
+          restart_file.write(fanSp);
+        }
+      }
+    #endif
+
+    restart_file.write(buffer_G92_E);
+    restart_file.write("\n");
+    restart_file.write(bufferFilerestart);
+    restart_file.write("\n");
+
+    restart_file.sync();
+    restart_file.close();
+    saving = false;
+    sdprinting = false;
   }
 
   void CardReader::checkautostart(bool force) {

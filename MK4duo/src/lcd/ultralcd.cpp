@@ -3662,7 +3662,7 @@ void kill_screen(const char* lcd_msg) {
     // M205 - Max Jerk
     MENU_ITEM(submenu, MSG_JERK, lcd_control_motion_jerk_menu);
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
       MENU_ITEM_EDIT(bool, MSG_ENDSTOP_ABORT, &stepper.abort_on_endstop_hit);
     #endif
 

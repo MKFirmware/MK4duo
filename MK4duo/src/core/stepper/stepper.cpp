@@ -58,9 +58,9 @@ Stepper stepper; // Singleton
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
-  #if ENABLED(ABORT_ON_ENDSTOP_HIT_INIT)
-    bool Stepper::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_INIT;
+#if ENABLED(ABORT_ON_ENDSTOP_HIT)
+  #if ENABLED(ABORT_ON_ENDSTOP_HIT_DEFAULT)
+    bool Stepper::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_DEFAULT;
   #else
     bool Stepper::abort_on_endstop_hit = false;
   #endif
@@ -420,8 +420,8 @@ void Stepper::isr() {
   #endif
 
   #if ENABLED(MOVE_DEBUG)
-		++numInterruptsExecuted;
-		lastInterruptTime = HAL_timer_get_count(STEPPER_TIMER);
+    ++numInterruptsExecuted;
+    lastInterruptTime = HAL_timer_get_count(STEPPER_TIMER);
   #endif
 
   // Time remaining before the next step?
