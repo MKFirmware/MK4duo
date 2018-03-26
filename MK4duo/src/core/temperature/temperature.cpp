@@ -674,7 +674,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 // Temperature Error Handlers
 void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg) {
   if (!heaters[h].isIdle()) {
-    SERIAL_ST(ER, serial_msg);
+    SERIAL_STR(ER);
+    SERIAL_PS(serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
     switch (heaters[h].type) {
       case IS_HOTEND:
