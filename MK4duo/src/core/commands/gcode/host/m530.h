@@ -55,7 +55,7 @@ inline void gcode_M530(void) {
     #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
-      startpower = powerManager.consumption_hour;
+      powerManager.startpower = powerManager.consumption_hour;
     #endif
   }
   else {

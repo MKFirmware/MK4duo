@@ -33,20 +33,24 @@
 
     public: /** Public Parameters */
 
-      static millis_t lastPowerOn;
+      #if HAS_POWER_SWITCH
+        static millis_t lastPowerOn;
+      #endif
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         static int16_t  current_raw_powconsumption;
-        static float    power_consumption_meas;       // holds the power consumption as accurately measured
-        static unsigned long  power_consumption_hour, // holds the power consumption per hour as accurately measured
-                              startpower;
+        static float    consumption_meas;   // holds the power consumption as accurately measured
+        static uint32_t consumption_hour,   // holds the power consumption per hour as accurately measured
+                        startpower;
       #endif
 
     public: /** Public Function */
 
-      static void spin();
-      static void power_on();
-      static void power_off();
+      #if HAS_POWER_SWITCH
+        static void spin();
+        static void power_on();
+        static void power_off();
+      #endif
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         static float  analog2voltage(),
@@ -59,7 +63,9 @@
 
     private: /** Private Function */
 
-      static bool is_power_needed();
+      #if HAS_POWER_SWITCH
+        static bool is_power_needed();
+      #endif
 
   };
 
