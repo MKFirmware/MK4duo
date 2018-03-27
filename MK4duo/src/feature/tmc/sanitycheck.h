@@ -67,8 +67,6 @@
       || ENABLED(E5_IS_TMC2130) \
     )
     #error "DEPENDENCY ERROR: HAVE_TMC2130 requires at least one TMC2130 stepper to be set."
-  #elif TMC2130STEPPER_VERSION < 0x020201
-    #error "DEPENDENCY ERROR: Update TMC2130Stepper library to 2.2.1 or newer."
   #elif ENABLED(HYBRID_THRESHOLD) && DISABLED(STEALTHCHOP)
     #error "DEPENDENCY ERROR: Enable STEALTHCHOP to use HYBRID_THRESHOLD."
   #endif
@@ -153,8 +151,6 @@
       || defined(E5_HARDWARE_SERIAL) \
     )
     #error "DEPENDENCY ERROR: Select *_HARDWARE_SERIAL to use both TMC2208 and ENDSTOP_INTERRUPTS_FEATURE."
-  #elif TMC2208STEPPER_VERSION < 0x000101
-    #error "DEPENDENCY ERROR: Update TMC2130Stepper library to 0.1.1 or newer."
   #endif
 #endif
 

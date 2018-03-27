@@ -127,6 +127,10 @@
 
   #include <TMC2130Stepper.h>
 
+  #if TMC2130STEPPER_VERSION < 0x020201
+    #error "DEPENDENCY ERROR: Update TMC2130Stepper library to 2.2.1 or newer."
+  #endif
+
   #if ENABLED(SOFT_SPI_TMC2130)
     #define _TMC2130_DEFINE(ST) TMC2130Stepper stepper##ST = TMC2130Stepper(ST##_ENABLE_PIN, ST##_DIR_PIN, ST##_STEP_PIN, ST##_CS_PIN, SOFT_MOSI_PIN, SOFT_MISO_PIN, SOFT_SCK_PIN)
   #else
@@ -323,6 +327,10 @@
   #endif
 
   #include <TMC2208Stepper.h>
+
+  #if TMC2208STEPPER_VERSION < 0x000101
+    #error "DEPENDENCY ERROR: Update TMC2208Stepper library to 0.1.1 or newer."
+  #endif
 
   #define _TMC2208_DEFINE_HARDWARE(ST) TMC2208Stepper stepper##ST(&ST##_HARDWARE_SERIAL)
   #define _TMC2208_DEFINE_SOFTWARE(ST) SoftwareSerial ST##_HARDWARE_SERIAL = SoftwareSerial(ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN); \
