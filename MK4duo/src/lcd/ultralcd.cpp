@@ -5085,7 +5085,7 @@ void lcd_update() {
     const bool sd_status = IS_SD_INSERTED;
     if (sd_status != lcd_sd_status && lcd_detected()) {
 
-      bool old_sd_status = lcd_sd_status; // prevent re-entry to this block!
+      uint8_t old_sd_status = lcd_sd_status; // prevent re-entry to this block!
       lcd_sd_status = sd_status;
 
       if (sd_status) {
