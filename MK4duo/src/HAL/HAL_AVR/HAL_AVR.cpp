@@ -334,9 +334,14 @@ TEMP_TIMER_ISR {
       channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
       AnalogInputRead[adcSamplePos] += ADCW;
       if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
-        HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+
+        // update temperatures only when values have been read
+        if (!HAL::execute_100ms || adcSamplePos >= ANALOG_INPUTS)
+          HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+
         AnalogInputRead[adcSamplePos] = 0;
         adcCounter[adcSamplePos] = 0;
+
         // Start next conversion
         if (++adcSamplePos >= ANALOG_INPUTS) {
           adcSamplePos = 0;
