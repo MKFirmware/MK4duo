@@ -77,7 +77,7 @@
       static millis_t filament_switch_time = 0;
       if ((IS_SD_PRINTING || print_job_counter.isRunning()) && read()) {
         if (filament_double_check) {
-          if (ELAPSED(millis(), filament_switch_time) {
+          if (ELAPSED(millis(), filament_switch_time)) {
             printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
             filament_double_check = false;
           }
