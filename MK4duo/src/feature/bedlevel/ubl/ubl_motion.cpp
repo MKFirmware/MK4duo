@@ -184,7 +184,7 @@
       return false; // caller will update current_position
     }
 
-  #else !UBL_DELTA
+  #else
 
     void unified_bed_leveling::line_to_destination_cartesian(const float &feed_rate, uint8_t extruder) {
       /**
