@@ -822,7 +822,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
   /**
    * Set sensorless homing if the axis has it.
    */
-  void Cartesian_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
+  void Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
     switch (axis) {
       default: break;
       #if X_SENSORLESS
