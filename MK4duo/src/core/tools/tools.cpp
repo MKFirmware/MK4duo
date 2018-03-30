@@ -277,7 +277,7 @@
                 hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][active_extruder]
               };
 
-              #if ENABLED(MESH_BED_LEVELING)
+              #if HAS_MESH && PLANNER_LEVELING
 
                 if (bedlevel.leveling_active) {
                   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -295,9 +295,9 @@
                   #endif
                 }
 
-              #endif // MESH_BED_LEVELING
+              #endif // HAS_MESH && PLANNER_LEVELING
 
-            #endif // !AUTO_BED_LEVELING_FEATURE
+            #endif // !HAS_ABL
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (printer.debugLeveling()) {
