@@ -81,19 +81,17 @@
     commands.refresh_cmd_timeout();
 
     if (ms > 0) {
-      ms += commands.previous_cmd_ms;  // wait until this time for a click
+      ms += millis();  // wait until this time for a click
       while (PENDING(millis(), ms) && printer.isWaitForUser()) printer.idle();
     }
     else {
       #if ENABLED(ULTIPANEL)
-        if (lcd_detected()) {
-          while (printer.isWaitForUser()) printer.idle();
-          IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
-        }
-      #else
-        while (printer.isWaitForUser()) printer.idle();
+        if (lcd_detected())
       #endif
+        while (printer.isWaitForUser()) printer.idle();
     }
+
+    IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
 
     printer.setWaitForUser(false);
     printer.keepalive(InHandler);
