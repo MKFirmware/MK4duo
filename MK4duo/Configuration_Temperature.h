@@ -73,7 +73,7 @@
  *   6 is 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)                                        *
  *   7 is 100k GE Sensing AL03006-58.2K-97-G1 (4.7k pullup)                                          *
  *   8 is 100k RS thermistor 198-961 (4.7k pullup)                                                   *
- *   9 User configuration                                                                            *
+ *   9 User Sensor                                                                                   *
  *  11 DHT probe sensor DHT11, DHT21 or DHT22 (ENABLE DHT SENSOR below)                              *
  *  20 is the PT100 circuit amplifier found in Ultimainboard V2.x and Wanhao D6                      *
  *                                                                                                   *
@@ -92,6 +92,11 @@
 
 // Thermistor series resistor value in Ohms (see on your board)
 #define THERMISTOR_SERIES_RS 4700.0
+
+// User Sensor
+#define T9_NAME   "User Sensor"
+#define T9_R25    100000.0  // Resistance in Ohms @ 25°C
+#define T9_BETA     4036.0  // Beta Value (K)
 
 // Enable this for support DHT sensor for temperature e Humidity DHT11, DHT21 or DHT22.
 //#define DHT_SENSOR

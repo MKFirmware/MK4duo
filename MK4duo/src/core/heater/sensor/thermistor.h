@@ -67,11 +67,6 @@
 #define T8_R25    100000.0  // Resistance in Ohms @ 25°C
 #define T8_BETA     3960.0  // Beta Value (K)
 
-// 9 - User config
-#define T9_NAME   "User conf"
-#define T9_R25    100000.0  // Resistance in Ohms @ 25°C
-#define T9_BETA     4036.0  // Beta Value (K)
-
 #define _THERMISTOR_NAME_IS(n)  T ## n ## _NAME
 #define _THERMISTOR_R25_IS(n)   T ## n ## _R25
 #define _THERMISTOR_BETA_IS(n)  T ## n ## _BETA
