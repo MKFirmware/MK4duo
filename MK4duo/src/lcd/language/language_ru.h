@@ -278,7 +278,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Сброс BLTouch")
 #define MSG_BLTOUCH_DEPLOY                  _UxGT("Установка BLTouch")
 #define MSG_BLTOUCH_STOW                    _UxGT("Набивка BLTouch")
-#define MSG_HOME                            _UxGT("Паркуй")
+#define MSG_HOME                            _UxGT("Паркуй") // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("первый")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("Смещение Z")
 #define MSG_BABYSTEP_X                      _UxGT("Микрошаг X")
@@ -293,12 +293,12 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Ошибка: Т мин.")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Ошибка: Т стола макс")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Ошибка: Т стола мин.")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Запрещено")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("ПРИНТЕР ОСТАНОВЛЕН")
 #define MSG_PLEASE_RESET                    _UxGT("Сделайте сброс")
-#define MSG_SHORT_DAY                       _UxGT("д")
-#define MSG_SHORT_HOUR                      _UxGT("ч")
-#define MSG_SHORT_MINUTE                    _UxGT("м")
+#define MSG_SHORT_DAY                       _UxGT("д") // One character only
+#define MSG_SHORT_HOUR                      _UxGT("ч") // One character only
+#define MSG_SHORT_MINUTE                    _UxGT("м") // One character only
 #define MSG_HEATING                         _UxGT("Нагрев...")
 #define MSG_HEATING_COMPLETE                _UxGT("Нагрев выполнен")
 #define MSG_BED_HEATING                     _UxGT("Нагрев стола")

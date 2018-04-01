@@ -815,6 +815,9 @@
 #ifndef MSG_THERMAL_RUNAWAY
   #define MSG_THERMAL_RUNAWAY                 _UxGT("THERMAL RUNAWAY")
 #endif
+#ifndef MSG_THERMAL_RUNAWAY_BED
+  #define MSG_THERMAL_RUNAWAY_BED             _UxGT("BED THERMAL RUNAWAY")
+#endif
 #ifndef MSG_AD595
   #define MSG_AD595                           _UxGT("AD595 Offset & Gain")
 #endif
@@ -843,7 +846,7 @@
   #define MSG_ERR_MINTEMP_COOLER              _UxGT("Err: MINTEMP COOLER")
 #endif
 #ifndef MSG_ERR_Z_HOMING
-  #define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Error")
+  #define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #endif
 #ifndef MSG_HALTED
   #define MSG_HALTED                          _UxGT("PRINTER HALTED")
