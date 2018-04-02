@@ -175,13 +175,13 @@
   #define X_STOP_PIN         13
   #define Y_STOP_PIN         14
   #define Z_STOP_PIN         15
-  #define ORIG_TEMP_0_PIN          7  // Extruder / Analog pin numbering
-  #define ORIG_TEMP_BED_PIN        6  // Bed / Analog pin numbering
+  #define ORIG_TEMP_0_PIN     7
+  #define ORIG_TEMP_BED_PIN   6
 #else  // Printrboard
   #define X_STOP_PIN         35
   #define Y_STOP_PIN          8
   #define Z_STOP_PIN         36
-  #define ORIG_TEMP_0_PIN          1  // Extruder / Analog pin numbering
-  #define ORIG_TEMP_BED_PIN        0  // Bed / Analog pin numbering
+  #define ORIG_TEMP_0_PIN     1
+  #define ORIG_TEMP_BED_PIN   0
 #endif
 //@@@

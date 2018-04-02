@@ -74,7 +74,7 @@
     _tmc_say_otpw_cleared(axis);
   }
   template<typename TMC>
-  void tmc_get_pwmthrs(TMC &st, const TMC_AxisEnum axis, const uint16_t spmm) {
+  void tmc_get_pwmthrs(TMC &st, const TMC_AxisEnum axis, const uint32_t spmm) {
     _tmc_say_pwmthrs(axis, _tmc_thrs(st.microsteps(), st.TPWMTHRS(), spmm));
   }
   template<typename TMC>

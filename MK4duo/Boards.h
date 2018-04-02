@@ -57,6 +57,7 @@
 #define BOARD_3DVERTEX          79    // 3DVertex Controller (Velleman K8400)
 #define BOARD_RUMBA             80    // Rumba
 #define BOARD_ANET             100    // Anet board for A2, A6 and A8
+#define BOARD_RAMPS_ENDER_4    243    // Creality Ender-4, CR-8
 #define BOARD_MAKEBOARD_MINI   431    // MakeBoard Mini v2.1.2 is a control board sold by MicroMake
 
 /**

@@ -126,8 +126,8 @@
         hop_amount += retract_zlift;                                    // Add to the hop total (again, only once)
         mechanics.destination[Z_AXIS] += retract_zlift;                 // Raise Z by the zlift (M207 Z) amount
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Maximum Z feedrate
-        mechanics.prepare_move_to_destination();                        // Raise up to the old current pos
-        mechanics.current_position[Z_AXIS] = old_z;                     // Spoof the Z position
+        mechanics.prepare_move_to_destination();                        // Raise up
+        mechanics.current_position[Z_AXIS] = old_z;                     // Spoof the Z position in the planner
         mechanics.sync_plan_position();
       }
     }
@@ -135,9 +135,9 @@
       // If a hop was done and Z hasn't changed, undo the Z hop
       if (hop_amount) {
         mechanics.current_position[Z_AXIS] += hop_amount;               // Set actual Z (due to the prior hop)
+        mechanics.sync_plan_position();                                 // Spoof the Z position in the planner
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
         mechanics.prepare_move_to_destination();                        // Lower Z and update current_position
-        mechanics.sync_plan_position();                                 // Update the planner
         hop_amount = 0.0;                                               // Clear the hop amount
       }
 
