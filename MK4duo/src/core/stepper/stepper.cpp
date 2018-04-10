@@ -127,13 +127,13 @@ volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 int32_t Stepper::acceleration_time  = 0,
         Stepper::deceleration_time  = 0;
 
-hal_timer_t   Stepper::acc_step_rate  = 0     // needed for deceleration start point
+hal_timer_t   Stepper::acc_step_rate  = 0,      // needed for deceleration start point
               Stepper::OCR1A_nominal  = 0;
 
 uint8_t       Stepper::step_loops         = 0,
               Stepper::step_loops_nominal = 0;
 
-volatile long Stepper::endstops_trigsteps[XYZ] = 0;
+volatile long Stepper::endstops_trigsteps[XYZ] = { 0 };
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
   #define LOCKED_X_MOTOR  locked_x_motor
