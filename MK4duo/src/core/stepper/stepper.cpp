@@ -52,7 +52,7 @@
   #include "speed_lookuptable.h"
 #endif
 
-Stepper stepper; // Singleton
+Stepper stepper;
 
 // public:
 
@@ -99,41 +99,41 @@ volatile uint32_t Stepper::step_events_completed = 0; // The number of step even
               Stepper::nextAdvanceISR = ADV_NEVER,
               Stepper::eISR_Rate      = ADV_NEVER;
 
-  uint16_t    Stepper::current_adv_steps = 0,
-              Stepper::final_adv_steps,
-              Stepper::max_adv_steps;
+  uint16_t    Stepper::current_adv_steps  = 0,
+              Stepper::final_adv_steps    = 0,
+              Stepper::max_adv_steps      = 0;
 
-  int8_t      Stepper::e_steps = 0,
-              Stepper::LA_active_extruder; // Copy from current executed block. Needed because current_block is set to NULL "too early".
+  int8_t      Stepper::e_steps            = 0,
+              Stepper::LA_active_extruder = 0;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-  bool        Stepper::use_advance_lead;
+  bool        Stepper::use_advance_lead   = false;
 
 #endif // LIN_ADVANCE
 
-volatile long Stepper::count_position[NUM_AXIS] = { 0 };
-volatile signed char Stepper::count_direction[NUM_AXIS] = { 1, 1, 1, 1 };
+volatile int32_t      Stepper::count_position[NUM_AXIS]   = { 0 };
+volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  long Stepper::counter_m[MIXING_STEPPERS];
+  long Stepper::counter_m[MIXING_STEPPERS]  = { 0 };
 #endif
 
 #if ENABLED(LASER)
-  long Stepper::counter_L;
+  long Stepper::counter_L = 0;
   #if ENABLED(LASER_RASTER)
-    int Stepper::counter_raster;
+    int Stepper::counter_raster = 0;
   #endif // LASER_RASTER
 #endif // LASER
 
-long            Stepper::acceleration_time,
-                Stepper::deceleration_time;
+int32_t Stepper::acceleration_time  = 0,
+        Stepper::deceleration_time  = 0;
 
-hal_timer_t     Stepper::acc_step_rate,     // needed for deceleration start point
-                Stepper::OCR1A_nominal;
+hal_timer_t   Stepper::acc_step_rate  = 0     // needed for deceleration start point
+              Stepper::OCR1A_nominal  = 0;
 
-uint8_t         Stepper::step_loops,
-                Stepper::step_loops_nominal;
+uint8_t       Stepper::step_loops         = 0,
+              Stepper::step_loops_nominal = 0;
 
-volatile long   Stepper::endstops_trigsteps[XYZ];
+volatile long Stepper::endstops_trigsteps[XYZ] = 0;
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
   #define LOCKED_X_MOTOR  locked_x_motor
@@ -293,10 +293,7 @@ volatile long   Stepper::endstops_trigsteps[XYZ];
  *  step_events_completed reaches block->decelerate_after after which it decelerates until the trapezoid generator is reset.
  *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
-void Stepper::wake_up() {
-  //  TCNT1 = 0;
-  ENABLE_STEPPER_INTERRUPT();
-}
+void Stepper::wake_up() { ENABLE_STEPPER_INTERRUPT(); }
 
 /**
  * Set the stepper direction of each axis
@@ -475,6 +472,7 @@ void Stepper::isr() {
 
   // If there is no current block, attempt to pop one from the buffer
   if (!current_block) {
+
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
       trapezoid_generator_reset();
@@ -504,6 +502,7 @@ void Stepper::isr() {
       #endif
 
       #if ENABLED(Z_LATE_ENABLE)
+        // If delayed Z enable, postpone move for 1mS
         if (current_block->steps[Z_AXIS] > 0) {
           enable_Z();
           _NEXT_ISR(HAL_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
@@ -518,6 +517,7 @@ void Stepper::isr() {
 
     }
     else {
+      // If no more queued moves, postpone next check for 1mS
       _NEXT_ISR(HAL_TIMER_RATE / 1000); // Run at slow speed - 1 KHz
       HAL_ENABLE_ISRs();
       return;

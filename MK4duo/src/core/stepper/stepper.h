@@ -110,7 +110,7 @@ class Stepper {
 
     #endif // !LIN_ADVANCE
 
-    static long acceleration_time, deceleration_time;
+    static int32_t acceleration_time, deceleration_time;
 
     static hal_timer_t  acc_step_rate, // needed for deceleration start point
                         OCR1A_nominal;
@@ -129,7 +129,7 @@ class Stepper {
     //
     // Positions of stepper motors, in step units
     //
-    static volatile long count_position[NUM_AXIS];
+    static volatile int32_t count_position[NUM_AXIS];
 
     //
     // Current direction of stepper motors (+1 or -1)
