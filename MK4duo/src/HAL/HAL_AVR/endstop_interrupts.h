@@ -30,9 +30,6 @@
  *
  * This feature only works when all used endstop pins can generate either an
  * 'external interrupt' or a 'pin change interrupt'.
- *
- * Test whether pins issue interrupts on your board by flashing 'pin_interrupt_test.ino'.
- * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
 #ifndef _ENDSTOP_INTERRUPTS_H_

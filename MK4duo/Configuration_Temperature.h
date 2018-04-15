@@ -382,7 +382,7 @@
  * falls out or temperature sensors fail in any way.                              *
  *                                                                                *
  * The issue: If a thermistor falls out or a temperature sensor fails,            *
- * Marlin can no longer sense the actual temperature. Since a                     *
+ * MK4duo can no longer sense the actual temperature. Since a                     *
  * disconnected thermistor reads as a low temperature, the firmware               *
  * will keep the heater/cooler on.                                                *
  *                                                                                *

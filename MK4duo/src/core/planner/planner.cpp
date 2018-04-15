@@ -109,7 +109,6 @@ float Planner::previous_speed[NUM_AXIS],
 Planner::Planner() { init(); }
 
 void Planner::init() {
-  block_buffer_head = block_buffer_tail = 0;
   ZERO(position);
   #if ENABLED(LIN_ADVANCE)
     ZERO(position_float);
@@ -119,6 +118,7 @@ void Planner::init() {
   #if ABL_PLANAR
     bedlevel.matrix.set_to_identity();
   #endif
+  clear_block_buffer();
 }
 
 #define MINIMAL_STEP_RATE 120
@@ -640,6 +640,21 @@ void Planner::check_axes_activity() {
 
         switch(extruder) {
           case 0:
+            #if EXTRUDERS > 1
+              if (!g_uc_extruder_last_move[1]) disable_E1();
+              #if EXTRUDERS > 2
+                if (!g_uc_extruder_last_move[2]) disable_E2();
+                #if EXTRUDERS > 3
+                  if (!g_uc_extruder_last_move[3]) disable_E3();
+                  #if EXTRUDERS > 4
+                    if (!g_uc_extruder_last_move[4]) disable_E4();
+                    #if EXTRUDERS > 5
+                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                    #endif
+                  #endif
+                #endif
+              #endif
+            #endif
             enable_E0();
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
@@ -648,91 +663,76 @@ void Planner::check_axes_activity() {
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
-            #if EXTRUDERS > 1
-              if (g_uc_extruder_last_move[1] == 0) disable_E1();
-              #if EXTRUDERS > 2
-                if (g_uc_extruder_last_move[2] == 0) disable_E2();
-                #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
-                  #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
-                    #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
-                    #endif
-                  #endif
-                #endif
-              #endif
-            #endif
           break;
           #if EXTRUDERS > 1
             case 1:
-              enable_E1();
-              g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
-              if (g_uc_extruder_last_move[0] == 0) disable_E0();
+              if (!g_uc_extruder_last_move[0]) disable_E0();
               #if EXTRUDERS > 2
-                if (g_uc_extruder_last_move[2] == 0) disable_E2();
+                if (!g_uc_extruder_last_move[2]) disable_E2();
                 #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
+                  if (!g_uc_extruder_last_move[3]) disable_E3();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) disable_E5();
                     #endif
                   #endif
                 #endif
               #endif
+              enable_E1();
+              g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
             break;
             #if EXTRUDERS > 2
               case 2:
-                enable_E2();
-                g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
-                if (g_uc_extruder_last_move[0] == 0) disable_E0();
-                if (g_uc_extruder_last_move[1] == 0) disable_E1();
+                if (!g_uc_extruder_last_move[0]) disable_E0();
+                if (!g_uc_extruder_last_move[1]) disable_E1();
                 #if EXTRUDERS > 3
-                  if (g_uc_extruder_last_move[3] == 0) disable_E3();
+                  if (!g_uc_extruder_last_move[3]) disable_E3();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) disable_E5();
                     #endif
                   #endif
                 #endif
+                enable_E2();
+                g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
               break;
               #if EXTRUDERS > 3
                 case 3:
-                  enable_E3();
-                  g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
-                  if (g_uc_extruder_last_move[0] == 0) disable_E0();
-                  if (g_uc_extruder_last_move[1] == 0) disable_E1();
-                  if (g_uc_extruder_last_move[2] == 0) disable_E2();
+                  if (!g_uc_extruder_last_move[0]) disable_E0();
+                  if (!g_uc_extruder_last_move[1]) disable_E1();
+                  if (!g_uc_extruder_last_move[2]) disable_E2();
                   #if EXTRUDERS > 4
-                    if (g_uc_extruder_last_move[4] == 0) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) disable_E4();
                     #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) disable_E5();
                     #endif
                   #endif
+                  enable_E3();
+                  g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
                 break;
                 #if EXTRUDERS > 4
                   case 4:
+                    if (!g_uc_extruder_last_move[0]) disable_E0();
+                    if (!g_uc_extruder_last_move[1]) disable_E1();
+                    if (!g_uc_extruder_last_move[2]) disable_E2();
+                    if (!g_uc_extruder_last_move[3]) disable_E3();
+                    #if EXTRUDERS > 5
+                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                    #endif
                     enable_E4();
                     g_uc_extruder_last_move[4] = (BLOCK_BUFFER_SIZE) * 2;
-                    if (g_uc_extruder_last_move[0] == 0) disable_E0();
-                    if (g_uc_extruder_last_move[1] == 0) disable_E1();
-                    if (g_uc_extruder_last_move[2] == 0) disable_E2();
-                    if (g_uc_extruder_last_move[3] == 0) disable_E3();
-                    #if EXTRUDERS > 5
-                      if (g_uc_extruder_last_move[5] == 0) disable_E5();
-                    #endif
                   break;
                   #if EXTRUDERS > 5
                     case 4:
+                      if (!g_uc_extruder_last_move[0]) disable_E0();
+                      if (!g_uc_extruder_last_move[1]) disable_E1();
+                      if (!g_uc_extruder_last_move[2]) disable_E2();
+                      if (!g_uc_extruder_last_move[3]) disable_E3();
+                      if (!g_uc_extruder_last_move[4]) disable_E4();
                       enable_E5();
                       g_uc_extruder_last_move[5] = (BLOCK_BUFFER_SIZE) * 2;
-                      if (g_uc_extruder_last_move[0] == 0) disable_E0();
-                      if (g_uc_extruder_last_move[1] == 0) disable_E1();
-                      if (g_uc_extruder_last_move[2] == 0) disable_E2();
-                      if (g_uc_extruder_last_move[3] == 0) disable_E3();
-                      if (g_uc_extruder_last_move[4] == 0) disable_E4();
                     break;
                   #endif // EXTRUDERS > 5
                 #endif // EXTRUDERS > 4

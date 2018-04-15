@@ -420,11 +420,14 @@
 
 // Heater
 #define MSG_HEATING                         _UxGT("Riscaldamento...")
-#define MSG_HEATING_COMPLETE                _UxGT("Riscaldamento finito.")
-#define MSG_BED_HEATING                     _UxGT("Riscaldamento piatto.")
-#define MSG_BED_DONE                        _UxGT("Piatto riscaldato.")
-#define MSG_CHAMBER_HEATING                 _UxGT("Riscaldamento camera.")
-#define MSG_CHAMBER_DONE                    _UxGT("Camera riscaldata.")
+#define MSG_HEATING_COMPLETE                _UxGT("Risc. completato")
+#define MSG_COOLING                         _UxGT("Raffreddamento..")
+#define MSG_COOLING_COMPLETE                _UxGT("Raff.completato.")
+#define MSG_BED_HEATING                     _UxGT("Risc. piatto...")
+#define MSG_BED_DONE                        _UxGT("Piatto pronto")
+#define MSG_BED_COOLING                     _UxGT("Raffr. piatto...")
+#define MSG_CHAMBER_HEATING                 _UxGT("Risc. camera.")
+#define MSG_CHAMBER_DONE                    _UxGT("Camera pronta.")
 #define MSG_COOLER_COOLING                  _UxGT("Raffreddamento...")
 #define MSG_COOLER_DONE                     _UxGT("Raffreddamento finito.")
 

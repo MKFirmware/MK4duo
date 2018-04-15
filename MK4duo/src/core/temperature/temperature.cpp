@@ -547,6 +547,9 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   disable_all_heaters();
 }
 
+/**
+ * Switch off all heaters, set all target temperatures to 0
+ */
 void Temperature::disable_all_heaters() {
 
   #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)

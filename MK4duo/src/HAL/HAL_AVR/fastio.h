@@ -2042,14 +2042,14 @@
   pins
   */
 
-  //#define AT90USBxx_TEENSYPP_ASSIGNMENTS // Use Teensy++ 2.0 assignments
-  #ifndef AT90USBxx_TEENSYPP_ASSIGNMENTS // Use traditional Marlin pin assignments
+  //#define AT90USBxx_TEENSYPP_ASSIGNMENTS
+  #ifndef AT90USBxx_TEENSYPP_ASSIGNMENTS
 
     // SPI
-    #define SCK         DIO9   // 21
-    #define MISO        DIO11  // 23
-    #define MOSI        DIO10  // 22
-    #define SS          DIO8   // 20
+    #define SCK         DIO9
+    #define MISO        DIO11
+    #define MOSI        DIO10
+    #define SS          DIO8
 
     #define DIO0_PIN    PINA0
     #define DIO0_RPORT  PINA
@@ -2689,7 +2689,7 @@
 
     AT90USB  51 50 49 48 47 46 45 44 10 11 12 13 14 15 16 17 35 36 37 38 39 40 41 42 25 26 27 28 29 30 31 32 33 34 43 09 18 19 01 02 61 60 59 58 57 56 55 54
     Port     A0 A1 A2 A3 A4 A5 A6 A7 B0 B1 B2 B3 B4 B5 B6 B7 C0 C1 C2 C3 C4 C5 C6 C7 D0 D1 D2 D3 D4 D5 D6 D7 E0 E1 E2 E3 E4 E5 E6 E7 F0 F1 F2 F3 F4 F5 F6 F7
-    Marlin   00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
+    MK4duo   00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
     Teensy   28 29 30 31 32 33 34 35 20 21 22 23 24 25 26 27 10 11 12 13 14 15 16 17 00 01 02 03 04 05 06 07 08 09(46*47)36 37 18 19 38 39 40 41 42 43 44 45
              The pins 46 and 47 are not supported by Teensyduino, but are supported below.
     */

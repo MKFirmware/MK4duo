@@ -23,7 +23,7 @@
 /**
  * ultralcd_impl_DOGM.h
  *
- * Graphics LCD implementation for 128x64 pixel LCDs by STB for ErikZalm/Marlin
+ * Graphics LCD implementation for 128x64 pixel LCDs by STB
  * Demonstrator: http://www.reprap.org/wiki/STB_Electronics
  * License: http://opensource.org/licenses/BSD-3-Clause
  *

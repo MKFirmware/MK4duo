@@ -44,6 +44,11 @@ int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_spe
   #endif
 #endif
 
+#if HAS_SOFTWARE_ENDSTOPS
+  bool soft_endstops_enabled = endstops.isSoftEndstop();
+  void lcd_set_soft_endstops() { endstops.setSoftEndstop(soft_endstops_enabled); }
+#endif
+
 #if HAS_LCD_POWER_SENSOR
   millis_t print_millis = 0;
 #endif
@@ -1786,10 +1791,10 @@ void kill_screen(const char* lcd_msg) {
           //
           lcd_wait_for_move = true;
           lcd_goto_screen(_lcd_level_bed_done);
-          #if ENABLED(PROBE_MANUALLY)
-            commands.enqueue_and_echo_P(PSTR("G29 V1"));
-          #elif ENABLED(MESH_BED_LEVELING)
+          #if ENABLED(MESH_BED_LEVELING)
             commands.enqueue_and_echo_P(PSTR("G29 S2"));
+          #elif ENABLED(PROBE_MANUALLY)
+            commands.enqueue_and_echo_P(PSTR("G29 V1"));
           #endif
         }
         else
@@ -1839,10 +1844,10 @@ void kill_screen(const char* lcd_msg) {
 
       // G29 Records Z, moves, and signals when it pauses
       lcd_wait_for_move = true;
-      #if ENABLED(PROBE_MANUALLY)
-        commands.enqueue_and_echo_P(PSTR("G29 V1"));
-      #elif ENABLED(MESH_BED_LEVELING)
+      #if ENABLED(MESH_BED_LEVELING)
         commands.enqueue_and_echo_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
+      #elif ENABLED(PROBE_MANUALLY)
+        commands.enqueue_and_echo_P(PSTR("G29 V1"));
       #endif
     }
 
@@ -3035,6 +3040,11 @@ void kill_screen(const char* lcd_msg) {
   void lcd_move_menu() {
     START_MENU();
     MENU_BACK(MSG_PREPARE);
+
+    #if HAS_SOFTWARE_ENDSTOPS
+      soft_endstops_enabled = endstops.isSoftEndstop();
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &soft_endstops_enabled, lcd_set_soft_endstops);
+    #endif
 
     if (_MOVE_XYZ_ALLOWED) {
       if (_MOVE_XY_ALLOWED) {

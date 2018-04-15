@@ -75,9 +75,9 @@
 /*****************************************************************************************
  ************************************* Scara settings *************************************
 /****************************************************************************************/
-// MORGAN_SCARA for Marlin was developed by QHARLEY in ZA in 2012/2013. Implemented
+// MORGAN_SCARA for MK4duo was developed by QHARLEY in ZA in 2012/2013. Implemented
 // and slightly reworked by JCERNY in 06/2014 with the goal to bring it into Master-Branch
-// QHARLEYS Autobedlevelling has not been ported, because Marlin has now Bed-levelling
+// QHARLEYS Autobedlevelling has not been ported, because MK4duo has now Bed-levelling
 // You might need Z-Min endstop on SCARA-Printer to use this feature. Actually untested!
 
 //#define DEBUG_SCARA_KINEMATICS

@@ -23,7 +23,7 @@
 #ifndef ULTRALCD_H
 #define ULTRALCD_H
 
-#if ENABLED(ULTRA_LCD) || ENABLED(MALYAN_LCD)
+#if ENABLED(ULTRA_LCD)
   void lcd_init();
   bool lcd_detected();
 #endif

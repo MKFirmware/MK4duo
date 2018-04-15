@@ -497,10 +497,12 @@ inline void gcode_G29(void) {
     if (no_action) return;
 
     if (abl_probe_index == 0) {
-      // For the initial G29 save software endstop state
+      // For the initial G29 S2 save software endstop state
       #if HAS_SOFTWARE_ENDSTOPS
         enable_soft_endstops = endstops.isSoftEndstop();
       #endif
+      // Move close to the bed before the first point
+      mechanics.do_blocking_move_to_z(Z_MIN_POS);
     }
     else {
       // For G29 after adjusting Z.

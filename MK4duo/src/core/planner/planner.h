@@ -225,6 +225,8 @@ class Planner {
      */
     FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
 
+    FORCE_INLINE static void clear_block_buffer() { block_buffer_head = block_buffer_tail = 0; }
+
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
     /**

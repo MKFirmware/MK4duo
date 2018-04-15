@@ -106,11 +106,11 @@
  *
  * M43         - report name and state of pin(s)
  *                 P<pin>  Pin to read or watch. If omitted, reads all pins.
- *                 I       Flag to ignore Marlin's pin protection.
+ *                 I       Flag to ignore MK4duo's pin protection.
  *
  * M43 W       - Watch pins -reporting changes- until reset, click, or M108.
  *                 P<pin>  Pin to read or watch. If omitted, read/watch all pins.
- *                 I       Flag to ignore Marlin's pin protection.
+ *                 I       Flag to ignore MK4duo's pin protection.
  *
  * M43 E<bool> - Enable / disable background endstop monitoring
  *                 - Machine continues to operate
@@ -121,7 +121,7 @@
  * M43 T       - Toggle pin(s) and report which pin is being toggled
  *                 S<pin>  - Start Pin number.   If not given, will default to 0
  *                 L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
- *                 I       - Flag to ignore Marlin's pin protection.   Use with caution!!!!
+ *                 I       - Flag to ignore MK4duo's pin protection.   Use with caution!!!!
  *                 R       - Repeat pulses on each pin this number of times before continueing to next pin
  *                 W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
  *
@@ -193,7 +193,7 @@
  *        Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D<millimeters>- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
- * M202 - Set max acceleration in units/s^2 for travel moves (M202 X1000 Y1000) Unused in Marlin!!
+ * M202 - Set max acceleration in units/s^2 for travel moves (M202 X1000 Y1000) Unused in MK4duo!!
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
  * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and T for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
  * M205 -  advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk
