@@ -350,7 +350,7 @@ static void lcd_implementation_status_screen() {
     #if HAS_LCD_FILAMENT_SENSOR
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, itostr3(100.0 * (
-          parser.volumetric_enabled
+          printer.isVolumetric()
             ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )

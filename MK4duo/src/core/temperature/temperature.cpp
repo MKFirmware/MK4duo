@@ -274,7 +274,7 @@ void Temperature::spin() {
       const float nom_meas_ratio = 1.0 + 0.01 * measurement_delay[meas_shift_index],
                   ratio_2 = sq(nom_meas_ratio);
 
-      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = tools.volumetric_enabled
+      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = printer.isVolumetric()
         ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5) // Volumetric uses a true volumetric multiplier
         : ratio_2;                                            // Linear squares the ratio, which scales the volume
 
