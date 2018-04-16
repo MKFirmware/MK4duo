@@ -407,7 +407,6 @@
 #else // LCD_HEIGHT < 4
   // Up to 2 lines allowed
   #define MSG_FILAMENT_CHANGE_INIT_1        _UxGT("Attendere...")
-  #define MSG_FILAMENT_CHANGE_COOL_1        _UxGT("Raffreddamento...")
   #define MSG_FILAMENT_CHANGE_UNLOAD_1      _UxGT("Espulsione...")
   #define MSG_FILAMENT_CHANGE_INSERT_1      _UxGT("Inserisci e premi")
   #define MSG_FILAMENT_CHANGE_HEAT_1        _UxGT("Riscalda ugello")

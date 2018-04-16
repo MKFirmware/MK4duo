@@ -1135,14 +1135,6 @@
 //  - WESTERN  ... with more accented characters
 //  - CYRILLIC ... for the Russian language
 //
-// To determine the language extension installed on your controller:
-//
-//  - Compile and upload with LCD_LANGUAGE set to 'test'
-//  - Click the controller to view the LCD menu
-//  - The LCD will display Japanese, Western, or Cyrillic text
-//
-// :['JAPANESE', 'WESTERN', 'CYRILLIC']
-//
 #define DISPLAY_CHARSET_HD44780 JAPANESE
 
 #define SHOW_BOOTSCREEN

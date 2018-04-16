@@ -64,7 +64,7 @@ void Mechanics::set_position_mm(const AxisEnum axis, const float &v) {
   #if ENABLED(LIN_ADVANCE)
     planner.position_float[axis] = v;
   #endif
-  stepper.set_position(axis, v);
+  stepper.set_position(axis, planner.position[axis]);
   planner.zero_previous_speed(axis);
 
 }
