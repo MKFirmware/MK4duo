@@ -160,6 +160,9 @@
 
 
 //###UNKNOWN_PINS
+// I2C EEPROM with 8K of space
+#define EEPROM_I2C
+#define E2END 0x1FFF
 #define S0_MUX            41
 #define S1_MUX            40
 #define S2_MUX            50
