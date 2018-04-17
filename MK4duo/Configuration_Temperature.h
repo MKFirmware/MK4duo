@@ -262,7 +262,7 @@
 // If this is enabled, find your own PID constants below.
 #define PIDTEMPBED false
 
-#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T>target-BED_HYSTERESIS (works only if BED_LIMIT_SWITCHING is enabled)
+#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T<target-BED_HYSTERESIS
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // This sets the max power delivered to the bed.
@@ -299,8 +299,8 @@
 // If this is enabled, find your own PID constants below.
 #define PIDTEMPCHAMBER false
 
-#define CHAMBER_HYSTERESIS 2 //only disable heating if T>target+CHAMBER_HYSTERESIS and enable heating if T>target-CHAMBER_HYSTERESIS (works only if CHAMBER_LIMIT_SWITCHING is enabled)
-#define CHAMBER_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
+#define CHAMBER_HYSTERESIS        2 // only disable heating if T>target+CHAMBER_HYSTERESIS and enable heating if T<target-CHAMBER_HYSTERESIS
+#define CHAMBER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // This sets the max power delivered to the chamber.
 // all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
@@ -340,8 +340,8 @@
 // Enable fast PWM for cooler
 //#define FAST_PWM_COOLER
 
-#define COOLER_HYSTERESIS 2 //only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T<target+COOLER_HYSTERESIS (works only if COOLER_LIMIT_SWITCHING is enabled)
-#define COOLER_CHECK_INTERVAL 5000 //ms between checks in bang-bang control
+#define COOLER_HYSTERESIS        2 // only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T>target+COOLER_HYSTERESIS
+#define COOLER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // This sets the max power delivered to the cooler.
 // all forms of cooler control obey this (PID, bang-bang, bang-bang with hysteresis)

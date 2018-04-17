@@ -146,9 +146,9 @@
     }
     else if (ELAPSED(ms, next_check_ms)) {
       next_check_ms = ms + temp_check_interval[type];
-      if (tempisrange())
-        soft_pwm = isHeating() ? pidMax : 0;
-      else
+      if (current_temperature <= target_temperature - temp_hysteresis[type])
+        soft_pwm = pidMax;
+      else if (current_temperature >= target_temperature + temp_hysteresis[type])
         soft_pwm = 0;
     }
 
