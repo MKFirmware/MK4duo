@@ -45,14 +45,8 @@ long  Commands::gcode_N             = 0,
 
 bool Commands::send_ok[BUFSIZE];
 
-char Commands::buffer_ring[BUFSIZE][MAX_CMD_SIZE];
-
 // Inactivity shutdown
 millis_t Commands::previous_cmd_ms = 0;
-
-/**
- * Private Parameters
- */
 
 /**
  * GCode Command Buffer Ring
@@ -63,11 +57,15 @@ millis_t Commands::previous_cmd_ms = 0;
  * the main loop. The process_next function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::buffer_index_r = 0, // Read position in Buffer Ring
-        Commands::buffer_index_w = 0; // Write position in Buffer Ring
+uint8_t Commands::buffer_lenght   = 0,  // Number of commands in the Buffer Ring
+        Commands::buffer_index_r  = 0,  // Read position in Buffer Ring
+        Commands::buffer_index_w  = 0;  // Write position in Buffer Ring
 
-volatile uint8_t Commands::buffer_lenght = 0; // Number of commands in the Buffer Ring
+char Commands::buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
+/**
+ * Private Parameters
+ */
 int Commands::serial_count = 0;
 
 millis_t Commands::last_command_time = 0;
@@ -434,19 +432,6 @@ void Commands::advance_queue() {
 }
 
 /**
- * Enqueue with Serial Echo
- */
-bool Commands::enqueue_and_echo(const char* cmd, bool say_ok/*=false*/) {
-  if (enqueue(cmd, say_ok)) {
-    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
-    SERIAL_CHR('"');
-    SERIAL_EOL();
-    return true;
-  }
-  return false;
-}
-
-/**
  * Record one or many commands to run from program memory.
  * Aborts the current queue, if any.
  * Note: drain_injected_P() must be called repeatedly to drain the commands afterwards
@@ -459,15 +444,15 @@ void Commands::enqueue_and_echo_P(const char * const pgcode) {
 /**
  * Enqueue and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now(const char* cmd, bool say_ok/*=false*/) {
-  while (!enqueue_and_echo(cmd, say_ok)) printer.idle();
+void Commands::enqueue_and_echo_now(const char* cmd) {
+  while (!enqueue_and_echo(cmd)) printer.idle();
 }
 
 /**
  * Enqueue from program memory and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_P_now(const char * const pgcode) {
-  enqueue_and_echo_P(pgcode);
+void Commands::enqueue_and_echo_now_P(const char * const cmd) {
+  enqueue_and_echo_P(cmd);
   while (drain_injected_P()) printer.idle();
 }
 
@@ -481,15 +466,6 @@ void Commands::clear_queue() {
 }
 
 /**
- * Once a new command is in the ring buffer, call this to commit it
- */
-void Commands::commit(bool say_ok) {
-  send_ok[buffer_index_w] = say_ok;
-  if (++buffer_index_w >= BUFSIZE) buffer_index_w = 0;
-  buffer_lenght++;
-}
-
-/**
  * Copy a command from RAM into the main command buffer.
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
@@ -499,24 +475,6 @@ bool Commands::enqueue(const char* cmd, bool say_ok/*=false*/) {
   strcpy(buffer_ring[buffer_index_w], cmd);
   commit(say_ok);
   return true;
-}
-
-/**
- * Inject the next "immediate" command, when possible, onto the front of the buffer_ring.
- * Return true if any immediate commands remain to inject.
- */
-bool Commands::drain_injected_P() {
-  if (injected_commands_P != NULL) {
-    size_t i = 0;
-    char c, cmd[30];
-    strncpy_P(cmd, injected_commands_P, sizeof(cmd) - 1);
-    cmd[sizeof(cmd) - 1] = '\0';
-    while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
-    cmd[i] = '\0';
-    if (enqueue_and_echo(cmd))     // success?
-      injected_commands_P = c ? injected_commands_P + i + 1 : NULL; // next command or done
-  }
-  return (injected_commands_P != NULL);    // return whether any more remain
 }
 
 /**
@@ -628,20 +586,6 @@ bool Commands::get_target_heater(int8_t &h) {
  * Private Function
  */
 
-void Commands::gcode_line_error(const char* err) {
-  SERIAL_STR(ER);
-  SERIAL_PS(err);
-  SERIAL_EV(gcode_LastN);
-  flush_and_request_resend();
-  serial_count = 0;
-}
-
-void Commands::unknown_error() {
-  SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
-  SERIAL_CHR('"');
-  SERIAL_EOL();
-}
-
 /* G0 and G1 are sent to the machine way more frequently than any other GCode.
  * We want to make sure that their use is optimized to its maximum.
  */
@@ -739,4 +683,58 @@ void Commands::process_next() {
   printer.keepalive(NotBusy);
 
   ok_to_send();
+}
+
+/**
+ * Once a new command is in the ring buffer, call this to commit it
+ */
+void Commands::commit(bool say_ok) {
+  send_ok[buffer_index_w] = say_ok;
+  if (++buffer_index_w >= BUFSIZE) buffer_index_w = 0;
+  buffer_lenght++;
+}
+
+void Commands::unknown_error() {
+  SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
+  SERIAL_CHR('"');
+  SERIAL_EOL();
+}
+
+void Commands::gcode_line_error(const char* err) {
+  SERIAL_STR(ER);
+  SERIAL_PS(err);
+  SERIAL_EV(gcode_LastN);
+  flush_and_request_resend();
+  serial_count = 0;
+}
+
+/**
+ * Enqueue with Serial Echo
+ */
+bool Commands::enqueue_and_echo(const char* cmd) {
+  if (enqueue(cmd)) {
+    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
+    SERIAL_CHR('"');
+    SERIAL_EOL();
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Inject the next "immediate" command, when possible, onto the front of the buffer_ring.
+ * Return true if any immediate commands remain to inject.
+ */
+bool Commands::drain_injected_P() {
+  if (injected_commands_P != NULL) {
+    size_t i = 0;
+    char c, cmd[30];
+    strncpy_P(cmd, injected_commands_P, sizeof(cmd) - 1);
+    cmd[sizeof(cmd) - 1] = '\0';
+    while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
+    cmd[i] = '\0';
+    if (enqueue_and_echo(cmd))     // success?
+      injected_commands_P = c ? injected_commands_P + i + 1 : NULL; // next command or done
+  }
+  return (injected_commands_P != NULL);    // return whether any more remain
 }

@@ -39,6 +39,10 @@ class Commands {
 
   public: /** Public Parameters */
 
+    static uint8_t  buffer_lenght,  // Number of commands in the Buffer Ring
+                    buffer_index_r, // Read position in Buffer Ring
+                    buffer_index_w; // Write position in Buffer Ring
+
     static char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
     static long gcode_LastN;
@@ -50,11 +54,6 @@ class Commands {
     static long gcode_N;
 
     static bool send_ok[BUFSIZE];
-
-    static uint8_t  buffer_index_r, // Read position in Buffer Ring
-                    buffer_index_w; // Write position in Buffer Ring
-
-    static volatile uint8_t buffer_lenght; // Number of commands in the Buffer Ring
 
     static int serial_count;
 
@@ -70,10 +69,10 @@ class Commands {
     static void advance_queue();
     static void clear_queue();
 
-    static bool enqueue_and_echo(const char* cmd, bool say_ok=false);
+    static bool enqueue_and_echo(const char* cmd);
     static void enqueue_and_echo_P(const char * const pgcode);
-    static void enqueue_and_echo_now(const char* cmd, bool say_ok=false);
-    static void enqueue_and_echo_P_now(const char * const pgcode);
+    static void enqueue_and_echo_now(const char* cmd);
+    static void enqueue_and_echo_now_P(const char * const cmd);
 
     static void get_destination();
     static bool get_target_tool(const uint16_t code);

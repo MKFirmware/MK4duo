@@ -992,7 +992,7 @@
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer), "gcode");
     Tgcode.setText("", "gcode");
-    commands.enqueue_and_echo_P(buffer);
+    commands.enqueue_and_echo(buffer);
   }
 
   #if FAN_COUNT > 0
