@@ -311,21 +311,42 @@ void Printer::loop() {
   printer.keepalive(NotBusy);
 
   #if HAS_SDSUPPORT
+
     if (isAbortSDprinting()) {
       setAbortSDprinting(false);
+
       #if HAS_SD_RESTART
+        // Save Job for restart
         if (card.cardOK && IS_SD_PRINTING) restart.save_data(true);
       #endif
+
+      // Stop SD printing
       card.stopSDPrint();
+
+      // Clear all command in quee
       commands.clear_queue();
+
+      // Stop all stepper
       stepper.quickstop_stepper();
-      print_job_counter.stop();
+
+      // Auto home
+      #if Z_HOME_DIR > 0
+        mechanics.home();
+      #else
+        mechanics.home(true, true, false);
+      #endif
+
+      // Disabled Heaters and Fan
       thermalManager.disable_all_heaters();
       #if FAN_COUNT > 0
         LOOP_FAN() fans[f].Speed = 0;
       #endif
+
+      // Stop printer job timer
+      print_job_counter.stop();
     }
-  #endif
+
+  #endif // HAS_SDSUPPORT
 
   commands.get_available();
   commands.advance_queue();
