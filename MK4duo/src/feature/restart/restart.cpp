@@ -65,7 +65,7 @@
           dtostrf(job_info.current_position[Z_AXIS], 1, 3, str_Z);
           dtostrf(job_info.current_position[E_AXIS], 1, 3, str_E);
 
-          #if MECH(DELTA)
+          #if Z_HOME_DIR > 0
             sprintf_P(buffer_ring[index++], PSTR("G92 E%s"), str_E);
             sprintf_P(buffer_ring[index++], PSTR("G0 X%s Y%s Z%s"), str_X, str_Y, str_Z);
             strcpy(buffer_ring[index++], PSTR("M117 Printing..."));
@@ -107,7 +107,7 @@
   void Restart::start_job() {
 
     // Auto home
-    #if MECH(DELTA)
+    #if Z_HOME_DIR > 0
       mechanics.home();
     #else
       mechanics.home(true, true, false);
