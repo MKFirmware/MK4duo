@@ -35,9 +35,6 @@
 
   DhtSensor dhtsensor(DHT_DATA_PIN, DHT_TYPE);
 
-  millis_t  DhtSensor::lastReadTime       = 0,
-            DhtSensor::lastOperationTime  = 0;
-
   float DhtSensor::Temperature  = 20,
         DhtSensor::Humidity     = 10;
 
@@ -94,27 +91,30 @@
 
   void DhtSensor::spin() {
 
-    if ((millis() - lastReadTime) < DHTMINREADINTERVAL) return;
+    static watch_t  min_read_watch(DHTMINREADINTERVAL),
+                    operation_watch;
+
+    if (!min_read_watch.elapsed()) return;
 
     switch (state) {
 
       case Init:
         HAL::digitalWrite(pin, HIGH);
         state = Wait_250ms;
-        lastOperationTime = millis();
+        operation_watch.start();
         break;
 
       case Wait_250ms:
-        if (millis() - lastOperationTime >= 250) {
+        if (operation_watch.elapsed(250)) {
           HAL::pinMode(pin, OUTPUT);
           HAL::digitalWrite(pin, LOW);
           state = Wait_20ms;
-          lastOperationTime = millis();
+          operation_watch.start();
         }
         break;
 
       case Wait_20ms:
-        if (millis() - lastOperationTime >= 20) {
+        if (operation_watch.elapsed(20)) {
 
           // End the start signal by setting data line high for 40 microseconds
           HAL::digitalWrite(pin, HIGH);
@@ -131,16 +131,16 @@
 
           // Wait for the next operation to complete
           state = Read;
-          lastOperationTime = millis();
+          operation_watch.start();
         }
         break;
 
       case Read:
         // Make sure we don't time out
-        if (millis() - lastOperationTime > DHTMAXREADTIME) {
+        if (operation_watch.elapsed(DHTMAXREADTIME)) {
           detachInterrupt(pin);
           state = Init;
-          lastReadTime = millis();
+          min_read_watch.start();
           break;
         }
 
@@ -149,7 +149,7 @@
 
         // We're reading now - reset the state
         state = Init;
-        lastReadTime = millis();
+        min_read_watch.start();
 
         // Check start bit
         if (pulses[0] < 40) break;

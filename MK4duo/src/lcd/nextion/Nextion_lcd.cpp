@@ -1069,11 +1069,18 @@
     switch(Vyes.getValue()) {
       #if HAS_SDSUPPORT
         case 1: // Stop Print
-          card.stopSDPrint();
+          printer.setAbortSDprinting(true);
+          lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
           Pprinter.show();
           break;
         case 2: // Upload Firmware
           UploadNewFirmware(); break;
+      #endif
+      #if HAS_SD_RESTART
+        case 3: // Restart file
+          Pprinter.show();
+          restart.start_job();
+          break;
       #endif
       case 4: // Unconditional stop
         printer.setWaitForUser(false);
@@ -1389,7 +1396,14 @@
             SD.setValue(SDstatus);
           }
 
-        #endif // SDSUPPORT
+        #endif // HAS_SDSUPPORT
+
+        #if HAS_SD_RESTART
+          if (restart.count && restart.job_phase == RESTART_IDLE) {
+            restart.job_phase = RESTART_MAYBE; // Waiting for a response
+            lcd_yesno(3, MSG_RESTART_PRINT, "", MSG_USERWAIT);
+          }
+        #endif
 
         break;
       #if HAS_SDSUPPORT
@@ -1448,8 +1462,8 @@
     ScrollText.setText(message);
   }
 
-  void lcd_yesno(const char* msg1, const char* msg2, const char* msg3) {
-    Vyes.setValue(4, "yesno");
+  void lcd_yesno(const uint8_t val, const char* msg1, const char* msg2, const char* msg3) {
+    Vyes.setValue(val, "yesno");
     Pyesno.show();
     Riga0.setText(msg1);
     Riga1.setText(msg2);

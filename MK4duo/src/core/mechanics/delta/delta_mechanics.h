@@ -39,50 +39,51 @@
 
     public: /** Public Parameters */
 
-      float delta[ABC]                  = { 0.0 },
-            delta_diagonal_rod          = 0.0,
-            delta_radius                = 0.0,
-            delta_segments_per_second   = 0.0,
-            delta_print_radius          = 0.0,
-            delta_probe_radius          = 0.0,
-            delta_height                = 0.0,
-            delta_clip_start_height     = 0.0,
-            delta_diagonal_rod_adj[ABC] = { 0.0 },
-            delta_endstop_adj[ABC]      = { 0.0 },
-            delta_tower_angle_adj[ABC]  = { 0.0 },
-            delta_tower_radius_adj[ABC] = { 0.0 };
+      static float  delta[ABC],
+                    delta_diagonal_rod,
+                    delta_radius,
+                    delta_segments_per_second,
+                    delta_print_radius,
+                    delta_probe_radius,
+                    delta_height,
+                    delta_clip_start_height,
+                    delta_diagonal_rod_adj[ABC],
+                    delta_endstop_adj[ABC],
+                    delta_tower_angle_adj[ABC],
+                    delta_tower_radius_adj[ABC];
 
     private: /** Private Parameters */
 
-      float delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
-            towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
-            towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
-            Xbc                       = 0.0,
-            Xca                       = 0.0,
-            Xab                       = 0.0,
-            Ybc                       = 0.0,
-            Yca                       = 0.0,
-            Yab                       = 0.0,
-            coreFa                    = 0.0,
-            coreFb                    = 0.0,
-            coreFc                    = 0.0,
-            Q                         = 0.0,
-            Q2                        = 0.0,
-            D2                        = 0.0;
+      static float  delta_diagonal_rod_2[ABC],
+                    towerX[ABC],
+                    towerY[ABC],
+                    Xbc,
+                    Xca,
+                    Xab,
+                    Ybc,
+                    Yca,
+                    Yab,
+                    coreFa,
+                    coreFb,
+                    coreFc,
+                    Q,
+                    Q2,
+                    D2;
 
     public: /** Public Function */
 
       /**
        * Initialize Delta parameters
        */
-      void init();
+      static void init();
 
       /**
-       * Set the planner.position and individual stepper positions.
-       * Used by G92, G28, G29, and other procedures.
+       * sync_plan_position_mech_specific
+       *
+       * Set the planner/stepper positions directly from current_position with
+       * kinematic translation. Used for homing axes and cartesian/core syncing.
        */
-      void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) override;
-      void set_position_mm(const float position[NUM_AXIS]) override;
+      static void sync_plan_position_mech_specific();
 
       /**
        * Get the stepper positions in the cartesian_position[] array.
@@ -102,7 +103,7 @@
          * This calls buffer_line several times, adding
          * small incremental moves for DELTA.
          */
-        bool prepare_move_to_destination_mech_specific();
+        static bool prepare_move_to_destination_mech_specific();
       #endif
 
       /**
@@ -114,16 +115,16 @@
       /**
        * Delta function
        */
-      void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
-      void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
-      void Transform(const float raw[]);
-      void Transform_buffer_segment(const float raw[], const float fr);
-      void recalc_delta_settings();
+      static void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
+      static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
+      static void Transform(const float raw[]);
+      static void Transform_buffer_segment(const float raw[], const float fr);
+      static void recalc_delta_settings();
 
       /**
        * Home Delta
        */
-      bool home(const bool always_home_all=true);
+      static bool home();
 
       /**
        * Set an axis' current position to its home position (after homing).
@@ -136,7 +137,7 @@
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(const AxisEnum axis);
+      static void set_axis_is_at_home(const AxisEnum axis);
 
       bool position_is_reachable(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
@@ -147,7 +148,7 @@
       void report_current_position_detail() override;
 
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
-        float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
+        static float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
       #endif
 
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -159,28 +160,28 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis);
+      static void homeaxis(const AxisEnum axis);
 
       /**
        * Calculate delta, start a line, and set current_position to destination
        */
-      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+      static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
 
       /**
        * Calculate the highest Z position where the
        * effector has the full range of XY motion.
        */
-      void Set_clip_start_height();
+      static void Set_clip_start_height();
 
       #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
-        float Q_rsqrt(float number);
+        static float Q_rsqrt(float number);
       #endif
 
       /**
        * Set sensorless homing.
        */
       #if ENABLED(SENSORLESS_HOMING)
-        void sensorless_homing(const bool on=true) {
+        static void sensorless_homing(const bool on=true) {
       #endif
 
   };

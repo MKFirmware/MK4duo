@@ -132,7 +132,7 @@
 #define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
 #define BOARD_ALLIGATOR       1502    // ALLIGATOR R2 ARM 32 bit board
 #define BOARD_ALLIGATOR_V3    1503    // ALLIGATOR R3 ARM 32 bit board
-#define BOARD_RURAMPS4D       1550    // RuRAMPS4Duo v1 (Power outputs: Hotend0, Hotend2, Hotend2, Fan0, Fan1, Bed)
+#define BOARD_RURAMPS4D       1550    // RuRAMPS4Duo v1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_ARCHIM2         1590    // UltiMachine Archim2 (with TMC2130 drivers)
 #define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 

@@ -233,9 +233,7 @@
    *                    for subsequent Load and Store operations. Valid storage slot numbers begin at 0 and
    *                    extend to a limit related to the available EEPROM storage.
    *
-   *   S -1  Store      Store the current Mesh as a print out that is suitable to be feed back into the system
-   *                    at a later date. The GCode output can be saved and later replayed by the host software
-   *                    to reconstruct the current mesh on another machine.
+   *   S -1  Store      Print the current Mesh as G-code that can be used to restore the mesh anytime.
    *
    *   T     Topology   Display the Mesh Map Topology.
    *                    'T' can be used alone (e.g., G29 T) or in combination with most of the other commands.
@@ -291,7 +289,7 @@
     if (mechanics.axis_unhomed_error()) {
       const int8_t p_val = parser.intval('P', -1);
       if (p_val == 1 || p_val == 2 || p_val == 4 || parser.seen('J'))
-        mechanics.home(true);
+        mechanics.home();
     }
 
     // Invalidate Mesh Points. This command is a little bit asymmetrical because
@@ -741,7 +739,7 @@
           const float rawx = mesh_index_to_xpos(location.x_index),
                       rawy = mesh_index_to_ypos(location.y_index);
 
-          const float measured_z = probe.check_pt(rawx, rawy, stow_probe, g29_verbose_level); // TODO: Needs error handling
+          const float measured_z = probe.check_pt(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
           z_values[location.x_index][location.y_index] = measured_z;
         }
         HAL::serialFlush(); // Prevent host M105 buffer overrun.
@@ -770,7 +768,7 @@
       wait_for_release();
       while (!is_lcd_clicked()) {
         printer.idle();
-        commands.refresh_cmd_timeout();
+        commands.reset_stepper_timeout(); // Keep steppers powered
         if (encoder_diff) {
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
           encoder_diff = 0;
@@ -1504,7 +1502,7 @@
       incremental_LSF_reset(&lsf_results);
 
       if (do_3_pt_leveling) {
-        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, false, g29_verbose_level);
+        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
         else {
@@ -1518,7 +1516,7 @@
         }
 
         if (!abort_flag) {
-          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, false, g29_verbose_level);
+          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
           //z2 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1533,7 +1531,7 @@
         }
 
         if (!abort_flag) {
-          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, true, g29_verbose_level);
+          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1561,7 +1559,7 @@
             const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
 
             if (!abort_flag) {
-              measured_z = probe.check_pt(rx, ry, parser.seen('E'), g29_verbose_level); // TODO: Needs error handling
+              measured_z = probe.check_pt(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
 
               abort_flag = isnan(measured_z);
 
@@ -1593,13 +1591,17 @@
                 }
               #endif
 
+              if (g29_verbose_level > 3) {
+                SERIAL_SP(16);
+                SERIAL_MV("Corrected_Z=", measured_z);
+              }
               incremental_LSF(&lsf_results, rx, ry, measured_z);
             }
           }
 
           zig_zag ^= true;
         }
-
+        STOW_PROBE();
       }
 
       if (abort_flag || finish_incremental_LSF(&lsf_results)) {

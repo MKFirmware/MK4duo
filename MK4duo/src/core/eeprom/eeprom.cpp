@@ -289,8 +289,8 @@ void EEPROM::Postprocess() {
 
 #if HAS_EEPROM
 
-  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(true)
-  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(false)
+  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(O_READ)
+  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(O_CREAT | O_WRITE | O_TRUNC | O_SYNC)
   #define EEPROM_FINISH()       access_finish()
   #define EEPROM_SKIP(VAR)      eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR)     eeprom_error = write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
@@ -1787,6 +1787,8 @@ void EEPROM::Factory_Settings() {
   endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
   endstops.setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
   endstops.setPullup(POWER_CHECK_SENSOR, PULLUP_POWER_CHECK);
+
+  watchdog.reset();
 
   Postprocess();
 

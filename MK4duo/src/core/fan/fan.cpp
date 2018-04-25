@@ -61,60 +61,56 @@
   }
 
   void Fan::spin() {
-    static millis_t next_auto_fan_check_ms  = 0,
-                    lastMotorOn             = 0;
 
-    millis_t ms = millis();
+    static watch_t controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
 
     if (autoMonitored == 0) return;
 
-    if (ELAPSED(ms, next_auto_fan_check_ms)) {
-      // Check for Hotend temperature
-      LOOP_HOTEND() {
-        if (TEST(autoMonitored, h)) {
-          if (heaters[h].current_temperature > triggerTemperatures) {
-            Speed = HOTEND_AUTO_FAN_SPEED;
-            break;
-          }
-          else
-            Speed = HOTEND_AUTO_FAN_MIN_SPEED;
+    // Check for Hotend temperature
+    LOOP_HOTEND() {
+      if (TEST(autoMonitored, h)) {
+        if (heaters[h].current_temperature > triggerTemperatures) {
+          Speed = HOTEND_AUTO_FAN_SPEED;
+          break;
         }
+        else
+          Speed = HOTEND_AUTO_FAN_MIN_SPEED;
       }
+    }
 
-      // Check for Controller fan
-      if (TEST(autoMonitored, 7)) {
-        LOOP_HEATER() {
-          if (heaters[h].isON()) lastMotorOn = ms;
-        }
-        if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
-          || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
-          #if DRIVER_EXTRUDERS > 1
-            || E1_ENABLE_READ == E_ENABLE_ON
-            #if HAS_X2_ENABLE
-              || X2_ENABLE_READ == X_ENABLE_ON
-            #endif
-            #if DRIVER_EXTRUDERS > 2
-              || E2_ENABLE_READ == E_ENABLE_ON
-              #if DRIVER_EXTRUDERS > 3
-                || E3_ENABLE_READ == E_ENABLE_ON
-                #if DRIVER_EXTRUDERS > 4
-                  || E4_ENABLE_READ == E_ENABLE_ON
-                  #if DRIVER_EXTRUDERS > 5
-                    || E5_ENABLE_READ == E_ENABLE_ON
-                  #endif
+    // Check for Controller fan
+    if (TEST(autoMonitored, 7)) {
+
+      // Check Heaters
+      if (thermalManager.heaters_isON()) controller_fan_watch.start();
+
+      // Check Motors
+      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
+        || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+        #if DRIVER_EXTRUDERS > 1
+          || E1_ENABLE_READ == E_ENABLE_ON
+          #if HAS_X2_ENABLE
+            || X2_ENABLE_READ == X_ENABLE_ON
+          #endif
+          #if DRIVER_EXTRUDERS > 2
+            || E2_ENABLE_READ == E_ENABLE_ON
+            #if DRIVER_EXTRUDERS > 3
+              || E3_ENABLE_READ == E_ENABLE_ON
+              #if DRIVER_EXTRUDERS > 4
+                || E4_ENABLE_READ == E_ENABLE_ON
+                #if DRIVER_EXTRUDERS > 5
+                  || E5_ENABLE_READ == E_ENABLE_ON
                 #endif
               #endif
             #endif
           #endif
-        ) {
-          lastMotorOn = ms;
-        }
-
-        // Fan off if no steppers have been enabled for CONTROLLERFAN_SECS seconds
-        Speed = (!lastMotorOn || ELAPSED(ms, lastMotorOn + (CONTROLLERFAN_SECS) * 1000UL)) ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
+        #endif
+      ) {
+        controller_fan_watch.start();
       }
 
-      next_auto_fan_check_ms = ms + 2500UL;
+      // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
+      Speed = controller_fan_watch.elapsed() ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
     }
   }
 

@@ -28,4 +28,26 @@
 
 #define CODE_G28
 
-inline void gcode_G28(void) { (void)mechanics.home(false); }
+inline void gcode_G28(void) { 
+
+  #if MECH(DELTA)
+
+    (void)mechanics.home();
+
+  #else
+    
+    #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
+      const bool  homeZ = parser.seen('Z'),
+                  homeX = homeZ || parser.seen('X'),
+                  homeY = homeZ || parser.seen('Y');
+    #else
+      const bool  homeX = parser.seen('X'),
+                  homeY = parser.seen('Y'),
+                  homeZ = parser.seen('Z');
+    #endif
+
+    (void)mechanics.home(homeX, homeY, homeZ);
+
+  #endif
+
+}

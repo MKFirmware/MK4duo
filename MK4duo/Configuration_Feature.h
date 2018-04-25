@@ -43,6 +43,7 @@
  * - Extruder Advance Linear Pressure Control
  * MOTION FEATURES:
  * - Workspace offsets
+ * - Bézier Jerk Control
  * - Software endstops
  * - Endstops only for homing
  * - Abort on endstop hit feature
@@ -439,6 +440,19 @@
  *  - M206 and M428 are enabled.                                          *
  **************************************************************************/
 //#define WORKSPACE_OFFSETS
+/**************************************************************************/
+
+
+/**************************************************************************
+ ************************ Bézier Jerk Control *****************************
+ **************************************************************************
+ *                                                                        *
+ * This option eliminates vibration during printing by fitting a Bézier   *
+ * curve to move acceleration, producing much smoother direction changes. *
+ * A 32-bit processor is required.                                        *
+ *                                                                        *
+ **************************************************************************/
+//#define BEZIER_JERK_CONTROL
 /**************************************************************************/
 
 
@@ -1084,6 +1098,10 @@
 #define SDSORT_CACHE_VFATS 2      // Maximum number of 13-byte VFAT entries to use for sorting.
                                   // Note: Only affects SCROLL_LONG_FILENAMES with SDSORT_CACHE_NAMES but not SDSORT_DYNAMIC_RAM.
 
+// This function enable the firmware write restart.bin file for restart print when power loss
+//#define SD_RESTART_FILE           // Uncomment to enable
+#define SD_RESTART_FILE_SAVE_TIME 1 // seconds between update
+
 // This enable the firmware to write statistics, that require frequent update on the SD card.
 //#define SD_SETTINGS             // Uncomment to enable
 #define SD_CFG_SECONDS 300        // seconds between update
@@ -1096,24 +1114,19 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *  en, an, bg, ca, cn, cz, cz_utf8, de, el, el-gr, es, es_utf8, eu, fi, fr, fr_utf8,    *
- *  gl, hr, it, kana, kana_utf8, nl, pl, pt, pt_utf8, pt-br, pt-br_utf8, sk_utf8 ru,     *
+ *  en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr,                               *
+ *  gl, hr, it, jp-kana, nl, pl, pt, pt-br, ru, sk,                                      *
  *  tr, uk, zh_CN, zh_TW                                                                 *
  *                                                                                       *
  * 'en':'English',          'an':'Aragonese', 'bg':'Bulgarian',       'ca':'Catalan',    *
  * 'cn':'Chinese',          'cz':'Czech',     'de':'German',          'el':'Greek',      *
  * 'el-gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
  * 'fr':'French',           'gl':'Galician',  'hr':'Croatian',        'it':'Italian',    *
- * 'kana':'Japanese',       'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
- * 'ru':'Russian',          'tr':'Turkish',   'uk':'Ukrainian',                          *
- * 'fr_utf8':'French (UTF8)                                                              *
- * 'cz_utf8':'Czech (UTF8)'                                                              *
- * 'kana_utf8':'Japanese (UTF8)'                                                         *
- * 'es_utf8':'Spanish (UTF8)'                                                            *
- * 'pt_utf8':'Portuguese (UTF8)'                                                         *
- * 'pt-br':'Portuguese (Brazilian)'                                                      *
- * 'pt-br_utf8':'Portuguese (Brazilian UTF8)'                                            *
- * 'sk_utf8':'Slovak (UTF8)'                                                             *
+ * 'jp-kana':'Japanese',    'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
+ * 'ru':'Russian',          'sk':'Slovak',    'tr':'Turkish',         'uk':'Ukrainian',  *
+ * 'pt-br':'Portuguese (Brazilian)',                                                     *
+ * 'zh_CN':'Chinese (Simplified)'                                                        *
+ * 'zh_TW':'Chinese (Traditional)'                                                       *
  *                                                                                       *
  *****************************************************************************************/
 #define LCD_LANGUAGE en

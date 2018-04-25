@@ -128,7 +128,7 @@
       } while (++i < 4);
       if (probe_logic != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
-      commands.refresh_cmd_timeout();
+      stepper.move_watch.start();
 
       if (deploy_state != stow_state) {
         SERIAL_EM("BLTouch clone detected");
@@ -157,7 +157,7 @@
           printer.safe_delay(2);
 
           if (0 == j % (500 * 1)) // keep cmd_timeout happy
-            commands.refresh_cmd_timeout();
+            stepper.move_watch.start();
 
           if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) { // probe triggered
 

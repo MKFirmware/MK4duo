@@ -40,20 +40,14 @@
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      static millis_t nextPowerCheck = 0;
-      millis_t ms = millis();
-
-      if (ELAPSED(ms, nextPowerCheck)) {
-        nextPowerCheck = ms + 2500UL;
-        if (is_power_needed()) {
-          if (!lastPowerOn) power_on();
-        }
-        #if (POWER_TIMEOUT > 0)
-          else if (ELAPSED(ms, lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
-            if (lastPowerOn) power_off();
-          }
-        #endif
+      if (is_power_needed()) {
+        if (!lastPowerOn) power_on();
       }
+      #if (POWER_TIMEOUT > 0)
+        else if (ELAPSED(millis(), lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
+          if (lastPowerOn) power_off();
+        }
+      #endif
     }
 
     void Power::power_on() {
@@ -74,7 +68,7 @@
     bool Power::is_power_needed() {
 
       #if HEATER_COUNT > 0
-        LOOP_HEATER() if (heaters[h].target_temperature > 0) return true;
+        if (thermalManager.heaters_isON()) return true;
       #endif
 
       #if FAN_COUNT > 0

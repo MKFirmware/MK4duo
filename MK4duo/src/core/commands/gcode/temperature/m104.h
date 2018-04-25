@@ -52,8 +52,13 @@
           heaters[1].setTarget(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
       #endif
 
-      if (temp > heaters[TRG_EXTRUDER_IDX].current_temperature)
-        lcd_status_printf_P(0, PSTR("H%i %s"), TRG_EXTRUDER_IDX, MSG_HEATING);
+      if (temp > heaters[TRG_EXTRUDER_IDX].current_temperature) {
+        #if HOTENDS > 1
+          lcd_status_printf_P(0, PSTR("H%i " MSG_HEATING), TRG_EXTRUDER_IDX);
+        #else
+          LCD_MESSAGEPGM("H " MSG_HEATING);
+        #endif
+      }
     }
 
     #if ENABLED(AUTOTEMP)

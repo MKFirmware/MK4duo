@@ -63,9 +63,9 @@
     #elif ENABLED(NEXTION)
 
       if (!hasP && !hasS && args && *args)
-        lcd_yesno(args, "", MSG_USERWAIT);
+        lcd_yesno(4, args, "", MSG_USERWAIT);
       else
-        lcd_yesno(MSG_USERWAIT);
+        lcd_yesno(4, MSG_USERWAIT);
 
     #else
 
@@ -78,11 +78,10 @@
     printer.keepalive(PausedforUser);
 
     stepper.synchronize();
-    commands.refresh_cmd_timeout();
 
     if (ms > 0) {
-      ms += millis();  // wait until this time for a click
-      while (PENDING(millis(), ms) && printer.isWaitForUser()) printer.idle();
+      watch_t watch(ms);
+      while (!watch.elapsed() && printer.isWaitForUser()) printer.idle();
     }
     else {
       #if ENABLED(ULTIPANEL)

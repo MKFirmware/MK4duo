@@ -84,13 +84,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-travel")
 #define MSG_STEPS_PER_MM                    _UxGT("Стъпки/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Aстъпки/mm")
-  #define MSG_YSTEPS                        _UxGT("Bстъпки/mm")
-  #define MSG_ZSTEPS                        _UxGT("Cстъпки/mm")
+  #define MSG_ASTEPS                        _UxGT("Aстъпки/mm")
+  #define MSG_BSTEPS                        _UxGT("Bстъпки/mm")
+  #define MSG_CSTEPS                        _UxGT("Cстъпки/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xстъпки/mm")
-  #define MSG_YSTEPS                        _UxGT("Yстъпки/mm")
-  #define MSG_ZSTEPS                        _UxGT("Zстъпки/mm")
+  #define MSG_ASTEPS                        _UxGT("Xстъпки/mm")
+  #define MSG_BSTEPS                        _UxGT("Yстъпки/mm")
+  #define MSG_CSTEPS                        _UxGT("Zстъпки/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("E стъпки/mm")
 #define MSG_E1STEPS                         _UxGT("E1 стъпки/mm")

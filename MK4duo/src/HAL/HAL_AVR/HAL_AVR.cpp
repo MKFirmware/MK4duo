@@ -267,12 +267,19 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
  */
 TEMP_TIMER_ISR {
 
-  TEMP_OCR += 64;
-
   if (!printer.isRunning()) return;
 
-  // Allow UART ISRs
-  HAL_DISABLE_ISRs();
+  TEMP_OCR += 64;
+
+  HAL_timer_isr_prologue(TEMP_TIMER);
+  
+  HAL_temp_isr();
+  
+  HAL_timer_isr_epilogue(TEMP_TIMER);
+
+}
+
+void HAL_temp_isr() {
 
   static uint16_t cycle_100ms       = 0;
 
@@ -397,7 +404,6 @@ TEMP_TIMER_ISR {
     }
   #endif
 
-  HAL_ENABLE_ISRs(); // re-enable ISRs
 }
 
 #endif // __AVR__

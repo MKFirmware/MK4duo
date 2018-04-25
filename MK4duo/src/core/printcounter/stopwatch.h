@@ -77,6 +77,12 @@ class Stopwatch {
     static bool start();
 
     /**
+     * @brief Resume the stopwatch
+     * @details Resume a timer from a given duration
+     */
+    static void resume(const millis_t duration);
+
+    /**
      * @brief Resets the stopwatch
      * @details Resets all settings to their default values.
      */
@@ -87,14 +93,14 @@ class Stopwatch {
      * @details Returns true if the timer is currently running, false otherwise.
      * @return true if stopwatch is running
      */
-    static bool isRunning();
+    FORCE_INLINE static bool isRunning() { return state == RUNNING; }
 
     /**
      * @brief Checks if the timer is paused
      * @details Returns true if the timer is currently paused, false otherwise.
      * @return true if stopwatch is paused
      */
-    static bool isPaused();
+    FORCE_INLINE static bool isPaused() { return state == PAUSED; }
 
     /**
      * @brief Gets the running time

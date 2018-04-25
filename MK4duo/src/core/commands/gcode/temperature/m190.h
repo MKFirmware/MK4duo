@@ -37,10 +37,13 @@
   inline void gcode_M190(void) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
-    LCD_MESSAGEPGM(MSG_BED_HEATING);
     const bool no_wait_for_cooling = parser.seen('S');
-    if (no_wait_for_cooling || parser.seen('R'))
+    if (no_wait_for_cooling || parser.seen('R')) {
       heaters[BED_INDEX].target_temperature = parser.value_celsius();
+    }
+    else return;
+
+    lcd_setstatusPGM(heaters[BED_INDEX].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
 
     thermalManager.wait_heater(&heaters[BED_INDEX], no_wait_for_cooling);
   }

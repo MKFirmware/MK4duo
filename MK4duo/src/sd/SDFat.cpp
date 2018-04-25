@@ -637,10 +637,9 @@ int16_t SdBaseFile::fgets(char* str, int16_t num, char* delim) {
  * the value zero, false, is returned for failure.
  */
 bool SdBaseFile::getFilename(char* name) {
-  dir_t* p;
   if (!isOpen()) {
     DBG_FAIL_MACRO;
-    goto FAIL;
+    return false;
   }
   if (isRoot()) {
     name[0] = '/';
@@ -648,18 +647,17 @@ bool SdBaseFile::getFilename(char* name) {
     return true;
   }
   // cache entry
-  p = cacheDirEntry(SdVolume::CACHE_FOR_READ);
+  dir_t* p = cacheDirEntry(SdVolume::CACHE_FOR_READ);
   if (!p) {
     DBG_FAIL_MACRO;
-    goto FAIL;
+    return false;
   }
+
   // format name
   dirName(*p, name);
   return true;
-
-FAIL:
-  return false;
 }
+
 //------------------------------------------------------------------------------
 void SdBaseFile::getpos(FatPos_t* pos) {
   pos->position = curPosition_;
@@ -1913,7 +1911,7 @@ void SdBaseFile::createFilename(char* buffer, const dir_t &dirEntry) {
 /** Read the next directory entry from a directory file with the long filename
  *
  * \param[out] dir The dir_t struct that will receive the data.
- * \param[out] longFiename The long filename associated with the 8.3 name
+ * \param[out] longFilename The long filename associated with the 8.3 name
  *
  * \return For success getLongFilename() returns a pointer to dir_t
  * A value of zero will be returned if end of file is reached.

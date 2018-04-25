@@ -76,6 +76,18 @@
 // Public Variables
 // --------------------------------------------------------------------------
 
+const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
+  { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
+  { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
+  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
+  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
+  { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
+  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
+  { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
+  { TC2, 2, TC8_IRQn, 0 },  // 8 - Pin TC 11 - 12
+};
+
 // --------------------------------------------------------------------------
 // Private Variables
 // --------------------------------------------------------------------------
@@ -99,20 +111,38 @@
   Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-void HAL_timer_start(const uint8_t timer_num) {
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
 	Tc *tc = TimerConfig [timer_num].pTimerRegs;
 	IRQn_Type irq = TimerConfig [timer_num].IRQ_Id;
 	uint32_t channel = TimerConfig [timer_num].channel;
 
+  // Disable interrupt, just in case it was already enabled
+  NVIC_DisableIRQ(irq);
+
+  // Disable timer interrupt
+  tc->TC_CHANNEL[channel].TC_IDR = TC_IDR_CPCS;
+
+  // Stop timer, just in case, to be able to reconfigure it
+  TC_Stop(tc, channel);
+
 	pmc_set_writeprotect(false);
 	pmc_enable_periph_clk((uint32_t)irq);
+  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
+
+  // wave mode, reset counter on match with RC,
   TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_EEVT_XC0);
-  TC_SetRC(tc, channel, VARIANT_MCK / 2 / 128);
-  tc->TC_CHANNEL[channel].TC_IDR = ~(uint32_t)0;            // interrupts disabled for now
+
+  // Set compare value
+  TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
+
+  // And start timer
   TC_Start(tc, channel);
-  TC_GetStatus(tc, channel);                                // clear any pending interrupt
-  NVIC_SetPriority (irq, TimerConfig [timer_num].priority); // set high priority for this IRQ; it's time-critical
+
+  // enable interrupt on RC compare
+  tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
+
+  // Finally, enable IRQ
 	NVIC_EnableIRQ(irq);
 }
 

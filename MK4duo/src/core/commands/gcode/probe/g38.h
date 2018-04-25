@@ -53,7 +53,7 @@
 
     endstops.hit_on_purpose();
     mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-    mechanics.sync_plan_position();
+    mechanics.sync_plan_position_mech_specific();
 
     // Only do remaining moves if target was hit
     if (endstops.isG38EndstopHit()) {
@@ -79,7 +79,7 @@
       printer.setG38Move(false);
 
       mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-      mechanics.sync_plan_position();
+      mechanics.sync_plan_position_mech_specific();
     }
 
     endstops.hit_on_purpose();

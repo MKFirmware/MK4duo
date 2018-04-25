@@ -185,7 +185,7 @@
 
 #define MSG_SERIAL_ERROR_MENU_STRUCTURE     "Error in menu structure"
 
-#define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
+#define MSG_ERR_EEPROM_WRITE                "Writing to EEPROM!"
 
 #define MSG_STOP_BLTOUCH                    "STOP called because of BLTouch error - restart with M999"
 #define MSG_STOP_UNHOMED                    "STOP called because of unhomed error - restart with M999"

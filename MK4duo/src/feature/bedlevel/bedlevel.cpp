@@ -81,12 +81,11 @@
         rx = dx + X_TILT_FULCRUM;
         ry = dy + Y_TILT_FULCRUM;
 
-      #else
+      #elif HAS_MESH
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
-          if (!fade_scaling_factor) return;
-        #elif HAS_MESH
+        #else
           constexpr float fade_scaling_factor = 1.0;
         #endif
 
@@ -95,16 +94,16 @@
         #endif
 
         rz += (
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
-            ubl.get_z_correction(rx, ry) * fade_scaling_factor
-          #elif ENABLED(MESH_BED_LEVELING)
+          #if ENABLED(MESH_BED_LEVELING)
             mbl.get_z(rx, ry
               #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
                 , fade_scaling_factor
               #endif
             )
+          #elif ENABLED(AUTO_BED_LEVELING_UBL)
+            fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(rx, ry) : 0.0
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.bilinear_z_offset(raw) * fade_scaling_factor
+            fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
           #else
             0
           #endif
@@ -129,26 +128,25 @@
         raw[X_AXIS] = dx + X_TILT_FULCRUM;
         raw[Y_AXIS] = dy + Y_TILT_FULCRUM;
 
-      #else
+      #elif HAS_MESH
 
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           const float fade_scaling_factor = fade_scaling_factor_for_z(raw[Z_AXIS]);
-          if (!fade_scaling_factor) return;
         #elif HAS_MESH
           constexpr float fade_scaling_factor = 1.0;
         #endif
 
         raw[Z_AXIS] -= (
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
-            ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]) * fade_scaling_factor
-          #elif ENABLED(MESH_BED_LEVELING)
+          #if ENABLED(MESH_BED_LEVELING)
             mbl.get_z(raw[X_AXIS], raw[Y_AXIS]
               #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
                 , fade_scaling_factor
               #endif
             )
+          #elif ENABLED(AUTO_BED_LEVELING_UBL)
+            fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]) : 0.0
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.bilinear_z_offset(raw) * fade_scaling_factor
+            fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
           #else
             0
           #endif
@@ -211,7 +209,16 @@
             unapply_leveling(mechanics.current_position);
           }
         #else
-          leveling_active = enable;                     // just flip the bit, current_position will be wrong until next move.
+          // UBL equivalents for apply/unapply_leveling
+          const float (&pos)[XYZE] = mechanics.current_position;
+          if (leveling_active) {
+            mechanics.current_position[Z_AXIS] += ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
+            leveling_active = false;
+          }
+          else {
+            leveling_active = true;
+            mechanics.current_position[Z_AXIS] -= ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
+          }
         #endif
 
       #else // OLD_ABL
@@ -240,9 +247,9 @@
           // so compensation will give the right stepper counts.
           unapply_leveling(mechanics.current_position);
 
-        mechanics.sync_plan_position();
+        mechanics.sync_plan_position_mech_specific();
 
-      #endif // ABL
+      #endif // OLD_ABL
     }
   }
 
@@ -252,36 +259,20 @@
 
       if (z_fade_height == zfh) return;
 
-      const bool level_active = leveling_active;
-
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-        if (level_active) set_bed_leveling_enabled(false);  // turn off before changing fade height for proper apply/unapply leveling to maintain current_position
-      #endif
+      const bool leveling_was_active = leveling_active;
+      set_bed_leveling_enabled(false);
 
       z_fade_height = zfh > 0 ? zfh : 0;
       inverse_z_fade_height = RECIPROCAL(z_fade_height);
       force_fade_recalc();
 
-      if (level_active) {
+      if (leveling_was_active) {
         const float oldpos[] = {
           mechanics.current_position[X_AXIS],
           mechanics.current_position[Y_AXIS],
           mechanics.current_position[Z_AXIS]
         };
-
-        #if ENABLED(AUTO_BED_LEVELING_UBL)
-          set_bed_leveling_enabled(true);  // turn back on after changing fade height
-        #else
-          mechanics.set_current_from_steppers_for_axis(
-            #if ABL_PLANAR
-              ALL_AXES
-            #else
-              Z_AXIS
-            #endif
-          );
-          mechanics.sync_plan_position();
-        #endif
-
+        set_bed_leveling_enabled(true);
         if (do_report && memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
           mechanics.report_current_position();
       }

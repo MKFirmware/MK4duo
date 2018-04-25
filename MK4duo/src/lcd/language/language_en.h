@@ -543,24 +543,24 @@
   #define MSG_JERK                            _UxGT("Jerk")
 #endif
 #if IS_KINEMATIC
-  #ifndef MSG_VX_JERK
-    #define MSG_VX_JERK                       _UxGT("Va-jerk")
+  #ifndef MSG_VA_JERK
+    #define MSG_VA_JERK                       _UxGT("Va-jerk")
   #endif
-  #ifndef MSG_VY_JERK
-    #define MSG_VY_JERK                       _UxGT("Vb-jerk")
+  #ifndef MSG_VB_JERK
+    #define MSG_VB_JERK                       _UxGT("Vb-jerk")
   #endif
-  #ifndef MSG_VZ_JERK
-    #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+  #ifndef MSG_VC_JERK
+    #define MSG_VC_JERK                       _UxGT("Vc-jerk")
   #endif
 #else
-  #ifndef MSG_VX_JERK
-    #define MSG_VX_JERK                       _UxGT("Vx-jerk")
+  #ifndef MSG_VA_JERK
+    #define MSG_VA_JERK                       _UxGT("Vx-jerk")
   #endif
-  #ifndef MSG_VY_JERK
-    #define MSG_VY_JERK                       _UxGT("Vy-jerk")
+  #ifndef MSG_VB_JERK
+    #define MSG_VB_JERK                       _UxGT("Vy-jerk")
   #endif
-  #ifndef MSG_VZ_JERK
-    #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+  #ifndef MSG_VC_JERK
+    #define MSG_VC_JERK                       _UxGT("Vz-jerk")
   #endif
 #endif
 #ifndef MSG_VE_JERK
@@ -594,24 +594,24 @@
   #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #endif
 #if IS_KINEMATIC
-  #ifndef MSG_XSTEPS
-    #define MSG_XSTEPS                        _UxGT("Asteps/mm")
+  #ifndef MSG_ASTEPS
+    #define MSG_ASTEPS                        _UxGT("Asteps/mm")
   #endif
-  #ifndef MSG_YSTEPS
-    #define MSG_YSTEPS                        _UxGT("Bsteps/mm")
+  #ifndef MSG_BSTEPS
+    #define MSG_BSTEPS                        _UxGT("Bsteps/mm")
   #endif
-  #ifndef MSG_ZSTEPS
-    #define MSG_ZSTEPS                        _UxGT("Csteps/mm")
+  #ifndef MSG_CSTEPS
+    #define MSG_CSTEPS                        _UxGT("Csteps/mm")
   #endif
 #else
-  #ifndef MSG_XSTEPS
-    #define MSG_XSTEPS                        _UxGT("Xsteps/mm")
+  #ifndef MSG_ASTEPS
+    #define MSG_ASTEPS                        _UxGT("Xsteps/mm")
   #endif
-  #ifndef MSG_YSTEPS
-    #define MSG_YSTEPS                        _UxGT("Ysteps/mm")
+  #ifndef MSG_BSTEPS
+    #define MSG_BSTEPS                        _UxGT("Ysteps/mm")
   #endif
-  #ifndef MSG_ZSTEPS
-    #define MSG_ZSTEPS                        _UxGT("Zsteps/mm")
+  #ifndef MSG_CSTEPS
+    #define MSG_CSTEPS                        _UxGT("Zsteps/mm")
   #endif
 #endif
 #ifndef MSG_ESTEPS
@@ -772,6 +772,9 @@
 #endif
 #ifndef MSG_ZPROBE_OUT
   #define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
+#endif
+#ifndef MSG_SKEW_FACTOR
+  #define MSG_SKEW_FACTOR                     _UxGT("Skew Factor")
 #endif
 #ifndef MSG_BLTOUCH
   #define MSG_BLTOUCH                         _UxGT("BLTouch")
@@ -1180,6 +1183,9 @@
 #endif // LCD_HEIGHT < 4
 
 // Extra
+#ifndef MSG_RESTART_PRINT
+  #define MSG_RESTART_PRINT                   _UxGT("Restart print")
+#endif
 #ifndef MSG_FIX_LOSE_STEPS
   #define MSG_FIX_LOSE_STEPS                  _UxGT("Fix axis steps")
 #endif

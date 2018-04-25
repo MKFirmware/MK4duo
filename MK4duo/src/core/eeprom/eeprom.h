@@ -96,7 +96,7 @@ class EEPROM {
     static void Postprocess();
 
     #if HAS_EEPROM
-      static bool access_start(const bool read);
+      static bool access_start(const uint8_t oflag);
       static bool access_finish();
       static bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
       static bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc);

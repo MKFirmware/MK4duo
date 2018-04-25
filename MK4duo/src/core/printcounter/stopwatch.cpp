@@ -70,6 +70,15 @@ bool Stopwatch::start() {
   else return false;
 }
 
+void Stopwatch::resume(const millis_t duration) {
+  #if ENABLED(DEBUG_STOPWATCH)
+    Stopwatch::debug(PSTR("resume"));
+  #endif
+
+  reset();
+  if ((accumulator = duration)) state = RUNNING;
+}
+
 void Stopwatch::reset() {
   #if ENABLED(DEBUG_STOPWATCH)
     Stopwatch::debug(PSTR("reset"));
@@ -79,14 +88,6 @@ void Stopwatch::reset() {
   startTimestamp = 0;
   stopTimestamp = 0;
   accumulator = 0;
-}
-
-bool Stopwatch::isRunning() {
-  return (state == RUNNING) ? true : false;
-}
-
-bool Stopwatch::isPaused() {
-  return (state == PAUSED) ? true : false;
 }
 
 millis_t Stopwatch::duration() {

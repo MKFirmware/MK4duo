@@ -39,40 +39,29 @@
 
     public: /** Public Parameters */
 
-      const float base_max_pos[XYZ]         = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
-                  base_min_pos[XYZ]         = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-                  base_home_pos[XYZ]        = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
-                  max_length[XYZ]           = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
-
-      #if ENABLED(DUAL_X_CARRIAGE)
-        DualXMode dual_x_carriage_mode          = DEFAULT_DUAL_X_CARRIAGE_MODE;
-        float     inactive_hotend_x_pos         = X2_MAX_POS,                   // used in mode 0 & 1
-                  raised_parked_position[NUM_AXIS],                             // used in mode 1
-                  duplicate_hotend_x_offset     = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
-        int16_t   duplicate_hotend_temp_offset  = 0;                            // used in mode 2
-        millis_t  delayed_move_time             = 0;                            // used in mode 1
-        bool      active_hotend_parked          = false,                        // used in mode 1 & 2
-                  hotend_duplication_enabled    = false;                        // used in mode 2
-      #endif
+      static const float  base_max_pos[XYZ],
+                          base_min_pos[XYZ],
+                          base_home_pos[XYZ],
+                          max_length[XYZ];
 
     private: /** Private Parameters */
 
       #if ENABLED(HYSTERESIS)
-        float   m_hysteresis_axis_shift[XYZE],
-                m_hysteresis_mm[XYZE];
-        long    m_hysteresis_steps[XYZE];
-        uint8_t m_hysteresis_prev_direction_bits,
-                m_hysteresis_bits;
+        static float    m_hysteresis_axis_shift[XYZE],
+                        m_hysteresis_mm[XYZE];
+        static long     m_hysteresis_steps[XYZE];
+        static uint8_t  m_hysteresis_prev_direction_bits,
+                        m_hysteresis_bits;
       #endif
 
       #if ENABLED(ZWOBBLE)
-        float   m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
-                zwobble_zLut[STEPS_IN_ZLUT][2],
-                zwobble_lastZ, zwobble_lastZRod,
-                m_zwobble_scalingFactor;
-        bool    m_zwobble_consistent,
-                m_zwobble_sinusoidal;
-        int     zwobble_lutSize;
+        static float  m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
+                      zwobble_zLut[STEPS_IN_ZLUT][2],
+                      zwobble_lastZ, zwobble_lastZRod,
+                      m_zwobble_scalingFactor;
+        static bool   m_zwobble_consistent,
+                      m_zwobble_sinusoidal;
+        static int    zwobble_lutSize;
       #endif
 
     public: /** Public Function */
@@ -80,7 +69,15 @@
       /**
        * Initialize Cartesian parameters
        */
-      void init();
+      static void init();
+
+      /**
+       * sync_plan_position_mech_specific
+       *
+       * Set the planner/stepper positions directly from current_position with
+       * no kinematic translation. Used for homing axes and cartesian/core syncing.
+       */
+      static void sync_plan_position_mech_specific();
 
       /**
        * Home all axes according to settings
@@ -97,13 +94,17 @@
        *  Z   Home to the Z endstop
        *
        */
-      void home(const bool always_home_all);
+      static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
 
       /**
-       * Prepare a single move and get ready for the next one
-       * If Mesh Bed Leveling is enabled, perform a mesh move.
+       * Prepare a linear move in a Cartesian setup.
+       *
+       * When a mesh-based leveling system is active, moves are segmented
+       * according to the configuration of the leveling system.
+       *
+       * Returns true if current_position[] was set to destination[]
        */
-      bool prepare_move_to_destination_mech_specific();
+      static bool prepare_move_to_destination_mech_specific();
 
       /**
        * Set an axis' current position to its home position (after homing).
@@ -113,17 +114,13 @@
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(const AxisEnum axis);
-
-      #if ENABLED(DUAL_X_CARRIAGE)
-        float x_home_pos(const int extruder);
-      #endif
+      static void set_axis_is_at_home(const AxisEnum axis);
 
       #if ENABLED(HYSTERESIS)
-        void set_hysteresis_axis(uint8_t axis, float mm);
-        void report_hysteresis();
-        void insert_hysteresis_correction(const float x, const float y, const float z, const float e);
-        void calc_hysteresis_steps();
+        static void set_hysteresis_axis(uint8_t axis, float mm);
+        static void report_hysteresis();
+        static void insert_hysteresis_correction(const float x, const float y, const float z, const float e);
+        static void calc_hysteresis_steps();
       #endif
 
       #if ENABLED(ZWOBBLE)
@@ -139,14 +136,14 @@
         #define ZROD(_I) zwobble_zLut[_I][0]
         #define SET_ZACTUAL(_I,_V) zwobble_zLut[_I][1] = _V
         #define SET_ZROD(_I,_V) zwobble_zLut[_I][0] = _V
-        void report_zwobble();
-        void insert_zwobble_correction(const float targetZ);
-        void set_zwobble_amplitude(float _amplitude);
-        void set_zwobble_period(float _period);
-        void set_zwobble_phase(float _phase);
-        void set_zwobble_sample(float zRod, float zActual);
-        void set_zwobble_scaledsample(float zRod, float zScaledLength);
-        void set_zwobble_scalingfactor(float zActualPerScaledLength);
+        static void report_zwobble();
+        static void insert_zwobble_correction(const float targetZ);
+        static void set_zwobble_amplitude(float _amplitude);
+        static void set_zwobble_period(float _period);
+        static void set_zwobble_phase(float _phase);
+        static void set_zwobble_sample(float zRod, float zActual);
+        static void set_zwobble_scaledsample(float zRod, float zScaledLength);
+        static void set_zwobble_scalingfactor(float zActualPerScaledLength);
       #endif
 
     private: /** Private Function */
@@ -154,7 +151,7 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis);
+      static void homeaxis(const AxisEnum axis);
 
       /**
        * Prepare a linear move in a Cartesian setup.
@@ -162,41 +159,33 @@
        *
        * Returns true if current_position[] was set to destination[]
        */
-      bool prepare_move_to_destination_cartesian();
-
-      /**
-       * Prepare a linear move in a dual X axis setup
-       */
-      #if ENABLED(DUAL_X_CARRIAGE)
-        bool  prepare_move_to_destination_dualx();
-        int   x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
-      #endif
+      static bool prepare_move_to_destination_cartesian();
 
       #if ENABLED(QUICK_HOME)
-        void quick_home_xy();
+        static void quick_home_xy();
       #endif
 
       #if ENABLED(Z_SAFE_HOMING)
-        void home_z_safely();
+        static void home_z_safely();
       #endif
 
       #if ENABLED(DOUBLE_Z_HOMING)
-        void double_home_z();
+        static void double_home_z();
       #endif
 
       #if ENABLED(HYSTERESIS)
-        void set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
-        uint8_t calc_direction_bits(const long *position, const long *target);
-        uint8_t calc_move_bits(const long *position, const long *target);
+        static void     set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
+        static uint8_t  calc_direction_bits(const long *position, const long *target);
+        static uint8_t  calc_move_bits(const long *position, const long *target);
       #endif
 
       #if ENABLED(ZWOBBLE)
-        void  calculateLut();
-        void  initLinearLut();
-        void  insertInLut(float, float);
-        float findInLut(float);
-        float findZRod(float);
-        bool  areParametersConsistent();
+        static void  calculateLut();
+        static void  initLinearLut();
+        static void  insertInLut(float, float);
+        static float findInLut(float);
+        static float findZRod(float);
+        static bool  areParametersConsistent();
       #endif
 
   };

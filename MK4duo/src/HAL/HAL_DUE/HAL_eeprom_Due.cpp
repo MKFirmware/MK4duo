@@ -28,38 +28,12 @@
 
   extern void eeprom_flush(void);
 
-  #if HAS_EEPROM_SD
-    SdFile eeprom_file;
-  #endif
-
-  bool EEPROM::access_start(const bool read) {
+  bool EEPROM::access_start(const uint8_t oflag) {
 
     #if HAS_EEPROM_SD
-
-      if (!IS_SD_INSERTED || !card.cardOK) {
-        SERIAL_LM(ER, MSG_NO_CARD);
-        return true;
-      }
-
-      card.setroot();
-      if (read) {
-        if (!eeprom_file.open(card.curDir, "EEPROM.bin", O_READ)) {
-          SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
-          SERIAL_EM("EEPROM.bin");
-          return true;
-        }
-      }
-      else {
-        if (!eeprom_file.open(card.curDir, "EEPROM.bin", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
-          SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
-          SERIAL_EM("EEPROM.bin");
-          return true;
-        //eeprom_file.truncate(0);
-        }
-      }
-
+      return card.open_eeprom_sd(oflag);
     #else
-      UNUSED(read);
+      UNUSED(oflag);
     #endif
 
     return false;
@@ -69,9 +43,7 @@
     #if HAS_EEPROM_FLASH
       eeprom_flush();
     #elif HAS_EEPROM_SD
-      eeprom_file.sync();
-      eeprom_file.close();
-      card.setlast();
+      card.close_eeprom_sd();
     #endif
     return false;
   }
@@ -83,7 +55,7 @@
       #if HAS_EEPROM_SD
 
         uint8_t v = *value;
-        if (!card.write_data(&eeprom_file, v)) {
+        if (!card.write_eeprom_data(v)) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           return true;
         }
@@ -113,7 +85,7 @@
   bool EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
     do {
       #if HAS_EEPROM_SD
-        uint8_t c = card.read_data(&eeprom_file);
+        uint8_t c = card.read_eeprom_data();
       #else
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
       #endif

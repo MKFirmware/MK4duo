@@ -59,7 +59,7 @@
 
     #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
       // Don't allow filament change without homing first
-      if (mechanics.axis_unhomed_error()) mechanics.home(true);
+      if (mechanics.axis_unhomed_error()) mechanics.home();
     #endif
 
     #if EXTRUDERS > 1

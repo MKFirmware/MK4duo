@@ -190,13 +190,13 @@
 #define MSG_ACC                             _UxGT("加速度")  //"Accel" acceleration
 #define MSG_JERK                            _UxGT("抖動速率")  //"Jerk"
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("A軸抖動速率")  //"Va-jerk"
-  #define MSG_VY_JERK                       _UxGT("B軸抖動速率")  //"Vb-jerk"
-  #define MSG_VZ_JERK                       _UxGT("C軸抖動速率")  //"Vc-jerk"
+  #define MSG_VA_JERK                       _UxGT("A軸抖動速率")  //"Va-jerk"
+  #define MSG_VB_JERK                       _UxGT("B軸抖動速率")  //"Vb-jerk"
+  #define MSG_VC_JERK                       _UxGT("C軸抖動速率")  //"Vc-jerk"
 #else
-  #define MSG_VX_JERK                       _UxGT("X軸抖動速率")  //"Vx-jerk"
-  #define MSG_VY_JERK                       _UxGT("Y軸抖動速率")  //"Vy-jerk"
-  #define MSG_VZ_JERK                       _UxGT("Z軸抖動速率")  //"Vz-jerk"
+  #define MSG_VA_JERK                       _UxGT("X軸抖動速率")  //"Vx-jerk"
+  #define MSG_VB_JERK                       _UxGT("Y軸抖動速率")  //"Vy-jerk"
+  #define MSG_VC_JERK                       _UxGT("Z軸抖動速率")  //"Vz-jerk"
 #endif
 #define MSG_VE_JERK                         _UxGT("擠出機抖動速率")  //"Ve-jerk"
 #define MSG_VELOCITY                        _UxGT("速度")          // "Velocity"
@@ -209,13 +209,13 @@
 #define MSG_A_TRAVEL                        _UxGT("非列印移動加速度")  //"A-travel" travel_acceleration, X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
 #define MSG_STEPS_PER_MM                    _UxGT("軸步數/mm")  //"Steps/mm" axis_steps_per_mm, axis steps-per-unit G92
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("A軸步數/mm")  //"Asteps/mm" axis_steps_per_mm, axis steps-per-unit G92
-  #define MSG_YSTEPS                        _UxGT("B軸步數/mm")  //"Bsteps/mm"
-  #define MSG_ZSTEPS                        _UxGT("C軸步數/mm")  //"Csteps/mm"
+  #define MSG_ASTEPS                        _UxGT("A軸步數/mm")  //"Asteps/mm" axis_steps_per_mm, axis steps-per-unit G92
+  #define MSG_BSTEPS                        _UxGT("B軸步數/mm")  //"Bsteps/mm"
+  #define MSG_CSTEPS                        _UxGT("C軸步數/mm")  //"Csteps/mm"
 #else
-  #define MSG_XSTEPS                        _UxGT("X軸步數/mm")  //"Xsteps/mm" axis_steps_per_mm, axis steps-per-unit G92
-  #define MSG_YSTEPS                        _UxGT("Y軸步數/mm")  //"Ysteps/mm"
-  #define MSG_ZSTEPS                        _UxGT("Z軸步數/mm")  //"Zsteps/mm"
+  #define MSG_ASTEPS                        _UxGT("X軸步數/mm")  //"Xsteps/mm" axis_steps_per_mm, axis steps-per-unit G92
+  #define MSG_BSTEPS                        _UxGT("Y軸步數/mm")  //"Ysteps/mm"
+  #define MSG_CSTEPS                        _UxGT("Z軸步數/mm")  //"Zsteps/mm"
 #endif
 #define MSG_ESTEPS                          _UxGT("擠出機步數/mm")  //"Esteps/mm"
 #define MSG_E1STEPS                         _UxGT("擠出機1步數/mm") //"E1steps/mm"

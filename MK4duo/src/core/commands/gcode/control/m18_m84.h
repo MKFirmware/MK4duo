@@ -34,7 +34,7 @@
  */
 inline void gcode_M18_M84(void) {
   if (parser.seenval('S')) {
-    stepper.stepper_inactive_time = parser.value_millis_from_seconds();
+    stepper.move_watch.stopwatch = parser.value_millis_from_seconds();
   }
   else {
     bool all_axis = !(parser.seen_axis());

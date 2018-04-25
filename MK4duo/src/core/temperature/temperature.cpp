@@ -113,7 +113,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
+    stepper.move_watch.start(); // Keep steppers powered
 
     const float temp = act->current_temperature;
 
@@ -177,7 +177,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
   if (printer.isWaitForHeatUp()) {
-    LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+    lcd_setstatusPGM(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
     #if ENABLED(PRINTER_EVENT_LEDS)
       leds.set_white();
     #endif
@@ -357,10 +357,6 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
     printer.keepalive(WaitHeater);
 
     act->updateCurrentTemperature();
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].spin();
-    #endif
 
     const millis_t time = millis();
     currentTemp = act->current_temperature;
@@ -581,6 +577,16 @@ void Temperature::disable_all_heaters() {
 
   pid_pointer = 255;
 
+}
+
+/**
+ * Check if there are heaters on
+ */
+bool Temperature::heaters_isON() {
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() if (heaters[h].isON()) return true;
+  #endif
+  return false;
 }
 
 #if ENABLED(FILAMENT_SENSOR)

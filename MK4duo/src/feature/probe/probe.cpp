@@ -231,7 +231,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
     #endif
 
     // Tell the planner where we actually are
-    mechanics.sync_plan_position();
+    mechanics.sync_plan_position_mech_specific();
   }
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -254,9 +254,6 @@ float Probe::run_z_probe() {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) DEBUG_POS(">>> run_z_probe", mechanics.current_position);
   #endif
-
-  // Prevent stepper_inactive_time from running out and EXTRUDER_RUNOUT_PREVENT from extruding
-  commands.refresh_cmd_timeout();
 
   // If the nozzle is above the travel height then
   // move down quickly before doing the slow probe
@@ -297,7 +294,7 @@ float Probe::run_z_probe() {
    * - Return the probed Z position
    */
 
-  float Probe::check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative/*=true*/) {
+  float Probe::check_pt(const float &rx, const float &ry, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/) {
 
     #if HAS_BED_PROBE
 
@@ -305,8 +302,10 @@ float Probe::run_z_probe() {
         if (printer.debugLeveling()) {
           SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
           SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
-          SERIAL_MV(", ", stow ? "" : "no ");
-          SERIAL_EM("stow)");
+          SERIAL_MT(", ", raise_after == PROBE_PT_RAISE ? "raise" : raise_after == PROBE_PT_STOW ? "stow" : "none");
+          SERIAL_MV(", ", int(verbose_level));
+          SERIAL_MT(", ", probe_relative ? "probe" : "nozzle");
+          SERIAL_EM("_relative)");
           DEBUG_POS("", mechanics.current_position);
         }
       #endif
@@ -338,9 +337,9 @@ float Probe::run_z_probe() {
       if (!set_deployed(true)) {
         measured_z = run_z_probe() + offset[Z_AXIS];
 
-        if (!stow)
+        if (raise_after == PROBE_PT_RAISE)
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-        else
+        else if (raise_after == PROBE_PT_STOW)
           if (set_deployed(false)) measured_z = NAN;
       }
 

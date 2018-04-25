@@ -112,6 +112,7 @@ typedef int8_t    pin_t;
 #include "src/inc/conditionals_post.h"
 #include "src/inc/sanitycheck.h"
 #include "src/inc/point_t.h"
+#include "src/inc/watch.h"
 
 // HAL Modules
 #include "src/HAL/HAL.h"
@@ -166,6 +167,7 @@ typedef int8_t    pin_t;
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
 #include "src/feature/caselight/caselight.h"
+#include "src/feature/restart/restart.h"
 
 /**
  * External libraries loading

@@ -40,6 +40,7 @@
    *  With AUTO_BED_LEVELING_UBL only:
    *
    *    L[index]  Load UBL mesh from index (0 is default)
+   *    T[map]    0:Human-readable 1:CSV 2:"LCD" 4:Compact
    */
   inline void gcode_M420(void) {
 
@@ -83,12 +84,12 @@
 
       // L or V display the map info
       if (parser.seen('L') || parser.seen('V')) {
-        ubl.display_map(0);  // Currently only supports one map type
+        ubl.display_map(parser.byteval('T'));
         SERIAL_EMV("ubl.mesh_is_valid = ", ubl.mesh_is_valid());
         SERIAL_EMV("ubl.storage_slot = ", ubl.storage_slot);
       }
 
-    #endif
+    #endif // AUTO_BED_LEVELING_UBL
 
     // V to print the matrix or mesh
     if (parser.seen('V')) {

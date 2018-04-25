@@ -76,7 +76,7 @@
   void lcd_setalertstatusPGM(const char * const message);
   void lcd_reset_alert_level();
   void lcd_scrollinfo(const char* titolo, const char* message);
-  void lcd_yesno(const char* msg1="", const char* msg2="", const char* msg3="");
+  void lcd_yesno(const uint8_t val, const char* msg1="", const char* msg2="", const char* msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);

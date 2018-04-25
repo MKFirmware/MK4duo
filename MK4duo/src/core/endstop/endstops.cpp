@@ -324,16 +324,8 @@ void Endstops::report_state() {
     hit_on_purpose();
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT)
-      if (stepper.abort_on_endstop_hit && !printer.isHoming()) {
-        stepper.quickstop_stepper();
-        thermalManager.disable_all_heaters();
-        #if HAS_SDSUPPORT
-          // Stop printing, close file and save restart.gcode
-          card.stopSDPrint(); // same as executing M33
-        #endif
-        SERIAL_LM(ER, MSG_PRINT_ABORTED);
-        printer.kill(MSG_PRINT_ABORTED);
-      }
+      if (stepper.abort_on_endstop_hit && !printer.isHoming())
+        printer.setAbortSDprinting(true);
     #endif
   }
 } // Endstops::report_state

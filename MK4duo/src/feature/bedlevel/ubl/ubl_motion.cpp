@@ -530,7 +530,7 @@
           xi_cnt--;
         }
 
-        if (xi_cnt < 0 || yi_cnt < 0) break; // we've gone too far, so exit the loop and move on to FINAL_MOVE
+        if (xi_cnt < 0 || yi_cnt < 0) break; // Too far! Exit the loop and go to FINAL_MOVE
       }
 
       if (bedlevel.g26_debug_flag)

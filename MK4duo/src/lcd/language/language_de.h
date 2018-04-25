@@ -112,13 +112,13 @@
 #define MSG_ACC                             _UxGT("A")
 #define MSG_JERK                            _UxGT("Jerk")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("V A Jerk")
-  #define MSG_VY_JERK                       _UxGT("V B Jerk")
-  #define MSG_VZ_JERK                       _UxGT("V C Jerk")
+  #define MSG_VA_JERK                       _UxGT("V A Jerk")
+  #define MSG_VB_JERK                       _UxGT("V B Jerk")
+  #define MSG_VC_JERK                       _UxGT("V C Jerk")
 #else
-  #define MSG_VX_JERK                       _UxGT("V X Jerk")
-  #define MSG_VY_JERK                       _UxGT("V Y Jerk")
-  #define MSG_VZ_JERK                       _UxGT("V Z Jerk")
+  #define MSG_VA_JERK                       _UxGT("V X Jerk")
+  #define MSG_VB_JERK                       _UxGT("V Y Jerk")
+  #define MSG_VC_JERK                       _UxGT("V Z Jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("V E Jerk")
 #define MSG_VELOCITY                        _UxGT("Geschwindigkeit")
@@ -131,13 +131,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A Leerfahrt")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("A Steps/mm")
-  #define MSG_YSTEPS                        _UxGT("B Steps/mm")
-  #define MSG_ZSTEPS                        _UxGT("C Steps/mm")
+  #define MSG_ASTEPS                        _UxGT("A Steps/mm")
+  #define MSG_BSTEPS                        _UxGT("B Steps/mm")
+  #define MSG_CSTEPS                        _UxGT("C Steps/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("X Steps/mm")
-  #define MSG_YSTEPS                        _UxGT("Y Steps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Z Steps/mm")
+  #define MSG_ASTEPS                        _UxGT("X Steps/mm")
+  #define MSG_BSTEPS                        _UxGT("Y Steps/mm")
+  #define MSG_CSTEPS                        _UxGT("Z Steps/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("E Steps/mm")
 #define MSG_E1STEPS                         _UxGT("E1 Steps/mm")

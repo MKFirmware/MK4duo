@@ -40,7 +40,6 @@
   #define CODE_M29
   #define CODE_M30
   #define CODE_M32
-  #define CODE_M33
 
   /**
    * M20: List SD card to serial output
@@ -79,6 +78,10 @@
    * M24: Start or Resume SD Print
    */
   inline void gcode_M24(void) {
+    #if HAS_SD_RESTART
+      card.delete_restart_file();
+    #endif
+
     #if ENABLED(PARK_HEAD_ON_PAUSE)
       resume_print();
     #endif
@@ -171,11 +174,6 @@
       #endif
     }
   }
-
-  /**
-   * M33: Close File and store position restart.gcode
-   */
-  inline void gcode_M33(void) { card.stopSDPrint(); }
 
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
 

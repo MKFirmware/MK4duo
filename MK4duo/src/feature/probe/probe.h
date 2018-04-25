@@ -51,6 +51,12 @@
   #define STOW_PROBE()
 #endif
 
+enum ProbePtRaise : unsigned char {
+  PROBE_PT_NONE,  // No raise or stow after run_z_probe
+  PROBE_PT_STOW,  // Do a complete stow after run_z_probe
+  PROBE_PT_RAISE  // Raise to "between" clearance after run_z_probe
+};
+
 class Probe {
 
   public: /** Constructor */
@@ -85,7 +91,7 @@ class Probe {
        *   - Raise to the BETWEEN height
        * - Return the probed Z position
        */
-      static float check_pt(const float &rx, const float &ry, const bool stow, const int verbose_level, const bool probe_relative=true);
+      static float check_pt(const float &rx, const float &ry, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
 
     #endif
 

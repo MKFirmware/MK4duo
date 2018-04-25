@@ -274,30 +274,37 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 
 #define ENABLE_TEMP_INTERRUPT()     SBI(TEMP_TIMSK, TEMP_OCIE)
 #define DISABLE_TEMP_INTERRUPT()    CBI(TEMP_TIMSK, TEMP_OCIE)
+#define TEMP_ISR_ENABLED()          TEST(TEMP_TIMSK, TEMP_OCIE)
 
 #define _CAT(a, ...) a ## __VA_ARGS__
 #define HAL_timer_set_count(timer, count)           (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                  _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
-#define HAL_timer_isr_prologue(timer_num)
+
+#define HAL_timer_isr_prologue_0    do{ DISABLE_TEMP_INTERRUPT(); sei(); }while(0)
+#define HAL_timer_isr_epilogue_0    do{ cli(); ENABLE_TEMP_INTERRUPT(); }while(0)
+
+#define HAL_timer_isr_prologue_1 \
+  const bool temp_isr_was_enabled = TEMP_ISR_ENABLED(); \
+  do{ \
+    DISABLE_TEMP_INTERRUPT(); \
+    DISABLE_STEPPER_INTERRUPT(); \
+    sei(); \
+  }while(0)
+
+#define HAL_timer_isr_epilogue_1 \
+  do{ \
+    cli(); \
+    ENABLE_STEPPER_INTERRUPT(); \
+    if (temp_isr_was_enabled) ENABLE_TEMP_INTERRUPT(); \
+  }while(0)
+
+#define HAL_timer_isr_prologue(TIMER_NUM) _CAT(HAL_timer_isr_prologue_, TIMER_NUM)
+#define HAL_timer_isr_epilogue(TIMER_NUM) _CAT(HAL_timer_isr_epilogue_, TIMER_NUM)
 
 #define STEPPER_TIMER_ISR ISR(TIMER1_COMPA_vect)
 #define TEMP_TIMER_ISR    ISR(TIMER0_COMPB_vect)
-
-#define HAL_ENABLE_ISRs() \
-        do { \
-          cli(); \
-          ENABLE_TEMP_INTERRUPT(); \
-          ENABLE_STEPPER_INTERRUPT(); \
-        } while(0)
-
-#define HAL_DISABLE_ISRs() \
-        do { \
-          DISABLE_TEMP_INTERRUPT(); \
-          DISABLE_STEPPER_INTERRUPT(); \
-          sei(); \
-        } while(0)
 
 // Highly granular delays for step pulses, etc.
 #define DELAY_0_NOP   NOOP
@@ -361,6 +368,7 @@ class InterruptProtectedBlock {
 
 void HAL_stepper_timer_start();
 void HAL_temp_timer_start();
+void HAL_temp_isr();
 
 class HAL {
 

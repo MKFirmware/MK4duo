@@ -77,7 +77,7 @@
 
     // Restore Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, Z_MIN_POS), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
@@ -149,7 +149,7 @@
 
     // Restore Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, Z_MIN_POS), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed

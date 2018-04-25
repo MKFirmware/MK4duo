@@ -132,7 +132,7 @@
           BUZZ(100, 659);
           BUZZ(100, 698);
 
-          mechanics.home(true);
+          mechanics.home();
           bedlevel.set_bed_leveling_enabled(true);
 
           #if ENABLED(MESH_G28_REST_ORIGIN)

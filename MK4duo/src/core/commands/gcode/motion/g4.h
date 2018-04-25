@@ -38,8 +38,6 @@ inline void gcode_G4(void) {
   if (parser.seenval('S')) dwell_ms = parser.value_millis_from_seconds(); // seconds to wait
 
   stepper.synchronize();
-  commands.refresh_cmd_timeout();
-  dwell_ms += commands.previous_cmd_ms;  // keep track of when we started waiting
 
   if (!lcd_hasstatus()) LCD_MESSAGEPGM(MSG_DWELL);
 

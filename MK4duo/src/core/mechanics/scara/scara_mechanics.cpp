@@ -339,7 +339,7 @@
     #endif
 
     set_axis_is_at_home(axis);
-    sync_plan_position_kinematic();
+    sync_plan_position_mech_specific();
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE
@@ -377,7 +377,7 @@
     // Tell the planner we're at Z=0
     current_position[axis] = 0;
 
-    sync_plan_position_kinematic();
+    sync_plan_position_mech_specific();
     current_position[axis] = distance;
     inverse_kinematics(current_position);
     planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.tools.active_extruder);
@@ -414,9 +414,9 @@
     _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   }
 
-  void Scara_Mechanics::sync_plan_position_kinematic() {
+  void Scara_Mechanics::sync_plan_position_mech_specific() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_kinematic", current_position);
+      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
     #endif
     set_position_mm_kinematic(current_position);
   }
@@ -485,8 +485,6 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
     #endif
-
-    commands.refresh_cmd_timeout();
 
     if ( current_position[X_AXIS] == destination[X_AXIS]
       && current_position[Y_AXIS] == destination[Y_AXIS]

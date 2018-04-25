@@ -158,7 +158,7 @@
     if (!_0p_calibration) {
 
       if (!_7p_no_intermediates && !_7p_4_intermediates && !_7p_11_intermediates) { // probe the center
-        z_pt[CEN] += probe.check_pt(0, 0, stow_after_each, 0, false);
+        z_pt[CEN] += probe.check_pt(0, 0, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
         if (isnan(z_pt[CEN])) return false;
       }
 
@@ -168,7 +168,7 @@
         I_LOOP_CAL_PT(rad, start, steps) {
           const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                       r = mechanics.delta_probe_radius * 0.1;
-          z_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+          z_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
           if (isnan(z_pt[CEN])) return false;
         }
         z_pt[CEN] /= float(_7p_2_intermediates ? 7 : probe_points);
@@ -193,7 +193,7 @@
             const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                         r = mechanics.delta_probe_radius * (1 - 0.1 * (zig_zag ? offset - circle : circle)),
                         interpol = FMOD(rad, 1);
-            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
             if (isnan(z_temp)) return false;
             // split probe point to neighbouring calibration points
             z_pt[uint8_t(round(rad - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
@@ -220,7 +220,6 @@
 
   /**
    * kinematics routines and auto tune matrix scaling parameters:
-   * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
    *  - formulae for approximative forward kinematics in the end-stop displacement matrix
    *  - definition of the matrix scaling parameters
    */
@@ -487,7 +486,6 @@
 
         /**
          * convergence matrices:
-         * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
          *  - definition of the matrix scaling parameters
          *  - matrices for 4 and 7 point calibration
          */

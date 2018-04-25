@@ -499,7 +499,7 @@
 
     // Now all extrusion positions are resumed and ready to be confirmed
     // Set extruder to saved position
-    mechanics.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS]);
+    planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS]);
 
     printer.setFilamentOut(false);
 

@@ -128,14 +128,14 @@
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Maximum Z feedrate
         mechanics.prepare_move_to_destination();                        // Raise up
         mechanics.current_position[Z_AXIS] = old_z;                     // Spoof the Z position in the planner
-        mechanics.sync_plan_position();
+        mechanics.sync_plan_position_mech_specific();
       }
     }
     else {
       // If a hop was done and Z hasn't changed, undo the Z hop
       if (hop_amount) {
         mechanics.current_position[Z_AXIS] += hop_amount;               // Set actual Z (due to the prior hop)
-        mechanics.sync_plan_position();                                 // Spoof the Z position in the planner
+        mechanics.sync_plan_position_mech_specific();                   // Spoof the Z position in the planner
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
         mechanics.prepare_move_to_destination();                        // Lower Z and update current_position
         hop_amount = 0.0;                                               // Clear the hop amount

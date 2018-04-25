@@ -56,7 +56,6 @@
 |  M30 | SDCARD | Delete file from SD (M30 filename.g)
 |  M31 | SDCARD | Output time since last M109 or SD card start to serial
 |  M32 | SDCARD | Make directory
-|  M33 | SDCARD | Stop printing, close file and save restart.gcode
 |  M34 | SDCARD | Set SD Card Sorting Options
 |  M35 | NEXTION | Upload Firmware to Nextion from SD
 |  M36 | SDCARD | Set SD Card Sorting Options

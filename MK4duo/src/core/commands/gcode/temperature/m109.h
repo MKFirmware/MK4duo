@@ -53,9 +53,16 @@
           heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
       #endif
 
-      if (heaters[EXTRUDER_IDX].isHeating())
-        lcd_status_printf_P(0, PSTR("H%i %s"), TARGET_EXTRUDER, MSG_HEATING);
+      const bool heating = heaters[EXTRUDER_IDX].isHeating();
+      if (heating || !no_wait_for_cooling) {
+        #if HOTENDS > 1
+          lcd_status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_EXTRUDER);
+        #else
+          lcd_setstatusPGM(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
+        #endif
+      }
     }
+    else return;
 
     #if ENABLED(AUTOTEMP)
       planner.autotemp_M104_M109();

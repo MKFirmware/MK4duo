@@ -118,7 +118,7 @@
    */
   inline void gcode_G33(void) {
 
-    const uint8_t   MaxCalibrationPoints = 10;
+    const uint8_t MaxCalibrationPoints = 10;
 
     uint8_t iteration = 0;
 
@@ -137,8 +137,8 @@
     }
 
     const uint8_t probe_points  = parser.intval('P', 7);
-    if (!WITHIN(probe_points, 1, 7)) {
-      SERIAL_EM("?(P)oints is implausible (1 to 7).");
+    if (!WITHIN(probe_points, 1, 10)) {
+      SERIAL_EM("?(P)oints is implausible (1 to 10).");
       return;
     }
 
@@ -172,25 +172,25 @@
     for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
       xBedProbePoints[probe_index] = mechanics.delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
       yBedProbePoints[probe_index] = mechanics.delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
-      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
       if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
     }
     if (probe_points >= 10) {
       for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
         xBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
         yBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
-        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], false, 4);
+        zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
         if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
       }
       xBedProbePoints[9] = 0.0;
       yBedProbePoints[9] = 0.0;
-      zBedProbePoints[9] = probe.check_pt(0.0, 0.0, true, 4);
+      zBedProbePoints[9] = probe.check_pt(0.0, 0.0, PROBE_PT_STOW, 4);
       if (isnan(zBedProbePoints[9])) return CALIBRATION_CLEANUP();
     }
     else {
       xBedProbePoints[6] = 0.0;
       yBedProbePoints[6] = 0.0;
-      zBedProbePoints[6] = probe.check_pt(0.0, 0.0, true, 4);
+      zBedProbePoints[6] = probe.check_pt(0.0, 0.0, PROBE_PT_STOW, 4);
       if (isnan(zBedProbePoints[6])) return CALIBRATION_CLEANUP();
     }
 

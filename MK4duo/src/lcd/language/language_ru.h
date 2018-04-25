@@ -193,9 +193,9 @@
 #define MSG_ACC                             _UxGT("Ускорение")
 #define MSG_JERK                            _UxGT("Рывок")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-рывок")
-  #define MSG_VY_JERK                       _UxGT("Vb-рывок")
-  #define MSG_VZ_JERK                       _UxGT("Vc-рывок")
+  #define MSG_VA_JERK                       _UxGT("Va-рывок")
+  #define MSG_VB_JERK                       _UxGT("Vb-рывок")
+  #define MSG_VC_JERK                       _UxGT("Vc-рывок")
 #else
   #define MSG_VX_JERK                       _UxGT("Vx-рывок")
   #define MSG_VY_JERK                       _UxGT("Vy-рывок")
@@ -212,13 +212,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-путеш.")
 #define MSG_STEPS_PER_MM                    _UxGT("Шаг/мм")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Aшаг/мм")
-  #define MSG_YSTEPS                        _UxGT("Bшаг/мм")
-  #define MSG_ZSTEPS                        _UxGT("Cшаг/мм")
+  #define MSG_ASTEPS                        _UxGT("Aшаг/мм")
+  #define MSG_BSTEPS                        _UxGT("Bшаг/мм")
+  #define MSG_CSTEPS                        _UxGT("Cшаг/мм")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xшаг/мм")
-  #define MSG_YSTEPS                        _UxGT("Yшаг/мм")
-  #define MSG_ZSTEPS                        _UxGT("Zшаг/мм")
+  #define MSG_ASTEPS                        _UxGT("Xшаг/мм")
+  #define MSG_BSTEPS                        _UxGT("Yшаг/мм")
+  #define MSG_CSTEPS                        _UxGT("Zшаг/мм")
 #endif
 #define MSG_ESTEPS                          _UxGT("Eшаг/мм")
 #define MSG_E1STEPS                         _UxGT("E1шаг/мм")
@@ -286,6 +286,7 @@
 #define MSG_BABYSTEP_Z                      _UxGT("Микрошаг Z")
 #define MSG_ENDSTOP_ABORT                   _UxGT("Сработал концевик")
 #define MSG_HEATING_FAILED_LCD              _UxGT("Разогрев не удался")
+#define MSG_HEATING_FAILED_LCD_BED          _UxGT("Разогр. стола не уд.")
 #define MSG_ERR_REDUNDANT_TEMP              _UxGT("Ошибка: Избыточная Т")
 #define MSG_THERMAL_RUNAWAY                 _UxGT("УБЕГАНИЕ ТЕПЛА")
 #define MSG_THERMAL_RUNAWAY_BED             _UxGT("УБЕГАНИЕ ТЕПЛА СТОЛА")
@@ -301,7 +302,10 @@
 #define MSG_SHORT_MINUTE                    _UxGT("м") // One character only
 #define MSG_HEATING                         _UxGT("Нагрев...")
 #define MSG_HEATING_COMPLETE                _UxGT("Нагрев выполнен")
+#define MSG_COOLING                         _UxGT("Охлаждение...")
+#define MSG_COOLING_COMPLETE                _UxGT("Охлаждение выполнено")
 #define MSG_BED_HEATING                     _UxGT("Нагрев стола")
+#define MSG_BED_COOLING                     _UxGT("Охлаждение стола")
 #define MSG_BED_DONE                        _UxGT("Стол разогрет")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Калибровка Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Калибровать X")

@@ -56,6 +56,8 @@ enum Flag2VariousEnum {
   flag2_allow_cold_extrude,
   flag2_autoreport_temp,
   flag2_autoreport_sd,
+  flag2_suspend_autoreport,
+  flag2_abort_sd_printing,
   flag2_filament_out,
   flag2_g38_move
 };
@@ -109,8 +111,11 @@ class Printer {
 
     static uint8_t  progress;
 
-    static millis_t max_inactive_time,
-                    host_keepalive_interval;
+    static watch_t  max_inactivity_watch;
+
+    #if ENABLED(HOST_KEEPALIVE_FEATURE)
+      static watch_t  host_keepalive_watch;
+    #endif
 
     static MK4duoInterruptEvent interruptEvent;
     static PrinterMode          mode;
@@ -132,7 +137,7 @@ class Printer {
     #endif
 
     #if HAS_CHDK
-      static millis_t chdkHigh;
+      static watch_t chdk_watch;
       static bool chdkActive;
     #endif
 
@@ -290,6 +295,16 @@ class Printer {
     }
     FORCE_INLINE static bool isAutoreportSD() { return TEST(mk_2_flag, flag2_autoreport_sd); }
 
+    FORCE_INLINE static void setSuspendAutoreport(const bool onoff) {
+      SET_BIT(mk_2_flag, flag2_suspend_autoreport, onoff);
+    }
+    FORCE_INLINE static bool isSuspendAutoreport() { return TEST(mk_2_flag, flag2_suspend_autoreport); }
+
+    FORCE_INLINE static void setAbortSDprinting(const bool onoff) {
+      SET_BIT(mk_2_flag, flag2_abort_sd_printing, onoff);
+    }
+    FORCE_INLINE static bool isAbortSDprinting() { return TEST(mk_2_flag, flag2_abort_sd_printing); }
+
     FORCE_INLINE static void setFilamentOut(const bool onoff) {
       SET_BIT(mk_2_flag, flag2_filament_out, onoff);
     }
@@ -309,6 +324,8 @@ class Printer {
     static void setup_pinout();
 
     static void handle_interrupt_events();
+
+    static void handle_safety_watch();
 
     static void bracket_probe_move(const bool before);
 

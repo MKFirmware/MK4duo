@@ -84,8 +84,17 @@ typedef struct {
   #endif
 
   int32_t accelerate_until,                 // The index of the step event on which to stop acceleration
-          decelerate_after,                 // The index of the step event on which to start decelerating
-          acceleration_rate;                // The acceleration rate used for acceleration calculation
+          decelerate_after;                 // The index of the step event on which to start decelerating
+
+ #if ENABLED(BEZIER_JERK_CONTROL)
+    uint32_t  cruise_rate;                  // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
+    uint32_t  acceleration_time,            // Acceleration time and deceleration time in STEP timer counts
+              deceleration_time;
+    uint32_t  acceleration_time_inverse,    // Inverse of acceleration and deceleration periods, expressed as integer. Scale depends on CPU being used
+              deceleration_time_inverse;
+  #else
+    int32_t   acceleration_rate;            // The acceleration rate used for acceleration calculation
+  #endif
 
   uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
@@ -105,7 +114,6 @@ typedef struct {
         millimeters,                        // The total travel of this block in mm
         acceleration;                       // acceleration mm/sec^2
 
-  // Settings for the trapezoid generator
   uint32_t  nominal_rate,                   // The nominal step rate for this block in step_events/sec
             initial_rate,                   // The jerk-adjusted step rate at start of block
             final_rate,                     // The minimal rate at exit
@@ -145,12 +153,6 @@ class Planner {
   public: /** Public Parameters */
 
     /**
-     * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
-     */
-    static int32_t position[NUM_AXIS];
-
-    /**
      * The move buffer, calculated in stepper steps
      *
      * block_buffer is a ring buffer...
@@ -178,6 +180,12 @@ class Planner {
     #endif
 
   private: /** Private Parameters */
+
+    /**
+     * The current position of the tool in absolute steps
+     * Recalculated if any axis_steps_per_mm are changed by gcode
+     */
+    static int32_t position[NUM_AXIS];
 
     /**
      * Speed of previous path line segment
@@ -286,19 +294,25 @@ class Planner {
      */
     static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
-    FORCE_INLINE static void zero_previous_nominal_speed() { previous_nominal_speed = 0.0; } // Resets planner junction speeds. Assumes start from rest.
-    FORCE_INLINE static void zero_previous_speed(const AxisEnum axis) { previous_speed[axis] = 0.0; }
-    FORCE_INLINE static void zero_previous_speed() { ZERO(previous_speed); }
+    /**
+     * Set the planner.position and individual stepper positions.
+     * Used by G92, G28, G29, and other procedures.
+     *
+     * Multiplies by axis_steps_per_mm[] and does necessary conversion
+     *
+     * Clears previous speed values.
+     */
+    static void _set_position_mm(const float &a, const float &b, const float &c, const float &e);
+    static void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e);
+    static void set_position_mm(const AxisEnum axis, const float &v);
+    static void set_position_mm_kinematic(const float (&cart)[XYZE]);
+    FORCE_INLINE static void set_z_position_mm(const float &z) { set_position_mm(AxisEnum(Z_AXIS), z); }
+    FORCE_INLINE static void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)
      */
     static void sync_from_steppers();
-
-    /**
-     * Abort Printing
-     */
-    void abort();
 
     /**
      * Does the buffer have any blocks queued?
@@ -322,28 +336,6 @@ class Planner {
       const bool discard = has_blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
       if (discard) discard_current_block();
       return discard;
-    }
-
-    /**
-     * length of commands in planner
-     */
-    FORCE_INLINE static uint16_t command_in_planner_len() {
-      uint8_t _block_buffer_head = block_buffer_head;
-      uint8_t _block_buffer_tail = block_buffer_tail;
-      uint16_t block_len = 0;
-
-      while (_block_buffer_head != _block_buffer_tail) {
-        block_len += block_buffer[_block_buffer_tail].block_len;
-        _block_buffer_tail = (_block_buffer_tail + 1) & (BLOCK_BUFFER_SIZE - 1);
-      }
-      return block_len;
-    }
-
-    /**
-     * Number of block in planner
-     */
-    FORCE_INLINE static uint8_t number_of_blocks() {
-      return (block_buffer_head + BLOCK_BUFFER_SIZE - block_buffer_tail) & (BLOCK_BUFFER_SIZE - 1);
     }
 
     FORCE_INLINE void add_block_length(uint16_t block_len) {
@@ -451,6 +443,15 @@ class Planner {
     static float max_allowable_speed(const float &accel, const float &target_velocity, const float &distance) {
       return SQRT(sq(target_velocity) - 2 * accel * distance);
     }
+
+    #if ENABLED(BEZIER_JERK_CONTROL)
+      /**
+       * Calculate the speed reached given initial speed, acceleration and distance
+       */
+      static float final_speed(const float &initial_velocity, const float &accel, const float &distance) {
+        return SQRT(sq(initial_velocity) + 2 * accel * distance);
+      }
+    #endif
 
     static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
 

@@ -784,11 +784,31 @@ void kill_screen(const char* lcd_msg) {
     }
 
     void lcd_sdcard_stop() {
-      card.stopSDPrint();
+      printer.setAbortSDprinting(true);
+      lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
       lcd_return_to_status();
     }
 
   #endif // SDSUPPORT
+
+  #if HAS_SD_RESTART
+
+    static void lcd_sdcard_restart_job() {
+      // Return to status now
+      lcd_return_to_status();
+
+      restart.start_job();
+    }
+
+    static void lcd_sdcard_restart_menu() {
+      defer_return_to_status = true;
+      START_MENU();
+      MENU_ITEM(function, MSG_RESTART_PRINT, lcd_sdcard_restart_job);
+      MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+      END_MENU();
+    }
+
+  #endif // HAS_SD_RESTART
 
   #if HAS_CASE_LIGHT
 
@@ -1760,7 +1780,7 @@ void kill_screen(const char* lcd_msg) {
       if (!lcd_wait_for_move) {
         #if MANUAL_PROBE_HEIGHT > 0 && DISABLED(MESH_BED_LEVELING)
           // Display "Done" screen and wait for moves to complete
-          line_to_z(Z_MIN_POS + MANUAL_PROBE_HEIGHT);
+          line_to_z(MANUAL_PROBE_HEIGHT);
           lcd_synchronize(PSTR(MSG_LEVEL_BED_DONE));
         #endif
         lcd_goto_previous_menu_no_defer();
@@ -1807,7 +1827,6 @@ void kill_screen(const char* lcd_msg) {
       // Encoder knob or keypad buttons adjust the Z position
       //
       if (encoderPosition) {
-        commands.refresh_cmd_timeout();
         const float z = mechanics.current_position[Z_AXIS] + float((int32_t)encoderPosition) * (LCD_Z_STEP);
         line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5, (LCD_PROBE_Z_RANGE) * 0.5));
         lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
@@ -2325,7 +2344,6 @@ void kill_screen(const char* lcd_msg) {
       stepper.cleaning_buffer_counter = 0;
       mechanics.set_current_from_steppers_for_axis(ALL_AXES);
       mechanics.sync_plan_position();
-      commands.refresh_cmd_timeout();
     }
 
     void _lcd_ubl_output_map_lcd() {
@@ -2340,10 +2358,7 @@ void kill_screen(const char* lcd_msg) {
       if (encoderPosition) {
         step_scaler += (int32_t)encoderPosition;
         x_plot += step_scaler / (ENCODER_STEPS_PER_MENU_ITEM);
-        if (abs(step_scaler) >= ENCODER_STEPS_PER_MENU_ITEM)
-          step_scaler = 0;
-        commands.refresh_cmd_timeout();
-
+        if (abs(step_scaler) >= ENCODER_STEPS_PER_MENU_ITEM) step_scaler = 0;
         encoderPosition = 0;
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
       }
@@ -2817,7 +2832,6 @@ void kill_screen(const char* lcd_msg) {
     if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
     ENCODER_DIRECTION_NORMAL();
     if (encoderPosition && !processing_manual_move) {
-      commands.refresh_cmd_timeout();
 
       // Start with no limits to movement
       float min = mechanics.current_position[axis] - 1000,
@@ -2849,13 +2863,17 @@ void kill_screen(const char* lcd_msg) {
       #if IS_KINEMATIC
         manual_move_offset += diff;
         // Limit only when trying to move towards the limit
-        if ((int32_t)encoderPosition < 0) NOLESS(manual_move_offset, min - mechanics.current_position[axis]);
-        if ((int32_t)encoderPosition > 0) NOMORE(manual_move_offset, max - mechanics.current_position[axis]);
+        if ((int32_t)encoderPosition < 0)
+          NOLESS(manual_move_offset, min - mechanics.current_position[axis]);
+        if ((int32_t)encoderPosition > 0)
+          NOMORE(manual_move_offset, max - mechanics.current_position[axis]);
       #else
         mechanics.current_position[axis] += diff;
         // Limit only when trying to move towards the limit
-        if ((int32_t)encoderPosition < 0) NOLESS(mechanics.current_position[axis], min);
-        if ((int32_t)encoderPosition > 0) NOMORE(mechanics.current_position[axis], max);
+        if ((int32_t)encoderPosition < 0)
+          NOLESS(mechanics.current_position[axis], min);
+        if ((int32_t)encoderPosition > 0)
+          NOMORE(mechanics.current_position[axis], max);
       #endif
 
       manual_move_to_current(axis);
@@ -3615,9 +3633,9 @@ void kill_screen(const char* lcd_msg) {
     #if IS_DELTA
       MENU_ITEM_EDIT_CALLBACK(float3, MSG_JERK, &mechanics.max_jerk[X_AXIS], 1, 990, _mechanics_set_jerk);
     #else
-      MENU_ITEM_EDIT(float3, MSG_VX_JERK, &mechanics.max_jerk[X_AXIS], 1, 990);
-      MENU_ITEM_EDIT(float3, MSG_VY_JERK, &mechanics.max_jerk[Y_AXIS], 1, 990);
-      MENU_ITEM_EDIT(float52, MSG_VZ_JERK, &mechanics.max_jerk[Z_AXIS], 0.1, 990);
+      MENU_ITEM_EDIT(float3, MSG_VA_JERK, &mechanics.max_jerk[X_AXIS], 1, 990);
+      MENU_ITEM_EDIT(float3, MSG_VB_JERK, &mechanics.max_jerk[Y_AXIS], 1, 990);
+      MENU_ITEM_EDIT(float52, MSG_VC_JERK, &mechanics.max_jerk[Z_AXIS], 0.1, 990);
     #endif
 
     #if EXTRUDERS > 1
@@ -3651,9 +3669,9 @@ void kill_screen(const char* lcd_msg) {
     #if IS_DELTA
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_STEPS_PER_MM, &mechanics.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
     #else
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_XSTEPS, &mechanics.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_YSTEPS, &mechanics.axis_steps_per_mm[Y_AXIS], 5, 9999, _mechanics_refresh_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ZSTEPS, &mechanics.axis_steps_per_mm[Z_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ASTEPS, &mechanics.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_BSTEPS, &mechanics.axis_steps_per_mm[Y_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_CSTEPS, &mechanics.axis_steps_per_mm[Z_AXIS], 5, 9999, _mechanics_refresh_positioning);
     #endif
 
     #if EXTRUDERS > 1
@@ -5018,24 +5036,6 @@ void lcd_init() {
   #endif
 }
 
-int16_t lcd_strlen(const char* s) {
-  int16_t i = 0, j = 0;
-  while (s[i]) {
-    if (PRINTABLE(s[i])) j++;
-    i++;
-  }
-  return j;
-}
-
-int16_t lcd_strlen_P(const char* s) {
-  int16_t j = 0;
-  while (pgm_read_byte(s)) {
-    if (PRINTABLE(pgm_read_byte(s))) j++;
-    s++;
-  }
-  return j;
-}
-
 bool lcd_blink() {
   static uint8_t blink = 0;
   static millis_t next_blink_ms = 0;
@@ -5145,7 +5145,14 @@ void lcd_update() {
       );
     }
 
-  #endif // SDSUPPORT && SD_DETECT_PIN
+  #endif // HAS_SDSUPPORT && SD_DETECT_PIN
+
+  #if HAS_SD_RESTART
+    if (restart.count && restart.job_phase == RESTART_IDLE) {
+      lcd_goto_screen(lcd_sdcard_restart_menu);
+      restart.job_phase = RESTART_MAYBE; // Waiting for a response
+    }
+  #endif
 
   const millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)

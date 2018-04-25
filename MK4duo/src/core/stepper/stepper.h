@@ -59,7 +59,7 @@ class Stepper {
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
-    static millis_t stepper_inactive_time;
+    static watch_t move_watch;
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT)
       static bool abort_on_endstop_hit;
@@ -84,6 +84,18 @@ class Stepper {
     // Counter variables for the Bresenham line tracer
     static long counter_X, counter_Y, counter_Z, counter_E;
     static volatile uint32_t step_events_completed; // The number of step events executed in the current block
+
+    #if ENABLED(BEZIER_JERK_CONTROL)
+      static int32_t  bezier_A,     // A coefficient in Bézier speed curve
+                      bezier_B,     // B coefficient in Bézier speed curve
+                      bezier_C;     // C coefficient in Bézier speed curve
+      static uint32_t bezier_F;     // F coefficient in Bézier speed curve
+      static uint32_t bezier_AV;    // AV coefficient in Bézier speed curve
+      #if ENABLED(__AVR__)
+        static bool A_negative;     // If A coefficient was negative
+      #endif
+      static bool bezier_2nd_half;  // If Bézier curve has been initialized or not
+    #endif
 
     #if ENABLED(LIN_ADVANCE)
 
@@ -110,12 +122,13 @@ class Stepper {
 
     #endif // !LIN_ADVANCE
 
-    static int32_t acceleration_time, deceleration_time;
-
-    static hal_timer_t  acc_step_rate, // needed for deceleration start point
-                        OCR1A_nominal;
-
+    static int32_t  acceleration_time, deceleration_time;
     static uint8_t  step_loops, step_loops_nominal;
+
+    static hal_timer_t OCR1A_nominal;
+    #if DISABLED(BEZIER_JERK_CONTROL)
+      static hal_timer_t acc_step_rate; // needed for deceleration start point
+    #endif
 
     static volatile long endstops_trigsteps[XYZ];
 
@@ -298,7 +311,7 @@ class Stepper {
           step_loops = 1;
       #endif
 
-      #if ENABLED(ARDUINO_ARCH_SAM)
+      #if ENABLED(CPU_32_BIT)
         // In case of high-performance processor, it is able to calculate in real-time
         constexpr uint32_t MIN_TIME_PER_STEP = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
         timer = (uint32_t)HAL_TIMER_RATE / step_rate;
@@ -329,44 +342,10 @@ class Stepper {
       return timer;
     }
 
-    // Initializes the trapezoid generator from the current block. Called whenever a new
-    // block begins.
-    FORCE_INLINE static void trapezoid_generator_reset() {
-
-      static int8_t last_extruder = -1;
-
-      #if ENABLED(LIN_ADVANCE)
-        if (current_block->active_extruder != last_extruder) {
-          current_adv_steps = 0; // If the now active extruder wasn't in use during the last move, its pressure is most likely gone.
-          LA_active_extruder = current_block->active_extruder;
-        }
-
-        if (current_block->use_advance_lead) {
-          LA_decelerate_after = current_block->decelerate_after;
-          final_adv_steps = current_block->final_adv_steps;
-          max_adv_steps = current_block->max_adv_steps;
-          use_advance_lead = true;
-        }
-        else
-          use_advance_lead = false;
-      #endif
-
-      if (current_block->direction_bits != last_direction_bits || current_block->active_extruder != last_extruder) {
-        last_direction_bits = current_block->direction_bits;
-        last_extruder = current_block->active_extruder;
-        set_directions();
-      }
-
-      deceleration_time = 0;
-      // step_rate to timer interval
-      OCR1A_nominal = calc_timer_interval(current_block->nominal_rate);
-      // make a note of the number of step loops required at nominal speed
-      step_loops_nominal = step_loops;
-      acc_step_rate = current_block->initial_rate;
-      acceleration_time = calc_timer_interval(acc_step_rate);
-      _NEXT_ISR(acceleration_time);
-
-    }
+    #if ENABLED(BEZIER_JERK_CONTROL)
+      static void _calc_bezier_curve_coeffs(const int32_t v0, const int32_t v1, const uint32_t av);
+      static int32_t _eval_bezier_curve(const uint32_t curr_step);
+    #endif
 
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digipot_init();
