@@ -74,7 +74,7 @@
        *  Z   Home to the Z endstop
        *
        */
-      static void home(const bool always_home_all);
+      static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
 
       /**
        * Prepare a linear move in a Cartesian setup.

@@ -51,7 +51,7 @@
   /**
    * Home Core
    */
-  void Core_Mechanics::home(const bool always_home_all) {
+  void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/, const bool homeZ/*=false*/) {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
@@ -116,16 +116,6 @@
       old_feedrate_mm_s = feedrate_mm_s;
       COPY_ARRAY(lastpos, current_position);
     }
-
-    #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
-      const bool  homeZ = always_home_all || parser.seen('Z'),
-                  homeX = always_home_all || homeZ || parser.seen('X'),
-                  homeY = always_home_all || homeZ || parser.seen('Y');
-    #else
-      const bool  homeX = always_home_all || parser.seen('X'),
-                  homeY = always_home_all || parser.seen('Y'),
-                  homeZ = always_home_all || parser.seen('Z');
-    #endif
 
     const bool home_all = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
 
