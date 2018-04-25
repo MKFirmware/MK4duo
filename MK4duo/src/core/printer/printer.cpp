@@ -131,7 +131,7 @@ void Printer::setup() {
 
   #if HAS_POWER_SWITCH
     #if PS_DEFAULT_OFF
-      powerManager.recovery();
+      powerManager.power_off();
     #else
       powerManager.power_on();
     #endif
@@ -482,7 +482,7 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   #if HAS_POWER_SWITCH
-    powerManager.recovery();
+    powerManager.power_off();
   #endif
 
   #if HAS_SUICIDE
