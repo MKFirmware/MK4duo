@@ -115,6 +115,10 @@
       enable_Z();
     #endif
 
+    #if EXTRUDERS > 1
+      tools.change(job_info.active_extruder, 0, true);
+    #endif
+
     // Set leveling
     #if HAS_LEVELING
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -165,6 +169,12 @@
           job_info.fan_speed[f] = fans[f].Speed;
       #endif
 
+      // Extruders
+      #if EXTRUDERS > 1
+        job_info.active_extruder = tools.active_extruder;
+      #endif
+
+      // Leveling      
       #if HAS_LEVELING
         job_info.leveling = bedlevel.leveling_active;
         job_info.z_fade_height = 

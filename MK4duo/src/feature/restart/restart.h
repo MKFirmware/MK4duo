@@ -37,9 +37,14 @@
     uint32_t sdpos;
 
     // Mechanics state
-    float current_position[XYZE];
+    float   current_position[XYZE];
     int16_t target_temperature[HEATER_COUNT];
     uint8_t fan_speed[FAN_COUNT];
+
+    // Extruders
+    #if EXTRUDERS > 1
+      uint8_t active_extruder;
+    #endif
 
     // Leveling
     #if HAS_LEVELING
