@@ -463,14 +463,14 @@
 
   #if HAS_EEPROM_SD
 
-    bool CardReader::open_eeprom_sd(const uint8_t oflag) {
+    bool CardReader::open_eeprom_sd(const bool read) {
 
       if (!IS_SD_INSERTED || !cardOK) {
         SERIAL_LM(ER, MSG_NO_CARD);
         return true;
       }
 
-      if (!eeprom_file.open(&root, "EEPROM.bin", oflag)) {
+      if (!eeprom_file.open(&root, "EEPROM.bin", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
         SERIAL_EM("EEPROM.bin");
         return true;

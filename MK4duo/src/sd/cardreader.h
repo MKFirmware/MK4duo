@@ -192,7 +192,7 @@
       #endif
 
       #if HAS_EEPROM_SD
-        bool open_eeprom_sd(const uint8_t oflag);
+        bool open_eeprom_sd(const bool read);
         void close_eeprom_sd();
         bool write_eeprom_data(const uint8_t value);
         uint8_t read_eeprom_data();

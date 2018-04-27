@@ -28,12 +28,12 @@
 
   extern void eeprom_flush(void);
 
-  bool EEPROM::access_start(const uint8_t oflag) {
+  bool EEPROM::access_start(const bool read) {
 
     #if HAS_EEPROM_SD
-      return card.open_eeprom_sd(oflag);
+      return card.open_eeprom_sd(read);
     #else
-      UNUSED(oflag);
+      UNUSED(read);
     #endif
 
     return false;
