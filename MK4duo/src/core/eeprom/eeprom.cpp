@@ -289,13 +289,8 @@ void EEPROM::Postprocess() {
 
 #if HAS_EEPROM
 
-  #if HAS_EEPROM_SD
-    #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(O_READ)
-    #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(O_CREAT | O_WRITE | O_TRUNC | O_SYNC)
-  #else
-    #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = false
-    #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = false
-  #endif
+  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(true)
+  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(false)
   #define EEPROM_FINISH()       access_finish()
   #define EEPROM_SKIP(VAR)      eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR)     eeprom_error = write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
