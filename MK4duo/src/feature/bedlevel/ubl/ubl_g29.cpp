@@ -524,7 +524,7 @@
           #endif
           break;
 
-        case 5: adjust_mesh_to_mean(g29_constant); break;
+        case 5: adjust_mesh_to_mean(g29_c_flag, g29_constant); break;
 
         case 6: shift_mesh_height(); break;
       }
@@ -617,7 +617,7 @@
     return;
   }
 
-  void unified_bed_leveling::adjust_mesh_to_mean(const float value) {
+  void unified_bed_leveling::adjust_mesh_to_mean(const bool cflag, const float value) {
     float sum = 0.0;
     int n = 0;
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
@@ -650,7 +650,7 @@
     const float sigma = SQRT(sum_of_diff_squared / (n + 1));
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
 
-    if (g29_c_flag)
+    if (cflag)
       for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
         for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
           if (!isnan(z_values[x][y]))
@@ -1067,7 +1067,7 @@
       SERIAL_EMV("bedlevel.z_fade_height : ", bedlevel.z_fade_height, 4);
     #endif
 
-    adjust_mesh_to_mean(g29_constant);
+    adjust_mesh_to_mean(g29_c_flag, g29_constant);
 
     #if HAS_BED_PROBE
       SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);

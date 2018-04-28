@@ -364,8 +364,17 @@ inline void gcode_G29(void) {
       front_probe_bed_position = parser.seenval('F') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION;
       back_probe_bed_position  = parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
-      if ( !mechanics.position_is_reachable_by_probe(left_probe_bed_position, front_probe_bed_position)
-        || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, back_probe_bed_position)) {
+      if (
+        #if IS_SCARA || IS_DELTA
+             !mechanics.position_is_reachable_by_probe(left_probe_bed_position, 0)
+          || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, 0)
+          || !mechanics.position_is_reachable_by_probe(0, front_probe_bed_position)
+          || !mechanics.position_is_reachable_by_probe(0, back_probe_bed_position)
+        #else
+             !mechanics.position_is_reachable_by_probe(left_probe_bed_position, front_probe_bed_position)
+          || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, back_probe_bed_position)
+        #endif
+      ) {
         SERIAL_EM("? (L,R,F,B) out of bounds.");
         return;
       }

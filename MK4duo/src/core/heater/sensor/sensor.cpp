@@ -58,13 +58,8 @@
 
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
 
-    // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(CPU_32_BIT)
-      HAL::delayMicroseconds(1);
-    #else
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-    #endif
+    // ensure 100ns delay
+    DELAY_100NS;
 
     // Read a big-endian temperature value
     max6675_temp = 0;
@@ -107,13 +102,8 @@
 
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
 
-    // ensure 100ns delay - a bit extra is fine
-    #if ENABLED(ARDUINO_ARCH_SAM)
-      HAL::delayMicroseconds(1);
-    #else
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-      asm("nop"); // 50ns on 20Mhz, 62.5ns on 16Mhz
-    #endif
+    // ensure 100ns delay
+    DELAY_100NS;
 
     for (uint16_t byte = 0; byte < 4; byte++) {
       data <<= 8;

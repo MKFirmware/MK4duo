@@ -431,6 +431,9 @@ void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint
 }
 
 float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
+  #if HOMING_Z_WITH_PROBE
+    if (axis == Z_AXIS) return Z_PROBE_SPEED_SLOW;
+  #endif
   const uint8_t homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
   uint8_t hbd = homing_bump_divisor[axis];
   if (hbd < 1) {
