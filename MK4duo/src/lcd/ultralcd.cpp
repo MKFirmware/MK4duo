@@ -796,15 +796,19 @@ void kill_screen(const char* lcd_msg) {
     static void lcd_sdcard_restart_job() {
       // Return to status now
       lcd_return_to_status();
-
       restart.start_job();
+    }
+
+    static void lcd_sdcard_restart_stop() {
+      card.printingHasFinished();
+      lcd_return_to_status();
     }
 
     static void lcd_sdcard_restart_menu() {
       defer_return_to_status = true;
       START_MENU();
       MENU_ITEM(function, MSG_RESTART_PRINT, lcd_sdcard_restart_job);
-      MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+      MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_restart_stop);
       END_MENU();
     }
 
