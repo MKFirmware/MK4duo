@@ -333,7 +333,7 @@
     &tenter,
 
     // Page 12 touch listen
-    &Yes,
+    &Yes, &No,
 
     // Page 13 touch listen
     &FilLoad, &FilUnload, &FilExtr,
@@ -1063,30 +1063,47 @@
     }
   }
 
-  void YesPopCallback(void *ptr) {
-    UNUSED(ptr);
+  void YesNoPopCallback(void *ptr) {
 
-    switch(Vyes.getValue()) {
-      #if HAS_SDSUPPORT
-        case 1: // Stop Print
-          printer.setAbortSDprinting(true);
-          lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
+    if (ptr == &Yes) {
+      switch(Vyes.getValue()) {
+        #if HAS_SDSUPPORT
+          case 1: // Stop Print
+            printer.setAbortSDprinting(true);
+            lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
+            Pprinter.show();
+            break;
+          case 2: // Upload Firmware
+            UploadNewFirmware(); break;
+        #endif
+        #if HAS_SD_RESTART
+          case 3: // Restart file
+            Pprinter.show();
+            restart.start_job();
+            break;
+        #endif
+        case 4: // Unconditional stop
+          printer.setWaitForUser(false);
           Pprinter.show();
           break;
-        case 2: // Upload Firmware
-          UploadNewFirmware(); break;
-      #endif
-      #if HAS_SD_RESTART
-        case 3: // Restart file
-          Pprinter.show();
-          restart.start_job();
-          break;
-      #endif
-      case 4: // Unconditional stop
-        printer.setWaitForUser(false);
-        Pprinter.show();
-        break;
-      default: break;
+        default: break;
+      }
+    }
+    else {
+      switch(Vyes.getValue()) {
+        #if HAS_SDSUPPORT
+          case 2:
+            Psetup.show(); break;
+        #endif
+        #if HAS_SD_RESTART
+          case 3:
+            card.printingHasFinished();
+            Pprinter.show();
+            break;
+        #endif
+        default:
+          Pprinter.show(); break;
+      }
     }
   }
 
@@ -1189,7 +1206,8 @@
       Retract.attachPop(setmovePopCallback);
       MotorOff.attachPop(motoroffPopCallback);
       Send.attachPop(setgcodePopCallback);
-      Yes.attachPop(YesPopCallback);
+      Yes.attachPop(YesNoPopCallback, &Yes);
+      No.attachPop(YesNoPopCallback, &No);
       LcdSend.attachPop(sendPopCallback);
       FilLoad.attachPop(filamentPopCallback);
       FilUnload.attachPop(filamentPopCallback);

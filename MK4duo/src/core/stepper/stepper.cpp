@@ -257,7 +257,7 @@ volatile long Stepper::endstops_trigsteps[XYZ] = { 0 };
     } \
   }
 
-  #define RESET_EXTRUDER_ENC(x,dir) tools.encLastDir[x] = dir;
+  #define RESET_EXTRUDER_ENC(x)     tools.encLastDir[x] = count_direction[E_AXIS];
 
   #define ___TEST_EXTRUDER_ENC(x,y) _TEST_EXTRUDER_ENC(x,y)
   #define __TEST_EXTRUDER_ENC(x)    ___TEST_EXTRUDER_ENC(x,E ##x## _ENC_PIN)
@@ -295,9 +295,6 @@ volatile long Stepper::endstops_trigsteps[XYZ] = { 0 };
   #endif
 
 #endif // HAS_EXT_ENCODER
-
-#define EXTRUDER_FLAG_RETRACTED 1
-#define EXTRUDER_FLAG_WAIT_JAM_STARTCOUNT 2 ///< Waiting for the first signal to start counting
 
 /**
  *         __________________________
@@ -360,32 +357,7 @@ void Stepper::set_directions() {
   #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
 
   #if HAS_EXT_ENCODER
-
-    switch(tools.active_extruder) {
-      case 0:
-        RESET_EXTRUDER_ENC(0, count_direction[E_AXIS]); break;
-      #if EXTRUDERS > 1
-        case 1:
-          RESET_EXTRUDER_ENC(1, count_direction[E_AXIS]); break;
-        #if EXTRUDERS > 2
-          case 2:
-            RESET_EXTRUDER_ENC(2, count_direction[E_AXIS]); break;
-          #if EXTRUDERS > 3
-            case 3:
-              RESET_EXTRUDER_ENC(3, count_direction[E_AXIS]); break;
-            #if EXTRUDERS > 4
-              case 4:
-                RESET_EXTRUDER_ENC(4, count_direction[E_AXIS]); break;
-              #if EXTRUDERS > 5
-                case 5:
-                  RESET_EXTRUDER_ENC(5, count_direction[E_AXIS]); break;
-              #endif // EXTRUDERS > 5
-            #endif // EXTRUDERS > 4
-          #endif // EXTRUDERS > 3
-        #endif // EXTRUDERS > 2
-      #endif // EXTRUDERS > 1
-    }
-
+    RESET_EXTRUDER_ENC(tools.active_extruder);
   #endif
 }
 
@@ -1306,7 +1278,7 @@ void Stepper::isr() {
       #endif
 
       #if STEPPER_DIRECTION_DELAY > 0
-        HAL::delayMicroseconds(STEPPER_DIRECTION_DELAY);
+        DELAY_US(STEPPER_DIRECTION_DELAY);
       #endif
 
       // Initialize Bresenham counters to 1/2 the ceiling

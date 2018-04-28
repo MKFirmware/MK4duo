@@ -94,42 +94,58 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIME
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
 
-// Highly granular delays for step pulses, etc.
-#define DELAY_0_NOP   NOOP
-#define DELAY_1_NOP   __asm__("nop\n\t")
-#define DELAY_2_NOP   DELAY_1_NOP;  DELAY_1_NOP
-#define DELAY_3_NOP   DELAY_2_NOP;  DELAY_1_NOP
-#define DELAY_4_NOP   DELAY_3_NOP;  DELAY_1_NOP
-#define DELAY_5_NOP   DELAY_4_NOP;  DELAY_1_NOP
-#define DELAY_10_NOP  DELAY_5_NOP;  DELAY_5_NOP
-#define DELAY_20_NOP  DELAY_10_NOP; DELAY_10_NOP
-#define DELAY_40_NOP  DELAY_20_NOP; DELAY_20_NOP
-#define DELAY_80_NOP  DELAY_40_NOP; DELAY_40_NOP
-
+// Processor-level delays for hardware interfaces
+#ifndef _NOP
+  #define _NOP()  do { __asm__ volatile ("nop"); } while (0)
+#endif
 #define DELAY_NOPS(X) \
   switch (X) { \
-    case 20: DELAY_1_NOP; case 19: DELAY_1_NOP; \
-    case 18: DELAY_1_NOP; case 17: DELAY_1_NOP; \
-    case 16: DELAY_1_NOP; case 15: DELAY_1_NOP; \
-    case 14: DELAY_1_NOP; case 13: DELAY_1_NOP; \
-    case 12: DELAY_1_NOP; case 11: DELAY_1_NOP; \
-    case 10: DELAY_1_NOP; case 9:  DELAY_1_NOP; \
-    case 8:  DELAY_1_NOP; case 7:  DELAY_1_NOP; \
-    case 6:  DELAY_1_NOP; case 5:  DELAY_1_NOP; \
-    case 4:  DELAY_1_NOP; case 3:  DELAY_1_NOP; \
-    case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
+    case 20: _NOP(); case 19: _NOP(); case 18: _NOP(); case 17: _NOP(); \
+    case 16: _NOP(); case 15: _NOP(); case 14: _NOP(); case 13: _NOP(); \
+    case 12: _NOP(); case 11: _NOP(); case 10: _NOP(); case  9: _NOP(); \
+    case  8: _NOP(); case  7: _NOP(); case  6: _NOP(); case  5: _NOP(); \
+    case  4: _NOP(); case  3: _NOP(); case  2: _NOP(); case  1: _NOP(); \
   }
+#define DELAY_0_NOP   NOOP
+#define DELAY_1_NOP   DELAY_NOPS( 1)
+#define DELAY_2_NOP   DELAY_NOPS( 2)
+#define DELAY_3_NOP   DELAY_NOPS( 3)
+#define DELAY_4_NOP   DELAY_NOPS( 4)
+#define DELAY_5_NOP   DELAY_NOPS( 5)
+#define DELAY_10_NOP  DELAY_NOPS(10)
+#define DELAY_20_NOP  DELAY_NOPS(20)
 
-#define DELAY_1US   DELAY_80_NOP; DELAY_4_NOP
-#define DELAY_2US   DELAY_1US;    DELAY_1US
-#define DELAY_3US   DELAY_1US;    DELAY_2US
-#define DELAY_4US   DELAY_1US;    DELAY_3US
-#define DELAY_5US   DELAY_1US;    DELAY_4US
-#define DELAY_6US   DELAY_1US;    DELAY_5US
-#define DELAY_7US   DELAY_1US;    DELAY_6US
-#define DELAY_8US   DELAY_1US;    DELAY_7US
-#define DELAY_9US   DELAY_1US;    DELAY_8US
-#define DELAY_10US  DELAY_1US;    DELAY_9US
+#if CYCLES_PER_US <= 200
+  #define DELAY_100NS DELAY_NOPS((CYCLES_PER_US + 9) / 10)
+#else
+  #define DELAY_100NS DELAY_20_NOP
+#endif
+
+// Microsecond delays for hardware interfaces
+#if CYCLES_PER_US <= 20
+  #define DELAY_1US DELAY_NOPS(CYCLES_PER_US)
+  #define DELAY_US(X) \
+    switch (X) { \
+      case 20: DELAY_1US; case 19: DELAY_1US; case 18: DELAY_1US; case 17: DELAY_1US; \
+      case 16: DELAY_1US; case 15: DELAY_1US; case 14: DELAY_1US; case 13: DELAY_1US; \
+      case 12: DELAY_1US; case 11: DELAY_1US; case 10: DELAY_1US; case  9: DELAY_1US; \
+      case  8: DELAY_1US; case  7: DELAY_1US; case  6: DELAY_1US; case  5: DELAY_1US; \
+      case  4: DELAY_1US; case  3: DELAY_1US; case  2: DELAY_1US; case  1: DELAY_1US; \
+    }
+#else
+  #define DELAY_US(X) HAL::delayMicroseconds(X)
+  #define DELAY_1US   DELAY_US(1)
+#endif
+#define DELAY_2US     DELAY_US( 2)
+#define DELAY_3US     DELAY_US( 3)
+#define DELAY_4US     DELAY_US( 4)
+#define DELAY_5US     DELAY_US( 5)
+#define DELAY_6US     DELAY_US( 6)
+#define DELAY_7US     DELAY_US( 7)
+#define DELAY_8US     DELAY_US( 8)
+#define DELAY_9US     DELAY_US( 9)
+#define DELAY_10US    DELAY_US(10)
+#define DELAY_20US    DELAY_US(20)
 
 // --------------------------------------------------------------------------
 // Types

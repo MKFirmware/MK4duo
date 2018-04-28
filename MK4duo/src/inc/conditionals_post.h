@@ -44,8 +44,6 @@
  * DELTA
  */
 #if MECH(DELTA)
-  #undef SLOWDOWN       // DELTA not needs SLOWDOWN
-  #undef Z_SAFE_HOMING  // DELTA non needs Z_SAFE_HOMING
 
   // DELTA must have same valour for 3 axis Home Feedrate
   #define HOMING_FEEDRATE_X HOMING_FEEDRATE_XYZ
@@ -66,7 +64,7 @@
   #endif
 
   #define Z_PROBE_SPEED_FAST  Z_PROBE_SPEED
-  #define Z_PROBE_SPEED_SLOW  Z_PROBE_SPEED
+  #define Z_PROBE_SPEED_SLOW  (Z_PROBE_SPEED / 2)
 
   // Set the rectangle in which to probe
   #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE)))
@@ -102,11 +100,13 @@
   #define PROBE_PT_3_X 0
   #define PROBE_PT_3_Y 0
 
-  #if ENABLED(WORKSPACE_OFFSETS)
-    #undef WORKSPACE_OFFSETS
-  #endif
-
   #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
+
+  // DELTA should ignore Z_SAFE_HOMING, SLOWDOWN, WORKSPACE_OFFSETS and LEVEL_BED_CORNERS
+  #undef Z_SAFE_HOMING
+  #undef SLOWDOWN
+  #undef WORKSPACE_OFFSETS
+  #undef LEVEL_BED_CORNERS
 
 #else // !MECH(DELTA)
 
@@ -122,13 +122,6 @@
   #endif
 
 #endif // !MECH(DELTA)
-
-/**
- * Axis lengths and center
- */
-#define X_MAX_LENGTH (X_MAX_POS - (X_MIN_POS_ZERO))
-#define Y_MAX_LENGTH (Y_MAX_POS - (Y_MIN_POS_ZERO))
-#define Z_MAX_LENGTH (Z_MAX_POS - (Z_MIN_POS))
 
 // Require 0,0 bed center for Delta and SCARA
 #if IS_KINEMATIC
@@ -233,9 +226,217 @@
 #endif
 
 /**
- * Auto Bed Leveling and Z Probe Repeatability Test
+ * Sled Options
  */
-#define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0 && DISABLED(Z_TWO_ENDSTOPS))
+#if ENABLED(Z_PROBE_SLED)
+  #define Z_SAFE_HOMING
+#endif
+
+/**
+ * Safe Homing Options
+ */
+#if ENABLED(Z_SAFE_HOMING)
+  #if DISABLED(Z_SAFE_HOMING_X_POINT)
+    #define Z_SAFE_HOMING_X_POINT ((X_MIN_POS + X_MAX_POS) / 2)
+  #endif
+  #if DISABLED(Z_SAFE_HOMING_Y_POINT)
+    #define Z_SAFE_HOMING_Y_POINT ((Y_MIN_POS + Y_MAX_POS) / 2)
+  #endif
+  #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
+  #define Y_TILT_FULCRUM Z_SAFE_HOMING_Y_POINT
+#else
+  #define X_TILT_FULCRUM X_HOME_POS
+  #define Y_TILT_FULCRUM Y_HOME_POS
+#endif
+
+/**
+ * Host keep alive
+ */
+#if DISABLED(DEFAULT_KEEPALIVE_INTERVAL)
+  #define DEFAULT_KEEPALIVE_INTERVAL 2
+#endif
+
+/**
+ * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
+ */
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #if ENABLED(LIN_ADVANCE)
+    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 60000; // 60KHz
+  #else
+    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 80000; // 80Khz
+  #endif
+#else
+  constexpr uint32_t DOUBLE_STEP_FREQUENCY = 10000;
+#endif
+
+/**
+ * MAX_STEP_FREQUENCY differs for TOSHIBA
+ */
+#if ENABLED(CONFIG_STEPPERS_TOSHIBA)
+  constexpr uint32_t MAX_STEP_FREQUENCY = DOUBLE_STEP_FREQUENCY;        // Max step frequency for Toshiba Stepper Controllers, 96kHz is close to maximum for an Arduino Due
+#else
+  constexpr uint32_t MAX_STEP_FREQUENCY = (DOUBLE_STEP_FREQUENCY * 4);  // Max step frequency for the Due is approx. 330kHz
+#endif
+
+// MS1 MS2 Stepper Driver Microstepping mode table
+#define MICROSTEP1 LOW,LOW
+#define MICROSTEP2 HIGH,LOW
+#define MICROSTEP4 LOW,HIGH
+#define MICROSTEP8 HIGH,HIGH
+#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #define MICROSTEP16 LOW,LOW
+  #define MICROSTEP32 HIGH,HIGH
+#else
+  #define MICROSTEP16 HIGH,HIGH
+#endif
+
+/**
+ * SD DETECT
+ */
+#if ENABLED(SD_DISABLED_DETECT)
+  #undef SD_DETECT_PIN
+  #define SD_DETECT_PIN   -1
+#endif
+#if ENABLED(ULTIPANEL) && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+  #undef SD_DETECT_INVERTED
+#endif
+
+/**
+ * Power Signal Control Definitions
+ * By default use Normal definition
+ */
+#if DISABLED(POWER_SUPPLY)
+  #define POWER_SUPPLY 0
+#endif
+#if (POWER_SUPPLY == 1)     // 1 = ATX
+  #define PS_ON_AWAKE  LOW
+  #define PS_ON_ASLEEP HIGH
+#elif (POWER_SUPPLY == 2)   // 2 = X-Box 360 203W
+  #define PS_ON_AWAKE  HIGH
+  #define PS_ON_ASLEEP LOW
+#endif
+#if DISABLED(DELAY_AFTER_POWER_ON)
+  #define DELAY_AFTER_POWER_ON 5
+#endif
+#define HAS_POWER_SWITCH (POWER_SUPPLY > 0 && PIN_EXISTS(PS_ON))
+
+/**
+ * Temp Sensor defines
+ */
+#if TEMP_SENSOR_0 == -3
+  #define SUPPORT_MAX31855
+#elif TEMP_SENSOR_0 == -2
+  #define SUPPORT_MAX6675
+#elif TEMP_SENSOR_0 == -1
+  #define HEATER_0_USES_AD595
+#elif TEMP_SENSOR_0 > 0 && TEMP_SENSOR_0 < 10
+  #define HEATER_0_USES_THERMISTOR
+#elif TEMP_SENSOR_0 == 11
+  #define HEATER_0_USES_DHT11
+#elif TEMP_SENSOR_0 == 20
+  #define THERMISTORHEATER_0 TEMP_SENSOR_0
+  #define HEATER_0_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_1 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_1 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
+#elif TEMP_SENSOR_1 == -1
+  #define HEATER_1_USES_AD595
+#elif TEMP_SENSOR_1 > 0 && TEMP_SENSOR_1 < 10
+  #define HEATER_1_USES_THERMISTOR
+#elif TEMP_SENSOR_1 == 11
+  #define HEATER_1_USES_DHT11
+#elif TEMP_SENSOR_1 == 20
+  #define THERMISTORHEATER_1 TEMP_SENSOR_1
+  #define HEATER_1_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_2 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_2 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
+#elif TEMP_SENSOR_2 == -1
+  #define HEATER_2_USES_AD595
+#elif TEMP_SENSOR_2 > 0 && TEMP_SENSOR_2 < 10
+  #define HEATER_2_USES_THERMISTOR
+#elif TEMP_SENSOR_2 == 11
+  #define HEATER_2_USES_DHT11
+#elif TEMP_SENSOR_2 == 20
+  #define THERMISTORHEATER_2 TEMP_SENSOR_2
+  #define HEATER_2_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_3 == -3
+  #if DISABLED(SUPPORT_MAX31855)
+    #define SUPPORT_MAX31855
+  #endif
+#elif TEMP_SENSOR_3 == -2
+  #if DISABLED(SUPPORT_MAX6675)
+    #define SUPPORT_MAX6675
+  #endif
+#elif TEMP_SENSOR_3 == -1
+  #define HEATER_3_USES_AD595
+#elif TEMP_SENSOR_3 > 0 && TEMP_SENSOR_3 < 10
+  #define HEATER_3_USES_THERMISTOR
+#elif TEMP_SENSOR_3 == 11
+  #define HEATER_3_USES_DHT11
+#elif TEMP_SENSOR_3 == 20
+  #define THERMISTORHEATER_3 TEMP_SENSOR_3
+  #define HEATER_3_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_BED <= -2
+  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_BED"
+#elif TEMP_SENSOR_BED == -1
+  #define BED_USES_AD595
+#elif TEMP_SENSOR_BED > 0 && TEMP_SENSOR_BED < 10
+  #define BED_USES_THERMISTOR
+#elif TEMP_SENSOR_BED == 11
+  #define BED_USES_DHT11
+#elif TEMP_SENSOR_BED == 20
+  #define THERMISTORBED TEMP_SENSOR_BED
+  #define BED_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_CHAMBER <= -2
+  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_CHAMBER"
+#elif TEMP_SENSOR_CHAMBER == -1
+  #define CHAMBER_USES_AD595
+#elif TEMP_SENSOR_CHAMBER > 0 && TEMP_SENSOR_CHAMBER < 10
+  #define CHAMBER_USES_THERMISTOR
+#elif TEMP_SENSOR_CHAMBER == 11
+  #define CHAMBER_USES_DHT11
+#elif TEMP_SENSOR_CHAMBER == 20
+  #define THERMISTORCHAMBER TEMP_SENSOR_CHAMBER
+  #define CHAMBER_USES_AMPLIFIER
+#endif
+
+#if TEMP_SENSOR_COOLER <= -2
+  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_COOLER"
+#elif TEMP_SENSOR_COOLER == -1
+  #define COOLER_USES_AD595
+#elif TEMP_SENSOR_COOLER > 0 && TEMP_SENSOR_COOLER < 10
+  #define COOLER_USES_THERMISTOR
+#elif TEMP_SENSOR_COOLER == 11
+  #define COOLER_USES_DHT11
+#elif TEMP_SENSOR_COOLER == 20
+  #define THERMISTORCOOLER TEMP_SENSOR_COOLER
+  #define COOLER_USES_AMPLIFIER
+#endif
+
+#define HEATER_USES_AD595     (ENABLED(HEATER_0_USES_AD595) || ENABLED(HEATER_1_USES_AD595) || ENABLED(HEATER_2_USES_AD595) || ENABLED(HEATER_3_USES_AD595) || ENABLED(BED_USES_AD595) || ENABLED(CHAMBER_USES_AD595) || ENABLED(COOLER_USES_AD595))
+#define HEATER_USES_MAX       (ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855))
+#define HEATER_USES_AMPLIFIER (ENABLED(HEATER_0_USES_AMPLIFIER) || ENABLED(HEATER_1_USES_AMPLIFIER) || ENABLED(HEATER_2_USES_AMPLIFIER) || ENABLED(HEATER_3_USES_AMPLIFIER) || ENABLED(BED_USES_AMPLIFIER) || ENABLED(CHAMBER_USES_AMPLIFIER) || ENABLED(COOLER_USES_AMPLIFIER))
 
 /**
  * Shorthand for pin tests, used wherever needed
@@ -399,7 +600,7 @@
 #define WATCH_THE_COOLER                (HAS_THERMALLY_PROTECTED_COOLER   && WATCH_COOLER_TEMP_PERIOD   > 0)
 #define WATCH_THE_HEATER                (WATCH_THE_HOTEND || WATCH_THE_BED || WATCH_THE_CHAMBER || WATCH_THE_COOLER)
 
-// Other fans
+// Fans
 #define HAS_FAN0            (PIN_EXISTS(FAN0))
 #define HAS_FAN1            (PIN_EXISTS(FAN1))
 #define HAS_FAN2            (PIN_EXISTS(FAN2))
@@ -649,17 +850,6 @@
 #endif
 
 /**
- * The BLTouch Probe emulates a servo probe
- */
-#if ENABLED(BLTOUCH)
-  #if HAS_Z_PROBE_PIN
-    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
-  #else
-    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
-  #endif
-#endif
-
-/**
  * Set granular options based on the specific type of leveling
  */
 
@@ -669,15 +859,10 @@
 #define HAS_ABL               (ABL_PLANAR || ABL_GRID || ENABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_LEVELING          (HAS_ABL || ENABLED(MESH_BED_LEVELING))
 #define HAS_AUTOLEVEL         (HAS_ABL && DISABLED(PROBE_MANUALLY))
-#define OLD_ABL         (HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL))
+#define OLD_ABL               (HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_MESH              (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
 #define PLANNER_LEVELING      (ABL_PLANAR || ABL_GRID || ENABLED(MESH_BED_LEVELING) || UBL_DELTA)
 #define HAS_PROBING_PROCEDURE (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
-
-#if HAS_PROBING_PROCEDURE
-  #define PROBE_BED_WIDTH     abs(RIGHT_PROBE_BED_POSITION - (LEFT_PROBE_BED_POSITION))
-  #define PROBE_BED_HEIGHT    abs(BACK_PROBE_BED_POSITION - (FRONT_PROBE_BED_POSITION))
-#endif
 
 /**
  * Bed Probing rectangular bounds
@@ -716,219 +901,6 @@
 #if DISABLED(Z_PROBE_REPETITIONS)
   #define Z_PROBE_REPETITIONS 1
 #endif
-
-/**
- * Sled Options
- */
-#if ENABLED(Z_PROBE_SLED)
-  #define Z_SAFE_HOMING
-#endif
-
-/**
- * Safe Homing Options
- */
-#if ENABLED(Z_SAFE_HOMING)
-  #if DISABLED(Z_SAFE_HOMING_X_POINT)
-    #define Z_SAFE_HOMING_X_POINT ((X_MIN_POS + X_MAX_POS) / 2)
-  #endif
-  #if DISABLED(Z_SAFE_HOMING_Y_POINT)
-    #define Z_SAFE_HOMING_Y_POINT ((Y_MIN_POS + Y_MAX_POS) / 2)
-  #endif
-  #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
-  #define Y_TILT_FULCRUM Z_SAFE_HOMING_Y_POINT
-#else
-  #define X_TILT_FULCRUM X_HOME_POS
-  #define Y_TILT_FULCRUM Y_HOME_POS
-#endif
-
-/**
- * Host keep alive
- */
-#if DISABLED(DEFAULT_KEEPALIVE_INTERVAL)
-  #define DEFAULT_KEEPALIVE_INTERVAL 2
-#endif
-
-/**
- * DOUBLE_STEP_FREQUENCY for Arduino DUE or Mega
- */
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #if ENABLED(LIN_ADVANCE)
-    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 60000; // 60KHz
-  #else
-    constexpr uint32_t DOUBLE_STEP_FREQUENCY = 80000; // 80Khz
-  #endif
-#else
-  constexpr uint32_t DOUBLE_STEP_FREQUENCY = 10000;
-#endif
-
-/**
- * MAX_STEP_FREQUENCY differs for TOSHIBA
- */
-#if ENABLED(CONFIG_STEPPERS_TOSHIBA)
-  constexpr uint32_t MAX_STEP_FREQUENCY = DOUBLE_STEP_FREQUENCY;        // Max step frequency for Toshiba Stepper Controllers, 96kHz is close to maximum for an Arduino Due
-#else
-  constexpr uint32_t MAX_STEP_FREQUENCY = (DOUBLE_STEP_FREQUENCY * 4);  // Max step frequency for the Due is approx. 330kHz
-#endif
-
-// MS1 MS2 Stepper Driver Microstepping mode table
-#define MICROSTEP1 LOW,LOW
-#define MICROSTEP2 HIGH,LOW
-#define MICROSTEP4 LOW,HIGH
-#define MICROSTEP8 HIGH,HIGH
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-  #define MICROSTEP16 LOW,LOW
-  #define MICROSTEP32 HIGH,HIGH
-#else
-  #define MICROSTEP16 HIGH,HIGH
-#endif
-
-/**
- * SD DETECT
- */
-#if ENABLED(SD_DISABLED_DETECT)
-  #undef SD_DETECT_PIN
-  #define SD_DETECT_PIN   -1
-#endif
-#if ENABLED(ULTIPANEL) && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER)
-  #undef SD_DETECT_INVERTED
-#endif
-
-/**
- * Power Signal Control Definitions
- * By default use Normal definition
- */
-#if DISABLED(POWER_SUPPLY)
-  #define POWER_SUPPLY 0
-#endif
-#if (POWER_SUPPLY == 1)     // 1 = ATX
-  #define PS_ON_AWAKE  LOW
-  #define PS_ON_ASLEEP HIGH
-#elif (POWER_SUPPLY == 2)   // 2 = X-Box 360 203W
-  #define PS_ON_AWAKE  HIGH
-  #define PS_ON_ASLEEP LOW
-#endif
-#if DISABLED(DELAY_AFTER_POWER_ON)
-  #define DELAY_AFTER_POWER_ON 5
-#endif
-#define HAS_POWER_SWITCH (POWER_SUPPLY > 0 && PIN_EXISTS(PS_ON))
-
-/**
- * Temp Sensor defines
- */
-#if TEMP_SENSOR_0 == -3
-  #define SUPPORT_MAX31855
-#elif TEMP_SENSOR_0 == -2
-  #define SUPPORT_MAX6675
-#elif TEMP_SENSOR_0 == -1
-  #define HEATER_0_USES_AD595
-#elif TEMP_SENSOR_0 > 0 && TEMP_SENSOR_0 < 10
-  #define HEATER_0_USES_THERMISTOR
-#elif TEMP_SENSOR_0 == 11
-  #define HEATER_0_USES_DHT11
-#elif TEMP_SENSOR_0 == 20
-  #define THERMISTORHEATER_0 TEMP_SENSOR_0
-  #define HEATER_0_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_1 == -3
-  #if DISABLED(SUPPORT_MAX31855)
-    #define SUPPORT_MAX31855
-  #endif
-#elif TEMP_SENSOR_1 == -2
-  #if DISABLED(SUPPORT_MAX6675)
-    #define SUPPORT_MAX6675
-  #endif
-#elif TEMP_SENSOR_1 == -1
-  #define HEATER_1_USES_AD595
-#elif TEMP_SENSOR_1 > 0 && TEMP_SENSOR_1 < 10
-  #define HEATER_1_USES_THERMISTOR
-#elif TEMP_SENSOR_1 == 11
-  #define HEATER_1_USES_DHT11
-#elif TEMP_SENSOR_1 == 20
-  #define THERMISTORHEATER_1 TEMP_SENSOR_1
-  #define HEATER_1_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_2 == -3
-  #if DISABLED(SUPPORT_MAX31855)
-    #define SUPPORT_MAX31855
-  #endif
-#elif TEMP_SENSOR_2 == -2
-  #if DISABLED(SUPPORT_MAX6675)
-    #define SUPPORT_MAX6675
-  #endif
-#elif TEMP_SENSOR_2 == -1
-  #define HEATER_2_USES_AD595
-#elif TEMP_SENSOR_2 > 0 && TEMP_SENSOR_2 < 10
-  #define HEATER_2_USES_THERMISTOR
-#elif TEMP_SENSOR_2 == 11
-  #define HEATER_2_USES_DHT11
-#elif TEMP_SENSOR_2 == 20
-  #define THERMISTORHEATER_2 TEMP_SENSOR_2
-  #define HEATER_2_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_3 == -3
-  #if DISABLED(SUPPORT_MAX31855)
-    #define SUPPORT_MAX31855
-  #endif
-#elif TEMP_SENSOR_3 == -2
-  #if DISABLED(SUPPORT_MAX6675)
-    #define SUPPORT_MAX6675
-  #endif
-#elif TEMP_SENSOR_3 == -1
-  #define HEATER_3_USES_AD595
-#elif TEMP_SENSOR_3 > 0 && TEMP_SENSOR_3 < 10
-  #define HEATER_3_USES_THERMISTOR
-#elif TEMP_SENSOR_3 == 11
-  #define HEATER_3_USES_DHT11
-#elif TEMP_SENSOR_3 == 20
-  #define THERMISTORHEATER_3 TEMP_SENSOR_3
-  #define HEATER_3_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_BED <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_BED"
-#elif TEMP_SENSOR_BED == -1
-  #define BED_USES_AD595
-#elif TEMP_SENSOR_BED > 0 && TEMP_SENSOR_BED < 10
-  #define BED_USES_THERMISTOR
-#elif TEMP_SENSOR_BED == 11
-  #define BED_USES_DHT11
-#elif TEMP_SENSOR_BED == 20
-  #define THERMISTORBED TEMP_SENSOR_BED
-  #define BED_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_CHAMBER <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_CHAMBER"
-#elif TEMP_SENSOR_CHAMBER == -1
-  #define CHAMBER_USES_AD595
-#elif TEMP_SENSOR_CHAMBER > 0 && TEMP_SENSOR_CHAMBER < 10
-  #define CHAMBER_USES_THERMISTOR
-#elif TEMP_SENSOR_CHAMBER == 11
-  #define CHAMBER_USES_DHT11
-#elif TEMP_SENSOR_CHAMBER == 20
-  #define THERMISTORCHAMBER TEMP_SENSOR_CHAMBER
-  #define CHAMBER_USES_AMPLIFIER
-#endif
-
-#if TEMP_SENSOR_COOLER <= -2
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_COOLER"
-#elif TEMP_SENSOR_COOLER == -1
-  #define COOLER_USES_AD595
-#elif TEMP_SENSOR_COOLER > 0 && TEMP_SENSOR_COOLER < 10
-  #define COOLER_USES_THERMISTOR
-#elif TEMP_SENSOR_COOLER == 11
-  #define COOLER_USES_DHT11
-#elif TEMP_SENSOR_COOLER == 20
-  #define THERMISTORCOOLER TEMP_SENSOR_COOLER
-  #define COOLER_USES_AMPLIFIER
-#endif
-
-#define HEATER_USES_AD595     (ENABLED(HEATER_0_USES_AD595) || ENABLED(HEATER_1_USES_AD595) || ENABLED(HEATER_2_USES_AD595) || ENABLED(HEATER_3_USES_AD595) || ENABLED(BED_USES_AD595) || ENABLED(CHAMBER_USES_AD595) || ENABLED(COOLER_USES_AD595))
-#define HEATER_USES_MAX       (ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855))
-#define HEATER_USES_AMPLIFIER (ENABLED(HEATER_0_USES_AMPLIFIER) || ENABLED(HEATER_1_USES_AMPLIFIER) || ENABLED(HEATER_2_USES_AMPLIFIER) || ENABLED(HEATER_3_USES_AMPLIFIER) || ENABLED(BED_USES_AMPLIFIER) || ENABLED(CHAMBER_USES_AMPLIFIER) || ENABLED(COOLER_USES_AMPLIFIER))
 
 /**
  * Heaters
@@ -1227,22 +1199,6 @@
   #if DISABLED(Z_ENDSTOP_SERVO_NR)
     #define Z_ENDSTOP_SERVO_NR -1
   #endif
-#endif
-
-/**
- * Set a flag for a servo probe
- */
-#define HAS_Z_SERVO_PROBE (HAS_SERVOS && ENABLED(Z_ENDSTOP_SERVO_NR) && Z_ENDSTOP_SERVO_NR >= 0)
-
-/**
- * Set a flag for any enabled probe
- */
-#define PROBE_SELECTED        (ENABLED(PROBE_MANUALLY) || ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE)
-#define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
-#define HAS_BED_PROBE         ((PROBE_SELECTED && PROBE_PIN_CONFIGURED) && DISABLED(PROBE_MANUALLY))
-
-#if ENABLED(Z_PROBE_ALLEN_KEY)
-  #define PROBE_IS_TRIGGERED_WHEN_STOWED_TEST
 #endif
 
 /**
