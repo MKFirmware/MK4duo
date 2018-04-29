@@ -65,6 +65,8 @@ Stepper stepper;
 
 // public:
 
+uint16_t Stepper::direction_flag = 0;
+
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT)
@@ -327,11 +329,11 @@ void Stepper::set_directions() {
 
   #define SET_STEP_DIR(AXIS) \
     if (motor_direction(AXIS ##_AXIS)) { \
-      AXIS ##_APPLY_DIR(INVERT_## AXIS ##_DIR, false); \
+      AXIS ##_APPLY_DIR(isStepDir(AXIS ##_AXIS), false); \
       count_direction[AXIS ##_AXIS] = -1; \
     } \
     else { \
-      AXIS ##_APPLY_DIR(!INVERT_## AXIS ##_DIR, false); \
+      AXIS ##_APPLY_DIR(!isStepDir(AXIS ##_AXIS), false); \
       count_direction[AXIS ##_AXIS] = 1; \
     }
 
@@ -2410,9 +2412,9 @@ void Stepper::report_positions() {
                         old_y_dir_pin = Y_DIR_READ,
                         old_z_dir_pin = Z_DIR_READ;
 
-          X_DIR_WRITE(INVERT_X_DIR ^ z_direction);
-          Y_DIR_WRITE(INVERT_Y_DIR ^ z_direction);
-          Z_DIR_WRITE(INVERT_Z_DIR ^ z_direction);
+          X_DIR_WRITE(isStepDir(X_AXIS) ^ z_direction);
+          Y_DIR_WRITE(isStepDir(Y_AXIS) ^ z_direction);
+          Z_DIR_WRITE(isStepDir(Z_AXIS) ^ z_direction);
 
           _SAVE_START;
 

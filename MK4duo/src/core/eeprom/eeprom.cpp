@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV45"
+#define EEPROM_VERSION "MKV46"
 
 /**
- * MKV45 EEPROM Layout:
+ * MKV46 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -163,6 +163,9 @@
  *  M200  T D             tools.filament_size                   (float x6)
  *
  *  M???  S               printer.IDLE_OOZING_enabled
+ *
+ * Stepper driver direction
+ *  M569  XYZ T0-5 E     stepper.direction_flag                 (uint16_t)
  *
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current                         (float x7)
@@ -512,6 +515,8 @@ void EEPROM::Postprocess() {
     #if ENABLED(IDLE_OOZING_PREVENT)
       EEPROM_WRITE(printer.IDLE_OOZING_enabled);
     #endif
+
+    EEPROM_WRITE(stepper.direction_flag);
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       EEPROM_WRITE(externaldac.motor_current);
@@ -969,6 +974,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(printer.IDLE_OOZING_enabled);
       #endif
 
+      EEPROM_READ(stepper.direction_flag);
+
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
         EEPROM_READ(externaldac.motor_current);
       #endif
@@ -1329,6 +1336,9 @@ void EEPROM::Factory_Settings() {
     mechanics.retract_acceleration[i]       = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
     mechanics.max_jerk[E_AXIS + i]          = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
   }
+
+  constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
+  LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
 
   static_assert(
     tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
@@ -2197,6 +2207,24 @@ void EEPROM::Factory_Settings() {
       #endif
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
+
+    /**
+     * Stepper Direction
+     */
+    CONFIG_MSG_START("Stepper Direction");
+    SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
+    SERIAL_MV(" Y", (int)stepper.isStepDir(Y_AXIS));
+    SERIAL_MV(" Z", (int)stepper.isStepDir(Z_AXIS));
+    #if EXTRUDERS == 1
+      SERIAL_MV(" T0 E", (int)stepper.isStepDir(E_AXIS));
+    #endif
+    SERIAL_EOL();
+    #if EXTRUDERS > 1
+      for (int8_t i = 0; i < EXTRUDERS; i++) {
+        SERIAL_SMV(CFG, "  M569 T", i);
+        SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)E_AXIS + i));
+      }
+    #endif
 
     /**
      * Alligator current drivers M906

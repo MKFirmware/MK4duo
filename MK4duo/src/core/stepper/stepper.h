@@ -57,6 +57,8 @@ class Stepper {
 
   public: /** Public Parameters */
 
+    static uint16_t direction_flag; // Driver Stepper direction flag
+
     static block_t* current_block;  // A pointer to the block currently being traced
 
     static watch_t move_watch;
@@ -69,7 +71,7 @@ class Stepper {
 
   private: /** Private Parameters */
 
-    static uint8_t last_direction_bits;        // The next stepping-bits to be output
+    static uint8_t last_direction_bits;   // The next stepping-bits to be output
 
     #if ENABLED(X_TWO_ENDSTOPS)
       static bool locked_x_motor, locked_x2_motor;
@@ -288,6 +290,12 @@ class Stepper {
     FORCE_INLINE static float triggered_position_mm(AxisEnum axis) {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
+
+    // Flag Stepper direction function
+    FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
+      SET_BIT(direction_flag, axis, onoff);
+    }
+    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
   private: /** Private Function */
 
