@@ -87,7 +87,7 @@
   #define X_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
   #define Y_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
 
-  #define UBL_PROBEABLE_RADIUS   (DELTA_PRINTABLE_RADIUS - MESH_INSET)
+  #define UBL_PROBEABLE_RADIUS   (DELTA_PRINTABLE_RADIUS)
   #define UBL_MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
   #define UBL_MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
   #define UBL_MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
@@ -876,23 +876,22 @@
  * These can be further constrained in code for Delta and SCARA
  */
 #if IS_DELTA
-  // Check for this in the code instead
   #define MIN_PROBE_X -(mechanics.delta_print_radius)
   #define MAX_PROBE_X  (mechanics.delta_print_radius)
   #define MIN_PROBE_Y -(mechanics.delta_print_radius)
   #define MAX_PROBE_Y  (mechanics.delta_print_radius)
 #elif IS_SCARA
-    #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
-    #define MIN_PROBE_X (X_CENTER - SCARA_PRINTABLE_RADIUS)
-    #define MAX_PROBE_X (X_CENTER + SCARA_PRINTABLE_RADIUS)
-    #define MIN_PROBE_Y (Y_CENTER - SCARA_PRINTABLE_RADIUS)
-    #define MAX_PROBE_Y (Y_CENTER + SCARA_PRINTABLE_RADIUS)
+  #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
+  #define MIN_PROBE_X (X_CENTER - (SCARA_PRINTABLE_RADIUS) + (MIN_PROBE_EDGE))
+  #define MAX_PROBE_X (Y_CENTER - (SCARA_PRINTABLE_RADIUS) + (MIN_PROBE_EDGE))
+  #define MIN_PROBE_Y (X_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
+  #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
-  // Boundaries for probing based on set limits
-  #define MIN_PROBE_X (max(X_MIN_POS, X_MIN_POS + probe.offset[X_AXIS]))
-  #define MAX_PROBE_X (min(X_MAX_POS, X_MAX_POS + probe.offset[X_AXIS]))
-  #define MIN_PROBE_Y (max(Y_MIN_POS, Y_MIN_POS + probe.offset[Y_AXIS]))
-  #define MAX_PROBE_Y (min(Y_MAX_POS, Y_MAX_POS + probe.offset[Y_AXIS]))
+  // Boundaries for Cartesian probing based on bed limits
+  #define MIN_PROBE_X (max(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (max(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_X (min(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_Y (min(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.offset[Y_AXIS]))
 #endif
 
 /**
@@ -1203,8 +1202,8 @@
  * Servos
  */
 #if HAS_SERVOS
-  #if DISABLED(Z_ENDSTOP_SERVO_NR)
-    #define Z_ENDSTOP_SERVO_NR -1
+  #if DISABLED(Z_PROBE_SERVO_NR)
+    #define Z_PROBE_SERVO_NR -1
   #endif
 #endif
 

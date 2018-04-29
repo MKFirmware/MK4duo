@@ -156,7 +156,7 @@
               for (uint8_t y = GRID_MAX_POINTS_Y; y--;)
                 Z_VALUES(x, y) -= zmean;
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-              bedlevel.virt_interpolate();
+              abl.virt_interpolate();
             #endif
           }
 

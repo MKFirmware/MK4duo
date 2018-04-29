@@ -694,7 +694,7 @@ static void lcd_implementation_status_screen() {
 
     lcd_moveto(LCD_WIDTH - 8, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
+    lcd_put_u8str(ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
 
     #if HAS_LEVELING && !HAS_TEMP_BED
       lcd_put_wchar(bedlevel.leveling_active || blink ? '_' : ' ');

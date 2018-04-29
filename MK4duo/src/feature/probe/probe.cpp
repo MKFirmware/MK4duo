@@ -33,7 +33,7 @@ Probe probe;
 float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE };
 
 #if HAS_Z_SERVO_PROBE
-  const int Probe::z_servo_angle[2] = Z_ENDSTOP_SERVO_ANGLES;
+  const int Probe::z_servo_angle[2] = Z_SERVO_ANGLES;
 #endif
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)
@@ -131,7 +131,7 @@ bool Probe::set_deployed(const bool deploy) {
   #elif ENABLED(BLTOUCH) && MECH(DELTA)
     if (set_bltouch_deployed(deploy)) return true;
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
-    MOVE_SERVO(Z_ENDSTOP_SERVO_NR, z_servo_angle[deploy ? 0 : 1]);
+    MOVE_SERVO(Z_PROBE_SERVO_NR, z_servo_angle[deploy ? 0 : 1]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
   #endif
@@ -407,7 +407,7 @@ float Probe::run_z_probe() {
 #if ENABLED(BLTOUCH)
 
   void Probe::bltouch_command(int angle) {
-    MOVE_SERVO(Z_ENDSTOP_SERVO_NR, angle);  // Give the BL-Touch the command and wait
+    MOVE_SERVO(Z_PROBE_SERVO_NR, angle);  // Give the BL-Touch the command and wait
     printer.safe_delay(BLTOUCH_DELAY);
   }
 
