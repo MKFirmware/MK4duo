@@ -128,6 +128,13 @@
   #define BED_CENTER_AT_0_0
 #endif
 
+/**
+ * Axis lengths and center
+ */
+#define X_MAX_LENGTH (X_MAX_POS - (X_MIN_POS))
+#define Y_MAX_LENGTH (Y_MAX_POS - (Y_MIN_POS))
+#define Z_MAX_LENGTH (Z_MAX_POS - (Z_MIN_POS))
+
 // Defined only if the sanity-check is bypassed
 #ifndef X_BED_SIZE
   #define X_BED_SIZE X_MAX_LENGTH
