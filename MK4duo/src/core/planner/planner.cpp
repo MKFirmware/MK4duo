@@ -1051,20 +1051,20 @@ void Planner::check_axes_activity() {
   // Compute direction bit for this block
   uint8_t dirb = 0;
   #if CORE_IS_XY
-    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Extruder (head) direction in X Axis
+    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Nozzle (head) direction in X Axis
     if (dy < 0) SBI(dirb, Y_HEAD);            // ...and Y
     if (dz < 0) SBI(dirb, Z_AXIS);
     if (da < 0) SBI(dirb, A_AXIS);            // Motor A direction
     if (CORESIGN(db) < 0) SBI(dirb, B_AXIS);  // Motor B direction
   #elif CORE_IS_XZ
-    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Extruder (head) direction in X Axis
+    if (dx < 0) SBI(dirb, X_HEAD);            // Save the real Nozzle (head) direction in X Axis
     if (dy < 0) SBI(dirb, Y_AXIS);
     if (dz < 0) SBI(dirb, Z_HEAD);            // ...and Z
     if (da < 0) SBI(dirb, A_AXIS);            // Motor A direction
     if (CORESIGN(dc) < 0) SBI(dirb, C_AXIS);  // Motor C direction
   #elif CORE_IS_YZ
     if (dx < 0) SBI(dirb, X_AXIS);
-    if (dy < 0) SBI(dirb, Y_HEAD);            // Save the real Extruder (head) direction in Y Axis
+    if (dy < 0) SBI(dirb, Y_HEAD);            // Save the real Nozzle (head) direction in Y Axis
     if (dz < 0) SBI(dirb, Z_HEAD);            // ...and Z
     if (db < 0) SBI(dirb, B_AXIS);            // Motor B direction
     if (CORESIGN(dc) < 0) SBI(dirb, C_AXIS);  // Motor C direction

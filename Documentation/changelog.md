@@ -2,6 +2,7 @@
 * Make class Mechanics to static
 * Add Bézier Jerk Control
 * Rewrite SD Restart for auto restart when power loss and return.
+* Add command gcode M569 for setting Stepper Driver DIR.
 * Fix and clear code
 
 ### Version 4.3.5 Stable
