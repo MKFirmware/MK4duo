@@ -69,11 +69,11 @@
 
     #elif !HAS_Z_SERVO_PROBE
 
-      SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
+      SERIAL_LM(ER, "Z_PROBE_SERVO_NR not setup");
 
     #else // HAS_Z_SERVO_PROBE
 
-      const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_ENDSTOP_SERVO_NR;
+      const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_PROBE_SERVO_NR;
 
       SERIAL_EM("Servo probe test");
       SERIAL_EMV(".  Using index:  ", probe_index);

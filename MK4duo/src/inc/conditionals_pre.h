@@ -501,13 +501,13 @@
   #if DISABLED(ENABLE_SERVOS)
     #define ENABLE_SERVOS
   #endif
-  #if Z_ENDSTOP_SERVO_NR < 0
-    #undef Z_ENDSTOP_SERVO_NR
-    #define Z_ENDSTOP_SERVO_NR 0
+  #if Z_PROBE_SERVO_NR < 0
+    #undef Z_PROBE_SERVO_NR
+    #define Z_PROBE_SERVO_NR 0
   #endif
   #if NUM_SERVOS < 1
     #undef NUM_SERVOS
-    #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
+    #define NUM_SERVOS (Z_PROBE_SERVO_NR + 1)
   #endif
   #undef DEACTIVATE_SERVOS_AFTER_MOVE
   #undef SERVO_DEACTIVATION_DELAY
@@ -515,8 +515,8 @@
   #if DISABLED(BLTOUCH_DELAY)
     #define BLTOUCH_DELAY 375
   #endif
-  #undef Z_ENDSTOP_SERVO_ANGLES
-  #define Z_ENDSTOP_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
+  #undef Z_SERVO_ANGLES
+  #define Z_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
 
   #define BLTOUCH_DEPLOY    10
   #define BLTOUCH_STOW      90
@@ -533,7 +533,7 @@
 /**
  * Set a flag for a servo probe
  */
-#define HAS_Z_SERVO_PROBE (HAS_SERVOS && ENABLED(Z_ENDSTOP_SERVO_NR) && Z_ENDSTOP_SERVO_NR >= 0)
+#define HAS_Z_SERVO_PROBE (HAS_SERVOS && ENABLED(Z_PROBE_SERVO_NR) && Z_PROBE_SERVO_NR >= 0)
 
 /**
  * Set flags for enabled probes

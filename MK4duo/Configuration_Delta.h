@@ -229,8 +229,8 @@
 // Z Servo Endstop
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_ENDSTOP_SERVO_NR -1
-#define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define Z_PROBE_SERVO_NR -1
+#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
 // Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
@@ -424,9 +424,6 @@
 // enable a graphics overly while editing the mesh from auto-level
 //#define MESH_EDIT_GFX_OVERLAY
 
-// Mesh inset margin on print area
-#define MESH_INSET 10
-
 // Enable the G26 Mesh Validation Pattern tool.
 //#define G26_MESH_VALIDATION
 #define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
@@ -449,9 +446,6 @@
 // Works best with 5 or more points in each dimension.
 #define GRID_MAX_POINTS_X 7
 #define GRID_MAX_POINTS_Y 7
-
-// The Z probe minimum outer margin (to validate G29 parameters).
-#define MIN_PROBE_EDGE 10
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
