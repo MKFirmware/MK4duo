@@ -121,7 +121,7 @@ class Probe {
      * @param  fr_mm_s  Feedrate in mm/s
      * @return true to indicate an error
      */
-    static bool move_to_z(const float z, const float fr_mm_m);
+    static bool move_to_z(const float z, const float fr_mm_s);
 
     /**
      * @details Used by check_pt to do a single Z probe.

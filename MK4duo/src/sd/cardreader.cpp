@@ -49,14 +49,14 @@
     workDirDepth = 0;
     ZERO(workDirParents);
 
-    autostart_stilltocheck = true; // the SD start is delayed, because otherwise the serial cannot answer fast enough to make contact with the host software.
+    // Disable autostart until card is initialized
+    autostart_index = -1;
 
     // power to SD reader
     #if PIN_EXISTS(SDPOWER)
       OUT_WRITE(SDPOWER_PIN, HIGH);
     #endif // SDPOWER_PIN
 
-    next_autostart_ms = millis() + 5000;
   }
 
   void CardReader::mount() {
@@ -316,19 +316,33 @@
     print_job_counter.showStats();
   }
 
-  void CardReader::checkautostart(bool force) {
-    if (!force && (!autostart_stilltocheck || PENDING(millis(), next_autostart_ms)))
-      return;
+  void CardReader::beginautostart() {
+    autostart_index = 0;
+    setroot();
+  }
 
-    autostart_stilltocheck = false;
+  void CardReader::checkautostart() {
 
-    if (!cardOK) {
-      mount();
-      if (!cardOK) return; // fail
+    if (autostart_index < 0 || sdprinting) return;
+
+    if (!cardOK) mount();
+    
+    if (cardOK) {
+      SERIAL_EM("Sono qui in autostart");
+      char autoname[10];
+      sprintf_P(autoname, PSTR("auto%i.g"), autostart_index);
+      dir_t p;
+      root.rewind();
+      while (root.readDir(p) > 0) {
+        for (int8_t i = (int8_t)strlen((char*)p.name); i--;) p.name[i] = tolower(p.name[i]);
+        if (p.name[9] != '~' && strncmp((char*)p.name, autoname, 5) == 0) {
+          openAndPrintFile(autoname);
+          autostart_index++;
+          return;
+        }
+      }
     }
-
-    fat.chdir(true);
-    if (selectFile("init.g")) startFileprint();
+    autostart_index = -1;
   }
 
   void CardReader::setroot() {
@@ -470,9 +484,9 @@
         return true;
       }
 
-      if (!eeprom_file.open(&root, "EEPROM.bin", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
+      if (!eeprom_file.open(&root, "eeprom.bin", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
-        SERIAL_EM("EEPROM.bin");
+        SERIAL_EM("eeprom.bin");
         return true;
       }
       else

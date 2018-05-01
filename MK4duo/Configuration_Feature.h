@@ -1201,8 +1201,18 @@
 // Swap the CW/CCW indicators in the graphics overlay
 //#define OVERLAY_GFX_REVERSE
 
-// ENCODER SETTINGS
+//
+// LCD Menu Items
+//
+// Disable all menus and only display the Status Screen, or
+// just remove some extraneous menu items to recover space.
+//
+//#define NO_LCD_MENUS
+//#define SLIM_LCD_MENUS
 
+//
+// ENCODER SETTINGS
+//
 // This option overrides the default number of encoder pulses needed to
 // produce one step. Should be increased for high-resolution encoders.
 #define ENCODER_PULSES_PER_STEP 5
@@ -1238,8 +1248,6 @@
 #define ENCODER_10X_STEPS_PER_SEC 75    // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value
 #define ENCODER_100X_STEPS_PER_SEC 160  // If the encoder steps per sec exceeds this value, multiply steps moved x100 to really quickly advance the value
 
-// Double-click the Encoder button on the Status Screen for Z Babystepping.
-//#define DOUBLECLICK_FOR_Z_BABYSTEPPING
 // Maximum interval between clicks, in milliseconds.
 // Note: You may need to add extra time to mitigate controller latency.
 #define DOUBLECLICK_MAX_INTERVAL 1250

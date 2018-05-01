@@ -447,8 +447,11 @@
 
     #if HAS_SDSUPPORT
       card.mount();
-      if (card.cardOK)
+      printer.safe_delay(500);
+      if (card.cardOK) {
         SDstatus = SD_INSERT;
+        card.beginautostart();  // Initial boot
+      }
       else
         SDstatus = SD_NO_INSERT;
       SD.setValue(SDstatus, "printer");
@@ -1218,6 +1221,8 @@
     }
   }
 
+  bool lcd_detected() { return NextionON; }
+
   static void degtoLCD(const uint8_t h, float temp) {
 
     NOMORE(temp, 999);
@@ -1277,7 +1282,7 @@
     }
   }
 
-  void lcd_key_touch_update() {
+  void lcd_update() {
     if (!NextionON) return;
     nexLoop(nex_listen_list);
   }

@@ -374,18 +374,6 @@ void HAL_temp_isr() {
   pwm_count_heater  += HEATER_PWM_STEP;
   pwm_count_fan     += FAN_PWM_STEP;
 
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      int curTodo = mechanics.babystepsTodo[axis]; // get rid of volatile for performance
-
-      if (curTodo) {
-        stepper.babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif //BABYSTEPPING
-
   #if ENABLED(PINS_DEBUGGING)
     extern bool endstop_monitor_flag;
     // run the endstop monitor at 15Hz

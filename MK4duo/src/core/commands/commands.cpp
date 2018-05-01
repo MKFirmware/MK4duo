@@ -278,23 +278,29 @@ void Commands::get_serial() {
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
       ) {
         if (card_eof) {
-          SERIAL_EM(MSG_FILE_PRINTED);
+
           card.printingHasFinished();
 
-          if (card.sdprinting)
+          if (IS_SD_PRINTING)
             sd_count = 0; // If a sub-file was printing, continue from call point
           else {
+            SERIAL_EM(MSG_FILE_PRINTED);
             #if ENABLED(PRINTER_EVENT_LEDS)
               LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
               leds.set_green();
               #if HAS_RESUME_CONTINUE
-                enqueue_and_echo_P(PSTR("M0"));
+                enqueue_and_echo_P(PSTR("M0 S"
+                  #if HAS_LCD
+                    "1800"
+                  #else
+                    "60"
+                  #endif
+                ));
               #else
-                printer.safe_delay(1000);
+                printer.safe_delay(2000);
+                leds.set_off();
               #endif
-              leds.set_off();
-            #endif
-            card.checkautostart(true);
+            #endif // ENABLED(PRINTER_EVENT_LEDS)
           }
         }
         else if (n == -1) {
@@ -308,8 +314,6 @@ void Commands::get_serial() {
         if (!sd_count) { printer.check_periodical_actions(); continue; }
 
         buffer_ring[buffer_index_w][sd_count] = '\0'; // terminate string
-        planner.add_block_length(sd_count);
-
         sd_count = 0; // clear sd line buffer
 
         commit(false);

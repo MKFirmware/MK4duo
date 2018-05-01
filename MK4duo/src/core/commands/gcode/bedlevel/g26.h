@@ -413,7 +413,9 @@ inline bool turn_on_heaters() {
       if (g26_bed_temp > 25) {
         lcd_setstatusPGM(PSTR("G26 Heating Bed."), 99);
         lcd_quick_feedback(true);
-        lcd_external_control = true;
+        #if ENABLED(NEWPANEL)
+          lcd_external_control = true;
+        #endif
     #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
         while (abs(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
@@ -710,7 +712,7 @@ inline void gcode_G26(void) {
   move_to(mechanics.destination, 0.0);
   move_to(mechanics.destination, g26_ooze_amount);
 
-  #if ENABLED(ULTRA_LCD)
+  #if ENABLED(NEWPANEL)
     lcd_external_control = true;
   #endif
 
@@ -809,7 +811,7 @@ LEAVE:
 
   move_to(mechanics.destination, 0); // Move back to the starting position
 
-  #if ENABLED(ULTRA_LCD)
+  #if ENABLED(NEWPANEL)
     lcd_external_control = false;   // Give back control of the LCD Panel!
   #endif
 

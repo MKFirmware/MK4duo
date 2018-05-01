@@ -286,8 +286,8 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
       SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
       SERIAL_MV(", ", distance);
       SERIAL_MV(", ", fr_mm_s);
-      SERIAL_CHR(')');
-      SERIAL_EOL();
+      SERIAL_MV(" [", fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis]);
+      SERIAL_EM("])");
     }
   #endif
 
@@ -430,12 +430,15 @@ void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint
   SERIAL_EOL();
 }
 
+/**
+ * Homing bump feedrate (mm/s)
+ */
 float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
   #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS) return Z_PROBE_SPEED_SLOW;
+    if (axis == Z_AXIS) return MMM_TO_MMS(Z_PROBE_SPEED_SLOW);
   #endif
-  const uint8_t homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
-  uint8_t hbd = homing_bump_divisor[axis];
+  static const uint8_t homing_bump_divisor[] PROGMEM = HOMING_BUMP_DIVISOR;
+  uint8_t hbd = pgm_read_byte(&homing_bump_divisor[axis]);
   if (hbd < 1) {
     hbd = 10;
     SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");
@@ -893,7 +896,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
 #if ENABLED(BABYSTEPPING)
 
-  void Mechanics::babystep_axis(const AxisEnum axis, const int distance) {
+  void Mechanics::babystep_axis(const AxisEnum axis, const int16_t distance) {
 
     if (printer.isAxisHomed(axis)) {
       #if IS_CORE
