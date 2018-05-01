@@ -364,7 +364,7 @@ class Mechanics {
     #endif
 
     #if ENABLED(BABYSTEPPING)
-      static void babystep_axis(const AxisEnum axis, const int distance);
+      static void babystep_axis(const AxisEnum axis, const int16_t distance);
     #endif
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
@@ -382,6 +382,9 @@ class Mechanics {
 
     static void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);
 
+    /**
+     * Homing bump feedrate (mm/s)
+     */
     static float get_homing_bump_feedrate(const AxisEnum axis);
 
 };

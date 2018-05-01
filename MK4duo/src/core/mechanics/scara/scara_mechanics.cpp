@@ -439,7 +439,7 @@
     // If Z needs to raise, do it before moving XY
     if (destination[Z_AXIS] < lz) {
       destination[Z_AXIS] = lz;
-      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
     destination[X_AXIS] = lx;
@@ -449,7 +449,7 @@
     // If Z needs to lower, do it after moving XY
     if (destination[Z_AXIS] > lz) {
       destination[Z_AXIS] = lz;
-      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
     stepper.synchronize();

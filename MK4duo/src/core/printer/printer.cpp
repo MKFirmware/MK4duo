@@ -286,10 +286,6 @@ void Printer::setup() {
 
   if (!eeprom_loaded) lcd_eeprom_allert();
 
-  #if HAS_SDSUPPORT
-    card.checkautostart(false);
-  #endif
-
   #if HAS_SD_RESTART
     restart.do_print_job();
   #endif
@@ -300,9 +296,6 @@ void Printer::setup() {
  *
  *  - Save or log commands to SD
  *  - Process available commands (if not saving)
- *  - Call heater manager
- *  - Call Fans manager
- *  - Call inactivity manager
  *  - Call endstop manager
  *  - Call LCD update
  */
@@ -311,6 +304,8 @@ void Printer::loop() {
   printer.keepalive(NotBusy);
 
   #if HAS_SDSUPPORT
+
+    card.checkautostart();
 
     if (isAbortSDprinting()) {
       setAbortSDprinting(false);
@@ -552,11 +547,7 @@ void Printer::Stop() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
-  #if ENABLED(NEXTION)
-    lcd_key_touch_update();
-  #else
-    lcd_update();
-  #endif
+  lcd_update();
 
   check_periodical_actions();
 

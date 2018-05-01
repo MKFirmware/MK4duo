@@ -710,6 +710,9 @@
 #ifndef MSG_PRINT_PAUSED
   #define MSG_PRINT_PAUSED                    _UxGT("Print paused")
 #endif
+#ifndef MSG_PRINTING
+  #define MSG_PRINTING                        _UxGT("Printing...")
+#endif
 #ifndef MSG_RESUMING
   #define MSG_RESUMING                        _UxGT("Resuming print")
 #endif

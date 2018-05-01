@@ -530,11 +530,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       break;
     }
 
-    #if ENABLED(NEXTION)
-      lcd_key_touch_update();
-    #else
-      lcd_update();
-    #endif
+    lcd_update();
 
   }
 

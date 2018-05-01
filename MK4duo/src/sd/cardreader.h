@@ -66,6 +66,8 @@
             cardOK,
             filenameIsDir;
 
+      int autostart_index;
+
       uint32_t  fileSize,
                 sdpos;
 
@@ -95,10 +97,8 @@
       #endif
 
       uint16_t  workDirDepth;
-      millis_t  next_autostart_ms;
       uint16_t  nrFiles;             // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
       LsAction  lsAction;            // stored for recursion.
-      bool  autostart_stilltocheck;  // the sd start is delayed, because otherwise the serial cannot answer fast enought to make contact with the hostsoftware.
 
       // Sort files and folders alphabetically.
       #if ENABLED(SDCARD_SORT_ALPHA)
@@ -170,7 +170,8 @@
       void chdir(const char* relpath);
       void ResetDefault();
       void PrintSettings();
-      void checkautostart(bool x);
+      void beginautostart();
+      void checkautostart();
       void setroot();
       void setlast();
 

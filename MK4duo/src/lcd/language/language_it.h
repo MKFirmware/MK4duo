@@ -263,6 +263,7 @@
 #define MSG_DWELL                           _UxGT("Sospensione...")
 #define MSG_USERWAIT                        _UxGT("Premi tasto..")
 #define MSG_PRINT_PAUSED                    _UxGT("Stampa sospesa")
+#define MSG_PRINTING                        _UxGT("Stampando...")
 #define MSG_RESUMING                        _UxGT("Riprendi Stampa")
 #define MSG_PRINT_ABORTED                   _UxGT("Stampa annullata")
 #define MSG_NO_MOVE                         _UxGT("Nessun Movimento")

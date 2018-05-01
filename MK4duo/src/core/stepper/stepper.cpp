@@ -1654,6 +1654,18 @@ void Stepper::isr() {
     HAL_timer_restricts(STEPPER_TIMER, STEPPER_TIMER_MIN_INTERVAL * STEPPER_TIMER_TICKS_PER_US);
   #endif
 
+  #if ENABLED(BABYSTEPPING)
+    LOOP_XYZ(axis) {
+      const int curTodo = mechanics.babystepsTodo[axis]; // get rid of volatile for performance
+
+      if (curTodo) {
+        babystep((AxisEnum)axis, curTodo > 0);
+        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
+                    else mechanics.babystepsTodo[axis]++;
+      }
+    }
+  #endif // ENABLED(BABYSTEPPING)
+
   // If current block is finished, reset pointer
   if (all_steps_done) {
     current_block = NULL;
@@ -2312,32 +2324,17 @@ void Stepper::report_positions() {
 
 #if ENABLED(BABYSTEPPING)
 
-  #if ENABLED(DELTA)
-    #define CYCLES_EATEN_BABYSTEP (2 * 15)
-  #else
-    #define CYCLES_EATEN_BABYSTEP 0
-  #endif
-  #define EXTRA_CYCLES_BABYSTEP (STEPPER_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
-
   #define _ENABLE(AXIS) enable_## AXIS()
   #define _READ_DIR(AXIS) AXIS ##_DIR_READ
-  #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
+  #define _INVERT_DIR(AXIS) isStepDir(AXIS ##_AXIS)
   #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
 
-  #if EXTRA_CYCLES_BABYSTEP > 20
+  #if MINIMUM_STEPPER_PULSE > 0
     #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+    #define _PULSE_WAIT while ((hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) < STEPPER_PULSE_CYCLES) { /* nada */ }
   #else
     #define _SAVE_START NOOP
-    #if EXTRA_CYCLES_BABYSTEP > 0
-      #define _PULSE_WAIT DELAY_NOPS(EXTRA_CYCLES_BABYSTEP)
-    #elif STEPPER_PULSE_CYCLES > 0
-      #define _PULSE_WAIT NOOP
-    #elif ENABLED(DELTA)
-      #define _PULSE_WAIT HAL::delayMicroseconds(2);
-    #else
-      #define _PULSE_WAIT HAL::delayMicroseconds(4);
-    #endif
+    #define _PULSE_WAIT NOOP
   #endif
 
   #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {            \

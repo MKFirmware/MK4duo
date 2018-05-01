@@ -271,10 +271,6 @@ class Stepper {
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_z2_motor = state; }
     #endif
 
-    #if ENABLED(BABYSTEPPING)
-      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
-    #endif
-
     static inline void kill_current_block() {
       step_events_completed = current_block->step_event_count;
     }
@@ -349,6 +345,10 @@ class Stepper {
 
       return timer;
     }
+
+    #if ENABLED(BABYSTEPPING)
+      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
+    #endif
 
     #if ENABLED(BEZIER_JERK_CONTROL)
       static void _calc_bezier_curve_coeffs(const int32_t v0, const int32_t v1, const uint32_t av);

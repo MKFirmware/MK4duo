@@ -171,7 +171,7 @@ bool Probe::set_deployed(const bool deploy) {
  * @param  fr_mm_s  Feedrate in mm/s
  * @return true to indicate an error
  */
-bool Probe::move_to_z(const float z, const float fr_mm_m) {
+bool Probe::move_to_z(const float z, const float fr_mm_s) {
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) DEBUG_POS(">>> move_to_z", mechanics.current_position);
   #endif
@@ -195,7 +195,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_m) {
   #endif
 
   // Move down until probe triggered
-  mechanics.do_blocking_move_to_z(z, MMM_TO_MMS(fr_mm_m));
+  mechanics.do_blocking_move_to_z(z, fr_mm_s);
 
   // Check to see if the probe was triggered
   const bool probe_triggered = TEST(endstops.hit_bits,
@@ -255,19 +255,20 @@ float Probe::run_z_probe() {
     if (printer.debugLeveling()) DEBUG_POS(">>> run_z_probe", mechanics.current_position);
   #endif
 
-  // If the nozzle is above the travel height then
+  // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
-  float z = Z_PROBE_DEPLOY_HEIGHT;
+  float z = Z_PROBE_DEPLOY_HEIGHT + 5.0;
   if (offset[Z_AXIS] < 0) z -= offset[Z_AXIS];
-  if (z < mechanics.current_position[Z_AXIS]) {
-    if (!move_to_z(z, Z_PROBE_SPEED_FAST))
+
+  if (mechanics.current_position[Z_AXIS] > z) {
+    if (!move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST)))
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
   }
 
   for (uint8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
 
     // move down slowly to find bed
-    if (move_to_z(-10, Z_PROBE_SPEED_SLOW)) return NAN;
+    if (move_to_z(-10, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) return NAN;
 
     probe_z += mechanics.current_position[Z_AXIS];
 

@@ -323,7 +323,11 @@
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (printer.debugLeveling()) SERIAL_EM("Move Away:");
       #endif
-      mechanics.do_homing_move(axis, -bump);
+      mechanics.do_homing_move(axis, -bump
+        #if HOMING_Z_WITH_PROBE
+          , axis == Z_AXIS ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) : 0.0
+        #endif
+      );
 
       // Slow move towards endstop until triggered
       #if ENABLED(DEBUG_LEVELING_FEATURE)

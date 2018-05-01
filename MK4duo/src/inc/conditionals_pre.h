@@ -321,6 +321,10 @@
   #endif
 #endif
 
+#if ENABLED(NO_LCD_MENUS)
+  #undef ULTIPANEL
+#endif
+
 #if ENABLED(ULTIPANEL)
   #define NEWPANEL  // Disable this if you actually have no click-encoder panel
   #define ULTRA_LCD

@@ -138,8 +138,6 @@ typedef struct {
     #endif
   #endif
 
-  uint16_t block_len;
-
 } block_t;
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))
@@ -336,11 +334,6 @@ class Planner {
       const bool discard = has_blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
       if (discard) discard_current_block();
       return discard;
-    }
-
-    FORCE_INLINE void add_block_length(uint16_t block_len) {
-      if (block_buffer_head != block_buffer_tail)
-        block_buffer[prev_block_index(block_buffer_head)].block_len += block_len;
     }
 
     /**
