@@ -366,7 +366,7 @@ float Probe::run_z_probe() {
 
     #elif ENABLED(PROBE_MANUALLY)
 
-      UNUSED(stow);
+      UNUSED(raise_after);
       UNUSED(verbose_level);
       UNUSED(probe_relative);
 
