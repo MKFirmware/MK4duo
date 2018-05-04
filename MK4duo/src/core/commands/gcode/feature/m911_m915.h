@@ -75,7 +75,7 @@
       if (clearZ || clearAll) tmc_clear_otpw(stepperZ, TMC_Z);
     #endif
     #if ENABLED(Z2_IS_TMC2130) || (ENABLED(Z2_IS_TMC2208) && PIN_EXISTS(Z2_SERIAL_RX))
-      if (clearZ || clearAll) tmc_clear_otpw(stepperZ2, extended_axis_codes[TMC_Z2]);
+      if (clearZ || clearAll) tmc_clear_otpw(stepperZ2, TMC_Z2);
     #endif
 
     #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX))
