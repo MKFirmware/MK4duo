@@ -27,7 +27,10 @@
   Power powerManager;
 
   #if HAS_POWER_SWITCH
-    millis_t Power::lastPowerOn = 0;
+    bool    Power::powersupply_on = false;
+    #if (POWER_TIMEOUT > 0)
+      watch_t Power::watch_lastPowerOn(POWER_TIMEOUT * 1000UL);
+    #endif
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
@@ -36,33 +39,41 @@
     uint32_t  Power::consumption_hour           = 0,
               Power::startpower                 = 0;
   #endif
-
+  
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      if (is_power_needed()) {
-        if (!lastPowerOn) power_on();
-      }
+      if (is_power_needed())
+        power_on();
       #if (POWER_TIMEOUT > 0)
-        else if (ELAPSED(millis(), lastPowerOn + (POWER_TIMEOUT) * 1000UL)) {
-          if (lastPowerOn) power_off();
-        }
+        else if (watch_lastPowerOn.elapsed())
+          power_off();
       #endif
     }
 
     void Power::power_on() {
-      lastPowerOn = millis();
-      OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
-      #if HAS_TRINAMIC
-        HAL::delayMilliseconds(100); // Wait for power to settle
-        restore_stepper_drivers();
+      #if (POWER_TIMEOUT > 0)
+        watch_lastPowerOn.start();
       #endif
-      HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
+      if (!powersupply_on) {
+        OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+        #if HAS_TRINAMIC
+          HAL::delayMilliseconds(100); // Wait for power to settle
+          restore_stepper_drivers();
+        #endif
+        HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
+        powersupply_on = true;
+      }
     }
 
     void Power::power_off() {
-      OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
-      lastPowerOn = 0;
+      if (powersupply_on) {
+        OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+        powersupply_on = false;
+        #if (POWER_TIMEOUT > 0)
+          watch_lastPowerOn.stop();
+        #endif
+      }
     }
 
     bool Power::is_power_needed() {
