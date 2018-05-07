@@ -39,7 +39,6 @@
     uint32_t  Power::consumption_hour           = 0,
               Power::startpower                 = 0;
   #endif
-
   
   #if HAS_POWER_SWITCH
 
