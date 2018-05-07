@@ -4070,7 +4070,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         char Power[10];
-        sprintf_P(Power, PSTR("%uWh"), consumption_hour);
+        sprintf_P(Power, PSTR("%uWh"), powerManager.consumption_hour);
       #endif
 
       START_SCREEN();

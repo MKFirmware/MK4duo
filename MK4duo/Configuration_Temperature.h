@@ -422,17 +422,18 @@
  ************************ Prevent cold extrusion ***********************
  ***********************************************************************
  * This option prevents extrusion if the temperature is                *
- * below EXTRUDE_MINTEMP.                                              *
- * It also enables the M302 command to set the minimum extrusion       *
- * temperature or to allow moving the extruder regardless of the       *
- * hotend temperature.                                                 *
- * *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***      *
+ * below EXTRUDE MINTEMP.                                              *
+ * Add M302 to set the minimum extrusion temperature and/or turn       *
+ * cold extrusion prevention on and off.                               *
+ *                                                                     *
+ *      IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED!         *
  *                                                                     *
  ***********************************************************************/
 #define PREVENT_COLD_EXTRUSION
 #define EXTRUDE_MINTEMP 170                 // Degree Celsius
 
-// This option prevents a single extrusion longer than EXTRUDE_MAXLENGTH.
+// Prevent a single extrusion longer than EXTRUDE MAXLENGTH.
+// Note: For Bowden Extruders make this large enough to allow load/unload.
 //#define PREVENT_LENGTHY_EXTRUDE
 #define EXTRUDE_MAXLENGTH (X_MAX_LENGTH + Y_MAX_LENGTH)
 /***********************************************************************/
