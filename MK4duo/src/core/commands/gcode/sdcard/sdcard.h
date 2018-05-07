@@ -111,7 +111,7 @@
    * M26: Set SD Card file index
    */
   inline void gcode_M26(void) {
-    if (card.cardOK && parser.seen('S'))
+    if (card.isOK() && parser.seen('S'))
       card.setIndex(parser.value_long());
   }
 
@@ -137,13 +137,13 @@
    * M29: Stop SD Write
    * Processed in write to file routine above
    */
-  inline void gcode_M29(void) { card.saving = false; }
+  inline void gcode_M29(void) { card.setSaving(false); }
 
   /**
    * M30 <filename>: Delete SD Card file
    */
   inline void gcode_M30(void) {
-    if (card.cardOK) {
+    if (card.isOK()) {
       card.closeFile();
       card.deleteFile(parser.string_arg);
     }
@@ -153,9 +153,9 @@
    * M32: Select file and start SD print
    */
   inline void gcode_M32(void) {
-    if (card.sdprinting) stepper.synchronize();
+    if (IS_SD_PRINTING) stepper.synchronize();
 
-    if (card.cardOK) {
+    if (card.isOK()) {
       card.closeFile();
 
       char* namestartpos = parser.string_arg ; // default name position

@@ -230,7 +230,6 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
     G26_line_to_destination(feed_value);
 
-    stepper.synchronize();
     mechanics.set_destination_to_current();
   }
 
@@ -246,7 +245,6 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
   G26_line_to_destination(feed_value);
 
-  stepper.synchronize();
   mechanics.set_destination_to_current();
 }
 
@@ -479,12 +477,11 @@ inline bool prime_nozzle() {
         #endif
         G26_line_to_destination(mechanics.max_feedrate_mm_s[E_AXIS] / 15.0);
 
+        mechanics.set_destination_to_current();
         stepper.synchronize();    // Without this synchronize, the purge is more consistent,
                                   // but because the planner has a buffer, we won't be able
                                   // to stop as quickly. So we put up with the less smooth
                                   // action to give the user a more responsive 'Stop'.
-        mechanics.set_destination_to_current();
-        printer.idle();
       }
 
       wait_for_release();
@@ -505,7 +502,6 @@ inline bool prime_nozzle() {
     mechanics.set_destination_to_current();
     mechanics.destination[E_AXIS] += g26_prime_length;
     G26_line_to_destination(mechanics.max_feedrate_mm_s[E_AXIS] / 15.0);
-    stepper.synchronize();
     mechanics.set_destination_to_current();
     retract_filament(mechanics.destination);
   }
@@ -681,7 +677,6 @@ inline void gcode_G26(void) {
 
   if (mechanics.current_position[Z_AXIS] < Z_PROBE_BETWEEN_HEIGHT) {
     mechanics.do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
-    stepper.synchronize();
     mechanics.set_current_to_destination();
   }
 

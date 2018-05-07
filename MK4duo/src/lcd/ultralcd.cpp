@@ -803,6 +803,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     void lcd_sdcard_stop() {
       printer.setAbortSDprinting(true);
+      printer.setWaitForHeatUp(false);
+      printer.setWaitForUser(false);
       lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
       lcd_return_to_status();
     }
@@ -1021,9 +1023,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
     MENU_ITEM(submenu, MSG_CONTROL, lcd_control_menu);
 
     #if HAS_SDSUPPORT
-      if (card.cardOK) {
+      if (card.isOK()) {
         if (card.isFileOpen()) {
-          if (card.sdprinting)
+          if (card.isSDprinting())
             MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
           else
             MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
@@ -4021,7 +4023,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
             card.getfilename(i);
           #endif
 
-          if (card.filenameIsDir)
+          if (card.isFilenameIsDir())
             MENU_ITEM(sddirectory, MSG_CARD_MENU, card.fileName);
           else
             MENU_ITEM(sdfile, MSG_CARD_MENU, card.fileName);

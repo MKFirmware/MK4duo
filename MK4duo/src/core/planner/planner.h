@@ -48,7 +48,10 @@ enum BlockFlagBit {
   BLOCK_BIT_BUSY,
 
   // The block is segment 2+ of a longer move
-  BLOCK_BIT_CONTINUED
+  BLOCK_BIT_CONTINUED,
+
+  // Sync the stepper counts from the block
+  BLOCK_BIT_SYNC_POSITION
 };
 
 enum BlockFlag {
@@ -56,7 +59,8 @@ enum BlockFlag {
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_START_FROM_FULL_HALT = _BV(BLOCK_BIT_START_FROM_FULL_HALT),
   BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
-  BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED)
+  BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
+  BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
 };
 
 /**
@@ -236,6 +240,19 @@ class Planner {
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
     /**
+     * Planner::get_next_free_block
+     *
+     * - Get the next head index (passed by reference)
+     * - Wait for a space to open up in the planner
+     * - Return the head block
+     */
+    FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head) {
+      next_buffer_head = next_block_index(block_buffer_head);
+      while (block_buffer_tail == next_buffer_head) printer.idle(); // while (is_full)
+      return &block_buffer[block_buffer_head];
+    }
+
+    /**
      * Planner::buffer_steps
      *
      * Add a new linear movement to the buffer (in terms of steps).
@@ -250,6 +267,12 @@ class Planner {
     #else
       static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
     #endif
+
+    /**
+     * Planner::buffer_sync_block
+     * Add a block to the buffer that just updates the position
+     */
+    static void buffer_sync_block();
 
     /**
      * Planner::buffer_segment
@@ -304,8 +327,8 @@ class Planner {
     static void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e);
     static void set_position_mm(const AxisEnum axis, const float &v);
     static void set_position_mm_kinematic(const float (&cart)[XYZE]);
-    FORCE_INLINE static void set_z_position_mm(const float &z) { set_position_mm(AxisEnum(Z_AXIS), z); }
-    FORCE_INLINE static void set_e_position_mm(const float &e) { set_position_mm(AxisEnum(E_AXIS), e); }
+    FORCE_INLINE static void set_z_position_mm(const float &z) { set_position_mm(Z_AXIS, z); }
+    FORCE_INLINE static void set_e_position_mm(const float &e) { set_position_mm(E_AXIS, e); }
 
     /**
      * Sync from the stepper positions. (e.g., after an interrupted move)

@@ -49,6 +49,8 @@
       hasS = ms > 0;
     }
 
+    stepper.synchronize();
+
     #if ENABLED(ULTIPANEL)
 
       if (!hasP && !hasS && args && *args)
@@ -76,8 +78,6 @@
 
     printer.setWaitForUser(true);
     printer.keepalive(PausedforUser);
-
-    stepper.synchronize();
 
     if (ms > 0) {
       watch_t watch(ms);

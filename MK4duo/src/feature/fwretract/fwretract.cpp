@@ -100,60 +100,51 @@
       // G11 priority to recover the long retract if activated
       if (!retracting) swapping = retracted_swap[tools.active_extruder];
     #else
-      const bool swapping = false;
+      constexpr bool swapping = false;
     #endif
 
-    const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
+    const float old_feedrate_mm_s = mechanics.feedrate_mm_s,
+                renormalize = RECIPROCAL(tools.e_factor[tools.active_extruder]),
+                base_retract = swapping ? swap_retract_length : retract_length,
+                old_z = mechanics.current_position[Z_AXIS],
+                old_e = mechanics.current_position[E_AXIS];
 
     // The current position will be the destination for E and Z moves
     mechanics.set_destination_to_current();
-    stepper.synchronize();  // Wait for buffered moves to complete
-
-    const float renormalize = 1.0 / tools.e_factor[tools.active_extruder];
 
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position
       mechanics.feedrate_mm_s = retract_feedrate_mm_s;
-      mechanics.current_position[E_AXIS] += (swapping ? swap_retract_length : retract_length) * renormalize;
-      mechanics.sync_plan_position_e();
+      mechanics.destination[E_AXIS] -= base_retract * renormalize;
       mechanics.prepare_move_to_destination();
 
       // Is a Z hop set, and has the hop not yet been done?
-      // No double zlifting
-      // Feedrate to the max
       if (retract_zlift > 0.01 && !hop_amount) {                        // Apply hop only once
-        const float old_z = mechanics.current_position[Z_AXIS];
         hop_amount += retract_zlift;                                    // Add to the hop total (again, only once)
         mechanics.destination[Z_AXIS] += retract_zlift;                 // Raise Z by the zlift (M207 Z) amount
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Maximum Z feedrate
         mechanics.prepare_move_to_destination();                        // Raise up
-        mechanics.current_position[Z_AXIS] = old_z;                     // Spoof the Z position in the planner
-        mechanics.sync_plan_position_mech_specific();
       }
     }
     else {
       // If a hop was done and Z hasn't changed, undo the Z hop
       if (hop_amount) {
-        mechanics.current_position[Z_AXIS] += hop_amount;               // Set actual Z (due to the prior hop)
-        mechanics.sync_plan_position_mech_specific();                   // Spoof the Z position in the planner
+        mechanics.destination[Z_AXIS] -= hop_amount;                    // Move back down by the total hop amount
         mechanics.feedrate_mm_s = mechanics.max_feedrate_mm_s[Z_AXIS];  // Z feedrate to max
         mechanics.prepare_move_to_destination();                        // Lower Z and update current_position
         hop_amount = 0.0;                                               // Clear the hop amount
       }
 
-      // A retract multiplier has been added here to get faster swap recovery
+      mechanics.destination[E_AXIS] += (base_retract + (swapping ? swap_retract_recover_length : retract_recover_length)) * renormalize;
       mechanics.feedrate_mm_s = swapping ? swap_retract_recover_feedrate_mm_s : retract_recover_feedrate_mm_s;
-
-      const float move_e = swapping ? swap_retract_length + swap_retract_recover_length : retract_length + retract_recover_length;
-      mechanics.current_position[E_AXIS] -= move_e * renormalize;
-      mechanics.sync_plan_position_e();
-      mechanics.prepare_move_to_destination();  // Recover E
+      mechanics.prepare_move_to_destination();                          // Recover E
     }
 
-    // Restore feedrate
     mechanics.feedrate_mm_s = old_feedrate_mm_s;
+    mechanics.current_position[Z_AXIS] = old_z;                         // Restore Z and E positions
+    mechanics.current_position[E_AXIS] = old_e;
+    mechanics.sync_plan_position_mech_specific();
 
-    // The active extruder is now retracted or recovered
     retracted[tools.active_extruder] = retracting;
 
     // If swap retract/recover then update the retracted_swap flag too
@@ -161,6 +152,6 @@
       if (swapping) retracted_swap[tools.active_extruder] = retracting;
     #endif
 
-  } // retract()
+  }
 
 #endif // FWRETRACT

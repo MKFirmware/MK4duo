@@ -29,23 +29,23 @@
 #ifndef _PRINTER_H_
 #define _PRINTER_H_
 
-constexpr const uint8_t debug_echo                = 1;
-constexpr const uint8_t debug_info                = 2;
-constexpr const uint8_t debug_error               = 4;
-constexpr const uint8_t debug_dryrun              = 8;
-constexpr const uint8_t debug_communication       = 16;
-constexpr const uint8_t debug_leveling            = 32;
-constexpr const uint8_t debug_mesh_adjust         = 64;
-constexpr const uint8_t debug_simulation          = 128;
+constexpr uint8_t debug_echo                = 1;
+constexpr uint8_t debug_info                = 2;
+constexpr uint8_t debug_error               = 4;
+constexpr uint8_t debug_dryrun              = 8;
+constexpr uint8_t debug_communication       = 16;
+constexpr uint8_t debug_leveling            = 32;
+constexpr uint8_t debug_mesh_adjust         = 64;
+constexpr uint8_t debug_simulation          = 128;
 
-enum Flag1HomeEnum {
+enum Flag1HomeEnum : char {
   flag1_x_homed,
   flag1_y_homed,
   flag1_z_homed,
   flag1_homing
 };
 
-enum Flag2VariousEnum {
+enum Flag2VariousEnum : char {
   flag2_running,
   flag2_printing,
   flag2_pos_saved,
@@ -62,7 +62,7 @@ enum Flag2VariousEnum {
   flag2_g38_move
 };
 
-enum PrinterMode {
+enum PrinterMode : char {
   PRINTER_MODE_FFF,           // M450 S0 or M451
   PRINTER_MODE_LASER,         // M450 S1 or M452
   PRINTER_MODE_CNC,           // M450 S2 or M453
@@ -72,7 +72,7 @@ enum PrinterMode {
   PRINTER_MODE_COUNT
 };
 
-enum MK4duoInterruptEvent {
+enum MK4duoInterruptEvent : char {
   INTERRUPT_EVENT_NONE,
   INTERRUPT_EVENT_FIL_RUNOUT,
   INTERRUPT_EVENT_ENC_DETECT
@@ -82,7 +82,7 @@ enum MK4duoInterruptEvent {
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
-enum MK4duoBusyState {
+enum MK4duoBusyState : char {
   NotBusy,          // Not in a handler
   InHandler,        // Processing a GCode
   InProcess,        // Known to be blocking command input (as in G29)

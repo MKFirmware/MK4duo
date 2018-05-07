@@ -95,10 +95,10 @@ uint8_t Stepper::last_direction_bits = 0;        // The next stepping-bits to be
   bool Stepper::locked_z_motor = false, Stepper::locked_z2_motor = false;
 #endif
 
-long  Stepper::counter_X = 0,
-      Stepper::counter_Y = 0,
-      Stepper::counter_Z = 0,
-      Stepper::counter_E = 0;
+int32_t Stepper::counter_X = 0,
+        Stepper::counter_Y = 0,
+        Stepper::counter_Z = 0,
+        Stepper::counter_E = 0;
 
 volatile uint32_t Stepper::step_events_completed = 0; // The number of step events executed in the current block
 
@@ -137,11 +137,11 @@ volatile int32_t      Stepper::count_position[NUM_AXIS]   = { 0 };
 volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
-  long Stepper::counter_m[MIXING_STEPPERS]  = { 0 };
+  int32_t Stepper::counter_m[MIXING_STEPPERS]  = { 0 };
 #endif
 
 #if ENABLED(LASER)
-  long Stepper::counter_L = 0;
+  int32_t Stepper::counter_L = 0;
   #if ENABLED(LASER_RASTER)
     int Stepper::counter_raster = 0;
   #endif // LASER_RASTER
@@ -155,10 +155,10 @@ hal_timer_t   Stepper::OCR1A_nominal = 0;
   hal_timer_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
-uint8_t       Stepper::step_loops         = 0,
-              Stepper::step_loops_nominal = 0;
+uint8_t Stepper::step_loops         = 0,
+        Stepper::step_loops_nominal = 0;
 
-volatile long Stepper::endstops_trigsteps[XYZ] = { 0 };
+volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
   #define LOCKED_X_MOTOR  locked_x_motor
@@ -1230,6 +1230,16 @@ void Stepper::isr() {
     // Anything in the buffer?
     if ((current_block = planner.get_current_block())) {
 
+      // Sync block? Sync the stepper counts and return
+      while (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
+        _set_position(
+          current_block->steps[A_AXIS], current_block->steps[B_AXIS],
+          current_block->steps[C_AXIS], current_block->steps[E_AXIS]
+        );
+        planner.discard_current_block();
+        if (!(current_block = planner.get_current_block())) return;
+      }
+
       // Initialize the trapezoid generator from the current block.
       static int8_t last_extruder = -1;
 
@@ -2124,55 +2134,40 @@ void Stepper::synchronize() {
  * This allows get_axis_position_mm to correctly
  * derive the current XYZ position later on.
  */
-void Stepper::set_position(const long &a, const long &b, const long &c, const long &e) {
+void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
 
-  synchronize(); // Bad to set stepper counts in the middle of a move
+  #if CORE_IS_XY
+    // corexy positioning
+    count_position[A_AXIS] = a + (CORE_FACTOR) * b;
+    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
+    count_position[Z_AXIS] = c;
+  #elif CORE_IS_XZ
+    // corexz planning
+    count_position[A_AXIS] = a + (CORE_FACTOR) * c;
+    count_position[Y_AXIS] = b;
+    count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+  #elif CORE_IS_YZ
+    // coreyz planning
+    count_position[X_AXIS] = a;
+    count_position[B_AXIS] = b + (CORE_FACTOR) * c;
+    count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+  #else
+    // default non-h-bot planning
+    count_position[X_AXIS] = a;
+    count_position[Y_AXIS] = b;
+    count_position[Z_AXIS] = c;
+  #endif
 
-  CRITICAL_SECTION_START
-    #if CORE_IS_XY
-      // corexy positioning
-      count_position[A_AXIS] = a + (CORE_FACTOR) * b;
-      count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-      count_position[Z_AXIS] = c;
-    #elif CORE_IS_XZ
-      // corexz planning
-      count_position[A_AXIS] = a + (CORE_FACTOR) * c;
-      count_position[Y_AXIS] = b;
-      count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
-    #elif CORE_IS_YZ
-      // coreyz planning
-      count_position[X_AXIS] = a;
-      count_position[B_AXIS] = b + (CORE_FACTOR) * c;
-      count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
-    #else
-      // default non-h-bot planning
-      count_position[X_AXIS] = a;
-      count_position[Y_AXIS] = b;
-      count_position[Z_AXIS] = c;
-    #endif
+  count_position[E_AXIS] = e;
 
-    count_position[E_AXIS] = e;
-  CRITICAL_SECTION_END
-}
-
-void Stepper::set_position(const AxisEnum &axis, const long &v) {
-  CRITICAL_SECTION_START
-    count_position[axis] = v;
-  CRITICAL_SECTION_END
-}
-
-void Stepper::set_e_position(const long &e) {
-  CRITICAL_SECTION_START
-    count_position[E_AXIS] = e;
-  CRITICAL_SECTION_END
 }
 
 /**
  * Get a stepper's position in steps.
  */
-long Stepper::position(const AxisEnum axis) {
+int32_t Stepper::position(const AxisEnum axis) {
   CRITICAL_SECTION_START
-    const long machine_pos = count_position[axis];
+    const int32_t machine_pos = count_position[axis];
   CRITICAL_SECTION_END
   return machine_pos;
 }
@@ -2257,10 +2252,6 @@ void Stepper::quick_stop() {
   #if ENABLED(ULTRA_LCD)
     planner.clear_block_buffer_runtime();
   #endif
-}
-
-void Stepper::quickstop_stepper() {
-  quick_stop();
   synchronize();
   mechanics.set_current_from_steppers_for_axis(ALL_AXES);
   mechanics.sync_plan_position_mech_specific();
@@ -2287,9 +2278,9 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
 
 void Stepper::report_positions() {
   CRITICAL_SECTION_START
-    const long  xpos = count_position[X_AXIS],
-                ypos = count_position[Y_AXIS],
-                zpos = count_position[Z_AXIS];
+    const int32_t xpos = count_position[X_AXIS],
+                  ypos = count_position[Y_AXIS],
+                  zpos = count_position[Z_AXIS];
   CRITICAL_SECTION_END
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA

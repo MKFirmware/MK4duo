@@ -27,7 +27,7 @@
 #ifndef _ENDSTOPS_H_
 #define _ENDSTOPS_H_
 
-enum Flag1Enum {
+enum Flag1Enum : char {
   flag1_endstop_enabled,
   flag1_endstop_globally,
   flag1_soft_endstop,
@@ -35,7 +35,7 @@ enum Flag1Enum {
   flag1_g38_endstop_hit
 };
   
-enum EndstopEnum {
+enum EndstopEnum : char {
   X_MIN,
   Y_MIN,
   Z_MIN,

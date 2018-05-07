@@ -247,7 +247,6 @@
     #endif
 
     #if ENABLED(SENSORLESS_HOMING)
-      #define TMC_INIT_SGT(P,Q) stepper##Q.sgt(P##_HOMING_SENSITIVITY);
       #if ENABLED(X_HOMING_SENSITIVITY)
         #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
           stepperX.sgt(X_HOMING_SENSITIVITY);

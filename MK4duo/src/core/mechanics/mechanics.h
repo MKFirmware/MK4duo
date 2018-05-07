@@ -224,7 +224,7 @@ class Mechanics {
      * may have been applied.
      *
      * To prevent small shifts in axis position always call
-     * SYNC_PLAN_POSITION_KINEMATIC after updating axes with this.
+     * sync_plan_position_mech_specific after updating axes with this.
      *
      * To keep hosts in sync, always call report_current_position
      * after updating the current_position.

@@ -302,7 +302,7 @@ static void lcd_set_custom_characters(
       #endif
         {
           createChar_P(LCD_UPLEVEL_CHAR, uplevel);
-          #if ENABLED(SDSUPPORT)
+          #if HAS_SDSUPPORT
             // SD Card sub-menu special characters
             createChar_P(LCD_STR_REFRESH[0], refresh);
             createChar_P(LCD_STR_FOLDER[0], folder);
