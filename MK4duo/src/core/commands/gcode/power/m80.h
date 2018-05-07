@@ -38,7 +38,7 @@
 
     // S: Report the current power supply state and exit
     if (parser.seen('S')) {
-      SERIAL_PS(powerManager.lastPowerOn ? PSTR("PS:1\n") : PSTR("PS:0\n"));
+      SERIAL_PS(powerManager.is_on() ? PSTR("PS:1\n") : PSTR("PS:0\n"));
       return;
     }
 

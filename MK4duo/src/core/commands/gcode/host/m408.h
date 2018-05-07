@@ -64,7 +64,7 @@
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
-      SERIAL_CHR(powerManager.lastPowerOn ? '1' : '0');
+      SERIAL_CHR(powerManager.is_on() ? '1' : '0');
     #else
       SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif

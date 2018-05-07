@@ -1135,7 +1135,7 @@ void Planner::check_axes_activity() {
   block->active_extruder = extruder;
 
   #if HAS_POWER_SWITCH
-    if ((block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS]) && (!powerManager.lastPowerOn))
+    if ((block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS]))
       powerManager.power_on();
   #endif
 
@@ -1178,7 +1178,7 @@ void Planner::check_axes_activity() {
   if (esteps) {
 
     #if HAS_POWER_SWITCH
-      if (!powerManager.lastPowerOn) powerManager.power_on();
+      powerManager.power_on();
     #endif
 
     #if !HAS_MKMULTI_TOOLS

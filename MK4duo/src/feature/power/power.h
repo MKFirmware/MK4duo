@@ -33,10 +33,6 @@
 
     public: /** Public Parameters */
 
-      #if HAS_POWER_SWITCH
-        static millis_t lastPowerOn;
-      #endif
-
       #if HAS_POWER_CONSUMPTION_SENSOR
         static int16_t  current_raw_powconsumption;
         static float    consumption_meas;   // holds the power consumption as accurately measured
@@ -44,12 +40,25 @@
                         startpower;
       #endif
 
+    private: /** Private Parameters */
+
+      #if HAS_POWER_SWITCH
+        static bool powersupply_on;
+        #if (POWER_TIMEOUT > 0)
+          static watch_t watch_lastPowerOn;
+        #endif
+      #endif
+
     public: /** Public Function */
 
       #if HAS_POWER_SWITCH
+
         static void spin();
         static void power_on();
         static void power_off();
+
+        FORCE_INLINE static bool is_on() { return powersupply_on; }
+
       #endif
 
       #if HAS_POWER_CONSUMPTION_SENSOR
