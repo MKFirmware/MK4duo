@@ -174,7 +174,7 @@ void Commands::get_serial() {
 
         gcode_LastN = gcode_N;
       }
-      #if ENABLED(SDSUPPORT)
+      #if HAS_SDSUPPORT
         else if (card.isSaving()) {
           gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
           return;
@@ -333,7 +333,7 @@ void Commands::get_serial() {
     printer.progress = card.percentDone();
   }
 
-#endif // SDSUPPORT
+#endif // HAS_SDSUPPORT
 
 /**
  * Send a "Resend: nnn" message to the host to
