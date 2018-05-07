@@ -31,7 +31,7 @@
 
 #if FAN_COUNT > 0
 
-  enum FlagFans {
+  enum FlagFans : char {
     fan_flag_hardware_inverted,
     fan_flag_idle
   };

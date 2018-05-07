@@ -284,13 +284,14 @@
       #endif
     }
 
-    stepper.synchronize();
-
     feedrate_mm_s = old_feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
+
+    stepper.synchronize();
+
   }
 
   /**
@@ -705,8 +706,6 @@
   // Report detail current position to host
   void Delta_Mechanics::report_current_position_detail() {
 
-    stepper.synchronize();
-
     SERIAL_MSG("\nLogical:");
     const float logical[XYZ] = {
       LOGICAL_X_POSITION(current_position[X_AXIS]),
@@ -733,6 +732,8 @@
     SERIAL_MSG("DeltaK: ");
     Transform(leveled);
     report_xyz(delta);
+
+    stepper.synchronize();
 
     SERIAL_MSG("Stepper:");
     LOOP_XYZE(i) {

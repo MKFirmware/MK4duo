@@ -175,7 +175,7 @@ void Commands::get_serial() {
         gcode_LastN = gcode_N;
       }
       #if ENABLED(SDSUPPORT)
-        else if (card.saving) {
+        else if (card.isSaving()) {
           gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
           return;
         }
@@ -207,7 +207,7 @@ void Commands::get_serial() {
           #endif
         }
         if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) stepper.quickstop_stepper();
+        if (strcmp(command, "M410") == 0) stepper.quick_stop();
       #endif
 
       // Add the command to the buffer_ring
@@ -404,7 +404,7 @@ void Commands::advance_queue() {
 
   #if HAS_SDSUPPORT
 
-    if (card.saving) {
+    if (card.isSaving()) {
       char* command = buffer_ring[buffer_index_r];
       if (strstr_P(command, PSTR("M29"))) {
         // M29 closes the file
@@ -429,7 +429,7 @@ void Commands::advance_queue() {
     else {
       process_next();
       #if HAS_SD_RESTART
-        if (card.cardOK && IS_SD_PRINTING) restart.save_data();
+        if (IS_SD_PRINTING) restart.save_data();
       #endif
     }
 

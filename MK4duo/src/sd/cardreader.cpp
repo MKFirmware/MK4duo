@@ -42,7 +42,7 @@
         //sort_reverse = false;
       #endif
     #endif
-    sdprinting = cardOK = saving = false;
+    card_flag = 0;
     fileSize = 0;
     sdpos = 0;
 
@@ -60,7 +60,7 @@
   }
 
   void CardReader::mount() {
-    cardOK = false;
+    setOK(false);
     if (root.isOpen()) root.close();
 
     #if ENABLED(SDEXTRASLOW)
@@ -79,7 +79,7 @@
       SERIAL_LM(ER, MSG_SD_INIT_FAIL);
     }
     else {
-      cardOK = true;
+      setOK(true);
       SERIAL_EM(MSG_SD_CARD_OK);
     }
     fat.chdir(true);
@@ -88,8 +88,8 @@
   }
 
   void CardReader::unmount() {
-    cardOK = false;
-    sdprinting = false;
+    setOK(false);
+    setSDprinting(false);
   }
 
   void CardReader::ls()  {
@@ -109,7 +109,7 @@
       }
       if (nr < sort_count) {
         strcpy(fileName, sortnames[nr]);
-        filenameIsDir = TEST(isDir[nr>>3], nr & 0x07);
+        setFilenameIsDir(TEST(isDir[nr>>3], nr & 0x07));
         return;
       }
     #endif // SDSORT_CACHE_NAMES
@@ -140,8 +140,8 @@
   }
 
   void CardReader::startFileprint() {
-    if (cardOK) {
-      sdprinting = true;
+    if (isOK()) {
+      setSDprinting(true);
       #if ENABLED(SDCARD_SORT_ALPHA)
         flush_presort();
       #endif
@@ -157,8 +157,8 @@
   }
 
   void CardReader::stopSDPrint() {
-    sdprinting = false;
-    if (isFileOpen()) closeFile();
+    setSDprinting(false);
+    if (isFileOpen()) gcode_file.close();
   }
 
   void CardReader::write_command(char* buf) {
@@ -181,7 +181,7 @@
   }
 
   void CardReader::printStatus() {
-    if (isFileOpen() && sdprinting) {
+    if (isFileOpen() && isSDprinting()) {
       SERIAL_MV(MSG_SD_PRINTING_BYTE, sdpos);
       SERIAL_EMV(MSG_SD_SLASH, fileSize);
     }
@@ -190,13 +190,13 @@
   }
 
   void CardReader::startWrite(char *filename, const bool silent/*=false*/) {
-    if (!cardOK) return;
+    if (!isOK()) return;
 
     if (!gcode_file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, filename);
     }
     else {
-      saving = true;
+      setSaving(true);
       if (!silent) {
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
         lcd_setstatus(filename);
@@ -205,8 +205,8 @@
   }
 
   void CardReader::deleteFile(char *filename) {
-    if (!cardOK) return;
-    sdprinting = false;
+    if (!isOK()) return;
+    setSDprinting(false);
     gcode_file.close();
     if (fat.remove(filename)) {
       SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
@@ -227,13 +227,13 @@
   void CardReader::finishWrite() {
     gcode_file.sync();
     gcode_file.close();
-    saving = false;
+    setSaving(false);
     SERIAL_EM(MSG_SD_FILE_SAVED);
   }
 
   void CardReader::makeDirectory(char *filename) {
-    if (!cardOK) return;
-    sdprinting = false;
+    if (!isOK()) return;
+    setSDprinting(false);
     gcode_file.close();
     if (fat.mkdir(filename)) {
       SERIAL_EM(MSG_SD_DIRECTORY_CREATED);
@@ -246,13 +246,13 @@
   void CardReader::closeFile() {
     gcode_file.sync();
     gcode_file.close();
-    saving = false;
+    setSaving(false);
   }
 
   void CardReader::printingHasFinished() {
     stepper.synchronize();
     gcode_file.close();
-    sdprinting = false;
+    setSDprinting(false);
 
     #if HAS_SD_RESTART
       open_restart_file(false);
@@ -323,11 +323,11 @@
 
   void CardReader::checkautostart() {
 
-    if (autostart_index < 0 || sdprinting) return;
+    if (autostart_index < 0 || isSDprinting()) return;
 
-    if (!cardOK) mount();
+    if (!isOK()) mount();
     
-    if (cardOK) {
+    if (isOK()) {
       SERIAL_EM("Sono qui in autostart");
       char autoname[10];
       sprintf_P(autoname, PSTR("auto%i.g"), autostart_index);
@@ -374,7 +374,7 @@
   bool CardReader::selectFile(const char* filename) {
     const char *fname = filename;
 
-    if (!cardOK) return false;
+    if (!isOK()) return false;
 
     curDir = &workDir; // Relative paths start in current directory
 
@@ -439,7 +439,7 @@
 
     void CardReader::open_restart_file(const bool read) {
 
-      if (!cardOK || restart_file.isOpen()) return;
+      if (!isOK() || restart_file.isOpen()) return;
 
       if (!restart_file.open(&root, "restart.bin", read ? O_READ : O_CREAT | O_WRITE | O_TRUNC | O_SYNC))
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
@@ -479,7 +479,7 @@
 
     bool CardReader::open_eeprom_sd(const bool read) {
 
-      if (!IS_SD_INSERTED || !cardOK) {
+      if (!IS_SD_INSERTED || !isOK()) {
         SERIAL_LM(ER, MSG_NO_CARD);
         return true;
       }
@@ -516,7 +516,7 @@
      *
      */
     void CardReader::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
-      if (!cardOK || !settings_file.isOpen()) {
+      if (!isOK() || !settings_file.isOpen()) {
         key[0] = value[0] = '\0';
         len_k = len_v = 0;
         return;
@@ -577,7 +577,7 @@
     }
 
     void CardReader::unparseKeyLine(const char* key, char* value) {
-      if (!cardOK || !settings_file.isOpen()) return;
+      if (!isOK() || !settings_file.isOpen()) return;
       settings_file.writeError = false;
       settings_file.write(key);
       if (settings_file.writeError) {
@@ -619,7 +619,7 @@
     };
 
     void CardReader::StoreSettings() {
-      if (!IS_SD_INSERTED || sdprinting || print_job_counter.isRunning()) return;
+      if (!IS_SD_INSERTED || isSDprinting() || print_job_counter.isRunning()) return;
 
       if (settings_file.open(&root, "INFO.cfg", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
         char buff[CFG_SD_MAX_VALUE_LEN];
@@ -646,7 +646,7 @@
     }
 
     void CardReader::RetrieveSettings(bool addValue) {
-      if (!IS_SD_INSERTED || sdprinting || !cardOK) return;
+      if (!IS_SD_INSERTED || isSDprinting() || !isOK()) return;
 
       char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];
       int k_idx;
@@ -821,12 +821,12 @@
                 #endif
               #endif
               // char out[30];
-              // sprintf_P(out, PSTR("---- %i %s %s"), i, filenameIsDir ? "D" : " ", sortnames[i]);
+              // sprintf_P(out, PSTR("---- %i %s %s"), i, isFilenameIsDir( ? "D" : " ", sortnames[i]);
               // SERIAL_ECHOLN(out);
               #if HAS_FOLDER_SORTING
                 const uint16_t bit = i & 0x07, ind = i >> 3;
                 if (bit == 0) isDir[ind] = 0x00;
-                if (filenameIsDir) isDir[ind] |= _BV(bit);
+                if (isFilenameIsDir()) isDir[ind] |= _BV(bit);
               #endif
             #endif
           }
@@ -854,7 +854,7 @@
                       ? _SORT_CMP_NODIR() \
                       : (isDir[fs > 0 ? ind1 : ind2] & (fs > 0 ? _BV(bit1) : _BV(bit2))) != 0)
                 #else
-                  #define _SORT_CMP_DIR(fs) ((dir1 == filenameIsDir) ? _SORT_CMP_NODIR() : (fs > 0 ? dir1 : !dir1))
+                  #define _SORT_CMP_DIR(fs) ((dir1 == isFilenameIsDir()) ? _SORT_CMP_NODIR() : (fs > 0 ? dir1 : !dir1))
                 #endif
               #endif
 
@@ -864,7 +864,7 @@
                 getfilename(o1);
                 strcpy(name1, fileName); // save (or getfilename below will trounce it)
                 #if HAS_FOLDER_SORTING
-                  bool dir1 = filenameIsDir;
+                  bool dir1 = isFilenameIsDir();
                 #endif
                 getfilename(o2);
                 char *name2 = fileName; // use the string in-place
@@ -915,7 +915,7 @@
                 strcpy(sortnames[0], SORTED_LONGNAME_MAXLEN);
               #endif
             #endif
-            isDir[0] = filenameIsDir ? 0x01 : 0x00;
+            isDir[0] = isFilenameIsDir() ? 0x01 : 0x00;
           #endif
         }
 
@@ -954,9 +954,9 @@
       if (fileName[0] == '.') continue;
       if (!DIR_IS_FILE_OR_SUBDIR(p) || (p->attributes & DIR_ATT_HIDDEN)) continue;
 
-      filenameIsDir = DIR_IS_SUBDIR(p);
+      setFilenameIsDir(DIR_IS_SUBDIR(p));
 
-      if (!filenameIsDir && (p->name[8] != 'G' || p->name[9] == '~')) continue;
+      if (!isFilenameIsDir() && (p->name[8] != 'G' || p->name[9] == '~')) continue;
       switch (lsAction) {
         case LS_Count:
           nrFiles++;

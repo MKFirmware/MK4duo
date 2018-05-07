@@ -223,6 +223,7 @@ void _tmc_say_axis(const TMC_AxisEnum axis) {
   const static char* const tmc_axes[] PROGMEM = { ext_X, ext_Y, ext_Z, ext_X2, ext_Y2, ext_Z2, ext_E0, ext_E1, ext_E2, ext_E3, ext_E4, ext_E5 };
   SERIAL_PS((char*)pgm_read_ptr(&tmc_axes[axis]));
 }
+
 void _tmc_say_current(const TMC_AxisEnum axis, const uint16_t curr) {
   _tmc_say_axis(axis);
   SERIAL_EMV(" driver current: ", curr);
@@ -568,7 +569,7 @@ void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
 
 #if ENABLED(SENSORLESS_HOMING)
 
-  void tmc_sensorless_homing(TMC2130Stepper &st, bool enable/*=true*/) {
+  void tmc_sensorless_homing(TMC2130Stepper &st, const bool enable/*=true*/) {
     #if ENABLED(STEALTHCHOP)
       st.coolstep_min_speed(enable ? 1024UL * 1024UL - 1UL : 0);
       st.stealthChop(!enable);

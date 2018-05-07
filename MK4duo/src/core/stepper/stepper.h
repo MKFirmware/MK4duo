@@ -84,7 +84,7 @@ class Stepper {
     #endif
 
     // Counter variables for the Bresenham line tracer
-    static long counter_X, counter_Y, counter_Z, counter_E;
+    static int32_t counter_X, counter_Y, counter_Z, counter_E;
     static volatile uint32_t step_events_completed; // The number of step events executed in the current block
 
     #if ENABLED(BEZIER_JERK_CONTROL)
@@ -132,7 +132,7 @@ class Stepper {
       static hal_timer_t acc_step_rate; // needed for deceleration start point
     #endif
 
-    static volatile long endstops_trigsteps[XYZ];
+    static volatile int32_t endstops_trigsteps[XYZ];
 
     #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
       #ifndef PWM_MOTOR_CURRENT
@@ -152,14 +152,14 @@ class Stepper {
     static volatile signed char count_direction[NUM_AXIS];
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      static long counter_m[MIXING_STEPPERS];
+      static int32_t counter_m[MIXING_STEPPERS];
       #define MIXING_STEPPERS_LOOP(VAR) \
         for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++) \
           if (current_block->mix_event_count[VAR])
     #endif
 
     #if ENABLED(LASER)
-      static long counter_L;
+      static int32_t counter_L;
       #if ENABLED(LASER_RASTER)
         static int counter_raster;
       #endif // LASER_RASTER
@@ -190,9 +190,32 @@ class Stepper {
     //
     // Set current position in steps
     //
-    static void set_position(const long &a, const long &b, const long &c, const long &e);
-    static void set_position(const AxisEnum &a, const long &v);
-    static void set_e_position(const long &e);
+    static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+
+    FORCE_INLINE static void _set_position(const AxisEnum a, const int32_t &v) { count_position[a] = v; }
+
+    FORCE_INLINE static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
+      synchronize();
+      CRITICAL_SECTION_START;
+        _set_position(a, b, c, e);
+      CRITICAL_SECTION_END;
+    }
+
+    static void set_position(const AxisEnum a, const int32_t &v) {
+      synchronize();
+      CRITICAL_SECTION_START;
+        count_position[a] = v;
+      CRITICAL_SECTION_END;
+    }
+
+    FORCE_INLINE static void _set_e_position(const int32_t &e) { count_position[E_AXIS] = e; }
+
+    static void set_e_position(const int32_t &e) {
+      synchronize();
+      CRITICAL_SECTION_START;
+        count_position[E_AXIS] = e;
+      CRITICAL_SECTION_END;
+    }
 
     //
     // Set direction bits for all steppers
@@ -202,7 +225,7 @@ class Stepper {
     //
     // Get the position of a stepper, in steps
     //
-    static long position(const AxisEnum axis);
+    static int32_t position(const AxisEnum axis);
 
     //
     // Report the positions of the steppers, in steps
@@ -236,7 +259,6 @@ class Stepper {
     // Quickly stop all steppers and clear the blocks queue
     //
     static void quick_stop();
-    static void quickstop_stepper();
 
     //
     // The direction of a single motor

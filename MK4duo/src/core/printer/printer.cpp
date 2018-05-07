@@ -312,7 +312,7 @@ void Printer::loop() {
 
       #if HAS_SD_RESTART
         // Save Job for restart
-        if (card.cardOK && IS_SD_PRINTING) restart.save_data(true);
+        if (IS_SD_PRINTING) restart.save_data(true);
       #endif
 
       // Stop SD printing
@@ -322,7 +322,7 @@ void Printer::loop() {
       commands.clear_queue();
 
       // Stop all stepper
-      stepper.quickstop_stepper();
+      stepper.quick_stop();
 
       // Auto home
       #if Z_HOME_DIR > 0

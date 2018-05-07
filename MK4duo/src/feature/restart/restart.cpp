@@ -37,9 +37,9 @@
     memset(&job_info, 0, sizeof(job_info));
     ZERO(buffer_ring);
 
-    if (!card.cardOK) card.mount();
+    if (!card.isOK()) card.mount();
 
-    if (card.cardOK) {
+    if (card.isOK()) {
 
       #if ENABLED(DEBUG_RESTART)
         SERIAL_EMV("Init restart infomation. Size: ", (int)sizeof(job_info));
@@ -142,8 +142,10 @@
 
     job_phase = RESTART_YES;
 
-    card.startFileprint();
+    job_info.auto_restart = false;
+
     print_job_counter.resume(job_info.print_job_counter_elapsed);
+    card.startFileprint();
 
   }
 

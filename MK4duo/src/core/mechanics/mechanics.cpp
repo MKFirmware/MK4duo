@@ -104,7 +104,7 @@ void Mechanics::get_cartesian_from_steppers() {
  * may have been applied.
  *
  * To prevent small shifts in axis position always call
- * SYNC_PLAN_POSITION_KINEMATIC after updating axes with this.
+ * sync_plan_position_mech_specific after updating axes with this.
  *
  * To keep hosts in sync, always call report_current_position
  * after updating the current_position.
@@ -216,13 +216,14 @@ void Mechanics::do_blocking_move_to(const float rx, const float ry, const float 
     line_to_current_position();
   }
 
-  stepper.synchronize();
-
   feedrate_mm_s = old_feedrate_mm_s;
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
   #endif
+
+  stepper.synchronize();
+
 }
 void Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
   mechanics.do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
@@ -255,16 +256,16 @@ void Mechanics::sync_plan_position_e() {
  */
 void Mechanics::reset_acceleration_rates() {
   #if EXTRUDERS > 1
-    #define HIGHEST_CONDITION (i < E_AXIS || i == E_INDEX)
+    #define AXIS_CONDITION  (i < E_AXIS || i == E_INDEX)
   #else
-    #define HIGHEST_CONDITION true
+    #define AXIS_CONDITION  true
   #endif
   uint32_t highest_rate = 1;
   LOOP_XYZE_N(i) {
     max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
-    if (HIGHEST_CONDITION) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
+    if (AXIS_CONDITION ) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
   }
-  planner.cutoff_long = 4294967295UL / highest_rate;
+  planner.cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
 }
 
 /**
@@ -322,7 +323,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
   current_position[axis] = 0;
 
   sync_plan_position();
-  current_position[axis] = distance;
+  current_position[axis] = distance; // Set delta/cartesian axes directly
   planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
   stepper.synchronize();
@@ -367,8 +368,6 @@ void Mechanics::report_current_position() {
 }
 void Mechanics::report_current_position_detail() {
 
-  stepper.synchronize();
-
   SERIAL_MSG("\nLogical:");
   const float logical[XYZ] = {
     LOGICAL_X_POSITION(current_position[X_AXIS]),
@@ -392,6 +391,8 @@ void Mechanics::report_current_position_detail() {
     bedlevel.unapply_leveling(unleveled);
     report_xyz(unleveled);
   #endif
+
+  stepper.synchronize();
 
   SERIAL_MSG("Stepper:");
   LOOP_XYZE(i) {
@@ -551,8 +552,8 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
               current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
               max_feedrate_mm_s[X_AXIS], 1
             );
-            sync_plan_position();
             stepper.synchronize();
+            sync_plan_position();
             hotend_duplication_enabled = true;
             active_hotend_parked = false;
             #if ENABLED(DEBUG_LEVELING_FEATURE)

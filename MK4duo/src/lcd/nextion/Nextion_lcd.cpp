@@ -448,7 +448,7 @@
     #if HAS_SDSUPPORT
       card.mount();
       printer.safe_delay(500);
-      if (card.cardOK) {
+      if (card.isOK()) {
         SDstatus = SD_INSERT;
         card.beginautostart();  // Initial boot
       }
@@ -540,7 +540,7 @@
   #if HAS_SDSUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED || card.cardOK) {
+      if (IS_SD_INSERTED || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
         lcd_init();
@@ -585,7 +585,7 @@
             #else
               card.getfilename(i);
             #endif
-            printrowsd(row, card.filenameIsDir, card.fileName);
+            printrowsd(row, card.isFilenameIsDir(), card.fileName);
           } else {
             printrowsd(row, false, "");
           }
@@ -626,7 +626,7 @@
     void sdmountdismountPopCallback(void *ptr) {
       if (ptr == &sd_mount) {
         card.mount();
-        if (card.cardOK)
+        if (card.isOK())
           SDstatus = SD_INSERT;
         else
           SDstatus = SD_NO_INSERT;
@@ -693,7 +693,7 @@
     void PlayPausePopCallback(void *ptr) {
       UNUSED(ptr);
 
-      if (card.cardOK && card.isFileOpen()) {
+      if (card.isOK() && card.isFileOpen()) {
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
           print_job_counter.pause();
@@ -1410,11 +1410,11 @@
               SD.setValue(SDstatus);
             }
           }
-          else if (card.cardOK && SDstatus != SD_INSERT) {
+          else if (card.isOK() && SDstatus != SD_INSERT) {
             SDstatus = SD_INSERT;
             SD.setValue(SDstatus);
           }
-          else if (!card.cardOK && SDstatus != SD_NO_INSERT) {
+          else if (!card.isOK() && SDstatus != SD_NO_INSERT) {
             SDstatus = SD_NO_INSERT;
             SD.setValue(SDstatus);
           }

@@ -26,7 +26,11 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _RECOVERY_SANITYCHECK_H_
-#define _RECOVERY_SANITYCHECK_H_
+#ifndef _RESTART_SANITYCHECK_H_
+#define _RESTART_SANITYCHECK_H_
 
-#endif /* _RECOVERY_SANITYCHECK_H_ */
+#if ENABLED(SD_RESTART_FILE) && MIN_Z_HEIGHT_FOR_HOMING > 0
+  #error "DEPENDENCY ERROR: You have to set MIN_Z_HEIGHT_FOR_HOMING to 0 if you enable SD_RESTART_FILE."
+#endif
+
+#endif /* _RESTART_SANITYCHECK_H_ */

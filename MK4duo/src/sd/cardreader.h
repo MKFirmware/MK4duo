@@ -44,6 +44,13 @@
 
   enum LsAction { LS_Count, LS_GetFilename };
 
+  enum FlagCardReader : char {
+    flag_SD_OK,
+    flag_SD_saving,
+    flag_SD_printing,
+    flag_SD_filenameIsDir
+  };
+
   #include "SDFat.h"
 
   class CardReader {
@@ -61,11 +68,6 @@
                   workDir,
                   workDirParents[SD_MAX_FOLDER_DEPTH];
 
-      bool  saving,
-            sdprinting,
-            cardOK,
-            filenameIsDir;
-
       int autostart_index;
 
       uint32_t  fileSize,
@@ -81,6 +83,8 @@
             generatedBy[GENBY_SIZE];
 
     private: /** Private Parameters */
+
+      uint8_t card_flag;
 
       Sd2Card card;
 
@@ -217,13 +221,34 @@
         void presort();
         void getfilename_sorted(const uint16_t nr);
         #if ENABLED(SDSORT_GCODE)
-          FORCE_INLINE void setSortOn(bool b) { sort_alpha = b; presort(); }
-          FORCE_INLINE void setSortFolders(int i) { sort_folders = i; presort(); }
-          //FORCE_INLINE void setSortReverse(bool b) { sort_reverse = b; }
+          FORCE_INLINE void setSortOn(const bool b) { sort_alpha = b; presort(); }
+          FORCE_INLINE void setSortFolders(const int i) { sort_folders = i; presort(); }
+          //FORCE_INLINE void setSortReverse(const bool b) { sort_reverse = b; }
         #endif
       #endif
 
-      FORCE_INLINE void pauseSDPrint() { sdprinting = false; }
+      // Flag function
+      FORCE_INLINE void setOK(const bool onoff) {
+        SET_BIT(card_flag, flag_SD_OK, onoff);
+      }
+      FORCE_INLINE bool isOK() { return TEST(card_flag, flag_SD_OK); }
+
+      FORCE_INLINE void setSaving(const bool onoff) {
+        SET_BIT(card_flag, flag_SD_saving, onoff);
+      }
+      FORCE_INLINE bool isSaving() { return TEST(card_flag, flag_SD_saving); }
+
+      FORCE_INLINE void setSDprinting(const bool onoff) {
+        SET_BIT(card_flag, flag_SD_printing, onoff);
+      }
+      FORCE_INLINE bool isSDprinting() { return TEST(card_flag, flag_SD_printing); }
+
+      FORCE_INLINE void setFilenameIsDir(const bool onoff) {
+        SET_BIT(card_flag, flag_SD_filenameIsDir, onoff);
+      }
+      FORCE_INLINE bool isFilenameIsDir() { return TEST(card_flag, flag_SD_filenameIsDir); }
+
+      FORCE_INLINE void pauseSDPrint() { setSDprinting(false); }
       FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
       FORCE_INLINE uint32_t getIndex() { return sdpos; }
       FORCE_INLINE bool isFileOpen() { return gcode_file.isOpen(); }
@@ -231,8 +256,6 @@
       FORCE_INLINE int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
       FORCE_INLINE uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
       FORCE_INLINE char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
-
-      Sd2Card& getSd2Card() { return card; }
 
     private: /** Private Function */
 
@@ -252,7 +275,7 @@
 
   extern CardReader card;
 
-  #define IS_SD_PRINTING (card.sdprinting)
+  #define IS_SD_PRINTING (card.isSDprinting())
   #define IS_SD_FILE_OPEN (card.isFileOpen())
 
   #if PIN_EXISTS(SD_DETECT)

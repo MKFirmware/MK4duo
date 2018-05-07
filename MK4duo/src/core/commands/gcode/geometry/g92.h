@@ -36,8 +36,6 @@ inline void gcode_G92(void) {
   bool  didXYZ = false,
         didE = false;
 
-  stepper.synchronize();
-
   LOOP_XYZE(i) {
     if (parser.seenval(axis_codes[i])) {
       const float l = parser.value_axis_units((AxisEnum)i),

@@ -41,7 +41,7 @@
 
 #if HEATER_COUNT > 0
 
-  enum FlagHeaters {
+  enum FlagHeaters : char {
     heater_flag_use_pid,
     heater_flag_tuning,
     heater_flag_hardware_inverted,
