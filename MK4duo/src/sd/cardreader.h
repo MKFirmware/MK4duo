@@ -57,67 +57,67 @@
 
     public: /** Constructor */
 
-      CardReader();
+      CardReader() {};
 
     public: /** Public Parameters */
 
-      SdFat fat;
-      SdFile gcode_file;
-      SdBaseFile  root,
-                 *curDir,
-                  workDir,
-                  workDirParents[SD_MAX_FOLDER_DEPTH];
+      static SdBaseFile root,
+                        *curDir,
+                        workDir,
+                        workDirParents[SD_MAX_FOLDER_DEPTH];
 
-      int autostart_index;
+      static int autostart_index;
 
-      uint32_t  fileSize,
-                sdpos;
+      static uint32_t fileSize,
+                      sdpos;
 
-      float objectHeight,
-            firstlayerHeight,
-            layerHeight,
-            filamentNeeded;
+      static float  objectHeight,
+                    firstlayerHeight,
+                    layerHeight,
+                    filamentNeeded;
 
-      char  fileName[LONG_FILENAME_LENGTH],
-            tempLongFilename[LONG_FILENAME_LENGTH + 1],
-            generatedBy[GENBY_SIZE];
+      static char fileName[LONG_FILENAME_LENGTH],
+                  tempLongFilename[LONG_FILENAME_LENGTH + 1],
+                  generatedBy[GENBY_SIZE];
 
     private: /** Private Parameters */
 
-      uint8_t card_flag;
+      static uint8_t card_flag;
 
-      Sd2Card card;
+      static uint16_t nrFile_index;
+
+      static Sd2Card card;
 
       #if HAS_SD_RESTART
-        SdFile restart_file;
+        static SdFile restart_file;
       #endif
 
       #if HAS_EEPROM_SD
-        SdFile eeprom_file;
+        static SdFile eeprom_file;
       #endif
 
       #if ENABLED(SD_SETTINGS)
-        SdFile settings_file;
+        static SdFile settings_file;
       #endif
 
-      uint16_t  workDirDepth;
-      uint16_t  nrFiles;             // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
-      LsAction  lsAction;            // stored for recursion.
+      static uint16_t workDirDepth,
+                      nrFiles;              // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
+      static LsAction  lsAction;            // stored for recursion.
 
       // Sort files and folders alphabetically.
       #if ENABLED(SDCARD_SORT_ALPHA)
-        uint16_t sort_count;        // Count of sorted items in the current directory
+        static uint16_t sort_count;         // Count of sorted items in the current directory
         #if ENABLED(SDSORT_GCODE)
-          bool sort_alpha;          // Flag to enable / disable the feature
-          int sort_folders;         // Flag to enable / disable folder sorting
-          //bool sort_reverse;      // Flag to enable / disable reverse sorting
+          static bool sort_alpha;           // Flag to enable / disable the feature
+          static int sort_folders;          // Flag to enable / disable folder sorting
+          //static bool sort_reverse;       // Flag to enable / disable reverse sorting
         #endif
 
         // By default the sort index is static
         #if ENABLED(SDSORT_DYNAMIC_RAM)
-          uint8_t *sort_order;
+          static uint8_t *sort_order;
         #else
-          uint8_t sort_order[SDSORT_LIMIT];
+          static uint8_t sort_order[SDSORT_LIMIT];
         #endif
 
         #if ENABLED(SDSORT_USES_RAM) && ENABLED(SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)
@@ -132,20 +132,20 @@
           // If using dynamic ram for names, allocate on the heap.
           #if ENABLED(SDSORT_CACHE_NAMES)
             #if ENABLED(SDSORT_DYNAMIC_RAM)
-              char **sortshort, **sortnames;
+              static char **sortshort, **sortnames;
             #else
-              char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+              static char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
             #endif
           #elif DISABLED(SDSORT_USES_STACK)
-            char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+            static char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
           #endif
 
           // Folder sorting uses an isDir array when caching items.
           #if HAS_FOLDER_SORTING
             #if ENABLED(SDSORT_DYNAMIC_RAM)
-              uint8_t *isDir;
+              static uint8_t *isDir;
             #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
-              uint8_t isDir[(SDSORT_LIMIT + 7)>>3];
+              static uint8_t isDir[(SDSORT_LIMIT + 7)>>3];
             #endif
           #endif
 
@@ -155,52 +155,52 @@
 
     public: /** Public Function */
 
-      void mount();
-      void unmount();
-      void ls();
-      void getfilename(uint16_t nr, const char* const match=NULL);
-      void getAbsFilename(char* name);
-      void startFileprint();
-      void openAndPrintFile(const char* name);
-      void stopSDPrint();
-      void write_command(char* buf);
-      void printStatus();
-      void startWrite(char* filename, const bool silent=false);
-      void deleteFile(char* filename);
-      void finishWrite();
-      void makeDirectory(char* filename);
-      void closeFile();
-      void printingHasFinished();
-      void chdir(const char* relpath);
-      void ResetDefault();
-      void PrintSettings();
-      void beginautostart();
-      void checkautostart();
-      void setroot();
-      void setlast();
+      static void mount();
+      static void unmount();
+      static void ls();
+      static void getfilename(uint16_t nr, const char* const match=NULL);
+      static void getAbsFilename(char* name);
+      static void startFileprint();
+      static void openAndPrintFile(const char* name);
+      static void stopSDPrint();
+      static void write_command(char* buf);
+      static void printStatus();
+      static void startWrite(char* filename, const bool silent=false);
+      static void deleteFile(char* filename);
+      static void finishWrite();
+      static void makeDirectory(char* filename);
+      static void closeFile();
+      static void printingHasFinished();
+      static void chdir(const char* relpath);
+      static void ResetDefault();
+      static void PrintSettings();
+      static void beginautostart();
+      static void checkautostart();
+      static void setroot();
+      static void setlast();
 
       static void printEscapeChars(const char* s);
 
-      bool selectFile(const char* filename);
+      static bool selectFile(const char* filename);
 
-      int8_t updir();
-      uint16_t getnrfilenames();
-      uint16_t get_num_Files();
+      static int8_t updir();
+      static uint16_t getnrfilenames();
+      static uint16_t get_num_Files();
 
       #if HAS_SD_RESTART
-        void open_restart_file(const bool read);
-        void close_restart_file();
-        void delete_restart_file();
-        bool exist_restart_file();
-        int16_t save_restart_data();
-        int16_t read_restart_data();
+        static void open_restart_file(const bool read);
+        static void close_restart_file();
+        static void delete_restart_file();
+        static bool exist_restart_file();
+        static int16_t save_restart_data();
+        static int16_t read_restart_data();
       #endif
 
       #if HAS_EEPROM_SD
-        bool open_eeprom_sd(const bool read);
-        void close_eeprom_sd();
-        bool write_eeprom_data(const uint8_t value);
-        uint8_t read_eeprom_data();
+        static bool open_eeprom_sd(const bool read);
+        static void close_eeprom_sd();
+        static bool write_eeprom_data(const uint8_t value);
+        static uint8_t read_eeprom_data();
       #endif
 
       #if ENABLED(SD_SETTINGS)
@@ -208,67 +208,67 @@
         #define CFG_SD_MAX_VALUE_LEN  10+1        // this should be enough for int, long and float: if you need to retrieve strings increase this carefully
         //(11 = strlen("4294967295")+1) (4294967295 = (2^32)-1) (32 = the num of bits of the bigger basic data structure used)
         //If you need to save string increase this to strlen("YOUR LONGER STRING")+1
-        void StoreSettings();
-        void RetrieveSettings(bool addValue = false);
-        void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
-        void unparseKeyLine(const char* key, char* value);
-        int  KeyIndex(char* key);
+        static void StoreSettings();
+        static void RetrieveSettings(bool addValue = false);
+        static void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
+        static void unparseKeyLine(const char* key, char* value);
+        static int  KeyIndex(char* key);
       #else
-        inline void RetrieveSettings() { ResetDefault(); }
+        inline static void RetrieveSettings() { ResetDefault(); }
       #endif
 
       #if ENABLED(SDCARD_SORT_ALPHA)
-        void presort();
-        void getfilename_sorted(const uint16_t nr);
+        static void presort();
+        static void getfilename_sorted(const uint16_t nr);
         #if ENABLED(SDSORT_GCODE)
-          FORCE_INLINE void setSortOn(const bool b) { sort_alpha = b; presort(); }
-          FORCE_INLINE void setSortFolders(const int i) { sort_folders = i; presort(); }
+          FORCE_INLINE static void setSortOn(const bool b) { sort_alpha = b; presort(); }
+          FORCE_INLINE static void setSortFolders(const int i) { sort_folders = i; presort(); }
           //FORCE_INLINE void setSortReverse(const bool b) { sort_reverse = b; }
         #endif
       #endif
 
       // Flag function
-      FORCE_INLINE void setOK(const bool onoff) {
+      FORCE_INLINE static void setOK(const bool onoff) {
         SET_BIT(card_flag, flag_SD_OK, onoff);
       }
-      FORCE_INLINE bool isOK() { return TEST(card_flag, flag_SD_OK); }
+      FORCE_INLINE static bool isOK() { return TEST(card_flag, flag_SD_OK); }
 
-      FORCE_INLINE void setSaving(const bool onoff) {
+      FORCE_INLINE static void setSaving(const bool onoff) {
         SET_BIT(card_flag, flag_SD_saving, onoff);
       }
-      FORCE_INLINE bool isSaving() { return TEST(card_flag, flag_SD_saving); }
+      FORCE_INLINE static bool isSaving() { return TEST(card_flag, flag_SD_saving); }
 
-      FORCE_INLINE void setSDprinting(const bool onoff) {
+      FORCE_INLINE static void setSDprinting(const bool onoff) {
         SET_BIT(card_flag, flag_SD_printing, onoff);
       }
-      FORCE_INLINE bool isSDprinting() { return TEST(card_flag, flag_SD_printing); }
+      FORCE_INLINE static bool isSDprinting() { return TEST(card_flag, flag_SD_printing); }
 
-      FORCE_INLINE void setFilenameIsDir(const bool onoff) {
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) {
         SET_BIT(card_flag, flag_SD_filenameIsDir, onoff);
       }
-      FORCE_INLINE bool isFilenameIsDir() { return TEST(card_flag, flag_SD_filenameIsDir); }
+      FORCE_INLINE static bool isFilenameIsDir() { return TEST(card_flag, flag_SD_filenameIsDir); }
 
-      FORCE_INLINE void pauseSDPrint() { setSDprinting(false); }
-      FORCE_INLINE void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
-      FORCE_INLINE uint32_t getIndex() { return sdpos; }
-      FORCE_INLINE bool isFileOpen() { return gcode_file.isOpen(); }
-      FORCE_INLINE bool eof() { return sdpos >= fileSize; }
-      FORCE_INLINE int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
-      FORCE_INLINE uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
-      FORCE_INLINE char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
+      FORCE_INLINE static void pauseSDPrint() { setSDprinting(false); }
+      FORCE_INLINE static void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
+      FORCE_INLINE static uint32_t getIndex() { return sdpos; }
+      FORCE_INLINE static bool isFileOpen() { return gcode_file.isOpen(); }
+      FORCE_INLINE static bool eof() { return sdpos >= fileSize; }
+      FORCE_INLINE static int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
+      FORCE_INLINE static uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
+      FORCE_INLINE static char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
 
     private: /** Private Function */
 
-      void lsDive(SdBaseFile parent, const char* const match = NULL);
-      void parsejson(SdBaseFile &parser_file);
-      bool findGeneratedBy(char* buf, char* genBy);
-      bool findFirstLayerHeight(char* buf, float &firstlayerHeight);
-      bool findLayerHeight(char* buf, float &layerHeight);
-      bool findFilamentNeed(char* buf, float &filament);
-      bool findTotalHeight(char* buf, float &objectHeight);
+      static void lsDive(SdBaseFile parent, const char* const match = NULL);
+      static void parsejson(SdBaseFile &parser_file);
+      static bool findGeneratedBy(char* buf, char* genBy);
+      static bool findFirstLayerHeight(char* buf, float &firstlayerHeight);
+      static bool findLayerHeight(char* buf, float &layerHeight);
+      static bool findFilamentNeed(char* buf, float &filament);
+      static bool findTotalHeight(char* buf, float &objectHeight);
 
       #if ENABLED(SDCARD_SORT_ALPHA)
-        void flush_presort();
+        static void flush_presort();
       #endif
 
   };
