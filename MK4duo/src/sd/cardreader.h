@@ -61,6 +61,8 @@
 
     public: /** Public Parameters */
 
+      static SdFat fat;
+      static SdFile gcode_file;
       static SdBaseFile root,
                         *curDir,
                         workDir,
