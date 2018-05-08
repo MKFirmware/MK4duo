@@ -30,34 +30,97 @@
 
   CardReader card;
 
-  uint16_t nrFile_index;
+  /** Public Parameters */
+  SdFat       CardReader::fat;
+  SdFile      CardReader::gcode_file;
+  SdBaseFile  CardReader::root,
+              *CardReader::curDir,
+              CardReader::workDir,
+              CardReader::workDirParents[SD_MAX_FOLDER_DEPTH];
 
-  // Pubblic Function
-  CardReader::CardReader() {
-    #if ENABLED(SDCARD_SORT_ALPHA)
-      sort_count = 0;
-      #if ENABLED(SDSORT_GCODE)
-        sort_alpha = true;
-        sort_folders = FOLDER_SORTING;
-        //sort_reverse = false;
-      #endif
+  int CardReader::autostart_index = -1;
+
+  uint32_t  CardReader::fileSize  = 0,
+            CardReader::sdpos     = 0;
+
+  float CardReader::objectHeight      = 0.0,
+        CardReader::firstlayerHeight  = 0.0,
+        CardReader::layerHeight       = 0.0,
+        CardReader::filamentNeeded    = 0.0;
+
+  char  CardReader::fileName[LONG_FILENAME_LENGTH],
+        CardReader::tempLongFilename[LONG_FILENAME_LENGTH + 1],
+        CardReader::generatedBy[GENBY_SIZE];
+
+  /** Private Parameters */
+
+  uint8_t CardReader::card_flag = 0;
+
+  uint16_t CardReader::nrFile_index = 0;
+
+  Sd2Card CardReader::card;
+
+  #if HAS_SD_RESTART
+    SdFile CardReader::restart_file;
+  #endif
+
+  #if HAS_EEPROM_SD
+    SdFile CardReader::eeprom_file;
+  #endif
+
+  #if ENABLED(SD_SETTINGS)
+    SdFile CardReader::settings_file;
+  #endif
+
+  uint16_t  CardReader::workDirDepth  = 0,
+            CardReader::nrFiles       = 0;
+
+  LsAction  CardReader::lsAction      = LS_Count;
+
+  // Sort files and folders alphabetically.
+  #if ENABLED(SDCARD_SORT_ALPHA)
+    uint16_t CardReader::sort_count = 0;
+    #if ENABLED(SDSORT_GCODE)
+      bool  CardReader::sort_alpha    = true;
+      int   CardReader::sort_folders  = FOLDER_SORTING;
+      //static bool sort_reverse;      // Flag to enable / disable reverse sorting
     #endif
-    card_flag = 0;
-    fileSize = 0;
-    sdpos = 0;
 
-    workDirDepth = 0;
-    ZERO(workDirParents);
+    // By default the sort index is static
+    #if ENABLED(SDSORT_DYNAMIC_RAM)
+      uint8_t *CardReader::sort_order;
+    #else
+      uint8_t CardReader::sort_order[SDSORT_LIMIT];
+    #endif
 
-    // Disable autostart until card is initialized
-    autostart_index = -1;
+    // Cache filenames to speed up SD menus.
+    #if ENABLED(SDSORT_USES_RAM)
 
-    // power to SD reader
-    #if PIN_EXISTS(SDPOWER)
-      OUT_WRITE(SDPOWER_PIN, HIGH);
-    #endif // SDPOWER_PIN
+      // If using dynamic ram for names, allocate on the heap.
+      #if ENABLED(SDSORT_CACHE_NAMES)
+        #if ENABLED(SDSORT_DYNAMIC_RAM)
+          char **CardReader::sortshort, **CardReader::sortnames;
+        #else
+          char CardReader::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+        #endif
+      #elif DISABLED(SDSORT_USES_STACK)
+        char CardReader::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+      #endif
 
-  }
+      // Folder sorting uses an isDir array when caching items.
+      #if HAS_FOLDER_SORTING
+        #if ENABLED(SDSORT_DYNAMIC_RAM)
+          uint8_t *CardReader::isDir;
+        #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
+          uint8_t CardReader::isDir[(SDSORT_LIMIT + 7)>>3];
+        #endif
+      #endif
+
+    #endif // SDSORT_USES_RAM
+
+  #endif // SDCARD_SORT_ALPHA
+
+  /** Public Function */
 
   void CardReader::mount() {
     setOK(false);
