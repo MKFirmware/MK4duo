@@ -630,7 +630,7 @@ void Stepper::set_directions() {
         " sts bezier_F+2, %10" "\n\t"    /* bezier_F = %10:%1:%0 = v0 */
 
         /* Get delta speed */
-        " ldi %2,-1" "\n\t"              /* %2 = 0xff, means A_negative = true */
+        " ldi %2,-1" "\n\t"              /* %2 = 0xFF, means A_negative = true */
         " clr %8" "\n\t"                 /* %8 = 0 */
         " sub %0,%3" "\n\t"
         " sbc %1,%4" "\n\t"

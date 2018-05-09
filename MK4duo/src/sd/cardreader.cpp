@@ -512,7 +512,10 @@
       SERIAL_EM("restart.bin");
     }
 
-    void CardReader::close_restart_file() { restart_file.close(); }
+    void CardReader::close_restart_file() {
+      if (!restart_file.isOpen()) return;
+      restart_file.close();
+    }
 
     void CardReader::delete_restart_file() {
       if (restart_file.remove(&root, "restart.bin")) {
@@ -528,6 +531,7 @@
     }
 
     int16_t CardReader::save_restart_data() {
+      if (!restart_file.isOpen()) return -1;
       restart_file.seekSet(0);
       return restart_file.write(&restart.job_info, sizeof(restart.job_info));
     }

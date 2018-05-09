@@ -53,6 +53,7 @@
 // --------------------------------------------------------------------------
 
 #if ENABLED(SOFTWARE_SPI)
+
   // --------------------------------------------------------------------------
   // software SPI
   // --------------------------------------------------------------------------
@@ -98,7 +99,7 @@
 
   uint8_t HAL::spiReceive(void) {
     WRITE(SS_PIN, LOW);
-    uint8_t b = spiTransfer(0xff);
+    uint8_t b = spiTransfer(0xFF);
     WRITE(SS_PIN, HIGH);
     return b;
   }
@@ -107,7 +108,7 @@
     if (nbyte == 0) return;
     WRITE(SS_PIN, LOW);
     for (int i = 0; i < nbyte; i++) {
-      buf[i] = spiTransfer(0xff);
+      buf[i] = spiTransfer(0xFF);
     }
     WRITE(SS_PIN, HIGH);
   }
