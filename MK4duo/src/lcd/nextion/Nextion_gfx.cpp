@@ -45,9 +45,9 @@
   }
 
   uint16_t GFX::r5g6b5(const float *color_a, const float *cinc, int pixel) {
-    return (((int)((color_a[0] + cinc[0] * pixel) * 31) & 0x1f) << 11) |
-           (((int)((color_a[1] + cinc[1] * pixel) * 63) & 0x3f) << 5) |
-           (((int)((color_a[2] + cinc[2] * pixel) * 31) & 0x1f) << 0);
+    return (((int)((color_a[0] + cinc[0] * pixel) * 31) & 0x1F) << 11) |
+           (((int)((color_a[1] + cinc[1] * pixel) * 63) & 0x3F) << 5) |
+           (((int)((color_a[2] + cinc[2] * pixel) * 31) & 0x1F) << 0);
   }
 
   void GFX::fcolor(float *c, uint16_t r5g6b5, float y, float max_y) {
@@ -56,9 +56,9 @@
     max_y *= 1.5;
 
     dim = (max_y - y) / max_y;
-    c[0] = ((r5g6b5 >> 11) & 0x1f) / 31.0 * dim;
-    c[1] = ((r5g6b5 >>  5) & 0x3f) / 63.0 * dim;
-    c[2] = ((r5g6b5 >>  0) & 0x1f) / 31.0 * dim;
+    c[0] = ((r5g6b5 >> 11) & 0x1F) / 31.0 * dim;
+    c[1] = ((r5g6b5 >>  5) & 0x3F) / 63.0 * dim;
+    c[2] = ((r5g6b5 >>  0) & 0x1F) / 31.0 * dim;
   }
 
   void GFX::nextion_line2d_shade(const float *color_a, const struct Point *a, const float *color_b, const struct Point *b, bool shade) {

@@ -81,7 +81,7 @@ static const uint8_t u8g_dev_uc1701_mini12864_HAL_init_seq[] PROGMEM = {
   0x0a6,    /* display normal, bit val 0: LCD pixel off. */
   0x0a2,    /* LCD bias 1/9 */
   0x02f,    /* all power  control circuits on */
-  0x0f8,    /* set booster ratio to */
+  0x0F8,    /* set booster ratio to */
   0x000,    /* 4x */
   0x023,    /* set V0 voltage resistor ratio to large */
   0x081,    /* set contrast */
@@ -121,7 +121,7 @@ uint8_t u8g_dev_uc1701_mini12864_HAL_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg,
       {
         u8g_pb_t *pb = (u8g_pb_t *)(dev->dev_mem);
         u8g_WriteEscSeqP(u8g, dev, u8g_dev_uc1701_mini12864_HAL_data_start);
-        u8g_WriteByte(u8g, dev, 0x0b0 | pb->p.page); /* select current page */
+        u8g_WriteByte(u8g, dev, 0x0B0 | pb->p.page); /* select current page */
         u8g_SetAddress(u8g, dev, 1);           /* data mode */
         if ( u8g_pb_WriteBuffer(pb, u8g, dev) == 0 )
           return 0;
@@ -154,13 +154,13 @@ uint8_t u8g_dev_uc1701_mini12864_HAL_2x_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t m
         u8g_pb_t *pb = (u8g_pb_t *)(dev->dev_mem);
 
         u8g_WriteEscSeqP(u8g, dev, u8g_dev_uc1701_mini12864_HAL_data_start);
-        u8g_WriteByte(u8g, dev, 0x0b0 | (2*pb->p.page)); /* select current page */
+        u8g_WriteByte(u8g, dev, 0x0B0 | (2*pb->p.page)); /* select current page */
         u8g_SetAddress(u8g, dev, 1);           /* data mode */
   u8g_WriteSequence(u8g, dev, pb->width, (uint8_t *)pb->buf);
         u8g_SetChipSelect(u8g, dev, 0);
 
         u8g_WriteEscSeqP(u8g, dev, u8g_dev_uc1701_mini12864_HAL_data_start);
-        u8g_WriteByte(u8g, dev, 0x0b0 | (2*pb->p.page+1)); /* select current page */
+        u8g_WriteByte(u8g, dev, 0x0B0 | (2*pb->p.page+1)); /* select current page */
         u8g_SetAddress(u8g, dev, 1);           /* data mode */
   u8g_WriteSequence(u8g, dev, pb->width, (uint8_t *)(pb->buf)+pb->width);
         u8g_SetChipSelect(u8g, dev, 0);

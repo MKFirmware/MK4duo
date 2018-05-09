@@ -451,7 +451,6 @@
  *                                                                        *
  * This option eliminates vibration during printing by fitting a Bézier   *
  * curve to move acceleration, producing much smoother direction changes. *
- * A 32-bit processor is required.                                        *
  *                                                                        *
  **************************************************************************/
 //#define BEZIER_JERK_CONTROL
