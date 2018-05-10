@@ -41,9 +41,6 @@ enum BlockFlagBit {
   // from a safe speed (in consideration of jerking from zero speed).
   BLOCK_BIT_NOMINAL_LENGTH,
 
-  // Start from a halt at the start of this block, respecting the maximum allowed jerk.
-  BLOCK_BIT_START_FROM_FULL_HALT,
-
   // The block is busy
   BLOCK_BIT_BUSY,
 
@@ -54,10 +51,9 @@ enum BlockFlagBit {
   BLOCK_BIT_SYNC_POSITION
 };
 
-enum BlockFlag {
+enum BlockFlag : char {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
-  BLOCK_FLAG_START_FROM_FULL_HALT = _BV(BLOCK_BIT_START_FROM_FULL_HALT),
   BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
   BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
   BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
@@ -87,10 +83,11 @@ typedef struct {
     uint32_t mix_event_count[MIXING_STEPPERS]; // Scaled step_event_count for the mixing steppers
   #endif
 
+  // Settings for the trapezoid generator
   int32_t accelerate_until,                 // The index of the step event on which to stop acceleration
           decelerate_after;                 // The index of the step event on which to start decelerating
 
- #if ENABLED(BEZIER_JERK_CONTROL)
+  #if ENABLED(BEZIER_JERK_CONTROL)
     uint32_t  cruise_rate;                  // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
     uint32_t  acceleration_time,            // Acceleration time and deceleration time in STEP timer counts
               deceleration_time;
@@ -171,11 +168,6 @@ class Planner {
     static volatile uint8_t block_buffer_head,  // Index of the next block to be pushed
                             block_buffer_tail;  // Index of the busy block, if any
 
-    /**
-     * Limit where 64bit math is necessary for acceleration calculation
-     */
-    static uint32_t cutoff_long;
-
     #if ENABLED(LIN_ADVANCE)
       static float  extruder_advance_K,
                     position_float[XYZE];
@@ -198,6 +190,11 @@ class Planner {
      * Nominal speed of previous path line segment
      */
     static float previous_nominal_speed;
+
+    /**
+     * Limit where 64bit math is necessary for acceleration calculation
+     */
+    static uint32_t cutoff_long;
 
     #if ENABLED(DISABLE_INACTIVE_EXTRUDER)
       /**
@@ -227,7 +224,10 @@ class Planner {
      * Static (class) Methods
      */
 
-    // Manage fans, paste pressure, etc.
+    static void reset_acceleration_rates();
+    static void refresh_positioning();
+
+    // Manage Axis, paste pressure, etc.
     static void check_axes_activity();
 
     /**
@@ -320,6 +320,7 @@ class Planner {
      * Used by G92, G28, G29, and other procedures.
      *
      * Multiplies by axis_steps_per_mm[] and does necessary conversion
+     * for COREXY / COREXZ / COREYZ to set the corresponding stepper positions.
      *
      * Clears previous speed values.
      */
@@ -439,7 +440,7 @@ class Planner {
     }
 
     /**
-     * Return the point at which you must start braking (at the rate of -'acceleration') if
+     * Return the point at which you must start braking (at the rate of -'accel') if
      * you start at 'initial_rate', accelerate (until reaching the point), and want to end at
      * 'final_rate' after traveling 'distance'.
      *

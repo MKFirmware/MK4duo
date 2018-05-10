@@ -3474,7 +3474,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       #if IS_DELTA
         mechanics.max_acceleration_mm_per_s2[Y_AXIS] = mechanics.max_acceleration_mm_per_s2[Z_AXIS] = mechanics.max_acceleration_mm_per_s2[X_AXIS];
       #endif
-      mechanics.reset_acceleration_rates();
+      planner.reset_acceleration_rates();
     }
     #if EXTRUDERS > 1
       void _reset_e_acceleration_rate(const uint8_t e) { if (e == tools.active_extruder) _reset_acceleration_rates(); }
@@ -3498,7 +3498,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       #if IS_DELTA
         mechanics.axis_steps_per_mm[Y_AXIS] = mechanics.axis_steps_per_mm[Z_AXIS] = mechanics.axis_steps_per_mm[X_AXIS];
       #endif
-      mechanics.refresh_positioning();
+      planner.refresh_positioning();
     }
     #if EXTRUDERS > 1
       void _mechanics_refresh_e_positioning(const uint8_t e) {

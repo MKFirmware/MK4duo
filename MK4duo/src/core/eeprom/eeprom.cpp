@@ -227,7 +227,7 @@ void EEPROM::Postprocess() {
   };
 
   // steps per s2 needs to be updated to agree with units per s2
-  mechanics.reset_acceleration_rates();
+  planner.reset_acceleration_rates();
 
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
@@ -283,7 +283,7 @@ void EEPROM::Postprocess() {
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
-  mechanics.refresh_positioning();
+  planner.refresh_positioning();
 
   if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
     mechanics.report_current_position();
@@ -1025,7 +1025,7 @@ void EEPROM::Postprocess() {
           SET_CURR(E5);
         #endif
 
-        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
+        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
         uint32_t tmc_hybrid_threshold[TMC_AXES];
         EEPROM_READ(tmc_hybrid_threshold);
         #if ENABLED(HYBRID_THRESHOLD)

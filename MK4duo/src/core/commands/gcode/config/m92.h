@@ -61,5 +61,5 @@ inline void gcode_M92(void) {
       }
     }
   }
-  mechanics.refresh_positioning();
+  planner.refresh_positioning();
 }

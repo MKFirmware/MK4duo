@@ -252,32 +252,6 @@ void Mechanics::sync_plan_position_e() {
 }
 
 /**
- * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
- */
-void Mechanics::reset_acceleration_rates() {
-  #if EXTRUDERS > 1
-    #define AXIS_CONDITION  (i < E_AXIS || i == E_INDEX)
-  #else
-    #define AXIS_CONDITION  true
-  #endif
-  uint32_t highest_rate = 1;
-  LOOP_XYZE_N(i) {
-    max_acceleration_steps_per_s2[i] = max_acceleration_mm_per_s2[i] * axis_steps_per_mm[i];
-    if (AXIS_CONDITION ) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
-  }
-  planner.cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
-}
-
-/**
- * Recalculate position, steps_to_mm if axis_steps_per_mm changes!
- */
-void Mechanics::refresh_positioning() {
-  LOOP_XYZE_N(i) steps_to_mm[i] = 1.0 / axis_steps_per_mm[i];
-  planner.set_position_mm_kinematic(current_position);
-  reset_acceleration_rates();
-}
-
-/**
  * Home an individual linear axis
  */
 void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
