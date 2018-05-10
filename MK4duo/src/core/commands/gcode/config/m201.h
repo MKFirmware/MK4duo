@@ -52,5 +52,5 @@ inline void gcode_M201(void) {
     }
   }
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
-  mechanics.reset_acceleration_rates();
+  planner.reset_acceleration_rates();
 }

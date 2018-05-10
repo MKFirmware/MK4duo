@@ -59,7 +59,7 @@
     GET_TARGET_EXTRUDER(906);
 
     #define TMC_SAY_CURRENT(Q) tmc_get_current(stepper##Q, TMC_##Q)
-    #define TMC_SET_CURRENT(Q) tmc_set_current(stepper##Q, TMC_##Q, value)
+    #define TMC_SET_CURRENT(Q) tmc_set_current(stepper##Q, value)
 
     const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {

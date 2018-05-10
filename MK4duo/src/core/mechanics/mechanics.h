@@ -289,16 +289,6 @@ class Mechanics {
     static void sync_plan_position_e();
 
     /**
-     * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
-     */
-    static void reset_acceleration_rates();
-
-    /**
-     * Recalculate position, steps_to_mm if axis_steps_per_mm changes!
-     */
-    static void refresh_positioning();
-
-    /**
      * Home an individual linear axis
      */
     virtual void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
