@@ -237,11 +237,11 @@ void Planner::init() {
     //      idx += 8;
     //    }
     //  }
-    //  if (!(nr & 0xf00000)) {
+    //  if (!(nr & 0xF00000)) {
     //    nr <<= 4;
     //    idx += 4;
     //  }
-    //  if (!(nr & 0xc00000)) {
+    //  if (!(nr & 0xC00000)) {
     //    nr <<= 2;
     //    idx += 2;
     //  }
@@ -345,18 +345,18 @@ void Planner::init() {
 
         // here %16 != 0 and %16:%15 contains at least 9 MSBits, or both %16:%15 are 0 
         "2:" "\n\t"
-        " cpi %16,0x10" "\n\t"            // (nr & 0xf00000) == 0 ? 
+        " cpi %16,0x10" "\n\t"            // (nr & 0xF00000) == 0 ? 
         " brcc 3f" "\n\t"                 // No, skip this 
         " swap %15" "\n\t"                // Swap nibbles 
         " swap %16" "\n\t"                // Swap nibbles. Low nibble is 0 
         " mov %14, %15" "\n\t"
-        " andi %14,0x0f" "\n\t"           // Isolate low nibble 
-        " andi %15,0xf0" "\n\t"           // Keep proper nibble in %15 
+        " andi %14,0x0F" "\n\t"           // Isolate low nibble 
+        " andi %15,0xF0" "\n\t"           // Keep proper nibble in %15 
         " or %16, %14" "\n\t"             // %16:%15 <<= 4 
         " subi %3,-4" "\n\t"              // idx += 4 
 
         "3:" "\n\t"
-        " cpi %16,0x40" "\n\t"            // (nr & 0xc00000) == 0 ? 
+        " cpi %16,0x40" "\n\t"            // (nr & 0xC00000) == 0 ? 
         " brcc 4f" "\n\t"                 // No, skip this
         " add %15,%15" "\n\t"
         " adc %16,%16" "\n\t"
@@ -405,8 +405,8 @@ void Planner::init() {
         " swap %15" "\n\t"                // Swap nibbles. lo nibble of %15 will always be 0
         " swap %14" "\n\t"                // Swap nibbles
         " mov %12,%14" "\n\t"
-        " andi %12,0x0f" "\n\t"           // isolate low nibble
-        " andi %14,0xf0" "\n\t"           // and clear it
+        " andi %12,0x0F" "\n\t"           // isolate low nibble
+        " andi %14,0xF0" "\n\t"           // and clear it
         " or %15,%12" "\n\t"              // %15:%16 <<= 4
         "16:" "\n\t"
         " sbrs %3,3" "\n\t"               // shift by 8bits position?
@@ -434,10 +434,10 @@ void Planner::init() {
         " sbrs %3,2" "\n\t"               // shift by 4 bit position ?
         " rjmp 12f" "\n\t"                // No, skip it
         " swap %15" "\n\t"                // Swap nibbles
-        " andi %14, 0xf0" "\n\t"          // Lose the lowest nibble
+        " andi %14, 0xF0" "\n\t"          // Lose the lowest nibble
         " swap %14" "\n\t"                // Swap nibbles. Upper nibble is 0
         " or %14,%15" "\n\t"              // Pass nibble from upper byte
-        " andi %15, 0x0f" "\n\t"          // And get rid of that nibble
+        " andi %15, 0x0F" "\n\t"          // And get rid of that nibble
         "12:" "\n\t"
         " sbrs %3,3" "\n\t"               // shift by 8 bit position ?
         " rjmp 6f" "\n\t"                 // No, skip it
@@ -698,8 +698,8 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 
   #if ENABLED(BEZIER_JERK_CONTROL)
     // Jerk controlled speed requires to express speed versus time, NOT steps
-    uint32_t  acceleration_time = ((float)(cruise_rate - initial_rate) / accel) * HAL_TIMER_RATE,
-              deceleration_time = ((float)(cruise_rate - final_rate) / accel) * HAL_TIMER_RATE;
+    uint32_t  acceleration_time = ((float)(cruise_rate - initial_rate) / accel) * (HAL_TIMER_RATE),
+              deceleration_time = ((float)(cruise_rate - final_rate) / accel) * (HAL_TIMER_RATE);
 
     // And to offload calculations from the ISR, we also calculate the inverse of those times here
     uint32_t  acceleration_time_inverse = get_period_inverse(acceleration_time),
@@ -902,7 +902,7 @@ void Planner::recalculate() {
 #endif // HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
 
 /**
- * Maintain fans, paste extruder pressure,
+ * Maintain paste extruder pressure,
  */
 void Planner::check_axes_activity() {
   unsigned char axis_active[NUM_AXIS] = { 0 };
@@ -1683,8 +1683,7 @@ void Planner::check_axes_activity() {
     }
   #endif
 
-  // Initial limit on the segment entry velocity
-  float vmax_junction;
+  float vmax_junction; // Initial limit on the segment entry velocity
 
   /**
    * Start with a safe speed (from which the machine may halt to stop immediately).
