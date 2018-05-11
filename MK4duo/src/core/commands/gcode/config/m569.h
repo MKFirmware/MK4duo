@@ -54,7 +54,7 @@ inline void gcode_M569(void) {
   #if EXTRUDERS > 1
     for (int8_t i = 0; i < EXTRUDERS; i++) {
       SERIAL_MV(" Extruder:", (int)i);
-      SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)E_AXIS + i) ? "true" : "false");
+      SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)(E_AXIS + i)) ? "true" : "false");
     }
   #endif
 

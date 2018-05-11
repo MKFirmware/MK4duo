@@ -2238,7 +2238,7 @@ void EEPROM::Factory_Settings() {
     #if EXTRUDERS > 1
       for (int8_t i = 0; i < EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M569 T", i);
-        SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)E_AXIS + i));
+        SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
       }
     #endif
 
