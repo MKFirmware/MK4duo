@@ -161,9 +161,9 @@ class Mechanics {
 
     /**
      * Cartesian Destination
-     *   A temporary position, usually applied to 'current_position'.
-     *   Set with 'gcode_get_destination' or 'set_destination_to_current'.
-     *   'line_to_destination' sets 'current_position' to 'destination'.
+     *   The destination for a move, filled in by G-code movement commands,
+     *   and expected by functions like 'prepare_move_to_destination'.
+     *   Set with 'get_destination' or 'set_destination_to_current'.
      */
     static float destination[XYZE];
 
