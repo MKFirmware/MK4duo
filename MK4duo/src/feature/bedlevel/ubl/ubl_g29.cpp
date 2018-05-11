@@ -762,7 +762,7 @@
       wait_for_release();
       while (!is_lcd_clicked()) {
         printer.idle();
-        commands.reset_stepper_timeout(); // Keep steppers powered
+        stepper.move_watch.start(); // Keep steppers powered
         if (encoder_diff) {
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
           encoder_diff = 0;
