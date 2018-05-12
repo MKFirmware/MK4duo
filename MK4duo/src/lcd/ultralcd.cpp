@@ -2359,7 +2359,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       currentScreen = _lcd_do_nothing;
       while (planner.movesplanned()) printer.idle();
       currentScreen = old_screen;
-      stepper.cleaning_buffer_counter = 0;
+      planner.cleaning_buffer_counter = 0;
       mechanics.set_current_from_steppers_for_axis(ALL_AXES);
       mechanics.sync_plan_position();
     }

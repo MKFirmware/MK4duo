@@ -327,7 +327,7 @@
     #endif
 
     #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
-      stepper.cleaning_buffer_counter = 1; // The command will fire from the Stepper ISR
+      planner.cleaning_buffer_counter = 1; // The command will fire from the Stepper ISR
     #endif
 
     print_job_counter.stop();
