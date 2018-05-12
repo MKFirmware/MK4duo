@@ -313,7 +313,7 @@
   }
 
   void CardReader::printingHasFinished() {
-    stepper.synchronize();
+    planner.synchronize();
     gcode_file.close();
     setSDprinting(false);
 

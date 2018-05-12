@@ -1,5 +1,6 @@
 ### Version 4.3.6
 * Make class Mechanics to static
+* Add Junction Deviation instead of traditional Jerk limiting
 * Add Bézier Jerk Control
 * Rewrite SD Restart for auto restart when power loss and return.
 * Add command gcode M569 for setting Stepper Driver DIR.

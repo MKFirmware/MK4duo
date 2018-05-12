@@ -930,7 +930,7 @@
         mechanics.prepare_move_to_destination(); // will call set_current_from_destination()
         mechanics.feedrate_mm_s = old_feedrate;
 
-        stepper.synchronize();
+        planner.synchronize();
       }
       else if (ptr == &ProbeSend) {
         #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)

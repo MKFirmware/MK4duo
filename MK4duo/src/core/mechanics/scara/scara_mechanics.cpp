@@ -48,13 +48,13 @@
 
     stepper.report_positions();
 
-    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
-    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
+    SERIAL_MV("SCARA Theta:", planner.get_axis_position_degrees(A_AXIS));
+    SERIAL_EMV("   Psi+Theta:", planner.get_axis_position_degrees(B_AXIS));
   }
 
   void Scara_Mechanics::report_current_position_detail() {
 
-    stepper.synchronize();
+    planner.synchronize();
 
     SERIAL_MSG("\nLogical:");
     report_xyze(current_position);
@@ -87,12 +87,12 @@
     report_xyze((float*)step_count, 4, 0);
 
     SERIAL_MSG("Degrees:");
-    const float deg[XYZ] = { stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) };
+    const float deg[XYZ] = { planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) };
     report_xyze(deg, 2);
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {
@@ -117,8 +117,8 @@
    * suitable for current_position, etc.
    */
   void Scara_Mechanics::get_cartesian_from_steppers() {
-    forward_kinematics_SCARA( stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) );
-    cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
+    forward_kinematics_SCARA( planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) );
+    cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
   }
 
    /**
@@ -188,8 +188,8 @@
       // SCARA needs to scale the feed rate from mm/s to degrees/s
       const float inv_segment_length = min(10.0, float(segments) / cartesian_mm), // 1/mm/segs
                   feed_factor = inv_segment_length * _feedrate_mm_s;
-      float oldA = stepper.get_axis_position_degrees(A_AXIS),
-            oldB = stepper.get_axis_position_degrees(B_AXIS);
+      float oldA = planner.get_axis_position_degrees(A_AXIS),
+            oldB = planner.get_axis_position_degrees(B_AXIS);
     #endif
 
     // Get the current position as starting point
@@ -382,7 +382,7 @@
     inverse_kinematics(current_position);
     planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.tools.active_extruder);
 
-    stepper.synchronize();
+    planner.synchronize();
 
     #if QUIET_PROBING
       if (axis == Z_AXIS) probe.probing_pause(false);
@@ -452,7 +452,7 @@
       prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
-    stepper.synchronize();
+    planner.synchronize();
 
     feedrate_mm_s = old_feedrate_mm_s;
 

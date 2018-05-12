@@ -41,14 +41,14 @@
       retract_mm[i] = FABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
-    stepper.synchronize();  // wait until the machine is idle
+    planner.synchronize();  // wait until the machine is idle
 
     // Move until mechanics.destination reached or target hit
     endstops.setEnabled(true);
     printer.setG38Move(true);
     endstops.setG38EndstopHit(false);
     mechanics.prepare_move_to_destination();
-    stepper.synchronize();
+    planner.synchronize();
     printer.setG38Move(false);
 
     endstops.hit_on_purpose();
@@ -65,7 +65,7 @@
       LOOP_XYZ(i) mechanics.destination[i] += retract_mm[i];
       endstops.setEnabled(false);
       mechanics.prepare_move_to_destination();
-      stepper.synchronize();
+      planner.synchronize();
 
       mechanics.feedrate_mm_s /= 4;
 
@@ -75,7 +75,7 @@
       endstops.setEnabled(true);
       printer.setG38Move(true);
       mechanics.prepare_move_to_destination();
-      stepper.synchronize();
+      planner.synchronize();
       printer.setG38Move(false);
 
       mechanics.set_current_from_steppers_for_axis(ALL_AXES);

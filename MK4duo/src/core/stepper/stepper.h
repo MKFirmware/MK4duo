@@ -67,8 +67,6 @@ class Stepper {
       static bool abort_on_endstop_hit;
     #endif
 
-    static int16_t cleaning_buffer_counter;
-
   private: /** Private Parameters */
 
     static uint8_t last_direction_bits;   // The next stepping-bits to be output
@@ -85,7 +83,7 @@ class Stepper {
 
     // Counter variables for the Bresenham line tracer
     static int32_t counter_X, counter_Y, counter_Z, counter_E;
-    static volatile uint32_t step_events_completed; // The number of step events executed in the current block
+    static uint32_t step_events_completed; // The number of step events executed in the current block
 
     #if ENABLED(BEZIER_JERK_CONTROL)
       static int32_t  bezier_A,     // A coefficient in Bézier speed curve
@@ -99,35 +97,31 @@ class Stepper {
       static bool bezier_2nd_half;  // If Bézier curve has been initialized or not
     #endif
 
+    static hal_timer_t nextMainISR; // time remaining for the next Step ISR
+    static bool all_steps_done;     // all steps done
+
     #if ENABLED(LIN_ADVANCE)
 
       static uint32_t     LA_decelerate_after;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-      static hal_timer_t  nextMainISR,
-                          nextAdvanceISR,
+      static hal_timer_t  nextAdvanceISR,
                           eISR_Rate;
 
       static uint16_t     current_adv_steps,
                           final_adv_steps,
                           max_adv_steps;        // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-      #define _NEXT_ISR(T) nextMainISR = T
-
       static int8_t       e_steps,
                           LA_active_extruder;   // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
       static bool         use_advance_lead;
-
-    #else // !LIN_ADVANCE
-
-      #define _NEXT_ISR(T) HAL_timer_set_count(STEPPER_TIMER, T);
 
     #endif // !LIN_ADVANCE
 
     static int32_t  acceleration_time, deceleration_time;
     static uint8_t  step_loops, step_loops_nominal;
 
-    static hal_timer_t OCR1A_nominal;
+    static hal_timer_t ticks_nominal;
     #if DISABLED(BEZIER_JERK_CONTROL)
       static hal_timer_t acc_step_rate; // needed for deceleration start point
     #endif
@@ -141,14 +135,14 @@ class Stepper {
       static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
     #endif
 
-    //
-    // Positions of stepper motors, in step units
-    //
+    /**
+     * Positions of stepper motors, in step units
+     */
     static volatile int32_t count_position[NUM_AXIS];
 
-    //
-    // Current direction of stepper motors (+1 or -1)
-    //
+    /**
+     * Current direction of stepper motors (+1 or -1)
+     */
     static volatile signed char count_direction[NUM_AXIS];
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -162,107 +156,55 @@ class Stepper {
       static int32_t counter_L;
       #if ENABLED(LASER_RASTER)
         static int counter_raster;
-      #endif // LASER_RASTER
-    #endif // LASER
+      #endif
+    #endif
 
   public: /** Public Function */
 
-    //
-    // Initialize stepper hardware
-    //
+    /**
+     * Initialize stepper hardware
+     */
     static void init();
 
-    //
-    // Interrupt Service Routines
-    //
-    static void isr();
+    /**
+     * Interrupt Service Routines
+     */
+    static hal_timer_t isr();
 
-    #if ENABLED(LIN_ADVANCE)
-      static void advance_isr();
-      static void advance_isr_scheduler();
-    #endif
-
-    //
-    // Block until all buffered steps are executed
-    //
-    static void synchronize();
-
-    //
-    // Set current position in steps
-    //
-    static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
-
-    FORCE_INLINE static void _set_position(const AxisEnum a, const int32_t &v) { count_position[a] = v; }
-
-    FORCE_INLINE static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
-      synchronize();
-      CRITICAL_SECTION_START;
-        _set_position(a, b, c, e);
-      CRITICAL_SECTION_END;
-    }
-
-    static void set_position(const AxisEnum a, const int32_t &v) {
-      synchronize();
-      CRITICAL_SECTION_START;
-        count_position[a] = v;
-      CRITICAL_SECTION_END;
-    }
-
-    FORCE_INLINE static void _set_e_position(const int32_t &e) { count_position[E_AXIS] = e; }
-
-    static void set_e_position(const int32_t &e) {
-      synchronize();
-      CRITICAL_SECTION_START;
-        count_position[E_AXIS] = e;
-      CRITICAL_SECTION_END;
-    }
-
-    //
-    // Set direction bits for all steppers
-    //
+    /**
+     * Set direction bits for all steppers
+     */
     static void set_directions();
 
-    //
-    // Get the position of a stepper, in steps
-    //
+    /**
+     * Get the position of a stepper, in steps
+     */
     static int32_t position(const AxisEnum axis);
 
-    //
-    // Report the positions of the steppers, in steps
-    //
+    /**
+     * Report the positions of the steppers, in steps
+     */
     static void report_positions();
 
-    //
-    // Get the position (mm) of an axis based on stepper position(s)
-    //
-    static float get_axis_position_mm(const AxisEnum axis);
-
-    //
-    // SCARA AB axes are in degrees, not mm
-    //
-    #if IS_SCARA
-      FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
-    #endif
-
-    //
-    // The stepper subsystem goes to sleep when it runs out of things to execute. Call this
-    // to notify the subsystem that it is time to go to work.
-    //
+    /**
+     * The stepper subsystem goes to sleep when it runs out of things to execute. Call this
+     * to notify the subsystem that it is time to go to work.
+     */
     static void wake_up();
 
-    //
-    // Wait for moves to finish and disable all steppers
-    //
-    static void finish_and_disable();
-
-    //
-    // Quickly stop all steppers and clear the blocks queue
-    //
+    /**
+     * Quickly stop all steppers and clear the blocks queue
+     */
     static void quick_stop();
 
-    //
-    // The direction of a single motor
-    //
+    /**
+     * Kill current block
+     */
+    static void kill_current_block();
+
+    /**
+     * The direction of a single motor
+     */
     FORCE_INLINE static bool motor_direction(const AxisEnum axis) { return TEST(last_direction_bits, axis); }
 
     static void enable_all_steppers();
@@ -293,29 +235,47 @@ class Stepper {
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_z2_motor = state; }
     #endif
 
-    static inline void kill_current_block() {
-      step_events_completed = current_block->step_event_count;
-    }
-
-    //
-    // Handle a triggered endstop
-    //
+    /**
+     * Handle a triggered endstop
+     */
     static void endstop_triggered(const AxisEnum axis);
 
-    //
-    // Triggered position of an axis in mm (not core-savvy)
-    //
+    /**
+     * Triggered position of an axis in mm (not core-savvy)
+     */
     FORCE_INLINE static float triggered_position_mm(AxisEnum axis) {
       return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
     }
 
-    // Flag Stepper direction function
+    /**
+     * Flag Stepper direction function
+     */
     FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
       SET_BIT(direction_flag, axis, onoff);
     }
     FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
   private: /** Private Function */
+
+    /**
+     * Pulse phase ISR
+     */
+    static void pulse_phase_isr();
+
+    /**
+     * Block phase ISR
+     */
+    static uint32_t block_phase_isr();
+
+    /**
+     * Set current position in steps
+     */
+    static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+
+    #if ENABLED(LIN_ADVANCE)
+      // The Linear advance stepper ISR
+      static uint32_t lin_advance_isr();
+    #endif
 
     FORCE_INLINE static hal_timer_t calc_timer_interval(hal_timer_t step_rate) {
       hal_timer_t timer;

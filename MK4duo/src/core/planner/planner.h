@@ -109,9 +109,9 @@ typedef struct {
   #endif
 
   // Fields used by the motion planner to manage acceleration
-  float nominal_speed,                      // The nominal speed for this block in mm/sec
-        entry_speed,                        // Entry speed at previous-current junction in mm/sec
-        max_entry_speed,                    // Maximum allowable junction entry speed in mm/sec
+  float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
+        entry_speed_sqr,                    // Entry speed at previous-current junction in (mm/sec)^2
+        max_entry_speed_sqr,                // Maximum allowable junction entry speed in (mm/sec)^2
         millimeters,                        // The total travel of this block in mm
         acceleration;                       // acceleration mm/sec^2
 
@@ -165,8 +165,10 @@ class Planner {
      *  Reader of tail is Stepper::isr(). Always consider tail busy / read-only
      */
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
-    static volatile uint8_t block_buffer_head,  // Index of the next block to be pushed
-                            block_buffer_tail;  // Index of the busy block, if any
+    static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
+                            block_buffer_tail;        // Index of the busy block, if any
+
+    static int16_t          cleaning_buffer_counter;  // A counter to disable queuing of blocks
 
     #if ENABLED(LIN_ADVANCE)
       static float  extruder_advance_K,
@@ -187,9 +189,9 @@ class Planner {
     static float previous_speed[NUM_AXIS];
 
     /**
-     * Nominal speed of previous path line segment
+     * Nominal speed of previous path line segment (mm/s)^2
      */
-    static float previous_nominal_speed;
+    static float previous_nominal_speed_sqr;
 
     /**
      * Limit where 64bit math is necessary for acceleration calculation
@@ -220,14 +222,12 @@ class Planner {
 
     void init();
 
-    /**
-     * Static (class) Methods
-     */
-
     static void reset_acceleration_rates();
     static void refresh_positioning();
 
-    // Manage Axis, paste pressure, etc.
+    /**
+     * Manage Axis, paste pressure, etc.
+     */
     static void check_axes_activity();
 
     /**
@@ -239,6 +239,8 @@ class Planner {
 
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
+    FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - movesplanned(); }
+
     /**
      * Planner::get_next_free_block
      *
@@ -246,9 +248,12 @@ class Planner {
      * - Wait for a space to open up in the planner
      * - Return the head block
      */
-    FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head) {
+    FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, uint8_t count = 1) {
+      // Wait until there are enough slots free
+      while (moves_free() < count) { printer.idle(); }
+
+      // Return the first available block
       next_buffer_head = next_block_index(block_buffer_head);
-      while (block_buffer_tail == next_buffer_head) printer.idle(); // while (is_full)
       return &block_buffer[block_buffer_head];
     }
 
@@ -261,12 +266,35 @@ class Planner {
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
+     *
+     * Return true if movement was buffered, false otherwise
      */
-    #if ENABLED(LIN_ADVANCE)
-      static void buffer_steps(const int32_t (&target)[XYZE], const float (&target_float)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
-    #else
-      static void buffer_steps(const int32_t (&target)[XYZE], float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
-    #endif
+    static bool buffer_steps(const int32_t (&target)[XYZE]
+      #if ENABLED(LIN_ADVANCE)
+        , const float (&target_float)[XYZE]
+      #endif
+      , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+    );
+
+    /**
+     * Planner::_fill_block
+     *
+     * Fills a new linear movement in the block (in terms of steps).
+     *
+     *  target      - target position in steps units
+     *  fr_mm_s     - (target) speed of the move
+     *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
+     *
+     * Return true is movement is acceptable, false otherwise
+     */
+    static bool fill_block(block_t * const block, bool split_move,
+        const int32_t (&target)[XYZE]
+      #if ENABLED(LIN_ADVANCE)
+        , const float (&target_float)[XYZE]
+      #endif
+      , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+    );
 
     /**
      * Planner::buffer_sync_block
@@ -286,7 +314,7 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static void buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
+    static bool buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
 
     /**
      * Add a new linear movement to the buffer.
@@ -301,7 +329,7 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static void buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    static bool buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
     /**
      * Add a new linear movement to the buffer.
@@ -313,7 +341,7 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static void buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    static bool buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
     /**
      * Set the planner.position and individual stepper positions.
@@ -335,6 +363,40 @@ class Planner {
      * Sync from the stepper positions. (e.g., after an interrupted move)
      */
     static void sync_from_steppers();
+
+    /**
+     * Get an axis position according to stepper position(s)
+     * For CORE machines apply translation from ABC to XYZ.
+     */
+    static float get_axis_position_mm(const AxisEnum axis);
+
+    /**
+     * SCARA AB axes are in degrees, not mm
+     */
+    #if IS_SCARA
+      FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
+    #endif
+
+    /**
+     * Block until all buffered steps are executed / cleaned
+     */
+    static void synchronize();
+
+    /**
+     * Wait for moves to finish and disable all steppers
+     */
+    static void finish_and_disable();
+
+    /**
+     * Called to force a quick stop of the machine (for example, when an emergency
+     * stop is required, or when endstops are hit)
+     */
+    static void quick_stop();
+
+    /**
+     * Called when an endstop is triggered. Causes the machine to stop inmediately
+     */
+    static void endstop_triggered(const AxisEnum axis);
 
     /**
      * Does the buffer have any blocks queued?
@@ -454,11 +516,11 @@ class Planner {
 
     /**
      * Calculate the maximum allowable speed at this point, in order
-     * to reach 'target_velocity' using 'acceleration' within a given
+     * to reach 'target_velocity_sqr' using 'acceleration' within a given
      * 'distance'.
      */
-    static float max_allowable_speed(const float &accel, const float &target_velocity, const float &distance) {
-      return SQRT(sq(target_velocity) - 2 * accel * distance);
+    static float max_allowable_speed_sqr(const float &accel, const float &target_velocity_sqr, const float &distance) {
+      return target_velocity_sqr - 2 * accel * distance;
     }
 
     #if ENABLED(BEZIER_JERK_CONTROL)

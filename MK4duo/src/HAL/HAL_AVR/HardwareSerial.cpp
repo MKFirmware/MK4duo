@@ -169,7 +169,7 @@
                 printer.kill(PSTR(MSG_KILLED));
                 break;
               case state_M410:
-                stepper.quick_stop();
+                planner.quick_stop();
                 break;
               default:
                 break;

@@ -66,5 +66,5 @@ inline void gcode_G61(void) {
 
   // finish moves
   mechanics.prepare_move_to_destination();
-  stepper.synchronize();
+  planner.synchronize();
 }

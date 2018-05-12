@@ -213,7 +213,7 @@
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
  * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          P[float] Kp term, I[float] Ki term, D[float] Kd term
- *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
+ *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[int] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S<temperature>.
  * M303 - PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *        S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>,

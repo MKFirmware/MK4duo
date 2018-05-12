@@ -43,7 +43,7 @@
    *    Note: the X axis should be homed after changing dual x-carriage mode.
    */
   inline void gcode_M605(void) {
-    stepper.synchronize();
+    planner.synchronize();
     if (parser.seen('S')) mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
     switch(mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:

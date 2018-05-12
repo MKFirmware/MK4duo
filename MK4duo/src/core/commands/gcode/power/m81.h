@@ -35,7 +35,7 @@
  */
 inline void gcode_M81(void) {
   thermalManager.disable_all_heaters();
-  stepper.finish_and_disable();
+  planner.finish_and_disable();
 
   #if FAN_COUNT > 0
     LOOP_FAN() {

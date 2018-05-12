@@ -115,9 +115,9 @@
    */
   void Delta_Mechanics::get_cartesian_from_steppers() {
     InverseTransform(
-      stepper.get_axis_position_mm(A_AXIS),
-      stepper.get_axis_position_mm(B_AXIS),
-      stepper.get_axis_position_mm(C_AXIS),
+      planner.get_axis_position_mm(A_AXIS),
+      planner.get_axis_position_mm(B_AXIS),
+      planner.get_axis_position_mm(C_AXIS),
       cartesian_position
     );
   }
@@ -208,7 +208,8 @@
           }
         #endif
 
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
+        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
+          break;
 
       }
 
@@ -290,7 +291,7 @@
       if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
 
-    stepper.synchronize();
+    planner.synchronize();
 
   }
 
@@ -551,7 +552,7 @@
     #endif
 
     // Wait for planner moves to finish!
-    stepper.synchronize();
+    planner.synchronize();
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
@@ -604,7 +605,7 @@
     current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
     mechanics.line_to_current_position();
-    stepper.synchronize();
+    planner.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
@@ -663,7 +664,7 @@
 
     printer.clean_up_after_endstop_or_probe_move();
 
-    stepper.synchronize();
+    planner.synchronize();
 
     // Restore the active tool after homing
     #if HOTENDS > 1
@@ -733,7 +734,7 @@
     Transform(leveled);
     report_xyz(delta);
 
-    stepper.synchronize();
+    planner.synchronize();
 
     SERIAL_MSG("Stepper:");
     LOOP_XYZE(i) {
@@ -747,7 +748,7 @@
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {

@@ -147,7 +147,7 @@
     SERIAL_EM(" Factors");
     LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE);
 
-    stepper.synchronize();
+    planner.synchronize();
 
     #if HAS_LEVELING
       bedlevel.reset(); // After calibration bed-level data is no longer valid

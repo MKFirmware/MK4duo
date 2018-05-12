@@ -91,7 +91,7 @@
     mechanics.destination[E_AXIS] += length / tools.e_factor[tools.active_extruder];
     planner.buffer_line_kinematic(mechanics.destination, fr, tools.active_extruder);
     mechanics.set_current_to_destination();
-    stepper.synchronize();
+    planner.synchronize();
   }
 
   /**
@@ -298,7 +298,7 @@
     COPY_ARRAY(resume_position, mechanics.current_position);
 
     // Wait for synchronize steppers
-    stepper.synchronize();
+    planner.synchronize();
 
     // Initial retract before move to filament change position
     if (retract && !thermalManager.tooColdToExtrude(tools.active_extruder))

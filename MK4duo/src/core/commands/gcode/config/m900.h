@@ -39,7 +39,7 @@
     if (parser.seenval('K')) {
       const float newK = parser.floatval('K');
       if (WITHIN(newK, 0, 10)) {
-        stepper.synchronize();
+        planner.synchronize();
         planner.extruder_advance_K = newK;
       }
       else

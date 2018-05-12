@@ -95,10 +95,8 @@ typedef uint16_t  ptr_int_t;
 // Defines
 // --------------------------------------------------------------------------
 
-#ifndef CRITICAL_SECTION_START
-  #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
-  #define CRITICAL_SECTION_END    SREG = _sreg;
-#endif
+#define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
+#define CRITICAL_SECTION_END    SREG = _sreg;
 
 #ifdef analogInputToDigitalPin
   #undef analogInputToDigitalPin
@@ -125,7 +123,7 @@ typedef uint16_t  ptr_int_t;
 // Voltage for Pin
 #define HAL_VOLTAGE_PIN 5.0
 
-#define ADV_NEVER 0xFFFF
+#define HAL_TIMER_TYPE_MAX 0xFFFF
 
 /**
  * Optimized math functions for AVR
@@ -237,9 +235,6 @@ typedef uint16_t  ptr_int_t;
 constexpr uint32_t  HAL_TIMER_RATE        = ((F_CPU) / 8);
 constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE));
 
-// Clock speed factor
-#define CYCLES_PER_US               ((F_CPU) / 1000000L) // 16 or 20
-
 #define STEPPER_TIMER_PRESCALE      8
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
 #define STEPPER_TIMER_MIN_INTERVAL  8                                         // minimum time in µs between stepper interrupts
@@ -263,7 +258,7 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 #define TIMER_COUNTER_0             TCNT0
 #define TIMER_COUNTER_1             TCNT1
 
-#define PULSE_TIMER_PRESCALE        8
+#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define HAL_STEPPER_TIMER_START()   HAL_stepper_timer_start()
 #define HAL_TEMP_TIMER_START()      HAL_temp_timer_start()
@@ -307,57 +302,43 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 #define TEMP_TIMER_ISR    ISR(TIMER0_COMPB_vect)
 
 // Processor-level delays for hardware interfaces
-#ifndef _NOP
-  #define _NOP() do { __asm__ volatile ("nop"); } while (0)
-#endif
-#define DELAY_NOPS(X) \
-  switch (X) { \
-    case 20: _NOP(); case 19: _NOP(); case 18: _NOP(); case 17: _NOP(); \
-    case 16: _NOP(); case 15: _NOP(); case 14: _NOP(); case 13: _NOP(); \
-    case 12: _NOP(); case 11: _NOP(); case 10: _NOP(); case  9: _NOP(); \
-    case  8: _NOP(); case  7: _NOP(); case  6: _NOP(); case  5: _NOP(); \
-    case  4: _NOP(); case  3: _NOP(); case  2: _NOP(); case  1: _NOP(); \
-  }
-#define DELAY_0_NOP   NOOP
-#define DELAY_1_NOP   DELAY_NOPS( 1)
-#define DELAY_2_NOP   DELAY_NOPS( 2)
-#define DELAY_3_NOP   DELAY_NOPS( 3)
-#define DELAY_4_NOP   DELAY_NOPS( 4)
-#define DELAY_5_NOP   DELAY_NOPS( 5)
-#define DELAY_10_NOP  DELAY_NOPS(10)
-#define DELAY_20_NOP  DELAY_NOPS(20)
 
-#if CYCLES_PER_US <= 200
-  #define DELAY_100NS DELAY_NOPS((CYCLES_PER_US + 9) / 10)
-#else
-  #define DELAY_100NS DELAY_20_NOP
-#endif
+#define nop() __asm__ __volatile__("nop;\n\t":::)
 
-// Microsecond delays for hardware interfaces
-#if CYCLES_PER_US <= 20
-  #define DELAY_1US DELAY_NOPS(CYCLES_PER_US)
-  #define DELAY_US(X) \
-    switch (X) { \
-      case 20: DELAY_1US; case 19: DELAY_1US; case 18: DELAY_1US; case 17: DELAY_1US; \
-      case 16: DELAY_1US; case 15: DELAY_1US; case 14: DELAY_1US; case 13: DELAY_1US; \
-      case 12: DELAY_1US; case 11: DELAY_1US; case 10: DELAY_1US; case  9: DELAY_1US; \
-      case  8: DELAY_1US; case  7: DELAY_1US; case  6: DELAY_1US; case  5: DELAY_1US; \
-      case  4: DELAY_1US; case  3: DELAY_1US; case  2: DELAY_1US; case  1: DELAY_1US; \
+FORCE_INLINE static void HAL_delay_4cycles(uint8_t cy) {
+  __asm__ __volatile__(
+    "1:\n\t"
+    " dec %[cnt]\n\t"
+    " nop\n\t"
+    " brne 1b\n\t"
+    : [cnt] "+r"(cy)  // output: +r means input+output
+    :                 // input:
+    : "cc"            // clobbers:
+  );
+}
+
+FORCE_INLINE static void HAL_delay_cycles(uint16_t cycles) {
+
+  if (__builtin_constant_p(cycles)) {
+    #define MAXNOPS 4
+
+    if (cycles <= (MAXNOPS)) {
+      switch (cycles) { case 4: nop(); case 3: nop(); case 2: nop(); case 1: nop(); }
     }
-#else
-  #define DELAY_US(X) HAL::delayMicroseconds(X)
-  #define DELAY_1US   DELAY_US(1)
-#endif
-#define DELAY_2US     DELAY_US( 2)
-#define DELAY_3US     DELAY_US( 3)
-#define DELAY_4US     DELAY_US( 4)
-#define DELAY_5US     DELAY_US( 5)
-#define DELAY_6US     DELAY_US( 6)
-#define DELAY_7US     DELAY_US( 7)
-#define DELAY_8US     DELAY_US( 8)
-#define DELAY_9US     DELAY_US( 9)
-#define DELAY_10US    DELAY_US(10)
-#define DELAY_20US    DELAY_US(20)
+    else {
+      const uint32_t rem = (cycles) % (MAXNOPS);
+      switch (rem) { case 3: nop(); case 2: nop(); case 1: nop(); }
+      if ((cycles = (cycles) / (MAXNOPS)))
+        HAL_delay_4cycles(cycles); // if need more then 4 nop loop is more optimal
+    }
+
+    #undef MAXNOPS
+  }
+  else
+    HAL_delay_4cycles(cycles / 4);
+}
+
+#undef nop
 
 class InterruptProtectedBlock {
   uint8_t sreg;
@@ -447,8 +428,11 @@ class HAL {
       ::digitalWrite(pin, onoff);
     }
 
-    static inline void delayMicroseconds(const uint16_t delayUs) {
-      ::delayMicroseconds(delayUs);
+    FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
+      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000L);
+    }
+    FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
+      HAL_delay_cycles(delayUs * (CYCLES_PER_US));
     }
     static inline void delayMilliseconds(uint16_t delayMs) {
       uint16_t del;

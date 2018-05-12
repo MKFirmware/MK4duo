@@ -40,7 +40,7 @@
  * With PID_ADD_EXTRUSION_RATE:
  *
  *   C[float] Kc term
- *   L[float] LPQ length
+ *   L[int] LPQ length
  */
 inline void gcode_M301(void) {
 
@@ -55,8 +55,9 @@ inline void gcode_M301(void) {
   if (parser.seen('D')) heaters[h].Kd = parser.value_float();
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     if (parser.seen('C')) heaters[h].Kc = parser.value_float();
-    if (parser.seen('L')) tools.lpq_len = parser.value_float();
+    if (parser.seen('L')) tools.lpq_len = parser.value_int();
     NOMORE(tools.lpq_len, LPQ_MAX_LEN);
+    NOLESS(tools.lpq_len, 0);
   #endif
 
   heaters[h].updatePID();

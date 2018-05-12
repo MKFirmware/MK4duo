@@ -89,6 +89,8 @@ The new features are:
 * Added Adafruit Neopixel LED
 * Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
 * Added Universal Bed Leveling (UBL) by Official Marlin
+* Added Junction Deviation instead of traditional Jerk limiting
+* Added Bézier Jerk Control see https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
 
 
 ## Credits

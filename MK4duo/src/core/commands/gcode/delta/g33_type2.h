@@ -444,7 +444,7 @@
 
     Report_settings(_endstop_results, _angle_results);
 
-    stepper.synchronize();
+    planner.synchronize();
     printer.setup_for_endstop_or_probe_move();
     if (!_0p_calibration && !mechanics.home()) return;
 

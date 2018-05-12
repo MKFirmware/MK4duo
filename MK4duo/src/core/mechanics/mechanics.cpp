@@ -93,9 +93,9 @@ millis_t Mechanics::min_segment_time_us = 0;
  * suitable for current_position, etc.
  */
 void Mechanics::get_cartesian_from_steppers() {
-  cartesian_position[X_AXIS] = stepper.get_axis_position_mm(X_AXIS);
-  cartesian_position[Y_AXIS] = stepper.get_axis_position_mm(Y_AXIS);
-  cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
+  cartesian_position[X_AXIS] = planner.get_axis_position_mm(X_AXIS);
+  cartesian_position[Y_AXIS] = planner.get_axis_position_mm(Y_AXIS);
+  cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
 }
 
 /**
@@ -222,7 +222,7 @@ void Mechanics::do_blocking_move_to(const float rx, const float ry, const float 
     if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
   #endif
 
-  stepper.synchronize();
+  planner.synchronize();
 
 }
 void Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
@@ -300,7 +300,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
   current_position[axis] = distance; // Set delta/cartesian axes directly
   planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
-  stepper.synchronize();
+  planner.synchronize();
 
   if (is_home_dir) {
 
@@ -366,7 +366,7 @@ void Mechanics::report_current_position_detail() {
     report_xyz(unleveled);
   #endif
 
-  stepper.synchronize();
+  planner.synchronize();
 
   SERIAL_MSG("Stepper:");
   LOOP_XYZE(i) {
@@ -379,7 +379,7 @@ void Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
+  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
   const float diff[XYZE] = {
@@ -521,12 +521,12 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
               current_position[Z_AXIS],
               current_position[E_AXIS]
             );
-            planner.buffer_line(
+            if (!planner.buffer_line(
               current_position[X_AXIS] + duplicate_hotend_x_offset,
               current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
               max_feedrate_mm_s[X_AXIS], 1
-            );
-            stepper.synchronize();
+            ) break;
+            planner.synchronize();
             sync_plan_position();
             hotend_duplication_enabled = true;
             active_hotend_parked = false;
@@ -808,9 +808,9 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
         #endif
         #if ABL_PLANAR
           const float diff[XYZ] = {
-            stepper.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
-            stepper.get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
-            stepper.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
+            planner.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
+            planner.get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
+            planner.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
           };
           SERIAL_MSG("ABL Adjustment X");
           if (diff[X_AXIS] > 0) SERIAL_CHR('+');
