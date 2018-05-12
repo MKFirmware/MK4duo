@@ -322,7 +322,7 @@ void Printer::loop() {
       commands.clear_queue();
 
       // Stop all stepper
-      stepper.quick_stop();
+      planner.quick_stop();
 
       // Auto home
       #if Z_HOME_DIR > 0
@@ -707,7 +707,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.active_extruder);
       mechanics.current_position[E_AXIS] = olde;
       planner.set_e_position_mm(olde);
-      stepper.synchronize();
+      planner.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
       #else
@@ -805,14 +805,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     monitor_tmc_driver();
   #endif
 
-  #if ENABLED(MOVE_DEBUG)
-    char buf[100] = { 0 };
-    sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
-      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(STEPPER_TIMER));
-    SERIAL_PS(buf);
-    SERIAL_EOL();
-  #endif
-
 }
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
@@ -833,7 +825,7 @@ void Printer::handle_interrupt_events() {
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
           commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-          stepper.synchronize();
+          planner.synchronize();
         }
         break;
     #endif
@@ -842,7 +834,7 @@ void Printer::handle_interrupt_events() {
       case INTERRUPT_EVENT_ENC_DETECT:
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
-          stepper.synchronize();
+          planner.synchronize();
 
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             commands.enqueue_and_echo_P(PSTR("M600"));

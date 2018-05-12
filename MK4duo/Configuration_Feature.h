@@ -43,6 +43,7 @@
  * - Extruder Advance Linear Pressure Control
  * MOTION FEATURES:
  * - Workspace offsets
+ * - Junction Deviation
  * - Bézier Jerk Control
  * - Software endstops
  * - Endstops only for homing
@@ -446,15 +447,34 @@
 
 
 /**************************************************************************
- ************************ Bézier Jerk Control *****************************
+ ************************* Junction Deviation *****************************
  **************************************************************************
  *                                                                        *
- * This option eliminates vibration during printing by fitting a Bézier   *
- * curve to move acceleration, producing much smoother direction changes. *
+ * Use Junction Deviation instead of traditional Jerk limiting            *
+ *                                                                        *
+ * By Scott Latherine @Thinkyhead  and @ejtagle                           *
  *                                                                        *
  **************************************************************************/
-//#define BEZIER_JERK_CONTROL
+//#define JUNCTION_DEVIATION
+
+#define JUNCTION_DEVIATION_FACTOR 0.05
+#define JUNCTION_DEVIATION_ACC_FACTOR 1000
+//#define JUNCTION_DEVIATION_INCLUDE_E
 /**************************************************************************/
+
+
+/****************************************************************************
+ ************************** Bézier Jerk Control *****************************
+ ****************************************************************************
+ *                                                                          *
+ * This option eliminates vibration during printing by fitting a Bézier     *
+ * curve to move acceleration, producing much smoother direction changes.   *
+ *                                                                          *
+ * https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained *
+ *                                                                          *
+ ****************************************************************************/
+//#define BEZIER_JERK_CONTROL
+/****************************************************************************/
 
 
 /**************************************************************************

@@ -784,7 +784,7 @@
       save_ubl_active_state_and_disable();   // Disable bed level correction for probing
 
       mechanics.do_blocking_move_to(0.5 * (UBL_MESH_MAX_X - (UBL_MESH_MIN_X)), 0.5 * (UBL_MESH_MAX_Y - (UBL_MESH_MIN_Y)), in_height);
-      stepper.synchronize();
+      planner.synchronize();
 
       SERIAL_MSG("Place shim under nozzle");
       LCD_MESSAGEPGM(MSG_UBL_BC_INSERT);
@@ -793,7 +793,7 @@
 
       const float z1 = measure_point_with_encoder();
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + SIZE_OF_LITTLE_RAISE);
-      stepper.synchronize();
+      planner.synchronize();
 
       SERIAL_MSG("Remove shim");
       LCD_MESSAGEPGM(MSG_UBL_BC_REMOVE);

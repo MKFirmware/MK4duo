@@ -71,9 +71,6 @@
 constexpr uint32_t  HAL_TIMER_RATE        = ((VARIANT_MCK) / 2); // 42 MHz
 constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE));
 
-// Clock speed factor
-#define CYCLES_PER_US               ((VARIANT_MCK) / 1000000L) // 84
-
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
 #define STEPPER_TIMER_TICKS_PER_US  ((HAL_TIMER_RATE) / 1000000)              // 42 - stepper timer ticks per µs
@@ -95,57 +92,43 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIME
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
 
 // Processor-level delays for hardware interfaces
-#ifndef _NOP
-  #define _NOP()  do { __asm__ volatile ("nop"); } while (0)
-#endif
-#define DELAY_NOPS(X) \
-  switch (X) { \
-    case 20: _NOP(); case 19: _NOP(); case 18: _NOP(); case 17: _NOP(); \
-    case 16: _NOP(); case 15: _NOP(); case 14: _NOP(); case 13: _NOP(); \
-    case 12: _NOP(); case 11: _NOP(); case 10: _NOP(); case  9: _NOP(); \
-    case  8: _NOP(); case  7: _NOP(); case  6: _NOP(); case  5: _NOP(); \
-    case  4: _NOP(); case  3: _NOP(); case  2: _NOP(); case  1: _NOP(); \
-  }
-#define DELAY_0_NOP   NOOP
-#define DELAY_1_NOP   DELAY_NOPS( 1)
-#define DELAY_2_NOP   DELAY_NOPS( 2)
-#define DELAY_3_NOP   DELAY_NOPS( 3)
-#define DELAY_4_NOP   DELAY_NOPS( 4)
-#define DELAY_5_NOP   DELAY_NOPS( 5)
-#define DELAY_10_NOP  DELAY_NOPS(10)
-#define DELAY_20_NOP  DELAY_NOPS(20)
 
-#if CYCLES_PER_US <= 200
-  #define DELAY_100NS DELAY_NOPS((CYCLES_PER_US + 9) / 10)
-#else
-  #define DELAY_100NS DELAY_20_NOP
-#endif
+#define nop() __asm__ __volatile__("nop;\n\t":::)
 
-// Microsecond delays for hardware interfaces
-#if CYCLES_PER_US <= 20
-  #define DELAY_1US DELAY_NOPS(CYCLES_PER_US)
-  #define DELAY_US(X) \
-    switch (X) { \
-      case 20: DELAY_1US; case 19: DELAY_1US; case 18: DELAY_1US; case 17: DELAY_1US; \
-      case 16: DELAY_1US; case 15: DELAY_1US; case 14: DELAY_1US; case 13: DELAY_1US; \
-      case 12: DELAY_1US; case 11: DELAY_1US; case 10: DELAY_1US; case  9: DELAY_1US; \
-      case  8: DELAY_1US; case  7: DELAY_1US; case  6: DELAY_1US; case  5: DELAY_1US; \
-      case  4: DELAY_1US; case  3: DELAY_1US; case  2: DELAY_1US; case  1: DELAY_1US; \
+FORCE_INLINE static void HAL_delay_4cycles(uint32_t cy) {
+  __asm__ __volatile__(
+    " .syntax unified\n\t" // is to prevent CM0,CM1 non-unified syntax
+    "1:\n\t"
+    " subs %[cnt],#1\n\t"
+    " nop\n\t"
+    " bne 1b\n\t"
+    : [cnt]"+r"(cy)   // output: +r means input+output
+    :                 // input:
+    : "cc"            // clobbers:
+  );
+}
+
+FORCE_INLINE static void HAL_delay_cycles(uint32_t cycles) {
+
+  if (__builtin_constant_p(cycles)) {
+    #define MAXNOPS 4
+
+    if (cycles <= (MAXNOPS)) {
+      switch (cycles) { case 4: nop(); case 3: nop(); case 2: nop(); case 1: nop(); }
     }
-#else
-  #define DELAY_US(X) HAL::delayMicroseconds(X)
-  #define DELAY_1US   DELAY_US(1)
-#endif
-#define DELAY_2US     DELAY_US( 2)
-#define DELAY_3US     DELAY_US( 3)
-#define DELAY_4US     DELAY_US( 4)
-#define DELAY_5US     DELAY_US( 5)
-#define DELAY_6US     DELAY_US( 6)
-#define DELAY_7US     DELAY_US( 7)
-#define DELAY_8US     DELAY_US( 8)
-#define DELAY_9US     DELAY_US( 9)
-#define DELAY_10US    DELAY_US(10)
-#define DELAY_20US    DELAY_US(20)
+    else { // because of +1 cycle inside delay_4cycles
+      const uint32_t rem = (cycles - 1) % (MAXNOPS);
+      switch (rem) { case 3: nop(); case 2: nop(); case 1: nop(); }
+      if ((cycles = (cycles - 1) / (MAXNOPS)))
+        HAL_delay_4cycles(cycles); // if need more then 4 nop loop is more optimal
+    }
+    #undef MAXNOPS
+  }
+  else
+    HAL_delay_4cycles(cycles / 4);
+}
+
+#undef nop
 
 // --------------------------------------------------------------------------
 // Types
@@ -185,12 +168,6 @@ FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_timer_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
-
-  #if ENABLED(MOVE_DEBUG)
-		++numInterruptsScheduled;
-		nextInterruptTime = count;
-		nextInterruptScheduledAt = HAL_timer_get_count(STEPPER_TIMER);
-  #endif
 }
 
 FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
@@ -209,6 +186,6 @@ FORCE_INLINE static void HAL_timer_isr_prologue(const uint8_t timer_num) {
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_SR;
 }
 
-FORCE_INLINE static void HAL_timer_isr_epilogue(const uint8_t timer_num) { /* noop */ }
+FORCE_INLINE static void HAL_timer_isr_epilogue(const uint8_t timer_num) { UNUSED(timer_num); }
 
 #endif /* _HAL_TIMERS_DUE_H_ */

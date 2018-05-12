@@ -59,7 +59,7 @@
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
 
     // ensure 100ns delay
-    DELAY_100NS;
+    HAL::delayNanoseconds(100);
 
     // Read a big-endian temperature value
     max6675_temp = 0;
@@ -103,7 +103,7 @@
     HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
 
     // ensure 100ns delay
-    DELAY_100NS;
+    HAL::delayNanoseconds(100);
 
     for (uint16_t byte = 0; byte < 4; byte++) {
       data <<= 8;

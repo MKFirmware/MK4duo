@@ -40,7 +40,7 @@ inline void gcode_M226(void) {
 
       int target = LOW;
 
-      stepper.synchronize();
+      planner.synchronize();
 
       HAL::pinMode(pin_number, INPUT);
       switch(pin_state) {

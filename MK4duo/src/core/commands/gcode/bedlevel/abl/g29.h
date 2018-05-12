@@ -391,7 +391,7 @@ inline void gcode_G29(void) {
       SERIAL_EOL();
     }
 
-    stepper.synchronize();
+    planner.synchronize();
 
     // Disable auto bed leveling during G29.
     // Be formal so G29 can be done successively without G28.
@@ -945,7 +945,7 @@ inline void gcode_G29(void) {
           SERIAL_EM(Z_PROBE_END_SCRIPT);
         }
       #endif
-      stepper.synchronize();
+      planner.synchronize();
       commands.enqueue_and_echo_P(PSTR(Z_PROBE_END_SCRIPT));
     #endif
 

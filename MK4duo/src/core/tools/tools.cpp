@@ -58,7 +58,7 @@
   #endif
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    int Tools::lpq_len = 20;
+    int16_t Tools::lpq_len = 20;
   #endif
 
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
@@ -104,7 +104,7 @@
               const float z_diff  = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
               mechanics.current_position[Z_AXIS] += (z_diff > 0.0 ? z_diff : 0.0) + 1;
               planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
-              stepper.synchronize();
+              planner.synchronize();
               move_extruder_servo(tmp_extruder);
             #endif
 
@@ -173,7 +173,7 @@
           #endif
         } // (tmp_extruder != active_extruder)
 
-        stepper.synchronize();
+        planner.synchronize();
 
         #if ENABLED(EXT_SOLENOID)
           disable_all_solenoids();
@@ -298,7 +298,7 @@
 
     void Tools::MK_multi_tool_change(const uint8_t e) {
 
-      stepper.synchronize(); // Finish all movement
+      planner.synchronize(); // Finish all movement
 
       const int angles[EXTRUDERS] = ARRAY_BY_EXTRUDERS_N (
         MKSE6_SERVOPOS_E0, MKSE6_SERVOPOS_E1,
@@ -321,7 +321,7 @@
 
     void Tools::MK_multi_tool_change(const uint8_t e) {
 
-      stepper.synchronize(); // Finish all movement
+      planner.synchronize(); // Finish all movement
       stepper.disable_e_steppers();
 
       #if (EXTRUDERS == 4) && HAS_E0E2 && HAS_E1E3 && (DRIVER_EXTRUDERS == 2)
@@ -408,7 +408,7 @@
 
     void Tools::MK_multi_tool_change(const uint8_t e) {
 
-      stepper.synchronize(); // Finish all movement
+      planner.synchronize(); // Finish all movement
       stepper.disable_e_steppers();
 
       #if (EXTRUDERS == 2) && HAS_EX1 && (DRIVER_EXTRUDERS == 1)
@@ -503,7 +503,7 @@
 
     void Tools::move_extruder_servo(const uint8_t e) {
       constexpr int16_t angles[] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
-      stepper.synchronize();
+      planner.synchronize();
       MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
       #if (DONDOLO_SERVO_DELAY > 0)
         printer.safe_delay(DONDOLO_SERVO_DELAY);
@@ -567,7 +567,7 @@
             mechanics.max_feedrate_mm_s[i == 1 ? X_AXIS : Z_AXIS],
             active_extruder
           );
-        stepper.synchronize();
+        planner.synchronize();
       }
 
       // apply Y & Z extruder offset (x offset is already used in determining home pos)

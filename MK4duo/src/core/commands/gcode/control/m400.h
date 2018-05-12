@@ -31,4 +31,4 @@
 /**
  * M400: Finish all moves
  */
-inline void gcode_M400(void) { stepper.synchronize(); }
+inline void gcode_M400(void) { planner.synchronize(); }

@@ -154,7 +154,7 @@
    * M32: Select file and start SD print
    */
   inline void gcode_M32(void) {
-    if (IS_SD_PRINTING) stepper.synchronize();
+    if (IS_SD_PRINTING) planner.synchronize();
 
     if (card.isOK()) {
       card.closeFile();

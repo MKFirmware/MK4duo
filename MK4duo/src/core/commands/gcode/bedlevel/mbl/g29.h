@@ -124,7 +124,7 @@
           // One last "return to the bed" (as originally coded) at completion
           mechanics.current_position[Z_AXIS] = MANUAL_PROBE_HEIGHT;
           mechanics.line_to_current_position();
-          stepper.synchronize();
+          planner.synchronize();
 
           // After recording the last point, activate the mbl and home
           mbl_probe_index = -1;
@@ -139,7 +139,7 @@
             mechanics.current_position[Z_AXIS] = 0;
             mechanics.set_destination_to_current();
             mechanics.line_to_destination(mechanics.homing_feedrate_mm_s[Z_AXIS]);
-            stepper.synchronize();
+            planner.synchronize();
           #endif
 
           #if ENABLED(LCD_BED_LEVELING)

@@ -66,17 +66,6 @@
 typedef uint32_t  hal_timer_t;
 typedef uint32_t  ptr_int_t;
 
-//#define MOVE_DEBUG
-#if ENABLED(MOVE_DEBUG)
-  extern unsigned int numInterruptsScheduled,
-                      numInterruptsExecuted;
-  extern uint32_t     nextInterruptTime,
-                      nextInterruptScheduledAt,
-                      lastInterruptTime,
-                      acceleration_step_rate,
-                      deceleration_step_rate;
-#endif
-
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
@@ -190,7 +179,7 @@ typedef uint32_t  ptr_int_t;
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
 
-#define ADV_NEVER 0xFFFFFFFF
+#define HAL_TIMER_TYPE_MAX 0xFFFFFFFF
 
 // TEMPERATURE
 #undef analogInputToDigitalPin
@@ -340,14 +329,11 @@ class HAL {
       }
     }
 
-    FORCE_INLINE static void delayMicroseconds(uint32_t delayUs) {
-      uint32_t n = delayUs * (F_CPU / 3000000);
-      asm volatile(
-        "L2_%=_delayMicroseconds:"       "\n\t"
-        "subs   %0, #1"                 "\n\t"
-        "bge    L2_%=_delayMicroseconds" "\n"
-        : "+r" (n) :
-      );
+    FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
+      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000L);
+    }
+    FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
+      HAL_delay_cycles(delayUs * (CYCLES_PER_US));
     }
     FORCE_INLINE static void delayMilliseconds(uint16_t delayMs) {
       uint16_t del;

@@ -49,7 +49,7 @@
       hasS = ms > 0;
     }
 
-    stepper.synchronize();
+    planner.synchronize();
 
     #if ENABLED(ULTIPANEL)
 

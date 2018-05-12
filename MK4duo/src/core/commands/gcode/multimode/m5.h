@@ -34,7 +34,7 @@
    * M5: Turn off laser beam - CNC off
    */
   inline void gcode_M5(void) {
-    stepper.synchronize();
+    planner.synchronize();
 
     switch (printer.mode) {
 

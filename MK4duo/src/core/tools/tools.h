@@ -67,7 +67,7 @@
       #endif
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        static int lpq_len;
+        static int16_t lpq_len;
       #endif
 
     public: /** Public Function */

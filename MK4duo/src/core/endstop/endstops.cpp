@@ -567,7 +567,7 @@ void Endstops::update() {
       UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
       if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
         _ENDSTOP_HIT(AXIS, MINMAX); \
-        stepper.endstop_triggered(AXIS ##_AXIS); \
+        planner.endstop_triggered(AXIS ##_AXIS); \
       } \
     } while(0)
 
@@ -576,9 +576,9 @@ void Endstops::update() {
     if (printer.IsG38Move()) {
       UPDATE_ENDSTOP_BIT(Z, PROBE);
       if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
-        if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X, MIN); stepper.endstop_triggered(X_AXIS); }
-        else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y, MIN); stepper.endstop_triggered(Y_AXIS); }
-        else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z, MIN); stepper.endstop_triggered(Z_AXIS); }
+        if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); }
+        else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y, MIN); planner.endstop_triggered(Y_AXIS); }
+        else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); }
         setG38EndstopHit(true);
       }
     }

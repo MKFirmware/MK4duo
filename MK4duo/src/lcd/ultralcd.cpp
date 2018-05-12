@@ -532,7 +532,7 @@ uint16_t max_display_update_time = 0;
     no_reentry = true;
     const screenFunc_t old_screen = currentScreen;
     lcd_goto_screen(_lcd_synchronize);
-    stepper.synchronize(); // idle() is called until moves complete
+    planner.synchronize();
     no_reentry = false;
     lcd_goto_screen(old_screen);
   }
@@ -2354,7 +2354,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     void _lcd_do_nothing() {}
     void _lcd_hard_stop() {
-      stepper.quick_stop();
+      planner.quick_stop();
       const screenFunc_t old_screen = currentScreen;
       currentScreen = _lcd_do_nothing;
       while (planner.movesplanned()) printer.idle();

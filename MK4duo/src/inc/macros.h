@@ -49,6 +49,18 @@
 #define _O2             __attribute__((optimize("O2")))
 #define _O3             __attribute__((optimize("O3")))
 
+// Clock speed factor
+#define CYCLES_PER_US   ((F_CPU) / 1000000L)
+
+// Nanoseconds per cycle
+#define NANOSECONDS_PER_CYCLE (1000000000.0 / (F_CPU))
+
+/**
+ * Macrof for Delay
+ */
+#define DELAY_NS(x) HAL::delayNanoseconds(x)
+#define DELAY_US(x) HAL::delayMicroseconds(x)
+
 /**
  * Macros for mechanics type
  */

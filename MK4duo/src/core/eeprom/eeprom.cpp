@@ -1981,7 +1981,7 @@ void EEPROM::Factory_Settings() {
     #elif HOTENDS > 1
       LOOP_HOTEND() heaters[h].print_PID();
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        SERIAL_LMV(CFG, "  M301 L", tools.lpq_len);
+        SERIAL_LMV(CFG, "  M301 L", (int)tools.lpq_len);
       #endif
     #endif
     #if (HAS_HEATER_BED)

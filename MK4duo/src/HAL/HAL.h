@@ -24,8 +24,8 @@
  * Description:
  *
  * Supports platforms:
- *    ARDUINO_ARCH_SAM : For Arduino Due and other boards based on Atmel SAM3X8E
- *    __AVR__ : For all Atmel AVR boards
+ *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
+ *    __AVR__           : For all Atmel AVR boards
  */
 
 #ifndef _HAL_H_
