@@ -1283,6 +1283,10 @@
 //
 //#define LCD_I2C_VIKI
 
+// Original RADDS Display from Willy
+// http://max3dshop.org/index.php/default/elektronik/radds-lcd-sd-display-with-reset-and-back-buttom.html
+//#define RADDS_DISPLAY
+
 //
 // CONTROLLER TYPE: Shift register panels
 //
