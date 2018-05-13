@@ -69,8 +69,9 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-#include "HAL_math_Due.h"
 #include "fastio_Due.h"
+#include "HAL_math_Due.h"
+#include "HAL_delay_Due.h"
 #include "HAL_watchdog_Due.h"
 #include "HAL_timers_Due.h"
 
@@ -187,49 +188,6 @@ volatile static uint32_t debug_counter;
 
 extern "C" char *sbrk(int i);
 extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
-
-// Class to perform averaging of values read from the ADC
-// numAveraged should be a power of 2 for best efficiency
-template <size_t numAveraged> class AveragingFilter {
-
-  public: /** Constructor */
-
-    AveragingFilter() { Init(0); }
-
-  private: /** Private Parameters */
-
-    uint16_t  readings[numAveraged];
-    size_t    index;
-    uint32_t  sum;
-    bool      valid;
-
-  public: /** Public Function */
-
-    void Init(uint16_t val) volatile {
-
-      irqflags_t flags = cpu_irq_save();
-      sum = (uint32_t)val * (uint32_t)numAveraged;
-      index = 0;
-      valid = false;
-      for (size_t i = 0; i < numAveraged; ++i)
-        readings[i] = val;
-      cpu_irq_restore(flags);
-    }
-
-    void ProcessReading(const uint16_t read) {
-      sum = sum - readings[index] + read;
-      readings[index] = read;
-      if (++index == numAveraged) {
-        index = 0;
-        valid = true;
-      }
-    }
-
-    uint32_t GetSum() const volatile { return sum; }
-
-    bool IsValid() const volatile	{ return valid; }
-
-};
 
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
 

@@ -68,7 +68,6 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
-#include "HAL_math_AVR.h"
 
 // --------------------------------------------------------------------------
 // Types
@@ -80,6 +79,8 @@ typedef uint16_t  ptr_int_t;
 // Includes
 // --------------------------------------------------------------------------
 #include "fastio.h"
+#include "HAL_math_AVR.h"
+#include "HAL_delay_AVR.h"
 #include "HAL_watchdog_AVR.h"
 
 // Serial
@@ -326,45 +327,6 @@ void TIMER0_COMPB_vect (void) { \
   ); \
 } \
 void TIMER0_COMPB_vect_bottom(void)
-
-// Processor-level delays for hardware interfaces
-
-#define nop() __asm__ __volatile__("nop;\n\t":::)
-
-FORCE_INLINE static void HAL_delay_4cycles(uint8_t cy) {
-  __asm__ __volatile__(
-    "1:\n\t"
-    " dec %[cnt]\n\t"
-    " nop\n\t"
-    " brne 1b\n\t"
-    : [cnt] "+r"(cy)  // output: +r means input+output
-    :                 // input:
-    : "cc"            // clobbers:
-  );
-}
-
-FORCE_INLINE static void HAL_delay_cycles(uint16_t cycles) {
-
-  if (__builtin_constant_p(cycles)) {
-    #define MAXNOPS 4
-
-    if (cycles <= (MAXNOPS)) {
-      switch (cycles) { case 4: nop(); case 3: nop(); case 2: nop(); case 1: nop(); }
-    }
-    else {
-      const uint32_t rem = (cycles) % (MAXNOPS);
-      switch (rem) { case 3: nop(); case 2: nop(); case 1: nop(); }
-      if ((cycles = (cycles) / (MAXNOPS)))
-        HAL_delay_4cycles(cycles); // if need more then 4 nop loop is more optimal
-    }
-
-    #undef MAXNOPS
-  }
-  else
-    HAL_delay_4cycles(cycles / 4);
-}
-
-#undef nop
 
 class InterruptProtectedBlock {
   uint8_t sreg;

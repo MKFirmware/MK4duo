@@ -95,7 +95,7 @@
 /********************************************************************/
 
 // Compiler warning on unused varable.
-#define UNUSED(x) (void) (x)
+#define UNUSED(x) (void)(x)
 
 // Macros to make a string from a macro
 #define STRINGIFY_(M) #M
