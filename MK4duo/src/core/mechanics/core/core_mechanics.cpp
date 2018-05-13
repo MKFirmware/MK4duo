@@ -73,7 +73,7 @@
     #endif
 
     // Wait for planner moves to finish!
-    stepper.synchronize();
+    planner.synchronize();
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
@@ -212,7 +212,7 @@
 
     printer.clean_up_after_endstop_or_probe_move();
 
-    stepper.synchronize();
+    planner.synchronize();
 
     // Restore the active tool after homing
     #if HOTENDS > 1
