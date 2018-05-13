@@ -129,7 +129,7 @@ typedef uint16_t  ptr_int_t;
 #define HAL_TIMER_TYPE_MAX 0xFFFF
 
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(longIn1, longIn2) MultiU24X32toH16(longIn1, longIn2)
+#define HAL_MULTI_ACC(A,B)    MultiU24X32toH16(A,B)
 
 // TEMPERATURE
 #define ANALOG_REF_AREF       0
