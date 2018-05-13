@@ -293,15 +293,15 @@ class Stepper {
 
       #if ENABLED(CPU_32_BIT)
         // In case of high-performance processor, it is able to calculate in real-time
-        constexpr uint32_t MIN_TIME_PER_STEP = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
+        const uint32_t min_time_per_step = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
         timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
-        NOLESS(timer, MIN_TIME_PER_STEP);
+        NOLESS(timer, min_time_per_step);
       #else
         NOLESS(step_rate, F_CPU / 500000);
-        step_rate -= F_CPU / 500000; // Correct for minimal speed
+        step_rate -= F_CPU / 500000;  // Correct for minimal speed
         if (step_rate >= (8 * 256)) { // higher step rate
-          uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(unsigned char)(step_rate >> 8)][0];
-          unsigned char tmp_step_rate = (step_rate & 0x00FF);
+          uint8_t tmp_step_rate = (step_rate & 0x00FF);
+          uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0];
           uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
           timer = MultiU16X8toH16(tmp_step_rate, gain);
           timer = (uint16_t)pgm_read_word_near(table_address) - timer;
@@ -310,7 +310,7 @@ class Stepper {
           uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
           table_address += ((step_rate) >> 1) & 0xFFFC;
           timer = (uint16_t)pgm_read_word_near(table_address);
-          timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (unsigned char)(step_rate & 0x0007)) >> 3);
+          timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
         }
 
         if (timer < 100) { // (20kHz this should never happen)

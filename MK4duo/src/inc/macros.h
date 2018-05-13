@@ -53,7 +53,10 @@
 #define CYCLES_PER_US   ((F_CPU) / 1000000L)
 
 // Nanoseconds per cycle
-#define NANOSECONDS_PER_CYCLE (1000000000.0 / (F_CPU))
+#define NS_PER_CYCLE    (1000000000.0 / (F_CPU))
+
+// Remove compiler warning on an unused variable
+#define UNUSED(x)       (void)(x)
 
 /**
  * Macrof for Delay
@@ -92,17 +95,13 @@
 #define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
 
 #define IS_MUVE3D     (MECH(MUVE3D))
-/********************************************************************/
-
-// Compiler warning on unused varable.
-#define UNUSED(x) (void)(x)
 
 // Macros to make a string from a macro
 #define STRINGIFY_(M) #M
 #define STRINGIFY(M)  STRINGIFY_(M)
 
-#define A(CODE) " " CODE "\n\t"
-#define L(CODE) CODE ":\n\t"
+#define A(CODE)       " " CODE "\n\t"
+#define L(CODE)       CODE ":\n\t"
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
@@ -151,8 +150,8 @@
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
 #define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
 #define COUNT(a)          (sizeof(a)/sizeof(*a))
-#define ZERO(a)           memset(a, 0, sizeof(a))
-#define COPY_ARRAY(a,b)   memcpy(a, b, MIN(sizeof(a), sizeof(b)))
+#define ZERO(a)           memset(a,0,sizeof(a))
+#define COPY_ARRAY(a,b)   memcpy(a,b,MIN(sizeof(a),sizeof(b)))
 
 // Macros for initializing arrays
 #define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
