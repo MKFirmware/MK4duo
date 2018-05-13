@@ -2097,9 +2097,18 @@ void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c,
  */
 int32_t Stepper::position(const AxisEnum axis) {
 
-  CRITICAL_SECTION_START
-    const int32_t machine_pos = count_position[axis];
-  CRITICAL_SECTION_END
+  #if ENABLED(__AVR__)
+    // Protect the access to the variable. Only required for AVR.
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    DISABLE_STEPPER_INTERRUPT();
+  #endif
+
+  const int32_t machine_pos = count_position[axis];
+
+  #if ENABLED(__AVR__)
+    // Reenable Stepper ISR
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #endif
 
   return machine_pos;
 }
@@ -2140,49 +2149,95 @@ void Stepper::disable_all_steppers() {
 }
 
 void Stepper::quick_stop() {
-  CRITICAL_SECTION_START
-    if (current_block) {
-      step_events_completed = current_block->step_event_count;
-      current_block = NULL;
-    } 
-  CRITICAL_SECTION_END
+
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  if (current_block) {
+    step_events_completed = current_block->step_event_count;
+    current_block = NULL;
+  }
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+
 }
 
 void Stepper::kill_current_block() {
-  CRITICAL_SECTION_START
-    if (current_block)
-      step_events_completed = current_block->step_event_count;
-  CRITICAL_SECTION_END
+
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  if (current_block)
+    step_events_completed = current_block->step_event_count;
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+
 }
 
 void Stepper::endstop_triggered(const AxisEnum axis) {
-  CRITICAL_SECTION_START
-    #if IS_CORE
-      endstops_trigsteps[axis] = 0.5f * (
-        axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
-                            : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
-      );
-    #else // !COREXY && !COREXZ && !COREYZ
-      endstops_trigsteps[axis] = count_position[axis];
-    #endif // !COREXY && !COREXZ && !COREYZ
 
-    // Discard the rest of the move if there is a current block
-    quick_stop();
-  CRITICAL_SECTION_END
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  #if IS_CORE
+
+    endstops_trigsteps[axis] = 0.5f * (
+      axis == CORE_AXIS_2 ? CORESIGN(count_position[CORE_AXIS_1] - count_position[CORE_AXIS_2])
+                          : count_position[CORE_AXIS_1] + count_position[CORE_AXIS_2]
+    );
+
+  #else // !COREXY && !COREXZ && !COREYZ
+
+    endstops_trigsteps[axis] = count_position[axis];
+
+  #endif // !COREXY && !COREXZ && !COREYZ
+
+  // Discard the rest of the move if there is a current block
+  if (current_block) {
+    step_events_completed = current_block->step_event_count;
+    current_block = NULL;
+  }
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+
 }
 
 int32_t Stepper::triggered_position(const AxisEnum axis) {
-  CRITICAL_SECTION_START
-    const int32_t v = endstops_trigsteps[axis];
-  CRITICAL_SECTION_END
+  #if ENABLED(__AVR__)
+    // Protect the access to the variable. Only required for AVR.
+    // Disable stepper ISR
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    DISABLE_STEPPER_INTERRUPT();
+  #endif
+
+  const int32_t v = endstops_trigsteps[axis];
+
+  #if ENABLED(__AVR__)
+    // Reenable Stepper ISR
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #endif
+
+  return v;
 }
 
 void Stepper::report_positions() {
-  CRITICAL_SECTION_START
-    const int32_t xpos = count_position[X_AXIS],
-                  ypos = count_position[Y_AXIS],
-                  zpos = count_position[Z_AXIS];
-  CRITICAL_SECTION_END
+
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  const int32_t xpos = count_position[X_AXIS],
+                ypos = count_position[Y_AXIS],
+                zpos = count_position[Z_AXIS];
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
     SERIAL_MSG(MSG_COUNT_A);
