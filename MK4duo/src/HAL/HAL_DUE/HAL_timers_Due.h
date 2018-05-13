@@ -91,45 +91,6 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIME
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
 
-// Processor-level delays for hardware interfaces
-
-#define nop() __asm__ __volatile__("nop;\n\t":::)
-
-FORCE_INLINE static void HAL_delay_4cycles(uint32_t cy) {
-  __asm__ __volatile__(
-    " .syntax unified\n\t" // is to prevent CM0,CM1 non-unified syntax
-    "1:\n\t"
-    " subs %[cnt],#1\n\t"
-    " nop\n\t"
-    " bne 1b\n\t"
-    : [cnt]"+r"(cy)   // output: +r means input+output
-    :                 // input:
-    : "cc"            // clobbers:
-  );
-}
-
-FORCE_INLINE static void HAL_delay_cycles(uint32_t cycles) {
-
-  if (__builtin_constant_p(cycles)) {
-    #define MAXNOPS 4
-
-    if (cycles <= (MAXNOPS)) {
-      switch (cycles) { case 4: nop(); case 3: nop(); case 2: nop(); case 1: nop(); }
-    }
-    else { // because of +1 cycle inside delay_4cycles
-      const uint32_t rem = (cycles - 1) % (MAXNOPS);
-      switch (rem) { case 3: nop(); case 2: nop(); case 1: nop(); }
-      if ((cycles = (cycles - 1) / (MAXNOPS)))
-        HAL_delay_4cycles(cycles); // if need more then 4 nop loop is more optimal
-    }
-    #undef MAXNOPS
-  }
-  else
-    HAL_delay_4cycles(cycles / 4);
-}
-
-#undef nop
-
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------

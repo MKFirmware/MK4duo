@@ -65,4 +65,47 @@ template <class T> static inline constexpr const T ABS(const T v) {
   return v >= 0 ? v : -v;
 }
 
+// Class to perform averaging of values read from the ADC
+// numAveraged should be a power of 2 for best efficiency
+template <size_t numAveraged> class AveragingFilter {
+
+  public: /** Constructor */
+
+    AveragingFilter() { Init(0); }
+
+  private: /** Private Parameters */
+
+    uint16_t  readings[numAveraged];
+    size_t    index;
+    uint32_t  sum;
+    bool      valid;
+
+  public: /** Public Function */
+
+    void Init(uint16_t val) volatile {
+
+      irqflags_t flags = cpu_irq_save();
+      sum = (uint32_t)val * (uint32_t)numAveraged;
+      index = 0;
+      valid = false;
+      for (size_t i = 0; i < numAveraged; ++i)
+        readings[i] = val;
+      cpu_irq_restore(flags);
+    }
+
+    void ProcessReading(const uint16_t read) {
+      sum = sum - readings[index] + read;
+      readings[index] = read;
+      if (++index == numAveraged) {
+        index = 0;
+        valid = true;
+      }
+    }
+
+    uint32_t GetSum() const volatile { return sum; }
+
+    bool IsValid() const volatile	{ return valid; }
+
+};
+
 #endif /* _HAL_MATH_DUE_H_ */
