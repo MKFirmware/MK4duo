@@ -717,28 +717,32 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
               deceleration_time_inverse = get_period_inverse(deceleration_time);
   #endif
 
-  // Fill variables used by the stepper in a critical section
-  CRITICAL_SECTION_START
-    // Don't update variables if block is busy: It is being interpreted by the planner
-    if (!TEST(block->flag, BLOCK_BIT_BUSY)) {
-      block->accelerate_until = accelerate_steps;
-      block->decelerate_after = accelerate_steps + plateau_steps;
-      block->initial_rate = initial_rate;
-      #if ENABLED(BEZIER_JERK_CONTROL)
-        block->acceleration_time = acceleration_time;
-        block->deceleration_time = deceleration_time;
-        block->acceleration_time_inverse = acceleration_time_inverse;
-        block->deceleration_time_inverse = deceleration_time_inverse;
-        block->cruise_rate = cruise_rate;
-      #endif
-      block->final_rate = final_rate;
-    }
-  CRITICAL_SECTION_END
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  // Don't update variables if block is busy: It is being interpreted by the planner
+  if (!TEST(block->flag, BLOCK_BIT_BUSY)) {
+    block->accelerate_until = accelerate_steps;
+    block->decelerate_after = accelerate_steps + plateau_steps;
+    block->initial_rate = initial_rate;
+    #if ENABLED(BEZIER_JERK_CONTROL)
+      block->acceleration_time = acceleration_time;
+      block->deceleration_time = deceleration_time;
+      block->acceleration_time_inverse = acceleration_time_inverse;
+      block->deceleration_time_inverse = deceleration_time_inverse;
+      block->cruise_rate = cruise_rate;
+    #endif
+    block->final_rate = final_rate;
+  }
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
 }
 
 // The kernel called by recalculate() when scanning the plan from last to first entry.
 void Planner::reverse_pass_kernel(block_t* const current, const block_t* const next) {
-  if (current && next) {
+  if (current) {
     // If entry speed is already at the maximum entry speed, and there was no change of speed
     // in the next block, there is no need to recheck. Block is cruising and there is no need to
     // compute anything for this block,
@@ -747,7 +751,7 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t* const n
 
     // Compute maximum entry speed decelerating over the current block from its exit speed.
     // If not at the maximum entry speed, or the previous block entry speed changed
-    if (current->entry_speed_sqr != max_entry_speed_sqr || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
+    if (current->entry_speed_sqr != max_entry_speed_sqr || (next && TEST(next->flag, BLOCK_BIT_RECALCULATE))) {
 
       // If nominal length true, max junction speed is guaranteed to be reached.
       // If a block can de/ac-celerate from nominal speed to zero within the length of the block, then
@@ -759,7 +763,7 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t* const n
 
       const float new_entry_speed_sqr = TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH)
         ? max_entry_speed_sqr
-        : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next->entry_speed_sqr, current->millimeters));
+        : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next ? next->entry_speed_sqr : sq(MINIMUM_PLANNER_SPEED), current->millimeters));
       if (current->entry_speed_sqr != new_entry_speed_sqr) {
         current->entry_speed_sqr = new_entry_speed_sqr;
         SBI(current->flag, BLOCK_BIT_RECALCULATE);
@@ -776,41 +780,19 @@ void Planner::reverse_pass() {
   if (movesplanned() > 2) {
     const uint8_t endnr = next_block_index(block_buffer_tail); // tail is running. tail+1 shouldn't be altered because it's connected to the running block.
     uint8_t blocknr = prev_block_index(block_buffer_head);
-    block_t* current = &block_buffer[blocknr];
 
-    // Last/newest block in buffer:
-
-    // If entry speed is already at the maximum entry speed, and there was no change of speed
-    // in the next block, there is no need to recheck. Block is cruising and there is no need to
-    // compute anything for this block.
-    // If not, block entry speed needs to be recalculated to ensure maximum possible planned speed.
-
-    // Compute maximum entry speed decelerating over the current block from its exit speed.
-    // if we are not at the maximum entry speed, or the previous block entry speed changed
-    const float max_entry_speed_sqr = current->max_entry_speed_sqr;
-    if (current->entry_speed_sqr != max_entry_speed_sqr) {
-      // If nominal length true, max junction speed is guaranteed to be reached.
-      // If a block can de/ac-celerate from nominal speed to zero within the length of the block, then
-      // the current block and next block junction speeds are guaranteed to always be at their maximum
-      // junction speeds in deceleration and acceleration, respectively. This is due to how the current
-      // block nominal speed limits both the current and next maximum junction speeds. Hence, in both
-      // the reverse and forward planners, the corresponding block junction speed will always be at the
-      // the maximum junction speed and may always be ignored for any speed reduction checks.
-      const float new_entry_speed_sqr = TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH)
-        ? max_entry_speed_sqr
-        : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, sq(MINIMUM_PLANNER_SPEED), current->millimeters));
-      if (current->entry_speed_sqr != new_entry_speed_sqr) {
-        current->entry_speed_sqr = new_entry_speed_sqr;
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
-      }
-    }
-
-    do {
-      const block_t * const next = current;
-      blocknr = prev_block_index(blocknr);
+    // Perform the reverse pass
+    block_t *current, *next = NULL;
+    while (blocknr != endnr) {
+      // Perform the reverse pass - Only consider non sync blocks
       current = &block_buffer[blocknr];
-      reverse_pass_kernel(current, next);
-    } while (blocknr != endnr);
+      if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION)) {
+        reverse_pass_kernel(current, next);
+        next = current;
+      }
+      // Advance to the next
+      blocknr = prev_block_index(blocknr);
+    }
   }
 }
 
@@ -841,15 +823,21 @@ void Planner::forward_pass_kernel(const block_t* const previous, block_t* const 
  * Once in reverse and once forward. This implements the forward pass.
  */
 void Planner::forward_pass() {
-  block_t* block[3] = { NULL, NULL, NULL };
+  const uint8_t endnr = block_buffer_head;
+  uint8_t blocknr = block_buffer_tail;
 
-  for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
-    block[0] = block[1];
-    block[1] = block[2];
-    block[2] = &block_buffer[b];
-    forward_pass_kernel(block[0], block[1]);
+  // Perform the foward pass
+  block_t *current, *previous = NULL;
+  while (blocknr != endnr) {
+    // Perform the forward pass - Only consider non-sync blocks
+    current = &block_buffer[blocknr];
+    if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION)) {
+      forward_pass_kernel(previous, current);
+      previous = current;
+    }
+    // Advance to the previous
+    blocknr = next_block_index(blocknr);
   }
-  forward_pass_kernel(block[1], block[2]);
 }
 
 /**
@@ -1047,17 +1035,24 @@ void Planner::quick_stop() {
 }
 
 void Planner::endstop_triggered(const AxisEnum axis) {
-  CRITICAL_SECTION_START
-    // Record stepper position
-    stepper.endstop_triggered(axis);
-    // Discard the active block that led to the trigger
-    discard_current_block();
-    // Discard the CONTINUED block, if any. Note the planner can only queue 1 continued
-    // block after a previous non continued block, as the condition to queue them
-    // is that there are no queued blocks at the time a new block is queued.
-    const bool discard = has_blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
-    if (discard) discard_current_block();
-  CRITICAL_SECTION_END
+  // Disable stepper ISR
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  DISABLE_STEPPER_INTERRUPT();
+
+  // Record stepper position
+  stepper.endstop_triggered(axis);
+
+  // Discard the active block that led to the trigger
+  discard_current_block();
+
+  // Discard the CONTINUED block, if any. Note the planner can only queue 1 continued
+  // block after a previous non continued block, as the condition to queue them
+  // is that there are no queued blocks at the time a new block is queued.
+  const bool discard = has_blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
+  if (discard) discard_current_block();
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
 }
 
 float Planner::triggered_position_mm(const AxisEnum axis) {
@@ -1069,24 +1064,38 @@ float Planner::triggered_position_mm(const AxisEnum axis) {
  * For CORE machines apply translation from ABC to XYZ.
  */
 float Planner::get_axis_position_mm(const AxisEnum axis) {
+
   float axis_steps;
+
   #if IS_CORE
+
     // Requesting one of the "core" axes?
     if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
-      CRITICAL_SECTION_START
-        // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
-        // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-        axis_steps = 0.5f * (
-          axis == CORE_AXIS_2 ? CORESIGN(stepper.position(CORE_AXIS_1) - stepper.position(CORE_AXIS_2))
-                              : stepper.position(CORE_AXIS_1) + stepper.position(CORE_AXIS_2)
-        );
-      CRITICAL_SECTION_END
+
+      // Disable stepper ISR
+      const bool isr_enabled = STEPPER_ISR_ENABLED();
+      DISABLE_STEPPER_INTERRUPT();
+
+      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
+      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
+      axis_steps = 0.5f * (
+        axis == CORE_AXIS_2 ? CORESIGN(stepper.position(CORE_AXIS_1) - stepper.position(CORE_AXIS_2))
+                            : stepper.position(CORE_AXIS_1) + stepper.position(CORE_AXIS_2)
+      );
+
+      // Reenable Stepper ISR
+      if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+
     }
     else
       axis_steps = stepper.position(axis);
+
   #else
+
     axis_steps = stepper.position(axis);
+
   #endif
+
   return axis_steps * mechanics.steps_to_mm[axis];
 }
 
@@ -1664,10 +1673,14 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
 
   #if ENABLED(ULTRA_LCD)
-    // Protect the access to the position.
-    CRITICAL_SECTION_START
-      block_buffer_runtime_us += segment_time_us;
-    CRITICAL_SECTION_END
+    // Disable stepper ISR
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    DISABLE_STEPPER_INTERRUPT();
+
+    block_buffer_runtime_us += segment_time_us;
+
+    // Reenable Stepper ISR
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
   #endif
 
   block->nominal_speed_sqr = sq(block->millimeters * inverse_secs);   //   (mm/sec)^2 Always > 0

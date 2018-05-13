@@ -470,9 +470,19 @@ class Planner {
     #if ENABLED(ULTRA_LCD)
 
       static uint16_t block_buffer_runtime() {
-        CRITICAL_SECTION_START
-          millis_t bbru = block_buffer_runtime_us;
-        CRITICAL_SECTION_END
+        #if ENABLED(__AVR__)
+          // Protect the access to the variable. Only required for AVR.
+          const bool isr_enabled = STEPPER_ISR_ENABLED();
+          DISABLE_STEPPER_INTERRUPT();
+        #endif
+
+        millis_t bbru = block_buffer_runtime_us;
+
+        #if ENABLED(__AVR__)
+          // Reenable Stepper ISR
+          if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+        #endif
+
         // To translate µs to ms a division by 1000 would be required.
         // We introduce 2.4% error here by dividing by 1024.
         // Doesn't matter because block_buffer_runtime_us is already too small an estimation.
@@ -483,9 +493,18 @@ class Planner {
       }
 
       static void clear_block_buffer_runtime() {
-        CRITICAL_SECTION_START
-          block_buffer_runtime_us = 0;
-        CRITICAL_SECTION_END
+        #if ENABLED(__AVR__)
+          // Protect the access to the variable. Only required for AVR.
+          const bool isr_enabled = STEPPER_ISR_ENABLED();
+          DISABLE_STEPPER_INTERRUPT();
+        #endif
+
+        block_buffer_runtime_us = 0;
+
+        #if ENABLED(__AVR__)
+          // Reenable Stepper ISR
+          if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+        #endif
       }
 
     #endif
