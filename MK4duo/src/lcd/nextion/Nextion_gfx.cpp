@@ -120,11 +120,11 @@
     if (shade) {
       int delta_x(x1 - x0);
       signed char const ix((delta_x > 0) - (delta_x < 0));
-      delta_x = abs(delta_x) << 1;
+      delta_x = ABS(delta_x) << 1;
 
       int delta_y(y1 - y0);
       signed char const iy((delta_y > 0) - (delta_y < 0));
-      delta_y = abs(delta_y) << 1;
+      delta_y = ABS(delta_y) << 1;
 
       float dist = SQRT((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       float cinc[3];

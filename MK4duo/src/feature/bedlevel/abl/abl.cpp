@@ -277,7 +277,7 @@
       ratio_x -= gx;      // Subtract whole to get the ratio within the grid box
       NOLESS(ratio_x, 0); // Never < 0.0. (> 1.0 is ok when nextx==gridx.)
       gridx = gx;
-      nextx = min(gridx + 1, ABL_BG_POINTS_X - 1);
+      nextx = MIN(gridx + 1, ABL_BG_POINTS_X - 1);
     }
 
     if (last_y != ry || last_gridx != gridx) {
@@ -289,7 +289,7 @@
         ratio_y -= gy;
         NOLESS(ratio_y, 0);
         gridy = gy;
-        nexty = min(gridy + 1, ABL_BG_POINTS_Y - 1);
+        nexty = MIN(gridy + 1, ABL_BG_POINTS_Y - 1);
       }
 
       if (last_gridx != gridx || last_gridy != gridy) {
@@ -313,7 +313,7 @@
 
     /*
     static float last_offset = 0;
-    if (FABS(last_offset - offset) > 0.2) {
+    if (ABS(last_offset - offset) > 0.2) {
       SERIAL_MSG("Sudden Shift at ");
       SERIAL_MV("x=", rx);
       SERIAL_MV(" / ", ABL_BG_SPACING(X_AXIS));
@@ -367,7 +367,7 @@
       float normalized_dist, end[XYZE];
 
       // Split at the left/front border of the right/top square
-      int8_t gcx = max(cx1, cx2), gcy = max(cy1, cy2);
+      int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);
       if (cx2 != cx1 && TEST(x_splits, gcx)) {
         COPY_ARRAY(end, mechanics.destination);
         mechanics.destination[X_AXIS] = bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx;

@@ -249,9 +249,9 @@
       // Returns a pointer to the solution vector.
       for (uint8_t i = 0; i < numFactors; i++) {
         // Swap the rows around for stable Gauss-Jordan elimination
-        float vmax = abs(normalMatrix[i][i]);
+        float vmax = ABS(normalMatrix[i][i]);
         for (uint8_t j = i + 1; j < numFactors; j++) {
-          const float rmax = abs(normalMatrix[j][i]);
+          const float rmax = ABS(normalMatrix[j][i]);
           if (rmax > vmax) {
             // Swap 2 rows of a matrix
             if (i != j) {

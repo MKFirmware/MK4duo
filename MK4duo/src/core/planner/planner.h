@@ -41,8 +41,11 @@ enum BlockFlagBit {
   // from a safe speed (in consideration of jerking from zero speed).
   BLOCK_BIT_NOMINAL_LENGTH,
 
-  // The block is busy
+  // The block is busy, being interpreted by the stepper ISR
   BLOCK_BIT_BUSY,
+
+  // The block forces a Stepper hold: The stepper will wait until this bit is cleared
+  BLOCK_BIT_HOLD,
 
   // The block is segment 2+ of a longer move
   BLOCK_BIT_CONTINUED,
@@ -56,6 +59,7 @@ enum BlockFlag : char {
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
   BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
+  BLOCK_FLAG_HOLD                 = _BV(BLOCK_BIT_HOLD),
   BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
 };
 
@@ -175,6 +179,10 @@ class Planner {
                     position_float[XYZE];
     #endif
 
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
+      static bool abort_on_endstop_hit;
+    #endif
+
   private: /** Private Parameters */
 
     /**
@@ -244,9 +252,9 @@ class Planner {
     /**
      * Planner::get_next_free_block
      *
-     * - Get the next head index (passed by reference)
-     * - Wait for a space to open up in the planner
-     * - Return the head block
+     * - Get the next head indices (passed by reference)
+     * - Wait for the number of spaces to open up in the planner
+     * - Return the first head block
      */
     FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, uint8_t count = 1) {
       // Wait until there are enough slots free
@@ -399,6 +407,11 @@ class Planner {
     static void endstop_triggered(const AxisEnum axis);
 
     /**
+     * Triggered position of an axis in mm (not core-savvy)
+     */
+    static float triggered_position_mm(const AxisEnum axis);
+
+    /**
      * Does the buffer have any blocks queued?
      */
     FORCE_INLINE static bool has_blocks_queued() { return (block_buffer_head != block_buffer_tail); }
@@ -406,6 +419,7 @@ class Planner {
     /**
      * "Discard" the block and "release" the memory.
      * Called when the current block is no longer needed.
+     * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
       if (has_blocks_queued())
@@ -431,18 +445,17 @@ class Planner {
       if (has_blocks_queued()) {
         block_t * const block = &block_buffer[block_buffer_tail];
 
-        // If the block has no trapezoid calculated, it's unsafe to execute.
-        if (movesplanned() > 1) {
-          const block_t * const next = &block_buffer[next_block_index(block_buffer_tail)];
-          if (TEST(block->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE))
-            return NULL;
-        }
-        else if (TEST(block->flag, BLOCK_BIT_RECALCULATE))
-          return NULL;
+        // The HOLD flag usually means the planner needs to replan this block
+        if ( TEST(block->flag, BLOCK_BIT_HOLD)
+          || TEST(block->flag, BLOCK_BIT_RECALCULATE) // No trapezoid calculated? Don't execute yet.
+          || (movesplanned() > 1 && TEST(block_buffer[next_block_index(block_buffer_tail)].flag, BLOCK_BIT_RECALCULATE))
+        ) return NULL;
 
         #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif
+
+        // Mark the block as busy, so the planner does not attempt to replan it
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;
       }
@@ -546,7 +559,7 @@ class Planner {
 
 };
 
-#define PLANNER_XY_FEEDRATE() (min(mechanics.max_feedrate_mm_s[X_AXIS], mechanics.max_feedrate_mm_s[Y_AXIS]))
+#define PLANNER_XY_FEEDRATE() (MIN(mechanics.max_feedrate_mm_s[X_AXIS], mechanics.max_feedrate_mm_s[Y_AXIS]))
 
 extern Planner planner;
 

@@ -294,7 +294,7 @@ void print_line_from_here_to_there(const float &sx, const float &sy, const float
 
   // If the end point of the line is closer to the nozzle, flip the direction,
   // moving from the end to the start. On very small lines the optimization isn't worth it.
-  if (dist_end < dist_start && (INTERSECTION_CIRCLE_RADIUS) < FABS(line_length))
+  if (dist_end < dist_start && (INTERSECTION_CIRCLE_RADIUS) < ABS(line_length))
     return print_line_from_here_to_there(ex, ey, ez, sx, sy, sz);
 
   // Decide whether to retract & bump
@@ -416,7 +416,7 @@ inline bool turn_on_heaters() {
         #endif
     #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
-        while (abs(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
+        while (ABS(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
           #if ENABLED(NEWPANEL)
             if (is_lcd_clicked()) return exit_from_g26();
           #endif
@@ -432,7 +432,7 @@ inline bool turn_on_heaters() {
 
   // Start heating the nozzle and wait for it to reach temperature.
   heaters[0].setTarget(g26_hotend_temp);
-  while (abs(heaters[0].current_temperature - g26_hotend_temp) > 3) {
+  while (ABS(heaters[0].current_temperature - g26_hotend_temp) > 3) {
     #if ENABLED(NEWPANEL)
       if (is_lcd_clicked()) return exit_from_g26();
     #endif

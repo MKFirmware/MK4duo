@@ -200,7 +200,7 @@
     } // switch(state)
 
     if (state == MeshNext) {
-      SERIAL_MV("MBL G29 point ", min(mbl_probe_index, GRID_MAX_POINTS));
+      SERIAL_MV("MBL G29 point ", MIN(mbl_probe_index, GRID_MAX_POINTS));
       SERIAL_EMV(" of ", int(GRID_MAX_POINTS));
     }
 

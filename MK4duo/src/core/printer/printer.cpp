@@ -322,7 +322,7 @@ void Printer::loop() {
       commands.clear_queue();
 
       // Stop all stepper
-      planner.quick_stop();
+      quickstop_stepper();
 
       // Auto home
       #if Z_HOME_DIR > 0
@@ -486,6 +486,13 @@ void Printer::kill(const char* lcd_msg) {
 
   while(1) { watchdog.reset(); } // Wait for reset
 
+}
+
+void Printer::quickstop_stepper() {
+  planner.quick_stop();
+  planner.synchronize();
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.sync_plan_position_mech_specific();
 }
 
 /**

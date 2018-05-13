@@ -602,7 +602,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
       angular_travel += RADIANS(360);
 
     const float flat_mm = radius * angular_travel,
-                mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : FABS(flat_mm);
+                mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : ABS(flat_mm);
     if (mm_of_travel < 0.001) return;
 
     uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
@@ -635,7 +635,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
      * This is important when there are successive arc motions.
      */
     // Vector rotation matrix values
-    float arc_target[XYZE];
+    float raw[XYZE];
     const float theta_per_segment = angular_travel / segments,
                 linear_per_segment = linear_travel / segments,
                 extruder_per_segment = extruder_travel / segments,
@@ -643,10 +643,10 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
                 cos_T = 1 - 0.5 * sq(theta_per_segment); // Small angle approximation
 
     // Initialize the linear axis
-    arc_target[l_axis] = current_position[l_axis];
+    raw[l_axis] = current_position[l_axis];
 
     // Initialize the extruder axis
-    arc_target[E_AXIS] = current_position[E_AXIS];
+    raw[E_AXIS] = current_position[E_AXIS];
 
     const float fr_mm_s = MMS_SCALED(feedrate_mm_s);
 
@@ -688,15 +688,16 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
         r_Q = -offset[0] * sin_Ti - offset[1] * cos_Ti;
       }
 
-      // Update arc_target location
-      arc_target[p_axis] = center_P + r_P;
-      arc_target[q_axis] = center_Q + r_Q;
-      arc_target[l_axis] += linear_per_segment;
-      arc_target[E_AXIS] += extruder_per_segment;
+      // Update raw location
+      raw[p_axis] = center_P + r_P;
+      raw[q_axis] = center_Q + r_Q;
+      raw[l_axis] += linear_per_segment;
+      raw[E_AXIS] += extruder_per_segment;
 
-      endstops.clamp_to_software_endstops(arc_target);
+      endstops.clamp_to_software_endstops(raw);
 
-      planner.buffer_line_kinematic(arc_target, fr_mm_s, tools.active_extruder);
+      if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
+        break;
     }
 
     // Ensure last segment arrives at target location.

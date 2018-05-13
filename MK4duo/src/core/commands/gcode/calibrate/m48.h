@@ -137,7 +137,7 @@
               (int)(0.1250000000 * mechanics.delta_probe_radius),
               (int)(0.3333333333 * mechanics.delta_probe_radius)
             #else
-              5, (int)(0.125 * min(X_MAX_LENGTH, Y_MAX_LENGTH))
+              5, (int)(0.125 * MIN(X_MAX_LENGTH, Y_MAX_LENGTH))
             #endif
           );
 

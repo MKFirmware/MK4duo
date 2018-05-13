@@ -68,7 +68,7 @@
        * We approximate Euclidean distance with the sum of the coordinates
        * offset (so-called "norm 1"), which is quicker to compute.
        */
-      inline static float dist1(float x1, float y1, float x2, float y2) { return FABS(x1 - x2) + FABS(y1 - y2); }
+      inline static float dist1(float x1, float y1, float x2, float y2) { return ABS(x1 - x2) + ABS(y1 - y2); }
   };
 
 #endif // ENABLED(G5_BEZIER)

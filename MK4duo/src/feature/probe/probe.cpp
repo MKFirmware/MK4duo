@@ -223,7 +223,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
     #if MECH(DELTA)
       float z_dist = 0.0;
       LOOP_ABC(i)
-        z_dist += FABS(steps_start[i] - stepper.position((AxisEnum)i)) / mechanics.axis_steps_per_mm[i];
+        z_dist += ABS(steps_start[i] - stepper.position((AxisEnum)i)) / mechanics.axis_steps_per_mm[i];
 
       mechanics.current_position[Z_AXIS] = z_start - (z_dist / ABC);
     #else
@@ -322,7 +322,7 @@ float Probe::run_z_probe() {
       const float nz = 
         #if MECH(DELTA)
           // Move below clip height or xy move will be aborted by do_blocking_move_to
-          min(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
+          MIN(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
         #else
           mechanics.current_position[Z_AXIS]
         #endif

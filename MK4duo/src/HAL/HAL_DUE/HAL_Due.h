@@ -50,8 +50,8 @@
  * ARDUINO_ARCH_SAM
  */
 
-#ifndef _HAL_DUE_H
-#define _HAL_DUE_H
+#ifndef _HAL_DUE_H_
+#define _HAL_DUE_H_
 
 // --------------------------------------------------------------------------
 // Includes
@@ -69,6 +69,7 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
+#include "HAL_math_Due.h"
 #include "fastio_Due.h"
 #include "HAL_watchdog_Due.h"
 #include "HAL_timers_Due.h"
@@ -125,29 +126,7 @@ typedef uint32_t  ptr_int_t;
 // EEPROM START
 #define EEPROM_OFFSET 10
 
-// MATH
-#undef ATAN2
-#undef FABS
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2f(y, x)
-#define FABS(x)     fabsf(x)
-#define POW(x, y)   powf(x, y)
-#define SQRT(x)     sqrtf(x)
-#define CEIL(x)     ceilf(x)
-#define FLOOR(x)    floorf(x)
-#define LROUND(x)   lroundf(x)
-#define FMOD(x, y)  fmodf(x, y)
-#define COS(x)      cosf(x)
-#define SIN(x)      sinf(x)
-#define LOG(x)      logf(x)
-
+// CRITICAL SECTION
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
 
@@ -173,11 +152,8 @@ typedef uint32_t  ptr_int_t;
 #undef HIGH
 #define HIGH        1
 
-#define MultiU32X32toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2) >> 32
-#define MultiU32X24toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24
-
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
+#define HAL_MULTI_ACC(longIn1, longIn2) MultiU32X24toH32(longIn1, longIn2)
 
 #define HAL_TIMER_TYPE_MAX 0xFFFFFFFF
 
@@ -433,4 +409,4 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
 
-#endif // HAL_SAM_H
+#endif /* _HAL_DUE_H_ */

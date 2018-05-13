@@ -433,7 +433,7 @@
 
             if (parser.seen('B')) {
               g29_card_thickness = parser.has_value() ? parser.value_float() : measure_business_card_thickness((float)Z_PROBE_BETWEEN_HEIGHT);
-              if (FABS(g29_card_thickness) > 1.5) {
+              if (ABS(g29_card_thickness) > 1.5) {
                 SERIAL_EM("?Error in Business Card measurement.");
                 return;
               }
@@ -803,7 +803,7 @@
 
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT);
 
-      const float thickness = abs(z1 - z2);
+      const float thickness = ABS(z1 - z2);
 
       if (g29_verbose_level > 1) {
         SERIAL_MSG("Business Card is ");
@@ -1477,10 +1477,10 @@
   #if HAS_BED_PROBE
 
     void unified_bed_leveling::tilt_mesh_based_on_probed_grid(const bool do_3_pt_leveling) {
-      int16_t x_min = max(MIN_PROBE_X, UBL_MESH_MIN_X),
-              x_max = min(MAX_PROBE_X, UBL_MESH_MAX_X),
-              y_min = max(MIN_PROBE_Y, UBL_MESH_MIN_Y),
-              y_max = min(MAX_PROBE_Y, UBL_MESH_MAX_Y);
+      int16_t x_min = MAX(MIN_PROBE_X, UBL_MESH_MIN_X),
+              x_max = MIN(MAX_PROBE_X, UBL_MESH_MAX_X),
+              y_min = MAX(MIN_PROBE_Y, UBL_MESH_MIN_Y),
+              y_max = MIN(MAX_PROBE_Y, UBL_MESH_MAX_Y);
 
       bool abort_flag = false;
 
@@ -1749,7 +1749,7 @@
 
       SERIAL_MSG("Extrapolating mesh...");
 
-      const float weight_scaled = weight_factor * max(MESH_X_DIST, MESH_Y_DIST);
+      const float weight_scaled = weight_factor * MAX(MESH_X_DIST, MESH_Y_DIST);
 
       for (uint8_t jx = 0; jx < GRID_MAX_POINTS_X; jx++)
         for (uint8_t jy = 0; jy < GRID_MAX_POINTS_Y; jy++)
