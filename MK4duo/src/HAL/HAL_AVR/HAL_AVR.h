@@ -47,11 +47,11 @@
  *
  * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
  *
- * ARDUINO_ARCH_ARM
+ * ARDUINO_ARCH_AVR
  */
 
-#ifndef HAL_AVR_H
-#define HAL_AVR_H
+#ifndef _HAL_AVR_H_
+#define _HAL_AVR_H_
 
 // --------------------------------------------------------------------------
 // Includes
@@ -68,7 +68,7 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
-
+#include "HAL_math_AVR.h"
 
 // --------------------------------------------------------------------------
 // Types
@@ -95,8 +95,10 @@ typedef uint16_t  ptr_int_t;
 // Defines
 // --------------------------------------------------------------------------
 
-#define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
-#define CRITICAL_SECTION_END    SREG = _sreg;
+#ifndef CRITICAL_SECTION_START
+  #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
+  #define CRITICAL_SECTION_END    SREG = _sreg;
+#endif
 
 #ifdef analogInputToDigitalPin
   #undef analogInputToDigitalPin
@@ -125,93 +127,8 @@ typedef uint16_t  ptr_int_t;
 
 #define HAL_TIMER_TYPE_MAX 0xFFFF
 
-/**
- * Optimized math functions for AVR
- */
-
-// intRes = intIn1 * intIn2 >> 16
-// uses:
-// r26 to store 0
-// r27 to store the byte 1 of the 24 bit result
-#define MultiU16X8toH16(intRes, charIn1, intIn2) \
-  asm volatile ( \
-                 "clr r26 \n\t" \
-                 "mul %A1, %B2 \n\t" \
-                 "movw %A0, r0 \n\t" \
-                 "mul %A1, %A2 \n\t" \
-                 "add %A0, r1 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "lsr r0 \n\t" \
-                 "adc %A0, r26 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "clr r1 \n\t" \
-                 : \
-                 "=&r" (intRes) \
-                 : \
-                 "d" (charIn1), \
-                 "d" (intIn2) \
-                 : \
-                 "r26" \
-               )
-
-// intRes = longIn1 * longIn2 >> 24
-// uses:
-// r26 to store 0
-// r27 to store bits 16-23 of the 48bit result. The top bit is used to round the two byte result.
-// note that the lower two bytes and the upper byte of the 48bit result are not calculated.
-// this can cause the result to be out by one as the lower bytes may cause carries into the upper ones.
-// B0 A0 are bits 24-39 and are the returned value
-// C1 B1 A1 is longIn1
-// D2 C2 B2 A2 is longIn2
-//
-#define MultiU24X32toH16(intRes, longIn1, longIn2) \
-  asm volatile ( \
-                 "clr r26 \n\t" \
-                 "mul %A1, %B2 \n\t" \
-                 "mov r27, r1 \n\t" \
-                 "mul %B1, %C2 \n\t" \
-                 "movw %A0, r0 \n\t" \
-                 "mul %C1, %C2 \n\t" \
-                 "add %B0, r0 \n\t" \
-                 "mul %C1, %B2 \n\t" \
-                 "add %A0, r0 \n\t" \
-                 "adc %B0, r1 \n\t" \
-                 "mul %A1, %C2 \n\t" \
-                 "add r27, r0 \n\t" \
-                 "adc %A0, r1 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "mul %B1, %B2 \n\t" \
-                 "add r27, r0 \n\t" \
-                 "adc %A0, r1 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "mul %C1, %A2 \n\t" \
-                 "add r27, r0 \n\t" \
-                 "adc %A0, r1 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "mul %B1, %A2 \n\t" \
-                 "add r27, r1 \n\t" \
-                 "adc %A0, r26 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "lsr r27 \n\t" \
-                 "adc %A0, r26 \n\t" \
-                 "adc %B0, r26 \n\t" \
-                 "mul %D2, %A1 \n\t" \
-                 "add %A0, r0 \n\t" \
-                 "adc %B0, r1 \n\t" \
-                 "mul %D2, %B1 \n\t" \
-                 "add %B0, r0 \n\t" \
-                 "clr r1 \n\t" \
-                 : \
-                 "=&r" (intRes) \
-                 : \
-                 "d" (longIn1), \
-                 "d" (longIn2) \
-                 : \
-                 "r26" , "r27" \
-               )
-
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU24X32toH16(intRes, longIn1, longIn2)
+#define HAL_MULTI_ACC(longIn1, longIn2) MultiU24X32toH16(longIn1, longIn2)
 
 // TEMPERATURE
 #define ANALOG_REF_AREF       0
@@ -277,29 +194,138 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 
-#define HAL_timer_isr_prologue_0    do{ DISABLE_TEMP_INTERRUPT(); sei(); }while(0)
-#define HAL_timer_isr_epilogue_0    do{ cli(); ENABLE_TEMP_INTERRUPT(); }while(0)
+/**
+ * On AVR there is no hardware prioritization and preemption of
+ * interrupts, so this emulates it. The UART has first priority
+ * (otherwise, characters will be lost due to UART overflow).
+ * Then: Stepper, Endstops, Temperature, and -finally- all others.
+ */
+#define HAL_timer_isr_prologue(TIMER_NUM)
+#define HAL_timer_isr_epilogue(TIMER_NUM)
 
-#define HAL_timer_isr_prologue_1 \
-  const bool temp_isr_was_enabled = TEMP_ISR_ENABLED(); \
-  do{ \
-    DISABLE_TEMP_INTERRUPT(); \
-    DISABLE_STEPPER_INTERRUPT(); \
-    sei(); \
-  }while(0)
+/* 18 cycles maximum latency */
+#define STEPPER_TIMER_ISR \
+extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
+extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible)); \
+void TIMER1_COMPA_vect (void) { \
+  __asm__ __volatile__ ( \
+    A("push r16")                      /* 2 Save R16 */ \
+    A("in r16, __SREG__")              /* 1 Get SREG */ \
+    A("push r16")                      /* 2 Save SREG into stack */ \
+    A("lds r16, %[timsk0]")            /* 2 Load into R0 the Temperature timer Interrupt mask register */ \
+    A("push r16")                      /* 2 Save it into the stack */ \
+    A("andi r16,~%[msk0]")             /* 1 Disable the temperature ISR */ \
+    A("sts %[timsk0], r16")            /* 2 And set the new value */ \
+    A("lds r16, %[timsk1]")            /* 2 Load into R0 the stepper timer Interrupt mask register */ \
+    A("andi r16,~%[msk1]")             /* 1 Disable the stepper ISR */ \
+    A("sts %[timsk1], r16")            /* 2 And set the new value */ \
+    A("sei")                           /* 1 Enable global interrupts */    \
+    A("push r0")                       /* C runtime can modify all the following registers without restoring them */ \
+    A("push r1")                       \
+    A("push r18")                      \
+    A("push r19")                      \
+    A("push r20")                      \
+    A("push r21")                      \
+    A("push r22")                      \
+    A("push r23")                      \
+    A("push r24")                      \
+    A("push r25")                      \
+    A("push r26")                      \
+    A("push r27")                      \
+    A("push r30")                      \
+    A("push r31")                      \
+    A("clr r1")                        /* C runtime expects this register to be 0 */ \
+    A("call TIMER1_COMPA_vect_bottom") /* Call the bottom handler */   \
+    A("pop r31")                       \
+    A("pop r30")                       \
+    A("pop r27")                       \
+    A("pop r26")                       \
+    A("pop r25")                       \
+    A("pop r24")                       \
+    A("pop r23")                       \
+    A("pop r22")                       \
+    A("pop r21")                       \
+    A("pop r20")                       \
+    A("pop r19")                       \
+    A("pop r18")                       \
+    A("pop r1")                        \
+    A("pop r0")                        \
+    A("cli")                           /* 1 Disable global interrupts */ \
+    A("ori r16,%[msk1]")               /* 2 Reenable the stepper ISR */ \
+    A("sts %[timsk1], r16")            /* 2 And restore the old value */ \
+    A("pop r16")                       /* 2 Get the temperature timer Interrupt mask register */ \
+    A("sts %[timsk0], r16")            /* 2 And restore the old value */ \
+    A("pop r16")                       /* 2 Get the old SREG */ \
+    A("out __SREG__, r16")             /* 1 And restore the SREG value */ \
+    A("pop r16")                       /* 2 Restore R16 */ \
+    A("reti")                          /* 4 Return from interrupt */ \
+    :                                   \
+    : [timsk0] "i" ((uint16_t)&TIMSK0), \
+      [timsk1] "i" ((uint16_t)&TIMSK1), \
+      [msk0] "M" ((uint8_t)(1<<OCIE0B)),\
+      [msk1] "M" ((uint8_t)(1<<OCIE1A)) \
+    : \
+  ); \
+} \
+void TIMER1_COMPA_vect_bottom(void)
 
-#define HAL_timer_isr_epilogue_1 \
-  do{ \
-    cli(); \
-    ENABLE_STEPPER_INTERRUPT(); \
-    if (temp_isr_was_enabled) ENABLE_TEMP_INTERRUPT(); \
-  }while(0)
-
-#define HAL_timer_isr_prologue(TIMER_NUM) _CAT(HAL_timer_isr_prologue_, TIMER_NUM)
-#define HAL_timer_isr_epilogue(TIMER_NUM) _CAT(HAL_timer_isr_epilogue_, TIMER_NUM)
-
-#define STEPPER_TIMER_ISR ISR(TIMER1_COMPA_vect)
-#define TEMP_TIMER_ISR    ISR(TIMER0_COMPB_vect)
+/* 14 cycles maximum latency */
+#define TEMP_TIMER_ISR \
+extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
+extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible)); \
+void TIMER0_COMPB_vect (void) { \
+  __asm__ __volatile__ ( \
+    A("push r16")                       /* 2 Save R16 */ \
+    A("in r16, __SREG__")               /* 1 Get SREG */ \
+    A("push r16")                       /* 2 Save SREG into stack */ \
+    A("lds r16, %[timsk0]")             /* 2 Load into R0 the Temperature timer Interrupt mask register */ \
+    A("andi r16,~%[msk0]")              /* 1 Disable the temperature ISR */ \
+    A("sts %[timsk0], r16")             /* 2 And set the new value */ \
+    A("sei")                            /* 1 Enable global interrupts */    \
+    A("push r0")                        /* C runtime can modify all the following registers without restoring them */ \
+    A("push r1")                        \
+    A("push r18")                       \
+    A("push r19")                       \
+    A("push r20")                       \
+    A("push r21")                       \
+    A("push r22")                       \
+    A("push r23")                       \
+    A("push r24")                       \
+    A("push r25")                       \
+    A("push r26")                       \
+    A("push r27")                       \
+    A("push r30")                       \
+    A("push r31")                       \
+    A("clr r1")                         /* C runtime expects this register to be 0 */ \
+    A("call TIMER0_COMPB_vect_bottom")  /* Call the bottom handler */   \
+    A("pop r31")                        \
+    A("pop r30")                        \
+    A("pop r27")                        \
+    A("pop r26")                        \
+    A("pop r25")                        \
+    A("pop r24")                        \
+    A("pop r23")                        \
+    A("pop r22")                        \
+    A("pop r21")                        \
+    A("pop r20")                        \
+    A("pop r19")                        \
+    A("pop r18")                        \
+    A("pop r1")                         \
+    A("pop r0")                         \
+    A("cli")                            /* 1 Disable global interrupts */ \
+    A("ori r16,%[msk0]")                /* 2 Enable temperature ISR */ \
+    A("sts %[timsk0], r16")             /* 2 And restore the old value */ \
+    A("pop r16")                        /* 2 Get the old SREG */ \
+    A("out __SREG__, r16")              /* 1 And restore the SREG value */ \
+    A("pop r16")                        /* 2 Restore R16 */ \
+    A("reti")                           /* 4 Return from interrupt */ \
+    :                                   \
+    : [timsk0] "i"((uint16_t)&TIMSK0),  \
+      [msk0] "M" ((uint8_t)(1<<OCIE0B)) \
+    : \
+  ); \
+} \
+void TIMER0_COMPB_vect_bottom(void)
 
 // Processor-level delays for hardware interfaces
 
@@ -489,30 +515,4 @@ class HAL {
 
 };
 
-/**
- * math function
- */
-
-#undef ATAN2
-#undef FABS
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2(y, x)
-#define FABS(x)     fabs(x)
-#define POW(x, y)   pow(x, y)
-#define SQRT(x)     sqrt(x)
-#define CEIL(x)     ceil(x)
-#define FLOOR(x)    floor(x)
-#define LROUND(x)   lround(x)
-#define FMOD(x, y)  fmod(x, y)
-#define COS(x)      cos(x)
-#define SIN(x)      sin(x)
-#define LOG(x)      log(x)
-
-#endif // HAL_AVR_H
+#endif /* _HAL_AVR_H_ */

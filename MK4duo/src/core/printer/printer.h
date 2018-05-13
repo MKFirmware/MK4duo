@@ -165,6 +165,7 @@ class Printer {
     static void clean_up_after_endstop_or_probe_move();
 
     static void kill(const char *);
+    static void quickstop_stepper();
     static void Stop();
 
     static void idle(const bool ignore_stepper_queue=false);

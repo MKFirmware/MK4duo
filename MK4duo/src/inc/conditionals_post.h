@@ -67,7 +67,7 @@
   #define Z_PROBE_SPEED_SLOW  (Z_PROBE_SPEED / 2)
 
   // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - max(abs(X_PROBE_OFFSET_FROM_NOZZLE), abs(Y_PROBE_OFFSET_FROM_NOZZLE)))
+  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
   #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
   #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
   #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
@@ -888,10 +888,10 @@
   #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
   // Boundaries for Cartesian probing based on bed limits
-  #define MIN_PROBE_X (max(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.offset[X_AXIS]))
-  #define MIN_PROBE_Y (max(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.offset[Y_AXIS]))
-  #define MAX_PROBE_X (min(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.offset[X_AXIS]))
-  #define MAX_PROBE_Y (min(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.offset[Y_AXIS]))
+  #define MIN_PROBE_X (MAX(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.offset[X_AXIS]))
+  #define MIN_PROBE_Y (MAX(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.offset[Y_AXIS]))
+  #define MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.offset[X_AXIS]))
+  #define MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.offset[Y_AXIS]))
 #endif
 
 /**

@@ -156,7 +156,7 @@
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
       // If the move is very short, check the E move distance
-      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
+      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = ABS(difference[E_AXIS]);
 
       // No E move either? Game over.
       if (UNEAR_ZERO(cartesian_mm)) return true;
@@ -463,7 +463,7 @@
     float distance = delta[A_AXIS];
     cartesian[Y_AXIS] = delta_print_radius;
     Transform(cartesian);
-    delta_clip_start_height = delta_height - FABS(distance - delta[A_AXIS]);
+    delta_clip_start_height = delta_height - ABS(distance - delta[A_AXIS]);
   }
 
   void Delta_Mechanics::homeaxis(const AxisEnum axis) {

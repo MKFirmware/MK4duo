@@ -101,6 +101,9 @@
 #define STRINGIFY_(M) #M
 #define STRINGIFY(M)  STRINGIFY_(M)
 
+#define A(CODE) " " CODE "\n\t"
+#define L(CODE) CODE ":\n\t"
+
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
 #define FSTRINGVAR(var)         static const char var[] PROGMEM;
@@ -149,7 +152,7 @@
 #define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
 #define COUNT(a)          (sizeof(a)/sizeof(*a))
 #define ZERO(a)           memset(a, 0, sizeof(a))
-#define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
+#define COPY_ARRAY(a,b)   memcpy(a, b, MIN(sizeof(a), sizeof(b)))
 
 // Macros for initializing arrays
 #define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
@@ -194,13 +197,15 @@
 
 #define CEILING(x,y)            (((x) + (y) - 1) / (y))
 
-#define MIN3(a, b, c)           min(min(a, b), c)
-#define MIN4(a, b, c, d)        min(min(a, b), min(c, d))
-#define MAX3(a, b, c)           max(max(a, b), c)
-#define MAX4(a, b, c, d)        max(max(a, b), max(c, d))
+#define MIN3(a, b, c)           MIN(MIN(a, b), c)
+#define MIN4(a, b, c, d)        MIN(MIN3(a, b, c), d)
+#define MIN5(a, b, c, d, e)     MIN(MIN4(a, b, c, d), e)
+#define MAX3(a, b, c)           MAX(MAX(a, b), c)
+#define MAX4(a, b, c, d)        MAX(MAX3(a, b, c), d)
+#define MAX5(a, b, c, d, e)     MAX(MAX4(a, b, c, d), e)
 
 #define UNEAR_ZERO(x)           ((x) < 0.000001)
-#define NEAR_ZERO(x)            ((x) > -0.000001 && (x) < 0.000001)
+#define NEAR_ZERO(x)            WITHIN(x, -0.000001, 0.000001)
 #define NEAR(x,y)               NEAR_ZERO((x)-(y))
 
 #define RECIPROCAL(x)           (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))

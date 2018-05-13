@@ -53,7 +53,7 @@
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
     // Load filament
-    const float load_length = FABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
+    const float load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
                                                       filament_change_load_length[tools.target_extruder]);
 
     // Show initial "wait for load" message
@@ -70,14 +70,14 @@
 
     // Lift Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(min(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
     load_filament(load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS, true,
                   heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT);
 
     // Restore Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(MAX(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
@@ -127,7 +127,7 @@
 
     // Lift Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(min(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
     // Unload filament
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
@@ -141,7 +141,7 @@
     #endif
     {
       // Unload length
-      const float unload_length = -FABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) :
+      const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) :
                                                           filament_change_unload_length[tools.target_extruder]);
 
       unload_filament(unload_length, true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
@@ -149,7 +149,7 @@
 
     // Restore Z axis
     if (park_point.z > 0)
-      mechanics.do_blocking_move_to_z(max(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+      mechanics.do_blocking_move_to_z(MAX(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed

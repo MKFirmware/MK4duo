@@ -63,10 +63,6 @@ class Stepper {
 
     static watch_t move_watch;
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
-      static bool abort_on_endstop_hit;
-    #endif
-
   private: /** Private Parameters */
 
     static uint8_t last_direction_bits;   // The next stepping-bits to be output
@@ -118,7 +114,7 @@ class Stepper {
 
     #endif // !LIN_ADVANCE
 
-    static int32_t  acceleration_time, deceleration_time;
+    static uint32_t acceleration_time, deceleration_time;
     static uint8_t  step_loops, step_loops_nominal;
 
     static hal_timer_t ticks_nominal;
@@ -241,11 +237,9 @@ class Stepper {
     static void endstop_triggered(const AxisEnum axis);
 
     /**
-     * Triggered position of an axis in mm (not core-savvy)
+     * Triggered position of an axis in steps
      */
-    FORCE_INLINE static float triggered_position_mm(AxisEnum axis) {
-      return endstops_trigsteps[axis] * mechanics.steps_to_mm[axis];
-    }
+    static int32_t triggered_position(const AxisEnum axis);
 
     /**
      * Flag Stepper direction function
@@ -300,7 +294,7 @@ class Stepper {
       #if ENABLED(CPU_32_BIT)
         // In case of high-performance processor, it is able to calculate in real-time
         constexpr uint32_t MIN_TIME_PER_STEP = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
-        timer = (uint32_t)HAL_TIMER_RATE / step_rate;
+        timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
         NOLESS(timer, MIN_TIME_PER_STEP);
       #else
         NOLESS(step_rate, F_CPU / 500000);
@@ -309,7 +303,7 @@ class Stepper {
           uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(unsigned char)(step_rate >> 8)][0];
           unsigned char tmp_step_rate = (step_rate & 0x00FF);
           uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
-          MultiU16X8toH16(timer, tmp_step_rate, gain);
+          timer = MultiU16X8toH16(tmp_step_rate, gain);
           timer = (uint16_t)pgm_read_word_near(table_address) - timer;
         }
         else { // lower step rates

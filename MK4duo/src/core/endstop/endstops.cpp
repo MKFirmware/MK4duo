@@ -299,7 +299,7 @@ void Endstops::report_state() {
     #endif
 
     #define _ENDSTOP_HIT_ECHO(A,C) do{ \
-      SERIAL_MV(STRINGIFY(A) ":", stepper.triggered_position_mm(A ##_AXIS)); \
+      SERIAL_MV(STRINGIFY(A) ":", planner.triggered_position_mm(A ##_AXIS)); \
       _SET_STOP_CHAR(A,C); }while(0)
 
     #define _ENDSTOP_HIT_TEST(A,C) \
@@ -324,7 +324,7 @@ void Endstops::report_state() {
     hit_on_purpose();
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT)
-      if (stepper.abort_on_endstop_hit && !printer.isHoming())
+      if (planner.abort_on_endstop_hit && !printer.isHoming())
         printer.setAbortSDprinting(true);
     #endif
   }
@@ -411,7 +411,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
       if (axis == X_AXIS) {
 
         // In Dual X mode tools.hotend_offset[X] is T1's home position
-        float dual_max_x = max(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
+        float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
         if (tools.active_extruder != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
@@ -422,7 +422,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
           // In Duplication Mode, T0 can move as far left as X_MIN_POS
           // but not so far to the right that T1 would move past the end
           soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS] + offs;
-          soft_endstop_max[X_AXIS] = min(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset) + offs;
+          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset) + offs;
         }
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS

@@ -473,7 +473,7 @@ inline void gcode_G29(void) {
     if (verbose_level || seenQ) {
       SERIAL_MSG("Manual G29 ");
       if (bedlevel.g29_in_progress) {
-        SERIAL_MV("point ", min(abl_probe_index + 1, abl_points));
+        SERIAL_MV("point ", MIN(abl_probe_index + 1, abl_points));
         SERIAL_EMV(" of ", abl_points);
       }
       else

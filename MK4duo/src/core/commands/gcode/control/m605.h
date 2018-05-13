@@ -50,7 +50,7 @@
       case DXC_AUTO_PARK_MODE:
         break;
       case DXC_DUPLICATION_MODE:
-        if (parser.seen('X')) mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
+        if (parser.seen('X')) mechanics.duplicate_hotend_x_offset = MAX(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
         if (parser.seen('R')) mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
         SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
         SERIAL_CHR(' ');

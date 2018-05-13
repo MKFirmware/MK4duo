@@ -69,14 +69,6 @@ uint16_t Stepper::direction_flag = 0;
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT)
-  #if ENABLED(ABORT_ON_ENDSTOP_HIT_DEFAULT)
-    bool Stepper::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_DEFAULT;
-  #else
-    bool Stepper::abort_on_endstop_hit = false;
-  #endif
-#endif
-
 watch_t Stepper::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
 
 // private:
@@ -147,8 +139,8 @@ volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
   #endif // LASER_RASTER
 #endif // LASER
 
-int32_t Stepper::acceleration_time  = 0,
-        Stepper::deceleration_time  = 0;
+uint32_t  Stepper::acceleration_time  = 0,
+          Stepper::deceleration_time  = 0;
 
 hal_timer_t   Stepper::ticks_nominal = 0;
 
@@ -249,12 +241,12 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
   #define _TEST_EXTRUDER_ENC(x,pin) { \
     const uint8_t sig = READ_ENCODER(pin); \
     tools.encStepsSinceLastSignal[x] += tools.encLastDir[x]; \
-    if (tools.encLastSignal[x] != sig && abs(tools.encStepsSinceLastSignal[x] - tools.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
+    if (tools.encLastSignal[x] != sig && ABS(tools.encStepsSinceLastSignal[x] - tools.encLastChangeAt[x]) > ENC_MIN_STEPS) { \
       if (sig) tools.encStepsSinceLastSignal[x] = 0; \
       tools.encLastSignal[x] = sig; \
       tools.encLastChangeAt[x] = tools.encStepsSinceLastSignal[x]; \
     } \
-    else if (abs(tools.encStepsSinceLastSignal[x]) > tools.encErrorSteps[x]) { \
+    else if (ABS(tools.encStepsSinceLastSignal[x]) > tools.encErrorSteps[x]) { \
       if (tools.encLastDir[x] > 0) \
         printer.setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT); \
     } \
@@ -1420,7 +1412,7 @@ uint32_t Stepper::block_phase_isr() {
             ? _eval_bezier_curve(acceleration_time)
             : current_block->cruise_rate;
       #else
-        HAL_MULTI_ACC(acc_step_rate, acceleration_time, current_block->acceleration_rate);
+        acc_step_rate = HAL_MULTI_ACC(acceleration_time, current_block->acceleration_rate);
         acc_step_rate += current_block->initial_rate;
 
         // upper limit
@@ -1464,7 +1456,8 @@ uint32_t Stepper::block_phase_isr() {
           : current_block->final_rate;
       #else
 
-        HAL_MULTI_ACC(step_rate, deceleration_time, current_block->acceleration_rate);
+        // Using the old trapezoidal control
+        step_rate = HAL_MULTI_ACC(deceleration_time, current_block->acceleration_rate);
 
         if (step_rate < acc_step_rate) { // Still decelerating?
           step_rate = acc_step_rate - step_rate;
@@ -2178,6 +2171,12 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
 
     // Discard the rest of the move if there is a current block
     quick_stop();
+  CRITICAL_SECTION_END
+}
+
+int32_t Stepper::triggered_position(const AxisEnum axis) {
+  CRITICAL_SECTION_START
+    const int32_t v = endstops_trigsteps[axis];
   CRITICAL_SECTION_END
 }
 

@@ -45,7 +45,7 @@ inline void gcode_G0_G1(
         if (fwretract.autoretract_enabled && parser.seen('E') && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z'))) {
           const float echange = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
           // Is this move an attempt to retract or recover?
-          if (WITHIN(FABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[tools.active_extruder] == (echange > 0.0)) {
+          if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[tools.active_extruder] == (echange > 0.0)) {
             mechanics.current_position[E_AXIS] = mechanics.destination[E_AXIS]; // Hide a G1-based retract/recover from calculations
             mechanics.sync_plan_position_e();                                   // AND from the planner
             return fwretract.retract(echange < 0.0);                            // Firmware-based retract/recover (double-retract ignored)

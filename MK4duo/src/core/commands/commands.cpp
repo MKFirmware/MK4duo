@@ -207,7 +207,7 @@ void Commands::get_serial() {
           #endif
         }
         if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) planner.quick_stop();
+        if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
       #endif
 
       // Add the command to the buffer_ring

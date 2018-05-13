@@ -128,7 +128,7 @@
         #define ZWOBBLE_MIN_Z 0.1
         // minimum distance within which two distances in mm are considered equal
         #define TOLERANCE_MM 0.01
-        #define DISTANCE(_A,_B) abs((_A) - (_B))
+        #define DISTANCE(_A,_B) ABS((_A) - (_B))
         #define EQUAL_WITHIN_TOLERANCE(_A, _B) (DISTANCE(_A, _B) < TOLERANCE_MM)
         #define TWOPI 6.28318530718
         #define ZACTUAL_IS_SCALED(_I) (zwobble_zLut[_I][1] < 0)

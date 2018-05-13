@@ -343,7 +343,7 @@
     // When homing Z with probe respect probe clearance
     const float bump = axis_home_dir * (
       #if HOMING_Z_WITH_PROBE
-        (axis == Z_AXIS) ? max(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
       #endif
       home_bump_mm[axis]
     );
@@ -372,7 +372,7 @@
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
           const bool lock_x1 = pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0);
-          float adj = FABS(endstops.x_endstop_adj);
+          float adj = ABS(endstops.x_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
           mechanics.do_homing_move(axis, adj);
@@ -383,7 +383,7 @@
       #if ENABLED(Y_TWO_ENDSTOPS)
         if (axis == Y_AXIS) {
           const bool lock_y1 = pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0);
-          float adj = FABS(endstops.y_endstop_adj);
+          float adj = ABS(endstops.y_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
           mechanics.do_homing_move(axis, adj);
@@ -394,7 +394,7 @@
       #if ENABLED(Z_TWO_ENDSTOPS)
         if (axis == Z_AXIS) {
           const bool lock_z1 = pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0);
-          float adj = FABS(endstops.z_endstop_adj);
+          float adj = ABS(endstops.z_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
           mechanics.do_homing_move(axis, adj);
@@ -446,7 +446,7 @@
       const float mlx = max_length[X_AXIS],
                   mly = max_length[Y_AXIS],
                   mlratio = mlx > mly ? mly / mlx : mlx / mly,
-                  fr_mm_s = min(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
+                  fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
         sensorless_homing_per_axis(X_AXIS);
