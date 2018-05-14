@@ -697,6 +697,9 @@
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
           print_job_counter.pause();
+          #if ENABLED(PARK_HEAD_ON_PAUSE)
+            commands.enqueue_and_echo_P(PSTR("M125"));
+          #endif
         }
         else {
           card.startFileprint();
