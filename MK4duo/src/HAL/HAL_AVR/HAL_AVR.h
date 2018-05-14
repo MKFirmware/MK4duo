@@ -207,20 +207,24 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 /* 18 cycles maximum latency */
 #define STEPPER_TIMER_ISR \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
-extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible)); \
+extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER1_COMPA_vect (void) { \
   __asm__ __volatile__ ( \
     A("push r16")                      /* 2 Save R16 */ \
     A("in r16, __SREG__")              /* 1 Get SREG */ \
     A("push r16")                      /* 2 Save SREG into stack */ \
     A("lds r16, %[timsk0]")            /* 2 Load into R0 the Temperature timer Interrupt mask register */ \
-    A("push r16")                      /* 2 Save it into the stack */ \
+    A("push r16")                      /* 2 Save TIMSK0 into the stack */ \
     A("andi r16,~%[msk0]")             /* 1 Disable the temperature ISR */ \
     A("sts %[timsk0], r16")            /* 2 And set the new value */ \
-    A("lds r16, %[timsk1]")            /* 2 Load into R0 the stepper timer Interrupt mask register */ \
+    A("lds r16, %[timsk1]")            /* 2 Load into R0 the stepper timer Interrupt mask register [TIMSK1] */ \
     A("andi r16,~%[msk1]")             /* 1 Disable the stepper ISR */ \
     A("sts %[timsk1], r16")            /* 2 And set the new value */ \
-    A("sei")                           /* 1 Enable global interrupts */    \
+    A("sei")                           /* 1 Enable global interrupts - stepper and temperature ISRs are disabled, so no risk of reentry or being preempted by the temperature ISR */    \
+    A("push r16")                      /* 2 Save TIMSK1 into stack */ \
+    A("in r16, 0x3B")                  /* 1 Get RAMPZ register */ \
+    A("push r16")                      /* 2 Save RAMPZ into stack */ \
+    A("in r16, 0x3C")                  /* 1 Get EIND register */ \
     A("push r0")                       /* C runtime can modify all the following registers without restoring them */ \
     A("push r1")                       \
     A("push r18")                      \
@@ -236,7 +240,7 @@ void TIMER1_COMPA_vect (void) { \
     A("push r30")                      \
     A("push r31")                      \
     A("clr r1")                        /* C runtime expects this register to be 0 */ \
-    A("call TIMER1_COMPA_vect_bottom") /* Call the bottom handler */   \
+    A("call TIMER1_COMPA_vect_bottom") /* Call the bottom handler - No inlining allowed, otherwise registers used are not saved */   \
     A("pop r31")                       \
     A("pop r30")                       \
     A("pop r27")                       \
@@ -251,14 +255,18 @@ void TIMER1_COMPA_vect (void) { \
     A("pop r18")                       \
     A("pop r1")                        \
     A("pop r0")                        \
-    A("cli")                           /* 1 Disable global interrupts */ \
-    A("ori r16,%[msk1]")               /* 2 Reenable the stepper ISR */ \
-    A("sts %[timsk1], r16")            /* 2 And restore the old value */ \
-    A("pop r16")                       /* 2 Get the temperature timer Interrupt mask register */ \
-    A("sts %[timsk0], r16")            /* 2 And restore the old value */ \
-    A("pop r16")                       /* 2 Get the old SREG */ \
+    A("out 0x3C, r16")                 /* 1 Restore EIND register */ \
+    A("pop r16")                       /* 2 Get the original RAMPZ register value */ \
+    A("out 0x3B, r16")                 /* 1 Restore RAMPZ register to its original value */ \
+    A("pop r16")                       /* 2 Get the original TIMSK1 value but with stepper ISR disabled */ \
+    A("ori r16,%[msk1]")               /* 1 Reenable the stepper ISR */ \
+    A("cli")                           /* 1 Disable global interrupts - Reenabling Stepper ISR can reenter amd temperature can reenter, and we want that, if it happens, after this ISR has ended */ \
+    A("sts %[timsk1], r16")            /* 2 And restore the old value - This reenables the stepper ISR */ \
+    A("pop r16")                       /* 2 Get the temperature timer Interrupt mask register [TIMSK0] */ \
+    A("sts %[timsk0], r16")            /* 2 And restore the old value - This reenables the temperature ISR */ \
+    A("pop r16")                       /* 2 Get the old SREG value */ \
     A("out __SREG__, r16")             /* 1 And restore the SREG value */ \
-    A("pop r16")                       /* 2 Restore R16 */ \
+    A("pop r16")                       /* 2 Restore R16 value */ \
     A("reti")                          /* 4 Return from interrupt */ \
     :                                   \
     : [timsk0] "i" ((uint16_t)&TIMSK0), \
@@ -273,7 +281,7 @@ void TIMER1_COMPA_vect_bottom(void)
 /* 14 cycles maximum latency */
 #define TEMP_TIMER_ISR \
 extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
-extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible)); \
+extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER0_COMPB_vect (void) { \
   __asm__ __volatile__ ( \
     A("push r16")                       /* 2 Save R16 */ \
@@ -282,7 +290,11 @@ void TIMER0_COMPB_vect (void) { \
     A("lds r16, %[timsk0]")             /* 2 Load into R0 the Temperature timer Interrupt mask register */ \
     A("andi r16,~%[msk0]")              /* 1 Disable the temperature ISR */ \
     A("sts %[timsk0], r16")             /* 2 And set the new value */ \
-    A("sei")                            /* 1 Enable global interrupts */    \
+    A("sei")                            /* 1 Enable global interrupts - It is safe, as the temperature ISR is disabled, so we cannot reenter it */    \
+    A("push r16")                       /* 2 Save TIMSK0 into stack */ \
+    A("in r16, 0x3B")                   /* 1 Get RAMPZ register */ \
+    A("push r16")                       /* 2 Save RAMPZ into stack */ \
+    A("in r16, 0x3C")                   /* 1 Get EIND register */ \
     A("push r0")                        /* C runtime can modify all the following registers without restoring them */ \
     A("push r1")                        \
     A("push r18")                       \
@@ -298,7 +310,7 @@ void TIMER0_COMPB_vect (void) { \
     A("push r30")                       \
     A("push r31")                       \
     A("clr r1")                         /* C runtime expects this register to be 0 */ \
-    A("call TIMER0_COMPB_vect_bottom")  /* Call the bottom handler */   \
+    A("call TIMER0_COMPB_vect_bottom")  /* Call the bottom handler - No inlining allowed, otherwise registers used are not saved */   \
     A("pop r31")                        \
     A("pop r30")                        \
     A("pop r27")                        \
@@ -313,8 +325,12 @@ void TIMER0_COMPB_vect (void) { \
     A("pop r18")                        \
     A("pop r1")                         \
     A("pop r0")                         \
-    A("cli")                            /* 1 Disable global interrupts */ \
-    A("ori r16,%[msk0]")                /* 2 Enable temperature ISR */ \
+    A("out 0x3C, r16")                  /* 1 Restore EIND register */ \
+    A("pop r16")                        /* 2 Get the original RAMPZ register value */ \
+    A("out 0x3B, r16")                  /* 1 Restore RAMPZ register to its original value */ \
+    A("pop r16")                        /* 2 Get the original TIMSK0 value but with temperature ISR disabled */ \
+    A("ori r16,%[msk0]")                /* 1 Enable temperature ISR */ \
+    A("cli")                            /* 1 Disable global interrupts - We must do this, as we will reenable the temperature ISR, and we don´t want to reenter this handler until the current one is done */ \
     A("sts %[timsk0], r16")             /* 2 And restore the old value */ \
     A("pop r16")                        /* 2 Get the old SREG */ \
     A("out __SREG__, r16")              /* 1 And restore the SREG value */ \
