@@ -113,9 +113,9 @@ const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-	Tc *tc = TimerConfig[timer_num].pTimerRegs;
-	IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
-	uint32_t channel = TimerConfig[timer_num].channel;
+  Tc *tc = TimerConfig[timer_num].pTimerRegs;
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  uint32_t channel = TimerConfig[timer_num].channel;
 
   // Disable interrupt, just in case it was already enabled
   NVIC_DisableIRQ(IRQn);
@@ -126,8 +126,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   // Stop timer, just in case, to be able to reconfigure it
   TC_Stop(tc, channel);
 
-	pmc_set_writeprotect(false);
-	pmc_enable_periph_clk((uint32_t)IRQn);
+  pmc_set_writeprotect(false);
+  pmc_enable_periph_clk((uint32_t)IRQn);
   NVIC_SetPriority(IRQn, TimerConfig[timer_num].priority);
 
   // wave mode, reset counter on match with RC,
@@ -143,7 +143,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
 
   // Finally, enable IRQ
-	NVIC_EnableIRQ(IRQn);
+  NVIC_EnableIRQ(IRQn);
+
 }
 
 /**
