@@ -120,19 +120,16 @@ extern const tTimerConfig TimerConfig[];
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
 FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-  Tc *tc = TimerConfig[timer_num].pTimerRegs;
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
   NVIC_EnableIRQ(IRQn);
 }
 
 FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
-  Tc *tc = TimerConfig[timer_num].pTimerRegs;
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
   NVIC_DisableIRQ(IRQn);
 }
 
 FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
-  Tc *tc = TimerConfig[timer_num].pTimerRegs;
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
   return (NVIC->ISER[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)));
 }
