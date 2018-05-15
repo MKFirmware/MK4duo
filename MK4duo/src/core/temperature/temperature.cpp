@@ -113,7 +113,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    stepper.move_watch.start(); // Keep steppers powered
+    printer.move_watch.start(); // Keep steppers powered
 
     const float temp = act->current_temperature;
 

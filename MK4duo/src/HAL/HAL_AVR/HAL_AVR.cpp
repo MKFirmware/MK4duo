@@ -265,17 +265,28 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
  *  - For PINS_DEBUGGING, monitor and report endstop pins
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
-TEMP_TIMER_ISR {
-
+HAL_TEMP_TIMER_ISR {
   if (!printer.isRunning()) return;
-
   TEMP_OCR += 64;
-
-  HAL_timer_isr_prologue(TEMP_TIMER);
-  
   HAL_temp_isr();
-  
-  HAL_timer_isr_epilogue(TEMP_TIMER);
+}
+
+/**
+ * Interrupt Service Routines
+ */
+HAL_STEPPER_TIMER_ISR {
+
+  // Set timer to maximum period
+  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
+
+  // Call the ISR
+  hal_timer_t ticks = stepper.Step();
+
+  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
+  NOLESS(ticks, minticks);
+
+  // Schedule next interrupt
+  HAL_timer_set_count(STEPPER_TIMER, ticks);
 
 }
 

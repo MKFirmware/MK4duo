@@ -34,7 +34,7 @@
  */
 inline void gcode_M18_M84(void) {
   if (parser.seenval('S')) {
-    stepper.move_watch.stopwatch = parser.value_millis_from_seconds();
+    printer.move_watch.stopwatch = parser.value_millis_from_seconds();
   }
   else {
     bool all_axis = !(parser.seen_axis());
@@ -43,11 +43,11 @@ inline void gcode_M18_M84(void) {
     }
     else {
       planner.synchronize();
-      if (parser.seen('X')) disable_X();
-      if (parser.seen('Y')) disable_Y();
-      if (parser.seen('Z')) disable_Z();
+      if (parser.seen('X')) stepper.disable_X();
+      if (parser.seen('Y')) stepper.disable_Y();
+      if (parser.seen('Z')) stepper.disable_Z();
       #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN // Only enable on boards that have seperate ENABLE_PINS
-        if (parser.seen('E')) stepper.disable_e_steppers();
+        if (parser.seen('E')) stepper.disable_E();
       #endif
     }
 

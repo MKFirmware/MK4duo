@@ -362,7 +362,7 @@
         return;
       }
 
-      #define LINE_SEGMENT_END(A) (mechanics.current_position[A ##_AXIS] + (mechanics.destination[A ##_AXIS] - mechanics.current_position[A ##_AXIS]) * normalized_dist)
+      #define LINE_SEGMENT_END(A) (mechanics.current_position[_AXIS(A)] + (mechanics.destination[_AXIS(A)] - mechanics.current_position[_AXIS(A)]) * normalized_dist)
 
       float normalized_dist, end[XYZE];
 

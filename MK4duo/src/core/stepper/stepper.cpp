@@ -69,8 +69,6 @@ uint16_t Stepper::direction_flag = 0;
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
-watch_t Stepper::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
-
 // private:
 
 uint8_t Stepper::last_direction_bits = 0;        // The next stepping-bits to be output
@@ -160,20 +158,20 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
   #define LOCKED_X2_MOTOR locked_x2_motor
   #define LOCKED_Y2_MOTOR locked_y2_motor
   #define LOCKED_Z2_MOTOR locked_z2_motor
-  #define TWO_ENDSTOP_APPLY_STEP(AXIS,v)                                                                                                           \
-    if (printer.isHoming()) {                                                                                                                        \
-      if (AXIS##_HOME_DIR < 0) {                                                                                                                    \
-        if (!(TEST(endstops.old_bits, AXIS##_MIN) && count_direction[AXIS##_AXIS] < 0) && !LOCKED_##AXIS##_MOTOR) AXIS##_STEP_WRITE(v);     \
-        if (!(TEST(endstops.old_bits, AXIS##2_MIN) && count_direction[AXIS##_AXIS] < 0) && !LOCKED_##AXIS##2_MOTOR) AXIS##2_STEP_WRITE(v);  \
-      }                                                                                                                                             \
-      else {                                                                                                                                        \
-        if (!(TEST(endstops.old_bits, AXIS##_MAX) && count_direction[AXIS##_AXIS] > 0) && !LOCKED_##AXIS##_MOTOR) AXIS##_STEP_WRITE(v);     \
-        if (!(TEST(endstops.old_bits, AXIS##2_MAX) && count_direction[AXIS##_AXIS] > 0) && !LOCKED_##AXIS##2_MOTOR) AXIS##2_STEP_WRITE(v);  \
-      }                                                                                                                                             \
-    }                                                                                                                                               \
-    else {                                                                                                                                          \
-      AXIS##_STEP_WRITE(v);                                                                                                                         \
-      AXIS##2_STEP_WRITE(v);                                                                                                                        \
+  #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                           \
+    if (printer.isHoming()) {                                                                                                   \
+      if (A##_HOME_DIR < 0) {                                                                                                   \
+        if (!(TEST(endstops.old_bits, A##_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
+        if (!(TEST(endstops.old_bits, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+      }                                                                                                                         \
+      else {                                                                                                                    \
+        if (!(TEST(endstops.old_bits, A##_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
+        if (!(TEST(endstops.old_bits, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+      }                                                                                                                         \
+    }                                                                                                                           \
+    else {                                                                                                                      \
+      A##_STEP_WRITE(V);                                                                                                        \
+      A##2_STEP_WRITE(V);                                                                                                       \
     }
 #endif
 
@@ -320,14 +318,14 @@ void Stepper::wake_up() { ENABLE_STEPPER_INTERRUPT(); }
  */
 void Stepper::set_directions() {
 
-  #define SET_STEP_DIR(AXIS) \
-    if (motor_direction(AXIS ##_AXIS)) { \
-      AXIS ##_APPLY_DIR(isStepDir(AXIS ##_AXIS), false); \
-      count_direction[AXIS ##_AXIS] = -1; \
-    } \
-    else { \
-      AXIS ##_APPLY_DIR(!isStepDir(AXIS ##_AXIS), false); \
-      count_direction[AXIS ##_AXIS] = 1; \
+  #define SET_STEP_DIR(A)                         \
+    if (motor_direction(_AXIS(A))) {              \
+      A##_APPLY_DIR(isStepDir(_AXIS(A)), false);  \
+      count_direction[_AXIS(A)] = -1;             \
+    }                                             \
+    else {                                        \
+      A##_APPLY_DIR(!isStepDir(_AXIS(A)), false); \
+      count_direction[_AXIS(A)] = 1;              \
     }
 
   #if HAS_X_DIR
@@ -1117,52 +1115,23 @@ void Stepper::set_directions() {
 #endif // BEZIER_JERK_CONTROL
 
 /**
- * Stepper Driver Interrupt
- *
- * Directly pulses the stepper motors at high frequency.
- *
- * AVR :
- * Timer 1 runs at a base frequency of 2MHz, with this ISR using OCR1A compare mode.
- *
- * OCR1A   Frequency
- *     1     2 MHz
- *    50    40 KHz
- *   100    20 KHz - capped max rate
- *   200    10 KHz - nominal max rate
- *  2000     1 KHz - sleep rate
- *  4000   500  Hz - init rate
+ * This is called by the interrupt service routine to execute steps.
  */
-STEPPER_TIMER_ISR {
 
-  HAL_timer_isr_prologue(STEPPER_TIMER);
-
-  // Call the ISR
-  hal_timer_t ticks = Stepper::isr();
-
-  // Program timer to fire an interrupt at the proper time
-  HAL_timer_set_count(STEPPER_TIMER, ticks);
-
-  // Make sure stepper ISR doesn't monopolize the CPU
-  HAL_timer_restricts(STEPPER_TIMER, STEPPER_TIMER_MIN_INTERVAL * STEPPER_TIMER_TICKS_PER_US);
-
-  HAL_timer_isr_epilogue(STEPPER_TIMER);
-
-}
-
-hal_timer_t Stepper::isr() {
+hal_timer_t Stepper::Step() {
 
   hal_timer_t interval;
 
   // Run main stepping pulse phase ISR
-  if (!nextMainISR) pulse_phase_isr();
+  if (!nextMainISR) pulse_phase_step();
 
   #if ENABLED(LIN_ADVANCE)
     // Run linear advance stepper ISR
-    if (!nextAdvanceISR) nextAdvanceISR = lin_advance_isr();
+    if (!nextAdvanceISR) nextAdvanceISR = lin_advance_step();
   #endif
 
   // Run main stepping block phase ISR
-  if (!nextMainISR) nextMainISR = block_phase_isr();
+  if (!nextMainISR) nextMainISR = block_phase_step();
 
   #if ENABLED(LIN_ADVANCE)
     // Select the closest interval in time
@@ -1191,7 +1160,7 @@ hal_timer_t Stepper::isr() {
 
 }
 
-void Stepper::pulse_phase_isr() {
+void Stepper::pulse_phase_step() {
 
   // If there is no current block, do nothing
   if (!current_block) return;
@@ -1394,7 +1363,7 @@ void Stepper::pulse_phase_isr() {
 
 }
 
-uint32_t Stepper::block_phase_isr() {
+uint32_t Stepper::block_phase_step() {
 
   // If no queued movements, just wait 1ms for the next move
   hal_timer_t interval = (HAL_TIMER_RATE / 1000);
@@ -1654,7 +1623,7 @@ uint32_t Stepper::block_phase_isr() {
   #define EXTRA_CYCLES_E (STEPPER_PULSE_CYCLES - (CYCLES_EATEN_E))
 
   // Timer interrupt for E. e_steps is set in the main routine;
-  uint32_t Stepper::lin_advance_isr() {
+  uint32_t Stepper::lin_advance_step() {
 
     hal_timer_t interval;
 
@@ -2113,14 +2082,87 @@ int32_t Stepper::position(const AxisEnum axis) {
   return machine_pos;
 }
 
-void Stepper::enable_all_steppers() {
-  #if HAS_POWER_SWITCH
-    powerManager.power_on();
+/**
+ * Enabled or Disable one axis or all stepper driver
+ */
+void Stepper::enable_X() {
+  #if HAS_X2_ENABLE
+    X_ENABLE_WRITE( X_ENABLE_ON);
+    X2_ENABLE_WRITE(X_ENABLE_ON);
+  #elif HAS_X_ENABLE
+    X_ENABLE_WRITE(X_ENABLE_ON);
   #endif
+}
+void Stepper::disable_X() {
+  #if HAS_X2_ENABLE
+    X_ENABLE_WRITE( !X_ENABLE_ON);
+    X2_ENABLE_WRITE(!X_ENABLE_ON);
+    printer.setXHomed(false);
+  #elif HAS_X_ENABLE
+    X_ENABLE_WRITE(!X_ENABLE_ON);
+    printer.setXHomed(false);
+  #endif
+}
 
-  enable_X();
-  enable_Y();
-  enable_Z();
+void Stepper::enable_Y() {
+  #if HAS_Y2_ENABLE
+    Y_ENABLE_WRITE( Y_ENABLE_ON);
+    Y2_ENABLE_WRITE(Y_ENABLE_ON);
+  #elif HAS_Y_ENABLE
+    Y_ENABLE_WRITE(Y_ENABLE_ON);
+  #endif
+}
+void Stepper::disable_Y() {
+  #if HAS_Y2_ENABLE
+    Y_ENABLE_WRITE( !Y_ENABLE_ON);
+    y2_ENABLE_WRITE(!Y_ENABLE_ON);
+    printer.setYHomed(false);
+  #elif HAS_Y_ENABLE
+    Y_ENABLE_WRITE(!Y_ENABLE_ON);
+    printer.setYHomed(false);
+  #endif
+}
+
+void Stepper::enable_Z() {
+  #if HAS_Z4_ENABLE
+    Z_ENABLE_WRITE( Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(Z_ENABLE_ON);
+    Z3_ENABLE_WRITE(Z_ENABLE_ON);
+    Z4_ENABLE_WRITE(Z_ENABLE_ON);
+  #elif HAS_Z3_ENABLE
+    Z_ENABLE_WRITE( Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(Z_ENABLE_ON);
+    Z3_ENABLE_WRITE(Z_ENABLE_ON);
+  #elif HAS_Z2_ENABLE
+    Z_ENABLE_WRITE( Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(Z_ENABLE_ON);
+  #elif HAS_Z_ENABLE
+    Z_ENABLE_WRITE( Z_ENABLE_ON);
+  #endif
+}
+void Stepper::disable_Z() {
+  #if HAS_Z4_ENABLE
+    Z_ENABLE_WRITE( !Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(!Z_ENABLE_ON);
+    Z3_ENABLE_WRITE(!Z_ENABLE_ON);
+    Z4_ENABLE_WRITE(!Z_ENABLE_ON);
+    printer.setZHomed(false);
+  #elif HAS_Z3_ENABLE
+    Z_ENABLE_WRITE( !Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(!Z_ENABLE_ON);
+    Z3_ENABLE_WRITE(!Z_ENABLE_ON);
+    printer.setZHomed(false);
+  #elif HAS_Z2_ENABLE
+    Z_ENABLE_WRITE( !Z_ENABLE_ON);
+    Z2_ENABLE_WRITE(!Z_ENABLE_ON);
+    printer.setZHomed(false);
+  #elif HAS_Z_ENABLE
+    Z_ENABLE_WRITE( !Z_ENABLE_ON);
+    printer.setZHomed(false);
+  #endif
+}
+
+void Stepper::enable_E() {
   enable_E0();
   enable_E1();
   enable_E2();
@@ -2128,26 +2170,111 @@ void Stepper::enable_all_steppers() {
   enable_E4();
   enable_E5();
 }
-
-void Stepper::disable_e_steppers() {
-  // Disable extruders steppers (only on boards that have separate ENABLE_PINS)
-  #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
-    disable_E0();
-    disable_E1();
-    disable_E2();
-    disable_E3();
-    disable_E4();
-    disable_E5();
-  #endif
+void Stepper::disable_E() {
+  disable_E0();
+  disable_E1();
+  disable_E2();
+  disable_E3();
+  disable_E4();
+  disable_E5();
 }
 
-void Stepper::disable_all_steppers() {
+void Stepper::enable_all() {
+  #if HAS_POWER_SWITCH
+    powerManager.power_on();
+  #endif
+  enable_X();
+  enable_Y();
+  enable_Z();
+  enable_E();
+}
+
+void Stepper::disable_all() {
   disable_X();
   disable_Y();
   disable_Z();
-  disable_e_steppers();
+  disable_E();
 }
 
+void Stepper::enable_E0() {
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #if MIXING_STEPPERS > 5
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+      E2_ENABLE_WRITE(E_ENABLE_ON);
+      E3_ENABLE_WRITE(E_ENABLE_ON);
+      E4_ENABLE_WRITE(E_ENABLE_ON);
+      E5_ENABLE_WRITE(E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 4
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+      E2_ENABLE_WRITE(E_ENABLE_ON);
+      E3_ENABLE_WRITE(E_ENABLE_ON);
+      E4_ENABLE_WRITE(E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 3
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+      E2_ENABLE_WRITE(E_ENABLE_ON);
+      E3_ENABLE_WRITE(E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 2
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+      E2_ENABLE_WRITE(E_ENABLE_ON);
+    #else
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+
+  #else // !COLOR_MIXING_EXTRUDER
+
+    #if (DRIVER_EXTRUDERS > 0) && HAS_E0_ENABLE
+      E0_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+
+  #endif
+
+}
+void Stepper::disable_E0() {
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #if MIXING_STEPPERS > 5
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+      E2_ENABLE_WRITE(!E_ENABLE_ON);
+      E3_ENABLE_WRITE(!E_ENABLE_ON);
+      E4_ENABLE_WRITE(!E_ENABLE_ON);
+      E5_ENABLE_WRITE(!E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 4
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+      E2_ENABLE_WRITE(!E_ENABLE_ON);
+      E3_ENABLE_WRITE(!E_ENABLE_ON);
+      E4_ENABLE_WRITE(!E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 3
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+      E2_ENABLE_WRITE(!E_ENABLE_ON);
+      E3_ENABLE_WRITE(!E_ENABLE_ON);
+    #elif MIXING_STEPPERS > 2
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+      E2_ENABLE_WRITE(!E_ENABLE_ON);
+    #else
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+
+  #else // !COLOR_MIXING_EXTRUDER
+
+    #if (DRIVER_EXTRUDERS > 0) && HAS_E0_ENABLE
+      E0_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+
+  #endif
+}
+
+/**
+ * Quickly stop all steppers and clear the blocks queue
+ */
 void Stepper::quick_stop() {
 
   // Disable stepper ISR
@@ -2164,6 +2291,9 @@ void Stepper::quick_stop() {
 
 }
 
+/**
+ * Kill current block
+ */
 void Stepper::kill_current_block() {
 
   // Disable stepper ISR

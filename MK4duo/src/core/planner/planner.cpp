@@ -990,16 +990,16 @@ void Planner::check_axes_activity() {
   }
 
   #if DISABLE_X
-    if (!axis_active[X_AXIS]) disable_X();
+    if (!axis_active[X_AXIS]) stepper.disable_X();
   #endif
   #if DISABLE_Y
-    if (!axis_active[Y_AXIS]) disable_Y();
+    if (!axis_active[Y_AXIS]) stepper.disable_Y();
   #endif
   #if DISABLE_Z
-    if (!axis_active[Z_AXIS]) disable_Z();
+    if (!axis_active[Z_AXIS]) stepper.disable_Z();
   #endif
   #if DISABLE_E
-    if (!axis_active[E_AXIS]) stepper.disable_e_steppers();
+    if (!axis_active[E_AXIS]) stepper.disable_E();
   #endif
 
   #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
@@ -1108,7 +1108,7 @@ void Planner::synchronize() {
 
 void Planner::finish_and_disable() {
   synchronize();
-  stepper.disable_all_steppers();
+  stepper.disable_all();
 }
 
 /**
@@ -1333,29 +1333,29 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // Enable active axes
   #if CORE_IS_XY
     if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
-      enable_X();
-      enable_Y();
+      stepper.enable_X();
+      stepper.enable_Y();
     }
     #if DISABLED(Z_LATE_ENABLE)
-      if (block->steps[Z_AXIS]) enable_Z();
+      if (block->steps[Z_AXIS]) stepper.enable_Z();
     #endif
   #elif CORE_IS_XZ
     if (block->steps[A_AXIS] || block->steps[C_AXIS]) {
-      enable_X();
-      enable_Z();
+      stepper.enable_X();
+      stepper.enable_Z();
     }
-    if (block->steps[Y_AXIS]) enable_Y();
+    if (block->steps[Y_AXIS]) stepper.enable_Y();
   #elif CORE_IS_YZ
     if (block->steps[B_AXIS] || block->steps[C_AXIS]) {
-      enable_Y();
-      enable_Z();
+      stepper.enable_Y();
+      stepper.enable_Z();
     }
-    if (block->steps[X_AXIS]) enable_X();
+    if (block->steps[X_AXIS]) stepper.enable_X();
   #else
-    if (block->steps[X_AXIS]) enable_X();
-    if (block->steps[Y_AXIS]) enable_Y();
+    if (block->steps[X_AXIS]) stepper.enable_X();
+    if (block->steps[Y_AXIS]) stepper.enable_Y();
     #if DISABLED(Z_LATE_ENABLE)
-      if (block->steps[Z_AXIS]) enable_Z();
+      if (block->steps[Z_AXIS]) stepper.enable_Z();
     #endif
   #endif
 
@@ -1376,97 +1376,97 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         switch(extruder) {
           case 0:
             #if EXTRUDERS > 1
-              if (!g_uc_extruder_last_move[1]) disable_E1();
+              if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
               #if EXTRUDERS > 2
-                if (!g_uc_extruder_last_move[2]) disable_E2();
+                if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
                 #if EXTRUDERS > 3
-                  if (!g_uc_extruder_last_move[3]) disable_E3();
+                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
                   #if EXTRUDERS > 4
-                    if (!g_uc_extruder_last_move[4]) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
                     #if EXTRUDERS > 5
-                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
                 #endif
               #endif
             #endif
-            enable_E0();
+            stepper.enable_E0();
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
               if (extruder_duplication_enabled) {
-                enable_E1();
+                stepper.enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }
             #endif
           break;
           #if EXTRUDERS > 1
             case 1:
-              if (!g_uc_extruder_last_move[0]) disable_E0();
+              if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
               #if EXTRUDERS > 2
-                if (!g_uc_extruder_last_move[2]) disable_E2();
+                if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
                 #if EXTRUDERS > 3
-                  if (!g_uc_extruder_last_move[3]) disable_E3();
+                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
                   #if EXTRUDERS > 4
-                    if (!g_uc_extruder_last_move[4]) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
                     #if EXTRUDERS > 5
-                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
                 #endif
               #endif
-              enable_E1();
+              stepper.enable_E1();
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
             break;
             #if EXTRUDERS > 2
               case 2:
-                if (!g_uc_extruder_last_move[0]) disable_E0();
-                if (!g_uc_extruder_last_move[1]) disable_E1();
+                if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
+                if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
                 #if EXTRUDERS > 3
-                  if (!g_uc_extruder_last_move[3]) disable_E3();
+                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
                   #if EXTRUDERS > 4
-                    if (!g_uc_extruder_last_move[4]) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
                     #if EXTRUDERS > 5
-                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
                 #endif
-                enable_E2();
+                stepper.enable_E2();
                 g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
               break;
               #if EXTRUDERS > 3
                 case 3:
-                  if (!g_uc_extruder_last_move[0]) disable_E0();
-                  if (!g_uc_extruder_last_move[1]) disable_E1();
-                  if (!g_uc_extruder_last_move[2]) disable_E2();
+                  if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
+                  if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
+                  if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
                   #if EXTRUDERS > 4
-                    if (!g_uc_extruder_last_move[4]) disable_E4();
+                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
                     #if EXTRUDERS > 5
-                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
-                  enable_E3();
+                  stepper.enable_E3();
                   g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
                 break;
                 #if EXTRUDERS > 4
                   case 4:
-                    if (!g_uc_extruder_last_move[0]) disable_E0();
-                    if (!g_uc_extruder_last_move[1]) disable_E1();
-                    if (!g_uc_extruder_last_move[2]) disable_E2();
-                    if (!g_uc_extruder_last_move[3]) disable_E3();
+                    if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
+                    if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
+                    if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
+                    if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
                     #if EXTRUDERS > 5
-                      if (!g_uc_extruder_last_move[5]) disable_E5();
+                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
-                    enable_E4();
+                    stepper.enable_E4();
                     g_uc_extruder_last_move[4] = (BLOCK_BUFFER_SIZE) * 2;
                   break;
                   #if EXTRUDERS > 5
                     case 4:
-                      if (!g_uc_extruder_last_move[0]) disable_E0();
-                      if (!g_uc_extruder_last_move[1]) disable_E1();
-                      if (!g_uc_extruder_last_move[2]) disable_E2();
-                      if (!g_uc_extruder_last_move[3]) disable_E3();
-                      if (!g_uc_extruder_last_move[4]) disable_E4();
-                      enable_E5();
+                      if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
+                      if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
+                      if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
+                      if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
+                      if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
+                      stepper.enable_E5();
                       g_uc_extruder_last_move[5] = (BLOCK_BUFFER_SIZE) * 2;
                     break;
                   #endif // EXTRUDERS > 5
@@ -1476,24 +1476,19 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           #endif // EXTRUDERS > 1
         }
       #else // enable all
-        enable_E0();
-        enable_E1();
-        enable_E2();
-        enable_E3();
-        enable_E4();
-        enable_E5();
+        stepper.enable_E();
       #endif
     #elif ENABLED(MKR6)
       switch(extruder) {
         case 0:
         case 1:
         case 2:
-          enable_E0();
+          stepper.enable_E0();
           break;
         case 3:
         case 4:
         case 5:
-          enable_E1();
+          stepper.enable_E1();
           break;
       }
     #elif ENABLED(MKR12)
@@ -1501,43 +1496,43 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         case 0:
         case 1:
         case 2:
-          enable_E0();
+          stepper.enable_E0();
           break;
         case 3:
         case 4:
         case 5:
-          enable_E1();
+          stepper.enable_E1();
           break;
         case 6:
         case 7:
         case 8:
-          enable_E2();
+          stepper.enable_E2();
           break;
         case 9:
         case 10:
         case 11:
-          enable_E3();
+          stepper.enable_E3();
           break;
       }
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
-      enable_E0();
+      stepper.enable_E0();
     #elif ENABLED(MKR4)
       switch(extruder) {
         case 0:
-          enable_E0();
+          stepper.enable_E0();
         break;
         case 1:
-          enable_E1();
+          stepper.enable_E1();
         break;
         case 2:
-          enable_E0();
+          stepper.enable_E0();
         break;
         case 3:
-          enable_E1();
+          stepper.enable_E1();
         break;
       }
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
-      enable_E0();
+      stepper.enable_E0();
     #endif
   }
 

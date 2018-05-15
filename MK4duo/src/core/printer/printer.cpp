@@ -43,7 +43,8 @@ char    Printer::printName[21] = "";   // max. 20 chars + 0
 uint8_t Printer::progress = 0;
 
 // Inactivity shutdown
-watch_t Printer::max_inactivity_watch;
+watch_t Printer::max_inactivity_watch,
+        Printer::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   watch_t Printer::host_keepalive_watch(DEFAULT_KEEPALIVE_INTERVAL * 1000UL);
@@ -434,6 +435,13 @@ void Printer::bracket_probe_move(const bool before) {
 void Printer::setup_for_endstop_or_probe_move()       { bracket_probe_move(true); }
 void Printer::clean_up_after_endstop_or_probe_move()  { bracket_probe_move(false); }
 
+void Printer::quickstop_stepper() {
+  planner.quick_stop();
+  planner.synchronize();
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.sync_plan_position_mech_specific();
+}
+
 /**
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
@@ -442,7 +450,7 @@ void Printer::kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
   thermalManager.disable_all_heaters();
-  stepper.disable_all_steppers();
+  stepper.disable_all();
 
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
@@ -486,13 +494,6 @@ void Printer::kill(const char* lcd_msg) {
 
   while(1) { watchdog.reset(); } // Wait for reset
 
-}
-
-void Printer::quickstop_stepper() {
-  planner.quick_stop();
-  planner.synchronize();
-  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-  mechanics.sync_plan_position_mech_specific();
 }
 
 /**
@@ -599,21 +600,21 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     #define MOVE_AWAY_TEST true
   #endif
 
-  if (stepper.move_watch.stopwatch) {
+  if (move_watch.stopwatch) {
     if (planner.has_blocks_queued())
-      stepper.move_watch.start(); // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && stepper.move_watch.elapsed()) {
+      move_watch.start(); // reset stepper move watch to keep steppers powered
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_watch.elapsed()) {
       #if ENABLED(DISABLE_INACTIVE_X)
-        disable_X();
+        stepper.disable_X();
       #endif
       #if ENABLED(DISABLE_INACTIVE_Y)
-        disable_Y();
+        stepper.disable_Y();
       #endif
       #if ENABLED(DISABLE_INACTIVE_Z)
-        disable_Z();
+        stepper.disable_Z();
       #endif
       #if ENABLED(DISABLE_INACTIVE_E)
-        stepper.disable_e_steppers();
+        stepper.disable_E();
       #endif
       #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
         if (ubl.lcd_map_control) ubl.lcd_map_control = defer_return_to_status = false;

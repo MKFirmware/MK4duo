@@ -37,7 +37,7 @@
 #define ABC       3
 #define XYZ       3
 
-#define _AXIS(AXIS) AXIS ##_AXIS
+#define _AXIS(A)  (A##_AXIS)
 
 // Function macro
 #define _FORCE_INLINE_  __attribute__((__always_inline__)) __inline__

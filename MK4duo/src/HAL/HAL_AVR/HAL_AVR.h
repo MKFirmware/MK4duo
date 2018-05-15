@@ -155,8 +155,9 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 
 #define STEPPER_TIMER_PRESCALE      8
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
-#define STEPPER_TIMER_MIN_INTERVAL  8                                         // minimum time in µs between stepper interrupts
-#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US) // Stepper pulse duration, in cycles
+#define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
+#define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
+#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)                 // Stepper pulse duration, in cycles
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
@@ -195,17 +196,8 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 
-/**
- * On AVR there is no hardware prioritization and preemption of
- * interrupts, so this emulates it. The UART has first priority
- * (otherwise, characters will be lost due to UART overflow).
- * Then: Stepper, Endstops, Temperature, and -finally- all others.
- */
-#define HAL_timer_isr_prologue(TIMER_NUM)
-#define HAL_timer_isr_epilogue(TIMER_NUM)
-
 /* 18 cycles maximum latency */
-#define STEPPER_TIMER_ISR \
+#define HAL_STEPPER_TIMER_ISR \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER1_COMPA_vect (void) { \
@@ -279,7 +271,7 @@ void TIMER1_COMPA_vect (void) { \
 void TIMER1_COMPA_vect_bottom(void)
 
 /* 14 cycles maximum latency */
-#define TEMP_TIMER_ISR \
+#define HAL_TEMP_TIMER_ISR \
 extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER0_COMPB_vect (void) { \

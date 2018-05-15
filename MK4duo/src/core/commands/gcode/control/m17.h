@@ -33,5 +33,5 @@
  */
 inline void gcode_M17(void) {
   LCD_MESSAGEPGM(MSG_NO_MOVE);
-  stepper.enable_all_steppers();
+  stepper.enable_all();
 }

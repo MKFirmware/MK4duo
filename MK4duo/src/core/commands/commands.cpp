@@ -624,7 +624,7 @@ void Commands::process_next() {
 
   printer.keepalive(InHandler);
 
-  stepper.move_watch.start(); // Keep steppers powered
+  printer.move_watch.start(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
   parser.parse(current_command);
